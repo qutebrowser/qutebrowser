@@ -20,7 +20,6 @@
 """Tests for qutebrowser.utils.jinja."""
 
 import os.path
-import unittest.mock
 
 from qutebrowser.utils import jinja
 
@@ -33,20 +32,22 @@ def _read_file(path):
         raise ValueError("Invalid path {}!".format(path))
 
 
-@unittest.mock.patch('qutebrowser.utils.jinja.utils.read_file')
 class JinjaTests(object):
 
     """Tests for getting template via jinja."""
 
-    def test_simple_template(self, readfile_mock):
+    def test_simple_template(self, monkeypatch):
         """Test with a simple template."""
-        readfile_mock.side_effect = _read_file
+        monkeypatch.setattr(
+            'qutebrowser.utils.jinja.utils.read_file',
+            _read_file
+        )
         template = jinja.env.get_template('test.html')
         # https://bitbucket.org/logilab/pylint/issue/490/
         data = template.render(var='World')  # pylint: disable=no-member
         assert data == "Hello World"
 
-    def test_utf8(self, readfile_mock):
+    def test_utf8(self, monkeypatch):
         """Test rendering with an UTF8 template.
 
         This was an attempt to get a failing test case for #127 but it seems
@@ -54,7 +55,10 @@ class JinjaTests(object):
 
         https://github.com/The-Compiler/qutebrowser/issues/127
         """
-        readfile_mock.side_effect = _read_file
+        monkeypatch.setattr(
+            'qutebrowser.utils.jinja.utils.read_file',
+            _read_file
+        )
         template = jinja.env.get_template('test.html')
         # https://bitbucket.org/logilab/pylint/issue/490/
         data = template.render(var='\u2603')  # pylint: disable=no-member
