@@ -89,7 +89,8 @@ def main(colors=False):
                         metavar=('PYTHON', 'ASCIIDOC'))
     args = parser.parse_args()
     asciidoc_files = [
-        ('doc/FAQ.asciidoc', 'qutebrowser/html/doc/FAQ.html'),
+        ('FAQ.asciidoc', 'qutebrowser/html/doc/FAQ.html'),
+        ('CHANGELOG.asciidoc', 'qutebrowser/html/doc/CHANGELOG.html'),
         ('doc/quickstart.asciidoc', 'qutebrowser/html/doc/quickstart.html'),
         ('doc/userscripts.asciidoc', 'qutebrowser/html/doc/userscripts.html'),
     ]
