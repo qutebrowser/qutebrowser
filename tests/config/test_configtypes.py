@@ -1152,7 +1152,12 @@ class TestFont:
         'italic green "Foobar Neue"',
         'bold bold "Foobar Neue"',
         'bold italic "Foobar Neue"',
-        '10pt 20px "Foobar Neue"'
+        '10pt 20px "Foobar Neue"',
+        'bold',
+        'italic',
+        'green',
+        '10pt',
+        '10pt ""',
     ]
 
     @pytest.fixture(autouse=True)
