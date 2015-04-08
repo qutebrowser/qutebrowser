@@ -81,8 +81,8 @@ class TestSerializeHistory:
 
     def test_userdata(self):
         """Check if all user data has been restored to self.user_data."""
-        for item, user_data in zip(self.ITEMS, self.user_data):
-            assert user_data == item.user_data
+        userdata_items = [item.user_data for item in self.ITEMS]
+        assert userdata_items == self.user_data
 
     def test_currentitem(self):
         """Check if the current item index was loaded correctly."""
