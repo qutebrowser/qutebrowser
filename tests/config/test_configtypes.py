@@ -337,12 +337,9 @@ class TestBool:
     def setup(self):
         self.t = configtypes.Bool()
 
-    _ALL_FORMS = []
-    for out, inputs in TESTS.items():
-        for inp in inputs:
-            _ALL_FORMS.append((out, inp))
-
-    @pytest.mark.parametrize('out, inp', _ALL_FORMS)
+    @pytest.mark.parametrize('out, inp',
+                             [(out, inp) for out, inputs in TESTS.items() for
+                              inp in inputs])
     def test_transform(self, out, inp):
         """Test transform with all values."""
         assert self.t.transform(inp) == out
