@@ -328,6 +328,9 @@ class TestBool:
 
     """Test Bool."""
 
+    # https://bitbucket.org/logilab/pylint/issue/511/
+    # pylint: disable=undefined-variable
+
     TESTS = {True: ['1', 'yes', 'YES', 'true', 'TrUe', 'on'],
              False: ['0', 'no', 'NO', 'false', 'FaLsE', 'off']}
 
