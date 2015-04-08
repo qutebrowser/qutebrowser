@@ -20,7 +20,6 @@
 """Tests for qutebrowser.utils.jinja."""
 
 import os.path
-import unittest
 import unittest.mock
 
 from qutebrowser.utils import jinja
@@ -35,7 +34,7 @@ def _read_file(path):
 
 
 @unittest.mock.patch('qutebrowser.utils.jinja.utils.read_file')
-class JinjaTests(unittest.TestCase):
+class JinjaTests(object):
 
     """Tests for getting template via jinja."""
 
@@ -45,7 +44,7 @@ class JinjaTests(unittest.TestCase):
         template = jinja.env.get_template('test.html')
         # https://bitbucket.org/logilab/pylint/issue/490/
         data = template.render(var='World')  # pylint: disable=no-member
-        self.assertEqual(data, "Hello World")
+        assert data == "Hello World"
 
     def test_utf8(self, readfile_mock):
         """Test rendering with an UTF8 template.
@@ -59,8 +58,4 @@ class JinjaTests(unittest.TestCase):
         template = jinja.env.get_template('test.html')
         # https://bitbucket.org/logilab/pylint/issue/490/
         data = template.render(var='\u2603')  # pylint: disable=no-member
-        self.assertEqual(data, "Hello \u2603")
-
-
-if __name__ == '__main__':
-    unittest.main()
+        assert data == "Hello \u2603"
