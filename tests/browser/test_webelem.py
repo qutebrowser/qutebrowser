@@ -377,12 +377,12 @@ class TestIsEditable:
         yield
         webelem.config = old_config
 
-    @pytest.yield_fixture
-    def stub_config(self, stubs):
+    @pytest.fixture
+    def stub_config(self, stubs, mocker):
         """Fixture to create a config stub with an input section."""
         config = stubs.ConfigStub({'input': {}})
-        with mock.patch('qutebrowser.browser.webelem.config', new=config):
-            yield config
+        mocker.patch('qutebrowser.browser.webelem.config', new=config)
+        return config
 
     def test_input_plain(self):
         """Test with plain input element."""
