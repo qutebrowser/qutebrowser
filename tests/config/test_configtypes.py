@@ -84,21 +84,21 @@ class TestValidValues:
         """Test __contains__ without a description."""
         vv = configtypes.ValidValues('foo', 'bar')
         assert 'foo' in vv
-        assert "baz" not in vv
+        assert 'baz' not in vv
 
     def test_contains_with_desc(self):
         """Test __contains__ with a description."""
         vv = configtypes.ValidValues(('foo', "foo desc"), ('bar', "bar desc"))
         assert 'foo' in vv
         assert 'bar' in vv
-        assert "baz" not in vv
+        assert 'baz' not in vv
 
     def test_contains_mixed_desc(self):
         """Test __contains__ with mixed description."""
         vv = configtypes.ValidValues(('foo', "foo desc"), 'bar')
         assert 'foo' in vv
         assert 'bar' in vv
-        assert "baz" not in vv
+        assert 'baz' not in vv
 
     def test_iter_without_desc(self):
         """Test __iter__ without a description."""
