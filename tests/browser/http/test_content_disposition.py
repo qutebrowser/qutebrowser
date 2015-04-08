@@ -76,7 +76,7 @@ class _HeaderChecker(object):
 
 @pytest.fixture
 def header_checker(caplog, stubs):
-    """Fixture that provides a _AttachmentChecker class for tests"""
+    """Fixture that provides a _HeaderChecker class for tests"""
     return _HeaderChecker(caplog, stubs)
 
 
@@ -160,7 +160,7 @@ class TestAttachment:
         """'ATTACHMENT' only
 
         UA should offer to download the resource.
-       """
+        """
         header_checker.check_unnamed('ATTACHMENT')
 
     def test_attwithasciifilename(self, header_checker):
