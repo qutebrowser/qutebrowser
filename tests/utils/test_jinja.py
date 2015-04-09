@@ -28,8 +28,9 @@ from qutebrowser.utils import jinja
 
 @pytest.fixture(autouse=True)
 def patch_read_file(monkeypatch):
+    """pytest fixture to patch utils.read_file."""
     def _read_file(path):
-        """Mocked utils.read_file."""
+        """A read_file which returns a simple template if the path is right."""
         if path == os.path.join('html', 'test.html'):
             return """Hello {{var}}"""
         else:
