@@ -18,6 +18,7 @@
 # along with qutebrowser.  If not, see <http://www.gnu.org/licenses/>.
 
 """Tests for qutebrowser.misc.split."""
+import collections
 
 import pytest
 
@@ -29,7 +30,7 @@ from qutebrowser.misc import split
 
 # Format: input/split|output|without|keep/split|output|with|keep/
 
-test_data = r"""
+test_data_str = r"""
 one two/one|two/one| two/
 one "two three" four/one|two three|four/one| "two three"| four/
 one 'two three' four/one|two three|four/one| 'two three'| four/
@@ -103,36 +104,53 @@ foo\ bar/foo bar/foo\ bar/
 áéíóú/áéíóú/áéíóú/
 """
 
-test_data_lines = test_data.strip().splitlines()
+
+def _parse_split_test_data_str():
+    """
+    Parse the test data set into a namedtuple to use in tests.
+
+    Returns:
+        A list of namedtuples with str attributes: input, keep, no_keep
+    """
+    tuple_class = collections.namedtuple('TestCase', 'input, keep, no_keep')
+
+    result = []
+    for line in test_data_str.splitlines():
+        if not line:
+            continue
+        data = line.split('/')
+        item = tuple_class(input=data[0], keep=data[1].split('|'),
+                           no_keep=data[2].split('|'))
+        result.append(item)
+    return result
 
 
 class TestSplit:
 
     """Test split."""
 
-    @pytest.mark.parametrize('cmd, out',
-                             [case.split('/')[:-2]
-                              for case in test_data_lines])
-    def test_split(self, cmd, out):
+    @pytest.fixture(params=_parse_split_test_data_str())
+    def split_test_case(self, request):
+        """
+        Fixture that will automatically parametrize all tests the depend on it
+        using the parsed test case data.
+        """
+        return request.param
+
+    def test_split(self, split_test_case):
         """Test splitting."""
-        items = split.split(cmd)
-        assert items == out.split('|')
+        items = split.split(split_test_case.input)
+        assert items == split_test_case.keep
 
-    @pytest.mark.parametrize('cmd',
-                             [case.split('/')[0]
-                              for case in test_data_lines])
-    def test_split_keep_original(self, cmd):
+    def test_split_keep_original(self, split_test_case):
         """Test if splitting with keep=True yields the original string."""
-        items = split.split(cmd, keep=True)
-        assert ''.join(items) == cmd
+        items = split.split(split_test_case.input, keep=True)
+        assert ''.join(items) == split_test_case.input
 
-    @pytest.mark.parametrize('cmd, _mid, out',
-                             [case.split('/')[:-1]
-                              for case in test_data_lines])
-    def test_split_keep(self, cmd, _mid, out):
+    def test_split_keep(self, split_test_case):
         """Test splitting with keep=True."""
-        items = split.split(cmd, keep=True)
-        assert items == out.split('|')
+        items = split.split(split_test_case.input, keep=True)
+        assert items == split_test_case.no_keep
 
 
 class TestSimpleSplit:
