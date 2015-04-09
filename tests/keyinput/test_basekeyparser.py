@@ -69,6 +69,7 @@ class TestSplitCount:
     """
 
     TESTS = [
+        # (input_key, supports_count, expected)
         ('10', True, (10, '')),
         ('10foo', True, (10, 'foo')),
         ('-1foo', True, (None, '-1foo')),
