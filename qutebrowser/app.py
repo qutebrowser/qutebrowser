@@ -33,7 +33,7 @@ import faulthandler
 import json
 
 from PyQt5.QtWidgets import QApplication, QDialog, QMessageBox
-from PyQt5.QtGui import QDesktopServices, QPixmap, QIcon
+from PyQt5.QtGui import QDesktopServices, QPixmap, QIcon, QCursor
 from PyQt5.QtCore import (pyqtSlot, qInstallMessageHandler, QTimer, QUrl,
                           QObject, Qt, QSocketNotifier)
 try:
@@ -210,6 +210,19 @@ class Application(QApplication):
         objreg.register('cache', diskcache)
         log.init.debug("Initializing completions...")
         completionmodels.init()
+        log.init.debug("Misc initialization...")
+        self.maybe_hide_mouse_cursor()
+        objreg.get('config').changed.connect(self.maybe_hide_mouse_cursor)
+
+    @config.change_filter('ui', 'hide-mouse-cursor')
+    def maybe_hide_mouse_cursor(self):
+        """Hide the mouse cursor if it isn't yet and it's configured."""
+        if config.get('ui', 'hide-mouse-cursor'):
+            if self.overrideCursor() is not None:
+                return
+            self.setOverrideCursor(QCursor(Qt.BlankCursor))
+        else:
+            self.restoreOverrideCursor()
 
     def _init_icon(self):
         """Initialize the icon of qutebrowser."""
@@ -940,8 +953,10 @@ class Application(QApplication):
                 objreg.delete('last-focused-main-window')
             except KeyError:
                 pass
+            self.restoreOverrideCursor()
         else:
             objreg.register('last-focused-main-window', window, update=True)
+            self.maybe_hide_mouse_cursor()
 
     @pyqtSlot(QUrl)
     def open_desktopservices_url(self, url):

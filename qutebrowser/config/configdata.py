@@ -297,6 +297,10 @@ def data(readonly=False):
              "otherwise.\n"
              "* `{id}`: The internal window ID of this window."),
 
+            ('hide-mouse-cursor',
+             SettingValue(typ.Bool(), 'false'),
+             "Whether to hide the mouse cursor."),
+
             readonly=readonly
         )),
 

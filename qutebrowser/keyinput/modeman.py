@@ -131,9 +131,20 @@ class EventFilter(QObject):
     def eventFilter(self, obj, event):
         """Forward events to the correct modeman."""
         try:
+            qapp = QApplication.instance()
             if not self._activated:
                 return False
-            if event.type() not in [QEvent.KeyPress, QEvent.KeyRelease]:
+            if event.type() in [QEvent.MouseButtonDblClick,
+                                QEvent.MouseButtonPress,
+                                QEvent.MouseButtonRelease,
+                                QEvent.MouseMove]:
+                if qapp.overrideCursor() is None:
+                    # Mouse cursor shown -> don't filter event
+                    return False
+                else:
+                    # Mouse cursor hidden -> filter event
+                    return True
+            elif event.type() not in [QEvent.KeyPress, QEvent.KeyRelease]:
                 # We're not interested in non-key-events so we pass them
                 # through.
                 return False
@@ -141,8 +152,7 @@ class EventFilter(QObject):
                 # We already handled this same event at some point earlier, so
                 # we're not interested in it anymore.
                 return False
-            if (QApplication.instance().activeWindow() not in
-                    objreg.window_registry.values()):
+            if qapp.activeWindow() not in objreg.window_registry.values():
                 # Some other window (print dialog, etc.) is focused so we pass
                 # the event through.
                 return False

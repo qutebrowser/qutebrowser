@@ -128,6 +128,10 @@ class MainWindow(QWidget):
         # we defer this until everything else is initialized.
         QTimer.singleShot(0, self._connect_resize_completion)
         objreg.get('config').changed.connect(self.on_config_changed)
+
+        if config.get('ui', 'hide-mouse-cursor'):
+            self.setCursor(Qt.BlankCursor)
+
         #self.retranslateUi(MainWindow)
         #self.tabWidget.setCurrentIndex(0)
         #QtCore.QMetaObject.connectSlotsByName(MainWindow)

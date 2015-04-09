@@ -43,6 +43,7 @@
 |<<ui-remove-finished-downloads,remove-finished-downloads>>|Whether to remove finished downloads automatically.
 |<<ui-hide-statusbar,hide-statusbar>>|Whether to hide the statusbar unless a message is shown.
 |<<ui-window-title-format,window-title-format>>|The format to use for the window title. The following placeholders are defined:
+|<<ui-hide-mouse-cursor,hide-mouse-cursor>>|Whether to hide the mouse cursor.
 |==============
 
 .Quick reference for section ``network''
@@ -563,6 +564,17 @@ The format to use for the window title. The following placeholders are defined:
 * `{id}`: The internal window ID of this window.
 
 Default: +pass:[{perc}{title}{title_sep}qutebrowser]+
+
+[[ui-hide-mouse-cursor]]
+=== hide-mouse-cursor
+Whether to hide the mouse cursor.
+
+Valid values:
+
+ * +true+
+ * +false+
+
+Default: +pass:[false]+
 
 == network
 Settings related to the network.
