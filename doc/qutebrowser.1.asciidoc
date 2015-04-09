@@ -21,6 +21,10 @@ on Python, PyQt5 and QtWebKit and free software, licensed under the GPL.
 
 It was inspired by other browsers/addons like dwb and Vimperator/Pentadactyl.
 
+Note the commands and settings of qutebrowser are not described in this
+manpage, but in the help integrated in qutebrowser - use the ":help" command to
+show it.
+
 == OPTIONS
 // QUTE_OPTIONS_START
 === positional arguments
