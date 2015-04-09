@@ -28,6 +28,7 @@ from qutebrowser.utils import qtutils
 
 
 class TestCheckOverflow:
+
     """Test check_overflow.
 
     Class attributes:
@@ -66,8 +67,8 @@ class TestCheckOverflow:
         qtutils.check_overflow(val, ctype)
 
     @pytest.mark.parametrize('ctype, val',
-                             [(ctype, val) for ctype, vals in BAD_VALUES.items()
-                              for (val, _) in vals])
+                             [(ctype, val) for ctype, vals in
+                              BAD_VALUES.items() for (val, _) in vals])
     def test_bad_values_fatal(self, ctype, val):
         """Test values which are outside bounds with fatal=True."""
         with pytest.raises(OverflowError):
@@ -83,12 +84,16 @@ class TestCheckOverflow:
 
 
 class TestGetQtArgs:
+
     """Tests for get_args."""
 
     @pytest.fixture
     def parser(self, mocker):
+        """Fixture to provide an argparser.
+
+        Monkey-patches .exit() of the argparser so it doesn't exit on errors.
+        """
         parser = qutebrowser.get_argparser()
-        # monkey-patch .exit() of the argparser so it doesn't exit.
         mocker.patch.object(parser, 'exit', side_effect=Exception)
         return parser
 

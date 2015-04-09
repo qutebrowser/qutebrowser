@@ -107,24 +107,28 @@ test_data_lines = test_data.strip().splitlines()
 
 
 class TestSplit:
+
     """Test split."""
 
     @pytest.mark.parametrize('cmd, out',
-                             [case.split('/')[:-2] for case in test_data_lines])
+                             [case.split('/')[:-2]
+                              for case in test_data_lines])
     def test_split(self, cmd, out):
         """Test splitting."""
         items = split.split(cmd)
         assert items == out.split('|')
 
     @pytest.mark.parametrize('cmd',
-                             [case.split('/')[0] for case in test_data_lines])
+                             [case.split('/')[0]
+                              for case in test_data_lines])
     def test_split_keep_original(self, cmd):
         """Test if splitting with keep=True yields the original string."""
         items = split.split(cmd, keep=True)
         assert ''.join(items) == cmd
 
     @pytest.mark.parametrize('cmd, _mid, out',
-                             [case.split('/')[:-1] for case in test_data_lines])
+                             [case.split('/')[:-1]
+                              for case in test_data_lines])
     def test_split_keep(self, cmd, _mid, out):
         """Test splitting with keep=True."""
         items = split.split(cmd, keep=True)
@@ -132,6 +136,7 @@ class TestSplit:
 
 
 class TestSimpleSplit:
+
     """Test simple_split."""
 
     TESTS = {
@@ -150,12 +155,16 @@ class TestSimpleSplit:
     def test_str_split_maxsplit_1(self):
         """Test if the behavior matches str.split with maxsplit=1."""
         s = "foo bar baz"
-        assert split.simple_split(s, maxsplit=1) == s.rstrip().split(maxsplit=1)
+        actual = split.simple_split(s, maxsplit=1)
+        expected = s.rstrip().split(maxsplit=1)
+        assert actual == expected
 
     def test_str_split_maxsplit_0(self):
         """Test if the behavior matches str.split with maxsplit=0."""
         s = "  foo bar baz  "
-        assert split.simple_split(s, maxsplit=0) == s.rstrip().split(maxsplit=0)
+        actual = split.simple_split(s, maxsplit=0)
+        expected = s.rstrip().split(maxsplit=0)
+        assert actual == expected
 
     @pytest.mark.parametrize('test, expected', TESTS.items())
     def test_split_keep(self, test, expected):
