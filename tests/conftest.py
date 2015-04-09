@@ -76,3 +76,25 @@ def fake_keyevent_factory():
         return evtmock
 
     return fake_keyevent
+
+
+def pytest_collection_modifyitems(items):
+    """Automatically add a 'gui' marker to all gui-related tests.
+
+    pytest hook called after collection has been performed, adds a marker
+    named "gui" which can be used to filter gui tests from the command line.
+    For example:
+
+        py.test -m "not gui"  # run all tests except gui tests
+        py.test -m "gui"  # run only gui tests
+
+    Args:
+        items: list of _pytest.main.Node items, where each item represents
+               a python test that will be executed.
+
+    Reference:
+        http://pytest.org/latest/plugins.html
+    """
+    for item in items:
+        if 'qtbot' in item.fixturenames:
+            item.add_marker('gui')
