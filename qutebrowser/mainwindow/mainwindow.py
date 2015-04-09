@@ -90,18 +90,24 @@ class MainWindow(QWidget):
         self._vbox.setContentsMargins(0, 0, 0, 0)
         self._vbox.setSpacing(0)
 
-        if config.get('ui', 'downloads-at-top'):
-            self._init_downloadview()
-            self._init_tabbed_browser()
-        else:
-            self._init_tabbed_browser()
-            self._init_downloadview()
+        log.init.debug("Initializing downloads...")
+        download_manager = downloads.DownloadManager(self.win_id, self)
+        objreg.register('download-manager', download_manager, scope='window',
+                        window=self.win_id)
+
+        self._downloadview = downloadview.DownloadView(self.win_id)
+        self._downloadview.show()
+
+        self._tabbed_browser = tabbedbrowser.TabbedBrowser(self.win_id)
+        objreg.register('tabbed-browser', self._tabbed_browser, scope='window',
+                        window=self.win_id)
 
         # We need to set an explicit parent for StatusBar because it does some
         # show/hide magic immediately which would mean it'd show up as a
         # window.
         self.status = bar.StatusBar(self.win_id, parent=self)
-        self._vbox.addWidget(self.status)
+
+        self._add_widgets()
 
         self._completion = completionwidget.CompletionView(self.win_id, self)
 
@@ -134,22 +140,24 @@ class MainWindow(QWidget):
         """Resize the completion if related config options changed."""
         if section == 'completion' and option in ('height', 'shrink'):
             self.resize_completion()
+        elif section == 'ui' and option == 'downloads-position':
+            self._add_widgets()
 
-    def _init_downloadview(self):
-        log.init.debug("Initializing downloads...")
-        download_manager = downloads.DownloadManager(self.win_id, self)
-        objreg.register('download-manager', download_manager, scope='window',
-                        window=self.win_id)
+    def _add_widgets(self):
+        self._vbox.removeWidget(self._tabbed_browser)
+        self._vbox.removeWidget(self._downloadview)
+        self._vbox.removeWidget(self.status)
+        position = config.get('ui', 'downloads-position')
+        if position == 'north':
+            self._vbox.addWidget(self._downloadview)
+            self._vbox.addWidget(self._tabbed_browser)
+        elif position == 'south':
+            self._vbox.addWidget(self._tabbed_browser)
+            self._vbox.addWidget(self._downloadview)
+        else:
+            raise ValueError("Invalid position {}!".format(position))
+        self._vbox.addWidget(self.status)
 
-        self._downloadview = downloadview.DownloadView(self.win_id)
-        self._vbox.addWidget(self._downloadview)
-        self._downloadview.show()
-
-    def _init_tabbed_browser(self):
-        self._tabbed_browser = tabbedbrowser.TabbedBrowser(self.win_id)
-        objreg.register('tabbed-browser', self._tabbed_browser, scope='window',
-                        window=self.win_id)
-        self._vbox.addWidget(self._tabbed_browser)
 
     def _load_state_geometry(self):
         """Load the geometry from the state file."""
