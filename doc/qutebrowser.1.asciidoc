@@ -114,6 +114,11 @@ show it.
 - '~/.local/share/qutebrowser/': Various state information.
 - '~/.cache/qutebrowser/': Temporary data.
 
+Note qutebrowser conforms to the XDG basedir specification - if
+'XDG_CONFIG_HOME', 'XDG_DATA_HOME' or 'XDG_CACHE_HOME' are set in the
+environment, the directories configured there are used instead of the above
+defaults.
+
 == BUGS
 Bugs are tracked in the Github issue tracker at 
 https://github.com/The-Compiler/qutebrowser/issues.
