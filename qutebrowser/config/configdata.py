@@ -235,6 +235,10 @@ def data(readonly=False):
              SettingValue(typ.Perc(), '100%'),
              "The default zoom level."),
 
+            ('downloads-position',
+             SettingValue(typ.VerticalPosition(), 'north'),
+             "Where to show the downloaded files."),
+
             ('message-timeout',
              SettingValue(typ.Int(), '2000'),
              "Time (in ms) to show messages in the statusbar for."),

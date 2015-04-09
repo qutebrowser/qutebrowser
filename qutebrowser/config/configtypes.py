@@ -1264,6 +1264,13 @@ class Position(BaseType):
         return self.MAPPING[value]
 
 
+class VerticalPosition(BaseType):
+
+    """The position of the download bar."""
+
+    valid_values = ValidValues('north', 'south')
+
+
 class UrlList(List):
 
     """A list of URLs."""
