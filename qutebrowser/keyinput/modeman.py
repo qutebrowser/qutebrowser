@@ -25,6 +25,7 @@ from PyQt5.QtGui import QWindow
 from PyQt5.QtCore import pyqtSignal, Qt, QObject, QEvent
 from PyQt5.QtWidgets import QApplication
 from PyQt5.QtWebKitWidgets import QWebView
+from PyQt5.QtWebKit import QWebSettings
 
 from qutebrowser.keyinput import modeparsers, keyparser
 from qutebrowser.config import config
@@ -79,6 +80,8 @@ def init(win_id, parent):
         KM.prompt: keyparser.PassthroughKeyParser(win_id, 'prompt', modeman,
                                                   warn=False),
         KM.yesno: modeparsers.PromptKeyParser(win_id, modeman),
+        KM.caret: modeparsers.CaretKeyParser(win_id, modeman),
+        KM.visual: modeparsers.VisualKeyParser(win_id, modeman),
     }
     objreg.register('keyparsers', keyparsers, scope='window', window=win_id)
     modeman.destroyed.connect(
@@ -93,6 +96,8 @@ def init(win_id, parent):
                      passthrough=True)
     modeman.register(KM.prompt, keyparsers[KM.prompt].handle, passthrough=True)
     modeman.register(KM.yesno, keyparsers[KM.yesno].handle)
+    modeman.register(KM.caret, keyparsers[KM.caret].handle, passthrough=True)
+    modeman.register(KM.visual, keyparsers[KM.visual].handle, passthrough=True)
     return modeman
 
 
