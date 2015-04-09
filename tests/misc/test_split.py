@@ -170,18 +170,12 @@ class TestSimpleSplit:
         """Test if the behavior matches str.split."""
         assert split.simple_split(test) == test.rstrip().split()
 
-    def test_str_split_maxsplit_1(self):
-        """Test if the behavior matches str.split with maxsplit=1."""
-        s = "foo bar baz"
-        actual = split.simple_split(s, maxsplit=1)
-        expected = s.rstrip().split(maxsplit=1)
-        assert actual == expected
-
-    def test_str_split_maxsplit_0(self):
-        """Test if the behavior matches str.split with maxsplit=0."""
-        s = "  foo bar baz  "
-        actual = split.simple_split(s, maxsplit=0)
-        expected = s.rstrip().split(maxsplit=0)
+    @pytest.mark.parametrize('s, maxsplit',
+                             [("foo bar baz", 1), ("  foo bar baz  ", 0)])
+    def test_str_split_maxsplit(self, s, maxsplit):
+        """Test if the behavior matches str.split with given maxsplit."""
+        actual = split.simple_split(s, maxsplit=maxsplit)
+        expected = s.rstrip().split(maxsplit=maxsplit)
         assert actual == expected
 
     @pytest.mark.parametrize('test, expected', TESTS.items())
