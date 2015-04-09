@@ -21,7 +21,6 @@
 
 import functools
 
-from PyQt5.QtGui import QWindow
 from PyQt5.QtCore import pyqtSignal, Qt, QObject, QEvent
 from PyQt5.QtWidgets import QApplication
 from PyQt5.QtWebKitWidgets import QWebView
@@ -118,56 +117,6 @@ def maybe_leave(win_id, mode, reason=None):
     except NotInModeError as e:
         # This is rather likely to happen, so we only log to debug log.
         log.modes.debug("{} (leave reason: {})".format(e, reason))
-
-
-class EventFilter(QObject):
-
-    """Event filter which passes the event to the current ModeManager."""
-
-    def __init__(self, parent=None):
-        super().__init__(parent)
-        self._activated = True
-
-    def eventFilter(self, obj, event):
-        """Forward events to the correct modeman."""
-        try:
-            qapp = QApplication.instance()
-            if not self._activated:
-                return False
-            if event.type() in [QEvent.MouseButtonDblClick,
-                                QEvent.MouseButtonPress,
-                                QEvent.MouseButtonRelease,
-                                QEvent.MouseMove]:
-                if qapp.overrideCursor() is None:
-                    # Mouse cursor shown -> don't filter event
-                    return False
-                else:
-                    # Mouse cursor hidden -> filter event
-                    return True
-            elif event.type() not in [QEvent.KeyPress, QEvent.KeyRelease]:
-                # We're not interested in non-key-events so we pass them
-                # through.
-                return False
-            if not isinstance(obj, QWindow):
-                # We already handled this same event at some point earlier, so
-                # we're not interested in it anymore.
-                return False
-            if qapp.activeWindow() not in objreg.window_registry.values():
-                # Some other window (print dialog, etc.) is focused so we pass
-                # the event through.
-                return False
-            try:
-                modeman = objreg.get('mode-manager', scope='window',
-                                     window='current')
-                return modeman.eventFilter(event)
-            except objreg.RegistryUnavailableError:
-                # No window available yet, or not a MainWindow
-                return False
-        except:
-            # If there is an exception in here and we leave the eventfilter
-            # activated, we'll get an infinite loop and a stack overflow.
-            self._activated = False
-            raise
 
 
 class ModeManager(QObject):
