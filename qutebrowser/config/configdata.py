@@ -236,8 +236,8 @@ def data(readonly=False):
              "The default zoom level."),
 
             ('downloads-position',
-            SettingValue(typ.VerticalPosition(), 'north'),
-            "Where to show the downloaded files."),
+             SettingValue(typ.VerticalPosition(), 'north'),
+             "Where to show the downloaded files."),
 
             ('message-timeout',
              SettingValue(typ.Int(), '2000'),
@@ -1009,6 +1009,7 @@ def data(readonly=False):
 
 
 DATA = data(readonly=True)
+
 
 KEY_FIRST_COMMENT = """
 # vim: ft=conf

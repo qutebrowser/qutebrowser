@@ -144,6 +144,7 @@ class MainWindow(QWidget):
             self._add_widgets()
 
     def _add_widgets(self):
+        """Add or readd all widgets to the VBox."""
         self._vbox.removeWidget(self._tabbed_browser)
         self._vbox.removeWidget(self._downloadview)
         self._vbox.removeWidget(self.status)
@@ -157,7 +158,6 @@ class MainWindow(QWidget):
         else:
             raise ValueError("Invalid position {}!".format(position))
         self._vbox.addWidget(self.status)
-
 
     def _load_state_geometry(self):
         """Load the geometry from the state file."""
