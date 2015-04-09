@@ -79,7 +79,8 @@ def fake_keyevent_factory():
 
 
 def pytest_collection_modifyitems(items):
-    """
+    """Automatically add a 'gui' marker to all gui-related tests.
+
     pytest hook called after collection has been performed, adds a marker
     named "gui" which can be used to filter gui tests from the command line.
     For example:
@@ -89,7 +90,7 @@ def pytest_collection_modifyitems(items):
 
     Args:
         items: list of _pytest.main.Node items, where each item represents
-            a python test that will be executed.
+               a python test that will be executed.
 
     Reference:
         http://pytest.org/latest/plugins.html
