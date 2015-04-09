@@ -46,8 +46,13 @@ def main():
         for fn in filenames:
             if os.path.splitext(fn)[1] == '.py':
                 files.append(os.path.join(dirpath, fn))
-    disabled = ['attribute-defined-outside-init', 'redefined-outer-name',
-                'unused-argument']
+    disabled = [
+        'attribute-defined-outside-init',
+        'redefined-outer-name',
+        'unused-argument',
+        # https://bitbucket.org/logilab/pylint/issue/511/
+        'undefined-variable',
+    ]
     no_docstring_rgx = ['^__.*__$', '^setup$']
     args = (['--disable={}'.format(','.join(disabled)),
              '--no-docstring-rgx=({})'.format('|'.join(no_docstring_rgx))] +
