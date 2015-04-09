@@ -523,8 +523,8 @@ class HintManager(QObject):
             'QUTE_MODE': 'hints',
             'QUTE_SELECTED_TEXT': str(elem),
             'QUTE_SELECTED_HTML': elem.toOuterXml(),
-            'QUTE_HTML': mainframe.toHtml(),
-            'QUTE_TEXT': mainframe.toPlainText(),
+            'QUTE_HTML': frame.toHtml(),
+            'QUTE_TEXT': frame.toPlainText(),
         }
         url = self._resolve_url(elem, context.baseurl)
         if url is not None:
