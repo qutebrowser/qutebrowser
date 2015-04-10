@@ -31,6 +31,7 @@
 |Setting|Description
 |<<ui-zoom-levels,zoom-levels>>|The available zoom levels, separated by commas.
 |<<ui-default-zoom,default-zoom>>|The default zoom level.
+|<<ui-downloads-position,downloads-position>>|Where to show the downloaded files.
 |<<ui-message-timeout,message-timeout>>|Time (in ms) to show messages in the statusbar for.
 |<<ui-message-unfocused,message-unfocused>>|Whether to show messages in unfocused windows.
 |<<ui-confirm-quit,confirm-quit>>|Whether to confirm quitting the application.
@@ -42,6 +43,7 @@
 |<<ui-remove-finished-downloads,remove-finished-downloads>>|Whether to remove finished downloads automatically.
 |<<ui-hide-statusbar,hide-statusbar>>|Whether to hide the statusbar unless a message is shown.
 |<<ui-window-title-format,window-title-format>>|The format to use for the window title. The following placeholders are defined:
+|<<ui-hide-mouse-cursor,hide-mouse-cursor>>|Whether to hide the mouse cursor.
 |==============
 
 .Quick reference for section ``network''
@@ -441,6 +443,17 @@ The default zoom level.
 
 Default: +pass:[100%]+
 
+[[ui-downloads-position]]
+=== downloads-position
+Where to show the downloaded files.
+
+Valid values:
+
+ * +north+
+ * +south+
+
+Default: +pass:[north]+
+
 [[ui-message-timeout]]
 === message-timeout
 Time (in ms) to show messages in the statusbar for.
@@ -551,6 +564,17 @@ The format to use for the window title. The following placeholders are defined:
 * `{id}`: The internal window ID of this window.
 
 Default: +pass:[{perc}{title}{title_sep}qutebrowser]+
+
+[[ui-hide-mouse-cursor]]
+=== hide-mouse-cursor
+Whether to hide the mouse cursor.
+
+Valid values:
+
+ * +true+
+ * +false+
+
+Default: +pass:[false]+
 
 == network
 Settings related to the network.

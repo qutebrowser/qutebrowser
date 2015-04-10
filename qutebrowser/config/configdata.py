@@ -235,6 +235,10 @@ def data(readonly=False):
              SettingValue(typ.Perc(), '100%'),
              "The default zoom level."),
 
+            ('downloads-position',
+             SettingValue(typ.VerticalPosition(), 'north'),
+             "Where to show the downloaded files."),
+
             ('message-timeout',
              SettingValue(typ.Int(), '2000'),
              "Time (in ms) to show messages in the statusbar for."),
@@ -292,6 +296,10 @@ def data(readonly=False):
              "* `{title_sep}`: The string ` - ` if a title is set, empty "
              "otherwise.\n"
              "* `{id}`: The internal window ID of this window."),
+
+            ('hide-mouse-cursor',
+             SettingValue(typ.Bool(), 'false'),
+             "Whether to hide the mouse cursor."),
 
             readonly=readonly
         )),
@@ -1155,13 +1163,13 @@ KEY_DATA = collections.OrderedDict([
         ('paste -w', ['wp']),
         ('paste -ws', ['wP']),
         ('quickmark-save', ['m']),
-        ('set-cmd-text ":quickmark-load "', ['b']),
-        ('set-cmd-text ":quickmark-load -t "', ['B']),
-        ('set-cmd-text ":quickmark-load -w"', ['wb']),
+        ('set-cmd-text -s :quickmark-load', ['b']),
+        ('set-cmd-text -s :quickmark-load -t', ['B']),
+        ('set-cmd-text -s :quickmark-load -w', ['wb']),
         ('save', ['sf']),
-        ('set-cmd-text ":set "', ['ss']),
-        ('set-cmd-text ":set -t "', ['sl']),
-        ('set-cmd-text ":set keybind "', ['sk']),
+        ('set-cmd-text -s :set', ['ss']),
+        ('set-cmd-text -s :set -t', ['sl']),
+        ('set-cmd-text -s :set keybind', ['sk']),
         ('zoom-out', ['-']),
         ('zoom-in', ['+']),
         ('zoom', ['=']),

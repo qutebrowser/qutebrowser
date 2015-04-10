@@ -876,9 +876,14 @@ class CommandDispatcher:
             env['QUTE_TITLE'] = tabbed_browser.page_title(idx)
 
         webview = tabbed_browser.currentWidget()
-        if webview is not None and webview.hasSelection():
-            env['QUTE_SELECTED_TEXT'] = webview.selectedText()
-            env['QUTE_SELECTED_HTML'] = webview.selectedHtml()
+        if webview is not None:
+            if webview.hasSelection():
+                env['QUTE_SELECTED_TEXT'] = webview.selectedText()
+                env['QUTE_SELECTED_HTML'] = webview.selectedHtml()
+            mainframe = webview.page().mainFrame()
+            if mainframe is not None:
+                env['QUTE_HTML'] = mainframe.toHtml()
+                env['QUTE_TEXT'] = mainframe.toPlainText()
 
         try:
             url = tabbed_browser.current_url()

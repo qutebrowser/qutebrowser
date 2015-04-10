@@ -518,10 +518,13 @@ class HintManager(QObject):
         """
         cmd = context.args[0]
         args = context.args[1:]
+        frame = context.mainframe
         env = {
             'QUTE_MODE': 'hints',
             'QUTE_SELECTED_TEXT': str(elem),
             'QUTE_SELECTED_HTML': elem.toOuterXml(),
+            'QUTE_HTML': frame.toHtml(),
+            'QUTE_TEXT': frame.toPlainText(),
         }
         url = self._resolve_url(elem, context.baseurl)
         if url is not None:

@@ -21,6 +21,10 @@ on Python, PyQt5 and QtWebKit and free software, licensed under the GPL.
 
 It was inspired by other browsers/addons like dwb and Vimperator/Pentadactyl.
 
+Note the commands and settings of qutebrowser are not described in this
+manpage, but in the help integrated in qutebrowser - use the ":help" command to
+show it.
+
 == OPTIONS
 // QUTE_OPTIONS_START
 === positional arguments
@@ -109,6 +113,11 @@ It was inspired by other browsers/addons like dwb and Vimperator/Pentadactyl.
 - '~/.config/qutebrowser/keys.conf': Defined key bindings.
 - '~/.local/share/qutebrowser/': Various state information.
 - '~/.cache/qutebrowser/': Temporary data.
+
+Note qutebrowser conforms to the XDG basedir specification - if
+'XDG_CONFIG_HOME', 'XDG_DATA_HOME' or 'XDG_CACHE_HOME' are set in the
+environment, the directories configured there are used instead of the above
+defaults.
 
 == BUGS
 Bugs are tracked in the Github issue tracker at 

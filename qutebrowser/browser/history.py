@@ -25,7 +25,7 @@ import collections
 from PyQt5.QtCore import pyqtSignal, QUrl
 from PyQt5.QtWebKit import QWebHistoryInterface
 
-from qutebrowser.utils import utils, objreg, standarddir
+from qutebrowser.utils import utils, objreg, standarddir, log
 from qutebrowser.config import config
 from qutebrowser.misc import lineparser
 
@@ -88,6 +88,11 @@ class WebHistory(QWebHistoryInterface):
                 data = line.rstrip().split(maxsplit=1)
                 if not data:
                     # empty line
+                    continue
+                elif len(data) != 2:
+                    # other malformed line
+                    log.init.warning("Invalid history entry {!r}!".format(
+                        line))
                     continue
                 atime, url = data
                 # This de-duplicates history entries; only the latest

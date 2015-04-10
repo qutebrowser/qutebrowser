@@ -33,9 +33,9 @@ import faulthandler
 import json
 
 from PyQt5.QtWidgets import QApplication, QDialog, QMessageBox
-from PyQt5.QtGui import QDesktopServices, QPixmap, QIcon
+from PyQt5.QtGui import QDesktopServices, QPixmap, QIcon, QCursor, QWindow
 from PyQt5.QtCore import (pyqtSlot, qInstallMessageHandler, QTimer, QUrl,
-                          QObject, Qt, QSocketNotifier)
+                          QObject, Qt, QSocketNotifier, QEvent)
 try:
     import hunter
 except ImportError:
@@ -52,7 +52,6 @@ from qutebrowser.mainwindow import mainwindow
 from qutebrowser.misc import (crashdialog, readline, ipc, earlyinit,
                               savemanager, sessions)
 from qutebrowser.misc import utilcmds  # pylint: disable=unused-import
-from qutebrowser.keyinput import modeman
 from qutebrowser.utils import (log, version, message, utils, qtutils, urlutils,
                                objreg, usertypes, standarddir)
 # We import utilcmds to run the cmdutils.register decorators.
@@ -143,7 +142,7 @@ class Application(QApplication):
         QTimer.singleShot(0, self._process_args)
 
         log.init.debug("Initializing eventfilter...")
-        self._event_filter = modeman.EventFilter(self)
+        self._event_filter = EventFilter(self)
         self.installEventFilter(self._event_filter)
 
         log.init.debug("Connecting signals...")
@@ -210,6 +209,19 @@ class Application(QApplication):
         objreg.register('cache', diskcache)
         log.init.debug("Initializing completions...")
         completionmodels.init()
+        log.init.debug("Misc initialization...")
+        self.maybe_hide_mouse_cursor()
+        objreg.get('config').changed.connect(self.maybe_hide_mouse_cursor)
+
+    @config.change_filter('ui', 'hide-mouse-cursor')
+    def maybe_hide_mouse_cursor(self):
+        """Hide the mouse cursor if it isn't yet and it's configured."""
+        if config.get('ui', 'hide-mouse-cursor'):
+            if self.overrideCursor() is not None:
+                return
+            self.setOverrideCursor(QCursor(Qt.BlankCursor))
+        else:
+            self.restoreOverrideCursor()
 
     def _init_icon(self):
         """Initialize the icon of qutebrowser."""
@@ -940,8 +952,10 @@ class Application(QApplication):
                 objreg.delete('last-focused-main-window')
             except KeyError:
                 pass
+            self.restoreOverrideCursor()
         else:
             objreg.register('last-focused-main-window', window, update=True)
+            self.maybe_hide_mouse_cursor()
 
     @pyqtSlot(QUrl)
     def open_desktopservices_url(self, url):
@@ -962,3 +976,92 @@ class Application(QApplication):
                 print("Now logging late shutdown.", file=sys.stderr)
                 hunter.trace()
         super().exit(status)
+
+
+class EventFilter(QObject):
+
+    """Global Qt event filter.
+
+    Attributes:
+        _activated: Whether the EventFilter is currently active.
+        _handlers; A {QEvent.Type: callable} dict with the handlers for an
+                   event.
+    """
+
+    def __init__(self, parent=None):
+        super().__init__(parent)
+        self._activated = True
+        self._handlers = {
+            QEvent.MouseButtonDblClick: self._handle_mouse_event,
+            QEvent.MouseButtonPress: self._handle_mouse_event,
+            QEvent.MouseButtonRelease: self._handle_mouse_event,
+            QEvent.MouseMove: self._handle_mouse_event,
+            QEvent.KeyPress: self._handle_key_event,
+            QEvent.KeyRelease: self._handle_key_event,
+        }
+
+    def _handle_key_event(self, event):
+        """Handle a key press/release event.
+
+        Args:
+            event: The QEvent which is about to be delivered.
+
+        Return:
+            True if the event should be filtered, False if it's passed through.
+        """
+        qapp = QApplication.instance()
+        if qapp.activeWindow() not in objreg.window_registry.values():
+            # Some other window (print dialog, etc.) is focused so we pass the
+            # event through.
+            return False
+        try:
+            man = objreg.get('mode-manager', scope='window', window='current')
+            return man.eventFilter(event)
+        except objreg.RegistryUnavailableError:
+            # No window available yet, or not a MainWindow
+            return False
+
+    def _handle_mouse_event(self, _event):
+        """Handle a mouse event.
+
+        Args:
+            _event: The QEvent which is about to be delivered.
+
+        Return:
+            True if the event should be filtered, False if it's passed through.
+        """
+        if QApplication.instance().overrideCursor() is None:
+            # Mouse cursor shown -> don't filter event
+            return False
+        else:
+            # Mouse cursor hidden -> filter event
+            return True
+
+    def eventFilter(self, obj, event):
+        """Handle an event.
+
+        Args:
+            obj: The object which will get the event.
+            event: The QEvent which is about to be delivered.
+
+        Return:
+            True if the event should be filtered, False if it's passed through.
+        """
+        try:
+            if not self._activated:
+                return False
+            if not isinstance(obj, QWindow):
+                # We already handled this same event at some point earlier, so
+                # we're not interested in it anymore.
+                return False
+            try:
+                handler = self._handlers[event.type()]
+            except KeyError:
+                return False
+            else:
+                return handler(event)
+        except:
+            # If there is an exception in here and we leave the eventfilter
+            # activated, we'll get an infinite loop and a stack overflow.
+            self._activated = False
+            raise

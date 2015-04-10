@@ -328,9 +328,6 @@ class TestBool:
 
     """Test Bool."""
 
-    # https://bitbucket.org/logilab/pylint/issue/511/
-    # pylint: disable=undefined-variable
-
     TESTS = {True: ['1', 'yes', 'YES', 'true', 'TrUe', 'on'],
              False: ['0', 'no', 'NO', 'false', 'FaLsE', 'off']}
 
@@ -942,9 +939,6 @@ class TestColorSystem:
 
     """Test ColorSystem."""
 
-    # https://bitbucket.org/logilab/pylint/issue/511/
-    # pylint: disable=undefined-variable
-
     TESTS = {
         'RGB': QColor.Rgb,
         'rgb': QColor.Rgb,
@@ -1108,9 +1102,6 @@ FontDesc = collections.namedtuple('FontDesc',
 class TestFont:
 
     """Test Font/QtFont."""
-
-    # https://bitbucket.org/logilab/pylint/issue/511/
-    # pylint: disable=undefined-variable
 
     TESTS = {
         # (style, weight, pointsize, pixelsize, family
@@ -1960,9 +1951,6 @@ class TestAutoSearch:
 
     """Test AutoSearch."""
 
-    # https://bitbucket.org/logilab/pylint/issue/511/
-    # pylint: disable=undefined-variable
-
     TESTS = {
         'naive': ['naive', 'NAIVE'] + TestBool.TESTS[True],
         'dns': ['dns', 'DNS'],
@@ -2011,9 +1999,6 @@ class TestAutoSearch:
 class TestIgnoreCase:
 
     """Test IgnoreCase."""
-
-    # https://bitbucket.org/logilab/pylint/issue/511/
-    # pylint: disable=undefined-variable
 
     TESTS = {
         'smart': ['smart', 'SMART'],
