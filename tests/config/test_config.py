@@ -31,7 +31,9 @@ from PyQt5.QtCore import QObject
 from PyQt5.QtGui import QColor
 import pytest
 
-from qutebrowser.config import config, configexc
+from qutebrowser.config import config, configexc, configdata
+from qutebrowser.config.parsers import keyconf
+from qutebrowser.commands import runners
 from qutebrowser.utils import objreg, standarddir
 
 
@@ -163,6 +165,16 @@ class TestDefaultConfig:
         """Test validating of the default config."""
         conf = config.ConfigManager(None, None)
         conf._validate_all()
+
+    def test_default_key_config(self):
+        """Test validating of the default key config."""
+        # We import qutebrowser.app so the cmdutils.register decorators run.
+        import qutebrowser.app
+        conf = keyconf.KeyConfigParser(None, None)
+        runner = runners.CommandRunner(win_id=0)
+        for sectname in configdata.KEY_DATA:
+            for cmd in conf.get_bindings_for(sectname).values():
+                runner.parse(cmd, aliases=False)
 
 
 class TestConfigInit:
