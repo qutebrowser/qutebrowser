@@ -19,6 +19,9 @@
 
 """The qutebrowser test suite contest file."""
 
+import collections
+import itertools
+
 import pytest
 
 
@@ -98,3 +101,41 @@ def pytest_collection_modifyitems(items):
     for item in items:
         if 'qtbot' in item.fixturenames:
             item.add_marker('gui')
+
+
+def _generate_cmdline_tests():
+    """Generate testcases for test_split_binding."""
+    # pylint: disable=invalid-name
+    TestCase = collections.namedtuple('TestCase', 'cmd, valid')
+    separators = [';;', ' ;; ', ';; ', ' ;;']
+    invalid = ['foo', '']
+    valid = ['leave-mode', 'hint all']
+    # Valid command only -> valid
+    for item in valid:
+        yield TestCase(''.join(item), True)
+    # Invalid command only -> invalid
+    for item in valid:
+        yield TestCase(''.join(item), True)
+    # Invalid command combined with invalid command -> invalid
+    for item in itertools.product(invalid, separators, invalid):
+        yield TestCase(''.join(item), False)
+    # Valid command combined with valid command -> valid
+    for item in itertools.product(valid, separators, valid):
+        yield TestCase(''.join(item), True)
+    # Valid command combined with invalid command -> invalid
+    for item in itertools.product(valid, separators, invalid):
+        yield TestCase(''.join(item), False)
+    # Invalid command combined with valid command -> invalid
+    for item in itertools.product(invalid, separators, valid):
+        yield TestCase(''.join(item), False)
+    # Command with no_cmd_split combined with an "invalid" command -> valid
+    for item in itertools.product(['bind x open'], separators, invalid):
+        yield TestCase(''.join(item), True)
+
+
+@pytest.fixture(params=_generate_cmdline_tests())
+def cmdline_test(request):
+    """Fixture which generates tests for things validating commandlines."""
+    # Import qutebrowser.app so all cmdutils.register decorators get run.
+    import qutebrowser.app  # pylint: disable=unused-variable
+    return request.param
