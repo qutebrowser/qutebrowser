@@ -19,6 +19,8 @@
 
 """Module containing command managers (SearchRunner and CommandRunner)."""
 
+import collections
+
 from PyQt5.QtCore import pyqtSlot, pyqtSignal, QObject, QUrl
 from PyQt5.QtWebKitWidgets import QWebPage
 
@@ -26,6 +28,9 @@ from qutebrowser.config import config, configexc
 from qutebrowser.commands import cmdexc, cmdutils
 from qutebrowser.utils import message, log, utils, objreg, qtutils
 from qutebrowser.misc import split
+
+
+ParseResult = collections.namedtuple('ParseResult', 'cmd, args, cmdline')
 
 
 def replace_variables(win_id, arglist):
@@ -152,15 +157,11 @@ class CommandRunner(QObject):
     """Parse and run qutebrowser commandline commands.
 
     Attributes:
-        _cmd: The command which was parsed.
-        _args: The arguments which were parsed.
         _win_id: The window this CommandRunner is associated with.
     """
 
     def __init__(self, win_id, parent=None):
         super().__init__(parent)
-        self._cmd = None
-        self._args = []
         self._win_id = win_id
 
     def _get_alias(self, text):
@@ -186,7 +187,34 @@ class CommandRunner(QObject):
             new_cmd += ' '
         return new_cmd
 
-    def parse(self, text, aliases=True, fallback=False, keep=False):
+    def parse_all(self, text, *args, **kwargs):
+        """Split a command on ;; and parse all parts.
+
+        If the first command in the commandline is a non-split one, it only
+        returns that.
+
+        Args:
+            text: Text to parse.
+            *args/**kwargs: Passed to parse().
+
+        Yields:
+            ParseResult tuples.
+        """
+        if ';;' in text:
+            # Get the first command and check if it doesn't want to have ;;
+            # split.
+            first = text.split(';;')[0]
+            result = self.parse(first, *args, **kwargs)
+            if result.cmd.no_cmd_split:
+                sub_texts = [text]
+            else:
+                sub_texts = [e.strip() for e in text.split(';;')]
+        else:
+            sub_texts = [text]
+        for sub in sub_texts:
+            yield self.parse(sub, *args, **kwargs)
+
+    def parse(self, text, *, aliases=True, fallback=False, keep=False):
         """Split the commandline text into command and arguments.
 
         Args:
@@ -197,7 +225,7 @@ class CommandRunner(QObject):
             keep: Whether to keep special chars and whitespace
 
         Return:
-            A split string commandline, e.g ['open', 'www.google.com']
+            A (cmd, args, cmdline) ParseResult tuple.
         """
         cmdstr, sep, argstr = text.partition(' ')
         if not cmdstr and not fallback:
@@ -209,29 +237,34 @@ class CommandRunner(QObject):
                 return self.parse(new_cmd, aliases=False, fallback=fallback,
                                   keep=keep)
         try:
-            self._cmd = cmdutils.cmd_dict[cmdstr]
+            cmd = cmdutils.cmd_dict[cmdstr]
         except KeyError:
-            if fallback and keep:
-                cmdstr, sep, argstr = text.partition(' ')
-                return [cmdstr, sep] + argstr.split()
-            elif fallback:
-                return text.split()
+            if fallback:
+                cmd = None
+                args = None
+                if keep:
+                    cmdstr, sep, argstr = text.partition(' ')
+                    cmdline = [cmdstr, sep] + argstr.split()
+                else:
+                    cmdline = text.split()
             else:
-                raise cmdexc.NoSuchCommandError(
-                    '{}: no such command'.format(cmdstr))
-        self._split_args(argstr, keep)
-        retargs = self._args[:]
-        if keep and retargs:
-            return [cmdstr, sep + retargs[0]] + retargs[1:]
-        elif keep:
-            return [cmdstr, sep]
+                raise cmdexc.NoSuchCommandError('{}: no such command'.format(
+                    cmdstr))
         else:
-            return [cmdstr] + retargs
+            args = self._split_args(cmd, argstr, keep)
+            if keep and args:
+                cmdline = [cmdstr, sep + args[0]] + args[1:]
+            elif keep:
+                cmdline = [cmdstr, sep]
+            else:
+                cmdline = [cmdstr] + args[:]
+        return ParseResult(cmd=cmd, args=args, cmdline=cmdline)
 
-    def _split_args(self, argstr, keep):
+    def _split_args(self, cmd, argstr, keep):
         """Split the arguments from an arg string.
 
         Args:
+            cmd: The command we're currently handling.
             argstr: An argument string.
             keep: Whether to keep special chars and whitespace
 
@@ -239,9 +272,9 @@ class CommandRunner(QObject):
             A list containing the splitted strings.
         """
         if not argstr:
-            self._args = []
-        elif self._cmd.maxsplit is None:
-            self._args = split.split(argstr, keep=keep)
+            return []
+        elif cmd.maxsplit is None:
+            return split.split(argstr, keep=keep)
         else:
             # If split=False, we still want to split the flags, but not
             # everything after that.
@@ -259,18 +292,16 @@ class CommandRunner(QObject):
             for i, arg in enumerate(split_args):
                 arg = arg.strip()
                 if arg.startswith('-'):
-                    if arg.lstrip('-') in self._cmd.flags_with_args:
+                    if arg.lstrip('-') in cmd.flags_with_args:
                         flag_arg_count += 1
                 else:
-                    self._args = []
-                    maxsplit = i + self._cmd.maxsplit + flag_arg_count
-                    self._args = split.simple_split(argstr, keep=keep,
-                                                    maxsplit=maxsplit)
-                    break
-            else:
+                    maxsplit = i + cmd.maxsplit + flag_arg_count
+                    return split.simple_split(argstr, keep=keep,
+                                              maxsplit=maxsplit)
+            else:  # pylint: disable=useless-else-on-loop
                 # If there are only flags, we got it right on the first try
                 # already.
-                self._args = split_args
+                return split_args
 
     def run(self, text, count=None):
         """Parse a command from a line of text and run it.
@@ -279,19 +310,12 @@ class CommandRunner(QObject):
             text: The text to parse.
             count: The count to pass to the command.
         """
-        self.parse(text)
-        if ';;' in text:
-            # Get the first command and check if it doesn't want to have ;;
-            # split.
-            if not self._cmd.no_cmd_split:
-                for sub in text.split(';;'):
-                    self.run(sub, count)
-                return
-        args = replace_variables(self._win_id, self._args)
-        if count is not None:
-            self._cmd.run(self._win_id, args, count=count)
-        else:
-            self._cmd.run(self._win_id, args)
+        for result in self.parse_all(text):
+            args = replace_variables(self._win_id, result.args)
+            if count is not None:
+                result.cmd.run(self._win_id, args, count=count)
+            else:
+                result.cmd.run(self._win_id, args)
 
     @pyqtSlot(str, int)
     def run_safely(self, text, count=None):

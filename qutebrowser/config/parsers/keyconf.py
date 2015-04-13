@@ -257,15 +257,33 @@ class KeyConfigParser(QObject):
         self.is_dirty = True
         self.config_dirty.emit()
 
+    def _validate_command(self, line):
+        """Check if a given command is valid."""
+        commands = line.split(';;')
+        try:
+            first_cmd = commands[0].split(maxsplit=1)[0].strip()
+            cmd = cmdutils.cmd_dict[first_cmd]
+            if cmd.no_cmd_split:
+                commands = [line]
+        except (KeyError, IndexError):
+            pass
+
+        for cmd in commands:
+            if not cmd.strip():
+                raise KeyConfigError("Got empty command (line: {!r})!".format(
+                    line))
+        commands = [c.split(maxsplit=1)[0].strip() for c in commands]
+        for cmd in commands:
+            if cmd not in cmdutils.cmd_dict:
+                raise KeyConfigError("Invalid command '{}'!".format(cmd))
+
     def _read_command(self, line):
         """Read a command from a line."""
         if self._cur_section is None:
             raise KeyConfigError("Got command '{}' without getting a "
                                  "section!".format(line))
         else:
-            command = line.split(maxsplit=1)[0]
-            if command not in cmdutils.cmd_dict:
-                raise KeyConfigError("Invalid command '{}'!".format(command))
+            self._validate_command(line)
             for rgx, repl in configdata.CHANGED_KEY_COMMANDS:
                 if rgx.match(line):
                     line = rgx.sub(repl, line)

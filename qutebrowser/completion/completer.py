@@ -302,7 +302,8 @@ class Completer(QObject):
             # the whitespace.
             return [text]
         runner = runners.CommandRunner(self._win_id)
-        parts = runner.parse(text, fallback=True, aliases=aliases, keep=keep)
+        result = runner.parse(text, fallback=True, aliases=aliases, keep=keep)
+        parts = result.cmdline
         if self._empty_item_idx is not None:
             log.completion.debug("Empty element queued at {}, "
                                  "inserting.".format(self._empty_item_idx))
