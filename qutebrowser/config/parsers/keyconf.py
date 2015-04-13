@@ -156,10 +156,10 @@ class KeyConfigParser(QObject):
         for m in mode.split(','):
             if m not in configdata.KEY_DATA:
                 raise cmdexc.CommandError("Invalid mode {}!".format(m))
-        split_cmd = command.split()
-        if split_cmd[0] not in cmdutils.cmd_dict:
-            raise cmdexc.CommandError("Invalid command {}!".format(
-                split_cmd[0]))
+        try:
+            self._validate_command(command)
+        except KeyConfigError as e:
+            raise cmdexc.CommandError(str(e))
         try:
             self._add_binding(mode, key, command, force=force)
         except DuplicateKeychainError as e:
