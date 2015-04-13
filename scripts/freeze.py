@@ -68,6 +68,10 @@ bdist_msi_options = {
     'add_to_path': False,
 }
 
+bdist_dmg_options = {
+    'applications_shortcut': True,
+}
+
 if sys.platform.startswith('win'):
     base = 'Win32GUI'
     target_name = 'qutebrowser.exe'
@@ -89,6 +93,7 @@ try:
         options={
             'build_exe': build_exe_options,
             'bdist_msi': bdist_msi_options,
+            'bdist_dmg': bdist_dmg_options,
         },
         **setupcommon.setupdata
     )
