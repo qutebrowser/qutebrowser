@@ -320,7 +320,7 @@ class Command:
             args.append(long_flag)
             args.append(short_flag)
             self.opt_args[param.name] = long_flag, short_flag
-            if param.kind == inspect.Parameter.KEYWORD_ONLY:
+            if typ is not bool:
                 self.flags_with_args.append(param.name)
         else:
             args.append(name)
