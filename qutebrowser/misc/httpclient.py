@@ -23,7 +23,7 @@ import functools
 import urllib.request
 import urllib.parse
 
-from PyQt5.QtCore import pyqtSignal, QObject
+from PyQt5.QtCore import pyqtSignal, QObject, QTimer
 from PyQt5.QtNetwork import (QNetworkAccessManager, QNetworkRequest,
                              QNetworkReply)
 
@@ -36,6 +36,7 @@ class HTTPClient(QObject):
 
     Attributes:
         _nam: The QNetworkAccessManager used.
+        _timers: A {QNetworkReply: QTimer} dict.
 
     Signals:
         success: Emitted when the operation succeeded.
@@ -50,6 +51,7 @@ class HTTPClient(QObject):
     def __init__(self, parent=None):
         super().__init__(parent)
         self._nam = QNetworkAccessManager(self)
+        self._timers = {}
 
     def post(self, url, data=None):
         """Create a new POST request.
@@ -65,11 +67,7 @@ class HTTPClient(QObject):
         request.setHeader(QNetworkRequest.ContentTypeHeader,
                           'application/x-www-form-urlencoded;charset=utf-8')
         reply = self._nam.post(request, encoded_data)
-        if reply.isFinished():
-            self.on_reply_finished(reply)
-        else:
-            reply.finished.connect(functools.partial(
-                self.on_reply_finished, reply))
+        self._handle_reply(reply)
 
     def get(self, url):
         """Create a new GET request.
@@ -81,9 +79,18 @@ class HTTPClient(QObject):
         """
         request = QNetworkRequest(url)
         reply = self._nam.get(request)
+        self._handle_reply(reply)
+
+    def _handle_reply(self, reply):
+        """Handle a new QNetworkReply."""
         if reply.isFinished():
             self.on_reply_finished(reply)
         else:
+            timer = QTimer(self)
+            timer.setInterval(10000)
+            timer.timeout.connect(reply.abort)
+            timer.start()
+            self._timers[reply] = timer
             reply.finished.connect(functools.partial(
                 self.on_reply_finished, reply))
 
@@ -93,6 +100,10 @@ class HTTPClient(QObject):
         Args:
             reply: The QNetworkReply which finished.
         """
+        timer = self._timers.pop(reply)
+        if timer is not None:
+            timer.stop()
+            timer.deleteLater()
         if reply.error() != QNetworkReply.NoError:
             self.error.emit(reply.errorString())
             return
