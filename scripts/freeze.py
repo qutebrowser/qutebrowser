@@ -74,6 +74,7 @@ bdist_dmg_options = {
 
 bdist_mac_options = {
     'qt_menu_nib': os.path.join(BASEDIR, 'misc', 'qt_menu.nib'),
+    'iconfile': os.path.join(BASEDIR, 'icons', 'qutebrowser.icns'),
 }
 
 if sys.platform.startswith('win'):
