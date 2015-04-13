@@ -68,10 +68,15 @@ bdist_msi_options = {
     'add_to_path': False,
 }
 
-base = 'Win32GUI' if sys.platform.startswith('win') else None
+if sys.platform.startswith('win'):
+    base = 'Win32GUI'
+    target_name = 'qutebrowser.exe'
+else:
+    base = None
+    target_name = 'qutebrowser'
 
 executable = cx.Executable('qutebrowser/__main__.py', base=base,
-                           targetName='qutebrowser.exe',
+                           targetName=target_name,
                            shortcutName='qutebrowser',
                            shortcutDir='ProgramMenuFolder',
                            icon=os.path.join(BASEDIR, 'icons',
