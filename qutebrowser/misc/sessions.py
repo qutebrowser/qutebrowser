@@ -375,6 +375,10 @@ class SessionManager(QObject):
                                           name))
         try:
             self.delete(name)
-        except OSError as e:
+        except SessionNotFoundError as e:
+            log.misc.exception("Session not found!")
+            raise cmdexc.CommandError("Session {} not found".format(e))
+        except (OSError, SessionError) as e:
+            log.misc.exception("Error while deleting session!")
             raise cmdexc.CommandError("Error while deleting session: {}"
                                       .format(e))

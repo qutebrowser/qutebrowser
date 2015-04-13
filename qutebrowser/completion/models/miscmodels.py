@@ -20,7 +20,7 @@
 """Misc. CompletionModels."""
 
 from qutebrowser.config import config, configdata
-from qutebrowser.utils import objreg
+from qutebrowser.utils import objreg, log
 from qutebrowser.commands import cmdutils
 from qutebrowser.completion.models import base
 
@@ -120,6 +120,9 @@ class SessionCompletionModel(base.BaseCompletionModel):
     def __init__(self, parent=None):
         super().__init__(parent)
         cat = self.new_category("Sessions")
-        for name in objreg.get('session-manager').list_sessions():
-            if not name.startswith('_'):
-                self.new_item(cat, name)
+        try:
+            for name in objreg.get('session-manager').list_sessions():
+                if not name.startswith('_'):
+                    self.new_item(cat, name)
+        except OSError:
+            log.completion.exception("Failed to list sessions!")

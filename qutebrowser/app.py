@@ -44,7 +44,7 @@ except ImportError:
 import qutebrowser
 import qutebrowser.resources  # pylint: disable=unused-import
 from qutebrowser.completion.models import instances as completionmodels
-from qutebrowser.commands import cmdutils, runners
+from qutebrowser.commands import cmdutils, runners, cmdexc
 from qutebrowser.config import style, config, websettings, configexc
 from qutebrowser.browser import quickmarks, cookies, cache, adblock, history
 from qutebrowser.browser.network import qutescheme, proxy, networkmanager
@@ -728,7 +728,11 @@ class Application(QApplication):
     @cmdutils.register(instance='app')
     def restart(self):
         """Restart qutebrowser while keeping existing tabs open."""
-        ok = self._do_restart(session='_restart')
+        try:
+            ok = self._do_restart(session='_restart')
+        except sessions.SessionError as e:
+            log.destroy.exception("Failed to save session!")
+            raise cmdexc.CommandError("Failed to save session: {}!".format(e))
         if ok:
             self.shutdown()
 
