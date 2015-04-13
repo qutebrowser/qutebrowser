@@ -321,7 +321,7 @@ class Command:
             args.append(short_flag)
             self.opt_args[param.name] = long_flag, short_flag
             if typ is not bool:
-                self.flags_with_args.append(param.name)
+                self.flags_with_args += [short_flag, long_flag]
         else:
             args.append(name)
             self.pos_args.append((param.name, name))

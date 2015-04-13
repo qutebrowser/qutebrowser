@@ -292,7 +292,7 @@ class CommandRunner(QObject):
             for i, arg in enumerate(split_args):
                 arg = arg.strip()
                 if arg.startswith('-'):
-                    if arg.lstrip('-') in cmd.flags_with_args:
+                    if arg in cmd.flags_with_args:
                         flag_arg_count += 1
                 else:
                     maxsplit = i + cmd.maxsplit + flag_arg_count
