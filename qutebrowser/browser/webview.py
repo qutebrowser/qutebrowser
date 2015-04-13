@@ -23,10 +23,11 @@ import sys
 import itertools
 import functools
 
-from PyQt5.QtCore import pyqtSignal, pyqtSlot, Qt, QTimer, QUrl
+from PyQt5.QtCore import pyqtSignal, pyqtSlot, Qt, QTimer, QUrl, QPoint
 from PyQt5.QtWidgets import QApplication, QStyleFactory
 from PyQt5.QtWebKit import QWebSettings
 from PyQt5.QtWebKitWidgets import QWebView, QWebPage
+from PyQt5.QtGui import QMouseEvent
 
 from qutebrowser.config import config
 from qutebrowser.keyinput import modeman
@@ -69,6 +70,7 @@ class WebView(QWebView):
         _check_insertmode: If True, in mouseReleaseEvent we should check if we
                            need to enter/leave insert mode.
         _default_zoom_changed: Whether the zoom was changed from the default.
+        _caret_exist: Whether caret already has focus element
 
     Signals:
         scroll_pos_changed: Scroll percentage of current tab changed.
@@ -142,6 +144,7 @@ class WebView(QWebView):
         self.viewing_source = False
         self.setZoomFactor(float(config.get('ui', 'default-zoom')) / 100)
         self._default_zoom_changed = False
+        self._caret_exist = False
         objreg.get('config').changed.connect(self.on_config_changed)
         if config.get('input', 'rocker-gestures'):
             self.setContextMenuPolicy(Qt.PreventContextMenu)
@@ -427,6 +430,31 @@ class WebView(QWebView):
                               "entered.".format(mode))
             self.setFocusPolicy(Qt.NoFocus)
 
+            self._caret_exist = False
+        elif mode in (usertypes.KeyMode.caret, usertypes.KeyMode.visual):
+            self.settings().setAttribute(QWebSettings.CaretBrowsingEnabled, True)
+
+            tabbed_browser = objreg.get('tabbed-browser', scope='window',
+                                        window=self.win_id)
+            if self.tab_id == tabbed_browser._now_focused.tab_id and not self._caret_exist:
+                """ 
+                Here is a workaround for auto position enabled caret. 
+                Unfortunatly, caret doesn't appear until you click 
+                mouse button on element. I have such behavior in dwb, 
+                so I decided to implement this workaround.
+                May be should be reworked.
+                """
+                frame = self.page().currentFrame()
+                halfWidth = frame.scrollBarGeometry(Qt.Horizontal).width() / 2
+                point = QPoint(halfWidth,1)
+                event = QMouseEvent(QMouseEvent.MouseButtonPress, point, point, 
+                        point, Qt.LeftButton, Qt.LeftButton, Qt.NoModifier)
+                QApplication.sendEvent(self, event)
+
+                self._caret_exist = True
+        else:
+            self._caret_exist = False
+
     @pyqtSlot(usertypes.KeyMode)
     def on_mode_left(self, mode):
         """Restore focus policy if status-input modes were left."""
@@ -434,7 +462,15 @@ class WebView(QWebView):
                     usertypes.KeyMode.yesno):
             log.webview.debug("Restoring focus policy because mode {} was "
                               "left.".format(mode))
+        elif mode in (usertypes.KeyMode.caret, usertypes.KeyMode.visual):
+            if self.settings().testAttribute(QWebSettings.CaretBrowsingEnabled):
+                if mode == usertypes.KeyMode.visual and self.hasSelection():
+                    # Remove selection if exist
+                    self.triggerPageAction(QWebPage.MoveToNextChar)
+                self.settings().setAttribute(QWebSettings.CaretBrowsingEnabled, False)
+
         self.setFocusPolicy(Qt.WheelFocus)
+
 
     def createWindow(self, wintype):
         """Called by Qt when a page wants to create a new window.
