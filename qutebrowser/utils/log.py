@@ -122,11 +122,12 @@ keyboard = logging.getLogger('keyboard')
 downloads = logging.getLogger('downloads')
 js = logging.getLogger('js')  # Javascript console messages
 qt = logging.getLogger('qt')  # Warnings produced by Qt
-style = logging.getLogger('style')
 rfc6266 = logging.getLogger('rfc6266')
 ipc = logging.getLogger('ipc')
 shlexer = logging.getLogger('shlexer')
 save = logging.getLogger('save')
+message = logging.getLogger('message')
+config = logging.getLogger('config')
 
 
 ram_handler = None

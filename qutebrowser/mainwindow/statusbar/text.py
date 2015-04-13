@@ -71,10 +71,10 @@ class Text(textbase.TextBase):
     def maybe_reset_text(self, text):
         """Clear a normal text if it still matches an expected text."""
         if self._normaltext == text:
-            log.misc.debug("Resetting: '{}'".format(text))
+            log.statusbar.debug("Resetting: '{}'".format(text))
             self.set_text(self.Text.normal, '')
         else:
-            log.misc.debug("Ignoring reset: '{}'".format(text))
+            log.statusbar.debug("Ignoring reset: '{}'".format(text))
 
     @config.change_filter('ui', 'display-statusbar-messages')
     def update_text(self):

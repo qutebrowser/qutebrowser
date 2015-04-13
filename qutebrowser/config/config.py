@@ -356,7 +356,7 @@ class ConfigManager(QObject):
             try:
                 desc = self.sections[sectname].descriptions[optname]
             except KeyError:
-                log.misc.exception("No description for {}.{}!".format(
+                log.config.exception("No description for {}.{}!".format(
                     sectname, optname))
                 continue
             for descline in desc.splitlines():
@@ -473,7 +473,7 @@ class ConfigManager(QObject):
 
     def _changed(self, sectname, optname):
         """Notify other objects the config has changed."""
-        log.misc.debug("Config option changed: {} -> {}".format(
+        log.config.debug("Config option changed: {} -> {}".format(
             sectname, optname))
         if sectname in ('colors', 'fonts'):
             self.style_changed.emit(sectname, optname)

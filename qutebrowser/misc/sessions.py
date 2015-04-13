@@ -195,13 +195,13 @@ class SessionManager(QObject):
                     name = 'default'
         path = self._get_session_path(name)
 
-        log.misc.debug("Saving session {} to {}...".format(name, path))
+        log.sessions.debug("Saving session {} to {}...".format(name, path))
         if last_window:
             data = self._last_window_session
             assert data is not None
         else:
             data = self._save_all()
-        log.misc.vdebug("Saving data: {}".format(data))
+        log.sessions.vdebug("Saving data: {}".format(data))
         try:
             with qtutils.savefile_open(path) as f:
                 yaml.dump(data, f, Dumper=YamlDumper, default_flow_style=False,
@@ -260,7 +260,7 @@ class SessionManager(QObject):
                 data = yaml.load(f, Loader=YamlLoader)
         except (OSError, UnicodeDecodeError, yaml.YAMLError) as e:
             raise SessionError(e)
-        log.misc.debug("Loading session {} from {}...".format(name, path))
+        log.sessions.debug("Loading session {} from {}...".format(name, path))
         for win in data['windows']:
             window = mainwindow.MainWindow(geometry=win['geometry'])
             window.show()
@@ -376,9 +376,9 @@ class SessionManager(QObject):
         try:
             self.delete(name)
         except SessionNotFoundError as e:
-            log.misc.exception("Session not found!")
+            log.sessions.exception("Session not found!")
             raise cmdexc.CommandError("Session {} not found".format(e))
         except (OSError, SessionError) as e:
-            log.misc.exception("Error while deleting session!")
+            log.sessions.exception("Error while deleting session!")
             raise cmdexc.CommandError("Error while deleting session: {}"
                                       .format(e))

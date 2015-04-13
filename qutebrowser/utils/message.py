@@ -52,7 +52,7 @@ def _wrapper(win_id, method_name, text, *args, **kwargs):
         bridge = _get_bridge(win_id)
     except objreg.RegistryUnavailableError:
         if win_id == 'current':
-            log.misc.debug("Queueing {} for current window".format(
+            log.message.debug("Queueing {} for current window".format(
                 method_name))
             _QUEUED.append(msg)
         else:
@@ -68,8 +68,8 @@ def _wrapper(win_id, method_name, text, *args, **kwargs):
                 window_focused):
             getattr(bridge, method_name)(text, *args, **kwargs)
         else:
-            log.misc.debug("Queueing {} for window {}".format(method_name,
-                                                              win_id))
+            log.message.debug("Queueing {} for window {}".format(
+                method_name, win_id))
             _QUEUED.append(msg)
 
 
@@ -95,7 +95,7 @@ def on_focus_changed():
     while _QUEUED:
         msg = _QUEUED.pop()
         delta = datetime.datetime.now() - msg.time
-        log.misc.debug("Handling queued {} for window {}, delta {}".format(
+        log.message.debug("Handling queued {} for window {}, delta {}".format(
             msg.method_name, msg.win_id, delta))
         try:
             bridge = _get_bridge(msg.win_id)
@@ -274,7 +274,7 @@ class MessageBridge(QObject):
                          messages should be queued.
         """
         msg = str(msg)
-        log.misc.error(msg)
+        log.message.error(msg)
         self.s_error.emit(msg, immediately)
 
     def warning(self, msg, immediately=False):
@@ -289,7 +289,7 @@ class MessageBridge(QObject):
                          messages should be queued.
         """
         msg = str(msg)
-        log.misc.warning(msg)
+        log.message.warning(msg)
         self.s_warning.emit(msg, immediately)
 
     def info(self, msg, immediately=True):
@@ -300,7 +300,7 @@ class MessageBridge(QObject):
             do rarely happen without user interaction.
         """
         msg = str(msg)
-        log.misc.info(msg)
+        log.message.info(msg)
         self.s_info.emit(msg, immediately)
 
     def set_cmd_text(self, text):
@@ -310,7 +310,7 @@ class MessageBridge(QObject):
             text: The text to set.
         """
         text = str(text)
-        log.misc.debug(text)
+        log.message.debug(text)
         self.s_set_cmd_text.emit(text)
 
     def set_text(self, text):
@@ -320,7 +320,7 @@ class MessageBridge(QObject):
             text: The text to set.
         """
         text = str(text)
-        log.misc.debug(text)
+        log.message.debug(text)
         self.s_set_text.emit(text)
 
     def maybe_reset_text(self, text):

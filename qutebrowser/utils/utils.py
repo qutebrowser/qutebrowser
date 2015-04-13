@@ -120,7 +120,7 @@ def actute_warning():
                           "for details.")
                     break
     except OSError:
-        log.misc.exception("Failed to read Compose file")
+        log.init.exception("Failed to read Compose file")
 
 
 def _get_color_percentage(a_c1, a_c2, a_c3, b_c1, b_c2, b_c3, percent):
