@@ -25,81 +25,29 @@ import pytest
 
 from qutebrowser import qutebrowser
 from qutebrowser.utils import qtutils
-
-
-class OverflowTestCases:
-    """
-    Provides test data for overflow checking.
-
-    Class attributes:
-        INT32_MIN: Minimum valid value for a signed int32.
-        INT32_MAX: Maximum valid value for a signed int32.
-        INT64_MIN: Minimum valid value for a signed int64.
-        INT64_MAX: Maximum valid value for a signed int64.
-        GOOD_VALUES: A dict of types mapped to a list of good values.
-        BAD_VALUES: A dict of types mapped to a list of bad values.
-    """
-
-    INT32_MIN = -(2 ** 31)
-    INT32_MAX = 2 ** 31 - 1
-    INT64_MIN = -(2 ** 63)
-    INT64_MAX = 2 ** 63 - 1
-
-    GOOD_VALUES = {
-        'int': [-1, 0, 1, 23.42, INT32_MIN, INT32_MAX],
-        'int64': [-1, 0, 1, 23.42, INT64_MIN, INT64_MAX],
-    }
-
-    BAD_VALUES = {
-        'int': [(INT32_MIN - 1, INT32_MIN),
-                (INT32_MAX + 1, INT32_MAX),
-                (float(INT32_MAX + 1), INT32_MAX)],
-        'int64': [(INT64_MIN - 1, INT64_MIN),
-                  (INT64_MAX + 1, INT64_MAX),
-                  (float(INT64_MAX + 1), INT64_MAX)],
-    }
-
-    @classmethod
-    def iter_good_values(cls):
-        """
-        Yields pairs of (c data type, value) which should pass overflow
-        checking.
-        """
-        for ctype, values in cls.GOOD_VALUES.items():
-            for value in values:
-                yield ctype, value
-
-    @classmethod
-    def iter_bad_values(cls):
-        """
-        Yields pairs of (c type, value, repl) for values which don't pass
-        overflow checking, and value they should be replaced with if overflow
-        checking should not be fatal.
-        """
-        for ctype, values in cls.BAD_VALUES.items():
-            for value, repl in values:
-                yield ctype, value, repl
+import overflow_test_cases
 
 
 class TestCheckOverflow:
     """Test check_overflow.
     """
 
-    @pytest.mark.parametrize('ctype, val', OverflowTestCases.iter_good_values())
+    @pytest.mark.parametrize('ctype, val',
+                             overflow_test_cases.iter_good_values())
     def test_good_values(self, ctype, val):
         """Test values which are inside bounds."""
         qtutils.check_overflow(val, ctype)
 
     @pytest.mark.parametrize('ctype, val',
                              [(ctype, val) for (ctype, val, _) in
-                              OverflowTestCases.iter_bad_values()])
+                              overflow_test_cases.iter_bad_values()])
     def test_bad_values_fatal(self, ctype, val):
         """Test values which are outside bounds with fatal=True."""
         with pytest.raises(OverflowError):
             qtutils.check_overflow(val, ctype)
 
     @pytest.mark.parametrize('ctype, val, repl',
-                             OverflowTestCases.iter_bad_values())
+                             overflow_test_cases.iter_bad_values())
     def test_bad_values_nonfatal(self, ctype, val, repl):
         """Test values which are outside bounds with fatal=False."""
         newval = qtutils.check_overflow(val, ctype, fatal=False)
