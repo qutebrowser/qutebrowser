@@ -157,6 +157,27 @@ class TestConfigParser:
             self.cfg.get('general', 'bar')  # pylint: disable=bad-config-call
 
 
+class TestKeyConfigParser:
+
+    """Test config.parsers.keyconf.KeyConfigParser."""
+
+    def test_cmd_binding(self, cmdline_test):
+        """Test various command bindings.
+
+        See https://github.com/The-Compiler/qutebrowser/issues/615
+
+        Args:
+            cmdline_test: A pytest fixture which provides testcases.
+        """
+        kcp = keyconf.KeyConfigParser(None, None)
+        kcp._cur_section = 'normal'
+        if cmdline_test.valid:
+            kcp._read_command(cmdline_test.cmd)
+        else:
+            with pytest.raises(keyconf.KeyConfigError):
+                kcp._read_command(cmdline_test.cmd)
+
+
 class TestDefaultConfig:
 
     """Test validating of the default config."""
