@@ -446,10 +446,16 @@ class WebView(QWebView):
                 """
                 frame = self.page().currentFrame()
                 halfWidth = frame.scrollBarGeometry(Qt.Horizontal).width() / 2
-                point = QPoint(halfWidth,1)
+                point = QPoint(halfWidth,10)
                 event = QMouseEvent(QMouseEvent.MouseButtonPress, point, point, 
                         point, Qt.LeftButton, Qt.LeftButton, Qt.NoModifier)
                 QApplication.sendEvent(self, event)
+                #frame.setFocus()
+                #frame.documentElement().setFocus()
+                #frame.documentElement().firstChild().setFocus()
+                #self.page().focusNextPrevChild(True)
+                #self.page().setContentEditable(True)
+                #self.triggerPageAction(QWebPage.MoveToNextChar)
 
                 self._caret_exist = True
         else:
