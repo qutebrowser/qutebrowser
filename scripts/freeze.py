@@ -72,6 +72,10 @@ bdist_dmg_options = {
     'applications_shortcut': True,
 }
 
+bdist_mac_options = {
+    'qt_menu_nib': os.path.join(BASEDIR, 'misc', 'qt_menu.nib'),
+}
+
 if sys.platform.startswith('win'):
     base = 'Win32GUI'
     target_name = 'qutebrowser.exe'
@@ -93,6 +97,7 @@ try:
         options={
             'build_exe': build_exe_options,
             'bdist_msi': bdist_msi_options,
+            'bdist_mac': bdist_mac_options,
             'bdist_dmg': bdist_dmg_options,
         },
         **setupcommon.setupdata
