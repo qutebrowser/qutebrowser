@@ -261,10 +261,11 @@ class KeyConfigParser(QObject):
         """Check if a given command is valid."""
         commands = line.split(';;')
         try:
-            cmd = cmdutils.cmd_dict[commands[0]]
+            first_cmd = commands[0].split(maxsplit=1)[0].strip()
+            cmd = cmdutils.cmd_dict[first_cmd]
             if cmd.no_cmd_split:
                 commands = [line]
-        except KeyError:
+        except (KeyError, IndexError):
             pass
 
         for cmd in commands:
