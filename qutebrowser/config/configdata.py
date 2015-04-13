@@ -1085,7 +1085,7 @@ KEY_DATA = collections.OrderedDict([
         ('search-next', ['n']),
         ('search-prev', ['N']),
         ('enter-mode insert', ['i']),
-        ('enter-mode caret', ['c', 'v']),
+        ('enter-mode caret', ['v']),
         ('yank', ['yy']),
         ('yank -s', ['yY']),
         ('yank -t', ['yt']),
