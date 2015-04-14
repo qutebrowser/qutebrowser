@@ -29,8 +29,8 @@ import overflow_test_cases
 
 
 class TestCheckOverflow:
-    """Test check_overflow.
-    """
+
+    """Test check_overflow."""
 
     @pytest.mark.parametrize('ctype, val',
                              overflow_test_cases.iter_good_values())
@@ -55,6 +55,7 @@ class TestCheckOverflow:
 
 
 class TestGetQtArgs:
+
     """Tests for get_args."""
 
     @pytest.fixture

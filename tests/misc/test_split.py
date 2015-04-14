@@ -131,9 +131,10 @@ class TestSplit:
 
     @pytest.fixture(params=_parse_split_test_data_str())
     def split_test_case(self, request):
-        """
-        Fixture that will automatically parametrize all tests the depend on it
-        using the parsed test case data.
+        """Fixture to automatically parametrize all depending tests.
+
+        It will use the test data from test_data_str, parsed using
+        _parse_split_test_data_str().
         """
         return request.param
 

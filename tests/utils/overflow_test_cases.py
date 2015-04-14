@@ -50,9 +50,9 @@ BAD_VALUES = {
 
 
 def iter_good_values():
-    """
-    Yields pairs of (c data type, value) which should pass overflow
-    checking.
+    """Yield "good" (C data type, value) tuples.
+
+    Those should pass overflow checking.
     """
     for ctype, values in GOOD_VALUES.items():
         for value in values:
@@ -60,10 +60,10 @@ def iter_good_values():
 
 
 def iter_bad_values():
-    """
-    Yields pairs of (c type, value, repl) for values which don't pass
-    overflow checking, and a value they should be replaced with if overflow
-    checking should not be fatal.
+    """Yield pairs of "bad" (C type, value, repl) tuples.
+
+    Theose should not pass overflow checking. The third value is the value they
+    should be replaced with if overflow checking should not be fatal.
     """
     for ctype, values in BAD_VALUES.items():
         for value, repl in values:
