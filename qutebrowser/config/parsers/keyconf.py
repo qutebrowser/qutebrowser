@@ -46,6 +46,10 @@ class DuplicateKeychainError(KeyConfigError):
 
     """Error raised when there's a duplicate key binding."""
 
+    def __init__(self, keychain):
+        super().__init__("Duplicate key chain {}!".format(keychain))
+        self.keychain = keychain
+
 
 class KeyConfigParser(QObject):
 
@@ -164,7 +168,7 @@ class KeyConfigParser(QObject):
             self._add_binding(mode, key, command, force=force)
         except DuplicateKeychainError as e:
             raise cmdexc.CommandError("Duplicate keychain {} - use --force to "
-                                      "override!".format(str(e)))
+                                      "override!".format(str(e.keychain)))
         except KeyConfigError as e:
             raise cmdexc.CommandError(e)
         for m in mode.split(','):
