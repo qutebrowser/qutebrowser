@@ -52,15 +52,23 @@ def unicode_encode_err():
                               'fake exception')  # reason
 
 
+@pytest.fixture(scope='session')
+def qnam():
+    """Session-wide QNetworkAccessManager."""
+    from PyQt5.QtNetwork import QNetworkAccessManager
+    nam = QNetworkAccessManager()
+    nam.setNetworkAccessible(QNetworkAccessManager.NotAccessible)
+    return nam
+
+
 @pytest.fixture
-def webpage():
+def webpage(qnam):
     """Get a new QWebPage object."""
     from PyQt5.QtWebKitWidgets import QWebPage
-    from PyQt5.QtNetwork import QNetworkAccessManager
 
     page = QWebPage()
-    nam = page.networkAccessManager()
-    nam.setNetworkAccessible(QNetworkAccessManager.NotAccessible)
+    page.networkAccessManager().deleteLater()
+    page.setNetworkAccessManager(qnam)
     return page
 
 
