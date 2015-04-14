@@ -63,44 +63,27 @@ class TestSplitCount:
 
     """Test the _split_count method.
 
-    Attributes:
-        kp: The BaseKeyParser we're testing.
+    Class Attributes:
+        TESTS: list of parameters for the tests, as tuples of
+        (input_key, supports_count, expected)
     """
 
-    @pytest.fixture(autouse=True)
-    def setup(self):
-        self.kp = basekeyparser.BaseKeyParser(0, supports_count=True)
+    TESTS = [
+        # (input_key, supports_count, expected)
+        ('10', True, (10, '')),
+        ('10foo', True, (10, 'foo')),
+        ('-1foo', True, (None, '-1foo')),
+        ('10e4foo', True, (10, 'e4foo')),
+        ('foo', True, (None, 'foo')),
+        ('10foo', False, (None, '10foo')),
+    ]
 
-    def test_onlycount(self):
+    @pytest.mark.parametrize('input_key, supports_count, expected', TESTS)
+    def test_splitcount(self, input_key, supports_count, expected):
         """Test split_count with only a count."""
-        self.kp._keystring = '10'
-        assert self.kp._split_count() == (10, '')
-
-    def test_normalcount(self):
-        """Test split_count with count and text."""
-        self.kp._keystring = '10foo'
-        assert self.kp._split_count() == (10, 'foo')
-
-    def test_minuscount(self):
-        """Test split_count with a negative count."""
-        self.kp._keystring = '-1foo'
-        assert self.kp._split_count() == (None, '-1foo')
-
-    def test_expcount(self):
-        """Test split_count with an exponential count."""
-        self.kp._keystring = '10e4foo'
-        assert self.kp._split_count() == (10, 'e4foo')
-
-    def test_nocount(self):
-        """Test split_count with only a command."""
-        self.kp._keystring = 'foo'
-        assert self.kp._split_count() == (None, 'foo')
-
-    def test_nosupport(self):
-        """Test split_count with a count when counts aren't supported."""
-        self.kp._supports_count = False
-        self.kp._keystring = '10foo'
-        assert self.kp._split_count() == (None, '10foo')
+        kp = basekeyparser.BaseKeyParser(0, supports_count=supports_count)
+        kp._keystring = input_key
+        assert kp._split_count() == expected
 
 
 @pytest.mark.usefixtures('fake_keyconfig', 'mock_timer')
