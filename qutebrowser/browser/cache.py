@@ -53,7 +53,7 @@ class DiskCache(QNetworkDiskCache):
         Return:
             An int.
         """
-        if objreg.get('general', 'private-browsing'):
+        if config.get('general', 'private-browsing'):
             return 0
         else:
             return super().cacheSize()
@@ -67,7 +67,7 @@ class DiskCache(QNetworkDiskCache):
         Return:
             A QNetworkCacheMetaData object.
         """
-        if objreg.get('general', 'private-browsing'):
+        if config.get('general', 'private-browsing'):
             return QNetworkCacheMetaData()
         else:
             return super().fileMetaData(filename)
@@ -81,7 +81,7 @@ class DiskCache(QNetworkDiskCache):
         return:
             A QIODevice or None.
         """
-        if objreg.get('general', 'private-browsing'):
+        if config.get('general', 'private-browsing'):
             return None
         else:
             return super().data(url)
@@ -92,7 +92,7 @@ class DiskCache(QNetworkDiskCache):
         Args:
             device: A QIODevice.
         """
-        if objreg.get('general', 'private-browsing'):
+        if config.get('general', 'private-browsing'):
             return
         else:
             super().insert(device)
@@ -106,7 +106,7 @@ class DiskCache(QNetworkDiskCache):
         Return:
             A QNetworkCacheMetaData object.
         """
-        if objreg.get('general', 'private-browsing'):
+        if config.get('general', 'private-browsing'):
             return QNetworkCacheMetaData()
         else:
             return super().metaData(url)
@@ -120,7 +120,7 @@ class DiskCache(QNetworkDiskCache):
         Return:
             A QIODevice or None.
         """
-        if objreg.get('general', 'private-browsing'):
+        if config.get('general', 'private-browsing'):
             return None
         else:
             return super().prepare(meta_data)
@@ -131,7 +131,7 @@ class DiskCache(QNetworkDiskCache):
         Return:
             True on success, False otherwise.
         """
-        if objreg.get('general', 'private-browsing'):
+        if config.get('general', 'private-browsing'):
             return False
         else:
             return super().remove(url)
@@ -142,14 +142,14 @@ class DiskCache(QNetworkDiskCache):
         Args:
             meta_data: A QNetworkCacheMetaData object.
         """
-        if objreg.get('general', 'private-browsing'):
+        if config.get('general', 'private-browsing'):
             return
         else:
             super().updateMetaData(meta_data)
 
     def clear(self):
         """Remove all items from the cache."""
-        if objreg.get('general', 'private-browsing'):
+        if config.get('general', 'private-browsing'):
             return
         else:
             super().clear()
