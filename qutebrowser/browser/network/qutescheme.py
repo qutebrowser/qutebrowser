@@ -29,6 +29,7 @@ Module attributes:
     pyeval_output: The output of the last :pyeval command.
 """
 
+import functools
 import configparser
 
 from PyQt5.QtCore import pyqtSlot, QObject
@@ -171,8 +172,10 @@ def qute_help(win_id, request):
 
 def qute_settings(win_id, _request):
     """Handler for qute:settings. View/change qute configuration."""
+    config_getter = functools.partial(objreg.get('config').get, raw=True)
     html = jinja.env.get_template('settings.html').render(
-        win_id=win_id, title='settings', config=configdata)
+        win_id=win_id, title='settings', config=configdata,
+        confget=config_getter)
     return html.encode('UTF-8', errors='xmlcharrefreplace')
 
 
