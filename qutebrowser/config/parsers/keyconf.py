@@ -91,6 +91,7 @@ class KeyConfigParser(QObject):
             self._load_default()
         else:
             self._read()
+            self._load_default(only_new=True)
         log.init.debug("Loaded bindings: {}".format(self.keybindings))
 
     def __str__(self):
@@ -217,17 +218,40 @@ class KeyConfigParser(QObject):
             sections = '!' + sections
         return sections
 
-    def _load_default(self):
-        """Load the built-in default key bindings."""
+    def _load_default(self, *, only_new=False):
+        """Load the built-in default key bindings.
+
+        Args:
+            only_new: If set, only keybindings which are completely unused
+                      (same command/key not bound) are added.
+        """
         for sectname, sect in configdata.KEY_DATA.items():
             sectname = self._normalize_sectname(sectname)
             if not sect:
-                self.keybindings[sectname] = collections.OrderedDict()
+                if not only_new:
+                    self.keybindings[sectname] = collections.OrderedDict()
+                    self._mark_config_dirty()
             else:
                 for command, keychains in sect.items():
                     for e in keychains:
-                        self._add_binding(sectname, e, command)
+                        if not only_new or self._is_new(sectname, command, e):
+                            self._add_binding(sectname, e, command)
+                            self._mark_config_dirty()
             self.changed.emit(sectname)
+
+    def _is_new(self, sectname, command, keychain):
+        """Check if a given binding is new.
+
+        A binding is considered new if both the command is not bound to any key
+        yet, and the key isn't used anywhere else in the same section.
+        """
+        bindings = self.keybindings[sectname]
+        if keychain in bindings:
+            return False
+        elif command in bindings.values():
+            return False
+        else:
+            return True
 
     def _read(self):
         """Read the config file from disk and parse it."""
