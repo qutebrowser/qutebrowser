@@ -42,4 +42,4 @@ def test_log_time(caplog):
         assert match
 
         duration = float(match.group(1))
-        assert 0.08 <= duration <= 0.12
+        assert 0.08 <= duration <= 0.20
