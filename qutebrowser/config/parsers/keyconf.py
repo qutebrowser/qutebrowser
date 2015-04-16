@@ -21,6 +21,7 @@
 
 import collections
 import os.path
+import itertools
 
 from PyQt5.QtCore import pyqtSignal, QObject
 
@@ -61,6 +62,9 @@ class KeyConfigParser(QObject):
         _cur_command: The command currently being processed by _read().
         is_dirty: Whether the config is currently dirty.
 
+    Class attributes:
+        UNBOUND_COMMAND: The special command used for unbound keybindings.
+
     Signals:
         changed: Emitted when the internal data has changed.
                  arg: Name of the mode which was changed.
@@ -69,6 +73,7 @@ class KeyConfigParser(QObject):
 
     changed = pyqtSignal(str)
     config_dirty = pyqtSignal()
+    UNBOUND_COMMAND = '<unbound>'
 
     def __init__(self, configdir, fname, parent=None):
         """Constructor.
@@ -202,6 +207,12 @@ class KeyConfigParser(QObject):
             raise cmdexc.CommandError("Can't find binding '{}' in section "
                                       "'{}'!".format(key, mode))
         else:
+            if key in itertools.chain.from_iterable(
+                    configdata.KEY_DATA[mode].values()):
+                try:
+                    self._add_binding(mode, key, self.UNBOUND_COMMAND)
+                except DuplicateKeychainError:
+                    pass
             for m in mode.split(','):
                 self.changed.emit(m)
             self._mark_config_dirty()
@@ -287,6 +298,8 @@ class KeyConfigParser(QObject):
 
     def _validate_command(self, line):
         """Check if a given command is valid."""
+        if line == self.UNBOUND_COMMAND:
+            return
         commands = line.split(';;')
         try:
             first_cmd = commands[0].split(maxsplit=1)[0].strip()
@@ -335,10 +348,15 @@ class KeyConfigParser(QObject):
         if sectname not in self.keybindings:
             self.keybindings[sectname] = collections.OrderedDict()
         if keychain in self.get_bindings_for(sectname):
-            if force:
+            if force or command == self.UNBOUND_COMMAND:
                 self.unbind(keychain, mode=sectname)
             else:
                 raise DuplicateKeychainError(keychain)
+        section = self.keybindings[sectname]
+        if (command != self.UNBOUND_COMMAND and
+                section.get(keychain, None) == self.UNBOUND_COMMAND):
+            # re-binding an unbound keybinding
+            del section[keychain]
         self.keybindings[sectname][keychain] = command
 
     def get_bindings_for(self, section):
@@ -358,4 +376,6 @@ class KeyConfigParser(QObject):
             bindings.update(self.keybindings['all'])
         except KeyError:
             pass
+        bindings = {k: v for k, v in bindings.items()
+                    if v != self.UNBOUND_COMMAND}
         return bindings
