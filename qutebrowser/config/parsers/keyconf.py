@@ -204,7 +204,7 @@ class KeyConfigParser(QObject):
         else:
             for m in mode.split(','):
                 self.changed.emit(m)
-                self._mark_config_dirty()
+            self._mark_config_dirty()
 
     def _normalize_sectname(self, s):
         """Normalize a section string like 'foo, bar,baz' to 'bar,baz,foo'."""
