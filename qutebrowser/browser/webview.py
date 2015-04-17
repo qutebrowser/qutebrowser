@@ -23,7 +23,7 @@ import sys
 import itertools
 import functools
 
-from PyQt5.QtCore import pyqtSignal, pyqtSlot, Qt, QTimer, QUrl, QObject
+from PyQt5.QtCore import pyqtSignal, pyqtSlot, Qt, QTimer, QUrl
 from PyQt5.QtWidgets import QApplication, QStyleFactory
 from PyQt5.QtWebKit import QWebSettings
 from PyQt5.QtWebKitWidgets import QWebView, QWebPage
