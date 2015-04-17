@@ -123,8 +123,7 @@ class WebView(QWebView):
                                   window=win_id)
         tab_registry[self.tab_id] = self
         objreg.register('webview', self, registry=self.registry)
-        page = webpage.BrowserPage(win_id, self.tab_id, self)
-        self.setPage(page)
+        page = self._init_page()
         hintmanager = hints.HintManager(win_id, self.tab_id, self)
         hintmanager.mouse_event.connect(self.on_mouse_event)
         hintmanager.start_hinting.connect(page.on_start_hinting)
@@ -134,21 +133,27 @@ class WebView(QWebView):
                                   window=win_id)
         mode_manager.entered.connect(self.on_mode_entered)
         mode_manager.left.connect(self.on_mode_left)
-        page.linkHovered.connect(self.linkHovered)
-        page.mainFrame().loadStarted.connect(self.on_load_started)
-        self.urlChanged.connect(self.on_url_changed)
-        page.mainFrame().loadFinished.connect(self.on_load_finished)
-        self.loadProgress.connect(lambda p: setattr(self, 'progress', p))
-        self.page().statusBarMessage.connect(
-            lambda msg: setattr(self, 'statusbar_message', msg))
-        self.page().networkAccessManager().sslErrors.connect(
-            lambda *args: setattr(self, '_has_ssl_errors', True))
         self.viewing_source = False
         self.setZoomFactor(float(config.get('ui', 'default-zoom')) / 100)
         self._default_zoom_changed = False
-        objreg.get('config').changed.connect(self.on_config_changed)
         if config.get('input', 'rocker-gestures'):
             self.setContextMenuPolicy(Qt.PreventContextMenu)
+        self.urlChanged.connect(self.on_url_changed)
+        self.loadProgress.connect(lambda p: setattr(self, 'progress', p))
+        objreg.get('config').changed.connect(self.on_config_changed)
+
+    def _init_page(self):
+        """Initialize the QWebPage used by this view."""
+        page = webpage.BrowserPage(self.win_id, self.tab_id, self)
+        self.setPage(page)
+        page.linkHovered.connect(self.linkHovered)
+        page.mainFrame().loadStarted.connect(self.on_load_started)
+        page.mainFrame().loadFinished.connect(self.on_load_finished)
+        page.statusBarMessage.connect(
+            lambda msg: setattr(self, 'statusbar_message', msg))
+        page.networkAccessManager().sslErrors.connect(
+            lambda *args: setattr(self, '_has_ssl_errors', True))
+        return page
 
     def __repr__(self):
         url = utils.elide(self.url().toDisplayString(), 50)
