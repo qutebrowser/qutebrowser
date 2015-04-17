@@ -31,6 +31,7 @@ import functools
 import traceback
 import faulthandler
 import json
+import time
 
 from PyQt5.QtWidgets import QApplication, QDialog, QMessageBox
 from PyQt5.QtGui import QDesktopServices, QPixmap, QIcon, QCursor, QWindow
@@ -115,12 +116,18 @@ class Application(QApplication):
                 sys.exit(0)
             log.init.debug("Starting IPC server...")
             ipc.init()
-        except ipc.IPCError as e:
-            text = ('{}\n\nMaybe another instance is running but '
-                    'frozen?'.format(e))
-            msgbox = QMessageBox(QMessageBox.Critical, "Error while "
-                                 "connecting to running instance!", text)
-            msgbox.exec_()
+        except ipc.AddressInUseError as e:
+            # This could be a race condition...
+            log.init.debug("Got AddressInUseError, trying again.")
+            time.sleep(500)
+            sent = ipc.send_to_running_instance(self._args.command)
+            if sent:
+                sys.exit(0)
+            else:
+                ipc.display_error(e)
+                sys.exit(1)
+        except ipc.Error as e:
+            ipc.display_error(e)
             # We didn't really initialize much so far, so we just quit hard.
             sys.exit(1)
 

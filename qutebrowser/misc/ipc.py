@@ -25,7 +25,8 @@ import getpass
 import binascii
 
 from PyQt5.QtCore import pyqtSlot, QObject
-from PyQt5.QtNetwork import QLocalSocket, QLocalServer
+from PyQt5.QtNetwork import QLocalSocket, QLocalServer, QAbstractSocket
+from PyQt5.QtWidgets import QMessageBox
 
 from qutebrowser.utils import log, objreg, usertypes
 
@@ -36,9 +37,38 @@ WRITE_TIMEOUT = 1000
 READ_TIMEOUT = 5000
 
 
-class IPCError(Exception):
+class Error(Exception):
 
     """Exception raised when there was a problem with IPC."""
+
+
+class ListenError(Error):
+
+    """Exception raised when there was a problem with listening to IPC.
+
+    Args:
+        code: The error code.
+        message: The error message.
+    """
+
+    def __init__(self, server):
+        """Constructor.
+
+        Args:
+            server: The QLocalServer which has the error set.
+        """
+        super().__init__()
+        self.code = server.serverError()
+        self.message = server.errorString()
+
+    def __str__(self):
+        return "Error while listening to IPC server: {} (error {})".format(
+            self.message, self.code)
+
+
+class AddressInUseError(ListenError):
+
+    """Emitted when the server address is already in use."""
 
 
 class IPCServer(QObject):
@@ -63,9 +93,10 @@ class IPCServer(QObject):
         self._server = QLocalServer(self)
         ok = self._server.listen(SOCKETNAME)
         if not ok:
-            raise IPCError("Error while listening to IPC server: {} "
-                           "(error {})".format(self._server.errorString(),
-                                               self._server.serverError()))
+            if self._server.serverError() == QAbstractSocket.AddressInUseError:
+                raise AddressInUseError(self._server)
+            else:
+                raise ListenError(self._server)
         self._server.newConnection.connect(self.handle_connection)
         self._socket = None
 
@@ -73,8 +104,7 @@ class IPCServer(QObject):
         """Remove an existing server."""
         ok = QLocalServer.removeServer(SOCKETNAME)
         if not ok:
-            raise IPCError("Error while removing server {}!".format(
-                SOCKETNAME))
+            raise Error("Error while removing server {}!".format(SOCKETNAME))
 
     @pyqtSlot(int)
     def on_error(self, error):
@@ -185,13 +215,13 @@ def init():
 
 
 def _socket_error(action, socket):
-    """Raise an IPCError based on an action and a QLocalSocket.
+    """Raise an Error based on an action and a QLocalSocket.
 
     Args:
         action: A string like "writing to running instance".
         socket: A QLocalSocket.
     """
-    raise IPCError("Error while {}: {} (error {})".format(
+    raise Error("Error while {}: {} (error {})".format(
         action, socket.errorString(), socket.error()))
 
 
@@ -235,3 +265,11 @@ def send_to_running_instance(cmdlist):
             log.ipc.debug("No existing instance present (error {})".format(
                 socket.error()))
             return False
+
+
+def display_error(exc):
+    """Display a message box with an IPC error."""
+    text = '{}\n\nMaybe another instance is running but frozen?'.format(exc)
+    msgbox = QMessageBox(QMessageBox.Critical, "Error while connecting to "
+                         "running instance!", text)
+    msgbox.exec_()
