@@ -1076,3 +1076,71 @@ class CommandDispatcher:
                 elem.evaluateJavaScript("this.value='{}'".format(text))
         except webelem.IsNullError:
             raise cmdexc.CommandError("Element vanished while editing!")
+
+    @cmdutils.register(instance='command-dispatcher', scope='window',
+                       maxsplit=0)
+    def search(self, text="", reverse=False):
+        """Search for a text on the current page. With no text, clear results.
+
+        Args:
+            text: The text to search for.
+            reverse: Reverse search direction.
+        """
+        view = self._current_widget()
+        if view.search_text is not None and view.search_text != text:
+            # We first clear the marked text, then the highlights
+            view.search('', 0)
+            view.search('', QWebPage.HighlightAllOccurrences)
+
+        flags = 0
+        ignore_case = config.get('general', 'ignore-case')
+        if ignore_case == 'smart':
+            if not text.islower():
+                flags |= QWebPage.FindCaseSensitively
+        elif not ignore_case:
+            flags |= QWebPage.FindCaseSensitively
+        if config.get('general', 'wrap-search'):
+            flags |= QWebPage.FindWrapsAroundDocument
+        if reverse:
+            flags |= QWebPage.FindBackward
+        # We actually search *twice* - once to highlight everything, then again
+        # to get a mark so we can navigate.
+        view.search(text, flags)
+        view.search(text, flags | QWebPage.HighlightAllOccurrences)
+        view.search_text = text
+        view.search_flags = flags
+
+    @cmdutils.register(instance='command-dispatcher', hide=True,
+                       scope='window')
+    def search_next(self, count: {'special': 'count'}=1):
+        """Continue the search to the ([count]th) next term.
+
+        Args:
+            count: How many elements to ignore.
+        """
+        view = self._current_widget()
+        if view.search_text is not None:
+            for _ in range(count):
+                view.search(view.search_text, view.search_flags)
+
+    @cmdutils.register(instance='command-dispatcher', hide=True,
+                       scope='window')
+    def search_prev(self, count: {'special': 'count'}=1):
+        """Continue the search to the ([count]th) previous term.
+
+        Args:
+            count: How many elements to ignore.
+        """
+        view = self._current_widget()
+        if view.search_text is None:
+            return
+        # The int() here serves as a QFlags constructor to create a copy of the
+        # QFlags instance rather as a reference. I don't know why it works this
+        # way, but it does.
+        flags = int(view.search_flags)
+        if flags & QWebPage.FindBackward:
+            flags &= ~QWebPage.FindBackward
+        else:
+            flags |= QWebPage.FindBackward
+        for _ in range(count):
+            view.search(view.search_text, flags)

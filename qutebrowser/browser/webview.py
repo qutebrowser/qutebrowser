@@ -23,7 +23,7 @@ import sys
 import itertools
 import functools
 
-from PyQt5.QtCore import pyqtSignal, pyqtSlot, Qt, QTimer, QUrl
+from PyQt5.QtCore import pyqtSignal, pyqtSlot, Qt, QTimer, QUrl, QObject
 from PyQt5.QtWidgets import QApplication, QStyleFactory
 from PyQt5.QtWebKit import QWebSettings
 from PyQt5.QtWebKitWidgets import QWebView, QWebPage
@@ -62,6 +62,8 @@ class WebView(QWebView):
         registry: The ObjectRegistry associated with this tab.
         tab_id: The tab ID of the view.
         win_id: The window ID of the view.
+        search_text: The text of the last search.
+        search_flags: The search flags of the last search.
         _cur_url: The current URL (accessed via cur_url property).
         _has_ssl_errors: Whether SSL errors occurred during loading.
         _zoom: A NeighborList with the zoom levels.
@@ -102,6 +104,8 @@ class WebView(QWebView):
         self._zoom = None
         self._has_ssl_errors = False
         self.keep_icon = False
+        self.search_text = None
+        self.search_flags = 0
         self.init_neighborlist()
         cfg = objreg.get('config')
         cfg.changed.connect(self.init_neighborlist)
@@ -435,6 +439,35 @@ class WebView(QWebView):
             log.webview.debug("Restoring focus policy because mode {} was "
                               "left.".format(mode))
         self.setFocusPolicy(Qt.WheelFocus)
+
+    def search(self, text, flags):
+        """Search for text in the current page.
+
+        Args:
+            text: The text to search for.
+            flags: The QWebPage::FindFlags.
+        """
+        log.webview.debug("Searching with text '{}' and flags "
+                          "0x{:04x}.".format(text, int(flags)))
+        old_scroll_pos = self.scroll_pos
+        flags = QWebPage.FindFlags(flags)
+        found = self.findText(text, flags)
+        if not found and not flags & QWebPage.HighlightAllOccurrences and text:
+            message.error(self.win_id, "Text '{}' not found on "
+                          "page!".format(text), immediately=True)
+        else:
+            backward = int(flags) & QWebPage.FindBackward
+
+            def check_scroll_pos():
+                """Check if the scroll position got smaller and show info."""
+                if not backward and self.scroll_pos < old_scroll_pos:
+                    message.info(self.win_id, "Search hit BOTTOM, continuing "
+                                 "at TOP", immediately=True)
+                elif backward and self.scroll_pos > old_scroll_pos:
+                    message.info(self.win_id, "Search hit TOP, continuing at "
+                                 "BOTTOM", immediately=True)
+            # We first want QWebPage to refresh.
+            QTimer.singleShot(0, check_scroll_pos)
 
     def createWindow(self, wintype):
         """Called by Qt when a page wants to create a new window.
