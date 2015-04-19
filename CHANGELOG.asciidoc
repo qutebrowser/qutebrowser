@@ -14,6 +14,14 @@ This project adheres to http://semver.org/[Semantic Versioning].
 // `Fixed` for any bug fixes.
 // `Security` to invite users to upgrade in case of vulnerabilities.
 
+https://github.com/The-Compiler/qutebrowser/releases/tag/v0.2.1[v0.2.1]
+-----------------------------------------------------------------------
+
+Fixed
+~~~~~
+
+- Added missing manpage (doc/qutebrowser.1.asciidoc) to archive.
+
 https://github.com/The-Compiler/qutebrowser/releases/tag/v0.2.0[v0.2.0]
 -----------------------------------------------------------------------
 
