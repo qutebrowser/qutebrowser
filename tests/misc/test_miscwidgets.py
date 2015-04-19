@@ -48,17 +48,17 @@ class TestCommandLineEdit:
 
         objreg.delete('command-history')
 
-    @pytest.yield_fixture
-    def mock_clipboard(self):
+    @pytest.fixture
+    def mock_clipboard(self, mocker):
         """
         Fixture installs a MagicMock into QApplication.clipboard() and
         returns it.
         """
-        with mock.patch.object(QApplication, 'clipboard'):
-            clipboard = mock.MagicMock()
-            clipboard.supportsSelection.return_value = True
-            QApplication.clipboard.return_value = clipboard
-            yield clipboard
+        mocker.patch.object(QApplication, 'clipboard')
+        clipboard = mock.MagicMock()
+        clipboard.supportsSelection.return_value = True
+        QApplication.clipboard.return_value = clipboard
+        return clipboard
 
     def test_position(self, qtbot, cmd_edit):
         """Test cursor position based on the prompt."""
