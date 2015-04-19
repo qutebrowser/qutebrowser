@@ -96,7 +96,6 @@ class MainWindow(QWidget):
                         window=self.win_id)
 
         self._downloadview = downloadview.DownloadView(self.win_id)
-        self._downloadview.show()
 
         self._tabbed_browser = tabbedbrowser.TabbedBrowser(self.win_id)
         objreg.register('tabbed-browser', self._tabbed_browser, scope='window',
@@ -108,6 +107,7 @@ class MainWindow(QWidget):
         self.status = bar.StatusBar(self.win_id, parent=self)
 
         self._add_widgets()
+        self._downloadview.show()
 
         self._completion = completionwidget.CompletionView(self.win_id, self)
 
