@@ -95,4 +95,3 @@ class TestCommandLineEdit:
         mock_clipboard.text.return_value = '$ command'
         qtbot.keyClick(cmd_edit, Qt.Key_Insert, Qt.ShiftModifier)
         assert cmd_edit.text() == ':command param1'
-
