@@ -107,7 +107,7 @@ def pytest_collection_modifyitems(items):
         http://pytest.org/latest/plugins.html
     """
     for item in items:
-        if 'qtbot' in item.fixturenames:
+        if 'qtbot' in getattr(item, 'fixturenames', ()):
             item.add_marker('gui')
 
 
