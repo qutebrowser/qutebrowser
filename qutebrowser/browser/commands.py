@@ -876,14 +876,13 @@ class CommandDispatcher:
             env['QUTE_TITLE'] = tabbed_browser.page_title(idx)
 
         webview = tabbed_browser.currentWidget()
-        if webview is not None:
+        if webview is None:
+            mainframe = None
+        else:
             if webview.hasSelection():
                 env['QUTE_SELECTED_TEXT'] = webview.selectedText()
                 env['QUTE_SELECTED_HTML'] = webview.selectedHtml()
             mainframe = webview.page().mainFrame()
-            if mainframe is not None:
-                env['QUTE_HTML'] = mainframe.toHtml()
-                env['QUTE_TEXT'] = mainframe.toPlainText()
 
         try:
             url = tabbed_browser.current_url()
@@ -892,6 +891,7 @@ class CommandDispatcher:
         else:
             env['QUTE_URL'] = url.toString(QUrl.FullyEncoded)
 
+        env.update(userscripts.store_source(mainframe))
         userscripts.run(cmd, *args, win_id=self._win_id, env=env)
 
     @cmdutils.register(instance='command-dispatcher', scope='window')

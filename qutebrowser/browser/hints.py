@@ -523,12 +523,11 @@ class HintManager(QObject):
             'QUTE_MODE': 'hints',
             'QUTE_SELECTED_TEXT': str(elem),
             'QUTE_SELECTED_HTML': elem.toOuterXml(),
-            'QUTE_HTML': frame.toHtml(),
-            'QUTE_TEXT': frame.toPlainText(),
         }
         url = self._resolve_url(elem, context.baseurl)
         if url is not None:
             env['QUTE_URL'] = url.toString(QUrl.FullyEncoded)
+        env.update(userscripts.store_source(frame))
         userscripts.run(cmd, *args, win_id=self._win_id, env=env)
 
     def _spawn(self, url, context):
