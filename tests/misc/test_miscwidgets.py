@@ -18,25 +18,22 @@
 # along with qutebrowser.  If not, see <http://www.gnu.org/licenses/>.
 
 """Test widgets in miscwidgets module."""
+
 from unittest import mock
 from PyQt5.QtCore import Qt
 from PyQt5.QtWidgets import QApplication
 import pytest
 
-from qutebrowser.misc import lineparser
 from qutebrowser.misc.miscwidgets import CommandLineEdit
-from qutebrowser.utils import objreg
 
 
 class TestCommandLineEdit:
+
     """Tests for CommandLineEdit widget."""
 
     @pytest.yield_fixture
     def cmd_edit(self, qtbot):
-        """
-        Fixture to initialize a CommandLineEdit and its dependencies,
-        cleaning up afterwards.
-        """
+        """Fixture to initialize a CommandLineEdit."""
         cmd_edit = CommandLineEdit(None)
         cmd_edit.set_prompt(':')
         qtbot.add_widget(cmd_edit)
@@ -45,9 +42,10 @@ class TestCommandLineEdit:
 
     @pytest.fixture
     def mock_clipboard(self, mocker):
-        """
-        Fixture installs a MagicMock into QApplication.clipboard() and
-        returns it.
+        """Fixture to mock QApplication.clipboard.
+
+        Return:
+            The mocked QClipboard object.
         """
         mocker.patch.object(QApplication, 'clipboard')
         clipboard = mock.MagicMock()
@@ -72,7 +70,7 @@ class TestCommandLineEdit:
         assert cmd_edit.text() == ':hey again'
 
     def test_invalid_prompt(self, qtbot, cmd_edit):
-        """Test prevent invalid prompt to be entered."""
+        """Test preventing of an invalid prompt being entered."""
         qtbot.keyClicks(cmd_edit, '$hello')
         assert cmd_edit.text() == ''
 
