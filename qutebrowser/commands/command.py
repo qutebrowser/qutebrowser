@@ -44,8 +44,8 @@ class Command:
         completion: Completions to use for arguments, as a list of strings.
         debug: Whether this is a debugging command (only shown with --debug).
         parser: The ArgumentParser to use to parse this command.
-        special_params: A dict with the names of the special parameters as
-                        values.
+        count_arg: The name of the count parameter, or None.
+        win_id_arg: The name of the win_id parameter, or None.
         flags_with_args: A list of flags which take an argument.
         no_cmd_split: If true, ';;' to split sub-commands is ignored.
         _type_conv: A mapping of conversion functions for arguments.
@@ -62,13 +62,13 @@ class Command:
     """
 
     AnnotationInfo = collections.namedtuple('AnnotationInfo',
-                                            ['kwargs', 'type', 'name', 'flag',
-                                             'special'])
+                                            ['kwargs', 'type', 'name', 'flag'])
 
     def __init__(self, *, handler, name, instance=None, maxsplit=None,
                  hide=False, completion=None, modes=None, not_modes=None,
                  needs_js=False, debug=False, ignore_args=False,
-                 deprecated=False, no_cmd_split=False, scope='global'):
+                 deprecated=False, no_cmd_split=False, scope='global',
+                 count=None, win_id=None):
         # I really don't know how to solve this in a better way, I tried.
         # pylint: disable=too-many-arguments,too-many-locals
         if modes is not None and not_modes is not None:
@@ -98,6 +98,8 @@ class Command:
         self.ignore_args = ignore_args
         self.handler = handler
         self.no_cmd_split = no_cmd_split
+        self.count_arg = count
+        self.win_id_arg = win_id
         self.docparser = docutils.DocstringParser(handler)
         self.parser = argparser.ArgumentParser(
             name, description=self.docparser.short_desc,
@@ -110,7 +112,6 @@ class Command:
         self.namespace = None
         self._count = None
         self.pos_args = []
-        self.special_params = {'count': None, 'win_id': None}
         self.desc = None
         self.flags_with_args = []
         self._type_conv = {}
@@ -188,40 +189,22 @@ class Command:
             d[param.name] = annotation_info.name
         return d
 
-    def _inspect_special_param(self, param, annotation_info):
+    def _inspect_special_param(self, param):
         """Check if the given parameter is a special one.
 
         Args:
             param: The inspect.Parameter to handle.
-            annotation_info: The AnnotationInfo tuple for the parameter.
 
         Return:
             True if the parameter is special, False otherwise.
         """
-        special = annotation_info.special
-        if special == 'count':
-            if self.special_params['count'] is not None:
-                raise ValueError("Registered multiple parameters ({}/{}) as "
-                                 "count!".format(self.special_params['count'],
-                                                 param.name))
+        if param.name == self.count_arg:
             if param.default is inspect.Parameter.empty:
                 raise TypeError("{}: handler has count parameter "
                                 "without default!".format(self.name))
-            self.special_params['count'] = param.name
             return True
-        elif special == 'win_id':
-            if self.special_params['win_id'] is not None:
-                raise ValueError("Registered multiple parameters ({}/{}) as "
-                                 "win_id!".format(
-                                     self.special_params['win_id'],
-                                     param.name))
-            self.special_params['win_id'] = param.name
+        elif param.name == self.win_id_arg:
             return True
-        elif special is None:
-            return False
-        else:
-            raise ValueError("{}: Invalid value '{}' for 'special' "
-                             "annotation!".format(self.name, special))
 
     def _inspect_func(self):
         """Inspect the function to get useful informations from it.
@@ -239,12 +222,22 @@ class Command:
             self.desc = doc.splitlines()[0].strip()
         else:
             self.desc = ""
+
+        if (self.count_arg is not None and
+                self.count_arg not in signature.parameters):
+            raise ValueError("count parameter {} does not exist!".format(
+                self.count_arg))
+        if (self.win_id_arg is not None and
+                self.win_id_arg not in signature.parameters):
+            raise ValueError("win_id parameter {} does not exist!".format(
+                self.win_id_arg))
+
         if not self.ignore_args:
             for param in signature.parameters.values():
                 annotation_info = self._parse_annotation(param)
                 if param.name == 'self':
                     continue
-                if self._inspect_special_param(param, annotation_info):
+                if self._inspect_special_param(param):
                     continue
                 arg_count += 1
                 typ = self._get_type(param, annotation_info)
@@ -344,12 +337,11 @@ class Command:
                 flag: The short name/flag if overridden.
                 name: The long name if overridden.
         """
-        info = {'kwargs': {}, 'type': None, 'flag': None, 'name': None,
-                'special': None}
+        info = {'kwargs': {}, 'type': None, 'flag': None, 'name': None}
         if param.annotation is not inspect.Parameter.empty:
             log.commands.vdebug("Parsing annotation {}".format(
                 param.annotation))
-            for field in ('type', 'flag', 'name', 'special'):
+            for field in ('type', 'flag', 'name'):
                 if field in param.annotation:
                     info[field] = param.annotation[field]
             if 'nargs' in param.annotation:
@@ -465,11 +457,11 @@ class Command:
                 # Special case for 'self'.
                 self._get_self_arg(win_id, param, args)
                 continue
-            elif param.name == self.special_params['count']:
+            elif param.name == self.count_arg:
                 # Special case for count parameter.
                 self._get_count_arg(param, args, kwargs)
                 continue
-            elif param.name == self.special_params['win_id']:
+            elif param.name == self.win_id_arg:
                 # Special case for win_id parameter.
                 self._get_win_id_arg(win_id, param, args, kwargs)
                 continue

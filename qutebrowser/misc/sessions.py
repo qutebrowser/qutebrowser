@@ -323,12 +323,11 @@ class SessionManager(QObject):
                 for win in old_windows:
                     win.close()
 
-    @cmdutils.register(name=['session-save', 'w'],
+    @cmdutils.register(name=['session-save', 'w'], win_id='win_id',
                        completion=[usertypes.Completion.sessions],
                        instance='session-manager')
-    def session_save(self, win_id: {'special': 'win_id'},
-                     name: {'type': str}=default, current=False, quiet=False,
-                     force=False):
+    def session_save(self, win_id, name: {'type': str}=default, current=False,
+                     quiet=False, force=False):
         """Save a session.
 
         Args:

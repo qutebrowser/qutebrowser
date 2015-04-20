@@ -34,8 +34,8 @@ from qutebrowser.config import style
 from qutebrowser.misc import consolewidget
 
 
-@cmdutils.register(maxsplit=1, no_cmd_split=True)
-def later(ms: {'type': int}, command, win_id: {'special': 'win_id'}):
+@cmdutils.register(maxsplit=1, no_cmd_split=True, win_id='win_id')
+def later(ms: {'type': int}, command, win_id):
     """Execute a command after some time.
 
     Args:
@@ -63,8 +63,8 @@ def later(ms: {'type': int}, command, win_id: {'special': 'win_id'}):
         raise
 
 
-@cmdutils.register(maxsplit=1, no_cmd_split=True)
-def repeat(times: {'type': int}, command, win_id: {'special': 'win_id'}):
+@cmdutils.register(maxsplit=1, no_cmd_split=True, win_id='win_id')
+def repeat(times: {'type': int}, command, win_id):
     """Repeat a given command.
 
     Args:
@@ -78,8 +78,8 @@ def repeat(times: {'type': int}, command, win_id: {'special': 'win_id'}):
         commandrunner.run_safely(command)
 
 
-@cmdutils.register(hide=True)
-def message_error(win_id: {'special': 'win_id'}, text):
+@cmdutils.register(hide=True, win_id='win_id')
+def message_error(win_id, text):
     """Show an error message in the statusbar.
 
     Args:
@@ -88,8 +88,8 @@ def message_error(win_id: {'special': 'win_id'}, text):
     message.error(win_id, text)
 
 
-@cmdutils.register(hide=True)
-def message_info(win_id: {'special': 'win_id'}, text):
+@cmdutils.register(hide=True, win_id='win_id')
+def message_info(win_id, text):
     """Show an info message in the statusbar.
 
     Args:
@@ -98,8 +98,8 @@ def message_info(win_id: {'special': 'win_id'}, text):
     message.info(win_id, text)
 
 
-@cmdutils.register(hide=True)
-def message_warning(win_id: {'special': 'win_id'}, text):
+@cmdutils.register(hide=True, win_id='win_id')
+def message_warning(win_id, text):
     """Show a warning message in the statusbar.
 
     Args:

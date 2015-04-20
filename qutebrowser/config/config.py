@@ -579,11 +579,10 @@ class ConfigManager(QObject):
             newval = val.typ.transform(newval)
         return newval
 
-    @cmdutils.register(name='set', instance='config',
+    @cmdutils.register(name='set', instance='config', win_id='win_id',
                        completion=[Completion.section, Completion.option,
                                    Completion.value])
-    def set_command(self, win_id: {'special': 'win_id'},
-                    sectname: {'name': 'section'}=None,
+    def set_command(self, win_id, sectname: {'name': 'section'}=None,
                     optname: {'name': 'option'}=None, value=None, temp=False,
                     print_val: {'name': 'print'}=False):
         """Set an option.
