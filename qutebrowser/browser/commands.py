@@ -30,14 +30,14 @@ from PyQt5.QtWidgets import QApplication, QTabBar
 from PyQt5.QtCore import Qt, QUrl
 from PyQt5.QtGui import QClipboard
 from PyQt5.QtPrintSupport import QPrintDialog, QPrintPreviewDialog
-from PyQt5.QtWebKitWidgets import QWebPage, QWebInspector
+from PyQt5.QtWebKitWidgets import QWebPage
 import pygments
 import pygments.lexers
 import pygments.formatters
 
 from qutebrowser.commands import userscripts, cmdexc, cmdutils
 from qutebrowser.config import config, configexc
-from qutebrowser.browser import webelem
+from qutebrowser.browser import webelem, inspector
 from qutebrowser.utils import (message, usertypes, log, qtutils, urlutils,
                                objreg, utils)
 from qutebrowser.misc import editor
@@ -931,7 +931,7 @@ class CommandDispatcher:
                 raise cmdexc.CommandError(
                     "Please enable developer-extras before using the "
                     "webinspector!")
-            cur.inspector = QWebInspector()
+            cur.inspector = inspector.WebInspector()
             cur.inspector.setPage(cur.page())
             cur.inspector.show()
         elif cur.inspector.isVisible():
