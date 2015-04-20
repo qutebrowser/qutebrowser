@@ -28,7 +28,7 @@ try:
 except ImportError:
     hunter = None
 
-from qutebrowser.utils import log, objreg, usertypes
+from qutebrowser.utils import log, objreg, usertypes, message
 from qutebrowser.commands import cmdutils, runners, cmdexc
 from qutebrowser.config import style
 from qutebrowser.misc import consolewidget
@@ -76,6 +76,36 @@ def repeat(times: {'type': int}, command, win_id: {'special': 'win_id'}):
     commandrunner = runners.CommandRunner(win_id)
     for _ in range(times):
         commandrunner.run_safely(command)
+
+
+@cmdutils.register(hide=True)
+def message_error(win_id: {'special': 'win_id'}, text):
+    """Show an error message in the statusbar.
+
+    Args:
+        text: The text to show.
+    """
+    message.error(win_id, text)
+
+
+@cmdutils.register(hide=True)
+def message_info(win_id: {'special': 'win_id'}, text):
+    """Show an info message in the statusbar.
+
+    Args:
+        text: The text to show.
+    """
+    message.info(win_id, text)
+
+
+@cmdutils.register(hide=True)
+def message_warning(win_id: {'special': 'win_id'}, text):
+    """Show a warning message in the statusbar.
+
+    Args:
+        text: The text to show.
+    """
+    message.warning(win_id, text)
 
 
 @cmdutils.register(debug=True)

@@ -17,6 +17,11 @@ This project adheres to http://semver.org/[Semantic Versioning].
 v0.3.0 (unreleased)
 -------------------
 
+Added
+~~~~~
+
+- New commands `:message-info`, `:message-error` and `:message-warning` to show messages in the statusbar, e.g. from an userscript.
+
 Changed
 ~~~~~~~
 
