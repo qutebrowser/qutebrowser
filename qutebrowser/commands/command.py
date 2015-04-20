@@ -49,7 +49,6 @@ class Command:
         flags_with_args: A list of flags which take an argument.
         no_cmd_split: If true, ';;' to split sub-commands is ignored.
         _type_conv: A mapping of conversion functions for arguments.
-        _name_conv: A mapping of argument names to parameter names.
         _needs_js: Whether the command needs javascript enabled
         _modes: The modes the command can be executed in.
         _not_modes: The modes the command can not be executed in.
@@ -62,7 +61,7 @@ class Command:
     """
 
     AnnotationInfo = collections.namedtuple('AnnotationInfo',
-                                            ['kwargs', 'type', 'name', 'flag'])
+                                            ['kwargs', 'type', 'flag'])
 
     def __init__(self, *, handler, name, instance=None, maxsplit=None,
                  hide=False, completion=None, modes=None, not_modes=None,
@@ -115,7 +114,6 @@ class Command:
         self.desc = None
         self.flags_with_args = []
         self._type_conv = {}
-        self._name_conv = {}
         count = self._inspect_func()
         if self.completion is not None and len(self.completion) > count:
             raise ValueError("Got {} completions, but only {} "
@@ -177,18 +175,6 @@ class Command:
             type_conv[param.name] = argparser.multitype_conv(typ)
         return type_conv
 
-    def _get_nameconv(self, param, annotation_info):
-        """Get a dict with a name conversion for the parameter.
-
-        Args:
-            param: The inspect.Parameter to handle.
-            annotation_info: The AnnotationInfo tuple for the parameter.
-        """
-        d = {}
-        if annotation_info.name is not None:
-            d[param.name] = annotation_info.name
-        return d
-
     def _inspect_special_param(self, param):
         """Check if the given parameter is a special one.
 
@@ -244,8 +230,6 @@ class Command:
                 kwargs = self._param_to_argparse_kwargs(param, annotation_info)
                 args = self._param_to_argparse_args(param, annotation_info)
                 self._type_conv.update(self._get_typeconv(param, typ))
-                self._name_conv.update(
-                    self._get_nameconv(param, annotation_info))
                 callsig = debug_utils.format_call(
                     self.parser.add_argument, args, kwargs,
                     full=False)
@@ -303,8 +287,8 @@ class Command:
             A list of args.
         """
         args = []
-        name = annotation_info.name or param.name
-        shortname = annotation_info.flag or param.name[0]
+        name = param.name.rstrip('_')
+        shortname = annotation_info.flag or name[0]
         if len(shortname) != 1:
             raise ValueError("Flag '{}' of parameter {} (command {}) must be "
                              "exactly 1 char!".format(shortname, name,
@@ -337,7 +321,7 @@ class Command:
                 flag: The short name/flag if overridden.
                 name: The long name if overridden.
         """
-        info = {'kwargs': {}, 'type': None, 'flag': None, 'name': None}
+        info = {'kwargs': {}, 'type': None, 'flag': None}
         if param.annotation is not inspect.Parameter.empty:
             log.commands.vdebug("Parsing annotation {}".format(
                 param.annotation))
@@ -423,7 +407,7 @@ class Command:
 
     def _get_param_name_and_value(self, param):
         """Get the converted name and value for an inspect.Parameter."""
-        name = self._name_conv.get(param.name, param.name)
+        name = param.name.rstrip('_')
         value = getattr(self.namespace, name)
         if param.name in self._type_conv:
             # We convert enum types after getting the values from

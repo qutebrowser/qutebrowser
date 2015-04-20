@@ -918,7 +918,7 @@ class DownloadManager(QAbstractListModel):
 
     @cmdutils.register(instance='download-manager', scope='window',
                        count='count')
-    def download_remove(self, all_: {'name': 'all'}=False, count=0):
+    def download_remove(self, all_=False, count=0):
         """Remove the last/[count]th download from the list.
 
         Args:
