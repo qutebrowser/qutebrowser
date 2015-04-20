@@ -20,6 +20,7 @@
 """Customized QWebInspector."""
 
 import base64
+import binascii
 
 from PyQt5.QtWebKitWidgets import QWebInspector
 
@@ -28,11 +29,14 @@ from qutebrowser.utils import log, objreg
 
 class WebInspector(QWebInspector):
 
+    """A customized WebInspector which stores its geometry."""
+
     def __init__(self, parent=None):
         super().__init__(parent)
         self._load_state_geometry()
 
     def closeEvent(self, e):
+        """Save the geometry when closed."""
         state_config = objreg.get('state-config')
         data = bytes(self.saveGeometry())
         geom = base64.b64encode(data).decode('ASCII')
@@ -50,7 +54,6 @@ class WebInspector(QWebInspector):
             pass
         except binascii.Error:
             log.misc.exception("Error while reading geometry")
-            pass
         else:
             log.init.debug("Loading geometry from {}".format(geom))
             ok = self.restoreGeometry(geom)
