@@ -37,16 +37,11 @@ class TestCommandLineEdit:
         Fixture to initialize a CommandLineEdit and its dependencies,
         cleaning up afterwards.
         """
-        command_history = lineparser.LimitLineParser('', '', limit=None)
-        objreg.register('command-history', command_history)
         cmd_edit = CommandLineEdit(None)
         cmd_edit.set_prompt(':')
         qtbot.add_widget(cmd_edit)
         assert cmd_edit.text() == ''
-
         yield cmd_edit
-
-        objreg.delete('command-history')
 
     @pytest.fixture
     def mock_clipboard(self, mocker):
