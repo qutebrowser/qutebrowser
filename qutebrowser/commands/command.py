@@ -81,6 +81,9 @@ class Command:
             for m in not_modes:
                 if not isinstance(m, usertypes.KeyMode):
                     raise TypeError("Mode {} is no KeyMode member!".format(m))
+        if scope != 'global' and instance is None:
+            raise ValueError("Setting scope without setting instance makes "
+                             "no sense!")
         self.name = name
         self.maxsplit = maxsplit
         self.hide = hide
