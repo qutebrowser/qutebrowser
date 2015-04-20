@@ -21,6 +21,7 @@
 
 import re
 import os
+import shlex
 import subprocess
 import posixpath
 import functools
@@ -823,7 +824,8 @@ class CommandDispatcher:
             tabbed_browser.setUpdatesEnabled(True)
 
     @cmdutils.register(instance='command-dispatcher', scope='window')
-    def spawn(self, userscript=False, *args):
+    def spawn(self, win_id: {'special': 'win_id'}, userscript=False,
+              quiet=False, *args):
         """Spawn a command in a shell.
 
         Note the {url} variable which gets replaced by the current URL might be
@@ -836,10 +838,14 @@ class CommandDispatcher:
 
         Args:
             userscript: Run the command as an userscript.
+            quiet: Don't print the commandline being executed.
             *args: The commandline to execute.
         """
         log.procs.debug("Executing: {}, userscript={}".format(
             args, userscript))
+        if not quiet:
+            fake_cmdline = ' '.join(shlex.quote(arg) for arg in args)
+            message.info(win_id, 'Executing: ' + fake_cmdline)
         if userscript:
             cmd = args[0]
             args = [] if not args else args[1:]
