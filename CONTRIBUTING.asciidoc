@@ -398,9 +398,6 @@ then automatically checked. Possible values:
 * `flag`: The flag to be used, as 1-char string (default: First char of the
 long name).
 * `name`: The long name to be used, as string (default: Name of the parameter).
-* `special`: The string `count` or `win_id` if the parameter should be
-auto-filled (with the count given by the user and the window ID the command was
-executed in, respectively).
 * `nargs`: Gets passed to argparse, see
 https://docs.python.org/dev/library/argparse.html#nargs[its documentation].
 
