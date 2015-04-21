@@ -75,12 +75,13 @@ class KeyConfigParser(QObject):
     config_dirty = pyqtSignal()
     UNBOUND_COMMAND = '<unbound>'
 
-    def __init__(self, configdir, fname, parent=None):
+    def __init__(self, configdir, fname, relaxed=False, parent=None):
         """Constructor.
 
         Args:
             configdir: The directory to save the configs in.
             fname: The filename of the config.
+            relaxed: If given, unknwon commands are ignored.
         """
         super().__init__(parent)
         self.is_dirty = False
@@ -95,7 +96,7 @@ class KeyConfigParser(QObject):
         if self._configfile is None or not os.path.exists(self._configfile):
             self._load_default()
         else:
-            self._read()
+            self._read(relaxed)
             self._load_default(only_new=True)
         log.init.debug("Loaded bindings: {}".format(self.keybindings))
 
@@ -267,8 +268,12 @@ class KeyConfigParser(QObject):
         else:
             return True
 
-    def _read(self):
-        """Read the config file from disk and parse it."""
+    def _read(self, relaxed=False):
+        """Read the config file from disk and parse it.
+
+        Args:
+            relaxed: Ignore unknown commands.
+        """
         try:
             with open(self._configfile, 'r', encoding='utf-8') as f:
                 for i, line in enumerate(f):
@@ -287,8 +292,11 @@ class KeyConfigParser(QObject):
                             line = line.strip()
                             self._read_command(line)
                     except KeyConfigError as e:
-                        e.lineno = i
-                        raise
+                        if relaxed:
+                            continue
+                        else:
+                            e.lineno = i
+                            raise
         except OSError:
             log.keyboard.exception("Failed to read key bindings!")
         for sectname in self.keybindings:

@@ -161,7 +161,9 @@ def _init_key_config(parent):
         parent: The parent to use for the KeyConfigParser.
     """
     try:
+        args = objreg.get('args')
         key_config = keyconf.KeyConfigParser(standarddir.config(), 'keys.conf',
+                                             args.relaxed_config,
                                              parent=parent)
     except (keyconf.KeyConfigError, UnicodeDecodeError) as e:
         log.init.exception(e)
