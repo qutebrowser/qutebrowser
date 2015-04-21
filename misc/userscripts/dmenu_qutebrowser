@@ -1,0 +1,31 @@
+#!/bin/bash
+
+# Pipes history, quickmarks, and URL into dmenu.
+#
+# If run from qutebrowser as a userscript, it runs :open on the URL
+# If not, it opens a new qutebrowser window at the URL
+#
+# Ideal for use with tabs-are-windows. Set a hotkey to launch this script, then:
+#	:bind o spawn --userscript dmenu_qutebrowser
+#
+# Use the hotkey to open in new tab/window, press 'o' to open URL in current tab/window
+# You can simulate "go" by pressing "o<tab>", as the current URL is always first in the list
+#
+# I personally use "<Mod4>q" to launch this script. For me, my workflow is:
+#	Default	keys		Keys with this script
+#	O			<Mod4>q
+#	o			o
+#	go			o<Tab>
+#	gO			[ I haven't decided what to do with this yet ]
+#
+
+url=$(echo "$QUTE_URL" | cat - ~/.local/share/qutebrowser/history ~/.config/qutebrowser/quickmarks | dmenu -l 15 -p qutebrowser)
+url=$(echo $url | sed -E 's/[^ ]+ +//g' | egrep "https?:" || echo $url)
+
+[ -z "${url// }" ] && exit
+
+if [ -n "$QUTE_FIFO" ]; then
+	echo "open $url" >> "$QUTE_FIFO"
+else
+	qutebrowser "$url"
+fi

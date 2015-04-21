@@ -1,0 +1,13 @@
+#!/bin/bash
+
+# 
+# This script fetches the unprocessed HTML source for a page and opens it in vim.
+#	:bind gf spawn --userscript qutebrowser_viewsource
+#
+
+path=/tmp/qutebrowser-src_$(date "+%s")
+
+curl "$QUTE_URL" > $path
+urxvt -e vim "$path"
+
+rm "$path"
