@@ -5,7 +5,7 @@
 #	:bind gf spawn --userscript qutebrowser_viewsource
 #
 
-path=/tmp/qutebrowser-src_$(date "+%s")
+path=/tmp/qutebrowser_$(mktemp XXXXXXXX).html
 
 curl "$QUTE_URL" > $path
 urxvt -e vim "$path"
