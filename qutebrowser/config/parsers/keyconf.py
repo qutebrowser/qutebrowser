@@ -256,7 +256,10 @@ class KeyConfigParser(QObject):
         A binding is considered new if both the command is not bound to any key
         yet, and the key isn't used anywhere else in the same section.
         """
-        bindings = self.keybindings[sectname]
+        try:
+            bindings = self.keybindings[sectname]
+        except KeyError:
+            return True
         if keychain in bindings:
             return False
         elif command in bindings.values():
