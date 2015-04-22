@@ -25,14 +25,12 @@ import collections
 from PyQt5.QtWidgets import QSizePolicy
 from PyQt5.QtCore import pyqtSignal, pyqtSlot, QSize, QTimer, QUrl
 from PyQt5.QtGui import QIcon
-from PyQt5.QtWebKitWidgets import QWebPage
 
 from qutebrowser.config import config
 from qutebrowser.keyinput import modeman
 from qutebrowser.mainwindow import tabwidget
 from qutebrowser.browser import signalfilter, commands, webview
-from qutebrowser.utils import (log, message, usertypes, utils, qtutils, objreg,
-                               urlutils)
+from qutebrowser.utils import log, usertypes, utils, qtutils, objreg, urlutils
 
 
 UndoEntry = collections.namedtuple('UndoEntry', ['url', 'history'])
@@ -402,36 +400,6 @@ class TabbedBrowser(tabwidget.TabWidget):
                               pos, idx, self._tab_insert_idx_left,
                               self._tab_insert_idx_right))
         return idx
-
-    @pyqtSlot(str, int)
-    def search(self, text, flags):
-        """Search for text in the current page.
-
-        Args:
-            text: The text to search for.
-            flags: The QWebPage::FindFlags.
-        """
-        log.webview.debug("Searching with text '{}' and flags "
-                          "0x{:04x}.".format(text, int(flags)))
-        widget = self.currentWidget()
-        old_scroll_pos = widget.scroll_pos
-        found = widget.findText(text, flags)
-        if not found and not flags & QWebPage.HighlightAllOccurrences and text:
-            message.error(self._win_id, "Text '{}' not found on "
-                          "page!".format(text), immediately=True)
-        else:
-            backward = int(flags) & QWebPage.FindBackward
-
-            def check_scroll_pos():
-                """Check if the scroll position got smaller and show info."""
-                if not backward and widget.scroll_pos < old_scroll_pos:
-                    message.info(self._win_id, "Search hit BOTTOM, continuing "
-                                 "at TOP", immediately=True)
-                elif backward and widget.scroll_pos > old_scroll_pos:
-                    message.info(self._win_id, "Search hit TOP, continuing at "
-                                 "BOTTOM", immediately=True)
-            # We first want QWebPage to refresh.
-            QTimer.singleShot(0, check_scroll_pos)
 
     @config.change_filter('tabs', 'show-favicons')
     def update_favicons(self):

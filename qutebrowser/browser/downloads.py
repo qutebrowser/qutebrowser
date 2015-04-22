@@ -794,8 +794,9 @@ class DownloadManager(QAbstractListModel):
             raise cmdexc.CommandError("There's no download!")
         raise cmdexc.CommandError("There's no download {}!".format(count))
 
-    @cmdutils.register(instance='download-manager', scope='window')
-    def download_cancel(self, count: {'special': 'count'}=0):
+    @cmdutils.register(instance='download-manager', scope='window',
+                       count='count')
+    def download_cancel(self, count=0):
         """Cancel the last/[count]th download.
 
         Args:
@@ -812,8 +813,9 @@ class DownloadManager(QAbstractListModel):
                                       .format(count))
         download.cancel()
 
-    @cmdutils.register(instance='download-manager', scope='window')
-    def download_delete(self, count: {'special': 'count'}=0):
+    @cmdutils.register(instance='download-manager', scope='window',
+                       count='count')
+    def download_delete(self, count=0):
         """Delete the last/[count]th download from disk.
 
         Args:
@@ -831,8 +833,9 @@ class DownloadManager(QAbstractListModel):
         self.remove_item(download)
 
     @cmdutils.register(instance='download-manager', scope='window',
-                       deprecated="Use :download instead.")
-    def cancel_download(self, count: {'special': 'count'}=1):
+                       deprecated="Use :download-cancel instead.",
+                       count='count')
+    def cancel_download(self, count=1):
         """Cancel the first/[count]th download.
 
         Args:
@@ -840,8 +843,9 @@ class DownloadManager(QAbstractListModel):
         """
         self.download_cancel(count)
 
-    @cmdutils.register(instance='download-manager', scope='window')
-    def download_open(self, count: {'special': 'count'}=0):
+    @cmdutils.register(instance='download-manager', scope='window',
+                       count='count')
+    def download_open(self, count=0):
         """Open the last/[count]th download.
 
         Args:
@@ -912,9 +916,9 @@ class DownloadManager(QAbstractListModel):
         """Check if there are finished downloads to clear."""
         return any(download.done for download in self.downloads)
 
-    @cmdutils.register(instance='download-manager', scope='window')
-    def download_remove(self, all_: {'name': 'all'}=False,
-                        count: {'special': 'count'}=0):
+    @cmdutils.register(instance='download-manager', scope='window',
+                       count='count')
+    def download_remove(self, all_=False, count=0):
         """Remove the last/[count]th download from the list.
 
         Args:

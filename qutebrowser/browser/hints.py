@@ -523,12 +523,11 @@ class HintManager(QObject):
             'QUTE_MODE': 'hints',
             'QUTE_SELECTED_TEXT': str(elem),
             'QUTE_SELECTED_HTML': elem.toOuterXml(),
-            'QUTE_HTML': frame.toHtml(),
-            'QUTE_TEXT': frame.toPlainText(),
         }
         url = self._resolve_url(elem, context.baseurl)
         if url is not None:
             env['QUTE_URL'] = url.toString(QUrl.FullyEncoded)
+        env.update(userscripts.store_source(frame))
         userscripts.run(cmd, *args, win_id=self._win_id, env=env)
 
     def _spawn(self, url, context):
@@ -694,9 +693,10 @@ class HintManager(QObject):
                                  tab=self._tab_id)
             webview.openurl(url)
 
-    @cmdutils.register(instance='hintmanager', scope='tab', name='hint')
+    @cmdutils.register(instance='hintmanager', scope='tab', name='hint',
+                       win_id='win_id')
     def start(self, rapid=False, group=webelem.Group.all, target=Target.normal,
-              *args: {'nargs': '*'}, win_id: {'special': 'win_id'}):
+              *args: {'nargs': '*'}, win_id):
         """Start hinting.
 
         Args:

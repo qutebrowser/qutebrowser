@@ -31,6 +31,7 @@ import functools
 import traceback
 import faulthandler
 import json
+import time
 
 from PyQt5.QtWidgets import QApplication, QDialog, QMessageBox
 from PyQt5.QtGui import QDesktopServices, QPixmap, QIcon, QCursor, QWindow
@@ -44,7 +45,7 @@ except ImportError:
 import qutebrowser
 import qutebrowser.resources  # pylint: disable=unused-import
 from qutebrowser.completion.models import instances as completionmodels
-from qutebrowser.commands import cmdutils, runners
+from qutebrowser.commands import cmdutils, runners, cmdexc
 from qutebrowser.config import style, config, websettings, configexc
 from qutebrowser.browser import quickmarks, cookies, cache, adblock, history
 from qutebrowser.browser.network import qutescheme, proxy, networkmanager
@@ -115,12 +116,18 @@ class Application(QApplication):
                 sys.exit(0)
             log.init.debug("Starting IPC server...")
             ipc.init()
-        except ipc.IPCError as e:
-            text = ('{}\n\nMaybe another instance is running but '
-                    'frozen?'.format(e))
-            msgbox = QMessageBox(QMessageBox.Critical, "Error while "
-                                 "connecting to running instance!", text)
-            msgbox.exec_()
+        except ipc.AddressInUseError as e:
+            # This could be a race condition...
+            log.init.debug("Got AddressInUseError, trying again.")
+            time.sleep(500)
+            sent = ipc.send_to_running_instance(self._args.command)
+            if sent:
+                sys.exit(0)
+            else:
+                ipc.display_error(e)
+                sys.exit(1)
+        except ipc.Error as e:
+            ipc.display_error(e)
             # We didn't really initialize much so far, so we just quit hard.
             sys.exit(1)
 
@@ -728,7 +735,11 @@ class Application(QApplication):
     @cmdutils.register(instance='app')
     def restart(self):
         """Restart qutebrowser while keeping existing tabs open."""
-        ok = self._do_restart(session='_restart')
+        try:
+            ok = self._do_restart(session='_restart')
+        except sessions.SessionError as e:
+            log.destroy.exception("Failed to save session!")
+            raise cmdexc.CommandError("Failed to save session: {}!".format(e))
         if ok:
             self.shutdown()
 

@@ -161,7 +161,9 @@ def _init_key_config(parent):
         parent: The parent to use for the KeyConfigParser.
     """
     try:
+        args = objreg.get('args')
         key_config = keyconf.KeyConfigParser(standarddir.config(), 'keys.conf',
+                                             args.relaxed_config,
                                              parent=parent)
     except (keyconf.KeyConfigError, UnicodeDecodeError) as e:
         log.init.exception(e)
@@ -356,7 +358,7 @@ class ConfigManager(QObject):
             try:
                 desc = self.sections[sectname].descriptions[optname]
             except KeyError:
-                log.misc.exception("No description for {}.{}!".format(
+                log.config.exception("No description for {}.{}!".format(
                     sectname, optname))
                 continue
             for descline in desc.splitlines():
@@ -473,7 +475,7 @@ class ConfigManager(QObject):
 
     def _changed(self, sectname, optname):
         """Notify other objects the config has changed."""
-        log.misc.debug("Config option changed: {} -> {}".format(
+        log.config.debug("Config option changed: {} -> {}".format(
             sectname, optname))
         if sectname in ('colors', 'fonts'):
             self.style_changed.emit(sectname, optname)
@@ -579,13 +581,11 @@ class ConfigManager(QObject):
             newval = val.typ.transform(newval)
         return newval
 
-    @cmdutils.register(name='set', instance='config',
+    @cmdutils.register(name='set', instance='config', win_id='win_id',
                        completion=[Completion.section, Completion.option,
                                    Completion.value])
-    def set_command(self, win_id: {'special': 'win_id'},
-                    sectname: {'name': 'section'}=None,
-                    optname: {'name': 'option'}=None, value=None, temp=False,
-                    print_val: {'name': 'print'}=False):
+    def set_command(self, win_id, section_=None, option=None, value=None,
+                    temp=False, print_=False):
         """Set an option.
 
         If the option name ends with '?', the value of the option is shown
@@ -598,38 +598,38 @@ class ConfigManager(QObject):
         Wrapper for self.set() to output exceptions in the status bar.
 
         Args:
-            sectname: The section where the option is in.
-            optname: The name of the option.
+            section_: The section where the option is in.
+            option: The name of the option.
             value: The value to set.
             temp: Set value temporarily.
-            print_val: Print the value after setting.
+            print_: Print the value after setting.
         """
-        if sectname is not None and optname is None:
+        if section_ is not None and option is None:
             raise cmdexc.CommandError(
                 "set: Either both section and option have to be given, or "
                 "neither!")
-        if sectname is None and optname is None:
+        if section_ is None and option is None:
             tabbed_browser = objreg.get('tabbed-browser', scope='window',
                                         window=win_id)
             tabbed_browser.openurl(QUrl('qute:settings'), newtab=False)
             return
 
-        if optname.endswith('?'):
-            optname = optname[:-1]
-            print_val = True
+        if option.endswith('?'):
+            option = option[:-1]
+            print_ = True
         else:
             try:
-                if optname.endswith('!') and value is None:
-                    val = self.get(sectname, optname[:-1])
+                if option.endswith('!') and value is None:
+                    val = self.get(section_, option[:-1])
                     layer = 'temp' if temp else 'conf'
                     if isinstance(val, bool):
-                        self.set(layer, sectname, optname[:-1], str(not val))
+                        self.set(layer, section_, option[:-1], str(not val))
                     else:
                         raise cmdexc.CommandError(
                             "set: Attempted inversion of non-boolean value.")
                 elif value is not None:
                     layer = 'temp' if temp else 'conf'
-                    self.set(layer, sectname, optname, value)
+                    self.set(layer, section_, option, value)
                 else:
                     raise cmdexc.CommandError("set: The following arguments "
                                               "are required: value")
@@ -637,10 +637,10 @@ class ConfigManager(QObject):
                 raise cmdexc.CommandError("set: {} - {}".format(
                     e.__class__.__name__, e))
 
-        if print_val:
-            val = self.get(sectname, optname, transformed=False)
+        if print_:
+            val = self.get(section_, option, transformed=False)
             message.info(win_id, "{} {} = {}".format(
-                sectname, optname, val), immediately=True)
+                section_, option, val), immediately=True)
 
     def set(self, layer, sectname, optname, value, validate=True):
         """Set an option.

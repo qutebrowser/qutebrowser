@@ -7,7 +7,7 @@ qutebrowser is extensible by writing userscripts which can be called via the
 
 These userscripts are similiar to the (non-javascript) dwb userscripts. They
 can be written in any language which can read environment variables and write
-to a FIFO.
+to a FIFO. Note they are *not* related to Greasemonkey userscripts.
 
 Note for simple things such as opening the current page with another browser or
 mpv, a simple key binding to something like `:spawn mpv {url}` should suffice.
@@ -24,8 +24,8 @@ The following environment variables will be set when an userscript is launched:
   command or key binding).
 - `QUTE_USER_AGENT`: The currently set user agent.
 - `QUTE_FIFO`: The FIFO or file to write commands to.
-- `QUTE_HTML`: The HTML source of the current page.
-- `QUTE_TEXT`: The plaintext of the current page.
+- `QUTE_HTML`: Path of a file containing the HTML source of the current page.
+- `QUTE_TEXT`: Path of a file containing the plaintext of the current page.
 
 In `command` mode:
 

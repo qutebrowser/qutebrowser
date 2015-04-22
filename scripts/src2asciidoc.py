@@ -208,10 +208,10 @@ def _get_command_doc_count(cmd, parser):
     Yield:
         Strings which should be added to the docs.
     """
-    if cmd.special_params['count'] is not None:
+    if cmd.count_arg is not None:
         yield ""
         yield "==== count"
-        yield parser.arg_descs[cmd.special_params['count']]
+        yield parser.arg_descs[cmd.count_arg]
 
 
 def _get_command_doc_notes(cmd):

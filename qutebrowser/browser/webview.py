@@ -62,6 +62,8 @@ class WebView(QWebView):
         registry: The ObjectRegistry associated with this tab.
         tab_id: The tab ID of the view.
         win_id: The window ID of the view.
+        search_text: The text of the last search.
+        search_flags: The search flags of the last search.
         _cur_url: The current URL (accessed via cur_url property).
         _has_ssl_errors: Whether SSL errors occurred during loading.
         _zoom: A NeighborList with the zoom levels.
@@ -102,6 +104,8 @@ class WebView(QWebView):
         self._zoom = None
         self._has_ssl_errors = False
         self.keep_icon = False
+        self.search_text = None
+        self.search_flags = 0
         self.init_neighborlist()
         cfg = objreg.get('config')
         cfg.changed.connect(self.init_neighborlist)
@@ -119,8 +123,7 @@ class WebView(QWebView):
                                   window=win_id)
         tab_registry[self.tab_id] = self
         objreg.register('webview', self, registry=self.registry)
-        page = webpage.BrowserPage(win_id, self.tab_id, self)
-        self.setPage(page)
+        page = self._init_page()
         hintmanager = hints.HintManager(win_id, self.tab_id, self)
         hintmanager.mouse_event.connect(self.on_mouse_event)
         hintmanager.start_hinting.connect(page.on_start_hinting)
@@ -130,21 +133,27 @@ class WebView(QWebView):
                                   window=win_id)
         mode_manager.entered.connect(self.on_mode_entered)
         mode_manager.left.connect(self.on_mode_left)
-        page.linkHovered.connect(self.linkHovered)
-        page.mainFrame().loadStarted.connect(self.on_load_started)
-        self.urlChanged.connect(self.on_url_changed)
-        page.mainFrame().loadFinished.connect(self.on_load_finished)
-        self.loadProgress.connect(lambda p: setattr(self, 'progress', p))
-        self.page().statusBarMessage.connect(
-            lambda msg: setattr(self, 'statusbar_message', msg))
-        self.page().networkAccessManager().sslErrors.connect(
-            lambda *args: setattr(self, '_has_ssl_errors', True))
         self.viewing_source = False
         self.setZoomFactor(float(config.get('ui', 'default-zoom')) / 100)
         self._default_zoom_changed = False
-        objreg.get('config').changed.connect(self.on_config_changed)
         if config.get('input', 'rocker-gestures'):
             self.setContextMenuPolicy(Qt.PreventContextMenu)
+        self.urlChanged.connect(self.on_url_changed)
+        self.loadProgress.connect(lambda p: setattr(self, 'progress', p))
+        objreg.get('config').changed.connect(self.on_config_changed)
+
+    def _init_page(self):
+        """Initialize the QWebPage used by this view."""
+        page = webpage.BrowserPage(self.win_id, self.tab_id, self)
+        self.setPage(page)
+        page.linkHovered.connect(self.linkHovered)
+        page.mainFrame().loadStarted.connect(self.on_load_started)
+        page.mainFrame().loadFinished.connect(self.on_load_finished)
+        page.statusBarMessage.connect(
+            lambda msg: setattr(self, 'statusbar_message', msg))
+        page.networkAccessManager().sslErrors.connect(
+            lambda *args: setattr(self, '_has_ssl_errors', True))
+        return page
 
     def __repr__(self):
         url = utils.elide(self.url().toDisplayString(), 50)
@@ -435,6 +444,35 @@ class WebView(QWebView):
             log.webview.debug("Restoring focus policy because mode {} was "
                               "left.".format(mode))
         self.setFocusPolicy(Qt.WheelFocus)
+
+    def search(self, text, flags):
+        """Search for text in the current page.
+
+        Args:
+            text: The text to search for.
+            flags: The QWebPage::FindFlags.
+        """
+        log.webview.debug("Searching with text '{}' and flags "
+                          "0x{:04x}.".format(text, int(flags)))
+        old_scroll_pos = self.scroll_pos
+        flags = QWebPage.FindFlags(flags)
+        found = self.findText(text, flags)
+        if not found and not flags & QWebPage.HighlightAllOccurrences and text:
+            message.error(self.win_id, "Text '{}' not found on "
+                          "page!".format(text), immediately=True)
+        else:
+            backward = int(flags) & QWebPage.FindBackward
+
+            def check_scroll_pos():
+                """Check if the scroll position got smaller and show info."""
+                if not backward and self.scroll_pos < old_scroll_pos:
+                    message.info(self.win_id, "Search hit BOTTOM, continuing "
+                                 "at TOP", immediately=True)
+                elif backward and self.scroll_pos > old_scroll_pos:
+                    message.info(self.win_id, "Search hit TOP, continuing at "
+                                 "BOTTOM", immediately=True)
+            # We first want QWebPage to refresh.
+            QTimer.singleShot(0, check_scroll_pos)
 
     def createWindow(self, wintype):
         """Called by Qt when a page wants to create a new window.

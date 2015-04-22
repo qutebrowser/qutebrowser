@@ -89,7 +89,7 @@ logging.addLevelName(VDEBUG_LEVEL, 'VDEBUG')
 logging.VDEBUG = VDEBUG_LEVEL
 
 
-def vdebug(self, message, *args, **kwargs):
+def vdebug(self, msg, *args, **kwargs):
     """Log with a VDEBUG level.
 
     VDEBUG is used when a debug message is rather verbose, and probably of
@@ -98,7 +98,7 @@ def vdebug(self, message, *args, **kwargs):
     """
     if self.isEnabledFor(VDEBUG_LEVEL):
         # pylint: disable=protected-access
-        self._log(VDEBUG_LEVEL, message, args, **kwargs)
+        self._log(VDEBUG_LEVEL, msg, args, **kwargs)
 
 
 logging.Logger.vdebug = vdebug
@@ -122,11 +122,13 @@ keyboard = logging.getLogger('keyboard')
 downloads = logging.getLogger('downloads')
 js = logging.getLogger('js')  # Javascript console messages
 qt = logging.getLogger('qt')  # Warnings produced by Qt
-style = logging.getLogger('style')
 rfc6266 = logging.getLogger('rfc6266')
 ipc = logging.getLogger('ipc')
 shlexer = logging.getLogger('shlexer')
 save = logging.getLogger('save')
+message = logging.getLogger('message')
+config = logging.getLogger('config')
+sessions = logging.getLogger('sessions')
 
 
 ram_handler = None
@@ -445,10 +447,10 @@ class HTMLFormatter(logging.Formatter):
                       'name', 'pathname', 'processName', 'threadName']:
             data = str(getattr(record, field))
             setattr(record, field, pyhtml.escape(data))
-        message = super().format(record)
-        if not message.endswith(self._colordict['reset']):
-            message += self._colordict['reset']
-        return message
+        msg = super().format(record)
+        if not msg.endswith(self._colordict['reset']):
+            msg += self._colordict['reset']
+        return msg
 
     def formatTime(self, record, datefmt=None):
         out = super().formatTime(record, datefmt)

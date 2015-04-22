@@ -21,12 +21,11 @@
 
 import collections
 
-from PyQt5.QtCore import pyqtSlot, pyqtSignal, QObject, QUrl
-from PyQt5.QtWebKitWidgets import QWebPage
+from PyQt5.QtCore import pyqtSlot, QUrl, QObject
 
 from qutebrowser.config import config, configexc
 from qutebrowser.commands import cmdexc, cmdutils
-from qutebrowser.utils import message, log, utils, objreg, qtutils
+from qutebrowser.utils import message, log, objreg, qtutils
 from qutebrowser.misc import split
 
 
@@ -54,102 +53,6 @@ def replace_variables(win_id, arglist):
         else:
             args.append(arg)
     return args
-
-
-class SearchRunner(QObject):
-
-    """Run searches on web pages.
-
-    Attributes:
-        _text: The text from the last search.
-        _flags: The flags from the last search.
-
-    Signals:
-        do_search: Emitted when a search should be started.
-                   arg 1: Search string.
-                   arg 2: Flags to use.
-    """
-
-    do_search = pyqtSignal(str, 'QWebPage::FindFlags')
-
-    def __init__(self, parent=None):
-        super().__init__(parent)
-        self._text = None
-        self._flags = 0
-
-    def __repr__(self):
-        return utils.get_repr(self, text=self._text, flags=self._flags)
-
-    @pyqtSlot(str)
-    @cmdutils.register(instance='search-runner', scope='window', maxsplit=0)
-    def search(self, text="", reverse=False):
-        """Search for a text on the current page. With no text, clear results.
-
-        Args:
-            text: The text to search for.
-            reverse: Reverse search direction.
-        """
-        if self._text is not None and self._text != text:
-            # We first clear the marked text, then the highlights
-            self.do_search.emit('', 0)
-            self.do_search.emit('', QWebPage.HighlightAllOccurrences)
-        self._text = text
-        self._flags = 0
-        ignore_case = config.get('general', 'ignore-case')
-        if ignore_case == 'smart':
-            if not text.islower():
-                self._flags |= QWebPage.FindCaseSensitively
-        elif not ignore_case:
-            self._flags |= QWebPage.FindCaseSensitively
-        if config.get('general', 'wrap-search'):
-            self._flags |= QWebPage.FindWrapsAroundDocument
-        if reverse:
-            self._flags |= QWebPage.FindBackward
-        # We actually search *twice* - once to highlight everything, then again
-        # to get a mark so we can navigate.
-        self.do_search.emit(self._text, self._flags)
-        self.do_search.emit(self._text, self._flags |
-                            QWebPage.HighlightAllOccurrences)
-
-    @pyqtSlot(str)
-    def search_rev(self, text):
-        """Search for a text on a website in reverse direction.
-
-        Args:
-            text: The text to search for.
-        """
-        self.search(text, reverse=True)
-
-    @cmdutils.register(instance='search-runner', hide=True, scope='window')
-    def search_next(self, count: {'special': 'count'}=1):
-        """Continue the search to the ([count]th) next term.
-
-        Args:
-            count: How many elements to ignore.
-        """
-        if self._text is not None:
-            for _ in range(count):
-                self.do_search.emit(self._text, self._flags)
-
-    @cmdutils.register(instance='search-runner', hide=True, scope='window')
-    def search_prev(self, count: {'special': 'count'}=1):
-        """Continue the search to the ([count]th) previous term.
-
-        Args:
-            count: How many elements to ignore.
-        """
-        if self._text is None:
-            return
-        # The int() here serves as a QFlags constructor to create a copy of the
-        # QFlags instance rather as a reference. I don't know why it works this
-        # way, but it does.
-        flags = int(self._flags)
-        if flags & QWebPage.FindBackward:
-            flags &= ~QWebPage.FindBackward
-        else:
-            flags |= QWebPage.FindBackward
-        for _ in range(count):
-            self.do_search.emit(self._text, flags)
 
 
 class CommandRunner(QObject):
@@ -292,7 +195,7 @@ class CommandRunner(QObject):
             for i, arg in enumerate(split_args):
                 arg = arg.strip()
                 if arg.startswith('-'):
-                    if arg.lstrip('-') in cmd.flags_with_args:
+                    if arg in cmd.flags_with_args:
                         flag_arg_count += 1
                 else:
                     maxsplit = i + cmd.maxsplit + flag_arg_count

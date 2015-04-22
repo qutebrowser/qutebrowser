@@ -146,4 +146,4 @@ def init(args):
                 f.write("# For information about cache directory tags, see:\n")
                 f.write("#  http://www.brynosaurus.com/cachedir/\n")
         except OSError:
-            log.misc.exception("Failed to create CACHEDIR.TAG")
+            log.init.exception("Failed to create CACHEDIR.TAG")

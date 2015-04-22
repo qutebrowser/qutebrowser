@@ -337,6 +337,8 @@ class TestNormalize:
         ('Mod4+x', 'meta+x'),
         ('Control--', 'ctrl+-'),
         ('Windows++', 'meta++'),
+        ('ctrl-x', 'ctrl+x'),
+        ('control+x', 'ctrl+x')
     )
 
     @pytest.mark.parametrize('orig, repl', STRINGS)

@@ -68,10 +68,25 @@ bdist_msi_options = {
     'add_to_path': False,
 }
 
-base = 'Win32GUI' if sys.platform.startswith('win') else None
+bdist_dmg_options = {
+    'applications_shortcut': True,
+}
+
+bdist_mac_options = {
+    'qt_menu_nib': os.path.join(BASEDIR, 'misc', 'qt_menu.nib'),
+    'iconfile': os.path.join(BASEDIR, 'icons', 'qutebrowser.icns'),
+    'bundle_name': 'qutebrowser',
+}
+
+if sys.platform.startswith('win'):
+    base = 'Win32GUI'
+    target_name = 'qutebrowser.exe'
+else:
+    base = None
+    target_name = 'qutebrowser'
 
 executable = cx.Executable('qutebrowser/__main__.py', base=base,
-                           targetName='qutebrowser.exe',
+                           targetName=target_name,
                            shortcutName='qutebrowser',
                            shortcutDir='ProgramMenuFolder',
                            icon=os.path.join(BASEDIR, 'icons',
@@ -84,6 +99,8 @@ try:
         options={
             'build_exe': build_exe_options,
             'bdist_msi': bdist_msi_options,
+            'bdist_mac': bdist_mac_options,
+            'bdist_dmg': bdist_dmg_options,
         },
         **setupcommon.setupdata
     )

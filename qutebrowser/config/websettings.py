@@ -84,7 +84,7 @@ class Base:
             qws: The QWebSettings instance to use, or None to use the global
                  instance.
         """
-        log.misc.vdebug("Restoring default {!r}.".format(self._default))
+        log.config.vdebug("Restoring default {!r}.".format(self._default))
         if self._default is not UNSET:
             self._set(self._default, qws=qws)
 
@@ -383,10 +383,10 @@ def init():
     for sectname, section in MAPPINGS.items():
         for optname, mapping in section.items():
             default = mapping.save_default()
-            log.misc.vdebug("Saved default for {} -> {}: {!r}".format(
+            log.config.vdebug("Saved default for {} -> {}: {!r}".format(
                 sectname, optname, default))
             value = config.get(sectname, optname)
-            log.misc.vdebug("Setting {} -> {} to {!r}".format(
+            log.config.vdebug("Setting {} -> {} to {!r}".format(
                 sectname, optname, value))
             mapping.set(value)
     objreg.get('config').changed.connect(update_settings)

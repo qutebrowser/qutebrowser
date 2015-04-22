@@ -23,6 +23,7 @@ exclude scripts/quit_segfault_test.sh
 exclude scripts/segfault_test.sh
 exclude doc/notes
 recursive-exclude doc *.asciidoc
+include doc/qutebrowser.1.asciidoc
 prune tests
 exclude qutebrowser.rcc
 exclude .coveragerc

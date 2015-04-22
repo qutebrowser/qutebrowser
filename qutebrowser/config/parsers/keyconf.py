@@ -21,6 +21,7 @@
 
 import collections
 import os.path
+import itertools
 
 from PyQt5.QtCore import pyqtSignal, QObject
 
@@ -46,6 +47,10 @@ class DuplicateKeychainError(KeyConfigError):
 
     """Error raised when there's a duplicate key binding."""
 
+    def __init__(self, keychain):
+        super().__init__("Duplicate key chain {}!".format(keychain))
+        self.keychain = keychain
+
 
 class KeyConfigParser(QObject):
 
@@ -57,6 +62,9 @@ class KeyConfigParser(QObject):
         _cur_command: The command currently being processed by _read().
         is_dirty: Whether the config is currently dirty.
 
+    Class attributes:
+        UNBOUND_COMMAND: The special command used for unbound keybindings.
+
     Signals:
         changed: Emitted when the internal data has changed.
                  arg: Name of the mode which was changed.
@@ -65,13 +73,15 @@ class KeyConfigParser(QObject):
 
     changed = pyqtSignal(str)
     config_dirty = pyqtSignal()
+    UNBOUND_COMMAND = '<unbound>'
 
-    def __init__(self, configdir, fname, parent=None):
+    def __init__(self, configdir, fname, relaxed=False, parent=None):
         """Constructor.
 
         Args:
             configdir: The directory to save the configs in.
             fname: The filename of the config.
+            relaxed: If given, unknwon commands are ignored.
         """
         super().__init__(parent)
         self.is_dirty = False
@@ -86,7 +96,8 @@ class KeyConfigParser(QObject):
         if self._configfile is None or not os.path.exists(self._configfile):
             self._load_default()
         else:
-            self._read()
+            self._read(relaxed)
+            self._load_default(only_new=True)
         log.init.debug("Loaded bindings: {}".format(self.keybindings))
 
     def __str__(self):
@@ -156,15 +167,15 @@ class KeyConfigParser(QObject):
         for m in mode.split(','):
             if m not in configdata.KEY_DATA:
                 raise cmdexc.CommandError("Invalid mode {}!".format(m))
-        split_cmd = command.split()
-        if split_cmd[0] not in cmdutils.cmd_dict:
-            raise cmdexc.CommandError("Invalid command {}!".format(
-                split_cmd[0]))
+        try:
+            self._validate_command(command)
+        except KeyConfigError as e:
+            raise cmdexc.CommandError(str(e))
         try:
             self._add_binding(mode, key, command, force=force)
         except DuplicateKeychainError as e:
             raise cmdexc.CommandError("Duplicate keychain {} - use --force to "
-                                      "override!".format(str(e)))
+                                      "override!".format(str(e.keychain)))
         except KeyConfigError as e:
             raise cmdexc.CommandError(e)
         for m in mode.split(','):
@@ -197,9 +208,15 @@ class KeyConfigParser(QObject):
             raise cmdexc.CommandError("Can't find binding '{}' in section "
                                       "'{}'!".format(key, mode))
         else:
+            if key in itertools.chain.from_iterable(
+                    configdata.KEY_DATA[mode].values()):
+                try:
+                    self._add_binding(mode, key, self.UNBOUND_COMMAND)
+                except DuplicateKeychainError:
+                    pass
             for m in mode.split(','):
                 self.changed.emit(m)
-                self._mark_config_dirty()
+            self._mark_config_dirty()
 
     def _normalize_sectname(self, s):
         """Normalize a section string like 'foo, bar,baz' to 'bar,baz,foo'."""
@@ -213,20 +230,50 @@ class KeyConfigParser(QObject):
             sections = '!' + sections
         return sections
 
-    def _load_default(self):
-        """Load the built-in default key bindings."""
+    def _load_default(self, *, only_new=False):
+        """Load the built-in default key bindings.
+
+        Args:
+            only_new: If set, only keybindings which are completely unused
+                      (same command/key not bound) are added.
+        """
         for sectname, sect in configdata.KEY_DATA.items():
             sectname = self._normalize_sectname(sectname)
             if not sect:
-                self.keybindings[sectname] = collections.OrderedDict()
+                if not only_new:
+                    self.keybindings[sectname] = collections.OrderedDict()
+                    self._mark_config_dirty()
             else:
                 for command, keychains in sect.items():
                     for e in keychains:
-                        self._add_binding(sectname, e, command)
+                        if not only_new or self._is_new(sectname, command, e):
+                            self._add_binding(sectname, e, command)
+                            self._mark_config_dirty()
             self.changed.emit(sectname)
 
-    def _read(self):
-        """Read the config file from disk and parse it."""
+    def _is_new(self, sectname, command, keychain):
+        """Check if a given binding is new.
+
+        A binding is considered new if both the command is not bound to any key
+        yet, and the key isn't used anywhere else in the same section.
+        """
+        try:
+            bindings = self.keybindings[sectname]
+        except KeyError:
+            return True
+        if keychain in bindings:
+            return False
+        elif command in bindings.values():
+            return False
+        else:
+            return True
+
+    def _read(self, relaxed=False):
+        """Read the config file from disk and parse it.
+
+        Args:
+            relaxed: Ignore unknown commands.
+        """
         try:
             with open(self._configfile, 'r', encoding='utf-8') as f:
                 for i, line in enumerate(f):
@@ -245,8 +292,11 @@ class KeyConfigParser(QObject):
                             line = line.strip()
                             self._read_command(line)
                     except KeyConfigError as e:
-                        e.lineno = i
-                        raise
+                        if relaxed:
+                            continue
+                        else:
+                            e.lineno = i
+                            raise
         except OSError:
             log.keyboard.exception("Failed to read key bindings!")
         for sectname in self.keybindings:
@@ -259,6 +309,8 @@ class KeyConfigParser(QObject):
 
     def _validate_command(self, line):
         """Check if a given command is valid."""
+        if line == self.UNBOUND_COMMAND:
+            return
         commands = line.split(';;')
         try:
             first_cmd = commands[0].split(maxsplit=1)[0].strip()
@@ -307,10 +359,15 @@ class KeyConfigParser(QObject):
         if sectname not in self.keybindings:
             self.keybindings[sectname] = collections.OrderedDict()
         if keychain in self.get_bindings_for(sectname):
-            if force:
+            if force or command == self.UNBOUND_COMMAND:
                 self.unbind(keychain, mode=sectname)
             else:
                 raise DuplicateKeychainError(keychain)
+        section = self.keybindings[sectname]
+        if (command != self.UNBOUND_COMMAND and
+                section.get(keychain, None) == self.UNBOUND_COMMAND):
+            # re-binding an unbound keybinding
+            del section[keychain]
         self.keybindings[sectname][keychain] = command
 
     def get_bindings_for(self, section):
@@ -330,4 +387,6 @@ class KeyConfigParser(QObject):
             bindings.update(self.keybindings['all'])
         except KeyError:
             pass
+        bindings = {k: v for k, v in bindings.items()
+                    if v != self.UNBOUND_COMMAND}
         return bindings

@@ -105,8 +105,8 @@ class QuickmarkManager(QObject):
             win_id, "Add quickmark:", usertypes.PromptMode.text,
             functools.partial(self.quickmark_add, win_id, urlstr))
 
-    @cmdutils.register(instance='quickmark-manager')
-    def quickmark_add(self, win_id: {'special': 'win_id'}, url, name):
+    @cmdutils.register(instance='quickmark-manager', win_id='win_id')
+    def quickmark_add(self, win_id, url, name):
         """Add a new quickmark.
 
         Args:

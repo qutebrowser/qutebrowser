@@ -96,7 +96,6 @@ class MainWindow(QWidget):
                         window=self.win_id)
 
         self._downloadview = downloadview.DownloadView(self.win_id)
-        self._downloadview.show()
 
         self._tabbed_browser = tabbedbrowser.TabbedBrowser(self.win_id)
         objreg.register('tabbed-browser', self._tabbed_browser, scope='window',
@@ -108,15 +107,11 @@ class MainWindow(QWidget):
         self.status = bar.StatusBar(self.win_id, parent=self)
 
         self._add_widgets()
+        self._downloadview.show()
 
         self._completion = completionwidget.CompletionView(self.win_id, self)
 
         self._commandrunner = runners.CommandRunner(self.win_id)
-
-        log.init.debug("Initializing search...")
-        search_runner = runners.SearchRunner(self)
-        objreg.register('search-runner', search_runner, scope='window',
-                        window=self.win_id)
 
         log.init.debug("Initializing modes...")
         modeman.init(self.win_id, self)
@@ -212,7 +207,6 @@ class MainWindow(QWidget):
         completion_obj = self._get_object('completion')
         tabs = self._get_object('tabbed-browser')
         cmd = self._get_object('status-command')
-        search_runner = self._get_object('search-runner')
         message_bridge = self._get_object('message-bridge')
         mode_manager = self._get_object('mode-manager')
         prompter = self._get_object('prompter')
@@ -231,10 +225,7 @@ class MainWindow(QWidget):
         keyparsers[usertypes.KeyMode.normal].keystring_updated.connect(
             status.keystring.setText)
         cmd.got_cmd.connect(self._commandrunner.run_safely)
-        cmd.got_search.connect(search_runner.search)
-        cmd.got_search_rev.connect(search_runner.search_rev)
         cmd.returnPressed.connect(tabs.on_cmd_return_pressed)
-        search_runner.do_search.connect(tabs.search)
         tabs.got_cmd.connect(self._commandrunner.run_safely)
 
         # config

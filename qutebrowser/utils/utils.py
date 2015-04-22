@@ -120,7 +120,7 @@ def actute_warning():
                           "for details.")
                     break
     except OSError:
-        log.misc.exception("Failed to read Compose file")
+        log.init.exception("Failed to read Compose file")
 
 
 def _get_color_percentage(a_c1, a_c2, a_c3, b_c1, b_c2, b_c3, percent):
@@ -362,17 +362,18 @@ def normalize_keystr(keystr):
     Return:
         The normalized keystring.
     """
+    keystr = keystr.lower()
     replacements = (
-        ('Control', 'Ctrl'),
-        ('Windows', 'Meta'),
-        ('Mod1', 'Alt'),
-        ('Mod4', 'Meta'),
+        ('control', 'ctrl'),
+        ('windows', 'meta'),
+        ('mod1', 'alt'),
+        ('mod4', 'meta'),
     )
     for (orig, repl) in replacements:
         keystr = keystr.replace(orig, repl)
-    for mod in ('Ctrl', 'Meta', 'Alt', 'Shift'):
+    for mod in ('ctrl', 'meta', 'alt', 'shift'):
         keystr = keystr.replace(mod + '-', mod + '+')
-    return keystr.lower()
+    return keystr
 
 
 class FakeIOStream(io.TextIOBase):

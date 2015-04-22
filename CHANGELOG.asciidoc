@@ -14,10 +14,170 @@ This project adheres to http://semver.org/[Semantic Versioning].
 // `Fixed` for any bug fixes.
 // `Security` to invite users to upgrade in case of vulnerabilities.
 
-v0.2.0 (unreleased)
+v0.3.0 (unreleased)
 -------------------
 
-...
+Added
+~~~~~
+
+- New commands `:message-info`, `:message-error` and `:message-warning` to show messages in the statusbar, e.g. from an userscript.
+
+Changed
+~~~~~~~
+
+- `QUTE_HTML` and `QUTE_TEXT` for userscripts now don't store the contents directly, and instead contain a filename.
+- `:spawn` now shows the command being executed in the statusbar, use `-q`/`--quiet` for the old behavior.
+
+https://github.com/The-Compiler/qutebrowser/releases/tag/v0.2.1[v0.2.1]
+-----------------------------------------------------------------------
+
+Fixed
+~~~~~
+
+- Added missing manpage (doc/qutebrowser.1.asciidoc) to archive.
+
+https://github.com/The-Compiler/qutebrowser/releases/tag/v0.2.0[v0.2.0]
+-----------------------------------------------------------------------
+
+Added
+~~~~~
+
+- Session support
+    * new command `:session-load` to load a session.
+    * new command `:session-save` to save a session.
+    * new command `:session-delete` to delete a session.
+    * new setting `general -> save-session` to always save the session on quit.
+    * new setting `general -> session-default-name` to configure the session name to use if none is given.
+    * new argument `-r`/`--restore` to specify a session to load.
+    * new argument `-R`/`--override-restore` to not load a session even if one was saved.
+- New commands to manage downloads:
+    * `:download` to download a URL or the current page.
+    * `:download-cancel` to cancel a download.
+    * `:download-delete` to delete a download from disk.
+    * `:download-open` to open a finished download.
+    * `:download-remove` to remove a download from the list. `:download-remove --all` or the new 'cd' keybinding can be used to clear all finished downloads.
+- History completion
+    * New option `completion -> timestamp-format` to set the format used to display the history timestamps.
+    * New option `completion -> web-history-max-items` to configure how many history items to show in the completion.
+    * The option `completion -> history-length` for the command history got renamed to `cmd-history-max-items`.
+- Better save logic for the config/state:
+    * Only save files if modified (e.g. don't overwrite the config if it was edited outside of qutebrowser and nothing was changed in qutebrowser).
+    * Save things (cookies, config, quickmarks, ...) periodically all 15 seconds (time can be changed with the `general -> auto-save-interval` option).
+- Opera-like mouse rocker gestures
+    * New option `input -> rocker-gestures`. When turned on, the history can be navigated back/forward by holding a mouse button and pressing the other one.
+- New `-f` option for `:reload` to reload and bypass the cache.
+- Pass more information (`QUTE_MODE`, `QUTE_SELECTED_TEXT`, `QUTE_SELECTED_HTML`, `QUTE_USER_AGENT`, `QUTE_HTML`, `QUTE_TEXT`) to userscripts.
+- New `--userscript` option to `:spawn` (which deprecates `:run-userscript`).
+- Ability to toggle a value to `:set` by appending a `!` to the value.
+- New options to hide the tab-/statusbar:
+    * `tabs -> hide-always` for the tabbar
+    * `ui -> hide-statusbar` for the statusbar
+- New options to configure how the tab/window titles should look:
+    * `tabs -> title-format` for the tabbar
+    * `ui -> window-title-format` for the window title
+- HTML5 Geolocation/Notification support:
+    * New option `content -> geolocation` to permanently turn the geolocation off.
+    * New option `content -> notifications` to permanently turn notifications off.
+- New options to disable javascript prompts/alerts:
+    * `content -> ignore-javascript-prompt` to turn off prompts.
+    * `content -> ignore-javascript-alerts` to turn off alerts.
+- Two new options to customize the behavior of hints:
+    * `hints -> min-chars` to set minimum number of chars in hints.
+    * `hints -> scatter` which when turned off distributes the hints sequentially (like dwb) instead of scattering their positions (like Vimium).
+- Make it possible to use `:open -[twb]` without url.
+    * New option `general -> default-page` to set the page to be opened when doing that.
+- New `input -> partial-timeout` option to clear partial keystrings.
+- New option `completion -> download-path-suggestion` to configure what to show in the completion for downloads.
+- Queue messages shown in unfocused windows and show them when the window is focused.
+    * New option `ui -> message-unfocused` to disable this behavior.
+- New `--relaxed-config` argument which ignores unknown options.
+- New `:tab-detach` command to open the current tab in a new window.
+- Zooming via Ctrl-Mousewheel.
+    * New option `input -> mouse-zoom-divider` to control how much the page is zoomed when rotating the wheel.
+- New option (`content -> host-blocking-enabled`) to enable/disable host blocking.
+- New values `tab-bg`/`tab-bg-silent` for `new-instance-open-target` to open a background tab.
+- New `ui -> downloads-position` setting to move the downloads to the bottom.
+- New `ui -> hide-mouse-cursor` option to hide the mouse cursor inside qutebrowser.
+- New argument `-s` for qutebrowser to set a temporary config option.
+- New argument `-p` for the `:set` command to print the new value.
+- New `--rapid` option to `:hint`. The `rapid`/`rapid-win` targets are now deprecated, and `--rapid` can be used as well with the targets run/hover/userscript/spawn as well.
+- New `-f` argument to `:bind` to overwrite the old binding.
+- New `--qt-name` argument to qutebrowser which is passed to Qt to set `WM_CLASS`.
+- Alternating row colors in completion. This adds a new `colors -> completion.alternate-bg` option.
+
+Changed
+~~~~~~~
+
+- Ignore quotes with maxsplit-commands (`:open`, `:quickmark-load`, etc.) and don't quote arguments for those commands in the completions. This also means some commands needed adjustments:
+    * Clear search when `:search` without arguments is given.  (`:search ""` will now search for the literal text `""`)
+    * Add `-s`/`--space` argument to `:set-cmd-text` (as `:set-cmd-text "foo "` will now set the literal text `"foo "`)
+- Ignore `;;` for splitting with some commands like `:bind`.
+- Add unbound (new) default keybindings to config. This also adds a new `<unbound>` special command.
+    * To unbind a command keybinding without binding it to a new key, you now have to bind it to `<unbound>` or it'll be readded automatically.
+- If an SSL error is raised multiple times with the same error/certificate/host/scheme/port, the user is only asked once.
+- Jump to last instead of first item when pressing Shift-Tab the first time in the completion.
+- Add a fullscreen keybinding.
+- Add a `:search` command in addition to `/foo` so it's more visible and can be used from scripts.
+- Various improvements to documentation, logging, and the crash reporter.
+- Expand `~` to the users home directory with `:run-userscript`.
+- Improve the userscript runner on Linux/OS X by using `QSocketNotifier`.
+- Add luakit-like `gt`/`gT` keybindings to cycle through tabs.
+- Show default value for config values in the completion.
+- Clone tab icon, tab text and zoom level when cloning tabs.
+- Don't open relative file paths with `:open`, only with commandline arguments.
+- Expand environment variables in config settings which take a file path.
+- Add a list of common user agents to the user agent setting completion.
+- Move cursor to end of textboxes when hinting.
+- Don't start searches on invalid URLs for quickmarks/startpage.
+- Various performance improvements for the completion.
+- Always open URLs given as argument in the foreground.
+- Improve various error messages.
+- Add `startpage`/`default-page` values to `tabs -> last-close`.
+- Various improvements to `:restart` - it should be more robust now and uses sessions so all state (focused tab, scroll position, etc.) gets remembered.
+- Add tab index display to the statusbar.
+- Keep progress bar height fixed when the statusbar is multiline.
+- Many improvements to tests and related infrastructure:
+    * `init_venv.py` and `run_checks.py` have been replaced by http://tox.readthedocs.org/[tox]. Install tox and run `tox -e mkvenv` instead.
+    * The tests now use http://pytest.org/[pytest]
+    * Many new tests added
+    * Mac Mini buildbot to run the tests on OS X.
+    * Coverage recording via http://nedbatchelder.com/code/coverage/[coverage.py].
+    * New `--pdb-postmortem argument` to drop into the pdb debugger on exceptions.
+    * Use https://github.com/ionelmc/python-hunter[hunter] for line tracing instead of a selfmade solution.
+
+Deprecated
+~~~~~~~~~~
+
+- The `:run-userscript` command - use `:spawn --userscript` instead.
+- The `rapid` and `rapid-win` targets for `:hint` - use the `--rapid` argument to `:hint` instead.
+- The `:cancel-download` command - use `:download-cancel` instead.
+- The `:download-page` command - use `:download` instead.
+
+Removed
+~~~~~~~
+
+- `init_venv.py` and `run_checks.py` have been replaced by http://tox.readthedocs.org/[tox]. Install tox and run `tox -e mkvenv` instead..
+
+Fixed
+~~~~~
+
+- Fix for cache never being used.
+- Fixed handling of key release events (e.g. for javascript) when holding a key and pressing a second one.
+- Fix handling of commands using `;;` at various places (key config, command parser, `:bind`)
+- Fix splitting of flags with arguments (`:bind -m`/`--mode`).
+- Fix bindings of special keys with lower-case modifiers (e.g.  `<ctrl-x>`)
+- Fix for weird search highlights when changing tabs while search is active.
+- Fix starting with `-c ""`.
+- Fix removing of partial downloads when a download is cancelled via context menu.
+- Fix retrying of downloads which were started in a now closed tab.
+- Highlight text case-insensitively in completion.
+- Scroll completion to top when showing it.
+- Handle unencodable file paths in config types correctly.
+- Fix for crash when executing a delayed command (because of a shadowed keybinding) and then unfocusing the window.
+- Fix for crash when hinting on a page which doesn't have an URL yet.
+- Fix exception when using `:set-cmd-text` with an empty argument.
+- Add a timeout to pastebin HTTP replies.
+- Various other fixes for small/rare bugs.
 
 https://github.com/The-Compiler/qutebrowser/releases/tag/v0.1.4[v0.1.4]
 -----------------------------------------------------------------------

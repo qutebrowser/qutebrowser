@@ -101,6 +101,7 @@ class _BaseUserscriptRunner(QObject):
         self._win_id = win_id
         self._filepath = None
         self._proc = None
+        self._env = None
 
     def _run_process(self, cmd, *args, env):
         """Start the given command via QProcess.
@@ -110,6 +111,7 @@ class _BaseUserscriptRunner(QObject):
             *args: The arguments to hand to the command
             env: A dictionary of environment variables to add.
         """
+        self._env = env
         self._proc = QProcess(self)
         procenv = QProcessEnvironment.systemEnvironment()
         procenv.insert('QUTE_FIFO', self._filepath)
@@ -122,17 +124,26 @@ class _BaseUserscriptRunner(QObject):
         self._proc.start(cmd, args)
 
     def _cleanup(self):
-        """Clean up the temporary file."""
-        log.procs.debug("Deleting temporary file {}.".format(self._filepath))
-        try:
-            os.remove(self._filepath)
-        except OSError as e:
-            # NOTE: Do not replace this with "raise CommandError" as it's
-            # executed async.
-            message.error(self._win_id,
-                          "Failed to delete tempfile... ({})".format(e))
+        """Clean up temporary files."""
+        tempfiles = [self._filepath]
+        if self._env is not None:
+            if 'QUTE_HTML' in self._env:
+                tempfiles.append(self._env['QUTE_HTML'])
+            if 'QUTE_TEXT' in self._env:
+                tempfiles.append(self._env['QUTE_TEXT'])
+        for fn in tempfiles:
+            log.procs.debug("Deleting temporary file {}.".format(fn))
+            try:
+                os.remove(fn)
+            except OSError as e:
+                # NOTE: Do not replace this with "raise CommandError" as it's
+                # executed async.
+                message.error(
+                    self._win_id, "Failed to delete tempfile {} ({})!".format(
+                        fn, e))
         self._filepath = None
         self._proc = None
+        self._env = None
 
     def run(self, cmd, *args, env=None):
         """Run the userscript given.
@@ -303,6 +314,37 @@ elif os.name == 'nt':
     UserscriptRunner = _WindowsUserscriptRunner
 else:
     UserscriptRunner = _DummyUserscriptRunner
+
+
+def store_source(frame):
+    """Store HTML/plaintext in files.
+
+    This writes files containing the HTML/plaintext source of the page, and
+    returns a dict with the paths as QUTE_HTML/QUTE_TEXT.
+
+    Args:
+        frame: The QWebFrame to get the info from, or None to do nothing.
+
+    Return:
+        A dictionary with the needed environment variables.
+
+    Warning:
+        The caller is responsible to delete the files after using them!
+    """
+    if frame is None:
+        return {}
+    env = {}
+    with tempfile.NamedTemporaryFile(mode='w', encoding='utf-8',
+                                     suffix='.html',
+                                     delete=False) as html_file:
+        html_file.write(frame.toHtml())
+        env['QUTE_HTML'] = html_file.name
+    with tempfile.NamedTemporaryFile(mode='w', encoding='utf-8',
+                                     suffix='.txt',
+                                     delete=False) as txt_file:
+        txt_file.write(frame.toPlainText())
+        env['QUTE_TEXT'] = txt_file.name
+    return env
 
 
 def run(cmd, *args, win_id, env):
