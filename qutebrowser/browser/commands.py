@@ -1166,7 +1166,7 @@ class CommandDispatcher:
         member = getattr(QWebPage, action, None)
         if not isinstance(member, QWebPage.WebAction):
             raise cmdexc.CommandError("{} is not a valid web action!".format(
-                acction))
+                action))
         view = self._current_widget()
         for _ in range(count):
             view.triggerPageAction(member)
