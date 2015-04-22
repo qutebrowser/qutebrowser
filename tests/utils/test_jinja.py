@@ -20,47 +20,42 @@
 """Tests for qutebrowser.utils.jinja."""
 
 import os.path
-import unittest
-import unittest.mock
+
+import pytest
 
 from qutebrowser.utils import jinja
 
 
-def _read_file(path):
-    """Mocked utils.read_file."""
-    if path == os.path.join('html', 'test.html'):
-        return """Hello {{var}}"""
-    else:
-        raise ValueError("Invalid path {}!".format(path))
+@pytest.fixture(autouse=True)
+def patch_read_file(monkeypatch):
+    """pytest fixture to patch utils.read_file."""
+    def _read_file(path):
+        """A read_file which returns a simple template if the path is right."""
+        if path == os.path.join('html', 'test.html'):
+            return """Hello {{var}}"""
+        else:
+            raise ValueError("Invalid path {}!".format(path))
+
+    monkeypatch.setattr('qutebrowser.utils.jinja.utils.read_file', _read_file)
 
 
-@unittest.mock.patch('qutebrowser.utils.jinja.utils.read_file')
-class JinjaTests(unittest.TestCase):
-
-    """Tests for getting template via jinja."""
-
-    def test_simple_template(self, readfile_mock):
-        """Test with a simple template."""
-        readfile_mock.side_effect = _read_file
-        template = jinja.env.get_template('test.html')
-        # https://bitbucket.org/logilab/pylint/issue/490/
-        data = template.render(var='World')  # pylint: disable=no-member
-        self.assertEqual(data, "Hello World")
-
-    def test_utf8(self, readfile_mock):
-        """Test rendering with an UTF8 template.
-
-        This was an attempt to get a failing test case for #127 but it seems
-        the issue is elsewhere.
-
-        https://github.com/The-Compiler/qutebrowser/issues/127
-        """
-        readfile_mock.side_effect = _read_file
-        template = jinja.env.get_template('test.html')
-        # https://bitbucket.org/logilab/pylint/issue/490/
-        data = template.render(var='\u2603')  # pylint: disable=no-member
-        self.assertEqual(data, "Hello \u2603")
+def test_simple_template():
+    """Test with a simple template."""
+    template = jinja.env.get_template('test.html')
+    # https://bitbucket.org/logilab/pylint/issue/490/
+    data = template.render(var='World')  # pylint: disable=no-member
+    assert data == "Hello World"
 
 
-if __name__ == '__main__':
-    unittest.main()
+def test_utf8():
+    """Test rendering with an UTF8 template.
+
+    This was an attempt to get a failing test case for #127 but it seems
+    the issue is elsewhere.
+
+    https://github.com/The-Compiler/qutebrowser/issues/127
+    """
+    template = jinja.env.get_template('test.html')
+    # https://bitbucket.org/logilab/pylint/issue/490/
+    data = template.render(var='\u2603')  # pylint: disable=no-member
+    assert data == "Hello \u2603"

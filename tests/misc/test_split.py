@@ -18,8 +18,9 @@
 # along with qutebrowser.  If not, see <http://www.gnu.org/licenses/>.
 
 """Tests for qutebrowser.misc.split."""
+import collections
 
-import unittest
+import pytest
 
 from qutebrowser.misc import split
 
@@ -29,7 +30,7 @@ from qutebrowser.misc import split
 
 # Format: input/split|output|without|keep/split|output|with|keep/
 
-test_data = r"""
+test_data_str = r"""
 one two/one|two/one| two/
 one "two three" four/one|two three|four/one| "two three"| four/
 one 'two three' four/one|two three|four/one| 'two three'| four/
@@ -104,36 +105,56 @@ foo\ bar/foo bar/foo\ bar/
 """
 
 
-class SplitTests(unittest.TestCase):
+def _parse_split_test_data_str():
+    """
+    Parse the test data set into a namedtuple to use in tests.
+
+    Returns:
+        A list of namedtuples with str attributes: input, keep, no_keep
+    """
+    tuple_class = collections.namedtuple('TestCase', 'input, keep, no_keep')
+
+    result = []
+    for line in test_data_str.splitlines():
+        if not line:
+            continue
+        data = line.split('/')
+        item = tuple_class(input=data[0], keep=data[1].split('|'),
+                           no_keep=data[2].split('|'))
+        result.append(item)
+    return result
+
+
+class TestSplit:
 
     """Test split."""
 
-    def test_split(self):
+    @pytest.fixture(params=_parse_split_test_data_str())
+    def split_test_case(self, request):
+        """Fixture to automatically parametrize all depending tests.
+
+        It will use the test data from test_data_str, parsed using
+        _parse_split_test_data_str().
+        """
+        return request.param
+
+    def test_split(self, split_test_case):
         """Test splitting."""
-        for case in test_data.strip().splitlines():
-            cmd, out = case.split('/')[:-2]
-            with self.subTest(cmd=cmd):
-                items = split.split(cmd)
-                self.assertEqual(items, out.split('|'))
+        items = split.split(split_test_case.input)
+        assert items == split_test_case.keep
 
-    def test_split_keep_original(self):
+    def test_split_keep_original(self, split_test_case):
         """Test if splitting with keep=True yields the original string."""
-        for case in test_data.strip().splitlines():
-            cmd = case.split('/')[0]
-            with self.subTest(cmd=cmd):
-                items = split.split(cmd, keep=True)
-                self.assertEqual(''.join(items), cmd)
+        items = split.split(split_test_case.input, keep=True)
+        assert ''.join(items) == split_test_case.input
 
-    def test_split_keep(self):
+    def test_split_keep(self, split_test_case):
         """Test splitting with keep=True."""
-        for case in test_data.strip().splitlines():
-            cmd, _mid, out = case.split('/')[:-1]
-            with self.subTest(cmd=cmd):
-                items = split.split(cmd, keep=True)
-                self.assertEqual(items, out.split('|'))
+        items = split.split(split_test_case.input, keep=True)
+        assert items == split_test_case.no_keep
 
 
-class SimpleSplitTests(unittest.TestCase):
+class TestSimpleSplit:
 
     """Test simple_split."""
 
@@ -145,27 +166,20 @@ class SimpleSplitTests(unittest.TestCase):
         'foo\nbar': ['foo', '\nbar'],
     }
 
-    def test_str_split(self):
+    @pytest.mark.parametrize('test', TESTS)
+    def test_str_split(self, test):
         """Test if the behavior matches str.split."""
-        for test in self.TESTS:
-            with self.subTest(string=test):
-                self.assertEqual(split.simple_split(test),
-                                 test.rstrip().split())
+        assert split.simple_split(test) == test.rstrip().split()
 
-    def test_str_split_maxsplit_1(self):
-        """Test if the behavior matches str.split with maxsplit=1."""
-        string = "foo bar baz"
-        self.assertEqual(split.simple_split(string, maxsplit=1),
-                         string.rstrip().split(maxsplit=1))
+    @pytest.mark.parametrize('s, maxsplit',
+                             [("foo bar baz", 1), ("  foo bar baz  ", 0)])
+    def test_str_split_maxsplit(self, s, maxsplit):
+        """Test if the behavior matches str.split with given maxsplit."""
+        actual = split.simple_split(s, maxsplit=maxsplit)
+        expected = s.rstrip().split(maxsplit=maxsplit)
+        assert actual == expected
 
-    def test_str_split_maxsplit_0(self):
-        """Test if the behavior matches str.split with maxsplit=0."""
-        string = "  foo bar baz  "
-        self.assertEqual(split.simple_split(string, maxsplit=0),
-                         string.rstrip().split(maxsplit=0))
-
-    def test_split_keep(self):
+    @pytest.mark.parametrize('test, expected', TESTS.items())
+    def test_split_keep(self, test, expected):
         """Test splitting with keep=True."""
-        for test, expected in self.TESTS.items():
-            with self.subTest(string=test):
-                self.assertEqual(split.simple_split(test, keep=True), expected)
+        assert split.simple_split(test, keep=True) == expected

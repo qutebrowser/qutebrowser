@@ -20,107 +20,74 @@
 """Tests for qutebrowser.utils.qtutils."""
 
 import sys
-import unittest
+
+import pytest
 
 from qutebrowser import qutebrowser
 from qutebrowser.utils import qtutils
+import overflow_test_cases
 
 
-class CheckOverflowTests(unittest.TestCase):
+class TestCheckOverflow:
 
-    """Test check_overflow.
+    """Test check_overflow."""
 
-    Class attributes:
-        INT32_MIN: Minimum valid value for a signed int32.
-        INT32_MAX: Maximum valid value for a signed int32.
-        INT64_MIN: Minimum valid value for a signed int64.
-        INT64_MAX: Maximum valid value for a signed int64.
-        GOOD_VALUES: A dict of types mapped to a list of good values.
-        BAD_VALUES: A dict of types mapped to a list of bad values.
-    """
-
-    INT32_MIN = -(2 ** 31)
-    INT32_MAX = 2 ** 31 - 1
-    INT64_MIN = -(2 ** 63)
-    INT64_MAX = 2 ** 63 - 1
-
-    GOOD_VALUES = {
-        'int': [-1, 0, 1, 23.42, INT32_MIN, INT32_MAX],
-        'int64': [-1, 0, 1, 23.42, INT64_MIN, INT64_MAX],
-    }
-
-    BAD_VALUES = {
-        'int': [(INT32_MIN - 1, INT32_MIN),
-                (INT32_MAX + 1, INT32_MAX),
-                (float(INT32_MAX + 1), INT32_MAX)],
-        'int64': [(INT64_MIN - 1, INT64_MIN),
-                  (INT64_MAX + 1, INT64_MAX),
-                  (float(INT64_MAX + 1), INT64_MAX)],
-    }
-
-    def test_good_values(self):
+    @pytest.mark.parametrize('ctype, val',
+                             overflow_test_cases.iter_good_values())
+    def test_good_values(self, ctype, val):
         """Test values which are inside bounds."""
-        for ctype, vals in self.GOOD_VALUES.items():
-            for val in vals:
-                with self.subTest(ctype=ctype, val=val):
-                    qtutils.check_overflow(val, ctype)
+        qtutils.check_overflow(val, ctype)
 
-    def test_bad_values_fatal(self):
+    @pytest.mark.parametrize('ctype, val',
+                             [(ctype, val) for (ctype, val, _) in
+                              overflow_test_cases.iter_bad_values()])
+    def test_bad_values_fatal(self, ctype, val):
         """Test values which are outside bounds with fatal=True."""
-        for ctype, vals in self.BAD_VALUES.items():
-            for (val, _) in vals:
-                with self.subTest(ctype=ctype, val=val):
-                    with self.assertRaises(OverflowError):
-                        qtutils.check_overflow(val, ctype)
+        with pytest.raises(OverflowError):
+            qtutils.check_overflow(val, ctype)
 
-    def test_bad_values_nonfatal(self):
+    @pytest.mark.parametrize('ctype, val, repl',
+                             overflow_test_cases.iter_bad_values())
+    def test_bad_values_nonfatal(self, ctype, val, repl):
         """Test values which are outside bounds with fatal=False."""
-        for ctype, vals in self.BAD_VALUES.items():
-            for (val, replacement) in vals:
-                with self.subTest(ctype=ctype, val=val):
-                    newval = qtutils.check_overflow(val, ctype, fatal=False)
-                    self.assertEqual(newval, replacement)
+        newval = qtutils.check_overflow(val, ctype, fatal=False)
+        assert newval == repl
 
 
-def argparser_exit(status=0, message=None):  # pylint: disable=unused-argument
-    """Function to monkey-patch .exit() of the argparser so it doesn't exit."""
-    raise Exception
-
-
-class GetQtArgsTests(unittest.TestCase):
+class TestGetQtArgs:
 
     """Tests for get_args."""
 
-    def setUp(self):
-        self.parser = qutebrowser.get_argparser()
-        self.parser.exit = argparser_exit
+    @pytest.fixture
+    def parser(self, mocker):
+        """Fixture to provide an argparser.
 
-    def test_no_qt_args(self):
+        Monkey-patches .exit() of the argparser so it doesn't exit on errors.
+        """
+        parser = qutebrowser.get_argparser()
+        mocker.patch.object(parser, 'exit', side_effect=Exception)
+        return parser
+
+    def test_no_qt_args(self, parser):
         """Test commandline with no Qt arguments given."""
-        args = self.parser.parse_args(['--debug'])
-        self.assertEqual(qtutils.get_args(args), [sys.argv[0]])
+        args = parser.parse_args(['--debug'])
+        assert qtutils.get_args(args) == [sys.argv[0]]
 
-    def test_qt_flag(self):
+    def test_qt_flag(self, parser):
         """Test commandline with a Qt flag."""
-        args = self.parser.parse_args(['--debug', '--qt-reverse', '--nocolor'])
-        self.assertEqual(qtutils.get_args(args), [sys.argv[0], '-reverse'])
+        args = parser.parse_args(['--debug', '--qt-reverse', '--nocolor'])
+        assert qtutils.get_args(args) == [sys.argv[0], '-reverse']
 
-    def test_qt_arg(self):
+    def test_qt_arg(self, parser):
         """Test commandline with a Qt argument."""
-        args = self.parser.parse_args(['--qt-stylesheet', 'foobar'])
-        self.assertEqual(qtutils.get_args(args), [sys.argv[0], '-stylesheet',
-                                                  'foobar'])
+        args = parser.parse_args(['--qt-stylesheet', 'foobar'])
+        assert qtutils.get_args(args) == [sys.argv[0], '-stylesheet', 'foobar']
 
-    def test_qt_both(self):
+    def test_qt_both(self, parser):
         """Test commandline with a Qt argument and flag."""
-        args = self.parser.parse_args(['--qt-stylesheet', 'foobar',
-                                       '--qt-reverse'])
+        args = parser.parse_args(['--qt-stylesheet', 'foobar', '--qt-reverse'])
         qt_args = qtutils.get_args(args)
-        self.assertEqual(qt_args[0], sys.argv[0])
-        self.assertIn('-reverse', qt_args)
-        self.assertIn('-stylesheet', qt_args)
-        self.assertIn('foobar', qt_args)
-
-
-if __name__ == '__main__':
-    unittest.main()
+        assert qt_args[0] == sys.argv[0]
+        assert '-reverse' in qt_args
+        assert '-stylesheet' in qt_args
+        assert 'foobar' in qt_args
