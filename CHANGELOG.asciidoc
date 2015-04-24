@@ -28,6 +28,14 @@ Changed
 - `QUTE_HTML` and `QUTE_TEXT` for userscripts now don't store the contents directly, and instead contain a filename.
 - `:spawn` now shows the command being executed in the statusbar, use `-q`/`--quiet` for the old behavior.
 
+v0.2.2 (unreleased)
+-------------------
+
+Fixed
+~~~~~
+
+- Fixed searching for terms starting with a hyphen (e.g. `/-foo`)
+
 https://github.com/The-Compiler/qutebrowser/releases/tag/v0.2.1[v0.2.1]
 -----------------------------------------------------------------------
 
