@@ -163,8 +163,8 @@ class Command(misc.MinimalLineEditMixin, misc.CommandLineEdit):
         """Execute the command currently in the commandline."""
         prefixes = {
             ':': '',
-            '/': 'search ',
-            '?': 'search -r ',
+            '/': 'search -- ',
+            '?': 'search -r -- ',
         }
         text = self.text()
         self.history.append(text)
