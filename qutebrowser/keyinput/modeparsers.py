@@ -219,6 +219,7 @@ class HintKeyParser(keyparser.CommandKeyParser):
                                  window=self._win_id, tab='current')
         hintmanager.handle_partial_key(keystr)
 
+
 class CaretKeyParser(keyparser.CommandKeyParser):
 
     """KeyParser for Caret mode."""
@@ -230,6 +231,7 @@ class CaretKeyParser(keyparser.CommandKeyParser):
 
     def __repr__(self):
         return utils.get_repr(self)
+
 
 class VisualKeyParser(keyparser.CommandKeyParser):
 

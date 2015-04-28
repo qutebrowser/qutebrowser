@@ -23,11 +23,10 @@ import sys
 import itertools
 import functools
 
-from PyQt5.QtCore import pyqtSignal, pyqtSlot, Qt, QTimer, QUrl, QPoint
+from PyQt5.QtCore import pyqtSignal, pyqtSlot, Qt, QTimer, QUrl
 from PyQt5.QtWidgets import QApplication, QStyleFactory
 from PyQt5.QtWebKit import QWebSettings
 from PyQt5.QtWebKitWidgets import QWebView, QWebPage
-from PyQt5.QtGui import QMouseEvent
 
 from qutebrowser.config import config
 from qutebrowser.keyinput import modeman
@@ -437,7 +436,8 @@ class WebView(QWebView):
                               "entered.".format(mode))
             self.setFocusPolicy(Qt.NoFocus)
         elif mode in (usertypes.KeyMode.caret, usertypes.KeyMode.visual):
-            self.settings().setAttribute(QWebSettings.CaretBrowsingEnabled, True)
+            settings = self.settings()
+            settings.setAttribute(QWebSettings.CaretBrowsingEnabled, True)
             self.clearFocus()
             self.setFocus(Qt.OtherFocusReason)
 
@@ -449,11 +449,12 @@ class WebView(QWebView):
             log.webview.debug("Restoring focus policy because mode {} was "
                               "left.".format(mode))
         elif mode in (usertypes.KeyMode.caret, usertypes.KeyMode.visual):
-            if self.settings().testAttribute(QWebSettings.CaretBrowsingEnabled):
+            settings = self.settings()
+            if settings.testAttribute(QWebSettings.CaretBrowsingEnabled):
                 if mode == usertypes.KeyMode.visual and self.hasSelection():
                     # Remove selection if exist
                     self.triggerPageAction(QWebPage.MoveToNextChar)
-                self.settings().setAttribute(QWebSettings.CaretBrowsingEnabled, False)
+                settings.setAttribute(QWebSettings.CaretBrowsingEnabled, False)
 
         self.setFocusPolicy(Qt.WheelFocus)
 

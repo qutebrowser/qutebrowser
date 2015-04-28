@@ -817,12 +817,12 @@ def data(readonly=False):
              "Background color of the statusbar in insert mode."),
 
             ('statusbar.bg.caret',
-            SettingValue(typ.QssColor(), 'purple'),
-            "Background color of the statusbar in caret mode."),
+             SettingValue(typ.QssColor(), 'purple'),
+             "Background color of the statusbar in caret mode."),
 
             ('statusbar.bg.visual',
-            SettingValue(typ.QssColor(), '#a12dff'),
-            "Background color of the statusbar in visual mode."),
+             SettingValue(typ.QssColor(), '#a12dff'),
+             "Background color of the statusbar in visual mode."),
 
             ('statusbar.progress.bg',
              SettingValue(typ.QssColor(), 'white'),

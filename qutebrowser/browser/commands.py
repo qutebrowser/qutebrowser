@@ -40,6 +40,7 @@ from qutebrowser.config import config, configexc
 from qutebrowser.browser import webelem, inspector
 from qutebrowser.utils import (message, usertypes, log, qtutils, urlutils,
                                objreg, utils)
+from qutebrowser.utils.usertypes import KeyMode
 from qutebrowser.misc import editor
 from qutebrowser.keyinput import modeman
 
@@ -1031,8 +1032,7 @@ class CommandDispatcher:
         self._open(url, tab, bg, window)
 
     @cmdutils.register(instance='command-dispatcher',
-                       modes=[usertypes.KeyMode.insert],
-                       hide=True, scope='window')
+                       modes=[KeyMode.insert], hide=True, scope='window')
     def open_editor(self):
         """Open an external editor with the currently selected form field.
 
@@ -1152,166 +1152,153 @@ class CommandDispatcher:
         for _ in range(count):
             view.search(view.search_text, flags)
 
-    @cmdutils.register(instance='command-dispatcher',
-                       modes=[usertypes.KeyMode.caret, usertypes.KeyMode.visual],
-                       hide=True, scope='window')
+    @cmdutils.register(instance='command-dispatcher', hide=True,
+                       modes=[KeyMode.caret, KeyMode.visual], scope='window')
     def move_to_next_line(self):
         """Move the cursor or select to the next line."""
-        modemanager = modeman._get_modeman(self._win_id)
-        if modemanager.mode == usertypes.KeyMode.caret:
+        modemanager = modeman.get_modeman(self._win_id)
+        if modemanager.mode == KeyMode.caret:
             act = QWebPage.MoveToNextLine
         else:
             act = QWebPage.SelectNextLine
         self._current_widget().triggerPageAction(act)
 
-    @cmdutils.register(instance='command-dispatcher',
-                       modes=[usertypes.KeyMode.caret, usertypes.KeyMode.visual],
-                       hide=True, scope='window')
+    @cmdutils.register(instance='command-dispatcher', hide=True,
+                       modes=[KeyMode.caret, KeyMode.visual], scope='window')
     def move_to_prev_line(self):
         """Move the cursor or select to the prev line."""
-        modemanager = modeman._get_modeman(self._win_id)
-        if modemanager.mode == usertypes.KeyMode.caret:
+        modemanager = modeman.get_modeman(self._win_id)
+        if modemanager.mode == KeyMode.caret:
             act = QWebPage.MoveToPreviousLine
         else:
             act = QWebPage.SelectPreviousLine
         self._current_widget().triggerPageAction(act)
 
-    @cmdutils.register(instance='command-dispatcher',
-                       modes=[usertypes.KeyMode.caret, usertypes.KeyMode.visual],
-                       hide=True, scope='window')
+    @cmdutils.register(instance='command-dispatcher', hide=True,
+                       modes=[KeyMode.caret, KeyMode.visual], scope='window')
     def move_to_next_char(self):
         """Move the cursor or select to the next char."""
-        modemanager = modeman._get_modeman(self._win_id)
-        if modemanager.mode == usertypes.KeyMode.caret:
+        modemanager = modeman.get_modeman(self._win_id)
+        if modemanager.mode == KeyMode.caret:
             act = QWebPage.MoveToNextChar
         else:
             act = QWebPage.SelectNextChar
         self._current_widget().triggerPageAction(act)
 
-    @cmdutils.register(instance='command-dispatcher',
-                       modes=[usertypes.KeyMode.caret, usertypes.KeyMode.visual],
-                       hide=True, scope='window')
+    @cmdutils.register(instance='command-dispatcher', hide=True,
+                       modes=[KeyMode.caret, KeyMode.visual], scope='window')
     def move_to_prev_char(self):
         """Move the cursor or select to the prev char."""
-        modemanager = modeman._get_modeman(self._win_id)
-        if modemanager.mode == usertypes.KeyMode.caret:
+        modemanager = modeman.get_modeman(self._win_id)
+        if modemanager.mode == KeyMode.caret:
             act = QWebPage.MoveToPreviousChar
         else:
             act = QWebPage.SelectPreviousChar
         self._current_widget().triggerPageAction(act)
 
-    @cmdutils.register(instance='command-dispatcher',
-                       modes=[usertypes.KeyMode.caret, usertypes.KeyMode.visual],
-                       hide=True, scope='window')
+    @cmdutils.register(instance='command-dispatcher', hide=True,
+                       modes=[KeyMode.caret, KeyMode.visual], scope='window')
     def move_to_end_of_word(self):
         """Move the cursor or select to the next word."""
-        modemanager = modeman._get_modeman(self._win_id)
-        if modemanager.mode == usertypes.KeyMode.caret:
+        modemanager = modeman.get_modeman(self._win_id)
+        if modemanager.mode == KeyMode.caret:
             act = QWebPage.MoveToNextWord
         else:
             act = QWebPage.SelectNextWord
         self._current_widget().triggerPageAction(act)
 
-    @cmdutils.register(instance='command-dispatcher',
-                       modes=[usertypes.KeyMode.caret, usertypes.KeyMode.visual],
-                       hide=True, scope='window')
+    @cmdutils.register(instance='command-dispatcher', hide=True,
+                       modes=[KeyMode.caret, KeyMode.visual],
+                       scope='window')
     def move_to_next_word(self):
         """Move the cursor or select to the next word."""
-        modemanager = modeman._get_modeman(self._win_id)
-        if modemanager.mode == usertypes.KeyMode.caret:
+        modemanager = modeman.get_modeman(self._win_id)
+        if modemanager.mode == KeyMode.caret:
             act = [QWebPage.MoveToNextWord, QWebPage.MoveToNextChar]
         else:
             act = [QWebPage.SelectNextWord, QWebPage.SelectNextChar]
         for a in act:
             self._current_widget().triggerPageAction(a)
 
-    @cmdutils.register(instance='command-dispatcher',
-                       modes=[usertypes.KeyMode.caret, usertypes.KeyMode.visual],
-                       hide=True, scope='window')
+    @cmdutils.register(instance='command-dispatcher', hide=True,
+                       modes=[KeyMode.caret, KeyMode.visual], scope='window')
     def move_to_prev_word(self):
         """Move the cursor or select to the prev word."""
-        modemanager = modeman._get_modeman(self._win_id)
-        if modemanager.mode == usertypes.KeyMode.caret:
+        modemanager = modeman.get_modeman(self._win_id)
+        if modemanager.mode == KeyMode.caret:
             act = QWebPage.MoveToPreviousWord
         else:
             act = QWebPage.SelectPreviousWord
         self._current_widget().triggerPageAction(act)
 
-    @cmdutils.register(instance='command-dispatcher',
-                       modes=[usertypes.KeyMode.caret, usertypes.KeyMode.visual],
-                       hide=True, scope='window')
+    @cmdutils.register(instance='command-dispatcher', hide=True,
+                       modes=[KeyMode.caret, KeyMode.visual], scope='window')
     def move_to_start_of_line(self):
         """Move the cursor or select to the start of line."""
-        modemanager = modeman._get_modeman(self._win_id)
-        if modemanager.mode == usertypes.KeyMode.caret:
+        modemanager = modeman.get_modeman(self._win_id)
+        if modemanager.mode == KeyMode.caret:
             act = QWebPage.MoveToStartOfLine
         else:
             act = QWebPage.SelectStartOfLine
         self._current_widget().triggerPageAction(act)
 
-    @cmdutils.register(instance='command-dispatcher',
-                       modes=[usertypes.KeyMode.caret, usertypes.KeyMode.visual],
-                       hide=True, scope='window')
+    @cmdutils.register(instance='command-dispatcher', hide=True,
+                       modes=[KeyMode.caret, KeyMode.visual], scope='window')
     def move_to_end_of_line(self):
         """Move the cursor or select to the end of line."""
-        modemanager = modeman._get_modeman(self._win_id)
-        if modemanager.mode == usertypes.KeyMode.caret:
+        modemanager = modeman.get_modeman(self._win_id)
+        if modemanager.mode == KeyMode.caret:
             act = QWebPage.MoveToEndOfLine
         else:
             act = QWebPage.SelectEndOfLine
         self._current_widget().triggerPageAction(act)
 
-    @cmdutils.register(instance='command-dispatcher',
-                       modes=[usertypes.KeyMode.caret, usertypes.KeyMode.visual],
-                       hide=True, scope='window')
+    @cmdutils.register(instance='command-dispatcher', hide=True,
+                       modes=[KeyMode.caret, KeyMode.visual], scope='window')
     def move_to_start_of_block(self):
         """Move the cursor or select to the start of block."""
-        modemanager = modeman._get_modeman(self._win_id)
-        if modemanager.mode == usertypes.KeyMode.caret:
+        modemanager = modeman.get_modeman(self._win_id)
+        if modemanager.mode == KeyMode.caret:
             act = QWebPage.MoveToStartOfBlock
         else:
             act = QWebPage.SelectStartOfBlock
         self._current_widget().triggerPageAction(act)
 
-    @cmdutils.register(instance='command-dispatcher',
-                       modes=[usertypes.KeyMode.caret, usertypes.KeyMode.visual],
-                       hide=True, scope='window')
+    @cmdutils.register(instance='command-dispatcher', hide=True,
+                       modes=[KeyMode.caret, KeyMode.visual], scope='window')
     def move_to_end_of_block(self):
         """Move the cursor or select to the end of block."""
-        modemanager = modeman._get_modeman(self._win_id)
-        if modemanager.mode == usertypes.KeyMode.caret:
+        modemanager = modeman.get_modeman(self._win_id)
+        if modemanager.mode == KeyMode.caret:
             act = QWebPage.MoveToEndOfBlock
         else:
             act = QWebPage.SelectEndOfBlock
         self._current_widget().triggerPageAction(act)
 
-    @cmdutils.register(instance='command-dispatcher',
-                       modes=[usertypes.KeyMode.caret, usertypes.KeyMode.visual],
-                       hide=True, scope='window')
+    @cmdutils.register(instance='command-dispatcher', hide=True,
+                       modes=[KeyMode.caret, KeyMode.visual], scope='window')
     def move_to_start_of_document(self):
         """Move the cursor or select to the start of document."""
-        modemanager = modeman._get_modeman(self._win_id)
-        if modemanager.mode == usertypes.KeyMode.caret:
+        modemanager = modeman.get_modeman(self._win_id)
+        if modemanager.mode == KeyMode.caret:
             act = QWebPage.MoveToStartOfDocument
         else:
             act = QWebPage.SelectStartOfDocument
         self._current_widget().triggerPageAction(act)
 
-    @cmdutils.register(instance='command-dispatcher',
-                       modes=[usertypes.KeyMode.caret, usertypes.KeyMode.visual],
-                       hide=True, scope='window')
+    @cmdutils.register(instance='command-dispatcher', hide=True,
+                       modes=[KeyMode.caret, KeyMode.visual], scope='window')
     def move_to_end_of_document(self):
         """Move the cursor or select to the end of document."""
-        modemanager = modeman._get_modeman(self._win_id)
-        if modemanager.mode == usertypes.KeyMode.caret:
+        modemanager = modeman.get_modeman(self._win_id)
+        if modemanager.mode == KeyMode.caret:
             act = QWebPage.MoveToEndOfDocument
         else:
             act = QWebPage.SelectEndOfDocument
         self._current_widget().triggerPageAction(act)
 
-    @cmdutils.register(instance='command-dispatcher',
-                       modes=[usertypes.KeyMode.visual],
-                       hide=True, scope='window')
+    @cmdutils.register(instance='command-dispatcher', hide=True,
+                       modes=[KeyMode.visual], scope='window')
     def yank_selected(self, sel=False):
         """Yank selected text to the clipboard or primary selection.
 
@@ -1332,12 +1319,11 @@ class CommandDispatcher:
             target = "clipboard"
         log.misc.debug("Yanking to {}: '{}'".format(target, s))
         clipboard.setText(s, mode)
-        message.info(self._win_id, "{} {} yanked to {}"
-                .format(len(s), "char" if len(s) == 1 else "chars", target))
+        message.info(self._win_id, "{} {} yanked to {}".format(
+            len(s), "char" if len(s) == 1 else "chars", target))
 
-    @cmdutils.register(instance='command-dispatcher',
-                       modes=[usertypes.KeyMode.visual],
-                       hide=True, scope='window')
+    @cmdutils.register(instance='command-dispatcher', hide=True,
+                       modes=[KeyMode.visual], scope='window')
     def drop_selection(self):
         """Drop selection and stay in visual mode."""
         self._current_widget().triggerPageAction(QWebPage.MoveToNextChar)

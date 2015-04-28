@@ -24,7 +24,6 @@ import functools
 from PyQt5.QtCore import pyqtSignal, Qt, QObject, QEvent
 from PyQt5.QtWidgets import QApplication
 from PyQt5.QtWebKitWidgets import QWebView
-from PyQt5.QtWebKit import QWebSettings
 
 from qutebrowser.keyinput import modeparsers, keyparser
 from qutebrowser.config import config
@@ -100,25 +99,25 @@ def init(win_id, parent):
     return modeman
 
 
-def _get_modeman(win_id):
+def get_modeman(win_id):
     """Get a modemanager object."""
     return objreg.get('mode-manager', scope='window', window=win_id)
 
 
 def enter(win_id, mode, reason=None, only_if_normal=False):
     """Enter the mode 'mode'."""
-    _get_modeman(win_id).enter(mode, reason, only_if_normal)
+    get_modeman(win_id).enter(mode, reason, only_if_normal)
 
 
 def leave(win_id, mode, reason=None):
     """Leave the mode 'mode'."""
-    _get_modeman(win_id).leave(mode, reason)
+    get_modeman(win_id).leave(mode, reason)
 
 
 def maybe_leave(win_id, mode, reason=None):
     """Convenience method to leave 'mode' without exceptions."""
     try:
-        _get_modeman(win_id).leave(mode, reason)
+        get_modeman(win_id).leave(mode, reason)
     except NotInModeError as e:
         # This is rather likely to happen, so we only log to debug log.
         log.modes.debug("{} (leave reason: {})".format(e, reason))
