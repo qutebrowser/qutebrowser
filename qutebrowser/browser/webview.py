@@ -72,7 +72,6 @@ class WebView(QWebView):
         _check_insertmode: If True, in mouseReleaseEvent we should check if we
                            need to enter/leave insert mode.
         _default_zoom_changed: Whether the zoom was changed from the default.
-        _caret_exist: Whether caret already has focus element
 
     Signals:
         scroll_pos_changed: Scroll percentage of current tab changed.
@@ -138,7 +137,6 @@ class WebView(QWebView):
         self.viewing_source = False
         self.setZoomFactor(float(config.get('ui', 'default-zoom')) / 100)
         self._default_zoom_changed = False
-        self._caret_exist = False
         if config.get('input', 'rocker-gestures'):
             self.setContextMenuPolicy(Qt.PreventContextMenu)
         self.urlChanged.connect(self.on_url_changed)
@@ -438,37 +436,10 @@ class WebView(QWebView):
             log.webview.debug("Ignoring focus because mode {} was "
                               "entered.".format(mode))
             self.setFocusPolicy(Qt.NoFocus)
-
-            self._caret_exist = False
         elif mode in (usertypes.KeyMode.caret, usertypes.KeyMode.visual):
             self.settings().setAttribute(QWebSettings.CaretBrowsingEnabled, True)
-
-            tabbed_browser = objreg.get('tabbed-browser', scope='window',
-                                        window=self.win_id)
-            if self.tab_id == tabbed_browser._now_focused.tab_id and not self._caret_exist:
-                """
-                Here is a workaround for auto position enabled caret.
-                Unfortunatly, caret doesn't appear until you click
-                mouse button on element. I have such behavior in dwb,
-                so I decided to implement this workaround.
-                May be should be reworked.
-                """
-                frame = self.page().currentFrame()
-                halfWidth = frame.scrollBarGeometry(Qt.Horizontal).width() / 2
-                point = QPoint(halfWidth,10)
-                event = QMouseEvent(QMouseEvent.MouseButtonPress, point, point,
-                        point, Qt.LeftButton, Qt.LeftButton, Qt.NoModifier)
-                QApplication.sendEvent(self, event)
-                #frame.setFocus()
-                #frame.documentElement().setFocus()
-                #frame.documentElement().firstChild().setFocus()
-                #self.page().focusNextPrevChild(True)
-                #self.page().setContentEditable(True)
-                #self.triggerPageAction(QWebPage.MoveToNextChar)
-
-                self._caret_exist = True
-        else:
-            self._caret_exist = False
+            self.clearFocus()
+            self.setFocus(Qt.OtherFocusReason)
 
     @pyqtSlot(usertypes.KeyMode)
     def on_mode_left(self, mode):
