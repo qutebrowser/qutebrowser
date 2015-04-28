@@ -947,6 +947,7 @@ These commands are mainly intended for debugging. They are hidden if qutebrowser
 |<<debug-crash,debug-crash>>|Crash for debugging purposes.
 |<<debug-pyeval,debug-pyeval>>|Evaluate a python string and display the results as a web page.
 |<<debug-trace,debug-trace>>|Trace executed code via hunter.
+|<<debug-webaction,debug-webaction>>|Execute a webaction.
 |==============
 [[debug-all-objects]]
 === debug-all-objects
@@ -994,4 +995,18 @@ Trace executed code via hunter.
 ==== note
 * This command does not split arguments after the last argument and handles quotes literally.
 * With this command, +;;+ is interpreted literally instead of splitting off a second command.
+
+[[debug-webaction]]
+=== debug-webaction
+Syntax: +:debug-webaction 'action'+
+
+Execute a webaction.
+
+See http://doc.qt.io/qt-5/qwebpage.html#WebAction-enum for the available actions.
+
+==== positional arguments
+* +'action'+: The action to execute, e.g. MoveToNextChar.
+
+==== count
+How many times to repeat the action.
 

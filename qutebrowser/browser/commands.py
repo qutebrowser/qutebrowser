@@ -1341,3 +1341,23 @@ class CommandDispatcher:
     def drop_selection(self):
         """Drop selection and stay in visual mode."""
         self._current_widget().triggerPageAction(QWebPage.MoveToNextChar)
+
+    @cmdutils.register(instance='command-dispatcher', scope='window',
+                       count='count', debug=True)
+    def debug_webaction(self, action, count=1):
+        """Execute a webaction.
+
+        See http://doc.qt.io/qt-5/qwebpage.html#WebAction-enum for the
+        available actions.
+
+        Args:
+            action: The action to execute, e.g. MoveToNextChar.
+            count: How many times to repeat the action.
+        """
+        member = getattr(QWebPage, action, None)
+        if not isinstance(member, QWebPage.WebAction):
+            raise cmdexc.CommandError("{} is not a valid web action!".format(
+                action))
+        view = self._current_widget()
+        for _ in range(count):
+            view.triggerPageAction(member)

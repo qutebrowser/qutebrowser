@@ -19,6 +19,9 @@
 
 """The qutebrowser test suite contest file."""
 
+import collections
+import itertools
+
 import pytest
 
 
@@ -49,15 +52,23 @@ def unicode_encode_err():
                               'fake exception')  # reason
 
 
+@pytest.fixture(scope='session')
+def qnam():
+    """Session-wide QNetworkAccessManager."""
+    from PyQt5.QtNetwork import QNetworkAccessManager
+    nam = QNetworkAccessManager()
+    nam.setNetworkAccessible(QNetworkAccessManager.NotAccessible)
+    return nam
+
+
 @pytest.fixture
-def webpage():
+def webpage(qnam):
     """Get a new QWebPage object."""
     from PyQt5.QtWebKitWidgets import QWebPage
-    from PyQt5.QtNetwork import QNetworkAccessManager
 
     page = QWebPage()
-    nam = page.networkAccessManager()
-    nam.setNetworkAccessible(QNetworkAccessManager.NotAccessible)
+    page.networkAccessManager().deleteLater()
+    page.setNetworkAccessManager(qnam)
     return page
 
 
@@ -76,3 +87,63 @@ def fake_keyevent_factory():
         return evtmock
 
     return fake_keyevent
+
+
+def pytest_collection_modifyitems(items):
+    """Automatically add a 'gui' marker to all gui-related tests.
+
+    pytest hook called after collection has been performed, adds a marker
+    named "gui" which can be used to filter gui tests from the command line.
+    For example:
+
+        py.test -m "not gui"  # run all tests except gui tests
+        py.test -m "gui"  # run only gui tests
+
+    Args:
+        items: list of _pytest.main.Node items, where each item represents
+               a python test that will be executed.
+
+    Reference:
+        http://pytest.org/latest/plugins.html
+    """
+    for item in items:
+        if 'qtbot' in getattr(item, 'fixturenames', ()):
+            item.add_marker('gui')
+
+
+def _generate_cmdline_tests():
+    """Generate testcases for test_split_binding."""
+    # pylint: disable=invalid-name
+    TestCase = collections.namedtuple('TestCase', 'cmd, valid')
+    separators = [';;', ' ;; ', ';; ', ' ;;']
+    invalid = ['foo', '']
+    valid = ['leave-mode', 'hint all']
+    # Valid command only -> valid
+    for item in valid:
+        yield TestCase(''.join(item), True)
+    # Invalid command only -> invalid
+    for item in valid:
+        yield TestCase(''.join(item), True)
+    # Invalid command combined with invalid command -> invalid
+    for item in itertools.product(invalid, separators, invalid):
+        yield TestCase(''.join(item), False)
+    # Valid command combined with valid command -> valid
+    for item in itertools.product(valid, separators, valid):
+        yield TestCase(''.join(item), True)
+    # Valid command combined with invalid command -> invalid
+    for item in itertools.product(valid, separators, invalid):
+        yield TestCase(''.join(item), False)
+    # Invalid command combined with valid command -> invalid
+    for item in itertools.product(invalid, separators, valid):
+        yield TestCase(''.join(item), False)
+    # Command with no_cmd_split combined with an "invalid" command -> valid
+    for item in itertools.product(['bind x open'], separators, invalid):
+        yield TestCase(''.join(item), True)
+
+
+@pytest.fixture(params=_generate_cmdline_tests())
+def cmdline_test(request):
+    """Fixture which generates tests for things validating commandlines."""
+    # Import qutebrowser.app so all cmdutils.register decorators get run.
+    import qutebrowser.app  # pylint: disable=unused-variable
+    return request.param
