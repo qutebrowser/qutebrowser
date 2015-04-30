@@ -24,7 +24,7 @@ import base64
 import itertools
 
 from PyQt5.QtCore import pyqtSlot, QRect, QPoint, QTimer, Qt
-from PyQt5.QtWidgets import QWidget, QVBoxLayout
+from PyQt5.QtWidgets import QWidget, QVBoxLayout, QApplication
 
 from qutebrowser.commands import runners, cmdutils
 from qutebrowser.config import config
@@ -37,6 +37,47 @@ from qutebrowser.browser import hints, downloads, downloadview
 
 
 win_id_gen = itertools.count(0)
+
+
+def get_window(via_ipc, force_window=False, force_tab=False):
+    """Helper function for app.py to get a window id.
+
+    Args:
+        via_ipc: Whether the request was made via IPC.
+        force_window: Whether to force opening in a window.
+        force_tab: Whether to force opening in a tab.
+    """
+    if force_window and force_tab:
+        raise ValueError("force_window and force_tab are mutually exclusive!")
+    if not via_ipc:
+        # Initial main window
+        return 0
+    window_to_raise = None
+    open_target = config.get('general', 'new-instance-open-target')
+    if (open_target == 'window' or force_window) and not force_tab:
+        window = MainWindow()
+        window.show()
+        win_id = window.win_id
+        window_to_raise = window
+    else:
+        try:
+            window = objreg.last_window()
+        except objreg.NoWindow:
+            # There is no window left, so we open a new one
+            window = MainWindow()
+            window.show()
+            win_id = window.win_id
+            window_to_raise = window
+        win_id = window.win_id
+        if open_target not in ('tab-silent', 'tab-bg-silent'):
+            window_to_raise = window
+    if window_to_raise is not None:
+        window_to_raise.setWindowState(window.windowState() &
+                                       ~Qt.WindowMinimized | Qt.WindowActive)
+        window_to_raise.raise_()
+        window_to_raise.activateWindow()
+        QApplication.instance().alert(window_to_raise)
+    return win_id
 
 
 class MainWindow(QWidget):
@@ -172,6 +213,13 @@ class MainWindow(QWidget):
             self._set_default_geometry()
         else:
             self._load_geometry(geom)
+
+    def _save_geometry(self):
+        """Save the window geometry to the state config."""
+        state_config = objreg.get('state-config')
+        data = bytes(self.saveGeometry())
+        geom = base64.b64encode(data).decode('ASCII')
+        state_config['geometry']['mainwindow'] = geom
 
     def _load_geometry(self, geom):
         """Load geometry from a bytes object.
@@ -370,6 +418,6 @@ class MainWindow(QWidget):
         e.accept()
         if len(objreg.window_registry) == 1:
             objreg.get('session-manager').save_last_window_session()
-        objreg.get('app').geometry = bytes(self.saveGeometry())
+        self._save_geometry()
         log.destroy.debug("Closing window {}".format(self.win_id))
         self._tabbed_browser.shutdown()
