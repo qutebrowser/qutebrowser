@@ -74,7 +74,10 @@ def run(args):
         if sent:
             sys.exit(0)
         log.init.debug("Starting IPC server...")
-        ipc.init()
+        server = ipc.IPCServer(qApp)
+        objreg.register('ipc-server', server)
+        server.got_args.connect(lambda args, cwd:
+                                process_pos_args(args, cwd=cwd, via_ipc=True))
     except ipc.AddressInUseError as e:
         # This could be a race condition...
         log.init.debug("Got AddressInUseError, trying again.")
