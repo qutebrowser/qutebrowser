@@ -228,19 +228,8 @@ class CaretKeyParser(keyparser.CommandKeyParser):
         super().__init__(win_id, parent, supports_count=True,
                          supports_chains=True)
         self.read_config('caret')
+        self._supports_count = False
 
     def __repr__(self):
         return utils.get_repr(self)
 
-
-class VisualKeyParser(keyparser.CommandKeyParser):
-
-    """KeyParser for Visual mode."""
-
-    def __init__(self, win_id, parent=None):
-        super().__init__(win_id, parent, supports_count=True,
-                         supports_chains=True)
-        self.read_config('visual')
-
-    def __repr__(self):
-        return utils.get_repr(self)
