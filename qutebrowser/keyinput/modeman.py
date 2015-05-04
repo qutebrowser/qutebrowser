@@ -78,6 +78,8 @@ def init(win_id, parent):
         KM.prompt: keyparser.PassthroughKeyParser(win_id, 'prompt', modeman,
                                                   warn=False),
         KM.yesno: modeparsers.PromptKeyParser(win_id, modeman),
+        KM.caret: modeparsers.CaretKeyParser(win_id, modeman),
+        KM.visual: modeparsers.VisualKeyParser(win_id, modeman),
     }
     objreg.register('keyparsers', keyparsers, scope='window', window=win_id)
     modeman.destroyed.connect(
@@ -92,28 +94,30 @@ def init(win_id, parent):
                      passthrough=True)
     modeman.register(KM.prompt, keyparsers[KM.prompt].handle, passthrough=True)
     modeman.register(KM.yesno, keyparsers[KM.yesno].handle)
+    modeman.register(KM.caret, keyparsers[KM.caret].handle, passthrough=True)
+    modeman.register(KM.visual, keyparsers[KM.visual].handle, passthrough=True)
     return modeman
 
 
-def _get_modeman(win_id):
+def get_modeman(win_id):
     """Get a modemanager object."""
     return objreg.get('mode-manager', scope='window', window=win_id)
 
 
 def enter(win_id, mode, reason=None, only_if_normal=False):
     """Enter the mode 'mode'."""
-    _get_modeman(win_id).enter(mode, reason, only_if_normal)
+    get_modeman(win_id).enter(mode, reason, only_if_normal)
 
 
 def leave(win_id, mode, reason=None):
     """Leave the mode 'mode'."""
-    _get_modeman(win_id).leave(mode, reason)
+    get_modeman(win_id).leave(mode, reason)
 
 
 def maybe_leave(win_id, mode, reason=None):
     """Convenience method to leave 'mode' without exceptions."""
     try:
-        _get_modeman(win_id).leave(mode, reason)
+        get_modeman(win_id).leave(mode, reason)
     except NotInModeError as e:
         # This is rather likely to happen, so we only log to debug log.
         log.modes.debug("{} (leave reason: {})".format(e, reason))

@@ -218,3 +218,29 @@ class HintKeyParser(keyparser.CommandKeyParser):
         hintmanager = objreg.get('hintmanager', scope='tab',
                                  window=self._win_id, tab='current')
         hintmanager.handle_partial_key(keystr)
+
+
+class CaretKeyParser(keyparser.CommandKeyParser):
+
+    """KeyParser for Caret mode."""
+
+    def __init__(self, win_id, parent=None):
+        super().__init__(win_id, parent, supports_count=True,
+                         supports_chains=True)
+        self.read_config('caret')
+
+    def __repr__(self):
+        return utils.get_repr(self)
+
+
+class VisualKeyParser(keyparser.CommandKeyParser):
+
+    """KeyParser for Visual mode."""
+
+    def __init__(self, win_id, parent=None):
+        super().__init__(win_id, parent, supports_count=True,
+                         supports_chains=True)
+        self.read_config('visual')
+
+    def __repr__(self):
+        return utils.get_repr(self)

@@ -435,6 +435,11 @@ class WebView(QWebView):
             log.webview.debug("Ignoring focus because mode {} was "
                               "entered.".format(mode))
             self.setFocusPolicy(Qt.NoFocus)
+        elif mode in (usertypes.KeyMode.caret, usertypes.KeyMode.visual):
+            settings = self.settings()
+            settings.setAttribute(QWebSettings.CaretBrowsingEnabled, True)
+            self.clearFocus()
+            self.setFocus(Qt.OtherFocusReason)
 
     @pyqtSlot(usertypes.KeyMode)
     def on_mode_left(self, mode):
@@ -443,6 +448,14 @@ class WebView(QWebView):
                     usertypes.KeyMode.yesno):
             log.webview.debug("Restoring focus policy because mode {} was "
                               "left.".format(mode))
+        elif mode in (usertypes.KeyMode.caret, usertypes.KeyMode.visual):
+            settings = self.settings()
+            if settings.testAttribute(QWebSettings.CaretBrowsingEnabled):
+                if mode == usertypes.KeyMode.visual and self.hasSelection():
+                    # Remove selection if exist
+                    self.triggerPageAction(QWebPage.MoveToNextChar)
+                settings.setAttribute(QWebSettings.CaretBrowsingEnabled, False)
+
         self.setFocusPolicy(Qt.WheelFocus)
 
     def search(self, text, flags):

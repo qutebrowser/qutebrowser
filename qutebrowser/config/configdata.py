@@ -816,6 +816,14 @@ def data(readonly=False):
              SettingValue(typ.QssColor(), 'darkgreen'),
              "Background color of the statusbar in insert mode."),
 
+            ('statusbar.bg.caret',
+             SettingValue(typ.QssColor(), 'purple'),
+             "Background color of the statusbar in caret mode."),
+
+            ('statusbar.bg.visual',
+             SettingValue(typ.QssColor(), '#a12dff'),
+             "Background color of the statusbar in visual mode."),
+
             ('statusbar.progress.bg',
              SettingValue(typ.QssColor(), 'white'),
              "Background color of the progress bar."),
@@ -1088,6 +1096,8 @@ KEY_SECTION_DESC = {
         " * `prompt-accept`: Confirm the entered value.\n"
         " * `prompt-yes`: Answer yes to a yes/no question.\n"
         " * `prompt-no`: Answer no to a yes/no question."),
+    'caret': (
+        ""),
 }
 
 
@@ -1152,6 +1162,7 @@ KEY_DATA = collections.OrderedDict([
         ('search-next', ['n']),
         ('search-prev', ['N']),
         ('enter-mode insert', ['i']),
+        ('enter-mode caret', ['v']),
         ('yank', ['yy']),
         ('yank -s', ['yY']),
         ('yank -t', ['yt']),
@@ -1246,6 +1257,36 @@ KEY_DATA = collections.OrderedDict([
         ('rl-yank', ['<Ctrl-Y>']),
         ('rl-delete-char', ['<Ctrl-?>']),
         ('rl-backward-delete-char', ['<Ctrl-H>']),
+    ])),
+
+    ('visual', collections.OrderedDict([
+        ('yank-selected', ['y']),
+        ('yank-selected -s', ['Y']),
+        ('drop-selection', ['v']),
+        ('enter-mode caret', ['c']),
+    ])),
+
+    ('caret', collections.OrderedDict([
+        ('enter-mode visual', ['v']),
+        ('enter-mode normal', ['c']),
+    ])),
+
+    ('caret,visual', collections.OrderedDict([
+        ('move-to-next-line', ['j']),
+        ('move-to-prev-line', ['k']),
+        ('move-to-next-char', ['l']),
+        ('move-to-prev-char', ['h']),
+        ('move-to-end-of-word', ['e']),
+        ('move-to-next-word', ['w']),
+        ('move-to-prev-word', ['b']),
+        ('move-to-start-of-line', ['0']),
+        ('move-to-end-of-line', ['$']),
+        ('move-to-start-of-document', ['gg']),
+        ('move-to-end-of-document', ['G']),
+        ('scroll -50 0', ['H']),
+        ('scroll 0 50', ['J']),
+        ('scroll 0 -50', ['K']),
+        ('scroll 50 0', ['L']),
     ])),
 ])
 
