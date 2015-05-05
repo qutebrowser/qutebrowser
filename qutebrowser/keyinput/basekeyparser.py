@@ -180,6 +180,7 @@ class BaseKeyParser(QObject):
 
         count, cmd_input = self._split_count()
 
+        print(count, cmd_input)
         if not cmd_input:
             # Only a count, no command yet, but we handled it
             return self.Match.other

@@ -106,6 +106,7 @@ class WebView(QWebView):
         self.keep_icon = False
         self.search_text = None
         self.search_flags = 0
+        self.selection_enabled = False;
         self.init_neighborlist()
         cfg = objreg.get('config')
         cfg.changed.connect(self.init_neighborlist)
@@ -179,6 +180,79 @@ class WebView(QWebView):
         log.webview.debug("load status for {}: {}".format(repr(self), val))
         self.load_status = val
         self.load_status_changed.emit(val.name)
+
+    def _position_caret(self):
+        """
+        JS snippet to position caret at top of the screen. 
+        Was borrowed from cVim source code
+        """
+        self.page().currentFrame().evaluateJavaScript("""
+
+        function isElementInViewport(node) {
+            var i;
+            var boundingRect = node.getClientRects()[0] || node.getBoundingClientRect();
+            if (boundingRect.width <= 1 && boundingRect.height <= 1) {
+                var rects = node.getClientRects();
+                for (i = 0; i < rects.length; i++) {
+                    if (rects[i].width > rects[0].height && rects[i].height > rects[0].height) {
+                        boundingRect = rects[i];
+                    }
+                }
+            }
+            if (boundingRect === void 0) return null;
+            if (boundingRect.top > innerHeight || boundingRect.left > innerWidth) {
+                return null;
+            }
+            if (boundingRect.width <= 1 || boundingRect.height <= 1) {
+                var children = node.children;
+                var visibleChildNode = false;
+                for (i = 0, l = children.length; i < l; ++i) {
+                    boundingRect = children[i].getClientRects()[0] || children[i].getBoundingClientRect();
+                    if (boundingRect.width > 1 && boundingRect.height > 1) {
+                        visibleChildNode = true;
+                        break;
+                    }
+                }
+                if (visibleChildNode === false) return null;
+            }
+            if (boundingRect.top + boundingRect.height < 10 || boundingRect.left + boundingRect.width < -10) {
+                return null;
+            }
+            var computedStyle = window.getComputedStyle(node, null);
+            if (computedStyle.visibility !== 'visible' ||
+                computedStyle.display === 'none' ||
+                node.hasAttribute('disabled') ||
+                parseInt(computedStyle.width, '10') === 0 ||
+                parseInt(computedStyle.height, '10') === 0) {
+                return null;
+            }
+            return boundingRect.top >= -20;
+        }
+
+        var walker = document.createTreeWalker(document.body, 4, null, false);
+        var node;
+        var textNodes = [];
+        while (node = walker.nextNode()) {
+            if (node.nodeType === 3 && node.data.trim() !== '') {
+                textNodes.push(node);
+            }
+        }
+        for (var i = 0; i < textNodes.length; i++) {
+            var element = textNodes[i].parentElement;
+            if (isElementInViewport(element.parentElement)) {
+                el = element;
+                break;
+            }
+        }
+        if (el !== undefined) {
+            var range = document.createRange();
+            range.setStart(el, 0);
+            range.setEnd(el, 0);
+            var sel = window.getSelection();
+            sel.removeAllRanges();
+            sel.addRange(range);
+        }
+        """)
 
     @pyqtSlot(str, str)
     def on_config_changed(self, section, option):
@@ -435,11 +509,17 @@ class WebView(QWebView):
             log.webview.debug("Ignoring focus because mode {} was "
                               "entered.".format(mode))
             self.setFocusPolicy(Qt.NoFocus)
-        elif mode in (usertypes.KeyMode.caret, usertypes.KeyMode.visual):
+        elif mode == usertypes.KeyMode.caret:
             settings = self.settings()
             settings.setAttribute(QWebSettings.CaretBrowsingEnabled, True)
-            self.clearFocus()
-            self.setFocus(Qt.OtherFocusReason)
+            self.selection_enabled = False
+
+            tabbed = objreg.get('tabbed-browser', scope='window', window=self.win_id)
+            if tabbed.currentWidget().tab_id == self.tab_id:
+                self.clearFocus()
+                self.setFocus(Qt.OtherFocusReason)
+
+                self._position_caret()
 
     @pyqtSlot(usertypes.KeyMode)
     def on_mode_left(self, mode):
@@ -448,13 +528,14 @@ class WebView(QWebView):
                     usertypes.KeyMode.yesno):
             log.webview.debug("Restoring focus policy because mode {} was "
                               "left.".format(mode))
-        elif mode in (usertypes.KeyMode.caret, usertypes.KeyMode.visual):
+        elif mode == usertypes.KeyMode.caret:
             settings = self.settings()
             if settings.testAttribute(QWebSettings.CaretBrowsingEnabled):
-                if mode == usertypes.KeyMode.visual and self.hasSelection():
+                if self.selection_enabled and self.hasSelection():
                     # Remove selection if exist
                     self.triggerPageAction(QWebPage.MoveToNextChar)
                 settings.setAttribute(QWebSettings.CaretBrowsingEnabled, False)
+                self.selection_enabled = False;
 
         self.setFocusPolicy(Qt.WheelFocus)
 

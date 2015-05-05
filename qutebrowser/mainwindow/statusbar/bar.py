@@ -92,7 +92,7 @@ class StatusBar(QWidget):
     _prompt_active = False
     _insert_active = False
     _caret_active = False
-    _visual_active = False
+    _caret_selection_active = False
 
     STYLESHEET = """
         QWidget#StatusBar {
@@ -107,8 +107,8 @@ class StatusBar(QWidget):
             {{ color['statusbar.bg.caret'] }}
         }
 
-        QWidget#StatusBar[visual_active="true"] {
-            {{ color['statusbar.bg.visual'] }}
+        QWidget#StatusBar[caret_selection_active="true"] {
+            {{ color['statusbar.bg.caret_selection'] }}
         }
 
         QWidget#StatusBar[prompt_active="true"] {
@@ -269,12 +269,12 @@ class StatusBar(QWidget):
         return self._caret_active
 
     @pyqtProperty(bool)
-    def visual_active(self):
-        """Getter for self.visual_active, so it can be used as Qt property."""
-        return self._visual_active
+    def caret_selection_active(self):
+        """Getter for self.caret_active, so it can be used as Qt property."""
+        return self._caret_selection_active
 
     def _set_mode_active(self, mode, val):
-        """Setter for self.{insert,caret,visual}_active.
+        """Setter for self.{insert,caret}_active.
 
         Re-set the stylesheet after setting the value, so everything gets
         updated by Qt properly.
@@ -284,10 +284,17 @@ class StatusBar(QWidget):
             self._insert_active = val
         elif mode == usertypes.KeyMode.caret:
             log.statusbar.debug("Setting caret_active to {}".format(val))
-            self._caret_active = val
-        elif mode == usertypes.KeyMode.visual:
-            log.statusbar.debug("Setting visual_active to {}".format(val))
-            self._visual_active = val
+            webview = objreg.get("tabbed-browser", scope="window", window=self._win_id).currentWidget()
+            if val and webview.selection_enabled:
+                self._set_mode_text("{} selection".format(mode.name))
+                self._caret_selection_active = val
+                self._caret_active = False
+            else:
+                if val:
+                    self._set_mode_text(mode.name)
+                self._caret_active = val
+                self._caret_selection_active = False
+
         self.setStyleSheet(style.get_stylesheet(self.STYLESHEET))
 
     def _set_mode_text(self, mode):
@@ -465,8 +472,7 @@ class StatusBar(QWidget):
                                   window=self._win_id)
         if mode in mode_manager.passthrough:
             self._set_mode_text(mode.name)
-        if mode in (usertypes.KeyMode.insert, usertypes.KeyMode.caret,
-                    usertypes.KeyMode.visual):
+        if mode in (usertypes.KeyMode.insert, usertypes.KeyMode.caret):
             self._set_mode_active(mode, True)
 
     @pyqtSlot(usertypes.KeyMode, usertypes.KeyMode)
@@ -479,8 +485,7 @@ class StatusBar(QWidget):
                 self._set_mode_text(new_mode.name)
             else:
                 self.txt.set_text(self.txt.Text.normal, '')
-        if old_mode in (usertypes.KeyMode.insert, usertypes.KeyMode.caret,
-                        usertypes.KeyMode.visual):
+        if old_mode in (usertypes.KeyMode.insert, usertypes.KeyMode.caret):
             self._set_mode_active(old_mode, False)
 
     @config.change_filter('ui', 'message-timeout')
