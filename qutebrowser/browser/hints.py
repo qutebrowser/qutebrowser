@@ -117,7 +117,7 @@ class HintManager(QObject):
         mouse_event: Mouse event to be posted in the web view.
                      arg: A QMouseEvent
         start_hinting: Emitted when hinting starts, before a link is clicked.
-                       arg: The hinting target name.
+                       arg: The ClickTarget to use.
         stop_hinting: Emitted after a link was clicked.
     """
 
@@ -137,7 +137,7 @@ class HintManager(QObject):
     }
 
     mouse_event = pyqtSignal('QMouseEvent')
-    start_hinting = pyqtSignal(str)
+    start_hinting = pyqtSignal(usertypes.ClickTarget)
     stop_hinting = pyqtSignal()
 
     def __init__(self, win_id, tab_id, parent=None):
@@ -413,22 +413,26 @@ class HintManager(QObject):
             elem: The QWebElement to click.
             context: The HintContext to use.
         """
-        if context.target == Target.rapid:
-            target = Target.tab_bg
-        elif context.target == Target.rapid_win:
-            target = Target.window
-        else:
-            target = context.target
+        target_mapping = {
+            Target.rapid: usertypes.ClickTarget.tab_bg,
+            Target.rapid_win: usertypes.ClickTarget.window,
+            Target.normal: usertypes.ClickTarget.normal,
+            Target.tab: usertypes.ClickTarget.tab,
+            Target.tab_bg: usertypes.ClickTarget.tab_bg,
+            Target.window: usertypes.ClickTarget.window,
+            Target.hover: usertypes.ClickTarget.normal,
+        }
         # FIXME Instead of clicking the center, we could have nicer heuristics.
         # e.g. parse (-webkit-)border-radius correctly and click text fields at
         # the bottom right, and everything else on the top left or so.
         # https://github.com/The-Compiler/qutebrowser/issues/70
         pos = elem.rect_on_view().center()
-        action = "Hovering" if target == Target.hover else "Clicking"
+        action = "Hovering" if context.target == Target.hover else "Clicking"
         log.hints.debug("{} on '{}' at {}/{}".format(
             action, elem, pos.x(), pos.y()))
-        self.start_hinting.emit(target.name)
-        if target in (Target.tab, Target.tab_bg, Target.window):
+        self.start_hinting.emit(target_mapping[context.target])
+        if context.target in [Target.tab, Target.tab_bg, Target.window,
+                              Target.rapid, Target.rapid_win]:
             modifiers = Qt.ControlModifier
         else:
             modifiers = Qt.NoModifier
@@ -436,7 +440,7 @@ class HintManager(QObject):
             QMouseEvent(QEvent.MouseMove, pos, Qt.NoButton, Qt.NoButton,
                         Qt.NoModifier),
         ]
-        if target != Target.hover:
+        if context.target != Target.hover:
             events += [
                 QMouseEvent(QEvent.MouseButtonPress, pos, Qt.LeftButton,
                             Qt.LeftButton, modifiers),

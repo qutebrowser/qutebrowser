@@ -427,14 +427,10 @@ class BrowserPage(QWebPage):
         """Emitted before a hinting-click takes place.
 
         Args:
-            hint_target: A string to set self._hint_target to.
+            hint_target: A ClickTarget member to set self._hint_target to.
         """
-        t = getattr(usertypes.ClickTarget, hint_target, None)
-        if t is None:
-            return
-        log.webview.debug("Setting force target to {}/{}".format(
-            hint_target, t))
-        self._hint_target = t
+        log.webview.debug("Setting force target to {}".format(hint_target))
+        self._hint_target = hint_target
 
     @pyqtSlot()
     def on_stop_hinting(self):
