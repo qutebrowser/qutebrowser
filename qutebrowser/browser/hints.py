@@ -771,7 +771,7 @@ class HintManager(QObject):
             else:
                 name = target.name.replace('_', '-')
                 raise cmdexc.CommandError("Rapid hinting makes no sense with "
-                                        "target {}!".format(name))
+                                          "target {}!".format(name))
 
         self._check_args(target, *args)
         self._context = HintContext()
