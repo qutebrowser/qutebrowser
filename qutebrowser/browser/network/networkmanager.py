@@ -248,9 +248,8 @@ class NetworkManager(QNetworkAccessManager):
                            mode=usertypes.PromptMode.user_pwd,
                            owner=reply)
         if answer is not None:
-            user, password = answer  # pylint: disable=unpacking-non-sequence
-            authenticator.setUser(user)
-            authenticator.setPassword(password)
+            authenticator.setUser(answer.user)
+            authenticator.setPassword(answer.password)
 
     @pyqtSlot('QNetworkProxy', 'QAuthenticator')
     def on_proxy_authentication_required(self, proxy, authenticator):
@@ -264,10 +263,8 @@ class NetworkManager(QNetworkAccessManager):
             answer = self._ask("Proxy username ({}):".format(
                 authenticator.realm()), mode=usertypes.PromptMode.user_pwd)
             if answer is not None:
-                # pylint: disable=unpacking-non-sequence
-                user, password = answer
-                authenticator.setUser(user)
-                authenticator.setPassword(password)
+                authenticator.setUser(answer.user)
+                authenticator.setPassword(answer.password)
                 _proxy_auth_cache[proxy_id] = answer
 
     @config.change_filter('general', 'private-browsing')
