@@ -220,7 +220,7 @@ class CrashHandler(QObject):
             self._args.debug, pages, cmd_history, exc, objects)
         ret = self._crash_dialog.exec_()
         if ret == QDialog.Accepted:  # restore
-            self.restart(self._args, pages)
+            self._app.quitter.restart(pages)
 
         # We might risk a segfault here, but that's better than continuing to
         # run in some undefined state, so we only do the most needed shutdown
