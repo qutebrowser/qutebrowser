@@ -1144,6 +1144,7 @@ Allow websites to request geolocations.
 
 Valid values:
 
+ * +true+
  * +false+
  * +ask+
 
@@ -1155,6 +1156,7 @@ Allow websites to show notifications.
 
 Valid values:
 
+ * +true+
  * +false+
  * +ask+
 
