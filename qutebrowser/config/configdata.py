@@ -1214,6 +1214,9 @@ KEY_DATA = collections.OrderedDict([
 
     ('hint', collections.OrderedDict([
         ('follow-hint', ['<Return>', '<Ctrl-M>', '<Ctrl-J>']),
+        ('hint --rapid links tab-bg', ['<Ctrl-R>']),
+        ('hint links', ['<Ctrl-F>']),
+        ('hint all tab-bg', ['<Ctrl-B>']),
     ])),
 
     ('passthrough', {}),
