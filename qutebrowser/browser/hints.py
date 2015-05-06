@@ -748,7 +748,7 @@ class HintManager(QObject):
         mode_manager = objreg.get('mode-manager', scope='window',
                                   window=self._win_id)
         if mode_manager.mode == usertypes.KeyMode.hint:
-            raise cmdexc.CommandError("Already hinting!")
+            modeman.leave(win_id, usertypes.KeyMode.hint, 're-hinting')
 
         if rapid and target not in (Target.tab_bg, Target.window, Target.run,
                                     Target.hover, Target.userscript,
