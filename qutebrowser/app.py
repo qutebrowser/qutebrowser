@@ -66,8 +66,22 @@ def run(args):
         print(version.GPL_BOILERPLATE.strip())
         sys.exit(0)
 
+    quitter = Quitter(args)
+    objreg.register('quitter', quitter)
+
     global qApp
     qApp = Application(args)
+    qApp.lastWindowClosed.connect(quitter.on_last_window_closed)
+
+    crash_handler = crashsignal.CrashHandler(
+        app=qApp, quitter=quitter, args=args, parent=qApp)
+    crash_handler.activate()
+    objreg.register('crash-handler', crash_handler)
+
+    signal_handler = crashsignal.SignalHandler(app=qApp, quitter=quitter,
+                                               parent=qApp)
+    signal_handler.activate()
+    objreg.register('signal-handler', signal_handler)
 
     try:
         sent = ipc.send_to_running_instance(args.command)
@@ -93,7 +107,7 @@ def run(args):
         # We didn't really initialize much so far, so we just quit hard.
         sys.exit(1)
 
-    init(args)
+    init(args, crash_handler)
     ret = qt_mainloop()
     return ret
 
@@ -107,8 +121,13 @@ def qt_mainloop():
     return qApp.exec_()
 
 
-def init(args):
-    """Initialize everything."""
+def init(args, crash_handler):
+    """Initialize everything.
+
+    Args:
+        args: The argparse namespace.
+        crash_handler: The CrashHandler instance.
+    """
     log.init.debug("Starting init...")
     qApp.setQuitOnLastWindowClosed(False)
     qApp.setOrganizationName("qutebrowser")
@@ -118,7 +137,7 @@ def init(args):
     utils.actute_warning()
 
     try:
-        _init_modules(args)
+        _init_modules(args, crash_handler)
     except (OSError, UnicodeDecodeError) as e:
         msgbox = QMessageBox(
             QMessageBox.Critical, "Error while initializing!",
@@ -143,7 +162,7 @@ def init(args):
     QDesktopServices.setUrlHandler('qute', open_desktopservices_url)
 
     log.init.debug("Init done!")
-    qApp.crash_handler.raise_crashdlg()
+    crash_handler.raise_crashdlg()
 
 
 def _init_icon():
@@ -342,8 +361,13 @@ def _maybe_hide_mouse_cursor():
         qApp.restoreOverrideCursor()
 
 
-def _init_modules(args):
-    """Initialize all 'modules' which need to be initialized."""
+def _init_modules(args, crash_handler):
+    """Initialize all 'modules' which need to be initialized.
+
+    Args:
+        args: The argparse namespace.
+        crash_handler: The CrashHandler instance.
+    """
     # pylint: disable=too-many-statements
     log.init.debug("Initializing save manager...")
     save_manager = savemanager.SaveManager(qApp)
@@ -362,7 +386,7 @@ def _init_modules(args):
     log.init.debug("Initializing web history...")
     history.init(qApp)
     log.init.debug("Initializing crashlog...")
-    qApp.crash_handler.handle_segfault()
+    crash_handler.handle_segfault()
     log.init.debug("Initializing sessions...")
     sessions.init(qApp)
     log.init.debug("Initializing js-bridge...")
@@ -573,6 +597,9 @@ class Quitter:
     def _shutdown(self, status):  # noqa
         """Second stage of shutdown."""
         log.destroy.debug("Stage 2 of shutting down...")
+        if qApp is None:
+            # No QApplication exists yet, so quit hard.
+            sys.exit(status)
         # Remove eventfilter
         try:
             log.destroy.debug("Removing eventfilter...")
@@ -602,14 +629,14 @@ class Quitter:
                         "Error while saving {}: {}".format(key, e))
                     msgbox.exec_()
         # Re-enable faulthandler to stdout, then remove crash log
-        log.destroy.debug("Deactiving crash log...")
-        qApp.crash_handler.destroy_crashlogfile()
+        log.destroy.debug("Deactivating crash log...")
+        objreg.get('crash-handler').destroy_crashlogfile()
         # If we don't kill our custom handler here we might get segfaults
         log.destroy.debug("Deactiving message handler...")
         qInstallMessageHandler(None)
         # Now we can hopefully quit without segfaults
         log.destroy.debug("Deferring QApplication::exit...")
-        qApp.signal_handler.deactivate()
+        objreg.get('signal-handler').deactivate()
         # We use a singleshot timer to exit here to minimize the likelihood of
         # segfaults.
         QTimer.singleShot(0, functools.partial(qApp.exit, status))
@@ -630,11 +657,7 @@ class Application(QApplication):
     """Main application instance.
 
     Attributes:
-        quitter: The Quitter objet.
-        crash_handler: The CrashHandler being used.
-        signal_handler: The SignalHandler being used.
         _args: ArgumentParser instance.
-        _shutting_down: True if we're currently shutting down.
     """
 
     def __init__(self, args):
@@ -648,17 +671,6 @@ class Application(QApplication):
         super().__init__(qt_args)
 
         log.init.debug("Initializing application...")
-        self.quitter = Quitter(args)
-        self.lastWindowClosed.connect(self.quitter.on_last_window_closed)
-        objreg.register('quitter', self.quitter)
-
-        self.crash_handler = crashsignal.CrashHandler(app=self, args=args,
-                                                      parent=self)
-        self.crash_handler.activate()
-        objreg.register('crash-handler', self.crash_handler)
-
-        self.signal_handler = crashsignal.SignalHandler(app=self, parent=self)
-        self.signal_handler.activate()
 
         self._args = args
         objreg.register('args', args)

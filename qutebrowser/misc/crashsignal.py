@@ -43,14 +43,16 @@ class CrashHandler(QObject):
 
     Attributes:
         _app: The QApplication instance.
+        _quitter: The Quitter instance.
         _args: The argparse namespace.
         _crash_dialog: The CrashDialog currently being shown.
         _crash_log_file: The file handle for the faulthandler crash log.
     """
 
-    def __init__(self, app, args, parent=None):
+    def __init__(self, *, app, quitter, args, parent=None):
         super().__init__(parent)
         self._app = app
+        self._quitter = quitter
         self._args = args
         self._crash_log_file = None
         self._crash_dialog = None
@@ -160,7 +162,7 @@ class CrashHandler(QObject):
         exc = (exctype, excvalue, tb)
         qapp = QApplication.instance()
 
-        if not qapp.quitter.quit_status['crash']:
+        if not self._quitter.quit_status['crash']:
             log.misc.error("ARGH, there was an exception while the crash "
                            "dialog is already shown:", exc_info=exc)
             return
@@ -185,7 +187,7 @@ class CrashHandler(QObject):
                 qapp.quit()
                 return
 
-        qapp.quitter.quit_status['crash'] = False
+        self._quitter.quit_status['crash'] = False
 
         try:
             pages = self._recover_pages(forgiving=True)
@@ -212,7 +214,7 @@ class CrashHandler(QObject):
 
         try:
             self._app.lastWindowClosed.disconnect(
-                self._app.quitter.on_last_window_closed)
+                self._quitter.on_last_window_closed)
         except TypeError:
             log.destroy.exception("Error while preventing shutdown")
         self._app.closeAllWindows()
@@ -220,7 +222,7 @@ class CrashHandler(QObject):
             self._args.debug, pages, cmd_history, exc, objects)
         ret = self._crash_dialog.exec_()
         if ret == QDialog.Accepted:  # restore
-            self._app.quitter.restart(pages)
+            self._quitter.restart(pages)
 
         # We might risk a segfault here, but that's better than continuing to
         # run in some undefined state, so we only do the most needed shutdown
@@ -241,6 +243,7 @@ class SignalHandler(QObject):
 
     Attributes:
         _app: The QApplication instance.
+        _quitter: The Quitter instance.
         _activated: Whether activate() was called.
         _notifier: A QSocketNotifier used for signals on Unix.
         _timer: A QTimer used to poll for signals on Windows.
@@ -248,9 +251,10 @@ class SignalHandler(QObject):
         _orig_wakeup_fd: The original wakeup filedescriptor.
     """
 
-    def __init__(self, app, parent=None):
+    def __init__(self, *, app, quitter, parent=None):
         super().__init__(parent)
         self._app = app
+        self._quitter = quitter
         self._notifier = None
         self._timer = usertypes.Timer(self, 'python_hacks')
         self._orig_handlers = {}
@@ -330,7 +334,7 @@ class SignalHandler(QObject):
         signal.signal(signal.SIGTERM, self.interrupt_forcefully)
         # If we call shutdown directly here, we get a segfault.
         QTimer.singleShot(0, functools.partial(
-            self._app.quitter.shutdown, 128 + signum))
+            self._quitter.shutdown, 128 + signum))
 
     def interrupt_forcefully(self, signum, _frame):
         """Interrupt forcefully on the second SIGINT/SIGTERM request.
