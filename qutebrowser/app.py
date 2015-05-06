@@ -622,7 +622,7 @@ class Quitter:
         Args:
             name: The name of the session.
         """
-        qApp.shutdown(session=name)
+        self.shutdown(session=name)
 
 
 class Application(QApplication):
