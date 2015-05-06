@@ -30,6 +30,7 @@ Changed
 - The `content -> geolocation` and `notifications` settings now support a `true` value to always allow those. However, this is *not recommended*.
 - New bindings `<Ctrl-R>` (rapid), `<Ctrl-F>` (foreground) and `<Ctrl-B>` (background) to switch hint modes while hinting.
 - `<Ctrl-M>` is now accepted as an additional alias for `<Return>`/`<Ctrl-J>`
+- `:hint tab` and `F` now respect the `background-tabs` setting. To enforce a foreground tab (what `F` did before), use `:hint tab-fg` or `;f`.
 
 v0.2.2 (unreleased)
 -------------------

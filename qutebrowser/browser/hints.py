@@ -41,10 +41,10 @@ from qutebrowser.utils import usertypes, log, qtutils, message, objreg
 ElemTuple = collections.namedtuple('ElemTuple', ['elem', 'label'])
 
 
-Target = usertypes.enum('Target', ['normal', 'tab', 'tab_bg', 'window', 'yank',
-                                   'yank_primary', 'run', 'fill', 'hover',
-                                   'rapid', 'rapid_win', 'download',
-                                   'userscript', 'spawn'])
+Target = usertypes.enum('Target', ['normal', 'tab', 'tab_fg', 'tab_bg',
+                                   'window', 'yank', 'yank_primary', 'run',
+                                   'fill', 'hover', 'rapid', 'rapid_win',
+                                   'download', 'userscript', 'spawn'])
 
 
 @pyqtSlot(usertypes.KeyMode)
@@ -65,7 +65,7 @@ class HintContext:
         elems: A mapping from key strings to (elem, label) namedtuples.
         baseurl: The URL of the current page.
         target: What to do with the opened links.
-                normal/tab/tab_bg/window: Get passed to BrowserTab.
+                normal/tab/tab_fg/tab_bg/window: Get passed to BrowserTab.
                 yank/yank_primary: Yank to clipboard/primary selection.
                 run: Run a command.
                 fill: Fill commandline with link.
@@ -124,6 +124,7 @@ class HintManager(QObject):
     HINT_TEXTS = {
         Target.normal: "Follow hint",
         Target.tab: "Follow hint in new tab",
+        Target.tab_fg: "Follow hint in foreground tab",
         Target.tab_bg: "Follow hint in background tab",
         Target.window: "Follow hint in new window",
         Target.yank: "Yank hint to clipboard",
@@ -417,11 +418,15 @@ class HintManager(QObject):
             Target.rapid: usertypes.ClickTarget.tab_bg,
             Target.rapid_win: usertypes.ClickTarget.window,
             Target.normal: usertypes.ClickTarget.normal,
-            Target.tab: usertypes.ClickTarget.tab,
+            Target.tab_fg: usertypes.ClickTarget.tab,
             Target.tab_bg: usertypes.ClickTarget.tab_bg,
             Target.window: usertypes.ClickTarget.window,
             Target.hover: usertypes.ClickTarget.normal,
         }
+        if config.get('tabs', 'background-tabs'):
+            target_mapping[Target.tab] = usertypes.ClickTarget.tab_bg
+        else:
+            target_mapping[Target.tab] = usertypes.ClickTarget.tab
         # FIXME Instead of clicking the center, we could have nicer heuristics.
         # e.g. parse (-webkit-)border-radius correctly and click text fields at
         # the bottom right, and everything else on the top left or so.
@@ -431,8 +436,8 @@ class HintManager(QObject):
         log.hints.debug("{} on '{}' at {}/{}".format(
             action, elem, pos.x(), pos.y()))
         self.start_hinting.emit(target_mapping[context.target])
-        if context.target in [Target.tab, Target.tab_bg, Target.window,
-                              Target.rapid, Target.rapid_win]:
+        if context.target in [Target.tab, Target.tab_fg, Target.tab_bg,
+                              Target.window, Target.rapid, Target.rapid_win]:
             modifiers = Qt.ControlModifier
         else:
             modifiers = Qt.NoModifier
@@ -705,8 +710,8 @@ class HintManager(QObject):
 
         Args:
             rapid: Whether to do rapid hinting. This is only possible with
-                   targets `tab-bg`, `window`, `run`, `hover`, `userscript` and
-                   `spawn`.
+                   targets `tab` (with background-tabs=true), `tab-bg`,
+                   `window`, `run`, `hover`, `userscript` and `spawn`.
             group: The hinting mode to use.
 
                 - `all`: All clickable elements.
@@ -716,7 +721,9 @@ class HintManager(QObject):
             target: What to do with the selected element.
 
                 - `normal`: Open the link in the current tab.
-                - `tab`: Open the link in a new tab.
+                - `tab`: Open the link in a new tab (honoring the
+                         background-tabs setting).
+                - `tab-fg`: Open the link in a new foreground tab.
                 - `tab-bg`: Open the link in a new background tab.
                 - `window`: Open the link in a new window.
                 - `hover` : Hover over the link.
@@ -754,12 +761,17 @@ class HintManager(QObject):
         if mode_manager.mode == usertypes.KeyMode.hint:
             modeman.leave(win_id, usertypes.KeyMode.hint, 're-hinting')
 
-        if rapid and target not in (Target.tab_bg, Target.window, Target.run,
-                                    Target.hover, Target.userscript,
-                                    Target.spawn):
-            name = target.name.replace('_', '-')
-            raise cmdexc.CommandError("Rapid hinting makes no sense with "
-                                      "target {}!".format(name))
+        if rapid:
+            if target in [Target.tab_bg, Target.window, Target.run,
+                          Target.hover, Target.userscript, Target.spawn]:
+                pass
+            elif (target == Target.tab and
+                  config.get('tabs', 'background-tabs')):
+                pass
+            else:
+                name = target.name.replace('_', '-')
+                raise cmdexc.CommandError("Rapid hinting makes no sense with "
+                                        "target {}!".format(name))
 
         self._check_args(target, *args)
         self._context = HintContext()
@@ -878,6 +890,7 @@ class HintManager(QObject):
         elem_handlers = {
             Target.normal: self._click,
             Target.tab: self._click,
+            Target.tab_fg: self._click,
             Target.tab_bg: self._click,
             Target.window: self._click,
             Target.hover: self._click,
