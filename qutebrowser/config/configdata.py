@@ -1213,7 +1213,7 @@ KEY_DATA = collections.OrderedDict([
     ])),
 
     ('hint', collections.OrderedDict([
-        ('follow-hint', ['<Return>']),
+        ('follow-hint', ['<Return>', '<Ctrl-M>', '<Ctrl-J>']),
     ])),
 
     ('passthrough', {}),
@@ -1223,11 +1223,11 @@ KEY_DATA = collections.OrderedDict([
         ('command-history-next', ['<Ctrl-N>']),
         ('completion-item-prev', ['<Shift-Tab>', '<Up>']),
         ('completion-item-next', ['<Tab>', '<Down>']),
-        ('command-accept', ['<Return>', '<Ctrl-J>', '<Shift-Return>']),
+        ('command-accept', ['<Return>', '<Ctrl-J>', '<Shift-Return>', '<Ctrl-M>']),
     ])),
 
     ('prompt', collections.OrderedDict([
-        ('prompt-accept', ['<Return>', '<Ctrl-J>', '<Shift-Return>']),
+        ('prompt-accept', ['<Return>', '<Ctrl-J>', '<Shift-Return>', '<Ctrl-M>']),
         ('prompt-yes', ['y']),
         ('prompt-no', ['n']),
     ])),
