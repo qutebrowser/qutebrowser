@@ -266,34 +266,6 @@ class BoolAsk(Bool):
             super().validate(value)
 
 
-class NoAsk(BaseType):
-
-    """A no/ask question."""
-
-    valid_values = ValidValues('false', 'ask')
-
-    def transform(self, value):
-        if value.lower() == 'ask':
-            return 'ask'
-        else:
-            return BOOLEAN_STATES[value.lower()]
-
-    def validate(self, value):
-        if not value:
-            if self._none_ok:
-                return
-            else:
-                raise configexc.ValidationError(value, "may not be empty!")
-        if value.lower() == 'ask':
-            return
-        try:
-            v = BOOLEAN_STATES[value.lower()]
-            if v:
-                raise configexc.ValidationError(value, "must be ask/false!")
-        except KeyError:
-            raise configexc.ValidationError(value, "must be ask/false!")
-
-
 class Int(BaseType):
 
     """Base class for an integer setting.

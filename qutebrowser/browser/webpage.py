@@ -325,7 +325,8 @@ class BrowserPage(QWebPage):
             QWebPage.Notifications: ('content', 'notifications'),
             QWebPage.Geolocation: ('content', 'geolocation'),
         }
-        if config.get(*options[feature]) == 'ask':
+        config_val = config.get(*options[feature])
+        if config_val == 'ask':
             bridge = objreg.get('message-bridge', scope='window',
                                 window=self._win_id)
             q = usertypes.Question(bridge)
@@ -361,6 +362,9 @@ class BrowserPage(QWebPage):
             self.loadStarted.connect(q.abort)
 
             bridge.ask(q, blocking=False)
+        elif config_val:
+            self.setFeaturePermission(frame, feature,
+                                      QWebPage.PermissionGrantedByUser)
         else:
             self.setFeaturePermission(frame, feature,
                                       QWebPage.PermissionDeniedByUser)

@@ -606,11 +606,11 @@ def data(readonly=False):
              "are not affected by this setting."),
 
             ('geolocation',
-             SettingValue(typ.NoAsk(), 'ask'),
+             SettingValue(typ.BoolAsk(), 'ask'),
              "Allow websites to request geolocations."),
 
             ('notifications',
-             SettingValue(typ.NoAsk(), 'ask'),
+             SettingValue(typ.BoolAsk(), 'ask'),
              "Allow websites to show notifications."),
 
             #('allow-java',
