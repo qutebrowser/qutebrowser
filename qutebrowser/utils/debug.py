@@ -25,9 +25,10 @@ import functools
 import datetime
 import contextlib
 
-from PyQt5.QtCore import QEvent, QMetaMethod
+from PyQt5.QtCore import QEvent, QMetaMethod, QObject
+from PyQt5.QtWidgets import QApplication
 
-from qutebrowser.utils import log, utils, qtutils
+from qutebrowser.utils import log, utils, qtutils, objreg
 
 
 def log_events(klass):
@@ -233,3 +234,36 @@ def log_time(logger, action='operation'):
     finished = datetime.datetime.now()
     delta = (finished - started).total_seconds()
     logger.debug("{} took {} seconds.".format(action.capitalize(), delta))
+
+
+def _get_widgets():
+    """Get a string list of all widgets."""
+    widgets = QApplication.instance().allWidgets()
+    widgets.sort(key=repr)
+    return [repr(w) for w in widgets]
+
+
+def _get_pyqt_objects(lines, obj, depth=0):
+    """Recursive method for get_all_objects to get Qt objects."""
+    for kid in obj.findChildren(QObject):
+        lines.append('    ' * depth + repr(kid))
+        _get_pyqt_objects(lines, kid, depth + 1)
+
+
+def get_all_objects():
+    """Get all children of an object recursively as a string."""
+    output = ['']
+    widget_lines = _get_widgets()
+    widget_lines = ['    ' + e for e in widget_lines]
+    widget_lines.insert(0, "Qt widgets - {} objects".format(
+        len(widget_lines)))
+    output += widget_lines
+    pyqt_lines = []
+    _get_pyqt_objects(pyqt_lines, QApplication.instance())
+    pyqt_lines = ['    ' + e for e in pyqt_lines]
+    pyqt_lines.insert(0, 'Qt objects - {} objects:'.format(
+        len(pyqt_lines)))
+    output += pyqt_lines
+    output += ['']
+    output += objreg.dump_objects()
+    return '\n'.join(output)

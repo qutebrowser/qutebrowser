@@ -21,17 +21,20 @@
 
 import functools
 import types
+import traceback
 
-from PyQt5.QtCore import QCoreApplication
 try:
     import hunter
 except ImportError:
     hunter = None
 
-from qutebrowser.utils import log, objreg, usertypes, message
+from qutebrowser.browser.network import qutescheme
+from qutebrowser.utils import log, objreg, usertypes, message, debug
 from qutebrowser.commands import cmdutils, runners, cmdexc
 from qutebrowser.config import style
 from qutebrowser.misc import consolewidget
+
+from PyQt5.QtCore import QUrl
 
 
 @cmdutils.register(maxsplit=1, no_cmd_split=True, win_id='win_id')
@@ -128,7 +131,7 @@ def debug_crash(typ: {'type': ('exception', 'segfault')}='exception'):
 @cmdutils.register(debug=True)
 def debug_all_objects():
     """Print a list of  all objects to the debug log."""
-    s = QCoreApplication.instance().get_all_objects()
+    s = debug.get_all_objects()
     log.misc.debug(s)
 
 
@@ -166,3 +169,21 @@ def debug_trace(expr=""):
         eval('hunter.trace({})'.format(expr))
     except Exception as e:
         raise cmdexc.CommandError("{}: {}".format(e.__class__.__name__, e))
+
+
+@cmdutils.register(maxsplit=0, debug=True, no_cmd_split=True)
+def debug_pyeval(s):
+    """Evaluate a python string and display the results as a web page.
+
+    Args:
+        s: The string to evaluate.
+    """
+    try:
+        r = eval(s)
+        out = repr(r)
+    except Exception:
+        out = traceback.format_exc()
+    qutescheme.pyeval_output = out
+    tabbed_browser = objreg.get('tabbed-browser', scope='window',
+                                window='last-focused')
+    tabbed_browser.openurl(QUrl('qute:pyeval'), newtab=True)

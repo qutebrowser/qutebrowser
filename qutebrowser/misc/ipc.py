@@ -24,11 +24,11 @@ import json
 import getpass
 import binascii
 
-from PyQt5.QtCore import pyqtSlot, QObject
+from PyQt5.QtCore import pyqtSignal, pyqtSlot, QObject
 from PyQt5.QtNetwork import QLocalSocket, QLocalServer, QAbstractSocket
 from PyQt5.QtWidgets import QMessageBox
 
-from qutebrowser.utils import log, objreg, usertypes
+from qutebrowser.utils import log, usertypes
 
 
 SOCKETNAME = 'qutebrowser-{}'.format(getpass.getuser())
@@ -80,7 +80,13 @@ class IPCServer(QObject):
         _timer: A timer to handle timeouts.
         _server: A QLocalServer to accept new connections.
         _socket: The QLocalSocket we're currently connected to.
+
+    Signals:
+        got_args: Emitted when there was an IPC connection and arguments were
+                  passed.
     """
+
+    got_args = pyqtSignal(list, str)
 
     def __init__(self, parent=None):
         """Start the IPC server and listen to commands."""
@@ -187,8 +193,7 @@ class IPCServer(QObject):
                 log.ipc.debug("no args: {}".format(decoded.strip()))
                 return
             cwd = json_data.get('cwd', None)
-            app = objreg.get('app')
-            app.process_pos_args(args, via_ipc=True, cwd=cwd)
+            self.got_args.emit(args, cwd)
 
     @pyqtSlot()
     def on_timeout(self):
@@ -205,13 +210,6 @@ class IPCServer(QObject):
         self._server.close()
         self._server.deleteLater()
         self._remove_server()
-
-
-def init():
-    """Initialize the global IPC server."""
-    app = objreg.get('app')
-    server = IPCServer(app)
-    objreg.register('ipc-server', server)
 
 
 def _socket_error(action, socket):

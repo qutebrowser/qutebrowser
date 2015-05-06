@@ -138,24 +138,4 @@ def main():
     # We do this imports late as earlyinit needs to be run first (because of
     # the harfbuzz fix and version checking).
     from qutebrowser import app
-    import PyQt5.QtWidgets as QtWidgets
-    app = app.Application(args)
-
-    def qt_mainloop():
-        """Simple wrapper to get a nicer stack trace for segfaults.
-
-        WARNING: misc/crashdialog.py checks the stacktrace for this function
-        name, so if this is changed, it should be changed there as well!
-        """
-        return app.exec_()
-
-    # We set qApp explicitly here to reduce the risk of segfaults while
-    # quitting.
-    # See https://bugs.launchpad.net/ubuntu/+source/python-qt4/+bug/561303/comments/7
-    # While this is a workaround for PyQt4 which should be fixed in PyQt, it
-    # seems this still reduces segfaults.
-    # FIXME: We should do another attempt at contacting upstream about this.
-    QtWidgets.qApp = app
-    ret = qt_mainloop()
-    QtWidgets.qApp = None
-    return ret
+    return app.run(args)
