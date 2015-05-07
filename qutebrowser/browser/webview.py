@@ -181,79 +181,6 @@ class WebView(QWebView):
         self.load_status = val
         self.load_status_changed.emit(val.name)
 
-    def _position_caret(self):
-        """
-        JS snippet to position caret at top of the screen. 
-        Was borrowed from cVim source code
-        """
-        self.page().currentFrame().evaluateJavaScript("""
-
-        function isElementInViewport(node) {
-            var i;
-            var boundingRect = node.getClientRects()[0] || node.getBoundingClientRect();
-            if (boundingRect.width <= 1 && boundingRect.height <= 1) {
-                var rects = node.getClientRects();
-                for (i = 0; i < rects.length; i++) {
-                    if (rects[i].width > rects[0].height && rects[i].height > rects[0].height) {
-                        boundingRect = rects[i];
-                    }
-                }
-            }
-            if (boundingRect === void 0) return null;
-            if (boundingRect.top > innerHeight || boundingRect.left > innerWidth) {
-                return null;
-            }
-            if (boundingRect.width <= 1 || boundingRect.height <= 1) {
-                var children = node.children;
-                var visibleChildNode = false;
-                for (i = 0, l = children.length; i < l; ++i) {
-                    boundingRect = children[i].getClientRects()[0] || children[i].getBoundingClientRect();
-                    if (boundingRect.width > 1 && boundingRect.height > 1) {
-                        visibleChildNode = true;
-                        break;
-                    }
-                }
-                if (visibleChildNode === false) return null;
-            }
-            if (boundingRect.top + boundingRect.height < 10 || boundingRect.left + boundingRect.width < -10) {
-                return null;
-            }
-            var computedStyle = window.getComputedStyle(node, null);
-            if (computedStyle.visibility !== 'visible' ||
-                computedStyle.display === 'none' ||
-                node.hasAttribute('disabled') ||
-                parseInt(computedStyle.width, '10') === 0 ||
-                parseInt(computedStyle.height, '10') === 0) {
-                return null;
-            }
-            return boundingRect.top >= -20;
-        }
-
-        var walker = document.createTreeWalker(document.body, 4, null, false);
-        var node;
-        var textNodes = [];
-        while (node = walker.nextNode()) {
-            if (node.nodeType === 3 && node.data.trim() !== '') {
-                textNodes.push(node);
-            }
-        }
-        for (var i = 0; i < textNodes.length; i++) {
-            var element = textNodes[i].parentElement;
-            if (isElementInViewport(element.parentElement)) {
-                el = element;
-                break;
-            }
-        }
-        if (el !== undefined) {
-            var range = document.createRange();
-            range.setStart(el, 0);
-            range.setEnd(el, 0);
-            var sel = window.getSelection();
-            sel.removeAllRanges();
-            sel.addRange(range);
-        }
-        """)
-
     @pyqtSlot(str, str)
     def on_config_changed(self, section, option):
         """Reinitialize the zoom neighborlist if related config changed."""
@@ -519,7 +446,8 @@ class WebView(QWebView):
                 self.clearFocus()
                 self.setFocus(Qt.OtherFocusReason)
 
-                self._position_caret()
+                self.page().currentFrame().evaluateJavaScript(
+                        utils.read_file('javascript/position_caret.js'))
 
     @pyqtSlot(usertypes.KeyMode)
     def on_mode_left(self, mode):
