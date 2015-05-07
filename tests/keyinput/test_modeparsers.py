@@ -49,12 +49,13 @@ class TestsNormalKeyParser:
     # pylint: disable=protected-access
 
     @pytest.yield_fixture(autouse=True)
-    def setup(self, mocker, stubs):
+    def setup(self, mocker, stubs, config_stub):
         """Set up mocks and read the test config."""
         mocker.patch('qutebrowser.keyinput.basekeyparser.usertypes.Timer',
                      new=stubs.FakeTimer)
+        config_stub.data = CONFIG
         mocker.patch('qutebrowser.keyinput.modeparsers.config',
-                     new=stubs.ConfigStub(CONFIG))
+                     new=config_stub)
 
         objreg.register('key-config', fake_keyconfig)
         self.kp = modeparsers.NormalKeyParser(0)
