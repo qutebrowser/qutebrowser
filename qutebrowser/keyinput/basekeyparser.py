@@ -137,6 +137,9 @@ class BaseKeyParser(QObject):
             (countstr, cmd_input) = re.match(r'^(\d*)(.*)',
                                              self._keystring).groups()
             count = int(countstr) if countstr else None
+            if count == 0 and not cmd_input:
+                cmd_input = self._keystring
+                count = None
         else:
             cmd_input = self._keystring
             count = None
@@ -180,7 +183,6 @@ class BaseKeyParser(QObject):
 
         count, cmd_input = self._split_count()
 
-        print(count, cmd_input)
         if not cmd_input:
             # Only a count, no command yet, but we handled it
             return self.Match.other

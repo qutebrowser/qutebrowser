@@ -1153,127 +1153,137 @@ class CommandDispatcher:
             view.search(view.search_text, flags)
 
     @cmdutils.register(instance='command-dispatcher', hide=True,
-                       modes=[KeyMode.caret], scope='window')
-    def move_to_next_line(self):
+                       modes=[KeyMode.caret], scope='window', count='count')
+    def move_to_next_line(self, count=1):
         """Move the cursor or select to the next line."""
         webview = self._current_widget()
         if not webview.selection_enabled:
             act = QWebPage.MoveToNextLine
         else:
             act = QWebPage.SelectNextLine
-        webview.triggerPageAction(act)
+        for _ in range(count):
+            webview.triggerPageAction(act)
 
     @cmdutils.register(instance='command-dispatcher', hide=True,
-                       modes=[KeyMode.caret], scope='window')
-    def move_to_prev_line(self):
+                       modes=[KeyMode.caret], scope='window', count='count')
+    def move_to_prev_line(self, count=1):
         """Move the cursor or select to the prev line."""
         webview = self._current_widget()
         if not webview.selection_enabled:
             act = QWebPage.MoveToPreviousLine
         else:
             act = QWebPage.SelectPreviousLine
-        webview.triggerPageAction(act)
+        for _ in range(count):
+            webview.triggerPageAction(act)
 
     @cmdutils.register(instance='command-dispatcher', hide=True,
-                       modes=[KeyMode.caret], scope='window')
-    def move_to_next_char(self):
+                       modes=[KeyMode.caret], scope='window', count='count')
+    def move_to_next_char(self, count=1):
         """Move the cursor or select to the next char."""
         webview = self._current_widget()
         if not webview.selection_enabled:
             act = QWebPage.MoveToNextChar
         else:
             act = QWebPage.SelectNextChar
-        webview.triggerPageAction(act)
+        for _ in range(count):
+            webview.triggerPageAction(act)
 
     @cmdutils.register(instance='command-dispatcher', hide=True,
-                       modes=[KeyMode.caret], scope='window')
-    def move_to_prev_char(self):
+                       modes=[KeyMode.caret], scope='window', count='count')
+    def move_to_prev_char(self, count=1):
         """Move the cursor or select to the prev char."""
         webview = self._current_widget()
         if not webview.selection_enabled:
             act = QWebPage.MoveToPreviousChar
         else:
             act = QWebPage.SelectPreviousChar
-        webview.triggerPageAction(act)
+        for _ in range(count):
+            webview.triggerPageAction(act)
 
     @cmdutils.register(instance='command-dispatcher', hide=True,
-                       modes=[KeyMode.caret], scope='window')
-    def move_to_end_of_word(self):
+                       modes=[KeyMode.caret], scope='window', count='count')
+    def move_to_end_of_word(self, count=1):
         """Move the cursor or select to the next word."""
         webview = self._current_widget()
         if not webview.selection_enabled:
             act = QWebPage.MoveToNextWord
         else:
             act = QWebPage.SelectNextWord
-        webview.triggerPageAction(act)
+        for _ in range(count):
+            webview.triggerPageAction(act)
 
     @cmdutils.register(instance='command-dispatcher', hide=True,
-                       modes=[KeyMode.caret],
-                       scope='window')
-    def move_to_next_word(self):
+                       modes=[KeyMode.caret], scope='window', count='count')
+    def move_to_next_word(self, count=1):
         """Move the cursor or select to the next word."""
         webview = self._current_widget()
         if not webview.selection_enabled:
             act = [QWebPage.MoveToNextWord, QWebPage.MoveToNextChar]
         else:
             act = [QWebPage.SelectNextWord, QWebPage.SelectNextChar]
-        for a in act:
-            webview.triggerPageAction(a)
+        for _ in range(count):
+            for a in act:
+                webview.triggerPageAction(a)
 
     @cmdutils.register(instance='command-dispatcher', hide=True,
-                       modes=[KeyMode.caret], scope='window')
-    def move_to_prev_word(self):
+                       modes=[KeyMode.caret], scope='window', count='count')
+    def move_to_prev_word(self, count=1):
         """Move the cursor or select to the prev word."""
         webview = self._current_widget()
         if not webview.selection_enabled:
             act = QWebPage.MoveToPreviousWord
         else:
             act = QWebPage.SelectPreviousWord
-        webview.triggerPageAction(act)
+        for _ in range(count):
+            webview.triggerPageAction(act)
 
     @cmdutils.register(instance='command-dispatcher', hide=True,
-                       modes=[KeyMode.caret], scope='window')
-    def move_to_start_of_line(self):
+                       modes=[KeyMode.caret], scope='window', count='count')
+    def move_to_start_of_line(self, count=1):
         """Move the cursor or select to the start of line."""
         webview = self._current_widget()
         if not webview.selection_enabled:
             act = QWebPage.MoveToStartOfLine
         else:
             act = QWebPage.SelectStartOfLine
-        webview.triggerPageAction(act)
+        for _ in range(count):
+            webview.triggerPageAction(act)
 
     @cmdutils.register(instance='command-dispatcher', hide=True,
-                       modes=[KeyMode.caret], scope='window')
-    def move_to_end_of_line(self):
+                       modes=[KeyMode.caret], scope='window', count='count')
+    def move_to_end_of_line(self, count=1):
         """Move the cursor or select to the end of line."""
         webview = self._current_widget()
         if not webview.selection_enabled:
             act = QWebPage.MoveToEndOfLine
         else:
             act = QWebPage.SelectEndOfLine
-        webview.triggerPageAction(act)
+        for _ in range(count):
+            webview.triggerPageAction(act)
 
     @cmdutils.register(instance='command-dispatcher', hide=True,
-                       modes=[KeyMode.caret], scope='window')
-    def move_to_start_of_block(self):
+                       modes=[KeyMode.caret], scope='window', count='count')
+    def move_to_start_of_block(self, count=1):
         """Move the cursor or select to the start of block."""
         webview = self._current_widget()
         if not webview.selection_enabled:
             act = QWebPage.MoveToStartOfBlock
         else:
             act = QWebPage.SelectStartOfBlock
-        webview.triggerPageAction(act)
+        for _ in range(count):
+            webview.triggerPageAction(act)
 
     @cmdutils.register(instance='command-dispatcher', hide=True,
-                       modes=[KeyMode.caret], scope='window')
-    def move_to_end_of_block(self):
+                       modes=[KeyMode.caret], scope='window', count='count')
+    def move_to_end_of_block(self, count=1):
         """Move the cursor or select to the end of block."""
         webview = self._current_widget()
         if not webview.selection_enabled:
             act = QWebPage.MoveToEndOfBlock
         else:
             act = QWebPage.SelectEndOfBlock
-        webview.triggerPageAction(act)
+        for _ in range(count):
+            webview.triggerPageAction(act)
 
     @cmdutils.register(instance='command-dispatcher', hide=True,
                        modes=[KeyMode.caret], scope='window')

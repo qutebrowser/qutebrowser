@@ -228,7 +228,6 @@ class CaretKeyParser(keyparser.CommandKeyParser):
         super().__init__(win_id, parent, supports_count=True,
                          supports_chains=True)
         self.read_config('caret')
-        self._supports_count = False
 
     def __repr__(self):
         return utils.get_repr(self)
