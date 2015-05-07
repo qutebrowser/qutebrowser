@@ -378,11 +378,11 @@ class TestIsEditable:
         webelem.config = old_config
 
     @pytest.fixture
-    def stub_config(self, stubs, mocker):
+    def stubbed_config(self, config_stub, mocker):
         """Fixture to create a config stub with an input section."""
-        config = stubs.ConfigStub({'input': {}})
-        mocker.patch('qutebrowser.browser.webelem.config', new=config)
-        return config
+        config_stub.data = {'input': {}}
+        mocker.patch('qutebrowser.browser.webelem.config', new=config_stub)
+        return config_stub
 
     def test_input_plain(self):
         """Test with plain input element."""
@@ -469,27 +469,27 @@ class TestIsEditable:
         elem = get_webelem(tagname='textarea', attributes={'readonly': None})
         assert not elem.is_editable()
 
-    def test_embed_true(self, stub_config):
+    def test_embed_true(self, stubbed_config):
         """Test embed-element with insert-mode-on-plugins true."""
-        stub_config.data['input']['insert-mode-on-plugins'] = True
+        stubbed_config.data['input']['insert-mode-on-plugins'] = True
         elem = get_webelem(tagname='embed')
         assert elem.is_editable()
 
-    def test_applet_true(self, stub_config):
+    def test_applet_true(self, stubbed_config):
         """Test applet-element with insert-mode-on-plugins true."""
-        stub_config.data['input']['insert-mode-on-plugins'] = True
+        stubbed_config.data['input']['insert-mode-on-plugins'] = True
         elem = get_webelem(tagname='applet')
         assert elem.is_editable()
 
-    def test_embed_false(self, stub_config):
+    def test_embed_false(self, stubbed_config):
         """Test embed-element with insert-mode-on-plugins false."""
-        stub_config.data['input']['insert-mode-on-plugins'] = False
+        stubbed_config.data['input']['insert-mode-on-plugins'] = False
         elem = get_webelem(tagname='embed')
         assert not elem.is_editable()
 
-    def test_applet_false(self, stub_config):
+    def test_applet_false(self, stubbed_config):
         """Test applet-element with insert-mode-on-plugins false."""
-        stub_config.data['input']['insert-mode-on-plugins'] = False
+        stubbed_config.data['input']['insert-mode-on-plugins'] = False
         elem = get_webelem(tagname='applet')
         assert not elem.is_editable()
 
@@ -503,30 +503,30 @@ class TestIsEditable:
         elem = get_webelem(tagname='object', attributes={'type': 'image/gif'})
         assert not elem.is_editable()
 
-    def test_object_application(self, stub_config):
+    def test_object_application(self, stubbed_config):
         """Test object-element with application type."""
-        stub_config.data['input']['insert-mode-on-plugins'] = True
+        stubbed_config.data['input']['insert-mode-on-plugins'] = True
         elem = get_webelem(tagname='object',
                            attributes={'type': 'application/foo'})
         assert elem.is_editable()
 
-    def test_object_application_false(self, stub_config):
+    def test_object_application_false(self, stubbed_config):
         """Test object-element with application type but not ...-on-plugins."""
-        stub_config.data['input']['insert-mode-on-plugins'] = False
+        stubbed_config.data['input']['insert-mode-on-plugins'] = False
         elem = get_webelem(tagname='object',
                            attributes={'type': 'application/foo'})
         assert not elem.is_editable()
 
-    def test_object_classid(self, stub_config):
+    def test_object_classid(self, stubbed_config):
         """Test object-element with classid."""
-        stub_config.data['input']['insert-mode-on-plugins'] = True
+        stubbed_config.data['input']['insert-mode-on-plugins'] = True
         elem = get_webelem(tagname='object',
                            attributes={'type': 'foo', 'classid': 'foo'})
         assert elem.is_editable()
 
-    def test_object_classid_false(self, stub_config):
+    def test_object_classid_false(self, stubbed_config):
         """Test object-element with classid but not insert-mode-on-plugins."""
-        stub_config.data['input']['insert-mode-on-plugins'] = False
+        stubbed_config.data['input']['insert-mode-on-plugins'] = False
         elem = get_webelem(tagname='object',
                            attributes={'type': 'foo', 'classid': 'foo'})
         assert not elem.is_editable()
