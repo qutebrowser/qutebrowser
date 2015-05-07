@@ -1263,27 +1263,55 @@ class CommandDispatcher:
 
     @cmdutils.register(instance='command-dispatcher', hide=True,
                        modes=[KeyMode.caret], scope='window', count='count')
-    def move_to_start_of_block(self, count=1):
-        """Move the cursor or select to the start of block."""
+    def move_to_start_of_next_block(self, count=1):
+        """Move the cursor or select to the start of next block."""
         webview = self._current_widget()
         if not webview.selection_enabled:
-            act = QWebPage.MoveToStartOfBlock
+            act = [QWebPage.MoveToEndOfBlock, QWebPage.MoveToNextLine, QWebPage.MoveToStartOfBlock]
         else:
-            act = QWebPage.SelectStartOfBlock
+            act = [QWebPage.SelectEndOfBlock, QWebPage.SelectNextLine, QWebPage.SelectStartOfBlock]
         for _ in range(count):
-            webview.triggerPageAction(act)
+            for a in act:
+                webview.triggerPageAction(a)
 
     @cmdutils.register(instance='command-dispatcher', hide=True,
                        modes=[KeyMode.caret], scope='window', count='count')
-    def move_to_end_of_block(self, count=1):
-        """Move the cursor or select to the end of block."""
+    def move_to_start_of_prev_block(self, count=1):
+        """Move the cursor or select to the start of previous block."""
         webview = self._current_widget()
         if not webview.selection_enabled:
-            act = QWebPage.MoveToEndOfBlock
+            act = [QWebPage.MoveToStartOfBlock, QWebPage.MoveToPreviousLine, QWebPage.MoveToStartOfBlock]
         else:
-            act = QWebPage.SelectEndOfBlock
+            act = [QWebPage.SelectStartOfBlock, QWebPage.SelectPreviousLine, QWebPage.SelectStartOfBlock]
         for _ in range(count):
-            webview.triggerPageAction(act)
+            for a in act:
+                webview.triggerPageAction(a)
+
+    @cmdutils.register(instance='command-dispatcher', hide=True,
+                       modes=[KeyMode.caret], scope='window', count='count')
+    def move_to_end_of_next_block(self, count=1):
+        """Move the cursor or select to the end of next block."""
+        webview = self._current_widget()
+        if not webview.selection_enabled:
+            act = [QWebPage.MoveToEndOfBlock, QWebPage.MoveToNextLine, QWebPage.MoveToEndOfBlock]
+        else:
+            act = [QWebPage.SelectEndOfBlock, QWebPage.SelectNextLine, QWebPage.SelectEndOfBlock]
+        for _ in range(count):
+            for a in act:
+                webview.triggerPageAction(a)
+
+    @cmdutils.register(instance='command-dispatcher', hide=True,
+                       modes=[KeyMode.caret], scope='window', count='count')
+    def move_to_end_of_prev_block(self, count=1):
+        """Move the cursor or select to the end of previous block."""
+        webview = self._current_widget()
+        if not webview.selection_enabled:
+            act = [QWebPage.MoveToStartOfBlock, QWebPage.MoveToPreviousLine, QWebPage.MoveToEndOfBlock]
+        else:
+            act = [QWebPage.SelectStartOfBlock, QWebPage.SelectPreviousLine, QWebPage.SelectEndOfBlock]
+        for _ in range(count):
+            for a in act:
+                webview.triggerPageAction(a)
 
     @cmdutils.register(instance='command-dispatcher', hide=True,
                        modes=[KeyMode.caret], scope='window')
