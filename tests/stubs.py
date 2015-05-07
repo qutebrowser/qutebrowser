@@ -28,8 +28,6 @@ from unittest import mock
 from PyQt5.QtCore import pyqtSignal, QPoint, QProcess, QObject
 from PyQt5.QtNetwork import QNetworkRequest
 
-from qutebrowser.config import configexc
-
 
 class ConfigStub:
 
