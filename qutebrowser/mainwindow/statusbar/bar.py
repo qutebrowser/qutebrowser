@@ -270,7 +270,7 @@ class StatusBar(QWidget):
 
     @pyqtProperty(bool)
     def caret_selection_active(self):
-        """Getter for self.caret_active, so it can be used as Qt property."""
+        """Getter for self.caret_selection_active, so it can be used as Qt property."""
         return self._caret_selection_active
 
     def _set_mode_active(self, mode, val):
