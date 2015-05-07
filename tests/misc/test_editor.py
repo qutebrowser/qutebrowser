@@ -44,39 +44,47 @@ class TestArg:
     def setup(self, mocker, stubs):
         mocker.patch('qutebrowser.misc.editor.QProcess',
                      new_callable=stubs.FakeQProcess)
-        self.config = stubs.ConfigStub()
-        mocker.patch('qutebrowser.misc.editor.config', new=self.config)
         self.editor = editor.ExternalEditor(0)
         yield
         self.editor._cleanup()  # pylint: disable=protected-access
 
-    def test_simple_start_args(self):
+    @pytest.fixture
+    def stubbed_config(self, config_stub, mocker):
+        """Fixture to create a config stub with an input section."""
+        config_stub.data = {'input': {}}
+        mocker.patch('qutebrowser.misc.editor.config', new=config_stub)
+        return config_stub
+
+    def test_simple_start_args(self, stubbed_config):
         """Test starting editor without arguments."""
-        self.config.data = {
+        stubbed_config.data = {
             'general': {'editor': ['bin'], 'editor-encoding': 'utf-8'}}
         self.editor.edit("")
         self.editor._proc.start.assert_called_with("bin", [])
 
-    def test_start_args(self):
+    def test_start_args(self, stubbed_config):
         """Test starting editor with static arguments."""
-        self.config.data = {'general': {'editor': ['bin', 'foo', 'bar'],
-                                        'editor-encoding': 'utf-8'}}
+        stubbed_config.data = {
+            'general': {'editor': ['bin', 'foo', 'bar'],
+                        'editor-encoding': 'utf-8'}}
         self.editor.edit("")
         self.editor._proc.start.assert_called_with("bin", ["foo", "bar"])
 
-    def test_placeholder(self):
+    def test_placeholder(self, stubbed_config):
         """Test starting editor with placeholder argument."""
-        self.config.data = {'general': {'editor': ['bin', 'foo', '{}', 'bar'],
-                                        'editor-encoding': 'utf-8'}}
+        stubbed_config.data = {
+            'general': {'editor': ['bin', 'foo', '{}', 'bar'],
+                        'editor-encoding': 'utf-8'}}
         self.editor.edit("")
         filename = self.editor._filename
         self.editor._proc.start.assert_called_with(
             "bin", ["foo", filename, "bar"])
 
-    def test_in_arg_placeholder(self):
+    def test_in_arg_placeholder(self, stubbed_config):
         """Test starting editor with placeholder argument inside argument."""
-        self.config.data = {'general': {'editor': ['bin', 'foo{}bar'],
-                                        'editor-encoding': 'utf-8'}}
+        stubbed_config.data = {
+            'general': {'editor': ['bin', 'foo{}bar'],
+                        'editor-encoding': 'utf-8'}}
         self.editor.edit("")
         self.editor._proc.start.assert_called_with("bin", ["foo{}bar"])
 
@@ -90,15 +98,14 @@ class TestFileHandling:
     """
 
     @pytest.fixture(autouse=True)
-    def setup(self, mocker, stubs):
+    def setup(self, mocker, stubs, config_stub):
         mocker.patch('qutebrowser.misc.editor.message',
                      new=stubs.MessageModule())
         mocker.patch('qutebrowser.misc.editor.QProcess',
                      new_callable=stubs.FakeQProcess)
-        mocker.patch('qutebrowser.misc.editor.config',
-                     new=stubs.ConfigStub(
-                         {'general': {'editor': [''],
-                                      'editor-encoding': 'utf-8'}}))
+        config_stub.data = {'general': {'editor': [''],
+                                        'editor-encoding': 'utf-8'}}
+        mocker.patch('qutebrowser.misc.editor.config', config_stub)
         self.editor = editor.ExternalEditor(0)
 
     def test_file_handling_closed_ok(self):
@@ -140,11 +147,12 @@ class TestModifyTests:
     """
 
     @pytest.fixture(autouse=True)
-    def setup(self, mocker, stubs):
+    def setup(self, mocker, stubs, config_stub):
         mocker.patch('qutebrowser.misc.editor.QProcess',
                      new_callable=stubs.FakeQProcess)
-        mocker.patch('qutebrowser.misc.editor.config', new=stubs.ConfigStub(
-            {'general': {'editor': [''], 'editor-encoding': 'utf-8'}}))
+        config_stub.data = {'general': {'editor': [''],
+                                        'editor-encoding': 'utf-8'}}
+        mocker.patch('qutebrowser.misc.editor.config', new=config_stub)
         self.editor = editor.ExternalEditor(0)
         self.editor.editing_finished = mock.Mock()
 
@@ -211,13 +219,14 @@ class TestErrorMessage:
     """
 
     @pytest.yield_fixture(autouse=True)
-    def setup(self, mocker, stubs):
+    def setup(self, mocker, stubs, config_stub):
         mocker.patch('qutebrowser.misc.editor.QProcess',
                      new_callable=stubs.FakeQProcess)
         mocker.patch('qutebrowser.misc.editor.message',
                      new=stubs.MessageModule())
-        mocker.patch('qutebrowser.misc.editor.config', new=stubs.ConfigStub(
-            {'general': {'editor': [''], 'editor-encoding': 'utf-8'}}))
+        config_stub.data = {'general': {'editor': [''],
+                                        'editor-encoding': 'utf-8'}}
+        mocker.patch('qutebrowser.misc.editor.config', new=config_stub)
         self.editor = editor.ExternalEditor(0)
         yield
         self.editor._cleanup()  # pylint: disable=protected-access

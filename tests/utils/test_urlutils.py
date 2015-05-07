@@ -27,13 +27,14 @@ import pytest
 from qutebrowser.utils import urlutils
 
 
-def get_config_stub(auto_search=True):
-    """Get a config stub.
+def init_config_stub(stub, auto_search=True):
+    """Initialize the given config_stub.
 
     Args:
+        stub: The ConfigStub provided by the config_stub fixture.
         auto_search: The value auto-search should have.
     """
-    return {
+    stub.data = {
         'general': {'auto-search': auto_search},
         'searchengines': {
             'test': 'http://www.qutebrowser.org/?q={}',
@@ -80,10 +81,10 @@ class TestSearchUrl:
     """Test _get_search_url."""
 
     @pytest.fixture(autouse=True)
-    def mock_config(self, stubs, mocker):
+    def mock_config(self, config_stub, mocker):
         """Fixture to patch urlutils.config with a stub."""
-        mocker.patch('qutebrowser.utils.urlutils.config',
-                     new=stubs.ConfigStub(get_config_stub()))
+        init_config_stub(config_stub)
+        mocker.patch('qutebrowser.utils.urlutils.config', config_stub)
 
     def test_default_engine(self):
         """Test default search engine."""
@@ -158,24 +159,24 @@ class TestIsUrl:
     )
 
     @pytest.mark.parametrize('url', URLS)
-    def test_urls(self, mocker, stubs, url):
+    def test_urls(self, mocker, config_stub, url):
         """Test things which are URLs."""
-        mocker.patch('qutebrowser.utils.urlutils.config', new=stubs.ConfigStub(
-            get_config_stub('naive')))
+        init_config_stub(config_stub, 'naive')
+        mocker.patch('qutebrowser.utils.urlutils.config', config_stub)
         assert urlutils.is_url(url), url
 
     @pytest.mark.parametrize('url', NOT_URLS)
-    def test_not_urls(self, mocker, stubs, url):
+    def test_not_urls(self, mocker, config_stub, url):
         """Test things which are not URLs."""
-        mocker.patch('qutebrowser.utils.urlutils.config', new=stubs.ConfigStub(
-            get_config_stub('naive')))
+        init_config_stub(config_stub, 'naive')
+        mocker.patch('qutebrowser.utils.urlutils.config', config_stub)
         assert not urlutils.is_url(url), url
 
     @pytest.mark.parametrize('autosearch', [True, False])
-    def test_search_autosearch(self, mocker, stubs, autosearch):
+    def test_search_autosearch(self, mocker, config_stub, autosearch):
         """Test explicit search with auto-search=True."""
-        mocker.patch('qutebrowser.utils.urlutils.config', new=stubs.ConfigStub(
-            get_config_stub(autosearch)))
+        init_config_stub(config_stub, autosearch)
+        mocker.patch('qutebrowser.utils.urlutils.config', config_stub)
         assert not urlutils.is_url('test foo')
 
 
