@@ -97,26 +97,47 @@ class StatusBar(QWidget):
             {{ color['statusbar.bg'] }}
         }
 
+        QWidget#StatusBar QLabel {
+            {{ color['statusbar.fg'] }}
+        }
+
         QWidget#StatusBar[insert_active="true"] {
             {{ color['statusbar.bg.insert'] }}
+        }
+
+        QWidget#StatusBar[insert_active="true"] QLabel {
+            {{ color['statusbar.fg.insert'] }}
         }
 
         QWidget#StatusBar[prompt_active="true"] {
             {{ color['statusbar.bg.prompt'] }}
         }
 
+        QWidget#StatusBar[prompt_active="true"] QLabel {
+            {{ color['statusbar.fg.prompt'] }}
+        }
+
         QWidget#StatusBar[severity="error"] {
             {{ color['statusbar.bg.error'] }}
+        }
+
+        QWidget#StatusBar[severity="error"] QLabel {
+            {{ color['statusbar.fg.error'] }}
         }
 
         QWidget#StatusBar[severity="warning"] {
             {{ color['statusbar.bg.warning'] }}
         }
 
+        QWidget#StatusBar[severity="warning"] QLabel {
+            {{ color['statusbar.fg.warning'] }}
+        }
+
         QLabel, QLineEdit {
             {{ color['statusbar.fg'] }}
             {{ font['statusbar'] }}
         }
+
     """
 
     def __init__(self, win_id, parent=None):

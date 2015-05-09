@@ -804,17 +804,33 @@ def data(readonly=False):
              SettingValue(typ.QssColor(), 'red'),
              "Background color of the statusbar if there was an error."),
 
+            ('statusbar.fg.error',
+             SettingValue(typ.QssColor(), 'white'),
+             "Foreground color of the statusbar if there was an error."),
+
             ('statusbar.bg.warning',
              SettingValue(typ.QssColor(), 'darkorange'),
              "Background color of the statusbar if there is a warning."),
+
+            ('statusbar.fg.warning',
+             SettingValue(typ.QssColor(), 'white'),
+             "Foreground color of the statusbar if there is a warning."),
 
             ('statusbar.bg.prompt',
              SettingValue(typ.QssColor(), 'darkblue'),
              "Background color of the statusbar if there is a prompt."),
 
+            ('statusbar.fg.prompt',
+             SettingValue(typ.QssColor(), 'white'),
+             "Foreground color of the statusbar if there is a prompt."),
+
             ('statusbar.bg.insert',
              SettingValue(typ.QssColor(), 'darkgreen'),
              "Background color of the statusbar in insert mode."),
+
+            ('statusbar.fg.insert',
+             SettingValue(typ.QssColor(), 'white'),
+             "Foreground color of the statusbar in insert mode."),
 
             ('statusbar.progress.bg',
              SettingValue(typ.QssColor(), 'white'),
