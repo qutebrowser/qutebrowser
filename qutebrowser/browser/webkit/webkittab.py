@@ -32,7 +32,7 @@ from PyQt5.QtWebKitWidgets import QWebPage, QWebFrame
 from PyQt5.QtWebKit import QWebSettings
 from PyQt5.QtPrintSupport import QPrinter
 
-from qutebrowser.browser import browsertab
+from qutebrowser.browser import browsertab, greasemonkey
 from qutebrowser.browser.webkit import webview, tabhistory, webkitelem
 from qutebrowser.browser.webkit.network import webkitqutescheme
 from qutebrowser.utils import qtutils, objreg, usertypes, utils, log, debug
@@ -44,6 +44,10 @@ def init():
     log.init.debug("Initializing js-bridge...")
     js_bridge = webkitqutescheme.JSBridge(qapp)
     objreg.register('js-bridge', js_bridge)
+
+    log.init.debug("Initializing Greasemonkey...")
+    gm_manager = greasemonkey.GreasemonkeyManager()
+    objreg.register('greasemonkey', gm_manager)
 
 
 class WebKitAction(browsertab.AbstractAction):

@@ -751,6 +751,10 @@ def data(readonly=False):
              SettingValue(typ.Bool(), 'true'),
              "Whether to remember the last used download directory."),
 
+            ('greasemonkey-directory',
+             SettingValue(typ.Directory(none_ok=True), ''),
+             "The directory to look for scripts in"),
+
             # Defaults from QWebSettings::QWebSettings() in
             # qtwebkit/Source/WebKit/qt/Api/qwebsettings.cpp
 
