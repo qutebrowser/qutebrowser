@@ -84,8 +84,8 @@ class Base:
             qws: The QWebSettings instance to use, or None to use the global
                  instance.
         """
-        log.config.vdebug("Restoring default {!r}.".format(self._default))
         if self._default is not UNSET:
+            log.config.vdebug("Restoring default {!r}.".format(self._default))
             self._set(self._default, qws=qws)
 
     def get(self, qws=None):
