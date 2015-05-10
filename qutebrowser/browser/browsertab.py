@@ -31,7 +31,7 @@ from qutebrowser.keyinput import modeman
 from qutebrowser.config import config
 from qutebrowser.utils import utils, objreg, usertypes, log, qtutils
 from qutebrowser.misc import miscwidgets, objects
-from qutebrowser.browser import mouse, hints
+from qutebrowser.browser import mouse, hints, greasemonkey
 
 
 tab_id_gen = itertools.count(0)
@@ -63,6 +63,10 @@ def init():
     if objects.backend == usertypes.Backend.QtWebEngine:
         from qutebrowser.browser.webengine import webenginetab
         webenginetab.init()
+
+    log.init.debug("Initializing Greasemonkey...")
+    gm_manager = greasemonkey.GreasemonkeyManager()
+    objreg.register('greasemonkey', gm_manager)
 
 
 class WebTabError(Exception):
