@@ -792,45 +792,45 @@ def data(readonly=False):
              SettingValue(typ.QssColor(), '#ff4444'),
              "Foreground color of the matched text in the completion."),
 
-            ('statusbar.bg',
-             SettingValue(typ.QssColor(), 'black'),
-             "Foreground color of the statusbar."),
-
             ('statusbar.fg',
              SettingValue(typ.QssColor(), 'white'),
              "Foreground color of the statusbar."),
 
-            ('statusbar.bg.error',
-             SettingValue(typ.QssColor(), 'red'),
-             "Background color of the statusbar if there was an error."),
+            ('statusbar.bg',
+             SettingValue(typ.QssColor(), 'black'),
+             "Foreground color of the statusbar."),
 
             ('statusbar.fg.error',
              SettingValue(typ.QssColor(), 'white'),
              "Foreground color of the statusbar if there was an error."),
 
-            ('statusbar.bg.warning',
-             SettingValue(typ.QssColor(), 'darkorange'),
-             "Background color of the statusbar if there is a warning."),
+            ('statusbar.bg.error',
+             SettingValue(typ.QssColor(), 'red'),
+             "Background color of the statusbar if there was an error."),
 
             ('statusbar.fg.warning',
              SettingValue(typ.QssColor(), 'white'),
              "Foreground color of the statusbar if there is a warning."),
 
-            ('statusbar.bg.prompt',
-             SettingValue(typ.QssColor(), 'darkblue'),
-             "Background color of the statusbar if there is a prompt."),
+            ('statusbar.bg.warning',
+             SettingValue(typ.QssColor(), 'darkorange'),
+             "Background color of the statusbar if there is a warning."),
 
             ('statusbar.fg.prompt',
              SettingValue(typ.QssColor(), 'white'),
              "Foreground color of the statusbar if there is a prompt."),
 
-            ('statusbar.bg.insert',
-             SettingValue(typ.QssColor(), 'darkgreen'),
-             "Background color of the statusbar in insert mode."),
+            ('statusbar.bg.prompt',
+             SettingValue(typ.QssColor(), 'darkblue'),
+             "Background color of the statusbar if there is a prompt."),
 
             ('statusbar.fg.insert',
              SettingValue(typ.QssColor(), 'white'),
              "Foreground color of the statusbar in insert mode."),
+
+            ('statusbar.bg.insert',
+             SettingValue(typ.QssColor(), 'darkgreen'),
+             "Background color of the statusbar in insert mode."),
 
             ('statusbar.progress.bg',
              SettingValue(typ.QssColor(), 'white'),
@@ -863,21 +863,21 @@ def data(readonly=False):
              SettingValue(typ.QtColor(), 'white'),
              "Foreground color of unselected odd tabs."),
 
-            ('tabs.fg.even',
-             SettingValue(typ.QtColor(), 'white'),
-             "Foreground color of unselected even tabs."),
-
-            ('tabs.fg.selected',
-             SettingValue(typ.QtColor(), 'white'),
-             "Foreground color of selected tabs."),
-
             ('tabs.bg.odd',
              SettingValue(typ.QtColor(), 'grey'),
              "Background color of unselected odd tabs."),
 
+            ('tabs.fg.even',
+             SettingValue(typ.QtColor(), 'white'),
+             "Foreground color of unselected even tabs."),
+
             ('tabs.bg.even',
              SettingValue(typ.QtColor(), 'darkgrey'),
              "Background color of unselected even tabs."),
+
+            ('tabs.fg.selected',
+             SettingValue(typ.QtColor(), 'white'),
+             "Foreground color of selected tabs."),
 
             ('tabs.bg.selected',
              SettingValue(typ.QtColor(), 'black'),
@@ -907,16 +907,16 @@ def data(readonly=False):
              SettingValue(typ.CssColor(), 'black'),
              "Font color for hints."),
 
-            ('hints.fg.match',
-             SettingValue(typ.CssColor(), 'green'),
-             "Font color for the matched part of hints."),
-
             ('hints.bg',
              SettingValue(
                  typ.CssColor(), '-webkit-gradient(linear, left top, '
                  'left bottom, color-stop(0%,#FFF785), '
                  'color-stop(100%,#FFC542))'),
              "Background color for hints."),
+
+            ('hints.fg.match',
+             SettingValue(typ.CssColor(), 'green'),
+             "Font color for the matched part of hints."),
 
             ('downloads.fg',
              SettingValue(typ.QtColor(), '#ffffff'),
