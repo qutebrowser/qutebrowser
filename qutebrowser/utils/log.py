@@ -95,7 +95,8 @@ LOGGER_NAMES = [
     'commands', 'signals', 'downloads',
     'js', 'qt', 'rfc6266', 'ipc', 'shlexer',
     'save', 'message', 'config', 'sessions',
-    'webelem', 'prompt', 'network', 'sql'
+    'webelem', 'prompt', 'network', 'sql',
+    'greasemonkey'
 ]
 
 
@@ -144,6 +145,7 @@ webelem = logging.getLogger('webelem')
 prompt = logging.getLogger('prompt')
 network = logging.getLogger('network')
 sql = logging.getLogger('sql')
+greasemonkey = logging.getLogger('greasemonkey')
 
 
 ram_handler = None

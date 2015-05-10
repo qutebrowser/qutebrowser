@@ -86,6 +86,10 @@ class BrowserPage(QWebPage):
             self.on_save_frame_state_requested)
         self.restoreFrameStateRequested.connect(
             self.on_restore_frame_state_requested)
+        self.mainFrame().javaScriptWindowObjectCleared.connect(
+            functools.partial(self.inject_userjs, load='start'))
+        self.mainFrame().initialLayoutCompleted.connect(
+            functools.partial(self.inject_userjs, load='end'))
 
     def javaScriptPrompt(self, frame, js_msg, default):
         """Override javaScriptPrompt to use qutebrowser prompts."""
@@ -282,6 +286,30 @@ class BrowserPage(QWebPage):
             self._ignore_load_started = False
         else:
             self.error_occurred = False
+
+    @pyqtSlot()
+    def inject_userjs(self, load):
+        """Inject user javascripts into the page.
+
+        param: The page load stage to inject the corresponding scripts
+               for. Support values are "start" and "end",
+               corresponding to the allowed values of the `@run-at`
+               directive in the greasemonkey metadata spec.
+        """
+        greasemonkey = objreg.get('greasemonkey')
+        url = self.currentFrame().url()
+        start_scripts, end_scripts = greasemonkey.scripts_for(url.toDisplayString())
+        log.greasemonkey.debug('scripts: {}'.format(start_scripts if start else end_scripts))
+
+        toload = []
+        if load == "start":
+            toload = start_scripts
+        elif load == "end":
+            toload = end_scripts
+
+        for script in toload:
+            log.webview.debug('Running GM script: {}'.format(script.name))
+            self.currentFrame().evaluateJavaScript(script.code())
 
     @pyqtSlot('QWebFrame*', 'QWebPage::Feature')
     def _on_feature_permission_requested(self, frame, feature):
