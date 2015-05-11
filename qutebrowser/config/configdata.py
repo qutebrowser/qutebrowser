@@ -820,7 +820,7 @@ def data(readonly=False):
              SettingValue(typ.QssColor(), 'purple'),
              "Background color of the statusbar in caret mode."),
 
-            ('statusbar.bg.caret_selection',
+            ('statusbar.bg.caret-selection',
              SettingValue(typ.QssColor(), '#a12dff'),
              "Background color of the statusbar in caret selection enabled mode."),
 

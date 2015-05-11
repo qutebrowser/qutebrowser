@@ -108,7 +108,7 @@ class StatusBar(QWidget):
         }
 
         QWidget#StatusBar[caret_selection_active="true"] {
-            {{ color['statusbar.bg.caret_selection'] }}
+            {{ color['statusbar.bg.caret-selection'] }}
         }
 
         QWidget#StatusBar[prompt_active="true"] {
