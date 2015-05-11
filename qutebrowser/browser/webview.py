@@ -378,6 +378,8 @@ class WebView(QWebView):
         if url.isValid():
             self.cur_url = url
             self.url_text_changed.emit(url.toDisplayString())
+            if not self.title():
+                self.titleChanged.emit(self.url().toDisplayString())
 
     @pyqtSlot('QMouseEvent')
     def on_mouse_event(self, evt):
@@ -396,7 +398,7 @@ class WebView(QWebView):
 
     @pyqtSlot()
     def on_load_finished(self):
-        """Handle auto-insert-mode after loading finished.
+        """Handle a finished page load.
 
         We don't take loadFinished's ok argument here as it always seems to be
         true when the QWebPage has an ErrorPageExtension implemented.
@@ -409,6 +411,12 @@ class WebView(QWebView):
             self._set_load_status(LoadStatus.warn)
         else:
             self._set_load_status(LoadStatus.error)
+        if not self.title():
+            self.titleChanged.emit(self.url().toDisplayString())
+        self._handle_auto_insert_mode(ok)
+
+    def _handle_auto_insert_mode(self, ok):
+        """Handle auto-insert-mode after loading finished."""
         if not config.get('input', 'auto-insert-mode'):
             return
         mode_manager = objreg.get('mode-manager', scope='window',
