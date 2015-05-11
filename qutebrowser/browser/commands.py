@@ -42,7 +42,6 @@ from qutebrowser.utils import (message, usertypes, log, qtutils, urlutils,
                                objreg, utils)
 from qutebrowser.utils.usertypes import KeyMode
 from qutebrowser.misc import editor
-from qutebrowser.keyinput import modeman
 
 
 class CommandDispatcher:
@@ -1267,9 +1266,11 @@ class CommandDispatcher:
         """Move the cursor or select to the start of next block."""
         webview = self._current_widget()
         if not webview.selection_enabled:
-            act = [QWebPage.MoveToEndOfBlock, QWebPage.MoveToNextLine, QWebPage.MoveToStartOfBlock]
+            act = [QWebPage.MoveToEndOfBlock, QWebPage.MoveToNextLine,
+                   QWebPage.MoveToStartOfBlock]
         else:
-            act = [QWebPage.SelectEndOfBlock, QWebPage.SelectNextLine, QWebPage.SelectStartOfBlock]
+            act = [QWebPage.SelectEndOfBlock, QWebPage.SelectNextLine,
+                   QWebPage.SelectStartOfBlock]
         for _ in range(count):
             for a in act:
                 webview.triggerPageAction(a)
@@ -1280,9 +1281,11 @@ class CommandDispatcher:
         """Move the cursor or select to the start of previous block."""
         webview = self._current_widget()
         if not webview.selection_enabled:
-            act = [QWebPage.MoveToStartOfBlock, QWebPage.MoveToPreviousLine, QWebPage.MoveToStartOfBlock]
+            act = [QWebPage.MoveToStartOfBlock, QWebPage.MoveToPreviousLine,
+                   QWebPage.MoveToStartOfBlock]
         else:
-            act = [QWebPage.SelectStartOfBlock, QWebPage.SelectPreviousLine, QWebPage.SelectStartOfBlock]
+            act = [QWebPage.SelectStartOfBlock, QWebPage.SelectPreviousLine,
+                   QWebPage.SelectStartOfBlock]
         for _ in range(count):
             for a in act:
                 webview.triggerPageAction(a)
@@ -1293,9 +1296,11 @@ class CommandDispatcher:
         """Move the cursor or select to the end of next block."""
         webview = self._current_widget()
         if not webview.selection_enabled:
-            act = [QWebPage.MoveToEndOfBlock, QWebPage.MoveToNextLine, QWebPage.MoveToEndOfBlock]
+            act = [QWebPage.MoveToEndOfBlock, QWebPage.MoveToNextLine,
+                   QWebPage.MoveToEndOfBlock]
         else:
-            act = [QWebPage.SelectEndOfBlock, QWebPage.SelectNextLine, QWebPage.SelectEndOfBlock]
+            act = [QWebPage.SelectEndOfBlock, QWebPage.SelectNextLine,
+                   QWebPage.SelectEndOfBlock]
         for _ in range(count):
             for a in act:
                 webview.triggerPageAction(a)
@@ -1306,9 +1311,11 @@ class CommandDispatcher:
         """Move the cursor or select to the end of previous block."""
         webview = self._current_widget()
         if not webview.selection_enabled:
-            act = [QWebPage.MoveToStartOfBlock, QWebPage.MoveToPreviousLine, QWebPage.MoveToEndOfBlock]
+            act = [QWebPage.MoveToStartOfBlock, QWebPage.MoveToPreviousLine,
+                   QWebPage.MoveToEndOfBlock]
         else:
-            act = [QWebPage.SelectStartOfBlock, QWebPage.SelectPreviousLine, QWebPage.SelectEndOfBlock]
+            act = [QWebPage.SelectStartOfBlock, QWebPage.SelectPreviousLine,
+                   QWebPage.SelectEndOfBlock]
         for _ in range(count):
             for a in act:
                 webview.triggerPageAction(a)
@@ -1364,8 +1371,10 @@ class CommandDispatcher:
                        modes=[KeyMode.caret], scope='window')
     def toggle_selection(self):
         """Toggle caret selection mode."""
-        self._current_widget().selection_enabled = not self._current_widget().selection_enabled
-        mainwindow = objreg.get('main-window', scope='window', window=self._win_id)
+        widget = self._current_widget()
+        widget.selection_enabled = not widget.selection_enabled
+        mainwindow = objreg.get('main-window', scope='window',
+                                window=self._win_id)
         mainwindow.status.on_mode_entered(usertypes.KeyMode.caret)
 
     @cmdutils.register(instance='command-dispatcher', hide=True,

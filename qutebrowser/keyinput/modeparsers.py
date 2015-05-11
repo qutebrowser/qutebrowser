@@ -231,4 +231,3 @@ class CaretKeyParser(keyparser.CommandKeyParser):
 
     def __repr__(self):
         return utils.get_repr(self)
-

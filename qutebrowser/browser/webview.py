@@ -106,7 +106,7 @@ class WebView(QWebView):
         self.keep_icon = False
         self.search_text = None
         self.search_flags = 0
-        self.selection_enabled = False;
+        self.selection_enabled = False
         self.init_neighborlist()
         cfg = objreg.get('config')
         cfg.changed.connect(self.init_neighborlist)
@@ -441,13 +441,14 @@ class WebView(QWebView):
             settings.setAttribute(QWebSettings.CaretBrowsingEnabled, True)
             self.selection_enabled = False
 
-            tabbed = objreg.get('tabbed-browser', scope='window', window=self.win_id)
-            if tabbed.currentWidget().tab_id == self.tab_id:
+            tabbed_browser = objreg.get('tabbed-browser', scope='window',
+                                        window=self.win_id)
+            if tabbed_browser.currentWidget().tab_id == self.tab_id:
                 self.clearFocus()
                 self.setFocus(Qt.OtherFocusReason)
 
                 self.page().currentFrame().evaluateJavaScript(
-                        utils.read_file('javascript/position_caret.js'))
+                    utils.read_file('javascript/position_caret.js'))
 
     @pyqtSlot(usertypes.KeyMode)
     def on_mode_left(self, mode):
@@ -463,7 +464,7 @@ class WebView(QWebView):
                     # Remove selection if exist
                     self.triggerPageAction(QWebPage.MoveToNextChar)
                 settings.setAttribute(QWebSettings.CaretBrowsingEnabled, False)
-                self.selection_enabled = False;
+                self.selection_enabled = False
 
         self.setFocusPolicy(Qt.WheelFocus)
 
