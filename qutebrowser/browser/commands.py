@@ -1154,7 +1154,11 @@ class CommandDispatcher:
     @cmdutils.register(instance='command-dispatcher', hide=True,
                        modes=[KeyMode.caret], scope='window', count='count')
     def move_to_next_line(self, count=1):
-        """Move the cursor or select to the next line."""
+        """Move the cursor or selection to the next line.
+
+        Args:
+            count: How many lines to move.
+        """
         webview = self._current_widget()
         if not webview.selection_enabled:
             act = QWebPage.MoveToNextLine
@@ -1166,7 +1170,11 @@ class CommandDispatcher:
     @cmdutils.register(instance='command-dispatcher', hide=True,
                        modes=[KeyMode.caret], scope='window', count='count')
     def move_to_prev_line(self, count=1):
-        """Move the cursor or select to the prev line."""
+        """Move the cursor or selection to the prev line.
+
+        Args:
+            count: How many lines to move.
+        """
         webview = self._current_widget()
         if not webview.selection_enabled:
             act = QWebPage.MoveToPreviousLine
@@ -1178,7 +1186,11 @@ class CommandDispatcher:
     @cmdutils.register(instance='command-dispatcher', hide=True,
                        modes=[KeyMode.caret], scope='window', count='count')
     def move_to_next_char(self, count=1):
-        """Move the cursor or select to the next char."""
+        """Move the cursor or selection to the next char.
+
+        Args:
+            count: How many lines to move.
+        """
         webview = self._current_widget()
         if not webview.selection_enabled:
             act = QWebPage.MoveToNextChar
@@ -1190,7 +1202,11 @@ class CommandDispatcher:
     @cmdutils.register(instance='command-dispatcher', hide=True,
                        modes=[KeyMode.caret], scope='window', count='count')
     def move_to_prev_char(self, count=1):
-        """Move the cursor or select to the prev char."""
+        """Move the cursor or selection to the previous char.
+
+        Args:
+            count: How many chars to move.
+        """
         webview = self._current_widget()
         if not webview.selection_enabled:
             act = QWebPage.MoveToPreviousChar
@@ -1202,7 +1218,11 @@ class CommandDispatcher:
     @cmdutils.register(instance='command-dispatcher', hide=True,
                        modes=[KeyMode.caret], scope='window', count='count')
     def move_to_end_of_word(self, count=1):
-        """Move the cursor or select to the next word."""
+        """Move the cursor or selection to the end of the word.
+
+        Args:
+            count: How many words to move.
+        """
         webview = self._current_widget()
         if not webview.selection_enabled:
             act = QWebPage.MoveToNextWord
@@ -1214,7 +1234,11 @@ class CommandDispatcher:
     @cmdutils.register(instance='command-dispatcher', hide=True,
                        modes=[KeyMode.caret], scope='window', count='count')
     def move_to_next_word(self, count=1):
-        """Move the cursor or select to the next word."""
+        """Move the cursor or selection to the next word.
+
+        Args:
+            count: How many words to move.
+        """
         webview = self._current_widget()
         if not webview.selection_enabled:
             act = [QWebPage.MoveToNextWord, QWebPage.MoveToNextChar]
@@ -1227,7 +1251,11 @@ class CommandDispatcher:
     @cmdutils.register(instance='command-dispatcher', hide=True,
                        modes=[KeyMode.caret], scope='window', count='count')
     def move_to_prev_word(self, count=1):
-        """Move the cursor or select to the prev word."""
+        """Move the cursor or selection to the previous word.
+
+        Args:
+            count: How many words to move.
+        """
         webview = self._current_widget()
         if not webview.selection_enabled:
             act = QWebPage.MoveToPreviousWord
@@ -1263,7 +1291,11 @@ class CommandDispatcher:
     @cmdutils.register(instance='command-dispatcher', hide=True,
                        modes=[KeyMode.caret], scope='window', count='count')
     def move_to_start_of_next_block(self, count=1):
-        """Move the cursor or select to the start of next block."""
+        """Move the cursor or selection to the start of next block.
+
+        Args:
+            count: How many blocks to move.
+        """
         webview = self._current_widget()
         if not webview.selection_enabled:
             act = [QWebPage.MoveToEndOfBlock, QWebPage.MoveToNextLine,
@@ -1278,7 +1310,11 @@ class CommandDispatcher:
     @cmdutils.register(instance='command-dispatcher', hide=True,
                        modes=[KeyMode.caret], scope='window', count='count')
     def move_to_start_of_prev_block(self, count=1):
-        """Move the cursor or select to the start of previous block."""
+        """Move the cursor or selection to the start of previous block.
+
+        Args:
+            count: How many blocks to move.
+        """
         webview = self._current_widget()
         if not webview.selection_enabled:
             act = [QWebPage.MoveToStartOfBlock, QWebPage.MoveToPreviousLine,
@@ -1293,7 +1329,11 @@ class CommandDispatcher:
     @cmdutils.register(instance='command-dispatcher', hide=True,
                        modes=[KeyMode.caret], scope='window', count='count')
     def move_to_end_of_next_block(self, count=1):
-        """Move the cursor or select to the end of next block."""
+        """Move the cursor or selection to the end of next block.
+
+        Args:
+            count: How many blocks to move.
+        """
         webview = self._current_widget()
         if not webview.selection_enabled:
             act = [QWebPage.MoveToEndOfBlock, QWebPage.MoveToNextLine,
@@ -1308,7 +1348,11 @@ class CommandDispatcher:
     @cmdutils.register(instance='command-dispatcher', hide=True,
                        modes=[KeyMode.caret], scope='window', count='count')
     def move_to_end_of_prev_block(self, count=1):
-        """Move the cursor or select to the end of previous block."""
+        """Move the cursor or selection to the end of previous block.
+
+        Args:
+            count: How many blocks to move.
+        """
         webview = self._current_widget()
         if not webview.selection_enabled:
             act = [QWebPage.MoveToStartOfBlock, QWebPage.MoveToPreviousLine,
@@ -1323,7 +1367,8 @@ class CommandDispatcher:
     @cmdutils.register(instance='command-dispatcher', hide=True,
                        modes=[KeyMode.caret], scope='window')
     def move_to_start_of_document(self):
-        """Move the cursor or select to the start of document."""
+        """Move the cursor or selection to the start of the document."""
+
         webview = self._current_widget()
         if not webview.selection_enabled:
             act = QWebPage.MoveToStartOfDocument
@@ -1334,7 +1379,7 @@ class CommandDispatcher:
     @cmdutils.register(instance='command-dispatcher', hide=True,
                        modes=[KeyMode.caret], scope='window')
     def move_to_end_of_document(self):
-        """Move the cursor or select to the end of document."""
+        """Move the cursor or selection to the end of the document."""
         webview = self._current_widget()
         if not webview.selection_enabled:
             act = QWebPage.MoveToEndOfDocument
@@ -1345,7 +1390,7 @@ class CommandDispatcher:
     @cmdutils.register(instance='command-dispatcher', hide=True,
                        modes=[KeyMode.caret], scope='window')
     def yank_selected(self, sel=False):
-        """Yank selected text to the clipboard or primary selection.
+        """Yank the selected text to the clipboard or primary selection.
 
         Args:
             sel: Use the primary selection instead of the clipboard.
