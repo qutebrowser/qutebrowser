@@ -40,6 +40,7 @@ Fixed
 
 - Fixed searching for terms starting with a hyphen (e.g. `/-foo`)
 - Proxy authentication credentials are now remembered between different tabs.
+- Fixed updating of the tab title on pages without title.
 
 https://github.com/The-Compiler/qutebrowser/releases/tag/v0.2.1[v0.2.1]
 -----------------------------------------------------------------------
