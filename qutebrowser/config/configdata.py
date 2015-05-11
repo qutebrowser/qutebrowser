@@ -820,9 +820,9 @@ def data(readonly=False):
              SettingValue(typ.QssColor(), 'purple'),
              "Background color of the statusbar in caret mode."),
 
-            ('statusbar.bg.visual',
+            ('statusbar.bg.caret_selection',
              SettingValue(typ.QssColor(), '#a12dff'),
-             "Background color of the statusbar in visual mode."),
+             "Background color of the statusbar in caret selection enabled mode."),
 
             ('statusbar.progress.bg',
              SettingValue(typ.QssColor(), 'white'),
@@ -1259,19 +1259,10 @@ KEY_DATA = collections.OrderedDict([
         ('rl-backward-delete-char', ['<Ctrl-H>']),
     ])),
 
-    ('visual', collections.OrderedDict([
-        ('yank-selected', ['y']),
-        ('yank-selected -s', ['Y']),
-        ('drop-selection', ['v']),
-        ('enter-mode caret', ['c']),
-    ])),
-
     ('caret', collections.OrderedDict([
-        ('enter-mode visual', ['v']),
+        ('toggle-selection', ['<Space>']),
+        ('drop-selection', ['<Ctrl-Space>']),
         ('enter-mode normal', ['c']),
-    ])),
-
-    ('caret,visual', collections.OrderedDict([
         ('move-to-next-line', ['j']),
         ('move-to-prev-line', ['k']),
         ('move-to-next-char', ['l']),
@@ -1279,10 +1270,16 @@ KEY_DATA = collections.OrderedDict([
         ('move-to-end-of-word', ['e']),
         ('move-to-next-word', ['w']),
         ('move-to-prev-word', ['b']),
+        ('move-to-start-of-next-block', [']']),
+        ('move-to-start-of-prev-block', ['[']),
+        ('move-to-end-of-next-block', ['}']),
+        ('move-to-end-of-prev-block', ['{']),
         ('move-to-start-of-line', ['0']),
         ('move-to-end-of-line', ['$']),
         ('move-to-start-of-document', ['gg']),
         ('move-to-end-of-document', ['G']),
+        ('yank-selected', ['y']),
+        ('yank-selected -p', ['Y']),
         ('scroll -50 0', ['H']),
         ('scroll 0 50', ['J']),
         ('scroll 0 -50', ['K']),

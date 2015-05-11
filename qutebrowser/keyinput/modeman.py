@@ -79,7 +79,6 @@ def init(win_id, parent):
                                                   warn=False),
         KM.yesno: modeparsers.PromptKeyParser(win_id, modeman),
         KM.caret: modeparsers.CaretKeyParser(win_id, modeman),
-        KM.visual: modeparsers.VisualKeyParser(win_id, modeman),
     }
     objreg.register('keyparsers', keyparsers, scope='window', window=win_id)
     modeman.destroyed.connect(
@@ -95,7 +94,6 @@ def init(win_id, parent):
     modeman.register(KM.prompt, keyparsers[KM.prompt].handle, passthrough=True)
     modeman.register(KM.yesno, keyparsers[KM.yesno].handle)
     modeman.register(KM.caret, keyparsers[KM.caret].handle, passthrough=True)
-    modeman.register(KM.visual, keyparsers[KM.visual].handle, passthrough=True)
     return modeman
 
 

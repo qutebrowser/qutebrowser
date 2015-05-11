@@ -106,6 +106,7 @@ class WebView(QWebView):
         self.keep_icon = False
         self.search_text = None
         self.search_flags = 0
+        self.selection_enabled = False;
         self.init_neighborlist()
         cfg = objreg.get('config')
         cfg.changed.connect(self.init_neighborlist)
@@ -435,11 +436,18 @@ class WebView(QWebView):
             log.webview.debug("Ignoring focus because mode {} was "
                               "entered.".format(mode))
             self.setFocusPolicy(Qt.NoFocus)
-        elif mode in (usertypes.KeyMode.caret, usertypes.KeyMode.visual):
+        elif mode == usertypes.KeyMode.caret:
             settings = self.settings()
             settings.setAttribute(QWebSettings.CaretBrowsingEnabled, True)
-            self.clearFocus()
-            self.setFocus(Qt.OtherFocusReason)
+            self.selection_enabled = False
+
+            tabbed = objreg.get('tabbed-browser', scope='window', window=self.win_id)
+            if tabbed.currentWidget().tab_id == self.tab_id:
+                self.clearFocus()
+                self.setFocus(Qt.OtherFocusReason)
+
+                self.page().currentFrame().evaluateJavaScript(
+                        utils.read_file('javascript/position_caret.js'))
 
     @pyqtSlot(usertypes.KeyMode)
     def on_mode_left(self, mode):
@@ -448,13 +456,14 @@ class WebView(QWebView):
                     usertypes.KeyMode.yesno):
             log.webview.debug("Restoring focus policy because mode {} was "
                               "left.".format(mode))
-        elif mode in (usertypes.KeyMode.caret, usertypes.KeyMode.visual):
+        elif mode == usertypes.KeyMode.caret:
             settings = self.settings()
             if settings.testAttribute(QWebSettings.CaretBrowsingEnabled):
-                if mode == usertypes.KeyMode.visual and self.hasSelection():
+                if self.selection_enabled and self.hasSelection():
                     # Remove selection if exist
                     self.triggerPageAction(QWebPage.MoveToNextChar)
                 settings.setAttribute(QWebSettings.CaretBrowsingEnabled, False)
+                self.selection_enabled = False;
 
         self.setFocusPolicy(Qt.WheelFocus)
 
