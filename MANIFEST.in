@@ -2,6 +2,7 @@ global-exclude __pycache__ *.pyc *.pyo
 
 recursive-include qutebrowser/html *.html
 recursive-include qutebrowser/test *.py
+recursive-include qutebrowser/javascript *.js
 graft icons
 graft scripts/pylint_checkers
 graft doc/img
