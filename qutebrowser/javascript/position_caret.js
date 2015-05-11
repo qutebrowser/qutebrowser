@@ -64,7 +64,7 @@ function isElementInViewport(node) {
     return boundingRect.top >= -20;
 }
 
-var walker = document.createTreeWalker(document.body, 4, null, false);
+var walker = document.createTreeWalker(document.body, 4, null);
 var node;
 var textNodes = [];
 while (node = walker.nextNode()) {
