@@ -1368,7 +1368,6 @@ class CommandDispatcher:
                        modes=[KeyMode.caret], scope='window')
     def move_to_start_of_document(self):
         """Move the cursor or selection to the start of the document."""
-
         webview = self._current_widget()
         if not webview.selection_enabled:
             act = QWebPage.MoveToStartOfDocument
