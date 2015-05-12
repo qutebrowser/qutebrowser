@@ -28,7 +28,7 @@
 # Use the hotkey to open in new tab/window, press 'o' to open URL in current tab/window
 # You can simulate "go" by pressing "o<tab>", as the current URL is always first in the list
 #
-# I personally use "<Mod4>o" to launchq this script. For me, my workflow is:
+# I personally use "<Mod4>o" to launch this script. For me, my workflow is:
 #	Default	keys		Keys with this script
 #	O			<Mod4>o
 #	o			o
