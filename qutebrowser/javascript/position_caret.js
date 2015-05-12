@@ -54,7 +54,8 @@ function isElementInViewport(node) {
     if (boundingRect.width <= 1 || boundingRect.height <= 1) {
         var children = node.children;
         var visibleChildNode = false;
-        for (i = 0, l = children.length; i < l; ++i) {
+        var l = children.length;
+        for (i = 0; i < l; ++i) {
             boundingRect = (children[i].getClientRects()[0] ||
                             children[i].getBoundingClientRect());
             if (boundingRect.width > 1 && boundingRect.height > 1) {
@@ -85,6 +86,7 @@ function isElementInViewport(node) {
     var walker = document.createTreeWalker(document.body, 4, null);
     var node;
     var textNodes = [];
+    var el;
     while (node = walker.nextNode()) {
         if (node.nodeType === 3 && node.data.trim() !== '') {
             textNodes.push(node);
