@@ -801,7 +801,7 @@ def data(readonly=False):
              "Foreground color of the statusbar."),
 
             ('statusbar.fg.error',
-             SettingValue(typ.QssColor(), 'white'),
+             SettingValue(typ.QssColor(), '${statusbar.fg}'),
              "Foreground color of the statusbar if there was an error."),
 
             ('statusbar.bg.error',
@@ -809,7 +809,7 @@ def data(readonly=False):
              "Background color of the statusbar if there was an error."),
 
             ('statusbar.fg.warning',
-             SettingValue(typ.QssColor(), 'white'),
+             SettingValue(typ.QssColor(), '${statusbar.fg}'),
              "Foreground color of the statusbar if there is a warning."),
 
             ('statusbar.bg.warning',
@@ -817,7 +817,7 @@ def data(readonly=False):
              "Background color of the statusbar if there is a warning."),
 
             ('statusbar.fg.prompt',
-             SettingValue(typ.QssColor(), 'white'),
+             SettingValue(typ.QssColor(), '${statusbar.fg}'),
              "Foreground color of the statusbar if there is a prompt."),
 
             ('statusbar.bg.prompt',
@@ -825,7 +825,7 @@ def data(readonly=False):
              "Background color of the statusbar if there is a prompt."),
 
             ('statusbar.fg.insert',
-             SettingValue(typ.QssColor(), 'white'),
+             SettingValue(typ.QssColor(), '${statusbar.fg}'),
              "Foreground color of the statusbar in insert mode."),
 
             ('statusbar.bg.insert',
