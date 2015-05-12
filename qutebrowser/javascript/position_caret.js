@@ -81,27 +81,28 @@ function isElementInViewport(node) {
     return boundingRect.top >= -20;
 }
 
-
-var walker = document.createTreeWalker(document.body, 4, null);
-var node;
-var textNodes = [];
-while (node = walker.nextNode()) {
-    if (node.nodeType === 3 && node.data.trim() !== '') {
-        textNodes.push(node);
+(function() {
+    var walker = document.createTreeWalker(document.body, 4, null);
+    var node;
+    var textNodes = [];
+    while (node = walker.nextNode()) {
+        if (node.nodeType === 3 && node.data.trim() !== '') {
+            textNodes.push(node);
+        }
     }
-}
-for (var i = 0; i < textNodes.length; i++) {
-    var element = textNodes[i].parentElement;
-    if (isElementInViewport(element.parentElement)) {
-        el = element;
-        break;
+    for (var i = 0; i < textNodes.length; i++) {
+        var element = textNodes[i].parentElement;
+        if (isElementInViewport(element.parentElement)) {
+            el = element;
+            break;
+        }
     }
-}
-if (el !== undefined) {
-    var range = document.createRange();
-    range.setStart(el, 0);
-    range.setEnd(el, 0);
-    var sel = window.getSelection();
-    sel.removeAllRanges();
-    sel.addRange(range);
-}
+    if (el !== undefined) {
+        var range = document.createRange();
+        range.setStart(el, 0);
+        range.setEnd(el, 0);
+        var sel = window.getSelection();
+        sel.removeAllRanges();
+        sel.addRange(range);
+    }
+})();
