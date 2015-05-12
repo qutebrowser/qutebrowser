@@ -87,7 +87,7 @@ function isElementInViewport(node) {
     var node;
     var textNodes = [];
     var el;
-    while (node = walker.nextNode()) {
+    while ((node = walker.nextNode())) {
         if (node.nodeType === 3 && node.data.trim() !== '') {
             textNodes.push(node);
         }

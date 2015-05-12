@@ -20,7 +20,6 @@ rules:
     brace-style: [2, "1tbs", {"allowSingleLine": true}]
     comma-style: [2, "last"]
     consistent-this: [2, "self"]
-    func-names: 2
     func-style: [2, "declaration"]
     indent: [2, 4, {"indentSwitchCase": true}]
     linebreak-style: [2, "unix"]
@@ -33,7 +32,7 @@ rules:
     operator-linebreak: [2, "after"]
     space-after-keywords: [2, "always"]
     space-before-blocks: [2, "always"]
-    space-before-function-paren: [2, {"anonymous": "always", "named": "never"}]
+    space-before-function-paren: [2, {"anonymous": "never", "named": "never"}]
     space-in-brackets: [2, "never"]
     space-in-parens: [2, "never"]
     space-unary-ops: [2, {"words": true, "nonwords": false}]
@@ -45,3 +44,4 @@ rules:
     no-bitwise: 2
     no-reserved-keys: 2
     global-strict: 0
+    quotes: 0
