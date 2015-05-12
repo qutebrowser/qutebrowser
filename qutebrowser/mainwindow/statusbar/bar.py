@@ -110,6 +110,22 @@ class StatusBar(QWidget):
             {{ color['statusbar.fg.command'] }}
         }
 
+        QWidget#StatusBar[severity="error"] {
+            {{ color['statusbar.bg.error'] }}
+        }
+
+        QWidget#StatusBar[severity="error"] QLabel {
+            {{ color['statusbar.fg.error'] }}
+        }
+
+        QWidget#StatusBar[severity="warning"] {
+            {{ color['statusbar.bg.warning'] }}
+        }
+
+        QWidget#StatusBar[severity="warning"] QLabel {
+            {{ color['statusbar.fg.warning'] }}
+        }
+
         QWidget#StatusBar[prompt_active="true"] {
             {{ color['statusbar.bg.prompt'] }}
         }
@@ -132,22 +148,6 @@ class StatusBar(QWidget):
 
         QWidget#StatusBar[command_active="true"] {
             {{ color['statusbar.bg.command'] }}
-        }
-
-        QWidget#StatusBar[severity="error"] {
-            {{ color['statusbar.bg.error'] }}
-        }
-
-        QWidget#StatusBar[severity="error"] QLabel {
-            {{ color['statusbar.fg.error'] }}
-        }
-
-        QWidget#StatusBar[severity="warning"] {
-            {{ color['statusbar.bg.warning'] }}
-        }
-
-        QWidget#StatusBar[severity="warning"] QLabel {
-            {{ color['statusbar.fg.warning'] }}
         }
 
         QLabel, QLineEdit {
