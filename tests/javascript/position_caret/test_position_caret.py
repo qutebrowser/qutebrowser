@@ -76,3 +76,10 @@ def test_scrolled_down(caret_tester):
     caret_tester.js.scroll_anchor('anchor')
     caret_tester.check_scrolled()
     caret_tester.check()
+
+
+@pytest.mark.parametrize('style', ['visibility: hidden', 'display: none'])
+def test_invisible(caret_tester, style):
+    """Test with hidden text elements."""
+    caret_tester.js.load('position_caret/invisible.html', style=style)
+    caret_tester.check()

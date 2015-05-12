@@ -83,16 +83,17 @@ class JSTester:
         with self._qtbot.waitSignal(page.scrollRequested):
             page.mainFrame().scrollToAnchor(name)
 
-    def load(self, path):
+    def load(self, path, **kwargs):
         """Load and display the given test data.
 
         Args:
             path: The path to the test file, relative to the javascript/
                   folder.
+            **kwargs: Passed to jinja's template.render().
         """
         template = self._jinja_env.get_template(path)
         with self._qtbot.waitSignal(self.webview.loadFinished):
-            self.webview.setHtml(template.render())
+            self.webview.setHtml(template.render(**kwargs))
 
     def run_file(self, filename):
         """Run a javascript file.
