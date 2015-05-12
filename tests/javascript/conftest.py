@@ -21,13 +21,43 @@
 
 import os
 import os.path
+import logging
 
 import pytest
 import jinja2
 from PyQt5.QtWebKit import QWebSettings
-from PyQt5.QtWebKitWidgets import QWebView
+from PyQt5.QtWebKitWidgets import QWebView, QWebPage
 
 import qutebrowser
+
+
+class TestWebPage(QWebPage):
+
+    """QWebPage subclass which overrides some test methods.
+
+    Attributes:
+        _logger: The logger used for alerts.
+    """
+
+    def __init__(self, parent=None):
+        super().__init__(parent)
+        self._logger = logging.getLogger('js-tests')
+
+    def javaScriptAlert(self, _frame, msg):
+        """Log javascript alerts."""
+        self._logger.info("js alert: {}".format(msg))
+
+    def javaScriptConfirm(self, _frame, msg):
+        """Fail tests on js confirm() as that should never happen."""
+        pytest.fail("js confirm: {}".format(msg))
+
+    def javaScriptPrompt(self, _frame, msg, _default):
+        """Fail tests on js prompt() as that should never happen."""
+        pytest.fail("js prompt: {}".format(msg))
+
+    def javaScriptConsoleMessage(self, msg, line, source):
+        """Fail tests on js console messages as they're used for errors."""
+        pytest.fail("js console ({}:{}): {}".format(source, line, msg))
 
 
 class JSTester:
@@ -42,6 +72,7 @@ class JSTester:
 
     def __init__(self, webview, qtbot):
         self.webview = webview
+        self.webview.setPage(TestWebPage(self.webview))
         self._qtbot = qtbot
         loader = jinja2.FileSystemLoader(os.path.dirname(__file__))
         self._jinja_env = jinja2.Environment(loader=loader, autoescape=True)
