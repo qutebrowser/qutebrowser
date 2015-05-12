@@ -77,6 +77,10 @@ class StatusBar(QWidget):
                         For some reason we need to have this as class attribute
                         so pyqtProperty works correctly.
 
+        _command_active: If we're currently in command mode.
+
+                        For some reason we need to have this as class attribute
+                        so pyqtProperty works correctly.
     Signals:
         resized: Emitted when the statusbar has resized, so the completion
                  widget can adjust its size to it.
@@ -91,6 +95,7 @@ class StatusBar(QWidget):
     _severity = None
     _prompt_active = False
     _insert_active = False
+    _command_active = False
 
     STYLESHEET = """
         QWidget#StatusBar {
@@ -101,12 +106,8 @@ class StatusBar(QWidget):
             {{ color['statusbar.fg'] }}
         }
 
-        QWidget#StatusBar[insert_active="true"] {
-            {{ color['statusbar.bg.insert'] }}
-        }
-
-        QWidget#StatusBar[insert_active="true"] QLabel {
-            {{ color['statusbar.fg.insert'] }}
+        QWidget#StatusBar QLineEdit {
+            {{ color['statusbar.fg.command'] }}
         }
 
         QWidget#StatusBar[prompt_active="true"] {
@@ -115,6 +116,22 @@ class StatusBar(QWidget):
 
         QWidget#StatusBar[prompt_active="true"] QLabel {
             {{ color['statusbar.fg.prompt'] }}
+        }
+
+        QWidget#StatusBar[insert_active="true"] {
+            {{ color['statusbar.bg.insert'] }}
+        }
+
+        QWidget#StatusBar[insert_active="true"] QLabel {
+            {{ color['statusbar.fg.insert'] }}
+        }
+
+        QWidget#StatusBar[command_active="true"] QLabel {
+            {{ color['statusbar.fg.command'] }}
+        }
+
+        QWidget#StatusBar[command_active="true"] {
+            {{ color['statusbar.bg.command'] }}
         }
 
         QWidget#StatusBar[severity="error"] {
@@ -134,7 +151,6 @@ class StatusBar(QWidget):
         }
 
         QLabel, QLineEdit {
-            {{ color['statusbar.fg'] }}
             {{ font['statusbar'] }}
         }
 
@@ -267,6 +283,21 @@ class StatusBar(QWidget):
         """
         log.statusbar.debug("Setting prompt_active to {}".format(val))
         self._prompt_active = val
+        self.setStyleSheet(style.get_stylesheet(self.STYLESHEET))
+
+    @pyqtProperty(bool)
+    def command_active(self):
+        """Getter for self.command_active, so it can be used as Qt property."""
+        return self._command_active
+
+    def _set_command_active(self, val):
+        """Setter for self._command_active.
+
+        Re-set the stylesheet after setting the value, so everything gets
+        updated by Qt properly.
+        """
+        log.statusbar.debug("Setting command_active to {}".format(val))
+        self._command_active = val
         self.setStyleSheet(style.get_stylesheet(self.STYLESHEET))
 
     @pyqtProperty(bool)
@@ -461,6 +492,8 @@ class StatusBar(QWidget):
             self._set_mode_text(mode.name)
         if mode == usertypes.KeyMode.insert:
             self._set_insert_active(True)
+        if mode == usertypes.KeyMode.command:
+            self._set_command_active(True)
 
     @pyqtSlot(usertypes.KeyMode, usertypes.KeyMode)
     def on_mode_left(self, old_mode, new_mode):
@@ -474,6 +507,8 @@ class StatusBar(QWidget):
                 self.txt.set_text(self.txt.Text.normal, '')
         if old_mode == usertypes.KeyMode.insert:
             self._set_insert_active(False)
+        if old_mode == usertypes.KeyMode.command:
+            self._set_command_active(False)
 
     @config.change_filter('ui', 'message-timeout')
     def set_pop_timer_interval(self):

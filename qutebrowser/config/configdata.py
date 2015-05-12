@@ -832,6 +832,14 @@ def data(readonly=False):
              SettingValue(typ.QssColor(), 'darkgreen'),
              "Background color of the statusbar in insert mode."),
 
+            ('statusbar.fg.command',
+             SettingValue(typ.QssColor(), '${statusbar.fg}'),
+             "Foreground color of the statusbar in command mode."),
+
+            ('statusbar.bg.command',
+             SettingValue(typ.QssColor(), '${statusbar.bg}'),
+             "Background color of the statusbar in command mode."),
+
             ('statusbar.progress.bg',
              SettingValue(typ.QssColor(), 'white'),
              "Background color of the progress bar."),
