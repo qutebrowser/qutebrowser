@@ -83,3 +83,12 @@ def test_invisible(caret_tester, style):
     """Test with hidden text elements."""
     caret_tester.js.load('position_caret/invisible.html', style=style)
     caret_tester.check()
+
+
+def test_scrolled_down_img(caret_tester):
+    """Test with an image at the top with the viewport scrolled down."""
+    caret_tester.js.load('position_caret/scrolled_down_img.html')
+    caret_tester.js.scroll_anchor('anchor')
+    caret_tester.check_scrolled()
+    caret_tester.check()
+
