@@ -5,7 +5,6 @@ env:
 
 rules:
     block-scoped-var: 2
-    complexity: [2, 5]
     dot-location: 2
     default-case: 2
     guard-for-in: 2
@@ -42,6 +41,7 @@ rules:
     max-depth: [2, 5]
     max-len: [2, 79, 4]
     max-params: [2, 5]
-    max-statements: [2, 20]
+    max-statements: [2, 30]
     no-bitwise: 2
     no-reserved-keys: 2
+    global-strict: 0
