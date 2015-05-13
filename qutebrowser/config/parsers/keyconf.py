@@ -237,7 +237,6 @@ class KeyConfigParser(QObject):
             only_new: If set, only keybindings which are completely unused
                       (same command/key not bound) are added.
         """
-
         # {'sectname': {'keychain1': 'command', 'keychain2': 'command'}, ...}
         bindings_to_add = collections.OrderedDict()
 
