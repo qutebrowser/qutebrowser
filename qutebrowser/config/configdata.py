@@ -1140,8 +1140,8 @@ KEY_DATA = collections.OrderedDict([
         ('hint links fill ":open -b {hint-url}"', ['.o']),
         ('hint links yank', [';y']),
         ('hint links yank-primary', [';Y']),
-        ('hint links rapid', [';r']),
-        ('hint links rapid-win', [';R']),
+        ('hint --rapid links tab-bg', [';r']),
+        ('hint --rapid links window', [';R']),
         ('hint links download', [';d']),
         ('scroll -50 0', ['h']),
         ('scroll 0 50', ['j']),
@@ -1266,4 +1266,6 @@ CHANGED_KEY_COMMANDS = [
     (re.compile(r"^search ''$"), r'search'),
     (re.compile(r"""^set-cmd-text ['"](.*) ['"]$"""), r'set-cmd-text -s \1'),
     (re.compile(r"""^set-cmd-text ['"](.*)['"]$"""), r'set-cmd-text \1'),
+    (re.compile(r"^hint links rapid$"), r'hint --rapid links tab-bg'),
+    (re.compile(r"^hint links rapid-win$"), r'hint --rapid links window'),
 ]

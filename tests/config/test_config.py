@@ -208,6 +208,8 @@ class TestKeyConfigParser:
             ('set-cmd-text foo bar', None),
             ('set-cmd-text "foo bar "', 'set-cmd-text -s foo bar'),
             ("set-cmd-text 'foo bar '", 'set-cmd-text -s foo bar'),
+            ('hint links rapid', 'hint --rapid links tab-bg'),
+            ('hint links rapid-win', 'hint --rapid links window'),
         ]
     )
     def test_migrations(self, old, new_expected):
