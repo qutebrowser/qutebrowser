@@ -94,4 +94,3 @@ def test_scrolled_down_img(caret_tester):
     caret_tester.js.scroll_anchor('anchor')
     caret_tester.check_scrolled()
     caret_tester.check()
-
