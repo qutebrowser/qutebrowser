@@ -38,6 +38,7 @@ import pygments.formatters
 from qutebrowser.commands import userscripts, cmdexc, cmdutils
 from qutebrowser.config import config, configexc
 from qutebrowser.browser import webelem, inspector
+from qutebrowser.keyinput import modeman
 from qutebrowser.utils import (message, usertypes, log, qtutils, urlutils,
                                objreg, utils)
 from qutebrowser.utils.usertypes import KeyMode
@@ -1388,11 +1389,12 @@ class CommandDispatcher:
 
     @cmdutils.register(instance='command-dispatcher', hide=True,
                        modes=[KeyMode.caret], scope='window')
-    def yank_selected(self, sel=False):
+    def yank_selected(self, sel=False, leave=False):
         """Yank the selected text to the clipboard or primary selection.
 
         Args:
             sel: Use the primary selection instead of the clipboard.
+            leave: If given, leave visual mode after yanking.
         """
         s = self._current_widget().selectedText()
         if not self._current_widget().hasSelection() or len(s) == 0:
@@ -1410,6 +1412,8 @@ class CommandDispatcher:
         clipboard.setText(s, mode)
         message.info(self._win_id, "{} {} yanked to {}".format(
             len(s), "char" if len(s) == 1 else "chars", target))
+        if leave:
+            modeman.leave(self._win_id, KeyMode.caret, "yank selected")
 
     @cmdutils.register(instance='command-dispatcher', hide=True,
                        modes=[KeyMode.caret], scope='window')
