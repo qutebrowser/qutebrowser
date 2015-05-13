@@ -26,11 +26,14 @@ from PyQt5.QtWebKit import QWebSettings
 from PyQt5.QtWebKitWidgets import QWebPage
 
 
-@pytest.fixture(autouse=True)
+@pytest.yield_fixture(autouse=True)
 def enable_caret_browsing():
     """Fixture to enable caret browsing globally."""
-    QWebSettings.globalSettings().setAttribute(
-        QWebSettings.CaretBrowsingEnabled, True)
+    settings = QWebSettings.globalSettings()
+    old_value = settings.testAttribute(QWebSettings.CaretBrowsingEnabled)
+    settings.setAttribute(QWebSettings.CaretBrowsingEnabled, True)
+    yield
+    settings.setAttribute(QWebSettings.CaretBrowsingEnabled, old_value)
 
 
 class CaretTester:
