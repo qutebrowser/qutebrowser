@@ -1423,7 +1423,7 @@ class CommandDispatcher:
         widget.selection_enabled = not widget.selection_enabled
         mainwindow = objreg.get('main-window', scope='window',
                                 window=self._win_id)
-        mainwindow.status.on_mode_entered(usertypes.KeyMode.caret)
+        mainwindow.status.set_mode_active(usertypes.KeyMode.caret, True)
 
     @cmdutils.register(instance='command-dispatcher', hide=True,
                        modes=[KeyMode.caret], scope='window')

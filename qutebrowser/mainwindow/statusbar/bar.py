@@ -273,7 +273,7 @@ class StatusBar(QWidget):
         """Getter for caret_selection_active, so it can be used as property."""
         return self._caret_selection_active
 
-    def _set_mode_active(self, mode, val):
+    def set_mode_active(self, mode, val):
         """Setter for self.{insert,caret}_active.
 
         Re-set the stylesheet after setting the value, so everything gets
@@ -474,7 +474,7 @@ class StatusBar(QWidget):
         if mode in mode_manager.passthrough:
             self._set_mode_text(mode.name)
         if mode in (usertypes.KeyMode.insert, usertypes.KeyMode.caret):
-            self._set_mode_active(mode, True)
+            self.set_mode_active(mode, True)
 
     @pyqtSlot(usertypes.KeyMode, usertypes.KeyMode)
     def on_mode_left(self, old_mode, new_mode):
@@ -487,7 +487,7 @@ class StatusBar(QWidget):
             else:
                 self.txt.set_text(self.txt.Text.normal, '')
         if old_mode in (usertypes.KeyMode.insert, usertypes.KeyMode.caret):
-            self._set_mode_active(old_mode, False)
+            self.set_mode_active(old_mode, False)
 
     @config.change_filter('ui', 'message-timeout')
     def set_pop_timer_interval(self):
