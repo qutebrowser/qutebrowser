@@ -1389,12 +1389,12 @@ class CommandDispatcher:
 
     @cmdutils.register(instance='command-dispatcher', hide=True,
                        modes=[KeyMode.caret], scope='window')
-    def yank_selected(self, sel=False, leave=False):
+    def yank_selected(self, sel=False, keep=False):
         """Yank the selected text to the clipboard or primary selection.
 
         Args:
             sel: Use the primary selection instead of the clipboard.
-            leave: If given, leave visual mode after yanking.
+            keep: If given, stay in visual mode after yanking.
         """
         s = self._current_widget().selectedText()
         if not self._current_widget().hasSelection() or len(s) == 0:
@@ -1412,7 +1412,7 @@ class CommandDispatcher:
         clipboard.setText(s, mode)
         message.info(self._win_id, "{} {} yanked to {}".format(
             len(s), "char" if len(s) == 1 else "chars", target))
-        if leave:
+        if not keep:
             modeman.leave(self._win_id, KeyMode.caret, "yank selected")
 
     @cmdutils.register(instance='command-dispatcher', hide=True,
