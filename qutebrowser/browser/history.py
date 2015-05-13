@@ -95,6 +95,12 @@ class WebHistory(QWebHistoryInterface):
                         line))
                     continue
                 atime, url = data
+                if atime.startswith('\0'):
+                    log.init.warning(
+                        "Removing NUL bytes from entry {!r} - see "
+                        "https://github.com/The-Compiler/qutebrowser/issues/"
+                        "670".format(data))
+                    atime = atime.lstrip('\0')
                 # This de-duplicates history entries; only the latest
                 # entry for each URL is kept. If you want to keep
                 # information about previous hits change the items in
