@@ -1261,7 +1261,7 @@ KEY_DATA = collections.OrderedDict([
     ])),
 
     ('caret', collections.OrderedDict([
-        ('toggle-selection', ['<Space>']),
+        ('toggle-selection', ['v', '<Space>']),
         ('drop-selection', ['<Ctrl-Space>']),
         ('enter-mode normal', ['c']),
         ('move-to-next-line', ['j']),
