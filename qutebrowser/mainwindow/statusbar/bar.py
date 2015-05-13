@@ -36,6 +36,7 @@ from qutebrowser.mainwindow.statusbar import text as textwidget
 PreviousWidget = usertypes.enum('PreviousWidget', ['none', 'prompt',
                                                    'command'])
 Severity = usertypes.enum('Severity', ['normal', 'warning', 'error'])
+CaretMode = usertypes.enum('CaretMode', ['off', 'on', 'selection'])
 
 
 class StatusBar(QWidget):
@@ -77,6 +78,11 @@ class StatusBar(QWidget):
                         For some reason we need to have this as class attribute
                         so pyqtProperty works correctly.
 
+        _caret_mode: The current caret mode (off/on/selection).
+
+                     For some reason we need to have this as class attribute
+                     so pyqtProperty works correctly.
+
     Signals:
         resized: Emitted when the statusbar has resized, so the completion
                  widget can adjust its size to it.
@@ -91,8 +97,7 @@ class StatusBar(QWidget):
     _severity = None
     _prompt_active = False
     _insert_active = False
-    _caret_active = False
-    _caret_selection_active = False
+    _caret_mode = CaretMode.off
 
     STYLESHEET = """
         QWidget#StatusBar {
@@ -103,11 +108,11 @@ class StatusBar(QWidget):
             {{ color['statusbar.bg.insert'] }}
         }
 
-        QWidget#StatusBar[caret_active="true"] {
+        QWidget#StatusBar[caret_mode="on"] {
             {{ color['statusbar.bg.caret'] }}
         }
 
-        QWidget#StatusBar[caret_selection_active="true"] {
+        QWidget#StatusBar[caret_mode="selection"] {
             {{ color['statusbar.bg.caret-selection'] }}
         }
 
@@ -263,15 +268,10 @@ class StatusBar(QWidget):
         """Getter for self.insert_active, so it can be used as Qt property."""
         return self._insert_active
 
-    @pyqtProperty(bool)
-    def caret_active(self):
-        """Getter for self.caret_active, so it can be used as Qt property."""
-        return self._caret_active
-
-    @pyqtProperty(bool)
-    def caret_selection_active(self):
-        """Getter for caret_selection_active, so it can be used as property."""
-        return self._caret_selection_active
+    @pyqtProperty(str)
+    def caret_mode(self):
+        """Getter for self._caret_mode, so it can be used as Qt property."""
+        return self._caret_mode.name
 
     def set_mode_active(self, mode, val):
         """Setter for self.{insert,caret}_active.
@@ -283,19 +283,19 @@ class StatusBar(QWidget):
             log.statusbar.debug("Setting insert_active to {}".format(val))
             self._insert_active = val
         elif mode == usertypes.KeyMode.caret:
-            log.statusbar.debug("Setting caret_active to {}".format(val))
             webview = objreg.get("tabbed-browser", scope="window",
                                  window=self._win_id).currentWidget()
-            if val and webview.selection_enabled:
-                self._set_mode_text("{} selection".format(mode.name))
-                self._caret_selection_active = val
-                self._caret_active = False
-            else:
-                if val:
+            log.statusbar.debug("Setting caret_mode - val {}, selection "
+                                "{}".format(val, webview.selection_enabled))
+            if val:
+                if webview.selection_enabled:
+                    self._set_mode_text("{} selection".format(mode.name))
+                    self._caret_mode = CaretMode.selection
+                else:
                     self._set_mode_text(mode.name)
-                self._caret_active = val
-                self._caret_selection_active = False
-
+                    self._caret_mode = CaretMode.on
+            else:
+                self._caret_mode = CaretMode.off
         self.setStyleSheet(style.get_stylesheet(self.STYLESHEET))
 
     def _set_mode_text(self, mode):
