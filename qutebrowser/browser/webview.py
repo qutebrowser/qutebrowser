@@ -461,7 +461,7 @@ class WebView(QWebView):
             settings = self.settings()
             if settings.testAttribute(QWebSettings.CaretBrowsingEnabled):
                 if self.selection_enabled and self.hasSelection():
-                    # Remove selection if exist
+                    # Remove selection if it exists
                     self.triggerPageAction(QWebPage.MoveToNextChar)
                 settings.setAttribute(QWebSettings.CaretBrowsingEnabled, False)
                 self.selection_enabled = False
