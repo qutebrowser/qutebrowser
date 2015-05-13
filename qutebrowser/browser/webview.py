@@ -441,12 +441,11 @@ class WebView(QWebView):
             settings.setAttribute(QWebSettings.CaretBrowsingEnabled, True)
             self.selection_enabled = False
 
-            tabbed_browser = objreg.get('tabbed-browser', scope='window',
-                                        window=self.win_id)
-            if tabbed_browser.currentWidget().tab_id == self.tab_id:
+            if self.isVisible():
+                # Sometimes the caret isn't immediately visible, but unfocusing
+                # and refocusing it fixes that.
                 self.clearFocus()
                 self.setFocus(Qt.OtherFocusReason)
-
                 self.page().currentFrame().evaluateJavaScript(
                     utils.read_file('javascript/position_caret.js'))
 
