@@ -53,12 +53,14 @@ class BaseLineParser(QObject):
             configdir: Directory to read the config from.
             fname: Filename of the config file.
             binary: Whether to open the file in binary mode.
+            _opened: Whether the underlying file is open
         """
         super().__init__(parent)
         self._configdir = configdir
         self._configfile = os.path.join(self._configdir, fname)
         self._fname = fname
         self._binary = binary
+        self._opened = False
 
     def __repr__(self):
         return utils.get_repr(self, constructor=True,
@@ -71,16 +73,23 @@ class BaseLineParser(QObject):
         if not os.path.exists(self._configdir):
             os.makedirs(self._configdir, 0o755)
 
+    @contextlib.contextmanager
     def _open(self, mode):
         """Open self._configfile for reading.
 
         Args:
             mode: The mode to use ('a'/'r'/'w')
         """
+        if self._opened:
+            raise IOError("Refusing to double-open AppendLineParser.")
+        self._opened = True
         if self._binary:
-            return open(self._configfile, mode + 'b')
+            with open(self._configfile, mode + 'b') as f:
+                yield f
         else:
-            return open(self._configfile, mode, encoding='utf-8')
+            with open(self._configfile, mode, encoding='utf-8') as f:
+                yield f
+        self._opened = False
 
     def _write(self, fp, data):
         """Write the data to a file.
@@ -195,9 +204,13 @@ class LineParser(BaseLineParser):
 
     def save(self):
         """Save the config file."""
+        if self._opened:
+            raise IOError("Refusing to double-open AppendLineParser.")
+        self._opened = True
         self._prepare_save()
         with qtutils.savefile_open(self._configfile, self._binary) as f:
             self._write(f, self.data)
+        self._opened = False
 
 
 class LimitLineParser(LineParser):
