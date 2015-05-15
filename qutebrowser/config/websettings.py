@@ -256,6 +256,8 @@ MAPPINGS = {
             Attribute(QWebSettings.PluginsEnabled),
         'webgl':
             Attribute(QWebSettings.WebGLEnabled),
+        'css-regions':
+            Attribute(QWebSettings.CSSRegionsEnabled),
         'local-content-can-access-remote-urls':
             Attribute(QWebSettings.LocalContentCanAccessRemoteUrls),
         'local-content-can-access-file-urls':

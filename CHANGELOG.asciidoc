@@ -25,6 +25,7 @@ Added
 - New command `:scroll-px` which replaces `:scroll` for pixel-exact scrolling.
 - New setting `ui -> smooth-scrolling`.
 - New setting `content -> webgl` to enable/disable https://www.khronos.org/webgl/[WebGL].
+- New setting `content -> css-regions` to enable/disable support for http://dev.w3.org/csswg/css-regions/[CSS Regions].
 
 Changed
 ~~~~~~~

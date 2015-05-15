@@ -136,6 +136,7 @@
 |<<content-allow-javascript,allow-javascript>>|Enables or disables the running of JavaScript programs.
 |<<content-allow-plugins,allow-plugins>>|Enables or disables plugins in Web pages.
 |<<content-webgl,webgl>>|Enables or disables WebGL.
+|<<content-css-regions,css-regions>>|Enable or disable support for CSS regions.
 |<<content-geolocation,geolocation>>|Allow websites to request geolocations.
 |<<content-notifications,notifications>>|Allow websites to show notifications.
 |<<content-javascript-can-open-windows,javascript-can-open-windows>>|Whether JavaScript programs can open new windows.
@@ -1154,6 +1155,17 @@ Default: +pass:[false]+
 [[content-webgl]]
 === webgl
 Enables or disables WebGL.
+
+Valid values:
+
+ * +true+
+ * +false+
+
+Default: +pass:[true]+
+
+[[content-css-regions]]
+=== css-regions
+Enable or disable support for CSS regions.
 
 Valid values:
 

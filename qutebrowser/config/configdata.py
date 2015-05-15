@@ -613,6 +613,10 @@ def data(readonly=False):
              SettingValue(typ.Bool(), 'true'),
              "Enables or disables WebGL."),
 
+            ('css-regions',
+             SettingValue(typ.Bool(), 'true'),
+             "Enable or disable support for CSS regions."),
+
             ('geolocation',
              SettingValue(typ.BoolAsk(), 'ask'),
              "Allow websites to request geolocations."),
