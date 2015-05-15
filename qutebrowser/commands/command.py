@@ -61,7 +61,7 @@ class Command:
     """
 
     AnnotationInfo = collections.namedtuple('AnnotationInfo',
-                                            ['kwargs', 'type', 'flag'])
+                                            ['kwargs', 'type', 'flag', 'hide'])
 
     def __init__(self, *, handler, name, instance=None, maxsplit=None,
                  hide=False, completion=None, modes=None, not_modes=None,
@@ -304,7 +304,8 @@ class Command:
                 self.flags_with_args += [short_flag, long_flag]
         else:
             args.append(name)
-            self.pos_args.append((param.name, name))
+            if not annotation_info.hide:
+                self.pos_args.append((param.name, name))
         return args
 
     def _parse_annotation(self, param):
@@ -321,11 +322,11 @@ class Command:
                 flag: The short name/flag if overridden.
                 name: The long name if overridden.
         """
-        info = {'kwargs': {}, 'type': None, 'flag': None}
+        info = {'kwargs': {}, 'type': None, 'flag': None, 'hide': False}
         if param.annotation is not inspect.Parameter.empty:
             log.commands.vdebug("Parsing annotation {}".format(
                 param.annotation))
-            for field in ('type', 'flag', 'name'):
+            for field in ('type', 'flag', 'name', 'hide'):
                 if field in param.annotation:
                     info[field] = param.annotation[field]
             if 'nargs' in param.annotation:
