@@ -254,6 +254,8 @@ MAPPINGS = {
         #   Attribute(QWebSettings.JavaEnabled),
         'allow-plugins':
             Attribute(QWebSettings.PluginsEnabled),
+        'webgl':
+            Attribute(QWebSettings.WebGLEnabled),
         'local-content-can-access-remote-urls':
             Attribute(QWebSettings.LocalContentCanAccessRemoteUrls),
         'local-content-can-access-file-urls':

@@ -24,6 +24,7 @@ Added
 - There are now some example userscripts in `misc/userscripts`.
 - New command `:scroll-px` which replaces `:scroll` for pixel-exact scrolling.
 - New setting `ui -> smooth-scrolling`.
+- New setting `content -> webgl` to enable/disable https://www.khronos.org/webgl/[WebGL].
 
 Changed
 ~~~~~~~

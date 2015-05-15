@@ -135,6 +135,7 @@
 |<<content-allow-images,allow-images>>|Whether images are automatically loaded in web pages.
 |<<content-allow-javascript,allow-javascript>>|Enables or disables the running of JavaScript programs.
 |<<content-allow-plugins,allow-plugins>>|Enables or disables plugins in Web pages.
+|<<content-webgl,webgl>>|Enables or disables WebGL.
 |<<content-geolocation,geolocation>>|Allow websites to request geolocations.
 |<<content-notifications,notifications>>|Allow websites to show notifications.
 |<<content-javascript-can-open-windows,javascript-can-open-windows>>|Whether JavaScript programs can open new windows.
@@ -1149,6 +1150,17 @@ Valid values:
  * +false+
 
 Default: +pass:[false]+
+
+[[content-webgl]]
+=== webgl
+Enables or disables WebGL.
+
+Valid values:
+
+ * +true+
+ * +false+
+
+Default: +pass:[true]+
 
 [[content-geolocation]]
 === geolocation

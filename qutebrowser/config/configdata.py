@@ -609,6 +609,10 @@ def data(readonly=False):
              'Qt plugins with a mimetype such as "application/x-qt-plugin" '
              "are not affected by this setting."),
 
+            ('webgl',
+             SettingValue(typ.Bool(), 'true'),
+             "Enables or disables WebGL."),
+
             ('geolocation',
              SettingValue(typ.BoolAsk(), 'ask'),
              "Allow websites to request geolocations."),
