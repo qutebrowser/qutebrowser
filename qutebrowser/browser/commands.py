@@ -653,9 +653,9 @@ class CommandDispatcher:
             if mult_y == 0:
                 pass
             elif mult_y < 0:
-                self.scroll('page-up', count=-mult_y)
+                self.scroll('page-up', count=-int(mult_y))
             elif mult_y > 0:
-                self.scroll('page-down', count=mult_y)
+                self.scroll('page-down', count=int(mult_y))
             mult_y = 0
         if mult_x == 0 and mult_y == 0:
             return
