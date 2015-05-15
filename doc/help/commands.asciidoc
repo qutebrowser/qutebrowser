@@ -712,9 +712,10 @@ How many steps to zoom out.
 |<<rl-unix-line-discard,rl-unix-line-discard>>|Remove chars backward from the cursor to the beginning of the line.
 |<<rl-unix-word-rubout,rl-unix-word-rubout>>|Remove chars from the cursor to the beginning of the word.
 |<<rl-yank,rl-yank>>|Paste the most recently deleted text.
-|<<scroll,scroll>>|Scroll the current tab by 'count * dx/dy'.
+|<<scroll,scroll>>|Scroll the current tab in the given direction.
 |<<scroll-page,scroll-page>>|Scroll the frame page-wise.
 |<<scroll-perc,scroll-perc>>|Scroll to a specific percentage of the page.
+|<<scroll-px,scroll-px>>|Scroll the current tab by 'count * dx/dy' pixels.
 |<<search-next,search-next>>|Continue the search to the ([count]th) next term.
 |<<search-prev,search-prev>>|Continue the search to the ([count]th) previous term.
 |==============
@@ -880,13 +881,13 @@ This acts like readline's yank.
 
 [[scroll]]
 === scroll
-Syntax: +:scroll 'dx' 'dy'+
+Syntax: +:scroll 'direction' ['dy']+
 
-Scroll the current tab by 'count * dx/dy'.
+Scroll the current tab in the given direction.
 
 ==== positional arguments
-* +'dx'+: How much to scroll in x-direction.
-* +'dy'+: How much to scroll in x-direction.
+* +'direction'+: In which direction to scroll (up/down/left/right/top/bottom).
+
 
 ==== count
 multiplier
@@ -920,6 +921,19 @@ The percentage can be given either as argument or as count. If no percentage is 
 
 ==== count
 Percentage to scroll.
+
+[[scroll-px]]
+=== scroll-px
+Syntax: +:scroll-px 'dx' 'dy'+
+
+Scroll the current tab by 'count * dx/dy' pixels.
+
+==== positional arguments
+* +'dx'+: How much to scroll in x-direction.
+* +'dy'+: How much to scroll in x-direction.
+
+==== count
+multiplier
 
 [[search-next]]
 === search-next
