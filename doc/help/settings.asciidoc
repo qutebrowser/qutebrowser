@@ -40,6 +40,7 @@
 |<<ui-frame-flattening,frame-flattening>>|Whether to  expand each subframe to its contents.
 |<<ui-user-stylesheet,user-stylesheet>>|User stylesheet to use (absolute filename or CSS string). Will expand environment variables.
 |<<ui-css-media-type,css-media-type>>|Set the CSS media type.
+|<<ui-smooth-scrolling,smooth-scrolling>>|Whether to enable smooth scrolling for webpages.
 |<<ui-remove-finished-downloads,remove-finished-downloads>>|Whether to remove finished downloads automatically.
 |<<ui-hide-statusbar,hide-statusbar>>|Whether to hide the statusbar unless a message is shown.
 |<<ui-window-title-format,window-title-format>>|The format to use for the window title. The following placeholders are defined:
@@ -530,6 +531,17 @@ Default: +pass:[::-webkit-scrollbar { width: 0px; height: 0px; }]+
 Set the CSS media type.
 
 Default: empty
+
+[[ui-smooth-scrolling]]
+=== smooth-scrolling
+Whether to enable smooth scrolling for webpages.
+
+Valid values:
+
+ * +true+
+ * +false+
+
+Default: +pass:[false]+
 
 [[ui-remove-finished-downloads]]
 === remove-finished-downloads

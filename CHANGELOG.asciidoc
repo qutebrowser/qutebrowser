@@ -23,6 +23,7 @@ Added
 - New commands `:message-info`, `:message-error` and `:message-warning` to show messages in the statusbar, e.g. from an userscript.
 - There are now some example userscripts in `misc/userscripts`.
 - New command `:scroll-px` which replaces `:scroll` for pixel-exact scrolling.
+- New setting `ui -> smooth-scrolling`.
 
 Changed
 ~~~~~~~

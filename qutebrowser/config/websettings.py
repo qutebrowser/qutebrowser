@@ -322,6 +322,8 @@ MAPPINGS = {
         'css-media-type':
             NullStringSetter(getter=QWebSettings.cssMediaType,
                              setter=QWebSettings.setCSSMediaType),
+        'smooth-scrolling':
+            Attribute(QWebSettings.ScrollAnimatorEnabled),
         #'accelerated-compositing':
         #   Attribute(QWebSettings.AcceleratedCompositingEnabled),
         #'tiled-backing-store':

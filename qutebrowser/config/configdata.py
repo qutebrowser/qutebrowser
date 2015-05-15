@@ -276,6 +276,10 @@ def data(readonly=False):
              SettingValue(typ.String(none_ok=True), ''),
              "Set the CSS media type."),
 
+            ('smooth-scrolling',
+             SettingValue(typ.Bool(), 'false'),
+             "Whether to enable smooth scrolling for webpages."),
+
             ('remove-finished-downloads',
              SettingValue(typ.Bool(), 'false'),
              "Whether to remove finished downloads automatically."),
