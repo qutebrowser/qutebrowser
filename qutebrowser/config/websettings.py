@@ -258,6 +258,8 @@ MAPPINGS = {
             Attribute(QWebSettings.WebGLEnabled),
         'css-regions':
             Attribute(QWebSettings.CSSRegionsEnabled),
+        'hyperlink-auditing':
+            Attribute(QWebSettings.HyperlinkAuditingEnabled),
         'local-content-can-access-remote-urls':
             Attribute(QWebSettings.LocalContentCanAccessRemoteUrls),
         'local-content-can-access-file-urls':

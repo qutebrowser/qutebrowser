@@ -26,6 +26,7 @@ Added
 - New setting `ui -> smooth-scrolling`.
 - New setting `content -> webgl` to enable/disable https://www.khronos.org/webgl/[WebGL].
 - New setting `content -> css-regions` to enable/disable support for http://dev.w3.org/csswg/css-regions/[CSS Regions].
+- New setting `content -> hyperlink-auditing` to enable/disable support for https://html.spec.whatwg.org/multipage/semantics.html#hyperlink-auditing[hyperlink auditing].
 
 Changed
 ~~~~~~~

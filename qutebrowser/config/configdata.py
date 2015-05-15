@@ -617,6 +617,10 @@ def data(readonly=False):
              SettingValue(typ.Bool(), 'true'),
              "Enable or disable support for CSS regions."),
 
+            ('hyperlink-auditing',
+             SettingValue(typ.Bool(), 'false'),
+             "Enable or disable hyperlink auditing (<a ping>)."),
+
             ('geolocation',
              SettingValue(typ.BoolAsk(), 'ask'),
              "Allow websites to request geolocations."),
