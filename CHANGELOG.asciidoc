@@ -21,6 +21,8 @@ Added
 ~~~~~
 
 - New commands `:message-info`, `:message-error` and `:message-warning` to show messages in the statusbar, e.g. from an userscript.
+- There are now some example userscripts in `misc/userscripts`.
+- New command `:scroll-px` which replaces `:scroll` for pixel-exact scrolling.
 
 Changed
 ~~~~~~~
@@ -31,6 +33,17 @@ Changed
 - New bindings `<Ctrl-R>` (rapid), `<Ctrl-F>` (foreground) and `<Ctrl-B>` (background) to switch hint modes while hinting.
 - `<Ctrl-M>` is now accepted as an additional alias for `<Return>`/`<Ctrl-J>`
 - `:hint tab` and `F` now respect the `background-tabs` setting. To enforce a foreground tab (what `F` did before), use `:hint tab-fg` or `;f`.
+- `:scroll` now takes a direction argument (`up`/`down`/`left`/`right`/`top`/`bottom`/`page-up`/`page-down`) instead of two pixel arguments (`dx`/`dy`). The old form still works but is deprecated.
+
+Deprecated
+~~~~~~~~~~
+
+- `:scroll` with two pixel-arguments is now deprecated - `:scroll-px` should be used instead.
+
+Fixed
+~~~~~
+
+- Scrolling should now work more reliably on some pages where arrow keys worked but `hjkl` didn't.
 
 v0.2.2 (unreleased)
 -------------------
@@ -41,6 +54,9 @@ Fixed
 - Fixed searching for terms starting with a hyphen (e.g. `/-foo`)
 - Proxy authentication credentials are now remembered between different tabs.
 - Fixed updating of the tab title on pages without title.
+- Fixed AssertionError when closing many windows quickly.
+- Various fixes for deprecated key bindings and auto-migrations.
+- Workaround for qutebrowser not starting when there are NUL-bytes in the history (because of a currently unknown bug)
 
 https://github.com/The-Compiler/qutebrowser/releases/tag/v0.2.1[v0.2.1]
 -----------------------------------------------------------------------
