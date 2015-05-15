@@ -204,7 +204,8 @@ class RAMHandlerTests(BaseTest):
         self.assertEqual(self.handler.dump_log(), "Two\nThree")
 
 
-@mock.patch('qutebrowser.utils.log.qInstallMessageHandler', autospec=True)
+@mock.patch('qutebrowser.utils.log.QtCore.qInstallMessageHandler',
+            autospec=True)
 class InitLogTests(BaseTest):
 
     """Tests for init_log."""
