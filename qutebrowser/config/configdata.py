@@ -1143,10 +1143,10 @@ KEY_DATA = collections.OrderedDict([
         ('hint --rapid links tab-bg', [';r']),
         ('hint --rapid links window', [';R']),
         ('hint links download', [';d']),
-        ('scroll -50 0', ['h']),
-        ('scroll 0 50', ['j']),
-        ('scroll 0 -50', ['k']),
-        ('scroll 50 0', ['l']),
+        ('scroll left', ['h']),
+        ('scroll down', ['j']),
+        ('scroll up', ['k']),
+        ('scroll right', ['l']),
         ('undo', ['u', '<Ctrl-Shift-T>']),
         ('scroll-perc 0', ['gg']),
         ('scroll-perc', ['G']),
@@ -1260,12 +1260,22 @@ KEY_DATA = collections.OrderedDict([
 
 CHANGED_KEY_COMMANDS = [
     (re.compile(r'^open -([twb]) about:blank$'), r'open -\1'),
+
     (re.compile(r'^download-page$'), r'download'),
     (re.compile(r'^cancel-download$'), r'download-cancel'),
+
     (re.compile(r'^search ""$'), r'search'),
     (re.compile(r"^search ''$"), r'search'),
+
     (re.compile(r"""^set-cmd-text ['"](.*) ['"]$"""), r'set-cmd-text -s \1'),
     (re.compile(r"""^set-cmd-text ['"](.*)['"]$"""), r'set-cmd-text \1'),
+
     (re.compile(r"^hint links rapid$"), r'hint --rapid links tab-bg'),
     (re.compile(r"^hint links rapid-win$"), r'hint --rapid links window'),
+
+    (re.compile(r'^scroll -50 0$'), r'scroll left'),
+    (re.compile(r'^scroll 0 50$'), r'scroll down'),
+    (re.compile(r'^scroll 0 -50$'), r'scroll up'),
+    (re.compile(r'^scroll 50 0$'), r'scroll right'),
+    (re.compile(r'^scroll ([-\d]+ [-\d]+)$'), r'scroll-px \1'),
 ]

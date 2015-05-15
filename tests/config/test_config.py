@@ -198,18 +198,31 @@ class TestKeyConfigParser:
             ('open -b about:blank', 'open -b'),
             ('open about:blank', None),
             ('open -t example.com', None),
+
             ('download-page', 'download'),
             ('cancel-download', 'download-cancel'),
+
             ('search ""', 'search'),
             ("search ''", 'search'),
             ('search "foo"', None),
+
             ('set-cmd-text "foo bar"', 'set-cmd-text foo bar'),
             ("set-cmd-text 'foo bar'", 'set-cmd-text foo bar'),
             ('set-cmd-text foo bar', None),
             ('set-cmd-text "foo bar "', 'set-cmd-text -s foo bar'),
             ("set-cmd-text 'foo bar '", 'set-cmd-text -s foo bar'),
+
             ('hint links rapid', 'hint --rapid links tab-bg'),
             ('hint links rapid-win', 'hint --rapid links window'),
+
+            ('scroll -50 0', 'scroll left'),
+            ('scroll 0 50', 'scroll down'),
+            ('scroll 0 -50', 'scroll up'),
+            ('scroll 50 0', 'scroll right'),
+            ('scroll -50 10', 'scroll-px -50 10'),
+            ('scroll 50 50', 'scroll-px 50 50'),
+            ('scroll 0 0', 'scroll-px 0 0'),
+            ('scroll 23 42', 'scroll-px 23 42'),
         ]
     )
     def test_migrations(self, old, new_expected):

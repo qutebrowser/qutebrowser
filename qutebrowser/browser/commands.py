@@ -27,8 +27,8 @@ import posixpath
 import functools
 
 from PyQt5.QtWidgets import QApplication, QTabBar
-from PyQt5.QtCore import Qt, QUrl
-from PyQt5.QtGui import QClipboard
+from PyQt5.QtCore import Qt, QUrl, QEvent
+from PyQt5.QtGui import QClipboard, QKeyEvent
 from PyQt5.QtPrintSupport import QPrintDialog, QPrintPreviewDialog
 from PyQt5.QtWebKitWidgets import QWebPage
 import pygments
@@ -555,8 +555,8 @@ class CommandDispatcher:
 
     @cmdutils.register(instance='command-dispatcher', hide=True,
                        scope='window', count='count')
-    def scroll(self, dx: {'type': float}, dy: {'type': float}, count=1):
-        """Scroll the current tab by 'count * dx/dy'.
+    def scroll_px(self, dx: {'type': float}, dy: {'type': float}, count=1):
+        """Scroll the current tab by 'count * dx/dy' pixels.
 
         Args:
             dx: How much to scroll in x-direction.
@@ -568,6 +568,57 @@ class CommandDispatcher:
         cmdutils.check_overflow(dx, 'int')
         cmdutils.check_overflow(dy, 'int')
         self._current_widget().page().currentFrame().scroll(dx, dy)
+
+    @cmdutils.register(instance='command-dispatcher', hide=True,
+                       scope='window', count='count')
+    def scroll(self,
+               direction: {'type': (str, float)},
+               dy: {'type': float, 'hide': True}=None,
+               count=1):
+        """Scroll the current tab in the given direction.
+
+        Args:
+            direction: In which direction to scroll
+                       (up/down/left/right/top/bottom).
+            dy: Deprecated argument to support the old dx/dy form.
+            count: multiplier
+        """
+        try:
+            # Check for deprecated dx/dy form (like with scroll-px).
+            dx = float(direction)
+            dy = float(dy)
+        except (ValueError, TypeError):
+            # Invalid values will get handled later.
+            pass
+        else:
+            message.warning(self._win_id, ":scroll with dx/dy arguments is "
+                            "deprecated - use :scroll-px instead!")
+            self.scroll_px(dx, dy, count=count)
+            return
+
+        fake_keys = {
+            'up': Qt.Key_Up,
+            'down': Qt.Key_Down,
+            'left': Qt.Key_Left,
+            'right': Qt.Key_Right,
+            'top': Qt.Key_Home,
+            'bottom': Qt.Key_End,
+            'page-up': Qt.Key_PageUp,
+            'page-down': Qt.Key_PageDown,
+        }
+        try:
+            key = fake_keys[direction]
+        except KeyError:
+            raise cmdexc.CommandError("Invalid value {!r} for direction - "
+                                      "expected one of: {}".format(
+                                          direction, ', '.join(fake_keys)))
+        widget = self._current_widget()
+        press_evt = QKeyEvent(QEvent.KeyPress, key, Qt.NoModifier, 0, 0, 0)
+        release_evt = QKeyEvent(QEvent.KeyRelease, key, Qt.NoModifier, 0, 0, 0)
+
+        for _ in range(count):
+            widget.keyPressEvent(press_evt)
+            widget.keyReleaseEvent(release_evt)
 
     @cmdutils.register(instance='command-dispatcher', hide=True,
                        scope='window', count='count')
@@ -596,10 +647,22 @@ class CommandDispatcher:
             y: How many pages to scroll down.
             count: multiplier
         """
+        mult_x = count * x
+        mult_y = count * y
+        if mult_y.is_integer():
+            if mult_y == 0:
+                pass
+            elif mult_y < 0:
+                self.scroll('page-up', count=-mult_y)
+            elif mult_y > 0:
+                self.scroll('page-down', count=mult_y)
+            mult_y = 0
+        if mult_x == 0 and mult_y == 0:
+            return
         frame = self._current_widget().page().currentFrame()
         size = frame.geometry()
-        dx = count * x * size.width()
-        dy = count * y * size.height()
+        dx = mult_x * size.width()
+        dy = mult_y * size.height()
         cmdutils.check_overflow(dx, 'int')
         cmdutils.check_overflow(dy, 'int')
         frame.scroll(dx, dy)
