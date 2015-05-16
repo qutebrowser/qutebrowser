@@ -39,7 +39,14 @@ class KeyWidget(QWidget):
         self._layout.addWidget(self._label)
 
     def keyPressEvent(self, e):
-        self._label.setText(utils.keyevent_to_string(e))
+        lines = [
+            str(utils.keyevent_to_string(e)),
+            '',
+            'key: 0x{:x}'.format(int(e.key())),
+            'modifiers: 0x{:x}'.format(int(e.modifiers())),
+            'text: {!r}'.format(e.text()),
+        ]
+        self._label.setText('\n'.join(lines))
 
 
 app = QApplication([])
