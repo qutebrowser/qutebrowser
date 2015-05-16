@@ -96,6 +96,8 @@ def get_argparser():
                        help="Drop into pdb on exceptions.")
     debug.add_argument('--temp-basedir', action='store_true', help="Use a "
                        "temporary basedir.")
+    debug.add_argument('--no-err-windows', action='store_true', help="Don't "
+                       "show any error windows (used for tests/smoke.py).")
     # For the Qt args, we use store_const with const=True rather than
     # store_true because we want the default to be None, to make
     # utils.qt:get_args easier.

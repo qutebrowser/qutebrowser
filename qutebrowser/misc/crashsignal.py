@@ -121,6 +121,7 @@ class CrashHandler(QObject):
 
     def _init_crashlogfile(self):
         """Start a new logfile and redirect faulthandler to it."""
+        assert not self._args.no_err_windows
         data_dir = standarddir.data()
         if data_dir is None:
             return
@@ -224,18 +225,21 @@ class CrashHandler(QObject):
         except TypeError:
             log.destroy.exception("Error while preventing shutdown")
         self._app.closeAllWindows()
-        self._crash_dialog = crashdialog.ExceptionCrashDialog(
-            self._args.debug, pages, cmd_history, exc, objects)
-        ret = self._crash_dialog.exec_()
-        if ret == QDialog.Accepted:  # restore
-            self._quitter.restart(pages)
+        if self._args.no_err_windows:
+            crashdialog.dump_exception_info(exc, pages, cmd_history, objects)
+        else:
+            self._crash_dialog = crashdialog.ExceptionCrashDialog(
+                self._args.debug, pages, cmd_history, exc, objects)
+            ret = self._crash_dialog.exec_()
+            if ret == QDialog.Accepted:  # restore
+                self._quitter.restart(pages)
 
         # We might risk a segfault here, but that's better than continuing to
         # run in some undefined state, so we only do the most needed shutdown
         # here.
         qInstallMessageHandler(None)
         self.destroy_crashlogfile()
-        sys.exit(1)
+        sys.exit(usertypes.Exit.exception)
 
     def raise_crashdlg(self):
         """Raise the crash dialog if one exists."""

@@ -99,6 +99,9 @@ show it.
 *--temp-basedir*::
     Use a temporary basedir.
 
+*--no-err-windows*::
+    Don't show any error windows (used for tests/smoke.py).
+
 *--qt-name* 'NAME'::
     Set the window name.
 

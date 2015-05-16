@@ -27,9 +27,8 @@ import hashlib
 
 from PyQt5.QtCore import pyqtSignal, pyqtSlot, QObject
 from PyQt5.QtNetwork import QLocalSocket, QLocalServer, QAbstractSocket
-from PyQt5.QtWidgets import QMessageBox
 
-from qutebrowser.utils import log, usertypes
+from qutebrowser.utils import log, usertypes, error
 
 
 CONNECT_TIMEOUT = 100
@@ -130,12 +129,12 @@ class IPCServer(QObject):
                 self._socketname))
 
     @pyqtSlot(int)
-    def on_error(self, error):
+    def on_error(self, err):
         """Convenience method which calls _socket_error on an error."""
         self._timer.stop()
         log.ipc.debug("Socket error {}: {}".format(
             self._socket.error(), self._socket.errorString()))
-        if error != QLocalSocket.PeerClosedError:
+        if err != QLocalSocket.PeerClosedError:
             _socket_error("handling IPC connection", self._socket)
 
     @pyqtSlot()
@@ -282,9 +281,8 @@ def send_to_running_instance(args):
             return False
 
 
-def display_error(exc):
+def display_error(exc, args):
     """Display a message box with an IPC error."""
-    text = '{}\n\nMaybe another instance is running but frozen?'.format(exc)
-    msgbox = QMessageBox(QMessageBox.Critical, "Error while connecting to "
-                         "running instance!", text)
-    msgbox.exec_()
+    error.handle_fatal_exc(
+        exc, args, "Error while connecting to running instance!",
+        post_text="Maybe another instance is running but frozen?")

@@ -240,6 +240,11 @@ Completion = enum('Completion', ['command', 'section', 'option', 'value',
                                  'quickmark_by_name', 'url', 'sessions'])
 
 
+# Exit statuses for errors
+Exit = enum('Exit', ['ok', 'reserved', 'exception', 'err_ipc', 'err_init',
+                     'err_config', 'err_key_config'])
+
+
 class Question(QObject):
 
     """A question asked to the user, e.g. via the status bar.

@@ -47,7 +47,7 @@ def check_python_version():
         version_str = '.'.join(map(str, sys.version_info[:3]))
         text = ("At least Python 3.4 is required to run qutebrowser, but " +
                 version_str + " is installed!\n")
-        if Tk:
+        if Tk and '--no-err-windows' not in sys.argv:
             root = Tk()
             root.withdraw()
             messagebox.showerror("qutebrowser: Fatal error!", text)

@@ -29,7 +29,7 @@ import time
 import shutil
 import tempfile
 
-from PyQt5.QtWidgets import QApplication, QMessageBox
+from PyQt5.QtWidgets import QApplication
 from PyQt5.QtGui import QDesktopServices, QPixmap, QIcon, QCursor, QWindow
 from PyQt5.QtCore import (pyqtSlot, qInstallMessageHandler, QTimer, QUrl,
                           QObject, Qt, QEvent)
@@ -49,7 +49,7 @@ from qutebrowser.mainwindow import mainwindow
 from qutebrowser.misc import readline, ipc, savemanager, sessions, crashsignal
 from qutebrowser.misc import utilcmds  # pylint: disable=unused-import
 from qutebrowser.utils import (log, version, message, utils, qtutils, urlutils,
-                               objreg, usertypes, standarddir)
+                               objreg, usertypes, standarddir, error)
 # We import utilcmds to run the cmdutils.register decorators.
 
 
@@ -91,7 +91,7 @@ def run(args):
     try:
         sent = ipc.send_to_running_instance(args)
         if sent:
-            sys.exit(0)
+            sys.exit(usertypes.Exit.ok)
         log.init.debug("Starting IPC server...")
         server = ipc.IPCServer(args, qApp)
         objreg.register('ipc-server', server)
@@ -103,14 +103,14 @@ def run(args):
         time.sleep(500)
         sent = ipc.send_to_running_instance(args)
         if sent:
-            sys.exit(0)
+            sys.exit(usertypes.Exit.ok)
         else:
-            ipc.display_error(e)
-            sys.exit(1)
+            ipc.display_error(e, args)
+            sys.exit(usertypes.Exit.err_ipc)
     except ipc.Error as e:
-        ipc.display_error(e)
+        ipc.display_error(e, args)
         # We didn't really initialize much so far, so we just quit hard.
-        sys.exit(1)
+        sys.exit(usertypes.Exit.err_ipc)
 
     init(args, crash_handler)
     ret = qt_mainloop()
@@ -144,11 +144,9 @@ def init(args, crash_handler):
     try:
         _init_modules(args, crash_handler)
     except (OSError, UnicodeDecodeError) as e:
-        msgbox = QMessageBox(
-            QMessageBox.Critical, "Error while initializing!",
-            "Error while initializing: {}".format(e))
-        msgbox.exec_()
-        sys.exit(1)
+        error.handle_fatal_exc(e, args, "Error while initializing!",
+                               pre_text="Error while initializing")
+        sys.exit(usertypes.Exit.err_init)
     QTimer.singleShot(0, functools.partial(_process_args, args))
 
     log.init.debug("Initializing eventfilter...")
@@ -398,7 +396,8 @@ def _init_modules(args, crash_handler):
     log.init.debug("Initializing web history...")
     history.init(qApp)
     log.init.debug("Initializing crashlog...")
-    crash_handler.handle_segfault()
+    if not args.no_err_windows:
+        crash_handler.handle_segfault()
     log.init.debug("Initializing sessions...")
     sessions.init(qApp)
     log.init.debug("Initializing js-bridge...")
@@ -636,10 +635,9 @@ class Quitter:
                 try:
                     save_manager.save(key, is_exit=True)
                 except OSError as e:
-                    msgbox = QMessageBox(
-                        QMessageBox.Critical, "Error while saving!",
-                        "Error while saving {}: {}".format(key, e))
-                    msgbox.exec_()
+                    error.handle_fatal_exc(
+                        e, self._args, "Error while saving!",
+                        pre_text="Error while saving {}".format(key))
         # Re-enable faulthandler to stdout, then remove crash log
         log.destroy.debug("Deactivating crash log...")
         objreg.get('crash-handler').destroy_crashlogfile()
