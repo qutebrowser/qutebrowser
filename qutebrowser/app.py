@@ -28,6 +28,7 @@ import json
 import time
 import shutil
 import tempfile
+import atexit
 
 from PyQt5.QtWidgets import QApplication
 from PyQt5.QtGui import QDesktopServices, QPixmap, QIcon, QCursor, QWindow
@@ -643,7 +644,7 @@ class Quitter:
         objreg.get('crash-handler').destroy_crashlogfile()
         # Delete temp basedir
         if self._args.temp_basedir:
-            shutil.rmtree(self._args.basedir)
+            atexit.register(shutil.rmtree, self._args.basedir)
         # If we don't kill our custom handler here we might get segfaults
         log.destroy.debug("Deactiving message handler...")
         qInstallMessageHandler(None)
