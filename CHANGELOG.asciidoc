@@ -48,6 +48,11 @@ Deprecated
 
 - `:scroll` with two pixel-arguments is now deprecated - `:scroll-px` should be used instead.
 
+Removed
+~~~~~~~
+
+- The `--no-crash-dialog` argument which was intended for debugging only was removed as it's replaced by `--no-err-windows` which suppresses all error windows.
+
 Fixed
 ~~~~~
 

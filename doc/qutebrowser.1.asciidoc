@@ -90,9 +90,6 @@ show it.
 *--debug-exit*::
     Turn on debugging of late exit.
 
-*--no-crash-dialog*::
-    Don't show a crash dialog.
-
 *--pdb-postmortem*::
     Drop into pdb on exceptions.
 

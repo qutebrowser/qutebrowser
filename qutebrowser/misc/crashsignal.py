@@ -212,8 +212,7 @@ class CrashHandler(QObject):
         if self._args.pdb_postmortem:
             pdb.post_mortem(tb)
 
-        if (is_ignored_exception or self._args.no_crash_dialog or
-                self._args.pdb_postmortem):
+        if is_ignored_exception or self._args.pdb_postmortem:
             # pdb exit, KeyboardInterrupt, ...
             status = 0 if is_ignored_exception else 2
             try:
