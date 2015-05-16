@@ -141,7 +141,7 @@ class TestArguments:
         standarddir.init(args)
         assert standarddir.config() == testcase.expected
 
-    def test_confdir(self, testcase):
+    def test_cachedir(self, testcase):
         """Test --cachedir."""
         args = types.SimpleNamespace(confdir=None, cachedir=testcase.arg,
                                      datadir=None)
