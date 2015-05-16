@@ -186,7 +186,7 @@ class CrashHandler(QObject):
             # pdb exit, KeyboardInterrupt, ...
             status = 0 if is_ignored_exception else 2
             try:
-                qapp.shutdown(status)
+                self._quitter.shutdown(status)
                 return
             except Exception:
                 log.init.exception("Error while shutting down")
