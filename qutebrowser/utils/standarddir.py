@@ -84,8 +84,22 @@ def _from_args(typ, args):
         QStandardPaths.DataLocation: 'datadir',
         QStandardPaths.CacheLocation: 'cachedir',
     }
+    basedir_suffix = {
+        QStandardPaths.ConfigLocation: 'config',
+        QStandardPaths.DataLocation: 'data',
+        QStandardPaths.CacheLocation: 'cache',
+        QStandardPaths.DownloadLocation: 'download',
+        QStandardPaths.RuntimeLocation: 'runtime',
+    }
+
     if args is None:
         return (False, None)
+
+    if getattr(args, 'basedir', None) is not None:
+        basedir = args.basedir
+        suffix = basedir_suffix[typ]
+        return (True, os.path.join(basedir, suffix))
+
     try:
         argname = typ_to_argparse_arg[typ]
     except KeyError:

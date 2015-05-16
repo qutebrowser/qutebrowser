@@ -47,6 +47,9 @@ show it.
 *--cachedir* 'CACHEDIR'::
     Set cache directory (empty for no cache storage).
 
+*--basedir* 'BASEDIR'::
+    Base directory for all storage. Other --*dir arguments are ignored if this is given.
+
 *-V*, *--version*::
     Show version and quit.
 

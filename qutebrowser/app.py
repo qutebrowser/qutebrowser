@@ -84,11 +84,11 @@ def run(args):
     objreg.register('signal-handler', signal_handler)
 
     try:
-        sent = ipc.send_to_running_instance(args.command)
+        sent = ipc.send_to_running_instance(args)
         if sent:
             sys.exit(0)
         log.init.debug("Starting IPC server...")
-        server = ipc.IPCServer(qApp)
+        server = ipc.IPCServer(args, qApp)
         objreg.register('ipc-server', server)
         server.got_args.connect(lambda args, cwd:
                                 process_pos_args(args, cwd=cwd, via_ipc=True))
@@ -96,7 +96,7 @@ def run(args):
         # This could be a race condition...
         log.init.debug("Got AddressInUseError, trying again.")
         time.sleep(500)
-        sent = ipc.send_to_running_instance(args.command)
+        sent = ipc.send_to_running_instance(args)
         if sent:
             sys.exit(0)
         else:
@@ -199,7 +199,7 @@ def _process_args(args):
 
     process_pos_args(args.command)
     _open_startpage()
-    _open_quickstart()
+    _open_quickstart(args)
 
 
 def _load_session(name):
@@ -303,8 +303,15 @@ def _open_startpage(win_id=None):
                     tabbed_browser.tabopen(url)
 
 
-def _open_quickstart():
-    """Open quickstart if it's the first start."""
+def _open_quickstart(args):
+    """Open quickstart if it's the first start.
+
+    Args:
+        args: The argparse namespace.
+    """
+    if args.datadir is not None or args.basedir is not None:
+        # With --datadir or --basedir given, don't open quickstart.
+        return
     state_config = objreg.get('state-config')
     try:
         quickstart_done = state_config['general']['quickstart-done'] == '1'

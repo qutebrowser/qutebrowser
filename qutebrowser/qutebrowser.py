@@ -52,6 +52,8 @@ def get_argparser():
                         "no data storage).")
     parser.add_argument('--cachedir', help="Set cache directory (empty for "
                         "no cache storage).")
+    parser.add_argument('--basedir', help="Base directory for all storage. "
+                        "Other --*dir arguments are ignored if this is given.")
     parser.add_argument('-V', '--version', help="Show version and quit.",
                         action='store_true')
     parser.add_argument('-s', '--set', help="Set a temporary setting for "

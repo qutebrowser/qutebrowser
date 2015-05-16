@@ -154,3 +154,13 @@ class TestArguments:
                                      datadir=testcase.arg)
         standarddir.init(args)
         assert standarddir.data() == testcase.expected
+
+    @pytest.mark.parametrize('typ', ['config', 'data', 'cache', 'download',
+                                     'runtime'])
+    def test_basedir(self, tmpdir, typ):
+        """Test --basedir."""
+        expected = str(tmpdir / typ)
+        args = types.SimpleNamespace(basedir=str(tmpdir))
+        standarddir.init(args)
+        func = getattr(standarddir, typ)
+        assert func() == expected
