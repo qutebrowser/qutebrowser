@@ -66,7 +66,7 @@ def run(args):
         print(qutebrowser.__copyright__)
         print()
         print(version.GPL_BOILERPLATE.strip())
-        sys.exit(0)
+        sys.exit(usertypes.Exit.ok)
 
     if args.temp_basedir:
         args.basedir = tempfile.mkdtemp()
