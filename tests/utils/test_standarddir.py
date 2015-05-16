@@ -23,6 +23,7 @@ import os
 import os.path
 import sys
 import types
+import collections
 
 from PyQt5.QtWidgets import QApplication
 import pytest
@@ -117,27 +118,39 @@ class TestGetStandardDirWindows:
         assert standarddir.cache().split(os.sep)[-2:] == expected
 
 
+DirArgTest = collections.namedtuple('DirArgTest', 'arg, expected')
+
+
 class TestArguments:
 
     """Tests with confdir/cachedir/datadir arguments."""
 
-    @pytest.mark.parametrize('arg, expected', [('', None), ('foo', 'foo')])
-    def test_confdir(self, arg, expected):
+    @pytest.fixture(params=[DirArgTest('', None), DirArgTest('foo', 'foo')])
+    def testcase(self, request, tmpdir):
+        """Fixture providing testcases."""
+        if request.param.expected is None:
+            return request.param
+        else:
+            arg = str(tmpdir / request.param.arg)
+            return DirArgTest(arg, arg)
+
+    def test_confdir(self, testcase):
         """Test --confdir."""
-        args = types.SimpleNamespace(confdir=arg, cachedir=None, datadir=None)
+        args = types.SimpleNamespace(confdir=testcase.arg, cachedir=None,
+                                     datadir=None)
         standarddir.init(args)
-        assert standarddir.config() == expected
+        assert standarddir.config() == testcase.expected
 
-    @pytest.mark.parametrize('arg, expected', [('', None), ('foo', 'foo')])
-    def test_confdir(self, arg, expected):
+    def test_confdir(self, testcase):
         """Test --cachedir."""
-        args = types.SimpleNamespace(confdir=None, cachedir=arg, datadir=None)
+        args = types.SimpleNamespace(confdir=None, cachedir=testcase.arg,
+                                     datadir=None)
         standarddir.init(args)
-        assert standarddir.cache() == expected
+        assert standarddir.cache() == testcase.expected
 
-    @pytest.mark.parametrize('arg, expected', [('', None), ('foo', 'foo')])
-    def test_datadir(self, arg, expected):
+    def test_datadir(self, testcase):
         """Test --datadir."""
-        args = types.SimpleNamespace(confdir=None, cachedir=None, datadir=arg)
+        args = types.SimpleNamespace(confdir=None, cachedir=None,
+                                     datadir=testcase.arg)
         standarddir.init(args)
-        assert standarddir.data() == expected
+        assert standarddir.data() == testcase.expected
