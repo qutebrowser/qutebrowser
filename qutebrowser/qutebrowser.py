@@ -94,6 +94,8 @@ def get_argparser():
                        "show a crash dialog.")
     debug.add_argument('--pdb-postmortem', action='store_true',
                        help="Drop into pdb on exceptions.")
+    debug.add_argument('--temp-basedir', action='store_true', help="Use a "
+                       "temporary basedir.")
     # For the Qt args, we use store_const with const=True rather than
     # store_true because we want the default to be None, to make
     # utils.qt:get_args easier.

@@ -96,6 +96,9 @@ show it.
 *--pdb-postmortem*::
     Drop into pdb on exceptions.
 
+*--temp-basedir*::
+    Use a temporary basedir.
+
 *--qt-name* 'NAME'::
     Set the window name.
 

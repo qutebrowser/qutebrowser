@@ -26,6 +26,8 @@ import configparser
 import functools
 import json
 import time
+import shutil
+import tempfile
 
 from PyQt5.QtWidgets import QApplication, QMessageBox
 from PyQt5.QtGui import QDesktopServices, QPixmap, QIcon, QCursor, QWindow
@@ -65,6 +67,9 @@ def run(args):
         print()
         print(version.GPL_BOILERPLATE.strip())
         sys.exit(0)
+
+    if args.temp_basedir:
+        args.basedir = tempfile.mkdtemp()
 
     quitter = Quitter(args)
     objreg.register('quitter', quitter)
@@ -638,6 +643,9 @@ class Quitter:
         # Re-enable faulthandler to stdout, then remove crash log
         log.destroy.debug("Deactivating crash log...")
         objreg.get('crash-handler').destroy_crashlogfile()
+        # Delete temp basedir
+        if self._args.temp_basedir:
+            shutil.rmtree(self._args.basedir)
         # If we don't kill our custom handler here we might get segfaults
         log.destroy.debug("Deactiving message handler...")
         qInstallMessageHandler(None)
