@@ -165,12 +165,17 @@ class CommandDispatcher:
             perc = 100
         elif perc is None:
             perc = count
-        perc = qtutils.check_overflow(perc, 'int', fatal=False)
-        frame = self._current_widget().page().currentFrame()
-        m = frame.scrollBarMaximum(orientation)
-        if m == 0:
-            return
-        frame.setScrollBarValue(orientation, int(m * perc / 100))
+        if perc == 0:
+            self.scroll('top')
+        elif perc == 100:
+            self.scroll('bottom')
+        else:
+            perc = qtutils.check_overflow(perc, 'int', fatal=False)
+            frame = self._current_widget().page().currentFrame()
+            m = frame.scrollBarMaximum(orientation)
+            if m == 0:
+                return
+            frame.setScrollBarValue(orientation, int(m * perc / 100))
 
     def _tab_move_absolute(self, idx):
         """Get an index for moving a tab absolutely.
@@ -615,6 +620,10 @@ class CommandDispatcher:
         widget = self._current_widget()
         press_evt = QKeyEvent(QEvent.KeyPress, key, Qt.NoModifier, 0, 0, 0)
         release_evt = QKeyEvent(QEvent.KeyRelease, key, Qt.NoModifier, 0, 0, 0)
+
+        # Count doesn't make sense with top/bottom
+        if direction in ('top', 'bottom'):
+            count = 1
 
         for _ in range(count):
             widget.keyPressEvent(press_evt)
