@@ -82,10 +82,14 @@ class SessionManager(QObject):
     def __init__(self, parent=None):
         super().__init__(parent)
         self._current = None
-        self._base_path = os.path.join(standarddir.data(), 'sessions')
+        data_dir = standarddir.data()
+        if data_dir is None:
+            self._base_path = None
+        else:
+            self._base_path = os.path.join(standarddir.data(), 'sessions')
         self._last_window_session = None
         self.did_load = False
-        if not os.path.exists(self._base_path):
+        if self._base_path is not None and not os.path.exists(self._base_path):
             os.mkdir(self._base_path)
 
     def _get_session_path(self, name, check_exists=False):
@@ -100,6 +104,11 @@ class SessionManager(QObject):
         if os.path.isabs(path) and ((not check_exists) or
                                     os.path.exists(path)):
             return path
+        elif self._base_path is None:
+            if check_exists:
+                raise SessionNotFoundError(name)
+            else:
+                return None
         else:
             path = os.path.join(self._base_path, name + '.yml')
             if check_exists and not os.path.exists(path):
@@ -194,6 +203,8 @@ class SessionManager(QObject):
                 else:
                     name = 'default'
         path = self._get_session_path(name)
+        if path is None:
+            raise SessionError("No data storage configured.")
 
         log.sessions.debug("Saving session {} to {}...".format(name, path))
         if last_window:
@@ -289,6 +300,8 @@ class SessionManager(QObject):
     def list_sessions(self):
         """Get a list of all session names."""
         sessions = []
+        if self._base_path is None:
+            return sessions
         for filename in os.listdir(self._base_path):
             base, ext = os.path.splitext(filename)
             if ext == '.yml':

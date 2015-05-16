@@ -377,16 +377,20 @@ MAPPINGS = {
 
 def init():
     """Initialize the global QWebSettings."""
-    if config.get('general', 'private-browsing'):
+    cache_path = standarddir.cache()
+    data_path = standarddir.data()
+    if config.get('general', 'private-browsing') or cache_path is None:
         QWebSettings.setIconDatabasePath('')
     else:
-        QWebSettings.setIconDatabasePath(standarddir.cache())
-    QWebSettings.setOfflineWebApplicationCachePath(
-        os.path.join(standarddir.cache(), 'application-cache'))
-    QWebSettings.globalSettings().setLocalStoragePath(
-        os.path.join(standarddir.data(), 'local-storage'))
-    QWebSettings.setOfflineStoragePath(
-        os.path.join(standarddir.data(), 'offline-storage'))
+        QWebSettings.setIconDatabasePath(cache_path)
+    if cache_path is not None:
+        QWebSettings.setOfflineWebApplicationCachePath(
+            os.path.join(cache_path, 'application-cache'))
+    if data_path is not None:
+        QWebSettings.globalSettings().setLocalStoragePath(
+            os.path.join(data_path, 'local-storage'))
+        QWebSettings.setOfflineStoragePath(
+            os.path.join(data_path, 'offline-storage'))
 
     for sectname, section in MAPPINGS.items():
         for optname, mapping in section.items():
@@ -402,11 +406,12 @@ def init():
 
 def update_settings(section, option):
     """Update global settings when qwebsettings changed."""
+    cache_path = standarddir.cache()
     if (section, option) == ('general', 'private-browsing'):
-        if config.get('general', 'private-browsing'):
+        if config.get('general', 'private-browsing') or cache_path is None:
             QWebSettings.setIconDatabasePath('')
         else:
-            QWebSettings.setIconDatabasePath(standarddir.cache())
+            QWebSettings.setIconDatabasePath(cache_path)
     else:
         try:
             mapping = MAPPINGS[section][option]

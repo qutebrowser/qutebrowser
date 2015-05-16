@@ -41,6 +41,12 @@ show it.
 *-c* 'CONFDIR', *--confdir* 'CONFDIR'::
     Set config directory (empty for no config storage).
 
+*--datadir* 'DATADIR'::
+    Set data directory (empty for no data storage).
+
+*--cachedir* 'CACHEDIR'::
+    Set cache directory (empty for no cache storage).
+
 *-V*, *--version*::
     Show version and quit.
 

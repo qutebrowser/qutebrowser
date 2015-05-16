@@ -22,6 +22,7 @@
 import os
 import os.path
 import sys
+import types
 
 from PyQt5.QtWidgets import QApplication
 import pytest
@@ -114,3 +115,29 @@ class TestGetStandardDirWindows:
         """Test cache dir."""
         expected = ['qutebrowser_test', 'cache']
         assert standarddir.cache().split(os.sep)[-2:] == expected
+
+
+class TestArguments:
+
+    """Tests with confdir/cachedir/datadir arguments."""
+
+    @pytest.mark.parametrize('arg, expected', [('', None), ('foo', 'foo')])
+    def test_confdir(self, arg, expected):
+        """Test --confdir."""
+        args = types.SimpleNamespace(confdir=arg, cachedir=None, datadir=None)
+        standarddir.init(args)
+        assert standarddir.config() == expected
+
+    @pytest.mark.parametrize('arg, expected', [('', None), ('foo', 'foo')])
+    def test_confdir(self, arg, expected):
+        """Test --cachedir."""
+        args = types.SimpleNamespace(confdir=None, cachedir=arg, datadir=None)
+        standarddir.init(args)
+        assert standarddir.cache() == expected
+
+    @pytest.mark.parametrize('arg, expected', [('', None), ('foo', 'foo')])
+    def test_datadir(self, arg, expected):
+        """Test --datadir."""
+        args = types.SimpleNamespace(confdir=None, cachedir=None, datadir=arg)
+        standarddir.init(args)
+        assert standarddir.data() == expected

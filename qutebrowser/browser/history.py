@@ -83,6 +83,28 @@ class WebHistory(QWebHistoryInterface):
         self._lineparser = lineparser.AppendLineParser(
             standarddir.data(), 'history', parent=self)
         self._history_dict = collections.OrderedDict()
+        self._read_history()
+        self._new_history = []
+        self._saved_count = 0
+        objreg.get('save-manager').add_saveable(
+            'history', self.save, self.item_added)
+
+    def __repr__(self):
+        return utils.get_repr(self, length=len(self))
+
+    def __getitem__(self, key):
+        return self._new_history[key]
+
+    def __iter__(self):
+        return iter(self._history_dict.values())
+
+    def __len__(self):
+        return len(self._history_dict)
+
+    def _read_history(self):
+        """Read the initial history."""
+        if standarddir.data() is None:
+            return
         with self._lineparser.open():
             for line in self._lineparser:
                 data = line.rstrip().split(maxsplit=1)
@@ -108,22 +130,6 @@ class WebHistory(QWebHistoryInterface):
                 # list of atimes.
                 self._history_dict[url] = HistoryEntry(atime, url)
                 self._history_dict.move_to_end(url)
-        self._new_history = []
-        self._saved_count = 0
-        objreg.get('save-manager').add_saveable(
-            'history', self.save, self.item_added)
-
-    def __repr__(self):
-        return utils.get_repr(self, length=len(self))
-
-    def __getitem__(self, key):
-        return self._new_history[key]
-
-    def __iter__(self):
-        return iter(self._history_dict.values())
-
-    def __len__(self):
-        return len(self._history_dict)
 
     def get_recent(self):
         """Get the most recent history entries."""

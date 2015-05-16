@@ -48,6 +48,10 @@ def get_argparser():
                                      description=qutebrowser.__description__)
     parser.add_argument('-c', '--confdir', help="Set config directory (empty "
                         "for no config storage).")
+    parser.add_argument('--datadir', help="Set data directory (empty for "
+                        "no data storage).")
+    parser.add_argument('--cachedir', help="Set cache directory (empty for "
+                        "no cache storage).")
     parser.add_argument('-V', '--version', help="Show version and quit.",
                         action='store_true')
     parser.add_argument('-s', '--set', help="Set a temporary setting for "

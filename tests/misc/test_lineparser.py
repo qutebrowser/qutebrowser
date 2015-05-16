@@ -69,6 +69,7 @@ class LineParserWrapper:
     def _prepare_save(self):
         """Keep track if _prepare_save has been called."""
         self._test_save_prepared = True
+        return True
 
 
 class TestableAppendLineParser(LineParserWrapper, lineparser.AppendLineParser):
