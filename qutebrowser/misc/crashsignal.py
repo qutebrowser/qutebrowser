@@ -27,6 +27,7 @@ import signal
 import functools
 import faulthandler
 import os.path
+import collections
 
 from PyQt5.QtCore import (pyqtSlot, qInstallMessageHandler, QObject,
                           QSocketNotifier, QTimer, QUrl)
@@ -35,6 +36,10 @@ from PyQt5.QtWidgets import QApplication, QDialog
 from qutebrowser.commands import cmdutils
 from qutebrowser.misc import earlyinit, crashdialog
 from qutebrowser.utils import usertypes, standarddir, log, objreg, debug
+
+
+ExceptionInfo = collections.namedtuple('ExceptionInfo',
+                                       'pages, cmd_history, objects')
 
 
 class CrashHandler(QObject):
@@ -160,6 +165,31 @@ class CrashHandler(QObject):
         except OSError:
             log.destroy.exception("Could not remove crash log!")
 
+    def _get_exception_info(self):
+        """Get info needed for the exception hook/dialog.
+
+        Return:
+            An ExceptionInfo namedtuple.
+        """
+        try:
+            pages = self._recover_pages(forgiving=True)
+        except Exception:
+            log.destroy.exception("Error while recovering pages")
+            pages = []
+
+        try:
+            cmd_history = objreg.get('command-history')[-5:]
+        except Exception:
+            log.destroy.exception("Error while getting history: {}")
+            cmd_history = []
+
+        try:
+            objects = debug.get_all_objects()
+        except Exception:
+            log.destroy.exception("Error while getting objects")
+            objects = ""
+        return ExceptionInfo(pages, cmd_history, objects)
+
     def exception_hook(self, exctype, excvalue, tb):  # noqa
         """Handle uncaught python exceptions.
 
@@ -195,24 +225,7 @@ class CrashHandler(QObject):
                 return
 
         self._quitter.quit_status['crash'] = False
-
-        try:
-            pages = self._recover_pages(forgiving=True)
-        except Exception:
-            log.destroy.exception("Error while recovering pages")
-            pages = []
-
-        try:
-            cmd_history = objreg.get('command-history')[-5:]
-        except Exception:
-            log.destroy.exception("Error while getting history: {}")
-            cmd_history = []
-
-        try:
-            objects = debug.get_all_objects()
-        except Exception:
-            log.destroy.exception("Error while getting objects")
-            objects = ""
+        info = self._get_exception_info()
 
         try:
             objreg.get('ipc-server').ignored = True
@@ -226,13 +239,15 @@ class CrashHandler(QObject):
             log.destroy.exception("Error while preventing shutdown")
         self._app.closeAllWindows()
         if self._args.no_err_windows:
-            crashdialog.dump_exception_info(exc, pages, cmd_history, objects)
+            crashdialog.dump_exception_info(exc, info.pages, info.cmd_history,
+                                            info.objects)
         else:
             self._crash_dialog = crashdialog.ExceptionCrashDialog(
-                self._args.debug, pages, cmd_history, exc, objects)
+                self._args.debug, info.pages, info.cmd_history, exc,
+                info.objects)
             ret = self._crash_dialog.exec_()
             if ret == QDialog.Accepted:  # restore
-                self._quitter.restart(pages)
+                self._quitter.restart(info.pages)
 
         # We might risk a segfault here, but that's better than continuing to
         # run in some undefined state, so we only do the most needed shutdown
