@@ -80,11 +80,13 @@ def _die(message, exception=None):
     """
     from PyQt5.QtWidgets import QApplication, QMessageBox
     from PyQt5.QtCore import Qt
-    if '--debug' in sys.argv and exception is not None:
+    if (('--debug' in sys.argv or '--no-err-windows' in sys.argv) and
+            exception is not None):
         print(file=sys.stderr)
         traceback.print_exc()
     app = QApplication(sys.argv)
     if '--no-err-windows' in sys.argv:
+        print(message, file=sys.stderr)
         print("Exiting because of --no-err-windows.", file=sys.stderr)
     else:
         message += '<br/><br/><br/><b>Error:</b><br/>{}'.format(exception)
