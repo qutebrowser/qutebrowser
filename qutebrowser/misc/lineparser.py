@@ -94,13 +94,15 @@ class BaseLineParser(QObject):
         if self._opened:
             raise IOError("Refusing to double-open AppendLineParser.")
         self._opened = True
-        if self._binary:
-            with open(self._configfile, mode + 'b') as f:
-                yield f
-        else:
-            with open(self._configfile, mode, encoding='utf-8') as f:
-                yield f
-        self._opened = False
+        try:
+            if self._binary:
+                with open(self._configfile, mode + 'b') as f:
+                    yield f
+            else:
+                with open(self._configfile, mode, encoding='utf-8') as f:
+                    yield f
+        finally:
+            self._opened = False
 
     def _write(self, fp, data):
         """Write the data to a file.
@@ -223,10 +225,12 @@ class LineParser(BaseLineParser):
         if not do_save:
             return
         self._opened = True
-        assert self._configfile is not None
-        with qtutils.savefile_open(self._configfile, self._binary) as f:
-            self._write(f, self.data)
-        self._opened = False
+        try:
+            assert self._configfile is not None
+            with qtutils.savefile_open(self._configfile, self._binary) as f:
+                self._write(f, self.data)
+        finally:
+            self._opened = False
 
 
 class LimitLineParser(LineParser):
