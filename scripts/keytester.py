@@ -39,6 +39,7 @@ class KeyWidget(QWidget):
         self._layout.addWidget(self._label)
 
     def keyPressEvent(self, e):
+        """Show pressed keys."""
         lines = [
             str(utils.keyevent_to_string(e)),
             '',
