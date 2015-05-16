@@ -110,7 +110,9 @@ class HostBlocker:
             except OSError:
                 log.misc.exception("Failed to read host blocklist!")
         else:
-            if config.get('content', 'host-block-lists') is not None:
+            args = objreg.get('args')
+            if (config.get('content', 'host-block-lists') is not None and
+                    args.basedir is None):
                 message.info('current',
                              "Run :adblock-update to get adblock lists.")
 
