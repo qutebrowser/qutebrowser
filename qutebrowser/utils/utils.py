@@ -333,10 +333,12 @@ def keyevent_to_string(e):
         (Qt.ShiftModifier, 'Shift'),
     ])
     if sys.platform == 'darwin':
-        # FIXME verify this feels right on a real Mac as well.
-        # In my Virtualbox VM, the Ctrl key shows up as meta.
+        # Qt swaps Ctrl/Meta on OS X, so we switch it back here so the user can
+        # use it in the config as expected. See:
         # https://github.com/The-Compiler/qutebrowser/issues/110
+        # http://doc.qt.io/qt-5.4/osx-issues.html#special-keys
         modmask2str[Qt.MetaModifier] = 'Ctrl'
+        modmask2str[Qt.ControlModifier] = 'Meta'
     modifiers = (Qt.Key_Control, Qt.Key_Alt, Qt.Key_Shift, Qt.Key_Meta,
                  Qt.Key_AltGr, Qt.Key_Super_L, Qt.Key_Super_R,
                  Qt.Key_Hyper_L, Qt.Key_Hyper_R, Qt.Key_Direction_L,
