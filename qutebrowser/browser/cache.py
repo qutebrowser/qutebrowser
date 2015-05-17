@@ -52,7 +52,7 @@ class DiskCache(QNetworkDiskCache):
                               maxsize=self.maximumCacheSize(),
                               path=self.cacheDirectory())
 
-    @pyqtSlot()
+    @pyqtSlot(str, str)
     def on_config_changed(self, section, option):
         """Update cache size/activated if the config was changed."""
         if (section, option) == ('storage', 'cache-size'):
