@@ -30,7 +30,7 @@ Added
 - Support for Qt 5.5 and tox 2.0
 - New arguments `--datadir` and `--cachedir` to set the data/cache location.
 - New arguments `--basedir` and `--temp-basedir` (intended for debugging) to set a different base directory for all data, which allows multiple invocations.
-
+- New argument `--no-err-windows` to suppress all error windows.
 
 Changed
 ~~~~~~~
@@ -70,6 +70,7 @@ Fixed
 - Fixed AssertionError when closing many windows quickly.
 - Various fixes for deprecated key bindings and auto-migrations.
 - Workaround for qutebrowser not starting when there are NUL-bytes in the history (because of a currently unknown bug)
+- Fixed handling of keybindings containing Ctrl/Meta on OS X.
 
 https://github.com/The-Compiler/qutebrowser/releases/tag/v0.2.1[v0.2.1]
 -----------------------------------------------------------------------
