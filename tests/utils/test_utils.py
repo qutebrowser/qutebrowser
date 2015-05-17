@@ -19,7 +19,6 @@
 
 """Tests for qutebrowser.utils.utils."""
 
-import sys
 import enum
 import datetime
 import os.path
@@ -320,10 +319,7 @@ class TestKeyEventToString:
         evt = fake_keyevent_factory(
             key=Qt.Key_A, modifiers=(Qt.ControlModifier | Qt.AltModifier |
                                      Qt.MetaModifier | Qt.ShiftModifier))
-        if sys.platform == 'darwin':
-            assert utils.keyevent_to_string(evt) == 'Ctrl+Alt+Shift+A'
-        else:
-            assert utils.keyevent_to_string(evt) == 'Ctrl+Alt+Meta+Shift+A'
+        assert utils.keyevent_to_string(evt) == 'Ctrl+Alt+Meta+Shift+A'
 
 
 class TestNormalize:
