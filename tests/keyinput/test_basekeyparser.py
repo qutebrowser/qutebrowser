@@ -21,6 +21,7 @@
 
 """Tests for BaseKeyParser."""
 
+import sys
 import logging
 from unittest import mock
 
@@ -131,8 +132,12 @@ class TestSpecialKeys:
 
     def test_valid_key(self, fake_keyevent_factory):
         """Test a valid special keyevent."""
-        self.kp.handle(fake_keyevent_factory(Qt.Key_A, Qt.ControlModifier))
-        self.kp.handle(fake_keyevent_factory(Qt.Key_X, Qt.ControlModifier))
+        if sys.platform == 'darwin':
+            modifier = Qt.MetaModifier
+        else:
+            modifier = Qt.ControlModifier
+        self.kp.handle(fake_keyevent_factory(Qt.Key_A, modifier))
+        self.kp.handle(fake_keyevent_factory(Qt.Key_X, modifier))
         self.kp.execute.assert_called_once_with('ctrla', self.kp.Type.special)
 
     def test_invalid_key(self, fake_keyevent_factory):
@@ -167,8 +172,12 @@ class TestKeyChain:
 
     def test_valid_special_key(self, fake_keyevent_factory):
         """Test valid special key."""
-        self.kp.handle(fake_keyevent_factory(Qt.Key_A, Qt.ControlModifier))
-        self.kp.handle(fake_keyevent_factory(Qt.Key_X, Qt.ControlModifier))
+        if sys.platform == 'darwin':
+            modifier = Qt.MetaModifier
+        else:
+            modifier = Qt.ControlModifier
+        self.kp.handle(fake_keyevent_factory(Qt.Key_A, modifier))
+        self.kp.handle(fake_keyevent_factory(Qt.Key_X, modifier))
         self.kp.execute.assert_called_once_with('ctrla', self.kp.Type.special)
         assert self.kp._keystring == ''
 
