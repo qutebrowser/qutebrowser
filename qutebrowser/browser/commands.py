@@ -1330,7 +1330,7 @@ class CommandDispatcher:
     @cmdutils.register(instance='command-dispatcher', hide=True,
                        modes=[KeyMode.caret], scope='window', count='count')
     def move_to_start_of_line(self, count=1):
-        """Move the cursor or select to the start of line."""
+        """Move the cursor or selection to the start of the line."""
         webview = self._current_widget()
         if not webview.selection_enabled:
             act = QWebPage.MoveToStartOfLine
@@ -1342,7 +1342,7 @@ class CommandDispatcher:
     @cmdutils.register(instance='command-dispatcher', hide=True,
                        modes=[KeyMode.caret], scope='window', count='count')
     def move_to_end_of_line(self, count=1):
-        """Move the cursor or select to the end of line."""
+        """Move the cursor or selection to the end of line."""
         webview = self._current_widget()
         if not webview.selection_enabled:
             act = QWebPage.MoveToEndOfLine
