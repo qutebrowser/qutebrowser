@@ -1328,28 +1328,26 @@ class CommandDispatcher:
             webview.triggerPageAction(act)
 
     @cmdutils.register(instance='command-dispatcher', hide=True,
-                       modes=[KeyMode.caret], scope='window', count='count')
-    def move_to_start_of_line(self, count=1):
+                       modes=[KeyMode.caret], scope='window')
+    def move_to_start_of_line(self):
         """Move the cursor or selection to the start of the line."""
         webview = self._current_widget()
         if not webview.selection_enabled:
             act = QWebPage.MoveToStartOfLine
         else:
             act = QWebPage.SelectStartOfLine
-        for _ in range(count):
-            webview.triggerPageAction(act)
+        webview.triggerPageAction(act)
 
     @cmdutils.register(instance='command-dispatcher', hide=True,
-                       modes=[KeyMode.caret], scope='window', count='count')
-    def move_to_end_of_line(self, count=1):
+                       modes=[KeyMode.caret], scope='window')
+    def move_to_end_of_line(self):
         """Move the cursor or selection to the end of line."""
         webview = self._current_widget()
         if not webview.selection_enabled:
             act = QWebPage.MoveToEndOfLine
         else:
             act = QWebPage.SelectEndOfLine
-        for _ in range(count):
-            webview.triggerPageAction(act)
+        webview.triggerPageAction(act)
 
     @cmdutils.register(instance='command-dispatcher', hide=True,
                        modes=[KeyMode.caret], scope='window', count='count')
