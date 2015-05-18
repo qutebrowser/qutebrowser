@@ -29,7 +29,7 @@ from PyQt5.QtGui import QIcon
 from qutebrowser.config import config
 from qutebrowser.keyinput import modeman
 from qutebrowser.mainwindow import tabwidget
-from qutebrowser.browser import signalfilter, commands, webview
+from qutebrowser.browser import signalfilter, webview
 from qutebrowser.utils import log, usertypes, utils, qtutils, objreg, urlutils
 
 
@@ -107,12 +107,6 @@ class TabbedBrowser(tabwidget.TabWidget):
         self.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Expanding)
         self._undo_stack = []
         self._filter = signalfilter.SignalFilter(win_id, self)
-        dispatcher = commands.CommandDispatcher(win_id)
-        objreg.register('command-dispatcher', dispatcher, scope='window',
-                        window=win_id)
-        self.destroyed.connect(
-            functools.partial(objreg.delete, 'command-dispatcher',
-                              scope='window', window=win_id))
         self._now_focused = None
         # FIXME adjust this to font size
         # https://github.com/The-Compiler/qutebrowser/issues/119

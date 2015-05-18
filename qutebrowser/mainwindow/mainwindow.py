@@ -22,6 +22,7 @@
 import binascii
 import base64
 import itertools
+import functools
 
 from PyQt5.QtCore import pyqtSlot, QRect, QPoint, QTimer, Qt
 from PyQt5.QtWidgets import QWidget, QVBoxLayout, QApplication
@@ -33,7 +34,7 @@ from qutebrowser.mainwindow import tabbedbrowser
 from qutebrowser.mainwindow.statusbar import bar
 from qutebrowser.completion import completionwidget
 from qutebrowser.keyinput import modeman
-from qutebrowser.browser import hints, downloads, downloadview
+from qutebrowser.browser import hints, downloads, downloadview, commands
 
 
 win_id_gen = itertools.count(0)
@@ -89,8 +90,8 @@ class MainWindow(QWidget):
 
     Attributes:
         status: The StatusBar widget.
+        tabbed_browser: The TabbedBrowser widget.
         _downloadview: The DownloadView widget.
-        _tabbed_browser: The TabbedBrowser widget.
         _vbox: The main QVBoxLayout.
         _commandrunner: The main CommandRunner instance.
     """
@@ -138,9 +139,16 @@ class MainWindow(QWidget):
 
         self._downloadview = downloadview.DownloadView(self.win_id)
 
-        self._tabbed_browser = tabbedbrowser.TabbedBrowser(self.win_id)
-        objreg.register('tabbed-browser', self._tabbed_browser, scope='window',
+        self.tabbed_browser = tabbedbrowser.TabbedBrowser(self.win_id)
+        objreg.register('tabbed-browser', self.tabbed_browser, scope='window',
                         window=self.win_id)
+        dispatcher = commands.CommandDispatcher(self.win_id,
+                                                self.tabbed_browser)
+        objreg.register('command-dispatcher', dispatcher, scope='window',
+                        window=self.win_id)
+        self.tabbed_browser.destroyed.connect(
+            functools.partial(objreg.delete, 'command-dispatcher',
+                              scope='window', window=self.win_id))
 
         # We need to set an explicit parent for StatusBar because it does some
         # show/hide magic immediately which would mean it'd show up as a
@@ -185,15 +193,15 @@ class MainWindow(QWidget):
 
     def _add_widgets(self):
         """Add or readd all widgets to the VBox."""
-        self._vbox.removeWidget(self._tabbed_browser)
+        self._vbox.removeWidget(self.tabbed_browser)
         self._vbox.removeWidget(self._downloadview)
         self._vbox.removeWidget(self.status)
         position = config.get('ui', 'downloads-position')
         if position == 'north':
             self._vbox.addWidget(self._downloadview)
-            self._vbox.addWidget(self._tabbed_browser)
+            self._vbox.addWidget(self.tabbed_browser)
         elif position == 'south':
-            self._vbox.addWidget(self._tabbed_browser)
+            self._vbox.addWidget(self.tabbed_browser)
             self._vbox.addWidget(self._downloadview)
         else:
             raise ValueError("Invalid position {}!".format(position))
@@ -260,7 +268,7 @@ class MainWindow(QWidget):
         prompter = self._get_object('prompter')
 
         # misc
-        self._tabbed_browser.close_window.connect(self.close)
+        self.tabbed_browser.close_window.connect(self.close)
         mode_manager.entered.connect(hints.on_mode_entered)
 
         # status bar
@@ -381,12 +389,12 @@ class MainWindow(QWidget):
         super().resizeEvent(e)
         self.resize_completion()
         self._downloadview.updateGeometry()
-        self._tabbed_browser.tabBar().refresh()
+        self.tabbed_browser.tabBar().refresh()
 
     def closeEvent(self, e):
         """Override closeEvent to display a confirmation if needed."""
         confirm_quit = config.get('ui', 'confirm-quit')
-        tab_count = self._tabbed_browser.count()
+        tab_count = self.tabbed_browser.count()
         download_manager = objreg.get('download-manager', scope='window',
                                       window=self.win_id)
         download_count = download_manager.rowCount()
@@ -419,4 +427,4 @@ class MainWindow(QWidget):
         objreg.get('session-manager').save_last_window_session()
         self._save_geometry()
         log.destroy.debug("Closing window {}".format(self.win_id))
-        self._tabbed_browser.shutdown()
+        self.tabbed_browser.shutdown()

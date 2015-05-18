@@ -56,46 +56,40 @@ class CommandDispatcher:
     Attributes:
         _editor: The ExternalEditor object.
         _win_id: The window ID the CommandDispatcher is associated with.
+        _tabbed_browser: The TabbedBrowser used.
     """
 
-    def __init__(self, win_id):
+    def __init__(self, win_id, tabbed_browser):
         self._editor = None
         self._win_id = win_id
+        self._tabbed_browser = tabbed_browser
 
     def __repr__(self):
         return utils.get_repr(self)
 
-    def _tabbed_browser(self, window=False):
-        """Convienence method to get the right tabbed-browser.
-
-        Args:
-            window: If True, open a new window.
-        """
+    def _new_tabbed_browser(self):
+        """Get a tabbed-browser from a new window."""
         from qutebrowser.mainwindow import mainwindow
-        if window:
-            new_window = mainwindow.MainWindow()
-            new_window.show()
-            win_id = new_window.win_id
-        else:
-            win_id = self._win_id
-        return objreg.get('tabbed-browser', scope='window', window=win_id)
+        new_window = mainwindow.MainWindow()
+        new_window.show()
+        return new_window.tabbed_browser
 
     def _count(self):
         """Convenience method to get the widget count."""
-        return self._tabbed_browser().count()
+        return self._tabbed_browser.count()
 
     def _set_current_index(self, idx):
         """Convenience method to set the current widget index."""
-        return self._tabbed_browser().setCurrentIndex(idx)
+        return self._tabbed_browser.setCurrentIndex(idx)
 
     def _current_index(self):
         """Convenience method to get the current widget index."""
-        return self._tabbed_browser().currentIndex()
+        return self._tabbed_browser.currentIndex()
 
     def _current_url(self):
         """Convenience method to get the current url."""
         try:
-            return self._tabbed_browser().current_url()
+            return self._tabbed_browser.current_url()
         except qtutils.QtValueError as e:
             msg = "Current URL is invalid"
             if e.reason:
@@ -105,7 +99,7 @@ class CommandDispatcher:
 
     def _current_widget(self):
         """Get the currently active widget from a command."""
-        widget = self._tabbed_browser().currentWidget()
+        widget = self._tabbed_browser.currentWidget()
         if widget is None:
             raise cmdexc.CommandError("No WebView available yet!")
         return widget
@@ -120,10 +114,10 @@ class CommandDispatcher:
             window: Whether to open in a new window
         """
         urlutils.raise_cmdexc_if_invalid(url)
-        tabbed_browser = self._tabbed_browser()
+        tabbed_browser = self._tabbed_browser
         cmdutils.check_exclusive((tab, background, window), 'tbw')
         if window:
-            tabbed_browser = self._tabbed_browser(window=True)
+            tabbed_browser = self._new_tabbed_browser()
             tabbed_browser.tabopen(url)
         elif tab:
             tabbed_browser.tabopen(url, background=False, explicit=True)
@@ -144,12 +138,11 @@ class CommandDispatcher:
             The widget with the given tab ID if count is given.
             None if no widget was found.
         """
-        tabbed_browser = self._tabbed_browser()
         if count is None:
-            return tabbed_browser.currentWidget()
+            return self._tabbed_browser.currentWidget()
         elif 1 <= count <= self._count():
             cmdutils.check_overflow(count + 1, 'int')
-            return tabbed_browser.widget(count - 1)
+            return self._tabbed_browser.widget(count - 1)
         else:
             return None
 
@@ -213,7 +206,7 @@ class CommandDispatcher:
                              window=self._win_id)
         except KeyError:
             raise cmdexc.CommandError("No last focused tab!")
-        idx = self._tabbed_browser().indexOf(tab)
+        idx = self._tabbed_browser.indexOf(tab)
         if idx == -1:
             raise cmdexc.CommandError("Last focused tab vanished!")
         self._set_current_index(idx)
@@ -271,16 +264,15 @@ class CommandDispatcher:
         tab = self._cntwidget(count)
         if tab is None:
             return
-        tabbed_browser = self._tabbed_browser()
-        tabbar = tabbed_browser.tabBar()
+        tabbar = self._tabbed_browser.tabBar()
         selection_override = self._get_selection_override(left, right,
                                                           opposite)
         if selection_override is None:
-            tabbed_browser.close_tab(tab)
+            self._tabbed_browser.close_tab(tab)
         else:
             old_selection_behavior = tabbar.selectionBehaviorOnRemove()
             tabbar.setSelectionBehaviorOnRemove(selection_override)
-            tabbed_browser.close_tab(tab)
+            self._tabbed_browser.close_tab(tab)
             tabbar.setSelectionBehaviorOnRemove(old_selection_behavior)
 
     @cmdutils.register(instance='command-dispatcher', name='open',
@@ -315,7 +307,7 @@ class CommandDispatcher:
                 if count is None:
                     # We want to open a URL in the current tab, but none exists
                     # yet.
-                    self._tabbed_browser().tabopen(url)
+                    self._tabbed_browser.tabopen(url)
                 else:
                     # Explicit count with a tab that doesn't exist.
                     return
@@ -391,12 +383,14 @@ class CommandDispatcher:
         """
         if bg and window:
             raise cmdexc.CommandError("Only one of -b/-w can be given!")
-        cur_tabbed_browser = self._tabbed_browser()
         curtab = self._current_widget()
-        cur_title = cur_tabbed_browser.page_title(self._current_index())
+        cur_title = self._tabbed_browser.page_title(self._current_index())
         # The new tab could be in a new tabbed_browser (e.g. because of
         # tabs-are-windows being set)
-        new_tabbed_browser = self._tabbed_browser(window)
+        if window:
+            new_tabbed_browser = self._new_tabbed_browser()
+        else:
+            new_tabbed_browser = self._tabbed_browser
         newtab = new_tabbed_browser.tabopen(background=bg, explicit=True)
         new_tabbed_browser = objreg.get('tabbed-browser', scope='window',
                                         window=newtab.win_id)
@@ -414,9 +408,8 @@ class CommandDispatcher:
         """Detach the current tab to its own window."""
         url = self._current_url()
         self._open(url, window=True)
-        tabbed_browser = self._tabbed_browser()
         cur_widget = self._current_widget()
-        tabbed_browser.close_tab(cur_widget)
+        self._tabbed_browser.close_tab(cur_widget)
 
     def _back_forward(self, tab, bg, window, count, forward):
         """Helper function for :back/:forward."""
@@ -686,7 +679,7 @@ class CommandDispatcher:
         """
         clipboard = QApplication.clipboard()
         if title:
-            s = self._tabbed_browser().page_title(self._current_index())
+            s = self._tabbed_browser.page_title(self._current_index())
         else:
             s = self._current_url().toString(
                 QUrl.FullyEncoded | QUrl.RemovePassword)
@@ -752,22 +745,21 @@ class CommandDispatcher:
             right: Keep tabs to the right of the current.
         """
         cmdutils.check_exclusive((left, right), 'lr')
-        tabbed_browser = self._tabbed_browser()
-        cur_idx = tabbed_browser.currentIndex()
+        cur_idx = self._tabbed_browser.currentIndex()
         assert cur_idx != -1
 
-        for i, tab in enumerate(tabbed_browser.widgets()):
+        for i, tab in enumerate(self._tabbed_browser.widgets()):
             if (i == cur_idx or (left and i < cur_idx) or
                     (right and i > cur_idx)):
                 continue
             else:
-                tabbed_browser.close_tab(tab)
+                self._tabbed_browser.close_tab(tab)
 
     @cmdutils.register(instance='command-dispatcher', scope='window')
     def undo(self):
         """Re-open a closed tab (optionally skipping [count] closed tabs)."""
         try:
-            self._tabbed_browser().undo()
+            self._tabbed_browser.undo()
         except IndexError:
             raise cmdexc.CommandError("Nothing to undo!")
 
@@ -880,20 +872,19 @@ class CommandDispatcher:
         if not 0 <= new_idx < self._count():
             raise cmdexc.CommandError("Can't move tab to position {}!".format(
                 new_idx))
-        tabbed_browser = self._tabbed_browser()
         tab = self._current_widget()
         cur_idx = self._current_index()
-        icon = tabbed_browser.tabIcon(cur_idx)
-        label = tabbed_browser.page_title(cur_idx)
+        icon = self._tabbed_browser.tabIcon(cur_idx)
+        label = self._tabbed_browser.page_title(cur_idx)
         cmdutils.check_overflow(cur_idx, 'int')
         cmdutils.check_overflow(new_idx, 'int')
-        tabbed_browser.setUpdatesEnabled(False)
+        self._tabbed_browser.setUpdatesEnabled(False)
         try:
-            tabbed_browser.removeTab(cur_idx)
-            tabbed_browser.insertTab(new_idx, tab, icon, label)
+            self._tabbed_browser.removeTab(cur_idx)
+            self._tabbed_browser.insertTab(new_idx, tab, icon, label)
             self._set_current_index(new_idx)
         finally:
-            tabbed_browser.setUpdatesEnabled(True)
+            self._tabbed_browser.setUpdatesEnabled(True)
 
     @cmdutils.register(instance='command-dispatcher', scope='window',
                        win_id='win_id')
@@ -949,11 +940,10 @@ class CommandDispatcher:
         }
 
         idx = self._current_index()
-        tabbed_browser = self._tabbed_browser()
         if idx != -1:
-            env['QUTE_TITLE'] = tabbed_browser.page_title(idx)
+            env['QUTE_TITLE'] = self._tabbed_browser.page_title(idx)
 
-        webview = tabbed_browser.currentWidget()
+        webview = self._tabbed_browser.currentWidget()
         if webview is None:
             mainframe = None
         else:
@@ -963,7 +953,7 @@ class CommandDispatcher:
             mainframe = webview.page().mainFrame()
 
         try:
-            url = tabbed_browser.current_url()
+            url = self._tabbed_browser.current_url()
         except qtutils.QtValueError:
             pass
         else:
@@ -1055,7 +1045,7 @@ class CommandDispatcher:
             full=True, linenos='table')
         highlighted = pygments.highlight(html, lexer, formatter)
         current_url = self._current_url()
-        tab = self._tabbed_browser().tabopen(explicit=True)
+        tab = self._tabbed_browser.tabopen(explicit=True)
         tab.setHtml(highlighted, current_url)
         tab.viewing_source = True
 
@@ -1128,7 +1118,7 @@ class CommandDispatcher:
         else:
             text = elem.evaluateJavaScript('this.value')
         self._editor = editor.ExternalEditor(
-            self._win_id, self._tabbed_browser())
+            self._win_id, self._tabbed_browser)
         self._editor.editing_finished.connect(
             functools.partial(self.on_editing_finished, elem))
         self._editor.edit(text)
