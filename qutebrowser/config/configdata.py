@@ -1303,10 +1303,10 @@ KEY_DATA = collections.OrderedDict([
         ('move-to-end-of-document', ['G']),
         ('yank-selected -p', ['Y']),
         ('yank-selected', ['y', '<Return>', '<Ctrl-J>']),
-        ('scroll -50 0', ['H']),
-        ('scroll 0 50', ['J']),
-        ('scroll 0 -50', ['K']),
-        ('scroll 50 0', ['L']),
+        ('scroll left', ['H']),
+        ('scroll down', ['J']),
+        ('scroll up', ['K']),
+        ('scroll right', ['L']),
     ])),
 ])
 
