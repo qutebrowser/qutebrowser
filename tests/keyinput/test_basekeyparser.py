@@ -39,7 +39,8 @@ BINDINGS = {'test': {'<Ctrl-a>': 'ctrla',
                      'a': 'a',
                      'ba': 'ba',
                      'ax': 'ax',
-                     'ccc': 'ccc'},
+                     'ccc': 'ccc',
+                     '0': '0'},
             'test2': {'foo': 'bar', '<Ctrl+X>': 'ctrlx'}}
 
 
@@ -198,6 +199,12 @@ class TestKeyChain:
         self.kp.execute.assert_called_once_with('ba', self.kp.Type.chain, None)
         assert self.kp._keystring == ''
 
+    def test_0(self, fake_keyevent_factory):
+        """Test with 0 keypress."""
+        self.kp.handle(fake_keyevent_factory(Qt.Key_0, text='0'))
+        self.kp.execute.assert_called_once_with('0', self.kp.Type.chain, None)
+        assert self.kp._keystring == ''
+
     def test_ambiguous_keychain(self, fake_keyevent_factory, config_stub,
                                 mocker):
         """Test ambiguous keychain."""
@@ -251,7 +258,9 @@ class TestCount:
         self.kp.handle(fake_keyevent_factory(Qt.Key_0, text='0'))
         self.kp.handle(fake_keyevent_factory(Qt.Key_B, text='b'))
         self.kp.handle(fake_keyevent_factory(Qt.Key_A, text='a'))
-        self.kp.execute.assert_called_once_with('ba', self.kp.Type.chain, 0)
+        calls = [mock.call('0', self.kp.Type.chain, None),
+                 mock.call('ba', self.kp.Type.chain, None)]
+        self.kp.execute.assert_has_calls(calls)
         assert self.kp._keystring == ''
 
     def test_count_42(self, fake_keyevent_factory):

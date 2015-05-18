@@ -231,7 +231,7 @@ ClickTarget = enum('ClickTarget', ['normal', 'tab', 'tab_bg', 'window'])
 
 # Key input modes
 KeyMode = enum('KeyMode', ['normal', 'hint', 'command', 'yesno', 'prompt',
-                           'insert', 'passthrough'])
+                           'insert', 'passthrough', 'caret'])
 
 
 # Available command completions

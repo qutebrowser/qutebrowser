@@ -106,6 +106,7 @@ class WebView(QWebView):
         self.keep_icon = False
         self.search_text = None
         self.search_flags = 0
+        self.selection_enabled = False
         self.init_neighborlist()
         cfg = objreg.get('config')
         cfg.changed.connect(self.init_neighborlist)
@@ -443,6 +444,18 @@ class WebView(QWebView):
             log.webview.debug("Ignoring focus because mode {} was "
                               "entered.".format(mode))
             self.setFocusPolicy(Qt.NoFocus)
+        elif mode == usertypes.KeyMode.caret:
+            settings = self.settings()
+            settings.setAttribute(QWebSettings.CaretBrowsingEnabled, True)
+            self.selection_enabled = False
+
+            if self.isVisible():
+                # Sometimes the caret isn't immediately visible, but unfocusing
+                # and refocusing it fixes that.
+                self.clearFocus()
+                self.setFocus(Qt.OtherFocusReason)
+                self.page().currentFrame().evaluateJavaScript(
+                    utils.read_file('javascript/position_caret.js'))
 
     @pyqtSlot(usertypes.KeyMode)
     def on_mode_left(self, mode):
@@ -451,6 +464,15 @@ class WebView(QWebView):
                     usertypes.KeyMode.yesno):
             log.webview.debug("Restoring focus policy because mode {} was "
                               "left.".format(mode))
+        elif mode == usertypes.KeyMode.caret:
+            settings = self.settings()
+            if settings.testAttribute(QWebSettings.CaretBrowsingEnabled):
+                if self.selection_enabled and self.hasSelection():
+                    # Remove selection if it exists
+                    self.triggerPageAction(QWebPage.MoveToNextChar)
+                settings.setAttribute(QWebSettings.CaretBrowsingEnabled, False)
+                self.selection_enabled = False
+
         self.setFocusPolicy(Qt.WheelFocus)
 
     def search(self, text, flags):
