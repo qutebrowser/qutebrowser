@@ -55,10 +55,10 @@ def fake_keyconfig():
 
 
 @pytest.fixture
-def mock_timer(mocker, stubs):
+def mock_timer(monkeypatch, stubs):
     """Mock the Timer class used by the usertypes module with a stub."""
-    mocker.patch('qutebrowser.keyinput.basekeyparser.usertypes.Timer',
-                 new=stubs.FakeTimer)
+    monkeypatch.setattr('qutebrowser.keyinput.basekeyparser.usertypes.Timer',
+                        stubs.FakeTimer)
 
 
 class TestSplitCount:
@@ -206,11 +206,11 @@ class TestKeyChain:
         assert self.kp._keystring == ''
 
     def test_ambiguous_keychain(self, fake_keyevent_factory, config_stub,
-                                mocker):
+                                monkeypatch):
         """Test ambiguous keychain."""
         config_stub.data = CONFIG
-        mocker.patch('qutebrowser.keyinput.basekeyparser.config',
-                     new=config_stub)
+        monkeypatch.setattr('qutebrowser.keyinput.basekeyparser.config',
+                            config_stub)
         timer = self.kp._ambiguous_timer
         assert not timer.isActive()
         # We start with 'a' where the keychain gives us an ambiguous result.
