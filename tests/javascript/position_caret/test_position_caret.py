@@ -51,7 +51,7 @@ class CaretTester:
         """Check whether the caret is before the MARKER text."""
         self.js.run_file('position_caret.js')
         self.js.webview.triggerPageAction(QWebPage.SelectNextWord)
-        assert self.js.webview.selectedText() == "MARKER"
+        assert self.js.webview.selectedText().rstrip() == "MARKER"
 
     def check_scrolled(self):
         """Check if the page is scrolled down."""
