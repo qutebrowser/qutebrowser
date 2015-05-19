@@ -510,7 +510,8 @@ def get_repr(obj, constructor=False, **attrs):
     """
     cls = qualname(obj.__class__)
     parts = []
-    for name, val in attrs.items():
+    items = sorted(attrs.items())
+    for name, val in items:
         parts.append('{}={!r}'.format(name, val))
     if constructor:
         return '{}({})'.format(cls, ', '.join(parts))
