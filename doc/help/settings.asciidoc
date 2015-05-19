@@ -398,10 +398,10 @@ How to open links in an existing instance if a new one is launched.
 
 Valid values:
 
- * +tab+: Open a new tab in the existing window and activate it.
- * +tab-bg+: Open a new background tab in the existing window and activate it.
- * +tab-silent+: Open a new tab in the existing window without activating it.
- * +tab-bg-silent+: Open a new background tab in the existing window without activating it.
+ * +tab+: Open a new tab in the existing window and activate the window.
+ * +tab-bg+: Open a new background tab in the existing window and activate the window.
+ * +tab-silent+: Open a new tab in the existing window without activating the window.
+ * +tab-bg-silent+: Open a new background tab in the existing window without activating the window.
  * +window+: Open in a new window.
 
 Default: +pass:[window]+
