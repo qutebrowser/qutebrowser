@@ -31,6 +31,7 @@ Added
 - New arguments `--datadir` and `--cachedir` to set the data/cache location.
 - New arguments `--basedir` and `--temp-basedir` (intended for debugging) to set a different base directory for all data, which allows multiple invocations.
 - New argument `--no-err-windows` to suppress all error windows.
+- New visual/caret mode (bound to `v`) to select text by keyboard.
 
 Changed
 ~~~~~~~
