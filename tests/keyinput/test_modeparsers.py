@@ -19,23 +19,16 @@
 
 """Tests for mode parsers."""
 
+from unittest import mock
+
 from PyQt5.QtCore import Qt
 
-from unittest import mock
 import pytest
 
 from qutebrowser.keyinput import modeparsers
-from qutebrowser.utils import objreg
 
 
 CONFIG = {'input': {'partial-timeout': 100}}
-
-
-BINDINGS = {'normal': {'a': 'a', 'ba': 'ba'}}
-
-
-fake_keyconfig = mock.Mock(spec=['get_bindings_for'])
-fake_keyconfig.get_bindings_for.side_effect = lambda s: BINDINGS[s]
 
 
 class TestsNormalKeyParser:
@@ -49,7 +42,7 @@ class TestsNormalKeyParser:
     # pylint: disable=protected-access
 
     @pytest.yield_fixture(autouse=True)
-    def setup(self, monkeypatch, stubs, config_stub):
+    def setup(self, monkeypatch, stubs, config_stub, fake_keyconfig):
         """Set up mocks and read the test config."""
         monkeypatch.setattr(
             'qutebrowser.keyinput.basekeyparser.usertypes.Timer',
@@ -58,11 +51,9 @@ class TestsNormalKeyParser:
         monkeypatch.setattr('qutebrowser.keyinput.modeparsers.config',
                             config_stub)
 
-        objreg.register('key-config', fake_keyconfig)
         self.kp = modeparsers.NormalKeyParser(0)
         self.kp.execute = mock.Mock()
         yield
-        objreg.delete('key-config')
 
     def test_keychain(self, fake_keyevent_factory):
         """Test valid keychain."""

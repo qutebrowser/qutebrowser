@@ -29,29 +29,10 @@ from PyQt5.QtCore import Qt
 import pytest
 
 from qutebrowser.keyinput import basekeyparser
-from qutebrowser.utils import objreg, log
+from qutebrowser.utils import log
 
 
 CONFIG = {'input': {'timeout': 100}}
-
-
-BINDINGS = {'test': {'<Ctrl-a>': 'ctrla',
-                     'a': 'a',
-                     'ba': 'ba',
-                     'ax': 'ax',
-                     'ccc': 'ccc',
-                     '0': '0'},
-            'test2': {'foo': 'bar', '<Ctrl+X>': 'ctrlx'}}
-
-
-@pytest.yield_fixture
-def fake_keyconfig():
-    """Create a mock of a KeyConfiguration and register it into objreg."""
-    fake_keyconfig = mock.Mock(spec=['get_bindings_for'])
-    fake_keyconfig.get_bindings_for.side_effect = lambda s: BINDINGS[s]
-    objreg.register('key-config', fake_keyconfig)
-    yield
-    objreg.delete('key-config')
 
 
 @pytest.fixture
