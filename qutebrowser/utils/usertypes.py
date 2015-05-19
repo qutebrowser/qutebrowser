@@ -147,7 +147,7 @@ class NeighborList(collections.abc.Sequence):
                 self._idx += offset
                 self._idx %= len(self.items)
                 new = self.curitem()
-            elif self._mode == self.Modes.exception:
+            elif self._mode == self.Modes.exception:  # pragma: no branch
                 raise
         else:
             self._idx += offset

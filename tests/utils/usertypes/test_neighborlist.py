@@ -51,6 +51,11 @@ class TestInit:
         assert 2 in nl
         assert 4 not in nl
 
+    def test_invalid_mode(self):
+        """Test with an invalid mode."""
+        with pytest.raises(TypeError):
+            usertypes.NeighborList(mode='blah')
+
 
 class TestDefaultArg:
 
@@ -70,6 +75,12 @@ class TestDefaultArg:
         """Test unset default value."""
         nl = usertypes.NeighborList([1, 2, 3])
         assert nl._idx is None
+
+    def test_invalid_reset(self):
+        """Test reset without default."""
+        nl = usertypes.NeighborList([1, 2, 3, 4, 5])
+        with pytest.raises(ValueError):
+            nl.reset()
 
 
 class TestEmpty:
