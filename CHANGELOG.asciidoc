@@ -58,6 +58,7 @@ Fixed
 ~~~~~
 
 - Scrolling should now work more reliably on some pages where arrow keys worked but `hjkl` didn't.
+- Small improvements when checking if an input is an URL or not.
 
 v0.2.2 (unreleased)
 -------------------
