@@ -33,6 +33,7 @@ from qutebrowser.utils import usertypes, log, qtutils, objreg, utils
 PromptContext = collections.namedtuple('PromptContext',
                                        ['question', 'text', 'input_text',
                                         'echo_mode', 'input_visible'])
+AuthTuple = collections.namedtuple('AuthTuple', ['user', 'password'])
 
 
 class Prompter(QObject):
@@ -237,7 +238,7 @@ class Prompter(QObject):
         elif self._question.mode == usertypes.PromptMode.user_pwd:
             # User just entered a password
             password = prompt.lineedit.text()
-            self._question.answer = (self._question.user, password)
+            self._question.answer = AuthTuple(self._question.user, password)
             modeman.maybe_leave(self._win_id, usertypes.KeyMode.prompt,
                                 'prompt accept')
             self._question.done()

@@ -19,45 +19,38 @@
 
 """Tests for the Enum class."""
 
-import unittest
-
 from qutebrowser.utils import usertypes
+
+import pytest
 
 # FIXME: Add some more tests, e.g. for is_int
 
 
-class EnumTests(unittest.TestCase):
-
-    """Test simple enums.
-
-    Attributes:
-        enum: The enum we're testing.
-    """
-
-    def setUp(self):
-        self.enum = usertypes.enum('Enum', ['one', 'two'])
-
-    def test_values(self):
-        """Test if enum members resolve to the right values."""
-        self.assertEqual(self.enum.one.value, 1)
-        self.assertEqual(self.enum.two.value, 2)
-
-    def test_name(self):
-        """Test .name mapping."""
-        self.assertEqual(self.enum.one.name, 'one')
-        self.assertEqual(self.enum.two.name, 'two')
-
-    def test_unknown(self):
-        """Test invalid values which should raise an AttributeError."""
-        with self.assertRaises(AttributeError):
-            _ = self.enum.three
-
-    def test_start(self):
-        """Test the start= argument."""
-        e = usertypes.enum('Enum', ['three', 'four'], start=3)
-        self.assertEqual(e.three.value, 3)
-        self.assertEqual(e.four.value, 4)
+@pytest.fixture
+def enum():
+    return usertypes.enum('Enum', ['one', 'two'])
 
 
-if __name__ == '__main__':
-    unittest.main()
+def test_values(enum):
+    """Test if enum members resolve to the right values."""
+    assert enum.one.value == 1
+    assert enum.two.value == 2
+
+
+def test_name(enum):
+    """Test .name mapping."""
+    assert enum.one.name == 'one'
+    assert enum.two.name == 'two'
+
+
+def test_unknown(enum):
+    """Test invalid values which should raise an AttributeError."""
+    with pytest.raises(AttributeError):
+        _ = enum.three
+
+
+def test_start():
+    """Test the start= argument."""
+    e = usertypes.enum('Enum', ['three', 'four'], start=3)
+    assert e.three.value == 3
+    assert e.four.value == 4

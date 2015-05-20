@@ -48,6 +48,12 @@ def get_argparser():
                                      description=qutebrowser.__description__)
     parser.add_argument('-c', '--confdir', help="Set config directory (empty "
                         "for no config storage).")
+    parser.add_argument('--datadir', help="Set data directory (empty for "
+                        "no data storage).")
+    parser.add_argument('--cachedir', help="Set cache directory (empty for "
+                        "no cache storage).")
+    parser.add_argument('--basedir', help="Base directory for all storage. "
+                        "Other --*dir arguments are ignored if this is given.")
     parser.add_argument('-V', '--version', help="Show version and quit.",
                         action='store_true')
     parser.add_argument('-s', '--set', help="Set a temporary setting for "
@@ -84,10 +90,12 @@ def get_argparser():
                        "the main window.")
     debug.add_argument('--debug-exit', help="Turn on debugging of late exit.",
                        action='store_true')
-    debug.add_argument('--no-crash-dialog', action='store_true', help="Don't "
-                       "show a crash dialog.")
     debug.add_argument('--pdb-postmortem', action='store_true',
                        help="Drop into pdb on exceptions.")
+    debug.add_argument('--temp-basedir', action='store_true', help="Use a "
+                       "temporary basedir.")
+    debug.add_argument('--no-err-windows', action='store_true', help="Don't "
+                       "show any error windows (used for tests/smoke.py).")
     # For the Qt args, we use store_const with const=True rather than
     # store_true because we want the default to be None, to make
     # utils.qt:get_args easier.
@@ -138,24 +146,4 @@ def main():
     # We do this imports late as earlyinit needs to be run first (because of
     # the harfbuzz fix and version checking).
     from qutebrowser import app
-    import PyQt5.QtWidgets as QtWidgets
-    app = app.Application(args)
-
-    def qt_mainloop():
-        """Simple wrapper to get a nicer stack trace for segfaults.
-
-        WARNING: misc/crashdialog.py checks the stacktrace for this function
-        name, so if this is changed, it should be changed there as well!
-        """
-        return app.exec_()
-
-    # We set qApp explicitly here to reduce the risk of segfaults while
-    # quitting.
-    # See https://bugs.launchpad.net/ubuntu/+source/python-qt4/+bug/561303/comments/7
-    # While this is a workaround for PyQt4 which should be fixed in PyQt, it
-    # seems this still reduces segfaults.
-    # FIXME: We should do another attempt at contacting upstream about this.
-    QtWidgets.qApp = app
-    ret = qt_mainloop()
-    QtWidgets.qApp = None
-    return ret
+    return app.run(args)

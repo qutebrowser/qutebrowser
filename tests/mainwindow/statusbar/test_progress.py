@@ -29,8 +29,14 @@ from qutebrowser.mainwindow.statusbar.progress import Progress
 
 
 @pytest.fixture
-def progress_widget(qtbot, default_config):
+def progress_widget(qtbot, monkeypatch, config_stub):
     """Create a Progress widget and checks its initial state."""
+    config_stub.data = {
+        'colors': {'statusbar.progress.bg': 'black'},
+        'fonts': {},
+    }
+    monkeypatch.setattr(
+        'qutebrowser.mainwindow.statusbar.progress.style.config', config_stub)
     widget = Progress()
     qtbot.add_widget(widget)
     assert not widget.isVisible()

@@ -138,10 +138,12 @@ Contributors, sorted by the number of commits in descending order:
 * Raphael Pierzina
 * Joel Torstensson
 * Claude
+* Artur Shaik
 * ZDarian
 * Peter Vilim
 * John ShaggyTwoDope Jenkins
 * Jimmy
+* Zach-Button
 * rikn00
 * Patric Schmitz
 * Martin Zimmermann
@@ -153,6 +155,7 @@ Contributors, sorted by the number of commits in descending order:
 * Regina Hug
 * Mathias Fussenegger
 * Larry Hynes
+* Fritz V155 Reichwald
 * error800
 * Thorsten Wißmann
 * Thiago Barroso Perrotta

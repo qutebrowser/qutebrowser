@@ -24,6 +24,10 @@ import itertools
 
 import pytest
 
+import stubs as stubsmod
+from qutebrowser.config import configexc
+from qutebrowser.utils import objreg
+
 
 @pytest.fixture(scope='session', autouse=True)
 def app_and_logging(qapp):
@@ -38,8 +42,7 @@ def app_and_logging(qapp):
 @pytest.fixture(scope='session')
 def stubs():
     """Provide access to stub objects useful for testing."""
-    import stubs
-    return stubs
+    return stubsmod
 
 
 @pytest.fixture(scope='session')
@@ -147,3 +150,49 @@ def cmdline_test(request):
     # Import qutebrowser.app so all cmdutils.register decorators get run.
     import qutebrowser.app  # pylint: disable=unused-variable
     return request.param
+
+
+class ConfigStub:
+
+    """Stub for the config module.
+
+    Attributes:
+        data: The config data to return.
+    """
+
+    def __init__(self, signal):
+        """Constructor.
+
+        Args:
+            signal: The signal to use for self.changed.
+        """
+        self.data = {}
+        self.changed = signal
+
+    def section(self, name):
+        """Get a section from the config.
+
+        Args:
+            name: The section name to get.
+
+        Return:
+            The section as dict.
+        """
+        return self.data[name]
+
+    def get(self, sect, opt):
+        """Get a value from the config."""
+        data = self.data[sect]
+        try:
+            return data[opt]
+        except KeyError:
+            raise configexc.NoOptionError(opt, sect)
+
+
+@pytest.yield_fixture
+def config_stub(stubs):
+    """Fixture which provides a fake config object."""
+    stub = ConfigStub(stubs.FakeSignal())
+    objreg.register('config', stub)
+    yield stub
+    objreg.delete('config')

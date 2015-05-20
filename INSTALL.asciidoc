@@ -12,6 +12,39 @@ qutebrowser should run on these systems:
 
 Install the dependencies via apt-get:
 
+[NOTE]
+==========================
+On Debian, it's recommended to install the Qt packages from the
+https://wiki.debian.org/DebianExperimental[experimental] repository as those
+are a much newer version of Qt which is more stable.
+
+Add the following line to your `/etc/apt/sources.list`:
+
+----
+deb http://ftp.debian.org/debian experimental main
+----
+
+Then install the packages like this:
+
+----
+# apt-get update
+# apt-get install -t experimental python3-pyqt5 python3-pyqt5.qtwebkit
+# apt-get install python-tox
+----
+
+It's also recommended to pin those packages to receive updates by creating a
+file `/etc/apt/preferences.d/qutebrowser` with the following contents:
+
+----
+Package: python3-pyqt5* libqt5*
+Pin: release a=experimental
+Pin-Priority: 800
+----
+==========================
+
+For distributions other than Debian or if you prefer to not use the
+experimental repo:
+
 ----
 # apt-get install python3-pyqt5 python3-pyqt5.qtwebkit python-tox
 ----
@@ -51,13 +84,22 @@ There are two Archlinux packages available in the AUR:
 https://aur.archlinux.org/packages/qutebrowser/[qutebrowser] and
 https://aur.archlinux.org/packages/qutebrowser-git/[qutebrowser-git].
 
-You can install them like this:
+You can install them (and the needed pypeg2 dependency) like this:
 
 ----
-$ mkdir qutebrowser
-$ cd qutebrowser
-$ wget https://aur.archlinux.org/packages/qu/qutebrowser-git/PKGBUILD
+$ wget https://aur.archlinux.org/packages/py/python-pypeg2/python-pypeg2.tar.gz
+$ tar xzf python-pypeg2.tar.gz
+$ cd python-pypeg2
 $ makepkg -si
+$ cd ..
+$ rm -r python-pypeg2 python-pypeg2.tar.gz
+
+$ wget https://aur.archlinux.org/packages/qu/qutebrowser/qutebrowser.tar.gz
+$ tar xzf qutebrowser.tar.gz
+$ cd qutebrowser
+$ makepkg -si
+$ cd ..
+$ rm -r qutebrowser qutebrowser.tar.gz
 ----
 
 or you could use an AUR helper, e.g. `yaourt -S qutebrowser-git`.

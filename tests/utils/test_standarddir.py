@@ -22,6 +22,8 @@
 import os
 import os.path
 import sys
+import types
+import collections
 
 from PyQt5.QtWidgets import QApplication
 import pytest
@@ -114,3 +116,51 @@ class TestGetStandardDirWindows:
         """Test cache dir."""
         expected = ['qutebrowser_test', 'cache']
         assert standarddir.cache().split(os.sep)[-2:] == expected
+
+
+DirArgTest = collections.namedtuple('DirArgTest', 'arg, expected')
+
+
+class TestArguments:
+
+    """Tests with confdir/cachedir/datadir arguments."""
+
+    @pytest.fixture(params=[DirArgTest('', None), DirArgTest('foo', 'foo')])
+    def testcase(self, request, tmpdir):
+        """Fixture providing testcases."""
+        if request.param.expected is None:
+            return request.param
+        else:
+            arg = str(tmpdir / request.param.arg)
+            return DirArgTest(arg, arg)
+
+    def test_confdir(self, testcase):
+        """Test --confdir."""
+        args = types.SimpleNamespace(confdir=testcase.arg, cachedir=None,
+                                     datadir=None)
+        standarddir.init(args)
+        assert standarddir.config() == testcase.expected
+
+    def test_cachedir(self, testcase):
+        """Test --cachedir."""
+        args = types.SimpleNamespace(confdir=None, cachedir=testcase.arg,
+                                     datadir=None)
+        standarddir.init(args)
+        assert standarddir.cache() == testcase.expected
+
+    def test_datadir(self, testcase):
+        """Test --datadir."""
+        args = types.SimpleNamespace(confdir=None, cachedir=None,
+                                     datadir=testcase.arg)
+        standarddir.init(args)
+        assert standarddir.data() == testcase.expected
+
+    @pytest.mark.parametrize('typ', ['config', 'data', 'cache', 'download',
+                                     'runtime'])
+    def test_basedir(self, tmpdir, typ):
+        """Test --basedir."""
+        expected = str(tmpdir / typ)
+        args = types.SimpleNamespace(basedir=str(tmpdir))
+        standarddir.init(args)
+        func = getattr(standarddir, typ)
+        assert func() == expected

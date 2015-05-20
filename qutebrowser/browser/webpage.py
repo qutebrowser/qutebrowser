@@ -325,7 +325,8 @@ class BrowserPage(QWebPage):
             QWebPage.Notifications: ('content', 'notifications'),
             QWebPage.Geolocation: ('content', 'geolocation'),
         }
-        if config.get(*options[feature]) == 'ask':
+        config_val = config.get(*options[feature])
+        if config_val == 'ask':
             bridge = objreg.get('message-bridge', scope='window',
                                 window=self._win_id)
             q = usertypes.Question(bridge)
@@ -361,6 +362,9 @@ class BrowserPage(QWebPage):
             self.loadStarted.connect(q.abort)
 
             bridge.ask(q, blocking=False)
+        elif config_val:
+            self.setFeaturePermission(frame, feature,
+                                      QWebPage.PermissionGrantedByUser)
         else:
             self.setFeaturePermission(frame, feature,
                                       QWebPage.PermissionDeniedByUser)
@@ -423,14 +427,10 @@ class BrowserPage(QWebPage):
         """Emitted before a hinting-click takes place.
 
         Args:
-            hint_target: A string to set self._hint_target to.
+            hint_target: A ClickTarget member to set self._hint_target to.
         """
-        t = getattr(usertypes.ClickTarget, hint_target, None)
-        if t is None:
-            return
-        log.webview.debug("Setting force target to {}/{}".format(
-            hint_target, t))
-        self._hint_target = t
+        log.webview.debug("Setting force target to {}".format(hint_target))
+        self._hint_target = hint_target
 
     @pyqtSlot()
     def on_stop_hinting(self):

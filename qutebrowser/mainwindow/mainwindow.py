@@ -22,9 +22,10 @@
 import binascii
 import base64
 import itertools
+import functools
 
 from PyQt5.QtCore import pyqtSlot, QRect, QPoint, QTimer, Qt
-from PyQt5.QtWidgets import QWidget, QVBoxLayout
+from PyQt5.QtWidgets import QWidget, QVBoxLayout, QApplication
 
 from qutebrowser.commands import runners, cmdutils
 from qutebrowser.config import config
@@ -33,10 +34,51 @@ from qutebrowser.mainwindow import tabbedbrowser
 from qutebrowser.mainwindow.statusbar import bar
 from qutebrowser.completion import completionwidget
 from qutebrowser.keyinput import modeman
-from qutebrowser.browser import hints, downloads, downloadview
+from qutebrowser.browser import hints, downloads, downloadview, commands
 
 
 win_id_gen = itertools.count(0)
+
+
+def get_window(via_ipc, force_window=False, force_tab=False):
+    """Helper function for app.py to get a window id.
+
+    Args:
+        via_ipc: Whether the request was made via IPC.
+        force_window: Whether to force opening in a window.
+        force_tab: Whether to force opening in a tab.
+    """
+    if force_window and force_tab:
+        raise ValueError("force_window and force_tab are mutually exclusive!")
+    if not via_ipc:
+        # Initial main window
+        return 0
+    window_to_raise = None
+    open_target = config.get('general', 'new-instance-open-target')
+    if (open_target == 'window' or force_window) and not force_tab:
+        window = MainWindow()
+        window.show()
+        win_id = window.win_id
+        window_to_raise = window
+    else:
+        try:
+            window = objreg.last_window()
+        except objreg.NoWindow:
+            # There is no window left, so we open a new one
+            window = MainWindow()
+            window.show()
+            win_id = window.win_id
+            window_to_raise = window
+        win_id = window.win_id
+        if open_target not in ('tab-silent', 'tab-bg-silent'):
+            window_to_raise = window
+    if window_to_raise is not None:
+        window_to_raise.setWindowState(window.windowState() &
+                                       ~Qt.WindowMinimized | Qt.WindowActive)
+        window_to_raise.raise_()
+        window_to_raise.activateWindow()
+        QApplication.instance().alert(window_to_raise)
+    return win_id
 
 
 class MainWindow(QWidget):
@@ -48,8 +90,8 @@ class MainWindow(QWidget):
 
     Attributes:
         status: The StatusBar widget.
+        tabbed_browser: The TabbedBrowser widget.
         _downloadview: The DownloadView widget.
-        _tabbed_browser: The TabbedBrowser widget.
         _vbox: The main QVBoxLayout.
         _commandrunner: The main CommandRunner instance.
     """
@@ -97,9 +139,16 @@ class MainWindow(QWidget):
 
         self._downloadview = downloadview.DownloadView(self.win_id)
 
-        self._tabbed_browser = tabbedbrowser.TabbedBrowser(self.win_id)
-        objreg.register('tabbed-browser', self._tabbed_browser, scope='window',
+        self.tabbed_browser = tabbedbrowser.TabbedBrowser(self.win_id)
+        objreg.register('tabbed-browser', self.tabbed_browser, scope='window',
                         window=self.win_id)
+        dispatcher = commands.CommandDispatcher(self.win_id,
+                                                self.tabbed_browser)
+        objreg.register('command-dispatcher', dispatcher, scope='window',
+                        window=self.win_id)
+        self.tabbed_browser.destroyed.connect(
+            functools.partial(objreg.delete, 'command-dispatcher',
+                              scope='window', window=self.win_id))
 
         # We need to set an explicit parent for StatusBar because it does some
         # show/hide magic immediately which would mean it'd show up as a
@@ -144,15 +193,15 @@ class MainWindow(QWidget):
 
     def _add_widgets(self):
         """Add or readd all widgets to the VBox."""
-        self._vbox.removeWidget(self._tabbed_browser)
+        self._vbox.removeWidget(self.tabbed_browser)
         self._vbox.removeWidget(self._downloadview)
         self._vbox.removeWidget(self.status)
         position = config.get('ui', 'downloads-position')
         if position == 'north':
             self._vbox.addWidget(self._downloadview)
-            self._vbox.addWidget(self._tabbed_browser)
+            self._vbox.addWidget(self.tabbed_browser)
         elif position == 'south':
-            self._vbox.addWidget(self._tabbed_browser)
+            self._vbox.addWidget(self.tabbed_browser)
             self._vbox.addWidget(self._downloadview)
         else:
             raise ValueError("Invalid position {}!".format(position))
@@ -172,6 +221,13 @@ class MainWindow(QWidget):
             self._set_default_geometry()
         else:
             self._load_geometry(geom)
+
+    def _save_geometry(self):
+        """Save the window geometry to the state config."""
+        state_config = objreg.get('state-config')
+        data = bytes(self.saveGeometry())
+        geom = base64.b64encode(data).decode('ASCII')
+        state_config['geometry']['mainwindow'] = geom
 
     def _load_geometry(self, geom):
         """Load geometry from a bytes object.
@@ -212,7 +268,7 @@ class MainWindow(QWidget):
         prompter = self._get_object('prompter')
 
         # misc
-        self._tabbed_browser.close_window.connect(self.close)
+        self.tabbed_browser.close_window.connect(self.close)
         mode_manager.entered.connect(hints.on_mode_entered)
 
         # status bar
@@ -333,12 +389,12 @@ class MainWindow(QWidget):
         super().resizeEvent(e)
         self.resize_completion()
         self._downloadview.updateGeometry()
-        self._tabbed_browser.tabBar().refresh()
+        self.tabbed_browser.tabBar().refresh()
 
     def closeEvent(self, e):
         """Override closeEvent to display a confirmation if needed."""
         confirm_quit = config.get('ui', 'confirm-quit')
-        tab_count = self._tabbed_browser.count()
+        tab_count = self.tabbed_browser.count()
         download_manager = objreg.get('download-manager', scope='window',
                                       window=self.win_id)
         download_count = download_manager.rowCount()
@@ -368,8 +424,7 @@ class MainWindow(QWidget):
                 e.ignore()
                 return
         e.accept()
-        if len(objreg.window_registry) == 1:
-            objreg.get('session-manager').save_last_window_session()
-        objreg.get('app').geometry = bytes(self.saveGeometry())
+        objreg.get('session-manager').save_last_window_session()
+        self._save_geometry()
         log.destroy.debug("Closing window {}".format(self.win_id))
-        self._tabbed_browser.shutdown()
+        self.tabbed_browser.shutdown()

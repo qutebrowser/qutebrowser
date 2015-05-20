@@ -40,6 +40,8 @@ from qutebrowser.browser.network import qutescheme, networkreply
 
 
 HOSTBLOCK_ERROR_STRING = '%HOSTBLOCK%'
+ProxyId = collections.namedtuple('ProxyId', 'type, hostname, port')
+_proxy_auth_cache = {}
 
 
 def init():
@@ -171,16 +173,6 @@ class NetworkManager(QNetworkAccessManager):
         q.deleteLater()
         return q.answer
 
-    def _fill_authenticator(self, authenticator, answer):
-        """Fill a given QAuthenticator object with an answer."""
-        if answer is not None:
-            # Since the answer could be something else than (user, password)
-            # pylint seems to think we're unpacking a non-sequence. However we
-            # *did* explicitly ask for a tuple, so it *will* always be one.
-            user, password = answer
-            authenticator.setUser(user)
-            authenticator.setPassword(password)
-
     def shutdown(self):
         """Abort all running requests."""
         self.setNetworkAccessible(QNetworkAccessManager.NotAccessible)
@@ -255,14 +247,25 @@ class NetworkManager(QNetworkAccessManager):
         answer = self._ask("Username ({}):".format(authenticator.realm()),
                            mode=usertypes.PromptMode.user_pwd,
                            owner=reply)
-        self._fill_authenticator(authenticator, answer)
+        if answer is not None:
+            authenticator.setUser(answer.user)
+            authenticator.setPassword(answer.password)
 
     @pyqtSlot('QNetworkProxy', 'QAuthenticator')
-    def on_proxy_authentication_required(self, _proxy, authenticator):
+    def on_proxy_authentication_required(self, proxy, authenticator):
         """Called when a proxy needs authentication."""
-        answer = self._ask("Proxy username ({}):".format(
-            authenticator.realm()), mode=usertypes.PromptMode.user_pwd)
-        self._fill_authenticator(authenticator, answer)
+        proxy_id = ProxyId(proxy.type(), proxy.hostName(), proxy.port())
+        if proxy_id in _proxy_auth_cache:
+            user, password = _proxy_auth_cache[proxy_id]
+            authenticator.setUser(user)
+            authenticator.setPassword(password)
+        else:
+            answer = self._ask("Proxy username ({}):".format(
+                authenticator.realm()), mode=usertypes.PromptMode.user_pwd)
+            if answer is not None:
+                authenticator.setUser(answer.user)
+                authenticator.setPassword(answer.password)
+                _proxy_auth_cache[proxy_id] = answer
 
     @config.change_filter('general', 'private-browsing')
     def on_config_changed(self):

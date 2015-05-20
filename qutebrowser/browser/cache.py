@@ -21,6 +21,7 @@
 
 import os.path
 
+from PyQt5.QtCore import pyqtSlot
 from PyQt5.QtNetwork import QNetworkDiskCache, QNetworkCacheMetaData
 
 from qutebrowser.config import config
@@ -29,23 +30,41 @@ from qutebrowser.utils import utils, standarddir, objreg
 
 class DiskCache(QNetworkDiskCache):
 
-    """Disk cache which sets correct cache dir and size."""
+    """Disk cache which sets correct cache dir and size.
+
+    Attributes:
+        _activated: Whether the cache should be used.
+    """
 
     def __init__(self, parent=None):
         super().__init__(parent)
-        self.setCacheDirectory(os.path.join(standarddir.cache(), 'http'))
+        cache_dir = standarddir.cache()
+        if config.get('general', 'private-browsing') or cache_dir is None:
+            self._activated = False
+        else:
+            self._activated = True
+            self.setCacheDirectory(os.path.join(standarddir.cache(), 'http'))
         self.setMaximumCacheSize(config.get('storage', 'cache-size'))
-        objreg.get('config').changed.connect(self.cache_size_changed)
+        objreg.get('config').changed.connect(self.on_config_changed)
 
     def __repr__(self):
         return utils.get_repr(self, size=self.cacheSize(),
                               maxsize=self.maximumCacheSize(),
                               path=self.cacheDirectory())
 
-    @config.change_filter('storage', 'cache-size')
-    def cache_size_changed(self):
-        """Update cache size if the config was changed."""
-        self.setMaximumCacheSize(config.get('storage', 'cache-size'))
+    @pyqtSlot(str, str)
+    def on_config_changed(self, section, option):
+        """Update cache size/activated if the config was changed."""
+        if (section, option) == ('storage', 'cache-size'):
+            self.setMaximumCacheSize(config.get('storage', 'cache-size'))
+        elif (section, option) == ('general', 'private-browsing'):
+            if (config.get('general', 'private-browsing') or
+                    standarddir.cache() is None):
+                self._activated = False
+            else:
+                self._activated = True
+                self.setCacheDirectory(
+                    os.path.join(standarddir.cache(), 'http'))
 
     def cacheSize(self):
         """Return the current size taken up by the cache.
@@ -53,10 +72,10 @@ class DiskCache(QNetworkDiskCache):
         Return:
             An int.
         """
-        if config.get('general', 'private-browsing'):
-            return 0
-        else:
+        if self._activated:
             return super().cacheSize()
+        else:
+            return 0
 
     def fileMetaData(self, filename):
         """Return the QNetworkCacheMetaData for the cache file filename.
@@ -67,10 +86,10 @@ class DiskCache(QNetworkDiskCache):
         Return:
             A QNetworkCacheMetaData object.
         """
-        if config.get('general', 'private-browsing'):
-            return QNetworkCacheMetaData()
-        else:
+        if self._activated:
             return super().fileMetaData(filename)
+        else:
+            return QNetworkCacheMetaData()
 
     def data(self, url):
         """Return the data associated with url.
@@ -81,10 +100,10 @@ class DiskCache(QNetworkDiskCache):
         return:
             A QIODevice or None.
         """
-        if config.get('general', 'private-browsing'):
-            return None
-        else:
+        if self._activated:
             return super().data(url)
+        else:
+            return None
 
     def insert(self, device):
         """Insert the data in device and the prepared meta data into the cache.
@@ -92,10 +111,10 @@ class DiskCache(QNetworkDiskCache):
         Args:
             device: A QIODevice.
         """
-        if config.get('general', 'private-browsing'):
-            return
-        else:
+        if self._activated:
             super().insert(device)
+        else:
+            return None
 
     def metaData(self, url):
         """Return the meta data for the url url.
@@ -106,10 +125,10 @@ class DiskCache(QNetworkDiskCache):
         Return:
             A QNetworkCacheMetaData object.
         """
-        if config.get('general', 'private-browsing'):
-            return QNetworkCacheMetaData()
-        else:
+        if self._activated:
             return super().metaData(url)
+        else:
+            return QNetworkCacheMetaData()
 
     def prepare(self, meta_data):
         """Return the device that should be populated with the data.
@@ -120,10 +139,10 @@ class DiskCache(QNetworkDiskCache):
         Return:
             A QIODevice or None.
         """
-        if config.get('general', 'private-browsing'):
-            return None
-        else:
+        if self._activated:
             return super().prepare(meta_data)
+        else:
+            return None
 
     def remove(self, url):
         """Remove the cache entry for url.
@@ -131,10 +150,10 @@ class DiskCache(QNetworkDiskCache):
         Return:
             True on success, False otherwise.
         """
-        if config.get('general', 'private-browsing'):
-            return False
-        else:
+        if self._activated:
             return super().remove(url)
+        else:
+            return False
 
     def updateMetaData(self, meta_data):
         """Update the cache meta date for the meta_data's url to meta_data.
@@ -142,14 +161,14 @@ class DiskCache(QNetworkDiskCache):
         Args:
             meta_data: A QNetworkCacheMetaData object.
         """
-        if config.get('general', 'private-browsing'):
-            return
-        else:
+        if self._activated:
             super().updateMetaData(meta_data)
+        else:
+            return
 
     def clear(self):
         """Remove all items from the cache."""
-        if config.get('general', 'private-browsing'):
-            return
-        else:
+        if self._activated:
             super().clear()
+        else:
+            return

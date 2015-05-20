@@ -326,17 +326,24 @@ def keyevent_to_string(e):
         A name of the key (combination) as a string or
         None if only modifiers are pressed..
     """
-    modmask2str = collections.OrderedDict([
-        (Qt.ControlModifier, 'Ctrl'),
-        (Qt.AltModifier, 'Alt'),
-        (Qt.MetaModifier, 'Meta'),
-        (Qt.ShiftModifier, 'Shift'),
-    ])
     if sys.platform == 'darwin':
-        # FIXME verify this feels right on a real Mac as well.
-        # In my Virtualbox VM, the Ctrl key shows up as meta.
+        # Qt swaps Ctrl/Meta on OS X, so we switch it back here so the user can
+        # use it in the config as expected. See:
         # https://github.com/The-Compiler/qutebrowser/issues/110
-        modmask2str[Qt.MetaModifier] = 'Ctrl'
+        # http://doc.qt.io/qt-5.4/osx-issues.html#special-keys
+        modmask2str = collections.OrderedDict([
+            (Qt.MetaModifier, 'Ctrl'),
+            (Qt.AltModifier, 'Alt'),
+            (Qt.ControlModifier, 'Meta'),
+            (Qt.ShiftModifier, 'Shift'),
+        ])
+    else:
+        modmask2str = collections.OrderedDict([
+            (Qt.ControlModifier, 'Ctrl'),
+            (Qt.AltModifier, 'Alt'),
+            (Qt.MetaModifier, 'Meta'),
+            (Qt.ShiftModifier, 'Shift'),
+        ])
     modifiers = (Qt.Key_Control, Qt.Key_Alt, Qt.Key_Shift, Qt.Key_Meta,
                  Qt.Key_AltGr, Qt.Key_Super_L, Qt.Key_Super_R,
                  Qt.Key_Hyper_L, Qt.Key_Hyper_R, Qt.Key_Direction_L,
@@ -503,7 +510,8 @@ def get_repr(obj, constructor=False, **attrs):
     """
     cls = qualname(obj.__class__)
     parts = []
-    for name, val in attrs.items():
+    items = sorted(attrs.items())
+    for name, val in items:
         parts.append('{}={!r}'.format(name, val))
     if constructor:
         return '{}({})'.format(cls, ', '.join(parts))

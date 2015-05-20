@@ -211,7 +211,11 @@ def _get_command_doc_count(cmd, parser):
     if cmd.count_arg is not None:
         yield ""
         yield "==== count"
-        yield parser.arg_descs[cmd.count_arg]
+        try:
+            yield parser.arg_descs[cmd.count_arg]
+        except KeyError:
+            raise KeyError("No description for count arg {!r} of command "
+                           "{!r}!".format(cmd.count_arg, cmd.name))
 
 
 def _get_command_doc_notes(cmd):

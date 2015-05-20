@@ -33,12 +33,12 @@ import collections
 import collections.abc
 
 from PyQt5.QtCore import pyqtSignal, pyqtSlot, QObject, QUrl, QSettings
-from PyQt5.QtWidgets import QMessageBox
 
 from qutebrowser.config import configdata, configexc, textwrapper
 from qutebrowser.config.parsers import ini, keyconf
 from qutebrowser.commands import cmdexc, cmdutils
-from qutebrowser.utils import message, objreg, utils, standarddir, log, qtutils
+from qutebrowser.utils import (message, objreg, utils, standarddir, log,
+                               qtutils, error, usertypes)
 from qutebrowser.utils.usertypes import Completion
 
 
@@ -52,9 +52,10 @@ class change_filter:  # pylint: disable=invalid-name
     Attributes:
         _sectname: The section to be filtered.
         _optname: The option to be filtered.
+        _function: Whether a function rather than a method is decorated.
     """
 
-    def __init__(self, sectname, optname=None):
+    def __init__(self, sectname, optname=None, function=False):
         """Save decorator arguments.
 
         Gets called on parse-time with the decorator arguments.
@@ -62,6 +63,7 @@ class change_filter:  # pylint: disable=invalid-name
         Args:
             sectname: The section to be filtered.
             optname: The option to be filtered.
+            function: Whether a function rather than a method is decorated.
         """
         if sectname not in configdata.DATA:
             raise configexc.NoSectionError(sectname)
@@ -69,6 +71,7 @@ class change_filter:  # pylint: disable=invalid-name
             raise configexc.NoOptionError(optname, sectname)
         self._sectname = sectname
         self._optname = optname
+        self._function = function
 
     def __call__(self, func):
         """Filter calls to the decorated function.
@@ -86,19 +89,34 @@ class change_filter:  # pylint: disable=invalid-name
         Return:
             The decorated function.
         """
-        @pyqtSlot(str, str)
-        @functools.wraps(func)
-        def wrapper(wrapper_self, sectname=None, optname=None):
-            # pylint: disable=missing-docstring
-            if sectname is None and optname is None:
-                # Called directly, not from a config change event.
-                return func(wrapper_self)
-            elif sectname != self._sectname:
-                return
-            elif self._optname is not None and optname != self._optname:
-                return
-            else:
-                return func(wrapper_self)
+        if self._function:
+            @pyqtSlot(str, str)
+            @functools.wraps(func)
+            def wrapper(sectname=None, optname=None):
+                # pylint: disable=missing-docstring
+                if sectname is None and optname is None:
+                    # Called directly, not from a config change event.
+                    return func()
+                elif sectname != self._sectname:
+                    return
+                elif self._optname is not None and optname != self._optname:
+                    return
+                else:
+                    return func()
+        else:
+            @pyqtSlot(str, str)
+            @functools.wraps(func)
+            def wrapper(wrapper_self, sectname=None, optname=None):
+                # pylint: disable=missing-docstring
+                if sectname is None and optname is None:
+                    # Called directly, not from a config change event.
+                    return func(wrapper_self)
+                elif sectname != self._sectname:
+                    return
+                elif self._optname is not None and optname != self._optname:
+                    return
+                else:
+                    return func(wrapper_self)
 
         return wrapper
 
@@ -119,8 +137,8 @@ def _init_main_config(parent=None):
     Args:
         parent: The parent to pass to ConfigManager.
     """
+    args = objreg.get('args')
     try:
-        args = objreg.get('args')
         config_obj = ConfigManager(standarddir.config(), 'qutebrowser.conf',
                                    args.relaxed_config, parent=parent)
     except (configexc.Error, configparser.Error, UnicodeDecodeError) as e:
@@ -131,12 +149,11 @@ def _init_main_config(parent=None):
                 e.section, e.option)  # pylint: disable=no-member
         except AttributeError:
             pass
-        errstr += "\n{}".format(e)
-        msgbox = QMessageBox(QMessageBox.Critical,
-                             "Error while reading config!", errstr)
-        msgbox.exec_()
+        errstr += "\n"
+        error.handle_fatal_exc(e, args, "Error while reading config!",
+                               pre_text=errstr)
         # We didn't really initialize much so far, so we just quit hard.
-        sys.exit(1)
+        sys.exit(usertypes.Exit.err_config)
     else:
         objreg.register('config', config_obj)
         if standarddir.config() is not None:
@@ -160,8 +177,8 @@ def _init_key_config(parent):
     Args:
         parent: The parent to use for the KeyConfigParser.
     """
+    args = objreg.get('args')
     try:
-        args = objreg.get('args')
         key_config = keyconf.KeyConfigParser(standarddir.config(), 'keys.conf',
                                              args.relaxed_config,
                                              parent=parent)
@@ -170,12 +187,10 @@ def _init_key_config(parent):
         errstr = "Error while reading key config:\n"
         if e.lineno is not None:
             errstr += "In line {}: ".format(e.lineno)
-        errstr += str(e)
-        msgbox = QMessageBox(QMessageBox.Critical,
-                             "Error while reading key config!", errstr)
-        msgbox.exec_()
+        error.handle_fatal_exc(e, args, "Error while reading key config!",
+                               pre_text=errstr)
         # We didn't really initialize much so far, so we just quit hard.
-        sys.exit(1)
+        sys.exit(usertypes.Exit.err_key_config)
     else:
         objreg.register('key-config', key_config)
         if standarddir.config() is not None:

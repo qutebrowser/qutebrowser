@@ -23,10 +23,10 @@
 
 import io
 import os
-import unittest
-from unittest import mock
 
-from qutebrowser.misc import lineparser
+import pytest
+
+from qutebrowser.misc import lineparser as lineparsermod
 
 
 class LineParserWrapper:
@@ -69,118 +69,129 @@ class LineParserWrapper:
     def _prepare_save(self):
         """Keep track if _prepare_save has been called."""
         self._test_save_prepared = True
+        return True
 
 
-class TestableAppendLineParser(LineParserWrapper, lineparser.AppendLineParser):
+class TestableAppendLineParser(LineParserWrapper,
+                               lineparsermod.AppendLineParser):
 
     """Wrapper over AppendLineParser to make it testable."""
 
     pass
 
 
-class TestableLineParser(LineParserWrapper, lineparser.LineParser):
+class TestableLineParser(LineParserWrapper, lineparsermod.LineParser):
 
     """Wrapper over LineParser to make it testable."""
 
     pass
 
 
-class TestableLimitLineParser(LineParserWrapper, lineparser.LimitLineParser):
+class TestableLimitLineParser(LineParserWrapper,
+                              lineparsermod.LimitLineParser):
 
     """Wrapper over LimitLineParser to make it testable."""
 
     pass
 
 
-@mock.patch('qutebrowser.misc.lineparser.os.path')
-@mock.patch('qutebrowser.misc.lineparser.os')
-class BaseLineParserTests(unittest.TestCase):
+class TestBaseLineParser:
 
     """Tests for BaseLineParser."""
 
-    def setUp(self):
-        self._confdir = "this really doesn't matter"
-        self._fname = "and neither does this"
-        self._lineparser = lineparser.BaseLineParser(
-            self._confdir, self._fname)
+    CONFDIR = "this really doesn't matter"
+    FILENAME = "and neither does this"
 
-    def test_prepare_save_existing(self, os_mock, os_path_mock):
+    @pytest.fixture
+    def lineparser(self):
+        """Fixture providing a BaseLineParser."""
+        return lineparsermod.BaseLineParser(self.CONFDIR, self.FILENAME)
+
+    def test_prepare_save_existing(self, mocker, lineparser):
         """Test if _prepare_save does what it's supposed to do."""
-        os_path_mock.exists.return_value = True
-        self._lineparser._prepare_save()
-        self.assertFalse(os_mock.makedirs.called)
+        exists_mock = mocker.patch(
+            'qutebrowser.misc.lineparser.os.path.exists')
+        makedirs_mock = mocker.patch('qutebrowser.misc.lineparser.os.makedirs')
+        exists_mock.return_value = True
 
-    def test_prepare_save_missing(self, os_mock, os_path_mock):
+        lineparser._prepare_save()
+        assert not makedirs_mock.called
+
+    def test_prepare_save_missing(self, mocker, lineparser):
         """Test if _prepare_save does what it's supposed to do."""
-        os_path_mock.exists.return_value = False
-        self._lineparser._prepare_save()
-        os_mock.makedirs.assert_called_with(self._confdir, 0o755)
+        exists_mock = mocker.patch(
+            'qutebrowser.misc.lineparser.os.path.exists')
+        exists_mock.return_value = False
+        makedirs_mock = mocker.patch('qutebrowser.misc.lineparser.os.makedirs')
+
+        lineparser._prepare_save()
+        makedirs_mock.assert_called_with(self.CONFDIR, 0o755)
 
 
-class AppendLineParserTests(unittest.TestCase):
+class TestAppendLineParser:
 
     """Tests for AppendLineParser."""
 
-    def setUp(self):
-        self._lineparser = TestableAppendLineParser('this really',
-                                                    'does not matter')
-        self._lineparser.new_data = ['old data 1', 'old data 2']
-        self._expected_data = self._lineparser.new_data
-        self._lineparser.save()
+    BASE_DATA = ['old data 1', 'old data 2']
 
-    def _get_expected(self):
+    @pytest.fixture
+    def lineparser(self):
+        """Fixture to get an AppendLineParser for tests."""
+        lp = TestableAppendLineParser('this really', 'does not matter')
+        lp.new_data = self.BASE_DATA
+        lp.save()
+        return lp
+
+    def _get_expected(self, new_data):
         """Get the expected data with newlines."""
-        return '\n'.join(self._expected_data) + '\n'
+        return '\n'.join(self.BASE_DATA + new_data) + '\n'
 
-    def test_save(self):
+    def test_save(self, lineparser):
         """Test save()."""
-        self._lineparser.new_data = ['new data 1', 'new data 2']
-        self._expected_data += self._lineparser.new_data
-        self._lineparser.save()
-        self.assertEqual(self._lineparser._data, self._get_expected())
+        new_data = ['new data 1', 'new data 2']
+        lineparser.new_data = new_data
+        lineparser.save()
+        assert lineparser._data == self._get_expected(new_data)
 
-    def test_iter_without_open(self):
+    def test_iter_without_open(self, lineparser):
         """Test __iter__ without having called open()."""
-        with self.assertRaises(ValueError):
-            iter(self._lineparser)
+        with pytest.raises(ValueError):
+            iter(lineparser)
 
-    def test_iter(self):
+    def test_iter(self, lineparser):
         """Test __iter__."""
-        self._lineparser.new_data = ['new data 1', 'new data 2']
-        self._expected_data += self._lineparser.new_data
-        with self._lineparser.open():
-            self.assertEqual(list(self._lineparser), self._expected_data)
+        new_data = ['new data 1', 'new data 2']
+        lineparser.new_data = new_data
+        with lineparser.open():
+            assert list(lineparser) == self.BASE_DATA + new_data
 
-    @mock.patch('qutebrowser.misc.lineparser.AppendLineParser._open')
-    def test_iter_not_found(self, open_mock):
+    def test_iter_not_found(self, mocker):
         """Test __iter__ with no file."""
+        open_mock = mocker.patch(
+            'qutebrowser.misc.lineparser.AppendLineParser._open')
         open_mock.side_effect = FileNotFoundError
-        linep = lineparser.AppendLineParser('foo', 'bar')
-        linep.new_data = ['new data 1', 'new data 2']
-        expected_data = linep.new_data
+        new_data = ['new data 1', 'new data 2']
+        linep = lineparsermod.AppendLineParser('foo', 'bar')
+        linep.new_data = new_data
         with linep.open():
-            self.assertEqual(list(linep), expected_data)
+            assert list(linep) == new_data
 
     def test_get_recent_none(self):
         """Test get_recent with no data."""
         linep = TestableAppendLineParser('this really', 'does not matter')
-        self.assertEqual(linep.get_recent(), [])
+        assert linep.get_recent() == []
 
-    def test_get_recent_little(self):
+    def test_get_recent_little(self, lineparser):
         """Test get_recent with little data."""
-        data = [e + '\n' for e in self._expected_data]
-        self.assertEqual(self._lineparser.get_recent(), data)
+        data = [e + '\n' for e in self.BASE_DATA]
+        assert lineparser.get_recent() == data
 
-    def test_get_recent_much(self):
+    def test_get_recent_much(self, lineparser):
         """Test get_recent with much data."""
         size = 64
         new_data = ['new data {}'.format(i) for i in range(size)]
-        self._lineparser.new_data = new_data
-        self._lineparser.save()
-        data = '\n'.join(self._expected_data + new_data)
+        lineparser.new_data = new_data
+        lineparser.save()
+        data = '\n'.join(self.BASE_DATA + new_data)
         data = [e + '\n' for e in data[-(size - 1):].splitlines()]
-        self.assertEqual(self._lineparser.get_recent(size), data)
-
-
-if __name__ == '__main__':
-    unittest.main()
+        assert lineparser.get_recent(size) == data

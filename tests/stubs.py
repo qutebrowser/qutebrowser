@@ -28,39 +28,6 @@ from unittest import mock
 from PyQt5.QtCore import pyqtSignal, QPoint, QProcess, QObject
 from PyQt5.QtNetwork import QNetworkRequest
 
-from qutebrowser.config import configexc
-
-
-class ConfigStub:
-
-    """Stub for basekeyparser.config.
-
-    Attributes:
-        data: The config data to return.
-    """
-
-    def __init__(self, data=None):
-        self.data = data or {}
-
-    def section(self, name):
-        """Get a section from the config.
-
-        Args:
-            name: The section name to get.
-
-        Return:
-            The section as dict.
-        """
-        return self.data[name]
-
-    def get(self, sect, opt):
-        """Get a value from the config."""
-        data = self.data[sect]
-        try:
-            return data[opt]
-        except KeyError:
-            raise configexc.NoOptionError(opt, sect)
-
 
 class FakeKeyEvent:
 
@@ -200,10 +167,34 @@ class FakeQProcess(mock.Mock):
 
 class FakeSignal:
 
-    """Fake pyqtSignal stub which uses a mock to see if it was called."""
+    """Fake pyqtSignal stub which does nothing."""
 
     def __init__(self, name='fake'):
         self.signal = '2{}(int, int)'.format(name)
+
+    def connect(self, slot):
+        """Connect the signal to a slot.
+
+        Currently does nothing, but could be improved to do some sanity
+        checking on the slot.
+        """
+        pass
+
+    def disconnect(self, slot=None):
+        """Disconnect the signal from a slot.
+
+        Currently does nothing, but could be improved to do some sanity
+        checking on the slot and see if it actually got connected.
+        """
+        pass
+
+    def emit(self, *args):
+        """Emit the signal.
+
+        Currently does nothing, but could be improved to do type checking based
+        on a signature given to __init__.
+        """
+        pass
 
 
 class FakeCmdUtils:

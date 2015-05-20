@@ -1038,7 +1038,7 @@ class DownloadManager(QAbstractListModel):
         """Override flags so items aren't selectable.
 
         The default would be Qt.ItemIsEnabled | Qt.ItemIsSelectable."""
-        return Qt.ItemIsEnabled
+        return Qt.ItemIsEnabled | Qt.ItemNeverHasChildren
 
     def rowCount(self, parent=QModelIndex()):
         """Get count of active downloads."""

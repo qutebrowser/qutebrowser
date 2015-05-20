@@ -83,25 +83,7 @@ class WebHistory(QWebHistoryInterface):
         self._lineparser = lineparser.AppendLineParser(
             standarddir.data(), 'history', parent=self)
         self._history_dict = collections.OrderedDict()
-        with self._lineparser.open():
-            for line in self._lineparser:
-                data = line.rstrip().split(maxsplit=1)
-                if not data:
-                    # empty line
-                    continue
-                elif len(data) != 2:
-                    # other malformed line
-                    log.init.warning("Invalid history entry {!r}!".format(
-                        line))
-                    continue
-                atime, url = data
-                # This de-duplicates history entries; only the latest
-                # entry for each URL is kept. If you want to keep
-                # information about previous hits change the items in
-                # old_urls to be lists or change HistoryEntry to have a
-                # list of atimes.
-                self._history_dict[url] = HistoryEntry(atime, url)
-                self._history_dict.move_to_end(url)
+        self._read_history()
         self._new_history = []
         self._saved_count = 0
         objreg.get('save-manager').add_saveable(
@@ -118,6 +100,36 @@ class WebHistory(QWebHistoryInterface):
 
     def __len__(self):
         return len(self._history_dict)
+
+    def _read_history(self):
+        """Read the initial history."""
+        if standarddir.data() is None:
+            return
+        with self._lineparser.open():
+            for line in self._lineparser:
+                data = line.rstrip().split(maxsplit=1)
+                if not data:
+                    # empty line
+                    continue
+                elif len(data) != 2:
+                    # other malformed line
+                    log.init.warning("Invalid history entry {!r}!".format(
+                        line))
+                    continue
+                atime, url = data
+                if atime.startswith('\0'):
+                    log.init.warning(
+                        "Removing NUL bytes from entry {!r} - see "
+                        "https://github.com/The-Compiler/qutebrowser/issues/"
+                        "670".format(data))
+                    atime = atime.lstrip('\0')
+                # This de-duplicates history entries; only the latest
+                # entry for each URL is kept. If you want to keep
+                # information about previous hits change the items in
+                # old_urls to be lists or change HistoryEntry to have a
+                # list of atimes.
+                self._history_dict[url] = HistoryEntry(atime, url)
+                self._history_dict.move_to_end(url)
 
     def get_recent(self):
         """Get the most recent history entries."""

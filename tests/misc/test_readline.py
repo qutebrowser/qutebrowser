@@ -31,10 +31,11 @@ from qutebrowser.misc import readline
 
 
 @pytest.fixture
-def mocked_qapp(mocker, stubs):
+def mocked_qapp(monkeypatch, stubs):
     """Fixture that mocks readline.QApplication and returns it."""
-    return mocker.patch('qutebrowser.misc.readline.QApplication',
-                        new_callable=stubs.FakeQApplication)
+    stub = stubs.FakeQApplication()
+    monkeypatch.setattr('qutebrowser.misc.readline.QApplication', stub)
+    return stub
 
 
 class TestNoneWidget:
