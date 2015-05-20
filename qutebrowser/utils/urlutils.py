@@ -108,8 +108,6 @@ def _is_url_naive(urlstr):
         return False
     elif '.' in url.host():
         return True
-    elif url.host() == 'localhost':
-        return True
     else:
         return False
 
@@ -258,6 +256,9 @@ def is_url(urlstr):
         # A URL will never contain a space
         log.url.debug("Contains space -> no URL")
         url = False
+    elif qurl_userinput.host() in ('localhost', '127.0.0.1', '::1'):
+        log.url.debug("Is localhost.")
+        url = True
     elif is_special_url(qurl):
         # Special URLs are always URLs, even with autosearch=False
         log.url.debug("Is an special URL.")
