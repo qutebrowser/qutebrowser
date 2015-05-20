@@ -114,15 +114,16 @@ def _is_url_naive(urlstr):
         return False
 
 
-def _is_url_dns(url):
+def _is_url_dns(urlstr):
     """Check if a URL is really a URL via DNS.
 
     Args:
-        url: The URL to check for as QUrl, ideally via qurl_from_user_input.
+        url: The URL to check for as a string.
 
     Return:
         True if the URL really is a URL, False otherwise.
     """
+    url = qurl_from_user_input(urlstr)
     if not url.isValid():
         return False
     host = url.host()
@@ -251,7 +252,7 @@ def is_url(urlstr):
         log.url.debug("Checking via DNS")
         # We want to use qurl_from_user_input here, as the user might enter
         # "foo.de" and that should be treated as URL here.
-        url = _is_url_dns(qurl_from_user_input(urlstr))
+        url = _is_url_dns(urlstr)
     elif autosearch == 'naive':
         log.url.debug("Checking via naive check")
         url = _is_url_naive(urlstr)
