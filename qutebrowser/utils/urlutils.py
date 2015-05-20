@@ -74,8 +74,7 @@ def _get_search_url(txt):
     """
     log.url.debug("Finding search engine for '{}'".format(txt))
     engine, term = _parse_search_term(txt)
-    if not term:
-        raise FuzzyUrlError("No search term given")
+    assert term
     if engine is None:
         template = config.get('searchengines', 'DEFAULT')
     else:
