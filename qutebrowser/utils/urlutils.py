@@ -29,7 +29,7 @@ from PyQt5.QtCore import QUrl
 from PyQt5.QtNetwork import QHostInfo, QHostAddress
 
 from qutebrowser.config import config, configexc
-from qutebrowser.utils import log, qtutils, message
+from qutebrowser.utils import log, qtutils, message, utils
 from qutebrowser.commands import cmdexc
 
 
@@ -94,11 +94,7 @@ def _is_url_naive(urlstr):
         True if the URL really is a URL, False otherwise.
     """
     url = qurl_from_user_input(urlstr)
-    try:
-        ipaddress.ip_address(urlstr)
-    except ValueError:
-        pass
-    else:
+    if not utils.raises(ValueError, ipaddress.ip_address, urlstr):
         # Valid IPv4/IPv6 address
         return True
 
