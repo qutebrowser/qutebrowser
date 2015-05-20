@@ -126,6 +126,14 @@ def _is_url_dns(urlstr):
     url = qurl_from_user_input(urlstr)
     if not url.isValid():
         return False
+
+    if (utils.raises(ValueError, ipaddress.ip_address, urlstr) and
+            not QHostAddress(urlstr).isNull()):
+        log.url.debug("Bogus IP URL -> False")
+        # Qt treats things like "23.42" or "1337" or "0xDEAD" as valid URLs
+        # which we don't want to.
+        return False
+
     host = url.host()
     log.url.debug("DNS request for {}".format(host))
     if not host:
