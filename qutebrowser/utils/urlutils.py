@@ -379,17 +379,19 @@ class FuzzyUrlError(Exception):
     """Exception raised by fuzzy_url on problems.
 
     Attributes:
+        msg: The error message to use.
         url: The QUrl which caused the error.
     """
 
     def __init__(self, msg, url=None):
         super().__init__(msg)
-        if url is not None:
-            assert not url.isValid()
+        if url is not None and url.isValid():
+            raise ValueError("Got valid URL {}!".format(url.toDisplayString()))
         self.url = url
+        self.msg = msg
 
     def __str__(self):
         if self.url is None or not self.url.errorString():
-            return str(super())
+            return self.msg
         else:
-            return '{}: {}'.format(str(super()), self.url.errorString())
+            return '{}: {}'.format(self.msg, self.url.errorString())
