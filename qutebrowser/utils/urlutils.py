@@ -236,6 +236,7 @@ def is_url(urlstr):
 
     urlstr = urlstr.strip()
     qurl = QUrl(urlstr)
+    qurl_userinput = qurl_from_user_input(urlstr)
 
     if not autosearch:
         # no autosearch, so everything is a URL unless it has an explicit
@@ -245,6 +246,9 @@ def is_url(urlstr):
             return True
         else:
             return False
+
+    if not qurl_userinput.isValid():
+        return False
 
     if _has_explicit_scheme(qurl):
         # URLs with explicit schemes are always URLs
@@ -269,7 +273,7 @@ def is_url(urlstr):
     else:
         raise ValueError("Invalid autosearch value")
     log.url.debug("url = {}".format(url))
-    return url and qurl_from_user_input(urlstr).isValid()
+    return url and qurl_userinput.isValid()
 
 
 def qurl_from_user_input(urlstr):
