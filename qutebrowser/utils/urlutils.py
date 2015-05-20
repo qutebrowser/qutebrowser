@@ -350,11 +350,29 @@ def filename_from_url(url):
 
 
 def host_tuple(url):
-    """Get a (scheme, host, port) tuple.
+    """Get a (scheme, host, port) tuple from a QUrl.
 
     This is suitable to identify a connection, e.g. for SSL errors.
     """
-    return (url.scheme(), url.host(), url.port())
+    if not url.isValid():
+        raise ValueError(get_errstring(url))
+    scheme, host, port = url.scheme(), url.host(), url.port()
+    assert scheme
+    if not host:
+        raise ValueError("Got URL {} without host.".format(
+            url.toDisplayString()))
+    if port == -1:
+        port_mapping = {
+            'http': 80,
+            'https': 443,
+            'ftp': 21,
+        }
+        try:
+            port = port_mapping[scheme]
+        except KeyError:
+            raise ValueError("Got URL {} with unknown port.".format(
+                url.toDisplayString()))
+    return scheme, host, port
 
 
 def get_errstring(url, base="Invalid URL"):
