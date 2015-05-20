@@ -125,6 +125,7 @@ def _is_url_dns(urlstr):
     """
     url = qurl_from_user_input(urlstr)
     if not url.isValid():
+        log.url.debug("Invalid URL -> False")
         return False
 
     if (utils.raises(ValueError, ipaddress.ip_address, urlstr) and
@@ -135,9 +136,10 @@ def _is_url_dns(urlstr):
         return False
 
     host = url.host()
-    log.url.debug("DNS request for {}".format(host))
     if not host:
+        log.url.debug("URL has no host -> False")
         return False
+    log.url.debug("Doing DNS request for {}".format(host))
     info = QHostInfo.fromName(host)
     return not info.error()
 
@@ -257,7 +259,7 @@ def is_url(urlstr):
         log.url.debug("Is an special URL.")
         url = True
     elif autosearch == 'dns':
-        log.url.debug("Checking via DNS")
+        log.url.debug("Checking via DNS check")
         # We want to use qurl_from_user_input here, as the user might enter
         # "foo.de" and that should be treated as URL here.
         url = _is_url_dns(urlstr)
@@ -266,6 +268,7 @@ def is_url(urlstr):
         url = _is_url_naive(urlstr)
     else:
         raise ValueError("Invalid autosearch value")
+    log.url.debug("url = {}".format(url))
     return url and qurl_from_user_input(urlstr).isValid()
 
 
