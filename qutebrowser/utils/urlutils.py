@@ -315,20 +315,15 @@ def invalid_url_error(win_id, url, action):
     if url.isValid():
         raise ValueError("Calling invalid_url_error with valid URL {}".format(
             url.toDisplayString()))
-    errstring = "Trying to {} with invalid URL".format(action)
-    if url.errorString():
-        errstring += " - {}".format(url.errorString())
+    errstring = get_errstring(
+        url, "Trying to {} with invalid URL".format(action))
     message.error(win_id, errstring)
 
 
 def raise_cmdexc_if_invalid(url):
     """Check if the given QUrl is invalid, and if so, raise a CommandError."""
     if not url.isValid():
-        errstr = "Invalid URL {}".format(url.toDisplayString())
-        url_error = url.errorString()
-        if url_error:
-            errstr += " - {}".format(url_error)
-        raise cmdexc.CommandError(errstr)
+        raise cmdexc.CommandError(get_errstring(url))
 
 
 def filename_from_url(url):
@@ -357,6 +352,23 @@ def host_tuple(url):
     This is suitable to identify a connection, e.g. for SSL errors.
     """
     return (url.scheme(), url.host(), url.port())
+
+
+def get_errstring(url, base="Invalid URL"):
+    """Get an error string for an URL.
+
+    Args:
+        url: The URL as a QUrl.
+        base: The base error string.
+
+    Return:
+        A new string with url.errorString() is appended if available.
+    """
+    url_error = url.errorString()
+    if url_error:
+        return base + " - {}".format(url_error)
+    else:
+        return base
 
 
 class FuzzyUrlError(Exception):
