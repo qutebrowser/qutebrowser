@@ -993,7 +993,8 @@ class CommandDispatcher:
     def bookmark_save(self):
         """Save the current page as a bookmark."""
         bookmark_manager = objreg.get('bookmark-manager')
-        bookmark_manager.bookmark_add(self._win_id, self._current_url(), self._current_title())
+        bookmark_manager.bookmark_add(self._win_id, self._current_url(),
+                                      self._current_title())
 
     @cmdutils.register(instance='command-dispatcher', name='inspector',
                        scope='window')

@@ -44,9 +44,9 @@ class UrlCompletionModel(base.BaseCompletionModel):
         self._history_cat = self.new_category("History")
 
         bookmark_manager = objreg.get('bookmark-manager')
-        bookmarks = bookmark_manager.marks.items()
-        for bm_name, bm_url in bookmarks:
-            self._add_bookmark_entry(bm_name, bm_url)
+        bookmarks = bookmark_manager.bookmarks.items()
+        for bm_url, bm_title in bookmarks:
+            self._add_bookmark_entry(bm_title, bm_url)
         bookmark_manager.added.connect(self.on_bookmark_added)
         bookmark_manager.removed.connect(self.on_bookmark_removed)
 
@@ -82,14 +82,14 @@ class UrlCompletionModel(base.BaseCompletionModel):
         """
         self.new_item(self._quickmark_cat, url, name)
 
-    def _add_bookmark_entry(self, name, url):
+    def _add_bookmark_entry(self, title, url):
         """Add a new bookmark entry to the completion.
 
         Args:
-            name: The name of the new bookmark.
+            title: The title of the new bookmark.
             url: The URL of the new bookmark.
         """
-        self.new_item(self._bookmark_cat, url, name)
+        self.new_item(self._bookmark_cat, url, title)
 
     @config.change_filter('completion', 'timestamp-format')
     def reformat_timestamps(self):
@@ -138,24 +138,24 @@ class UrlCompletionModel(base.BaseCompletionModel):
                 break
 
     @pyqtSlot(str, str)
-    def on_bookmark_added(self, name, url):
+    def on_bookmark_added(self, title, url):
         """Called when a bookmark has been added by the user.
 
         Args:
-            name: The name of the new bookmark.
+            title: The title of the new bookmark.
             url: The url of the new bookmark, as string.
         """
-        self._add_bookmark_entry(name, url)
+        self._add_bookmark_entry(title, url)
 
     @pyqtSlot(str)
-    def on_bookmark_removed(self, name):
+    def on_bookmark_removed(self, url):
         """Called when a bookmark has been removed by the user.
 
         Args:
-            name: The name of the bookmark which has been removed.
+            url: The url of the bookmark which has been removed.
         """
         for i in range(self._bookmark_cat.rowCount()):
-            name_item = self._bookmark_cat.child(i, 1)
-            if name_item.data(Qt.DisplayRole) == name:
+            url_item = self._bookmark_cat.child(i, 1)
+            if url_item.data(Qt.DisplayRole) == url:
                 self._bookmark_cat.removeRow(i)
                 break

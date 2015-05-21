@@ -20,13 +20,12 @@
 
 """Manager for bookmarks.
 
-Note we violate our general QUrl rule by storing url strings in the marks
+Note we violate our general QUrl rule by storing url strings in the bookmarks
 OrderedDict. This is because we read them from a file at start and write them
 to a file on shutdown, so it makes sense to keep them as strings here.
 """
 
 import os.path
-import functools
 import collections
 
 from PyQt5.QtCore import pyqtSignal, QUrl, QObject
@@ -41,17 +40,17 @@ class BookmarkManager(QObject):
     """Manager for bookmarks.
 
     Attributes:
-        marks: An OrderedDict of all bookmarks.
+        bookmarks: An OrderedDict of all bookmarks.
         _lineparser: The LineParser used for the bookmarks, or None
                      (when qutebrowser is started with -c '').
 
     Signals:
         changed: Emitted when anything changed.
         added: Emitted when a new bookmark was added.
-               arg 0: The name of the bookmark.
+               arg 0: The title of the bookmark.
                arg 1: The URL of the bookmark, as string.
         removed: Emitted when an existing bookmark was removed.
-                 arg 0: The name of the bookmark.
+                 arg 0: The title of the bookmark.
     """
 
     changed = pyqtSignal()
@@ -62,7 +61,7 @@ class BookmarkManager(QObject):
         """Initialize and read bookmarks."""
         super().__init__(parent)
 
-        self.marks = collections.OrderedDict()
+        self.bookmarks = collections.OrderedDict()
 
         if standarddir.config() is None:
             self._lineparser = None
@@ -74,11 +73,11 @@ class BookmarkManager(QObject):
                     # Ignore empty or whitespace-only lines.
                     continue
                 try:
-                    key, url = line.rsplit(maxsplit=1)
+                    url, title = line.split(maxsplit=1)
                 except ValueError:
                     message.error(0, "Invalid bookmark '{}'".format(line))
                 else:
-                    self.marks[key] = url
+                    self.bookmarks[url] = title
             filename = os.path.join(standarddir.config(), 'bookmarks')
             objreg.get('save-manager').add_saveable(
                 'bookmark-manager', self.save, self.changed,
@@ -88,17 +87,17 @@ class BookmarkManager(QObject):
         """Save the bookmarks to disk."""
         if self._lineparser is not None:
             self._lineparser.data = [' '.join(tpl)
-                                     for tpl in self.marks.items()]
+                                     for tpl in self.bookmarks.items()]
             self._lineparser.save()
 
     @cmdutils.register(instance='bookmark-manager', win_id='win_id')
-    def bookmark_add(self, win_id, url, name):
+    def bookmark_add(self, win_id, url, title):
         """Add a new bookmark.
 
         Args:
             win_id: The window ID to display the errors in.
             url: The url to add as bookmark.
-            name: The name for the new bookmark.
+            title: The title for the new bookmark.
         """
         if not url.isValid():
             urlutils.invalid_url_error(win_id, url, "save quickmark")
@@ -107,30 +106,30 @@ class BookmarkManager(QObject):
 
         # We don't raise cmdexc.CommandError here as this can be called async
         # via prompt_save.
-        if not name:
-            message.error(win_id, "Can't set mark with empty name!")
+        if not title:
+            message.error(win_id, "Can't set mark with empty title!")
             return
         if not urlstr:
             message.error(win_id, "Can't set mark with empty URL!")
             return
 
-        self.marks[name] = urlstr
+        self.bookmarks[urlstr] = title
         self.changed.emit()
-        self.added.emit(name, urlstr)
+        self.added.emit(title, urlstr)
         message.info(win_id, "Bookmarks added")
 
     @cmdutils.register(instance='bookmark-manager', maxsplit=0,
-                       completion=[usertypes.Completion.bookmark_by_name])
-    def bookmark_del(self, name):
+                       completion=[usertypes.Completion.bookmark_by_title])
+    def bookmark_del(self, url):
         """Delete a bookmark.
 
         Args:
-            name: The name of the bookmark to delete.
+            url: The url of the bookmark to delete.
         """
         try:
-            del self.marks[name]
+            del self.bookmarks[url]
         except KeyError:
-            raise cmdexc.CommandError("Bookmark '{}' not found!".format(name))
+            raise cmdexc.CommandError("Bookmark '{}' not found!".format(url))
         else:
             self.changed.emit()
-            self.removed.emit(name)
+            self.removed.emit(url)
