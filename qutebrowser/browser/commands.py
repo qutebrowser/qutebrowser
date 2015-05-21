@@ -99,6 +99,10 @@ class CommandDispatcher:
             msg += "!"
             raise cmdexc.CommandError(msg)
 
+    def _current_title(self):
+        """Convenience method to get the current title."""
+        return self._tabbed_browser.page_title(self._current_index())
+
     def _current_widget(self):
         """Get the currently active widget from a command."""
         widget = self._tabbed_browser.currentWidget()
@@ -984,6 +988,12 @@ class CommandDispatcher:
         """
         url = objreg.get('quickmark-manager').get(name)
         self._open(url, tab, bg, window)
+
+    @cmdutils.register(instance='command-dispatcher', scope='window')
+    def bookmark_save(self):
+        """Save the current page as a bookmark."""
+        bookmark_manager = objreg.get('bookmark-manager')
+        bookmark_manager.bookmark_add(self._win_id, self._current_url(), self._current_title())
 
     @cmdutils.register(instance='command-dispatcher', name='inspector',
                        scope='window')

@@ -106,6 +106,20 @@ def init_quickmark_completions():
     model = _init_model(miscmodels.QuickmarkCompletionModel, 'name')
     _instances[usertypes.Completion.quickmark_by_name] = model
 
+@pyqtSlot()
+def init_bookmark_completions():
+    """Initialize bookmark completion models."""
+    log.completion.debug("Initializing bookmark completion.")
+    try:
+        _instances[usertypes.Completion.bookmark_by_url].deleteLater()
+        _instances[usertypes.Completion.bookmark_by_name].deleteLater()
+    except KeyError:
+        pass
+    model = _init_model(miscmodels.BookmarkCompletionModel, 'url')
+    _instances[usertypes.Completion.bookmark_by_url] = model
+    model = _init_model(miscmodels.BookmarkCompletionModel, 'name')
+    _instances[usertypes.Completion.bookmark_by_name] = model
+
 
 @pyqtSlot()
 def init_session_completion():
@@ -128,6 +142,8 @@ INITIALIZERS = {
     usertypes.Completion.value: _init_setting_completions,
     usertypes.Completion.quickmark_by_url: init_quickmark_completions,
     usertypes.Completion.quickmark_by_name: init_quickmark_completions,
+    usertypes.Completion.bookmark_by_url: init_bookmark_completions,
+    usertypes.Completion.bookmark_by_name: init_bookmark_completions,
     usertypes.Completion.sessions: init_session_completion,
 }
 
@@ -165,6 +181,10 @@ def init():
     quickmark_manager.changed.connect(
         functools.partial(update, [usertypes.Completion.quickmark_by_url,
                                    usertypes.Completion.quickmark_by_name]))
+    bookmark_manager = objreg.get('bookmark-manager')
+    bookmark_manager.changed.connect(
+        functools.partial(update, [usertypes.Completion.bookmark_by_url,
+                                   usertypes.Completion.bookmark_by_name]))
     session_manager = objreg.get('session-manager')
     session_manager.update_completion.connect(
         functools.partial(update, [usertypes.Completion.sessions]))

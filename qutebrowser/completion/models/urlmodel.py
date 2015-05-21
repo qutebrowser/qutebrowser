@@ -30,7 +30,7 @@ from qutebrowser.config import config
 
 class UrlCompletionModel(base.BaseCompletionModel):
 
-    """A model which combines quickmarks and web history URLs.
+    """A model which combines bookmarks, quickmarks and web history URLs.
 
     Used for the `open` command."""
 
@@ -40,14 +40,15 @@ class UrlCompletionModel(base.BaseCompletionModel):
         super().__init__(parent)
 
         self._quickmark_cat = self.new_category("Quickmarks")
+        self._bookmark_cat = self.new_category("Bookmarks")
         self._history_cat = self.new_category("History")
 
-        quickmark_manager = objreg.get('quickmark-manager')
-        quickmarks = quickmark_manager.marks.items()
-        for qm_name, qm_url in quickmarks:
-            self._add_quickmark_entry(qm_name, qm_url)
-        quickmark_manager.added.connect(self.on_quickmark_added)
-        quickmark_manager.removed.connect(self.on_quickmark_removed)
+        bookmark_manager = objreg.get('bookmark-manager')
+        bookmarks = bookmark_manager.marks.items()
+        for bm_name, bm_url in bookmarks:
+            self._add_bookmark_entry(bm_name, bm_url)
+        bookmark_manager.added.connect(self.on_bookmark_added)
+        bookmark_manager.removed.connect(self.on_bookmark_removed)
 
         self._history = objreg.get('web-history')
         max_history = config.get('completion', 'web-history-max-items')
@@ -80,6 +81,15 @@ class UrlCompletionModel(base.BaseCompletionModel):
             url: The URL of the new quickmark.
         """
         self.new_item(self._quickmark_cat, url, name)
+
+    def _add_bookmark_entry(self, name, url):
+        """Add a new bookmark entry to the completion.
+
+        Args:
+            name: The name of the new bookmark.
+            url: The URL of the new bookmark.
+        """
+        self.new_item(self._bookmark_cat, url, name)
 
     @config.change_filter('completion', 'timestamp-format')
     def reformat_timestamps(self):
@@ -125,4 +135,27 @@ class UrlCompletionModel(base.BaseCompletionModel):
             name_item = self._quickmark_cat.child(i, 1)
             if name_item.data(Qt.DisplayRole) == name:
                 self._quickmark_cat.removeRow(i)
+                break
+
+    @pyqtSlot(str, str)
+    def on_bookmark_added(self, name, url):
+        """Called when a bookmark has been added by the user.
+
+        Args:
+            name: The name of the new bookmark.
+            url: The url of the new bookmark, as string.
+        """
+        self._add_bookmark_entry(name, url)
+
+    @pyqtSlot(str)
+    def on_bookmark_removed(self, name):
+        """Called when a bookmark has been removed by the user.
+
+        Args:
+            name: The name of the bookmark which has been removed.
+        """
+        for i in range(self._bookmark_cat.rowCount()):
+            name_item = self._bookmark_cat.child(i, 1)
+            if name_item.data(Qt.DisplayRole) == name:
+                self._bookmark_cat.removeRow(i)
                 break
