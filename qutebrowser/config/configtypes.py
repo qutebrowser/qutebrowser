@@ -793,14 +793,16 @@ class RegexList(List):
             raise configexc.ValidationError(value, "items may not be empty!")
 
 
-# TODO(lamar) Issue622, relative paths for some config files and directories
-# should be implemented here in the base class for files and below in the base
-# class for directories.
 class File(BaseType):
 
     """A file on the local filesystem."""
 
     typestr = 'file'
+
+    def transform(self, value):
+        if not value:
+            return None
+        return os.path.expanduser(value)
 
     def validate(self, value):
         if not value:
@@ -810,10 +812,6 @@ class File(BaseType):
                 raise configexc.ValidationError(value, "may not be empty!")
         value = os.path.expanduser(value)
         try:
-            if not os.path.isabs(value):
-                relpath = os.path.join(standarddir.config(), value)
-                if os.path.isfile(relpath):
-                    value = relpath
             if not os.path.isfile(value):
                 raise configexc.ValidationError(value, "must be a valid file!")
             if not os.path.isabs(value):
@@ -821,11 +819,6 @@ class File(BaseType):
                     value, "must be an absolute path!")
         except UnicodeEncodeError as e:
             raise configexc.ValidationError(value, e)
-
-    def transform(self, value):
-        if not value:
-            return None
-        return os.path.expanduser(value)
 
 
 class Directory(BaseType):
@@ -1159,19 +1152,33 @@ class UserStyleSheet(File):
     def __init__(self):
         super().__init__(none_ok=True)
 
+    def relapath(self, path):
+        if not os.path.isabs(path):
+            abspath = os.path.join(standarddir.config(), path)
+            if os.path.isfile(abspath):
+                return abspath
+        return path
+
+    def transform(self, value):
+        path = os.path.expandvars(value)
+        path = os.path.expanduser(path)
+        path = self.relapath(path)
+        if not value:
+            return None
+        elif os.path.isabs(path):
+            return QUrl.fromLocalFile(path)
+        else:
+            data = base64.b64encode(value.encode('utf-8')).decode('ascii')
+            return QUrl("data:text/css;charset=utf-8;base64,{}".format(data))
+
     def validate(self, value):
         if not value:
             if self._none_ok:
                 return
             else:
                 raise configexc.ValidationError(value, "may not be empty!")
-        value = os.path.expandvars(value)
-        value = os.path.expanduser(value)
+        value = self.relapath(value)
         try:
-            if not os.path.isabs(value):
-                relpath = os.path.join(standarddir.config(), value)
-                if os.path.isfile(relpath):
-                    value = relpath
             if not os.path.isabs(value):
                 # probably a CSS, so we don't handle it as filename.
                 # FIXME We just try if it is encodable, maybe we should
@@ -1186,17 +1193,6 @@ class UserStyleSheet(File):
                 raise configexc.ValidationError(value, "must be a valid file!")
         except UnicodeEncodeError as e:
             raise configexc.ValidationError(value, e)
-
-    def transform(self, value):
-        path = os.path.expandvars(value)
-        path = os.path.expanduser(path)
-        if not value:
-            return None
-        elif os.path.isabs(path):
-            return QUrl.fromLocalFile(path)
-        else:
-            data = base64.b64encode(value.encode('utf-8')).decode('ascii')
-            return QUrl("data:text/css;charset=utf-8;base64,{}".format(data))
 
 
 class AutoSearch(BaseType):
