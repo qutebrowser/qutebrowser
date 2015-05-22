@@ -34,6 +34,7 @@ from PyQt5.QtWidgets import QTabWidget, QTabBar
 
 from qutebrowser.commands import cmdutils
 from qutebrowser.config import configexc
+from qutebrowser.utils import standarddir
 
 
 SYSTEM_PROXY = object()  # Return value for Proxy type
@@ -792,6 +793,9 @@ class RegexList(List):
             raise configexc.ValidationError(value, "items may not be empty!")
 
 
+# TODO(lamar) Issue622, relative paths for some config files and directories
+# should be implemented here in the base class for files and below in the base
+# class for directories.
 class File(BaseType):
 
     """A file on the local filesystem."""
@@ -806,6 +810,10 @@ class File(BaseType):
                 raise configexc.ValidationError(value, "may not be empty!")
         value = os.path.expanduser(value)
         try:
+            if not os.path.isabs(value):
+                relpath = os.path.join(standarddir.config(), value)
+                if os.path.isfile(relpath):
+                    value = relpath
             if not os.path.isfile(value):
                 raise configexc.ValidationError(value, "must be a valid file!")
             if not os.path.isabs(value):
@@ -1160,6 +1168,10 @@ class UserStyleSheet(File):
         value = os.path.expandvars(value)
         value = os.path.expanduser(value)
         try:
+            if not os.path.isabs(value):
+                relpath = os.path.join(standarddir.config(), value)
+                if os.path.isfile(relpath):
+                    value = relpath
             if not os.path.isabs(value):
                 # probably a CSS, so we don't handle it as filename.
                 # FIXME We just try if it is encodable, maybe we should
