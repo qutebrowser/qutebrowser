@@ -1153,6 +1153,8 @@ class UserStyleSheet(File):
         super().__init__(none_ok=True)
 
     def relapath(self, path):
+        path = os.path.expandvars(path)
+        path = os.path.expanduser(path)
         if not os.path.isabs(path):
             abspath = os.path.join(standarddir.config(), path)
             if os.path.isfile(abspath):
@@ -1160,9 +1162,7 @@ class UserStyleSheet(File):
         return path
 
     def transform(self, value):
-        path = os.path.expandvars(value)
-        path = os.path.expanduser(path)
-        path = self.relapath(path)
+        path = self.relapath(value)
         if not value:
             return None
         elif os.path.isabs(path):
