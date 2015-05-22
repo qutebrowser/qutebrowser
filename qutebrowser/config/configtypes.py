@@ -1152,20 +1152,16 @@ class UserStyleSheet(File):
     def __init__(self):
         super().__init__(none_ok=True)
 
-    def relapath(self, path):
-        path = os.path.expandvars(path)
+    def transform(self, value):
+        if not value:
+            return None
+        path = os.path.expandvars(value)
         path = os.path.expanduser(path)
         if not os.path.isabs(path):
             abspath = os.path.join(standarddir.config(), path)
             if os.path.isfile(abspath):
-                return abspath
-        return path
-
-    def transform(self, value):
-        path = self.relapath(value)
-        if not value:
-            return None
-        elif os.path.isabs(path):
+                path = abspath
+        if os.path.isabs(path):
             return QUrl.fromLocalFile(path)
         else:
             data = base64.b64encode(value.encode('utf-8')).decode('ascii')
@@ -1177,7 +1173,12 @@ class UserStyleSheet(File):
                 return
             else:
                 raise configexc.ValidationError(value, "may not be empty!")
-        value = self.relapath(value)
+        value = os.path.expandvars(value)
+        value = os.path.expanduser(value)
+        if not os.path.isabs(value):
+            abspath = os.path.join(standarddir.config(), value)
+            if os.path.isfile(abspath):
+                value = abspath
         try:
             if not os.path.isabs(value):
                 # probably a CSS, so we don't handle it as filename.
