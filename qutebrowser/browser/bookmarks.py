@@ -90,7 +90,6 @@ class BookmarkManager(QObject):
                                      for tpl in self.bookmarks.items()]
             self._lineparser.save()
 
-    @cmdutils.register(instance='bookmark-manager', win_id='win_id')
     def bookmark_add(self, win_id, url, title):
         """Add a new bookmark.
 
@@ -118,8 +117,6 @@ class BookmarkManager(QObject):
         self.added.emit(title, urlstr)
         message.info(win_id, "Bookmarks added")
 
-    @cmdutils.register(instance='bookmark-manager', maxsplit=0,
-                       completion=[usertypes.Completion.bookmark_by_title])
     def bookmark_del(self, url):
         """Delete a bookmark.
 
