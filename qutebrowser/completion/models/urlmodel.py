@@ -43,6 +43,13 @@ class UrlCompletionModel(base.BaseCompletionModel):
         self._bookmark_cat = self.new_category("Bookmarks")
         self._history_cat = self.new_category("History")
 
+        quickmark_manager = objreg.get('quickmark-manager')
+        quickmarks = quickmark_manager.marks.items()
+        for qm_name, qm_url in quickmarks:
+            self._add_quickmark_entry(qm_name, qm_url)
+        quickmark_manager.added.connect(self.on_quickmark_added)
+        quickmark_manager.removed.connect(self.on_quickmark_removed)
+
         bookmark_manager = objreg.get('bookmark-manager')
         bookmarks = bookmark_manager.bookmarks.items()
         for bm_url, bm_title in bookmarks:
