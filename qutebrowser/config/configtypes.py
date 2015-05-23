@@ -1158,9 +1158,10 @@ class UserStyleSheet(File):
         path = os.path.expandvars(value)
         path = os.path.expanduser(path)
         if not os.path.isabs(path):
-            abspath = os.path.join(standarddir.config(), path)
-            if os.path.isfile(abspath):
-                path = abspath
+            if standarddir.config():
+                abspath = os.path.join(standarddir.config(), path)
+                if os.path.isfile(abspath):
+                    path = abspath
         if os.path.isabs(path):
             return QUrl.fromLocalFile(path)
         else:
