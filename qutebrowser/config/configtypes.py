@@ -1176,12 +1176,11 @@ class UserStyleSheet(File):
                 raise configexc.ValidationError(value, "may not be empty!")
         value = os.path.expandvars(value)
         value = os.path.expanduser(value)
-        if not os.path.isabs(value):
-            abspath = os.path.join(standarddir.config(), value)
-            if os.path.isfile(abspath):
-                value = abspath
         try:
             if not os.path.isabs(value):
+                abspath = os.path.join(standarddir.config(), value)
+                if os.path.isfile(abspath):
+                    return
                 # probably a CSS, so we don't handle it as filename.
                 # FIXME We just try if it is encodable, maybe we should
                 # validate CSS?
