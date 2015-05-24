@@ -17,6 +17,8 @@
 # You should have received a copy of the GNU General Public License
 # along with qutebrowser.  If not, see <http://www.gnu.org/licenses/>.
 
+# pylint: disable=protected-access
+
 """Tests for qutebrowser.utils.standarddir."""
 
 import os
@@ -24,7 +26,10 @@ import os.path
 import sys
 import types
 import collections
+import logging
+import textwrap
 
+from PyQt5.QtCore import QStandardPaths
 from PyQt5.QtWidgets import QApplication
 import pytest
 
@@ -44,8 +49,61 @@ def change_qapp_name():
     QApplication.instance().setApplicationName(old_name)
 
 
+@pytest.fixture
+def no_cachedir_tag(monkeypatch):
+    """Fixture to prevent writing a CACHEDIR.TAG."""
+    monkeypatch.setattr('qutebrowser.utils.standarddir._init_cachedir_tag',
+                        lambda: None)
+
+
+@pytest.fixture(autouse=True)
+@pytest.mark.usefixtures('no_cachedir_tag')
+def reset_standarddir():
+    standarddir.init(None)
+
+
+@pytest.mark.parametrize('data_subdir, config_subdir, expected', [
+    ('foo', 'foo', 'foo/data'),
+    ('foo', 'bar', 'foo'),
+])
+def test_get_fake_windows_equal_dir(data_subdir, config_subdir, expected,
+                                    monkeypatch, tmpdir):
+    """Test _get with a fake Windows OS with equal data/config dirs."""
+    locations = {
+        QStandardPaths.DataLocation: str(tmpdir / data_subdir),
+        QStandardPaths.ConfigLocation: str(tmpdir / config_subdir),
+    }
+    monkeypatch.setattr('qutebrowser.utils.standarddir.os.name', 'nt')
+    monkeypatch.setattr(
+        'qutebrowser.utils.standarddir.QStandardPaths.writableLocation',
+        locations.get)
+    expected = str(tmpdir / expected)
+    assert standarddir.data() == expected
+
+
+class TestWritableLocation:
+
+    """Tests for _writable_location."""
+
+    def test_empty(self, monkeypatch):
+        """Test QStandardPaths returning an empty value."""
+        monkeypatch.setattr(
+            'qutebrowser.utils.standarddir.QStandardPaths.writableLocation',
+            lambda typ: '')
+        with pytest.raises(ValueError):
+            standarddir._writable_location(QStandardPaths.DataLocation)
+
+    def test_sep(self, monkeypatch):
+        """Make sure the right kind of separator is used."""
+        monkeypatch.setattr('qutebrowser.utils.standarddir.os.sep', '\\')
+        loc = standarddir._writable_location(QStandardPaths.DataLocation)
+        assert '/' not in loc
+        assert '\\' in loc
+
+
 @pytest.mark.skipif(not sys.platform.startswith("linux"),
                     reason="requires Linux")
+@pytest.mark.usefixtures('no_cachedir_tag')
 class TestGetStandardDirLinux:
 
     """Tests for standarddir under Linux."""
@@ -53,26 +111,22 @@ class TestGetStandardDirLinux:
     def test_data_explicit(self, monkeypatch, tmpdir):
         """Test data dir with XDG_DATA_HOME explicitly set."""
         monkeypatch.setenv('XDG_DATA_HOME', str(tmpdir))
-        standarddir.init(None)
         assert standarddir.data() == str(tmpdir / 'qutebrowser_test')
 
     def test_config_explicit(self, monkeypatch, tmpdir):
         """Test config dir with XDG_CONFIG_HOME explicitly set."""
         monkeypatch.setenv('XDG_CONFIG_HOME', str(tmpdir))
-        standarddir.init(None)
         assert standarddir.config() == str(tmpdir / 'qutebrowser_test')
 
     def test_cache_explicit(self, monkeypatch, tmpdir):
         """Test cache dir with XDG_CACHE_HOME explicitly set."""
         monkeypatch.setenv('XDG_CACHE_HOME', str(tmpdir))
-        standarddir.init(None)
         assert standarddir.cache() == str(tmpdir / 'qutebrowser_test')
 
     def test_data(self, monkeypatch, tmpdir):
         """Test data dir with XDG_DATA_HOME not set."""
         monkeypatch.setenv('HOME', str(tmpdir))
         monkeypatch.delenv('XDG_DATA_HOME', raising=False)
-        standarddir.init(None)
         expected = tmpdir / '.local' / 'share' / 'qutebrowser_test'
         assert standarddir.data() == str(expected)
 
@@ -80,7 +134,6 @@ class TestGetStandardDirLinux:
         """Test config dir with XDG_CONFIG_HOME not set."""
         monkeypatch.setenv('HOME', str(tmpdir))
         monkeypatch.delenv('XDG_CONFIG_HOME', raising=False)
-        standarddir.init(None)
         expected = tmpdir / '.config' / 'qutebrowser_test'
         assert standarddir.config() == str(expected)
 
@@ -88,20 +141,16 @@ class TestGetStandardDirLinux:
         """Test cache dir with XDG_CACHE_HOME not set."""
         monkeypatch.setenv('HOME', str(tmpdir))
         monkeypatch.delenv('XDG_CACHE_HOME', raising=False)
-        standarddir.init(None)
         expected = tmpdir / '.cache' / 'qutebrowser_test'
         assert standarddir.cache() == expected
 
 
 @pytest.mark.skipif(not sys.platform.startswith("win"),
                     reason="requires Windows")
+@pytest.mark.usefixtures('no_cachedir_tag')
 class TestGetStandardDirWindows:
 
     """Tests for standarddir under Windows."""
-
-    @pytest.fixture(autouse=True)
-    def reset_standarddir(self):
-        standarddir.init(None)
 
     def test_data(self):
         """Test data dir."""
@@ -121,6 +170,7 @@ class TestGetStandardDirWindows:
 DirArgTest = collections.namedtuple('DirArgTest', 'arg, expected')
 
 
+@pytest.mark.usefixtures('no_cachedir_tag')
 class TestArguments:
 
     """Tests with confdir/cachedir/datadir arguments."""
@@ -131,6 +181,7 @@ class TestArguments:
         if request.param.expected is None:
             return request.param
         else:
+            # prepend tmpdir to both
             arg = str(tmpdir / request.param.arg)
             return DirArgTest(arg, arg)
 
@@ -155,6 +206,21 @@ class TestArguments:
         standarddir.init(args)
         assert standarddir.data() == testcase.expected
 
+    def test_confdir_none(self):
+        """Test --confdir with None given."""
+        args = types.SimpleNamespace(confdir=None, cachedir=None, datadir=None)
+        standarddir.init(args)
+        assert standarddir.config().split(os.sep)[-1] == 'qutebrowser_test'
+
+    def test_runtimedir(self, tmpdir, monkeypatch):
+        """Test runtime dir (which has no args)."""
+        monkeypatch.setattr(
+            'qutebrowser.utils.standarddir.QStandardPaths.writableLocation',
+            lambda _typ: str(tmpdir))
+        args = types.SimpleNamespace(confdir=None, cachedir=None, datadir=None)
+        standarddir.init(args)
+        assert standarddir.runtime() == str(tmpdir)
+
     @pytest.mark.parametrize('typ', ['config', 'data', 'cache', 'download',
                                      'runtime'])
     def test_basedir(self, tmpdir, typ):
@@ -164,3 +230,51 @@ class TestArguments:
         standarddir.init(args)
         func = getattr(standarddir, typ)
         assert func() == expected
+
+
+class TestInitCacheDirTag:
+
+    """Tests for _init_cachedir_tag."""
+
+    def test_no_cache_dir(self, mocker, monkeypatch):
+        """Smoke test with cache() returning None."""
+        monkeypatch.setattr('qutebrowser.utils.standarddir.cache',
+                            lambda: None)
+        mocker.patch('builtins.open', side_effect=AssertionError)
+        standarddir._init_cachedir_tag()
+
+    def test_existant_cache_dir_tag(self, tmpdir, mocker, monkeypatch):
+        """Test with an existant CACHEDIR.TAG."""
+        monkeypatch.setattr('qutebrowser.utils.standarddir.cache',
+                            lambda: str(tmpdir))
+        mocker.patch('builtins.open', side_effect=AssertionError)
+        m = mocker.patch('qutebrowser.utils.standarddir.os.path.exists',
+                         return_value=True)
+        standarddir._init_cachedir_tag()
+        assert not tmpdir.listdir()
+        m.assert_called_with(str(tmpdir / 'CACHEDIR.TAG'))
+
+    def test_new_cache_dir_tag(self, tmpdir, mocker, monkeypatch):
+        """Test creating a new CACHEDIR.TAG."""
+        monkeypatch.setattr('qutebrowser.utils.standarddir.cache',
+                            lambda: str(tmpdir))
+        standarddir._init_cachedir_tag()
+        assert tmpdir.listdir() == [(tmpdir / 'CACHEDIR.TAG')]
+        data = (tmpdir / 'CACHEDIR.TAG').read_text('utf-8')
+        assert data == textwrap.dedent("""
+            Signature: 8a477f597d28d172789f06886806bc55
+            # This file is a cache directory tag created by qutebrowser.
+            # For information about cache directory tags, see:
+            #  http://www.brynosaurus.com/cachedir/
+        """).lstrip()
+
+    def test_open_oserror(self, caplog, tmpdir, mocker, monkeypatch):
+        """Test creating a new CACHEDIR.TAG."""
+        monkeypatch.setattr('qutebrowser.utils.standarddir.cache',
+                            lambda: str(tmpdir))
+        mocker.patch('builtins.open', side_effect=OSError)
+        with caplog.atLevel(logging.ERROR, 'misc'):
+            standarddir._init_cachedir_tag()
+        assert len(caplog.records()) == 1
+        assert caplog.records()[0].message == 'Failed to create CACHEDIR.TAG'
+        assert not tmpdir.listdir()
