@@ -130,7 +130,7 @@ def _module_versions():
     try:
         import sipconfig  # pylint: disable=import-error,unused-variable
     except ImportError:
-        pass
+        lines.append('SIP: ?')
     else:
         try:
             lines.append('SIP: {}'.format(
