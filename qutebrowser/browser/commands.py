@@ -996,6 +996,20 @@ class CommandDispatcher:
         bookmark_manager.bookmark_add(self._win_id, self._current_url(),
                                       self._current_title())
 
+    @cmdutils.register(instance='command-dispatcher', scope='window',
+                       maxsplit=0,
+                       completion=[usertypes.Completion.bookmark_by_url])
+    def bookmarks(self, url, tab=False, bg=False, window=False):
+        """Load a bookmark.
+
+        Args:
+            url: The url of the bookmark to load.
+            tab: Load the bookmark in a new tab.
+            bg: Load the bookmark in a new background tab.
+            window: Load the bookmark in a new window.
+        """
+        self._open(QUrl(url), tab, bg, window)
+
     @cmdutils.register(instance='command-dispatcher', name='inspector',
                        scope='window')
     def toggle_inspector(self):

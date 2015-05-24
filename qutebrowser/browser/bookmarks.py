@@ -30,8 +30,8 @@ import collections
 
 from PyQt5.QtCore import pyqtSignal, QUrl, QObject
 
-from qutebrowser.utils import message, usertypes, urlutils, standarddir, objreg
-from qutebrowser.commands import cmdexc, cmdutils
+from qutebrowser.utils import message, urlutils, standarddir, objreg
+from qutebrowser.commands import cmdexc
 from qutebrowser.misc import lineparser
 
 
