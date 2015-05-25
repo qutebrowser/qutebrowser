@@ -235,9 +235,9 @@ class PyQIODevice(io.BufferedIOBase):
         return self._dev.size()
 
     def _check_open(self):
-        """Check if the device is open, raise OSError if not."""
+        """Check if the device is open, raise ValueError if not."""
         if not self._dev.isOpen():
-            raise OSError("IO operation on closed device!")
+            raise ValueError("IO operation on closed device!")
 
     def _check_random(self):
         """Check if the device supports random access, raise OSError if not."""
