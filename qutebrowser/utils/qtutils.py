@@ -180,7 +180,7 @@ def deserialize_stream(stream, obj):
 def savefile_open(filename, binary=False, encoding='utf-8'):
     """Context manager to easily use a QSaveFile."""
     f = QSaveFile(filename)
-    new_f = None
+    cancelled = False
     try:
         ok = f.open(QIODevice.WriteOnly)
         if not ok:
@@ -192,13 +192,15 @@ def savefile_open(filename, binary=False, encoding='utf-8'):
         yield new_f
     except:
         f.cancelWriting()
+        cancelled = True
         raise
-    finally:
+    else:
         if new_f is not None:
             new_f.flush()
+    finally:
         commit_ok = f.commit()
-        if not commit_ok:
-            raise OSError(f.errorString())
+        if not commit_ok and not cancelled:
+            raise OSError("Commit failed!")
 
 
 @contextlib.contextmanager
