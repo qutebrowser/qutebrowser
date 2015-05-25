@@ -244,6 +244,16 @@ class PyQIODevice(io.BufferedIOBase):
         if not self.seekable():
             raise OSError("Random access not allowed!")
 
+    def _check_readable(self):
+        """Check if the device is readable, raise OSError if not."""
+        if not self._dev.isReadable():
+            raise OSError("Trying to read unreadable file!")
+
+    def _check_writable(self):
+        """Check if the device is writable, raise OSError if not."""
+        if not self.writable():
+            raise OSError("Trying to write to unwritable file!")
+
     def fileno(self):
         raise io.UnsupportedOperation
 
@@ -285,6 +295,7 @@ class PyQIODevice(io.BufferedIOBase):
 
     def readline(self, size=-1):
         self._check_open()
+        self._check_readable()
         if size == -1:
             size = 0
         return self._dev.readLine(size)
@@ -302,6 +313,7 @@ class PyQIODevice(io.BufferedIOBase):
 
     def write(self, b):
         self._check_open()
+        self._check_writable()
         num = self._dev.write(b)
         if num == -1 or num < len(b):
             raise OSError(self._dev.errorString())
