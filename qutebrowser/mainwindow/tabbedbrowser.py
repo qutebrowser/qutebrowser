@@ -577,3 +577,12 @@ class TabbedBrowser(tabwidget.TabWidget):
         """
         super().resizeEvent(e)
         self.resized.emit(self.geometry())
+
+    def wheelEvent(self, e):
+        """Override wheelEvent of QWidget to forward it to the focused tab.
+
+        Args:
+            e: The QWheelEvent
+        """
+        if self._now_focused is not None:
+            self._now_focused.wheelEvent(e)
