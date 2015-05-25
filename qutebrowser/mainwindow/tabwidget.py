@@ -480,6 +480,17 @@ class TabBar(QTabBar):
             new_idx = super().insertTab(idx, icon, '')
         self.set_page_title(new_idx, text)
 
+    def wheelEvent(self, event):
+        """Override wheelEvent to make the action configurable."""
+        if config.get('tabs', 'mousewheel-tab-switching'):
+            super().wheelEvent(event)
+        else:
+            tabbed_browser = objreg.get('tabbed-browser', scope='window',
+                                        window=self._win_id)
+            focused_tab = tabbed_browser.currentWidget()
+            if focused_tab is not None:
+                focused_tab.wheelEvent(event)
+
 
 class TabBarStyle(QCommonStyle):
 
