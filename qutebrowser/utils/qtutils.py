@@ -311,13 +311,28 @@ class PyQIODevice(io.BufferedIOBase):
             raise OSError(self._dev.errorString())
         return num
 
-    def read(self, size):
+    def read(self, size=-1):
         self._check_open()
-        buf = bytes()
-        num = self._dev.read(buf, size)
-        if num == -1:
-            raise OSError(self._dev.errorString())
-        return num
+        self._check_readable()
+        if size == 0:
+            # Read no data
+            return b''
+        elif size < 0:
+            # Read all data
+            if self._dev.bytesAvailable() > 0:
+                buf = self._dev.readAll()
+                if not buf:
+                    raise OSError(self._dev.errorString())
+            else:
+                return b''
+        else:
+            if self._dev.bytesAvailable() > 0:
+                buf = self._dev.read(size)
+                if not buf:
+                    raise OSError(self._dev.errorString())
+            else:
+                return b''
+        return buf
 
 
 class QtValueError(ValueError):
