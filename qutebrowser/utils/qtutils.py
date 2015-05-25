@@ -300,10 +300,6 @@ class PyQIODevice(io.BufferedIOBase):
     def writable(self):
         return self._dev.isWritable()
 
-    def readinto(self, b):
-        self._check_open()
-        return self._dev.read(b, len(b))
-
     def write(self, b):
         self._check_open()
         num = self._dev.write(b)
