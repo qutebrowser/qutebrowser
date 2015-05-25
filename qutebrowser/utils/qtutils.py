@@ -223,20 +223,20 @@ class PyQIODevice(io.BufferedIOBase):
     """Wrapper for a QIODevice which provides a python interface.
 
     Attributes:
-        _dev: The underlying QIODevice.
+        dev: The underlying QIODevice.
     """
 
     # pylint: disable=missing-docstring
 
     def __init__(self, dev):
-        self._dev = dev
+        self.dev = dev
 
     def __len__(self):
-        return self._dev.size()
+        return self.dev.size()
 
     def _check_open(self):
         """Check if the device is open, raise ValueError if not."""
-        if not self._dev.isOpen():
+        if not self.dev.isOpen():
             raise ValueError("IO operation on closed device!")
 
     def _check_random(self):
@@ -246,7 +246,7 @@ class PyQIODevice(io.BufferedIOBase):
 
     def _check_readable(self):
         """Check if the device is readable, raise OSError if not."""
-        if not self._dev.isReadable():
+        if not self.dev.isReadable():
             raise OSError("Trying to read unreadable file!")
 
     def _check_writable(self):
@@ -261,62 +261,62 @@ class PyQIODevice(io.BufferedIOBase):
         self._check_open()
         self._check_random()
         if whence == io.SEEK_SET:
-            ok = self._dev.seek(offset)
+            ok = self.dev.seek(offset)
         elif whence == io.SEEK_CUR:
-            ok = self._dev.seek(self.tell() + offset)
+            ok = self.dev.seek(self.tell() + offset)
         elif whence == io.SEEK_END:
-            ok = self._dev.seek(len(self) + offset)
+            ok = self.dev.seek(len(self) + offset)
         else:
             raise io.UnsupportedOperation("whence = {} is not "
                                           "supported!".format(whence))
         if not ok:
-            raise OSError(self._dev.errorString())
+            raise OSError(self.dev.errorString())
 
     def truncate(self, size=None):  # pylint: disable=unused-argument
         raise io.UnsupportedOperation
 
     def close(self):
-        self._dev.close()
+        self.dev.close()
 
     @property
     def closed(self):
-        return not self._dev.isOpen()
+        return not self.dev.isOpen()
 
     def flush(self):
         self._check_open()
-        self._dev.waitForBytesWritten(-1)
+        self.dev.waitForBytesWritten(-1)
 
     def isatty(self):
         self._check_open()
         return False
 
     def readable(self):
-        return self._dev.isReadable()
+        return self.dev.isReadable()
 
     def readline(self, size=-1):
         self._check_open()
         self._check_readable()
         if size == -1:
             size = 0
-        return self._dev.readLine(size)
+        return self.dev.readLine(size)
 
     def seekable(self):
-        return not self._dev.isSequential()
+        return not self.dev.isSequential()
 
     def tell(self):
         self._check_open()
         self._check_random()
-        return self._dev.pos()
+        return self.dev.pos()
 
     def writable(self):
-        return self._dev.isWritable()
+        return self.dev.isWritable()
 
     def write(self, b):
         self._check_open()
         self._check_writable()
-        num = self._dev.write(b)
+        num = self.dev.write(b)
         if num == -1 or num < len(b):
-            raise OSError(self._dev.errorString())
+            raise OSError(self.dev.errorString())
         return num
 
     def read(self, size=-1):
@@ -327,17 +327,17 @@ class PyQIODevice(io.BufferedIOBase):
             return b''
         elif size < 0:
             # Read all data
-            if self._dev.bytesAvailable() > 0:
-                buf = self._dev.readAll()
+            if self.dev.bytesAvailable() > 0:
+                buf = self.dev.readAll()
                 if not buf:
-                    raise OSError(self._dev.errorString())
+                    raise OSError(self.dev.errorString())
             else:
                 return b''
         else:
-            if self._dev.bytesAvailable() > 0:
-                buf = self._dev.read(size)
+            if self.dev.bytesAvailable() > 0:
+                buf = self.dev.read(size)
                 if not buf:
-                    raise OSError(self._dev.errorString())
+                    raise OSError(self.dev.errorString())
             else:
                 return b''
         return buf
