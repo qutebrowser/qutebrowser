@@ -522,6 +522,10 @@ def data(readonly=False):
              "* `{index}`: The index of this tab.\n"
              "* `{id}`: The internal tab ID of this tab."),
 
+            ('mousewheel-tab-switching',
+             SettingValue(typ.Bool(), 'true'),
+             "Switch between tabs using the mouse wheel."),
+
             readonly=readonly
         )),
 
