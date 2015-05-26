@@ -195,8 +195,7 @@ def savefile_open(filename, binary=False, encoding='utf-8'):
         cancelled = True
         raise
     else:
-        if new_f is not None:
-            new_f.flush()
+        new_f.flush()
     finally:
         commit_ok = f.commit()
         if not commit_ok and not cancelled:
