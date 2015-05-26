@@ -818,6 +818,10 @@ class File(BaseType):
                 raise configexc.ValidationError(value, "may not be empty!")
         value = os.path.expanduser(value)
         try:
+            if not os.path.isabs(value):
+                abspath = os.path.join(standarddir.config(), value)
+                if os.path.isfile(abspath):
+                    return
             if not os.path.isfile(value):
                 raise configexc.ValidationError(value, "must be a valid file!")
             if not os.path.isabs(value):
@@ -1178,23 +1182,21 @@ class UserStyleSheet(File):
         value = os.path.expandvars(value)
         value = os.path.expanduser(value)
         try:
-            if not os.path.isabs(value):
-                abspath = os.path.join(standarddir.config(), value)
-                if os.path.isfile(abspath):
+            super().validate(value)
+        except configexc.ValidationError:
+            try:
+                if not os.path.isabs(value):
+                    # probably a CSS, so we don't handle it as filename.
+                    # FIXME We just try if it is encodable, maybe we should
+                    # validate CSS?
+                    # https://github.com/The-Compiler/qutebrowser/issues/115
+                    try:
+                        value.encode('utf-8')
+                    except UnicodeEncodeError as e:
+                        raise configexc.ValidationError(value, str(e))
                     return
-                # probably a CSS, so we don't handle it as filename.
-                # FIXME We just try if it is encodable, maybe we should
-                # validate CSS?
-                # https://github.com/The-Compiler/qutebrowser/issues/115
-                try:
-                    value.encode('utf-8')
-                except UnicodeEncodeError as e:
-                    raise configexc.ValidationError(value, str(e))
-                return
-            elif not os.path.isfile(value):
-                raise configexc.ValidationError(value, "must be a valid file!")
-        except UnicodeEncodeError as e:
-            raise configexc.ValidationError(value, e)
+            except UnicodeEncodeError as e:
+                raise configexc.ValidationError(value, e)
 
 
 class AutoSearch(BaseType):

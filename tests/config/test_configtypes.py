@@ -1378,8 +1378,7 @@ class TestFile:
         os_path.expanduser.side_effect = lambda x: x
         os_path.isfile.return_value = True
         os_path.isabs.return_value = False
-        with pytest.raises(configexc.ValidationError):
-            self.t.validate('foobar')
+        self.t.validate('foobar')
 
     def test_validate_expanduser(self, os_path):
         """Test if validate expands the user correctly."""
