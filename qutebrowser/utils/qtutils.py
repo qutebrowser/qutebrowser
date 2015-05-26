@@ -253,6 +253,22 @@ class PyQIODevice(io.BufferedIOBase):
         if not self.writable():
             raise OSError("Trying to write to unwritable file!")
 
+    def open(self, mode):
+        """Open the underlying device and ensure opening succeeded.
+
+        Raises OSError if opening failed.
+
+        Args:
+            mode: QIODevice::OpenMode flags.
+        """
+        ok = self.dev.open(mode)
+        if not ok:
+            raise OSError(self.dev.errorString())
+
+    def close(self):
+        """Close the underlying device."""
+        self.dev.close()
+
     def fileno(self):
         raise io.UnsupportedOperation
 
@@ -273,9 +289,6 @@ class PyQIODevice(io.BufferedIOBase):
 
     def truncate(self, size=None):  # pylint: disable=unused-argument
         raise io.UnsupportedOperation
-
-    def close(self):
-        self.dev.close()
 
     @property
     def closed(self):
