@@ -269,7 +269,7 @@ class PyQIODevice(io.BufferedIOBase):
             raise io.UnsupportedOperation("whence = {} is not "
                                           "supported!".format(whence))
         if not ok:
-            raise OSError(self.dev.errorString())
+            raise OSError("seek failed!")
 
     def truncate(self, size=None):  # pylint: disable=unused-argument
         raise io.UnsupportedOperation
