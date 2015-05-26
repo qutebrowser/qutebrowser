@@ -32,6 +32,7 @@ Added
 - New arguments `--basedir` and `--temp-basedir` (intended for debugging) to set a different base directory for all data, which allows multiple invocations.
 - New argument `--no-err-windows` to suppress all error windows.
 - New visual/caret mode (bound to `v`) to select text by keyboard.
+- New setting `tabs -> mousewheel-tab-switching` to control mousewheel behavior on the tab bar.
 
 Changed
 ~~~~~~~
