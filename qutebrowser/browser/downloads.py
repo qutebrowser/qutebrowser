@@ -356,12 +356,16 @@ class DownloadItem(QObject):
         if reply.error() != QNetworkReply.NoError:
             QTimer.singleShot(0, lambda: self.error.emit(reply.errorString()))
 
-    def bg_color(self):
-        """Background color to be shown."""
-        start = config.get('colors', 'downloads.bg.start')
-        stop = config.get('colors', 'downloads.bg.stop')
-        system = config.get('colors', 'downloads.bg.system')
-        error = config.get('colors', 'downloads.bg.error')
+    def get_status_color(self, position):
+        """Choose an appropriate color for presenting the download's status.
+
+        Args:
+            position: The color type requested, can be 'fg' or 'bg'.
+        """
+        start = config.get('colors', 'downloads.{}.start'.format(position))
+        stop = config.get('colors', 'downloads.{}.stop'.format(position))
+        system = config.get('colors', 'downloads.{}.system'.format(position))
+        error = config.get('colors', 'downloads.{}.error'.format(position))
         if self.error_msg is not None:
             assert not self.successful
             return error
@@ -1020,9 +1024,9 @@ class DownloadManager(QAbstractListModel):
         if role == Qt.DisplayRole:
             data = str(item)
         elif role == Qt.ForegroundRole:
-            data = config.get('colors', 'downloads.fg')
+            data = item.get_status_color('fg')
         elif role == Qt.BackgroundRole:
-            data = item.bg_color()
+            data = item.get_status_color('bg')
         elif role == ModelRole.item:
             data = item
         elif role == Qt.ToolTipRole:

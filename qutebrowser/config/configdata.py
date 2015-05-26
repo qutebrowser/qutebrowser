@@ -930,25 +930,37 @@ def data(readonly=False):
              SettingValue(typ.CssColor(), 'green'),
              "Font color for the matched part of hints."),
 
-            ('downloads.fg',
-             SettingValue(typ.QtColor(), '#ffffff'),
-             "Foreground color for downloads."),
-
             ('downloads.bg.bar',
              SettingValue(typ.QssColor(), 'black'),
              "Background color for the download bar."),
+
+            ('downloads.fg.start',
+             SettingValue(typ.QtColor(), '#0000aa'),
+             "Color gradient start for downloads."),
 
             ('downloads.bg.start',
              SettingValue(typ.QtColor(), '#0000aa'),
              "Color gradient start for downloads."),
 
+            ('downloads.fg.stop',
+             SettingValue(typ.QtColor(), '#00aa00'),
+             "Color gradient end for downloads."),
+
             ('downloads.bg.stop',
              SettingValue(typ.QtColor(), '#00aa00'),
              "Color gradient end for downloads."),
 
+            ('downloads.fg.system',
+             SettingValue(typ.ColorSystem(), 'rgb'),
+             "Color gradient interpolation system for downloads."),
+
             ('downloads.bg.system',
              SettingValue(typ.ColorSystem(), 'rgb'),
              "Color gradient interpolation system for downloads."),
+
+            ('downloads.fg.error',
+             SettingValue(typ.QtColor(), 'red'),
+             "Foreground color for downloads with errors."),
 
             ('downloads.bg.error',
              SettingValue(typ.QtColor(), 'red'),
