@@ -260,10 +260,15 @@ class PyQIODevice(io.BufferedIOBase):
 
         Args:
             mode: QIODevice::OpenMode flags.
+
+        Return:
+            A contextlib.closing() object so this can be used as
+            contextmanager.
         """
         ok = self.dev.open(mode)
         if not ok:
             raise OSError(self.dev.errorString())
+        return contextlib.closing(self)
 
     def close(self):
         """Close the underlying device."""
