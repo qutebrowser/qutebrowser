@@ -296,9 +296,25 @@ class PyQIODevice(io.BufferedIOBase):
     def readline(self, size=-1):
         self._check_open()
         self._check_readable()
-        if size == -1:
-            size = 0
-        return self.dev.readLine(size)
+
+        if size < 0:
+            qt_size = 0  # no maximum size
+        elif size == 0:
+            return QByteArray()
+        else:
+            qt_size = size + 1  # Qt also counts the NUL byte
+
+        if self.dev.canReadLine():
+            buf = self.dev.readLine(qt_size)
+        else:
+            if size < 0:
+                buf = self.dev.readAll()
+            else:
+                buf = self.dev.read(size)
+
+        if buf is None:
+            raise OSError(self.dev.errorString())
+        return buf
 
     def seekable(self):
         return not self.dev.isSequential()
@@ -322,24 +338,12 @@ class PyQIODevice(io.BufferedIOBase):
     def read(self, size=-1):
         self._check_open()
         self._check_readable()
-        if size == 0:
-            # Read no data
-            return b''
-        elif size < 0:
-            # Read all data
-            if self.dev.bytesAvailable() > 0:
-                buf = self.dev.readAll()
-                if not buf:
-                    raise OSError(self.dev.errorString())
-            else:
-                return b''
+        if size < 0:
+            buf = self.dev.readAll()
         else:
-            if self.dev.bytesAvailable() > 0:
-                buf = self.dev.read(size)
-                if not buf:
-                    raise OSError(self.dev.errorString())
-            else:
-                return b''
+            buf = self.dev.read(size)
+        if buf is None:
+            raise OSError(self.dev.errorString())
         return buf
 
 
