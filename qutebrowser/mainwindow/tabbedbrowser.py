@@ -586,3 +586,5 @@ class TabbedBrowser(tabwidget.TabWidget):
         """
         if self._now_focused is not None:
             self._now_focused.wheelEvent(e)
+        else:
+            e.ignore()
