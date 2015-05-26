@@ -802,7 +802,13 @@ class File(BaseType):
     def transform(self, value):
         if not value:
             return None
-        return os.path.expanduser(value)
+        value = os.path.expanduser(value)
+        if not os.path.isabs(value):
+            if standarddir.config():
+                abspath = os.path.join(standarddir.config(), value)
+                if os.path.isfile(abspath):
+                    return abspath
+        return value
 
     def validate(self, value):
         if not value:
@@ -1155,13 +1161,8 @@ class UserStyleSheet(File):
     def transform(self, value):
         if not value:
             return None
-        path = os.path.expandvars(value)
-        path = os.path.expanduser(path)
-        if not os.path.isabs(path):
-            if standarddir.config():
-                abspath = os.path.join(standarddir.config(), path)
-                if os.path.isfile(abspath):
-                    path = abspath
+        path = super().transform(value)
+        path = os.path.expandvars(path)
         if os.path.isabs(path):
             return QUrl.fromLocalFile(path)
         else:
