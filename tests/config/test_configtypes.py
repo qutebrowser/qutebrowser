@@ -1930,13 +1930,21 @@ class TestUserStyleSheet:
         """Test transform with an empty value."""
         assert self.t.transform('') is None
 
-    def test_transform_file(self):
+    def test_transform_file(self, os_path, mocker):
         """Test transform with a filename."""
+        qurl = mocker.patch('qutebrowser.config.configtypes.QUrl',
+                            autospec=True)
+        qurl.fromLocalFile.return_value = QUrl("file:///foo/bar")
+        os_path.exists.return_value = True
         path = os.path.join(os.path.sep, 'foo', 'bar')
         assert self.t.transform(path) == QUrl("file:///foo/bar")
 
-    def test_transform_file_expandvars(self, monkeypatch):
+    def test_transform_file_expandvars(self, os_path, monkeypatch, mocker):
         """Test transform with a filename (expandvars)."""
+        qurl = mocker.patch('qutebrowser.config.configtypes.QUrl',
+                            autospec=True)
+        qurl.fromLocalFile.return_value = QUrl("file:///foo/bar")
+        os_path.exists.return_value = True
         monkeypatch.setenv('FOO', 'foo')
         path = os.path.join(os.path.sep, '$FOO', 'bar')
         assert self.t.transform(path) == QUrl("file:///foo/bar")

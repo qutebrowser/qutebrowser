@@ -1165,7 +1165,7 @@ class UserStyleSheet(File):
         if not value:
             return None
         path = super().transform(value)
-        if os.path.isabs(path):
+        if os.path.exists(path):
             return QUrl.fromLocalFile(path)
         else:
             data = base64.b64encode(value.encode('utf-8')).decode('ascii')
