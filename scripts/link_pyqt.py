@@ -70,13 +70,16 @@ def link_pyqt(sys_path, venv_path):
     if not globbed_sip:
         raise Error("Did not find sip in {}!".format(sys_path))
 
-    files = ['PyQt5', 'sipconfig.py']
-    files += [os.path.basename(e) for e in globbed_sip]
-    for fn in files:
+    files = [('PyQt5', True), ('sipconfig.py', False)]
+    files += [(os.path.basename(e), True) for e in globbed_sip]
+    for fn, required in files:
         source = os.path.join(sys_path, fn)
         dest = os.path.join(venv_path, fn)
         if not os.path.exists(source):
-            raise FileNotFoundError(source)
+            if required:
+                raise FileNotFoundError(source)
+            else:
+                continue
         if os.path.exists(dest):
             if os.path.isdir(dest) and not os.path.islink(dest):
                 shutil.rmtree(dest)
