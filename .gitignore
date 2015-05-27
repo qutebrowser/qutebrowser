@@ -22,5 +22,3 @@ __pycache__
 /htmlcov
 /.tox
 /testresults.html
-tags
-*.swp
