@@ -1373,8 +1373,8 @@ class TestFile:
         os_path.isabs.return_value = True
         self.t.validate('foobar')
 
-    def test_validate_exists_not_abs(self, os_path):
-        """Test validate with a file which does exist but is not absolute."""
+    def test_validate_exists_rel(self, os_path):
+        """Test validate with a relative path to an existing file."""
         os_path.expanduser.side_effect = lambda x: x
         os_path.isfile.return_value = True
         os_path.isabs.return_value = False
