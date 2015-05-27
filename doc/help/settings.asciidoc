@@ -111,6 +111,7 @@
 |<<tabs-indicator-space,indicator-space>>|Spacing between tab edge and indicator.
 |<<tabs-tabs-are-windows,tabs-are-windows>>|Whether to open windows instead of tabs.
 |<<tabs-title-format,title-format>>|The format to use for the tab title. The following placeholders are defined:
+|<<tabs-mousewheel-tab-switching,mousewheel-tab-switching>>|Switch between tabs using the mouse wheel.
 |==============
 
 .Quick reference for section ``storage''
@@ -1030,6 +1031,17 @@ The format to use for the tab title. The following placeholders are defined:
 * `{id}`: The internal tab ID of this tab.
 
 Default: +pass:[{index}: {title}]+
+
+[[tabs-mousewheel-tab-switching]]
+=== mousewheel-tab-switching
+Switch between tabs using the mouse wheel.
+
+Valid values:
+
+ * +true+
+ * +false+
+
+Default: +pass:[true]+
 
 == storage
 Settings related to cache and storage.
