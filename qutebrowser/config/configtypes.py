@@ -803,6 +803,7 @@ class File(BaseType):
         if not value:
             return None
         value = os.path.expanduser(value)
+        value = os.path.expandvars(value)
         if not os.path.isabs(value):
             if standarddir.config():
                 abspath = os.path.join(standarddir.config(), value)
@@ -818,10 +819,8 @@ class File(BaseType):
                 raise configexc.ValidationError(value, "may not be empty!")
         value = os.path.expanduser(value)
         try:
-            if not os.path.isabs(value):
-                abspath = os.path.join(standarddir.config(), value)
-                if os.path.isfile(abspath):
-                    return
+            if os.path.isfile(os.path.join(standarddir.config(), value)):
+                return
             if not os.path.isfile(value):
                 raise configexc.ValidationError(value, "must be a valid file!")
             if not os.path.isabs(value):
@@ -1166,7 +1165,6 @@ class UserStyleSheet(File):
         if not value:
             return None
         path = super().transform(value)
-        path = os.path.expandvars(path)
         if os.path.isabs(path):
             return QUrl.fromLocalFile(path)
         else:

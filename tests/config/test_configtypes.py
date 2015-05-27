@@ -1398,6 +1398,7 @@ class TestFile:
     def test_transform(self, os_path):
         """Test transform."""
         os_path.expanduser.side_effect = lambda x: x.replace('~', '/home/foo')
+        os_path.expandvars.side_effect = lambda x: x
         assert self.t.transform('~/foobar') == '/home/foo/foobar'
         os_path.expanduser.assert_called_once_with('~/foobar')
 
