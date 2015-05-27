@@ -70,7 +70,7 @@ def link_pyqt(sys_path, venv_path):
     if not globbed_sip:
         raise Error("Did not find sip in {}!".format(sys_path))
 
-    files = ['PyQt5']
+    files = ['PyQt5', 'sipconfig.py']
     files += [os.path.basename(e) for e in globbed_sip]
     for fn in files:
         source = os.path.join(sys_path, fn)
