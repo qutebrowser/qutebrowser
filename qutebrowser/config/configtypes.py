@@ -819,13 +819,15 @@ class File(BaseType):
                 raise configexc.ValidationError(value, "may not be empty!")
         value = os.path.expanduser(value)
         try:
-            if os.path.isfile(os.path.join(standarddir.config(), value)):
-                return
+            if not os.path.isabs(value):
+                if standarddir.config():
+                    if os.path.isfile(
+                        os.path.join(standarddir.config(), value)):
+                            return
+                raise configexc.ValidationError(value,
+                    "must be an absolute path!")
             if not os.path.isfile(value):
                 raise configexc.ValidationError(value, "must be a valid file!")
-            if not os.path.isabs(value):
-                raise configexc.ValidationError(
-                    value, "must be an absolute path!")
         except UnicodeEncodeError as e:
             raise configexc.ValidationError(value, e)
 

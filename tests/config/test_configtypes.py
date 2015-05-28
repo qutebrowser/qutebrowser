@@ -30,7 +30,7 @@ from PyQt5.QtGui import QColor, QFont
 from PyQt5.QtNetwork import QNetworkProxy
 
 from qutebrowser.config import configtypes, configexc
-from qutebrowser.utils import debug, utils
+from qutebrowser.utils import debug, utils, standarddir
 
 
 class Font(QFont):
@@ -1373,12 +1373,24 @@ class TestFile:
         os_path.isabs.return_value = True
         self.t.validate('foobar')
 
-    def test_validate_exists_rel(self, os_path):
+    def test_validate_exists_rel(self, os_path, monkeypatch):
         """Test validate with a relative path to an existing file."""
+        monkeypatch.setattr('qutebrowser.config.configtypes.standarddir.config',
+                lambda: '/home/foo/.config/')
         os_path.expanduser.side_effect = lambda x: x
         os_path.isfile.return_value = True
         os_path.isabs.return_value = False
         self.t.validate('foobar')
+        os_path.join.assert_called_once_with('/home/foo/.config/',
+                                            'foobar')
+
+    def test_validate_rel_config_none(self, os_path, monkeypatch):
+        """Test with a relative path and standarddir.config returning None."""
+        monkeypatch.setattr('qutebrowser.config.configtypes.standarddir.config',
+                lambda: None)
+        os_path.isabs.return_value = False
+        with pytest.raises(configexc.ValidationError):
+            self.t.validate('foobar')
 
     def test_validate_expanduser(self, os_path):
         """Test if validate expands the user correctly."""
