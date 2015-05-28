@@ -820,12 +820,12 @@ class File(BaseType):
         value = os.path.expanduser(value)
         try:
             if not os.path.isabs(value):
-                if standarddir.config():
-                    if os.path.isfile(
-                        os.path.join(standarddir.config(), value)):
-                            return
+                cfgdir = standarddir.config()
+                if cfgdir:
+                    if os.path.isfile(os.path.join(cfgdir, value)):
+                        return
                 raise configexc.ValidationError(value,
-                    "must be an absolute path!")
+                                                "must be an absolute path!")
             if not os.path.isfile(value):
                 raise configexc.ValidationError(value, "must be a valid file!")
         except UnicodeEncodeError as e:
