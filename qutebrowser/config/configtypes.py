@@ -821,9 +821,8 @@ class File(BaseType):
         try:
             if not os.path.isabs(value):
                 cfgdir = standarddir.config()
-                if cfgdir:
-                    if os.path.isfile(os.path.join(cfgdir, value)):
-                        return
+                if cfgdir and os.path.isfile(os.path.join(cfgdir, value)):
+                    return
                 raise configexc.ValidationError(value,
                                                 "must be an absolute path!")
             if not os.path.isfile(value):
