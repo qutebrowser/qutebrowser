@@ -98,6 +98,15 @@ class UrlCompletionModel(base.BaseCompletionModel):
         """
         self.new_item(self._bookmark_cat, url, title)
 
+    def custom_filter(self, pattern, row, parent):
+        """Filter by url and title.
+        """
+        index0 = self.index(row, 0, parent)
+        index1 = self.index(row, 1, parent)
+        url = self.data(index0)
+        title = self.data(index1)
+        return pattern in url.casefold() or pattern in title.casefold()
+
     @config.change_filter('completion', 'timestamp-format')
     def reformat_timestamps(self):
         """Reformat the timestamps if the config option was changed."""
