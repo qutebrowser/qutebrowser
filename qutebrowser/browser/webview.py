@@ -487,12 +487,25 @@ class WebView(QWebView):
         old_scroll_pos = self.scroll_pos
         flags = QWebPage.FindFlags(flags)
         found = self.findText(text, flags)
-        if not found and not flags & QWebPage.HighlightAllOccurrences and text:
-            message.error(self.win_id, "Text '{}' not found on "
-                          "page!".format(text), immediately=True)
-        else:
-            backward = int(flags) & QWebPage.FindBackward
+        backward = int(flags) & QWebPage.FindBackward
 
+        if not found and not flags & QWebPage.HighlightAllOccurrences and text:
+            # User disabled wrapping; but findText() just returns False. If we
+            # have a selection, we know there's a match *somewhere* on the page
+            if (not flags & QWebPage.FindWrapsAroundDocument and
+                    self.hasSelection()):
+                if not backward:
+                    message.warning(self.win_id, "Search hit BOTTOM without "
+                                    "match for: {}".format(text),
+                                    immediately=True)
+                else:
+                    message.warning(self.win_id, "Search hit TOP without "
+                                    "match for: {}".format(text),
+                                    immediately=True)
+            else:
+                message.error(self.win_id, "Text '{}' not found on "
+                              "page!".format(text), immediately=True)
+        else:
             def check_scroll_pos():
                 """Check if the scroll position got smaller and show info."""
                 if not backward and self.scroll_pos < old_scroll_pos:
