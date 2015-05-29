@@ -27,6 +27,6 @@
 path=/tmp/qutebrowser_$(mktemp XXXXXXXX).html
 
 curl "$QUTE_URL" > $path
-urxvt -e vim "$path"
+xterm -e vim "$path"
 
 rm "$path"
