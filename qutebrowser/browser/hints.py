@@ -21,11 +21,10 @@
 
 import math
 import functools
-import subprocess
 import collections
 
 from PyQt5.QtCore import (pyqtSignal, pyqtSlot, QObject, QEvent, Qt, QUrl,
-                          QTimer)
+                          QTimer, QProcess)
 from PyQt5.QtGui import QMouseEvent, QClipboard
 from PyQt5.QtWidgets import QApplication
 from PyQt5.QtWebKit import QWebElement
@@ -548,11 +547,18 @@ class HintManager(QObject):
         """
         urlstr = url.toString(QUrl.FullyEncoded | QUrl.RemovePassword)
         args = context.get_args(urlstr)
-        try:
-            subprocess.Popen(args)
-        except OSError as e:
-            msg = "Error while spawning command: {}".format(e)
-            message.error(self._win_id, msg, immediately=True)
+        cmd, *args = args
+        proc = QProcess(self)
+        proc.error.connect(self.on_process_error)
+        proc.start(cmd, args)
+
+    @pyqtSlot('QProcess::ProcessError')
+    def on_process_error(self, error):
+        """Display an error if a :spawn'ed process failed."""
+        msg = qtutils.QPROCESS_ERRORS[error]
+        message.error(self._win_id,
+                      "Error while spawning command: {}".format(msg),
+                      immediately=True)
 
     def _resolve_url(self, elem, baseurl):
         """Resolve a URL and check if we want to keep it.

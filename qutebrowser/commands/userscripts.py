@@ -26,7 +26,7 @@ import tempfile
 from PyQt5.QtCore import (pyqtSignal, pyqtSlot, QObject, QSocketNotifier,
                           QProcessEnvironment, QProcess)
 
-from qutebrowser.utils import message, log, objreg, standarddir
+from qutebrowser.utils import message, log, objreg, standarddir, qtutils
 from qutebrowser.commands import runners, cmdexc
 from qutebrowser.config import config
 
@@ -73,10 +73,6 @@ class _BaseUserscriptRunner(QObject):
         _proc: The QProcess which is being executed.
         _win_id: The window ID this runner is associated with.
 
-    Class attributes:
-        PROCESS_MESSAGES: A mapping of QProcess::ProcessError members to
-                          human-readable error strings.
-
     Signals:
         got_cmd: Emitted when a new command arrived and should be executed.
         finished: Emitted when the userscript finished running.
@@ -84,17 +80,6 @@ class _BaseUserscriptRunner(QObject):
 
     got_cmd = pyqtSignal(str)
     finished = pyqtSignal()
-
-    PROCESS_MESSAGES = {
-        QProcess.FailedToStart: "The process failed to start.",
-        QProcess.Crashed: "The process crashed.",
-        QProcess.Timedout: "The last waitFor...() function timed out.",
-        QProcess.WriteError: ("An error occurred when attempting to write to "
-                              "the process."),
-        QProcess.ReadError: ("An error occurred when attempting to read from "
-                             "the process."),
-        QProcess.UnknownError: "An unknown error occurred.",
-    }
 
     def __init__(self, win_id, parent=None):
         super().__init__(parent)
@@ -166,7 +151,7 @@ class _BaseUserscriptRunner(QObject):
 
     def on_proc_error(self, error):
         """Called when the process encountered an error."""
-        msg = self.PROCESS_MESSAGES[error]
+        msg = qtutils.QPROCESS_ERRORS[error]
         # NOTE: Do not replace this with "raise CommandError" as it's
         # executed async.
         message.error(self._win_id,

@@ -22,14 +22,13 @@
 import re
 import os
 import shlex
-import subprocess
 import posixpath
 import functools
 import xml.etree.ElementTree
 
 from PyQt5.QtWebKit import QWebSettings
 from PyQt5.QtWidgets import QApplication, QTabBar
-from PyQt5.QtCore import Qt, QUrl, QEvent
+from PyQt5.QtCore import pyqtSlot, Qt, QUrl, QEvent, QProcess
 from PyQt5.QtGui import QClipboard, QKeyEvent
 from PyQt5.QtPrintSupport import QPrintDialog, QPrintPreviewDialog
 from PyQt5.QtWebKitWidgets import QWebPage
@@ -929,11 +928,6 @@ class CommandDispatcher:
         Note the {url} variable which gets replaced by the current URL might be
         useful here.
 
-        //
-
-        We use subprocess rather than Qt's QProcess here because we really
-        don't care about the process anymore as soon as it's spawned.
-
         Args:
             userscript: Run the command as an userscript.
             quiet: Don't print the commandline being executed.
@@ -944,16 +938,21 @@ class CommandDispatcher:
         if not quiet:
             fake_cmdline = ' '.join(shlex.quote(arg) for arg in args)
             message.info(win_id, 'Executing: ' + fake_cmdline)
+        cmd, *args = args
         if userscript:
-            cmd = args[0]
-            args = [] if not args else args[1:]
             self.run_userscript(cmd, *args)
         else:
-            try:
-                subprocess.Popen(args)
-            except OSError as e:
-                raise cmdexc.CommandError("Error while spawning command: "
-                                          "{}".format(e))
+            proc = QProcess(self._tabbed_browser)
+            proc.error.connect(self.on_process_error)
+            proc.start(cmd, args)
+
+    @pyqtSlot('QProcess::ProcessError')
+    def on_process_error(self, error):
+        """Display an error if a :spawn'ed process failed."""
+        msg = qtutils.QPROCESS_ERRORS[error]
+        message.error(self._win_id,
+                      "Error while spawning command: {}".format(msg),
+                      immediately=True)
 
     @cmdutils.register(instance='command-dispatcher', scope='window')
     def home(self):
@@ -1166,12 +1165,6 @@ class CommandDispatcher:
 
         The editor which should be launched can be configured via the
         `general -> editor` config option.
-
-        //
-
-        We use QProcess rather than subprocess here because it makes it a lot
-        easier to execute some code as soon as the process has been finished
-        and do everything async.
         """
         frame = self._current_widget().page().currentFrame()
         try:

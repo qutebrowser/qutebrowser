@@ -238,9 +238,7 @@ There are some exceptions to that:
 
 * `QThread` is used instead of Python threads because it provides signals and
 slots.
-* `QProcess` is used instead of Python's `subprocess` if certain actions (e.g.
-cleanup) when the process finished are desired, as it provides signals for
-that.
+* `QProcess` is used instead of Python's `subprocess`
 * `QUrl` is used instead of storing URLs as string, see the
 <<handling-urls,handling URLs>> section for details.
 
