@@ -166,7 +166,6 @@ def fuzzy_url(urlstr, cwd=None, relative=False, do_search=True):
         path = None
 
     stripped = urlstr.strip()
-
     if path is not None and os.path.exists(path):
         log.url.debug("URL is a local file")
         url = QUrl.fromLocalFile(path)
@@ -182,7 +181,6 @@ def fuzzy_url(urlstr, cwd=None, relative=False, do_search=True):
             url = qurl_from_user_input(stripped)
     log.url.debug("Converting fuzzy term {} to URL -> {}".format(
                   urlstr, url.toDisplayString()))
-
     if do_search and config.get('general', 'auto-search'):
         qtutils.ensure_valid(url)
     else:
