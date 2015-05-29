@@ -657,6 +657,9 @@ class CommandDispatcher:
             count: multiplier
         """
         frame = self._current_widget().page().currentFrame()
+        if not frame.url().isValid() == '':  # Issue 701
+            return
+
         if (bottom_navigate is not None and
                 frame.scrollPosition().y() >=
                 frame.scrollBarMaximum(Qt.Vertical)):
