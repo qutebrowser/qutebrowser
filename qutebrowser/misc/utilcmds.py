@@ -111,6 +111,19 @@ def message_warning(win_id, text):
     message.warning(win_id, text)
 
 
+@cmdutils.register(maxsplit=0, no_cmd_split=True)
+def jseval(s):
+    """Evaluate a JavaScript string.
+
+    Args:
+        s: The string to evaluate.
+    """
+    tabbed_browser = objreg.get('tabbed-browser', scope='window',
+                                window='last-focused')
+    message_info(tabbed_browser.widget(0)
+                 .page().mainFrame().evaluateJavaScript(s))
+
+
 @cmdutils.register(debug=True)
 def debug_crash(typ: {'type': ('exception', 'segfault')}='exception'):
     """Crash for debugging purposes.
