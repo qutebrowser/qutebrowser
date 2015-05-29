@@ -643,21 +643,27 @@ class CommandDispatcher:
 
     @cmdutils.register(instance='command-dispatcher', hide=True,
                        scope='window', count='count')
-    def scroll_page(self, x: {'type': float}, y: {'type': float},
-            navigate=None, count=1):
+    def scroll_page(self, x: {'type': float}, y: {'type': float}, *,
+                    top_navigate: {'type': ('prev', 'decrement')}=None,
+                    bottom_navigate: {'type': ('next', 'increment')}=None,
+                    count=1):
         """Scroll the frame page-wise.
 
         Args:
             x: How many pages to scroll to the right.
             y: How many pages to scroll down.
-            navigate: :navigate to the next page on bottom
+            bottom_navigate: :navigate to the next page on bottom
+            top_navigate: :navigate to the previous page on top
             count: multiplier
         """
         frame = self._current_widget().page().currentFrame()
-        if (navigate is not None and
+        if (bottom_navigate is not None and
                 frame.scrollPosition().y() >=
                 frame.scrollBarMaximum(Qt.Vertical)):
-            self.navigate(navigate)
+            self.navigate(bottom_navigate)
+            return
+        elif top_navigate is not None and frame.scrollPosition().y() == 0:
+            self.navigate(top_navigate)
             return
 
         mult_x = count * x
