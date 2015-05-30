@@ -362,6 +362,7 @@ class DownloadItem(QObject):
         Args:
             position: The color type requested, can be 'fg' or 'bg'.
         """
+        assert position in ("fg", "bg")
         start = config.get('colors', 'downloads.{}.start'.format(position))
         stop = config.get('colors', 'downloads.{}.stop'.format(position))
         system = config.get('colors', 'downloads.{}.system'.format(position))
