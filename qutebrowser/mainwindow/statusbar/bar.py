@@ -80,8 +80,8 @@ class StatusBar(QWidget):
 
         _command_active: If we're currently in command mode.
 
-                         For some reason we need to have this as class attribute
-                         so pyqtProperty works correctly.
+                         For some reason we need to have this as class
+                         attribute so pyqtProperty works correctly.
 
         _caret_mode: The current caret mode (off/on/selection).
 
