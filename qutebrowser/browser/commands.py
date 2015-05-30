@@ -25,7 +25,9 @@ import shlex
 import subprocess
 import posixpath
 import functools
+from xml.etree import ElementTree
 
+from PyQt5.QtWebKit import QWebSettings
 from PyQt5.QtWidgets import QApplication, QTabBar
 from PyQt5.QtCore import Qt, QUrl, QEvent
 from PyQt5.QtGui import QClipboard, QKeyEvent
@@ -985,7 +987,8 @@ class CommandDispatcher:
         url = objreg.get('quickmark-manager').get(name)
         self._open(url, tab, bg, window)
 
-    @cmdutils.register(instance='command-dispatcher', name='select-follow', scope='window')
+    @cmdutils.register(instance='command-dispatcher', name='select-follow',
+                       scope='window')
     def select_follow(self, tab=False):
         """Follow the selected text.
 
@@ -993,9 +996,19 @@ class CommandDispatcher:
             tab: Load the selected link in a new tab.
         """
         widget = self._current_widget()
-        if tab:
-            widget.page().open_target = usertypes.ClickTarget.tab
-        widget.page().currentFrame().evaluateJavaScript('window.getSelection().anchorNode.parentNode.click()')
+        if QWebSettings.globalSettings().testAttribute(
+                QWebSettings.JavascriptEnabled):
+            if tab:
+                widget.page().open_target = usertypes.ClickTarget.tab
+            widget.page().currentFrame().evaluateJavaScript(
+                'window.getSelection().anchorNode.parentNode.click()')
+        else:
+            selected_element = ElementTree.fromstring(
+                '<html>' + widget.selectedHtml() + '</html>').find('a')
+            if selected_element is not None:
+                url = selected_element.attrib['href']
+                if url:
+                    self._open(QUrl(url), tab)
 
     @cmdutils.register(instance='command-dispatcher', name='inspector',
                        scope='window')
