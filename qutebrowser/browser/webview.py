@@ -487,7 +487,7 @@ class WebView(QWebView):
         old_scroll_pos = self.scroll_pos
         flags = QWebPage.FindFlags(flags)
         found = self.findText(text, flags)
-        backward = int(flags) & QWebPage.FindBackward
+        backward = flags & QWebPage.FindBackward
 
         if not found and not flags & QWebPage.HighlightAllOccurrences and text:
             # User disabled wrapping; but findText() just returns False. If we
