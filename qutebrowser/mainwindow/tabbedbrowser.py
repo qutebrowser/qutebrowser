@@ -29,7 +29,7 @@ from PyQt5.QtGui import QIcon
 from qutebrowser.config import config
 from qutebrowser.keyinput import modeman
 from qutebrowser.mainwindow import tabwidget
-from qutebrowser.browser import signalfilter, commands, webview
+from qutebrowser.browser import signalfilter, webview
 from qutebrowser.utils import log, usertypes, utils, qtutils, objreg, urlutils
 
 
@@ -107,12 +107,6 @@ class TabbedBrowser(tabwidget.TabWidget):
         self.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Expanding)
         self._undo_stack = []
         self._filter = signalfilter.SignalFilter(win_id, self)
-        dispatcher = commands.CommandDispatcher(win_id)
-        objreg.register('command-dispatcher', dispatcher, scope='window',
-                        window=win_id)
-        self.destroyed.connect(
-            functools.partial(objreg.delete, 'command-dispatcher',
-                              scope='window', window=win_id))
         self._now_focused = None
         # FIXME adjust this to font size
         # https://github.com/The-Compiler/qutebrowser/issues/119
@@ -518,7 +512,8 @@ class TabbedBrowser(tabwidget.TabWidget):
         tab = self.widget(idx)
         log.modes.debug("Current tab changed, focusing {!r}".format(tab))
         tab.setFocus()
-        for mode in (usertypes.KeyMode.hint, usertypes.KeyMode.insert):
+        for mode in (usertypes.KeyMode.hint, usertypes.KeyMode.insert,
+                     usertypes.KeyMode.caret):
             modeman.maybe_leave(self._win_id, mode, 'tab changed')
         if self._now_focused is not None:
             objreg.register('last-focused-tab', self._now_focused, update=True,
@@ -582,3 +577,14 @@ class TabbedBrowser(tabwidget.TabWidget):
         """
         super().resizeEvent(e)
         self.resized.emit(self.geometry())
+
+    def wheelEvent(self, e):
+        """Override wheelEvent of QWidget to forward it to the focused tab.
+
+        Args:
+            e: The QWheelEvent
+        """
+        if self._now_focused is not None:
+            self._now_focused.wheelEvent(e)
+        else:
+            e.ignore()

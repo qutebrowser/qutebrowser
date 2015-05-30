@@ -195,10 +195,20 @@ class NetworkManager(QNetworkAccessManager):
             errors = [SslError(e) for e in errors]
             ssl_strict = config.get('network', 'ssl-strict')
             if ssl_strict == 'ask':
-                host_tpl = urlutils.host_tuple(reply.url())
-                if set(errors).issubset(self._accepted_ssl_errors[host_tpl]):
+                try:
+                    host_tpl = urlutils.host_tuple(reply.url())
+                except ValueError:
+                    host_tpl = None
+                    is_accepted = False
+                    is_rejected = False
+                else:
+                    is_accepted = set(errors).issubset(
+                        self._accepted_ssl_errors[host_tpl])
+                    is_rejected = set(errors).issubset(
+                        self._rejected_ssl_errors[host_tpl])
+                if is_accepted:
                     reply.ignoreSslErrors()
-                elif set(errors).issubset(self._rejected_ssl_errors[host_tpl]):
+                elif is_rejected:
                     pass
                 else:
                     err_string = '\n'.join('- ' + err.errorString() for err in
@@ -208,9 +218,11 @@ class NetworkManager(QNetworkAccessManager):
                         owner=reply)
                     if answer:
                         reply.ignoreSslErrors()
-                        self._accepted_ssl_errors[host_tpl] += errors
+                        d = self._accepted_ssl_errors
                     else:
-                        self._rejected_ssl_errors[host_tpl] += errors
+                        d = self._rejected_ssl_errors
+                    if host_tpl is not None:
+                        d[host_tpl] += errors
             elif ssl_strict:
                 pass
             else:

@@ -883,11 +883,12 @@ class TestCommand:
     """Test Command."""
 
     @pytest.fixture(autouse=True)
-    def setup(self, mocker, stubs):
+    def setup(self, monkeypatch, stubs):
         self.t = configtypes.Command()
         cmd_utils = stubs.FakeCmdUtils({'cmd1': stubs.FakeCommand("desc 1"),
                                         'cmd2': stubs.FakeCommand("desc 2")})
-        mocker.patch('qutebrowser.config.configtypes.cmdutils', new=cmd_utils)
+        monkeypatch.setattr('qutebrowser.config.configtypes.cmdutils',
+                            cmd_utils)
 
     def test_validate_empty(self):
         """Test validate with an empty string."""

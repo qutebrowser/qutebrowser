@@ -40,6 +40,7 @@
 |<<ui-frame-flattening,frame-flattening>>|Whether to  expand each subframe to its contents.
 |<<ui-user-stylesheet,user-stylesheet>>|User stylesheet to use (absolute filename or CSS string). Will expand environment variables.
 |<<ui-css-media-type,css-media-type>>|Set the CSS media type.
+|<<ui-smooth-scrolling,smooth-scrolling>>|Whether to enable smooth scrolling for webpages.
 |<<ui-remove-finished-downloads,remove-finished-downloads>>|Whether to remove finished downloads automatically.
 |<<ui-hide-statusbar,hide-statusbar>>|Whether to hide the statusbar unless a message is shown.
 |<<ui-window-title-format,window-title-format>>|The format to use for the window title. The following placeholders are defined:
@@ -110,6 +111,7 @@
 |<<tabs-indicator-space,indicator-space>>|Spacing between tab edge and indicator.
 |<<tabs-tabs-are-windows,tabs-are-windows>>|Whether to open windows instead of tabs.
 |<<tabs-title-format,title-format>>|The format to use for the tab title. The following placeholders are defined:
+|<<tabs-mousewheel-tab-switching,mousewheel-tab-switching>>|Switch between tabs using the mouse wheel.
 |==============
 
 .Quick reference for section ``storage''
@@ -134,6 +136,9 @@
 |<<content-allow-images,allow-images>>|Whether images are automatically loaded in web pages.
 |<<content-allow-javascript,allow-javascript>>|Enables or disables the running of JavaScript programs.
 |<<content-allow-plugins,allow-plugins>>|Enables or disables plugins in Web pages.
+|<<content-webgl,webgl>>|Enables or disables WebGL.
+|<<content-css-regions,css-regions>>|Enable or disable support for CSS regions.
+|<<content-hyperlink-auditing,hyperlink-auditing>>|Enable or disable hyperlink auditing (<a ping>).
 |<<content-geolocation,geolocation>>|Allow websites to request geolocations.
 |<<content-notifications,notifications>>|Allow websites to show notifications.
 |<<content-javascript-can-open-windows,javascript-can-open-windows>>|Whether JavaScript programs can open new windows.
@@ -187,6 +192,8 @@
 |<<colors-statusbar.bg.warning,statusbar.bg.warning>>|Background color of the statusbar if there is a warning.
 |<<colors-statusbar.bg.prompt,statusbar.bg.prompt>>|Background color of the statusbar if there is a prompt.
 |<<colors-statusbar.bg.insert,statusbar.bg.insert>>|Background color of the statusbar in insert mode.
+|<<colors-statusbar.bg.caret,statusbar.bg.caret>>|Background color of the statusbar in caret mode.
+|<<colors-statusbar.bg.caret-selection,statusbar.bg.caret-selection>>|Background color of the statusbar in caret mode with a selection
 |<<colors-statusbar.progress.bg,statusbar.progress.bg>>|Background color of the progress bar.
 |<<colors-statusbar.url.fg,statusbar.url.fg>>|Default foreground color of the URL in the statusbar.
 |<<colors-statusbar.url.fg.success,statusbar.url.fg.success>>|Foreground color of the URL in the statusbar on successful load.
@@ -392,10 +399,10 @@ How to open links in an existing instance if a new one is launched.
 
 Valid values:
 
- * +tab+: Open a new tab in the existing window and activate it.
- * +tab-bg+: Open a new background tab in the existing window and activate it.
- * +tab-silent+: Open a new tab in the existing window without activating it.
- * +tab-bg-silent+: Open a new background tab in the existing window without activating it.
+ * +tab+: Open a new tab in the existing window and activate the window.
+ * +tab-bg+: Open a new background tab in the existing window and activate the window.
+ * +tab-silent+: Open a new tab in the existing window without activating the window.
+ * +tab-bg-silent+: Open a new background tab in the existing window without activating the window.
  * +window+: Open in a new window.
 
 Default: +pass:[window]+
@@ -530,6 +537,17 @@ Default: +pass:[::-webkit-scrollbar { width: 0px; height: 0px; }]+
 Set the CSS media type.
 
 Default: empty
+
+[[ui-smooth-scrolling]]
+=== smooth-scrolling
+Whether to enable smooth scrolling for webpages.
+
+Valid values:
+
+ * +true+
+ * +false+
+
+Default: +pass:[false]+
 
 [[ui-remove-finished-downloads]]
 === remove-finished-downloads
@@ -1014,6 +1032,17 @@ The format to use for the tab title. The following placeholders are defined:
 
 Default: +pass:[{index}: {title}]+
 
+[[tabs-mousewheel-tab-switching]]
+=== mousewheel-tab-switching
+Switch between tabs using the mouse wheel.
+
+Valid values:
+
+ * +true+
+ * +false+
+
+Default: +pass:[true]+
+
 == storage
 Settings related to cache and storage.
 
@@ -1130,6 +1159,39 @@ Default: +pass:[true]+
 Enables or disables plugins in Web pages.
 
 Qt plugins with a mimetype such as "application/x-qt-plugin" are not affected by this setting.
+
+Valid values:
+
+ * +true+
+ * +false+
+
+Default: +pass:[false]+
+
+[[content-webgl]]
+=== webgl
+Enables or disables WebGL.
+
+Valid values:
+
+ * +true+
+ * +false+
+
+Default: +pass:[true]+
+
+[[content-css-regions]]
+=== css-regions
+Enable or disable support for CSS regions.
+
+Valid values:
+
+ * +true+
+ * +false+
+
+Default: +pass:[true]+
+
+[[content-hyperlink-auditing]]
+=== hyperlink-auditing
+Enable or disable hyperlink auditing (<a ping>).
 
 Valid values:
 
@@ -1497,6 +1559,18 @@ Default: +pass:[darkblue]+
 Background color of the statusbar in insert mode.
 
 Default: +pass:[darkgreen]+
+
+[[colors-statusbar.bg.caret]]
+=== statusbar.bg.caret
+Background color of the statusbar in caret mode.
+
+Default: +pass:[purple]+
+
+[[colors-statusbar.bg.caret-selection]]
+=== statusbar.bg.caret-selection
+Background color of the statusbar in caret mode with a selection
+
+Default: +pass:[#a12dff]+
 
 [[colors-statusbar.progress.bg]]
 === statusbar.progress.bg

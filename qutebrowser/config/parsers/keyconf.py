@@ -237,19 +237,29 @@ class KeyConfigParser(QObject):
             only_new: If set, only keybindings which are completely unused
                       (same command/key not bound) are added.
         """
+        # {'sectname': {'keychain1': 'command', 'keychain2': 'command'}, ...}
+        bindings_to_add = collections.OrderedDict()
+
         for sectname, sect in configdata.KEY_DATA.items():
             sectname = self._normalize_sectname(sectname)
+            bindings_to_add[sectname] = collections.OrderedDict()
+            for command, keychains in sect.items():
+                for e in keychains:
+                    if not only_new or self._is_new(sectname, command, e):
+                        assert e not in bindings_to_add[sectname]
+                        bindings_to_add[sectname][e] = command
+
+        for sectname, sect in bindings_to_add.items():
             if not sect:
                 if not only_new:
                     self.keybindings[sectname] = collections.OrderedDict()
-                    self._mark_config_dirty()
             else:
-                for command, keychains in sect.items():
-                    for e in keychains:
-                        if not only_new or self._is_new(sectname, command, e):
-                            self._add_binding(sectname, e, command)
-                            self._mark_config_dirty()
+                for keychain, command in sect.items():
+                    self._add_binding(sectname, keychain, command)
             self.changed.emit(sectname)
+
+        if bindings_to_add:
+            self._mark_config_dirty()
 
     def _is_new(self, sectname, command, keychain):
         """Check if a given binding is new.

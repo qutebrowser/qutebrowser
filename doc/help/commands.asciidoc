@@ -689,12 +689,28 @@ How many steps to zoom out.
 |<<command-history-prev,command-history-prev>>|Go back in the commandline history.
 |<<completion-item-next,completion-item-next>>|Select the next completion item.
 |<<completion-item-prev,completion-item-prev>>|Select the previous completion item.
+|<<drop-selection,drop-selection>>|Drop selection and keep selection mode enabled.
 |<<enter-mode,enter-mode>>|Enter a key mode.
 |<<follow-hint,follow-hint>>|Follow the currently selected hint.
 |<<leave-mode,leave-mode>>|Leave the mode we're currently in.
 |<<message-error,message-error>>|Show an error message in the statusbar.
 |<<message-info,message-info>>|Show an info message in the statusbar.
 |<<message-warning,message-warning>>|Show a warning message in the statusbar.
+|<<move-to-end-of-document,move-to-end-of-document>>|Move the cursor or selection to the end of the document.
+|<<move-to-end-of-line,move-to-end-of-line>>|Move the cursor or selection to the end of line.
+|<<move-to-end-of-next-block,move-to-end-of-next-block>>|Move the cursor or selection to the end of next block.
+|<<move-to-end-of-prev-block,move-to-end-of-prev-block>>|Move the cursor or selection to the end of previous block.
+|<<move-to-end-of-word,move-to-end-of-word>>|Move the cursor or selection to the end of the word.
+|<<move-to-next-char,move-to-next-char>>|Move the cursor or selection to the next char.
+|<<move-to-next-line,move-to-next-line>>|Move the cursor or selection to the next line.
+|<<move-to-next-word,move-to-next-word>>|Move the cursor or selection to the next word.
+|<<move-to-prev-char,move-to-prev-char>>|Move the cursor or selection to the previous char.
+|<<move-to-prev-line,move-to-prev-line>>|Move the cursor or selection to the prev line.
+|<<move-to-prev-word,move-to-prev-word>>|Move the cursor or selection to the previous word.
+|<<move-to-start-of-document,move-to-start-of-document>>|Move the cursor or selection to the start of the document.
+|<<move-to-start-of-line,move-to-start-of-line>>|Move the cursor or selection to the start of the line.
+|<<move-to-start-of-next-block,move-to-start-of-next-block>>|Move the cursor or selection to the start of next block.
+|<<move-to-start-of-prev-block,move-to-start-of-prev-block>>|Move the cursor or selection to the start of previous block.
 |<<open-editor,open-editor>>|Open an external editor with the currently selected form field.
 |<<prompt-accept,prompt-accept>>|Accept the current prompt.
 |<<prompt-no,prompt-no>>|Answer no to a yes/no prompt.
@@ -712,11 +728,14 @@ How many steps to zoom out.
 |<<rl-unix-line-discard,rl-unix-line-discard>>|Remove chars backward from the cursor to the beginning of the line.
 |<<rl-unix-word-rubout,rl-unix-word-rubout>>|Remove chars from the cursor to the beginning of the word.
 |<<rl-yank,rl-yank>>|Paste the most recently deleted text.
-|<<scroll,scroll>>|Scroll the current tab by 'count * dx/dy'.
+|<<scroll,scroll>>|Scroll the current tab in the given direction.
 |<<scroll-page,scroll-page>>|Scroll the frame page-wise.
 |<<scroll-perc,scroll-perc>>|Scroll to a specific percentage of the page.
+|<<scroll-px,scroll-px>>|Scroll the current tab by 'count * dx/dy' pixels.
 |<<search-next,search-next>>|Continue the search to the ([count]th) next term.
 |<<search-prev,search-prev>>|Continue the search to the ([count]th) previous term.
+|<<toggle-selection,toggle-selection>>|Toggle caret selection mode.
+|<<yank-selected,yank-selected>>|Yank the selected text to the clipboard or primary selection.
 |==============
 [[command-accept]]
 === command-accept
@@ -737,6 +756,10 @@ Select the next completion item.
 [[completion-item-prev]]
 === completion-item-prev
 Select the previous completion item.
+
+[[drop-selection]]
+=== drop-selection
+Drop selection and keep selection mode enabled.
 
 [[enter-mode]]
 === enter-mode
@@ -781,6 +804,99 @@ Show a warning message in the statusbar.
 
 ==== positional arguments
 * +'text'+: The text to show.
+
+[[move-to-end-of-document]]
+=== move-to-end-of-document
+Move the cursor or selection to the end of the document.
+
+[[move-to-end-of-line]]
+=== move-to-end-of-line
+Move the cursor or selection to the end of line.
+
+[[move-to-end-of-next-block]]
+=== move-to-end-of-next-block
+Move the cursor or selection to the end of next block.
+
+==== count
+How many blocks to move.
+
+[[move-to-end-of-prev-block]]
+=== move-to-end-of-prev-block
+Move the cursor or selection to the end of previous block.
+
+==== count
+How many blocks to move.
+
+[[move-to-end-of-word]]
+=== move-to-end-of-word
+Move the cursor or selection to the end of the word.
+
+==== count
+How many words to move.
+
+[[move-to-next-char]]
+=== move-to-next-char
+Move the cursor or selection to the next char.
+
+==== count
+How many lines to move.
+
+[[move-to-next-line]]
+=== move-to-next-line
+Move the cursor or selection to the next line.
+
+==== count
+How many lines to move.
+
+[[move-to-next-word]]
+=== move-to-next-word
+Move the cursor or selection to the next word.
+
+==== count
+How many words to move.
+
+[[move-to-prev-char]]
+=== move-to-prev-char
+Move the cursor or selection to the previous char.
+
+==== count
+How many chars to move.
+
+[[move-to-prev-line]]
+=== move-to-prev-line
+Move the cursor or selection to the prev line.
+
+==== count
+How many lines to move.
+
+[[move-to-prev-word]]
+=== move-to-prev-word
+Move the cursor or selection to the previous word.
+
+==== count
+How many words to move.
+
+[[move-to-start-of-document]]
+=== move-to-start-of-document
+Move the cursor or selection to the start of the document.
+
+[[move-to-start-of-line]]
+=== move-to-start-of-line
+Move the cursor or selection to the start of the line.
+
+[[move-to-start-of-next-block]]
+=== move-to-start-of-next-block
+Move the cursor or selection to the start of next block.
+
+==== count
+How many blocks to move.
+
+[[move-to-start-of-prev-block]]
+=== move-to-start-of-prev-block
+Move the cursor or selection to the start of previous block.
+
+==== count
+How many blocks to move.
 
 [[open-editor]]
 === open-editor
@@ -880,13 +996,13 @@ This acts like readline's yank.
 
 [[scroll]]
 === scroll
-Syntax: +:scroll 'dx' 'dy'+
+Syntax: +:scroll 'direction' ['dy']+
 
-Scroll the current tab by 'count * dx/dy'.
+Scroll the current tab in the given direction.
 
 ==== positional arguments
-* +'dx'+: How much to scroll in x-direction.
-* +'dy'+: How much to scroll in x-direction.
+* +'direction'+: In which direction to scroll (up/down/left/right/top/bottom).
+
 
 ==== count
 multiplier
@@ -921,6 +1037,19 @@ The percentage can be given either as argument or as count. If no percentage is 
 ==== count
 Percentage to scroll.
 
+[[scroll-px]]
+=== scroll-px
+Syntax: +:scroll-px 'dx' 'dy'+
+
+Scroll the current tab by 'count * dx/dy' pixels.
+
+==== positional arguments
+* +'dx'+: How much to scroll in x-direction.
+* +'dy'+: How much to scroll in x-direction.
+
+==== count
+multiplier
+
 [[search-next]]
 === search-next
 Continue the search to the ([count]th) next term.
@@ -934,6 +1063,20 @@ Continue the search to the ([count]th) previous term.
 
 ==== count
 How many elements to ignore.
+
+[[toggle-selection]]
+=== toggle-selection
+Toggle caret selection mode.
+
+[[yank-selected]]
+=== yank-selected
+Syntax: +:yank-selected [*--sel*] [*--keep*]+
+
+Yank the selected text to the clipboard or primary selection.
+
+==== optional arguments
+* +*-s*+, +*--sel*+: Use the primary selection instead of the clipboard.
+* +*-k*+, +*--keep*+: If given, stay in visual mode after yanking.
 
 
 == Debugging commands

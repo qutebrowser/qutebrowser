@@ -23,18 +23,26 @@ import os
 import json
 import getpass
 import binascii
+import hashlib
 
 from PyQt5.QtCore import pyqtSignal, pyqtSlot, QObject
 from PyQt5.QtNetwork import QLocalSocket, QLocalServer, QAbstractSocket
-from PyQt5.QtWidgets import QMessageBox
 
-from qutebrowser.utils import log, usertypes
+from qutebrowser.utils import log, usertypes, error
 
 
-SOCKETNAME = 'qutebrowser-{}'.format(getpass.getuser())
 CONNECT_TIMEOUT = 100
 WRITE_TIMEOUT = 1000
 READ_TIMEOUT = 5000
+
+
+def _get_socketname(args):
+    """Get a socketname to use."""
+    parts = ['qutebrowser', getpass.getuser()]
+    if args.basedir is not None:
+        md5 = hashlib.md5(args.basedir.encode('utf-8'))
+        parts.append(md5.hexdigest())
+    return '-'.join(parts)
 
 
 class Error(Exception):
@@ -80,6 +88,7 @@ class IPCServer(QObject):
         _timer: A timer to handle timeouts.
         _server: A QLocalServer to accept new connections.
         _socket: The QLocalSocket we're currently connected to.
+        _socketname: The socketname to use.
 
     Signals:
         got_args: Emitted when there was an IPC connection and arguments were
@@ -88,16 +97,22 @@ class IPCServer(QObject):
 
     got_args = pyqtSignal(list, str)
 
-    def __init__(self, parent=None):
-        """Start the IPC server and listen to commands."""
+    def __init__(self, args, parent=None):
+        """Start the IPC server and listen to commands.
+
+        Args:
+            args: The argparse namespace.
+            parent: The parent to be used.
+        """
         super().__init__(parent)
         self.ignored = False
+        self._socketname = _get_socketname(args)
         self._remove_server()
         self._timer = usertypes.Timer(self, 'ipc-timeout')
         self._timer.setInterval(READ_TIMEOUT)
         self._timer.timeout.connect(self.on_timeout)
         self._server = QLocalServer(self)
-        ok = self._server.listen(SOCKETNAME)
+        ok = self._server.listen(self._socketname)
         if not ok:
             if self._server.serverError() == QAbstractSocket.AddressInUseError:
                 raise AddressInUseError(self._server)
@@ -108,17 +123,18 @@ class IPCServer(QObject):
 
     def _remove_server(self):
         """Remove an existing server."""
-        ok = QLocalServer.removeServer(SOCKETNAME)
+        ok = QLocalServer.removeServer(self._socketname)
         if not ok:
-            raise Error("Error while removing server {}!".format(SOCKETNAME))
+            raise Error("Error while removing server {}!".format(
+                self._socketname))
 
     @pyqtSlot(int)
-    def on_error(self, error):
+    def on_error(self, err):
         """Convenience method which calls _socket_error on an error."""
         self._timer.stop()
         log.ipc.debug("Socket error {}: {}".format(
             self._socket.error(), self._socket.errorString()))
-        if error != QLocalSocket.PeerClosedError:
+        if err != QLocalSocket.PeerClosedError:
             _socket_error("handling IPC connection", self._socket)
 
     @pyqtSlot()
@@ -223,23 +239,23 @@ def _socket_error(action, socket):
         action, socket.errorString(), socket.error()))
 
 
-def send_to_running_instance(cmdlist):
+def send_to_running_instance(args):
     """Try to send a commandline to a running instance.
 
     Blocks for CONNECT_TIMEOUT ms.
 
     Args:
-        cmdlist: A list to send (URLs/commands)
+        args: The argparse namespace.
 
     Return:
         True if connecting was successful, False if no connection was made.
     """
     socket = QLocalSocket()
-    socket.connectToServer(SOCKETNAME)
+    socket.connectToServer(_get_socketname(args))
     connected = socket.waitForConnected(100)
     if connected:
         log.ipc.info("Opening in existing instance")
-        json_data = {'args': cmdlist}
+        json_data = {'args': args.command}
         try:
             cwd = os.getcwd()
         except OSError:
@@ -265,9 +281,8 @@ def send_to_running_instance(cmdlist):
             return False
 
 
-def display_error(exc):
+def display_error(exc, args):
     """Display a message box with an IPC error."""
-    text = '{}\n\nMaybe another instance is running but frozen?'.format(exc)
-    msgbox = QMessageBox(QMessageBox.Critical, "Error while connecting to "
-                         "running instance!", text)
-    msgbox.exec_()
+    error.handle_fatal_exc(
+        exc, args, "Error while connecting to running instance!",
+        post_text="Maybe another instance is running but frozen?")

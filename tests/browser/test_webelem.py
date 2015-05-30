@@ -378,10 +378,10 @@ class TestIsEditable:
         webelem.config = old_config
 
     @pytest.fixture
-    def stubbed_config(self, config_stub, mocker):
+    def stubbed_config(self, config_stub, monkeypatch):
         """Fixture to create a config stub with an input section."""
         config_stub.data = {'input': {}}
-        mocker.patch('qutebrowser.browser.webelem.config', new=config_stub)
+        monkeypatch.setattr('qutebrowser.browser.webelem.config', config_stub)
         return config_stub
 
     def test_input_plain(self):

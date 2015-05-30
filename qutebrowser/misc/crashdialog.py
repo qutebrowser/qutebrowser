@@ -584,3 +584,38 @@ class ReportErrorDialog(QDialog):
         btn.clicked.connect(self.close)
         hbox.addWidget(btn)
         vbox.addLayout(hbox)
+
+
+def dump_exception_info(exc, pages, cmdhist, objects):
+    """Dump exception info to stderr.
+
+    Args:
+        exc: An exception tuple (type, value, traceback)
+        pages: A list of lists of the open pages (URLs as strings)
+        cmdhist: A list with the command history (as strings)
+        objects: A list of all QObjects as string.
+    """
+    print(file=sys.stderr)
+    print("\n\n===== Handling exception with --no-err-windows... =====\n\n",
+          file=sys.stderr)
+    print("\n---- Exceptions ----", file=sys.stderr)
+    print(''.join(traceback.format_exception(*exc)), file=sys.stderr)
+    print("\n---- Version info ----", file=sys.stderr)
+    try:
+        print(version.version(), file=sys.stderr)
+    except Exception:
+        traceback.print_exc()
+    print("\n---- Config ----", file=sys.stderr)
+    try:
+        conf = objreg.get('config')
+        print(conf.dump_userconfig(), file=sys.stderr)
+    except Exception:
+        traceback.print_exc()
+    print("\n---- Commandline args ----", file=sys.stderr)
+    print(' '.join(sys.argv[1:]), file=sys.stderr)
+    print("\n---- Open pages ----", file=sys.stderr)
+    print('\n\n'.join('\n'.join(e) for e in pages), file=sys.stderr)
+    print("\n---- Command history ----", file=sys.stderr)
+    print('\n'.join(cmdhist), file=sys.stderr)
+    print("\n---- Objects ----", file=sys.stderr)
+    print(objects, file=sys.stderr)

@@ -48,6 +48,12 @@ def get_argparser():
                                      description=qutebrowser.__description__)
     parser.add_argument('-c', '--confdir', help="Set config directory (empty "
                         "for no config storage).")
+    parser.add_argument('--datadir', help="Set data directory (empty for "
+                        "no data storage).")
+    parser.add_argument('--cachedir', help="Set cache directory (empty for "
+                        "no cache storage).")
+    parser.add_argument('--basedir', help="Base directory for all storage. "
+                        "Other --*dir arguments are ignored if this is given.")
     parser.add_argument('-V', '--version', help="Show version and quit.",
                         action='store_true')
     parser.add_argument('-s', '--set', help="Set a temporary setting for "
@@ -84,10 +90,12 @@ def get_argparser():
                        "the main window.")
     debug.add_argument('--debug-exit', help="Turn on debugging of late exit.",
                        action='store_true')
-    debug.add_argument('--no-crash-dialog', action='store_true', help="Don't "
-                       "show a crash dialog.")
     debug.add_argument('--pdb-postmortem', action='store_true',
                        help="Drop into pdb on exceptions.")
+    debug.add_argument('--temp-basedir', action='store_true', help="Use a "
+                       "temporary basedir.")
+    debug.add_argument('--no-err-windows', action='store_true', help="Don't "
+                       "show any error windows (used for tests/smoke.py).")
     # For the Qt args, we use store_const with const=True rather than
     # store_true because we want the default to be None, to make
     # utils.qt:get_args easier.

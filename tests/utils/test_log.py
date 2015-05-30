@@ -22,231 +22,241 @@
 """Tests for qutebrowser.utils.log."""
 
 import logging
-import unittest
 import argparse
+import itertools
 import sys
-from unittest import mock
+
+import pytest
+from PyQt5.QtCore import qWarning
 
 from qutebrowser.utils import log
 
-from PyQt5.QtCore import qWarning
 
-
-class BaseTest(unittest.TestCase):
-
-    """Base class for logging tests.
+@pytest.yield_fixture(autouse=True)
+def restore_loggers():
+    """Fixture to save/restore the logging state.
 
     Based on CPython's Lib/test/test_logging.py.
     """
+    logger_dict = logging.getLogger().manager.loggerDict
+    logging._acquireLock()
+    try:
+        saved_handlers = logging._handlers.copy()
+        saved_handler_list = logging._handlerList[:]
+        saved_loggers = saved_loggers = logger_dict.copy()
+        saved_name_to_level = logging._nameToLevel.copy()
+        saved_level_to_name = logging._levelToName.copy()
+        logger_states = {}
+        for name in saved_loggers:
+            logger_states[name] = getattr(saved_loggers[name], 'disabled',
+                                          None)
+    finally:
+        logging._releaseLock()
 
-    def setUp(self):
-        """Save the old logging configuration."""
+    root_logger = logging.getLogger("")
+    root_handlers = root_logger.handlers[:]
+    original_logging_level = root_logger.getEffectiveLevel()
+
+    yield
+
+    while root_logger.handlers:
+        h = root_logger.handlers[0]
+        root_logger.removeHandler(h)
+        h.close()
+    root_logger.setLevel(original_logging_level)
+    for h in root_handlers:
+        root_logger.addHandler(h)
+    logging._acquireLock()
+    try:
+        logging._levelToName.clear()
+        logging._levelToName.update(saved_level_to_name)
+        logging._nameToLevel.clear()
+        logging._nameToLevel.update(saved_name_to_level)
+        logging._handlers.clear()
+        logging._handlers.update(saved_handlers)
+        logging._handlerList[:] = saved_handler_list
         logger_dict = logging.getLogger().manager.loggerDict
-        logging._acquireLock()
-        try:
-            self.saved_handlers = logging._handlers.copy()
-            self.saved_handler_list = logging._handlerList[:]
-            self.saved_loggers = saved_loggers = logger_dict.copy()
-            self.saved_name_to_level = logging._nameToLevel.copy()
-            self.saved_level_to_name = logging._levelToName.copy()
-            self.logger_states = {}
-            for name in saved_loggers:
-                self.logger_states[name] = getattr(saved_loggers[name],
-                                                   'disabled', None)
-        finally:
-            logging._releaseLock()
-
-        self.root_logger = logging.getLogger("")
-        self.root_handlers = self.root_logger.handlers[:]
-        self.original_logging_level = self.root_logger.getEffectiveLevel()
-
-    def tearDown(self):
-        """Restore the original logging configuration."""
-        while self.root_logger.handlers:
-            h = self.root_logger.handlers[0]
-            self.root_logger.removeHandler(h)
-            h.close()
-        self.root_logger.setLevel(self.original_logging_level)
-        for h in self.root_handlers:
-            self.root_logger.addHandler(h)
-        logging._acquireLock()
-        try:
-            logging._levelToName.clear()
-            logging._levelToName.update(self.saved_level_to_name)
-            logging._nameToLevel.clear()
-            logging._nameToLevel.update(self.saved_name_to_level)
-            logging._handlers.clear()
-            logging._handlers.update(self.saved_handlers)
-            logging._handlerList[:] = self.saved_handler_list
-            logger_dict = logging.getLogger().manager.loggerDict
-            logger_dict.clear()
-            logger_dict.update(self.saved_loggers)
-            logger_states = self.logger_states
-            for name in self.logger_states:
-                if logger_states[name] is not None:
-                    self.saved_loggers[name].disabled = logger_states[name]
-        finally:
-            logging._releaseLock()
+        logger_dict.clear()
+        logger_dict.update(saved_loggers)
+        logger_states = logger_states
+        for name in logger_states:
+            if logger_states[name] is not None:
+                saved_loggers[name].disabled = logger_states[name]
+    finally:
+        logging._releaseLock()
 
 
-class LogFilterTests(unittest.TestCase):
+@pytest.fixture(scope='session')
+def log_counter():
+    """Counter for logger fixture to get unique loggers."""
+    return itertools.count()
 
-    """Tests for LogFilter.
 
-    Attributes:
-        logger: The logger we use to create records.
+@pytest.fixture
+def logger(log_counter):
+    """Fixture which provides a logger for tests.
+
+    Unique throwaway loggers are used to make sure the tests don't influence
+    each other.
     """
+    i = next(log_counter)
+    return logging.getLogger('qutebrowser-unittest-logger-{}'.format(i))
 
-    def setUp(self):
-        self.logger = logging.getLogger("foo")
 
-    def _make_record(self, name, level=logging.DEBUG):
+class TestLogFilter:
+
+    """Tests for LogFilter."""
+
+    def _make_record(self, logger, name, level=logging.DEBUG):
         """Create a bogus logging record with the supplied logger name."""
-        return self.logger.makeRecord(name, level=level, fn=None, lno=0,
-                                      msg="", args=None, exc_info=None)
+        return logger.makeRecord(name, level=level, fn=None, lno=0, msg="",
+                                 args=None, exc_info=None)
 
-    def test_empty(self):
+    def test_empty(self, logger):
         """Test if an empty filter lets all messages through."""
         logfilter = log.LogFilter(None)
-        record = self._make_record("eggs.bacon.spam")
-        self.assertTrue(logfilter.filter(record))
-        record = self._make_record("eggs")
-        self.assertTrue(logfilter.filter(record))
+        record = self._make_record(logger, "eggs.bacon.spam")
+        assert logfilter.filter(record)
+        record = self._make_record(logger, "eggs")
+        assert logfilter.filter(record)
 
-    def test_matching(self):
+    def test_matching(self, logger):
         """Test if a filter lets an exactly matching log record through."""
         logfilter = log.LogFilter(["eggs", "bacon"])
-        record = self._make_record("eggs")
-        self.assertTrue(logfilter.filter(record))
-        record = self._make_record("bacon")
-        self.assertTrue(logfilter.filter(record))
-        record = self._make_record("spam")
-        self.assertFalse(logfilter.filter(record))
+        record = self._make_record(logger, "eggs")
+        assert logfilter.filter(record)
+        record = self._make_record(logger, "bacon")
+        assert logfilter.filter(record)
+        record = self._make_record(logger, "spam")
+        assert not logfilter.filter(record)
         logfilter = log.LogFilter(["eggs.bacon"])
-        record = self._make_record("eggs.bacon")
-        self.assertTrue(logfilter.filter(record))
+        record = self._make_record(logger, "eggs.bacon")
+        assert logfilter.filter(record)
 
-    def test_equal_start(self):
+    def test_equal_start(self, logger):
         """Test if a filter blocks a logger which looks equal but isn't."""
         logfilter = log.LogFilter(["eggs"])
-        record = self._make_record("eggsauce")
-        self.assertFalse(logfilter.filter(record))
+        record = self._make_record(logger, "eggsauce")
+        assert not logfilter.filter(record)
         logfilter = log.LogFilter("eggs.bacon")
-        record = self._make_record("eggs.baconstrips")
-        self.assertFalse(logfilter.filter(record))
+        record = self._make_record(logger, "eggs.baconstrips")
+        assert not logfilter.filter(record)
 
-    def test_child(self):
+    def test_child(self, logger):
         """Test if a filter lets through a logger which is a child."""
         logfilter = log.LogFilter(["eggs.bacon", "spam.ham"])
-        record = self._make_record("eggs.bacon.spam")
-        self.assertTrue(logfilter.filter(record))
-        record = self._make_record("spam.ham.salami")
-        self.assertTrue(logfilter.filter(record))
+        record = self._make_record(logger, "eggs.bacon.spam")
+        assert logfilter.filter(record)
+        record = self._make_record(logger, "spam.ham.salami")
+        assert logfilter.filter(record)
 
-    def test_debug(self):
+    def test_debug(self, logger):
         """Test if messages more important than debug are never filtered."""
         logfilter = log.LogFilter(["eggs"])
         # First check if the filter works as intended with debug messages
-        record = self._make_record("eggs")
-        self.assertTrue(logfilter.filter(record))
-        record = self._make_record("bacon")
-        self.assertFalse(logfilter.filter(record))
+        record = self._make_record(logger, "eggs")
+        assert logfilter.filter(record)
+        record = self._make_record(logger, "bacon")
+        assert not logfilter.filter(record)
         # Then check if info is not filtered
-        record = self._make_record("eggs", level=logging.INFO)
-        self.assertTrue(logfilter.filter(record))
-        record = self._make_record("bacon", level=logging.INFO)
-        self.assertTrue(logfilter.filter(record))
+        record = self._make_record(logger, "eggs", level=logging.INFO)
+        assert logfilter.filter(record)
+        record = self._make_record(logger, "bacon", level=logging.INFO)
+        assert logfilter.filter(record)
 
 
-class RAMHandlerTests(BaseTest):
+class TestRAMHandler:
 
-    """Tests for RAMHandler.
+    """Tests for RAMHandler."""
 
-    Attributes:
-        logger: The logger we use to log to the handler.
-        handler: The RAMHandler we're testing.
-        old_level: The level the root logger had before executing the test.
-        old_handlers: The handlers the root logger had before executing the
-                      test.
-    """
+    @pytest.fixture
+    def handler(self, logger):
+        """Fixture providing a RAMHandler."""
+        handler = log.RAMHandler(capacity=2)
+        handler.setLevel(logging.NOTSET)
+        logger.addHandler(handler)
+        return handler
 
-    def setUp(self):
-        super().setUp()
-        self.logger = logging.getLogger()
-        self.logger.handlers = []
-        self.logger.setLevel(logging.NOTSET)
-        self.handler = log.RAMHandler(capacity=2)
-        self.handler.setLevel(logging.NOTSET)
-        self.logger.addHandler(self.handler)
-
-    def test_filled(self):
+    def test_filled(self, handler, logger):
         """Test handler with exactly as much records as it can hold."""
-        self.logger.debug("One")
-        self.logger.debug("Two")
-        self.assertEqual(len(self.handler._data), 2)
-        self.assertEqual(self.handler._data[0].msg, "One")
-        self.assertEqual(self.handler._data[1].msg, "Two")
+        logger.debug("One")
+        logger.debug("Two")
+        assert len(handler._data) == 2
+        assert handler._data[0].msg == "One"
+        assert handler._data[1].msg == "Two"
 
-    def test_overflow(self):
+    def test_overflow(self, handler, logger):
         """Test handler with more records as it can hold."""
-        self.logger.debug("One")
-        self.logger.debug("Two")
-        self.logger.debug("Three")
-        self.assertEqual(len(self.handler._data), 2)
-        self.assertEqual(self.handler._data[0].msg, "Two")
-        self.assertEqual(self.handler._data[1].msg, "Three")
+        logger.debug("One")
+        logger.debug("Two")
+        logger.debug("Three")
+        assert len(handler._data) == 2
+        assert handler._data[0].msg == "Two"
+        assert handler._data[1].msg == "Three"
 
-    def test_dump_log(self):
+    def test_dump_log(self, handler, logger):
         """Test dump_log()."""
-        self.logger.debug("One")
-        self.logger.debug("Two")
-        self.logger.debug("Three")
-        self.assertEqual(self.handler.dump_log(), "Two\nThree")
+        logger.debug("One")
+        logger.debug("Two")
+        logger.debug("Three")
+        assert handler.dump_log() == "Two\nThree"
 
 
-@mock.patch('qutebrowser.utils.log.qInstallMessageHandler', autospec=True)
-class InitLogTests(BaseTest):
+class TestInitLog:
 
     """Tests for init_log."""
 
-    def setUp(self):
-        super().setUp()
-        self.args = argparse.Namespace(debug=True, loglevel=logging.DEBUG,
-                                       color=True, loglines=10, logfilter="")
+    @pytest.fixture(autouse=True)
+    def setup(self, mocker):
+        """Mock out qInstallMessageHandler."""
+        mocker.patch('qutebrowser.utils.log.QtCore.qInstallMessageHandler',
+                     autospec=True)
 
-    def test_stderr_none(self, _mock):
+    @pytest.fixture
+    def args(self):
+        """Fixture providing an argparse namespace."""
+        return argparse.Namespace(debug=True, loglevel=logging.DEBUG,
+                                  color=True, loglines=10, logfilter="")
+
+    def test_stderr_none(self, args):
         """Test init_log with sys.stderr = None."""
         old_stderr = sys.stderr
         sys.stderr = None
-        log.init_log(self.args)
+        log.init_log(args)
         sys.stderr = old_stderr
 
 
-class HideQtWarningTests(BaseTest):
+class TestHideQtWarning:
 
     """Tests for hide_qt_warning/QtWarningFilter."""
 
-    def test_unfiltered(self):
+    def test_unfiltered(self, caplog):
         """Test a message which is not filtered."""
         with log.hide_qt_warning("World", logger='qt-tests'):
-            with self.assertLogs('qt-tests', logging.WARNING):
+            with caplog.atLevel(logging.WARNING, logger='qt-tests'):
                 qWarning("Hello World")
+        assert len(caplog.records()) == 1
+        record = caplog.records()[0]
+        assert record.levelname == 'WARNING'
+        assert record.message == "Hello World"
 
-    def test_filtered_exact(self):
+    def test_filtered_exact(self, caplog):
         """Test a message which is filtered (exact match)."""
         with log.hide_qt_warning("Hello", logger='qt-tests'):
-            qWarning("Hello")
+            with caplog.atLevel(logging.WARNING, logger='qt-tests'):
+                qWarning("Hello")
+        assert not caplog.records()
 
-    def test_filtered_start(self):
+    def test_filtered_start(self, caplog):
         """Test a message which is filtered (match at line start)."""
         with log.hide_qt_warning("Hello", logger='qt-tests'):
-            qWarning("Hello World")
+            with caplog.atLevel(logging.WARNING, logger='qt-tests'):
+                qWarning("Hello World")
+        assert not caplog.records()
 
-    def test_filtered_whitespace(self):
+    def test_filtered_whitespace(self, caplog):
         """Test a message which is filtered (match with whitespace)."""
         with log.hide_qt_warning("Hello", logger='qt-tests'):
-            qWarning("  Hello World  ")
-
-
-if __name__ == '__main__':
-    unittest.main()
+            with caplog.atLevel(logging.WARNING, logger='qt-tests'):
+                qWarning("  Hello World  ")
+        assert not caplog.records()

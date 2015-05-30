@@ -122,7 +122,8 @@ class ExternalEditor(QObject):
             raise ValueError("Already editing a file!")
         self._text = text
         try:
-            self._oshandle, self._filename = tempfile.mkstemp(text=True)
+            self._oshandle, self._filename = tempfile.mkstemp(
+                text=True, prefix='qutebrowser-editor-')
             if text:
                 encoding = config.get('general', 'editor-encoding')
                 with open(self._filename, 'w', encoding=encoding) as f:

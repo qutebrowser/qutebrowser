@@ -27,7 +27,7 @@ import zipfile
 
 from qutebrowser.config import config
 from qutebrowser.utils import objreg, standarddir, log, message
-from qutebrowser.commands import cmdutils
+from qutebrowser.commands import cmdutils, cmdexc
 
 
 def guess_zip_filename(zf):
@@ -90,12 +90,18 @@ class HostBlocker:
         self.blocked_hosts = set()
         self._in_progress = []
         self._done_count = 0
-        self._hosts_file = os.path.join(standarddir.data(), 'blocked-hosts')
+        data_dir = standarddir.data()
+        if data_dir is None:
+            self._hosts_file = None
+        else:
+            self._hosts_file = os.path.join(data_dir, 'blocked-hosts')
         objreg.get('config').changed.connect(self.on_config_changed)
 
     def read_hosts(self):
         """Read hosts from the existing blocked-hosts file."""
         self.blocked_hosts = set()
+        if self._hosts_file is None:
+            return
         if os.path.exists(self._hosts_file):
             try:
                 with open(self._hosts_file, 'r', encoding='utf-8') as f:
@@ -104,13 +110,17 @@ class HostBlocker:
             except OSError:
                 log.misc.exception("Failed to read host blocklist!")
         else:
-            if config.get('content', 'host-block-lists') is not None:
+            args = objreg.get('args')
+            if (config.get('content', 'host-block-lists') is not None and
+                    args.basedir is None):
                 message.info('current',
                              "Run :adblock-update to get adblock lists.")
 
     @cmdutils.register(instance='host-blocker', win_id='win_id')
     def adblock_update(self, win_id):
         """Update the adblock block lists."""
+        if self._hosts_file is None:
+            raise cmdexc.CommandError("No data storage is configured!")
         self.blocked_hosts = set()
         self._done_count = 0
         urls = config.get('content', 'host-block-lists')

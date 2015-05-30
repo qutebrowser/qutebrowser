@@ -41,6 +41,15 @@ show it.
 *-c* 'CONFDIR', *--confdir* 'CONFDIR'::
     Set config directory (empty for no config storage).
 
+*--datadir* 'DATADIR'::
+    Set data directory (empty for no data storage).
+
+*--cachedir* 'CACHEDIR'::
+    Set cache directory (empty for no cache storage).
+
+*--basedir* 'BASEDIR'::
+    Base directory for all storage. Other --*dir arguments are ignored if this is given.
+
 *-V*, *--version*::
     Show version and quit.
 
@@ -81,11 +90,14 @@ show it.
 *--debug-exit*::
     Turn on debugging of late exit.
 
-*--no-crash-dialog*::
-    Don't show a crash dialog.
-
 *--pdb-postmortem*::
     Drop into pdb on exceptions.
+
+*--temp-basedir*::
+    Use a temporary basedir.
+
+*--no-err-windows*::
+    Don't show any error windows (used for tests/smoke.py).
 
 *--qt-name* 'NAME'::
     Set the window name.

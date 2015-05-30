@@ -21,6 +21,7 @@
 
 """Tests for BaseKeyParser."""
 
+import sys
 import logging
 from unittest import mock
 
@@ -28,35 +29,17 @@ from PyQt5.QtCore import Qt
 import pytest
 
 from qutebrowser.keyinput import basekeyparser
-from qutebrowser.utils import objreg, log
+from qutebrowser.utils import log
 
 
 CONFIG = {'input': {'timeout': 100}}
 
 
-BINDINGS = {'test': {'<Ctrl-a>': 'ctrla',
-                     'a': 'a',
-                     'ba': 'ba',
-                     'ax': 'ax',
-                     'ccc': 'ccc'},
-            'test2': {'foo': 'bar', '<Ctrl+X>': 'ctrlx'}}
-
-
-@pytest.yield_fixture
-def fake_keyconfig():
-    """Create a mock of a KeyConfiguration and register it into objreg."""
-    fake_keyconfig = mock.Mock(spec=['get_bindings_for'])
-    fake_keyconfig.get_bindings_for.side_effect = lambda s: BINDINGS[s]
-    objreg.register('key-config', fake_keyconfig)
-    yield
-    objreg.delete('key-config')
-
-
 @pytest.fixture
-def mock_timer(mocker, stubs):
+def mock_timer(monkeypatch, stubs):
     """Mock the Timer class used by the usertypes module with a stub."""
-    mocker.patch('qutebrowser.keyinput.basekeyparser.usertypes.Timer',
-                 new=stubs.FakeTimer)
+    monkeypatch.setattr('qutebrowser.keyinput.basekeyparser.usertypes.Timer',
+                        stubs.FakeTimer)
 
 
 class TestSplitCount:
@@ -131,8 +114,12 @@ class TestSpecialKeys:
 
     def test_valid_key(self, fake_keyevent_factory):
         """Test a valid special keyevent."""
-        self.kp.handle(fake_keyevent_factory(Qt.Key_A, Qt.ControlModifier))
-        self.kp.handle(fake_keyevent_factory(Qt.Key_X, Qt.ControlModifier))
+        if sys.platform == 'darwin':
+            modifier = Qt.MetaModifier
+        else:
+            modifier = Qt.ControlModifier
+        self.kp.handle(fake_keyevent_factory(Qt.Key_A, modifier))
+        self.kp.handle(fake_keyevent_factory(Qt.Key_X, modifier))
         self.kp.execute.assert_called_once_with('ctrla', self.kp.Type.special)
 
     def test_invalid_key(self, fake_keyevent_factory):
@@ -167,8 +154,12 @@ class TestKeyChain:
 
     def test_valid_special_key(self, fake_keyevent_factory):
         """Test valid special key."""
-        self.kp.handle(fake_keyevent_factory(Qt.Key_A, Qt.ControlModifier))
-        self.kp.handle(fake_keyevent_factory(Qt.Key_X, Qt.ControlModifier))
+        if sys.platform == 'darwin':
+            modifier = Qt.MetaModifier
+        else:
+            modifier = Qt.ControlModifier
+        self.kp.handle(fake_keyevent_factory(Qt.Key_A, modifier))
+        self.kp.handle(fake_keyevent_factory(Qt.Key_X, modifier))
         self.kp.execute.assert_called_once_with('ctrla', self.kp.Type.special)
         assert self.kp._keystring == ''
 
@@ -189,12 +180,18 @@ class TestKeyChain:
         self.kp.execute.assert_called_once_with('ba', self.kp.Type.chain, None)
         assert self.kp._keystring == ''
 
+    def test_0(self, fake_keyevent_factory):
+        """Test with 0 keypress."""
+        self.kp.handle(fake_keyevent_factory(Qt.Key_0, text='0'))
+        self.kp.execute.assert_called_once_with('0', self.kp.Type.chain, None)
+        assert self.kp._keystring == ''
+
     def test_ambiguous_keychain(self, fake_keyevent_factory, config_stub,
-                                mocker):
+                                monkeypatch):
         """Test ambiguous keychain."""
         config_stub.data = CONFIG
-        mocker.patch('qutebrowser.keyinput.basekeyparser.config',
-                     new=config_stub)
+        monkeypatch.setattr('qutebrowser.keyinput.basekeyparser.config',
+                            config_stub)
         timer = self.kp._ambiguous_timer
         assert not timer.isActive()
         # We start with 'a' where the keychain gives us an ambiguous result.
@@ -242,7 +239,9 @@ class TestCount:
         self.kp.handle(fake_keyevent_factory(Qt.Key_0, text='0'))
         self.kp.handle(fake_keyevent_factory(Qt.Key_B, text='b'))
         self.kp.handle(fake_keyevent_factory(Qt.Key_A, text='a'))
-        self.kp.execute.assert_called_once_with('ba', self.kp.Type.chain, 0)
+        calls = [mock.call('0', self.kp.Type.chain, None),
+                 mock.call('ba', self.kp.Type.chain, None)]
+        self.kp.execute.assert_has_calls(calls)
         assert self.kp._keystring == ''
 
     def test_count_42(self, fake_keyevent_factory):

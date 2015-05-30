@@ -81,10 +81,10 @@ class TestSearchUrl:
     """Test _get_search_url."""
 
     @pytest.fixture(autouse=True)
-    def mock_config(self, config_stub, mocker):
+    def mock_config(self, config_stub, monkeypatch):
         """Fixture to patch urlutils.config with a stub."""
         init_config_stub(config_stub)
-        mocker.patch('qutebrowser.utils.urlutils.config', config_stub)
+        monkeypatch.setattr('qutebrowser.utils.urlutils.config', config_stub)
 
     def test_default_engine(self):
         """Test default search engine."""
@@ -159,24 +159,24 @@ class TestIsUrl:
     )
 
     @pytest.mark.parametrize('url', URLS)
-    def test_urls(self, mocker, config_stub, url):
+    def test_urls(self, monkeypatch, config_stub, url):
         """Test things which are URLs."""
         init_config_stub(config_stub, 'naive')
-        mocker.patch('qutebrowser.utils.urlutils.config', config_stub)
+        monkeypatch.setattr('qutebrowser.utils.urlutils.config', config_stub)
         assert urlutils.is_url(url), url
 
     @pytest.mark.parametrize('url', NOT_URLS)
-    def test_not_urls(self, mocker, config_stub, url):
+    def test_not_urls(self, monkeypatch, config_stub, url):
         """Test things which are not URLs."""
         init_config_stub(config_stub, 'naive')
-        mocker.patch('qutebrowser.utils.urlutils.config', config_stub)
+        monkeypatch.setattr('qutebrowser.utils.urlutils.config', config_stub)
         assert not urlutils.is_url(url), url
 
     @pytest.mark.parametrize('autosearch', [True, False])
-    def test_search_autosearch(self, mocker, config_stub, autosearch):
+    def test_search_autosearch(self, monkeypatch, config_stub, autosearch):
         """Test explicit search with auto-search=True."""
         init_config_stub(config_stub, autosearch)
-        mocker.patch('qutebrowser.utils.urlutils.config', config_stub)
+        monkeypatch.setattr('qutebrowser.utils.urlutils.config', config_stub)
         assert not urlutils.is_url('test foo')
 
 

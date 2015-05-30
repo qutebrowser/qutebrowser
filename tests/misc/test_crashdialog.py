@@ -19,8 +19,6 @@
 
 """Tests for qutebrowser.misc.crashdialog."""
 
-import unittest
-
 from qutebrowser.misc import crashdialog
 
 
@@ -52,7 +50,7 @@ Hello world!
 """
 
 
-class ParseFatalStacktraceTests(unittest.TestCase):
+class TestParseFatalStacktrace:
 
     """Tests for parse_fatal_stacktrace."""
 
@@ -60,30 +58,22 @@ class ParseFatalStacktraceTests(unittest.TestCase):
         """Test parse_fatal_stacktrace with a valid text."""
         text = VALID_CRASH_TEXT.strip().replace('_', ' ')
         typ, func = crashdialog.parse_fatal_stacktrace(text)
-        self.assertEqual(typ, "Segmentation fault")
-        self.assertEqual(func, 'testfunc')
+        assert (typ, func) == ("Segmentation fault", 'testfunc')
 
     def test_valid_text_thread(self):
         """Test parse_fatal_stacktrace with a valid text #2."""
         text = VALID_CRASH_TEXT_THREAD.strip().replace('_', ' ')
         typ, func = crashdialog.parse_fatal_stacktrace(text)
-        self.assertEqual(typ, "Segmentation fault")
-        self.assertEqual(func, 'testfunc')
+        assert (typ, func) == ("Segmentation fault", 'testfunc')
 
     def test_valid_text_empty(self):
         """Test parse_fatal_stacktrace with a valid text but empty function."""
         text = VALID_CRASH_TEXT_EMPTY.strip().replace('_', ' ')
         typ, func = crashdialog.parse_fatal_stacktrace(text)
-        self.assertEqual(typ, 'Aborted')
-        self.assertEqual(func, '')
+        assert (typ, func) == ('Aborted', '')
 
     def test_invalid_text(self):
         """Test parse_fatal_stacktrace with an invalid text."""
         text = INVALID_CRASH_TEXT.strip().replace('_', ' ')
         typ, func = crashdialog.parse_fatal_stacktrace(text)
-        self.assertEqual(typ, '')
-        self.assertEqual(func, '')
-
-
-if __name__ == '__main__':
-    unittest.main()
+        assert (typ, func) == ('', '')

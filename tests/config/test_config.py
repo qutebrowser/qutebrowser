@@ -177,6 +177,60 @@ class TestKeyConfigParser:
             with pytest.raises(keyconf.KeyConfigError):
                 kcp._read_command(cmdline_test.cmd)
 
+    @pytest.mark.parametrize('rgx', [rgx for rgx, _repl
+                                     in configdata.CHANGED_KEY_COMMANDS])
+    def test_default_config_no_deprecated(self, rgx):
+        """Make sure the default config contains no deprecated commands."""
+        for sect in configdata.KEY_DATA.values():
+            for command in sect:
+                assert rgx.match(command) is None
+
+    @pytest.mark.parametrize(
+        'old, new_expected',
+        [
+            ('open -t about:blank', 'open -t'),
+            ('open -w about:blank', 'open -w'),
+            ('open -b about:blank', 'open -b'),
+            ('open about:blank', None),
+            ('open -t example.com', None),
+
+            ('download-page', 'download'),
+            ('cancel-download', 'download-cancel'),
+
+            ('search ""', 'search'),
+            ("search ''", 'search'),
+            ('search "foo"', None),
+
+            ('set-cmd-text "foo bar"', 'set-cmd-text foo bar'),
+            ("set-cmd-text 'foo bar'", 'set-cmd-text foo bar'),
+            ('set-cmd-text foo bar', None),
+            ('set-cmd-text "foo bar "', 'set-cmd-text -s foo bar'),
+            ("set-cmd-text 'foo bar '", 'set-cmd-text -s foo bar'),
+
+            ('hint links rapid', 'hint --rapid links tab-bg'),
+            ('hint links rapid-win', 'hint --rapid links window'),
+
+            ('scroll -50 0', 'scroll left'),
+            ('scroll 0 50', 'scroll down'),
+            ('scroll 0 -50', 'scroll up'),
+            ('scroll 50 0', 'scroll right'),
+            ('scroll -50 10', 'scroll-px -50 10'),
+            ('scroll 50 50', 'scroll-px 50 50'),
+            ('scroll 0 0', 'scroll-px 0 0'),
+            ('scroll 23 42', 'scroll-px 23 42'),
+        ]
+    )
+    def test_migrations(self, old, new_expected):
+        """Make sure deprecated commands get migrated correctly."""
+        if new_expected is None:
+            new_expected = old
+        new = old
+        for rgx, repl in configdata.CHANGED_KEY_COMMANDS:
+            if rgx.match(new):
+                new = rgx.sub(repl, new)
+                break
+        assert new == new_expected
+
 
 class TestDefaultConfig:
 
@@ -221,7 +275,7 @@ class TestConfigInit:
 
     def test_config_none(self, monkeypatch):
         """Test initializing with config path set to None."""
-        args = types.SimpleNamespace(confdir='')
+        args = types.SimpleNamespace(confdir='', datadir='', cachedir='')
         for k, v in self.env.items():
             monkeypatch.setenv(k, v)
         standarddir.init(args)

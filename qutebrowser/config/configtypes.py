@@ -1436,15 +1436,17 @@ class NewInstanceOpenTarget(BaseType):
     """How to open links in an existing instance if a new one is launched."""
 
     valid_values = ValidValues(('tab', "Open a new tab in the existing "
-                                       "window and activate it."),
+                                       "window and activate the window."),
                                ('tab-bg', "Open a new background tab in the "
-                                          "existing window and activate it."),
+                                          "existing window and activate the "
+                                          "window."),
                                ('tab-silent', "Open a new tab in the existing "
                                               "window without activating "
-                                              "it."),
+                                              "the window."),
                                ('tab-bg-silent', "Open a new background tab "
                                                  "in the existing window "
-                                                 "without activating it."),
+                                                 "without activating the "
+                                                 "window."),
                                ('window', "Open in a new window."))
 
 

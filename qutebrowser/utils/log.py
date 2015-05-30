@@ -29,8 +29,7 @@ import faulthandler
 import traceback
 import warnings
 
-from PyQt5.QtCore import (QtDebugMsg, QtWarningMsg, QtCriticalMsg, QtFatalMsg,
-                          qInstallMessageHandler)
+from PyQt5 import QtCore
 # Optional imports
 try:
     import colorama
@@ -153,15 +152,15 @@ def init_log(args):
     root.setLevel(logging.NOTSET)
     logging.captureWarnings(True)
     warnings.simplefilter('default')
-    qInstallMessageHandler(qt_message_handler)
+    QtCore.qInstallMessageHandler(qt_message_handler)
 
 
 @contextlib.contextmanager
 def disable_qt_msghandler():
     """Contextmanager which temporarily disables the Qt message handler."""
-    old_handler = qInstallMessageHandler(None)
+    old_handler = QtCore.qInstallMessageHandler(None)
     yield
-    qInstallMessageHandler(old_handler)
+    QtCore.qInstallMessageHandler(old_handler)
 
 
 def _init_handlers(level, color, ram_capacity):
@@ -244,11 +243,17 @@ def qt_message_handler(msg_type, context, msg):
     # Note we map critical to ERROR as it's actually "just" an error, and fatal
     # to critical.
     qt_to_logging = {
-        QtDebugMsg: logging.DEBUG,
-        QtWarningMsg: logging.WARNING,
-        QtCriticalMsg: logging.ERROR,
-        QtFatalMsg: logging.CRITICAL,
+        QtCore.QtDebugMsg: logging.DEBUG,
+        QtCore.QtWarningMsg: logging.WARNING,
+        QtCore.QtCriticalMsg: logging.ERROR,
+        QtCore.QtFatalMsg: logging.CRITICAL,
     }
+    try:
+        # pylint: disable=no-member
+        qt_to_logging[QtCore.QtInfoMsg] = logging.INFO
+    except AttributeError:
+        # Qt < 5.5
+        pass
     # Change levels of some well-known messages to debug so they don't get
     # shown to the user.
     # suppressed_msgs is a list of regexes matching the message texts to hide.

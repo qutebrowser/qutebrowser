@@ -231,13 +231,18 @@ ClickTarget = enum('ClickTarget', ['normal', 'tab', 'tab_bg', 'window'])
 
 # Key input modes
 KeyMode = enum('KeyMode', ['normal', 'hint', 'command', 'yesno', 'prompt',
-                           'insert', 'passthrough'])
+                           'insert', 'passthrough', 'caret'])
 
 
 # Available command completions
 Completion = enum('Completion', ['command', 'section', 'option', 'value',
                                  'helptopic', 'quickmark_by_url',
                                  'quickmark_by_name', 'url', 'sessions'])
+
+
+# Exit statuses for errors. Needs to be an int for sys.exit.
+Exit = enum('Exit', ['ok', 'reserved', 'exception', 'err_ipc', 'err_init',
+                     'err_config', 'err_key_config'], is_int=True)
 
 
 class Question(QObject):

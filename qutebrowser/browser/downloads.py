@@ -691,8 +691,11 @@ class DownloadManager(QAbstractListModel):
         if fileobj is not None or filename is not None:
             return self.fetch_request(request, page, fileobj, filename,
                                       auto_remove, suggested_fn)
-        encoding = sys.getfilesystemencoding()
-        suggested_fn = utils.force_encoding(suggested_fn, encoding)
+        if suggested_fn is None:
+            suggested_fn = 'qutebrowser-download'
+        else:
+            encoding = sys.getfilesystemencoding()
+            suggested_fn = utils.force_encoding(suggested_fn, encoding)
         q = self._prepare_question()
         q.default = _path_suggestion(suggested_fn)
         message_bridge = objreg.get('message-bridge', scope='window',
@@ -1043,7 +1046,7 @@ class DownloadManager(QAbstractListModel):
         """Override flags so items aren't selectable.
 
         The default would be Qt.ItemIsEnabled | Qt.ItemIsSelectable."""
-        return Qt.ItemIsEnabled
+        return Qt.ItemIsEnabled | Qt.ItemNeverHasChildren
 
     def rowCount(self, parent=QModelIndex()):
         """Get count of active downloads."""

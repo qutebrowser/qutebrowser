@@ -313,17 +313,15 @@ class TestKeyEventToString:
     def test_key_and_modifier(self, fake_keyevent_factory):
         """Test with key and modifier pressed."""
         evt = fake_keyevent_factory(key=Qt.Key_A, modifiers=Qt.ControlModifier)
-        assert utils.keyevent_to_string(evt) == 'Ctrl+A'
+        expected = 'Meta+A' if sys.platform == 'darwin' else 'Ctrl+A'
+        assert utils.keyevent_to_string(evt) == expected
 
     def test_key_and_modifiers(self, fake_keyevent_factory):
-        """Test with key and multiple modifier pressed."""
+        """Test with key and multiple modifiers pressed."""
         evt = fake_keyevent_factory(
             key=Qt.Key_A, modifiers=(Qt.ControlModifier | Qt.AltModifier |
                                      Qt.MetaModifier | Qt.ShiftModifier))
-        if sys.platform == 'darwin':
-            assert utils.keyevent_to_string(evt) == 'Ctrl+Alt+Shift+A'
-        else:
-            assert utils.keyevent_to_string(evt) == 'Ctrl+Alt+Meta+Shift+A'
+        assert utils.keyevent_to_string(evt) == 'Ctrl+Alt+Meta+Shift+A'
 
 
 class TestNormalize:

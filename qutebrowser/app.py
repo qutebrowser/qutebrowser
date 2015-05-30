@@ -26,8 +26,11 @@ import configparser
 import functools
 import json
 import time
+import shutil
+import tempfile
+import atexit
 
-from PyQt5.QtWidgets import QApplication, QMessageBox
+from PyQt5.QtWidgets import QApplication
 from PyQt5.QtGui import QDesktopServices, QPixmap, QIcon, QCursor, QWindow
 from PyQt5.QtCore import (pyqtSlot, qInstallMessageHandler, QTimer, QUrl,
                           QObject, Qt, QEvent)
@@ -47,7 +50,7 @@ from qutebrowser.mainwindow import mainwindow
 from qutebrowser.misc import readline, ipc, savemanager, sessions, crashsignal
 from qutebrowser.misc import utilcmds  # pylint: disable=unused-import
 from qutebrowser.utils import (log, version, message, utils, qtutils, urlutils,
-                               objreg, usertypes, standarddir)
+                               objreg, usertypes, standarddir, error)
 # We import utilcmds to run the cmdutils.register decorators.
 
 
@@ -64,7 +67,10 @@ def run(args):
         print(qutebrowser.__copyright__)
         print()
         print(version.GPL_BOILERPLATE.strip())
-        sys.exit(0)
+        sys.exit(usertypes.Exit.ok)
+
+    if args.temp_basedir:
+        args.basedir = tempfile.mkdtemp(prefix='qutebrowser-basedir-')
 
     quitter = Quitter(args)
     objreg.register('quitter', quitter)
@@ -84,11 +90,11 @@ def run(args):
     objreg.register('signal-handler', signal_handler)
 
     try:
-        sent = ipc.send_to_running_instance(args.command)
+        sent = ipc.send_to_running_instance(args)
         if sent:
-            sys.exit(0)
+            sys.exit(usertypes.Exit.ok)
         log.init.debug("Starting IPC server...")
-        server = ipc.IPCServer(qApp)
+        server = ipc.IPCServer(args, qApp)
         objreg.register('ipc-server', server)
         server.got_args.connect(lambda args, cwd:
                                 process_pos_args(args, cwd=cwd, via_ipc=True))
@@ -96,16 +102,16 @@ def run(args):
         # This could be a race condition...
         log.init.debug("Got AddressInUseError, trying again.")
         time.sleep(500)
-        sent = ipc.send_to_running_instance(args.command)
+        sent = ipc.send_to_running_instance(args)
         if sent:
-            sys.exit(0)
+            sys.exit(usertypes.Exit.ok)
         else:
-            ipc.display_error(e)
-            sys.exit(1)
+            ipc.display_error(e, args)
+            sys.exit(usertypes.Exit.err_ipc)
     except ipc.Error as e:
-        ipc.display_error(e)
+        ipc.display_error(e, args)
         # We didn't really initialize much so far, so we just quit hard.
-        sys.exit(1)
+        sys.exit(usertypes.Exit.err_ipc)
 
     init(args, crash_handler)
     ret = qt_mainloop()
@@ -139,11 +145,9 @@ def init(args, crash_handler):
     try:
         _init_modules(args, crash_handler)
     except (OSError, UnicodeDecodeError) as e:
-        msgbox = QMessageBox(
-            QMessageBox.Critical, "Error while initializing!",
-            "Error while initializing: {}".format(e))
-        msgbox.exec_()
-        sys.exit(1)
+        error.handle_fatal_exc(e, args, "Error while initializing!",
+                               pre_text="Error while initializing")
+        sys.exit(usertypes.Exit.err_init)
     QTimer.singleShot(0, functools.partial(_process_args, args))
 
     log.init.debug("Initializing eventfilter...")
@@ -199,7 +203,7 @@ def _process_args(args):
 
     process_pos_args(args.command)
     _open_startpage()
-    _open_quickstart()
+    _open_quickstart(args)
 
 
 def _load_session(name):
@@ -303,8 +307,15 @@ def _open_startpage(win_id=None):
                     tabbed_browser.tabopen(url)
 
 
-def _open_quickstart():
-    """Open quickstart if it's the first start."""
+def _open_quickstart(args):
+    """Open quickstart if it's the first start.
+
+    Args:
+        args: The argparse namespace.
+    """
+    if args.datadir is not None or args.basedir is not None:
+        # With --datadir or --basedir given, don't open quickstart.
+        return
     state_config = objreg.get('state-config')
     try:
         quickstart_done = state_config['general']['quickstart-done'] == '1'
@@ -386,7 +397,8 @@ def _init_modules(args, crash_handler):
     log.init.debug("Initializing web history...")
     history.init(qApp)
     log.init.debug("Initializing crashlog...")
-    crash_handler.handle_segfault()
+    if not args.no_err_windows:
+        crash_handler.handle_segfault()
     log.init.debug("Initializing sessions...")
     sessions.init(qApp)
     log.init.debug("Initializing js-bridge...")
@@ -624,13 +636,15 @@ class Quitter:
                 try:
                     save_manager.save(key, is_exit=True)
                 except OSError as e:
-                    msgbox = QMessageBox(
-                        QMessageBox.Critical, "Error while saving!",
-                        "Error while saving {}: {}".format(key, e))
-                    msgbox.exec_()
+                    error.handle_fatal_exc(
+                        e, self._args, "Error while saving!",
+                        pre_text="Error while saving {}".format(key))
         # Re-enable faulthandler to stdout, then remove crash log
         log.destroy.debug("Deactivating crash log...")
         objreg.get('crash-handler').destroy_crashlogfile()
+        # Delete temp basedir
+        if self._args.temp_basedir:
+            atexit.register(shutil.rmtree, self._args.basedir)
         # If we don't kill our custom handler here we might get segfaults
         log.destroy.debug("Deactiving message handler...")
         qInstallMessageHandler(None)

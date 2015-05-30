@@ -41,18 +41,18 @@ class TestArg:
     """
 
     @pytest.yield_fixture(autouse=True)
-    def setup(self, mocker, stubs):
-        mocker.patch('qutebrowser.misc.editor.QProcess',
-                     new_callable=stubs.FakeQProcess)
+    def setup(self, monkeypatch, stubs):
+        monkeypatch.setattr('qutebrowser.misc.editor.QProcess',
+                            stubs.FakeQProcess())
         self.editor = editor.ExternalEditor(0)
         yield
         self.editor._cleanup()  # pylint: disable=protected-access
 
     @pytest.fixture
-    def stubbed_config(self, config_stub, mocker):
+    def stubbed_config(self, config_stub, monkeypatch):
         """Fixture to create a config stub with an input section."""
         config_stub.data = {'input': {}}
-        mocker.patch('qutebrowser.misc.editor.config', new=config_stub)
+        monkeypatch.setattr('qutebrowser.misc.editor.config', config_stub)
         return config_stub
 
     def test_simple_start_args(self, stubbed_config):
@@ -98,14 +98,14 @@ class TestFileHandling:
     """
 
     @pytest.fixture(autouse=True)
-    def setup(self, mocker, stubs, config_stub):
-        mocker.patch('qutebrowser.misc.editor.message',
-                     new=stubs.MessageModule())
-        mocker.patch('qutebrowser.misc.editor.QProcess',
-                     new_callable=stubs.FakeQProcess)
+    def setup(self, monkeypatch, stubs, config_stub):
+        monkeypatch.setattr('qutebrowser.misc.editor.message',
+                            stubs.MessageModule())
+        monkeypatch.setattr('qutebrowser.misc.editor.QProcess',
+                            stubs.FakeQProcess())
         config_stub.data = {'general': {'editor': [''],
                                         'editor-encoding': 'utf-8'}}
-        mocker.patch('qutebrowser.misc.editor.config', config_stub)
+        monkeypatch.setattr('qutebrowser.misc.editor.config', config_stub)
         self.editor = editor.ExternalEditor(0)
 
     def test_file_handling_closed_ok(self):
@@ -147,12 +147,12 @@ class TestModifyTests:
     """
 
     @pytest.fixture(autouse=True)
-    def setup(self, mocker, stubs, config_stub):
-        mocker.patch('qutebrowser.misc.editor.QProcess',
-                     new_callable=stubs.FakeQProcess)
+    def setup(self, monkeypatch, stubs, config_stub):
+        monkeypatch.setattr('qutebrowser.misc.editor.QProcess',
+                            stubs.FakeQProcess())
         config_stub.data = {'general': {'editor': [''],
                                         'editor-encoding': 'utf-8'}}
-        mocker.patch('qutebrowser.misc.editor.config', new=config_stub)
+        monkeypatch.setattr('qutebrowser.misc.editor.config', config_stub)
         self.editor = editor.ExternalEditor(0)
         self.editor.editing_finished = mock.Mock()
 
@@ -219,14 +219,14 @@ class TestErrorMessage:
     """
 
     @pytest.yield_fixture(autouse=True)
-    def setup(self, mocker, stubs, config_stub):
-        mocker.patch('qutebrowser.misc.editor.QProcess',
-                     new_callable=stubs.FakeQProcess)
-        mocker.patch('qutebrowser.misc.editor.message',
-                     new=stubs.MessageModule())
+    def setup(self, monkeypatch, stubs, config_stub):
+        monkeypatch.setattr('qutebrowser.misc.editor.QProcess',
+                            stubs.FakeQProcess())
+        monkeypatch.setattr('qutebrowser.misc.editor.message',
+                            stubs.MessageModule())
         config_stub.data = {'general': {'editor': [''],
                                         'editor-encoding': 'utf-8'}}
-        mocker.patch('qutebrowser.misc.editor.config', new=config_stub)
+        monkeypatch.setattr('qutebrowser.misc.editor.config', config_stub)
         self.editor = editor.ExternalEditor(0)
         yield
         self.editor._cleanup()  # pylint: disable=protected-access

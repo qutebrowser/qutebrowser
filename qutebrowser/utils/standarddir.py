@@ -80,10 +80,26 @@ def _from_args(typ, args):
             path: The overridden path, or None to turn off storage.
     """
     typ_to_argparse_arg = {
-        QStandardPaths.ConfigLocation: 'confdir'
+        QStandardPaths.ConfigLocation: 'confdir',
+        QStandardPaths.DataLocation: 'datadir',
+        QStandardPaths.CacheLocation: 'cachedir',
     }
+    basedir_suffix = {
+        QStandardPaths.ConfigLocation: 'config',
+        QStandardPaths.DataLocation: 'data',
+        QStandardPaths.CacheLocation: 'cache',
+        QStandardPaths.DownloadLocation: 'download',
+        QStandardPaths.RuntimeLocation: 'runtime',
+    }
+
     if args is None:
         return (False, None)
+
+    if getattr(args, 'basedir', None) is not None:
+        basedir = args.basedir
+        suffix = basedir_suffix[typ]
+        return (True, os.path.join(basedir, suffix))
+
     try:
         argname = typ_to_argparse_arg[typ]
     except KeyError:
@@ -135,8 +151,18 @@ def init(args):
     """Initialize all standard dirs."""
     global _args
     _args = args
-    # http://www.brynosaurus.com/cachedir/spec.html
-    cachedir_tag = os.path.join(cache(), 'CACHEDIR.TAG')
+    _init_cachedir_tag()
+
+
+def _init_cachedir_tag():
+    """Create CACHEDIR.TAG if it doesn't exist.
+
+    See http://www.brynosaurus.com/cachedir/spec.html
+    """
+    cache_dir = cache()
+    if cache_dir is None:
+        return
+    cachedir_tag = os.path.join(cache_dir, 'CACHEDIR.TAG')
     if not os.path.exists(cachedir_tag):
         try:
             with open(cachedir_tag, 'w', encoding='utf-8') as f:

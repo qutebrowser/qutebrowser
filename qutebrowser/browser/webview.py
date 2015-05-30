@@ -106,6 +106,7 @@ class WebView(QWebView):
         self.keep_icon = False
         self.search_text = None
         self.search_flags = 0
+        self.selection_enabled = False
         self.init_neighborlist()
         cfg = objreg.get('config')
         cfg.changed.connect(self.init_neighborlist)
@@ -378,6 +379,8 @@ class WebView(QWebView):
         if url.isValid():
             self.cur_url = url
             self.url_text_changed.emit(url.toDisplayString())
+            if not self.title():
+                self.titleChanged.emit(self.url().toDisplayString())
 
     @pyqtSlot('QMouseEvent')
     def on_mouse_event(self, evt):
@@ -396,7 +399,7 @@ class WebView(QWebView):
 
     @pyqtSlot()
     def on_load_finished(self):
-        """Handle auto-insert-mode after loading finished.
+        """Handle a finished page load.
 
         We don't take loadFinished's ok argument here as it always seems to be
         true when the QWebPage has an ErrorPageExtension implemented.
@@ -409,6 +412,12 @@ class WebView(QWebView):
             self._set_load_status(LoadStatus.warn)
         else:
             self._set_load_status(LoadStatus.error)
+        if not self.title():
+            self.titleChanged.emit(self.url().toDisplayString())
+        self._handle_auto_insert_mode(ok)
+
+    def _handle_auto_insert_mode(self, ok):
+        """Handle auto-insert-mode after loading finished."""
         if not config.get('input', 'auto-insert-mode'):
             return
         mode_manager = objreg.get('mode-manager', scope='window',
@@ -435,6 +444,18 @@ class WebView(QWebView):
             log.webview.debug("Ignoring focus because mode {} was "
                               "entered.".format(mode))
             self.setFocusPolicy(Qt.NoFocus)
+        elif mode == usertypes.KeyMode.caret:
+            settings = self.settings()
+            settings.setAttribute(QWebSettings.CaretBrowsingEnabled, True)
+            self.selection_enabled = False
+
+            if self.isVisible():
+                # Sometimes the caret isn't immediately visible, but unfocusing
+                # and refocusing it fixes that.
+                self.clearFocus()
+                self.setFocus(Qt.OtherFocusReason)
+                self.page().currentFrame().evaluateJavaScript(
+                    utils.read_file('javascript/position_caret.js'))
 
     @pyqtSlot(usertypes.KeyMode)
     def on_mode_left(self, mode):
@@ -443,6 +464,15 @@ class WebView(QWebView):
                     usertypes.KeyMode.yesno):
             log.webview.debug("Restoring focus policy because mode {} was "
                               "left.".format(mode))
+        elif mode == usertypes.KeyMode.caret:
+            settings = self.settings()
+            if settings.testAttribute(QWebSettings.CaretBrowsingEnabled):
+                if self.selection_enabled and self.hasSelection():
+                    # Remove selection if it exists
+                    self.triggerPageAction(QWebPage.MoveToNextChar)
+                settings.setAttribute(QWebSettings.CaretBrowsingEnabled, False)
+                self.selection_enabled = False
+
         self.setFocusPolicy(Qt.WheelFocus)
 
     def search(self, text, flags):

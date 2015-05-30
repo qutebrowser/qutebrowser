@@ -27,8 +27,8 @@ import posixpath
 import functools
 
 from PyQt5.QtWidgets import QApplication, QTabBar
-from PyQt5.QtCore import Qt, QUrl
-from PyQt5.QtGui import QClipboard
+from PyQt5.QtCore import Qt, QUrl, QEvent
+from PyQt5.QtGui import QClipboard, QKeyEvent
 from PyQt5.QtPrintSupport import QPrintDialog, QPrintPreviewDialog
 from PyQt5.QtWebKitWidgets import QWebPage
 import pygments
@@ -38,8 +38,10 @@ import pygments.formatters
 from qutebrowser.commands import userscripts, cmdexc, cmdutils
 from qutebrowser.config import config, configexc
 from qutebrowser.browser import webelem, inspector
+from qutebrowser.keyinput import modeman
 from qutebrowser.utils import (message, usertypes, log, qtutils, urlutils,
                                objreg, utils)
+from qutebrowser.utils.usertypes import KeyMode
 from qutebrowser.misc import editor
 
 
@@ -56,46 +58,40 @@ class CommandDispatcher:
     Attributes:
         _editor: The ExternalEditor object.
         _win_id: The window ID the CommandDispatcher is associated with.
+        _tabbed_browser: The TabbedBrowser used.
     """
 
-    def __init__(self, win_id):
+    def __init__(self, win_id, tabbed_browser):
         self._editor = None
         self._win_id = win_id
+        self._tabbed_browser = tabbed_browser
 
     def __repr__(self):
         return utils.get_repr(self)
 
-    def _tabbed_browser(self, window=False):
-        """Convienence method to get the right tabbed-browser.
-
-        Args:
-            window: If True, open a new window.
-        """
+    def _new_tabbed_browser(self):
+        """Get a tabbed-browser from a new window."""
         from qutebrowser.mainwindow import mainwindow
-        if window:
-            new_window = mainwindow.MainWindow()
-            new_window.show()
-            win_id = new_window.win_id
-        else:
-            win_id = self._win_id
-        return objreg.get('tabbed-browser', scope='window', window=win_id)
+        new_window = mainwindow.MainWindow()
+        new_window.show()
+        return new_window.tabbed_browser
 
     def _count(self):
         """Convenience method to get the widget count."""
-        return self._tabbed_browser().count()
+        return self._tabbed_browser.count()
 
     def _set_current_index(self, idx):
         """Convenience method to set the current widget index."""
-        return self._tabbed_browser().setCurrentIndex(idx)
+        return self._tabbed_browser.setCurrentIndex(idx)
 
     def _current_index(self):
         """Convenience method to get the current widget index."""
-        return self._tabbed_browser().currentIndex()
+        return self._tabbed_browser.currentIndex()
 
     def _current_url(self):
         """Convenience method to get the current url."""
         try:
-            return self._tabbed_browser().current_url()
+            return self._tabbed_browser.current_url()
         except qtutils.QtValueError as e:
             msg = "Current URL is invalid"
             if e.reason:
@@ -105,7 +101,7 @@ class CommandDispatcher:
 
     def _current_widget(self):
         """Get the currently active widget from a command."""
-        widget = self._tabbed_browser().currentWidget()
+        widget = self._tabbed_browser.currentWidget()
         if widget is None:
             raise cmdexc.CommandError("No WebView available yet!")
         return widget
@@ -120,10 +116,10 @@ class CommandDispatcher:
             window: Whether to open in a new window
         """
         urlutils.raise_cmdexc_if_invalid(url)
-        tabbed_browser = self._tabbed_browser()
+        tabbed_browser = self._tabbed_browser
         cmdutils.check_exclusive((tab, background, window), 'tbw')
         if window:
-            tabbed_browser = self._tabbed_browser(window=True)
+            tabbed_browser = self._new_tabbed_browser()
             tabbed_browser.tabopen(url)
         elif tab:
             tabbed_browser.tabopen(url, background=False, explicit=True)
@@ -144,12 +140,11 @@ class CommandDispatcher:
             The widget with the given tab ID if count is given.
             None if no widget was found.
         """
-        tabbed_browser = self._tabbed_browser()
         if count is None:
-            return tabbed_browser.currentWidget()
+            return self._tabbed_browser.currentWidget()
         elif 1 <= count <= self._count():
             cmdutils.check_overflow(count + 1, 'int')
-            return tabbed_browser.widget(count - 1)
+            return self._tabbed_browser.widget(count - 1)
         else:
             return None
 
@@ -165,12 +160,17 @@ class CommandDispatcher:
             perc = 100
         elif perc is None:
             perc = count
-        perc = qtutils.check_overflow(perc, 'int', fatal=False)
-        frame = self._current_widget().page().currentFrame()
-        m = frame.scrollBarMaximum(orientation)
-        if m == 0:
-            return
-        frame.setScrollBarValue(orientation, int(m * perc / 100))
+        if perc == 0:
+            self.scroll('top')
+        elif perc == 100:
+            self.scroll('bottom')
+        else:
+            perc = qtutils.check_overflow(perc, 'int', fatal=False)
+            frame = self._current_widget().page().currentFrame()
+            m = frame.scrollBarMaximum(orientation)
+            if m == 0:
+                return
+            frame.setScrollBarValue(orientation, int(m * perc / 100))
 
     def _tab_move_absolute(self, idx):
         """Get an index for moving a tab absolutely.
@@ -208,7 +208,7 @@ class CommandDispatcher:
                              window=self._win_id)
         except KeyError:
             raise cmdexc.CommandError("No last focused tab!")
-        idx = self._tabbed_browser().indexOf(tab)
+        idx = self._tabbed_browser.indexOf(tab)
         if idx == -1:
             raise cmdexc.CommandError("Last focused tab vanished!")
         self._set_current_index(idx)
@@ -266,16 +266,15 @@ class CommandDispatcher:
         tab = self._cntwidget(count)
         if tab is None:
             return
-        tabbed_browser = self._tabbed_browser()
-        tabbar = tabbed_browser.tabBar()
+        tabbar = self._tabbed_browser.tabBar()
         selection_override = self._get_selection_override(left, right,
                                                           opposite)
         if selection_override is None:
-            tabbed_browser.close_tab(tab)
+            self._tabbed_browser.close_tab(tab)
         else:
             old_selection_behavior = tabbar.selectionBehaviorOnRemove()
             tabbar.setSelectionBehaviorOnRemove(selection_override)
-            tabbed_browser.close_tab(tab)
+            self._tabbed_browser.close_tab(tab)
             tabbar.setSelectionBehaviorOnRemove(old_selection_behavior)
 
     @cmdutils.register(instance='command-dispatcher', name='open',
@@ -310,7 +309,7 @@ class CommandDispatcher:
                 if count is None:
                     # We want to open a URL in the current tab, but none exists
                     # yet.
-                    self._tabbed_browser().tabopen(url)
+                    self._tabbed_browser.tabopen(url)
                 else:
                     # Explicit count with a tab that doesn't exist.
                     return
@@ -386,12 +385,14 @@ class CommandDispatcher:
         """
         if bg and window:
             raise cmdexc.CommandError("Only one of -b/-w can be given!")
-        cur_tabbed_browser = self._tabbed_browser()
         curtab = self._current_widget()
-        cur_title = cur_tabbed_browser.page_title(self._current_index())
+        cur_title = self._tabbed_browser.page_title(self._current_index())
         # The new tab could be in a new tabbed_browser (e.g. because of
         # tabs-are-windows being set)
-        new_tabbed_browser = self._tabbed_browser(window)
+        if window:
+            new_tabbed_browser = self._new_tabbed_browser()
+        else:
+            new_tabbed_browser = self._tabbed_browser
         newtab = new_tabbed_browser.tabopen(background=bg, explicit=True)
         new_tabbed_browser = objreg.get('tabbed-browser', scope='window',
                                         window=newtab.win_id)
@@ -409,9 +410,8 @@ class CommandDispatcher:
         """Detach the current tab to its own window."""
         url = self._current_url()
         self._open(url, window=True)
-        tabbed_browser = self._tabbed_browser()
         cur_widget = self._current_widget()
-        tabbed_browser.close_tab(cur_widget)
+        self._tabbed_browser.close_tab(cur_widget)
 
     def _back_forward(self, tab, bg, window, count, forward):
         """Helper function for :back/:forward."""
@@ -555,8 +555,8 @@ class CommandDispatcher:
 
     @cmdutils.register(instance='command-dispatcher', hide=True,
                        scope='window', count='count')
-    def scroll(self, dx: {'type': float}, dy: {'type': float}, count=1):
-        """Scroll the current tab by 'count * dx/dy'.
+    def scroll_px(self, dx: {'type': float}, dy: {'type': float}, count=1):
+        """Scroll the current tab by 'count * dx/dy' pixels.
 
         Args:
             dx: How much to scroll in x-direction.
@@ -568,6 +568,61 @@ class CommandDispatcher:
         cmdutils.check_overflow(dx, 'int')
         cmdutils.check_overflow(dy, 'int')
         self._current_widget().page().currentFrame().scroll(dx, dy)
+
+    @cmdutils.register(instance='command-dispatcher', hide=True,
+                       scope='window', count='count')
+    def scroll(self,
+               direction: {'type': (str, float)},
+               dy: {'type': float, 'hide': True}=None,
+               count=1):
+        """Scroll the current tab in the given direction.
+
+        Args:
+            direction: In which direction to scroll
+                       (up/down/left/right/top/bottom).
+            dy: Deprecated argument to support the old dx/dy form.
+            count: multiplier
+        """
+        try:
+            # Check for deprecated dx/dy form (like with scroll-px).
+            dx = float(direction)
+            dy = float(dy)
+        except (ValueError, TypeError):
+            # Invalid values will get handled later.
+            pass
+        else:
+            message.warning(self._win_id, ":scroll with dx/dy arguments is "
+                            "deprecated - use :scroll-px instead!")
+            self.scroll_px(dx, dy, count=count)
+            return
+
+        fake_keys = {
+            'up': Qt.Key_Up,
+            'down': Qt.Key_Down,
+            'left': Qt.Key_Left,
+            'right': Qt.Key_Right,
+            'top': Qt.Key_Home,
+            'bottom': Qt.Key_End,
+            'page-up': Qt.Key_PageUp,
+            'page-down': Qt.Key_PageDown,
+        }
+        try:
+            key = fake_keys[direction]
+        except KeyError:
+            raise cmdexc.CommandError("Invalid value {!r} for direction - "
+                                      "expected one of: {}".format(
+                                          direction, ', '.join(fake_keys)))
+        widget = self._current_widget()
+        press_evt = QKeyEvent(QEvent.KeyPress, key, Qt.NoModifier, 0, 0, 0)
+        release_evt = QKeyEvent(QEvent.KeyRelease, key, Qt.NoModifier, 0, 0, 0)
+
+        # Count doesn't make sense with top/bottom
+        if direction in ('top', 'bottom'):
+            count = 1
+
+        for _ in range(count):
+            widget.keyPressEvent(press_evt)
+            widget.keyReleaseEvent(release_evt)
 
     @cmdutils.register(instance='command-dispatcher', hide=True,
                        scope='window', count='count')
@@ -596,10 +651,22 @@ class CommandDispatcher:
             y: How many pages to scroll down.
             count: multiplier
         """
+        mult_x = count * x
+        mult_y = count * y
+        if mult_y.is_integer():
+            if mult_y == 0:
+                pass
+            elif mult_y < 0:
+                self.scroll('page-up', count=-int(mult_y))
+            elif mult_y > 0:
+                self.scroll('page-down', count=int(mult_y))
+            mult_y = 0
+        if mult_x == 0 and mult_y == 0:
+            return
         frame = self._current_widget().page().currentFrame()
         size = frame.geometry()
-        dx = count * x * size.width()
-        dy = count * y * size.height()
+        dx = mult_x * size.width()
+        dy = mult_y * size.height()
         cmdutils.check_overflow(dx, 'int')
         cmdutils.check_overflow(dy, 'int')
         frame.scroll(dx, dy)
@@ -614,7 +681,7 @@ class CommandDispatcher:
         """
         clipboard = QApplication.clipboard()
         if title:
-            s = self._tabbed_browser().page_title(self._current_index())
+            s = self._tabbed_browser.page_title(self._current_index())
         else:
             s = self._current_url().toString(
                 QUrl.FullyEncoded | QUrl.RemovePassword)
@@ -680,22 +747,21 @@ class CommandDispatcher:
             right: Keep tabs to the right of the current.
         """
         cmdutils.check_exclusive((left, right), 'lr')
-        tabbed_browser = self._tabbed_browser()
-        cur_idx = tabbed_browser.currentIndex()
+        cur_idx = self._tabbed_browser.currentIndex()
         assert cur_idx != -1
 
-        for i, tab in enumerate(tabbed_browser.widgets()):
+        for i, tab in enumerate(self._tabbed_browser.widgets()):
             if (i == cur_idx or (left and i < cur_idx) or
                     (right and i > cur_idx)):
                 continue
             else:
-                tabbed_browser.close_tab(tab)
+                self._tabbed_browser.close_tab(tab)
 
     @cmdutils.register(instance='command-dispatcher', scope='window')
     def undo(self):
         """Re-open a closed tab (optionally skipping [count] closed tabs)."""
         try:
-            self._tabbed_browser().undo()
+            self._tabbed_browser.undo()
         except IndexError:
             raise cmdexc.CommandError("Nothing to undo!")
 
@@ -808,20 +874,19 @@ class CommandDispatcher:
         if not 0 <= new_idx < self._count():
             raise cmdexc.CommandError("Can't move tab to position {}!".format(
                 new_idx))
-        tabbed_browser = self._tabbed_browser()
         tab = self._current_widget()
         cur_idx = self._current_index()
-        icon = tabbed_browser.tabIcon(cur_idx)
-        label = tabbed_browser.page_title(cur_idx)
+        icon = self._tabbed_browser.tabIcon(cur_idx)
+        label = self._tabbed_browser.page_title(cur_idx)
         cmdutils.check_overflow(cur_idx, 'int')
         cmdutils.check_overflow(new_idx, 'int')
-        tabbed_browser.setUpdatesEnabled(False)
+        self._tabbed_browser.setUpdatesEnabled(False)
         try:
-            tabbed_browser.removeTab(cur_idx)
-            tabbed_browser.insertTab(new_idx, tab, icon, label)
+            self._tabbed_browser.removeTab(cur_idx)
+            self._tabbed_browser.insertTab(new_idx, tab, icon, label)
             self._set_current_index(new_idx)
         finally:
-            tabbed_browser.setUpdatesEnabled(True)
+            self._tabbed_browser.setUpdatesEnabled(True)
 
     @cmdutils.register(instance='command-dispatcher', scope='window',
                        win_id='win_id')
@@ -877,11 +942,10 @@ class CommandDispatcher:
         }
 
         idx = self._current_index()
-        tabbed_browser = self._tabbed_browser()
         if idx != -1:
-            env['QUTE_TITLE'] = tabbed_browser.page_title(idx)
+            env['QUTE_TITLE'] = self._tabbed_browser.page_title(idx)
 
-        webview = tabbed_browser.currentWidget()
+        webview = self._tabbed_browser.currentWidget()
         if webview is None:
             mainframe = None
         else:
@@ -891,7 +955,7 @@ class CommandDispatcher:
             mainframe = webview.page().mainFrame()
 
         try:
-            url = tabbed_browser.current_url()
+            url = self._tabbed_browser.current_url()
         except qtutils.QtValueError:
             pass
         else:
@@ -983,7 +1047,7 @@ class CommandDispatcher:
             full=True, linenos='table')
         highlighted = pygments.highlight(html, lexer, formatter)
         current_url = self._current_url()
-        tab = self._tabbed_browser().tabopen(explicit=True)
+        tab = self._tabbed_browser.tabopen(explicit=True)
         tab.setHtml(highlighted, current_url)
         tab.viewing_source = True
 
@@ -1030,8 +1094,7 @@ class CommandDispatcher:
         self._open(url, tab, bg, window)
 
     @cmdutils.register(instance='command-dispatcher',
-                       modes=[usertypes.KeyMode.insert],
-                       hide=True, scope='window')
+                       modes=[KeyMode.insert], hide=True, scope='window')
     def open_editor(self):
         """Open an external editor with the currently selected form field.
 
@@ -1056,7 +1119,7 @@ class CommandDispatcher:
         else:
             text = elem.evaluateJavaScript('this.value')
         self._editor = editor.ExternalEditor(
-            self._win_id, self._tabbed_browser())
+            self._win_id, self._tabbed_browser)
         self._editor.editing_finished.connect(
             functools.partial(self.on_editing_finished, elem))
         self._editor.edit(text)
@@ -1150,6 +1213,283 @@ class CommandDispatcher:
             flags |= QWebPage.FindBackward
         for _ in range(count):
             view.search(view.search_text, flags)
+
+    @cmdutils.register(instance='command-dispatcher', hide=True,
+                       modes=[KeyMode.caret], scope='window', count='count')
+    def move_to_next_line(self, count=1):
+        """Move the cursor or selection to the next line.
+
+        Args:
+            count: How many lines to move.
+        """
+        webview = self._current_widget()
+        if not webview.selection_enabled:
+            act = QWebPage.MoveToNextLine
+        else:
+            act = QWebPage.SelectNextLine
+        for _ in range(count):
+            webview.triggerPageAction(act)
+
+    @cmdutils.register(instance='command-dispatcher', hide=True,
+                       modes=[KeyMode.caret], scope='window', count='count')
+    def move_to_prev_line(self, count=1):
+        """Move the cursor or selection to the prev line.
+
+        Args:
+            count: How many lines to move.
+        """
+        webview = self._current_widget()
+        if not webview.selection_enabled:
+            act = QWebPage.MoveToPreviousLine
+        else:
+            act = QWebPage.SelectPreviousLine
+        for _ in range(count):
+            webview.triggerPageAction(act)
+
+    @cmdutils.register(instance='command-dispatcher', hide=True,
+                       modes=[KeyMode.caret], scope='window', count='count')
+    def move_to_next_char(self, count=1):
+        """Move the cursor or selection to the next char.
+
+        Args:
+            count: How many lines to move.
+        """
+        webview = self._current_widget()
+        if not webview.selection_enabled:
+            act = QWebPage.MoveToNextChar
+        else:
+            act = QWebPage.SelectNextChar
+        for _ in range(count):
+            webview.triggerPageAction(act)
+
+    @cmdutils.register(instance='command-dispatcher', hide=True,
+                       modes=[KeyMode.caret], scope='window', count='count')
+    def move_to_prev_char(self, count=1):
+        """Move the cursor or selection to the previous char.
+
+        Args:
+            count: How many chars to move.
+        """
+        webview = self._current_widget()
+        if not webview.selection_enabled:
+            act = QWebPage.MoveToPreviousChar
+        else:
+            act = QWebPage.SelectPreviousChar
+        for _ in range(count):
+            webview.triggerPageAction(act)
+
+    @cmdutils.register(instance='command-dispatcher', hide=True,
+                       modes=[KeyMode.caret], scope='window', count='count')
+    def move_to_end_of_word(self, count=1):
+        """Move the cursor or selection to the end of the word.
+
+        Args:
+            count: How many words to move.
+        """
+        webview = self._current_widget()
+        if not webview.selection_enabled:
+            act = QWebPage.MoveToNextWord
+        else:
+            act = QWebPage.SelectNextWord
+        for _ in range(count):
+            webview.triggerPageAction(act)
+
+    @cmdutils.register(instance='command-dispatcher', hide=True,
+                       modes=[KeyMode.caret], scope='window', count='count')
+    def move_to_next_word(self, count=1):
+        """Move the cursor or selection to the next word.
+
+        Args:
+            count: How many words to move.
+        """
+        webview = self._current_widget()
+        if not webview.selection_enabled:
+            act = [QWebPage.MoveToNextWord, QWebPage.MoveToNextChar]
+        else:
+            act = [QWebPage.SelectNextWord, QWebPage.SelectNextChar]
+        for _ in range(count):
+            for a in act:
+                webview.triggerPageAction(a)
+
+    @cmdutils.register(instance='command-dispatcher', hide=True,
+                       modes=[KeyMode.caret], scope='window', count='count')
+    def move_to_prev_word(self, count=1):
+        """Move the cursor or selection to the previous word.
+
+        Args:
+            count: How many words to move.
+        """
+        webview = self._current_widget()
+        if not webview.selection_enabled:
+            act = QWebPage.MoveToPreviousWord
+        else:
+            act = QWebPage.SelectPreviousWord
+        for _ in range(count):
+            webview.triggerPageAction(act)
+
+    @cmdutils.register(instance='command-dispatcher', hide=True,
+                       modes=[KeyMode.caret], scope='window')
+    def move_to_start_of_line(self):
+        """Move the cursor or selection to the start of the line."""
+        webview = self._current_widget()
+        if not webview.selection_enabled:
+            act = QWebPage.MoveToStartOfLine
+        else:
+            act = QWebPage.SelectStartOfLine
+        webview.triggerPageAction(act)
+
+    @cmdutils.register(instance='command-dispatcher', hide=True,
+                       modes=[KeyMode.caret], scope='window')
+    def move_to_end_of_line(self):
+        """Move the cursor or selection to the end of line."""
+        webview = self._current_widget()
+        if not webview.selection_enabled:
+            act = QWebPage.MoveToEndOfLine
+        else:
+            act = QWebPage.SelectEndOfLine
+        webview.triggerPageAction(act)
+
+    @cmdutils.register(instance='command-dispatcher', hide=True,
+                       modes=[KeyMode.caret], scope='window', count='count')
+    def move_to_start_of_next_block(self, count=1):
+        """Move the cursor or selection to the start of next block.
+
+        Args:
+            count: How many blocks to move.
+        """
+        webview = self._current_widget()
+        if not webview.selection_enabled:
+            act = [QWebPage.MoveToEndOfBlock, QWebPage.MoveToNextLine,
+                   QWebPage.MoveToStartOfBlock]
+        else:
+            act = [QWebPage.SelectEndOfBlock, QWebPage.SelectNextLine,
+                   QWebPage.SelectStartOfBlock]
+        for _ in range(count):
+            for a in act:
+                webview.triggerPageAction(a)
+
+    @cmdutils.register(instance='command-dispatcher', hide=True,
+                       modes=[KeyMode.caret], scope='window', count='count')
+    def move_to_start_of_prev_block(self, count=1):
+        """Move the cursor or selection to the start of previous block.
+
+        Args:
+            count: How many blocks to move.
+        """
+        webview = self._current_widget()
+        if not webview.selection_enabled:
+            act = [QWebPage.MoveToStartOfBlock, QWebPage.MoveToPreviousLine,
+                   QWebPage.MoveToStartOfBlock]
+        else:
+            act = [QWebPage.SelectStartOfBlock, QWebPage.SelectPreviousLine,
+                   QWebPage.SelectStartOfBlock]
+        for _ in range(count):
+            for a in act:
+                webview.triggerPageAction(a)
+
+    @cmdutils.register(instance='command-dispatcher', hide=True,
+                       modes=[KeyMode.caret], scope='window', count='count')
+    def move_to_end_of_next_block(self, count=1):
+        """Move the cursor or selection to the end of next block.
+
+        Args:
+            count: How many blocks to move.
+        """
+        webview = self._current_widget()
+        if not webview.selection_enabled:
+            act = [QWebPage.MoveToEndOfBlock, QWebPage.MoveToNextLine,
+                   QWebPage.MoveToEndOfBlock]
+        else:
+            act = [QWebPage.SelectEndOfBlock, QWebPage.SelectNextLine,
+                   QWebPage.SelectEndOfBlock]
+        for _ in range(count):
+            for a in act:
+                webview.triggerPageAction(a)
+
+    @cmdutils.register(instance='command-dispatcher', hide=True,
+                       modes=[KeyMode.caret], scope='window', count='count')
+    def move_to_end_of_prev_block(self, count=1):
+        """Move the cursor or selection to the end of previous block.
+
+        Args:
+            count: How many blocks to move.
+        """
+        webview = self._current_widget()
+        if not webview.selection_enabled:
+            act = [QWebPage.MoveToStartOfBlock, QWebPage.MoveToPreviousLine,
+                   QWebPage.MoveToEndOfBlock]
+        else:
+            act = [QWebPage.SelectStartOfBlock, QWebPage.SelectPreviousLine,
+                   QWebPage.SelectEndOfBlock]
+        for _ in range(count):
+            for a in act:
+                webview.triggerPageAction(a)
+
+    @cmdutils.register(instance='command-dispatcher', hide=True,
+                       modes=[KeyMode.caret], scope='window')
+    def move_to_start_of_document(self):
+        """Move the cursor or selection to the start of the document."""
+        webview = self._current_widget()
+        if not webview.selection_enabled:
+            act = QWebPage.MoveToStartOfDocument
+        else:
+            act = QWebPage.SelectStartOfDocument
+        webview.triggerPageAction(act)
+
+    @cmdutils.register(instance='command-dispatcher', hide=True,
+                       modes=[KeyMode.caret], scope='window')
+    def move_to_end_of_document(self):
+        """Move the cursor or selection to the end of the document."""
+        webview = self._current_widget()
+        if not webview.selection_enabled:
+            act = QWebPage.MoveToEndOfDocument
+        else:
+            act = QWebPage.SelectEndOfDocument
+        webview.triggerPageAction(act)
+
+    @cmdutils.register(instance='command-dispatcher', hide=True,
+                       modes=[KeyMode.caret], scope='window')
+    def yank_selected(self, sel=False, keep=False):
+        """Yank the selected text to the clipboard or primary selection.
+
+        Args:
+            sel: Use the primary selection instead of the clipboard.
+            keep: If given, stay in visual mode after yanking.
+        """
+        s = self._current_widget().selectedText()
+        if not self._current_widget().hasSelection() or len(s) == 0:
+            message.info(self._win_id, "Nothing to yank")
+            return
+
+        clipboard = QApplication.clipboard()
+        if sel and clipboard.supportsSelection():
+            mode = QClipboard.Selection
+            target = "primary selection"
+        else:
+            mode = QClipboard.Clipboard
+            target = "clipboard"
+        log.misc.debug("Yanking to {}: '{}'".format(target, s))
+        clipboard.setText(s, mode)
+        message.info(self._win_id, "{} {} yanked to {}".format(
+            len(s), "char" if len(s) == 1 else "chars", target))
+        if not keep:
+            modeman.leave(self._win_id, KeyMode.caret, "yank selected")
+
+    @cmdutils.register(instance='command-dispatcher', hide=True,
+                       modes=[KeyMode.caret], scope='window')
+    def toggle_selection(self):
+        """Toggle caret selection mode."""
+        widget = self._current_widget()
+        widget.selection_enabled = not widget.selection_enabled
+        mainwindow = objreg.get('main-window', scope='window',
+                                window=self._win_id)
+        mainwindow.status.set_mode_active(usertypes.KeyMode.caret, True)
+
+    @cmdutils.register(instance='command-dispatcher', hide=True,
+                       modes=[KeyMode.caret], scope='window')
+    def drop_selection(self):
+        """Drop selection and keep selection mode enabled."""
+        self._current_widget().triggerPageAction(QWebPage.MoveToNextChar)
 
     @cmdutils.register(instance='command-dispatcher', scope='window',
                        count='count', debug=True)

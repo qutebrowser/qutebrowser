@@ -13,7 +13,7 @@
    height="640"
    id="svg2"
    sodipodi:version="0.32"
-   inkscape:version="0.91 r13725"
+   inkscape:version="0.48.5 r10040"
    version="1.0"
    sodipodi:docname="cheatsheet.svg"
    inkscape:output_extension="org.inkscape.output.svg.inkscape"
@@ -33,16 +33,16 @@
      inkscape:pageopacity="0.0"
      inkscape:pageshadow="2"
      inkscape:zoom="0.8791156"
-     inkscape:cx="641.54005"
-     inkscape:cy="233.0095"
+     inkscape:cx="768.67127"
+     inkscape:cy="133.80749"
      inkscape:document-units="px"
      inkscape:current-layer="layer1"
      width="1024px"
      height="640px"
      showgrid="false"
-     inkscape:window-width="1366"
-     inkscape:window-height="768"
-     inkscape:window-x="0"
+     inkscape:window-width="636"
+     inkscape:window-height="536"
+     inkscape:window-x="2560"
      inkscape:window-y="0"
      showguides="true"
      inkscape:guide-bbox="true"
@@ -1939,7 +1939,7 @@
          x="542.06946"
          sodipodi:role="line"
          id="tspan4938"
-         style="font-size:8px">scoll</tspan><tspan
+         style="font-size:8px">scroll</tspan><tspan
          y="276.1955"
          x="542.06946"
          sodipodi:role="line"
@@ -3326,27 +3326,15 @@
          style="font-size:8px">tab</tspan></text>
     <text
        xml:space="preserve"
-       style="font-style:normal;font-variant:normal;font-weight:bold;font-stretch:normal;font-size:8px;line-height:89.99999762%;font-family:TlwgTypewriter;text-align:start;writing-mode:lr-tb;text-anchor:start;fill:#000000;fill-opacity:1;stroke:none"
-       x="267.67316"
-       y="326.20523"
+       style="font-style:normal;font-variant:normal;font-weight:bold;font-stretch:normal;font-size:8px;line-height:89.99999762%;font-family:TlwgTypewriter;text-align:start;writing-mode:lr-tb;text-anchor:start;fill:#ff0000;fill-opacity:1;stroke:none"
+       x="274.21381"
+       y="343.17578"
        id="text10547-23-6-7"
        sodipodi:linespacing="89.999998%"><tspan
          sodipodi:role="line"
-         x="267.67316"
-         y="326.20523"
-         id="tspan10560-1-3-1" /><tspan
-         sodipodi:role="line"
-         x="267.67316"
-         y="333.40524"
-         id="tspan5325">co: close</tspan><tspan
-         sodipodi:role="line"
-         x="267.67316"
-         y="340.60522"
-         id="tspan10562-12-5-98">other tabs</tspan><tspan
-         sodipodi:role="line"
-         x="267.67316"
-         y="347.80524"
-         id="tspan4045">cd: clea</tspan></text>
+         x="274.21381"
+         y="343.17578"
+         id="tspan4052">(10)</tspan></text>
     <text
        sodipodi:linespacing="89.999998%"
        id="text10564-6-7-8-0"
@@ -3471,5 +3459,20 @@
          y="177.63554"
          style="font-size:8px"
          id="tspan3719">cache)</tspan></text>
+    <text
+       sodipodi:linespacing="89.999998%"
+       id="text9514-60-7-7-0-8"
+       y="338.04874"
+       x="342.42523"
+       style="font-style:normal;font-variant:normal;font-weight:bold;font-stretch:normal;font-size:8px;line-height:89.99999762%;font-family:TlwgTypewriter;text-align:start;writing-mode:lr-tb;text-anchor:start;fill:#000000;fill-opacity:1;stroke:none"
+       xml:space="preserve"><tspan
+         y="338.04874"
+         x="342.42523"
+         sodipodi:role="line"
+         id="tspan5689-6">visual</tspan><tspan
+         y="345.24875"
+         x="342.42523"
+         sodipodi:role="line"
+         id="tspan4112">mode</tspan></text>
   </g>
 </svg>

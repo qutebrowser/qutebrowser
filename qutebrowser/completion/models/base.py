@@ -109,7 +109,8 @@ class BaseCompletionModel(QStandardItemModel):
         qtutils.ensure_valid(index)
         if index.parent().isValid():
             # item
-            return Qt.ItemIsEnabled | Qt.ItemIsSelectable
+            return (Qt.ItemIsEnabled | Qt.ItemIsSelectable |
+                    Qt.ItemNeverHasChildren)
         else:
             # category
             return Qt.NoItemFlags
