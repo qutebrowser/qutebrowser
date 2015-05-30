@@ -144,10 +144,10 @@ Contributors, sorted by the number of commits in descending order:
 * John ShaggyTwoDope Jenkins
 * Jimmy
 * Zach-Button
+* Martin Tournoij
 * rikn00
 * Patric Schmitz
 * Martin Zimmermann
-* Martin Tournoij
 * Error 800
 * Brian Jackson
 * sbinix
