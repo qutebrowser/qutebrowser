@@ -986,9 +986,15 @@ class CommandDispatcher:
         self._open(url, tab, bg, window)
 
     @cmdutils.register(instance='command-dispatcher', name='select-follow', scope='window')
-    def select_follow(self):
-        """Follow the selected text."""
+    def select_follow(self, tab=False):
+        """Follow the selected text.
+
+        Args:
+            tab: Load the selected link in a new tab.
+        """
         widget = self._current_widget()
+        if tab:
+            widget.page().open_target = usertypes.ClickTarget.tab
         widget.page().currentFrame().evaluateJavaScript('window.getSelection().anchorNode.parentNode.click()')
 
     @cmdutils.register(instance='command-dispatcher', name='inspector',
