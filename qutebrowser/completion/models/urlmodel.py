@@ -103,8 +103,8 @@ class UrlCompletionModel(base.BaseCompletionModel):
         """
         index0 = self.index(row, 0, parent)
         index1 = self.index(row, 1, parent)
-        url = self.data(index0)
-        title = self.data(index1)
+        url = self.data(index0) or ''
+        title = self.data(index1) or ''
         return pattern in url.casefold() or pattern in title.casefold()
 
     @config.change_filter('completion', 'timestamp-format')
