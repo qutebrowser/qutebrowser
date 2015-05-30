@@ -228,12 +228,14 @@ class CompletionView(QTreeView):
                        modes=[usertypes.KeyMode.command], scope='window')
     def completion_item_prev(self):
         """Select the previous completion item."""
+        self._open_completion_if_needed()
         self._next_prev_item(prev=True)
 
     @cmdutils.register(instance='completion', hide=True,
                        modes=[usertypes.KeyMode.command], scope='window')
     def completion_item_next(self):
         """Select the next completion item."""
+        self._open_completion_if_needed()
         self._next_prev_item(prev=False)
 
     def selectionChanged(self, selected, deselected):
@@ -255,3 +257,22 @@ class CompletionView(QTreeView):
         if scrollbar is not None:
             scrollbar.setValue(scrollbar.minimum())
         super().showEvent(e)
+
+    def hide(self):
+        if config.get('completion', 'auto-open') == False:
+            cmd = objreg.get('status-command', scope='window', window=self._win_id)
+            try:
+                cmd.cursorPositionChanged.disconnect(cmd.update_completion)
+                cmd.textChanged.disconnect(cmd.update_completion)
+            # Don't fail if not connected yet
+            except TypeError:
+                pass
+        super().hide()
+
+    def _open_completion_if_needed(self):
+        if config.get('completion', 'auto-open') == False:
+            update_completion = pyqtSignal()
+            cmd = objreg.get('status-command', scope='window', window=self._win_id)
+            cmd.cursorPositionChanged.connect(cmd.update_completion)
+            cmd.textChanged.connect(cmd.update_completion)
+            cmd.update_completion.emit()
