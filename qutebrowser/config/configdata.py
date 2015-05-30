@@ -935,31 +935,32 @@ def data(readonly=False):
              "Background color for the download bar."),
 
             ('downloads.fg.start',
-             SettingValue(typ.QtColor(), '#0000aa'),
-             "Color gradient start for downloads."),
+             SettingValue(typ.QtColor(), 'white'),
+             "Color gradient start for download foreground text."),
 
             ('downloads.bg.start',
              SettingValue(typ.QtColor(), '#0000aa'),
-             "Color gradient start for downloads."),
+             "Color gradient start for download background."),
 
             ('downloads.fg.stop',
-             SettingValue(typ.QtColor(), '#00aa00'),
-             "Color gradient end for downloads."),
+             SettingValue(typ.QtColor(), '${downloads.fg.start}'),
+             "Color gradient end for download foreground text."),
 
             ('downloads.bg.stop',
              SettingValue(typ.QtColor(), '#00aa00'),
-             "Color gradient end for downloads."),
+             "Color gradient stop for download background."),
 
             ('downloads.fg.system',
              SettingValue(typ.ColorSystem(), 'rgb'),
-             "Color gradient interpolation system for downloads."),
+             "Color gradient interpolation system for download foreground"
+             "text."),
 
             ('downloads.bg.system',
              SettingValue(typ.ColorSystem(), 'rgb'),
-             "Color gradient interpolation system for downloads."),
+             "Color gradient interpolation system for download background."),
 
             ('downloads.fg.error',
-             SettingValue(typ.QtColor(), 'red'),
+             SettingValue(typ.QtColor(), 'white'),
              "Foreground color for downloads with errors."),
 
             ('downloads.bg.error',
