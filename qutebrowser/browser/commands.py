@@ -1003,12 +1003,15 @@ class CommandDispatcher:
             widget.page().currentFrame().evaluateJavaScript(
                 'window.getSelection().anchorNode.parentNode.click()')
         else:
-            selected_element = ElementTree.fromstring(
-                '<html>' + widget.selectedHtml() + '</html>').find('a')
-            if selected_element is not None:
-                url = selected_element.attrib['href']
-                if url:
-                    self._open(QUrl(url), tab)
+            try:
+                selected_element = ElementTree.fromstring(
+                    '<html>' + widget.selectedHtml() + '</html>').find('a')
+                if selected_element is not None:
+                    url = selected_element.attrib['href']
+                    if url:
+                        self._open(QUrl(url), tab)
+            except ElementTree.ParseError:
+                pass
 
     @cmdutils.register(instance='command-dispatcher', name='inspector',
                        scope='window')
