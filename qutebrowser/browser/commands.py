@@ -985,6 +985,12 @@ class CommandDispatcher:
         url = objreg.get('quickmark-manager').get(name)
         self._open(url, tab, bg, window)
 
+    @cmdutils.register(instance='command-dispatcher', name='select-follow', scope='window')
+    def select_follow(self):
+        """Follow the selected text."""
+        widget = self._current_widget()
+        widget.page().currentFrame().evaluateJavaScript('window.getSelection().anchorNode.parentNode.click()')
+
     @cmdutils.register(instance='command-dispatcher', name='inspector',
                        scope='window')
     def toggle_inspector(self):
