@@ -101,7 +101,7 @@ class CompletionView(QTreeView):
         self.enabled = config.get('completion', 'show')
         objreg.get('config').changed.connect(self.set_enabled)
         # FIXME handle new aliases.
-        #objreg.get('config').changed.connect(self.init_command_completion)
+        # objreg.get('config').changed.connect(self.init_command_completion)
 
         self._delegate = completiondelegate.CompletionItemDelegate(self)
         self.setItemDelegate(self._delegate)
@@ -259,20 +259,24 @@ class CompletionView(QTreeView):
         super().showEvent(e)
 
     def hide(self):
-        if config.get('completion', 'auto-open') == False:
-            cmd = objreg.get('status-command', scope='window', window=self._win_id)
-            try:
-                cmd.cursorPositionChanged.disconnect(cmd.update_completion)
-                cmd.textChanged.disconnect(cmd.update_completion)
-            # Don't fail if not connected yet
-            except TypeError:
-                pass
         super().hide()
+
+        if config.get('completion', 'auto-open') == True:
+            return
+
+        cmd = objreg.get('status-command', scope='window', window=self._win_id)
+        try:
+            cmd.cursorPositionChanged.disconnect(cmd.update_completion)
+            cmd.textChanged.disconnect(cmd.update_completion)
+        # Don't fail if not connected
+        except TypeError:
+            pass
 
     def _open_completion_if_needed(self):
         if config.get('completion', 'auto-open') == False:
             update_completion = pyqtSignal()
-            cmd = objreg.get('status-command', scope='window', window=self._win_id)
+            cmd = objreg.get('status-command', scope='window',
+                             window=self._win_id)
             cmd.cursorPositionChanged.connect(cmd.update_completion)
             cmd.textChanged.connect(cmd.update_completion)
             cmd.update_completion.emit()
