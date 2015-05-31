@@ -1009,13 +1009,19 @@ multiplier
 
 [[scroll-page]]
 === scroll-page
-Syntax: +:scroll-page 'x' 'y'+
+Syntax: +:scroll-page [*--top-navigate* 'ACTION'] [*--bottom-navigate* 'ACTION'] 'x' 'y'+
 
 Scroll the frame page-wise.
 
 ==== positional arguments
 * +'x'+: How many pages to scroll to the right.
 * +'y'+: How many pages to scroll down.
+
+==== optional arguments
+* +*-t*+, +*--top-navigate*+: :navigate action (prev, decrement) to run when scrolling up at the top of the page.
+
+* +*-b*+, +*--bottom-navigate*+: :navigate action (next, increment) to run when scrolling down at the bottom of the page.
+
 
 ==== count
 multiplier
