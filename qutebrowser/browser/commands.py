@@ -661,7 +661,8 @@ class CommandDispatcher:
             count: multiplier
         """
         frame = self._current_widget().page().currentFrame()
-        if not frame.url().isValid():  # Issue 701
+        if not frame.url().isValid():
+            # See https://github.com/The-Compiler/qutebrowser/issues/701
             return
 
         if (bottom_navigate is not None and
