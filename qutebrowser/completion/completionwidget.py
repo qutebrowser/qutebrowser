@@ -99,7 +99,7 @@ class CompletionView(QTreeView):
         objreg.register('completer', completer_obj, scope='window',
                         window=win_id)
         self.enabled = config.get('completion', 'show')
-        objreg.get('config').changed.connect(self.set_enabled)
+        objreg.get('config').changed.connect(self.on_config_changed)
         # FIXME handle new aliases.
         # objreg.get('config').changed.connect(self.init_command_completion)
 
@@ -211,10 +211,11 @@ class CompletionView(QTreeView):
         if config.get('completion', 'shrink'):
             self.resize_completion.emit()
 
-    @config.change_filter('completion', 'show')
-    def set_enabled(self):
+    @config.change_filter('completion')
+    def on_config_changed(self):
         """Update self.enabled when the config changed."""
         self.enabled = config.get('completion', 'show')
+        self._set_auto_open(config.get('completion', 'auto-open'))
 
     @pyqtSlot()
     def on_clear_completion_selection(self):
@@ -223,6 +224,8 @@ class CompletionView(QTreeView):
         if selmod is not None:
             selmod.clearSelection()
             selmod.clearCurrentIndex()
+
+        self._set_auto_open(config.get('completion', 'auto-open'))
 
     @cmdutils.register(instance='completion', hide=True,
                        modes=[usertypes.KeyMode.command], scope='window')
@@ -258,25 +261,20 @@ class CompletionView(QTreeView):
             scrollbar.setValue(scrollbar.minimum())
         super().showEvent(e)
 
-    def hide(self):
-        super().hide()
-
-        if config.get('completion', 'auto-open') == True:
-            return
-
-        cmd = objreg.get('status-command', scope='window', window=self._win_id)
-        try:
-            cmd.cursorPositionChanged.disconnect(cmd.update_completion)
-            cmd.textChanged.disconnect(cmd.update_completion)
-        # Don't fail if not connected
-        except TypeError:
-            pass
-
     def _open_completion_if_needed(self):
-        if config.get('completion', 'auto-open') == False:
-            update_completion = pyqtSignal()
-            cmd = objreg.get('status-command', scope='window',
-                             window=self._win_id)
+        self._set_auto_open(not config.get('completion', 'auto-open'))
+
+    def _set_auto_open(self, enabled):
+        cmd = objreg.get('status-command', scope='window', window=self._win_id)
+
+        if enabled:
             cmd.cursorPositionChanged.connect(cmd.update_completion)
             cmd.textChanged.connect(cmd.update_completion)
             cmd.update_completion.emit()
+        else:
+            try:
+                cmd.cursorPositionChanged.disconnect(cmd.update_completion)
+                cmd.textChanged.disconnect(cmd.update_completion)
+            # Don't fail if not connected
+            except TypeError:
+                pass
