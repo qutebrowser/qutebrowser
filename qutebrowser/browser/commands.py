@@ -987,9 +987,9 @@ class CommandDispatcher:
         url = objreg.get('quickmark-manager').get(name)
         self._open(url, tab, bg, window)
 
-    @cmdutils.register(instance='command-dispatcher', name='select-follow',
+    @cmdutils.register(instance='command-dispatcher', hide=True,
                        scope='window')
-    def select_follow(self, tab=False):
+    def follow_selected(self, tab=False):
         """Follow the selected text.
 
         Args:
