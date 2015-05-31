@@ -184,7 +184,7 @@ def _get_command_doc_args(cmd, parser):
                 yield "* +'{}'+: {}".format(name, parser.arg_descs[arg])
             except KeyError as e:
                 raise KeyError("No description for arg {} of command "
-                               "'{}'!".format(e, cmd.name))
+                               "'{}'!".format(e, cmd.name)) from e
 
     if cmd.opt_args:
         yield ""
@@ -193,9 +193,9 @@ def _get_command_doc_args(cmd, parser):
             try:
                 yield '* +*{}*+, +*{}*+: {}'.format(short_flag, long_flag,
                                                     parser.arg_descs[arg])
-            except KeyError:
+            except KeyError as e:
                 raise KeyError("No description for arg {} of command "
-                               "'{}'!".format(e, cmd.name))
+                               "'{}'!".format(e, cmd.name)) from e
 
 
 def _get_command_doc_count(cmd, parser):
@@ -213,9 +213,9 @@ def _get_command_doc_count(cmd, parser):
         yield "==== count"
         try:
             yield parser.arg_descs[cmd.count_arg]
-        except KeyError:
+        except KeyError as e:
             raise KeyError("No description for count arg {!r} of command "
-                           "{!r}!".format(cmd.count_arg, cmd.name))
+                           "{!r}!".format(cmd.count_arg, cmd.name)) from e
 
 
 def _get_command_doc_notes(cmd):

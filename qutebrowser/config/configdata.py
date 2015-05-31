@@ -305,6 +305,10 @@ def data(readonly=False):
              SettingValue(typ.Bool(), 'false'),
              "Whether to hide the mouse cursor."),
 
+            ('modal-js-dialog',
+             SettingValue(typ.Bool(), 'false'),
+             "Use standard JavaScript modal dialog for alert() and confirm()"),
+
             readonly=readonly
         )),
 
@@ -521,6 +525,10 @@ def data(readonly=False):
              "otherwise.\n"
              "* `{index}`: The index of this tab.\n"
              "* `{id}`: The internal tab ID of this tab."),
+
+            ('mousewheel-tab-switching',
+             SettingValue(typ.Bool(), 'true'),
+             "Switch between tabs using the mouse wheel."),
 
             readonly=readonly
         )),
@@ -1236,6 +1244,8 @@ KEY_DATA = collections.OrderedDict([
         ('stop', ['<Ctrl-s>']),
         ('print', ['<Ctrl-Alt-p>']),
         ('open qute:settings', ['Ss']),
+        ('follow-selected', ['<Return>']),
+        ('follow-selected -t', ['<Ctrl-Return>']),
     ])),
 
     ('insert', collections.OrderedDict([

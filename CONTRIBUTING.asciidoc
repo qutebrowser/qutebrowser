@@ -86,7 +86,7 @@ Useful utilities
 Checkers
 ~~~~~~~~
 
-qutbebrowser uses http://tox.readthedocs.org/en/latest/[tox] to run its
+qutebrowser uses http://tox.readthedocs.org/en/latest/[tox] to run its
 unittests and several linters/checkers.
 
 Currently, the following tools will be invoked when you run `tox`:

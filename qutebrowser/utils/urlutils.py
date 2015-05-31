@@ -94,6 +94,8 @@ def _is_url_naive(urlstr):
         True if the URL really is a URL, False otherwise.
     """
     url = qurl_from_user_input(urlstr)
+    assert url.isValid()
+
     if not utils.raises(ValueError, ipaddress.ip_address, urlstr):
         # Valid IPv4/IPv6 address
         return True
@@ -104,9 +106,7 @@ def _is_url_naive(urlstr):
     if not QHostAddress(urlstr).isNull():
         return False
 
-    if not url.isValid():
-        return False
-    elif '.' in url.host():
+    if '.' in url.host():
         return True
     else:
         return False
@@ -122,9 +122,7 @@ def _is_url_dns(urlstr):
         True if the URL really is a URL, False otherwise.
     """
     url = qurl_from_user_input(urlstr)
-    if not url.isValid():
-        log.url.debug("Invalid URL -> False")
-        return False
+    assert url.isValid()
 
     if (utils.raises(ValueError, ipaddress.ip_address, urlstr) and
             not QHostAddress(urlstr).isNull()):
@@ -246,16 +244,13 @@ def is_url(urlstr):
             return False
 
     if not qurl_userinput.isValid():
+        # This will also catch URLs containing spaces.
         return False
 
     if _has_explicit_scheme(qurl):
         # URLs with explicit schemes are always URLs
         log.url.debug("Contains explicit scheme")
         url = True
-    elif ' ' in urlstr:
-        # A URL will never contain a space
-        log.url.debug("Contains space -> no URL")
-        url = False
     elif qurl_userinput.host() in ('localhost', '127.0.0.1', '::1'):
         log.url.debug("Is localhost.")
         url = True
@@ -274,7 +269,7 @@ def is_url(urlstr):
     else:
         raise ValueError("Invalid autosearch value")
     log.url.debug("url = {}".format(url))
-    return url and qurl_userinput.isValid()
+    return url
 
 
 def qurl_from_user_input(urlstr):

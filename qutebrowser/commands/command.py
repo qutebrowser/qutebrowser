@@ -61,7 +61,8 @@ class Command:
     """
 
     AnnotationInfo = collections.namedtuple('AnnotationInfo',
-                                            ['kwargs', 'type', 'flag', 'hide'])
+                                            ['kwargs', 'type', 'flag', 'hide',
+                                             'metavar'])
 
     def __init__(self, *, handler, name, instance=None, maxsplit=None,
                  hide=False, completion=None, modes=None, not_modes=None,
@@ -257,10 +258,10 @@ class Command:
             pass
 
         if isinstance(typ, tuple):
-            pass
+            kwargs['metavar'] = annotation_info.metavar or param.name
         elif utils.is_enum(typ):
             kwargs['choices'] = [e.name.replace('_', '-') for e in typ]
-            kwargs['metavar'] = param.name
+            kwargs['metavar'] = annotation_info.metavar or param.name
         elif typ is bool:
             kwargs['action'] = 'store_true'
         elif typ is not None:
@@ -287,7 +288,7 @@ class Command:
             A list of args.
         """
         args = []
-        name = param.name.rstrip('_')
+        name = param.name.rstrip('_').replace('_', '-')
         shortname = annotation_info.flag or name[0]
         if len(shortname) != 1:
             raise ValueError("Flag '{}' of parameter {} (command {}) must be "
@@ -322,11 +323,12 @@ class Command:
                 flag: The short name/flag if overridden.
                 name: The long name if overridden.
         """
-        info = {'kwargs': {}, 'type': None, 'flag': None, 'hide': False}
+        info = {'kwargs': {}, 'type': None, 'flag': None, 'hide': False,
+                'metavar': None}
         if param.annotation is not inspect.Parameter.empty:
             log.commands.vdebug("Parsing annotation {}".format(
                 param.annotation))
-            for field in ('type', 'flag', 'name', 'hide'):
+            for field in ('type', 'flag', 'name', 'hide', 'metavar'):
                 if field in param.annotation:
                     info[field] = param.annotation[field]
             if 'nargs' in param.annotation:

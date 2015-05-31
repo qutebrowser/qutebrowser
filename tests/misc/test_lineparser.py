@@ -72,7 +72,7 @@ class LineParserWrapper:
         return True
 
 
-class TestableAppendLineParser(LineParserWrapper,
+class AppendLineParserTestable(LineParserWrapper,
                                lineparsermod.AppendLineParser):
 
     """Wrapper over AppendLineParser to make it testable."""
@@ -80,14 +80,14 @@ class TestableAppendLineParser(LineParserWrapper,
     pass
 
 
-class TestableLineParser(LineParserWrapper, lineparsermod.LineParser):
+class LineParserTestable(LineParserWrapper, lineparsermod.LineParser):
 
     """Wrapper over LineParser to make it testable."""
 
     pass
 
 
-class TestableLimitLineParser(LineParserWrapper,
+class LimitLineParserTestable(LineParserWrapper,
                               lineparsermod.LimitLineParser):
 
     """Wrapper over LimitLineParser to make it testable."""
@@ -137,7 +137,7 @@ class TestAppendLineParser:
     @pytest.fixture
     def lineparser(self):
         """Fixture to get an AppendLineParser for tests."""
-        lp = TestableAppendLineParser('this really', 'does not matter')
+        lp = AppendLineParserTestable('this really', 'does not matter')
         lp.new_data = self.BASE_DATA
         lp.save()
         return lp
@@ -178,7 +178,7 @@ class TestAppendLineParser:
 
     def test_get_recent_none(self):
         """Test get_recent with no data."""
-        linep = TestableAppendLineParser('this really', 'does not matter')
+        linep = AppendLineParserTestable('this really', 'does not matter')
         assert linep.get_recent() == []
 
     def test_get_recent_little(self, lineparser):

@@ -28,6 +28,7 @@ import sys
 import glob
 import subprocess
 import platform
+import filecmp
 
 
 class Error(Exception):
@@ -58,6 +59,22 @@ def get_ignored_files(directory, files):
     return filtered
 
 
+def needs_update(source, dest):
+    """Check if a file to be linked/copied needs to be updated."""
+    if os.path.islink(dest):
+        # No need to delete a link and relink -> skip this
+        return False
+    elif os.path.isdir(dest):
+        diffs = filecmp.dircmp(source, dest)
+        ignored = get_ignored_files(source, diffs.left_only)
+        has_new_files = set(ignored) != set(diffs.left_only)
+        return (has_new_files or diffs.right_only or
+                diffs.common_funny or diffs.diff_files or
+                diffs.funny_files)
+    else:
+        return not filecmp.cmp(source, dest)
+
+
 def link_pyqt(sys_path, venv_path):
     """Symlink the systemwide PyQt/sip into the venv.
 
@@ -70,28 +87,47 @@ def link_pyqt(sys_path, venv_path):
     if not globbed_sip:
         raise Error("Did not find sip in {}!".format(sys_path))
 
-    files = ['PyQt5']
-    files += [os.path.basename(e) for e in globbed_sip]
-    for fn in files:
+    files = [('PyQt5', True), ('sipconfig.py', False)]
+    files += [(os.path.basename(e), True) for e in globbed_sip]
+    for fn, required in files:
         source = os.path.join(sys_path, fn)
         dest = os.path.join(venv_path, fn)
+
         if not os.path.exists(source):
-            raise FileNotFoundError(source)
+            if required:
+                raise FileNotFoundError(source)
+            else:
+                continue
+
         if os.path.exists(dest):
-            if os.path.isdir(dest) and not os.path.islink(dest):
-                shutil.rmtree(dest)
+            if needs_update(source, dest):
+                remove(dest)
             else:
-                os.unlink(dest)
-        if os.name == 'nt':
-            if os.path.isdir(source):
-                shutil.copytree(source, dest, ignore=get_ignored_files,
-                                copy_function=verbose_copy)
-            else:
-                print('{} -> {}'.format(source, dest))
-                shutil.copy(source, dest)
+                continue
+
+        copy_or_link(source, dest)
+
+
+def copy_or_link(source, dest):
+    """Copy or symlink source to dest."""
+    if os.name == 'nt':
+        if os.path.isdir(source):
+            shutil.copytree(source, dest, ignore=get_ignored_files,
+                            copy_function=verbose_copy)
         else:
             print('{} -> {}'.format(source, dest))
-            os.symlink(source, dest)
+            shutil.copy(source, dest)
+    else:
+        print('{} -> {}'.format(source, dest))
+        os.symlink(source, dest)
+
+
+def remove(filename):
+    """Remove a given filename, regardless of whether it's a file or dir."""
+    if os.path.isdir(filename):
+        shutil.rmtree(filename)
+    else:
+        os.unlink(filename)
 
 
 def get_python_lib(executable, venv=False):
