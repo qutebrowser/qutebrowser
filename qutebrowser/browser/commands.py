@@ -997,6 +997,8 @@ class CommandDispatcher:
         """
         widget = self._current_widget()
         page = widget.page()
+        if not page.hasSelection():
+            return
         if QWebSettings.globalSettings().testAttribute(
                 QWebSettings.JavascriptEnabled):
             if tab:
