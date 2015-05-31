@@ -1239,6 +1239,8 @@ KEY_DATA = collections.OrderedDict([
         ('stop', ['<Ctrl-s>']),
         ('print', ['<Ctrl-Alt-p>']),
         ('open qute:settings', ['Ss']),
+        ('follow-selected', ['<Return>']),
+        ('follow-selected -t', ['<Ctrl-Return>']),
     ])),
 
     ('insert', collections.OrderedDict([
