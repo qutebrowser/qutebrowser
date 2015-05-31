@@ -996,11 +996,12 @@ class CommandDispatcher:
             tab: Load the selected link in a new tab.
         """
         widget = self._current_widget()
+        page = widget.page()
         if QWebSettings.globalSettings().testAttribute(
                 QWebSettings.JavascriptEnabled):
             if tab:
-                widget.page().open_target = usertypes.ClickTarget.tab
-            widget.page().currentFrame().evaluateJavaScript(
+                page.open_target = usertypes.ClickTarget.tab
+            page.currentFrame().evaluateJavaScript(
                 'window.getSelection().anchorNode.parentNode.click()')
         else:
             try:
