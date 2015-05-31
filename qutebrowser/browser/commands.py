@@ -652,8 +652,10 @@ class CommandDispatcher:
         Args:
             x: How many pages to scroll to the right.
             y: How many pages to scroll down.
-            bottom_navigate: :navigate to the next page on bottom
-            top_navigate: :navigate to the previous page on top
+            bottom_navigate: :navigate action (next, increment) to run when
+                             scrolling down at the bottom of the page.
+            top_navigate: :navigate action (prev, decrement) to run when
+                          scrolling up at the top of the page.
             count: multiplier
         """
         frame = self._current_widget().page().currentFrame()
