@@ -952,6 +952,8 @@ class CommandDispatcher:
                     raise cmdexc.CommandError("Error while spawning command")
             else:
                 proc.start(cmd, args)
+            if not quiet:
+                proc.finished.connect(self.on_process_finished)
 
     @pyqtSlot('QProcess::ProcessError')
     def on_process_error(self, error):
@@ -960,6 +962,13 @@ class CommandDispatcher:
         message.error(self._win_id,
                       "Error while spawning command: {}".format(msg),
                       immediately=True)
+
+    @pyqtSlot(int, 'QProcess::ExitStatus')
+    def on_process_finished(self, code, _status):
+        """Display an error if a :spawn'ed process exited with non-0 status."""
+        if code != 0:
+            message.error(self._win_id, "Spawned command exited with status "
+                          "{}!".format(code))
 
     @cmdutils.register(instance='command-dispatcher', scope='window')
     def home(self):
