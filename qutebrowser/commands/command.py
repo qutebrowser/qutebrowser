@@ -287,7 +287,7 @@ class Command:
             A list of args.
         """
         args = []
-        name = param.name.rstrip('_')
+        name = param.name.rstrip('_').replace('_', '-')
         shortname = annotation_info.flag or name[0]
         if len(shortname) != 1:
             raise ValueError("Flag '{}' of parameter {} (command {}) must be "

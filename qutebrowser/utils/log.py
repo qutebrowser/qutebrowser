@@ -269,8 +269,6 @@ def qt_message_handler(msg_type, context, msg):
         # https://bugreports.qt-project.org/browse/QTBUG-30298
         "QNetworkReplyImplPrivate::error: Internal problem, this method must "
         "only be called once.",
-        # Not much information about this, but it seems harmless
-        'QXcbWindow: Unhandled client message: "_GTK_LOAD_ICONTHEMES"',
         # Sometimes indicates missing text, but most of the time harmless
         "load glyph failed ",
         # Harmless, see https://bugreports.qt-project.org/browse/QTBUG-42479
@@ -282,7 +280,11 @@ def qt_message_handler(msg_type, context, msg):
         # Hopefully harmless
         '"Method "GetAll" with signature "s" on interface '
         '"org.freedesktop.DBus.Properties" doesn\'t exist',
-        'WOFF support requires QtWebKit to be built with zlib support.'
+        'WOFF support requires QtWebKit to be built with zlib support.',
+        # Weird Enlightment/GTK X extensions
+        'QXcbWindow: Unhandled client message: "_E_',
+        'QXcbWindow: Unhandled client message: "_ECORE_',
+        'QXcbWindow: Unhandled client message: "_GTK_',
     )
     if any(msg.strip().startswith(pattern) for pattern in suppressed_msgs):
         level = logging.DEBUG

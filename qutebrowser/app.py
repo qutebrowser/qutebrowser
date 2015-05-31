@@ -70,7 +70,7 @@ def run(args):
         sys.exit(usertypes.Exit.ok)
 
     if args.temp_basedir:
-        args.basedir = tempfile.mkdtemp()
+        args.basedir = tempfile.mkdtemp(prefix='qutebrowser-basedir-')
 
     quitter = Quitter(args)
     objreg.register('quitter', quitter)
