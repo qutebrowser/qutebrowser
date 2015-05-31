@@ -25,7 +25,7 @@ import shlex
 import subprocess
 import posixpath
 import functools
-from xml.etree import ElementTree
+import xml.etree.ElementTree
 
 from PyQt5.QtWebKit import QWebSettings
 from PyQt5.QtWidgets import QApplication, QTabBar
@@ -1004,13 +1004,13 @@ class CommandDispatcher:
                 'window.getSelection().anchorNode.parentNode.click()')
         else:
             try:
-                selected_element = ElementTree.fromstring(
+                selected_element = xml.etree.ElementTree.fromstring(
                     '<html>' + widget.selectedHtml() + '</html>').find('a')
                 if selected_element is not None:
                     url = selected_element.attrib['href']
                     if url:
                         self._open(QUrl(url), tab)
-            except ElementTree.ParseError:
+            except xml.etree.ElementTree.ParseError:
                 pass
 
     @cmdutils.register(instance='command-dispatcher', name='inspector',
