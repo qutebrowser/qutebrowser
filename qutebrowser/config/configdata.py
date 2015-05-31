@@ -305,6 +305,10 @@ def data(readonly=False):
              SettingValue(typ.Bool(), 'false'),
              "Whether to hide the mouse cursor."),
 
+            ('modal-js-dialog',
+             SettingValue(typ.Bool(), 'false'),
+             "Use standard JavaScript modal dialog for alert() and confirm()"),
+
             readonly=readonly
         )),
 
