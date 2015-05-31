@@ -89,6 +89,7 @@ class CompletionView(QTreeView):
     # https://github.com/The-Compiler/qutebrowser/issues/117
 
     resize_completion = pyqtSignal()
+    connected = None
 
     def __init__(self, win_id, parent=None):
         super().__init__(parent)
@@ -262,7 +263,8 @@ class CompletionView(QTreeView):
         super().showEvent(e)
 
     def _open_completion_if_needed(self):
-        self._set_auto_open(not config.get('completion', 'auto-open'))
+        if not config.get('completion', 'auto-open'):
+            self._set_auto_open(True)
 
     def _set_auto_open(self, enabled):
         cmd = objreg.get('status-command', scope='window', window=self._win_id)
@@ -270,8 +272,11 @@ class CompletionView(QTreeView):
         if enabled:
             cmd.cursorPositionChanged.connect(cmd.update_completion)
             cmd.textChanged.connect(cmd.update_completion)
-            cmd.update_completion.emit()
+            if self.connected == None:
+                cmd.update_completion_now.emit()
+                self.connected = True
         else:
+            self.connected = None
             try:
                 cmd.cursorPositionChanged.disconnect(cmd.update_completion)
                 cmd.textChanged.disconnect(cmd.update_completion)

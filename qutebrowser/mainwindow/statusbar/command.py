@@ -52,6 +52,7 @@ class Command(misc.MinimalLineEditMixin, misc.CommandLineEdit):
     clear_completion_selection = pyqtSignal()
     hide_completion = pyqtSignal()
     update_completion = pyqtSignal()
+    update_completion_now = pyqtSignal()
     show_cmd = pyqtSignal()
     hide_cmd = pyqtSignal()
 
