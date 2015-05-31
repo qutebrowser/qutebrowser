@@ -1014,7 +1014,8 @@ class CommandDispatcher:
                     url = selected_element.attrib['href']
                 except KeyError:
                     raise cmdexc.CommandError('Anchor elment without href!')
-                self._open(QUrl(url), tab)
+                url = self._current_url().resolved(QUrl(url))
+                self._open(url, tab)
 
     @cmdutils.register(instance='command-dispatcher', name='inspector',
                        scope='window')
