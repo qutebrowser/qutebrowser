@@ -643,14 +643,37 @@ class CommandDispatcher:
 
     @cmdutils.register(instance='command-dispatcher', hide=True,
                        scope='window', count='count')
-    def scroll_page(self, x: {'type': float}, y: {'type': float}, count=1):
+    def scroll_page(self, x: {'type': float}, y: {'type': float}, *,
+                    top_navigate: {'type': ('prev', 'decrement'),
+                                   'metavar': 'ACTION'}=None,
+                    bottom_navigate: {'type': ('next', 'increment'),
+                                      'metavar': 'ACTION'}=None,
+                    count=1):
         """Scroll the frame page-wise.
 
         Args:
             x: How many pages to scroll to the right.
             y: How many pages to scroll down.
+            bottom_navigate: :navigate action (next, increment) to run when
+                             scrolling down at the bottom of the page.
+            top_navigate: :navigate action (prev, decrement) to run when
+                          scrolling up at the top of the page.
             count: multiplier
         """
+        frame = self._current_widget().page().currentFrame()
+        if not frame.url().isValid():
+            # See https://github.com/The-Compiler/qutebrowser/issues/701
+            return
+
+        if (bottom_navigate is not None and
+                frame.scrollPosition().y() >=
+                frame.scrollBarMaximum(Qt.Vertical)):
+            self.navigate(bottom_navigate)
+            return
+        elif top_navigate is not None and frame.scrollPosition().y() == 0:
+            self.navigate(top_navigate)
+            return
+
         mult_x = count * x
         mult_y = count * y
         if mult_y.is_integer():
@@ -663,7 +686,6 @@ class CommandDispatcher:
             mult_y = 0
         if mult_x == 0 and mult_y == 0:
             return
-        frame = self._current_widget().page().currentFrame()
         size = frame.geometry()
         dx = mult_x * size.width()
         dy = mult_y * size.height()
