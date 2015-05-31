@@ -33,6 +33,9 @@ Added
 - New argument `--no-err-windows` to suppress all error windows.
 - New visual/caret mode (bound to `v`) to select text by keyboard.
 - New setting `tabs -> mousewheel-tab-switching` to control mousewheel behavior on the tab bar.
+- New arguments `--top-navigate` and `--bottom-navigate` (`-t`/`-b`) for `:scroll-page` to specify a navigation action (e.g. automatically go to the next page when arriving at the bottom).
+- New flag `-d`/`--detach` for `:spawn` to detach the spawned process so it's not closed when qutebrowser is.
+- New (hidden) command `:follow-selected` (bound to `Enter`/`Ctrl-Enter` by default) to follow the link which is currently selected (e.g. after searching via `/`).
 
 Changed
 ~~~~~~~
