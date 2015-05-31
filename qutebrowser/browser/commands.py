@@ -1007,12 +1007,14 @@ class CommandDispatcher:
                 selected_element = xml.etree.ElementTree.fromstring(
                     '<html>' + widget.selectedHtml() + '</html>').find('a')
             except xml.etree.ElementTree.ParseError:
-                raise cmdexc.CommandError('Parse error')
+                raise cmdexc.CommandError('Parse error!')
 
             if selected_element is not None:
-                url = selected_element.attrib['href']
-                if url:
-                    self._open(QUrl(url), tab)
+                try:
+                    url = selected_element.attrib['href']
+                except KeyError:
+                    raise cmdexc.CommandError('Anchor elment without href!')
+                self._open(QUrl(url), tab)
 
     @cmdutils.register(instance='command-dispatcher', name='inspector',
                        scope='window')
