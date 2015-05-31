@@ -922,7 +922,8 @@ class CommandDispatcher:
 
     @cmdutils.register(instance='command-dispatcher', scope='window',
                        win_id='win_id')
-    def spawn(self, win_id, userscript=False, quiet=False, *args):
+    def spawn(self, win_id, userscript=False, quiet=False, detach=False,
+              *args):
         """Spawn a command in a shell.
 
         Note the {url} variable which gets replaced by the current URL might be
@@ -931,6 +932,7 @@ class CommandDispatcher:
         Args:
             userscript: Run the command as an userscript.
             quiet: Don't print the commandline being executed.
+            detach: Whether the command should be detached from qutebrowser.
             *args: The commandline to execute.
         """
         log.procs.debug("Executing: {}, userscript={}".format(
@@ -944,7 +946,12 @@ class CommandDispatcher:
         else:
             proc = QProcess(self._tabbed_browser)
             proc.error.connect(self.on_process_error)
-            proc.start(cmd, args)
+            if detach:
+                ok = proc.startDetached(cmd, args)
+                if not ok:
+                    raise cmdexc.CommandError("Error while spawning command")
+            else:
+                proc.start(cmd, args)
 
     @pyqtSlot('QProcess::ProcessError')
     def on_process_error(self, error):
