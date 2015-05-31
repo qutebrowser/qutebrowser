@@ -361,6 +361,11 @@ class WebView(QWebView):
         message.info(self.win_id, "Zoom level: {}%".format(perc))
         self._default_zoom_changed = True
 
+    def setZoomFactor(self, fact):
+        self._zoom.fuzzyval = int(fact * 100)
+        super().setZoomFactor(fact)
+        self._default_zoom_changed = True
+
     def zoom(self, offset):
         """Increase/Decrease the zoom level.
 

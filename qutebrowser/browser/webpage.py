@@ -241,7 +241,7 @@ class BrowserPage(QWebPage):
         if cur_data is not None:
             frame = self.mainFrame()
             if 'zoom' in cur_data:
-                frame.setZoomFactor(cur_data['zoom'])
+                frame.page().view().setZoomFactor(cur_data['zoom'])
             if ('scroll-pos' in cur_data and
                     frame.scrollPosition() == QPoint(0, 0)):
                 QTimer.singleShot(0, functools.partial(
@@ -418,7 +418,7 @@ class BrowserPage(QWebPage):
         if data is None:
             return
         if 'zoom' in data:
-            frame.setZoomFactor(data['zoom'])
+            frame.page().view().setZoomFactor(data['zoom'])
         if 'scroll-pos' in data and frame.scrollPosition() == QPoint(0, 0):
             frame.setScrollPosition(data['scroll-pos'])
 
@@ -563,10 +563,10 @@ class BrowserPage(QWebPage):
             target = self.open_target
         self.open_target = usertypes.ClickTarget.normal
         if target == usertypes.ClickTarget.tab:
-            tabbed_browser.tabopen(url, False)
+            tabbed_browser.tabopen(url, False, zoom_factor=self.view().zoomFactor())
             return False
         elif target == usertypes.ClickTarget.tab_bg:
-            tabbed_browser.tabopen(url, True)
+            tabbed_browser.tabopen(url, True, zoom_factor=self.view().zoomFactor())
             return False
         elif target == usertypes.ClickTarget.window:
             from qutebrowser.mainwindow import mainwindow
@@ -574,7 +574,7 @@ class BrowserPage(QWebPage):
             window.show()
             tabbed_browser = objreg.get('tabbed-browser', scope='window',
                                         window=window.win_id)
-            tabbed_browser.tabopen(url, False)
+            tabbed_browser.tabopen(url, False, zoom_factor=self.view().zoomFactor())
             return False
         else:
             return True

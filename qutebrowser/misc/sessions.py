@@ -146,20 +146,13 @@ class SessionManager(QObject):
                 encoded = item.originalUrl().toEncoded()
                 item_data['original-url'] = bytes(encoded).decode('ascii')
             user_data = item.userData()
+
             if history.currentItemIndex() == idx:
                 item_data['active'] = True
-                if user_data is None:
-                    pos = tab.page().mainFrame().scrollPosition()
-                    data['zoom'] = tab.zoomFactor()
-                    data['scroll-pos'] = {'x': pos.x(), 'y': pos.y()}
+                pos = tab.page().mainFrame().scrollPosition()
+                data['scroll-pos'] = {'x': pos.x(), 'y': pos.y()}
+                data['zoom'] = tab.zoomFactor()
             data['history'].append(item_data)
-
-            if user_data is not None:
-                if 'zoom' in user_data:
-                    data['zoom'] = user_data['zoom']
-                if 'scroll-pos' in user_data:
-                    pos = user_data['scroll-pos']
-                    data['scroll-pos'] = {'x': pos.x(), 'y': pos.y()}
         return data
 
     def _save_all(self):
