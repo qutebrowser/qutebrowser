@@ -1125,6 +1125,12 @@ KEY_SECTION_DESC = {
         ""),
 }
 
+# Keys which are similiar to Return and should be bound by default where Return
+# is bound.
+
+RETURN_KEYS = ['<Return>', '<Ctrl-M>', '<Ctrl-J>', '<Shift-Return>', '<Enter>',
+               '<Shift-Enter>']
+
 
 KEY_DATA = collections.OrderedDict([
     ('!normal', collections.OrderedDict([
@@ -1243,8 +1249,8 @@ KEY_DATA = collections.OrderedDict([
         ('stop', ['<Ctrl-s>']),
         ('print', ['<Ctrl-Alt-p>']),
         ('open qute:settings', ['Ss']),
-        ('follow-selected', ['<Return>']),
-        ('follow-selected -t', ['<Ctrl-Return>']),
+        ('follow-selected', RETURN_KEYS),
+        ('follow-selected -t', ['<Ctrl-Return>', '<Ctrl-Enter>']),
     ])),
 
     ('insert', collections.OrderedDict([
@@ -1252,7 +1258,7 @@ KEY_DATA = collections.OrderedDict([
     ])),
 
     ('hint', collections.OrderedDict([
-        ('follow-hint', ['<Return>', '<Ctrl-M>', '<Ctrl-J>']),
+        ('follow-hint', RETURN_KEYS),
         ('hint --rapid links tab-bg', ['<Ctrl-R>']),
         ('hint links', ['<Ctrl-F>']),
         ('hint all tab-bg', ['<Ctrl-B>']),
@@ -1265,13 +1271,11 @@ KEY_DATA = collections.OrderedDict([
         ('command-history-next', ['<Ctrl-N>']),
         ('completion-item-prev', ['<Shift-Tab>', '<Up>']),
         ('completion-item-next', ['<Tab>', '<Down>']),
-        ('command-accept', ['<Return>', '<Ctrl-J>', '<Shift-Return>',
-                            '<Ctrl-M>']),
+        ('command-accept', RETURN_KEYS),
     ])),
 
     ('prompt', collections.OrderedDict([
-        ('prompt-accept', ['<Return>', '<Ctrl-J>', '<Shift-Return>',
-                           '<Ctrl-M>']),
+        ('prompt-accept', RETURN_KEYS),
         ('prompt-yes', ['y']),
         ('prompt-no', ['n']),
     ])),
@@ -1312,7 +1316,7 @@ KEY_DATA = collections.OrderedDict([
         ('move-to-start-of-document', ['gg']),
         ('move-to-end-of-document', ['G']),
         ('yank-selected -p', ['Y']),
-        ('yank-selected', ['y', '<Return>', '<Ctrl-J>']),
+        ('yank-selected', ['y'] + RETURN_KEYS),
         ('scroll left', ['H']),
         ('scroll down', ['J']),
         ('scroll up', ['K']),
