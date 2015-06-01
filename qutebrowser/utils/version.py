@@ -127,18 +127,8 @@ def _module_versions():
         A list of lines with version info.
     """
     lines = []
-    try:
-        import sipconfig  # pylint: disable=import-error,unused-variable
-    except ImportError:
-        lines.append('SIP: ?')
-    else:
-        try:
-            lines.append('SIP: {}'.format(
-                sipconfig.Configuration().sip_version_str))
-        except (AttributeError, TypeError):
-            log.misc.exception("Error while getting SIP version")
-            lines.append('SIP: ?')
     modules = collections.OrderedDict([
+        ('sip', ['SIP_VERSION_STR']),
         ('colorlog', []),
         ('colorama', ['VERSION', '__version__']),
         ('pypeg2', ['__version__']),
