@@ -79,6 +79,7 @@ Fixed
 - Workaround for qutebrowser not starting when there are NUL-bytes in the history (because of a currently unknown bug)
 - Fixed handling of keybindings containing Ctrl/Meta on OS X.
 - Fixed crash when downloading an URL without filename (e.g. magnet links) via "Save as...".
+- Fixed exception when starting qutebrowser with `:set` as argument.
 
 https://github.com/The-Compiler/qutebrowser/releases/tag/v0.2.1[v0.2.1]
 -----------------------------------------------------------------------
