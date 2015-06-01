@@ -1203,7 +1203,7 @@ KEY_DATA = collections.OrderedDict([
         ('set-cmd-text -s :quickmark-load', ['b']),
         ('set-cmd-text -s :quickmark-load -t', ['B']),
         ('set-cmd-text -s :quickmark-load -w', ['wb']),
-        ('bookmark', ['M']),
+        ('bookmark-add', ['M']),
         ('save', ['sf']),
         ('set-cmd-text -s :set', ['ss']),
         ('set-cmd-text -s :set -t', ['sl']),
