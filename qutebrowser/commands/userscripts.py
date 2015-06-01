@@ -148,7 +148,7 @@ class _BaseUserscriptRunner(QObject):
     def run(self, cmd, *args, env=None):
         """Run the userscript given.
 
-        Needs to be overridden by superclasses.
+        Needs to be overridden by subclasses.
 
         Args:
             cmd: The command to be started.
@@ -160,7 +160,7 @@ class _BaseUserscriptRunner(QObject):
     def on_proc_finished(self):
         """Called when the process has finished.
 
-        Needs to be overridden by superclasses.
+        Needs to be overridden by subclasses.
         """
         raise NotImplementedError
 

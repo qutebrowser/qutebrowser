@@ -183,7 +183,7 @@ class _CrashDialog(QDialog):
     def _init_text(self):
         """Initialize the main text to be displayed on an exception.
 
-        Should be extended by superclass to set the actual text."""
+        Should be extended by subclasses to set the actual text."""
         self._lbl = QLabel(wordWrap=True, openExternalLinks=True,
                            textInteractionFlags=Qt.LinksAccessibleByMouse)
         self._vbox.addWidget(self._lbl)
