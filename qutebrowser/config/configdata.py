@@ -1125,7 +1125,7 @@ KEY_SECTION_DESC = {
         ""),
 }
 
-# Keys which are similiar to Return and should be bound by default where Return
+# Keys which are similar to Return and should be bound by default where Return
 # is bound.
 
 RETURN_KEYS = ['<Return>', '<Ctrl-M>', '<Ctrl-J>', '<Shift-Return>', '<Enter>',
