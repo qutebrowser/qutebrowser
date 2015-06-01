@@ -221,6 +221,7 @@
 |<<colors-downloads.bg.stop,downloads.bg.stop>>|Color gradient end for downloads.
 |<<colors-downloads.bg.system,downloads.bg.system>>|Color gradient interpolation system for downloads.
 |<<colors-downloads.bg.error,downloads.bg.error>>|Background color for downloads with errors.
+|<<colors-webpage.bg,webpage.bg>>|Background color for webpages if unset (or empty to use the theme's color)
 |==============
 
 .Quick reference for section ``fonts''
@@ -1751,6 +1752,12 @@ Default: +pass:[rgb]+
 Background color for downloads with errors.
 
 Default: +pass:[red]+
+
+[[colors-webpage.bg]]
+=== webpage.bg
+Background color for webpages if unset (or empty to use the theme's color)
+
+Default: +pass:[white]+
 
 == fonts
 Fonts used for the UI, with optional style/weight/size.
