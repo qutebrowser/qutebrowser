@@ -24,6 +24,7 @@ import itertools
 import functools
 
 from PyQt5.QtCore import pyqtSignal, pyqtSlot, Qt, QTimer, QUrl
+from PyQt5.QtGui import QPalette
 from PyQt5.QtWidgets import QApplication, QStyleFactory
 from PyQt5.QtWebKit import QWebSettings
 from PyQt5.QtWebKitWidgets import QWebView, QWebPage
@@ -108,6 +109,7 @@ class WebView(QWebView):
         self.search_flags = 0
         self.selection_enabled = False
         self.init_neighborlist()
+        self._set_bg_color()
         cfg = objreg.get('config')
         cfg.changed.connect(self.init_neighborlist)
         # For some reason, this signal doesn't get disconnected automatically
@@ -181,6 +183,15 @@ class WebView(QWebView):
         self.load_status = val
         self.load_status_changed.emit(val.name)
 
+    def _set_bg_color(self):
+        """Set the webpage background color as configured."""
+        col = config.get('colors', 'webpage.bg')
+        palette = self.palette()
+        if col is None:
+            col = self.style().standardPalette().color(QPalette.Base)
+        palette.setColor(QPalette.Base, col)
+        self.setPalette(palette)
+
     @pyqtSlot(str, str)
     def on_config_changed(self, section, option):
         """Reinitialize the zoom neighborlist if related config changed."""
@@ -195,6 +206,8 @@ class WebView(QWebView):
                 self.setContextMenuPolicy(Qt.PreventContextMenu)
             else:
                 self.setContextMenuPolicy(Qt.DefaultContextMenu)
+        elif section == 'colors' and option == 'webpage.bg':
+            self._set_bg_color()
 
     def init_neighborlist(self):
         """Initialize the _zoom neighborlist."""
