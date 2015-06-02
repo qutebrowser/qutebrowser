@@ -606,7 +606,7 @@ class Quitter:
             # event loop, so we can shut down immediately.
             self._shutdown(status)
 
-    def _shutdown(self, status):  # noqa
+    def _shutdown(self, status):
         """Second stage of shutdown."""
         log.destroy.debug("Stage 2 of shutting down...")
         if qApp is None:

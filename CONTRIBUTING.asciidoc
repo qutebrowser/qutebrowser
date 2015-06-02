@@ -93,7 +93,9 @@ Currently, the following tools will be invoked when you run `tox`:
 
 * Unit tests using the Python
 https://docs.python.org/3.4/library/unittest.html[unittest] framework
-* https://pypi.python.org/pypi/flake8/[flake8]
+* https://pypi.python.org/pypi/pyflakes[pyflakes] via https://pypi.python.org/pypi/pytest-flakes[pytest-flakes]
+* https://pypi.python.org/pypi/pep8[pep8] via https://pypi.python.org/pypi/pytest-pep8[pytest-pep8]
+* https://pypi.python.org/pypi/mccabe[mccabe] via https://pypi.python.org/pypi/pytest-mccabe[pytest-mccabe]
 * https://github.com/GreenSteam/pep257/[pep257]
 * http://pylint.org/[pylint]
 * https://pypi.python.org/pypi/pyroma/[pyroma]

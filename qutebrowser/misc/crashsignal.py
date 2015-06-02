@@ -190,7 +190,7 @@ class CrashHandler(QObject):
             objects = ""
         return ExceptionInfo(pages, cmd_history, objects)
 
-    def exception_hook(self, exctype, excvalue, tb):  # noqa
+    def exception_hook(self, exctype, excvalue, tb):
         """Handle uncaught python exceptions.
 
         It'll try very hard to write all open tabs to a file, and then exit
