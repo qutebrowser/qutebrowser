@@ -171,7 +171,7 @@ class UrlCompletionModel(base.BaseCompletionModel):
             url: The url of the bookmark which has been removed.
         """
         for i in range(self._bookmark_cat.rowCount()):
-            url_item = self._bookmark_cat.child(i, 1)
+            url_item = self._bookmark_cat.child(i, 0)
             if url_item.data(Qt.DisplayRole) == url:
                 self._bookmark_cat.removeRow(i)
                 break
