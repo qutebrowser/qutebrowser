@@ -24,8 +24,9 @@ import collections
 
 from PyQt5.QtCore import pyqtSignal, QUrl
 from PyQt5.QtWebKit import QWebHistoryInterface
+from PyQt5.QtWidgets import QApplication
 
-from qutebrowser.utils import utils, objreg, standarddir, log
+from qutebrowser.utils import utils, objreg, standarddir, log, debug
 from qutebrowser.config import config
 from qutebrowser.misc import lineparser
 
@@ -67,6 +68,9 @@ class WebHistory(QWebHistoryInterface):
         _history_dict: An OrderedDict of URLs read from the on-disk history.
         _new_history: A list of HistoryEntry items of the current session.
         _saved_count: How many HistoryEntries have been written to disk.
+        _initial_read_done: Whether read_history was called.
+        _temp_history: OrderedDict of temporary history entries before
+                       read_history was called.
 
     Signals:
         item_about_to_be_added: Emitted before a new HistoryEntry is added.
@@ -80,10 +84,11 @@ class WebHistory(QWebHistoryInterface):
 
     def __init__(self, parent=None):
         super().__init__(parent)
+        self._initial_read_done = False
         self._lineparser = lineparser.AppendLineParser(
             standarddir.data(), 'history', parent=self)
         self._history_dict = collections.OrderedDict()
-        self._read_history()
+        self._temp_history = collections.OrderedDict()
         self._new_history = []
         self._saved_count = 0
         objreg.get('save-manager').add_saveable(
@@ -101,12 +106,15 @@ class WebHistory(QWebHistoryInterface):
     def __len__(self):
         return len(self._history_dict)
 
-    def _read_history(self):
+    def read_history(self):
         """Read the initial history."""
+        if self._initial_read_done:
+            raise AssertionError("Calling read_history twice")
         if standarddir.data() is None:
             return
         with self._lineparser.open():
             for line in self._lineparser:
+                QApplication.processEvents()
                 data = line.rstrip().split(maxsplit=1)
                 if not data:
                     # empty line
@@ -128,8 +136,22 @@ class WebHistory(QWebHistoryInterface):
                 # information about previous hits change the items in
                 # old_urls to be lists or change HistoryEntry to have a
                 # list of atimes.
-                self._history_dict[url] = HistoryEntry(atime, url)
-                self._history_dict.move_to_end(url)
+                entry = HistoryEntry(atime, url)
+                self._add_entry(entry)
+            for url, entry in self._temp_history.items():
+                entry = HistoryEntry(atime, url)
+                self._new_history.append(entry)
+                self._add_entry(entry)
+            # FIXME we don't emit item_about_to_be_added/item_added here, but
+            # probably we should initialize the completion empty and then emit
+            # some signal when the history is available
+
+    def _add_entry(self, entry, target=None):
+        """Add an entry to self._history_dict or another given OrderedDict."""
+        if target is None:
+            target = self._history_dict
+        target[entry.url_string] = entry
+        target.move_to_end(entry.url_string)
 
     def get_recent(self):
         """Get the most recent history entries."""
@@ -151,13 +173,16 @@ class WebHistory(QWebHistoryInterface):
         """
         if not url_string:
             return
-        if not config.get('general', 'private-browsing'):
-            entry = HistoryEntry(time.time(), url_string)
+        if config.get('general', 'private-browsing'):
+            return
+        entry = HistoryEntry(time.time(), url_string)
+        if self._initial_read_done:
             self.item_about_to_be_added.emit(entry)
             self._new_history.append(entry)
-            self._history_dict[url_string] = entry
-            self._history_dict.move_to_end(url_string)
+            self._add_entry(entry)
             self.item_added.emit(entry)
+        else:
+            self._add_entry(entry, target=self._temp_history)
 
     def historyContains(self, url_string):
         """Called by WebKit to determine if an URL is contained in the history.
