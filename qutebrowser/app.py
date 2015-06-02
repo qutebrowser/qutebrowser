@@ -50,7 +50,7 @@ from qutebrowser.mainwindow import mainwindow
 from qutebrowser.misc import readline, ipc, savemanager, sessions, crashsignal
 from qutebrowser.misc import utilcmds  # pylint: disable=unused-import
 from qutebrowser.utils import (log, version, message, utils, qtutils, urlutils,
-                               objreg, usertypes, standarddir, error)
+                               objreg, usertypes, standarddir, error, debug)
 # We import utilcmds to run the cmdutils.register decorators.
 
 
@@ -148,7 +148,9 @@ def init(args, crash_handler):
         error.handle_fatal_exc(e, args, "Error while initializing!",
                                pre_text="Error while initializing")
         sys.exit(usertypes.Exit.err_init)
+
     QTimer.singleShot(0, functools.partial(_process_args, args))
+    QTimer.singleShot(10, functools.partial(_init_late_modules, args))
 
     log.init.debug("Initializing eventfilter...")
     event_filter = EventFilter(qApp)
@@ -426,6 +428,23 @@ def _init_modules(args, crash_handler):
     log.init.debug("Misc initialization...")
     _maybe_hide_mouse_cursor()
     objreg.get('config').changed.connect(_maybe_hide_mouse_cursor)
+
+
+def _init_late_modules(args):
+    """Initialize modules which can be inited after the window is shown."""
+    try:
+        log.init.debug("Reading web history...")
+        reader = objreg.get('web-history').async_read()
+        with debug.log_time(log.init, 'Reading history'):
+            while True:
+                QApplication.processEvents()
+                next(reader)
+    except StopIteration:
+        pass
+    except (OSError, UnicodeDecodeError) as e:
+        error.handle_fatal_exc(e, args, "Error while initializing!",
+                               pre_text="Error while initializing")
+        sys.exit(usertypes.Exit.err_init)
 
 
 class Quitter:
