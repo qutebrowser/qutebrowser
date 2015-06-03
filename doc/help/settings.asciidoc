@@ -151,6 +151,7 @@
 |<<content-local-content-can-access-file-urls,local-content-can-access-file-urls>>|Whether locally loaded documents are allowed to access other local urls.
 |<<content-cookies-accept,cookies-accept>>|Whether to accept cookies.
 |<<content-cookies-store,cookies-store>>|Whether to store cookies.
+|<<content-third-party-cookie-policy,third-party-cookie-policy>>|Accept cookies from domains other than the main website
 |<<content-host-block-lists,host-block-lists>>|List of URLs of lists which contain hosts to block.
 |<<content-host-blocking-enabled,host-blocking-enabled>>|Whether host blocking is enabled.
 |==============
@@ -1335,6 +1336,18 @@ Valid values:
  * +false+
 
 Default: +pass:[true]+
+
+[[content-third-party-cookie-policy]]
+=== third-party-cookie-policy
+Accept cookies from domains other than the main website
+
+Valid values:
+
+ * +always+: Always accept.
+ * +never+: Never accept.
+ * +existing+: Only accept if we already have acookie stored for the domain
+
+Default: +pass:[never]+
 
 [[content-host-block-lists]]
 === host-block-lists

@@ -681,6 +681,10 @@ def data(readonly=False):
              SettingValue(typ.Bool(), 'true'),
              "Whether to store cookies."),
 
+            ('third-party-cookie-policy',
+             SettingValue(typ.ThirdPartyCookiePolicy(), 'never'),
+             "Accept cookies from domains other than the main website"),
+
             ('host-block-lists',
              SettingValue(
                  typ.UrlList(none_ok=True),

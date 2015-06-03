@@ -1329,6 +1329,16 @@ class AcceptCookies(BaseType):
                                ('never', "Don't accept cookies at all."))
 
 
+class ThirdPartyCookiePolicy(BaseType):
+
+    """Accept cookies from domains other than the main website."""
+
+    valid_values = ValidValues(('always', "Always accept."),
+                               ('never', "Never accept."),
+                               ('existing', "Only accept if we already have a"
+                                   "cookie stored for the domain."))
+
+
 class ConfirmQuit(List):
 
     """Whether to display a confirmation when the window is closed."""
