@@ -1510,3 +1510,23 @@ class CommandDispatcher:
         view = self._current_widget()
         for _ in range(count):
             view.triggerPageAction(member)
+
+    @cmdutils.register(instance='command-dispatcher', scope='window',
+                       maxsplit=0, no_cmd_split=True)
+    def jseval(self, js):
+        """Evaluate a JavaScript string.
+
+        Args:
+            s: The string to evaluate.
+        """
+        tabbed_browser = objreg.get('tabbed-browser', scope='window',
+                                    window='last-focused')
+        out = tabbed_browser.widget(0).page().mainFrame().evaluateJavaScript(
+            'window.__qute_jseval__ = true;\n' + js)
+
+        if out is not None:
+            message.info(self._win_id, out)
+        elif tabbed_browser.widget(0).page().jseval_error:
+            message.error(self._win_id,
+                          tabbed_browser.widget(0).page().jseval_error)
+            tabbed_browser.widget(0).page().jseval_error = None

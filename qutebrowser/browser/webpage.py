@@ -63,6 +63,7 @@ class BrowserPage(QWebPage):
     def __init__(self, win_id, tab_id, parent=None):
         super().__init__(parent)
         self._win_id = win_id
+        self.jseval_error = None
         self._is_shutting_down = False
         self._extension_handlers = {
             QWebPage.ErrorPageExtension: self._handle_errorpage,
@@ -497,6 +498,16 @@ class BrowserPage(QWebPage):
 
     def javaScriptConsoleMessage(self, msg, line, source):
         """Override javaScriptConsoleMessage to use debug log."""
+        
+        jseval = self.mainFrame().evaluateJavaScript('window.__qute_jseval__')
+        if jseval:
+            self.mainFrame().evaluateJavaScript('window.__qute_jseval__ = undefined;')
+        if source == 'undefined' and jseval:
+            self.mainFrame().evaluateJavaScript('window.__qute_jseval__ = false;')
+            print('jseval errror ->', jseval)
+            self.jseval_error = 'Error on line {}: {}'.format(line, msg)
+        print('other js error ->', msg, line, source)
+
         if config.get('general', 'log-javascript-console'):
             log.js.debug("[{}:{}] {}".format(source, line, msg))
 
