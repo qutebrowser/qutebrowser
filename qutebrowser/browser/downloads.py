@@ -362,6 +362,8 @@ class DownloadItem(QObject):
         Args:
             position: The color type requested, can be 'fg' or 'bg'.
         """
+        # pylint: disable=bad-config-call
+        # WORKAROUND for https://bitbucket.org/logilab/astroid/issue/104/
         assert position in ("fg", "bg")
         start = config.get('colors', 'downloads.{}.start'.format(position))
         stop = config.get('colors', 'downloads.{}.stop'.format(position))
