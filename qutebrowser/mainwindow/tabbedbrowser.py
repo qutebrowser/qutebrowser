@@ -351,7 +351,7 @@ class TabbedBrowser(tabwidget.TabWidget):
         tab = webview.WebView(self._win_id, self)
         self._connect_tab_signals(tab)
         if zoom_factor is not None:
-            tab.setZoomFactor(zoom_factor)
+            tab.zoom_perc(zoom_factor * 100)
         idx = self._get_new_tab_idx(explicit)
         self.insertTab(idx, tab, "")
         if url is not None:
