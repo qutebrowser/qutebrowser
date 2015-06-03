@@ -211,16 +211,16 @@ class Command(misc.MinimalLineEditMixin, misc.CommandLineEdit):
             e.ignore()
             return
         else:
-            if e.key() == Qt.Key_D and e.modifiers() & Qt.ControlModifier == Qt.ControlModifier:
+            if e.key() == Qt.Key_D and (e.modifiers() & Qt.ControlModifier ==
+                                        Qt.ControlModifier):
                 self.delete_current_item()
             else:
                 super().keyPressEvent(e)
 
     def delete_current_item(self):
-        completer_obj = objreg.get('completer', scope='window',
-                                   window=self._win_id)
+        """Delete the selected bookmark/quickmark."""
         completion = objreg.get('completion', scope='window',
-                                 window=self._win_id)
+                                window=self._win_id)
         index = completion.currentIndex()
         model = completion.model()
         url = model.data(index)
@@ -232,7 +232,8 @@ class Command(misc.MinimalLineEditMixin, misc.CommandLineEdit):
                 message.info(self._win_id, "Bookmarks deleted")
             elif category.data() == 'Quickmarks':
                 quickmark_manager = objreg.get('quickmark-manager')
-                name = model.data(index.sibling(index.row(), index.column() + 1))
+                name = model.data(index.sibling(index.row(),
+                                  index.column() + 1))
                 quickmark_manager.quickmark_del(name)
                 message.info(self._win_id, "Quickmarks deleted")
 

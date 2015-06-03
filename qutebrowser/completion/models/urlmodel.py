@@ -99,8 +99,7 @@ class UrlCompletionModel(base.BaseCompletionModel):
         self.new_item(self._bookmark_cat, url, title)
 
     def custom_filter(self, pattern, row, parent):
-        """Filter by url and title.
-        """
+        """Filter by url and title."""
         index0 = self.index(row, 0, parent)
         index1 = self.index(row, 1, parent)
         url = self.data(index0) or ''
