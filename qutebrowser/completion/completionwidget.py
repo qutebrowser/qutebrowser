@@ -45,6 +45,8 @@ class CompletionView(QTreeView):
     Attributes:
         enabled: Whether showing the CompletionView is enabled.
         _win_id: The ID of the window this CompletionView is associated with.
+        _completion_connected: We've attached the signals to update the
+            completion whenever the text or curor position changes.
         _height: The height to use for the CompletionView.
         _height_perc: Either None or a percentage if height should be relative.
         _delegate: The item delegate used.
@@ -89,11 +91,11 @@ class CompletionView(QTreeView):
     # https://github.com/The-Compiler/qutebrowser/issues/117
 
     resize_completion = pyqtSignal()
-    connected = None
 
     def __init__(self, win_id, parent=None):
         super().__init__(parent)
         self._win_id = win_id
+        self._completion_connected = False
         objreg.register('completion', self, scope='window', window=win_id)
         cmd = objreg.get('status-command', scope='window', window=win_id)
         completer_obj = completer.Completer(cmd, win_id, self)
@@ -268,15 +270,13 @@ class CompletionView(QTreeView):
 
     def _set_auto_open(self, enabled):
         cmd = objreg.get('status-command', scope='window', window=self._win_id)
-
-        if enabled:
+        if enabled and not self._completion_connected:
             cmd.cursorPositionChanged.connect(cmd.update_completion)
             cmd.textChanged.connect(cmd.update_completion)
-            if self.connected == None:
-                cmd.update_completion_now.emit()
-                self.connected = True
-        else:
-            self.connected = None
+            cmd.update_completion_now.emit()
+            self._completion_connected = True
+        elif not enabled:
+            self._completion_connected = False
             try:
                 cmd.cursorPositionChanged.disconnect(cmd.update_completion)
                 cmd.textChanged.disconnect(cmd.update_completion)
