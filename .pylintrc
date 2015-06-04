@@ -4,7 +4,6 @@
 ignore=resources.py
 extension-pkg-whitelist=PyQt5,sip
 load-plugins=pylint_checkers.config,
-             pylint_checkers.crlf,
              pylint_checkers.modeline,
              pylint_checkers.openencoding,
              pylint_checkers.settrace
