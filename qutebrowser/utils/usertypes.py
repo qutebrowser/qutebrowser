@@ -242,7 +242,7 @@ Completion = enum('Completion', ['command', 'section', 'option', 'value',
 
 # Exit statuses for errors. Needs to be an int for sys.exit.
 Exit = enum('Exit', ['ok', 'reserved', 'exception', 'err_ipc', 'err_init',
-                     'err_config', 'err_key_config'], is_int=True)
+                     'err_config', 'err_key_config'], is_int=True, start=0)
 
 
 class Question(QObject):
