@@ -649,7 +649,7 @@ Yank the current URL/title to the clipboard or primary selection.
 ==== optional arguments
 * +*-t*+, +*--title*+: Yank the title instead of the URL.
 * +*-s*+, +*--sel*+: Use the primary selection instead of the clipboard.
-* +*-d*+, +*--domain*+: Yank only the scheme & domain.
+* +*-d*+, +*--domain*+: Yank only the scheme, domain, and port number.
 
 [[zoom]]
 === zoom

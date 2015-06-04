@@ -702,15 +702,17 @@ class CommandDispatcher:
         Args:
             sel: Use the primary selection instead of the clipboard.
             title: Yank the title instead of the URL.
-            domain: Yank only the scheme & domain.
+            domain: Yank only the scheme, domain, and port number.
         """
         clipboard = QApplication.clipboard()
         if title:
             s = self._tabbed_browser.page_title(self._current_index())
             what = 'title'
         elif domain:
-            s = '{}://{}'.format(self._current_url().scheme(),
-                                 self._current_url().host())
+            port = self._current_url().port()
+            s = '{}://{}{}'.format(self._current_url().scheme(),
+                                   self._current_url().host(),
+                                   ':' + str(port) if port > -1 else '')
             what = 'domain'
         else:
             s = self._current_url().toString(
