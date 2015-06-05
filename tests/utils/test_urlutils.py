@@ -227,3 +227,32 @@ class TestFilenameFromUrl:
         """Test with an URL with no path."""
         url = QUrl('http://qutebrowser.org/')
         assert urlutils.filename_from_url(url) == 'qutebrowser.org.html'
+
+
+class TestSameDomain:
+
+    """Tests for dame_domain."""
+
+    def test_same_domains(self):
+        """Test for domains that should be considered the same."""
+        hosts = (
+            ('http://example.com', 'http://www.example.com'),
+            ('http://bbc.co.uk', 'https://www.bbc.co.uk'),
+            ('http://many.levels.of.domains.example.com', 'http://www.example.com'),
+        )
+
+        for host1, host2 in hosts:
+            assert urlutils.same_domain(QUrl(host1), QUrl(host2))
+            assert urlutils.same_domain(QUrl(host2), QUrl(host1))
+
+    def test_not_same_domains(self):
+        """Test for domains that should be NOT considered the same."""
+        hosts = (
+            ('http://bbc.co.uk', 'http://example.co.uk'),
+            ('https://example.kids.museum', 'http://example.kunst.museum'),
+            ('http://idn.иком.museum', 'http://idn.ירושלים.museum')
+        )
+
+        for host1, host2 in hosts:
+            assert not urlutils.same_domain(QUrl(host1), QUrl(host2))
+            assert not urlutils.same_domain(QUrl(host2), QUrl(host1))

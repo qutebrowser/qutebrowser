@@ -359,18 +359,11 @@ class NetworkManager(QNetworkAccessManager):
         req.setRawHeader('DNT'.encode('ascii'), dnt)
         req.setRawHeader('X-Do-Not-Track'.encode('ascii'), dnt)
 
-        def same_domain():
-            tabbed_browser = objreg.get('tabbed-browser', scope='window', window=self._win_id)
-            view = tabbed_browser.currentWidget()
-            print(req.url().host() == view.url().host(), repr(view.url().host()), repr(req.url().host()))
-            # TODO: We probably want to allow headers if we're on test.com and
-            # doing a request to www.test.com? Or maybe a new settings value for
-            # this?
-            return req.url().host() == view.url().host()
-
+        current_url = objreg.get('tabbed-browser', scope='window',
+                                 window=self._win_id).currentWidget().url()
         if (config.get('network', 'referer-header') == 'never' or
                 (config.get('network', 'referer-header') == 'same-domain' and
-                    same_domain())):
+                    urlutils.same_domain(req.url(), current_url))):
             # Note: using ''.encode('ascii') sends a header with no value,
             # instead of no header at all
             req.setRawHeader('Referer'.encode('ascii'), QByteArray())

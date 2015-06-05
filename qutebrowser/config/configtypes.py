@@ -1471,7 +1471,6 @@ class Referer(BaseType):
                                    " shouldn't break any sites."))
 
 
-
 class UserAgent(BaseType):
 
     """The user agent to use."""
