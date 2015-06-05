@@ -674,16 +674,12 @@ def data(readonly=False):
              "local urls."),
 
             ('cookies-accept',
-             SettingValue(typ.AcceptCookies(), 'default'),
-             "Whether to accept cookies."),
+             SettingValue(typ.AcceptCookies(), 'no-3rdparty'),
+             "Control which cookies to accept."),
 
             ('cookies-store',
              SettingValue(typ.Bool(), 'true'),
              "Whether to store cookies."),
-
-            ('third-party-cookie-policy',
-             SettingValue(typ.ThirdPartyCookiePolicy(), 'never'),
-             "Accept cookies from domains other than the main website"),
 
             ('host-block-lists',
              SettingValue(

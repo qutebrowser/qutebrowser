@@ -238,23 +238,23 @@ class GlobalSetter(Setter):
         self._setter(*args)
 
 
-class ThirdPartyCookies(Base):
+class CookiePolicy(Base):
 
     """The ThirdPartyCookiePolicy setting is different from other settings."""
 
-    mapping = (
-        ('always', QWebSettings.AlwaysAllowThirdPartyCookies),
-        ('never', QWebSettings.AlwaysBlockThirdPartyCookies),
-        ('existing', QWebSettings.AllowThirdPartyWithExistingCookies),
-    )
+    MAPPING = {
+        'all': QWebSettings.AlwaysAllowThirdPartyCookies,
+        'no-3rdparty': QWebSettings.AlwaysBlockThirdPartyCookies,
+        'never': QWebSettings.AlwaysBlockThirdPartyCookies,
+        'no-unknown-3rdparty': QWebSettings.AllowThirdPartyWithExistingCookies,
+    }
 
     def get(self, qws=None):
-        policy = QWebSettings.globalSettings().thirdPartyCookiePolicy()
-        return tuple(filter(lambda i: i[1] == policy, self.mapping))[0][0]
+        return config.get('content', 'cookies-accept')
 
     def _set(self, value, qws=None):
-        x = filter(lambda i: i[0] == value, self.mapping)
-        QWebSettings.globalSettings().setThirdPartyCookiePolicy(tuple(x)[0][1])
+        QWebSettings.globalSettings().setThirdPartyCookiePolicy(
+            self.MAPPING[value])
 
 
 MAPPINGS = {
@@ -283,8 +283,8 @@ MAPPINGS = {
             Attribute(QWebSettings.LocalContentCanAccessRemoteUrls),
         'local-content-can-access-file-urls':
             Attribute(QWebSettings.LocalContentCanAccessFileUrls),
-        'third-party-cookie-policy':
-            ThirdPartyCookies(),
+        'cookies-accept':
+            CookiePolicy(),
     },
     'network': {
         'dns-prefetch':
