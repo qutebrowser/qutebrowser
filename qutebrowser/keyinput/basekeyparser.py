@@ -162,12 +162,6 @@ class BaseKeyParser(QObject):
         key = e.key()
         self._debug_log("Got key: 0x{:x} / text: '{}'".format(key, txt))
 
-        if key == Qt.Key_Escape:
-            self._debug_log("Escape pressed, discarding '{}'.".format(
-                self._keystring))
-            self._keystring = ''
-            return self.Match.none
-
         if len(txt) == 1:
             category = unicodedata.category(txt)
             is_control_char = (category == 'Cc')
@@ -303,6 +297,15 @@ class BaseKeyParser(QObject):
             True if the event was handled, False otherwise.
         """
         handled = self._handle_special_key(e)
+
+        # Special case for <Esc>. See:
+        # https://github.com/The-Compiler/qutebrowser/issues/716
+        if e.key() == Qt.Key_Escape:
+            self._debug_log("Escape pressed, discarding '{}'.".format(
+                self._keystring))
+            self._keystring = ''
+            self.keystring_updated.emit(self._keystring)
+
         if handled or not self._supports_chains:
             return handled
         match = self._handle_single_key(e)
