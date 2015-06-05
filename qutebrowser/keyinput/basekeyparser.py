@@ -49,6 +49,8 @@ class BaseKeyParser(QObject):
             special: execute() was called via a special key binding
 
         do_log: Whether to log keypresses or not.
+        passthrough: Whether unbound keys should be passed through with this
+                     handler.
 
     Attributes:
         bindings: Bound key bindings
@@ -69,6 +71,7 @@ class BaseKeyParser(QObject):
 
     keystring_updated = pyqtSignal(str)
     do_log = True
+    passthrough = False
 
     Match = usertypes.enum('Match', ['partial', 'definitive', 'ambiguous',
                                      'other', 'none'])

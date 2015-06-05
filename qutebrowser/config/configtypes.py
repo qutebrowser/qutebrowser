@@ -694,7 +694,7 @@ class FontFamily(Font):
 
 class QtFont(Font):
 
-    """A Font which gets converted to q QFont."""
+    """A Font which gets converted to a QFont."""
 
     def transform(self, value):
         if not value:

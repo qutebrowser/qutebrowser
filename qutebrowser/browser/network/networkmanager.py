@@ -181,7 +181,7 @@ class NetworkManager(QNetworkAccessManager):
             request.deleteLater()
         self.shutting_down.emit()
 
-    if SSL_AVAILABLE:  # noqa
+    if SSL_AVAILABLE:  # pragma: no mccabe
         @pyqtSlot('QNetworkReply*', 'QList<QSslError>')
         def on_ssl_errors(self, reply, errors):
             """Decide if SSL errors should be ignored or not.

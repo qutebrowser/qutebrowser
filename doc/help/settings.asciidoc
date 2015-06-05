@@ -45,6 +45,7 @@
 |<<ui-hide-statusbar,hide-statusbar>>|Whether to hide the statusbar unless a message is shown.
 |<<ui-window-title-format,window-title-format>>|The format to use for the window title. The following placeholders are defined:
 |<<ui-hide-mouse-cursor,hide-mouse-cursor>>|Whether to hide the mouse cursor.
+|<<ui-modal-js-dialog,modal-js-dialog>>|Use standard JavaScript modal dialog for alert() and confirm()
 |==============
 
 .Quick reference for section ``network''
@@ -220,6 +221,7 @@
 |<<colors-downloads.bg.stop,downloads.bg.stop>>|Color gradient end for downloads.
 |<<colors-downloads.bg.system,downloads.bg.system>>|Color gradient interpolation system for downloads.
 |<<colors-downloads.bg.error,downloads.bg.error>>|Background color for downloads with errors.
+|<<colors-webpage.bg,webpage.bg>>|Background color for webpages if unset (or empty to use the theme's color)
 |==============
 
 .Quick reference for section ``fonts''
@@ -586,6 +588,17 @@ Default: +pass:[{perc}{title}{title_sep}qutebrowser]+
 [[ui-hide-mouse-cursor]]
 === hide-mouse-cursor
 Whether to hide the mouse cursor.
+
+Valid values:
+
+ * +true+
+ * +false+
+
+Default: +pass:[false]+
+
+[[ui-modal-js-dialog]]
+=== modal-js-dialog
+Use standard JavaScript modal dialog for alert() and confirm()
 
 Valid values:
 
@@ -1739,6 +1752,12 @@ Default: +pass:[rgb]+
 Background color for downloads with errors.
 
 Default: +pass:[red]+
+
+[[colors-webpage.bg]]
+=== webpage.bg
+Background color for webpages if unset (or empty to use the theme's color)
+
+Default: +pass:[white]+
 
 == fonts
 Fonts used for the UI, with optional style/weight/size.

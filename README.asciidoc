@@ -138,13 +138,14 @@ Contributors, sorted by the number of commits in descending order:
 * Raphael Pierzina
 * Joel Torstensson
 * Claude
+* Martin Tournoij
 * Artur Shaik
+* Antoni Boucher
 * ZDarian
 * Peter Vilim
 * John ShaggyTwoDope Jenkins
 * Jimmy
 * Zach-Button
-* Martin Tournoij
 * rikn00
 * Patric Schmitz
 * Martin Zimmermann

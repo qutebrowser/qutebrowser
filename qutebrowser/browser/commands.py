@@ -25,7 +25,9 @@ import shlex
 import subprocess
 import posixpath
 import functools
+import xml.etree.ElementTree
 
+from PyQt5.QtWebKit import QWebSettings
 from PyQt5.QtWidgets import QApplication, QTabBar
 from PyQt5.QtCore import Qt, QUrl, QEvent
 from PyQt5.QtGui import QClipboard, QKeyEvent
@@ -643,14 +645,37 @@ class CommandDispatcher:
 
     @cmdutils.register(instance='command-dispatcher', hide=True,
                        scope='window', count='count')
-    def scroll_page(self, x: {'type': float}, y: {'type': float}, count=1):
+    def scroll_page(self, x: {'type': float}, y: {'type': float}, *,
+                    top_navigate: {'type': ('prev', 'decrement'),
+                                   'metavar': 'ACTION'}=None,
+                    bottom_navigate: {'type': ('next', 'increment'),
+                                      'metavar': 'ACTION'}=None,
+                    count=1):
         """Scroll the frame page-wise.
 
         Args:
             x: How many pages to scroll to the right.
             y: How many pages to scroll down.
+            bottom_navigate: :navigate action (next, increment) to run when
+                             scrolling down at the bottom of the page.
+            top_navigate: :navigate action (prev, decrement) to run when
+                          scrolling up at the top of the page.
             count: multiplier
         """
+        frame = self._current_widget().page().currentFrame()
+        if not frame.url().isValid():
+            # See https://github.com/The-Compiler/qutebrowser/issues/701
+            return
+
+        if (bottom_navigate is not None and
+                frame.scrollPosition().y() >=
+                frame.scrollBarMaximum(Qt.Vertical)):
+            self.navigate(bottom_navigate)
+            return
+        elif top_navigate is not None and frame.scrollPosition().y() == 0:
+            self.navigate(top_navigate)
+            return
+
         mult_x = count * x
         mult_y = count * y
         if mult_y.is_integer():
@@ -663,7 +688,6 @@ class CommandDispatcher:
             mult_y = 0
         if mult_x == 0 and mult_y == 0:
             return
-        frame = self._current_widget().page().currentFrame()
         size = frame.geometry()
         dx = mult_x * size.width()
         dy = mult_y * size.height()
@@ -672,19 +696,28 @@ class CommandDispatcher:
         frame.scroll(dx, dy)
 
     @cmdutils.register(instance='command-dispatcher', scope='window')
-    def yank(self, title=False, sel=False):
+    def yank(self, title=False, sel=False, domain=False):
         """Yank the current URL/title to the clipboard or primary selection.
 
         Args:
             sel: Use the primary selection instead of the clipboard.
             title: Yank the title instead of the URL.
+            domain: Yank only the scheme, domain, and port number.
         """
         clipboard = QApplication.clipboard()
         if title:
             s = self._tabbed_browser.page_title(self._current_index())
+            what = 'title'
+        elif domain:
+            port = self._current_url().port()
+            s = '{}://{}{}'.format(self._current_url().scheme(),
+                                   self._current_url().host(),
+                                   ':' + str(port) if port > -1 else '')
+            what = 'domain'
         else:
             s = self._current_url().toString(
                 QUrl.FullyEncoded | QUrl.RemovePassword)
+            what = 'URL'
         if sel and clipboard.supportsSelection():
             mode = QClipboard.Selection
             target = "primary selection"
@@ -693,8 +726,8 @@ class CommandDispatcher:
             target = "clipboard"
         log.misc.debug("Yanking to {}: '{}'".format(target, s))
         clipboard.setText(s, mode)
-        what = 'Title' if title else 'URL'
-        message.info(self._win_id, "{} yanked to {}".format(what, target))
+        message.info(self._win_id, "Yanked {} to {}: {}".format(
+                     what, target, s))
 
     @cmdutils.register(instance='command-dispatcher', scope='window',
                        count='count')
@@ -984,6 +1017,39 @@ class CommandDispatcher:
         """
         url = objreg.get('quickmark-manager').get(name)
         self._open(url, tab, bg, window)
+
+    @cmdutils.register(instance='command-dispatcher', hide=True,
+                       scope='window')
+    def follow_selected(self, tab=False):
+        """Follow the selected text.
+
+        Args:
+            tab: Load the selected link in a new tab.
+        """
+        widget = self._current_widget()
+        page = widget.page()
+        if not page.hasSelection():
+            return
+        if QWebSettings.globalSettings().testAttribute(
+                QWebSettings.JavascriptEnabled):
+            if tab:
+                page.open_target = usertypes.ClickTarget.tab
+            page.currentFrame().evaluateJavaScript(
+                'window.getSelection().anchorNode.parentNode.click()')
+        else:
+            try:
+                selected_element = xml.etree.ElementTree.fromstring(
+                    '<html>' + widget.selectedHtml() + '</html>').find('a')
+            except xml.etree.ElementTree.ParseError:
+                raise cmdexc.CommandError('Could not parse selected element!')
+
+            if selected_element is not None:
+                try:
+                    url = selected_element.attrib['href']
+                except KeyError:
+                    raise cmdexc.CommandError('Anchor element without href!')
+                url = self._current_url().resolved(QUrl(url))
+                self._open(url, tab)
 
     @cmdutils.register(instance='command-dispatcher', name='inspector',
                        scope='window')
