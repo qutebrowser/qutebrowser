@@ -1340,8 +1340,8 @@ CHANGED_KEY_COMMANDS = [
     (re.compile(r'^download-page$'), r'download'),
     (re.compile(r'^cancel-download$'), r'download-cancel'),
 
-    (re.compile(r'^search ""$'), r'search'),
-    (re.compile(r"^search ''$"), r'search'),
+    (re.compile(r"""^search (''|"")$"""), r'search ;; clear-keychain'),
+    (re.compile(r'^search$'), r'search ;; clear-keychain'),
 
     (re.compile(r"""^set-cmd-text ['"](.*) ['"]$"""), r'set-cmd-text -s \1'),
     (re.compile(r"""^set-cmd-text ['"](.*)['"]$"""), r'set-cmd-text \1'),
@@ -1354,6 +1354,4 @@ CHANGED_KEY_COMMANDS = [
     (re.compile(r'^scroll 0 -50$'), r'scroll up'),
     (re.compile(r'^scroll 50 0$'), r'scroll right'),
     (re.compile(r'^scroll ([-\d]+ [-\d]+)$'), r'scroll-px \1'),
-
-    (re.compile(r'^search$'), r'search ;; clear-keychain'),
 ]
