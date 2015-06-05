@@ -469,9 +469,9 @@ class StatusBar(QWidget):
     @pyqtSlot(usertypes.KeyMode)
     def on_mode_entered(self, mode):
         """Mark certain modes in the commandline."""
-        mode_manager = objreg.get('mode-manager', scope='window',
-                                  window=self._win_id)
-        if mode in mode_manager.passthrough:
+        keyparsers = objreg.get('keyparsers', scope='window',
+                                window=self._win_id)
+        if keyparsers[mode].passthrough:
             self._set_mode_text(mode.name)
         if mode in (usertypes.KeyMode.insert, usertypes.KeyMode.caret):
             self.set_mode_active(mode, True)
@@ -479,10 +479,10 @@ class StatusBar(QWidget):
     @pyqtSlot(usertypes.KeyMode, usertypes.KeyMode)
     def on_mode_left(self, old_mode, new_mode):
         """Clear marked mode."""
-        mode_manager = objreg.get('mode-manager', scope='window',
-                                  window=self._win_id)
-        if old_mode in mode_manager.passthrough:
-            if new_mode in mode_manager.passthrough:
+        keyparsers = objreg.get('keyparsers', scope='window',
+                                window=self._win_id)
+        if keyparsers[old_mode].passthrough:
+            if keyparsers[new_mode].passthrough:
                 self._set_mode_text(new_mode.name)
             else:
                 self.txt.set_text(self.txt.Text.normal, '')
