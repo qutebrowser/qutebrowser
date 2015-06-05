@@ -685,6 +685,7 @@ How many steps to zoom out.
 [options="header",width="75%",cols="25%,75%"]
 |==============
 |Command|Description
+|<<clear-keychain,clear-keychain>>|Clear the currently entered key chain. 
 |<<command-accept,command-accept>>|Execute the command currently in the commandline.
 |<<command-history-next,command-history-next>>|Go forward in the commandline history.
 |<<command-history-prev,command-history-prev>>|Go back in the commandline history.
@@ -739,6 +740,10 @@ How many steps to zoom out.
 |<<toggle-selection,toggle-selection>>|Toggle caret selection mode.
 |<<yank-selected,yank-selected>>|Yank the selected text to the clipboard or primary selection.
 |==============
+[[clear-keychain]]
+=== clear-keychain
+Clear the currently entered key chain.
+
 [[command-accept]]
 === command-accept
 Execute the command currently in the commandline.
