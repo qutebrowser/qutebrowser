@@ -317,7 +317,7 @@ class TabbedBrowser(tabwidget.TabWidget):
         self.close_tab(widget)
 
     @pyqtSlot('QUrl', bool)
-    def tabopen(self, url=None, background=None, explicit=False):
+    def tabopen(self, url=None, background=None, explicit=False, zoom_factor=None):
         """Open a new tab with a given URL.
 
         Inner logic for open-tab and open-tab-bg.
@@ -332,7 +332,8 @@ class TabbedBrowser(tabwidget.TabWidget):
                       the default settings we handle it like Chromium does:
                           - Tabs from clicked links etc. are to the right of
                             the current.
-                          - Explicitely opened tabs are at the very right.
+                          - Explicitly opened tabs are at the very right.
+            zoom_factor: Set the initial zoom factor
 
         Return:
             The opened WebView instance.
@@ -349,6 +350,8 @@ class TabbedBrowser(tabwidget.TabWidget):
             return tabbed_browser.tabopen(url, background, explicit)
         tab = webview.WebView(self._win_id, self)
         self._connect_tab_signals(tab)
+        if zoom_factor is not None:
+            tab.zoom_perc(zoom_factor * 100)
         idx = self._get_new_tab_idx(explicit)
         self.insertTab(idx, tab, "")
         if url is not None:
