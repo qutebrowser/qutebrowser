@@ -272,7 +272,7 @@ class Completer(QObject):
             pattern = parts[self._cursor_part].strip()
         except IndexError:
             pattern = ''
-        self._model().set_pattern(pattern)
+        completion.set_pattern(pattern)
 
         log.completion.debug(
             "New completion for {}: {}, with pattern '{}'".format(
