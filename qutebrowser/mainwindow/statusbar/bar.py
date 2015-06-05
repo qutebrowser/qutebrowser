@@ -106,88 +106,54 @@ class StatusBar(QWidget):
     _caret_mode = CaretMode.off
 
     STYLESHEET = """
-        QWidget#StatusBar {
+
+        QWidget#StatusBar,
+        QWidget#StatusBar * {
+            {{ font['statusbar'] }}
             {{ color['statusbar.bg'] }}
-        }
-
-        QWidget#StatusBar QLabel {
             {{ color['statusbar.fg'] }}
         }
 
-        QWidget#StatusBar QLineEdit {
-            {{ color['statusbar.fg'] }}
-        }
-
-        QWidget#StatusBar[caret_mode="on"] QLabel {
+        QWidget#StatusBar[caret_mode="on"],
+        QWidget#StatusBar[caret_mode="on"] * {
             {{ color['statusbar.fg.caret'] }}
-        }
-
-        QWidget#StatusBar[caret_mode="on"] {
             {{ color['statusbar.bg.caret'] }}
         }
 
-        QWidget#StatusBar[caret_mode="selection"] QLabel {
+        QWidget#StatusBar[caret_mode="selection"],
+        QWidget#StatusBar[caret_mode="selection"] * {
             {{ color['statusbar.fg.caret-selection'] }}
-        }
-
-        QWidget#StatusBar[caret_mode="selection"] {
             {{ color['statusbar.bg.caret-selection'] }}
         }
 
-        QWidget#StatusBar[prompt_active="true"] {
-            {{ color['statusbar.bg.prompt'] }}
-        }
-
-        QWidget#StatusBar[severity="error"] {
+        QWidget#StatusBar[severity="error"],
+        QWidget#StatusBar[severity="error"] * {
+            {{ color['statusbar.fg.error'] }}
             {{ color['statusbar.bg.error'] }}
         }
 
-        QWidget#StatusBar[severity="error"] QLabel {
-            {{ color['statusbar.fg.error'] }}
-        }
-
-        QWidget#StatusBar[severity="warning"] {
+        QWidget#StatusBar[severity="warning"],
+        QWidget#StatusBar[severity="warning"] * {
+            {{ color['statusbar.fg.warning'] }}
             {{ color['statusbar.bg.warning'] }}
         }
 
-        QWidget#StatusBar[severity="warning"] QLabel {
-            {{ color['statusbar.fg.warning'] }}
-        }
-
-        QWidget#StatusBar[prompt_active="true"] {
+        QWidget#StatusBar[prompt_active="true"],
+        QWidget#StatusBar[prompt_active="true"] * {
+            {{ color['statusbar.fg.prompt'] }}
             {{ color['statusbar.bg.prompt'] }}
         }
 
-        QWidget#StatusBar[prompt_active="true"] QLabel {
-            {{ color['statusbar.fg.prompt'] }}
-        }
-
-        QWidget#StatusBar[prompt_active="true"] QLineEdit {
-            {{ color['statusbar.fg.prompt'] }}
-        }
-
-        QWidget#StatusBar[insert_active="true"] {
+        QWidget#StatusBar[insert_active="true"],
+        QWidget#StatusBar[insert_active="true"] * {
+            {{ color['statusbar.fg.insert'] }}
             {{ color['statusbar.bg.insert'] }}
         }
 
-        QWidget#StatusBar[insert_active="true"] QLabel {
-            {{ color['statusbar.fg.insert'] }}
-        }
-
-        QWidget#StatusBar[command_active="true"] {
+        QWidget#StatusBar[command_active="true"],
+        QWidget#StatusBar[command_active="true"] * {
+            {{ color['statusbar.fg.command'] }}
             {{ color['statusbar.bg.command'] }}
-        }
-
-        QWidget#StatusBar[command_active="true"] QLabel {
-            {{ color['statusbar.fg.command'] }}
-        }
-
-        QWidget#StatusBar[command_active="true"] QLineEdit {
-            {{ color['statusbar.fg.command'] }}
-        }
-
-        QLabel, QLineEdit {
-            {{ font['statusbar'] }}
         }
 
     """
