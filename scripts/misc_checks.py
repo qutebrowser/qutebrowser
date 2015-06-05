@@ -87,7 +87,7 @@ def check_spelling(target):
                     continue
                 for line in f:
                     for w in words:
-                        if re.search(w, line) and fn not in seen[w]:
+                        if re.search(w, line, re.I) and fn not in seen[w]:
                             print("Found '{}' in {}!".format(w, fn))
                             seen[w].append(fn)
                             ok = False
