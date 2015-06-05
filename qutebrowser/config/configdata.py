@@ -1143,7 +1143,7 @@ KEY_DATA = collections.OrderedDict([
     ])),
 
     ('normal', collections.OrderedDict([
-        ('search', ['<Escape>']),
+        ('search ;; clear-keychain', ['<Escape>']),
         ('set-cmd-text -s :open', ['o']),
         ('set-cmd-text :open {url}', ['go']),
         ('set-cmd-text -s :open -t', ['O']),
@@ -1340,8 +1340,8 @@ CHANGED_KEY_COMMANDS = [
     (re.compile(r'^download-page$'), r'download'),
     (re.compile(r'^cancel-download$'), r'download-cancel'),
 
-    (re.compile(r'^search ""$'), r'search'),
-    (re.compile(r"^search ''$"), r'search'),
+    (re.compile(r"""^search (''|"")$"""), r'search ;; clear-keychain'),
+    (re.compile(r'^search$'), r'search ;; clear-keychain'),
 
     (re.compile(r"""^set-cmd-text ['"](.*) ['"]$"""), r'set-cmd-text -s \1'),
     (re.compile(r"""^set-cmd-text ['"](.*)['"]$"""), r'set-cmd-text \1'),

@@ -317,3 +317,8 @@ class ModeManager(QObject):
             return self._eventFilter_keypress(event)
         else:
             return self._eventFilter_keyrelease(event)
+
+    @cmdutils.register(instance='mode-manager', scope='window', hide=True)
+    def clear_keychain(self):
+        """Clear the currently entered key chain."""
+        self._parsers[self.mode].clear_keystring()
