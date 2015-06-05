@@ -1519,10 +1519,8 @@ class CommandDispatcher:
         Args:
             js_code: The string to evaluate.
         """
-        tabbed_browser = objreg.get('tabbed-browser', scope='window',
-                                    window='last-focused')
-        frame = tabbed_browser.widget(0).page().mainFrame()
-        out = frame.evaluateJavaScript(js_code)
+        out = self._current_widget().page().mainFrame().evaluateJavaScript(
+                    js_code)
 
         if out is None:
             # Getting the actual error (if any) seems to be difficult. The
