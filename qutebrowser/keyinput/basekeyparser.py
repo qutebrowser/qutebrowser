@@ -298,14 +298,6 @@ class BaseKeyParser(QObject):
         """
         handled = self._handle_special_key(e)
 
-        # Special case for <Esc>. See:
-        # https://github.com/The-Compiler/qutebrowser/issues/716
-        if e.key() == Qt.Key_Escape:
-            self._debug_log("Escape pressed, discarding '{}'.".format(
-                self._keystring))
-            self._keystring = ''
-            self.keystring_updated.emit(self._keystring)
-
         if handled or not self._supports_chains:
             return handled
         match = self._handle_single_key(e)
@@ -362,3 +354,9 @@ class BaseKeyParser(QObject):
                                  "defined!")
         if mode == self._modename:
             self.read_config()
+
+    def clear_keystring(self):
+        """Clear the currently entered key sequence."""
+        self._debug_log("discarding keystring '{}'.".format(self._keystring))
+        self._keystring = ''
+        self.keystring_updated.emit(self._keystring)
