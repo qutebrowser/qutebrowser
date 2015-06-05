@@ -1354,4 +1354,6 @@ CHANGED_KEY_COMMANDS = [
     (re.compile(r'^scroll 0 -50$'), r'scroll up'),
     (re.compile(r'^scroll 50 0$'), r'scroll right'),
     (re.compile(r'^scroll ([-\d]+ [-\d]+)$'), r'scroll-px \1'),
+
+    (re.compile(r'^search$'), r'search ;; clear-keychain'),
 ]

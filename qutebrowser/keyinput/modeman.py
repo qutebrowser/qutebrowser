@@ -321,4 +321,4 @@ class ModeManager(QObject):
     @cmdutils.register(instance='mode-manager', scope='window', hide=True)
     def clear_keychain(self):
         """Clear the currently entered key chain."""
-        self._handlers[self.mode].__self__.clear_keystring()
+        self._parsers[self.mode].clear_keystring()
