@@ -326,16 +326,6 @@ class StatusBar(QWidget):
         """Getter for self.command_active, so it can be used as Qt property."""
         return self._command_active
 
-    def _set_command_active(self, val):
-        """Setter for self._command_active.
-
-        Re-set the stylesheet after setting the value, so everything gets
-        updated by Qt properly.
-        """
-        log.statusbar.debug("Setting command_active to {}".format(val))
-        self._command_active = val
-        self.setStyleSheet(style.get_stylesheet(self.STYLESHEET))
-
     @pyqtProperty(bool)
     def insert_active(self):
         """Getter for self.insert_active, so it can be used as Qt property."""
