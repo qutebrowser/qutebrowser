@@ -97,25 +97,25 @@ def init(win_id, parent):
     return modeman
 
 
-def _get_modeman(win_id):
+def instance(win_id):
     """Get a modemanager object."""
     return objreg.get('mode-manager', scope='window', window=win_id)
 
 
 def enter(win_id, mode, reason=None, only_if_normal=False):
     """Enter the mode 'mode'."""
-    _get_modeman(win_id).enter(mode, reason, only_if_normal)
+    instance(win_id).enter(mode, reason, only_if_normal)
 
 
 def leave(win_id, mode, reason=None):
     """Leave the mode 'mode'."""
-    _get_modeman(win_id).leave(mode, reason)
+    instance(win_id).leave(mode, reason)
 
 
 def maybe_leave(win_id, mode, reason=None):
     """Convenience method to leave 'mode' without exceptions."""
     try:
-        _get_modeman(win_id).leave(mode, reason)
+        instance(win_id).leave(mode, reason)
     except NotInModeError as e:
         # This is rather likely to happen, so we only log to debug log.
         log.modes.debug("{} (leave reason: {})".format(e, reason))
