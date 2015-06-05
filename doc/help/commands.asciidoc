@@ -20,6 +20,7 @@
 |<<hint,hint>>|Start hinting.
 |<<home,home>>|Open main startpage in current tab.
 |<<inspector,inspector>>|Toggle the web inspector.
+|<<jseval,jseval>>|Evaluate a JavaScript string.
 |<<later,later>>|Execute a command after some time.
 |<<navigate,navigate>>|Open typical prev/next links or navigate using the URL path.
 |<<open,open>>|Open a URL in the current/[count]th tab.
@@ -240,6 +241,19 @@ Open main startpage in current tab.
 [[inspector]]
 === inspector
 Toggle the web inspector.
+
+[[jseval]]
+=== jseval
+Syntax: +:jseval 'js_code'+
+
+Evaluate a JavaScript string.
+
+==== positional arguments
+* +'js_code'+: The string to evaluate.
+
+==== note
+* This command does not split arguments after the last argument and handles quotes literally.
+* With this command, +;;+ is interpreted literally instead of splitting off a second command.
 
 [[later]]
 === later

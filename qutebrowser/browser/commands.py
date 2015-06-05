@@ -1513,20 +1513,28 @@ class CommandDispatcher:
 
     @cmdutils.register(instance='command-dispatcher', scope='window',
                        maxsplit=0, no_cmd_split=True)
-    def jseval(self, js):
+    def jseval(self, js_code):
         """Evaluate a JavaScript string.
 
         Args:
-            s: The string to evaluate.
+            js_code: The string to evaluate.
         """
         tabbed_browser = objreg.get('tabbed-browser', scope='window',
                                     window='last-focused')
-        out = tabbed_browser.widget(0).page().mainFrame().evaluateJavaScript(
-            'window.__qute_jseval__ = true;\n' + js)
+        frame = tabbed_browser.widget(0).page().mainFrame()
+        out = frame.evaluateJavaScript(js_code)
 
-        if out is not None:
-            message.info(self._win_id, out)
-        elif tabbed_browser.widget(0).page().jseval_error:
-            message.error(self._win_id,
-                          tabbed_browser.widget(0).page().jseval_error)
-            tabbed_browser.widget(0).page().jseval_error = None
+        if out is None:
+            # Getting the actual error (if any) seems to be difficult. The
+            # error does end up in BrowserPage.javaScriptConsoleMessage(), but
+            # distinguishing between :jseval errors and errors from the webpage
+            # is not trivial...
+            message.info(self._win_id, 'No output or error')
+        else:
+            # The output can be a string, number, dict, array, etc. But *don't*
+            # output too much data, as this will make qutebrowser hang
+            out = str(out)
+            if len(out) > 5000:
+                message.info(self._win_id, out[:5000] + ' [...trimmed...]')
+            else:
+                message.info(self._win_id, out)
