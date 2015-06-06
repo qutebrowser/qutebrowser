@@ -805,7 +805,7 @@ class File(BaseType):
         value = os.path.expanduser(value)
         value = os.path.expandvars(value)
         if not os.path.isabs(value):
-            if standarddir.config():
+            if standarddir.config() is not None:
                 abspath = os.path.join(standarddir.config(), value)
                 if os.path.isfile(abspath):
                     return abspath
@@ -821,12 +821,16 @@ class File(BaseType):
         try:
             if not os.path.isabs(value):
                 cfgdir = standarddir.config()
-                if cfgdir and os.path.isfile(os.path.join(cfgdir, value)):
+                if cfgdir is not None and os.path.isfile(
+                        os.path.join(cfgdir, value)):
                     return
-                raise configexc.ValidationError(value,
-                                                "must be an absolute path!")
-            if not os.path.isfile(value):
-                raise configexc.ValidationError(value, "must be a valid file!")
+                raise configexc.ValidationError(
+                    value, "must be an absolute path when not using a config "
+                    "directory!")
+            elif not os.path.isfile(value):
+                raise configexc.ValidationError(
+                    value, "must be a valid path relative to the config "
+                    "directory!")
         except UnicodeEncodeError as e:
             raise configexc.ValidationError(value, e)
 
@@ -1195,7 +1199,7 @@ class UserStyleSheet(File):
                         raise configexc.ValidationError(value, str(e))
                     return
             except UnicodeEncodeError as e:
-                raise configexc.ValidationError(value, e)
+                raise configexc.ValidationError(value, str(e))
 
 
 class AutoSearch(BaseType):
