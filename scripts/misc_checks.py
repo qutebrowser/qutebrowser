@@ -71,16 +71,17 @@ def check_git():
 def check_spelling():
     """Check commonly misspelled words."""
     # Words which I often misspell
-    words = {'behaviour', 'quitted', 'likelyhood', 'sucessfully',
-             'occur[^r .]', 'seperator', 'explicitely', 'resetted',
-             'auxillary', 'accidentaly', 'ambigious', 'loosly',
-             'initialis', 'convienence', 'similiar', 'uncommited',
-             'reproducable'}
+    words = {'[Bb]ehaviour', '[Qq]uitted', 'Ll]ikelyhood', '[Ss]ucessfully',
+             '[Oo]ccur[^r .]', '[Ss]eperator', '[Ee]xplicitely', '[Rr]esetted',
+             '[Aa]uxillary', '[Aa]ccidentaly', '[Aa]mbigious', '[Ll]oosly',
+             '[Ii]nitialis', '[Cc]onvienence', '[Ss]imiliar', '[Uu]ncommited',
+             '[Rr]eproducable'}
 
     # Words which look better when splitted, but might need some fine tuning.
-    words |= {'keystrings', 'webelements', 'mouseevent', 'keysequence',
-              'normalmode', 'eventloops', 'sizehint', 'statemachine',
-              'metaobject', 'logrecord', 'filetype'}
+    words |= {'[Kk]eystrings', '[Ww]ebelements', '[Mm]ouseevent',
+              '[Kk]eysequence', '[Nn]ormalmode', '[Ee]ventloops',
+              '[Ss]izehint', '[Ss]tatemachine', '[Mm]etaobject',
+              '[Ll]ogrecord', '[Ff]iletype'}
 
     seen = collections.defaultdict(list)
     try:
@@ -91,8 +92,8 @@ def check_spelling():
                     continue
                 for line in f:
                     for w in words:
-                        if re.search(w, line, re.I) and fn not in seen[w]:
-                            print("Found '{}' in {}!".format(w, fn))
+                        if re.search(w, line) and fn not in seen[w]:
+                            print('Found "{}" in {}!'.format(w, fn))
                             seen[w].append(fn)
                             ok = False
         print()
