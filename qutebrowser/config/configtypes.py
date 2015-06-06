@@ -1193,11 +1193,7 @@ class UserStyleSheet(File):
                     # FIXME We just try if it is encodable, maybe we should
                     # validate CSS?
                     # https://github.com/The-Compiler/qutebrowser/issues/115
-                    try:
-                        value.encode('utf-8')
-                    except UnicodeEncodeError as e:
-                        raise configexc.ValidationError(value, str(e))
-                    return
+                    value.encode('utf-8')
             except UnicodeEncodeError as e:
                 raise configexc.ValidationError(value, str(e))
 
