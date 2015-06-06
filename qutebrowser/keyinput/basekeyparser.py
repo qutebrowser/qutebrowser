@@ -23,7 +23,7 @@ import re
 import functools
 import unicodedata
 
-from PyQt5.QtCore import pyqtSignal, pyqtSlot, Qt, QObject
+from PyQt5.QtCore import pyqtSignal, pyqtSlot, QObject
 
 from qutebrowser.config import config
 from qutebrowser.utils import usertypes, log, utils, objreg
