@@ -1312,7 +1312,7 @@ class SelectOnRemove(BaseType):
 
 class LastClose(BaseType):
 
-    """Behaviour when the last tab is closed."""
+    """Behavior when the last tab is closed."""
 
     valid_values = ValidValues(('ignore', "Don't do anything."),
                                ('blank', "Load a blank page."),

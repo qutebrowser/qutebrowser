@@ -109,7 +109,7 @@ class BrowserPage(QWebPage):
     def _handle_errorpage(self, info, errpage):
         """Display an error page if needed.
 
-        Loosly based on Helpviewer/HelpBrowserWV.py from eric5
+        Loosely based on Helpviewer/HelpBrowserWV.py from eric5
         (line 260 @ 5d937eb378dd)
 
         Args:
@@ -178,7 +178,7 @@ class BrowserPage(QWebPage):
     def _handle_multiple_files(self, info, files):
         """Handle uploading of multiple files.
 
-        Loosly based on Helpviewer/HelpBrowserWV.py from eric5.
+        Loosely based on Helpviewer/HelpBrowserWV.py from eric5.
 
         Args:
             info: The ChooseMultipleFilesExtensionOption instance.

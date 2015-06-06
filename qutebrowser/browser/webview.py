@@ -163,7 +163,7 @@ class WebView(QWebView):
         return utils.get_repr(self, tab_id=self.tab_id, url=url)
 
     def __del__(self):
-        # Explicitely releasing the page here seems to prevent some segfaults
+        # Explicitly releasing the page here seems to prevent some segfaults
         # when quitting.
         # Copied from:
         # https://code.google.com/p/webscraping/source/browse/webkit.py#325

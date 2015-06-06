@@ -332,7 +332,7 @@ class TabbedBrowser(tabwidget.TabWidget):
                       the default settings we handle it like Chromium does:
                           - Tabs from clicked links etc. are to the right of
                             the current.
-                          - Explicitely opened tabs are at the very right.
+                          - Explicitly opened tabs are at the very right.
 
         Return:
             The opened WebView instance.

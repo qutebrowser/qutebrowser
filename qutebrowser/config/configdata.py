@@ -464,7 +464,7 @@ def data(readonly=False):
 
             ('last-close',
              SettingValue(typ.LastClose(), 'ignore'),
-             "Behaviour when the last tab is closed."),
+             "Behavior when the last tab is closed."),
 
             ('hide-auto',
              SettingValue(typ.Bool(), 'false'),

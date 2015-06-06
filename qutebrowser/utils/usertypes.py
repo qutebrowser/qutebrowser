@@ -73,7 +73,7 @@ class NeighborList(collections.abc.Sequence):
         Args:
             items: The list of items to iterate in.
             _default: The initially selected value.
-            _mode: Behaviour when the first/last item is reached.
+            _mode: Behavior when the first/last item is reached.
                    Modes.block: Stay on the selected item
                    Modes.wrap: Wrap around to the other end
                    Modes.exception: Raise an IndexError.
