@@ -740,7 +740,8 @@ def data(readonly=False):
 
             ('next-regexes',
              SettingValue(typ.RegexList(flags=re.IGNORECASE),
-                          r'\bnext\b,\bmore\b,\bnewer\b,\b[>→≫]\b,\b(>>|»)\b'),
+                          r'\bnext\b,\bmore\b,\bnewer\b,\b[>→≫]\b,\b(>>|»)\b,'
+                          r'\bcontinue\b'),
              "A comma-separated list of regexes to use for 'next' links."),
 
             ('prev-regexes',
