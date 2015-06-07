@@ -26,7 +26,7 @@ from qutebrowser.keyinput import modeman, modeparsers
 from qutebrowser.commands import cmdexc, cmdutils
 from qutebrowser.misc import cmdhistory
 from qutebrowser.misc import miscwidgets as misc
-from qutebrowser.utils import message, usertypes, log, objreg, qtutils
+from qutebrowser.utils import usertypes, log, objreg, qtutils
 
 
 class Command(misc.MinimalLineEditMixin, misc.CommandLineEdit):
@@ -211,31 +211,7 @@ class Command(misc.MinimalLineEditMixin, misc.CommandLineEdit):
             e.ignore()
             return
         else:
-            if e.key() == Qt.Key_D and (e.modifiers() & Qt.ControlModifier ==
-                                        Qt.ControlModifier):
-                self.delete_current_item()
-            else:
-                super().keyPressEvent(e)
-
-    def delete_current_item(self):
-        """Delete the selected bookmark/quickmark."""
-        completion = objreg.get('completion', scope='window',
-                                window=self._win_id)
-        index = completion.currentIndex()
-        model = completion.model()
-        url = model.data(index)
-        category = index.parent()
-        if category.isValid():
-            if category.data() == 'Bookmarks':
-                bookmark_manager = objreg.get('bookmark-manager')
-                bookmark_manager.bookmark_del(url)
-                message.info(self._win_id, "Bookmarks deleted")
-            elif category.data() == 'Quickmarks':
-                quickmark_manager = objreg.get('quickmark-manager')
-                name = model.data(index.sibling(index.row(),
-                                  index.column() + 1))
-                quickmark_manager.quickmark_del(name)
-                message.info(self._win_id, "Quickmarks deleted")
+            super().keyPressEvent(e)
 
     def sizeHint(self):
         """Dynamically calculate the needed size."""

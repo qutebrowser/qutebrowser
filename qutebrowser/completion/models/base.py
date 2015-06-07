@@ -95,6 +95,10 @@ class BaseCompletionModel(QStandardItemModel):
             nameitem.setData(userdata, Role.userdata)
         return nameitem, descitem, miscitem
 
+    def delete_cur_item(self, win_id):
+        """Delete the selected item."""
+        raise NotImplementedError
+
     def flags(self, index):
         """Return the item flags for index.
 

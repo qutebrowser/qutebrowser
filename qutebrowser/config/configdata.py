@@ -1280,6 +1280,7 @@ KEY_DATA = collections.OrderedDict([
         ('command-history-next', ['<Ctrl-N>']),
         ('completion-item-prev', ['<Shift-Tab>', '<Up>']),
         ('completion-item-next', ['<Tab>', '<Down>']),
+        ('completion-item-del', ['<Ctrl-D>']),
         ('command-accept', RETURN_KEYS),
     ])),
 
