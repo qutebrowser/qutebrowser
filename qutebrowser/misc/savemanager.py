@@ -160,6 +160,16 @@ class SaveManager(QObject):
             saveable.mark_dirty()
             QTimer.singleShot(0, saveable.save)
 
+    def remove_saveable(self, name):
+        """Remove a saveable.
+
+        Args:
+            name: The name to use.
+        """
+        if name not in self.saveables:
+            raise ValueError("Saveable {} is not registered!".format(name))
+        del self.saveables[name]
+
     def save(self, name, is_exit=False, explicit=False, silent=False,
              force=False):
         """Save a saveable by name.
