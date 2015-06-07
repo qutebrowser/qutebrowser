@@ -80,8 +80,10 @@ class JSTester:
     def scroll_anchor(self, name):
         """Scroll the main frame to the given anchor."""
         page = self.webview.page()
-        with self._qtbot.waitSignal(page.scrollRequested, raising=True):
-            page.mainFrame().scrollToAnchor(name)
+        old_pos = page.mainFrame().scrollPosition()
+        page.mainFrame().scrollToAnchor(name)
+        new_pos = page.mainFrame().scrollPosition()
+        assert old_pos != new_pos
 
     def load(self, path, **kwargs):
         """Load and display the given test data.
