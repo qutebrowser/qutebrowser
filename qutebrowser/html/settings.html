@@ -14,10 +14,12 @@ pre { margin: 2px; }
 th, td { border: 1px solid grey; padding: 0px 5px; }
 th { background: lightgrey; }
 th pre { color: grey; text-align: left; }
+.noscript, .noscript-text { color:red; }
+.noscript-text { margin-bottom: 5cm; }
 {% endblock %}
 
 {% block content %}
-<noscript><h1>View Only</h1><p>Changing settings requires javascript to be enabled</p></noscript>
+<noscript><h1 class="noscript">View Only</h1><p class="noscript-text">Changing settings requires javascript to be enabled!</p></noscript>
 <header><h1>{{ title }}</h1></header>
 <table>
 {% for section in config.DATA %}

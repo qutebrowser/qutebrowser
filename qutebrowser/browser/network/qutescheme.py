@@ -179,18 +179,10 @@ def qute_help(win_id, request):
 
 def qute_settings(win_id, _request):
     """Handler for qute:settings. View/change qute configuration."""
-    if not QWebSettings.globalSettings().testAttribute(
-            QWebSettings.JavascriptEnabled):
-        # https://github.com/The-Compiler/qutebrowser/issues/727
-        template = jinja.env.get_template('pre.html')
-        html = template.render(
-            title='Failed to open qute:settings.',
-            content="qute:settings needs javascript enabled to work.")
-    else:
-        config_getter = functools.partial(objreg.get('config').get, raw=True)
-        html = jinja.env.get_template('settings.html').render(
-            win_id=win_id, title='settings', config=configdata,
-            confget=config_getter)
+    config_getter = functools.partial(objreg.get('config').get, raw=True)
+    html = jinja.env.get_template('settings.html').render(
+        win_id=win_id, title='settings', config=configdata,
+        confget=config_getter)
     return html.encode('UTF-8', errors='xmlcharrefreplace')
 
 
