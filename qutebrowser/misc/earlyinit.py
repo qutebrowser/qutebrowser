@@ -213,6 +213,19 @@ def check_qt_version():
         _die(text)
 
 
+def check_ssl_support():
+    """Check if SSL support is available."""
+    try:
+        from PyQt5.QtNetwork import QSslSocket
+    except ImportError:
+        ok = False
+    else:
+        ok = QSslSocket.supportsSsl()
+    if not ok:
+        text = "Fatal error: Your Qt is built without SSL support."
+        _die(text)
+
+
 def check_libraries():
     """Check if all needed Python libraries are installed."""
     modules = {
@@ -288,6 +301,7 @@ def earlyinit(args):
     # Now we can be sure QtCore is available, so we can print dialogs on
     # errors, so people only using the GUI notice them as well.
     check_qt_version()
+    check_ssl_support()
     remove_inputhook()
     check_libraries()
     init_log(args)
