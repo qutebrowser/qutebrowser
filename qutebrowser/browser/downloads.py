@@ -148,7 +148,7 @@ class DownloadItemStats(QObject):
 
     @pyqtSlot(int, int)
     def on_download_progress(self, bytes_done, bytes_total):
-        """Upload local variables when the download progress changed.
+        """Update local variables when the download progress changed.
 
         Args:
             bytes_done: How many bytes are downloaded.
@@ -158,7 +158,6 @@ class DownloadItemStats(QObject):
             bytes_total = None
         self.done = bytes_done
         self.total = bytes_total
-        self.updated.emit()
 
 
 class DownloadItem(QObject):
