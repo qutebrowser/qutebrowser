@@ -1434,7 +1434,7 @@ Default: +pass:[true]+
 === next-regexes
 A comma-separated list of regexes to use for 'next' links.
 
-Default: +pass:[\bnext\b,\bmore\b,\bnewer\b,\b[&gt;→≫]\b,\b(&gt;&gt;|»)\b]+
+Default: +pass:[\bnext\b,\bmore\b,\bnewer\b,\b[&gt;→≫]\b,\b(&gt;&gt;|»)\b,\bcontinue\b]+
 
 [[hints-prev-regexes]]
 === prev-regexes
