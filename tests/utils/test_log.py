@@ -213,7 +213,7 @@ class TestInitLog:
 
     @pytest.fixture
     def args(self):
-        """Fixture providing an argparse namespace."""
+        """Fixture providing an argparse namespace for init_log."""
         return argparse.Namespace(debug=True, loglevel=logging.DEBUG,
                                   color=True, loglines=10, logfilter="")
 

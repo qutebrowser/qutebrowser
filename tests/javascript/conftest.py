@@ -80,7 +80,7 @@ class JSTester:
     def scroll_anchor(self, name):
         """Scroll the main frame to the given anchor."""
         page = self.webview.page()
-        with self._qtbot.waitSignal(page.scrollRequested):
+        with self._qtbot.waitSignal(page.scrollRequested, raising=True):
             page.mainFrame().scrollToAnchor(name)
 
     def load(self, path, **kwargs):
@@ -92,7 +92,7 @@ class JSTester:
             **kwargs: Passed to jinja's template.render().
         """
         template = self._jinja_env.get_template(path)
-        with self._qtbot.waitSignal(self.webview.loadFinished):
+        with self._qtbot.waitSignal(self.webview.loadFinished, raising=True):
             self.webview.setHtml(template.render(**kwargs))
 
     def run_file(self, filename):
