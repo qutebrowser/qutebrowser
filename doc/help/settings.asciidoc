@@ -99,7 +99,7 @@
 |<<tabs-select-on-remove,select-on-remove>>|Which tab to select when the focused tab is removed.
 |<<tabs-new-tab-position,new-tab-position>>|How new tabs are positioned.
 |<<tabs-new-tab-position-explicit,new-tab-position-explicit>>|How new tabs opened explicitly are positioned.
-|<<tabs-last-close,last-close>>|Behaviour when the last tab is closed.
+|<<tabs-last-close,last-close>>|Behavior when the last tab is closed.
 |<<tabs-hide-auto,hide-auto>>|Hide the tab bar if only one tab is open.
 |<<tabs-hide-always,hide-always>>|Always hide the tab bar.
 |<<tabs-wrap,wrap>>|Whether to wrap when changing tabs.
@@ -911,7 +911,7 @@ Default: +pass:[last]+
 
 [[tabs-last-close]]
 === last-close
-Behaviour when the last tab is closed.
+Behavior when the last tab is closed.
 
 Valid values:
 
