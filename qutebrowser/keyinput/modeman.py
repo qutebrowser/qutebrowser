@@ -84,38 +84,30 @@ def init(win_id, parent):
     modeman.destroyed.connect(
         functools.partial(objreg.delete, 'keyparsers', scope='window',
                           window=win_id))
-    modeman.register(KM.normal, keyparsers[KM.normal].handle)
-    modeman.register(KM.hint, keyparsers[KM.hint].handle)
-    modeman.register(KM.insert, keyparsers[KM.insert].handle, passthrough=True)
-    modeman.register(KM.passthrough, keyparsers[KM.passthrough].handle,
-                     passthrough=True)
-    modeman.register(KM.command, keyparsers[KM.command].handle,
-                     passthrough=True)
-    modeman.register(KM.prompt, keyparsers[KM.prompt].handle, passthrough=True)
-    modeman.register(KM.yesno, keyparsers[KM.yesno].handle)
-    modeman.register(KM.caret, keyparsers[KM.caret].handle, passthrough=True)
+    for mode, parser in keyparsers.items():
+        modeman.register(mode, parser)
     return modeman
 
 
-def _get_modeman(win_id):
+def instance(win_id):
     """Get a modemanager object."""
     return objreg.get('mode-manager', scope='window', window=win_id)
 
 
 def enter(win_id, mode, reason=None, only_if_normal=False):
     """Enter the mode 'mode'."""
-    _get_modeman(win_id).enter(mode, reason, only_if_normal)
+    instance(win_id).enter(mode, reason, only_if_normal)
 
 
 def leave(win_id, mode, reason=None):
     """Leave the mode 'mode'."""
-    _get_modeman(win_id).leave(mode, reason)
+    instance(win_id).leave(mode, reason)
 
 
 def maybe_leave(win_id, mode, reason=None):
     """Convenience method to leave 'mode' without exceptions."""
     try:
-        _get_modeman(win_id).leave(mode, reason)
+        instance(win_id).leave(mode, reason)
     except NotInModeError as e:
         # This is rather likely to happen, so we only log to debug log.
         log.modes.debug("{} (leave reason: {})".format(e, reason))
@@ -126,10 +118,9 @@ class ModeManager(QObject):
     """Manager for keyboard modes.
 
     Attributes:
-        passthrough: A list of modes in which to pass through events.
         mode: The mode we're currently in.
         _win_id: The window ID of this ModeManager
-        _handlers: A dictionary of modes and their handlers.
+        _parsers: A dictionary of modes and their keyparsers.
         _forward_unbound_keys: If we should forward unbound keys.
         _releaseevents_to_pass: A set of KeyEvents where the keyPressEvent was
                                 passed through, so the release event should as
@@ -151,8 +142,7 @@ class ModeManager(QObject):
     def __init__(self, win_id, parent=None):
         super().__init__(parent)
         self._win_id = win_id
-        self._handlers = {}
-        self.passthrough = []
+        self._parsers = {}
         self.mode = usertypes.KeyMode.normal
         self._releaseevents_to_pass = set()
         self._forward_unbound_keys = config.get(
@@ -160,8 +150,7 @@ class ModeManager(QObject):
         objreg.get('config').changed.connect(self.set_forward_unbound_keys)
 
     def __repr__(self):
-        return utils.get_repr(self, mode=self.mode,
-                              passthrough=self.passthrough)
+        return utils.get_repr(self, mode=self.mode)
 
     def _eventFilter_keypress(self, event):
         """Handle filtering of KeyPress events.
@@ -173,11 +162,11 @@ class ModeManager(QObject):
             True if event should be filtered, False otherwise.
         """
         curmode = self.mode
-        handler = self._handlers[curmode]
+        parser = self._parsers[curmode]
         if curmode != usertypes.KeyMode.insert:
-            log.modes.debug("got keypress in mode {} - calling handler "
-                            "{}".format(curmode, utils.qualname(handler)))
-        handled = handler(event) if handler is not None else False
+            log.modes.debug("got keypress in mode {} - delegating to "
+                            "{}".format(curmode, utils.qualname(parser)))
+        handled = parser.handle(event)
 
         is_non_alnum = bool(event.modifiers()) or not event.text().strip()
         focus_widget = QApplication.instance().focusWidget()
@@ -187,7 +176,7 @@ class ModeManager(QObject):
             filter_this = True
         elif is_tab and not isinstance(focus_widget, QWebView):
             filter_this = True
-        elif (curmode in self.passthrough or
+        elif (parser.passthrough or
                 self._forward_unbound_keys == 'all' or
                 (self._forward_unbound_keys == 'auto' and is_non_alnum)):
             filter_this = False
@@ -202,8 +191,8 @@ class ModeManager(QObject):
                             "passthrough: {}, is_non_alnum: {}, is_tab {} --> "
                             "filter: {} (focused: {!r})".format(
                                 handled, self._forward_unbound_keys,
-                                curmode in self.passthrough, is_non_alnum,
-                                is_tab, filter_this, focus_widget))
+                                parser.passthrough, is_non_alnum, is_tab,
+                                filter_this, focus_widget))
         return filter_this
 
     def _eventFilter_keyrelease(self, event):
@@ -226,20 +215,16 @@ class ModeManager(QObject):
             log.modes.debug("filter: {}".format(filter_this))
         return filter_this
 
-    def register(self, mode, handler, passthrough=False):
+    def register(self, mode, parser):
         """Register a new mode.
 
         Args:
             mode: The name of the mode.
-            handler: Handler for keyPressEvents.
-            passthrough: Whether to pass key bindings in this mode through to
-                         the widgets.
+            parser: The KeyParser which should be used.
         """
-        if not isinstance(mode, usertypes.KeyMode):
-            raise TypeError("Mode {} is no KeyMode member!".format(mode))
-        self._handlers[mode] = handler
-        if passthrough:
-            self.passthrough.append(mode)
+        assert isinstance(mode, usertypes.KeyMode)
+        assert parser is not None
+        self._parsers[mode] = parser
 
     def enter(self, mode, reason=None, only_if_normal=False):
         """Enter a new mode.
@@ -253,8 +238,8 @@ class ModeManager(QObject):
             raise TypeError("Mode {} is no KeyMode member!".format(mode))
         log.modes.debug("Entering mode {}{}".format(
             mode, '' if reason is None else ' (reason: {})'.format(reason)))
-        if mode not in self._handlers:
-            raise ValueError("No handler for mode {}".format(mode))
+        if mode not in self._parsers:
+            raise ValueError("No keyparser for mode {}".format(mode))
         prompt_modes = (usertypes.KeyMode.prompt, usertypes.KeyMode.yesno)
         if self.mode == mode or (self.mode in prompt_modes and
                                  mode in prompt_modes):
@@ -332,3 +317,8 @@ class ModeManager(QObject):
             return self._eventFilter_keypress(event)
         else:
             return self._eventFilter_keyrelease(event)
+
+    @cmdutils.register(instance='mode-manager', scope='window', hide=True)
+    def clear_keychain(self):
+        """Clear the currently entered key chain."""
+        self._parsers[self.mode].clear_keystring()

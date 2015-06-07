@@ -37,6 +37,8 @@ Added
 - New flag `-d`/`--detach` for `:spawn` to detach the spawned process so it's not closed when qutebrowser is.
 - New (hidden) command `:follow-selected` (bound to `Enter`/`Ctrl-Enter` by default) to follow the link which is currently selected (e.g. after searching via `/`).
 - New setting `ui -> modal-js-dialog` to use the standard modal dialogs for javascript questions instead of using the statusbar.
+- New setting `colors -> webpage.bg` to set the background color to use for websites which don't set one.
+- New (hidden) command `:clear-keychain` to clear a partially entered keychain (bound to `<Escape>` by default, in addition to clearing search).
 
 Changed
 ~~~~~~~
@@ -45,7 +47,7 @@ Changed
 - `:spawn` now shows the command being executed in the statusbar, use `-q`/`--quiet` for the old behavior.
 - The `content -> geolocation` and `notifications` settings now support a `true` value to always allow those. However, this is *not recommended*.
 - New bindings `<Ctrl-R>` (rapid), `<Ctrl-F>` (foreground) and `<Ctrl-B>` (background) to switch hint modes while hinting.
-- `<Ctrl-M>` is now accepted as an additional alias for `<Return>`/`<Ctrl-J>`
+- `<Ctrl-M>` and numpad-enter are now bound by default for bindings where `<Return>` was bound.
 - `:hint tab` and `F` now respect the `background-tabs` setting. To enforce a foreground tab (what `F` did before), use `:hint tab-fg` or `;f`.
 - `:scroll` now takes a direction argument (`up`/`down`/`left`/`right`/`top`/`bottom`/`page-up`/`page-down`) instead of two pixel arguments (`dx`/`dy`). The old form still works but is deprecated.
 
@@ -79,6 +81,8 @@ Fixed
 - Workaround for qutebrowser not starting when there are NUL-bytes in the history (because of a currently unknown bug)
 - Fixed handling of keybindings containing Ctrl/Meta on OS X.
 - Fixed crash when downloading an URL without filename (e.g. magnet links) via "Save as...".
+- Fixed exception when starting qutebrowser with `:set` as argument.
+- Fixed horrible completion performance when the `shrink` option was set.
 
 https://github.com/The-Compiler/qutebrowser/releases/tag/v0.2.1[v0.2.1]
 -----------------------------------------------------------------------

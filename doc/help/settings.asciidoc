@@ -99,7 +99,7 @@
 |<<tabs-select-on-remove,select-on-remove>>|Which tab to select when the focused tab is removed.
 |<<tabs-new-tab-position,new-tab-position>>|How new tabs are positioned.
 |<<tabs-new-tab-position-explicit,new-tab-position-explicit>>|How new tabs opened explicitly are positioned.
-|<<tabs-last-close,last-close>>|Behaviour when the last tab is closed.
+|<<tabs-last-close,last-close>>|Behavior when the last tab is closed.
 |<<tabs-hide-auto,hide-auto>>|Hide the tab bar if only one tab is open.
 |<<tabs-hide-always,hide-always>>|Always hide the tab bar.
 |<<tabs-wrap,wrap>>|Whether to wrap when changing tabs.
@@ -221,6 +221,7 @@
 |<<colors-downloads.bg.stop,downloads.bg.stop>>|Color gradient end for downloads.
 |<<colors-downloads.bg.system,downloads.bg.system>>|Color gradient interpolation system for downloads.
 |<<colors-downloads.bg.error,downloads.bg.error>>|Background color for downloads with errors.
+|<<colors-webpage.bg,webpage.bg>>|Background color for webpages if unset (or empty to use the theme's color)
 |==============
 
 .Quick reference for section ``fonts''
@@ -910,7 +911,7 @@ Default: +pass:[last]+
 
 [[tabs-last-close]]
 === last-close
-Behaviour when the last tab is closed.
+Behavior when the last tab is closed.
 
 Valid values:
 
@@ -1433,7 +1434,7 @@ Default: +pass:[true]+
 === next-regexes
 A comma-separated list of regexes to use for 'next' links.
 
-Default: +pass:[\bnext\b,\bmore\b,\bnewer\b,\b[&gt;→≫]\b,\b(&gt;&gt;|»)\b]+
+Default: +pass:[\bnext\b,\bmore\b,\bnewer\b,\b[&gt;→≫]\b,\b(&gt;&gt;|»)\b,\bcontinue\b]+
 
 [[hints-prev-regexes]]
 === prev-regexes
@@ -1751,6 +1752,12 @@ Default: +pass:[rgb]+
 Background color for downloads with errors.
 
 Default: +pass:[red]+
+
+[[colors-webpage.bg]]
+=== webpage.bg
+Background color for webpages if unset (or empty to use the theme's color)
+
+Default: +pass:[white]+
 
 == fonts
 Fonts used for the UI, with optional style/weight/size.

@@ -377,7 +377,7 @@ class RAMHandler(logging.Handler):
 
     """Logging handler which keeps the messages in a deque in RAM.
 
-    Loosly based on logging.BufferingHandler which is unsuitable because it
+    Loosely based on logging.BufferingHandler which is unsuitable because it
     uses a simple list rather than a deque.
 
     Attributes:

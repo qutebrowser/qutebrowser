@@ -77,7 +77,7 @@ class CommandLineEdit(QLineEdit):
     def __on_cursor_position_changed(self, _old, new):
         """Prevent the cursor moving to the prompt.
 
-        We use __ here to avoid accidentally overriding it in superclasses.
+        We use __ here to avoid accidentally overriding it in subclasses.
         """
         if new < self._promptlen:
             self.setCursorPosition(self._promptlen)
