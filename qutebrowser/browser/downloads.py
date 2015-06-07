@@ -49,6 +49,11 @@ ModelRole = usertypes.enum('ModelRole', ['item'], start=Qt.UserRole,
 RetryInfo = collections.namedtuple('RetryInfo', ['request', 'manager'])
 
 
+# All REFRESH_INTERVAL milliseconds, speeds will be recalculated and downloads
+# redrawn.
+REFRESH_INTERVAL = 500
+
+
 def _download_dir():
     """Get the download directory to use."""
     directory = config.get('storage', 'download-directory')
@@ -80,7 +85,6 @@ class DownloadItemStats(QObject):
     """Statistics (bytes done, total bytes, time, etc.) about a download.
 
     Class attributes:
-        SPEED_REFRESH_INTERVAL: How often to refresh the speed, in msec.
         SPEED_AVG_WINDOW: How many seconds of speed data to average to
                           estimate the remaining time.
 
@@ -93,10 +97,7 @@ class DownloadItemStats(QObject):
                     the speed the last time.
     """
 
-    SPEED_REFRESH_INTERVAL = 500
     SPEED_AVG_WINDOW = 30
-
-    updated = pyqtSignal()
 
     def __init__(self, parent=None):
         super().__init__(parent)
@@ -104,26 +105,21 @@ class DownloadItemStats(QObject):
         self.done = 0
         self.speed = 0
         self._last_done = 0
-        samples = int(self.SPEED_AVG_WINDOW *
-                      (1000 / self.SPEED_REFRESH_INTERVAL))
+        samples = int(self.SPEED_AVG_WINDOW * (1000 / REFRESH_INTERVAL))
         self._speed_avg = collections.deque(maxlen=samples)
-        self.timer = usertypes.Timer(self, 'speed_refresh')
-        self.timer.timeout.connect(self._update_speed)
-        self.timer.setInterval(self.SPEED_REFRESH_INTERVAL)
-        self.timer.start()
 
-    @pyqtSlot()
-    def _update_speed(self):
-        """Recalculate the current download speed."""
+    def update_speed(self):
+        """Recalculate the current download speed.
+
+        The caller needs to guarantee this is called all REFRESH_INTERVAL ms.
+        """
         delta = self.done - self._last_done
-        self.speed = delta * 1000 / self.SPEED_REFRESH_INTERVAL
+        self.speed = delta * 1000 / REFRESH_INTERVAL
         self._speed_avg.append(self.speed)
         self._last_done = self.done
-        self.updated.emit()
 
     def finish(self):
         """Set the download stats as finished."""
-        self.timer.stop()
         self.done = self.total
 
     def percentage(self):
@@ -230,7 +226,6 @@ class DownloadItem(QObject):
         self.retry_info = None
         self.done = False
         self.stats = DownloadItemStats(self)
-        self.stats.updated.connect(self.data_changed)
         self.index = 0
         self.autoclose = True
         self.reply = None
@@ -616,6 +611,9 @@ class DownloadManager(QAbstractListModel):
         self.questions = []
         self._networkmanager = networkmanager.NetworkManager(
             win_id, None, self)
+        self._update_timer = usertypes.Timer(self, 'download-update')
+        self._update_timer.timeout.connect(self.update_gui)
+        self._update_timer.setInterval(REFRESH_INTERVAL)
 
     def __repr__(self):
         return utils.get_repr(self, downloads=len(self.downloads))
@@ -629,6 +627,14 @@ class DownloadManager(QAbstractListModel):
         q.destroyed.connect(functools.partial(self.questions.remove, q))
         self.questions.append(q)
         return q
+
+    @pyqtSlot()
+    def update_gui(self):
+        """Periodical GUI update of all items."""
+        assert self.downloads
+        for dl in self.downloads:
+            dl.stats.update_speed()
+        self.dataChanged.emit(self.index(0), self.last_index())
 
     @pyqtSlot('QUrl', 'QWebPage')
     def get(self, url, page=None, fileobj=None, filename=None,
@@ -767,6 +773,9 @@ class DownloadManager(QAbstractListModel):
         self.beginInsertRows(QModelIndex(), idx, idx)
         self.downloads.append(download)
         self.endInsertRows()
+
+        if not self._update_timer.isActive():
+            self._update_timer.start()
 
         if filename is not None:
             download.set_filename(filename)
@@ -963,6 +972,8 @@ class DownloadManager(QAbstractListModel):
         self.endRemoveRows()
         download.deleteLater()
         self.update_indexes()
+        if not self.downloads:
+            self._update_timer.stop()
 
     def remove_items(self, downloads):
         """Remove an iterable of downloads."""
@@ -991,6 +1002,8 @@ class DownloadManager(QAbstractListModel):
             else:
                 download.deleteLater()
         self.endRemoveRows()
+        if not self.downloads:
+            self._update_timer.stop()
 
     def update_indexes(self):
         """Update indexes of all DownloadItems."""
