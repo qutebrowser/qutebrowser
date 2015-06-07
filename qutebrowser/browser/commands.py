@@ -103,7 +103,8 @@ class CommandDispatcher:
 
     def _current_title(self):
         """Convenience method to get the current title."""
-        return self._tabbed_browser.page_title(self._current_index())
+        title = self._current_widget().title()
+        return title if title else "(null)"
 
     def _current_widget(self):
         """Get the currently active widget from a command."""
