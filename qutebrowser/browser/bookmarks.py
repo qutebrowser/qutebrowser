@@ -25,6 +25,7 @@ OrderedDict. This is because we read them from a file at start and write them
 to a file on shutdown, so it makes sense to keep them as strings here.
 """
 
+import os
 import os.path
 import collections
 
@@ -66,8 +67,11 @@ class BookmarkManager(QObject):
         if standarddir.config() is None:
             self._lineparser = None
         else:
+            bookmarks_directory = os.path.join(standarddir.config(), 'bookmarks')
+            if not os.path.isdir(bookmarks_directory):
+                os.makedirs(bookmarks_directory)
             self._lineparser = lineparser.LineParser(
-                standarddir.config(), 'bookmarks', parent=self)
+                standarddir.config(), 'bookmarks/urls', parent=self)
             for line in self._lineparser:
                 if not line.strip():
                     # Ignore empty or whitespace-only lines.
@@ -78,7 +82,7 @@ class BookmarkManager(QObject):
                     message.error(0, "Invalid bookmark '{}'".format(line))
                 else:
                     self.bookmarks[url] = title
-            filename = os.path.join(standarddir.config(), 'bookmarks')
+            filename = os.path.join(standarddir.config(), 'bookmarks/urls')
             objreg.get('save-manager').add_saveable(
                 'bookmark-manager', self.save, self.changed,
                 filename=filename)
