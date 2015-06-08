@@ -67,7 +67,8 @@ class BookmarkManager(QObject):
         if standarddir.config() is None:
             self._lineparser = None
         else:
-            bookmarks_directory = os.path.join(standarddir.config(), 'bookmarks')
+            bookmarks_directory = os.path.join(standarddir.config(),
+                                               'bookmarks')
             if not os.path.isdir(bookmarks_directory):
                 os.makedirs(bookmarks_directory)
             self._lineparser = lineparser.LineParser(
