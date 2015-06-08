@@ -238,6 +238,25 @@ class GlobalSetter(Setter):
         self._setter(*args)
 
 
+class CookiePolicy(Base):
+
+    """The ThirdPartyCookiePolicy setting is different from other settings."""
+
+    MAPPING = {
+        'all': QWebSettings.AlwaysAllowThirdPartyCookies,
+        'no-3rdparty': QWebSettings.AlwaysBlockThirdPartyCookies,
+        'never': QWebSettings.AlwaysBlockThirdPartyCookies,
+        'no-unknown-3rdparty': QWebSettings.AllowThirdPartyWithExistingCookies,
+    }
+
+    def get(self, qws=None):
+        return config.get('content', 'cookies-accept')
+
+    def _set(self, value, qws=None):
+        QWebSettings.globalSettings().setThirdPartyCookiePolicy(
+            self.MAPPING[value])
+
+
 MAPPINGS = {
     'content': {
         'allow-images':
@@ -264,6 +283,8 @@ MAPPINGS = {
             Attribute(QWebSettings.LocalContentCanAccessRemoteUrls),
         'local-content-can-access-file-urls':
             Attribute(QWebSettings.LocalContentCanAccessFileUrls),
+        'cookies-accept':
+            CookiePolicy(),
     },
     'network': {
         'dns-prefetch':

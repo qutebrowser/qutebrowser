@@ -149,7 +149,7 @@
 |<<content-ignore-javascript-alert,ignore-javascript-alert>>|Whether all javascript alerts should be ignored.
 |<<content-local-content-can-access-remote-urls,local-content-can-access-remote-urls>>|Whether locally loaded documents are allowed to access remote urls.
 |<<content-local-content-can-access-file-urls,local-content-can-access-file-urls>>|Whether locally loaded documents are allowed to access other local urls.
-|<<content-cookies-accept,cookies-accept>>|Whether to accept cookies.
+|<<content-cookies-accept,cookies-accept>>|Control which cookies to accept.
 |<<content-cookies-store,cookies-store>>|Whether to store cookies.
 |<<content-host-block-lists,host-block-lists>>|List of URLs of lists which contain hosts to block.
 |<<content-host-blocking-enabled,host-blocking-enabled>>|Whether host blocking is enabled.
@@ -1316,14 +1316,16 @@ Default: +pass:[true]+
 
 [[content-cookies-accept]]
 === cookies-accept
-Whether to accept cookies.
+Control which cookies to accept.
 
 Valid values:
 
- * +default+: Default QtWebKit behavior.
+ * +all+: Accept all cookies.
+ * +no-3rdparty+: Accept cookies from the same origin only.
+ * +no-unknown-3rdparty+: Accept cookies from the same origin only, unless a cookie is already set for the domain.
  * +never+: Don't accept cookies at all.
 
-Default: +pass:[default]+
+Default: +pass:[no-3rdparty]+
 
 [[content-cookies-store]]
 === cookies-store
