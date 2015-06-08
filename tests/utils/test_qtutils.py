@@ -774,7 +774,7 @@ class TestPyQIODevice:
         assert str(excinfo.value) == 'Random access not allowed!'
         proc.waitForFinished(1000)
         proc.kill()
-        assert dev.read().rstrip() == b'Hello World'
+        assert bytes(dev.read()).rstrip() == b'Hello World'
 
     def test_truncate(self, pyqiodev):
         with pytest.raises(io.UnsupportedOperation):
