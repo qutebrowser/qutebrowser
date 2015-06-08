@@ -446,6 +446,13 @@ class DownloadItem(QObject):
             # The file already exists, so ask the user if it should be
             # overwritten.
             self._ask_overwrite_question()
+        # FIFO, device node, etc. Don't even try.
+        elif (os.path.exists(self._filename) and not
+                os.path.isdir(self._filename)):
+            self.cancel(False)
+            message.error(self._win_id, "The file {} already exists, and is a "
+                                        "special file. Aborting.".format(
+                                         self._filename))
         else:
             self._create_fileobj()
 
