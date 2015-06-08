@@ -38,7 +38,7 @@
 |<<ui-display-statusbar-messages,display-statusbar-messages>>|Whether to display javascript statusbar messages.
 |<<ui-zoom-text-only,zoom-text-only>>|Whether the zoom factor on a frame applies only to the text or to all content.
 |<<ui-frame-flattening,frame-flattening>>|Whether to  expand each subframe to its contents.
-|<<ui-user-stylesheet,user-stylesheet>>|User stylesheet to use (absolute filename or CSS string). Will expand environment variables.
+|<<ui-user-stylesheet,user-stylesheet>>|User stylesheet to use (absolute filename, filename relative to the config directory or CSS string). Will expand environment variables.
 |<<ui-css-media-type,css-media-type>>|Set the CSS media type.
 |<<ui-smooth-scrolling,smooth-scrolling>>|Whether to enable smooth scrolling for webpages.
 |<<ui-remove-finished-downloads,remove-finished-downloads>>|Whether to remove finished downloads automatically.
@@ -530,7 +530,7 @@ Default: +pass:[false]+
 
 [[ui-user-stylesheet]]
 === user-stylesheet
-User stylesheet to use (absolute filename or CSS string). Will expand environment variables.
+User stylesheet to use (absolute filename, filename relative to the config directory or CSS string). Will expand environment variables.
 
 Default: +pass:[::-webkit-scrollbar { width: 0px; height: 0px; }]+
 
