@@ -1362,6 +1362,7 @@ class TestFile:
     def test_validate_does_not_exist(self, os_path):
         """Test validate with a file which does not exist."""
         os_path.expanduser.side_effect = lambda x: x
+        os_path.expandvars.side_effect = lambda x: x
         os_path.isfile.return_value = False
         with pytest.raises(configexc.ValidationError):
             self.t.validate('foobar')
@@ -1369,6 +1370,7 @@ class TestFile:
     def test_validate_exists_abs(self, os_path):
         """Test validate with a file which does exist."""
         os_path.expanduser.side_effect = lambda x: x
+        os_path.expandvars.side_effect = lambda x: x
         os_path.isfile.return_value = True
         os_path.isabs.return_value = True
         self.t.validate('foobar')
@@ -1379,6 +1381,7 @@ class TestFile:
             'qutebrowser.config.configtypes.standarddir.config',
             lambda: '/home/foo/.config/')
         os_path.expanduser.side_effect = lambda x: x
+        os_path.expandvars.side_effect = lambda x: x
         os_path.isfile.return_value = True
         os_path.isabs.return_value = False
         self.t.validate('foobar')
@@ -1395,10 +1398,21 @@ class TestFile:
     def test_validate_expanduser(self, os_path):
         """Test if validate expands the user correctly."""
         os_path.expanduser.side_effect = lambda x: x.replace('~', '/home/foo')
+        os_path.expandvars.side_effect = lambda x: x
         os_path.isfile.side_effect = lambda path: path == '/home/foo/foobar'
         os_path.isabs.return_value = True
         self.t.validate('~/foobar')
         os_path.expanduser.assert_called_once_with('~/foobar')
+
+    def test_validate_expandvars(self, os_path):
+        """Test if validate expands the environment vars correctly."""
+        os_path.expanduser.side_effect = lambda x: x
+        os_path.expandvars.side_effect = lambda x: x.replace(
+            '$HOME', '/home/foo')
+        os_path.isfile.side_effect = lambda path: path == '/home/foo/foobar'
+        os_path.isabs.return_value = True
+        self.t.validate('$HOME/foobar')
+        os_path.expandvars.assert_called_once_with('$HOME/foobar')
 
     def test_validate_invalid_encoding(self, os_path, unicode_encode_err):
         """Test validate with an invalid encoding, e.g. LC_ALL=C."""

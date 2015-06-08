@@ -817,6 +817,7 @@ class File(BaseType):
             else:
                 raise configexc.ValidationError(value, "may not be empty!")
         value = os.path.expanduser(value)
+        value = os.path.expandvars(value)
         try:
             if not os.path.isabs(value):
                 cfgdir = standarddir.config()
