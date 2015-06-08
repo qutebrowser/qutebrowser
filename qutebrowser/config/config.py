@@ -328,6 +328,8 @@ class ConfigManager(QObject):
         ('colors', 'completion.item.bg'),
     ]
     CHANGED_OPTIONS = {
+        ('content', 'cookies-accept'):
+            _get_value_transformer('default', 'no-3rdparty'),
     }
 
     changed = pyqtSignal(str, str)
