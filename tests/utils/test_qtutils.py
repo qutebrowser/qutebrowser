@@ -702,7 +702,9 @@ class TestPyQIODevice:
         dev = qtutils.PyQIODevice(qf)
         with pytest.raises(OSError) as excinfo:
             dev.open(QIODevice.WriteOnly)
-        assert str(excinfo.value) == 'Is a directory'
+        errors = ['Access is denied.',  # Linux/OS X
+                  'Is a directory']  # Windows
+        assert str(excinfo.value) in errors
         assert dev.closed
 
     def test_fileno(self, pyqiodev):
