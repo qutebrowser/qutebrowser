@@ -1337,9 +1337,14 @@ class LastClose(BaseType):
 
 class AcceptCookies(BaseType):
 
-    """Whether to accept a cookie."""
+    """Control which cookies to accept."""
 
-    valid_values = ValidValues(('default', "Default QtWebKit behavior."),
+    valid_values = ValidValues(('all', "Accept all cookies."),
+                               ('no-3rdparty', "Accept cookies from the same"
+                                " origin only."),
+                               ('no-unknown-3rdparty', "Accept cookies from "
+                                "the same origin only, unless a cookie is "
+                                "already set for the domain."),
                                ('never', "Don't accept cookies at all."))
 
 
