@@ -116,10 +116,13 @@ class BookmarkManager(QObject):
             message.error(win_id, "Can't set mark with empty URL!")
             return
 
-        self.bookmarks[urlstr] = title
-        self.changed.emit()
-        self.added.emit(title, urlstr)
-        message.info(win_id, "Bookmarks added")
+        if urlstr in self.bookmarks:
+            message.error(win_id, "Bookmark already exists!")
+        else:
+            self.bookmarks[urlstr] = title
+            self.changed.emit()
+            self.added.emit(title, urlstr)
+            message.info(win_id, "Bookmark added")
 
     def bookmark_del(self, url):
         """Delete a bookmark.
