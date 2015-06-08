@@ -805,10 +805,9 @@ class File(BaseType):
         value = os.path.expanduser(value)
         value = os.path.expandvars(value)
         if not os.path.isabs(value):
-            if standarddir.config() is not None:
-                abspath = os.path.join(standarddir.config(), value)
-                if os.path.isfile(abspath):
-                    return abspath
+            cfgdir = standarddir.config()
+            if cfgdir is not None:
+                return os.path.join(cfgdir, value)
         return value
 
     def validate(self, value):
@@ -821,16 +820,19 @@ class File(BaseType):
         try:
             if not os.path.isabs(value):
                 cfgdir = standarddir.config()
-                if cfgdir is not None and os.path.isfile(
-                        os.path.join(cfgdir, value)):
+                if cfgdir is None:
+                    raise configexc.ValidationError(
+                        value, "must be an absolute path when not using a "
+                        "config directory!")
+                elif not os.path.isfile(os.path.join(cfgdir, value)):
+                    raise configexc.ValidationError(
+                        value, "must be a valid path relative to the config "
+                        "directory!")
+                else:
                     return
-                raise configexc.ValidationError(
-                    value, "must be an absolute path when not using a config "
-                    "directory!")
             elif not os.path.isfile(value):
                 raise configexc.ValidationError(
-                    value, "must be a valid path relative to the config "
-                    "directory!")
+                    value, "must be a valid file!")
         except UnicodeEncodeError as e:
             raise configexc.ValidationError(value, e)
 
