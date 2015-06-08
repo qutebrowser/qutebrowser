@@ -50,6 +50,7 @@ Changed
 - `<Ctrl-M>` and numpad-enter are now bound by default for bindings where `<Return>` was bound.
 - `:hint tab` and `F` now respect the `background-tabs` setting. To enforce a foreground tab (what `F` did before), use `:hint tab-fg` or `;f`.
 - `:scroll` now takes a direction argument (`up`/`down`/`left`/`right`/`top`/`bottom`/`page-up`/`page-down`) instead of two pixel arguments (`dx`/`dy`). The old form still works but is deprecated.
+- The `ui -> user-stylesheet` setting now also takes file paths relative to the config directory.
 
 Deprecated
 ~~~~~~~~~~
@@ -60,6 +61,7 @@ Removed
 ~~~~~~~
 
 - The `--no-crash-dialog` argument which was intended for debugging only was removed as it's replaced by `--no-err-windows` which suppresses all error windows.
+- Support for Qt installations without SSL support was dropped.
 
 Fixed
 ~~~~~
