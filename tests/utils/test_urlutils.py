@@ -256,6 +256,3 @@ class TestSchemeOrder:
         monkeypatch.setattr('qutebrowser.utils.urlutils.config', config_stub)
         assert (urlutils.fuzzy_url('example.com').toDisplayString() ==
                 'https://example.com')
-
-        # TODO: I don't know how to test the code in browser/webpage.py
-        # _handle_errorpage() ...
