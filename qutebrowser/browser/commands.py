@@ -28,7 +28,7 @@ import xml.etree.ElementTree
 
 from PyQt5.QtWebKit import QWebSettings
 from PyQt5.QtWidgets import QApplication, QTabBar
-from PyQt5.QtCore import pyqtSlot, Qt, QUrl, QEvent, QProcess
+from PyQt5.QtCore import Qt, QUrl, QEvent
 from PyQt5.QtGui import QClipboard, QKeyEvent
 from PyQt5.QtPrintSupport import QPrintDialog, QPrintPreviewDialog
 from PyQt5.QtWebKitWidgets import QWebPage
@@ -43,7 +43,7 @@ from qutebrowser.keyinput import modeman
 from qutebrowser.utils import (message, usertypes, log, qtutils, urlutils,
                                objreg, utils)
 from qutebrowser.utils.usertypes import KeyMode
-from qutebrowser.misc import editor
+from qutebrowser.misc import editor, guiprocess
 
 
 class CommandDispatcher:
@@ -944,31 +944,13 @@ class CommandDispatcher:
         if userscript:
             self.run_userscript(cmd, *args)
         else:
-            proc = QProcess(self._tabbed_browser)
-            proc.error.connect(self.on_process_error)
+            proc = guiprocess.GUIProcess(self._win_id, what='command',
+                                         verbose=not quiet,
+                                         parent=self._tabbed_browser)
             if detach:
-                ok = proc.startDetached(cmd, args)
-                if not ok:
-                    raise cmdexc.CommandError("Error while spawning command")
+                proc.start_detached(cmd, args)
             else:
                 proc.start(cmd, args)
-            if not quiet:
-                proc.finished.connect(self.on_process_finished)
-
-    @pyqtSlot('QProcess::ProcessError')
-    def on_process_error(self, error):
-        """Display an error if a :spawn'ed process failed."""
-        msg = qtutils.QPROCESS_ERRORS[error]
-        message.error(self._win_id,
-                      "Error while spawning command: {}".format(msg),
-                      immediately=True)
-
-    @pyqtSlot(int, 'QProcess::ExitStatus')
-    def on_process_finished(self, code, _status):
-        """Display an error if a :spawn'ed process exited with non-0 status."""
-        if code != 0:
-            message.error(self._win_id, "Spawned command exited with status "
-                          "{}!".format(code))
 
     @cmdutils.register(instance='command-dispatcher', scope='window')
     def home(self):
@@ -1202,7 +1184,7 @@ class CommandDispatcher:
     def on_editing_finished(self, elem, text):
         """Write the editor text into the form field and clean up tempfile.
 
-        Callback for QProcess when the editor was closed.
+        Callback for GUIProcess when the editor was closed.
 
         Args:
             elem: The WebElementWrapper which was modified.

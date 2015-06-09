@@ -42,7 +42,7 @@ class TestArg:
 
     @pytest.yield_fixture(autouse=True)
     def setup(self, monkeypatch, stubs):
-        monkeypatch.setattr('qutebrowser.misc.editor.QProcess',
+        monkeypatch.setattr('qutebrowser.misc.editor.guiprocess.QProcess',
                             stubs.FakeQProcess())
         self.editor = editor.ExternalEditor(0)
         yield
@@ -101,7 +101,7 @@ class TestFileHandling:
     def setup(self, monkeypatch, stubs, config_stub):
         monkeypatch.setattr('qutebrowser.misc.editor.message',
                             stubs.MessageModule())
-        monkeypatch.setattr('qutebrowser.misc.editor.QProcess',
+        monkeypatch.setattr('qutebrowser.misc.editor.guiprocess.QProcess',
                             stubs.FakeQProcess())
         config_stub.data = {'general': {'editor': [''],
                                         'editor-encoding': 'utf-8'}}
@@ -148,7 +148,7 @@ class TestModifyTests:
 
     @pytest.fixture(autouse=True)
     def setup(self, monkeypatch, stubs, config_stub):
-        monkeypatch.setattr('qutebrowser.misc.editor.QProcess',
+        monkeypatch.setattr('qutebrowser.misc.editor.guiprocess.QProcess',
                             stubs.FakeQProcess())
         config_stub.data = {'general': {'editor': [''],
                                         'editor-encoding': 'utf-8'}}
@@ -220,7 +220,7 @@ class TestErrorMessage:
 
     @pytest.yield_fixture(autouse=True)
     def setup(self, monkeypatch, stubs, config_stub):
-        monkeypatch.setattr('qutebrowser.misc.editor.QProcess',
+        monkeypatch.setattr('qutebrowser.misc.editor.guiprocess.QProcess',
                             stubs.FakeQProcess())
         monkeypatch.setattr('qutebrowser.misc.editor.message',
                             stubs.MessageModule())

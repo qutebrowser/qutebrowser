@@ -36,7 +36,7 @@ import distutils.version  # pylint: disable=no-name-in-module,import-error
 import contextlib
 
 from PyQt5.QtCore import (qVersion, QEventLoop, QDataStream, QByteArray,
-                          QIODevice, QSaveFile, QProcess)
+                          QIODevice, QSaveFile)
 from PyQt5.QtWidgets import QApplication
 
 
@@ -400,17 +400,3 @@ class EventLoop(QEventLoop):
         self._executing = True
         super().exec_(flags)
         self._executing = False
-
-
-# A mapping of QProcess::ErrorCode's to human-readable strings.
-
-QPROCESS_ERRORS = {
-    QProcess.FailedToStart: "The process failed to start.",
-    QProcess.Crashed: "The process crashed.",
-    QProcess.Timedout: "The last waitFor...() function timed out.",
-    QProcess.WriteError: ("An error occurred when attempting to write to the "
-                          "process."),
-    QProcess.ReadError: ("An error occurred when attempting to read from the "
-                         "process."),
-    QProcess.UnknownError: "An unknown error occurred.",
-}

@@ -23,12 +23,12 @@ import os
 import os.path
 import tempfile
 
-from PyQt5.QtCore import (pyqtSignal, pyqtSlot, QObject, QSocketNotifier,
-                          QProcessEnvironment, QProcess)
+from PyQt5.QtCore import pyqtSignal, pyqtSlot, QObject, QSocketNotifier
 
-from qutebrowser.utils import message, log, objreg, standarddir, qtutils
+from qutebrowser.utils import message, log, objreg, standarddir
 from qutebrowser.commands import runners, cmdexc
 from qutebrowser.config import config
+from qutebrowser.misc import guiprocess
 
 
 class _QtFIFOReader(QObject):
@@ -70,7 +70,7 @@ class _BaseUserscriptRunner(QObject):
 
     Attributes:
         _filepath: The path of the file/FIFO which is being read.
-        _proc: The QProcess which is being executed.
+        _proc: The GUIProcess which is being executed.
         _win_id: The window ID this runner is associated with.
 
     Signals:
@@ -89,33 +89,29 @@ class _BaseUserscriptRunner(QObject):
         self._env = None
 
     def _run_process(self, cmd, *args, env):
-        """Start the given command via QProcess.
+        """Start the given command.
 
         Args:
             cmd: The command to be started.
             *args: The arguments to hand to the command
             env: A dictionary of environment variables to add.
         """
-        self._env = env
-        self._proc = QProcess(self)
-        procenv = QProcessEnvironment.systemEnvironment()
-        procenv.insert('QUTE_FIFO', self._filepath)
-        if env is not None:
-            for k, v in env.items():
-                procenv.insert(k, v)
-        self._proc.setProcessEnvironment(procenv)
-        self._proc.error.connect(self.on_proc_error)
-        self._proc.finished.connect(self.on_proc_finished)
+        self._env = {'QUTE_FIFO': self._filepath}
+        self._env.update(env)
+        self._proc = guiprocess.GUIProcess(self._win_id, 'userscript',
+                                           additional_env=self._env,
+                                           parent=self)
+        self._proc.proc.error.connect(self.on_proc_error)
+        self._proc.proc.finished.connect(self.on_proc_finished)
         self._proc.start(cmd, args)
 
     def _cleanup(self):
         """Clean up temporary files."""
         tempfiles = [self._filepath]
-        if self._env is not None:
-            if 'QUTE_HTML' in self._env:
-                tempfiles.append(self._env['QUTE_HTML'])
-            if 'QUTE_TEXT' in self._env:
-                tempfiles.append(self._env['QUTE_TEXT'])
+        if 'QUTE_HTML' in self._env:
+            tempfiles.append(self._env['QUTE_HTML'])
+        if 'QUTE_TEXT' in self._env:
+            tempfiles.append(self._env['QUTE_TEXT'])
         for fn in tempfiles:
             log.procs.debug("Deleting temporary file {}.".format(fn))
             try:
@@ -151,12 +147,7 @@ class _BaseUserscriptRunner(QObject):
 
     def on_proc_error(self, error):
         """Called when the process encountered an error."""
-        msg = qtutils.QPROCESS_ERRORS[error]
-        # NOTE: Do not replace this with "raise CommandError" as it's
-        # executed async.
-        message.error(self._win_id,
-                      "Error while calling userscript: {}".format(msg))
-        log.procs.debug("Userscript process error: {} - {}".format(error, msg))
+        raise NotImplementedError
 
 
 class _POSIXUserscriptRunner(_BaseUserscriptRunner):
@@ -195,12 +186,10 @@ class _POSIXUserscriptRunner(_BaseUserscriptRunner):
 
     def on_proc_finished(self):
         """Interrupt the reader when the process finished."""
-        log.procs.debug("Userscript process finished.")
         self.finish()
 
     def on_proc_error(self, error):
         """Interrupt the reader when the process had an error."""
-        super().on_proc_error(error)
         self.finish()
 
     def finish(self):
@@ -245,7 +234,6 @@ class _WindowsUserscriptRunner(_BaseUserscriptRunner):
 
     def on_proc_finished(self):
         """Read back the commands when the process finished."""
-        log.procs.debug("Userscript process finished.")
         try:
             with open(self._filepath, 'r', encoding='utf-8') as f:
                 for line in f:
@@ -257,7 +245,6 @@ class _WindowsUserscriptRunner(_BaseUserscriptRunner):
 
     def on_proc_error(self, error):
         """Clean up when the process had an error."""
-        super().on_proc_error(error)
         self._cleanup()
         self.finished.emit()
 

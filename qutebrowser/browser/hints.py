@@ -24,7 +24,7 @@ import functools
 import collections
 
 from PyQt5.QtCore import (pyqtSignal, pyqtSlot, QObject, QEvent, Qt, QUrl,
-                          QTimer, QProcess)
+                          QTimer)
 from PyQt5.QtGui import QMouseEvent, QClipboard
 from PyQt5.QtWidgets import QApplication
 from PyQt5.QtWebKit import QWebElement
@@ -35,6 +35,7 @@ from qutebrowser.keyinput import modeman, modeparsers
 from qutebrowser.browser import webelem
 from qutebrowser.commands import userscripts, cmdexc, cmdutils, runners
 from qutebrowser.utils import usertypes, log, qtutils, message, objreg
+from qutebrowser.misc import guiprocess
 
 
 ElemTuple = collections.namedtuple('ElemTuple', ['elem', 'label'])
@@ -548,17 +549,8 @@ class HintManager(QObject):
         urlstr = url.toString(QUrl.FullyEncoded | QUrl.RemovePassword)
         args = context.get_args(urlstr)
         cmd, *args = args
-        proc = QProcess(self)
-        proc.error.connect(self.on_process_error)
+        proc = guiprocess.GUIProcess(self._win_id, what='command', parent=self)
         proc.start(cmd, args)
-
-    @pyqtSlot('QProcess::ProcessError')
-    def on_process_error(self, error):
-        """Display an error if a :spawn'ed process failed."""
-        msg = qtutils.QPROCESS_ERRORS[error]
-        message.error(self._win_id,
-                      "Error while spawning command: {}".format(msg),
-                      immediately=True)
 
     def _resolve_url(self, elem, baseurl):
         """Resolve a URL and check if we want to keep it.
