@@ -40,7 +40,8 @@ class Error(Exception):
 
 def verbose_copy(src, dst, *, follow_symlinks=True):
     """Copy function for shutil.copytree which prints copied files."""
-    print('{} -> {}'.format(src, dst))
+    if '-v' in sys.argv:
+        print('{} -> {}'.format(src, dst))
     shutil.copy(src, dst, follow_symlinks=follow_symlinks)
 
 
@@ -112,6 +113,7 @@ def copy_or_link(source, dest):
     """Copy or symlink source to dest."""
     if os.name == 'nt':
         if os.path.isdir(source):
+            print('{} -> {}'.format(source, dest))
             shutil.copytree(source, dest, ignore=get_ignored_files,
                             copy_function=verbose_copy)
         else:
