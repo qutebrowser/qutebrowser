@@ -140,6 +140,7 @@ Contributors, sorted by the number of commits in descending order:
 * Claude
 * Lamar Pavel
 * Martin Tournoij
+* Austin Anderson
 * Artur Shaik
 * Antoni Boucher
 * ZDarian
