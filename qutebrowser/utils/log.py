@@ -285,6 +285,8 @@ def qt_message_handler(msg_type, context, msg):
         'QXcbWindow: Unhandled client message: "_E_',
         'QXcbWindow: Unhandled client message: "_ECORE_',
         'QXcbWindow: Unhandled client message: "_GTK_',
+        # Happens on AppVeyor CI
+        'SetProcessDpiAwareness failed:',
     )
     if any(msg.strip().startswith(pattern) for pattern in suppressed_msgs):
         level = logging.DEBUG
