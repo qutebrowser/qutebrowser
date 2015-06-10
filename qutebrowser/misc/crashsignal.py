@@ -300,6 +300,7 @@ class SignalHandler(QObject):
             signal.SIGTERM, self.interrupt)
 
         if os.name == 'posix' and hasattr(signal, 'set_wakeup_fd'):
+            # pylint: disable=import-error,no-member
             import fcntl
             read_fd, write_fd = os.pipe()
             for fd in (read_fd, write_fd):
