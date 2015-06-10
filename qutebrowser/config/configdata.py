@@ -980,28 +980,27 @@ def data(readonly=False):
 
             ('downloads.fg.start',
              SettingValue(typ.QtColor(), 'white'),
-             "Color gradient start for download foreground text."),
+             "Color gradient start for download text."),
 
             ('downloads.bg.start',
              SettingValue(typ.QtColor(), '#0000aa'),
-             "Color gradient start for download background."),
+             "Color gradient start for download backgrounds."),
 
             ('downloads.fg.stop',
              SettingValue(typ.QtColor(), '${downloads.fg.start}'),
-             "Color gradient end for download foreground text."),
+             "Color gradient end for download text."),
 
             ('downloads.bg.stop',
              SettingValue(typ.QtColor(), '#00aa00'),
-             "Color gradient stop for download background."),
+             "Color gradient stop for download backgrounds."),
 
             ('downloads.fg.system',
              SettingValue(typ.ColorSystem(), 'rgb'),
-             "Color gradient interpolation system for download foreground"
-             "text."),
+             "Color gradient interpolation system for download text."),
 
             ('downloads.bg.system',
              SettingValue(typ.ColorSystem(), 'rgb'),
-             "Color gradient interpolation system for download background."),
+             "Color gradient interpolation system for download backgrounds."),
 
             ('downloads.fg.error',
              SettingValue(typ.QtColor(), 'white'),
