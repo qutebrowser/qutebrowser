@@ -140,7 +140,10 @@ def get_python_lib(executable, venv=False):
               treatments for Windows/Ubuntu shouldn't take place.
     """
     distribution = platform.linux_distribution(full_distribution_name=False)
-    if os.name == 'nt' and not venv:
+    if 'PYTHON' in os.environ and not venv:
+        # e.g. on AppVeyor
+        return os.path.join(os.environ['PYTHON'], 'Lib', 'site-packages')
+    elif os.name == 'nt' and not venv:
         # For some reason, we get an empty string from get_python_lib() on
         # Windows when running via tox, and sys.prefix is empty too...
         return os.path.join(os.path.dirname(executable), '..', 'Lib',
