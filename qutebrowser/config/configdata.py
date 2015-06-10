@@ -103,6 +103,10 @@ SECTION_DESC = {
         " * A gradient as explained in http://qt-project.org/doc/qt-4.8/"
         "stylesheet-reference.html#list-of-property-types[the Qt "
         "documentation] under ``Gradient''.\n\n"
+        "A *.system value determines the color system to use for color "
+        "interpolation between similarly-named *.start and *.stop entries, "
+        "regardless of how they are defined in the options. "
+        "Valid values are 'rgb', 'hsv', and 'hsl'.\n\n"
         "The `hints.*` values are a special case as they're real CSS "
         "colors, not Qt-CSS colors. There, for a gradient, you need to use "
         "`-webkit-gradient`, see https://www.webkit.org/blog/175/introducing-"
@@ -818,33 +822,66 @@ def data(readonly=False):
              SettingValue(typ.QssColor(), '#ff4444'),
              "Foreground color of the matched text in the completion."),
 
+            ('statusbar.fg',
+             SettingValue(typ.QssColor(), 'white'),
+             "Foreground color of the statusbar."),
+
             ('statusbar.bg',
              SettingValue(typ.QssColor(), 'black'),
              "Foreground color of the statusbar."),
 
-            ('statusbar.fg',
-             SettingValue(typ.QssColor(), 'white'),
-             "Foreground color of the statusbar."),
+            ('statusbar.fg.error',
+             SettingValue(typ.QssColor(), '${statusbar.fg}'),
+             "Foreground color of the statusbar if there was an error."),
 
             ('statusbar.bg.error',
              SettingValue(typ.QssColor(), 'red'),
              "Background color of the statusbar if there was an error."),
 
+            ('statusbar.fg.warning',
+             SettingValue(typ.QssColor(), '${statusbar.fg}'),
+             "Foreground color of the statusbar if there is a warning."),
+
             ('statusbar.bg.warning',
              SettingValue(typ.QssColor(), 'darkorange'),
              "Background color of the statusbar if there is a warning."),
+
+            ('statusbar.fg.prompt',
+             SettingValue(typ.QssColor(), '${statusbar.fg}'),
+             "Foreground color of the statusbar if there is a prompt."),
 
             ('statusbar.bg.prompt',
              SettingValue(typ.QssColor(), 'darkblue'),
              "Background color of the statusbar if there is a prompt."),
 
+            ('statusbar.fg.insert',
+             SettingValue(typ.QssColor(), '${statusbar.fg}'),
+             "Foreground color of the statusbar in insert mode."),
+
             ('statusbar.bg.insert',
              SettingValue(typ.QssColor(), 'darkgreen'),
              "Background color of the statusbar in insert mode."),
 
+            ('statusbar.fg.command',
+             SettingValue(typ.QssColor(), '${statusbar.fg}'),
+             "Foreground color of the statusbar in command mode."),
+
+            ('statusbar.bg.command',
+             SettingValue(typ.QssColor(), '${statusbar.bg}'),
+             "Background color of the statusbar in command mode."),
+
+            ('statusbar.fg.caret',
+             SettingValue(typ.QssColor(), '${statusbar.fg}'),
+             "Foreground color of the statusbar in caret mode."),
+
             ('statusbar.bg.caret',
              SettingValue(typ.QssColor(), 'purple'),
              "Background color of the statusbar in caret mode."),
+
+            ('statusbar.fg.caret-selection',
+             SettingValue(typ.QssColor(), '${statusbar.fg}'),
+             "Foreground color of the statusbar in caret mode with a "
+             "selection"),
 
             ('statusbar.bg.caret-selection',
              SettingValue(typ.QssColor(), '#a12dff'),
@@ -882,21 +919,21 @@ def data(readonly=False):
              SettingValue(typ.QtColor(), 'white'),
              "Foreground color of unselected odd tabs."),
 
-            ('tabs.fg.even',
-             SettingValue(typ.QtColor(), 'white'),
-             "Foreground color of unselected even tabs."),
-
-            ('tabs.fg.selected',
-             SettingValue(typ.QtColor(), 'white'),
-             "Foreground color of selected tabs."),
-
             ('tabs.bg.odd',
              SettingValue(typ.QtColor(), 'grey'),
              "Background color of unselected odd tabs."),
 
+            ('tabs.fg.even',
+             SettingValue(typ.QtColor(), 'white'),
+             "Foreground color of unselected even tabs."),
+
             ('tabs.bg.even',
              SettingValue(typ.QtColor(), 'darkgrey'),
              "Background color of unselected even tabs."),
+
+            ('tabs.fg.selected',
+             SettingValue(typ.QtColor(), 'white'),
+             "Foreground color of selected tabs."),
 
             ('tabs.bg.selected',
              SettingValue(typ.QtColor(), 'black'),
@@ -926,10 +963,6 @@ def data(readonly=False):
              SettingValue(typ.CssColor(), 'black'),
              "Font color for hints."),
 
-            ('hints.fg.match',
-             SettingValue(typ.CssColor(), 'green'),
-             "Font color for the matched part of hints."),
-
             ('hints.bg',
              SettingValue(
                  typ.CssColor(), '-webkit-gradient(linear, left top, '
@@ -937,25 +970,42 @@ def data(readonly=False):
                  'color-stop(100%,#FFC542))'),
              "Background color for hints."),
 
-            ('downloads.fg',
-             SettingValue(typ.QtColor(), '#ffffff'),
-             "Foreground color for downloads."),
+            ('hints.fg.match',
+             SettingValue(typ.CssColor(), 'green'),
+             "Font color for the matched part of hints."),
 
             ('downloads.bg.bar',
              SettingValue(typ.QssColor(), 'black'),
              "Background color for the download bar."),
 
+            ('downloads.fg.start',
+             SettingValue(typ.QtColor(), 'white'),
+             "Color gradient start for download foreground text."),
+
             ('downloads.bg.start',
              SettingValue(typ.QtColor(), '#0000aa'),
-             "Color gradient start for downloads."),
+             "Color gradient start for download background."),
+
+            ('downloads.fg.stop',
+             SettingValue(typ.QtColor(), '${downloads.fg.start}'),
+             "Color gradient end for download foreground text."),
 
             ('downloads.bg.stop',
              SettingValue(typ.QtColor(), '#00aa00'),
-             "Color gradient end for downloads."),
+             "Color gradient stop for download background."),
+
+            ('downloads.fg.system',
+             SettingValue(typ.ColorSystem(), 'rgb'),
+             "Color gradient interpolation system for download foreground"
+             "text."),
 
             ('downloads.bg.system',
              SettingValue(typ.ColorSystem(), 'rgb'),
-             "Color gradient interpolation system for downloads."),
+             "Color gradient interpolation system for download background."),
+
+            ('downloads.fg.error',
+             SettingValue(typ.QtColor(), 'white'),
+             "Foreground color for downloads with errors."),
 
             ('downloads.bg.error',
              SettingValue(typ.QtColor(), 'red'),
