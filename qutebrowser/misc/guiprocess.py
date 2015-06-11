@@ -142,7 +142,7 @@ class GUIProcess(QObject):
         """Convenience wrapper around QProcess::startDetached."""
         log.procs.debug("Starting detached.")
         self._pre_start(cmd, args)
-        ok = self._proc.startDetached(cmd, args, cwd)
+        ok, _pid = self._proc.startDetached(cmd, args, cwd)
 
         if ok:
             log.procs.debug("Process started.")
