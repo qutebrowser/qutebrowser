@@ -748,9 +748,9 @@ class TestPyQIODevice:
     def test_seek_unsupported(self, pyqiodev):
         """Test seeking with unsupported whence arguments."""
         if hasattr(os, 'SEEK_HOLE'):
-            whence = os.SEEK_HOLE
+            whence = os.SEEK_HOLE  # pylint: disable=no-member
         elif hasattr(os, 'SEEK_DATA'):
-            whence = os.SEEK_DATA
+            whence = os.SEEK_DATA  # pylint: disable=no-member
         else:
             pytest.skip("Needs os.SEEK_HOLE or os.SEEK_DATA available.")
         pyqiodev.open(QIODevice.ReadOnly)
