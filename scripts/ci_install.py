@@ -1,4 +1,4 @@
-#!/usr/bin/env python3
+#!/usr/bin/env python2
 # vim: ft=python fileencoding=utf-8 sts=4 sw=4 et:
 
 # Copyright 2015 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
@@ -18,14 +18,20 @@
 # You should have received a copy of the GNU General Public License
 # along with qutebrowser.  If not, see <http://www.gnu.org/licenses/>.
 
-# pylint: disable=open-without-encoding
+# pylint: skip-file
 
-"""Install needed prerequisites on the AppVeyor CI."""
+"""Install needed prerequisites on the AppVeyor/Travis CI.
+
+Note this file is written in python2 as this is more readily available on the
+CI machines.
+"""
+
+from __future__ import print_function
 
 import os
 import sys
 import subprocess
-import urllib.request
+import urllib
 
 PYQT_VERSION = '5.4.1'
 
@@ -40,7 +46,7 @@ def brew(args):
 
 if 'APPVEYOR' in os.environ:
     print("Getting PyQt5...")
-    urllib.request.urlretrieve(
+    urllib.urlretrieve(
         ('http://sourceforge.net/projects/pyqt/files/PyQt5/PyQt-{v}/'
          'PyQt5-{v}-gpl-Py3.4-Qt{v}-x32.exe'.format(v=PYQT_VERSION)),
         r'C:\install-PyQt5.exe')
