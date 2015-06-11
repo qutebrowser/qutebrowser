@@ -18,25 +18,71 @@
 # You should have received a copy of the GNU General Public License
 # along with qutebrowser.  If not, see <http://www.gnu.org/licenses/>.
 
+# pylint: disable=open-without-encoding
+
 """Install needed prerequisites on the AppVeyor CI."""
 
+import os
+import sys
 import subprocess
 import urllib.request
 
 PYQT_VERSION = '5.4.1'
 
-print("Getting PyQt5...")
-urllib.request.urlretrieve(
-    ('http://sourceforge.net/projects/pyqt/files/PyQt5/PyQt-{v}/'
-     'PyQt5-{v}-gpl-Py3.4-Qt{v}-x32.exe'.format(v=PYQT_VERSION)),
-    r'C:\install-PyQt5.exe')
 
-print("Installing PyQt5...")
-subprocess.check_call([r'C:\install-PyQt5.exe', '/S'])
+def apt_get(args):
+    subprocess.check_call(['sudo', 'apt-get', '-y', '-q'] + args)
 
-print("Installing tox...")
-subprocess.check_call([r'C:\Python34\Scripts\pip', 'install', 'tox'])
 
-print("Linking Python...")
-with open(r'C:\Windows\system32\python3.bat', 'w', encoding='ascii') as f:
-    f.write(r'@C:\Python34\python %*')
+def brew(args):
+    subprocess.check_call(['brew'] + args)
+
+
+if 'APPVEYOR' in os.environ:
+    print("Getting PyQt5...")
+    urllib.request.urlretrieve(
+        ('http://sourceforge.net/projects/pyqt/files/PyQt5/PyQt-{v}/'
+         'PyQt5-{v}-gpl-Py3.4-Qt{v}-x32.exe'.format(v=PYQT_VERSION)),
+        r'C:\install-PyQt5.exe')
+
+    print("Installing PyQt5...")
+    subprocess.check_call([r'C:\install-PyQt5.exe', '/S'])
+
+    print("Installing tox...")
+    subprocess.check_call([r'C:\Python34\Scripts\pip', 'install', 'tox'])
+
+    print("Linking Python...")
+    with open(r'C:\Windows\system32\python3.bat', 'w') as f:
+        f.write(r'@C:\Python34\python %*')
+elif os.environ.get('TRAVIS_OS_NAME', None) == 'linux':
+    print("apt-get update...")
+    apt_get(['update'])
+
+    print("Installing packages...")
+    pkgs = 'python3-pyqt5 python3-pyqt5.qtwebkit python-tox python3-dev xvfb'
+    apt_get(['install'] + pkgs.split())
+elif os.environ.get('TRAVIS_OS_NAME', None) == 'osx':
+    print("brew update...")
+    brew(['update'])
+
+    print("Installing packages...")
+    brew(['install', 'python3', 'pyqt5'])
+
+    print("Installing tox...")
+    subprocess.check_call(['pip3.4', 'install', 'tox'])
+
+    print("Creating xvfb-run stub...")
+    with open('/usr/local/bin/xvfb-run', 'w') as f:
+        # This will break when xvfb-run is called differently in .travis.yml,
+        # but I can't be bothered to do it in a nicer way.
+        f.write('#!/bin/bash\n')
+        f.write('shift 2\n')
+        f.write('exec "$@"\n')
+else:
+    def env(key):
+        return os.environ.get(key, None)
+    print("Unknown environment! (CI {}, APPVEYOR {}, TRAVIS {}, "
+          "TRAVIS_OS_NAME {})".format(env('CI'), env('APPVEYOR'),
+                                      env('TRAVIS'), env('TRAVIS_OS_NAME')),
+          file=sys.stderr)
+    sys.exit(1)
