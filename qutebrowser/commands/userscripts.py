@@ -101,8 +101,8 @@ class _BaseUserscriptRunner(QObject):
         self._proc = guiprocess.GUIProcess(self._win_id, 'userscript',
                                            additional_env=self._env,
                                            parent=self)
-        self._proc.proc.error.connect(self.on_proc_error)
-        self._proc.proc.finished.connect(self.on_proc_finished)
+        self._proc.error.connect(self.on_proc_error)
+        self._proc.finished.connect(self.on_proc_finished)
         self._proc.start(cmd, args)
 
     def _cleanup(self):

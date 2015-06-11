@@ -116,8 +116,8 @@ class ExternalEditor(QObject):
             return
         self._proc = guiprocess.GUIProcess(self._win_id, what='editor',
                                            parent=self)
-        self._proc.proc.finished.connect(self.on_proc_closed)
-        self._proc.proc.error.connect(self.on_proc_error)
+        self._proc.finished.connect(self.on_proc_closed)
+        self._proc.error.connect(self.on_proc_error)
         editor = config.get('general', 'editor')
         executable = editor[0]
         args = [self._filename if arg == '{}' else arg for arg in editor[1:]]

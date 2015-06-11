@@ -21,7 +21,8 @@
 
 import shlex
 
-from PyQt5.QtCore import pyqtSlot, QProcess, QIODevice, QProcessEnvironment
+from PyQt5.QtCore import (pyqtSlot, pyqtSignal, QObject, QProcess,
+                          QProcessEnvironment)
 
 from qutebrowser.utils import message, log
 
@@ -39,23 +40,31 @@ ERROR_STRINGS = {
 }
 
 
-class GUIProcess:
+class GUIProcess(QObject):
 
     """An external process which shows notifications in the GUI.
 
     Args:
-        proc: The underlying QProcess.
         cmd: The command which was started.
         args: A list of arguments which gets passed.
         started: Whether the underlying process is started.
+        _proc: The underlying QProcess.
         _win_id: The window ID this process is used in.
         _what: What kind of thing is spawned (process/editor/userscript/...).
                Used in messages.
         _verbose: Whether to show more messages.
+
+    Signals:
+        error/finished/started signals proxied from QProcess.
     """
+
+    error = pyqtSignal(QProcess.ProcessError)
+    finished = pyqtSignal(int, QProcess.ExitStatus)
+    started = pyqtSignal()
 
     def __init__(self, win_id, what, *, verbose=False, additional_env=None,
                  parent=None):
+        super().__init__(parent)
         self._win_id = win_id
         self._what = what
         self._verbose = verbose
@@ -63,16 +72,19 @@ class GUIProcess:
         self.cmd = None
         self.args = None
 
-        self.proc = QProcess(parent)
-        self.proc.error.connect(self.on_error)
-        self.proc.finished.connect(self.on_finished)
-        self.proc.started.connect(self.on_started)
+        self._proc = QProcess(self)
+        self._proc.error.connect(self.on_error)
+        self._proc.error.connect(self.error)
+        self._proc.finished.connect(self.on_finished)
+        self._proc.finished.connect(self.finished)
+        self._proc.started.connect(self.on_started)
+        self._proc.started.connect(self.started)
 
         if additional_env is not None:
             procenv = QProcessEnvironment.systemEnvironment()
             for k, v in additional_env.items():
                 procenv.insert(k, v)
-            self.proc.setProcessEnvironment(procenv)
+            self._proc.setProcessEnvironment(procenv)
 
     @pyqtSlot(QProcess.ProcessError)
     def on_error(self, error):
@@ -117,21 +129,24 @@ class GUIProcess:
             fake_cmdline = ' '.join(shlex.quote(e) for e in [cmd] + list(args))
             message.info(self._win_id, 'Executing: ' + fake_cmdline)
 
-    def start(self, cmd, args, mode=QIODevice.ReadWrite):
+    def start(self, cmd, args, mode=None):
         """Convenience wrapper around QProcess::start."""
         log.procs.debug("Starting process.")
         self._pre_start(cmd, args)
-        self.proc.start(cmd, args, mode)
+        if mode is None:
+            self._proc.start(cmd, args)
+        else:
+            self._proc.start(cmd, args, mode)
 
     def start_detached(self, cmd, args, cwd=None):
         """Convenience wrapper around QProcess::startDetached."""
         log.procs.debug("Starting detached.")
         self._pre_start(cmd, args)
-        ok = self.proc.startDetached(cmd, args, cwd)
+        ok = self._proc.startDetached(cmd, args, cwd)
 
         if ok:
             log.procs.debug("Process started.")
             self.started = True
         else:
             message.error(self._win_id, "Error while spawning {}: {}.".format(
-                          self._what, self.proc.error()), immediately=True)
+                          self._what, self._proc.error()), immediately=True)
