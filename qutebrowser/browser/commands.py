@@ -937,9 +937,6 @@ class CommandDispatcher:
         """
         log.procs.debug("Executing: {}, userscript={}".format(
             args, userscript))
-        if not quiet:
-            fake_cmdline = ' '.join(shlex.quote(arg) for arg in args)
-            message.info(win_id, 'Executing: ' + fake_cmdline)
         cmd, *args = args
         if userscript:
             self.run_userscript(cmd, *args)
