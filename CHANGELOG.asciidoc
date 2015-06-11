@@ -35,6 +35,7 @@ Added
 - New setting `tabs -> mousewheel-tab-switching` to control mousewheel behavior on the tab bar.
 - New arguments `--top-navigate` and `--bottom-navigate` (`-t`/`-b`) for `:scroll-page` to specify a navigation action (e.g. automatically go to the next page when arriving at the bottom).
 - New flag `-d`/`--detach` for `:spawn` to detach the spawned process so it's not closed when qutebrowser is.
+- New flag `-v`/`--verbose` for `:spawn` to print informations when the process started/exited successfully.
 - New (hidden) command `:follow-selected` (bound to `Enter`/`Ctrl-Enter` by default) to follow the link which is currently selected (e.g. after searching via `/`).
 - New setting `ui -> modal-js-dialog` to use the standard modal dialogs for javascript questions instead of using the statusbar.
 - New setting `colors -> webpage.bg` to set the background color to use for websites which don't set one.
