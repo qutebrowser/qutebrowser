@@ -88,19 +88,20 @@ class _BaseUserscriptRunner(QObject):
         self._proc = None
         self._env = None
 
-    def _run_process(self, cmd, *args, env):
+    def _run_process(self, cmd, *args, env, verbose):
         """Start the given command.
 
         Args:
             cmd: The command to be started.
             *args: The arguments to hand to the command
             env: A dictionary of environment variables to add.
+            verbose: Show notifications when the command started/exited.
         """
         self._env = {'QUTE_FIFO': self._filepath}
         self._env.update(env)
         self._proc = guiprocess.GUIProcess(self._win_id, 'userscript',
                                            additional_env=self._env,
-                                           parent=self)
+                                           verbose=verbose, parent=self)
         self._proc.error.connect(self.on_proc_error)
         self._proc.finished.connect(self.on_proc_finished)
         self._proc.start(cmd, args)
@@ -126,7 +127,7 @@ class _BaseUserscriptRunner(QObject):
         self._proc = None
         self._env = None
 
-    def run(self, cmd, *args, env=None):
+    def run(self, cmd, *args, env=None, verbose=False):
         """Run the userscript given.
 
         Needs to be overridden by subclasses.
@@ -135,6 +136,7 @@ class _BaseUserscriptRunner(QObject):
             cmd: The command to be started.
             *args: The arguments to hand to the command
             env: A dictionary of environment variables to add.
+            verbose: Show notifications when the command started/exited.
         """
         raise NotImplementedError
 
@@ -164,7 +166,7 @@ class _POSIXUserscriptRunner(_BaseUserscriptRunner):
         super().__init__(win_id, parent)
         self._reader = None
 
-    def run(self, cmd, *args, env=None):
+    def run(self, cmd, *args, env=None, verbose=False):
         try:
             # tempfile.mktemp is deprecated and discouraged, but we use it here
             # to create a FIFO since the only other alternative would be to
@@ -182,7 +184,7 @@ class _POSIXUserscriptRunner(_BaseUserscriptRunner):
         self._reader = _QtFIFOReader(self._filepath)
         self._reader.got_line.connect(self.got_cmd)
 
-        self._run_process(cmd, *args, env=env)
+        self._run_process(cmd, *args, env=env, verbose=verbose)
 
     def on_proc_finished(self):
         """Interrupt the reader when the process finished."""
@@ -248,14 +250,14 @@ class _WindowsUserscriptRunner(_BaseUserscriptRunner):
         self._cleanup()
         self.finished.emit()
 
-    def run(self, cmd, *args, env=None):
+    def run(self, cmd, *args, env=None, verbose=False):
         try:
             self._oshandle, self._filepath = tempfile.mkstemp(text=True)
         except OSError as e:
             message.error(self._win_id, "Error while creating tempfile: "
                                         "{}".format(e))
             return
-        self._run_process(cmd, *args, env=env)
+        self._run_process(cmd, *args, env=env, verbose=verbose)
 
 
 class _DummyUserscriptRunner:
@@ -271,8 +273,9 @@ class _DummyUserscriptRunner:
 
     finished = pyqtSignal()
 
-    def run(self, _cmd, *_args, _env=None):
+    def run(self, cmd, *args, env=None, verbose=False):
         """Print an error as userscripts are not supported."""
+        # pylint: disable=unused-argument,unused-variable
         self.finished.emit()
         raise cmdexc.CommandError(
             "Userscripts are not supported on this platform!")
@@ -319,7 +322,7 @@ def store_source(frame):
     return env
 
 
-def run(cmd, *args, win_id, env):
+def run(cmd, *args, win_id, env, verbose=False):
     """Convenience method to run an userscript.
 
     Args:
@@ -327,6 +330,7 @@ def run(cmd, *args, win_id, env):
         *args: The arguments to pass to the userscript.
         win_id: The window id the userscript is executed in.
         env: A dictionary of variables to add to the process environment.
+        verbose: Show notifications when the command started/exited.
     """
     tabbed_browser = objreg.get('tabbed-browser', scope='window',
                                 window=win_id)
@@ -339,6 +343,6 @@ def run(cmd, *args, win_id, env):
     user_agent = config.get('network', 'user-agent')
     if user_agent is not None:
         env['QUTE_USER_AGENT'] = user_agent
-    runner.run(cmd, *args, env=env)
+    runner.run(cmd, *args, env=env, verbose=verbose)
     runner.finished.connect(commandrunner.deleteLater)
     runner.finished.connect(runner.deleteLater)

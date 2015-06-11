@@ -922,7 +922,7 @@ class CommandDispatcher:
 
     @cmdutils.register(instance='command-dispatcher', scope='window',
                        win_id='win_id')
-    def spawn(self, win_id, userscript=False, quiet=False, detach=False,
+    def spawn(self, win_id, userscript=False, verbose=False, detach=False,
               *args):
         """Spawn a command in a shell.
 
@@ -931,7 +931,7 @@ class CommandDispatcher:
 
         Args:
             userscript: Run the command as an userscript.
-            quiet: Don't print the commandline being executed.
+            verbose: Show notifications when the command started/exited.
             detach: Whether the command should be detached from qutebrowser.
             *args: The commandline to execute.
         """
@@ -939,10 +939,10 @@ class CommandDispatcher:
             args, userscript))
         cmd, *args = args
         if userscript:
-            self.run_userscript(cmd, *args)
+            self.run_userscript(cmd, *args, verbose=verbose)
         else:
             proc = guiprocess.GUIProcess(self._win_id, what='command',
-                                         verbose=not quiet,
+                                         verbose=verbose,
                                          parent=self._tabbed_browser)
             if detach:
                 proc.start_detached(cmd, args)
@@ -956,12 +956,13 @@ class CommandDispatcher:
 
     @cmdutils.register(instance='command-dispatcher', scope='window',
                        deprecated='Use :spawn --userscript instead!')
-    def run_userscript(self, cmd, *args: {'nargs': '*'}):
+    def run_userscript(self, cmd, *args: {'nargs': '*'}, verbose=False):
         """Run an userscript given as argument.
 
         Args:
             cmd: The userscript to run.
             args: Arguments to pass to the userscript.
+            verbose: Show notifications when the command started/exited.
         """
         cmd = os.path.expanduser(cmd)
         env = {
@@ -989,7 +990,8 @@ class CommandDispatcher:
             env['QUTE_URL'] = url.toString(QUrl.FullyEncoded)
 
         env.update(userscripts.store_source(mainframe))
-        userscripts.run(cmd, *args, win_id=self._win_id, env=env)
+        userscripts.run(cmd, *args, win_id=self._win_id, env=env,
+                        verbose=verbose)
 
     @cmdutils.register(instance='command-dispatcher', scope='window')
     def quickmark_save(self):
