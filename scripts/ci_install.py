@@ -1,4 +1,4 @@
-#!/usr/bin/env python3
+#!/usr/bin/env python2
 # vim: ft=python fileencoding=utf-8 sts=4 sw=4 et:
 
 # Copyright 2015 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
@@ -21,6 +21,8 @@
 # pylint: disable=open-without-encoding
 
 """Install needed prerequisites on the AppVeyor CI."""
+
+from __future__ import print_function
 
 import os
 import sys
