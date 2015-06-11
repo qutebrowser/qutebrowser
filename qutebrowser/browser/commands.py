@@ -21,7 +21,6 @@
 
 import re
 import os
-import shlex
 import posixpath
 import functools
 import xml.etree.ElementTree
@@ -920,10 +919,8 @@ class CommandDispatcher:
         finally:
             self._tabbed_browser.setUpdatesEnabled(True)
 
-    @cmdutils.register(instance='command-dispatcher', scope='window',
-                       win_id='win_id')
-    def spawn(self, win_id, userscript=False, verbose=False, detach=False,
-              *args):
+    @cmdutils.register(instance='command-dispatcher', scope='window')
+    def spawn(self, userscript=False, verbose=False, detach=False, *args):
         """Spawn a command in a shell.
 
         Note the {url} variable which gets replaced by the current URL might be
