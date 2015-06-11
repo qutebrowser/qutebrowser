@@ -25,7 +25,7 @@ import sys
 import operator
 import os.path
 try:
-    from test import test_file
+    from test import test_file  # pylint: disable=no-name-in-module
 except ImportError:
     # Debian patches Python to remove the tests...
     test_file = None
