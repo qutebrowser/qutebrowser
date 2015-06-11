@@ -70,7 +70,7 @@ def test_start(proc, qtbot):
         argv = _py_proc("import sys; print('test'); sys.exit(0)")
         proc.start(*argv)
 
-    assert bytes(proc._proc.readAll()).rstrip(b'\n') == b'test'
+    assert bytes(proc._proc.readAll()).rstrip() == b'test'
 
 
 @pytest.mark.parametrize('argv', [
