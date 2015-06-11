@@ -147,22 +147,13 @@ class FakeNetworkReply:
         self.headers[key] = value
 
 
-class FakeQProcess(mock.Mock):
-
-    """QProcess stub.
-
-    Gets some enum values from the real QProcess.
-    """
-
-    NormalExit = QProcess.NormalExit
-    CrashExit = QProcess.CrashExit
-
-    FailedToStart = QProcess.FailedToStart
-    Crashed = QProcess.Crashed
-    Timedout = QProcess.Timedout
-    WriteError = QProcess.WriteError
-    ReadError = QProcess.ReadError
-    UnknownError = QProcess.UnknownError
+def fake_qprocess():
+    """Factory for a QProcess mock which has the QProcess enum values."""
+    m = mock.Mock(spec=QProcess)
+    for attr in ['NormalExit', 'CrashExit', 'FailedToStart', 'Crashed',
+                 'Timedout', 'WriteError', 'ReadError', 'UnknownError']:
+        setattr(m, attr, getattr(QProcess, attr))
+    return m
 
 
 class FakeSignal:
