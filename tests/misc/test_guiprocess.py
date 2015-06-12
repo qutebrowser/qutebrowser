@@ -66,7 +66,8 @@ def fake_proc(monkeypatch, stubs):
 
 def test_start(proc, qtbot):
     """Test simply starting a process."""
-    with qtbot.waitSignals([proc.started, proc.finished], raising=True):
+    with qtbot.waitSignals([proc.started, proc.finished], raising=True,
+                           timeout=2000):
         argv = _py_proc("import sys; print('test'); sys.exit(0)")
         proc.start(*argv)
 
@@ -86,7 +87,7 @@ def test_start_detached(fake_proc, argv):
 
 def test_double_start(qtbot, proc):
     """Test starting a GUIProcess twice."""
-    with qtbot.waitSignal(proc.started, raising=True):
+    with qtbot.waitSignal(proc.started, raising=True, timeout=2000):
         argv = _py_proc("import time; time.sleep(10)")
         proc.start(*argv)
     with pytest.raises(ValueError):
@@ -95,10 +96,12 @@ def test_double_start(qtbot, proc):
 
 def test_double_start_finished(qtbot, proc):
     """Test starting a GUIProcess twice (with the first call finished)."""
-    with qtbot.waitSignals([proc.started, proc.finished], raising=True):
+    with qtbot.waitSignals([proc.started, proc.finished], raising=True,
+                           timeout=2000):
         argv = _py_proc("import sys; sys.exit(0)")
         proc.start(*argv)
-    with qtbot.waitSignals([proc.started, proc.finished], raising=True):
+    with qtbot.waitSignals([proc.started, proc.finished], raising=True,
+                           timeout=2000):
         argv = _py_proc("import sys; sys.exit(0)")
         proc.start(*argv)
 
@@ -118,5 +121,5 @@ def test_error(qtbot, proc):
 
 
 def test_exit_unsuccessful(qtbot, proc):
-    with qtbot.waitSignal(proc.finished, raising=True):
+    with qtbot.waitSignal(proc.finished, raising=True, timeout=2000):
         proc.start(*_py_proc('import sys; sys.exit(0)'))
