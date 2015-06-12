@@ -33,7 +33,7 @@ import sys
 import subprocess
 import urllib
 
-PYQT_VERSION = '5.4.1'
+PYQT_VERSION = '5.4.2'
 
 
 def apt_get(args):
