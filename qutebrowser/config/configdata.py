@@ -100,7 +100,7 @@ SECTION_DESC = {
         " * `rgb(r, g, b)` / `rgba(r, g, b, a)` (values 0-255 or "
         "percentages)\n"
         " * `hsv(h, s, v)` / `hsva(h, s, v, a)` (values 0-255, hue 0-359)\n"
-        " * A gradient as explained in http://qt-project.org/doc/qt-4.8/"
+        " * A gradient as explained in http://doc.qt.io/qt-5/"
         "stylesheet-reference.html#list-of-property-types[the Qt "
         "documentation] under ``Gradient''.\n\n"
         "A *.system value determines the color system to use for color "

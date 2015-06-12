@@ -84,7 +84,7 @@ class CookieJar(RAMCookieJar):
     def purge_old_cookies(self):
         """Purge expired cookies from the cookie jar."""
         # Based on:
-        # http://qt-project.org/doc/qt-5/qtwebkitexamples-webkitwidgets-browser-cookiejar-cpp.html
+        # http://doc.qt.io/qt-5/qtwebkitexamples-webkitwidgets-browser-cookiejar-cpp.html
         now = QDateTime.currentDateTime()
         cookies = [c for c in self.allCookies()
                    if c.isSessionCookie() or c.expirationDate() >= now]

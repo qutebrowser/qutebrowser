@@ -1474,7 +1474,7 @@ A value can be in one of the following format:
  * transparent (no color)
  * `rgb(r, g, b)` / `rgba(r, g, b, a)` (values 0-255 or percentages)
  * `hsv(h, s, v)` / `hsva(h, s, v, a)` (values 0-255, hue 0-359)
- * A gradient as explained in http://qt-project.org/doc/qt-4.8/stylesheet-reference.html#list-of-property-types[the Qt documentation] under ``Gradient''.
+ * A gradient as explained in http://doc.qt.io/qt-5/stylesheet-reference.html#list-of-property-types[the Qt documentation] under ``Gradient''.
 
 A *.system value determines the color system to use for color interpolation between similarly-named *.start and *.stop entries, regardless of how they are defined in the options. Valid values are 'rgb', 'hsv', and 'hsl'.
 

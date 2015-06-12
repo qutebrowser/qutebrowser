@@ -240,7 +240,7 @@ def key_to_string(key):
     """
     special_names_str = {
         # Some keys handled in a weird way by QKeySequence::toString.
-        # See https://bugreports.qt-project.org/browse/QTBUG-40030
+        # See https://bugreports.qt.io/browse/QTBUG-40030
         # Most are unlikely to be ever needed, but you never know ;)
         # For dead/combining keys, we return the corresponding non-combining
         # key, as that's easier to add to the config.

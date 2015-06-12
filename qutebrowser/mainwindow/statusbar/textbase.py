@@ -70,7 +70,7 @@ class TextBase(QLabel):
         More info:
 
         http://stackoverflow.com/q/21890462/2085149
-        https://bugreports.qt-project.org/browse/QTBUG-36945
+        https://bugreports.qt.io/browse/QTBUG-36945
         https://codereview.qt-project.org/#/c/79181/
 
         Args:

@@ -685,7 +685,7 @@ class DownloadManager(QAbstractListModel):
         if fileobj is not None and filename is not None:
             raise TypeError("Only one of fileobj/filename may be given!")
         # WORKAROUND for Qt corrupting data loaded from cache:
-        # https://bugreports.qt-project.org/browse/QTBUG-42757
+        # https://bugreports.qt.io/browse/QTBUG-42757
         request.setAttribute(QNetworkRequest.CacheLoadControlAttribute,
                              QNetworkRequest.AlwaysNetwork)
         suggested_fn = urlutils.filename_from_url(request.url())

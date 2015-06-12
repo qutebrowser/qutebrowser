@@ -259,23 +259,23 @@ def qt_message_handler(msg_type, context, msg):
     # suppressed_msgs is a list of regexes matching the message texts to hide.
     suppressed_msgs = (
         # PNGs in Qt with broken color profile
-        # https://bugreports.qt-project.org/browse/QTBUG-39788
+        # https://bugreports.qt.io/browse/QTBUG-39788
         "libpng warning: iCCP: Not recognizing known sRGB profile that has "
         "been edited",
         # Hopefully harmless warning
         "OpenType support missing for script ",
         # Error if a QNetworkReply gets two different errors set. Harmless Qt
         # bug on some pages.
-        # https://bugreports.qt-project.org/browse/QTBUG-30298
+        # https://bugreports.qt.io/browse/QTBUG-30298
         "QNetworkReplyImplPrivate::error: Internal problem, this method must "
         "only be called once.",
         # Sometimes indicates missing text, but most of the time harmless
         "load glyph failed ",
-        # Harmless, see https://bugreports.qt-project.org/browse/QTBUG-42479
+        # Harmless, see https://bugreports.qt.io/browse/QTBUG-42479
         "content-type missing in HTTP POST, defaulting to "
         "application/x-www-form-urlencoded. Use QNetworkRequest::setHeader() "
         "to fix this problem.",
-        # https://bugreports.qt-project.org/browse/QTBUG-43118
+        # https://bugreports.qt.io/browse/QTBUG-43118
         "Using blocking call!",
         # Hopefully harmless
         '"Method "GetAll" with signature "s" on interface '
