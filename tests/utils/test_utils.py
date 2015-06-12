@@ -410,6 +410,7 @@ class TestKeyToString:
         (Qt.Key_Escape, 'Escape'),
         (Qt.Key_A, 'A'),
         (Qt.Key_degree, '°'),
+        (Qt.Key_Meta, 'Meta'),
     ])
     def test_normal(self, key, expected):
         """Test a special key where QKeyEvent::toString works incorrectly."""
@@ -421,6 +422,16 @@ class TestKeyToString:
         # We don't want to test the key which is actually missing - we only
         # want to know if the mapping still behaves properly.
         assert utils.key_to_string(Qt.Key_A) == 'A'
+
+    def test_all(self):
+        """Make sure there's some sensible output for all keys."""
+        for name, value in sorted(vars(Qt).items()):
+            if not isinstance(value, Qt.Key):
+                continue
+            print(name)
+            string = utils.key_to_string(value)
+            assert string
+            string.encode('utf-8')  # make sure it's encodable
 
 
 class TestKeyEventToString:
