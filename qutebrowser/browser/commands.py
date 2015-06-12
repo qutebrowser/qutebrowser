@@ -1572,8 +1572,8 @@ class CommandDispatcher:
         Args:
             js_code: The string to evaluate.
         """
-        out = self._current_widget().page().mainFrame().evaluateJavaScript(
-                    js_code)
+        frame = self._current_widget().page().mainFrame()
+        out = frame.evaluateJavaScript(js_code)
 
         if out is None:
             # Getting the actual error (if any) seems to be difficult. The
