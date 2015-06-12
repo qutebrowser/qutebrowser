@@ -1566,14 +1566,18 @@ class CommandDispatcher:
 
     @cmdutils.register(instance='command-dispatcher', scope='window',
                        maxsplit=0, no_cmd_split=True)
-    def jseval(self, js_code):
+    def jseval(self, js_code, quiet=False):
         """Evaluate a JavaScript string.
 
         Args:
             js_code: The string to evaluate.
+            quiet: Don't show resulting JS object.
         """
         frame = self._current_widget().page().mainFrame()
         out = frame.evaluateJavaScript(js_code)
+
+        if quiet:
+            return
 
         if out is None:
             # Getting the actual error (if any) seems to be difficult. The

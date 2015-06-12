@@ -244,12 +244,15 @@ Toggle the web inspector.
 
 [[jseval]]
 === jseval
-Syntax: +:jseval 'js_code'+
+Syntax: +:jseval [*--quiet*] 'js-code'+
 
 Evaluate a JavaScript string.
 
 ==== positional arguments
-* +'js_code'+: The string to evaluate.
+* +'js-code'+: The string to evaluate.
+
+==== optional arguments
+* +*-q*+, +*--quiet*+: Don't show resulting JS object.
 
 ==== note
 * This command does not split arguments after the last argument and handles quotes literally.
