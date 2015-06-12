@@ -1563,3 +1563,33 @@ class CommandDispatcher:
         view = self._current_widget()
         for _ in range(count):
             view.triggerPageAction(member)
+
+    @cmdutils.register(instance='command-dispatcher', scope='window',
+                       maxsplit=0, no_cmd_split=True)
+    def jseval(self, js_code, quiet=False):
+        """Evaluate a JavaScript string.
+
+        Args:
+            js_code: The string to evaluate.
+            quiet: Don't show resulting JS object.
+        """
+        frame = self._current_widget().page().mainFrame()
+        out = frame.evaluateJavaScript(js_code)
+
+        if quiet:
+            return
+
+        if out is None:
+            # Getting the actual error (if any) seems to be difficult. The
+            # error does end up in BrowserPage.javaScriptConsoleMessage(), but
+            # distinguishing between :jseval errors and errors from the webpage
+            # is not trivial...
+            message.info(self._win_id, 'No output or error')
+        else:
+            # The output can be a string, number, dict, array, etc. But *don't*
+            # output too much data, as this will make qutebrowser hang
+            out = str(out)
+            if len(out) > 5000:
+                message.info(self._win_id, out[:5000] + ' [...trimmed...]')
+            else:
+                message.info(self._win_id, out)

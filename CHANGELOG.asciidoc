@@ -41,6 +41,7 @@ Added
 - New setting `colors -> webpage.bg` to set the background color to use for websites which don't set one.
 - New (hidden) command `:clear-keychain` to clear a partially entered keychain (bound to `<Escape>` by default, in addition to clearing search).
 - Many new color settings (foreground setting for every background setting).
+- New command `:jseval` to run a javascript snippet on the current page.
 
 Changed
 ~~~~~~~
