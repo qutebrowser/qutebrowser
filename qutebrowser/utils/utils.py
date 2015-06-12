@@ -288,6 +288,18 @@ def key_to_string(key):
         'Key_TouchpadOn': 'Touchpad On',
         'Key_TouchpadToggle': 'Touchpad toggle',
         'Key_Yellow': 'Yellow',
+        'Key_Alt': 'Alt',
+        'Key_AltGr': 'AltGr',
+        'Key_Control': 'Control',
+        'Key_Direction_L': 'Direction L',
+        'Key_Direction_R': 'Direction R',
+        'Key_Hyper_L': 'Hyper L',
+        'Key_Hyper_R': 'Hyper R',
+        'Key_Meta': 'Meta',
+        'Key_Shift': 'Shift',
+        'Key_Super_L': 'Super L',
+        'Key_Super_R': 'Super R',
+        'Key_unknown': 'Unknown',
     }
     # We now build our real special_names dict from the string mapping above.
     # The reason we don't do this directly is that certain Qt versions don't
