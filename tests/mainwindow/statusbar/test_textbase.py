@@ -46,7 +46,6 @@ def test_elided_text(qtbot, elidemode, check):
     """
     label = TextBase(elidemode=elidemode)
     qtbot.add_widget(label)
-    label.setGeometry(200, 200, 200, 200)
     long_string = 'Hello world! ' * 20
     label.setText(long_string)
     label.resize(100, 50)

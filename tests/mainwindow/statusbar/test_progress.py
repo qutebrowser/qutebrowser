@@ -39,7 +39,6 @@ def progress_widget(qtbot, monkeypatch, config_stub):
         'qutebrowser.mainwindow.statusbar.progress.style.config', config_stub)
     widget = Progress()
     qtbot.add_widget(widget)
-    widget.setGeometry(200, 200, 200, 200)
     assert not widget.isVisible()
     assert not widget.isTextVisible()
     return widget
