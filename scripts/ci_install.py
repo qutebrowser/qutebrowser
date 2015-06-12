@@ -40,8 +40,12 @@ def apt_get(args):
     subprocess.check_call(['sudo', 'apt-get', '-y', '-q'] + args)
 
 
-def brew(args):
-    subprocess.check_call(['brew'] + args)
+def brew(args, silent=False):
+    if silent:
+        with open(os.devnull, 'w') as f:
+            subprocess.check_call(['brew'] + args, stdout=f)
+    else:
+        subprocess.check_call(['brew'] + args)
 
 
 if 'APPVEYOR' in os.environ:
@@ -69,14 +73,15 @@ elif os.environ.get('TRAVIS_OS_NAME', None) == 'linux':
     apt_get(['install'] + pkgs.split())
 elif os.environ.get('TRAVIS_OS_NAME', None) == 'osx':
     print("brew update...")
-    brew(['update'])
+    brew(['update'], silent=True)
 
     print("Installing packages...")
     brew(['install', 'python3', 'pyqt5'])
 
     print("Installing tox...")
-    subprocess.check_call(['pip3.4', 'install', 'tox'])
+    subprocess.check_call(['sudo', 'pip3.4', 'install', 'tox'])
 
+    os.system('ls -l /usr/local/bin/xvfb-run')
     print("Creating xvfb-run stub...")
     with open('/usr/local/bin/xvfb-run', 'w') as f:
         # This will break when xvfb-run is called differently in .travis.yml,
@@ -84,6 +89,8 @@ elif os.environ.get('TRAVIS_OS_NAME', None) == 'osx':
         f.write('#!/bin/bash\n')
         f.write('shift 2\n')
         f.write('exec "$@"\n')
+    os.system('sudo chmod 755 /usr/local/bin/xvfb-run')
+    os.system('ls -l /usr/local/bin/xvfb-run')
 else:
     def env(key):
         return os.environ.get(key, None)
