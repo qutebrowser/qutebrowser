@@ -170,6 +170,7 @@ def _init_cachedir_tag():
                 f.write("# This file is a cache directory tag created by "
                         "qutebrowser.\n")
                 f.write("# For information about cache directory tags, see:\n")
-                f.write("#  http://www.brynosaurus.com/cachedir/\n")
+                f.write("#  http://www.brynosaurus.com/"  # pragma: no branch
+                        "cachedir/\n")
         except OSError:
             log.init.exception("Failed to create CACHEDIR.TAG")

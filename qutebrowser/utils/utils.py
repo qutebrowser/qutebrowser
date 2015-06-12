@@ -50,8 +50,6 @@ def elide(text, length):
 def compact_text(text, elidelength=None):
     """Remove leading whitespace and newlines from a text and maybe elide it.
 
-    FIXME: Add tests.
-
     Args:
         text: The text to compact.
         elidelength: To how many chars to elide.
@@ -105,12 +103,12 @@ def actute_warning():
     try:
         if qtutils.version_check('5.3.0'):
             return
-    except ValueError:
+    except ValueError:  # pragma: no cover
         pass
     try:
         with open('/usr/share/X11/locale/en_US.UTF-8/Compose', 'r',
                   encoding='utf-8') as f:
-            for line in f:
+            for line in f:  # pragma: no branch
                 if '<dead_actute>' in line:
                     if sys.stdout is not None:
                         sys.stdout.flush()
@@ -118,7 +116,7 @@ def actute_warning():
                           "that is not a bug in qutebrowser! See "
                           "https://bugs.freedesktop.org/show_bug.cgi?id=69476 "
                           "for details.")
-                    break
+                    break  # pragma: no branch
     except OSError:
         log.init.exception("Failed to read Compose file")
 
