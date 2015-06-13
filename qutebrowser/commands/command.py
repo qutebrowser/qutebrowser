@@ -262,10 +262,12 @@ class Command:
         except KeyError:
             pass
 
+        kwargs['dest'] = param.name
+
         if isinstance(typ, tuple):
             kwargs['metavar'] = annotation_info.metavar or param.name
         elif utils.is_enum(typ):
-            kwargs['choices'] = [e.name.replace('_', '-') for e in typ]
+            kwargs['choices'] = [arg_name(e.name) for e in typ]
             kwargs['metavar'] = annotation_info.metavar or param.name
         elif typ is bool:
             kwargs['action'] = 'store_true'
@@ -309,7 +311,6 @@ class Command:
             if typ is not bool:
                 self.flags_with_args += [short_flag, long_flag]
         else:
-            args.append(param.name)
             if not annotation_info.hide:
                 self.pos_args.append((param.name, name))
         return args
