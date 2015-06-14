@@ -108,10 +108,10 @@ class TabbedBrowser(tabwidget.TabWidget):
         self._undo_stack = []
         self._filter = signalfilter.SignalFilter(win_id, self)
         self._now_focused = None
-        # FIXME adjust this to font size
-        # https://github.com/The-Compiler/qutebrowser/issues/119
-        self.setIconSize(QSize(12, 12))
+        #favicon_size = config.get("tabs", "favicons-size")
+        #self.setIconSize(QSize(favicon_size, favicon_size))
         objreg.get('config').changed.connect(self.update_favicons)
+        objreg.get('config').changed.connect(self.update_favicons_size)
         objreg.get('config').changed.connect(self.update_window_title)
         objreg.get('config').changed.connect(self.update_tab_titles)
 
@@ -404,6 +404,12 @@ class TabbedBrowser(tabwidget.TabWidget):
                 self.setTabIcon(i, tab.icon())
             else:
                 self.setTabIcon(i, QIcon())
+
+    @config.change_filter('tabs', 'favicons-size')
+    def update_favicons_size(self):
+        """Update favicons' size when config was changed."""
+        favicon_size = config.get("tabs", "favicons-size")
+        self.setIconSize(QSize(favicon_size, favicon_size))
 
     @pyqtSlot()
     def on_load_started(self, tab):
