@@ -108,8 +108,6 @@ class TabbedBrowser(tabwidget.TabWidget):
         self._undo_stack = []
         self._filter = signalfilter.SignalFilter(win_id, self)
         self._now_focused = None
-        #favicon_size = config.get("tabs", "favicons-size")
-        #self.setIconSize(QSize(favicon_size, favicon_size))
         objreg.get('config').changed.connect(self.update_favicons)
         objreg.get('config').changed.connect(self.update_favicons_size)
         objreg.get('config').changed.connect(self.update_window_title)
