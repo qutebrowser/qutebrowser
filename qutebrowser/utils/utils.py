@@ -438,11 +438,13 @@ def disabled_excepthook():
     """Run code with the exception hook temporarily disabled."""
     old_excepthook = sys.excepthook
     sys.excepthook = sys.__excepthook__
-    yield
-    # If the code we did run did change sys.excepthook, we leave it
-    # unchanged. Otherwise, we reset it.
-    if sys.excepthook is sys.__excepthook__:
-        sys.excepthook = old_excepthook
+    try:
+        yield
+    finally:
+        # If the code we did run did change sys.excepthook, we leave it
+        # unchanged. Otherwise, we reset it.
+        if sys.excepthook is sys.__excepthook__:
+            sys.excepthook = old_excepthook
 
 
 class prevent_exceptions:  # pylint: disable=invalid-name

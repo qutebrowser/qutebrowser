@@ -159,8 +159,10 @@ def init_log(args):
 def disable_qt_msghandler():
     """Contextmanager which temporarily disables the Qt message handler."""
     old_handler = QtCore.qInstallMessageHandler(None)
-    yield
-    QtCore.qInstallMessageHandler(old_handler)
+    try:
+        yield
+    finally:
+        QtCore.qInstallMessageHandler(old_handler)
 
 
 def _init_handlers(level, color, ram_capacity):
@@ -319,8 +321,10 @@ def hide_qt_warning(pattern, logger='qt'):
     log_filter = QtWarningFilter(pattern)
     logger_obj = logging.getLogger(logger)
     logger_obj.addFilter(log_filter)
-    yield
-    logger_obj.removeFilter(log_filter)
+    try:
+        yield
+    finally:
+        logger_obj.removeFilter(log_filter)
 
 
 class QtWarningFilter(logging.Filter):
