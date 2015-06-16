@@ -498,7 +498,7 @@ def data(readonly=False):
             ('show-favicons',
              SettingValue(typ.Bool(), 'true'),
              "Whether to show favicons in the tab bar."),
-
+             
             ('tabbar-size',
              SettingValue(typ.Int(minval=8), '12'),
              "The height of the tabbar in pixels."

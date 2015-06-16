@@ -17,7 +17,7 @@
 # You should have received a copy of the GNU General Public License
 # along with qutebrowser.  If not, see <http://www.gnu.org/licenses/>.
 
-"""The main tabbed browser widget."""r
+"""The main tabbed browser widget."""
 
 import functools
 import collections
