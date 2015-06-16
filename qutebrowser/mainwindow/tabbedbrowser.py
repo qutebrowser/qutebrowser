@@ -17,7 +17,7 @@
 # You should have received a copy of the GNU General Public License
 # along with qutebrowser.  If not, see <http://www.gnu.org/licenses/>.
 
-"""The main tabbed browser widget."""
+"""The main tabbed browser widget."""r
 
 import functools
 import collections
@@ -108,9 +108,8 @@ class TabbedBrowser(tabwidget.TabWidget):
         self._undo_stack = []
         self._filter = signalfilter.SignalFilter(win_id, self)
         self._now_focused = None
-        # FIXME adjust this to font size
-        # https://github.com/The-Compiler/qutebrowser/issues/119
-        self.setIconSize(QSize(12, 12))
+        self.set_icon_size()
+        objreg.get('config').changed.connect(self.set_icon_size)
         objreg.get('config').changed.connect(self.update_favicons)
         objreg.get('config').changed.connect(self.update_window_title)
         objreg.get('config').changed.connect(self.update_tab_titles)
@@ -143,6 +142,12 @@ class TabbedBrowser(tabwidget.TabWidget):
         for i in range(self.count()):
             w.append(self.widget(i))
         return w
+
+    @config.change_filter('tabs', 'tabbar-size')
+    def set_icon_size(self):
+        """Take the (fav)icon size from the config."""
+        tabbar_size = config.get('tabs', 'tabbar-size')
+        self.setIconSize(QSize(tabbar_size, tabbar_size))
 
     @config.change_filter('ui', 'window-title-format')
     def update_window_title(self):
