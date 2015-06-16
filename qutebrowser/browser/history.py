@@ -151,7 +151,6 @@ class WebHistory(QWebHistoryInterface):
         self.async_read_done.emit()
 
         for url, entry in self._temp_history.items():
-            entry = HistoryEntry(atime, url)
             self._new_history.append(entry)
             self._add_entry(entry)
             self.add_completion_item.emit(entry)
