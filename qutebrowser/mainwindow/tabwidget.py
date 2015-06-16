@@ -668,8 +668,9 @@ class TabBarStyle(QCommonStyle):
         tab_icon_size = QSize(min(tab_icon_size.width(), icon_size.width()),
                               min(tab_icon_size.height(), icon_size.height()))
         icon_rect = QRect(text_rect.left(),
-                     (text_rect.center().y() - tab_icon_size.height() / 2) + 1,
-                     tab_icon_size.width(), tab_icon_size.height())
+                          (text_rect.center().y() -
+                              tab_icon_size.height() / 2) + 1,
+                          tab_icon_size.width(), tab_icon_size.height())
         icon_rect = self._style.visualRect(opt.direction, opt.rect, icon_rect)
         qtutils.ensure_valid(icon_rect)
         return icon_rect
