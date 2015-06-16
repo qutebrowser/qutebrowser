@@ -35,6 +35,7 @@ from qutebrowser.utils import qtutils, objreg, utils
 from qutebrowser.config import config
 from qutebrowser.browser import webview
 
+
 PM_TabBarPadding = QStyle.PM_CustomBase
 
 
