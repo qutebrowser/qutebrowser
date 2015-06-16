@@ -4,6 +4,19 @@ os:
   - linux
   - osx
 
+env:
+  matrix:
+    - TESTENV=unittests XVFB=1
+    - TESTENV=smoke XVFB=1
+    - TESTENV=misc
+    - TESTENV=pep257
+    - TESTENV=pyflakes
+    - TESTENV=pep8
+    - TESTENV=mccabe
+    - TESTENV=pylint
+    - TESTENV=pyroma
+    - TESTENV=check-manifest
+
 # Not really, but this is here so we can do stuff by hand.
 language: c
 
@@ -11,12 +24,19 @@ install:
   - python scripts/ci_install.py
 
 script:
-    - xvfb-run -s "-screen 0 640x480x16" tox -e unittests,smoke
-    - tox -e misc
-    - tox -e pep257
-    - tox -e pyflakes
-    - tox -e pep8
-    - tox -e mccabe
-    - tox -e pylint
-    - tox -e pyroma
-    - tox -e check-manifest
+    - [[ $XFVB ]] && xvfb-run -s "-screen 0 640x480x16" tox -e $TESTENV || tox -e $TESTENV
+
+matrix:
+  exclude:
+    - os: osx
+      env: TESTENV=misc
+    - os: osx
+      env: TESTENV=pep257
+    - os: osx
+      env: TESTENV=pep8
+    - os: osx
+      env: TESTENV=mccabe
+    - os: osx
+      env: TESTENV=pyroma
+    - os: osx
+      env: TESTENV=check-manifest
