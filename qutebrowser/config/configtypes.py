@@ -310,6 +310,41 @@ class Int(BaseType):
                                             "smaller!".format(self.maxval))
 
 
+class IntAuto(Int):
+
+    """Base class for value "auto" or an integer setting.
+
+    Attributes:
+        minval: Minimum value (inclusive).
+        maxval: Maximum value (inclusive).
+    """
+
+    def transform(self, value):
+        if not value:
+            return None
+        if value is "auto":
+            return "auto"
+        return int(value)
+
+    def validate(self, value):
+        if not value:
+            if self._none_ok:
+                return
+            else:
+                raise configexc.ValidationError(value, "may not be empty!")
+        if value is not "auto": #this is the buggy line.
+            try:
+                intval = int(value)
+            except ValueError:
+                raise configexc.ValidationError(value, "must be an integer!")
+            if self.minval is not None and intval < self.minval:
+                raise configexc.ValidationError(value, "must be {} or "
+                                                "bigger!".format(self.minval))
+            if self.maxval is not None and intval > self.maxval:
+                raise configexc.ValidationError(value, "must be {} or "
+                                                "smaller!".format(self.maxval))
+
+
 class IntList(List):
 
     """Base class for an int-list setting."""
