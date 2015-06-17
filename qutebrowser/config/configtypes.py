@@ -322,8 +322,8 @@ class IntAuto(Int):
     def transform(self, value):
         if not value:
             return None
-        if value is "auto":
-            return "auto"
+        if value == "auto":
+            return -1
         return int(value)
 
     def validate(self, value):
@@ -332,7 +332,7 @@ class IntAuto(Int):
                 return
             else:
                 raise configexc.ValidationError(value, "may not be empty!")
-        if value is not "auto": #this is the buggy line.
+        if value != "auto": #this is the buggy line.
             try:
                 intval = int(value)
             except ValueError:

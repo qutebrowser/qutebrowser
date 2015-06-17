@@ -362,6 +362,8 @@ class TabBar(QTabBar):
         """
         minimum_size = self.minimumTabSizeHint(index)
         height = config.get('tabs', 'tabbar-size')
+        if height == -1:
+            height = self.fontMetrics().height()
         if self.vertical:
             confwidth = str(config.get('tabs', 'width'))
             if confwidth.endswith('%'):
