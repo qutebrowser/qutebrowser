@@ -21,6 +21,7 @@
 
 import re
 import os
+import shlex
 import posixpath
 import functools
 import xml.etree.ElementTree
@@ -919,8 +920,9 @@ class CommandDispatcher:
         finally:
             self._tabbed_browser.setUpdatesEnabled(True)
 
-    @cmdutils.register(instance='command-dispatcher', scope='window')
-    def spawn(self, userscript=False, verbose=False, detach=False, *args):
+    @cmdutils.register(instance='command-dispatcher', scope='window',
+                       maxsplit=0)
+    def spawn(self, cmdline, userscript=False, verbose=False, detach=False):
         """Spawn a command in a shell.
 
         Note the {url} variable which gets replaced by the current URL might be
@@ -930,11 +932,15 @@ class CommandDispatcher:
             userscript: Run the command as an userscript.
             verbose: Show notifications when the command started/exited.
             detach: Whether the command should be detached from qutebrowser.
-            *args: The commandline to execute.
+            cmdline: The commandline to execute.
         """
-        log.procs.debug("Executing: {}, userscript={}".format(
-            args, userscript))
-        cmd, *args = args
+        try:
+            cmd, *args = shlex.split(cmdline)
+        except ValueError as e:
+            raise cmdexc.CommandError("Error while splitting command: "
+                                      "{}".format(e))
+        log.procs.debug("Executing {} with args {}, userscript={}".format(
+            cmd, args, userscript))
         if userscript:
             self.run_userscript(cmd, *args, verbose=verbose)
         else:

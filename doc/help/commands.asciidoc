@@ -529,19 +529,23 @@ Preset the statusbar to some text.
 
 [[spawn]]
 === spawn
-Syntax: +:spawn [*--userscript*] [*--verbose*] [*--detach*] 'args' ['args' ...]+
+Syntax: +:spawn [*--userscript*] [*--verbose*] [*--detach*] 'cmdline'+
 
 Spawn a command in a shell.
 
 Note the {url} variable which gets replaced by the current URL might be useful here.
 
 ==== positional arguments
-* +'args'+: The commandline to execute.
+* +'cmdline'+: The commandline to execute.
 
 ==== optional arguments
 * +*-u*+, +*--userscript*+: Run the command as an userscript.
 * +*-v*+, +*--verbose*+: Show notifications when the command started/exited.
 * +*-d*+, +*--detach*+: Whether the command should be detached from qutebrowser.
+
+==== note
+* This command does not split arguments after the last argument and handles quotes literally.
+* With this command, +;;+ is interpreted literally instead of splitting off a second command.
 
 [[stop]]
 === stop
