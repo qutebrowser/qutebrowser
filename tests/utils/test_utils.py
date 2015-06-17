@@ -721,8 +721,11 @@ def qualname_func(_blah):
     pass
 
 
+QUALNAME_OBJ = QualnameObj()
+
+
 @pytest.mark.parametrize('obj, expected', [
-    (QualnameObj(), '<unknown>'),  # instance - unknown
+    (QUALNAME_OBJ, repr(QUALNAME_OBJ)),  # instance - unknown
     (QualnameObj, 'test_utils.QualnameObj'),  # class
     (QualnameObj.func, 'test_utils.QualnameObj.func'),  # unbound method
     (QualnameObj().func, 'test_utils.QualnameObj.func'),  # bound method

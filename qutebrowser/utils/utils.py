@@ -553,7 +553,7 @@ def qualname(obj):
     elif hasattr(obj, '__name__'):
         name = obj.__name__
     else:
-        name = '<unknown>'
+        name = repr(obj)
 
     if inspect.isclass(obj) or inspect.isfunction(obj):
         module = obj.__module__
