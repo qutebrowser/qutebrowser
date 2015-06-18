@@ -55,6 +55,7 @@ build_exe_options = {
         ('qutebrowser/git-commit-id', 'git-commit-id'),
     ],
     'include_msvcr': True,
+    'includes': [],
     'excludes': ['tkinter'],
     'packages': ['pygments'],
 }
