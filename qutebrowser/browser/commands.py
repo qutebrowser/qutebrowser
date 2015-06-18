@@ -36,7 +36,7 @@ import pygments
 import pygments.lexers
 import pygments.formatters
 
-from qutebrowser.commands import userscripts, cmdexc, cmdutils
+from qutebrowser.commands import userscripts, cmdexc, cmdutils, runners
 from qutebrowser.config import config, configexc
 from qutebrowser.browser import webelem, inspector
 from qutebrowser.keyinput import modeman
@@ -939,6 +939,9 @@ class CommandDispatcher:
         except ValueError as e:
             raise cmdexc.CommandError("Error while splitting command: "
                                       "{}".format(e))
+
+        args = runners.replace_variables(self._win_id, args)
+
         log.procs.debug("Executing {} with args {}, userscript={}".format(
             cmd, args, userscript))
         if userscript:
