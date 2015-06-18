@@ -29,10 +29,7 @@ import collections
 
 from PyQt5.QtCore import QT_VERSION_STR, PYQT_VERSION_STR, qVersion
 from PyQt5.QtWebKit import qWebKitVersion
-try:
-    from PyQt5.QtNetwork import QSslSocket
-except ImportError:
-    QSslSocket = None
+from PyQt5.QtNetwork import QSslSocket
 
 import qutebrowser
 from qutebrowser.utils import log, utils
@@ -114,7 +111,7 @@ def _release_info():
     for fn in glob.glob("/etc/*-release"):
         try:
             with open(fn, 'r', encoding='utf-8') as f:
-                data.append((fn, ''.join(f.readlines())))
+                data.append((fn, ''.join(f.readlines())))  # pragma: no branch
         except OSError:
             log.misc.exception("Error while reading {}.".format(fn))
     return data
@@ -127,18 +124,8 @@ def _module_versions():
         A list of lines with version info.
     """
     lines = []
-    try:
-        import sipconfig  # pylint: disable=import-error,unused-variable
-    except ImportError:
-        pass
-    else:
-        try:
-            lines.append('SIP: {}'.format(
-                sipconfig.Configuration().sip_version_str))
-        except (AttributeError, TypeError):
-            log.misc.exception("Error while getting SIP version")
-            lines.append('SIP: ?')
     modules = collections.OrderedDict([
+        ('sip', ['SIP_VERSION_STR']),
         ('colorlog', []),
         ('colorama', ['VERSION', '__version__']),
         ('pypeg2', ['__version__']),
@@ -209,16 +196,13 @@ def version():
         'Qt: {}, runtime: {}'.format(QT_VERSION_STR, qVersion()),
         'PyQt: {}'.format(PYQT_VERSION_STR),
     ]
+
     lines += _module_versions()
 
-    if QSslSocket is not None and QSslSocket.supportsSsl():
-        ssl_version = QSslSocket.sslLibraryVersionString()
-    else:
-        ssl_version = 'unavailable'
     lines += [
         'Webkit: {}'.format(qWebKitVersion()),
         'Harfbuzz: {}'.format(os.environ.get('QT_HARFBUZZ', 'system')),
-        'SSL: {}'.format(ssl_version),
+        'SSL: {}'.format(QSslSocket.sslLibraryVersionString()),
         '',
         'Frozen: {}'.format(hasattr(sys, 'frozen')),
         'Platform: {}, {}'.format(platform.platform(),

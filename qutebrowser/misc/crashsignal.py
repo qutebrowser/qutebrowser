@@ -190,7 +190,7 @@ class CrashHandler(QObject):
             objects = ""
         return ExceptionInfo(pages, cmd_history, objects)
 
-    def exception_hook(self, exctype, excvalue, tb):  # noqa
+    def exception_hook(self, exctype, excvalue, tb):
         """Handle uncaught python exceptions.
 
         It'll try very hard to write all open tabs to a file, and then exit
@@ -300,6 +300,7 @@ class SignalHandler(QObject):
             signal.SIGTERM, self.interrupt)
 
         if os.name == 'posix' and hasattr(signal, 'set_wakeup_fd'):
+            # pylint: disable=import-error,no-member
             import fcntl
             read_fd, write_fd = os.pipe()
             for fd in (read_fd, write_fd):

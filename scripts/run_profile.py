@@ -39,11 +39,18 @@ if '--profile-keep' in sys.argv:
     profilefile = os.path.join(os.getcwd(), 'profile')
 else:
     profilefile = os.path.join(tempdir, 'profile')
+
 if '--profile-noconv' in sys.argv:
     sys.argv.remove('--profile-noconv')
     noconv = True
 else:
     noconv = False
+
+if '--profile-dot' in sys.argv:
+    sys.argv.remove('--profile-dot')
+    dot = True
+else:
+    dot = False
 
 callgraphfile = os.path.join(tempdir, 'callgraph')
 profiler = cProfile.Profile()
@@ -51,6 +58,10 @@ profiler.run('qutebrowser.qutebrowser.main()')
 profiler.dump_stats(profilefile)
 
 if not noconv:
-    subprocess.call(['pyprof2calltree', '-k', '-i', profilefile,
-                     '-o', callgraphfile])
+    if dot:
+        subprocess.call('gprof2dot -f pstats profile | dot -Tpng | feh -F -',
+                        shell=True)  # yep, shell=True. I know what I'm doing.
+    else:
+        subprocess.call(['pyprof2calltree', '-k', '-i', profilefile,
+                        '-o', callgraphfile])
 shutil.rmtree(tempdir)

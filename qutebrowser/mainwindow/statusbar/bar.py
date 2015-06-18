@@ -78,6 +78,11 @@ class StatusBar(QWidget):
                         For some reason we need to have this as class attribute
                         so pyqtProperty works correctly.
 
+        _command_active: If we're currently in command mode.
+
+                         For some reason we need to have this as class
+                         attribute so pyqtProperty works correctly.
+
         _caret_mode: The current caret mode (off/on/selection).
 
                      For some reason we need to have this as class attribute
@@ -97,41 +102,68 @@ class StatusBar(QWidget):
     _severity = None
     _prompt_active = False
     _insert_active = False
+    _command_active = False
     _caret_mode = CaretMode.off
 
     STYLESHEET = """
-        QWidget#StatusBar {
+
+        QWidget#StatusBar,
+        QWidget#StatusBar QLabel,
+        QWidget#StatusBar QLineEdit {
+            {{ font['statusbar'] }}
             {{ color['statusbar.bg'] }}
+            {{ color['statusbar.fg'] }}
         }
 
-        QWidget#StatusBar[insert_active="true"] {
-            {{ color['statusbar.bg.insert'] }}
-        }
-
-        QWidget#StatusBar[caret_mode="on"] {
+        QWidget#StatusBar[caret_mode="on"],
+        QWidget#StatusBar[caret_mode="on"] QLabel,
+        QWidget#StatusBar[caret_mode="on"] QLineEdit {
+            {{ color['statusbar.fg.caret'] }}
             {{ color['statusbar.bg.caret'] }}
         }
 
-        QWidget#StatusBar[caret_mode="selection"] {
+        QWidget#StatusBar[caret_mode="selection"],
+        QWidget#StatusBar[caret_mode="selection"] QLabel,
+        QWidget#StatusBar[caret_mode="selection"] QLineEdit {
+            {{ color['statusbar.fg.caret-selection'] }}
             {{ color['statusbar.bg.caret-selection'] }}
         }
 
-        QWidget#StatusBar[prompt_active="true"] {
-            {{ color['statusbar.bg.prompt'] }}
-        }
-
-        QWidget#StatusBar[severity="error"] {
+        QWidget#StatusBar[severity="error"],
+        QWidget#StatusBar[severity="error"] QLabel,
+        QWidget#StatusBar[severity="error"] QLineEdit {
+            {{ color['statusbar.fg.error'] }}
             {{ color['statusbar.bg.error'] }}
         }
 
-        QWidget#StatusBar[severity="warning"] {
+        QWidget#StatusBar[severity="warning"],
+        QWidget#StatusBar[severity="warning"] QLabel,
+        QWidget#StatusBar[severity="warning"] QLineEdit {
+            {{ color['statusbar.fg.warning'] }}
             {{ color['statusbar.bg.warning'] }}
         }
 
-        QLabel, QLineEdit {
-            {{ color['statusbar.fg'] }}
-            {{ font['statusbar'] }}
+        QWidget#StatusBar[prompt_active="true"],
+        QWidget#StatusBar[prompt_active="true"] QLabel,
+        QWidget#StatusBar[prompt_active="true"] QLineEdit {
+            {{ color['statusbar.fg.prompt'] }}
+            {{ color['statusbar.bg.prompt'] }}
         }
+
+        QWidget#StatusBar[insert_active="true"],
+        QWidget#StatusBar[insert_active="true"] QLabel,
+        QWidget#StatusBar[insert_active="true"] QLineEdit {
+            {{ color['statusbar.fg.insert'] }}
+            {{ color['statusbar.bg.insert'] }}
+        }
+
+        QWidget#StatusBar[command_active="true"],
+        QWidget#StatusBar[command_active="true"] QLabel,
+        QWidget#StatusBar[command_active="true"] QLineEdit {
+            {{ color['statusbar.fg.command'] }}
+            {{ color['statusbar.bg.command'] }}
+        }
+
     """
 
     def __init__(self, win_id, parent=None):
@@ -264,6 +296,11 @@ class StatusBar(QWidget):
         self.setStyleSheet(style.get_stylesheet(self.STYLESHEET))
 
     @pyqtProperty(bool)
+    def command_active(self):
+        """Getter for self.command_active, so it can be used as Qt property."""
+        return self._command_active
+
+    @pyqtProperty(bool)
     def insert_active(self):
         """Getter for self.insert_active, so it can be used as Qt property."""
         return self._insert_active
@@ -274,7 +311,7 @@ class StatusBar(QWidget):
         return self._caret_mode.name
 
     def set_mode_active(self, mode, val):
-        """Setter for self.{insert,caret}_active.
+        """Setter for self.{insert,command,caret}_active.
 
         Re-set the stylesheet after setting the value, so everything gets
         updated by Qt properly.
@@ -282,6 +319,9 @@ class StatusBar(QWidget):
         if mode == usertypes.KeyMode.insert:
             log.statusbar.debug("Setting insert_active to {}".format(val))
             self._insert_active = val
+        if mode == usertypes.KeyMode.command:
+            log.statusbar.debug("Setting command_active to {}".format(val))
+            self._command_active = val
         elif mode == usertypes.KeyMode.caret:
             webview = objreg.get('tabbed-browser', scope='window',
                                  window=self._win_id).currentWidget()
@@ -469,24 +509,28 @@ class StatusBar(QWidget):
     @pyqtSlot(usertypes.KeyMode)
     def on_mode_entered(self, mode):
         """Mark certain modes in the commandline."""
-        mode_manager = objreg.get('mode-manager', scope='window',
-                                  window=self._win_id)
-        if mode in mode_manager.passthrough:
+        keyparsers = objreg.get('keyparsers', scope='window',
+                                window=self._win_id)
+        if keyparsers[mode].passthrough:
             self._set_mode_text(mode.name)
-        if mode in (usertypes.KeyMode.insert, usertypes.KeyMode.caret):
+        if mode in (usertypes.KeyMode.insert,
+                    usertypes.KeyMode.command,
+                    usertypes.KeyMode.caret):
             self.set_mode_active(mode, True)
 
     @pyqtSlot(usertypes.KeyMode, usertypes.KeyMode)
     def on_mode_left(self, old_mode, new_mode):
         """Clear marked mode."""
-        mode_manager = objreg.get('mode-manager', scope='window',
-                                  window=self._win_id)
-        if old_mode in mode_manager.passthrough:
-            if new_mode in mode_manager.passthrough:
+        keyparsers = objreg.get('keyparsers', scope='window',
+                                window=self._win_id)
+        if keyparsers[old_mode].passthrough:
+            if keyparsers[new_mode].passthrough:
                 self._set_mode_text(new_mode.name)
             else:
                 self.txt.set_text(self.txt.Text.normal, '')
-        if old_mode in (usertypes.KeyMode.insert, usertypes.KeyMode.caret):
+        if old_mode in (usertypes.KeyMode.insert,
+                        usertypes.KeyMode.command,
+                        usertypes.KeyMode.caret):
             self.set_mode_active(old_mode, False)
 
     @config.change_filter('ui', 'message-timeout')

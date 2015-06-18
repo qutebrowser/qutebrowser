@@ -101,7 +101,7 @@ class CompletionView(QTreeView):
         self.enabled = config.get('completion', 'show')
         objreg.get('config').changed.connect(self.set_enabled)
         # FIXME handle new aliases.
-        #objreg.get('config').changed.connect(self.init_command_completion)
+        # objreg.get('config').changed.connect(self.init_command_completion)
 
         self._delegate = completiondelegate.CompletionItemDelegate(self)
         self.setItemDelegate(self._delegate)
@@ -201,8 +201,17 @@ class CompletionView(QTreeView):
         for i in range(model.rowCount()):
             self.expand(model.index(i, 0))
         self._resize_columns()
-        model.rowsRemoved.connect(self.maybe_resize_completion)
-        model.rowsInserted.connect(self.maybe_resize_completion)
+        self.maybe_resize_completion()
+
+    def set_pattern(self, pattern):
+        """Set the completion pattern for the current model.
+
+        Called from on_update_completion().
+
+        Args:
+            pattern: The filter pattern to set (what the user entered).
+        """
+        self.model().set_pattern(pattern)
         self.maybe_resize_completion()
 
     @pyqtSlot()

@@ -29,7 +29,7 @@ from PyQt5.QtCore import QUrl
 from PyQt5.QtNetwork import QHostInfo, QHostAddress
 
 from qutebrowser.config import config, configexc
-from qutebrowser.utils import log, qtutils, message
+from qutebrowser.utils import log, qtutils, message, utils
 from qutebrowser.commands import cmdexc
 
 
@@ -74,8 +74,7 @@ def _get_search_url(txt):
     """
     log.url.debug("Finding search engine for '{}'".format(txt))
     engine, term = _parse_search_term(txt)
-    if not term:
-        raise FuzzyUrlError("No search term given")
+    assert term
     if engine is None:
         template = config.get('searchengines', 'DEFAULT')
     else:
@@ -95,11 +94,9 @@ def _is_url_naive(urlstr):
         True if the URL really is a URL, False otherwise.
     """
     url = qurl_from_user_input(urlstr)
-    try:
-        ipaddress.ip_address(urlstr)
-    except ValueError:
-        pass
-    else:
+    assert url.isValid()
+
+    if not utils.raises(ValueError, ipaddress.ip_address, urlstr):
         # Valid IPv4/IPv6 address
         return True
 
@@ -109,31 +106,36 @@ def _is_url_naive(urlstr):
     if not QHostAddress(urlstr).isNull():
         return False
 
-    if not url.isValid():
-        return False
-    elif '.' in url.host():
-        return True
-    elif url.host() == 'localhost':
+    if '.' in url.host():
         return True
     else:
         return False
 
 
-def _is_url_dns(url):
+def _is_url_dns(urlstr):
     """Check if a URL is really a URL via DNS.
 
     Args:
-        url: The URL to check for as QUrl, ideally via qurl_from_user_input.
+        url: The URL to check for as a string.
 
     Return:
         True if the URL really is a URL, False otherwise.
     """
-    if not url.isValid():
+    url = qurl_from_user_input(urlstr)
+    assert url.isValid()
+
+    if (utils.raises(ValueError, ipaddress.ip_address, urlstr) and
+            not QHostAddress(urlstr).isNull()):
+        log.url.debug("Bogus IP URL -> False")
+        # Qt treats things like "23.42" or "1337" or "0xDEAD" as valid URLs
+        # which we don't want to.
         return False
+
     host = url.host()
-    log.url.debug("DNS request for {}".format(host))
     if not host:
+        log.url.debug("URL has no host -> False")
         return False
+    log.url.debug("Doing DNS request for {}".format(host))
     info = QHostInfo.fromName(host)
     return not info.error()
 
@@ -230,6 +232,7 @@ def is_url(urlstr):
 
     urlstr = urlstr.strip()
     qurl = QUrl(urlstr)
+    qurl_userinput = qurl_from_user_input(urlstr)
 
     if not autosearch:
         # no autosearch, so everything is a URL unless it has an explicit
@@ -240,29 +243,33 @@ def is_url(urlstr):
         else:
             return False
 
+    if not qurl_userinput.isValid():
+        # This will also catch URLs containing spaces.
+        return False
+
     if _has_explicit_scheme(qurl):
         # URLs with explicit schemes are always URLs
         log.url.debug("Contains explicit scheme")
         url = True
-    elif ' ' in urlstr:
-        # A URL will never contain a space
-        log.url.debug("Contains space -> no URL")
-        url = False
+    elif qurl_userinput.host() in ('localhost', '127.0.0.1', '::1'):
+        log.url.debug("Is localhost.")
+        url = True
     elif is_special_url(qurl):
         # Special URLs are always URLs, even with autosearch=False
         log.url.debug("Is an special URL.")
         url = True
     elif autosearch == 'dns':
-        log.url.debug("Checking via DNS")
+        log.url.debug("Checking via DNS check")
         # We want to use qurl_from_user_input here, as the user might enter
         # "foo.de" and that should be treated as URL here.
-        url = _is_url_dns(qurl_from_user_input(urlstr))
+        url = _is_url_dns(urlstr)
     elif autosearch == 'naive':
         log.url.debug("Checking via naive check")
         url = _is_url_naive(urlstr)
     else:
         raise ValueError("Invalid autosearch value")
-    return url and qurl_from_user_input(urlstr).isValid()
+    log.url.debug("url = {}".format(url))
+    return url
 
 
 def qurl_from_user_input(urlstr):
@@ -272,7 +279,7 @@ def qurl_from_user_input(urlstr):
     IPv6, so we first try to handle it as a valid IPv6, and if that fails we
     use QUrl.fromUserInput.
 
-    WORKAROUND - https://bugreports.qt-project.org/browse/QTBUG-41089
+    WORKAROUND - https://bugreports.qt.io/browse/QTBUG-41089
     FIXME - Maybe https://codereview.qt-project.org/#/c/93851/ has a better way
             to solve this?
     https://github.com/The-Compiler/qutebrowser/issues/109
@@ -311,20 +318,15 @@ def invalid_url_error(win_id, url, action):
     if url.isValid():
         raise ValueError("Calling invalid_url_error with valid URL {}".format(
             url.toDisplayString()))
-    errstring = "Trying to {} with invalid URL".format(action)
-    if url.errorString():
-        errstring += " - {}".format(url.errorString())
+    errstring = get_errstring(
+        url, "Trying to {} with invalid URL".format(action))
     message.error(win_id, errstring)
 
 
 def raise_cmdexc_if_invalid(url):
     """Check if the given QUrl is invalid, and if so, raise a CommandError."""
     if not url.isValid():
-        errstr = "Invalid URL {}".format(url.toDisplayString())
-        url_error = url.errorString()
-        if url_error:
-            errstr += " - {}".format(url_error)
-        raise cmdexc.CommandError(errstr)
+        raise cmdexc.CommandError(get_errstring(url))
 
 
 def filename_from_url(url):
@@ -348,11 +350,46 @@ def filename_from_url(url):
 
 
 def host_tuple(url):
-    """Get a (scheme, host, port) tuple.
+    """Get a (scheme, host, port) tuple from a QUrl.
 
     This is suitable to identify a connection, e.g. for SSL errors.
     """
-    return (url.scheme(), url.host(), url.port())
+    if not url.isValid():
+        raise ValueError(get_errstring(url))
+    scheme, host, port = url.scheme(), url.host(), url.port()
+    assert scheme
+    if not host:
+        raise ValueError("Got URL {} without host.".format(
+            url.toDisplayString()))
+    if port == -1:
+        port_mapping = {
+            'http': 80,
+            'https': 443,
+            'ftp': 21,
+        }
+        try:
+            port = port_mapping[scheme]
+        except KeyError:
+            raise ValueError("Got URL {} with unknown port.".format(
+                url.toDisplayString()))
+    return scheme, host, port
+
+
+def get_errstring(url, base="Invalid URL"):
+    """Get an error string for an URL.
+
+    Args:
+        url: The URL as a QUrl.
+        base: The base error string.
+
+    Return:
+        A new string with url.errorString() is appended if available.
+    """
+    url_error = url.errorString()
+    if url_error:
+        return base + " - {}".format(url_error)
+    else:
+        return base
 
 
 class FuzzyUrlError(Exception):
@@ -360,17 +397,19 @@ class FuzzyUrlError(Exception):
     """Exception raised by fuzzy_url on problems.
 
     Attributes:
+        msg: The error message to use.
         url: The QUrl which caused the error.
     """
 
     def __init__(self, msg, url=None):
         super().__init__(msg)
-        if url is not None:
-            assert not url.isValid()
+        if url is not None and url.isValid():
+            raise ValueError("Got valid URL {}!".format(url.toDisplayString()))
         self.url = url
+        self.msg = msg
 
     def __str__(self):
         if self.url is None or not self.url.errorString():
-            return str(super())
+            return self.msg
         else:
-            return '{}: {}'.format(str(super()), self.url.errorString())
+            return '{}: {}'.format(self.msg, self.url.errorString())

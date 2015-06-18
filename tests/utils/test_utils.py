@@ -23,12 +23,20 @@ import sys
 import enum
 import datetime
 import os.path
+import io
+import logging
+import functools
 
 from PyQt5.QtCore import Qt
 from PyQt5.QtGui import QColor
 import pytest
 
+import qutebrowser
+import qutebrowser.utils  # for test_qualname
 from qutebrowser.utils import utils, qtutils
+
+
+ELLIPSIS = '\u2026'
 
 
 class Color(QColor):
@@ -41,38 +49,192 @@ class Color(QColor):
                               alpha=self.alpha())
 
 
+class TestCompactText:
+
+    """Test compact_text."""
+
+    @pytest.mark.parametrize('text, expected', [
+        ('foo\nbar', 'foobar'),
+        ('  foo  \n  bar  ', 'foobar'),
+        ('\nfoo\n', 'foo'),
+    ])
+    def test_compact_text(self, text, expected):
+        """Test folding of newlines."""
+        assert utils.compact_text(text) == expected
+
+    @pytest.mark.parametrize('elidelength, text, expected', [
+        (None, 'x' * 100, 'x' * 100),
+        (6, 'foobar', 'foobar'),
+        (5, 'foobar', 'foob' + ELLIPSIS),
+        (5, 'foo\nbar', 'foob' + ELLIPSIS),
+        (7, 'foo\nbar', 'foobar'),
+    ])
+    def test_eliding(self, elidelength, text, expected):
+        """Test eliding."""
+        assert utils.compact_text(text, elidelength) == expected
+
+
 class TestEliding:
 
     """Test elide."""
-
-    ELLIPSIS = '\u2026'
 
     def test_too_small(self):
         """Test eliding to 0 chars which should fail."""
         with pytest.raises(ValueError):
             utils.elide('foo', 0)
 
-    def test_length_one(self):
-        """Test eliding to 1 char which should yield ..."""
-        assert utils.elide('foo', 1) == self.ELLIPSIS
-
-    def test_fits(self):
-        """Test eliding with a string which fits exactly."""
-        assert utils.elide('foo', 3) == 'foo'
-
-    def test_elided(self):
-        """Test eliding with a string which should get elided."""
-        assert utils.elide('foobar', 3) == 'fo' + self.ELLIPSIS
+    @pytest.mark.parametrize('text, length, expected', [
+        ('foo', 1, ELLIPSIS),
+        ('foo', 3, 'foo'),
+        ('foobar', 3, 'fo' + ELLIPSIS),
+    ])
+    def test_elided(self, text, length, expected):
+        assert utils.elide(text, length) == expected
 
 
 class TestReadFile:
 
     """Test read_file."""
 
+    @pytest.fixture(autouse=True, params=[True, False])
+    def freezer(self, request, monkeypatch):
+        if request.param:
+            monkeypatch.setattr(sys, 'frozen', True, raising=False)
+            monkeypatch.setattr('sys.executable', qutebrowser.__file__)
+
     def test_readfile(self):
         """Read a test file."""
         content = utils.read_file(os.path.join('utils', 'testfile'))
         assert content.splitlines()[0] == "Hello World!"
+
+    def test_readfile_binary(self):
+        """Read a test file in binary mode."""
+        content = utils.read_file(os.path.join('utils', 'testfile'),
+                                  binary=True)
+        assert content.splitlines()[0] == b"Hello World!"
+
+
+class Patcher:
+
+    """Helper for TestActuteWarning.
+
+    Attributes:
+        monkeypatch: The pytest monkeypatch fixture.
+    """
+
+    def __init__(self, monkeypatch):
+        self.monkeypatch = monkeypatch
+
+    def patch_platform(self, platform='linux'):
+        """Patch sys.platform."""
+        self.monkeypatch.setattr('sys.platform', platform)
+
+    def patch_exists(self, exists=True):
+        """Patch os.path.exists."""
+        self.monkeypatch.setattr('qutebrowser.utils.utils.os.path.exists',
+                                 lambda path: exists)
+
+    def patch_version(self, version='5.2.0'):
+        """Patch Qt version."""
+        self.monkeypatch.setattr(
+            'qutebrowser.utils.utils.qtutils.qVersion', lambda: version)
+
+    def patch_file(self, data):
+        """Patch open() to return the given data."""
+        fake_file = io.StringIO(data)
+        self.monkeypatch.setattr(utils, 'open',
+                                 lambda filename, mode, encoding: fake_file,
+                                 raising=False)
+
+    def patch_all(self, data):
+        """Patch everything so the issue would exist."""
+        self.patch_platform()
+        self.patch_exists()
+        self.patch_version()
+        self.patch_file(data)
+
+
+class TestActuteWarning:
+
+    """Test actute_warning."""
+
+    @pytest.fixture
+    def patcher(self, monkeypatch):
+        """Fixture providing a Patcher helper."""
+        return Patcher(monkeypatch)
+
+    def test_non_linux(self, patcher, capsys):
+        """Test with a non-Linux OS."""
+        patcher.patch_platform('toaster')
+        utils.actute_warning()
+        out, err = capsys.readouterr()
+        assert not out
+        assert not err
+
+    def test_no_compose(self, patcher, capsys):
+        """Test with no compose file."""
+        patcher.patch_platform()
+        patcher.patch_exists(False)
+        utils.actute_warning()
+        out, err = capsys.readouterr()
+        assert not out
+        assert not err
+
+    def test_newer_qt(self, patcher, capsys):
+        """Test with compose file but newer Qt version."""
+        patcher.patch_platform()
+        patcher.patch_exists()
+        patcher.patch_version('5.4')
+        utils.actute_warning()
+        out, err = capsys.readouterr()
+        assert not out
+        assert not err
+
+    def test_no_match(self, patcher, capsys):
+        """Test with compose file and affected Qt but no match."""
+        patcher.patch_all('foobar')
+        utils.actute_warning()
+        out, err = capsys.readouterr()
+        assert not out
+        assert not err
+
+    def test_empty(self, patcher, capsys):
+        """Test with empty compose file."""
+        patcher.patch_all(None)
+        utils.actute_warning()
+        out, err = capsys.readouterr()
+        assert not out
+        assert not err
+
+    def test_match(self, patcher, capsys):
+        """Test with compose file and affected Qt and a match."""
+        patcher.patch_all('foobar\n<dead_actute>\nbaz')
+        utils.actute_warning()
+        out, err = capsys.readouterr()
+        assert out.startswith('Note: If you got a')
+        assert not err
+
+    def test_match_stdout_none(self, monkeypatch, patcher, capsys):
+        """Test with a match and stdout being None."""
+        patcher.patch_all('foobar\n<dead_actute>\nbaz')
+        monkeypatch.setattr('sys.stdout', None)
+        utils.actute_warning()
+
+    def test_unreadable(self, mocker, patcher, capsys, caplog):
+        """Test with an unreadable compose file."""
+        patcher.patch_platform()
+        patcher.patch_exists()
+        patcher.patch_version()
+        mocker.patch('qutebrowser.utils.utils.open', side_effect=OSError,
+                     create=True)
+
+        with caplog.atLevel(logging.ERROR, 'init'):
+            utils.actute_warning()
+
+        assert len(caplog.records()) == 1
+        assert caplog.records()[0].message == 'Failed to read Compose file'
+        out, _err = capsys.readouterr()
+        assert not out
 
 
 class TestInterpolateColor:
@@ -164,62 +326,40 @@ class TestInterpolateColor:
         assert Color(color) == expected
 
 
-class TestFormatSeconds:
-
-    """Tests for format_seconds.
-
-    Class attributes:
-        TESTS: A list of (input, output) tuples.
-    """
-
-    TESTS = [
-        (-1, '-0:01'),
-        (0, '0:00'),
-        (59, '0:59'),
-        (60, '1:00'),
-        (60.4, '1:00'),
-        (61, '1:01'),
-        (-61, '-1:01'),
-        (3599, '59:59'),
-        (3600, '1:00:00'),
-        (3601, '1:00:01'),
-        (36000, '10:00:00'),
-    ]
-
-    @pytest.mark.parametrize('seconds, out', TESTS)
-    def test_format_seconds(self, seconds, out):
-        """Test format_seconds with several tests."""
-        assert utils.format_seconds(seconds) == out
+@pytest.mark.parametrize('seconds, out', [
+    (-1, '-0:01'),
+    (0, '0:00'),
+    (59, '0:59'),
+    (60, '1:00'),
+    (60.4, '1:00'),
+    (61, '1:01'),
+    (-61, '-1:01'),
+    (3599, '59:59'),
+    (3600, '1:00:00'),
+    (3601, '1:00:01'),
+    (36000, '10:00:00'),
+])
+def test_format_seconds(seconds, out):
+    assert utils.format_seconds(seconds) == out
 
 
-class TestFormatTimedelta:
-
-    """Tests for format_timedelta.
-
-    Class attributes:
-        TESTS: A list of (input, output) tuples.
-    """
-
-    TESTS = [
-        (datetime.timedelta(seconds=-1), '-1s'),
-        (datetime.timedelta(seconds=0), '0s'),
-        (datetime.timedelta(seconds=59), '59s'),
-        (datetime.timedelta(seconds=120), '2m'),
-        (datetime.timedelta(seconds=60.4), '1m'),
-        (datetime.timedelta(seconds=63), '1m 3s'),
-        (datetime.timedelta(seconds=-64), '-1m 4s'),
-        (datetime.timedelta(seconds=3599), '59m 59s'),
-        (datetime.timedelta(seconds=3600), '1h'),
-        (datetime.timedelta(seconds=3605), '1h 5s'),
-        (datetime.timedelta(seconds=3723), '1h 2m 3s'),
-        (datetime.timedelta(seconds=3780), '1h 3m'),
-        (datetime.timedelta(seconds=36000), '10h'),
-    ]
-
-    @pytest.mark.parametrize('td, out', TESTS)
-    def test_format_seconds(self, td, out):
-        """Test format_seconds with several tests."""
-        assert utils.format_timedelta(td) == out
+@pytest.mark.parametrize('td, out', [
+    (datetime.timedelta(seconds=-1), '-1s'),
+    (datetime.timedelta(seconds=0), '0s'),
+    (datetime.timedelta(seconds=59), '59s'),
+    (datetime.timedelta(seconds=120), '2m'),
+    (datetime.timedelta(seconds=60.4), '1m'),
+    (datetime.timedelta(seconds=63), '1m 3s'),
+    (datetime.timedelta(seconds=-64), '-1m 4s'),
+    (datetime.timedelta(seconds=3599), '59m 59s'),
+    (datetime.timedelta(seconds=3600), '1h'),
+    (datetime.timedelta(seconds=3605), '1h 5s'),
+    (datetime.timedelta(seconds=3723), '1h 2m 3s'),
+    (datetime.timedelta(seconds=3780), '1h 3m'),
+    (datetime.timedelta(seconds=36000), '10h'),
+])
+def test_format_timedelta(td, out):
+    assert utils.format_timedelta(td) == out
 
 
 class TestFormatSize:
@@ -264,29 +404,34 @@ class TestKeyToString:
 
     """Test key_to_string."""
 
-    def test_unicode_garbage_keys(self):
+    @pytest.mark.parametrize('key, expected', [
+        (Qt.Key_Blue, 'Blue'),
+        (Qt.Key_Backtab, 'Tab'),
+        (Qt.Key_Escape, 'Escape'),
+        (Qt.Key_A, 'A'),
+        (Qt.Key_degree, '°'),
+        (Qt.Key_Meta, 'Meta'),
+    ])
+    def test_normal(self, key, expected):
         """Test a special key where QKeyEvent::toString works incorrectly."""
-        assert utils.key_to_string(Qt.Key_Blue) == 'Blue'
+        assert utils.key_to_string(key) == expected
 
-    def test_backtab(self):
-        """Test if backtab is normalized to tab correctly."""
-        assert utils.key_to_string(Qt.Key_Backtab) == 'Tab'
-
-    def test_escape(self):
-        """Test if escape is normalized to escape correctly."""
-        assert utils.key_to_string(Qt.Key_Escape) == 'Escape'
-
-    def test_letter(self):
-        """Test a simple letter key."""
+    def test_missing(self, monkeypatch):
+        """Test with a missing key."""
+        monkeypatch.delattr('qutebrowser.utils.utils.Qt.Key_Blue')
+        # We don't want to test the key which is actually missing - we only
+        # want to know if the mapping still behaves properly.
         assert utils.key_to_string(Qt.Key_A) == 'A'
 
-    def test_unicode(self):
-        """Test a printable unicode key."""
-        assert utils.key_to_string(Qt.Key_degree) == '°'
-
-    def test_special(self):
-        """Test a non-printable key handled by QKeyEvent::toString."""
-        assert utils.key_to_string(Qt.Key_F1) == 'F1'
+    def test_all(self):
+        """Make sure there's some sensible output for all keys."""
+        for name, value in sorted(vars(Qt).items()):
+            if not isinstance(value, Qt.Key):
+                continue
+            print(name)
+            string = utils.key_to_string(value)
+            assert string
+            string.encode('utf-8')  # make sure it's encodable
 
 
 class TestKeyEventToString:
@@ -323,26 +468,275 @@ class TestKeyEventToString:
                                      Qt.MetaModifier | Qt.ShiftModifier))
         assert utils.keyevent_to_string(evt) == 'Ctrl+Alt+Meta+Shift+A'
 
+    def test_mac(self, monkeypatch, fake_keyevent_factory):
+        """Test with a simulated mac."""
+        monkeypatch.setattr('sys.platform', 'darwin')
+        evt = fake_keyevent_factory(key=Qt.Key_A, modifiers=Qt.ControlModifier)
+        assert utils.keyevent_to_string(evt) == 'Meta+A'
 
-class TestNormalize:
 
-    """Test normalize_keystr."""
+@pytest.mark.parametrize('orig, repl', [
+    ('Control+x', 'ctrl+x'),
+    ('Windows+x', 'meta+x'),
+    ('Mod1+x', 'alt+x'),
+    ('Mod4+x', 'meta+x'),
+    ('Control--', 'ctrl+-'),
+    ('Windows++', 'meta++'),
+    ('ctrl-x', 'ctrl+x'),
+    ('control+x', 'ctrl+x')
+])
+def test_normalize_keystr(orig, repl):
+    assert utils.normalize_keystr(orig) == repl
 
-    STRINGS = (
-        ('Control+x', 'ctrl+x'),
-        ('Windows+x', 'meta+x'),
-        ('Mod1+x', 'alt+x'),
-        ('Mod4+x', 'meta+x'),
-        ('Control--', 'ctrl+-'),
-        ('Windows++', 'meta++'),
-        ('ctrl-x', 'ctrl+x'),
-        ('control+x', 'ctrl+x')
-    )
 
-    @pytest.mark.parametrize('orig, repl', STRINGS)
-    def test_normalize(self, orig, repl):
-        """Test normalize with some strings."""
-        assert utils.normalize_keystr(orig) == repl
+class TestFakeIOStream:
+
+    """Test FakeIOStream."""
+
+    def _write_func(self, text):
+        return text
+
+    def test_flush(self):
+        """Smoke-test to see if flushing works."""
+        s = utils.FakeIOStream(self._write_func)
+        s.flush()
+
+    def test_isatty(self):
+        """Make sure isatty() is always false."""
+        s = utils.FakeIOStream(self._write_func)
+        assert not s.isatty()
+
+    def test_write(self):
+        """Make sure writing works."""
+        s = utils.FakeIOStream(self._write_func)
+        assert s.write('echo') == 'echo'
+
+
+class TestFakeIO:
+
+    """Test FakeIO."""
+
+    @pytest.yield_fixture(autouse=True)
+    def restore_streams(self):
+        """Restore sys.stderr/sys.stdout after tests."""
+        old_stdout = sys.stdout
+        old_stderr = sys.stderr
+        yield
+        sys.stdout = old_stdout
+        sys.stderr = old_stderr
+
+    def test_normal(self, capsys):
+        """Test without changing sys.stderr/sys.stdout."""
+        data = io.StringIO()
+        with utils.fake_io(data.write):
+            sys.stdout.write('hello\n')
+            sys.stderr.write('world\n')
+
+        out, err = capsys.readouterr()
+        assert not out
+        assert not err
+        assert data.getvalue() == 'hello\nworld\n'
+
+        sys.stdout.write('back to\n')
+        sys.stderr.write('normal\n')
+        out, err = capsys.readouterr()
+        assert out == 'back to\n'
+        assert err == 'normal\n'
+
+    def test_stdout_replaced(self, capsys):
+        """Test with replaced stdout."""
+        data = io.StringIO()
+        new_stdout = io.StringIO()
+        with utils.fake_io(data.write):
+            sys.stdout.write('hello\n')
+            sys.stderr.write('world\n')
+            sys.stdout = new_stdout
+
+        out, err = capsys.readouterr()
+        assert not out
+        assert not err
+        assert data.getvalue() == 'hello\nworld\n'
+
+        sys.stdout.write('still new\n')
+        sys.stderr.write('normal\n')
+        out, err = capsys.readouterr()
+        assert not out
+        assert err == 'normal\n'
+        assert new_stdout.getvalue() == 'still new\n'
+
+    def test_stderr_replaced(self, capsys):
+        """Test with replaced stderr."""
+        data = io.StringIO()
+        new_stderr = io.StringIO()
+        with utils.fake_io(data.write):
+            sys.stdout.write('hello\n')
+            sys.stderr.write('world\n')
+            sys.stderr = new_stderr
+
+        out, err = capsys.readouterr()
+        assert not out
+        assert not err
+        assert data.getvalue() == 'hello\nworld\n'
+
+        sys.stdout.write('normal\n')
+        sys.stderr.write('still new\n')
+        out, err = capsys.readouterr()
+        assert out == 'normal\n'
+        assert not err
+        assert new_stderr.getvalue() == 'still new\n'
+
+
+class GotException(Exception):
+
+    """Exception used for TestDisabledExcepthook."""
+
+    pass
+
+
+def excepthook(_exc, _val, _tb):
+    return
+
+
+def excepthook_2(_exc, _val, _tb):
+    return
+
+
+class TestDisabledExcepthook:
+
+    """Test disabled_excepthook.
+
+    This doesn't test much as some things are untestable without triggering
+    the excepthook (which is hard to test).
+    """
+
+    @pytest.yield_fixture(autouse=True)
+    def restore_excepthook(self):
+        """Restore sys.excepthook and sys.__excepthook__ after tests."""
+        old_excepthook = sys.excepthook
+        old_dunder_excepthook = sys.__excepthook__
+        yield
+        sys.excepthook = old_excepthook
+        sys.__excepthook__ = old_dunder_excepthook
+
+    def test_normal(self):
+        """Test without changing sys.excepthook."""
+        sys.excepthook = excepthook
+        assert sys.excepthook is excepthook
+        with utils.disabled_excepthook():
+            assert sys.excepthook is not excepthook
+        assert sys.excepthook is excepthook
+
+    def test_changed(self):
+        """Test with changed sys.excepthook."""
+        sys.excepthook = excepthook
+        with utils.disabled_excepthook():
+            assert sys.excepthook is not excepthook
+            sys.excepthook = excepthook_2
+        assert sys.excepthook is excepthook_2
+
+
+class TestPreventExceptions:
+
+    """Test prevent_exceptions."""
+
+    @utils.prevent_exceptions(42)
+    def func_raising(self):
+        raise Exception
+
+    def test_raising(self, caplog):
+        """Test with a raising function."""
+        with caplog.atLevel(logging.ERROR, 'misc'):
+            ret = self.func_raising()
+        assert ret == 42
+        assert len(caplog.records()) == 1
+        expected = 'Error in test_utils.TestPreventExceptions.func_raising'
+        actual = caplog.records()[0].message
+        assert actual == expected
+
+    @utils.prevent_exceptions(42)
+    def func_not_raising(self):
+        return 23
+
+    def test_not_raising(self, caplog):
+        """Test with a non-raising function."""
+        with caplog.atLevel(logging.ERROR, 'misc'):
+            ret = self.func_not_raising()
+        assert ret == 23
+        assert not caplog.records()
+
+    @utils.prevent_exceptions(42, True)
+    def func_predicate_true(self):
+        raise Exception
+
+    def test_predicate_true(self, caplog):
+        """Test with a True predicate."""
+        with caplog.atLevel(logging.ERROR, 'misc'):
+            ret = self.func_predicate_true()
+        assert ret == 42
+        assert len(caplog.records()) == 1
+
+    @utils.prevent_exceptions(42, False)
+    def func_predicate_false(self):
+        raise Exception
+
+    def test_predicate_false(self, caplog):
+        """Test with a False predicate."""
+        with caplog.atLevel(logging.ERROR, 'misc'):
+            with pytest.raises(Exception):
+                self.func_predicate_false()
+        assert not caplog.records()
+
+
+class Obj:
+
+    """Test object for test_get_repr()."""
+
+    pass
+
+
+@pytest.mark.parametrize('constructor, attrs, expected', [
+    (False, {}, '<test_utils.Obj>'),
+    (False, {'foo': None}, '<test_utils.Obj foo=None>'),
+    (False, {'foo': "b'ar", 'baz': 2}, '<test_utils.Obj baz=2 foo="b\'ar">'),
+    (True, {}, 'test_utils.Obj()'),
+    (True, {'foo': None}, 'test_utils.Obj(foo=None)'),
+    (True, {'foo': "te'st", 'bar': 2}, 'test_utils.Obj(bar=2, foo="te\'st")'),
+])
+def test_get_repr(constructor, attrs, expected):
+    """Test get_repr()."""
+    assert utils.get_repr(Obj(), constructor, **attrs) == expected
+
+
+class QualnameObj():
+
+    """Test object for test_qualname."""
+
+    def func(self):
+        """Test method for test_qualname."""
+        pass
+
+
+def qualname_func(_blah):
+    """Test function for test_qualname."""
+    pass
+
+
+QUALNAME_OBJ = QualnameObj()
+
+
+@pytest.mark.parametrize('obj, expected', [
+    (QUALNAME_OBJ, repr(QUALNAME_OBJ)),  # instance - unknown
+    (QualnameObj, 'test_utils.QualnameObj'),  # class
+    (QualnameObj.func, 'test_utils.QualnameObj.func'),  # unbound method
+    (QualnameObj().func, 'test_utils.QualnameObj.func'),  # bound method
+    (qualname_func, 'test_utils.qualname_func'),  # function
+    (functools.partial(qualname_func, True), 'test_utils.qualname_func'),
+    (qutebrowser, 'qutebrowser'),  # module
+    (qutebrowser.utils, 'qutebrowser.utils'),  # submodule
+    (utils, 'qutebrowser.utils.utils'),  # submodule (from-import)
+])
+def test_qualname(obj, expected):
+    assert utils.qualname(obj) == expected
 
 
 class TestIsEnum:
@@ -412,20 +806,13 @@ class TestRaises:
             utils.raises(ValueError, self.do_raise)
 
 
-class TestForceEncoding:
-
-    """Test force_encoding."""
-
-    TESTS = [
-        ('hello world', 'ascii', 'hello world'),
-        ('hellö wörld', 'utf-8', 'hellö wörld'),
-        ('hellö wörld', 'ascii', 'hell? w?rld'),
-    ]
-
-    @pytest.mark.parametrize('inp, enc, expected', TESTS)
-    def test_fitting_ascii(self, inp, enc, expected):
-        """Test force_encoding will yield expected text."""
-        assert utils.force_encoding(inp, enc) == expected
+@pytest.mark.parametrize('inp, enc, expected', [
+    ('hello world', 'ascii', 'hello world'),
+    ('hellö wörld', 'utf-8', 'hellö wörld'),
+    ('hellö wörld', 'ascii', 'hell? w?rld'),
+])
+def test_force_encoding(inp, enc, expected):
+    assert utils.force_encoding(inp, enc) == expected
 
 
 class TestNewestSlice:
@@ -437,44 +824,23 @@ class TestNewestSlice:
         with pytest.raises(ValueError):
             utils.newest_slice([], -2)
 
-    def test_count_minus_one(self):
-        """Test with a count of -1 (all elements)."""
-        items = range(20)
-        sliced = utils.newest_slice(items, -1)
-        assert list(sliced) == list(items)
-
-    def test_count_zero(self):
-        """Test with a count of 0 (no elements)."""
-        items = range(20)
-        sliced = utils.newest_slice(items, 0)
-        assert list(sliced) == []
-
-    def test_count_much_smaller(self):
-        """Test with a count which is much smaller than the iterable."""
-        items = range(20)
-        sliced = utils.newest_slice(items, 5)
-        assert list(sliced) == [15, 16, 17, 18, 19]
-
-    def test_count_smaller(self):
-        """Test with a count which is exactly one smaller."""
-        items = range(5)
-        sliced = utils.newest_slice(items, 4)
-        assert list(sliced) == [1, 2, 3, 4]
-
-    def test_count_equal(self):
-        """Test with a count which is just as large as the iterable."""
-        items = range(5)
-        sliced = utils.newest_slice(items, 5)
-        assert list(sliced) == list(items)
-
-    def test_count_bigger(self):
-        """Test with a count which is one bigger than the iterable."""
-        items = range(5)
-        sliced = utils.newest_slice(items, 6)
-        assert list(sliced) == list(items)
-
-    def test_count_much_bigger(self):
-        """Test with a count which is much bigger than the iterable."""
-        items = range(5)
-        sliced = utils.newest_slice(items, 50)
-        assert list(sliced) == list(items)
+    @pytest.mark.parametrize('items, count, expected', [
+        # Count of -1 (all elements).
+        (range(20), -1, range(20)),
+        # Count of 0 (no elements).
+        (range(20), 0, []),
+        # Count which is much smaller than the iterable.
+        (range(20), 5, [15, 16, 17, 18, 19]),
+        # Count which is exactly one smaller."""
+        (range(5), 4, [1, 2, 3, 4]),
+        # Count which is just as large as the iterable."""
+        (range(5), 5, range(5)),
+        # Count which is one bigger than the iterable.
+        (range(5), 6, range(5)),
+        # Count which is much bigger than the iterable.
+        (range(5), 50, range(5)),
+    ])
+    def test_good(self, items, count, expected):
+        """Test slices which shouldn't raise an exception."""
+        sliced = utils.newest_slice(items, count)
+        assert list(sliced) == list(expected)

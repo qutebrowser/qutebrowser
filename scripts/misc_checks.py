@@ -35,9 +35,13 @@ sys.path.insert(0, os.path.join(os.path.dirname(__file__), os.pardir))
 from scripts import utils
 
 
-def _py_files(target):
+def _py_files():
     """Iterate over all python files and yield filenames."""
-    for (dirpath, _dirnames, filenames) in os.walk(target):
+    for (dirpath, _dirnames, filenames) in os.walk('.'):
+        parts = dirpath.split(os.sep)
+        if len(parts) >= 2 and parts[1].startswith('.'):
+            # ignore hidden dirs
+            continue
         for name in (e for e in filenames if e.endswith('.py')):
             yield os.path.join(dirpath, name)
 
@@ -64,31 +68,32 @@ def check_git():
     return status
 
 
-def check_spelling(target):
+def check_spelling():
     """Check commonly misspelled words."""
     # Words which I often misspell
-    words = {'behaviour', 'quitted', 'likelyhood', 'sucessfully',
-             'occur[^r .]', 'seperator', 'explicitely', 'resetted',
-             'auxillary', 'accidentaly', 'ambigious', 'loosly',
-             'initialis', 'convienence', 'similiar', 'uncommited',
-             'reproducable'}
+    words = {'[Bb]ehaviour', '[Qq]uitted', 'Ll]ikelyhood', '[Ss]ucessfully',
+             '[Oo]ccur[^r .]', '[Ss]eperator', '[Ee]xplicitely', '[Rr]esetted',
+             '[Aa]uxillary', '[Aa]ccidentaly', '[Aa]mbigious', '[Ll]oosly',
+             '[Ii]nitialis', '[Cc]onvienence', '[Ss]imiliar', '[Uu]ncommited',
+             '[Rr]eproducable'}
 
     # Words which look better when splitted, but might need some fine tuning.
-    words |= {'keystrings', 'webelements', 'mouseevent', 'keysequence',
-              'normalmode', 'eventloops', 'sizehint', 'statemachine',
-              'metaobject', 'logrecord', 'filetype'}
+    words |= {'[Kk]eystrings', '[Ww]ebelements', '[Mm]ouseevent',
+              '[Kk]eysequence', '[Nn]ormalmode', '[Ee]ventloops',
+              '[Ss]izehint', '[Ss]tatemachine', '[Mm]etaobject',
+              '[Ll]ogrecord', '[Ff]iletype'}
 
     seen = collections.defaultdict(list)
     try:
         ok = True
-        for fn in _py_files(target):
+        for fn in _py_files():
             with tokenize.open(fn) as f:
-                if fn == os.path.join('scripts', 'misc_checks.py'):
+                if fn == os.path.join('.', 'scripts', 'misc_checks.py'):
                     continue
                 for line in f:
                     for w in words:
                         if re.search(w, line) and fn not in seen[w]:
-                            print("Found '{}' in {}!".format(w, fn))
+                            print('Found "{}" in {}!'.format(w, fn))
                             seen[w].append(fn)
                             ok = False
         print()
@@ -98,11 +103,11 @@ def check_spelling(target):
         return None
 
 
-def check_vcs_conflict(target):
+def check_vcs_conflict():
     """Check VCS conflict markers."""
     try:
         ok = True
-        for fn in _py_files(target):
+        for fn in _py_files():
             with tokenize.open(fn) as f:
                 for line in f:
                     if any(line.startswith(c * 7) for c in '<>=|'):
@@ -120,25 +125,14 @@ def main():
     parser = argparse.ArgumentParser()
     parser.add_argument('checker', choices=('git', 'vcs', 'spelling'),
                         help="Which checker to run.")
-    parser.add_argument('target', help="What to check", nargs='*')
     args = parser.parse_args()
     if args.checker == 'git':
         ok = check_git()
-        return 0 if ok else 1
     elif args.checker == 'vcs':
-        is_ok = True
-        for target in args.target:
-            ok = check_vcs_conflict(target)
-            if not ok:
-                is_ok = False
-        return 0 if is_ok else 1
+        ok = check_vcs_conflict()
     elif args.checker == 'spelling':
-        is_ok = True
-        for target in args.target:
-            ok = check_spelling(target)
-            if not ok:
-                is_ok = False
-        return 0 if is_ok else 1
+        ok = check_spelling()
+    return 0 if ok else 1
 
 
 if __name__ == '__main__':

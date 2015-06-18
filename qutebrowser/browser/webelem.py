@@ -312,7 +312,7 @@ def javascript_escape(text):
 def get_child_frames(startframe):
     """Get all children recursively of a given QWebFrame.
 
-    Loosly based on http://blog.nextgenetics.net/?e=64
+    Loosely based on http://blog.nextgenetics.net/?e=64
 
     Args:
         startframe: The QWebFrame to start with.

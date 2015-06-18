@@ -147,22 +147,13 @@ class FakeNetworkReply:
         self.headers[key] = value
 
 
-class FakeQProcess(mock.Mock):
-
-    """QProcess stub.
-
-    Gets some enum values from the real QProcess.
-    """
-
-    NormalExit = QProcess.NormalExit
-    CrashExit = QProcess.CrashExit
-
-    FailedToStart = QProcess.FailedToStart
-    Crashed = QProcess.Crashed
-    Timedout = QProcess.Timedout
-    WriteError = QProcess.WriteError
-    ReadError = QProcess.ReadError
-    UnknownError = QProcess.UnknownError
+def fake_qprocess():
+    """Factory for a QProcess mock which has the QProcess enum values."""
+    m = mock.Mock(spec=QProcess)
+    for attr in ['NormalExit', 'CrashExit', 'FailedToStart', 'Crashed',
+                 'Timedout', 'WriteError', 'ReadError', 'UnknownError']:
+        setattr(m, attr, getattr(QProcess, attr))
+    return m
 
 
 class FakeSignal:
@@ -267,14 +258,16 @@ class MessageModule:
 
     """A drop-in replacement for qutebrowser.utils.message."""
 
-    def error(self, _win_id, message, _immediately=False):
+    # pylint: disable=unused-argument
+
+    def error(self, _win_id, message, immediately=False):
         """Log an error to the message logger."""
         logging.getLogger('message').error(message)
 
-    def warning(self, _win_id, message, _immediately=False):
+    def warning(self, _win_id, message, immediately=False):
         """Log a warning to the message logger."""
         logging.getLogger('message').warning(message)
 
-    def info(self, _win_id, message, _immediately=True):
+    def info(self, _win_id, message, immediately=True):
         """Log an info message to the message logger."""
         logging.getLogger('message').info(message)

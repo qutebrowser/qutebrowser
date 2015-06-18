@@ -157,14 +157,6 @@ class TestConfigParser:
             self.cfg.get('general', 'bar')  # pylint: disable=bad-config-call
 
 
-def keyconfig_deprecated_test_cases():
-    """Generator yielding test cases (command, rgx) for TestKeyConfigParser."""
-    for sect in configdata.KEY_DATA.values():
-        for command in sect:
-            for rgx, _repl in configdata.CHANGED_KEY_COMMANDS:
-                yield (command, rgx)
-
-
 class TestKeyConfigParser:
 
     """Test config.parsers.keyconf.KeyConfigParser."""
@@ -185,10 +177,13 @@ class TestKeyConfigParser:
             with pytest.raises(keyconf.KeyConfigError):
                 kcp._read_command(cmdline_test.cmd)
 
-    @pytest.mark.parametrize('command, rgx', keyconfig_deprecated_test_cases())
-    def test_default_config_no_deprecated(self, command, rgx):
+    @pytest.mark.parametrize('rgx', [rgx for rgx, _repl
+                                     in configdata.CHANGED_KEY_COMMANDS])
+    def test_default_config_no_deprecated(self, rgx):
         """Make sure the default config contains no deprecated commands."""
-        assert rgx.match(command) is None
+        for sect in configdata.KEY_DATA.values():
+            for command in sect:
+                assert rgx.match(command) is None
 
     @pytest.mark.parametrize(
         'old, new_expected',
@@ -202,8 +197,10 @@ class TestKeyConfigParser:
             ('download-page', 'download'),
             ('cancel-download', 'download-cancel'),
 
-            ('search ""', 'search'),
-            ("search ''", 'search'),
+            ('search ""', 'search ;; clear-keychain'),
+            ("search ''", 'search ;; clear-keychain'),
+            ("search", 'search ;; clear-keychain'),
+            ("search ;; foobar", None),
             ('search "foo"', None),
 
             ('set-cmd-text "foo bar"', 'set-cmd-text foo bar'),

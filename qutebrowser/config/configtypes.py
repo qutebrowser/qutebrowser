@@ -34,6 +34,7 @@ from PyQt5.QtWidgets import QTabWidget, QTabBar
 
 from qutebrowser.commands import cmdutils
 from qutebrowser.config import configexc
+from qutebrowser.utils import standarddir
 
 
 SYSTEM_PROXY = object()  # Return value for Proxy type
@@ -693,7 +694,7 @@ class FontFamily(Font):
 
 class QtFont(Font):
 
-    """A Font which gets converted to q QFont."""
+    """A Font which gets converted to a QFont."""
 
     def transform(self, value):
         if not value:
@@ -798,6 +799,17 @@ class File(BaseType):
 
     typestr = 'file'
 
+    def transform(self, value):
+        if not value:
+            return None
+        value = os.path.expanduser(value)
+        value = os.path.expandvars(value)
+        if not os.path.isabs(value):
+            cfgdir = standarddir.config()
+            if cfgdir is not None:
+                return os.path.join(cfgdir, value)
+        return value
+
     def validate(self, value):
         if not value:
             if self._none_ok:
@@ -805,19 +817,25 @@ class File(BaseType):
             else:
                 raise configexc.ValidationError(value, "may not be empty!")
         value = os.path.expanduser(value)
+        value = os.path.expandvars(value)
         try:
-            if not os.path.isfile(value):
-                raise configexc.ValidationError(value, "must be a valid file!")
             if not os.path.isabs(value):
+                cfgdir = standarddir.config()
+                if cfgdir is None:
+                    raise configexc.ValidationError(
+                        value, "must be an absolute path when not using a "
+                        "config directory!")
+                elif not os.path.isfile(os.path.join(cfgdir, value)):
+                    raise configexc.ValidationError(
+                        value, "must be a valid path relative to the config "
+                        "directory!")
+                else:
+                    return
+            elif not os.path.isfile(value):
                 raise configexc.ValidationError(
-                    value, "must be an absolute path!")
+                    value, "must be a valid file!")
         except UnicodeEncodeError as e:
             raise configexc.ValidationError(value, e)
-
-    def transform(self, value):
-        if not value:
-            return None
-        return os.path.expanduser(value)
 
 
 class Directory(BaseType):
@@ -1151,6 +1169,16 @@ class UserStyleSheet(File):
     def __init__(self):
         super().__init__(none_ok=True)
 
+    def transform(self, value):
+        if not value:
+            return None
+        path = super().transform(value)
+        if os.path.exists(path):
+            return QUrl.fromLocalFile(path)
+        else:
+            data = base64.b64encode(value.encode('utf-8')).decode('ascii')
+            return QUrl("data:text/css;charset=utf-8;base64,{}".format(data))
+
     def validate(self, value):
         if not value:
             if self._none_ok:
@@ -1160,31 +1188,17 @@ class UserStyleSheet(File):
         value = os.path.expandvars(value)
         value = os.path.expanduser(value)
         try:
-            if not os.path.isabs(value):
-                # probably a CSS, so we don't handle it as filename.
-                # FIXME We just try if it is encodable, maybe we should
-                # validate CSS?
-                # https://github.com/The-Compiler/qutebrowser/issues/115
-                try:
+            super().validate(value)
+        except configexc.ValidationError:
+            try:
+                if not os.path.isabs(value):
+                    # probably a CSS, so we don't handle it as filename.
+                    # FIXME We just try if it is encodable, maybe we should
+                    # validate CSS?
+                    # https://github.com/The-Compiler/qutebrowser/issues/115
                     value.encode('utf-8')
-                except UnicodeEncodeError as e:
-                    raise configexc.ValidationError(value, str(e))
-                return
-            elif not os.path.isfile(value):
-                raise configexc.ValidationError(value, "must be a valid file!")
-        except UnicodeEncodeError as e:
-            raise configexc.ValidationError(value, e)
-
-    def transform(self, value):
-        path = os.path.expandvars(value)
-        path = os.path.expanduser(path)
-        if not value:
-            return None
-        elif os.path.isabs(path):
-            return QUrl.fromLocalFile(path)
-        else:
-            data = base64.b64encode(value.encode('utf-8')).decode('ascii')
-            return QUrl("data:text/css;charset=utf-8;base64,{}".format(data))
+            except UnicodeEncodeError as e:
+                raise configexc.ValidationError(value, str(e))
 
 
 class AutoSearch(BaseType):
@@ -1312,7 +1326,7 @@ class SelectOnRemove(BaseType):
 
 class LastClose(BaseType):
 
-    """Behaviour when the last tab is closed."""
+    """Behavior when the last tab is closed."""
 
     valid_values = ValidValues(('ignore', "Don't do anything."),
                                ('blank', "Load a blank page."),
@@ -1323,9 +1337,14 @@ class LastClose(BaseType):
 
 class AcceptCookies(BaseType):
 
-    """Whether to accept a cookie."""
+    """Control which cookies to accept."""
 
-    valid_values = ValidValues(('default', "Default QtWebKit behavior."),
+    valid_values = ValidValues(('all', "Accept all cookies."),
+                               ('no-3rdparty', "Accept cookies from the same"
+                                " origin only."),
+                               ('no-unknown-3rdparty', "Accept cookies from "
+                                "the same origin only, unless a cookie is "
+                                "already set for the domain."),
                                ('never', "Don't accept cookies at all."))
 
 

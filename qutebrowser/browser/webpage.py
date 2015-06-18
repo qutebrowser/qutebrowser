@@ -109,7 +109,7 @@ class BrowserPage(QWebPage):
     def _handle_errorpage(self, info, errpage):
         """Display an error page if needed.
 
-        Loosly based on Helpviewer/HelpBrowserWV.py from eric5
+        Loosely based on Helpviewer/HelpBrowserWV.py from eric5
         (line 260 @ 5d937eb378dd)
 
         Args:
@@ -178,7 +178,7 @@ class BrowserPage(QWebPage):
     def _handle_multiple_files(self, info, files):
         """Handle uploading of multiple files.
 
-        Loosly based on Helpviewer/HelpBrowserWV.py from eric5.
+        Loosely based on Helpviewer/HelpBrowserWV.py from eric5.
 
         Args:
             info: The ChooseMultipleFilesExtensionOption instance.
@@ -478,17 +478,23 @@ class BrowserPage(QWebPage):
             return super().extension(ext, opt, out)
         return handler(opt, out)
 
-    def javaScriptAlert(self, _frame, msg):
+    def javaScriptAlert(self, frame, msg):
         """Override javaScriptAlert to use the statusbar."""
         log.js.debug("alert: {}".format(msg))
+        if config.get('ui', 'modal-js-dialog'):
+            return super().javaScriptAlert(frame, msg)
+
         if (self._is_shutting_down or
                 config.get('content', 'ignore-javascript-alert')):
             return
         self._ask("[js alert] {}".format(msg), usertypes.PromptMode.alert)
 
-    def javaScriptConfirm(self, _frame, msg):
+    def javaScriptConfirm(self, frame, msg):
         """Override javaScriptConfirm to use the statusbar."""
         log.js.debug("confirm: {}".format(msg))
+        if config.get('ui', 'modal-js-dialog'):
+            return super().javaScriptConfirm(frame, msg)
+
         if self._is_shutting_down:
             return False
         ans = self._ask("[js confirm] {}".format(msg),

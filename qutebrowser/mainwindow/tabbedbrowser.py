@@ -296,7 +296,7 @@ class TabbedBrowser(tabwidget.TabWidget):
             newtab: True to open URL in a new tab, False otherwise.
         """
         qtutils.ensure_valid(url)
-        if newtab:
+        if newtab or self.currentWidget() is None:
             self.tabopen(url, background=False)
         else:
             self.currentWidget().openurl(url)
@@ -332,7 +332,7 @@ class TabbedBrowser(tabwidget.TabWidget):
                       the default settings we handle it like Chromium does:
                           - Tabs from clicked links etc. are to the right of
                             the current.
-                          - Explicitely opened tabs are at the very right.
+                          - Explicitly opened tabs are at the very right.
 
         Return:
             The opened WebView instance.
@@ -577,3 +577,14 @@ class TabbedBrowser(tabwidget.TabWidget):
         """
         super().resizeEvent(e)
         self.resized.emit(self.geometry())
+
+    def wheelEvent(self, e):
+        """Override wheelEvent of QWidget to forward it to the focused tab.
+
+        Args:
+            e: The QWheelEvent
+        """
+        if self._now_focused is not None:
+            self._now_focused.wheelEvent(e)
+        else:
+            e.ignore()

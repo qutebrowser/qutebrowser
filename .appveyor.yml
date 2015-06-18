@@ -1,0 +1,16 @@
+shallow_clone: true
+version: '{branch}-{build}'
+cache: C:\Users\appveyor\pip\wheels
+build: off
+environment:
+    PYTHON: 'C:\Python34'
+    PYTHONUNBUFFERED: 1
+
+install:
+  - C:\Python27\python -u scripts\ci_install.py
+
+test_script:
+  - C:\Python34\Scripts\tox -e smoke
+  - C:\Python34\Scripts\tox -e unittests
+  - C:\Python34\Scripts\tox -e pyflakes
+  - C:\Python34\Scripts\tox -e pylint

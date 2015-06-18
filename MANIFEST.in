@@ -28,7 +28,9 @@ include doc/qutebrowser.1.asciidoc
 prune tests
 exclude qutebrowser.rcc
 exclude .coveragerc
-exclude .flake8
 exclude .pylintrc
 exclude .eslintrc
 exclude doc/help
+exclude .appveyor.yml
+exclude .travis.yml
+exclude misc/appveyor_install.py

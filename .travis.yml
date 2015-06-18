@@ -1,0 +1,22 @@
+dist: trusty
+
+os:
+  - linux
+  - osx
+
+# Not really, but this is here so we can do stuff by hand.
+language: c
+
+install:
+  - python scripts/ci_install.py
+
+script:
+    - xvfb-run -s "-screen 0 640x480x16" tox -e unittests,smoke
+    - tox -e misc
+    - tox -e pep257
+    - tox -e pyflakes
+    - tox -e pep8
+    - tox -e mccabe
+    - tox -e pylint
+    - tox -e pyroma
+    - tox -e check-manifest

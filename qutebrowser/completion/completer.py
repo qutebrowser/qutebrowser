@@ -272,7 +272,7 @@ class Completer(QObject):
             pattern = parts[self._cursor_part].strip()
         except IndexError:
             pattern = ''
-        self._model().set_pattern(pattern)
+        completion.set_pattern(pattern)
 
         log.completion.debug(
             "New completion for {}: {}, with pattern '{}'".format(
@@ -328,7 +328,7 @@ class Completer(QObject):
                         cursor_pos))
         skip = 0
         for i, part in enumerate(parts):
-            log.completion.vdebug("Checking part {}: {}".format(i, parts[i]))
+            log.completion.vdebug("Checking part {}: {!r}".format(i, parts[i]))
             if not part:
                 skip += 1
                 continue
@@ -350,7 +350,11 @@ class Completer(QObject):
                 "Removing len({!r}) -> {} from cursor_pos -> {}".format(
                     part, len(part), cursor_pos))
         else:
-            self._cursor_part = i - skip
+            if i == 0:
+                # Initial `:` press without any text.
+                self._cursor_part = 0
+            else:
+                self._cursor_part = i - skip
             if spaces:
                 self._empty_item_idx = i - skip
             else:

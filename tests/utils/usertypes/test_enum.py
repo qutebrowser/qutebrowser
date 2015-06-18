@@ -54,3 +54,9 @@ def test_start():
     e = usertypes.enum('Enum', ['three', 'four'], start=3)
     assert e.three.value == 3
     assert e.four.value == 4
+
+
+def test_exit():
+    """Make sure the exit status enum is correct."""
+    assert usertypes.Exit.ok == 0
+    assert usertypes.Exit.reserved == 1

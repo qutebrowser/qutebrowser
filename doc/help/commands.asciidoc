@@ -20,6 +20,7 @@
 |<<hint,hint>>|Start hinting.
 |<<home,home>>|Open main startpage in current tab.
 |<<inspector,inspector>>|Toggle the web inspector.
+|<<jseval,jseval>>|Evaluate a JavaScript string.
 |<<later,later>>|Execute a command after some time.
 |<<navigate,navigate>>|Open typical prev/next links or navigate using the URL path.
 |<<open,open>>|Open a URL in the current/[count]th tab.
@@ -240,6 +241,22 @@ Open main startpage in current tab.
 [[inspector]]
 === inspector
 Toggle the web inspector.
+
+[[jseval]]
+=== jseval
+Syntax: +:jseval [*--quiet*] 'js-code'+
+
+Evaluate a JavaScript string.
+
+==== positional arguments
+* +'js-code'+: The string to evaluate.
+
+==== optional arguments
+* +*-q*+, +*--quiet*+: Don't show resulting JS object.
+
+==== note
+* This command does not split arguments after the last argument and handles quotes literally.
+* With this command, +;;+ is interpreted literally instead of splitting off a second command.
 
 [[later]]
 === later
@@ -512,18 +529,23 @@ Preset the statusbar to some text.
 
 [[spawn]]
 === spawn
-Syntax: +:spawn [*--userscript*] [*--quiet*] 'args' ['args' ...]+
+Syntax: +:spawn [*--userscript*] [*--verbose*] [*--detach*] 'cmdline'+
 
 Spawn a command in a shell.
 
 Note the {url} variable which gets replaced by the current URL might be useful here.
 
 ==== positional arguments
-* +'args'+: The commandline to execute.
+* +'cmdline'+: The commandline to execute.
 
 ==== optional arguments
 * +*-u*+, +*--userscript*+: Run the command as an userscript.
-* +*-q*+, +*--quiet*+: Don't print the commandline being executed.
+* +*-v*+, +*--verbose*+: Show notifications when the command started/exited.
+* +*-d*+, +*--detach*+: Whether the command should be detached from qutebrowser.
+
+==== note
+* This command does not split arguments after the last argument and handles quotes literally.
+* With this command, +;;+ is interpreted literally instead of splitting off a second command.
 
 [[stop]]
 === stop
@@ -642,13 +664,14 @@ Save open pages and quit.
 
 [[yank]]
 === yank
-Syntax: +:yank [*--title*] [*--sel*]+
+Syntax: +:yank [*--title*] [*--sel*] [*--domain*]+
 
 Yank the current URL/title to the clipboard or primary selection.
 
 ==== optional arguments
 * +*-t*+, +*--title*+: Yank the title instead of the URL.
 * +*-s*+, +*--sel*+: Use the primary selection instead of the clipboard.
+* +*-d*+, +*--domain*+: Yank only the scheme, domain, and port number.
 
 [[zoom]]
 === zoom
@@ -684,6 +707,7 @@ How many steps to zoom out.
 [options="header",width="75%",cols="25%,75%"]
 |==============
 |Command|Description
+|<<clear-keychain,clear-keychain>>|Clear the currently entered key chain.
 |<<command-accept,command-accept>>|Execute the command currently in the commandline.
 |<<command-history-next,command-history-next>>|Go forward in the commandline history.
 |<<command-history-prev,command-history-prev>>|Go back in the commandline history.
@@ -692,6 +716,7 @@ How many steps to zoom out.
 |<<drop-selection,drop-selection>>|Drop selection and keep selection mode enabled.
 |<<enter-mode,enter-mode>>|Enter a key mode.
 |<<follow-hint,follow-hint>>|Follow the currently selected hint.
+|<<follow-selected,follow-selected>>|Follow the selected text.
 |<<leave-mode,leave-mode>>|Leave the mode we're currently in.
 |<<message-error,message-error>>|Show an error message in the statusbar.
 |<<message-info,message-info>>|Show an info message in the statusbar.
@@ -737,6 +762,10 @@ How many steps to zoom out.
 |<<toggle-selection,toggle-selection>>|Toggle caret selection mode.
 |<<yank-selected,yank-selected>>|Yank the selected text to the clipboard or primary selection.
 |==============
+[[clear-keychain]]
+=== clear-keychain
+Clear the currently entered key chain.
+
 [[command-accept]]
 === command-accept
 Execute the command currently in the commandline.
@@ -773,6 +802,15 @@ Enter a key mode.
 [[follow-hint]]
 === follow-hint
 Follow the currently selected hint.
+
+[[follow-selected]]
+=== follow-selected
+Syntax: +:follow-selected [*--tab*]+
+
+Follow the selected text.
+
+==== optional arguments
+* +*-t*+, +*--tab*+: Load the selected link in a new tab.
 
 [[leave-mode]]
 === leave-mode
@@ -1009,13 +1047,19 @@ multiplier
 
 [[scroll-page]]
 === scroll-page
-Syntax: +:scroll-page 'x' 'y'+
+Syntax: +:scroll-page [*--top-navigate* 'ACTION'] [*--bottom-navigate* 'ACTION'] 'x' 'y'+
 
 Scroll the frame page-wise.
 
 ==== positional arguments
 * +'x'+: How many pages to scroll to the right.
 * +'y'+: How many pages to scroll down.
+
+==== optional arguments
+* +*-t*+, +*--top-navigate*+: :navigate action (prev, decrement) to run when scrolling up at the top of the page.
+
+* +*-b*+, +*--bottom-navigate*+: :navigate action (next, increment) to run when scrolling down at the bottom of the page.
+
 
 ==== count
 multiplier

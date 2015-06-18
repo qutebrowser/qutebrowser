@@ -131,7 +131,7 @@ def ensure_valid(obj):
 def ensure_not_null(obj):
     """Ensure a Qt object with an .isNull() method is not null."""
     if obj.isNull():
-        raise QtValueError(obj)
+        raise QtValueError(obj, null=True)
 
 
 def check_qdatastream(stream):
@@ -180,7 +180,7 @@ def deserialize_stream(stream, obj):
 def savefile_open(filename, binary=False, encoding='utf-8'):
     """Context manager to easily use a QSaveFile."""
     f = QSaveFile(filename)
-    new_f = None
+    cancelled = False
     try:
         ok = f.open(QIODevice.WriteOnly)
         if not ok:
@@ -192,13 +192,14 @@ def savefile_open(filename, binary=False, encoding='utf-8'):
         yield new_f
     except:
         f.cancelWriting()
+        cancelled = True
         raise
+    else:
+        new_f.flush()
     finally:
-        if new_f is not None:
-            new_f.flush()
         commit_ok = f.commit()
-        if not commit_ok:
-            raise OSError(f.errorString())
+        if not commit_ok and not cancelled:
+            raise OSError("Commit failed!")
 
 
 @contextlib.contextmanager
@@ -221,26 +222,57 @@ class PyQIODevice(io.BufferedIOBase):
     """Wrapper for a QIODevice which provides a python interface.
 
     Attributes:
-        _dev: The underlying QIODevice.
+        dev: The underlying QIODevice.
     """
 
     # pylint: disable=missing-docstring
 
     def __init__(self, dev):
-        self._dev = dev
+        self.dev = dev
 
     def __len__(self):
-        return self._dev.size()
+        return self.dev.size()
 
     def _check_open(self):
-        """Check if the device is open, raise OSError if not."""
-        if not self._dev.isOpen():
-            raise OSError("IO operation on closed device!")
+        """Check if the device is open, raise ValueError if not."""
+        if not self.dev.isOpen():
+            raise ValueError("IO operation on closed device!")
 
     def _check_random(self):
         """Check if the device supports random access, raise OSError if not."""
         if not self.seekable():
             raise OSError("Random access not allowed!")
+
+    def _check_readable(self):
+        """Check if the device is readable, raise OSError if not."""
+        if not self.dev.isReadable():
+            raise OSError("Trying to read unreadable file!")
+
+    def _check_writable(self):
+        """Check if the device is writable, raise OSError if not."""
+        if not self.writable():
+            raise OSError("Trying to write to unwritable file!")
+
+    def open(self, mode):
+        """Open the underlying device and ensure opening succeeded.
+
+        Raises OSError if opening failed.
+
+        Args:
+            mode: QIODevice::OpenMode flags.
+
+        Return:
+            A contextlib.closing() object so this can be used as
+            contextmanager.
+        """
+        ok = self.dev.open(mode)
+        if not ok:
+            raise OSError(self.dev.errorString())
+        return contextlib.closing(self)
+
+    def close(self):
+        """Close the underlying device."""
+        self.dev.close()
 
     def fileno(self):
         raise io.UnsupportedOperation
@@ -249,85 +281,102 @@ class PyQIODevice(io.BufferedIOBase):
         self._check_open()
         self._check_random()
         if whence == io.SEEK_SET:
-            ok = self._dev.seek(offset)
+            ok = self.dev.seek(offset)
         elif whence == io.SEEK_CUR:
-            ok = self._dev.seek(self.tell() + offset)
+            ok = self.dev.seek(self.tell() + offset)
         elif whence == io.SEEK_END:
-            ok = self._dev.seek(len(self) + offset)
+            ok = self.dev.seek(len(self) + offset)
         else:
             raise io.UnsupportedOperation("whence = {} is not "
                                           "supported!".format(whence))
         if not ok:
-            raise OSError(self._dev.errorString())
+            raise OSError("seek failed!")
 
     def truncate(self, size=None):  # pylint: disable=unused-argument
         raise io.UnsupportedOperation
 
-    def close(self):
-        self._dev.close()
-
     @property
     def closed(self):
-        return not self._dev.isOpen()
+        return not self.dev.isOpen()
 
     def flush(self):
         self._check_open()
-        self._dev.waitForBytesWritten(-1)
+        self.dev.waitForBytesWritten(-1)
 
     def isatty(self):
         self._check_open()
         return False
 
     def readable(self):
-        return self._dev.isReadable()
+        return self.dev.isReadable()
 
     def readline(self, size=-1):
         self._check_open()
-        if size == -1:
-            size = 0
-        return self._dev.readLine(size)
+        self._check_readable()
+
+        if size < 0:
+            qt_size = 0  # no maximum size
+        elif size == 0:
+            return QByteArray()
+        else:
+            qt_size = size + 1  # Qt also counts the NUL byte
+
+        if self.dev.canReadLine():
+            buf = self.dev.readLine(qt_size)
+        else:
+            if size < 0:
+                buf = self.dev.readAll()
+            else:
+                buf = self.dev.read(size)
+
+        if buf is None:
+            raise OSError(self.dev.errorString())
+        return buf
 
     def seekable(self):
-        return not self._dev.isSequential()
+        return not self.dev.isSequential()
 
     def tell(self):
         self._check_open()
         self._check_random()
-        return self._dev.pos()
+        return self.dev.pos()
 
     def writable(self):
-        return self._dev.isWritable()
-
-    def readinto(self, b):
-        self._check_open()
-        return self._dev.read(b, len(b))
+        return self.dev.isWritable()
 
     def write(self, b):
         self._check_open()
-        num = self._dev.write(b)
+        self._check_writable()
+        num = self.dev.write(b)
         if num == -1 or num < len(b):
-            raise OSError(self._dev.errorString())
+            raise OSError(self.dev.errorString())
         return num
 
-    def read(self, size):
+    def read(self, size=-1):
         self._check_open()
-        buf = bytes()
-        num = self._dev.read(buf, size)
-        if num == -1:
-            raise OSError(self._dev.errorString())
-        return num
+        self._check_readable()
+        if size < 0:
+            buf = self.dev.readAll()
+        else:
+            buf = self.dev.read(size)
+        if buf is None:
+            raise OSError(self.dev.errorString())
+        return buf
 
 
 class QtValueError(ValueError):
 
     """Exception which gets raised by ensure_valid."""
 
-    def __init__(self, obj):
+    def __init__(self, obj, null=False):
         try:
             self.reason = obj.errorString()
         except AttributeError:
             self.reason = None
-        err = "{} is not valid".format(obj)
+        if null:
+            err = "{} is null".format(obj)
+        else:
+            err = "{} is not valid".format(obj)
         if self.reason:
             err += ": {}".format(self.reason)
         super().__init__(err)
