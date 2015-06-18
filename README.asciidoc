@@ -68,7 +68,7 @@ Contributions / Bugs
 --------------------
 
 You want to contribute to qutebrowser? Awesome! Please read
-link:doc/CONTRIBUTING.asciidoc[the contribution guidelines] for details and
+link:CONTRIBUTING.asciidoc[the contribution guidelines] for details and
 useful hints.
 
 If you found a bug or have a feature request, you can report it in several
