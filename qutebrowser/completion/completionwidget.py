@@ -101,7 +101,7 @@ class CompletionView(QTreeView):
         self.enabled = config.get('completion', 'show')
         objreg.get('config').changed.connect(self.set_enabled)
         # FIXME handle new aliases.
-        #objreg.get('config').changed.connect(self.init_command_completion)
+        # objreg.get('config').changed.connect(self.init_command_completion)
 
         self._delegate = completiondelegate.CompletionItemDelegate(self)
         self.setItemDelegate(self._delegate)

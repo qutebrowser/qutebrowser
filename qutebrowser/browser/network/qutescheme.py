@@ -159,7 +159,7 @@ def qute_help(win_id, request):
             url=request.url().toDisplayString(),
             error="This most likely means the documentation was not generated "
                   "properly. If you are running qutebrowser from the git "
-                  "repository, please run scripts/asciidoc2html.py."
+                  "repository, please run scripts/asciidoc2html.py. "
                   "If you're running a released version this is a bug, please "
                   "use :report to report it.",
             icon='')
