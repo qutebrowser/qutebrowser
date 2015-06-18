@@ -11,6 +11,7 @@ install:
 
 test_script:
   - C:\Python34\Scripts\tox -e smoke
+  - C:\Python34\Scripts\tox -e smoke-frozen
   - C:\Python34\Scripts\tox -e unittests
   - C:\Python34\Scripts\tox -e pyflakes
   - C:\Python34\Scripts\tox -e pylint
