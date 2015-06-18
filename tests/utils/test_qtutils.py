@@ -757,6 +757,8 @@ class TestPyQIODevice:
         with pytest.raises(io.UnsupportedOperation):
             pyqiodev.seek(0, whence)
 
+    @pytest.mark.skipif(getattr(sys, 'frozen', False),
+                        reason="Can't be executed when frozen.")
     def test_qprocess(self):
         """Test PyQIODevice with a QProcess which is non-sequential.
 
