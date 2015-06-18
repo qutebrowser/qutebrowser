@@ -467,8 +467,9 @@ class WebView(QWebView):
                 # and refocusing it fixes that.
                 self.clearFocus()
                 self.setFocus(Qt.OtherFocusReason)
-                self.page().currentFrame().evaluateJavaScript(
-                    utils.read_file('javascript/position_caret.js'))
+                if len(self.page().selectedText()) == 0:
+                    self.page().currentFrame().evaluateJavaScript(
+                        utils.read_file('javascript/position_caret.js'))
 
     @pyqtSlot(usertypes.KeyMode)
     def on_mode_left(self, mode):
