@@ -111,10 +111,19 @@ class TestGitStr:
         commit_file_mock.side_effect = OSError
         assert version._git_str() is None
 
+    @pytest.mark.skipif(getattr(sys, 'frozen', False),
+                        reason="Can't be executed when frozen!")
     def test_normal_successful(self, git_str_subprocess_fake):
         """Test with git returning a successful result."""
         git_str_subprocess_fake.retval = 'c0ffeebabe'
         assert version._git_str() == 'c0ffeebabe'
+
+    @pytest.mark.skipif(not getattr(sys, 'frozen', False),
+                        reason="Can only executed when frozen!")
+    def test_normal_successful_frozen(self, git_str_subprocess_fake):
+        """Test with git returning a successful result."""
+        # The value is defined in scripts/freeze_tests.py.
+        assert version._git_str() == 'fake-frozen-git-commit'
 
     def test_normal_error(self, commit_file_mock, git_str_subprocess_fake):
         """Test without repo (but git-commit-id)."""
@@ -130,6 +139,8 @@ class TestGitStr:
                      side_effect=OSError)
         assert version._git_str() is None
 
+    @pytest.mark.skipif(getattr(sys, 'frozen', False),
+                        reason="Can't be executed when frozen!")
     def test_normal_path_nofile(self, monkeypatch, caplog,
                                 git_str_subprocess_fake, commit_file_mock):
         """Test with undefined __file__ but available git-commit-id."""
