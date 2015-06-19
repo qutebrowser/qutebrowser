@@ -52,6 +52,7 @@ def get_build_exe_options(skip_html=False):
     include_files = [
         ('qutebrowser/javascript', 'javascript'),
         ('qutebrowser/git-commit-id', 'git-commit-id'),
+        ('qutebrowser/utils/testfile', 'utils/testfile'),
     ]
 
     if not skip_html:
