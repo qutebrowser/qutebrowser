@@ -1547,3 +1547,14 @@ class UserAgent(BaseType):
              "curl 7.40.0")
         ]
         return out
+
+class TabBarShow(BaseType):
+
+    """How to format the question when downloading."""
+
+    valid_values = ValidValues(('always', "Always show the tab bar."),
+                               ('never', "Always hide the tab bar."),
+                               ('multiple', "Hide the tab bar if only one tab is open."),
+                               ('switching', "Show the tab bar only when current tab changed."))
+
+
