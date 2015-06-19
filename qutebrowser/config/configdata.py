@@ -473,11 +473,11 @@ def data(readonly=False):
 
             ('show',
              SettingValue(typ.TabBarShow(), 'always'),
-             "The tab bar showing strategy."),
+             "When to show the tab bar"),
 
             ('show-switching-delay',
              SettingValue(typ.Int(), '800'),
-             "Time to show tab bar before hide it when tabs->show is switching."),
+             "Time to show the tab bar before hiding it when tabs->show is set to 'switching'."),
 
             ('wrap',
              SettingValue(typ.Bool(), 'true'),
