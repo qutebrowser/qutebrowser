@@ -144,9 +144,15 @@ class TabbedBrowser(tabwidget.TabWidget):
         return w
 
     @config.change_filter('tabs', 'tabbar-size')
+    @config.change_filter('fonts', 'tabbar')
     def set_icon_size(self):
         """Take the (fav)icon size from the config."""
-        tabbar_size = self.tabBar().height()
+        tabbar_size = self.tabBar().height() or config.get('tabs', 'tabbar-size')
+        print(str(self.tabBar().height()) + ", " + str(config.get('tabs', 'tabbar-size')))
+        if tabbar_size == -1 or tabbar_size == 0:
+            tabbar_size = self.fontMetrics().height()
+        print(self.fontMetrics().height())
+        print(tabbar_size)
         self.setIconSize(QSize(tabbar_size, tabbar_size))
 
     @config.change_filter('ui', 'window-title-format')
