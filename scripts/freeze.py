@@ -49,6 +49,10 @@ def get_egl_path():
 
 
 def get_build_exe_options(skip_html=False):
+    if '--qute-skip-html' in sys.argv:
+        skip_html = True
+        sys.argv.remove('--qute-skip-html')
+
     include_files = [
         ('qutebrowser/javascript', 'javascript'),
         ('qutebrowser/git-commit-id', 'git-commit-id'),
