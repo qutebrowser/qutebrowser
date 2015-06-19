@@ -49,6 +49,11 @@ def get_egl_path():
 
 
 def get_build_exe_options(skip_html=False):
+    """Get the options passed as build_exe_options to cx_Freeze.
+
+    If either skip_html or --qute-skip-html as argument is given, doesn't
+    freeze the documentation.
+    """
     if '--qute-skip-html' in sys.argv:
         skip_html = True
         sys.argv.remove('--qute-skip-html')
