@@ -1348,7 +1348,7 @@ KEY_DATA = collections.OrderedDict([
         ('rl-unix-line-discard', ['<Ctrl-U>']),
         ('rl-kill-line', ['<Ctrl-K>']),
         ('rl-kill-word', ['<Alt-D>']),
-        ('rl-unix-word-rubout', ['<Ctrl-W>']),
+        ('rl-unix-word-rubout', ['<Ctrl-W>', '<Alt-Backspace>']),
         ('rl-yank', ['<Ctrl-Y>']),
         ('rl-delete-char', ['<Ctrl-?>']),
         ('rl-backward-delete-char', ['<Ctrl-H>']),

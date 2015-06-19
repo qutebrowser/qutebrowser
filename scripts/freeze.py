@@ -51,6 +51,7 @@ build_exe_options = {
     'include_files': [
         ('qutebrowser/html', 'html'),
         ('qutebrowser/html/doc', 'html/doc'),
+        ('qutebrowser/javascript', 'javascript'),
         ('qutebrowser/git-commit-id', 'git-commit-id'),
     ],
     'include_msvcr': True,
