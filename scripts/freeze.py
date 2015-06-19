@@ -94,19 +94,21 @@ executable = cx.Executable('qutebrowser/__main__.py', base=base,
                            icon=os.path.join(BASEDIR, 'icons',
                                              'qutebrowser.ico'))
 
-try:
-    setupcommon.write_git_file()
-    cx.setup(
-        executables=[executable],
-        options={
-            'build_exe': build_exe_options,
-            'bdist_msi': bdist_msi_options,
-            'bdist_mac': bdist_mac_options,
-            'bdist_dmg': bdist_dmg_options,
-        },
-        **setupcommon.setupdata
-    )
-finally:
-    path = os.path.join(BASEDIR, 'qutebrowser', 'git-commit-id')
-    if os.path.exists(path):
-        os.remove(path)
+
+if __name__ == '__main__':
+    try:
+        setupcommon.write_git_file()
+        cx.setup(
+            executables=[executable],
+            options={
+                'build_exe': build_exe_options,
+                'bdist_msi': bdist_msi_options,
+                'bdist_mac': bdist_mac_options,
+                'bdist_dmg': bdist_dmg_options,
+            },
+            **setupcommon.setupdata
+        )
+    finally:
+        path = os.path.join(BASEDIR, 'qutebrowser', 'git-commit-id')
+        if os.path.exists(path):
+            os.remove(path)
