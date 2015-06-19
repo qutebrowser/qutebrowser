@@ -31,8 +31,7 @@ import cx_Freeze as cx  # pylint: disable=import-error
 import pytest
 
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), os.pardir))
-from scripts import setupcommon
-from scripts.freeze import build_exe_options as normal_build_exe_options
+from scripts import setupcommon, freeze
 
 
 @contextlib.contextmanager
@@ -49,21 +48,10 @@ def temp_git_commit_file():
 
 def get_build_exe_options():
     """Get build_exe options with additional includes."""
-    opts = dict(normal_build_exe_options)
-    # Remove documentation from include_files.
-    skipped_include_files = [
-        os.path.join('qutebrowser', 'html'),
-        os.path.join('qutebrowser', 'html', 'doc')
-    ]
-    include_files = [e for e in normal_build_exe_options['include_files']
-                     if e[0] not in skipped_include_files]
-    opts['include_files'] = include_files
-
+    opts = freeze.get_build_exe_options(skip_html=True)
     opts['includes'] += pytest.freeze_includes()  # pylint: disable=no-member
     opts['includes'] += ['unittest.mock', 'PyQt5.QtTest']
-
     opts['packages'].append('qutebrowser')
-
     return opts
 
 
