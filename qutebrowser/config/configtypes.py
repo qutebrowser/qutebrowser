@@ -1568,12 +1568,9 @@ class UserAgent(BaseType):
         return out
 
 class TabBarShow(BaseType):
-
-    """How to format the question when downloading."""
+    """When to show the tab bar."""
 
     valid_values = ValidValues(('always', "Always show the tab bar."),
                                ('never', "Always hide the tab bar."),
                                ('multiple', "Hide the tab bar if only one tab is open."),
-                               ('switching', "Show the tab bar only when current tab changed."))
-
-
+                               ('switching', "Show the tab bar when switching tabs."))

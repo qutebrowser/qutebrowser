@@ -221,13 +221,16 @@ class TabBar(QTabBar):
         config_obj = objreg.get('config')
         config_obj.changed.connect(self.set_font)
         self.vertical = False
-        self.autoHideTimer = None
+        self._auto_hide_timer = QTimer()
+        self._auto_hide_timer.setSingleShot(True)
+        self._auto_hide_timer.setInterval(config.get('tabs', 'show-switching-delay'))
+        self._auto_hide_timer.timeout.connect(self._tabhide)
         self.setAutoFillBackground(True)
         self.set_colors()
         config_obj.changed.connect(self.set_colors)
         QTimer.singleShot(0, self._tabhide)
         config_obj.changed.connect(self.on_tab_colors_changed)
-        config_obj.changed.connect(self.showswitchingdelay)
+        config_obj.changed.connect(self.show_switching_delay)
         config_obj.changed.connect(self.tabs_show)
 
     def __repr__(self):
@@ -239,30 +242,24 @@ class TabBar(QTabBar):
         self._tabhide()
 
     @config.change_filter('tabs', 'show-switching-delay')
-    def showswitchingdelay(self):
-        """Reset auto hide timer when tabs->show-switching-delay got changed."""
-        self.autoHideTimer = None
+    def show_switching_delay(self):
+        """Set timer interval when tabs->show-switching-delay got changed."""
+        self._auto_hide_timer.setInterval(config.get('tabs', 'show-switching-delay'))
 
     def on_change(self):
         """Show tab bar when current tab got changed."""
         show = config.get('tabs', 'show')
-        show_switching_delay = config.get('tabs', 'show-switching-delay')
         if show == 'switching':
             self.show()
-            if not self.autoHideTimer:
-                self.autoHideTimer = QTimer()
-                self.autoHideTimer.setInterval(show_switching_delay)
-                self.autoHideTimer.setSingleShot(True)
-                self.autoHideTimer.timeout.connect(self._tabhide)
-            self.autoHideTimer.start()
+            self._auto_hide_timer.start()
 
     def _tabhide(self):
         """Hide the tab bar if needed."""
         show = config.get('tabs', 'show')
-        showNever = show == 'never'
-        showSwitching = show == 'switching'
-        showMultiple = show == 'multiple'
-        if showNever or (showMultiple and self.count() == 1) or showSwitching:
+        show_never = show == 'never'
+        switching = show == 'switching'
+        multiple = show == 'multiple'
+        if show_never or (multiple and self.count() == 1) or switching:
             self.hide()
         else:
             self.show()
