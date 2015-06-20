@@ -467,7 +467,13 @@ class WebView(QWebView):
                 # and refocusing it fixes that.
                 self.clearFocus()
                 self.setFocus(Qt.OtherFocusReason)
-                if len(self.page().selectedText()) == 0:
+
+                # Move the caret to the first element in the viewport if there
+                # isn't any text which is already selected.
+                #
+                # Note: We can't use hasSelection() here, as that's always
+                # true in caret mode.
+                if not self.page().selectedText():
                     self.page().currentFrame().evaluateJavaScript(
                         utils.read_file('javascript/position_caret.js'))
 
