@@ -460,7 +460,7 @@ class WebView(QWebView):
         elif mode == usertypes.KeyMode.caret:
             settings = self.settings()
             settings.setAttribute(QWebSettings.CaretBrowsingEnabled, True)
-            self.selection_enabled = False
+            self.selection_enabled = bool(self.page().selectedText())
 
             if self.isVisible():
                 # Sometimes the caret isn't immediately visible, but unfocusing
