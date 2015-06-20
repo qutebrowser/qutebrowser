@@ -460,15 +460,22 @@ class WebView(QWebView):
         elif mode == usertypes.KeyMode.caret:
             settings = self.settings()
             settings.setAttribute(QWebSettings.CaretBrowsingEnabled, True)
-            self.selection_enabled = False
+            self.selection_enabled = bool(self.page().selectedText())
 
             if self.isVisible():
                 # Sometimes the caret isn't immediately visible, but unfocusing
                 # and refocusing it fixes that.
                 self.clearFocus()
                 self.setFocus(Qt.OtherFocusReason)
-                self.page().currentFrame().evaluateJavaScript(
-                    utils.read_file('javascript/position_caret.js'))
+
+                # Move the caret to the first element in the viewport if there
+                # isn't any text which is already selected.
+                #
+                # Note: We can't use hasSelection() here, as that's always
+                # true in caret mode.
+                if not self.page().selectedText():
+                    self.page().currentFrame().evaluateJavaScript(
+                        utils.read_file('javascript/position_caret.js'))
 
     @pyqtSlot(usertypes.KeyMode)
     def on_mode_left(self, mode):
