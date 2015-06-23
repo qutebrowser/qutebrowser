@@ -78,6 +78,12 @@ def _maybe_remove(path):
         pass
 
 
+def smoke_test(executable):
+    """Try starting the given qutebrowser executable."""
+    subprocess.check_call([executable, '--no-err-windows', '--nowindow',
+                          '--temp-basedir', 'about:blank', ':later 500 quit'])
+
+
 def build_windows():
     """Build windows executables/setups."""
     parts = str(sys.version_info.major), str(sys.version_info.minor)
@@ -94,6 +100,11 @@ def build_windows():
     call_freeze('build_exe', python=python_x64)
     utils.print_title("Running 64bit freeze.py bdist_msi")
     call_freeze('bdist_msi', python=python_x64)
+
+    utils.print_title("Running 32bit smoke test")
+    smoke_test('build/exe.win32-{}/qutebrowser.exe'.format(dotver))
+    utils.print_title("Running 64bit smoke test")
+    smoke_test('build/exe.win-amd64-{}/qutebrowser.exe'.format(dotver))
 
     destdir = os.path.join('dist', 'zip')
     _maybe_remove(destdir)
