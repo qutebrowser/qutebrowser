@@ -46,6 +46,20 @@ def call_script(name, *args, python=sys.executable):
     subprocess.check_call([python, path] + list(args))
 
 
+def call_freeze(*args, python=sys.executable):
+    """Call freeze.py via tox.
+
+    Args:
+        *args: The arguments to pass.
+        python: The python interpreter to use.
+    """
+    env = os.environ.copy()
+    env['PYTHON'] = python
+    subprocess.check_call(
+        [sys.executable, '-m', 'tox', '-e', 'cxfreeze-windows'] + list(args),
+        env=env)
+
+
 def build_common(args):
     """Common buildsteps used for all OS'."""
     utils.print_title("Running asciidoc2html.py")
@@ -69,17 +83,17 @@ def build_windows():
     parts = str(sys.version_info.major), str(sys.version_info.minor)
     ver = ''.join(parts)
     dotver = '.'.join(parts)
-    python_x86 = r'C:\Python{}_x32\python.exe'.format(ver)
-    python_x64 = r'C:\Python{}\python.exe'.format(ver)
+    python_x86 = r'C:\Python{}_x32'.format(ver)
+    python_x64 = r'C:\Python{}'.format(ver)
 
     utils.print_title("Running 32bit freeze.py build_exe")
-    call_script('freeze.py', 'build_exe', python=python_x86)
+    call_freeze('build_exe', python=python_x86)
     utils.print_title("Running 64bit freeze.py build_exe")
-    call_script('freeze.py', 'build_exe', python=python_x64)
+    call_freeze('build_exe', python=python_x64)
     utils.print_title("Running 32bit freeze.py bdist_msi")
-    call_script('freeze.py', 'bdist_msi', python=python_x86)
+    call_freeze('bdist_msi', python=python_x86)
     utils.print_title("Running 64bit freeze.py bdist_msi")
-    call_script('freeze.py', 'bdist_msi', python=python_x64)
+    call_freeze('bdist_msi', python=python_x64)
 
     destdir = os.path.join('dist', 'zip')
     _maybe_remove(destdir)
