@@ -75,6 +75,7 @@ Fixed
 - Scrolling should now work more reliably on some pages where arrow keys worked but `hjkl` didn't.
 - Small improvements when checking if an input is an URL or not.
 - Fixed wrong cursor position when completing the first item in the completion.
+- Fix exception when using search engines with {foo} in the name.
 
 v0.2.2 (unreleased)
 -------------------
