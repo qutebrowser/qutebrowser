@@ -1881,6 +1881,11 @@ class TestSearchEngineUrl:
         with pytest.raises(configexc.ValidationError):
             self.t.validate(':{}')
 
+    def test_validate_format_string(self):
+        """Test validate with a {foo} format string."""
+        with pytest.raises(configexc.ValidationError):
+            self.t.validate('foo{bar}baz{}')
+
     def test_transform_empty(self):
         """Test transform with an empty value."""
         assert self.t.transform('') is None
