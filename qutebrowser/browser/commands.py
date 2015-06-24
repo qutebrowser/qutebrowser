@@ -737,7 +737,11 @@ class CommandDispatcher:
             count: How many steps to zoom in.
         """
         tab = self._current_widget()
-        tab.zoom(count)
+        try:
+            perc = tab.zoom(count)
+        except ValueError as e:
+            raise cmdexc.CommandError(e)
+        message.info(self._win_id, "Zoom level: {}%".format(perc))
 
     @cmdutils.register(instance='command-dispatcher', scope='window',
                        count='count')
@@ -748,7 +752,11 @@ class CommandDispatcher:
             count: How many steps to zoom out.
         """
         tab = self._current_widget()
-        tab.zoom(-count)
+        try:
+            perc = tab.zoom(-count)
+        except ValueError as e:
+            raise cmdexc.CommandError(e)
+        message.info(self._win_id, "Zoom level: {}%".format(perc))
 
     @cmdutils.register(instance='command-dispatcher', scope='window',
                        count='count')
@@ -768,7 +776,12 @@ class CommandDispatcher:
         except ValueError as e:
             raise cmdexc.CommandError(e)
         tab = self._current_widget()
-        tab.zoom_perc(level)
+
+        try:
+            tab.zoom_perc(level)
+        except ValueError as e:
+            raise cmdexc.CommandError(e)
+        message.info(self._win_id, "Zoom level: {}%".format(level))
 
     @cmdutils.register(instance='command-dispatcher', scope='window')
     def tab_only(self, left=False, right=False):

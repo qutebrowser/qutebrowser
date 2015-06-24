@@ -33,7 +33,6 @@ from qutebrowser.config import config
 from qutebrowser.keyinput import modeman
 from qutebrowser.utils import message, log, usertypes, utils, qtutils, objreg
 from qutebrowser.browser import webpage, hints, webelem
-from qutebrowser.commands import cmdexc
 
 
 LoadStatus = usertypes.enum('LoadStatus', ['none', 'success', 'error', 'warn',
@@ -369,9 +368,8 @@ class WebView(QWebView):
         if fuzzyval:
             self._zoom.fuzzyval = int(perc)
         if perc < 0:
-            raise cmdexc.CommandError("Can't zoom {}%!".format(perc))
+            raise ValueError("Can't zoom {}%!".format(perc))
         self.setZoomFactor(float(perc) / 100)
-        message.info(self.win_id, "Zoom level: {}%".format(perc))
         self._default_zoom_changed = True
 
     def zoom(self, offset):
@@ -379,9 +377,13 @@ class WebView(QWebView):
 
         Args:
             offset: The offset in the zoom level list.
+
+        Return:
+            The new zoom percentage.
         """
         level = self._zoom.getitem(offset)
         self.zoom_perc(level, fuzzyval=False)
+        return level
 
     @pyqtSlot('QUrl')
     def on_url_changed(self, url):
