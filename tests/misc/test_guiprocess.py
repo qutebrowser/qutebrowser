@@ -72,7 +72,7 @@ def fake_proc(monkeypatch, stubs):
 def test_start(proc, qtbot):
     """Test simply starting a process."""
     with qtbot.waitSignals([proc.started, proc.finished], raising=True,
-                           timeout=2000):
+                           timeout=10000):
         argv = _py_proc("import sys; print('test'); sys.exit(0)")
         proc.start(*argv)
 
