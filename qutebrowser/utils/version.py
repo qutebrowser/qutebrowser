@@ -30,6 +30,7 @@ import collections
 from PyQt5.QtCore import QT_VERSION_STR, PYQT_VERSION_STR, qVersion
 from PyQt5.QtWebKit import qWebKitVersion
 from PyQt5.QtNetwork import QSslSocket
+from PyQt5.QtWidgets import QApplication
 
 import qutebrowser
 from qutebrowser.utils import log, utils
@@ -189,12 +190,14 @@ def version():
     gitver = _git_str()
     if gitver is not None:
         lines.append("Git commit: {}".format(gitver))
+    style = QApplication.instance().style()
     lines += [
         '',
         '{}: {}'.format(platform.python_implementation(),
                         platform.python_version()),
         'Qt: {}, runtime: {}'.format(QT_VERSION_STR, qVersion()),
         'PyQt: {}'.format(PYQT_VERSION_STR),
+        'Style: {}'.format(style.metaObject().className()),
     ]
 
     lines += _module_versions()
