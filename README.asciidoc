@@ -161,6 +161,7 @@ Contributors, sorted by the number of commits in descending order:
 * Mathias Fussenegger
 * Larry Hynes
 * Fritz V155 Reichwald
+* Franz Fellner
 * error800
 * Thorsten Wißmann
 * Thiago Barroso Perrotta
@@ -168,7 +169,6 @@ Contributors, sorted by the number of commits in descending order:
 * Helen Sherwood-Taylor
 * HalosGhost
 * Gregor Pohl
-* Franz Fellner
 * Eivind Uggedal
 * Andreas Fischer
 // QUTE_AUTHORS_END
