@@ -198,6 +198,7 @@ def version():
         'Qt: {}, runtime: {}'.format(QT_VERSION_STR, qVersion()),
         'PyQt: {}'.format(PYQT_VERSION_STR),
         'Style: {}'.format(style.metaObject().className()),
+        'Desktop: {}'.format(os.environ.get('DESKTOP_SESSION')),
     ]
 
     lines += _module_versions()

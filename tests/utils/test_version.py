@@ -612,38 +612,44 @@ class TestVersion:
         lines = version.version().splitlines()
         assert lines[5].startswith('Style: ')
 
+    def test_desktop_environment(self, monkeypatch):
+        """Test the desktop environment in the output."""
+        monkeypatch.setenv('DESKTOP_SESSION', 'Blah')
+        lines = version.version().splitlines()
+        assert lines[6] == 'Desktop: Blah'
+
     def test_module_versions(self, monkeypatch):
         """Test module versions in the output."""
         monkeypatch.setattr('qutebrowser.utils.version._module_versions',
                             lambda: ['Hello', 'World'])
         lines = version.version().splitlines()
-        assert (lines[6], lines[7]) == ('Hello', 'World')
+        assert (lines[7], lines[8]) == ('Hello', 'World')
 
     def test_webkit_version(self, monkeypatch):
         """Test the webkit version in the output."""
         monkeypatch.setattr('qutebrowser.utils.version.qWebKitVersion',
                             lambda: '567.1')
         lines = version.version().splitlines()
-        assert lines[6] == 'Webkit: 567.1'
+        assert lines[7] == 'Webkit: 567.1'
 
     def test_harfbuzz_none(self, monkeypatch):
         """Test harfbuzz output with QT_HARFBUZZ unset."""
         monkeypatch.delenv('QT_HARFBUZZ', raising=False)
         lines = version.version().splitlines()
-        assert lines[7] == 'Harfbuzz: system'
+        assert lines[8] == 'Harfbuzz: system'
 
     def test_harfbuzz_set(self, monkeypatch):
         """Test harfbuzz output with QT_HARFBUZZ set."""
         monkeypatch.setenv('QT_HARFBUZZ', 'new')
         lines = version.version().splitlines()
-        assert lines[7] == 'Harfbuzz: new'
+        assert lines[8] == 'Harfbuzz: new'
 
     def test_ssl(self, monkeypatch):
         """Test SSL version in the output."""
         monkeypatch.setattr('qutebrowser.utils.version.QSslSocket',
                             FakeQSslSocket('1.0.1'))
         lines = version.version().splitlines()
-        assert lines[8] == 'SSL: 1.0.1'
+        assert lines[9] == 'SSL: 1.0.1'
 
     @pytest.mark.parametrize('frozen, expected', [(True, 'Frozen: True'),
                                                   (False, 'Frozen: False')])
@@ -654,7 +660,7 @@ class TestVersion:
         else:
             monkeypatch.delattr(sys, 'frozen', raising=False)
         lines = version.version().splitlines()
-        assert lines[10] == expected
+        assert lines[11] == expected
 
     def test_platform(self, monkeypatch):
         """Test platform in the version output."""
@@ -663,11 +669,11 @@ class TestVersion:
         monkeypatch.setattr('qutebrowser.utils.version.platform.architecture',
                             lambda: ('64bit', ''))
         lines = version.version().splitlines()
-        assert lines[11] == 'Platform: toaster, 64bit'
+        assert lines[12] == 'Platform: toaster, 64bit'
 
     def test_os_info(self, monkeypatch):
         """Test OS info in the output."""
         monkeypatch.setattr('qutebrowser.utils.version._os_info',
                             lambda: ['Hello', 'World'])
         lines = version.version().splitlines()
-        assert (lines[12], lines[13]) == ('Hello', 'World')
+        assert (lines[13], lines[14]) == ('Hello', 'World')
