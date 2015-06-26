@@ -57,6 +57,7 @@ Changed
 - The `content -> cookies-accept` setting now has new `no-3rdparty` (default) and `no-unknown-3rdparty` values to block third-party cookies. The `default` value got renamed to `all`.
 - Improved startup time by reading the webpage history while qutebrowser is open.
 - The way `:spawn` splits its commandline has been changed slightly to allow commands with flags.
+- The default for the `new-instance-open-target` setting has been changed to `tab`.
 
 Deprecated
 ~~~~~~~~~~
@@ -76,6 +77,8 @@ Fixed
 - Small improvements when checking if an input is an URL or not.
 - Fixed wrong cursor position when completing the first item in the completion.
 - Fix exception when using search engines with {foo} in the name.
+- Fix a bug where the same title was shown for all tabs on some systems.
+- Don't install the scripts package when installing qutebrowser.
 
 v0.2.2 (unreleased)
 -------------------
