@@ -208,7 +208,7 @@ def data(readonly=False):
              "be used."),
 
             ('new-instance-open-target',
-             SettingValue(typ.NewInstanceOpenTarget(), 'window'),
+             SettingValue(typ.NewInstanceOpenTarget(), 'tab'),
              "How to open links in an existing instance if a new one is "
              "launched."),
 
