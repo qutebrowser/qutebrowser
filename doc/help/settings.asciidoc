@@ -418,7 +418,7 @@ Valid values:
  * +tab-bg-silent+: Open a new background tab in the existing window without activating the window.
  * +window+: Open in a new window.
 
-Default: +pass:[window]+
+Default: +pass:[tab]+
 
 [[general-log-javascript-console]]
 === log-javascript-console
