@@ -184,33 +184,41 @@ def _os_info():
     return lines
 
 
-def version():
-    """Return a string with various version informations."""
+def version(short=False):
+    """Return a string with various version informations.
+
+    Args:
+        short: Return a shortened output.
+    """
     lines = ["qutebrowser v{}".format(qutebrowser.__version__)]
     gitver = _git_str()
     if gitver is not None:
         lines.append("Git commit: {}".format(gitver))
-    style = QApplication.instance().style()
     lines += [
         '',
         '{}: {}'.format(platform.python_implementation(),
                         platform.python_version()),
         'Qt: {}, runtime: {}'.format(QT_VERSION_STR, qVersion()),
         'PyQt: {}'.format(PYQT_VERSION_STR),
-        'Style: {}'.format(style.metaObject().className()),
-        'Desktop: {}'.format(os.environ.get('DESKTOP_SESSION')),
     ]
 
-    lines += _module_versions()
+    if not short:
+        style = QApplication.instance().style()
+        lines += [
+            'Style: {}'.format(style.metaObject().className()),
+            'Desktop: {}'.format(os.environ.get('DESKTOP_SESSION')),
+        ]
 
-    lines += [
-        'Webkit: {}'.format(qWebKitVersion()),
-        'Harfbuzz: {}'.format(os.environ.get('QT_HARFBUZZ', 'system')),
-        'SSL: {}'.format(QSslSocket.sslLibraryVersionString()),
-        '',
-        'Frozen: {}'.format(hasattr(sys, 'frozen')),
-        'Platform: {}, {}'.format(platform.platform(),
-                                  platform.architecture()[0]),
-    ]
-    lines += _os_info()
+        lines += _module_versions()
+
+        lines += [
+            'Webkit: {}'.format(qWebKitVersion()),
+            'Harfbuzz: {}'.format(os.environ.get('QT_HARFBUZZ', 'system')),
+            'SSL: {}'.format(QSslSocket.sslLibraryVersionString()),
+            '',
+            'Frozen: {}'.format(hasattr(sys, 'frozen')),
+            'Platform: {}, {}'.format(platform.platform(),
+                                      platform.architecture()[0]),
+        ]
+        lines += _os_info()
     return '\n'.join(lines)

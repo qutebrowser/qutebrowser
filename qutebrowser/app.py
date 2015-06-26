@@ -61,7 +61,7 @@ def run(args):
     """Initialize everthing and run the application."""
     # pylint: disable=too-many-statements
     if args.version:
-        print(version.version())
+        print(version.version(short=True))
         print()
         print()
         print(qutebrowser.__copyright__)
