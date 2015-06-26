@@ -38,7 +38,7 @@ except NameError:
 try:
     common.write_git_file()
     setuptools.setup(
-        packages=setuptools.find_packages(include=['qutebrowser']),
+        packages=setuptools.find_packages(exclude=['scripts', 'scripts.*']),
         include_package_data=True,
         entry_points={'gui_scripts':
                       ['qutebrowser = qutebrowser.qutebrowser:main']},
