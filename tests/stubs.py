@@ -27,6 +27,7 @@ from unittest import mock
 
 from PyQt5.QtCore import pyqtSignal, QPoint, QProcess, QObject
 from PyQt5.QtNetwork import QNetworkRequest
+from PyQt5.QtWidgets import QCommonStyle
 
 
 class FakeKeyEvent:
@@ -72,8 +73,10 @@ class FakeQApplication:
 
     """Stub to insert as QApplication module."""
 
-    def __init__(self):
+    def __init__(self, style=None):
         self.instance = mock.Mock(return_value=self)
+        self.style = mock.Mock(spec=QCommonStyle)
+        self.style().metaObject().className.return_value = style
 
 
 class FakeUrl:

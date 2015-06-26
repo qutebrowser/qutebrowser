@@ -30,6 +30,7 @@ import builtins
 import types
 import importlib
 import logging
+import textwrap
 
 import pytest
 
@@ -548,132 +549,80 @@ class FakeQSslSocket:
         return self._version
 
 
-class TestVersion:
+@pytest.mark.parametrize('git_commit, harfbuzz, frozen, short', [
+    (True, True, False, False),  # normal
+    (False, True, False, False),  # no git commit
+    (True, False, False, False),  # HARFBUZZ unset
+    (True, True, True, False),  # frozen
+    (True, True, False, True),  # short
+    (False, True, False, True),  # short and no git commit
+])
+def test_version_output(git_commit, harfbuzz, frozen, short, stubs,
+                        monkeypatch):
+    """Test version.version()."""
+    patches = {
+        'qutebrowser.__version__': 'VERSION',
+        '_git_str': lambda: ('GIT COMMIT' if git_commit else None),
+        'platform.python_implementation': lambda: 'PYTHON IMPLEMENTATION',
+        'platform.python_version': lambda: 'PYTHON VERSION',
+        'QT_VERSION_STR': 'QT VERSION',
+        'qVersion': lambda: 'QT RUNTIME VERSION',
+        'PYQT_VERSION_STR': 'PYQT VERSION',
+        '_module_versions': lambda: ['MODULE VERSION 1', 'MODULE VERSION 2'],
+        'qWebKitVersion': lambda: 'WEBKIT VERSION',
+        'QSslSocket': FakeQSslSocket('SSL VERSION'),
+        'platform.platform': lambda: 'PLATFORM',
+        'platform.architecture': lambda: ('ARCHITECTURE', ''),
+        '_os_info': lambda: ['OS INFO 1', 'OS INFO 2'],
+        'QApplication': stubs.FakeQApplication(style='STYLE'),
+    }
 
-    """Tests for version."""
+    for attr, val in patches.items():
+        monkeypatch.setattr('qutebrowser.utils.version.' + attr, val)
 
-    @pytest.fixture(autouse=True)
-    def patch(self, monkeypatch):
-        """Patch some sub-functions we're not interested in."""
-        monkeypatch.setattr('qutebrowser.utils.version._git_str', lambda: None)
-        monkeypatch.setattr('qutebrowser.utils.version._module_versions',
-                            lambda: [])
-        monkeypatch.setattr('qutebrowser.utils.version._os_info', lambda: [])
+    monkeypatch.setenv('DESKTOP_SESSION', 'DESKTOP')
 
-    def test_qutebrowser_version(self, monkeypatch):
-        """Test the qutebrowser version in the output."""
-        monkeypatch.setattr(
-            'qutebrowser.utils.version.qutebrowser.__version__', '23.42')
-        lines = version.version().splitlines()
-        assert lines[0] == 'qutebrowser v23.42'
-
-    def test_git_commit(self, monkeypatch):
-        """Test the git commit in the output."""
-        monkeypatch.setattr('qutebrowser.utils.version._git_str',
-                            lambda: 'deadbeef')
-        lines = version.version().splitlines()
-        assert lines[1] == 'Git commit: deadbeef'
-
-    def test_no_git_commit(self, monkeypatch):
-        """Test the git commit with _git_str returning None."""
-        monkeypatch.setattr('qutebrowser.utils.version._git_str',
-                            lambda: None)
-        lines = version.version().splitlines()
-        assert not lines[1].startswith('Git commit:')
-
-    def test_python_version(self, monkeypatch):
-        """Test the python version in the output."""
-        monkeypatch.setattr(
-            'qutebrowser.utils.version.platform.python_implementation',
-            lambda: 'python_implementation')
-        monkeypatch.setattr(
-            'qutebrowser.utils.version.platform.python_version',
-            lambda: 'python_version')
-        lines = version.version().splitlines()
-        assert lines[2] == 'python_implementation: python_version'
-
-    def test_qt_version(self, monkeypatch):
-        """Test the python version in the output."""
-        monkeypatch.setattr('qutebrowser.utils.version.QT_VERSION_STR', '12.3')
-        monkeypatch.setattr('qutebrowser.utils.version.qVersion',
-                            lambda: '45.6')
-        lines = version.version().splitlines()
-        assert lines[3] == 'Qt: 12.3, runtime: 45.6'
-
-    def test_pyqt_version(self, monkeypatch):
-        """Test the PyQt version in the output."""
-        monkeypatch.setattr('qutebrowser.utils.version.PYQT_VERSION_STR',
-                            '78.9')
-        lines = version.version().splitlines()
-        assert lines[4] == 'PyQt: 78.9'
-
-    def test_style(self, monkeypatch):
-        """Test the style in the output."""
-        lines = version.version().splitlines()
-        assert lines[5].startswith('Style: ')
-
-    def test_desktop_environment(self, monkeypatch):
-        """Test the desktop environment in the output."""
-        monkeypatch.setenv('DESKTOP_SESSION', 'Blah')
-        lines = version.version().splitlines()
-        assert lines[6] == 'Desktop: Blah'
-
-    def test_module_versions(self, monkeypatch):
-        """Test module versions in the output."""
-        monkeypatch.setattr('qutebrowser.utils.version._module_versions',
-                            lambda: ['Hello', 'World'])
-        lines = version.version().splitlines()
-        assert (lines[7], lines[8]) == ('Hello', 'World')
-
-    def test_webkit_version(self, monkeypatch):
-        """Test the webkit version in the output."""
-        monkeypatch.setattr('qutebrowser.utils.version.qWebKitVersion',
-                            lambda: '567.1')
-        lines = version.version().splitlines()
-        assert lines[7] == 'Webkit: 567.1'
-
-    def test_harfbuzz_none(self, monkeypatch):
-        """Test harfbuzz output with QT_HARFBUZZ unset."""
+    if harfbuzz:
+        monkeypatch.setenv('QT_HARFBUZZ', 'HARFBUZZ')
+    else:
         monkeypatch.delenv('QT_HARFBUZZ', raising=False)
-        lines = version.version().splitlines()
-        assert lines[8] == 'Harfbuzz: system'
 
-    def test_harfbuzz_set(self, monkeypatch):
-        """Test harfbuzz output with QT_HARFBUZZ set."""
-        monkeypatch.setenv('QT_HARFBUZZ', 'new')
-        lines = version.version().splitlines()
-        assert lines[8] == 'Harfbuzz: new'
+    if frozen:
+        monkeypatch.setattr(sys, 'frozen', True, raising=False)
+    else:
+        monkeypatch.delattr(sys, 'frozen', raising=False)
 
-    def test_ssl(self, monkeypatch):
-        """Test SSL version in the output."""
-        monkeypatch.setattr('qutebrowser.utils.version.QSslSocket',
-                            FakeQSslSocket('1.0.1'))
-        lines = version.version().splitlines()
-        assert lines[9] == 'SSL: 1.0.1'
+    template = textwrap.dedent("""
+        qutebrowser vVERSION
+        {git_commit}
+        PYTHON IMPLEMENTATION: PYTHON VERSION
+        Qt: QT VERSION, runtime: QT RUNTIME VERSION
+        PyQt: PYQT VERSION
+    """.lstrip('\n'))
 
-    @pytest.mark.parametrize('frozen, expected', [(True, 'Frozen: True'),
-                                                  (False, 'Frozen: False')])
-    def test_frozen(self, monkeypatch, frozen, expected):
-        """Test "Frozen: ..." in the version output."""
-        if frozen:
-            monkeypatch.setattr(sys, 'frozen', True, raising=False)
-        else:
-            monkeypatch.delattr(sys, 'frozen', raising=False)
-        lines = version.version().splitlines()
-        assert lines[11] == expected
+    if git_commit:
+        substitutions = {'git_commit': 'Git commit: GIT COMMIT\n'}
+    else:
+        substitutions = {'git_commit': ''}
 
-    def test_platform(self, monkeypatch):
-        """Test platform in the version output."""
-        monkeypatch.setattr('qutebrowser.utils.version.platform.platform',
-                            lambda: 'toaster')
-        monkeypatch.setattr('qutebrowser.utils.version.platform.architecture',
-                            lambda: ('64bit', ''))
-        lines = version.version().splitlines()
-        assert lines[12] == 'Platform: toaster, 64bit'
+    if not short:
+        template += textwrap.dedent("""
+            Style: STYLE
+            Desktop: DESKTOP
+            MODULE VERSION 1
+            MODULE VERSION 2
+            Webkit: WEBKIT VERSION
+            Harfbuzz: {harfbuzz}
+            SSL: SSL VERSION
 
-    def test_os_info(self, monkeypatch):
-        """Test OS info in the output."""
-        monkeypatch.setattr('qutebrowser.utils.version._os_info',
-                            lambda: ['Hello', 'World'])
-        lines = version.version().splitlines()
-        assert (lines[13], lines[14]) == ('Hello', 'World')
+            Frozen: {frozen}
+            Platform: PLATFORM, ARCHITECTURE
+            OS INFO 1
+            OS INFO 2
+        """.lstrip('\n'))
+
+        substitutions['harfbuzz'] = 'HARFBUZZ' if harfbuzz else 'system'
+        substitutions['frozen'] = str(frozen)
+
+    expected = template.rstrip('\n').format(**substitutions)
+    assert version.version(short=short) == expected
