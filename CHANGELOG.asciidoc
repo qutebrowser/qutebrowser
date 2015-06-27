@@ -21,33 +21,33 @@ Added
 ~~~~~
 
 - New commands `:message-info`, `:message-error` and `:message-warning` to show messages in the statusbar, e.g. from an userscript.
-- There are now some example userscripts in `misc/userscripts`.
 - New command `:scroll-px` which replaces `:scroll` for pixel-exact scrolling.
+- New command `:jseval` to run a javascript snippet on the current page.
+- New (hidden) command `:follow-selected` (bound to `Enter`/`Ctrl-Enter` by default) to follow the link which is currently selected (e.g. after searching via `/`).
+- New (hidden) command `:clear-keychain` to clear a partially entered keychain (bound to `<Escape>` by default, in addition to clearing search).
 - New setting `ui -> smooth-scrolling`.
 - New setting `content -> webgl` to enable/disable https://www.khronos.org/webgl/[WebGL].
 - New setting `content -> css-regions` to enable/disable support for http://dev.w3.org/csswg/css-regions/[CSS Regions].
 - New setting `content -> hyperlink-auditing` to enable/disable support for https://html.spec.whatwg.org/multipage/semantics.html#hyperlink-auditing[hyperlink auditing].
-- Support for Qt 5.5 and tox 2.0
+- New setting `tabs -> mousewheel-tab-switching` to control mousewheel behavior on the tab bar.
 - New arguments `--datadir` and `--cachedir` to set the data/cache location.
 - New arguments `--basedir` and `--temp-basedir` (intended for debugging) to set a different base directory for all data, which allows multiple invocations.
 - New argument `--no-err-windows` to suppress all error windows.
-- New visual/caret mode (bound to `v`) to select text by keyboard.
-- New setting `tabs -> mousewheel-tab-switching` to control mousewheel behavior on the tab bar.
 - New arguments `--top-navigate` and `--bottom-navigate` (`-t`/`-b`) for `:scroll-page` to specify a navigation action (e.g. automatically go to the next page when arriving at the bottom).
 - New flag `-d`/`--detach` for `:spawn` to detach the spawned process so it's not closed when qutebrowser is.
 - New flag `-v`/`--verbose` for `:spawn` to print informations when the process started/exited successfully.
-- New (hidden) command `:follow-selected` (bound to `Enter`/`Ctrl-Enter` by default) to follow the link which is currently selected (e.g. after searching via `/`).
+- Many new color settings (foreground setting for every background setting).
 - New setting `ui -> modal-js-dialog` to use the standard modal dialogs for javascript questions instead of using the statusbar.
 - New setting `colors -> webpage.bg` to set the background color to use for websites which don't set one.
-- New (hidden) command `:clear-keychain` to clear a partially entered keychain (bound to `<Escape>` by default, in addition to clearing search).
-- Many new color settings (foreground setting for every background setting).
-- New command `:jseval` to run a javascript snippet on the current page.
+- New setting `completion -> auto-open` to only open the completion when tab is pressed (if set to false).
+- New visual/caret mode (bound to `v`) to select text by keyboard.
+- There are now some example userscripts in `misc/userscripts`.
+- Support for Qt 5.5 and tox 2.0
 
 Changed
 ~~~~~~~
 
-- `QUTE_HTML` and `QUTE_TEXT` for userscripts now don't store the contents directly, and instead contain a filename.
-- `:spawn` now shows the command being executed in the statusbar, use `-q`/`--quiet` for the old behavior.
+- *Breaking change for userscripts:* `QUTE_HTML` and `QUTE_TEXT` for userscripts now don't store the contents directly, and instead contain a filename.
 - The `content -> geolocation` and `notifications` settings now support a `true` value to always allow those. However, this is *not recommended*.
 - New bindings `<Ctrl-R>` (rapid), `<Ctrl-F>` (foreground) and `<Ctrl-B>` (background) to switch hint modes while hinting.
 - `<Ctrl-M>` and numpad-enter are now bound by default for bindings where `<Return>` was bound.
@@ -58,6 +58,7 @@ Changed
 - Improved startup time by reading the webpage history while qutebrowser is open.
 - The way `:spawn` splits its commandline has been changed slightly to allow commands with flags.
 - The default for the `new-instance-open-target` setting has been changed to `tab`.
+- Sessions now store zoom/scroll-position separately for each entry.
 
 Deprecated
 ~~~~~~~~~~
@@ -76,26 +77,20 @@ Fixed
 - Scrolling should now work more reliably on some pages where arrow keys worked but `hjkl` didn't.
 - Small improvements when checking if an input is an URL or not.
 - Fixed wrong cursor position when completing the first item in the completion.
-- Fix exception when using search engines with {foo} in the name.
-- Fix a bug where the same title was shown for all tabs on some systems.
+- Fixed exception when using search engines with {foo} in their name.
+- Fixed a bug where the same title was shown for all tabs on some systems.
 - Don't install the scripts package when installing qutebrowser.
-
-v0.2.2 (unreleased)
--------------------
-
-Fixed
-~~~~~
-
 - Fixed searching for terms starting with a hyphen (e.g. `/-foo`)
 - Proxy authentication credentials are now remembered between different tabs.
 - Fixed updating of the tab title on pages without title.
 - Fixed AssertionError when closing many windows quickly.
 - Various fixes for deprecated key bindings and auto-migrations.
-- Workaround for qutebrowser not starting when there are NUL-bytes in the history (because of a currently unknown bug)
+- Workaround for qutebrowser not starting when there are NUL-bytes in the history (because of a currently unknown bug).
 - Fixed handling of keybindings containing Ctrl/Meta on OS X.
 - Fixed crash when downloading an URL without filename (e.g. magnet links) via "Save as...".
 - Fixed exception when starting qutebrowser with `:set` as argument.
 - Fixed horrible completion performance when the `shrink` option was set.
+- Sessions now store zoom/scroll-position correctly.
 
 https://github.com/The-Compiler/qutebrowser/releases/tag/v0.2.1[v0.2.1]
 -----------------------------------------------------------------------
