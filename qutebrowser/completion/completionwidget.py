@@ -45,6 +45,8 @@ class CompletionView(QTreeView):
     Attributes:
         enabled: Whether showing the CompletionView is enabled.
         _win_id: The ID of the window this CompletionView is associated with.
+        _completion_connected: We've attached the signals to update the
+            completion whenever the text or curor position changes.
         _height: The height to use for the CompletionView.
         _height_perc: Either None or a percentage if height should be relative.
         _delegate: The item delegate used.
@@ -93,13 +95,14 @@ class CompletionView(QTreeView):
     def __init__(self, win_id, parent=None):
         super().__init__(parent)
         self._win_id = win_id
+        self._completion_connected = False
         objreg.register('completion', self, scope='window', window=win_id)
         cmd = objreg.get('status-command', scope='window', window=win_id)
         completer_obj = completer.Completer(cmd, win_id, self)
         objreg.register('completer', completer_obj, scope='window',
                         window=win_id)
         self.enabled = config.get('completion', 'show')
-        objreg.get('config').changed.connect(self.set_enabled)
+        objreg.get('config').changed.connect(self.on_config_changed)
         # FIXME handle new aliases.
         # objreg.get('config').changed.connect(self.init_command_completion)
 
@@ -220,10 +223,11 @@ class CompletionView(QTreeView):
         if config.get('completion', 'shrink'):
             self.resize_completion.emit()
 
-    @config.change_filter('completion', 'show')
-    def set_enabled(self):
+    @config.change_filter('completion')
+    def on_config_changed(self):
         """Update self.enabled when the config changed."""
         self.enabled = config.get('completion', 'show')
+        self._set_auto_open(config.get('completion', 'auto-open'))
 
     @pyqtSlot()
     def on_clear_completion_selection(self):
@@ -233,16 +237,20 @@ class CompletionView(QTreeView):
             selmod.clearSelection()
             selmod.clearCurrentIndex()
 
+        self._set_auto_open(config.get('completion', 'auto-open'))
+
     @cmdutils.register(instance='completion', hide=True,
                        modes=[usertypes.KeyMode.command], scope='window')
     def completion_item_prev(self):
         """Select the previous completion item."""
+        self._open_completion_if_needed()
         self._next_prev_item(prev=True)
 
     @cmdutils.register(instance='completion', hide=True,
                        modes=[usertypes.KeyMode.command], scope='window')
     def completion_item_next(self):
         """Select the next completion item."""
+        self._open_completion_if_needed()
         self._next_prev_item(prev=False)
 
     def selectionChanged(self, selected, deselected):
@@ -264,3 +272,23 @@ class CompletionView(QTreeView):
         if scrollbar is not None:
             scrollbar.setValue(scrollbar.minimum())
         super().showEvent(e)
+
+    def _open_completion_if_needed(self):
+        if not config.get('completion', 'auto-open'):
+            self._set_auto_open(True)
+
+    def _set_auto_open(self, enabled):
+        cmd = objreg.get('status-command', scope='window', window=self._win_id)
+        if enabled and not self._completion_connected:
+            cmd.cursorPositionChanged.connect(cmd.update_completion)
+            cmd.textChanged.connect(cmd.update_completion)
+            cmd.update_completion_now.emit()
+            self._completion_connected = True
+        elif not enabled:
+            self._completion_connected = False
+            try:
+                cmd.cursorPositionChanged.disconnect(cmd.update_completion)
+                cmd.textChanged.disconnect(cmd.update_completion)
+            # Don't fail if not connected
+            except TypeError:
+                pass

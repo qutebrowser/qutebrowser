@@ -22,8 +22,9 @@
 from PyQt5.QtCore import pyqtSignal, pyqtSlot, Qt, QUrl, QSize
 from PyQt5.QtWidgets import QSizePolicy
 
-from qutebrowser.keyinput import modeman, modeparsers
 from qutebrowser.commands import cmdexc, cmdutils
+from qutebrowser.config import config
+from qutebrowser.keyinput import modeman, modeparsers
 from qutebrowser.misc import cmdhistory
 from qutebrowser.misc import miscwidgets as misc
 from qutebrowser.utils import usertypes, log, objreg, qtutils
@@ -51,6 +52,7 @@ class Command(misc.MinimalLineEditMixin, misc.CommandLineEdit):
     clear_completion_selection = pyqtSignal()
     hide_completion = pyqtSignal()
     update_completion = pyqtSignal()
+    update_completion_now = pyqtSignal()
     show_cmd = pyqtSignal()
     hide_cmd = pyqtSignal()
 
@@ -63,8 +65,9 @@ class Command(misc.MinimalLineEditMixin, misc.CommandLineEdit):
         self.history.history = command_history.data
         self.history.changed.connect(command_history.changed)
         self.setSizePolicy(QSizePolicy.MinimumExpanding, QSizePolicy.Ignored)
-        self.cursorPositionChanged.connect(self.update_completion)
-        self.textChanged.connect(self.update_completion)
+        if config.get('completion', 'auto-open'):
+            self.cursorPositionChanged.connect(self.update_completion)
+            self.textChanged.connect(self.update_completion)
         self.textChanged.connect(self.updateGeometry)
 
     def prefix(self):

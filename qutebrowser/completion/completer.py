@@ -47,6 +47,7 @@ class Completer(QObject):
         self._win_id = win_id
         self._cmd = cmd
         self._cmd.update_completion.connect(self.schedule_completion_update)
+        self._cmd.update_completion_now.connect(self.update_completion)
         self._cmd.textEdited.connect(self.on_text_edited)
         self._ignore_change = False
         self._empty_item_idx = None
@@ -257,7 +258,6 @@ class Completer(QObject):
             return
 
         model = self._get_new_completion(parts, self._cursor_part)
-
         if model != self._model():
             if model is None:
                 completion.hide()
