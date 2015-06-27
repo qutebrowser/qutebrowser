@@ -239,6 +239,8 @@ class TestSameDomain:
             ('http://example.com', 'http://www.example.com'),
             ('http://bbc.co.uk', 'https://www.bbc.co.uk'),
             ('http://many.levels.of.domains.example.com', 'http://www.example.com'),
+            ('http://idn.иком.museum', 'http://idn2.иком.museum'),
+            ('http://one.not_a_valid_tld', 'http://one.not_a_valid_tld'),
         )
 
         for host1, host2 in hosts:
@@ -250,7 +252,8 @@ class TestSameDomain:
         hosts = (
             ('http://bbc.co.uk', 'http://example.co.uk'),
             ('https://example.kids.museum', 'http://example.kunst.museum'),
-            ('http://idn.иком.museum', 'http://idn.ירושלים.museum')
+            ('http://idn.иком.museum', 'http://idn.ירושלים.museum'),
+            ('http://one.not_a_valid_tld', 'http://two.not_a_valid_tld'),
         )
 
         for host1, host2 in hosts:

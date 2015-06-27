@@ -21,9 +21,10 @@
 
 import collections
 
-from PyQt5.QtCore import (pyqtSlot, pyqtSignal, PYQT_VERSION, QCoreApplication)
+from PyQt5.QtCore import (pyqtSlot, pyqtSignal, PYQT_VERSION, QCoreApplication,
+                          QUrl, QByteArray)
 from PyQt5.QtNetwork import (QNetworkAccessManager, QNetworkReply, QSslError,
-                             QSslSocket, QUrl, QByteArray)
+                             QSslSocket)
 
 from qutebrowser.config import config
 from qutebrowser.utils import (message, log, usertypes, utils, objreg, qtutils,
@@ -339,11 +340,13 @@ class NetworkManager(QNetworkAccessManager):
 
         current_url = objreg.get('tabbed-browser', scope='window',
                                  window=self._win_id).currentWidget().url()
-        if (config.get('network', 'referer-header') == 'never' or
-                (config.get('network', 'referer-header') == 'same-domain' and
-                    urlutils.same_domain(req.url(), current_url))):
+        if config.get('network', 'referer-header') == 'never':
             # Note: using ''.encode('ascii') sends a header with no value,
             # instead of no header at all
+            req.setRawHeader('Referer'.encode('ascii'), QByteArray())
+        elif (config.get('network', 'referer-header') == 'same-domain' and
+                current_url.isValid() and
+                not urlutils.same_domain(req.url(), current_url)):
             req.setRawHeader('Referer'.encode('ascii'), QByteArray())
 
         accept_language = config.get('network', 'accept-language')

@@ -411,6 +411,9 @@ def same_domain(url1, url2):
 
     suffix1 = url1.topLevelDomain()
     suffix2 = url2.topLevelDomain()
+    if suffix1 == '':
+        return url1.host() == url2.host()
+
     if not suffix1 == suffix2:
         return False
 
