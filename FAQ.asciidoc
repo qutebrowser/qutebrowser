@@ -4,8 +4,8 @@ The Compiler <mail@qutebrowser.org>
 
 [qanda]
 What is qutebrowser based on?::
-    qutebrowser uses http://www.python.org/[Python], http://qt-project.org/[Qt]
-    and http://www.riverbankcomputing.com/software/pyqt/intro[PyQt].
+    qutebrowser uses http://www.python.org/[Python], http://qt.io/[Qt] and
+    http://www.riverbankcomputing.com/software/pyqt/intro[PyQt].
 +
 The concept of it is largely inspired by http://portix.bitbucket.org/dwb/[dwb]
 and http://www.vimperator.org/vimperator[Vimperator]. Many actions and
@@ -15,7 +15,7 @@ Why another browser?::
     It might be hard to believe, but I didn't find any browser which I was
     happy with, so I started to write my own. Also, I needed a project to get
     into writing GUI applications with Python and
-    link:http://qt-project.org/[Qt]/link:http://www.riverbankcomputing.com/software/pyqt/intro[PyQt].
+    link:http://qt.io/[Qt]/link:http://www.riverbankcomputing.com/software/pyqt/intro[PyQt].
 +
 Read the next few questions to find out why I was unhappy with existing
 software.
@@ -32,12 +32,11 @@ API] seems to lack basic features like proxy support, and almost no projects
 seem to have started porting to WebKit2 (I only know of
 http://www.uzbl.org/[uzbl]).
 +
-qutebrowser uses http://qt-project.org/[Qt] and
-http://qt-project.org/wiki/QtWebKit[QtWebKit] instead, which suffers from far
-less such crashes. It might switch to
-http://qt-project.org/wiki/QtWebEngine[QtWebEngine] in the future, which is
-based on Google's https://en.wikipedia.org/wiki/Blink_(layout_engine)[Blink]
-rendering engine.
+qutebrowser uses http://qt.io/[Qt] and http://wiki.qt.io/QtWebKit[QtWebKit]
+instead, which suffers from far less such crashes. It might switch to
+http://wiki.qt.io/QtWebEngine[QtWebEngine] in the future, which is based on
+Google's https://en.wikipedia.org/wiki/Blink_(layout_engine)[Blink] rendering
+engine.
 
 What's wrong with https://www.mozilla.org/en-US/firefox/new/[Firefox] and link:http://5digits.org/pentadactyl/[Pentadactyl]/link:http://www.vimperator.org/vimperator[Vimperator]?::
     Firefox likes to break compatibility with addons on each upgrade, gets
@@ -54,10 +53,10 @@ What's wrong with http://www.chromium.org/Home[Chromium] and https://vimium.gith
 
 Why Python?::
     I enjoy writing Python since 2011, which made it one of the possible
-    choices. I wanted to use http://qt-project.org/[Qt] because of
-    http://qt-project.org/wiki/QtWebKit[QtWebKit] so I didn't have
-    http://qt-project.org/wiki/Category:LanguageBindings[many other choices]. I
-    don't like C++ and can't write it very well, so that wasn't an alternative.
+    choices. I wanted to use http://qt.io/[Qt] because of
+    http://wiki.qt.io/QtWebKit[QtWebKit] so I didn't have
+    http://wiki.qt.io/Category:LanguageBindings[many other choices]. I don't
+    like C++ and can't write it very well, so that wasn't an alternative.
 
 But isn't Python too slow for a browser?::
     http://www.infoworld.com/d/application-development/van-rossum-python-not-too-slow-188715[No.]

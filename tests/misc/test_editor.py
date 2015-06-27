@@ -42,8 +42,8 @@ class TestArg:
 
     @pytest.yield_fixture(autouse=True)
     def setup(self, monkeypatch, stubs):
-        monkeypatch.setattr('qutebrowser.misc.editor.QProcess',
-                            stubs.FakeQProcess())
+        monkeypatch.setattr('qutebrowser.misc.editor.guiprocess.QProcess',
+                            stubs.fake_qprocess())
         self.editor = editor.ExternalEditor(0)
         yield
         self.editor._cleanup()  # pylint: disable=protected-access
@@ -60,7 +60,7 @@ class TestArg:
         stubbed_config.data = {
             'general': {'editor': ['bin'], 'editor-encoding': 'utf-8'}}
         self.editor.edit("")
-        self.editor._proc.start.assert_called_with("bin", [])
+        self.editor._proc._proc.start.assert_called_with("bin", [])
 
     def test_start_args(self, stubbed_config):
         """Test starting editor with static arguments."""
@@ -68,7 +68,7 @@ class TestArg:
             'general': {'editor': ['bin', 'foo', 'bar'],
                         'editor-encoding': 'utf-8'}}
         self.editor.edit("")
-        self.editor._proc.start.assert_called_with("bin", ["foo", "bar"])
+        self.editor._proc._proc.start.assert_called_with("bin", ["foo", "bar"])
 
     def test_placeholder(self, stubbed_config):
         """Test starting editor with placeholder argument."""
@@ -77,7 +77,7 @@ class TestArg:
                         'editor-encoding': 'utf-8'}}
         self.editor.edit("")
         filename = self.editor._filename
-        self.editor._proc.start.assert_called_with(
+        self.editor._proc._proc.start.assert_called_with(
             "bin", ["foo", filename, "bar"])
 
     def test_in_arg_placeholder(self, stubbed_config):
@@ -86,7 +86,7 @@ class TestArg:
             'general': {'editor': ['bin', 'foo{}bar'],
                         'editor-encoding': 'utf-8'}}
         self.editor.edit("")
-        self.editor._proc.start.assert_called_with("bin", ["foo{}bar"])
+        self.editor._proc._proc.start.assert_called_with("bin", ["foo{}bar"])
 
 
 class TestFileHandling:
@@ -101,8 +101,8 @@ class TestFileHandling:
     def setup(self, monkeypatch, stubs, config_stub):
         monkeypatch.setattr('qutebrowser.misc.editor.message',
                             stubs.MessageModule())
-        monkeypatch.setattr('qutebrowser.misc.editor.QProcess',
-                            stubs.FakeQProcess())
+        monkeypatch.setattr('qutebrowser.misc.editor.guiprocess.QProcess',
+                            stubs.fake_qprocess())
         config_stub.data = {'general': {'editor': [''],
                                         'editor-encoding': 'utf-8'}}
         monkeypatch.setattr('qutebrowser.misc.editor.config', config_stub)
@@ -113,7 +113,7 @@ class TestFileHandling:
         self.editor.edit("")
         filename = self.editor._filename
         assert os.path.exists(filename)
-        self.editor.on_proc_closed(0, QProcess.NormalExit)
+        self.editor._proc.finished.emit(0, QProcess.NormalExit)
         assert not os.path.exists(filename)
 
     def test_file_handling_closed_error(self, caplog):
@@ -122,7 +122,7 @@ class TestFileHandling:
         filename = self.editor._filename
         assert os.path.exists(filename)
         with caplog.atLevel(logging.ERROR):
-            self.editor.on_proc_closed(1, QProcess.NormalExit)
+            self.editor._proc.finished.emit(1, QProcess.NormalExit)
             assert len(caplog.records()) == 2
         assert not os.path.exists(filename)
 
@@ -132,9 +132,9 @@ class TestFileHandling:
         filename = self.editor._filename
         assert os.path.exists(filename)
         with caplog.atLevel(logging.ERROR):
-            self.editor.on_proc_error(QProcess.Crashed)
+            self.editor._proc.error.emit(QProcess.Crashed)
             assert len(caplog.records()) == 2
-        self.editor.on_proc_closed(0, QProcess.CrashExit)
+        self.editor._proc.finished.emit(0, QProcess.CrashExit)
         assert not os.path.exists(filename)
 
 
@@ -148,8 +148,8 @@ class TestModifyTests:
 
     @pytest.fixture(autouse=True)
     def setup(self, monkeypatch, stubs, config_stub):
-        monkeypatch.setattr('qutebrowser.misc.editor.QProcess',
-                            stubs.FakeQProcess())
+        monkeypatch.setattr('qutebrowser.misc.editor.guiprocess.QProcess',
+                            stubs.fake_qprocess())
         config_stub.data = {'general': {'editor': [''],
                                         'editor-encoding': 'utf-8'}}
         monkeypatch.setattr('qutebrowser.misc.editor.config', config_stub)
@@ -182,7 +182,7 @@ class TestModifyTests:
         self.editor.edit("")
         assert self._read() == ""
         self._write("Hello")
-        self.editor.on_proc_closed(0, QProcess.NormalExit)
+        self.editor._proc.finished.emit(0, QProcess.NormalExit)
         self.editor.editing_finished.emit.assert_called_with("Hello")
 
     def test_simple_input(self):
@@ -190,7 +190,7 @@ class TestModifyTests:
         self.editor.edit("Hello")
         assert self._read() == "Hello"
         self._write("World")
-        self.editor.on_proc_closed(0, QProcess.NormalExit)
+        self.editor._proc.finished.emit(0, QProcess.NormalExit)
         self.editor.editing_finished.emit.assert_called_with("World")
 
     def test_umlaut(self):
@@ -198,7 +198,7 @@ class TestModifyTests:
         self.editor.edit("Hällö Wörld")
         assert self._read() == "Hällö Wörld"
         self._write("Überprüfung")
-        self.editor.on_proc_closed(0, QProcess.NormalExit)
+        self.editor._proc.finished.emit(0, QProcess.NormalExit)
         self.editor.editing_finished.emit.assert_called_with("Überprüfung")
 
     def test_unicode(self):
@@ -220,8 +220,8 @@ class TestErrorMessage:
 
     @pytest.yield_fixture(autouse=True)
     def setup(self, monkeypatch, stubs, config_stub):
-        monkeypatch.setattr('qutebrowser.misc.editor.QProcess',
-                            stubs.FakeQProcess())
+        monkeypatch.setattr('qutebrowser.misc.editor.guiprocess.QProcess',
+                            stubs.fake_qprocess())
         monkeypatch.setattr('qutebrowser.misc.editor.message',
                             stubs.MessageModule())
         config_stub.data = {'general': {'editor': [''],

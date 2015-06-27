@@ -391,9 +391,9 @@ class TabBar(QTabBar):
     def paintEvent(self, _e):
         """Override paintEvent to draw the tabs like we want to."""
         p = QStylePainter(self)
-        tab = QStyleOptionTab()
         selected = self.currentIndex()
         for idx in range(self.count()):
+            tab = QStyleOptionTab()
             self.initStyleOption(tab, idx)
             if idx == selected:
                 bg_color = config.get('colors', 'tabs.bg.selected')

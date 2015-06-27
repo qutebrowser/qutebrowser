@@ -40,7 +40,8 @@ class Error(Exception):
 
 def verbose_copy(src, dst, *, follow_symlinks=True):
     """Copy function for shutil.copytree which prints copied files."""
-    print('{} -> {}'.format(src, dst))
+    if '-v' in sys.argv:
+        print('{} -> {}'.format(src, dst))
     shutil.copy(src, dst, follow_symlinks=follow_symlinks)
 
 
@@ -112,6 +113,7 @@ def copy_or_link(source, dest):
     """Copy or symlink source to dest."""
     if os.name == 'nt':
         if os.path.isdir(source):
+            print('{} -> {}'.format(source, dest))
             shutil.copytree(source, dest, ignore=get_ignored_files,
                             copy_function=verbose_copy)
         else:
@@ -138,7 +140,10 @@ def get_python_lib(executable, venv=False):
               treatments for Windows/Ubuntu shouldn't take place.
     """
     distribution = platform.linux_distribution(full_distribution_name=False)
-    if os.name == 'nt' and not venv:
+    if 'PYTHON' in os.environ and not venv:
+        # e.g. on AppVeyor
+        return os.path.join(os.environ['PYTHON'], 'Lib', 'site-packages')
+    elif os.name == 'nt' and not venv:
         # For some reason, we get an empty string from get_python_lib() on
         # Windows when running via tox, and sys.prefix is empty too...
         return os.path.join(os.path.dirname(executable), '..', 'Lib',

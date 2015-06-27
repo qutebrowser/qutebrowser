@@ -27,7 +27,8 @@ disable=no-self-use,
         broad-except,
         bare-except,
         eval-used,
-        exec-used
+        exec-used,
+        file-ignored
 
 [BASIC]
 module-rgx=(__)?[a-z][a-z0-9_]*(__)?$

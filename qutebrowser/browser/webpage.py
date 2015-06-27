@@ -241,7 +241,7 @@ class BrowserPage(QWebPage):
         if cur_data is not None:
             frame = self.mainFrame()
             if 'zoom' in cur_data:
-                frame.setZoomFactor(cur_data['zoom'])
+                frame.page().view().zoom_perc(cur_data['zoom'] * 100)
             if ('scroll-pos' in cur_data and
                     frame.scrollPosition() == QPoint(0, 0)):
                 QTimer.singleShot(0, functools.partial(
@@ -418,7 +418,7 @@ class BrowserPage(QWebPage):
         if data is None:
             return
         if 'zoom' in data:
-            frame.setZoomFactor(data['zoom'])
+            frame.page().view().zoom_perc(data['zoom'] * 100)
         if 'scroll-pos' in data and frame.scrollPosition() == QPoint(0, 0):
             frame.setScrollPosition(data['scroll-pos'])
 

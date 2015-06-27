@@ -230,10 +230,12 @@ def log_time(logger, action='operation'):
         action: A description of what's being done.
     """
     started = datetime.datetime.now()
-    yield
-    finished = datetime.datetime.now()
-    delta = (finished - started).total_seconds()
-    logger.debug("{} took {} seconds.".format(action.capitalize(), delta))
+    try:
+        yield
+    finally:
+        finished = datetime.datetime.now()
+        delta = (finished - started).total_seconds()
+        logger.debug("{} took {} seconds.".format(action.capitalize(), delta))
 
 
 def _get_widgets():
