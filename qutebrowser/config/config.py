@@ -154,9 +154,9 @@ def _init_main_config(parent=None, reload=False):
             pass
         errstr += "\n"
         error.handle_fatal_exc(e, args, "Error while reading config!",
-                               pre_text=errstr)
+                                pre_text=errstr)
         if reload:
-            raise
+            raise e
         # We didn't really initialize much so far, so we just quit hard.
         else:
             sys.exit(usertypes.Exit.err_config)
@@ -198,9 +198,9 @@ def _init_key_config(parent, reload=False):
         if e.lineno is not None:
             errstr += "In line {}: ".format(e.lineno)
         error.handle_fatal_exc(e, args, "Error while reading key config!",
-                               pre_text=errstr)
+                            pre_text=errstr)
         if reload:
-            raise
+            raise e
         # We didn't really initialize much so far, so we just quit hard.
         else:
             sys.exit(usertypes.Exit.err_config)
@@ -262,8 +262,8 @@ def init(parent=None):
     Args:
         parent: The parent to pass to QObjects which get initialized.
     """
-    _init_main_config(parent, True)
-    _init_key_config(parent, True)
+    _init_main_config(parent)
+    _init_key_config(parent)
     _init_misc()
 
 
@@ -672,18 +672,19 @@ class ConfigManager(QObject):
             message.info(win_id, "{} {} = {}".format(
                 section_, option, val), immediately=True)
 
-    @cmdutils.register(instance='config')
-    def reload_config(self):
+    @cmdutils.register(instance='config', win_id='win_id')
+    def reload_config(self, win_id):
         """Reload the config & keyconfig files."""
         old_config = objreg.get('config')
         objreg.delete('config')
         try:
-            _init_main_config(QApplication.instance())
+            _init_main_config(QApplication.instance(), True)
         # Restore the old config if we failed
         except:
             if objreg.get('config', None) is not None:
                 objreg.delete('config')
             objreg.register('config', old_config)
+            message.error(win_id, 'Reloading config failed; previous configuration restored.')
             return
 
         # Run _after_set() to notify code the setting has changed, but only for
@@ -707,11 +708,12 @@ class ConfigManager(QObject):
         old_key_config = objreg.get('key-config')
         objreg.delete('key-config')
         try:
-            _init_key_config(QApplication.instance())
+            _init_key_config(QApplication.instance(), True)
         except:
             if objreg.get('key-config', None) is not None:
                 objreg.delete('config')
             objreg.register('key-config', old_key_config)
+            message.error(win_id, 'Reloading key config failed; previous configuration restored.')
             return
 
         objreg.get('key-config').changed.emit('normal')
