@@ -22,7 +22,6 @@
 import re
 import os
 import shlex
-import subprocess
 import posixpath
 import functools
 import xml.etree.ElementTree
@@ -37,14 +36,14 @@ import pygments
 import pygments.lexers
 import pygments.formatters
 
-from qutebrowser.commands import userscripts, cmdexc, cmdutils
+from qutebrowser.commands import userscripts, cmdexc, cmdutils, runners
 from qutebrowser.config import config, configexc
 from qutebrowser.browser import webelem, inspector
 from qutebrowser.keyinput import modeman
 from qutebrowser.utils import (message, usertypes, log, qtutils, urlutils,
                                objreg, utils)
 from qutebrowser.utils.usertypes import KeyMode
-from qutebrowser.misc import editor
+from qutebrowser.misc import editor, guiprocess
 
 
 class CommandDispatcher:
@@ -696,19 +695,28 @@ class CommandDispatcher:
         frame.scroll(dx, dy)
 
     @cmdutils.register(instance='command-dispatcher', scope='window')
-    def yank(self, title=False, sel=False):
+    def yank(self, title=False, sel=False, domain=False):
         """Yank the current URL/title to the clipboard or primary selection.
 
         Args:
             sel: Use the primary selection instead of the clipboard.
             title: Yank the title instead of the URL.
+            domain: Yank only the scheme, domain, and port number.
         """
         clipboard = QApplication.clipboard()
         if title:
             s = self._tabbed_browser.page_title(self._current_index())
+            what = 'title'
+        elif domain:
+            port = self._current_url().port()
+            s = '{}://{}{}'.format(self._current_url().scheme(),
+                                   self._current_url().host(),
+                                   ':' + str(port) if port > -1 else '')
+            what = 'domain'
         else:
             s = self._current_url().toString(
                 QUrl.FullyEncoded | QUrl.RemovePassword)
+            what = 'URL'
         if sel and clipboard.supportsSelection():
             mode = QClipboard.Selection
             target = "primary selection"
@@ -717,8 +725,8 @@ class CommandDispatcher:
             target = "clipboard"
         log.misc.debug("Yanking to {}: '{}'".format(target, s))
         clipboard.setText(s, mode)
-        what = 'Title' if title else 'URL'
-        message.info(self._win_id, "{} yanked to {}".format(what, target))
+        message.info(self._win_id, "Yanked {} to {}: {}".format(
+                     what, target, s))
 
     @cmdutils.register(instance='command-dispatcher', scope='window',
                        count='count')
@@ -729,7 +737,11 @@ class CommandDispatcher:
             count: How many steps to zoom in.
         """
         tab = self._current_widget()
-        tab.zoom(count)
+        try:
+            perc = tab.zoom(count)
+        except ValueError as e:
+            raise cmdexc.CommandError(e)
+        message.info(self._win_id, "Zoom level: {}%".format(perc))
 
     @cmdutils.register(instance='command-dispatcher', scope='window',
                        count='count')
@@ -740,7 +752,11 @@ class CommandDispatcher:
             count: How many steps to zoom out.
         """
         tab = self._current_widget()
-        tab.zoom(-count)
+        try:
+            perc = tab.zoom(-count)
+        except ValueError as e:
+            raise cmdexc.CommandError(e)
+        message.info(self._win_id, "Zoom level: {}%".format(perc))
 
     @cmdutils.register(instance='command-dispatcher', scope='window',
                        count='count')
@@ -760,7 +776,12 @@ class CommandDispatcher:
         except ValueError as e:
             raise cmdexc.CommandError(e)
         tab = self._current_widget()
-        tab.zoom_perc(level)
+
+        try:
+            tab.zoom_perc(level)
+        except ValueError as e:
+            raise cmdexc.CommandError(e)
+        message.info(self._win_id, "Zoom level: {}%".format(level))
 
     @cmdutils.register(instance='command-dispatcher', scope='window')
     def tab_only(self, left=False, right=False):
@@ -913,38 +934,39 @@ class CommandDispatcher:
             self._tabbed_browser.setUpdatesEnabled(True)
 
     @cmdutils.register(instance='command-dispatcher', scope='window',
-                       win_id='win_id')
-    def spawn(self, win_id, userscript=False, quiet=False, *args):
+                       maxsplit=0)
+    def spawn(self, cmdline, userscript=False, verbose=False, detach=False):
         """Spawn a command in a shell.
 
         Note the {url} variable which gets replaced by the current URL might be
         useful here.
 
-        //
-
-        We use subprocess rather than Qt's QProcess here because we really
-        don't care about the process anymore as soon as it's spawned.
-
         Args:
             userscript: Run the command as an userscript.
-            quiet: Don't print the commandline being executed.
-            *args: The commandline to execute.
+            verbose: Show notifications when the command started/exited.
+            detach: Whether the command should be detached from qutebrowser.
+            cmdline: The commandline to execute.
         """
-        log.procs.debug("Executing: {}, userscript={}".format(
-            args, userscript))
-        if not quiet:
-            fake_cmdline = ' '.join(shlex.quote(arg) for arg in args)
-            message.info(win_id, 'Executing: ' + fake_cmdline)
+        try:
+            cmd, *args = shlex.split(cmdline)
+        except ValueError as e:
+            raise cmdexc.CommandError("Error while splitting command: "
+                                      "{}".format(e))
+
+        args = runners.replace_variables(self._win_id, args)
+
+        log.procs.debug("Executing {} with args {}, userscript={}".format(
+            cmd, args, userscript))
         if userscript:
-            cmd = args[0]
-            args = [] if not args else args[1:]
-            self.run_userscript(cmd, *args)
+            self.run_userscript(cmd, *args, verbose=verbose)
         else:
-            try:
-                subprocess.Popen(args)
-            except OSError as e:
-                raise cmdexc.CommandError("Error while spawning command: "
-                                          "{}".format(e))
+            proc = guiprocess.GUIProcess(self._win_id, what='command',
+                                         verbose=verbose,
+                                         parent=self._tabbed_browser)
+            if detach:
+                proc.start_detached(cmd, args)
+            else:
+                proc.start(cmd, args)
 
     @cmdutils.register(instance='command-dispatcher', scope='window')
     def home(self):
@@ -953,12 +975,13 @@ class CommandDispatcher:
 
     @cmdutils.register(instance='command-dispatcher', scope='window',
                        deprecated='Use :spawn --userscript instead!')
-    def run_userscript(self, cmd, *args: {'nargs': '*'}):
+    def run_userscript(self, cmd, *args: {'nargs': '*'}, verbose=False):
         """Run an userscript given as argument.
 
         Args:
             cmd: The userscript to run.
             args: Arguments to pass to the userscript.
+            verbose: Show notifications when the command started/exited.
         """
         cmd = os.path.expanduser(cmd)
         env = {
@@ -986,7 +1009,8 @@ class CommandDispatcher:
             env['QUTE_URL'] = url.toString(QUrl.FullyEncoded)
 
         env.update(userscripts.store_source(mainframe))
-        userscripts.run(cmd, *args, win_id=self._win_id, env=env)
+        userscripts.run(cmd, *args, win_id=self._win_id, env=env,
+                        verbose=verbose)
 
     @cmdutils.register(instance='command-dispatcher', scope='window')
     def quickmark_save(self):
@@ -1157,12 +1181,6 @@ class CommandDispatcher:
 
         The editor which should be launched can be configured via the
         `general -> editor` config option.
-
-        //
-
-        We use QProcess rather than subprocess here because it makes it a lot
-        easier to execute some code as soon as the process has been finished
-        and do everything async.
         """
         frame = self._current_widget().page().currentFrame()
         try:
@@ -1184,7 +1202,7 @@ class CommandDispatcher:
     def on_editing_finished(self, elem, text):
         """Write the editor text into the form field and clean up tempfile.
 
-        Callback for QProcess when the editor was closed.
+        Callback for GUIProcess when the editor was closed.
 
         Args:
             elem: The WebElementWrapper which was modified.
@@ -1567,3 +1585,33 @@ class CommandDispatcher:
         view = self._current_widget()
         for _ in range(count):
             view.triggerPageAction(member)
+
+    @cmdutils.register(instance='command-dispatcher', scope='window',
+                       maxsplit=0, no_cmd_split=True)
+    def jseval(self, js_code, quiet=False):
+        """Evaluate a JavaScript string.
+
+        Args:
+            js_code: The string to evaluate.
+            quiet: Don't show resulting JS object.
+        """
+        frame = self._current_widget().page().mainFrame()
+        out = frame.evaluateJavaScript(js_code)
+
+        if quiet:
+            return
+
+        if out is None:
+            # Getting the actual error (if any) seems to be difficult. The
+            # error does end up in BrowserPage.javaScriptConsoleMessage(), but
+            # distinguishing between :jseval errors and errors from the webpage
+            # is not trivial...
+            message.info(self._win_id, 'No output or error')
+        else:
+            # The output can be a string, number, dict, array, etc. But *don't*
+            # output too much data, as this will make qutebrowser hang
+            out = str(out)
+            if len(out) > 5000:
+                message.info(self._win_id, out[:5000] + ' [...trimmed...]')
+            else:
+                message.info(self._win_id, out)

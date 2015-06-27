@@ -21,16 +21,9 @@
 
 import collections
 
-from PyQt5.QtCore import (pyqtSlot, pyqtSignal, PYQT_VERSION, QCoreApplication,
-                          QUrl, QByteArray)
-from PyQt5.QtNetwork import QNetworkAccessManager, QNetworkReply, QSslError
-
-try:
-    from PyQt5.QtNetwork import QSslSocket
-except ImportError:
-    SSL_AVAILABLE = False
-else:
-    SSL_AVAILABLE = QSslSocket.supportsSsl()
+from PyQt5.QtCore import (pyqtSlot, pyqtSignal, PYQT_VERSION, QCoreApplication)
+from PyQt5.QtNetwork import (QNetworkAccessManager, QNetworkReply, QSslError,
+                             QSslSocket, QUrl, QByteArray)
 
 from qutebrowser.config import config
 from qutebrowser.utils import (message, log, usertypes, utils, objreg, qtutils,
@@ -46,13 +39,12 @@ _proxy_auth_cache = {}
 
 def init():
     """Disable insecure SSL ciphers on old Qt versions."""
-    if SSL_AVAILABLE:
-        if not qtutils.version_check('5.3.0'):
-            # Disable weak SSL ciphers.
-            # See https://codereview.qt-project.org/#/c/75943/
-            good_ciphers = [c for c in QSslSocket.supportedCiphers()
-                            if c.usedBits() >= 128]
-            QSslSocket.setDefaultCiphers(good_ciphers)
+    if not qtutils.version_check('5.3.0'):
+        # Disable weak SSL ciphers.
+        # See https://codereview.qt-project.org/#/c/75943/
+        good_ciphers = [c for c in QSslSocket.supportedCiphers()
+                        if c.usedBits() >= 128]
+        QSslSocket.setDefaultCiphers(good_ciphers)
 
 
 class SslError(QSslError):
@@ -107,10 +99,9 @@ class NetworkManager(QNetworkAccessManager):
         }
         self._set_cookiejar()
         self._set_cache()
-        if SSL_AVAILABLE:
-            self.sslErrors.connect(self.on_ssl_errors)
-            self._rejected_ssl_errors = collections.defaultdict(list)
-            self._accepted_ssl_errors = collections.defaultdict(list)
+        self.sslErrors.connect(self.on_ssl_errors)
+        self._rejected_ssl_errors = collections.defaultdict(list)
+        self._accepted_ssl_errors = collections.defaultdict(list)
         self.authenticationRequired.connect(self.on_authentication_required)
         self.proxyAuthenticationRequired.connect(
             self.on_proxy_authentication_required)
@@ -181,76 +172,67 @@ class NetworkManager(QNetworkAccessManager):
             request.deleteLater()
         self.shutting_down.emit()
 
-    if SSL_AVAILABLE:  # pragma: no mccabe
-        @pyqtSlot('QNetworkReply*', 'QList<QSslError>')
-        def on_ssl_errors(self, reply, errors):
-            """Decide if SSL errors should be ignored or not.
+    @pyqtSlot('QNetworkReply*', 'QList<QSslError>')
+    def on_ssl_errors(self, reply, errors):  # pragma: no mccabe
+        """Decide if SSL errors should be ignored or not.
 
-            This slot is called on SSL/TLS errors by the self.sslErrors signal.
+        This slot is called on SSL/TLS errors by the self.sslErrors signal.
 
-            Args:
-                reply: The QNetworkReply that is encountering the errors.
-                errors: A list of errors.
-            """
-            errors = [SslError(e) for e in errors]
-            ssl_strict = config.get('network', 'ssl-strict')
-            if ssl_strict == 'ask':
-                try:
-                    host_tpl = urlutils.host_tuple(reply.url())
-                except ValueError:
-                    host_tpl = None
-                    is_accepted = False
-                    is_rejected = False
-                else:
-                    is_accepted = set(errors).issubset(
-                        self._accepted_ssl_errors[host_tpl])
-                    is_rejected = set(errors).issubset(
-                        self._rejected_ssl_errors[host_tpl])
-                if is_accepted:
-                    reply.ignoreSslErrors()
-                elif is_rejected:
-                    pass
-                else:
-                    err_string = '\n'.join('- ' + err.errorString() for err in
-                                           errors)
-                    answer = self._ask('SSL errors - continue?\n{}'.format(
-                        err_string), mode=usertypes.PromptMode.yesno,
-                        owner=reply)
-                    if answer:
-                        reply.ignoreSslErrors()
-                        d = self._accepted_ssl_errors
-                    else:
-                        d = self._rejected_ssl_errors
-                    if host_tpl is not None:
-                        d[host_tpl] += errors
-            elif ssl_strict:
+        Args:
+            reply: The QNetworkReply that is encountering the errors.
+            errors: A list of errors.
+        """
+        errors = [SslError(e) for e in errors]
+        ssl_strict = config.get('network', 'ssl-strict')
+        if ssl_strict == 'ask':
+            try:
+                host_tpl = urlutils.host_tuple(reply.url())
+            except ValueError:
+                host_tpl = None
+                is_accepted = False
+                is_rejected = False
+            else:
+                is_accepted = set(errors).issubset(
+                    self._accepted_ssl_errors[host_tpl])
+                is_rejected = set(errors).issubset(
+                    self._rejected_ssl_errors[host_tpl])
+            if is_accepted:
+                reply.ignoreSslErrors()
+            elif is_rejected:
                 pass
             else:
-                for err in errors:
-                    # FIXME we might want to use warn here (non-fatal error)
-                    # https://github.com/The-Compiler/qutebrowser/issues/114
-                    message.error(self._win_id,
-                                  'SSL error: {}'.format(err.errorString()))
-                reply.ignoreSslErrors()
+                err_string = '\n'.join('- ' + err.errorString() for err in
+                                       errors)
+                answer = self._ask('SSL errors - continue?\n{}'.format(
+                    err_string), mode=usertypes.PromptMode.yesno,
+                    owner=reply)
+                if answer:
+                    reply.ignoreSslErrors()
+                    d = self._accepted_ssl_errors
+                else:
+                    d = self._rejected_ssl_errors
+                if host_tpl is not None:
+                    d[host_tpl] += errors
+        elif ssl_strict:
+            pass
+        else:
+            for err in errors:
+                # FIXME we might want to use warn here (non-fatal error)
+                # https://github.com/The-Compiler/qutebrowser/issues/114
+                message.error(self._win_id,
+                              'SSL error: {}'.format(err.errorString()))
+            reply.ignoreSslErrors()
 
-        @pyqtSlot(QUrl)
-        def clear_rejected_ssl_errors(self, url):
-            """Clear the rejected SSL errors on a reload.
+    @pyqtSlot(QUrl)
+    def clear_rejected_ssl_errors(self, url):
+        """Clear the rejected SSL errors on a reload.
 
-            Args:
-                url: The URL to remove.
-            """
-            try:
-                del self._rejected_ssl_errors[url]
-            except KeyError:
-                pass
-    else:
-        @pyqtSlot(QUrl)
-        def clear_rejected_ssl_errors(self, _url):
-            """Clear the rejected SSL errors on a reload.
-
-            Does nothing because SSL is unavailable.
-            """
+        Args:
+            url: The URL to remove.
+        """
+        try:
+            del self._rejected_ssl_errors[url]
+        except KeyError:
             pass
 
     @pyqtSlot('QNetworkReply', 'QAuthenticator')
@@ -334,11 +316,7 @@ class NetworkManager(QNetworkAccessManager):
             A QNetworkReply.
         """
         scheme = req.url().scheme()
-        if scheme == 'https' and not SSL_AVAILABLE:
-            return networkreply.ErrorNetworkReply(
-                req, "SSL is not supported by the installed Qt library!",
-                QNetworkReply.ProtocolUnknownError, self)
-        elif scheme in self._scheme_handlers:
+        if scheme in self._scheme_handlers:
             return self._scheme_handlers[scheme].createRequest(
                 op, req, outgoing_data)
 

@@ -55,6 +55,7 @@ class PassthroughKeyParser(CommandKeyParser):
     """
 
     do_log = False
+    passthrough = True
 
     def __init__(self, win_id, mode, parent=None, warn=True):
         """Constructor.

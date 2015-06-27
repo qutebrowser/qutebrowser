@@ -19,7 +19,7 @@
 
 """Completer attached to a CompletionView."""
 
-from PyQt5.QtCore import pyqtSlot, QObject, QTimer
+from PyQt5.QtCore import pyqtSignal, pyqtSlot, QObject, QTimer
 
 from qutebrowser.config import config
 from qutebrowser.commands import cmdutils, runners
@@ -40,14 +40,22 @@ class Completer(QObject):
         _last_cursor_pos: The old cursor position so we avoid double completion
                           updates.
         _last_text: The old command text so we avoid double completion updates.
+        _signals_connected: Whether the signals are connected to update the
+                            completion when the command widget requests that.
+
+    Signals:
+        next_prev_item: Emitted to select the next/previous item in the
+                        completion.
+                        arg0: True for the previous item, False for the next.
     """
+
+    next_prev_item = pyqtSignal(bool)
 
     def __init__(self, cmd, win_id, parent=None):
         super().__init__(parent)
         self._win_id = win_id
         self._cmd = cmd
-        self._cmd.update_completion.connect(self.schedule_completion_update)
-        self._cmd.textEdited.connect(self.on_text_edited)
+        self._signals_connected = False
         self._ignore_change = False
         self._empty_item_idx = None
         self._timer = QTimer()
@@ -58,8 +66,62 @@ class Completer(QObject):
         self._last_cursor_pos = None
         self._last_text = None
 
+        objreg.get('config').changed.connect(self.on_auto_open_changed)
+        self.handle_signal_connections()
+        self._cmd.clear_completion_selection.connect(
+            self.handle_signal_connections)
+
     def __repr__(self):
         return utils.get_repr(self)
+
+    @config.change_filter('completion', 'auto-open')
+    def on_auto_open_changed(self):
+        self.handle_signal_connections()
+
+    @pyqtSlot()
+    def handle_signal_connections(self):
+        self._connect_signals(config.get('completion', 'auto-open'))
+
+    def _connect_signals(self, connect=True):
+        """Connect or disconnect the completion signals.
+
+        Args:
+            connect: Whether to connect (True) or disconnect (False) the
+                     signals.
+
+        Return:
+            True if the signals were connected (connect=True and aren't
+            connected yet) - otherwise False.
+        """
+        connections = [
+            (self._cmd.update_completion, self.schedule_completion_update),
+            (self._cmd.textChanged, self.on_text_edited),
+        ]
+
+        if connect and not self._signals_connected:
+            for sender, receiver in connections:
+                sender.connect(receiver)
+            self._signals_connected = True
+            return True
+        elif not connect:
+            for sender, receiver in connections:
+                try:
+                    sender.disconnect(receiver)
+                except TypeError:
+                    # Don't fail if not connected
+                    pass
+            self._signals_connected = False
+        return False
+
+    def _open_completion_if_needed(self):
+        """If auto-open is false, temporarily connect signals.
+
+        Also opens the completion.
+        """
+        if not config.get('completion', 'auto-open'):
+            connected = self._connect_signals(True)
+            if connected:
+                self.update_completion()
 
     def _model(self):
         """Convienience method to get the current completion model."""
@@ -272,7 +334,7 @@ class Completer(QObject):
             pattern = parts[self._cursor_part].strip()
         except IndexError:
             pattern = ''
-        self._model().set_pattern(pattern)
+        completion.set_pattern(pattern)
 
         log.completion.debug(
             "New completion for {}: {}, with pattern '{}'".format(
@@ -328,7 +390,7 @@ class Completer(QObject):
                         cursor_pos))
         skip = 0
         for i, part in enumerate(parts):
-            log.completion.vdebug("Checking part {}: {}".format(i, parts[i]))
+            log.completion.vdebug("Checking part {}: {!r}".format(i, parts[i]))
             if not part:
                 skip += 1
                 continue
@@ -350,7 +412,11 @@ class Completer(QObject):
                 "Removing len({!r}) -> {} from cursor_pos -> {}".format(
                     part, len(part), cursor_pos))
         else:
-            self._cursor_part = i - skip
+            if i == 0:
+                # Initial `:` press without any text.
+                self._cursor_part = 0
+            else:
+                self._cursor_part = i - skip
             if spaces:
                 self._empty_item_idx = i - skip
             else:
@@ -401,3 +467,17 @@ class Completer(QObject):
         # We also want to update the cursor part and emit update_completion
         # here, but that's already done for us by cursorPositionChanged
         # anyways, so we don't need to do it twice.
+
+    @cmdutils.register(instance='completer', hide=True,
+                       modes=[usertypes.KeyMode.command], scope='window')
+    def completion_item_prev(self):
+        """Select the previous completion item."""
+        self._open_completion_if_needed()
+        self.next_prev_item.emit(True)
+
+    @cmdutils.register(instance='completer', hide=True,
+                       modes=[usertypes.KeyMode.command], scope='window')
+    def completion_item_next(self):
+        """Select the next completion item."""
+        self._open_completion_if_needed()
+        self.next_prev_item.emit(False)

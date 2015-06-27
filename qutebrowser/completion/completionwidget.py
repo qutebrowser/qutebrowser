@@ -26,10 +26,9 @@ subclasses to provide completions.
 from PyQt5.QtWidgets import QStyle, QTreeView, QSizePolicy
 from PyQt5.QtCore import pyqtSlot, pyqtSignal, Qt, QItemSelectionModel
 
-from qutebrowser.commands import cmdutils
 from qutebrowser.config import config, style
 from qutebrowser.completion import completiondelegate, completer
-from qutebrowser.utils import usertypes, qtutils, objreg, utils
+from qutebrowser.utils import qtutils, objreg, utils
 
 
 class CompletionView(QTreeView):
@@ -96,12 +95,13 @@ class CompletionView(QTreeView):
         objreg.register('completion', self, scope='window', window=win_id)
         cmd = objreg.get('status-command', scope='window', window=win_id)
         completer_obj = completer.Completer(cmd, win_id, self)
+        completer_obj.next_prev_item.connect(self.on_next_prev_item)
         objreg.register('completer', completer_obj, scope='window',
                         window=win_id)
         self.enabled = config.get('completion', 'show')
         objreg.get('config').changed.connect(self.set_enabled)
         # FIXME handle new aliases.
-        #objreg.get('config').changed.connect(self.init_command_completion)
+        # objreg.get('config').changed.connect(self.init_command_completion)
 
         self._delegate = completiondelegate.CompletionItemDelegate(self)
         self.setItemDelegate(self._delegate)
@@ -168,11 +168,14 @@ class CompletionView(QTreeView):
                 # Item is a real item, not a category header -> success
                 return idx
 
-    def _next_prev_item(self, prev):
+    @pyqtSlot(bool)
+    def on_next_prev_item(self, prev):
         """Handle a tab press for the CompletionView.
 
         Select the previous/next item and write the new text to the
         statusbar.
+
+        Called from the Completer's next_prev_item signal.
 
         Args:
             prev: True for prev item, False for next one.
@@ -201,8 +204,17 @@ class CompletionView(QTreeView):
         for i in range(model.rowCount()):
             self.expand(model.index(i, 0))
         self._resize_columns()
-        model.rowsRemoved.connect(self.maybe_resize_completion)
-        model.rowsInserted.connect(self.maybe_resize_completion)
+        self.maybe_resize_completion()
+
+    def set_pattern(self, pattern):
+        """Set the completion pattern for the current model.
+
+        Called from on_update_completion().
+
+        Args:
+            pattern: The filter pattern to set (what the user entered).
+        """
+        self.model().set_pattern(pattern)
         self.maybe_resize_completion()
 
     @pyqtSlot()
@@ -223,18 +235,6 @@ class CompletionView(QTreeView):
         if selmod is not None:
             selmod.clearSelection()
             selmod.clearCurrentIndex()
-
-    @cmdutils.register(instance='completion', hide=True,
-                       modes=[usertypes.KeyMode.command], scope='window')
-    def completion_item_prev(self):
-        """Select the previous completion item."""
-        self._next_prev_item(prev=True)
-
-    @cmdutils.register(instance='completion', hide=True,
-                       modes=[usertypes.KeyMode.command], scope='window')
-    def completion_item_next(self):
-        """Select the next completion item."""
-        self._next_prev_item(prev=False)
 
     def selectionChanged(self, selected, deselected):
         """Extend selectionChanged to call completers selection_changed."""

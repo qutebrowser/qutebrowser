@@ -137,10 +137,10 @@ def fix_harfbuzz(args):
     - On Qt 5.2 (and probably earlier) the new engine probably has more
       crashes and is also experimental.
 
-      e.g. https://bugreports.qt-project.org/browse/QTBUG-36099
+      e.g. https://bugreports.qt.io/browse/QTBUG-36099
 
     - On Qt 5.3.0 there's a bug that affects a lot of websites:
-      https://bugreports.qt-project.org/browse/QTBUG-39278
+      https://bugreports.qt.io/browse/QTBUG-39278
       So the new engine will be more stable.
 
     - On Qt 5.3.1 this bug is fixed and the old engine will be the more stable
@@ -210,6 +210,19 @@ def check_qt_version():
     if qtutils.version_check('5.2.0', operator.lt):
         text = ("Fatal error: Qt and PyQt >= 5.2.0 are required, but {} is "
                 "installed.".format(qVersion()))
+        _die(text)
+
+
+def check_ssl_support():
+    """Check if SSL support is available."""
+    try:
+        from PyQt5.QtNetwork import QSslSocket
+    except ImportError:
+        ok = False
+    else:
+        ok = QSslSocket.supportsSsl()
+    if not ok:
+        text = "Fatal error: Your Qt is built without SSL support."
         _die(text)
 
 
@@ -288,6 +301,7 @@ def earlyinit(args):
     # Now we can be sure QtCore is available, so we can print dialogs on
     # errors, so people only using the GUI notice them as well.
     check_qt_version()
+    check_ssl_support()
     remove_inputhook()
     check_libraries()
     init_log(args)

@@ -21,7 +21,6 @@
 
 import math
 import functools
-import subprocess
 import collections
 
 from PyQt5.QtCore import (pyqtSignal, pyqtSlot, QObject, QEvent, Qt, QUrl,
@@ -36,6 +35,7 @@ from qutebrowser.keyinput import modeman, modeparsers
 from qutebrowser.browser import webelem
 from qutebrowser.commands import userscripts, cmdexc, cmdutils, runners
 from qutebrowser.utils import usertypes, log, qtutils, message, objreg
+from qutebrowser.misc import guiprocess
 
 
 ElemTuple = collections.namedtuple('ElemTuple', ['elem', 'label'])
@@ -548,11 +548,9 @@ class HintManager(QObject):
         """
         urlstr = url.toString(QUrl.FullyEncoded | QUrl.RemovePassword)
         args = context.get_args(urlstr)
-        try:
-            subprocess.Popen(args)
-        except OSError as e:
-            msg = "Error while spawning command: {}".format(e)
-            message.error(self._win_id, msg, immediately=True)
+        cmd, *args = args
+        proc = guiprocess.GUIProcess(self._win_id, what='command', parent=self)
+        proc.start(cmd, args)
 
     def _resolve_url(self, elem, baseurl):
         """Resolve a URL and check if we want to keep it.

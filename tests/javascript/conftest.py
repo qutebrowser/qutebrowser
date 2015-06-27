@@ -28,7 +28,7 @@ import jinja2
 from PyQt5.QtWebKit import QWebSettings
 from PyQt5.QtWebKitWidgets import QWebView, QWebPage
 
-import qutebrowser
+from qutebrowser.utils import utils
 
 
 class TestWebPage(QWebPage):
@@ -80,8 +80,10 @@ class JSTester:
     def scroll_anchor(self, name):
         """Scroll the main frame to the given anchor."""
         page = self.webview.page()
-        with self._qtbot.waitSignal(page.scrollRequested):
-            page.mainFrame().scrollToAnchor(name)
+        old_pos = page.mainFrame().scrollPosition()
+        page.mainFrame().scrollToAnchor(name)
+        new_pos = page.mainFrame().scrollPosition()
+        assert old_pos != new_pos
 
     def load(self, path, **kwargs):
         """Load and display the given test data.
@@ -92,7 +94,7 @@ class JSTester:
             **kwargs: Passed to jinja's template.render().
         """
         template = self._jinja_env.get_template(path)
-        with self._qtbot.waitSignal(self.webview.loadFinished):
+        with self._qtbot.waitSignal(self.webview.loadFinished, raising=True):
             self.webview.setHtml(template.render(**kwargs))
 
     def run_file(self, filename):
@@ -105,11 +107,7 @@ class JSTester:
         Return:
             The javascript return value.
         """
-        base_path = os.path.join(os.path.dirname(qutebrowser.__file__),
-                                 'javascript')
-        full_path = os.path.join(base_path, filename)
-        with open(full_path, 'r', encoding='utf-8') as f:
-            source = f.read()
+        source = utils.read_file(os.path.join('javascript', filename))
         return self.run(source)
 
     def run(self, source):

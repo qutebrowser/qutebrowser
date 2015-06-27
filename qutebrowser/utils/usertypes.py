@@ -73,7 +73,7 @@ class NeighborList(collections.abc.Sequence):
         Args:
             items: The list of items to iterate in.
             _default: The initially selected value.
-            _mode: Behaviour when the first/last item is reached.
+            _mode: Behavior when the first/last item is reached.
                    Modes.block: Stay on the selected item
                    Modes.wrap: Wrap around to the other end
                    Modes.exception: Raise an IndexError.
@@ -242,7 +242,7 @@ Completion = enum('Completion', ['command', 'section', 'option', 'value',
 
 # Exit statuses for errors. Needs to be an int for sys.exit.
 Exit = enum('Exit', ['ok', 'reserved', 'exception', 'err_ipc', 'err_init',
-                     'err_config', 'err_key_config'], is_int=True)
+                     'err_config', 'err_key_config'], is_int=True, start=0)
 
 
 class Question(QObject):
