@@ -65,6 +65,7 @@
 [options="header",width="75%",cols="25%,75%"]
 |==============
 |Setting|Description
+|<<completion-auto-open,auto-open>>|Automatically open completion when typing.
 |<<completion-download-path-suggestion,download-path-suggestion>>|What to display in the download filename input.
 |<<completion-timestamp-format,timestamp-format>>|How to format timestamps (e.g. for history)
 |<<completion-show,show>>|Whether to show the autocompletion window.
@@ -693,6 +694,17 @@ Default: +pass:[true]+
 
 == completion
 Options related to completion and command history.
+
+[[completion-auto-open]]
+=== auto-open
+Automatically open completion when typing.
+
+Valid values:
+
+ * +true+
+ * +false+
+
+Default: +pass:[true]+
 
 [[completion-download-path-suggestion]]
 === download-path-suggestion
