@@ -296,10 +296,10 @@ class DownloadItem(QObject):
         else:
             self.set_fileobj(fileobj)
 
-    def _ask_overwrite_question(self):
+    def _ask_confirm_question(self, message):
         """Create a Question object to be asked."""
         q = usertypes.Question(self)
-        q.text = self._filename + " already exists. Overwrite? (y/n)"
+        q.text = message + ' (N/y)'
         q.mode = usertypes.PromptMode.yesno
         q.answered_yes.connect(self._create_fileobj)
         q.answered_no.connect(functools.partial(self.cancel, False))
@@ -452,14 +452,11 @@ class DownloadItem(QObject):
         if os.path.isfile(self._filename):
             # The file already exists, so ask the user if it should be
             # overwritten.
-            self._ask_overwrite_question()
-        # FIFO, device node, etc. Don't even try.
+            self._ask_confirm_question(self._filename + " already exists. Overwrite?")
+        # FIFO, device node, etc. Make sure we want to do this
         elif (os.path.exists(self._filename) and not
                 os.path.isdir(self._filename)):
-            self.cancel(False)
-            message.error(self._win_id, "The file {} already exists, and is a "
-                                        "special file. Aborting.".format(
-                                         self._filename))
+            self._ask_confirm_question(self._filename + " already exists and is a special file. Write to this?")
         else:
             self._create_fileobj()
 
