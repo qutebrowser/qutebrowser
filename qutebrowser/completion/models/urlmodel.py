@@ -54,7 +54,7 @@ class UrlCompletionModel(base.BaseCompletionModel):
         history = utils.newest_slice(self._history, max_history)
         for entry in history:
             self._add_history_entry(entry)
-        self._history.item_about_to_be_added.connect(
+        self._history.add_completion_item.connect(
             self.on_history_item_added)
 
         objreg.get('config').changed.connect(self.reformat_timestamps)

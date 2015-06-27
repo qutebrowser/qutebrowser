@@ -44,9 +44,6 @@ def progress_widget(qtbot, monkeypatch, config_stub):
     return widget
 
 
-@pytest.mark.xfail(
-    reason='Blacklisted because it could cause random segfaults - see '
-           'https://github.com/hackebrot/qutebrowser/issues/22', run=False)
 def test_load_started(progress_widget):
     """Ensure the Progress widget reacts properly when the page starts loading.
 

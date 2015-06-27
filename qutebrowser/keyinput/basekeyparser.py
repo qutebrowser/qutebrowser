@@ -195,7 +195,7 @@ class BaseKeyParser(QObject):
             self._keystring = ''
             self.execute(binding, self.Type.chain, count)
         elif match == self.Match.ambiguous:
-            self._debug_log("Ambigious match for '{}'.".format(
+            self._debug_log("Ambiguous match for '{}'.".format(
                 self._keystring))
             self._handle_ambiguous_match(binding, count)
         elif match == self.Match.partial:

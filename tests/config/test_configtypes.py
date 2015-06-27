@@ -1362,6 +1362,7 @@ class TestFile:
     def test_validate_does_not_exist(self, os_path):
         """Test validate with a file which does not exist."""
         os_path.expanduser.side_effect = lambda x: x
+        os_path.expandvars.side_effect = lambda x: x
         os_path.isfile.return_value = False
         with pytest.raises(configexc.ValidationError):
             self.t.validate('foobar')
@@ -1369,14 +1370,27 @@ class TestFile:
     def test_validate_exists_abs(self, os_path):
         """Test validate with a file which does exist."""
         os_path.expanduser.side_effect = lambda x: x
+        os_path.expandvars.side_effect = lambda x: x
         os_path.isfile.return_value = True
         os_path.isabs.return_value = True
         self.t.validate('foobar')
 
-    def test_validate_exists_not_abs(self, os_path):
-        """Test validate with a file which does exist but is not absolute."""
+    def test_validate_exists_rel(self, os_path, monkeypatch):
+        """Test validate with a relative path to an existing file."""
+        monkeypatch.setattr(
+            'qutebrowser.config.configtypes.standarddir.config',
+            lambda: '/home/foo/.config/')
         os_path.expanduser.side_effect = lambda x: x
+        os_path.expandvars.side_effect = lambda x: x
         os_path.isfile.return_value = True
+        os_path.isabs.return_value = False
+        self.t.validate('foobar')
+        os_path.join.assert_called_once_with('/home/foo/.config/', 'foobar')
+
+    def test_validate_rel_config_none(self, os_path, monkeypatch):
+        """Test with a relative path and standarddir.config returning None."""
+        monkeypatch.setattr(
+            'qutebrowser.config.configtypes.standarddir.config', lambda: None)
         os_path.isabs.return_value = False
         with pytest.raises(configexc.ValidationError):
             self.t.validate('foobar')
@@ -1384,10 +1398,21 @@ class TestFile:
     def test_validate_expanduser(self, os_path):
         """Test if validate expands the user correctly."""
         os_path.expanduser.side_effect = lambda x: x.replace('~', '/home/foo')
+        os_path.expandvars.side_effect = lambda x: x
         os_path.isfile.side_effect = lambda path: path == '/home/foo/foobar'
         os_path.isabs.return_value = True
         self.t.validate('~/foobar')
         os_path.expanduser.assert_called_once_with('~/foobar')
+
+    def test_validate_expandvars(self, os_path):
+        """Test if validate expands the environment vars correctly."""
+        os_path.expanduser.side_effect = lambda x: x
+        os_path.expandvars.side_effect = lambda x: x.replace(
+            '$HOME', '/home/foo')
+        os_path.isfile.side_effect = lambda path: path == '/home/foo/foobar'
+        os_path.isabs.return_value = True
+        self.t.validate('$HOME/foobar')
+        os_path.expandvars.assert_called_once_with('$HOME/foobar')
 
     def test_validate_invalid_encoding(self, os_path, unicode_encode_err):
         """Test validate with an invalid encoding, e.g. LC_ALL=C."""
@@ -1399,6 +1424,7 @@ class TestFile:
     def test_transform(self, os_path):
         """Test transform."""
         os_path.expanduser.side_effect = lambda x: x.replace('~', '/home/foo')
+        os_path.expandvars.side_effect = lambda x: x
         assert self.t.transform('~/foobar') == '/home/foo/foobar'
         os_path.expanduser.assert_called_once_with('~/foobar')
 
@@ -1855,6 +1881,11 @@ class TestSearchEngineUrl:
         with pytest.raises(configexc.ValidationError):
             self.t.validate(':{}')
 
+    def test_validate_format_string(self):
+        """Test validate with a {foo} format string."""
+        with pytest.raises(configexc.ValidationError):
+            self.t.validate('foo{bar}baz{}')
+
     def test_transform_empty(self):
         """Test transform with an empty value."""
         assert self.t.transform('') is None
@@ -1930,13 +1961,21 @@ class TestUserStyleSheet:
         """Test transform with an empty value."""
         assert self.t.transform('') is None
 
-    def test_transform_file(self):
+    def test_transform_file(self, os_path, mocker):
         """Test transform with a filename."""
+        qurl = mocker.patch('qutebrowser.config.configtypes.QUrl',
+                            autospec=True)
+        qurl.fromLocalFile.return_value = QUrl("file:///foo/bar")
+        os_path.exists.return_value = True
         path = os.path.join(os.path.sep, 'foo', 'bar')
         assert self.t.transform(path) == QUrl("file:///foo/bar")
 
-    def test_transform_file_expandvars(self, monkeypatch):
+    def test_transform_file_expandvars(self, os_path, monkeypatch, mocker):
         """Test transform with a filename (expandvars)."""
+        qurl = mocker.patch('qutebrowser.config.configtypes.QUrl',
+                            autospec=True)
+        qurl.fromLocalFile.return_value = QUrl("file:///foo/bar")
+        os_path.exists.return_value = True
         monkeypatch.setenv('FOO', 'foo')
         path = os.path.join(os.path.sep, '$FOO', 'bar')
         assert self.t.transform(path) == QUrl("file:///foo/bar")

@@ -145,7 +145,6 @@ class CompletionItemDelegate(QStyledItemDelegate):
             rect: The QRect to clip the drawing to.
         """
         # We can't use drawContents because then the color would be ignored.
-        # See: https://qt-project.org/forums/viewthread/21492
         clip = QRectF(0, 0, rect.width(), rect.height())
         self._painter.save()
         if self._opt.state & QStyle.State_Selected:

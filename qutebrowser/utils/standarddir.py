@@ -118,7 +118,7 @@ def _get(typ):
 
     Args:
         typ: A member of the QStandardPaths::StandardLocation enum,
-             see http://qt-project.org/doc/qt-5/qstandardpaths.html#StandardLocation-enum
+             see http://doc.qt.io/qt-5/qstandardpaths.html#StandardLocation-enum
     """
     overridden, path = _from_args(typ, _args)
     if not overridden:
@@ -127,7 +127,7 @@ def _get(typ):
         if (typ == QStandardPaths.ConfigLocation and
                 path.split(os.sep)[-1] != appname):
             # WORKAROUND - see
-            # https://bugreports.qt-project.org/browse/QTBUG-38872
+            # https://bugreports.qt.io/browse/QTBUG-38872
             path = os.path.join(path, appname)
         if typ == QStandardPaths.DataLocation and os.name == 'nt':
             # Under windows, config/data might end up in the same directory.
@@ -170,6 +170,7 @@ def _init_cachedir_tag():
                 f.write("# This file is a cache directory tag created by "
                         "qutebrowser.\n")
                 f.write("# For information about cache directory tags, see:\n")
-                f.write("#  http://www.brynosaurus.com/cachedir/\n")
+                f.write("#  http://www.brynosaurus.com/"  # pragma: no branch
+                        "cachedir/\n")
         except OSError:
             log.init.exception("Failed to create CACHEDIR.TAG")

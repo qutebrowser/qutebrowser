@@ -279,7 +279,7 @@ def qurl_from_user_input(urlstr):
     IPv6, so we first try to handle it as a valid IPv6, and if that fails we
     use QUrl.fromUserInput.
 
-    WORKAROUND - https://bugreports.qt-project.org/browse/QTBUG-41089
+    WORKAROUND - https://bugreports.qt.io/browse/QTBUG-41089
     FIXME - Maybe https://codereview.qt-project.org/#/c/93851/ has a better way
             to solve this?
     https://github.com/The-Compiler/qutebrowser/issues/109

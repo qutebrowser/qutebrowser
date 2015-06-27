@@ -34,7 +34,6 @@ import configparser
 
 from PyQt5.QtCore import pyqtSlot, QObject
 from PyQt5.QtNetwork import QNetworkReply
-from PyQt5.QtWebKit import QWebSettings
 
 import qutebrowser
 from qutebrowser.browser.network import schemehandler, networkreply
@@ -98,7 +97,7 @@ class JSBridge(QObject):
     def set(self, win_id, sectname, optname, value):
         """Slot to set a setting from qute:settings."""
         # https://github.com/The-Compiler/qutebrowser/issues/727
-        if (sectname, optname == 'content', 'allow-javascript' and
+        if ((sectname, optname) == ('content', 'allow-javascript') and
                 value == 'false'):
             message.error(win_id, "Refusing to disable javascript via "
                           "qute:settings as it needs javascript support.")
@@ -160,7 +159,7 @@ def qute_help(win_id, request):
             url=request.url().toDisplayString(),
             error="This most likely means the documentation was not generated "
                   "properly. If you are running qutebrowser from the git "
-                  "repository, please run scripts/asciidoc2html.py."
+                  "repository, please run scripts/asciidoc2html.py. "
                   "If you're running a released version this is a bug, please "
                   "use :report to report it.",
             icon='')
@@ -179,18 +178,10 @@ def qute_help(win_id, request):
 
 def qute_settings(win_id, _request):
     """Handler for qute:settings. View/change qute configuration."""
-    if not QWebSettings.globalSettings().testAttribute(
-            QWebSettings.JavascriptEnabled):
-        # https://github.com/The-Compiler/qutebrowser/issues/727
-        template = jinja.env.get_template('pre.html')
-        html = template.render(
-            title='Failed to open qute:settings.',
-            content="qute:settings needs javascript enabled to work.")
-    else:
-        config_getter = functools.partial(objreg.get('config').get, raw=True)
-        html = jinja.env.get_template('settings.html').render(
-            win_id=win_id, title='settings', config=configdata,
-            confget=config_getter)
+    config_getter = functools.partial(objreg.get('config').get, raw=True)
+    html = jinja.env.get_template('settings.html').render(
+        win_id=win_id, title='settings', config=configdata,
+        confget=config_getter)
     return html.encode('UTF-8', errors='xmlcharrefreplace')
 
 

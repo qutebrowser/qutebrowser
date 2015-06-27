@@ -68,7 +68,7 @@ Contributions / Bugs
 --------------------
 
 You want to contribute to qutebrowser? Awesome! Please read
-link:doc/CONTRIBUTING.asciidoc[the contribution guidelines] for details and
+link:CONTRIBUTING.asciidoc[the contribution guidelines] for details and
 useful hints.
 
 If you found a bug or have a feature request, you can report it in several
@@ -89,10 +89,10 @@ Requirements
 The following software and libraries are required to run qutebrowser:
 
 * http://www.python.org/[Python] 3.4
-* http://qt-project.org/[Qt] 5.2.0 or newer (5.4.1 recommended)
+* http://qt.io/[Qt] 5.2.0 or newer (5.4.2 recommended)
 * QtWebKit
 * http://www.riverbankcomputing.com/software/pyqt/intro[PyQt] 5.2.0 or newer
-(5.4.1 recommended) for Python 3
+(5.4.2 recommended) for Python 3
 * https://pypi.python.org/pypi/setuptools/[pkg_resources/setuptools]
 * http://fdik.org/pyPEG/[pyPEG2]
 * http://jinja.pocoo.org/[jinja2]
@@ -137,8 +137,10 @@ Contributors, sorted by the number of commits in descending order:
 * Bruno Oliveira
 * Raphael Pierzina
 * Joel Torstensson
-* Claude
 * Martin Tournoij
+* Claude
+* Lamar Pavel
+* Austin Anderson
 * Artur Shaik
 * Antoni Boucher
 * ZDarian
@@ -159,6 +161,7 @@ Contributors, sorted by the number of commits in descending order:
 * Mathias Fussenegger
 * Larry Hynes
 * Fritz V155 Reichwald
+* Franz Fellner
 * error800
 * Thorsten Wißmann
 * Thiago Barroso Perrotta
@@ -166,7 +169,6 @@ Contributors, sorted by the number of commits in descending order:
 * Helen Sherwood-Taylor
 * HalosGhost
 * Gregor Pohl
-* Franz Fellner
 * Eivind Uggedal
 * Andreas Fischer
 // QUTE_AUTHORS_END
@@ -220,7 +222,7 @@ Also, thanks to:
 
 * Everyone who had the patience to test qutebrowser before v0.1.
 * Everyone triaging/fixing my bugs in the
-https://bugreports.qt-project.org/secure/Dashboard.jspa[Qt bugtracker]
+https://bugreports.qt.io/secure/Dashboard.jspa[Qt bugtracker]
 * Everyone answering my questions on http://stackoverflow.com/[Stack Overflow]
 and in IRC.
 * All the projects which were a great help while developing qutebrowser.

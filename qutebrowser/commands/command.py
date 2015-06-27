@@ -29,6 +29,11 @@ from qutebrowser.utils import log, utils, message, docutils, objreg, usertypes
 from qutebrowser.utils import debug as debug_utils
 
 
+def arg_name(name):
+    """Get the name an argument should have based on its Python name."""
+    return name.rstrip('_').replace('_', '-')
+
+
 class Command:
 
     """Base skeleton for a command.
@@ -257,10 +262,12 @@ class Command:
         except KeyError:
             pass
 
+        kwargs['dest'] = param.name
+
         if isinstance(typ, tuple):
             kwargs['metavar'] = annotation_info.metavar or param.name
         elif utils.is_enum(typ):
-            kwargs['choices'] = [e.name.replace('_', '-') for e in typ]
+            kwargs['choices'] = [arg_name(e.name) for e in typ]
             kwargs['metavar'] = annotation_info.metavar or param.name
         elif typ is bool:
             kwargs['action'] = 'store_true'
@@ -288,7 +295,7 @@ class Command:
             A list of args.
         """
         args = []
-        name = param.name.rstrip('_').replace('_', '-')
+        name = arg_name(param.name)
         shortname = annotation_info.flag or name[0]
         if len(shortname) != 1:
             raise ValueError("Flag '{}' of parameter {} (command {}) must be "
@@ -304,7 +311,6 @@ class Command:
             if typ is not bool:
                 self.flags_with_args += [short_flag, long_flag]
         else:
-            args.append(name)
             if not annotation_info.hide:
                 self.pos_args.append((param.name, name))
         return args
@@ -408,17 +414,16 @@ class Command:
             raise TypeError("{}: invalid parameter type {} for argument "
                             "{!r}!".format(self.name, param.kind, param.name))
 
-    def _get_param_name_and_value(self, param):
-        """Get the converted name and value for an inspect.Parameter."""
-        name = param.name.rstrip('_')
-        value = getattr(self.namespace, name)
+    def _get_param_value(self, param):
+        """Get the converted value for an inspect.Parameter."""
+        value = getattr(self.namespace, param.name)
         if param.name in self._type_conv:
             # We convert enum types after getting the values from
             # argparse, because argparse's choices argument is
             # processed after type conversation, which is not what we
             # want.
             value = self._type_conv[param.name](value)
-        return name, value
+        return value
 
     def _get_call_args(self, win_id):
         """Get arguments for a function call.
@@ -452,14 +457,14 @@ class Command:
                 # Special case for win_id parameter.
                 self._get_win_id_arg(win_id, param, args, kwargs)
                 continue
-            name, value = self._get_param_name_and_value(param)
+            value = self._get_param_value(param)
             if param.kind == inspect.Parameter.POSITIONAL_OR_KEYWORD:
                 args.append(value)
             elif param.kind == inspect.Parameter.VAR_POSITIONAL:
                 if value is not None:
                     args += value
             elif param.kind == inspect.Parameter.KEYWORD_ONLY:
-                kwargs[name] = value
+                kwargs[param.name] = value
             else:
                 raise TypeError("{}: Invalid parameter type {} for argument "
                                 "'{}'!".format(
