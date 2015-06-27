@@ -352,6 +352,10 @@ def data(readonly=False):
         )),
 
         ('completion', sect.KeyValue(
+            ('auto-open',
+             SettingValue(typ.Bool(), 'true'),
+             "Automatically open completion when typing."),
+
             ('download-path-suggestion',
              SettingValue(typ.DownloadPathSuggestion(), 'path'),
              "What to display in the download filename input."),
