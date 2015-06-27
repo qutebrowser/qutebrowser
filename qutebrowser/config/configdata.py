@@ -544,7 +544,7 @@ def data(readonly=False):
 
         ('storage', sect.KeyValue(
             ('download-directory',
-             SettingValue(typ.Directory(none_ok=True, special_values='%'),
+             SettingValue(typ.Directory(none_ok=True, special_values=['%']),
                           '%'),
              "The directory to save downloads to. An empty value selects a "
              "sensible os-specific default. A value of % will do the same, "

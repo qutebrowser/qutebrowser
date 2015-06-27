@@ -331,8 +331,6 @@ class ConfigManager(QObject):
     CHANGED_OPTIONS = {
         ('content', 'cookies-accept'):
             _get_value_transformer('default', 'no-3rdparty'),
-        ('storage', 'download-directory'):
-            _get_value_transformer('', '%'),
     }
 
     changed = pyqtSignal(str, str)

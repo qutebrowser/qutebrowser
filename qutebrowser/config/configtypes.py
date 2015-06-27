@@ -846,7 +846,7 @@ class Directory(BaseType):
 
     def __init__(self, none_ok=False, special_values=None):
         super().__init__(none_ok)
-        self._special_values = special_values or ''
+        self._special_values = special_values or []
 
     def validate(self, value):
         if not value:
