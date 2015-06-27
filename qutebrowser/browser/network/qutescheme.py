@@ -153,7 +153,7 @@ def qute_help(win_id, request):
     """Handler for qute:help. Return HTML content as bytes."""
     try:
         utils.read_file('html/doc/index.html')
-    except FileNotFoundError:
+    except (FileNotFoundError, NotADirectoryError, OSError, BlockingIOError):
         html = jinja.env.get_template('error.html').render(
             title="Error while loading documentation",
             url=request.url().toDisplayString(),

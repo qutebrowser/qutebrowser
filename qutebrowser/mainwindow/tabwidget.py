@@ -24,7 +24,7 @@ Module attributes:
                       between items.
 """
 
-import functools
+import functools, math
 
 from PyQt5.QtCore import pyqtSignal, pyqtSlot, Qt, QSize, QRect, QPoint, QTimer
 from PyQt5.QtWidgets import (QTabWidget, QTabBar, QSizePolicy, QCommonStyle,
@@ -295,6 +295,12 @@ class TabBar(QTabBar):
     def set_font(self):
         """Set the tab bar font."""
         self.setFont(config.get('fonts', 'tabbar'))
+
+    def resizeEvent(self, s):
+        height = self.size().height()
+        if height > 0:
+            height = math.ceil(height - height / 7)
+            self.setIconSize(QSize(height, height))
 
     @config.change_filter('colors', 'tabs.bg.bar')
     def set_colors(self):
