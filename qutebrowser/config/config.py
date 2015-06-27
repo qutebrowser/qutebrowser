@@ -321,6 +321,7 @@ class ConfigManager(QObject):
         ('colors', 'tab.indicator.system'): 'tabs.indicator.system',
         ('tabs', 'auto-hide'): 'hide-auto',
         ('completion', 'history-length'): 'cmd-history-max-items',
+        ('colors', 'downloads.fg'): 'downloads.fg.start',
     }
     DELETED_OPTIONS = [
         ('colors', 'tab.separator'),

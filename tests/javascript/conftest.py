@@ -28,7 +28,7 @@ import jinja2
 from PyQt5.QtWebKit import QWebSettings
 from PyQt5.QtWebKitWidgets import QWebView, QWebPage
 
-import qutebrowser
+from qutebrowser.utils import utils
 
 
 class TestWebPage(QWebPage):
@@ -107,11 +107,7 @@ class JSTester:
         Return:
             The javascript return value.
         """
-        base_path = os.path.join(os.path.dirname(qutebrowser.__file__),
-                                 'javascript')
-        full_path = os.path.join(base_path, filename)
-        with open(full_path, 'r', encoding='utf-8') as f:
-            source = f.read()
+        source = utils.read_file(os.path.join('javascript', filename))
         return self.run(source)
 
     def run(self, source):

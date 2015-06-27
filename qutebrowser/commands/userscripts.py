@@ -23,12 +23,12 @@ import os
 import os.path
 import tempfile
 
-from PyQt5.QtCore import (pyqtSignal, pyqtSlot, QObject, QSocketNotifier,
-                          QProcessEnvironment, QProcess)
+from PyQt5.QtCore import pyqtSignal, pyqtSlot, QObject, QSocketNotifier
 
 from qutebrowser.utils import message, log, objreg, standarddir
 from qutebrowser.commands import runners, cmdexc
 from qutebrowser.config import config
+from qutebrowser.misc import guiprocess
 
 
 class _QtFIFOReader(QObject):
@@ -70,12 +70,8 @@ class _BaseUserscriptRunner(QObject):
 
     Attributes:
         _filepath: The path of the file/FIFO which is being read.
-        _proc: The QProcess which is being executed.
+        _proc: The GUIProcess which is being executed.
         _win_id: The window ID this runner is associated with.
-
-    Class attributes:
-        PROCESS_MESSAGES: A mapping of QProcess::ProcessError members to
-                          human-readable error strings.
 
     Signals:
         got_cmd: Emitted when a new command arrived and should be executed.
@@ -85,17 +81,6 @@ class _BaseUserscriptRunner(QObject):
     got_cmd = pyqtSignal(str)
     finished = pyqtSignal()
 
-    PROCESS_MESSAGES = {
-        QProcess.FailedToStart: "The process failed to start.",
-        QProcess.Crashed: "The process crashed.",
-        QProcess.Timedout: "The last waitFor...() function timed out.",
-        QProcess.WriteError: ("An error occurred when attempting to write to "
-                              "the process."),
-        QProcess.ReadError: ("An error occurred when attempting to read from "
-                             "the process."),
-        QProcess.UnknownError: "An unknown error occurred.",
-    }
-
     def __init__(self, win_id, parent=None):
         super().__init__(parent)
         self._win_id = win_id
@@ -103,22 +88,20 @@ class _BaseUserscriptRunner(QObject):
         self._proc = None
         self._env = None
 
-    def _run_process(self, cmd, *args, env):
-        """Start the given command via QProcess.
+    def _run_process(self, cmd, *args, env, verbose):
+        """Start the given command.
 
         Args:
             cmd: The command to be started.
             *args: The arguments to hand to the command
             env: A dictionary of environment variables to add.
+            verbose: Show notifications when the command started/exited.
         """
-        self._env = env
-        self._proc = QProcess(self)
-        procenv = QProcessEnvironment.systemEnvironment()
-        procenv.insert('QUTE_FIFO', self._filepath)
-        if env is not None:
-            for k, v in env.items():
-                procenv.insert(k, v)
-        self._proc.setProcessEnvironment(procenv)
+        self._env = {'QUTE_FIFO': self._filepath}
+        self._env.update(env)
+        self._proc = guiprocess.GUIProcess(self._win_id, 'userscript',
+                                           additional_env=self._env,
+                                           verbose=verbose, parent=self)
         self._proc.error.connect(self.on_proc_error)
         self._proc.finished.connect(self.on_proc_finished)
         self._proc.start(cmd, args)
@@ -126,11 +109,10 @@ class _BaseUserscriptRunner(QObject):
     def _cleanup(self):
         """Clean up temporary files."""
         tempfiles = [self._filepath]
-        if self._env is not None:
-            if 'QUTE_HTML' in self._env:
-                tempfiles.append(self._env['QUTE_HTML'])
-            if 'QUTE_TEXT' in self._env:
-                tempfiles.append(self._env['QUTE_TEXT'])
+        if 'QUTE_HTML' in self._env:
+            tempfiles.append(self._env['QUTE_HTML'])
+        if 'QUTE_TEXT' in self._env:
+            tempfiles.append(self._env['QUTE_TEXT'])
         for fn in tempfiles:
             log.procs.debug("Deleting temporary file {}.".format(fn))
             try:
@@ -145,7 +127,7 @@ class _BaseUserscriptRunner(QObject):
         self._proc = None
         self._env = None
 
-    def run(self, cmd, *args, env=None):
+    def run(self, cmd, *args, env=None, verbose=False):
         """Run the userscript given.
 
         Needs to be overridden by subclasses.
@@ -154,6 +136,7 @@ class _BaseUserscriptRunner(QObject):
             cmd: The command to be started.
             *args: The arguments to hand to the command
             env: A dictionary of environment variables to add.
+            verbose: Show notifications when the command started/exited.
         """
         raise NotImplementedError
 
@@ -166,12 +149,7 @@ class _BaseUserscriptRunner(QObject):
 
     def on_proc_error(self, error):
         """Called when the process encountered an error."""
-        msg = self.PROCESS_MESSAGES[error]
-        # NOTE: Do not replace this with "raise CommandError" as it's
-        # executed async.
-        message.error(self._win_id,
-                      "Error while calling userscript: {}".format(msg))
-        log.procs.debug("Userscript process error: {} - {}".format(error, msg))
+        raise NotImplementedError
 
 
 class _POSIXUserscriptRunner(_BaseUserscriptRunner):
@@ -188,7 +166,7 @@ class _POSIXUserscriptRunner(_BaseUserscriptRunner):
         super().__init__(win_id, parent)
         self._reader = None
 
-    def run(self, cmd, *args, env=None):
+    def run(self, cmd, *args, env=None, verbose=False):
         try:
             # tempfile.mktemp is deprecated and discouraged, but we use it here
             # to create a FIFO since the only other alternative would be to
@@ -206,16 +184,14 @@ class _POSIXUserscriptRunner(_BaseUserscriptRunner):
         self._reader = _QtFIFOReader(self._filepath)
         self._reader.got_line.connect(self.got_cmd)
 
-        self._run_process(cmd, *args, env=env)
+        self._run_process(cmd, *args, env=env, verbose=verbose)
 
     def on_proc_finished(self):
         """Interrupt the reader when the process finished."""
-        log.procs.debug("Userscript process finished.")
         self.finish()
 
     def on_proc_error(self, error):
         """Interrupt the reader when the process had an error."""
-        super().on_proc_error(error)
         self.finish()
 
     def finish(self):
@@ -260,7 +236,6 @@ class _WindowsUserscriptRunner(_BaseUserscriptRunner):
 
     def on_proc_finished(self):
         """Read back the commands when the process finished."""
-        log.procs.debug("Userscript process finished.")
         try:
             with open(self._filepath, 'r', encoding='utf-8') as f:
                 for line in f:
@@ -272,18 +247,17 @@ class _WindowsUserscriptRunner(_BaseUserscriptRunner):
 
     def on_proc_error(self, error):
         """Clean up when the process had an error."""
-        super().on_proc_error(error)
         self._cleanup()
         self.finished.emit()
 
-    def run(self, cmd, *args, env=None):
+    def run(self, cmd, *args, env=None, verbose=False):
         try:
             self._oshandle, self._filepath = tempfile.mkstemp(text=True)
         except OSError as e:
             message.error(self._win_id, "Error while creating tempfile: "
                                         "{}".format(e))
             return
-        self._run_process(cmd, *args, env=env)
+        self._run_process(cmd, *args, env=env, verbose=verbose)
 
 
 class _DummyUserscriptRunner:
@@ -299,8 +273,9 @@ class _DummyUserscriptRunner:
 
     finished = pyqtSignal()
 
-    def run(self, _cmd, *_args, _env=None):
+    def run(self, cmd, *args, env=None, verbose=False):
         """Print an error as userscripts are not supported."""
+        # pylint: disable=unused-argument,unused-variable
         self.finished.emit()
         raise cmdexc.CommandError(
             "Userscripts are not supported on this platform!")
@@ -347,7 +322,7 @@ def store_source(frame):
     return env
 
 
-def run(cmd, *args, win_id, env):
+def run(cmd, *args, win_id, env, verbose=False):
     """Convenience method to run an userscript.
 
     Args:
@@ -355,6 +330,7 @@ def run(cmd, *args, win_id, env):
         *args: The arguments to pass to the userscript.
         win_id: The window id the userscript is executed in.
         env: A dictionary of variables to add to the process environment.
+        verbose: Show notifications when the command started/exited.
     """
     tabbed_browser = objreg.get('tabbed-browser', scope='window',
                                 window=win_id)
@@ -367,6 +343,6 @@ def run(cmd, *args, win_id, env):
     user_agent = config.get('network', 'user-agent')
     if user_agent is not None:
         env['QUTE_USER_AGENT'] = user_agent
-    runner.run(cmd, *args, env=env)
+    runner.run(cmd, *args, env=env, verbose=verbose)
     runner.finished.connect(commandrunner.deleteLater)
     runner.finished.connect(runner.deleteLater)

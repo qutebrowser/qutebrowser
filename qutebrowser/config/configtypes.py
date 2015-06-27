@@ -1110,8 +1110,15 @@ class SearchEngineUrl(BaseType):
                 return
             else:
                 raise configexc.ValidationError(value, "may not be empty!")
+
         if '{}' not in value:
             raise configexc.ValidationError(value, "must contain \"{}\"")
+        try:
+            value.format("")
+        except KeyError:
+            raise configexc.ValidationError(
+                value, "may not contain {...} (use {{ and }} for literal {/})")
+
         url = QUrl(value.replace('{}', 'foobar'))
         if not url.isValid():
             raise configexc.ValidationError(value, "invalid url, {}".format(
