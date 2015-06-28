@@ -586,7 +586,7 @@ class TestAttachment:
         header_checker.check_filename('attachment; filename="/foo.html"',
                                       'foo.html')
 
-    @pytest.mark.skipif(os.name != 'posix', reason="requires POSIX")
+    @pytest.mark.posix
     def test_attabspathwin_unix(self, header_checker):
         """'attachment', specifying an absolute filename in the fs root.
 
@@ -601,7 +601,7 @@ class TestAttachment:
         header_checker.check_filename(r'attachment; filename="\\foo.html"',
                                       r'\foo.html')
 
-    @pytest.mark.skipif(os.name != 'nt', reason="requires Windows")
+    @pytest.mark.windows
     def test_attabspathwin_win(self, header_checker):
         """'attachment', specifying an absolute filename in the fs root.
 
@@ -791,7 +791,7 @@ class TestCharacterSet:
             "attachment; filename*=UTF-8''A-%2541.html",
             'A-%41.html')
 
-    @pytest.mark.skipif(os.name != 'posix', reason="requires POSIX")
+    @pytest.mark.posix
     def test_attwithfn2231abspathdisguised_unix(self, header_checker):
         r"""'attachment', specifying a filename of \foo.html.
 
@@ -801,7 +801,7 @@ class TestCharacterSet:
             "attachment; filename*=UTF-8''%5cfoo.html",
             r'\foo.html')
 
-    @pytest.mark.skipif(os.name != 'nt', reason="requires Windows")
+    @pytest.mark.windows
     def test_attwithfn2231abspathdisguised_win(self, header_checker):
         r"""'attachment', specifying a filename of \foo.html.
 

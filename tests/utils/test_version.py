@@ -112,15 +112,13 @@ class TestGitStr:
         commit_file_mock.side_effect = OSError
         assert version._git_str() is None
 
-    @pytest.mark.skipif(getattr(sys, 'frozen', False),
-                        reason="Can't be executed when frozen!")
+    @pytest.mark.not_frozen
     def test_normal_successful(self, git_str_subprocess_fake):
         """Test with git returning a successful result."""
         git_str_subprocess_fake.retval = 'c0ffeebabe'
         assert version._git_str() == 'c0ffeebabe'
 
-    @pytest.mark.skipif(not getattr(sys, 'frozen', False),
-                        reason="Can only executed when frozen!")
+    @pytest.mark.frozen
     def test_normal_successful_frozen(self, git_str_subprocess_fake):
         """Test with git returning a successful result."""
         # The value is defined in scripts/freeze_tests.py.
@@ -140,8 +138,7 @@ class TestGitStr:
                      side_effect=OSError)
         assert version._git_str() is None
 
-    @pytest.mark.skipif(getattr(sys, 'frozen', False),
-                        reason="Can't be executed when frozen!")
+    @pytest.mark.not_frozen
     def test_normal_path_nofile(self, monkeypatch, caplog,
                                 git_str_subprocess_fake, commit_file_mock):
         """Test with undefined __file__ but available git-commit-id."""
@@ -511,17 +508,17 @@ class TestOsInfo:
         expected = ['OS Version: ?']
         assert ret == expected
 
-    @pytest.mark.skipif(sys.platform != 'linux', reason="requires Linux")
+    @pytest.mark.linux
     def test_linux_real(self):
         """Make sure there are no exceptions with a real Linux."""
         version._os_info()
 
-    @pytest.mark.skipif(sys.platform != 'win32', reason="requires Windows")
+    @pytest.mark.windows
     def test_windows_real(self):
         """Make sure there are no exceptions with a real Windows."""
         version._os_info()
 
-    @pytest.mark.skipif(sys.platform != 'darwin', reason="requires OS X")
+    @pytest.mark.osx
     def test_os_x_real(self):
         """Make sure there are no exceptions with a real OS X."""
         version._os_info()

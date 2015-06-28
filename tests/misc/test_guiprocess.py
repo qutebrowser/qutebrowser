@@ -33,10 +33,6 @@ from qutebrowser.misc import guiprocess
 # FIXME check statusbar messages
 
 
-no_frozen = pytest.mark.skipif(
-    getattr(sys, 'frozen', False), reason="Can't be executed when frozen.")
-
-
 def _py_proc(code):
     """Get a python executable and args list which executes the given code."""
     return (sys.executable, ['-c', textwrap.dedent(code.strip('\n'))])
@@ -68,7 +64,7 @@ def fake_proc(monkeypatch, stubs):
     return p
 
 
-@no_frozen
+@pytest.mark.not_frozen
 def test_start(proc, qtbot):
     """Test simply starting a process."""
     with qtbot.waitSignals([proc.started, proc.finished], raising=True,
@@ -80,7 +76,7 @@ def test_start(proc, qtbot):
 
 
 @pytest.mark.parametrize('argv', [
-    no_frozen(_py_proc('import sys; sys.exit(0)')),
+    pytest.mark.not_frozen(_py_proc('import sys; sys.exit(0)')),
     ('does_not', 'exist'),
 ])
 def test_start_detached(fake_proc, argv):
@@ -90,7 +86,7 @@ def test_start_detached(fake_proc, argv):
     fake_proc._proc.startDetached.assert_called_with(*list(argv) + [None])
 
 
-@no_frozen
+@pytest.mark.not_frozen
 def test_double_start(qtbot, proc):
     """Test starting a GUIProcess twice."""
     with qtbot.waitSignal(proc.started, raising=True, timeout=2000):
@@ -100,7 +96,7 @@ def test_double_start(qtbot, proc):
         proc.start('', [])
 
 
-@no_frozen
+@pytest.mark.not_frozen
 def test_double_start_finished(qtbot, proc):
     """Test starting a GUIProcess twice (with the first call finished)."""
     with qtbot.waitSignals([proc.started, proc.finished], raising=True,
@@ -127,7 +123,7 @@ def test_error(qtbot, proc):
         proc.start('this_does_not_exist_either', [])
 
 
-@no_frozen
+@pytest.mark.not_frozen
 def test_exit_unsuccessful(qtbot, proc):
     with qtbot.waitSignal(proc.finished, raising=True, timeout=2000):
         proc.start(*_py_proc('import sys; sys.exit(0)'))

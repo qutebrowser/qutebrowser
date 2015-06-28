@@ -19,6 +19,8 @@
 
 """The qutebrowser test suite contest file."""
 
+import os
+import sys
 import collections
 import itertools
 
@@ -196,3 +198,22 @@ def config_stub(stubs):
     objreg.register('config', stub)
     yield stub
     objreg.delete('config')
+
+
+def pytest_runtest_setup(item):
+    """Add some custom markers."""
+    if not isinstance(item, item.Function):
+        return
+
+    if item.get_marker('posix') and os.name != 'posix':
+        pytest.skip("Requires a POSIX os.")
+    elif item.get_marker('windows') and os.name != 'nt':
+        pytest.skip("Requires Windows.")
+    elif item.get_marker('linux') and not sys.platform.startswith('linux'):
+        pytest.skip("Requires Linux.")
+    elif item.get_marker('osx') and os.name != 'darwin':
+        pytest.skip("Requires OS X.")
+    elif item.get_marker('not_frozen') and getattr(sys, 'frozen', False):
+        pytest.skip("Can't be run when frozen!")
+    elif item.get_marker('frozen') and not getattr(sys, 'frozen', False):
+        pytest.skip("Can only run when frozen!")

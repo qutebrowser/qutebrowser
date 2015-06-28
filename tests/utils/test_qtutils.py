@@ -757,8 +757,7 @@ class TestPyQIODevice:
         with pytest.raises(io.UnsupportedOperation):
             pyqiodev.seek(0, whence)
 
-    @pytest.mark.skipif(getattr(sys, 'frozen', False),
-                        reason="Can't be executed when frozen.")
+    @pytest.mark.not_frozen
     def test_qprocess(self):
         """Test PyQIODevice with a QProcess which is non-sequential.
 
@@ -872,7 +871,7 @@ class TestPyQIODevice:
             pyqiodev_failing.write(b'x')
         assert str(excinfo.value) == 'Writing failed'
 
-    @pytest.mark.skipif(os.name != 'posix', reason="Needs a POSIX OS.")
+    @pytest.mark.posix
     @pytest.mark.skipif(not os.path.exists('/dev/full'),
                         reason="Needs /dev/full.")
     def test_write_error_real(self):
