@@ -19,7 +19,6 @@
 
 """Tests for qutebrowser.browser.http.parse_content_disposition."""
 
-import os
 import logging
 
 import pytest

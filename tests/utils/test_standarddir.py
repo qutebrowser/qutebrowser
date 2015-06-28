@@ -23,7 +23,6 @@
 
 import os
 import os.path
-import sys
 import types
 import collections
 import logging
