@@ -26,7 +26,8 @@ import sys
 import subprocess
 import os.path
 
-sys.path.insert(0, os.path.join(os.path.dirname(__file__), os.pardir))
+sys.path.insert(0, os.path.join(os.path.dirname(__file__), os.pardir,
+                os.pardir))
 
 from scripts import utils
 

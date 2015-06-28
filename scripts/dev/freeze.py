@@ -32,12 +32,13 @@ import distutils
 import cx_Freeze as cx  # pylint: disable=import-error
 # cx_Freeze is hard to install (needs C extensions) so we don't check for it.
 
-sys.path.insert(0, os.path.join(os.path.dirname(__file__), os.pardir))
+sys.path.insert(0, os.path.join(os.path.dirname(__file__), os.pardir,
+                os.pardir))
 from scripts import setupcommon
 
 
 BASEDIR = os.path.join(os.path.dirname(os.path.realpath(__file__)),
-                       os.path.pardir)
+                       os.path.pardir, os.path.pardir)
 
 
 def get_egl_path():

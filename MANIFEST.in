@@ -16,15 +16,8 @@ include requirements.txt
 include tox.ini
 include qutebrowser.py
 
-include scripts/__init__.py
-include scripts/hostblock_blame.py
-include scripts/importer.py
-include scripts/keytester.py
-include scripts/link_pyqt.py
-include scripts/minimal_webkit_testbrowser.py
-include scripts/setupcommon.py
-include scripts/utils.py
-
+prune scripts/dev
+exclude scripts/asciidoc2html.py
 exclude doc/notes
 recursive-exclude doc *.asciidoc
 include doc/qutebrowser.1.asciidoc

@@ -7,7 +7,7 @@ environment:
     PYTHONUNBUFFERED: 1
 
 install:
-  - C:\Python27\python -u scripts\ci_install.py
+  - C:\Python27\python -u scripts\dev\ci_install.py
 
 test_script:
   - C:\Python34\Scripts\tox -e smoke

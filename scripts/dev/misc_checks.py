@@ -30,7 +30,8 @@ import tokenize
 import traceback
 import collections
 
-sys.path.insert(0, os.path.join(os.path.dirname(__file__), os.pardir))
+sys.path.insert(0, os.path.join(os.path.dirname(__file__), os.pardir,
+                os.pardir))
 
 from scripts import utils
 
@@ -88,7 +89,7 @@ def check_spelling():
         ok = True
         for fn in _py_files():
             with tokenize.open(fn) as f:
-                if fn == os.path.join('.', 'scripts', 'misc_checks.py'):
+                if fn == os.path.join('.', 'scripts', 'dev', 'misc_checks.py'):
                     continue
                 for line in f:
                     for w in words:

@@ -8,7 +8,7 @@ os:
 language: c
 
 install:
-  - python scripts/ci_install.py
+  - python scripts/dev/ci_install.py
 
 script:
     - xvfb-run -s "-screen 0 640x480x16" tox -e unittests,smoke

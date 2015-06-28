@@ -28,7 +28,8 @@ import shutil
 import subprocess
 import argparse
 
-sys.path.insert(0, os.path.join(os.path.dirname(__file__), os.pardir))
+sys.path.insert(0, os.path.join(os.path.dirname(__file__), os.pardir,
+                os.pardir))
 
 import qutebrowser
 from scripts import utils
