@@ -134,7 +134,7 @@ with:
 # xbps-install qutebrowser
 ----
 
-On NixOS 
+On NixOS
 --------
 
 Nixpkgs collection contains `pkgs.qutebrowser` since June 2015. You can install
