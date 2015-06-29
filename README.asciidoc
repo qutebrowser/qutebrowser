@@ -170,6 +170,7 @@ Contributors, sorted by the number of commits in descending order:
 * HalosGhost
 * Gregor Pohl
 * Eivind Uggedal
+* Arseniy Seroka
 * Andreas Fischer
 // QUTE_AUTHORS_END
 
