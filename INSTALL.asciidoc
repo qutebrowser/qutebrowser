@@ -134,6 +134,16 @@ with:
 # xbps-install qutebrowser
 ----
 
+On NixOS 
+--------
+
+Nixpkgs collection contains `pkgs.qutebrowser` since June 2015. You can install
+it with:
+
+----
+$ nix-env -i qutebrowser
+----
+
 On Windows
 ----------
 
