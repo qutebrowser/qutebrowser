@@ -133,7 +133,7 @@ class Completer(QObject):
         """Get a completion model based on an enum member.
 
         Args:
-            completion: An usertypes.Completion member.
+            completion: A usertypes.Completion member.
             parts: The parts currently in the commandline.
             cursor_part: The part the cursor is in.
 

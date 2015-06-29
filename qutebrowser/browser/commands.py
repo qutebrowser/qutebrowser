@@ -942,7 +942,7 @@ class CommandDispatcher:
         useful here.
 
         Args:
-            userscript: Run the command as an userscript.
+            userscript: Run the command as a userscript.
             verbose: Show notifications when the command started/exited.
             detach: Whether the command should be detached from qutebrowser.
             cmdline: The commandline to execute.
@@ -976,7 +976,7 @@ class CommandDispatcher:
     @cmdutils.register(instance='command-dispatcher', scope='window',
                        deprecated='Use :spawn --userscript instead!')
     def run_userscript(self, cmd, *args: {'nargs': '*'}, verbose=False):
-        """Run an userscript given as argument.
+        """Run a userscript given as argument.
 
         Args:
             cmd: The userscript to run.

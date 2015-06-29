@@ -141,7 +141,7 @@ def _is_url_dns(urlstr):
 
 
 def fuzzy_url(urlstr, cwd=None, relative=False, do_search=True):
-    """Get a QUrl based on an user input which is URL or search term.
+    """Get a QUrl based on a user input which is URL or search term.
 
     Args:
         urlstr: URL to load as a string.
@@ -273,7 +273,7 @@ def is_url(urlstr):
 
 
 def qurl_from_user_input(urlstr):
-    """Get a QUrl based on an user input. Additionally handles IPv6 addresses.
+    """Get a QUrl based on a user input. Additionally handles IPv6 addresses.
 
     QUrl.fromUserInput handles something like '::1' as a file URL instead of an
     IPv6, so we first try to handle it as a valid IPv6, and if that fails we

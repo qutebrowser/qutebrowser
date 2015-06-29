@@ -18,7 +18,7 @@ qutebrowser to run them.
 Getting information
 -------------------
 
-The following environment variables will be set when an userscript is launched:
+The following environment variables will be set when a userscript is launched:
 
 - `QUTE_MODE`: Either `hints` (started via hints) or `command` (started via
   command or key binding).

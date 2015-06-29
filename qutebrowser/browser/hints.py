@@ -519,7 +519,7 @@ class HintManager(QObject):
         download_manager.get(url, elem.webFrame().page())
 
     def _call_userscript(self, elem, context):
-        """Call an userscript from a hint.
+        """Call a userscript from a hint.
 
         Args:
             elem: The QWebElement to use in the userscript.
@@ -731,7 +731,7 @@ class HintManager(QObject):
                 - `fill`: Fill the commandline with the command given as
                           argument.
                 - `download`: Download the link.
-                - `userscript`: Call an userscript with `$QUTE_URL` set to the
+                - `userscript`: Call a userscript with `$QUTE_URL` set to the
                                 link.
                 - `spawn`: Spawn a command.
 

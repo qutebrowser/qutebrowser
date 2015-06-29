@@ -17,7 +17,7 @@
 # You should have received a copy of the GNU General Public License
 # along with qutebrowser.  If not, see <http://www.gnu.org/licenses/>.
 
-"""Functions to execute an userscript."""
+"""Functions to execute a userscript."""
 
 import os
 import os.path
@@ -323,7 +323,7 @@ def store_source(frame):
 
 
 def run(cmd, *args, win_id, env, verbose=False):
-    """Convenience method to run an userscript.
+    """Convenience method to run a userscript.
 
     Args:
         cmd: The userscript binary to run.

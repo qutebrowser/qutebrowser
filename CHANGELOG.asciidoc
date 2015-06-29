@@ -20,7 +20,7 @@ v0.3.0
 Added
 ~~~~~
 
-- New commands `:message-info`, `:message-error` and `:message-warning` to show messages in the statusbar, e.g. from an userscript.
+- New commands `:message-info`, `:message-error` and `:message-warning` to show messages in the statusbar, e.g. from a userscript.
 - New command `:scroll-px` which replaces `:scroll` for pixel-exact scrolling.
 - New command `:jseval` to run a javascript snippet on the current page.
 - New (hidden) command `:follow-selected` (bound to `Enter`/`Ctrl-Enter` by default) to follow the link which is currently selected (e.g. after searching via `/`).
