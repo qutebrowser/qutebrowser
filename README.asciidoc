@@ -178,8 +178,8 @@ The following people have contributed graphics:
 * WOFall (icon)
 * regines (key binding cheatsheet)
 
-Thanks / Similiar projects
---------------------------
+Thanks / Similar projects
+-------------------------
 
 Many projects with a similar goal as qutebrowser exist:
 

@@ -85,10 +85,10 @@ def check_spelling():
              '[Rr]eproducable'}
 
     # Words which look better when splitted, but might need some fine tuning.
-    words |= {'[Kk]eystrings', '[Ww]ebelements', '[Mm]ouseevent',
-              '[Kk]eysequence', '[Nn]ormalmode', '[Ee]ventloops',
-              '[Ss]izehint', '[Ss]tatemachine', '[Mm]etaobject',
-              '[Ll]ogrecord', '[Ff]iletype'}
+    words |= {'[Ww]ebelements', '[Mm]ouseevent', '[Kk]eysequence',
+              '[Nn]ormalmode', '[Ee]ventloops', '[Ss]izehint',
+              '[Ss]tatemachine', '[Mm]etaobject', '[Ll]ogrecord',
+              '[Ff]iletype'}
 
     seen = collections.defaultdict(list)
     try:

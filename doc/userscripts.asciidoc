@@ -5,9 +5,9 @@ The Compiler <mail@qutebrowser.org>
 qutebrowser is extensible by writing userscripts which can be called via the
 `:spawn --userscript` command, or via a key binding.
 
-These userscripts are similiar to the (non-javascript) dwb userscripts. They
-can be written in any language which can read environment variables and write
-to a FIFO. Note they are *not* related to Greasemonkey userscripts.
+These userscripts are similar to the (non-javascript) dwb userscripts. They can
+be written in any language which can read environment variables and write to a
+FIFO. Note they are *not* related to Greasemonkey userscripts.
 
 Note for simple things such as opening the current page with another browser or
 mpv, a simple key binding to something like `:spawn mpv {url}` should suffice.
