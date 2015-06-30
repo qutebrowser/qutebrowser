@@ -107,22 +107,15 @@ or you could use an AUR helper, e.g. `yaourt -S qutebrowser-git`.
 On Gentoo
 ---------
 
-A dedicated overlay is available on
-https://github.com/posativ/qutebrowser-overlay[GitHub]. To install it, add the
-overlay with http://wiki.gentoo.org/wiki/Layman[layman]:
-
-----
-# layman -a qutebrowser
-----
-
-Note, that Qt5 is available in the portage tree, but masked. You may need to do
-a lot of keywording to install qutebrowser. Also make sure you have `python3_4`
-in your `PYTHON_TARGETS` (`/etc/portage/make.conf`) and rebuild your system
-(`emerge -uDNav @world`). Afterwards, you can install qutebrowser:
+qutebrowser is available in the main repository and can be installed with:
 
 ----
 # emerge -av qutebrowser
 ----
+
+Make sure you have `python3_4` in your `PYTHON_TARGETS`
+(`/etc/portage/make.conf`) and rebuild your system (`emerge -uDNav @world`) if
+necessary.
 
 On Void Linux
 -------------
