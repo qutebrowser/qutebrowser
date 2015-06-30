@@ -296,10 +296,10 @@ class DownloadItem(QObject):
         else:
             self.set_fileobj(fileobj)
 
-    def _ask_confirm_question(self, message):
+    def _ask_confirm_question(self, msg):
         """Create a Question object to be asked."""
         q = usertypes.Question(self)
-        q.text = message + ' (N/y)'
+        q.text = msg + ' (N/y)'
         q.mode = usertypes.PromptMode.yesno
         q.answered_yes.connect(self._create_fileobj)
         q.answered_no.connect(functools.partial(self.cancel, False))
