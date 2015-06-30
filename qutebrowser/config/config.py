@@ -252,6 +252,25 @@ def init(parent=None):
     _init_misc()
 
 
+def _get_value_transformer(old, new):
+    """Get a function which transforms a value for CHANGED_OPTIONS.
+
+    Args:
+        old: The old value - if the supplied value doesn't match this, it's
+             returned untransformed.
+        new: The new value.
+
+    Return:
+        A function which takes a value and transforms it.
+    """
+    def transformer(val):
+        if val == old:
+            return new
+        else:
+            return val
+    return transformer
+
+
 class ConfigManager(QObject):
 
     """Configuration manager for qutebrowser.
@@ -263,6 +282,10 @@ class ConfigManager(QObject):
         RENAMED_SECTIONS: A mapping of renamed sections, {'oldname': 'newname'}
         RENAMED_OPTIONS: A mapping of renamed options,
                          {('section', 'oldname'): 'newname'}
+        CHANGED_OPTIONS: A mapping of arbitrarily changed options,
+                         {('section', 'option'): callable}.
+                         The callable takes the old value and returns the new
+                         one.
         DELETED_OPTIONS: A (section, option) list of deleted options.
 
     Attributes:
@@ -298,12 +321,17 @@ class ConfigManager(QObject):
         ('colors', 'tab.indicator.system'): 'tabs.indicator.system',
         ('tabs', 'auto-hide'): 'hide-auto',
         ('completion', 'history-length'): 'cmd-history-max-items',
+        ('colors', 'downloads.fg'): 'downloads.fg.start',
     }
     DELETED_OPTIONS = [
         ('colors', 'tab.separator'),
         ('colors', 'tabs.separator'),
         ('colors', 'completion.item.bg'),
     ]
+    CHANGED_OPTIONS = {
+        ('content', 'cookies-accept'):
+            _get_value_transformer('default', 'no-3rdparty'),
+    }
 
     changed = pyqtSignal(str, str)
     style_changed = pyqtSignal(str, str)
@@ -462,10 +490,15 @@ class ConfigManager(QObject):
         for k, v in cp[real_sectname].items():
             if k.startswith(self.ESCAPE_CHAR):
                 k = k[1:]
+
             if (sectname, k) in self.DELETED_OPTIONS:
                 return
-            elif (sectname, k) in self.RENAMED_OPTIONS:
+            if (sectname, k) in self.RENAMED_OPTIONS:
                 k = self.RENAMED_OPTIONS[sectname, k]
+            if (sectname, k) in self.CHANGED_OPTIONS:
+                func = self.CHANGED_OPTIONS[(sectname, k)]
+                v = func(v)
+
             try:
                 self.set('conf', sectname, k, v, validate=False)
             except configexc.NoOptionError:

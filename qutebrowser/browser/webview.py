@@ -24,6 +24,7 @@ import itertools
 import functools
 
 from PyQt5.QtCore import pyqtSignal, pyqtSlot, Qt, QTimer, QUrl
+from PyQt5.QtGui import QPalette
 from PyQt5.QtWidgets import QApplication, QStyleFactory
 from PyQt5.QtWebKit import QWebSettings
 from PyQt5.QtWebKitWidgets import QWebView, QWebPage
@@ -32,7 +33,6 @@ from qutebrowser.config import config
 from qutebrowser.keyinput import modeman
 from qutebrowser.utils import message, log, usertypes, utils, qtutils, objreg
 from qutebrowser.browser import webpage, hints, webelem
-from qutebrowser.commands import cmdexc
 
 
 LoadStatus = usertypes.enum('LoadStatus', ['none', 'success', 'error', 'warn',
@@ -108,6 +108,7 @@ class WebView(QWebView):
         self.search_flags = 0
         self.selection_enabled = False
         self.init_neighborlist()
+        self._set_bg_color()
         cfg = objreg.get('config')
         cfg.changed.connect(self.init_neighborlist)
         # For some reason, this signal doesn't get disconnected automatically
@@ -161,7 +162,7 @@ class WebView(QWebView):
         return utils.get_repr(self, tab_id=self.tab_id, url=url)
 
     def __del__(self):
-        # Explicitely releasing the page here seems to prevent some segfaults
+        # Explicitly releasing the page here seems to prevent some segfaults
         # when quitting.
         # Copied from:
         # https://code.google.com/p/webscraping/source/browse/webkit.py#325
@@ -181,6 +182,15 @@ class WebView(QWebView):
         self.load_status = val
         self.load_status_changed.emit(val.name)
 
+    def _set_bg_color(self):
+        """Set the webpage background color as configured."""
+        col = config.get('colors', 'webpage.bg')
+        palette = self.palette()
+        if col is None:
+            col = self.style().standardPalette().color(QPalette.Base)
+        palette.setColor(QPalette.Base, col)
+        self.setPalette(palette)
+
     @pyqtSlot(str, str)
     def on_config_changed(self, section, option):
         """Reinitialize the zoom neighborlist if related config changed."""
@@ -195,6 +205,8 @@ class WebView(QWebView):
                 self.setContextMenuPolicy(Qt.PreventContextMenu)
             else:
                 self.setContextMenuPolicy(Qt.DefaultContextMenu)
+        elif section == 'colors' and option == 'webpage.bg':
+            self._set_bg_color()
 
     def init_neighborlist(self):
         """Initialize the _zoom neighborlist."""
@@ -356,9 +368,8 @@ class WebView(QWebView):
         if fuzzyval:
             self._zoom.fuzzyval = int(perc)
         if perc < 0:
-            raise cmdexc.CommandError("Can't zoom {}%!".format(perc))
+            raise ValueError("Can't zoom {}%!".format(perc))
         self.setZoomFactor(float(perc) / 100)
-        message.info(self.win_id, "Zoom level: {}%".format(perc))
         self._default_zoom_changed = True
 
     def zoom(self, offset):
@@ -366,9 +377,13 @@ class WebView(QWebView):
 
         Args:
             offset: The offset in the zoom level list.
+
+        Return:
+            The new zoom percentage.
         """
         level = self._zoom.getitem(offset)
         self.zoom_perc(level, fuzzyval=False)
+        return level
 
     @pyqtSlot('QUrl')
     def on_url_changed(self, url):
@@ -447,15 +462,22 @@ class WebView(QWebView):
         elif mode == usertypes.KeyMode.caret:
             settings = self.settings()
             settings.setAttribute(QWebSettings.CaretBrowsingEnabled, True)
-            self.selection_enabled = False
+            self.selection_enabled = bool(self.page().selectedText())
 
             if self.isVisible():
                 # Sometimes the caret isn't immediately visible, but unfocusing
                 # and refocusing it fixes that.
                 self.clearFocus()
                 self.setFocus(Qt.OtherFocusReason)
-                self.page().currentFrame().evaluateJavaScript(
-                    utils.read_file('javascript/position_caret.js'))
+
+                # Move the caret to the first element in the viewport if there
+                # isn't any text which is already selected.
+                #
+                # Note: We can't use hasSelection() here, as that's always
+                # true in caret mode.
+                if not self.page().selectedText():
+                    self.page().currentFrame().evaluateJavaScript(
+                        utils.read_file('javascript/position_caret.js'))
 
     @pyqtSlot(usertypes.KeyMode)
     def on_mode_left(self, mode):
@@ -487,12 +509,25 @@ class WebView(QWebView):
         old_scroll_pos = self.scroll_pos
         flags = QWebPage.FindFlags(flags)
         found = self.findText(text, flags)
-        if not found and not flags & QWebPage.HighlightAllOccurrences and text:
-            message.error(self.win_id, "Text '{}' not found on "
-                          "page!".format(text), immediately=True)
-        else:
-            backward = int(flags) & QWebPage.FindBackward
+        backward = flags & QWebPage.FindBackward
 
+        if not found and not flags & QWebPage.HighlightAllOccurrences and text:
+            # User disabled wrapping; but findText() just returns False. If we
+            # have a selection, we know there's a match *somewhere* on the page
+            if (not flags & QWebPage.FindWrapsAroundDocument and
+                    self.hasSelection()):
+                if not backward:
+                    message.warning(self.win_id, "Search hit BOTTOM without "
+                                    "match for: {}".format(text),
+                                    immediately=True)
+                else:
+                    message.warning(self.win_id, "Search hit TOP without "
+                                    "match for: {}".format(text),
+                                    immediately=True)
+            else:
+                message.error(self.win_id, "Text '{}' not found on "
+                              "page!".format(text), immediately=True)
+        else:
             def check_scroll_pos():
                 """Check if the scroll position got smaller and show info."""
                 if not backward and self.scroll_pos < old_scroll_pos:
@@ -594,6 +629,7 @@ class WebView(QWebView):
         """Save a reference to the context menu so we can close it."""
         menu = self.page().createStandardContextMenu()
         self.shutting_down.connect(menu.close)
+        modeman.instance(self.win_id).entered.connect(menu.close)
         menu.exec_(e.globalPos())
 
     def wheelEvent(self, e):

@@ -24,9 +24,8 @@ import sys
 import html
 import getpass
 import traceback
-import distutils.version  # pylint: disable=no-name-in-module,import-error
-# https://bitbucket.org/logilab/pylint/issue/73/
 
+import pkg_resources
 from PyQt5.QtCore import pyqtSlot, Qt, QSize, qVersion
 from PyQt5.QtWidgets import (QDialog, QLabel, QTextEdit, QPushButton,
                              QVBoxLayout, QHBoxLayout, QCheckBox,
@@ -183,7 +182,7 @@ class _CrashDialog(QDialog):
     def _init_text(self):
         """Initialize the main text to be displayed on an exception.
 
-        Should be extended by superclass to set the actual text."""
+        Should be extended by subclasses to set the actual text."""
         self._lbl = QLabel(wordWrap=True, openExternalLinks=True,
                            textInteractionFlags=Qt.LinksAccessibleByMouse)
         self._vbox.addWidget(self._lbl)
@@ -328,8 +327,8 @@ class _CrashDialog(QDialog):
         """
         # pylint: disable=no-member
         # https://bitbucket.org/logilab/pylint/issue/73/
-        new_version = distutils.version.StrictVersion(newest)
-        cur_version = distutils.version.StrictVersion(qutebrowser.__version__)
+        new_version = pkg_resources.parse_version(newest)
+        cur_version = pkg_resources.parse_version(qutebrowser.__version__)
         lines = ['The report has been sent successfully. Thanks!']
         if new_version > cur_version:
             lines.append("<b>Note:</b> The newest available version is v{}, "

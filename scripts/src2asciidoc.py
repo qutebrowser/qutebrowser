@@ -37,7 +37,7 @@ sys.path.insert(0, os.path.join(os.path.dirname(__file__), os.pardir))
 import qutebrowser.app
 from scripts import asciidoc2html, utils
 from qutebrowser import qutebrowser
-from qutebrowser.commands import cmdutils
+from qutebrowser.commands import cmdutils, command
 from qutebrowser.config import configdata
 from qutebrowser.utils import docutils
 
@@ -53,6 +53,14 @@ class UsageFormatter(argparse.HelpFormatter):
     def _format_usage(self, usage, actions, groups, _prefix):
         """Override _format_usage to not add the 'usage:' prefix."""
         return super()._format_usage(usage, actions, groups, '')
+
+    def _get_default_metavar_for_optional(self, action):
+        """Do name transforming when getting metavar."""
+        return command.arg_name(action.dest.upper())
+
+    def _get_default_metavar_for_positional(self, action):
+        """Do name transforming when getting metavar."""
+        return command.arg_name(action.dest)
 
     def _metavar_formatter(self, action, default_metavar):
         """Override _metavar_formatter to add asciidoc markup to metavars.
@@ -184,7 +192,7 @@ def _get_command_doc_args(cmd, parser):
                 yield "* +'{}'+: {}".format(name, parser.arg_descs[arg])
             except KeyError as e:
                 raise KeyError("No description for arg {} of command "
-                               "'{}'!".format(e, cmd.name))
+                               "'{}'!".format(e, cmd.name)) from e
 
     if cmd.opt_args:
         yield ""
@@ -193,9 +201,9 @@ def _get_command_doc_args(cmd, parser):
             try:
                 yield '* +*{}*+, +*{}*+: {}'.format(short_flag, long_flag,
                                                     parser.arg_descs[arg])
-            except KeyError:
+            except KeyError as e:
                 raise KeyError("No description for arg {} of command "
-                               "'{}'!".format(e, cmd.name))
+                               "'{}'!".format(e, cmd.name)) from e
 
 
 def _get_command_doc_count(cmd, parser):
@@ -213,9 +221,9 @@ def _get_command_doc_count(cmd, parser):
         yield "==== count"
         try:
             yield parser.arg_descs[cmd.count_arg]
-        except KeyError:
+        except KeyError as e:
             raise KeyError("No description for count arg {!r} of command "
-                           "{!r}!".format(cmd.count_arg, cmd.name))
+                           "{!r}!".format(cmd.count_arg, cmd.name)) from e
 
 
 def _get_command_doc_notes(cmd):

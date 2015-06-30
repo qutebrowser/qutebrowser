@@ -46,6 +46,20 @@ def call_script(name, *args, python=sys.executable):
     subprocess.check_call([python, path] + list(args))
 
 
+def call_freeze(*args, python=sys.executable):
+    """Call freeze.py via tox.
+
+    Args:
+        *args: The arguments to pass.
+        python: The python interpreter to use.
+    """
+    env = os.environ.copy()
+    env['PYTHON'] = python
+    subprocess.check_call(
+        [sys.executable, '-m', 'tox', '-e', 'cxfreeze-windows'] + list(args),
+        env=env)
+
+
 def build_common(args):
     """Common buildsteps used for all OS'."""
     utils.print_title("Running asciidoc2html.py")
@@ -64,22 +78,33 @@ def _maybe_remove(path):
         pass
 
 
+def smoke_test(executable):
+    """Try starting the given qutebrowser executable."""
+    subprocess.check_call([executable, '--no-err-windows', '--nowindow',
+                          '--temp-basedir', 'about:blank', ':later 500 quit'])
+
+
 def build_windows():
     """Build windows executables/setups."""
     parts = str(sys.version_info.major), str(sys.version_info.minor)
     ver = ''.join(parts)
     dotver = '.'.join(parts)
-    python_x86 = r'C:\Python{}_x32\python.exe'.format(ver)
-    python_x64 = r'C:\Python{}\python.exe'.format(ver)
+    python_x86 = r'C:\Python{}_x32'.format(ver)
+    python_x64 = r'C:\Python{}'.format(ver)
 
     utils.print_title("Running 32bit freeze.py build_exe")
-    call_script('freeze.py', 'build_exe', python=python_x86)
-    utils.print_title("Running 64bit freeze.py build_exe")
-    call_script('freeze.py', 'build_exe', python=python_x64)
+    call_freeze('build_exe', python=python_x86)
     utils.print_title("Running 32bit freeze.py bdist_msi")
-    call_script('freeze.py', 'bdist_msi', python=python_x86)
+    call_freeze('bdist_msi', python=python_x86)
+    utils.print_title("Running 64bit freeze.py build_exe")
+    call_freeze('build_exe', python=python_x64)
     utils.print_title("Running 64bit freeze.py bdist_msi")
-    call_script('freeze.py', 'bdist_msi', python=python_x64)
+    call_freeze('bdist_msi', python=python_x64)
+
+    utils.print_title("Running 32bit smoke test")
+    smoke_test('build/exe.win32-{}/qutebrowser.exe'.format(dotver))
+    utils.print_title("Running 64bit smoke test")
+    smoke_test('build/exe.win-amd64-{}/qutebrowser.exe'.format(dotver))
 
     destdir = os.path.join('dist', 'zip')
     _maybe_remove(destdir)
@@ -126,6 +151,14 @@ def main():
     args = parser.parse_args()
     utils.change_cwd()
     if os.name == 'nt':
+        if sys.maxsize > 2**32:
+            # WORKAROUND
+            print("Due to a python/Windows bug, this script needs to be run ")
+            print("with a 32bit Python.")
+            print()
+            print("See http://bugs.python.org/issue24493 and ")
+            print("https://github.com/pypa/virtualenv/issues/774")
+            sys.exit(1)
         build_common(args)
         build_windows()
     else:

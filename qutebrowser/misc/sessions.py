@@ -145,21 +145,23 @@ class SessionManager(QObject):
             if item.originalUrl() != item.url():
                 encoded = item.originalUrl().toEncoded()
                 item_data['original-url'] = bytes(encoded).decode('ascii')
-            user_data = item.userData()
+
             if history.currentItemIndex() == idx:
                 item_data['active'] = True
-                if user_data is None:
-                    pos = tab.page().mainFrame().scrollPosition()
-                    data['zoom'] = tab.zoomFactor()
-                    data['scroll-pos'] = {'x': pos.x(), 'y': pos.y()}
-            data['history'].append(item_data)
 
-            if user_data is not None:
+            user_data = item.userData()
+            if history.currentItemIndex() == idx:
+                pos = tab.page().mainFrame().scrollPosition()
+                item_data['zoom'] = tab.zoomFactor()
+                item_data['scroll-pos'] = {'x': pos.x(), 'y': pos.y()}
+            elif user_data is not None:
                 if 'zoom' in user_data:
-                    data['zoom'] = user_data['zoom']
+                    item_data['zoom'] = user_data['zoom']
                 if 'scroll-pos' in user_data:
                     pos = user_data['scroll-pos']
-                    data['scroll-pos'] = {'x': pos.x(), 'y': pos.y()}
+                    item_data['scroll-pos'] = {'x': pos.x(), 'y': pos.y()}
+
+            data['history'].append(item_data)
         return data
 
     def _save_all(self):
@@ -235,11 +237,25 @@ class SessionManager(QObject):
         entries = []
         for histentry in data['history']:
             user_data = {}
+
             if 'zoom' in data:
+                # The zoom was accidentally stored in 'data' instead of per-tab
+                # earlier.
+                # See https://github.com/The-Compiler/qutebrowser/issues/728
                 user_data['zoom'] = data['zoom']
+            elif 'zoom' in histentry:
+                user_data['zoom'] = histentry['zoom']
+
             if 'scroll-pos' in data:
+                # The scroll position was accidentally stored in 'data' instead
+                # of per-tab earlier.
+                # See https://github.com/The-Compiler/qutebrowser/issues/728
                 pos = data['scroll-pos']
                 user_data['scroll-pos'] = QPoint(pos['x'], pos['y'])
+            elif 'scroll-pos' in histentry:
+                pos = histentry['scroll-pos']
+                user_data['scroll-pos'] = QPoint(pos['x'], pos['y'])
+
             active = histentry.get('active', False)
             url = QUrl.fromEncoded(histentry['url'].encode('ascii'))
             if 'original-url' in histentry:

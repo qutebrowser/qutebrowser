@@ -23,7 +23,7 @@ import re
 import functools
 import unicodedata
 
-from PyQt5.QtCore import pyqtSignal, pyqtSlot, Qt, QObject
+from PyQt5.QtCore import pyqtSignal, pyqtSlot, QObject
 
 from qutebrowser.config import config
 from qutebrowser.utils import usertypes, log, utils, objreg
@@ -49,6 +49,8 @@ class BaseKeyParser(QObject):
             special: execute() was called via a special key binding
 
         do_log: Whether to log keypresses or not.
+        passthrough: Whether unbound keys should be passed through with this
+                     handler.
 
     Attributes:
         bindings: Bound key bindings
@@ -69,6 +71,7 @@ class BaseKeyParser(QObject):
 
     keystring_updated = pyqtSignal(str)
     do_log = True
+    passthrough = False
 
     Match = usertypes.enum('Match', ['partial', 'definitive', 'ambiguous',
                                      'other', 'none'])
@@ -165,12 +168,6 @@ class BaseKeyParser(QObject):
         key = e.key()
         self._debug_log("Got key: 0x{:x} / text: '{}'".format(key, txt))
 
-        if key == Qt.Key_Escape:
-            self._debug_log("Escape pressed, discarding '{}'.".format(
-                self._keystring))
-            self._keystring = ''
-            return self.Match.none
-
         if len(txt) == 1:
             category = unicodedata.category(txt)
             is_control_char = (category == 'Cc')
@@ -201,7 +198,7 @@ class BaseKeyParser(QObject):
             self._keystring = ''
             self.execute(binding, self.Type.chain, count)
         elif match == self.Match.ambiguous:
-            self._debug_log("Ambigious match for '{}'.".format(
+            self._debug_log("Ambiguous match for '{}'.".format(
                 self._keystring))
             self._handle_ambiguous_match(binding, count)
         elif match == self.Match.partial:
@@ -306,6 +303,7 @@ class BaseKeyParser(QObject):
             True if the event was handled, False otherwise.
         """
         handled = self._handle_special_key(e)
+
         if handled or not self._supports_chains:
             return handled
         match = self._handle_single_key(e)
@@ -362,3 +360,9 @@ class BaseKeyParser(QObject):
                                  "defined!")
         if mode == self._modename:
             self.read_config()
+
+    def clear_keystring(self):
+        """Clear the currently entered key sequence."""
+        self._debug_log("discarding keystring '{}'.".format(self._keystring))
+        self._keystring = ''
+        self.keystring_updated.emit(self._keystring)

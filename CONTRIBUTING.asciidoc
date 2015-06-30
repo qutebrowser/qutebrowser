@@ -86,14 +86,15 @@ Useful utilities
 Checkers
 ~~~~~~~~
 
-qutbebrowser uses http://tox.readthedocs.org/en/latest/[tox] to run its
+qutebrowser uses http://tox.readthedocs.org/en/latest/[tox] to run its
 unittests and several linters/checkers.
 
 Currently, the following tools will be invoked when you run `tox`:
 
-* Unit tests using the Python
-https://docs.python.org/3.4/library/unittest.html[unittest] framework
-* https://pypi.python.org/pypi/flake8/[flake8]
+* Unit tests using https://www.pytest.org[pytest].
+* https://pypi.python.org/pypi/pyflakes[pyflakes] via https://pypi.python.org/pypi/pytest-flakes[pytest-flakes]
+* https://pypi.python.org/pypi/pep8[pep8] via https://pypi.python.org/pypi/pytest-pep8[pytest-pep8]
+* https://pypi.python.org/pypi/mccabe[mccabe] via https://pypi.python.org/pypi/pytest-mccabe[pytest-mccabe]
 * https://github.com/GreenSteam/pep257/[pep257]
 * http://pylint.org/[pylint]
 * https://pypi.python.org/pypi/pyroma/[pyroma]
@@ -152,7 +153,7 @@ Useful websites
 
 Some resources which might be handy:
 
-* http://qt-project.org/doc/qt-5/classes.html[The Qt5 reference]
+* http://doc.qt.io/qt-5/classes.html[The Qt5 reference]
 * https://docs.python.org/3/library/index.html[The Python reference]
 * http://httpbin.org/[httpbin, a test service for HTTP requests/responses]
 * http://requestb.in/[RequestBin, a service to inspect HTTP requests]
@@ -210,8 +211,7 @@ Other
 Languages] (http://www.rfc-editor.org/errata_search.php?rfc=5646[Errata])
 * http://www.w3.org/TR/CSS2/[Cascading Style Sheets Level 2 Revision 1 (CSS
 2.1) Specification]
-* http://qt-project.org/doc/qt-4.8/stylesheet-reference.html[Qt Style Sheets
-Reference]
+* http://doc.qt.io/qt-5/stylesheet-reference.html[Qt Style Sheets Reference]
 * http://mimesniff.spec.whatwg.org/[MIME Sniffing Standard]
 * http://spec.whatwg.org/[WHATWG specifications]
 * http://www.w3.org/html/wg/drafts/html/master/Overview.html[HTML 5.1 Nightly]
@@ -237,9 +237,7 @@ There are some exceptions to that:
 
 * `QThread` is used instead of Python threads because it provides signals and
 slots.
-* `QProcess` is used instead of Python's `subprocess` if certain actions (e.g.
-cleanup) when the process finished are desired, as it provides signals for
-that.
+* `QProcess` is used instead of Python's `subprocess`
 * `QUrl` is used instead of storing URLs as string, see the
 <<handling-urls,handling URLs>> section for details.
 
@@ -294,8 +292,8 @@ All objects can be printed by starting with the `--debug` flag and using the
 
 The registry is mainly used for <<commands,command handlers>> but also can be
 useful in places where using Qt's
-http://qt-project.org/doc/qt-5/signalsandslots.html[signals and slots]
-mechanism would be difficult.
+http://doc.qt.io/qt-5/signalsandslots.html[signals and slots] mechanism would
+be difficult.
 
 Logging
 ~~~~~~~
@@ -540,7 +538,7 @@ New Qt release
 
 * Run all tests and check nothing is broken.
 * Check the
-https://bugreports.qt-project.org/issues/?jql=reporter%20%3D%20%22The%20Compiler%22%20ORDER%20BY%20fixVersion%20ASC[Qt bugtracker]
+https://bugreports.qt.io/issues/?jql=reporter%20%3D%20%22The%20Compiler%22%20ORDER%20BY%20fixVersion%20ASC[Qt bugtracker]
 and make sure all bugs marked as resolved are actually fixed.
 * Update own PKGBUILDs based on upstream Archlinux updates and rebuild.
 * Update recommended Qt version in `README`

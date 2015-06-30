@@ -197,8 +197,10 @@ class TestKeyConfigParser:
             ('download-page', 'download'),
             ('cancel-download', 'download-cancel'),
 
-            ('search ""', 'search'),
-            ("search ''", 'search'),
+            ('search ""', 'search ;; clear-keychain'),
+            ("search ''", 'search ;; clear-keychain'),
+            ("search", 'search ;; clear-keychain'),
+            ("search ;; foobar", None),
             ('search "foo"', None),
 
             ('set-cmd-text "foo bar"', 'set-cmd-text foo bar'),

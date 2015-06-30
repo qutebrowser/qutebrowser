@@ -159,8 +159,10 @@ def init_log(args):
 def disable_qt_msghandler():
     """Contextmanager which temporarily disables the Qt message handler."""
     old_handler = QtCore.qInstallMessageHandler(None)
-    yield
-    QtCore.qInstallMessageHandler(old_handler)
+    try:
+        yield
+    finally:
+        QtCore.qInstallMessageHandler(old_handler)
 
 
 def _init_handlers(level, color, ram_capacity):
@@ -259,30 +261,34 @@ def qt_message_handler(msg_type, context, msg):
     # suppressed_msgs is a list of regexes matching the message texts to hide.
     suppressed_msgs = (
         # PNGs in Qt with broken color profile
-        # https://bugreports.qt-project.org/browse/QTBUG-39788
+        # https://bugreports.qt.io/browse/QTBUG-39788
         "libpng warning: iCCP: Not recognizing known sRGB profile that has "
         "been edited",
         # Hopefully harmless warning
         "OpenType support missing for script ",
         # Error if a QNetworkReply gets two different errors set. Harmless Qt
         # bug on some pages.
-        # https://bugreports.qt-project.org/browse/QTBUG-30298
+        # https://bugreports.qt.io/browse/QTBUG-30298
         "QNetworkReplyImplPrivate::error: Internal problem, this method must "
         "only be called once.",
-        # Not much information about this, but it seems harmless
-        'QXcbWindow: Unhandled client message: "_GTK_LOAD_ICONTHEMES"',
         # Sometimes indicates missing text, but most of the time harmless
         "load glyph failed ",
-        # Harmless, see https://bugreports.qt-project.org/browse/QTBUG-42479
+        # Harmless, see https://bugreports.qt.io/browse/QTBUG-42479
         "content-type missing in HTTP POST, defaulting to "
         "application/x-www-form-urlencoded. Use QNetworkRequest::setHeader() "
         "to fix this problem.",
-        # https://bugreports.qt-project.org/browse/QTBUG-43118
+        # https://bugreports.qt.io/browse/QTBUG-43118
         "Using blocking call!",
         # Hopefully harmless
         '"Method "GetAll" with signature "s" on interface '
         '"org.freedesktop.DBus.Properties" doesn\'t exist',
-        'WOFF support requires QtWebKit to be built with zlib support.'
+        'WOFF support requires QtWebKit to be built with zlib support.',
+        # Weird Enlightment/GTK X extensions
+        'QXcbWindow: Unhandled client message: "_E_',
+        'QXcbWindow: Unhandled client message: "_ECORE_',
+        'QXcbWindow: Unhandled client message: "_GTK_',
+        # Happens on AppVeyor CI
+        'SetProcessDpiAwareness failed:',
     )
     if any(msg.strip().startswith(pattern) for pattern in suppressed_msgs):
         level = logging.DEBUG
@@ -315,8 +321,10 @@ def hide_qt_warning(pattern, logger='qt'):
     log_filter = QtWarningFilter(pattern)
     logger_obj = logging.getLogger(logger)
     logger_obj.addFilter(log_filter)
-    yield
-    logger_obj.removeFilter(log_filter)
+    try:
+        yield
+    finally:
+        logger_obj.removeFilter(log_filter)
 
 
 class QtWarningFilter(logging.Filter):
@@ -375,7 +383,7 @@ class RAMHandler(logging.Handler):
 
     """Logging handler which keeps the messages in a deque in RAM.
 
-    Loosly based on logging.BufferingHandler which is unsuitable because it
+    Loosely based on logging.BufferingHandler which is unsuitable because it
     uses a simple list rather than a deque.
 
     Attributes:

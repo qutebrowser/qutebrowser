@@ -1,6 +1,8 @@
-# Copyright 2014-2015 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
+#!/usr/bin/env python3
 # vim: ft=python fileencoding=utf-8 sts=4 sw=4 et:
 
+# Copyright 2015 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
+#
 # This file is part of qutebrowser.
 #
 # qutebrowser is free software: you can redistribute it and/or modify
@@ -16,30 +18,16 @@
 # You should have received a copy of the GNU General Public License
 # along with qutebrowser.  If not, see <http://www.gnu.org/licenses/>.
 
-"""Checker for CRLF in files."""
+# pylint: disable=import-error,no-member
 
-from pylint import interfaces, checkers
+"""cx_Freeze script to run qutebrowser tests on the frozen executable."""
 
+import sys
 
-class CrlfChecker(checkers.BaseChecker):
+import pytest
+import pytestqt.plugin
+import pytest_mock
+import pytest_capturelog
 
-    """Check for CRLF in files."""
-
-    __implements__ = interfaces.IRawChecker
-
-    name = 'crlf'
-    msgs = {'W9001': ('Uses CRLFs', 'crlf', None)}
-    options = ()
-    priority = -1
-
-    def process_module(self, node):
-        """Process the module."""
-        for (lineno, line) in enumerate(node.file_stream):
-            if b'\r\n' in line:
-                self.add_message('crlf', line=lineno)
-                return
-
-
-def register(linter):
-    """Register the checker."""
-    linter.register_checker(CrlfChecker(linter))
+sys.exit(pytest.main(plugins=[pytestqt.plugin, pytest_mock,
+                              pytest_capturelog]))

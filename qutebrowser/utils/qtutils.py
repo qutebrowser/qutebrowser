@@ -31,10 +31,9 @@ import io
 import os
 import sys
 import operator
-import distutils.version  # pylint: disable=no-name-in-module,import-error
-# https://bitbucket.org/logilab/pylint/issue/73/
 import contextlib
 
+import pkg_resources
 from PyQt5.QtCore import (qVersion, QEventLoop, QDataStream, QByteArray,
                           QIODevice, QSaveFile)
 from PyQt5.QtWidgets import QApplication
@@ -60,8 +59,8 @@ def version_check(version, op=operator.ge):
     """
     # pylint: disable=no-member
     # https://bitbucket.org/logilab/pylint/issue/73/
-    return op(distutils.version.StrictVersion(qVersion()),
-              distutils.version.StrictVersion(version))
+    return op(pkg_resources.parse_version(qVersion()),
+              pkg_resources.parse_version(version))
 
 
 def check_overflow(arg, ctype, fatal=True):

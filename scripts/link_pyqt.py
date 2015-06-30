@@ -28,6 +28,7 @@ import sys
 import glob
 import subprocess
 import platform
+import filecmp
 
 
 class Error(Exception):
@@ -39,7 +40,8 @@ class Error(Exception):
 
 def verbose_copy(src, dst, *, follow_symlinks=True):
     """Copy function for shutil.copytree which prints copied files."""
-    print('{} -> {}'.format(src, dst))
+    if '-v' in sys.argv:
+        print('{} -> {}'.format(src, dst))
     shutil.copy(src, dst, follow_symlinks=follow_symlinks)
 
 
@@ -56,6 +58,22 @@ def get_ignored_files(directory, files):
         elif (ext not in needed_exts) and os.path.isfile(full_path):
             filtered.append(f)
     return filtered
+
+
+def needs_update(source, dest):
+    """Check if a file to be linked/copied needs to be updated."""
+    if os.path.islink(dest):
+        # No need to delete a link and relink -> skip this
+        return False
+    elif os.path.isdir(dest):
+        diffs = filecmp.dircmp(source, dest)
+        ignored = get_ignored_files(source, diffs.left_only)
+        has_new_files = set(ignored) != set(diffs.left_only)
+        return (has_new_files or diffs.right_only or
+                diffs.common_funny or diffs.diff_files or
+                diffs.funny_files)
+    else:
+        return not filecmp.cmp(source, dest)
 
 
 def link_pyqt(sys_path, venv_path):
@@ -75,26 +93,43 @@ def link_pyqt(sys_path, venv_path):
     for fn, required in files:
         source = os.path.join(sys_path, fn)
         dest = os.path.join(venv_path, fn)
+
         if not os.path.exists(source):
             if required:
                 raise FileNotFoundError(source)
             else:
                 continue
+
         if os.path.exists(dest):
-            if os.path.isdir(dest) and not os.path.islink(dest):
-                shutil.rmtree(dest)
+            if needs_update(source, dest):
+                remove(dest)
             else:
-                os.unlink(dest)
-        if os.name == 'nt':
-            if os.path.isdir(source):
-                shutil.copytree(source, dest, ignore=get_ignored_files,
-                                copy_function=verbose_copy)
-            else:
-                print('{} -> {}'.format(source, dest))
-                shutil.copy(source, dest)
+                continue
+
+        copy_or_link(source, dest)
+
+
+def copy_or_link(source, dest):
+    """Copy or symlink source to dest."""
+    if os.name == 'nt':
+        if os.path.isdir(source):
+            print('{} -> {}'.format(source, dest))
+            shutil.copytree(source, dest, ignore=get_ignored_files,
+                            copy_function=verbose_copy)
         else:
             print('{} -> {}'.format(source, dest))
-            os.symlink(source, dest)
+            shutil.copy(source, dest)
+    else:
+        print('{} -> {}'.format(source, dest))
+        os.symlink(source, dest)
+
+
+def remove(filename):
+    """Remove a given filename, regardless of whether it's a file or dir."""
+    if os.path.isdir(filename):
+        shutil.rmtree(filename)
+    else:
+        os.unlink(filename)
 
 
 def get_python_lib(executable, venv=False):
@@ -105,7 +140,10 @@ def get_python_lib(executable, venv=False):
               treatments for Windows/Ubuntu shouldn't take place.
     """
     distribution = platform.linux_distribution(full_distribution_name=False)
-    if os.name == 'nt' and not venv:
+    if 'PYTHON' in os.environ and not venv:
+        # e.g. on AppVeyor
+        return os.path.join(os.environ['PYTHON'], 'Lib', 'site-packages')
+    elif os.name == 'nt' and not venv:
         # For some reason, we get an empty string from get_python_lib() on
         # Windows when running via tox, and sys.prefix is empty too...
         return os.path.join(os.path.dirname(executable), '..', 'Lib',

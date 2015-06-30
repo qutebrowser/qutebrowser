@@ -100,9 +100,13 @@ SECTION_DESC = {
         " * `rgb(r, g, b)` / `rgba(r, g, b, a)` (values 0-255 or "
         "percentages)\n"
         " * `hsv(h, s, v)` / `hsva(h, s, v, a)` (values 0-255, hue 0-359)\n"
-        " * A gradient as explained in http://qt-project.org/doc/qt-4.8/"
+        " * A gradient as explained in http://doc.qt.io/qt-5/"
         "stylesheet-reference.html#list-of-property-types[the Qt "
         "documentation] under ``Gradient''.\n\n"
+        "A *.system value determines the color system to use for color "
+        "interpolation between similarly-named *.start and *.stop entries, "
+        "regardless of how they are defined in the options. "
+        "Valid values are 'rgb', 'hsv', and 'hsl'.\n\n"
         "The `hints.*` values are a special case as they're real CSS "
         "colors, not Qt-CSS colors. There, for a gradient, you need to use "
         "`-webkit-gradient`, see https://www.webkit.org/blog/175/introducing-"
@@ -204,7 +208,7 @@ def data(readonly=False):
              "be used."),
 
             ('new-instance-open-target',
-             SettingValue(typ.NewInstanceOpenTarget(), 'window'),
+             SettingValue(typ.NewInstanceOpenTarget(), 'tab'),
              "How to open links in an existing instance if a new one is "
              "launched."),
 
@@ -269,8 +273,9 @@ def data(readonly=False):
             ('user-stylesheet',
              SettingValue(typ.UserStyleSheet(),
                           '::-webkit-scrollbar { width: 0px; height: 0px; }'),
-             "User stylesheet to use (absolute filename or CSS string). Will "
-             "expand environment variables."),
+             "User stylesheet to use (absolute filename, filename relative to "
+             "the config directory or CSS string). Will expand environment "
+             "variables."),
 
             ('css-media-type',
              SettingValue(typ.String(none_ok=True), ''),
@@ -304,6 +309,10 @@ def data(readonly=False):
             ('hide-mouse-cursor',
              SettingValue(typ.Bool(), 'false'),
              "Whether to hide the mouse cursor."),
+
+            ('modal-js-dialog',
+             SettingValue(typ.Bool(), 'false'),
+             "Use standard JavaScript modal dialog for alert() and confirm()"),
 
             readonly=readonly
         )),
@@ -343,6 +352,10 @@ def data(readonly=False):
         )),
 
         ('completion', sect.KeyValue(
+            ('auto-open',
+             SettingValue(typ.Bool(), 'true'),
+             "Automatically open completion when typing."),
+
             ('download-path-suggestion',
              SettingValue(typ.DownloadPathSuggestion(), 'path'),
              "What to display in the download filename input."),
@@ -460,7 +473,7 @@ def data(readonly=False):
 
             ('last-close',
              SettingValue(typ.LastClose(), 'ignore'),
-             "Behaviour when the last tab is closed."),
+             "Behavior when the last tab is closed."),
 
             ('hide-auto',
              SettingValue(typ.Bool(), 'false'),
@@ -670,8 +683,8 @@ def data(readonly=False):
              "local urls."),
 
             ('cookies-accept',
-             SettingValue(typ.AcceptCookies(), 'default'),
-             "Whether to accept cookies."),
+             SettingValue(typ.AcceptCookies(), 'no-3rdparty'),
+             "Control which cookies to accept."),
 
             ('cookies-store',
              SettingValue(typ.Bool(), 'true'),
@@ -736,7 +749,8 @@ def data(readonly=False):
 
             ('next-regexes',
              SettingValue(typ.RegexList(flags=re.IGNORECASE),
-                          r'\bnext\b,\bmore\b,\bnewer\b,\b[>→≫]\b,\b(>>|»)\b'),
+                          r'\bnext\b,\bmore\b,\bnewer\b,\b[>→≫]\b,\b(>>|»)\b,'
+                          r'\bcontinue\b'),
              "A comma-separated list of regexes to use for 'next' links."),
 
             ('prev-regexes',
@@ -812,33 +826,66 @@ def data(readonly=False):
              SettingValue(typ.QssColor(), '#ff4444'),
              "Foreground color of the matched text in the completion."),
 
+            ('statusbar.fg',
+             SettingValue(typ.QssColor(), 'white'),
+             "Foreground color of the statusbar."),
+
             ('statusbar.bg',
              SettingValue(typ.QssColor(), 'black'),
              "Foreground color of the statusbar."),
 
-            ('statusbar.fg',
-             SettingValue(typ.QssColor(), 'white'),
-             "Foreground color of the statusbar."),
+            ('statusbar.fg.error',
+             SettingValue(typ.QssColor(), '${statusbar.fg}'),
+             "Foreground color of the statusbar if there was an error."),
 
             ('statusbar.bg.error',
              SettingValue(typ.QssColor(), 'red'),
              "Background color of the statusbar if there was an error."),
 
+            ('statusbar.fg.warning',
+             SettingValue(typ.QssColor(), '${statusbar.fg}'),
+             "Foreground color of the statusbar if there is a warning."),
+
             ('statusbar.bg.warning',
              SettingValue(typ.QssColor(), 'darkorange'),
              "Background color of the statusbar if there is a warning."),
+
+            ('statusbar.fg.prompt',
+             SettingValue(typ.QssColor(), '${statusbar.fg}'),
+             "Foreground color of the statusbar if there is a prompt."),
 
             ('statusbar.bg.prompt',
              SettingValue(typ.QssColor(), 'darkblue'),
              "Background color of the statusbar if there is a prompt."),
 
+            ('statusbar.fg.insert',
+             SettingValue(typ.QssColor(), '${statusbar.fg}'),
+             "Foreground color of the statusbar in insert mode."),
+
             ('statusbar.bg.insert',
              SettingValue(typ.QssColor(), 'darkgreen'),
              "Background color of the statusbar in insert mode."),
 
+            ('statusbar.fg.command',
+             SettingValue(typ.QssColor(), '${statusbar.fg}'),
+             "Foreground color of the statusbar in command mode."),
+
+            ('statusbar.bg.command',
+             SettingValue(typ.QssColor(), '${statusbar.bg}'),
+             "Background color of the statusbar in command mode."),
+
+            ('statusbar.fg.caret',
+             SettingValue(typ.QssColor(), '${statusbar.fg}'),
+             "Foreground color of the statusbar in caret mode."),
+
             ('statusbar.bg.caret',
              SettingValue(typ.QssColor(), 'purple'),
              "Background color of the statusbar in caret mode."),
+
+            ('statusbar.fg.caret-selection',
+             SettingValue(typ.QssColor(), '${statusbar.fg}'),
+             "Foreground color of the statusbar in caret mode with a "
+             "selection"),
 
             ('statusbar.bg.caret-selection',
              SettingValue(typ.QssColor(), '#a12dff'),
@@ -876,21 +923,21 @@ def data(readonly=False):
              SettingValue(typ.QtColor(), 'white'),
              "Foreground color of unselected odd tabs."),
 
-            ('tabs.fg.even',
-             SettingValue(typ.QtColor(), 'white'),
-             "Foreground color of unselected even tabs."),
-
-            ('tabs.fg.selected',
-             SettingValue(typ.QtColor(), 'white'),
-             "Foreground color of selected tabs."),
-
             ('tabs.bg.odd',
              SettingValue(typ.QtColor(), 'grey'),
              "Background color of unselected odd tabs."),
 
+            ('tabs.fg.even',
+             SettingValue(typ.QtColor(), 'white'),
+             "Foreground color of unselected even tabs."),
+
             ('tabs.bg.even',
              SettingValue(typ.QtColor(), 'darkgrey'),
              "Background color of unselected even tabs."),
+
+            ('tabs.fg.selected',
+             SettingValue(typ.QtColor(), 'white'),
+             "Foreground color of selected tabs."),
 
             ('tabs.bg.selected',
              SettingValue(typ.QtColor(), 'black'),
@@ -920,10 +967,6 @@ def data(readonly=False):
              SettingValue(typ.CssColor(), 'black'),
              "Font color for hints."),
 
-            ('hints.fg.match',
-             SettingValue(typ.CssColor(), 'green'),
-             "Font color for the matched part of hints."),
-
             ('hints.bg',
              SettingValue(
                  typ.CssColor(), '-webkit-gradient(linear, left top, '
@@ -931,29 +974,50 @@ def data(readonly=False):
                  'color-stop(100%,#FFC542))'),
              "Background color for hints."),
 
-            ('downloads.fg',
-             SettingValue(typ.QtColor(), '#ffffff'),
-             "Foreground color for downloads."),
+            ('hints.fg.match',
+             SettingValue(typ.CssColor(), 'green'),
+             "Font color for the matched part of hints."),
 
             ('downloads.bg.bar',
              SettingValue(typ.QssColor(), 'black'),
              "Background color for the download bar."),
 
+            ('downloads.fg.start',
+             SettingValue(typ.QtColor(), 'white'),
+             "Color gradient start for download text."),
+
             ('downloads.bg.start',
              SettingValue(typ.QtColor(), '#0000aa'),
-             "Color gradient start for downloads."),
+             "Color gradient start for download backgrounds."),
+
+            ('downloads.fg.stop',
+             SettingValue(typ.QtColor(), '${downloads.fg.start}'),
+             "Color gradient end for download text."),
 
             ('downloads.bg.stop',
              SettingValue(typ.QtColor(), '#00aa00'),
-             "Color gradient end for downloads."),
+             "Color gradient stop for download backgrounds."),
+
+            ('downloads.fg.system',
+             SettingValue(typ.ColorSystem(), 'rgb'),
+             "Color gradient interpolation system for download text."),
 
             ('downloads.bg.system',
              SettingValue(typ.ColorSystem(), 'rgb'),
-             "Color gradient interpolation system for downloads."),
+             "Color gradient interpolation system for download backgrounds."),
+
+            ('downloads.fg.error',
+             SettingValue(typ.QtColor(), 'white'),
+             "Foreground color for downloads with errors."),
 
             ('downloads.bg.error',
              SettingValue(typ.QtColor(), 'red'),
              "Background color for downloads with errors."),
+
+            ('webpage.bg',
+             SettingValue(typ.QtColor(none_ok=True), 'white'),
+             "Background color for webpages if unset (or empty to use the "
+             "theme's color)"),
 
             readonly=readonly
         )),
@@ -1121,6 +1185,12 @@ KEY_SECTION_DESC = {
         ""),
 }
 
+# Keys which are similar to Return and should be bound by default where Return
+# is bound.
+
+RETURN_KEYS = ['<Return>', '<Ctrl-M>', '<Ctrl-J>', '<Shift-Return>', '<Enter>',
+               '<Shift-Enter>']
+
 
 KEY_DATA = collections.OrderedDict([
     ('!normal', collections.OrderedDict([
@@ -1128,7 +1198,7 @@ KEY_DATA = collections.OrderedDict([
     ])),
 
     ('normal', collections.OrderedDict([
-        ('search', ['<Escape>']),
+        ('search ;; clear-keychain', ['<Escape>']),
         ('set-cmd-text -s :open', ['o']),
         ('set-cmd-text :open {url}', ['go']),
         ('set-cmd-text -s :open -t', ['O']),
@@ -1189,6 +1259,8 @@ KEY_DATA = collections.OrderedDict([
         ('yank -s', ['yY']),
         ('yank -t', ['yt']),
         ('yank -ts', ['yT']),
+        ('yank -d', ['yd']),
+        ('yank -ds', ['yD']),
         ('paste', ['pp']),
         ('paste -s', ['pP']),
         ('paste -t', ['Pp']),
@@ -1239,6 +1311,8 @@ KEY_DATA = collections.OrderedDict([
         ('stop', ['<Ctrl-s>']),
         ('print', ['<Ctrl-Alt-p>']),
         ('open qute:settings', ['Ss']),
+        ('follow-selected', RETURN_KEYS),
+        ('follow-selected -t', ['<Ctrl-Return>', '<Ctrl-Enter>']),
     ])),
 
     ('insert', collections.OrderedDict([
@@ -1246,7 +1320,7 @@ KEY_DATA = collections.OrderedDict([
     ])),
 
     ('hint', collections.OrderedDict([
-        ('follow-hint', ['<Return>', '<Ctrl-M>', '<Ctrl-J>']),
+        ('follow-hint', RETURN_KEYS),
         ('hint --rapid links tab-bg', ['<Ctrl-R>']),
         ('hint links', ['<Ctrl-F>']),
         ('hint all tab-bg', ['<Ctrl-B>']),
@@ -1259,13 +1333,11 @@ KEY_DATA = collections.OrderedDict([
         ('command-history-next', ['<Ctrl-N>']),
         ('completion-item-prev', ['<Shift-Tab>', '<Up>']),
         ('completion-item-next', ['<Tab>', '<Down>']),
-        ('command-accept', ['<Return>', '<Ctrl-J>', '<Shift-Return>',
-                            '<Ctrl-M>']),
+        ('command-accept', RETURN_KEYS),
     ])),
 
     ('prompt', collections.OrderedDict([
-        ('prompt-accept', ['<Return>', '<Ctrl-J>', '<Shift-Return>',
-                           '<Ctrl-M>']),
+        ('prompt-accept', RETURN_KEYS),
         ('prompt-yes', ['y']),
         ('prompt-no', ['n']),
     ])),
@@ -1280,7 +1352,7 @@ KEY_DATA = collections.OrderedDict([
         ('rl-unix-line-discard', ['<Ctrl-U>']),
         ('rl-kill-line', ['<Ctrl-K>']),
         ('rl-kill-word', ['<Alt-D>']),
-        ('rl-unix-word-rubout', ['<Ctrl-W>']),
+        ('rl-unix-word-rubout', ['<Ctrl-W>', '<Alt-Backspace>']),
         ('rl-yank', ['<Ctrl-Y>']),
         ('rl-delete-char', ['<Ctrl-?>']),
         ('rl-backward-delete-char', ['<Ctrl-H>']),
@@ -1306,7 +1378,7 @@ KEY_DATA = collections.OrderedDict([
         ('move-to-start-of-document', ['gg']),
         ('move-to-end-of-document', ['G']),
         ('yank-selected -p', ['Y']),
-        ('yank-selected', ['y', '<Return>', '<Ctrl-J>']),
+        ('yank-selected', ['y'] + RETURN_KEYS),
         ('scroll left', ['H']),
         ('scroll down', ['J']),
         ('scroll up', ['K']),
@@ -1323,8 +1395,8 @@ CHANGED_KEY_COMMANDS = [
     (re.compile(r'^download-page$'), r'download'),
     (re.compile(r'^cancel-download$'), r'download-cancel'),
 
-    (re.compile(r'^search ""$'), r'search'),
-    (re.compile(r"^search ''$"), r'search'),
+    (re.compile(r"""^search (''|"")$"""), r'search ;; clear-keychain'),
+    (re.compile(r'^search$'), r'search ;; clear-keychain'),
 
     (re.compile(r"""^set-cmd-text ['"](.*) ['"]$"""), r'set-cmd-text -s \1'),
     (re.compile(r"""^set-cmd-text ['"](.*)['"]$"""), r'set-cmd-text \1'),

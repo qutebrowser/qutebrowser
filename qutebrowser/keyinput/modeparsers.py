@@ -224,6 +224,8 @@ class CaretKeyParser(keyparser.CommandKeyParser):
 
     """KeyParser for caret mode."""
 
+    passthrough = True
+
     def __init__(self, win_id, parent=None):
         super().__init__(win_id, parent, supports_count=True,
                          supports_chains=True)

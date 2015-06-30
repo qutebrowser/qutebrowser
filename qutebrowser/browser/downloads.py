@@ -148,7 +148,7 @@ class DownloadItemStats(QObject):
 
     @pyqtSlot(int, int)
     def on_download_progress(self, bytes_done, bytes_total):
-        """Upload local variables when the download progress changed.
+        """Update local variables when the download progress changed.
 
         Args:
             bytes_done: How many bytes are downloaded.
@@ -158,7 +158,6 @@ class DownloadItemStats(QObject):
             bytes_total = None
         self.done = bytes_done
         self.total = bytes_total
-        self.updated.emit()
 
 
 class DownloadItem(QObject):
@@ -356,12 +355,19 @@ class DownloadItem(QObject):
         if reply.error() != QNetworkReply.NoError:
             QTimer.singleShot(0, lambda: self.error.emit(reply.errorString()))
 
-    def bg_color(self):
-        """Background color to be shown."""
-        start = config.get('colors', 'downloads.bg.start')
-        stop = config.get('colors', 'downloads.bg.stop')
-        system = config.get('colors', 'downloads.bg.system')
-        error = config.get('colors', 'downloads.bg.error')
+    def get_status_color(self, position):
+        """Choose an appropriate color for presenting the download's status.
+
+        Args:
+            position: The color type requested, can be 'fg' or 'bg'.
+        """
+        # pylint: disable=bad-config-call
+        # WORKAROUND for https://bitbucket.org/logilab/astroid/issue/104/
+        assert position in ("fg", "bg")
+        start = config.get('colors', 'downloads.{}.start'.format(position))
+        stop = config.get('colors', 'downloads.{}.stop'.format(position))
+        system = config.get('colors', 'downloads.{}.system'.format(position))
+        error = config.get('colors', 'downloads.{}.error'.format(position))
         if self.error_msg is not None:
             assert not self.successful
             return error
@@ -679,7 +685,7 @@ class DownloadManager(QAbstractListModel):
         if fileobj is not None and filename is not None:
             raise TypeError("Only one of fileobj/filename may be given!")
         # WORKAROUND for Qt corrupting data loaded from cache:
-        # https://bugreports.qt-project.org/browse/QTBUG-42757
+        # https://bugreports.qt.io/browse/QTBUG-42757
         request.setAttribute(QNetworkRequest.CacheLoadControlAttribute,
                              QNetworkRequest.AlwaysNetwork)
         suggested_fn = urlutils.filename_from_url(request.url())
@@ -1023,9 +1029,9 @@ class DownloadManager(QAbstractListModel):
         if role == Qt.DisplayRole:
             data = str(item)
         elif role == Qt.ForegroundRole:
-            data = config.get('colors', 'downloads.fg')
+            data = item.get_status_color('fg')
         elif role == Qt.BackgroundRole:
-            data = item.bg_color()
+            data = item.get_status_color('bg')
         elif role == ModelRole.item:
             data = item
         elif role == Qt.ToolTipRole:
