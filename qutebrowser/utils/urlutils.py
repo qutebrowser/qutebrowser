@@ -29,7 +29,7 @@ from PyQt5.QtCore import QUrl
 from PyQt5.QtNetwork import QHostInfo, QHostAddress
 
 from qutebrowser.config import config, configexc
-from qutebrowser.utils import log, qtutils, message, utils
+from qutebrowser.utils import log, qtutils, message, utils, objreg
 from qutebrowser.commands import cmdexc
 
 
@@ -303,7 +303,7 @@ def qurl_from_user_input(urlstr):
     # options (_validate_all) before the register the config...
     try:
         default_scheme = config.get('network', 'scheme-order')[0]
-    except KeyError:
+    except objreg.ItemUnavailableError:
         default_scheme = None
 
     # Then we try to parse it as an IPv6, and if we fail use
