@@ -1,6 +1,6 @@
 # vim: ft=python fileencoding=utf-8 sts=4 sw=4 et:
 
-# Copyright 2014 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
+# Copyright 2014-2015 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
 #
 # This file is part of qutebrowser.
 #
@@ -43,7 +43,7 @@ class MinimalLineEditMixin:
         self.setAttribute(Qt.WA_MacShowFocusRect, False)
 
     def __repr__(self):
-        return utils.get_repr(self, text=self.text())
+        return utils.get_repr(self)
 
 
 class CommandLineEdit(QLineEdit):
@@ -58,7 +58,7 @@ class CommandLineEdit(QLineEdit):
 
     def __init__(self, parent=None):
         super().__init__(parent)
-        self.history = cmdhistory.History()
+        self.history = cmdhistory.History(parent=self)
         self._validator = _CommandValidator(self)
         self.setValidator(self._validator)
         self.textEdited.connect(self.on_text_edited)
@@ -77,7 +77,7 @@ class CommandLineEdit(QLineEdit):
     def __on_cursor_position_changed(self, _old, new):
         """Prevent the cursor moving to the prompt.
 
-        We use __ here to avoid accidentally overriding it in superclasses.
+        We use __ here to avoid accidentally overriding it in subclasses.
         """
         if new < self._promptlen:
             self.setCursorPosition(self._promptlen)
@@ -127,7 +127,7 @@ class _CommandValidator(QValidator):
 
         Args:
             string: The string to validate.
-            pos: The current curser position.
+            pos: The current cursor position.
 
         Return:
             A tuple (status, string, pos) as a QValidator should.

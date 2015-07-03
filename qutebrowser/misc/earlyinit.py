@@ -20,6 +20,13 @@
 At this point we can be sure we have all python 3.4 features available.
 """
 
+try:
+    # Importing hunter to register its atexit handler early so it gets called
+    # late.
+    import hunter  # pylint: disable=import-error,unused-import
+except ImportError:
+    hunter = None
+
 import os
 import sys
 import faulthandler
@@ -32,37 +39,29 @@ try:
 except ImportError:
     tkinter = None
 # NOTE: No qutebrowser or PyQt import should be done here, as some early
-# initialisation needs to take place before that!
+# initialization needs to take place before that!
 
 
-def _missing_str(name, debian=None, arch=None, windows=None, pip=None):
+def _missing_str(name, *, windows=None, pip=None):
     """Get an error string for missing packages.
 
     Args:
         name: The name of the package.
-        debian: String to be displayed for Debian.
-        arch: String to be displayed for Archlinux.
         windows: String to be displayed for Windows.
         pip: pypi package name.
     """
     blocks = ["Fatal error: <b>{}</b> is required to run qutebrowser but "
               "could not be imported! Maybe it's not installed?".format(name)]
-    if debian is not None:
-        lines = ["<b>On Debian/Ubuntu:</b>"]
-        lines += debian.splitlines()
-        blocks.append('<br />'.join(lines))
-    if arch is not None:
-        lines = ["<b>On Archlinux:</b>"]
-        lines += arch.splitlines()
-        blocks.append('<br />'.join(lines))
+    lines = ['Please search for the python3 version of {} in your '
+             'distributions packages, or install it via pip.'.format(name)]
+    blocks.append('<br />'.join(lines))
+    lines = ['<b>If you installed a qutebrowser package for your '
+             'distribution, please report this as a bug.</b>']
+    blocks.append('<br />'.join(lines))
     if windows is not None:
         lines = ["<b>On Windows:</b>"]
         lines += windows.splitlines()
         blocks.append('<br />'.join(lines))
-    lines = ["<b>For other distributions:</b>",
-             "Check your package manager for similarly named packages or "
-             "install via pip."]
-    blocks.append('<br />'.join(lines))
     if pip is not None:
         lines = ["<b>Using pip:</b>"]
         lines.append("pip3 install {}".format(pip))
@@ -70,26 +69,32 @@ def _missing_str(name, debian=None, arch=None, windows=None, pip=None):
     return '<br /><br />'.join(blocks)
 
 
-def _die(message, exception=True):
+def _die(message, exception=None):
     """Display an error message using Qt and quit.
 
     We import the imports here as we want to do other stuff before the imports.
 
     Args:
         message: The message to display.
-        exception: Whether to print an exception with --debug.
+        exception: The exception object if we're handling an exception.
     """
     from PyQt5.QtWidgets import QApplication, QMessageBox
     from PyQt5.QtCore import Qt
-    if '--debug' in sys.argv and exception:
+    if (('--debug' in sys.argv or '--no-err-windows' in sys.argv) and
+            exception is not None):
         print(file=sys.stderr)
         traceback.print_exc()
     app = QApplication(sys.argv)
-    msgbox = QMessageBox(QMessageBox.Critical, "qutebrowser: Fatal error!",
-                         message)
-    msgbox.setTextFormat(Qt.RichText)
-    msgbox.resize(msgbox.sizeHint())
-    msgbox.exec_()
+    if '--no-err-windows' in sys.argv:
+        print(message, file=sys.stderr)
+        print("Exiting because of --no-err-windows.", file=sys.stderr)
+    else:
+        message += '<br/><br/><br/><b>Error:</b><br/>{}'.format(exception)
+        msgbox = QMessageBox(QMessageBox.Critical, "qutebrowser: Fatal error!",
+                             message)
+        msgbox.setTextFormat(Qt.RichText)
+        msgbox.resize(msgbox.sizeHint())
+        msgbox.exec_()
     app.quit()
     sys.exit(1)
 
@@ -97,7 +102,7 @@ def _die(message, exception=True):
 def init_faulthandler(fileobj=sys.__stderr__):
     """Enable faulthandler module if available.
 
-    This print a nice traceback on segfauls.
+    This print a nice traceback on segfaults.
 
     We use sys.__stderr__ instead of sys.stderr here so this will still work
     when sys.stderr got replaced, e.g. by "Python Tools for Visual Studio".
@@ -132,10 +137,10 @@ def fix_harfbuzz(args):
     - On Qt 5.2 (and probably earlier) the new engine probably has more
       crashes and is also experimental.
 
-      e.g. https://bugreports.qt-project.org/browse/QTBUG-36099
+      e.g. https://bugreports.qt.io/browse/QTBUG-36099
 
     - On Qt 5.3.0 there's a bug that affects a lot of websites:
-      https://bugreports.qt-project.org/browse/QTBUG-39278
+      https://bugreports.qt.io/browse/QTBUG-39278
       So the new engine will be more stable.
 
     - On Qt 5.3.1 this bug is fixed and the old engine will be the more stable
@@ -163,7 +168,7 @@ def fix_harfbuzz(args):
     elif args.harfbuzz in ('old', 'new'):
         # forced harfbuzz variant
         # FIXME looking at the Qt code, 'new' isn't a valid value, but leaving
-        # it empty and using new yields different behaviour...
+        # it empty and using new yields different behavior...
         # (probably irrelevant when workaround gets removed)
         log.init.debug("Using {} harfbuzz engine (forced)".format(
             args.harfbuzz))
@@ -176,12 +181,8 @@ def check_pyqt_core():
     """Check if PyQt core is installed."""
     try:
         import PyQt5.QtCore  # pylint: disable=unused-variable
-    except ImportError:
+    except ImportError as e:
         text = _missing_str('PyQt5',
-                            debian="apt-get install python3-pyqt5 "
-                                   "python3-pyqt5.qtwebkit",
-                            arch="pacman -S python-pyqt5 qt5-webkit<br />"
-                                 "or install the qutebrowser package from AUR",
                             windows="Use the installer by Riverbank computing "
                                     "or the standalone qutebrowser exe.<br />"
                                     "http://www.riverbankcomputing.co.uk/"
@@ -189,13 +190,14 @@ def check_pyqt_core():
         text = text.replace('<b>', '')
         text = text.replace('</b>', '')
         text = text.replace('<br />', '\n')
-        if tkinter:
+        text += '\n\nError: {}'.format(e)
+        if tkinter and '--no-err-windows' not in sys.argv:
             root = tkinter.Tk()
             root.withdraw()
             tkinter.messagebox.showerror("qutebrowser: Fatal error!", text)
         else:
             print(text, file=sys.stderr)
-        if '--debug' in sys.argv:
+        if '--debug' in sys.argv or '--no-err-windows' in sys.argv:
             print(file=sys.stderr)
             traceback.print_exc()
         sys.exit(1)
@@ -208,49 +210,54 @@ def check_qt_version():
     if qtutils.version_check('5.2.0', operator.lt):
         text = ("Fatal error: Qt and PyQt >= 5.2.0 are required, but {} is "
                 "installed.".format(qVersion()))
-        _die(text, exception=False)
+        _die(text)
+
+
+def check_ssl_support():
+    """Check if SSL support is available."""
+    try:
+        from PyQt5.QtNetwork import QSslSocket
+    except ImportError:
+        ok = False
+    else:
+        ok = QSslSocket.supportsSsl()
+    if not ok:
+        text = "Fatal error: Your Qt is built without SSL support."
+        _die(text)
 
 
 def check_libraries():
     """Check if all needed Python libraries are installed."""
     modules = {
-        'PyQt5.QtWebKit':
-            _missing_str("QtWebKit",
-                         debian="apt-get install python3-pyqt5.qtwebkit",
-                         arch="pacman -S qt5-webkit"),
+        'PyQt5.QtWebKit': _missing_str("PyQt5.QtWebKit"),
         'pkg_resources':
-            _missing_str("pkg_resources",
-                         debian="apt-get install python3-pkg-resources",
-                         arch="pacman -S python-setuptools",
-                         windows="Run   python -m ensurepip  "
-                                 "(python >= 3.4) or scripts/ez_setup.py."),
+            _missing_str("pkg_resources/setuptools",
+                         windows="Run   python -m ensurepip."),
         'pypeg2':
             _missing_str("pypeg2",
-                         debian="No package available, do 'apt-get install "
-                                "python3-pip' and then install via pip3.",
-                         arch="Install python-pypeg2 from the AUR",
-                         windows="Install via pip.",
                          pip="pypeg2"),
         'jinja2':
             _missing_str("jinja2",
-                         debian="apt-get install python3-jinja2",
-                         arch="Install python-jinja from the AUR",
                          windows="Install from http://www.lfd.uci.edu/"
                                  "~gohlke/pythonlibs/#jinja2 or via pip.",
                          pip="jinja2"),
         'pygments':
             _missing_str("pygments",
-                         debian="apt-get install python3-pygments",
-                         arch="Install python-jinja from the AUR",
                          windows="Install from http://www.lfd.uci.edu/"
                                  "~gohlke/pythonlibs/#pygments or via pip.",
                          pip="pygments"),
+        'yaml':
+            _missing_str("PyYAML",
+                         windows="Use the installers at "
+                                 "http://pyyaml.org/download/pyyaml/ (py3.4) "
+                                 "or Install via pip.",
+                         pip="PyYAML"),
     }
     for name, text in modules.items():
         try:
             importlib.import_module(name)
-        except ImportError:
-            _die(text)
+        except ImportError as e:
+            _die(text, e)
 
 
 def remove_inputhook():
@@ -274,7 +281,7 @@ def init_log(args):
 
 
 def earlyinit(args):
-    """Do all needed early initialisation.
+    """Do all needed early initialization.
 
     Note that it's vital the other earlyinit functions get called in the right
     order!
@@ -283,7 +290,7 @@ def earlyinit(args):
         args: The argparse namespace.
     """
     # First we initialize the faulthandler as early as possible, so we
-    # theoretically could catch segfaults occuring later during earlyinit.
+    # theoretically could catch segfaults occurring later during earlyinit.
     init_faulthandler()
     # Here we check if QtCore is available, and if not, print a message to the
     # console or via Tk.
@@ -294,6 +301,7 @@ def earlyinit(args):
     # Now we can be sure QtCore is available, so we can print dialogs on
     # errors, so people only using the GUI notice them as well.
     check_qt_version()
+    check_ssl_support()
     remove_inputhook()
     check_libraries()
     init_log(args)

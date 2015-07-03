@@ -1,6 +1,6 @@
 # vim: ft=python fileencoding=utf-8 sts=4 sw=4 et:
 
-# Copyright 2014 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
+# Copyright 2014-2015 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
 #
 # This file is part of qutebrowser.
 #
@@ -56,7 +56,7 @@ def set_register_stylesheet(obj):
              Must have a STYLESHEET attribute.
     """
     qss = get_stylesheet(obj.STYLESHEET)
-    log.style.vdebug("stylesheet for {}: {}".format(
+    log.config.vdebug("stylesheet for {}: {}".format(
         obj.__class__.__name__, qss))
     obj.setStyleSheet(qss)
     objreg.get('config').changed.connect(
@@ -91,10 +91,10 @@ class ColorDict(dict):
         try:
             val = super().__getitem__(key)
         except KeyError:
-            log.style.exception("No color defined for {}!")
+            log.config.exception("No color defined for {}!")
             return ''
         if isinstance(val, QColor):
-            # This could happen when accidentaly declarding something as
+            # This could happen when accidentally declaring something as
             # QtColor instead of Color in the config, and it'd go unnoticed as
             # the CSS is invalid then.
             raise TypeError("QColor passed to ColorDict!")

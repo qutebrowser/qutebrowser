@@ -1,6 +1,6 @@
 # vim: ft=python fileencoding=utf-8 sts=4 sw=4 et:
 
-# Copyright 2014 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
+# Copyright 2014-2015 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
 #
 # This file is part of qutebrowser.
 #
@@ -17,7 +17,7 @@
 # You should have received a copy of the GNU General Public License
 # along with qutebrowser.  If not, see <http://www.gnu.org/licenses/>.
 
-"""Functions related to adblocking."""
+"""Functions related to ad blocking."""
 
 import io
 import os.path
@@ -25,11 +25,9 @@ import functools
 import posixpath
 import zipfile
 
-from PyQt5.QtCore import QStandardPaths
-
 from qutebrowser.config import config
 from qutebrowser.utils import objreg, standarddir, log, message
-from qutebrowser.commands import cmdutils
+from qutebrowser.commands import cmdutils, cmdexc
 
 
 def guess_zip_filename(zf):
@@ -92,13 +90,18 @@ class HostBlocker:
         self.blocked_hosts = set()
         self._in_progress = []
         self._done_count = 0
-        data_dir = standarddir.get(QStandardPaths.DataLocation)
-        self._hosts_file = os.path.join(data_dir, 'blocked-hosts')
+        data_dir = standarddir.data()
+        if data_dir is None:
+            self._hosts_file = None
+        else:
+            self._hosts_file = os.path.join(data_dir, 'blocked-hosts')
         objreg.get('config').changed.connect(self.on_config_changed)
 
     def read_hosts(self):
         """Read hosts from the existing blocked-hosts file."""
         self.blocked_hosts = set()
+        if self._hosts_file is None:
+            return
         if os.path.exists(self._hosts_file):
             try:
                 with open(self._hosts_file, 'r', encoding='utf-8') as f:
@@ -107,13 +110,17 @@ class HostBlocker:
             except OSError:
                 log.misc.exception("Failed to read host blocklist!")
         else:
-            if config.get('content', 'host-block-lists') is not None:
-                message.info('last-focused',
+            args = objreg.get('args')
+            if (config.get('content', 'host-block-lists') is not None and
+                    args.basedir is None):
+                message.info('current',
                              "Run :adblock-update to get adblock lists.")
 
-    @cmdutils.register(instance='host-blocker')
-    def adblock_update(self):
+    @cmdutils.register(instance='host-blocker', win_id='win_id')
+    def adblock_update(self, win_id):
         """Update the adblock block lists."""
+        if self._hosts_file is None:
+            raise cmdexc.CommandError("No data storage is configured!")
         self.blocked_hosts = set()
         self._done_count = 0
         urls = config.get('content', 'host-block-lists')
@@ -125,8 +132,10 @@ class HostBlocker:
             if url.scheme() == 'file':
                 try:
                     fileobj = open(url.path(), 'rb')
-                except OSError:
-                    log.misc.exception("Failed to open block list!")
+                except OSError as e:
+                    message.error(win_id, "adblock: Error while reading {}: "
+                                  "{}".format(url.path(), e.strerror))
+                    continue
                 download = FakeDownload(fileobj)
                 self._in_progress.append(download)
                 self.on_download_finished(download)
@@ -154,9 +163,8 @@ class HostBlocker:
             f = get_fileobj(byte_io)
         except (OSError, UnicodeDecodeError, zipfile.BadZipFile,
                 zipfile.LargeZipFile) as e:
-            message.error('last-focused', "adblock: Error while reading {}: "
-                          "{} - {}".format(
-                              byte_io.name, e.__class__.__name__, e))
+            message.error('current', "adblock: Error while reading {}: {} - "
+                          "{}".format(byte_io.name, e.__class__.__name__, e))
             return
         for line in f:
             line_count += 1
@@ -184,17 +192,16 @@ class HostBlocker:
                 self.blocked_hosts.add(host)
         log.misc.debug("{}: read {} lines".format(byte_io.name, line_count))
         if error_count > 0:
-            message.error('last-focused', "adblock: {} read errors for "
-                          "{}".format(error_count, byte_io.name))
+            message.error('current', "adblock: {} read errors for {}".format(
+                error_count, byte_io.name))
 
     def on_lists_downloaded(self):
         """Install block lists after files have been downloaded."""
         with open(self._hosts_file, 'w', encoding='utf-8') as f:
             for host in sorted(self.blocked_hosts):
                 f.write(host + '\n')
-            message.info('last-focused', "adblock: Read {} hosts from {} "
-                         "sources.".format(len(self.blocked_hosts),
-                                           self._done_count))
+            message.info('current', "adblock: Read {} hosts from {} sources."
+                         .format(len(self.blocked_hosts), self._done_count))
 
     @config.change_filter('content', 'host-block-lists')
     def on_config_changed(self):

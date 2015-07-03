@@ -1,0 +1,217 @@
+Installing qutebrowser
+======================
+
+On Debian / Ubuntu
+------------------
+
+qutebrowser should run on these systems:
+
+* Debian jessie or newer
+* Ubuntu Trusty (14.04 LTS) or newer
+* Any other distribution based on these (e.g. Linux Mint)
+
+Install the dependencies via apt-get:
+
+[NOTE]
+==========================
+On Debian, it's recommended to install the Qt packages from the
+https://wiki.debian.org/DebianExperimental[experimental] repository as those
+are a much newer version of Qt which is more stable.
+
+Add the following line to your `/etc/apt/sources.list`:
+
+----
+deb http://ftp.debian.org/debian experimental main
+----
+
+Then install the packages like this:
+
+----
+# apt-get update
+# apt-get install -t experimental python3-pyqt5 python3-pyqt5.qtwebkit python3-sip
+# apt-get install python-tox
+----
+
+It's also recommended to pin those packages to receive updates by creating a
+file `/etc/apt/preferences.d/qutebrowser` with the following contents:
+
+----
+Package: python3-pyqt5* libqt5*
+Pin: release a=experimental
+Pin-Priority: 800
+----
+==========================
+
+For distributions other than Debian or if you prefer to not use the
+experimental repo:
+
+----
+# apt-get install python3-pyqt5 python3-pyqt5.qtwebkit python-tox python3-sip
+----
+
+To generate the documentation for the `:help` command, when using the git
+repository (rather than a release):
+
+----
+# apt-get install asciidoc
+$ python3 scripts/asciidoc2html.py
+----
+
+Then run tox like this to set up a
+https://docs.python.org/3/library/venv.html[virtual environment]:
+
+----
+$ tox -e mkvenv
+----
+
+This installs all needed Python dependencies in a `.venv` subfolder. The
+system-wide Qt5/PyQt5 installations are symlinked into the virtual environment.
+
+You can then create a simple wrapper script to start qutebrowser somewhere in
+your `$PATH` (e.g. `/usr/local/bin/qutebrowser` or `~/bin/qutebrowser`):
+
+----
+#!/bin/bash
+~/path/to/qutebrowser/.venv/bin/python3 -m qutebrowser "$@"
+----
+
+Please also read about <<updating,updating qutebrowser with tox>>.
+
+On Archlinux
+------------
+
+There are two Archlinux packages available in the AUR:
+https://aur.archlinux.org/packages/qutebrowser/[qutebrowser] and
+https://aur.archlinux.org/packages/qutebrowser-git/[qutebrowser-git].
+
+You can install them (and the needed pypeg2 dependency) like this:
+
+----
+$ wget https://aur.archlinux.org/packages/py/python-pypeg2/python-pypeg2.tar.gz
+$ tar xzf python-pypeg2.tar.gz
+$ cd python-pypeg2
+$ makepkg -si
+$ cd ..
+$ rm -r python-pypeg2 python-pypeg2.tar.gz
+
+$ wget https://aur.archlinux.org/packages/qu/qutebrowser/qutebrowser.tar.gz
+$ tar xzf qutebrowser.tar.gz
+$ cd qutebrowser
+$ makepkg -si
+$ cd ..
+$ rm -r qutebrowser qutebrowser.tar.gz
+----
+
+or you could use an AUR helper, e.g. `yaourt -S qutebrowser-git`.
+
+On Gentoo
+---------
+
+qutebrowser is available in the main repository and can be installed with:
+
+----
+# emerge -av qutebrowser
+----
+
+Make sure you have `python3_4` in your `PYTHON_TARGETS`
+(`/etc/portage/make.conf`) and rebuild your system (`emerge -uDNav @world`) if
+necessary.
+
+On Void Linux
+-------------
+
+qutebrowser is available in the official repositories and can be installed
+with:
+
+----
+# xbps-install qutebrowser
+----
+
+On NixOS
+--------
+
+Nixpkgs collection contains `pkgs.qutebrowser` since June 2015. You can install
+it with:
+
+----
+$ nix-env -i qutebrowser
+----
+
+On Windows
+----------
+
+You can either use one of the
+https://github.com/The-Compiler/qutebrowser/releases[prebuilt standalone
+packages or MSI installers], or install manually:
+
+* Use the installer from http://www.python.org/downloads[python.org] to get
+Python 3 (be sure to install pip).
+* Use the installer from
+http://www.riverbankcomputing.com/software/pyqt/download5[Riverbank computing]
+to get Qt and PyQt5.
+* Install https://testrun.org/tox/latest/index.html[tox] via
+https://pip.pypa.io/en/latest/[pip]:
+
+----
+$ pip install tox
+----
+
+Then run tox like this to set up a
+https://docs.python.org/3/library/venv.html[virtual environment]:
+
+----
+$ tox -e mkvenv
+----
+
+This installs all needed Python dependencies in a `.venv` subfolder. The
+system-wide Qt5/PyQt5 installations are used in the virtual environment.
+
+Please also read about <<updating,updating qutebrowser with tox>>.
+
+On OS X
+-------
+
+To install qutebrowser on OS X, you'll want a package manager, e.g.
+http://brew.sh/[Homebrew] or https://www.macports.org/[MacPorts]. Also make
+sure, you have https://itunes.apple.com/en/app/xcode/id497799835[XCode]
+installed to compile PyQt5 in a later step.
+
+----
+$ brew install python3 pyqt5
+$ pip3.4 install qutebrowser
+----
+
+if you are using Homebrew. For MacPorts, run:
+
+----
+$ sudo port install python34 py34-jinja2 asciidoc py34-pygments py34-pyqt5
+$ sudo pip3.4 install qutebrowser
+----
+
+The preferences for qutebrowser are stored in
+`~/Library/Preferences/qutebrowser`, the application data is stored in
+`~/Library/Application Support/qutebrowser`.
+
+Packagers
+---------
+
+There are example .desktop and icon files provided. They would go in the
+standard location for your distro (`/usr/share/applications` and
+`/usr/share/pixmaps` for example).
+
+The normal `setup.py install` doesn't install these files, so you'll have to do
+it as part of the packaging process.
+
+[[updating]]
+Updating qutebrowser with tox
+-----------------------------
+
+When you updated your local copy of the code (e.g. by pulling the git repo, or
+extracting a new version), the virtualenv should automatically use the updated
+code. However, if dependencies got added, this won't be reflected in the
+virtualenv. Thus it's recommended to run the following command to recreate the
+virtualenv:
+
+----
+$ tox -r -e mkvenv
+----

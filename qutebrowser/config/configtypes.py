@@ -1,6 +1,6 @@
 # vim: ft=python fileencoding=utf-8 sts=4 sw=4 et:
 
-# Copyright 2014 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
+# Copyright 2014-2015 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
 #
 # This file is part of qutebrowser.
 #
@@ -25,6 +25,7 @@ import base64
 import codecs
 import os.path
 import sre_constants
+import itertools
 
 from PyQt5.QtCore import QUrl
 from PyQt5.QtGui import QColor, QFont
@@ -33,9 +34,14 @@ from PyQt5.QtWidgets import QTabWidget, QTabBar
 
 from qutebrowser.commands import cmdutils
 from qutebrowser.config import configexc
+from qutebrowser.utils import standarddir
 
 
 SYSTEM_PROXY = object()  # Return value for Proxy type
+
+# Taken from configparser
+BOOLEAN_STATES = {'1': True, 'yes': True, 'true': True, 'on': True,
+                  '0': False, 'no': False, 'false': False, 'off': False}
 
 
 class ValidValues:
@@ -220,17 +226,9 @@ class List(BaseType):
 
 class Bool(BaseType):
 
-    """Base class for a boolean setting.
-
-    Class attributes:
-        _BOOLEAN_STATES: A dictionary of strings mapped to their bool meanings.
-    """
+    """Base class for a boolean setting."""
 
     typestr = 'bool'
-
-    # Taken from configparser
-    _BOOLEAN_STATES = {'1': True, 'yes': True, 'true': True, 'on': True,
-                       '0': False, 'no': False, 'false': False, 'off': False}
 
     valid_values = ValidValues('true', 'false')
 
@@ -238,7 +236,7 @@ class Bool(BaseType):
         if not value:
             return None
         else:
-            return Bool._BOOLEAN_STATES[value.lower()]
+            return BOOLEAN_STATES[value.lower()]
 
     def validate(self, value):
         if not value:
@@ -246,7 +244,7 @@ class Bool(BaseType):
                 return
             else:
                 raise configexc.ValidationError(value, "may not be empty!")
-        if value.lower() not in Bool._BOOLEAN_STATES:
+        if value.lower() not in BOOLEAN_STATES:
             raise configexc.ValidationError(value, "must be a boolean!")
 
 
@@ -661,9 +659,9 @@ class Font(BaseType):
                 ) |
                 # size (<float>pt | <int>px)
                 (?P<size>[0-9]+((\.[0-9]+)?[pP][tT]|[pP][xX]))
-            )\                     # size/weight/style are space-separated
-        )*                         # 0-inf size/weight/style tags
-        (?P<family>[A-Za-z, "-]*)$  # mandatory font family""", re.VERBOSE)
+            )\                         # size/weight/style are space-separated
+        )*                             # 0-inf size/weight/style tags
+        (?P<family>[A-Za-z0-9, "-]*)$  # mandatory font family""", re.VERBOSE)
 
     def validate(self, value):
         if not value:
@@ -675,9 +673,28 @@ class Font(BaseType):
             raise configexc.ValidationError(value, "must be a valid font")
 
 
+class FontFamily(Font):
+
+    """A Qt font family."""
+
+    def validate(self, value):
+        if not value:
+            if self._none_ok:
+                return
+            else:
+                raise configexc.ValidationError(value, "may not be empty!")
+        match = self.font_regex.match(value)
+        if not match:
+            raise configexc.ValidationError(value, "must be a valid font")
+        for group in 'style', 'weight', 'namedweight', 'size':
+            if match.group(group):
+                raise configexc.ValidationError(value, "may not include a "
+                                                "{}!".format(group))
+
+
 class QtFont(Font):
 
-    """A Font which gets converted to q QFont."""
+    """A Font which gets converted to a QFont."""
 
     def transform(self, value):
         if not value:
@@ -782,6 +799,17 @@ class File(BaseType):
 
     typestr = 'file'
 
+    def transform(self, value):
+        if not value:
+            return None
+        value = os.path.expanduser(value)
+        value = os.path.expandvars(value)
+        if not os.path.isabs(value):
+            cfgdir = standarddir.config()
+            if cfgdir is not None:
+                return os.path.join(cfgdir, value)
+        return value
+
     def validate(self, value):
         if not value:
             if self._none_ok:
@@ -789,15 +817,25 @@ class File(BaseType):
             else:
                 raise configexc.ValidationError(value, "may not be empty!")
         value = os.path.expanduser(value)
-        if not os.path.isfile(value):
-            raise configexc.ValidationError(value, "must be a valid file!")
-        if not os.path.isabs(value):
-            raise configexc.ValidationError(value, "must be an absolute path!")
-
-    def transform(self, value):
-        if not value:
-            return None
-        return os.path.expanduser(value)
+        value = os.path.expandvars(value)
+        try:
+            if not os.path.isabs(value):
+                cfgdir = standarddir.config()
+                if cfgdir is None:
+                    raise configexc.ValidationError(
+                        value, "must be an absolute path when not using a "
+                        "config directory!")
+                elif not os.path.isfile(os.path.join(cfgdir, value)):
+                    raise configexc.ValidationError(
+                        value, "must be a valid path relative to the config "
+                        "directory!")
+                else:
+                    return
+            elif not os.path.isfile(value):
+                raise configexc.ValidationError(
+                    value, "must be a valid file!")
+        except UnicodeEncodeError as e:
+            raise configexc.ValidationError(value, e)
 
 
 class Directory(BaseType):
@@ -812,17 +850,49 @@ class Directory(BaseType):
                 return
             else:
                 raise configexc.ValidationError(value, "may not be empty!")
+        value = os.path.expandvars(value)
         value = os.path.expanduser(value)
-        if not os.path.isdir(value):
-            raise configexc.ValidationError(value, "must be a valid "
-                                            "directory!")
-        if not os.path.isabs(value):
-            raise configexc.ValidationError(value, "must be an absolute path!")
+        try:
+            if not os.path.isdir(value):
+                raise configexc.ValidationError(
+                    value, "must be a valid directory!")
+            if not os.path.isabs(value):
+                raise configexc.ValidationError(
+                    value, "must be an absolute path!")
+        except UnicodeEncodeError as e:
+            raise configexc.ValidationError(value, e)
 
     def transform(self, value):
         if not value:
             return None
+        value = os.path.expandvars(value)
         return os.path.expanduser(value)
+
+
+class FormatString(BaseType):
+
+    """A string with '{foo}'-placeholders."""
+
+    typestr = 'format-string'
+
+    def __init__(self, fields, none_ok=False):
+        super().__init__(none_ok)
+        self.fields = fields
+
+    def validate(self, value):
+        if not value:
+            if self._none_ok:
+                return
+            else:
+                raise configexc.ValidationError(value, "may not be empty!")
+        s = self.transform(value)
+        try:
+            return s.format(**{k: '' for k in self.fields})
+        except KeyError as e:
+            raise configexc.ValidationError(value, "Invalid placeholder "
+                                            "{}".format(e))
+        except ValueError as e:
+            raise configexc.ValidationError(value, str(e))
 
 
 class WebKitBytes(BaseType):
@@ -937,13 +1007,13 @@ class ShellCommand(BaseType):
                 return
             else:
                 raise configexc.ValidationError(value, "may not be empty!")
-        if self.placeholder and '{}' not in self.transform(value):
-            raise configexc.ValidationError(value, "needs to contain a "
-                                            "{}-placeholder.")
         try:
             shlex.split(value)
         except ValueError as e:
             raise configexc.ValidationError(value, str(e))
+        if self.placeholder and '{}' not in self.transform(value):
+            raise configexc.ValidationError(value, "needs to contain a "
+                                            "{}-placeholder.")
 
     def transform(self, value):
         if not value:
@@ -1040,12 +1110,43 @@ class SearchEngineUrl(BaseType):
                 return
             else:
                 raise configexc.ValidationError(value, "may not be empty!")
+
         if '{}' not in value:
             raise configexc.ValidationError(value, "must contain \"{}\"")
+        try:
+            value.format("")
+        except KeyError:
+            raise configexc.ValidationError(
+                value, "may not contain {...} (use {{ and }} for literal {/})")
+
         url = QUrl(value.replace('{}', 'foobar'))
         if not url.isValid():
             raise configexc.ValidationError(value, "invalid url, {}".format(
                 url.errorString()))
+
+
+class FuzzyUrl(BaseType):
+
+    """A single URL."""
+
+    def validate(self, value):
+        from qutebrowser.utils import urlutils
+        if not value:
+            if self._none_ok:
+                return
+            else:
+                raise configexc.ValidationError(value, "may not be empty!")
+        try:
+            self.transform(value)
+        except urlutils.FuzzyUrlError as e:
+            raise configexc.ValidationError(value, str(e))
+
+    def transform(self, value):
+        from qutebrowser.utils import urlutils
+        if not value:
+            return None
+        else:
+            return urlutils.fuzzy_url(value, do_search=False)
 
 
 class Encoding(BaseType):
@@ -1075,35 +1176,36 @@ class UserStyleSheet(File):
     def __init__(self):
         super().__init__(none_ok=True)
 
+    def transform(self, value):
+        if not value:
+            return None
+        path = super().transform(value)
+        if os.path.exists(path):
+            return QUrl.fromLocalFile(path)
+        else:
+            data = base64.b64encode(value.encode('utf-8')).decode('ascii')
+            return QUrl("data:text/css;charset=utf-8;base64,{}".format(data))
+
     def validate(self, value):
         if not value:
             if self._none_ok:
                 return
             else:
                 raise configexc.ValidationError(value, "may not be empty!")
+        value = os.path.expandvars(value)
         value = os.path.expanduser(value)
-        if not os.path.isabs(value):
-            # probably a CSS, so we don't handle it as filename.
-            # FIXME We just try if it is encodable, maybe we should validate
-            # CSS?
-            # https://github.com/The-Compiler/qutebrowser/issues/115
+        try:
+            super().validate(value)
+        except configexc.ValidationError:
             try:
-                value.encode('utf-8')
+                if not os.path.isabs(value):
+                    # probably a CSS, so we don't handle it as filename.
+                    # FIXME We just try if it is encodable, maybe we should
+                    # validate CSS?
+                    # https://github.com/The-Compiler/qutebrowser/issues/115
+                    value.encode('utf-8')
             except UnicodeEncodeError as e:
                 raise configexc.ValidationError(value, str(e))
-            return
-        elif not os.path.isfile(value):
-            raise configexc.ValidationError(value, "must be a valid file!")
-
-    def transform(self, value):
-        path = os.path.expanduser(value)
-        if not value:
-            return None
-        elif os.path.isabs(path):
-            return QUrl.fromLocalFile(path)
-        else:
-            data = base64.b64encode(value.encode('utf-8')).decode('ascii')
-            return QUrl("data:text/css;charset=utf-8;base64,{}".format(data))
 
 
 class AutoSearch(BaseType):
@@ -1155,6 +1257,13 @@ class Position(BaseType):
         return self.MAPPING[value]
 
 
+class VerticalPosition(BaseType):
+
+    """The position of the download bar."""
+
+    valid_values = ValidValues('north', 'south')
+
+
 class UrlList(List):
 
     """A list of URLs."""
@@ -1185,6 +1294,22 @@ class UrlList(List):
                                                 "{}".format(val.errorString()))
 
 
+class SessionName(BaseType):
+
+    """The name of a session."""
+
+    typestr = 'session'
+
+    def validate(self, value):
+        if not value:
+            if self._none_ok:
+                return
+            else:
+                raise configexc.ValidationError(value, "may not be empty!")
+        if value.startswith('_'):
+            raise configexc.ValidationError(value, "may not start with '_'!")
+
+
 class SelectOnRemove(BaseType):
 
     """Which tab to select when the focused tab is removed."""
@@ -1208,29 +1333,77 @@ class SelectOnRemove(BaseType):
 
 class LastClose(BaseType):
 
-    """Behaviour when the last tab is closed."""
+    """Behavior when the last tab is closed."""
 
     valid_values = ValidValues(('ignore', "Don't do anything."),
                                ('blank', "Load a blank page."),
+                               ('startpage', "Load the start page."),
+                               ('default-page', "Load the default page."),
                                ('close', "Close the window."))
 
 
 class AcceptCookies(BaseType):
 
-    """Whether to accept a cookie."""
+    """Control which cookies to accept."""
 
-    valid_values = ValidValues(('default', "Default QtWebKit behaviour."),
+    valid_values = ValidValues(('all', "Accept all cookies."),
+                               ('no-3rdparty', "Accept cookies from the same"
+                                " origin only."),
+                               ('no-unknown-3rdparty', "Accept cookies from "
+                                "the same origin only, unless a cookie is "
+                                "already set for the domain."),
                                ('never', "Don't accept cookies at all."))
 
 
-class ConfirmQuit(BaseType):
+class ConfirmQuit(List):
 
     """Whether to display a confirmation when the window is closed."""
+
+    typestr = 'string-list'
 
     valid_values = ValidValues(('always', "Always show a confirmation."),
                                ('multiple-tabs', "Show a confirmation if "
                                                  "multiple tabs are opened."),
+                               ('downloads', "Show a confirmation if "
+                                             "downloads are running"),
                                ('never', "Never show a confirmation."))
+    # Values that can be combined with commas
+    combinable_values = ('multiple-tabs', 'downloads')
+
+    def validate(self, value):
+        values = self.transform(value)
+        # Never can't be set with other options
+        if 'never' in values and len(values) > 1:
+            raise configexc.ValidationError(
+                value, "List cannot contain never!")
+        # Always can't be set with other options
+        elif 'always' in values and len(values) > 1:
+            raise configexc.ValidationError(
+                value, "List cannot contain always!")
+        # Values have to be valid
+        elif not set(values).issubset(set(self.valid_values.values)):
+            raise configexc.ValidationError(
+                value, "List contains invalid values!")
+        # List can't have duplicates
+        elif len(set(values)) != len(values):
+            raise configexc.ValidationError(
+                value, "List contains duplicate values!")
+
+    def complete(self):
+        combinations = []
+        # Generate combinations of the options that can be combined
+        for size in range(2, len(self.combinable_values) + 1):
+            combinations += list(
+                itertools.combinations(self.combinable_values, size))
+        out = []
+        # Add valid single values
+        for val in self.valid_values:
+            out.append((val, self.valid_values.descriptions[val]))
+        # Add combinations to list of options
+        for val in combinations:
+            desc = ''
+            out.append((','.join(val), desc))
+        return out
 
 
 class ForwardUnboundKeys(BaseType):
@@ -1289,8 +1462,95 @@ class NewInstanceOpenTarget(BaseType):
     """How to open links in an existing instance if a new one is launched."""
 
     valid_values = ValidValues(('tab', "Open a new tab in the existing "
-                                       "window and activate it."),
+                                       "window and activate the window."),
+                               ('tab-bg', "Open a new background tab in the "
+                                          "existing window and activate the "
+                                          "window."),
                                ('tab-silent', "Open a new tab in the existing "
                                               "window without activating "
-                                              "it."),
+                                              "the window."),
+                               ('tab-bg-silent', "Open a new background tab "
+                                                 "in the existing window "
+                                                 "without activating the "
+                                                 "window."),
                                ('window', "Open in a new window."))
+
+
+class DownloadPathSuggestion(BaseType):
+
+    """How to format the question when downloading."""
+
+    valid_values = ValidValues(('path', "Show only the download path."),
+                               ('filename', "Show only download filename."),
+                               ('both', "Show download path and filename."))
+
+
+class UserAgent(BaseType):
+
+    """The user agent to use."""
+
+    typestr = 'user-agent'
+
+    def __init__(self, none_ok=False):
+        super().__init__(none_ok)
+
+    def validate(self, value):
+        if not value:
+            if self._none_ok:
+                return
+            else:
+                raise configexc.ValidationError(value, "may not be empty!")
+
+    def complete(self):
+        """Complete a list of common user agents."""
+        out = [
+            ('Mozilla/5.0 (Windows NT 6.1; WOW64; rv:35.0) Gecko/20100101 '
+             'Firefox/35.0',
+             "Firefox 35.0 Win7 64-bit"),
+            ('Mozilla/5.0 (X11; Ubuntu; Linux x86_64; rv:35.0) Gecko/20100101 '
+             'Firefox/35.0',
+             "Firefox 35.0 Ubuntu"),
+            ('Mozilla/5.0 (Macintosh; Intel Mac OS X 10.10; rv:35.0) '
+             'Gecko/20100101 Firefox/35.0',
+             "Firefox 35.0 MacOSX"),
+
+            ('Mozilla/5.0 (Macintosh; Intel Mac OS X 10_10_2) '
+             'AppleWebKit/600.3.18 (KHTML, like Gecko) Version/8.0.3 '
+             'Safari/600.3.18',
+             "Safari 8.0 MacOSX"),
+
+            ('Mozilla/5.0 (Windows NT 6.1; WOW64) AppleWebKit/537.36 (KHTML, '
+             'like Gecko) Chrome/40.0.2214.111 Safari/537.36',
+             "Chrome 40.0 Win7 64-bit"),
+            ('Mozilla/5.0 (Macintosh; Intel Mac OS X 10_10_2) '
+             'AppleWebKit/537.36 (KHTML, like Gecko) Chrome/40.0.2214.111 '
+             'Safari/537.36',
+             "Chrome 40.0 MacOSX"),
+            ('Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 '
+             '(KHTML, like Gecko) Chrome/40.0.2214.111 Safari/537.36',
+             "Chrome 40.0 Linux"),
+
+            ('Mozilla/5.0 (Windows NT 6.1; WOW64; Trident/7.0; rv:11.0) like '
+             'Gecko',
+             "IE 11.0 Win7 64-bit"),
+
+            ('Mozilla/5.0 (iPhone; CPU iPhone OS 8_1_2 like Mac OS X) '
+             'AppleWebKit/600.1.4 (KHTML, like Gecko) Version/8.0 '
+             'Mobile/12B440 Safari/600.1.4',
+             "Mobile Safari 8.0 iOS"),
+            ('Mozilla/5.0 (Android; Mobile; rv:35.0) Gecko/35.0 Firefox/35.0',
+             "Firefox 35, Android"),
+            ('Mozilla/5.0 (Linux; Android 5.0.2; One Build/KTU84L.H4) '
+             'AppleWebKit/537.36 (KHTML, like Gecko) Version/4.0 '
+             'Chrome/37.0.0.0 Mobile Safari/537.36',
+             "Android Browser"),
+
+            ('Mozilla/5.0 (compatible; Googlebot/2.1; '
+             '+http://www.google.com/bot.html',
+             "Google Bot"),
+            ('Wget/1.16.1 (linux-gnu)',
+             "wget 1.16.1"),
+            ('curl/7.40.0',
+             "curl 7.40.0")
+        ]
+        return out

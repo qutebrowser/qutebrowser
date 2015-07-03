@@ -1,6 +1,6 @@
 # vim: ft=python fileencoding=utf-8 sts=4 sw=4 et:
 
-# Copyright 2014 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
+# Copyright 2014-2015 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
 #
 # This file is part of qutebrowser.
 #
@@ -25,18 +25,20 @@ import collections
 from PyQt5.QtWidgets import QSizePolicy
 from PyQt5.QtCore import pyqtSignal, pyqtSlot, QSize, QTimer, QUrl
 from PyQt5.QtGui import QIcon
-from PyQt5.QtWebKitWidgets import QWebPage
 
 from qutebrowser.config import config
-from qutebrowser.commands import cmdexc
 from qutebrowser.keyinput import modeman
 from qutebrowser.mainwindow import tabwidget
-from qutebrowser.browser import signalfilter, commands, webview
-from qutebrowser.utils import (log, message, usertypes, utils, qtutils, objreg,
-                               urlutils)
+from qutebrowser.browser import signalfilter, webview
+from qutebrowser.utils import log, usertypes, utils, qtutils, objreg, urlutils
 
 
 UndoEntry = collections.namedtuple('UndoEntry', ['url', 'history'])
+
+
+class TabDeletedError(Exception):
+
+    """Exception raised when _tab_index is called for a deleted tab."""
 
 
 class TabbedBrowser(tabwidget.TabWidget):
@@ -44,12 +46,12 @@ class TabbedBrowser(tabwidget.TabWidget):
     """A TabWidget with QWebViews inside.
 
     Provides methods to manage tabs, convenience methods to interact with the
-    current tab (cur_*) and filters signals to re-emit them when they occured
+    current tab (cur_*) and filters signals to re-emit them when they occurred
     in the currently visible tab.
 
     For all tab-specific signals (cur_*) emitted by a tab, this happens:
        - the signal gets filtered with _filter_signals and self.cur_* gets
-         emitted if the signal occured in the current tab.
+         emitted if the signal occurred in the current tab.
 
     Attributes:
         _win_id: The window ID this tabbedbrowser is associated with.
@@ -59,6 +61,7 @@ class TabbedBrowser(tabwidget.TabWidget):
                          tabbar -> new-tab-position set to 'left'.
         _tab_insert_idx_right: Same as above, for 'right'.
         _undo_stack: List of UndoEntry namedtuples of closed tabs.
+        _shutting_down: Whether we're currently shutting down.
 
     Signals:
         cur_progress: Progress of the current tab changed (loadProgress).
@@ -97,26 +100,38 @@ class TabbedBrowser(tabwidget.TabWidget):
         self._win_id = win_id
         self._tab_insert_idx_left = 0
         self._tab_insert_idx_right = -1
+        self._shutting_down = False
         self.tabCloseRequested.connect(self.on_tab_close_requested)
         self.currentChanged.connect(self.on_current_changed)
         self.cur_load_started.connect(self.on_cur_load_started)
         self.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Expanding)
         self._undo_stack = []
         self._filter = signalfilter.SignalFilter(win_id, self)
-        dispatcher = commands.CommandDispatcher(win_id)
-        objreg.register('command-dispatcher', dispatcher, scope='window',
-                        window=win_id)
-        self.destroyed.connect(
-            functools.partial(objreg.delete, 'command-dispatcher',
-                              scope='window', window=win_id))
         self._now_focused = None
         # FIXME adjust this to font size
         # https://github.com/The-Compiler/qutebrowser/issues/119
         self.setIconSize(QSize(12, 12))
         objreg.get('config').changed.connect(self.update_favicons)
+        objreg.get('config').changed.connect(self.update_window_title)
+        objreg.get('config').changed.connect(self.update_tab_titles)
 
     def __repr__(self):
         return utils.get_repr(self, count=self.count())
+
+    def _tab_index(self, tab):
+        """Get the index of a given tab.
+
+        Raises TabDeletedError if the tab doesn't exist anymore.
+        """
+        try:
+            idx = self.indexOf(tab)
+        except RuntimeError as e:
+            log.webview.debug("Got invalid tab ({})!".format(e))
+            raise TabDeletedError(e)
+        if idx == -1:
+            log.webview.debug("Got invalid tab (index is -1)!")
+            raise TabDeletedError("index is -1!")
+        return idx
 
     def widgets(self):
         """Get a list of open tab widgets.
@@ -129,13 +144,28 @@ class TabbedBrowser(tabwidget.TabWidget):
             w.append(self.widget(i))
         return w
 
-    def _change_app_title(self, text):
-        """Change the window title based on the tab text."""
-        if not text:
-            title = 'qutebrowser'
+    @config.change_filter('ui', 'window-title-format')
+    def update_window_title(self):
+        """Change the window title to match the current tab."""
+        idx = self.currentIndex()
+        if idx == -1:
+            # (e.g. last tab removed)
+            log.webview.debug("Not updating window title because index is -1")
+            return
+        tabtitle = self.page_title(idx)
+        widget = self.widget(idx)
+
+        fields = {}
+        if widget.load_status == webview.LoadStatus.loading:
+            fields['perc'] = '[{}%] '.format(widget.progress)
         else:
-            title = '{} - qutebrowser'.format(text)
-        self.window().setWindowTitle(title)
+            fields['perc'] = ''
+        fields['perc_raw'] = widget.progress
+        fields['title'] = tabtitle
+        fields['title_sep'] = ' - ' if tabtitle else ''
+        fields['id'] = self._win_id
+        fmt = config.get('ui', 'window-title-format')
+        self.window().setWindowTitle(fmt.format(**fields))
 
     def _connect_tab_signals(self, tab):
         """Set up the needed signals for tab."""
@@ -187,22 +217,13 @@ class TabbedBrowser(tabwidget.TabWidget):
             url = QUrl()
         else:
             url = widget.cur_url
-        try:
-            qtutils.ensure_valid(url)
-        except qtutils.QtValueError as e:
-            msg = "Current URL is invalid"
-            if e.reason:
-                msg += " ({})".format(e.reason)
-            msg += "!"
-            raise cmdexc.CommandError(msg)
+        # It's possible for url to be invalid, but the caller will handle that.
+        qtutils.ensure_valid(url)
         return url
 
     def shutdown(self):
         """Try to shut down all tabs cleanly."""
-        try:
-            self.currentChanged.disconnect()
-        except TypeError:
-            log.destroy.exception("Error while shutting down tabs")
+        self._shutting_down = True
         for tab in self.widgets():
             self._remove_tab(tab)
 
@@ -220,6 +241,10 @@ class TabbedBrowser(tabwidget.TabWidget):
             self.close_window.emit()
         elif last_close == 'blank':
             tab.openurl(QUrl('about:blank'))
+        elif last_close == 'startpage':
+            tab.openurl(QUrl(config.get('general', 'startpage')[0]))
+        elif last_close == 'default-page':
+            tab.openurl(config.get('general', 'default-page'))
 
     def _remove_tab(self, tab):
         """Remove a tab from the tab list and delete it properly.
@@ -271,7 +296,7 @@ class TabbedBrowser(tabwidget.TabWidget):
             newtab: True to open URL in a new tab, False otherwise.
         """
         qtutils.ensure_valid(url)
-        if newtab:
+        if newtab or self.currentWidget() is None:
             self.tabopen(url, background=False)
         else:
             self.currentWidget().openurl(url)
@@ -302,12 +327,12 @@ class TabbedBrowser(tabwidget.TabWidget):
             url: The URL to open as QUrl or None for an empty tab.
             background: Whether to open the tab in the background.
                         if None, the background-tabs setting decides.
-            explicit: Whether the tab was opened explicitely.
+            explicit: Whether the tab was opened explicitly.
                       If this is set, the new position might be different. With
                       the default settings we handle it like Chromium does:
                           - Tabs from clicked links etc. are to the right of
                             the current.
-                          - Explicitely opened tabs are at the very right.
+                          - Explicitly opened tabs are at the very right.
 
         Return:
             The opened WebView instance.
@@ -317,9 +342,10 @@ class TabbedBrowser(tabwidget.TabWidget):
         log.webview.debug("Creating new tab with URL {}".format(url))
         if config.get('tabs', 'tabs-are-windows') and self.count() > 0:
             from qutebrowser.mainwindow import mainwindow
-            window = mainwindow.MainWindow.spawn()
+            window = mainwindow.MainWindow()
+            window.show()
             tabbed_browser = objreg.get('tabbed-browser', scope='window',
-                                        window=window)
+                                        window=window.win_id)
             return tabbed_browser.tabopen(url, background, explicit)
         tab = webview.WebView(self._win_id, self)
         self._connect_tab_signals(tab)
@@ -338,7 +364,7 @@ class TabbedBrowser(tabwidget.TabWidget):
         """Get the index of a tab to insert.
 
         Args:
-            explicit: Whether the tab was opened explicitely.
+            explicit: Whether the tab was opened explicitly.
 
         Return:
             The index of the new tab.
@@ -369,36 +395,6 @@ class TabbedBrowser(tabwidget.TabWidget):
                               self._tab_insert_idx_right))
         return idx
 
-    @pyqtSlot(str, int)
-    def search(self, text, flags):
-        """Search for text in the current page.
-
-        Args:
-            text: The text to search for.
-            flags: The QWebPage::FindFlags.
-        """
-        log.webview.debug("Searching with text '{}' and flags "
-                          "0x{:04x}.".format(text, int(flags)))
-        widget = self.currentWidget()
-        old_scroll_pos = widget.scroll_pos
-        found = widget.findText(text, flags)
-        if not found and not flags & QWebPage.HighlightAllOccurrences and text:
-            message.error(self._win_id, "Text '{}' not found on "
-                          "page!".format(text), immediately=True)
-        else:
-            backward = int(flags) & QWebPage.FindBackward
-
-            def check_scroll_pos():
-                """Check if the scroll position got smaller and show info."""
-                if not backward and widget.scroll_pos < old_scroll_pos:
-                    message.info(self._win_id, "Search hit BOTTOM, continuing "
-                                 "at TOP", immediately=True)
-                elif backward and widget.scroll_pos > old_scroll_pos:
-                    message.info(self._win_id, "Search hit TOP, continuing at "
-                                 "BOTTOM", immediately=True)
-            # We first want QWebPage to refresh.
-            QTimer.singleShot(0, check_scroll_pos)
-
     @config.change_filter('tabs', 'show-favicons')
     def update_favicons(self):
         """Update favicons when config was changed."""
@@ -411,21 +407,23 @@ class TabbedBrowser(tabwidget.TabWidget):
 
     @pyqtSlot()
     def on_load_started(self, tab):
-        """Clear icon when a tab started loading.
+        """Clear icon and update title when a tab started loading.
 
         Args:
             tab: The tab where the signal belongs to.
         """
         try:
-            idx = self.indexOf(tab)
-        except RuntimeError:
+            idx = self._tab_index(tab)
+        except TabDeletedError:
             # We can get signals for tabs we already deleted...
             return
-        if idx == -1:
-            # We can get signals for tabs we already deleted...
-            log.webview.debug("Got invalid tab {}!".format(tab))
-            return
-        self.setTabIcon(idx, QIcon())
+        self.update_tab_title(idx)
+        if tab.keep_icon:
+            tab.keep_icon = False
+        else:
+            self.setTabIcon(idx, QIcon())
+        if idx == self.currentIndex():
+            self.update_window_title()
 
     @pyqtSlot()
     def on_cur_load_started(self):
@@ -449,19 +447,15 @@ class TabbedBrowser(tabwidget.TabWidget):
             log.webview.debug("Ignoring title change to '{}'.".format(text))
             return
         try:
-            idx = self.indexOf(tab)
-        except RuntimeError:
+            idx = self._tab_index(tab)
+        except TabDeletedError:
             # We can get signals for tabs we already deleted...
             return
         log.webview.debug("Changing title for idx {} to '{}'".format(
             idx, text))
-        if idx == -1:
-            # We can get signals for tabs we already deleted...
-            log.webview.debug("Got invalid tab {}!".format(tab))
-            return
-        self.setTabText(idx, text.replace('&', '&&'))
+        self.set_page_title(idx, text)
         if idx == self.currentIndex():
-            self._change_app_title(text)
+            self.update_window_title()
 
     @pyqtSlot(webview.WebView, str)
     def on_url_text_changed(self, tab, url):
@@ -472,16 +466,12 @@ class TabbedBrowser(tabwidget.TabWidget):
             url: The new URL.
         """
         try:
-            idx = self.indexOf(tab)
-        except RuntimeError:
+            idx = self._tab_index(tab)
+        except TabDeletedError:
             # We can get signals for tabs we already deleted...
             return
-        if idx == -1:
-            # We can get signals for tabs we already deleted...
-            log.webview.debug("Got invalid tab {}!".format(tab))
-            return
-        if not self.tabText(idx):
-            self.setTabText(idx, url)
+        if not self.page_title(idx):
+            self.set_page_title(idx, url)
 
     @pyqtSlot(webview.WebView)
     def on_icon_changed(self, tab):
@@ -495,13 +485,9 @@ class TabbedBrowser(tabwidget.TabWidget):
         if not config.get('tabs', 'show-favicons'):
             return
         try:
-            idx = self.indexOf(tab)
-        except RuntimeError:
+            idx = self._tab_index(tab)
+        except TabDeletedError:
             # We can get signals for tabs we already deleted...
-            return
-        if idx == -1:
-            # We can get *_changed signals for tabs we already deleted...
-            log.webview.debug("Got invalid tab {}!".format(tab))
             return
         self.setTabIcon(idx, tab.icon())
 
@@ -520,20 +506,21 @@ class TabbedBrowser(tabwidget.TabWidget):
     @pyqtSlot(int)
     def on_current_changed(self, idx):
         """Set last-focused-tab and leave hinting mode when focus changed."""
-        if idx == -1:
-            # closing the last tab (before quitting)
+        if idx == -1 or self._shutting_down:
+            # closing the last tab (before quitting) or shutting down
             return
         tab = self.widget(idx)
         log.modes.debug("Current tab changed, focusing {!r}".format(tab))
         tab.setFocus()
-        for mode in (usertypes.KeyMode.hint, usertypes.KeyMode.insert):
+        for mode in (usertypes.KeyMode.hint, usertypes.KeyMode.insert,
+                     usertypes.KeyMode.caret):
             modeman.maybe_leave(self._win_id, mode, 'tab changed')
         if self._now_focused is not None:
             objreg.register('last-focused-tab', self._now_focused, update=True,
                             scope='window', window=self._win_id)
         self._now_focused = tab
         self.current_tab_changed.emit(tab)
-        self._change_app_title(self.tabText(idx))
+        QTimer.singleShot(0, self.update_window_title)
         self._tab_insert_idx_left = self.currentIndex()
         self._tab_insert_idx_right = self.currentIndex() + 1
 
@@ -545,15 +532,18 @@ class TabbedBrowser(tabwidget.TabWidget):
     def on_load_progress(self, tab, perc):
         """Adjust tab indicator on load progress."""
         try:
-            idx = self.indexOf(tab)
-        except RuntimeError:
+            idx = self._tab_index(tab)
+        except TabDeletedError:
             # We can get signals for tabs we already deleted...
             return
         start = config.get('colors', 'tabs.indicator.start')
         stop = config.get('colors', 'tabs.indicator.stop')
         system = config.get('colors', 'tabs.indicator.system')
         color = utils.interpolate_color(start, stop, perc, system)
-        self.tabBar().set_tab_indicator_color(idx, color)
+        self.set_tab_indicator_color(idx, color)
+        self.update_tab_title(idx)
+        if idx == self.currentIndex():
+            self.update_window_title()
 
     def on_load_finished(self, tab):
         """Adjust tab indicator when loading finished.
@@ -563,18 +553,21 @@ class TabbedBrowser(tabwidget.TabWidget):
         See https://github.com/The-Compiler/qutebrowser/issues/84
         """
         try:
-            idx = self.indexOf(tab)
-        except RuntimeError:
+            idx = self._tab_index(tab)
+        except TabDeletedError:
             # We can get signals for tabs we already deleted...
             return
-        if tab.page().error_occured:
+        if tab.page().error_occurred:
             color = config.get('colors', 'tabs.indicator.error')
         else:
             start = config.get('colors', 'tabs.indicator.start')
             stop = config.get('colors', 'tabs.indicator.stop')
             system = config.get('colors', 'tabs.indicator.system')
             color = utils.interpolate_color(start, stop, 100, system)
-        self.tabBar().set_tab_indicator_color(idx, color)
+        self.set_tab_indicator_color(idx, color)
+        self.update_tab_title(idx)
+        if idx == self.currentIndex():
+            self.update_window_title()
 
     def resizeEvent(self, e):
         """Extend resizeEvent of QWidget to emit a resized signal afterwards.
@@ -584,3 +577,14 @@ class TabbedBrowser(tabwidget.TabWidget):
         """
         super().resizeEvent(e)
         self.resized.emit(self.geometry())
+
+    def wheelEvent(self, e):
+        """Override wheelEvent of QWidget to forward it to the focused tab.
+
+        Args:
+            e: The QWheelEvent
+        """
+        if self._now_focused is not None:
+            self._now_focused.wheelEvent(e)
+        else:
+            e.ignore()

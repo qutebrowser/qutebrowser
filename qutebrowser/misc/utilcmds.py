@@ -1,6 +1,6 @@
 # vim: ft=python fileencoding=utf-8 sts=4 sw=4 et:
 
-# Copyright 2014 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
+# Copyright 2014-2015 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
 #
 # This file is part of qutebrowser.
 #
@@ -21,17 +21,24 @@
 
 import functools
 import types
+import traceback
 
-from PyQt5.QtCore import QCoreApplication
+try:
+    import hunter
+except ImportError:
+    hunter = None
 
-from qutebrowser.utils import log, objreg, usertypes
+from qutebrowser.browser.network import qutescheme
+from qutebrowser.utils import log, objreg, usertypes, message, debug
 from qutebrowser.commands import cmdutils, runners, cmdexc
 from qutebrowser.config import style
 from qutebrowser.misc import consolewidget
 
+from PyQt5.QtCore import QUrl
 
-@cmdutils.register(scope='window', maxsplit=1)
-def later(ms: {'type': int}, command, win_id: {'special': 'win_id'}):
+
+@cmdutils.register(maxsplit=1, no_cmd_split=True, win_id='win_id')
+def later(ms: {'type': int}, command, win_id):
     """Execute a command after some time.
 
     Args:
@@ -54,13 +61,13 @@ def later(ms: {'type': int}, command, win_id: {'special': 'win_id'}):
             functools.partial(commandrunner.run_safely, command))
         timer.timeout.connect(timer.deleteLater)
         timer.start()
-    except:  # pylint: disable=bare-except
+    except:
         timer.deleteLater()
         raise
 
 
-@cmdutils.register(scope='window', maxsplit=1)
-def repeat(times: {'type': int}, command, win_id: {'special': 'win_id'}):
+@cmdutils.register(maxsplit=1, no_cmd_split=True, win_id='win_id')
+def repeat(times: {'type': int}, command, win_id):
     """Repeat a given command.
 
     Args:
@@ -74,6 +81,36 @@ def repeat(times: {'type': int}, command, win_id: {'special': 'win_id'}):
         commandrunner.run_safely(command)
 
 
+@cmdutils.register(hide=True, win_id='win_id')
+def message_error(win_id, text):
+    """Show an error message in the statusbar.
+
+    Args:
+        text: The text to show.
+    """
+    message.error(win_id, text)
+
+
+@cmdutils.register(hide=True, win_id='win_id')
+def message_info(win_id, text):
+    """Show an info message in the statusbar.
+
+    Args:
+        text: The text to show.
+    """
+    message.info(win_id, text)
+
+
+@cmdutils.register(hide=True, win_id='win_id')
+def message_warning(win_id, text):
+    """Show a warning message in the statusbar.
+
+    Args:
+        text: The text to show.
+    """
+    message.warning(win_id, text)
+
+
 @cmdutils.register(debug=True)
 def debug_crash(typ: {'type': ('exception', 'segfault')}='exception'):
     """Crash for debugging purposes.
@@ -85,7 +122,7 @@ def debug_crash(typ: {'type': ('exception', 'segfault')}='exception'):
         # From python's Lib/test/crashers/bogus_code_obj.py
         co = types.CodeType(0, 0, 0, 0, 0, b'\x04\x71\x00\x00', (), (), (),
                             '', '', 1, b'')
-        exec(co)  # pylint: disable=exec-used
+        exec(co)
         raise Exception("Segfault failed (wat.)")
     else:
         raise Exception("Forced crash")
@@ -94,7 +131,7 @@ def debug_crash(typ: {'type': ('exception', 'segfault')}='exception'):
 @cmdutils.register(debug=True)
 def debug_all_objects():
     """Print a list of  all objects to the debug log."""
-    s = QCoreApplication.instance().get_all_objects()
+    s = debug.get_all_objects()
     log.misc.debug(s)
 
 
@@ -116,3 +153,37 @@ def debug_console():
         con_widget = consolewidget.ConsoleWidget()
         objreg.register('debug-console', con_widget)
     con_widget.show()
+
+
+@cmdutils.register(debug=True, maxsplit=0, no_cmd_split=True)
+def debug_trace(expr=""):
+    """Trace executed code via hunter.
+
+    Args:
+        expr: What to trace, passed to hunter.
+    """
+    if hunter is None:
+        raise cmdexc.CommandError("You need to install 'hunter' to use this "
+                                  "command!")
+    try:
+        eval('hunter.trace({})'.format(expr))
+    except Exception as e:
+        raise cmdexc.CommandError("{}: {}".format(e.__class__.__name__, e))
+
+
+@cmdutils.register(maxsplit=0, debug=True, no_cmd_split=True)
+def debug_pyeval(s):
+    """Evaluate a python string and display the results as a web page.
+
+    Args:
+        s: The string to evaluate.
+    """
+    try:
+        r = eval(s)
+        out = repr(r)
+    except Exception:
+        out = traceback.format_exc()
+    qutescheme.pyeval_output = out
+    tabbed_browser = objreg.get('tabbed-browser', scope='window',
+                                window='last-focused')
+    tabbed_browser.openurl(QUrl('qute:pyeval'), newtab=True)

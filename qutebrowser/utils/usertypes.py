@@ -1,6 +1,6 @@
 # vim: ft=python fileencoding=utf-8 sts=4 sw=4 et:
 
-# Copyright 2014 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
+# Copyright 2014-2015 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
 #
 # This file is part of qutebrowser.
 #
@@ -17,7 +17,7 @@
 # You should have received a copy of the GNU General Public License
 # along with qutebrowser.  If not, see <http://www.gnu.org/licenses/>.
 
-"""Custom useful datatypes.
+"""Custom useful data types.
 
 Module attributes:
     _UNSET: Used as default argument in the constructor so default can be None.
@@ -27,7 +27,7 @@ import operator
 import collections.abc
 import enum as pyenum
 
-from PyQt5.QtCore import pyqtSignal, QObject, QTimer
+from PyQt5.QtCore import pyqtSignal, pyqtSlot, QObject, QTimer
 
 from qutebrowser.utils import log, qtutils, utils
 
@@ -40,7 +40,7 @@ def enum(name, items, start=1, is_int=False):
 
     Args:
         name: Name of the enum
-        items: Iterable of ttems to be sequentally enumerated.
+        items: Iterable of items to be sequentially enumerated.
         start: The number to use for the first value.
                We use 1 as default so enum members are always True.
         is_init: True if the enum should be a Python IntEnum
@@ -73,7 +73,7 @@ class NeighborList(collections.abc.Sequence):
         Args:
             items: The list of items to iterate in.
             _default: The initially selected value.
-            _mode: Behaviour when the first/last item is reached.
+            _mode: Behavior when the first/last item is reached.
                    Modes.block: Stay on the selected item
                    Modes.wrap: Wrap around to the other end
                    Modes.exception: Raise an IndexError.
@@ -230,14 +230,19 @@ ClickTarget = enum('ClickTarget', ['normal', 'tab', 'tab_bg', 'window'])
 
 
 # Key input modes
-KeyMode = enum('KeyMode', ['none', 'normal', 'hint', 'command', 'yesno',
-                           'prompt', 'insert', 'passthrough'])
+KeyMode = enum('KeyMode', ['normal', 'hint', 'command', 'yesno', 'prompt',
+                           'insert', 'passthrough', 'caret'])
 
 
 # Available command completions
 Completion = enum('Completion', ['command', 'section', 'option', 'value',
                                  'helptopic', 'quickmark_by_url',
-                                 'quickmark_by_name'])
+                                 'quickmark_by_name', 'url', 'sessions'])
+
+
+# Exit statuses for errors. Needs to be an int for sys.exit.
+Exit = enum('Exit', ['ok', 'reserved', 'exception', 'err_ipc', 'err_init',
+                     'err_config', 'err_key_config'], is_int=True, start=0)
 
 
 class Question(QObject):
@@ -252,7 +257,7 @@ class Question(QObject):
         mode: A PromptMode enum member.
               yesno: A question which can be answered with yes/no.
               text: A question which requires a free text answer.
-              user_pwd: A question for an username and password.
+              user_pwd: A question for a username and password.
         default: The default value.
                  For yesno, None (no default), True or False.
                  For text, a default text as string.
@@ -307,8 +312,9 @@ class Question(QObject):
             raise TypeError("Mode {} is no PromptMode member!".format(val))
         self._mode = val
 
+    @pyqtSlot()
     def done(self):
-        """Must be called when the queston was answered completely."""
+        """Must be called when the question was answered completely."""
         self.answered.emit(self.answer)
         if self.mode == PromptMode.yesno:
             if self.answer:
@@ -317,11 +323,13 @@ class Question(QObject):
                 self.answered_no.emit()
         self.completed.emit()
 
+    @pyqtSlot()
     def cancel(self):
         """Cancel the question (resulting from user-input)."""
         self.cancelled.emit()
         self.completed.emit()
 
+    @pyqtSlot()
     def abort(self):
         """Abort the question."""
         self.is_aborted = True

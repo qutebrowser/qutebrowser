@@ -8,15 +8,19 @@
 |<<adblock-update,adblock-update>>|Update the adblock block lists.
 |<<back,back>>|Go back in the history of the current tab.
 |<<bind,bind>>|Bind a key to a command.
-|<<cancel-download,cancel-download>>|Cancel the first/[count]th download.
 |<<close,close>>|Close the current window.
-|<<download,download>>|Download a given URL, given as string.
-|<<download-page,download-page>>|Download the current page.
+|<<download,download>>|Download a given URL, or current page if no URL given.
+|<<download-cancel,download-cancel>>|Cancel the last/[count]th download.
+|<<download-delete,download-delete>>|Delete the last/[count]th download from disk.
+|<<download-open,download-open>>|Open the last/[count]th download.
+|<<download-remove,download-remove>>|Remove the last/[count]th download from the list.
 |<<forward,forward>>|Go forward in the history of the current tab.
+|<<fullscreen,fullscreen>>|Toggle fullscreen mode.
 |<<help,help>>|Show help about a command or setting.
 |<<hint,hint>>|Start hinting.
 |<<home,home>>|Open main startpage in current tab.
 |<<inspector,inspector>>|Toggle the web inspector.
+|<<jseval,jseval>>|Evaluate a JavaScript string.
 |<<later,later>>|Execute a command after some time.
 |<<navigate,navigate>>|Open typical prev/next links or navigate using the URL path.
 |<<open,open>>|Open a URL in the current/[count]th tab.
@@ -31,14 +35,18 @@
 |<<repeat,repeat>>|Repeat a given command.
 |<<report,report>>|Report a bug in qutebrowser.
 |<<restart,restart>>|Restart qutebrowser while keeping existing tabs open.
-|<<run-userscript,run-userscript>>|Run an userscript given as argument.
-|<<save,save>>|Save the config file.
+|<<save,save>>|Save configs and state.
+|<<search,search>>|Search for a text on the current page. With no text, clear results.
+|<<session-delete,session-delete>>|Delete a session.
+|<<session-load,session-load>>|Load a session.
+|<<session-save,session-save>>|Save a session.
 |<<set,set>>|Set an option.
 |<<set-cmd-text,set-cmd-text>>|Preset the statusbar to some text.
 |<<spawn,spawn>>|Spawn a command in a shell.
 |<<stop,stop>>|Stop loading in the current/[count]th tab.
 |<<tab-clone,tab-clone>>|Duplicate the current tab.
 |<<tab-close,tab-close>>|Close the current/[count]th tab.
+|<<tab-detach,tab-detach>>|Detach the current tab to its own window.
 |<<tab-focus,tab-focus>>|Select the tab given as argument/[count].
 |<<tab-move,tab-move>>|Move the current tab.
 |<<tab-next,tab-next>>|Switch to the next tab, or switch [count] tabs forward.
@@ -47,6 +55,7 @@
 |<<unbind,unbind>>|Unbind a keychain.
 |<<undo,undo>>|Re-open a closed tab (optionally skipping [count] closed tabs).
 |<<view-source,view-source>>|Show the source of the current page.
+|<<wq,wq>>|Save open pages and quit.
 |<<yank,yank>>|Yank the current URL/title to the clipboard or primary selection.
 |<<zoom,zoom>>|Set the zoom level for the current tab.
 |<<zoom-in,zoom-in>>|Increase the zoom level for the current tab.
@@ -72,7 +81,7 @@ How many pages to go back.
 
 [[bind]]
 === bind
-Syntax: +:bind [*--mode* 'MODE'] 'key' 'command'+
+Syntax: +:bind [*--mode* 'MODE'] [*--force*] 'key' 'command'+
 
 Bind a key to a command.
 
@@ -83,13 +92,11 @@ Bind a key to a command.
 ==== optional arguments
 * +*-m*+, +*--mode*+: A comma-separated list of modes to bind the key in (default: `normal`).
 
+* +*-f*+, +*--force*+: Rebind the key if it is already bound.
 
-[[cancel-download]]
-=== cancel-download
-Cancel the first/[count]th download.
-
-==== count
-The index of the download to cancel.
+==== note
+* This command does not split arguments after the last argument and handles quotes literally.
+* With this command, +;;+ is interpreted literally instead of splitting off a second command.
 
 [[close]]
 === close
@@ -97,17 +104,46 @@ Close the current window.
 
 [[download]]
 === download
-Syntax: +:download 'url' ['dest']+
+Syntax: +:download ['url'] ['dest']+
 
-Download a given URL, given as string.
+Download a given URL, or current page if no URL given.
 
 ==== positional arguments
-* +'url'+: The URL to download
-* +'dest'+: The file path to write the download to to ask.
+* +'url'+: The URL to download. If not given, download the current page.
+* +'dest'+: The file path to write the download to, or not given to ask.
 
-[[download-page]]
-=== download-page
-Download the current page.
+[[download-cancel]]
+=== download-cancel
+Cancel the last/[count]th download.
+
+==== count
+The index of the download to cancel.
+
+[[download-delete]]
+=== download-delete
+Delete the last/[count]th download from disk.
+
+==== count
+The index of the download to cancel.
+
+[[download-open]]
+=== download-open
+Open the last/[count]th download.
+
+==== count
+The index of the download to cancel.
+
+[[download-remove]]
+=== download-remove
+Syntax: +:download-remove [*--all*]+
+
+Remove the last/[count]th download from the list.
+
+==== optional arguments
+* +*-a*+, +*--all*+: If given removes all finished downloads.
+
+==== count
+The index of the download to cancel.
 
 [[forward]]
 === forward
@@ -122,6 +158,10 @@ Go forward in the history of the current tab.
 
 ==== count
 How many pages to go forward.
+
+[[fullscreen]]
+=== fullscreen
+Toggle fullscreen mode.
 
 [[help]]
 === help
@@ -143,7 +183,7 @@ Show help about a command or setting.
 
 [[hint]]
 === hint
-Syntax: +:hint ['group'] ['target'] ['args' ['args' ...]]+
+Syntax: +:hint [*--rapid*] ['group'] ['target'] ['args' ['args' ...]]+
 
 Start hinting.
 
@@ -159,7 +199,9 @@ Start hinting.
 * +'target'+: What to do with the selected element. 
 
  - `normal`: Open the link in the current tab.
- - `tab`: Open the link in a new tab.
+ - `tab`: Open the link in a new tab (honoring the
+ background-tabs setting).
+ - `tab-fg`: Open the link in a new foreground tab.
  - `tab-bg`: Open the link in a new background tab.
  - `window`: Open the link in a new window.
  - `hover` : Hover over the link.
@@ -168,11 +210,8 @@ Start hinting.
  - `run`: Run the argument as command.
  - `fill`: Fill the commandline with the command given as
  argument.
- - `rapid`: Open the link in a new tab and stay in hinting mode.
- - `rapid-win`: Open the link in a new window and stay in
- hinting mode.
  - `download`: Download the link.
- - `userscript`: Call an userscript with `$QUTE_URL` set to the
+ - `userscript`: Call a userscript with `$QUTE_URL` set to the
  link.
  - `spawn`: Spawn a command.
  
@@ -190,6 +229,11 @@ Start hinting.
  - With `run`: Same as `fill`.
 
 
+==== optional arguments
+* +*-r*+, +*--rapid*+: Whether to do rapid hinting. This is only possible with targets `tab` (with background-tabs=true), `tab-bg`,
+ `window`, `run`, `hover`, `userscript` and `spawn`.
+
+
 [[home]]
 === home
 Open main startpage in current tab.
@@ -197,6 +241,22 @@ Open main startpage in current tab.
 [[inspector]]
 === inspector
 Toggle the web inspector.
+
+[[jseval]]
+=== jseval
+Syntax: +:jseval [*--quiet*] 'js-code'+
+
+Evaluate a JavaScript string.
+
+==== positional arguments
+* +'js-code'+: The string to evaluate.
+
+==== optional arguments
+* +*-q*+, +*--quiet*+: Don't show resulting JS object.
+
+==== note
+* This command does not split arguments after the last argument and handles quotes literally.
+* With this command, +;;+ is interpreted literally instead of splitting off a second command.
 
 [[later]]
 === later
@@ -207,6 +267,10 @@ Execute a command after some time.
 ==== positional arguments
 * +'ms'+: How many milliseconds to wait.
 * +'command'+: The command to run, with optional args.
+
+==== note
+* This command does not split arguments after the last argument and handles quotes literally.
+* With this command, +;;+ is interpreted literally instead of splitting off a second command.
 
 [[navigate]]
 === navigate
@@ -235,7 +299,7 @@ This tries to automatically click on typical _Previous Page_ or _Next Page_ link
 
 [[open]]
 === open
-Syntax: +:open [*--bg*] [*--tab*] [*--window*] 'url'+
+Syntax: +:open [*--bg*] [*--tab*] [*--window*] ['url']+
 
 Open a URL in the current/[count]th tab.
 
@@ -249,6 +313,10 @@ Open a URL in the current/[count]th tab.
 
 ==== count
 The tab index to open the URL in.
+
+==== note
+* This command does not split arguments after the last argument and handles quotes literally.
+* With this command, +;;+ is interpreted literally instead of splitting off a second command.
 
 [[paste]]
 === paste
@@ -293,6 +361,10 @@ Delete a quickmark.
 ==== positional arguments
 * +'name'+: The name of the quickmark to delete.
 
+==== note
+* This command does not split arguments after the last argument and handles quotes literally.
+* With this command, +;;+ is interpreted literally instead of splitting off a second command.
+
 [[quickmark-load]]
 === quickmark-load
 Syntax: +:quickmark-load [*--tab*] [*--bg*] [*--window*] 'name'+
@@ -307,6 +379,10 @@ Load a quickmark.
 * +*-b*+, +*--bg*+: Load the quickmark in a new background tab.
 * +*-w*+, +*--window*+: Load the quickmark in a new window.
 
+==== note
+* This command does not split arguments after the last argument and handles quotes literally.
+* With this command, +;;+ is interpreted literally instead of splitting off a second command.
+
 [[quickmark-save]]
 === quickmark-save
 Save the current page as a quickmark.
@@ -317,7 +393,12 @@ Quit qutebrowser.
 
 [[reload]]
 === reload
+Syntax: +:reload [*--force*]+
+
 Reload the current/[count]th tab.
+
+==== optional arguments
+* +*-f*+, +*--force*+: Bypass the page cache.
 
 ==== count
 The tab index to reload.
@@ -332,6 +413,10 @@ Repeat a given command.
 * +'times'+: How many times to repeat.
 * +'command'+: The command to run, with optional args.
 
+==== note
+* This command does not split arguments after the last argument and handles quotes literally.
+* With this command, +;;+ is interpreted literally instead of splitting off a second command.
+
 [[report]]
 === report
 Report a bug in qutebrowser.
@@ -340,27 +425,82 @@ Report a bug in qutebrowser.
 === restart
 Restart qutebrowser while keeping existing tabs open.
 
-[[run-userscript]]
-=== run-userscript
-Syntax: +:run-userscript 'cmd' ['args' ['args' ...]]+
-
-Run an userscript given as argument.
-
-==== positional arguments
-* +'cmd'+: The userscript to run.
-* +'args'+: Arguments to pass to the userscript.
-
 [[save]]
 === save
-Save the config file.
+Syntax: +:save ['what' ['what' ...]]+
+
+Save configs and state.
+
+==== positional arguments
+* +'what'+: What to save (`config`/`key-config`/`cookies`/...). If not given, everything is saved.
+
+
+[[search]]
+=== search
+Syntax: +:search [*--reverse*] ['text']+
+
+Search for a text on the current page. With no text, clear results.
+
+==== positional arguments
+* +'text'+: The text to search for.
+
+==== optional arguments
+* +*-r*+, +*--reverse*+: Reverse search direction.
+
+==== note
+* This command does not split arguments after the last argument and handles quotes literally.
+* With this command, +;;+ is interpreted literally instead of splitting off a second command.
+
+[[session-delete]]
+=== session-delete
+Syntax: +:session-delete [*--force*] 'name'+
+
+Delete a session.
+
+==== positional arguments
+* +'name'+: The name of the session.
+
+==== optional arguments
+* +*-f*+, +*--force*+: Force deleting internal sessions (starting with an underline).
+
+
+[[session-load]]
+=== session-load
+Syntax: +:session-load [*--clear*] [*--temp*] [*--force*] 'name'+
+
+Load a session.
+
+==== positional arguments
+* +'name'+: The name of the session.
+
+==== optional arguments
+* +*-c*+, +*--clear*+: Close all existing windows.
+* +*-t*+, +*--temp*+: Don't set the current session for :session-save.
+* +*-f*+, +*--force*+: Force loading internal sessions (starting with an underline).
+
+
+[[session-save]]
+=== session-save
+Syntax: +:session-save [*--current*] [*--quiet*] [*--force*] ['name']+
+
+Save a session.
+
+==== positional arguments
+* +'name'+: The name of the session. If not given, the session configured in general -> session-default-name is saved.
+
+
+==== optional arguments
+* +*-c*+, +*--current*+: Save the current session instead of the default.
+* +*-q*+, +*--quiet*+: Don't show confirmation message.
+* +*-f*+, +*--force*+: Force saving internal sessions (starting with an underline).
 
 [[set]]
 === set
-Syntax: +:set [*--temp*] ['section'] ['option'] ['value']+
+Syntax: +:set [*--temp*] [*--print*] ['section'] ['option'] ['value']+
 
 Set an option.
 
-If the option name ends with '?', the value of the option is shown instead.
+If the option name ends with '?', the value of the option is shown instead. If the option name ends with '!' and it is a boolean value, toggle it.
 
 ==== positional arguments
 * +'section'+: The section where the option is in.
@@ -369,26 +509,43 @@ If the option name ends with '?', the value of the option is shown instead.
 
 ==== optional arguments
 * +*-t*+, +*--temp*+: Set value temporarily.
+* +*-p*+, +*--print*+: Print the value after setting.
 
 [[set-cmd-text]]
 === set-cmd-text
-Syntax: +:set-cmd-text 'text'+
+Syntax: +:set-cmd-text [*--space*] 'text'+
 
 Preset the statusbar to some text.
 
 ==== positional arguments
 * +'text'+: The commandline to set.
 
+==== optional arguments
+* +*-s*+, +*--space*+: If given, a space is added to the end.
+
+==== note
+* This command does not split arguments after the last argument and handles quotes literally.
+* With this command, +;;+ is interpreted literally instead of splitting off a second command.
+
 [[spawn]]
 === spawn
-Syntax: +:spawn 'args' ['args' ...]+
+Syntax: +:spawn [*--userscript*] [*--verbose*] [*--detach*] 'cmdline'+
 
 Spawn a command in a shell.
 
 Note the {url} variable which gets replaced by the current URL might be useful here.
 
 ==== positional arguments
-* +'args'+: The commandline to execute.
+* +'cmdline'+: The commandline to execute.
+
+==== optional arguments
+* +*-u*+, +*--userscript*+: Run the command as a userscript.
+* +*-v*+, +*--verbose*+: Show notifications when the command started/exited.
+* +*-d*+, +*--detach*+: Whether the command should be detached from qutebrowser.
+
+==== note
+* This command does not split arguments after the last argument and handles quotes literally.
+* With this command, +;;+ is interpreted literally instead of splitting off a second command.
 
 [[stop]]
 === stop
@@ -416,11 +573,15 @@ Close the current/[count]th tab.
 ==== optional arguments
 * +*-l*+, +*--left*+: Force selecting the tab to the left of the current tab.
 * +*-r*+, +*--right*+: Force selecting the tab to the right of the current tab.
-* +*-o*+, +*--opposite*+: Force selecting the tab in the oppsite direction of what's configured in 'tabs->select-on-remove'.
+* +*-o*+, +*--opposite*+: Force selecting the tab in the opposite direction of what's configured in 'tabs->select-on-remove'.
 
 
 ==== count
 The tab index to close
+
+[[tab-detach]]
+=== tab-detach
+Detach the current tab to its own window.
 
 [[tab-focus]]
 === tab-focus
@@ -492,15 +653,25 @@ Re-open a closed tab (optionally skipping [count] closed tabs).
 === view-source
 Show the source of the current page.
 
+[[wq]]
+=== wq
+Syntax: +:wq ['name']+
+
+Save open pages and quit.
+
+==== positional arguments
+* +'name'+: The name of the session.
+
 [[yank]]
 === yank
-Syntax: +:yank [*--title*] [*--sel*]+
+Syntax: +:yank [*--title*] [*--sel*] [*--domain*]+
 
 Yank the current URL/title to the clipboard or primary selection.
 
 ==== optional arguments
 * +*-t*+, +*--title*+: Yank the title instead of the URL.
 * +*-s*+, +*--sel*+: Use the primary selection instead of the clipboard.
+* +*-d*+, +*--domain*+: Yank only the scheme, domain, and port number.
 
 [[zoom]]
 === zoom
@@ -536,14 +707,35 @@ How many steps to zoom out.
 [options="header",width="75%",cols="25%,75%"]
 |==============
 |Command|Description
+|<<clear-keychain,clear-keychain>>|Clear the currently entered key chain.
 |<<command-accept,command-accept>>|Execute the command currently in the commandline.
 |<<command-history-next,command-history-next>>|Go forward in the commandline history.
 |<<command-history-prev,command-history-prev>>|Go back in the commandline history.
 |<<completion-item-next,completion-item-next>>|Select the next completion item.
 |<<completion-item-prev,completion-item-prev>>|Select the previous completion item.
+|<<drop-selection,drop-selection>>|Drop selection and keep selection mode enabled.
 |<<enter-mode,enter-mode>>|Enter a key mode.
 |<<follow-hint,follow-hint>>|Follow the currently selected hint.
+|<<follow-selected,follow-selected>>|Follow the selected text.
 |<<leave-mode,leave-mode>>|Leave the mode we're currently in.
+|<<message-error,message-error>>|Show an error message in the statusbar.
+|<<message-info,message-info>>|Show an info message in the statusbar.
+|<<message-warning,message-warning>>|Show a warning message in the statusbar.
+|<<move-to-end-of-document,move-to-end-of-document>>|Move the cursor or selection to the end of the document.
+|<<move-to-end-of-line,move-to-end-of-line>>|Move the cursor or selection to the end of line.
+|<<move-to-end-of-next-block,move-to-end-of-next-block>>|Move the cursor or selection to the end of next block.
+|<<move-to-end-of-prev-block,move-to-end-of-prev-block>>|Move the cursor or selection to the end of previous block.
+|<<move-to-end-of-word,move-to-end-of-word>>|Move the cursor or selection to the end of the word.
+|<<move-to-next-char,move-to-next-char>>|Move the cursor or selection to the next char.
+|<<move-to-next-line,move-to-next-line>>|Move the cursor or selection to the next line.
+|<<move-to-next-word,move-to-next-word>>|Move the cursor or selection to the next word.
+|<<move-to-prev-char,move-to-prev-char>>|Move the cursor or selection to the previous char.
+|<<move-to-prev-line,move-to-prev-line>>|Move the cursor or selection to the prev line.
+|<<move-to-prev-word,move-to-prev-word>>|Move the cursor or selection to the previous word.
+|<<move-to-start-of-document,move-to-start-of-document>>|Move the cursor or selection to the start of the document.
+|<<move-to-start-of-line,move-to-start-of-line>>|Move the cursor or selection to the start of the line.
+|<<move-to-start-of-next-block,move-to-start-of-next-block>>|Move the cursor or selection to the start of next block.
+|<<move-to-start-of-prev-block,move-to-start-of-prev-block>>|Move the cursor or selection to the start of previous block.
 |<<open-editor,open-editor>>|Open an external editor with the currently selected form field.
 |<<prompt-accept,prompt-accept>>|Accept the current prompt.
 |<<prompt-no,prompt-no>>|Answer no to a yes/no prompt.
@@ -561,12 +753,19 @@ How many steps to zoom out.
 |<<rl-unix-line-discard,rl-unix-line-discard>>|Remove chars backward from the cursor to the beginning of the line.
 |<<rl-unix-word-rubout,rl-unix-word-rubout>>|Remove chars from the cursor to the beginning of the word.
 |<<rl-yank,rl-yank>>|Paste the most recently deleted text.
-|<<scroll,scroll>>|Scroll the current tab by 'count * dx/dy'.
+|<<scroll,scroll>>|Scroll the current tab in the given direction.
 |<<scroll-page,scroll-page>>|Scroll the frame page-wise.
 |<<scroll-perc,scroll-perc>>|Scroll to a specific percentage of the page.
+|<<scroll-px,scroll-px>>|Scroll the current tab by 'count * dx/dy' pixels.
 |<<search-next,search-next>>|Continue the search to the ([count]th) next term.
 |<<search-prev,search-prev>>|Continue the search to the ([count]th) previous term.
+|<<toggle-selection,toggle-selection>>|Toggle caret selection mode.
+|<<yank-selected,yank-selected>>|Yank the selected text to the clipboard or primary selection.
 |==============
+[[clear-keychain]]
+=== clear-keychain
+Clear the currently entered key chain.
+
 [[command-accept]]
 === command-accept
 Execute the command currently in the commandline.
@@ -587,6 +786,10 @@ Select the next completion item.
 === completion-item-prev
 Select the previous completion item.
 
+[[drop-selection]]
+=== drop-selection
+Drop selection and keep selection mode enabled.
+
 [[enter-mode]]
 === enter-mode
 Syntax: +:enter-mode 'mode'+
@@ -600,9 +803,138 @@ Enter a key mode.
 === follow-hint
 Follow the currently selected hint.
 
+[[follow-selected]]
+=== follow-selected
+Syntax: +:follow-selected [*--tab*]+
+
+Follow the selected text.
+
+==== optional arguments
+* +*-t*+, +*--tab*+: Load the selected link in a new tab.
+
 [[leave-mode]]
 === leave-mode
 Leave the mode we're currently in.
+
+[[message-error]]
+=== message-error
+Syntax: +:message-error 'text'+
+
+Show an error message in the statusbar.
+
+==== positional arguments
+* +'text'+: The text to show.
+
+[[message-info]]
+=== message-info
+Syntax: +:message-info 'text'+
+
+Show an info message in the statusbar.
+
+==== positional arguments
+* +'text'+: The text to show.
+
+[[message-warning]]
+=== message-warning
+Syntax: +:message-warning 'text'+
+
+Show a warning message in the statusbar.
+
+==== positional arguments
+* +'text'+: The text to show.
+
+[[move-to-end-of-document]]
+=== move-to-end-of-document
+Move the cursor or selection to the end of the document.
+
+[[move-to-end-of-line]]
+=== move-to-end-of-line
+Move the cursor or selection to the end of line.
+
+[[move-to-end-of-next-block]]
+=== move-to-end-of-next-block
+Move the cursor or selection to the end of next block.
+
+==== count
+How many blocks to move.
+
+[[move-to-end-of-prev-block]]
+=== move-to-end-of-prev-block
+Move the cursor or selection to the end of previous block.
+
+==== count
+How many blocks to move.
+
+[[move-to-end-of-word]]
+=== move-to-end-of-word
+Move the cursor or selection to the end of the word.
+
+==== count
+How many words to move.
+
+[[move-to-next-char]]
+=== move-to-next-char
+Move the cursor or selection to the next char.
+
+==== count
+How many lines to move.
+
+[[move-to-next-line]]
+=== move-to-next-line
+Move the cursor or selection to the next line.
+
+==== count
+How many lines to move.
+
+[[move-to-next-word]]
+=== move-to-next-word
+Move the cursor or selection to the next word.
+
+==== count
+How many words to move.
+
+[[move-to-prev-char]]
+=== move-to-prev-char
+Move the cursor or selection to the previous char.
+
+==== count
+How many chars to move.
+
+[[move-to-prev-line]]
+=== move-to-prev-line
+Move the cursor or selection to the prev line.
+
+==== count
+How many lines to move.
+
+[[move-to-prev-word]]
+=== move-to-prev-word
+Move the cursor or selection to the previous word.
+
+==== count
+How many words to move.
+
+[[move-to-start-of-document]]
+=== move-to-start-of-document
+Move the cursor or selection to the start of the document.
+
+[[move-to-start-of-line]]
+=== move-to-start-of-line
+Move the cursor or selection to the start of the line.
+
+[[move-to-start-of-next-block]]
+=== move-to-start-of-next-block
+Move the cursor or selection to the start of next block.
+
+==== count
+How many blocks to move.
+
+[[move-to-start-of-prev-block]]
+=== move-to-start-of-prev-block
+Move the cursor or selection to the start of previous block.
+
+==== count
+How many blocks to move.
 
 [[open-editor]]
 === open-editor
@@ -702,26 +1034,32 @@ This acts like readline's yank.
 
 [[scroll]]
 === scroll
-Syntax: +:scroll 'dx' 'dy'+
+Syntax: +:scroll 'direction' ['dy']+
 
-Scroll the current tab by 'count * dx/dy'.
+Scroll the current tab in the given direction.
 
 ==== positional arguments
-* +'dx'+: How much to scroll in x-direction.
-* +'dy'+: How much to scroll in x-direction.
+* +'direction'+: In which direction to scroll (up/down/left/right/top/bottom).
+
 
 ==== count
 multiplier
 
 [[scroll-page]]
 === scroll-page
-Syntax: +:scroll-page 'x' 'y'+
+Syntax: +:scroll-page [*--top-navigate* 'ACTION'] [*--bottom-navigate* 'ACTION'] 'x' 'y'+
 
 Scroll the frame page-wise.
 
 ==== positional arguments
 * +'x'+: How many pages to scroll to the right.
 * +'y'+: How many pages to scroll down.
+
+==== optional arguments
+* +*-t*+, +*--top-navigate*+: :navigate action (prev, decrement) to run when scrolling up at the top of the page.
+
+* +*-b*+, +*--bottom-navigate*+: :navigate action (next, increment) to run when scrolling down at the bottom of the page.
+
 
 ==== count
 multiplier
@@ -743,6 +1081,19 @@ The percentage can be given either as argument or as count. If no percentage is 
 ==== count
 Percentage to scroll.
 
+[[scroll-px]]
+=== scroll-px
+Syntax: +:scroll-px 'dx' 'dy'+
+
+Scroll the current tab by 'count * dx/dy' pixels.
+
+==== positional arguments
+* +'dx'+: How much to scroll in x-direction.
+* +'dy'+: How much to scroll in x-direction.
+
+==== count
+multiplier
+
 [[search-next]]
 === search-next
 Continue the search to the ([count]th) next term.
@@ -757,6 +1108,20 @@ Continue the search to the ([count]th) previous term.
 ==== count
 How many elements to ignore.
 
+[[toggle-selection]]
+=== toggle-selection
+Toggle caret selection mode.
+
+[[yank-selected]]
+=== yank-selected
+Syntax: +:yank-selected [*--sel*] [*--keep*]+
+
+Yank the selected text to the clipboard or primary selection.
+
+==== optional arguments
+* +*-s*+, +*--sel*+: Use the primary selection instead of the clipboard.
+* +*-k*+, +*--keep*+: If given, stay in visual mode after yanking.
+
 
 == Debugging commands
 These commands are mainly intended for debugging. They are hidden if qutebrowser was started without the `--debug`-flag.
@@ -769,7 +1134,9 @@ These commands are mainly intended for debugging. They are hidden if qutebrowser
 |<<debug-cache-stats,debug-cache-stats>>|Print LRU cache stats.
 |<<debug-console,debug-console>>|Show the debugging console.
 |<<debug-crash,debug-crash>>|Crash for debugging purposes.
-|<<debug-pyeval,debug-pyeval>>|Evaluate a python string and display the results as a webpage.
+|<<debug-pyeval,debug-pyeval>>|Evaluate a python string and display the results as a web page.
+|<<debug-trace,debug-trace>>|Trace executed code via hunter.
+|<<debug-webaction,debug-webaction>>|Execute a webaction.
 |==============
 [[debug-all-objects]]
 === debug-all-objects
@@ -796,8 +1163,39 @@ Crash for debugging purposes.
 === debug-pyeval
 Syntax: +:debug-pyeval 's'+
 
-Evaluate a python string and display the results as a webpage.
+Evaluate a python string and display the results as a web page.
 
 ==== positional arguments
 * +'s'+: The string to evaluate.
+
+==== note
+* This command does not split arguments after the last argument and handles quotes literally.
+* With this command, +;;+ is interpreted literally instead of splitting off a second command.
+
+[[debug-trace]]
+=== debug-trace
+Syntax: +:debug-trace ['expr']+
+
+Trace executed code via hunter.
+
+==== positional arguments
+* +'expr'+: What to trace, passed to hunter.
+
+==== note
+* This command does not split arguments after the last argument and handles quotes literally.
+* With this command, +;;+ is interpreted literally instead of splitting off a second command.
+
+[[debug-webaction]]
+=== debug-webaction
+Syntax: +:debug-webaction 'action'+
+
+Execute a webaction.
+
+See http://doc.qt.io/qt-5/qwebpage.html#WebAction-enum for the available actions.
+
+==== positional arguments
+* +'action'+: The action to execute, e.g. MoveToNextChar.
+
+==== count
+How many times to repeat the action.
 

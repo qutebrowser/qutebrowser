@@ -1,6 +1,6 @@
 # vim: ft=python fileencoding=utf-8 sts=4 sw=4 et:
 
-# Copyright 2014 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
+# Copyright 2014-2015 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
 #
 # This file is part of qutebrowser.
 #
@@ -19,7 +19,9 @@
 #
 # pylint complains when using .render() on jinja templates, so we make it shut
 # up for this whole module.
-# pylint: disable=maybe-no-member
+
+# pylint: disable=no-member
+# https://bitbucket.org/logilab/pylint/issue/490/
 
 """Handler functions for different qute:... pages.
 
@@ -27,6 +29,7 @@ Module attributes:
     pyeval_output: The output of the last :pyeval command.
 """
 
+import functools
 import configparser
 
 from PyQt5.QtCore import pyqtSlot, QObject
@@ -93,6 +96,12 @@ class JSBridge(QObject):
     @pyqtSlot(int, str, str, str)
     def set(self, win_id, sectname, optname, value):
         """Slot to set a setting from qute:settings."""
+        # https://github.com/The-Compiler/qutebrowser/issues/727
+        if ((sectname, optname) == ('content', 'allow-javascript') and
+                value == 'false'):
+            message.error(win_id, "Refusing to disable javascript via "
+                          "qute:settings as it needs javascript support.")
+            return
         try:
             objreg.get('config').set('conf', sectname, optname, value)
         except (configexc.Error, configparser.Error) as e:
@@ -144,13 +153,13 @@ def qute_help(win_id, request):
     """Handler for qute:help. Return HTML content as bytes."""
     try:
         utils.read_file('html/doc/index.html')
-    except FileNotFoundError:
+    except OSError:
         html = jinja.env.get_template('error.html').render(
             title="Error while loading documentation",
             url=request.url().toDisplayString(),
             error="This most likely means the documentation was not generated "
                   "properly. If you are running qutebrowser from the git "
-                  "repository, please run scripts/asciidoc2html.py."
+                  "repository, please run scripts/asciidoc2html.py. "
                   "If you're running a released version this is a bug, please "
                   "use :report to report it.",
             icon='')
@@ -168,9 +177,11 @@ def qute_help(win_id, request):
 
 
 def qute_settings(win_id, _request):
-    """Handler for qute:settings. View/change qute configuration"""
+    """Handler for qute:settings. View/change qute configuration."""
+    config_getter = functools.partial(objreg.get('config').get, raw=True)
     html = jinja.env.get_template('settings.html').render(
-        win_id=win_id, title='settings', config=configdata)
+        win_id=win_id, title='settings', config=configdata,
+        confget=config_getter)
     return html.encode('UTF-8', errors='xmlcharrefreplace')
 
 

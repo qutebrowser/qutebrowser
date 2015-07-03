@@ -1,6 +1,6 @@
 # vim: ft=python fileencoding=utf-8 sts=4 sw=4 et:
 
-# Copyright 2014 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
+# Copyright 2014-2015 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
 #
 # This file is part of qutebrowser.
 #
@@ -21,7 +21,8 @@
 
 import functools
 
-from PyQt5.QtWidgets import QHBoxLayout, QWidget, QLineEdit
+from PyQt5.QtCore import QSize
+from PyQt5.QtWidgets import QHBoxLayout, QWidget, QLineEdit, QSizePolicy
 
 from qutebrowser.mainwindow.statusbar import textbase, prompter
 from qutebrowser.utils import objreg, utils
@@ -35,6 +36,16 @@ class PromptLineEdit(misc.MinimalLineEditMixin, QLineEdit):
     def __init__(self, parent=None):
         QLineEdit.__init__(self, parent)
         misc.MinimalLineEditMixin.__init__(self)
+        self.textChanged.connect(self.updateGeometry)
+
+    def sizeHint(self):
+        """Dynamically calculate the needed size."""
+        height = super().sizeHint().height()
+        text = self.text()
+        if not text:
+            text = 'x'
+        width = self.fontMetrics().width(text)
+        return QSize(width, height)
 
 
 class Prompt(QWidget):
@@ -58,6 +69,8 @@ class Prompt(QWidget):
         self._hbox.addWidget(self.txt)
 
         self.lineedit = PromptLineEdit()
+        self.lineedit.setSizePolicy(QSizePolicy.MinimumExpanding,
+                                    QSizePolicy.Fixed)
         self._hbox.addWidget(self.lineedit)
 
         prompter_obj = prompter.Prompter(win_id)

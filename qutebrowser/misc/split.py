@@ -1,6 +1,6 @@
 # vim: ft=python fileencoding=utf-8 sts=4 sw=4 et:
 
-# Copyright 2014 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
+# Copyright 2014-2015 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
 #
 # This file is part of qutebrowser.
 #
@@ -49,13 +49,13 @@ class ShellLexer:
         self.reset()
 
     def reset(self):
-        """Reset the statemachine state to the defaults."""
+        """Reset the state machine state to the defaults."""
         self.quoted = False
         self.escapedstate = ' '
         self.token = ''
         self.state = ' '
 
-    def __iter__(self):  # noqa
+    def __iter__(self):  # pragma: no mccabe
         """Read a raw token from the input stream."""
         # pylint: disable=too-many-branches,too-many-statements
         self.reset()
@@ -127,7 +127,7 @@ def split(s, keep=False):
     """Split a string via ShellLexer.
 
     Args:
-        keep: Whether to keep are special chars in the split output.
+        keep: Whether to keep special chars in the split output.
     """
     lexer = ShellLexer(s)
     lexer.keep = keep
@@ -190,7 +190,7 @@ def simple_split(s, keep=False, maxsplit=None):
     whitespace = '\n\t '
     if maxsplit == 0:
         # re.split with maxsplit=0 splits everything, while str.split splits
-        # nothing (which is the behaviour we want).
+        # nothing (which is the behavior we want).
         if keep:
             return [s]
         else:

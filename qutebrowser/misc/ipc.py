@@ -1,6 +1,6 @@
 # vim: ft=python fileencoding=utf-8 sts=4 sw=4 et:
 
-# Copyright 2014 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
+# Copyright 2014-2015 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
 #
 # This file is part of qutebrowser.
 #
@@ -23,22 +23,60 @@ import os
 import json
 import getpass
 import binascii
+import hashlib
 
-from PyQt5.QtCore import pyqtSlot, QObject
-from PyQt5.QtNetwork import QLocalSocket, QLocalServer
+from PyQt5.QtCore import pyqtSignal, pyqtSlot, QObject
+from PyQt5.QtNetwork import QLocalSocket, QLocalServer, QAbstractSocket
 
-from qutebrowser.utils import log, objreg, usertypes
+from qutebrowser.utils import log, usertypes, error
 
 
-SOCKETNAME = 'qutebrowser-{}'.format(getpass.getuser())
 CONNECT_TIMEOUT = 100
 WRITE_TIMEOUT = 1000
 READ_TIMEOUT = 5000
 
 
-class IPCError(Exception):
+def _get_socketname(args):
+    """Get a socketname to use."""
+    parts = ['qutebrowser', getpass.getuser()]
+    if args.basedir is not None:
+        md5 = hashlib.md5(args.basedir.encode('utf-8'))
+        parts.append(md5.hexdigest())
+    return '-'.join(parts)
+
+
+class Error(Exception):
 
     """Exception raised when there was a problem with IPC."""
+
+
+class ListenError(Error):
+
+    """Exception raised when there was a problem with listening to IPC.
+
+    Args:
+        code: The error code.
+        message: The error message.
+    """
+
+    def __init__(self, server):
+        """Constructor.
+
+        Args:
+            server: The QLocalServer which has the error set.
+        """
+        super().__init__()
+        self.code = server.serverError()
+        self.message = server.errorString()
+
+    def __str__(self):
+        return "Error while listening to IPC server: {} (error {})".format(
+            self.message, self.code)
+
+
+class AddressInUseError(ListenError):
+
+    """Emitted when the server address is already in use."""
 
 
 class IPCServer(QObject):
@@ -50,39 +88,53 @@ class IPCServer(QObject):
         _timer: A timer to handle timeouts.
         _server: A QLocalServer to accept new connections.
         _socket: The QLocalSocket we're currently connected to.
+        _socketname: The socketname to use.
+
+    Signals:
+        got_args: Emitted when there was an IPC connection and arguments were
+                  passed.
     """
 
-    def __init__(self, parent=None):
-        """Start the IPC server and listen to commands."""
+    got_args = pyqtSignal(list, str)
+
+    def __init__(self, args, parent=None):
+        """Start the IPC server and listen to commands.
+
+        Args:
+            args: The argparse namespace.
+            parent: The parent to be used.
+        """
         super().__init__(parent)
         self.ignored = False
+        self._socketname = _get_socketname(args)
         self._remove_server()
         self._timer = usertypes.Timer(self, 'ipc-timeout')
         self._timer.setInterval(READ_TIMEOUT)
         self._timer.timeout.connect(self.on_timeout)
         self._server = QLocalServer(self)
-        ok = self._server.listen(SOCKETNAME)
+        ok = self._server.listen(self._socketname)
         if not ok:
-            raise IPCError("Error while listening to IPC server: {} "
-                           "(error {})".format(self._server.errorString(),
-                                               self._server.serverError()))
+            if self._server.serverError() == QAbstractSocket.AddressInUseError:
+                raise AddressInUseError(self._server)
+            else:
+                raise ListenError(self._server)
         self._server.newConnection.connect(self.handle_connection)
         self._socket = None
 
     def _remove_server(self):
         """Remove an existing server."""
-        ok = QLocalServer.removeServer(SOCKETNAME)
+        ok = QLocalServer.removeServer(self._socketname)
         if not ok:
-            raise IPCError("Error while removing server {}!".format(
-                SOCKETNAME))
+            raise Error("Error while removing server {}!".format(
+                self._socketname))
 
     @pyqtSlot(int)
-    def on_error(self, error):
+    def on_error(self, err):
         """Convenience method which calls _socket_error on an error."""
         self._timer.stop()
         log.ipc.debug("Socket error {}: {}".format(
             self._socket.error(), self._socket.errorString()))
-        if error != QLocalSocket.PeerClosedError:
+        if err != QLocalSocket.PeerClosedError:
             _socket_error("handling IPC connection", self._socket)
 
     @pyqtSlot()
@@ -157,8 +209,7 @@ class IPCServer(QObject):
                 log.ipc.debug("no args: {}".format(decoded.strip()))
                 return
             cwd = json_data.get('cwd', None)
-            app = objreg.get('app')
-            app.process_args(args, via_ipc=True, cwd=cwd)
+            self.got_args.emit(args, cwd)
 
     @pyqtSlot()
     def on_timeout(self):
@@ -177,41 +228,34 @@ class IPCServer(QObject):
         self._remove_server()
 
 
-def init():
-    """Initialize the global IPC server."""
-    app = objreg.get('app')
-    server = IPCServer(app)
-    objreg.register('ipc-server', server)
-
-
 def _socket_error(action, socket):
-    """Raise an IPCError based on an action and a QLocalSocket.
+    """Raise an Error based on an action and a QLocalSocket.
 
     Args:
         action: A string like "writing to running instance".
         socket: A QLocalSocket.
     """
-    raise IPCError("Error while {}: {} (error {})".format(
+    raise Error("Error while {}: {} (error {})".format(
         action, socket.errorString(), socket.error()))
 
 
-def send_to_running_instance(cmdlist):
+def send_to_running_instance(args):
     """Try to send a commandline to a running instance.
 
     Blocks for CONNECT_TIMEOUT ms.
 
     Args:
-        cmdlist: A list to send (URLs/commands)
+        args: The argparse namespace.
 
     Return:
         True if connecting was successful, False if no connection was made.
     """
     socket = QLocalSocket()
-    socket.connectToServer(SOCKETNAME)
+    socket.connectToServer(_get_socketname(args))
     connected = socket.waitForConnected(100)
     if connected:
         log.ipc.info("Opening in existing instance")
-        json_data = {'args': cmdlist}
+        json_data = {'args': args.command}
         try:
             cwd = os.getcwd()
         except OSError:
@@ -235,3 +279,10 @@ def send_to_running_instance(cmdlist):
             log.ipc.debug("No existing instance present (error {})".format(
                 socket.error()))
             return False
+
+
+def display_error(exc, args):
+    """Display a message box with an IPC error."""
+    error.handle_fatal_exc(
+        exc, args, "Error while connecting to running instance!",
+        post_text="Maybe another instance is running but frozen?")

@@ -1,6 +1,6 @@
 # vim: ft=python fileencoding=utf-8 sts=4 sw=4 et:
 
-# Copyright 2014 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
+# Copyright 2014-2015 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
 #
 # This file is part of qutebrowser.
 #
@@ -31,9 +31,7 @@ from qutebrowser.utils import qtutils, utils, objreg
 
 
 def update_geometry(obj):
-    """WORKAROUND
-
-    This is a horrible workaround for some weird PyQt bug (probably).
+    """Weird WORKAROUND for some weird PyQt bug (probably).
 
     This actually should be a method of DownloadView, but for some reason the
     rowsInserted/rowsRemoved signals don't get disconnected from this method
@@ -44,7 +42,6 @@ def update_geometry(obj):
     Original bug:   https://github.com/The-Compiler/qutebrowser/issues/167
     Workaround bug: https://github.com/The-Compiler/qutebrowser/issues/171
     """
-
     def _update_geometry():
         """Actually update the geometry if the object still exists."""
         if sip.isdeleted(obj):
@@ -126,7 +123,7 @@ class DownloadView(QListView):
         Return:
             A list of either:
                 - (QAction, callable) tuples.
-                - (None, None) for a seperator
+                - (None, None) for a separator
         """
         actions = []
         if item is None:
@@ -142,7 +139,8 @@ class DownloadView(QListView):
             actions.append(("Cancel", item.cancel))
         if self.model().can_clear():
             actions.append((None, None))
-            actions.append(("Remove all finished", self.model().clear))
+            actions.append(("Remove all finished", functools.partial(
+                self.model().download_remove, True)))
         return actions
 
     @pyqtSlot('QPoint')

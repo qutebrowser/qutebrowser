@@ -1,6 +1,6 @@
 # vim: ft=python fileencoding=utf-8 sts=4 sw=4 et:
 
-# Copyright 2014 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
+# Copyright 2014-2015 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
 #
 # This file is part of qutebrowser.
 #
@@ -26,7 +26,7 @@ class SettingValue:
 
     """Base class for setting values.
 
-    Intended to be subclassed by config value "types".
+    Intended to be sub-classed by config value "types".
 
     Attributes:
         typ: A BaseType subclass instance.
@@ -79,6 +79,7 @@ class SettingValue:
             if val is not None:
                 return val
         else:  # pylint: disable=useless-else-on-loop
+            # https://bitbucket.org/logilab/pylint/issue/489/
             raise ValueError("No valid config value found!")
 
     def transformed(self):

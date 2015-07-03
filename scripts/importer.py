@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 # vim: ft=python fileencoding=utf-8 sts=4 sw=4 et:
 
-# Copyright 2014 Claude (longneck) <longneck@scratchbook.ch>
+# Copyright 2014-2015 Claude (longneck) <longneck@scratchbook.ch>
 
 # This file is part of qutebrowser.
 #

@@ -1,6 +1,6 @@
 # vim: ft=python fileencoding=utf-8 sts=4 sw=4 et:
 
-# Copyright 2014 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
+# Copyright 2014-2015 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
 #
 # This file is part of qutebrowser.
 #
@@ -17,7 +17,7 @@
 # You should have received a copy of the GNU General Public License
 # along with qutebrowser.  If not, see <http://www.gnu.org/licenses/>.
 
-"""Utilities related to jinja2. """
+"""Utilities related to jinja2."""
 
 import os.path
 
@@ -49,7 +49,7 @@ class Loader(jinja2.BaseLoader):
 
 
 def _guess_autoescape(template_name):
-    """Turns autoescape on/off based on the filetype.
+    """Turn auto-escape on/off based on the file type.
 
     Based on http://jinja.pocoo.org/docs/dev/api/#autoescaping
     """

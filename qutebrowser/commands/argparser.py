@@ -1,6 +1,6 @@
 # vim: ft=python fileencoding=utf-8 sts=4 sw=4 et:
 
-# Copyright 2014 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
+# Copyright 2014-2015 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
 #
 # This file is part of qutebrowser.
 #
@@ -86,7 +86,6 @@ class ArgumentParser(argparse.ArgumentParser):
 
 def enum_getter(enum):
     """Function factory to get an enum getter."""
-
     def _get_enum_item(key):
         """Helper function to get an enum item.
 
@@ -104,7 +103,6 @@ def enum_getter(enum):
 
 def multitype_conv(tpl):
     """Function factory to get a type converter for a choice of types."""
-
     def _convert(value):
         """Convert a value according to an iterable of possible arg types."""
         for typ in set(tpl):

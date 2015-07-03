@@ -1,6 +1,6 @@
 # vim: ft=python fileencoding=utf-8 sts=4 sw=4 et:
 
-# Copyright 2014 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
+# Copyright 2014-2015 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
 #
 # This file is part of qutebrowser.
 #
@@ -32,9 +32,9 @@ class ValidationError(Error):
     """Raised when a value for a config type was invalid.
 
     Attributes:
-        section: Section in which the error occured (added when catching and
+        section: Section in which the error occurred (added when catching and
                  re-raising the exception).
-        option: Option in which the error occured.
+        option: Option in which the error occurred.
     """
 
     def __init__(self, value, msg):

@@ -1,6 +1,6 @@
 # vim: ft=python fileencoding=utf-8 sts=4 sw=4 et:
 
-# Copyright 2014 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
+# Copyright 2014-2015 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
 #
 # This file is part of qutebrowser.
 #
@@ -29,6 +29,7 @@ class Section:
     """Base class for KeyValue/ValueList sections.
 
     Attributes:
+        _readonly: Whether this section is read-only.
         values: An OrderedDict with key as index and value as value.
                 key: string
                 value: SettingValue
@@ -38,6 +39,7 @@ class Section:
     def __init__(self):
         self.values = None
         self.descriptions = {}
+        self._readonly = False
 
     def __getitem__(self, key):
         """Get the value for key.
@@ -99,13 +101,15 @@ class KeyValue(Section):
     set of keys.
     """
 
-    def __init__(self, *defaults):
+    def __init__(self, *defaults, readonly=False):
         """Constructor.
 
         Args:
             *defaults: A (key, value, description) list of defaults.
+            readonly: Whether this config is readonly.
         """
         super().__init__()
+        self._readonly = readonly
         if not defaults:
             return
         self.values = collections.OrderedDict()
@@ -115,6 +119,8 @@ class KeyValue(Section):
             self.descriptions[k] = desc
 
     def setv(self, layer, key, value, interpolated):
+        if self._readonly:
+            raise ValueError("Trying to modify a read-only config!")
         self.values[key].setv(layer, value, interpolated)
 
     def dump_userconfig(self):
@@ -133,7 +139,7 @@ class ValueList(Section):
     """This class represents a section with a list key-value settings.
 
     These are settings inside sections which don't have fixed keys, but instead
-    have a dynamic list of "key = value" pairs, like keybindings or
+    have a dynamic list of "key = value" pairs, like key bindings or
     searchengines.
 
     They basically consist of two different SettingValues.
@@ -143,17 +149,20 @@ class ValueList(Section):
         keytype: The type to use for the key (only used for validating)
         valtype: The type to use for the value.
         _ordered_value_cache: A ChainMap-like OrderedDict of all values.
+        _readonly: Whether this section is read-only.
     """
 
-    def __init__(self, keytype, valtype, *defaults):
+    def __init__(self, keytype, valtype, *defaults, readonly=False):
         """Wrap types over default values. Take care when overriding this.
 
         Args:
             keytype: The type instance to be used for keys.
             valtype: The type instance to be used for values.
             *defaults: A (key, value) list of default values.
+            readonly: Whether this config is readonly.
         """
         super().__init__()
+        self._readonly = readonly
         self._ordered_value_cache = None
         self.keytype = keytype
         self.valtype = valtype
@@ -182,6 +191,8 @@ class ValueList(Section):
         return self._ordered_value_cache
 
     def setv(self, layer, key, value, interpolated):
+        if self._readonly:
+            raise ValueError("Trying to modify a read-only config!")
         self.keytype.validate(key)
         if key in self.layers[layer]:
             self.layers[layer][key].setv(layer, value, interpolated)

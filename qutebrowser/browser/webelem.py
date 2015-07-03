@@ -1,6 +1,6 @@
 # vim: ft=python fileencoding=utf-8 sts=4 sw=4 et:
 
-# Copyright 2014 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
+# Copyright 2014-2015 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
 #
 # This file is part of qutebrowser.
 #
@@ -277,6 +277,12 @@ class WebElementWrapper(collections.abc.MutableMapping):
         else:
             return False
 
+    def is_text_input(self):
+        """Check if this element is some kind of text box."""
+        roles = ('combobox', 'textbox')
+        tag = self._elem.tagName().lower()
+        return self.get('role', None) in roles or tag in ('input', 'textarea')
+
     def debug_text(self):
         """Get a text based on an element suitable for debug output."""
         self._check_vanished()
@@ -306,7 +312,7 @@ def javascript_escape(text):
 def get_child_frames(startframe):
     """Get all children recursively of a given QWebFrame.
 
-    Loosly based on http://blog.nextgenetics.net/?e=64
+    Loosely based on http://blog.nextgenetics.net/?e=64
 
     Args:
         startframe: The QWebFrame to start with.
@@ -326,7 +332,7 @@ def get_child_frames(startframe):
 
 
 def focus_elem(frame):
-    """Get the focused element in a webframe.
+    """Get the focused element in a web frame.
 
     FIXME: Add tests.
 

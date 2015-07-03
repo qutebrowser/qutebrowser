@@ -1,6 +1,6 @@
 # vim: ft=python fileencoding=utf-8 sts=4 sw=4 et:
 
-# Copyright 2014 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
+# Copyright 2014-2015 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
 #
 # This file is part of qutebrowser.
 #
@@ -19,14 +19,12 @@
 
 """Completer attached to a CompletionView."""
 
-from PyQt5.QtCore import pyqtSlot, QObject, QTimer
+from PyQt5.QtCore import pyqtSignal, pyqtSlot, QObject, QTimer
 
-from qutebrowser.config import config, configdata
+from qutebrowser.config import config
 from qutebrowser.commands import cmdutils, runners
 from qutebrowser.utils import usertypes, log, objreg, utils
-from qutebrowser.completion.models import completion as models
-from qutebrowser.completion.models.sortfilter import (
-    CompletionFilterModel as CFM)
+from qutebrowser.completion.models import instances
 
 
 class Completer(QObject):
@@ -34,7 +32,6 @@ class Completer(QObject):
     """Completer which manages completions in a CompletionView.
 
     Attributes:
-        models: dict of available completion models.
         _cmd: The statusbar Command object this completer belongs to.
         _ignore_change: Whether to ignore the next completion update.
         _win_id: The window ID this completer is in.
@@ -43,24 +40,24 @@ class Completer(QObject):
         _last_cursor_pos: The old cursor position so we avoid double completion
                           updates.
         _last_text: The old command text so we avoid double completion updates.
+        _signals_connected: Whether the signals are connected to update the
+                            completion when the command widget requests that.
+
+    Signals:
+        next_prev_item: Emitted to select the next/previous item in the
+                        completion.
+                        arg0: True for the previous item, False for the next.
     """
+
+    next_prev_item = pyqtSignal(bool)
 
     def __init__(self, cmd, win_id, parent=None):
         super().__init__(parent)
         self._win_id = win_id
         self._cmd = cmd
-        self._cmd.update_completion.connect(self.schedule_completion_update)
-        self._cmd.textEdited.connect(self.on_text_edited)
+        self._signals_connected = False
         self._ignore_change = False
         self._empty_item_idx = None
-
-        self._models = {
-            usertypes.Completion.option: {},
-            usertypes.Completion.value: {},
-        }
-        self._init_static_completions()
-        self._init_setting_completions()
-        self.init_quickmark_completions()
         self._timer = QTimer()
         self._timer.setSingleShot(True)
         self._timer.setInterval(0)
@@ -69,8 +66,62 @@ class Completer(QObject):
         self._last_cursor_pos = None
         self._last_text = None
 
+        objreg.get('config').changed.connect(self.on_auto_open_changed)
+        self.handle_signal_connections()
+        self._cmd.clear_completion_selection.connect(
+            self.handle_signal_connections)
+
     def __repr__(self):
         return utils.get_repr(self)
+
+    @config.change_filter('completion', 'auto-open')
+    def on_auto_open_changed(self):
+        self.handle_signal_connections()
+
+    @pyqtSlot()
+    def handle_signal_connections(self):
+        self._connect_signals(config.get('completion', 'auto-open'))
+
+    def _connect_signals(self, connect=True):
+        """Connect or disconnect the completion signals.
+
+        Args:
+            connect: Whether to connect (True) or disconnect (False) the
+                     signals.
+
+        Return:
+            True if the signals were connected (connect=True and aren't
+            connected yet) - otherwise False.
+        """
+        connections = [
+            (self._cmd.update_completion, self.schedule_completion_update),
+            (self._cmd.textChanged, self.on_text_edited),
+        ]
+
+        if connect and not self._signals_connected:
+            for sender, receiver in connections:
+                sender.connect(receiver)
+            self._signals_connected = True
+            return True
+        elif not connect:
+            for sender, receiver in connections:
+                try:
+                    sender.disconnect(receiver)
+                except TypeError:
+                    # Don't fail if not connected
+                    pass
+            self._signals_connected = False
+        return False
+
+    def _open_completion_if_needed(self):
+        """If auto-open is false, temporarily connect signals.
+
+        Also opens the completion.
+        """
+        if not config.get('completion', 'auto-open'):
+            connected = self._connect_signals(True)
+            if connected:
+                self.update_completion()
 
     def _model(self):
         """Convienience method to get the current completion model."""
@@ -78,47 +129,11 @@ class Completer(QObject):
                                 window=self._win_id)
         return completion.model()
 
-    def _init_static_completions(self):
-        """Initialize the static completion models."""
-        self._models[usertypes.Completion.command] = CFM(
-            models.CommandCompletionModel(self), self)
-        self._models[usertypes.Completion.helptopic] = CFM(
-            models.HelpCompletionModel(self), self)
-
-    def _init_setting_completions(self):
-        """Initialize setting completion models."""
-        self._models[usertypes.Completion.section] = CFM(
-            models.SettingSectionCompletionModel(self), self)
-        self._models[usertypes.Completion.option] = {}
-        self._models[usertypes.Completion.value] = {}
-        for sectname in configdata.DATA:
-            model = models.SettingOptionCompletionModel(sectname, self)
-            self._models[usertypes.Completion.option][sectname] = CFM(
-                model, self)
-            self._models[usertypes.Completion.value][sectname] = {}
-            for opt in configdata.DATA[sectname].keys():
-                model = models.SettingValueCompletionModel(sectname, opt, self)
-                self._models[usertypes.Completion.value][sectname][opt] = CFM(
-                    model, self)
-
-    @pyqtSlot()
-    def init_quickmark_completions(self):
-        """Initialize quickmark completion models."""
-        try:
-            self._models[usertypes.Completion.quickmark_by_url].deleteLater()
-            self._models[usertypes.Completion.quickmark_by_name].deleteLater()
-        except KeyError:
-            pass
-        self._models[usertypes.Completion.quickmark_by_url] = CFM(
-            models.QuickmarkCompletionModel('url', self), self)
-        self._models[usertypes.Completion.quickmark_by_name] = CFM(
-            models.QuickmarkCompletionModel('name', self), self)
-
     def _get_completion_model(self, completion, parts, cursor_part):
         """Get a completion model based on an enum member.
 
         Args:
-            completion: An usertypes.Completion member.
+            completion: A usertypes.Completion member.
             parts: The parts currently in the commandline.
             cursor_part: The part the cursor is in.
 
@@ -127,17 +142,17 @@ class Completer(QObject):
         """
         if completion == usertypes.Completion.option:
             section = parts[cursor_part - 1]
-            model = self._models[completion].get(section)
+            model = instances.get(completion).get(section)
         elif completion == usertypes.Completion.value:
             section = parts[cursor_part - 2]
             option = parts[cursor_part - 1]
             try:
-                model = self._models[completion][section][option]
+                model = instances.get(completion)[section][option]
             except KeyError:
                 # No completion model for this section/option.
                 model = None
         else:
-            model = self._models.get(completion)
+            model = instances.get(completion)
         return model
 
     def _filter_cmdline_parts(self, parts, cursor_part):
@@ -187,7 +202,7 @@ class Completer(QObject):
                              "{}".format(parts, cursor_part))
         if cursor_part == 0:
             # '|' or 'set|'
-            return self._models[usertypes.Completion.command]
+            return instances.get(usertypes.Completion.command)
         # delegate completion to command
         try:
             completions = cmdutils.cmd_dict[parts[0]].completion
@@ -243,7 +258,13 @@ class Completer(QObject):
         data = model.data(indexes[0])
         if data is None:
             return
-        data = self._quote(data)
+        parts = self.split()
+        try:
+            needs_quoting = cmdutils.cmd_dict[parts[0]].maxsplit is None
+        except KeyError:
+            needs_quoting = True
+        if needs_quoting:
+            data = self._quote(data)
         if model.count() == 1 and config.get('completion', 'quick-complete'):
             # If we only have one item, we want to apply it immediately
             # and go on to the next part.
@@ -292,7 +313,7 @@ class Completer(QObject):
         if self._cmd.prefix() != ':':
             # This is a search or gibberish, so we don't need to complete
             # anything (yet)
-            # FIXME complete searchs
+            # FIXME complete searches
             # https://github.com/The-Compiler/qutebrowser/issues/32
             completion.hide()
             return
@@ -313,7 +334,7 @@ class Completer(QObject):
             pattern = parts[self._cursor_part].strip()
         except IndexError:
             pattern = ''
-        self._model().set_pattern(pattern)
+        completion.set_pattern(pattern)
 
         log.completion.debug(
             "New completion for {}: {}, with pattern '{}'".format(
@@ -326,11 +347,12 @@ class Completer(QObject):
         if completion.enabled:
             completion.show()
 
-    def split(self, keep=False):
+    def split(self, keep=False, aliases=False):
         """Get the text split up in parts.
 
         Args:
             keep: Whether to keep special chars and whitespace.
+            aliases: Whether to resolve aliases.
         """
         text = self._cmd.text()[len(self._cmd.prefix()):]
         if not text:
@@ -342,8 +364,8 @@ class Completer(QObject):
             # the whitespace.
             return [text]
         runner = runners.CommandRunner(self._win_id)
-        parts = runner.parse(text, fallback=True, alias_no_args=False,
-                             keep=keep)
+        result = runner.parse(text, fallback=True, aliases=aliases, keep=keep)
+        parts = result.cmdline
         if self._empty_item_idx is not None:
             log.completion.debug("Empty element queued at {}, "
                                  "inserting.".format(self._empty_item_idx))
@@ -368,7 +390,7 @@ class Completer(QObject):
                         cursor_pos))
         skip = 0
         for i, part in enumerate(parts):
-            log.completion.vdebug("Checking part {}: {}".format(i, parts[i]))
+            log.completion.vdebug("Checking part {}: {!r}".format(i, parts[i]))
             if not part:
                 skip += 1
                 continue
@@ -390,7 +412,11 @@ class Completer(QObject):
                 "Removing len({!r}) -> {} from cursor_pos -> {}".format(
                     part, len(part), cursor_pos))
         else:
-            self._cursor_part = i - skip
+            if i == 0:
+                # Initial `:` press without any text.
+                self._cursor_part = 0
+            else:
+                self._cursor_part = i - skip
             if spaces:
                 self._empty_item_idx = i - skip
             else:
@@ -441,3 +467,17 @@ class Completer(QObject):
         # We also want to update the cursor part and emit update_completion
         # here, but that's already done for us by cursorPositionChanged
         # anyways, so we don't need to do it twice.
+
+    @cmdutils.register(instance='completer', hide=True,
+                       modes=[usertypes.KeyMode.command], scope='window')
+    def completion_item_prev(self):
+        """Select the previous completion item."""
+        self._open_completion_if_needed()
+        self.next_prev_item.emit(True)
+
+    @cmdutils.register(instance='completer', hide=True,
+                       modes=[usertypes.KeyMode.command], scope='window')
+    def completion_item_next(self):
+        """Select the next completion item."""
+        self._open_completion_if_needed()
+        self.next_prev_item.emit(False)

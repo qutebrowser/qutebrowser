@@ -1,6 +1,6 @@
 # vim: ft=python fileencoding=utf-8 sts=4 sw=4 et:
 
-# Copyright 2014 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
+# Copyright 2014-2015 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
 #
 # This file is part of qutebrowser.
 #
@@ -32,7 +32,7 @@ class TextBase(QLabel):
 
     Unlike QLabel, the text will get elided.
 
-    Eliding is loosly based on
+    Eliding is loosely based on
     http://gedgedev.blogspot.ch/2010/12/elided-labels-in-qt.html
 
     Attributes:
@@ -64,13 +64,13 @@ class TextBase(QLabel):
 
         This update the elided text after setting the text, and also works
         around a weird QLabel redrawing bug where it doesn't redraw correctly
-        when the text is empty -- we explicitely need to call repaint() to
+        when the text is empty -- we explicitly need to call repaint() to
         resolve this.
 
         More info:
 
         http://stackoverflow.com/q/21890462/2085149
-        https://bugreports.qt-project.org/browse/QTBUG-36945
+        https://bugreports.qt.io/browse/QTBUG-36945
         https://codereview.qt-project.org/#/c/79181/
 
         Args:

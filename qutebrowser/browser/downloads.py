@@ -1,6 +1,6 @@
 # vim: ft=python fileencoding=utf-8 sts=4 sw=4 et:
 
-# Copyright 2014 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
+# Copyright 2014-2015 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
 #
 # This file is part of qutebrowser.
 #
@@ -21,14 +21,14 @@
 
 import io
 import os
+import sys
 import os.path
 import shutil
 import functools
 import collections
 
 from PyQt5.QtCore import (pyqtSlot, pyqtSignal, QObject, QTimer,
-                          QStandardPaths, Qt, QVariant, QAbstractListModel,
-                          QModelIndex, QUrl)
+                          Qt, QVariant, QAbstractListModel, QModelIndex, QUrl)
 from PyQt5.QtGui import QDesktopServices
 from PyQt5.QtNetwork import QNetworkRequest, QNetworkReply
 # We need this import so PyQt can use it inside pyqtSlot
@@ -47,6 +47,32 @@ ModelRole = usertypes.enum('ModelRole', ['item'], start=Qt.UserRole,
 
 
 RetryInfo = collections.namedtuple('RetryInfo', ['request', 'manager'])
+
+
+def _download_dir():
+    """Get the download directory to use."""
+    directory = config.get('storage', 'download-directory')
+    if directory is None:
+        directory = standarddir.download()
+    return directory
+
+
+def _path_suggestion(filename):
+    """Get the suggested file path.
+
+    Args:
+        filename: The filename to use if included in the suggestion.
+    """
+    suggestion = config.get('completion', 'download-path-suggestion')
+    if suggestion == 'path':
+        # add trailing '/' if not present
+        return os.path.join(_download_dir(), '')
+    elif suggestion == 'filename':
+        return filename
+    elif suggestion == 'both':
+        return os.path.join(_download_dir(), filename)
+    else:
+        raise ValueError("Invalid suggestion value {}!".format(suggestion))
 
 
 class DownloadItemStats(QObject):
@@ -122,7 +148,7 @@ class DownloadItemStats(QObject):
 
     @pyqtSlot(int, int)
     def on_download_progress(self, bytes_done, bytes_total):
-        """Upload local variables when the download progress changed.
+        """Update local variables when the download progress changed.
 
         Args:
             bytes_done: How many bytes are downloaded.
@@ -132,7 +158,6 @@ class DownloadItemStats(QObject):
             bytes_total = None
         self.done = bytes_done
         self.total = bytes_total
-        self.updated.emit()
 
 
 class DownloadItem(QObject):
@@ -158,32 +183,33 @@ class DownloadItem(QObject):
     Attributes:
         done: Whether the download is finished.
         stats: A DownloadItemStats object.
-        successful: Whether the download has completed sucessfully.
+        index: The index of the download in the view.
+        successful: Whether the download has completed successfully.
         error_msg: The current error message, or None
         autoclose: Whether to close the associated file if the download is
                    done.
         fileobj: The file object to download the file to.
         reply: The QNetworkReply associated with this download.
+        retry_info: A RetryInfo instance.
         _filename: The filename of the download.
         _redirects: How many time we were redirected already.
         _buffer: A BytesIO object to buffer incoming data until we know the
                  target file.
-        _read_timer: A QTimer which reads the QNetworkReply into self._buffer
+        _read_timer: A Timer which reads the QNetworkReply into self._buffer
                      periodically.
-        _retry_info: A RetryInfo instance.
         _win_id: The window ID the DownloadItem runs in.
 
     Signals:
         data_changed: The downloads metadata changed.
         finished: The download was finished.
         cancelled: The download was cancelled.
-        error: An error with the download occured.
+        error: An error with the download occurred.
                arg: The error message as string.
         redirected: Signal emitted when a download was redirected.
             arg 0: The new QNetworkRequest.
             arg 1: The old QNetworkReply.
-        do_retry: Emitted when a request should be re-tried.
-            arg: The QNetworkRequest to download.
+        do_retry: Emitted when a download is retried.
+            arg 0: The new DownloadItem
     """
 
     MAX_REDIRECTS = 10
@@ -192,7 +218,7 @@ class DownloadItem(QObject):
     error = pyqtSignal(str)
     cancelled = pyqtSignal()
     redirected = pyqtSignal(QNetworkRequest, QNetworkReply)
-    do_retry = pyqtSignal('QNetworkReply')
+    do_retry = pyqtSignal(object)  # DownloadItem
 
     def __init__(self, reply, win_id, parent=None):
         """Constructor.
@@ -201,14 +227,15 @@ class DownloadItem(QObject):
             reply: The QNetworkReply to download.
         """
         super().__init__(parent)
-        self._retry_info = None
+        self.retry_info = None
         self.done = False
         self.stats = DownloadItemStats(self)
         self.stats.updated.connect(self.data_changed)
+        self.index = 0
         self.autoclose = True
         self.reply = None
         self._buffer = io.BytesIO()
-        self._read_timer = QTimer()
+        self._read_timer = usertypes.Timer(self, name='download-read-timer')
         self._read_timer.setInterval(500)
         self._read_timer.timeout.connect(self.on_read_timer_timeout)
         self._redirects = 0
@@ -237,8 +264,9 @@ class DownloadItem(QObject):
         else:
             errmsg = " - {}".format(self.error_msg)
         if all(e is None for e in (perc, remaining, self.stats.total)):
-            return ('{name} [{speed:>10}|{down}]{errmsg}'.format(
-                name=self.basename, speed=speed, down=down, errmsg=errmsg))
+            return ('{index}: {name} [{speed:>10}|{down}]{errmsg}'.format(
+                index=self.index, name=self.basename, speed=speed,
+                down=down, errmsg=errmsg))
         if perc is None:
             perc = '??'
         else:
@@ -249,17 +277,18 @@ class DownloadItem(QObject):
             remaining = utils.format_seconds(remaining)
         total = utils.format_size(self.stats.total, suffix='B')
         if self.done:
-            return ('{name} [{perc:>2}%|{total}]{errmsg}'.format(
-                name=self.basename, perc=perc, total=total,
-                errmsg=errmsg))
+            return ('{index}: {name} [{perc:>2}%|{total}]{errmsg}'.format(
+                index=self.index, name=self.basename, perc=perc,
+                total=total, errmsg=errmsg))
         else:
-            return ('{name} [{speed:>10}|{remaining:>5}|{perc:>2}%|'
+            return ('{index}: {name} [{speed:>10}|{remaining:>5}|{perc:>2}%|'
                     '{down}/{total}]{errmsg}'.format(
-                        name=self.basename, speed=speed, remaining=remaining,
-                        perc=perc, down=down, total=total, errmsg=errmsg))
+                        index=self.index, name=self.basename, speed=speed,
+                        remaining=remaining, perc=perc, down=down,
+                        total=total, errmsg=errmsg))
 
     def _create_fileobj(self):
-        """Creates a file object using the internal filename."""
+        """Create a file object using the internal filename."""
         try:
             fileobj = open(self._filename, 'wb')
         except OSError as e:
@@ -267,14 +296,16 @@ class DownloadItem(QObject):
         else:
             self.set_fileobj(fileobj)
 
-    def _ask_overwrite_question(self):
+    def _ask_confirm_question(self, msg):
         """Create a Question object to be asked."""
         q = usertypes.Question(self)
-        q.text = self._filename + " already exists. Overwrite? (y/n)"
+        q.text = msg
         q.mode = usertypes.PromptMode.yesno
         q.answered_yes.connect(self._create_fileobj)
         q.answered_no.connect(functools.partial(self.cancel, False))
         q.cancelled.connect(functools.partial(self.cancel, False))
+        self.cancelled.connect(q.abort)
+        self.error.connect(q.abort)
         message_bridge = objreg.get('message-bridge', scope='window',
                                     window=self._win_id)
         message_bridge.ask(q, blocking=False)
@@ -290,7 +321,11 @@ class DownloadItem(QObject):
         self.error_msg = msg
         self.stats.finish()
         self.error.emit(msg)
-        self.reply.abort()
+        with log.hide_qt_warning('QNetworkReplyImplPrivate::error: Internal '
+                                 'problem, this method must only be called '
+                                 'once.'):
+            # See https://codereview.qt-project.org/#/c/107863/
+            self.reply.abort()
         self.reply.deleteLater()
         self.reply = None
         self.done = True
@@ -310,8 +345,8 @@ class DownloadItem(QObject):
         reply.finished.connect(self.on_reply_finished)
         reply.error.connect(self.on_reply_error)
         reply.readyRead.connect(self.on_ready_read)
-        self._retry_info = RetryInfo(request=reply.request(),
-                                     manager=reply.manager())
+        self.retry_info = RetryInfo(request=reply.request(),
+                                    manager=reply.manager())
         if not self.fileobj:
             self._read_timer.start()
         # We could have got signals before we connected slots to them.
@@ -320,12 +355,19 @@ class DownloadItem(QObject):
         if reply.error() != QNetworkReply.NoError:
             QTimer.singleShot(0, lambda: self.error.emit(reply.errorString()))
 
-    def bg_color(self):
-        """Background color to be shown."""
-        start = config.get('colors', 'downloads.bg.start')
-        stop = config.get('colors', 'downloads.bg.stop')
-        system = config.get('colors', 'downloads.bg.system')
-        error = config.get('colors', 'downloads.bg.error')
+    def get_status_color(self, position):
+        """Choose an appropriate color for presenting the download's status.
+
+        Args:
+            position: The color type requested, can be 'fg' or 'bg'.
+        """
+        # pylint: disable=bad-config-call
+        # WORKAROUND for https://bitbucket.org/logilab/astroid/issue/104/
+        assert position in ("fg", "bg")
+        start = config.get('colors', 'downloads.{}.start'.format(position))
+        stop = config.get('colors', 'downloads.{}.stop'.format(position))
+        system = config.get('colors', 'downloads.{}.system'.format(position))
+        error = config.get('colors', 'downloads.{}.error'.format(position))
         if self.error_msg is not None:
             assert not self.successful
             return error
@@ -335,6 +377,7 @@ class DownloadItem(QObject):
             return utils.interpolate_color(
                 start, stop, self.stats.percentage(), system)
 
+    @pyqtSlot()
     def cancel(self, remove_data=True):
         """Cancel the download.
 
@@ -351,22 +394,32 @@ class DownloadItem(QObject):
             self.reply = None
         if self.fileobj is not None:
             self.fileobj.close()
-        try:
-            if (self._filename is not None and os.path.exists(self._filename)
-                    and remove_data):
-                os.remove(self._filename)
-        except OSError:
-            log.downloads.exception("Failed to remove partial file")
+        if remove_data:
+            self.delete()
         self.done = True
         self.finished.emit()
         self.data_changed.emit()
 
+    def delete(self):
+        """Delete the downloaded file."""
+        try:
+            if self._filename is not None and os.path.exists(self._filename):
+                os.remove(self._filename)
+        except OSError:
+            log.downloads.exception("Failed to remove partial file")
+
+    @pyqtSlot()
     def retry(self):
         """Retry a failed download."""
+        download_manager = objreg.get('download-manager', scope='window',
+                                      window=self._win_id)
+        new_reply = self.retry_info.manager.get(self.retry_info.request)
+        new_download = download_manager.fetch(
+            new_reply, suggested_filename=self.basename)
+        self.do_retry.emit(new_download)
         self.cancel()
-        new_reply = self._retry_info.manager.get(self._retry_info.request)
-        self.do_retry.emit(new_reply)
 
+    @pyqtSlot()
     def open_file(self):
         """Open the downloaded file."""
         assert self.successful
@@ -385,31 +438,49 @@ class DownloadItem(QObject):
                              "existing: {}, fileobj {}".format(
                                  filename, self._filename, self.fileobj))
         filename = os.path.expanduser(filename)
+        # Remove chars which can't be encoded in the filename encoding.
+        # See https://github.com/The-Compiler/qutebrowser/issues/427
+        encoding = sys.getfilesystemencoding()
+        filename = utils.force_encoding(filename, encoding)
+        if not self._create_full_filename(filename):
+            # We only got a filename (without directory) or a relative path
+            # from the user, so we append that to the default directory and
+            # try again.
+            self._create_full_filename(os.path.join(_download_dir(), filename))
+
+        log.downloads.debug("Setting filename to {}".format(filename))
+        if os.path.isfile(self._filename):
+            # The file already exists, so ask the user if it should be
+            # overwritten.
+            txt = self._filename + " already exists. Overwrite?"
+            self._ask_confirm_question(txt)
+        # FIFO, device node, etc. Make sure we want to do this
+        elif (os.path.exists(self._filename) and not
+                os.path.isdir(self._filename)):
+            txt = (self._filename + " already exists and is a special file. "
+                   "Write to this?")
+            self._ask_confirm_question(txt)
+        else:
+            self._create_fileobj()
+
+    def _create_full_filename(self, filename):
+        """Try to create the full filename.
+
+        Return:
+            True if the full filename was created, False otherwise.
+        """
         if os.path.isabs(filename) and os.path.isdir(filename):
             # We got an absolute directory from the user, so we save it under
             # the default filename in that directory.
             self._filename = os.path.join(filename, self.basename)
+            return True
         elif os.path.isabs(filename):
             # We got an absolute filename from the user, so we save it under
             # that filename.
             self._filename = filename
             self.basename = os.path.basename(self._filename)
-        else:
-            # We only got a filename (without directory) from the user, so we
-            # save it under that filename in the default directory.
-            download_dir = config.get('storage', 'download-directory')
-            if download_dir is None:
-                download_dir = standarddir.get(
-                    QStandardPaths.DownloadLocation)
-            self._filename = os.path.join(download_dir, filename)
-            self.basename = filename
-        log.downloads.debug("Setting filename to {}".format(filename))
-        if os.path.isfile(self._filename):
-            # The file already exists, so ask the user if it should be
-            # overwritten.
-            self._ask_overwrite_question()
-        else:
-            self._create_fileobj()
+            return True
+        return False
 
     def set_fileobj(self, fileobj):
         """"Set the file object to write the download to.
@@ -557,7 +628,8 @@ class DownloadManager(QAbstractListModel):
         self._win_id = win_id
         self.downloads = []
         self.questions = []
-        self._networkmanager = networkmanager.NetworkManager(win_id, self)
+        self._networkmanager = networkmanager.NetworkManager(
+            win_id, None, self)
 
     def __repr__(self):
         return utils.get_repr(self, downloads=len(self.downloads))
@@ -571,18 +643,6 @@ class DownloadManager(QAbstractListModel):
         q.destroyed.connect(functools.partial(self.questions.remove, q))
         self.questions.append(q)
         return q
-
-    @cmdutils.register(instance='download-manager', scope='window')
-    def download(self, url, dest=None):
-        """Download a given URL, given as string.
-
-        Args:
-            url: The URL to download
-            dest: The file path to write the download to, or None to ask.
-        """
-        url = urlutils.qurl_from_user_input(url)
-        urlutils.raise_cmdexc_if_invalid(url)
-        self.get(url, filename=dest)
 
     @pyqtSlot('QUrl', 'QWebPage')
     def get(self, url, page=None, fileobj=None, filename=None,
@@ -632,24 +692,31 @@ class DownloadManager(QAbstractListModel):
         if fileobj is not None and filename is not None:
             raise TypeError("Only one of fileobj/filename may be given!")
         # WORKAROUND for Qt corrupting data loaded from cache:
-        # https://bugreports.qt-project.org/browse/QTBUG-42757
+        # https://bugreports.qt.io/browse/QTBUG-42757
         request.setAttribute(QNetworkRequest.CacheLoadControlAttribute,
                              QNetworkRequest.AlwaysNetwork)
+        suggested_fn = urlutils.filename_from_url(request.url())
         if fileobj is not None or filename is not None:
-            return self.fetch_request(request, filename, fileobj, page,
-                                      auto_remove)
+            return self.fetch_request(request, page, fileobj, filename,
+                                      auto_remove, suggested_fn)
+        if suggested_fn is None:
+            suggested_fn = 'qutebrowser-download'
+        else:
+            encoding = sys.getfilesystemencoding()
+            suggested_fn = utils.force_encoding(suggested_fn, encoding)
         q = self._prepare_question()
-        q.default = urlutils.filename_from_url(request.url())
+        q.default = _path_suggestion(suggested_fn)
         message_bridge = objreg.get('message-bridge', scope='window',
                                     window=self._win_id)
         q.answered.connect(
-            lambda fn: self.fetch_request(request, filename=fn, page=page,
-                                          auto_remove=auto_remove))
+            lambda fn: self.fetch_request(request, page, filename=fn,
+                                          auto_remove=auto_remove,
+                                          suggested_filename=suggested_fn))
         message_bridge.ask(q, blocking=False)
         return None
 
     def fetch_request(self, request, page=None, fileobj=None, filename=None,
-                      auto_remove=False):
+                      auto_remove=False, suggested_filename=None):
         """Download a QNetworkRequest to disk.
 
         Args:
@@ -668,10 +735,12 @@ class DownloadManager(QAbstractListModel):
         else:
             nam = page.networkAccessManager()
         reply = nam.get(request)
-        return self.fetch(reply, fileobj, filename, auto_remove)
+        return self.fetch(reply, fileobj, filename, auto_remove,
+                          suggested_filename)
 
     @pyqtSlot('QNetworkReply')
-    def fetch(self, reply, fileobj=None, filename=None, auto_remove=False):
+    def fetch(self, reply, fileobj=None, filename=None, auto_remove=False,
+              suggested_filename=None):
         """Download a QNetworkReply to disk.
 
         Args:
@@ -686,12 +755,13 @@ class DownloadManager(QAbstractListModel):
         """
         if fileobj is not None and filename is not None:
             raise TypeError("Only one of fileobj/filename may be given!")
-        if filename is not None:
-            suggested_filename = os.path.basename(filename)
-        elif fileobj is not None and getattr(fileobj, 'name', None):
-            suggested_filename = fileobj.name
-        else:
-            _inline, suggested_filename = http.parse_content_disposition(reply)
+        if not suggested_filename:
+            if filename is not None:
+                suggested_filename = os.path.basename(filename)
+            elif fileobj is not None and getattr(fileobj, 'name', None):
+                suggested_filename = fileobj.name
+            else:
+                _, suggested_filename = http.parse_content_disposition(reply)
         log.downloads.debug("fetch: {} -> {}".format(reply.url(),
                                                      suggested_filename))
         download = DownloadItem(reply, self._win_id, self)
@@ -705,9 +775,9 @@ class DownloadManager(QAbstractListModel):
         download.error.connect(self.on_error)
         download.redirected.connect(
             functools.partial(self.on_redirect, download))
-        download.do_retry.connect(self.fetch)
         download.basename = suggested_filename
         idx = len(self.downloads) + 1
+        download.index = idx
         self.beginInsertRows(QModelIndex(), idx, idx)
         self.downloads.append(download)
         self.endInsertRows()
@@ -719,7 +789,7 @@ class DownloadManager(QAbstractListModel):
             download.autoclose = False
         else:
             q = self._prepare_question()
-            q.default = suggested_filename
+            q.default = _path_suggestion(suggested_filename)
             q.answered.connect(download.set_filename)
             q.cancelled.connect(download.cancel)
             download.cancelled.connect(q.abort)
@@ -730,20 +800,82 @@ class DownloadManager(QAbstractListModel):
 
         return download
 
-    @cmdutils.register(instance='download-manager', scope='window')
-    def cancel_download(self, count: {'special': 'count'}=1):
+    def raise_no_download(self, count):
+        """Raise an exception that the download doesn't exist.
+
+        Args:
+            count: The index of the download
+        """
+        if not count:
+            raise cmdexc.CommandError("There's no download!")
+        raise cmdexc.CommandError("There's no download {}!".format(count))
+
+    @cmdutils.register(instance='download-manager', scope='window',
+                       count='count')
+    def download_cancel(self, count=0):
+        """Cancel the last/[count]th download.
+
+        Args:
+            count: The index of the download to cancel.
+        """
+        try:
+            download = self.downloads[count - 1]
+        except IndexError:
+            self.raise_no_download(count)
+        if download.done:
+            if not count:
+                count = len(self.downloads)
+            raise cmdexc.CommandError("Download {} is already done!"
+                                      .format(count))
+        download.cancel()
+
+    @cmdutils.register(instance='download-manager', scope='window',
+                       count='count')
+    def download_delete(self, count=0):
+        """Delete the last/[count]th download from disk.
+
+        Args:
+            count: The index of the download to cancel.
+        """
+        try:
+            download = self.downloads[count - 1]
+        except IndexError:
+            self.raise_no_download(count)
+        if not download.successful:
+            if not count:
+                count = len(self.downloads)
+            raise cmdexc.CommandError("Download {} is not done!".format(count))
+        download.delete()
+        self.remove_item(download)
+
+    @cmdutils.register(instance='download-manager', scope='window',
+                       deprecated="Use :download-cancel instead.",
+                       count='count')
+    def cancel_download(self, count=1):
         """Cancel the first/[count]th download.
 
         Args:
             count: The index of the download to cancel.
         """
-        if count == 0:
-            return
+        self.download_cancel(count)
+
+    @cmdutils.register(instance='download-manager', scope='window',
+                       count='count')
+    def download_open(self, count=0):
+        """Open the last/[count]th download.
+
+        Args:
+            count: The index of the download to cancel.
+        """
         try:
             download = self.downloads[count - 1]
         except IndexError:
-            raise cmdexc.CommandError("There's no download {}!".format(count))
-        download.cancel()
+            self.raise_no_download(count)
+        if not download.successful:
+            if not count:
+                count = len(self.downloads)
+            raise cmdexc.CommandError("Download {} is not done!".format(count))
+        download.open_file()
 
     @pyqtSlot(QNetworkRequest, QNetworkReply)
     def on_redirect(self, download, request, reply):
@@ -785,21 +917,44 @@ class DownloadManager(QAbstractListModel):
         Return:
             A boolean.
         """
+        assert nam.adopted_downloads == 0
         for download in self.downloads:
-            if download.reply is not None and download.reply.manager() is nam:
-                return True
-        return False
+            running_download = (download.reply is not None and
+                                download.reply.manager() is nam)
+            # user could request retry after tab is closed.
+            failed_download = (download.done and (not download.successful) and
+                               download.retry_info.manager is nam)
+            if running_download or failed_download:
+                nam.adopt_download(download)
+        return nam.adopted_downloads
 
     def can_clear(self):
         """Check if there are finished downloads to clear."""
-        if self.downloads:
-            return any(download.done for download in self.downloads)
-        else:
-            return False
+        return any(download.done for download in self.downloads)
 
-    def clear(self):
-        """Remove all finished downloads."""
-        self.remove_items(d for d in self.downloads if d.done)
+    @cmdutils.register(instance='download-manager', scope='window',
+                       count='count')
+    def download_remove(self, all_=False, count=0):
+        """Remove the last/[count]th download from the list.
+
+        Args:
+            all_: If given removes all finished downloads.
+            count: The index of the download to cancel.
+        """
+        if all_:
+            finished_items = [d for d in self.downloads if d.done]
+            self.remove_items(finished_items)
+        else:
+            try:
+                download = self.downloads[count - 1]
+            except IndexError:
+                self.raise_no_download(count)
+            if not download.done:
+                if not count:
+                    count = len(self.downloads)
+                raise cmdexc.CommandError("Download {} is not done!"
+                                          .format(count))
+            self.remove_item(download)
 
     def last_index(self):
         """Get the last index in the model.
@@ -821,6 +976,7 @@ class DownloadManager(QAbstractListModel):
         del self.downloads[idx]
         self.endRemoveRows()
         download.deleteLater()
+        self.update_indexes()
 
     def remove_items(self, downloads):
         """Remove an iterable of downloads."""
@@ -850,6 +1006,18 @@ class DownloadManager(QAbstractListModel):
                 download.deleteLater()
         self.endRemoveRows()
 
+    def update_indexes(self):
+        """Update indexes of all DownloadItems."""
+        first_idx = None
+        for i, d in enumerate(self.downloads, 1):
+            if first_idx is None and d.index != i:
+                first_idx = i - 1
+            d.index = i
+        if first_idx is not None:
+            model_idx = self.index(first_idx, 0)
+            qtutils.ensure_valid(model_idx)
+            self.dataChanged.emit(model_idx, self.last_index())
+
     def headerData(self, section, orientation, role):
         """Simple constant header."""
         if (section == 0 and orientation == Qt.Horizontal and
@@ -868,9 +1036,9 @@ class DownloadManager(QAbstractListModel):
         if role == Qt.DisplayRole:
             data = str(item)
         elif role == Qt.ForegroundRole:
-            data = config.get('colors', 'downloads.fg')
+            data = item.get_status_color('fg')
         elif role == Qt.BackgroundRole:
-            data = item.bg_color()
+            data = item.get_status_color('bg')
         elif role == ModelRole.item:
             data = item
         elif role == Qt.ToolTipRole:
@@ -886,7 +1054,7 @@ class DownloadManager(QAbstractListModel):
         """Override flags so items aren't selectable.
 
         The default would be Qt.ItemIsEnabled | Qt.ItemIsSelectable."""
-        return Qt.ItemIsEnabled
+        return Qt.ItemIsEnabled | Qt.ItemNeverHasChildren
 
     def rowCount(self, parent=QModelIndex()):
         """Get count of active downloads."""

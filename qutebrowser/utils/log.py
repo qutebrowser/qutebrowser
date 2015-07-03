@@ -1,6 +1,6 @@
 # vim: ft=python fileencoding=utf-8 sts=4 sw=4 et:
 
-# Copyright 2014 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
+# Copyright 2014-2015 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
 #
 # This file is part of qutebrowser.
 #
@@ -26,17 +26,16 @@ import logging
 import contextlib
 import collections
 import faulthandler
+import traceback
+import warnings
 
-from PyQt5.QtCore import (QtDebugMsg, QtWarningMsg, QtCriticalMsg, QtFatalMsg,
-                          qInstallMessageHandler)
+from PyQt5 import QtCore
 # Optional imports
 try:
-    # pylint: disable=import-error
     import colorama
 except ImportError:
     colorama = None
 try:
-    # pylint: disable=import-error
     import colorlog
 except ImportError:
     colorlog = None
@@ -89,7 +88,7 @@ logging.addLevelName(VDEBUG_LEVEL, 'VDEBUG')
 logging.VDEBUG = VDEBUG_LEVEL
 
 
-def vdebug(self, message, *args, **kwargs):
+def vdebug(self, msg, *args, **kwargs):
     """Log with a VDEBUG level.
 
     VDEBUG is used when a debug message is rather verbose, and probably of
@@ -98,7 +97,7 @@ def vdebug(self, message, *args, **kwargs):
     """
     if self.isEnabledFor(VDEBUG_LEVEL):
         # pylint: disable=protected-access
-        self._log(VDEBUG_LEVEL, message, args, **kwargs)
+        self._log(VDEBUG_LEVEL, msg, args, **kwargs)
 
 
 logging.Logger.vdebug = vdebug
@@ -122,10 +121,13 @@ keyboard = logging.getLogger('keyboard')
 downloads = logging.getLogger('downloads')
 js = logging.getLogger('js')  # Javascript console messages
 qt = logging.getLogger('qt')  # Warnings produced by Qt
-style = logging.getLogger('style')
 rfc6266 = logging.getLogger('rfc6266')
 ipc = logging.getLogger('ipc')
 shlexer = logging.getLogger('shlexer')
+save = logging.getLogger('save')
+message = logging.getLogger('message')
+config = logging.getLogger('config')
+sessions = logging.getLogger('sessions')
 
 
 ram_handler = None
@@ -149,15 +151,18 @@ def init_log(args):
         root.addHandler(ram)
     root.setLevel(logging.NOTSET)
     logging.captureWarnings(True)
-    qInstallMessageHandler(qt_message_handler)
+    warnings.simplefilter('default')
+    QtCore.qInstallMessageHandler(qt_message_handler)
 
 
 @contextlib.contextmanager
 def disable_qt_msghandler():
     """Contextmanager which temporarily disables the Qt message handler."""
-    old_handler = qInstallMessageHandler(None)
-    yield
-    qInstallMessageHandler(old_handler)
+    old_handler = QtCore.qInstallMessageHandler(None)
+    try:
+        yield
+    finally:
+        QtCore.qInstallMessageHandler(old_handler)
 
 
 def _init_handlers(level, color, ram_capacity):
@@ -240,34 +245,50 @@ def qt_message_handler(msg_type, context, msg):
     # Note we map critical to ERROR as it's actually "just" an error, and fatal
     # to critical.
     qt_to_logging = {
-        QtDebugMsg: logging.DEBUG,
-        QtWarningMsg: logging.WARNING,
-        QtCriticalMsg: logging.ERROR,
-        QtFatalMsg: logging.CRITICAL,
+        QtCore.QtDebugMsg: logging.DEBUG,
+        QtCore.QtWarningMsg: logging.WARNING,
+        QtCore.QtCriticalMsg: logging.ERROR,
+        QtCore.QtFatalMsg: logging.CRITICAL,
     }
+    try:
+        # pylint: disable=no-member
+        qt_to_logging[QtCore.QtInfoMsg] = logging.INFO
+    except AttributeError:
+        # Qt < 5.5
+        pass
     # Change levels of some well-known messages to debug so they don't get
     # shown to the user.
     # suppressed_msgs is a list of regexes matching the message texts to hide.
     suppressed_msgs = (
         # PNGs in Qt with broken color profile
-        # https://bugreports.qt-project.org/browse/QTBUG-39788
+        # https://bugreports.qt.io/browse/QTBUG-39788
         "libpng warning: iCCP: Not recognizing known sRGB profile that has "
         "been edited",
         # Hopefully harmless warning
         "OpenType support missing for script ",
         # Error if a QNetworkReply gets two different errors set. Harmless Qt
         # bug on some pages.
-        # https://bugreports.qt-project.org/browse/QTBUG-30298
+        # https://bugreports.qt.io/browse/QTBUG-30298
         "QNetworkReplyImplPrivate::error: Internal problem, this method must "
         "only be called once.",
-        # Not much information about this, but it seems harmless
-        'QXcbWindow: Unhandled client message: "_GTK_LOAD_ICONTHEMES"',
         # Sometimes indicates missing text, but most of the time harmless
         "load glyph failed ",
-        # Harmless, see https://bugreports.qt-project.org/browse/QTBUG-42479
+        # Harmless, see https://bugreports.qt.io/browse/QTBUG-42479
         "content-type missing in HTTP POST, defaulting to "
         "application/x-www-form-urlencoded. Use QNetworkRequest::setHeader() "
-        "to fix this problem."
+        "to fix this problem.",
+        # https://bugreports.qt.io/browse/QTBUG-43118
+        "Using blocking call!",
+        # Hopefully harmless
+        '"Method "GetAll" with signature "s" on interface '
+        '"org.freedesktop.DBus.Properties" doesn\'t exist',
+        'WOFF support requires QtWebKit to be built with zlib support.',
+        # Weird Enlightment/GTK X extensions
+        'QXcbWindow: Unhandled client message: "_E_',
+        'QXcbWindow: Unhandled client message: "_ECORE_',
+        'QXcbWindow: Unhandled client message: "_GTK_',
+        # Happens on AppVeyor CI
+        'SetProcessDpiAwareness failed:',
     )
     if any(msg.strip().startswith(pattern) for pattern in suppressed_msgs):
         level = logging.DEBUG
@@ -288,9 +309,42 @@ def qt_message_handler(msg_type, context, msg):
         msg += ("\n\nOn Archlinux, this should fix the problem:\n"
                 "    pacman -S libxkbcommon-x11")
         faulthandler.disable()
+    stack = ''.join(traceback.format_stack())
     record = qt.makeRecord(name, level, context.file, context.line, msg, None,
-                           None, func)
+                           None, func, sinfo=stack)
     qt.handle(record)
+
+
+@contextlib.contextmanager
+def hide_qt_warning(pattern, logger='qt'):
+    """Hide Qt warnings matching the given regex."""
+    log_filter = QtWarningFilter(pattern)
+    logger_obj = logging.getLogger(logger)
+    logger_obj.addFilter(log_filter)
+    try:
+        yield
+    finally:
+        logger_obj.removeFilter(log_filter)
+
+
+class QtWarningFilter(logging.Filter):
+
+    """Filter to filter Qt warnings.
+
+    Attributes:
+        _pattern: The start of the message.
+    """
+
+    def __init__(self, pattern):
+        super().__init__()
+        self._pattern = pattern
+
+    def filter(self, record):
+        """Determine if the specified record is to be logged."""
+        if record.msg.strip().startswith(self._pattern):
+            return False  # filter
+        else:
+            return True  # log
 
 
 class LogFilter(logging.Filter):
@@ -329,7 +383,7 @@ class RAMHandler(logging.Handler):
 
     """Logging handler which keeps the messages in a deque in RAM.
 
-    Loosly based on logging.BufferingHandler which is unsuitable because it
+    Loosely based on logging.BufferingHandler which is unsuitable because it
     uses a simple list rather than a deque.
 
     Attributes:
@@ -406,10 +460,10 @@ class HTMLFormatter(logging.Formatter):
                       'name', 'pathname', 'processName', 'threadName']:
             data = str(getattr(record, field))
             setattr(record, field, pyhtml.escape(data))
-        message = super().format(record)
-        if not message.endswith(self._colordict['reset']):
-            message += self._colordict['reset']
-        return message
+        msg = super().format(record)
+        if not msg.endswith(self._colordict['reset']):
+            msg += self._colordict['reset']
+        return msg
 
     def formatTime(self, record, datefmt=None):
         out = super().formatTime(record, datefmt)

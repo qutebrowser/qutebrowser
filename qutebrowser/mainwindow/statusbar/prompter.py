@@ -1,6 +1,6 @@
 # vim: ft=python fileencoding=utf-8 sts=4 sw=4 et:
 
-# Copyright 2014 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
+# Copyright 2014-2015 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
 #
 # This file is part of qutebrowser.
 #
@@ -33,6 +33,7 @@ from qutebrowser.utils import usertypes, log, qtutils, objreg, utils
 PromptContext = collections.namedtuple('PromptContext',
                                        ['question', 'text', 'input_text',
                                         'echo_mode', 'input_visible'])
+AuthTuple = collections.namedtuple('AuthTuple', ['user', 'password'])
 
 
 class Prompter(QObject):
@@ -187,7 +188,7 @@ class Prompter(QObject):
     def shutdown(self):
         """Cancel all blocking questions.
 
-        Quits and removes all running eventloops.
+        Quits and removes all running event loops.
 
         Return:
             True if loops needed to be aborted,
@@ -229,7 +230,7 @@ class Prompter(QObject):
         prompt = objreg.get('prompt', scope='window', window=self._win_id)
         if (self._question.mode == usertypes.PromptMode.user_pwd and
                 self._question.user is None):
-            # User just entered an username
+            # User just entered a username
             self._question.user = prompt.lineedit.text()
             prompt.txt.setText("Password:")
             prompt.lineedit.clear()
@@ -237,7 +238,7 @@ class Prompter(QObject):
         elif self._question.mode == usertypes.PromptMode.user_pwd:
             # User just entered a password
             password = prompt.lineedit.text()
-            self._question.answer = (self._question.user, password)
+            self._question.answer = AuthTuple(self._question.user, password)
             modeman.maybe_leave(self._win_id, usertypes.KeyMode.prompt,
                                 'prompt accept')
             self._question.done()

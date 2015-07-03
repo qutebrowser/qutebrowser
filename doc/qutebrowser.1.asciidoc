@@ -21,6 +21,10 @@ on Python, PyQt5 and QtWebKit and free software, licensed under the GPL.
 
 It was inspired by other browsers/addons like dwb and Vimperator/Pentadactyl.
 
+Note the commands and settings of qutebrowser are not described in this
+manpage, but in the help integrated in qutebrowser - use the ":help" command to
+show it.
+
 == OPTIONS
 // QUTE_OPTIONS_START
 === positional arguments
@@ -35,10 +39,28 @@ It was inspired by other browsers/addons like dwb and Vimperator/Pentadactyl.
     show this help message and exit
 
 *-c* 'CONFDIR', *--confdir* 'CONFDIR'::
-    Set config directory (empty for no config storage)
+    Set config directory (empty for no config storage).
+
+*--datadir* 'DATADIR'::
+    Set data directory (empty for no data storage).
+
+*--cachedir* 'CACHEDIR'::
+    Set cache directory (empty for no cache storage).
+
+*--basedir* 'BASEDIR'::
+    Base directory for all storage. Other --*dir arguments are ignored if this is given.
 
 *-V*, *--version*::
     Show version and quit.
+
+*-s* 'SECTION' 'OPTION' 'VALUE', *--set* 'SECTION' 'OPTION' 'VALUE'::
+    Set a temporary setting for this session.
+
+*-r* 'SESSION', *--restore* 'SESSION'::
+    Restore a named session.
+
+*-R*, *--override-restore*::
+    Don't restore a session even if one would be restored.
 
 === debug arguments
 *-l* 'LOGLEVEL', *--loglevel* 'LOGLEVEL'::
@@ -59,14 +81,26 @@ It was inspired by other browsers/addons like dwb and Vimperator/Pentadactyl.
 *--harfbuzz* '{old,new,system,auto}'::
     HarfBuzz engine version to use. Default: auto.
 
+*--relaxed-config*::
+    Silently remove unknown config options.
+
 *--nowindow*::
     Don't show the main window.
 
 *--debug-exit*::
     Turn on debugging of late exit.
 
-*--no-crash-dialog*::
-    Don't show a crash dialog.
+*--pdb-postmortem*::
+    Drop into pdb on exceptions.
+
+*--temp-basedir*::
+    Use a temporary basedir.
+
+*--no-err-windows*::
+    Don't show any error windows (used for tests/smoke.py).
+
+*--qt-name* 'NAME'::
+    Set the window name.
 
 *--qt-style* 'STYLE'::
     Set the Qt GUI style to use.
@@ -88,8 +122,14 @@ It was inspired by other browsers/addons like dwb and Vimperator/Pentadactyl.
 
 - '~/.config/qutebrowser/qutebrowser.conf': Main config file.
 - '~/.config/qutebrowser/quickmarks': Saved quickmarks.
-- '~/.config/qutebrowser/keys.conf': Defined keybindings.
-- '~/.local/share/qutebrowser/': Various state information
+- '~/.config/qutebrowser/keys.conf': Defined key bindings.
+- '~/.local/share/qutebrowser/': Various state information.
+- '~/.cache/qutebrowser/': Temporary data.
+
+Note qutebrowser conforms to the XDG basedir specification - if
+'XDG_CONFIG_HOME', 'XDG_DATA_HOME' or 'XDG_CACHE_HOME' are set in the
+environment, the directories configured there are used instead of the above
+defaults.
 
 == BUGS
 Bugs are tracked in the Github issue tracker at 

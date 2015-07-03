@@ -1,0 +1,48 @@
+#!/bin/bash
+
+# Copyright 2015 Zach-Button <zachrey.button@gmail.com>
+#
+# This file is part of qutebrowser.
+#
+# qutebrowser is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
+#
+# qutebrowser is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with qutebrowser.  If not, see <http://www.gnu.org/licenses/>.
+
+# Pipes history, quickmarks, and URL into dmenu.
+#
+# If run from qutebrowser as a userscript, it runs :open on the URL
+# If not, it opens a new qutebrowser window at the URL
+#
+# Ideal for use with tabs-are-windows. Set a hotkey to launch this script, then:
+#	:bind o spawn --userscript dmenu_qutebrowser
+#
+# Use the hotkey to open in new tab/window, press 'o' to open URL in current tab/window
+# You can simulate "go" by pressing "o<tab>", as the current URL is always first in the list
+#
+# I personally use "<Mod4>o" to launch this script. For me, my workflow is:
+#	Default	keys		Keys with this script
+#	O			<Mod4>o
+#	o			o
+#	go			o<Tab>
+#	gO			gC, then o<Tab>
+#				(This is unnecessarily long. I use this rarely, feel free to make this script accept parameters.)
+#
+
+[ -z "$QUTE_URL" ] && QUTE_URL='http://google.com'
+
+url=$(echo "$QUTE_URL" | cat - ~/.config/qutebrowser/quickmarks ~/.local/share/qutebrowser/history | dmenu -l 15 -p qutebrowser)
+url=$(echo $url | sed -E 's/[^ ]+ +//g' | egrep "https?:" || echo $url)
+
+[ -z "${url// }" ] && exit
+
+echo "open $url" >> "$QUTE_FIFO" || qutebrowser "$url"
+

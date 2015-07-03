@@ -1,6 +1,6 @@
 # vim: ft=python fileencoding=utf-8 sts=4 sw=4 et:
 
-# Copyright 2014 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
+# Copyright 2014-2015 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
 #
 # This file is part of qutebrowser.
 #
@@ -17,13 +17,13 @@
 # You should have received a copy of the GNU General Public License
 # along with qutebrowser.  If not, see <http://www.gnu.org/licenses/>.
 
-"""Base class for vim-like keysequence parser."""
+"""Base class for vim-like key sequence parser."""
 
 import re
 import functools
 import unicodedata
 
-from PyQt5.QtCore import pyqtSignal, pyqtSlot, Qt, QObject
+from PyQt5.QtCore import pyqtSignal, pyqtSlot, QObject
 
 from qutebrowser.config import config
 from qutebrowser.utils import usertypes, log, utils, objreg
@@ -44,20 +44,22 @@ class BaseKeyParser(QObject):
             ambiguous: There are both a partial and a definitive match.
             none: No more matches possible.
 
-        Types: type of a keybinding.
-            chain: execute() was called via a chain-like keybinding
-            special: execute() was called via a special keybinding
+        Types: type of a key binding.
+            chain: execute() was called via a chain-like key binding
+            special: execute() was called via a special key binding
 
         do_log: Whether to log keypresses or not.
+        passthrough: Whether unbound keys should be passed through with this
+                     handler.
 
     Attributes:
-        bindings: Bound keybindings
+        bindings: Bound key bindings
         special_bindings: Bound special bindings (<Foo>).
         _win_id: The window ID this keyparser is associated with.
         _warn_on_keychains: Whether a warning should be logged when binding
                             keychains in a section which does not support them.
         _keystring: The currently entered key sequence
-        _timer: Timer for delayed execution.
+        _ambiguous_timer: Timer for delayed execution with ambiguous bindings.
         _modename: The name of the input mode associated with this keyparser.
         _supports_count: Whether count is supported
         _supports_chains: Whether keychains are supported
@@ -69,16 +71,18 @@ class BaseKeyParser(QObject):
 
     keystring_updated = pyqtSignal(str)
     do_log = True
+    passthrough = False
 
     Match = usertypes.enum('Match', ['partial', 'definitive', 'ambiguous',
-                                     'none'])
+                                     'other', 'none'])
     Type = usertypes.enum('Type', ['chain', 'special'])
 
     def __init__(self, win_id, parent=None, supports_count=None,
                  supports_chains=False):
         super().__init__(parent)
         self._win_id = win_id
-        self._timer = None
+        self._ambiguous_timer = usertypes.Timer(self, 'ambiguous-match')
+        self._ambiguous_timer.setSingleShot(True)
         self._modename = None
         self._keystring = ''
         if supports_count is None:
@@ -136,6 +140,9 @@ class BaseKeyParser(QObject):
             (countstr, cmd_input) = re.match(r'^(\d*)(.*)',
                                              self._keystring).groups()
             count = int(countstr) if countstr else None
+            if count == 0 and not cmd_input:
+                cmd_input = self._keystring
+                count = None
         else:
             cmd_input = self._keystring
             count = None
@@ -152,30 +159,30 @@ class BaseKeyParser(QObject):
             e: the KeyPressEvent from Qt.
 
         Return:
-            True if event has been handled, False otherwise.
+            A self.Match member.
         """
         txt = e.text()
         key = e.key()
         self._debug_log("Got key: 0x{:x} / text: '{}'".format(key, txt))
 
-        if key == Qt.Key_Escape:
-            self._debug_log("Escape pressed, discarding '{}'.".format(
-                self._keystring))
-            self._keystring = ''
-            return
+        if len(txt) == 1:
+            category = unicodedata.category(txt)
+            is_control_char = (category == 'Cc')
+        else:
+            is_control_char = False
 
-        if (not txt) or unicodedata.category(txt) == 'Cc':  # control chars
+        if (not txt) or is_control_char:
             self._debug_log("Ignoring, no text char")
-            return False
+            return self.Match.none
 
-        self._stop_delayed_exec()
+        self._stop_timers()
         self._keystring += txt
 
         count, cmd_input = self._split_count()
 
         if not cmd_input:
             # Only a count, no command yet, but we handled it
-            return True
+            return self.Match.other
 
         match, binding = self._match_key(cmd_input)
 
@@ -188,7 +195,7 @@ class BaseKeyParser(QObject):
             self._keystring = ''
             self.execute(binding, self.Type.chain, count)
         elif match == self.Match.ambiguous:
-            self._debug_log("Ambigious match for '{}'.".format(
+            self._debug_log("Ambiguous match for '{}'.".format(
                 self._keystring))
             self._handle_ambiguous_match(binding, count)
         elif match == self.Match.partial:
@@ -198,8 +205,7 @@ class BaseKeyParser(QObject):
             self._debug_log("Giving up with '{}', no matches".format(
                 self._keystring))
             self._keystring = ''
-            return False
-        return True
+        return match
 
     def _match_key(self, cmd_input):
         """Try to match a given keystring with any bound keychain.
@@ -240,13 +246,16 @@ class BaseKeyParser(QObject):
         else:
             return (self.Match.none, None)
 
-    def _stop_delayed_exec(self):
+    def _stop_timers(self):
         """Stop a delayed execution if any is running."""
-        if self._timer is not None:
-            if self.do_log:
-                log.keyboard.debug("Stopping delayed execution.")
-            self._timer.stop()
-            self._timer = None
+        if self._ambiguous_timer.isActive() and self.do_log:
+            log.keyboard.debug("Stopping delayed execution.")
+        self._ambiguous_timer.stop()
+        try:
+            self._ambiguous_timer.timeout.disconnect()
+        except TypeError:
+            # no connections
+            pass
 
     def _handle_ambiguous_match(self, binding, count):
         """Handle an ambiguous match.
@@ -265,12 +274,10 @@ class BaseKeyParser(QObject):
             # execute in `time' ms
             self._debug_log("Scheduling execution of {} in {}ms".format(
                 binding, time))
-            self._timer = usertypes.Timer(self, 'ambigious_match')
-            self._timer.setSingleShot(True)
-            self._timer.setInterval(time)
-            self._timer.timeout.connect(
+            self._ambiguous_timer.setInterval(time)
+            self._ambiguous_timer.timeout.connect(
                 functools.partial(self.delayed_exec, binding, count))
-            self._timer.start()
+            self._ambiguous_timer.start()
 
     def delayed_exec(self, command, count):
         """Execute a delayed command.
@@ -279,7 +286,6 @@ class BaseKeyParser(QObject):
             command/count: As if passed to self.execute()
         """
         self._debug_log("Executing delayed command now!")
-        self._timer = None
         self._keystring = ''
         self.keystring_updated.emit(self._keystring)
         self.execute(command, self.Type.chain, count)
@@ -289,13 +295,17 @@ class BaseKeyParser(QObject):
 
         Args:
             e: the KeyPressEvent from Qt
+
+        Return:
+            True if the event was handled, False otherwise.
         """
         handled = self._handle_special_key(e)
+
         if handled or not self._supports_chains:
             return handled
-        handled = self._handle_single_key(e)
+        match = self._handle_single_key(e)
         self.keystring_updated.emit(self._keystring)
-        return handled
+        return match != self.Match.none
 
     def read_config(self, modename=None):
         """Read the configuration.
@@ -341,9 +351,15 @@ class BaseKeyParser(QObject):
 
     @pyqtSlot(str)
     def on_keyconfig_changed(self, mode):
-        """Re-read the config if a keybinding was changed."""
+        """Re-read the config if a key binding was changed."""
         if self._modename is None:
             raise AttributeError("on_keyconfig_changed called but no section "
                                  "defined!")
         if mode == self._modename:
             self.read_config()
+
+    def clear_keystring(self):
+        """Clear the currently entered key sequence."""
+        self._debug_log("discarding keystring '{}'.".format(self._keystring))
+        self._keystring = ''
+        self.keystring_updated.emit(self._keystring)

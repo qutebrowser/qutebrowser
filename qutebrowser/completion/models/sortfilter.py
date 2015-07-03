@@ -1,6 +1,6 @@
 # vim: ft=python fileencoding=utf-8 sts=4 sw=4 et:
 
-# Copyright 2014 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
+# Copyright 2014-2015 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
 #
 # This file is part of qutebrowser.
 #
@@ -23,9 +23,9 @@ Contains:
     CompletionFilterModel -- A QSortFilterProxyModel subclass for completions.
 """
 
-from PyQt5.QtCore import QSortFilterProxyModel, QModelIndex
+from PyQt5.QtCore import QSortFilterProxyModel, QModelIndex, Qt
 
-from qutebrowser.utils import log, qtutils
+from qutebrowser.utils import log, qtutils, debug
 from qutebrowser.completion.models import base as completion
 
 
@@ -38,13 +38,21 @@ class CompletionFilterModel(QSortFilterProxyModel):
         srcmodel: The current source model.
                    Kept as attribute because calling `sourceModel` takes quite
                    a long time for some reason.
+        _sort_order: The order to use for sorting if using dumb_sort.
     """
 
-    def __init__(self, source, parent=None):
+    def __init__(self, source, parent=None, *, dumb_sort=None):
         super().__init__(parent)
         super().setSourceModel(source)
         self.srcmodel = source
         self.pattern = ''
+        if dumb_sort is None:
+            # pylint: disable=invalid-name
+            self.lessThan = self.intelligentLessThan
+            self._sort_order = Qt.AscendingOrder
+        else:
+            self.setSortRole(completion.Role.sort)
+            self._sort_order = dumb_sort
 
     def set_pattern(self, val):
         """Setter for pattern.
@@ -57,14 +65,15 @@ class CompletionFilterModel(QSortFilterProxyModel):
         Args:
             val: The value to set.
         """
-        self.pattern = val
-        self.invalidateFilter()
-        sortcol = 0
-        try:
-            self.srcmodel.sort(sortcol)
-        except NotImplementedError:
-            self.sort(sortcol)
-        self.invalidate()
+        with debug.log_time(log.completion, 'Setting filter pattern'):
+            self.pattern = val
+            self.invalidateFilter()
+            sortcol = 0
+            try:
+                self.srcmodel.sort(sortcol)
+            except NotImplementedError:
+                self.sort(sortcol)
+            self.invalidate()
 
     def count(self):
         """Get the count of non-toplevel items currently visible.
@@ -124,14 +133,18 @@ class CompletionFilterModel(QSortFilterProxyModel):
         if parent == QModelIndex():
             return True
         idx = self.srcmodel.index(row, 0, parent)
-        qtutils.ensure_valid(idx)
+        if not idx.isValid():
+            # No entries in parent model
+            return False
         data = self.srcmodel.data(idx)
         # TODO more sophisticated filtering
         if not self.pattern:
             return True
+        if not data:
+            return False
         return self.pattern.casefold() in data.casefold()
 
-    def lessThan(self, lindex, rindex):
+    def intelligentLessThan(self, lindex, rindex):
         """Custom sorting implementation.
 
         Prefers all items which start with self.pattern. Other than that, uses
@@ -167,3 +180,9 @@ class CompletionFilterModel(QSortFilterProxyModel):
             return False
         else:
             return left < right
+
+    def sort(self, column, order=None):
+        """Extend sort to respect self._sort_order if no order was given."""
+        if order is None:
+            order = self._sort_order
+        super().sort(column, order)

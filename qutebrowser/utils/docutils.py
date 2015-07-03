@@ -1,6 +1,6 @@
 # vim: ft=python fileencoding=utf-8 sts=4 sw=4 et:
 
-# Copyright 2014 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
+# Copyright 2014-2015 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
 #
 # This file is part of qutebrowser.
 #
@@ -63,7 +63,7 @@ class DocstringParser:
 
     """Generate documentation based on a docstring of a command handler.
 
-    The docstring needs to follow the format described in HACKING.
+    The docstring needs to follow the format described in CONTRIBUTING.
 
     Attributes:
         _state: The current state of the parser state machine.
@@ -102,7 +102,10 @@ class DocstringParser:
             if stop:
                 break
         for k, v in self.arg_descs.items():
-            self.arg_descs[k] = ' '.join(v).replace(', or None', '')
+            desc = ' '.join(v)
+            desc = re.sub(r', or None($|\.)', r'\1', desc)
+            desc = re.sub(r', or None', r', or not given', desc)
+            self.arg_descs[k] = desc
         self.long_desc = ' '.join(self.long_desc)
         self.short_desc = ' '.join(self.short_desc)
 

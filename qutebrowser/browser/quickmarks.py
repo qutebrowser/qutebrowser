@@ -1,6 +1,6 @@
 # vim: ft=python fileencoding=utf-8 sts=4 sw=4 et:
 
-# Copyright 2014 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
+# Copyright 2014-2015 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
 #
 # This file is part of qutebrowser.
 #
@@ -24,14 +24,15 @@ OrderedDict. This is because we read them from a file at start and write them
 to a file on shutdown, so it makes sense to keep them as strings here.
 """
 
+import os.path
 import functools
 import collections
 
-from PyQt5.QtCore import pyqtSignal, QStandardPaths, QUrl, QObject
+from PyQt5.QtCore import pyqtSignal, QUrl, QObject
 
-from qutebrowser.utils import message, usertypes, urlutils, standarddir
+from qutebrowser.utils import message, usertypes, urlutils, standarddir, objreg
 from qutebrowser.commands import cmdexc, cmdutils
-from qutebrowser.config.parsers import line as lineparser
+from qutebrowser.misc import lineparser
 
 
 class QuickmarkManager(QObject):
@@ -40,10 +41,21 @@ class QuickmarkManager(QObject):
 
     Attributes:
         marks: An OrderedDict of all quickmarks.
-        _linecp: The LineConfigParser used for the quickmarks.
+        _lineparser: The LineParser used for the quickmarks, or None
+                     (when qutebrowser is started with -c '').
+
+    Signals:
+        changed: Emitted when anything changed.
+        added: Emitted when a new quickmark was added.
+               arg 0: The name of the quickmark.
+               arg 1: The URL of the quickmark, as string.
+        removed: Emitted when an existing quickmark was removed.
+                 arg 0: The name of the quickmark.
     """
 
     changed = pyqtSignal()
+    added = pyqtSignal(str, str)
+    removed = pyqtSignal(str)
 
     def __init__(self, parent=None):
         """Initialize and read quickmarks."""
@@ -51,20 +63,32 @@ class QuickmarkManager(QObject):
 
         self.marks = collections.OrderedDict()
 
-        confdir = standarddir.get(QStandardPaths.ConfigLocation)
-        self._linecp = lineparser.LineConfigParser(confdir, 'quickmarks')
-        for line in self._linecp:
-            try:
-                key, url = line.rsplit(maxsplit=1)
-            except ValueError:
-                message.error(0, "Invalid quickmark '{}'".format(line))
-            else:
-                self.marks[key] = url
+        if standarddir.config() is None:
+            self._lineparser = None
+        else:
+            self._lineparser = lineparser.LineParser(
+                standarddir.config(), 'quickmarks', parent=self)
+            for line in self._lineparser:
+                if not line.strip():
+                    # Ignore empty or whitespace-only lines.
+                    continue
+                try:
+                    key, url = line.rsplit(maxsplit=1)
+                except ValueError:
+                    message.error(0, "Invalid quickmark '{}'".format(line))
+                else:
+                    self.marks[key] = url
+            filename = os.path.join(standarddir.config(), 'quickmarks')
+            objreg.get('save-manager').add_saveable(
+                'quickmark-manager', self.save, self.changed,
+                filename=filename)
 
     def save(self):
         """Save the quickmarks to disk."""
-        self._linecp.data = [' '.join(tpl) for tpl in self.marks.items()]
-        self._linecp.save()
+        if self._lineparser is not None:
+            self._lineparser.data = [' '.join(tpl)
+                                     for tpl in self.marks.items()]
+            self._lineparser.save()
 
     def prompt_save(self, win_id, url):
         """Prompt for a new quickmark name to be added and add it.
@@ -81,8 +105,8 @@ class QuickmarkManager(QObject):
             win_id, "Add quickmark:", usertypes.PromptMode.text,
             functools.partial(self.quickmark_add, win_id, urlstr))
 
-    @cmdutils.register(instance='quickmark-manager')
-    def quickmark_add(self, win_id: {'special': 'win_id'}, url, name):
+    @cmdutils.register(instance='quickmark-manager', win_id='win_id')
+    def quickmark_add(self, win_id, url, name):
         """Add a new quickmark.
 
         Args:
@@ -103,6 +127,7 @@ class QuickmarkManager(QObject):
             """Really set the quickmark."""
             self.marks[name] = url
             self.changed.emit()
+            self.added.emit(name, url)
 
         if name in self.marks:
             message.confirm_async(
@@ -124,6 +149,7 @@ class QuickmarkManager(QObject):
             raise cmdexc.CommandError("Quickmark '{}' not found!".format(name))
         else:
             self.changed.emit()
+            self.removed.emit(name)
 
     def get(self, name):
         """Get the URL of the quickmark named name as a QUrl."""
@@ -132,9 +158,12 @@ class QuickmarkManager(QObject):
                 "Quickmark '{}' does not exist!".format(name))
         urlstr = self.marks[name]
         try:
-            url = urlutils.fuzzy_url(urlstr)
-        except urlutils.FuzzyUrlError:
-            raise cmdexc.CommandError(
-                "Invalid URL for quickmark {}: {} ({})".format(
-                    name, urlstr, url.errorString()))
+            url = urlutils.fuzzy_url(urlstr, do_search=False)
+        except urlutils.FuzzyUrlError as e:
+            if e.url is None or not e.url.errorString():
+                errstr = ''
+            else:
+                errstr = ' ({})'.format(e.url.errorString())
+            raise cmdexc.CommandError("Invalid URL for quickmark {}: "
+                                      "{}{}".format(name, urlstr, errstr))
         return url

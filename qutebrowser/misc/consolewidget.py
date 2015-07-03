@@ -1,6 +1,6 @@
 # vim: ft=python fileencoding=utf-8 sts=4 sw=4 et:
 
-# Copyright 2014 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
+# Copyright 2014-2015 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
 #
 # This file is part of qutebrowser.
 #
@@ -21,16 +21,14 @@
 
 import sys
 import code
-import rlcompleter
 
-from PyQt5.QtCore import pyqtSignal, pyqtSlot, Qt, QStringListModel
-from PyQt5.QtWidgets import (QTextEdit, QWidget, QVBoxLayout, QApplication,
-                             QCompleter)
+from PyQt5.QtCore import pyqtSignal, pyqtSlot, Qt
+from PyQt5.QtWidgets import QTextEdit, QWidget, QVBoxLayout, QApplication
 from PyQt5.QtGui import QTextCursor
 
 from qutebrowser.config import config
 from qutebrowser.misc import cmdhistory, miscwidgets
-from qutebrowser.utils import utils, log, objreg
+from qutebrowser.utils import utils, objreg
 
 
 class ConsoleLineEdit(miscwidgets.CommandLineEdit):
@@ -39,8 +37,6 @@ class ConsoleLineEdit(miscwidgets.CommandLineEdit):
 
     Attributes:
         _history: The command history of executed commands.
-        _rlcompleter: The rlcompleter.Completer instance.
-        _qcompleter: The QCompleter instance.
 
     Signals:
         execute: Emitted when a commandline should be executed.
@@ -48,45 +44,17 @@ class ConsoleLineEdit(miscwidgets.CommandLineEdit):
 
     execute = pyqtSignal(str)
 
-    def __init__(self, namespace, parent):
+    def __init__(self, _namespace, parent):
         """Constructor.
 
         Args:
-            namespace: The local namespace of the interpreter.
+            _namespace: The local namespace of the interpreter.
         """
         super().__init__(parent)
         self.update_font()
         objreg.get('config').changed.connect(self.update_font)
-        self.textChanged.connect(self.on_text_changed)
-
-        self._rlcompleter = rlcompleter.Completer(namespace)
-        qcompleter = QCompleter(self)
-        self._model = QStringListModel(qcompleter)
-        qcompleter.setModel(self._model)
-        qcompleter.setCompletionMode(
-            QCompleter.UnfilteredPopupCompletion)
-        qcompleter.setModelSorting(
-            QCompleter.CaseSensitivelySortedModel)
-        self.setCompleter(qcompleter)
-
-        self._history = cmdhistory.History()
+        self._history = cmdhistory.History(parent=self)
         self.returnPressed.connect(self.on_return_pressed)
-
-    @pyqtSlot(str)
-    def on_text_changed(self, text):
-        """Update completion when text changed."""
-        strings = set()
-        i = 0
-        while True:
-            s = self._rlcompleter.complete(text, i)
-            if s is None:
-                break
-            else:
-                strings.add(s)
-            i += 1
-        strings = sorted(list(strings))
-        self._model.setStringList(strings)
-        log.misc.vdebug('completions: {!r}'.format(strings))
 
     @pyqtSlot(str)
     def on_return_pressed(self):
@@ -181,7 +149,7 @@ class ConsoleWidget(QWidget):
         _output: The output widget in the console.
         _vbox: The layout which contains everything.
         _more: A flag which is set when more input is expected.
-        _buffer: The buffer for multiline commands.
+        _buffer: The buffer for multi-line commands.
         _interpreter: The InteractiveInterpreter to execute code with.
     """
 
@@ -227,13 +195,13 @@ class ConsoleWidget(QWidget):
         self._buffer.append(line)
         source = '\n'.join(self._buffer)
         self.write(line + '\n')
-        # We do two special things with the contextmanagers here:
+        # We do two special things with the context managers here:
         #   - We replace stdout/stderr to capture output. Even if we could
         #     override InteractiveInterpreter's write method, most things are
         #     printed elsewhere (e.g. by exec). Other Python GUI shells do the
         #     same.
         #   - We disable our exception hook, so exceptions from the console get
-        #     printed and don't ooen a crashdialog.
+        #     printed and don't open a crashdialog.
         with utils.fake_io(self.write), utils.disabled_excepthook():
             self._more = self._interpreter.runsource(source, '<console>')
         self.write(self._curprompt())

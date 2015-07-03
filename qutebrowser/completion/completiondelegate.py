@@ -1,6 +1,6 @@
 # vim: ft=python fileencoding=utf-8 sts=4 sw=4 et:
 
-# Copyright 2014 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
+# Copyright 2014-2015 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
 #
 # This file is part of qutebrowser.
 #
@@ -22,7 +22,9 @@
 We use this to be able to highlight parts of the text.
 """
 
+import re
 import html
+
 from PyQt5.QtWidgets import QStyle, QStyleOptionViewItem, QStyledItemDelegate
 from PyQt5.QtCore import QRectF, QSize, Qt
 from PyQt5.QtGui import (QIcon, QPalette, QTextDocument, QTextOption,
@@ -143,7 +145,6 @@ class CompletionItemDelegate(QStyledItemDelegate):
             rect: The QRect to clip the drawing to.
         """
         # We can't use drawContents because then the color would be ignored.
-        # See: https://qt-project.org/forums/viewthread/21492
         clip = QRectF(0, 0, rect.width(), rect.height())
         self._painter.save()
         if self._opt.state & QStyle.State_Selected:
@@ -195,9 +196,9 @@ class CompletionItemDelegate(QStyledItemDelegate):
         if index.parent().isValid():
             pattern = index.model().pattern
             if index.column() == 0 and pattern:
-                text = self._opt.text.replace(
-                    pattern,
-                    '<span class="highlight">{}</span>'.format(pattern))
+                repl = r'<span class="highlight">\g<0></span>'
+                text = re.sub(re.escape(pattern), repl, self._opt.text,
+                              flags=re.IGNORECASE)
                 self._doc.setHtml(text)
             else:
                 self._doc.setPlainText(self._opt.text)

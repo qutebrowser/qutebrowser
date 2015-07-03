@@ -1,6 +1,6 @@
 # vim: ft=python fileencoding=utf-8 sts=4 sw=4 et:
 
-# Copyright 2014 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
+# Copyright 2014-2015 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
 #
 # This file is part of qutebrowser.
 #
@@ -41,7 +41,8 @@ class SignalFilter(QObject):
         BLACKLIST: List of signal names which should not be logged.
     """
 
-    BLACKLIST = ['cur_scroll_perc_changed', 'cur_progress']
+    BLACKLIST = ['cur_scroll_perc_changed', 'cur_progress',
+                 'cur_statusbar_message', 'cur_link_hovered']
 
     def __init__(self, win_id, parent=None):
         super().__init__(parent)

@@ -1,29 +1,34 @@
 # vim: ft=dosini fileencoding=utf-8:
 
 [MASTER]
-ignore=ez_setup.py
+ignore=resources.py
+extension-pkg-whitelist=PyQt5,sip
+load-plugins=pylint_checkers.config,
+             pylint_checkers.modeline,
+             pylint_checkers.openencoding,
+             pylint_checkers.settrace
 
 [MESSAGES CONTROL]
 disable=no-self-use,
-        super-on-old-class,
-        old-style-class,
-        abstract-class-little-used,
         bad-builtin,
-        star-args,
         fixme,
         global-statement,
-        no-init,
         locally-disabled,
         too-many-ancestors,
         too-few-public-methods,
         too-many-public-methods,
         cyclic-import,
-        bad-option-value,
         bad-continuation,
         too-many-instance-attributes,
-        unnecessary-lambda,
         blacklisted-name,
-        too-many-lines
+        too-many-lines,
+        logging-format-interpolation,
+        interface-not-implemented,
+        broad-except,
+        bare-except,
+        eval-used,
+        exec-used,
+        file-ignored
 
 [BASIC]
 module-rgx=(__)?[a-z][a-z0-9_]*(__)?$
@@ -35,6 +40,7 @@ argument-rgx=[a-z_][a-z0-9_]{0,30}$
 variable-rgx=[a-z_][a-z0-9_]{0,30}$
 class-attribute-rgx=[A-Za-z_][A-Za-z0-9_]{1,30}$
 inlinevar-rgx=[a-z_][a-z0-9_]*$
+docstring-min-length=2
 
 [FORMAT]
 max-line-length=79

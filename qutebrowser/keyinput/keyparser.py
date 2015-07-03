@@ -1,6 +1,6 @@
 # vim: ft=python fileencoding=utf-8 sts=4 sw=4 et:
 
-# Copyright 2014 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
+# Copyright 2014-2015 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
 #
 # This file is part of qutebrowser.
 #
@@ -55,6 +55,7 @@ class PassthroughKeyParser(CommandKeyParser):
     """
 
     do_log = False
+    passthrough = True
 
     def __init__(self, win_id, mode, parent=None, warn=True):
         """Constructor.

@@ -1,6 +1,6 @@
 # vim: ft=python fileencoding=utf-8 sts=4 sw=4 et:
 
-# Copyright 2014 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
+# Copyright 2014-2015 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
 #
 # This file is part of qutebrowser.
 #
@@ -21,7 +21,8 @@
 
 import functools
 
-from PyQt5.QtCore import pyqtSlot, PYQT_VERSION, Qt, QUrl
+from PyQt5.QtCore import (pyqtSlot, pyqtSignal, PYQT_VERSION, Qt, QUrl, QPoint,
+                          QTimer)
 from PyQt5.QtGui import QDesktopServices
 from PyQt5.QtNetwork import QNetworkReply, QNetworkRequest
 from PyQt5.QtWidgets import QFileDialog
@@ -29,10 +30,10 @@ from PyQt5.QtPrintSupport import QPrintDialog
 from PyQt5.QtWebKitWidgets import QWebPage
 
 from qutebrowser.config import config
-from qutebrowser.browser import http
+from qutebrowser.browser import http, tabhistory
 from qutebrowser.browser.network import networkmanager
 from qutebrowser.utils import (message, usertypes, log, jinja, qtutils, utils,
-                               objreg)
+                               objreg, debug)
 
 
 class BrowserPage(QWebPage):
@@ -40,29 +41,52 @@ class BrowserPage(QWebPage):
     """Our own QWebPage with advanced features.
 
     Attributes:
-        error_occured: Whether an error occured while loading.
+        error_occurred: Whether an error occurred while loading.
+        open_target: Where to open the next navigation request.
+                     ("normal", "tab", "tab_bg")
+        _hint_target: Override for open_target while hinting, or None.
         _extension_handlers: Mapping of QWebPage extensions to their handlers.
         _networkmnager: The NetworkManager used.
         _win_id: The window ID this BrowserPage is associated with.
         _ignore_load_started: Whether to ignore the next loadStarted signal.
+        _is_shutting_down: Whether the page is currently shutting down.
+
+    Signals:
+        shutting_down: Emitted when the page is currently shutting down.
+        reloading: Emitted before a web page reloads.
+                   arg: The URL which gets reloaded.
     """
 
-    def __init__(self, win_id, parent=None):
+    shutting_down = pyqtSignal()
+    reloading = pyqtSignal(QUrl)
+
+    def __init__(self, win_id, tab_id, parent=None):
         super().__init__(parent)
         self._win_id = win_id
+        self._is_shutting_down = False
         self._extension_handlers = {
             QWebPage.ErrorPageExtension: self._handle_errorpage,
             QWebPage.ChooseMultipleFilesExtension: self._handle_multiple_files,
         }
         self._ignore_load_started = False
-        self.error_occured = False
-        self._networkmanager = networkmanager.NetworkManager(win_id, self)
+        self.error_occurred = False
+        self.open_target = usertypes.ClickTarget.normal
+        self._hint_target = None
+        self._networkmanager = networkmanager.NetworkManager(
+            win_id, tab_id, self)
         self.setNetworkAccessManager(self._networkmanager)
         self.setForwardUnsupportedContent(True)
+        self.reloading.connect(self._networkmanager.clear_rejected_ssl_errors)
         self.printRequested.connect(self.on_print_requested)
         self.downloadRequested.connect(self.on_download_requested)
         self.unsupportedContent.connect(self.on_unsupported_content)
         self.loadStarted.connect(self.on_load_started)
+        self.featurePermissionRequested.connect(
+            self.on_feature_permission_requested)
+        self.saveFrameStateRequested.connect(
+            self.on_save_frame_state_requested)
+        self.restoreFrameStateRequested.connect(
+            self.on_restore_frame_state_requested)
 
     if PYQT_VERSION > 0x050300:
         # WORKAROUND (remove this when we bump the requirements to 5.3.1)
@@ -72,8 +96,11 @@ class BrowserPage(QWebPage):
 
         def javaScriptPrompt(self, _frame, msg, default):
             """Override javaScriptPrompt to use the statusbar."""
-            answer = message.ask(self._win_id, "js: {}".format(msg),
-                                 usertypes.PromptMode.text, default)
+            if (self._is_shutting_down or
+                    config.get('content', 'ignore-javascript-prompt')):
+                return (False, "")
+            answer = self._ask("js: {}".format(msg), usertypes.PromptMode.text,
+                               default)
             if answer is None:
                 return (False, "")
             else:
@@ -82,7 +109,7 @@ class BrowserPage(QWebPage):
     def _handle_errorpage(self, info, errpage):
         """Display an error page if needed.
 
-        Loosly based on Helpviewer/HelpBrowserWV.py from eric5
+        Loosely based on Helpviewer/HelpBrowserWV.py from eric5
         (line 260 @ 5d937eb378dd)
 
         Args:
@@ -120,18 +147,29 @@ class BrowserPage(QWebPage):
         else:
             error_str = info.errorString
             if error_str == networkmanager.HOSTBLOCK_ERROR_STRING:
+                # We don't set error_occurred in this case.
                 error_str = "Request blocked by host blocker."
-                # we don't set error_occured in this case.
+                main_frame = info.frame.page().mainFrame()
+                if info.frame != main_frame:
+                    # Content in an iframe -> Hide the frame so it doesn't use
+                    # any space. We can't hide the frame's documentElement
+                    # directly though.
+                    for elem in main_frame.documentElement().findAll('iframe'):
+                        if QUrl(elem.attribute('src')) == info.url:
+                            elem.setAttribute('style', 'display: none')
+                    return False
             else:
                 self._ignore_load_started = True
-                self.error_occured = True
+                self.error_occurred = True
             log.webview.error("Error while loading {}: {}".format(
                 urlstr, error_str))
             log.webview.debug("Error domain: {}, error code: {}".format(
                 info.domain, info.error))
             title = "Error loading page: {}".format(urlstr)
             template = jinja.env.get_template('error.html')
-            html = template.render(  # pylint: disable=maybe-no-member
+            # pylint: disable=no-member
+            # https://bitbucket.org/logilab/pylint/issue/490/
+            html = template.render(
                 title=title, url=urlstr, error=error_str, icon='')
             errpage.content = html.encode('utf-8')
             errpage.encoding = 'utf-8'
@@ -140,7 +178,7 @@ class BrowserPage(QWebPage):
     def _handle_multiple_files(self, info, files):
         """Handle uploading of multiple files.
 
-        Loosly based on Helpviewer/HelpBrowserWV.py from eric5.
+        Loosely based on Helpviewer/HelpBrowserWV.py from eric5.
 
         Args:
             info: The ChooseMultipleFilesExtensionOption instance.
@@ -157,8 +195,60 @@ class BrowserPage(QWebPage):
                                                           suggested_file)
         return True
 
+    def _ask(self, text, mode, default=None):
+        """Ask a blocking question in the statusbar.
+
+        Args:
+            text: The text to display to the user.
+            mode: A PromptMode.
+            default: The default value to display.
+
+        Return:
+            The answer the user gave or None if the prompt was cancelled.
+        """
+        q = usertypes.Question()
+        q.text = text
+        q.mode = mode
+        q.default = default
+        self.loadStarted.connect(q.abort)
+        self.shutting_down.connect(q.abort)
+        bridge = objreg.get('message-bridge', scope='window',
+                            window=self._win_id)
+        bridge.ask(q, blocking=True)
+        q.deleteLater()
+        return q.answer
+
+    def shutdown(self):
+        """Prepare the web page for being deleted."""
+        self._is_shutting_down = True
+        self.shutting_down.emit()
+        download_manager = objreg.get('download-manager', scope='window',
+                                      window=self._win_id)
+        nam = self.networkAccessManager()
+        if download_manager.has_downloads_with_nam(nam):
+            nam.setParent(download_manager)
+        else:
+            nam.shutdown()
+
+    def load_history(self, entries):
+        """Load the history from a list of TabHistoryItem objects."""
+        stream, _data, user_data = tabhistory.serialize(entries)
+        history = self.history()
+        qtutils.deserialize_stream(stream, history)
+        for i, data in enumerate(user_data):
+            history.itemAt(i).setUserData(data)
+        cur_data = history.currentItem().userData()
+        if cur_data is not None:
+            frame = self.mainFrame()
+            if 'zoom' in cur_data:
+                frame.page().view().zoom_perc(cur_data['zoom'] * 100)
+            if ('scroll-pos' in cur_data and
+                    frame.scrollPosition() == QPoint(0, 0)):
+                QTimer.singleShot(0, functools.partial(
+                    frame.setScrollPosition, cur_data['scroll-pos']))
+
     def display_content(self, reply, mimetype):
-        """Display a QNetworkReply with an explicitely set mimetype."""
+        """Display a QNetworkReply with an explicitly set mimetype."""
         self.mainFrame().setContent(reply.readAll(), mimetype, reply.url())
         reply.deleteLater()
 
@@ -196,12 +286,13 @@ class BrowserPage(QWebPage):
         At some point we might want to implement the MIME Sniffing standard
         here: http://mimesniff.spec.whatwg.org/
         """
-        inline, _suggested_filename = http.parse_content_disposition(reply)
+        inline, suggested_filename = http.parse_content_disposition(reply)
         download_manager = objreg.get('download-manager', scope='window',
                                       window=self._win_id)
         if not inline:
             # Content-Disposition: attachment -> force download
-            download_manager.fetch(reply)
+            download_manager.fetch(reply,
+                                   suggested_filename=suggested_filename)
             return
         mimetype, _rest = http.parse_content_type(reply)
         if mimetype == 'image/jpg':
@@ -216,15 +307,136 @@ class BrowserPage(QWebPage):
                     self.display_content, reply, 'image/jpeg'))
         else:
             # Unknown mimetype, so download anyways.
-            download_manager.fetch(reply)
+            download_manager.fetch(reply,
+                                   suggested_filename=suggested_filename)
 
     @pyqtSlot()
     def on_load_started(self):
-        """Reset error_occured when loading of a new page started."""
+        """Reset error_occurred when loading of a new page started."""
         if self._ignore_load_started:
             self._ignore_load_started = False
         else:
-            self.error_occured = False
+            self.error_occurred = False
+
+    @pyqtSlot('QWebFrame', 'QWebPage::Feature')
+    def on_feature_permission_requested(self, frame, feature):
+        """Ask the user for approval for geolocation/notifications."""
+        options = {
+            QWebPage.Notifications: ('content', 'notifications'),
+            QWebPage.Geolocation: ('content', 'geolocation'),
+        }
+        config_val = config.get(*options[feature])
+        if config_val == 'ask':
+            bridge = objreg.get('message-bridge', scope='window',
+                                window=self._win_id)
+            q = usertypes.Question(bridge)
+            q.mode = usertypes.PromptMode.yesno
+
+            msgs = {
+                QWebPage.Notifications: 'show notifications',
+                QWebPage.Geolocation: 'access your location',
+            }
+
+            host = frame.url().host()
+            if host:
+                q.text = "Allow the website at {} to {}?".format(
+                    frame.url().host(), msgs[feature])
+            else:
+                q.text = "Allow the website to {}?".format(msgs[feature])
+
+            yes_action = functools.partial(
+                self.setFeaturePermission, frame, feature,
+                QWebPage.PermissionGrantedByUser)
+            q.answered_yes.connect(yes_action)
+
+            no_action = functools.partial(
+                self.setFeaturePermission, frame, feature,
+                QWebPage.PermissionDeniedByUser)
+            q.answered_no.connect(no_action)
+            q.cancelled.connect(no_action)
+
+            q.completed.connect(q.deleteLater)
+
+            self.featurePermissionRequestCanceled.connect(functools.partial(
+                self.on_feature_permission_cancelled, q, frame, feature))
+            self.loadStarted.connect(q.abort)
+
+            bridge.ask(q, blocking=False)
+        elif config_val:
+            self.setFeaturePermission(frame, feature,
+                                      QWebPage.PermissionGrantedByUser)
+        else:
+            self.setFeaturePermission(frame, feature,
+                                      QWebPage.PermissionDeniedByUser)
+
+    def on_feature_permission_cancelled(self, question, frame, feature,
+                                        cancelled_frame, cancelled_feature):
+        """Slot invoked when a feature permission request was cancelled.
+
+        To be used with functools.partial.
+        """
+        if frame is cancelled_frame and feature == cancelled_feature:
+            try:
+                question.abort()
+            except RuntimeError:
+                # The question could already be deleted, e.g. because it was
+                # aborted after a loadStarted signal.
+                pass
+
+    def on_save_frame_state_requested(self, frame, item):
+        """Save scroll position and zoom in history.
+
+        Args:
+            frame: The QWebFrame which gets saved.
+            item: The QWebHistoryItem to be saved.
+        """
+        try:
+            if frame != self.mainFrame():
+                return
+        except RuntimeError:
+            # With Qt 5.2.1 (Ubuntu Trusty) we get this when closing a tab:
+            #     RuntimeError: wrapped C/C++ object of type BrowserPage has
+            #     been deleted
+            # Since the information here isn't that important for closing web
+            # views anyways, we ignore this error.
+            return
+        data = {
+            'zoom': frame.zoomFactor(),
+            'scroll-pos': frame.scrollPosition(),
+        }
+        item.setUserData(data)
+
+    def on_restore_frame_state_requested(self, frame):
+        """Restore scroll position and zoom from history.
+
+        Args:
+            frame: The QWebFrame which gets restored.
+        """
+        if frame != self.mainFrame():
+            return
+        data = self.history().currentItem().userData()
+        if data is None:
+            return
+        if 'zoom' in data:
+            frame.page().view().zoom_perc(data['zoom'] * 100)
+        if 'scroll-pos' in data and frame.scrollPosition() == QPoint(0, 0):
+            frame.setScrollPosition(data['scroll-pos'])
+
+    @pyqtSlot(str)
+    def on_start_hinting(self, hint_target):
+        """Emitted before a hinting-click takes place.
+
+        Args:
+            hint_target: A ClickTarget member to set self._hint_target to.
+        """
+        log.webview.debug("Setting force target to {}".format(hint_target))
+        self._hint_target = hint_target
+
+    @pyqtSlot()
+    def on_stop_hinting(self):
+        """Emitted when hinting is finished."""
+        log.webview.debug("Finishing hinting.")
+        self._hint_target = None
 
     def userAgentForUrl(self, url):
         """Override QWebPage::userAgentForUrl to customize the user agent."""
@@ -266,20 +478,33 @@ class BrowserPage(QWebPage):
             return super().extension(ext, opt, out)
         return handler(opt, out)
 
-    def javaScriptAlert(self, _frame, msg):
+    def javaScriptAlert(self, frame, msg):
         """Override javaScriptAlert to use the statusbar."""
-        message.ask(self._win_id, "[js alert] {}".format(msg),
-                    usertypes.PromptMode.alert)
+        log.js.debug("alert: {}".format(msg))
+        if config.get('ui', 'modal-js-dialog'):
+            return super().javaScriptAlert(frame, msg)
 
-    def javaScriptConfirm(self, _frame, msg):
+        if (self._is_shutting_down or
+                config.get('content', 'ignore-javascript-alert')):
+            return
+        self._ask("[js alert] {}".format(msg), usertypes.PromptMode.alert)
+
+    def javaScriptConfirm(self, frame, msg):
         """Override javaScriptConfirm to use the statusbar."""
-        ans = message.ask(self._win_id, "[js confirm] {}".format(msg),
-                          usertypes.PromptMode.yesno)
+        log.js.debug("confirm: {}".format(msg))
+        if config.get('ui', 'modal-js-dialog'):
+            return super().javaScriptConfirm(frame, msg)
+
+        if self._is_shutting_down:
+            return False
+        ans = self._ask("[js confirm] {}".format(msg),
+                        usertypes.PromptMode.yesno)
         return bool(ans)
 
     def javaScriptConsoleMessage(self, msg, line, source):
         """Override javaScriptConsoleMessage to use debug log."""
-        log.js.debug("[{}:{}] {}".format(source, line, msg))
+        if config.get('general', 'log-javascript-console'):
+            log.js.debug("[{}:{}] {}".format(source, line, msg))
 
     def chooseFile(self, _frame, suggested_file):
         """Override QWebPage's chooseFile to be able to chose a file to upload.
@@ -293,8 +518,8 @@ class BrowserPage(QWebPage):
 
     def shouldInterruptJavaScript(self):
         """Override shouldInterruptJavaScript to use the statusbar."""
-        answer = message.ask(self._win_id, "Interrupt long-running "
-                             "javascript?", usertypes.PromptMode.yesno)
+        answer = self._ask("Interrupt long-running javascript?",
+                           usertypes.PromptMode.yesno)
         if answer is None:
             answer = True
         return answer
@@ -314,30 +539,41 @@ class BrowserPage(QWebPage):
             request: QNetworkRequest
             typ: QWebPage::NavigationType
         """
-        if typ != QWebPage.NavigationTypeLinkClicked:
-            return True
         url = request.url()
         urlstr = url.toDisplayString()
+        if typ == QWebPage.NavigationTypeReload:
+            self.reloading.emit(url)
+        if typ != QWebPage.NavigationTypeLinkClicked:
+            return True
         if not url.isValid():
             message.error(self._win_id, "Invalid link {} clicked!".format(
                 urlstr))
             log.webview.debug(url.errorString())
+            self.open_target = usertypes.ClickTarget.normal
             return False
         tabbed_browser = objreg.get('tabbed-browser', scope='window',
                                     window=self._win_id)
-        open_target = self.view().open_target
-        if open_target == usertypes.ClickTarget.tab:
+        log.webview.debug("acceptNavigationRequest, url {}, type {}, hint "
+                          "target {}, open_target {}".format(
+                              urlstr, debug.qenum_key(QWebPage, typ),
+                              self._hint_target, self.open_target))
+        if self._hint_target is not None:
+            target = self._hint_target
+        else:
+            target = self.open_target
+        self.open_target = usertypes.ClickTarget.normal
+        if target == usertypes.ClickTarget.tab:
             tabbed_browser.tabopen(url, False)
             return False
-        elif open_target == usertypes.ClickTarget.tab_bg:
+        elif target == usertypes.ClickTarget.tab_bg:
             tabbed_browser.tabopen(url, True)
             return False
-        elif open_target == usertypes.ClickTarget.window:
-            main_window = objreg.get('main-window', scope='window',
-                                     window=self._win_id)
-            win_id = main_window.spawn()
+        elif target == usertypes.ClickTarget.window:
+            from qutebrowser.mainwindow import mainwindow
+            window = mainwindow.MainWindow()
+            window.show()
             tabbed_browser = objreg.get('tabbed-browser', scope='window',
-                                        window=win_id)
+                                        window=window.win_id)
             tabbed_browser.tabopen(url, False)
             return False
         else:

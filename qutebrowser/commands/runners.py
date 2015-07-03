@@ -1,6 +1,6 @@
 # vim: ft=python fileencoding=utf-8 sts=4 sw=4 et:
 
-# Copyright 2014 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
+# Copyright 2014-2015 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
 #
 # This file is part of qutebrowser.
 #
@@ -19,15 +19,17 @@
 
 """Module containing command managers (SearchRunner and CommandRunner)."""
 
-import re
+import collections
 
-from PyQt5.QtCore import pyqtSlot, pyqtSignal, QObject, QUrl
-from PyQt5.QtWebKitWidgets import QWebPage
+from PyQt5.QtCore import pyqtSlot, QUrl, QObject
 
 from qutebrowser.config import config, configexc
 from qutebrowser.commands import cmdexc, cmdutils
-from qutebrowser.utils import message, log, utils, objreg
+from qutebrowser.utils import message, log, objreg, qtutils
 from qutebrowser.misc import split
+
+
+ParseResult = collections.namedtuple('ParseResult', 'cmd, args, cmdline')
 
 
 def replace_variables(win_id, arglist):
@@ -35,119 +37,22 @@ def replace_variables(win_id, arglist):
     args = []
     tabbed_browser = objreg.get('tabbed-browser', scope='window',
                                 window=win_id)
-    for arg in arglist:
-        if arg == '{url}':
-            # Note we have to do this in here as the user gets an error message
-            # by current_url if no URL is open yet.
+    if '{url}' in arglist:
+        try:
             url = tabbed_browser.current_url().toString(QUrl.FullyEncoded |
                                                         QUrl.RemovePassword)
+        except qtutils.QtValueError as e:
+            msg = "Current URL is invalid"
+            if e.reason:
+                msg += " ({})".format(e.reason)
+            msg += "!"
+            raise cmdexc.CommandError(msg)
+    for arg in arglist:
+        if arg == '{url}':
             args.append(url)
         else:
             args.append(arg)
     return args
-
-
-class SearchRunner(QObject):
-
-    """Run searches on webpages.
-
-    Attributes:
-        _text: The text from the last search.
-        _flags: The flags from the last search.
-
-    Signals:
-        do_search: Emitted when a search should be started.
-                   arg 1: Search string.
-                   arg 2: Flags to use.
-    """
-
-    do_search = pyqtSignal(str, 'QWebPage::FindFlags')
-
-    def __init__(self, parent=None):
-        super().__init__(parent)
-        self._text = None
-        self._flags = 0
-
-    def __repr__(self):
-        return utils.get_repr(self, text=self._text, flags=self._flags)
-
-    def _search(self, text, rev=False):
-        """Search for a text on the current page.
-
-        Args:
-            text: The text to search for.
-            rev: Search direction, True if reverse, else False.
-        """
-        if self._text is not None and self._text != text:
-            # We first clear the marked text, then the highlights
-            self.do_search.emit('', 0)
-            self.do_search.emit('', QWebPage.HighlightAllOccurrences)
-        self._text = text
-        self._flags = 0
-        ignore_case = config.get('general', 'ignore-case')
-        if ignore_case == 'smart':
-            if not text.islower():
-                self._flags |= QWebPage.FindCaseSensitively
-        elif not ignore_case:
-            self._flags |= QWebPage.FindCaseSensitively
-        if config.get('general', 'wrap-search'):
-            self._flags |= QWebPage.FindWrapsAroundDocument
-        if rev:
-            self._flags |= QWebPage.FindBackward
-        # We actually search *twice* - once to highlight everything, then again
-        # to get a mark so we can navigate.
-        self.do_search.emit(self._text, self._flags)
-        self.do_search.emit(self._text, self._flags |
-                            QWebPage.HighlightAllOccurrences)
-
-    @pyqtSlot(str)
-    def search(self, text):
-        """Search for a text on a website.
-
-        Args:
-            text: The text to search for.
-        """
-        self._search(text)
-
-    @pyqtSlot(str)
-    def search_rev(self, text):
-        """Search for a text on a website in reverse direction.
-
-        Args:
-            text: The text to search for.
-        """
-        self._search(text, rev=True)
-
-    @cmdutils.register(instance='search-runner', hide=True, scope='window')
-    def search_next(self, count: {'special': 'count'}=1):
-        """Continue the search to the ([count]th) next term.
-
-        Args:
-            count: How many elements to ignore.
-        """
-        if self._text is not None:
-            for _ in range(count):
-                self.do_search.emit(self._text, self._flags)
-
-    @cmdutils.register(instance='search-runner', hide=True, scope='window')
-    def search_prev(self, count: {'special': 'count'}=1):
-        """Continue the search to the ([count]th) previous term.
-
-        Args:
-            count: How many elements to ignore.
-        """
-        if self._text is None:
-            return
-        # The int() here serves as a QFlags constructor to create a copy of the
-        # QFlags instance rather as a reference. I don't know why it works this
-        # way, but it does.
-        flags = int(self._flags)
-        if flags & QWebPage.FindBackward:
-            flags &= ~QWebPage.FindBackward
-        else:
-            flags |= QWebPage.FindBackward
-        for _ in range(count):
-            self.do_search.emit(self._text, flags)
 
 
 class CommandRunner(QObject):
@@ -155,23 +60,18 @@ class CommandRunner(QObject):
     """Parse and run qutebrowser commandline commands.
 
     Attributes:
-        _cmd: The command which was parsed.
-        _args: The arguments which were parsed.
         _win_id: The window this CommandRunner is associated with.
     """
 
     def __init__(self, win_id, parent=None):
         super().__init__(parent)
-        self._cmd = None
-        self._args = []
         self._win_id = win_id
 
-    def _get_alias(self, text, alias_no_args):
+    def _get_alias(self, text):
         """Get an alias from the config.
 
         Args:
             text: The text to parse.
-            alias_no_args: Whether to apply an alias if there are no arguments.
 
         Return:
             None if no alias was found.
@@ -185,16 +85,39 @@ class CommandRunner(QObject):
         try:
             new_cmd = '{} {}'.format(alias, parts[1])
         except IndexError:
-            if alias_no_args:
-                new_cmd = alias
-            else:
-                new_cmd = parts[0]
+            new_cmd = alias
         if text.endswith(' '):
             new_cmd += ' '
         return new_cmd
 
-    def parse(self, text, aliases=True, fallback=False, alias_no_args=True,
-              keep=False):
+    def parse_all(self, text, *args, **kwargs):
+        """Split a command on ;; and parse all parts.
+
+        If the first command in the commandline is a non-split one, it only
+        returns that.
+
+        Args:
+            text: Text to parse.
+            *args/**kwargs: Passed to parse().
+
+        Yields:
+            ParseResult tuples.
+        """
+        if ';;' in text:
+            # Get the first command and check if it doesn't want to have ;;
+            # split.
+            first = text.split(';;')[0]
+            result = self.parse(first, *args, **kwargs)
+            if result.cmd.no_cmd_split:
+                sub_texts = [text]
+            else:
+                sub_texts = [e.strip() for e in text.split(';;')]
+        else:
+            sub_texts = [text]
+        for sub in sub_texts:
+            yield self.parse(sub, *args, **kwargs)
+
+    def parse(self, text, *, aliases=True, fallback=False, keep=False):
         """Split the commandline text into command and arguments.
 
         Args:
@@ -202,45 +125,49 @@ class CommandRunner(QObject):
             aliases: Whether to handle aliases.
             fallback: Whether to do a fallback splitting when the command was
                       unknown.
-            alias_no_args: Whether to apply an alias if there are no arguments.
             keep: Whether to keep special chars and whitespace
 
         Return:
-            A split string commandline, e.g ['open', 'www.google.com']
+            A (cmd, args, cmdline) ParseResult tuple.
         """
         cmdstr, sep, argstr = text.partition(' ')
         if not cmdstr and not fallback:
             raise cmdexc.NoSuchCommandError("No command given")
         if aliases:
-            new_cmd = self._get_alias(text, alias_no_args)
+            new_cmd = self._get_alias(text)
             if new_cmd is not None:
                 log.commands.debug("Re-parsing with '{}'.".format(new_cmd))
                 return self.parse(new_cmd, aliases=False, fallback=fallback,
                                   keep=keep)
         try:
-            self._cmd = cmdutils.cmd_dict[cmdstr]
+            cmd = cmdutils.cmd_dict[cmdstr]
         except KeyError:
-            if fallback and keep:
-                cmdstr, sep, argstr = text.partition(' ')
-                return [cmdstr, sep] + argstr.split()
-            elif fallback:
-                return text.split()
+            if fallback:
+                cmd = None
+                args = None
+                if keep:
+                    cmdstr, sep, argstr = text.partition(' ')
+                    cmdline = [cmdstr, sep] + argstr.split()
+                else:
+                    cmdline = text.split()
             else:
-                raise cmdexc.NoSuchCommandError(
-                    '{}: no such command'.format(cmdstr))
-        self._split_args(argstr, keep)
-        retargs = self._args[:]
-        if keep and retargs:
-            return [cmdstr, sep + retargs[0]] + retargs[1:]
-        elif keep:
-            return [cmdstr, sep]
+                raise cmdexc.NoSuchCommandError('{}: no such command'.format(
+                    cmdstr))
         else:
-            return [cmdstr] + retargs
+            args = self._split_args(cmd, argstr, keep)
+            if keep and args:
+                cmdline = [cmdstr, sep + args[0]] + args[1:]
+            elif keep:
+                cmdline = [cmdstr, sep]
+            else:
+                cmdline = [cmdstr] + args[:]
+        return ParseResult(cmd=cmd, args=args, cmdline=cmdline)
 
-    def _split_args(self, argstr, keep):
+    def _split_args(self, cmd, argstr, keep):
         """Split the arguments from an arg string.
 
         Args:
+            cmd: The command we're currently handling.
             argstr: An argument string.
             keep: Whether to keep special chars and whitespace
 
@@ -248,9 +175,9 @@ class CommandRunner(QObject):
             A list containing the splitted strings.
         """
         if not argstr:
-            self._args = []
-        elif self._cmd.maxsplit is None:
-            self._args = split.split(argstr, keep=keep)
+            return []
+        elif cmd.maxsplit is None:
+            return split.split(argstr, keep=keep)
         else:
             # If split=False, we still want to split the flags, but not
             # everything after that.
@@ -268,23 +195,16 @@ class CommandRunner(QObject):
             for i, arg in enumerate(split_args):
                 arg = arg.strip()
                 if arg.startswith('-'):
-                    if arg.lstrip('-') in self._cmd.flags_with_args:
+                    if arg in cmd.flags_with_args:
                         flag_arg_count += 1
                 else:
-                    self._args = []
-                    maxsplit = i + self._cmd.maxsplit + flag_arg_count
-                    args = split.simple_split(argstr, keep=keep,
+                    maxsplit = i + cmd.maxsplit + flag_arg_count
+                    return split.simple_split(argstr, keep=keep,
                                               maxsplit=maxsplit)
-                    for s in args:
-                        # remove quotes and replace \" by "
-                        s = re.sub(r"""(^|[^\\])["']""", r'\1', s)
-                        s = re.sub(r"""\\(["'])""", r'\1', s)
-                        self._args.append(s)
-                    break
-            else:
+            else:  # pylint: disable=useless-else-on-loop
                 # If there are only flags, we got it right on the first try
                 # already.
-                self._args = split_args
+                return split_args
 
     def run(self, text, count=None):
         """Parse a command from a line of text and run it.
@@ -293,16 +213,12 @@ class CommandRunner(QObject):
             text: The text to parse.
             count: The count to pass to the command.
         """
-        if ';;' in text:
-            for sub in text.split(';;'):
-                self.run(sub, count)
-            return
-        self.parse(text)
-        args = replace_variables(self._win_id, self._args)
-        if count is not None:
-            self._cmd.run(self._win_id, args, count=count)
-        else:
-            self._cmd.run(self._win_id, args)
+        for result in self.parse_all(text):
+            args = replace_variables(self._win_id, result.args)
+            if count is not None:
+                result.cmd.run(self._win_id, args, count=count)
+            else:
+                result.cmd.run(self._win_id, args)
 
     @pyqtSlot(str, int)
     def run_safely(self, text, count=None):

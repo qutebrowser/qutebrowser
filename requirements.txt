@@ -1,0 +1,7 @@
+Jinja2==2.7.3
+MarkupSafe==0.23
+Pygments==2.0.2
+pyPEG2==2.15.1
+PyYAML==3.11
+colorama==0.3.3
+colorlog==2.6.0

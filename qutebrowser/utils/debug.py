@@ -1,6 +1,6 @@
 # vim: ft=python fileencoding=utf-8 sts=4 sw=4 et:
 
-# Copyright 2014 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
+# Copyright 2014-2015 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
 #
 # This file is part of qutebrowser.
 #
@@ -20,13 +20,15 @@
 """Utilities used for debugging."""
 
 import re
-import sys
 import inspect
 import functools
+import datetime
+import contextlib
 
-from PyQt5.QtCore import QEvent, QMetaMethod
+from PyQt5.QtCore import QEvent, QMetaMethod, QObject
+from PyQt5.QtWidgets import QApplication
 
-from qutebrowser.utils import log, utils, qtutils
+from qutebrowser.utils import log, utils, qtutils, objreg
 
 
 def log_events(klass):
@@ -49,7 +51,6 @@ def log_signals(obj):
 
     Can be used as class decorator.
     """
-
     def log_slot(obj, signal, *args):
         """Slot connected to a signal to log it."""
         dbg = dbg_signal(signal, args)
@@ -57,7 +58,7 @@ def log_signals(obj):
             r = repr(obj)
         except RuntimeError:
             r = '<deleted>'
-        log.misc.debug("Signal in {}: {}".format(r, dbg))
+        log.signals.debug("Signal in {}: {}".format(r, dbg))
 
     def connect_log_slot(obj):
         """Helper function to connect all signals to a logging slot."""
@@ -84,36 +85,6 @@ def log_signals(obj):
         return obj
     else:
         connect_log_slot(obj)
-
-
-def trace_lines(do_trace):
-    """Turn on/off printing each executed line.
-
-    Args:
-        do_trace: Whether to start tracing (True) or stop it (False).
-    """
-    def trace(frame, event, arg):
-        """Trace function passed to sys.settrace.
-
-        Return:
-            Itself, so tracing continues.
-        """
-        if sys is not None:
-            loc = '{}:{}'.format(frame.f_code.co_filename, frame.f_lineno)
-            if arg is not None:
-                arg = utils.compact_text(str(arg), 200)
-            else:
-                arg = ''
-            print("{:11} {:80} {}".format(event, loc, arg), file=sys.stderr)
-            return trace
-        else:
-            # When tracing while shutting down, it seems sys can be None
-            # sometimes... if that's the case, we stop tracing.
-            return None
-    if do_trace:
-        sys.settrace(trace)
-    else:
-        sys.settrace(None)
 
 
 def qenum_key(base, value, add_base=False, klass=None):
@@ -248,3 +219,53 @@ def format_call(func, args=None, kwargs=None, full=True):
     else:
         name = func.__name__
     return '{}({})'.format(name, _format_args(args, kwargs))
+
+
+@contextlib.contextmanager
+def log_time(logger, action='operation'):
+    """Log the time the operation in the with-block takes.
+
+    Args:
+        logger: The logging.Logger to use for logging.
+        action: A description of what's being done.
+    """
+    started = datetime.datetime.now()
+    try:
+        yield
+    finally:
+        finished = datetime.datetime.now()
+        delta = (finished - started).total_seconds()
+        logger.debug("{} took {} seconds.".format(action.capitalize(), delta))
+
+
+def _get_widgets():
+    """Get a string list of all widgets."""
+    widgets = QApplication.instance().allWidgets()
+    widgets.sort(key=repr)
+    return [repr(w) for w in widgets]
+
+
+def _get_pyqt_objects(lines, obj, depth=0):
+    """Recursive method for get_all_objects to get Qt objects."""
+    for kid in obj.findChildren(QObject):
+        lines.append('    ' * depth + repr(kid))
+        _get_pyqt_objects(lines, kid, depth + 1)
+
+
+def get_all_objects():
+    """Get all children of an object recursively as a string."""
+    output = ['']
+    widget_lines = _get_widgets()
+    widget_lines = ['    ' + e for e in widget_lines]
+    widget_lines.insert(0, "Qt widgets - {} objects".format(
+        len(widget_lines)))
+    output += widget_lines
+    pyqt_lines = []
+    _get_pyqt_objects(pyqt_lines, QApplication.instance())
+    pyqt_lines = ['    ' + e for e in pyqt_lines]
+    pyqt_lines.insert(0, 'Qt objects - {} objects:'.format(
+        len(pyqt_lines)))
+    output += pyqt_lines
+    output += ['']
+    output += objreg.dump_objects()
+    return '\n'.join(output)

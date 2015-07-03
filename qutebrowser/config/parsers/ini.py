@@ -1,6 +1,6 @@
 # vim: ft=python fileencoding=utf-8 sts=4 sw=4 et:
 
-# Copyright 2014 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
+# Copyright 2014-2015 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
 #
 # This file is part of qutebrowser.
 #
@@ -47,11 +47,15 @@ class ReadConfigParser(configparser.ConfigParser):
         self.optionxform = lambda opt: opt  # be case-insensitive
         self._configdir = configdir
         self._fname = fname
+        if self._configdir is None:
+            self._configfile = None
+            return
         self._configfile = os.path.join(self._configdir, fname)
         if not os.path.isfile(self._configfile):
             return
         log.init.debug("Reading config from {}".format(self._configfile))
-        self.read(self._configfile, encoding='utf-8')
+        if self._configfile is not None:
+            self.read(self._configfile, encoding='utf-8')
 
     def __repr__(self):
         return utils.get_repr(self, constructor=True,
@@ -60,10 +64,12 @@ class ReadConfigParser(configparser.ConfigParser):
 
 class ReadWriteConfigParser(ReadConfigParser):
 
-    """ConfigParser subclass used for auxillary config files."""
+    """ConfigParser subclass used for auxiliary config files."""
 
     def save(self):
         """Save the config file."""
+        if self._configdir is None:
+            return
         if not os.path.exists(self._configdir):
             os.makedirs(self._configdir, 0o755)
         log.destroy.debug("Saving config to {}".format(self._configfile))

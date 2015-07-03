@@ -12,4 +12,14 @@ __pycache__
 /qutebrowser/git-commit-id
 /doc/*.html
 /README.html
+/CHANGELOG.html
+/CONTRIBUTING.html
+/FAQ.html
+/INSTALL.html
 /qutebrowser/html/doc/
+/.venv
+/.coverage
+/htmlcov
+/.tox
+/testresults.html
+/.cache

@@ -2,7 +2,7 @@
 
 # vim: ft=python fileencoding=utf-8 sts=4 sw=4 et:
 
-# Copyright 2014 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
+# Copyright 2014-2015 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
 #
 # This file is part of qutebrowser.
 #
@@ -38,13 +38,13 @@ except NameError:
 try:
     common.write_git_file()
     setuptools.setup(
-        packages=setuptools.find_packages(exclude=['qutebrowser.test']),
+        packages=setuptools.find_packages(exclude=['scripts', 'scripts.*']),
         include_package_data=True,
         entry_points={'gui_scripts':
                       ['qutebrowser = qutebrowser.qutebrowser:main']},
         test_suite='qutebrowser.test',
         zip_safe=True,
-        install_requires=['pypeg2', 'jinja2', 'pygments'],
+        install_requires=['pypeg2', 'jinja2', 'pygments', 'PyYAML'],
         **common.setupdata
     )
 finally:

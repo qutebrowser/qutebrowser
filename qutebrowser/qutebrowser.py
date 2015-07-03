@@ -1,6 +1,6 @@
 # vim: ft=python fileencoding=utf-8 sts=4 sw=4 et:
 
-# Copyright 2014 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
+# Copyright 2014-2015 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
 
 # This file is part of qutebrowser.
 #
@@ -20,6 +20,7 @@
 """Early initialization and main entry point."""
 
 import sys
+import json
 
 import qutebrowser
 try:
@@ -46,9 +47,26 @@ def get_argparser():
     parser = argparse.ArgumentParser("usage: qutebrowser",
                                      description=qutebrowser.__description__)
     parser.add_argument('-c', '--confdir', help="Set config directory (empty "
-                        "for no config storage)")
+                        "for no config storage).")
+    parser.add_argument('--datadir', help="Set data directory (empty for "
+                        "no data storage).")
+    parser.add_argument('--cachedir', help="Set cache directory (empty for "
+                        "no cache storage).")
+    parser.add_argument('--basedir', help="Base directory for all storage. "
+                        "Other --*dir arguments are ignored if this is given.")
     parser.add_argument('-V', '--version', help="Show version and quit.",
                         action='store_true')
+    parser.add_argument('-s', '--set', help="Set a temporary setting for "
+                        "this session.", nargs=3, action='append',
+                        dest='temp_settings', default=[],
+                        metavar=('SECTION', 'OPTION', 'VALUE'))
+    parser.add_argument('-r', '--restore', help="Restore a named session.",
+                        dest='session')
+    parser.add_argument('-R', '--override-restore', help="Don't restore a "
+                        "session even if one would be restored.",
+                        action='store_true')
+    parser.add_argument('--json-args', help=argparse.SUPPRESS)
+
     debug = parser.add_argument_group('debug arguments')
     debug.add_argument('-l', '--loglevel', dest='loglevel',
                        help="Set loglevel", default='info')
@@ -58,7 +76,7 @@ def get_argparser():
     debug.add_argument('--loglines',
                        help="How many lines of the debug log to keep in RAM "
                        "(-1: unlimited).",
-                       default=1000, type=int)
+                       default=2000, type=int)
     debug.add_argument('--debug', help="Turn on debugging options.",
                        action='store_true')
     debug.add_argument('--nocolor', help="Turn off colored logging.",
@@ -66,15 +84,23 @@ def get_argparser():
     debug.add_argument('--harfbuzz', choices=['old', 'new', 'system', 'auto'],
                        default='auto', help="HarfBuzz engine version to use. "
                        "Default: auto.")
+    debug.add_argument('--relaxed-config', action='store_true',
+                       help="Silently remove unknown config options.")
     debug.add_argument('--nowindow', action='store_true', help="Don't show "
                        "the main window.")
     debug.add_argument('--debug-exit', help="Turn on debugging of late exit.",
                        action='store_true')
-    debug.add_argument('--no-crash-dialog', action='store_true', help="Don't "
-                       "show a crash dialog.")
+    debug.add_argument('--pdb-postmortem', action='store_true',
+                       help="Drop into pdb on exceptions.")
+    debug.add_argument('--temp-basedir', action='store_true', help="Use a "
+                       "temporary basedir.")
+    debug.add_argument('--no-err-windows', action='store_true', help="Don't "
+                       "show any error windows (used for tests/smoke.py).")
     # For the Qt args, we use store_const with const=True rather than
     # store_true because we want the default to be None, to make
     # utils.qt:get_args easier.
+    debug.add_argument('--qt-name', help="Set the window name.",
+                       metavar='NAME')
     debug.add_argument('--qt-style', help="Set the Qt GUI style to use.",
                        metavar='STYLE')
     debug.add_argument('--qt-stylesheet', help="Override the Qt application "
@@ -101,25 +127,23 @@ def get_argparser():
 def main():
     """Main entry point for qutebrowser."""
     parser = get_argparser()
-    args = parser.parse_args()
+    if sys.platform == 'darwin' and getattr(sys, 'frozen', False):
+        # Ignore Mac OS X' idiotic -psn_* argument...
+        # http://stackoverflow.com/questions/19661298/
+        # http://sourceforge.net/p/cx-freeze/mailman/message/31041783/
+        argv = [arg for arg in sys.argv[1:] if not arg.startswith('-psn_0_')]
+    else:
+        argv = sys.argv[1:]
+    args = parser.parse_args(argv)
+    if args.json_args is not None:
+        # Restoring after a restart.
+        # When restarting, we serialize the argparse namespace into json, and
+        # construct a "fake" argparse.Namespace here based on the data loaded
+        # from json.
+        data = json.loads(args.json_args)
+        args = argparse.Namespace(**data)
     earlyinit.earlyinit(args)
     # We do this imports late as earlyinit needs to be run first (because of
     # the harfbuzz fix and version checking).
     from qutebrowser import app
-    import PyQt5.QtWidgets as QtWidgets
-    app = app.Application(args)
-
-    def qt_mainloop():
-        """Simple wrapper to get a nicer stack trace for segfaults."""
-        return app.exec_()  # pylint: disable=maybe-no-member
-
-    # We set qApp explicitely here to reduce the risk of segfaults while
-    # quitting.
-    # See https://bugs.launchpad.net/ubuntu/+source/python-qt4/+bug/561303/comments/7
-    # While this is a workaround for PyQt4 which should be fixed in PyQt, it
-    # seems this still reduces segfaults.
-    # FIXME: We should do another attempt at contacting upstream about this.
-    QtWidgets.qApp = app
-    ret = qt_mainloop()
-    QtWidgets.qApp = None
-    return ret
+    return app.run(args)

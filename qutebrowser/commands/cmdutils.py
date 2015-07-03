@@ -1,6 +1,6 @@
 # vim: ft=python fileencoding=utf-8 sts=4 sw=4 et:
 
-# Copyright 2014 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
+# Copyright 2014-2015 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
 #
 # This file is part of qutebrowser.
 #
@@ -23,7 +23,7 @@ Module attributes:
     cmd_dict: A mapping from command-strings to command objects.
 """
 
-from qutebrowser.utils import usertypes, qtutils, log
+from qutebrowser.utils import qtutils, log
 from qutebrowser.commands import command, cmdexc
 
 cmd_dict = {}
@@ -99,22 +99,11 @@ class register:  # pylint: disable=invalid-name
 
     Attributes:
         _instance: The object from the object registry to be used as "self".
-        _scope: The scope to get _instance for.
         _name: The name (as string) or names (as list) of the command.
-        _maxsplit: The maxium amounts of splits to do for the commandline, or
-                   None.
-        _hide: Whether to hide the command or not.
-        _completion: Which completion to use for arguments, as a list of
-                     strings.
-        _modes/_not_modes: List of modes to use/not use.
-        _needs_js: If javascript is needed for this command.
-        _debug: Whether this is a debugging command (only shown with --debug).
-        _ignore_args: Whether to ignore the arguments of the function.
+        _kwargs: The arguments to pass to Command.
     """
 
-    def __init__(self, instance=None, name=None, maxsplit=None, hide=False,
-                 completion=None, modes=None, not_modes=None, needs_js=False,
-                 debug=False, ignore_args=False, scope='global'):
+    def __init__(self, *, instance=None, name=None, **kwargs):
         """Save decorator arguments.
 
         Gets called on parse-time with the decorator arguments.
@@ -122,33 +111,14 @@ class register:  # pylint: disable=invalid-name
         Args:
             See class attributes.
         """
-        # pylint: disable=too-many-arguments
-        if modes is not None and not_modes is not None:
-            raise ValueError("Only modes or not_modes can be given!")
-        self._name = name
-        self._maxsplit = maxsplit
-        self._hide = hide
         self._instance = instance
-        self._scope = scope
-        self._completion = completion
-        self._modes = modes
-        self._not_modes = not_modes
-        self._needs_js = needs_js
-        self._debug = debug
-        self._ignore_args = ignore_args
-        if modes is not None:
-            for m in modes:
-                if not isinstance(m, usertypes.KeyMode):
-                    raise TypeError("Mode {} is no KeyMode member!".format(m))
-        if not_modes is not None:
-            for m in not_modes:
-                if not isinstance(m, usertypes.KeyMode):
-                    raise TypeError("Mode {} is no KeyMode member!".format(m))
+        self._name = name
+        self._kwargs = kwargs
 
     def _get_names(self, func):
         """Get the name(s) which should be used for the current command.
 
-        If the name hasn't been overridden explicitely, the function name is
+        If the name hasn't been overridden explicitly, the function name is
         transformed.
 
         If it has been set, it can either be a string which is
@@ -187,12 +157,8 @@ class register:  # pylint: disable=invalid-name
         for name in names:
             if name in cmd_dict:
                 raise ValueError("{} is already registered!".format(name))
-        cmd = command.Command(
-            name=names[0], maxsplit=self._maxsplit, hide=self._hide,
-            instance=self._instance, scope=self._scope,
-            completion=self._completion, modes=self._modes,
-            not_modes=self._not_modes, needs_js=self._needs_js,
-            is_debug=self._debug, ignore_args=self._ignore_args, handler=func)
+        cmd = command.Command(name=names[0], instance=self._instance,
+                              handler=func, **self._kwargs)
         for name in names:
             cmd_dict[name] = cmd
         aliases += names[1:]

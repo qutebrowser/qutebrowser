@@ -1,6 +1,6 @@
 # vim: ft=python fileencoding=utf-8 sts=4 sw=4 et:
 
-# Copyright 2014 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
+# Copyright 2014-2015 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
 #
 # This file is part of qutebrowser.
 #
@@ -29,7 +29,8 @@ from PyQt5.QtGui import QStandardItemModel, QStandardItem
 from qutebrowser.utils import usertypes, qtutils
 
 
-Role = usertypes.enum('Role', ['sort'], start=Qt.UserRole, is_int=True)
+Role = usertypes.enum('Role', ['sort', 'userdata'], start=Qt.UserRole,
+                      is_int=True)
 
 
 class BaseCompletionModel(QStandardItemModel):
@@ -60,7 +61,8 @@ class BaseCompletionModel(QStandardItemModel):
         self.appendRow(cat)
         return cat
 
-    def new_item(self, cat, name, desc='', misc=None):
+    def new_item(self, cat, name, desc='', misc=None, sort=None,
+                 userdata=None):
         """Add a new item to a category.
 
         Args:
@@ -68,10 +70,15 @@ class BaseCompletionModel(QStandardItemModel):
             name: The name of the item.
             desc: The description of the item.
             misc: Misc text to display.
+            sort: Data for the sort role (int).
+            userdata: User data to be added for the first column.
 
         Return:
             A (nameitem, descitem, miscitem) tuple.
         """
+        assert not isinstance(name, int)
+        assert not isinstance(desc, int)
+        assert not isinstance(misc, int)
         nameitem = QStandardItem(name)
         descitem = QStandardItem(desc)
         if misc is None:
@@ -82,6 +89,10 @@ class BaseCompletionModel(QStandardItemModel):
         cat.setChild(idx, 0, nameitem)
         cat.setChild(idx, 1, descitem)
         cat.setChild(idx, 2, miscitem)
+        if sort is not None:
+            nameitem.setData(sort, Role.sort)
+        if userdata is not None:
+            nameitem.setData(userdata, Role.userdata)
         return nameitem, descitem, miscitem
 
     def flags(self, index):
@@ -98,7 +109,8 @@ class BaseCompletionModel(QStandardItemModel):
         qtutils.ensure_valid(index)
         if index.parent().isValid():
             # item
-            return Qt.ItemIsEnabled | Qt.ItemIsSelectable
+            return (Qt.ItemIsEnabled | Qt.ItemIsSelectable |
+                    Qt.ItemNeverHasChildren)
         else:
             # category
             return Qt.NoItemFlags

@@ -1,6 +1,6 @@
 # vim: ft=python fileencoding=utf-8 sts=4 sw=4 et:
 
-# Copyright 2014 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
+# Copyright 2014-2015 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
 #
 # This file is part of qutebrowser.
 #
@@ -20,8 +20,8 @@
 """Configuration storage and config-related utilities.
 
 This borrows a lot of ideas from configparser, but also has some things that
-are fundamentally different. This is why nothing inherts from configparser, but
-we borrow some methods and classes from there where it makes sense.
+are fundamentally different. This is why nothing inherits from configparser,
+but we borrow some methods and classes from there where it makes sense.
 """
 
 import os
@@ -32,19 +32,19 @@ import configparser
 import collections
 import collections.abc
 
-from PyQt5.QtCore import pyqtSignal, pyqtSlot, QObject, QStandardPaths, QUrl
-from PyQt5.QtWidgets import QMessageBox
+from PyQt5.QtCore import pyqtSignal, pyqtSlot, QObject, QUrl, QSettings
 
 from qutebrowser.config import configdata, configexc, textwrapper
 from qutebrowser.config.parsers import ini, keyconf
 from qutebrowser.commands import cmdexc, cmdutils
-from qutebrowser.utils import message, objreg, utils, standarddir, log, qtutils
+from qutebrowser.utils import (message, objreg, utils, standarddir, log,
+                               qtutils, error, usertypes)
 from qutebrowser.utils.usertypes import Completion
 
 
 class change_filter:  # pylint: disable=invalid-name
 
-    """Decorator to register a new command handler.
+    """Decorator to filter calls based on a config section/option matching.
 
     This could also be a function, but as a class (with a "wrong" name) it's
     much cleaner to implement.
@@ -52,15 +52,18 @@ class change_filter:  # pylint: disable=invalid-name
     Attributes:
         _sectname: The section to be filtered.
         _optname: The option to be filtered.
+        _function: Whether a function rather than a method is decorated.
     """
 
-    def __init__(self, sectname, optname=None):
+    def __init__(self, sectname, optname=None, function=False):
         """Save decorator arguments.
 
         Gets called on parse-time with the decorator arguments.
 
         Args:
-            See class attributes.
+            sectname: The section to be filtered.
+            optname: The option to be filtered.
+            function: Whether a function rather than a method is decorated.
         """
         if sectname not in configdata.DATA:
             raise configexc.NoSectionError(sectname)
@@ -68,9 +71,10 @@ class change_filter:  # pylint: disable=invalid-name
             raise configexc.NoOptionError(optname, sectname)
         self._sectname = sectname
         self._optname = optname
+        self._function = function
 
     def __call__(self, func):
-        """Register the command before running the function.
+        """Filter calls to the decorated function.
 
         Gets called when a function should be decorated.
 
@@ -85,20 +89,34 @@ class change_filter:  # pylint: disable=invalid-name
         Return:
             The decorated function.
         """
-
-        @pyqtSlot(str, str)
-        @functools.wraps(func)
-        def wrapper(wrapper_self, sectname=None, optname=None):
-            # pylint: disable=missing-docstring
-            if sectname is None and optname is None:
-                # Called directly, not from a config change event.
-                return func(wrapper_self)
-            elif sectname != self._sectname:
-                return
-            elif self._optname is not None and optname != self._optname:
-                return
-            else:
-                return func(wrapper_self)
+        if self._function:
+            @pyqtSlot(str, str)
+            @functools.wraps(func)
+            def wrapper(sectname=None, optname=None):
+                # pylint: disable=missing-docstring
+                if sectname is None and optname is None:
+                    # Called directly, not from a config change event.
+                    return func()
+                elif sectname != self._sectname:
+                    return
+                elif self._optname is not None and optname != self._optname:
+                    return
+                else:
+                    return func()
+        else:
+            @pyqtSlot(str, str)
+            @functools.wraps(func)
+            def wrapper(wrapper_self, sectname=None, optname=None):
+                # pylint: disable=missing-docstring
+                if sectname is None and optname is None:
+                    # Called directly, not from a config change event.
+                    return func(wrapper_self)
+                elif sectname != self._sectname:
+                    return
+                elif self._optname is not None and optname != self._optname:
+                    return
+                else:
+                    return func(wrapper_self)
 
         return wrapper
 
@@ -113,17 +131,17 @@ def section(sect):
     return objreg.get('config')[sect]
 
 
-def init(args):
-    """Initialize the config.
+def _init_main_config(parent=None):
+    """Initialize the main config.
 
     Args:
-        args: The argparse namespace.
+        parent: The parent to pass to ConfigManager.
     """
-    confdir = standarddir.get(QStandardPaths.ConfigLocation, args)
+    args = objreg.get('args')
     try:
-        app = objreg.get('app')
-        config_obj = ConfigManager(confdir, 'qutebrowser.conf', app)
-    except (configexc.Error, configparser.Error) as e:
+        config_obj = ConfigManager(standarddir.config(), 'qutebrowser.conf',
+                                   args.relaxed_config, parent=parent)
+    except (configexc.Error, configparser.Error, UnicodeDecodeError) as e:
         log.init.exception(e)
         errstr = "Error while reading config:"
         try:
@@ -131,38 +149,126 @@ def init(args):
                 e.section, e.option)  # pylint: disable=no-member
         except AttributeError:
             pass
-        errstr += "\n{}".format(e)
-        msgbox = QMessageBox(QMessageBox.Critical,
-                             "Error while reading config!", errstr)
-        msgbox.exec_()
+        errstr += "\n"
+        error.handle_fatal_exc(e, args, "Error while reading config!",
+                               pre_text=errstr)
         # We didn't really initialize much so far, so we just quit hard.
-        sys.exit(1)
+        sys.exit(usertypes.Exit.err_config)
     else:
         objreg.register('config', config_obj)
+        if standarddir.config() is not None:
+            filename = os.path.join(standarddir.config(), 'qutebrowser.conf')
+            save_manager = objreg.get('save-manager')
+            save_manager.add_saveable(
+                'config', config_obj.save, config_obj.changed,
+                config_opt=('general', 'auto-save-config'), filename=filename)
+            for sect in config_obj.sections.values():
+                for opt in sect.values.values():
+                    if opt.values['conf'] is None:
+                        # Option added to built-in defaults but not in user's
+                        # config yet
+                        save_manager.save('config', explicit=True, force=True)
+                        return
+
+
+def _init_key_config(parent):
+    """Initialize the key config.
+
+    Args:
+        parent: The parent to use for the KeyConfigParser.
+    """
+    args = objreg.get('args')
     try:
-        key_config = keyconf.KeyConfigParser(confdir, 'keys.conf')
-    except keyconf.KeyConfigError as e:
+        key_config = keyconf.KeyConfigParser(standarddir.config(), 'keys.conf',
+                                             args.relaxed_config,
+                                             parent=parent)
+    except (keyconf.KeyConfigError, UnicodeDecodeError) as e:
         log.init.exception(e)
         errstr = "Error while reading key config:\n"
         if e.lineno is not None:
             errstr += "In line {}: ".format(e.lineno)
-        errstr += str(e)
-        msgbox = QMessageBox(QMessageBox.Critical,
-                             "Error while reading key config!", errstr)
-        msgbox.exec_()
+        error.handle_fatal_exc(e, args, "Error while reading key config!",
+                               pre_text=errstr)
         # We didn't really initialize much so far, so we just quit hard.
-        sys.exit(1)
+        sys.exit(usertypes.Exit.err_key_config)
     else:
         objreg.register('key-config', key_config)
+        if standarddir.config() is not None:
+            save_manager = objreg.get('save-manager')
+            filename = os.path.join(standarddir.config(), 'keys.conf')
+            save_manager.add_saveable(
+                'key-config', key_config.save, key_config.config_dirty,
+                config_opt=('general', 'auto-save-config'), filename=filename,
+                dirty=key_config.is_dirty)
 
-    datadir = standarddir.get(QStandardPaths.DataLocation, args)
-    state_config = ini.ReadWriteConfigParser(datadir, 'state')
+
+def _init_misc():
+    """Initialize misc. config-related files."""
+    save_manager = objreg.get('save-manager')
+    state_config = ini.ReadWriteConfigParser(standarddir.data(), 'state')
+    for sect in ('general', 'geometry'):
+        try:
+            state_config.add_section(sect)
+        except configparser.DuplicateSectionError:
+            pass
+    # See commit a98060e020a4ba83b663813a4b9404edb47f28ad.
+    state_config['general'].pop('fooled', None)
     objreg.register('state-config', state_config)
+    save_manager.add_saveable('state-config', state_config.save)
+
     # We need to import this here because lineparser needs config.
-    from qutebrowser.config.parsers import line
-    command_history = line.LineConfigParser(datadir, 'cmd-history',
-                                            ('completion', 'history-length'))
+    from qutebrowser.misc import lineparser
+    command_history = lineparser.LimitLineParser(
+        standarddir.data(), 'cmd-history',
+        limit=('completion', 'cmd-history-max-items'),
+        parent=objreg.get('config'))
     objreg.register('command-history', command_history)
+    save_manager.add_saveable('command-history', command_history.save,
+                              command_history.changed)
+
+    # Set the QSettings path to something like
+    # ~/.config/qutebrowser/qsettings/qutebrowser/qutebrowser.conf so it
+    # doesn't overwrite our config.
+    #
+    # This fixes one of the corruption issues here:
+    # https://github.com/The-Compiler/qutebrowser/issues/515
+
+    if standarddir.config() is None:
+        path = os.devnull
+    else:
+        path = os.path.join(standarddir.config(), 'qsettings')
+    for fmt in (QSettings.NativeFormat, QSettings.IniFormat):
+        QSettings.setPath(fmt, QSettings.UserScope, path)
+
+
+def init(parent=None):
+    """Initialize the config.
+
+    Args:
+        parent: The parent to pass to QObjects which get initialized.
+    """
+    _init_main_config(parent)
+    _init_key_config(parent)
+    _init_misc()
+
+
+def _get_value_transformer(old, new):
+    """Get a function which transforms a value for CHANGED_OPTIONS.
+
+    Args:
+        old: The old value - if the supplied value doesn't match this, it's
+             returned untransformed.
+        new: The new value.
+
+    Return:
+        A function which takes a value and transforms it.
+    """
+    def transformer(val):
+        if val == old:
+            return new
+        else:
+            return val
+    return transformer
 
 
 class ConfigManager(QObject):
@@ -176,6 +282,11 @@ class ConfigManager(QObject):
         RENAMED_SECTIONS: A mapping of renamed sections, {'oldname': 'newname'}
         RENAMED_OPTIONS: A mapping of renamed options,
                          {('section', 'oldname'): 'newname'}
+        CHANGED_OPTIONS: A mapping of arbitrarily changed options,
+                         {('section', 'option'): callable}.
+                         The callable takes the old value and returns the new
+                         one.
+        DELETED_OPTIONS: A (section, option) list of deleted options.
 
     Attributes:
         sections: The configuration data as an OrderedDict.
@@ -208,16 +319,27 @@ class ConfigManager(QObject):
         ('colors', 'tab.indicator.stop'): 'tabs.indicator.stop',
         ('colors', 'tab.indicator.error'): 'tabs.indicator.error',
         ('colors', 'tab.indicator.system'): 'tabs.indicator.system',
-        ('colors', 'tab.seperator'): 'tabs.seperator',
+        ('tabs', 'auto-hide'): 'hide-auto',
+        ('completion', 'history-length'): 'cmd-history-max-items',
+        ('colors', 'downloads.fg'): 'downloads.fg.start',
+    }
+    DELETED_OPTIONS = [
+        ('colors', 'tab.separator'),
+        ('colors', 'tabs.separator'),
+        ('colors', 'completion.item.bg'),
+    ]
+    CHANGED_OPTIONS = {
+        ('content', 'cookies-accept'):
+            _get_value_transformer('default', 'no-3rdparty'),
     }
 
     changed = pyqtSignal(str, str)
     style_changed = pyqtSignal(str, str)
 
-    def __init__(self, configdir, fname, parent=None):
+    def __init__(self, configdir, fname, relaxed=False, parent=None):
         super().__init__(parent)
         self._initialized = False
-        self.sections = configdata.DATA
+        self.sections = configdata.data()
         self._interpolation = configparser.ExtendedInterpolation()
         self._proxies = {}
         for sectname in self.sections.keys():
@@ -229,7 +351,7 @@ class ConfigManager(QObject):
         else:
             self._configdir = configdir
             parser = ini.ReadConfigParser(configdir, fname)
-            self._from_cp(parser)
+            self._from_cp(parser, relaxed)
             self._initialized = True
             self._validate_all()
 
@@ -279,7 +401,7 @@ class ConfigManager(QObject):
             try:
                 desc = self.sections[sectname].descriptions[optname]
             except KeyError:
-                log.misc.exception("No description for {}.{}!".format(
+                log.config.exception("No description for {}.{}!".format(
                     sectname, optname))
                 continue
             for descline in desc.splitlines():
@@ -338,27 +460,52 @@ class ConfigManager(QObject):
         else:
             return None
 
-    def _from_cp(self, cp):
+    def _from_cp(self, cp, relaxed=False):
         """Read the config from a configparser instance.
 
         Args:
             cp: The configparser instance to read the values from.
+            relaxed: Whether to ignore inexistent sections/options.
         """
         for sectname in cp:
             if sectname in self.RENAMED_SECTIONS:
                 sectname = self.RENAMED_SECTIONS[sectname]
             if sectname is not 'DEFAULT' and sectname not in self.sections:
-                raise configexc.NoSectionError(sectname)
+                if not relaxed:
+                    raise configexc.NoSectionError(sectname)
         for sectname in self.sections:
-            real_sectname = self._get_real_sectname(cp, sectname)
-            if real_sectname is None:
-                continue
-            for k, v in cp[real_sectname].items():
-                if k.startswith(self.ESCAPE_CHAR):
-                    k = k[1:]
-                if (sectname, k) in self.RENAMED_OPTIONS:
-                    k = self.RENAMED_OPTIONS[sectname, k]
+            self._from_cp_section(sectname, cp, relaxed)
+
+    def _from_cp_section(self, sectname, cp, relaxed):
+        """Read a single section from a configparser instance.
+
+        Args:
+            sectname: The name of the section to read.
+            cp: The configparser instance to read the values from.
+            relaxed: Whether to ignore inexistent options.
+        """
+        real_sectname = self._get_real_sectname(cp, sectname)
+        if real_sectname is None:
+            return
+        for k, v in cp[real_sectname].items():
+            if k.startswith(self.ESCAPE_CHAR):
+                k = k[1:]
+
+            if (sectname, k) in self.DELETED_OPTIONS:
+                return
+            if (sectname, k) in self.RENAMED_OPTIONS:
+                k = self.RENAMED_OPTIONS[sectname, k]
+            if (sectname, k) in self.CHANGED_OPTIONS:
+                func = self.CHANGED_OPTIONS[(sectname, k)]
+                v = func(v)
+
+            try:
                 self.set('conf', sectname, k, v, validate=False)
+            except configexc.NoOptionError:
+                if relaxed:
+                    pass
+                else:
+                    raise
 
     def _validate_all(self):
         """Validate all values set in self._from_cp."""
@@ -376,7 +523,7 @@ class ConfigManager(QObject):
 
     def _changed(self, sectname, optname):
         """Notify other objects the config has changed."""
-        log.misc.debug("Config option changed: {} -> {}".format(
+        log.config.debug("Config option changed: {} -> {}".format(
             sectname, optname))
         if sectname in ('colors', 'fonts'):
             self.style_changed.emit(sectname, optname)
@@ -400,7 +547,7 @@ class ConfigManager(QObject):
     def items(self, sectname, raw=True):
         """Get a list of (optname, value) tuples for a section.
 
-        Implemented for configparser interpolation compatbility.
+        Implemented for configparser interpolation compatibility
 
         Args:
             sectname: The name of the section to get.
@@ -463,7 +610,7 @@ class ConfigManager(QObject):
             The value of the option.
         """
         if not self._initialized:
-            raise Exception("get got called before initialisation was "
+            raise Exception("get got called before initialization was "
                             "complete!")
         try:
             sect = self.sections[sectname]
@@ -482,50 +629,66 @@ class ConfigManager(QObject):
             newval = val.typ.transform(newval)
         return newval
 
-    @cmdutils.register(name='set', instance='config',
+    @cmdutils.register(name='set', instance='config', win_id='win_id',
                        completion=[Completion.section, Completion.option,
                                    Completion.value])
-    def set_command(self, win_id: {'special': 'win_id'},
-                    sectname: {'name': 'section'}=None,
-                    optname: {'name': 'option'}=None, value=None, temp=False):
+    def set_command(self, win_id, section_=None, option=None, value=None,
+                    temp=False, print_=False):
         """Set an option.
 
         If the option name ends with '?', the value of the option is shown
         instead.
+
+        If the option name ends with '!' and it is a boolean value, toggle it.
 
         //
 
         Wrapper for self.set() to output exceptions in the status bar.
 
         Args:
-            sectname: The section where the option is in.
-            optname: The name of the option.
+            section_: The section where the option is in.
+            option: The name of the option.
             value: The value to set.
             temp: Set value temporarily.
+            print_: Print the value after setting.
         """
-        if sectname is not None and optname is None:
+        if section_ is not None and option is None:
             raise cmdexc.CommandError(
                 "set: Either both section and option have to be given, or "
                 "neither!")
-        if sectname is None and optname is None:
+        if section_ is None and option is None:
             tabbed_browser = objreg.get('tabbed-browser', scope='window',
                                         window=win_id)
             tabbed_browser.openurl(QUrl('qute:settings'), newtab=False)
             return
-        try:
-            if optname.endswith('?'):
-                val = self.get(sectname, optname[:-1], transformed=False)
-                message.info(win_id, "{} {} = {}".format(
-                    sectname, optname[:-1], val), immediately=True)
-            else:
-                if value is None:
+
+        if option.endswith('?'):
+            option = option[:-1]
+            print_ = True
+        else:
+            try:
+                if option.endswith('!') and value is None:
+                    val = self.get(section_, option[:-1])
+                    layer = 'temp' if temp else 'conf'
+                    if isinstance(val, bool):
+                        self.set(layer, section_, option[:-1], str(not val))
+                    else:
+                        raise cmdexc.CommandError(
+                            "set: Attempted inversion of non-boolean value.")
+                elif value is not None:
+                    layer = 'temp' if temp else 'conf'
+                    self.set(layer, section_, option, value)
+                else:
                     raise cmdexc.CommandError("set: The following arguments "
                                               "are required: value")
-                layer = 'temp' if temp else 'conf'
-                self.set(layer, sectname, optname, value)
-        except (configexc.Error, configparser.Error) as e:
-            raise cmdexc.CommandError("set: {} - {}".format(
-                e.__class__.__name__, e))
+            except (configexc.Error, configparser.Error) as e:
+                raise cmdexc.CommandError("set: {} - {}".format(
+                    e.__class__.__name__, e))
+
+        if print_:
+            val = self.get(section_, option, transformed=False)
+            message.info(win_id, "{} {} = {}".format(
+                section_, option, val), immediately=True)
 
     def set(self, layer, sectname, optname, value, validate=True):
         """Set an option.
@@ -559,14 +722,6 @@ class ConfigManager(QObject):
         else:
             if self._initialized:
                 self._after_set(sectname, optname)
-
-    @cmdutils.register(instance='config', name='save')
-    def save_command(self):
-        """Save the config file."""
-        try:
-            self.save()
-        except OSError as e:
-            raise cmdexc.CommandError("Could not save config: {}".format(e))
 
     def save(self):
         """Save the config file."""

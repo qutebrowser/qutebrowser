@@ -1,6 +1,6 @@
 # vim: ft=python fileencoding=utf-8 sts=4 sw=4 et:
 
-# Copyright 2014 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
+# Copyright 2014-2015 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
 #
 # This file is part of qutebrowser.
 #
@@ -40,7 +40,7 @@ class UrlText(textbase.TextBase):
         _normal_url: The normal URL to be displayed as a UrlType instance.
         _normal_url_type: The type of the normal URL as a UrlType instance.
         _hover_url: The URL we're currently hovering over.
-        _ssl_errors: Whether SSL errors occured while loading.
+        _ssl_errors: Whether SSL errors occurred while loading.
 
     Class attributes:
         _urltype: The URL type to show currently (normal/ok/error/warn/hover).
@@ -90,7 +90,6 @@ class UrlText(textbase.TextBase):
         Return:
             The urltype as a string (!)
         """
-        # pylint: disable=method-hidden
         if self._urltype is None:
             return ""
         else:

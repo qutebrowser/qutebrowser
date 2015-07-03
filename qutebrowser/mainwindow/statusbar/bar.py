@@ -1,6 +1,6 @@
 # vim: ft=python fileencoding=utf-8 sts=4 sw=4 et:
 
-# Copyright 2014 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
+# Copyright 2014-2015 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
 #
 # This file is part of qutebrowser.
 #
@@ -21,18 +21,22 @@
 
 import collections
 
-from PyQt5.QtCore import pyqtSignal, pyqtSlot, pyqtProperty, Qt, QTime, QSize
+from PyQt5.QtCore import (pyqtSignal, pyqtSlot, pyqtProperty, Qt, QTime, QSize,
+                          QTimer)
 from PyQt5.QtWidgets import QWidget, QHBoxLayout, QStackedLayout, QSizePolicy
 
 from qutebrowser.config import config, style
 from qutebrowser.utils import usertypes, log, objreg, utils
 from qutebrowser.mainwindow.statusbar import (command, progress, keystring,
-                                              percentage, url, prompt)
+                                              percentage, url, prompt,
+                                              tabindex)
 from qutebrowser.mainwindow.statusbar import text as textwidget
 
 
 PreviousWidget = usertypes.enum('PreviousWidget', ['none', 'prompt',
                                                    'command'])
+Severity = usertypes.enum('Severity', ['normal', 'warning', 'error'])
+CaretMode = usertypes.enum('CaretMode', ['off', 'on', 'selection'])
 
 
 class StatusBar(QWidget):
@@ -59,11 +63,10 @@ class StatusBar(QWidget):
         _win_id: The window ID the statusbar is associated with.
 
     Class attributes:
-        _error: If there currently is an error, accessed through the error
-                property.
+        _severity: The severity of the current message, a Severity member.
 
-                For some reason we need to have this as class attribute so
-                pyqtProperty works correctly.
+                   For some reason we need to have this as class attribute so
+                   pyqtProperty works correctly.
 
         _prompt_active: If we're currently in prompt-mode.
 
@@ -74,6 +77,16 @@ class StatusBar(QWidget):
 
                         For some reason we need to have this as class attribute
                         so pyqtProperty works correctly.
+
+        _command_active: If we're currently in command mode.
+
+                         For some reason we need to have this as class
+                         attribute so pyqtProperty works correctly.
+
+        _caret_mode: The current caret mode (off/on/selection).
+
+                     For some reason we need to have this as class attribute
+                     so pyqtProperty works correctly.
 
     Signals:
         resized: Emitted when the statusbar has resized, so the completion
@@ -86,31 +99,71 @@ class StatusBar(QWidget):
 
     resized = pyqtSignal('QRect')
     moved = pyqtSignal('QPoint')
-    _error = False
+    _severity = None
     _prompt_active = False
     _insert_active = False
+    _command_active = False
+    _caret_mode = CaretMode.off
 
     STYLESHEET = """
-        QWidget#StatusBar {
+
+        QWidget#StatusBar,
+        QWidget#StatusBar QLabel,
+        QWidget#StatusBar QLineEdit {
+            {{ font['statusbar'] }}
             {{ color['statusbar.bg'] }}
+            {{ color['statusbar.fg'] }}
         }
 
-        QWidget#StatusBar[insert_active="true"] {
-            {{ color['statusbar.bg.insert'] }}
+        QWidget#StatusBar[caret_mode="on"],
+        QWidget#StatusBar[caret_mode="on"] QLabel,
+        QWidget#StatusBar[caret_mode="on"] QLineEdit {
+            {{ color['statusbar.fg.caret'] }}
+            {{ color['statusbar.bg.caret'] }}
         }
 
-        QWidget#StatusBar[prompt_active="true"] {
-            {{ color['statusbar.bg.prompt'] }}
+        QWidget#StatusBar[caret_mode="selection"],
+        QWidget#StatusBar[caret_mode="selection"] QLabel,
+        QWidget#StatusBar[caret_mode="selection"] QLineEdit {
+            {{ color['statusbar.fg.caret-selection'] }}
+            {{ color['statusbar.bg.caret-selection'] }}
         }
 
-        QWidget#StatusBar[error="true"] {
+        QWidget#StatusBar[severity="error"],
+        QWidget#StatusBar[severity="error"] QLabel,
+        QWidget#StatusBar[severity="error"] QLineEdit {
+            {{ color['statusbar.fg.error'] }}
             {{ color['statusbar.bg.error'] }}
         }
 
-        QLabel, QLineEdit {
-            {{ color['statusbar.fg'] }}
-            {{ font['statusbar'] }}
+        QWidget#StatusBar[severity="warning"],
+        QWidget#StatusBar[severity="warning"] QLabel,
+        QWidget#StatusBar[severity="warning"] QLineEdit {
+            {{ color['statusbar.fg.warning'] }}
+            {{ color['statusbar.bg.warning'] }}
         }
+
+        QWidget#StatusBar[prompt_active="true"],
+        QWidget#StatusBar[prompt_active="true"] QLabel,
+        QWidget#StatusBar[prompt_active="true"] QLineEdit {
+            {{ color['statusbar.fg.prompt'] }}
+            {{ color['statusbar.bg.prompt'] }}
+        }
+
+        QWidget#StatusBar[insert_active="true"],
+        QWidget#StatusBar[insert_active="true"] QLabel,
+        QWidget#StatusBar[insert_active="true"] QLineEdit {
+            {{ color['statusbar.fg.insert'] }}
+            {{ color['statusbar.bg.insert'] }}
+        }
+
+        QWidget#StatusBar[command_active="true"],
+        QWidget#StatusBar[command_active="true"] QLabel,
+        QWidget#StatusBar[command_active="true"] QLineEdit {
+            {{ color['statusbar.fg.command'] }}
+            {{ color['statusbar.bg.command'] }}
+        }
+
     """
 
     def __init__(self, win_id, parent=None):
@@ -169,36 +222,60 @@ class StatusBar(QWidget):
         self.percentage = percentage.Percentage()
         self._hbox.addWidget(self.percentage)
 
+        self.tabindex = tabindex.TabIndex()
+        self._hbox.addWidget(self.tabindex)
+
         # We add a parent to Progress here because it calls self.show() based
         # on some signals, and if that happens before it's added to the layout,
         # it will quickly blink up as independent window.
         self.prog = progress.Progress(self)
         self._hbox.addWidget(self.prog)
 
+        objreg.get('config').changed.connect(self.maybe_hide)
+        QTimer.singleShot(0, self.maybe_hide)
+
     def __repr__(self):
         return utils.get_repr(self)
 
-    @pyqtProperty(bool)
-    def error(self):
-        """Getter for self.error, so it can be used as Qt property."""
-        # pylint: disable=method-hidden
-        return self._error
+    @config.change_filter('ui', 'hide-statusbar')
+    def maybe_hide(self):
+        """Hide the statusbar if it's configured to do so."""
+        hide = config.get('ui', 'hide-statusbar')
+        if hide:
+            self.hide()
+        else:
+            self.show()
 
-    def _set_error(self, val):
-        """Setter for self.error, so it can be used as Qt property.
+    @pyqtProperty(str)
+    def severity(self):
+        """Getter for self.severity, so it can be used as Qt property.
+
+        Return:
+            The severity as a string (!)
+        """
+        if self._severity is None:
+            return ""
+        else:
+            return self._severity.name
+
+    def _set_severity(self, severity):
+        """Set the severity for the current message.
 
         Re-set the stylesheet after setting the value, so everything gets
         updated by Qt properly.
+
+        Args:
+            severity: A Severity member.
         """
-        if self._error == val:
+        if self._severity == severity:
             # This gets called a lot (e.g. if the completion selection was
             # changed), and setStyleSheet is relatively expensive, so we ignore
             # this if there's nothing to change.
             return
-        log.statusbar.debug("Setting error to {}".format(val))
-        self._error = val
+        log.statusbar.debug("Setting severity to {}".format(severity))
+        self._severity = severity
         self.setStyleSheet(style.get_stylesheet(self.STYLESHEET))
-        if val:
+        if severity != Severity.normal:
             # If we got an error while command/prompt was shown, raise the text
             # widget.
             self._stack.setCurrentWidget(self.txt)
@@ -206,7 +283,6 @@ class StatusBar(QWidget):
     @pyqtProperty(bool)
     def prompt_active(self):
         """Getter for self.prompt_active, so it can be used as Qt property."""
-        # pylint: disable=method-hidden
         return self._prompt_active
 
     def _set_prompt_active(self, val):
@@ -220,19 +296,46 @@ class StatusBar(QWidget):
         self.setStyleSheet(style.get_stylesheet(self.STYLESHEET))
 
     @pyqtProperty(bool)
+    def command_active(self):
+        """Getter for self.command_active, so it can be used as Qt property."""
+        return self._command_active
+
+    @pyqtProperty(bool)
     def insert_active(self):
         """Getter for self.insert_active, so it can be used as Qt property."""
-        # pylint: disable=method-hidden
         return self._insert_active
 
-    def _set_insert_active(self, val):
-        """Setter for self.insert_active.
+    @pyqtProperty(str)
+    def caret_mode(self):
+        """Getter for self._caret_mode, so it can be used as Qt property."""
+        return self._caret_mode.name
+
+    def set_mode_active(self, mode, val):
+        """Setter for self.{insert,command,caret}_active.
 
         Re-set the stylesheet after setting the value, so everything gets
         updated by Qt properly.
         """
-        log.statusbar.debug("Setting insert_active to {}".format(val))
-        self._insert_active = val
+        if mode == usertypes.KeyMode.insert:
+            log.statusbar.debug("Setting insert_active to {}".format(val))
+            self._insert_active = val
+        if mode == usertypes.KeyMode.command:
+            log.statusbar.debug("Setting command_active to {}".format(val))
+            self._command_active = val
+        elif mode == usertypes.KeyMode.caret:
+            webview = objreg.get('tabbed-browser', scope='window',
+                                 window=self._win_id).currentWidget()
+            log.statusbar.debug("Setting caret_mode - val {}, selection "
+                                "{}".format(val, webview.selection_enabled))
+            if val:
+                if webview.selection_enabled:
+                    self._set_mode_text("{} selection".format(mode.name))
+                    self._caret_mode = CaretMode.selection
+                else:
+                    self._set_mode_text(mode.name)
+                    self._caret_mode = CaretMode.on
+            else:
+                self._caret_mode = CaretMode.off
         self.setStyleSheet(style.get_stylesheet(self.STYLESHEET))
 
     def _set_mode_text(self, mode):
@@ -243,35 +346,37 @@ class StatusBar(QWidget):
     def _pop_text(self):
         """Display a text in the statusbar and pop it from _text_queue."""
         try:
-            error, text = self._text_queue.popleft()
+            severity, text = self._text_queue.popleft()
         except IndexError:
-            self._set_error(False)
+            self._set_severity(Severity.normal)
             self.txt.set_text(self.txt.Text.temp, '')
             self._text_pop_timer.stop()
             # If a previous widget was interrupted by an error, restore it.
             if self._previous_widget == PreviousWidget.prompt:
                 self._stack.setCurrentWidget(self.prompt)
             elif self._previous_widget == PreviousWidget.command:
-                self._stack.setCurrentWidget(self.command)
+                self._stack.setCurrentWidget(self.cmd)
             elif self._previous_widget == PreviousWidget.none:
-                pass
+                self.maybe_hide()
             else:
                 raise AssertionError("Unknown _previous_widget!")
             return
-        log.statusbar.debug("Displaying {} message: {}".format(
-            'error' if error else 'text', text))
+        self.show()
+        log.statusbar.debug("Displaying message: {} (severity {})".format(
+            text, severity))
         log.statusbar.debug("Remaining: {}".format(self._text_queue))
-        self._set_error(error)
+        self._set_severity(severity)
         self.txt.set_text(self.txt.Text.temp, text)
 
     def _show_cmd_widget(self):
         """Show command widget instead of temporary text."""
-        self._set_error(False)
-        self._previous_widget = PreviousWidget.prompt
+        self._set_severity(Severity.normal)
+        self._previous_widget = PreviousWidget.command
         if self._text_pop_timer.isActive():
             self._timer_was_active = True
         self._text_pop_timer.stop()
         self._stack.setCurrentWidget(self.cmd)
+        self.show()
 
     def _hide_cmd_widget(self):
         """Show temporary text instead of command widget."""
@@ -284,18 +389,20 @@ class StatusBar(QWidget):
             self._text_pop_timer.start()
             self._timer_was_active = False
         self._stack.setCurrentWidget(self.txt)
+        self.maybe_hide()
 
     def _show_prompt_widget(self):
         """Show prompt widget instead of temporary text."""
         if self._stack.currentWidget() is self.prompt:
             return
-        self._set_error(False)
+        self._set_severity(Severity.normal)
         self._set_prompt_active(True)
         self._previous_widget = PreviousWidget.prompt
         if self._text_pop_timer.isActive():
             self._timer_was_active = True
         self._text_pop_timer.stop()
         self._stack.setCurrentWidget(self.prompt)
+        self.show()
 
     def _hide_prompt_widget(self):
         """Show temporary text instead of prompt widget."""
@@ -309,18 +416,19 @@ class StatusBar(QWidget):
             self._text_pop_timer.start()
             self._timer_was_active = False
         self._stack.setCurrentWidget(self.txt)
+        self.maybe_hide()
 
-    def _disp_text(self, text, error, immediately=False):
+    def _disp_text(self, text, severity, immediately=False):
         """Inner logic for disp_error and disp_temp_text.
 
         Args:
             text: The message to display.
-            error: Whether it's an error message (True) or normal text (False)
+            severity: The severity of the messages.
             immediately: If set, message gets displayed immediately instead of
                          queued.
         """
-        log.statusbar.debug("Displaying text: {} (error={})".format(
-            text, error))
+        log.statusbar.debug("Displaying text: {} (severity={})".format(
+            text, severity))
         mindelta = config.get('ui', 'message-timeout')
         if self._stopwatch.isNull():
             delta = None
@@ -335,10 +443,11 @@ class StatusBar(QWidget):
             # immediately. We then start the pop_timer only to restore the
             # normal state in 2 seconds.
             log.statusbar.debug("Displaying immediately")
-            self._set_error(error)
+            self._set_severity(severity)
+            self.show()
             self.txt.set_text(self.txt.Text.temp, text)
             self._text_pop_timer.start()
-        elif self._text_queue and self._text_queue[-1] == (error, text):
+        elif self._text_queue and self._text_queue[-1] == (severity, text):
             # If we get the same message multiple times in a row and we're
             # still displaying it *anyways* we ignore the new one
             log.statusbar.debug("ignoring")
@@ -348,14 +457,15 @@ class StatusBar(QWidget):
             # We display this immediately and restart the timer.to clear it and
             # display the rest of the queue later.
             log.statusbar.debug("Moving to beginning of queue")
-            self._set_error(error)
+            self._set_severity(severity)
+            self.show()
             self.txt.set_text(self.txt.Text.temp, text)
             self._text_pop_timer.start()
         else:
             # There are still some messages to be displayed, so we queue this
             # up.
             log.statusbar.debug("queueing")
-            self._text_queue.append((error, text))
+            self._text_queue.append((severity, text))
             self._text_pop_timer.start()
 
     @pyqtSlot(str, bool)
@@ -367,7 +477,18 @@ class StatusBar(QWidget):
             immediately: If set, message gets displayed immediately instead of
                          queued.
         """
-        self._disp_text(text, True, immediately)
+        self._disp_text(text, Severity.error, immediately)
+
+    @pyqtSlot(str, bool)
+    def disp_warning(self, text, immediately=False):
+        """Display a warning in the statusbar.
+
+        Args:
+            text: The message to display.
+            immediately: If set, message gets displayed immediately instead of
+                         queued.
+        """
+        self._disp_text(text, Severity.warning, immediately)
 
     @pyqtSlot(str, bool)
     def disp_temp_text(self, text, immediately):
@@ -378,7 +499,7 @@ class StatusBar(QWidget):
             immediately: If set, message gets displayed immediately instead of
                          queued.
         """
-        self._disp_text(text, False, immediately)
+        self._disp_text(text, Severity.normal, immediately)
 
     @pyqtSlot(str)
     def set_text(self, val):
@@ -388,25 +509,29 @@ class StatusBar(QWidget):
     @pyqtSlot(usertypes.KeyMode)
     def on_mode_entered(self, mode):
         """Mark certain modes in the commandline."""
-        mode_manager = objreg.get('mode-manager', scope='window',
-                                  window=self._win_id)
-        if mode in mode_manager.passthrough:
+        keyparsers = objreg.get('keyparsers', scope='window',
+                                window=self._win_id)
+        if keyparsers[mode].passthrough:
             self._set_mode_text(mode.name)
-        if mode == usertypes.KeyMode.insert:
-            self._set_insert_active(True)
+        if mode in (usertypes.KeyMode.insert,
+                    usertypes.KeyMode.command,
+                    usertypes.KeyMode.caret):
+            self.set_mode_active(mode, True)
 
     @pyqtSlot(usertypes.KeyMode, usertypes.KeyMode)
     def on_mode_left(self, old_mode, new_mode):
         """Clear marked mode."""
-        mode_manager = objreg.get('mode-manager', scope='window',
-                                  window=self._win_id)
-        if old_mode in mode_manager.passthrough:
-            if new_mode in mode_manager.passthrough:
+        keyparsers = objreg.get('keyparsers', scope='window',
+                                window=self._win_id)
+        if keyparsers[old_mode].passthrough:
+            if keyparsers[new_mode].passthrough:
                 self._set_mode_text(new_mode.name)
             else:
                 self.txt.set_text(self.txt.Text.normal, '')
-        if old_mode == usertypes.KeyMode.insert:
-            self._set_insert_active(False)
+        if old_mode in (usertypes.KeyMode.insert,
+                        usertypes.KeyMode.command,
+                        usertypes.KeyMode.caret):
+            self.set_mode_active(old_mode, False)
 
     @config.change_filter('ui', 'message-timeout')
     def set_pop_timer_interval(self):

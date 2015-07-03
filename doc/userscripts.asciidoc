@@ -1,0 +1,66 @@
+Writing qutebrowser userscripts
+===============================
+The Compiler <mail@qutebrowser.org>
+
+qutebrowser is extensible by writing userscripts which can be called via the
+`:spawn --userscript` command, or via a key binding.
+
+These userscripts are similar to the (non-javascript) dwb userscripts. They can
+be written in any language which can read environment variables and write to a
+FIFO. Note they are *not* related to Greasemonkey userscripts.
+
+Note for simple things such as opening the current page with another browser or
+mpv, a simple key binding to something like `:spawn mpv {url}` should suffice.
+
+Also note userscripts need to have the executable bit set (`chmod +x`) for
+qutebrowser to run them.
+
+Getting information
+-------------------
+
+The following environment variables will be set when a userscript is launched:
+
+- `QUTE_MODE`: Either `hints` (started via hints) or `command` (started via
+  command or key binding).
+- `QUTE_USER_AGENT`: The currently set user agent.
+- `QUTE_FIFO`: The FIFO or file to write commands to.
+- `QUTE_HTML`: Path of a file containing the HTML source of the current page.
+- `QUTE_TEXT`: Path of a file containing the plaintext of the current page.
+
+In `command` mode:
+
+- `QUTE_URL`: The current URL.
+- `QUTE_TITLE`: The title of the current page.
+- `QUTE_SELECTED_TEXT`: The text currently selected on the page.
+- `QUTE_SELECTED_HTML` The HTML currently selected on the page.
+
+In `hints` mode:
+
+- `QUTE_URL`: The URL selected via hints.
+- `QUTE_SELECTED_TEXT`: The plain text of the element selected via hints.
+- `QUTE_SELECTED_HTML` The HTML of the element selected via hints.
+
+Sending commands
+----------------
+
+Normal qutebrowser commands can be written to `$QUTE_FIFO` and will be
+executed.
+
+On Unix/OS X, this is a named pipe and commands written to it will get executed
+immediately.
+
+On Windows, this is a regular file, and the commands in it will be executed as
+soon as your userscript terminates. This means when writing multiple commands,
+you should append to the file (`>>` in bash) rather than overwrite it (`>`).
+
+Examples
+--------
+
+Opening the currently selected word on http://www.dict.cc/[dict.cc]:
+
+[source,bash]
+----
+#!/bin/bash
+
+echo "open -t http://www.dict.cc/?s=$QUTE_SELECTED_TEXT" >> "$QUTE_FIFO"
+----

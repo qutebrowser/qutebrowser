@@ -1,6 +1,6 @@
 # vim: ft=python fileencoding=utf-8 sts=4 sw=4 et:
 
-# Copyright 2014 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
+# Copyright 2014-2015 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
 #
 # This file is part of qutebrowser.
 #
@@ -19,7 +19,7 @@
 
 """Command history for the status bar."""
 
-from PyQt5.QtCore import pyqtSlot
+from PyQt5.QtCore import pyqtSlot, pyqtSignal, QObject
 
 from qutebrowser.config import config
 from qutebrowser.utils import usertypes, log
@@ -39,7 +39,7 @@ class HistoryEndReachedError(Exception):
     pass
 
 
-class History:
+class History(QObject):
 
     """Command history.
 
@@ -47,14 +47,20 @@ class History:
         handle_private_mode: Whether to ignore history in private mode.
         history: A list of executed commands, with newer commands at the end.
         _tmphist: Temporary history for history browsing (as NeighborList)
+
+    Signals:
+        changed: Emitted when an entry was added to the history.
     """
 
-    def __init__(self, history=None):
+    changed = pyqtSignal()
+
+    def __init__(self, history=None, parent=None):
         """Constructor.
 
         Args:
             history: The initial history to set.
         """
+        super().__init__(parent)
         self.handle_private_mode = False
         self._tmphist = None
         if history is None:
@@ -128,3 +134,4 @@ class History:
             return
         if not self.history or text != self.history[-1]:
             self.history.append(text)
+            self.changed.emit()

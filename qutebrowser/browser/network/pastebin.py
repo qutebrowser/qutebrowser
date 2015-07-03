@@ -1,6 +1,6 @@
 # vim: ft=python fileencoding=utf-8 sts=4 sw=4 et:
 
-# Copyright 2014 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
+# Copyright 2014-2015 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
 #
 # This file is part of qutebrowser.
 #
@@ -19,21 +19,19 @@
 
 """Client for the pastebin."""
 
-import functools
-import urllib.request
 import urllib.parse
 
-from PyQt5.QtCore import pyqtSignal, QObject, QUrl
-from PyQt5.QtNetwork import (QNetworkAccessManager, QNetworkRequest,
-                             QNetworkReply)
+from PyQt5.QtCore import pyqtSignal, pyqtSlot, QObject, QUrl
+
+from qutebrowser.misc import httpclient
 
 
 class PastebinClient(QObject):
 
-    """A client for http://p.cmpl.cc/ using QNetworkAccessManager.
+    """A client for http://p.cmpl.cc/ using HTTPClient.
 
     Attributes:
-        _nam: The QNetworkAccessManager used.
+        _client: The HTTPClient used.
 
     Class attributes:
         API_URL: The base API URL.
@@ -51,7 +49,9 @@ class PastebinClient(QObject):
 
     def __init__(self, parent=None):
         super().__init__(parent)
-        self._nam = QNetworkAccessManager(self)
+        self._client = httpclient.HTTPClient(self)
+        self._client.error.connect(self.error)
+        self._client.success.connect(self.on_client_success)
 
     def paste(self, name, title, text, parent=None):
         """Paste the text into a pastebin and return the URL.
@@ -69,33 +69,17 @@ class PastebinClient(QObject):
         }
         if parent is not None:
             data['reply'] = parent
-        encoded_data = urllib.parse.urlencode(data).encode('utf-8')
-        create_url = urllib.parse.urljoin(self.API_URL, 'create')
-        request = QNetworkRequest(QUrl(create_url))
-        request.setHeader(QNetworkRequest.ContentTypeHeader,
-                          'application/x-www-form-urlencoded;charset=utf-8')
-        reply = self._nam.post(request, encoded_data)
-        if reply.isFinished():
-            self.on_reply_finished(reply)
-        else:
-            reply.finished.connect(functools.partial(
-                self.on_reply_finished, reply))
+        url = QUrl(urllib.parse.urljoin(self.API_URL, 'create'))
+        self._client.post(url, data)
 
-    def on_reply_finished(self, reply):
-        """Read the data and finish when the reply finished.
+    @pyqtSlot(str)
+    def on_client_success(self, data):
+        """Process the data and finish when the client finished.
 
         Args:
-            reply: The QNetworkReply which finished.
+            data: A string with the received data.
         """
-        if reply.error() != QNetworkReply.NoError:
-            self.error.emit(reply.errorString())
-            return
-        try:
-            url = bytes(reply.readAll()).decode('utf-8')
-        except UnicodeDecodeError:
-            self.error.emit("Invalid UTF-8 data received in reply!")
-            return
-        if url.startswith('http://'):
-            self.success.emit(url)
+        if data.startswith('http://'):
+            self.success.emit(data)
         else:
             self.error.emit("Invalid data received in reply!")

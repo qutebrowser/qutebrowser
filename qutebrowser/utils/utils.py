@@ -1,6 +1,6 @@
 # vim: ft=python fileencoding=utf-8 sts=4 sw=4 et:
 
-# Copyright 2014 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
+# Copyright 2014-2015 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
 #
 # This file is part of qutebrowser.
 #
@@ -17,7 +17,7 @@
 # You should have received a copy of the GNU General Public License
 # along with qutebrowser.  If not, see <http://www.gnu.org/licenses/>.
 
-"""Other utilities which don't fit anywhere else. """
+"""Other utilities which don't fit anywhere else."""
 
 import io
 import sys
@@ -27,6 +27,7 @@ import os.path
 import collections
 import functools
 import contextlib
+import itertools
 
 from PyQt5.QtCore import Qt
 from PyQt5.QtGui import QKeySequence, QColor
@@ -48,8 +49,6 @@ def elide(text, length):
 
 def compact_text(text, elidelength=None):
     """Remove leading whitespace and newlines from a text and maybe elide it.
-
-    FIXME: Add tests.
 
     Args:
         text: The text to compact.
@@ -94,7 +93,7 @@ def read_file(filename, binary=False):
 def actute_warning():
     """Display a warning about the dead_actute issue if needed."""
     # WORKAROUND (remove this when we bump the requirements to 5.3.0)
-    # Non linux OS' aren't affected
+    # Non Linux OS' aren't affected
     if not sys.platform.startswith('linux'):
         return
     # If no compose file exists for some reason, we're not affected
@@ -104,12 +103,12 @@ def actute_warning():
     try:
         if qtutils.version_check('5.3.0'):
             return
-    except ValueError:
+    except ValueError:  # pragma: no cover
         pass
     try:
         with open('/usr/share/X11/locale/en_US.UTF-8/Compose', 'r',
                   encoding='utf-8') as f:
-            for line in f:
+            for line in f:  # pragma: no branch
                 if '<dead_actute>' in line:
                     if sys.stdout is not None:
                         sys.stdout.flush()
@@ -117,9 +116,9 @@ def actute_warning():
                           "that is not a bug in qutebrowser! See "
                           "https://bugs.freedesktop.org/show_bug.cgi?id=69476 "
                           "for details.")
-                    break
+                    break  # pragma: no branch
     except OSError:
-        log.misc.exception("Failed to read Compose file")
+        log.init.exception("Failed to read Compose file")
 
 
 def _get_color_percentage(a_c1, a_c2, a_c3, b_c1, b_c2, b_c3, percent):
@@ -150,7 +149,7 @@ def interpolate_color(start, end, percent, colorspace=QColor.Rgb):
         start: The start color.
         end: The end color.
         percent: Which value to get (0 - 100)
-        colorspace: The desired interpolation colorsystem,
+        colorspace: The desired interpolation color system,
                     QColor::{Rgb,Hsv,Hsl} (from QColor::Spec enum)
 
     Return:
@@ -200,6 +199,21 @@ def format_seconds(total_seconds):
     return prefix + ':'.join(chunks)
 
 
+def format_timedelta(td):
+    """Format a timedelta to get a "1h 5m 1s" string."""
+    prefix = '-' if td.total_seconds() < 0 else ''
+    hours, rem = divmod(abs(round(td.total_seconds())), 3600)
+    minutes, seconds = divmod(rem, 60)
+    chunks = []
+    if hours:
+        chunks.append('{}h'.format(hours))
+    if minutes:
+        chunks.append('{}m'.format(minutes))
+    if seconds or not chunks:
+        chunks.append('{}s'.format(seconds))
+    return prefix + ' '.join(chunks)
+
+
 def format_size(size, base=1024, suffix=''):
     """Format a byte size so it's human readable.
 
@@ -226,7 +240,7 @@ def key_to_string(key):
     """
     special_names_str = {
         # Some keys handled in a weird way by QKeySequence::toString.
-        # See https://bugreports.qt-project.org/browse/QTBUG-40030
+        # See https://bugreports.qt.io/browse/QTBUG-40030
         # Most are unlikely to be ever needed, but you never know ;)
         # For dead/combining keys, we return the corresponding non-combining
         # key, as that's easier to add to the config.
@@ -274,6 +288,18 @@ def key_to_string(key):
         'Key_TouchpadOn': 'Touchpad On',
         'Key_TouchpadToggle': 'Touchpad toggle',
         'Key_Yellow': 'Yellow',
+        'Key_Alt': 'Alt',
+        'Key_AltGr': 'AltGr',
+        'Key_Control': 'Control',
+        'Key_Direction_L': 'Direction L',
+        'Key_Direction_R': 'Direction R',
+        'Key_Hyper_L': 'Hyper L',
+        'Key_Hyper_R': 'Hyper R',
+        'Key_Meta': 'Meta',
+        'Key_Shift': 'Shift',
+        'Key_Super_L': 'Super L',
+        'Key_Super_R': 'Super R',
+        'Key_unknown': 'Unknown',
     }
     # We now build our real special_names dict from the string mapping above.
     # The reason we don't do this directly is that certain Qt versions don't
@@ -310,17 +336,24 @@ def keyevent_to_string(e):
         A name of the key (combination) as a string or
         None if only modifiers are pressed..
     """
-    modmask2str = collections.OrderedDict([
-        (Qt.ControlModifier, 'Ctrl'),
-        (Qt.AltModifier, 'Alt'),
-        (Qt.MetaModifier, 'Meta'),
-        (Qt.ShiftModifier, 'Shift'),
-    ])
     if sys.platform == 'darwin':
-        # FIXME verify this feels right on a real Mac as well.
-        # In my Virtualbox VM, the Ctrl key shows up as meta.
+        # Qt swaps Ctrl/Meta on OS X, so we switch it back here so the user can
+        # use it in the config as expected. See:
         # https://github.com/The-Compiler/qutebrowser/issues/110
-        modmask2str[Qt.MetaModifier] = 'Ctrl'
+        # http://doc.qt.io/qt-5.4/osx-issues.html#special-keys
+        modmask2str = collections.OrderedDict([
+            (Qt.MetaModifier, 'Ctrl'),
+            (Qt.AltModifier, 'Alt'),
+            (Qt.ControlModifier, 'Meta'),
+            (Qt.ShiftModifier, 'Shift'),
+        ])
+    else:
+        modmask2str = collections.OrderedDict([
+            (Qt.ControlModifier, 'Ctrl'),
+            (Qt.AltModifier, 'Alt'),
+            (Qt.MetaModifier, 'Meta'),
+            (Qt.ShiftModifier, 'Shift'),
+        ])
     modifiers = (Qt.Key_Control, Qt.Key_Alt, Qt.Key_Shift, Qt.Key_Meta,
                  Qt.Key_AltGr, Qt.Key_Super_L, Qt.Key_Super_R,
                  Qt.Key_Hyper_L, Qt.Key_Hyper_R, Qt.Key_Direction_L,
@@ -346,17 +379,18 @@ def normalize_keystr(keystr):
     Return:
         The normalized keystring.
     """
+    keystr = keystr.lower()
     replacements = (
-        ('Control', 'Ctrl'),
-        ('Windows', 'Meta'),
-        ('Mod1', 'Alt'),
-        ('Mod4', 'Meta'),
+        ('control', 'ctrl'),
+        ('windows', 'meta'),
+        ('mod1', 'alt'),
+        ('mod4', 'meta'),
     )
     for (orig, repl) in replacements:
         keystr = keystr.replace(orig, repl)
-    for mod in ('Ctrl', 'Meta', 'Alt', 'Shift'):
+    for mod in ('ctrl', 'meta', 'alt', 'shift'):
         keystr = keystr.replace(mod + '-', mod + '+')
-    return keystr.lower()
+    return keystr
 
 
 class FakeIOStream(io.TextIOBase):
@@ -367,11 +401,11 @@ class FakeIOStream(io.TextIOBase):
         self.write = write_func
 
     def flush(self):
-        """This is only here to satisfy pylint."""
+        """Override flush() to satisfy pylint."""
         return super().flush()
 
     def isatty(self):
-        """This is only here to satisfy pylint."""
+        """Override isatty() to satisfy pylint."""
         return super().isatty()
 
 
@@ -388,13 +422,15 @@ def fake_io(write_func):
     fake_stdout = FakeIOStream(write_func)
     sys.stderr = fake_stderr
     sys.stdout = fake_stdout
-    yield
-    # If the code we did run did change sys.stdout/sys.stderr, we leave it
-    # unchanged. Otherwise, we reset it.
-    if sys.stdout is fake_stdout:
-        sys.stdout = old_stdout
-    if sys.stderr is fake_stderr:
-        sys.stderr = old_stderr
+    try:
+        yield
+    finally:
+        # If the code we did run did change sys.stdout/sys.stderr, we leave it
+        # unchanged. Otherwise, we reset it.
+        if sys.stdout is fake_stdout:
+            sys.stdout = old_stdout
+        if sys.stderr is fake_stderr:
+            sys.stderr = old_stderr
 
 
 @contextlib.contextmanager
@@ -402,11 +438,13 @@ def disabled_excepthook():
     """Run code with the exception hook temporarily disabled."""
     old_excepthook = sys.excepthook
     sys.excepthook = sys.__excepthook__
-    yield
-    # If the code we did run did change sys.excepthook, we leave it
-    # unchanged. Otherwise, we reset it.
-    if sys.excepthook is sys.__excepthook__:
-        sys.excepthook = old_excepthook
+    try:
+        yield
+    finally:
+        # If the code we did run did change sys.excepthook, we leave it
+        # unchanged. Otherwise, we reset it.
+        if sys.excepthook is sys.__excepthook__:
+            sys.excepthook = old_excepthook
 
 
 class prevent_exceptions:  # pylint: disable=invalid-name
@@ -417,7 +455,7 @@ class prevent_exceptions:  # pylint: disable=invalid-name
     silently ignores them.
 
     We used to re-raise the exception with a single-shot QTimer in a similar
-    case, but that lead to a strange proble with a KeyError with some random
+    case, but that lead to a strange problem with a KeyError with some random
     jinja template stuff as content. For now, we only log it, so it doesn't
     pass 100% silently.
 
@@ -441,7 +479,7 @@ class prevent_exceptions:  # pylint: disable=invalid-name
         self._predicate = predicate
 
     def __call__(self, func):
-        """Gets called when a function should be decorated.
+        """Called when a function should be decorated.
 
         Args:
             func: The function to be decorated.
@@ -484,7 +522,8 @@ def get_repr(obj, constructor=False, **attrs):
     """
     cls = qualname(obj.__class__)
     parts = []
-    for name, val in attrs.items():
+    items = sorted(attrs.items())
+    for name, val in items:
         parts.append('{}={!r}'.format(name, val))
     if constructor:
         return '{}({})'.format(cls, ', '.join(parts))
@@ -514,7 +553,7 @@ def qualname(obj):
     elif hasattr(obj, '__name__'):
         name = obj.__name__
     else:
-        name = '<unknown>'
+        name = repr(obj)
 
     if inspect.isclass(obj) or inspect.isfunction(obj):
         module = obj.__module__
@@ -542,3 +581,30 @@ def raises(exc, func, *args):
         return True
     else:
         return False
+
+
+def force_encoding(text, encoding):
+    """Make sure a given text is encodable with the given encoding.
+
+    This replaces all chars not encodable with question marks.
+    """
+    return text.encode(encoding, errors='replace').decode(encoding)
+
+
+def newest_slice(iterable, count):
+    """Get an iterable for the n newest items of the given iterable.
+
+    Args:
+        count: How many elements to get.
+               0: get no items:
+               n: get the n newest items
+              -1: get all items
+    """
+    if count < -1:
+        raise ValueError("count can't be smaller than -1!")
+    elif count == 0:
+        return []
+    elif count == -1 or len(iterable) < count:
+        return iterable
+    else:
+        return itertools.islice(iterable, len(iterable) - count, len(iterable))

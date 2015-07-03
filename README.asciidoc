@@ -6,8 +6,13 @@
 qutebrowser
 ===========
 
-image:icons/qutebrowser-64x64.png[] _A keyboard-driven, vim-like browser based
-on PyQt5 and QtWebKit._
+image:icons/qutebrowser-64x64.png[qutebrowser logo] *A keyboard-driven, vim-like browser based on PyQt5 and QtWebKit.*
+
+image:https://img.shields.io/pypi/l/qutebrowser.svg?style=flat["license badge",link="https://github.com/The-Compiler/qutebrowser/blob/master/COPYING"]
+image:https://img.shields.io/pypi/v/qutebrowser.svg?style=flat["version badge",link="https://pypi.python.org/pypi/qutebrowser/"]
+image:https://img.shields.io/github/issues/The-Compiler/qutebrowser.svg?style=flat["issues badge",link="https://github.com/The-Compiler/qutebrowser/issues"]
+image:https://requires.io/github/The-Compiler/qutebrowser/requirements.svg?branch=master["requirements badge",link="https://requires.io/github/The-Compiler/qutebrowser/requirements/?branch=master"]
+image:http://qutebrowser.org:8010/png?builder=archlinux["build badge",link="http://qutebrowser.org:8010/waterfall"]
 
 qutebrowser is a keyboard-focused browser with with a minimal GUI. It's based
 on Python, PyQt5 and QtWebKit and free software, licensed under the GPL.
@@ -17,10 +22,10 @@ It was inspired by other browsers/addons like dwb and Vimperator/Pentadactyl.
 Screenshots
 -----------
 
-image:doc/img/main.png[width=300,link="doc/img/main.png"]
-image:doc/img/downloads.png[width=300,link="doc/img/downloads.png"]
-image:doc/img/completion.png[width=300,link="doc/img/completion.png"]
-image:doc/img/hints.png[width=300,link="doc/img/hints.png"]
+image:doc/img/main.png["screenshot 1",width=300,link="doc/img/main.png"]
+image:doc/img/downloads.png["screenshot 2",width=300,link="doc/img/downloads.png"]
+image:doc/img/completion.png["screenshot 3",width=300,link="doc/img/completion.png"]
+image:doc/img/hints.png["screenshot 4",width=300,link="doc/img/hints.png"]
 
 Downloads
 ---------
@@ -29,7 +34,7 @@ See the https://github.com/The-Compiler/qutebrowser/releases[github releases
 page] for available downloads (currently a source archive, and standalone
 packages as well as MSI installers for Windows).
 
-See link:doc/INSTALL.asciidoc[INSTALL] for detailed instructions on how to get
+See link:INSTALL.asciidoc[INSTALL] for detailed instructions on how to get
 qutebrowser running for various platforms.
 
 Documentation
@@ -38,13 +43,15 @@ Documentation
 In addition to the topics mentioned in this README, the following documents are
 available:
 
-* A http://qutebrowser.org/img/cheatsheet-big.png[keybinding cheatsheet]: +
-image:http://qutebrowser.org/img/cheatsheet-small.png["qutebrowser keybinding cheatsheet",link="http://qutebrowser.org/img/cheatsheet-big.png"]
+* A http://qutebrowser.org/img/cheatsheet-big.png[key binding cheatsheet]: +
+image:http://qutebrowser.org/img/cheatsheet-small.png["qutebrowser key binding cheatsheet",link="http://qutebrowser.org/img/cheatsheet-big.png"]
 * link:doc/quickstart.asciidoc[Quick start guide]
-* link:doc/FAQ.asciidoc[Frequently asked questions]
-* link:doc/HACKING.asciidoc[HACKING]
-* link:doc/INSTALL.asciidoc[INSTALL]
+* link:FAQ.asciidoc[Frequently asked questions]
+* link:CONTRIBUTING.asciidoc[Contributing to qutebrowser]
+* link:INSTALL.asciidoc[INSTALL]
+* link:CHANGELOG.asciidoc[Change Log]
 * link:doc/stacktrace.asciidoc[Reporting segfaults]
+* link:doc/userscripts.asciidoc[How to write userscripts]
 
 Getting help
 ------------
@@ -61,7 +68,8 @@ Contributions / Bugs
 --------------------
 
 You want to contribute to qutebrowser? Awesome! Please read
-link:doc/HACKING.asciidoc[HACKING] for details and useful hints.
+link:CONTRIBUTING.asciidoc[the contribution guidelines] for details and
+useful hints.
 
 If you found a bug or have a feature request, you can report it in several
 ways:
@@ -81,14 +89,15 @@ Requirements
 The following software and libraries are required to run qutebrowser:
 
 * http://www.python.org/[Python] 3.4
-* http://qt-project.org/[Qt] 5.2.0 or newer (5.4 recommended)
+* http://qt.io/[Qt] 5.2.0 or newer (5.4.2 recommended)
 * QtWebKit
 * http://www.riverbankcomputing.com/software/pyqt/intro[PyQt] 5.2.0 or newer
-(5.3.2 recommended) for Python 3
+(5.4.2 recommended) for Python 3
 * https://pypi.python.org/pypi/setuptools/[pkg_resources/setuptools]
 * http://fdik.org/pyPEG/[pyPEG2]
 * http://jinja.pocoo.org/[jinja2]
 * http://pygments.org/[pygments]
+* http://pyyaml.org/wiki/PyYAML[PyYAML]
 
 To generate the documentation for the `:help` command, when using the git
 repository (rather than a release), http://asciidoc.org/[asciidoc] is needed.
@@ -99,8 +108,8 @@ console:
 * https://pypi.python.org/pypi/colorlog/[colorlog]
 * On Windows: https://pypi.python.org/pypi/colorama/[colorama]
 
-See link:doc/INSTALL.asciidoc[INSTALL] for directions on how to install
-qutebrowser and its dependencies.
+See link:INSTALL.asciidoc[INSTALL] for directions on how to install qutebrowser
+and its dependencies.
 
 Donating
 --------
@@ -125,27 +134,54 @@ Contributors, sorted by the number of commits in descending order:
 
 // QUTE_AUTHORS_START
 * Florian Bruhin
+* Bruno Oliveira
+* Raphael Pierzina
+* Joel Torstensson
+* Martin Tournoij
 * Claude
+* Lamar Pavel
+* Austin Anderson
+* Artur Shaik
+* Antoni Boucher
+* ZDarian
+* Peter Vilim
 * John ShaggyTwoDope Jenkins
+* Jimmy
+* Zach-Button
 * rikn00
-* Brian Jackson
+* Patric Schmitz
 * Martin Zimmermann
+* Error 800
+* Brian Jackson
+* sbinix
+* Tobias Patzl
+* Johannes Altmanninger
+* Samir Benmendil
+* Regina Hug
 * Mathias Fussenegger
 * Larry Hynes
-* Johannes Altmanninger
-* Joel Torstensson
-* Regina Hug
-* Peter Vilim
+* Fritz V155 Reichwald
+* Franz Fellner
+* error800
+* Tim Harder
+* Thorsten Wißmann
+* Thiago Barroso Perrotta
+* Matthias Lisin
 * Helen Sherwood-Taylor
+* HalosGhost
+* Gregor Pohl
+* Eivind Uggedal
+* Arseniy Seroka
+* Andreas Fischer
 // QUTE_AUTHORS_END
 
 The following people have contributed graphics:
 
 * WOFall (icon)
-* regines (keybinding cheatsheet)
+* regines (key binding cheatsheet)
 
-Thanks / Similiar projects
---------------------------
+Thanks / Similar projects
+-------------------------
 
 Many projects with a similar goal as qutebrowser exist:
 
@@ -188,7 +224,7 @@ Also, thanks to:
 
 * Everyone who had the patience to test qutebrowser before v0.1.
 * Everyone triaging/fixing my bugs in the
-https://bugreports.qt-project.org/secure/Dashboard.jspa[Qt bugtracker]
+https://bugreports.qt.io/secure/Dashboard.jspa[Qt bugtracker]
 * Everyone answering my questions on http://stackoverflow.com/[Stack Overflow]
 and in IRC.
 * All the projects which were a great help while developing qutebrowser.

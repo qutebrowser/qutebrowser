@@ -1,5 +1,6 @@
 Getting stacktraces on crashes
 ==============================
+:toc:
 The Compiler <mail@qutebrowser.org>
 
 When there is a fatal crash in qutebrowser - most of the times a
@@ -14,10 +15,17 @@ https://en.wikipedia.org/wiki/Debug_symbol[debugging symbols] is required.
 The rest of this guide is quite Linux specific, though there is a
 <<windows,section for Windows>> at the end.
 
-Getting debugging symbols
--------------------------
+Crashes which can be reproduced
+-------------------------------
 
-.Debian/Ubuntu/...
+If a crash can be reproduced, packages with debugging symbols should be
+installed, and the crash should be reproduced under gdb.
+
+Getting debugging symbols
+~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Debian/Ubuntu/...
+^^^^^^^^^^^^^^^^^
 
 For Debian based systems (Debian, Ubuntu, Linux Mint, ...), debug information
 is available in the repositories:
@@ -26,76 +34,66 @@ is available in the repositories:
 # apt-get install python3-pyqt5-dbg python3-pyqt5.qtwebkit-dbg python3-dbg libqt5webkit5-dbg
 ----
 
-.Archlinux
+Archlinux
+^^^^^^^^^
 
 For Archlinux, no debug informations are provided. You can either compile Qt
 yourself (which will take a few hours even on a modern machine) or use
-debugging symbols compiled by me (x86_64 only).
+debugging symbols compiled/packaged by me (x86_64 only).
 
-To compile by yourself:
+.To compile by yourself
 
 ----
 $ git clone https://github.com/The-Compiler/qt-debug-pkgbuild.git
 $ cd qt-debug-pkgbuild
 $ git checkout symbols
+$ export DEBUG_CFLAGS='-ggdb3 -fvar-tracking-assignments -Og'
+$ export DEBUG_CXXFLAGS='-ggdb3 -fvar-tracking-assignments -Og'
 $ cd qt5
-$ makepkg -si
+$ makepkg -si --pkg qt5-base-debug,qt5-webkit-debug
 $ cd ../pyqt5
-$ makepkg -si
+$ makepkg -si --pkg pyqt5-common-debug,python-pyqt5-debug
 ----
 
-To install my pre-built packages:
+.To install my pre-built packages
+
+First download and sign the key:
 
 ----
-$ mkdir qt-debug
-$ cd qt-debug
-$ wget -r -l1 -A '*.tar.xz' -L -np -nd http://www.qutebrowser.org/qt-symbols-pkg/
-# pacman -U *.pkg.tar.xz
+# pacman-key -r 0xD6A1C70FE80A0C82
+$ pacman-key -f 0xD6A1C70FE80A0C82
+  Key fingerprint = 14AF EC28 70C6 4863 C5C7  ACCB D6A1 C70F E80A 0C82
+# pacman-key --lsign-key 0xD6A1C70FE80A0C82
 ----
 
-After you are done debugging, make sure to install the system packages again so
-you get updates. This can be done with this command:
+Then edit your `/etc/pacman.conf` to add the repository to the bottom:
 
 ----
-# pacman -S qt5
+[qt-debug]
+Server = http://qutebrowser.org/qt-debug/$arch
 ----
 
-Getting a core dump
--------------------
-
-The next step is finding the core dump so we can get a stacktrace from it.
-
-First of all, try to reproduce your problem. If you can, run qutebrowser
-directly inside gdb like this:
+Then install the packages:
 
 ----
-$ gdb $(which python3) -ex 'run -m qutebrowser --debug'
+# pacman -Sy pyqt5-common-debug python-pyqt5-debug qt5-base-debug qt5-webkit-debug
 ----
 
-If you cannot reproduce the problem, you need to check if a coredump got
-written somewhere.
+The `-debug` packages conflict with the non-debug variants - it's safe to
+remove them.
 
-Check the file `/proc/sys/kernel/core_pattern` on your system. If it does not
-start with a `|` character (pipe), check if there is a file named `core` or
-`core.NNNN` in the directory from that file, or in the current directory.
+Getting the stack trace
+~~~~~~~~~~~~~~~~~~~~~~~
 
-If so, execute gdb like this:
+First install `gdb` on your system if it's not installed already.
 
-----
-$ gdb $(which python3) /path/to/core
-----
-
-If your `/proc/sys/kernel/core_pattern` contains something like
-`|/usr/lib/systemd/systemd-coredump`, use `coredumpctl` as root to run gdb:
+Then run qutebrowser directly inside gdb like this:
 
 ----
-# coredumpctl gdb $(which python3)
+$ gdb $(readlink -f $(which python3)) -ex 'run -m qutebrowser --debug'
 ----
 
-Getting a stack trace
----------------------
-
-Regardless of the way you used to open gdb, you should now see something like:
+After you reproduce the crash, you should now see something like:
 
 ----
 Program received signal SIGSEGV, Segmentation fault.
@@ -107,16 +105,58 @@ Now enter these commands at the gdb prompt:
 
 ----
 (gdb) set logging on
-(gdb) set logging redirect on
-(gdb) bt
+(gdb) bt full
 # you might have to press enter a few times until you get the prompt back
-(gdb) set logging redirect off
 (gdb) quit
 ----
 
-Now copy the last few lines of the debug log (before you got the gdb prompt)
-and the full content of `gdb.txt` into the bug report. Please also add some
-words about what you were doing (or what pages you visited) before the crash
+This will create a `gdb.txt` in your current directory.
+
+Copy the last few lines of the debug log (before you got the gdb prompt) and
+the full content of `gdb.txt` into the bug report. Please also add some words
+about what you were doing (or what pages you visited) before the crash
+happened.
+
+Crashes which can NOT be reproduced
+-----------------------------------
+
+If you cannot reproduce the problem, you need to check if a coredump got
+written somewhere. You should not install debug symbols as they won't match the
+generated coredump.
+
+First install `gdb` on your system if it's not installed already.
+
+Then check the file `/proc/sys/kernel/core_pattern` on your system. If it does
+not start with a `|` character (pipe), check if there is a file named `core` or
+`core.NNNN` in the directory from that file, or in the current directory.
+
+If so, execute gdb like this:
+
+----
+$ gdb $(readlink -f $(which python3)) /path/to/core
+----
+
+If your `/proc/sys/kernel/core_pattern` contains something like
+`|/usr/lib/systemd/systemd-coredump`, use `coredumpctl` to run gdb:
+
+----
+$ coredumpctl gdb $(readlink -f $(which python3))
+----
+
+Getting the stack trace
+~~~~~~~~~~~~~~~~~~~~~~~
+
+Now enter these commands at the gdb prompt:
+
+----
+(gdb) set logging on
+(gdb) bt
+# you might have to press enter a few times until you get the prompt back
+(gdb) quit
+----
+
+Copy the content of `gdb.txt` into the bug report. Please also add some words
+about what you were doing (or what pages you visited) before the crash
 happened.
 
 [[windows]]
@@ -130,9 +170,9 @@ file displayed there.
 
 Now install
 http://www.microsoft.com/en-us/download/details.aspx?id=42933[DebugDiag] from
-Microsoft, then run the "DebugDiag 2 Analysis" tool. There, check
-"CrashHangAnalysis" and add your crash dump via "Add Data files". Then click
-"Start analysis".
+Microsoft, then run the *DebugDiag 2 Analysis* tool. There, check
+*CrashHangAnalysis* and add your crash dump via *Add Data files*. Then click
+*Start analysis*.
 
 Close the Internet Explorer which opens when it's done and use the
 folder-button at the top left to get to the reports. There find the report file

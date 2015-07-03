@@ -1,6 +1,6 @@
 # vim: ft=python fileencoding=utf-8 sts=4 sw=4 et:
 
-# Copyright 2014 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
+# Copyright 2014-2015 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
 #
 # This file is part of qutebrowser.
 #
@@ -29,6 +29,8 @@ import collections
 
 from PyQt5.QtCore import QT_VERSION_STR, PYQT_VERSION_STR, qVersion
 from PyQt5.QtWebKit import qWebKitVersion
+from PyQt5.QtNetwork import QSslSocket
+from PyQt5.QtWidgets import QApplication
 
 import qutebrowser
 from qutebrowser.utils import log, utils
@@ -110,7 +112,7 @@ def _release_info():
     for fn in glob.glob("/etc/*-release"):
         try:
             with open(fn, 'r', encoding='utf-8') as f:
-                data.append((fn, ''.join(f.readlines())))
+                data.append((fn, ''.join(f.readlines())))  # pragma: no branch
         except OSError:
             log.misc.exception("Error while reading {}.".format(fn))
     return data
@@ -123,23 +125,14 @@ def _module_versions():
         A list of lines with version info.
     """
     lines = []
-    try:
-        import sipconfig  # pylint: disable=import-error,unused-variable
-    except ImportError:
-        pass
-    else:
-        try:
-            lines.append('SIP: {}'.format(
-                sipconfig.Configuration().sip_version_str))
-        except (AttributeError, TypeError):
-            log.misc.exception("Error while getting SIP version")
-            lines.append('SIP: ?')
     modules = collections.OrderedDict([
+        ('sip', ['SIP_VERSION_STR']),
         ('colorlog', []),
         ('colorama', ['VERSION', '__version__']),
         ('pypeg2', ['__version__']),
         ('jinja2', ['__version__']),
         ('pygments', ['__version__']),
+        ('yaml', ['__version__']),
     ])
     for name, attributes in modules.items():
         try:
@@ -166,8 +159,6 @@ def _os_info():
     Return:
         A list of lines with version info.
     """
-    # pylint has issues with platform.mac_ver()
-    # pylint: disable=unpacking-non-sequence
     lines = []
     releaseinfo = None
     if sys.platform == 'linux':
@@ -176,6 +167,8 @@ def _os_info():
     elif sys.platform == 'win32':
         osver = ', '.join(platform.win32_ver())
     elif sys.platform == 'darwin':
+        # pylint: disable=unpacking-non-sequence
+        # See https://bitbucket.org/logilab/pylint/issue/165/
         release, versioninfo, machine = platform.mac_ver()
         if all(not e for e in versioninfo):
             versioninfo = ''
@@ -191,8 +184,12 @@ def _os_info():
     return lines
 
 
-def version():
-    """Return a string with various version informations."""
+def version(short=False):
+    """Return a string with various version informations.
+
+    Args:
+        short: Return a shortened output.
+    """
     lines = ["qutebrowser v{}".format(qutebrowser.__version__)]
     gitver = _git_str()
     if gitver is not None:
@@ -204,14 +201,24 @@ def version():
         'Qt: {}, runtime: {}'.format(QT_VERSION_STR, qVersion()),
         'PyQt: {}'.format(PYQT_VERSION_STR),
     ]
-    lines += _module_versions()
-    lines += [
-        'Webkit: {}'.format(qWebKitVersion()),
-        'Harfbuzz: {}'.format(os.environ.get('QT_HARFBUZZ', 'system')),
-        '',
-        'Frozen: {}'.format(hasattr(sys, 'frozen')),
-        'Platform: {}, {}'.format(platform.platform(),
-                                  platform.architecture()[0]),
-    ]
-    lines += _os_info()
+
+    if not short:
+        style = QApplication.instance().style()
+        lines += [
+            'Style: {}'.format(style.metaObject().className()),
+            'Desktop: {}'.format(os.environ.get('DESKTOP_SESSION')),
+        ]
+
+        lines += _module_versions()
+
+        lines += [
+            'Webkit: {}'.format(qWebKitVersion()),
+            'Harfbuzz: {}'.format(os.environ.get('QT_HARFBUZZ', 'system')),
+            'SSL: {}'.format(QSslSocket.sslLibraryVersionString()),
+            '',
+            'Frozen: {}'.format(hasattr(sys, 'frozen')),
+            'Platform: {}, {}'.format(platform.platform(),
+                                      platform.architecture()[0]),
+        ]
+        lines += _os_info()
     return '\n'.join(lines)

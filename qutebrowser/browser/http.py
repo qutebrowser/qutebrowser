@@ -1,6 +1,6 @@
 # vim: ft=python fileencoding=utf-8 sts=4 sw=4 et:
 
-# Copyright 2014 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
+# Copyright 2014-2015 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
 #
 # This file is part of qutebrowser.
 #
@@ -17,7 +17,7 @@
 # You should have received a copy of the GNU General Public License
 # along with qutebrowser.  If not, see <http://www.gnu.org/licenses/>.
 
-"""Other utilities which don't fit anywhere else. """
+"""Other utilities which don't fit anywhere else."""
 
 
 import os.path
@@ -50,7 +50,7 @@ def parse_content_disposition(reply):
                 bytes(reply.rawHeader(content_disposition_header)))
             filename = content_disposition.filename()
         except UnicodeDecodeError:
-            log.misc.exception("Error while decoding filename")
+            log.rfc6266.exception("Error while decoding filename")
         else:
             is_inline = content_disposition.is_inline()
     # Then try to get filename from url

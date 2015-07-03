@@ -1,6 +1,6 @@
 # vim: ft=python fileencoding=utf-8 sts=4 sw=4 et:
 
-# Copyright 2014 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
+# Copyright 2014-2015 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
 #
 # This file is part of qutebrowser.
 #
@@ -26,13 +26,14 @@ Module attributes:
 
 import functools
 
-from PyQt5.QtCore import pyqtSlot, Qt, QSize, QRect, QPoint, QTimer
+from PyQt5.QtCore import pyqtSignal, pyqtSlot, Qt, QSize, QRect, QPoint, QTimer
 from PyQt5.QtWidgets import (QTabWidget, QTabBar, QSizePolicy, QCommonStyle,
                              QStyle, QStylePainter, QStyleOptionTab)
 from PyQt5.QtGui import QIcon, QPalette, QColor
 
 from qutebrowser.utils import qtutils, objreg, utils
 from qutebrowser.config import config
+from qutebrowser.browser import webview
 
 
 PM_TabBarPadding = QStyle.PM_CustomBase
@@ -40,13 +41,24 @@ PM_TabBarPadding = QStyle.PM_CustomBase
 
 class TabWidget(QTabWidget):
 
-    """The tabwidget used for TabbedBrowser."""
+    """The tab widget used for TabbedBrowser.
+
+    Signals:
+        tab_index_changed: Emitted when the current tab was changed.
+                           arg 0: The index of the tab which is now focused.
+                           arg 1: The total count of tabs.
+    """
+
+    tab_index_changed = pyqtSignal(int, int)
 
     def __init__(self, win_id, parent=None):
         super().__init__(parent)
         bar = TabBar(win_id)
         self.setTabBar(bar)
         bar.tabCloseRequested.connect(self.tabCloseRequested)
+        bar.tabMoved.connect(functools.partial(
+            QTimer.singleShot, 0, self.update_tab_titles))
+        bar.currentChanged.connect(self.emit_tab_index_changed)
         self.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Fixed)
         self.setDocumentMode(True)
         self.setElideMode(Qt.ElideRight)
@@ -62,16 +74,134 @@ class TabWidget(QTabWidget):
         self.setMovable(config.get('tabs', 'movable'))
         self.setTabsClosable(False)
         position = config.get('tabs', 'position')
-        selection_behaviour = config.get('tabs', 'select-on-remove')
+        selection_behavior = config.get('tabs', 'select-on-remove')
         self.setTabPosition(position)
         tabbar.vertical = position in (QTabWidget.West, QTabWidget.East)
-        tabbar.setSelectionBehaviorOnRemove(selection_behaviour)
+        tabbar.setSelectionBehaviorOnRemove(selection_behavior)
         tabbar.refresh()
+
+    def set_tab_indicator_color(self, idx, color):
+        """Set the tab indicator color.
+
+        Args:
+            idx: The tab index.
+            color: A QColor.
+        """
+        bar = self.tabBar()
+        bar.set_tab_data(idx, 'indicator-color', color)
+        bar.update(bar.tabRect(idx))
+
+    def set_page_title(self, idx, title):
+        """Set the tab title user data."""
+        self.tabBar().set_tab_data(idx, 'page-title', title)
+        self.update_tab_title(idx)
+
+    def page_title(self, idx):
+        """Get the tab title user data."""
+        return self.tabBar().page_title(idx)
+
+    def update_tab_title(self, idx):
+        """Update the tab text for the given tab."""
+        widget = self.widget(idx)
+        page_title = self.page_title(idx).replace('&', '&&')
+
+        fields = {}
+        if widget.load_status == webview.LoadStatus.loading:
+            fields['perc'] = '[{}%] '.format(widget.progress)
+        else:
+            fields['perc'] = ''
+        fields['perc_raw'] = widget.progress
+        fields['title'] = page_title
+        fields['index'] = idx + 1
+        fields['id'] = widget.tab_id
+        fields['title_sep'] = ' - ' if page_title else ''
+
+        fmt = config.get('tabs', 'title-format')
+        self.tabBar().setTabText(idx, fmt.format(**fields))
+
+    @config.change_filter('tabs', 'title-format')
+    def update_tab_titles(self):
+        """Update all texts."""
+        for idx in range(self.count()):
+            self.update_tab_title(idx)
+
+    def tabInserted(self, idx):
+        """Update titles when a tab was inserted."""
+        super().tabInserted(idx)
+        self.update_tab_titles()
+
+    def tabRemoved(self, idx):
+        """Update titles when a tab was removed."""
+        super().tabRemoved(idx)
+        self.update_tab_titles()
+
+    def addTab(self, page, icon_or_text, text_or_empty=None):
+        """Override addTab to use our own text setting logic.
+
+        Unfortunately QTabWidget::addTab has these two overloads:
+            - QWidget * page, const QIcon & icon, const QString & label
+            - QWidget * page, const QString & label
+
+        This means we'll get different arguments based on the chosen overload.
+
+        Args:
+            page: The QWidget to add.
+            icon_or_text: Either the QIcon to add or the label.
+            text_or_empty: Either the label or None.
+
+        Return:
+            The index of the newly added tab.
+        """
+        if text_or_empty is None:
+            icon = None
+            text = icon_or_text
+            new_idx = super().addTab(page, '')
+        else:
+            icon = icon_or_text
+            text = text_or_empty
+            new_idx = super().addTab(page, icon, '')
+        self.set_page_title(new_idx, text)
+        return new_idx
+
+    def insertTab(self, idx, page, icon_or_text, text_or_empty=None):
+        """Override insertTab to use our own text setting logic.
+
+        Unfortunately QTabWidget::insertTab has these two overloads:
+            - int index, QWidget * page, const QIcon & icon,
+              const QString & label
+            - int index, QWidget * page, const QString & label
+
+        This means we'll get different arguments based on the chosen overload.
+
+        Args:
+            idx: Where to insert the widget.
+            page: The QWidget to add.
+            icon_or_text: Either the QIcon to add or the label.
+            text_or_empty: Either the label or None.
+
+        Return:
+            The index of the newly added tab.
+        """
+        if text_or_empty is None:
+            icon = None
+            text = icon_or_text
+            new_idx = super().insertTab(idx, page, '')
+        else:
+            icon = icon_or_text
+            text = text_or_empty
+            new_idx = super().insertTab(idx, page, icon, '')
+        self.set_page_title(new_idx, text)
+        return new_idx
+
+    @pyqtSlot(int)
+    def emit_tab_index_changed(self, index):
+        """Emit the tab_index_changed signal if the current tab changed."""
+        self.tab_index_changed.emit(index, self.count())
 
 
 class TabBar(QTabBar):
 
-    """Custom tabbar with our own style.
+    """Custom tab bar with our own style.
 
     FIXME: Dragging tabs doesn't look as nice as it does in QTabBar.  However,
     fixing this would be a lot of effort, so we'll postpone it until we're
@@ -95,21 +225,65 @@ class TabBar(QTabBar):
         self.setAutoFillBackground(True)
         self.set_colors()
         config_obj.changed.connect(self.set_colors)
-        QTimer.singleShot(0, self.autohide)
+        QTimer.singleShot(0, self._tabhide)
         config_obj.changed.connect(self.autohide)
+        config_obj.changed.connect(self.alwayshide)
         config_obj.changed.connect(self.on_tab_colors_changed)
 
     def __repr__(self):
         return utils.get_repr(self, count=self.count())
 
-    @config.change_filter('tabs', 'auto-hide')
+    @config.change_filter('tabs', 'hide-auto')
     def autohide(self):
-        """Auto-hide the tabbar if needed."""
-        auto_hide = config.get('tabs', 'auto-hide')
-        if auto_hide and self.count() == 1:
+        """Hide tab bar if needed when tabs->hide-auto got changed."""
+        self._tabhide()
+
+    @config.change_filter('tabs', 'hide-always')
+    def alwayshide(self):
+        """Hide tab bar if needed when tabs->hide-always got changed."""
+        self._tabhide()
+
+    def _tabhide(self):
+        """Hide the tab bar if needed."""
+        hide_auto = config.get('tabs', 'hide-auto')
+        hide_always = config.get('tabs', 'hide-always')
+        if hide_always or (hide_auto and self.count() == 1):
             self.hide()
         else:
             self.show()
+
+    def set_tab_data(self, idx, key, value):
+        """Set tab data as a dictionary."""
+        if not 0 <= idx < self.count():
+            raise IndexError("Tab index ({}) out of range ({})!".format(
+                idx, self.count()))
+        data = self.tabData(idx)
+        if data is None:
+            data = {}
+        data[key] = value
+        self.setTabData(idx, data)
+
+    def tab_data(self, idx, key):
+        """Get tab data for a given key."""
+        if not 0 <= idx < self.count():
+            raise IndexError("Tab index ({}) out of range ({})!".format(
+                idx, self.count()))
+        data = self.tabData(idx)
+        if data is None:
+            data = {}
+        return data[key]
+
+    def page_title(self, idx):
+        """Get the tab title user data.
+
+        Args:
+            idx: The tab index to get the title for.
+            handle_unset: Whether to return an empty string on KeyError.
+        """
+        try:
+            return self.tab_data(idx, 'page-title')
+        except KeyError:
+            return ''
 
     def refresh(self):
         """Properly repaint the tab bar and relayout tabs."""
@@ -117,24 +291,14 @@ class TabBar(QTabBar):
         # code sets layoutDirty so it actually relayouts the tabs.
         self.setIconSize(self.iconSize())
 
-    def set_tab_indicator_color(self, idx, color):
-        """Set the tab indicator color.
-
-        Args:
-            idx: The tab index.
-            color: A QColor.
-        """
-        self.setTabData(idx, color)
-        self.update(self.tabRect(idx))
-
     @config.change_filter('fonts', 'tabbar')
     def set_font(self):
-        """Set the tabbar font."""
+        """Set the tab bar font."""
         self.setFont(config.get('fonts', 'tabbar'))
 
     @config.change_filter('colors', 'tabs.bg.bar')
     def set_colors(self):
-        """Set the tabbar colors."""
+        """Set the tab bar colors."""
         p = self.palette()
         p.setColor(QPalette.Window, config.get('colors', 'tabs.bg.bar'))
         self.setPalette(p)
@@ -161,7 +325,7 @@ class TabBar(QTabBar):
         """Set the minimum tab size to indicator/icon/... text.
 
         Args:
-            index: The index of the tab to get a sizehint for.
+            index: The index of the tab to get a size hint for.
 
         Return:
             A QSize.
@@ -227,9 +391,9 @@ class TabBar(QTabBar):
     def paintEvent(self, _e):
         """Override paintEvent to draw the tabs like we want to."""
         p = QStylePainter(self)
-        tab = QStyleOptionTab()
         selected = self.currentIndex()
         for idx in range(self.count()):
+            tab = QStyleOptionTab()
             self.initStyleOption(tab, idx)
             if idx == selected:
                 bg_color = config.get('colors', 'tabs.bg.selected')
@@ -242,8 +406,9 @@ class TabBar(QTabBar):
                 fg_color = config.get('colors', 'tabs.fg.even')
             tab.palette.setColor(QPalette.Window, bg_color)
             tab.palette.setColor(QPalette.WindowText, fg_color)
-            indicator_color = self.tabData(idx)
-            if indicator_color is None:
+            try:
+                indicator_color = self.tab_data(idx, 'indicator-color')
+            except KeyError:
                 indicator_color = QColor()
             tab.palette.setColor(QPalette.Base, indicator_color)
             if tab.rect.right() < 0 or tab.rect.left() > self.width():
@@ -253,14 +418,80 @@ class TabBar(QTabBar):
             p.drawControl(QStyle.CE_TabBarTab, tab)
 
     def tabInserted(self, idx):
-        """Show the tabbar if configured to hide and >1 tab is open."""
-        self.autohide()
+        """Update visibility when a tab was inserted."""
         super().tabInserted(idx)
+        self._tabhide()
 
     def tabRemoved(self, idx):
-        """Hide the tabbar if configured when only one tab is open."""
-        self.autohide()
+        """Update visibility when a tab was removed."""
         super().tabRemoved(idx)
+        self._tabhide()
+
+    def addTab(self, icon_or_text, text_or_empty=None):
+        """Override addTab to use our own text setting logic.
+
+        Unfortunately QTabBar::addTab has these two overloads:
+            - const QIcon & icon, const QString & label
+            - const QString & label
+
+        This means we'll get different arguments based on the chosen overload.
+
+        Args:
+            icon_or_text: Either the QIcon to add or the label.
+            text_or_empty: Either the label or None.
+
+        Return:
+            The index of the newly added tab.
+        """
+        if text_or_empty is None:
+            icon = None
+            text = icon_or_text
+            new_idx = super().addTab('')
+        else:
+            icon = icon_or_text
+            text = text_or_empty
+            new_idx = super().addTab(icon, '')
+        self.set_page_title(new_idx, text)
+
+    def insertTab(self, idx, icon_or_text, text_or_empty=None):
+        """Override insertTab to use our own text setting logic.
+
+        Unfortunately QTabBar::insertTab has these two overloads:
+            - int index, const QIcon & icon, const QString & label
+            - int index, const QString & label
+
+        This means we'll get different arguments based on the chosen overload.
+
+        Args:
+            idx: Where to insert the widget.
+            icon_or_text: Either the QIcon to add or the label.
+            text_or_empty: Either the label or None.
+
+        Return:
+            The index of the newly added tab.
+        """
+        if text_or_empty is None:
+            icon = None
+            text = icon_or_text
+            new_idx = super().InsertTab(idx, '')
+        else:
+            icon = icon_or_text
+            text = text_or_empty
+            new_idx = super().insertTab(idx, icon, '')
+        self.set_page_title(new_idx, text)
+
+    def wheelEvent(self, e):
+        """Override wheelEvent to make the action configurable.
+
+        Args:
+            e: The QWheelEvent
+        """
+        if config.get('tabs', 'mousewheel-tab-switching'):
+            super().wheelEvent(e)
+        else:
+            tabbed_browser = objreg.get('tabbed-browser', scope='window',
+                                        window=self._win_id)
+            tabbed_browser.wheelEvent(e)
 
 
 class TabBarStyle(QCommonStyle):

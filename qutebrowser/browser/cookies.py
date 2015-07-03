@@ -1,6 +1,6 @@
 # vim: ft=python fileencoding=utf-8 sts=4 sw=4 et:
 
-# Copyright 2014 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
+# Copyright 2014-2015 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
 #
 # This file is part of qutebrowser.
 #
@@ -20,16 +20,25 @@
 """Handling of HTTP cookies."""
 
 from PyQt5.QtNetwork import QNetworkCookie, QNetworkCookieJar
-from PyQt5.QtCore import QStandardPaths, QDateTime
+from PyQt5.QtCore import pyqtSignal, QDateTime
 
 from qutebrowser.config import config
-from qutebrowser.config.parsers import line as lineparser
 from qutebrowser.utils import utils, standarddir, objreg
+from qutebrowser.misc import lineparser
 
 
 class RAMCookieJar(QNetworkCookieJar):
 
-    """An in-RAM cookie jar."""
+    """An in-RAM cookie jar.
+
+    Signals:
+        changed: Emitted when the cookie store was changed.
+    """
+
+    changed = pyqtSignal()
+
+    def __init__(self, parent=None):
+        super().__init__(parent)
 
     def __repr__(self):
         return utils.get_repr(self, count=len(self.allCookies()))
@@ -47,6 +56,7 @@ class RAMCookieJar(QNetworkCookieJar):
         if config.get('content', 'cookies-accept') == 'never':
             return False
         else:
+            self.changed.emit()
             return super().setCookiesFromUrl(cookies, url)
 
 
@@ -55,24 +65,26 @@ class CookieJar(RAMCookieJar):
     """A cookie jar saving cookies to disk.
 
     Attributes:
-        _linecp: The LineConfigParser managing the cookies file.
+        _lineparser: The LineParser managing the cookies file.
     """
 
     def __init__(self, parent=None):
         super().__init__(parent)
-        datadir = standarddir.get(QStandardPaths.DataLocation)
-        self._linecp = lineparser.LineConfigParser(datadir, 'cookies',
-                                                   binary=True)
+        self._lineparser = lineparser.LineParser(
+            standarddir.data(), 'cookies', binary=True, parent=self)
         cookies = []
-        for line in self._linecp:
+        for line in self._lineparser:
             cookies += QNetworkCookie.parseCookies(line)
         self.setAllCookies(cookies)
         objreg.get('config').changed.connect(self.cookies_store_changed)
+        objreg.get('save-manager').add_saveable(
+            'cookies', self.save, self.changed,
+            config_opt=('content', 'cookies-store'))
 
     def purge_old_cookies(self):
         """Purge expired cookies from the cookie jar."""
         # Based on:
-        # http://qt-project.org/doc/qt-5/qtwebkitexamples-webkitwidgets-browser-cookiejar-cpp.html
+        # http://doc.qt.io/qt-5/qtwebkitexamples-webkitwidgets-browser-cookiejar-cpp.html
         now = QDateTime.currentDateTime()
         cookies = [c for c in self.allCookies()
                    if c.isSessionCookie() or c.expirationDate() >= now]
@@ -80,19 +92,18 @@ class CookieJar(RAMCookieJar):
 
     def save(self):
         """Save cookies to disk."""
-        if not config.get('content', 'cookies-store'):
-            return
         self.purge_old_cookies()
         lines = []
         for cookie in self.allCookies():
             if not cookie.isSessionCookie():
                 lines.append(cookie.toRawForm())
-        self._linecp.data = lines
-        self._linecp.save()
+        self._lineparser.data = lines
+        self._lineparser.save()
 
     @config.change_filter('content', 'cookies-store')
     def cookies_store_changed(self):
         """Delete stored cookies if cookies-store changed."""
         if not config.get('content', 'cookies-store'):
-            self._linecp.data = []
-            self._linecp.save()
+            self._lineparser.data = []
+            self._lineparser.save()
+            self.changed.emit()
