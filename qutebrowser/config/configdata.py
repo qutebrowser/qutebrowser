@@ -544,10 +544,12 @@ def data(readonly=False):
 
         ('storage', sect.KeyValue(
             ('download-directory',
-             SettingValue(typ.Directory(none_ok=True), ''),
+             SettingValue(typ.Directory(none_ok=True, special_values=['%']),
+                          '%'),
              "The directory to save downloads to. An empty value selects a "
-             "sensible os-specific default. Will expand environment "
-             "variables."),
+             "sensible os-specific default. A value of % will do the same, "
+             "also remembers the last used directory. Environment variables "
+             "are expanded."),
 
             ('maximum-pages-in-cache',
              SettingValue(

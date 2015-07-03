@@ -120,7 +120,7 @@
 [options="header",width="75%",cols="25%,75%"]
 |==============
 |Setting|Description
-|<<storage-download-directory,download-directory>>|The directory to save downloads to. An empty value selects a sensible os-specific default. Will expand environment variables.
+|<<storage-download-directory,download-directory>>|The directory to save downloads to. An empty value selects a sensible os-specific default. A value of % will do the same, also remembers the last used directory. Environment variables are expanded.
 |<<storage-maximum-pages-in-cache,maximum-pages-in-cache>>|The maximum number of pages to hold in the global memory page cache.
 |<<storage-object-cache-capacities,object-cache-capacities>>|The capacities for the global memory cache for dead objects such as stylesheets or scripts. Syntax: cacheMinDeadCapacity, cacheMaxDead, totalCapacity.
 |<<storage-offline-storage-default-quota,offline-storage-default-quota>>|Default quota for new offline storage databases.
@@ -1084,9 +1084,9 @@ Settings related to cache and storage.
 
 [[storage-download-directory]]
 === download-directory
-The directory to save downloads to. An empty value selects a sensible os-specific default. Will expand environment variables.
+The directory to save downloads to. An empty value selects a sensible os-specific default. A value of % will do the same, also remembers the last used directory. Environment variables are expanded.
 
-Default: empty
+Default: +pass:[%]+
 
 [[storage-maximum-pages-in-cache]]
 === maximum-pages-in-cache

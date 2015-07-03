@@ -1451,6 +1451,11 @@ class TestDirectory:
         t = configtypes.Directory(none_ok=True)
         t.validate("")
 
+    def test_validate_percent(self):
+        """Test validate with a % value."""
+        t = configtypes.Directory(special_values=['%'])
+        t.validate("%")
+
     def test_validate_does_not_exist(self, os_path):
         """Test validate with a directory which does not exist."""
         os_path.expanduser.side_effect = lambda x: x

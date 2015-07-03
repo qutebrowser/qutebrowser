@@ -844,12 +844,18 @@ class Directory(BaseType):
 
     typestr = 'directory'
 
+    def __init__(self, none_ok=False, special_values=None):
+        super().__init__(none_ok)
+        self._special_values = special_values or []
+
     def validate(self, value):
         if not value:
             if self._none_ok:
                 return
             else:
                 raise configexc.ValidationError(value, "may not be empty!")
+        if value in self._special_values:
+            return
         value = os.path.expandvars(value)
         value = os.path.expanduser(value)
         try:
