@@ -126,6 +126,15 @@ class BrowserPage(QWebPage):
         ]
         errpage.baseUrl = info.url
         urlstr = info.url.toDisplayString()
+
+        order = config.get('network', 'scheme-order')
+        if info.url.scheme() in order and order[-1] != info.url.scheme():
+            next_scheme = order[order.index(info.url.scheme()) + 1]
+            log.webview.info('Trying next scheme: {}'.format(next_scheme))
+            info.url.setScheme(next_scheme)
+            self.view().openurl(info.url)
+            return False
+
         if (info.domain, info.error) == (QWebPage.QtNetwork,
                                          QNetworkReply.ProtocolUnknownError):
             # For some reason, we get a segfault when we use

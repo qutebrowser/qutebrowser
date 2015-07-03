@@ -210,7 +210,7 @@ class List(BaseType):
         if not value:
             return None
         else:
-            return [v if v else None for v in value.split(',')]
+            return [v.strip() if v else None for v in value.split(',')]
 
     def validate(self, value):
         if not value:

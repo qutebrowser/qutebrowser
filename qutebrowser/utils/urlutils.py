@@ -29,7 +29,7 @@ from PyQt5.QtCore import QUrl
 from PyQt5.QtNetwork import QHostInfo, QHostAddress
 
 from qutebrowser.config import config, configexc
-from qutebrowser.utils import log, qtutils, message, utils
+from qutebrowser.utils import log, qtutils, message, utils, objreg
 from qutebrowser.commands import cmdexc
 
 
@@ -298,14 +298,28 @@ def qurl_from_user_input(urlstr):
     else:
         ipstr = urlstr.strip()
         rest = ''
+
+    # This may error out because we first use this function to validate the
+    # options (_validate_all) before the register the config...
+    try:
+        default_scheme = config.get('network', 'scheme-order')[0]
+    except objreg.ItemUnavailableError:
+        default_scheme = None
+
     # Then we try to parse it as an IPv6, and if we fail use
     # QUrl.fromUserInput.
     try:
         ipaddress.IPv6Address(ipstr)
     except ipaddress.AddressValueError:
-        return QUrl.fromUserInput(urlstr)
+        url = QUrl.fromUserInput(urlstr)
+        if (default_scheme is not None and default_scheme != url.scheme()
+                and not urlstr.startswith(url.scheme())):
+            log.url.debug("Setting scheme to {}".format(default_scheme))
+            url.setScheme(default_scheme)
+        return url
     else:
-        return QUrl('http://[{}]{}'.format(ipstr, rest))
+        return QUrl('{}://[{}]{}'.format((default_scheme or 'http'),
+                                         ipstr, rest))
 
 
 def invalid_url_error(win_id, url, action):

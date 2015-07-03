@@ -348,6 +348,10 @@ def data(readonly=False):
              SettingValue(typ.Bool(), 'true'),
              "Whether to try to pre-fetch DNS entries to speed up browsing."),
 
+            ('scheme-order',
+             SettingValue(typ.List(), 'https, http'),
+             "Which URL schemes to try if none is given explicitly."),
+
             readonly=readonly
         )),
 

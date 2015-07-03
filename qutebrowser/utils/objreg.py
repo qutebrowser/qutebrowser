@@ -45,6 +45,16 @@ class RegistryUnavailableError(Exception):
     pass
 
 
+class ItemUnavailableError(KeyError):
+
+    """Exception raised when a given item was not found in the registry.
+
+    Inherits KeyError because there might be existing code catching KeyError.
+    """
+
+    pass
+
+
 class NoWindow(Exception):
 
     """Exception raised by last_window if no window is available."""
@@ -215,11 +225,11 @@ def get(name, default=_UNSET, scope='global', window=None, tab=None):
     reg = _get_registry(scope, window, tab)
     try:
         return reg[name]
-    except KeyError:
+    except KeyError as e:
         if default is not _UNSET:
             return default
         else:
-            raise
+            raise ItemUnavailableError from e
 
 
 def register(name, obj, update=False, scope=None, registry=None, window=None,

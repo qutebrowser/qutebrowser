@@ -27,15 +27,18 @@ import pytest
 from qutebrowser.utils import urlutils
 
 
-def init_config_stub(stub, auto_search=True):
+def init_config_stub(stub, auto_search=True, scheme_order=None):
     """Initialize the given config_stub.
 
     Args:
         stub: The ConfigStub provided by the config_stub fixture.
         auto_search: The value auto-search should have.
     """
+    if scheme_order is None:
+        scheme_order = ['https', 'http']
     stub.data = {
         'general': {'auto-search': auto_search},
+        'network': {'scheme-order': scheme_order},
         'searchengines': {
             'test': 'http://www.qutebrowser.org/?q={}',
             'DEFAULT': 'http://www.example.com/?q={}',
@@ -227,3 +230,29 @@ class TestFilenameFromUrl:
         """Test with an URL with no path."""
         url = QUrl('http://qutebrowser.org/')
         assert urlutils.filename_from_url(url) == 'qutebrowser.org.html'
+
+
+class TestSchemeOrder:
+
+    """Tests for scheme-order setting."""
+
+    def test_http(self, monkeypatch, config_stub):
+        """Test with scheme_order = http."""
+        init_config_stub(config_stub, 'naive', scheme_order=['http'])
+        monkeypatch.setattr('qutebrowser.utils.urlutils.config', config_stub)
+        assert (urlutils.fuzzy_url('example.com').toDisplayString() ==
+                'http://example.com')
+
+    def test_https(self, config_stub, monkeypatch):
+        """Test with scheme_order = https."""
+        init_config_stub(config_stub, 'naive', scheme_order=['https'])
+        monkeypatch.setattr('qutebrowser.utils.urlutils.config', config_stub)
+        assert (urlutils.fuzzy_url('example.com').toDisplayString() ==
+                'https://example.com')
+
+    def test_https_http(self, config_stub, monkeypatch):
+        """Test with scheme_order = https, http."""
+        init_config_stub(config_stub, 'naive', scheme_order=['https', 'http'])
+        monkeypatch.setattr('qutebrowser.utils.urlutils.config', config_stub)
+        assert (urlutils.fuzzy_url('example.com').toDisplayString() ==
+                'https://example.com')

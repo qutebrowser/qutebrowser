@@ -59,6 +59,7 @@
 |<<network-proxy-dns-requests,proxy-dns-requests>>|Whether to send DNS requests over the configured proxy.
 |<<network-ssl-strict,ssl-strict>>|Whether to validate SSL handshakes.
 |<<network-dns-prefetch,dns-prefetch>>|Whether to try to pre-fetch DNS entries to speed up browsing.
+|<<network-scheme-order,scheme-order>>|Which URL schemes to try if none is given explicitly.
 |==============
 
 .Quick reference for section ``completion''
@@ -691,6 +692,12 @@ Valid values:
  * +false+
 
 Default: +pass:[true]+
+
+[[network-scheme-order]]
+=== scheme-order
+Which URL schemes to try if none is given explicitly.
+
+Default: +pass:[https, http]+
 
 == completion
 Options related to completion and command history.
