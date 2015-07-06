@@ -1172,14 +1172,14 @@ class TestFont:
         t.validate('')
         t2.validate('')
 
-    @pytest.mark.parametrize('val, attr',
-                             itertools.product(TESTS, ['t', 't2']))
+    @pytest.mark.parametrize('val', TESTS)
+    @pytest.mark.parametrize('attr', ['t', 't2'])
     def test_validate_valid(self, val, attr):
         """Test validate with valid values."""
         getattr(self, attr).validate(val)
 
-    @pytest.mark.parametrize('val, attr',
-                             itertools.product(INVALID, ['t', 't2']))
+    @pytest.mark.parametrize('val', INVALID)
+    @pytest.mark.parametrize('attr', ['t', 't2'])
     @pytest.mark.xfail(reason='FIXME: #103')
     def test_validate_invalid(self, val, attr):
         """Test validate with invalid values."""
