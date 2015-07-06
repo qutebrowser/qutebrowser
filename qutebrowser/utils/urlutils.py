@@ -266,7 +266,7 @@ def is_url(urlstr):
     elif autosearch == 'naive':
         log.url.debug("Checking via naive check")
         url = _is_url_naive(urlstr)
-    else:
+    else:  # pragma: no cover
         raise ValueError("Invalid autosearch value")
     log.url.debug("url = {}".format(url))
     return url
