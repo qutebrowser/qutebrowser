@@ -50,7 +50,7 @@ def proc(qtbot):
     p = guiprocess.GUIProcess(0, 'test')
     yield p
     if p._proc.state() == QProcess.Running:
-        with qtbot.waitSignal(p.finished, timeout=2000) as blocker:
+        with qtbot.waitSignal(p.finished, timeout=10000) as blocker:
             p._proc.terminate()
         if not blocker.signal_triggered:
             p._proc.kill()
@@ -89,7 +89,7 @@ def test_start_detached(fake_proc, argv):
 @pytest.mark.not_frozen
 def test_double_start(qtbot, proc):
     """Test starting a GUIProcess twice."""
-    with qtbot.waitSignal(proc.started, raising=True, timeout=2000):
+    with qtbot.waitSignal(proc.started, raising=True, timeout=10000):
         argv = _py_proc("import time; time.sleep(10)")
         proc.start(*argv)
     with pytest.raises(ValueError):
@@ -100,11 +100,11 @@ def test_double_start(qtbot, proc):
 def test_double_start_finished(qtbot, proc):
     """Test starting a GUIProcess twice (with the first call finished)."""
     with qtbot.waitSignals([proc.started, proc.finished], raising=True,
-                           timeout=2000):
+                           timeout=10000):
         argv = _py_proc("import sys; sys.exit(0)")
         proc.start(*argv)
     with qtbot.waitSignals([proc.started, proc.finished], raising=True,
-                           timeout=2000):
+                           timeout=10000):
         argv = _py_proc("import sys; sys.exit(0)")
         proc.start(*argv)
 
@@ -125,5 +125,5 @@ def test_error(qtbot, proc):
 
 @pytest.mark.not_frozen
 def test_exit_unsuccessful(qtbot, proc):
-    with qtbot.waitSignal(proc.finished, raising=True, timeout=2000):
+    with qtbot.waitSignal(proc.finished, raising=True, timeout=10000):
         proc.start(*_py_proc('import sys; sys.exit(0)'))
