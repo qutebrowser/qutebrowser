@@ -132,8 +132,8 @@ class TestGitStr:
 
     def test_normal_path_oserror(self, mocker, git_str_subprocess_fake):
         """Test with things raising OSError."""
-        mocker.patch('qutebrowser.utils.version.os.path.join',
-                     side_effect=OSError)
+        m = mocker.patch('qutebrowser.utils.version.os')
+        m.path.join.side_effect = OSError
         mocker.patch('qutebrowser.utils.version.utils.read_file',
                      side_effect=OSError)
         assert version._git_str() is None
@@ -218,8 +218,8 @@ class TestGitStrSubprocess:
         Args:
             exc: The exception to raise.
         """
-        mocker.patch('qutebrowser.utils.version.subprocess.os.path.isdir',
-                     return_value=True)
+        m = mocker.patch('qutebrowser.utils.version.subprocess.os')
+        m.path.isdir.return_value = True
         mocker.patch('qutebrowser.utils.version.subprocess.check_output',
                      side_effect=exc)
         ret = version._git_str_subprocess(str(tmpdir))
