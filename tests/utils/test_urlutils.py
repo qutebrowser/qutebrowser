@@ -174,6 +174,7 @@ class TestFuzzyUrl:
         url = urlutils.fuzzy_url('/foo')
         assert url == QUrl('file:///foo')
 
+    @pytest.mark.posix
     def test_file_absolute_expanded(self, os_mock):
         """Make sure ~ gets expanded correctly."""
         os_mock.path.exists.return_value = True
