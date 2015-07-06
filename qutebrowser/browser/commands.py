@@ -614,6 +614,8 @@ class CommandDispatcher:
                                       "expected one of: {}".format(
                                           direction, ', '.join(fake_keys)))
         widget = self._current_widget()
+        frame = widget.page().currentFrame()
+
         press_evt = QKeyEvent(QEvent.KeyPress, key, Qt.NoModifier, 0, 0, 0)
         release_evt = QKeyEvent(QEvent.KeyRelease, key, Qt.NoModifier, 0, 0, 0)
 
@@ -621,7 +623,25 @@ class CommandDispatcher:
         if direction in ('top', 'bottom'):
             count = 1
 
+        max_min = {
+            'up': [Qt.Vertical, frame.scrollBarMinimum],
+            'down': [Qt.Vertical, frame.scrollBarMaximum],
+            'left': [Qt.Horizontal, frame.scrollBarMinimum],
+            'right': [Qt.Horizontal, frame.scrollBarMaximum],
+            'page-up': [Qt.Vertical, frame.scrollBarMinimum],
+            'page-down': [Qt.Vertical, frame.scrollBarMaximum],
+        }
+
         for _ in range(count):
+            # Abort scrolling if the minimum/maximum was reached.
+            try:
+                qt_dir, getter = max_min[direction]
+            except KeyError:
+                pass
+            else:
+                if frame.scrollBarValue(qt_dir) == getter(qt_dir):
+                    return
+
             widget.keyPressEvent(press_evt)
             widget.keyReleaseEvent(release_evt)
 
