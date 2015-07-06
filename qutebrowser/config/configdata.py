@@ -1220,7 +1220,7 @@ KEY_DATA = collections.OrderedDict([
         ('tab-clone', ['gC']),
         ('reload', ['r']),
         ('reload -f', ['R']),
-        ('back', ['H', '<Backspace>']),
+        ('back', ['H']),
         ('back -t', ['th']),
         ('back -w', ['wh']),
         ('forward', ['L']),
