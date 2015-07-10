@@ -38,7 +38,12 @@ def parse_args():
 if __name__ == '__main__':
     args = parse_args()
     app = QApplication(sys.argv)
+
     wv = QWebView()
+    wv.loadStarted.connect(lambda: print("Loading started"))
+    wv.loadProgress.connect(lambda p: print("Loading progress: {}%".format(p)))
+    wv.loadFinished.connect(lambda: print("Loading finished"))
     wv.load(QUrl.fromUserInput(args.url))
     wv.show()
+
     app.exec_()
