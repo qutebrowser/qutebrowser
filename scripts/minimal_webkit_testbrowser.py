@@ -39,6 +39,6 @@ if __name__ == '__main__':
     args = parse_args()
     app = QApplication(sys.argv)
     wv = QWebView()
-    wv.load(QUrl(args.url))
+    wv.load(QUrl.fromUserInput(args.url))
     wv.show()
     app.exec_()
