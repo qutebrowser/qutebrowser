@@ -21,13 +21,24 @@
 """Very simple browser for testing purposes."""
 
 import sys
+import argparse
 
 from PyQt5.QtCore import QUrl
 from PyQt5.QtWidgets import QApplication
 from PyQt5.QtWebKitWidgets import QWebView
 
-app = QApplication(sys.argv)
-wv = QWebView()
-wv.load(QUrl(sys.argv[1]))
-wv.show()
-app.exec_()
+
+def parse_args():
+    """Parse commandline arguments."""
+    parser = argparse.ArgumentParser()
+    parser.add_argument('url', help='The URL to open')
+    return parser.parse_args()
+
+
+if __name__ == '__main__':
+    args = parse_args()
+    app = QApplication(sys.argv)
+    wv = QWebView()
+    wv.load(QUrl(args.url))
+    wv.show()
+    app.exec_()
