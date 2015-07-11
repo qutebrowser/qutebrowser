@@ -50,8 +50,6 @@ def elide(text, length):
 def compact_text(text, elidelength=None):
     """Remove leading whitespace and newlines from a text and maybe elide it.
 
-    FIXME: Add tests.
-
     Args:
         text: The text to compact.
         elidelength: To how many chars to elide.
@@ -105,12 +103,12 @@ def actute_warning():
     try:
         if qtutils.version_check('5.3.0'):
             return
-    except ValueError:
+    except ValueError:  # pragma: no cover
         pass
     try:
         with open('/usr/share/X11/locale/en_US.UTF-8/Compose', 'r',
                   encoding='utf-8') as f:
-            for line in f:
+            for line in f:  # pragma: no branch
                 if '<dead_actute>' in line:
                     if sys.stdout is not None:
                         sys.stdout.flush()
@@ -118,7 +116,7 @@ def actute_warning():
                           "that is not a bug in qutebrowser! See "
                           "https://bugs.freedesktop.org/show_bug.cgi?id=69476 "
                           "for details.")
-                    break
+                    break  # pragma: no branch
     except OSError:
         log.init.exception("Failed to read Compose file")
 
@@ -242,7 +240,7 @@ def key_to_string(key):
     """
     special_names_str = {
         # Some keys handled in a weird way by QKeySequence::toString.
-        # See https://bugreports.qt-project.org/browse/QTBUG-40030
+        # See https://bugreports.qt.io/browse/QTBUG-40030
         # Most are unlikely to be ever needed, but you never know ;)
         # For dead/combining keys, we return the corresponding non-combining
         # key, as that's easier to add to the config.
@@ -290,6 +288,18 @@ def key_to_string(key):
         'Key_TouchpadOn': 'Touchpad On',
         'Key_TouchpadToggle': 'Touchpad toggle',
         'Key_Yellow': 'Yellow',
+        'Key_Alt': 'Alt',
+        'Key_AltGr': 'AltGr',
+        'Key_Control': 'Control',
+        'Key_Direction_L': 'Direction L',
+        'Key_Direction_R': 'Direction R',
+        'Key_Hyper_L': 'Hyper L',
+        'Key_Hyper_R': 'Hyper R',
+        'Key_Meta': 'Meta',
+        'Key_Shift': 'Shift',
+        'Key_Super_L': 'Super L',
+        'Key_Super_R': 'Super R',
+        'Key_unknown': 'Unknown',
     }
     # We now build our real special_names dict from the string mapping above.
     # The reason we don't do this directly is that certain Qt versions don't
@@ -428,11 +438,13 @@ def disabled_excepthook():
     """Run code with the exception hook temporarily disabled."""
     old_excepthook = sys.excepthook
     sys.excepthook = sys.__excepthook__
-    yield
-    # If the code we did run did change sys.excepthook, we leave it
-    # unchanged. Otherwise, we reset it.
-    if sys.excepthook is sys.__excepthook__:
-        sys.excepthook = old_excepthook
+    try:
+        yield
+    finally:
+        # If the code we did run did change sys.excepthook, we leave it
+        # unchanged. Otherwise, we reset it.
+        if sys.excepthook is sys.__excepthook__:
+            sys.excepthook = old_excepthook
 
 
 class prevent_exceptions:  # pylint: disable=invalid-name
@@ -541,7 +553,7 @@ def qualname(obj):
     elif hasattr(obj, '__name__'):
         name = obj.__name__
     else:
-        name = '<unknown>'
+        name = repr(obj)
 
     if inspect.isclass(obj) or inspect.isfunction(obj):
         module = obj.__module__

@@ -148,7 +148,7 @@ class DownloadItemStats(QObject):
 
     @pyqtSlot(int, int)
     def on_download_progress(self, bytes_done, bytes_total):
-        """Upload local variables when the download progress changed.
+        """Update local variables when the download progress changed.
 
         Args:
             bytes_done: How many bytes are downloaded.
@@ -158,7 +158,6 @@ class DownloadItemStats(QObject):
             bytes_total = None
         self.done = bytes_done
         self.total = bytes_total
-        self.updated.emit()
 
 
 class DownloadItem(QObject):
@@ -297,10 +296,10 @@ class DownloadItem(QObject):
         else:
             self.set_fileobj(fileobj)
 
-    def _ask_overwrite_question(self):
+    def _ask_confirm_question(self, msg):
         """Create a Question object to be asked."""
         q = usertypes.Question(self)
-        q.text = self._filename + " already exists. Overwrite? (y/n)"
+        q.text = msg
         q.mode = usertypes.PromptMode.yesno
         q.answered_yes.connect(self._create_fileobj)
         q.answered_no.connect(functools.partial(self.cancel, False))
@@ -356,12 +355,19 @@ class DownloadItem(QObject):
         if reply.error() != QNetworkReply.NoError:
             QTimer.singleShot(0, lambda: self.error.emit(reply.errorString()))
 
-    def bg_color(self):
-        """Background color to be shown."""
-        start = config.get('colors', 'downloads.bg.start')
-        stop = config.get('colors', 'downloads.bg.stop')
-        system = config.get('colors', 'downloads.bg.system')
-        error = config.get('colors', 'downloads.bg.error')
+    def get_status_color(self, position):
+        """Choose an appropriate color for presenting the download's status.
+
+        Args:
+            position: The color type requested, can be 'fg' or 'bg'.
+        """
+        # pylint: disable=bad-config-call
+        # WORKAROUND for https://bitbucket.org/logilab/astroid/issue/104/
+        assert position in ("fg", "bg")
+        start = config.get('colors', 'downloads.{}.start'.format(position))
+        stop = config.get('colors', 'downloads.{}.stop'.format(position))
+        system = config.get('colors', 'downloads.{}.system'.format(position))
+        error = config.get('colors', 'downloads.{}.error'.format(position))
         if self.error_msg is not None:
             assert not self.successful
             return error
@@ -446,7 +452,14 @@ class DownloadItem(QObject):
         if os.path.isfile(self._filename):
             # The file already exists, so ask the user if it should be
             # overwritten.
-            self._ask_overwrite_question()
+            txt = self._filename + " already exists. Overwrite?"
+            self._ask_confirm_question(txt)
+        # FIFO, device node, etc. Make sure we want to do this
+        elif (os.path.exists(self._filename) and not
+                os.path.isdir(self._filename)):
+            txt = (self._filename + " already exists and is a special file. "
+                   "Write to this?")
+            self._ask_confirm_question(txt)
         else:
             self._create_fileobj()
 
@@ -679,7 +692,7 @@ class DownloadManager(QAbstractListModel):
         if fileobj is not None and filename is not None:
             raise TypeError("Only one of fileobj/filename may be given!")
         # WORKAROUND for Qt corrupting data loaded from cache:
-        # https://bugreports.qt-project.org/browse/QTBUG-42757
+        # https://bugreports.qt.io/browse/QTBUG-42757
         request.setAttribute(QNetworkRequest.CacheLoadControlAttribute,
                              QNetworkRequest.AlwaysNetwork)
         suggested_fn = urlutils.filename_from_url(request.url())
@@ -1023,9 +1036,9 @@ class DownloadManager(QAbstractListModel):
         if role == Qt.DisplayRole:
             data = str(item)
         elif role == Qt.ForegroundRole:
-            data = config.get('colors', 'downloads.fg')
+            data = item.get_status_color('fg')
         elif role == Qt.BackgroundRole:
-            data = item.bg_color()
+            data = item.get_status_color('bg')
         elif role == ModelRole.item:
             data = item
         elif role == Qt.ToolTipRole:

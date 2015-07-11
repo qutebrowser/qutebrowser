@@ -1,6 +1,7 @@
+#!/usr/bin/env python3
 # vim: ft=python fileencoding=utf-8 sts=4 sw=4 et:
 
-# Copyright 2014-2015 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
+# Copyright 2015 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
 #
 # This file is part of qutebrowser.
 #
@@ -17,19 +18,16 @@
 # You should have received a copy of the GNU General Public License
 # along with qutebrowser.  If not, see <http://www.gnu.org/licenses/>.
 
-# pylint: disable=line-too-long
+# pylint: disable=import-error,no-member
 
-"""A keyboard-driven, vim-like browser based on PyQt5 and QtWebKit."""
+"""cx_Freeze script to run qutebrowser tests on the frozen executable."""
 
-import os.path
+import sys
 
-__author__ = "Florian Bruhin"
-__copyright__ = "Copyright 2014-2015 Florian Bruhin (The Compiler)"
-__license__ = "GPL"
-__maintainer__ = __author__
-__email__ = "mail@qutebrowser.org"
-__version_info__ = (0, 3, 0)
-__version__ = '.'.join(map(str, __version_info__))
-__description__ = "A keyboard-driven, vim-like browser based on PyQt5 and QtWebKit."
+import pytest
+import pytestqt.plugin
+import pytest_mock
+import pytest_capturelog
 
-basedir = os.path.dirname(os.path.realpath(__file__))
+sys.exit(pytest.main(plugins=[pytestqt.plugin, pytest_mock,
+                              pytest_capturelog]))

@@ -20,6 +20,7 @@
 |<<hint,hint>>|Start hinting.
 |<<home,home>>|Open main startpage in current tab.
 |<<inspector,inspector>>|Toggle the web inspector.
+|<<jseval,jseval>>|Evaluate a JavaScript string.
 |<<later,later>>|Execute a command after some time.
 |<<navigate,navigate>>|Open typical prev/next links or navigate using the URL path.
 |<<open,open>>|Open a URL in the current/[count]th tab.
@@ -210,7 +211,7 @@ Start hinting.
  - `fill`: Fill the commandline with the command given as
  argument.
  - `download`: Download the link.
- - `userscript`: Call an userscript with `$QUTE_URL` set to the
+ - `userscript`: Call a userscript with `$QUTE_URL` set to the
  link.
  - `spawn`: Spawn a command.
  
@@ -240,6 +241,22 @@ Open main startpage in current tab.
 [[inspector]]
 === inspector
 Toggle the web inspector.
+
+[[jseval]]
+=== jseval
+Syntax: +:jseval [*--quiet*] 'js-code'+
+
+Evaluate a JavaScript string.
+
+==== positional arguments
+* +'js-code'+: The string to evaluate.
+
+==== optional arguments
+* +*-q*+, +*--quiet*+: Don't show resulting JS object.
+
+==== note
+* This command does not split arguments after the last argument and handles quotes literally.
+* With this command, +;;+ is interpreted literally instead of splitting off a second command.
 
 [[later]]
 === later
@@ -512,18 +529,23 @@ Preset the statusbar to some text.
 
 [[spawn]]
 === spawn
-Syntax: +:spawn [*--userscript*] [*--quiet*] 'args' ['args' ...]+
+Syntax: +:spawn [*--userscript*] [*--verbose*] [*--detach*] 'cmdline'+
 
 Spawn a command in a shell.
 
 Note the {url} variable which gets replaced by the current URL might be useful here.
 
 ==== positional arguments
-* +'args'+: The commandline to execute.
+* +'cmdline'+: The commandline to execute.
 
 ==== optional arguments
-* +*-u*+, +*--userscript*+: Run the command as an userscript.
-* +*-q*+, +*--quiet*+: Don't print the commandline being executed.
+* +*-u*+, +*--userscript*+: Run the command as a userscript.
+* +*-v*+, +*--verbose*+: Show notifications when the command started/exited.
+* +*-d*+, +*--detach*+: Whether the command should be detached from qutebrowser.
+
+==== note
+* This command does not split arguments after the last argument and handles quotes literally.
+* With this command, +;;+ is interpreted literally instead of splitting off a second command.
 
 [[stop]]
 === stop

@@ -31,13 +31,14 @@ import collections
 import tempfile
 import argparse
 
-sys.path.insert(0, os.path.join(os.path.dirname(__file__), os.pardir))
+sys.path.insert(0, os.path.join(os.path.dirname(__file__), os.pardir,
+                os.pardir))
 
 # We import qutebrowser.app so all @cmdutils-register decorators are run.
 import qutebrowser.app
 from scripts import asciidoc2html, utils
 from qutebrowser import qutebrowser
-from qutebrowser.commands import cmdutils
+from qutebrowser.commands import cmdutils, command
 from qutebrowser.config import configdata
 from qutebrowser.utils import docutils
 
@@ -53,6 +54,14 @@ class UsageFormatter(argparse.HelpFormatter):
     def _format_usage(self, usage, actions, groups, _prefix):
         """Override _format_usage to not add the 'usage:' prefix."""
         return super()._format_usage(usage, actions, groups, '')
+
+    def _get_default_metavar_for_optional(self, action):
+        """Do name transforming when getting metavar."""
+        return command.arg_name(action.dest.upper())
+
+    def _get_default_metavar_for_positional(self, action):
+        """Do name transforming when getting metavar."""
+        return command.arg_name(action.dest)
 
     def _metavar_formatter(self, action, default_metavar):
         """Override _metavar_formatter to add asciidoc markup to metavars.

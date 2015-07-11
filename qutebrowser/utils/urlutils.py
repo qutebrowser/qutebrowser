@@ -141,7 +141,7 @@ def _is_url_dns(urlstr):
 
 
 def fuzzy_url(urlstr, cwd=None, relative=False, do_search=True):
-    """Get a QUrl based on an user input which is URL or search term.
+    """Get a QUrl based on a user input which is URL or search term.
 
     Args:
         urlstr: URL to load as a string.
@@ -153,15 +153,15 @@ def fuzzy_url(urlstr, cwd=None, relative=False, do_search=True):
         A target QUrl to a search page or the original URL.
     """
     expanded = os.path.expanduser(urlstr)
-    if relative and cwd:
+    if os.path.isabs(expanded):
+        path = expanded
+    elif relative and cwd:
         path = os.path.join(cwd, expanded)
     elif relative:
         try:
             path = os.path.abspath(expanded)
         except OSError:
             path = None
-    elif os.path.isabs(expanded):
-        path = expanded
     else:
         path = None
 
@@ -266,20 +266,20 @@ def is_url(urlstr):
     elif autosearch == 'naive':
         log.url.debug("Checking via naive check")
         url = _is_url_naive(urlstr)
-    else:
+    else:  # pragma: no cover
         raise ValueError("Invalid autosearch value")
     log.url.debug("url = {}".format(url))
     return url
 
 
 def qurl_from_user_input(urlstr):
-    """Get a QUrl based on an user input. Additionally handles IPv6 addresses.
+    """Get a QUrl based on a user input. Additionally handles IPv6 addresses.
 
     QUrl.fromUserInput handles something like '::1' as a file URL instead of an
     IPv6, so we first try to handle it as a valid IPv6, and if that fails we
     use QUrl.fromUserInput.
 
-    WORKAROUND - https://bugreports.qt-project.org/browse/QTBUG-41089
+    WORKAROUND - https://bugreports.qt.io/browse/QTBUG-41089
     FIXME - Maybe https://codereview.qt-project.org/#/c/93851/ has a better way
             to solve this?
     https://github.com/The-Compiler/qutebrowser/issues/109

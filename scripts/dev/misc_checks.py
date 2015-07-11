@@ -30,19 +30,26 @@ import tokenize
 import traceback
 import collections
 
-sys.path.insert(0, os.path.join(os.path.dirname(__file__), os.pardir))
+sys.path.insert(0, os.path.join(os.path.dirname(__file__), os.pardir,
+                os.pardir))
 
 from scripts import utils
 
 
-def _py_files():
+def _get_files(only_py=False):
     """Iterate over all python files and yield filenames."""
     for (dirpath, _dirnames, filenames) in os.walk('.'):
         parts = dirpath.split(os.sep)
         if len(parts) >= 2 and parts[1].startswith('.'):
             # ignore hidden dirs
             continue
-        for name in (e for e in filenames if e.endswith('.py')):
+
+        if only_py:
+            endings = {'.py'}
+        else:
+            endings = {'.py', '.asciidoc', '.js'}
+        files = (e for e in filenames if os.path.splitext(e)[1] in endings)
+        for name in files:
             yield os.path.join(dirpath, name)
 
 
@@ -75,20 +82,20 @@ def check_spelling():
              '[Oo]ccur[^r .]', '[Ss]eperator', '[Ee]xplicitely', '[Rr]esetted',
              '[Aa]uxillary', '[Aa]ccidentaly', '[Aa]mbigious', '[Ll]oosly',
              '[Ii]nitialis', '[Cc]onvienence', '[Ss]imiliar', '[Uu]ncommited',
-             '[Rr]eproducable'}
+             '[Rr]eproducable', '[Aa]n [Uu]ser'}
 
     # Words which look better when splitted, but might need some fine tuning.
-    words |= {'[Kk]eystrings', '[Ww]ebelements', '[Mm]ouseevent',
-              '[Kk]eysequence', '[Nn]ormalmode', '[Ee]ventloops',
-              '[Ss]izehint', '[Ss]tatemachine', '[Mm]etaobject',
-              '[Ll]ogrecord', '[Ff]iletype'}
+    words |= {'[Ww]ebelements', '[Mm]ouseevent', '[Kk]eysequence',
+              '[Nn]ormalmode', '[Ee]ventloops', '[Ss]izehint',
+              '[Ss]tatemachine', '[Mm]etaobject', '[Ll]ogrecord',
+              '[Ff]iletype'}
 
     seen = collections.defaultdict(list)
     try:
         ok = True
-        for fn in _py_files():
+        for fn in _get_files():
             with tokenize.open(fn) as f:
-                if fn == os.path.join('.', 'scripts', 'misc_checks.py'):
+                if fn == os.path.join('.', 'scripts', 'dev', 'misc_checks.py'):
                     continue
                 for line in f:
                     for w in words:
@@ -107,7 +114,7 @@ def check_vcs_conflict():
     """Check VCS conflict markers."""
     try:
         ok = True
-        for fn in _py_files():
+        for fn in _get_files(only_py=True):
             with tokenize.open(fn) as f:
                 for line in f:
                     if any(line.startswith(c * 7) for c in '<>=|'):

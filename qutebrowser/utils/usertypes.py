@@ -147,7 +147,7 @@ class NeighborList(collections.abc.Sequence):
                 self._idx += offset
                 self._idx %= len(self.items)
                 new = self.curitem()
-            elif self._mode == self.Modes.exception:
+            elif self._mode == self.Modes.exception:  # pragma: no branch
                 raise
         else:
             self._idx += offset
@@ -258,7 +258,7 @@ class Question(QObject):
         mode: A PromptMode enum member.
               yesno: A question which can be answered with yes/no.
               text: A question which requires a free text answer.
-              user_pwd: A question for an username and password.
+              user_pwd: A question for a username and password.
         default: The default value.
                  For yesno, None (no default), True or False.
                  For text, a default text as string.

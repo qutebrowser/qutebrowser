@@ -179,9 +179,15 @@ def init():
     quickmark_manager.changed.connect(
         functools.partial(update, [usertypes.Completion.quickmark_by_url,
                                    usertypes.Completion.quickmark_by_name]))
+
     bookmark_manager = objreg.get('bookmark-manager')
     bookmark_manager.changed.connect(
         functools.partial(update, [usertypes.Completion.bookmark_by_url]))
+
     session_manager = objreg.get('session-manager')
     session_manager.update_completion.connect(
         functools.partial(update, [usertypes.Completion.sessions]))
+
+    history = objreg.get('web-history')
+    history.async_read_done.connect(
+        functools.partial(update, [usertypes.Completion.url]))

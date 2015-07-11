@@ -120,14 +120,6 @@ class MainWindow(QWidget):
                         window=self.win_id)
 
         self.setWindowTitle('qutebrowser')
-        if geometry is not None:
-            self._load_geometry(geometry)
-        elif self.win_id == 0:
-            self._load_state_geometry()
-        else:
-            self._set_default_geometry()
-        log.init.debug("Initial main window geometry: {}".format(
-            self.geometry()))
         self._vbox = QVBoxLayout(self)
         self._vbox.setContentsMargins(0, 0, 0, 0)
         self._vbox.setSpacing(0)
@@ -164,6 +156,15 @@ class MainWindow(QWidget):
 
         log.init.debug("Initializing modes...")
         modeman.init(self.win_id, self)
+
+        if geometry is not None:
+            self._load_geometry(geometry)
+        elif self.win_id == 0:
+            self._load_state_geometry()
+        else:
+            self._set_default_geometry()
+        log.init.debug("Initial main window geometry: {}".format(
+            self.geometry()))
 
         self._connect_signals()
 

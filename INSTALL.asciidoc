@@ -28,7 +28,7 @@ Then install the packages like this:
 
 ----
 # apt-get update
-# apt-get install -t experimental python3-pyqt5 python3-pyqt5.qtwebkit
+# apt-get install -t experimental python3-pyqt5 python3-pyqt5.qtwebkit python3-sip
 # apt-get install python-tox
 ----
 
@@ -46,7 +46,7 @@ For distributions other than Debian or if you prefer to not use the
 experimental repo:
 
 ----
-# apt-get install python3-pyqt5 python3-pyqt5.qtwebkit python-tox
+# apt-get install python3-pyqt5 python3-pyqt5.qtwebkit python-tox python3-sip
 ----
 
 To generate the documentation for the `:help` command, when using the git
@@ -107,22 +107,15 @@ or you could use an AUR helper, e.g. `yaourt -S qutebrowser-git`.
 On Gentoo
 ---------
 
-A dedicated overlay is available on
-https://github.com/posativ/qutebrowser-overlay[GitHub]. To install it, add the
-overlay with http://wiki.gentoo.org/wiki/Layman[layman]:
-
-----
-# layman -a qutebrowser
-----
-
-Note, that Qt5 is available in the portage tree, but masked. You may need to do
-a lot of keywording to install qutebrowser. Also make sure you have `python3_4`
-in your `PYTHON_TARGETS` (`/etc/portage/make.conf`) and rebuild your system
-(`emerge -uDNav @world`). Afterwards, you can install qutebrowser:
+qutebrowser is available in the main repository and can be installed with:
 
 ----
 # emerge -av qutebrowser
 ----
+
+Make sure you have `python3_4` in your `PYTHON_TARGETS`
+(`/etc/portage/make.conf`) and rebuild your system (`emerge -uDNav @world`) if
+necessary.
 
 On Void Linux
 -------------
@@ -132,6 +125,16 @@ with:
 
 ----
 # xbps-install qutebrowser
+----
+
+On NixOS
+--------
+
+Nixpkgs collection contains `pkgs.qutebrowser` since June 2015. You can install
+it with:
+
+----
+$ nix-env -i qutebrowser
 ----
 
 On Windows

@@ -26,7 +26,8 @@ import sys
 import subprocess
 import os.path
 
-sys.path.insert(0, os.path.join(os.path.dirname(__file__), os.pardir))
+sys.path.insert(0, os.path.join(os.path.dirname(__file__), os.pardir,
+                os.pardir))
 
 from scripts import utils
 
@@ -70,20 +71,20 @@ def main():
     if len(sys.argv) < 2:
         # pages which previously caused problems
         pages = [
-            # ANGLE, https://bugreports.qt-project.org/browse/QTBUG-39723
+            # ANGLE, https://bugreports.qt.io/browse/QTBUG-39723
             ('http://www.binpress.com/', False),
             ('http://david.li/flow/', False),
             ('https://imzdl.com/', False),
             # not reproducible
-            # https://bugreports.qt-project.org/browse/QTBUG-39847
+            # https://bugreports.qt.io/browse/QTBUG-39847
             ('http://www.20min.ch/', True),
-            # HarfBuzz, https://bugreports.qt-project.org/browse/QTBUG-39278
+            # HarfBuzz, https://bugreports.qt.io/browse/QTBUG-39278
             ('http://www.the-compiler.org/', True),
             ('http://phoronix.com', True),
             ('http://twitter.com', True),
-            # HarfBuzz #2, https://bugreports.qt-project.org/browse/QTBUG-36099
+            # HarfBuzz #2, https://bugreports.qt.io/browse/QTBUG-36099
             ('http://lenta.ru/', True),
-            # Unknown, https://bugreports.qt-project.org/browse/QTBUG-41360
+            # Unknown, https://bugreports.qt.io/browse/QTBUG-41360
             ('http://salt.readthedocs.org/en/latest/topics/pillar/', True),
         ]
     else:

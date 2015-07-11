@@ -137,10 +137,10 @@ def fix_harfbuzz(args):
     - On Qt 5.2 (and probably earlier) the new engine probably has more
       crashes and is also experimental.
 
-      e.g. https://bugreports.qt-project.org/browse/QTBUG-36099
+      e.g. https://bugreports.qt.io/browse/QTBUG-36099
 
     - On Qt 5.3.0 there's a bug that affects a lot of websites:
-      https://bugreports.qt-project.org/browse/QTBUG-39278
+      https://bugreports.qt.io/browse/QTBUG-39278
       So the new engine will be more stable.
 
     - On Qt 5.3.1 this bug is fixed and the old engine will be the more stable

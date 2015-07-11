@@ -22,10 +22,11 @@
 import os
 import tempfile
 
-from PyQt5.QtCore import pyqtSignal, QProcess, QObject
+from PyQt5.QtCore import pyqtSignal, pyqtSlot, QObject, QProcess
 
 from qutebrowser.config import config
 from qutebrowser.utils import message, log
+from qutebrowser.misc import guiprocess
 
 
 class ExternalEditor(QObject):
@@ -36,7 +37,7 @@ class ExternalEditor(QObject):
         _text: The current text before the editor is opened.
         _oshandle: The OS level handle to the tmpfile.
         _filehandle: The file handle to the tmpfile.
-        _proc: The QProcess of the editor.
+        _proc: The GUIProcess of the editor.
         _win_id: The window ID the ExternalEditor is associated with.
     """
 
@@ -69,15 +70,10 @@ class ExternalEditor(QObject):
         log.procs.debug("Editor closed")
         if exitstatus != QProcess.NormalExit:
             # No error/cleanup here, since we already handle this in
-            # on_proc_error
+            # on_proc_error.
             return
         try:
             if exitcode != 0:
-                # NOTE: Do not replace this with "raise CommandError" as it's
-                # executed async.
-                message.error(
-                    self._win_id, "Editor did quit abnormally (status "
-                                  "{})!".format(exitcode))
                 return
             encoding = config.get('general', 'editor-encoding')
             try:
@@ -94,22 +90,8 @@ class ExternalEditor(QObject):
         finally:
             self._cleanup()
 
-    def on_proc_error(self, error):
-        """Display an error message and clean up when editor crashed."""
-        messages = {
-            QProcess.FailedToStart: "The process failed to start.",
-            QProcess.Crashed: "The process crashed.",
-            QProcess.Timedout: "The last waitFor...() function timed out.",
-            QProcess.WriteError: ("An error occurred when attempting to write "
-                                  "to the process."),
-            QProcess.ReadError: ("An error occurred when attempting to read "
-                                 "from the process."),
-            QProcess.UnknownError: "An unknown error occurred.",
-        }
-        # NOTE: Do not replace this with "raise CommandError" as it's
-        # executed async.
-        message.error(self._win_id,
-                      "Error while calling editor: {}".format(messages[error]))
+    @pyqtSlot(QProcess.ProcessError)
+    def on_proc_error(self, _err):
         self._cleanup()
 
     def edit(self, text):
@@ -132,7 +114,8 @@ class ExternalEditor(QObject):
             message.error(self._win_id, "Failed to create initial file: "
                                         "{}".format(e))
             return
-        self._proc = QProcess(self)
+        self._proc = guiprocess.GUIProcess(self._win_id, what='editor',
+                                           parent=self)
         self._proc.finished.connect(self.on_proc_closed)
         self._proc.error.connect(self.on_proc_error)
         editor = config.get('general', 'editor')

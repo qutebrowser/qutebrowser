@@ -230,7 +230,7 @@ class Prompter(QObject):
         prompt = objreg.get('prompt', scope='window', window=self._win_id)
         if (self._question.mode == usertypes.PromptMode.user_pwd and
                 self._question.user is None):
-            # User just entered an username
+            # User just entered a username
             self._question.user = prompt.lineedit.text()
             prompt.txt.setText("Password:")
             prompt.lineedit.clear()
