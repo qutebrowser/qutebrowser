@@ -31,7 +31,7 @@ import collections
 
 from PyQt5.QtCore import pyqtSignal, QUrl, QObject
 
-from qutebrowser.utils import message, urlutils, standarddir, objreg
+from qutebrowser.utils import message, standarddir, objreg
 from qutebrowser.misc import lineparser
 
 
@@ -102,19 +102,7 @@ class BookmarkManager(QObject):
             url: The url to add as bookmark.
             title: The title for the new bookmark.
         """
-        if not url.isValid():
-            urlutils.invalid_url_error(win_id, url, "save quickmark")
-            return
         urlstr = url.toString(QUrl.RemovePassword | QUrl.FullyEncoded)
-
-        # We don't raise cmdexc.CommandError here as this can be called async
-        # via prompt_save.
-        if not title:
-            message.error(win_id, "Can't set mark with empty title!")
-            return
-        if not urlstr:
-            message.error(win_id, "Can't set mark with empty URL!")
-            return
 
         if urlstr in self.bookmarks:
             message.error(win_id, "Bookmark already exists!")
