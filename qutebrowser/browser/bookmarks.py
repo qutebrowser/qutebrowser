@@ -32,7 +32,6 @@ import collections
 from PyQt5.QtCore import pyqtSignal, QUrl, QObject
 
 from qutebrowser.utils import message, urlutils, standarddir, objreg
-from qutebrowser.commands import cmdexc
 from qutebrowser.misc import lineparser
 
 
@@ -131,10 +130,6 @@ class BookmarkManager(QObject):
         Args:
             url: The url of the bookmark to delete.
         """
-        try:
-            del self.bookmarks[url]
-        except KeyError:
-            raise cmdexc.CommandError("Bookmark '{}' not found!".format(url))
-        else:
-            self.changed.emit()
-            self.removed.emit(url)
+        del self.bookmarks[url]
+        self.changed.emit()
+        self.removed.emit(url)
