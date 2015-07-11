@@ -125,7 +125,7 @@ class BookmarkManager(QObject):
             self.added.emit(title, urlstr)
             message.info(win_id, "Bookmark added")
 
-    def bookmark_del(self, url):
+    def delete(self, url):
         """Delete a bookmark.
 
         Args:

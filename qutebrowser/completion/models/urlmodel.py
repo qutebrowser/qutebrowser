@@ -190,7 +190,7 @@ class UrlCompletionModel(base.BaseCompletionModel):
         if category.isValid():
             if category.data() == 'Bookmarks':
                 bookmark_manager = objreg.get('bookmark-manager')
-                bookmark_manager.bookmark_del(url)
+                bookmark_manager.delete(url)
                 message.info(win_id, "Bookmarks deleted")
             elif category.data() == 'Quickmarks':
                 quickmark_manager = objreg.get('quickmark-manager')
