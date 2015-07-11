@@ -26,7 +26,6 @@ subclasses to provide completions.
 from PyQt5.QtWidgets import QStyle, QTreeView, QSizePolicy
 from PyQt5.QtCore import pyqtSlot, pyqtSignal, Qt, QItemSelectionModel
 
-from qutebrowser.commands import cmdexc, cmdutils
 from qutebrowser.config import config, style
 from qutebrowser.completion import completiondelegate, completer
 from qutebrowser.utils import qtutils, objreg, utils
@@ -236,27 +235,6 @@ class CompletionView(QTreeView):
         if selmod is not None:
             selmod.clearSelection()
             selmod.clearCurrentIndex()
-
-    @cmdutils.register(instance='completion', hide=True,
-                       modes=[usertypes.KeyMode.command], scope='window')
-    def completion_item_prev(self):
-        """Select the previous completion item."""
-        self._next_prev_item(prev=True)
-
-    @cmdutils.register(instance='completion', hide=True,
-                       modes=[usertypes.KeyMode.command], scope='window')
-    def completion_item_next(self):
-        """Select the next completion item."""
-        self._next_prev_item(prev=False)
-
-    @cmdutils.register(instance='completion', hide=True,
-                       modes=[usertypes.KeyMode.command], scope='window')
-    def completion_item_del(self):
-        """Delete the current completion item."""
-        try:
-            self.model().srcmodel.delete_cur_item(self._win_id)
-        except NotImplementedError:
-            raise cmdexc.CommandError("Cannot delete this item.")
 
     def selectionChanged(self, selected, deselected):
         """Extend selectionChanged to call completers selection_changed."""
