@@ -211,7 +211,7 @@ def pytest_runtest_setup(item):
         pytest.skip("Requires Windows.")
     elif item.get_marker('linux') and not sys.platform.startswith('linux'):
         pytest.skip("Requires Linux.")
-    elif item.get_marker('osx') and os.name != 'darwin':
+    elif item.get_marker('osx') and sys.platform != 'darwin':
         pytest.skip("Requires OS X.")
     elif item.get_marker('not_frozen') and getattr(sys, 'frozen', False):
         pytest.skip("Can't be run when frozen!")
