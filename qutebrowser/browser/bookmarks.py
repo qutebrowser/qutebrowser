@@ -95,7 +95,7 @@ class BookmarkManager(QObject):
                                      for tpl in self.bookmarks.items()]
             self._lineparser.save()
 
-    def bookmark_add(self, win_id, url, title):
+    def add(self, win_id, url, title):
         """Add a new bookmark.
 
         Args:
