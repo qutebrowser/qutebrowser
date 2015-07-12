@@ -34,7 +34,7 @@ import pytest
 import unittest
 import unittest.mock
 from PyQt5.QtCore import (QDataStream, QPoint, QUrl, QByteArray, QIODevice,
-                          QTimer, QBuffer, QFile, QProcess)
+                          QTimer, QBuffer, QFile, QProcess, QFileDevice)
 from PyQt5.QtWidgets import QApplication
 
 from qutebrowser import qutebrowser
@@ -700,11 +700,9 @@ class TestPyQIODevice:
         """Test open() which fails (because it's an existant directory)."""
         qf = QFile(str(tmpdir))
         dev = qtutils.PyQIODevice(qf)
-        with pytest.raises(OSError) as excinfo:
+        with pytest.raises(qtutils.QtOSError) as excinfo:
             dev.open(QIODevice.WriteOnly)
-        errors = ['Access is denied.',  # Linux/OS X
-                  'Is a directory']  # Windows
-        assert str(excinfo.value) in errors
+        assert excinfo.value.qt_errno == QFileDevice.OpenError
         assert dev.closed
 
     def test_fileno(self, pyqiodev):
