@@ -76,12 +76,13 @@ class BookmarkManager(QObject):
                 if not line.strip():
                     # Ignore empty or whitespace-only lines.
                     continue
-                try:
-                    url, title = line.split(maxsplit=1)
-                except ValueError:
-                    message.error(0, "Invalid bookmark '{}'".format(line))
-                else:
-                    self.bookmarks[url] = title
+
+                parts = line.split(maxsplit=1)
+                if len(parts) == 2:
+                    self.bookmarks[parts[0]] = parts[1]
+                elif len(parts) == 1:
+                    self.bookmarks[parts[0]] = ''
+
             filename = os.path.join(standarddir.config(), 'bookmarks/urls')
             objreg.get('save-manager').add_saveable(
                 'bookmark-manager', self.save, self.changed,

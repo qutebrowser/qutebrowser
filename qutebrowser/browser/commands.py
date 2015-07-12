@@ -102,8 +102,7 @@ class CommandDispatcher:
 
     def _current_title(self):
         """Convenience method to get the current title."""
-        title = self._current_widget().title()
-        return title if title else "(null)"
+        return self._current_widget().title()
 
     def _current_widget(self):
         """Get the currently active widget from a command."""
