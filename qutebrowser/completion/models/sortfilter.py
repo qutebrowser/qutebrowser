@@ -140,13 +140,12 @@ class CompletionFilterModel(QSortFilterProxyModel):
         if not self.pattern:
             return True
 
-        pattern = self.pattern.casefold()
         try:
-            return self.srcmodel.custom_filter(pattern, row, parent)
+            return self.srcmodel.custom_filter(self.pattern, row, parent)
         except NotImplementedError:
             if not data:
                 return False
-            return pattern in data.casefold()
+            return self.pattern.casefold() in data.casefold()
 
     def intelligentLessThan(self, lindex, rindex):
         """Custom sorting implementation.
