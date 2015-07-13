@@ -1,0 +1,44 @@
+licensing/the-licensing-and-compliance-lab-interviews-aaron-wolf-of-snowdrift.coop
+</link>
+<description>
+This is the latest installment of our Licensing and Compliance Lab's series on free software developers who choose GNU licenses for their works.
+</description>
+<content:encoded xmlns:content="http://purl.org/rss/1.0/modules/content/">
+<![CDATA[
+<p>In this edition, we conducted an email-based interview with Aaron Wolf, co-founder of Snowdrift.coop, a web platform coordinating patronage specifically for freely-licensed works. Aaron Wolf is a music teacher by trade who got involved in the free software movement in 2012 building on his earlie
+]]>
+<![CDATA[
+r interest in free culture and cooperative economics.</p>
+ 
+ <h2>What inspired you to create Snowdrift.coop?</h2>
+ 
+ <p>We need the general public to embrace and support free software and free culture. </p>
+ 
+ <p>We face many challenges, but one thing is clear: most people don't <em>like</em> propri
+]]>
+<![CDATA[
+etary terms, advertising and tracking on everything, or other anti-features. We would all prefer to have the same technology and creative works be free-as-in-freedom. Still, we don't all care enough to give up the features that proprietary works offer.</p>
+ 
+ <p>Our problem involves collective action. Each individual who uses proprietary software recognizes that they have negligible influence over the overall market. We need a critical mass of people together to move our support from proprietary to free projects if we want freedom without sacrificing the features and high-quality that many proprietary products offer.</p>
+ 
+ <p>Back in 2012, I was complaining to a friend about this situation. I described how I wished I could make an agreement with all sorts of other people who, like me, were hesitating to do all they could to help free projects. I'd like to make a pledge with others that I'd contribute a little more for each additional person who would join me.</p>
+ 
+ <p>That friend, David Thomas, happened to be a programmer and had some free time at that point. He convinced me that my idea was worth pursuing, and he offered to help make it happen. I hesitated but eventually decided to do it even though it meant giving up my plans to pursue a musicology PhD.</p>
+ 
+ <p>We brainstormed about names related to collective action, tragedy of the commons, prisoner's dilemma, and so on. And we settled on the metaphor of the <a href="https://en.wikipedia.org/wiki/Prisoner%27s_dilemma#Iterated_snowdrift">snowdrift dilemma</a> (we further adapted the metaphor to our context, see <a href="https://snowdrift.coop/p/snowdrift/w/en/snowdrift">here</a>).</p>
+ 
+ <p>We agreed that every detail of our new platform needed to be consistent with serving the public interest. Thus, we're structuring as a non-profit cooperative, building the platform with 100% free software, making it exclusively for free-as-in-freedom projects, and implementing the most ethical and honorable policies we can devise. Two years and huge amounts of work and research later, we're getting close to operating.</p>
+ 
+ <h2>What's the project status today?</h2>
+ 
+ <p>We have a live site but are still in alpha state. We have the matching pledge details figured out for at least the initial launch version (we can adapt things as necessary after we begin operations). It wasn't easy to choose what tools to use, and we ended up deciding that it would be most valuable to have an integrated platform that encourages engagement, feedback, and volunteering alongside funding. So, the site has accessory tools (wiki, discussion, ticketing) which we're using for our own development and which all projects may use if they choose.</p>
+ 
+ <p>We're currently running a fundraising-drive at <a href="https://snowdrift.tilt.com">https://snowdrift.tilt.com</a> to cover our legal costs and extra development. At this point, we've reached our first couple goals for funding but hope we continue to get additional support as we have a lot more still to do.</p>
+ 
+ <p>Despite only testing with fake money on the live Snowdrift.coop site, we have registered over 600 users already. We see a lot of interest, and we're feeling optimistic. We hope to start getting projects listed soon.</p>
+ 
+ <h2>What features do you think really sets Snowdrift apart from similar software?</h2>
+ 
+ <p>We did a lot of background research about the history of funding for free software and culture and reviewed over 700 other web platforms; see <a href="https://snowdrift.coop/p/snowdrift/w/en/status-quo-floss">our software history article</a> and <a href="https://snowdrift.coop/p/snowdrift/w/en/othercrowdfunding">our review of other platforms</a>.</p>
+ 
+ <p>A few other web platforms offer some features worth comparing, but we're really quite distinct. Our funding mechanism is new. Our technical design emphasizes progressive enhancement — that means everything is functional without relying on client-side JavaScript at all (and, of course, wherever we use some JavaScript enhancements, that's
