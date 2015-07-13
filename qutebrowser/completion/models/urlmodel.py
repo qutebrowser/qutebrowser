@@ -107,7 +107,8 @@ class UrlCompletionModel(base.BaseCompletionModel):
         index1 = self.index(row, 1, parent)
         url = self.data(index0) or ''
         title = self.data(index1) or ''
-        return pattern.casefold() in url.casefold() or pattern.casefold() in title.casefold()
+        return (pattern.casefold() in url.casefold() or pattern.casefold() in
+                title.casefold())
 
     @config.change_filter('completion', 'timestamp-format')
     def reformat_timestamps(self):
