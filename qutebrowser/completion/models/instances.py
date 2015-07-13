@@ -117,7 +117,6 @@ def init_bookmark_completions():
         pass
     model = _init_model(miscmodels.BookmarkCompletionModel, 'url')
     _instances[usertypes.Completion.bookmark_by_url] = model
-    model = _init_model(miscmodels.BookmarkCompletionModel, 'title')
 
 
 @pyqtSlot()
