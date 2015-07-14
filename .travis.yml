@@ -7,6 +7,12 @@ os:
 # Not really, but this is here so we can do stuff by hand.
 language: c
 
+cache:
+  directories:
+    - $HOME/.cache/pip
+    - $HOME/build/The-Compiler/qutebrowser/.tox
+    - $HOME/build/The-Compiler/qutebrowser/.cache
+
 install:
   - python scripts/dev/ci_install.py
 
