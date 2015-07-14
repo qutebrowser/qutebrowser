@@ -272,8 +272,8 @@ def process_pos_args(args, via_ipc=False, cwd=None):
             try:
                 url = urlutils.fuzzy_url(cmd, cwd, relative=True)
             except urlutils.FuzzyUrlError as e:
-                message.error(0, "Error in startup argument '{}': {}".format(
-                    cmd, e))
+                message.error('current', "Error in startup argument '{}': "
+                              "{}".format(cmd, e))
             else:
                 open_target = config.get('general', 'new-instance-open-target')
                 background = open_target in ('tab-bg', 'tab-bg-silent')
@@ -302,8 +302,8 @@ def _open_startpage(win_id=None):
                 try:
                     url = urlutils.fuzzy_url(urlstr, do_search=False)
                 except urlutils.FuzzyUrlError as e:
-                    message.error(0, "Error when opening startpage: {}".format(
-                        e))
+                    message.error('current', "Error when opening startpage: "
+                                  "{}".format(e))
                     tabbed_browser.tabopen(QUrl('about:blank'))
                 else:
                     tabbed_browser.tabopen(url)

@@ -75,7 +75,8 @@ class QuickmarkManager(QObject):
                 try:
                     key, url = line.rsplit(maxsplit=1)
                 except ValueError:
-                    message.error(0, "Invalid quickmark '{}'".format(line))
+                    message.error('current', "Invalid quickmark '{}'".format(
+                        line))
                 else:
                     self.marks[key] = url
             filename = os.path.join(standarddir.config(), 'quickmarks')
