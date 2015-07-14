@@ -106,18 +106,28 @@ def get_lib_path(executable, name, required=True):
     code = [
         'try:',
         '    import {}'.format(name),
-        'except ImportError:',
-        '    print("")',
+        'except ImportError as e:',
+        '    print("ImportError: " + str(e))',
         'else:',
-        '    print({}.__file__)'.format(name)
+        '    print("path: " + {}.__file__)'.format(name)
     ]
-    path = run_py(executable, *code)
-    if path:
-        return path
-    elif required:
-        raise Error("Did not find {} with {}!".format(name, executable))
+    output = run_py(executable, *code)
+
+    try:
+        prefix, data = output.split(': ')
+    except ValueError:
+        raise ValueError("Unexpected output: {!r}".format(output))
+
+    if prefix == 'path':
+        return data
+    elif prefix == 'ImportError':
+        if required:
+            raise Error("Could not import {} with {}: {}!".format(
+                name, executable, data))
+        else:
+            return None
     else:
-        return None
+        raise ValueError("Unexpected output: {!r}".format(output))
 
 
 def link_pyqt(executable, venv_path):
