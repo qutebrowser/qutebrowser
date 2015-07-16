@@ -1089,7 +1089,11 @@ class CommandDispatcher:
     @cmdutils.register(instance='command-dispatcher', name='inspector',
                        scope='window')
     def toggle_inspector(self):
-        """Toggle the web inspector."""
+        """Toggle the web inspector.
+
+        Note: Due a bug in Qt, the inspector will show incorrect request
+        headers in the network tab.
+        """
         cur = self._current_widget()
         if cur.inspector is None:
             if not config.get('general', 'developer-extras'):
