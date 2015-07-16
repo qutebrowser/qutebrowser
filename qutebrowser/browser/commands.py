@@ -1542,8 +1542,7 @@ class CommandDispatcher:
             act = QWebPage.SelectEndOfDocument
         webview.triggerPageAction(act)
 
-    @cmdutils.register(instance='command-dispatcher', hide=True,
-                       modes=[KeyMode.caret], scope='window')
+    @cmdutils.register(instance='command-dispatcher', scope='window')
     def yank_selected(self, sel=False, keep=False):
         """Yank the selected text to the clipboard or primary selection.
 
@@ -1568,7 +1567,7 @@ class CommandDispatcher:
         message.info(self._win_id, "{} {} yanked to {}".format(
             len(s), "char" if len(s) == 1 else "chars", target))
         if not keep:
-            modeman.leave(self._win_id, KeyMode.caret, "yank selected")
+            modeman.maybe_leave(self._win_id, KeyMode.caret, "yank selected")
 
     @cmdutils.register(instance='command-dispatcher', hide=True,
                        modes=[KeyMode.caret], scope='window')

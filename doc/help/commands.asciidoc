@@ -57,6 +57,7 @@
 |<<view-source,view-source>>|Show the source of the current page.
 |<<wq,wq>>|Save open pages and quit.
 |<<yank,yank>>|Yank the current URL/title to the clipboard or primary selection.
+|<<yank-selected,yank-selected>>|Yank the selected text to the clipboard or primary selection.
 |<<zoom,zoom>>|Set the zoom level for the current tab.
 |<<zoom-in,zoom-in>>|Increase the zoom level for the current tab.
 |<<zoom-out,zoom-out>>|Decrease the zoom level for the current tab.
@@ -673,6 +674,16 @@ Yank the current URL/title to the clipboard or primary selection.
 * +*-s*+, +*--sel*+: Use the primary selection instead of the clipboard.
 * +*-d*+, +*--domain*+: Yank only the scheme, domain, and port number.
 
+[[yank-selected]]
+=== yank-selected
+Syntax: +:yank-selected [*--sel*] [*--keep*]+
+
+Yank the selected text to the clipboard or primary selection.
+
+==== optional arguments
+* +*-s*+, +*--sel*+: Use the primary selection instead of the clipboard.
+* +*-k*+, +*--keep*+: If given, stay in visual mode after yanking.
+
 [[zoom]]
 === zoom
 Syntax: +:zoom ['zoom']+
@@ -760,7 +771,6 @@ How many steps to zoom out.
 |<<search-next,search-next>>|Continue the search to the ([count]th) next term.
 |<<search-prev,search-prev>>|Continue the search to the ([count]th) previous term.
 |<<toggle-selection,toggle-selection>>|Toggle caret selection mode.
-|<<yank-selected,yank-selected>>|Yank the selected text to the clipboard or primary selection.
 |==============
 [[clear-keychain]]
 === clear-keychain
@@ -1111,16 +1121,6 @@ How many elements to ignore.
 [[toggle-selection]]
 === toggle-selection
 Toggle caret selection mode.
-
-[[yank-selected]]
-=== yank-selected
-Syntax: +:yank-selected [*--sel*] [*--keep*]+
-
-Yank the selected text to the clipboard or primary selection.
-
-==== optional arguments
-* +*-s*+, +*--sel*+: Use the primary selection instead of the clipboard.
-* +*-k*+, +*--keep*+: If given, stay in visual mode after yanking.
 
 
 == Debugging commands
