@@ -162,6 +162,7 @@ Contributors, sorted by the number of commits in descending order:
 * Larry Hynes
 * Fritz V155 Reichwald
 * Franz Fellner
+* zwarag
 * error800
 * Tim Harder
 * Thorsten Wißmann
