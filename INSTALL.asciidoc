@@ -10,6 +10,10 @@ qutebrowser should run on these systems:
 * Ubuntu Trusty (14.04 LTS) or newer
 * Any other distribution based on these (e.g. Linux Mint)
 
+Unfortunately there is no Debian package yet, but installing qutebrowser is
+still relatively easy! If you want to help packaging it for Debian, please
+https://github.com/The-Compiler/qutebrowser/issues/582[get in touch]!
+
 Install the dependencies via apt-get:
 
 [NOTE]
@@ -63,6 +67,10 @@ On Fedora
 ---------
 
 qutebrowser should run on Fedora 22.
+
+Unfortunately there is no Fedora package yet, but installing qutebrowser is
+still relatively easy! If you want to help packaging it for Fedora, please
+mailto:mail@qutebrowser.org[get in touch]!
 
 Install the dependencies via dnf:
 
