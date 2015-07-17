@@ -77,6 +77,48 @@ your `$PATH` (e.g. `/usr/local/bin/qutebrowser` or `~/bin/qutebrowser`):
 
 Please also read about <<updating,updating qutebrowser with tox>>.
 
+On Fedora
+------------------
+
+qutebrowser should run on these systems:
+
+* Fedora 22
+
+Install the dependencies via dnf:
+
+----
+# dnf update
+# dnf install python3-qt5 python-tox python3-sip
+----
+
+To generate the documentation for the `:help` command, when using the git
+repository (rather than a release):
+
+----
+# dnf install asciidoc
+$ python3 scripts/asciidoc2html.py
+----
+
+Then run tox like this to set up a
+https://docs.python.org/3/library/venv.html[virtual environment]:
+
+----
+$ tox -e mkvenv
+----
+
+This installs all needed Python dependencies in a `.venv` subfolder. The
+system-wide Qt5/PyQt5 installations are symlinked into the virtual environment.
+
+You can then create a simple wrapper script to start qutebrowser somewhere in
+your `$PATH` (e.g. `/usr/local/bin/qutebrowser` or `~/bin/qutebrowser`):
+
+----
+#!/bin/bash
+~/path/to/qutebrowser/.venv/bin/python3 -m qutebrowser "$@"
+----
+
+Please also read about <<updating,updating qutebrowser with tox>>.
+
 On Archlinux
 ------------
 
