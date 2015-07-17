@@ -80,9 +80,7 @@ Please also read about <<updating,updating qutebrowser with tox>>.
 On Fedora
 ------------------
 
-qutebrowser should run on these systems:
-
-* Fedora 22
+qutebrowser should run on Fedora 22.
 
 Install the dependencies via dnf:
 
