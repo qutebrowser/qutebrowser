@@ -234,17 +234,17 @@ class TabbedBrowser(tabwidget.TabWidget):
             tab: The QWebView to be closed.
         """
         last_close = config.get('tabs', 'last-close')
-        if self.count() > 1:
-            self._remove_tab(tab)
-        elif last_close == 'close':
-            self._remove_tab(tab)
-            self.close_window.emit()
-        elif last_close == 'blank':
-            tab.openurl(QUrl('about:blank'))
-        elif last_close == 'startpage':
-            tab.openurl(QUrl(config.get('general', 'startpage')[0]))
-        elif last_close == 'default-page':
-            tab.openurl(config.get('general', 'default-page'))
+        self._remove_tab(tab)
+
+        if self.count() == 0:
+            if last_close == 'close':
+                self.close_window.emit()
+            elif last_close == 'blank':
+                self.openurl(QUrl('about:blank'), True)
+            elif last_close == 'startpage':
+                self.openurl(QUrl(config.get('general', 'startpage')[0]), True)
+            elif last_close == 'default-page':
+                self.openurl(config.get('general', 'default-page'), True)
 
     def _remove_tab(self, tab):
         """Remove a tab from the tab list and delete it properly.
