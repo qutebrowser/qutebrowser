@@ -24,76 +24,68 @@ import collections
 import pytest
 from PyQt5.QtGui import QFont, QColor
 from PyQt5.QtWidgets import QTabBar, QTabWidget
-from PyQt5.QtNetwork import QNetworkCookieJar
+from PyQt5.QtNetwork import (QNetworkCookieJar, QAbstractNetworkCache,
+                             QNetworkCacheMetaData)
 
 from qutebrowser.browser import commands, cookies
 from qutebrowser.mainwindow import tabbedbrowser
 from qutebrowser.utils import objreg
+from qutebrowser.keyinput import modeman
 
 
 ObjectsRet = collections.namedtuple('Dispatcher', ['tb', 'cd'])
 
-FakeWindow = collections.namedtuple('FakeWindow', ['registry'])
+class FakeNetworkCache(QAbstractNetworkCache):
 
+    def cacheSize(self):
+        return 0
 
-@pytest.yield_fixture
-def win_registry():
-    """Fixture providing a window registry for win_id 0."""
-    registry = objreg.ObjectRegistry()
-    window = FakeWindow(registry)
-    objreg.window_registry[0] = window
-    yield registry
-    del objreg.window_registry[0]
+    def data(self, _url):
+        return None
 
+    def insert(self, _dev):
+        pass
 
-@pytest.yield_fixture
-def tab_registry(win_registry):
-    """Fixture providing a tab registry for win_id 0."""
-    registry = objreg.ObjectRegistry()
-    objreg.register('tab-registry', registry, scope='window', window=0)
-    yield registry
-    objreg.delete('tab-registry', scope='window', window=0)
+    def metaData(self, _url):
+        return QNetworkCacheMetaData()
+
+    def prepare(self, _metadata):
+        return None
+
+    def remove(self, _url):
+        return False
+
+    def updateMetaData(self, _url):
+        pass
 
 
 @pytest.yield_fixture(autouse=True)
-def ram_cookiejar():
+def cookiejar_and_cache():
+    """Fixture providing a fake cookie jar and cache."""
     jar = QNetworkCookieJar()
+    cache = FakeNetworkCache()
     objreg.register('cookie-jar', jar)
-    yield jar
+    objreg.register('cache', cache)
+    yield
     objreg.delete('cookie-jar')
+    objreg.delete('cache')
 
 
-@pytest.fixture
-def objects(qtbot, config_stub, tab_registry):
+@pytest.yield_fixture
+def objects(qtbot, default_config, key_config_stub, tab_registry,
+            host_blocker_stub):
     """Fixture providing a CommandDispatcher and a fake TabbedBrowser."""
-    config_stub.data = {
-        'general': {
-            'auto-search': False,
-        },
-        'fonts': {
-            'tabbar': QFont('Courier'),
-        },
-        'colors': {
-            'tabs.bg.bar': QColor('black'),
-        },
-        'tabs': {
-            'movable': False,
-            'position': QTabWidget.North,
-            'select-on-remove': QTabBar.SelectRightTab,
-            'tabs-are-windows': False,
-        },
-        'ui': {
-            'zoom-levels': [100],
-            'default-zoom': 100,
-        },
-    }
     win_id = 0
+    modeman.init(win_id, parent=None)
     tabbed_browser = tabbedbrowser.TabbedBrowser(win_id)
     qtbot.add_widget(tabbed_browser)
+    objreg.register('tabbed-browser', tabbed_browser, scope='window',
+                    window=win_id)
     dispatcher = commands.CommandDispatcher(win_id, tabbed_browser)
-    return ObjectsRet(tabbed_browser, dispatcher)
+    objreg.register('command-dispatcher', dispatcher, scope='window',
+                    window=win_id)
+    yield ObjectsRet(tabbed_browser, dispatcher)
 
 
 def test_openurl(objects):
-    objects.cd.openurl('http://www.heise.de')
-    #objects.tb_mock.
+    objects.cd.openurl('localhost')

@@ -27,7 +27,7 @@ import itertools
 import pytest
 
 import stubs as stubsmod
-from qutebrowser.config import configexc
+from qutebrowser.config import config
 from qutebrowser.utils import objreg, usertypes
 
 
@@ -154,50 +154,40 @@ def cmdline_test(request):
     return request.param
 
 
-class ConfigStub:
-
-    """Stub for the config module.
-
-    Attributes:
-        data: The config data to return.
-    """
-
-    def __init__(self, signal):
-        """Constructor.
-
-        Args:
-            signal: The signal to use for self.changed.
-        """
-        self.data = {}
-        self.changed = signal
-
-    def section(self, name):
-        """Get a section from the config.
-
-        Args:
-            name: The section name to get.
-
-        Return:
-            The section as dict.
-        """
-        return self.data[name]
-
-    def get(self, sect, opt):
-        """Get a value from the config."""
-        data = self.data[sect]
-        try:
-            return data[opt]
-        except KeyError:
-            raise configexc.NoOptionError(opt, sect)
-
-
 @pytest.yield_fixture
 def config_stub(stubs):
     """Fixture which provides a fake config object."""
-    stub = ConfigStub(stubs.FakeSignal())
+    stub = stubs.ConfigStub(signal=stubs.FakeSignal())
     objreg.register('config', stub)
     yield stub
     objreg.delete('config')
+
+
+@pytest.yield_fixture
+def default_config():
+    """Fixture that provides and registers an empty default config object."""
+    config_obj = config.ConfigManager(configdir=None, fname=None, relaxed=True)
+    objreg.register('config', config_obj)
+    yield config_obj
+    objreg.delete('config')
+
+
+@pytest.yield_fixture
+def key_config_stub(stubs):
+    """Fixture which provides a fake key config object."""
+    stub = stubs.KeyConfigStub()
+    objreg.register('key-config', stub)
+    yield stub
+    objreg.delete('key-config')
+
+
+@pytest.yield_fixture
+def host_blocker_stub(stubs):
+    """Fixture which provides a fake host blocker object."""
+    stub = stubs.HostBlockerStub()
+    objreg.register('host-blocker', stub)
+    yield stub
+    objreg.delete('host-blocker')
 
 
 def pytest_runtest_setup(item):
@@ -272,3 +262,23 @@ class MessageMock:
 def message_mock(monkeypatch):
     """Fixture to get a MessageMock."""
     return MessageMock(monkeypatch)
+
+
+@pytest.yield_fixture
+def win_registry():
+    """Fixture providing a window registry for win_id 0."""
+    FakeWindow = collections.namedtuple('FakeWindow', ['registry'])
+    registry = objreg.ObjectRegistry()
+    window = FakeWindow(registry)
+    objreg.window_registry[0] = window
+    yield registry
+    del objreg.window_registry[0]
+
+
+@pytest.yield_fixture
+def tab_registry(win_registry):
+    """Fixture providing a tab registry for win_id 0."""
+    registry = objreg.ObjectRegistry()
+    objreg.register('tab-registry', registry, scope='window', window=0)
+    yield registry
+    objreg.delete('tab-registry', scope='window', window=0)
