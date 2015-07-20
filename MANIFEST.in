@@ -22,6 +22,7 @@ exclude doc/notes
 recursive-exclude doc *.asciidoc
 include doc/qutebrowser.1.asciidoc
 prune tests
+exclude pytest.ini
 exclude qutebrowser.rcc
 exclude .coveragerc
 exclude .pylintrc
