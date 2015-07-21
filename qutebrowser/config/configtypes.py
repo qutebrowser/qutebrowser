@@ -317,10 +317,17 @@ class IntList(List):
     typestr = 'int-list'
 
     def transform(self, value):
+        if not value:
+            return None
         vals = super().transform(value)
         return [int(v) if v is not None else None for v in vals]
 
     def validate(self, value):
+        if not value:
+            if self.none_ok:
+                return
+            else:
+                raise configexc.ValidationError(value, "may not be empty!")
         try:
             vals = self.transform(value)
         except ValueError:
