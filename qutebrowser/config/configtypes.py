@@ -1372,8 +1372,14 @@ class ConfirmQuit(List):
 
     def validate(self, value):
         values = self.transform(value)
+        if not value:
+            if self._none_ok:
+                return None
+            else:
+                raise configexc.ValidationError(
+                    value, "Value may not be empty!")
         # Never can't be set with other options
-        if 'never' in values and len(values) > 1:
+        elif 'never' in values and len(values) > 1:
             raise configexc.ValidationError(
                 value, "List cannot contain never!")
         # Always can't be set with other options
