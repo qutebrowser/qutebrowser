@@ -77,7 +77,7 @@ class BaseType:
     """A type used for a setting value.
 
     Attributes:
-        _none_ok: Whether to convert to None for an empty string.
+        none_ok: Whether to convert to None for an empty string.
 
     Class attributes:
         valid_values: Possible values if they can be expressed as a fixed
@@ -89,7 +89,7 @@ class BaseType:
     valid_values = None
 
     def __init__(self, none_ok=False):
-        self._none_ok = none_ok
+        self.none_ok = none_ok
 
     def transform(self, value):
         """Transform the setting value.
@@ -119,7 +119,7 @@ class BaseType:
             value: The value to validate.
                                 method should be overridden.
         """
-        if not value and self._none_ok:
+        if not value and self.none_ok:
             return
         if self.valid_values is not None:
             if value not in self.valid_values:
@@ -184,7 +184,7 @@ class String(BaseType):
 
     def validate(self, value):
         if not value:
-            if self._none_ok:
+            if self.none_ok:
                 return
             else:
                 raise configexc.ValidationError(value, "may not be empty!")
@@ -214,7 +214,7 @@ class List(BaseType):
 
     def validate(self, value):
         if not value:
-            if self._none_ok:
+            if self.none_ok:
                 return
             else:
                 raise configexc.ValidationError(value, "list may not be "
@@ -240,7 +240,7 @@ class Bool(BaseType):
 
     def validate(self, value):
         if not value:
-            if self._none_ok:
+            if self.none_ok:
                 return
             else:
                 raise configexc.ValidationError(value, "may not be empty!")
@@ -294,7 +294,7 @@ class Int(BaseType):
 
     def validate(self, value):
         if not value:
-            if self._none_ok:
+            if self.none_ok:
                 return
             else:
                 raise configexc.ValidationError(value, "may not be empty!")
@@ -326,7 +326,7 @@ class IntList(List):
         except ValueError:
             raise configexc.ValidationError(value, "must be a list of "
                                             "integers!")
-        if None in vals and not self._none_ok:
+        if None in vals and not self.none_ok:
             raise configexc.ValidationError(value, "items may not be empty!")
 
 
@@ -357,7 +357,7 @@ class Float(BaseType):
 
     def validate(self, value):
         if not value:
-            if self._none_ok:
+            if self.none_ok:
                 return
             else:
                 raise configexc.ValidationError(value, "may not be empty!")
@@ -400,7 +400,7 @@ class Perc(BaseType):
 
     def validate(self, value):
         if not value:
-            if self._none_ok:
+            if self.none_ok:
                 return
             else:
                 raise configexc.ValidationError(value, "may not be empty")
@@ -447,7 +447,7 @@ class PercList(List):
         try:
             for val in vals:
                 if val is None:
-                    if self._none_ok:
+                    if self.none_ok:
                         continue
                     else:
                         raise configexc.ValidationError(value, "items may not "
@@ -488,7 +488,7 @@ class PercOrInt(BaseType):
 
     def validate(self, value):
         if not value:
-            if self._none_ok:
+            if self.none_ok:
                 return
             else:
                 raise configexc.ValidationError(value, "may not be empty!")
@@ -525,7 +525,7 @@ class Command(BaseType):
 
     def validate(self, value):
         if not value:
-            if self._none_ok:
+            if self.none_ok:
                 return
             else:
                 raise configexc.ValidationError(value, "may not be empty!")
@@ -570,7 +570,7 @@ class QtColor(BaseType):
 
     def validate(self, value):
         if not value:
-            if self._none_ok:
+            if self.none_ok:
                 return
             else:
                 raise configexc.ValidationError(value, "may not be empty!")
@@ -594,7 +594,7 @@ class CssColor(BaseType):
 
     def validate(self, value):
         if not value:
-            if self._none_ok:
+            if self.none_ok:
                 return
             else:
                 raise configexc.ValidationError(value, "may not be empty!")
@@ -629,7 +629,7 @@ class QssColor(CssColor):
 
     def validate(self, value):
         if not value:
-            if self._none_ok:
+            if self.none_ok:
                 return
             else:
                 raise configexc.ValidationError(value, "may not be empty!")
@@ -665,7 +665,7 @@ class Font(BaseType):
 
     def validate(self, value):
         if not value:
-            if self._none_ok:
+            if self.none_ok:
                 return
             else:
                 raise configexc.ValidationError(value, "may not be empty!")
@@ -679,7 +679,7 @@ class FontFamily(Font):
 
     def validate(self, value):
         if not value:
-            if self._none_ok:
+            if self.none_ok:
                 return
             else:
                 raise configexc.ValidationError(value, "may not be empty!")
@@ -751,7 +751,7 @@ class Regex(BaseType):
 
     def validate(self, value):
         if not value:
-            if self._none_ok:
+            if self.none_ok:
                 return
             else:
                 raise configexc.ValidationError(value, "may not be empty!")
@@ -789,7 +789,7 @@ class RegexList(List):
         except sre_constants.error as e:
             raise configexc.ValidationError(value, "must be a list valid "
                                             "regexes - " + str(e))
-        if not self._none_ok and None in vals:
+        if not self.none_ok and None in vals:
             raise configexc.ValidationError(value, "items may not be empty!")
 
 
@@ -812,7 +812,7 @@ class File(BaseType):
 
     def validate(self, value):
         if not value:
-            if self._none_ok:
+            if self.none_ok:
                 return
             else:
                 raise configexc.ValidationError(value, "may not be empty!")
@@ -846,7 +846,7 @@ class Directory(BaseType):
 
     def validate(self, value):
         if not value:
-            if self._none_ok:
+            if self.none_ok:
                 return
             else:
                 raise configexc.ValidationError(value, "may not be empty!")
@@ -881,7 +881,7 @@ class FormatString(BaseType):
 
     def validate(self, value):
         if not value:
-            if self._none_ok:
+            if self.none_ok:
                 return
             else:
                 raise configexc.ValidationError(value, "may not be empty!")
@@ -980,7 +980,7 @@ class WebKitBytesList(List):
         vals = super().transform(value)
         for val in vals:
             self.bytestype.validate(val)
-        if None in vals and not self._none_ok:
+        if None in vals and not self.none_ok:
             raise configexc.ValidationError(value, "items may not be empty!")
         if self.length is not None and len(vals) != self.length:
             raise configexc.ValidationError(value, "exactly {} values need to "
@@ -1003,7 +1003,7 @@ class ShellCommand(BaseType):
 
     def validate(self, value):
         if not value:
-            if self._none_ok:
+            if self.none_ok:
                 return
             else:
                 raise configexc.ValidationError(value, "may not be empty!")
@@ -1046,7 +1046,7 @@ class Proxy(BaseType):
 
     def validate(self, value):
         if not value:
-            if self._none_ok:
+            if self.none_ok:
                 return
             else:
                 raise configexc.ValidationError(value, "may not be empty!")
@@ -1094,7 +1094,7 @@ class SearchEngineName(BaseType):
 
     def validate(self, value):
         if not value:
-            if self._none_ok:
+            if self.none_ok:
                 return
             else:
                 raise configexc.ValidationError(value, "may not be empty!")
@@ -1106,7 +1106,7 @@ class SearchEngineUrl(BaseType):
 
     def validate(self, value):
         if not value:
-            if self._none_ok:
+            if self.none_ok:
                 return
             else:
                 raise configexc.ValidationError(value, "may not be empty!")
@@ -1132,7 +1132,7 @@ class FuzzyUrl(BaseType):
     def validate(self, value):
         from qutebrowser.utils import urlutils
         if not value:
-            if self._none_ok:
+            if self.none_ok:
                 return
             else:
                 raise configexc.ValidationError(value, "may not be empty!")
@@ -1157,7 +1157,7 @@ class Encoding(BaseType):
 
     def validate(self, value):
         if not value:
-            if self._none_ok:
+            if self.none_ok:
                 return
             else:
                 raise configexc.ValidationError(value, "may not be empty!")
@@ -1188,7 +1188,7 @@ class UserStyleSheet(File):
 
     def validate(self, value):
         if not value:
-            if self._none_ok:
+            if self.none_ok:
                 return
             else:
                 raise configexc.ValidationError(value, "may not be empty!")
@@ -1279,7 +1279,7 @@ class UrlList(List):
 
     def validate(self, value):
         if not value:
-            if self._none_ok:
+            if self.none_ok:
                 return
             else:
                 raise configexc.ValidationError(value, "list may not be "
@@ -1302,7 +1302,7 @@ class SessionName(BaseType):
 
     def validate(self, value):
         if not value:
-            if self._none_ok:
+            if self.none_ok:
                 return
             else:
                 raise configexc.ValidationError(value, "may not be empty!")
@@ -1373,7 +1373,7 @@ class ConfirmQuit(List):
     def validate(self, value):
         values = self.transform(value)
         if not value:
-            if self._none_ok:
+            if self.none_ok:
                 return None
             else:
                 raise configexc.ValidationError(
@@ -1502,7 +1502,7 @@ class UserAgent(BaseType):
 
     def validate(self, value):
         if not value:
-            if self._none_ok:
+            if self.none_ok:
                 return
             else:
                 raise configexc.ValidationError(value, "may not be empty!")
