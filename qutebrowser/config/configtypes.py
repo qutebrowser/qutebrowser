@@ -744,6 +744,11 @@ class QtFont(Font):
                 font.setPointSizeF(float(size[:-2]))
             elif size.lower().endswith('px'):
                 font.setPixelSize(int(size[:-2]))
+            else:
+                # This should never happen as the regex only lets pt/px
+                # through.
+                raise ValueError("Unexpected size unit in {!r}!".format(
+                    size))  # pragma: no cover
         # The Qt CSS parser handles " and ' before passing the string to
         # QFont.setFamily. We could do proper CSS-like parsing here, but since
         # hopefully nobody will ever have a font with quotes in the family (if
