@@ -22,7 +22,6 @@ import re
 import collections
 import os.path
 import base64
-import itertools
 
 import pytest
 from PyQt5.QtCore import QUrl
@@ -73,6 +72,8 @@ class NetworkProxy(QNetworkProxy):
 def os_mock(mocker):
     """Fixture that mocks and returns os from the configtypes module."""
     m = mocker.patch('qutebrowser.config.configtypes.os', autospec=True)
+    m.path.expandvars.side_effect = lambda x: x.replace('$HOME', '/home/foo')
+    m.path.expanduser.side_effect = lambda x: x.replace('~', '/home/foo')
     return m
 
 
@@ -80,45 +81,40 @@ class TestValidValues:
 
     """Test ValidValues."""
 
-    def test_contains_without_desc(self):
-        """Test __contains__ without a description."""
-        vv = configtypes.ValidValues('foo', 'bar')
-        assert 'foo' in vv
-        assert 'baz' not in vv
+    @pytest.fixture
+    def klass(self):
+        return configtypes.ValidValues
 
-    def test_contains_with_desc(self):
-        """Test __contains__ with a description."""
-        vv = configtypes.ValidValues(('foo', "foo desc"), ('bar', "bar desc"))
-        assert 'foo' in vv
-        assert 'bar' in vv
-        assert 'baz' not in vv
+    @pytest.mark.parametrize('valid_values, contained, not_contained', [
+        # Without description
+        (['foo', 'bar'], ['foo'], ['baz']),
+        # With description
+        ([('foo', "foo desc"), ('bar', "bar desc")], ['foo', 'bar'], ['baz']),
+        # With mixed description
+        ([('foo', "foo desc"), 'bar'], ['foo', 'bar'], ['baz']),
+    ])
+    def test_contains(self, klass, valid_values, contained, not_contained):
+        """Test __contains___ with various values."""
+        vv = klass(*valid_values)
+        for elem in contained:
+            assert elem in vv
+        for elem in not_contained:
+            assert elem not in vv
 
-    def test_contains_mixed_desc(self):
-        """Test __contains__ with mixed description."""
-        vv = configtypes.ValidValues(('foo', "foo desc"), 'bar')
-        assert 'foo' in vv
-        assert 'bar' in vv
-        assert 'baz' not in vv
-
-    def test_iter_without_desc(self):
+    @pytest.mark.parametrize('valid_values', [
+        # With description
+        ['foo', 'bar'],
+        [('foo', "foo desc"), ('bar', "bar desc")],
+        [('foo', "foo desc"), 'bar'],
+    ])
+    def test_iter_without_desc(self, klass, valid_values):
         """Test __iter__ without a description."""
-        vv = configtypes.ValidValues('foo', 'bar')
+        vv = klass(*valid_values)
         assert list(vv) == ['foo', 'bar']
 
-    def test_iter_with_desc(self):
-        """Test __iter__ with a description."""
-        vv = configtypes.ValidValues(('foo', "foo desc"), ('bar', "bar desc"))
-        assert list(vv) == ['foo', 'bar']
-
-    def test_iter_with_mixed_desc(self):
-        """Test __iter__ with mixed description."""
-        vv = configtypes.ValidValues(('foo', "foo desc"), 'bar')
-        assert list(vv) == ['foo', 'bar']
-
-    def test_descriptions(self):
+    def test_descriptions(self, klass):
         """Test descriptions."""
-        vv = configtypes.ValidValues(('foo', "foo desc"), ('bar', "bar desc"),
-                                     'baz')
+        vv = klass(('foo', "foo desc"), ('bar', "bar desc"), 'baz')
         assert vv.descriptions['foo'] == "foo desc"
         assert vv.descriptions['bar'] == "bar desc"
         assert 'baz' not in vv.descriptions
@@ -128,754 +124,462 @@ class TestBaseType:
 
     """Test BaseType."""
 
-    @pytest.fixture(autouse=True)
-    def setup(self):
-        self.t = configtypes.BaseType()
+    @pytest.fixture
+    def basetype(self):
+        return configtypes.BaseType()
 
-    def test_transform(self):
+    @pytest.mark.parametrize('val, expected', [
+        ('foobar', 'foobar'),
+        ('', None),
+    ])
+    def test_transform(self, basetype, val, expected):
         """Test transform with a value."""
-        assert self.t.transform("foobar") == "foobar"
+        assert basetype.transform(val) == expected
 
-    def test_transform_empty(self):
-        """Test transform with an empty value."""
-        assert self.t.transform('') is None
-
-    def test_validate_not_implemented(self):
+    def test_validate_not_implemented(self, basetype):
         """Test validate without valid_values set."""
         with pytest.raises(NotImplementedError):
-            self.t.validate("foo")
+            basetype.validate("foo")
 
-    def test_validate_none_ok(self):
+    def test_validate_none_ok(self, basetype):
         """Test validate with none_ok = True."""
-        t = configtypes.BaseType(none_ok=True)
-        t.validate('')
+        basetype.none_ok = True
+        basetype.validate('')
 
-    def test_validate(self):
+    def test_validate(self, basetype):
         """Test validate with valid_values set."""
-        self.t.valid_values = configtypes.ValidValues('foo', 'bar')
-        self.t.validate('bar')
+        basetype.valid_values = configtypes.ValidValues('foo', 'bar')
+        basetype.validate('bar')
         with pytest.raises(configexc.ValidationError):
-            self.t.validate('baz')
+            basetype.validate('baz')
 
-    def test_complete_none(self):
+    def test_complete_none(self, basetype):
         """Test complete with valid_values not set."""
-        assert self.t.complete() is None
+        assert basetype.complete() is None
 
-    def test_complete_without_desc(self):
+    @pytest.mark.parametrize('valid_values, completions', [
+        # Without description
+        (['foo', 'bar'],
+            [('foo', ''), ('bar', '')]),
+        # With description
+        ([('foo', "foo desc"), ('bar', "bar desc")],
+            [('foo', "foo desc"), ('bar', "bar desc")]),
+        # With mixed description
+        ([('foo', "foo desc"), 'bar'],
+            [('foo', "foo desc"), ('bar', "")]),
+    ])
+    def test_complete_without_desc(self, basetype, valid_values, completions):
         """Test complete with valid_values set without description."""
-        self.t.valid_values = configtypes.ValidValues('foo', 'bar')
-        assert self.t.complete() == [('foo', ''), ('bar', '')]
-
-    def test_complete_with_desc(self):
-        """Test complete with valid_values set with description."""
-        self.t.valid_values = configtypes.ValidValues(('foo', "foo desc"),
-                                                      ('bar', "bar desc"))
-        assert self.t.complete() == [('foo', "foo desc"), ('bar', "bar desc")]
-
-    def test_complete_mixed_desc(self):
-        """Test complete with valid_values set with mixed description."""
-        self.t.valid_values = configtypes.ValidValues(('foo', "foo desc"),
-                                                      'bar')
-        assert self.t.complete() == [('foo', "foo desc"), ('bar', "")]
+        basetype.valid_values = configtypes.ValidValues(*valid_values)
+        assert basetype.complete() == completions
 
 
 class TestString:
 
     """Test String."""
 
-    def test_minlen_toosmall(self):
-        """Test __init__ with a minlen < 1."""
+    @pytest.fixture
+    def klass(self):
+        return configtypes.String
+
+    @pytest.mark.parametrize('minlen, maxlen', [(1, None), (None, 1)])
+    def test_lengths_valid(self, klass, minlen, maxlen):
+        klass(minlen=minlen, maxlen=maxlen)
+
+    @pytest.mark.parametrize('minlen, maxlen', [
+        (0, None),  # minlen too small
+        (None, 0),  # maxlen too small
+        (2, 1),  # maxlen < minlen
+    ])
+    def test_lengths_invalid(self, klass, minlen, maxlen):
         with pytest.raises(ValueError):
-            configtypes.String(minlen=0)
+            klass(minlen=minlen, maxlen=maxlen)
 
-    def test_minlen_ok(self):
-        """Test __init__ with a minlen = 1."""
-        configtypes.String(minlen=1)
+    @pytest.mark.parametrize('kwargs, val', [
+        ({'none_ok': True}, ''),  # Empty with none_ok
+        ({}, "Hello World! :-)"),
+        # Forbidden chars
+        ({'forbidden': 'xyz'}, 'foobar'),
+        ({'forbidden': 'xyz'}, 'foXbar'),
+        # Lengths
+        ({'minlen': 2}, 'fo'),
+        ({'minlen': 2, 'maxlen': 3}, 'fo'),
+        ({'minlen': 2, 'maxlen': 3}, 'foo'),
+    ])
+    def test_validate_valid(self, klass, kwargs, val):
+        klass(**kwargs).validate(val)
 
-    def test_maxlen_toosmall(self):
-        """Test __init__ with a maxlen < 1."""
-        with pytest.raises(ValueError):
-            configtypes.String(maxlen=0)
-
-    def test_maxlen_ok(self):
-        """Test __init__ with a maxlen = 1."""
-        configtypes.String(maxlen=1)
-
-    def test_minlen_gt_maxlen(self):
-        """Test __init__ with a minlen bigger than the maxlen."""
-        with pytest.raises(ValueError):
-            configtypes.String(minlen=2, maxlen=1)
-
-    def test_validate_empty(self):
-        """Test validate with empty string and none_ok = False."""
-        t = configtypes.String()
+    @pytest.mark.parametrize('kwargs, val', [
+        ({}, ''),  # Empty without none_ok
+        # Forbidden chars
+        ({'forbidden': 'xyz'}, 'foybar'),
+        ({'forbidden': 'xyz'}, 'foxbar'),
+        # Lengths
+        ({'minlen': 2}, 'f'),
+        ({'maxlen': 2}, 'fob'),
+        ({'minlen': 2, 'maxlen': 3}, 'f'),
+        ({'minlen': 2, 'maxlen': 3}, 'fooo'),
+    ])
+    def test_validate_invalid(self, klass, kwargs, val):
         with pytest.raises(configexc.ValidationError):
-            t.validate("")
+            klass(**kwargs).validate(val)
 
-    def test_validate_empty_none_ok(self):
-        """Test validate with empty string and none_ok = True."""
-        t = configtypes.String(none_ok=True)
-        t.validate("")
-
-    def test_validate(self):
-        """Test validate with some random string."""
-        t = configtypes.String()
-        t.validate("Hello World! :-)")
-
-    def test_validate_forbidden(self):
-        """Test validate with forbidden chars."""
-        t = configtypes.String(forbidden='xyz')
-        t.validate("foobar")
-        t.validate("foXbar")
-        with pytest.raises(configexc.ValidationError):
-            t.validate("foybar")
-        with pytest.raises(configexc.ValidationError):
-            t.validate("foxbar")
-
-    def test_validate_minlen_toosmall(self):
-        """Test validate with a minlen and a too short string."""
-        t = configtypes.String(minlen=2)
-        with pytest.raises(configexc.ValidationError):
-            t.validate('f')
-
-    def test_validate_minlen_ok(self):
-        """Test validate with a minlen and a good string."""
-        t = configtypes.String(minlen=2)
-        t.validate('fo')
-
-    def test_validate_maxlen_toolarge(self):
-        """Test validate with a maxlen and a too long string."""
-        t = configtypes.String(maxlen=2)
-        with pytest.raises(configexc.ValidationError):
-            t.validate('fob')
-
-    def test_validate_maxlen_ok(self):
-        """Test validate with a maxlen and a good string."""
-        t = configtypes.String(maxlen=2)
-        t.validate('fo')
-
-    def test_validate_range_ok(self):
-        """Test validate with both min/maxlen and a good string."""
-        t = configtypes.String(minlen=2, maxlen=3)
-        t.validate('fo')
-        t.validate('foo')
-
-    def test_validate_range_bad(self):
-        """Test validate with both min/maxlen and a bad string."""
-        t = configtypes.String(minlen=2, maxlen=3)
-        with pytest.raises(configexc.ValidationError):
-            t.validate('f')
-        with pytest.raises(configexc.ValidationError):
-            t.validate('fooo')
-
-    def test_transform(self):
-        """Test if transform doesn't alter the value."""
-        t = configtypes.String()
-        assert t.transform('foobar') == 'foobar'
+    def test_transform(self, klass):
+        assert klass().transform('foobar') == 'foobar'
 
 
 class TestList:
 
     """Test List."""
 
-    @pytest.fixture(autouse=True)
-    def setup(self):
-        self.t = configtypes.List()
+    @pytest.fixture
+    def klass(self):
+        return configtypes.List
 
-    def test_validate_single(self):
-        """Test validate with a single value."""
-        self.t.validate('foo')
+    @pytest.mark.parametrize('val',
+        ['', 'foo', 'foo,bar', 'foo, bar'])
+    def test_validate_valid(self, klass, val):
+        klass(none_ok=True).validate(val)
 
-    def test_validate_multiple(self):
-        """Test validate with multiple values."""
-        self.t.validate('foo,bar')
-
-    def test_validate_empty(self):
-        """Test validate with empty string and none_ok = False."""
+    @pytest.mark.parametrize('val', ['', 'foo,,bar',])
+    def test_validate_invalid(self, klass, val):
         with pytest.raises(configexc.ValidationError):
-            self.t.validate('')
+            klass().validate(val)
 
-    def test_validate_empty_none_ok(self):
-        """Test validate with empty string and none_ok = True."""
-        t = configtypes.List(none_ok=True)
-        t.validate('')
-
-    def test_validate_empty_item(self):
-        """Test validate with empty item and none_ok = False."""
+    def test_invalid_empty_value_none_ok(self, klass):
         with pytest.raises(configexc.ValidationError):
-            self.t.validate('foo,,bar')
+            klass(none_ok=True).validate('foo,,bar')
 
-    def test_validate_empty_item_none_ok(self):
-        """Test validate with empty item and none_ok = True."""
-        t = configtypes.List(none_ok=True)
-        with pytest.raises(configexc.ValidationError):
-            t.validate('foo,,bar')
-
-    def test_transform_single(self):
-        """Test transform with a single value."""
-        assert self.t.transform('foo') == ['foo']
-
-    def test_transform_more(self):
-        """Test transform with multiple values."""
-        assert self.t.transform('foo,bar,baz') == ['foo', 'bar', 'baz']
-
-    def test_transform_empty(self):
-        """Test transform with an empty value."""
-        assert self.t.transform('') is None
+    @pytest.mark.parametrize('val, expected', [
+        ('foo', ['foo']),
+        ('foo,bar,baz', ['foo', 'bar', 'baz']),
+        ('', None),
+        # Not implemented yet
+        pytest.mark.xfail(('foo, bar', ['foo', 'bar'])),
+    ])
+    def test_transform(self, klass, val, expected):
+        assert klass().transform(val) == expected
 
 
 class TestBool:
 
     """Test Bool."""
 
-    TESTS = {True: ['1', 'yes', 'YES', 'true', 'TrUe', 'on'],
-             False: ['0', 'no', 'NO', 'false', 'FaLsE', 'off']}
+    TESTS = {
+        '1': True,
+        'yes': True,
+        'YES': True,
+        'true': True,
+        'TrUe': True,
+        'on': True,
 
-    INVALID = ['10', 'yess', 'false_']
+        '0': False,
+        'no': False,
+        'NO': False,
+        'false': False,
+        'FaLsE': False,
+        'off': False,
 
-    @pytest.fixture(autouse=True)
-    def setup(self):
-        self.t = configtypes.Bool()
+        '': None,
+    }
 
-    @pytest.mark.parametrize('out, inp',
-                             [(out, inp) for out, inputs in TESTS.items() for
-                              inp in inputs])
-    def test_transform(self, out, inp):
-        """Test transform with all values."""
-        assert self.t.transform(inp) == out
+    INVALID = ['10', 'yess', 'false_', '']
 
-    def test_transform_empty(self):
-        """Test transform with none_ok = False and an empty value."""
-        assert self.t.transform('') is None
+    @pytest.fixture
+    def klass(self):
+        return configtypes.Bool
 
-    @pytest.mark.parametrize('val', itertools.chain(*TESTS.values()))
-    def test_validate_valid(self, val):
-        """Test validate with valid values."""
-        self.t.validate(val)
+    @pytest.mark.parametrize('val, expected', TESTS.items())
+    def test_transform(self, klass, val, expected):
+        assert klass().transform(val) == expected
+
+    @pytest.mark.parametrize('val', TESTS)
+    def test_validate_valid(self, klass, val):
+        klass(none_ok=True).validate(val)
 
     @pytest.mark.parametrize('val', INVALID)
-    def test_validate_invalid(self, val):
-        """Test validate with invalid values."""
+    def test_validate_invalid(self, klass, val):
         with pytest.raises(configexc.ValidationError):
-            self.t.validate(val)
-
-    def test_validate_empty(self):
-        """Test validate with empty string and none_ok = False."""
-        t = configtypes.Bool()
-        with pytest.raises(configexc.ValidationError):
-            t.validate('')
-
-    def test_validate_empty_none_ok(self):
-        """Test validate with empty string and none_ok = True."""
-        t = configtypes.Int(none_ok=True)
-        t.validate('')
+            klass().validate(val)
 
 
 class TestInt:
 
     """Test Int."""
 
-    def test_minval_gt_maxval(self):
-        """Test __init__ with a minval bigger than the maxval."""
+    @pytest.fixture
+    def klass(self):
+        return configtypes.Int
+
+    def test_minval_gt_maxval(self, klass):
         with pytest.raises(ValueError):
-            configtypes.Int(minval=2, maxval=1)
+            klass(minval=2, maxval=1)
 
-    def test_validate_int(self):
-        """Test validate with a normal int."""
-        t = configtypes.Int()
-        t.validate('1337')
+    @pytest.mark.parametrize('kwargs, val', [
+        ({}, '1337'),
+        ({}, '0'),
+        ({'none_ok': True}, ''),
+        ({'minval': 2}, '2'),
+        ({'maxval': 2}, '2'),
+        ({'minval': 2, 'maxval': 3}, '2'),
+        ({'minval': 2, 'maxval': 3}, '3'),
+    ])
+    def test_validate_valid(self, klass, kwargs, val):
+        klass(**kwargs).validate(val)
 
-    def test_validate_string(self):
-        """Test validate with something which isn't an int."""
-        t = configtypes.Int()
+    @pytest.mark.parametrize('kwargs, val', [
+        ({}, ''),
+        ({}, '2.5'),
+        ({}, 'foobar'),
+        ({'minval': 2}, '1'),
+        ({'maxval': 2}, '3'),
+        ({'minval': 2, 'maxval': 3}, '1'),
+        ({'minval': 2, 'maxval': 3}, '4'),
+    ])
+    def test_validate_invalid(self, klass, kwargs, val):
         with pytest.raises(configexc.ValidationError):
-            t.validate('foobar')
+            klass(**kwargs).validate(val)
 
-    def test_validate_empty(self):
-        """Test validate with empty string and none_ok = False."""
-        t = configtypes.Int()
-        with pytest.raises(configexc.ValidationError):
-            t.validate('')
-
-    def test_validate_empty_none_ok(self):
-        """Test validate with empty string and none_ok = True."""
-        t = configtypes.Int(none_ok=True)
-        t.validate('')
-
-    def test_validate_minval_toosmall(self):
-        """Test validate with a minval and a too small int."""
-        t = configtypes.Int(minval=2)
-        with pytest.raises(configexc.ValidationError):
-            t.validate('1')
-
-    def test_validate_minval_ok(self):
-        """Test validate with a minval and a good int."""
-        t = configtypes.Int(minval=2)
-        t.validate('2')
-
-    def test_validate_maxval_toolarge(self):
-        """Test validate with a maxval and a too big int."""
-        t = configtypes.Int(maxval=2)
-        with pytest.raises(configexc.ValidationError):
-            t.validate('3')
-
-    def test_validate_maxval_ok(self):
-        """Test validate with a maxval and a good int."""
-        t = configtypes.Int(maxval=2)
-        t.validate('2')
-
-    def test_validate_range_ok(self):
-        """Test validate with both min/maxval and a good int."""
-        t = configtypes.Int(minval=2, maxval=3)
-        t.validate('2')
-        t.validate('3')
-
-    def test_validate_range_bad(self):
-        """Test validate with both min/maxval and a bad int."""
-        t = configtypes.Int(minval=2, maxval=3)
-        with pytest.raises(configexc.ValidationError):
-            t.validate('1')
-        with pytest.raises(configexc.ValidationError):
-            t.validate('4')
-
-    def test_transform_none(self):
-        """Test transform with an empty value."""
-        t = configtypes.Int(none_ok=True)
-        assert t.transform('') is None
-
-    def test_transform_int(self):
-        """Test transform with an int."""
-        t = configtypes.Int()
-        assert t.transform('1337') == 1337
+    @pytest.mark.parametrize('val, expected', [('1', 1), ('1337', 1337),
+                                               ('', None)])
+    def test_transform(self, klass, val, expected):
+        assert klass(none_ok=True).transform(val) == expected
 
 
 class TestIntList:
 
     """Test IntList."""
 
-    @pytest.fixture(autouse=True)
-    def setup(self):
-        self.t = configtypes.IntList()
+    @pytest.fixture
+    def klass(self):
+        return configtypes.IntList
 
-    def test_validate_good(self):
-        """Test validate with good values."""
-        self.t.validate('23,42,1337')
+    @pytest.mark.parametrize('val', ['', '1,2', '1', '23,1337'])
+    def test_validate_valid(self, klass, val):
+        klass(none_ok=True).validate(val)
 
-    def test_validate_empty(self):
-        """Test validate with an empty value."""
+    @pytest.mark.parametrize('val', ['', '1,,2', '23,foo,1337'])
+    def test_validate_invalid(self, klass, val):
         with pytest.raises(configexc.ValidationError):
-            self.t.validate('23,,42')
+            klass().validate(val)
 
-    def test_validate_empty_none_ok(self):
-        """Test validate with an empty value and none_ok=True."""
-        t = configtypes.IntList(none_ok=True)
-        t.validate('23,,42')
+    def test_invalid_empty_value_none_ok(self, klass):
+        klass(none_ok=True).validate('1,,2')
 
-    def test_validate_bad(self):
-        """Test validate with bad values."""
-        with pytest.raises(configexc.ValidationError):
-            self.t.validate('23,foo,1337')
-
-    def test_transform_single(self):
-        """Test transform with a single value."""
-        assert self.t.transform('1337') == [1337]
-
-    def test_transform_more(self):
-        """Test transform with multiple values."""
-        assert self.t.transform('23,42,1337') == [23, 42, 1337]
-
-    def test_transform_empty(self):
-        """Test transform with an empty value."""
-        assert self.t.transform('23,,42') == [23, None, 42]
+    @pytest.mark.parametrize('val, expected', [
+        ('1', [1]),
+        ('23,42', [23, 42]),
+        ('', None),
+        ('1,,2', [1, None, 2]),
+        ('23, 42', [23, 42]),
+    ])
+    def test_transform(self, klass, val, expected):
+        assert klass().transform(val) == expected
 
 
 class TestFloat:
 
     """Test Float."""
 
-    def test_minval_gt_maxval(self):
-        """Test __init__ with a minval bigger than the maxval."""
+    @pytest.fixture
+    def klass(self):
+        return configtypes.Float
+
+    def test_minval_gt_maxval(self, klass):
         with pytest.raises(ValueError):
-            configtypes.Float(minval=2, maxval=1)
+            klass(minval=2, maxval=1)
 
-    def test_validate_float(self):
-        """Test validate with a normal float."""
-        t = configtypes.Float()
-        t.validate('1337.42')
+    @pytest.mark.parametrize('kwargs, val', [
+        ({}, '1337.42'),
+        ({}, '0'),
+        ({}, '1337'),
+        ({'none_ok': True}, ''),
+        ({'minval': 2}, '2.00'),
+        ({'maxval': 2}, '2.00'),
+        ({'minval': 2, 'maxval': 3}, '2.00'),
+        ({'minval': 2, 'maxval': 3}, '3.00'),
+    ])
+    def test_validate_valid(self, klass, kwargs, val):
+        klass(**kwargs).validate(val)
 
-    def test_validate_int(self):
-        """Test validate with an int."""
-        t = configtypes.Float()
-        t.validate('1337')
-
-    def test_validate_string(self):
-        """Test validate with something which isn't an float."""
-        t = configtypes.Float()
+    @pytest.mark.parametrize('kwargs, val', [
+        ({}, ''),
+        ({}, '2.5.2'),
+        ({}, 'foobar'),
+        ({'minval': 2}, '1.99'),
+        ({'maxval': 2}, '2.01'),
+        ({'minval': 2, 'maxval': 3}, '1.99'),
+        ({'minval': 2, 'maxval': 3}, '3.01'),
+    ])
+    def test_validate_invalid(self, klass, kwargs, val):
         with pytest.raises(configexc.ValidationError):
-            t.validate('foobar')
+            klass(**kwargs).validate(val)
 
-    def test_validate_empty(self):
-        """Test validate with empty string and none_ok = False."""
-        t = configtypes.Float()
-        with pytest.raises(configexc.ValidationError):
-            t.validate('')
-
-    def test_validate_empty_none_ok(self):
-        """Test validate with empty string and none_ok = True."""
-        t = configtypes.Float(none_ok=True)
-        t.validate('')
-
-    def test_validate_minval_toosmall(self):
-        """Test validate with a minval and a too small float."""
-        t = configtypes.Float(minval=2)
-        with pytest.raises(configexc.ValidationError):
-            t.validate('1.99')
-
-    def test_validate_minval_ok(self):
-        """Test validate with a minval and a good float."""
-        t = configtypes.Float(minval=2)
-        t.validate('2.00')
-
-    def test_validate_maxval_toolarge(self):
-        """Test validate with a maxval and a too big float."""
-        t = configtypes.Float(maxval=2)
-        with pytest.raises(configexc.ValidationError):
-            t.validate('2.01')
-
-    def test_validate_maxval_ok(self):
-        """Test validate with a maxval and a good float."""
-        t = configtypes.Float(maxval=2)
-        t.validate('2.00')
-
-    def test_validate_range_ok(self):
-        """Test validate with both min/maxval and a good float."""
-        t = configtypes.Float(minval=2, maxval=3)
-        t.validate('2.00')
-        t.validate('3.00')
-
-    def test_validate_range_bad(self):
-        """Test validate with both min/maxval and a bad float."""
-        t = configtypes.Float(minval=2, maxval=3)
-        with pytest.raises(configexc.ValidationError):
-            t.validate('1.99')
-        with pytest.raises(configexc.ValidationError):
-            t.validate('3.01')
-
-    def test_transform_empty(self):
-        """Test transform with an empty value."""
-        t = configtypes.Float()
-        assert t.transform('') is None
-
-    def test_transform_float(self):
-        """Test transform with an float."""
-        t = configtypes.Float()
-        assert t.transform('1337.42') == 1337.42
-
-    def test_transform_int(self):
-        """Test transform with an int."""
-        t = configtypes.Float()
-        assert t.transform('1337') == 1337.00
+    @pytest.mark.parametrize('val, expected', [
+        ('1337', 1337.00),
+        ('1337.42', 1337.42),
+        ('', None),
+    ])
+    def test_transform(self, klass, val, expected):
+        assert klass(none_ok=True).transform(val) == expected
 
 
 class TestPerc:
 
     """Test Perc."""
 
-    @pytest.fixture(autouse=True)
-    def setup(self):
-        self.t = configtypes.Perc()
+    @pytest.fixture
+    def klass(self):
+        return configtypes.Perc
 
-    def test_minval_gt_maxval(self):
-        """Test __init__ with a minval bigger than the maxval."""
+    def test_minval_gt_maxval(self, klass):
         with pytest.raises(ValueError):
-            configtypes.Perc(minval=2, maxval=1)
+            klass(minval=2, maxval=1)
 
-    def test_validate_int(self):
-        """Test validate with a normal int (not a percentage)."""
+    @pytest.mark.parametrize('kwargs, val', [
+        ({}, '1337%'),
+        ({'minval': 2}, '2%'),
+        ({'maxval': 2}, '2%'),
+        ({'minval': 2, 'maxval': 3}, '2%'),
+        ({'minval': 2, 'maxval': 3}, '3%'),
+        ({'none_ok': True}, ''),
+    ])
+    def test_validate_valid(self, klass, kwargs, val):
+        klass(**kwargs).validate(val)
+
+    @pytest.mark.parametrize('kwargs, val', [
+        ({}, '1337'),
+        ({}, '1337%%'),
+        ({}, 'foobar'),
+        ({}, ''),
+        ({'minval': 2}, '1%'),
+        ({'maxval': 2}, '3%'),
+        ({'minval': 2, 'maxval': 3}, '1%'),
+        ({'minval': 2, 'maxval': 3}, '4%'),
+    ])
+    def test_validate_invalid(self, klass, kwargs, val):
         with pytest.raises(configexc.ValidationError):
-            self.t.validate('1337')
+            klass(**kwargs).validate(val)
 
-    def test_validate_string(self):
-        """Test validate with something which isn't a percentage."""
-        with pytest.raises(configexc.ValidationError):
-            self.t.validate('1337%%')
-
-    def test_validate_perc(self):
-        """Test validate with a percentage."""
-        self.t.validate('1337%')
-
-    def test_validate_empty(self):
-        """Test validate with empty string and none_ok = False."""
-        with pytest.raises(configexc.ValidationError):
-            self.t.validate('')
-
-    def test_validate_empty_none_ok(self):
-        """Test validate with empty string and none_ok = True."""
-        t = configtypes.Perc(none_ok=True)
-        t.validate('')
-
-    def test_validate_minval_toosmall(self):
-        """Test validate with a minval and a too small percentage."""
-        t = configtypes.Perc(minval=2)
-        with pytest.raises(configexc.ValidationError):
-            t.validate('1%')
-
-    def test_validate_minval_ok(self):
-        """Test validate with a minval and a good percentage."""
-        t = configtypes.Perc(minval=2)
-        t.validate('2%')
-
-    def test_validate_maxval_toolarge(self):
-        """Test validate with a maxval and a too big percentage."""
-        t = configtypes.Perc(maxval=2)
-        with pytest.raises(configexc.ValidationError):
-            t.validate('3%')
-
-    def test_validate_maxval_ok(self):
-        """Test validate with a maxval and a good percentage."""
-        t = configtypes.Perc(maxval=2)
-        t.validate('2%')
-
-    def test_validate_range_ok(self):
-        """Test validate with both min/maxval and a good percentage."""
-        t = configtypes.Perc(minval=2, maxval=3)
-        t.validate('2%')
-        t.validate('3%')
-
-    def test_validate_range_bad(self):
-        """Test validate with both min/maxval and a bad percentage."""
-        t = configtypes.Perc(minval=2, maxval=3)
-        with pytest.raises(configexc.ValidationError):
-            t.validate('1%')
-        with pytest.raises(configexc.ValidationError):
-            t.validate('4%')
-
-    def test_transform_empty(self):
-        """Test transform with an empty value."""
-        assert self.t.transform('') is None
-
-    def test_transform_perc(self):
-        """Test transform with a percentage."""
-        assert self.t.transform('1337%') == 1337
+    @pytest.mark.parametrize('val, expected', [
+        ('', None),
+        ('1337%', 1337),
+    ])
+    def test_transform(self, klass, val, expected):
+        assert klass().transform(val) == expected
 
 
 class TestPercList:
 
     """Test PercList."""
 
-    @pytest.fixture(autouse=True)
-    def setup(self):
-        self.t = configtypes.PercList()
+    @pytest.fixture
+    def klass(self):
+        return configtypes.PercList
 
-    def test_minval_gt_maxval(self):
-        """Test __init__ with a minval bigger than the maxval."""
+    def test_minval_gt_maxval(self, klass):
         with pytest.raises(ValueError):
-            configtypes.PercList(minval=2, maxval=1)
+            klass(minval=2, maxval=1)
 
-    def test_validate_good(self):
-        """Test validate with good values."""
-        self.t.validate('23%,42%,1337%')
+    @pytest.mark.parametrize('kwargs, val', [
+        ({}, '23%,42%,1337%'),
+        ({'minval': 2}, '2%,3%'),
+        ({'maxval': 2}, '1%,2%'),
+        ({'minval': 2, 'maxval': 3}, '2%,3%'),
+        ({'none_ok': True}, '42%,,23%'),
+        ({'none_ok': True}, ''),
+    ])
+    def test_validate_valid(self, klass, kwargs, val):
+        klass(**kwargs).validate(val)
 
-    def test_validate_bad(self):
-        """Test validate with bad values."""
+    @pytest.mark.parametrize('kwargs, val', [
+        ({}, '23%,42,1337%'),
+        ({'minval': 2}, '1%,2%'),
+        ({'maxval': 2}, '2%,3%'),
+        ({'minval': 2, 'maxval': 3}, '1%,2%'),
+        ({'minval': 2, 'maxval': 3}, '3%,4%'),
+        ({}, '42%,,23%'),
+        ({}, ''),
+    ])
+    def test_validate_invalid(self, klass, kwargs, val):
         with pytest.raises(configexc.ValidationError):
-            self.t.validate('23%,42%%,1337%')
+            klass(**kwargs).validate(val)
 
-    def test_validate_minval_toosmall(self):
-        """Test validate with a minval and a too small percentage."""
-        t = configtypes.PercList(minval=2)
-        with pytest.raises(configexc.ValidationError):
-            t.validate('1%')
-
-    def test_validate_minval_ok(self):
-        """Test validate with a minval and a good percentage."""
-        t = configtypes.PercList(minval=2)
-        t.validate('2%')
-
-    def test_validate_maxval_toolarge(self):
-        """Test validate with a maxval and a too big percentage."""
-        t = configtypes.PercList(maxval=2)
-        with pytest.raises(configexc.ValidationError):
-            t.validate('3%')
-
-    def test_validate_maxval_ok(self):
-        """Test validate with a maxval and a good percentage."""
-        t = configtypes.PercList(maxval=2)
-        t.validate('2%')
-
-    def test_validate_range_ok(self):
-        """Test validate with both min/maxval and a good percentage."""
-        t = configtypes.PercList(minval=2, maxval=3)
-        t.validate('2%')
-        t.validate('3%')
-
-    def test_validate_range_bad(self):
-        """Test validate with both min/maxval and a bad percentage."""
-        t = configtypes.PercList(minval=2, maxval=3)
-        with pytest.raises(configexc.ValidationError):
-            t.validate('1%')
-        with pytest.raises(configexc.ValidationError):
-            t.validate('4%')
-
-    def test_validate_empty(self):
-        """Test validate with an empty value."""
-        with pytest.raises(configexc.ValidationError):
-            self.t.validate('23%,,42%')
-
-    def test_validate_empty_none_ok(self):
-        """Test validate with an empty value and none_ok=True."""
-        t = configtypes.PercList(none_ok=True)
-        t.validate('23%,,42%')
-
-    def test_transform_single(self):
-        """Test transform with a single value."""
-        assert self.t.transform('1337%') == [1337]
-
-    def test_transform_more(self):
-        """Test transform with multiple values."""
-        assert self.t.transform('23%,42%,1337%') == [23, 42, 1337]
-
-    def test_transform_empty(self):
-        """Test transform with an empty value."""
-        assert self.t.transform('23%,,42%') == [23, None, 42]
+    @pytest.mark.parametrize('val, expected', [
+        ('', None),
+        ('1337%', [1337]),
+        ('23%,42%,1337%', [23, 42, 1337]),
+        ('23%,,42%', [23, None, 42]),
+    ])
+    def test_transform(self, klass, val, expected):
+        assert klass().transform(val) == expected
 
 
 class TestPercOrInt:
 
     """Test PercOrInt."""
 
-    @pytest.fixture(autouse=True)
-    def setup(self):
-        self.t = configtypes.PercOrInt()
+    @pytest.fixture
+    def klass(self):
+        return configtypes.PercOrInt
 
-    def test_minint_gt_maxint(self):
-        """Test __init__ with a minint bigger than the maxint."""
+    def test_minint_gt_maxint(self, klass):
         with pytest.raises(ValueError):
-            configtypes.PercOrInt(minint=2, maxint=1)
+            klass(minint=2, maxint=1)
 
-    def test_minperc_gt_maxperc(self):
-        """Test __init__ with a minperc bigger than the maxperc."""
+    def test_minperc_gt_maxperc(self, klass):
         with pytest.raises(ValueError):
-            configtypes.PercOrInt(minperc=2, maxperc=1)
+            klass(minperc=2, maxperc=1)
 
-    def test_validate_string(self):
-        """Test validate with something which isn't a percentage."""
+    @pytest.mark.parametrize('kwargs, val', [
+        ({}, '1337%'),
+        ({}, '1337'),
+        ({'none_ok': True}, ''),
+
+        ({'minperc': 2}, '2%'),
+        ({'maxperc': 2}, '2%'),
+        ({'minperc': 2, 'maxperc': 3}, '2%'),
+        ({'minperc': 2, 'maxperc': 3}, '3%'),
+
+        ({'minint': 2}, '2'),
+        ({'maxint': 2}, '2'),
+        ({'minint': 2, 'maxint': 3}, '2'),
+        ({'minint': 2, 'maxint': 3}, '3'),
+
+        ({'minperc': 2, 'maxperc': 3}, '1'),
+        ({'minperc': 2, 'maxperc': 3}, '4'),
+        ({'minint': 2, 'maxint': 3}, '1%'),
+        ({'minint': 2, 'maxint': 3}, '4%'),
+    ])
+    def test_validate_valid(self, klass, kwargs, val):
+        klass(**kwargs).validate(val)
+
+    @pytest.mark.parametrize('kwargs, val', [
+        ({}, '1337%%'),
+        ({}, 'foobar'),
+        ({}, ''),
+
+        ({'minperc': 2}, '1%'),
+        ({'maxperc': 2}, '3%'),
+        ({'minperc': 2, 'maxperc': 3}, '1%'),
+        ({'minperc': 2, 'maxperc': 3}, '4%'),
+
+        ({'minint': 2}, '1'),
+        ({'maxint': 2}, '3'),
+        ({'minint': 2, 'maxint': 3}, '1'),
+        ({'minint': 2, 'maxint': 3}, '4'),
+    ])
+    def test_validate_invalid(self, klass, kwargs, val):
         with pytest.raises(configexc.ValidationError):
-            self.t.validate('1337%%')
+            klass(**kwargs).validate(val)
 
-    def test_validate_perc(self):
-        """Test validate with a percentage."""
-        self.t.validate('1337%')
-
-    def test_validate_int(self):
-        """Test validate with a normal int."""
-        self.t.validate('1337')
-
-    def test_validate_empty(self):
-        """Test validate with empty string and none_ok = False."""
-        with pytest.raises(configexc.ValidationError):
-            self.t.validate('')
-
-    def test_validate_empty_none_ok(self):
-        """Test validate with empty string and none_ok = True."""
-        t = configtypes.PercOrInt(none_ok=True)
-        t.validate('')
-
-    def test_validate_minint_toosmall(self):
-        """Test validate with a minint and a too small int."""
-        t = configtypes.PercOrInt(minint=2)
-        with pytest.raises(configexc.ValidationError):
-            t.validate('1')
-
-    def test_validate_minint_ok(self):
-        """Test validate with a minint and a good int."""
-        t = configtypes.PercOrInt(minint=2)
-        t.validate('2')
-
-    def test_validate_maxint_toolarge(self):
-        """Test validate with a maxint and a too big int."""
-        t = configtypes.PercOrInt(maxint=2)
-        with pytest.raises(configexc.ValidationError):
-            t.validate('3')
-
-    def test_validate_maxint_ok(self):
-        """Test validate with a maxint and a good int."""
-        t = configtypes.PercOrInt(maxint=2)
-        t.validate('2')
-
-    def test_validate_int_range_ok(self):
-        """Test validate with both min/maxint and a good int."""
-        t = configtypes.PercOrInt(minint=2, maxint=3)
-        t.validate('2')
-        t.validate('3')
-
-    def test_validate_int_range_bad(self):
-        """Test validate with both min/maxint and a bad int."""
-        t = configtypes.PercOrInt(minint=2, maxint=3)
-        with pytest.raises(configexc.ValidationError):
-            t.validate('1')
-        with pytest.raises(configexc.ValidationError):
-            t.validate('4')
-
-    def test_validate_minperc_toosmall(self):
-        """Test validate with a minperc and a too small perc."""
-        t = configtypes.PercOrInt(minperc=2)
-        with pytest.raises(configexc.ValidationError):
-            t.validate('1%')
-
-    def test_validate_minperc_ok(self):
-        """Test validate with a minperc and a good perc."""
-        t = configtypes.PercOrInt(minperc=2)
-        t.validate('2%')
-
-    def test_validate_maxperc_toolarge(self):
-        """Test validate with a maxperc and a too big perc."""
-        t = configtypes.PercOrInt(maxperc=2)
-        with pytest.raises(configexc.ValidationError):
-            t.validate('3%')
-
-    def test_validate_maxperc_ok(self):
-        """Test validate with a maxperc and a good perc."""
-        t = configtypes.PercOrInt(maxperc=2)
-        t.validate('2%')
-
-    def test_validate_perc_range_ok(self):
-        """Test validate with both min/maxperc and a good perc."""
-        t = configtypes.PercOrInt(minperc=2, maxperc=3)
-        t.validate('2%')
-        t.validate('3%')
-
-    def test_validate_perc_range_bad(self):
-        """Test validate with both min/maxperc and a bad perc."""
-        t = configtypes.PercOrInt(minperc=2, maxperc=3)
-        with pytest.raises(configexc.ValidationError):
-            t.validate('1%')
-        with pytest.raises(configexc.ValidationError):
-            t.validate('4%')
-
-    def test_validate_both_range_int(self):
-        """Test validate with both min/maxperc and make sure int is ok."""
-        t = configtypes.PercOrInt(minperc=2, maxperc=3)
-        t.validate('4')
-        t.validate('1')
-
-    def test_validate_both_range_perc(self):
-        """Test validate with both min/maxint and make sure perc is ok."""
-        t = configtypes.PercOrInt(minint=2, maxint=3)
-        t.validate('4%')
-        t.validate('1%')
-
-    def test_transform_none(self):
-        """Test transform with an empty value."""
-        assert self.t.transform('') is None
-
-    def test_transform_perc(self):
-        """Test transform with a percentage."""
-        assert self.t.transform('1337%') == '1337%'
-
-    def test_transform_int(self):
-        """Test transform with an int."""
-        assert self.t.transform('1337') == '1337'
+    @pytest.mark.parametrize('val, expected', [
+        ('', None),
+        ('1337%', '1337%'),
+        ('1337', '1337'),
+    ])
+    def test_transform(self, klass, val, expected):
+        assert klass().transform(val) == expected
 
 
 class TestCommand:
@@ -883,54 +587,35 @@ class TestCommand:
     """Test Command."""
 
     @pytest.fixture(autouse=True)
-    def setup(self, monkeypatch, stubs):
-        self.t = configtypes.Command()
+    def patch(self, monkeypatch, stubs):
+        """Patch the cmdutils module to provide fake commands."""
         cmd_utils = stubs.FakeCmdUtils({'cmd1': stubs.FakeCommand("desc 1"),
                                         'cmd2': stubs.FakeCommand("desc 2")})
         monkeypatch.setattr('qutebrowser.config.configtypes.cmdutils',
                             cmd_utils)
 
-    def test_validate_empty(self):
-        """Test validate with an empty string."""
+    @pytest.fixture
+    def klass(self):
+        return configtypes.Command
+
+    @pytest.mark.parametrize('val', ['', 'cmd1', 'cmd2', 'cmd1  foo bar',
+                                     'cmd2  baz fish'])
+    def test_validate_valid(self, klass, val):
+        klass(none_ok=True).validate(val)
+
+    @pytest.mark.parametrize('val', ['', 'cmd3', 'cmd3  foo bar'])
+    def test_validate_invalid(self, klass, val):
         with pytest.raises(configexc.ValidationError):
-            self.t.validate('')
+            klass().validate('')
 
-    def test_validate_empty_none_ok(self):
-        """Test validate with an empty string and none_ok=True."""
-        t = configtypes.Command(none_ok=True)
-        t.validate('')
+    @pytest.mark.parametrize('val, expected', [('foo bar', 'foo bar'),
+                                               ('', None)])
+    def test_transform(self, val, expected, klass):
+        assert klass().transform(val) == expected
 
-    def test_validate_command(self):
-        """Test validate with a command."""
-        self.t.validate('cmd1')
-        self.t.validate('cmd2')
-
-    def test_validate_command_args(self):
-        """Test validate with a command and arguments."""
-        self.t.validate('cmd1  foo bar')
-        self.t.validate('cmd2  baz fish')
-
-    def test_validate_invalid_command(self):
-        """Test validate with an invalid command."""
-        with pytest.raises(configexc.ValidationError):
-            self.t.validate('cmd3')
-
-    def test_validate_invalid_command_args(self):
-        """Test validate with an invalid command and arguments."""
-        with pytest.raises(configexc.ValidationError):
-            self.t.validate('cmd3  foo bar')
-
-    def test_transform(self):
-        """Make sure transform doesn't alter values."""
-        assert self.t.transform('foo bar') == 'foo bar'
-
-    def test_transform_empty(self):
-        """Test transform with an empty value."""
-        assert self.t.transform('') is None
-
-    def test_complete(self):
-        """Test complete."""
-        items = self.t.complete()
+    def test_complete(self, klass):
+        """Test completion."""
+        items = klass().complete()
         assert len(items) == 2
         assert ('cmd1', "desc 1") in items
         assert ('cmd2', "desc 2") in items
@@ -947,85 +632,54 @@ class TestColorSystem:
         'hsv': QColor.Hsv,
         'HSL': QColor.Hsl,
         'hsl': QColor.Hsl,
+        '': None,
     }
-    INVALID = ['RRGB', 'HSV ']
+    INVALID = ['RRGB', 'HSV ', '']  # '' is invalid with none_ok=False
 
-    @pytest.fixture(autouse=True)
-    def setup(self):
-        self.t = configtypes.ColorSystem()
-
-    def test_validate_empty(self):
-        """Test validate with an empty string."""
-        with pytest.raises(configexc.ValidationError):
-            self.t.validate('')
-
-    def test_validate_empty_none_ok(self):
-        """Test validate with an empty string and none_ok=True."""
-        t = configtypes.ColorSystem(none_ok=True)
-        t.validate('')
+    @pytest.fixture
+    def klass(self):
+        return configtypes.ColorSystem
 
     @pytest.mark.parametrize('val', TESTS)
-    def test_validate_valid(self, val):
-        """Test validate with valid values."""
-        self.t.validate(val)
+    def test_validate_valid(self, klass, val):
+        klass(none_ok=True).validate(val)
 
     @pytest.mark.parametrize('val', INVALID)
-    def test_validate_invalid(self, val):
-        """Test validate with invalid values."""
-        with pytest.raises(configexc.ValidationError, msg=val):
-            self.t.validate(val)
+    def test_validate_invalid(self, klass, val):
+        with pytest.raises(configexc.ValidationError):
+            klass().validate(val)
 
-    @pytest.mark.parametrize('k, v', TESTS.items())
-    def test_transform(self, k, v):
-        """Test transform."""
-        assert self.t.transform(k) == v
-
-    def test_transform_empty(self):
-        """Test transform with an empty value."""
-        assert self.t.transform('') is None
+    @pytest.mark.parametrize('val, expected', TESTS.items())
+    def test_transform(self, klass, val, expected):
+        assert klass().transform(val) == expected
 
 
 class TestQtColor:
 
     """Test QtColor."""
 
-    VALID = ['#123', '#112233', '#111222333', '#111122223333', 'red']
-    INVALID = ['#00000G', '#123456789ABCD', '#12', 'foobar', '42']
+    VALID = ['#123', '#112233', '#111222333', '#111122223333', 'red', '']
+    # '' is invalid with none_ok=False
+    INVALID = ['#00000G', '#123456789ABCD', '#12', 'foobar', '42', '']
     INVALID_QT = ['rgb(0, 0, 0)']
 
-    @pytest.fixture(autouse=True)
-    def setup(self):
-        self.t = configtypes.QtColor()
+    @pytest.fixture
+    def klass(self):
+        return configtypes.QtColor
 
-    def test_validate_empty(self):
-        """Test validate with an empty string."""
-        with pytest.raises(configexc.ValidationError):
-            self.t.validate('')
-
-    def test_validate_empty_none_ok(self):
-        """Test validate with an empty string and none_ok=True."""
-        t = configtypes.QtColor(none_ok=True)
-        t.validate('')
-
-    @pytest.mark.parametrize('v', VALID)
-    def test_validate_valid(self, v):
-        """Test validate with valid values."""
-        self.t.validate(v)
+    @pytest.mark.parametrize('val', VALID)
+    def test_validate_valid(self, klass, val):
+        klass(none_ok=True).validate(val)
 
     @pytest.mark.parametrize('val', INVALID + INVALID_QT)
-    def test_validate_invalid(self, val):
-        """Test validate with invalid values."""
-        with pytest.raises(configexc.ValidationError, msg=val):
-            self.t.validate(val)
+    def test_validate_invalid(self, klass, val):
+        with pytest.raises(configexc.ValidationError):
+            klass().validate(val)
 
-    @pytest.mark.parametrize('v', VALID)
-    def test_transform(self, v):
-        """Test transform."""
-        assert self.t.transform(v) == QColor(v)
-
-    def test_transform_empty(self):
-        """Test transform with an empty value."""
-        assert self.t.transform('') is None
+    @pytest.mark.parametrize('val', VALID)
+    def test_transform(self, klass, val):
+        expected = QColor(val) if val else None
+        assert klass().transform(val) == expected
 
 
 class TestCssColor(TestQtColor):
@@ -1034,24 +688,14 @@ class TestCssColor(TestQtColor):
 
     VALID = TestQtColor.VALID + ['-foobar(42)']
 
-    @pytest.fixture(autouse=True)
-    def setup(self):
-        self.t = configtypes.CssColor()
+    @pytest.fixture
+    def klass(self):
+        return configtypes.CssColor
 
-    def test_validate_empty_none_ok(self):
-        """Test validate with an empty string and none_ok=True."""
-        t = configtypes.CssColor(none_ok=True)
-        t.validate('')
-
-    @pytest.mark.parametrize('v', VALID)
-    def test_validate_valid(self, v):
-        """Test validate with valid values."""
-        super().test_validate_valid(v)
-
-    @pytest.mark.parametrize('v', VALID)
-    def test_transform(self, v):
-        """Make sure transform doesn't alter the value."""
-        assert self.t.transform(v) == v
+    @pytest.mark.parametrize('val', VALID)
+    def test_transform(self, klass, val):
+        expected = val if val else None
+        assert klass().transform(val) == expected
 
 
 class TestQssColor(TestQtColor):
@@ -1069,31 +713,20 @@ class TestQssColor(TestQtColor):
         'white, stop:1 green)'
     ]
     INVALID = TestQtColor.INVALID + ['rgb(1, 2, 3, 4)', 'foo(1, 2, 3)']
-    INVALID_QT = []
 
-    @pytest.fixture(autouse=True)
-    def setup(self):
-        self.t = configtypes.QssColor()
+    @pytest.fixture
+    def klass(self):
+        return configtypes.QssColor
 
-    def test_validate_empty_none_ok(self):
-        """Test validate with an empty string and none_ok=True."""
-        t = configtypes.QssColor(none_ok=True)
-        t.validate('')
+    @pytest.mark.parametrize('val', INVALID)
+    def test_validate_invalid(self, klass, val):
+        with pytest.raises(configexc.ValidationError):
+            klass().validate(val)
 
-    @pytest.mark.parametrize('v', VALID)
-    def test_validate_valid(self, v):
-        """Test validate with valid values."""
-        super().test_validate_valid(v)
-
-    @pytest.mark.parametrize('val', INVALID + INVALID_QT)
-    def test_validate_invalid(self, val):
-        """Test validate with invalid values."""
-        super().test_validate_invalid(val)
-
-    @pytest.mark.parametrize('v', VALID)
-    def test_transform(self, v):
-        """Make sure transform doesn't alter the value."""
-        assert self.t.transform(v) == v
+    @pytest.mark.parametrize('val', VALID)
+    def test_transform(self, klass, val):
+        expected = val if val else None
+        assert klass().transform(val) == expected
 
 
 FontDesc = collections.namedtuple('FontDesc',
@@ -1155,67 +788,66 @@ class TestFont:
         '10pt ""',
     ]
 
-    @pytest.fixture(autouse=True)
-    def setup(self):
-        self.t = configtypes.Font()
-        self.t2 = configtypes.QtFont()
+    @pytest.fixture(params=[configtypes.Font, configtypes.QtFont])
+    def klass(self, request):
+        return request.param
 
-    def test_validate_empty(self):
-        """Test validate with an empty string."""
-        with pytest.raises(configexc.ValidationError):
-            self.t.validate('')
+    @pytest.fixture
+    def font_class(self):
+        return configtypes.Font
 
-    def test_validate_empty_none_ok(self):
-        """Test validate with an empty string and none_ok=True."""
-        t = configtypes.Font(none_ok=True)
-        t2 = configtypes.QtFont(none_ok=True)
-        t.validate('')
-        t2.validate('')
+    @pytest.fixture
+    def qtfont_class(self):
+        return configtypes.QtFont
 
-    @pytest.mark.parametrize('val', TESTS)
-    @pytest.mark.parametrize('attr', ['t', 't2'])
-    def test_validate_valid(self, val, attr):
-        """Test validate with valid values."""
-        getattr(self, attr).validate(val)
+    @pytest.mark.parametrize('val', list(TESTS) + [''])
+    def test_validate_valid(self, klass, val):
+        klass(none_ok=True).validate(val)
 
     @pytest.mark.parametrize('val', INVALID)
-    @pytest.mark.parametrize('attr', ['t', 't2'])
     @pytest.mark.xfail(reason='FIXME: #103')
-    def test_validate_invalid(self, val, attr):
-        """Test validate with invalid values."""
-        with pytest.raises(configexc.ValidationError, msg=val):
-            getattr(self, attr).validate(val)
+    def test_validate_invalid(self, klass, val):
+        with pytest.raises(configexc.ValidationError):
+            klass().validate(val)
+
+    def test_validate_invalid_none(self, klass):
+        """Test validate with empty value and none_ok=False.
+
+        Not contained in test_validate_invalid so it can be marked xfail.
+        """
+        with pytest.raises(configexc.ValidationError):
+            klass().validate('')
+
+    @pytest.mark.parametrize('string', TESTS)
+    def test_transform_font(self, font_class, string):
+        assert font_class().transform(string) == string
 
     @pytest.mark.parametrize('string, desc', TESTS.items())
-    def test_transform(self, string, desc):
-        """Test transform."""
-        assert self.t.transform(string) == string
-        assert Font(self.t2.transform(string)) == Font.fromdesc(desc)
+    def test_transform_qtfont(self, qtfont_class, string, desc):
+        assert Font(qtfont_class().transform(string)) == Font.fromdesc(desc)
 
-    def test_transform_float(self):
+    def test_transform_qtfont_float(self, qtfont_class):
         """Test QtFont's transform with a float as point size.
 
         We can't test the point size for equality as Qt seems to do some
         rounding as appropriate.
         """
-        value = Font(self.t2.transform('10.5pt "Foobar Neue"'))
+        value = Font(qtfont_class().transform('10.5pt "Foobar Neue"'))
         assert value.family() == 'Foobar Neue'
         assert value.weight() == QFont.Normal
         assert value.style() == QFont.StyleNormal
         assert value.pointSize() >= 10
         assert value.pointSize() <= 11
 
-    def test_transform_empty(self):
-        """Test transform with an empty value."""
-        assert self.t.transform('') is None
-        assert self.t2.transform('') is None
+    def test_transform_empty(self, klass):
+        assert klass().transform('') is None
 
 
 class TestFontFamily:
 
     """Test FontFamily."""
 
-    TESTS = ['"Foobar Neue"', 'inconsolatazi4', 'Foobar']
+    TESTS = ['"Foobar Neue"', 'inconsolatazi4', 'Foobar', '']
     INVALID = [
         '10pt "Foobar Neue"',
         '10PT "Foobar Neue"',
@@ -1231,603 +863,419 @@ class TestFontFamily:
         'oblique 10pt "Foobar Neue"',
         'normal bold 10pt "Foobar Neue"',
         'bold italic 10pt "Foobar Neue"',
+        '',  # with none_ok=False
     ]
 
-    @pytest.fixture(autouse=True)
-    def setup(self):
-        self.t = configtypes.FontFamily()
-
-    def test_validate_empty(self):
-        """Test validate with an empty string."""
-        with pytest.raises(configexc.ValidationError):
-            self.t.validate('')
-
-    def test_validate_empty_none_ok(self):
-        """Test validate with an empty string and none_ok=True."""
-        t = configtypes.FontFamily(none_ok=True)
-        t.validate('')
+    @pytest.fixture
+    def klass(self):
+        return configtypes.FontFamily
 
     @pytest.mark.parametrize('val', TESTS)
-    def test_validate_valid(self, val):
-        """Test validate with valid values."""
-        self.t.validate(val)
+    def test_validate_valid(self, klass, val):
+        klass(none_ok=True).validate(val)
 
     @pytest.mark.parametrize('val', INVALID)
-    def test_validate_invalid(self, val):
-        """Test validate with invalid values."""
+    def test_validate_invalid(self, klass, val):
         with pytest.raises(configexc.ValidationError):
-            self.t.validate(val)
+            klass().validate(val)
 
-    def test_transform_empty(self):
-        """Test transform with an empty value."""
-        assert self.t.transform('') is None
+    @pytest.mark.parametrize('val, expected', [('foobar', 'foobar'),
+                                               ('', None)])
+    def test_transform(self, klass, val, expected):
+        assert klass().transform(val) == expected
 
 
 class TestRegex:
 
     """Test Regex."""
 
-    @pytest.fixture(autouse=True)
-    def setup(self):
-        self.t = configtypes.Regex()
+    @pytest.fixture
+    def klass(self):
+        return configtypes.Regex
 
-    def test_validate_empty(self):
-        """Test validate with an empty string."""
+    @pytest.mark.parametrize('val', [r'(foo|bar)?baz[fis]h', ''])
+    def test_validate_valid(self, klass, val):
+        klass(none_ok=True).validate(val)
+
+    @pytest.mark.parametrize('val', [r'(foo|bar))?baz[fis]h', ''])
+    def test_validate_invalid(self, klass, val):
         with pytest.raises(configexc.ValidationError):
-            self.t.validate('')
+            klass().validate(val)
 
-    def test_validate_empty_none_ok(self):
-        """Test validate with an empty string and none_ok=True."""
-        t = configtypes.Regex(none_ok=True)
-        t.validate('')
-
-    def test_validate(self):
-        """Test validate with a valid regex."""
-        self.t.validate(r'(foo|bar)?baz[fis]h')
-
-    def test_validate_invalid(self):
-        """Test validate with an invalid regex."""
-        with pytest.raises(configexc.ValidationError):
-            self.t.validate(r'(foo|bar))?baz[fis]h')
-
-    def test_transform_empty(self):
-        """Test transform with an empty value."""
-        assert self.t.transform('') is None
-
-    def test_transform(self):
-        """Test transform."""
-        assert self.t.transform(r'foobar') == re.compile(r'foobar')
+    @pytest.mark.parametrize('val, expected', [
+        (r'foobar', re.compile(r'foobar')),
+        ('', None),
+    ])
+    def test_transform_empty(self, klass, val, expected):
+        assert klass().transform(val) == expected
 
 
 class TestRegexList:
 
     """Test RegexList."""
 
-    @pytest.fixture(autouse=True)
-    def setup(self):
-        self.t = configtypes.RegexList()
+    @pytest.fixture
+    def klass(self):
+        return configtypes.RegexList
 
-    def test_validate_good(self):
-        """Test validate with good values."""
-        self.t.validate(r'(foo|bar),[abcd]?,1337{42}')
+    @pytest.mark.parametrize('val', [
+        r'(foo|bar),[abcd]?,1337{42}',
+        r'(foo|bar),,1337{42}',
+        r'',
+    ])
+    def test_validate_valid(self, klass, val):
+        klass(none_ok=True).validate(val)
 
-    def test_validate_empty(self):
-        """Test validate with an empty value."""
+    @pytest.mark.parametrize('val', [
+        r'(foo|bar),,1337{42}',
+        r'',
+        r'(foo|bar),((),1337{42}',
+    ])
+    def test_validate_invalid(self, klass, val):
         with pytest.raises(configexc.ValidationError):
-            self.t.validate(r'(foo|bar),,1337{42}')
+            klass().validate(val)
 
-    def test_validate_empty_none_ok(self):
-        """Test validate with an empty value and none_ok=True."""
-        t = configtypes.RegexList(none_ok=True)
-        t.validate(r'(foo|bar),,1337{42}')
-
-    def test_validate_bad(self):
-        """Test validate with bad values."""
-        with pytest.raises(configexc.ValidationError):
-            self.t.validate(r'(foo|bar),((),1337{42}')
-
-    def test_transform_single(self):
-        """Test transform with a single value."""
-        assert self.t.transform('foo') == [re.compile('foo')]
-
-    def test_transform_more(self):
-        """Test transform with multiple values."""
-        expected = [re.compile('foo'), re.compile('bar'), re.compile('baz')]
-        assert self.t.transform('foo,bar,baz') == expected
-
-    def test_transform_empty(self):
-        """Test transform with an empty value."""
-        expected = [re.compile('foo'), None, re.compile('bar')]
-        assert self.t.transform('foo,,bar') == expected
+    @pytest.mark.parametrize('val, expected', [
+        ('foo', [re.compile('foo')]),
+        ('foo,bar,baz', [re.compile('foo'), re.compile('bar'),
+                         re.compile('baz')]),
+        ('foo,,bar', [re.compile('foo'), None, re.compile('bar')]),
+        ('', None),
+    ])
+    def test_transform(self, klass, val, expected):
+        assert klass().transform(val) == expected
 
 
 class TestFile:
 
     """Test File."""
 
-    @pytest.fixture(autouse=True)
-    def setup(self):
-        self.t = configtypes.File()
+    @pytest.fixture
+    def klass(self):
+        return configtypes.File
 
-    def test_validate_empty(self):
-        """Test validate with empty string and none_ok = False."""
+    def test_validate_empty(self, klass):
         with pytest.raises(configexc.ValidationError):
-            self.t.validate("")
+            klass().validate('')
 
-    def test_validate_empty_none_ok(self):
-        """Test validate with empty string and none_ok = True."""
-        t = configtypes.File(none_ok=True)
-        t.validate("")
+    def test_validate_empty_none_ok(self, klass):
+        klass(none_ok=True).validate('')
 
-    def test_validate_does_not_exist(self, os_mock):
+    def test_validate_does_not_exist(self, klass, os_mock):
         """Test validate with a file which does not exist."""
-        os_mock.path.expanduser.side_effect = lambda x: x
-        os_mock.path.expandvars.side_effect = lambda x: x
         os_mock.path.isfile.return_value = False
         with pytest.raises(configexc.ValidationError):
-            self.t.validate('foobar')
+            klass().validate('foobar')
 
-    def test_validate_exists_abs(self, os_mock):
+    def test_validate_exists_abs(self, klass, os_mock):
         """Test validate with a file which does exist."""
-        os_mock.path.expanduser.side_effect = lambda x: x
-        os_mock.path.expandvars.side_effect = lambda x: x
         os_mock.path.isfile.return_value = True
         os_mock.path.isabs.return_value = True
-        self.t.validate('foobar')
+        klass().validate('foobar')
 
-    def test_validate_exists_rel(self, os_mock, monkeypatch):
+    def test_validate_exists_rel(self, klass, os_mock, monkeypatch):
         """Test validate with a relative path to an existing file."""
         monkeypatch.setattr(
             'qutebrowser.config.configtypes.standarddir.config',
             lambda: '/home/foo/.config/')
-        os_mock.path.expanduser.side_effect = lambda x: x
-        os_mock.path.expandvars.side_effect = lambda x: x
         os_mock.path.isfile.return_value = True
         os_mock.path.isabs.return_value = False
-        self.t.validate('foobar')
-        os_mock.path.join.assert_called_once_with('/home/foo/.config/',
-                                                  'foobar')
+        klass().validate('foobar')
+        os_mock.path.join.assert_called_once_with(
+            '/home/foo/.config/', 'foobar')
 
-    def test_validate_rel_config_none(self, os_mock, monkeypatch):
+    def test_validate_rel_config_none(self, klass, os_mock, monkeypatch):
         """Test with a relative path and standarddir.config returning None."""
         monkeypatch.setattr(
             'qutebrowser.config.configtypes.standarddir.config', lambda: None)
         os_mock.path.isabs.return_value = False
         with pytest.raises(configexc.ValidationError):
-            self.t.validate('foobar')
+            klass().validate('foobar')
 
-    def test_validate_expanduser(self, os_mock):
+    def test_validate_expanduser(self, klass, os_mock):
         """Test if validate expands the user correctly."""
-        os_mock.path.expanduser.side_effect = (lambda x:
-                                               x.replace('~', '/home/foo'))
-        os_mock.path.expandvars.side_effect = lambda x: x
         os_mock.path.isfile.side_effect = (lambda path:
                                            path == '/home/foo/foobar')
         os_mock.path.isabs.return_value = True
-        self.t.validate('~/foobar')
+        klass().validate('~/foobar')
         os_mock.path.expanduser.assert_called_once_with('~/foobar')
 
-    def test_validate_expandvars(self, os_mock):
+    def test_validate_expandvars(self, klass, os_mock):
         """Test if validate expands the environment vars correctly."""
-        os_mock.path.expanduser.side_effect = lambda x: x
-        os_mock.path.expandvars.side_effect = lambda x: x.replace(
-            '$HOME', '/home/foo')
         os_mock.path.isfile.side_effect = (lambda path:
                                            path == '/home/foo/foobar')
         os_mock.path.isabs.return_value = True
-        self.t.validate('$HOME/foobar')
+        klass().validate('$HOME/foobar')
         os_mock.path.expandvars.assert_called_once_with('$HOME/foobar')
 
-    def test_validate_invalid_encoding(self, os_mock, unicode_encode_err):
+    def test_validate_invalid_encoding(self, klass, os_mock,
+                                       unicode_encode_err):
         """Test validate with an invalid encoding, e.g. LC_ALL=C."""
         os_mock.path.isfile.side_effect = unicode_encode_err
         os_mock.path.isabs.side_effect = unicode_encode_err
         with pytest.raises(configexc.ValidationError):
-            self.t.validate('foobar')
+            klass().validate('foobar')
 
-    def test_transform(self, os_mock):
-        """Test transform."""
-        os_mock.path.expanduser.side_effect = (lambda x:
-                                               x.replace('~', '/home/foo'))
-        os_mock.path.expandvars.side_effect = lambda x: x
-        assert self.t.transform('~/foobar') == '/home/foo/foobar'
+    def test_transform(self, klass, os_mock):
+        assert klass().transform('~/foobar') == '/home/foo/foobar'
         os_mock.path.expanduser.assert_called_once_with('~/foobar')
 
-    def test_transform_empty(self):
+    def test_transform_empty(self, klass):
         """Test transform with none_ok = False and an empty value."""
-        assert self.t.transform('') is None
+        assert klass().transform('') is None
 
 
 class TestDirectory:
 
     """Test Directory."""
 
-    @pytest.fixture(autouse=True)
-    def setup(self):
-        self.t = configtypes.Directory()
+    @pytest.fixture
+    def klass(self):
+        return configtypes.Directory
 
-    def test_validate_empty(self):
+    def test_validate_empty(self, klass):
         """Test validate with empty string and none_ok = False."""
         with pytest.raises(configexc.ValidationError):
-            self.t.validate("")
+            klass().validate('')
 
-    def test_validate_empty_none_ok(self):
+    def test_validate_empty_none_ok(self, klass):
         """Test validate with empty string and none_ok = True."""
         t = configtypes.Directory(none_ok=True)
-        t.validate("")
+        t.validate('')
 
-    def test_validate_does_not_exist(self, os_mock):
+    def test_validate_does_not_exist(self, klass, os_mock):
         """Test validate with a directory which does not exist."""
-        os_mock.path.expanduser.side_effect = lambda x: x
         os_mock.path.isdir.return_value = False
         with pytest.raises(configexc.ValidationError):
-            self.t.validate('foobar')
+            klass().validate('foobar')
 
-    def test_validate_exists_abs(self, os_mock):
+    def test_validate_exists_abs(self, klass, os_mock):
         """Test validate with a directory which does exist."""
-        os_mock.path.expanduser.side_effect = lambda x: x
         os_mock.path.isdir.return_value = True
         os_mock.path.isabs.return_value = True
-        self.t.validate('foobar')
+        klass().validate('foobar')
 
-    def test_validate_exists_not_abs(self, os_mock):
+    def test_validate_exists_not_abs(self, klass, os_mock):
         """Test validate with a dir which does exist but is not absolute."""
-        os_mock.path.expanduser.side_effect = lambda x: x
         os_mock.path.isdir.return_value = True
         os_mock.path.isabs.return_value = False
         with pytest.raises(configexc.ValidationError):
-            self.t.validate('foobar')
+            klass().validate('foobar')
 
-    def test_validate_expanduser(self, os_mock):
+    def test_validate_expanduser(self, klass, os_mock):
         """Test if validate expands the user correctly."""
-        os_mock.path.expandvars.side_effect = lambda x: x
-        os_mock.path.expanduser.side_effect = (lambda x:
-                                               x.replace('~', '/home/foo'))
         os_mock.path.isdir.side_effect = (lambda path:
                                           path == '/home/foo/foobar')
         os_mock.path.isabs.return_value = True
-        self.t.validate('~/foobar')
+        klass().validate('~/foobar')
         os_mock.path.expanduser.assert_called_once_with('~/foobar')
 
-    def test_validate_expandvars(self, os_mock, monkeypatch):
+    def test_validate_expandvars(self, klass, os_mock, monkeypatch):
         """Test if validate expands the user correctly."""
-        os_mock.path.expandvars.side_effect = lambda x: x.replace('$BAR',
-                                                             '/home/foo/bar')
-        os_mock.path.expanduser.side_effect = lambda x: x
         os_mock.path.isdir.side_effect = (lambda path:
-                                          path == '/home/foo/bar/foobar')
+                                          path == '/home/foo/foobar')
         os_mock.path.isabs.return_value = True
-        monkeypatch.setenv('BAR', '/home/foo/bar')
-        self.t.validate('$BAR/foobar')
-        os_mock.path.expandvars.assert_called_once_with('$BAR/foobar')
+        klass().validate('$HOME/foobar')
+        os_mock.path.expandvars.assert_called_once_with('$HOME/foobar')
 
-    def test_validate_invalid_encoding(self, os_mock, unicode_encode_err):
+    def test_validate_invalid_encoding(self, klass, os_mock,
+                                       unicode_encode_err):
         """Test validate with an invalid encoding, e.g. LC_ALL=C."""
         os_mock.path.isdir.side_effect = unicode_encode_err
         os_mock.path.isabs.side_effect = unicode_encode_err
         with pytest.raises(configexc.ValidationError):
-            self.t.validate('foobar')
+            klass().validate('foobar')
 
-    def test_transform(self, os_mock):
-        """Test transform."""
-        os_mock.path.expandvars.side_effect = lambda x: x
-        os_mock.path.expanduser.side_effect = (lambda x:
-                                               x.replace('~', '/home/foo'))
-        assert self.t.transform('~/foobar') == '/home/foo/foobar'
+    def test_transform(self, klass, os_mock):
+        assert klass().transform('~/foobar') == '/home/foo/foobar'
         os_mock.path.expanduser.assert_called_once_with('~/foobar')
 
-    def test_transform_empty(self):
+    def test_transform_empty(self, klass):
         """Test transform with none_ok = False and an empty value."""
-        assert self.t.transform('') is None
+        assert klass().transform('') is None
 
 
 class TestWebKitByte:
 
     """Test WebKitBytes."""
 
-    @pytest.fixture(autouse=True)
-    def setup(self):
-        self.t = configtypes.WebKitBytes()
+    @pytest.fixture
+    def klass(self):
+        return configtypes.WebKitBytes
 
-    def test_validate_empty(self):
-        """Test validate with empty string and none_ok = False."""
-        # Note WebKitBytes are always None-able
-        self.t.validate('')
+    @pytest.mark.parametrize('maxsize, val', [
+        (None, ''),  # It's always None-able, so we don't use none_ok
+        (None, '42'),
+        (None, '56k'),
+        (None, '56K'),
+        (10, '10'),
+        (2048, '2k'),
+    ])
+    def test_validate_valid(self, klass, maxsize, val):
+        klass(maxsize=maxsize).validate(val)
 
-    def test_validate_int(self):
-        """Test validate with a normal int."""
-        self.t.validate('42')
-
-    def test_validate_int_suffix(self):
-        """Test validate with an int with a suffix."""
-        self.t.validate('56k')
-
-    def test_validate_int_caps_suffix(self):
-        """Test validate with an int with a capital suffix."""
-        self.t.validate('56K')
-
-    def test_validate_int_negative(self):
-        """Test validate with a negative int."""
+    @pytest.mark.parametrize('maxsize, val', [
+        (None, '-1'),
+        (None, '-1k'),
+        (None, '56x'),
+        (None, '56kk'),
+        (10, '11'),
+        (999, '1k'),
+    ])
+    def test_validate_invalid(self, klass, maxsize, val):
         with pytest.raises(configexc.ValidationError):
-            self.t.validate('-1')
+            klass(maxsize=maxsize).validate(val)
 
-    def test_validate_int_negative_suffix(self):
-        """Test validate with a negative int with suffix."""
-        with pytest.raises(configexc.ValidationError):
-            self.t.validate('-1k')
-
-    def test_validate_int_toobig(self):
-        """Test validate with an int which is too big."""
-        t = configtypes.WebKitBytes(maxsize=10)
-        with pytest.raises(configexc.ValidationError):
-            t.validate('11')
-
-    def test_validate_int_not_toobig(self):
-        """Test validate with an int which is not too big."""
-        t = configtypes.WebKitBytes(maxsize=10)
-        t.validate('10')
-
-    def test_validate_int_toobig_suffix(self):
-        """Test validate with an int which is too big with suffix."""
-        t = configtypes.WebKitBytes(maxsize=10)
-        with pytest.raises(configexc.ValidationError):
-            t.validate('1k')
-
-    def test_validate_int_invalid_suffix(self):
-        """Test validate with an int with an invalid suffix."""
-        with pytest.raises(configexc.ValidationError):
-            self.t.validate('56x')
-
-    def test_validate_int_double_suffix(self):
-        """Test validate with an int with a double suffix."""
-        with pytest.raises(configexc.ValidationError):
-            self.t.validate('56kk')
-
-    def test_transform_empty(self):
-        """Test transform with none_ok = False and an empty value."""
-        assert self.t.transform('') is None
-
-    def test_transform_int(self):
-        """Test transform with a simple value."""
-        assert self.t.transform('10') == 10
-
-    def test_transform_int_suffix(self):
-        """Test transform with a value with suffix."""
-        assert self.t.transform('1k') == 1024
+    @pytest.mark.parametrize('val, expected', [
+        ('', None),
+        ('10', 10),
+        ('1k', 1024),
+        ('1t', 1024 ** 4),
+    ])
+    def test_transform(self, klass, val, expected):
+        assert klass().transform(val) == expected
 
 
 class TestWebKitBytesList:
 
     """Test WebKitBytesList."""
 
-    @pytest.fixture(autouse=True)
-    def setup(self):
-        self.t = configtypes.WebKitBytesList()
+    @pytest.fixture
+    def klass(self):
+        return configtypes.WebKitBytesList
 
-    def test_validate_good(self):
-        """Test validate with good values."""
-        t = configtypes.WebKitBytesList()
-        t.validate('23,56k,1337')
+    @pytest.mark.parametrize('kwargs, val', [
+        ({}, '23,56k,1337'),
+        ({'maxsize': 2}, '2'),
+        ({'maxsize': 2048}, '2k'),
+        ({'none_ok': True}, '23,,42'),
+        ({'none_ok': True}, ''),
+        ({'length': 3}, '1,2,3'),
+        ({}, ''),  # It's always None-able, so we don't use none_ok
+    ])
+    def test_validate_valid(self, klass, kwargs, val):
+        klass(**kwargs).validate(val)
 
-    def test_validate_bad(self):
-        """Test validate with bad values."""
-        t = configtypes.WebKitBytesList()
+    @pytest.mark.parametrize('kwargs, val', [
+        ({}, '23,56kk,1337'),
+        ({'maxsize': 2}, '3'),
+        ({'maxsize': 2}, '3k'),
+        ({}, '23,,42'),
+        ({'length': 3}, '1,2'),
+        ({'length': 3}, '1,2,3,4'),
+    ])
+    def test_validate_invalid(self, klass, kwargs, val):
         with pytest.raises(configexc.ValidationError):
-            t.validate('23,56kk,1337')
+            klass(**kwargs).validate(val)
 
-    def test_validate_maxsize_toolarge(self):
-        """Test validate with a maxsize and a too big size."""
-        t = configtypes.WebKitBytesList(maxsize=2)
-        with pytest.raises(configexc.ValidationError):
-            t.validate('3')
-        with pytest.raises(configexc.ValidationError):
-            t.validate('3k')
-
-    def test_validate_maxsize_ok(self):
-        """Test validate with a maxsize and a good size."""
-        t = configtypes.WebKitBytesList(maxsize=2)
-        t.validate('2')
-
-    def test_validate_empty(self):
-        """Test validate with an empty value."""
-        with pytest.raises(configexc.ValidationError):
-            self.t.validate('23,,42')
-
-    def test_validate_empty_none_ok(self):
-        """Test validate with an empty value and none_ok=True."""
-        t = configtypes.WebKitBytesList(none_ok=True)
-        t.validate('23,,42')
-
-    def test_validate_len_tooshort(self):
-        """Test validate with a too short length."""
-        t = configtypes.WebKitBytesList(length=3)
-        with pytest.raises(configexc.ValidationError):
-            t.validate('1,2')
-
-    def test_validate_len_ok(self):
-        """Test validate with a correct length."""
-        t = configtypes.WebKitBytesList(length=3)
-        t.validate('1,2,3')
-
-    def test_validate_len_toolong(self):
-        """Test validate with a too long length."""
-        t = configtypes.WebKitBytesList(length=3)
-        with pytest.raises(configexc.ValidationError):
-            t.validate('1,2,3,4')
-
-    def test_transform_single(self):
-        """Test transform with a single value."""
-        assert self.t.transform('1k') == [1024]
-
-    def test_transform_more(self):
-        """Test transform with multiple values."""
-        assert self.t.transform('23,2k,1337'), [23, 2048, 1337]
-
-    def test_transform_empty(self):
-        """Test transform with an empty value."""
-        assert self.t.transform('23,,42'), [23, None, 42]
+    @pytest.mark.parametrize('val, expected', [
+        ('1k', [1024]),
+        ('23,2k,1337', [23, 2048, 1337]),
+        ('23,,42', [23, None, 42]),
+        ('', None),
+    ])
+    def test_transform_single(self, klass, val, expected):
+        assert klass().transform(val) == expected
 
 
 class TestShellCommand:
 
     """Test ShellCommand."""
 
-    @pytest.fixture(autouse=True)
-    def setup(self):
-        self.t = configtypes.ShellCommand()
+    @pytest.fixture
+    def klass(self):
+        return configtypes.ShellCommand
 
-    def test_validate_empty(self):
-        """Test validate with empty string and none_ok = False."""
+    @pytest.mark.parametrize('kwargs, val', [
+        ({'none_ok': True}, ''),
+        ({}, 'foobar'),
+        ({'placeholder': '{}'}, 'foo {} bar'),
+    ])
+    def test_validate_valid(self, klass, kwargs, val):
+        klass(**kwargs).validate(val)
+
+    @pytest.mark.parametrize('kwargs, val', [
+        ({}, ''),
+        ({'placeholder': '{}'}, 'foo{} bar'),
+        ({'placeholder': '{}'}, 'foo bar'),
+    ])
+    def test_validate_invalid(self, klass, kwargs, val):
         with pytest.raises(configexc.ValidationError):
-            self.t.validate("")
+            klass(**kwargs).validate(val)
 
-    def test_validate_empty_none_ok(self):
-        """Test validate with empty string and none_ok = True."""
-        t = configtypes.ShellCommand(none_ok=True)
-        t.validate("")
-
-    def test_validate_simple(self):
-        """Test validate with a simple string."""
-        self.t.validate('foobar')
-
-    def test_validate_placeholder(self):
-        """Test validate with a placeholder."""
-        t = configtypes.ShellCommand(placeholder='{}')
-        t.validate('foo {} bar')
-
-    def test_validate_placeholder_invalid(self):
-        """Test validate with an invalid placeholder."""
-        t = configtypes.ShellCommand(placeholder='{}')
-        with pytest.raises(configexc.ValidationError):
-            t.validate('foo{} bar')
-
-    def test_transform_single(self):
+    @pytest.mark.parametrize('val, expected', [
+        ('foobar', ['foobar']),
+        ('foobar baz', ['foobar', 'baz']),
+        ('foo "bar baz" fish', ['foo', 'bar baz', 'fish']),
+        ('', None),
+    ])
+    def test_transform_single(self, klass, val, expected):
         """Test transform with a single word."""
-        assert self.t.transform('foobar') == ['foobar']
-
-    def test_transform_double(self):
-        """Test transform with two words."""
-        assert self.t.transform('foobar baz'), ['foobar', 'baz']
-
-    def test_transform_quotes(self):
-        """Test transform with a quoted word."""
-        expected = ['foo', 'bar baz', 'fish']
-        assert self.t.transform('foo "bar baz" fish') == expected
-
-    def test_transform_empty(self):
-        """Test transform with none_ok = False and an empty value."""
-        assert self.t.transform('') is None
+        assert klass().transform(val) == expected
 
 
 class TestProxy:
 
     """Test Proxy."""
 
-    @pytest.fixture(autouse=True)
-    def setup(self):
-        self.t = configtypes.Proxy()
+    @pytest.fixture
+    def klass(self):
+        return configtypes.Proxy
 
-    def test_validate_empty(self):
-        """Test validate with empty string and none_ok = False."""
+    @pytest.mark.parametrize('val', [
+        '',
+        'system',
+        'none',
+        'http://user:pass@example.com:2323/',
+        'socks://user:pass@example.com:2323/',
+        'socks5://user:pass@example.com:2323/',
+    ])
+    def test_validate_valid(self, klass, val):
+        klass(none_ok=True).validate(val)
+
+    @pytest.mark.parametrize('val', [
+        '',
+        'blah',
+        ':',  # invalid URL
+        'ftp://example.com/',  # invalid scheme
+    ])
+    def test_validate_invalid(self, klass, val):
         with pytest.raises(configexc.ValidationError):
-            self.t.validate('')
+            klass().validate(val)
 
-    def test_validate_empty_none_ok(self):
-        """Test validate with empty string and none_ok = True."""
-        t = configtypes.Proxy(none_ok=True)
-        t.validate('')
-
-    def test_validate_system(self):
-        """Test validate with system proxy."""
-        self.t.validate('system')
-
-    def test_validate_none(self):
-        """Test validate with none proxy."""
-        self.t.validate('none')
-
-    def test_validate_invalid(self):
-        """Test validate with an invalid URL."""
-        with pytest.raises(configexc.ValidationError):
-            self.t.validate(':')
-
-    def test_validate_scheme(self):
-        """Test validate with a URL with wrong scheme."""
-        with pytest.raises(configexc.ValidationError):
-            self.t.validate('ftp://example.com/')
-
-    def test_validate_http(self):
-        """Test validate with a correct HTTP URL."""
-        self.t.validate('http://user:pass@example.com:2323/')
-
-    def test_validate_socks(self):
-        """Test validate with a correct socks URL."""
-        self.t.validate('socks://user:pass@example.com:2323/')
-
-    def test_validate_socks5(self):
-        """Test validate with a correct socks5 URL."""
-        self.t.validate('socks5://user:pass@example.com:2323/')
-
-    def test_complete(self):
+    def test_complete(self, klass):
         """Test complete."""
-        actual = self.t.complete()
+        actual = klass().complete()
         expected = [('system', "Use the system wide proxy."),
                     ('none', "Don't use any proxy"),
                     ('http://', 'HTTP proxy URL'),
                     ('socks://', 'SOCKS proxy URL')]
         assert actual == expected
 
-    def test_transform_empty(self):
+    @pytest.mark.parametrize('val, expected', [
+        ('', None),
+        ('system', configtypes.SYSTEM_PROXY),
+        ('none', NetworkProxy(QNetworkProxy.NoProxy)),
+        ('socks://example.com/',
+            NetworkProxy(QNetworkProxy.Socks5Proxy, 'example.com')),
+        ('socks5://example.com',
+            NetworkProxy(QNetworkProxy.Socks5Proxy, 'example.com')),
+        ('socks5://example.com:2342',
+            NetworkProxy(QNetworkProxy.Socks5Proxy, 'example.com', 2342)),
+        ('socks5://foo@example.com',
+            NetworkProxy(QNetworkProxy.Socks5Proxy, 'example.com', 0, 'foo')),
+        ('socks5://foo:bar@example.com',
+            NetworkProxy(QNetworkProxy.Socks5Proxy, 'example.com', 0, 'foo',
+                         'bar')),
+        ('socks5://foo:bar@example.com:2323',
+            NetworkProxy(QNetworkProxy.Socks5Proxy, 'example.com', 2323, 'foo',
+                         'bar')),
+    ])
+    def test_transform(self, klass, val, expected):
         """Test transform with an empty value."""
-        assert self.t.transform('') is None
-
-    def test_transform_system(self):
-        """Test transform with system proxy."""
-        assert self.t.transform('system') is configtypes.SYSTEM_PROXY
-
-    def test_transform_none(self):
-        """Test transform with no proxy."""
-        actual = NetworkProxy(self.t.transform('none'))
-        expected = NetworkProxy(QNetworkProxy.NoProxy)
-        assert actual == expected
-
-    def test_transform_socks(self):
-        """Test transform with a socks proxy."""
-        actual = NetworkProxy(self.t.transform('socks://example.com/'))
-        expected = NetworkProxy(QNetworkProxy.Socks5Proxy, 'example.com')
-        assert actual == expected
-
-    def test_transform_socks5(self):
-        """Test transform with a socks5 proxy."""
-        actual = NetworkProxy(self.t.transform('socks5://example.com'))
-        expected = NetworkProxy(QNetworkProxy.Socks5Proxy, 'example.com')
-        assert actual == expected
-
-    def test_transform_http_port(self):
-        """Test transform with a http proxy with set port."""
-        actual = NetworkProxy(self.t.transform('socks5://example.com:2342'))
-        expected = NetworkProxy(QNetworkProxy.Socks5Proxy, 'example.com', 2342)
-        assert actual == expected
-
-    def test_transform_socks_user(self):
-        """Test transform with a socks proxy with set user."""
-        actual = NetworkProxy(self.t.transform('socks5://foo@example.com'))
-        expected = NetworkProxy(
-            QNetworkProxy.Socks5Proxy, 'example.com', 0, 'foo')
-        assert actual == expected
-
-    def test_transform_socks_user_password(self):
-        """Test transform with a socks proxy with set user/password."""
-        actual = NetworkProxy(self.t.transform('socks5://foo:bar@example.com'))
-        expected = NetworkProxy(QNetworkProxy.Socks5Proxy, 'example.com', 0,
-                                'foo', 'bar')
-        assert actual == expected
-
-    def test_transform_socks_user_password_port(self):
-        """Test transform with a socks proxy with set port/user/password."""
-        actual = NetworkProxy(
-            self.t.transform('socks5://foo:bar@example.com:2323'))
-        expected = NetworkProxy(QNetworkProxy.Socks5Proxy, 'example.com', 2323,
-                                'foo', 'bar')
+        actual = klass().transform(val)
+        if isinstance(actual, QNetworkProxy):
+            actual = NetworkProxy(actual)
         assert actual == expected
 
 
@@ -1835,151 +1283,121 @@ class TestSearchEngineName:
 
     """Test SearchEngineName."""
 
-    @pytest.fixture(autouse=True)
-    def setup(self):
-        self.t = configtypes.SearchEngineName()
+    @pytest.fixture
+    def klass(self):
+        return configtypes.SearchEngineName
 
-    def test_validate_empty(self):
-        """Test validate with empty string and none_ok = False."""
+    def test_validate_empty(self, klass):
         with pytest.raises(configexc.ValidationError):
-            self.t.validate('')
+            klass().validate('')
 
-    def test_validate_empty_none_ok(self):
-        """Test validate with empty string and none_ok = True."""
-        t = configtypes.SearchEngineName(none_ok=True)
-        t.validate('')
+    def test_validate_empty_none_ok(self, klass):
+        klass(none_ok=True).validate('')
 
-    def test_transform_empty(self):
-        """Test transform with an empty value."""
-        assert self.t.transform('') is None
-
-    def test_transform(self):
-        """Test transform with a value."""
-        assert self.t.transform("foobar") == "foobar"
+    @pytest.mark.parametrize('val, expected', [('', None),
+                                               ('foobar', 'foobar')])
+    def test_transform(self, klass, val, expected):
+        assert klass().transform(val) == expected
 
 
 class TestSearchEngineUrl:
 
     """Test SearchEngineUrl."""
 
-    @pytest.fixture(autouse=True)
-    def setup(self):
-        self.t = configtypes.SearchEngineUrl()
+    @pytest.fixture
+    def klass(self):
+        return configtypes.SearchEngineUrl
 
-    def test_validate_empty(self):
-        """Test validate with empty string and none_ok = False."""
+    @pytest.mark.parametrize('val', [
+        'http://example.com/?q={}',
+        '',  # empty value with none_ok
+    ])
+    def test_validate_valid(self, klass, val):
+        klass(none_ok=True).validate(val)
+
+    @pytest.mark.parametrize('val', [
+        '',  # empty value without none_ok
+        'foo',  # no placeholder
+        ':{}',  # invalid URL
+        'foo{bar}baz{}',  # {bar} format string variable
+    ])
+    def test_validate_invalid(self, klass, val):
         with pytest.raises(configexc.ValidationError):
-            self.t.validate('')
+            klass().validate(val)
 
-    def test_validate_empty_none_ok(self):
-        """Test validate with empty string and none_ok = True."""
-        t = configtypes.SearchEngineUrl(none_ok=True)
-        t.validate('')
-
-    def test_validate_no_placeholder(self):
-        """Test validate with no placeholder."""
-        with pytest.raises(configexc.ValidationError):
-            self.t.validate('foo')
-
-    def test_validate(self):
-        """Test validate with a good value."""
-        self.t.validate('http://example.com/?q={}')
-
-    def test_validate_invalid_url(self):
-        """Test validate with an invalid URL."""
-        with pytest.raises(configexc.ValidationError):
-            self.t.validate(':{}')
-
-    def test_validate_format_string(self):
-        """Test validate with a {foo} format string."""
-        with pytest.raises(configexc.ValidationError):
-            self.t.validate('foo{bar}baz{}')
-
-    def test_transform_empty(self):
-        """Test transform with an empty value."""
-        assert self.t.transform('') is None
-
-    def test_transform(self):
-        """Test transform with a value."""
-        assert self.t.transform("foobar") == "foobar"
+    @pytest.mark.parametrize('val, expected', [
+        ('', None),
+        ('foobar', 'foobar'),
+    ])
+    def test_transform(self, klass, val, expected):
+        assert klass().transform(val) == expected
 
 
 class TestFuzzyUrl:
 
     """Test FuzzyUrl."""
 
-    @pytest.fixture(autouse=True)
-    def setup(self):
-        self.t = configtypes.FuzzyUrl()
+    @pytest.fixture
+    def klass(self):
+        return configtypes.FuzzyUrl
 
-    def test_validate_empty(self):
-        """Test validate with empty string and none_ok = False."""
+    @pytest.mark.parametrize('val', [
+        '',
+        'http://example.com/?q={}',
+        'example.com',
+    ])
+    def test_validate_valid(self, klass, val):
+        klass(none_ok=True).validate(val)
+
+    @pytest.mark.parametrize('val', [
+        '',
+        '::foo',  # invalid URL
+        'foo bar',  # invalid search term
+    ])
+    def test_validate_invalid(self, klass, val):
         with pytest.raises(configexc.ValidationError):
-            self.t.validate('')
+            klass().validate(val)
 
-    def test_validate_empty_none_ok(self):
-        """Test validate with empty string and none_ok = True."""
-        t = configtypes.FuzzyUrl(none_ok=True)
-        t.validate('')
-
-    def test_validate(self):
-        """Test validate with a good value."""
-        self.t.validate('http://example.com/?q={}')
-
-    def test_validate_good_fuzzy(self):
-        """Test validate with a good fuzzy value."""
-        self.t.validate('example.com')
-
-    def test_validate_invalid_url(self):
-        """Test validate with an invalid URL."""
-        with pytest.raises(configexc.ValidationError):
-            self.t.validate('::foo')
-
-    def test_validate_invalid_search(self):
-        """Test validate with an invalid search term."""
-        with pytest.raises(configexc.ValidationError):
-            self.t.validate('foo bar')
-
-    def test_transform_empty(self):
-        """Test transform with an empty value."""
-        assert self.t.transform('') is None
-
-    def test_transform(self):
-        """Test transform with a value."""
-        assert self.t.transform("example.com") == QUrl('http://example.com')
+    @pytest.mark.parametrize('val, expected', [
+        ('', None),
+        ('example.com', QUrl('http://example.com')),
+    ])
+    def test_transform(self, klass, val, expected):
+        assert klass().transform(val) == expected
 
 
 class TestUserStyleSheet:
 
     """Test UserStyleSheet."""
 
-    @pytest.fixture(autouse=True)
-    def setup(self):
-        self.t = configtypes.UserStyleSheet()
+    @pytest.fixture
+    def klass(self):
+        return configtypes.UserStyleSheet
 
-    def test_validate_invalid_encoding(self, mocker, unicode_encode_err):
+    def test_validate_invalid_encoding(self, klass, mocker,
+                                       unicode_encode_err):
         """Test validate with an invalid encoding, e.g. LC_ALL=C."""
         os_mock = mocker.patch('qutebrowser.config.configtypes.os',
                                autospec=True)
         os_mock.path.isfile.side_effect = unicode_encode_err
         os_mock.path.isabs.side_effect = unicode_encode_err
         with pytest.raises(configexc.ValidationError):
-            self.t.validate('foobar')
+            klass().validate('foobar')
 
-    def test_transform_empty(self):
-        """Test transform with an empty value."""
-        assert self.t.transform('') is None
+    def test_transform_empty(self, klass):
+        assert klass().transform('') is None
 
-    def test_transform_file(self, os_mock, mocker):
+    def test_transform_file(self, klass, os_mock, mocker):
         """Test transform with a filename."""
         qurl = mocker.patch('qutebrowser.config.configtypes.QUrl',
                             autospec=True)
         qurl.fromLocalFile.return_value = QUrl("file:///foo/bar")
         os_mock.path.exists.return_value = True
         path = os.path.join(os.path.sep, 'foo', 'bar')
-        assert self.t.transform(path) == QUrl("file:///foo/bar")
+        assert klass().transform(path) == QUrl("file:///foo/bar")
 
-    def test_transform_file_expandvars(self, os_mock, monkeypatch, mocker):
+    def test_transform_file_expandvars(self, klass, os_mock, monkeypatch,
+                                      mocker):
         """Test transform with a filename (expandvars)."""
         qurl = mocker.patch('qutebrowser.config.configtypes.QUrl',
                             autospec=True)
@@ -1987,13 +1405,13 @@ class TestUserStyleSheet:
         os_mock.path.exists.return_value = True
         monkeypatch.setenv('FOO', 'foo')
         path = os.path.join(os.path.sep, '$FOO', 'bar')
-        assert self.t.transform(path) == QUrl("file:///foo/bar")
+        assert klass().transform(path) == QUrl("file:///foo/bar")
 
-    def test_transform_base64(self):
+    def test_transform_base64(self, klass):
         """Test transform with a data string."""
         b64 = base64.b64encode(b"test").decode('ascii')
         url = QUrl("data:text/css;charset=utf-8;base64,{}".format(b64))
-        assert self.t.transform("test") == url
+        assert klass().transform("test") == url
 
 
 class TestAutoSearch:
@@ -2001,48 +1419,34 @@ class TestAutoSearch:
     """Test AutoSearch."""
 
     TESTS = {
-        'naive': ['naive', 'NAIVE'] + TestBool.TESTS[True],
-        'dns': ['dns', 'DNS'],
-        False: TestBool.TESTS[False],
+        'naive': 'naive',
+        'NAIVE': 'naive',
+        'dns': 'dns',
+        'DNS': 'dns',
+        '': None,
     }
-    INVALID = ['ddns', 'foo']
+    TESTS.update({k: 'naive' for k, v in TestBool.TESTS.items() if v})
+    TESTS.update({k: v for k, v in TestBool.TESTS.items()
+                  if not v and v is not None})
 
-    @pytest.fixture(autouse=True)
-    def setup(self):
-        self.t = configtypes.AutoSearch()
+    INVALID = ['ddns', 'foo', '']
 
-    def test_validate_empty(self):
-        """Test validate with empty string and none_ok = False."""
-        with pytest.raises(configexc.ValidationError):
-            self.t.validate('')
+    @pytest.fixture
+    def klass(self):
+        return configtypes.AutoSearch
 
-    def test_validate_empty_none_ok(self):
-        """Test validate with empty string and none_ok = True."""
-        t = configtypes.AutoSearch(none_ok=True)
-        t.validate('')
-
-    @pytest.mark.parametrize('val', [val for vallist in TESTS.values()
-                                     for val in vallist])
-    def test_validate_valid(self, val):
-        """Test validate with valid values."""
-        self.t.validate(val)
+    @pytest.mark.parametrize('val', TESTS)
+    def test_validate_valid(self, klass, val):
+        klass(none_ok=True).validate(val)
 
     @pytest.mark.parametrize('val', INVALID)
-    def test_validate_invalid(self, val):
-        """Test validate with invalid values."""
+    def test_validate_invalid(self, klass, val):
         with pytest.raises(configexc.ValidationError):
-            self.t.validate(val)
+            klass().validate(val)
 
-    @pytest.mark.parametrize('out, inp',
-                             [(out, inp) for (out, inputs) in TESTS.items()
-                              for inp in inputs])
-    def test_transform(self, out, inp):
-        """Test transform with all values."""
-        assert self.t.transform(inp) == out
-
-    def test_transform_empty(self):
-        """Test transform with none_ok = False and an empty value."""
-        assert self.t.transform('') is None
+    @pytest.mark.parametrize('val, expected', TESTS.items())
+    def test_transform(self, klass, val, expected):
+        assert klass().transform(val) == expected
 
 
 class TestIgnoreCase:
@@ -2050,205 +1454,141 @@ class TestIgnoreCase:
     """Test IgnoreCase."""
 
     TESTS = {
-        'smart': ['smart', 'SMART'],
-        True: TestBool.TESTS[True],
-        False: TestBool.TESTS[False],
+        'smart': 'smart',
+        'SMART': 'smart',
     }
+    TESTS.update(TestBool.TESTS)
+
     INVALID = ['ssmart', 'foo']
 
-    @pytest.fixture(autouse=True)
-    def setup(self):
-        self.t = configtypes.IgnoreCase()
+    @pytest.fixture
+    def klass(self):
+        return configtypes.IgnoreCase
 
-    def test_validate_empty(self):
-        """Test validate with empty string and none_ok = False."""
-        with pytest.raises(configexc.ValidationError):
-            self.t.validate('')
-
-    def test_validate_empty_none_ok(self):
-        """Test validate with empty string and none_ok = True."""
-        t = configtypes.IgnoreCase(none_ok=True)
-        t.validate('')
-
-    @pytest.mark.parametrize('val',
-                             [val for vallist in TESTS.values() for val in
-                              vallist])
-    def test_validate_valid(self, val):
-        """Test validate with valid values."""
-        self.t.validate(val)
+    @pytest.mark.parametrize('val', TESTS)
+    def test_validate_valid(self, klass, val):
+        klass(none_ok=True).validate(val)
 
     @pytest.mark.parametrize('val', INVALID)
-    def test_validate_invalid(self, val):
-        """Test validate with invalid values."""
+    def test_validate_invalid(self, klass, val):
         with pytest.raises(configexc.ValidationError):
-            self.t.validate(val)
+            klass().validate(val)
 
-    @pytest.mark.parametrize('out, inp',
-                             [(out, inp) for (out, inputs) in TESTS.items()
-                              for inp in inputs])
-    def test_transform(self, out, inp):
-        """Test transform with all values."""
-        assert self.t.transform(inp) == out
-
-    def test_transform_empty(self):
-        """Test transform with none_ok = False and an empty value."""
-        assert self.t.transform('') is None
+    @pytest.mark.parametrize('val, expected', TESTS.items())
+    def test_transform(self, klass, val, expected):
+        assert klass().transform(val) == expected
 
 
 class TestEncoding:
 
     """Test Encoding."""
 
-    @pytest.fixture(autouse=True)
-    def setup(self):
-        self.t = configtypes.Encoding()
+    @pytest.fixture
+    def klass(self):
+        return configtypes.Encoding
 
-    def test_validate_empty(self):
-        """Test validate with empty string and none_ok = False."""
+    @pytest.mark.parametrize('val', ['utf-8', 'UTF-8', 'iso8859-1', ''])
+    def test_validate_valid(self, klass, val):
+        klass(none_ok=True).validate(val)
+
+    @pytest.mark.parametrize('val', ['blubber', ''])
+    def test_validate_invalid(self, klass, val):
         with pytest.raises(configexc.ValidationError):
-            self.t.validate('')
+            klass().validate(val)
 
-    def test_validate_empty_none_ok(self):
-        """Test validate with empty string and none_ok = True."""
-        t = configtypes.Encoding(none_ok=True)
-        t.validate('')
-
-    @pytest.mark.parametrize('val', ('utf-8', 'UTF-8', 'iso8859-1'))
-    def test_validate_valid(self, val):
-        """Test validate with valid values."""
-        self.t.validate(val)
-
-    def test_validate_invalid(self):
-        """Test validate with an invalid value."""
-        with pytest.raises(configexc.ValidationError):
-            self.t.validate('blubber')
-
-    def test_transform(self):
-        """Test if transform doesn't alter the value."""
-        assert self.t.transform('utf-8') == 'utf-8'
-
-    def test_transform_empty(self):
-        """Test transform with none_ok = False and an empty value."""
-        assert self.t.transform('') is None
+    @pytest.mark.parametrize('val, expected', [('utf-8', 'utf-8'), ('', None)])
+    def test_transform(self, klass, val, expected):
+        assert klass().transform(val) == expected
 
 
 class TestUrlList:
 
     """Test UrlList."""
 
-    @pytest.fixture(autouse=True)
-    def setup(self):
-        self.t = configtypes.UrlList()
+    @pytest.fixture
+    def klass(self):
+        return configtypes.UrlList
 
-    def test_validate_single(self):
-        """Test validate with a single value."""
-        self.t.validate('http://www.qutebrowser.org/')
+    @pytest.mark.parametrize('val', [
+        'http://www.qutebrowser.org/',
+        'http://www.qutebrowser.org/,htpt://www.heise.de/',
+        '',
+    ])
+    def test_validate_valid(self, klass, val):
+        klass(none_ok=True).validate(val)
 
-    def test_validate_multiple(self):
-        """Test validate with multiple values."""
-        self.t.validate('http://www.qutebrowser.org/,htpt://www.heise.de/')
-
-    def test_validate_empty(self):
-        """Test validate with empty string and none_ok = False."""
+    @pytest.mark.parametrize('val', [
+        '',
+        'foo,,bar',
+    ])
+    def test_validate_invalid(self, klass, val):
         with pytest.raises(configexc.ValidationError):
-            self.t.validate('')
+            klass().validate(val)
 
-    def test_validate_empty_none_ok(self):
-        """Test validate with empty string and none_ok = True."""
-        t = configtypes.UrlList(none_ok=True)
-        t.validate('')
-
-    def test_validate_empty_item(self):
+    def test_validate_empty_item(self, klass):
         """Test validate with empty item and none_ok = False."""
         with pytest.raises(configexc.ValidationError):
-            self.t.validate('foo,,bar')
+            klass().validate('foo,,bar')
 
-    def test_validate_empty_item_none_ok(self):
-        """Test validate with empty item and none_ok = True."""
-        t = configtypes.UrlList(none_ok=True)
-        with pytest.raises(configexc.ValidationError):
-            t.validate('foo,,bar')
-
-    def test_transform_single(self):
-        """Test transform with a single value."""
-        actual = self.t.transform('http://qutebrowser.org/')
-        expected = [QUrl('http://qutebrowser.org/')]
-        assert actual == expected
-
-    def test_transform_more(self):
-        """Test transform with multiple values."""
-        actual = self.t.transform('http://qutebrowser.org/,http://heise.de/')
-        expected = [QUrl('http://qutebrowser.org/'), QUrl('http://heise.de/')]
-        assert actual == expected
-
-    def test_transform_empty(self):
-        """Test transform with an empty value."""
-        assert self.t.transform('') is None
+    @pytest.mark.parametrize('val, expected', [
+        ('http://qutebrowser.org/', [QUrl('http://qutebrowser.org/')]),
+        ('http://qutebrowser.org/,http://heise.de/',
+            [QUrl('http://qutebrowser.org/'), QUrl('http://heise.de/')]),
+        ('', None),
+    ])
+    def test_transform_single(self, klass, val, expected):
+        assert klass().transform(val) == expected
 
 
 class TestFormatString:
 
     """Test FormatString."""
 
-    @pytest.fixture(autouse=True)
-    def setup(self):
-        self.t = configtypes.FormatString(fields=('foo', 'bar'))
+    @pytest.fixture
+    def typ(self):
+        return configtypes.FormatString(fields=('foo', 'bar'))
 
-    def test_transform(self):
-        """Test if transform doesn't alter the value."""
-        assert self.t.transform('foo {bar} baz') == 'foo {bar} baz'
+    @pytest.mark.parametrize('val', [
+        'foo bar baz',
+        '{foo} {bar} baz',
+        '',
+    ])
+    def test_validate_valid(self, typ, val):
+        typ.none_ok = True
+        typ.validate(val)
 
-    def test_validate_simple(self):
-        """Test validate with a simple string."""
-        self.t.validate('foo bar baz')
-
-    def test_validate_placeholders(self):
-        """Test validate with placeholders."""
-        self.t.validate('{foo} {bar} baz')
-
-    def test_validate_invalid_placeholders(self):
-        """Test validate with invalid placeholders."""
+    @pytest.mark.parametrize('val', [
+        '{foo} {bar} {baz}',
+        '{foo} {bar',
+        '',
+    ])
+    def test_validate_invalid(self, typ, val):
         with pytest.raises(configexc.ValidationError):
-            self.t.validate('{foo} {bar} {baz}')
+            typ.validate(val)
 
-    def test_validate_invalid_placeholders_syntax(self):
-        """Test validate with invalid placeholders syntax."""
-        with pytest.raises(configexc.ValidationError):
-            self.t.validate('{foo} {bar')
-
-    def test_validate_empty(self):
-        """Test validate with empty string and none_ok = False."""
-        with pytest.raises(configexc.ValidationError):
-            self.t.validate('')
-
-    def test_validate_empty_none_ok(self):
-        """Test validate with empty string and none_ok = True."""
-        t = configtypes.FormatString(none_ok=True, fields=())
-        t.validate('')
+    def test_transform(self, typ):
+        assert typ.transform('foo {bar} baz') == 'foo {bar} baz'
 
 
 class TestUserAgent:
 
     """Test UserAgent."""
 
-    @pytest.fixture(autouse=True)
-    def setup(self):
-        self.t = configtypes.UserAgent()
+    @pytest.fixture
+    def klass(self):
+        return configtypes.UserAgent
 
-    def test_validate_empty(self):
+    @pytest.mark.parametrize('val', [
+        '',
+        'Hello World! :-)',
+    ])
+    def test_validate_valid(self, klass, val):
+        klass(none_ok=True).validate(val)
+
+    def test_validate_invalid(self, klass):
         """Test validate with empty string and none_ok = False."""
         with pytest.raises(configexc.ValidationError):
-            self.t.validate("")
+            klass().validate('')
 
-    def test_validate_empty_none_ok(self):
-        """Test validate with empty string and none_ok = True."""
-        t = configtypes.UserAgent(none_ok=True)
-        t.validate("")
-
-    def test_validate(self):
-        """Test validate with some random string."""
-        self.t.validate("Hello World! :-)")
-
-    def test_transform(self):
-        """Test if transform doesn't alter the value."""
-        assert self.t.transform('foobar') == 'foobar'
+    def test_transform(self, klass):
+        assert klass().transform('foobar') == 'foobar'
