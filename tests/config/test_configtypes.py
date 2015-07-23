@@ -722,14 +722,18 @@ class ColorTests:
          'stop:0 white, stop:1 green)', [configtypes.QssColor]),
     ]
 
-    COMBINATIONS = itertools.product(TESTS, TYPES)
+    COMBINATIONS = list(itertools.product(TESTS, TYPES))
 
-    def generate_valid(self):
+    def __init__(self):
+        self.valid = list(self._generate_valid())
+        self.invalid = list(self._generate_invalid())
+
+    def _generate_valid(self):
         for (val, valid_classes), klass in self.COMBINATIONS:
             if klass in valid_classes:
                 yield klass, val
 
-    def generate_invalid(self):
+    def _generate_invalid(self):
         for (val, valid_classes), klass in self.COMBINATIONS:
             if klass not in valid_classes:
                 yield klass, val
@@ -739,15 +743,22 @@ class TestColors:
 
     """Test QtColor/CssColor/QssColor."""
 
+    TESTS = ColorTests()
+
     @pytest.fixture(params=ColorTests.TYPES)
     def klass(self, request):
         return request.param
 
-    @pytest.mark.parametrize('klass, val', ColorTests().generate_valid())
+    def test_test_generator(self):
+        """Some sanity checks for ColorTests."""
+        assert self.TESTS.valid
+        assert self.TESTS.invalid
+
+    @pytest.mark.parametrize('klass, val', TESTS.valid)
     def test_validate_valid(self, klass, val):
         klass(none_ok=True).validate(val)
 
-    @pytest.mark.parametrize('klass, val', ColorTests().generate_invalid())
+    @pytest.mark.parametrize('klass, val', TESTS.invalid)
     def test_validate_invalid(self, klass, val):
         with pytest.raises(configexc.ValidationError):
             klass().validate(val)
@@ -756,7 +767,7 @@ class TestColors:
         with pytest.raises(configexc.ValidationError):
             klass().validate('')
 
-    @pytest.mark.parametrize('klass, val', ColorTests().generate_valid())
+    @pytest.mark.parametrize('klass, val', TESTS.valid)
     def test_transform(self, klass, val):
         """Test transform of all color types."""
         if not val:
