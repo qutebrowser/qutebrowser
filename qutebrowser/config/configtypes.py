@@ -1194,9 +1194,6 @@ class UserStyleSheet(File):
 
     typestr = 'user-stylesheet'
 
-    def __init__(self):
-        super().__init__(none_ok=True)
-
     def transform(self, value):
         if not value:
             return None

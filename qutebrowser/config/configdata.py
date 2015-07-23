@@ -271,7 +271,7 @@ def data(readonly=False):
              "page."),
 
             ('user-stylesheet',
-             SettingValue(typ.UserStyleSheet(),
+             SettingValue(typ.UserStyleSheet(none_ok=True),
                           '::-webkit-scrollbar { width: 0px; height: 0px; }'),
              "User stylesheet to use (absolute filename, filename relative to "
              "the config directory or CSS string). Will expand environment "
