@@ -1562,15 +1562,18 @@ class TestUrlList:
 
     """Test UrlList."""
 
+    TESTS = {
+        'http://qutebrowser.org/': [QUrl('http://qutebrowser.org/')],
+        'http://qutebrowser.org/,http://heise.de/':
+            [QUrl('http://qutebrowser.org/'), QUrl('http://heise.de/')],
+        '': None,
+    }
+
     @pytest.fixture
     def klass(self):
         return configtypes.UrlList
 
-    @pytest.mark.parametrize('val', [
-        'http://www.qutebrowser.org/',
-        'http://www.qutebrowser.org/,htpt://www.heise.de/',
-        '',
-    ])
+    @pytest.mark.parametrize('val', TESTS)
     def test_validate_valid(self, klass, val):
         klass(none_ok=True).validate(val)
 
@@ -1587,12 +1590,7 @@ class TestUrlList:
         with pytest.raises(configexc.ValidationError):
             klass().validate('foo,,bar')
 
-    @pytest.mark.parametrize('val, expected', [
-        ('http://qutebrowser.org/', [QUrl('http://qutebrowser.org/')]),
-        ('http://qutebrowser.org/,http://heise.de/',
-            [QUrl('http://qutebrowser.org/'), QUrl('http://heise.de/')]),
-        ('', None),
-    ])
+    @pytest.mark.parametrize('val, expected', TESTS.items())
     def test_transform_single(self, klass, val, expected):
         assert klass().transform(val) == expected
 
