@@ -184,6 +184,62 @@ class TestBaseType:
         assert basetype.complete() == completions
 
 
+class GoodMappingSubclass(configtypes.MappingType):
+
+    """A MappingType we use in TestMappingType which is valid/good."""
+
+    valid_values = configtypes.ValidValues('one', 'two')
+
+    MAPPING = {
+        'one': 1,
+        'two': 2,
+    }
+
+
+class BadMappingSubclass(configtypes.MappingType):
+
+    """A MappingType which is missing a value in MAPPING."""
+
+    valid_values = configtypes.ValidValues('one', 'two')
+
+    MAPPING = {
+        'one': 1,
+    }
+
+
+class TestMappingType:
+
+    """Test MappingType."""
+
+    TESTS = {
+        '': None,
+        'one': 1,
+        'two': 2,
+        'ONE': 1,
+    }
+
+    @pytest.fixture
+    def klass(self):
+        return GoodMappingSubclass
+
+    @pytest.mark.parametrize('val', TESTS.keys())
+    def test_validate_valid(self, klass, val):
+        klass(none_ok=True).validate(val)
+
+    @pytest.mark.parametrize('val', ['', 'one!', 'blah'])
+    def test_validate_invalid(self, klass, val):
+        with pytest.raises(configexc.ValidationError):
+            klass().validate(val)
+
+    @pytest.mark.parametrize('val, expected', TESTS.items())
+    def test_transform(self, klass, val, expected):
+        assert klass().transform(val) == expected
+
+    def test_bad_subclass_init(self):
+        with pytest.raises(ValueError):
+            BadMappingSubclass()
+
+
 class TestString:
 
     """Test String."""

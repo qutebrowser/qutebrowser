@@ -160,6 +160,31 @@ class BaseType:
             return out
 
 
+class MappingType(BaseType):
+
+    """Base class for any setting which has a mapping to the given values.
+
+    Attributes:
+        MAPPING: The mapping to use.
+    """
+
+    MAPPING = {}
+
+    def __init__(self, none_ok=False):
+        super().__init__(none_ok)
+        if list(sorted(self.MAPPING)) != list(sorted(self.valid_values)):
+            raise ValueError("Mapping {!r} doesn't match valid values "
+                             "{!r}".format(self.MAPPING, self.valid_values))
+
+    def validate(self, value):
+        super().validate(value.lower())
+
+    def transform(self, value):
+        if not value:
+            return None
+        return self.MAPPING[value.lower()]
+
+
 class String(BaseType):
 
     """Base class for a string setting (case-insensitive).
@@ -557,7 +582,7 @@ class Command(BaseType):
         return out
 
 
-class ColorSystem(BaseType):
+class ColorSystem(MappingType):
 
     """Color systems for interpolation."""
 
@@ -565,19 +590,11 @@ class ColorSystem(BaseType):
                                ('hsv', "Interpolate in the HSV color system."),
                                ('hsl', "Interpolate in the HSL color system."))
 
-    def validate(self, value):
-        super().validate(value.lower())
-
-    def transform(self, value):
-        if not value:
-            return None
-        else:
-            mapping = {
-                'rgb': QColor.Rgb,
-                'hsv': QColor.Hsv,
-                'hsl': QColor.Hsl,
-            }
-            return mapping[value.lower()]
+    MAPPING = {
+        'rgb': QColor.Rgb,
+        'hsv': QColor.Hsv,
+        'hsl': QColor.Hsl,
+    }
 
 
 class QtColor(BaseType):
@@ -1265,7 +1282,7 @@ class AutoSearch(BaseType):
             return False
 
 
-class Position(BaseType):
+class Position(MappingType):
 
     """The position of the tab bar."""
 
@@ -1277,14 +1294,6 @@ class Position(BaseType):
         'west': QTabWidget.West,
         'east': QTabWidget.East,
     }
-
-    def validate(self, value):
-        super().validate(value.lower())
-
-    def transform(self, value):
-        if not value:
-            return None
-        return self.MAPPING[value.lower()]
 
 
 class VerticalPosition(BaseType):
@@ -1340,7 +1349,7 @@ class SessionName(BaseType):
             raise configexc.ValidationError(value, "may not start with '_'!")
 
 
-class SelectOnRemove(BaseType):
+class SelectOnRemove(MappingType):
 
     """Which tab to select when the focused tab is removed."""
 
@@ -1354,11 +1363,6 @@ class SelectOnRemove(BaseType):
         'right': QTabBar.SelectRightTab,
         'previous': QTabBar.SelectPreviousTab,
     }
-
-    def transform(self, value):
-        if not value:
-            return None
-        return self.MAPPING[value]
 
 
 class LastClose(BaseType):
