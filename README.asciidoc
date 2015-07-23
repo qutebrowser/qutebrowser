@@ -14,7 +14,7 @@ image:https://img.shields.io/github/issues/The-Compiler/qutebrowser.svg?style=fl
 image:https://requires.io/github/The-Compiler/qutebrowser/requirements.svg?branch=master["requirements badge",link="https://requires.io/github/The-Compiler/qutebrowser/requirements/?branch=master"]
 image:http://qutebrowser.org:8010/png?builder=archlinux["build badge",link="http://qutebrowser.org:8010/waterfall"]
 
-qutebrowser is a keyboard-focused browser with with a minimal GUI. It's based
+qutebrowser is a keyboard-focused browser with a minimal GUI. It's based
 on Python, PyQt5 and QtWebKit and free software, licensed under the GPL.
 
 It was inspired by other browsers/addons like dwb and Vimperator/Pentadactyl.
