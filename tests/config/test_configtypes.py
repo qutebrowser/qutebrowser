@@ -20,7 +20,7 @@
 
 import re
 import collections
-import os.path
+import itertools
 import base64
 
 import pytest
@@ -685,78 +685,86 @@ class TestColorSystem:
         assert klass().transform(val) == expected
 
 
-class TestQtColor:
+class ColorTests:
 
-    """Test QtColor."""
+    """Generator for tests for TestColors."""
 
-    VALID = ['#123', '#112233', '#111222333', '#111122223333', 'red', '']
-    # '' is invalid with none_ok=False
-    INVALID = ['#00000G', '#123456789ABCD', '#12', 'foobar', '42', '']
-    INVALID_QT = ['rgb(0, 0, 0)']
+    TYPES = [configtypes.QtColor, configtypes.CssColor, configtypes.QssColor]
 
-    @pytest.fixture
-    def klass(self):
-        return configtypes.QtColor
+    TESTS = [
+        ('#123', TYPES),
+        ('#112233', TYPES),
+        ('#111222333', TYPES),
+        ('#111122223333', TYPES),
+        ('red', TYPES),
+        ('', TYPES),
 
-    @pytest.mark.parametrize('val', VALID)
+        ('#00000G', []),
+        ('#123456789ABCD', []),
+        ('#12', []),
+        ('foobar', []),
+        ('42', []),
+        ('rgb(1, 2, 3, 4)', []),
+        ('foo(1, 2, 3)', []),
+
+        ('rgb(0, 0, 0)', [configtypes.QssColor]),
+        ('-foobar(42)', [configtypes.CssColor]),
+
+        ('rgba(255, 255, 255, 255)', [configtypes.QssColor]),
+        ('hsv(359, 255, 255)', [configtypes.QssColor]),
+        ('hsva(359, 255, 255, 255)', [configtypes.QssColor]),
+        ('hsv(10%, 10%, 10%)', [configtypes.QssColor]),
+        ('qlineargradient(x1:0, y1:0, x2:1, y2:1, stop:0 white, '
+         'stop: 0.4 gray, stop:1 green)', [configtypes.QssColor]),
+        ('qconicalgradient(cx:0.5, cy:0.5, angle:30, stop:0 white, '
+         'stop:1 #00FF00)', [configtypes.QssColor]),
+        ('qradialgradient(cx:0, cy:0, radius: 1, fx:0.5, fy:0.5, '
+         'stop:0 white, stop:1 green)', [configtypes.QssColor]),
+    ]
+
+    COMBINATIONS = itertools.product(TESTS, TYPES)
+
+    def generate_valid(self):
+        for (val, valid_classes), klass in self.COMBINATIONS:
+            if klass in valid_classes:
+                yield klass, val
+
+    def generate_invalid(self):
+        for (val, valid_classes), klass in self.COMBINATIONS:
+            if klass not in valid_classes:
+                yield klass, val
+
+
+class TestColors:
+
+    """Test QtColor/CssColor/QssColor."""
+
+    @pytest.fixture(params=ColorTests.TYPES)
+    def klass(self, request):
+        return request.param
+
+    @pytest.mark.parametrize('klass, val', ColorTests().generate_valid())
     def test_validate_valid(self, klass, val):
         klass(none_ok=True).validate(val)
 
-    @pytest.mark.parametrize('val', INVALID + INVALID_QT)
+    @pytest.mark.parametrize('klass, val', ColorTests().generate_invalid())
     def test_validate_invalid(self, klass, val):
         with pytest.raises(configexc.ValidationError):
             klass().validate(val)
 
-    @pytest.mark.parametrize('val', VALID)
-    def test_transform(self, klass, val):
-        expected = QColor(val) if val else None
-        assert klass().transform(val) == expected
-
-
-class TestCssColor(TestQtColor):
-
-    """Test CssColor."""
-
-    VALID = TestQtColor.VALID + ['-foobar(42)']
-
-    @pytest.fixture
-    def klass(self):
-        return configtypes.CssColor
-
-    @pytest.mark.parametrize('val', VALID)
-    def test_transform(self, klass, val):
-        expected = val if val else None
-        assert klass().transform(val) == expected
-
-
-class TestQssColor(TestQtColor):
-
-    """Test QssColor."""
-
-    VALID = TestQtColor.VALID + [
-        'rgba(255, 255, 255, 255)', 'hsv(359, 255, 255)',
-        'hsva(359, 255, 255, 255)', 'hsv(10%, 10%, 10%)',
-        'qlineargradient(x1:0, y1:0, x2:1, y2:1, stop:0 white, stop: 0.4 '
-        'gray, stop:1 green)',
-        'qconicalgradient(cx:0.5, cy:0.5, angle:30, stop:0 white, stop:1 '
-        '#00FF00)',
-        'qradialgradient(cx:0, cy:0, radius: 1, fx:0.5, fy:0.5, stop:0 '
-        'white, stop:1 green)'
-    ]
-    INVALID = TestQtColor.INVALID + ['rgb(1, 2, 3, 4)', 'foo(1, 2, 3)']
-
-    @pytest.fixture
-    def klass(self):
-        return configtypes.QssColor
-
-    @pytest.mark.parametrize('val', INVALID)
-    def test_validate_invalid(self, klass, val):
+    def test_validate_invalid_empty(self, klass):
         with pytest.raises(configexc.ValidationError):
-            klass().validate(val)
+            klass().validate('')
 
-    @pytest.mark.parametrize('val', VALID)
+    @pytest.mark.parametrize('klass, val', ColorTests().generate_valid())
     def test_transform(self, klass, val):
-        expected = val if val else None
+        """Test transform of all color types."""
+        if not val:
+            expected = None
+        elif klass is configtypes.QtColor:
+            expected = QColor(val)
+        else:
+            expected = val
         assert klass().transform(val) == expected
 
 
@@ -983,13 +991,32 @@ class TestRegexList:
         assert klass().transform(val) == expected
 
 
-class TestFile:
+class TestFileAndUserStyleSheet:
 
-    """Test File."""
+    """Test File/UserStyleSheet."""
+
+    @pytest.fixture(params=[configtypes.File, configtypes.UserStyleSheet])
+    def klass(self, request):
+        return request.param
 
     @pytest.fixture
-    def klass(self):
+    def file_class(self):
         return configtypes.File
+
+    @pytest.fixture
+    def userstylesheet_class(self):
+        return configtypes.UserStyleSheet
+
+    def _expected(self, klass, arg):
+        """Get the expected value."""
+        if not arg:
+            return None
+        elif klass is configtypes.File:
+            return arg
+        elif klass is configtypes.UserStyleSheet:
+            return QUrl.fromLocalFile(arg)
+        else:
+            assert False, klass
 
     def test_validate_empty(self, klass):
         with pytest.raises(configexc.ValidationError):
@@ -998,11 +1025,16 @@ class TestFile:
     def test_validate_empty_none_ok(self, klass):
         klass(none_ok=True).validate('')
 
-    def test_validate_does_not_exist(self, klass, os_mock):
-        """Test validate with a file which does not exist."""
+    def test_validate_does_not_exist_file(self, os_mock):
+        """Test validate with a file which does not exist (File)."""
         os_mock.path.isfile.return_value = False
         with pytest.raises(configexc.ValidationError):
-            klass().validate('foobar')
+            configtypes.File().validate('foobar')
+
+    def test_validate_does_not_exist_userstylesheet(self, os_mock):
+        """Test validate with a file which does not exist (UserStyleSheet)."""
+        os_mock.path.isfile.return_value = False
+        configtypes.UserStyleSheet().validate('foobar')
 
     def test_validate_exists_abs(self, klass, os_mock):
         """Test validate with a file which does exist."""
@@ -1021,13 +1053,13 @@ class TestFile:
         os_mock.path.join.assert_called_once_with(
             '/home/foo/.config/', 'foobar')
 
-    def test_validate_rel_config_none(self, klass, os_mock, monkeypatch):
+    def test_validate_rel_config_none_file(self, os_mock, monkeypatch):
         """Test with a relative path and standarddir.config returning None."""
         monkeypatch.setattr(
             'qutebrowser.config.configtypes.standarddir.config', lambda: None)
         os_mock.path.isabs.return_value = False
         with pytest.raises(configexc.ValidationError):
-            klass().validate('foobar')
+            configtypes.File().validate('foobar')
 
     def test_validate_expanduser(self, klass, os_mock):
         """Test if validate expands the user correctly."""
@@ -1035,7 +1067,6 @@ class TestFile:
                                            path == '/home/foo/foobar')
         os_mock.path.isabs.return_value = True
         klass().validate('~/foobar')
-        os_mock.path.expanduser.assert_called_once_with('~/foobar')
 
     def test_validate_expandvars(self, klass, os_mock):
         """Test if validate expands the environment vars correctly."""
@@ -1043,7 +1074,6 @@ class TestFile:
                                            path == '/home/foo/foobar')
         os_mock.path.isabs.return_value = True
         klass().validate('$HOME/foobar')
-        os_mock.path.expandvars.assert_called_once_with('$HOME/foobar')
 
     def test_validate_invalid_encoding(self, klass, os_mock,
                                        unicode_encode_err):
@@ -1053,13 +1083,38 @@ class TestFile:
         with pytest.raises(configexc.ValidationError):
             klass().validate('foobar')
 
-    def test_transform(self, klass, os_mock):
-        assert klass().transform('~/foobar') == '/home/foo/foobar'
-        os_mock.path.expanduser.assert_called_once_with('~/foobar')
+    @pytest.mark.parametrize('val, expected', [
+        ('/foobar', '/foobar'),
+        ('~/foobar', '/home/foo/foobar'),
+        ('$HOME/foobar', '/home/foo/foobar'),
+        ('', None),
+    ])
+    def test_transform_abs(self, klass, os_mock, val, expected):
+        assert klass().transform(val) == self._expected(klass, expected)
 
-    def test_transform_empty(self, klass):
-        """Test transform with none_ok = False and an empty value."""
-        assert klass().transform('') is None
+    def test_transform_relative_confdir_none(self, klass, monkeypatch,
+                                             os_mock):
+        """Test transform() with relative dir and no configdir."""
+        monkeypatch.setattr(
+            'qutebrowser.config.configtypes.standarddir.config', lambda: None)
+        os_mock.path.exists.return_value = True
+        assert klass().transform('foo') == self._expected(klass, 'foo')
+
+    def test_transform_relative(self, klass, os_mock, monkeypatch):
+        """Test transform() with relative dir and an available configdir."""
+        os_mock.path.exists.return_value = True  # for TestUserStyleSheet
+        os_mock.path.isabs.return_value = False
+        monkeypatch.setattr(
+            'qutebrowser.config.configtypes.standarddir.config',
+            lambda: '/configdir')
+        expected = self._expected(klass, '/configdir/foo')
+        assert klass().transform('foo') == expected
+
+    def test_transform_userstylesheet_base64(self):
+        """Test transform with a data string."""
+        b64 = base64.b64encode(b"test").decode('ascii')
+        url = QUrl("data:text/css;charset=utf-8;base64,{}".format(b64))
+        assert configtypes.UserStyleSheet().transform("test") == url
 
 
 class TestDirectory:
@@ -1403,54 +1458,6 @@ class TestFuzzyUrl:
     ])
     def test_transform(self, klass, val, expected):
         assert klass().transform(val) == expected
-
-
-class TestUserStyleSheet:
-
-    """Test UserStyleSheet."""
-
-    @pytest.fixture
-    def klass(self):
-        return configtypes.UserStyleSheet
-
-    def test_validate_invalid_encoding(self, klass, mocker,
-                                       unicode_encode_err):
-        """Test validate with an invalid encoding, e.g. LC_ALL=C."""
-        os_mock = mocker.patch('qutebrowser.config.configtypes.os',
-                               autospec=True)
-        os_mock.path.isfile.side_effect = unicode_encode_err
-        os_mock.path.isabs.side_effect = unicode_encode_err
-        with pytest.raises(configexc.ValidationError):
-            klass().validate('foobar')
-
-    def test_transform_empty(self, klass):
-        assert klass().transform('') is None
-
-    def test_transform_file(self, klass, os_mock, mocker):
-        """Test transform with a filename."""
-        qurl = mocker.patch('qutebrowser.config.configtypes.QUrl',
-                            autospec=True)
-        qurl.fromLocalFile.return_value = QUrl("file:///foo/bar")
-        os_mock.path.exists.return_value = True
-        path = os.path.join(os.path.sep, 'foo', 'bar')
-        assert klass().transform(path) == QUrl("file:///foo/bar")
-
-    def test_transform_file_expandvars(self, klass, os_mock, monkeypatch,
-                                      mocker):
-        """Test transform with a filename (expandvars)."""
-        qurl = mocker.patch('qutebrowser.config.configtypes.QUrl',
-                            autospec=True)
-        qurl.fromLocalFile.return_value = QUrl("file:///foo/bar")
-        os_mock.path.exists.return_value = True
-        monkeypatch.setenv('FOO', 'foo')
-        path = os.path.join(os.path.sep, '$FOO', 'bar')
-        assert klass().transform(path) == QUrl("file:///foo/bar")
-
-    def test_transform_base64(self, klass):
-        """Test transform with a data string."""
-        b64 = base64.b64encode(b"test").decode('ascii')
-        url = QUrl("data:text/css;charset=utf-8;base64,{}".format(b64))
-        assert klass().transform("test") == url
 
 
 class TestAutoSearch:
