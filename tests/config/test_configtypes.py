@@ -1580,6 +1580,7 @@ class TestUrlList:
     @pytest.mark.parametrize('val', [
         '',
         'foo,,bar',
+        '+',  # invalid URL with QUrl.fromUserInput
     ])
     def test_validate_invalid(self, klass, val):
         with pytest.raises(configexc.ValidationError):
