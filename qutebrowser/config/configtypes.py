@@ -1274,10 +1274,13 @@ class Position(BaseType):
         'east': QTabWidget.East,
     }
 
+    def validate(self, value):
+        super().validate(value.lower())
+
     def transform(self, value):
         if not value:
             return None
-        return self.MAPPING[value]
+        return self.MAPPING[value.lower()]
 
 
 class VerticalPosition(BaseType):
