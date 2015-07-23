@@ -303,6 +303,36 @@ class TestBool:
             klass().validate(val)
 
 
+class TestBoolAsk:
+
+    """Test BoolAsk."""
+
+    TESTS = {
+        'ask': 'ask',
+        'ASK': 'ask',
+    }
+    TESTS.update(TestBool.TESTS)
+
+    INVALID = TestBool.INVALID
+
+    @pytest.fixture
+    def klass(self):
+        return configtypes.BoolAsk
+
+    @pytest.mark.parametrize('val, expected', TESTS.items())
+    def test_transform(self, klass, val, expected):
+        assert klass().transform(val) == expected
+
+    @pytest.mark.parametrize('val', TESTS)
+    def test_validate_valid(self, klass, val):
+        klass(none_ok=True).validate(val)
+
+    @pytest.mark.parametrize('val', INVALID)
+    def test_validate_invalid(self, klass, val):
+        with pytest.raises(configexc.ValidationError):
+            klass().validate(val)
+
+
 class TestInt:
 
     """Test Int."""
