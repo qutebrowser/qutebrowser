@@ -34,7 +34,7 @@ from PyQt5.QtWidgets import QTabWidget, QTabBar
 
 from qutebrowser.commands import cmdutils
 from qutebrowser.config import configexc
-from qutebrowser.utils import standarddir
+from qutebrowser.utils import standarddir, utils
 
 
 SYSTEM_PROXY = object()  # Return value for Proxy type
@@ -70,6 +70,10 @@ class ValidValues:
 
     def __iter__(self):
         return self.values.__iter__()
+
+    def __repr__(self):
+        return utils.get_repr(self, values=self.values,
+                              descriptions=self.descriptions)
 
 
 class BaseType:

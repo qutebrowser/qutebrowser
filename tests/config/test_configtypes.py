@@ -120,6 +120,15 @@ class TestValidValues:
         assert vv.descriptions['bar'] == "bar desc"
         assert 'baz' not in vv.descriptions
 
+    @pytest.mark.parametrize('args, expected', [
+        (['a', 'b'], "<qutebrowser.config.configtypes.ValidValues "
+                     "descriptions={} values=['a', 'b']>"),
+        ([('val', 'desc')], "<qutebrowser.config.configtypes.ValidValues "
+                            "descriptions={'val': 'desc'} values=['val']>"),
+    ])
+    def test_repr(self, klass, args, expected):
+        assert repr(klass(*args)) == expected
+
 
 class TestBaseType:
 
