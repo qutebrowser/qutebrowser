@@ -804,20 +804,14 @@ class TestFont:
             FontDesc(QFont.StyleNormal, QFont.Bold, 10, None, 'Foobar Neue'),
         'bold italic 10pt "Foobar Neue"':
             FontDesc(QFont.StyleItalic, QFont.Bold, 10, None, 'Foobar Neue'),
+        'normal 300 10pt "Foobar Neue"':
+            FontDesc(QFont.StyleNormal, 37.5, 10, None, 'Foobar Neue'),
+        'normal 800 10pt "Foobar Neue"':
+            FontDesc(QFont.StyleNormal, 99, 10, None, 'Foobar Neue'),
     }
 
-    INVALID = [
-        'green "Foobar Neue"',
-        'italic green "Foobar Neue"',
-        'bold bold "Foobar Neue"',
-        'bold italic "Foobar Neue"',
-        '10pt 20px "Foobar Neue"',
-        'bold',
-        'italic',
-        'green',
-        '10pt',
-        '10pt ""',
-    ]
+    font_xfail = pytest.mark.xfail(reason='FIXME: #103')
+
 
     @pytest.fixture(params=[configtypes.Font, configtypes.QtFont])
     def klass(self, request):
@@ -835,8 +829,19 @@ class TestFont:
     def test_validate_valid(self, klass, val):
         klass(none_ok=True).validate(val)
 
-    @pytest.mark.parametrize('val', INVALID)
-    @pytest.mark.xfail(reason='FIXME: #103')
+    @pytest.mark.parametrize('val', [
+        font_xfail('green "Foobar Neue"'),
+        font_xfail('italic green "Foobar Neue"'),
+        font_xfail('bold bold "Foobar Neue"'),
+        font_xfail('bold italic "Foobar Neue"'),
+        font_xfail('10pt 20px "Foobar Neue"'),
+        font_xfail('bold'),
+        font_xfail('italic'),
+        font_xfail('green'),
+        font_xfail('10pt'),
+        font_xfail('10pt ""'),
+        '%',
+    ])
     def test_validate_invalid(self, klass, val):
         with pytest.raises(configexc.ValidationError):
             klass().validate(val)
@@ -895,6 +900,7 @@ class TestFontFamily:
         'normal bold 10pt "Foobar Neue"',
         'bold italic 10pt "Foobar Neue"',
         '',  # with none_ok=False
+        '%',
     ]
 
     @pytest.fixture
@@ -1229,6 +1235,7 @@ class TestShellCommand:
         ({}, ''),
         ({'placeholder': '{}'}, 'foo{} bar'),
         ({'placeholder': '{}'}, 'foo bar'),
+        ({}, 'foo"'),  # not splittable with shlex
     ])
     def test_validate_invalid(self, klass, kwargs, val):
         with pytest.raises(configexc.ValidationError):
@@ -1318,12 +1325,13 @@ class TestSearchEngineName:
     def klass(self):
         return configtypes.SearchEngineName
 
+    @pytest.mark.parametrize('val', ['', 'foobar'])
+    def test_validate_valid(self, klass, val):
+        klass(none_ok=True).validate(val)
+
     def test_validate_empty(self, klass):
         with pytest.raises(configexc.ValidationError):
             klass().validate('')
-
-    def test_validate_empty_none_ok(self, klass):
-        klass(none_ok=True).validate('')
 
     @pytest.mark.parametrize('val, expected', [('', None),
                                                ('foobar', 'foobar')])
