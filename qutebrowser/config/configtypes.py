@@ -445,10 +445,17 @@ class PercList(List):
         self.maxval = maxval
 
     def transform(self, value):
+        if not value:
+            return None
         vals = super().transform(value)
         return [int(v[:-1]) if v is not None else None for v in vals]
 
     def validate(self, value):
+        if not value:
+            if self.none_ok:
+                return
+            else:
+                raise configexc.ValidationError(value, "may not be empty")
         vals = super().transform(value)
         perctype = Perc(minval=self.minval, maxval=self.maxval)
         try:
@@ -786,11 +793,18 @@ class RegexList(List):
         self.flags = flags
 
     def transform(self, value):
+        if not value:
+            return None
         vals = super().transform(value)
         return [re.compile(v, self.flags) if v is not None else None
                 for v in vals]
 
     def validate(self, value):
+        if not value:
+            if self.none_ok:
+                return
+            else:
+                raise configexc.ValidationError(value, "may not be empty!")
         try:
             vals = self.transform(value)
         except sre_constants.error as e:
