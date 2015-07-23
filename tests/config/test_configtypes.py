@@ -1782,3 +1782,7 @@ class TestUserAgent:
 
     def test_transform(self, klass):
         assert klass().transform('foobar') == 'foobar'
+
+    def test_complete(self, klass):
+        """Simple smoke test for completion."""
+        klass().complete()
