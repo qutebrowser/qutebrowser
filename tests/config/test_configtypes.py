@@ -636,7 +636,7 @@ class TestCommand:
     @pytest.mark.parametrize('val', ['', 'cmd3', 'cmd3  foo bar'])
     def test_validate_invalid(self, klass, val):
         with pytest.raises(configexc.ValidationError):
-            klass().validate('')
+            klass().validate(val)
 
     @pytest.mark.parametrize('val, expected', [('foo bar', 'foo bar'),
                                                ('', None)])
