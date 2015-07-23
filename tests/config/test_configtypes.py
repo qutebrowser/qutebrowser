@@ -74,6 +74,7 @@ def os_mock(mocker):
     m = mocker.patch('qutebrowser.config.configtypes.os', autospec=True)
     m.path.expandvars.side_effect = lambda x: x.replace('$HOME', '/home/foo')
     m.path.expanduser.side_effect = lambda x: x.replace('~', '/home/foo')
+    m.path.join.side_effect = lambda *parts: '/'.join(parts)
     return m
 
 
