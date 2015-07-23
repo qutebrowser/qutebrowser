@@ -1661,6 +1661,24 @@ class TestUrlList:
         assert klass().transform(val) == expected
 
 
+class TestSessionName:
+
+    """Test SessionName."""
+
+    @pytest.fixture
+    def klass(self):
+        return configtypes.SessionName
+
+    @pytest.mark.parametrize('val', ['', 'foobar'])
+    def test_validate_valid(self, klass, val):
+        klass(none_ok=True).validate(val)
+
+    @pytest.mark.parametrize('val', ['', '_foo'])
+    def test_validate_invalid(self, klass, val):
+        with pytest.raises(configexc.ValidationError):
+            klass().validate(val)
+
+
 class TestFormatString:
 
     """Test FormatString."""
