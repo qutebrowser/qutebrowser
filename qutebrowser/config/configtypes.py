@@ -1405,15 +1405,24 @@ class ConfirmQuit(List):
     combinable_values = ('multiple-tabs', 'downloads')
 
     def validate(self, value):
-        values = self.transform(value)
         if not value:
             if self.none_ok:
                 return None
             else:
                 raise configexc.ValidationError(
                     value, "Value may not be empty!")
+
+        values = []
+        for v in self.transform(value):
+            if v:
+                values.append(v)
+            elif self.none_ok:
+                pass
+            else:
+                raise configexc.ValidationError(value, "May not contain empty "
+                                                       "values!")
         # Never can't be set with other options
-        elif 'never' in values and len(values) > 1:
+        if 'never' in values and len(values) > 1:
             raise configexc.ValidationError(
                 value, "List cannot contain never!")
         # Always can't be set with other options
