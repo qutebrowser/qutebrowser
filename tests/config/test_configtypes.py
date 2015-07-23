@@ -1679,6 +1679,57 @@ class TestSessionName:
             klass().validate(val)
 
 
+class TestConfirmQuit:
+
+    """Test ConfirmQuit."""
+
+    TESTS = {
+        '': None,
+        'always': ['always'],
+        'never': ['never'],
+        'multiple-tabs,downloads': ['multiple-tabs', 'downloads'],
+        'downloads,multiple-tabs': ['downloads', 'multiple-tabs'],
+        'downloads,,multiple-tabs': ['downloads', None, 'multiple-tabs'],
+    }
+
+    @pytest.fixture
+    def klass(self):
+        return configtypes.ConfirmQuit
+
+    @pytest.mark.parametrize('val', TESTS.keys())
+    def test_validate_valid(self, klass, val):
+        klass(none_ok=True).validate(val)
+
+    @pytest.mark.parametrize('val', [
+        '',  # with none_ok=False
+        'foo',
+        'downloads,foo',  # valid value mixed with invalid one
+        'downloads,,multiple-tabs',  # empty value
+        'downloads,multiple-tabs,downloads',  # duplicate value
+        'always,downloads',  # always combined
+        'never,downloads',  # never combined
+    ])
+    def test_validate_invalid(self, klass, val):
+        with pytest.raises(configexc.ValidationError):
+            klass().validate(val)
+
+    @pytest.mark.parametrize('val, expected', TESTS.items())
+    def test_transform(self, klass, val, expected):
+        assert klass().transform(val) == expected
+
+    def test_complete(self, klass):
+        """Test completing by doing some samples."""
+        completions = [e[0] for e in klass().complete()]
+        assert 'always' in completions
+        assert 'never' in completions
+        assert 'multiple-tabs,downloads' in completions
+        for val in completions:
+            assert not 'always,' in val
+            assert not ',always' in val
+            assert not 'never,' in val
+            assert not ',never' in val
+
+
 class TestFormatString:
 
     """Test FormatString."""
