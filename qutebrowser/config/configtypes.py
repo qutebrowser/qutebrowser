@@ -86,11 +86,12 @@ class BaseType:
     Class attributes:
         valid_values: Possible values if they can be expressed as a fixed
                       string. ValidValues instance.
-        typestr: The name of the type to appear in the config.
+        special: If set, the type is only used for one option and isn't
+                 mentioned in the config file.
     """
 
-    typestr = None
     valid_values = None
+    special = False
 
     def __init__(self, none_ok=False):
         self.none_ok = none_ok
@@ -195,8 +196,6 @@ class String(BaseType):
         forbidden: Forbidden chars in the string.
     """
 
-    typestr = 'string'
-
     def __init__(self, minlen=None, maxlen=None, forbidden=None,
                  none_ok=False):
         super().__init__(none_ok)
@@ -233,8 +232,6 @@ class List(BaseType):
 
     """Base class for a (string-)list setting."""
 
-    typestr = 'string-list'
-
     def transform(self, value):
         if not value:
             return None
@@ -256,8 +253,6 @@ class List(BaseType):
 class Bool(BaseType):
 
     """Base class for a boolean setting."""
-
-    typestr = 'bool'
 
     valid_values = ValidValues('true', 'false')
 
@@ -305,8 +300,6 @@ class Int(BaseType):
         maxval: Maximum value (inclusive).
     """
 
-    typestr = 'int'
-
     def __init__(self, minval=None, maxval=None, none_ok=False):
         super().__init__(none_ok)
         if maxval is not None and minval is not None and maxval < minval:
@@ -343,8 +336,6 @@ class IntList(List):
 
     """Base class for an int-list setting."""
 
-    typestr = 'int-list'
-
     def transform(self, value):
         if not value:
             return None
@@ -374,8 +365,6 @@ class Float(BaseType):
         minval: Minimum value (inclusive).
         maxval: Maximum value (inclusive).
     """
-
-    typestr = 'float'
 
     def __init__(self, minval=None, maxval=None, none_ok=False):
         super().__init__(none_ok)
@@ -417,8 +406,6 @@ class Perc(BaseType):
         minval: Minimum value (inclusive).
         maxval: Maximum value (inclusive).
     """
-
-    typestr = 'percentage'
 
     def __init__(self, minval=None, maxval=None, none_ok=False):
         super().__init__(none_ok)
@@ -462,8 +449,6 @@ class PercList(List):
         minval: Minimum value (inclusive).
         maxval: Maximum value (inclusive).
     """
-
-    typestr = 'perc-list'
 
     def __init__(self, minval=None, maxval=None, none_ok=False):
         super().__init__(none_ok)
@@ -512,8 +497,6 @@ class PercOrInt(BaseType):
         minint: Minimum value for integer (inclusive).
         maxint: Maximum value for integer (inclusive).
     """
-
-    typestr = 'percentage-or-int'
 
     def __init__(self, minperc=None, maxperc=None, minint=None, maxint=None,
                  none_ok=False):
@@ -564,8 +547,6 @@ class Command(BaseType):
 
     """Base class for a command value with arguments."""
 
-    typestr = 'command'
-
     def validate(self, value):
         if not value:
             if self.none_ok:
@@ -586,6 +567,7 @@ class ColorSystem(MappingType):
 
     """Color systems for interpolation."""
 
+    special = True
     valid_values = ValidValues(('rgb', "Interpolate in the RGB color system."),
                                ('hsv', "Interpolate in the HSV color system."),
                                ('hsl', "Interpolate in the HSL color system."))
@@ -600,8 +582,6 @@ class ColorSystem(MappingType):
 class QtColor(BaseType):
 
     """Base class for QColor."""
-
-    typestr = 'qcolor'
 
     def validate(self, value):
         if not value:
@@ -625,8 +605,6 @@ class CssColor(BaseType):
 
     """Base class for a CSS color value."""
 
-    typestr = 'css-color'
-
     def validate(self, value):
         if not value:
             if self.none_ok:
@@ -649,8 +627,6 @@ class QssColor(CssColor):
     Class attributes:
         color_func_regexes: Valid function regexes.
     """
-
-    typestr = 'qss-color'
 
     color_func_regexes = [
         r'rgb\([0-9]{1,3}%?, [0-9]{1,3}%?, [0-9]{1,3}%?\)',
@@ -681,7 +657,6 @@ class Font(BaseType):
 
     """Base class for a font value."""
 
-    typestr = 'font'
     font_regex = re.compile(r"""
         ^(
             (
@@ -783,8 +758,6 @@ class Regex(BaseType):
 
     """A regular expression."""
 
-    typestr = 'regex'
-
     def __init__(self, flags=0, none_ok=False):
         super().__init__(none_ok)
         self.flags = flags
@@ -811,8 +784,6 @@ class Regex(BaseType):
 class RegexList(List):
 
     """A list of regexes."""
-
-    typestr = 'regex-list'
 
     def __init__(self, flags=0, none_ok=False):
         super().__init__(none_ok)
@@ -843,8 +814,6 @@ class RegexList(List):
 class File(BaseType):
 
     """A file on the local filesystem."""
-
-    typestr = 'file'
 
     def transform(self, value):
         if not value:
@@ -889,8 +858,6 @@ class Directory(BaseType):
 
     """A directory on the local filesystem."""
 
-    typestr = 'directory'
-
     def validate(self, value):
         if not value:
             if self.none_ok:
@@ -919,8 +886,6 @@ class Directory(BaseType):
 class FormatString(BaseType):
 
     """A string with '{foo}'-placeholders."""
-
-    typestr = 'format-string'
 
     def __init__(self, fields, none_ok=False):
         super().__init__(none_ok)
@@ -964,8 +929,6 @@ class WebKitBytes(BaseType):
         'y': 1024 ** 8,
     }
 
-    typestr = 'bytes'
-
     def __init__(self, maxsize=None, none_ok=False):
         super().__init__(none_ok)
         self.maxsize = maxsize
@@ -1007,8 +970,6 @@ class WebKitBytesList(List):
         bytestype: The webkit bytes type.
     """
 
-    typestr = 'bytes-list'
-
     def __init__(self, maxsize=None, length=None, none_ok=False):
         super().__init__(none_ok)
         self.length = length
@@ -1042,8 +1003,6 @@ class ShellCommand(BaseType):
         placeholder: If there should be a placeholder.
     """
 
-    typestr = 'shell-command'
-
     def __init__(self, placeholder=False, none_ok=False):
         super().__init__(none_ok)
         self.placeholder = placeholder
@@ -1073,6 +1032,7 @@ class HintMode(BaseType):
 
     """Base class for the hints -> mode setting."""
 
+    special = True
     valid_values = ValidValues(('number', "Use numeric hints."),
                                ('letter', "Use the chars in the hints -> "
                                           "chars setting."))
@@ -1082,6 +1042,7 @@ class Proxy(BaseType):
 
     """A proxy URL or special value."""
 
+    special = True
     valid_values = ValidValues(('system', "Use the system wide proxy."),
                                ('none', "Don't use any proxy"))
 
@@ -1139,6 +1100,8 @@ class SearchEngineName(BaseType):
 
     """A search engine name."""
 
+    special = True
+
     def validate(self, value):
         if not value:
             if self.none_ok:
@@ -1150,6 +1113,8 @@ class SearchEngineName(BaseType):
 class SearchEngineUrl(BaseType):
 
     """A search engine URL."""
+
+    special = True
 
     def validate(self, value):
         if not value:
@@ -1200,8 +1165,6 @@ class Encoding(BaseType):
 
     """Setting for a python encoding."""
 
-    typestr = 'encoding'
-
     def validate(self, value):
         if not value:
             if self.none_ok:
@@ -1218,7 +1181,7 @@ class UserStyleSheet(File):
 
     """QWebSettings UserStyleSheet."""
 
-    typestr = 'user-stylesheet'
+    special = True
 
     def transform(self, value):
         if not value:
@@ -1256,6 +1219,7 @@ class AutoSearch(BaseType):
 
     """Whether to start a search when something else than a URL is entered."""
 
+    special = True
     valid_values = ValidValues(('naive', "Use simple/naive check."),
                                ('dns', "Use DNS requests (might be slow!)."),
                                ('false', "Never search automatically."))
@@ -1307,8 +1271,6 @@ class UrlList(List):
 
     """A list of URLs."""
 
-    typestr = 'url-list'
-
     def transform(self, value):
         if not value:
             return None
@@ -1337,7 +1299,7 @@ class SessionName(BaseType):
 
     """The name of a session."""
 
-    typestr = 'session'
+    special = True
 
     def validate(self, value):
         if not value:
@@ -1353,6 +1315,7 @@ class SelectOnRemove(MappingType):
 
     """Which tab to select when the focused tab is removed."""
 
+    special = True
     valid_values = ValidValues(
         ('left', "Select the tab on the left."),
         ('right', "Select the tab on the right."),
@@ -1369,6 +1332,7 @@ class LastClose(BaseType):
 
     """Behavior when the last tab is closed."""
 
+    special = True
     valid_values = ValidValues(('ignore', "Don't do anything."),
                                ('blank', "Load a blank page."),
                                ('startpage', "Load the start page."),
@@ -1380,6 +1344,7 @@ class AcceptCookies(BaseType):
 
     """Control which cookies to accept."""
 
+    special = True
     valid_values = ValidValues(('all', "Accept all cookies."),
                                ('no-3rdparty', "Accept cookies from the same"
                                 " origin only."),
@@ -1393,8 +1358,7 @@ class ConfirmQuit(List):
 
     """Whether to display a confirmation when the window is closed."""
 
-    typestr = 'string-list'
-
+    special = True
     valid_values = ValidValues(('always', "Always show a confirmation."),
                                ('multiple-tabs', "Show a confirmation if "
                                                  "multiple tabs are opened."),
@@ -1459,6 +1423,7 @@ class ForwardUnboundKeys(BaseType):
 
     """Whether to forward unbound keys."""
 
+    special = True
     valid_values = ValidValues(('all', "Forward all unbound keys."),
                                ('auto', "Forward unbound non-alphanumeric "
                                         "keys."),
@@ -1469,6 +1434,7 @@ class CloseButton(BaseType):
 
     """Mouse button used to close tabs."""
 
+    special = True
     valid_values = ValidValues(('right', "Close tabs on right-click."),
                                ('middle', "Close tabs on middle-click."),
                                ('none', "Don't close tabs using the mouse."))
@@ -1478,6 +1444,7 @@ class NewTabPosition(BaseType):
 
     """How new tabs are positioned."""
 
+    special = True
     valid_values = ValidValues(('left', "On the left of the current tab."),
                                ('right', "On the right of the current tab."),
                                ('first', "At the left end."),
@@ -1488,6 +1455,7 @@ class IgnoreCase(Bool):
 
     """Whether to ignore case when searching."""
 
+    special = True
     valid_values = ValidValues(('true', "Search case-insensitively"),
                                ('false', "Search case-sensitively"),
                                ('smart', "Search case-sensitively if there "
@@ -1510,6 +1478,7 @@ class NewInstanceOpenTarget(BaseType):
 
     """How to open links in an existing instance if a new one is launched."""
 
+    special = True
     valid_values = ValidValues(('tab', "Open a new tab in the existing "
                                        "window and activate the window."),
                                ('tab-bg', "Open a new background tab in the "
@@ -1529,6 +1498,7 @@ class DownloadPathSuggestion(BaseType):
 
     """How to format the question when downloading."""
 
+    special = True
     valid_values = ValidValues(('path', "Show only the download path."),
                                ('filename', "Show only download filename."),
                                ('both', "Show download path and filename."))
@@ -1538,7 +1508,7 @@ class UserAgent(BaseType):
 
     """The user agent to use."""
 
-    typestr = 'user-agent'
+    special = True
 
     def __init__(self, none_ok=False):
         super().__init__(none_ok)

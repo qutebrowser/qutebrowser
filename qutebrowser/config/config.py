@@ -391,13 +391,16 @@ class ConfigManager(QObject):
         lines = []
         if not getattr(sect, 'descriptions', None):
             return lines
+
         for optname, option in sect.items():
+
             lines.append('#')
-            if option.typ.typestr is None:
+            if option.typ.special:
                 typestr = ''
             else:
-                typestr = ' ({})'.format(option.typ.typestr)
+                typestr = ' ({})'.format(option.typ.__class__.__name__)
             lines.append("# {}{}:".format(optname, typestr))
+
             try:
                 desc = self.sections[sectname].descriptions[optname]
             except KeyError:
