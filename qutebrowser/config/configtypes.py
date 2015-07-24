@@ -963,8 +963,6 @@ class WebKitBytesList(List):
         vals = super().transform(value)
         for val in vals:
             self.bytestype.validate(val)
-        if None in vals and not self.none_ok:
-            raise configexc.ValidationError(value, "items may not be empty!")
         if self.length is not None and len(vals) != self.length:
             raise configexc.ValidationError(value, "exactly {} values need to "
                                             "be set!".format(self.length))
