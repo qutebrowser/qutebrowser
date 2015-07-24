@@ -31,7 +31,7 @@ import shutil
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), os.pardir,
                 os.pardir))
 
-import qutebrowser.qutebrowser  # pylint: disable=unused-import
+import qutebrowser.qutebrowser
 
 tempdir = tempfile.mkdtemp()
 
@@ -55,7 +55,7 @@ else:
 
 callgraphfile = os.path.join(tempdir, 'callgraph')
 profiler = cProfile.Profile()
-profiler.run('qutebrowser.qutebrowser.main()')
+profiler.runcall(qutebrowser.qutebrowser.main)
 profiler.dump_stats(profilefile)
 
 if not noconv:
