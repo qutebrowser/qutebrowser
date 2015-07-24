@@ -23,7 +23,7 @@
 import sys
 import os.path
 
-from lxml import etree
+from xml.etree import ElementTree
 
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), os.pardir,
                                 os.pardir))
@@ -57,8 +57,8 @@ def main():
         assert os.path.exists(os.path.join(*path.split('/'))), path
 
     with open('coverage.xml', encoding='utf-8') as f:
-        tree = etree.parse(f)  # pylint: disable=no-member
-    classes = tree.xpath('/coverage/packages/package/classes/class')
+        tree = ElementTree.parse(f)
+    classes = tree.getroot().findall('./packages/package/classes/class')
 
     status = 0
 
@@ -71,7 +71,7 @@ def main():
         assert 0 <= branch_cov <= 100, branch_cov
         assert '\\' not in filename, filename
 
-        if branch_cov < 100 and klass.xpath('lines/line[@branch="true"]'):
+        if branch_cov < 100 and klass.find('./lines/line[@branch="true"]'):
             # Files without any branches have 0% coverage
             bad_branch_cov = True
         else:
