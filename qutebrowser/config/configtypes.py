@@ -546,7 +546,8 @@ class Command(BaseType):
         self._basic_validation(value)
         if not value:
             return
-        elif value.split()[0] not in cmdutils.cmd_dict:
+        splitted = value.split()
+        if not splitted or  splitted[0] not in cmdutils.cmd_dict:
             raise configexc.ValidationError(value, "must be a valid command!")
 
     def complete(self):
