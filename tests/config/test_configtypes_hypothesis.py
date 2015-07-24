@@ -29,7 +29,7 @@ from qutebrowser.config import configtypes, configexc
 
 
 def gen_classes():
-    for name, member in inspect.getmembers(configtypes, inspect.isclass):
+    for _name, member in inspect.getmembers(configtypes, inspect.isclass):
         if member is configtypes.BaseType:
             pass
         elif member is configtypes.MappingType:
