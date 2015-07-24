@@ -562,7 +562,8 @@ def data(readonly=False):
 
             ('object-cache-capacities',
              SettingValue(
-                 typ.WebKitBytesList(length=3, maxsize=MAXVALS['int']), ''),
+                 typ.WebKitBytesList(length=3, maxsize=MAXVALS['int'],
+                                     none_ok=True), ''),
              "The capacities for the global memory cache for dead objects "
              "such as stylesheets or scripts. Syntax: cacheMinDeadCapacity, "
              "cacheMaxDead, totalCapacity.\n\n"
@@ -575,11 +576,13 @@ def data(readonly=False):
              "that the cache should consume *overall*."),
 
             ('offline-storage-default-quota',
-             SettingValue(typ.WebKitBytes(maxsize=MAXVALS['int64']), ''),
+             SettingValue(typ.WebKitBytes(maxsize=MAXVALS['int64'],
+                                          none_ok=True), ''),
              "Default quota for new offline storage databases."),
 
             ('offline-web-application-cache-quota',
-             SettingValue(typ.WebKitBytes(maxsize=MAXVALS['int64']), ''),
+             SettingValue(typ.WebKitBytes(maxsize=MAXVALS['int64'],
+                                          none_ok=True), ''),
              "Quota for the offline web application cache."),
 
             ('offline-storage-database',

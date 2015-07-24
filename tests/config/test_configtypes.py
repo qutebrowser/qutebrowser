@@ -151,17 +151,24 @@ class TestBaseType:
         with pytest.raises(NotImplementedError):
             basetype.validate("foo")
 
-    def test_validate_none_ok(self, basetype):
-        """Test validate with none_ok = True."""
-        basetype.none_ok = True
-        basetype.validate('')
-
     def test_validate(self, basetype):
         """Test validate with valid_values set."""
         basetype.valid_values = configtypes.ValidValues('foo', 'bar')
         basetype.validate('bar')
         with pytest.raises(configexc.ValidationError):
             basetype.validate('baz')
+
+    @pytest.mark.parametrize('val', ['', 'foobar', 'snowman: ☃', 'foo bar'])
+    def test_basic_validation_valid(self, basetype, val):
+        """Test _basic_validation with valid values."""
+        basetype.none_ok = True
+        basetype._basic_validation(val)
+
+    @pytest.mark.parametrize('val', ['', '\x00'])
+    def test_basic_validation_invalid(self, basetype, val):
+        """Test _basic_validation with invalid values."""
+        with pytest.raises(configexc.ValidationError):
+            basetype._basic_validation(val)
 
     def test_complete_none(self, basetype):
         """Test complete with valid_values not set."""
@@ -1272,7 +1279,7 @@ class TestWebKitByte:
         return configtypes.WebKitBytes
 
     @pytest.mark.parametrize('maxsize, val', [
-        (None, ''),  # It's always None-able, so we don't use none_ok
+        (None, ''),
         (None, '42'),
         (None, '56k'),
         (None, '56K'),
@@ -1280,9 +1287,10 @@ class TestWebKitByte:
         (2048, '2k'),
     ])
     def test_validate_valid(self, klass, maxsize, val):
-        klass(maxsize=maxsize).validate(val)
+        klass(none_ok=True, maxsize=maxsize).validate(val)
 
     @pytest.mark.parametrize('maxsize, val', [
+        (None, ''),
         (None, '-1'),
         (None, '-1k'),
         (None, '56x'),
@@ -1316,10 +1324,9 @@ class TestWebKitBytesList:
         ({}, '23,56k,1337'),
         ({'maxsize': 2}, '2'),
         ({'maxsize': 2048}, '2k'),
+        ({'length': 3}, '1,2,3'),
         ({'none_ok': True}, '23,,42'),
         ({'none_ok': True}, ''),
-        ({'length': 3}, '1,2,3'),
-        ({}, ''),  # It's always None-able, so we don't use none_ok
     ])
     def test_validate_valid(self, klass, kwargs, val):
         klass(**kwargs).validate(val)
@@ -1331,6 +1338,8 @@ class TestWebKitBytesList:
         ({}, '23,,42'),
         ({'length': 3}, '1,2'),
         ({'length': 3}, '1,2,3,4'),
+        ({}, '23,,42'),
+        ({}, ''),
     ])
     def test_validate_invalid(self, klass, kwargs, val):
         with pytest.raises(configexc.ValidationError):
