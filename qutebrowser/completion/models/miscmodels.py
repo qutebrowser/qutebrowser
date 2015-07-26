@@ -124,7 +124,7 @@ class BookmarkCompletionModel(base.BaseCompletionModel):
         super().__init__(parent)
         self.columns_to_highlight.append(0)
         cat = self.new_category("Bookmarks")
-        bookmarks = objreg.get('bookmark-manager').bookmarks.items()
+        bookmarks = objreg.get('bookmark-manager').marks.items()
         if match_field == 'url':
             for bm_url, bm_title in bookmarks:
                 self.new_item(cat, bm_url, bm_title)
