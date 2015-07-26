@@ -1092,6 +1092,8 @@ class SearchEngineUrl(BaseType):
         except (KeyError, IndexError) as e:
             raise configexc.ValidationError(
                 value, "may not contain {...} (use {{ and }} for literal {/})")
+        except ValueError as e:
+            raise configexc.ValidationError(value, str(e))
 
         url = QUrl(value.replace('{}', 'foobar'))
         if not url.isValid():

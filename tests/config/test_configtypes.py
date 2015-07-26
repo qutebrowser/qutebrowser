@@ -1502,6 +1502,7 @@ class TestSearchEngineUrl:
         ':{}',  # invalid URL
         'foo{bar}baz{}',  # {bar} format string variable
         '{1}{}',  # numbered format string variable
+        '{{}',  # invalid format syntax
     ])
     def test_validate_invalid(self, klass, val):
         with pytest.raises(configexc.ValidationError):
