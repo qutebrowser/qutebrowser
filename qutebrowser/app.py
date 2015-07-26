@@ -44,7 +44,8 @@ import qutebrowser.resources  # pylint: disable=unused-import
 from qutebrowser.completion.models import instances as completionmodels
 from qutebrowser.commands import cmdutils, runners, cmdexc
 from qutebrowser.config import style, config, websettings, configexc
-from qutebrowser.browser import quickmarks, cookies, cache, adblock, history
+from qutebrowser.browser import (bookmarks, quickmarks, cookies, cache,
+                                 adblock, history)
 from qutebrowser.browser.network import qutescheme, proxy, networkmanager
 from qutebrowser.mainwindow import mainwindow
 from qutebrowser.misc import readline, ipc, savemanager, sessions, crashsignal
@@ -415,6 +416,9 @@ def _init_modules(args, crash_handler):
     log.init.debug("Initializing quickmarks...")
     quickmark_manager = quickmarks.QuickmarkManager(qApp)
     objreg.register('quickmark-manager', quickmark_manager)
+    log.init.debug("Initializing bookmarks...")
+    bookmark_manager = bookmarks.BookmarkManager(qApp)
+    objreg.register('bookmark-manager', bookmark_manager)
     log.init.debug("Initializing proxy...")
     proxy.init()
     log.init.debug("Initializing cookies...")

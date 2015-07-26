@@ -23,14 +23,14 @@ import datetime
 
 from PyQt5.QtCore import pyqtSlot, Qt
 
-from qutebrowser.utils import objreg, utils
+from qutebrowser.utils import message, objreg, utils
 from qutebrowser.completion.models import base
 from qutebrowser.config import config
 
 
 class UrlCompletionModel(base.BaseCompletionModel):
 
-    """A model which combines quickmarks and web history URLs.
+    """A model which combines bookmarks, quickmarks and web history URLs.
 
     Used for the `open` command."""
 
@@ -39,7 +39,11 @@ class UrlCompletionModel(base.BaseCompletionModel):
     def __init__(self, parent=None):
         super().__init__(parent)
 
+        self.columns_to_highlight.append(0)
+        self.columns_to_highlight.append(1)
+
         self._quickmark_cat = self.new_category("Quickmarks")
+        self._bookmark_cat = self.new_category("Bookmarks")
         self._history_cat = self.new_category("History")
 
         quickmark_manager = objreg.get('quickmark-manager')
@@ -48,6 +52,13 @@ class UrlCompletionModel(base.BaseCompletionModel):
             self._add_quickmark_entry(qm_name, qm_url)
         quickmark_manager.added.connect(self.on_quickmark_added)
         quickmark_manager.removed.connect(self.on_quickmark_removed)
+
+        bookmark_manager = objreg.get('bookmark-manager')
+        bookmarks = bookmark_manager.bookmarks.items()
+        for bm_url, bm_title in bookmarks:
+            self._add_bookmark_entry(bm_title, bm_url)
+        bookmark_manager.added.connect(self.on_bookmark_added)
+        bookmark_manager.removed.connect(self.on_bookmark_removed)
 
         self._history = objreg.get('web-history')
         max_history = config.get('completion', 'web-history-max-items')
@@ -80,6 +91,24 @@ class UrlCompletionModel(base.BaseCompletionModel):
             url: The URL of the new quickmark.
         """
         self.new_item(self._quickmark_cat, url, name)
+
+    def _add_bookmark_entry(self, title, url):
+        """Add a new bookmark entry to the completion.
+
+        Args:
+            title: The title of the new bookmark.
+            url: The URL of the new bookmark.
+        """
+        self.new_item(self._bookmark_cat, url, title)
+
+    def custom_filter(self, pattern, row, parent):
+        """Filter by url and title."""
+        index0 = self.index(row, 0, parent)
+        index1 = self.index(row, 1, parent)
+        url = self.data(index0) or ''
+        title = self.data(index1) or ''
+        return (pattern.casefold() in url.casefold() or pattern.casefold() in
+                title.casefold())
 
     @config.change_filter('completion', 'timestamp-format')
     def reformat_timestamps(self):
@@ -126,3 +155,50 @@ class UrlCompletionModel(base.BaseCompletionModel):
             if name_item.data(Qt.DisplayRole) == name:
                 self._quickmark_cat.removeRow(i)
                 break
+
+    @pyqtSlot(str, str)
+    def on_bookmark_added(self, title, url):
+        """Called when a bookmark has been added by the user.
+
+        Args:
+            title: The title of the new bookmark.
+            url: The url of the new bookmark, as string.
+        """
+        self._add_bookmark_entry(title, url)
+
+    @pyqtSlot(str)
+    def on_bookmark_removed(self, url):
+        """Called when a bookmark has been removed by the user.
+
+        Args:
+            url: The url of the bookmark which has been removed.
+        """
+        for i in range(self._bookmark_cat.rowCount()):
+            url_item = self._bookmark_cat.child(i, 0)
+            if url_item.data(Qt.DisplayRole) == url:
+                self._bookmark_cat.removeRow(i)
+                break
+
+    def delete_cur_item(self, win_id):
+        """Delete the selected item.
+
+        Args:
+            win_id: The current windows id.
+        """
+        completion = objreg.get('completion', scope='window',
+                                window=win_id)
+        index = completion.currentIndex()
+        model = completion.model()
+        url = model.data(index)
+        category = index.parent()
+        if category.isValid():
+            if category.data() == 'Bookmarks':
+                bookmark_manager = objreg.get('bookmark-manager')
+                bookmark_manager.delete(url)
+                message.info(win_id, "Bookmarks deleted")
+            elif category.data() == 'Quickmarks':
+                quickmark_manager = objreg.get('quickmark-manager')
+                name = model.data(index.sibling(index.row(),
+                                  index.column() + 1))
+                quickmark_manager.quickmark_del(name)
+                message.info(win_id, "Quickmarks deleted")

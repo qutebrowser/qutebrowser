@@ -1274,6 +1274,7 @@ KEY_DATA = collections.OrderedDict([
         ('set-cmd-text -s :quickmark-load', ['b']),
         ('set-cmd-text -s :quickmark-load -t', ['B']),
         ('set-cmd-text -s :quickmark-load -w', ['wb']),
+        ('bookmark-add', ['M']),
         ('save', ['sf']),
         ('set-cmd-text -s :set', ['ss']),
         ('set-cmd-text -s :set -t', ['sl']),
@@ -1336,6 +1337,7 @@ KEY_DATA = collections.OrderedDict([
         ('command-history-next', ['<Ctrl-N>']),
         ('completion-item-prev', ['<Shift-Tab>', '<Up>']),
         ('completion-item-next', ['<Tab>', '<Down>']),
+        ('completion-item-del', ['<Ctrl-D>']),
         ('command-accept', RETURN_KEYS),
     ])),
 
