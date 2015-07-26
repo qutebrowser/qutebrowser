@@ -111,6 +111,20 @@ class UrlCompletionModel(base.BaseCompletionModel):
         else:
             self._add_history_entry(entry)
 
+    def _remove_item(self, data, category, column):
+        """Helper function for on_quickmark_removed and on_bookmark_removed.
+
+        Args:
+            data: The item to search for.
+            category: The category to search in.
+            column: The column to use for matching.
+        """
+        for i in range(category.rowCount()):
+            item = category.child(i, column)
+            if item.data(Qt.DisplayRole) == data:
+                category.removeRow(i)
+                break
+
     @pyqtSlot(str)
     def on_quickmark_removed(self, name):
         """Called when a quickmark has been removed by the user.
@@ -118,11 +132,7 @@ class UrlCompletionModel(base.BaseCompletionModel):
         Args:
             name: The name of the quickmark which has been removed.
         """
-        for i in range(self._quickmark_cat.rowCount()):
-            name_item = self._quickmark_cat.child(i, self.TEXT_COLUMN)
-            if name_item.data(Qt.DisplayRole) == name:
-                self._quickmark_cat.removeRow(i)
-                break
+        self._remove_item(name, self._quickmark_cat, self.TEXT_COLUMN)
 
     @pyqtSlot(str)
     def on_bookmark_removed(self, url):
@@ -131,11 +141,7 @@ class UrlCompletionModel(base.BaseCompletionModel):
         Args:
             url: The url of the bookmark which has been removed.
         """
-        for i in range(self._bookmark_cat.rowCount()):
-            url_item = self._bookmark_cat.child(i, self.URL_COLUMN)
-            if url_item.data(Qt.DisplayRole) == url:
-                self._bookmark_cat.removeRow(i)
-                break
+        self._remove_item(url, self._bookmark_cat, self.URL_COLUMN)
 
     def delete_cur_item(self, win_id):
         """Delete the selected item.
