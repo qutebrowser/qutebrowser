@@ -255,3 +255,16 @@ class BookmarkManager(UrlMarkManager):
             self.changed.emit()
             self.added.emit(title, urlstr)
             message.info(win_id, "Bookmark added")
+
+    @cmdutils.register(instance='bookmark-manager', maxsplit=0,
+                       completion=[usertypes.Completion.bookmark_by_url])
+    def bookmark_del(self, url):
+        """Delete a bookmark.
+
+        Args:
+            url: The URL of the bookmark to delete.
+        """
+        try:
+            self.delete(url)
+        except KeyError:
+            raise cmdexc.CommandError("Bookmark '{}' not found!".format(url))
