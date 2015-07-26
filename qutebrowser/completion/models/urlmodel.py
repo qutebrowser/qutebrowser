@@ -52,15 +52,17 @@ class UrlCompletionModel(base.BaseCompletionModel):
         quickmark_manager = objreg.get('quickmark-manager')
         quickmarks = quickmark_manager.marks.items()
         for qm_name, qm_url in quickmarks:
-            self._add_quickmark_entry(qm_name, qm_url)
-        quickmark_manager.added.connect(self.on_quickmark_added)
+            self.new_item(self._quickmark_cat, qm_url, qm_name)
+        quickmark_manager.added.connect(
+            lambda name, url: self.new_item(self._quickmark_cat, url, name))
         quickmark_manager.removed.connect(self.on_quickmark_removed)
 
         bookmark_manager = objreg.get('bookmark-manager')
         bookmarks = bookmark_manager.marks.items()
         for bm_url, bm_title in bookmarks:
-            self._add_bookmark_entry(bm_title, bm_url)
-        bookmark_manager.added.connect(self.on_bookmark_added)
+            self.new_item(self._bookmark_cat, bm_url, bm_title)
+        bookmark_manager.added.connect(
+            lambda name, url: self.new_item(self._bookmark_cat, url, name))
         bookmark_manager.removed.connect(self.on_bookmark_removed)
 
         self._history = objreg.get('web-history')
@@ -86,24 +88,6 @@ class UrlCompletionModel(base.BaseCompletionModel):
                       self._fmt_atime(entry.atime), sort=int(entry.atime),
                       userdata=entry.url)
 
-    def _add_quickmark_entry(self, name, url):
-        """Add a new quickmark entry to the completion.
-
-        Args:
-            name: The name of the new quickmark.
-            url: The URL of the new quickmark.
-        """
-        self.new_item(self._quickmark_cat, url, name)
-
-    def _add_bookmark_entry(self, title, url):
-        """Add a new bookmark entry to the completion.
-
-        Args:
-            title: The title of the new bookmark.
-            url: The URL of the new bookmark.
-        """
-        self.new_item(self._bookmark_cat, url, title)
-
     @config.change_filter('completion', 'timestamp-format')
     def reformat_timestamps(self):
         """Reformat the timestamps if the config option was changed."""
@@ -127,16 +111,6 @@ class UrlCompletionModel(base.BaseCompletionModel):
         else:
             self._add_history_entry(entry)
 
-    @pyqtSlot(str, str)
-    def on_quickmark_added(self, name, url):
-        """Called when a quickmark has been added by the user.
-
-        Args:
-            name: The name of the new quickmark.
-            url: The url of the new quickmark, as string.
-        """
-        self._add_quickmark_entry(name, url)
-
     @pyqtSlot(str)
     def on_quickmark_removed(self, name):
         """Called when a quickmark has been removed by the user.
@@ -149,16 +123,6 @@ class UrlCompletionModel(base.BaseCompletionModel):
             if name_item.data(Qt.DisplayRole) == name:
                 self._quickmark_cat.removeRow(i)
                 break
-
-    @pyqtSlot(str, str)
-    def on_bookmark_added(self, title, url):
-        """Called when a bookmark has been added by the user.
-
-        Args:
-            title: The title of the new bookmark.
-            url: The url of the new bookmark, as string.
-        """
-        self._add_bookmark_entry(title, url)
 
     @pyqtSlot(str)
     def on_bookmark_removed(self, url):
