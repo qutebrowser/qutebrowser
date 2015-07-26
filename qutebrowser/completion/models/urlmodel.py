@@ -54,7 +54,7 @@ class UrlCompletionModel(base.BaseCompletionModel):
         quickmark_manager.removed.connect(self.on_quickmark_removed)
 
         bookmark_manager = objreg.get('bookmark-manager')
-        bookmarks = bookmark_manager.bookmarks.items()
+        bookmarks = bookmark_manager.marks.items()
         for bm_url, bm_title in bookmarks:
             self._add_bookmark_entry(bm_title, bm_url)
         bookmark_manager.added.connect(self.on_bookmark_added)
