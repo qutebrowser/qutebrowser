@@ -34,6 +34,7 @@ class SettingSectionCompletionModel(base.BaseCompletionModel):
 
     def __init__(self, parent=None):
         super().__init__(parent)
+        self.columns_to_highlight.append(0)
         cat = self.new_category("Sections")
         for name in configdata.DATA.keys():
             desc = configdata.SECTION_DESC[name].splitlines()[0].strip()
@@ -53,6 +54,7 @@ class SettingOptionCompletionModel(base.BaseCompletionModel):
 
     def __init__(self, section, parent=None):
         super().__init__(parent)
+        self.columns_to_highlight.append(0)
         cat = self.new_category(section)
         sectdata = configdata.DATA[section]
         self._misc_items = {}
@@ -106,6 +108,7 @@ class SettingValueCompletionModel(base.BaseCompletionModel):
 
     def __init__(self, section, option, parent=None):
         super().__init__(parent)
+        self.columns_to_highlight.append(0)
         self._section = section
         self._option = option
         objreg.get('config').changed.connect(self.update_current_value)

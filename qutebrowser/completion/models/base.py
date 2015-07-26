@@ -44,6 +44,7 @@ class BaseCompletionModel(QStandardItemModel):
     def __init__(self, parent=None):
         super().__init__(parent)
         self.setColumnCount(3)
+        self.columns_to_highlight = []
 
     def new_category(self, name, sort=None):
         """Add a new category to the model.
@@ -95,6 +96,10 @@ class BaseCompletionModel(QStandardItemModel):
             nameitem.setData(userdata, Role.userdata)
         return nameitem, descitem, miscitem
 
+    def delete_cur_item(self, win_id):
+        """Delete the selected item."""
+        raise NotImplementedError
+
     def flags(self, index):
         """Return the item flags for index.
 
@@ -119,5 +124,15 @@ class BaseCompletionModel(QStandardItemModel):
         """Sort the data in column according to order.
 
         Override QAbstractItemModel::sort.
+        """
+        raise NotImplementedError
+
+    def custom_filter(self, pattern, row, parent):
+        """Custom filter.
+
+        Args:
+            pattern: The current filter pattern.
+            row: The row to accept or reject in the filter.
+            parent: The parent item QModelIndex.
         """
         raise NotImplementedError

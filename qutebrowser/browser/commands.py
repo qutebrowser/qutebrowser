@@ -100,6 +100,10 @@ class CommandDispatcher:
             msg += "!"
             raise cmdexc.CommandError(msg)
 
+    def _current_title(self):
+        """Convenience method to get the current title."""
+        return self._current_widget().title()
+
     def _current_widget(self):
         """Get the currently active widget from a command."""
         widget = self._tabbed_browser.currentWidget()
@@ -1052,6 +1056,27 @@ class CommandDispatcher:
         """
         url = objreg.get('quickmark-manager').get(name)
         self._open(url, tab, bg, window)
+
+    @cmdutils.register(instance='command-dispatcher', scope='window')
+    def bookmark_add(self):
+        """Save the current page as a bookmark."""
+        bookmark_manager = objreg.get('bookmark-manager')
+        bookmark_manager.add(self._win_id, self._current_url(),
+                             self._current_title())
+
+    @cmdutils.register(instance='command-dispatcher', scope='window',
+                       maxsplit=0,
+                       completion=[usertypes.Completion.bookmark_by_url])
+    def bookmark_load(self, url, tab=False, bg=False, window=False):
+        """Load a bookmark.
+
+        Args:
+            url: The url of the bookmark to load.
+            tab: Load the bookmark in a new tab.
+            bg: Load the bookmark in a new background tab.
+            window: Load the bookmark in a new window.
+        """
+        self._open(QUrl(url), tab, bg, window)
 
     @cmdutils.register(instance='command-dispatcher', hide=True,
                        scope='window')

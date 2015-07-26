@@ -26,70 +26,44 @@ to a file on shutdown, so it makes sense to keep them as strings here.
 
 import os.path
 import functools
-import collections
 
-from PyQt5.QtCore import pyqtSignal, QUrl, QObject
+from PyQt5.QtCore import QUrl
 
-from qutebrowser.utils import message, usertypes, urlutils, standarddir, objreg
+from qutebrowser.utils import message, usertypes, urlutils, standarddir
 from qutebrowser.commands import cmdexc, cmdutils
 from qutebrowser.misc import lineparser
+from qutebrowser.browser.urlmark import UrlMarkManager
 
 
-class QuickmarkManager(QObject):
+class QuickmarkManager(UrlMarkManager):
 
     """Manager for quickmarks.
 
-    Attributes:
-        marks: An OrderedDict of all quickmarks.
-        _lineparser: The LineParser used for the quickmarks, or None
-                     (when qutebrowser is started with -c '').
+    The primary key for quickmarks is their *name*, this means:
 
-    Signals:
-        changed: Emitted when anything changed.
-        added: Emitted when a new quickmark was added.
-               arg 0: The name of the quickmark.
-               arg 1: The URL of the quickmark, as string.
-        removed: Emitted when an existing quickmark was removed.
-                 arg 0: The name of the quickmark.
+        - self.marks maps names to URLs.
+        - changed gets emitted with the name as first argument and the URL as
+          second argument.
+        - removed gets emitted with the name as argument.
     """
 
-    changed = pyqtSignal()
-    added = pyqtSignal(str, str)
-    removed = pyqtSignal(str)
+    def _init_lineparser(self):
+        self._lineparser = lineparser.LineParser(
+            standarddir.config(), 'quickmarks', parent=self)
 
-    def __init__(self, parent=None):
-        """Initialize and read quickmarks."""
-        super().__init__(parent)
+    def _init_savemanager(self, save_manager):
+        filename = os.path.join(standarddir.config(), 'quickmarks')
+        save_manager.add_saveable('quickmark-manager', self.save, self.changed,
+                                  filename=filename)
 
-        self.marks = collections.OrderedDict()
-
-        if standarddir.config() is None:
-            self._lineparser = None
+    def _parse_line(self, line):
+        try:
+            key, url = line.rsplit(maxsplit=1)
+        except ValueError:
+            message.error('current', "Invalid quickmark '{}'".format(
+                line))
         else:
-            self._lineparser = lineparser.LineParser(
-                standarddir.config(), 'quickmarks', parent=self)
-            for line in self._lineparser:
-                if not line.strip():
-                    # Ignore empty or whitespace-only lines.
-                    continue
-                try:
-                    key, url = line.rsplit(maxsplit=1)
-                except ValueError:
-                    message.error('current', "Invalid quickmark '{}'".format(
-                        line))
-                else:
-                    self.marks[key] = url
-            filename = os.path.join(standarddir.config(), 'quickmarks')
-            objreg.get('save-manager').add_saveable(
-                'quickmark-manager', self.save, self.changed,
-                filename=filename)
-
-    def save(self):
-        """Save the quickmarks to disk."""
-        if self._lineparser is not None:
-            self._lineparser.data = [' '.join(tpl)
-                                     for tpl in self.marks.items()]
-            self._lineparser.save()
+            self.marks[key] = url
 
     def prompt_save(self, win_id, url):
         """Prompt for a new quickmark name to be added and add it.
@@ -145,12 +119,9 @@ class QuickmarkManager(QObject):
             name: The name of the quickmark to delete.
         """
         try:
-            del self.marks[name]
+            self.delete(name)
         except KeyError:
             raise cmdexc.CommandError("Quickmark '{}' not found!".format(name))
-        else:
-            self.changed.emit()
-            self.removed.emit(name)
 
     def get(self, name):
         """Get the URL of the quickmark named name as a QUrl."""

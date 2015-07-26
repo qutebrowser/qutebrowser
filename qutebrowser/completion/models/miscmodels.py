@@ -33,6 +33,7 @@ class CommandCompletionModel(base.BaseCompletionModel):
 
     def __init__(self, parent=None):
         super().__init__(parent)
+        self.columns_to_highlight.append(0)
         assert cmdutils.cmd_dict
         cmdlist = []
         for obj in set(cmdutils.cmd_dict.values()):
@@ -56,6 +57,7 @@ class HelpCompletionModel(base.BaseCompletionModel):
 
     def __init__(self, parent=None):
         super().__init__(parent)
+        self.columns_to_highlight.append(0)
         self._init_commands()
         self._init_settings()
 
@@ -98,6 +100,7 @@ class QuickmarkCompletionModel(base.BaseCompletionModel):
 
     def __init__(self, match_field='url', parent=None):
         super().__init__(parent)
+        self.columns_to_highlight.append(0)
         cat = self.new_category("Quickmarks")
         quickmarks = objreg.get('quickmark-manager').marks.items()
         if match_field == 'url':
@@ -111,6 +114,28 @@ class QuickmarkCompletionModel(base.BaseCompletionModel):
                 match_field))
 
 
+class BookmarkCompletionModel(base.BaseCompletionModel):
+
+    """A CompletionModel filled with all bookmarks."""
+
+    # pylint: disable=abstract-method
+
+    def __init__(self, match_field='url', parent=None):
+        super().__init__(parent)
+        self.columns_to_highlight.append(0)
+        cat = self.new_category("Bookmarks")
+        bookmarks = objreg.get('bookmark-manager').marks.items()
+        if match_field == 'url':
+            for bm_url, bm_title in bookmarks:
+                self.new_item(cat, bm_url, bm_title)
+        elif match_field == 'title':
+            for bm_url, bm_title in bookmarks:
+                self.new_item(cat, bm_title, bm_url)
+        else:
+            raise ValueError("Invalid value '{}' for match_field!".format(
+                match_field))
+
+
 class SessionCompletionModel(base.BaseCompletionModel):
 
     """A CompletionModel filled with session names."""
@@ -119,6 +144,7 @@ class SessionCompletionModel(base.BaseCompletionModel):
 
     def __init__(self, parent=None):
         super().__init__(parent)
+        self.columns_to_highlight.append(0)
         cat = self.new_category("Sessions")
         try:
             for name in objreg.get('session-manager').list_sessions():
