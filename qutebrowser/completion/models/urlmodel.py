@@ -162,7 +162,7 @@ class UrlCompletionModel(base.BaseCompletionModel):
                 message.info(win_id, "Bookmarks deleted")
             elif category.data() == 'Quickmarks':
                 quickmark_manager = objreg.get('quickmark-manager')
-                sibling = index.sibling(index.row(), self.NAME_COLUMN)
+                sibling = index.sibling(index.row(), self.TEXT_COLUMN)
                 qtutils.ensure_valid(sibling)
                 name = model.data(sibling)
                 quickmark_manager.quickmark_del(name)
