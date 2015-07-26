@@ -27,73 +27,44 @@ to a file on shutdown, so it makes sense to keep them as strings here.
 
 import os
 import os.path
-import collections
 
-from PyQt5.QtCore import pyqtSignal, QUrl, QObject
+from PyQt5.QtCore import QUrl
 
-from qutebrowser.utils import message, standarddir, objreg
+from qutebrowser.utils import message, standarddir
 from qutebrowser.misc import lineparser
+from qutebrowser.browser.urlmark import UrlMarkManager
 
 
-class BookmarkManager(QObject):
+class BookmarkManager(UrlMarkManager):
 
     """Manager for bookmarks.
 
-    Attributes:
-        bookmarks: An OrderedDict of all bookmarks.
-        _lineparser: The LineParser used for the bookmarks, or None
-                     (when qutebrowser is started with -c '').
+    The primary key for bookmarks is their *url*, this means:
 
-    Signals:
-        changed: Emitted when anything changed.
-        added: Emitted when a new bookmark was added.
-               arg 0: The title of the bookmark.
-               arg 1: The URL of the bookmark, as string.
-        removed: Emitted when an existing bookmark was removed.
-                 arg 0: The title of the bookmark.
+        - self.marks maps URLs to titles.
+        - changed gets emitted with the URL as first argument and the title as
+          second argument.
+        - removed gets emitted with the URL as argument.
     """
 
-    changed = pyqtSignal()
-    added = pyqtSignal(str, str)
-    removed = pyqtSignal(str)
+    def _init_lineparser(self):
+        bookmarks_directory = os.path.join(standarddir.config(), 'bookmarks')
+        if not os.path.isdir(bookmarks_directory):
+            os.makedirs(bookmarks_directory)
+        self._lineparser = lineparser.LineParser(
+            standarddir.config(), 'bookmarks/urls', parent=self)
 
-    def __init__(self, parent=None):
-        """Initialize and read bookmarks."""
-        super().__init__(parent)
+    def _init_savemanager(self, save_manager):
+        filename = os.path.join(standarddir.config(), 'bookmarks/urls')
+        save_manager.add_saveable('bookmark-manager', self.save, self.changed,
+                                  filename=filename)
 
-        self.bookmarks = collections.OrderedDict()
-
-        if standarddir.config() is None:
-            self._lineparser = None
-        else:
-            bookmarks_directory = os.path.join(standarddir.config(),
-                                               'bookmarks')
-            if not os.path.isdir(bookmarks_directory):
-                os.makedirs(bookmarks_directory)
-            self._lineparser = lineparser.LineParser(
-                standarddir.config(), 'bookmarks/urls', parent=self)
-            for line in self._lineparser:
-                if not line.strip():
-                    # Ignore empty or whitespace-only lines.
-                    continue
-
-                parts = line.split(maxsplit=1)
-                if len(parts) == 2:
-                    self.bookmarks[parts[0]] = parts[1]
-                elif len(parts) == 1:
-                    self.bookmarks[parts[0]] = ''
-
-            filename = os.path.join(standarddir.config(), 'bookmarks/urls')
-            objreg.get('save-manager').add_saveable(
-                'bookmark-manager', self.save, self.changed,
-                filename=filename)
-
-    def save(self):
-        """Save the bookmarks to disk."""
-        if self._lineparser is not None:
-            self._lineparser.data = [' '.join(tpl)
-                                     for tpl in self.bookmarks.items()]
-            self._lineparser.save()
+    def _parse_line(self, line):
+        parts = line.split(maxsplit=1)
+        if len(parts) == 2:
+            self.marks[parts[0]] = parts[1]
+        elif len(parts) == 1:
+            self.marks[parts[0]] = ''
 
     def add(self, win_id, url, title):
         """Add a new bookmark.
@@ -105,20 +76,10 @@ class BookmarkManager(QObject):
         """
         urlstr = url.toString(QUrl.RemovePassword | QUrl.FullyEncoded)
 
-        if urlstr in self.bookmarks:
+        if urlstr in self.marks:
             message.error(win_id, "Bookmark already exists!")
         else:
-            self.bookmarks[urlstr] = title
+            self.marks[urlstr] = title
             self.changed.emit()
             self.added.emit(title, urlstr)
             message.info(win_id, "Bookmark added")
-
-    def delete(self, url):
-        """Delete a bookmark.
-
-        Args:
-            url: The url of the bookmark to delete.
-        """
-        del self.bookmarks[url]
-        self.changed.emit()
-        self.removed.emit(url)
