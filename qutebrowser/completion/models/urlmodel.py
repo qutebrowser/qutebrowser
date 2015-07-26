@@ -23,7 +23,7 @@ import datetime
 
 from PyQt5.QtCore import pyqtSlot, Qt
 
-from qutebrowser.utils import message, objreg, utils
+from qutebrowser.utils import message, objreg, utils, qtutils
 from qutebrowser.completion.models import base
 from qutebrowser.config import config
 
@@ -36,10 +36,14 @@ class UrlCompletionModel(base.BaseCompletionModel):
 
     # pylint: disable=abstract-method
 
+    URL_COLUMN = 0
+    TEXT_COLUMN = 1
+    TIME_COLUMN = 2
+
     def __init__(self, parent=None):
         super().__init__(parent)
 
-        self.columns_to_filter = [0, 1]
+        self.columns_to_filter = [self.URL_COLUMN, self.TEXT_COLUMN]
 
         self._quickmark_cat = self.new_category("Quickmarks")
         self._bookmark_cat = self.new_category("Bookmarks")
@@ -104,21 +108,21 @@ class UrlCompletionModel(base.BaseCompletionModel):
     def reformat_timestamps(self):
         """Reformat the timestamps if the config option was changed."""
         for i in range(self._history_cat.rowCount()):
-            name_item = self._history_cat.child(i, 0)
-            atime_item = self._history_cat.child(i, 2)
-            atime = name_item.data(base.Role.sort)
+            url_item = self._history_cat.child(i, self.URL_COLUMN)
+            atime_item = self._history_cat.child(i, self.TIME_COLUMN)
+            atime = url_item.data(base.Role.sort)
             atime_item.setText(self._fmt_atime(atime))
 
     @pyqtSlot(object)
     def on_history_item_added(self, entry):
         """Slot called when a new history item was added."""
         for i in range(self._history_cat.rowCount()):
-            name_item = self._history_cat.child(i, 0)
-            atime_item = self._history_cat.child(i, 2)
-            url = name_item.data(base.Role.userdata)
+            url_item = self._history_cat.child(i, self.URL_COLUMN)
+            atime_item = self._history_cat.child(i, self.TIME_COLUMN)
+            url = url_item.data(base.Role.userdata)
             if url == entry.url:
                 atime_item.setText(self._fmt_atime(entry.atime))
-                name_item.setData(int(entry.atime), base.Role.sort)
+                url_item.setData(int(entry.atime), base.Role.sort)
                 break
         else:
             self._add_history_entry(entry)
@@ -141,7 +145,7 @@ class UrlCompletionModel(base.BaseCompletionModel):
             name: The name of the quickmark which has been removed.
         """
         for i in range(self._quickmark_cat.rowCount()):
-            name_item = self._quickmark_cat.child(i, 1)
+            name_item = self._quickmark_cat.child(i, self.TEXT_COLUMN)
             if name_item.data(Qt.DisplayRole) == name:
                 self._quickmark_cat.removeRow(i)
                 break
@@ -164,7 +168,7 @@ class UrlCompletionModel(base.BaseCompletionModel):
             url: The url of the bookmark which has been removed.
         """
         for i in range(self._bookmark_cat.rowCount()):
-            url_item = self._bookmark_cat.child(i, 0)
+            url_item = self._bookmark_cat.child(i, self.URL_COLUMN)
             if url_item.data(Qt.DisplayRole) == url:
                 self._bookmark_cat.removeRow(i)
                 break
@@ -188,7 +192,8 @@ class UrlCompletionModel(base.BaseCompletionModel):
                 message.info(win_id, "Bookmarks deleted")
             elif category.data() == 'Quickmarks':
                 quickmark_manager = objreg.get('quickmark-manager')
-                name = model.data(index.sibling(index.row(),
-                                  index.column() + 1))
+                sibling = index.sibling(index.row(), self.NAME_COLUMN)
+                qtutils.ensure_valid(sibling)
+                name = model.data(sibling)
                 quickmark_manager.quickmark_del(name)
                 message.info(win_id, "Quickmarks deleted")
