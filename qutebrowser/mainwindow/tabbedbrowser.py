@@ -234,9 +234,14 @@ class TabbedBrowser(tabwidget.TabWidget):
             tab: The QWebView to be closed.
         """
         last_close = config.get('tabs', 'last-close')
+        count = self.count()
+
+        if last_close == 'ignore' and count == 1:
+            return
+
         self._remove_tab(tab)
 
-        if self.count() == 0:
+        if count == 1:  # We just closed the last tab above.
             if last_close == 'close':
                 self.close_window.emit()
             elif last_close == 'blank':
