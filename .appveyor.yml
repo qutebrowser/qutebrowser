@@ -1,6 +1,8 @@
 shallow_clone: true
 version: '{branch}-{build}'
-cache: C:\Users\appveyor\pip\wheels
+cache:
+  - C:\projects\qutebrowser\.tox
+  - C:\projects\qutebrowser\.cache
 build: off
 environment:
     PYTHON: 'C:\Python34'

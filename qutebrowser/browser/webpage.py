@@ -46,7 +46,7 @@ class BrowserPage(QWebPage):
                      ("normal", "tab", "tab_bg")
         _hint_target: Override for open_target while hinting, or None.
         _extension_handlers: Mapping of QWebPage extensions to their handlers.
-        _networkmnager: The NetworkManager used.
+        _networkmanager: The NetworkManager used.
         _win_id: The window ID this BrowserPage is associated with.
         _ignore_load_started: Whether to ignore the next loadStarted signal.
         _is_shutting_down: Whether the page is currently shutting down.

@@ -25,9 +25,8 @@ import argparse
 import shutil
 import os.path
 import sys
-import glob
 import subprocess
-import platform
+import tempfile
 import filecmp
 
 
@@ -36,6 +35,26 @@ class Error(Exception):
     """Exception raised when linking fails."""
 
     pass
+
+
+def run_py(executable, *code):
+    """Run the given python code with the given executable."""
+    if os.name == 'nt' and len(code) > 1:
+        # Windows can't do newlines in arguments...
+        oshandle, filename = tempfile.mkstemp()
+        with os.fdopen(oshandle, 'w') as f:
+            f.write('\n'.join(code))
+        cmd = [executable, filename]
+        try:
+            ret = subprocess.check_output(cmd, universal_newlines=True,
+                                          stderr=subprocess.DEVNULL).rstrip()
+        finally:
+            os.remove(filename)
+    else:
+        cmd = [executable, '-c', '\n'.join(code)]
+        ret = subprocess.check_output(cmd, universal_newlines=True,
+                                      stderr=subprocess.DEVNULL).rstrip()
+    return ret
 
 
 def verbose_copy(src, dst, *, follow_symlinks=True):
@@ -76,37 +95,66 @@ def needs_update(source, dest):
         return not filecmp.cmp(source, dest)
 
 
-def link_pyqt(sys_path, venv_path):
+def get_lib_path(executable, name, required=True):
+    """Get the path of a python library.
+
+    Args:
+        executable: The Python executable to use.
+        name: The name of the library to get the path for.
+        required: Whether Error should be raised if the lib was not found.
+    """
+    code = [
+        'try:',
+        '    import {}'.format(name),
+        'except ImportError as e:',
+        '    print("ImportError: " + str(e))',
+        'else:',
+        '    print("path: " + {}.__file__)'.format(name)
+    ]
+    output = run_py(executable, *code)
+
+    try:
+        prefix, data = output.split(': ')
+    except ValueError:
+        raise ValueError("Unexpected output: {!r}".format(output))
+
+    if prefix == 'path':
+        return data
+    elif prefix == 'ImportError':
+        if required:
+            raise Error("Could not import {} with {}: {}!".format(
+                name, executable, data))
+        else:
+            return None
+    else:
+        raise ValueError("Unexpected output: {!r}".format(output))
+
+
+def link_pyqt(executable, venv_path):
     """Symlink the systemwide PyQt/sip into the venv.
 
     Args:
-        sys_path: The path to the system-wide site-packages.
+        executable: The python executable where the source files are present.
         venv_path: The path to the virtualenv site-packages.
     """
-    globbed_sip = (glob.glob(os.path.join(sys_path, 'sip*.so')) +
-                   glob.glob(os.path.join(sys_path, 'sip*.pyd')))
-    if not globbed_sip:
-        raise Error("Did not find sip in {}!".format(sys_path))
+    sip_file = get_lib_path(executable, 'sip')
+    sipconfig_file = get_lib_path(executable, 'sipconfig', required=False)
+    pyqt_dir = os.path.dirname(get_lib_path(executable, 'PyQt5'))
 
-    files = [('PyQt5', True), ('sipconfig.py', False)]
-    files += [(os.path.basename(e), True) for e in globbed_sip]
-    for fn, required in files:
-        source = os.path.join(sys_path, fn)
+    for path in [sip_file, sipconfig_file, pyqt_dir]:
+        if path is None:
+            continue
+
+        fn = os.path.basename(path)
         dest = os.path.join(venv_path, fn)
 
-        if not os.path.exists(source):
-            if required:
-                raise FileNotFoundError(source)
-            else:
-                continue
-
         if os.path.exists(dest):
-            if needs_update(source, dest):
+            if needs_update(path, dest):
                 remove(dest)
             else:
                 continue
 
-        copy_or_link(source, dest)
+        copy_or_link(path, dest)
 
 
 def copy_or_link(source, dest):
@@ -132,38 +180,18 @@ def remove(filename):
         os.unlink(filename)
 
 
-def get_python_lib(executable, venv=False):
-    """Get the python site-packages directory for the given executable.
-
-    Args:
-        venv: True if the path is inside a virtualenv, so our special
-              treatments for Windows/Ubuntu shouldn't take place.
-    """
-    distribution = platform.linux_distribution(full_distribution_name=False)
-    if 'PYTHON' in os.environ and not venv:
-        # e.g. on AppVeyor
-        return os.path.join(os.environ['PYTHON'], 'Lib', 'site-packages')
-    elif os.name == 'nt' and not venv:
-        # For some reason, we get an empty string from get_python_lib() on
-        # Windows when running via tox, and sys.prefix is empty too...
-        return os.path.join(os.path.dirname(executable), '..', 'Lib',
-                            'site-packages')
-    elif distribution[0].lower() in ('debian', 'ubuntu') and not venv:
-        # For some reason, we get '/usr/lib/python3.4/site-packages' instead of
-        # '/usr/lib/python3/dist-packages' on debian with tox...
-        cmd = [executable, '-c', 'import sys\nprint(sys.prefix)']
-        prefix = subprocess.check_output(cmd, universal_newlines=True).rstrip()
-        return os.path.join(prefix, 'lib', 'python3', 'dist-packages')
-    else:
-        cmd = [executable, '-c',
-               'from distutils.sysconfig import get_python_lib\n'
-               'print(get_python_lib())']
-        return subprocess.check_output(cmd, universal_newlines=True).rstrip()
+def get_venv_lib_path(path):
+    """Get the library path of a virtualenv."""
+    subdir = 'Scripts' if os.name == 'nt' else 'bin'
+    executable = os.path.join(path, subdir, 'python')
+    return run_py(executable,
+                  'from distutils.sysconfig import get_python_lib',
+                  'print(get_python_lib())')
 
 
-def get_tox_syspython(venv_path):
+def get_tox_syspython(tox_path):
     """Get the system python based on a virtualenv created by tox."""
-    path = os.path.join(venv_path, '.tox-config1')
+    path = os.path.join(tox_path, '.tox-config1')
     with open(path, encoding='ascii') as f:
         line = f.readline()
     _md5, sys_python = line.rstrip().split(' ')
@@ -179,15 +207,12 @@ def main():
     args = parser.parse_args()
 
     if args.tox:
-        sys_path = get_python_lib(get_tox_syspython(args.path))
+        executable = get_tox_syspython(args.path)
     else:
-        sys_path = get_python_lib(sys.executable)
+        executable = sys.executable
 
-    subdir = 'Scripts' if os.name == 'nt' else 'bin'
-    executable = os.path.join(args.path, subdir, 'python')
-    venv_path = get_python_lib(executable, venv=True)
-
-    link_pyqt(sys_path, venv_path)
+    venv_path = get_venv_lib_path(args.path)
+    link_pyqt(executable, venv_path)
 
 
 if __name__ == '__main__':

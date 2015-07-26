@@ -14,8 +14,8 @@ This project adheres to http://semver.org/[Semantic Versioning].
 // `Fixed` for any bug fixes.
 // `Security` to invite users to upgrade in case of vulnerabilities.
 
-v0.4.0
-------
+v0.4.0 (unreleased)
+-------------------
 
 Changed
 ~~~~~~~
@@ -23,6 +23,8 @@ Changed
 - Some developer scripts got moved to `scripts/dev/`
 - When downloading to a FIFO or special file, a confirmation is displayed as
   this might cause qutebrowser to hang.
+- The `:yank-selected` command now works in all modes instead of just caret
+  mode and is not hidden anymore.
 
 v0.3.0
 ------

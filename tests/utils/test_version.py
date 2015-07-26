@@ -218,7 +218,7 @@ class TestGitStrSubprocess:
         Args:
             exc: The exception to raise.
         """
-        m = mocker.patch('qutebrowser.utils.version.subprocess.os')
+        m = mocker.patch('qutebrowser.utils.version.os')
         m.path.isdir.return_value = True
         mocker.patch('qutebrowser.utils.version.subprocess.check_output',
                      side_effect=exc)
