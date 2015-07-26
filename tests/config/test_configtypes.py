@@ -1501,6 +1501,7 @@ class TestSearchEngineUrl:
         'foo',  # no placeholder
         ':{}',  # invalid URL
         'foo{bar}baz{}',  # {bar} format string variable
+        '{1}{}',  # numbered format string variable
     ])
     def test_validate_invalid(self, klass, val):
         with pytest.raises(configexc.ValidationError):
@@ -1761,6 +1762,7 @@ class TestFormatString:
     @pytest.mark.parametrize('val', [
         '{foo} {bar} {baz}',
         '{foo} {bar',
+        '{1}',
         '',
     ])
     def test_validate_invalid(self, typ, val):

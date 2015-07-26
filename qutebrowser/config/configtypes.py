@@ -874,7 +874,7 @@ class FormatString(BaseType):
         s = self.transform(value)
         try:
             return s.format(**{k: '' for k in self.fields})
-        except KeyError as e:
+        except (KeyError, IndexError) as e:
             raise configexc.ValidationError(value, "Invalid placeholder "
                                             "{}".format(e))
         except ValueError as e:
@@ -1089,7 +1089,7 @@ class SearchEngineUrl(BaseType):
             raise configexc.ValidationError(value, "must contain \"{}\"")
         try:
             value.format("")
-        except KeyError:
+        except (KeyError, IndexError) as e:
             raise configexc.ValidationError(
                 value, "may not contain {...} (use {{ and }} for literal {/})")
 
