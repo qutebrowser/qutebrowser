@@ -39,8 +39,7 @@ class UrlCompletionModel(base.BaseCompletionModel):
     def __init__(self, parent=None):
         super().__init__(parent)
 
-        self.columns_to_highlight.append(0)
-        self.columns_to_highlight.append(1)
+        self.columns_to_filter = [0, 1]
 
         self._quickmark_cat = self.new_category("Quickmarks")
         self._bookmark_cat = self.new_category("Bookmarks")

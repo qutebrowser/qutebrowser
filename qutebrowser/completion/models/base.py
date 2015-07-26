@@ -44,7 +44,7 @@ class BaseCompletionModel(QStandardItemModel):
     def __init__(self, parent=None):
         super().__init__(parent)
         self.setColumnCount(3)
-        self.columns_to_highlight = []
+        self.columns_to_filter = [0]
 
     def new_category(self, name, sort=None):
         """Add a new category to the model.
