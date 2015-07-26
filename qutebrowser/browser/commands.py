@@ -1076,7 +1076,7 @@ class CommandDispatcher:
             bg: Load the bookmark in a new background tab.
             window: Load the bookmark in a new window.
         """
-        self._open(QUrl(url), tab, bg, window)
+        self._open(urlutils.fuzzy_url(url), tab, bg, window)
 
     @cmdutils.register(instance='command-dispatcher', hide=True,
                        scope='window')
