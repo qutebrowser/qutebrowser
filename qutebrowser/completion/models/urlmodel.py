@@ -23,7 +23,7 @@ import datetime
 
 from PyQt5.QtCore import pyqtSlot, Qt
 
-from qutebrowser.utils import message, objreg, utils, qtutils
+from qutebrowser.utils import objreg, utils, qtutils
 from qutebrowser.completion.models import base
 from qutebrowser.config import config
 
@@ -143,14 +143,12 @@ class UrlCompletionModel(base.BaseCompletionModel):
         """
         self._remove_item(url, self._bookmark_cat, self.URL_COLUMN)
 
-    def delete_cur_item(self, win_id):
+    def delete_cur_item(self, completion):
         """Delete the selected item.
 
         Args:
-            win_id: The current windows id.
+            completion: The Completion object to use.
         """
-        completion = objreg.get('completion', scope='window',
-                                window=win_id)
         index = completion.currentIndex()
         model = completion.model()
         url = model.data(index)
@@ -159,11 +157,9 @@ class UrlCompletionModel(base.BaseCompletionModel):
             if category.data() == 'Bookmarks':
                 bookmark_manager = objreg.get('bookmark-manager')
                 bookmark_manager.delete(url)
-                message.info(win_id, "Bookmarks deleted")
             elif category.data() == 'Quickmarks':
                 quickmark_manager = objreg.get('quickmark-manager')
                 sibling = index.sibling(index.row(), self.TEXT_COLUMN)
                 qtutils.ensure_valid(sibling)
                 name = model.data(sibling)
                 quickmark_manager.quickmark_del(name)
-                message.info(win_id, "Quickmarks deleted")

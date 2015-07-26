@@ -486,7 +486,9 @@ class Completer(QObject):
                        modes=[usertypes.KeyMode.command], scope='window')
     def completion_item_del(self):
         """Delete the current completion item."""
+        completion = objreg.get('completion', scope='window',
+                                window=self._win_id)
         try:
-            self.model().srcmodel.delete_cur_item(self._win_id)
+            self.model().srcmodel.delete_cur_item(completion)
         except NotImplementedError:
             raise cmdexc.CommandError("Cannot delete this item.")
