@@ -130,22 +130,23 @@ class CompletionFilterModel(QSortFilterProxyModel):
             True if self.pattern is contained in item, or if it's a root item
             (category). False in all other cases
         """
-        if parent == QModelIndex():
-            return True
-        idx = self.srcmodel.index(row, 0, parent)
-        if not idx.isValid():
-            # No entries in parent model
-            return False
-        data = self.srcmodel.data(idx)
-        if not self.pattern:
+        if parent == QModelIndex() or not self.pattern:
             return True
 
         try:
             return self.srcmodel.custom_filter(self.pattern, row, parent)
         except NotImplementedError:
-            if not data:
-                return False
-            return self.pattern.casefold() in data.casefold()
+            for col in self.srcmodel.columns_to_filter:
+                idx = self.srcmodel.index(row, col, parent)
+                if not idx.isValid():
+                    # No entries in parent model
+                    continue
+                data = self.srcmodel.data(idx)
+                if not data:
+                    continue
+                elif self.pattern.casefold() in data.casefold():
+                    return True
+            return False
 
     def intelligentLessThan(self, lindex, rindex):
         """Custom sorting implementation.
