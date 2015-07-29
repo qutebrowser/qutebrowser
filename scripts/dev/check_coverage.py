@@ -70,6 +70,7 @@ def main():
         assert 0 <= line_cov <= 100, line_cov
         assert 0 <= branch_cov <= 100, branch_cov
         assert '\\' not in filename, filename
+        assert '/' in filename, filename
 
         if branch_cov < 100 and klass.find('./lines/line[@branch="true"]'):
             # Files without any branches have 0% coverage
