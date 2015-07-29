@@ -38,7 +38,7 @@ import pygments.formatters
 
 from qutebrowser.commands import userscripts, cmdexc, cmdutils, runners
 from qutebrowser.config import config, configexc
-from qutebrowser.browser import webelem, inspector
+from qutebrowser.browser import webelem, inspector, urlmarks
 from qutebrowser.keyinput import modeman
 from qutebrowser.utils import (message, usertypes, log, qtutils, urlutils,
                                objreg, utils)
@@ -1054,15 +1054,20 @@ class CommandDispatcher:
             bg: Load the quickmark in a new background tab.
             window: Load the quickmark in a new window.
         """
-        url = objreg.get('quickmark-manager').get(name)
+        try:
+            url = objreg.get('quickmark-manager').get(name)
+        except urlmarks.Error as e:
+            raise cmdexc.CommandError(str(e))
         self._open(url, tab, bg, window)
 
     @cmdutils.register(instance='command-dispatcher', scope='window')
     def bookmark_add(self):
         """Save the current page as a bookmark."""
         bookmark_manager = objreg.get('bookmark-manager')
-        bookmark_manager.add(self._win_id, self._current_url(),
-                             self._current_title())
+        try:
+            bookmark_manager.add(self._current_url(), self._current_title())
+        except urlmarks.Error as e:
+            raise cmdexc.CommandError(str(e))
 
     @cmdutils.register(instance='command-dispatcher', scope='window',
                        maxsplit=0,
@@ -1076,7 +1081,11 @@ class CommandDispatcher:
             bg: Load the bookmark in a new background tab.
             window: Load the bookmark in a new window.
         """
-        self._open(urlutils.fuzzy_url(url), tab, bg, window)
+        try:
+            url = urlutils.fuzzy_url(url)
+        except urlutils.FuzzyUrlError as e:
+            raise cmdexc.CommandError(e)
+        self._open(url, tab, bg, window)
 
     @cmdutils.register(instance='command-dispatcher', hide=True,
                        scope='window')

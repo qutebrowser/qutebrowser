@@ -37,6 +37,34 @@ from qutebrowser.commands import cmdexc, cmdutils
 from qutebrowser.misc import lineparser
 
 
+class Error(Exception):
+
+    """Base class for all errors in this module."""
+
+    pass
+
+
+class InvalidUrlError(Error):
+
+    """Exception emitted when a URL is invalid."""
+
+    pass
+
+
+class DoesNotExistError(Error):
+
+    """Exception emitted when a given URL does not exist."""
+
+    pass
+
+
+class AlreadyExistsError(Error):
+
+    """Exception emitted when a given URL does already exist."""
+
+    pass
+
+
 class UrlMarkManager(QObject):
 
     """Base class for BookmarkManager and QuickmarkManager.
@@ -192,18 +220,14 @@ class QuickmarkManager(UrlMarkManager):
     def get(self, name):
         """Get the URL of the quickmark named name as a QUrl."""
         if name not in self.marks:
-            raise cmdexc.CommandError(
+            raise DoesNotExistError(
                 "Quickmark '{}' does not exist!".format(name))
         urlstr = self.marks[name]
         try:
             url = urlutils.fuzzy_url(urlstr, do_search=False)
         except urlutils.FuzzyUrlError as e:
-            if e.url is None or not e.url.errorString():
-                errstr = ''
-            else:
-                errstr = ' ({})'.format(e.url.errorString())
-            raise cmdexc.CommandError("Invalid URL for quickmark {}: "
-                                      "{}{}".format(name, urlstr, errstr))
+            raise InvalidUrlError(
+                "Invalid URL for quickmark {}: {}".format(name, str(e)))
         return url
 
 
@@ -238,23 +262,25 @@ class BookmarkManager(UrlMarkManager):
         elif len(parts) == 1:
             self.marks[parts[0]] = ''
 
-    def add(self, win_id, url, title):
+    def add(self, url, title):
         """Add a new bookmark.
 
         Args:
-            win_id: The window ID to display the errors in.
             url: The url to add as bookmark.
             title: The title for the new bookmark.
         """
+        if not url.isValid():
+            errstr = urlutils.get_errstring(url)
+            raise InvalidUrlError(errstr)
+
         urlstr = url.toString(QUrl.RemovePassword | QUrl.FullyEncoded)
 
         if urlstr in self.marks:
-            message.error(win_id, "Bookmark already exists!")
+            raise AlreadyExistsError("Bookmark already exists!")
         else:
             self.marks[urlstr] = title
             self.changed.emit()
             self.added.emit(title, urlstr)
-            message.info(win_id, "Bookmark added")
 
     @cmdutils.register(instance='bookmark-manager', maxsplit=0,
                        completion=[usertypes.Completion.bookmark_by_url])
