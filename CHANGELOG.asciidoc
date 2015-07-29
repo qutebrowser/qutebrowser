@@ -25,6 +25,12 @@ Changed
   this might cause qutebrowser to hang.
 - The `:yank-selected` command now works in all modes instead of just caret
   mode and is not hidden anymore.
+- New bookmark functionality (similar to quickmarks without a name).
+    * New command `:bookmark-add` to bookmark the current page (bound to `M`).
+    * New command `:bookmark-load` to load a bookmark (bound to `gb`/`gB`/`wB`).
+- New (hidden) command `:completion-item-del` (bound to `<Ctrl-D>`) to delete
+  the current item in the completion (for quickmarks/bookmarks).
+
 
 v0.3.0
 ------
