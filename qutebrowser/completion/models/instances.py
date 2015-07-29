@@ -112,7 +112,7 @@ def init_bookmark_completions():
         _instances[usertypes.Completion.bookmark_by_url].deleteLater()
     except KeyError:
         pass
-    model = _init_model(miscmodels.BookmarkCompletionModel, 'url')
+    model = _init_model(miscmodels.BookmarkCompletionModel)
     _instances[usertypes.Completion.bookmark_by_url] = model
 
 
