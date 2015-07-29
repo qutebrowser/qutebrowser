@@ -150,16 +150,17 @@ class UrlCompletionModel(base.BaseCompletionModel):
             completion: The Completion object to use.
         """
         index = completion.currentIndex()
-        model = completion.model()
-        url = model.data(index)
+        qtutils.ensure_valid(index)
+        url = index.data()
         category = index.parent()
-        if category.isValid():
-            if category.data() == 'Bookmarks':
-                bookmark_manager = objreg.get('bookmark-manager')
-                bookmark_manager.delete(url)
-            elif category.data() == 'Quickmarks':
-                quickmark_manager = objreg.get('quickmark-manager')
-                sibling = index.sibling(index.row(), self.TEXT_COLUMN)
-                qtutils.ensure_valid(sibling)
-                name = model.data(sibling)
-                quickmark_manager.quickmark_del(name)
+        qtutils.ensure_valid(category)
+
+        if category.data() == 'Bookmarks':
+            bookmark_manager = objreg.get('bookmark-manager')
+            bookmark_manager.delete(url)
+        elif category.data() == 'Quickmarks':
+            quickmark_manager = objreg.get('quickmark-manager')
+            sibling = index.sibling(index.row(), self.TEXT_COLUMN)
+            qtutils.ensure_valid(sibling)
+            name = model.data(sibling)
+            quickmark_manager.quickmark_del(name)
