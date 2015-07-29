@@ -25,6 +25,14 @@ Changed
   this might cause qutebrowser to hang.
 - The `:yank-selected` command now works in all modes instead of just caret
   mode and is not hidden anymore.
+- `minimal_webkit_testbrowser.py` now has a `--webengine` switch to test
+  QtWebEngine if it's installed.
+
+Fixed
+~~~~~
+
+- `link_pyqt.py` now should work better on untested distributions.
+- Fixed various corner-cases with crashes when reading invalid config values.
 
 v0.3.0
 ------
