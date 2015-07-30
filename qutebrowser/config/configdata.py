@@ -549,6 +549,10 @@ def data(readonly=False):
              "sensible os-specific default. Will expand environment "
              "variables."),
 
+            ('greasemonkey-directory',
+             SettingValue(typ.Directory(none_ok=True), ''),
+             "The directory to look for scripts in"),
+
             ('maximum-pages-in-cache',
              SettingValue(
                  typ.Int(none_ok=True, minval=0, maxval=MAXVALS['int']), ''),

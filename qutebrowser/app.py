@@ -44,7 +44,8 @@ import qutebrowser.resources  # pylint: disable=unused-import
 from qutebrowser.completion.models import instances as completionmodels
 from qutebrowser.commands import cmdutils, runners, cmdexc
 from qutebrowser.config import style, config, websettings, configexc
-from qutebrowser.browser import quickmarks, cookies, cache, adblock, history
+from qutebrowser.browser import (quickmarks, cookies, cache, adblock, history,
+                                 greasemonkey)
 from qutebrowser.browser.network import qutescheme, proxy, networkmanager
 from qutebrowser.mainwindow import mainwindow
 from qutebrowser.misc import readline, ipc, savemanager, sessions, crashsignal
@@ -428,6 +429,9 @@ def _init_modules(args, crash_handler):
     log.init.debug("Misc initialization...")
     _maybe_hide_mouse_cursor()
     objreg.get('config').changed.connect(_maybe_hide_mouse_cursor)
+    log.init.debug("Initializing Greasemonkey...")
+    gm_manager = greasemonkey.GreasemonkeyManager()
+    objreg.register('greasemonkey', gm_manager)
 
 
 def _init_late_modules(args):
