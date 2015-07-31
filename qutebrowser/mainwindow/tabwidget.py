@@ -635,7 +635,7 @@ class TabBarStyle(QCommonStyle):
         text_rect = QRect(opt.rect)
         qtutils.ensure_valid(text_rect)
         indicator_width = config.get('tabs', 'indicator-width')
-        text_rect.adjust(padding, 0, 0, 0)
+        text_rect.adjust(padding, 0, -padding, 0)
         if indicator_width != 0:
             text_rect.adjust(indicator_width +
                              config.get('tabs', 'indicator-space'), 0, 0, 0)
