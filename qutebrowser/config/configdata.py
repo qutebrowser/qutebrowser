@@ -513,10 +513,6 @@ def data(readonly=False):
              SettingValue(typ.Int(minval=0), '3'),
              "Width of the progress indicator (0 to disable)."),
 
-            ('indicator-space',
-             SettingValue(typ.Int(minval=0), '3'),
-             "Spacing between tab edge and indicator."),
-
             ('tabs-are-windows',
              SettingValue(typ.Bool(), 'false'),
              "Whether to open windows instead of tabs."),

@@ -327,6 +327,7 @@ class ConfigManager(QObject):
         ('colors', 'tab.separator'),
         ('colors', 'tabs.separator'),
         ('colors', 'completion.item.bg'),
+        ('tabs', 'indicator-space'),
     ]
     CHANGED_OPTIONS = {
         ('content', 'cookies-accept'):
