@@ -503,6 +503,12 @@ def data(readonly=False):
              SettingValue(typ.Bool(), 'true'),
              "Whether to show favicons in the tab bar."),
 
+            ('tabbar-size',
+             SettingValue(typ.IntAuto(minval=8), '12'),
+             "The height of the tabbar in pixels. "
+             "This also controls the size of the favicons. "
+             "If set to auto, it will be controlled by text size."),
+
             ('width',
              SettingValue(typ.PercOrInt(minperc=0, maxperc=100, minint=1),
                           '20%'),

@@ -108,9 +108,8 @@ class TabbedBrowser(tabwidget.TabWidget):
         self._undo_stack = []
         self._filter = signalfilter.SignalFilter(win_id, self)
         self._now_focused = None
-        # FIXME adjust this to font size
-        # https://github.com/The-Compiler/qutebrowser/issues/119
-        self.setIconSize(QSize(12, 12))
+        self.set_icon_size()
+        objreg.get('config').changed.connect(self.set_icon_size)
         objreg.get('config').changed.connect(self.update_favicons)
         objreg.get('config').changed.connect(self.update_window_title)
         objreg.get('config').changed.connect(self.update_tab_titles)
@@ -143,6 +142,18 @@ class TabbedBrowser(tabwidget.TabWidget):
         for i in range(self.count()):
             w.append(self.widget(i))
         return w
+
+    @config.change_filter('tabs', 'tabbar-size')
+    @config.change_filter('fonts', 'tabbar')
+    def set_icon_size(self):
+        """Take the (fav)icon size from the config."""
+        tabbar_size = self.tabBar().height() or config.get('tabs', 'tabbar-size')
+        print(str(self.tabBar().height()) + ", " + str(config.get('tabs', 'tabbar-size')))
+        if tabbar_size == -1 or tabbar_size == 0:
+            tabbar_size = self.fontMetrics().height()
+        print(self.fontMetrics().height())
+        print(tabbar_size)
+        self.setIconSize(QSize(tabbar_size, tabbar_size))
 
     @config.change_filter('ui', 'window-title-format')
     def update_window_title(self):
