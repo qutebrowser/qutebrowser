@@ -588,10 +588,10 @@ class TabBarStyle(QCommonStyle):
         Return:
             An int.
         """
-        if (metric == QStyle.PM_TabBarTabShiftHorizontal or
-                metric == QStyle.PM_TabBarTabShiftVertical or
-                metric == QStyle.PM_TabBarTabHSpace or
-                metric == QStyle.PM_TabBarTabVSpace):
+        if metric in [QStyle.PM_TabBarTabShiftHorizontal,
+                      QStyle.PM_TabBarTabShiftVertical,
+                      QStyle.PM_TabBarTabHSpace,
+                      QStyle.PM_TabBarTabVSpace]:
             return 0
         elif metric == PixelMetrics.padding:
             return 4
