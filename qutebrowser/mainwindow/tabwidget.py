@@ -653,19 +653,24 @@ class TabBarStyle(QCommonStyle):
             A Layout namedtuple with two QRects.
         """
         padding = config.get('tabs', 'padding')
-        icon_padding = self.pixelMetric(PixelMetrics.icon_padding, opt)
-        icon_rect = QRect()
+
         text_rect = QRect(opt.rect)
         qtutils.ensure_valid(text_rect)
-        indicator_width = config.get('tabs', 'indicator-width')
         text_rect.adjust(padding.left, padding.top, -padding.right,
                          -padding.bottom)
+
+        indicator_width = config.get('tabs', 'indicator-width')
         if indicator_width != 0:
             text_rect.adjust(indicator_width +
                              config.get('tabs', 'indicator-space'), 0, 0, 0)
-        if not opt.icon.isNull():
+
+        if opt.icon.isNull():
+            icon_rect = QRect()
+        else:
+            icon_padding = self.pixelMetric(PixelMetrics.icon_padding, opt)
             icon_rect = self._get_icon_rect(opt, text_rect)
             text_rect.adjust(icon_rect.width() + icon_padding, 0, 0, 0)
+
         text_rect = self._style.visualRect(opt.direction, opt.rect, text_rect)
         return Layouts(text=text_rect, icon=icon_rect)
 
