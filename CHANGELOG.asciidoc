@@ -25,6 +25,8 @@ Added
     * New command `:bookmark-load` to load a bookmark (bound to `gb`/`gB`/`wB`).
 - New (hidden) command `:completion-item-del` (bound to `<Ctrl-D>`) to delete
   the current item in the completion (for quickmarks/bookmarks).
+- New settings `tabs -> padding` and `tabs -> indicator-tabbing` to control the
+  size/padding of the tabbar.
 
 Changed
 ~~~~~~~
@@ -42,6 +44,12 @@ Fixed
 
 - `link_pyqt.py` now should work better on untested distributions.
 - Fixed various corner-cases with crashes when reading invalid config values.
+
+Removed
+~~~~~~~
+
+- The `tabs -> indicator-space` setting got removed as the new padding settings
+  should be used instead.
 
 v0.3.0
 ------
