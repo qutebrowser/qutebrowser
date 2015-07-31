@@ -31,7 +31,7 @@ from qutebrowser.config import config
 from qutebrowser.browser import webview
 
 
-PixelMetrics = usertypes.enum('PixelMetrics', ['padding', 'icon_padding'],
+PixelMetrics = usertypes.enum('PixelMetrics', ['icon_padding'],
                               start=QStyle.PM_CustomBase, is_int=True)
 
 
@@ -327,22 +327,23 @@ class TabBar(QTabBar):
             A QSize.
         """
         icon = self.tabIcon(index)
-        padding = self.style().pixelMetric(PixelMetrics.padding, None, self)
-        total_padding = padding * 2
+        padding = config.get('tabs', 'padding')
+        padding_h = padding.left + padding.right
+        padding_v = padding.top + padding.bottom
         if icon.isNull():
             icon_size = QSize(0, 0)
         else:
             extent = self.style().pixelMetric(QStyle.PM_TabBarIconSize, None,
                                               self)
             icon_size = icon.actualSize(QSize(extent, extent))
-            total_padding += self.style().pixelMetric(
+            padding_h += self.style().pixelMetric(
                 PixelMetrics.icon_padding, None, self)
         indicator_width = config.get('tabs', 'indicator-width')
         if indicator_width != 0:
             indicator_width += config.get('tabs', 'indicator-space')
-        height = self.fontMetrics().height()
+        height = self.fontMetrics().height() + padding_v
         width = (self.fontMetrics().width('\u2026') + icon_size.width() +
-                 total_padding + indicator_width)
+                 padding_h + indicator_width)
         return QSize(width, height)
 
     def tabSizeHint(self, index):
@@ -357,7 +358,7 @@ class TabBar(QTabBar):
             A QSize.
         """
         minimum_size = self.minimumTabSizeHint(index)
-        height = self.fontMetrics().height()
+        height = minimum_size.height()
         if self.vertical:
             confwidth = str(config.get('tabs', 'width'))
             if confwidth.endswith('%'):
@@ -592,8 +593,6 @@ class TabBarStyle(QCommonStyle):
                       QStyle.PM_TabBarTabHSpace,
                       QStyle.PM_TabBarTabVSpace]:
             return 0
-        elif metric == PixelMetrics.padding:
-            return 4
         elif metric == PixelMetrics.icon_padding:
             return 4
         else:
@@ -629,13 +628,14 @@ class TabBarStyle(QCommonStyle):
         Return:
             A (text_rect, icon_rect) tuple (both QRects).
         """
-        padding = self.pixelMetric(PixelMetrics.padding, opt)
+        padding = config.get('tabs', 'padding')
         icon_padding = self.pixelMetric(PixelMetrics.icon_padding, opt)
         icon_rect = QRect()
         text_rect = QRect(opt.rect)
         qtutils.ensure_valid(text_rect)
         indicator_width = config.get('tabs', 'indicator-width')
-        text_rect.adjust(padding, 0, -padding, 0)
+        text_rect.adjust(padding.left, padding.top, -padding.right,
+                         -padding.bottom)
         if indicator_width != 0:
             text_rect.adjust(indicator_width +
                              config.get('tabs', 'indicator-space'), 0, 0, 0)
