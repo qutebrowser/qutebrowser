@@ -23,7 +23,7 @@ import datetime
 
 from PyQt5.QtCore import pyqtSlot, Qt
 
-from qutebrowser.utils import objreg, utils, qtutils
+from qutebrowser.utils import objreg, utils, qtutils, log
 from qutebrowser.completion.models import base
 from qutebrowser.config import config
 
@@ -80,7 +80,14 @@ class UrlCompletionModel(base.BaseCompletionModel):
         fmt = config.get('completion', 'timestamp-format')
         if fmt is None:
             return ''
-        return datetime.datetime.fromtimestamp(atime).strftime(fmt)
+        try:
+            dt = datetime.datetime.fromtimestamp(atime)
+        except (ValueError, OSError, OverflowError):
+            # Different errors which can occur for too large values...
+            log.misc.error("Got invalid timestamp {}!".format(atime))
+            return '(invalid)'
+        else:
+            return dt.strftime(fmt)
 
     def _add_history_entry(self, entry):
         """Add a new history entry to the completion."""
