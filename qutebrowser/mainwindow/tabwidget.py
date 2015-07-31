@@ -535,6 +535,37 @@ class TabBarStyle(QCommonStyle):
             setattr(self, method, functools.partial(target))
         super().__init__()
 
+    def _draw_indicator(self, opt, p):
+        """Draw the tab indicator.
+
+        Args:
+            opt: QStyleOption from drawControl.
+            p: QPainter from drawControl.
+        """
+        indicator_color = opt.palette.base().color()
+        indicator_width = config.get('tabs', 'indicator-width')
+        if indicator_color.isValid() and indicator_width != 0:
+            topleft = opt.rect.topLeft()
+            topleft += QPoint(config.get('tabs', 'indicator-space'), 2)
+            p.fillRect(topleft.x(), topleft.y(), indicator_width,
+                       opt.rect.height() - 4, indicator_color)
+
+    def _draw_icon(self, layouts, opt, p):
+        """Draw the tab icon.
+
+        Args:
+            layouts: The layouts from _tab_layout.
+            opt: QStyleOption
+            p: QPainter
+        """
+        qtutils.ensure_valid(layouts.icon)
+        icon_mode = (QIcon.Normal if opt.state & QStyle.State_Enabled
+                     else QIcon.Disabled)
+        icon_state = (QIcon.On if opt.state & QStyle.State_Selected
+                      else QIcon.Off)
+        icon = opt.icon.pixmap(opt.iconSize, icon_mode, icon_state)
+        p.drawPixmap(layouts.icon.x(), layouts.icon.y(), icon)
+
     def drawControl(self, element, opt, p, widget=None):
         """Override drawControl to draw odd tabs in a different color.
 
@@ -543,9 +574,9 @@ class TabBarStyle(QCommonStyle):
 
         Args:
             element: ControlElement
-            option: const QStyleOption *
-            painter: QPainter *
-            widget: const QWidget *
+            opt: QStyleOption
+            p: QPainter
+            widget: QWidget
         """
         if element == QStyle.CE_TabBarTab:
             # We override this so we can control TabBarTabShape/TabBarTabLabel.
@@ -553,26 +584,14 @@ class TabBarStyle(QCommonStyle):
             self.drawControl(QStyle.CE_TabBarTabLabel, opt, p, widget)
         elif element == QStyle.CE_TabBarTabShape:
             p.fillRect(opt.rect, opt.palette.window())
-            indicator_color = opt.palette.base().color()
-            indicator_width = config.get('tabs', 'indicator-width')
-            if indicator_color.isValid() and indicator_width != 0:
-                topleft = opt.rect.topLeft()
-                topleft += QPoint(config.get('tabs', 'indicator-space'), 2)
-                p.fillRect(topleft.x(), topleft.y(), indicator_width,
-                           opt.rect.height() - 4, indicator_color)
+            self._draw_indicator(opt, p)
             # We use super() rather than self._style here because we don't want
             # any sophisticated drawing.
             super().drawControl(QStyle.CE_TabBarTabShape, opt, p, widget)
         elif element == QStyle.CE_TabBarTabLabel:
             layouts = self._tab_layout(opt)
             if not opt.icon.isNull():
-                qtutils.ensure_valid(layouts.icon)
-                icon_mode = (QIcon.Normal if opt.state & QStyle.State_Enabled
-                             else QIcon.Disabled)
-                icon_state = (QIcon.On if opt.state & QStyle.State_Selected
-                              else QIcon.Off)
-                icon = opt.icon.pixmap(opt.iconSize, icon_mode, icon_state)
-                p.drawPixmap(layouts.icon.x(), layouts.icon.y(), icon)
+                self._draw_icon(layouts, opt, p)
             alignment = Qt.AlignLeft | Qt.AlignVCenter | Qt.TextHideMnemonic
             self._style.drawItemText(p, layouts.text, alignment, opt.palette,
                                      opt.state & QStyle.State_Enabled,
