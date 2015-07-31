@@ -26,6 +26,7 @@ import codecs
 import os.path
 import sre_constants
 import itertools
+import collections
 
 from PyQt5.QtCore import QUrl
 from PyQt5.QtGui import QColor, QFont
@@ -1121,6 +1122,41 @@ class FuzzyUrl(BaseType):
             return None
         else:
             return urlutils.fuzzy_url(value, do_search=False)
+
+
+PaddingValues = collections.namedtuple('PaddingValues', ['top', 'bottom',
+                                                         'left', 'right'])
+
+
+class Padding(IntList):
+
+    """Setting for paddings around elements."""
+
+    def validate(self, value):
+        self._basic_validation(value)
+        if not value:
+            return
+        try:
+            vals = self.transform(value)
+        except (ValueError, TypeError):
+            raise configexc.ValidationError(value, "must be a list of 1 or 4 "
+                                            "integers!")
+        if None in vals and not self.none_ok:
+            raise configexc.ValidationError(value, "items may not be empty!")
+        elems = self.transform(value)
+        if any(e is not None and e < 0 for e in elems):
+            raise configexc.ValidationError(value, "Values need to be "
+                                            "positive!")
+
+    def transform(self, value):
+        elems = super().transform(value)
+        if elems is None:
+            return elems
+        if len(elems) == 1:
+            val = elems[0]
+            return PaddingValues(val, val, val, val)
+        else:
+            return PaddingValues(*elems)
 
 
 class Encoding(BaseType):

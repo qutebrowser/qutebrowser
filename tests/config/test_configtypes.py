@@ -1549,6 +1549,55 @@ class TestFuzzyUrl:
         assert klass().transform(val) == expected
 
 
+class TestPadding:
+
+    """Test Padding."""
+
+    @pytest.fixture
+    def klass(self):
+        return configtypes.Padding
+
+    @pytest.mark.parametrize('val', [
+        '',
+        '0',
+        '5',
+        '1,,2,3',
+        '1,2,3,4',
+        '1, 2, 3, 4',
+    ])
+    def test_validate_valid(self, klass, val):
+        klass(none_ok=True).validate(val)
+
+    @pytest.mark.parametrize('val', [
+        '',
+        '1,,2,3',
+        '0.5',
+        '-1',
+        '1,2',
+        '1,2,3',
+        '1,2,3,4,5',
+        '1,2,-1,3',
+    ])
+    def test_validate_invalid(self, klass, val):
+        with pytest.raises(configexc.ValidationError):
+            klass().validate(val)
+
+    @pytest.mark.parametrize('val, expected', [
+        ('', None),
+        ('5', (5, 5, 5, 5)),
+        ('1,2,3,4', (1, 2, 3, 4)),
+    ])
+    def test_transform(self, klass, val, expected):
+        """Test transforming of values."""
+        transformed = klass().transform(val)
+        assert transformed == expected
+        if expected is not None:
+            assert transformed.top == expected[0]
+            assert transformed.bottom == expected[1]
+            assert transformed.left == expected[2]
+            assert transformed.right == expected[3]
+
+
 class TestAutoSearch:
 
     """Test AutoSearch."""
