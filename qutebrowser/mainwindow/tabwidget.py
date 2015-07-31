@@ -17,12 +17,7 @@
 # You should have received a copy of the GNU General Public License
 # along with qutebrowser.  If not, see <http://www.gnu.org/licenses/>.
 
-"""The tab widget used for TabbedBrowser from browser.py.
-
-Module attributes:
-    PM_TabBarPadding: The PixelMetric value for TabBarStyle to get the padding
-                      between items.
-"""
+"""The tab widget used for TabbedBrowser from browser.py."""
 
 import functools
 
@@ -31,12 +26,13 @@ from PyQt5.QtWidgets import (QTabWidget, QTabBar, QSizePolicy, QCommonStyle,
                              QStyle, QStylePainter, QStyleOptionTab)
 from PyQt5.QtGui import QIcon, QPalette, QColor
 
-from qutebrowser.utils import qtutils, objreg, utils
+from qutebrowser.utils import qtutils, objreg, utils, usertypes
 from qutebrowser.config import config
 from qutebrowser.browser import webview
 
 
-PM_TabBarPadding = QStyle.PM_CustomBase
+PixelMetrics = usertypes.enum('PixelMetrics', ['padding'],
+                              start=QStyle.PM_CustomBase, is_int=True)
 
 
 class TabWidget(QTabWidget):
@@ -342,7 +338,8 @@ class TabBar(QTabBar):
         indicator_width = config.get('tabs', 'indicator-width')
         if indicator_width != 0:
             indicator_width += config.get('tabs', 'indicator-space')
-        padding_width = self.style().pixelMetric(PM_TabBarPadding, None, self)
+        padding_width = self.style().pixelMetric(
+            PixelMetrics.padding, None, self)
         height = self.fontMetrics().height()
         width = (self.fontMetrics().width('\u2026') +
                  icon_size.width() + padding_count * padding_width +
@@ -596,7 +593,7 @@ class TabBarStyle(QCommonStyle):
                 metric == QStyle.PM_TabBarTabHSpace or
                 metric == QStyle.PM_TabBarTabVSpace):
             return 0
-        elif metric == PM_TabBarPadding:
+        elif metric == PixelMetrics.padding:
             return 4
         else:
             return self._style.pixelMetric(metric, option, widget)
@@ -631,7 +628,7 @@ class TabBarStyle(QCommonStyle):
         Return:
             A (text_rect, icon_rect) tuple (both QRects).
         """
-        padding = self.pixelMetric(PM_TabBarPadding, opt)
+        padding = self.pixelMetric(PixelMetrics.padding, opt)
         icon_rect = QRect()
         text_rect = QRect(opt.rect)
         qtutils.ensure_valid(text_rect)
