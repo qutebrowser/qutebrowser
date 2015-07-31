@@ -110,10 +110,11 @@
 |<<tabs-show-favicons,show-favicons>>|Whether to show favicons in the tab bar.
 |<<tabs-width,width>>|The width of the tab bar if it's vertical, in px or as percentage of the window.
 |<<tabs-indicator-width,indicator-width>>|Width of the progress indicator (0 to disable).
-|<<tabs-indicator-space,indicator-space>>|Spacing between tab edge and indicator.
 |<<tabs-tabs-are-windows,tabs-are-windows>>|Whether to open windows instead of tabs.
 |<<tabs-title-format,title-format>>|The format to use for the tab title. The following placeholders are defined:
 |<<tabs-mousewheel-tab-switching,mousewheel-tab-switching>>|Switch between tabs using the mouse wheel.
+|<<tabs-padding,padding>>|Padding for tabs (single value or 'top, bottom, left, right').
+|<<tabs-indicator-padding,indicator-padding>>|Padding for indicators (single value or 'top, bottom, left, right').
 |==============
 
 .Quick reference for section ``storage''
@@ -1038,12 +1039,6 @@ Width of the progress indicator (0 to disable).
 
 Default: +pass:[3]+
 
-[[tabs-indicator-space]]
-=== indicator-space
-Spacing between tab edge and indicator.
-
-Default: +pass:[3]+
-
 [[tabs-tabs-are-windows]]
 === tabs-are-windows
 Whether to open windows instead of tabs.
@@ -1078,6 +1073,18 @@ Valid values:
  * +false+
 
 Default: +pass:[true]+
+
+[[tabs-padding]]
+=== padding
+Padding for tabs (single value or 'top, bottom, left, right').
+
+Default: +pass:[0,0,5,5]+
+
+[[tabs-indicator-padding]]
+=== indicator-padding
+Padding for indicators (single value or 'top, bottom, left, right').
+
+Default: +pass:[2,2,0,4]+
 
 == storage
 Settings related to cache and storage.
