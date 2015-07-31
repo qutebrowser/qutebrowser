@@ -540,8 +540,13 @@ def data(readonly=False):
              "Switch between tabs using the mouse wheel."),
 
             ('padding',
-             SettingValue(typ.Padding(), '4'),
+             SettingValue(typ.Padding(), '0,0,5,5'),
              "Padding for tabs (single value or 'top, bottom, left, right')."),
+
+            ('indicator-padding',
+             SettingValue(typ.Padding(), '2,2,0,4'),
+             "Padding for indicators (single value or 'top, bottom, left, "
+             "right')."),
 
             readonly=readonly
         )),

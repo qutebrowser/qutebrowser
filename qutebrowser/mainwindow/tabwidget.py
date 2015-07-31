@@ -340,8 +340,6 @@ class TabBar(QTabBar):
             padding_h += self.style().pixelMetric(
                 PixelMetrics.icon_padding, None, self)
         indicator_width = config.get('tabs', 'indicator-width')
-        if indicator_width != 0:
-            indicator_width += config.get('tabs', 'indicator-space')
         height = self.fontMetrics().height() + padding_v
         width = (self.fontMetrics().width('\u2026') + icon_size.width() +
                  padding_h + indicator_width)
@@ -493,7 +491,7 @@ class TabBar(QTabBar):
 
 
 # Used by TabBarStyle._tab_layout().
-Layouts = collections.namedtuple('Layouts', ['text', 'icon'])
+Layouts = collections.namedtuple('Layouts', ['text', 'icon', 'indicator'])
 
 
 class TabBarStyle(QCommonStyle):
@@ -535,20 +533,19 @@ class TabBarStyle(QCommonStyle):
             setattr(self, method, functools.partial(target))
         super().__init__()
 
-    def _draw_indicator(self, opt, p):
+    def _draw_indicator(self, layouts, opt, p):
         """Draw the tab indicator.
 
         Args:
+            layouts: The layouts from _tab_layout.
             opt: QStyleOption from drawControl.
             p: QPainter from drawControl.
         """
-        indicator_color = opt.palette.base().color()
+        color = opt.palette.base().color()
+        rect = layouts.indicator
         indicator_width = config.get('tabs', 'indicator-width')
-        if indicator_color.isValid() and indicator_width != 0:
-            topleft = opt.rect.topLeft()
-            topleft += QPoint(config.get('tabs', 'indicator-space'), 2)
-            p.fillRect(topleft.x(), topleft.y(), indicator_width,
-                       opt.rect.height() - 4, indicator_color)
+        if color.isValid() and indicator_width != 0:
+            p.fillRect(rect, color)
 
     def _draw_icon(self, layouts, opt, p):
         """Draw the tab icon.
@@ -578,18 +575,18 @@ class TabBarStyle(QCommonStyle):
             p: QPainter
             widget: QWidget
         """
+        layouts = self._tab_layout(opt)
         if element == QStyle.CE_TabBarTab:
             # We override this so we can control TabBarTabShape/TabBarTabLabel.
             self.drawControl(QStyle.CE_TabBarTabShape, opt, p, widget)
             self.drawControl(QStyle.CE_TabBarTabLabel, opt, p, widget)
         elif element == QStyle.CE_TabBarTabShape:
             p.fillRect(opt.rect, opt.palette.window())
-            self._draw_indicator(opt, p)
+            self._draw_indicator(layouts, opt, p)
             # We use super() rather than self._style here because we don't want
             # any sophisticated drawing.
             super().drawControl(QStyle.CE_TabBarTabShape, opt, p, widget)
         elif element == QStyle.CE_TabBarTabLabel:
-            layouts = self._tab_layout(opt)
             if not opt.icon.isNull():
                 self._draw_icon(layouts, opt, p)
             alignment = Qt.AlignLeft | Qt.AlignVCenter | Qt.TextHideMnemonic
@@ -653,16 +650,28 @@ class TabBarStyle(QCommonStyle):
             A Layout namedtuple with two QRects.
         """
         padding = config.get('tabs', 'padding')
+        indicator_padding = config.get('tabs', 'indicator-padding')
 
         text_rect = QRect(opt.rect)
+        indicator_rect = QRect(opt.rect)
+
         qtutils.ensure_valid(text_rect)
         text_rect.adjust(padding.left, padding.top, -padding.right,
                          -padding.bottom)
 
         indicator_width = config.get('tabs', 'indicator-width')
-        if indicator_width != 0:
-            text_rect.adjust(indicator_width +
-                             config.get('tabs', 'indicator-space'), 0, 0, 0)
+        if indicator_width == 0:
+            indicator_rect = 0
+        else:
+            qtutils.ensure_valid(indicator_rect)
+            indicator_rect.adjust(padding.left + indicator_padding.left,
+                                  padding.top + indicator_padding.top,
+                                  0,
+                                  -(padding.bottom + indicator_padding.bottom))
+            indicator_rect.setWidth(indicator_width)
+
+            text_rect.adjust(indicator_width + indicator_padding.left +
+                             indicator_padding.right, 0, 0, 0)
 
         if opt.icon.isNull():
             icon_rect = QRect()
@@ -672,7 +681,8 @@ class TabBarStyle(QCommonStyle):
             text_rect.adjust(icon_rect.width() + icon_padding, 0, 0, 0)
 
         text_rect = self._style.visualRect(opt.direction, opt.rect, text_rect)
-        return Layouts(text=text_rect, icon=icon_rect)
+        return Layouts(text=text_rect, icon=icon_rect,
+                       indicator=indicator_rect)
 
     def _get_icon_rect(self, opt, text_rect):
         """Get a QRect for the icon to draw.
