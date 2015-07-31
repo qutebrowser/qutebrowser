@@ -19,6 +19,7 @@
 
 """The tab widget used for TabbedBrowser from browser.py."""
 
+import collections
 import functools
 
 from PyQt5.QtCore import pyqtSignal, pyqtSlot, Qt, QSize, QRect, QPoint, QTimer
@@ -491,6 +492,10 @@ class TabBar(QTabBar):
             tabbed_browser.wheelEvent(e)
 
 
+# Used by TabBarStyle._tab_layout().
+Layouts = collections.namedtuple('Layouts', ['text', 'icon'])
+
+
 class TabBarStyle(QCommonStyle):
 
     """Qt style used by TabBar to fix some issues with the default one.
@@ -559,17 +564,17 @@ class TabBarStyle(QCommonStyle):
             # any sophisticated drawing.
             super().drawControl(QStyle.CE_TabBarTabShape, opt, p, widget)
         elif element == QStyle.CE_TabBarTabLabel:
-            text_rect, icon_rect = self._tab_layout(opt)
+            layouts = self._tab_layout(opt)
             if not opt.icon.isNull():
-                qtutils.ensure_valid(icon_rect)
+                qtutils.ensure_valid(layouts.icon)
                 icon_mode = (QIcon.Normal if opt.state & QStyle.State_Enabled
                              else QIcon.Disabled)
                 icon_state = (QIcon.On if opt.state & QStyle.State_Selected
                               else QIcon.Off)
                 icon = opt.icon.pixmap(opt.iconSize, icon_mode, icon_state)
-                p.drawPixmap(icon_rect.x(), icon_rect.y(), icon)
+                p.drawPixmap(layouts.icon.x(), layouts.icon.y(), icon)
             alignment = Qt.AlignLeft | Qt.AlignVCenter | Qt.TextHideMnemonic
-            self._style.drawItemText(p, text_rect, alignment, opt.palette,
+            self._style.drawItemText(p, layouts.text, alignment, opt.palette,
                                      opt.state & QStyle.State_Enabled,
                                      opt.text, QPalette.WindowText)
         else:
@@ -610,8 +615,8 @@ class TabBarStyle(QCommonStyle):
             A QRect.
         """
         if sr == QStyle.SE_TabBarTabText:
-            text_rect, _icon_rect = self._tab_layout(opt)
-            return text_rect
+            layouts = self._tab_layout(opt)
+            return layouts.text
         else:
             return self._style.subElementRect(sr, opt, widget)
 
@@ -626,7 +631,7 @@ class TabBarStyle(QCommonStyle):
             opt: QStyleOptionTab
 
         Return:
-            A (text_rect, icon_rect) tuple (both QRects).
+            A Layout namedtuple with two QRects.
         """
         padding = config.get('tabs', 'padding')
         icon_padding = self.pixelMetric(PixelMetrics.icon_padding, opt)
@@ -643,7 +648,7 @@ class TabBarStyle(QCommonStyle):
             icon_rect = self._get_icon_rect(opt, text_rect)
             text_rect.adjust(icon_rect.width() + icon_padding, 0, 0, 0)
         text_rect = self._style.visualRect(opt.direction, opt.rect, text_rect)
-        return (text_rect, icon_rect)
+        return Layouts(text=text_rect, icon=icon_rect)
 
     def _get_icon_rect(self, opt, text_rect):
         """Get a QRect for the icon to draw.
