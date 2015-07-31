@@ -1,5 +1,6 @@
 __pycache__
 *.pyc
+*.swp
 /build
 /dist
 /qutebrowser.egg-info
@@ -26,3 +27,4 @@ __pycache__
 /.cache
 /.testmondata
 /.hypothesis
+TODO

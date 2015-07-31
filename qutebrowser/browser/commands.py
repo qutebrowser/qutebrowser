@@ -38,7 +38,7 @@ import pygments.formatters
 
 from qutebrowser.commands import userscripts, cmdexc, cmdutils, runners
 from qutebrowser.config import config, configexc
-from qutebrowser.browser import webelem, inspector
+from qutebrowser.browser import webelem, inspector, urlmarks
 from qutebrowser.keyinput import modeman
 from qutebrowser.utils import (message, usertypes, log, qtutils, urlutils,
                                objreg, utils)
@@ -99,6 +99,10 @@ class CommandDispatcher:
                 msg += " ({})".format(e.reason)
             msg += "!"
             raise cmdexc.CommandError(msg)
+
+    def _current_title(self):
+        """Convenience method to get the current title."""
+        return self._current_widget().title()
 
     def _current_widget(self):
         """Get the currently active widget from a command."""
@@ -1050,7 +1054,37 @@ class CommandDispatcher:
             bg: Load the quickmark in a new background tab.
             window: Load the quickmark in a new window.
         """
-        url = objreg.get('quickmark-manager').get(name)
+        try:
+            url = objreg.get('quickmark-manager').get(name)
+        except urlmarks.Error as e:
+            raise cmdexc.CommandError(str(e))
+        self._open(url, tab, bg, window)
+
+    @cmdutils.register(instance='command-dispatcher', scope='window')
+    def bookmark_add(self):
+        """Save the current page as a bookmark."""
+        bookmark_manager = objreg.get('bookmark-manager')
+        try:
+            bookmark_manager.add(self._current_url(), self._current_title())
+        except urlmarks.Error as e:
+            raise cmdexc.CommandError(str(e))
+
+    @cmdutils.register(instance='command-dispatcher', scope='window',
+                       maxsplit=0,
+                       completion=[usertypes.Completion.bookmark_by_url])
+    def bookmark_load(self, url, tab=False, bg=False, window=False):
+        """Load a bookmark.
+
+        Args:
+            url: The url of the bookmark to load.
+            tab: Load the bookmark in a new tab.
+            bg: Load the bookmark in a new background tab.
+            window: Load the bookmark in a new window.
+        """
+        try:
+            url = urlutils.fuzzy_url(url)
+        except urlutils.FuzzyUrlError as e:
+            raise cmdexc.CommandError(e)
         self._open(url, tab, bg, window)
 
     @cmdutils.register(instance='command-dispatcher', hide=True,

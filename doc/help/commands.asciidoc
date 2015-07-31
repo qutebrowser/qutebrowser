@@ -8,6 +8,9 @@
 |<<adblock-update,adblock-update>>|Update the adblock block lists.
 |<<back,back>>|Go back in the history of the current tab.
 |<<bind,bind>>|Bind a key to a command.
+|<<bookmark-add,bookmark-add>>|Save the current page as a bookmark.
+|<<bookmark-del,bookmark-del>>|Delete a bookmark.
+|<<bookmark-load,bookmark-load>>|Load a bookmark.
 |<<close,close>>|Close the current window.
 |<<download,download>>|Download a given URL, or current page if no URL given.
 |<<download-cancel,download-cancel>>|Cancel the last/[count]th download.
@@ -94,6 +97,41 @@ Bind a key to a command.
 * +*-m*+, +*--mode*+: A comma-separated list of modes to bind the key in (default: `normal`).
 
 * +*-f*+, +*--force*+: Rebind the key if it is already bound.
+
+==== note
+* This command does not split arguments after the last argument and handles quotes literally.
+* With this command, +;;+ is interpreted literally instead of splitting off a second command.
+
+[[bookmark-add]]
+=== bookmark-add
+Save the current page as a bookmark.
+
+[[bookmark-del]]
+=== bookmark-del
+Syntax: +:bookmark-del 'url'+
+
+Delete a bookmark.
+
+==== positional arguments
+* +'url'+: The URL of the bookmark to delete.
+
+==== note
+* This command does not split arguments after the last argument and handles quotes literally.
+* With this command, +;;+ is interpreted literally instead of splitting off a second command.
+
+[[bookmark-load]]
+=== bookmark-load
+Syntax: +:bookmark-load [*--tab*] [*--bg*] [*--window*] 'url'+
+
+Load a bookmark.
+
+==== positional arguments
+* +'url'+: The url of the bookmark to load.
+
+==== optional arguments
+* +*-t*+, +*--tab*+: Load the bookmark in a new tab.
+* +*-b*+, +*--bg*+: Load the bookmark in a new background tab.
+* +*-w*+, +*--window*+: Load the bookmark in a new window.
 
 ==== note
 * This command does not split arguments after the last argument and handles quotes literally.
@@ -724,6 +762,7 @@ How many steps to zoom out.
 |<<command-accept,command-accept>>|Execute the command currently in the commandline.
 |<<command-history-next,command-history-next>>|Go forward in the commandline history.
 |<<command-history-prev,command-history-prev>>|Go back in the commandline history.
+|<<completion-item-del,completion-item-del>>|Delete the current completion item.
 |<<completion-item-next,completion-item-next>>|Select the next completion item.
 |<<completion-item-prev,completion-item-prev>>|Select the previous completion item.
 |<<drop-selection,drop-selection>>|Drop selection and keep selection mode enabled.
@@ -789,6 +828,10 @@ Go forward in the commandline history.
 [[command-history-prev]]
 === command-history-prev
 Go back in the commandline history.
+
+[[completion-item-del]]
+=== completion-item-del
+Delete the current completion item.
 
 [[completion-item-next]]
 === completion-item-next

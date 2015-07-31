@@ -97,14 +97,23 @@ def init_quickmark_completions():
     """Initialize quickmark completion models."""
     log.completion.debug("Initializing quickmark completion.")
     try:
-        _instances[usertypes.Completion.quickmark_by_url].deleteLater()
         _instances[usertypes.Completion.quickmark_by_name].deleteLater()
     except KeyError:
         pass
-    model = _init_model(miscmodels.QuickmarkCompletionModel, 'url')
-    _instances[usertypes.Completion.quickmark_by_url] = model
-    model = _init_model(miscmodels.QuickmarkCompletionModel, 'name')
+    model = _init_model(miscmodels.QuickmarkCompletionModel)
     _instances[usertypes.Completion.quickmark_by_name] = model
+
+
+@pyqtSlot()
+def init_bookmark_completions():
+    """Initialize bookmark completion models."""
+    log.completion.debug("Initializing bookmark completion.")
+    try:
+        _instances[usertypes.Completion.bookmark_by_url].deleteLater()
+    except KeyError:
+        pass
+    model = _init_model(miscmodels.BookmarkCompletionModel)
+    _instances[usertypes.Completion.bookmark_by_url] = model
 
 
 @pyqtSlot()
@@ -126,8 +135,8 @@ INITIALIZERS = {
     usertypes.Completion.section: _init_setting_completions,
     usertypes.Completion.option: _init_setting_completions,
     usertypes.Completion.value: _init_setting_completions,
-    usertypes.Completion.quickmark_by_url: init_quickmark_completions,
     usertypes.Completion.quickmark_by_name: init_quickmark_completions,
+    usertypes.Completion.bookmark_by_url: init_bookmark_completions,
     usertypes.Completion.sessions: init_session_completion,
 }
 
@@ -163,8 +172,11 @@ def init():
     """Initialize completions. Note this only connects signals."""
     quickmark_manager = objreg.get('quickmark-manager')
     quickmark_manager.changed.connect(
-        functools.partial(update, [usertypes.Completion.quickmark_by_url,
-                                   usertypes.Completion.quickmark_by_name]))
+        functools.partial(update, [usertypes.Completion.quickmark_by_name]))
+
+    bookmark_manager = objreg.get('bookmark-manager')
+    bookmark_manager.changed.connect(
+        functools.partial(update, [usertypes.Completion.bookmark_by_url]))
 
     session_manager = objreg.get('session-manager')
     session_manager.update_completion.connect(

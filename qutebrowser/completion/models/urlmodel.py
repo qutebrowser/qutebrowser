@@ -23,31 +23,47 @@ import datetime
 
 from PyQt5.QtCore import pyqtSlot, Qt
 
-from qutebrowser.utils import objreg, utils
+from qutebrowser.utils import objreg, utils, qtutils
 from qutebrowser.completion.models import base
 from qutebrowser.config import config
 
 
 class UrlCompletionModel(base.BaseCompletionModel):
 
-    """A model which combines quickmarks and web history URLs.
+    """A model which combines bookmarks, quickmarks and web history URLs.
 
     Used for the `open` command."""
 
     # pylint: disable=abstract-method
 
+    URL_COLUMN = 0
+    TEXT_COLUMN = 1
+    TIME_COLUMN = 2
+
     def __init__(self, parent=None):
         super().__init__(parent)
 
+        self.columns_to_filter = [self.URL_COLUMN, self.TEXT_COLUMN]
+
         self._quickmark_cat = self.new_category("Quickmarks")
+        self._bookmark_cat = self.new_category("Bookmarks")
         self._history_cat = self.new_category("History")
 
         quickmark_manager = objreg.get('quickmark-manager')
         quickmarks = quickmark_manager.marks.items()
         for qm_name, qm_url in quickmarks:
-            self._add_quickmark_entry(qm_name, qm_url)
-        quickmark_manager.added.connect(self.on_quickmark_added)
+            self.new_item(self._quickmark_cat, qm_url, qm_name)
+        quickmark_manager.added.connect(
+            lambda name, url: self.new_item(self._quickmark_cat, url, name))
         quickmark_manager.removed.connect(self.on_quickmark_removed)
+
+        bookmark_manager = objreg.get('bookmark-manager')
+        bookmarks = bookmark_manager.marks.items()
+        for bm_url, bm_title in bookmarks:
+            self.new_item(self._bookmark_cat, bm_url, bm_title)
+        bookmark_manager.added.connect(
+            lambda name, url: self.new_item(self._bookmark_cat, url, name))
+        bookmark_manager.removed.connect(self.on_bookmark_removed)
 
         self._history = objreg.get('web-history')
         max_history = config.get('completion', 'web-history-max-items')
@@ -72,47 +88,42 @@ class UrlCompletionModel(base.BaseCompletionModel):
                       self._fmt_atime(entry.atime), sort=int(entry.atime),
                       userdata=entry.url)
 
-    def _add_quickmark_entry(self, name, url):
-        """Add a new quickmark entry to the completion.
-
-        Args:
-            name: The name of the new quickmark.
-            url: The URL of the new quickmark.
-        """
-        self.new_item(self._quickmark_cat, url, name)
-
     @config.change_filter('completion', 'timestamp-format')
     def reformat_timestamps(self):
         """Reformat the timestamps if the config option was changed."""
         for i in range(self._history_cat.rowCount()):
-            name_item = self._history_cat.child(i, 0)
-            atime_item = self._history_cat.child(i, 2)
-            atime = name_item.data(base.Role.sort)
+            url_item = self._history_cat.child(i, self.URL_COLUMN)
+            atime_item = self._history_cat.child(i, self.TIME_COLUMN)
+            atime = url_item.data(base.Role.sort)
             atime_item.setText(self._fmt_atime(atime))
 
     @pyqtSlot(object)
     def on_history_item_added(self, entry):
         """Slot called when a new history item was added."""
         for i in range(self._history_cat.rowCount()):
-            name_item = self._history_cat.child(i, 0)
-            atime_item = self._history_cat.child(i, 2)
-            url = name_item.data(base.Role.userdata)
+            url_item = self._history_cat.child(i, self.URL_COLUMN)
+            atime_item = self._history_cat.child(i, self.TIME_COLUMN)
+            url = url_item.data(base.Role.userdata)
             if url == entry.url:
                 atime_item.setText(self._fmt_atime(entry.atime))
-                name_item.setData(int(entry.atime), base.Role.sort)
+                url_item.setData(int(entry.atime), base.Role.sort)
                 break
         else:
             self._add_history_entry(entry)
 
-    @pyqtSlot(str, str)
-    def on_quickmark_added(self, name, url):
-        """Called when a quickmark has been added by the user.
+    def _remove_item(self, data, category, column):
+        """Helper function for on_quickmark_removed and on_bookmark_removed.
 
         Args:
-            name: The name of the new quickmark.
-            url: The url of the new quickmark, as string.
+            data: The item to search for.
+            category: The category to search in.
+            column: The column to use for matching.
         """
-        self._add_quickmark_entry(name, url)
+        for i in range(category.rowCount()):
+            item = category.child(i, column)
+            if item.data(Qt.DisplayRole) == data:
+                category.removeRow(i)
+                break
 
     @pyqtSlot(str)
     def on_quickmark_removed(self, name):
@@ -121,8 +132,35 @@ class UrlCompletionModel(base.BaseCompletionModel):
         Args:
             name: The name of the quickmark which has been removed.
         """
-        for i in range(self._quickmark_cat.rowCount()):
-            name_item = self._quickmark_cat.child(i, 1)
-            if name_item.data(Qt.DisplayRole) == name:
-                self._quickmark_cat.removeRow(i)
-                break
+        self._remove_item(name, self._quickmark_cat, self.TEXT_COLUMN)
+
+    @pyqtSlot(str)
+    def on_bookmark_removed(self, url):
+        """Called when a bookmark has been removed by the user.
+
+        Args:
+            url: The url of the bookmark which has been removed.
+        """
+        self._remove_item(url, self._bookmark_cat, self.URL_COLUMN)
+
+    def delete_cur_item(self, completion):
+        """Delete the selected item.
+
+        Args:
+            completion: The Completion object to use.
+        """
+        index = completion.currentIndex()
+        qtutils.ensure_valid(index)
+        url = index.data()
+        category = index.parent()
+        qtutils.ensure_valid(category)
+
+        if category.data() == 'Bookmarks':
+            bookmark_manager = objreg.get('bookmark-manager')
+            bookmark_manager.delete(url)
+        elif category.data() == 'Quickmarks':
+            quickmark_manager = objreg.get('quickmark-manager')
+            sibling = index.sibling(index.row(), self.TEXT_COLUMN)
+            qtutils.ensure_valid(sibling)
+            name = sibling.data()
+            quickmark_manager.quickmark_del(name)

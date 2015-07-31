@@ -135,6 +135,7 @@ Contributors, sorted by the number of commits in descending order:
 // QUTE_AUTHORS_START
 * Florian Bruhin
 * Bruno Oliveira
+* Antoni Boucher
 * Raphael Pierzina
 * Joel Torstensson
 * Martin Tournoij
@@ -142,7 +143,6 @@ Contributors, sorted by the number of commits in descending order:
 * Lamar Pavel
 * Austin Anderson
 * Artur Shaik
-* Antoni Boucher
 * ZDarian
 * Peter Vilim
 * John ShaggyTwoDope Jenkins
