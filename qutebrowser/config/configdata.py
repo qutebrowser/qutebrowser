@@ -537,12 +537,11 @@ def data(readonly=False):
 
             ('padding',
              SettingValue(typ.Padding(), '0,0,5,5'),
-             "Padding for tabs (single value or 'top, bottom, left, right')."),
+             "Padding for tabs (top, bottom, left, right)."),
 
             ('indicator-padding',
              SettingValue(typ.Padding(), '2,2,0,4'),
-             "Padding for indicators (single value or 'top, bottom, left, "
-             "right')."),
+             "Padding for indicators (top, bottom, left, right)."),
 
             readonly=readonly
         )),

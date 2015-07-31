@@ -1559,17 +1559,17 @@ class TestPadding:
 
     @pytest.mark.parametrize('val', [
         '',
-        '0',
-        '5',
         '1,,2,3',
         '1,2,3,4',
         '1, 2, 3, 4',
+        '0,0,0,0',
     ])
     def test_validate_valid(self, klass, val):
         klass(none_ok=True).validate(val)
 
     @pytest.mark.parametrize('val', [
         '',
+        '5',
         '1,,2,3',
         '0.5',
         '-1',
@@ -1584,7 +1584,6 @@ class TestPadding:
 
     @pytest.mark.parametrize('val, expected', [
         ('', None),
-        ('5', (5, 5, 5, 5)),
         ('1,2,3,4', (1, 2, 3, 4)),
     ])
     def test_transform(self, klass, val, expected):

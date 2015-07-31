@@ -1139,7 +1139,7 @@ class Padding(IntList):
         try:
             vals = self.transform(value)
         except (ValueError, TypeError):
-            raise configexc.ValidationError(value, "must be a list of 1 or 4 "
+            raise configexc.ValidationError(value, "must be a list of 4 "
                                             "integers!")
         if None in vals and not self.none_ok:
             raise configexc.ValidationError(value, "items may not be empty!")
@@ -1152,11 +1152,7 @@ class Padding(IntList):
         elems = super().transform(value)
         if elems is None:
             return elems
-        if len(elems) == 1:
-            val = elems[0]
-            return PaddingValues(val, val, val, val)
-        else:
-            return PaddingValues(*elems)
+        return PaddingValues(*elems)
 
 
 class Encoding(BaseType):
