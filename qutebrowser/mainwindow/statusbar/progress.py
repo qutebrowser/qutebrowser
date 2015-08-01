@@ -66,10 +66,10 @@ class Progress(QProgressBar):
     @pyqtSlot(int)
     def on_tab_changed(self, tab):
         """Set the correct value when the current tab changed."""
-        if self is None:
+        if self is None:  # pragma: no branch
             # This should never happen, but for some weird reason it does
             # sometimes.
-            return
+            return  # pragma: no cover
         self.setValue(tab.progress)
         if tab.load_status == webview.LoadStatus.loading:
             self.show()
