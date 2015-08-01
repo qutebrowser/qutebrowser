@@ -57,7 +57,7 @@ class NoOptionError(Error):
     """Raised when an option was not found."""
 
     def __init__(self, option, section):
-        super().__init__("No option {!r} in section: {!r}".format(
+        super().__init__("No option {!r} in section {!r}".format(
             option, section))
         self.option = option
         self.section = section
