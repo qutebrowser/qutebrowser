@@ -22,7 +22,7 @@
 import collections
 
 from PyQt5.QtCore import (pyqtSlot, pyqtSignal, PYQT_VERSION, QCoreApplication,
-                          QUrl)
+                          QUrl, QByteArray)
 from PyQt5.QtNetwork import (QNetworkAccessManager, QNetworkReply, QSslError,
                              QSslSocket)
 
@@ -337,6 +337,21 @@ class NetworkManager(QNetworkAccessManager):
             dnt = '0'.encode('ascii')
         req.setRawHeader('DNT'.encode('ascii'), dnt)
         req.setRawHeader('X-Do-Not-Track'.encode('ascii'), dnt)
+
+        current_url = objreg.get('webview', scope='tab', window=self._win_id,
+                                 tab=self._tab_id).url()
+        referer_header_conf = config.get('network', 'referer-header')
+
+        if referer_header_conf == 'never':
+            # Note: using ''.encode('ascii') sends a header with no value,
+            # instead of no header at all
+            req.setRawHeader('Referer'.encode('ascii'), QByteArray())
+        elif (referer_header_conf== 'same-domain' and current_url.isValid() and
+                not urlutils.same_domain(req.url(), current_url)):
+            req.setRawHeader('Referer'.encode('ascii'), QByteArray())
+        # If refer_header_conf is set to 'always', we leave the header alone as
+        # QtWebKit did set it.
+
         accept_language = config.get('network', 'accept-language')
         if accept_language is not None:
             req.setRawHeader('Accept-Language'.encode('ascii'),

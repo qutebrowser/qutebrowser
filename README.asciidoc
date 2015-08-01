@@ -136,8 +136,8 @@ Contributors, sorted by the number of commits in descending order:
 * Florian Bruhin
 * Bruno Oliveira
 * Antoni Boucher
-* Raphael Pierzina
 * Martin Tournoij
+* Raphael Pierzina
 * Joel Torstensson
 * Claude
 * Lamar Pavel
