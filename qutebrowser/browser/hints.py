@@ -1,6 +1,7 @@
 # vim: ft=python fileencoding=utf-8 sts=4 sw=4 et:
 
 # Copyright 2014-2015 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
+# Copyright 2015 Antoni Boucher (antoyo) <bouanto@zoho.com>
 #
 # This file is part of qutebrowser.
 #
@@ -355,6 +356,21 @@ class HintManager(QObject):
             label.setStyleProperty(k, v)
         self._set_style_position(elem, label)
 
+    def _evaluateJavaScriptOnNewElement(self, elem, get_left, get_top):
+        """Helper function to get the top left position of an element.
+
+        Args:
+            elem: The QWebElement we want to get the geometry.
+            get_left: The JavaScript code to compute the left coordinate.
+            get_top: The JavaScript code to compute the top coordinate.
+        """
+        elem.prependOutside('<span style="position: absolute"></span>')
+        placeholder = elem.previousSibling()
+        left = placeholder.evaluateJavaScript(get_left)
+        top = placeholder.evaluateJavaScript(get_top)
+        placeholder.removeFromDocument()
+        return QRect(left, top, 0, 0)
+
     def _get_element_geometry(self, elem):
         """Get the element geometry using JavaScript.
 
@@ -365,13 +381,25 @@ class HintManager(QObject):
             A QRect.
         """
 
-        elem.prependOutside('<span style="position: absolute"></span>')
-        placeholder = elem.previousSibling()
+        return self._evaluateJavaScriptOnNewElement(elem,
+                'this.getBoundingClientRect().left - document.body.getBoundingClientRect().left',
+                'this.getBoundingClientRect().top - document.body.getBoundingClientRect().top'
+               )
 
-        left = placeholder.evaluateJavaScript('this.getBoundingClientRect().left - document.body.getBoundingClientRect().left')
-        top = placeholder.evaluateJavaScript('this.getBoundingClientRect().top - document.body.getBoundingClientRect().top')
-        placeholder.removeFromDocument()
-        return QRect(left, top, 0, 0)
+    def _get_element_relative_geometry(self, elem):
+        """Get the element geometry using JavaScript relative to the top of the viewport.
+
+        Args:
+            elem: The QWebElement we want to get the geometry.
+
+        Return:
+            A QRect.
+        """
+
+        return self._evaluateJavaScriptOnNewElement(elem,
+                'this.getBoundingClientRect().left',
+                'this.getBoundingClientRect().top'
+               )
 
     def _set_style_position(self, elem, label):
         """Set the CSS position of the label element.
@@ -449,7 +477,7 @@ class HintManager(QObject):
         # e.g. parse (-webkit-)border-radius correctly and click text fields at
         # the bottom right, and everything else on the top left or so.
         # https://github.com/The-Compiler/qutebrowser/issues/70
-        rect = self._get_element_geometry(elem)
+        rect = self._get_element_relative_geometry(elem)
         rect.translate(3, 3)
         pos = rect.topLeft()
 
