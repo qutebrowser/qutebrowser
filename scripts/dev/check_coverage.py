@@ -34,6 +34,7 @@ from scripts import utils
 PERFECT_FILES = [
     'qutebrowser/commands/cmdexc.py',
     'qutebrowser/config/configtypes.py',
+    'qutebrowser/config/configdata.py',
     'qutebrowser/misc/readline.py',
     'qutebrowser/browser/tabhistory.py',
 
