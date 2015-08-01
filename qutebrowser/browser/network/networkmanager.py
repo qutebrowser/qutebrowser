@@ -338,8 +338,12 @@ class NetworkManager(QNetworkAccessManager):
         req.setRawHeader('DNT'.encode('ascii'), dnt)
         req.setRawHeader('X-Do-Not-Track'.encode('ascii'), dnt)
 
-        current_url = objreg.get('webview', scope='tab', window=self._win_id,
-                                 tab=self._tab_id).url()
+        if self._tab_id is None:
+            current_url = QUrl()  # generic NetworkManager, e.g. for downloads
+        else:
+            webview = objreg.get('webview', scope='tab', window=self._win_id,
+                                 tab=self._tab_id)
+            current_url = webview.url()
         referer_header_conf = config.get('network', 'referer-header')
 
         if referer_header_conf == 'never':
