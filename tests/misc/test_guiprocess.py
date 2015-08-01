@@ -109,12 +109,12 @@ def test_double_start_finished(qtbot, proc):
         proc.start(*argv)
 
 
-def test_cmd_args(proc):
+def test_cmd_args(fake_proc):
     """Test the cmd and args attributes."""
     cmd = 'does_not_exist'
     args = ['arg1', 'arg2']
-    proc.start(cmd, args)
-    assert (proc.cmd, proc.args) == (cmd, args)
+    fake_proc.start(cmd, args)
+    assert (fake_proc.cmd, fake_proc.args) == (cmd, args)
 
 
 def test_error(qtbot, proc):
