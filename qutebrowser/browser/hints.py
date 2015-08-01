@@ -24,7 +24,7 @@ import functools
 import collections
 
 from PyQt5.QtCore import (pyqtSignal, pyqtSlot, QObject, QEvent, Qt, QUrl,
-                          QTimer)
+                          QTimer, QRect)
 from PyQt5.QtGui import QMouseEvent, QClipboard
 from PyQt5.QtWidgets import QApplication
 from PyQt5.QtWebKit import QWebElement
@@ -355,6 +355,24 @@ class HintManager(QObject):
             label.setStyleProperty(k, v)
         self._set_style_position(elem, label)
 
+    def _get_element_geometry(self, elem):
+        """Get the element geometry using JavaScript.
+
+        Args:
+            elem: The QWebElement we want to get the geometry.
+
+        Return:
+            A QRect.
+        """
+
+        elem.prependOutside('<span style="position: absolute"></span>')
+        placeholder = elem.previousSibling()
+
+        left = placeholder.evaluateJavaScript('this.getBoundingClientRect().left - document.body.getBoundingClientRect().left')
+        top = placeholder.evaluateJavaScript('this.getBoundingClientRect().top - document.body.getBoundingClientRect().top')
+        placeholder.removeFromDocument()
+        return QRect(left, top, 0, 0)
+
     def _set_style_position(self, elem, label):
         """Set the CSS position of the label element.
 
@@ -362,7 +380,7 @@ class HintManager(QObject):
             elem: The QWebElement to set the style attributes for.
             label: The label QWebElement.
         """
-        rect = elem.geometry()
+        rect = self._get_element_geometry(elem)
         left = rect.x()
         top = rect.y()
         zoom = elem.webFrame().zoomFactor()
@@ -431,7 +449,10 @@ class HintManager(QObject):
         # e.g. parse (-webkit-)border-radius correctly and click text fields at
         # the bottom right, and everything else on the top left or so.
         # https://github.com/The-Compiler/qutebrowser/issues/70
-        pos = elem.rect_on_view().center()
+        rect = self._get_element_geometry(elem)
+        rect.translate(3, 3)
+        pos = rect.topLeft()
+
         action = "Hovering" if context.target == Target.hover else "Clicking"
         log.hints.debug("{} on '{}' at {}/{}".format(
             action, elem, pos.x(), pos.y()))
