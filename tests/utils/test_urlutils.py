@@ -515,3 +515,12 @@ def test_same_domain(are_same, url1, url2):
     """Tests for same_domain."""
     assert urlutils.same_domain(QUrl(url1), QUrl(url2)) == are_same
     assert urlutils.same_domain(QUrl(url2), QUrl(url1)) == are_same
+
+@pytest.mark.parametrize('url1, url2', [
+    ('http://example.com', ''),
+    ('', 'http://example.com'),
+])
+def test_same_domain_invalid_url(url1, url2):
+    """Tests with invalid URLs for same_domain."""
+    with pytest.raises(ValueError):
+        urlutils.same_domain(QUrl(url1), QUrl(url2))
