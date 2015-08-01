@@ -338,8 +338,9 @@ class NetworkManager(QNetworkAccessManager):
         req.setRawHeader('DNT'.encode('ascii'), dnt)
         req.setRawHeader('X-Do-Not-Track'.encode('ascii'), dnt)
 
-        current_url = objreg.get('tabbed-browser', scope='window',
-                                 window=self._win_id).currentWidget().url()
+        current_url = objreg.get('webview', scope='tab', window=self._win_id,
+                                 tab=self._tab_id).url()
+
         if config.get('network', 'referer-header') == 'never':
             # Note: using ''.encode('ascii') sends a header with no value,
             # instead of no header at all
