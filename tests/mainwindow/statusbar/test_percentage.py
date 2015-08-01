@@ -20,9 +20,22 @@
 
 """Test Percentage widget."""
 
+import collections
+
 import pytest
 
 from qutebrowser.mainwindow.statusbar.percentage import Percentage
+
+
+FakeTab = collections.namedtuple('FakeTab', 'scroll_pos')
+
+
+@pytest.fixture
+def percentage(qtbot):
+    """Fixture providing a Percentage widget."""
+    widget = Percentage()
+    qtbot.add_widget(widget)
+    return widget
 
 
 @pytest.mark.parametrize('y, expected', [
@@ -32,17 +45,22 @@ from qutebrowser.mainwindow.statusbar.percentage import Percentage
     (25, '[25%]'),
     (5, '[ 5%]'),
 ])
-def test_percentage_text(qtbot, y, expected):
+def test_percentage_text(percentage, y, expected):
     """
     Test text displayed by the widget based on the y position of a page.
 
     Args:
-        qtbot: pytestqt.plugin.QtBot fixture
         y: y position of the page as an int in the range [0, 100].
            parametrized.
         expected: expected text given y position. parametrized.
     """
-    percentage = Percentage()
-    qtbot.add_widget(percentage)
-    percentage.set_perc(None, y=y)
+    percentage.set_perc(x=None, y=y)
     assert percentage.text() == expected
+
+
+def test_tab_change(percentage):
+    """Make sure the percentage gets changed correctly when switching tabs."""
+    percentage.set_perc(x=None, y=10)
+    tab = FakeTab(20)
+    percentage.on_tab_changed(tab)
+    assert percentage.text() == '[20%]'
