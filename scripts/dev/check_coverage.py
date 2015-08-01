@@ -35,6 +35,7 @@ PERFECT_FILES = [
     'qutebrowser/commands/cmdexc.py',
     'qutebrowser/config/configtypes.py',
     'qutebrowser/misc/readline.py',
+    'qutebrowser/browser/tabhistory.py',
 
     'qutebrowser/utils/qtutils.py',
     'qutebrowser/utils/standarddir.py',
