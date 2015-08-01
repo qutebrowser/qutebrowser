@@ -392,6 +392,36 @@ def get_errstring(url, base="Invalid URL"):
         return base
 
 
+def same_domain(url1, url2):
+    """Check if url1 and url2 belong to the same website.
+
+    This will use a "public suffix list" to determine what a "top level domain"
+    is. All further domains are ignored.
+
+    For example example.com and www.example.com are considered the same. but
+    example.co.uk and test.co.uk are not.
+
+    Return:
+        True if the domains are the same, False otherwise.
+    """
+    if not url1.isValid():
+        raise ValueError(get_errstring(url1))
+    if not url2.isValid():
+        raise ValueError(get_errstring(url2))
+
+    suffix1 = url1.topLevelDomain()
+    suffix2 = url2.topLevelDomain()
+    if suffix1 == '':
+        return url1.host() == url2.host()
+
+    if not suffix1 == suffix2:
+        return False
+
+    domain1 = url1.host()[:-len(suffix1)].split('.')[-1]
+    domain2 = url2.host()[:-len(suffix2)].split('.')[-1]
+    return domain1 == domain2
+
+
 class FuzzyUrlError(Exception):
 
     """Exception raised by fuzzy_url on problems.

@@ -1489,6 +1489,18 @@ class DownloadPathSuggestion(BaseType):
                                ('both', "Show download path and filename."))
 
 
+class Referer(BaseType):
+
+    """Send the Referer header."""
+
+    valid_values = ValidValues(('always', "Always send."),
+                               ('never', "Never send; this is not recommended,"
+                                   " as some sites may break."),
+                               ('same-domain', "Only send for the same domain,"
+                                   " this will still protect your privacy, but"
+                                   " shouldn't break any sites."))
+
+
 class UserAgent(BaseType):
 
     """The user agent to use."""

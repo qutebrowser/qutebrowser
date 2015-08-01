@@ -326,6 +326,10 @@ def data(readonly=False):
              SettingValue(typ.String(none_ok=True), 'en-US,en'),
              "Value to send in the `accept-language` header."),
 
+            ('referer-header',
+             SettingValue(typ.Referer(), 'same-domain'),
+             "Send the Referer header"),
+
             ('user-agent',
              SettingValue(typ.UserAgent(none_ok=True), ''),
              "User agent to send. Empty to send the default."),

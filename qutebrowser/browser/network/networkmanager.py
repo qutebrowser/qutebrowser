@@ -22,7 +22,7 @@
 import collections
 
 from PyQt5.QtCore import (pyqtSlot, pyqtSignal, PYQT_VERSION, QCoreApplication,
-                          QUrl)
+                          QUrl, QByteArray)
 from PyQt5.QtNetwork import (QNetworkAccessManager, QNetworkReply, QSslError,
                              QSslSocket)
 
@@ -337,6 +337,18 @@ class NetworkManager(QNetworkAccessManager):
             dnt = '0'.encode('ascii')
         req.setRawHeader('DNT'.encode('ascii'), dnt)
         req.setRawHeader('X-Do-Not-Track'.encode('ascii'), dnt)
+
+        current_url = objreg.get('tabbed-browser', scope='window',
+                                 window=self._win_id).currentWidget().url()
+        if config.get('network', 'referer-header') == 'never':
+            # Note: using ''.encode('ascii') sends a header with no value,
+            # instead of no header at all
+            req.setRawHeader('Referer'.encode('ascii'), QByteArray())
+        elif (config.get('network', 'referer-header') == 'same-domain' and
+                current_url.isValid() and
+                not urlutils.same_domain(req.url(), current_url)):
+            req.setRawHeader('Referer'.encode('ascii'), QByteArray())
+
         accept_language = config.get('network', 'accept-language')
         if accept_language is not None:
             req.setRawHeader('Accept-Language'.encode('ascii'),
