@@ -48,7 +48,7 @@ class Percentage(textbase.TextBase):
         else:
             self.setText('[{:2}%]'.format(y))
 
-    @pyqtSlot(int)
+    @pyqtSlot(object)
     def on_tab_changed(self, tab):
         """Update scroll position when tab changed."""
         self.set_perc(*tab.scroll_pos)
