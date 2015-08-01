@@ -477,8 +477,13 @@ class HintManager(QObject):
         # e.g. parse (-webkit-)border-radius correctly and click text fields at
         # the bottom right, and everything else on the top left or so.
         # https://github.com/The-Compiler/qutebrowser/issues/70
+        try:
+            dx = int(elem.styleProperty('border-top-left-radius', QWebElement.ComputedStyle)[:-2])
+        except ValueError:
+            dx = 0
+        dx += 3
         rect = self._get_element_relative_geometry(elem)
-        rect.translate(3, 3)
+        rect.translate(dx, 3)
         pos = rect.topLeft()
 
         action = "Hovering" if context.target == Target.hover else "Clicking"
