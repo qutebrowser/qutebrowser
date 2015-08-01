@@ -512,7 +512,7 @@ def test_fuzzy_url_error(url, raising, has_err_string):
     (False, 'http://one.not_a_valid_tld', 'http://two.not_a_valid_tld'),
 ])
 def test_same_domain(are_same, url1, url2):
-    """Tests for same_domain."""
+    """Test same_domain."""
     assert urlutils.same_domain(QUrl(url1), QUrl(url2)) == are_same
     assert urlutils.same_domain(QUrl(url2), QUrl(url1)) == are_same
 
@@ -521,6 +521,6 @@ def test_same_domain(are_same, url1, url2):
     ('', 'http://example.com'),
 ])
 def test_same_domain_invalid_url(url1, url2):
-    """Tests with invalid URLs for same_domain."""
+    """Test same_domain with invalid URLs."""
     with pytest.raises(ValueError):
         urlutils.same_domain(QUrl(url1), QUrl(url2))
