@@ -557,6 +557,10 @@ def data(readonly=False):
              "sensible os-specific default. Will expand environment "
              "variables."),
 
+            ('remember-download-directory',
+             SettingValue(typ.Bool(), 'true'),
+             "Whether to remember the last used download directory."),
+
             ('maximum-pages-in-cache',
              SettingValue(
                  typ.Int(none_ok=True, minval=0, maxval=MAXVALS['int']), ''),

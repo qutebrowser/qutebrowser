@@ -48,13 +48,21 @@ ModelRole = usertypes.enum('ModelRole', ['item'], start=Qt.UserRole,
 
 RetryInfo = collections.namedtuple('RetryInfo', ['request', 'manager'])
 
+# Remember the last used directory
+_last_used_directory = None
+
 
 def _download_dir():
     """Get the download directory to use."""
     directory = config.get('storage', 'download-directory')
-    if directory is None:
-        directory = standarddir.download()
-    return directory
+    remember_dir = config.get('storage', 'remember-download-directory')
+
+    if remember_dir and _last_used_directory is not None:
+        return _last_used_directory
+    elif directory is None:
+        return standarddir.download()
+    else:
+        return directory
 
 
 def _path_suggestion(filename):
@@ -433,6 +441,7 @@ class DownloadItem(QObject):
             filename: The full filename to save the download to.
                       None: special value to stop the download.
         """
+        global _last_used_directory
         if self.fileobj is not None:
             raise ValueError("fileobj was already set! filename: {}, "
                              "existing: {}, fileobj {}".format(
@@ -447,6 +456,8 @@ class DownloadItem(QObject):
             # from the user, so we append that to the default directory and
             # try again.
             self._create_full_filename(os.path.join(_download_dir(), filename))
+
+        _last_used_directory = os.path.dirname(self._filename)
 
         log.downloads.debug("Setting filename to {}".format(filename))
         if os.path.isfile(self._filename):
