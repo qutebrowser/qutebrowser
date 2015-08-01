@@ -479,13 +479,13 @@ def data(readonly=False):
              SettingValue(typ.LastClose(), 'ignore'),
              "Behavior when the last tab is closed."),
 
-            ('hide-auto',
-             SettingValue(typ.Bool(), 'false'),
-             "Hide the tab bar if only one tab is open."),
+            ('show',
+             SettingValue(typ.TabBarShow(), 'always'),
+             "When to show the tab bar"),
 
-            ('hide-always',
-             SettingValue(typ.Bool(), 'false'),
-             "Always hide the tab bar."),
+            ('show-switching-delay',
+             SettingValue(typ.Int(), '800'),
+             "Time to show the tab bar before hiding it when tabs->show is set to 'switching'."),
 
             ('wrap',
              SettingValue(typ.Bool(), 'true'),
