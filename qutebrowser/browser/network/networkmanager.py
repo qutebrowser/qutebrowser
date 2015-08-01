@@ -340,15 +340,17 @@ class NetworkManager(QNetworkAccessManager):
 
         current_url = objreg.get('webview', scope='tab', window=self._win_id,
                                  tab=self._tab_id).url()
+        referer_header_conf = config.get('network', 'referer-header')
 
-        if config.get('network', 'referer-header') == 'never':
+        if referer_header_conf == 'never':
             # Note: using ''.encode('ascii') sends a header with no value,
             # instead of no header at all
             req.setRawHeader('Referer'.encode('ascii'), QByteArray())
-        elif (config.get('network', 'referer-header') == 'same-domain' and
-                current_url.isValid() and
+        elif (referer_header_conf== 'same-domain' and current_url.isValid() and
                 not urlutils.same_domain(req.url(), current_url)):
             req.setRawHeader('Referer'.encode('ascii'), QByteArray())
+        # If refer_header_conf is set to 'always', we leave the header alone as
+        # QtWebKit did set it.
 
         accept_language = config.get('network', 'accept-language')
         if accept_language is not None:
