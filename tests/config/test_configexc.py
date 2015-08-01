@@ -16,9 +16,9 @@
 # You should have received a copy of the GNU General Public License
 # along with qutebrowser.  If not, see <http://www.gnu.org/licenses/>.
 
-"""Tests for qutebrowser.config.configexc."""
+# pylint: disable=missing-docstring
 
-import pytest
+"""Tests for qutebrowser.config.configexc."""
 
 from qutebrowser.config import configexc
 
