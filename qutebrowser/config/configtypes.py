@@ -1496,8 +1496,8 @@ class Referer(BaseType):
     valid_values = ValidValues(('always', "Always send."),
                                ('never', "Never send; this is not recommended,"
                                    " as some sites may break."),
-                               ('same-domain', "Only send for the same domain,"
-                                   " this will still protect your privacy, but"
+                               ('same-domain', "Only send for the same domain."
+                                   " This will still protect your privacy, but"
                                    " shouldn't break any sites."))
 
 
