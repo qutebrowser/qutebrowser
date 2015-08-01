@@ -382,8 +382,8 @@ class HintManager(QObject):
         """
 
         return self._evaluateJavaScriptOnNewElement(elem,
-                'this.getBoundingClientRect().left - document.body.getBoundingClientRect().left',
-                'this.getBoundingClientRect().top - document.body.getBoundingClientRect().top'
+                'this.getBoundingClientRect().left - document.querySelector("html").getBoundingClientRect().left',
+                'this.getBoundingClientRect().top - document.querySelector("html").getBoundingClientRect().top'
                )
 
     def _get_element_relative_geometry(self, elem):
