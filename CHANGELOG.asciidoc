@@ -29,6 +29,9 @@ Added
   size/padding of the tabbar.
 - New setting `network -> referer-header` to configure when the referer should
   be sent (by default it's only sent while on the same domain).
+- New setting `tabs -> show` which supersedes the old `tabs -> hide-*` options
+  and has an additional `switching` option which shows tab while switching
+  them. There's also a new `show-switching` option to configure the timeout.
 
 Changed
 ~~~~~~~
@@ -52,6 +55,8 @@ Removed
 
 - The `tabs -> indicator-space` setting got removed as the new padding settings
   should be used instead.
+- The `tabs -> hide-always` and `tabs -> hide-auto` settings got merged into
+  the new `tabs -> show` setting.
 
 v0.3.0
 ------

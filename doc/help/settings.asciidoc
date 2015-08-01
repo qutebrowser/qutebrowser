@@ -102,8 +102,8 @@
 |<<tabs-new-tab-position,new-tab-position>>|How new tabs are positioned.
 |<<tabs-new-tab-position-explicit,new-tab-position-explicit>>|How new tabs opened explicitly are positioned.
 |<<tabs-last-close,last-close>>|Behavior when the last tab is closed.
-|<<tabs-hide-auto,hide-auto>>|Hide the tab bar if only one tab is open.
-|<<tabs-hide-always,hide-always>>|Always hide the tab bar.
+|<<tabs-show,show>>|When to show the tab bar
+|<<tabs-show-switching-delay,show-switching-delay>>|Time to show the tab bar before hiding it when tabs->show is set to 'switching'.
 |<<tabs-wrap,wrap>>|Whether to wrap when changing tabs.
 |<<tabs-movable,movable>>|Whether tabs should be movable.
 |<<tabs-close-mouse-button,close-mouse-button>>|On which mouse button to close tabs.
@@ -961,27 +961,24 @@ Valid values:
 
 Default: +pass:[ignore]+
 
-[[tabs-hide-auto]]
-=== hide-auto
-Hide the tab bar if only one tab is open.
+[[tabs-show]]
+=== show
+When to show the tab bar
 
 Valid values:
 
- * +true+
- * +false+
+ * +always+: Always show the tab bar.
+ * +never+: Always hide the tab bar.
+ * +multiple+: Hide the tab bar if only one tab is open.
+ * +switching+: Show the tab bar when switching tabs.
 
-Default: +pass:[false]+
+Default: +pass:[always]+
 
-[[tabs-hide-always]]
-=== hide-always
-Always hide the tab bar.
+[[tabs-show-switching-delay]]
+=== show-switching-delay
+Time to show the tab bar before hiding it when tabs->show is set to 'switching'.
 
-Valid values:
-
- * +true+
- * +false+
-
-Default: +pass:[false]+
+Default: +pass:[800]+
 
 [[tabs-wrap]]
 === wrap
