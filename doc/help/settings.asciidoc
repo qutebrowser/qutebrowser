@@ -54,6 +54,7 @@
 |Setting|Description
 |<<network-do-not-track,do-not-track>>|Value to send in the `DNT` header.
 |<<network-accept-language,accept-language>>|Value to send in the `accept-language` header.
+|<<network-referer-header,referer-header>>|Send the Referer header
 |<<network-user-agent,user-agent>>|User agent to send. Empty to send the default.
 |<<network-proxy,proxy>>|The proxy to use.
 |<<network-proxy-dns-requests,proxy-dns-requests>>|Whether to send DNS requests over the configured proxy.
@@ -639,6 +640,18 @@ Default: +pass:[true]+
 Value to send in the `accept-language` header.
 
 Default: +pass:[en-US,en]+
+
+[[network-referer-header]]
+=== referer-header
+Send the Referer header
+
+Valid values:
+
+ * +always+: Always send.
+ * +never+: Never send; this is not recommended, as some sites may break.
+ * +same-domain+: Only send for the same domain. This will still protect your privacy, but shouldn't break any sites.
+
+Default: +pass:[same-domain]+
 
 [[network-user-agent]]
 === user-agent
