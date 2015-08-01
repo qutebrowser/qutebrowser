@@ -1567,10 +1567,14 @@ class UserAgent(BaseType):
         ]
         return out
 
+
 class TabBarShow(BaseType):
+
     """When to show the tab bar."""
 
     valid_values = ValidValues(('always', "Always show the tab bar."),
                                ('never', "Always hide the tab bar."),
-                               ('multiple', "Hide the tab bar if only one tab is open."),
-                               ('switching', "Show the tab bar when switching tabs."))
+                               ('multiple', "Hide the tab bar if only one tab "
+                                            "is open."),
+                               ('switching', "Show the tab bar when switching "
+                                             "tabs."))

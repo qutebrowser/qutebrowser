@@ -223,14 +223,15 @@ class TabBar(QTabBar):
         self.vertical = False
         self._auto_hide_timer = QTimer()
         self._auto_hide_timer.setSingleShot(True)
-        self._auto_hide_timer.setInterval(config.get('tabs', 'show-switching-delay'))
+        self._auto_hide_timer.setInterval(
+            config.get('tabs', 'show-switching-delay'))
         self._auto_hide_timer.timeout.connect(self._tabhide)
         self.setAutoFillBackground(True)
         self.set_colors()
         config_obj.changed.connect(self.set_colors)
         QTimer.singleShot(0, self._tabhide)
         config_obj.changed.connect(self.on_tab_colors_changed)
-        config_obj.changed.connect(self.show_switching_delay)
+        config_obj.changed.connect(self.on_show_switching_delay_changed)
         config_obj.changed.connect(self.tabs_show)
 
     def __repr__(self):
@@ -242,9 +243,10 @@ class TabBar(QTabBar):
         self._tabhide()
 
     @config.change_filter('tabs', 'show-switching-delay')
-    def show_switching_delay(self):
+    def on_show_switching_delay_changed(self):
         """Set timer interval when tabs->show-switching-delay got changed."""
-        self._auto_hide_timer.setInterval(config.get('tabs', 'show-switching-delay'))
+        self._auto_hide_timer.setInterval(
+            config.get('tabs', 'show-switching-delay'))
 
     def on_change(self):
         """Show tab bar when current tab got changed."""

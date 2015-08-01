@@ -485,7 +485,8 @@ def data(readonly=False):
 
             ('show-switching-delay',
              SettingValue(typ.Int(), '800'),
-             "Time to show the tab bar before hiding it when tabs->show is set to 'switching'."),
+             "Time to show the tab bar before hiding it when tabs->show is "
+             "set to 'switching'."),
 
             ('wrap',
              SettingValue(typ.Bool(), 'true'),
