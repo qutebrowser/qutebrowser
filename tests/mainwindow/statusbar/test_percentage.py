@@ -61,6 +61,6 @@ def test_percentage_text(percentage, y, expected):
 def test_tab_change(percentage):
     """Make sure the percentage gets changed correctly when switching tabs."""
     percentage.set_perc(x=None, y=10)
-    tab = FakeTab(20)
+    tab = FakeTab([0, 20])
     percentage.on_tab_changed(tab)
     assert percentage.text() == '[20%]'
