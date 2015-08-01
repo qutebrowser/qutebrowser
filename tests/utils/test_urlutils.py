@@ -499,33 +499,19 @@ def test_fuzzy_url_error(url, raising, has_err_string):
         assert str(excinfo.value) == expected_text
 
 
-class TestSameDomain:
+@pytest.mark.parametrize('are_same, url1, url2', [
+    (True, 'http://example.com', 'http://www.example.com'),
+    (True, 'http://bbc.co.uk', 'https://www.bbc.co.uk'),
+    (True, 'http://many.levels.of.domains.example.com', 'http://www.example.com'),
+    (True, 'http://idn.иком.museum', 'http://idn2.иком.museum'),
+    (True, 'http://one.not_a_valid_tld', 'http://one.not_a_valid_tld'),
 
-    """Tests for dame_domain."""
-
-    def test_same_domains(self):
-        """Test for domains that should be considered the same."""
-        hosts = (
-            ('http://example.com', 'http://www.example.com'),
-            ('http://bbc.co.uk', 'https://www.bbc.co.uk'),
-            ('http://many.levels.of.domains.example.com', 'http://www.example.com'),
-            ('http://idn.иком.museum', 'http://idn2.иком.museum'),
-            ('http://one.not_a_valid_tld', 'http://one.not_a_valid_tld'),
-        )
-
-        for host1, host2 in hosts:
-            assert urlutils.same_domain(QUrl(host1), QUrl(host2))
-            assert urlutils.same_domain(QUrl(host2), QUrl(host1))
-
-    def test_not_same_domains(self):
-        """Test for domains that should be NOT considered the same."""
-        hosts = (
-            ('http://bbc.co.uk', 'http://example.co.uk'),
-            ('https://example.kids.museum', 'http://example.kunst.museum'),
-            ('http://idn.иком.museum', 'http://idn.ירושלים.museum'),
-            ('http://one.not_a_valid_tld', 'http://two.not_a_valid_tld'),
-        )
-
-        for host1, host2 in hosts:
-            assert not urlutils.same_domain(QUrl(host1), QUrl(host2))
-            assert not urlutils.same_domain(QUrl(host2), QUrl(host1))
+    (False, 'http://bbc.co.uk', 'http://example.co.uk'),
+    (False, 'https://example.kids.museum', 'http://example.kunst.museum'),
+    (False, 'http://idn.иком.museum', 'http://idn.ירושלים.museum'),
+    (False, 'http://one.not_a_valid_tld', 'http://two.not_a_valid_tld'),
+])
+def test_same_domain(are_same, url1, url2):
+    """Tests for same_domain."""
+    assert urlutils.same_domain(QUrl(url1), QUrl(url2)) == are_same
+    assert urlutils.same_domain(QUrl(url2), QUrl(url1)) == are_same
