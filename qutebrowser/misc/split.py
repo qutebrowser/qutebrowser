@@ -101,9 +101,9 @@ class ShellLexer:
             elif self.state == 'a':
                 if nextchar in self.whitespace:
                     self.state = ' '
-                    if self.token or self.quoted:
-                        yield self.token
-                        self.reset()
+                    assert self.token or self.quoted
+                    yield self.token
+                    self.reset()
                     if self.keep:
                         yield nextchar
                 elif nextchar in self.quotes:
