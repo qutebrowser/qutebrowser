@@ -369,7 +369,8 @@ class HintManager(QObject):
         """
         pos = self._get_element_relative_geometry(elem)
         body = elem.document().findFirst('body')
-        if body.styleProperty('position', QWebElement.ComputedStyle) == 'relative':
+        if(body.styleProperty('position', QWebElement.ComputedStyle) ==
+                'relative'):
             body_rect = elem.evaluateJavaScript(
                 'document.body.getBoundingClientRect()'
             )
