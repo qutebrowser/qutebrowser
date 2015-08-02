@@ -23,6 +23,8 @@
 import math
 import functools
 import collections
+import os
+import sys
 
 from PyQt5.QtCore import (pyqtSignal, pyqtSlot, QObject, QEvent, Qt, QUrl,
                           QTimer, QRect)
@@ -372,6 +374,18 @@ class HintManager(QObject):
         pos.translate(-rootposition.topLeft())
         return pos
 
+    def _enable_selection(self):
+        """Add the hint stylesheet."""
+        QWebSettings.globalSettings().setUserStyleSheetUrl(
+            QUrl('file://' + os.path.join(sys.path[0],
+                 'qutebrowser/css/hint.css')
+                 )
+        )
+
+    def _stop_enable_selection(self):
+        """Remove the hint stylesheet."""
+        QWebSettings.globalSettings().setUserStyleSheetUrl(QUrl(''))
+
     def _get_element_relative_geometry(self, elem):
         """Get the element geometry relative to the top of the viewport.
 
@@ -381,21 +395,33 @@ class HintManager(QObject):
         Return:
             A QRect.
         """
-        elem.prependOutside('<span style="position: absolute"></span>')
-        placeholder = elem.previousSibling()
+        rect = QRect()
         if QWebSettings.globalSettings().testAttribute(
                 QWebSettings.JavascriptEnabled):
-            left = placeholder.evaluateJavaScript(
-                'this.getBoundingClientRect().left'
-            )
-            top = placeholder.evaluateJavaScript(
-                'this.getBoundingClientRect().top'
-            )
-            rect = QRect(left, top, 0, 0)
+            tagname = elem.tagName()
+            if tagname == 'INPUT' or tagname == 'TEXTAREA':
+                # FIXME: Try button on w3Schools is not working.
+                # FIXME: when the element is in an iframe, compute the real position.
+                left = elem.evaluateJavaScript(
+                    'this.getBoundingClientRect().left'
+                )
+                top = elem.evaluateJavaScript(
+                    'this.getBoundingClientRect().top'
+                )
+                rect = QRect(left, top, 0, 0)
+            else:
+                elem.evaluateJavaScript(
+                    'getSelection().selectAllChildren(this)'
+                )
+                jsrect = elem.evaluateJavaScript(
+                    'getSelection().getRangeAt(0).getClientRects()[0]'
+                )
+                elem.evaluateJavaScript('getSelection().removeAllRanges()')
+                if jsrect:
+                    rect = QRect(jsrect['left'], jsrect['top'], 0, 0)
         else:
             # FIXME: The position is not good when the text is wrapped.
             rect = elem.rect_on_view()
-        placeholder.removeFromDocument()
         return rect
 
     def _set_style_position(self, elem, label):
@@ -474,14 +500,10 @@ class HintManager(QObject):
         # e.g. parse (-webkit-)border-radius correctly and click text fields at
         # the bottom right, and everything else on the top left or so.
         # https://github.com/The-Compiler/qutebrowser/issues/70
-        try:
-            dx = int(elem.styleProperty('border-top-left-radius',
-                     QWebElement.ComputedStyle)[:-2])
-        except ValueError:
-            dx = 0
-        dx += 3
+        self._enable_selection()
         rect = self._get_element_relative_geometry(elem)
-        rect.translate(dx, 3)
+        self._stop_enable_selection()
+        rect.translate(3, 3)
         pos = rect.topLeft()
 
         action = "Hovering" if context.target == Target.hover else "Clicking"
@@ -707,9 +729,11 @@ class HintManager(QObject):
         if not elems:
             raise cmdexc.CommandError("No elements found.")
         strings = self._hint_strings(elems)
+        self._enable_selection()
         for e, string in zip(elems, strings):
             label = self._draw_label(e, string)
             self._context.elems[string] = ElemTuple(e, label)
+        self._stop_enable_selection()
         keyparsers = objreg.get('keyparsers', scope='window',
                                 window=self._win_id)
         keyparser = keyparsers[usertypes.KeyMode.hint]
@@ -995,6 +1019,8 @@ class HintManager(QObject):
     def on_contents_size_changed(self, _size):
         """Reposition hints if contents size changed."""
         log.hints.debug("Contents size changed...!")
+        self._enable_selection()
+
         for elems in self._context.elems.values():
             try:
                 if elems.elem.webFrame() is None:
@@ -1004,6 +1030,7 @@ class HintManager(QObject):
                 self._set_style_position(elems.elem, elems.label)
             except webelem.IsNullError:
                 pass
+        self._stop_enable_selection()
 
     @pyqtSlot(usertypes.KeyMode)
     def on_mode_left(self, mode):
