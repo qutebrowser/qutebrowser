@@ -367,11 +367,19 @@ class HintManager(QObject):
         Return:
             A QRect.
         """
-        body_rect = elem.evaluateJavaScript(
-            'document.body.getBoundingClientRect()'
-        )
         pos = self._get_element_relative_geometry(elem)
-        pos.translate(-body_rect['left'], -body_rect['top'])
+        body = elem.document().findFirst('body')
+        if body.styleProperty('position', QWebElement.ComputedStyle) == 'relative':
+            body_rect = elem.evaluateJavaScript(
+                'document.body.getBoundingClientRect()'
+            )
+            pos.translate(-body_rect['left'], -body_rect['top'])
+        else:
+            rootposition = webelem.WebElementWrapper(
+                elem.webFrame().documentElement()
+            ).rect_on_view()
+
+            pos.translate(-rootposition.topLeft())
         return pos
 
     def _enable_selection(self):
@@ -400,7 +408,6 @@ class HintManager(QObject):
                 QWebSettings.JavascriptEnabled):
             tagname = elem.tagName()
             if tagname == 'INPUT' or tagname == 'TEXTAREA':
-                # FIXME: when the element is in an iframe, compute the real position.
                 left = elem.evaluateJavaScript(
                     'this.getBoundingClientRect().left'
                 )
@@ -421,6 +428,22 @@ class HintManager(QObject):
         else:
             # FIXME: The position is not good when the text is wrapped.
             rect = elem.rect_on_view()
+        return rect
+
+    def _get_element_absolute_geometry(self, elem):
+        """Get the element geometry relative to the top of the root viewport.
+
+        Args:
+            elem: The QWebElement we want to get the geometry.
+
+        Return:
+            A QRect.
+        """
+        rect = self._get_element_relative_geometry(elem)
+        if QWebSettings.globalSettings().testAttribute(
+                QWebSettings.JavascriptEnabled):
+            frame_pos = elem.webFrame().geometry().topLeft()
+            rect.translate(frame_pos)
         return rect
 
     def _set_style_position(self, elem, label):
@@ -500,7 +523,7 @@ class HintManager(QObject):
         # the bottom right, and everything else on the top left or so.
         # https://github.com/The-Compiler/qutebrowser/issues/70
         self._enable_selection()
-        rect = self._get_element_relative_geometry(elem)
+        rect = self._get_element_absolute_geometry(elem)
         self._stop_enable_selection()
         rect.translate(3, 3)
         pos = rect.topLeft()
