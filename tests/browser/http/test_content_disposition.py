@@ -83,6 +83,23 @@ def test_att_double_space(header_checker):
                                   'foo bar.html')
 
 
+def test_iso2231_langtag(header_checker):
+    """'attachment', specifying a filename of foo-ä.html with language tag.
+
+    Using RFC2231/5987 encoded ISO-8859-1.
+    UA should offer to download the resource as "foo-ä.html".
+    """
+    header_checker.check_filename(
+        "attachment; filename*=iso-8859-1'de'foo-%E4.html",
+        'foo-ä.html')
+
+
+def test_iso2231_iso8859_invalid_chars(header_checker):
+    """'attachment', specifying a filename with invalid ISO-8859-1 chars."""
+    header_checker.check_ignored(
+        "attachment; filename*=iso-8859-1''foo-%80.html")
+
+
 # All following test cases are based on http://greenbytes.de/tech/tc2231/
 
 
