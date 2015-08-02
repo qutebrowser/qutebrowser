@@ -418,7 +418,7 @@ class HintManager(QObject):
             rect.translate(frame.scrollPosition())
         else:
             # FIXME: The position is not good when the text is wrapped.
-            rect = elem.rect_on_view()
+            rect = elem.geometry()
         return rect
 
     def _get_element_absolute_geometry(self, elem):
@@ -430,12 +430,17 @@ class HintManager(QObject):
         Return:
             A QRect.
         """
-        pos = self._get_element_relative_geometry(elem, False)
-        frame = elem.webFrame()
-        while frame is not None:
-            pos.translate(frame.geometry().topLeft())
-            pos.translate(-frame.scrollPosition())
-            frame = frame.parentFrame()
+        if QWebSettings.globalSettings().testAttribute(
+                QWebSettings.JavascriptEnabled):
+            pos = self._get_element_relative_geometry(elem, False)
+            frame = elem.webFrame()
+            while frame is not None:
+                pos.translate(frame.geometry().topLeft())
+                pos.translate(-frame.scrollPosition())
+                frame = frame.parentFrame()
+        else:
+            # FIXME: The position is not good when the text is wrapped.
+            pos = elem.rect_on_view()
         return pos
 
     def _set_style_position(self, elem, label):
