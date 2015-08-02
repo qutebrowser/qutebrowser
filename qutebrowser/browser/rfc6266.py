@@ -26,7 +26,7 @@ import re
 
 import pypeg2 as peg
 
-from qutebrowser.utils import log, utils
+from qutebrowser.utils import utils
 
 
 class UniqueNamespace(peg.Namespace):
@@ -215,12 +215,17 @@ class ContentDispositionValue:
 LangTagged = collections.namedtuple('LangTagged', ['string', 'langtag'])
 
 
-class DuplicateParamError(Exception):
+class Error(Exception):
+
+    """Base class for RFC6266 errors."""
+
+
+class DuplicateParamError(Error):
 
     """Exception raised when a parameter has been given twice."""
 
 
-class InvalidISO8859Error(Exception):
+class InvalidISO8859Error(Error):
 
     """Exception raised when a byte is invalid in ISO-8859-1."""
 
@@ -302,8 +307,6 @@ def parse_headers(content_disposition):
     # filename parameter. But it does mean we occasionally give
     # less-than-certain values for some legacy senders.
     content_disposition = content_disposition.decode('iso-8859-1')
-    log.rfc6266.debug("Parsing Content-Disposition: {}".format(
-        content_disposition))
     # Our parsing is relaxed in these regards:
     # - The grammar allows a final ';' in the header;
     # - We do LWS-folding, and possibly normalise other broken
@@ -311,14 +314,8 @@ def parse_headers(content_disposition):
     # XXX Would prefer to accept only the quoted whitespace
     # case, rather than normalising everything.
     content_disposition = normalize_ws(content_disposition)
-    try:
-        parsed = peg.parse(content_disposition, ContentDispositionValue)
-    except (SyntaxError, DuplicateParamError, InvalidISO8859Error):
-        log.rfc6266.exception("Error while parsing Content-Disposition")
-        return ContentDisposition()
-    else:
-        return ContentDisposition(disposition=parsed.dtype,
-                                  assocs=parsed.params)
+    parsed = peg.parse(content_disposition, ContentDispositionValue)
+    return ContentDisposition(disposition=parsed.dtype, assocs=parsed.params)
 
 
 def parse_ext_value(val):

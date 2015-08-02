@@ -46,11 +46,12 @@ def parse_content_disposition(reply):
         # We use the unsafe variant of the filename as we sanitize it via
         # os.path.basename later.
         try:
-            content_disposition = rfc6266.parse_headers(
-                bytes(reply.rawHeader(content_disposition_header)))
+            value = bytes(reply.rawHeader(content_disposition_header))
+            log.rfc6266.debug("Parsing Content-Disposition: {}".format(value))
+            content_disposition = rfc6266.parse_headers(value)
             filename = content_disposition.filename()
-        except UnicodeDecodeError:
-            log.rfc6266.exception("Error while decoding filename")
+        except (SyntaxError, UnicodeDecodeError, rfc6266.Error):
+            log.rfc6266.exception("Error while parsing filename")
         else:
             is_inline = content_disposition.is_inline()
     # Then try to get filename from url
