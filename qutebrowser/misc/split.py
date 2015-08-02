@@ -117,6 +117,8 @@ class ShellLexer:
                     self.state = nextchar
                 else:
                     self.token += nextchar
+            else:
+                raise AssertionError("Invalid state {!r}!".format(self.state))
         if self.state in self.escape and not self.keep:
             self.token += self.state
         if self.token or self.quoted:
