@@ -137,7 +137,7 @@ class WebElementWrapper(collections.abc.MutableMapping):
         self._check_vanished()
         if key not in self:
             raise KeyError(key)
-        self.removeAttribute(key)
+        self._elem.removeAttribute(key)
 
     def __contains__(self, key):
         self._check_vanished()
