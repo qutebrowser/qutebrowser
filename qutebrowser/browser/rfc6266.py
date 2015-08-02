@@ -230,7 +230,7 @@ class InvalidISO8859Error(Error):
     """Exception raised when a byte is invalid in ISO-8859-1."""
 
 
-class ContentDisposition:
+class _ContentDisposition:
 
     """Records various indications and hints about content disposition.
 
@@ -239,24 +239,15 @@ class ContentDisposition:
     in the download case.
     """
 
-    def __init__(self, disposition='inline', assocs=None):
-        """Used internally after parsing the header.
-
-        Instances should generally be created from a factory
-        function, such as parse_headers and its variants.
-        """
-        if len(disposition) != 1:
-            self.disposition = 'inline'
-        else:
-            self.disposition = disposition[0]
-        if assocs is None:
-            self.assocs = {}
-        else:
-            self.assocs = dict(assocs)  # So we can change values
-            if 'filename*' in self.assocs:
-                param = self.assocs['filename*']
-                assert isinstance(param, ExtDispositionParm)
-                self.assocs['filename*'] = parse_ext_value(param.value).string
+    def __init__(self, disposition, assocs):
+        """Used internally after parsing the header."""
+        assert len(disposition) == 1
+        self.disposition = disposition[0]
+        self.assocs = dict(assocs)  # So we can change values
+        if 'filename*' in self.assocs:
+            param = self.assocs['filename*']
+            assert isinstance(param, ExtDispositionParm)
+            self.assocs['filename*'] = parse_ext_value(param.value).string
 
     def filename(self):
         """The filename from the Content-Disposition header or None.
@@ -296,7 +287,7 @@ def normalize_ws(text):
 
 
 def parse_headers(content_disposition):
-    """Build a ContentDisposition from header values."""
+    """Build a _ContentDisposition from header values."""
     # https://bitbucket.org/logilab/pylint/issue/492/
     # pylint: disable=no-member
 
@@ -315,7 +306,7 @@ def parse_headers(content_disposition):
     # case, rather than normalising everything.
     content_disposition = normalize_ws(content_disposition)
     parsed = peg.parse(content_disposition, ContentDispositionValue)
-    return ContentDisposition(disposition=parsed.dtype, assocs=parsed.params)
+    return _ContentDisposition(disposition=parsed.dtype, assocs=parsed.params)
 
 
 def parse_ext_value(val):
