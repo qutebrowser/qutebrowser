@@ -367,11 +367,11 @@ class HintManager(QObject):
         Return:
             A QRect.
         """
-        rootposition = webelem.WebElementWrapper(
-            elem.webFrame().documentElement()
-        ).rect_on_view()
+        body_rect = elem.evaluateJavaScript(
+            'document.body.getBoundingClientRect()'
+        )
         pos = self._get_element_relative_geometry(elem)
-        pos.translate(-rootposition.topLeft())
+        pos.translate(-body_rect['left'], -body_rect['top'])
         return pos
 
     def _enable_selection(self):
@@ -400,7 +400,6 @@ class HintManager(QObject):
                 QWebSettings.JavascriptEnabled):
             tagname = elem.tagName()
             if tagname == 'INPUT' or tagname == 'TEXTAREA':
-                # FIXME: Try button on w3Schools is not working.
                 # FIXME: when the element is in an iframe, compute the real position.
                 left = elem.evaluateJavaScript(
                     'this.getBoundingClientRect().left'
