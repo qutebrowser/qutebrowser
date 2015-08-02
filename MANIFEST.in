@@ -4,7 +4,6 @@ recursive-include qutebrowser *.py
 recursive-include qutebrowser/html *.html
 recursive-include qutebrowser/test *.py
 recursive-include qutebrowser/javascript *.js
-recursive-include qutebrowser/css *.css
 graft icons
 graft doc/img
 graft misc
