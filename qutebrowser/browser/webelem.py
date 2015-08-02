@@ -241,6 +241,7 @@ class WebElementWrapper(collections.abc.MutableMapping):
         for klass in self._elem.classes():
             if any([klass.startswith(e) for e in div_classes]):
                 return True
+        return False
 
     def is_editable(self, strict=False):
         """Check whether we should switch to insert mode for this element.
