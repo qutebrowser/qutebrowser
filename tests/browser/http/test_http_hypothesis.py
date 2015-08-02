@@ -26,13 +26,8 @@ from hypothesis import strategies
 from qutebrowser.browser import http, rfc6266
 
 
-@hypothesis.given(strategies.text(alphabet=[chr(x) for x in range(255)]))
-def test_parse_content_disposition(stubs, s):
-    reply = stubs.FakeNetworkReply(headers={'Content-Disposition': s})
-    http.parse_content_disposition(reply)
-
-
 @pytest.mark.parametrize('template', [
+    '{}',
     'attachment; filename="{}"',
     'inline; {}',
     'attachment; {}="foo"',
@@ -40,7 +35,7 @@ def test_parse_content_disposition(stubs, s):
     'attachment; filename*={}',
 ])
 @hypothesis.given(strategies.text(alphabet=[chr(x) for x in range(255)]))
-def test_parse_content_disposition_template(template, stubs, s):
+def test_parse_content_disposition(template, stubs, s):
     header = template.format(s)
     reply = stubs.FakeNetworkReply(headers={'Content-Disposition': header})
     http.parse_content_disposition(reply)
