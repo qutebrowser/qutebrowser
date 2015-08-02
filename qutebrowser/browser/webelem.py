@@ -281,6 +281,7 @@ class WebElementWrapper(collections.abc.MutableMapping):
 
     def is_text_input(self):
         """Check if this element is some kind of text box."""
+        self._check_vanished()
         roles = ('combobox', 'textbox')
         tag = self._elem.tagName().lower()
         return self.get('role', None) in roles or tag in ('input', 'textarea')
