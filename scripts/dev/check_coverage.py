@@ -86,16 +86,20 @@ def main():
         assert '\\' not in filename, filename
         assert '/' in filename, filename
 
+        # Files without any branches have 0% coverage
         if branch_cov < 100 and klass.find('./lines/line[@branch="true"]'):
-            # Files without any branches have 0% coverage
-            bad_branch_cov = True
+            is_bad = True
         else:
-            bad_branch_cov = False
+            is_bad = line_cov < 100
 
-        if filename in PERFECT_FILES and (line_cov < 100 or bad_branch_cov):
+        if filename in PERFECT_FILES and is_bad:
             status = 1
             print("{} has {}% line and {}% branch coverage!".format(
                 filename, line_cov, branch_cov))
+        elif filename not in PERFECT_FILES and not is_bad:
+            status = 1
+            print("{} has 100% coverage but is not in PERFECT_FILES!".format(
+                filename))
 
     return status
 
