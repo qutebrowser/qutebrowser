@@ -52,7 +52,8 @@ SELECTORS = {
     Group.focus: '*:focus',
 }
 
-FILTERS = {
+# WORKAROUND for https://bitbucket.org/ned/coveragepy/issues/90
+FILTERS = {  # pragma: no branch
     Group.links: (lambda e: 'href' in e and
                             QUrl(e['href']).scheme() != 'javascript'),
 }
