@@ -51,6 +51,7 @@ def main():
         'attribute-defined-outside-init',
         'redefined-outer-name',
         'unused-argument',
+        'missing-docstring',
         # https://bitbucket.org/logilab/pylint/issue/511/
         'undefined-variable',
     ]
