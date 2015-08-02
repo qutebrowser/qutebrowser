@@ -182,3 +182,8 @@ class TestSimpleSplit:
     def test_split_keep(self, test, expected):
         """Test splitting with keep=True."""
         assert split.simple_split(test, keep=True) == expected
+
+    def test_maxsplit_0_keep(self):
+        """Test special case with maxsplit=0 and keep=True."""
+        s = "foo  bar"
+        assert split.simple_split(s, keep=True, maxsplit=0) == [s]
