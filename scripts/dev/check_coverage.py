@@ -33,8 +33,10 @@ from scripts import utils
 
 PERFECT_FILES = [
     'qutebrowser/commands/cmdexc.py',
-    'qutebrowser/misc/readline.py',
     'qutebrowser/browser/tabhistory.py',
+
+    'qutebrowser/misc/readline.py',
+    'qutebrowser/misc/split.py',
 
     'qutebrowser/mainwindow/statusbar/keystring.py',
     'qutebrowser/mainwindow/statusbar/percentage.py',
