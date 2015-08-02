@@ -23,8 +23,6 @@
 import math
 import functools
 import collections
-import os
-import sys
 
 from PyQt5.QtCore import (pyqtSignal, pyqtSlot, QObject, QEvent, Qt, QUrl,
                           QTimer, QRect)
@@ -358,48 +356,52 @@ class HintManager(QObject):
             label.setStyleProperty(k, v)
         self._set_style_position(elem, label)
 
-    def _get_element_geometry(self, elem):
+    def _get_element_main_rect(self, elem, show):
         """Get the element geometry.
 
         Args:
             elem: The QWebElement we want to get the geometry.
+            show: Whether we want to position to show or not (click).
 
         Return:
             A QRect.
         """
-        pos = self._get_element_relative_geometry(elem)
-        body = elem.document().findFirst('body')
-        if(body.styleProperty('position', QWebElement.ComputedStyle) ==
-                'relative'):
-            body_rect = elem.evaluateJavaScript(
-                'document.body.getBoundingClientRect()'
-            )
-            pos.translate(-body_rect['left'], -body_rect['top'])
-        else:
-            rootposition = webelem.WebElementWrapper(
-                elem.webFrame().documentElement()
-            ).rect_on_view()
+        rect = QRect()
+        js_rects = elem.evaluateJavaScript('this.getClientRects()')
+        if js_rects:
+            max_width = 0
+            max_index = '0'
+            size = int(js_rects['length'])
+            if size > 0:
+                for i in range(size):
+                    index = str(i)
+                    width = js_rects[index]['width']
+                    if width > max_width:
+                        max_width = width
+                        max_index = index
+                        break
+                js_rect = js_rects[max_index]
+                rect = QRect(js_rect['left'], js_rect['top'], js_rect['width'],
+                             js_rect['height'])
 
-            pos.translate(-rootposition.topLeft())
-        return pos
+            if show:
+                body = elem.document().findFirst('body')
+                if(body.styleProperty('position', QWebElement.ComputedStyle) ==
+                        'relative'):
+                    body_rect = elem.evaluateJavaScript(
+                        'document.body.getBoundingClientRect()'
+                    )
+                    rect.translate(-body_rect['left'], -body_rect['top'])
+                    frame = elem.webFrame()
+                    rect.translate(-frame.scrollPosition())
+        return rect
 
-    def _enable_selection(self):
-        """Add the hint stylesheet."""
-        QWebSettings.globalSettings().setUserStyleSheetUrl(
-            QUrl('file://' + os.path.join(sys.path[0],
-                 'qutebrowser/css/hint.css')
-                 )
-        )
-
-    def _stop_enable_selection(self):
-        """Remove the hint stylesheet."""
-        QWebSettings.globalSettings().setUserStyleSheetUrl(QUrl(''))
-
-    def _get_element_relative_geometry(self, elem):
+    def _get_element_relative_geometry(self, elem, show=True):
         """Get the element geometry relative to the top of the viewport.
 
         Args:
             elem: The QWebElement we want to get the geometry.
+            show: Whether we want to position to show or not (click).
 
         Return:
             A QRect.
@@ -407,25 +409,13 @@ class HintManager(QObject):
         rect = QRect()
         if QWebSettings.globalSettings().testAttribute(
                 QWebSettings.JavascriptEnabled):
-            tagname = elem.tagName()
-            if tagname == 'INPUT' or tagname == 'TEXTAREA':
-                left = elem.evaluateJavaScript(
-                    'this.getBoundingClientRect().left'
-                )
-                top = elem.evaluateJavaScript(
-                    'this.getBoundingClientRect().top'
-                )
-                rect = QRect(left, top, 0, 0)
-            else:
-                elem.evaluateJavaScript(
-                    'getSelection().selectAllChildren(this)'
-                )
-                jsrect = elem.evaluateJavaScript(
-                    'getSelection().getRangeAt(0).getClientRects()[0]'
-                )
-                elem.evaluateJavaScript('getSelection().removeAllRanges()')
-                if jsrect:
-                    rect = QRect(jsrect['left'], jsrect['top'], 0, 0)
+            js_rect = self._get_element_main_rect(elem, show)
+            if js_rect:
+                width = max(5, js_rect.width())
+                height = max(5, js_rect.height())
+                rect = QRect(js_rect.x(), js_rect.y(), width, height)
+            frame = elem.webFrame()
+            rect.translate(frame.scrollPosition())
         else:
             # FIXME: The position is not good when the text is wrapped.
             rect = elem.rect_on_view()
@@ -440,12 +430,13 @@ class HintManager(QObject):
         Return:
             A QRect.
         """
-        rect = self._get_element_relative_geometry(elem)
-        if QWebSettings.globalSettings().testAttribute(
-                QWebSettings.JavascriptEnabled):
-            frame_pos = elem.webFrame().geometry().topLeft()
-            rect.translate(frame_pos)
-        return rect
+        pos = self._get_element_relative_geometry(elem, False)
+        frame = elem.webFrame()
+        while frame is not None:
+            pos.translate(frame.geometry().topLeft())
+            pos.translate(-frame.scrollPosition())
+            frame = frame.parentFrame()
+        return pos
 
     def _set_style_position(self, elem, label):
         """Set the CSS position of the label element.
@@ -454,7 +445,7 @@ class HintManager(QObject):
             elem: The QWebElement to set the style attributes for.
             label: The label QWebElement.
         """
-        rect = self._get_element_geometry(elem)
+        rect = self._get_element_relative_geometry(elem)
         left = rect.x()
         top = rect.y()
         zoom = elem.webFrame().zoomFactor()
@@ -523,11 +514,8 @@ class HintManager(QObject):
         # e.g. parse (-webkit-)border-radius correctly and click text fields at
         # the bottom right, and everything else on the top left or so.
         # https://github.com/The-Compiler/qutebrowser/issues/70
-        self._enable_selection()
         rect = self._get_element_absolute_geometry(elem)
-        self._stop_enable_selection()
-        rect.translate(3, 3)
-        pos = rect.topLeft()
+        pos = rect.center()
 
         action = "Hovering" if context.target == Target.hover else "Clicking"
         log.hints.debug("{} on '{}' at {}/{}".format(
@@ -752,11 +740,9 @@ class HintManager(QObject):
         if not elems:
             raise cmdexc.CommandError("No elements found.")
         strings = self._hint_strings(elems)
-        self._enable_selection()
         for e, string in zip(elems, strings):
             label = self._draw_label(e, string)
             self._context.elems[string] = ElemTuple(e, label)
-        self._stop_enable_selection()
         keyparsers = objreg.get('keyparsers', scope='window',
                                 window=self._win_id)
         keyparser = keyparsers[usertypes.KeyMode.hint]
@@ -1042,7 +1028,6 @@ class HintManager(QObject):
     def on_contents_size_changed(self, _size):
         """Reposition hints if contents size changed."""
         log.hints.debug("Contents size changed...!")
-        self._enable_selection()
 
         for elems in self._context.elems.values():
             try:
@@ -1053,7 +1038,6 @@ class HintManager(QObject):
                 self._set_style_position(elems.elem, elems.label)
             except webelem.IsNullError:
                 pass
-        self._stop_enable_selection()
 
     @pyqtSlot(usertypes.KeyMode)
     def on_mode_left(self, mode):
