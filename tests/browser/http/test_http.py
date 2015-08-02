@@ -23,7 +23,34 @@ Note that tests for parse_content_disposition are in their own
 test_content_disposition.py file.
 """
 
+import pytest
+from PyQt5.QtCore import QUrl
+
 from qutebrowser.browser import http
+
+
+
+class TestNoContentDisposition:
+
+    """Test parse_content_disposition with no Content-Disposition header."""
+
+    @pytest.mark.parametrize('url', ['http://example.com/path',
+                                     'http://example.com/foo/path'])
+    def test_url(self, stubs, url):
+        """Test with a filename in the URL."""
+        reply = stubs.FakeNetworkReply(url=QUrl(url))
+        inline, filename = http.parse_content_disposition(reply)
+        assert inline
+        assert filename == 'path'
+
+    @pytest.mark.parametrize('url', ['http://example.com',
+                                     'http://example.com/'])
+    def test_none(self, stubs, url):
+        """Test with no filename at all."""
+        reply = stubs.FakeNetworkReply(url=QUrl(url))
+        inline, filename = http.parse_content_disposition(reply)
+        assert inline
+        assert filename == 'qutebrowser-download'
 
 
 class TestParseContentType:
