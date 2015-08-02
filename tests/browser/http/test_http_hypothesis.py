@@ -36,6 +36,7 @@ from qutebrowser.browser import http, rfc6266
 ])
 @hypothesis.given(strategies.text(alphabet=[chr(x) for x in range(255)]))
 def test_parse_content_disposition(template, stubs, s):
+    """Test parsing headers based on templates which hypothesis completes."""
     header = template.format(s)
     reply = stubs.FakeNetworkReply(headers={'Content-Disposition': header})
     http.parse_content_disposition(reply)
