@@ -31,7 +31,7 @@ import pytest
 from qutebrowser.browser import webelem
 
 
-def get_webelem(geometry=None, frame=None, null=False, visibility='',
+def get_webelem(geometry=None, frame=None, null=False, style=None,
                 display='', attributes=None, tagname=None, classes=None):
     """Factory for WebElementWrapper objects based on a mock.
 
@@ -39,8 +39,7 @@ def get_webelem(geometry=None, frame=None, null=False, visibility='',
         geometry: The geometry of the QWebElement as QRect.
         frame: The QWebFrame the element is in.
         null: Whether the element is null or not.
-        visibility: The CSS visibility style property value.
-        display: The CSS display style property value.
+        style: A dict with the styleAttributes of the element.
         attributes: Boolean HTML attributes to be added.
         tagname: The tag name.
         classes: HTML classes to be added.
@@ -51,6 +50,7 @@ def get_webelem(geometry=None, frame=None, null=False, visibility='',
     elem.webFrame.return_value = frame
     elem.tagName.return_value = tagname
     elem.toOuterXml.return_value = '<fakeelem/>'
+
     if attributes is not None:
         if not isinstance(attributes, collections.abc.Mapping):
             attributes = {e: None for e in attributes}
@@ -61,23 +61,22 @@ def get_webelem(geometry=None, frame=None, null=False, visibility='',
         elem.hasAttribute.return_value = False
         elem.attribute.return_value = ''
         elem.attributeNames.return_value = []
+
     if classes is not None:
         elem.classes.return_value = classes.split(' ')
     else:
         elem.classes.return_value = []
+
+    style_dict = {'visibility': '', 'display': ''}
+    if style is not None:
+        style_dict.update(style)
 
     def _style_property(name, strategy):
         """Helper function to act as styleProperty method."""
         if strategy != QWebElement.ComputedStyle:
             raise ValueError("styleProperty called with strategy != "
                              "ComputedStyle ({})!".format(strategy))
-        if name == 'visibility':
-            return visibility
-        elif name == 'display':
-            return display
-        else:
-            raise ValueError("styleProperty called with unknown name "
-                             "'{}'".format(name))
+        return style_dict[name]
 
     elem.styleProperty.side_effect = _style_property
     wrapped = webelem.WebElementWrapper(elem)
@@ -96,19 +95,13 @@ class TestWebElementWrapper:
             get_webelem(null=True)
 
 
-class TestIsVisibleInvalid:
+class TestIsVisible:
 
-    """Tests for is_visible with invalid elements.
+    @pytest.fixture
+    def frame(self, stubs):
+        return stubs.FakeWebFrame(QRect(0, 0, 100, 100))
 
-    Attributes:
-        frame: The FakeWebFrame we're using to test.
-    """
-
-    @pytest.fixture(autouse=True)
-    def setup(self, stubs):
-        self.frame = stubs.FakeWebFrame(QRect(0, 0, 100, 100))
-
-    def test_nullelem(self):
+    def test_nullelem(self, frame):
         """Passing an element with isNull() == True.
 
         geometry() and webFrame() should not be called, and ValueError should
@@ -117,83 +110,46 @@ class TestIsVisibleInvalid:
         elem = get_webelem()
         elem._elem.isNull.return_value = True
         with pytest.raises(webelem.IsNullError):
-            elem.is_visible(self.frame)
+            elem.is_visible(frame)
 
-    def test_invalid_invisible(self):
+    def test_invalid_invisible(self, frame):
         """Test elements with an invalid geometry which are invisible."""
-        elem = get_webelem(QRect(0, 0, 0, 0), self.frame)
+        elem = get_webelem(QRect(0, 0, 0, 0), frame)
         assert not elem.geometry().isValid()
         assert elem.geometry().x() == 0
-        assert not elem.is_visible(self.frame)
+        assert not elem.is_visible(frame)
 
-    def test_invalid_visible(self):
+    def test_invalid_visible(self, frame):
         """Test elements with an invalid geometry which are visible.
 
         This seems to happen sometimes in the real world, with real elements
         which *are* visible, but don't have a valid geometry.
         """
-        elem = get_webelem(QRect(10, 10, 0, 0), self.frame)
+        elem = get_webelem(QRect(10, 10, 0, 0), frame)
         assert not elem.geometry().isValid()
-        assert elem.is_visible(self.frame)
+        assert elem.is_visible(frame)
 
+    @pytest.mark.parametrize('geometry, visible', [
+        (QRect(5, 5, 4, 4), False),
+        (QRect(10, 10, 1, 1), True),
+    ])
+    def test_scrolled(self, geometry, visible, stubs):
+        scrolled_frame = stubs.FakeWebFrame(QRect(0, 0, 100, 100),
+                                            scroll=QPoint(10, 10))
+        elem = get_webelem(geometry, scrolled_frame)
+        assert elem.is_visible(scrolled_frame) == visible
 
-class TestIsVisibleScroll:
-
-    """Tests for is_visible when the frame is scrolled.
-
-    Attributes:
-        frame: The FakeWebFrame we're using to test.
-    """
-
-    @pytest.fixture(autouse=True)
-    def setup(self, stubs):
-        self.frame = stubs.FakeWebFrame(QRect(0, 0, 100, 100),
-                                        scroll=QPoint(10, 10))
-
-    def test_invisible(self):
-        """Test elements which should be invisible due to scrolling."""
-        elem = get_webelem(QRect(5, 5, 4, 4), self.frame)
-        assert not elem.is_visible(self.frame)
-
-    def test_visible(self):
-        """Test elements which still should be visible after scrolling."""
-        elem = get_webelem(QRect(10, 10, 1, 1), self.frame)
-        assert elem.is_visible(self.frame)
-
-
-class TestIsVisibleCss:
-
-    """Tests for is_visible with CSS attributes.
-
-    Attributes:
-        frame: The FakeWebFrame we're using to test.
-    """
-
-    @pytest.fixture(autouse=True)
-    def setup(self, stubs):
-        self.frame = stubs.FakeWebFrame(QRect(0, 0, 100, 100))
-
-    def test_visibility_visible(self):
-        """Check that elements with "visibility = visible" are visible."""
-        elem = get_webelem(QRect(0, 0, 10, 10), self.frame,
-                           visibility='visible')
-        assert elem.is_visible(self.frame)
-
-    def test_visibility_hidden(self):
-        """Check that elements with "visibility = hidden" are not visible."""
-        elem = get_webelem(QRect(0, 0, 10, 10), self.frame,
-                           visibility='hidden')
-        assert not elem.is_visible(self.frame)
-
-    def test_display_inline(self):
-        """Check that elements with "display = inline" are visible."""
-        elem = get_webelem(QRect(0, 0, 10, 10), self.frame, display='inline')
-        assert elem.is_visible(self.frame)
-
-    def test_display_none(self):
-        """Check that elements with "display = none" are not visible."""
-        elem = get_webelem(QRect(0, 0, 10, 10), self.frame, display='none')
-        assert not elem.is_visible(self.frame)
+    @pytest.mark.parametrize('style, visible', [
+        ({'visibility': 'visible'}, True),
+        ({'visibility': 'hidden'}, False),
+        ({'display': 'inline'}, True),
+        ({'display': 'none'}, False),
+        ({'visibility': 'visible', 'display': 'none'}, False),
+        ({'visibility': 'hidden', 'display': 'inline'}, False),
+    ])
+    def test_css_attributes(self, frame, style, visible):
+        elem = get_webelem(QRect(0, 0, 10, 10), frame, style=style)
+        assert elem.is_visible(frame) == visible
 
 
 class TestIsVisibleIframe:
@@ -206,8 +162,10 @@ class TestIsVisibleIframe:
         elem1-elem4: FakeWebElements to test.
     """
 
-    @pytest.fixture(autouse=True)
-    def setup(self, stubs):
+    Objects = collections.namedtuple('Objects', ['frame', 'iframe', 'elems'])
+
+    @pytest.fixture
+    def objects(self, stubs):
         """Set up the following base situation.
 
              0, 0                         300, 0
@@ -215,104 +173,92 @@ class TestIsVisibleIframe:
               #                            #
          0,10 # iframe  100,10             #
               #**********                  #
-              #*e       * elem1: 0, 0 in iframe (visible)
+              #*e       * elems[0]: 0, 0 in iframe (visible)
               #*        *                  #
-              #* e      * elem2: 20,90 in iframe (visible)
+              #* e      * elems[1]: 20,90 in iframe (visible)
               #**********                  #
         0,110 #.        .100,110           #
               #.        .                  #
-              #. e      . elem3: 20,150 in iframe (not visible)
+              #. e      . elems[2]: 20,150 in iframe (not visible)
               #..........                  #
-              #     e     elem4: 30, 180 in main frame (visible)
+              #     e     elems[3]: 30, 180 in main frame (visible)
               #                            #
               #          frame             #
               ##############################
             300, 0                         300, 300
+
+        Returns an Objects namedtuple with frame/iframe/elems attributes.
         """
-        self.frame = stubs.FakeWebFrame(QRect(0, 0, 300, 300))
-        self.iframe = stubs.FakeWebFrame(QRect(0, 10, 100, 100),
-                                         parent=self.frame)
-        self.elem1 = get_webelem(QRect(0, 0, 10, 10), self.iframe)
-        self.elem2 = get_webelem(QRect(20, 90, 10, 10), self.iframe)
-        self.elem3 = get_webelem(QRect(20, 150, 10, 10), self.iframe)
-        self.elem4 = get_webelem(QRect(30, 180, 10, 10), self.frame)
+        frame = stubs.FakeWebFrame(QRect(0, 0, 300, 300))
+        iframe = stubs.FakeWebFrame(QRect(0, 10, 100, 100), parent=frame)
+        assert frame.geometry().contains(iframe.geometry())
+        elems = [
+            get_webelem(QRect(0, 0, 10, 10), iframe),
+            get_webelem(QRect(20, 90, 10, 10), iframe),
+            get_webelem(QRect(20, 150, 10, 10), iframe),
+            get_webelem(QRect(30, 180, 10, 10), frame),
+        ]
 
-    def test_not_scrolled(self):
-        """Test base situation."""
-        assert self.frame.geometry().contains(self.iframe.geometry())
-        assert self.elem1.is_visible(self.frame)
-        assert self.elem2.is_visible(self.frame)
-        assert not self.elem3.is_visible(self.frame)
-        assert self.elem4.is_visible(self.frame)
+        assert elems[0].is_visible(frame)
+        assert elems[1].is_visible(frame)
+        assert not elems[2].is_visible(frame)
+        assert elems[3].is_visible(frame)
 
-    def test_iframe_scrolled(self):
+        return self.Objects(frame=frame, iframe=iframe, elems=elems)
+
+    def test_iframe_scrolled(self, objects):
         """Scroll iframe down so elem3 gets visible and elem1/elem2 not."""
-        self.iframe.scrollPosition.return_value = QPoint(0, 100)
-        assert not self.elem1.is_visible(self.frame)
-        assert not self.elem2.is_visible(self.frame)
-        assert self.elem3.is_visible(self.frame)
-        assert self.elem4.is_visible(self.frame)
+        objects.iframe.scrollPosition.return_value = QPoint(0, 100)
+        assert not objects.elems[0].is_visible(objects.frame)
+        assert not objects.elems[1].is_visible(objects.frame)
+        assert objects.elems[2].is_visible(objects.frame)
+        assert objects.elems[3].is_visible(objects.frame)
 
-    def test_mainframe_scrolled_iframe_visible(self):
+    def test_mainframe_scrolled_iframe_visible(self, objects):
         """Scroll mainframe down so iframe is partly visible but elem1 not."""
-        self.frame.scrollPosition.return_value = QPoint(0, 50)
-        geom = self.frame.geometry().translated(self.frame.scrollPosition())
-        assert not geom.contains(self.iframe.geometry())
-        assert geom.intersects(self.iframe.geometry())
-        assert not self.elem1.is_visible(self.frame)
-        assert self.elem2.is_visible(self.frame)
-        assert not self.elem3.is_visible(self.frame)
-        assert self.elem4.is_visible(self.frame)
+        objects.frame.scrollPosition.return_value = QPoint(0, 50)
+        geom = objects.frame.geometry().translated(
+            objects.frame.scrollPosition())
+        assert not geom.contains(objects.iframe.geometry())
+        assert geom.intersects(objects.iframe.geometry())
+        assert not objects.elems[0].is_visible(objects.frame)
+        assert objects.elems[1].is_visible(objects.frame)
+        assert not objects.elems[2].is_visible(objects.frame)
+        assert objects.elems[3].is_visible(objects.frame)
 
-    def test_mainframe_scrolled_iframe_invisible(self):
+    def test_mainframe_scrolled_iframe_invisible(self, objects):
         """Scroll mainframe down so iframe is invisible."""
-        self.frame.scrollPosition.return_value = QPoint(0, 110)
-        geom = self.frame.geometry().translated(self.frame.scrollPosition())
-        assert not geom.contains(self.iframe.geometry())
-        assert not geom.intersects(self.iframe.geometry())
-        assert not self.elem1.is_visible(self.frame)
-        assert not self.elem2.is_visible(self.frame)
-        assert not self.elem3.is_visible(self.frame)
-        assert self.elem4.is_visible(self.frame)
+        objects.frame.scrollPosition.return_value = QPoint(0, 110)
+        geom = objects.frame.geometry().translated(
+            objects.frame.scrollPosition())
+        assert not geom.contains(objects.iframe.geometry())
+        assert not geom.intersects(objects.iframe.geometry())
+        assert not objects.elems[0].is_visible(objects.frame)
+        assert not objects.elems[1].is_visible(objects.frame)
+        assert not objects.elems[2].is_visible(objects.frame)
+        assert objects.elems[3].is_visible(objects.frame)
 
 
-class TestIsWritable:
-
-    """Check is_writable."""
-
-    def test_writable(self):
-        """Test a normal element."""
-        elem = get_webelem()
-        assert elem.is_writable()
-
-    def test_disabled(self):
-        """Test a disabled element."""
-        elem = get_webelem(attributes=['disabled'])
-        assert not elem.is_writable()
-
-    def test_readonly(self):
-        """Test a readonly element."""
-        elem = get_webelem(attributes=['readonly'])
-        assert not elem.is_writable()
+@pytest.mark.parametrize('attributes, writable', [
+    ([], True),
+    (['disabled'], False),
+    (['readonly'], False),
+    (['disabled', 'readonly'], False),
+])
+def test_is_writable(attributes, writable):
+    elem = get_webelem(attributes=attributes)
+    assert elem.is_writable() == writable
 
 
-class TestJavascriptEscape:
-
-    """Check javascript_escape.
-
-    Class attributes:
-        STRINGS: A list of (input, output) tuples.
-    """
-
-    @pytest.mark.parametrize('before, after', [
-        ('foo\\bar', r'foo\\bar'),
-        ('foo\nbar', r'foo\nbar'),
-        ("foo'bar", r"foo\'bar"),
-        ('foo"bar', r'foo\"bar'),
-    ])
-    def test_fake_escape(self, before, after):
-        """Test javascript escaping."""
-        assert webelem.javascript_escape(before) == after
+@pytest.mark.parametrize('before, after', [
+    ('foo\\bar', r'foo\\bar'),
+    ('foo\nbar', r'foo\nbar'),
+    ("foo'bar", r"foo\'bar"),
+    ('foo"bar', r'foo\"bar'),
+])
+def test_fake_escape(before, after):
+    """Test javascript escaping."""
+    assert webelem.javascript_escape(before) == after
 
 
 class TestGetChildFrames:
@@ -370,13 +316,6 @@ class TestIsEditable:
 
     """Tests for is_editable."""
 
-    @pytest.yield_fixture(autouse=True)
-    def setup(self):
-        old_config = webelem.config
-        webelem.config = None
-        yield
-        webelem.config = old_config
-
     @pytest.fixture
     def stubbed_config(self, config_stub, monkeypatch):
         """Fixture to create a config stub with an input section."""
@@ -384,177 +323,56 @@ class TestIsEditable:
         monkeypatch.setattr('qutebrowser.browser.webelem.config', config_stub)
         return config_stub
 
-    def test_input_plain(self):
-        """Test with plain input element."""
-        elem = get_webelem(tagname='input')
-        assert elem.is_editable()
+    @pytest.mark.parametrize('tagname, attributes, editable', [
+        ('input', {}, True),
+        ('input', {'type': 'text'}, True),
+        ('INPUT', {'TYPE': 'TEXT'}, True),  # caps attributes/name
+        ('input', {'type': 'email'}, True),
+        ('input', {'type': 'url'}, True),
+        ('input', {'type': 'tel'}, True),
+        ('input', {'type': 'number'}, True),
+        ('input', {'type': 'password'}, True),
+        ('input', {'type': 'search'}, True),
+        ('textarea', {}, True),
 
-    def test_input_text(self):
-        """Test with text input element."""
-        elem = get_webelem(tagname='input', attributes={'type': 'text'})
-        assert elem.is_editable()
+        ('input', {'type': 'button'}, False),
+        ('input', {'type': 'checkbox'}, False),
+        ('select', {}, False),
 
-    def test_input_text_caps(self):
-        """Test with text input element with caps attributes."""
-        elem = get_webelem(tagname='INPUT', attributes={'TYPE': 'TEXT'})
-        assert elem.is_editable()
+        ('input', {'disabled': None}, False),
+        ('input', {'readonly': None}, False),
+        ('textarea', {'disabled': None}, False),
+        ('textarea', {'readonly': None}, False),
+        ('object', {}, False),
+        ('object', {'type': 'image/gif'}, False),
+    ])
+    def test_is_editable(self, tagname, attributes, editable):
+        elem = get_webelem(tagname=tagname, attributes=attributes)
+        assert elem.is_editable() == editable
 
-    def test_input_email(self):
-        """Test with email input element."""
-        elem = get_webelem(tagname='input', attributes={'type': 'email'})
-        assert elem.is_editable()
+    @pytest.mark.parametrize('classes, editable', [
+        (None, False),
+        ('foo-kix-bar', False),
+        ('foo kix-foo', True),
+        ('KIX-FOO', False),
+        ('foo CodeMirror-foo', True),
+    ])
+    def test_is_editable_div(self, tagname, classes, editable):
+        elem = get_webelem(tagname='div', classes=classes)
+        assert elem.is_editable() == editable
 
-    def test_input_url(self):
-        """Test with url input element."""
-        elem = get_webelem(tagname='input', attributes={'type': 'url'})
-        assert elem.is_editable()
-
-    def test_input_tel(self):
-        """Test with tel input element."""
-        elem = get_webelem(tagname='input', attributes={'type': 'tel'})
-        assert elem.is_editable()
-
-    def test_input_number(self):
-        """Test with number input element."""
-        elem = get_webelem(tagname='input', attributes={'type': 'number'})
-        assert elem.is_editable()
-
-    def test_input_password(self):
-        """Test with password input element."""
-        elem = get_webelem(tagname='input', attributes={'type': 'password'})
-        assert elem.is_editable()
-
-    def test_input_search(self):
-        """Test with search input element."""
-        elem = get_webelem(tagname='input', attributes={'type': 'search'})
-        assert elem.is_editable()
-
-    def test_input_button(self):
-        """Button should not be editable."""
-        elem = get_webelem(tagname='input', attributes={'type': 'button'})
-        assert not elem.is_editable()
-
-    def test_input_checkbox(self):
-        """Checkbox should not be editable."""
-        elem = get_webelem(tagname='input', attributes={'type': 'checkbox'})
-        assert not elem.is_editable()
-
-    def test_textarea(self):
-        """Test textarea element."""
-        elem = get_webelem(tagname='textarea')
-        assert elem.is_editable()
-
-    def test_select(self):
-        """Test selectbox."""
-        elem = get_webelem(tagname='select')
-        assert not elem.is_editable()
-
-    def test_input_disabled(self):
-        """Test disabled input element."""
-        elem = get_webelem(tagname='input', attributes={'disabled': None})
-        assert not elem.is_editable()
-
-    def test_input_readonly(self):
-        """Test readonly input element."""
-        elem = get_webelem(tagname='input', attributes={'readonly': None})
-        assert not elem.is_editable()
-
-    def test_textarea_disabled(self):
-        """Test disabled textarea element."""
-        elem = get_webelem(tagname='textarea', attributes={'disabled': None})
-        assert not elem.is_editable()
-
-    def test_textarea_readonly(self):
-        """Test readonly textarea element."""
-        elem = get_webelem(tagname='textarea', attributes={'readonly': None})
-        assert not elem.is_editable()
-
-    def test_embed_true(self, stubbed_config):
-        """Test embed-element with insert-mode-on-plugins true."""
-        stubbed_config.data['input']['insert-mode-on-plugins'] = True
-        elem = get_webelem(tagname='embed')
-        assert elem.is_editable()
-
-    def test_applet_true(self, stubbed_config):
-        """Test applet-element with insert-mode-on-plugins true."""
-        stubbed_config.data['input']['insert-mode-on-plugins'] = True
-        elem = get_webelem(tagname='applet')
-        assert elem.is_editable()
-
-    def test_embed_false(self, stubbed_config):
-        """Test embed-element with insert-mode-on-plugins false."""
-        stubbed_config.data['input']['insert-mode-on-plugins'] = False
-        elem = get_webelem(tagname='embed')
-        assert not elem.is_editable()
-
-    def test_applet_false(self, stubbed_config):
-        """Test applet-element with insert-mode-on-plugins false."""
-        stubbed_config.data['input']['insert-mode-on-plugins'] = False
-        elem = get_webelem(tagname='applet')
-        assert not elem.is_editable()
-
-    def test_object_no_type(self):
-        """Test object-element without type."""
-        elem = get_webelem(tagname='object')
-        assert not elem.is_editable()
-
-    def test_object_image(self):
-        """Test object-element with image type."""
-        elem = get_webelem(tagname='object', attributes={'type': 'image/gif'})
-        assert not elem.is_editable()
-
-    def test_object_application(self, stubbed_config):
-        """Test object-element with application type."""
-        stubbed_config.data['input']['insert-mode-on-plugins'] = True
-        elem = get_webelem(tagname='object',
-                           attributes={'type': 'application/foo'})
-        assert elem.is_editable()
-
-    def test_object_application_false(self, stubbed_config):
-        """Test object-element with application type but not ...-on-plugins."""
-        stubbed_config.data['input']['insert-mode-on-plugins'] = False
-        elem = get_webelem(tagname='object',
-                           attributes={'type': 'application/foo'})
-        assert not elem.is_editable()
-
-    def test_object_classid(self, stubbed_config):
-        """Test object-element with classid."""
-        stubbed_config.data['input']['insert-mode-on-plugins'] = True
-        elem = get_webelem(tagname='object',
-                           attributes={'type': 'foo', 'classid': 'foo'})
-        assert elem.is_editable()
-
-    def test_object_classid_false(self, stubbed_config):
-        """Test object-element with classid but not insert-mode-on-plugins."""
-        stubbed_config.data['input']['insert-mode-on-plugins'] = False
-        elem = get_webelem(tagname='object',
-                           attributes={'type': 'foo', 'classid': 'foo'})
-        assert not elem.is_editable()
-
-    def test_div_empty(self):
-        """Test div-element without class."""
-        elem = get_webelem(tagname='div')
-        assert not elem.is_editable()
-
-    def test_div_noneditable(self):
-        """Test div-element with non-editable class."""
-        elem = get_webelem(tagname='div', classes='foo-kix-bar')
-        assert not elem.is_editable()
-
-    def test_div_xik(self):
-        """Test div-element with xik class."""
-        elem = get_webelem(tagname='div', classes='foo kix-foo')
-        assert elem.is_editable()
-
-    def test_div_xik_caps(self):
-        """Test div-element with xik class in caps.
-
-        This tests if classes are case sensitive as they should.
-        """
-        elem = get_webelem(tagname='div', classes='KIX-FOO')
-        assert not elem.is_editable()
-
-    def test_div_codemirror(self):
-        """Test div-element with codemirror class."""
-        elem = get_webelem(tagname='div', classes='foo CodeMirror-foo')
-        assert elem.is_editable()
+    @pytest.mark.parametrize('setting, tagname, attributes, editable', [
+        (True, 'embed', {}, True),
+        (True, 'embed', {}, True),
+        (False, 'applet', {}, False),
+        (False, 'applet', {}, False),
+        (True, 'object', {'type': 'application/foo'}, True),
+        (False, 'object', {'type': 'application/foo'}, False),
+        (True, 'object', {'type': 'foo', 'classid': 'foo'}, True),
+        (False, 'object', {'type': 'foo', 'classid': 'foo'}, False),
+    ])
+    def test_is_editable_div(self, stubbed_config, setting, tagname,
+                             attributes, editable):
+        stubbed_config.data['input']['insert-mode-on-plugins'] = setting
+        elem = get_webelem(tagname=tagname, attributes=attributes)
+        assert elem.is_editable() == editable
