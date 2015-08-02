@@ -23,6 +23,7 @@
 
 from unittest import mock
 import collections.abc
+import operator
 
 from PyQt5.QtCore import QRect, QPoint
 from PyQt5.QtWebKit import QWebElement
@@ -50,17 +51,22 @@ def get_webelem(geometry=None, frame=None, null=False, style=None,
     elem.webFrame.return_value = frame
     elem.tagName.return_value = tagname
     elem.toOuterXml.return_value = '<fakeelem/>'
+    elem.toPlainText.return_value = 'text'
 
-    if attributes is not None:
-        if not isinstance(attributes, collections.abc.Mapping):
-            attributes = {e: None for e in attributes}
-        elem.hasAttribute.side_effect = lambda k: k in attributes
-        elem.attribute.side_effect = lambda k: attributes.get(k, '')
-        elem.attributeNames.return_value = list(attributes)
+    attribute_dict = {}
+    if attributes is None:
+        pass
+    elif not isinstance(attributes, collections.abc.Mapping):
+        attribute_dict.update({e: None for e in attributes})
     else:
-        elem.hasAttribute.return_value = False
-        elem.attribute.return_value = ''
-        elem.attributeNames.return_value = []
+        attribute_dict.update(attributes)
+
+    elem.hasAttribute.side_effect = lambda k: k in attribute_dict
+    elem.attribute.side_effect = lambda k: attribute_dict.get(k, '')
+    elem.setAttribute.side_effect = (lambda k, v:
+        operator.setitem(attribute_dict, k, v))
+    elem.removeAttribute.side_effect = attribute_dict.pop
+    elem.attributeNames.return_value = list(attribute_dict)
 
     if classes is not None:
         elem.classes.return_value = classes.split(' ')
@@ -80,8 +86,6 @@ def get_webelem(geometry=None, frame=None, null=False, style=None,
 
     elem.styleProperty.side_effect = _style_property
     wrapped = webelem.WebElementWrapper(elem)
-    if attributes is not None:
-        wrapped.update(attributes)
     return wrapped
 
 
@@ -89,11 +93,96 @@ class TestWebElementWrapper:
 
     """Test WebElementWrapper."""
 
+    @pytest.fixture
+    def elem(self):
+        return get_webelem()
+
     def test_nullelem(self):
         """Test __init__ with a null element."""
         with pytest.raises(webelem.IsNullError):
             get_webelem(null=True)
 
+    def test_double_wrap(self, elem):
+        """Test wrapping a WebElementWrapper."""
+        with pytest.raises(TypeError) as excinfo:
+            webelem.WebElementWrapper(elem)
+        assert str(excinfo.value) == "Trying to wrap a wrapper!"
+
+    @pytest.mark.parametrize('code', [
+        str,
+        lambda e: e[None],
+        lambda e: operator.setitem(e, None, None),
+        lambda e: operator.delitem(e, None),
+        lambda e: None in e,
+        len,
+        lambda e: e.is_visible(None),
+        lambda e: e.rect_on_view(),
+        lambda e: e.is_writable(),
+        lambda e: e.is_content_editable(),
+        lambda e: e.is_editable(),
+        lambda e: e.is_text_input(),
+        lambda e: e.debug_text(),
+        list,  # __iter__
+    ])
+    def test_vanished(self, elem, code):
+        """Make sure methods check if the element is vanished."""
+        elem._elem.isNull.return_value = True
+        with pytest.raises(webelem.IsNullError):
+            code(elem)
+
+    def test_str(self, elem):
+        assert str(elem) == 'text'
+
+    @pytest.mark.parametrize('is_null, expected', [
+        (False, "<qutebrowser.browser.webelem.WebElementWrapper "
+                "html='<fakeelem/>'>"),
+        (True, '<qutebrowser.browser.webelem.WebElementWrapper html=None>'),
+    ])
+    def test_repr(self, elem, is_null, expected):
+        elem._elem.isNull.return_value = is_null
+        assert repr(elem) == expected
+
+    def test_getitem(self):
+        elem = get_webelem(attributes={'foo': 'bar'})
+        assert elem['foo'] == 'bar'
+
+    def test_getitem_keyerror(self, elem):
+        with pytest.raises(KeyError):
+            elem['foo']  # pylint: disable=pointless-statement
+
+    def test_setitem(self, elem):
+        elem['foo'] = 'bar'
+        assert elem._elem.attribute('foo') == 'bar'
+
+    def test_delitem(self):
+        elem = get_webelem(attributes={'foo': 'bar'})
+        del elem['foo']
+        assert not elem._elem.hasAttribute('foo')
+
+    def test_setitem_keyerror(self, elem):
+        with pytest.raises(KeyError):
+            del elem['foo']
+
+    def test_contains(self):
+        elem = get_webelem(attributes={'foo': 'bar'})
+        assert 'foo' in elem
+        assert 'bar' not in elem
+
+    @pytest.mark.parametrize('attributes, expected', [
+        ({'one': '1', 'two': '2'}, {'one', 'two'}),
+        ({}, set()),
+    ])
+    def test_iter(self, attributes, expected):
+        elem = get_webelem(attributes=attributes)
+        assert set(elem) == expected
+
+    @pytest.mark.parametrize('attributes, length', [
+        ({'one': '1', 'two': '2'}, 2),
+        ({}, 0),
+    ])
+    def test_len(self, attributes, length):
+        elem = get_webelem(attributes=attributes)
+        assert len(elem) == length
 
 class TestIsVisible:
 
@@ -357,7 +446,7 @@ class TestIsEditable:
         ('KIX-FOO', False),
         ('foo CodeMirror-foo', True),
     ])
-    def test_is_editable_div(self, tagname, classes, editable):
+    def test_is_editable_div(self, classes, editable):
         elem = get_webelem(tagname='div', classes=classes)
         assert elem.is_editable() == editable
 
@@ -371,8 +460,8 @@ class TestIsEditable:
         (True, 'object', {'type': 'foo', 'classid': 'foo'}, True),
         (False, 'object', {'type': 'foo', 'classid': 'foo'}, False),
     ])
-    def test_is_editable_div(self, stubbed_config, setting, tagname,
-                             attributes, editable):
+    def test_is_editable_plugin(self, stubbed_config, setting, tagname,
+                                attributes, editable):
         stubbed_config.data['input']['insert-mode-on-plugins'] = setting
         elem = get_webelem(tagname=tagname, attributes=attributes)
         assert elem.is_editable() == editable
