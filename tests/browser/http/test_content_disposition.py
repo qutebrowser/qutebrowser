@@ -30,10 +30,8 @@ from qutebrowser.utils import log
 DEFAULT_NAME = 'qutebrowser-download'
 
 
-# These test cases are based on http://greenbytes.de/tech/tc2231/
+class HeaderChecker:
 
-
-class _HeaderChecker(object):
     """Helper class with some convenience methods to check filenames.
 
     Attrs:
@@ -75,11 +73,21 @@ class _HeaderChecker(object):
 
 @pytest.fixture
 def header_checker(caplog, stubs):
-    """Fixture that provides a _HeaderChecker class for tests"""
-    return _HeaderChecker(caplog, stubs)
+    """Fixture that provides a HeaderChecker class for tests"""
+    return HeaderChecker(caplog, stubs)
+
+
+def test_att_double_space(header_checker):
+    """'attachment' with double space in the filename."""
+    header_checker.check_filename('attachment; filename="foo  bar.html"',
+                                  'foo bar.html')
+
+
+# All following test cases are based on http://greenbytes.de/tech/tc2231/
 
 
 class TestInline:
+
     """Various tests relating to the "inline" disposition type.
 
     See Section 4.2 of RFC 6266.
@@ -130,6 +138,7 @@ class TestInline:
 
 
 class TestAttachment:
+
     """Various tests relating to the "attachment" disposition type.
 
     See Section 4.2 of RFC 6266.
@@ -620,6 +629,7 @@ class TestAttachment:
 
 
 class TestDispositionTypeExtension:
+
     """Tests checking behavior for disposition type extensions.
 
     They should be treated as "attachment", see Section 4.2 of RFC 6266.
@@ -639,6 +649,7 @@ class TestDispositionTypeExtension:
 
 
 class TestCharacterSet:
+
     """Various tests using the parameter value encoding defined in RFC 5987."""
 
     def test_attwithisofn2231iso(self, header_checker):
@@ -815,6 +826,7 @@ class TestCharacterSet:
 
 
 class TestEncodingFallback:
+
     """Test the same parameter both in traditional and extended format.
 
     This tests how the UA behaves when the same parameter name appears
@@ -876,7 +888,8 @@ class TestEncodingFallback:
 
 
 class TestRFC2047Encoding:
-    """These tests RFC 2047 style encoding.
+
+    """Test RFC 2047 style encoding.
 
     Note that according to Section 5 of RFC 2047, this encoding does not apply
     here: An 'encoded-word' MUST NOT appear within a 'quoted-string'., and An
@@ -908,12 +921,3 @@ class TestRFC2047Encoding:
         header_checker.check_filename(
             'attachment; filename="=?ISO-8859-1?Q?foo-=E4.html?="',
             '=?ISO-8859-1?Q?foo-=E4.html?=')
-
-
-class TestOur:
-    """Our own tests, not based on http://greenbytes.de/tech/tc2231/"""
-
-    def test_att_double_space(self, header_checker):
-        """'attachment' with double space in the filename."""
-        header_checker.check_filename('attachment; filename="foo  bar.html"',
-                                      'foo bar.html')
