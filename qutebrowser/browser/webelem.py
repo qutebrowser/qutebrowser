@@ -43,12 +43,12 @@ Group = usertypes.enum('Group', ['all', 'links', 'images', 'url', 'prevnext',
 
 SELECTORS = {
     Group.all: ('a, area, textarea, select, input:not([type=hidden]), button, '
-                'frame, iframe, [onclick], [onmousedown], [role=link], '
+                'frame, iframe, link, [onclick], [onmousedown], [role=link], '
                 '[role=option], [role=button], img'),
     Group.links: 'a, area, link, [role=link]',
     Group.images: 'img',
     Group.url: '[src], [href]',
-    Group.prevnext: 'a, area, button, [role=button]',
+    Group.prevnext: 'a, area, button, link, [role=button]',
     Group.focus: '*:focus',
 }
 
