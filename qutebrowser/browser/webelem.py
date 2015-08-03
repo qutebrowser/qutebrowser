@@ -267,7 +267,7 @@ class WebElementWrapper(collections.abc.MutableMapping):
         tag = self._elem.tagName().lower()
         if self.is_content_editable() and self.is_writable():
             return True
-        elif self.get('role', None) in roles:
+        elif self.get('role', None) in roles and self.is_writable():
             return True
         elif tag == 'input':
             return self._is_editable_input()
