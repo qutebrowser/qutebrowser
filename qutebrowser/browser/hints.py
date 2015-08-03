@@ -596,13 +596,16 @@ class HintManager(QObject):
         # Then check for regular links/buttons.
         elems = frame.findAllElements(
             webelem.SELECTORS[webelem.Group.prevnext])
+        elems = [webelem.WebElementWrapper(e) for e in elems]
+        filterfunc = webelem.FILTERS[webelem.Group.prevnext]
+        elems = [e for e in elems if filterfunc(e)]
+
         option = 'prev-regexes' if prev else 'next-regexes'
         if not elems:
             return None
         for regex in config.get('hints', option):
             log.hints.vdebug("== Checking regex '{}'.".format(regex.pattern))
             for e in elems:
-                e = webelem.WebElementWrapper(e)
                 text = str(e)
                 if not text:
                     continue
