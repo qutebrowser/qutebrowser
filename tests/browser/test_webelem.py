@@ -24,7 +24,10 @@
 from unittest import mock
 import collections.abc
 import operator
+import itertools
 
+import hypothesis
+import hypothesis.strategies
 from PyQt5.QtCore import QRect, QPoint
 from PyQt5.QtWebKit import QWebElement
 import pytest
@@ -89,9 +92,105 @@ def get_webelem(geometry=None, frame=None, null=False, style=None,
     return wrapped
 
 
+class SelectionAndFilterTests:
+
+    """Generator for tests for TestSelectionsAndFilters."""
+
+    # A mapping of a HTML element to a list of groups where the selectors
+    # (after filtering) should match.
+    #
+    # Based on this, test cases are generated to make sure it matches those
+    # groups and not the others.
+
+    TESTS = [
+        ('<foo />', []),
+        ('<foo bar="baz"/>', []),
+        ('<foo href="baz"/>', [webelem.Group.url]),
+        ('<foo src="baz"/>', [webelem.Group.url]),
+
+        ('<a />', [webelem.Group.all]),
+        ('<a href="foo" />', [webelem.Group.all, webelem.Group.links,
+                              webelem.Group.prevnext, webelem.Group.url]),
+        ('<a href="javascript://foo" />', [webelem.Group.all,
+                                          webelem.Group.url]),
+
+        ('<area />', [webelem.Group.all]),
+        ('<area href="foo" />', [webelem.Group.all, webelem.Group.links,
+                                 webelem.Group.prevnext, webelem.Group.url]),
+        ('<area href="javascript://foo" />', [webelem.Group.all,
+                                              webelem.Group.url]),
+
+        ('<link />', [webelem.Group.all]),
+        ('<link href="foo" />', [webelem.Group.all, webelem.Group.links,
+                                 webelem.Group.prevnext, webelem.Group.url]),
+        ('<link href="javascript://foo" />', [webelem.Group.all,
+                                              webelem.Group.url]),
+
+        ('<textarea />', [webelem.Group.all]),
+        ('<select />', [webelem.Group.all]),
+
+        ('<input />', [webelem.Group.all]),
+        ('<input type="hidden" />', []),
+
+        ('<button />', [webelem.Group.all]),
+        ('<button href="foo" />', [webelem.Group.all, webelem.Group.prevnext,
+                                   webelem.Group.url]),
+        ('<button href="javascript://foo" />', [webelem.Group.all,
+                                                webelem.Group.url]),
+
+        # We can't easily test <frame>/<iframe> as they vanish when setting
+        # them via QWebFrame::setHtml...
+
+        ('<p onclick="foo" foo="bar"/>', [webelem.Group.all]),
+        ('<p onmousedown="foo" foo="bar"/>', [webelem.Group.all]),
+        ('<p role="option" foo="bar"/>', [webelem.Group.all]),
+        ('<p role="button" foo="bar"/>', [webelem.Group.all]),
+        ('<p role="button" href="bar"/>', [webelem.Group.all,
+                                           webelem.Group.prevnext,
+                                           webelem.Group.url]),
+    ]
+
+    GROUPS = [e for e in webelem.Group if e != webelem.Group.focus]
+
+    COMBINATIONS = list(itertools.product(TESTS, GROUPS))
+
+    def __init__(self):
+        self.tests = list(self._generate_tests())
+
+    def _generate_tests(self):
+        for (val, matching_groups), group in self.COMBINATIONS:
+            if group in matching_groups:
+                yield group, val, True
+            else:
+                yield group, val, False
+
+
+class TestSelectorsAndFilters:
+
+    TESTS = SelectionAndFilterTests().tests
+
+    def test_test_generator(self):
+        assert self.TESTS
+
+    @pytest.mark.parametrize('group, val, matching', TESTS)
+    def test_selectors(self, webframe, group, val, matching):
+        webframe.setHtml('<html><body>{}</body></html>'.format(val))
+        # Make sure setting HTML succeeded and there's a new element
+        assert len(webframe.findAllElements('*')) == 3
+        elems = webframe.findAllElements(webelem.SELECTORS[group])
+        elems = [webelem.WebElementWrapper(e) for e in elems]
+        filterfunc = webelem.FILTERS.get(group, lambda e: True)
+        elems = [e for e in elems if filterfunc(e)]
+        assert bool(elems) == matching
+
+
 class TestWebElementWrapper:
 
-    """Test WebElementWrapper."""
+    """Generic tests for WebElementWrapper.
+
+    Note: For some methods, there's a dedicated test class with more involved
+    tests.
+    """
 
     @pytest.fixture
     def elem(self):
@@ -184,22 +283,54 @@ class TestWebElementWrapper:
         elem = get_webelem(attributes=attributes)
         assert len(elem) == length
 
+    @pytest.mark.parametrize('attributes, writable', [
+        ([], True),
+        (['disabled'], False),
+        (['readonly'], False),
+        (['disabled', 'readonly'], False),
+    ])
+    def test_is_writable(self, attributes, writable):
+        elem = get_webelem(attributes=attributes)
+        assert elem.is_writable() == writable
+
+    @pytest.mark.parametrize('attributes, expected', [
+        ({}, False),
+        ({'contenteditable': 'false'}, False),
+        ({'contenteditable': 'inherit'}, False),
+        ({'contenteditable': 'true'}, True),
+    ])
+    def test_is_content_editable(self, attributes, expected):
+        elem = get_webelem(attributes=attributes)
+        assert elem.is_content_editable() == expected
+
+    @pytest.mark.parametrize('tagname, attributes, expected', [
+        ('input', {}, True),
+        ('textarea', {}, True),
+        ('select', {}, False),
+        ('foo', {'role': 'combobox'}, True),
+        ('foo', {'role': 'textbox'}, True),
+        ('foo', {'role': 'bar'}, False),
+        ('input', {'role': 'bar'}, True),
+    ])
+    def test_is_text_input(self, tagname, attributes, expected):
+        elem = get_webelem(tagname=tagname, attributes=attributes)
+        assert elem.is_text_input() == expected
+
+    @pytest.mark.parametrize('xml, expected', [
+        ('<fakeelem/>', '<fakeelem/>'),
+        ('<foo>\n<bar/>\n</foo>', '<foo><bar/></foo>'),
+        ('<foo>{}</foo>'.format('x' * 500), '<foo>{}…'.format('x' * 494)),
+    ])
+    def test_debug_text(self, elem, xml, expected):
+        elem._elem.toOuterXml.return_value = xml
+        assert elem.debug_text() == expected
+
+
 class TestIsVisible:
 
     @pytest.fixture
     def frame(self, stubs):
         return stubs.FakeWebFrame(QRect(0, 0, 100, 100))
-
-    def test_nullelem(self, frame):
-        """Passing an element with isNull() == True.
-
-        geometry() and webFrame() should not be called, and ValueError should
-        be raised.
-        """
-        elem = get_webelem()
-        elem._elem.isNull.return_value = True
-        with pytest.raises(webelem.IsNullError):
-            elem.is_visible(frame)
 
     def test_invalid_invisible(self, frame):
         """Test elements with an invalid geometry which are invisible."""
@@ -328,26 +459,82 @@ class TestIsVisibleIframe:
         assert objects.elems[3].is_visible(objects.frame)
 
 
-@pytest.mark.parametrize('attributes, writable', [
-    ([], True),
-    (['disabled'], False),
-    (['readonly'], False),
-    (['disabled', 'readonly'], False),
-])
-def test_is_writable(attributes, writable):
-    elem = get_webelem(attributes=attributes)
-    assert elem.is_writable() == writable
+class TestRectOnView:
+
+    def test_simple(self, stubs):
+        geometry = QRect(5, 5, 4, 4)
+        frame = stubs.FakeWebFrame(QRect(0, 0, 100, 100))
+        elem = get_webelem(geometry, frame)
+        assert elem.rect_on_view() == QRect(5, 5, 4, 4)
+
+    def test_scrolled(self, stubs):
+        geometry = QRect(20, 20, 4, 4)
+        frame = stubs.FakeWebFrame(QRect(0, 0, 100, 100),
+                                   scroll=QPoint(10, 10))
+        elem = get_webelem(geometry, frame)
+        assert elem.rect_on_view() == QRect(20 - 10, 20 - 10, 4, 4)
+
+    def test_iframe(self, stubs):
+        """Test an element in an iframe.
+
+             0, 0                         200, 0
+              ##############################
+              #                            #
+         0,10 # iframe  100,10             #
+              #**********                  #
+              #*        *                  #
+              #*        *                  #
+              #* e      * elem: 20,90 in iframe
+              #**********                  #
+        0,100 #                            #
+              ##############################
+            200, 0                         200, 200
+        """
+        frame = stubs.FakeWebFrame(QRect(0, 0, 200, 200))
+        iframe = stubs.FakeWebFrame(QRect(0, 10, 100, 100), parent=frame)
+        assert frame.geometry().contains(iframe.geometry())
+        elem = get_webelem(QRect(20, 90, 10, 10), iframe)
+        assert elem.rect_on_view() == QRect(20, 10 + 90, 10, 10)
+
+    def test_passed_geometry(self, stubs):
+        """Make sure geometry isn't called when a geometry is passed."""
+        raw_elem = get_webelem()._elem
+        rect = QRect(10, 20, 30, 40)
+        assert webelem.rect_on_view(raw_elem, rect) == rect
+        assert not raw_elem.geometry.called
 
 
-@pytest.mark.parametrize('before, after', [
-    ('foo\\bar', r'foo\\bar'),
-    ('foo\nbar', r'foo\nbar'),
-    ("foo'bar", r"foo\'bar"),
-    ('foo"bar', r'foo\"bar'),
-])
-def test_fake_escape(before, after):
-    """Test javascript escaping."""
-    assert webelem.javascript_escape(before) == after
+class TestJavascriptEscape:
+
+    TESTS = {
+        'foo\\bar': r'foo\\bar',
+        'foo\nbar': r'foo\nbar',
+        'foo\rbar': r'foo\rbar',
+        "foo'bar": r"foo\'bar",
+        'foo"bar': r'foo\"bar',
+        'one\\two\rthree\nfour\'five"six': r'one\\two\rthree\nfour\'five\"six',
+    }
+
+    @pytest.mark.parametrize('before, after', TESTS.items())
+    def test_fake_escape(self, before, after):
+        """Test javascript escaping with some expected outcomes."""
+        assert webelem.javascript_escape(before) == after
+
+    def _test_escape(self, text, webframe):
+        """Helper function for test_real_escape*."""
+        escaped = webelem.javascript_escape(text)
+        webframe.evaluateJavaScript('window.foo = "{}";'.format(escaped))
+        assert webframe.evaluateJavaScript('window.foo') == text
+
+    @pytest.mark.parametrize('text', TESTS)
+    def test_real_escape(self, webframe, text):
+        """Test javascript escaping with a real QWebPage."""
+        self._test_escape(text, webframe)
+
+    @hypothesis.given(hypothesis.strategies.text())
+    def test_real_escape_hypothesis(self, webframe, text):
+        """Test javascript escaping with a real QWebPage and hypothesis."""
+        self._test_escape(text, webframe)
 
 
 class TestGetChildFrames:
@@ -432,8 +619,18 @@ class TestIsEditable:
         ('input', {'readonly': None}, False),
         ('textarea', {'disabled': None}, False),
         ('textarea', {'readonly': None}, False),
-        ('object', {}, False),
-        ('object', {'type': 'image/gif'}, False),
+
+        ('foobar', {}, False),
+        ('foobar', {'contenteditable': 'true'}, True),
+        ('foobar', {'contenteditable': 'false'}, False),
+        ('foobar', {'contenteditable': 'true', 'disabled': None}, False),
+        ('foobar', {'contenteditable': 'true', 'readonly': None}, False),
+
+        ('foobar', {'role': 'foobar'}, False),
+        ('foobar', {'role': 'combobox'}, True),
+        ('foobar', {'role': 'textbox'}, True),
+        ('foobar', {'role': 'combobox', 'disabled': None}, False),
+        ('foobar', {'role': 'combobox', 'readonly': None}, False),
     ])
     def test_is_editable(self, tagname, attributes, editable):
         elem = get_webelem(tagname=tagname, attributes=attributes)
@@ -459,6 +656,8 @@ class TestIsEditable:
         (False, 'object', {'type': 'application/foo'}, False),
         (True, 'object', {'type': 'foo', 'classid': 'foo'}, True),
         (False, 'object', {'type': 'foo', 'classid': 'foo'}, False),
+        (True, 'object', {}, False),
+        (True, 'object', {'type': 'image/gif'}, False),
     ])
     def test_is_editable_plugin(self, stubbed_config, setting, tagname,
                                 attributes, editable):

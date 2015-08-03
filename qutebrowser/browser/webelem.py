@@ -184,8 +184,6 @@ class WebElementWrapper(collections.abc.MutableMapping):
     def is_content_editable(self):
         """Check if an element has a contenteditable attribute.
 
-        FIXME: Add tests.
-
         Args:
             elem: The QWebElement to check.
 
@@ -249,8 +247,6 @@ class WebElementWrapper(collections.abc.MutableMapping):
 
     def is_editable(self, strict=False):
         """Check whether we should switch to insert mode for this element.
-
-        FIXME: add tests
 
         Args:
             strict: Whether to do stricter checking so only fields where we can

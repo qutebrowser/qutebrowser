@@ -78,6 +78,12 @@ def webpage(qnam):
 
 
 @pytest.fixture
+def webframe(webpage):
+    """Convenience fixture to get a mainFrame of a QWebPage."""
+    return webpage.mainFrame()
+
+
+@pytest.fixture
 def fake_keyevent_factory():
     """Fixture that when called will return a mock instance of a QKeyEvent."""
     from unittest import mock
