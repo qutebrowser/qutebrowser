@@ -513,6 +513,11 @@ class TestJavascriptEscape:
         "foo'bar": r"foo\'bar",
         'foo"bar': r'foo\"bar',
         'one\\two\rthree\nfour\'five"six': r'one\\two\rthree\nfour\'five\"six',
+        '\x00': r'\x00',
+        'hellö': 'hellö',
+        '☃': '☃',
+        '\x80Ā': '\x80Ā',
+        '𐀀\x00𐀀\x00': r'𐀀\x00𐀀\x00',
     }
 
     @pytest.mark.parametrize('before, after', TESTS.items())
