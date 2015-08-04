@@ -674,10 +674,11 @@ class ConfigManager(QObject):
         else:
             try:
                 if option.endswith('!') and value is None:
-                    val = self.get(section_, option[:-1])
+                    option = option[:-1]
+                    val = self.get(section_, option)
                     layer = 'temp' if temp else 'conf'
                     if isinstance(val, bool):
-                        self.set(layer, section_, option[:-1], str(not val))
+                        self.set(layer, section_, option, str(not val))
                     else:
                         raise cmdexc.CommandError(
                             "set: Attempted inversion of non-boolean value.")
