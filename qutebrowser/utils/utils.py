@@ -555,10 +555,8 @@ def qualname(obj):
     else:
         name = repr(obj)
 
-    if inspect.isclass(obj) or inspect.isfunction(obj):
-        module = obj.__module__
-        return "{}.{}".format(module, name)
-    elif inspect.ismethod(obj):
+    if (inspect.isclass(obj) or inspect.isfunction(obj) or
+            inspect.ismethod(obj)):
         return "{}.{}".format(obj.__module__, name)
     else:
         return name
