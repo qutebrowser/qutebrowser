@@ -22,7 +22,6 @@
 import io
 import sys
 import enum
-import inspect
 import os.path
 import collections
 import functools
@@ -548,18 +547,18 @@ def qualname(obj):
     """
     if isinstance(obj, functools.partial):
         obj = obj.func
-    if hasattr(obj, '__qualname__'):
-        name = obj.__qualname__
-    elif hasattr(obj, '__name__'):
-        name = obj.__name__
-    else:
-        name = repr(obj)
 
-    if (inspect.isclass(obj) or inspect.isfunction(obj) or
-            inspect.ismethod(obj)):
-        return "{}.{}".format(obj.__module__, name)
+    if hasattr(obj, '__module__'):
+        prefix = '{}.'.format(obj.__module__)
     else:
-        return name
+        prefix = ''
+
+    if hasattr(obj, '__qualname__'):
+        return '{}{}'.format(prefix, obj.__qualname__)
+    elif hasattr(obj, '__name__'):
+        return '{}{}'.format(prefix, obj.__name__)
+    else:
+        return repr(obj)
 
 
 def raises(exc, func, *args):
