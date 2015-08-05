@@ -473,10 +473,10 @@ Where to show the downloaded files.
 
 Valid values:
 
- * +north+
- * +south+
+ * +top+
+ * +bottom+
 
-Default: +pass:[north]+
+Default: +pass:[top]+
 
 [[ui-message-timeout]]
 === message-timeout
@@ -1020,12 +1020,12 @@ The position of the tab bar.
 
 Valid values:
 
- * +north+
- * +south+
- * +east+
- * +west+
+ * +top+
+ * +bottom+
+ * +left+
+ * +right+
 
-Default: +pass:[north]+
+Default: +pass:[top]+
 
 [[tabs-show-favicons]]
 === show-favicons

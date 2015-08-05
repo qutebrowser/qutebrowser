@@ -240,7 +240,7 @@ def data(readonly=False):
              "The default zoom level."),
 
             ('downloads-position',
-             SettingValue(typ.VerticalPosition(), 'north'),
+             SettingValue(typ.VerticalPosition(), 'top'),
              "Where to show the downloaded files."),
 
             ('message-timeout',
@@ -501,7 +501,7 @@ def data(readonly=False):
              "On which mouse button to close tabs."),
 
             ('position',
-             SettingValue(typ.Position(), 'north'),
+             SettingValue(typ.Position(), 'top'),
              "The position of the tab bar."),
 
             ('show-favicons',
