@@ -411,6 +411,7 @@ class HintManager(QObject):
                 QWebSettings.JavascriptEnabled):
             js_rect = self._get_element_main_rect(elem, show)
             if js_rect:
+                # FIXME: fix this instead of using this hack.
                 width = max(5, js_rect.width())
                 height = max(5, js_rect.height())
                 rect = QRect(js_rect.x(), js_rect.y(), width, height)
@@ -433,11 +434,7 @@ class HintManager(QObject):
         if QWebSettings.globalSettings().testAttribute(
                 QWebSettings.JavascriptEnabled):
             pos = self._get_element_relative_geometry(elem, False)
-            frame = elem.webFrame()
-            while frame is not None:
-                pos.translate(frame.geometry().topLeft())
-                pos.translate(-frame.scrollPosition())
-                frame = frame.parentFrame()
+            pos = webelem.rect_on_view(elem._elem, pos)
         else:
             # FIXME: The position is not good when the text is wrapped.
             pos = elem.rect_on_view()
