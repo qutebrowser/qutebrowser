@@ -34,6 +34,8 @@ Added
   them. There's also a new `show-switching` option to configure the timeout.
 - New setting `storage -> remember-download-directory` to remember the last
   used download directory.
+- New setting `storage -> prompt-download-directory` to download all downloads
+  without asking.
 
 Changed
 ~~~~~~~

@@ -123,6 +123,7 @@
 |==============
 |Setting|Description
 |<<storage-download-directory,download-directory>>|The directory to save downloads to. An empty value selects a sensible os-specific default. Will expand environment variables.
+|<<storage-prompt-download-directory,prompt-download-directory>>|Whether to prompt the user for the download location.
 |<<storage-remember-download-directory,remember-download-directory>>|Whether to remember the last used download directory.
 |<<storage-maximum-pages-in-cache,maximum-pages-in-cache>>|The maximum number of pages to hold in the global memory page cache.
 |<<storage-object-cache-capacities,object-cache-capacities>>|The capacities for the global memory cache for dead objects such as stylesheets or scripts. Syntax: cacheMinDeadCapacity, cacheMaxDead, totalCapacity.
@@ -1105,6 +1106,18 @@ Settings related to cache and storage.
 The directory to save downloads to. An empty value selects a sensible os-specific default. Will expand environment variables.
 
 Default: empty
+
+[[storage-prompt-download-directory]]
+=== prompt-download-directory
+Whether to prompt the user for the download location.
+If set to false, 'download-directory' will be used.
+
+Valid values:
+
+ * +true+
+ * +false+
+
+Default: +pass:[true]+
 
 [[storage-remember-download-directory]]
 === remember-download-directory
