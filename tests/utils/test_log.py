@@ -27,6 +27,7 @@ import itertools
 import sys
 
 import pytest
+import pytest_capturelog
 
 from qutebrowser.utils import log
 
@@ -64,7 +65,9 @@ def restore_loggers():
         h.close()
     root_logger.setLevel(original_logging_level)
     for h in root_handlers:
-        root_logger.addHandler(h)
+        if not isinstance(h, pytest_capturelog.CaptureLogHandler):
+            # https://github.com/The-Compiler/qutebrowser/issues/856
+            root_logger.addHandler(h)
     logging._acquireLock()
     try:
         logging._levelToName.clear()
