@@ -663,7 +663,7 @@ class DownloadManager(QAbstractListModel):
 
     @pyqtSlot('QUrl', 'QWebPage')
     def get(self, url, page=None, fileobj=None, filename=None,
-            auto_remove=False):
+            auto_remove=False, prompt_download_directory=None):
         """Start a download with a link URL.
 
         Args:
@@ -673,6 +673,9 @@ class DownloadManager(QAbstractListModel):
             filename: A path to write the data to.
             auto_remove: Whether to remove the download even if
                          ui -> remove-finished-downloads is set to false.
+            prompt_download_directory: Whether to prompt for the download dir
+                                       or automatically download. If None, the
+                                       config is used.
 
         Return:
             If the download could start immediately, (fileobj/filename given),
@@ -686,10 +689,11 @@ class DownloadManager(QAbstractListModel):
             urlutils.invalid_url_error(self._win_id, url, "start download")
             return
         req = QNetworkRequest(url)
-        return self.get_request(req, page, fileobj, filename, auto_remove)
+        return self.get_request(req, page, fileobj, filename, auto_remove,
+                                prompt_download_directory)
 
     def get_request(self, request, page=None, fileobj=None, filename=None,
-                    auto_remove=False):
+                    auto_remove=False, prompt_download_directory=None):
         """Start a download with a QNetworkRequest.
 
         Args:
@@ -699,6 +703,9 @@ class DownloadManager(QAbstractListModel):
             filename: A path to write the data to.
             auto_remove: Whether to remove the download even if
                          ui -> remove-finished-downloads is set to false.
+            prompt_download_directory: Whether to prompt for the download dir
+                                       or automatically download. If None, the
+                                       config is used.
 
         Return:
             If the download could start immediately, (fileobj/filename given),
@@ -714,8 +721,9 @@ class DownloadManager(QAbstractListModel):
                              QNetworkRequest.AlwaysNetwork)
         suggested_fn = urlutils.filename_from_url(request.url())
 
-        prompt_download_directory = config.get('storage',
-                                               'prompt-download-directory')
+        if prompt_download_directory is None:
+            prompt_download_directory = config.get(
+                'storage', 'prompt-download-directory')
         if not prompt_download_directory:
             filename = config.get('storage', 'download-directory')
 
@@ -763,7 +771,7 @@ class DownloadManager(QAbstractListModel):
 
     @pyqtSlot('QNetworkReply')
     def fetch(self, reply, fileobj=None, filename=None, auto_remove=False,
-              suggested_filename=None):
+              suggested_filename=None, prompt_download_directory=None):
         """Download a QNetworkReply to disk.
 
         Args:

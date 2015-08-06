@@ -514,9 +514,15 @@ class HintManager(QObject):
         if url is None:
             self._show_url_error()
             return
+        if context.rapid:
+            prompt = False
+        else:
+            prompt = None
+
         download_manager = objreg.get('download-manager', scope='window',
                                       window=self._win_id)
-        download_manager.get(url, elem.webFrame().page())
+        download_manager.get(url, elem.webFrame().page(),
+                             prompt_download_directory=prompt)
 
     def _call_userscript(self, elem, context):
         """Call a userscript from a hint.
@@ -764,7 +770,8 @@ class HintManager(QObject):
 
         if rapid:
             if target in [Target.tab_bg, Target.window, Target.run,
-                          Target.hover, Target.userscript, Target.spawn]:
+                          Target.hover, Target.userscript, Target.spawn,
+                          Target.download]:
                 pass
             elif (target == Target.tab and
                   config.get('tabs', 'background-tabs')):
