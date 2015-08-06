@@ -309,7 +309,7 @@ class TabBar(QTabBar):
     def set_font(self):
         """Set the tab bar font."""
         self.setFont(config.get('fonts', 'tabbar'))
-        size = self.fontMetrics().height() - 1
+        size = self.fontMetrics().height() - 2
         self.setIconSize(QSize(size, size))
 
 
@@ -725,8 +725,7 @@ class TabBarStyle(QCommonStyle):
         tab_icon_size = opt.icon.actualSize(icon_size, icon_mode, icon_state)
         tab_icon_size = QSize(min(tab_icon_size.width(), icon_size.width()),
                               min(tab_icon_size.height(), icon_size.height()))
-        icon_rect = QRect(text_rect.left(),
-                          text_rect.center().y() - tab_icon_size.height() / 2,
+        icon_rect = QRect(text_rect.left(), text_rect.top() + 1,
                           tab_icon_size.width(), tab_icon_size.height())
         icon_rect = self._style.visualRect(opt.direction, opt.rect, icon_rect)
         qtutils.ensure_valid(icon_rect)
