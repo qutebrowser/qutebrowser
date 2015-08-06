@@ -21,7 +21,6 @@
 
 import collections
 import functools
-import math
 
 from PyQt5.QtCore import pyqtSignal, pyqtSlot, Qt, QSize, QRect, QTimer
 from PyQt5.QtWidgets import (QTabWidget, QTabBar, QSizePolicy, QCommonStyle,
@@ -311,7 +310,6 @@ class TabBar(QTabBar):
         self.setFont(config.get('fonts', 'tabbar'))
         size = self.fontMetrics().height() - 2
         self.setIconSize(QSize(size, size))
-
 
     @config.change_filter('colors', 'tabs.bg.bar')
     def set_colors(self):
