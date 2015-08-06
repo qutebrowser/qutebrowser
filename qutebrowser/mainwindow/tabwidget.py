@@ -309,13 +309,9 @@ class TabBar(QTabBar):
     def set_font(self):
         """Set the tab bar font."""
         self.setFont(config.get('fonts', 'tabbar'))
+        size = self.fontInfo().pixelSize() - 1
+        self.setIconSize(QSize(size, size))
 
-    def resizeEvent(self, e):
-        """Set the favicon size to the tabbar size minus some padding."""
-        height = e.size().height()
-        if height != 0 and e.oldSize().height() != height:
-            height = math.ceil(height - height / 7)
-            self.setIconSize(QSize(height, height))
 
     @config.change_filter('colors', 'tabs.bg.bar')
     def set_colors(self):
