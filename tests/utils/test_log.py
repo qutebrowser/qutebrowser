@@ -27,7 +27,7 @@ import itertools
 import sys
 
 import pytest
-import pytest_capturelog
+import pytest_capturelog  # pylint: disable=import-error
 
 from qutebrowser.utils import log
 
