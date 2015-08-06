@@ -1,0 +1,68 @@
+<!--
+Helper file for test_javascript_escape() in test_webelem.py.
+
+Since the conversion from QStrings to Python strings is broken in some corner
+cases in PyQt < 5.4 we hexlify the string we got in javascript here and test
+that in the test.
+-->
+
+<html>
+<head>
+<script type="text/javascript">
+//<![CDATA[
+
+/*
+ * hexlify() and str2rstr_utf8() are based on:
+ *
+ * JavaScript MD5 1.0.1
+ * https://github.com/blueimp/JavaScript-MD5
+ *
+ * Copyright 2011, Sebastian Tschan
+ * https://blueimp.net
+ *
+ * Licensed under the MIT license:
+ * http://www.opensource.org/licenses/MIT
+ *
+ * Based on
+ * A JavaScript implementation of the RSA Data Security, Inc. MD5 Message
+ * Digest Algorithm, as defined in RFC 1321.
+ * Version 2.2 Copyright (C) Paul Johnston 1999 - 2009
+ * Other contributors: Greg Holt, Andrew Kepert, Ydnar, Lostinet
+ * Distributed under the BSD License
+ * See http://pajhome.org.uk/crypt/md5 for more info.
+ */
+
+'use strict';
+
+function hexlify(input) {
+    var hex_tab = '0123456789abcdef';
+    var output = '';
+    var x;
+    var i;
+
+    for (i = 0; i < input.length; i += 1) {
+        x = input.charCodeAt(i);
+        output += hex_tab.charAt((x >>> 4) & 0x0F) + hex_tab.charAt(x & 0x0F);
+    }
+
+    return output;
+}
+
+function encode_utf8(input) {
+    return unescape(encodeURIComponent(input));
+}
+
+function set_text() {
+    var elems = document.getElementsByTagName("p");
+    var hexlified = hexlify(encode_utf8("%INPUT%"));
+    var result = hexlified + "|" + "%INPUT%";
+    elems[0].innerHTML = result
+    window.qute_test_result = result;
+}
+
+//]]>
+</script>
+</head>
+<body onload="set_text()">
+<p>set_text() not called...</p>
+</html>

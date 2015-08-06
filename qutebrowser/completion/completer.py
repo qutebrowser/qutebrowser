@@ -488,6 +488,8 @@ class Completer(QObject):
         """Delete the current completion item."""
         completion = objreg.get('completion', scope='window',
                                 window=self._win_id)
+        if not completion.currentIndex().isValid():
+            raise cmdexc.CommandError("No item selected!")
         try:
             self.model().srcmodel.delete_cur_item(completion)
         except NotImplementedError:

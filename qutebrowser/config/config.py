@@ -271,6 +271,20 @@ def _get_value_transformer(old, new):
     return transformer
 
 
+def _transform_position(val):
+    """Transformer for position values."""
+    mapping = {
+        'north': 'top',
+        'south': 'bottom',
+        'west': 'left',
+        'east': 'right',
+    }
+    try:
+        return mapping[val]
+    except KeyError:
+        return val
+
+
 class ConfigManager(QObject):
 
     """Configuration manager for qutebrowser.
@@ -334,6 +348,8 @@ class ConfigManager(QObject):
     CHANGED_OPTIONS = {
         ('content', 'cookies-accept'):
             _get_value_transformer('default', 'no-3rdparty'),
+        ('tabbar', 'position'): _transform_position,
+        ('ui', 'downloads-position'): _transform_position,
     }
 
     changed = pyqtSignal(str, str)
@@ -674,10 +690,11 @@ class ConfigManager(QObject):
         else:
             try:
                 if option.endswith('!') and value is None:
-                    val = self.get(section_, option[:-1])
+                    option = option[:-1]
+                    val = self.get(section_, option)
                     layer = 'temp' if temp else 'conf'
                     if isinstance(val, bool):
-                        self.set(layer, section_, option[:-1], str(not val))
+                        self.set(layer, section_, option, str(not val))
                     else:
                         raise cmdexc.CommandError(
                             "set: Attempted inversion of non-boolean value.")

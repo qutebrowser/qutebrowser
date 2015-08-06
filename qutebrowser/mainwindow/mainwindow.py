@@ -198,10 +198,10 @@ class MainWindow(QWidget):
         self._vbox.removeWidget(self._downloadview)
         self._vbox.removeWidget(self.status)
         position = config.get('ui', 'downloads-position')
-        if position == 'north':
+        if position == 'top':
             self._vbox.addWidget(self._downloadview)
             self._vbox.addWidget(self.tabbed_browser)
-        elif position == 'south':
+        elif position == 'bottom':
             self._vbox.addWidget(self.tabbed_browser)
             self._vbox.addWidget(self._downloadview)
         else:

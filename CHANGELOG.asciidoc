@@ -32,6 +32,8 @@ Added
 - New setting `tabs -> show` which supersedes the old `tabs -> hide-*` options
   and has an additional `switching` option which shows tab while switching
   them. There's also a new `show-switching` option to configure the timeout.
+- New setting `storage -> remember-download-directory` to remember the last
+  used download directory.
 
 Changed
 ~~~~~~~
@@ -48,7 +50,12 @@ Fixed
 ~~~~~
 
 - `link_pyqt.py` now should work better on untested distributions.
-- Fixed various corner-cases with crashes when reading invalid config values.
+- Fixed various corner-cases with crashes when reading invalid config values
+  and the history file.
+- Fixed various corner-cases when setting text via an external editor.
+- Fixed potential crash when hinting a text field.
+- Fixed entering of insert mode when certain disabled text fields were clicked.
+- Fixed a crash when using `:set` with `-p` and `!` (invert value)
 
 Removed
 ~~~~~~~
