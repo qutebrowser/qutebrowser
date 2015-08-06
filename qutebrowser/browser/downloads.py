@@ -121,6 +121,10 @@ class DownloadItemStats(QObject):
 
         The caller needs to guarantee this is called all REFRESH_INTERVAL ms.
         """
+        if self.done is None:
+            # this can happen for very fast downloads, e.g. when actually
+            # opening a file
+            return
         delta = self.done - self._last_done
         self.speed = delta * 1000 / REFRESH_INTERVAL
         self._speed_avg.append(self.speed)
@@ -132,7 +136,9 @@ class DownloadItemStats(QObject):
 
     def percentage(self):
         """The current download percentage, or None if unknown."""
-        if self.total == 0 or self.total is None:
+        if self.done == self.total:
+            return 100
+        elif self.total == 0 or self.total is None:
             return None
         else:
             return 100 * self.done / self.total

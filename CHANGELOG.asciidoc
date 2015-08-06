@@ -59,6 +59,7 @@ Fixed
 - Fixed potential crash when hinting a text field.
 - Fixed entering of insert mode when certain disabled text fields were clicked.
 - Fixed a crash when using `:set` with `-p` and `!` (invert value)
+- Downloads with unknown size are now handled correctly.
 
 Removed
 ~~~~~~~
