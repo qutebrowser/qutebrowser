@@ -35,6 +35,7 @@ from qutebrowser.mainwindow.statusbar import bar
 from qutebrowser.completion import completionwidget
 from qutebrowser.keyinput import modeman
 from qutebrowser.browser import hints, downloads, downloadview, commands
+from qutebrowser.misc import crashsignal
 
 
 win_id_gen = itertools.count(0)
@@ -392,8 +393,18 @@ class MainWindow(QWidget):
         self._downloadview.updateGeometry()
         self.tabbed_browser.tabBar().refresh()
 
+    def _do_close(self):
+        """Helper function for closeEvent."""
+        objreg.get('session-manager').save_last_window_session()
+        self._save_geometry()
+        log.destroy.debug("Closing window {}".format(self.win_id))
+        self.tabbed_browser.shutdown()
+
     def closeEvent(self, e):
         """Override closeEvent to display a confirmation if needed."""
+        if crashsignal.is_crashing:
+            e.accept()
+            return
         confirm_quit = config.get('ui', 'confirm-quit')
         tab_count = self.tabbed_browser.count()
         download_manager = objreg.get('download-manager', scope='window',
@@ -425,7 +436,4 @@ class MainWindow(QWidget):
                 e.ignore()
                 return
         e.accept()
-        objreg.get('session-manager').save_last_window_session()
-        self._save_geometry()
-        log.destroy.debug("Closing window {}".format(self.win_id))
-        self.tabbed_browser.shutdown()
+        self._do_close()
