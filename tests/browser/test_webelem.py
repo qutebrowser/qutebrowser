@@ -522,6 +522,11 @@ class TestJavascriptEscape:
         '𐀀\x00𐀀\x00': r'𐀀\x00𐀀\x00',
     }
 
+    # Once there was this warning here:
+    #   load glyph failed err=6 face=0x2680ba0, glyph=1912
+    # http://qutebrowser.org:8010/builders/debian-jessie/builds/765/steps/unittests/
+    # Should that be ignored?
+
     @pytest.mark.parametrize('before, after', TESTS.items())
     def test_fake_escape(self, before, after):
         """Test javascript escaping with some expected outcomes."""
