@@ -1163,7 +1163,7 @@ class CommandDispatcher:
             download_manager.get(url, filename=dest)
         else:
             page = self._current_widget().page()
-            download_manager.get(self._current_url(), page)
+            download_manager.get(self._current_url(), page=page)
 
     @cmdutils.register(instance='command-dispatcher', scope='window',
                        deprecated="Use :download instead.")

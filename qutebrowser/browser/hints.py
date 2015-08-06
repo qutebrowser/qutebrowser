@@ -521,7 +521,7 @@ class HintManager(QObject):
 
         download_manager = objreg.get('download-manager', scope='window',
                                       window=self._win_id)
-        download_manager.get(url, elem.webFrame().page(),
+        download_manager.get(url, page=elem.webFrame().page(),
                              prompt_download_directory=prompt)
 
     def _call_userscript(self, elem, context):

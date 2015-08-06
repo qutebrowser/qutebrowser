@@ -662,20 +662,12 @@ class DownloadManager(QAbstractListModel):
         self.dataChanged.emit(self.index(0), self.last_index())
 
     @pyqtSlot('QUrl', 'QWebPage')
-    def get(self, url, page=None, fileobj=None, filename=None,
-            auto_remove=False, prompt_download_directory=None):
+    def get(self, url, **kwargs):
         """Start a download with a link URL.
 
         Args:
             url: The URL to get, as QUrl
-            page: The QWebPage to get the download from.
-            fileobj: The file object to write the answer to.
-            filename: A path to write the data to.
-            auto_remove: Whether to remove the download even if
-                         ui -> remove-finished-downloads is set to false.
-            prompt_download_directory: Whether to prompt for the download dir
-                                       or automatically download. If None, the
-                                       config is used.
+            **kwargs: passed to get_request().
 
         Return:
             If the download could start immediately, (fileobj/filename given),
@@ -683,29 +675,24 @@ class DownloadManager(QAbstractListModel):
 
             If not, None.
         """
-        if fileobj is not None and filename is not None:
-            raise TypeError("Only one of fileobj/filename may be given!")
         if not url.isValid():
             urlutils.invalid_url_error(self._win_id, url, "start download")
             return
         req = QNetworkRequest(url)
-        return self.get_request(req, page, fileobj, filename, auto_remove,
-                                prompt_download_directory)
+        return self.get_request(req, **kwargs)
 
-    def get_request(self, request, page=None, fileobj=None, filename=None,
-                    auto_remove=False, prompt_download_directory=None):
+    def get_request(self, request, *, fileobj=None, filename=None,
+                    prompt_download_directory=None, **kwargs):
         """Start a download with a QNetworkRequest.
 
         Args:
             request: The QNetworkRequest to download.
-            page: The QWebPage to use.
             fileobj: The file object to write the answer to.
             filename: A path to write the data to.
-            auto_remove: Whether to remove the download even if
-                         ui -> remove-finished-downloads is set to false.
             prompt_download_directory: Whether to prompt for the download dir
                                        or automatically download. If None, the
                                        config is used.
+            **kwargs: Passed to fetch_request.
 
         Return:
             If the download could start immediately, (fileobj/filename given),
@@ -728,8 +715,11 @@ class DownloadManager(QAbstractListModel):
             filename = config.get('storage', 'download-directory')
 
         if fileobj is not None or filename is not None:
-            return self.fetch_request(request, page, fileobj, filename,
-                                      auto_remove, suggested_fn)
+            return self.fetch_request(request,
+                                      fileobj=fileobj,
+                                      filename=filename,
+                                      suggested_filename=suggested_fn,
+                                      **kwargs)
         if suggested_fn is None:
             suggested_fn = 'qutebrowser-download'
         else:
@@ -740,23 +730,20 @@ class DownloadManager(QAbstractListModel):
         message_bridge = objreg.get('message-bridge', scope='window',
                                     window=self._win_id)
         q.answered.connect(
-            lambda fn: self.fetch_request(request, page, filename=fn,
-                                          auto_remove=auto_remove,
-                                          suggested_filename=suggested_fn))
+            lambda fn: self.fetch_request(request,
+                                          filename=fn,
+                                          suggested_filename=suggested_fn,
+                                          **kwargs))
         message_bridge.ask(q, blocking=False)
         return None
 
-    def fetch_request(self, request, page=None, fileobj=None, filename=None,
-                      auto_remove=False, suggested_filename=None):
+    def fetch_request(self, request, *, page=None, **kwargs):
         """Download a QNetworkRequest to disk.
 
         Args:
             request: The QNetworkRequest to download.
             page: The QWebPage to use.
-            fileobj: The file object to write the answer to.
-            filename: A path to write the data to.
-            auto_remove: Whether to remove the download even if
-                         ui -> remove-finished-downloads is set to false.
+            **kwargs: passed to fetch().
 
         Return:
             The created DownloadItem.
@@ -766,11 +753,10 @@ class DownloadManager(QAbstractListModel):
         else:
             nam = page.networkAccessManager()
         reply = nam.get(request)
-        return self.fetch(reply, fileobj, filename, auto_remove,
-                          suggested_filename)
+        return self.fetch(reply, **kwargs)
 
     @pyqtSlot('QNetworkReply')
-    def fetch(self, reply, fileobj=None, filename=None, auto_remove=False,
+    def fetch(self, reply, *, fileobj=None, filename=None, auto_remove=False,
               suggested_filename=None, prompt_download_directory=None):
         """Download a QNetworkReply to disk.
 
