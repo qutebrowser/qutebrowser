@@ -714,8 +714,8 @@ class DownloadManager(QAbstractListModel):
                              QNetworkRequest.AlwaysNetwork)
         suggested_fn = urlutils.filename_from_url(request.url())
 
-        prompt_download_location = config.get('storage', 'prompt-download-location')
-        if not prompt_download_location:
+        prompt_download_directory = config.get('storage', 'prompt-download-directory')
+        if not prompt_download_directory:
             filename = config.get('storage', 'download-directory')
 
         if fileobj is not None or filename is not None:
@@ -807,8 +807,8 @@ class DownloadManager(QAbstractListModel):
         if not self._update_timer.isActive():
             self._update_timer.start()
 
-        prompt_download_location = config.get('storage', 'prompt-download-location')
-        if not prompt_download_location:
+        prompt_download_directory = config.get('storage', 'prompt-download-directory')
+        if not prompt_download_directory:
             filename = config.get('storage', 'download-directory')
 
         if filename is not None:

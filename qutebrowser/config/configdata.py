@@ -558,7 +558,7 @@ def data(readonly=False):
              "sensible os-specific default. Will expand environment "
              "variables."),
 
-            ('prompt-download-location',
+            ('prompt-download-directory',
              SettingValue(typ.Bool(), 'true'),
              "Whether to prompt the user for the download location.\n"
              "If set to false, 'download-directory' will be used."),
