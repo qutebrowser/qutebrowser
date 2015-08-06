@@ -309,7 +309,7 @@ class TabBar(QTabBar):
     def set_font(self):
         """Set the tab bar font."""
         self.setFont(config.get('fonts', 'tabbar'))
-        size = self.fontInfo().pixelSize() - 1
+        size = self.fontMetrics().height() - 1
         self.setIconSize(QSize(size, size))
 
 
