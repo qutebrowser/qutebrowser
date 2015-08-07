@@ -220,7 +220,9 @@ class _CrashDialog(QDialog):
             exc: An exception tuple (type, value, traceback)
         """
         try:
-            self._crash_info.append(('Launch time', QApplication.instance().launch_time.strftime("%d-%m-%Y %H:%M:%S")))
+            application = QApplication.instance()
+            launch_time = application.launch_time.strftime("%d-%m-%Y %H:%M:%S")
+            self._crash_info.append(('Launch time', launch_time))
         except Exception:
             self._crash_info.append(("Launch time", traceback.format_exc()))
         try:
