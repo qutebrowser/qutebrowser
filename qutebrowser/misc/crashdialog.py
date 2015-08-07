@@ -29,7 +29,7 @@ import pkg_resources
 from PyQt5.QtCore import pyqtSlot, Qt, QSize, qVersion
 from PyQt5.QtWidgets import (QDialog, QLabel, QTextEdit, QPushButton,
                              QVBoxLayout, QHBoxLayout, QCheckBox,
-                             QDialogButtonBox, QMessageBox)
+                             QDialogButtonBox, QMessageBox, QApplication)
 
 import qutebrowser
 from qutebrowser.utils import version, log, utils, objreg, qtutils
@@ -219,6 +219,12 @@ class _CrashDialog(QDialog):
             cmdhist: A list with the command history (as strings)
             exc: An exception tuple (type, value, traceback)
         """
+        try:
+            application = QApplication.instance()
+            launch_time = application.launch_time.ctime()
+            self._crash_info.append(('Launch time', launch_time))
+        except Exception:
+            self._crash_info.append(("Launch time", traceback.format_exc()))
         try:
             self._crash_info.append(("Version info", version.version()))
         except Exception:

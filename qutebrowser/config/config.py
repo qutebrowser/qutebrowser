@@ -348,7 +348,7 @@ class ConfigManager(QObject):
     CHANGED_OPTIONS = {
         ('content', 'cookies-accept'):
             _get_value_transformer('default', 'no-3rdparty'),
-        ('tabbar', 'position'): _transform_position,
+        ('tabs', 'position'): _transform_position,
         ('ui', 'downloads-position'): _transform_position,
     }
 

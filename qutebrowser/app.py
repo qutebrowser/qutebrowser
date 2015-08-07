@@ -29,6 +29,7 @@ import time
 import shutil
 import tempfile
 import atexit
+import datetime
 
 from PyQt5.QtWidgets import QApplication
 from PyQt5.QtGui import QDesktopServices, QPixmap, QIcon, QCursor, QWindow
@@ -711,6 +712,8 @@ class Application(QApplication):
         self._args = args
         objreg.register('args', args)
         objreg.register('app', self)
+
+        self.launch_time = datetime.datetime.now()
 
     def __repr__(self):
         return utils.get_repr(self)
