@@ -472,9 +472,9 @@ class CommandDispatcher:
             background: Open the link in a new background tab.
             window: Open the link in a new window.
         """
-        encoded = bytes(url.toEncoded()).decode('ascii')
+        path = url.path()
         # Get the last number in a string
-        match = re.match(r'(.*\D|^)(\d+)(.*)', encoded)
+        match = re.match(r'(.*\D|^)(\d+)(.*)', path)
         if not match:
             raise cmdexc.CommandError("No number found in URL!")
         pre, number, post = match.groups()
@@ -493,8 +493,10 @@ class CommandDispatcher:
             val += 1
         else:
             raise ValueError("Invalid value {} for indec!".format(incdec))
-        urlstr = ''.join([pre, str(val), post]).encode('ascii')
-        new_url = QUrl.fromEncoded(urlstr)
+        new_path = ''.join([pre, str(val), post])
+        # Make a copy of the QUrl so we don't modify the original
+        new_url = QUrl(url)
+        new_url.setPath(new_path)
         self._open(new_url, tab, background, window)
 
     def _navigate_up(self, url, tab, background, window):
