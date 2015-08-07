@@ -19,7 +19,6 @@
 
 """Command dispatcher for TabbedBrowser."""
 
-import re
 import os
 import shlex
 import posixpath
@@ -472,31 +471,10 @@ class CommandDispatcher:
             background: Open the link in a new background tab.
             window: Open the link in a new window.
         """
-        path = url.path()
-        # Get the last number in a string
-        match = re.match(r'(.*\D|^)(\d+)(.*)', path)
-        if not match:
-            raise cmdexc.CommandError("No number found in URL!")
-        pre, number, post = match.groups()
-        if not number:
-            raise cmdexc.CommandError("No number found in URL!")
         try:
-            val = int(number)
-        except ValueError:
-            raise cmdexc.CommandError("Could not parse number '{}'.".format(
-                number))
-        if incdec == 'decrement':
-            if val <= 0:
-                raise cmdexc.CommandError("Can't decrement {}!".format(val))
-            val -= 1
-        elif incdec == 'increment':
-            val += 1
-        else:
-            raise ValueError("Invalid value {} for indec!".format(incdec))
-        new_path = ''.join([pre, str(val), post])
-        # Make a copy of the QUrl so we don't modify the original
-        new_url = QUrl(url)
-        new_url.setPath(new_path)
+            new_url = urlutils.url_incdec_number(url, incdec)
+        except urlutils.IncDecError as error:
+            raise cmdexc.CommandError(error.msg)
         self._open(new_url, tab, background, window)
 
     def _navigate_up(self, url, tab, background, window):

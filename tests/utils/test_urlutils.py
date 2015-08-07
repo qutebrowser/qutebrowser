@@ -524,3 +524,39 @@ def test_same_domain_invalid_url(url1, url2):
     """Test same_domain with invalid URLs."""
     with pytest.raises(ValueError):
         urlutils.same_domain(QUrl(url1), QUrl(url2))
+
+@pytest.mark.parametrize('url, incdec, output', [
+    ("http://example.com/index1.html", "increment", "http://example.com/index2.html"),
+    ("http://foo.bar/folder_1/image_2", "increment", "http://foo.bar/folder_1/image_3"),
+    ("http://bbc.c0.uk:80/story_1", "increment", "http://bbc.c0.uk:80/story_2"),
+    ("http://mydomain.tld/1_%C3%A4", "increment", "http://mydomain.tld/2_%C3%A4"),
+
+    ("http://example.com/index10.html", "decrement", "http://example.com/index9.html"),
+    ("http://foo.bar/folder_1/image_3", "decrement", "http://foo.bar/folder_1/image_2"),
+    ("http://bbc.c0.uk:80/story_1", "decrement", "http://bbc.c0.uk:80/story_0"),
+    ("http://mydomain.tld/2_%C3%A4", "decrement", "http://mydomain.tld/1_%C3%A4"),
+])
+def test_url_incdec_number(url, incdec, output):
+    """Test url_incdec_number with valid URLs."""
+    new_url = urlutils.url_incdec_number(QUrl(url), incdec)
+    assert new_url == QUrl(output)
+
+@pytest.mark.parametrize('url', [
+    "http://example.com/long/path/but/no/number",
+    "http://ex4mple.com/number/in/hostname",
+    "http://example.com:42/number/in/port",
+    "http://www2.example.com/number/in/subdomain",
+    "http://example.com/%C3%B6/urlencoded/data",
+    "http://www2.ex4mple.com:42/all/of/the/%C3%A4bove",
+])
+def test_url_incdec_number_invalid(url):
+    """Test url_incdec_number with URLs that don't contain a number."""
+    with pytest.raises(urlutils.IncDecError):
+        urlutils.url_incdec_number(QUrl(url), "increment")
+
+def test_url_incdec_number_below_0():
+    """Test url_incdec_number with a number that would be below zero
+    after decrementing."""
+    with pytest.raises(urlutils.IncDecError):
+        urlutils.url_incdec_number(QUrl('http://example.com/page_0.html'),
+                'decrement')
