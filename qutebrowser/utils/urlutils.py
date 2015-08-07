@@ -447,7 +447,7 @@ class FuzzyUrlError(Exception):
 
 class IncDecError(Exception):
 
-    """Exception raised by url_incdec_number on problems.
+    """Exception raised by incdec_number on problems.
 
     Attributes:
         msg: The error message.
@@ -463,7 +463,7 @@ class IncDecError(Exception):
         return '{}: {}'.format(self.msg, self.url.toString())
 
 
-def url_incdec_number(url, incdec):
+def incdec_number(url, incdec):
     """Find a number in the url and increment or decrement it.
 
     Args:

@@ -472,7 +472,7 @@ class CommandDispatcher:
             window: Open the link in a new window.
         """
         try:
-            new_url = urlutils.url_incdec_number(url, incdec)
+            new_url = urlutils.incdec_number(url, incdec)
         except urlutils.IncDecError as error:
             raise cmdexc.CommandError(error.msg)
         self._open(new_url, tab, background, window)

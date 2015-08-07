@@ -536,9 +536,9 @@ def test_same_domain_invalid_url(url1, url2):
     ("http://bbc.c0.uk:80/story_1", "decrement", "http://bbc.c0.uk:80/story_0"),
     ("http://mydomain.tld/2_%C3%A4", "decrement", "http://mydomain.tld/1_%C3%A4"),
 ])
-def test_url_incdec_number(url, incdec, output):
-    """Test url_incdec_number with valid URLs."""
-    new_url = urlutils.url_incdec_number(QUrl(url), incdec)
+def test_incdec_number(url, incdec, output):
+    """Test incdec_number with valid URLs."""
+    new_url = urlutils.incdec_number(QUrl(url), incdec)
     assert new_url == QUrl(output)
 
 @pytest.mark.parametrize('url', [
@@ -549,14 +549,14 @@ def test_url_incdec_number(url, incdec, output):
     "http://example.com/%C3%B6/urlencoded/data",
     "http://www2.ex4mple.com:42/all/of/the/%C3%A4bove",
 ])
-def test_url_incdec_number_invalid(url):
-    """Test url_incdec_number with URLs that don't contain a number."""
+def test_incdec_number_invalid(url):
+    """Test incdec_number with URLs that don't contain a number."""
     with pytest.raises(urlutils.IncDecError):
-        urlutils.url_incdec_number(QUrl(url), "increment")
+        urlutils.incdec_number(QUrl(url), "increment")
 
-def test_url_incdec_number_below_0():
-    """Test url_incdec_number with a number that would be below zero
+def test_incdec_number_below_0():
+    """Test incdec_number with a number that would be below zero
     after decrementing."""
     with pytest.raises(urlutils.IncDecError):
-        urlutils.url_incdec_number(QUrl('http://example.com/page_0.html'),
+        urlutils.incdec_number(QUrl('http://example.com/page_0.html'),
                 'decrement')
