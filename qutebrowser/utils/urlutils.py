@@ -475,18 +475,17 @@ def incdec_number(url, incdec):
 
     Raises IncDecError if the url contains no number.
     """
+    if not url.isValid():
+        raise ValueError(get_errstring(url))
+
     path = url.path()
     # Get the last number in a string
     match = re.match(r'(.*\D|^)(\d+)(.*)', path)
     if not match:
         raise IncDecError("No number found in URL!", url)
     pre, number, post = match.groups()
-    if not number:
-        raise IncDecError("No number found in URL!", url)
-    try:
-        val = int(number)
-    except ValueError:
-        raise IncDecError("Could not parse number '{}'.".format(number), url)
+    # This should always succeed because we match \d+
+    val = int(number)
     if incdec == 'decrement':
         if val <= 0:
             raise IncDecError("Can't decrement {}!".format(val), url)

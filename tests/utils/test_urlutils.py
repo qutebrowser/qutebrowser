@@ -549,7 +549,7 @@ def test_incdec_number(url, incdec, output):
     "http://example.com/%C3%B6/urlencoded/data",
     "http://www2.ex4mple.com:42/all/of/the/%C3%A4bove",
 ])
-def test_incdec_number_invalid(url):
+def test_incdec_number_no_number(url):
     """Test incdec_number with URLs that don't contain a number."""
     with pytest.raises(urlutils.IncDecError):
         urlutils.incdec_number(QUrl(url), "increment")
@@ -560,3 +560,27 @@ def test_incdec_number_below_0():
     with pytest.raises(urlutils.IncDecError):
         urlutils.incdec_number(QUrl('http://example.com/page_0.html'),
                 'decrement')
+
+def test_incdec_number_invalid_url():
+    """Test if incdec_number rejects an invalid URL."""
+    with pytest.raises(ValueError):
+        urlutils.incdec_number(QUrl(""), "increment")
+
+def test_incdec_number_wrong_mode():
+    """Test if incdec_number rejects a wrong parameter for the incdec
+    argument."""
+    valid_url = QUrl("http://example.com/0")
+    with pytest.raises(ValueError):
+        urlutils.incdec_number(valid_url, "foobar")
+
+@pytest.mark.parametrize("url, msg, expected_str", [
+    ("http://example.com", "Invalid", "Invalid: http://example.com"),
+])
+def test_incdec_error(url, msg, expected_str):
+    """Test IncDecError."""
+    url = QUrl(url)
+    with pytest.raises(urlutils.IncDecError) as excinfo:
+        raise urlutils.IncDecError(msg, url)
+
+    assert excinfo.value.url == url
+    assert str(excinfo.value) == expected_str
