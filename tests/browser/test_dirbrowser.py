@@ -21,7 +21,7 @@
 
 import os
 
-from qutebrowser.browser.dirbrowser import get_file_list
+from qutebrowser.browser.network.filescheme import get_file_list
 
 
 class TestFileList:

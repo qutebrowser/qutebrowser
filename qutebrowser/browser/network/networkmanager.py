@@ -31,6 +31,7 @@ from qutebrowser.utils import (message, log, usertypes, utils, objreg, qtutils,
                                urlutils)
 from qutebrowser.browser import cookies
 from qutebrowser.browser.network import qutescheme, networkreply
+from qutebrowser.browser.network import filescheme
 
 
 HOSTBLOCK_ERROR_STRING = '%HOSTBLOCK%'
@@ -97,6 +98,7 @@ class NetworkManager(QNetworkAccessManager):
         self._requests = []
         self._scheme_handlers = {
             'qute': qutescheme.QuteSchemeHandler(win_id),
+            'file': filescheme.FileSchemeHandler(win_id),
         }
         self._set_cookiejar()
         self._set_cache()
