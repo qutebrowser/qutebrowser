@@ -17,6 +17,26 @@
     font-size: 118%;
     font-weight: bold;
 }
+
+ul {
+    list-style-type: none;
+    margin: 0;
+    padding: 0;
+}
+
+ul > li {
+    background-repeat: no-repeat;
+    line-height: 22px;
+    padding-left: 25px;
+}
+
+ul > li {
+    background-image: url('{{folder}}');
+}
+
+ul.files > li {
+    background-image: url('{{file}}');
+}
 {% endblock %}
 
 {% block content %}
@@ -29,11 +49,15 @@
             {% if parent %}
                 <li><a href="{{parent}}">..</a></li>
             {% endif %}
+        </ul>
 
+        <ul class="folders">
             {% for item in directories %}
                 <li><a href="file://{{item.absname}}">{{item.name}}</a></li>
             {% endfor %}
+        </ul>
 
+        <ul class="files">
             {% for item in files %}
                 <li><a href="file://{{item.absname}}">{{item.name}}</a></li>
             {% endfor %}

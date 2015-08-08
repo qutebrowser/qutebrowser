@@ -20,7 +20,9 @@
 """The directory browser page."""
 
 import os
+import pkg_resources
 
+import qutebrowser
 from qutebrowser.utils import jinja
 
 
@@ -37,6 +39,11 @@ def dirbrowser(url):
     template = jinja.env.get_template('dirbrowser.html')
     # pylint: disable=no-member
     # https://bitbucket.org/logilab/pylint/issue/490/
+
+    folder = pkg_resources.resource_filename(qutebrowser.__name__,
+                                             'img/folder.png')
+    file = pkg_resources.resource_filename(qutebrowser.__name__,
+                                           'img/file.png')
 
     def is_file(file):
         return os.path.isfile(os.path.join(url, file))
@@ -56,5 +63,6 @@ def dirbrowser(url):
                          for file in all_files if is_dir(file)],
                          key=lambda v: v['name'].lower())
     html = template.render(title=title, url=url, icon='', parent=parent,
-                           files=files, directories=directories)
+                           files=files, directories=directories, folder=folder,
+                           file=file)
     return html
