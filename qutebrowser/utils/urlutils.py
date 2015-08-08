@@ -443,3 +443,59 @@ class FuzzyUrlError(Exception):
             return self.msg
         else:
             return '{}: {}'.format(self.msg, self.url.errorString())
+
+
+class IncDecError(Exception):
+
+    """Exception raised by incdec_number on problems.
+
+    Attributes:
+        msg: The error message.
+        url: The QUrl which caused the error.
+    """
+
+    def __init__(self, msg, url):
+        super().__init__(msg)
+        self.url = url
+        self.msg = msg
+
+    def __str__(self):
+        return '{}: {}'.format(self.msg, self.url.toString())
+
+
+def incdec_number(url, incdec):
+    """Find a number in the url and increment or decrement it.
+
+    Args:
+        url: The current url
+        incdec: Either 'increment' or 'decrement'
+
+    Return:
+        The new url with the number incremented/decremented.
+
+    Raises IncDecError if the url contains no number.
+    """
+    if not url.isValid():
+        raise ValueError(get_errstring(url))
+
+    path = url.path()
+    # Get the last number in a string
+    match = re.match(r'(.*\D|^)(\d+)(.*)', path)
+    if not match:
+        raise IncDecError("No number found in URL!", url)
+    pre, number, post = match.groups()
+    # This should always succeed because we match \d+
+    val = int(number)
+    if incdec == 'decrement':
+        if val <= 0:
+            raise IncDecError("Can't decrement {}!".format(val), url)
+        val -= 1
+    elif incdec == 'increment':
+        val += 1
+    else:
+        raise ValueError("Invalid value {} for indec!".format(incdec))
+    new_path = ''.join([pre, str(val), post])
+    # Make a copy of the QUrl so we don't modify the original
+    new_url = QUrl(url)
+    new_url.setPath(new_path)
+    return new_url
