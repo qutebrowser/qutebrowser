@@ -161,7 +161,7 @@ class BrowserPage(QWebPage):
                     return False
             elif (error_str.endswith('Path is a directory') and
                   info.url.scheme() == 'file'):
-                html = dirbrowser(info.url.url()[7:])
+                html = dirbrowser(info.url.toLocalFile())
                 errpage.content = html.encode('utf-8')
                 errpage.encoding = 'utf-8'
                 return True

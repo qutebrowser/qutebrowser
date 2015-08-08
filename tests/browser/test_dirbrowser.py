@@ -36,7 +36,6 @@ class TestFileList:
         assert {'name': 'testfile', 'absname': os.path.join(basedir,
                 'testfile')} in result
 
-        """Test get_file_list with os.path.isdir filter function."""
         basedir = os.path.abspath('./qutebrowser/utils')
         all_files = os.listdir(basedir)
         result = get_file_list(basedir, all_files, os.path.isdir)
