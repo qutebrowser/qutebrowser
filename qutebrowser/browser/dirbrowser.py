@@ -25,6 +25,24 @@ from qutebrowser.utils import jinja
 from qutebrowser.utils.utils import resource_filename
 
 
+def get_file_list(basedir, all_files, filterfunc):
+    """Get a list of files filtered by a filter function and sorted by name.
+
+    Args:
+        basedir: The parent directory of all files.
+        all_files: The list of files to filter and sort.
+        filterfunc: The filter function.
+
+    Return:
+        A list of dicts. Each dict contains the name and absname keys.
+    """
+    items = [{'name': filename, 'absname':
+             os.path.abspath(os.path.join(basedir, filename))}
+             for filename in all_files
+             if filterfunc(os.path.join(basedir, filename))]
+    return sorted(items, key=lambda v: v['name'].lower())
+
+
 def dirbrowser(urlstring):
     """Get the directory browser web page.
 
@@ -42,24 +60,13 @@ def dirbrowser(urlstring):
     folder = resource_filename('img/folder.png')
     file = resource_filename('img/file.png')
 
-    def is_file(file):
-        return os.path.isfile(os.path.join(urlstring, file))
-
-    def is_dir(file):
-        return os.path.isdir(os.path.join(urlstring, file))
-
     if os.path.dirname(urlstring) == urlstring:
         parent = None
     else:
         parent = os.path.dirname(urlstring)
     all_files = os.listdir(urlstring)
-    files = sorted([{'name': file, 'absname': os.path.join(urlstring, file)}
-                   for file in all_files if is_file(file)],
-                   key=lambda v: v['name'].lower())
-    directories = sorted([{'name': file, 'absname': os.path.join(urlstring,
-                         file)}
-                         for file in all_files if is_dir(file)],
-                         key=lambda v: v['name'].lower())
+    files = get_file_list(urlstring, all_files, os.path.isfile)
+    directories = get_file_list(urlstring, all_files, os.path.isdir)
     html = template.render(title=title, url=urlstring, icon='', parent=parent,
                            files=files, directories=directories, folder=folder,
                            file=file)
