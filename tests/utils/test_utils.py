@@ -130,7 +130,7 @@ class TestResourceFilename:
             # Want to test unfrozen tests, but we are frozen
             pytest.skip("Can't run with sys.frozen = True!")
 
-    def test_readfile(self):
+    def test_resource_filename(self):
         """Read a test file."""
         filename = utils.resource_filename(os.path.join('utils', 'testfile'))
         expected = os.path.abspath('./qutebrowser/utils/testfile')
