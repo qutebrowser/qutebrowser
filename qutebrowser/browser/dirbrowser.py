@@ -57,8 +57,8 @@ def dirbrowser(urlstring):
     # pylint: disable=no-member
     # https://bitbucket.org/logilab/pylint/issue/490/
 
-    folder = resource_filename('img/folder.png')
-    file = resource_filename('img/file.png')
+    folder = resource_filename('img/folder.svg')
+    file = resource_filename('img/file.svg')
 
     if os.path.dirname(urlstring) == urlstring:
         parent = None

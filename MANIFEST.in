@@ -2,6 +2,7 @@ global-exclude __pycache__ *.pyc *.pyo
 
 recursive-include qutebrowser *.py
 recursive-include qutebrowser/html *.html
+recursive-include qutebrowser/img *.svg
 recursive-include qutebrowser/test *.py
 recursive-include qutebrowser/javascript *.js
 graft icons
