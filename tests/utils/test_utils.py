@@ -124,15 +124,6 @@ class TestResourceFilename:
 
     """Test resource_filename."""
 
-    @pytest.fixture(autouse=True, params=[True, False])
-    def freezer(self, request, monkeypatch):
-        if request.param and not getattr(sys, 'frozen', False):
-            monkeypatch.setattr(sys, 'frozen', True, raising=False)
-            monkeypatch.setattr('sys.executable', qutebrowser.__file__)
-        elif not request.param and getattr(sys, 'frozen', False):
-            # Want to test unfrozen tests, but we are frozen
-            pytest.skip("Can't run with sys.frozen = True!")
-
     def test_resource_filename(self):
         """Read a test file."""
         filename = utils.resource_filename(os.path.join('utils', 'testfile'))
