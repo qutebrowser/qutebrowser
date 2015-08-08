@@ -27,7 +27,6 @@ from PyQt5.QtCore import Qt
 from PyQt5.QtGui import QStandardItemModel, QStandardItem
 
 from qutebrowser.utils import usertypes, qtutils
-from qutebrowser.config import config
 
 
 Role = usertypes.enum('Role', ['sort', 'userdata'], start=Qt.UserRole,
@@ -40,13 +39,17 @@ class BaseCompletionModel(QStandardItemModel):
 
     Used for showing completions later in the CompletionView. Supports setting
     marks and adding new categories/items easily.
+
+    Class Attributes:
+        COLUMN_WIDTHS: The width percentages of the columns used in the
+                        completion view.
     """
+
+    COLUMN_WIDTHS = (20, 70, 10)
 
     def __init__(self, parent=None):
         super().__init__(parent)
         self.setColumnCount(3)
-        self.column_widths = config.get('completion',
-                                        'base-column-width-percentages')
         self.columns_to_filter = [0]
 
     def new_category(self, name, sort=None):

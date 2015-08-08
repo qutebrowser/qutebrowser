@@ -28,6 +28,7 @@ from PyQt5.QtCore import pyqtSlot, pyqtSignal, Qt, QItemSelectionModel
 
 from qutebrowser.config import config, style
 from qutebrowser.completion import completiondelegate, completer
+from qutebrowser.completion.models.base import BaseCompletionModel
 from qutebrowser.utils import qtutils, objreg, utils
 
 
@@ -100,8 +101,8 @@ class CompletionView(QTreeView):
         # FIXME handle new aliases.
         # objreg.get('config').changed.connect(self.init_command_completion)
 
-        self.column_widths = config.get('completion',
-                                        'base-column-width-percentages')
+        self.column_widths = BaseCompletionModel.COLUMN_WIDTHS
+
         self._delegate = completiondelegate.CompletionItemDelegate(self)
         self.setItemDelegate(self._delegate)
         style.set_register_stylesheet(self)

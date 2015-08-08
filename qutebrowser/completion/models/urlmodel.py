@@ -40,6 +40,8 @@ class UrlCompletionModel(base.BaseCompletionModel):
     TEXT_COLUMN = 1
     TIME_COLUMN = 2
 
+    COLUMN_WIDTHS = (40, 50, 10)
+
     def __init__(self, parent=None):
         super().__init__(parent)
 
@@ -74,8 +76,6 @@ class UrlCompletionModel(base.BaseCompletionModel):
             self.on_history_item_added)
 
         objreg.get('config').changed.connect(self.reformat_timestamps)
-
-        self.column_widths = (40, 50, 10)
 
     def _fmt_atime(self, atime):
         """Format an atime to a human-readable string."""

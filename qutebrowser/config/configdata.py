@@ -398,11 +398,6 @@ def data(readonly=False):
              "Whether to shrink the completion to be smaller than the "
              "configured size if there are no scrollbars."),
 
-            ('base-column-width-percentages',
-             SettingValue(typ.IntList(), '20,70,10'),
-             "List of width percentages of the base completion columns."
-             "These can be overridden by child classes."),
-
             readonly=readonly
         )),
 
