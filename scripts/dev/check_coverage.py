@@ -105,6 +105,8 @@ def main():
             print("{} has 100% coverage but is not in PERFECT_FILES!".format(
                 filename))
 
+    os.remove('.coverage.xml')
+
     return status
 
 
