@@ -75,6 +75,8 @@ class UrlCompletionModel(base.BaseCompletionModel):
 
         objreg.get('config').changed.connect(self.reformat_timestamps)
 
+        self.column_widths = (40, 50, 10)
+
     def _fmt_atime(self, atime):
         """Format an atime to a human-readable string."""
         fmt = config.get('completion', 'timestamp-format')

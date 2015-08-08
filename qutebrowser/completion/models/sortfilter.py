@@ -53,6 +53,7 @@ class CompletionFilterModel(QSortFilterProxyModel):
         else:
             self.setSortRole(completion.Role.sort)
             self._sort_order = dumb_sort
+        self.column_widths = source.column_widths
 
     def set_pattern(self, val):
         """Setter for pattern.
