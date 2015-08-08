@@ -28,6 +28,8 @@ from qutebrowser.completion.models import base
 
 class SettingSectionCompletionModel(base.BaseCompletionModel):
 
+    COLUMN_WIDTHS = (20, 70, 10)
+
     """A CompletionModel filled with settings sections."""
 
     # pylint: disable=abstract-method
@@ -41,6 +43,8 @@ class SettingSectionCompletionModel(base.BaseCompletionModel):
 
 
 class SettingOptionCompletionModel(base.BaseCompletionModel):
+
+    COLUMN_WIDTHS = (20, 70, 10)
 
     """A CompletionModel filled with settings and their descriptions.
 
@@ -94,6 +98,8 @@ class SettingOptionCompletionModel(base.BaseCompletionModel):
 
 
 class SettingValueCompletionModel(base.BaseCompletionModel):
+
+    COLUMN_WIDTHS = (20, 70, 10)
 
     """A CompletionModel filled with setting values.
 

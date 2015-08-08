@@ -45,7 +45,7 @@ class BaseCompletionModel(QStandardItemModel):
                         completion view.
     """
 
-    COLUMN_WIDTHS = (20, 70, 10)
+    COLUMN_WIDTHS = (30, 70, 0)
 
     def __init__(self, parent=None):
         super().__init__(parent)
