@@ -17,38 +17,33 @@
 # You should have received a copy of the GNU General Public License
 # along with qutebrowser.  If not, see <http://www.gnu.org/licenses/>.
 
-"""Tests for qutebrowser.browser.dirbrowser."""
+"""Tests for qutebrowser.browser.network.filescheme."""
 
 import os
+
+import pytest
 
 from qutebrowser.browser.network.filescheme import get_file_list
 
 
-class TestFileList:
+@pytest.mark.parametrize('create_file, create_dir, filterfunc, expected', [
+    (True, False, os.path.isfile, True),
+    (True, False, os.path.isdir, False),
 
-    """Test file list."""
+    (False, True, os.path.isfile, False),
+    (False, True, os.path.isdir, True),
 
-    def test_get_file_list(self):
-        """Test get_file_list."""
-        basedir = os.path.abspath('./qutebrowser/utils')
-        all_files = os.listdir(basedir)
-        result = get_file_list(basedir, all_files, os.path.isfile)
-        assert {'name': 'testfile', 'absname': os.path.join(basedir,
-                'testfile')} in result
+    (False, False, os.path.isfile, False),
+    (False, False, os.path.isdir, False),
+])
+def test_get_file_list(tmpdir, create_file, create_dir, filterfunc, expected):
+    """Test get_file_list."""
+    path = tmpdir / 'foo'
+    if create_file or create_dir:
+        path.ensure(dir=create_dir)
 
-        basedir = os.path.abspath('./qutebrowser/utils')
-        all_files = os.listdir(basedir)
-        result = get_file_list(basedir, all_files, os.path.isdir)
-        print(result)
-        assert {'name': 'testfile', 'absname': os.path.join(basedir,
-                'testfile')} not in result
+    all_files = os.listdir(str(tmpdir))
 
-        basedir = os.path.abspath('./qutebrowser')
-        all_files = os.listdir(basedir)
-        result = get_file_list(basedir, all_files, os.path.isfile)
-        assert ({'name': 'utils', 'absname': os.path.join(basedir, 'utils')}
-                not in result)
-
-        result = get_file_list(basedir, all_files, os.path.isdir)
-        assert ({'name': 'utils', 'absname': os.path.join(basedir, 'utils')}
-                in result)
+    result = get_file_list(str(tmpdir), all_files, filterfunc)
+    item = {'name': 'foo', 'absname': str(path)}
+    assert (item in result) == expected
