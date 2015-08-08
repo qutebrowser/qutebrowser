@@ -20,8 +20,8 @@ __pycache__
 /qutebrowser/html/doc/
 /.venv
 /.coverage
-/htmlcov
-/coverage.xml
+/.htmlcov
+/.coverage.xml
 /.tox
 /testresults.html
 /.cache

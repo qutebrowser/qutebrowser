@@ -67,10 +67,14 @@ def main():
     """
     utils.change_cwd()
 
+    if sys.platform != 'linux':
+        print("Skipping coverage checks on non-Linux system.")
+        sys.exit()
+
     for path in PERFECT_FILES:
         assert os.path.exists(os.path.join(*path.split('/'))), path
 
-    with open('coverage.xml', encoding='utf-8') as f:
+    with open('.coverage.xml', encoding='utf-8') as f:
         tree = ElementTree.parse(f)
     classes = tree.getroot().findall('./packages/package/classes/class')
 
