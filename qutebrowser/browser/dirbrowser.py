@@ -26,16 +26,16 @@ import qutebrowser
 from qutebrowser.utils import jinja
 
 
-def dirbrowser(url):
+def dirbrowser(urlstring):
     """Get the directory browser web page.
 
     Args:
-        url: The directory path.
+        urlstring: The directory path.
 
     Return:
         The HTML of the web page.
     """
-    title = "Browse directory: {}".format(url)
+    title = "Browse directory: {}".format(urlstring)
     template = jinja.env.get_template('dirbrowser.html')
     # pylint: disable=no-member
     # https://bitbucket.org/logilab/pylint/issue/490/
@@ -46,23 +46,23 @@ def dirbrowser(url):
                                            'img/file.png')
 
     def is_file(file):
-        return os.path.isfile(os.path.join(url, file))
+        return os.path.isfile(os.path.join(urlstring, file))
 
     def is_dir(file):
-        return os.path.isdir(os.path.join(url, file))
+        return os.path.isdir(os.path.join(urlstring, file))
 
-    if os.path.dirname(url) == url:
+    if os.path.dirname(urlstring) == urlstring:
         parent = None
     else:
-        parent = os.path.dirname(url)
-    all_files = os.listdir(url)
-    files = sorted([{'name': file, 'absname': os.path.join(url, file)}
+        parent = os.path.dirname(urlstring)
+    all_files = os.listdir(urlstring)
+    files = sorted([{'name': file, 'absname': os.path.join(urlstring, file)}
                    for file in all_files if is_file(file)],
                    key=lambda v: v['name'].lower())
-    directories = sorted([{'name': file, 'absname': os.path.join(url, file)}
+    directories = sorted([{'name': file, 'absname': os.path.join(urlstring, file)}
                          for file in all_files if is_dir(file)],
                          key=lambda v: v['name'].lower())
-    html = template.render(title=title, url=url, icon='', parent=parent,
+    html = template.render(title=title, url=urlstring, icon='', parent=parent,
                            files=files, directories=directories, folder=folder,
                            file=file)
     return html
