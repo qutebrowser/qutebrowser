@@ -204,7 +204,7 @@ class CompletionView(QTreeView):
         for i in range(model.rowCount()):
             self.expand(model.index(i, 0))
 
-        self._column_widths = model.source.COLUMN_WIDTHS
+        self._column_widths = model.srcmodel.COLUMN_WIDTHS
         self._resize_columns()
         self.maybe_resize_completion()
 
