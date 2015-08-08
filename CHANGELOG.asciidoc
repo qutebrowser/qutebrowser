@@ -48,6 +48,8 @@ Changed
   mode and is not hidden anymore.
 - `minimal_webkit_testbrowser.py` now has a `--webengine` switch to test
   QtWebEngine if it's installed.
+- The column width percentages for the completion view now depend on the
+  completion model.
 
 Fixed
 ~~~~~

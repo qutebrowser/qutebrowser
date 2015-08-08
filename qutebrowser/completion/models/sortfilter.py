@@ -39,8 +39,6 @@ class CompletionFilterModel(QSortFilterProxyModel):
                    Kept as attribute because calling `sourceModel` takes quite
                    a long time for some reason.
         _sort_order: The order to use for sorting if using dumb_sort.
-        column_widths: the width percentages of the columns in the
-                       completion view.
     """
 
     def __init__(self, source, parent=None, *, dumb_sort=None):
@@ -55,7 +53,6 @@ class CompletionFilterModel(QSortFilterProxyModel):
         else:
             self.setSortRole(completion.Role.sort)
             self._sort_order = dumb_sort
-        self.column_widths = source.COLUMN_WIDTHS
 
     def set_pattern(self, val):
         """Setter for pattern.

@@ -45,7 +45,7 @@ class CompletionView(QTreeView):
         _height: The height to use for the CompletionView.
         _height_perc: Either None or a percentage if height should be relative.
         _delegate: The item delegate used.
-        column_widths: A list of column widths, in percent.
+        _column_widths: A list of column widths, in percent.
 
     Signals:
         resize_completion: Emitted when the completion should be resized.
@@ -101,7 +101,7 @@ class CompletionView(QTreeView):
         # FIXME handle new aliases.
         # objreg.get('config').changed.connect(self.init_command_completion)
 
-        self.column_widths = BaseCompletionModel.COLUMN_WIDTHS
+        self._column_widths = BaseCompletionModel.COLUMN_WIDTHS
 
         self._delegate = completiondelegate.CompletionItemDelegate(self)
         self.setItemDelegate(self._delegate)
@@ -130,7 +130,7 @@ class CompletionView(QTreeView):
     def _resize_columns(self):
         """Resize the completion columns based on column_widths."""
         width = self.size().width()
-        pixel_widths = [(width * perc // 100) for perc in self.column_widths]
+        pixel_widths = [(width * perc // 100) for perc in self._column_widths]
         if self.verticalScrollBar().isVisible():
             pixel_widths[-1] -= self.style().pixelMetric(
                 QStyle.PM_ScrollBarExtent) + 5
@@ -204,9 +204,7 @@ class CompletionView(QTreeView):
         for i in range(model.rowCount()):
             self.expand(model.index(i, 0))
 
-        if model.column_widths:
-            self.column_widths = model.column_widths
-
+        self._column_widths = model.source.COLUMN_WIDTHS
         self._resize_columns()
         self.maybe_resize_completion()
 
