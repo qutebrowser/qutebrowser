@@ -47,10 +47,11 @@ def get_file_list(basedir, all_files, filterfunc):
     Return:
         A list of dicts. Each dict contains the name and absname keys.
     """
-    items = [{'name': filename, 'absname':
-             os.path.abspath(os.path.join(basedir, filename))}
-             for filename in all_files
-             if filterfunc(os.path.join(basedir, filename))]
+    items = []
+    for filename in all_files:
+        absname = os.path.join(basedir, filename)
+        if filterfunc(absname):
+            items.append({'name': filename, 'absname': absname})
     return sorted(items, key=lambda v: v['name'].lower())
 
 
@@ -63,31 +64,26 @@ def dirbrowser(urlstring):
     Return:
         The HTML of the web page.
     """
-    if os.path.isdir(urlstring):
-        title = "Browse directory: {}".format(urlstring)
-        template = jinja.env.get_template('dirbrowser.html')
-        # pylint: disable=no-member
-        # https://bitbucket.org/logilab/pylint/issue/490/
+    title = "Browse directory: {}".format(urlstring)
+    template = jinja.env.get_template('dirbrowser.html')
+    # pylint: disable=no-member
+    # https://bitbucket.org/logilab/pylint/issue/490/
 
-        folder = resource_filename('img/folder.svg')
-        file = resource_filename('img/file.svg')
+    folder = resource_filename('img/folder.svg')
+    file = resource_filename('img/file.svg')
 
-        if os.path.dirname(urlstring) == urlstring:
-            parent = None
-        else:
-            parent = os.path.dirname(urlstring)
-        all_files = os.listdir(urlstring)
-        files = get_file_list(urlstring, all_files, os.path.isfile)
-        directories = get_file_list(urlstring, all_files, os.path.isdir)
-        html = template.render(title=title, url=urlstring, icon='',
-                               parent=parent, files=files,
-                               directories=directories, folder=folder,
-                               file=file)
-        html = html.encode('UTF-8', errors='xmlcharrefreplace')
+    if os.path.dirname(urlstring) == urlstring:
+        parent = None
     else:
-        with open(urlstring, 'rb') as f:
-            html = f.read()
-    return html
+        parent = os.path.dirname(urlstring)
+    all_files = os.listdir(urlstring)
+    files = get_file_list(urlstring, all_files, os.path.isfile)
+    directories = get_file_list(urlstring, all_files, os.path.isdir)
+    html = template.render(title=title, url=urlstring, icon='',
+                           parent=parent, files=files,
+                           directories=directories, folder=folder,
+                           file=file)
+    return html.encode('UTF-8', errors='xmlcharrefreplace')
 
 
 class FileSchemeHandler(schemehandler.SchemeHandler):
@@ -105,6 +101,8 @@ class FileSchemeHandler(schemehandler.SchemeHandler):
         Return:
             A QNetworkReply.
         """
-        data = dirbrowser(request.url().toLocalFile())
-        return networkreply.FixedDataNetworkReply(
-            request, data, 'text/html', self.parent())
+        urlstring = request.url().toLocalFile()
+        if os.path.isdir(urlstring):
+            data = dirbrowser(urlstring)
+            return networkreply.FixedDataNetworkReply(
+                request, data, 'text/html', self.parent())

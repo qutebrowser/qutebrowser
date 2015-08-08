@@ -320,8 +320,10 @@ class NetworkManager(QNetworkAccessManager):
         """
         scheme = req.url().scheme()
         if scheme in self._scheme_handlers:
-            return self._scheme_handlers[scheme].createRequest(
+            result = self._scheme_handlers[scheme].createRequest(
                 op, req, outgoing_data)
+            if result:
+                return result
 
         host_blocker = objreg.get('host-blocker')
         if (op == QNetworkAccessManager.GetOperation and
