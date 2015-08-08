@@ -44,7 +44,10 @@ def dirbrowser(url):
     def is_dir(file):
         return os.path.isdir(os.path.join(url, file))
 
-    parent = os.path.dirname(url)
+    if os.path.dirname(url) == url:
+        parent = None
+    else:
+        parent = os.path.dirname(url)
     all_files = os.listdir(url)
     files = sorted([(file, os.path.join(url, file)) for file in all_files if
                     is_file(file)])
