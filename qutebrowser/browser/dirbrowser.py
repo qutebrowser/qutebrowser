@@ -49,10 +49,12 @@ def dirbrowser(url):
     else:
         parent = os.path.dirname(url)
     all_files = os.listdir(url)
-    files = sorted([(file, os.path.join(url, file)) for file in all_files if
-                    is_file(file)])
-    directories = sorted([(file, os.path.join(url, file)) for file in
-                          all_files if is_dir(file)])
+    files = sorted([{'name': file, 'absname': os.path.join(url, file)}
+                   for file in all_files if is_file(file)],
+                   key=lambda v: v['name'].lower())
+    directories = sorted([{'name': file, 'absname': os.path.join(url, file)}
+                         for file in all_files if is_dir(file)],
+                         key=lambda v: v['name'].lower())
     html = template.render(title=title, url=url, icon='', parent=parent,
                            files=files, directories=directories)
     return html

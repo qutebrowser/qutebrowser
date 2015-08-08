@@ -31,11 +31,11 @@
             {% endif %}
 
             {% for item in directories %}
-                <li><a href="file://{{item.1}}">{{item.0}}</a></li>
+                <li><a href="file://{{item.absname}}">{{item.name}}</a></li>
             {% endfor %}
 
             {% for item in files %}
-                <li><a href="file://{{item.1}}">{{item.0}}</a></li>
+                <li><a href="file://{{item.absname}}">{{item.name}}</a></li>
             {% endfor %}
         </ul>
     </div>
