@@ -31,6 +31,7 @@ from PyQt5.QtWebKitWidgets import QWebPage
 
 from qutebrowser.config import config
 from qutebrowser.browser import http, tabhistory
+from qutebrowser.browser.dirbrowser import dirbrowser
 from qutebrowser.browser.network import networkmanager
 from qutebrowser.utils import (message, usertypes, log, jinja, qtutils, utils,
                                objreg, debug)
@@ -158,6 +159,12 @@ class BrowserPage(QWebPage):
                         if QUrl(elem.attribute('src')) == info.url:
                             elem.setAttribute('style', 'display: none')
                     return False
+            elif (error_str.endswith('Path is a directory') and
+                  info.url.scheme() == 'file'):
+                html = dirbrowser(info.url.url()[7:])
+                errpage.content = html.encode('utf-8')
+                errpage.encoding = 'utf-8'
+                return True
             else:
                 self._ignore_load_started = True
                 self.error_occurred = True

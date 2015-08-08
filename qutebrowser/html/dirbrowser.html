@@ -1,0 +1,43 @@
+{% extends "base.html" %}
+{% block style %}
+{{ super() }}
+#dirbrowserContainer {
+    background: #fff;
+    min-width: 35em;
+    max-width: 35em;
+    position: absolute;
+    top: 2em;
+    left: 1em;
+    padding: 10px;
+    border: 2px solid #eee;
+    -webkit-border-radius: 5px;
+}
+
+#dirbrowserTitleText {
+    font-size: 118%;
+    font-weight: bold;
+}
+{% endblock %}
+
+{% block content %}
+    <div id="dirbrowserContainer">
+        <div id="dirbrowserTitle">
+            <p id="dirbrowserTitleText">Browse directory: {{url}}</p>
+        </div>
+
+        <ul>
+            {% if parent %}
+                <li><a href="{{parent}}">..</a></li>
+            {% endif %}
+
+            {% for item in directories %}
+                <li><a href="file://{{item.1}}">{{item.0}}</a></li>
+            {% endfor %}
+
+            {% for item in files %}
+                <li><a href="file://{{item.1}}">{{item.0}}</a></li>
+            {% endfor %}
+        </ul>
+    </div>
+</div>
+{% endblock %}
