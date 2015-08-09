@@ -23,22 +23,24 @@ import os
 import sys
 import collections
 import itertools
+import logging
 
 import pytest
 
 import stubs as stubsmod
+import logfail
 from qutebrowser.config import configexc
 from qutebrowser.utils import objreg, usertypes
 
 
-@pytest.fixture(scope='session', autouse=True)
-def app_and_logging(qapp):
-    """Initialize a QApplication and logging.
 
-    This ensures that a QApplication is created and used by all tests.
-    """
-    from log import init
-    init()
+@pytest.yield_fixture(scope='session', autouse=True)
+def fail_on_logging():
+    handler = logfail.LogFailHandler()
+    logging.getLogger().addHandler(handler)
+    yield
+    logging.getLogger().removeHandler(handler)
+    handler.close()
 
 
 @pytest.fixture(scope='session')
@@ -58,7 +60,7 @@ def unicode_encode_err():
 
 
 @pytest.fixture(scope='session')
-def qnam():
+def qnam(qapp):
     """Session-wide QNetworkAccessManager."""
     from PyQt5.QtNetwork import QNetworkAccessManager
     nam = QNetworkAccessManager()

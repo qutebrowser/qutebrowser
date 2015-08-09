@@ -29,7 +29,6 @@ from PyQt5.QtCore import Qt
 import pytest
 
 from qutebrowser.keyinput import basekeyparser
-from qutebrowser.utils import log
 
 
 CONFIG = {'input': {'timeout': 100}}
@@ -107,7 +106,7 @@ class TestSpecialKeys:
     def setup(self, caplog, fake_keyconfig):
         self.kp = basekeyparser.BaseKeyParser(0)
         self.kp.execute = mock.Mock()
-        with caplog.atLevel(logging.WARNING, log.keyboard.name):
+        with caplog.atLevel(logging.WARNING, 'keyboard'):
             # Ignoring keychain 'ccc' in mode 'test' because keychains are not
             # supported there.
             self.kp.read_config('test')
