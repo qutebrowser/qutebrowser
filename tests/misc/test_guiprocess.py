@@ -99,7 +99,7 @@ def test_double_start(qtbot, proc):
 
 
 @pytest.mark.not_frozen
-@pytest.mark.xfail(os.name == 'nt', reason="Proces crashes on Windows...")
+@pytest.mark.skipif(os.name == 'nt', reason="Test is flaky on Windows...")
 def test_double_start_finished(qtbot, proc):
     """Test starting a GUIProcess twice (with the first call finished)."""
     with qtbot.waitSignals([proc.started, proc.finished], raising=True,
