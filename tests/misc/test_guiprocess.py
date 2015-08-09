@@ -23,6 +23,7 @@
 
 import sys
 import textwrap
+import logging
 
 import pytest
 from PyQt5.QtCore import QProcess
@@ -117,10 +118,11 @@ def test_cmd_args(fake_proc):
     assert (fake_proc.cmd, fake_proc.args) == (cmd, args)
 
 
-def test_error(qtbot, proc):
+def test_error(qtbot, proc, caplog):
     """Test the process emitting an error."""
-    with qtbot.waitSignal(proc.error, raising=True):
-        proc.start('this_does_not_exist_either', [])
+    with caplog.atLevel(logging.ERROR, 'message'):
+        with qtbot.waitSignal(proc.error, raising=True):
+            proc.start('this_does_not_exist_either', [])
 
 
 @pytest.mark.not_frozen

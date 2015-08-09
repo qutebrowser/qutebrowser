@@ -105,12 +105,13 @@ class TestGitStr:
         commit_file_mock.return_value = 'deadbeef'
         assert version._git_str() == 'deadbeef'
 
-    def test_frozen_oserror(self, commit_file_mock, monkeypatch):
+    def test_frozen_oserror(self, caplog, commit_file_mock, monkeypatch):
         """Test with sys.frozen=True and OSError when reading git-commit-id."""
         monkeypatch.setattr(qutebrowser.utils.version.sys, 'frozen', True,
                             raising=False)
         commit_file_mock.side_effect = OSError
-        assert version._git_str() is None
+        with caplog.atLevel(logging.ERROR, 'misc'):
+            assert version._git_str() is None
 
     @pytest.mark.not_frozen
     def test_normal_successful(self, git_str_subprocess_fake):
@@ -130,13 +131,15 @@ class TestGitStr:
         commit_file_mock.return_value = '1b4d1dea'
         assert version._git_str() == '1b4d1dea'
 
-    def test_normal_path_oserror(self, mocker, git_str_subprocess_fake):
+    def test_normal_path_oserror(self, mocker, git_str_subprocess_fake,
+                                 caplog):
         """Test with things raising OSError."""
         m = mocker.patch('qutebrowser.utils.version.os')
         m.path.join.side_effect = OSError
         mocker.patch('qutebrowser.utils.version.utils.read_file',
                      side_effect=OSError)
-        assert version._git_str() is None
+        with caplog.atLevel(logging.ERROR, 'misc'):
+            assert version._git_str() is None
 
     @pytest.mark.not_frozen
     def test_normal_path_nofile(self, monkeypatch, caplog,

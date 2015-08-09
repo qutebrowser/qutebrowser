@@ -234,13 +234,13 @@ class TestErrorMessage:
     def test_proc_error(self, caplog):
         """Test on_proc_error."""
         self.editor.edit("")
-        with caplog.atLevel(logging.ERROR, 'message'):
+        with caplog.atLevel(logging.ERROR):
             self.editor.on_proc_error(QProcess.Crashed)
             assert len(caplog.records()) == 2
 
     def test_proc_return(self, caplog):
         """Test on_proc_finished with a bad exit status."""
         self.editor.edit("")
-        with caplog.atLevel(logging.ERROR, 'message'):
+        with caplog.atLevel(logging.ERROR):
             self.editor.on_proc_closed(1, QProcess.NormalExit)
-            assert len(caplog.records()) == 3
+            assert len(caplog.records()) == 2
