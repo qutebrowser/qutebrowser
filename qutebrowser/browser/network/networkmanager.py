@@ -346,16 +346,20 @@ class NetworkManager(QNetworkAccessManager):
             current_url = webview.url()
         referer_header_conf = config.get('network', 'referer-header')
 
-        if referer_header_conf == 'never':
-            # Note: using ''.encode('ascii') sends a header with no value,
-            # instead of no header at all
-            req.setRawHeader('Referer'.encode('ascii'), QByteArray())
-        elif (referer_header_conf == 'same-domain' and
-                current_url.isValid() and
-                not urlutils.same_domain(req.url(), current_url)):
-            req.setRawHeader('Referer'.encode('ascii'), QByteArray())
-        # If refer_header_conf is set to 'always', we leave the header alone as
-        # QtWebKit did set it.
+        try:
+            if referer_header_conf == 'never':
+                # Note: using ''.encode('ascii') sends a header with no value,
+                # instead of no header at all
+                req.setRawHeader('Referer'.encode('ascii'), QByteArray())
+            elif (referer_header_conf == 'same-domain' and
+                    not urlutils.same_domain(req.url(), current_url)):
+                req.setRawHeader('Referer'.encode('ascii'), QByteArray())
+            # If refer_header_conf is set to 'always', we leave the header
+            # alone as QtWebKit did set it.
+        except urlutils.InvalidUrlError:
+            # req.url() or current_url can be invalid - this happens on
+            # https://www.playstation.com/ for example.
+            pass
 
         accept_language = config.get('network', 'accept-language')
         if accept_language is not None:
