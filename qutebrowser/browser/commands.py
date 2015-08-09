@@ -303,7 +303,7 @@ class CommandDispatcher:
         else:
             try:
                 url = urlutils.fuzzy_url(url)
-            except urlutils.FuzzyUrlError as e:
+            except urlutils.InvalidUrlError as e:
                 raise cmdexc.CommandError(e)
         if tab or bg or window:
             self._open(url, tab, bg, window)
@@ -869,7 +869,7 @@ class CommandDispatcher:
         log.misc.debug("{} contained: '{}'".format(target, text))
         try:
             url = urlutils.fuzzy_url(text)
-        except urlutils.FuzzyUrlError as e:
+        except urlutils.InvalidUrlError as e:
             raise cmdexc.CommandError(e)
         self._open(url, tab, bg, window)
 
@@ -1063,7 +1063,7 @@ class CommandDispatcher:
         """
         try:
             url = urlutils.fuzzy_url(url)
-        except urlutils.FuzzyUrlError as e:
+        except urlutils.InvalidUrlError as e:
             raise cmdexc.CommandError(e)
         self._open(url, tab, bg, window)
 

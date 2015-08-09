@@ -272,7 +272,7 @@ def process_pos_args(args, via_ipc=False, cwd=None):
             log.init.debug("Startup URL {}".format(cmd))
             try:
                 url = urlutils.fuzzy_url(cmd, cwd, relative=True)
-            except urlutils.FuzzyUrlError as e:
+            except urlutils.InvalidUrlError as e:
                 message.error('current', "Error in startup argument '{}': "
                               "{}".format(cmd, e))
             else:
@@ -302,7 +302,7 @@ def _open_startpage(win_id=None):
             for urlstr in config.get('general', 'startpage'):
                 try:
                     url = urlutils.fuzzy_url(urlstr, do_search=False)
-                except urlutils.FuzzyUrlError as e:
+                except urlutils.InvalidUrlError as e:
                     message.error('current', "Error when opening startpage: "
                                   "{}".format(e))
                     tabbed_browser.tabopen(QUrl('about:blank'))

@@ -219,7 +219,7 @@ class TestFuzzyUrl:
 
     @pytest.mark.parametrize('do_search, exception', [
         (True, qtutils.QtValueError),
-        (False, urlutils.FuzzyUrlError),
+        (False, urlutils.InvalidUrlError),
     ])
     def test_invalid_url(self, do_search, exception, is_url_mock, monkeypatch):
         """Test with an invalid URL."""
@@ -469,34 +469,40 @@ def test_host_tuple(qurl, tpl):
         assert urlutils.host_tuple(qurl) == tpl
 
 
-@pytest.mark.parametrize('url, raising, has_err_string', [
-    (None, False, False),
-    (QUrl(), False, False),
-    (QUrl('http://www.example.com/'), True, False),
-    (QUrl('://'), False, True),
-])
-def test_fuzzy_url_error(url, raising, has_err_string):
-    """Test FuzzyUrlError.
+class TestInvalidUrlError:
 
-    Args:
-        url: The URL to pass to FuzzyUrlError.
-        raising; True if the FuzzyUrlError should raise itself.
-        has_err_string: Whether the QUrl is expected to have errorString set.
-    """
-    if raising:
-        expected_exc = ValueError
-    else:
-        expected_exc = urlutils.FuzzyUrlError
+    @pytest.mark.parametrize('url, raising, has_err_string', [
+        (QUrl(), False, False),
+        (QUrl('http://www.example.com/'), True, False),
+        (QUrl('://'), False, True),
+    ])
+    def test_invalid_url_error(self, url, raising, has_err_string):
+        """Test InvalidUrlError.
 
-    with pytest.raises(expected_exc) as excinfo:
-        raise urlutils.FuzzyUrlError("Error message", url)
-
-    if not raising:
-        if has_err_string:
-            expected_text = "Error message: " + url.errorString()
+        Args:
+            url: The URL to pass to InvalidUrlError.
+            raising; True if the InvalidUrlError should raise itself.
+            has_err_string: Whether the QUrl is expected to have errorString
+                            set.
+        """
+        if raising:
+            expected_exc = ValueError
         else:
-            expected_text = "Error message"
-        assert str(excinfo.value) == expected_text
+            expected_exc = urlutils.InvalidUrlError
+
+        with pytest.raises(expected_exc) as excinfo:
+            raise urlutils.InvalidUrlError(url)
+
+        if not raising:
+            expected_text = "Invalid URL"
+            if has_err_string:
+                expected_text += " - " + url.errorString()
+            assert str(excinfo.value) == expected_text
+
+    def test_value_error_subclass(self):
+        """Make sure InvalidUrlError is a ValueError subclass."""
+        with pytest.raises(ValueError):
+            raise urlutils.InvalidUrlError(QUrl())
 
 
 @pytest.mark.parametrize('are_same, url1, url2', [
@@ -522,7 +528,7 @@ def test_same_domain(are_same, url1, url2):
 ])
 def test_same_domain_invalid_url(url1, url2):
     """Test same_domain with invalid URLs."""
-    with pytest.raises(ValueError):
+    with pytest.raises(urlutils.InvalidUrlError):
         urlutils.same_domain(QUrl(url1), QUrl(url2))
 
 class TestIncDecNumber:
@@ -570,7 +576,7 @@ class TestIncDecNumber:
 
     def test_invalid_url(self):
         """Test if incdec_number rejects an invalid URL."""
-        with pytest.raises(ValueError):
+        with pytest.raises(urlutils.InvalidUrlError):
             urlutils.incdec_number(QUrl(""), "increment")
 
     def test_wrong_mode(self):
