@@ -35,7 +35,6 @@ import unittest
 import unittest.mock
 from PyQt5.QtCore import (QDataStream, QPoint, QUrl, QByteArray, QIODevice,
                           QTimer, QBuffer, QFile, QProcess, QFileDevice)
-from PyQt5.QtWidgets import QApplication
 
 from qutebrowser import qutebrowser
 from qutebrowser.utils import qtutils

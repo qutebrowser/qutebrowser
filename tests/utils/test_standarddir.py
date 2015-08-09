@@ -29,7 +29,6 @@ import logging
 import textwrap
 
 from PyQt5.QtCore import QStandardPaths
-from PyQt5.QtWidgets import QApplication
 import pytest
 
 from qutebrowser.utils import standarddir
