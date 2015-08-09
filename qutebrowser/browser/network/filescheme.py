@@ -102,7 +102,7 @@ class FileSchemeHandler(schemehandler.SchemeHandler):
             A QNetworkReply.
         """
         urlstring = request.url().toLocalFile()
-        if os.path.isdir(urlstring):
+        if os.path.isdir(urlstring) and os.access(urlstring, os.R_OK):
             data = dirbrowser(urlstring)
             return networkreply.FixedDataNetworkReply(
                 request, data, 'text/html', self.parent())
