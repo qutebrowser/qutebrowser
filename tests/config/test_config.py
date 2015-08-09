@@ -238,6 +238,7 @@ class TestDefaultConfig:
 
     """Test validating of the default config."""
 
+    @pytest.mark.usefixtures('qapp')
     def test_default_config(self):
         """Test validating of the default config."""
         conf = config.ConfigManager(None, None)

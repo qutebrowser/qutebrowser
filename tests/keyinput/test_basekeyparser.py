@@ -185,7 +185,7 @@ class TestKeyChain:
         self.kp.execute.assert_called_once_with('0', self.kp.Type.chain, None)
         assert self.kp._keystring == ''
 
-    def test_ambiguous_keychain(self, fake_keyevent_factory, config_stub,
+    def test_ambiguous_keychain(self, qapp, fake_keyevent_factory, config_stub,
                                 monkeypatch):
         """Test ambiguous keychain."""
         config_stub.data = CONFIG

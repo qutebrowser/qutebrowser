@@ -36,16 +36,16 @@ from qutebrowser.utils import standarddir
 
 
 @pytest.yield_fixture(autouse=True)
-def change_qapp_name():
+def change_qapp_name(qapp):
     """Change the name of the QApplication instance.
 
     This changes the applicationName for all tests in this module to
     "qutebrowser_test".
     """
-    old_name = QApplication.instance().applicationName()
-    QApplication.instance().setApplicationName('qutebrowser_test')
+    old_name = qapp.applicationName()
+    qapp.setApplicationName('qutebrowser_test')
     yield
-    QApplication.instance().setApplicationName(old_name)
+    qapp.setApplicationName(old_name)
 
 
 @pytest.fixture

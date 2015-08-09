@@ -120,8 +120,14 @@ def pytest_collection_modifyitems(items):
         http://pytest.org/latest/plugins.html
     """
     for item in items:
-        if 'qtbot' in getattr(item, 'fixturenames', ()):
+        if 'qapp' in getattr(item, 'fixturenames', ()):
             item.add_marker('gui')
+            if sys.platform == 'linux' and not os.environ.get('DISPLAY', ''):
+                if 'CI' in os.environ:
+                    raise Exception("No display available on CI!")
+                skip_marker = pytest.mark.skipif(
+                    True, reason="No DISPLAY available")
+                item.add_marker(skip_marker)
 
 
 def _generate_cmdline_tests():
