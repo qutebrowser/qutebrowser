@@ -30,9 +30,8 @@ import os.path
 
 import hypothesis
 import hypothesis.strategies
-from PyQt5.QtCore import PYQT_VERSION, QRect, QPoint, Qt, QTimer, QEventLoop
+from PyQt5.QtCore import PYQT_VERSION, QRect, QPoint
 from PyQt5.QtWebKit import QWebElement
-from PyQt5.QtWebKitWidgets import QWebView
 import pytest
 
 from qutebrowser.browser import webelem
