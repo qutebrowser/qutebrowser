@@ -120,6 +120,8 @@ def test_cmd_args(fake_proc):
     assert (fake_proc.cmd, fake_proc.args) == (cmd, args)
 
 
+# WORKAROUND for https://github.com/pytest-dev/pytest-qt/issues/67
+@pytest.mark.skipif(os.name == 'nt', reason="Test is flaky on Windows...")
 def test_error(qtbot, proc, caplog):
     """Test the process emitting an error."""
     with caplog.atLevel(logging.ERROR, 'message'):
