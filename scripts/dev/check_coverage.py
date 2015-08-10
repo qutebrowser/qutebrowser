@@ -37,6 +37,7 @@ PERFECT_FILES = [
     'qutebrowser/browser/tabhistory.py',
     'qutebrowser/browser/http.py',
     'qutebrowser/browser/rfc6266.py',
+    'qutebrowser/browser/webelem.py',
 
     'qutebrowser/misc/readline.py',
     'qutebrowser/misc/split.py',
