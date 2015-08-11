@@ -244,6 +244,7 @@ class TestGetAllObjects:
 
         assert debug.get_all_objects(start_obj=root) == expected
 
+    @pytest.mark.usefixtures('qapp')
     def test_get_all_objects_qapp(self):
         objects = debug.get_all_objects()
         assert '<PyQt5.QtCore.QAbstractEventDispatcher object at' in objects
