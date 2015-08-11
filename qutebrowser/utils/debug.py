@@ -255,7 +255,7 @@ def _get_pyqt_objects(lines, obj, depth=0):
         _get_pyqt_objects(lines, kid, depth + 1)
 
 
-def get_all_objects():
+def get_all_objects(start_obj=None):
     """Get all children of an object recursively as a string."""
     output = ['']
     widget_lines = _get_widgets()
@@ -263,8 +263,12 @@ def get_all_objects():
     widget_lines.insert(0, "Qt widgets - {} objects".format(
         len(widget_lines)))
     output += widget_lines
+
+    if start_obj is None:
+        start_obj = QApplication.instance()
+
     pyqt_lines = []
-    _get_pyqt_objects(pyqt_lines, QApplication.instance())
+    _get_pyqt_objects(pyqt_lines, start_obj)
     pyqt_lines = ['    ' + e for e in pyqt_lines]
     pyqt_lines.insert(0, 'Qt objects - {} objects:'.format(
         len(pyqt_lines)))
