@@ -275,8 +275,10 @@ class TestConfigInit:
         objreg.register('save-manager', mock.MagicMock())
         args = argparse.Namespace(relaxed_config=False)
         objreg.register('args', args)
+        old_standarddir_args = standarddir._args
         yield
         objreg.global_registry.clear()
+        standarddir._args = old_standarddir_args
 
     def test_config_none(self, monkeypatch):
         """Test initializing with config path set to None."""
