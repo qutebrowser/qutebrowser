@@ -68,8 +68,9 @@ def log_signals(obj):
             qtutils.ensure_valid(meta_method)
             if meta_method.methodType() == QMetaMethod.Signal:
                 name = bytes(meta_method.name()).decode('ascii')
-                signal = getattr(obj, name)
-                signal.connect(functools.partial(log_slot, obj, signal))
+                if name != 'destroyed':
+                    signal = getattr(obj, name)
+                    signal.connect(functools.partial(log_slot, obj, signal))
 
     if inspect.isclass(obj):
         old_init = obj.__init__
