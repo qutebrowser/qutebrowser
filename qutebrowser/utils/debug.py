@@ -106,19 +106,21 @@ def qenum_key(base, value, add_base=False, klass=None):
         klass = value.__class__
         if klass == int:
             raise TypeError("Can't guess enum class of an int!")
+
     try:
-        idx = klass.staticMetaObject.indexOfEnumerator(klass.__name__)
+        idx = base.staticMetaObject.indexOfEnumerator(klass.__name__)
+        ret = base.staticMetaObject.enumerator(idx).valueToKey(value)
     except AttributeError:
-        idx = -1
-    if idx != -1:
-        ret = klass.staticMetaObject.enumerator(idx).valueToKey(value)
-    else:
+        ret = None
+
+    if ret is None:
         for name, obj in vars(base).items():
             if isinstance(obj, klass) and obj == value:
                 ret = name
                 break
         else:
             ret = '0x{:04x}'.format(int(value))
+
     if add_base and hasattr(base, '__name__'):
         return '.'.join([base.__name__, ret])
     else:
