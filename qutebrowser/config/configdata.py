@@ -1236,7 +1236,7 @@ KEY_DATA = collections.OrderedDict([
         ('tab-move', ['gm']),
         ('tab-move -', ['gl']),
         ('tab-move +', ['gr']),
-        ('tab-next', ['J', 'gt']),
+        ('tab-focus', ['J', 'gt']),
         ('tab-prev', ['K', 'gT']),
         ('tab-clone', ['gC']),
         ('reload', ['r']),

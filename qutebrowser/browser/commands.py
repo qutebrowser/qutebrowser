@@ -882,9 +882,13 @@ class CommandDispatcher:
             index: The tab index to focus, starting with 1. The special value
                    `last` focuses the last focused tab.
             count: The tab index to focus, starting with 1.
+                   If neither count nor index are given, it behaves like tab-next
         """
         if index == 'last':
             self._tab_focus_last()
+            return
+        if index is None and count is None:
+            self.tab_next()
             return
         try:
             idx = cmdutils.arg_or_count(index, count, default=1,
