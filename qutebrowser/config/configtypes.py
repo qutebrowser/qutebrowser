@@ -803,8 +803,8 @@ class File(BaseType):
         value = os.path.expandvars(value)
         if not os.path.isabs(value):
             cfgdir = standarddir.config()
-            if cfgdir is not None:
-                return os.path.join(cfgdir, value)
+            assert cfgdir is not None
+            return os.path.join(cfgdir, value)
         return value
 
     def validate(self, value):
