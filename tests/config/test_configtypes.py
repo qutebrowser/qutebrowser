@@ -1077,6 +1077,7 @@ class TestRegexList:
         assert klass().transform(val) == expected
 
 
+@pytest.mark.usefixtures('qapp')
 class TestFileAndUserStyleSheet:
 
     """Test File/UserStyleSheet."""
