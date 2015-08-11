@@ -260,7 +260,7 @@ def get_all_objects(start_obj=None):
     output = ['']
     widget_lines = _get_widgets()
     widget_lines = ['    ' + e for e in widget_lines]
-    widget_lines.insert(0, "Qt widgets - {} objects".format(
+    widget_lines.insert(0, "Qt widgets - {} objects:".format(
         len(widget_lines)))
     output += widget_lines
 
@@ -272,7 +272,8 @@ def get_all_objects(start_obj=None):
     pyqt_lines = ['    ' + e for e in pyqt_lines]
     pyqt_lines.insert(0, 'Qt objects - {} objects:'.format(
         len(pyqt_lines)))
-    output += pyqt_lines
+
     output += ['']
+    output += pyqt_lines
     output += objreg.dump_objects()
     return '\n'.join(output)
