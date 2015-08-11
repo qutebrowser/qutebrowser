@@ -1148,10 +1148,12 @@ class TestFileAndUserStyleSheet:
         with pytest.raises(configexc.ValidationError):
             configtypes.File().validate('foobar')
 
+    UNICODE = object()
+
     @pytest.mark.parametrize('configtype, value, raises', [
         (configtypes.File(), 'foobar', True),
         (configtypes.UserStyleSheet(), 'foobar', False),
-        (configtypes.UserStyleSheet(), '\ud800', True),
+        (configtypes.UserStyleSheet(), UNICODE, True),
     ])
     def test_validate_rel_inexistent(self, os_mock, monkeypatch, configtype,
                                      value, raises):
@@ -1161,6 +1163,10 @@ class TestFileAndUserStyleSheet:
             lambda: 'this/does/not/exist')
         os_mock.path.isabs.return_value = False
         os_mock.path.isfile.side_effect = os.path.isfile
+
+        if value is self.UNICODE:
+            # WORKAROUND for https://github.com/davehunt/pytest-html/issues/12
+            value = '\ud800'
 
         if raises:
             with pytest.raises(configexc.ValidationError):
