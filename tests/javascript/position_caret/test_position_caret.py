@@ -67,12 +67,14 @@ def caret_tester(js_tester):
     return CaretTester(js_tester)
 
 
+@pytest.mark.integration
 def test_simple(caret_tester):
     """Test with a simple (one-line) HTML text."""
     caret_tester.js.load('position_caret/simple.html')
     caret_tester.check()
 
 
+@pytest.mark.integration
 def test_scrolled_down(caret_tester):
     """Test with multiple text blocks with the viewport scrolled down."""
     caret_tester.js.load('position_caret/scrolled_down.html')
@@ -81,6 +83,7 @@ def test_scrolled_down(caret_tester):
     caret_tester.check()
 
 
+@pytest.mark.integration
 @pytest.mark.parametrize('style', ['visibility: hidden', 'display: none'])
 def test_invisible(caret_tester, style):
     """Test with hidden text elements."""
@@ -88,6 +91,7 @@ def test_invisible(caret_tester, style):
     caret_tester.check()
 
 
+@pytest.mark.integration
 def test_scrolled_down_img(caret_tester):
     """Test with an image at the top with the viewport scrolled down."""
     caret_tester.js.load('position_caret/scrolled_down_img.html')

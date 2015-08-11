@@ -234,6 +234,7 @@ class TestKeyConfigParser:
         assert new == new_expected
 
 
+@pytest.mark.integration
 class TestDefaultConfig:
 
     """Test validating of the default config."""
@@ -255,6 +256,7 @@ class TestDefaultConfig:
                 runner.parse(cmd, aliases=False)
 
 
+@pytest.mark.integration
 class TestConfigInit:
 
     """Test initializing of the config."""

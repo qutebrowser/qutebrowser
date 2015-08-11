@@ -204,6 +204,7 @@ class TestRAMHandler:
         assert handler.dump_log() == "Two\nThree"
 
 
+@pytest.mark.integration
 class TestInitLog:
 
     """Tests for init_log."""
