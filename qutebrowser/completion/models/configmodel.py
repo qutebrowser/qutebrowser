@@ -28,11 +28,11 @@ from qutebrowser.completion.models import base
 
 class SettingSectionCompletionModel(base.BaseCompletionModel):
 
-    COLUMN_WIDTHS = (20, 70, 10)
-
     """A CompletionModel filled with settings sections."""
 
     # pylint: disable=abstract-method
+
+    COLUMN_WIDTHS = (20, 70, 10)
 
     def __init__(self, parent=None):
         super().__init__(parent)
@@ -44,8 +44,6 @@ class SettingSectionCompletionModel(base.BaseCompletionModel):
 
 class SettingOptionCompletionModel(base.BaseCompletionModel):
 
-    COLUMN_WIDTHS = (20, 70, 10)
-
     """A CompletionModel filled with settings and their descriptions.
 
     Attributes:
@@ -54,6 +52,8 @@ class SettingOptionCompletionModel(base.BaseCompletionModel):
     """
 
     # pylint: disable=abstract-method
+
+    COLUMN_WIDTHS = (20, 70, 10)
 
     def __init__(self, section, parent=None):
         super().__init__(parent)
@@ -99,8 +99,6 @@ class SettingOptionCompletionModel(base.BaseCompletionModel):
 
 class SettingValueCompletionModel(base.BaseCompletionModel):
 
-    COLUMN_WIDTHS = (20, 70, 10)
-
     """A CompletionModel filled with setting values.
 
     Attributes:
@@ -109,6 +107,8 @@ class SettingValueCompletionModel(base.BaseCompletionModel):
     """
 
     # pylint: disable=abstract-method
+
+    COLUMN_WIDTHS = (20, 70, 10)
 
     def __init__(self, section, option, parent=None):
         super().__init__(parent)
