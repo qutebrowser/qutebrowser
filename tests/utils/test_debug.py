@@ -25,7 +25,7 @@ import time
 import textwrap
 
 import pytest
-from PyQt5.QtCore import pyqtSignal, Qt, QEvent, QObject, QTimer
+from PyQt5.QtCore import pyqtSignal, Qt, QEvent, QObject
 from PyQt5.QtWidgets import QStyle, QFrame, QWidget
 
 from qutebrowser.utils import debug
@@ -227,6 +227,7 @@ class ExampleWidget(QWidget):
 
 
 def test_get_all_objects(qtbot):
+    # pylint: disable=unused-variable
     w1 = ExampleWidget(1)
     qtbot.add_widget(w1)
     w2 = ExampleWidget(2)
