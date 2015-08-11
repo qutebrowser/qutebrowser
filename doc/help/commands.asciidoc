@@ -630,6 +630,8 @@ Syntax: +:tab-focus ['index']+
 
 Select the tab given as argument/[count].
 
+If neither count nor index are given, it behaves like tab-next.
+
 ==== positional arguments
 * +'index'+: The tab index to focus, starting with 1. The special value `last` focuses the last focused tab.
 
