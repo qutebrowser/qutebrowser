@@ -180,7 +180,7 @@ def signal_name(sig):
     return m.group(1)
 
 
-def _format_args(args=None, kwargs=None):
+def format_args(args=None, kwargs=None):
     """Format a list of arguments/kwargs to a function-call like string."""
     if args is not None:
         arglist = [utils.compact_text(repr(arg), 200) for arg in args]
@@ -202,7 +202,7 @@ def dbg_signal(sig, args):
     Return:
         A human-readable string representation of signal/args.
     """
-    return '{}({})'.format(signal_name(sig), _format_args(args))
+    return '{}({})'.format(signal_name(sig), format_args(args))
 
 
 def format_call(func, args=None, kwargs=None, full=True):
@@ -221,7 +221,7 @@ def format_call(func, args=None, kwargs=None, full=True):
         name = utils.qualname(func)
     else:
         name = func.__name__
-    return '{}({})'.format(name, _format_args(args, kwargs))
+    return '{}({})'.format(name, format_args(args, kwargs))
 
 
 @contextlib.contextmanager
