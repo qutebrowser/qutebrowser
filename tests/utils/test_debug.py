@@ -206,53 +206,44 @@ def test_dbg_signal(stubs, args, expected):
     assert debug.dbg_signal(stubs.FakeSignal(), args) == expected
 
 
-class ExampleObject(QObject):
+class TestGetAllObjects:
 
-    def __init__(self, num, parent=None):
-        self._num = num
-        super().__init__(parent)
+    class Object(QObject):
 
-    def __repr__(self):
-        return '<ExampleObject {}>'.format(self._num)
+        def __init__(self, name, parent=None):
+            self._name = name
+            super().__init__(parent)
 
-
-class ExampleWidget(QObject):
-
-    def __init__(self, num, parent=None):
-        self._num = num
-        super().__init__(parent)
-
-    def __repr__(self):
-        return '<ExampleWidget {}>'.format(self._num)
+        def __repr__(self):
+            return '<{}>'.format(self._name)
 
 
-def test_get_all_objects(stubs, monkeypatch):
-    # pylint: disable=unused-variable
-    widgets = [ExampleWidget(1), ExampleWidget(2)]
-    app = stubs.FakeQApplication(all_widgets=widgets)
-    monkeypatch.setattr(debug, 'QApplication', app)
+    def test_get_all_objects(self, stubs, monkeypatch):
+        # pylint: disable=unused-variable
+        widgets = [self.Object('Widget 1'), self.Object('Widget 2')]
+        app = stubs.FakeQApplication(all_widgets=widgets)
+        monkeypatch.setattr(debug, 'QApplication', app)
 
-    root = QObject()
-    o1 = ExampleObject(1, root)
-    o2 = ExampleObject(2, o1)
-    o3 = ExampleObject(3, root)
+        root = QObject()
+        o1 = self.Object('Object 1', root)
+        o2 = self.Object('Object 2', o1)
+        o3 = self.Object('Object 3', root)
 
-    expected = textwrap.dedent("""
-        Qt widgets - 2 objects:
-            <ExampleWidget 1>
-            <ExampleWidget 2>
+        expected = textwrap.dedent("""
+            Qt widgets - 2 objects:
+                <Widget 1>
+                <Widget 2>
 
-        Qt objects - 3 objects:
-            <ExampleObject 1>
-                <ExampleObject 2>
-            <ExampleObject 3>
+            Qt objects - 3 objects:
+                <Object 1>
+                    <Object 2>
+                <Object 3>
 
-        global object registry - 0 objects:
-    """).rstrip('\n')
+            global object registry - 0 objects:
+        """).rstrip('\n')
 
-    assert debug.get_all_objects(start_obj=root) == expected
+        assert debug.get_all_objects(start_obj=root) == expected
 
-
-def test_get_all_objects_qapp():
-    objects = debug.get_all_objects()
-    assert '<PyQt5.QtCore.QAbstractEventDispatcher object at' in objects
+    def test_get_all_objects_qapp(self):
+        objects = debug.get_all_objects()
+        assert '<PyQt5.QtCore.QAbstractEventDispatcher object at' in objects
