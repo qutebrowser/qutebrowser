@@ -25,7 +25,7 @@ import functools
 import datetime
 import contextlib
 
-from PyQt5.QtCore import QEvent, QMetaMethod, QObject
+from PyQt5.QtCore import Qt, QEvent, QMetaMethod, QObject
 from PyQt5.QtWidgets import QApplication
 
 from qutebrowser.utils import log, utils, qtutils, objreg
@@ -250,7 +250,7 @@ def _get_widgets():
 
 def _get_pyqt_objects(lines, obj, depth=0):
     """Recursive method for get_all_objects to get Qt objects."""
-    for kid in obj.findChildren(QObject):
+    for kid in obj.findChildren(QObject, '', Qt.FindDirectChildrenOnly):
         lines.append('    ' * depth + repr(kid))
         _get_pyqt_objects(lines, kid, depth + 1)
 
