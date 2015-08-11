@@ -878,6 +878,8 @@ class CommandDispatcher:
     def tab_focus(self, index: {'type': (int, 'last')}=None, count=None):
         """Select the tab given as argument/[count].
 
+        If neither count nor index are given, it behaves like tab-next.
+
         Args:
             index: The tab index to focus, starting with 1. The special value
                    `last` focuses the last focused tab.
@@ -885,6 +887,9 @@ class CommandDispatcher:
         """
         if index == 'last':
             self._tab_focus_last()
+            return
+        if index is None and count is None:
+            self.tab_next()
             return
         try:
             idx = cmdutils.arg_or_count(index, count, default=1,
