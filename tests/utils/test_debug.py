@@ -216,7 +216,7 @@ class ExampleObject(QObject):
         return '<ExampleObject {}>'.format(self._num)
 
 
-class ExampleWidget(QWidget):
+class ExampleWidget(QObject):
 
     def __init__(self, num, parent=None):
         self._num = num
@@ -226,12 +226,11 @@ class ExampleWidget(QWidget):
         return '<ExampleWidget {}>'.format(self._num)
 
 
-def test_get_all_objects(qtbot):
+def test_get_all_objects(stubs, monkeypatch):
     # pylint: disable=unused-variable
-    w1 = ExampleWidget(1)
-    qtbot.add_widget(w1)
-    w2 = ExampleWidget(2)
-    qtbot.add_widget(w2)
+    widgets = [ExampleWidget(1), ExampleWidget(2)]
+    app = stubs.FakeQApplication(all_widgets=widgets)
+    monkeypatch.setattr(debug, 'QApplication', app)
 
     root = QObject()
     o1 = ExampleObject(1, root)

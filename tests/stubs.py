@@ -87,10 +87,13 @@ class FakeQApplication:
 
     """Stub to insert as QApplication module."""
 
-    def __init__(self, style=None):
+    def __init__(self, style=None, all_widgets=None):
         self.instance = mock.Mock(return_value=self)
+
         self.style = mock.Mock(spec=QCommonStyle)
         self.style().metaObject().className.return_value = style
+
+        self.allWidgets = lambda: all_widgets
 
 
 class FakeUrl:
