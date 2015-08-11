@@ -247,4 +247,6 @@ class TestGetAllObjects:
     @pytest.mark.usefixtures('qapp')
     def test_get_all_objects_qapp(self):
         objects = debug.get_all_objects()
-        assert '<PyQt5.QtCore.QAbstractEventDispatcher object at' in objects
+        event_dispatcher = '<PyQt5.QtCore.QAbstractEventDispatcher object at'
+        session_manager = '<PyQt5.QtGui.QSessionManager object at'
+        assert event_dispatcher in objects or session_manager in objects
