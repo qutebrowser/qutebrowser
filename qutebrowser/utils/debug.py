@@ -56,7 +56,7 @@ def log_signals(obj):
         dbg = dbg_signal(signal, args)
         try:
             r = repr(obj)
-        except RuntimeError:
+        except RuntimeError:  # pragma: no cover
             r = '<deleted>'
         log.signals.debug("Signal in {}: {}".format(r, dbg))
 

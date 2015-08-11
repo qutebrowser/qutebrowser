@@ -57,6 +57,7 @@ PERFECT_FILES = [
     'qutebrowser/utils/usertypes.py',
     'qutebrowser/utils/utils.py',
     'qutebrowser/utils/version.py',
+    'qutebrowser/utils/debug.py',
 ]
 
 

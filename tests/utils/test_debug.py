@@ -22,10 +22,11 @@
 import logging
 import re
 import time
+import textwrap
 
 import pytest
-from PyQt5.QtCore import pyqtSignal, Qt, QEvent, QObject
-from PyQt5.QtWidgets import QStyle, QFrame
+from PyQt5.QtCore import pyqtSignal, Qt, QEvent, QObject, QTimer
+from PyQt5.QtWidgets import QStyle, QFrame, QWidget
 
 from qutebrowser.utils import debug
 
@@ -64,9 +65,10 @@ class DecoratedSignalObject(SignalObject):
 @pytest.fixture(params=[(SignalObject, True), (DecoratedSignalObject, False)])
 def signal_obj(request):
     klass, wrap = request.param
+    obj = klass()
     if wrap:
-        debug.log_signals(klass)
-    return klass()
+        debug.log_signals(obj)
+    return obj
 
 
 def test_log_signals(caplog, signal_obj):
@@ -160,8 +162,39 @@ class TestQFlagsKey:
             debug.qflags_key(Qt, 42)
 
 
-def test_signal_name(stubs):
-    assert debug.signal_name(stubs.FakeSignal()) == 'fake'
+@pytest.mark.parametrize('signal, expected', [
+    (SignalObject().signal1, 'signal1'),
+    (SignalObject().signal2, 'signal2'),
+])
+def test_signal_name(signal, expected):
+    assert debug.signal_name(signal) == expected
+
+
+@pytest.mark.parametrize('args, kwargs, expected', [
+    ([], {}, ''),
+    (None, None, ''),
+    (['foo'], None, "'foo'"),
+    (['foo', 'bar'], None, "'foo', 'bar'"),
+    (None, {'foo': 'bar'}, "foo='bar'"),
+    (['foo', 'bar'], {'baz': 'fish'}, "'foo', 'bar', baz='fish'"),
+    (['x' * 300], None, "'{}".format('x' * 198 + '…')),
+])
+def test_format_args(args, kwargs, expected):
+    assert debug.format_args(args, kwargs) == expected
+
+
+def func():
+    pass
+
+
+@pytest.mark.parametrize('func, args, kwargs, full, expected', [
+    (func, None, None, False, 'func()'),
+    (func, [1, 2], None, False, 'func(1, 2)'),
+    (func, [1, 2], None, True, 'test_debug.func(1, 2)'),
+    (func, [1, 2], {'foo': 3}, False, 'func(1, 2, foo=3)'),
+])
+def test_format_call(func, args, kwargs, full, expected):
+    assert debug.format_call(func, args, kwargs, full) == expected
 
 
 @pytest.mark.parametrize('args, expected', [
@@ -171,3 +204,55 @@ def test_signal_name(stubs):
 ])
 def test_dbg_signal(stubs, args, expected):
     assert debug.dbg_signal(stubs.FakeSignal(), args) == expected
+
+
+class ExampleObject(QObject):
+
+    def __init__(self, num, parent=None):
+        self._num = num
+        super().__init__(parent)
+
+    def __repr__(self):
+        return '<ExampleObject {}>'.format(self._num)
+
+
+class ExampleWidget(QWidget):
+
+    def __init__(self, num, parent=None):
+        self._num = num
+        super().__init__(parent)
+
+    def __repr__(self):
+        return '<ExampleWidget {}>'.format(self._num)
+
+
+def test_get_all_objects(qtbot):
+    w1 = ExampleWidget(1)
+    qtbot.add_widget(w1)
+    w2 = ExampleWidget(2)
+    qtbot.add_widget(w2)
+
+    root = QObject()
+    o1 = ExampleObject(1, root)
+    o2 = ExampleObject(2, o1)
+    o3 = ExampleObject(3, root)
+
+    expected = textwrap.dedent("""
+        Qt widgets - 2 objects:
+            <ExampleWidget 1>
+            <ExampleWidget 2>
+
+        Qt objects - 3 objects:
+            <ExampleObject 1>
+                <ExampleObject 2>
+            <ExampleObject 3>
+
+        global object registry - 0 objects:
+    """).rstrip('\n')
+
+    assert debug.get_all_objects(start_obj=root) == expected
+
+
+def test_get_all_objects_qapp():
+    objects = debug.get_all_objects()
+    assert '<PyQt5.QtCore.QAbstractEventDispatcher object at' in objects
