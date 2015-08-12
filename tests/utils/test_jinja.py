@@ -22,6 +22,7 @@
 import os.path
 
 import pytest
+import jinja2
 
 from qutebrowser.utils import jinja
 
@@ -34,7 +35,7 @@ def patch_read_file(monkeypatch):
         if path == os.path.join('html', 'test.html'):
             return """Hello {{var}}"""
         else:
-            raise ValueError("Invalid path {}!".format(path))
+            raise IOError("Invalid path {}!".format(path))
 
     monkeypatch.setattr('qutebrowser.utils.jinja.utils.read_file', _read_file)
 
@@ -45,6 +46,13 @@ def test_simple_template():
     # https://bitbucket.org/logilab/pylint/issue/490/
     data = template.render(var='World')  # pylint: disable=no-member
     assert data == "Hello World"
+
+
+def test_not_found():
+    """Test with a template which does not exist."""
+    with pytest.raises(jinja2.TemplateNotFound) as excinfo:
+        jinja.env.get_template('does_not_exist.html')
+    assert str(excinfo.value) == 'does_not_exist.html'
 
 
 def test_utf8():
@@ -59,3 +67,16 @@ def test_utf8():
     # https://bitbucket.org/logilab/pylint/issue/490/
     data = template.render(var='\u2603')  # pylint: disable=no-member
     assert data == "Hello \u2603"
+
+
+@pytest.mark.parametrize('name, expected', [
+    (None, False),
+    ('foo', False),
+    ('foo.html', True),
+    ('foo.htm', True),
+    ('foo.xml', True),
+    ('blah/bar/foo.html', True),
+    ('foo.bar.html', True),
+])
+def test_autoescape(name, expected):
+    assert jinja._guess_autoescape(name) == expected

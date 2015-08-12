@@ -58,6 +58,7 @@ PERFECT_FILES = [
     'qutebrowser/utils/utils.py',
     'qutebrowser/utils/version.py',
     'qutebrowser/utils/debug.py',
+    'qutebrowser/utils/jinja.py',
 ]
 
 
