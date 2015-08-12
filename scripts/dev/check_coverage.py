@@ -48,6 +48,7 @@ PERFECT_FILES = [
     'qutebrowser/mainwindow/statusbar/percentage.py',
     'qutebrowser/mainwindow/statusbar/progress.py',
     'qutebrowser/mainwindow/statusbar/tabindex.py',
+    'qutebrowser/mainwindow/statusbar/textbase.py',
 
     'qutebrowser/config/configtypes.py',
     'qutebrowser/config/configdata.py',
