@@ -20,6 +20,7 @@
 
 """Enforce perfect coverage on some files."""
 
+import os
 import sys
 import os.path
 
@@ -72,6 +73,15 @@ def main():
 
     if sys.platform != 'linux':
         print("Skipping coverage checks on non-Linux system.")
+        sys.exit()
+    elif '-k' in sys.argv[1:]:
+        print("Skipping coverage checks because -k is given.")
+        sys.exit()
+    elif '-m' in sys.argv[1:]:
+        print("Skipping coverage checks because -m is given.")
+        sys.exit()
+    elif any(arg.startswith('tests' + os.sep) for arg in sys.argv[1:]):
+        print("Skipping coverage checks because a filename is given.")
         sys.exit()
 
     for path in PERFECT_FILES:
