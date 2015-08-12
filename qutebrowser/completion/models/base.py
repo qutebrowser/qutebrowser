@@ -39,7 +39,13 @@ class BaseCompletionModel(QStandardItemModel):
 
     Used for showing completions later in the CompletionView. Supports setting
     marks and adding new categories/items easily.
+
+    Class Attributes:
+        COLUMN_WIDTHS: The width percentages of the columns used in the
+                        completion view.
     """
+
+    COLUMN_WIDTHS = (30, 70, 0)
 
     def __init__(self, parent=None):
         super().__init__(parent)

@@ -40,6 +40,8 @@ class UrlCompletionModel(base.BaseCompletionModel):
     TEXT_COLUMN = 1
     TIME_COLUMN = 2
 
+    COLUMN_WIDTHS = (40, 50, 10)
+
     def __init__(self, parent=None):
         super().__init__(parent)
 
