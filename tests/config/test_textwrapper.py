@@ -19,8 +19,6 @@
 
 """Tests for config.textwrapper."""
 
-import pytest
-
 from qutebrowser.config import textwrapper
 
 
