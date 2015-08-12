@@ -225,7 +225,7 @@ class QuickmarkManager(UrlMarkManager):
         urlstr = self.marks[name]
         try:
             url = urlutils.fuzzy_url(urlstr, do_search=False)
-        except urlutils.FuzzyUrlError as e:
+        except urlutils.InvalidUrlError as e:
             raise InvalidUrlError(
                 "Invalid URL for quickmark {}: {}".format(name, str(e)))
         return url

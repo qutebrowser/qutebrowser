@@ -21,7 +21,7 @@ __pycache__
 /.venv
 /.coverage
 /htmlcov
-/coverage.xml
+/.coverage.xml
 /.tox
 /testresults.html
 /.cache

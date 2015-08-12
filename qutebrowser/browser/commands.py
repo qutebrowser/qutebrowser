@@ -19,7 +19,6 @@
 
 """Command dispatcher for TabbedBrowser."""
 
-import re
 import os
 import shlex
 import posixpath
@@ -304,7 +303,7 @@ class CommandDispatcher:
         else:
             try:
                 url = urlutils.fuzzy_url(url)
-            except urlutils.FuzzyUrlError as e:
+            except urlutils.InvalidUrlError as e:
                 raise cmdexc.CommandError(e)
         if tab or bg or window:
             self._open(url, tab, bg, window)
@@ -472,29 +471,10 @@ class CommandDispatcher:
             background: Open the link in a new background tab.
             window: Open the link in a new window.
         """
-        encoded = bytes(url.toEncoded()).decode('ascii')
-        # Get the last number in a string
-        match = re.match(r'(.*\D|^)(\d+)(.*)', encoded)
-        if not match:
-            raise cmdexc.CommandError("No number found in URL!")
-        pre, number, post = match.groups()
-        if not number:
-            raise cmdexc.CommandError("No number found in URL!")
         try:
-            val = int(number)
-        except ValueError:
-            raise cmdexc.CommandError("Could not parse number '{}'.".format(
-                number))
-        if incdec == 'decrement':
-            if val <= 0:
-                raise cmdexc.CommandError("Can't decrement {}!".format(val))
-            val -= 1
-        elif incdec == 'increment':
-            val += 1
-        else:
-            raise ValueError("Invalid value {} for indec!".format(incdec))
-        urlstr = ''.join([pre, str(val), post]).encode('ascii')
-        new_url = QUrl.fromEncoded(urlstr)
+            new_url = urlutils.incdec_number(url, incdec)
+        except urlutils.IncDecError as error:
+            raise cmdexc.CommandError(error.msg)
         self._open(new_url, tab, background, window)
 
     def _navigate_up(self, url, tab, background, window):
@@ -889,7 +869,7 @@ class CommandDispatcher:
         log.misc.debug("{} contained: '{}'".format(target, text))
         try:
             url = urlutils.fuzzy_url(text)
-        except urlutils.FuzzyUrlError as e:
+        except urlutils.InvalidUrlError as e:
             raise cmdexc.CommandError(e)
         self._open(url, tab, bg, window)
 
@@ -898,6 +878,8 @@ class CommandDispatcher:
     def tab_focus(self, index: {'type': (int, 'last')}=None, count=None):
         """Select the tab given as argument/[count].
 
+        If neither count nor index are given, it behaves like tab-next.
+
         Args:
             index: The tab index to focus, starting with 1. The special value
                    `last` focuses the last focused tab.
@@ -905,6 +887,9 @@ class CommandDispatcher:
         """
         if index == 'last':
             self._tab_focus_last()
+            return
+        if index is None and count is None:
+            self.tab_next()
             return
         try:
             idx = cmdutils.arg_or_count(index, count, default=1,
@@ -1083,7 +1068,7 @@ class CommandDispatcher:
         """
         try:
             url = urlutils.fuzzy_url(url)
-        except urlutils.FuzzyUrlError as e:
+        except urlutils.InvalidUrlError as e:
             raise cmdexc.CommandError(e)
         self._open(url, tab, bg, window)
 

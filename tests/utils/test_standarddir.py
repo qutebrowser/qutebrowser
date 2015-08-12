@@ -17,8 +17,6 @@
 # You should have received a copy of the GNU General Public License
 # along with qutebrowser.  If not, see <http://www.gnu.org/licenses/>.
 
-# pylint: disable=protected-access
-
 """Tests for qutebrowser.utils.standarddir."""
 
 import os
@@ -29,23 +27,22 @@ import logging
 import textwrap
 
 from PyQt5.QtCore import QStandardPaths
-from PyQt5.QtWidgets import QApplication
 import pytest
 
 from qutebrowser.utils import standarddir
 
 
 @pytest.yield_fixture(autouse=True)
-def change_qapp_name():
+def change_qapp_name(qapp):
     """Change the name of the QApplication instance.
 
     This changes the applicationName for all tests in this module to
     "qutebrowser_test".
     """
-    old_name = QApplication.instance().applicationName()
-    QApplication.instance().setApplicationName('qutebrowser_test')
+    old_name = qapp.applicationName()
+    qapp.setApplicationName('qutebrowser_test')
     yield
-    QApplication.instance().setApplicationName(old_name)
+    qapp.setApplicationName(old_name)
 
 
 @pytest.fixture
@@ -271,7 +268,7 @@ class TestInitCacheDirTag:
         monkeypatch.setattr('qutebrowser.utils.standarddir.cache',
                             lambda: str(tmpdir))
         mocker.patch('builtins.open', side_effect=OSError)
-        with caplog.atLevel(logging.ERROR, 'misc'):
+        with caplog.atLevel(logging.ERROR, 'init'):
             standarddir._init_cachedir_tag()
         assert len(caplog.records()) == 1
         assert caplog.records()[0].message == 'Failed to create CACHEDIR.TAG'

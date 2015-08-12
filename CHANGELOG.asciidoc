@@ -48,6 +48,8 @@ Changed
   mode and is not hidden anymore.
 - `minimal_webkit_testbrowser.py` now has a `--webengine` switch to test
   QtWebEngine if it's installed.
+- The column width percentages for the completion view now depend on the
+  completion model.
 
 Fixed
 ~~~~~
@@ -60,6 +62,8 @@ Fixed
 - Fixed entering of insert mode when certain disabled text fields were clicked.
 - Fixed a crash when using `:set` with `-p` and `!` (invert value)
 - Downloads with unknown size are now handled correctly.
+- `:navigate increment/decrement` (`<Ctrl-A>`/`<Ctrl-X>`) now handles some
+  corner-cases better.
 
 Removed
 ~~~~~~~

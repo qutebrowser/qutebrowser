@@ -16,8 +16,6 @@
 # You should have received a copy of the GNU General Public License
 # along with qutebrowser.  If not, see <http://www.gnu.org/licenses/>.
 
-# pylint: disable=protected-access
-
 """Tests for qutebrowser.config.config."""
 
 import os
@@ -234,10 +232,12 @@ class TestKeyConfigParser:
         assert new == new_expected
 
 
+@pytest.mark.integration
 class TestDefaultConfig:
 
     """Test validating of the default config."""
 
+    @pytest.mark.usefixtures('qapp')
     def test_default_config(self):
         """Test validating of the default config."""
         conf = config.ConfigManager(None, None)
@@ -254,6 +254,7 @@ class TestDefaultConfig:
                 runner.parse(cmd, aliases=False)
 
 
+@pytest.mark.integration
 class TestConfigInit:
 
     """Test initializing of the config."""
@@ -272,8 +273,10 @@ class TestConfigInit:
         objreg.register('save-manager', mock.MagicMock())
         args = argparse.Namespace(relaxed_config=False)
         objreg.register('args', args)
+        old_standarddir_args = standarddir._args
         yield
         objreg.global_registry.clear()
+        standarddir._args = old_standarddir_args
 
     def test_config_none(self, monkeypatch):
         """Test initializing with config path set to None."""

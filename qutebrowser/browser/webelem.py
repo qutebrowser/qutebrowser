@@ -339,8 +339,6 @@ def get_child_frames(startframe):
 def focus_elem(frame):
     """Get the focused element in a web frame.
 
-    FIXME: Add tests.
-
     Args:
         frame: The QWebFrame to search in.
     """

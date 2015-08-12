@@ -17,8 +17,6 @@
 # You should have received a copy of the GNU General Public License
 # along with qutebrowser.  If not, see <http://www.gnu.org/licenses/>.
 
-# pylint: disable=protected-access
-
 """Tests for the webelement utils."""
 
 from unittest import mock
@@ -334,6 +332,14 @@ class TestIsVisible:
     def frame(self, stubs):
         return stubs.FakeWebFrame(QRect(0, 0, 100, 100))
 
+    def test_invalid_frame_geometry(self, stubs):
+        """Test with an invalid frame geometry."""
+        rect = QRect(0, 0, 0, 0)
+        assert not rect.isValid()
+        frame = stubs.FakeWebFrame(rect)
+        elem = get_webelem(QRect(0, 0, 10, 10), frame)
+        assert not elem.is_visible(frame)
+
     def test_invalid_invisible(self, frame):
         """Test elements with an invalid geometry which are invisible."""
         elem = get_webelem(QRect(0, 0, 0, 0), frame)
@@ -459,6 +465,67 @@ class TestIsVisibleIframe:
         assert not objects.elems[1].is_visible(objects.frame)
         assert not objects.elems[2].is_visible(objects.frame)
         assert objects.elems[3].is_visible(objects.frame)
+
+    @pytest.fixture
+    def invalid_objects(self, stubs):
+        """Set up the following base situation:
+
+             0, 0                         300, 0
+              ##############################
+              #                            #
+         0,10 # iframe  100,10             #
+              #**********                  #
+              #* e      * elems[0]: 10, 10 in iframe (visible)
+              #*        *                  #
+              #*        *                  #
+              #**********                  #
+        0,110 #.        .100,110           #
+              #.        .                  #
+              #. e      . elems[2]: 20,150 in iframe (not visible)
+              #..........                  #
+              ##############################
+            300, 0                         300, 300
+
+        Returns an Objects namedtuple with frame/iframe/elems attributes.
+        """
+        frame = stubs.FakeWebFrame(QRect(0, 0, 300, 300))
+        iframe = stubs.FakeWebFrame(QRect(0, 10, 100, 100), parent=frame)
+        assert frame.geometry().contains(iframe.geometry())
+
+        elems = [
+            get_webelem(QRect(10, 10, 0, 0), iframe),
+            get_webelem(QRect(20, 150, 0, 0), iframe),
+        ]
+        for e in elems:
+            assert not e.geometry().isValid()
+
+        return self.Objects(frame=frame, iframe=iframe, elems=elems)
+
+    def test_invalid_visible(self, invalid_objects):
+        """Test elements with an invalid geometry which are visible.
+
+        This seems to happen sometimes in the real world, with real elements
+        which *are* visible, but don't have a valid geometry.
+        """
+        elem = invalid_objects.elems[0]
+        assert elem.is_visible(invalid_objects.frame)
+
+    def test_invalid_invisible(self, invalid_objects):
+        """Test elements with an invalid geometry which are invisible."""
+        assert not invalid_objects.elems[1].is_visible(invalid_objects.frame)
+
+
+def test_focus_element(stubs):
+    """Test getting focus element with a fake frame/element.
+
+    Testing this with a real webpage is almost impossible because the window
+    and the element would have focus, which is hard to achieve consistently in
+    a test.
+    """
+    frame = stubs.FakeWebFrame(QRect(0, 0, 100, 100))
+    elem = get_webelem()
+    frame.focus_elem = elem._elem
+    assert webelem.focus_elem(frame)._elem is elem._elem
 
 
 class TestRectOnView:

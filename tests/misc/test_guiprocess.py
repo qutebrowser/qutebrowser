@@ -17,12 +17,12 @@
 # You should have received a copy of the GNU General Public License
 # along with qutebrowser.  If not, see <http://www.gnu.org/licenses/>.
 
-# pylint: disable=protected-access
-
 """Tests for qutebrowser.misc.guiprocess."""
 
+import os
 import sys
 import textwrap
+import logging
 
 import pytest
 from PyQt5.QtCore import QProcess
@@ -97,6 +97,7 @@ def test_double_start(qtbot, proc):
 
 
 @pytest.mark.not_frozen
+@pytest.mark.skipif(os.name == 'nt', reason="Test is flaky on Windows...")
 def test_double_start_finished(qtbot, proc):
     """Test starting a GUIProcess twice (with the first call finished)."""
     with qtbot.waitSignals([proc.started, proc.finished], raising=True,
@@ -117,10 +118,13 @@ def test_cmd_args(fake_proc):
     assert (fake_proc.cmd, fake_proc.args) == (cmd, args)
 
 
-def test_error(qtbot, proc):
+# WORKAROUND for https://github.com/pytest-dev/pytest-qt/issues/67
+@pytest.mark.skipif(os.name == 'nt', reason="Test is flaky on Windows...")
+def test_error(qtbot, proc, caplog):
     """Test the process emitting an error."""
-    with qtbot.waitSignal(proc.error, raising=True):
-        proc.start('this_does_not_exist_either', [])
+    with caplog.atLevel(logging.ERROR, 'message'):
+        with qtbot.waitSignal(proc.error, raising=True):
+            proc.start('this_does_not_exist_either', [])
 
 
 @pytest.mark.not_frozen

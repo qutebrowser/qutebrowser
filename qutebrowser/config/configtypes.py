@@ -803,8 +803,8 @@ class File(BaseType):
         value = os.path.expandvars(value)
         if not os.path.isabs(value):
             cfgdir = standarddir.config()
-            if cfgdir is not None:
-                return os.path.join(cfgdir, value)
+            assert cfgdir is not None
+            return os.path.join(cfgdir, value)
         return value
 
     def validate(self, value):
@@ -1113,7 +1113,7 @@ class FuzzyUrl(BaseType):
         from qutebrowser.utils import urlutils
         try:
             self.transform(value)
-        except urlutils.FuzzyUrlError as e:
+        except urlutils.InvalidUrlError as e:
             raise configexc.ValidationError(value, str(e))
 
     def transform(self, value):

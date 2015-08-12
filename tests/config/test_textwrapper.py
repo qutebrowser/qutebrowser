@@ -1,6 +1,6 @@
 # vim: ft=python fileencoding=utf-8 sts=4 sw=4 et:
 
-# Copyright 2014-2015 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
+# Copyright 2015 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
 #
 # This file is part of qutebrowser.
 #
@@ -17,23 +17,22 @@
 # You should have received a copy of the GNU General Public License
 # along with qutebrowser.  If not, see <http://www.gnu.org/licenses/>.
 
-"""Textwrapper used for config files."""
+"""Tests for config.textwrapper."""
 
-import textwrap
+from qutebrowser.config import textwrapper
 
 
-class TextWrapper(textwrap.TextWrapper):
+def test_default_args():
+    wrapper = textwrapper.TextWrapper()
+    assert wrapper.width == 72
+    assert not wrapper.replace_whitespace
+    assert not wrapper.break_long_words
+    assert not wrapper.break_on_hyphens
+    assert wrapper.initial_indent == '# '
+    assert wrapper.subsequent_indent == '# '
 
-    """Text wrapper customized to be used in configs."""
 
-    def __init__(self, **kwargs):
-        kw = {
-            'width': 72,
-            'replace_whitespace': False,
-            'break_long_words': False,
-            'break_on_hyphens': False,
-            'initial_indent': '# ',
-            'subsequent_indent': '# ',
-        }
-        kw.update(kwargs)
-        super().__init__(**kw)
+def test_custom_args():
+    wrapper = textwrapper.TextWrapper(drop_whitespace=False)
+    assert wrapper.width == 72
+    assert not wrapper.drop_whitespace

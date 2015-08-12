@@ -20,6 +20,7 @@
 
 """Enforce perfect coverage on some files."""
 
+import os
 import sys
 import os.path
 
@@ -37,6 +38,8 @@ PERFECT_FILES = [
     'qutebrowser/browser/tabhistory.py',
     'qutebrowser/browser/http.py',
     'qutebrowser/browser/rfc6266.py',
+    'qutebrowser/browser/webelem.py',
+    'qutebrowser/browser/network/schemehandler.py',
 
     'qutebrowser/misc/readline.py',
     'qutebrowser/misc/split.py',
@@ -45,10 +48,12 @@ PERFECT_FILES = [
     'qutebrowser/mainwindow/statusbar/percentage.py',
     'qutebrowser/mainwindow/statusbar/progress.py',
     'qutebrowser/mainwindow/statusbar/tabindex.py',
+    'qutebrowser/mainwindow/statusbar/textbase.py',
 
     'qutebrowser/config/configtypes.py',
     'qutebrowser/config/configdata.py',
     'qutebrowser/config/configexc.py',
+    'qutebrowser/config/textwrapper.py',
 
     'qutebrowser/utils/qtutils.py',
     'qutebrowser/utils/standarddir.py',
@@ -56,6 +61,8 @@ PERFECT_FILES = [
     'qutebrowser/utils/usertypes.py',
     'qutebrowser/utils/utils.py',
     'qutebrowser/utils/version.py',
+    'qutebrowser/utils/debug.py',
+    'qutebrowser/utils/jinja.py',
 ]
 
 
@@ -67,10 +74,23 @@ def main():
     """
     utils.change_cwd()
 
+    if sys.platform != 'linux':
+        print("Skipping coverage checks on non-Linux system.")
+        sys.exit()
+    elif '-k' in sys.argv[1:]:
+        print("Skipping coverage checks because -k is given.")
+        sys.exit()
+    elif '-m' in sys.argv[1:]:
+        print("Skipping coverage checks because -m is given.")
+        sys.exit()
+    elif any(arg.startswith('tests' + os.sep) for arg in sys.argv[1:]):
+        print("Skipping coverage checks because a filename is given.")
+        sys.exit()
+
     for path in PERFECT_FILES:
         assert os.path.exists(os.path.join(*path.split('/'))), path
 
-    with open('coverage.xml', encoding='utf-8') as f:
+    with open('.coverage.xml', encoding='utf-8') as f:
         tree = ElementTree.parse(f)
     classes = tree.getroot().findall('./packages/package/classes/class')
 
@@ -100,6 +120,8 @@ def main():
             status = 1
             print("{} has 100% coverage but is not in PERFECT_FILES!".format(
                 filename))
+
+    os.remove('.coverage.xml')
 
     return status
 

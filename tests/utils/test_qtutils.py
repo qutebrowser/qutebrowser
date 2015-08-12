@@ -35,7 +35,6 @@ import unittest
 import unittest.mock
 from PyQt5.QtCore import (QDataStream, QPoint, QUrl, QByteArray, QIODevice,
                           QTimer, QBuffer, QFile, QProcess, QFileDevice)
-from PyQt5.QtWidgets import QApplication
 
 from qutebrowser import qutebrowser
 from qutebrowser.utils import qtutils
@@ -505,19 +504,18 @@ class TestSavefileOpen:
 
 
 @pytest.mark.parametrize('orgname, expected', [(None, ''), ('test', 'test')])
-def test_unset_organization(orgname, expected):
+def test_unset_organization(qapp, orgname, expected):
     """Test unset_organization.
 
     Args:
         orgname: The organizationName to set initially.
         expected: The organizationName which is expected when reading back.
     """
-    app = QApplication.instance()
-    app.setOrganizationName(orgname)
-    assert app.organizationName() == expected  # sanity check
+    qapp.setOrganizationName(orgname)
+    assert qapp.organizationName() == expected  # sanity check
     with qtutils.unset_organization():
-        assert app.organizationName() == ''
-    assert app.organizationName() == expected
+        assert qapp.organizationName() == ''
+    assert qapp.organizationName() == expected
 
 
 if test_file is not None:
@@ -921,6 +919,7 @@ class TestPyQIODevice:
         assert str(excinfo.value) == 'Reading failed'
 
 
+@pytest.mark.usefixtures('qapp')
 class TestEventLoop:
 
     """Tests for EventLoop.
@@ -928,8 +927,6 @@ class TestEventLoop:
     Attributes:
         loop: The EventLoop we're testing.
     """
-
-    # pylint: disable=protected-access
 
     def _assert_executing(self):
         """Slot which gets called from timers to be sure the loop runs."""

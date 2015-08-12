@@ -17,8 +17,6 @@
 # You should have received a copy of the GNU General Public License
 # along with qutebrowser.  If not, see <http://www.gnu.org/licenses/>.
 
-# pylint: disable=protected-access
-
 """Tests for BaseKeyParser."""
 
 import sys
@@ -29,7 +27,6 @@ from PyQt5.QtCore import Qt
 import pytest
 
 from qutebrowser.keyinput import basekeyparser
-from qutebrowser.utils import log
 
 
 CONFIG = {'input': {'timeout': 100}}
@@ -107,7 +104,7 @@ class TestSpecialKeys:
     def setup(self, caplog, fake_keyconfig):
         self.kp = basekeyparser.BaseKeyParser(0)
         self.kp.execute = mock.Mock()
-        with caplog.atLevel(logging.WARNING, log.keyboard.name):
+        with caplog.atLevel(logging.WARNING, 'keyboard'):
             # Ignoring keychain 'ccc' in mode 'test' because keychains are not
             # supported there.
             self.kp.read_config('test')
@@ -186,7 +183,7 @@ class TestKeyChain:
         self.kp.execute.assert_called_once_with('0', self.kp.Type.chain, None)
         assert self.kp._keystring == ''
 
-    def test_ambiguous_keychain(self, fake_keyevent_factory, config_stub,
+    def test_ambiguous_keychain(self, qapp, fake_keyevent_factory, config_stub,
                                 monkeypatch):
         """Test ambiguous keychain."""
         config_stub.data = CONFIG

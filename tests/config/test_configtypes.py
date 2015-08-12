@@ -16,13 +16,12 @@
 # You should have received a copy of the GNU General Public License
 # along with qutebrowser.  If not, see <http://www.gnu.org/licenses/>.
 
-# pylint: disable=protected-access
-
 """Tests for qutebrowser.config.configtypes."""
 
 import re
 import collections
 import itertools
+import os.path
 import base64
 
 import pytest
@@ -1076,6 +1075,7 @@ class TestRegexList:
         assert klass().transform(val) == expected
 
 
+@pytest.mark.usefixtures('qapp')
 class TestFileAndUserStyleSheet:
 
     """Test File/UserStyleSheet."""
@@ -1145,6 +1145,26 @@ class TestFileAndUserStyleSheet:
         os_mock.path.isabs.return_value = False
         with pytest.raises(configexc.ValidationError):
             configtypes.File().validate('foobar')
+
+    @pytest.mark.parametrize('configtype, value, raises', [
+        (configtypes.File(), 'foobar', True),
+        (configtypes.UserStyleSheet(), 'foobar', False),
+        (configtypes.UserStyleSheet(), '\ud800', True),
+    ])
+    def test_validate_rel_inexistent(self, os_mock, monkeypatch, configtype,
+                                     value, raises):
+        """Test with a relative path and standarddir.config returning None."""
+        monkeypatch.setattr(
+            'qutebrowser.config.configtypes.standarddir.config',
+            lambda: 'this/does/not/exist')
+        os_mock.path.isabs.return_value = False
+        os_mock.path.isfile.side_effect = os.path.isfile
+
+        if raises:
+            with pytest.raises(configexc.ValidationError):
+                configtype.validate(value)
+        else:
+            configtype.validate(value)
 
     def test_validate_expanduser(self, klass, os_mock):
         """Test if validate expands the user correctly."""

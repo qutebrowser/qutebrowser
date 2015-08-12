@@ -143,11 +143,12 @@ Contributors, sorted by the number of commits in descending order:
 * Lamar Pavel
 * Austin Anderson
 * Artur Shaik
+* Alexander Cogneau
 * ZDarian
 * Peter Vilim
 * John ShaggyTwoDope Jenkins
+* Daniel
 * Jimmy
-* Alexander Cogneau
 * Zach-Button
 * rikn00
 * Patric Schmitz
@@ -157,6 +158,7 @@ Contributors, sorted by the number of commits in descending order:
 * sbinix
 * Tobias Patzl
 * Johannes Altmanninger
+* Thorsten Wißmann
 * Samir Benmendil
 * Regina Hug
 * Mathias Fussenegger
@@ -166,7 +168,6 @@ Contributors, sorted by the number of commits in descending order:
 * zwarag
 * error800
 * Tim Harder
-* Thorsten Wißmann
 * Thiago Barroso Perrotta
 * Matthias Lisin
 * Helen Sherwood-Taylor

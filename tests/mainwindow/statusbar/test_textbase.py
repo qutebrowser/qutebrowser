@@ -50,4 +50,54 @@ def test_elided_text(qtbot, elidemode, check):
     label.setText(long_string)
     label.resize(100, 50)
     label.show()
-    assert check(label._elided_text)  # pylint: disable=protected-access
+    qtbot.waitForWindowShown(label)
+    assert check(label._elided_text)
+
+
+def test_settext_empty(mocker, qtbot):
+    """Make sure using setText('') works and runs repaint."""
+    label = TextBase()
+    qtbot.add_widget(label)
+    mocker.patch('qutebrowser.mainwindow.statusbar.textbase.TextBase.repaint',
+                 autospec=True)
+
+    label.setText('')
+    label.repaint.assert_called_with()
+
+
+def test_resize(qtbot):
+    """Make sure the elided text is updated when resizing."""
+    label = TextBase()
+    qtbot.add_widget(label)
+    long_string = 'Hello world! ' * 20
+    label.setText(long_string)
+
+    label.show()
+    qtbot.waitForWindowShown(label)
+
+    text_1 = label._elided_text
+    label.resize(20, 50)
+    text_2 = label._elided_text
+
+    assert text_1 != text_2
+
+
+def test_text_elide_none(mocker, qtbot):
+    """Make sure the text doesn't get elided if it's empty."""
+    label = TextBase()
+    qtbot.add_widget(label)
+    label.setText('')
+    mocker.patch('qutebrowser.mainwindow.statusbar.textbase.TextBase.'
+                 'fontMetrics')
+    label._update_elided_text(20)
+
+    assert not label.fontMetrics.called
+
+
+def test_unset_text(qtbot):
+    """Make sure the text is cleared properly."""
+    label = TextBase()
+    qtbot.add_widget(label)
+    label.setText('foo')
+    label.setText('')
+    assert not label._elided_text

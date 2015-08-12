@@ -17,8 +17,6 @@
 # You should have received a copy of the GNU General Public License
 # along with qutebrowser.  If not, see <http://www.gnu.org/licenses/>.
 
-# pylint: disable=protected-access
-
 """Tests for Timer."""
 
 from qutebrowser.utils import usertypes
@@ -74,13 +72,13 @@ def test_start_overflow():
 def test_timeout_start(qtbot):
     """Make sure the timer works with start()."""
     t = usertypes.Timer()
-    with qtbot.waitSignal(t.timeout, raising=True):
+    with qtbot.waitSignal(t.timeout, timeout=3000, raising=True):
         t.start(200)
 
 
 def test_timeout_set_interval(qtbot):
     """Make sure the timer works with setInterval()."""
     t = usertypes.Timer()
-    with qtbot.waitSignal(t.timeout, raising=True):
+    with qtbot.waitSignal(t.timeout, timeout=3000, raising=True):
         t.setInterval(200)
         t.start()

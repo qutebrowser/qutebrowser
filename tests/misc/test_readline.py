@@ -19,8 +19,6 @@
 
 """Tests for qutebrowser.misc.readline."""
 
-# pylint: disable=protected-access
-
 import re
 import inspect
 

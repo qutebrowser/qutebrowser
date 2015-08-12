@@ -39,8 +39,6 @@ class TestsNormalKeyParser:
         kp: The NormalKeyParser to be tested.
     """
 
-    # pylint: disable=protected-access
-
     @pytest.yield_fixture(autouse=True)
     def setup(self, monkeypatch, stubs, config_stub, fake_keyconfig):
         """Set up mocks and read the test config."""
