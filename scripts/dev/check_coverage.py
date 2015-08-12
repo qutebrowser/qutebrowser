@@ -39,6 +39,7 @@ PERFECT_FILES = [
     'qutebrowser/browser/http.py',
     'qutebrowser/browser/rfc6266.py',
     'qutebrowser/browser/webelem.py',
+    'qutebrowser/browser/network/schemehandler.py',
 
     'qutebrowser/misc/readline.py',
     'qutebrowser/misc/split.py',
