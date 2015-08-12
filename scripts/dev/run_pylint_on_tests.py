@@ -52,6 +52,7 @@ def main():
         'redefined-outer-name',
         'unused-argument',
         'missing-docstring',
+        'protected-access',
         # https://bitbucket.org/logilab/pylint/issue/511/
         'undefined-variable',
     ]

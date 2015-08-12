@@ -50,4 +50,4 @@ def test_elided_text(qtbot, elidemode, check):
     label.setText(long_string)
     label.resize(100, 50)
     label.show()
-    assert check(label._elided_text)  # pylint: disable=protected-access
+    assert check(label._elided_text)

@@ -19,8 +19,6 @@
 
 """Tests for qutebrowser.misc.editor."""
 
-# pylint: disable=protected-access
-
 import os
 import os.path
 import logging
@@ -46,7 +44,7 @@ class TestArg:
                             stubs.fake_qprocess())
         self.editor = editor.ExternalEditor(0)
         yield
-        self.editor._cleanup()  # pylint: disable=protected-access
+        self.editor._cleanup()
 
     @pytest.fixture
     def stubbed_config(self, config_stub, monkeypatch):
@@ -229,7 +227,7 @@ class TestErrorMessage:
         monkeypatch.setattr('qutebrowser.misc.editor.config', config_stub)
         self.editor = editor.ExternalEditor(0)
         yield
-        self.editor._cleanup()  # pylint: disable=protected-access
+        self.editor._cleanup()
 
     def test_proc_error(self, caplog):
         """Test on_proc_error."""
