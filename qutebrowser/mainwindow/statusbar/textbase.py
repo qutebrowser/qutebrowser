@@ -58,6 +58,8 @@ class TextBase(QLabel):
         if self.text():
             self._elided_text = self.fontMetrics().elidedText(
                 self.text(), self._elidemode, width, Qt.TextShowMnemonic)
+        else:
+            self._elided_text = ''
 
     def setText(self, txt):
         """Extend QLabel::setText.

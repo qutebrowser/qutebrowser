@@ -92,3 +92,12 @@ def test_text_elide_none(mocker, qtbot):
     label._update_elided_text(20)
 
     assert not label.fontMetrics.called
+
+
+def test_unset_text(qtbot):
+    """Make sure the text is cleared properly."""
+    label = TextBase()
+    qtbot.add_widget(label)
+    label.setText('foo')
+    label.setText('')
+    assert not label._elided_text
