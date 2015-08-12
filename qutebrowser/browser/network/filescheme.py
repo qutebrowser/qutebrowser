@@ -1,6 +1,7 @@
 # vim: ft=python fileencoding=utf-8 sts=4 sw=4 et:
 
 # Copyright 2014-2015 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
+# Copyright 2015 Antoni Boucher (antoyo) <bouanto@zoho.com>
 #
 # This file is part of qutebrowser.
 #
@@ -20,14 +21,7 @@
 # pylint complains when using .render() on jinja templates, so we make it shut
 # up for this whole module.
 
-# pylint: disable=no-member
-# https://bitbucket.org/logilab/pylint/issue/490/
-
-"""Handler functions for different qute:... pages.
-
-Module attributes:
-    pyeval_output: The output of the last :pyeval command.
-"""
+"""Handler functions for file:... pages."""
 
 import os
 
@@ -55,7 +49,19 @@ def get_file_list(basedir, all_files, filterfunc):
     return sorted(items, key=lambda v: v['name'].lower())
 
 
-def dirbrowser(urlstring):
+def is_root(directory):
+    """Check if the directory is the root directory.
+
+    Args:
+        directory: The directory to check.
+
+    Return:
+        Whether the directory is a root directory or not.
+    """
+    return os.path.dirname(directory) == directory
+
+
+def dirbrowser_html(urlstring):
     """Get the directory browser web page.
 
     Args:
@@ -69,20 +75,30 @@ def dirbrowser(urlstring):
     # pylint: disable=no-member
     # https://bitbucket.org/logilab/pylint/issue/490/
 
-    folder = resource_filename('img/folder.svg')
-    file = resource_filename('img/file.svg')
+    folder_icon = resource_filename('img/folder.svg')
+    file_icon = resource_filename('img/file.svg')
 
-    if os.path.dirname(urlstring) == urlstring:
+    if is_root(urlstring):
         parent = None
     else:
         parent = os.path.dirname(urlstring)
-    all_files = os.listdir(urlstring)
+
+    try:
+        all_files = os.listdir(urlstring)
+    except (PermissionError, OSError) as e:
+        html = jinja.env.get_template('error.html').render(
+            title="Error while reading directory",
+            url='file://%s' % urlstring,
+            error=str(e),
+            icon='')
+        return html.encode('UTF-8', errors='xmlcharrefreplace')
+
     files = get_file_list(urlstring, all_files, os.path.isfile)
     directories = get_file_list(urlstring, all_files, os.path.isdir)
     html = template.render(title=title, url=urlstring, icon='',
                            parent=parent, files=files,
-                           directories=directories, folder=folder,
-                           file=file)
+                           directories=directories, folder_icon=folder_icon,
+                           file_icon=file_icon)
     return html.encode('UTF-8', errors='xmlcharrefreplace')
 
 
@@ -99,10 +115,10 @@ class FileSchemeHandler(schemehandler.SchemeHandler):
              _outgoing_data: QIODevice * outgoingData
 
         Return:
-            A QNetworkReply.
+            A QNetworkReply for directories, None for files.
         """
         urlstring = request.url().toLocalFile()
-        if os.path.isdir(urlstring) and os.access(urlstring, os.R_OK):
-            data = dirbrowser(urlstring)
+        if os.path.isdir(urlstring):
+            data = dirbrowser_html(urlstring)
             return networkreply.FixedDataNetworkReply(
                 request, data, 'text/html', self.parent())

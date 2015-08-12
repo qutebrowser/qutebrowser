@@ -297,6 +297,25 @@ class NetworkManager(QNetworkAccessManager):
         download.destroyed.connect(self.on_adopted_download_destroyed)
         download.do_retry.connect(self.adopt_download)
 
+    def setReferer(self, req, current_url):
+        """Set the referer header."""
+        referer_header_conf = config.get('network', 'referer-header')
+
+        try:
+            if referer_header_conf == 'never':
+                # Note: using ''.encode('ascii') sends a header with no value,
+                # instead of no header at all
+                req.setRawHeader('Referer'.encode('ascii'), QByteArray())
+            elif (referer_header_conf == 'same-domain' and
+                    not urlutils.same_domain(req.url(), current_url)):
+                req.setRawHeader('Referer'.encode('ascii'), QByteArray())
+            # If refer_header_conf is set to 'always', we leave the header
+            # alone as QtWebKit did set it.
+        except urlutils.InvalidUrlError:
+            # req.url() or current_url can be invalid - this happens on
+            # https://www.playstation.com/ for example.
+            pass
+
     # WORKAROUND for:
     # http://www.riverbankcomputing.com/pipermail/pyqt/2014-September/034806.html
     #
@@ -322,7 +341,7 @@ class NetworkManager(QNetworkAccessManager):
         if scheme in self._scheme_handlers:
             result = self._scheme_handlers[scheme].createRequest(
                 op, req, outgoing_data)
-            if result:
+            if result is not None:
                 return result
 
         host_blocker = objreg.get('host-blocker')
@@ -348,22 +367,8 @@ class NetworkManager(QNetworkAccessManager):
             webview = objreg.get('webview', scope='tab', window=self._win_id,
                                  tab=self._tab_id)
             current_url = webview.url()
-        referer_header_conf = config.get('network', 'referer-header')
 
-        try:
-            if referer_header_conf == 'never':
-                # Note: using ''.encode('ascii') sends a header with no value,
-                # instead of no header at all
-                req.setRawHeader('Referer'.encode('ascii'), QByteArray())
-            elif (referer_header_conf == 'same-domain' and
-                    not urlutils.same_domain(req.url(), current_url)):
-                req.setRawHeader('Referer'.encode('ascii'), QByteArray())
-            # If refer_header_conf is set to 'always', we leave the header
-            # alone as QtWebKit did set it.
-        except urlutils.InvalidUrlError:
-            # req.url() or current_url can be invalid - this happens on
-            # https://www.playstation.com/ for example.
-            pass
+        self.setReferer(req, current_url)
 
         accept_language = config.get('network', 'accept-language')
         if accept_language is not None:
