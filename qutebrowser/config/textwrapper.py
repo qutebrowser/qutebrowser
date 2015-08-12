@@ -26,7 +26,7 @@ class TextWrapper(textwrap.TextWrapper):
 
     """Text wrapper customized to be used in configs."""
 
-    def __init__(self, *args, **kwargs):
+    def __init__(self, **kwargs):
         kw = {
             'width': 72,
             'replace_whitespace': False,
@@ -36,4 +36,4 @@ class TextWrapper(textwrap.TextWrapper):
             'subsequent_indent': '# ',
         }
         kw.update(kwargs)
-        super().__init__(*args, **kw)
+        super().__init__(**kw)
