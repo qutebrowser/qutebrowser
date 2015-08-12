@@ -28,6 +28,7 @@ from PyQt5.QtCore import pyqtSlot, pyqtSignal, Qt, QItemSelectionModel
 
 from qutebrowser.config import config, style
 from qutebrowser.completion import completiondelegate, completer
+from qutebrowser.completion.models import base
 from qutebrowser.utils import qtutils, objreg, utils
 
 
@@ -38,15 +39,13 @@ class CompletionView(QTreeView):
     Based on QTreeView but heavily customized so root elements show as category
     headers, and children show as flat list.
 
-    Class attributes:
-        COLUMN_WIDTHS: A list of column widths, in percent.
-
     Attributes:
         enabled: Whether showing the CompletionView is enabled.
         _win_id: The ID of the window this CompletionView is associated with.
         _height: The height to use for the CompletionView.
         _height_perc: Either None or a percentage if height should be relative.
         _delegate: The item delegate used.
+        _column_widths: A list of column widths, in percent.
 
     Signals:
         resize_completion: Emitted when the completion should be resized.
@@ -82,7 +81,6 @@ class CompletionView(QTreeView):
             border: 0px;
         }
     """
-    COLUMN_WIDTHS = (20, 70, 10)
 
     # FIXME style scrollbar
     # https://github.com/The-Compiler/qutebrowser/issues/117
@@ -102,6 +100,8 @@ class CompletionView(QTreeView):
         objreg.get('config').changed.connect(self.set_enabled)
         # FIXME handle new aliases.
         # objreg.get('config').changed.connect(self.init_command_completion)
+
+        self._column_widths = base.BaseCompletionModel.COLUMN_WIDTHS
 
         self._delegate = completiondelegate.CompletionItemDelegate(self)
         self.setItemDelegate(self._delegate)
@@ -128,9 +128,9 @@ class CompletionView(QTreeView):
         return utils.get_repr(self)
 
     def _resize_columns(self):
-        """Resize the completion columns based on COLUMN_WIDTHS."""
+        """Resize the completion columns based on column_widths."""
         width = self.size().width()
-        pixel_widths = [(width * perc // 100) for perc in self.COLUMN_WIDTHS]
+        pixel_widths = [(width * perc // 100) for perc in self._column_widths]
         if self.verticalScrollBar().isVisible():
             pixel_widths[-1] -= self.style().pixelMetric(
                 QStyle.PM_ScrollBarExtent) + 5
@@ -203,6 +203,8 @@ class CompletionView(QTreeView):
             sel_model.deleteLater()
         for i in range(model.rowCount()):
             self.expand(model.index(i, 0))
+
+        self._column_widths = model.srcmodel.COLUMN_WIDTHS
         self._resize_columns()
         self.maybe_resize_completion()
 
