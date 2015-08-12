@@ -19,6 +19,8 @@
 
 """Tests for qutebrowser.completion.models column widths"""
 
+import pytest
+
 from qutebrowser.completion.models.base import BaseCompletionModel
 from qutebrowser.completion.models.configmodel import (
     SettingOptionCompletionModel, SettingSectionCompletionModel,
@@ -40,12 +42,16 @@ class TestColumnWidths:
                BookmarkCompletionModel, SessionCompletionModel,
                UrlCompletionModel]
 
-    def test_list_size(self):
-        """Test if there are 3 items in the COLUMN_WIDTHS property"""
-        for model in self.CLASSES:
-            assert model.COLUMN_WIDTHS.__len__() == 3
+    @pytest.mark.parametrize("model", CLASSES)
+    def test_list_size(self, model):
 
-    def test_column_width_sum(self):
+        """Test if there are 3 items in the COLUMN_WIDTHS property"""
+
+        assert len(model.COLUMN_WIDTHS) == 3
+
+    @pytest.mark.parametrize("model", CLASSES)
+    def test_column_width_sum(self, model):
+
         """Test if the sum of the widths asserts to 100"""
-        for model in self.CLASSES:
-            assert sum(model.COLUMN_WIDTHS) == 100
+
+        assert sum(model.COLUMN_WIDTHS) == 100
