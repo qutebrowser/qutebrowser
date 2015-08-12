@@ -55,7 +55,7 @@ class TextBase(QLabel):
         Args:
             width: The maximal width the text should take.
         """
-        if self.text is not None:
+        if self.text():
             self._elided_text = self.fontMetrics().elidedText(
                 self.text(), self._elidemode, width, Qt.TextShowMnemonic)
 
