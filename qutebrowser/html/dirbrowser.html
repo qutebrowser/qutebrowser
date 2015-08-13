@@ -46,11 +46,11 @@ ul.files > li {
             <p id="dirbrowserTitleText">Browse directory: {{url}}</p>
         </div>
 
-        <ul class="parent">
-            {% if parent %}
+        {% if parent %}
+            <ul class="parent">
                 <li><a href="{{parent}}">..</a></li>
-            {% endif %}
-        </ul>
+            </ul>
+        {% endif %}
 
         <ul class="folders">
             {% for item in directories %}
@@ -64,5 +64,4 @@ ul.files > li {
             {% endfor %}
         </ul>
     </div>
-</div>
 {% endblock %}

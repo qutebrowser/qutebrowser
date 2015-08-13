@@ -61,16 +61,16 @@ def is_root(directory):
     return os.path.dirname(directory) == directory
 
 
-def dirbrowser_html(urlstring):
+def dirbrowser_html(path):
     """Get the directory browser web page.
 
     Args:
-        urlstring: The directory path.
+        path: The directory path.
 
     Return:
         The HTML of the web page.
     """
-    title = "Browse directory: {}".format(urlstring)
+    title = "Browse directory: {}".format(path)
     template = jinja.env.get_template('dirbrowser.html')
     # pylint: disable=no-member
     # https://bitbucket.org/logilab/pylint/issue/490/
@@ -78,24 +78,24 @@ def dirbrowser_html(urlstring):
     folder_icon = resource_filename('img/folder.svg')
     file_icon = resource_filename('img/file.svg')
 
-    if is_root(urlstring):
+    if is_root(path):
         parent = None
     else:
-        parent = os.path.dirname(urlstring)
+        parent = os.path.dirname(path)
 
     try:
-        all_files = os.listdir(urlstring)
-    except (PermissionError, OSError) as e:
+        all_files = os.listdir(path)
+    except OSError as e:
         html = jinja.env.get_template('error.html').render(
             title="Error while reading directory",
-            url='file://%s' % urlstring,
+            url='file://%s' % path,
             error=str(e),
             icon='')
         return html.encode('UTF-8', errors='xmlcharrefreplace')
 
-    files = get_file_list(urlstring, all_files, os.path.isfile)
-    directories = get_file_list(urlstring, all_files, os.path.isdir)
-    html = template.render(title=title, url=urlstring, icon='',
+    files = get_file_list(path, all_files, os.path.isfile)
+    directories = get_file_list(path, all_files, os.path.isdir)
+    html = template.render(title=title, url=path, icon='',
                            parent=parent, files=files,
                            directories=directories, folder_icon=folder_icon,
                            file_icon=file_icon)
@@ -117,8 +117,8 @@ class FileSchemeHandler(schemehandler.SchemeHandler):
         Return:
             A QNetworkReply for directories, None for files.
         """
-        urlstring = request.url().toLocalFile()
-        if os.path.isdir(urlstring):
-            data = dirbrowser_html(urlstring)
+        path = request.url().toLocalFile()
+        if os.path.isdir(path):
+            data = dirbrowser_html(path)
             return networkreply.FixedDataNetworkReply(
                 request, data, 'text/html', self.parent())

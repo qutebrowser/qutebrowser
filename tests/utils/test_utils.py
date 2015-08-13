@@ -120,15 +120,11 @@ class TestReadFile:
 
 
 @pytest.mark.usefixtures('freezer')
-class TestResourceFilename:
-
-    """Test resource_filename."""
-
-    def test_resource_filename(self):
-        """Read a test file."""
-        filename = utils.resource_filename(os.path.join('utils', 'testfile'))
-        with open(filename, 'r', encoding='utf-8') as f:
-            assert f.read().splitlines()[0] == "Hello World!"
+def test_resource_filename():
+    """Read a test file."""
+    filename = utils.resource_filename(os.path.join('utils', 'testfile'))
+    with open(filename, 'r', encoding='utf-8') as f:
+        assert f.read().splitlines()[0] == "Hello World!"
 
 
 class Patcher:

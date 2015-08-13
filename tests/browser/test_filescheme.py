@@ -86,11 +86,11 @@ class TestDirbrowserHtml:
             print(soup.prettify())
             container = soup('div', id='dirbrowserContainer')[0]
 
-            parent_elem = container('ul', class_='parent')[0].li
-            if parent_elem is None:
+            parent_elem = container('ul', class_='parent')
+            if len(parent_elem) == 0:
                 parent = None
             else:
-                parent = parent_elem.a.string
+                parent = parent_elem[0].li.a.string
 
             folders = []
             files = []
