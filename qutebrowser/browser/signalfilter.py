@@ -24,7 +24,6 @@ import functools
 from PyQt5.QtCore import QObject
 
 from qutebrowser.utils import debug, log, objreg
-from qutebrowser.browser import webview
 
 
 class SignalFilter(QObject):
@@ -58,9 +57,6 @@ class SignalFilter(QObject):
         Return:
             A partial functon calling _filter_signals with a signal.
         """
-        if not isinstance(tab, webview.WebView):
-            raise ValueError("Tried to create filter for {} which is no "
-                             "WebView!".format(tab))
         return functools.partial(self._filter_signals, signal, tab)
 
     def _filter_signals(self, signal, tab, *args):
