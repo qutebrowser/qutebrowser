@@ -48,6 +48,12 @@ def brew(args, silent=False):
         subprocess.check_call(['brew'] + args)
 
 
+def check_setup(executable):
+    print("Checking setup...")
+    subprocess.check_call([executable, '-c', 'import PyQt5'])
+    subprocess.check_call([executable, '-c', 'import sip'])
+
+
 if 'APPVEYOR' in os.environ:
     print("Getting PyQt5...")
     urllib.urlretrieve(
@@ -64,6 +70,8 @@ if 'APPVEYOR' in os.environ:
     print("Linking Python...")
     with open(r'C:\Windows\system32\python3.bat', 'w') as f:
         f.write(r'@C:\Python34\python %*')
+
+    check_setup(r'C:\Python24\python')
 elif os.environ.get('TRAVIS_OS_NAME', None) == 'linux':
     print("apt-get update...")
     apt_get(['update'])
@@ -71,6 +79,7 @@ elif os.environ.get('TRAVIS_OS_NAME', None) == 'linux':
     print("Installing packages...")
     pkgs = 'python3-pyqt5 python3-pyqt5.qtwebkit python-tox python3-dev xvfb'
     apt_get(['install'] + pkgs.split())
+    check_setup('python3')
 elif os.environ.get('TRAVIS_OS_NAME', None) == 'osx':
     print("brew update...")
     brew(['update'], silent=True)
@@ -80,6 +89,8 @@ elif os.environ.get('TRAVIS_OS_NAME', None) == 'osx':
 
     print("Installing tox...")
     subprocess.check_call(['sudo', 'pip3.4', 'install', 'tox'])
+
+    check_setup('python3')
 
     os.system('ls -l /usr/local/bin/xvfb-run')
     print("Creating xvfb-run stub...")
@@ -99,8 +110,3 @@ else:
                                       env('TRAVIS'), env('TRAVIS_OS_NAME')),
           file=sys.stderr)
     sys.exit(1)
-
-
-print("Checking setup...")
-subprocess.check_call(['python3', '-c', 'import PyQt5'])
-subprocess.check_call(['python3', '-c', 'import sip'])
