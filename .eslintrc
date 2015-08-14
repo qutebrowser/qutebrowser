@@ -21,7 +21,7 @@ rules:
     comma-style: [2, "last"]
     consistent-this: [2, "self"]
     func-style: [2, "declaration"]
-    indent: [2, 4, {"indentSwitchCase": true}]
+    indent: [2, 4, {"SwitchCase": true}]
     linebreak-style: [2, "unix"]
     max-nested-callbacks: [2, 3]
     no-lonely-if: 2
