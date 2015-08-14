@@ -297,7 +297,7 @@ class NetworkManager(QNetworkAccessManager):
         download.destroyed.connect(self.on_adopted_download_destroyed)
         download.do_retry.connect(self.adopt_download)
 
-    def setReferer(self, req, current_url):
+    def set_referer(self, req, current_url):
         """Set the referer header."""
         referer_header_conf = config.get('network', 'referer-header')
 
@@ -368,7 +368,7 @@ class NetworkManager(QNetworkAccessManager):
                                  tab=self._tab_id)
             current_url = webview.url()
 
-        self.setReferer(req, current_url)
+        self.set_referer(req, current_url)
 
         accept_language = config.get('network', 'accept-language')
         if accept_language is not None:
