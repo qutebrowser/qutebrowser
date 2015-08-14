@@ -35,7 +35,6 @@ import urllib
 
 PYQT_VERSION = '5.4.2'
 
-
 def apt_get(args):
     subprocess.check_call(['sudo', 'apt-get', '-y', '-q'] + args)
 
@@ -99,3 +98,7 @@ else:
                                       env('TRAVIS'), env('TRAVIS_OS_NAME')),
           file=sys.stderr)
     sys.exit(1)
+
+print("Checking setup...")
+subprocess.check_call(['python3', '-c', 'import PyQt5'])
+subprocess.check_call(['python3', '-c', 'import sip'])
