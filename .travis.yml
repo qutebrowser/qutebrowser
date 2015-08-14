@@ -10,7 +10,6 @@ language: c
 cache:
   directories:
     - $HOME/.cache/pip
-    - $HOME/build/The-Compiler/qutebrowser/.tox
     - $HOME/build/The-Compiler/qutebrowser/.cache
 
 install:
