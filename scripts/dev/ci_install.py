@@ -71,7 +71,7 @@ if 'APPVEYOR' in os.environ:
     with open(r'C:\Windows\system32\python3.bat', 'w') as f:
         f.write(r'@C:\Python34\python %*')
 
-    check_setup(r'C:\Python24\python')
+    check_setup(r'C:\Python34\python')
 elif os.environ.get('TRAVIS_OS_NAME', None) == 'linux':
     print("apt-get update...")
     apt_get(['update'])
