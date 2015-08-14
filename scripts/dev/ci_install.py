@@ -92,7 +92,6 @@ elif os.environ.get('TRAVIS_OS_NAME', None) == 'osx':
 
     check_setup('python3')
 
-    os.system('ls -l /usr/local/bin/xvfb-run')
     print("Creating xvfb-run stub...")
     with open('/usr/local/bin/xvfb-run', 'w') as f:
         # This will break when xvfb-run is called differently in .travis.yml,
@@ -100,8 +99,7 @@ elif os.environ.get('TRAVIS_OS_NAME', None) == 'osx':
         f.write('#!/bin/bash\n')
         f.write('shift 2\n')
         f.write('exec "$@"\n')
-    os.system('sudo chmod 755 /usr/local/bin/xvfb-run')
-    os.system('ls -l /usr/local/bin/xvfb-run')
+    subprocess.check_call(['sudo', 'chmod', '755', '/usr/local/bin/xvfb-run'])
 else:
     def env(key):
         return os.environ.get(key, None)
