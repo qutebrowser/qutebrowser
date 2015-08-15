@@ -3,6 +3,7 @@ version: '{branch}-{build}'
 cache:
   - C:\projects\qutebrowser\.cache
 build: off
+os: Previous Windows Server 2012 R2
 environment:
     PYTHON: 'C:\Python34'
     PYTHONUNBUFFERED: 1
