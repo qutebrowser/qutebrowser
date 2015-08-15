@@ -20,12 +20,15 @@
 """Form filler."""
 
 import os
+import shlex
+import subprocess
 
 from yaml import dump, load
 
 from PyQt5.QtCore import QUrl
 
 from qutebrowser.commands import cmdexc, cmdutils
+from qutebrowser.config import config
 from qutebrowser.utils import message, objreg, standarddir, usertypes
 
 
@@ -44,8 +47,8 @@ class YamlFormManager(FormManager):
 
     """YAML form storage."""
 
-    def __init__(self, filename):
-        self._filename = filename
+    def __init__(self):
+        self._filename = os.path.join(standarddir.config(), "forms.yaml")
 
     def load(self, urlstring):
         with open(self._filename, "r", encoding="utf-8") as form_file:
@@ -68,13 +71,61 @@ class YamlFormManager(FormManager):
             form_file.truncate()
 
 
+class PassFormManager(FormManager):
+
+    """Pass form storage."""
+
+    def _exec_pass(self, args, input_data=None):
+        """Exec the pass command with the specified arguments and input.
+
+        Args:
+            args: The command-line arguments to send to pass.
+            input: The text to send to pass stdin.
+
+        Return:
+            The pass output.
+        """
+        args.insert(0, "pass")
+        process = subprocess.Popen(args, stdout=subprocess.PIPE,
+                                   stderr=subprocess.PIPE,
+                                   stdin=subprocess.PIPE)
+        if input_data is not None:
+            input_data = input_data.encode("utf-8")
+
+        (result, error) = process.communicate(input_data)
+        if len(error) > 0:
+            raise KeyError
+        return result
+
+    def _escape_url(self, urlstring):
+        return shlex.quote(urlstring.replace("/", ""))
+
+    def load(self, urlstring):
+        key = self._escape_url(urlstring)
+        yaml_data = self._exec_pass(["qutebrowser/" + key])
+        result = load(yaml_data)
+        if result is None:
+            raise KeyError
+        return result
+
+    def save(self, urlstring, form_data):
+        key = self._escape_url(urlstring)
+        self._exec_pass(["insert", "-m", "qutebrowser/" + key],
+                        dump(form_data))
+
+
 class FormFiller:
 
     """Save and load form data."""
 
     def __init__(self):
-        self._filename = os.path.join(standarddir.config(), 'forms.yaml')
         self._win_id = 0
+        password_storage = config.get("general", "password-storage")
+        storages = {
+            "pass": PassFormManager,
+            "default": YamlFormManager,
+        }
+        self._form_manager = storages[password_storage]()
 
     def _find_form(self, elem):
         """Find the form element from the input elem.
@@ -86,7 +137,7 @@ class FormFiller:
             The form element.
         """
         form = elem
-        while not form.isNull() and form.tagName() != 'FORM':
+        while not form.isNull() and form.tagName() != "FORM":
             form = form.parent()
         return form
 
@@ -99,6 +150,7 @@ class FormFiller:
         Return:
             The form data.
         """
+        # TODO: have a workaround for when there is no form element.
         form = self._find_form(elem)
         elems = form.findAll('input[type="checkbox"], input[type="text"],'
                              'input[type="password"], textarea')
@@ -119,8 +171,8 @@ class FormFiller:
                 value = element.evaluateJavaScript("this.value")
 
             data.append({
-                'selector': selector,
-                'value': value,
+                "selector": selector,
+                "value": value,
             })
         return data
 
@@ -132,7 +184,7 @@ class FormFiller:
 
     def _get_frame(self):
         """Get the current frame."""
-        tabbed_browser = objreg.get('tabbed-browser', scope='window',
+        tabbed_browser = objreg.get("tabbed-browser", scope="window",
                                     window=self._win_id)
         widget = tabbed_browser.currentWidget()
         if widget is None:
@@ -141,16 +193,15 @@ class FormFiller:
 
     def _get_url(self):
         """Get the current URL."""
-        tabbed_browser = objreg.get('tabbed-browser', scope='window',
+        tabbed_browser = objreg.get("tabbed-browser", scope="window",
                                     window=self._win_id)
         return tabbed_browser.current_url().toString(
             QUrl.FullyEncoded | QUrl.RemovePassword | QUrl.RemoveQuery)
 
     def _load(self, url):
-        form_manager = YamlFormManager(self._filename)
-        return form_manager.load(url)
+        return self._form_manager.load(url)
 
-    @cmdutils.register(instance='form-filler', win_id='win_id')
+    @cmdutils.register(instance="form-filler", win_id="win_id")
     def load_form(self, win_id):
         """Load the form from the current URL."""
         self._win_id = win_id
@@ -171,7 +222,7 @@ class FormFiller:
             else:
                 elem.evaluateJavaScript("this.value = '" + data["value"] + "'")
 
-    @cmdutils.register(instance='form-filler', win_id='win_id')
+    @cmdutils.register(instance="form-filler", win_id="win_id")
     def load_form_submit(self, win_id):
         """Load the form from the current URL and submit the form."""
         self.load_form(win_id)
@@ -181,10 +232,9 @@ class FormFiller:
         self._submit(form)
 
     def _save(self, url, form_data):
-        form_manager = YamlFormManager(self._filename)
-        form_manager.save(url, form_data)
+        self._form_manager.save(url, form_data)
 
-    @cmdutils.register(instance='form-filler', win_id='win_id')
+    @cmdutils.register(instance="form-filler", win_id="win_id")
     def save_form(self, win_id):
         """Save the form from the current URL."""
         self._win_id = win_id
@@ -211,4 +261,6 @@ class FormFiller:
             self._save(url, form_data)
 
     def _submit(self, form):
+        # TODO: have a workaround for when submiting the form does not work.
+        # e.g. click on the submit button.
         form.evaluateJavaScript("this.submit()")

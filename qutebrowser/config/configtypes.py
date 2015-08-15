@@ -1297,6 +1297,13 @@ class SessionName(BaseType):
             raise configexc.ValidationError(value, "may not start with '_'!")
 
 
+class PasswordStorage(BaseType):
+
+    """The name of a password storage."""
+
+    valid_values = ValidValues("default", "pass")
+
+
 class SelectOnRemove(MappingType):
 
     """Which tab to select when the focused tab is removed."""
