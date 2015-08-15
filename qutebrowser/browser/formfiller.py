@@ -17,61 +17,99 @@
 # You should have received a copy of the GNU General Public License
 # along with qutebrowser.  If not, see <http://www.gnu.org/licenses/>.
 
+"""Form filler."""
+
 import os
 
-from yaml import Dumper, Loader, dump, load
+from yaml import dump, load
 
 from PyQt5.QtCore import QUrl
 
 from qutebrowser.commands import cmdexc, cmdutils
-from qutebrowser.utils import objreg, standarddir
+from qutebrowser.utils import message, objreg, standarddir, usertypes
+
 
 class FormManager:
+
+    """Base abstract class for form storage."""
+
     def load(self, urlstring):
-        raise NotImplemented
+        raise NotImplementedError
 
     def save(self, urlstring, form_data):
-        raise NotImplemented
+        raise NotImplementedError
+
 
 class YamlFormManager(FormManager):
+
+    """YAML form storage."""
+
     def __init__(self, filename):
         self._filename = filename
 
     def load(self, urlstring):
-        with open(self._filename, "r") as form_file:
+        with open(self._filename, "r", encoding="utf-8") as form_file:
             data = load(form_file)
+            if data is None:
+                data = {}
         return data[urlstring]
 
     def save(self, urlstring, form_data):
-        new_data = {
-            urlstring: form_data,
-        }
-        with open(self._filename, "a") as form_file:
-            dump(new_data, form_file)
+        if not os.path.isfile(self._filename):
+            os.mknod(self._filename)
+
+        with open(self._filename, "r+", encoding="utf-8") as form_file:
+            data = load(form_file)
+            if data is None:
+                data = {}
+            data[urlstring] = form_data
+            form_file.seek(0)
+            dump(data, form_file)
+            form_file.truncate()
+
 
 class FormFiller:
+
+    """Save and load form data."""
+
     def __init__(self):
         self._filename = os.path.join(standarddir.config(), 'forms.yaml')
+        self._win_id = 0
 
     def _find_form(self, elem):
+        """Find the form element from the input elem.
+
+        Args:
+            elem: The input element.
+
+        Return:
+            The form element.
+        """
         form = elem
         while not form.isNull() and form.tagName() != 'FORM':
             form = form.parent()
         return form
 
     def _find_form_data(self, elem):
+        """Find the data from the form containing the specified input element.
+
+        Args:
+            elem: The input element.
+
+        Return:
+            The form data.
+        """
         form = self._find_form(elem)
         elems = form.findAll('input[type="checkbox"], input[type="text"],'
-                'input[type="password"], textarea')
+                             'input[type="password"], textarea')
         data = []
         for element in elems:
             name = element.attribute("name")
-            id = element.attribute("id")
-            checked = element.evaluateJavaScript("this.checked")
+            elem_id = element.attribute("id")
 
             # TODO: support when JavaScript is disabled.
-            if len(id) > 0:
-                selector = "#" + id
+            if len(elem_id) > 0:
+                selector = "#" + elem_id
             elif len(name) > 0:
                 selector = "[name=" + name + "]"
 
@@ -87,11 +125,13 @@ class FormFiller:
         return data
 
     def _get_form_data(self):
+        """Get the data from the form containing the focused element."""
         mainframe = self._get_frame()
         elem = mainframe.findFirstElement("input:focus")
         return self._find_form_data(elem)
 
     def _get_frame(self):
+        """Get the current frame."""
         tabbed_browser = objreg.get('tabbed-browser', scope='window',
                                     window=self._win_id)
         widget = tabbed_browser.currentWidget()
@@ -100,6 +140,7 @@ class FormFiller:
         return widget.page().mainFrame()
 
     def _get_url(self):
+        """Get the current URL."""
         tabbed_browser = objreg.get('tabbed-browser', scope='window',
                                     window=self._win_id)
         return tabbed_browser.current_url().toString(
@@ -125,7 +166,8 @@ class FormFiller:
         for data in form_data:
             elem = mainframe.findFirstElement(data["selector"])
             if elem.attribute("type") == "checkbox":
-                elem.evaluateJavaScript("this.checked = " + str(data["value"]).lower())
+                elem.evaluateJavaScript("this.checked = " +
+                                        str(data["value"]).lower())
             else:
                 elem.evaluateJavaScript("this.value = '" + data["value"] + "'")
 
@@ -146,10 +188,27 @@ class FormFiller:
     def save_form(self, win_id):
         """Save the form from the current URL."""
         self._win_id = win_id
-
-        form_data = self._get_form_data()
         url = self._get_url()
-        self._save(url, form_data)
+
+        form_exists = True
+        try:
+            form_data = self._load(url)
+        except (KeyError, FileNotFoundError):
+            form_exists = False
+
+        save = False
+        if form_exists:
+            text = ("A password for this page already exists. "
+                    "Do you want to override it?")
+            save = message.ask(self._win_id, text,
+                               usertypes.PromptMode.yesno,
+                               default=True)
+        else:
+            save = True
+
+        if save:
+            form_data = self._get_form_data()
+            self._save(url, form_data)
 
     def _submit(self, form):
         form.evaluateJavaScript("this.submit()")

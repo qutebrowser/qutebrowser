@@ -45,7 +45,8 @@ import qutebrowser.resources  # pylint: disable=unused-import
 from qutebrowser.completion.models import instances as completionmodels
 from qutebrowser.commands import cmdutils, runners, cmdexc
 from qutebrowser.config import style, config, websettings, configexc
-from qutebrowser.browser import urlmarks, cookies, cache, adblock, history, formfiller
+from qutebrowser.browser import (urlmarks, cookies, cache, adblock, history,
+                                 formfiller)
 from qutebrowser.browser.network import qutescheme, proxy, networkmanager
 from qutebrowser.mainwindow import mainwindow
 from qutebrowser.misc import readline, ipc, savemanager, sessions, crashsignal
