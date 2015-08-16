@@ -47,6 +47,9 @@ def mock_modules(monkeypatch, stubs):
 @pytest.yield_fixture()
 def proc(qtbot):
     """A fixture providing a GUIProcess and cleaning it up after the test."""
+    if os.name == 'nt':
+        # WORKAROUND for https://github.com/pytest-dev/pytest-qt/issues/67
+        pytest.skip("Test is flaky on Windows...")
     p = guiprocess.GUIProcess(0, 'test')
     yield p
     if p._proc.state() == QProcess.Running:
@@ -97,7 +100,6 @@ def test_double_start(qtbot, proc):
 
 
 @pytest.mark.not_frozen
-@pytest.mark.skipif(os.name == 'nt', reason="Test is flaky on Windows...")
 def test_double_start_finished(qtbot, proc):
     """Test starting a GUIProcess twice (with the first call finished)."""
     with qtbot.waitSignals([proc.started, proc.finished], raising=True,
@@ -118,8 +120,6 @@ def test_cmd_args(fake_proc):
     assert (fake_proc.cmd, fake_proc.args) == (cmd, args)
 
 
-# WORKAROUND for https://github.com/pytest-dev/pytest-qt/issues/67
-@pytest.mark.skipif(os.name == 'nt', reason="Test is flaky on Windows...")
 def test_error(qtbot, proc, caplog):
     """Test the process emitting an error."""
     with caplog.atLevel(logging.ERROR, 'message'):
