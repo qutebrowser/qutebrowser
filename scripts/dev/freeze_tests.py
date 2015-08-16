@@ -52,7 +52,7 @@ def get_build_exe_options():
     """Get build_exe options with additional includes."""
     opts = freeze.get_build_exe_options(skip_html=True)
     opts['includes'] += pytest.freeze_includes()  # pylint: disable=no-member
-    opts['includes'] += ['unittest.mock', 'PyQt5.QtTest', 'hypothesis']
+    opts['includes'] += ['unittest.mock', 'PyQt5.QtTest', 'hypothesis', 'bs4']
     opts['packages'].append('qutebrowser')
     return opts
 
