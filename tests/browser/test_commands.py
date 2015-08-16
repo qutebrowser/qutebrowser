@@ -87,5 +87,6 @@ def objects(qtbot, default_config, key_config_stub, tab_registry,
     yield ObjectsRet(tabbed_browser, dispatcher)
 
 
+@pytest.mark.skipif(True, reason="Work in progress")
 def test_openurl(objects):
     objects.cd.openurl('localhost')
