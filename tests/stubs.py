@@ -29,6 +29,8 @@ from PyQt5.QtCore import pyqtSignal, QPoint, QProcess, QObject
 from PyQt5.QtNetwork import QNetworkRequest
 from PyQt5.QtWidgets import QCommonStyle
 
+from qutebrowser.config import configexc
+
 
 class FakeKeyEvent:
 
@@ -291,3 +293,56 @@ class MessageModule:
     def info(self, _win_id, message, immediately=True):
         """Log an info message to the message logger."""
         logging.getLogger('message').info(message)
+
+
+class ConfigStub:
+
+    """Stub for the config module.
+
+    Attributes:
+        data: The config data to return.
+    """
+
+    def __init__(self, signal):
+        """Constructor.
+
+        Args:
+            signal: The signal to use for self.changed.
+        """
+        self.data = {}
+        self.changed = signal
+
+    def section(self, name):
+        """Get a section from the config.
+
+        Args:
+            name: The section name to get.
+
+        Return:
+            The section as dict.
+        """
+        return self.data[name]
+
+    def get(self, sect, opt):
+        """Get a value from the config."""
+        data = self.data[sect]
+        try:
+            return data[opt]
+        except KeyError:
+            raise configexc.NoOptionError(opt, sect)
+
+
+class KeyConfigStub:
+
+    """Stub for the key-config object."""
+
+    def get_bindings_for(self, _section):
+        return {}
+
+
+class HostBlockerStub:
+
+    """Stub for the host-blocker object."""
+
+    def __init__(self):
+        self.blocked_hosts = set()
