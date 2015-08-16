@@ -26,8 +26,7 @@
 import os
 
 from qutebrowser.browser.network import schemehandler, networkreply
-from qutebrowser.utils import jinja
-from qutebrowser.utils.utils import resource_filename
+from qutebrowser.utils import utils, jinja
 
 
 def get_file_list(basedir, all_files, filterfunc):
@@ -75,8 +74,8 @@ def dirbrowser_html(path):
     # pylint: disable=no-member
     # https://bitbucket.org/logilab/pylint/issue/490/
 
-    folder_icon = resource_filename('img/folder.svg')
-    file_icon = resource_filename('img/file.svg')
+    folder_icon = utils.resource_filename('img/folder.svg')
+    file_icon = utils.resource_filename('img/file.svg')
 
     if is_root(path):
         parent = None
