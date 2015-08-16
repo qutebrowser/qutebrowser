@@ -33,6 +33,10 @@ import sys
 import subprocess
 import urllib
 
+try:
+    import _winreg as winreg
+except ImportError:
+    winreg = None
 
 
 def apt_get(args):
@@ -58,6 +62,12 @@ if 'APPVEYOR' in os.environ:
     urllib.urlretrieve(
         'http://www.qutebrowser.org/pyqt/PyQt5-5.5-gpl-Py3.4-Qt5.5.0-x32.exe',
          r'C:\install-PyQt5.exe')
+
+    print("Fixing registry...")
+    with winreg.OpenKey(winreg.HKEY_CURRENT_USER,
+                        r'Software\Python\PythonCore\3.4', 0,
+                        winreg.KEY_WRITE) as key:
+        winreg.SetValue(key, 'InstallPath', winreg.REG_SZ, r'C:\Python34')
 
     print("Installing PyQt5...")
     subprocess.check_call([r'C:\install-PyQt5.exe', '/S'])
