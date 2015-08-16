@@ -25,6 +25,8 @@
 
 import os
 
+from PyQt5.QtCore import QUrl
+
 from qutebrowser.browser.network import schemehandler, networkreply
 from qutebrowser.utils import utils, jinja
 
@@ -77,6 +79,9 @@ def dirbrowser_html(path):
     folder_icon = utils.resource_filename('img/folder.svg')
     file_icon = utils.resource_filename('img/file.svg')
 
+    folder_url = QUrl.fromLocalFile(folder_icon).toString(QUrl.FullyEncoded)
+    file_url = QUrl.fromLocalFile(file_icon).toString(QUrl.FullyEncoded)
+
     if is_root(path):
         parent = None
     else:
@@ -96,8 +101,8 @@ def dirbrowser_html(path):
     directories = get_file_list(path, all_files, os.path.isdir)
     html = template.render(title=title, url=path, icon='',
                            parent=parent, files=files,
-                           directories=directories, folder_icon=folder_icon,
-                           file_icon=file_icon)
+                           directories=directories, folder_url=folder_url,
+                           file_url=file_url)
     return html.encode('UTF-8', errors='xmlcharrefreplace')
 
 

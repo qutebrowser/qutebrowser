@@ -117,6 +117,19 @@ class TestDirbrowserHtml:
         title_text = title_elem('p', id='dirbrowserTitleText')[0].text
         assert title_text == 'Browse directory: {}'.format(os.getcwd())
 
+    def test_icons(self, monkeypatch):
+        """Make sure icon paths are correct file:// URLs."""
+        monkeypatch.setattr(
+            'qutebrowser.browser.network.filescheme.utils.resource_filename',
+            lambda name: '/test path/foo.svg')
+
+        html = filescheme.dirbrowser_html(os.getcwd())
+        soup = bs4.BeautifulSoup(html, 'html.parser')
+        print(soup.prettify())
+
+        css = soup.html.head.style.string
+        assert "background-image: url('file:///test%20path/foo.svg');" in css
+
     def test_empty(self, tmpdir, parser):
         parsed = parser(str(tmpdir))
         assert parsed.parent
