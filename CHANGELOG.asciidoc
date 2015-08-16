@@ -37,6 +37,7 @@ Added
 - New setting `storage -> prompt-download-directory` to download all downloads
   without asking.
 - Rapid hinting is now also possible for downloads.
+- Directory browsing via `file://` is now supported.
 
 Changed
 ~~~~~~~
