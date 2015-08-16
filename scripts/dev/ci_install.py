@@ -33,7 +33,6 @@ import sys
 import subprocess
 import urllib
 
-PYQT_VERSION = '5.4.2'
 
 
 def apt_get(args):
@@ -57,9 +56,8 @@ def check_setup(executable):
 if 'APPVEYOR' in os.environ:
     print("Getting PyQt5...")
     urllib.urlretrieve(
-        ('http://sourceforge.net/projects/pyqt/files/PyQt5/PyQt-{v}/'
-         'PyQt5-{v}-gpl-Py3.4-Qt{v}-x32.exe'.format(v=PYQT_VERSION)),
-        r'C:\install-PyQt5.exe')
+        'http://www.qutebrowser.org/pyqt/PyQt5-5.5-gpl-Py3.4-Qt5.5.0-x32.exe',
+         r'C:\install-PyQt5.exe')
 
     print("Installing PyQt5...")
     subprocess.check_call([r'C:\install-PyQt5.exe', '/S'])
