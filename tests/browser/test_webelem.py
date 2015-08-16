@@ -645,6 +645,7 @@ class TestJavascriptEscape:
         self._test_escape(text, qtbot, webframe)
 
     @hypothesis.given(hypothesis.strategies.text())
+    @pytest.mark.qt_log_ignore('^load glyph failed')
     def test_real_escape_hypothesis(self, webframe, qtbot, text):
         """Test javascript escaping with a real QWebPage and hypothesis."""
         # We can't simply use self._test_escape because of this:
