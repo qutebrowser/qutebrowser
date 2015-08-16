@@ -189,7 +189,10 @@ class TestFileSchemeHandler:
         req = QNetworkRequest(url)
         handler = filescheme.FileSchemeHandler(win_id=0)
         reply = handler.createRequest(None, req, None)
-        assert reply.readAll() == filescheme.dirbrowser_html(str(tmpdir))
+        # The URL will always use /, even on Windows - so we force this here
+        # too.
+        tmpdir_path = str(tmpdir).replace(os.sep, '/')
+        assert reply.readAll() == filescheme.dirbrowser_html(tmpdir_path)
 
     def test_file(self, tmpdir):
         filename = tmpdir / 'foo'
