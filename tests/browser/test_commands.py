@@ -22,12 +22,10 @@
 import collections
 
 import pytest
-from PyQt5.QtGui import QFont, QColor
-from PyQt5.QtWidgets import QTabBar, QTabWidget
 from PyQt5.QtNetwork import (QNetworkCookieJar, QAbstractNetworkCache,
                              QNetworkCacheMetaData)
 
-from qutebrowser.browser import commands, cookies
+from qutebrowser.browser import commands
 from qutebrowser.mainwindow import tabbedbrowser
 from qutebrowser.utils import objreg
 from qutebrowser.keyinput import modeman

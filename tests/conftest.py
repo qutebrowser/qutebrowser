@@ -278,10 +278,12 @@ def message_mock(monkeypatch):
     return MessageMock(monkeypatch)
 
 
+FakeWindow = collections.namedtuple('FakeWindow', ['registry'])
+
+
 @pytest.yield_fixture
 def win_registry():
     """Fixture providing a window registry for win_id 0."""
-    FakeWindow = collections.namedtuple('FakeWindow', ['registry'])
     registry = objreg.ObjectRegistry()
     window = FakeWindow(registry)
     objreg.window_registry[0] = window
