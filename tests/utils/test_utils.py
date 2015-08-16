@@ -92,18 +92,20 @@ class TestEliding:
         assert utils.elide(text, length) == expected
 
 
+@pytest.fixture(params=[True, False])
+def freezer(request, monkeypatch):
+    if request.param and not getattr(sys, 'frozen', False):
+        monkeypatch.setattr(sys, 'frozen', True, raising=False)
+        monkeypatch.setattr('sys.executable', qutebrowser.__file__)
+    elif not request.param and getattr(sys, 'frozen', False):
+        # Want to test unfrozen tests, but we are frozen
+        pytest.skip("Can't run with sys.frozen = True!")
+
+
+@pytest.mark.usefixtures('freezer')
 class TestReadFile:
 
     """Test read_file."""
-
-    @pytest.fixture(autouse=True, params=[True, False])
-    def freezer(self, request, monkeypatch):
-        if request.param and not getattr(sys, 'frozen', False):
-            monkeypatch.setattr(sys, 'frozen', True, raising=False)
-            monkeypatch.setattr('sys.executable', qutebrowser.__file__)
-        elif not request.param and getattr(sys, 'frozen', False):
-            # Want to test unfrozen tests, but we are frozen
-            pytest.skip("Can't run with sys.frozen = True!")
 
     def test_readfile(self):
         """Read a test file."""
@@ -115,6 +117,14 @@ class TestReadFile:
         content = utils.read_file(os.path.join('utils', 'testfile'),
                                   binary=True)
         assert content.splitlines()[0] == b"Hello World!"
+
+
+@pytest.mark.usefixtures('freezer')
+def test_resource_filename():
+    """Read a test file."""
+    filename = utils.resource_filename(os.path.join('utils', 'testfile'))
+    with open(filename, 'r', encoding='utf-8') as f:
+        assert f.read().splitlines()[0] == "Hello World!"
 
 
 class Patcher:
