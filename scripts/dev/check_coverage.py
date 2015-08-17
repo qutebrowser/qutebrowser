@@ -41,6 +41,7 @@ PERFECT_FILES = [
     'qutebrowser/browser/webelem.py',
     'qutebrowser/browser/network/schemehandler.py',
     'qutebrowser/browser/network/filescheme.py',
+    'qutebrowser/browser/network/networkreply.py',
     'qutebrowser/browser/signalfilter.py',
 
     'qutebrowser/misc/readline.py',
