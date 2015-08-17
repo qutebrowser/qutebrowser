@@ -18,6 +18,7 @@
 
 """Tests for qutebrowser.utils.error."""
 
+import sys
 import collections
 import logging
 
@@ -60,7 +61,8 @@ def test_err_windows(qtbot, qapp, pre_text, post_text, expected):
         w = qapp.activeModalWidget()
         try:
             qtbot.add_widget(w)
-            assert w.windowTitle() == 'title'
+            if sys.platform != 'darwin':
+                assert w.windowTitle() == 'title'
             assert w.icon() == QMessageBox.Critical
             assert w.standardButtons() == QMessageBox.Ok
             assert w.text() == expected
