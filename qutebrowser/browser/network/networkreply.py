@@ -87,8 +87,10 @@ class FixedDataNetworkReply(QNetworkReply):
         return buf
 
     def isFinished(self):
-        """Check if the reply is finished."""
         return True
+
+    def isRunning(self):
+        return False
 
 
 class ErrorNetworkReply(QNetworkReply):
@@ -128,3 +130,9 @@ class ErrorNetworkReply(QNetworkReply):
     def readData(self):
         """No data available."""
         return bytes()
+
+    def isFinished(self):
+        return True
+
+    def isRunning(self):
+        return False
