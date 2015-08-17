@@ -79,5 +79,9 @@ class Progress(QProgressBar):
     def sizeHint(self):
         """Set the height to the text height plus some padding."""
         width = super().sizeHint().width()
-        height = self.fontMetrics().height() + 3
+        height = self.fontMetrics().height()
         return QSize(width, height)
+
+    def minimumSizeHint(self):
+        """Set the height to the text height plus some padding."""
+        return self.sizeHint()
