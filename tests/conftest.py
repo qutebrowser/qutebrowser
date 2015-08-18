@@ -33,6 +33,13 @@ from qutebrowser.config import config
 from qutebrowser.utils import objreg, usertypes
 
 
+try:
+    import pytest_capturelog as capturelog_mod
+except ImportError:
+    # When using pytest for pyflakes/pep8/..., the plugin won't be available
+    # but conftest.py will still be loaded.
+    capturelog_mod = None
+
 
 @pytest.yield_fixture(scope='session', autouse=True)
 def fail_on_logging():
@@ -298,3 +305,25 @@ def tab_registry(win_registry):
     objreg.register('tab-registry', registry, scope='window', window=0)
     yield registry
     objreg.delete('tab-registry', scope='window', window=0)
+
+
+@pytest.yield_fixture(autouse=True)
+def caplog_bug_workaround(request):
+    """WORKAROUND for pytest-capturelog bug.
+
+    https://bitbucket.org/memedough/pytest-capturelog/issues/7/
+
+    This would lead to LogFailHandler failing after skipped tests as there are
+    multiple CaptureLogHandlers.
+    """
+    yield
+    if capturelog_mod is None:
+        return
+
+    root_logger = logging.getLogger()
+    caplog_handlers = [h for h in root_logger.handlers
+                       if isinstance(h, capturelog_mod.CaptureLogHandler)]
+
+    for h in caplog_handlers:
+        root_logger.removeHandler(h)
+        h.close()
