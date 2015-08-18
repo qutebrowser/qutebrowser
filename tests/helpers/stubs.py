@@ -21,8 +21,6 @@
 
 """Fake objects/stubs."""
 
-import logging
-
 from unittest import mock
 
 from PyQt5.QtCore import pyqtSignal, QPoint, QProcess, QObject
@@ -274,25 +272,6 @@ class FakeTimer(QObject):
 
     def isActive(self):
         return self._started
-
-
-class MessageModule:
-
-    """A drop-in replacement for qutebrowser.utils.message."""
-
-    # pylint: disable=unused-argument
-
-    def error(self, _win_id, message, immediately=False):
-        """Log an error to the message logger."""
-        logging.getLogger('message').error(message)
-
-    def warning(self, _win_id, message, immediately=False):
-        """Log a warning to the message logger."""
-        logging.getLogger('message').warning(message)
-
-    def info(self, _win_id, message, immediately=True):
-        """Log an info message to the message logger."""
-        logging.getLogger('message').info(message)
 
 
 class ConfigStub:

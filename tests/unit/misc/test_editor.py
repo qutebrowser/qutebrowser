@@ -96,9 +96,8 @@ class TestFileHandling:
     """
 
     @pytest.fixture(autouse=True)
-    def setup(self, monkeypatch, stubs, config_stub):
-        monkeypatch.setattr('qutebrowser.misc.editor.message',
-                            stubs.MessageModule())
+    def setup(self, monkeypatch, stubs, config_stub, message_mock):
+        message_mock.patch('qutebrowser.misc.editor.message')
         monkeypatch.setattr('qutebrowser.misc.editor.guiprocess.QProcess',
                             stubs.fake_qprocess())
         config_stub.data = {'general': {'editor': [''],
@@ -217,11 +216,10 @@ class TestErrorMessage:
     """
 
     @pytest.yield_fixture(autouse=True)
-    def setup(self, monkeypatch, stubs, config_stub):
+    def setup(self, monkeypatch, stubs, config_stub, message_mock):
         monkeypatch.setattr('qutebrowser.misc.editor.guiprocess.QProcess',
                             stubs.fake_qprocess())
-        monkeypatch.setattr('qutebrowser.misc.editor.message',
-                            stubs.MessageModule())
+        message_mock.patch('qutebrowser.misc.editor.message')
         config_stub.data = {'general': {'editor': [''],
                                         'editor-encoding': 'utf-8'}}
         monkeypatch.setattr('qutebrowser.misc.editor.config', config_stub)

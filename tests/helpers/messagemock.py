@@ -19,11 +19,19 @@
 
 """pytest helper to monkeypatch the message module."""
 
-import pytest
-
+import logging
 import collections
 
+import pytest
+
 from qutebrowser.utils import usertypes
+
+
+Message = collections.namedtuple('Message', ['level', 'win_id', 'text',
+                                             'immediate'])
+
+
+Level = usertypes.enum('Level', ('error', 'info', 'warning'))
 
 
 class MessageMock:
@@ -32,30 +40,37 @@ class MessageMock:
 
     Attributes:
         _monkeypatch: The pytest monkeypatch fixture.
-        MessageLevel: An enum with possible message levels.
         Message: A namedtuple representing a message.
         messages: A list of Message tuples.
+        caplog: The pytest-capturelog fixture.
     """
 
-    Message = collections.namedtuple('Message', ['level', 'win_id', 'text',
-                                                 'immediate'])
-    MessageLevel = usertypes.enum('Level', ('error', 'info', 'warning'))
-
-    def __init__(self, monkeypatch):
+    def __init__(self, monkeypatch, caplog):
         self._monkeypatch = monkeypatch
+        self._caplog = caplog
         self.messages = []
 
     def _handle(self, level, win_id, text, immediately=False):
-        self.messages.append(self.Message(level, win_id, text, immediately))
+        log_levels = {
+            Level.error: logging.ERROR,
+            Level.info: logging.INFO,
+            Level.warning: logging.WARNING
+        }
+        log_level = log_levels[level]
+
+        with self._caplog.atLevel(log_level):  # needed so we don't fail
+            logging.getLogger('message').log(log_level, text)
+
+        self.messages.append(Message(level, win_id, text, immediately))
 
     def _handle_error(self, *args, **kwargs):
-        self._handle(self.MessageLevel.error, *args, **kwargs)
+        self._handle(Level.error, *args, **kwargs)
 
     def _handle_info(self, *args, **kwargs):
-        self._handle(self.MessageLevel.info, *args, **kwargs)
+        self._handle(Level.info, *args, **kwargs)
 
     def _handle_warning(self, *args, **kwargs):
-        self._handle(self.MessageLevel.warning, *args, **kwargs)
+        self._handle(Level.warning, *args, **kwargs)
 
     def getmsg(self):
         """Get the only message in self.messages.
@@ -76,6 +91,6 @@ class MessageMock:
 
 
 @pytest.fixture
-def message_mock(monkeypatch):
+def message_mock(monkeypatch, caplog):
     """Fixture to get a MessageMock."""
-    return MessageMock(monkeypatch)
+    return MessageMock(monkeypatch, caplog)

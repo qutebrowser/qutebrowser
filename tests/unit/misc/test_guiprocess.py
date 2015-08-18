@@ -27,6 +27,7 @@ import logging
 import pytest
 from PyQt5.QtCore import QProcess
 
+from helpers import messagemock  # pylint: disable=import-error
 from qutebrowser.misc import guiprocess
 
 
@@ -39,9 +40,9 @@ def _py_proc(code):
 
 
 @pytest.fixture(autouse=True)
-def mock_modules(monkeypatch, stubs):
-    monkeypatch.setattr('qutebrowser.misc.guiprocess.message',
-                        stubs.MessageModule())
+def guiprocess_message_mock(message_mock):
+    message_mock.patch('qutebrowser.misc.guiprocess.message')
+    return message_mock
 
 
 @pytest.yield_fixture()
@@ -68,13 +69,32 @@ def fake_proc(monkeypatch, stubs):
 
 
 @pytest.mark.not_frozen
-def test_start(proc, qtbot):
+def test_start(proc, qtbot, guiprocess_message_mock):
     """Test simply starting a process."""
     with qtbot.waitSignals([proc.started, proc.finished], raising=True,
                            timeout=10000):
         argv = _py_proc("import sys; print('test'); sys.exit(0)")
         proc.start(*argv)
 
+    assert not guiprocess_message_mock.messages
+    assert bytes(proc._proc.readAll()).rstrip() == b'test'
+
+
+@pytest.mark.not_frozen
+def test_start_verbose(proc, qtbot, guiprocess_message_mock):
+    """Test starting a process verbosely."""
+    proc.verbose = True
+
+    with qtbot.waitSignals([proc.started, proc.finished], raising=True,
+                           timeout=10000):
+        argv = _py_proc("import sys; print('test'); sys.exit(0)")
+        proc.start(*argv)
+
+    msgs = guiprocess_message_mock.messages
+    assert msgs[0].level == messagemock.Level.info
+    assert msgs[1].level == messagemock.Level.info
+    assert msgs[0].text.startswith("Executing:")
+    assert msgs[1].text == "Test exited successfully."
     assert bytes(proc._proc.readAll()).rstrip() == b'test'
 
 
@@ -120,14 +140,23 @@ def test_cmd_args(fake_proc):
     assert (fake_proc.cmd, fake_proc.args) == (cmd, args)
 
 
-def test_error(qtbot, proc, caplog):
+def test_error(qtbot, proc, caplog, guiprocess_message_mock):
     """Test the process emitting an error."""
     with caplog.atLevel(logging.ERROR, 'message'):
         with qtbot.waitSignal(proc.error, raising=True):
             proc.start('this_does_not_exist_either', [])
 
+    msg = guiprocess_message_mock.getmsg()
+    assert msg.level == messagemock.Level.error
+    expected_msg = "Error while spawning test: The process failed to start."
+    assert msg.text == expected_msg
+
 
 @pytest.mark.not_frozen
-def test_exit_unsuccessful(qtbot, proc):
+def test_exit_unsuccessful(qtbot, proc, guiprocess_message_mock):
     with qtbot.waitSignal(proc.finished, raising=True, timeout=10000):
-        proc.start(*_py_proc('import sys; sys.exit(0)'))
+        proc.start(*_py_proc('import sys; sys.exit(1)'))
+
+    msg = guiprocess_message_mock.getmsg()
+    assert msg.level == messagemock.Level.error
+    assert msg.text == "Test exited with status 1."
