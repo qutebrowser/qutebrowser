@@ -48,6 +48,7 @@ PERFECT_FILES = [
     'qutebrowser/misc/readline.py',
     'qutebrowser/misc/split.py',
     'qutebrowser/misc/msgbox.py',
+    'qutebrowser/misc/checkpyver.py',
 
     'qutebrowser/mainwindow/statusbar/keystring.py',
     'qutebrowser/mainwindow/statusbar/percentage.py',

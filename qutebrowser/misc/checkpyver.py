@@ -25,7 +25,7 @@ import sys
 try:
     # Python3
     from tkinter import Tk, messagebox
-except ImportError:
+except ImportError:  # pragma: no coverage
     try:
         # Python2
         # pylint: disable=import-error
@@ -47,7 +47,7 @@ def check_python_version():
         version_str = '.'.join(map(str, sys.version_info[:3]))
         text = ("At least Python 3.4 is required to run qutebrowser, but " +
                 version_str + " is installed!\n")
-        if Tk and '--no-err-windows' not in sys.argv:
+        if Tk and '--no-err-windows' not in sys.argv:  # pragma: no coverage
             root = Tk()
             root.withdraw()
             messagebox.showerror("qutebrowser: Fatal error!", text)
@@ -55,3 +55,8 @@ def check_python_version():
             sys.stderr.write(text)
             sys.stderr.flush()
         sys.exit(1)
+
+
+if __name__ == '__main__':
+    # Needed for a test which calls this script with python 2.
+    check_python_version()
