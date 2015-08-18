@@ -1049,10 +1049,14 @@ class CommandDispatcher:
     def bookmark_add(self):
         """Save the current page as a bookmark."""
         bookmark_manager = objreg.get('bookmark-manager')
+        url = self._current_url()
         try:
-            bookmark_manager.add(self._current_url(), self._current_title())
+            bookmark_manager.add(url, self._current_title())
         except urlmarks.Error as e:
             raise cmdexc.CommandError(str(e))
+        else:
+            message.info(self._win_id,
+                         "Bookmarked {}!".format(url.toDisplayString()))
 
     @cmdutils.register(instance='command-dispatcher', scope='window',
                        maxsplit=0,
