@@ -27,8 +27,8 @@ import logging
 
 import pytest
 
-import stubs as stubsmod
-import logfail
+import helpers.stubs as stubsmod
+from helpers import logfail
 from qutebrowser.config import config
 from qutebrowser.utils import objreg, usertypes
 
