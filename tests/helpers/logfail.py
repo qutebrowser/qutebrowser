@@ -65,3 +65,34 @@ class LogFailHandler(logging.Handler):
         pytest.fail("Got logging message on logger {} with level {}: "
                     "{}!".format(record.name, record.levelname,
                                  record.getMessage()))
+
+
+@pytest.yield_fixture(scope='session', autouse=True)
+def fail_on_logging():
+    handler = LogFailHandler()
+    logging.getLogger().addHandler(handler)
+    yield
+    logging.getLogger().removeHandler(handler)
+    handler.close()
+
+
+@pytest.yield_fixture(autouse=True)
+def caplog_bug_workaround(request):
+    """WORKAROUND for pytest-capturelog bug.
+
+    https://bitbucket.org/memedough/pytest-capturelog/issues/7/
+
+    This would lead to LogFailHandler failing after skipped tests as there are
+    multiple CaptureLogHandlers.
+    """
+    yield
+    if pytest_capturelog is None:
+        return
+
+    root_logger = logging.getLogger()
+    caplog_handlers = [h for h in root_logger.handlers
+                       if isinstance(h, pytest_capturelog.CaptureLogHandler)]
+
+    for h in caplog_handlers:
+        root_logger.removeHandler(h)
+        h.close()
