@@ -1941,7 +1941,7 @@ Default: +pass:[8pt ${_monospace}]+
 === hints
 Font used for the hints.
 
-Default: +pass:[bold 12px Monospace]+
+Default: +pass:[bold 13px Monospace]+
 
 [[fonts-debug-console]]
 === debug-console
