@@ -20,6 +20,7 @@
 """Utilities related to the look&feel of qutebrowser."""
 
 import functools
+import collections
 
 import jinja2
 import sip
@@ -68,7 +69,7 @@ def update_stylesheet(obj):
         obj.setStyleSheet(get_stylesheet(obj.STYLESHEET))
 
 
-class ColorDict(dict):
+class ColorDict(collections.UserDict):
 
     """A dict aimed at Qt stylesheet colors."""
 
@@ -81,7 +82,7 @@ class ColorDict(dict):
         """
         if isinstance(val, QColor):
             raise TypeError("QColor passed to ColorDict!")
-        super().__setitem__(key, val)
+        self.data[key] = val
 
     def __getitem__(self, key):
         """Override dict __getitem__.
@@ -99,7 +100,7 @@ class ColorDict(dict):
             In all other cases, return the plain value.
         """
         try:
-            val = super().__getitem__(key)
+            val = self.data[key]
         except KeyError:
             log.config.exception("No color defined for {}!".format(key))
             return ''
@@ -111,7 +112,7 @@ class ColorDict(dict):
             return val
 
 
-class FontDict(dict):
+class FontDict(collections.UserDict):
 
     """A dict aimed at Qt stylesheet fonts."""
 
@@ -128,7 +129,7 @@ class FontDict(dict):
             In all other cases, return font: <value>.
         """
         try:
-            val = super().__getitem__(key)
+            val = self.data[key]
         except KeyError:
             return ''
         else:
