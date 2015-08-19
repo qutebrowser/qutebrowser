@@ -72,6 +72,17 @@ class ColorDict(dict):
 
     """A dict aimed at Qt stylesheet colors."""
 
+    def __setitem__(self, key, val):
+        """Override __setitem__ to make sure no QColors are set.
+
+        This could happen when accidentally declaring something as QtColor
+        instead of Color in the config, and it'd go unnoticed as the CSS is
+        invalid then.
+        """
+        if isinstance(val, QColor):
+            raise TypeError("QColor passed to ColorDict!")
+        super().__setitem__(key, val)
+
     def __getitem__(self, key):
         """Override dict __getitem__.
 
@@ -92,11 +103,6 @@ class ColorDict(dict):
         except KeyError:
             log.config.exception("No color defined for {}!")
             return ''
-        if isinstance(val, QColor):
-            # This could happen when accidentally declaring something as
-            # QtColor instead of Color in the config, and it'd go unnoticed as
-            # the CSS is invalid then.
-            raise TypeError("QColor passed to ColorDict!")
         if 'fg' in key.split('.'):
             return 'color: {};'.format(val)
         elif 'bg' in key.split('.'):
