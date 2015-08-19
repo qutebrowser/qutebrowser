@@ -42,7 +42,7 @@ class Obj(QObject):
 
     def __init__(self, stylesheet, parent=None):
         super().__init__(parent)
-        self.STYLESHEET = stylesheet
+        self.STYLESHEET = stylesheet  # pylint: disable=invalid-name
         self.rendered_stylesheet = None
 
     def setStyleSheet(self, stylesheet):
@@ -95,7 +95,7 @@ class TestColorDict:
     def test_key_error(self, caplog):
         d = style.ColorDict()
         with caplog.atLevel(logging.ERROR):
-            d['foo']
+            d['foo']  # pylint: disable=pointless-statement
         records = caplog.records()
         assert len(records) == 1
         assert records[0].message == 'No color defined for foo!'
@@ -104,7 +104,7 @@ class TestColorDict:
         d = style.ColorDict()
         d['foo'] = QColor()
         with pytest.raises(TypeError):
-            d['foo']
+            d['foo']  # pylint: disable=pointless-statement
 
 
 @pytest.mark.parametrize('key, expected', [
