@@ -21,11 +21,12 @@
 
 import os
 import sys
+import json
 import textwrap
 import logging
 
 import pytest
-from PyQt5.QtCore import QProcess
+from PyQt5.QtCore import QProcess, QIODevice
 
 from helpers import messagemock  # pylint: disable=import-error
 from qutebrowser.misc import guiprocess
@@ -51,7 +52,7 @@ def proc(qtbot):
     if os.name == 'nt':
         # WORKAROUND for https://github.com/pytest-dev/pytest-qt/issues/67
         pytest.skip("Test is flaky on Windows...")
-    p = guiprocess.GUIProcess(0, 'test')
+    p = guiprocess.GUIProcess(0, 'testprocess')
     yield p
     if p._proc.state() == QProcess.Running:
         with qtbot.waitSignal(p.finished, timeout=10000) as blocker:
@@ -63,7 +64,7 @@ def proc(qtbot):
 @pytest.fixture()
 def fake_proc(monkeypatch, stubs):
     """A fixture providing a GUIProcess with a mocked QProcess."""
-    p = guiprocess.GUIProcess(0, 'test')
+    p = guiprocess.GUIProcess(0, 'testprocess')
     monkeypatch.setattr(p, '_proc', stubs.fake_qprocess())
     return p
 
@@ -94,19 +95,65 @@ def test_start_verbose(proc, qtbot, guiprocess_message_mock):
     assert msgs[0].level == messagemock.Level.info
     assert msgs[1].level == messagemock.Level.info
     assert msgs[0].text.startswith("Executing:")
-    assert msgs[1].text == "Test exited successfully."
+    assert msgs[1].text == "Testprocess exited successfully."
     assert bytes(proc._proc.readAll()).rstrip() == b'test'
 
 
-@pytest.mark.parametrize('argv', [
-    pytest.mark.not_frozen(_py_proc('import sys; sys.exit(0)')),
-    ('does_not', 'exist'),
-])
-def test_start_detached(fake_proc, argv):
+# WORKAROUND for https://github.com/pytest-dev/pytest-qt/issues/67
+@pytest.mark.skipif(os.name == 'nt', reason="Test is flaky on Windows...")
+@pytest.mark.not_frozen
+def test_start_env(monkeypatch, qtbot):
+    monkeypatch.setenv('QUTEBROWSER_TEST_1', '1')
+    env = {'QUTEBROWSER_TEST_2': '2'}
+    proc = guiprocess.GUIProcess(0, 'testprocess', additional_env=env)
+
+    argv = _py_proc("""
+        import os
+        import json
+        env = dict(os.environ)
+        print(json.dumps(env))
+        sys.exit(0)
+    """)
+
+    with qtbot.waitSignals([proc.started, proc.finished], raising=True,
+                           timeout=10000):
+        proc.start(*argv)
+
+    data = bytes(proc._proc.readAll()).decode('utf-8')
+    ret_env = json.loads(data)
+    assert 'QUTEBROWSER_TEST_1' in ret_env
+    assert 'QUTEBROWSER_TEST_2' in ret_env
+
+
+@pytest.mark.not_frozen
+@pytest.mark.qt_log_ignore('QIODevice::read.*: WriteOnly device')
+def test_start_mode(proc, qtbot):
+    """Test simply starting a process with mode parameter."""
+    with qtbot.waitSignals([proc.started, proc.finished], raising=True,
+                           timeout=10000):
+        argv = _py_proc("import sys; print('test'); sys.exit(0)")
+        proc.start(*argv, mode=QIODevice.NotOpen)
+
+    assert not proc._proc.readAll()
+
+
+def test_start_detached(fake_proc):
     """Test starting a detached process."""
+    argv = ['foo', 'bar']
     fake_proc._proc.startDetached.return_value = (True, 0)
     fake_proc.start_detached(*argv)
     fake_proc._proc.startDetached.assert_called_with(*list(argv) + [None])
+
+
+def test_start_detached_error(fake_proc, guiprocess_message_mock):
+    """Test starting a detached process with ok=False."""
+    argv = ['foo', 'bar']
+    fake_proc._proc.startDetached.return_value = (False, 0)
+    fake_proc._proc.error.return_value = "Error message"
+    fake_proc.start_detached(*argv)
+    msg = guiprocess_message_mock.getmsg()
+    assert msg.level == messagemock.Level.error
+    assert msg.text == "Error while spawning testprocess: Error message."
 
 
 @pytest.mark.not_frozen
@@ -148,7 +195,8 @@ def test_error(qtbot, proc, caplog, guiprocess_message_mock):
 
     msg = guiprocess_message_mock.getmsg()
     assert msg.level == messagemock.Level.error
-    expected_msg = "Error while spawning test: The process failed to start."
+    expected_msg = ("Error while spawning testprocess: The process failed to "
+                    "start.")
     assert msg.text == expected_msg
 
 
@@ -159,4 +207,4 @@ def test_exit_unsuccessful(qtbot, proc, guiprocess_message_mock):
 
     msg = guiprocess_message_mock.getmsg()
     assert msg.level == messagemock.Level.error
-    assert msg.text == "Test exited with status 1."
+    assert msg.text == "Testprocess exited with status 1."

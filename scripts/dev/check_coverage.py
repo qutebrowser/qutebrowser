@@ -49,6 +49,7 @@ PERFECT_FILES = [
     'qutebrowser/misc/split.py',
     'qutebrowser/misc/msgbox.py',
     'qutebrowser/misc/checkpyver.py',
+    'qutebrowser/misc/guiprocess.py',
 
     'qutebrowser/mainwindow/statusbar/keystring.py',
     'qutebrowser/mainwindow/statusbar/percentage.py',
