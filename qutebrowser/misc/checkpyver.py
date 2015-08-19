@@ -34,6 +34,7 @@ except ImportError:  # pragma: no coverage
     except ImportError:
         # Some Python without Tk
         Tk = None
+        messagebox = None
 
 
 # First we check the version of Python. This code should run fine with python2
@@ -58,5 +59,4 @@ def check_python_version():
 
 
 if __name__ == '__main__':
-    # Needed for a test which calls this script with python 2.
     check_python_version()
