@@ -274,7 +274,7 @@ class FakeTimer(QObject):
         return self._started
 
 
-class ConfigStub:
+class ConfigStub(QObject):
 
     """Stub for the config module.
 
@@ -282,14 +282,16 @@ class ConfigStub:
         data: The config data to return.
     """
 
-    def __init__(self, signal):
+    changed = pyqtSignal(str, str)
+
+    def __init__(self, parent=None):
         """Constructor.
 
         Args:
             signal: The signal to use for self.changed.
         """
+        super().__init__(parent)
         self.data = {}
-        self.changed = signal
 
     def section(self, name):
         """Get a section from the config.

@@ -147,7 +147,7 @@ def cmdline_test(request):
 @pytest.yield_fixture
 def config_stub(stubs):
     """Fixture which provides a fake config object."""
-    stub = stubs.ConfigStub(signal=stubs.FakeSignal())
+    stub = stubs.ConfigStub()
     objreg.register('config', stub)
     yield stub
     objreg.delete('config')
