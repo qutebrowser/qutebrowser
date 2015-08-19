@@ -26,6 +26,7 @@ from unittest import mock
 
 from PyQt5.QtCore import QProcess
 import pytest
+from helpers import messagemock
 
 from qutebrowser.misc import editor as editormod
 
@@ -82,6 +83,7 @@ class TestFileHandling:
         editor.edit("")
         filename = editor._filename
         assert os.path.exists(filename)
+        assert os.path.basename(filename).startswith('qutebrowser-editor-')
         editor._proc.finished.emit(0, QProcess.NormalExit)
         assert not os.path.exists(filename)
 
@@ -105,6 +107,34 @@ class TestFileHandling:
             assert len(caplog.records()) == 2
         editor._proc.finished.emit(0, QProcess.CrashExit)
         assert not os.path.exists(filename)
+
+    def test_unreadable(self, message_mock, editor):
+        """Test file handling when closing with an unreadable file."""
+        editor.edit("")
+        filename = editor._filename
+        assert os.path.exists(filename)
+        os.chmod(filename, 0o077)
+        editor._proc.finished.emit(0, QProcess.NormalExit)
+        assert not os.path.exists(filename)
+        msg = message_mock.getmsg()
+        assert msg.level == messagemock.Level.error
+        assert msg.text.startswith("Failed to read back edited file: ")
+
+    def test_unwritable(self, monkeypatch, message_mock, editor, tmpdir):
+        """Test file handling when the initial file is not writable."""
+        tmpdir.chmod(0)
+        monkeypatch.setattr('qutebrowser.misc.editor.tempfile.tempdir',
+                            str(tmpdir))
+        editor.edit("")
+        msg = message_mock.getmsg()
+        assert msg.level == messagemock.Level.error
+        assert msg.text.startswith("Failed to create initial file: ")
+        assert editor._proc is None
+
+    def test_double_edit(self, editor):
+        editor.edit("")
+        with pytest.raises(ValueError):
+            editor.edit("")
 
 
 @pytest.mark.parametrize('initial_text, edited_text', [

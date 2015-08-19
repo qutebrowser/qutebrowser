@@ -53,6 +53,9 @@ class ExternalEditor(QObject):
 
     def _cleanup(self):
         """Clean up temporary files after the editor closed."""
+        if self._oshandle is None or self._filename is None:
+            # Could not create initial file.
+            return
         try:
             os.close(self._oshandle)
             os.remove(self._filename)
@@ -78,7 +81,7 @@ class ExternalEditor(QObject):
             encoding = config.get('general', 'editor-encoding')
             try:
                 with open(self._filename, 'r', encoding=encoding) as f:
-                    text = ''.join(f.readlines())
+                    text = ''.join(f.readlines())  # pragma: no branch
             except OSError as e:
                 # NOTE: Do not replace this with "raise CommandError" as it's
                 # executed async.
@@ -109,7 +112,7 @@ class ExternalEditor(QObject):
             if text:
                 encoding = config.get('general', 'editor-encoding')
                 with open(self._filename, 'w', encoding=encoding) as f:
-                    f.write(text)
+                    f.write(text)  # pragma: no branch
         except OSError as e:
             message.error(self._win_id, "Failed to create initial file: "
                                         "{}".format(e))
