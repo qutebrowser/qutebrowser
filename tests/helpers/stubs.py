@@ -293,6 +293,9 @@ class ConfigStub(QObject):
         super().__init__(parent)
         self.data = {}
 
+    def __getitem__(self, name):
+        return self.section(name)
+
     def section(self, name):
         """Get a section from the config.
 
