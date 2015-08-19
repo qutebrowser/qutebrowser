@@ -101,7 +101,7 @@ class ColorDict(dict):
         try:
             val = super().__getitem__(key)
         except KeyError:
-            log.config.exception("No color defined for {}!")
+            log.config.exception("No color defined for {}!".format(key))
             return ''
         if 'fg' in key.split('.'):
             return 'color: {};'.format(val)
