@@ -74,9 +74,18 @@ def test_patched_errwindow(capfd, mocker, monkeypatch):
                         0x03000000)
     monkeypatch.setattr('qutebrowser.misc.checkpyver.sys.exit',
                         lambda status: None)
-    tk_mock = mocker.patch('qutebrowser.misc.checkpyver.Tk', autospec=True)
-    msgbox_mock = mocker.patch('qutebrowser.misc.checkpyver.messagebox',
-                               autospec=True)
+
+    try:
+        import tkinter
+    except ImportError:
+        tk_mock = mocker.patch('qutebrowser.misc.checkpyver.Tk',
+                               spec=['withdraw'], new_callable=mocker.Mock)
+        msgbox_mock = mocker.patch('qutebrowser.misc.checkpyver.messagebox',
+                                   spec=['showerror'])
+    else:
+        tk_mock = mocker.patch('qutebrowser.misc.checkpyver.Tk', autospec=True)
+        msgbox_mock = mocker.patch('qutebrowser.misc.checkpyver.messagebox',
+                                   autospec=True)
 
     checkpyver.check_python_version()
     stdout, stderr = capfd.readouterr()
