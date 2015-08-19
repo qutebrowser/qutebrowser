@@ -62,6 +62,7 @@ PERFECT_FILES = [
     'qutebrowser/config/configdata.py',
     'qutebrowser/config/configexc.py',
     'qutebrowser/config/textwrapper.py',
+    'qutebrowser/config/style.py',
 
     'qutebrowser/utils/qtutils.py',
     'qutebrowser/utils/standarddir.py',
