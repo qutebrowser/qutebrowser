@@ -384,9 +384,7 @@ def test_invalid_url_error(urlutils_message_mock, url, valid, has_err_string):
         assert bool(qurl.errorString()) == has_err_string
         urlutils.invalid_url_error(0, qurl, 'frozzle')
 
-        msg = urlutils_message_mock.getmsg()
-        assert msg.win_id == 0
-        assert not msg.immediate
+        msg = urlutils_message_mock.getmsg(urlutils_message_mock.Level.error)
         if has_err_string:
             expected_text = ("Trying to frozzle with invalid URL - " +
                              qurl.errorString())

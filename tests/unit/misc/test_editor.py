@@ -26,7 +26,6 @@ from unittest import mock
 
 from PyQt5.QtCore import QProcess
 import pytest
-from helpers import messagemock
 
 from qutebrowser.misc import editor as editormod
 
@@ -116,8 +115,7 @@ class TestFileHandling:
         os.chmod(filename, 0o077)
         editor._proc.finished.emit(0, QProcess.NormalExit)
         assert not os.path.exists(filename)
-        msg = message_mock.getmsg()
-        assert msg.level == messagemock.Level.error
+        msg = message_mock.getmsg(message_mock.Level.error)
         assert msg.text.startswith("Failed to read back edited file: ")
 
     def test_unwritable(self, monkeypatch, message_mock, editor, tmpdir):
@@ -126,8 +124,7 @@ class TestFileHandling:
         monkeypatch.setattr('qutebrowser.misc.editor.tempfile.tempdir',
                             str(tmpdir))
         editor.edit("")
-        msg = message_mock.getmsg()
-        assert msg.level == messagemock.Level.error
+        msg = message_mock.getmsg(message_mock.Level.error)
         assert msg.text.startswith("Failed to create initial file: ")
         assert editor._proc is None
 

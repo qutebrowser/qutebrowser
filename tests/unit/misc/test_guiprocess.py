@@ -28,11 +28,7 @@ import logging
 import pytest
 from PyQt5.QtCore import QProcess, QIODevice
 
-from helpers import messagemock  # pylint: disable=import-error
 from qutebrowser.misc import guiprocess
-
-
-# FIXME check statusbar messages
 
 
 def _py_proc(code):
@@ -92,8 +88,8 @@ def test_start_verbose(proc, qtbot, guiprocess_message_mock):
         proc.start(*argv)
 
     msgs = guiprocess_message_mock.messages
-    assert msgs[0].level == messagemock.Level.info
-    assert msgs[1].level == messagemock.Level.info
+    assert msgs[0].level == guiprocess_message_mock.Level.info
+    assert msgs[1].level == guiprocess_message_mock.Level.info
     assert msgs[0].text.startswith("Executing:")
     assert msgs[1].text == "Testprocess exited successfully."
     assert bytes(proc._proc.readAll()).rstrip() == b'test'
@@ -151,8 +147,8 @@ def test_start_detached_error(fake_proc, guiprocess_message_mock):
     fake_proc._proc.startDetached.return_value = (False, 0)
     fake_proc._proc.error.return_value = "Error message"
     fake_proc.start_detached(*argv)
-    msg = guiprocess_message_mock.getmsg()
-    assert msg.level == messagemock.Level.error
+    msg = guiprocess_message_mock.getmsg(guiprocess_message_mock.Level.error,
+                                         immediate=True)
     assert msg.text == "Error while spawning testprocess: Error message."
 
 
@@ -193,8 +189,8 @@ def test_error(qtbot, proc, caplog, guiprocess_message_mock):
         with qtbot.waitSignal(proc.error, raising=True):
             proc.start('this_does_not_exist_either', [])
 
-    msg = guiprocess_message_mock.getmsg()
-    assert msg.level == messagemock.Level.error
+    msg = guiprocess_message_mock.getmsg(guiprocess_message_mock.Level.error,
+                                         immediate=True)
     expected_msg = ("Error while spawning testprocess: The process failed to "
                     "start.")
     assert msg.text == expected_msg
@@ -205,6 +201,5 @@ def test_exit_unsuccessful(qtbot, proc, guiprocess_message_mock):
     with qtbot.waitSignal(proc.finished, raising=True, timeout=10000):
         proc.start(*_py_proc('import sys; sys.exit(1)'))
 
-    msg = guiprocess_message_mock.getmsg()
-    assert msg.level == messagemock.Level.error
+    msg = guiprocess_message_mock.getmsg(guiprocess_message_mock.Level.error)
     assert msg.text == "Testprocess exited with status 1."

@@ -43,7 +43,10 @@ class MessageMock:
         Message: A namedtuple representing a message.
         messages: A list of Message tuples.
         caplog: The pytest-capturelog fixture.
+        Level: The Level type for easier usage as a fixture.
     """
+
+    Level = Level
 
     def __init__(self, monkeypatch, caplog):
         self._monkeypatch = monkeypatch
@@ -72,15 +75,25 @@ class MessageMock:
     def _handle_warning(self, *args, **kwargs):
         self._handle(Level.warning, *args, **kwargs)
 
-    def getmsg(self):
+    def getmsg(self, level=None, *, win_id=0, immediate=False):
         """Get the only message in self.messages.
 
         Raises ValueError if there are multiple or no messages.
+
+        Args:
+            level: The message level to check against, or None.
+            win_id: The window id to check against.
+            immediate: If the message has the immediate flag set.
         """
-        if len(self.messages) != 1:
-            raise ValueError("Got {} messages but expected a single "
-                             "one.".format(len(self.messages)))
-        return self.messages[0]
+        assert len(self.messages) == 1
+        msg = self.messages[0]
+
+        if level is not None:
+            assert msg.level == level
+        assert msg.win_id == win_id
+        assert msg.immediate == immediate
+
+        return msg
 
     def patch(self, module_path):
         """Patch message.* in the given module (as a string)."""
