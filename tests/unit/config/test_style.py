@@ -102,8 +102,9 @@ class TestColorDict:
 
     def test_qcolor(self):
         d = style.ColorDict()
+        d['foo'] = QColor()
         with pytest.raises(TypeError):
-            d['foo'] = QColor()
+            d['foo']
 
 
 @pytest.mark.parametrize('key, expected', [
