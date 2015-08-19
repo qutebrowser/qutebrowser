@@ -107,6 +107,7 @@ class TestFileHandling:
         editor._proc.finished.emit(0, QProcess.CrashExit)
         assert not os.path.exists(filename)
 
+    @pytest.mark.posix
     def test_unreadable(self, message_mock, editor):
         """Test file handling when closing with an unreadable file."""
         editor.edit("")
@@ -118,6 +119,7 @@ class TestFileHandling:
         msg = message_mock.getmsg(message_mock.Level.error)
         assert msg.text.startswith("Failed to read back edited file: ")
 
+    @pytest.mark.posix
     def test_unwritable(self, monkeypatch, message_mock, editor, tmpdir):
         """Test file handling when the initial file is not writable."""
         tmpdir.chmod(0)
