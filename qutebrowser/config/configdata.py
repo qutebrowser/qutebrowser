@@ -431,7 +431,7 @@ def data(readonly=False):
 
             ('spatial-navigation',
              SettingValue(typ.Bool(), 'false'),
-             "Enables or disables the Spatial Navigation feature\n\n"
+             "Enables or disables the Spatial Navigation feature.\n\n"
              "Spatial navigation consists in the ability to navigate between "
              "focusable elements in a Web page, such as hyperlinks and form "
              "controls, by using Left, Right, Up and Down arrow keys. For "

@@ -87,7 +87,7 @@
 |<<input-auto-leave-insert-mode,auto-leave-insert-mode>>|Whether to leave insert mode if a non-editable element is clicked.
 |<<input-auto-insert-mode,auto-insert-mode>>|Whether to automatically enter insert mode if an editable element is focused after page load.
 |<<input-forward-unbound-keys,forward-unbound-keys>>|Whether to forward unbound keys to the webview in normal mode.
-|<<input-spatial-navigation,spatial-navigation>>|Enables or disables the Spatial Navigation feature
+|<<input-spatial-navigation,spatial-navigation>>|Enables or disables the Spatial Navigation feature.
 |<<input-links-included-in-focus-chain,links-included-in-focus-chain>>|Whether hyperlinks should be included in the keyboard focus chain.
 |<<input-rocker-gestures,rocker-gestures>>|Whether to enable Opera-like mouse rocker gestures. This disables the context menu.
 |<<input-mouse-zoom-divider,mouse-zoom-divider>>|How much to divide the mouse wheel movements to translate them into zoom increments.
@@ -857,7 +857,7 @@ Default: +pass:[auto]+
 
 [[input-spatial-navigation]]
 === spatial-navigation
-Enables or disables the Spatial Navigation feature
+Enables or disables the Spatial Navigation feature.
 
 Spatial navigation consists in the ability to navigate between focusable elements in a Web page, such as hyperlinks and form controls, by using Left, Right, Up and Down arrow keys. For example, if a user presses the Right key, heuristics determine whether there is an element he might be trying to reach towards the right and which element he probably wants.
 
