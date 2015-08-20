@@ -119,6 +119,8 @@ def multitype_conv(types):
                     return typ(value)
                 except (TypeError, ValueError):
                     pass
+            else:
+                raise ValueError("Unknown type {!r}!".format(typ))
         raise cmdexc.ArgumentTypeError('Invalid value {}.'.format(value))
 
     return _convert
