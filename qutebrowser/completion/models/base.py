@@ -40,10 +40,6 @@ class BaseCompletionModel(QStandardItemModel):
     Used for showing completions later in the CompletionView. Supports setting
     marks and adding new categories/items easily.
 
-    Attributes:
-        dumb_sort:  the sorting that will be used by the wrapping
-                    CompletionFilterModel
-
     Class Attributes:
         COLUMN_WIDTHS: The width percentages of the columns used in the
                         completion view.

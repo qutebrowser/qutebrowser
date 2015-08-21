@@ -165,7 +165,7 @@ class Completer(QObject):
         Return:
             A completion filter model.
         """
-        filtermodel = CompletionFilterModel(source=model, parent=self.parent())
+        filtermodel = CompletionFilterModel(source=model, parent=self)
         return filtermodel
 
     def _filter_cmdline_parts(self, parts, cursor_part):
