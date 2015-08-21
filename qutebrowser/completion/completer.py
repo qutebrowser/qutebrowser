@@ -157,7 +157,7 @@ class Completer(QObject):
         return self._get_filter_completion_model(model)
 
     def _get_filter_completion_model(self, model):
-        """Wraps the argument model with a CompletionFilterModel.
+        """Wrap the argument model with a CompletionFilterModel.
 
         Args:
             model: the source model.
