@@ -47,7 +47,15 @@ def init(parent=None):
     Args:
         parent: The parent to use for the SessionManager.
     """
-    session_manager = SessionManager(parent)
+    data_dir = standarddir.data()
+    if data_dir is None:
+        base_path = None
+    else:
+        base_path = os.path.join(standarddir.data(), 'sessions')
+        if not os.path.exists(base_path):
+            os.mkdir(base_path)
+
+    session_manager = SessionManager(base_path, parent)
     objreg.register('session-manager', session_manager)
 
 
@@ -79,18 +87,12 @@ class SessionManager(QObject):
 
     update_completion = pyqtSignal()
 
-    def __init__(self, parent=None):
+    def __init__(self, base_path, parent=None):
         super().__init__(parent)
         self._current = None
-        data_dir = standarddir.data()
-        if data_dir is None:
-            self._base_path = None
-        else:
-            self._base_path = os.path.join(standarddir.data(), 'sessions')
+        self._base_path = base_path
         self._last_window_session = None
         self.did_load = False
-        if self._base_path is not None and not os.path.exists(self._base_path):
-            os.mkdir(self._base_path)
 
     def _get_session_path(self, name, check_exists=False):
         """Get the session path based on a session name or absolute path.
