@@ -27,10 +27,9 @@ Module attributes:
 
 import functools
 
-from PyQt5.QtCore import pyqtSlot, Qt
+from PyQt5.QtCore import pyqtSlot
 
 from qutebrowser.completion.models import miscmodels, urlmodel, configmodel
-from qutebrowser.completion.models.sortfilter import CompletionFilterModel
 from qutebrowser.utils import objreg, usertypes, log, debug
 from qutebrowser.config import configdata
 
@@ -38,7 +37,7 @@ from qutebrowser.config import configdata
 _instances = {}
 
 
-def _init_model(klass, *args, dumb_sort=None, **kwargs):
+def _init_model(klass, *args, **kwargs):
     """Helper to initialize a model.
 
     Args:
@@ -48,8 +47,7 @@ def _init_model(klass, *args, dumb_sort=None, **kwargs):
         dumb_sort: Passed to CompletionFilterModel.
     """
     app = objreg.get('app')
-    return CompletionFilterModel(klass(*args, parent=app, **kwargs),
-                                 dumb_sort=dumb_sort, parent=app)
+    return klass(*args, parent=app, **kwargs)
 
 
 def _init_command_completion():
@@ -70,8 +68,7 @@ def _init_url_completion():
     """Initialize the URL completion model."""
     log.completion.debug("Initializing URL completion.")
     with debug.log_time(log.completion, 'URL completion init'):
-        model = _init_model(urlmodel.UrlCompletionModel,
-                            dumb_sort=Qt.DescendingOrder)
+        model = _init_model(urlmodel.UrlCompletionModel)
         _instances[usertypes.Completion.url] = model
 
 

@@ -43,9 +43,11 @@ class BaseCompletionModel(QStandardItemModel):
     Class Attributes:
         COLUMN_WIDTHS: The width percentages of the columns used in the
                         completion view.
+        DUMB_SORT: the dumb sorting used by the model
     """
 
     COLUMN_WIDTHS = (30, 70, 0)
+    DUMB_SORT = None
 
     def __init__(self, parent=None):
         super().__init__(parent)
