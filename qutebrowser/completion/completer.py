@@ -24,8 +24,7 @@ from PyQt5.QtCore import pyqtSignal, pyqtSlot, QObject, QTimer
 from qutebrowser.config import config
 from qutebrowser.commands import cmdexc, cmdutils, runners
 from qutebrowser.utils import usertypes, log, objreg, utils
-from qutebrowser.completion.models import instances
-from qutebrowser.completion.models.sortfilter import CompletionFilterModel
+from qutebrowser.completion.models import instances, sortfilter
 
 
 class Completer(QObject):
@@ -154,19 +153,7 @@ class Completer(QObject):
                 model = None
         else:
             model = instances.get(completion)
-        return self._get_filter_completion_model(model)
-
-    def _get_filter_completion_model(self, model):
-        """Wrap the argument model with a CompletionFilterModel.
-
-        Args:
-            model: the source model.
-
-        Return:
-            A completion filter model.
-        """
-        filtermodel = CompletionFilterModel(source=model, parent=self)
-        return filtermodel
+        return sortfilter.CompletionFilterModel(source=model, parent=self)
 
     def _filter_cmdline_parts(self, parts, cursor_part):
         """Filter a list of commandline parts to exclude flags.
@@ -216,7 +203,7 @@ class Completer(QObject):
         if cursor_part == 0:
             # '|' or 'set|'
             model = instances.get(usertypes.Completion.command)
-            return self._get_filter_completion_model(model)
+            return sortfilter.CompletionFilterModel(source=model, parent=self)
         # delegate completion to command
         try:
             completions = cmdutils.cmd_dict[parts[0]].completion
