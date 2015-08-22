@@ -141,9 +141,9 @@ Contributors, sorted by the number of commits in descending order:
 * Joel Torstensson
 * Claude
 * Lamar Pavel
+* Alexander Cogneau
 * Austin Anderson
 * Artur Shaik
-* Alexander Cogneau
 * ZDarian
 * Peter Vilim
 * John ShaggyTwoDope Jenkins
