@@ -186,9 +186,6 @@ class BaseKeyParser(QObject):
 
         match, binding = self._match_key(cmd_input)
 
-        if not isinstance(match, self.Match):
-            raise TypeError("Value {} is no Match member!".format(match))
-
         if match == self.Match.definitive:
             self._debug_log("Definitive match for '{}'.".format(
                 self._keystring))
@@ -205,6 +202,8 @@ class BaseKeyParser(QObject):
             self._debug_log("Giving up with '{}', no matches".format(
                 self._keystring))
             self._keystring = ''
+        else:
+            raise AssertionError("Invalid match value {!r}".format(match))
         return match
 
     def _match_key(self, cmd_input):

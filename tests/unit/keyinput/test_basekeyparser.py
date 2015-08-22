@@ -27,9 +27,11 @@ from PyQt5.QtCore import Qt
 import pytest
 
 from qutebrowser.keyinput import basekeyparser
+from qutebrowser.utils import utils
 
 
 CONFIG = {'input': {'timeout': 100}}
+CONFIG_NO_TIMEOUT = {'input': {'timeout': 0}}
 
 
 @pytest.fixture
@@ -131,6 +133,15 @@ class TestSpecialKeys:
         self.kp.handle(fake_keyevent_factory(Qt.Key_A))
         assert not self.kp.execute.called
 
+    def test_no_binding(self, monkeypatch, fake_keyevent_factory):
+        """Test special key with no binding."""
+        def none_return(binding):
+            return None
+
+        monkeypatch.setattr(utils, 'keyevent_to_string', none_return)
+        self.kp.handle(fake_keyevent_factory(Qt.Key_A, Qt.NoModifier))
+        assert not self.kp.execute.called
+
 
 @pytest.mark.usefixtures('mock_timer')
 class TestKeyChain:
@@ -204,6 +215,17 @@ class TestKeyChain:
         self.kp.execute.assert_called_once_with('ax', self.kp.Type.chain, None)
         assert not timer.isActive()
         assert self.kp._keystring == ''
+
+    def test_ambiguous_keychain_no_timeout(self, fake_keyevent_factory,
+                                           config_stub, monkeypatch):
+        """Test ambiguous keychain with timeout equal to 0."""
+        config_stub.data = CONFIG_NO_TIMEOUT
+        monkeypatch.setattr('qutebrowser.keyinput.basekeyparser.config',
+                            config_stub)
+        self.kp.handle(fake_keyevent_factory(Qt.Key_A, text='a'))
+        assert self.kp.execute.called
+        timer = self.kp._ambiguous_timer
+        assert not timer.isActive()
 
     def test_invalid_keychain(self, fake_keyevent_factory):
         """Test invalid keychain."""
