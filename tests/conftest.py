@@ -89,11 +89,15 @@ FakeWindow = collections.namedtuple('FakeWindow', ['registry'])
 
 @pytest.yield_fixture
 def win_registry():
-    """Fixture providing a window registry for win_id 0."""
-    registry = objreg.ObjectRegistry()
-    window = FakeWindow(registry)
-    objreg.window_registry[0] = window
-    yield registry
+    """Fixture providing a window registry for win_id 0 and 1."""
+    registry1 = objreg.ObjectRegistry()
+    registry2 = objreg.ObjectRegistry()
+    window1 = FakeWindow(registry1)
+    window2 = FakeWindow(registry2)
+    objreg.window_registry[0] = window1
+    objreg.window_registry[1] = window2
+    yield
+    del objreg.window_registry[1]
     del objreg.window_registry[0]
 
 
