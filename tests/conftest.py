@@ -217,6 +217,21 @@ def webpage(qnam):
 
 
 @pytest.fixture
+def webview(qtbot, webpage):
+    """Get a new QWebView object."""
+    from PyQt5.QtWebKitWidgets import QWebView
+
+    view = QWebView()
+    qtbot.add_widget(view)
+
+    view.page().deleteLater()
+    view.setPage(webpage)
+
+    view.resize(640, 480)
+    return view
+
+
+@pytest.fixture
 def webframe(webpage):
     """Convenience fixture to get a mainFrame of a QWebPage."""
     return webpage.mainFrame()

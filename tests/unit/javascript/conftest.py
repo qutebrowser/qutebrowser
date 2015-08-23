@@ -125,15 +125,6 @@ class JSTester:
 
 
 @pytest.fixture
-def js_tester(qtbot):
-    """Fixture to test javascript snippets.
-
-    Provides a QWebView with a 640x480px size and a JSTester instance.
-
-    Args:
-        qtbot: pytestqt.plugin.QtBot fixture.
-    """
-    webview = QWebView()
-    qtbot.add_widget(webview)
-    webview.resize(640, 480)
+def js_tester(webview, qtbot):
+    """Fixture to test javascript snippets."""
     return JSTester(webview, qtbot)
