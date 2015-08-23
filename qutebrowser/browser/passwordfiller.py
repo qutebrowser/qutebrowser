@@ -34,13 +34,37 @@ class PasswordManager:
 
     """Base abstract class for password storage."""
 
-    def get_usernames(self, urlstring):
+    def get_usernames(self, host):
+        """Get a list of usernames stored for a specific URL host.
+
+        Args:
+            host: The URL host to check.
+
+        Return:
+            A list of usernames.
+        """
         raise NotImplementedError
 
-    def load(self, urlstring, username):
+    def load(self, host, username):
+        """Load the password data stored for a specific URL host and username.
+
+        Args:
+            host: The URL host.
+            username: The username.
+
+        Return:
+            The password data as a dict containing the password and optionaly
+            the checkbox keys.
+        """
         raise NotImplementedError
 
-    def save(self, urlstring, password_data):
+    def save(self, host, password_data):
+        """Save the password data for the specified host.
+
+        Args:
+            host: The URL host from where the data is coming.
+            password_data: The password data to save.
+        """
         raise NotImplementedError
 
 
@@ -51,23 +75,23 @@ class YamlPasswordManager(PasswordManager):
     def __init__(self):
         self._filename = os.path.join(standarddir.config(), "passwords.yaml")
 
-    def get_usernames(self, urlstring):
+    def get_usernames(self, host):
         with open(self._filename, "r", encoding="utf-8") as password_file:
             data = load(password_file)
             if data is None:
                 data = {}
-        password_data = data[urlstring]
+        password_data = data[host]
         return list(password_data.keys())
 
-    def load(self, urlstring, username):
+    def load(self, host, username):
         with open(self._filename, "r", encoding="utf-8") as password_file:
             data = load(password_file)
             if data is None:
                 data = {}
-        password_data = data[urlstring]
+        password_data = data[host]
         return password_data[username]
 
-    def save(self, urlstring, password_data):
+    def save(self, host, password_data):
         if not os.path.isfile(self._filename):
             os.mknod(self._filename)
 
@@ -75,14 +99,14 @@ class YamlPasswordManager(PasswordManager):
             data = load(password_file)
             if data is None:
                 data = {}
-            if urlstring not in data:
-                data[urlstring] = {}
+            if host not in data:
+                data[host] = {}
             username = password_data["username"]["value"]
-            data[urlstring][username] = {
+            data[host][username] = {
                 "password": password_data["password"]["value"],
             }
             if "checkbox" in password_data:
-                data[urlstring][username]["checkbox"] = (
+                data[host][username]["checkbox"] = (
                     password_data["checkbox"]["value"]
                 )
             password_file.seek(0)
@@ -116,11 +140,8 @@ class PassPasswordManager(PasswordManager):
             raise KeyError
         return result.decode("utf-8")
 
-    def _escape_url(self, urlstring):
-        return shlex.quote(urlstring)
-
     def get_usernames(self, host):
-        key = "qutebrowser/" + self._escape_url(host)
+        key = "qutebrowser/%s" % shlex.quote(host)
         result = self._exec_pass([key])
         lines = result.split("\n")[1:]
         usernames = []
@@ -130,8 +151,8 @@ class PassPasswordManager(PasswordManager):
                 usernames.append(username)
         return usernames
 
-    def load(self, urlstring, username):
-        key = "qutebrowser/%s/%s" % (self._escape_url(urlstring), username)
+    def load(self, host, username):
+        key = "qutebrowser/%s/%s" % (shlex.quote(host), username)
         result = self._exec_pass([key])
         if result is None:
             raise KeyError
@@ -145,8 +166,8 @@ class PassPasswordManager(PasswordManager):
 
         return password_data
 
-    def save(self, urlstring, password_data):
-        key = self._escape_url(urlstring)
+    def save(self, host, password_data):
+        key = shlex.quote(host)
         username = password_data["username"]["value"]
         content = password_data["password"]["value"]
         if "checkbox" in password_data:
@@ -168,15 +189,19 @@ class PasswordFiller:
         }
         self._password_manager = storages[password_storage]()
 
-    def _choose_username(self, urlstring):
+    def _choose_username(self, host):
         """Ask to user which username to use.
 
-        If there is only one username, use this username without asking.
+        If there is only one username for the specified host, use this
+        username without asking.
+
+        Args:
+            host: The URL host.
 
         Return:
             The username chosen by the user.
         """
-        usernames = self._password_manager.get_usernames(urlstring)
+        usernames = self._password_manager.get_usernames(host)
         answer = None
         if len(usernames) > 1:
             text = "Which username:"
@@ -275,8 +300,17 @@ class PasswordFiller:
                                     window=self._win_id)
         return tabbed_browser.current_url().host()
 
-    def _load(self, url, username):
-        return self._password_manager.load(url, username)
+    def _load(self, host, username):
+        """Load the password data for a specific URL host and username.
+
+        Args:
+            host: The URL host.
+            username: The username.
+
+        Return:
+            The password data.
+        """
+        return self._password_manager.load(host, username)
 
     @cmdutils.register(instance="password-filler", win_id="win_id")
     def load_password(self, win_id):
@@ -307,11 +341,11 @@ class PasswordFiller:
         form = self._find_form()
         self._submit(form)
 
-    def _password_exists(self, url, username):
+    def _password_exists(self, host, username):
         """Check if a password exists for the current URL and username.
 
         Args:
-            url: The URL to check.
+            host: The URL host to check.
             username: The username to check.
 
         Return:
@@ -319,21 +353,21 @@ class PasswordFiller:
         """
         password_exists = True
         try:
-            self._load(url, username)
+            self._load(host, username)
         except (KeyError, FileNotFoundError):
             password_exists = False
         return password_exists
 
-    def _save(self, url, password_data):
+    def _save(self, host, password_data):
         """Save the password data for the current URL.
 
         This uses the right password manager.
 
         Args:
-            url: The URL for the password data to save.
+            host: The URL host for the password data to save.
             password_data: The password data.
         """
-        self._password_manager.save(url, password_data)
+        self._password_manager.save(host, password_data)
 
     @cmdutils.register(instance="password-filler", win_id="win_id")
     def save_password(self, win_id):
@@ -381,6 +415,7 @@ class PasswordFiller:
         element.evaluateJavaScript("this.value = '" + value + "'")
 
     def _submit(self, form):
+        """Submit the specified form."""
         # TODO: have a workaround for when submiting the form does not work.
         # e.g. click on the submit button.
         form.evaluateJavaScript("this.submit()")
