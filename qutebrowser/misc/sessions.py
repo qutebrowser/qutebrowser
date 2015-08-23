@@ -27,7 +27,7 @@ from PyQt5.QtWidgets import QApplication
 import yaml
 try:
     from yaml import CSafeLoader as YamlLoader, CSafeDumper as YamlDumper
-except ImportError:
+except ImportError:  # pragma: no cover
     from yaml import SafeLoader as YamlLoader, SafeDumper as YamlDumper
 
 from qutebrowser.browser import tabhistory

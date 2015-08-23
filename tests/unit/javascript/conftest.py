@@ -26,7 +26,7 @@ import logging
 import pytest
 import jinja2
 from PyQt5.QtWebKit import QWebSettings
-from PyQt5.QtWebKitWidgets import QWebView, QWebPage
+from PyQt5.QtWebKitWidgets import QWebPage
 
 from qutebrowser.utils import utils
 
