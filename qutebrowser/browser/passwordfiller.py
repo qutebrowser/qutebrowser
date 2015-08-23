@@ -25,8 +25,6 @@ import subprocess
 
 from yaml import dump, load
 
-from PyQt5.QtCore import QUrl
-
 from qutebrowser.commands import cmdexc, cmdutils
 from qutebrowser.config import config
 from qutebrowser.utils import message, objreg, standarddir, usertypes
@@ -36,7 +34,10 @@ class PasswordManager:
 
     """Base abstract class for password storage."""
 
-    def load(self, urlstring):
+    def get_usernames(self, urlstring):
+        raise NotImplementedError
+
+    def load(self, urlstring, username):
         raise NotImplementedError
 
     def save(self, urlstring, password_data):
@@ -50,13 +51,21 @@ class YamlPasswordManager(PasswordManager):
     def __init__(self):
         self._filename = os.path.join(standarddir.config(), "passwords.yaml")
 
-    def load(self, urlstring):
+    def get_usernames(self, urlstring):
         with open(self._filename, "r", encoding="utf-8") as password_file:
             data = load(password_file)
             if data is None:
                 data = {}
         password_data = data[urlstring]
-        return password_data
+        return list(password_data.keys())
+
+    def load(self, urlstring, username):
+        with open(self._filename, "r", encoding="utf-8") as password_file:
+            data = load(password_file)
+            if data is None:
+                data = {}
+        password_data = data[urlstring]
+        return password_data[username]
 
     def save(self, urlstring, password_data):
         if not os.path.isfile(self._filename):
@@ -73,15 +82,15 @@ class YamlPasswordManager(PasswordManager):
                 "password": password_data["password"]["value"],
             }
             if "checkbox" in password_data:
-                data[urlstring][username]["checkbox"] = password_data["checkbox"]["value"]
+                data[urlstring][username]["checkbox"] = (
+                    password_data["checkbox"]["value"]
+                )
             password_file.seek(0)
             dump(data, password_file)
             password_file.truncate()
 
 
 class PassPasswordManager(PasswordManager):
-
-    # TODO: update to be on par with YamlPasswordManager.
 
     """Pass password storage."""
 
@@ -105,23 +114,45 @@ class PassPasswordManager(PasswordManager):
         (result, error) = process.communicate(input_data)
         if len(error) > 0:
             raise KeyError
-        return result
+        return result.decode("utf-8")
 
     def _escape_url(self, urlstring):
         return shlex.quote(urlstring)
 
-    def load(self, urlstring):
-        key = self._escape_url(urlstring)
-        yaml_data = self._exec_pass(["qutebrowser/" + key])
-        result = load(yaml_data)
+    def get_usernames(self, host):
+        key = "qutebrowser/" + self._escape_url(host)
+        result = self._exec_pass([key])
+        lines = result.split("\n")[1:]
+        usernames = []
+        for line in lines:
+            if len(line) > 0:
+                username = line[4:]
+                usernames.append(username)
+        return usernames
+
+    def load(self, urlstring, username):
+        key = "qutebrowser/%s/%s" % (self._escape_url(urlstring), username)
+        result = self._exec_pass([key])
         if result is None:
             raise KeyError
-        return result
+        lines = result.split("\n")
+        password_data = {
+            "password": lines[0],
+        }
+
+        if len(lines) > 1:
+            password_data["checkbox"] = lines[1] == "True"
+
+        return password_data
 
     def save(self, urlstring, password_data):
         key = self._escape_url(urlstring)
-        self._exec_pass(["insert", "-m", "qutebrowser/" + key],
-                        dump(password_data))
+        username = password_data["username"]["value"]
+        content = password_data["password"]["value"]
+        if "checkbox" in password_data:
+            content += "\n" + str(password_data["checkbox"]["value"])
+        self._exec_pass(["insert", "-m", "qutebrowser/%s/%s" %
+                        (key, username)], content)
 
 
 class PasswordFiller:
@@ -137,34 +168,36 @@ class PasswordFiller:
         }
         self._password_manager = storages[password_storage]()
 
-    def _choose_username(self, password_data):
+    def _choose_username(self, urlstring):
         """Ask to user which username to use.
+
         If there is only one username, use this username without asking.
 
         Return:
             The username chosen by the user.
         """
-
-        usernames = list(password_data.keys())
+        usernames = self._password_manager.get_usernames(urlstring)
         answer = None
         if len(usernames) > 1:
             text = "Which username:"
             index = 0
+            # TODO: show on multiple lines.
             for username in usernames:
                 text += " " + str(index) + ". " + username
                 index += 1
             answer = message.ask(self._win_id, text,
-                               usertypes.PromptMode.text)
+                                 usertypes.PromptMode.text)
             try:
                 answer = int(answer)
-            except ValueError:
+            except (TypeError, ValueError):
                 answer = None
         else:
             answer = 0
 
         if answer is None or answer >= len(usernames):
             max_index = len(usernames) - 1
-            raise cmdexc.CommandError("Type a number between 0 and %d." % max_index)
+            raise cmdexc.CommandError("Type a number between 0 and %d." %
+                                      max_index)
 
         return usernames[answer]
 
@@ -175,7 +208,7 @@ class PasswordFiller:
             The login form element.
         """
         frame = self._get_frame()
-        elem = frame.findFirstElement('input[type="password"]');
+        elem = frame.findFirstElement('input[type="password"]')
         form = elem
         # TODO: find a workaround for when there is no form element around the
         # login form.
@@ -184,8 +217,7 @@ class PasswordFiller:
         return form
 
     def _find_login_form_elements(self):
-        """Find the login form and return the username, password and checkbox
-        elements.
+        """Find the login form.
 
         Return:
             A dict containing the username, password and checkbox (if present
@@ -243,8 +275,8 @@ class PasswordFiller:
                                     window=self._win_id)
         return tabbed_browser.current_url().host()
 
-    def _load(self, url):
-        return self._password_manager.load(url)
+    def _load(self, url, username):
+        return self._password_manager.load(url, username)
 
     @cmdutils.register(instance="password-filler", win_id="win_id")
     def load_password(self, win_id):
@@ -252,31 +284,26 @@ class PasswordFiller:
         self._win_id = win_id
 
         host = self._get_host()
+
         try:
-            password_data = self._load(host)
+            username = self._choose_username(host)
+            password_data = self._load(host, username)
         except (KeyError, FileNotFoundError):
             raise cmdexc.CommandError("No password data for the current URL!")
 
-        mainframe = self._get_frame()
-
-        username = self._choose_username(password_data)
-
-        password = password_data[username]["password"]
+        password = password_data["password"]
         form_elements = self._find_login_form_elements()
         self._set_value(form_elements["username"]["element"], username)
         self._set_value(form_elements["password"]["element"], password)
 
-        if ("checkbox" in form_elements and "checkbox" in
-            password_data[username]):
+        if "checkbox" in form_elements and "checkbox" in password_data:
             self._set_checkbox_value(form_elements["checkbox"]["element"],
-                                     password_data[username]["checkbox"])
+                                     password_data["checkbox"])
 
     @cmdutils.register(instance="password-filler", win_id="win_id")
     def load_password_submit(self, win_id):
         """Load the password data for the current URL and submit the form."""
         self.load_password(win_id)
-        mainframe = self._get_frame()
-        elem = mainframe.findFirstElement("input:focus")
         form = self._find_form()
         self._submit(form)
 
@@ -292,15 +319,15 @@ class PasswordFiller:
         """
         password_exists = True
         try:
-            existing_password_data = self._load(url)
-            password_exists = username in existing_password_data
+            self._load(url, username)
         except (KeyError, FileNotFoundError):
             password_exists = False
         return password_exists
 
     def _save(self, url, password_data):
-        """Save the password data for the current URL using the right
-        password manager.
+        """Save the password data for the current URL.
+
+        This uses the right password manager.
 
         Args:
             url: The URL for the password data to save.
@@ -317,7 +344,8 @@ class PasswordFiller:
         try:
             password_data = self._find_login_form_elements()
         except RuntimeError:
-            raise cmdexc.CommandError("No login form found in the current page!")
+            raise cmdexc.CommandError(
+                "No login form found in the current page!")
         else:
             username = password_data["username"]["value"]
 
