@@ -46,7 +46,7 @@ from qutebrowser.completion.models import instances as completionmodels
 from qutebrowser.commands import cmdutils, runners, cmdexc
 from qutebrowser.config import style, config, websettings, configexc
 from qutebrowser.browser import (urlmarks, cookies, cache, adblock, history,
-                                 formfiller)
+                                 passwordfiller)
 from qutebrowser.browser.network import qutescheme, proxy, networkmanager
 from qutebrowser.mainwindow import mainwindow
 from qutebrowser.misc import readline, ipc, savemanager, sessions, crashsignal
@@ -414,9 +414,9 @@ def _init_modules(args, crash_handler):
     host_blocker = adblock.HostBlocker()
     host_blocker.read_hosts()
     objreg.register('host-blocker', host_blocker)
-    log.init.debug("Initializing form filler...")
-    form_filler = formfiller.FormFiller()
-    objreg.register('form-filler', form_filler)
+    log.init.debug("Initializing password filler...")
+    password_filler = passwordfiller.PasswordFiller()
+    objreg.register('password-filler', password_filler)
     log.init.debug("Initializing quickmarks...")
     quickmark_manager = urlmarks.QuickmarkManager(qApp)
     objreg.register('quickmark-manager', quickmark_manager)
