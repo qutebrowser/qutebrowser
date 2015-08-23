@@ -96,7 +96,7 @@ def win_registry():
     window2 = FakeWindow(registry2)
     objreg.window_registry[0] = window1
     objreg.window_registry[1] = window2
-    yield
+    yield [window1, window2]
     del objreg.window_registry[1]
     del objreg.window_registry[0]
 

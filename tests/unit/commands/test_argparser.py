@@ -47,8 +47,10 @@ class TestArgumentParser:
     @pytest.yield_fixture
     def tabbed_browser(self, win_registry):
         tb = FakeTabbedBrowser()
+        objreg.register('last-focused-main-window', win_registry[0])
         objreg.register('tabbed-browser', tb, scope='window', window=0)
         yield tb
+        objreg.delete('last-focused-main-window')
         objreg.delete('tabbed-browser', scope='window', window=0)
 
     def test_name(self, parser):
