@@ -138,7 +138,7 @@ class Completer(QObject):
             cursor_part: The part the cursor is in.
 
         Return:
-            A completion model.
+            A completion model or None.
         """
         if completion == usertypes.Completion.option:
             section = parts[cursor_part - 1]
@@ -153,7 +153,11 @@ class Completer(QObject):
                 model = None
         else:
             model = instances.get(completion)
-        return sortfilter.CompletionFilterModel(source=model, parent=self)
+
+        if model is None:
+            return None
+        else:
+            return sortfilter.CompletionFilterModel(source=model, parent=self)
 
     def _filter_cmdline_parts(self, parts, cursor_part):
         """Filter a list of commandline parts to exclude flags.
