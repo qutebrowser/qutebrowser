@@ -52,8 +52,10 @@ def init(parent=None):
         base_path = None
     else:
         base_path = os.path.join(standarddir.data(), 'sessions')
-        if not os.path.exists(base_path):
+        try:
             os.mkdir(base_path)
+        except FileExistsError:
+            pass
 
     session_manager = SessionManager(base_path, parent)
     objreg.register('session-manager', session_manager)
