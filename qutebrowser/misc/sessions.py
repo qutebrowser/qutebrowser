@@ -188,6 +188,22 @@ class SessionManager(QObject):
             data['windows'].append(win_data)
         return data
 
+    def _get_session_name(self, name):
+        """Helper for save to get the name to save the session to.
+
+        Args:
+            name: The name of the session to save, or the 'default' sentinel
+                  object.
+        """
+        if name is default:
+            name = config.get('general', 'session-default-name')
+            if name is None:
+                if self._current is not None:
+                    name = self._current
+                else:
+                    name = 'default'
+        return name
+
     def save(self, name, last_window=False, load_next_time=False):
         """Save a named session.
 
@@ -201,13 +217,7 @@ class SessionManager(QObject):
         Return:
             The name of the saved session.
         """
-        if name is default:
-            name = config.get('general', 'session-default-name')
-            if name is None:
-                if self._current is not None:
-                    name = self._current
-                else:
-                    name = 'default'
+        name = self._get_session_name(name)
         path = self._get_session_path(name)
         if path is None:
             raise SessionError("No data storage configured.")
