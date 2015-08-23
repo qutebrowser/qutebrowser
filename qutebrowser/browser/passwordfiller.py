@@ -17,14 +17,16 @@
 # You should have received a copy of the GNU General Public License
 # along with qutebrowser.  If not, see <http://www.gnu.org/licenses/>.
 
-"""Form filler."""
+"""Password filler."""
 
 import os
 import shlex
 import subprocess
+from urllib.parse import quote_plus, unquote_plus
 
 from yaml import dump, load
 
+from qutebrowser.browser import webelem
 from qutebrowser.commands import cmdexc, cmdutils
 from qutebrowser.config import config
 from qutebrowser.utils import message, objreg, standarddir, usertypes
@@ -147,11 +149,12 @@ class PassPasswordManager(PasswordManager):
         usernames = []
         for line in lines:
             if len(line) > 0:
-                username = line[4:]
+                username = unquote_plus(line[4:])
                 usernames.append(username)
         return usernames
 
     def load(self, host, username):
+        username = quote_plus(username)
         key = "qutebrowser/%s/%s" % (shlex.quote(host), username)
         result = self._exec_pass([key])
         if result is None:
@@ -169,6 +172,7 @@ class PassPasswordManager(PasswordManager):
     def save(self, host, password_data):
         key = shlex.quote(host)
         username = password_data["username"]["value"]
+        username = quote_plus(username)
         content = password_data["password"]["value"]
         if "checkbox" in password_data:
             content += "\n" + str(password_data["checkbox"]["value"])
@@ -226,20 +230,58 @@ class PasswordFiller:
 
         return usernames[answer]
 
+    def _find_best_form(self, login_forms):
+        """Return the best login form."""
+        # Return the form containing data if a form contains data.
+        for form in login_forms:
+            elem = form.findFirst('input[type="password"]')
+            value = elem.evaluateJavaScript("this.value")
+            if len(value) > 0:
+                return form
+
+        # Return the form containing "login" in its attributes.
+        for form in login_forms:
+            attributes = ["class", "id", "name"]
+            for attribute in attributes:
+                if "login" in form.attribute(attribute):
+                    return form
+
+        # Select the form with the fewest number of input fields because
+        # login forms usually contains fewer fields than register forms.
+        min_element_count = 10
+        best_form = None
+        for form in login_forms:
+            elems = form.findAll('input[type="email"], input[type="text"],'
+                                 'input[type="password"], input:not([type])')
+            if elems.count() < min_element_count:
+                min_element_count = elems.count()
+                best_form = form
+
+        return best_form
+
     def _find_form(self):
         """Find the login form element.
 
         Return:
             The login form element.
         """
-        frame = self._get_frame()
-        elem = frame.findFirstElement('input[type="password"]')
-        form = elem
-        # TODO: find a workaround for when there is no form element around the
-        # login form.
-        while not form.isNull() and form.tagName() != "FORM":
-            form = form.parent()
-        return form
+        frames = self._get_frames()
+        login_forms = []
+        for frame in frames:
+            # TODO: fix when there is more than one login form
+            elements = frame.findAllElements('input[type="password"]')
+            for elem in elements:
+                form = elem
+                while not form.isNull() and (form.tagName() != "FORM" and
+                                             form.tagName() != "BODY"):
+                    form = form.parent()
+                password_fields = form.findAll('input[type="password"]')
+                # Return forms with one password field.
+                if password_fields.count() == 1:
+                    login_forms.append(form)
+
+        if len(login_forms) > 0:
+            return self._find_best_form(login_forms)
 
     def _find_login_form_elements(self):
         """Find the login form.
@@ -250,13 +292,26 @@ class PasswordFiller:
         """
         form = self._find_form()
 
-        elems = form.findAll('input[type="checkbox"], input[type="text"],'
-                             'input[type="password"]')
+        if form is None:
+            raise RuntimeError
+
         username_element = None
         password_element = None
         checkbox_element = None
+
+        # Check for email first as text field may be a captcha.
+        email_fields = form.findAll('input[type="email"]')
+
+        if email_fields.count() > 0:
+            username_element = email_fields[0]
+
+        elems = form.findAll('input:not([type]), input[type="checkbox"],'
+                             'input[type="password"], input[type="text"]')
         for element in elems:
             elem_type = element.attribute("type")
+            if len(elem_type) == 0:
+                elem_type = "text"
+
             if elem_type == "checkbox":
                 checkbox_element = element
             elif elem_type == "password":
@@ -264,7 +319,7 @@ class PasswordFiller:
             elif elem_type == "text" and username_element is None:
                 username_element = element
 
-        if username_element is None and password_element is None:
+        if username_element is None or password_element is None:
             raise RuntimeError
 
         data = {
@@ -285,14 +340,14 @@ class PasswordFiller:
 
         return data
 
-    def _get_frame(self):
+    def _get_frames(self):
         """Get the current frame."""
         tabbed_browser = objreg.get("tabbed-browser", scope="window",
                                     window=self._win_id)
         widget = tabbed_browser.currentWidget()
         if widget is None:
             raise cmdexc.CommandError("No WebView available yet!")
-        return widget.page().mainFrame()
+        return webelem.get_child_frames(widget.page().mainFrame())
 
     def _get_host(self):
         """Get the current URL host."""
@@ -326,7 +381,11 @@ class PasswordFiller:
             raise cmdexc.CommandError("No password data for the current URL!")
 
         password = password_data["password"]
-        form_elements = self._find_login_form_elements()
+        try:
+            form_elements = self._find_login_form_elements()
+        except RuntimeError:
+            raise cmdexc.CommandError(
+                "No login form found in the current page!")
         self._set_value(form_elements["username"]["element"], username)
         self._set_value(form_elements["password"]["element"], password)
 
@@ -367,6 +426,12 @@ class PasswordFiller:
             host: The URL host for the password data to save.
             password_data: The password data.
         """
+        if len(password_data["username"]["value"]) == 0:
+            raise cmdexc.CommandError(
+                "Enter your username to be able to save your credentials.")
+        if len(password_data["password"]["value"]) == 0:
+            raise cmdexc.CommandError(
+                "Enter your password to be able to save your credentials.")
         self._password_manager.save(host, password_data)
 
     @cmdutils.register(instance="password-filler", win_id="win_id")
@@ -416,6 +481,36 @@ class PasswordFiller:
 
     def _submit(self, form):
         """Submit the specified form."""
-        # TODO: have a workaround for when submiting the form does not work.
-        # e.g. click on the submit button.
-        form.evaluateJavaScript("this.submit()")
+        # Fix for angularjs.
+        elems = form.findAll('input[type="text"], input[type="email"],'
+                             'input[type="password"], input:not([type])')
+
+        js = ("var event = document.createEvent('HTMLEvents');"
+              "event.initEvent('change', false, true);"
+              "this.dispatchEvent(event);")
+        for elem in elems:
+            elem.evaluateJavaScript(js)
+
+        # Fix for forms needing two submission (like Gmail).
+        password_field = form.findFirst('input[type="password"]')
+        password_was_visible = password_field.evaluateJavaScript(
+            "this.offsetWidth > 0 && element.offsetHeight > 0")
+
+        if not password_was_visible:
+            # TODO: find a way of doing this in Python.
+            password_field.evaluateJavaScript("""setTimeout(function() {
+                    var submit_button = document.querySelector('input[type="submit"], button[type="submit"]');
+                    submit_button.click();
+                }, 500);
+                """)
+
+        submit_button = form.findFirst(
+            'input[type="submit"], button[type="submit"]'
+        )
+
+        # Submit with the submit button if it exists.
+        # Otherwise, send the submit event to the form.
+        if submit_button.isNull():
+            form.evaluateJavaScript("this.submit()")
+        else:
+            submit_button.evaluateJavaScript("this.click()")
