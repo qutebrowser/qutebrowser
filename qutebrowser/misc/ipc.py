@@ -112,6 +112,7 @@ class IPCServer(QObject):
         self._timer.setInterval(READ_TIMEOUT)
         self._timer.timeout.connect(self.on_timeout)
         self._server = QLocalServer(self)
+        log.ipc.debug("Listening as {}".format(self._socketname))
         ok = self._server.listen(self._socketname)
         if not ok:
             if self._server.serverError() == QAbstractSocket.AddressInUseError:
@@ -251,7 +252,9 @@ def send_to_running_instance(args):
         True if connecting was successful, False if no connection was made.
     """
     socket = QLocalSocket()
-    socket.connectToServer(_get_socketname(args))
+    socketname = _get_socketname(args)
+    log.ipc.debug("Connecting to {}".format(socketname))
+    socket.connectToServer(socketname)
     connected = socket.waitForConnected(100)
     if connected:
         log.ipc.info("Opening in existing instance")
