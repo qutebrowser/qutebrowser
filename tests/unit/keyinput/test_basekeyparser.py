@@ -25,6 +25,7 @@ from unittest import mock
 
 from PyQt5.QtCore import Qt
 import pytest
+import pytestqt
 
 from qutebrowser.keyinput import basekeyparser
 from qutebrowser.utils import utils
@@ -91,6 +92,29 @@ class TestReadConfig:
         assert 'ctrl+a' not in kp.special_bindings
         assert 'foo' in kp.bindings
         assert 'ctrl+x' in kp.special_bindings
+
+    def test_on_keyconfig_changed(self):
+        """Test the handling of changes in the config."""
+        kp = basekeyparser.BaseKeyParser(0, supports_count=False,
+                                         supports_chains=False)
+        kp.read_config = mock.Mock()
+        kp._modename = None
+
+        # No config set so self._modename is None
+        with pytest.raises(AssertionError) as excinfo:
+            kp.on_keyconfig_changed("normal")
+        assert "on_keyconfig_changed called but no section defined!" in str(
+            excinfo.value)
+        assert not kp.read_config.called
+
+        kp._modename = "normal"
+        kp.on_keyconfig_changed("normal2")
+        # Modenames are not equal so read_config() should not be called
+        assert not kp.read_config.called
+
+        kp.on_keyconfig_changed("normal")
+        # Both modenames equal so read_config() should be called
+        assert kp.read_config.called
 
 
 @pytest.mark.usefixtures('mock_timer')
@@ -232,6 +256,22 @@ class TestKeyChain:
         self.kp.handle(fake_keyevent_factory(Qt.Key_B, text='b'))
         self.kp.handle(fake_keyevent_factory(Qt.Key_C, text='c'))
         assert self.kp._keystring == ''
+
+    def test_delayed_exec(self, fake_keyevent_factory, config_stub,
+                          monkeypatch, qtbot):
+        """Test delayec execute for ambiguous keychain."""
+        config_stub.data = CONFIG
+        monkeypatch.setattr('qutebrowser.keyinput.basekeyparser.config',
+                            config_stub)
+        timer = self.kp._ambiguous_timer
+        # 'a' is an ambiguous result.
+        self.kp.handle(fake_keyevent_factory(Qt.Key_A, text='a'))
+        assert not self.kp.execute.called
+        assert timer.isActive()
+        # We wait for the timeout to occur.
+        with qtbot.waitSignal(self.kp.keystring_updated, raising=True):
+            pass
+        assert self.kp.execute.called
 
 
 @pytest.mark.usefixtures('mock_timer')
