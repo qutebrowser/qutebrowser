@@ -471,7 +471,8 @@ class TestSave:
         with pytest.raises(sessions.SessionError) as excinfo:
             sess_man.save(str(tmpdir))
 
-        assert str(excinfo.value) == "Filename refers to a directory"
+        assert str(excinfo.value) in ["Filename refers to a directory",
+                                      "Commit failed!"]
         assert not tmpdir.listdir()
 
     def test_load_next_time(self, tmpdir, state_config, sess_man):
@@ -496,8 +497,14 @@ class TestSave:
         fake_history([Item(QUrl('http://www.qutebrowser.org/'), '\ud800',
                            active=True)])
 
-        with pytest.raises(sessions.SessionError):
+        try:
             sess_man.save(str(session_path))
+        except sessions.SessionError:
+            # This seems to happen on some systems only?!
+            pass
+        else:
+            data = session_path.read()
+            assert r'title: "\uD800"' in data
 
     def _set_data(self, browser, tab_id, items):
         """Helper function for test_long_output."""
