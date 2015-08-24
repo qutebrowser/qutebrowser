@@ -107,6 +107,13 @@ class YamlPasswordManager(PasswordManager):
             data[host][username] = {
                 "password": password_data["password"]["value"],
             }
+
+            # If there is more than one unique form, save the action of the
+            # form that was used when saving the password data.
+            if "form_action" in password_data:
+                data[host][username]["form_action"] = (
+                    password_data["form_action"])
+
             if "checkbox" in password_data:
                 data[host][username]["checkbox"] = (
                     password_data["checkbox"]["value"]
@@ -165,7 +172,13 @@ class PassPasswordManager(PasswordManager):
         }
 
         if len(lines) > 1:
-            password_data["checkbox"] = lines[1] == "True"
+            if lines[1] == "True" or lines[1] == "False":
+                password_data["checkbox"] = lines[1] == "True"
+            else:
+                password_data["form_action"] = lines[1]
+
+        if len(lines) > 2:
+            password_data["form_action"] = lines[2]
 
         return password_data
 
@@ -176,6 +189,12 @@ class PassPasswordManager(PasswordManager):
         content = password_data["password"]["value"]
         if "checkbox" in password_data:
             content += "\n" + str(password_data["checkbox"]["value"])
+
+        # If there is more than one unique form, save the action of the
+        # form that was used when saving the password data.
+        if "form_action" in password_data:
+            content += "\n" + password_data["form_action"]
+
         self._exec_pass(["insert", "-m", "qutebrowser/%s/%s" %
                         (key, username)], content)
 
@@ -251,24 +270,41 @@ class PasswordFiller:
         min_element_count = 10
         best_form = None
         for form in login_forms:
-            elems = form.findAll('input[type="email"], input[type="text"],'
-                                 'input[type="password"], input:not([type])')
+            elems = self._find_login_form_input(form)
             if elems.count() < min_element_count:
                 min_element_count = elems.count()
                 best_form = form
 
         return best_form
 
-    def _find_form(self):
+    def _find_form(self, form_action):
         """Find the login form element.
 
         Return:
             The login form element.
         """
+        form = None
+        if form_action is not None:
+            form = self._find_form_by_action(form_action)
+        if form is None:
+            login_forms = self._find_login_forms()
+            if len(login_forms) > 0:
+                form = self._find_best_form(login_forms)
+        return form
+
+    def _find_form_by_action(self, form_action):
+        """Find a form by its action."""
+        frames = self._get_frames()
+        for frame in frames:
+            form = frame.findFirstElement('form[action="%s"]' % form_action)
+            if not form.isNull():
+                return form
+
+    def _find_login_forms(self):
+        """Find all the login forms."""
         frames = self._get_frames()
         login_forms = []
         for frame in frames:
-            # TODO: fix when there is more than one login form
             elements = frame.findAllElements('input[type="password"]')
             for elem in elements:
                 form = elem
@@ -279,18 +315,16 @@ class PasswordFiller:
                 # Return forms with one password field.
                 if password_fields.count() == 1:
                     login_forms.append(form)
+        return login_forms
 
-        if len(login_forms) > 0:
-            return self._find_best_form(login_forms)
-
-    def _find_login_form_elements(self):
+    def _find_login_form_elements(self, form_action=None):
         """Find the login form.
 
         Return:
             A dict containing the username, password and checkbox (if present
             in the form) elements and values.
         """
-        form = self._find_form()
+        form = self._find_form(form_action)
 
         if form is None:
             raise RuntimeError
@@ -323,14 +357,15 @@ class PasswordFiller:
             raise RuntimeError
 
         data = {
-            'username': {
-                'element': username_element,
-                'value': username_element.evaluateJavaScript("this.value"),
+            "username": {
+                "element": username_element,
+                "value": username_element.evaluateJavaScript("this.value"),
             },
-            'password': {
-                'element': password_element,
-                'value': password_element.evaluateJavaScript("this.value"),
+            "password": {
+                "element": password_element,
+                "value": password_element.evaluateJavaScript("this.value"),
             },
+            "form_action": form.attribute("action"),
         }
         if checkbox_element is not None:
             data["checkbox"] = {
@@ -339,6 +374,32 @@ class PasswordFiller:
             }
 
         return data
+
+    def _find_login_form_input(self, form):
+        """Find the input field of a form."""
+        return form.findAll('input[type="email"], input[type="text"],'
+                            'input[type="password"], input:not([type])')
+
+    def _find_unique_forms_count(self):
+        """Get the count of unique forms."""
+        login_forms = self._find_login_forms()
+        unique_forms = set()
+
+        min_element_count = 10
+
+        for form in login_forms:
+            elem_count = self._find_login_form_input(form).count()
+
+            if elem_count < min_element_count:
+                min_element_count = elem_count
+
+        for form in login_forms:
+            elem_count = self._find_login_form_input(form).count()
+
+            if elem_count == min_element_count:
+                unique_forms.add(self._hash_form(form))
+
+        return len(unique_forms)
 
     def _get_frames(self):
         """Get the current frame."""
@@ -355,6 +416,17 @@ class PasswordFiller:
                                     window=self._win_id)
         return tabbed_browser.current_url().host()
 
+    def _hash_form(self, form):
+        """Compute the hash of a form.
+
+        It consist of the number of fields and their name.
+        """
+        elems = self._find_login_form_input(form)
+        form_hash = str(elems.count())
+        for elem in elems:
+            form_hash += "_" + elem.attribute("name")
+        return form_hash
+
     def _load(self, host, username):
         """Load the password data for a specific URL host and username.
 
@@ -369,20 +441,29 @@ class PasswordFiller:
 
     @cmdutils.register(instance="password-filler", win_id="win_id")
     def load_password(self, win_id):
-        """Load the password data from the current URL."""
+        """Load the password data from the current URL.
+
+        Return:
+            The form action of the form if it was saved.
+        """
         self._win_id = win_id
 
         host = self._get_host()
 
+        form_action = None
         try:
             username = self._choose_username(host)
             password_data = self._load(host, username)
+
+            unique_forms_count = self._find_unique_forms_count()
+            if unique_forms_count > 1:
+                form_action = password_data["form_action"]
         except (KeyError, FileNotFoundError):
             raise cmdexc.CommandError("No password data for the current URL!")
 
         password = password_data["password"]
         try:
-            form_elements = self._find_login_form_elements()
+            form_elements = self._find_login_form_elements(form_action)
         except RuntimeError:
             raise cmdexc.CommandError(
                 "No login form found in the current page!")
@@ -393,11 +474,13 @@ class PasswordFiller:
             self._set_checkbox_value(form_elements["checkbox"]["element"],
                                      password_data["checkbox"])
 
+        return form_action
+
     @cmdutils.register(instance="password-filler", win_id="win_id")
     def load_password_submit(self, win_id):
         """Load the password data for the current URL and submit the form."""
-        self.load_password(win_id)
-        form = self._find_form()
+        form_action = self.load_password(win_id)
+        form = self._find_form(form_action)
         self._submit(form)
 
     def _password_exists(self, host, username):
@@ -446,6 +529,10 @@ class PasswordFiller:
             raise cmdexc.CommandError(
                 "No login form found in the current page!")
         else:
+            unique_forms_count = self._find_unique_forms_count()
+            if unique_forms_count < 2:
+                del password_data["form_action"]
+
             username = password_data["username"]["value"]
 
             save = False
@@ -482,8 +569,7 @@ class PasswordFiller:
     def _submit(self, form):
         """Submit the specified form."""
         # Fix for angularjs.
-        elems = form.findAll('input[type="text"], input[type="email"],'
-                             'input[type="password"], input:not([type])')
+        elems = self._find_login_form_input(form)
 
         js = ("var event = document.createEvent('HTMLEvents');"
               "event.initEvent('change', false, true);"
@@ -513,4 +599,8 @@ class PasswordFiller:
         if submit_button.isNull():
             form.evaluateJavaScript("this.submit()")
         else:
-            submit_button.evaluateJavaScript("this.click()")
+            submit_button.evaluateJavaScript("""var self = this;
+                setTimeout(function() {
+                    self.click();
+                }, 500);
+                """)
