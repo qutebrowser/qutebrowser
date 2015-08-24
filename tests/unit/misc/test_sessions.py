@@ -20,6 +20,7 @@
 """Tests for qutebrowser.misc.sessions."""
 
 import textwrap
+import logging
 
 import pytest
 import yaml
@@ -30,6 +31,7 @@ from qutebrowser.misc import sessions
 from qutebrowser.utils import objreg, qtutils
 from qutebrowser.browser import tabhistory
 from qutebrowser.browser.tabhistory import TabHistoryItem as Item
+from qutebrowser.commands import cmdexc
 
 
 
@@ -584,3 +586,101 @@ class TestSave:
         sess_man.save(str(session_path))
         data = session_path.read_text('utf-8')
         assert data == textwrap.dedent(expected.strip('\n'))
+
+
+class TestDelete:
+
+    def test_existing(self, sess_man, tmpdir):
+        sess = tmpdir / 'foo.yml'
+        sess.ensure()
+        sess_man.delete(str(sess))
+        assert not tmpdir.listdir()
+
+    def test_update_completion_signal(self, sess_man, qtbot, tmpdir):
+        sess = tmpdir / 'foo.yml'
+        sess.ensure()
+
+        blocker = qtbot.waitSignal(sess_man.update_completion)
+        sess_man.delete(str(sess))
+        assert blocker.signal_triggered
+
+    def test_not_existing(self, sess_man, qtbot, tmpdir):
+        sess = tmpdir / 'foo.yml'
+
+        with pytest.raises(sessions.SessionError):
+            sess_man.delete(str(sess))
+
+
+class TestListSessions:
+
+    def test_no_base_path(self, sess_man):
+        assert not sess_man.list_sessions()
+
+    def test_no_sessions(self, tmpdir):
+        sess_man = sessions.SessionManager(str(tmpdir))
+        assert not sess_man.list_sessions()
+
+    def test_with_sessions(self, tmpdir):
+        (tmpdir / 'foo.yml').ensure()
+        (tmpdir / 'bar.yml').ensure()
+        sess_man = sessions.SessionManager(str(tmpdir))
+        assert sorted(sess_man.list_sessions()) == ['bar', 'foo']
+
+    def test_with_other_files(self, tmpdir):
+        (tmpdir / 'foo.yml').ensure()
+        (tmpdir / 'bar.html').ensure()
+        sess_man = sessions.SessionManager(str(tmpdir))
+        assert sess_man.list_sessions() == ['foo']
+
+
+class TestSessionDelete:
+
+    def test_internal_without_force(self, tmpdir):
+        sess_man = sessions.SessionManager(str(tmpdir))
+        sess_file = tmpdir / '_foo.yml'
+        sess_file.ensure()
+
+        with pytest.raises(cmdexc.CommandError) as excinfo:
+            sess_man.session_delete('_foo')
+
+        expected_text = ("_foo is an internal session, use --force to "
+                         "delete anyways.")
+        assert str(excinfo.value) == expected_text
+        assert sess_file.exists()
+
+    def test_internal_with_force(self, tmpdir):
+        sess_man = sessions.SessionManager(str(tmpdir))
+        sess_file = tmpdir / '_foo.yml'
+        sess_file.ensure()
+        sess_man.session_delete('_foo', force=True)
+        assert not tmpdir.listdir()
+
+    def test_normal_delete(self, tmpdir):
+        sess_man = sessions.SessionManager(str(tmpdir))
+        sess_file = tmpdir / 'foo.yml'
+        sess_file.ensure()
+        sess_man.session_delete('foo')
+        assert not tmpdir.listdir()
+
+    def test_session_not_found(self, tmpdir):
+        sess_man = sessions.SessionManager(str(tmpdir))
+
+        with pytest.raises(cmdexc.CommandError) as excinfo:
+            sess_man.session_delete('foo')
+
+        assert str(excinfo.value) == "Session foo not found!"
+
+    @pytest.mark.posix
+    def test_deletion_error(self, caplog, tmpdir):
+        sess_man = sessions.SessionManager(str(tmpdir))
+        (tmpdir / 'foo.yml').ensure()
+        tmpdir.chmod(0o555)  # unwritable
+
+        with pytest.raises(cmdexc.CommandError) as excinfo:
+            with caplog.atLevel(logging.ERROR):
+                sess_man.session_delete('foo')
+
+        assert str(excinfo.value).startswith('Error while deleting session: ')
+        records = caplog.records()
+        assert len(records) == 1
+        assert records[0].message == 'Error while deleting session!'
