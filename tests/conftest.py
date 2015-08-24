@@ -84,21 +84,34 @@ def pytest_runtest_setup(item):
         pytest.skip("Can only run when frozen!")
 
 
-FakeWindow = collections.namedtuple('FakeWindow', ['registry'])
+class WinRegistryHelper:
+
+    """Helper class for win_registry."""
+
+    FakeWindow = collections.namedtuple('FakeWindow', ['registry'])
+
+    def __init__(self):
+        self._ids = []
+
+    def add_window(self, win_id):
+        assert win_id not in objreg.window_registry
+        registry = objreg.ObjectRegistry()
+        window = self.FakeWindow(registry)
+        objreg.window_registry[win_id] = window
+        self._ids.append(win_id)
+
+    def cleanup(self):
+        for win_id in self._ids:
+            del objreg.window_registry[win_id]
 
 
 @pytest.yield_fixture
 def win_registry():
     """Fixture providing a window registry for win_id 0 and 1."""
-    registry1 = objreg.ObjectRegistry()
-    registry2 = objreg.ObjectRegistry()
-    window1 = FakeWindow(registry1)
-    window2 = FakeWindow(registry2)
-    objreg.window_registry[0] = window1
-    objreg.window_registry[1] = window2
-    yield [window1, window2]
-    del objreg.window_registry[1]
-    del objreg.window_registry[0]
+    helper = WinRegistryHelper()
+    helper.add_window(0)
+    yield helper
+    helper.cleanup()
 
 
 @pytest.yield_fixture
