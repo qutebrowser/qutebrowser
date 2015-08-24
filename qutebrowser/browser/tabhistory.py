@@ -48,7 +48,10 @@ class TabHistoryItem:
             self.original_url = url
         else:
             self.original_url = original_url
-        self.title = title
+        if title:
+            self.title = title
+        else:
+            self.title = bytes(url.toEncoded()).decode('ascii')
         self.active = active
         self.user_data = user_data
 
