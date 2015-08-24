@@ -426,7 +426,7 @@ class TestSave:
         name = sess_man.save(str(session_path))
 
         assert name == str(session_path)
-        data = session_path.read()
+        data = session_path.read_text('utf-8')
         assert data == 'windows: []\n'
 
     def test_update_completion_signal(self, sess_man, tmpdir, qtbot):
@@ -450,7 +450,7 @@ class TestSave:
         sess_man.save_last_window_session()
         session_path = tmpdir / 'foo.yml'
         sess_man.save(str(session_path), last_window=True)
-        data = session_path.read()
+        data = session_path.read_text('utf-8')
         assert data == 'windows: []\n'
 
     @pytest.mark.parametrize('exception', [
@@ -488,7 +488,7 @@ class TestSave:
 
         sess_man.save(str(session_path))
 
-        data = session_path.read()
+        data = session_path.read_text('utf-8')
         assert 'title: foo☃bar' in data
 
     def test_utf_8_invalid(self, tmpdir, sess_man, fake_history):
@@ -503,7 +503,7 @@ class TestSave:
             # This seems to happen on some systems only?!
             pass
         else:
-            data = session_path.read()
+            data = session_path.read_text('utf-8')
             assert r'title: "\uD800"' in data
 
     def _set_data(self, browser, tab_id, items):
@@ -582,5 +582,5 @@ class TestSave:
         """
 
         sess_man.save(str(session_path))
-        data = session_path.read()
+        data = session_path.read_text('utf-8')
         assert data == textwrap.dedent(expected.strip('\n'))
