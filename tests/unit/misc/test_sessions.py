@@ -588,6 +588,88 @@ class TestSave:
         assert data == textwrap.dedent(expected.strip('\n'))
 
 
+class FakeWebView:
+
+    """A QWebView fake which provides a "page" with a load_history method.
+
+    Attributes:
+        loaded_history: The history which has been loaded by load_history, or
+                        None.
+        raise_error: The exception to raise on load_history, or None.
+    """
+
+    def __init__(self):
+        self.loaded_history = None
+        self.raise_error = None
+
+    def page(self):
+        return self
+
+    def load_history(self, data):
+        self.loaded_history = data
+        if self.raise_error is not None:
+            raise self.raise_error
+
+
+@pytest.fixture
+def fake_webview():
+    return FakeWebView()
+
+
+class TestLoadTab:
+
+    def test_no_history(self, sess_man, fake_webview):
+        sess_man._load_tab(fake_webview, {'history': []})
+        assert fake_webview.loaded_history == []
+
+    def test_load_fail(self, sess_man, fake_webview):
+        fake_webview.raise_error = ValueError
+        with pytest.raises(sessions.SessionError):
+            sess_man._load_tab(fake_webview, {'history': []})
+
+    @pytest.mark.parametrize('key, val, expected', [
+        ('zoom', 1.23, 1.23),
+        ('scroll-pos', {'x': 23, 'y': 42}, QPoint(23, 42)),
+    ])
+    @pytest.mark.parametrize('in_main_data', [True, False])
+    def test_user_data(self, sess_man, fake_webview, key, val, expected,
+                       in_main_data):
+
+        item = {'url': 'http://www.example.com/', 'title': 'foo'}
+
+        if in_main_data:
+            # This information got saved in the main data instead of saving it
+            # per item - make sure the old format can still be read
+            # https://github.com/The-Compiler/qutebrowser/issues/728
+            d = {'history': [item], key: val}
+        else:
+            item[key] = val
+            d = {'history': [item]}
+
+        sess_man._load_tab(fake_webview, d)
+        assert len(fake_webview.loaded_history) == 1
+        assert fake_webview.loaded_history[0].user_data[key] == expected
+
+    @pytest.mark.parametrize('original_url', ['http://example.org/', None])
+    def test_urls(self, sess_man, fake_webview, original_url):
+        url = 'http://www.example.com/'
+        item = {'url': url, 'title': 'foo'}
+
+        if original_url is None:
+            expected = QUrl(url)
+        else:
+            item['original-url'] = original_url
+            expected = QUrl(original_url)
+
+        d = {'history': [item]}
+
+        sess_man._load_tab(fake_webview, d)
+        assert len(fake_webview.loaded_history) == 1
+        loaded_item = fake_webview.loaded_history[0]
+        assert loaded_item.url == QUrl(url)
+        assert loaded_item.original_url == expected
+
+
 class TestDelete:
 
     def test_existing(self, sess_man, tmpdir):
@@ -631,6 +713,62 @@ class TestListSessions:
         (tmpdir / 'bar.html').ensure()
         sess_man = sessions.SessionManager(str(tmpdir))
         assert sess_man.list_sessions() == ['foo']
+
+
+class TestSessionSave:
+
+    def test_normal_save(self, sess_man, tmpdir, fake_windows):
+        sess_file = tmpdir / 'foo.yml'
+        sess_man.session_save(0, str(sess_file), quiet=True)
+        assert sess_file.read_text('utf-8').startswith('windows:')
+
+    def test_internal_without_force(self, tmpdir):
+        sess_man = sessions.SessionManager(str(tmpdir))
+        with pytest.raises(cmdexc.CommandError) as excinfo:
+            sess_man.session_save(0, '_foo')
+
+        expected_text = ("_foo is an internal session, use --force to "
+                         "save anyways.")
+        assert str(excinfo.value) == expected_text
+        assert not (tmpdir / '_foo.yml').exists()
+
+    def test_internal_with_force(self, tmpdir, fake_windows):
+        sess_man = sessions.SessionManager(str(tmpdir))
+        sess_man.session_save(0, '_foo', force=True, quiet=True)
+        assert (tmpdir / '_foo.yml').exists()
+
+    def test_current_unset(self, tmpdir):
+        sess_man = sessions.SessionManager(str(tmpdir))
+
+        with pytest.raises(cmdexc.CommandError) as excinfo:
+            sess_man.session_save(0, current=True)
+
+        assert str(excinfo.value) == "No session loaded currently!"
+
+    def test_current_set(self, tmpdir, fake_windows):
+        sess_man = sessions.SessionManager(str(tmpdir))
+        sess_man._current = 'foo'
+        sess_man.session_save(0, current=True, quiet=True)
+        assert (tmpdir / 'foo.yml').exists()
+
+    def test_saving_error(self, sess_man, tmpdir):
+        with pytest.raises(cmdexc.CommandError) as excinfo:
+            sess_man.session_save(0, str(tmpdir))
+
+        assert str(excinfo.value).startswith('Error while saving session: ')
+
+    def test_message(self, sess_man, tmpdir, message_mock, fake_windows):
+        message_mock.patch('qutebrowser.misc.sessions.message')
+        sess_path = str(tmpdir / 'foo.yml')
+        sess_man.session_save(0, sess_path)
+        expected_text = 'Saved session {}.'.format(sess_path)
+        assert message_mock.getmsg(immediate=True).text == expected_text
+
+    def test_message_quiet(self, sess_man, tmpdir, message_mock, fake_windows):
+        message_mock.patch('qutebrowser.misc.sessions.message')
+        sess_path = str(tmpdir / 'foo.yml')
+        sess_man.session_save(0, sess_path, quiet=True)
+        assert not message_mock.messages
 
 
 class TestSessionDelete:
