@@ -351,8 +351,8 @@ class SessionManager(QObject):
                    underline).
         """
         if name.startswith('_') and not force:
-            raise cmdexc.CommandError("{!r} is an internal session, use "
-                                      "--force to load anyways.".format(name))
+            raise cmdexc.CommandError("{} is an internal session, use --force "
+                                      "to load anyways.".format(name))
         old_windows = list(objreg.window_registry.values())
         try:
             self.load(name, temp=temp)
@@ -384,8 +384,8 @@ class SessionManager(QObject):
         if (name is not default and
                 name.startswith('_') and  # pylint: disable=no-member
                 not force):
-            raise cmdexc.CommandError("{!r} is an internal session, use "
-                                      "--force to save anyways.".format(name))
+            raise cmdexc.CommandError("{} is an internal session, use --force "
+                                      "to save anyways.".format(name))
         if current:
             if self._current is None:
                 raise cmdexc.CommandError("No session loaded currently!")
@@ -398,7 +398,7 @@ class SessionManager(QObject):
                                       .format(e))
         else:
             if not quiet:
-                message.info(win_id, "Saved session {!r}.".format(name),
+                message.info(win_id, "Saved session {}.".format(name),
                              immediately=True)
 
     @cmdutils.register(completion=[usertypes.Completion.sessions],
@@ -412,14 +412,12 @@ class SessionManager(QObject):
                    underline).
         """
         if name.startswith('_') and not force:
-            raise cmdexc.CommandError("{!r} is an internal session, use "
-                                      "--force to delete anyways.".format(
-                                          name))
+            raise cmdexc.CommandError("{} is an internal session, use --force "
+                                      "to delete anyways.".format(name))
         try:
             self.delete(name)
-        except SessionNotFoundError as e:
-            log.sessions.exception("Session not found!")
-            raise cmdexc.CommandError("Session {} not found".format(e))
+        except SessionNotFoundError:
+            raise cmdexc.CommandError("Session {} not found!".format(name))
         except (OSError, SessionError) as e:
             log.sessions.exception("Error while deleting session!")
             raise cmdexc.CommandError("Error while deleting session: {}"
