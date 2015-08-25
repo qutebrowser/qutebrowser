@@ -79,6 +79,13 @@ class TestReadConfig:
         with pytest.raises(ValueError):
             kp.read_config()
 
+    def test_read_config_no_modename(self):
+        """Test reading config with _modename set."""
+        kp = basekeyparser.BaseKeyParser(0, supports_chains=True)
+        kp._modename = "normal"
+        kp.read_config(modename=None)
+        assert 'a' in kp.bindings
+
     def test_read_config_valid(self):
         """Test reading config."""
         kp = basekeyparser.BaseKeyParser(0, supports_count=True,
