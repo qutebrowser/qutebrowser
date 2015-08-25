@@ -151,13 +151,13 @@ Contributors, sorted by the number of commits in descending order:
 * Jimmy
 * Zach-Button
 * rikn00
+* Thorsten Wißmann
 * Patric Schmitz
 * Martin Zimmermann
 * Error 800
 * Brian Jackson
 * sbinix
 * Tobias Patzl
-* Thorsten Wißmann
 * Johannes Altmanninger
 * Samir Benmendil
 * Regina Hug
