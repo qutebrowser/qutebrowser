@@ -29,7 +29,11 @@ class HistoryEmptyError(Exception):
 
     """Raised when the history is empty."""
 
-    pass
+    def __init__(self, value):
+        self.value = value
+
+    def __str__(self):
+        return self.value
 
 
 class HistoryEndReachedError(Exception):
@@ -90,7 +94,7 @@ class History(QObject):
         else:
             items = self.history
         if not items:
-            raise HistoryEmptyError
+            raise HistoryEmptyError("History is empty.")
         self._tmphist = usertypes.NeighborList(items)
         return self._tmphist.lastitem()
 
@@ -109,7 +113,7 @@ class History(QObject):
         try:
             return self._tmphist.previtem()
         except IndexError:
-            raise HistoryEndReachedError
+            raise HistoryEndReachedError("History end reached")
 
     def nextitem(self):
         """Get the next item in the temp history.
@@ -121,7 +125,7 @@ class History(QObject):
         try:
             return self._tmphist.nextitem()
         except IndexError:
-            raise HistoryEndReachedError
+            raise HistoryEndReachedError("History end reached")
 
     def append(self, text):
         """Append a new item to the history.

@@ -21,7 +21,7 @@
 
 import pytest
 
-from qutebrowser.misc.cmdhistory import History
+from qutebrowser.misc.cmdhistory import History, HistoryEmptyError
 
 
 HISTORY = ['first', 'second', 'third', 'fourth', 'fifth']
@@ -83,7 +83,7 @@ class TestBrowsing(TestCommandHistory):
         self.hist._tmphist = HISTORY
         assert self.hist.is_browsing()
 
-    def test_start_stop_is_browsing(self):
+    def test_start_stop(self):
         """Test the start/stop."""
 
         # We can use is_browsing() because it is tested above
@@ -92,3 +92,43 @@ class TestBrowsing(TestCommandHistory):
         assert self.hist.is_browsing()
         self.hist.stop()
         assert not self.hist.is_browsing()
+
+    def test_start_with_text(self):
+        """Test start with given 'text'."""
+        self.hist.start('f')
+        assert 'first' in self.hist._tmphist
+        assert 'fourth' in self.hist._tmphist
+        assert 'second' not in self.hist._tmphist
+
+    def test_start_no_text(self):
+        """Test start with no given text."""
+        self.hist.start('')
+
+        # There is probably a better way for NeighbourList?
+        for i in self.hist._tmphist:
+            assert i in HISTORY
+
+        for i in HISTORY:
+            assert i in self.hist._tmphist
+
+    def test_start_no_items(self):
+        """Test start with no matching text."""
+        with pytest.raises(HistoryEmptyError) as excinfo:
+            self.hist.start('k')
+        assert str(excinfo.value) == "History is empty."
+        assert not self.hist._tmphist
+
+    def test_get_item(self):
+        """Test __get_item__."""
+        for i in range(0, len(HISTORY)):
+            assert self.hist[i] == HISTORY[i]
+
+    def test_not_browsing_error(self):
+        """Test that next/previtem throws a ValueError"""
+        with pytest.raises(ValueError) as error1:
+            self.hist.nextitem()
+        assert str(error1.value) == "Currently not browsing history"
+
+        with pytest.raises(ValueError) as error2:
+            self.hist.previtem()
+        assert str(error2.value) == "Currently not browsing history"
