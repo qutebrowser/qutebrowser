@@ -63,9 +63,9 @@ class History(QObject):
         super().__init__(parent)
         self.handle_private_mode = False
         self._tmphist = None
-        if history is None:
-            self.history = []
-        else:
+
+        self.history = []
+        if history:
             self.history = history
 
     def __getitem__(self, idx):
