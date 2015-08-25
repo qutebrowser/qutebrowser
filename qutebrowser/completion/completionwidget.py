@@ -59,6 +59,7 @@ class CompletionView(QTreeView):
             {{ color['completion.bg'] }}
             alternate-background-color: {{ color['completion.alternate-bg'] }};
             outline: 0;
+            border: 0px;
         }
 
         QTreeView::item:disabled {
