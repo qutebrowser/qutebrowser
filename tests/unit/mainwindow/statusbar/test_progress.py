@@ -63,7 +63,8 @@ def progress_widget(qtbot, monkeypatch, config_stub):
 
 
 @pytest.fixture
-def statusbar(qtbot):
+def fake_statusbar(qtbot):
+    """Fixture providing a statusbar in a container window."""
     container = QWidget()
     qtbot.add_widget(container)
     vbox = QVBoxLayout(container)
@@ -76,7 +77,6 @@ def statusbar(qtbot):
     container.show()
     qtbot.waitForWindowShown(container)
     return statusbar
-
 
 
 def test_load_started(progress_widget):
@@ -115,28 +115,28 @@ def test_tab_changed(progress_widget, tab, expected_visible):
     assert actual == expected
 
 
-def test_progress_affecting_statusbar_height(statusbar, progress_widget):
+def test_progress_affecting_statusbar_height(fake_statusbar, progress_widget):
     """Make sure the statusbar stays the same height when progress is shown.
 
     https://github.com/The-Compiler/qutebrowser/issues/886
     https://github.com/The-Compiler/qutebrowser/pull/890
     """
-    expected_height = statusbar.fontMetrics().height()
-    assert statusbar.height() == expected_height
+    expected_height = fake_statusbar.fontMetrics().height()
+    assert fake_statusbar.height() == expected_height
 
-    statusbar.hbox.addWidget(progress_widget)
+    fake_statusbar.hbox.addWidget(progress_widget)
     progress_widget.show()
 
-    assert statusbar.height() == expected_height
+    assert fake_statusbar.height() == expected_height
 
 
-def test_progress_big_statusbar(qtbot, statusbar, progress_widget):
+def test_progress_big_statusbar(qtbot, fake_statusbar, progress_widget):
     """Make sure the progress bar is small with a big statusbar.
 
     https://github.com/The-Compiler/qutebrowser/commit/46d1760798b730852e2207e2cdc05a9308e44f80
     """
-    statusbar.hbox.addWidget(progress_widget)
+    fake_statusbar.hbox.addWidget(progress_widget)
     progress_widget.show()
     expected_height = progress_widget.height()
-    statusbar.hbox.addStrut(50)
+    fake_statusbar.hbox.addStrut(50)
     assert progress_widget.height() == expected_height
