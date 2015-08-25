@@ -77,26 +77,19 @@ PERFECT_FILES = [
 ]
 
 
-def main():
-    """Main entry point.
-
-    Return:
-        The return code to return.
-    """
-    utils.change_cwd()
-
+def check_coverage():
     if sys.platform != 'linux':
         print("Skipping coverage checks on non-Linux system.")
-        sys.exit()
+        return 0
     elif '-k' in sys.argv[1:]:
         print("Skipping coverage checks because -k is given.")
-        sys.exit()
+        return 0
     elif '-m' in sys.argv[1:]:
         print("Skipping coverage checks because -m is given.")
-        sys.exit()
+        return 0
     elif any(arg.startswith('tests' + os.sep) for arg in sys.argv[1:]):
         print("Skipping coverage checks because a filename is given.")
-        sys.exit()
+        return 0
 
     for path in PERFECT_FILES:
         assert os.path.exists(os.path.join(*path.split('/'))), path
@@ -132,8 +125,18 @@ def main():
             print("{} has 100% coverage but is not in PERFECT_FILES!".format(
                 filename))
 
-    os.remove('.coverage.xml')
+    return status
 
+
+def main():
+    """Main entry point.
+
+    Return:
+        The return code to return.
+    """
+    utils.change_cwd()
+    status = check_coverage()
+    os.remove('.coverage.xml')
     return status
 
 
