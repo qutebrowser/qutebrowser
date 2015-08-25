@@ -92,26 +92,30 @@ class TestReadConfig:
         assert 'foo' in kp.bindings
         assert 'ctrl+x' in kp.special_bindings
 
-    def test_on_keyconfig_changed(self):
-        """Test the handling of changes in the config."""
+    def test_on_keyconfig_changed_mode_none(self):
+        """Test the changes in config with _modename = None."""
         kp = basekeyparser.BaseKeyParser(0, supports_count=False,
                                          supports_chains=False)
-        kp.read_config = mock.Mock()
-        kp._modename = None
+        assert kp._modename is None
 
         # No config set so self._modename is None
         with pytest.raises(AssertionError) as excinfo:
-            kp.on_keyconfig_changed("normal")
-        assert "on_keyconfig_changed called but no section defined!" in str(
-            excinfo.value)
-        assert not kp.read_config.called
+            kp.on_keyconfig_changed('normal')
+        expected_text = "on_keyconfig_changed called but no section defined!"
+        assert str(excinfo.value) == expected_text
 
-        kp._modename = "normal"
-        kp.on_keyconfig_changed("normal2")
+    def test_on_keyconfig_changed_mode_normal(self):
+        """Test the changes in config with _modename set."""
+        kp = basekeyparser.BaseKeyParser(0, supports_count=False,
+                                         supports_chains=False)
+        kp.read_config = mock.Mock()
+
+        kp._modename = 'normal'
+        kp.on_keyconfig_changed('normal2')
         # Modenames are not equal so read_config() should not be called
         assert not kp.read_config.called
 
-        kp.on_keyconfig_changed("normal")
+        kp.on_keyconfig_changed('normal')
         # Both modenames equal so read_config() should be called
         assert kp.read_config.called
 
@@ -158,10 +162,7 @@ class TestSpecialKeys:
 
     def test_no_binding(self, monkeypatch, fake_keyevent_factory):
         """Test special key with no binding."""
-        def none_return(binding):
-            return None
-
-        monkeypatch.setattr(utils, 'keyevent_to_string', none_return)
+        monkeypatch.setattr(utils, 'keyevent_to_string', lambda binding: None)
         self.kp.handle(fake_keyevent_factory(Qt.Key_A, Qt.NoModifier))
         assert not self.kp.execute.called
 
@@ -243,12 +244,9 @@ class TestKeyChain:
                                            config_stub, monkeypatch):
         """Test ambiguous keychain with timeout equal to 0."""
         config_stub.data = CONFIG_NO_TIMEOUT
-        monkeypatch.setattr('qutebrowser.keyinput.basekeyparser.config',
-                            config_stub)
         self.kp.handle(fake_keyevent_factory(Qt.Key_A, text='a'))
         assert self.kp.execute.called
-        timer = self.kp._ambiguous_timer
-        assert not timer.isActive()
+        assert not self.kp._ambiguous_timer.isActive()
 
     def test_invalid_keychain(self, fake_keyevent_factory):
         """Test invalid keychain."""
@@ -260,13 +258,11 @@ class TestKeyChain:
                           monkeypatch, qtbot):
         """Test delayec execute for ambiguous keychain."""
         config_stub.data = CONFIG
-        monkeypatch.setattr('qutebrowser.keyinput.basekeyparser.config',
-                            config_stub)
-        timer = self.kp._ambiguous_timer
+
         # 'a' is an ambiguous result.
         self.kp.handle(fake_keyevent_factory(Qt.Key_A, text='a'))
         assert not self.kp.execute.called
-        assert timer.isActive()
+        assert self.kp._ambiguous_timer.isActive()
         # We wait for the timeout to occur.
         with qtbot.waitSignal(self.kp.keystring_updated, raising=True):
             pass
@@ -329,3 +325,13 @@ class TestCount:
         self.kp.handle(fake_keyevent_factory(Qt.Key_A, text='c'))
         self.kp.execute.assert_called_once_with('ccc', self.kp.Type.chain, 23)
         assert self.kp._keystring == ''
+
+
+def test_clear_keystring(qtbot):
+    """Test that the keystring is cleared and the signal is emitted"""
+    kp = basekeyparser.BaseKeyParser(0)
+    kp._keystring = 'test'
+    kp.clear_keystring()
+    with qtbot.waitSignal(kp.keystring_updated):
+        pass
+    assert kp._keystring is ''
