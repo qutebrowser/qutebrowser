@@ -126,6 +126,22 @@ class TestReadConfig:
         # Both modenames equal so read_config() should be called
         assert kp.read_config.called
 
+    def test_warn_on_keychains(self, fake_keyevent_factory, monkeypatch):
+        """Test _warn_on_keychains."""
+        kp = basekeyparser.BaseKeyParser(0, supports_count=False,
+                                         supports_chains=False)
+
+        log_mock = mock.Mock()
+        monkeypatch.setattr('qutebrowser.utils.log.keyboard', log_mock)
+
+        kp._warn_on_keychains = False
+        kp.read_config('normal')
+        assert not log_mock.warning.called
+
+        kp._warn_on_keychains = True
+        kp.read_config('normal')
+        assert log_mock.warning.called
+
 
 @pytest.mark.usefixtures('mock_timer')
 class TestSpecialKeys:
