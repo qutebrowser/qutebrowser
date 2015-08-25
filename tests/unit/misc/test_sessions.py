@@ -608,7 +608,7 @@ class FakeWebView:
     def load_history(self, data):
         self.loaded_history = data
         if self.raise_error is not None:
-            raise self.raise_error
+            raise self.raise_error  # pylint: disable=raising-bad-type
 
 
 @pytest.fixture
