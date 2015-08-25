@@ -47,16 +47,11 @@ class TestConstructor:
 
 class TestCommandHistory:
 
-    """Create a setup for inheritance"""
+    """Tests for Command History."""
 
     @pytest.fixture(autouse=True)
     def setup(self):
         self.hist = History(history=HISTORY)
-
-
-class TestBrowsing(TestCommandHistory):
-
-    """Tests for the history browsing."""
 
     def test_is_browsing(self):
         """Test is_browsing()."""
