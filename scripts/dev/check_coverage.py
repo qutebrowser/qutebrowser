@@ -78,6 +78,7 @@ PERFECT_FILES = [
 
 
 def check_coverage():
+    """Main entry point which parses/checks coverage.xml if applicable."""
     if sys.platform != 'linux':
         print("Skipping coverage checks on non-Linux system.")
         return 0
