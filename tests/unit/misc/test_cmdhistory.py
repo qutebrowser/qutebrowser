@@ -21,10 +21,14 @@
 
 import pytest
 
-from qutebrowser.misc.cmdhistory import History, HistoryEmptyError
+from qutebrowser.misc.cmdhistory import (History, HistoryEmptyError,
+                                         HistoryEndReachedError)
 
 
 HISTORY = ['first', 'second', 'third', 'fourth', 'fifth']
+
+CONFIG_NOT_PRIVATE = {'general': {'private-browsing': False}}
+CONFIG_PRIVATE = {'general': {'private-browsing': True}}
 
 
 class TestConstructor:
@@ -53,26 +57,6 @@ class TestCommandHistory:
 class TestBrowsing(TestCommandHistory):
 
     """Tests for the history browsing."""
-
-    def test_append_private_mode(self, monkeypatch):
-        """Test append in private mode."""
-        self.hist.handle_private_mode = True
-        # We want general.private-browsing set to True
-        monkeypatch.setattr('qutebrowser.config.config.get',
-                            lambda s1, s2: True)
-        self.hist.append('new item')
-        assert self.hist.history == HISTORY
-
-    def test_append(self, monkeypatch):
-        """Test append outside private mode."""
-
-        # Private mode is disabled (general.private-browsing is set to False)
-        monkeypatch.setattr('qutebrowser.config.config.get',
-                            lambda s1, s2: False)
-        self.hist.append('new item')
-        assert 'new item' in self.hist.history
-        self.hist.history.remove('new item')
-        assert self.hist.history == HISTORY
 
     def test_is_browsing(self):
         """Test is_browsing()."""
@@ -132,3 +116,86 @@ class TestBrowsing(TestCommandHistory):
         with pytest.raises(ValueError) as error2:
             self.hist.previtem()
         assert str(error2.value) == "Currently not browsing history"
+
+    def return_item(self):
+        return 'item'
+
+    def test_nextitem_single(self):
+        """Test nextitem() with valid input."""
+        self.hist.start('f')
+        self.hist._tmphist.nextitem = self.return_item
+        assert self.hist.nextitem() == 'item'
+
+    def test_previtem_single(self):
+        """Test previtem() with valid input."""
+        self.hist.start('f')
+        self.hist._tmphist.previtem = self.return_item
+        assert self.hist.previtem() == 'item'
+
+    def test_nextitem_previtem_chain(self):
+        """Test a combination of nextitem and previtem statements"""
+        assert self.hist.start('f') == 'fifth'
+        assert self.hist.previtem() == 'fourth'
+        assert self.hist.previtem() == 'first'
+        assert self.hist.nextitem() == 'fourth'
+
+    def raise_index_error(self):
+        raise IndexError()
+
+    def test_nextitem_index_error(self):
+        """"Test nextitem() when _tmphist raises an IndexError"""
+        self.hist.start('f')
+        self.hist._tmphist.nextitem = self.raise_index_error
+        with pytest.raises(HistoryEndReachedError) as excinfo:
+            self.hist.nextitem()
+        assert str(excinfo.value) == "History end reached"
+
+    def test_previtem_index_error(self):
+        """"Test previtem() when _tmphist raises an IndexError"""
+        self.hist.start('f')
+        self.hist._tmphist.previtem = self.raise_index_error
+        with pytest.raises(HistoryEndReachedError) as excinfo:
+            self.hist.previtem()
+        assert str(excinfo.value) == "History end reached"
+
+    def test_append_private_mode(self, monkeypatch, config_stub):
+        """Test append in private mode."""
+        self.hist.handle_private_mode = True
+        # We want general.private-browsing set to True
+        config_stub.data = CONFIG_PRIVATE
+        monkeypatch.setattr('qutebrowser.misc.cmdhistory.config',
+                            config_stub)
+        self.hist.append('new item')
+        assert self.hist.history == HISTORY
+
+    def test_append(self, monkeypatch, config_stub):
+        """Test append outside private mode."""
+
+        # Private mode is disabled (general.private-browsing is set to False)
+        config_stub.data = CONFIG_NOT_PRIVATE
+        monkeypatch.setattr('qutebrowser.misc.cmdhistory.config',
+                            config_stub)
+        self.hist.append('new item')
+        assert 'new item' in self.hist.history
+        self.hist.history.remove('new item')
+        assert self.hist.history == HISTORY
+
+    def test_append_empty_history(self, monkeypatch, config_stub):
+        """Test append when .history is empty."""
+        # Disable private mode
+        config_stub.data = CONFIG_NOT_PRIVATE
+        monkeypatch.setattr('qutebrowser.misc.cmdhistory.config',
+                            config_stub)
+        self.hist.history = []
+        self.hist.append('item')
+        assert self.hist[0] == 'item'
+
+    def test_append_double(self, monkeypatch, config_stub):
+        # Disable private mode
+        config_stub.data = CONFIG_NOT_PRIVATE
+        monkeypatch.setattr('qutebrowser.misc.cmdhistory.config',
+                            config_stub)
+        self.hist.append('fifth')
+        # assert that the new 'fifth' is not added
+        assert self.hist.history[-1] == 'fifth'
+        assert self.hist.history[-2] == 'fourth'
