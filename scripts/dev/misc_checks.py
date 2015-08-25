@@ -40,9 +40,11 @@ def _get_files(only_py=False):
     """Iterate over all python files and yield filenames."""
     for (dirpath, _dirnames, filenames) in os.walk('.'):
         parts = dirpath.split(os.sep)
-        if len(parts) >= 2 and parts[1].startswith('.'):
-            # ignore hidden dirs
-            continue
+        if len(parts) >= 2:
+            rootdir = parts[1]
+            if rootdir.startswith('.') or rootdir == 'htmlcov':
+                # ignore hidden dirs and htmlcov
+                continue
 
         if only_py:
             endings = {'.py'}
