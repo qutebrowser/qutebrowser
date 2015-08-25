@@ -157,8 +157,8 @@ Contributors, sorted by the number of commits in descending order:
 * Brian Jackson
 * sbinix
 * Tobias Patzl
-* Johannes Altmanninger
 * Thorsten Wißmann
+* Johannes Altmanninger
 * Samir Benmendil
 * Regina Hug
 * Mathias Fussenegger
