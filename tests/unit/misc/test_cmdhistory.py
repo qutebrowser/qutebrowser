@@ -100,10 +100,6 @@ def test_not_browsing_error(hist):
     assert str(error2.value) == "Currently not browsing history"
 
 
-def return_item(self=None):
-    return 'item'
-
-
 def test_nextitem_single(hist, monkeypatch):
     """Test nextitem() with valid input."""
     hist.start('f')
