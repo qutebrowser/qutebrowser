@@ -41,6 +41,24 @@ def mock_timer(monkeypatch, stubs):
                         stubs.FakeTimer)
 
 
+class TestDebugLog:
+
+    """Make sure _debug_log only logs when do_log is set."""
+
+    def test_log(self, caplog):
+        kp = basekeyparser.BaseKeyParser(0)
+        kp._debug_log('foo')
+        assert len(caplog.records()) == 1
+        record = caplog.records()[0]
+        assert record.message == 'foo'
+
+    def test_no_log(self, caplog):
+        kp = basekeyparser.BaseKeyParser(0)
+        kp.do_log = False
+        kp._debug_log('foo')
+        assert not caplog.records()
+
+
 class TestSplitCount:
 
     """Test the _split_count method.
