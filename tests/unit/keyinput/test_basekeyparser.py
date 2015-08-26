@@ -27,9 +27,11 @@ from PyQt5.QtCore import Qt
 import pytest
 
 from qutebrowser.keyinput import basekeyparser
+from qutebrowser.utils import utils
 
 
 CONFIG = {'input': {'timeout': 100}}
+CONFIG_NO_TIMEOUT = {'input': {'timeout': 0}}
 
 
 @pytest.fixture
@@ -77,6 +79,13 @@ class TestReadConfig:
         with pytest.raises(ValueError):
             kp.read_config()
 
+    def test_read_config_no_modename(self):
+        """Test reading config with _modename set."""
+        kp = basekeyparser.BaseKeyParser(0, supports_chains=True)
+        kp._modename = "normal"
+        kp.read_config(modename=None)
+        assert 'a' in kp.bindings
+
     def test_read_config_valid(self):
         """Test reading config."""
         kp = basekeyparser.BaseKeyParser(0, supports_count=True,
@@ -89,6 +98,49 @@ class TestReadConfig:
         assert 'ctrl+a' not in kp.special_bindings
         assert 'foo' in kp.bindings
         assert 'ctrl+x' in kp.special_bindings
+
+    def test_on_keyconfig_changed_mode_none(self):
+        """Test the changes in config with _modename = None."""
+        kp = basekeyparser.BaseKeyParser(0, supports_count=False,
+                                         supports_chains=False)
+        assert kp._modename is None
+
+        # No config set so self._modename is None
+        with pytest.raises(AssertionError) as excinfo:
+            kp.on_keyconfig_changed('normal')
+        expected_text = "on_keyconfig_changed called but no section defined!"
+        assert str(excinfo.value) == expected_text
+
+    def test_on_keyconfig_changed_mode_normal(self):
+        """Test the changes in config with _modename set."""
+        kp = basekeyparser.BaseKeyParser(0, supports_count=False,
+                                         supports_chains=False)
+        kp.read_config = mock.Mock()
+
+        kp._modename = 'normal'
+        kp.on_keyconfig_changed('normal2')
+        # Modenames are not equal so read_config() should not be called
+        assert not kp.read_config.called
+
+        kp.on_keyconfig_changed('normal')
+        # Both modenames equal so read_config() should be called
+        assert kp.read_config.called
+
+    def test_warn_on_keychains(self, fake_keyevent_factory, monkeypatch):
+        """Test _warn_on_keychains."""
+        kp = basekeyparser.BaseKeyParser(0, supports_count=False,
+                                         supports_chains=False)
+
+        log_mock = mock.Mock()
+        monkeypatch.setattr('qutebrowser.utils.log.keyboard', log_mock)
+
+        kp._warn_on_keychains = False
+        kp.read_config('normal')
+        assert not log_mock.warning.called
+
+        kp._warn_on_keychains = True
+        kp.read_config('normal')
+        assert log_mock.warning.called
 
 
 @pytest.mark.usefixtures('mock_timer')
@@ -129,6 +181,12 @@ class TestSpecialKeys:
         """Test a keychain."""
         self.kp.handle(fake_keyevent_factory(Qt.Key_B))
         self.kp.handle(fake_keyevent_factory(Qt.Key_A))
+        assert not self.kp.execute.called
+
+    def test_no_binding(self, monkeypatch, fake_keyevent_factory):
+        """Test special key with no binding."""
+        monkeypatch.setattr(utils, 'keyevent_to_string', lambda binding: None)
+        self.kp.handle(fake_keyevent_factory(Qt.Key_A, Qt.NoModifier))
         assert not self.kp.execute.called
 
 
@@ -205,11 +263,33 @@ class TestKeyChain:
         assert not timer.isActive()
         assert self.kp._keystring == ''
 
+    def test_ambiguous_keychain_no_timeout(self, fake_keyevent_factory,
+                                           config_stub, monkeypatch):
+        """Test ambiguous keychain with timeout equal to 0."""
+        config_stub.data = CONFIG_NO_TIMEOUT
+        self.kp.handle(fake_keyevent_factory(Qt.Key_A, text='a'))
+        assert self.kp.execute.called
+        assert not self.kp._ambiguous_timer.isActive()
+
     def test_invalid_keychain(self, fake_keyevent_factory):
         """Test invalid keychain."""
         self.kp.handle(fake_keyevent_factory(Qt.Key_B, text='b'))
         self.kp.handle(fake_keyevent_factory(Qt.Key_C, text='c'))
         assert self.kp._keystring == ''
+
+    def test_delayed_exec(self, fake_keyevent_factory, config_stub,
+                          monkeypatch, qtbot):
+        """Test delayec execute for ambiguous keychain."""
+        config_stub.data = CONFIG
+
+        # 'a' is an ambiguous result.
+        self.kp.handle(fake_keyevent_factory(Qt.Key_A, text='a'))
+        assert not self.kp.execute.called
+        assert self.kp._ambiguous_timer.isActive()
+        # We wait for the timeout to occur.
+        with qtbot.waitSignal(self.kp.keystring_updated, raising=True):
+            pass
+        assert self.kp.execute.called
 
 
 @pytest.mark.usefixtures('mock_timer')
@@ -268,3 +348,12 @@ class TestCount:
         self.kp.handle(fake_keyevent_factory(Qt.Key_A, text='c'))
         self.kp.execute.assert_called_once_with('ccc', self.kp.Type.chain, 23)
         assert self.kp._keystring == ''
+
+
+def test_clear_keystring(qtbot):
+    """Test that the keystring is cleared and the signal is emitted"""
+    kp = basekeyparser.BaseKeyParser(0)
+    kp._keystring = 'test'
+    with qtbot.waitSignal(kp.keystring_updated):
+        kp.clear_keystring()
+    assert kp._keystring == ''
