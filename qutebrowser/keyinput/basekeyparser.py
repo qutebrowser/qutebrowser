@@ -326,8 +326,8 @@ class BaseKeyParser(QObject):
         self.special_bindings = {}
         keyconfparser = objreg.get('key-config')
         for (key, cmd) in keyconfparser.get_bindings_for(modename).items():
-            if cmd:
-                self._parse_key_command(modename, key, cmd)
+            assert cmd
+            self._parse_key_command(modename, key, cmd)
 
     def _parse_key_command(self, modename, key, cmd):
         """Parse the keys and their command and store them in the object."""
