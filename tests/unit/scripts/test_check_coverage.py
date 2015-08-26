@@ -26,6 +26,7 @@ from scripts.dev import check_coverage
 
 
 pytest_plugins = 'pytester'
+pytestmark = pytest.mark.linux
 
 
 class CovtestHelper:
