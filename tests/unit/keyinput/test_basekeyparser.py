@@ -354,7 +354,6 @@ def test_clear_keystring(qtbot):
     """Test that the keystring is cleared and the signal is emitted"""
     kp = basekeyparser.BaseKeyParser(0)
     kp._keystring = 'test'
-    kp.clear_keystring()
     with qtbot.waitSignal(kp.keystring_updated):
-        pass
-    assert kp._keystring is ''
+        kp.clear_keystring()
+    assert kp._keystring == ''
