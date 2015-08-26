@@ -112,7 +112,8 @@ def check_coverage():
         assert '/' in filename, filename
 
         # Files without any branches have 0% coverage
-        if branch_cov < 100 and klass.find('./lines/line[@branch="true"]'):
+        has_branches = klass.find('./lines/line[@branch="true"]') is not None
+        if branch_cov < 100 and has_branches:
             is_bad = True
         else:
             is_bad = line_cov < 100
