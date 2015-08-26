@@ -31,347 +31,308 @@ from qutebrowser.utils import utils
 
 
 CONFIG = {'input': {'timeout': 100}}
-CONFIG_NO_TIMEOUT = {'input': {'timeout': 0}}
+
+
+@pytest.yield_fixture
+def keyparser():
+    """Fixture providing a BaseKeyParser supporting count/chains."""
+    kp = basekeyparser.BaseKeyParser(
+        0, supports_count=True, supports_chains=True)
+    kp.execute = mock.Mock()
+    yield kp
+    assert not kp._ambiguous_timer.isActive()
 
 
 @pytest.fixture
-def mock_timer(monkeypatch, stubs):
-    """Mock the Timer class used by the usertypes module with a stub."""
-    monkeypatch.setattr('qutebrowser.keyinput.basekeyparser.usertypes.Timer',
-                        stubs.FakeTimer)
+def handle_text(fake_keyevent_factory, keyparser):
+    """Helper function to handle multiple fake keypresses.
+
+    Automatically uses the keyparser of the current test via the keyparser
+    fixture.
+    """
+    def func(*args):
+        for enumval, text in args:
+            keyparser.handle(fake_keyevent_factory(enumval, text=text))
+    return func
+
+
+@pytest.mark.parametrize('count, chains, count_expected, chains_expected', [
+    (True, False, True, False),
+    (False, True, False, True),
+    (None, True, True, True),
+])
+def test_supports_args(count, chains, count_expected, chains_expected):
+    kp = basekeyparser.BaseKeyParser(
+        0, supports_count=count, supports_chains=chains)
+    assert kp._supports_count == count_expected
+    assert kp._supports_chains == chains_expected
 
 
 class TestDebugLog:
 
     """Make sure _debug_log only logs when do_log is set."""
 
-    def test_log(self, caplog):
-        kp = basekeyparser.BaseKeyParser(0)
-        kp._debug_log('foo')
+    def test_log(self, keyparser, caplog):
+        keyparser._debug_log('foo')
         assert len(caplog.records()) == 1
         record = caplog.records()[0]
         assert record.message == 'foo'
 
-    def test_no_log(self, caplog):
-        kp = basekeyparser.BaseKeyParser(0)
-        kp.do_log = False
-        kp._debug_log('foo')
+    def test_no_log(self, keyparser, caplog):
+        keyparser.do_log = False
+        keyparser._debug_log('foo')
         assert not caplog.records()
 
 
-class TestSplitCount:
-
-    """Test the _split_count method.
-
-    Class Attributes:
-        TESTS: list of parameters for the tests, as tuples of
-        (input_key, supports_count, expected)
-    """
-
-    TESTS = [
-        # (input_key, supports_count, expected)
-        ('10', True, (10, '')),
-        ('10foo', True, (10, 'foo')),
-        ('-1foo', True, (None, '-1foo')),
-        ('10e4foo', True, (10, 'e4foo')),
-        ('foo', True, (None, 'foo')),
-        ('10foo', False, (None, '10foo')),
-    ]
-
-    @pytest.mark.parametrize('input_key, supports_count, expected', TESTS)
-    def test_splitcount(self, input_key, supports_count, expected):
-        """Test split_count with only a count."""
-        kp = basekeyparser.BaseKeyParser(0, supports_count=supports_count)
-        kp._keystring = input_key
-        assert kp._split_count() == expected
+@pytest.mark.parametrize('input_key, supports_count, expected', [
+    # (input_key, supports_count, expected)
+    ('10', True, (10, '')),
+    ('10foo', True, (10, 'foo')),
+    ('-1foo', True, (None, '-1foo')),
+    ('10e4foo', True, (10, 'e4foo')),
+    ('foo', True, (None, 'foo')),
+    ('10foo', False, (None, '10foo')),
+])
+def test_split_count(input_key, supports_count, expected):
+    kp = basekeyparser.BaseKeyParser(0, supports_count=supports_count)
+    kp._keystring = input_key
+    assert kp._split_count() == expected
 
 
-@pytest.mark.usefixtures('fake_keyconfig', 'mock_timer')
+@pytest.mark.usefixtures('fake_keyconfig')
 class TestReadConfig:
 
-    """Test reading the config."""
-
-    def test_read_config_invalid(self):
-        """Test reading config without setting it before."""
-        kp = basekeyparser.BaseKeyParser(0)
+    def test_read_config_invalid(self, keyparser):
+        """Test reading config without setting modename before."""
         with pytest.raises(ValueError):
-            kp.read_config()
+            keyparser.read_config()
 
-    def test_read_config_no_modename(self):
+    def test_read_config_modename(self, keyparser):
         """Test reading config with _modename set."""
-        kp = basekeyparser.BaseKeyParser(0, supports_chains=True)
-        kp._modename = "normal"
-        kp.read_config(modename=None)
-        assert 'a' in kp.bindings
+        keyparser._modename = 'normal'
+        keyparser.read_config()
+        assert 'a' in keyparser.bindings
 
-    def test_read_config_valid(self):
+    def test_read_config_valid(self, keyparser):
         """Test reading config."""
-        kp = basekeyparser.BaseKeyParser(0, supports_count=True,
-                                         supports_chains=True)
-        kp.read_config('test')
-        assert 'ccc' in kp.bindings
-        assert 'ctrl+a' in kp.special_bindings
-        kp.read_config('test2')
-        assert 'ccc' not in kp.bindings
-        assert 'ctrl+a' not in kp.special_bindings
-        assert 'foo' in kp.bindings
-        assert 'ctrl+x' in kp.special_bindings
+        keyparser.read_config('test')
+        assert 'ccc' in keyparser.bindings
+        assert 'ctrl+a' in keyparser.special_bindings
+        keyparser.read_config('test2')
+        assert 'ccc' not in keyparser.bindings
+        assert 'ctrl+a' not in keyparser.special_bindings
+        assert 'foo' in keyparser.bindings
+        assert 'ctrl+x' in keyparser.special_bindings
 
-    def test_on_keyconfig_changed_mode_none(self):
-        """Test the changes in config with _modename = None."""
-        kp = basekeyparser.BaseKeyParser(0, supports_count=False,
-                                         supports_chains=False)
-        assert kp._modename is None
+    def test_on_keyconfig_changed_modename_none(self, keyparser):
+        assert keyparser._modename is None
 
         # No config set so self._modename is None
         with pytest.raises(AssertionError) as excinfo:
-            kp.on_keyconfig_changed('normal')
+            keyparser.on_keyconfig_changed('normal')
+
         expected_text = "on_keyconfig_changed called but no section defined!"
         assert str(excinfo.value) == expected_text
 
-    def test_on_keyconfig_changed_mode_normal(self):
-        """Test the changes in config with _modename set."""
-        kp = basekeyparser.BaseKeyParser(0, supports_count=False,
-                                         supports_chains=False)
-        kp.read_config = mock.Mock()
+    @pytest.mark.parametrize('mode,changed_mode, expected', [
+        ('normal', 'normal', True), ('normal', 'normal2', False),
+    ])
+    def test_on_keyconfig_changed(self, keyparser, fake_keyconfig, mode,
+                                  changed_mode, expected):
+        keyparser.read_config(mode)
+        # Sanity checks
+        assert 'a' in keyparser.bindings
+        assert 'new' not in keyparser.bindings
 
-        kp._modename = 'normal'
-        kp.on_keyconfig_changed('normal2')
-        # Modenames are not equal so read_config() should not be called
-        assert not kp.read_config.called
+        fake_keyconfig['normal'] = {'new': 'new'}
+        keyparser.on_keyconfig_changed(changed_mode)
 
-        kp.on_keyconfig_changed('normal')
-        # Both modenames equal so read_config() should be called
-        assert kp.read_config.called
+        if expected:
+            assert 'a' not in keyparser.bindings
+            assert 'new' in keyparser.bindings
+        else:
+            assert 'a' in keyparser.bindings
+            assert 'new' not in keyparser.bindings
 
-    def test_warn_on_keychains(self, fake_keyevent_factory, monkeypatch):
+    @pytest.mark.parametrize('warn_on_keychains', [True, False])
+    def test_warn_on_keychains(self, caplog, warn_on_keychains):
         """Test _warn_on_keychains."""
-        kp = basekeyparser.BaseKeyParser(0, supports_count=False,
-                                         supports_chains=False)
+        kp = basekeyparser.BaseKeyParser(
+            0, supports_count=False, supports_chains=False)
+        kp._warn_on_keychains = warn_on_keychains
 
-        log_mock = mock.Mock()
-        monkeypatch.setattr('qutebrowser.utils.log.keyboard', log_mock)
+        with caplog.atLevel(logging.WARNING):
+            kp.read_config('normal')
 
-        kp._warn_on_keychains = False
-        kp.read_config('normal')
-        assert not log_mock.warning.called
-
-        kp._warn_on_keychains = True
-        kp.read_config('normal')
-        assert log_mock.warning.called
+        assert bool(caplog.records()) == warn_on_keychains
 
 
-@pytest.mark.usefixtures('mock_timer')
 class TestSpecialKeys:
 
-    """Check execute() with special keys.
-
-    Attributes:
-        kp: The BaseKeyParser to be tested.
-    """
+    """Check execute() with special keys."""
 
     @pytest.fixture(autouse=True)
-    def setup(self, caplog, fake_keyconfig):
-        self.kp = basekeyparser.BaseKeyParser(0)
-        self.kp.execute = mock.Mock()
-        with caplog.atLevel(logging.WARNING, 'keyboard'):
-            # Ignoring keychain 'ccc' in mode 'test' because keychains are not
-            # supported there.
-            self.kp.read_config('test')
+    def read_config(self, fake_keyconfig, keyparser):
+        keyparser.read_config('test')
 
-    def test_valid_key(self, fake_keyevent_factory):
-        """Test a valid special keyevent."""
+    def test_valid_key(self, fake_keyevent_factory, keyparser):
         if sys.platform == 'darwin':
             modifier = Qt.MetaModifier
         else:
             modifier = Qt.ControlModifier
-        self.kp.handle(fake_keyevent_factory(Qt.Key_A, modifier))
-        self.kp.handle(fake_keyevent_factory(Qt.Key_X, modifier))
-        self.kp.execute.assert_called_once_with('ctrla', self.kp.Type.special)
+        keyparser.handle(fake_keyevent_factory(Qt.Key_A, modifier))
+        keyparser.handle(fake_keyevent_factory(Qt.Key_X, modifier))
+        keyparser.execute.assert_called_once_with(
+            'ctrla', keyparser.Type.special)
 
-    def test_invalid_key(self, fake_keyevent_factory):
-        """Test an invalid special keyevent."""
-        self.kp.handle(fake_keyevent_factory(Qt.Key_A, (Qt.ControlModifier |
-                                                        Qt.AltModifier)))
-        assert not self.kp.execute.called
+    def test_invalid_key(self, fake_keyevent_factory, keyparser):
+        keyparser.handle(fake_keyevent_factory(
+            Qt.Key_A, (Qt.ControlModifier | Qt.AltModifier)))
+        assert not keyparser.execute.called
 
-    def test_keychain(self, fake_keyevent_factory):
-        """Test a keychain."""
-        self.kp.handle(fake_keyevent_factory(Qt.Key_B))
-        self.kp.handle(fake_keyevent_factory(Qt.Key_A))
-        assert not self.kp.execute.called
+    def test_keychain(self, fake_keyevent_factory, keyparser):
+        keyparser.handle(fake_keyevent_factory(Qt.Key_B))
+        keyparser.handle(fake_keyevent_factory(Qt.Key_A))
+        assert not keyparser.execute.called
 
-    def test_no_binding(self, monkeypatch, fake_keyevent_factory):
-        """Test special key with no binding."""
+    def test_no_binding(self, monkeypatch, fake_keyevent_factory, keyparser):
         monkeypatch.setattr(utils, 'keyevent_to_string', lambda binding: None)
-        self.kp.handle(fake_keyevent_factory(Qt.Key_A, Qt.NoModifier))
-        assert not self.kp.execute.called
+        keyparser.handle(fake_keyevent_factory(Qt.Key_A, Qt.NoModifier))
+        assert not keyparser.execute.called
 
 
-@pytest.mark.usefixtures('mock_timer')
 class TestKeyChain:
 
-    """Test execute() with keychain support.
-
-    Attributes:
-        kp: The BaseKeyParser to be tested.
-    """
+    """Test execute() with keychain support."""
 
     @pytest.fixture(autouse=True)
-    def setup(self, fake_keyconfig):
-        """Set up mocks and read the test config."""
-        self.kp = basekeyparser.BaseKeyParser(0, supports_chains=True,
-                                              supports_count=False)
-        self.kp.execute = mock.Mock()
-        self.kp.read_config('test')
+    def read_config(self, fake_keyconfig, keyparser):
+        keyparser.read_config('test')
 
-    def test_valid_special_key(self, fake_keyevent_factory):
-        """Test valid special key."""
+    def test_valid_special_key(self, fake_keyevent_factory, keyparser):
         if sys.platform == 'darwin':
             modifier = Qt.MetaModifier
         else:
             modifier = Qt.ControlModifier
-        self.kp.handle(fake_keyevent_factory(Qt.Key_A, modifier))
-        self.kp.handle(fake_keyevent_factory(Qt.Key_X, modifier))
-        self.kp.execute.assert_called_once_with('ctrla', self.kp.Type.special)
-        assert self.kp._keystring == ''
+        keyparser.handle(fake_keyevent_factory(Qt.Key_A, modifier))
+        keyparser.handle(fake_keyevent_factory(Qt.Key_X, modifier))
+        keyparser.execute.assert_called_once_with(
+            'ctrla', keyparser.Type.special)
+        assert keyparser._keystring == ''
 
-    def test_invalid_special_key(self, fake_keyevent_factory):
-        """Test invalid special key."""
-        self.kp.handle(fake_keyevent_factory(Qt.Key_A, (Qt.ControlModifier |
-                                                        Qt.AltModifier)))
-        assert not self.kp.execute.called
-        assert self.kp._keystring == ''
+    def test_invalid_special_key(self, fake_keyevent_factory, keyparser):
+        keyparser.handle(fake_keyevent_factory(
+            Qt.Key_A, (Qt.ControlModifier | Qt.AltModifier)))
+        assert not keyparser.execute.called
+        assert keyparser._keystring == ''
 
-    def test_keychain(self, fake_keyevent_factory):
-        """Test valid keychain."""
+    def test_valid_keychain(self, handle_text, keyparser):
         # Press 'x' which is ignored because of no match
-        self.kp.handle(fake_keyevent_factory(Qt.Key_X, text='x'))
-        # Then start the real chain
-        self.kp.handle(fake_keyevent_factory(Qt.Key_B, text='b'))
-        self.kp.handle(fake_keyevent_factory(Qt.Key_A, text='a'))
-        self.kp.execute.assert_called_once_with('ba', self.kp.Type.chain, None)
-        assert self.kp._keystring == ''
+        handle_text((Qt.Key_X, 'x'),
+                    # Then start the real chain
+                    (Qt.Key_B, 'b'), (Qt.Key_A, 'a'))
+        keyparser.execute.assert_called_once_with(
+            'ba', keyparser.Type.chain, None)
+        assert keyparser._keystring == ''
 
-    def test_0(self, fake_keyevent_factory):
-        """Test with 0 keypress."""
-        self.kp.handle(fake_keyevent_factory(Qt.Key_0, text='0'))
-        self.kp.execute.assert_called_once_with('0', self.kp.Type.chain, None)
-        assert self.kp._keystring == ''
+    def test_0_press(self, handle_text, keyparser):
+        handle_text((Qt.Key_0, '0'))
+        keyparser.execute.assert_called_once_with(
+            '0', keyparser.Type.chain, None)
+        assert keyparser._keystring == ''
 
-    def test_ambiguous_keychain(self, qapp, fake_keyevent_factory, config_stub,
-                                monkeypatch):
-        """Test ambiguous keychain."""
+    def test_ambiguous_keychain(self, qapp, handle_text, config_stub,
+                                keyparser):
         config_stub.data = CONFIG
-        monkeypatch.setattr('qutebrowser.keyinput.basekeyparser.config',
-                            config_stub)
-        timer = self.kp._ambiguous_timer
+        timer = keyparser._ambiguous_timer
         assert not timer.isActive()
         # We start with 'a' where the keychain gives us an ambiguous result.
         # Then we check if the timer has been set up correctly
-        self.kp.handle(fake_keyevent_factory(Qt.Key_A, text='a'))
-        assert not self.kp.execute.called
+        handle_text((Qt.Key_A, 'a'))
+        assert not keyparser.execute.called
         assert timer.isSingleShot()
         assert timer.interval() == 100
         assert timer.isActive()
         # Now we type an 'x' and check 'ax' has been executed and the timer
         # stopped.
-        self.kp.handle(fake_keyevent_factory(Qt.Key_X, text='x'))
-        self.kp.execute.assert_called_once_with('ax', self.kp.Type.chain, None)
+        handle_text((Qt.Key_X, 'x'))
+        keyparser.execute.assert_called_once_with(
+            'ax', keyparser.Type.chain, None)
         assert not timer.isActive()
-        assert self.kp._keystring == ''
+        assert keyparser._keystring == ''
 
-    def test_ambiguous_keychain_no_timeout(self, fake_keyevent_factory,
-                                           config_stub, monkeypatch):
-        """Test ambiguous keychain with timeout equal to 0."""
-        config_stub.data = CONFIG_NO_TIMEOUT
-        self.kp.handle(fake_keyevent_factory(Qt.Key_A, text='a'))
-        assert self.kp.execute.called
-        assert not self.kp._ambiguous_timer.isActive()
+    def test_ambiguous_keychain_no_timeout(self, handle_text, config_stub,
+                                           keyparser):
+        config_stub.data = {'input': {'timeout': 0}}
+        handle_text((Qt.Key_A, 'a'))
+        assert keyparser.execute.called
+        assert not keyparser._ambiguous_timer.isActive()
 
-    def test_invalid_keychain(self, fake_keyevent_factory):
-        """Test invalid keychain."""
-        self.kp.handle(fake_keyevent_factory(Qt.Key_B, text='b'))
-        self.kp.handle(fake_keyevent_factory(Qt.Key_C, text='c'))
-        assert self.kp._keystring == ''
+    def test_invalid_keychain(self, handle_text, keyparser):
+        handle_text((Qt.Key_B, 'b'))
+        handle_text((Qt.Key_C, 'c'))
+        assert keyparser._keystring == ''
 
-    def test_delayed_exec(self, fake_keyevent_factory, config_stub,
-                          monkeypatch, qtbot):
-        """Test delayec execute for ambiguous keychain."""
+    def test_ambiguous_delayed_exec(self, handle_text, config_stub, qtbot,
+                                    keyparser):
         config_stub.data = CONFIG
 
         # 'a' is an ambiguous result.
-        self.kp.handle(fake_keyevent_factory(Qt.Key_A, text='a'))
-        assert not self.kp.execute.called
-        assert self.kp._ambiguous_timer.isActive()
+        handle_text((Qt.Key_A, 'a'))
+        assert not keyparser.execute.called
+        assert keyparser._ambiguous_timer.isActive()
         # We wait for the timeout to occur.
-        with qtbot.waitSignal(self.kp.keystring_updated, raising=True):
+        with qtbot.waitSignal(keyparser.keystring_updated, raising=True):
             pass
-        assert self.kp.execute.called
+        assert keyparser.execute.called
 
 
-@pytest.mark.usefixtures('mock_timer')
 class TestCount:
 
     """Test execute() with counts."""
 
     @pytest.fixture(autouse=True)
-    def setup(self, fake_keyconfig):
-        self.kp = basekeyparser.BaseKeyParser(0, supports_chains=True,
-                                              supports_count=True)
-        self.kp.execute = mock.Mock()
-        self.kp.read_config('test')
+    def read_keyparser_config(self, fake_keyconfig, keyparser):
+        keyparser.read_config('test')
 
-    def test_no_count(self, fake_keyevent_factory):
+    def test_no_count(self, handle_text, keyparser):
         """Test with no count added."""
-        self.kp.handle(fake_keyevent_factory(Qt.Key_B, text='b'))
-        self.kp.handle(fake_keyevent_factory(Qt.Key_A, text='a'))
-        self.kp.execute.assert_called_once_with('ba', self.kp.Type.chain, None)
-        assert self.kp._keystring == ''
+        handle_text((Qt.Key_B, 'b'), (Qt.Key_A, 'a'))
+        keyparser.execute.assert_called_once_with(
+            'ba', keyparser.Type.chain, None)
+        assert keyparser._keystring == ''
 
-    def test_count_0(self, fake_keyevent_factory):
-        """Test with count=0."""
-        self.kp.handle(fake_keyevent_factory(Qt.Key_0, text='0'))
-        self.kp.handle(fake_keyevent_factory(Qt.Key_B, text='b'))
-        self.kp.handle(fake_keyevent_factory(Qt.Key_A, text='a'))
-        calls = [mock.call('0', self.kp.Type.chain, None),
-                 mock.call('ba', self.kp.Type.chain, None)]
-        self.kp.execute.assert_has_calls(calls)
-        assert self.kp._keystring == ''
+    def test_count_0(self, handle_text, keyparser):
+        handle_text((Qt.Key_0, '0'), (Qt.Key_B, 'b'), (Qt.Key_A, 'a'))
+        calls = [mock.call('0', keyparser.Type.chain, None),
+                 mock.call('ba', keyparser.Type.chain, None)]
+        keyparser.execute.assert_has_calls(calls)
+        assert keyparser._keystring == ''
 
-    def test_count_42(self, fake_keyevent_factory):
-        """Test with count=42."""
-        self.kp.handle(fake_keyevent_factory(Qt.Key_4, text='4'))
-        self.kp.handle(fake_keyevent_factory(Qt.Key_2, text='2'))
-        self.kp.handle(fake_keyevent_factory(Qt.Key_B, text='b'))
-        self.kp.handle(fake_keyevent_factory(Qt.Key_A, text='a'))
-        self.kp.execute.assert_called_once_with('ba', self.kp.Type.chain, 42)
-        assert self.kp._keystring == ''
+    def test_count_42(self, handle_text, keyparser):
+        handle_text((Qt.Key_4, '4'), (Qt.Key_2, '2'), (Qt.Key_B, 'b'),
+                    (Qt.Key_A, 'a'))
+        keyparser.execute.assert_called_once_with(
+            'ba', keyparser.Type.chain, 42)
+        assert keyparser._keystring == ''
 
-    def test_count_42_invalid(self, fake_keyevent_factory):
-        """Test with count=42 and invalid command."""
+    def test_count_42_invalid(self, handle_text, keyparser):
         # Invalid call with ccx gets ignored
-        self.kp.handle(fake_keyevent_factory(Qt.Key_4, text='4'))
-        self.kp.handle(fake_keyevent_factory(Qt.Key_2, text='2'))
-        self.kp.handle(fake_keyevent_factory(Qt.Key_B, text='c'))
-        self.kp.handle(fake_keyevent_factory(Qt.Key_A, text='c'))
-        self.kp.handle(fake_keyevent_factory(Qt.Key_A, text='x'))
-        assert not self.kp.execute.called
-        assert self.kp._keystring == ''
+        handle_text((Qt.Key_4, '4'), (Qt.Key_2, '2'), (Qt.Key_C, 'c'),
+                    (Qt.Key_C, 'c'), (Qt.Key_X, 'x'))
+        assert not keyparser.execute.called
+        assert keyparser._keystring == ''
         # Valid call with ccc gets the correct count
-        self.kp.handle(fake_keyevent_factory(Qt.Key_4, text='2'))
-        self.kp.handle(fake_keyevent_factory(Qt.Key_2, text='3'))
-        self.kp.handle(fake_keyevent_factory(Qt.Key_B, text='c'))
-        self.kp.handle(fake_keyevent_factory(Qt.Key_A, text='c'))
-        self.kp.handle(fake_keyevent_factory(Qt.Key_A, text='c'))
-        self.kp.execute.assert_called_once_with('ccc', self.kp.Type.chain, 23)
-        assert self.kp._keystring == ''
+        handle_text((Qt.Key_6, '2'), (Qt.Key_2, '3'), (Qt.Key_C, 'c'),
+                    (Qt.Key_C, 'c'), (Qt.Key_C, 'c'))
+        keyparser.execute.assert_called_once_with(
+            'ccc', keyparser.Type.chain, 23)
+        assert keyparser._keystring == ''
 
 
-def test_clear_keystring(qtbot):
+def test_clear_keystring(qtbot, keyparser):
     """Test that the keystring is cleared and the signal is emitted"""
-    kp = basekeyparser.BaseKeyParser(0)
-    kp._keystring = 'test'
-    with qtbot.waitSignal(kp.keystring_updated):
-        kp.clear_keystring()
-    assert kp._keystring == ''
+    keyparser._keystring = 'test'
+    with qtbot.waitSignal(keyparser.keystring_updated):
+        keyparser.clear_keystring()
+    assert keyparser._keystring == ''

@@ -38,8 +38,9 @@ BINDINGS = {'test': {'<Ctrl-a>': 'ctrla',
 @pytest.yield_fixture
 def fake_keyconfig():
     """Create a mock of a KeyConfiguration and register it into objreg."""
+    bindings = dict(BINDINGS)  # so the bindings can be changed later
     fake_keyconfig = mock.Mock(spec=['get_bindings_for'])
-    fake_keyconfig.get_bindings_for.side_effect = lambda s: BINDINGS[s]
+    fake_keyconfig.get_bindings_for.side_effect = lambda s: bindings[s]
     objreg.register('key-config', fake_keyconfig)
-    yield
+    yield bindings
     objreg.delete('key-config')
