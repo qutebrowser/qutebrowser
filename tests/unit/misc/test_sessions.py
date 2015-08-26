@@ -19,6 +19,7 @@
 
 """Tests for qutebrowser.misc.sessions."""
 
+import os
 import textwrap
 import logging
 
@@ -516,6 +517,9 @@ class TestSave:
         for i, data in enumerate(user_data):
             history.itemAt(i).setUserData(data)
 
+    @pytest.mark.skipif(
+        os.name == 'nt', reason="Test segfaults on Windows, see "
+        "https://github.com/The-Compiler/qutebrowser/issues/895")
     def test_long_output(self, fake_windows, tmpdir, sess_man):
         session_path = tmpdir / 'foo.yml'
 
