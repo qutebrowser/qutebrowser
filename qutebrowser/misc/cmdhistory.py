@@ -64,8 +64,9 @@ class History(QObject):
         self.handle_private_mode = False
         self._tmphist = None
 
-        self.history = []
-        if history:
+        if history is None:
+            self.history = []
+        else:
             self.history = history
 
     def __getitem__(self, idx):
@@ -90,7 +91,7 @@ class History(QObject):
         else:
             items = self.history
         if not items:
-            raise HistoryEmptyError("History is empty.")
+            raise HistoryEmptyError
         self._tmphist = usertypes.NeighborList(items)
         return self._tmphist.lastitem()
 

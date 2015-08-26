@@ -52,7 +52,7 @@ PERFECT_FILES = [
     'qutebrowser/misc/checkpyver.py',
     'qutebrowser/misc/guiprocess.py',
     'qutebrowser/misc/editor.py',
-    'qutebrowser/misc/cmdhistory.py'
+    'qutebrowser/misc/cmdhistory.py',
 
     'qutebrowser/mainwindow/statusbar/keystring.py',
     'qutebrowser/mainwindow/statusbar/percentage.py',
