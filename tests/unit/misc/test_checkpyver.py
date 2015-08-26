@@ -32,6 +32,7 @@ TEXT = (r"At least Python 3.4 is required to run qutebrowser, but "
         r"\d+\.\d+\.\d+ is installed!\n")
 
 
+@pytest.mark.not_frozen
 def test_python2():
     """Run checkpyver with python 2."""
     try:

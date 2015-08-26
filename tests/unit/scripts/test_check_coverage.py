@@ -26,7 +26,7 @@ from scripts.dev import check_coverage
 
 
 pytest_plugins = 'pytester'
-pytestmark = pytest.mark.linux
+pytestmark = [pytest.mark.linux, pytest.mark.not_frozen]
 
 
 class CovtestHelper:
