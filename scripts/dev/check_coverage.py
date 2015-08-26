@@ -77,29 +77,33 @@ PERFECT_FILES = [
 ]
 
 
-def check_coverage():
+class Skipped(Exception):
+
+    """Exception raised when skipping coverage checks."""
+
+    def __init__(self, reason):
+        self.reason = reason
+        super().__init__("Skipping coverage checks " + reason)
+
+
+def check(fileobj, perfect_files):
     """Main entry point which parses/checks coverage.xml if applicable."""
     if sys.platform != 'linux':
-        print("Skipping coverage checks on non-Linux system.")
-        return 0
+        raise Skipped("on non-Linux system.")
     elif '-k' in sys.argv[1:]:
-        print("Skipping coverage checks because -k is given.")
-        return 0
+        raise Skipped("because -k is given.")
     elif '-m' in sys.argv[1:]:
-        print("Skipping coverage checks because -m is given.")
-        return 0
+        raise Skipped("because -m is given.")
     elif any(arg.startswith('tests' + os.sep) for arg in sys.argv[1:]):
-        print("Skipping coverage checks because a filename is given.")
-        return 0
+        raise Skipped("because a filename is given.")
 
-    for path in PERFECT_FILES:
-        assert os.path.exists(os.path.join(*path.split('/'))), path
+    for path in perfect_files:
+        assert os.path.exists(path)
 
-    with open('.coverage.xml', encoding='utf-8') as f:
-        tree = ElementTree.parse(f)
+    tree = ElementTree.parse(fileobj)
     classes = tree.getroot().findall('./packages/package/classes/class')
 
-    status = 0
+    messages = []
 
     for klass in classes:
         filename = klass.attrib['filename']
@@ -109,7 +113,6 @@ def check_coverage():
         assert 0 <= line_cov <= 100, line_cov
         assert 0 <= branch_cov <= 100, branch_cov
         assert '\\' not in filename, filename
-        assert '/' in filename, filename
 
         # Files without any branches have 0% coverage
         has_branches = klass.find('./lines/line[@branch="true"]') is not None
@@ -118,16 +121,14 @@ def check_coverage():
         else:
             is_bad = line_cov < 100
 
-        if filename in PERFECT_FILES and is_bad:
-            status = 1
-            print("{} has {}% line and {}% branch coverage!".format(
-                filename, line_cov, branch_cov))
-        elif filename not in PERFECT_FILES and not is_bad:
-            status = 1
-            print("{} has 100% coverage but is not in PERFECT_FILES!".format(
-                filename))
+        if filename in perfect_files and is_bad:
+            messages.append(("{} has {}% line and {}% branch coverage!".format(
+                filename, line_cov, branch_cov)))
+        elif filename not in perfect_files and not is_bad:
+            messages.append("{} has 100% coverage but is not in "
+                            "perfect_files!".format(filename))
 
-    return status
+    return messages
 
 
 def main():
@@ -137,9 +138,19 @@ def main():
         The return code to return.
     """
     utils.change_cwd()
-    status = check_coverage()
+
+    try:
+        with open('.coverage.xml', encoding='utf-8') as f:
+            messages = check(f, PERFECT_FILES)
+    except Skipped as e:
+        print(e)
+        messages = []
+
+    for msg in messages:
+        print(msg)
+
     os.remove('.coverage.xml')
-    return status
+    return 1 if messages else 0
 
 
 if __name__ == '__main__':
