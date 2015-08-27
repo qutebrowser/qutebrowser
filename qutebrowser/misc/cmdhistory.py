@@ -63,6 +63,7 @@ class History(QObject):
         super().__init__(parent)
         self.handle_private_mode = False
         self._tmphist = None
+
         if history is None:
             self.history = []
         else:
@@ -109,7 +110,7 @@ class History(QObject):
         try:
             return self._tmphist.previtem()
         except IndexError:
-            raise HistoryEndReachedError
+            raise HistoryEndReachedError("History end reached")
 
     def nextitem(self):
         """Get the next item in the temp history.
@@ -121,7 +122,7 @@ class History(QObject):
         try:
             return self._tmphist.nextitem()
         except IndexError:
-            raise HistoryEndReachedError
+            raise HistoryEndReachedError("History end reached")
 
     def append(self, text):
         """Append a new item to the history.
