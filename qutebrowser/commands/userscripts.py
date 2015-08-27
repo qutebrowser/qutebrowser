@@ -343,6 +343,7 @@ def run(cmd, *args, win_id, env, verbose=False):
     user_agent = config.get('network', 'user-agent')
     if user_agent is not None:
         env['QUTE_USER_AGENT'] = user_agent
+    cmd = os.path.expanduser(cmd)
     runner.run(cmd, *args, env=env, verbose=verbose)
     runner.finished.connect(commandrunner.deleteLater)
     runner.finished.connect(runner.deleteLater)

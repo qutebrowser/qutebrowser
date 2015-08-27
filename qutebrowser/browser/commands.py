@@ -967,8 +967,10 @@ class CommandDispatcher:
         log.procs.debug("Executing {} with args {}, userscript={}".format(
             cmd, args, userscript))
         if userscript:
+            # ~ expansion is handled by the userscript module.
             self.run_userscript(cmd, *args, verbose=verbose)
         else:
+            cmd = os.path.expanduser(cmd)
             proc = guiprocess.GUIProcess(self._win_id, what='command',
                                          verbose=verbose,
                                          parent=self._tabbed_browser)
@@ -992,7 +994,6 @@ class CommandDispatcher:
             args: Arguments to pass to the userscript.
             verbose: Show notifications when the command started/exited.
         """
-        cmd = os.path.expanduser(cmd)
         env = {
             'QUTE_MODE': 'command',
         }
