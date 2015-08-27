@@ -293,6 +293,10 @@ def data(readonly=False):
              SettingValue(typ.Bool(), 'false'),
              "Whether to hide the statusbar unless a message is shown."),
 
+            ('statusbar-padding',
+             SettingValue(typ.Padding(), '1,1,0,0'),
+             "Padding for statusbar (top, bottom, left, right)."),
+
             ('window-title-format',
              SettingValue(typ.FormatString(fields=['perc', 'perc_raw', 'title',
                                                    'title_sep', 'id']),

@@ -27,6 +27,8 @@ Added
   the current item in the completion (for quickmarks/bookmarks).
 - New settings `tabs -> padding` and `tabs -> indicator-tabbing` to control the
   size/padding of the tabbar.
+- New setting `ui -> statusbar-padding` to control the size/padding of the
+  status bar.
 - New setting `network -> referer-header` to configure when the referer should
   be sent (by default it's only sent while on the same domain).
 - New setting `tabs -> show` which supersedes the old `tabs -> hide-*` options
