@@ -28,7 +28,7 @@ import hashlib
 from PyQt5.QtCore import pyqtSignal, pyqtSlot, QObject
 from PyQt5.QtNetwork import QLocalSocket, QLocalServer, QAbstractSocket
 
-from qutebrowser.utils import log, usertypes, error
+from qutebrowser.utils import log, usertypes, error, objreg
 
 
 CONNECT_TIMEOUT = 100
@@ -291,3 +291,37 @@ def display_error(exc, args):
     error.handle_fatal_exc(
         exc, args, "Error while connecting to running instance!",
         post_text="Maybe another instance is running but frozen?")
+
+
+def send_or_listen(args):
+    """Send the args to a running instance or start a new IPCServer.
+
+    Args:
+        args: The argparse namespace.
+
+    Return:
+        The IPCServer instance if no running instance was detected.
+        None if an instance was running and received our request.
+    """
+    try:
+        sent = send_to_running_instance(args)
+        if sent:
+            return None
+        log.init.debug("Starting IPC server...")
+        server = IPCServer(args)
+        objreg.register('ipc-server', server)
+        return server
+    except AddressInUseError as e:
+        # This could be a race condition...
+        log.init.debug("Got AddressInUseError, trying again.")
+        time.sleep(500)
+        sent = send_to_running_instance(args)
+        if sent:
+            return None
+        else:
+            display_error(e, args)
+            raise
+    except Error as e:
+        display_error(e, args)
+        raise
+

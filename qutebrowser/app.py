@@ -91,28 +91,17 @@ def run(args):
     objreg.register('signal-handler', signal_handler)
 
     try:
-        sent = ipc.send_to_running_instance(args)
-        if sent:
-            sys.exit(usertypes.Exit.ok)
-        log.init.debug("Starting IPC server...")
-        server = ipc.IPCServer(args, qApp)
-        objreg.register('ipc-server', server)
-        server.got_args.connect(lambda args, cwd:
-                                process_pos_args(args, cwd=cwd, via_ipc=True))
-    except ipc.AddressInUseError as e:
-        # This could be a race condition...
-        log.init.debug("Got AddressInUseError, trying again.")
-        time.sleep(500)
-        sent = ipc.send_to_running_instance(args)
-        if sent:
-            sys.exit(usertypes.Exit.ok)
-        else:
-            ipc.display_error(e, args)
-            sys.exit(usertypes.Exit.err_ipc)
-    except ipc.Error as e:
-        ipc.display_error(e, args)
+        server = ipc.send_or_listen(args)
+    except ipc.Error:
+        # ipc.send_or_listen already displays the error message for us.
         # We didn't really initialize much so far, so we just quit hard.
         sys.exit(usertypes.Exit.err_ipc)
+
+    if server is None:
+        sys.exit(usertypes.Exit.ok)
+    else:
+        server.got_args.connect(lambda args, cwd:
+                                process_pos_args(args, cwd=cwd, via_ipc=True))
 
     init(args, crash_handler)
     ret = qt_mainloop()
