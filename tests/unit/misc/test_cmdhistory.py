@@ -37,7 +37,6 @@ def hist():
 
 def test_no_history():
     hist = cmdhistory.History()
-    # .history should equal []
     assert hist.history == []
 
 
@@ -144,13 +143,11 @@ def test_previtem_index_error(hist):
     assert str(excinfo.value) == "History end reached"
 
 
-def test_append_private_mode(hist, monkeypatch, config_stub):
+def test_append_private_mode(hist, config_stub):
     """Test append in private mode."""
     hist.handle_private_mode = True
     # We want general.private-browsing set to True
     config_stub.data = CONFIG_PRIVATE
-    monkeypatch.setattr('qutebrowser.misc.cmdhistory.config',
-                        config_stub)
     hist.append('new item')
     assert hist.history == HISTORY
 
@@ -175,11 +172,9 @@ def test_append_empty_history(hist, config_stub):
     assert hist[0] == 'item'
 
 
-def test_append_double(hist, monkeypatch, config_stub):
+def test_append_double(hist, config_stub):
     # Disable private mode
     config_stub.data = CONFIG_NOT_PRIVATE
-    monkeypatch.setattr('qutebrowser.misc.cmdhistory.config',
-                        config_stub)
     hist.append('fifth')
     # assert that the new 'fifth' is not added
     assert hist.history[-2:] == ['fourth', 'fifth']
