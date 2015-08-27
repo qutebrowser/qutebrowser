@@ -88,6 +88,14 @@ def test_getitem(hist):
         assert hist[i] == HISTORY[i]
 
 
+def test_setitem(hist):
+    """Test __setitem__."""
+    with pytest.raises(TypeError) as excinfo:
+        hist[0] = 'foo'
+    expected = "'History' object does not support item assignment"
+    assert str(excinfo.value) == expected
+
+
 def test_not_browsing_error(hist):
     """Test that next/previtem throws a ValueError"""
     with pytest.raises(ValueError) as error1:
@@ -152,7 +160,6 @@ def test_append_private_mode(hist, config_stub):
 
 def test_append(hist, config_stub):
     """Test append outside private mode."""
-
     # Private mode is disabled (general.private-browsing is set to False)
     config_stub.data = CONFIG_NOT_PRIVATE
     hist.append('new item')
