@@ -96,7 +96,7 @@ def test_log_time(caplog):
         assert match
 
         duration = float(match.group(1))
-        assert 0 < duration < 1
+        assert 0 < duration < 5
 
 
 class TestQEnumKey:
