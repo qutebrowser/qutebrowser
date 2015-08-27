@@ -109,18 +109,10 @@ class IPCServer(QObject):
         super().__init__(parent)
         self.ignored = False
         self._socketname = _get_socketname(args.basedir)
-        self._remove_server()
         self._timer = usertypes.Timer(self, 'ipc-timeout')
         self._timer.setInterval(READ_TIMEOUT)
         self._timer.timeout.connect(self.on_timeout)
         self._server = QLocalServer(self)
-        log.ipc.debug("Listening as {}".format(self._socketname))
-        ok = self._server.listen(self._socketname)
-        if not ok:
-            if self._server.serverError() == QAbstractSocket.AddressInUseError:
-                raise AddressInUseError(self._server)
-            else:
-                raise ListenError(self._server)
         self._server.newConnection.connect(self.handle_connection)
         self._socket = None
 
@@ -130,6 +122,17 @@ class IPCServer(QObject):
         if not ok:
             raise Error("Error while removing server {}!".format(
                 self._socketname))
+
+    def listen(self):
+        """Start listening on self._servername."""
+        log.ipc.debug("Listening as {}".format(self._socketname))
+        self._remove_server()
+        ok = self._server.listen(self._socketname)
+        if not ok:
+            if self._server.serverError() == QAbstractSocket.AddressInUseError:
+                raise AddressInUseError(self._server)
+            else:
+                raise ListenError(self._server)
 
     @pyqtSlot(int)
     def on_error(self, err):
@@ -309,6 +312,7 @@ def send_or_listen(args):
             return None
         log.init.debug("Starting IPC server...")
         server = IPCServer(args)
+        server.listen()
         objreg.register('ipc-server', server)
         return server
     except AddressInUseError as e:
@@ -324,4 +328,3 @@ def send_or_listen(args):
     except Error as e:
         display_error(e, args)
         raise
-
