@@ -129,14 +129,9 @@ def test_nextitem_previtem_chain(hist):
     assert hist.nextitem() == 'fourth'
 
 
-def raise_index_error():
-    raise IndexError()
-
-
 def test_nextitem_index_error(hist):
     """"Test nextitem() when _tmphist raises an IndexError"""
     hist.start('f')
-    hist._tmphist.nextitem = raise_index_error
     with pytest.raises(cmdhistory.HistoryEndReachedError):
         hist.nextitem()
 
@@ -144,9 +139,9 @@ def test_nextitem_index_error(hist):
 def test_previtem_index_error(hist):
     """"Test previtem() when _tmphist raises an IndexError"""
     hist.start('f')
-    hist._tmphist.previtem = raise_index_error
     with pytest.raises(cmdhistory.HistoryEndReachedError):
-        hist.previtem()
+        for _ in range(10):
+            hist.previtem()
 
 
 def test_append_private_mode(hist, config_stub):
