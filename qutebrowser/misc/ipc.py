@@ -36,11 +36,13 @@ WRITE_TIMEOUT = 1000
 READ_TIMEOUT = 5000
 
 
-def _get_socketname(args):
+def _get_socketname(basedir, user=None):
     """Get a socketname to use."""
-    parts = ['qutebrowser', getpass.getuser()]
-    if args.basedir is not None:
-        md5 = hashlib.md5(args.basedir.encode('utf-8'))
+    if user is None:
+        user = getpass.getuser()
+    parts = ['qutebrowser', user]
+    if basedir is not None:
+        md5 = hashlib.md5(basedir.encode('utf-8'))
         parts.append(md5.hexdigest())
     return '-'.join(parts)
 
@@ -106,7 +108,7 @@ class IPCServer(QObject):
         """
         super().__init__(parent)
         self.ignored = False
-        self._socketname = _get_socketname(args)
+        self._socketname = _get_socketname(args.basedir)
         self._remove_server()
         self._timer = usertypes.Timer(self, 'ipc-timeout')
         self._timer.setInterval(READ_TIMEOUT)
@@ -252,7 +254,7 @@ def send_to_running_instance(args):
         True if connecting was successful, False if no connection was made.
     """
     socket = QLocalSocket()
-    socketname = _get_socketname(args)
+    socketname = _get_socketname(args.basedir)
     log.ipc.debug("Connecting to {}".format(socketname))
     socket.connectToServer(socketname)
     connected = socket.waitForConnected(100)
