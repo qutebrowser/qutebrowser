@@ -76,9 +76,8 @@ def test_start_no_text(hist):
 
 def test_start_no_items(hist):
     """Test start with no matching text."""
-    with pytest.raises(cmdhistory.HistoryEmptyError) as excinfo:
+    with pytest.raises(cmdhistory.HistoryEmptyError):
         hist.start('k')
-    assert excinfo is not None
     assert not hist._tmphist
 
 
@@ -129,18 +128,16 @@ def test_nextitem_index_error(hist):
     """"Test nextitem() when _tmphist raises an IndexError"""
     hist.start('f')
     hist._tmphist.nextitem = raise_index_error
-    with pytest.raises(cmdhistory.HistoryEndReachedError) as excinfo:
+    with pytest.raises(cmdhistory.HistoryEndReachedError):
         hist.nextitem()
-    assert str(excinfo.value) == "History end reached"
 
 
 def test_previtem_index_error(hist):
     """"Test previtem() when _tmphist raises an IndexError"""
     hist.start('f')
     hist._tmphist.previtem = raise_index_error
-    with pytest.raises(cmdhistory.HistoryEndReachedError) as excinfo:
+    with pytest.raises(cmdhistory.HistoryEndReachedError):
         hist.previtem()
-    assert str(excinfo.value) == "History end reached"
 
 
 def test_append_private_mode(hist, config_stub):
