@@ -43,6 +43,7 @@
 |<<ui-smooth-scrolling,smooth-scrolling>>|Whether to enable smooth scrolling for webpages.
 |<<ui-remove-finished-downloads,remove-finished-downloads>>|Whether to remove finished downloads automatically.
 |<<ui-hide-statusbar,hide-statusbar>>|Whether to hide the statusbar unless a message is shown.
+|<<ui-statusbar-padding,statusbar-padding>>|Padding for statusbar (top, bottom, left, right).
 |<<ui-window-title-format,window-title-format>>|The format to use for the window title. The following placeholders are defined:
 |<<ui-hide-mouse-cursor,hide-mouse-cursor>>|Whether to hide the mouse cursor.
 |<<ui-modal-js-dialog,modal-js-dialog>>|Use standard JavaScript modal dialog for alert() and confirm()
@@ -588,6 +589,12 @@ Valid values:
  * +false+
 
 Default: +pass:[false]+
+
+[[ui-statusbar-padding]]
+=== statusbar-padding
+Padding for statusbar (top, bottom, left, right).
+
+Default: +pass:[1,1,0,0]+
 
 [[ui-window-title-format]]
 === window-title-format
