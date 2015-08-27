@@ -120,7 +120,7 @@ def test_nextitem_previtem_chain(hist):
     assert hist.nextitem() == 'fourth'
 
 
-def raise_index_error(self=None):
+def raise_index_error():
     raise IndexError()
 
 
