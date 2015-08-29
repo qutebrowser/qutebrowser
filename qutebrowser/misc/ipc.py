@@ -99,16 +99,16 @@ class IPCServer(QObject):
 
     got_args = pyqtSignal(list, str)
 
-    def __init__(self, args, parent=None):
+    def __init__(self, socketname, parent=None):
         """Start the IPC server and listen to commands.
 
         Args:
-            args: The argparse namespace.
+            socketname: The socketname to use.
             parent: The parent to be used.
         """
         super().__init__(parent)
         self.ignored = False
-        self._socketname = _get_socketname(args.basedir)
+        self._socketname = socketname
         self._timer = usertypes.Timer(self, 'ipc-timeout')
         self._timer.setInterval(READ_TIMEOUT)
         self._timer.timeout.connect(self.on_timeout)
@@ -311,7 +311,7 @@ def send_or_listen(args):
         if sent:
             return None
         log.init.debug("Starting IPC server...")
-        server = IPCServer(args)
+        server = IPCServer(_get_socketname(args.basedir))
         server.listen()
         objreg.register('ipc-server', server)
         return server
