@@ -245,25 +245,25 @@ def _socket_error(action, socket):
         action, socket.errorString(), socket.error()))
 
 
-def send_to_running_instance(args):
+def send_to_running_instance(socketname, command):
     """Try to send a commandline to a running instance.
 
     Blocks for CONNECT_TIMEOUT ms.
 
     Args:
-        args: The argparse namespace.
+        socketname: The name which should be used for the socket.
+        command: The command to send to the running instance.
 
     Return:
         True if connecting was successful, False if no connection was made.
     """
     socket = QLocalSocket()
-    socketname = _get_socketname(args.basedir)
     log.ipc.debug("Connecting to {}".format(socketname))
     socket.connectToServer(socketname)
     connected = socket.waitForConnected(100)
     if connected:
         log.ipc.info("Opening in existing instance")
-        json_data = {'args': args.command}
+        json_data = {'args': command}
         try:
             cwd = os.getcwd()
         except OSError:
@@ -306,8 +306,9 @@ def send_or_listen(args):
         The IPCServer instance if no running instance was detected.
         None if an instance was running and received our request.
     """
+    socketname = _get_socketname(args.basedir)
     try:
-        sent = send_to_running_instance(args)
+        sent = send_to_running_instance(socketname, args.command)
         if sent:
             return None
         log.init.debug("Starting IPC server...")
@@ -319,7 +320,7 @@ def send_or_listen(args):
         # This could be a race condition...
         log.init.debug("Got AddressInUseError, trying again.")
         time.sleep(500)
-        sent = send_to_running_instance(args)
+        sent = send_to_running_instance(socketname, args.command)
         if sent:
             return None
         else:
