@@ -24,10 +24,35 @@
 from unittest import mock
 
 from PyQt5.QtCore import pyqtSignal, QPoint, QProcess, QObject
-from PyQt5.QtNetwork import QNetworkRequest
+from PyQt5.QtNetwork import (QNetworkRequest, QAbstractNetworkCache,
+                             QNetworkCacheMetaData)
 from PyQt5.QtWidgets import QCommonStyle
 
 from qutebrowser.config import configexc
+
+
+class FakeNetworkCache(QAbstractNetworkCache):
+
+    def cacheSize(self):
+        return 0
+
+    def data(self, _url):
+        return None
+
+    def insert(self, _dev):
+        pass
+
+    def metaData(self, _url):
+        return QNetworkCacheMetaData()
+
+    def prepare(self, _metadata):
+        return None
+
+    def remove(self, _url):
+        return False
+
+    def updateMetaData(self, _url):
+        pass
 
 
 class FakeKeyEvent:

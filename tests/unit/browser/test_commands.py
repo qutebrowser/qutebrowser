@@ -33,28 +33,7 @@ from qutebrowser.keyinput import modeman
 
 ObjectsRet = collections.namedtuple('Dispatcher', ['tb', 'cd'])
 
-class FakeNetworkCache(QAbstractNetworkCache):
-
-    def cacheSize(self):
-        return 0
-
-    def data(self, _url):
-        return None
-
-    def insert(self, _dev):
-        pass
-
-    def metaData(self, _url):
-        return QNetworkCacheMetaData()
-
-    def prepare(self, _metadata):
-        return None
-
-    def remove(self, _url):
-        return False
-
-    def updateMetaData(self, _url):
-        pass
+pytestmark = pytest.mark.usefixtures('cookiejar_and_cache')
 
 
 @pytest.yield_fixture(autouse=True)

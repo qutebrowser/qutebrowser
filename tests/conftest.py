@@ -36,6 +36,8 @@ from helpers.messagemock import message_mock
 from qutebrowser.config import config
 from qutebrowser.utils import objreg
 
+from PyQt5.QtNetwork import QNetworkCookieJar
+
 
 def pytest_collection_modifyitems(items):
     """Automatically add a 'gui' marker to all gui-related tests.
@@ -269,3 +271,15 @@ def fake_keyevent_factory():
         return evtmock
 
     return fake_keyevent
+
+
+@pytest.yield_fixture
+def cookiejar_and_cache(stubs):
+    """Fixture providing a fake cookie jar and cache."""
+    jar = QNetworkCookieJar()
+    cache = stubs.FakeNetworkCache()
+    objreg.register('cookie-jar', jar)
+    objreg.register('cache', cache)
+    yield
+    objreg.delete('cookie-jar')
+    objreg.delete('cache')
