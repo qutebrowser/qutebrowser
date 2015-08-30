@@ -178,8 +178,9 @@ class IPCServer(QObject):
         """Clean up socket when the client disconnected."""
         log.ipc.debug("Client disconnected.")
         self._timer.stop()
-        self._socket.deleteLater()
-        self._socket = None
+        if self._socket is not None:
+            self._socket.deleteLater()
+            self._socket = None
         # Maybe another connection is waiting.
         self.handle_connection()
 
