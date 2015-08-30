@@ -48,6 +48,7 @@ PERFECT_FILES = [
 
     'qutebrowser/keyinput/basekeyparser.py',
 
+    'qutebrowser/misc/autoupdate.py',
     'qutebrowser/misc/readline.py',
     'qutebrowser/misc/split.py',
     'qutebrowser/misc/msgbox.py',

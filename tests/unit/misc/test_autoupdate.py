@@ -19,7 +19,6 @@
 
 """Tests for qutebrowser.misc.autoupdate"""
 
-import pytest
 from PyQt5.QtTest import QSignalSpy
 
 from qutebrowser.misc import autoupdate, httpclient
@@ -49,14 +48,14 @@ class HTTPGetStub(httpclient.HTTPClient):
 
 
 def test_constructor():
-        client = autoupdate.PyPIVersionClient()
-        assert isinstance(client._client, httpclient.HTTPClient)
+    client = autoupdate.PyPIVersionClient()
+    assert isinstance(client._client, httpclient.HTTPClient)
 
 
 def test_get_version_success(qtbot):
     """Test get_version() when success is emitted."""
-    HTTPStub = HTTPGetStub(success=True)
-    client = autoupdate.PyPIVersionClient(client=HTTPStub)
+    http_stub = HTTPGetStub(success=True)
+    client = autoupdate.PyPIVersionClient(client=http_stub)
 
     # Use a spy to inspect the signal
     success_spy = QSignalSpy(client.success)
@@ -71,8 +70,8 @@ def test_get_version_success(qtbot):
 
 def test_get_version_error(qtbot):
     """Test get_version() when error is emitted."""
-    HTTPStub = HTTPGetStub(success=False)
-    client = autoupdate.PyPIVersionClient(client=HTTPStub)
+    http_stub = HTTPGetStub(success=False)
+    client = autoupdate.PyPIVersionClient(client=http_stub)
 
     # Use a spy to inspect the signal
     success_spy = QSignalSpy(client.success)
@@ -88,8 +87,8 @@ def test_get_version_error(qtbot):
 def test_invalid_json():
     """Test on_client_success() with invalid JSON."""
     json = '{"invalid": { "json"}'
-    HTTPStub = HTTPGetStub(json=json)
-    client = autoupdate.PyPIVersionClient(client=HTTPStub)
+    http_stub = HTTPGetStub(json=json)
+    client = autoupdate.PyPIVersionClient(client=http_stub)
     error_spy = QSignalSpy(client.error)
     client.get_version('test')
     assert len(error_spy) == 1
@@ -98,8 +97,8 @@ def test_invalid_json():
 def test_invalid_keys():
     """Test on_client_success() with valid JSON and wrong keys."""
     json = '{"wrong": "keys"}'
-    HTTPStub = HTTPGetStub(json=json)
-    client = autoupdate.PyPIVersionClient(client=HTTPStub)
+    http_stub = HTTPGetStub(json=json)
+    client = autoupdate.PyPIVersionClient(client=http_stub)
     error_spy = QSignalSpy(client.error)
     client.get_version('test')
     assert len(error_spy) == 1
