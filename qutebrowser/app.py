@@ -25,7 +25,6 @@ import subprocess
 import configparser
 import functools
 import json
-import time
 import shutil
 import tempfile
 import atexit

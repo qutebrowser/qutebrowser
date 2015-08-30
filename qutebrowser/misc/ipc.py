@@ -20,6 +20,7 @@
 """Utilities for IPC with existing instances."""
 
 import os
+import time
 import json
 import getpass
 import binascii
