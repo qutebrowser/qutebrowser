@@ -100,7 +100,7 @@ class NetworkManager(QNetworkAccessManager):
             'qute': qutescheme.QuteSchemeHandler(win_id),
             'file': filescheme.FileSchemeHandler(win_id),
         }
-        self._set_cookiejar()
+        self._set_cookiejar(private=config.get('general', 'private-browsing'))
         self._set_cache()
         self.sslErrors.connect(self.on_ssl_errors)
         self._rejected_ssl_errors = collections.defaultdict(list)
