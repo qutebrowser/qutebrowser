@@ -279,6 +279,9 @@ def send_to_running_instance(socketname, command):
         if socket.error() != QLocalSocket.UnknownSocketError:
             _socket_error("writing to running instance", socket)
         else:
+            socket.disconnectFromServer()
+            if socket.state() != QLocalSocket.UnconnectedState:
+                socket.waitForDisconnected(100)
             return True
     else:
         if socket.error() not in (QLocalSocket.ConnectionRefusedError,
