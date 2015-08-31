@@ -630,7 +630,8 @@ class TabBarStyle(QCommonStyle):
         if metric in [QStyle.PM_TabBarTabShiftHorizontal,
                       QStyle.PM_TabBarTabShiftVertical,
                       QStyle.PM_TabBarTabHSpace,
-                      QStyle.PM_TabBarTabVSpace]:
+                      QStyle.PM_TabBarTabVSpace,
+                      QStyle.PM_TabBarScrollButtonWidth]:
             return 0
         elif metric == PixelMetrics.icon_padding:
             return 4
