@@ -85,8 +85,9 @@ elif os.environ.get('TRAVIS_OS_NAME', None) == 'linux':
     apt_get(['update'])
 
     print("Installing packages...")
-    pkgs = 'python3-pyqt5 python3-pyqt5.qtwebkit python-tox python3-dev xvfb'
-    apt_get(['install'] + pkgs.split())
+    pkgs = ['python3-pyqt5', 'python3-pyqt5.qtwebkit', 'python-tox',
+            'python3-dev', 'libpython3.4-dev', 'xvfb']
+    apt_get(['install'] + pkgs)
     check_setup('python3')
 elif os.environ.get('TRAVIS_OS_NAME', None) == 'osx':
     print("brew update...")
