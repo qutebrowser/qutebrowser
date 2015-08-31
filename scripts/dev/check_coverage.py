@@ -143,7 +143,7 @@ def main():
     utils.change_cwd()
 
     try:
-        with open('.coverage.xml', encoding='utf-8') as f:
+        with open('coverage.xml', encoding='utf-8') as f:
             messages = check(f, PERFECT_FILES)
     except Skipped as e:
         print(e)
@@ -152,7 +152,7 @@ def main():
     for msg in messages:
         print(msg)
 
-    os.remove('.coverage.xml')
+    os.remove('coverage.xml')
     return 1 if messages else 0
 
 

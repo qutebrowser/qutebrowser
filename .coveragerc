@@ -14,4 +14,4 @@ exclude_lines =
     if __name__ == ["']__main__["']:
 
 [xml]
-output=.coverage.xml
+output=coverage.xml
