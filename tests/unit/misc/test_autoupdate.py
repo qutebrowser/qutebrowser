@@ -21,6 +21,7 @@
 
 import pytest
 from PyQt5.QtTest import QSignalSpy
+from PyQt5.QtCore import QUrl
 
 from qutebrowser.misc import autoupdate, httpclient
 
@@ -31,6 +32,7 @@ class HTTPGetStub(httpclient.HTTPClient):
     """A stub class for HTTPClient.
 
     Attributes:
+        url: the last url used by get()
         _success: Wether get() will emit a success signal.
     """
 
@@ -43,6 +45,7 @@ class HTTPGetStub(httpclient.HTTPClient):
             self._json = '{"info": {"version": "test"}}'
 
     def get(self, url):
+        self.url = url
         if self._success:
             self.success.emit(self._json)
         else:
@@ -66,6 +69,8 @@ def test_get_version_success(qtbot):
         client.get_version('test')
 
     assert len(error_spy) == 0
+
+    assert http_stub.url == QUrl('https://pypi.python.org/pypi/test/json')
 
 
 def test_get_version_error(qtbot):
