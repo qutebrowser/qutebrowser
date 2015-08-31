@@ -19,29 +19,31 @@
 
 """Tests for qutebrowser.misc.autoupdate"""
 
+import pytest
 from PyQt5.QtTest import QSignalSpy
 
 from qutebrowser.misc import autoupdate, httpclient
+
+INVALID_JSON = ['{"invalid": { "json"}', '{"wrong": "keys"}']
 
 
 class HTTPGetStub(httpclient.HTTPClient):
     """A stub class for HTTPClient.
 
-        Attributes:
+    Attributes:
         _success: Wether get() will emit a success signal.
     """
 
     def __init__(self, success=True, json=None):
+        super().__init__()
         self._success = success
         if json:
             self._json = json
         else:
             self._json = '{"info": {"version": "test"}}'
 
-        super(HTTPGetStub, self).__init__()
-
     def get(self, url):
-        if self._success is True:
+        if self._success:
             self.success.emit(self._json)
         else:
             self.error.emit("error")
@@ -58,13 +60,11 @@ def test_get_version_success(qtbot):
     client = autoupdate.PyPIVersionClient(client=http_stub)
 
     # Use a spy to inspect the signal
-    success_spy = QSignalSpy(client.success)
     error_spy = QSignalSpy(client.error)
 
-    with qtbot.waitSignal(client.success, timeout=2000, raising=False):
+    with qtbot.waitSignal(client.success, raising=True):
         client.get_version('test')
 
-    assert len(success_spy) == 1
     assert len(error_spy) == 0
 
 
@@ -75,30 +75,24 @@ def test_get_version_error(qtbot):
 
     # Use a spy to inspect the signal
     success_spy = QSignalSpy(client.success)
-    error_spy = QSignalSpy(client.error)
 
-    with qtbot.waitSignal(client.error, timeout=2000, raising=False):
+    with qtbot.waitSignal(client.error, raising=True):
         client.get_version('test')
 
     assert len(success_spy) == 0
-    assert len(error_spy) == 1
 
 
-def test_invalid_json():
+@pytest.mark.parametrize('json', INVALID_JSON)
+def test_invalid_json(qtbot, json):
     """Test on_client_success() with invalid JSON."""
-    json = '{"invalid": { "json"}'
     http_stub = HTTPGetStub(json=json)
     client = autoupdate.PyPIVersionClient(client=http_stub)
-    error_spy = QSignalSpy(client.error)
     client.get_version('test')
-    assert len(error_spy) == 1
 
+    # Use a spy to inspect the signal
+    success_spy = QSignalSpy(client.success)
 
-def test_invalid_keys():
-    """Test on_client_success() with valid JSON and wrong keys."""
-    json = '{"wrong": "keys"}'
-    http_stub = HTTPGetStub(json=json)
-    client = autoupdate.PyPIVersionClient(client=http_stub)
-    error_spy = QSignalSpy(client.error)
-    client.get_version('test')
-    assert len(error_spy) == 1
+    with qtbot.waitSignal(client.error, raising=True):
+        client.get_version('test')
+
+    assert len(success_spy) == 0
