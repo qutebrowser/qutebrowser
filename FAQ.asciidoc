@@ -82,6 +82,10 @@ How do I play Youtube videos with mpv?::
 :bind x spawn mpv {url}
 :bind ;x hint links spawn mpv {hint-url}
 ----
++
+Note that you might need an additional package (e.g.
+https://www.archlinux.org/packages/community/any/youtube-dl/[youtube-dl] on
+Archlinux) to play web videos with mpv.
 
 == Troubleshooting
 
