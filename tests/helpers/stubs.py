@@ -33,6 +33,8 @@ from qutebrowser.config import configexc
 
 class FakeNetworkCache(QAbstractNetworkCache):
 
+    """Fake cache with no data."""
+
     def cacheSize(self):
         return 0
 

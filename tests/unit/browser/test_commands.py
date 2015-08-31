@@ -22,8 +22,6 @@
 import collections
 
 import pytest
-from PyQt5.QtNetwork import (QNetworkCookieJar, QAbstractNetworkCache,
-                             QNetworkCacheMetaData)
 
 from qutebrowser.browser import commands
 from qutebrowser.mainwindow import tabbedbrowser
@@ -34,18 +32,6 @@ from qutebrowser.keyinput import modeman
 ObjectsRet = collections.namedtuple('Dispatcher', ['tb', 'cd'])
 
 pytestmark = pytest.mark.usefixtures('cookiejar_and_cache')
-
-
-@pytest.yield_fixture(autouse=True)
-def cookiejar_and_cache():
-    """Fixture providing a fake cookie jar and cache."""
-    jar = QNetworkCookieJar()
-    cache = FakeNetworkCache()
-    objreg.register('cookie-jar', jar)
-    objreg.register('cache', cache)
-    yield
-    objreg.delete('cookie-jar')
-    objreg.delete('cache')
 
 
 @pytest.yield_fixture
