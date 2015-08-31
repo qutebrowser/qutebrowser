@@ -819,7 +819,12 @@ class TestColors:
     TESTS = ColorTests()
 
     @pytest.fixture(params=ColorTests.TYPES)
-    def klass(self, request):
+    def klass_fixt(self, request):
+        """Fixture which provides all ColorTests classes.
+
+        Named klass_fix so it has a different name from the parametrized klass,
+        see https://github.com/pytest-dev/pytest/issues/979.
+        """
         return request.param
 
     def test_test_generator(self):
@@ -836,9 +841,9 @@ class TestColors:
         with pytest.raises(configexc.ValidationError):
             klass().validate(val)
 
-    def test_validate_invalid_empty(self, klass):
+    def test_validate_invalid_empty(self, klass_fixt):
         with pytest.raises(configexc.ValidationError):
-            klass().validate('')
+            klass_fixt().validate('')
 
     @pytest.mark.parametrize('klass, val', TESTS.valid)
     def test_transform(self, klass, val):
