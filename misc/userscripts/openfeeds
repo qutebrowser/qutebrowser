@@ -1,4 +1,5 @@
-#!/bin/bash
+#!/usr/bin/env python3
+# -*- coding: utf-8 -*-
 
 # Copyright 2015 jnphilipp <me@jnphilipp.org>
 #
@@ -20,11 +21,19 @@
 # Opens all links to feeds defined in the head of a site
 #
 # Ideal for use with tabs-are-windows. Set a hotkey to launch this script, then:
-#	:bind gF spawn --userscript openfeeds
+#   :bind gF spawn --userscript openfeeds
 #
 # Use the hotkey to open the feeds in new tab/window, press 'gF' to open
 #
 
-grep cat ${QUTE_HTML} | grep "<link[^>]*rel=\"alternate\"[^>]*>" | grep -E "(application/((rss|rdf|atom)\+)?xml|text/xml)" | grep -oE "href=\"([^\"]+)\"" | cut -d\" -f2 | while read -r line ; do
-    echo "open -t ${line}" >> "$QUTE_FIFO"
-done
+import os
+import re
+
+from bs4 import BeautifulSoup
+
+if os.environ['QUTE_HTML']:
+    soup = BeautifulSoup(open(os.environ['QUTE_HTML'], 'r'))
+    with open(os.environ['QUTE_FIFO'], 'w') as f:
+        for link in soup.find_all('link', rel='alternate', type=re.compile(r'application/((rss|rdf|atom)\+)?xml|text/xml')):
+            f.write('open -t %s\n' % link.get('href'))
+    f.close()
