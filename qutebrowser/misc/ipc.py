@@ -259,7 +259,7 @@ def _socket_error(action, socket):
         action, socket.errorString(), socket.error()))
 
 
-def send_to_running_instance(socketname, command):
+def send_to_running_instance(socketname, command, *, socket=None):
     """Try to send a commandline to a running instance.
 
     Blocks for CONNECT_TIMEOUT ms.
@@ -267,11 +267,13 @@ def send_to_running_instance(socketname, command):
     Args:
         socketname: The name which should be used for the socket.
         command: The command to send to the running instance.
+        socket: The socket to read data from, or None.
 
     Return:
         True if connecting was successful, False if no connection was made.
     """
-    socket = QLocalSocket()
+    if socket is None:
+        socket = QLocalSocket()
     log.ipc.debug("Connecting to {}".format(socketname))
     socket.connectToServer(socketname)
     connected = socket.waitForConnected(100)
