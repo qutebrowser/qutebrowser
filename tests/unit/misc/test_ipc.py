@@ -27,9 +27,9 @@ from unittest import mock
 import pytest
 from PyQt5.QtNetwork import QLocalServer, QLocalSocket
 from PyQt5.QtTest import QSignalSpy
-from PyQt5.QtCore import QIODevice
 
 from qutebrowser.misc import ipc
+from helpers import stubs
 
 
 Args = collections.namedtuple('Args', 'basedir')
@@ -67,6 +67,68 @@ def qlocalsocket(qapp):
         assert disconnected
 
 
+class FakeSocket:
+
+    """A stub for a QLocalSocket.
+
+    Args:
+        _can_read_line_val: The value returned for canReadLine().
+        _error_val: The value returned for error().
+        _state_val: The value returned for state().
+        deleted: Set to True if deleteLater() was called.
+    """
+
+    def __init__(self, *, error=QLocalSocket.UnknownSocketError, state=None,
+                 data=None):
+        self._error_val = error
+        self._state_val = state
+        self._data = data
+        self.readyRead = stubs.FakeSignal('readyRead')
+        self.disconnected = stubs.FakeSignal('disconnected')
+        self.error = stubs.FakeSignal('error', func=self._error)
+        self.deleted = False
+
+    def _error(self):
+        return self._error_val
+
+    def state(self):
+        return self._state_val
+
+    def canReadLine(self):
+        return bool(self._data)
+
+    def readLine(self):
+        firstline, mid, rest = self._data.partition(b'\n')
+        self._data = rest
+        return firstline + mid
+
+    def deleteLater(self):
+        self.deleted = True
+
+    def errorString(self):
+        return "Error string"
+
+    def abort(self):
+        pass
+
+
+class FakeServer:
+
+    def __init__(self, socket):
+        self._socket = socket
+
+    def nextPendingConnection(self):
+        socket = self._socket
+        self._socket = None
+        return socket
+
+    def close(self):
+        pass
+
+    def deleteLater(self):
+        pass
+
+
 def test_getpass_getuser():
     """Make sure getpass.getuser() returns something sensible."""
     assert getpass.getuser()
@@ -92,8 +154,8 @@ class TestListen:
         exc = ipc.ListenError(qlocalserver)
         assert exc.code == 2
         assert exc.message == "QLocalServer::listen: Name error"
-        msg = ("Error while listening to IPC server: QLocalServer::listen: Name "
-               "error (error 2)")
+        msg = ("Error while listening to IPC server: QLocalServer::listen: "
+               "Name error (error 2)")
         assert str(exc) == msg
 
     def test_remove_error(self, ipc_server, monkeypatch):
@@ -163,6 +225,42 @@ class TestHandleConnection:
         record = caplog.records()[0]
         assert record.message == "No new connection to handle."
 
+    def test_disconnected_immediately(self, ipc_server, caplog):
+        socket = FakeSocket(state=QLocalSocket.UnconnectedState)
+        ipc_server._server = FakeServer(socket)
+        ipc_server.handle_connection()
+        msg = "Socket was disconnected immediately."
+        all_msgs = [r.message for r in caplog.records()]
+        assert msg in all_msgs
+
+    def test_error_immediately(self, ipc_server, caplog):
+        socket = FakeSocket(error=QLocalSocket.ConnectionError)
+        ipc_server._server = FakeServer(socket)
+
+        with pytest.raises(ipc.Error) as excinfo:
+            ipc_server.handle_connection()
+
+        exc_msg = 'Error while handling IPC connection: Error string (error 7)'
+        assert str(excinfo.value) == exc_msg
+        msg = "We got an error immediately."
+        all_msgs = [r.message for r in caplog.records()]
+        assert msg in all_msgs
+
+    def test_read_line_immediately(self, qtbot, ipc_server, caplog):
+        socket = FakeSocket(data=b'{"args": ["foo"]}\n')
+
+        ipc_server._server = FakeServer(socket)
+
+        spy = QSignalSpy(ipc_server.got_args)
+        with qtbot.waitSignal(ipc_server.got_args, raising=True):
+            ipc_server.handle_connection()
+
+        assert len(spy) == 1
+        assert spy[0][0] == ['foo']
+
+        all_msgs = [r.message for r in caplog.records()]
+        assert "We can read a line immediately." in all_msgs
+
 
 class TestRealConnections:
 
@@ -174,20 +272,29 @@ class TestRealConnections:
         yield qlocalsocket
         qlocalsocket.disconnectFromServer()
 
-    def test_normal(self, qtbot, tmpdir, ipc_server):
+    @pytest.mark.parametrize('has_cwd', [True, False])
+    def test_normal(self, qtbot, tmpdir, ipc_server, mocker, has_cwd):
         ipc_server.listen()
         spy = QSignalSpy(ipc_server.got_args)
         error_spy = QSignalSpy(ipc_server.got_invalid_data)
 
         with qtbot.waitSignal(ipc_server.got_args, raising=True):
             with tmpdir.as_cwd():
+                if not has_cwd:
+                    m = mocker.patch('qutebrowser.misc.ipc.os')
+                    m.getcwd.side_effect = OSError
                 sent = ipc.send_to_running_instance('qutebrowser-test',
                                                     ['foo'])
 
         assert sent
         assert len(spy) == 1
         assert not error_spy
-        assert spy[0] == [['foo'], str(tmpdir)]
+
+        if has_cwd:
+            expected_cwd = str(tmpdir)
+        else:
+            expected_cwd = ''
+        assert spy[0] == [['foo'], expected_cwd]
 
     def test_double_connection(self, qtbot, connected_socket, ipc_server,
                                caplog):
@@ -202,8 +309,8 @@ class TestRealConnections:
                    "handling another one.")
         assert message in [rec.message for rec in caplog.records()]
 
-    def test_disconnected_immediately(self, qtbot, connected_socket,
-                                      ipc_server, caplog):
+    def test_disconnected_without_data(self, qtbot, connected_socket,
+                                       ipc_server, caplog):
         """Disconnect without sending data.
 
         This means self._socket will be None on on_disconnected.
@@ -219,9 +326,11 @@ class TestRealConnections:
         b'{"is this invalid json?": true\n',
         b'{"valid json without args": true}\n',
     ])
-    def test_invalid_data(self, qtbot, ipc_server, connected_socket, caplog, data):
+    def test_invalid_data(self, qtbot, ipc_server, connected_socket, caplog,
+                          data):
+        signals = [ipc_server.got_invalid_data, connected_socket.disconnected]
         with caplog.atLevel(logging.ERROR):
-            with qtbot.waitSignal(ipc_server.got_invalid_data, raising=True):
+            with qtbot.waitSignals(signals, raising=True):
                 connected_socket.write(data)
         messages = [r.message for r in caplog.records()]
         assert messages[-1] == 'Ignoring invalid IPC data.'
@@ -235,6 +344,7 @@ class TestRealConnections:
             connected_socket.write(b'{"args": ["one"]}\n{"args": ["two"]}\n')
 
         assert len(spy) == 2
+        assert not error_spy
         assert spy[0][0] == ['one']
         assert spy[1][0] == ['two']
 
