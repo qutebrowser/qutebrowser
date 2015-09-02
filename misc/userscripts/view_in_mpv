@@ -2,9 +2,9 @@
 #
 # Behaviour:
 #   Userscript for qutebrowser which views the current web page in mpv using
-#   sensible mpv-flags. While viewing the page in MPV, all <video>-tags in the
-#   original page are temporarily removed. By clicking on such a removed video
-#   restores the respective video.
+#   sensible mpv-flags. While viewing the page in MPV, all <video> and <object>
+#   tags in the original page are temporarily removed. By clicking on such a
+#   removed video restores the respective video.
 #
 #   In order to use this script, just start it using `spawn --userscript` from
 #   qutebrowser. I recommend using an alias, e.g. put this in the
@@ -45,7 +45,9 @@ cat <<EOF
 
     var App = {};
 
-    var all_videos = document.getElementsByTagName("video");
+    var all_videos = [];
+    all_videos.push.apply(all_videos, document.getElementsByTagName("video"));
+    all_videos.push.apply(all_videos, document.getElementsByTagName("object"));
     App.backup_videos = Array();
     App.all_replacements = Array();
     for (i = 0; i < all_videos.length; i++) {
@@ -67,7 +69,7 @@ cat <<EOF
             </p>
         ";
         replacement.style.position = "relative";
-        replacement.style.zIndex = "1000";
+        replacement.style.zIndex = "100003000000";
         replacement.style.fontSize = "1rem";
         replacement.style.textAlign = "center";
         replacement.style.verticalAlign = "middle";
