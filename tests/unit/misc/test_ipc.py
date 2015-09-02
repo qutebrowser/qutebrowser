@@ -30,7 +30,7 @@ from PyQt5.QtNetwork import QLocalServer, QLocalSocket
 from PyQt5.QtTest import QSignalSpy
 
 from qutebrowser.misc import ipc
-from helpers import stubs
+from helpers import stubs  # pylint: disable=import-error
 
 
 Args = collections.namedtuple('Args', 'basedir')
