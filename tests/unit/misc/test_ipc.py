@@ -25,6 +25,7 @@ import logging
 from unittest import mock
 
 import pytest
+from PyQt5.QtCore import pyqtSignal, QObject
 from PyQt5.QtNetwork import QLocalServer, QLocalSocket
 from PyQt5.QtTest import QSignalSpy
 
@@ -67,7 +68,7 @@ def qlocalsocket(qapp):
         assert disconnected
 
 
-class FakeSocket:
+class FakeSocket(QObject):
 
     """A stub for a QLocalSocket.
 
@@ -78,13 +79,15 @@ class FakeSocket:
         deleted: Set to True if deleteLater() was called.
     """
 
+    readyRead = pyqtSignal()
+    disconnected = pyqtSignal()
+
     def __init__(self, *, error=QLocalSocket.UnknownSocketError, state=None,
-                 data=None):
+                 data=None, parent=None):
+        super().__init__(parent)
         self._error_val = error
         self._state_val = state
         self._data = data
-        self.readyRead = stubs.FakeSignal('readyRead')
-        self.disconnected = stubs.FakeSignal('disconnected')
         self.error = stubs.FakeSignal('error', func=self._error)
         self.deleted = False
 
@@ -109,7 +112,7 @@ class FakeSocket:
         return "Error string"
 
     def abort(self):
-        pass
+        self.disconnected.emit()
 
 
 class FakeServer:
