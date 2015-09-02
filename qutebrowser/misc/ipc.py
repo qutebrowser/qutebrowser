@@ -190,7 +190,7 @@ class IPCServer(QObject):
     @pyqtSlot()
     def on_ready_read(self):
         """Read json data from the client."""
-        if self._socket is None:
+        if self._socket is None:  # pragma: no cover
             # This happens when doing a connection while another one is already
             # active for some reason.
             log.ipc.warn("In on_ready_read with None socket!")
