@@ -157,6 +157,7 @@ Contributors, sorted by the number of commits in descending order:
 * Error 800
 * Brian Jackson
 * sbinix
+* jnphilipp
 * Tobias Patzl
 * Johannes Altmanninger
 * Samir Benmendil
