@@ -3,7 +3,7 @@
 # Behaviour:
 #   Userscript for qutebrowser which views the current web page in mpv using
 #   sensible mpv-flags. While viewing the page in MPV, all <video> and <object>
-#   tags in the original page are temporarily removed. By clicking on such a
+#   tags in the original page are temporarily removed. Clicking on such a
 #   removed video restores the respective video.
 #
 #   In order to use this script, just start it using `spawn --userscript` from
@@ -16,7 +16,7 @@
 #   Most of my machines are to slow to play youtube videos using html5, but
 #   they work fine in mpv (and mpv has further advantages like video scaling,
 #   etc). Of course, I don't want the video to be played (or even to be
-#   downloaded) twice — in MPV and in qwebkit. So I often clos the tab after
+#   downloaded) twice — in MPV and in qwebkit. So I often close the tab after
 #   opening it in mpv. However, I actually want to keep the rest of the page
 #   (comments and video suggestions), i.e. only the videos should disappear
 #   when mpv us started. And that's precisely what the present script does.
@@ -107,5 +107,5 @@ printjs() {
 }
 echo "jseval -q $(printjs)" >> "$QUTE_FIFO"
 
-msg info "Openning $QUTE_URL with mpv"
+msg info "Opening $QUTE_URL with mpv"
 "${video_command[@]}" "$QUTE_URL"
