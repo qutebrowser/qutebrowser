@@ -96,9 +96,11 @@ class IPCServer(QObject):
     Signals:
         got_args: Emitted when there was an IPC connection and arguments were
                   passed.
+        got_invalid_data: Emitted when there was invalid incoming data.
     """
 
     got_args = pyqtSignal(list, str)
+    got_invalid_data = pyqtSignal()
 
     def __init__(self, socketname, parent=None):
         """Start the IPC server and listen to commands.
@@ -202,6 +204,7 @@ class IPCServer(QObject):
                 log.ipc.error("Ignoring invalid IPC data.")
                 log.ipc.debug("invalid data: {}".format(
                     binascii.hexlify(data)))
+                self.got_invalid_data.emit()
                 return
             log.ipc.debug("Processing: {}".format(decoded))
             try:
@@ -209,12 +212,14 @@ class IPCServer(QObject):
             except ValueError:
                 log.ipc.error("Ignoring invalid IPC data.")
                 log.ipc.debug("invalid json: {}".format(decoded.strip()))
+                self.got_invalid_data.emit()
                 return
             try:
                 args = json_data['args']
             except KeyError:
                 log.ipc.error("Ignoring invalid IPC data.")
                 log.ipc.debug("no args: {}".format(decoded.strip()))
+                self.got_invalid_data.emit()
                 return
             cwd = json_data.get('cwd', None)
             self.got_args.emit(args, cwd)
