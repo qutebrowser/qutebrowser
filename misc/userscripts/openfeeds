@@ -31,9 +31,8 @@ import re
 
 from bs4 import BeautifulSoup
 
-if os.environ['QUTE_HTML']:
-    soup = BeautifulSoup(open(os.environ['QUTE_HTML'], 'r'))
-    with open(os.environ['QUTE_FIFO'], 'w') as f:
-        for link in soup.find_all('link', rel='alternate', type=re.compile(r'application/((rss|rdf|atom)\+)?xml|text/xml')):
-            f.write('open -t %s\n' % link.get('href'))
-    f.close()
+with open(os.environ['QUTE_HTML'], 'r') as f:
+    soup = BeautifulSoup(f)
+with open(os.environ['QUTE_FIFO'], 'w') as f:
+    for link in soup.find_all('link', rel='alternate', type=re.compile(r'application/((rss|rdf|atom)\+)?xml|text/xml')):
+        f.write('open -t %s\n' % link.get('href'))
