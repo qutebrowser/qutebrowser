@@ -206,10 +206,22 @@ def fake_qprocess():
 
 class FakeSignal:
 
-    """Fake pyqtSignal stub which does nothing."""
+    """Fake pyqtSignal stub which does nothing.
 
-    def __init__(self, name='fake'):
+    Attributes:
+        signal: The name of the signal, like pyqtSignal.
+        _func: The function to be invoked when the signal gets called.
+    """
+
+    def __init__(self, name='fake', func=None):
         self.signal = '2{}(int, int)'.format(name)
+        self._func = func
+
+    def __call__(self):
+        if self._func is None:
+            raise TypeError("'FakeSignal' object is not callable")
+        else:
+            return self._func()
 
     def connect(self, slot):
         """Connect the signal to a slot.
