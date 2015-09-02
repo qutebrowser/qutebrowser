@@ -206,6 +206,8 @@ class IPCServer(QObject):
                 log.ipc.debug("invalid data: {}".format(
                     binascii.hexlify(data)))
                 self.got_invalid_data.emit()
+                self._socket.error.connect(self.on_error)
+                self._socket.disconnectFromServer()
                 return
             log.ipc.debug("Processing: {}".format(decoded))
             try:
@@ -214,6 +216,8 @@ class IPCServer(QObject):
                 log.ipc.error("Ignoring invalid IPC data.")
                 log.ipc.debug("invalid json: {}".format(decoded.strip()))
                 self.got_invalid_data.emit()
+                self._socket.error.connect(self.on_error)
+                self._socket.disconnectFromServer()
                 return
             try:
                 args = json_data['args']
@@ -221,6 +225,8 @@ class IPCServer(QObject):
                 log.ipc.error("Ignoring invalid IPC data.")
                 log.ipc.debug("no args: {}".format(decoded.strip()))
                 self.got_invalid_data.emit()
+                self._socket.error.connect(self.on_error)
+                self._socket.disconnectFromServer()
                 return
             cwd = json_data.get('cwd', None)
             self.got_args.emit(args, cwd)
