@@ -191,7 +191,8 @@ class IPCServer(QObject):
     def on_ready_read(self):
         """Read json data from the client."""
         if self._socket is None:
-            # this happened once and I don't know why
+            # This happens when doing a connection while another one is already
+            # active for some reason.
             log.ipc.warn("In on_ready_read with None socket!")
             return
         self._timer.start()
