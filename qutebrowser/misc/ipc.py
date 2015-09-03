@@ -140,6 +140,10 @@ class IPCServer(QObject):
     @pyqtSlot(int)
     def on_error(self, err):
         """Convenience method which calls _socket_error on an error."""
+        if self._socket is None:
+            # Sometimes this gets called from stale sockets, especially in
+            # tests.
+            return
         self._timer.stop()
         log.ipc.debug("Socket error {}: {}".format(
             self._socket.error(), self._socket.errorString()))
