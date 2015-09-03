@@ -228,6 +228,13 @@ class TestHandleConnection:
         record = caplog.records()[0]
         assert record.message == "No new connection to handle."
 
+    def test_double_connection(self, qlocalsocket, ipc_server, caplog):
+        ipc_server._socket = qlocalsocket
+        ipc_server.handle_connection()
+        message = ("Got new connection but ignoring it because we're still "
+                   "handling another one.")
+        assert message in [rec.message for rec in caplog.records()]
+
     def test_disconnected_immediately(self, ipc_server, caplog):
         socket = FakeSocket(state=QLocalSocket.UnconnectedState)
         ipc_server._server = FakeServer(socket)
@@ -296,19 +303,6 @@ def test_normal(qtbot, tmpdir, ipc_server, mocker, has_cwd):
     else:
         expected_cwd = ''
     assert spy[0] == [['foo'], expected_cwd]
-
-
-def test_double_connection(qtbot, connected_socket, ipc_server, caplog):
-    spy = QSignalSpy(ipc_server.got_args)
-    error_spy = QSignalSpy(ipc_server.got_invalid_data)
-    with qtbot.waitSignal(ipc_server._server.newConnection, raising=True):
-        sent = ipc.send_to_running_instance('qutebrowser-test', [])
-    assert sent
-    assert not spy
-    assert not error_spy
-    message = ("Got new connection but ignoring it because we're still "
-               "handling another one.")
-    assert message in [rec.message for rec in caplog.records()]
 
 
 def test_disconnected_without_data(qtbot, connected_socket,
