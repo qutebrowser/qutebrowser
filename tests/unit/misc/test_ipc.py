@@ -371,7 +371,7 @@ def test_timeout(qtbot, caplog, qlocalsocket, ipc_server):
 
 
 @pytest.mark.parametrize('method, args', [
-    ('on_error', [0]),
+    pytest.mark.posix(('on_error', [0])),
     ('on_disconnected', []),
     ('on_ready_read', []),
 ])
