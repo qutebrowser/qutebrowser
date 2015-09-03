@@ -64,7 +64,7 @@ def qlocalsocket(qapp):
     yield socket
     socket.disconnectFromServer()
     if socket.state() != QLocalSocket.UnconnectedState:
-        disconnected = socket.waitForDisconnected(100)
+        disconnected = socket.waitForDisconnected(1000)
         assert disconnected
 
 
@@ -161,6 +161,7 @@ class TestListen:
                "Name error (error 2)")
         assert str(exc) == msg
 
+    @pytest.mark.posix
     def test_remove_error(self, ipc_server, monkeypatch):
         """Simulate an error in _remove_server."""
         monkeypatch.setattr(ipc_server, '_socketname', None)
@@ -176,6 +177,7 @@ class TestListen:
         with pytest.raises(ipc.ListenError):
             ipc_server.listen()
 
+    @pytest.mark.posix
     def test_in_use(self, qlocalserver, ipc_server, monkeypatch):
         monkeypatch.setattr('qutebrowser.misc.ipc.QLocalServer.removeServer',
                             lambda self: True)
@@ -287,7 +289,7 @@ def test_normal(qtbot, tmpdir, ipc_server, mocker, has_cwd):
     spy = QSignalSpy(ipc_server.got_args)
     error_spy = QSignalSpy(ipc_server.got_invalid_data)
 
-    with qtbot.waitSignal(ipc_server.got_args, raising=True):
+    with qtbot.waitSignal(ipc_server.got_args, raising=True, timeout=5000):
         with tmpdir.as_cwd():
             if not has_cwd:
                 m = mocker.patch('qutebrowser.misc.ipc.os')
