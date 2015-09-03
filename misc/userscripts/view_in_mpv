@@ -19,10 +19,20 @@
 #   downloaded) twice — in MPV and in qwebkit. So I often close the tab after
 #   opening it in mpv. However, I actually want to keep the rest of the page
 #   (comments and video suggestions), i.e. only the videos should disappear
-#   when mpv us started. And that's precisely what the present script does.
+#   when mpv is started. And that's precisely what the present script does.
 #
 # Thorsten Wißmann, 2015 (thorsten` on freenode)
 # Any feedback is welcome!
+
+if [ -z "$QUTE_FIFO" ] ; then
+    cat 1>&2 <<EOF
+Error: $0 can not be run as a standalone script.
+
+It is a qutebrowser userscript. In order to use it, call it using
+'spawn --userscript' as described in qute://help/userscripts.html
+EOF
+    exit 1
+fi
 
 msg() {
     local cmd="$1"
