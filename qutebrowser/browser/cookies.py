@@ -68,18 +68,26 @@ class CookieJar(RAMCookieJar):
         _lineparser: The LineParser managing the cookies file.
     """
 
-    def __init__(self, parent=None):
+    def __init__(self, parent=None, line_parser=None):
         super().__init__(parent)
-        self._lineparser = lineparser.LineParser(
-            standarddir.data(), 'cookies', binary=True, parent=self)
-        cookies = []
-        for line in self._lineparser:
-            cookies += QNetworkCookie.parseCookies(line)
-        self.setAllCookies(cookies)
+
+        if line_parser:
+            self._lineparser = line_parser
+        else:
+            self._lineparser = lineparser.LineParser(
+                standarddir.data(), 'cookies', binary=True, parent=self)
+        self.parse_cookies()
         objreg.get('config').changed.connect(self.cookies_store_changed)
         objreg.get('save-manager').add_saveable(
             'cookies', self.save, self.changed,
             config_opt=('content', 'cookies-store'))
+
+    def parse_cookies(self):
+        """Parse cookies from lineparser and store them."""
+        cookies = []
+        for line in self._lineparser:
+            cookies += QNetworkCookie.parseCookies(line)
+        self.setAllCookies(cookies)
 
     def purge_old_cookies(self):
         """Purge expired cookies from the cookie jar."""
