@@ -1219,11 +1219,11 @@ RETURN_KEYS = ['<Return>', '<Ctrl-M>', '<Ctrl-J>', '<Shift-Return>', '<Enter>',
 
 KEY_DATA = collections.OrderedDict([
     ('!normal', collections.OrderedDict([
-        ('leave-mode', ['<Escape>', '<Ctrl-[>']),
+        ('clear-keychain ;; leave-mode', ['<Escape>', '<Ctrl-[>']),
     ])),
 
     ('normal', collections.OrderedDict([
-        ('search ;; clear-keychain', ['<Escape>']),
+        ('clear-keychain ;; search', ['<Escape>']),
         ('set-cmd-text -s :open', ['o']),
         ('set-cmd-text :open {url}', ['go']),
         ('set-cmd-text -s :open -t', ['O']),
@@ -1425,8 +1425,8 @@ CHANGED_KEY_COMMANDS = [
     (re.compile(r'^download-page$'), r'download'),
     (re.compile(r'^cancel-download$'), r'download-cancel'),
 
-    (re.compile(r"""^search (''|"")$"""), r'search ;; clear-keychain'),
-    (re.compile(r'^search$'), r'search ;; clear-keychain'),
+    (re.compile(r"""^search (''|"")$"""), r'clear-keychain ;; search'),
+    (re.compile(r'^search$'), r'clear-keychain ;; search'),
 
     (re.compile(r"""^set-cmd-text ['"](.*) ['"]$"""), r'set-cmd-text -s \1'),
     (re.compile(r"""^set-cmd-text ['"](.*)['"]$"""), r'set-cmd-text \1'),
@@ -1439,4 +1439,7 @@ CHANGED_KEY_COMMANDS = [
     (re.compile(r'^scroll 0 -50$'), r'scroll up'),
     (re.compile(r'^scroll 50 0$'), r'scroll right'),
     (re.compile(r'^scroll ([-\d]+ [-\d]+)$'), r'scroll-px \1'),
+
+    (re.compile(r'^search *;; *clear-keychain$'), r'clear-keychain ;; search'),
+    (re.compile(r'^leave-mode$'), r'clear-keychain ;; leave-mode'),
 ]

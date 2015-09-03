@@ -195,9 +195,9 @@ class TestKeyConfigParser:
             ('download-page', 'download'),
             ('cancel-download', 'download-cancel'),
 
-            ('search ""', 'search ;; clear-keychain'),
-            ("search ''", 'search ;; clear-keychain'),
-            ("search", 'search ;; clear-keychain'),
+            ('search ""', 'clear-keychain ;; search'),
+            ("search ''", 'clear-keychain ;; search'),
+            ("search", 'clear-keychain ;; search'),
             ("search ;; foobar", None),
             ('search "foo"', None),
 
@@ -218,6 +218,12 @@ class TestKeyConfigParser:
             ('scroll 50 50', 'scroll-px 50 50'),
             ('scroll 0 0', 'scroll-px 0 0'),
             ('scroll 23 42', 'scroll-px 23 42'),
+
+            ('search ;; clear-keychain', 'clear-keychain ;; search'),
+            ('search;;clear-keychain', 'clear-keychain ;; search'),
+            ('search;;foo', None),
+            ('leave-mode', 'clear-keychain ;; leave-mode'),
+            ('leave-mode ;; foo', None),
         ]
     )
     def test_migrations(self, old, new_expected):
