@@ -59,15 +59,13 @@ def qlocalserver(qapp):
 
 
 @pytest.yield_fixture
-def qlocalsocket(qapp, qtbot):
+def qlocalsocket(qapp):
     socket = QLocalSocket()
     yield socket
     socket.disconnectFromServer()
     if socket.state() != QLocalSocket.UnconnectedState:
         disconnected = socket.waitForDisconnected(100)
         assert disconnected
-    with qtbot.waitSignal(socket.destroyed, raising=False):
-        socket.deleteLater()
 
 
 class FakeSocket(QObject):
