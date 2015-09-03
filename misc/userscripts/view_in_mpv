@@ -2,9 +2,9 @@
 #
 # Behaviour:
 #   Userscript for qutebrowser which views the current web page in mpv using
-#   sensible mpv-flags. While viewing the page in MPV, all <video> and <object>
-#   tags in the original page are temporarily removed. Clicking on such a
-#   removed video restores the respective video.
+#   sensible mpv-flags. While viewing the page in MPV, all <video>, <embed>,
+#   and <object> tags in the original page are temporarily removed. Clicking on
+#   such a removed video restores the respective video.
 #
 #   In order to use this script, just start it using `spawn --userscript` from
 #   qutebrowser. I recommend using an alias, e.g. put this in the
@@ -43,15 +43,34 @@ video_command=( "$MPV_COMMAND"  $MPV_FLAGS )
 js() {
 cat <<EOF
 
+    function descendantOfTagName(child, ancestorTagName) {
+        // tells whether child has some (proper) ancestor
+        // with the tag name ancestorTagName
+        while (child.parentNode != null) {
+            child = child.parentNode;
+            if (typeof child.tagName === 'undefined') break;
+            if (child.tagName.toUpperCase() == ancestorTagName.toUpperCase()) {
+                return true;
+            }
+        }
+        return false;
+    }
+
     var App = {};
 
     var all_videos = [];
     all_videos.push.apply(all_videos, document.getElementsByTagName("video"));
     all_videos.push.apply(all_videos, document.getElementsByTagName("object"));
+    all_videos.push.apply(all_videos, document.getElementsByTagName("embed"));
     App.backup_videos = Array();
     App.all_replacements = Array();
     for (i = 0; i < all_videos.length; i++) {
         var video = all_videos[i];
+        if (descendantOfTagName(video, "object")) {
+            // skip tags that are contained in an object, because we hide
+            // the object anyway.
+            continue;
+        }
         var replacement = document.createElement("div");
         replacement.innerHTML = "
             <p style=\\"margin-bottom: 0.5em\\">
@@ -62,6 +81,7 @@ cat <<EOF
             In order to restore this particular video
             <a style=\\"font-weight: bold;
                         color: white;
+                        background: transparent;
                      \\"
                onClick=\\"restore_video(this, " + i + ");\\"
                href=\\"javascript: restore_video(this, " + i + ")\\"
