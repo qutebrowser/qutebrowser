@@ -141,8 +141,8 @@ class IPCServer(QObject):
     def on_error(self, err):
         """Convenience method which calls _socket_error on an error."""
         if self._socket is None:
-            # Sometimes this gets called from stale sockets, especially in
-            # tests.
+            log.ipc.warn("In on_error with None socket!")
+            # Sometimes this gets called from stale sockets.
             return
         self._timer.stop()
         log.ipc.debug("Socket error {}: {}".format(
@@ -185,7 +185,9 @@ class IPCServer(QObject):
         """Clean up socket when the client disconnected."""
         log.ipc.debug("Client disconnected.")
         self._timer.stop()
-        if self._socket is not None:
+        if self._socket is None:
+            log.ipc.warn("In on_disconnected with None socket!")
+        else:
             self._socket.deleteLater()
             self._socket = None
         # Maybe another connection is waiting.
@@ -194,7 +196,7 @@ class IPCServer(QObject):
     @pyqtSlot()
     def on_ready_read(self):
         """Read json data from the client."""
-        if self._socket is None:  # pragma: no cover
+        if self._socket is None:
             # This happens when doing a connection while another one is already
             # active for some reason.
             log.ipc.warn("In on_ready_read with None socket!")
