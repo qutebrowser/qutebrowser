@@ -345,10 +345,13 @@ def send_or_listen(args):
         # This could be a race condition...
         log.init.debug("Got AddressInUseError, trying again.")
         time.sleep(0.5)
-        sent = send_to_running_instance(socketname, args.command)
-        if sent:
-            return None
-        else:
+        try:
+            sent = send_to_running_instance(socketname, args.command)
+            if sent:
+                return None
+            else:
+                raise e
+        except Error as e:
             display_error(e, args)
             raise
     except Error as e:
