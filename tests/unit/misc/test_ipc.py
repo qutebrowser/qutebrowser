@@ -283,6 +283,7 @@ def connected_socket(qtbot, qlocalsocket, ipc_server):
 
 
 @pytest.mark.parametrize('has_cwd', [True, False])
+@pytest.mark.posix   # Causes random trouble on Windows
 def test_normal(qtbot, tmpdir, ipc_server, mocker, has_cwd):
     ipc_server.listen()
     spy = QSignalSpy(ipc_server.got_args)
