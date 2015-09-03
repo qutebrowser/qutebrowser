@@ -141,8 +141,13 @@ class IPCServer(QObject):
     def on_error(self, err):
         """Convenience method which calls _socket_error on an error."""
         if self._socket is None:
-            log.ipc.warn("In on_error with None socket!")
             # Sometimes this gets called from stale sockets.
+            msg = "In on_error with None socket!"
+            if os.name == 'nt':
+                # This happens a lot on Windows, so we ignore it there.
+                log.ipc.debug(msg)
+            else:
+                log.ipc.warn(msg)
             return
         self._timer.stop()
         log.ipc.debug("Socket error {}: {}".format(
