@@ -64,8 +64,7 @@ def qlocalsocket(qapp):
     yield socket
     socket.disconnectFromServer()
     if socket.state() != QLocalSocket.UnconnectedState:
-        disconnected = socket.waitForDisconnected(1000)
-        assert disconnected
+        socket.waitForDisconnected(1000)
 
 
 class FakeSocket(QObject):
