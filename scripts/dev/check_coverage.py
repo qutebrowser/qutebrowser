@@ -37,6 +37,7 @@ PERFECT_FILES = [
     'qutebrowser/commands/cmdutils.py',
     'qutebrowser/commands/argparser.py',
 
+    'qutebrowser/browser/cookies.py',
     'qutebrowser/browser/tabhistory.py',
     'qutebrowser/browser/http.py',
     'qutebrowser/browser/rfc6266.py',

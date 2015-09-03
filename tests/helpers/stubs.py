@@ -324,11 +324,6 @@ class ConfigStub(QObject):
     def __getitem__(self, name):
         return self.section(name)
 
-    def __setattr__(self, name, value):
-        if name == 'data':
-            self.changed.emit('', '')
-        super().__setattr__(name, value)
-
     def section(self, name):
         """Get a section from the config.
 
@@ -345,6 +340,15 @@ class ConfigStub(QObject):
         data = self.data[sect]
         try:
             return data[opt]
+        except KeyError:
+            raise configexc.NoOptionError(opt, sect)
+
+    def set(self, sect, opt, value):
+        """Set a value in the config."""
+        data = self.data[sect]
+        try:
+            data[opt] = value
+            self.changed.emit(sect, opt)
         except KeyError:
             raise configexc.NoOptionError(opt, sect)
 

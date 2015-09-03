@@ -33,7 +33,6 @@ from qutebrowser.misc import lineparser
 CONFIG_ALL_COOKIES = {'content': {'cookies-accept': 'all'}}
 CONFIG_NEVER_COOKIES = {'content': {'cookies-accept': 'never'}}
 CONFIG_COOKIES_ENABLED = {'content': {'cookies-store': True}}
-CONFIG_COOKIES_DISABLED = {'content': {'cookies-store': False}}
 
 
 cookie1 = b'foo1=bar; expires=Tue, 01-Jan-2036 08:00:01 GMT'
@@ -61,8 +60,6 @@ def fake_save_manager():
     objreg.register('save-manager', fake_save_manager)
     yield
     objreg.delete('save-manager')
-
-"""Tests for RAMCookieJar."""
 
 
 def test_set_cookies_accept(config_stub, qtbot, monkeypatch):
@@ -110,7 +107,10 @@ def test_purge_old_cookies(config_stub, fake_save_manager):
     jar = cookies.CookieJar(line_parser=line_parser_stub)
 
     assert len(jar.allCookies()) == 4
+
     jar.purge_old_cookies()
+
+    # Test that old cookies are gone
     assert len(jar.allCookies()) == 3
     assert jar.allCookies()[0].toRawForm().data() == cookie1
     assert jar.allCookies()[1].toRawForm().data() == cookie2
@@ -125,7 +125,7 @@ def test_save(config_stub, fake_save_manager, monkeypatch):
     jar = cookies.CookieJar()
     jar._lineparser.data = [cookie1, cookie2, session_cookie, expired_cookie]
 
-    # update the cookies on the jar itself
+    # Update the cookies on the jar itself
     jar.parse_cookies()
     jar.save()
     assert len(jar._lineparser.saved) == 2
@@ -139,10 +139,11 @@ def test_cookies_changed(config_stub, fake_save_manager, monkeypatch, qtbot):
     monkeypatch.setattr(lineparser,
                         'LineParser', LineparserSaveStub)
     jar = cookies.CookieJar()
+    jar._lineparser.data = [cookie1, cookie2]
 
-    # Test that signal is emitted
+    # Test that cookies are not saved
     with qtbot.waitSignal(jar.changed, raising=True):
-        config_stub.data == CONFIG_COOKIES_DISABLED
+        config_stub.set('content', 'cookies-store', False)
 
-    # test that cookies aren't saved
+    # Test that cookies are not saved
     assert len(jar._lineparser.saved) == 0
