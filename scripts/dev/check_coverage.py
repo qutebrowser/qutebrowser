@@ -56,6 +56,7 @@ PERFECT_FILES = [
     'qutebrowser/misc/guiprocess.py',
     'qutebrowser/misc/editor.py',
     'qutebrowser/misc/cmdhistory.py',
+    'qutebrowser/misc/ipc.py',
 
     'qutebrowser/mainwindow/statusbar/keystring.py',
     'qutebrowser/mainwindow/statusbar/percentage.py',

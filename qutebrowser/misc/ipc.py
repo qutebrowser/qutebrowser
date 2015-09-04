@@ -143,7 +143,7 @@ class IPCServer(QObject):
         if self._socket is None:
             # Sometimes this gets called from stale sockets.
             msg = "In on_error with None socket!"
-            if os.name == 'nt':
+            if os.name == 'nt':  # pragma: no coverage
                 # This happens a lot on Windows, so we ignore it there.
                 log.ipc.debug(msg)
             else:
