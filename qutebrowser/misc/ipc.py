@@ -354,27 +354,24 @@ def send_or_listen(args):
     """
     socketname = _get_socketname(args.basedir)
     try:
-        sent = send_to_running_instance(socketname, args.command)
-        if sent:
-            return None
-        log.init.debug("Starting IPC server...")
-        server = IPCServer(_get_socketname(args.basedir))
-        server.listen()
-        objreg.register('ipc-server', server)
-        return server
-    except AddressInUseError as e:
-        # This could be a race condition...
-        log.init.debug("Got AddressInUseError, trying again.")
-        time.sleep(0.5)
         try:
             sent = send_to_running_instance(socketname, args.command)
             if sent:
                 return None
+            log.init.debug("Starting IPC server...")
+            server = IPCServer(_get_socketname(args.basedir))
+            server.listen()
+            objreg.register('ipc-server', server)
+            return server
+        except AddressInUseError as e:
+            # This could be a race condition...
+            log.init.debug("Got AddressInUseError, trying again.")
+            time.sleep(0.5)
+            sent = send_to_running_instance(socketname, args.command)
+            if sent:
+                return None
             else:
-                raise e
-        except Error as e:
-            display_error(e, args)
-            raise
+                raise
     except Error as e:
         display_error(e, args)
         raise
