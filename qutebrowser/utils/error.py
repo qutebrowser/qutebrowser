@@ -21,7 +21,18 @@
 
 from PyQt5.QtWidgets import QMessageBox
 
-from qutebrowser.utils import log
+from qutebrowser.utils import log, utils
+
+
+def _get_name(exc):
+    """Get a suitable exception name as a string."""
+    prefixes = ['qutebrowser', 'builtins']
+    name = utils.qualname(exc.__class__)
+    for prefix in prefixes:
+        if name.startswith(prefix):
+            name = name[len(prefix) + 1:]
+            break
+    return name
 
 
 def handle_fatal_exc(exc, args, title, *, pre_text='', post_text=''):
@@ -39,10 +50,11 @@ def handle_fatal_exc(exc, args, title, *, pre_text='', post_text=''):
     """
     if args.no_err_windows:
         log.misc.exception("Handling fatal {} with --no-err-windows!".format(
-            exc.__class__.__name__))
+            _get_name(exc)))
         log.misc.error("title: {}".format(title))
         log.misc.error("pre_text: {}".format(pre_text))
         log.misc.error("post_text: {}".format(post_text))
+        log.misc.error("exception text: {}".format(str(exc) or 'none'))
     else:
         if pre_text:
             msg_text = '{}: {}'.format(pre_text, exc)

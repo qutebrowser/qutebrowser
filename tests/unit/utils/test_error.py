@@ -25,6 +25,7 @@ import logging
 import pytest
 
 from qutebrowser.utils import error
+from qutebrowser.misc import ipc
 
 from PyQt5.QtCore import pyqtSlot, QTimer
 from PyQt5.QtWidgets import QMessageBox
@@ -33,19 +34,36 @@ from PyQt5.QtWidgets import QMessageBox
 Args = collections.namedtuple('Args', 'no_err_windows')
 
 
-def test_no_err_windows(caplog):
-    """Test handle_fatal_exc uwith no_err_windows = True."""
+class TestError(Exception):
+
+    pass
+
+
+@pytest.mark.parametrize('exc, name, exc_text', [
+    # "builtins." stripped
+    (ValueError('exception'), 'ValueError', 'exception'),
+    (ValueError, 'ValueError', 'none'),
+    # "qutebrowser." stripped
+    (ipc.Error, 'misc.ipc.Error', 'none'),
+    (TestError, 'test_error.TestError', 'none'),
+])
+def test_no_err_windows(caplog, exc, name, exc_text):
+    """Test handle_fatal_exc with no_err_windows = True."""
     try:
-        raise ValueError("exception")
-    except ValueError as e:
+        raise exc
+    except Exception as e:
         with caplog.atLevel(logging.ERROR):
             error.handle_fatal_exc(e, Args(no_err_windows=True), 'title',
                                    pre_text='pre', post_text='post')
     msgs = [rec.message for rec in caplog.records()]
-    assert msgs[0] == 'Handling fatal ValueError with --no-err-windows!'
-    assert msgs[1] == 'title: title'
-    assert msgs[2] == 'pre_text: pre'
-    assert msgs[3] == 'post_text: post'
+    expected = [
+        'Handling fatal {} with --no-err-windows!'.format(name),
+        'title: title',
+        'pre_text: pre',
+        'post_text: post',
+        'exception text: {}'.format(exc_text),
+    ]
+    assert msgs[-5:] == expected
 
 
 @pytest.mark.parametrize('pre_text, post_text, expected', [

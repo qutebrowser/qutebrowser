@@ -470,6 +470,7 @@ class TestSendOrListen:
     @pytest.fixture
     def qlocalsocket_mock(self, mocker):
         m = mocker.patch('qutebrowser.misc.ipc.QLocalSocket', autospec=True)
+        m().errorString.return_value = "Error string"
         for attr in ['UnknownSocketError', 'UnconnectedState',
                      'ConnectionRefusedError', 'ServerNotFoundError',
                      'PeerClosedError']:
@@ -517,12 +518,15 @@ class TestSendOrListen:
         msgs = [e.message for e in caplog.records()]
         assert "Got AddressInUseError, trying again." in msgs
 
-    @pytest.mark.parametrize('has_error, excname', [
-        (True, 'SocketError'),
-        (False, 'AddressInUseError')
+    @pytest.mark.parametrize('has_error, exc_name, exc_msg', [
+        (True, 'SocketError',
+            'Error while writing to running instance: Error string (error 0)'),
+        (False, 'AddressInUseError',
+            'Error while listening to IPC server: Error string (error 8)'),
     ])
     def test_address_in_use_error(self, qlocalserver_mock, qlocalsocket_mock,
-                                  stubs, caplog, args, has_error, excname):
+                                  stubs, caplog, args, has_error, exc_name,
+                                  exc_msg):
         """Test the following scenario:
 
         - First call to send_to_running_instance:
@@ -552,12 +556,14 @@ class TestSendOrListen:
 
         msgs = [e.message for e in caplog.records()]
         error_msgs = [
-            'Handling fatal {} with --no-err-windows!'.format(excname),
+            'Handling fatal misc.ipc.{} with --no-err-windows!'.format(
+                exc_name),
             'title: Error while connecting to running instance!',
             'pre_text: ',
             'post_text: Maybe another instance is running but frozen?',
+            'exception text: {}'.format(exc_msg),
         ]
-        assert msgs[-4:] == error_msgs
+        assert msgs[-5:] == error_msgs
 
     def test_listen_error(self, qlocalserver_mock, caplog, args):
         """Test an error with the first listen call."""
@@ -571,9 +577,11 @@ class TestSendOrListen:
 
         msgs = [e.message for e in caplog.records()]
         error_msgs = [
-            'Handling fatal ListenError with --no-err-windows!',
+            'Handling fatal misc.ipc.ListenError with --no-err-windows!',
             'title: Error while connecting to running instance!',
             'pre_text: ',
             'post_text: Maybe another instance is running but frozen?',
+            'exception text: Error while listening to IPC server: Error '
+                'string (error 4)',
         ]
-        assert msgs[-4:] == error_msgs
+        assert msgs[-5:] == error_msgs
