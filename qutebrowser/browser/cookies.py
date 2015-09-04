@@ -68,7 +68,7 @@ class CookieJar(RAMCookieJar):
         _lineparser: The LineParser managing the cookies file.
     """
 
-    def __init__(self, parent=None, line_parser=None):
+    def __init__(self, parent=None, *, line_parser=None):
         super().__init__(parent)
 
         if line_parser:
