@@ -169,10 +169,9 @@ def test_get_socketname_no_user():
     assert ipc._get_socketname(None).startswith('qutebrowser-')
 
 
-class TestListen:
+class TestExceptions:
 
-    def test_listen_error_exc(self, qlocalserver):
-        """Tet the ListenError exception."""
+    def test_listen_error(self, qlocalserver):
         qlocalserver.listen(None)
         exc = ipc.ListenError(qlocalserver)
         assert exc.code == 2
@@ -180,6 +179,22 @@ class TestListen:
         msg = ("Error while listening to IPC server: QLocalServer::listen: "
                "Name error (error 2)")
         assert str(exc) == msg
+
+        with pytest.raises(ipc.Error):
+            raise exc
+
+    def test_socket_error(self, qlocalserver):
+        socket = FakeSocket(error=QLocalSocket.ConnectionRefusedError)
+        exc = ipc.SocketError("testing", socket)
+        assert exc.code == QLocalSocket.ConnectionRefusedError
+        assert exc.message == "Error string"
+        assert str(exc) == "Error while testing: Error string (error 0)"
+
+        with pytest.raises(ipc.Error):
+            raise exc
+
+
+class TestListen:
 
     @pytest.mark.posix
     def test_remove_error(self, ipc_server, monkeypatch):
@@ -503,7 +518,7 @@ class TestSendOrListen:
         assert "Got AddressInUseError, trying again." in msgs
 
     @pytest.mark.parametrize('has_error, excname', [
-        (True, 'Error'),
+        (True, 'SocketError'),
         (False, 'AddressInUseError')
     ])
     def test_address_in_use_error(self, qlocalserver_mock, qlocalsocket_mock,

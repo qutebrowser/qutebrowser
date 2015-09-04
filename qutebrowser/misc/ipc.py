@@ -50,7 +50,34 @@ def _get_socketname(basedir, user=None):
 
 class Error(Exception):
 
-    """Exception raised when there was a problem with IPC."""
+    """Base class for IPC exceptions."""
+
+
+class SocketError(Error):
+
+    """Exception raised when there was an error with a QLocalSocket.
+
+    Args:
+        code: The error code.
+        message: The error message.
+        action: The action which was taken when the error happened.
+    """
+
+    def __init__(self, action, socket):
+        """Constructor.
+
+        Args:
+            action: The action which was taken when the error happened.
+            socket: The QLocalSocket which has the error set.
+        """
+        super().__init__()
+        self.action = action
+        self.code = socket.error()
+        self.message = socket.errorString()
+
+    def __str__(self):
+        return "Error while {}: {} (error {})".format(
+            self.action, self.message, self.code)
 
 
 class ListenError(Error):
@@ -139,7 +166,7 @@ class IPCServer(QObject):
 
     @pyqtSlot(int)
     def on_error(self, err):
-        """Convenience method which calls _socket_error on an error."""
+        """Raise SocketError on fatal errors."""
         if self._socket is None:
             # Sometimes this gets called from stale sockets.
             msg = "In on_error with None socket!"
@@ -153,7 +180,7 @@ class IPCServer(QObject):
         log.ipc.debug("Socket error {}: {}".format(
             self._socket.error(), self._socket.errorString()))
         if err != QLocalSocket.PeerClosedError:
-            _socket_error("handling IPC connection", self._socket)
+            raise SocketError("handling IPC connection", self._socket)
 
     @pyqtSlot()
     def handle_connection(self):
@@ -259,17 +286,6 @@ class IPCServer(QObject):
         self._remove_server()
 
 
-def _socket_error(action, socket):
-    """Raise an Error based on an action and a QLocalSocket.
-
-    Args:
-        action: A string like "writing to running instance".
-        socket: A QLocalSocket.
-    """
-    raise Error("Error while {}: {} (error {})".format(
-        action, socket.errorString(), socket.error()))
-
-
 def send_to_running_instance(socketname, command, *, socket=None):
     """Try to send a commandline to a running instance.
 
@@ -303,7 +319,7 @@ def send_to_running_instance(socketname, command, *, socket=None):
         socket.writeData(data)
         socket.waitForBytesWritten(WRITE_TIMEOUT)
         if socket.error() != QLocalSocket.UnknownSocketError:
-            _socket_error("writing to running instance", socket)
+            raise SocketError("writing to running instance", socket)
         else:
             socket.disconnectFromServer()
             if socket.state() != QLocalSocket.UnconnectedState:
@@ -312,7 +328,7 @@ def send_to_running_instance(socketname, command, *, socket=None):
     else:
         if socket.error() not in (QLocalSocket.ConnectionRefusedError,
                                   QLocalSocket.ServerNotFoundError):
-            _socket_error("connecting to running instance", socket)
+            raise SocketError("connecting to running instance", socket)
         else:
             log.ipc.debug("No existing instance present (error {})".format(
                 socket.error()))
