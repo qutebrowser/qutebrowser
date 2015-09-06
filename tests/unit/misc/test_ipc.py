@@ -70,6 +70,12 @@ def qlocalsocket(qapp):
         socket.waitForDisconnected(1000)
 
 
+@pytest.fixture(autouse=True)
+def fake_runtime_dir(monkeypatch, tmpdir):
+    monkeypatch.setenv('XDG_RUNTIME_DIR', str(tmpdir))
+    return str(tmpdir)
+
+
 class FakeSocket(QObject):
 
     """A stub for a QLocalSocket.
@@ -159,16 +165,21 @@ def test_getpass_getuser():
     assert getpass.getuser()
 
 
-@pytest.mark.parametrize('username, basedir, expected', [
-    ('florian', None, 'qutebrowser-florian'),
-    ('florian', '/x', 'qutebrowser-florian-cc8755609ad61864910f145119713de9'),
+@pytest.mark.parametrize('username, basedir, legacy, expected', [
+    ('florian', None, True, 'qutebrowser-florian'),
+    ('florian', '/x', True,
+        'qutebrowser-florian-cc8755609ad61864910f145119713de9'),
+    (None, None, True, 'qutebrowser-{}'.format(getpass.getuser())),
+
+    ('florian', None, False, '/runtimedir/qutebrowser-ipc'),
+    ('florian', '/x', False,
+        '/runtimedir/qutebrowser-ipc-cc8755609ad61864910f145119713de9'),
+    (None, None, False, '/runtimedir/qutebrowser-ipc'),
 ])
-def test_get_socketname(username, basedir, expected):
-    assert ipc._get_socketname(basedir, user=username) == expected
-
-
-def test_get_socketname_no_user():
-    assert ipc._get_socketname(None).startswith('qutebrowser-')
+def test_get_socketname(username, basedir, legacy, expected):
+    socketname = ipc._get_socketname(basedir, '/runtimedir', legacy=legacy,
+                                     user=username)
+    assert socketname == expected
 
 
 class TestExceptions:
@@ -622,3 +633,15 @@ class TestSendOrListen:
                 'string (error 4)',
         ]
         assert msgs[-5:] == error_msgs
+
+
+def test_long_username(fake_runtime_dir):
+    """See https://github.com/The-Compiler/qutebrowser/issues/888."""
+    name = ipc._get_socketname(basedir='/foo',
+                               runtime_dir=fake_runtime_dir,
+                               user='alexandercogneau')
+    server = ipc.IPCServer(name)
+    try:
+        server.listen()
+    finally:
+        server.shutdown()

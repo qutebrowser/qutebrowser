@@ -30,7 +30,7 @@ from PyQt5.QtCore import pyqtSignal, pyqtSlot, QObject
 from PyQt5.QtNetwork import QLocalSocket, QLocalServer, QAbstractSocket
 
 import qutebrowser
-from qutebrowser.utils import log, usertypes, error, objreg
+from qutebrowser.utils import log, usertypes, error, objreg, standarddir
 
 
 CONNECT_TIMEOUT = 100
@@ -39,15 +39,28 @@ READ_TIMEOUT = 5000
 PROTOCOL_VERSION = 1
 
 
-def _get_socketname(basedir, user=None):
+def _get_socketname(basedir, runtime_dir, legacy=True, user=None):
     """Get a socketname to use."""
     if user is None:
         user = getpass.getuser()
-    parts = ['qutebrowser', user]
-    if basedir is not None:
+
+    if basedir is None:
+        basedir_md5 = None
+    else:
         md5 = hashlib.md5(basedir.encode('utf-8'))
-        parts.append(md5.hexdigest())
-    return '-'.join(parts)
+        basedir_md5 = md5.hexdigest()
+
+    if legacy or os.name == 'nt':
+        parts = ['qutebrowser', user]
+        if basedir_md5 is not None:
+            parts.append(basedir_md5)
+        return '-'.join(parts)
+    else:
+        parts = ['qutebrowser-ipc']
+        if basedir_md5 is not None:
+            parts.append(basedir_md5)
+        return os.path.join(runtime_dir, '-'.join(parts))
+
 
 
 class Error(Exception):
@@ -374,14 +387,14 @@ def send_or_listen(args):
         The IPCServer instance if no running instance was detected.
         None if an instance was running and received our request.
     """
-    socketname = _get_socketname(args.basedir)
+    socketname = _get_socketname(args.basedir, standarddir.runtime())
     try:
         try:
             sent = send_to_running_instance(socketname, args.command)
             if sent:
                 return None
             log.init.debug("Starting IPC server...")
-            server = IPCServer(_get_socketname(args.basedir))
+            server = IPCServer(socketname)
             server.listen()
             objreg.register('ipc-server', server)
             return server
