@@ -34,7 +34,7 @@ from PyQt5.QtWidgets import QMessageBox
 Args = collections.namedtuple('Args', 'no_err_windows')
 
 
-class TestError(Exception):
+class Error(Exception):
 
     pass
 
@@ -45,7 +45,7 @@ class TestError(Exception):
     (ValueError, 'ValueError', 'none'),
     # "qutebrowser." stripped
     (ipc.Error, 'misc.ipc.Error', 'none'),
-    (TestError, 'test_error.TestError', 'none'),
+    (Error, 'test_error.Error', 'none'),
 ])
 def test_no_err_windows(caplog, exc, name, exc_text):
     """Test handle_fatal_exc with no_err_windows = True."""
