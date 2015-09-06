@@ -296,7 +296,9 @@ class TestHandleConnection:
         assert msg in all_msgs
 
     def test_read_line_immediately(self, qtbot, ipc_server, caplog):
-        socket = FakeSocket(data=b'{"args": ["foo"]}\n')
+        data = '{{"args": ["foo"], "protocol_version": {}}}\n'.format(
+            ipc.PROTOCOL_VERSION)
+        socket = FakeSocket(data=data.encode('utf-8'))
 
         ipc_server._server = FakeServer(socket)
 
@@ -333,28 +335,47 @@ def test_partial_line(connected_socket):
     connected_socket.write(b'foo')
 
 
-@pytest.mark.parametrize('data', [
-    b'\x80\n', # invalid UTF8
-    b'\n',
-    b'{"is this invalid json?": true\n',
-    b'{"valid json without args": true}\n',
+OLD_VERSION = str(ipc.PROTOCOL_VERSION - 1).encode('utf-8')
+NEW_VERSION = str(ipc.PROTOCOL_VERSION + 1).encode('utf-8')
+
+
+@pytest.mark.parametrize('data, msg', [
+    (b'\x80\n', 'invalid utf-8'),
+    (b'\n', 'invalid json'),
+    (b'{"is this invalid json?": true\n', 'invalid json'),
+    (b'{"valid json without args": true}\n', 'no args'),
+    (b'{"args": [], "protocol_version": ' + OLD_VERSION + b'}\n',
+        'incompatible version'),
+    (b'{"args": [], "protocol_version": ' + NEW_VERSION + b'}\n',
+        'incompatible version'),
+    (b'{"args": [], "protocol_version": "foo"}\n', 'invalid version'),
+    (b'{"args": []}\n', 'invalid version'),
 ])
-def test_invalid_data(qtbot, ipc_server, connected_socket, caplog, data):
+def test_invalid_data(qtbot, ipc_server, connected_socket, caplog, data, msg):
+    got_args_spy = QSignalSpy(ipc_server.got_args)
+
     signals = [ipc_server.got_invalid_data, connected_socket.disconnected]
     with caplog.atLevel(logging.ERROR):
         with qtbot.waitSignals(signals, raising=True):
             connected_socket.write(data)
+
     messages = [r.message for r in caplog.records()]
     assert messages[-1] == 'Ignoring invalid IPC data.'
+    assert messages[-2].startswith(msg)
+    assert not got_args_spy
 
 
 def test_multiline(qtbot, ipc_server, connected_socket):
     spy = QSignalSpy(ipc_server.got_args)
     error_spy = QSignalSpy(ipc_server.got_invalid_data)
 
+    data = ('{{"args": ["one"], "protocol_version": {version}}}\n'
+            '{{"args": ["two"], "protocol_version": {version}}}\n'.format(
+                version=ipc.PROTOCOL_VERSION))
+
     with qtbot.waitSignals([ipc_server.got_args, ipc_server.got_args],
                            raising=True):
-        connected_socket.write(b'{"args": ["one"]}\n{"args": ["two"]}\n')
+        connected_socket.write(data.encode('utf-8'))
 
     assert len(spy) == 2
     assert not error_spy
@@ -396,7 +417,8 @@ class TestSendToRunningInstance:
 
         assert len(raw_spy) == 1
         assert len(raw_spy[0]) == 1
-        raw_expected = {'args': ['foo'], 'version': qutebrowser.__version__}
+        raw_expected = {'args': ['foo'], 'version': qutebrowser.__version__,
+                        'protocol_version': ipc.PROTOCOL_VERSION}
         if has_cwd:
             raw_expected['cwd'] = str(tmpdir)
         parsed = json.loads(raw_spy[0][0].decode('utf-8'))

@@ -36,6 +36,7 @@ from qutebrowser.utils import log, usertypes, error, objreg
 CONNECT_TIMEOUT = 100
 WRITE_TIMEOUT = 1000
 READ_TIMEOUT = 5000
+PROTOCOL_VERSION = 1
 
 
 def _get_socketname(basedir, user=None):
@@ -228,6 +229,13 @@ class IPCServer(QObject):
         # Maybe another connection is waiting.
         self.handle_connection()
 
+    def _handle_invalid_data(self):
+        """Handle invalid data we got from a QLocalSocket."""
+        log.ipc.error("Ignoring invalid IPC data.")
+        self.got_invalid_data.emit()
+        self._socket.error.connect(self.on_error)
+        self._socket.disconnectFromServer()
+
     @pyqtSlot()
     def on_ready_read(self):
         """Read json data from the client."""
@@ -241,35 +249,44 @@ class IPCServer(QObject):
             data = bytes(self._socket.readLine())
             self.got_raw.emit(data)
             log.ipc.debug("Read from socket: {}".format(data))
+
             try:
                 decoded = data.decode('utf-8')
             except UnicodeDecodeError:
-                log.ipc.error("Ignoring invalid IPC data.")
-                log.ipc.debug("invalid data: {}".format(
+                log.ipc.error("invalid utf-8: {}".format(
                     binascii.hexlify(data)))
-                self.got_invalid_data.emit()
-                self._socket.error.connect(self.on_error)
-                self._socket.disconnectFromServer()
+                self._handle_invalid_data()
                 return
+
             log.ipc.debug("Processing: {}".format(decoded))
             try:
                 json_data = json.loads(decoded)
             except ValueError:
-                log.ipc.error("Ignoring invalid IPC data.")
-                log.ipc.debug("invalid json: {}".format(decoded.strip()))
-                self.got_invalid_data.emit()
-                self._socket.error.connect(self.on_error)
-                self._socket.disconnectFromServer()
+                log.ipc.error("invalid json: {}".format(decoded.strip()))
+                self._handle_invalid_data()
                 return
+
             try:
                 args = json_data['args']
             except KeyError:
-                log.ipc.error("Ignoring invalid IPC data.")
-                log.ipc.debug("no args: {}".format(decoded.strip()))
-                self.got_invalid_data.emit()
-                self._socket.error.connect(self.on_error)
-                self._socket.disconnectFromServer()
+                log.ipc.error("no args: {}".format(decoded.strip()))
+                self._handle_invalid_data()
                 return
+
+            try:
+                protocol_version = int(json_data['protocol_version'])
+            except (KeyError, ValueError):
+                log.ipc.error("invalid version: {}".format(decoded.strip()))
+                self._handle_invalid_data()
+                return
+
+            if protocol_version != PROTOCOL_VERSION:
+                log.ipc.error("incompatible version: expected {}, "
+                              "got {}".format(
+                                  PROTOCOL_VERSION, protocol_version))
+                self._handle_invalid_data()
+                return
+
             cwd = json_data.get('cwd', None)
             self.got_args.emit(args, cwd)
 
@@ -310,7 +327,8 @@ def send_to_running_instance(socketname, command, *, socket=None):
     connected = socket.waitForConnected(100)
     if connected:
         log.ipc.info("Opening in existing instance")
-        json_data = {'args': command, 'version': qutebrowser.__version__}
+        json_data = {'args': command, 'version': qutebrowser.__version__,
+                     'protocol_version': PROTOCOL_VERSION}
         try:
             cwd = os.getcwd()
         except OSError:
