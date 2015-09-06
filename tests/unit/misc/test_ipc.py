@@ -477,6 +477,7 @@ class TestSendOrListen:
             setattr(m, attr, getattr(QLocalSocket, attr))
         return m
 
+    @pytest.mark.posix   # Flaky on Windows
     def test_normal_connection(self, caplog, qtbot, args):
         ret_server = ipc.send_or_listen(args)
         assert isinstance(ret_server, ipc.IPCServer)
@@ -565,7 +566,8 @@ class TestSendOrListen:
         ]
         assert msgs[-5:] == error_msgs
 
-    def test_listen_error(self, qlocalserver_mock, caplog, args):
+    @pytest.mark.posix   # Flaky on Windows
+    def test_error_while_listening(self, qlocalserver_mock, caplog, args):
         """Test an error with the first listen call."""
         qlocalserver_mock().listen.return_value = False
         err = QAbstractSocket.SocketResourceError
