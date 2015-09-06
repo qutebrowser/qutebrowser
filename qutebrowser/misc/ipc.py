@@ -29,6 +29,7 @@ import hashlib
 from PyQt5.QtCore import pyqtSignal, pyqtSlot, QObject
 from PyQt5.QtNetwork import QLocalSocket, QLocalServer, QAbstractSocket
 
+import qutebrowser
 from qutebrowser.utils import log, usertypes, error, objreg
 
 
@@ -306,7 +307,7 @@ def send_to_running_instance(socketname, command, *, socket=None):
     connected = socket.waitForConnected(100)
     if connected:
         log.ipc.info("Opening in existing instance")
-        json_data = {'args': command}
+        json_data = {'args': command, 'version': qutebrowser.__version__}
         try:
             cwd = os.getcwd()
         except OSError:
