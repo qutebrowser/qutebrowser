@@ -50,9 +50,9 @@ class LineparserSaveStub(lineparser.BaseLineParser):
     """
 
     def __init__(self, configdir, fname, *, binary=False, parent=None):
+        super().__init__(configdir, fname, binary=binary, parent=parent)
         self.saved = []
         self.data = []
-        return super().__init__(configdir, fname, binary=binary, parent=parent)
 
     def save(self):
         self.saved = self.data
