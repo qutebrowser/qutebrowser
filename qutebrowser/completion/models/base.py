@@ -88,16 +88,15 @@ class BaseCompletionModel(QStandardItemModel):
         assert not isinstance(name, int)
         assert not isinstance(desc, int)
         assert not isinstance(misc, int)
+
         nameitem = QStandardItem(name)
         descitem = QStandardItem(desc)
         if misc is None:
             miscitem = QStandardItem()
         else:
             miscitem = QStandardItem(misc)
-        idx = cat.rowCount()
-        cat.setChild(idx, 0, nameitem)
-        cat.setChild(idx, 1, descitem)
-        cat.setChild(idx, 2, miscitem)
+
+        cat.appendRow([nameitem, descitem, miscitem])
         if sort is not None:
             nameitem.setData(sort, Role.sort)
         if userdata is not None:
