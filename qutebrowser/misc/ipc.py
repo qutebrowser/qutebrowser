@@ -124,10 +124,12 @@ class IPCServer(QObject):
     Signals:
         got_args: Emitted when there was an IPC connection and arguments were
                   passed.
+        got_args: Emitted with the raw data an IPC connection got.
         got_invalid_data: Emitted when there was invalid incoming data.
     """
 
     got_args = pyqtSignal(list, str)
+    got_raw = pyqtSignal(bytes)
     got_invalid_data = pyqtSignal()
 
     def __init__(self, socketname, parent=None):
@@ -237,6 +239,7 @@ class IPCServer(QObject):
         self._timer.start()
         while self._socket is not None and self._socket.canReadLine():
             data = bytes(self._socket.readLine())
+            self.got_raw.emit(data)
             log.ipc.debug("Read from socket: {}".format(data))
             try:
                 decoded = data.decode('utf-8')

@@ -22,6 +22,7 @@
 import getpass
 import collections
 import logging
+import json
 from unittest import mock
 
 import pytest
@@ -29,6 +30,7 @@ from PyQt5.QtCore import pyqtSignal, QObject
 from PyQt5.QtNetwork import QLocalServer, QLocalSocket, QAbstractSocket
 from PyQt5.QtTest import QSignalSpy
 
+import qutebrowser
 from qutebrowser.misc import ipc
 from qutebrowser.utils import objreg
 from helpers import stubs  # pylint: disable=import-error
@@ -373,6 +375,7 @@ class TestSendToRunningInstance:
     def test_normal(self, qtbot, tmpdir, ipc_server, mocker, has_cwd):
         ipc_server.listen()
         spy = QSignalSpy(ipc_server.got_args)
+        raw_spy = QSignalSpy(ipc_server.got_raw)
         error_spy = QSignalSpy(ipc_server.got_invalid_data)
 
         with qtbot.waitSignal(ipc_server.got_args, raising=True, timeout=5000):
@@ -384,10 +387,20 @@ class TestSendToRunningInstance:
                                                     ['foo'])
 
         assert sent
-        assert len(spy) == 1
+
         assert not error_spy
         expected_cwd = str(tmpdir) if has_cwd else ''
+
+        assert len(spy) == 1
         assert spy[0] == [['foo'], expected_cwd]
+
+        assert len(raw_spy) == 1
+        assert len(raw_spy[0]) == 1
+        raw_expected = {'args': ['foo'], 'version': qutebrowser.__version__}
+        if has_cwd:
+            raw_expected['cwd'] = str(tmpdir)
+        parsed = json.loads(raw_spy[0][0].decode('utf-8'))
+        assert parsed == raw_expected
 
     def test_socket_error(self):
         socket = FakeSocket(error=QLocalSocket.ConnectionError)
