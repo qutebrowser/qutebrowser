@@ -53,10 +53,21 @@ Changed
   QtWebEngine if it's installed.
 - The column width percentages for the completion view now depend on the
   completion model.
+- The values for `tabs -> position` and `ui -> downloads-position` got changed
+  from `north`/`south`/`west/`east` to `top`/`bottom`/`left`/`right`. Existing
+  configs should be adjusted automatically.
+- `:nagivate increment`/`<Ctrl-A>` now only increments numbers in the path part
+  of the URL.
+- `:tab-focus`/`gt` now behaves like `:tab-next` if no count/index is given.
+- The completion widget doesn't show a border anymore.
+- The tabbar doesn't display ugly arrows anymore if there isn't enough space
+  for all tabs.
 
 Fixed
 ~~~~~
 
+- Fixed a bug where cookies were saved despite qutebrowser being started in
+  private browsing mode.
 - `link_pyqt.py` now should work better on untested distributions.
 - Fixed various corner-cases with crashes when reading invalid config values
   and the history file.
@@ -67,6 +78,14 @@ Fixed
 - Downloads with unknown size are now handled correctly.
 - `:navigate increment/decrement` (`<Ctrl-A>`/`<Ctrl-X>`) now handles some
   corner-cases better.
+- Fixed a bug where the completion got affected by another window's completion
+  if it was open in both windows.
+- Fixed a performance issue with large histories when opening previously
+  unvisited websites.
+- The progress bar now doesn't cause the statusbar to change it's height
+  anymore.
+- `~` is now always expanded when spawning a script.
+- Fixed various corner cases when opening links in an existing instance.
 
 Removed
 ~~~~~~~
