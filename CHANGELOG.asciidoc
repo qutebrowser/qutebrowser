@@ -56,8 +56,6 @@ Changed
 - The values for `tabs -> position` and `ui -> downloads-position` got changed
   from `north`/`south`/`west/`east` to `top`/`bottom`/`left`/`right`. Existing
   configs should be adjusted automatically.
-- `:nagivate increment`/`<Ctrl-A>` now only increments numbers in the path part
-  of the URL.
 - `:tab-focus`/`gt` now behaves like `:tab-next` if no count/index is given.
 - The completion widget doesn't show a border anymore.
 - The tabbar doesn't display ugly arrows anymore if there isn't enough space
