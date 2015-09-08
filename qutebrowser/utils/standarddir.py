@@ -21,6 +21,7 @@
 
 import os
 import os.path
+import getpass
 
 from PyQt5.QtCore import QCoreApplication, QStandardPaths
 
@@ -54,6 +55,11 @@ def download():
 def runtime():
     """Convenience function to get the runtime location."""
     return _get(QStandardPaths.RuntimeLocation)
+
+
+def temp():
+    """Convenience function to get the temporary files location."""
+    return _get(QStandardPaths.TempLocation)
 
 
 def _writable_location(typ):
@@ -97,7 +103,10 @@ def _from_args(typ, args):
 
     if getattr(args, 'basedir', None) is not None:
         basedir = args.basedir
-        suffix = basedir_suffix[typ]
+        try:
+            suffix = basedir_suffix[typ]
+        except KeyError:
+            return (False, None)
         return (True, os.path.join(basedir, suffix))
 
     try:
@@ -124,12 +133,13 @@ def _get(typ):
     if not overridden:
         path = _writable_location(typ)
         appname = QCoreApplication.instance().applicationName()
+
         if (typ == QStandardPaths.ConfigLocation and
                 path.split(os.sep)[-1] != appname):
             # WORKAROUND - see
             # https://bugreports.qt.io/browse/QTBUG-38872
             path = os.path.join(path, appname)
-        if typ == QStandardPaths.DataLocation and os.name == 'nt':
+        elif typ == QStandardPaths.DataLocation and os.name == 'nt':
             # Under windows, config/data might end up in the same directory.
             data_path = QStandardPaths.writableLocation(
                 QStandardPaths.DataLocation)
@@ -137,6 +147,14 @@ def _get(typ):
                 QStandardPaths.ConfigLocation)
             if data_path == config_path:
                 path = os.path.join(path, 'data')
+        elif typ == QStandardPaths.TempLocation:
+            # "The returned value might be application-specific, shared among
+            # other applications for this user, or even system-wide."
+            subdir = '{}-{}'.format(appname, getpass.getuser())
+            path = os.path.join(path, subdir)
+        elif typ == QStandardPaths.RuntimeLocation:
+            # This is generic, but per-user.
+            path = os.path.join(path, appname)
     # From the XDG basedir spec:
     #     If, when attempting to write a file, the destination directory is
     #     non-existant an attempt should be made to create it with permission

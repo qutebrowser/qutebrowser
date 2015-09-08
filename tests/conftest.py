@@ -95,6 +95,12 @@ def pytest_runtest_setup(item):
         pytest.skip("Can only run when frozen!")
 
 
+@pytest.fixture(autouse=True, scope='session')
+def change_qapp_name(qapp):
+    """Change the name of the QApplication instance."""
+    qapp.setApplicationName('qutebrowser_test')
+
+
 class WinRegistryHelper:
 
     """Helper class for win_registry."""
