@@ -170,7 +170,7 @@ class IPCServer(QObject):
                 self._socketname))
 
     def listen(self):
-        """Start listening on self._servername."""
+        """Start listening on self._socketname."""
         log.ipc.debug("Listening as {}".format(self._socketname))
         self._remove_server()
         ok = self._server.listen(self._socketname)
