@@ -98,7 +98,7 @@ def pytest_runtest_setup(item):
 @pytest.fixture(autouse=True, scope='session')
 def change_qapp_name(qapp):
     """Change the name of the QApplication instance."""
-    qapp.setApplicationName('qutebrowser_test')
+    qapp.setApplicationName('qute_test')
 
 
 class WinRegistryHelper:

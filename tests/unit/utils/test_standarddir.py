@@ -37,10 +37,10 @@ def change_qapp_name(qapp):
     """Change the name of the QApplication instance.
 
     This changes the applicationName for all tests in this module to
-    "qutebrowser_test".
+    "qute_test".
     """
     old_name = qapp.applicationName()
-    qapp.setApplicationName('qutebrowser_test')
+    qapp.setApplicationName('qute_test')
     yield
     qapp.setApplicationName(old_name)
 
@@ -112,48 +112,48 @@ class TestGetStandardDirLinux:
     def test_data_explicit(self, monkeypatch, tmpdir):
         """Test data dir with XDG_DATA_HOME explicitly set."""
         monkeypatch.setenv('XDG_DATA_HOME', str(tmpdir))
-        assert standarddir.data() == str(tmpdir / 'qutebrowser_test')
+        assert standarddir.data() == str(tmpdir / 'qute_test')
 
     def test_config_explicit(self, monkeypatch, tmpdir):
         """Test config dir with XDG_CONFIG_HOME explicitly set."""
         monkeypatch.setenv('XDG_CONFIG_HOME', str(tmpdir))
-        assert standarddir.config() == str(tmpdir / 'qutebrowser_test')
+        assert standarddir.config() == str(tmpdir / 'qute_test')
 
     def test_cache_explicit(self, monkeypatch, tmpdir):
         """Test cache dir with XDG_CACHE_HOME explicitly set."""
         monkeypatch.setenv('XDG_CACHE_HOME', str(tmpdir))
-        assert standarddir.cache() == str(tmpdir / 'qutebrowser_test')
+        assert standarddir.cache() == str(tmpdir / 'qute_test')
 
     def test_temp_explicit(self, monkeypatch, tmpdir):
         """Test temp dir with TMPDIR explicitly set."""
         monkeypatch.setenv('TMPDIR', str(tmpdir))
-        assert standarddir.temp() == str(tmpdir / 'qutebrowser_test-user')
+        assert standarddir.temp() == str(tmpdir / 'qute_test-user')
 
     def test_data(self, monkeypatch, tmpdir):
         """Test data dir with XDG_DATA_HOME not set."""
         monkeypatch.setenv('HOME', str(tmpdir))
         monkeypatch.delenv('XDG_DATA_HOME', raising=False)
-        expected = tmpdir / '.local' / 'share' / 'qutebrowser_test'
+        expected = tmpdir / '.local' / 'share' / 'qute_test'
         assert standarddir.data() == str(expected)
 
     def test_config(self, monkeypatch, tmpdir):
         """Test config dir with XDG_CONFIG_HOME not set."""
         monkeypatch.setenv('HOME', str(tmpdir))
         monkeypatch.delenv('XDG_CONFIG_HOME', raising=False)
-        expected = tmpdir / '.config' / 'qutebrowser_test'
+        expected = tmpdir / '.config' / 'qute_test'
         assert standarddir.config() == str(expected)
 
     def test_cache(self, monkeypatch, tmpdir):
         """Test cache dir with XDG_CACHE_HOME not set."""
         monkeypatch.setenv('HOME', str(tmpdir))
         monkeypatch.delenv('XDG_CACHE_HOME', raising=False)
-        expected = tmpdir / '.cache' / 'qutebrowser_test'
+        expected = tmpdir / '.cache' / 'qute_test'
         assert standarddir.cache() == expected
 
     def test_temp(self, monkeypatch, tmpdir):
         """Test temp dir with TMPDIR not set."""
         monkeypatch.delenv('TMPDIR', raising=False)
-        assert standarddir.temp().split(os.sep)[-1] == 'qutebrowser_test-user'
+        assert standarddir.temp().split(os.sep)[-1] == 'qute_test-user'
 
 
 @pytest.mark.windows
@@ -164,20 +164,20 @@ class TestGetStandardDirWindows:
 
     def test_data(self):
         """Test data dir."""
-        expected = ['qutebrowser_test', 'data']
+        expected = ['qute_test', 'data']
         assert standarddir.data().split(os.sep)[-2:] == expected
 
     def test_config(self):
         """Test config dir."""
-        assert standarddir.config().split(os.sep)[-1] == 'qutebrowser_test'
+        assert standarddir.config().split(os.sep)[-1] == 'qute_test'
 
     def test_cache(self):
         """Test cache dir."""
-        expected = ['qutebrowser_test', 'cache']
+        expected = ['qute_test', 'cache']
         assert standarddir.cache().split(os.sep)[-2:] == expected
 
     def test_temp(self):
-        assert standarddir.temp().split(os.sep)[-1] == 'qutebrowser_test-user'
+        assert standarddir.temp().split(os.sep)[-1] == 'qute_test-user'
 
 
 DirArgTest = collections.namedtuple('DirArgTest', 'arg, expected')
@@ -223,7 +223,7 @@ class TestArguments:
         """Test --confdir with None given."""
         args = types.SimpleNamespace(confdir=None, cachedir=None, datadir=None)
         standarddir.init(args)
-        assert standarddir.config().split(os.sep)[-1] == 'qutebrowser_test'
+        assert standarddir.config().split(os.sep)[-1] == 'qute_test'
 
     def test_runtimedir(self, tmpdir, monkeypatch):
         """Test runtime dir (which has no args)."""
@@ -232,7 +232,7 @@ class TestArguments:
             lambda _typ: str(tmpdir))
         args = types.SimpleNamespace(confdir=None, cachedir=None, datadir=None)
         standarddir.init(args)
-        assert standarddir.runtime() == str(tmpdir / 'qutebrowser_test')
+        assert standarddir.runtime() == str(tmpdir / 'qute_test')
 
     @pytest.mark.parametrize('typ', ['config', 'data', 'cache', 'download',
                                      'runtime'])

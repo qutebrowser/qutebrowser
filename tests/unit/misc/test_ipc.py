@@ -43,7 +43,7 @@ Args = collections.namedtuple('Args', 'basedir')
 
 @pytest.yield_fixture
 def ipc_server(qapp, qtbot):
-    server = ipc.IPCServer('qutebrowser-test')
+    server = ipc.IPCServer('qute-test')
     yield server
     if (server._socket is not None and
             server._socket.state() != QLocalSocket.UnconnectedState):
@@ -197,14 +197,14 @@ class TestSocketName:
     def test_os_x(self, basedir, expected):
         socketname = ipc._get_socketname(basedir)
         parts = socketname.split(os.sep)
-        assert parts[-2] == 'qutebrowser_test'
+        assert parts[-2] == 'qute_test'
         assert parts[-1] == expected
 
     @pytest.mark.linux
     @pytest.mark.parametrize('basedir, expected', POSIX_TESTS)
     def test_linux(self, basedir, fake_runtime_dir, expected):
         socketname = ipc._get_socketname(basedir)
-        expected_path = str(fake_runtime_dir / 'qutebrowser_test' / expected)
+        expected_path = str(fake_runtime_dir / 'qute_test' / expected)
         assert socketname == expected_path
 
     def test_other_unix(self):
@@ -272,7 +272,7 @@ class TestListen:
     def test_in_use(self, qlocalserver, ipc_server, monkeypatch):
         monkeypatch.setattr('qutebrowser.misc.ipc.QLocalServer.removeServer',
                             lambda self: True)
-        qlocalserver.listen('qutebrowser-test')
+        qlocalserver.listen('qute-test')
         with pytest.raises(ipc.AddressInUseError):
             ipc_server.listen()
 
@@ -399,7 +399,7 @@ class TestHandleConnection:
 def connected_socket(qtbot, qlocalsocket, ipc_server):
     ipc_server.listen()
     with qtbot.waitSignal(ipc_server._server.newConnection, raising=True):
-        qlocalsocket.connectToServer('qutebrowser-test')
+        qlocalsocket.connectToServer('qute-test')
     yield qlocalsocket
     qlocalsocket.disconnectFromServer()
 
@@ -468,7 +468,7 @@ def test_multiline(qtbot, ipc_server, connected_socket):
 class TestSendToRunningInstance:
 
     def test_no_server(self, caplog):
-        sent = ipc.send_to_running_instance('qutebrowser-test', [])
+        sent = ipc.send_to_running_instance('qute-test', [])
         assert not sent
         msg = caplog.records()[-1].message
         assert msg == "No existing instance present (error 2)"
@@ -486,8 +486,7 @@ class TestSendToRunningInstance:
                 if not has_cwd:
                     m = mocker.patch('qutebrowser.misc.ipc.os')
                     m.getcwd.side_effect = OSError
-                sent = ipc.send_to_running_instance('qutebrowser-test',
-                                                    ['foo'])
+                sent = ipc.send_to_running_instance('qute-test', ['foo'])
 
         assert sent
 
@@ -509,20 +508,20 @@ class TestSendToRunningInstance:
     def test_socket_error(self):
         socket = FakeSocket(error=QLocalSocket.ConnectionError)
         with pytest.raises(ipc.Error) as excinfo:
-            ipc.send_to_running_instance('qutebrowser-test', [], socket=socket)
+            ipc.send_to_running_instance('qute-test', [], socket=socket)
 
         msg = "Error while writing to running instance: Error string (error 7)"
         assert str(excinfo.value) == msg
 
     def test_not_disconnected_immediately(self):
         socket = FakeSocket()
-        ipc.send_to_running_instance('qutebrowser-test', [], socket=socket)
+        ipc.send_to_running_instance('qute-test', [], socket=socket)
 
     def test_socket_error_no_server(self):
         socket = FakeSocket(error=QLocalSocket.ConnectionError,
                             connect_successful=False)
         with pytest.raises(ipc.Error) as excinfo:
-            ipc.send_to_running_instance('qutebrowser-test', [], socket=socket)
+            ipc.send_to_running_instance('qute-test', [], socket=socket)
 
         msg = ("Error while connecting to running instance: Error string "
                "(error 7)")
@@ -534,7 +533,7 @@ def test_timeout(qtbot, caplog, qlocalsocket, ipc_server):
     ipc_server.listen()
 
     with qtbot.waitSignal(ipc_server._server.newConnection, raising=True):
-        qlocalsocket.connectToServer('qutebrowser-test')
+        qlocalsocket.connectToServer('qute-test')
 
     with caplog.atLevel(logging.ERROR):
         with qtbot.waitSignal(qlocalsocket.disconnected, raising=True):
@@ -762,5 +761,5 @@ def test_connect_inexistant(qlocalsocket):
     If this test fails, our connection logic checking for the old naming scheme
     would not work properly.
     """
-    qlocalsocket.connectToServer('qutebrowser-test-inexistent')
+    qlocalsocket.connectToServer('qute-test-inexistent')
     assert qlocalsocket.error() == QLocalSocket.ServerNotFoundError
