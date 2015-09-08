@@ -77,6 +77,9 @@ def run(args):
 
     global qApp
     qApp = Application(args)
+    qApp.setOrganizationName("qutebrowser")
+    qApp.setApplicationName("qutebrowser")
+    qApp.setApplicationVersion(qutebrowser.__version__)
     qApp.lastWindowClosed.connect(quitter.on_last_window_closed)
 
     crash_handler = crashsignal.CrashHandler(
@@ -125,9 +128,6 @@ def init(args, crash_handler):
     """
     log.init.debug("Starting init...")
     qApp.setQuitOnLastWindowClosed(False)
-    qApp.setOrganizationName("qutebrowser")
-    qApp.setApplicationName("qutebrowser")
-    qApp.setApplicationVersion(qutebrowser.__version__)
     _init_icon()
     utils.actute_warning()
 
