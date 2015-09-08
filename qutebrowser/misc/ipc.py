@@ -164,6 +164,7 @@ class IPCServer(QObject):
         self._timer.setInterval(READ_TIMEOUT)
         self._timer.timeout.connect(self.on_timeout)
         self._server = QLocalServer(self)
+        self._server.setSocketOptions(QLocalServer.UserAccessOption)
         self._server.newConnection.connect(self.handle_connection)
         self._socket = None
 

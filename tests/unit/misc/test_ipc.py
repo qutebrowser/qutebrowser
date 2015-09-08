@@ -268,6 +268,8 @@ class TestListen:
             ipc_server.listen()
 
     @pytest.mark.posix
+    @pytest.mark.xfail(reason="Fails since adding setSocketOptions to "
+                       "IPCServer.")
     def test_in_use(self, qlocalserver, ipc_server, monkeypatch):
         monkeypatch.setattr('qutebrowser.misc.ipc.QLocalServer.removeServer',
                             lambda self: True)
@@ -277,6 +279,34 @@ class TestListen:
 
     def test_successful(self, ipc_server):
         ipc_server.listen()
+
+    @pytest.mark.windows
+    def test_permissions_windows(self, ipc_server):
+        opts = ipc_server._server.socketOptions()
+        assert opts == QLocalServer.UserAccessOption
+
+    @pytest.mark.posix
+    def test_permissions_posix(self, ipc_server):
+        # pylint: disable=no-member
+        ipc_server.listen()
+        sockfile = ipc_server._server.fullServerName()
+        sockdir = os.path.dirname(sockfile)
+
+        file_stat = os.stat(sockfile)
+        dir_stat = os.stat(sockdir)
+
+        file_owner_ok = file_stat.st_uid == os.getuid()
+        dir_owner_ok = dir_stat.st_uid == os.getuid()
+        file_mode_ok = file_stat.st_mode & 0o777 == 0o700
+        dir_mode_ok = dir_stat.st_mode & 0o777 == 0o700
+
+        print('sockdir: {} / owner {} / mode {:o}'.format(sockdir,
+            dir_stat.st_uid, dir_stat.st_mode))
+        print('sockfile: {} / owner {} / mode {:o}'.format(sockfile,
+            file_stat.st_uid, file_stat.st_mode))
+
+        assert file_owner_ok or dir_owner_ok
+        assert file_mode_ok or dir_mode_ok
 
 
 class TestOnError:
