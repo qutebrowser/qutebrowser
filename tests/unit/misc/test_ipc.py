@@ -176,6 +176,11 @@ class TestSocketName:
         ('/x', 'qutebrowser-{}-{}'.format(getpass.getuser(), MD5)),
     ]
 
+    POSIX_TESTS = [
+        (None, 'ipc'),
+        ('/x', 'ipc-{}'.format(MD5)),
+    ]
+
     @pytest.mark.parametrize('basedir, expected', LEGACY_TESTS)
     def test_legacy(self, basedir, expected):
         socketname = ipc._get_socketname(basedir, legacy=True)
@@ -188,21 +193,15 @@ class TestSocketName:
         assert socketname == expected
 
     @pytest.mark.osx
-    @pytest.mark.parametrize('basedir, expected', [
-        (None, 'ipc'),
-        ('/x', 'ipc-{}'.format(MD5)),
-    ])
+    @pytest.mark.parametrize('basedir, expected', POSIX_TESTS)
     def test_os_x(self, basedir, expected):
         socketname = ipc._get_socketname(basedir)
-        parts = os.path.split(socketname)
+        parts = socketname.split(os.sep)
         assert parts[-2] == 'qutebrowser_test'
         assert parts[-1] == expected
 
     @pytest.mark.linux
-    @pytest.mark.parametrize('basedir, expected', [
-        (None, 'qutebrowser-ipc'),
-        ('/x', 'qutebrowser-ipc-{}'.format(MD5)),
-    ])
+    @pytest.mark.parametrize('basedir, expected', POSIX_TESTS)
     def test_linux(self, basedir, fake_runtime_dir, expected):
         socketname = ipc._get_socketname(basedir)
         expected_path = str(fake_runtime_dir / 'qutebrowser_test' / expected)

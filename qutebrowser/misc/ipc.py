@@ -56,12 +56,11 @@ def _get_socketname(basedir, legacy=False):
 
     if sys.platform.startswith('linux'):
         target_dir = standarddir.runtime()
-        parts = ['qutebrowser-ipc']
     else:  # pragma: no cover
         # OS X or other Unix
-        parts = ['ipc']
         target_dir = standarddir.temp()
 
+    parts = ['ipc']
     if basedir_md5 is not None:
         parts.append(basedir_md5)
     return os.path.join(target_dir, '-'.join(parts))
