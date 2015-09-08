@@ -19,6 +19,8 @@
 
 """Tests for qutebrowser.misc.ipc."""
 
+import sys
+import os
 import getpass
 import collections
 import logging
@@ -73,7 +75,7 @@ def qlocalsocket(qapp):
 @pytest.fixture(autouse=True)
 def fake_runtime_dir(monkeypatch, tmpdir):
     monkeypatch.setenv('XDG_RUNTIME_DIR', str(tmpdir))
-    return str(tmpdir)
+    return tmpdir
 
 
 class FakeSocket(QObject):
@@ -165,21 +167,61 @@ def test_getpass_getuser():
     assert getpass.getuser()
 
 
-@pytest.mark.parametrize('username, basedir, legacy, expected', [
-    ('florian', None, True, 'qutebrowser-florian'),
-    ('florian', '/x', True,
-        'qutebrowser-florian-cc8755609ad61864910f145119713de9'),
-    (None, None, True, 'qutebrowser-{}'.format(getpass.getuser())),
+class TestSocketName:
 
-    ('florian', None, False, '/runtimedir/qutebrowser-ipc'),
-    ('florian', '/x', False,
-        '/runtimedir/qutebrowser-ipc-cc8755609ad61864910f145119713de9'),
-    (None, None, False, '/runtimedir/qutebrowser-ipc'),
-])
-def test_get_socketname(username, basedir, legacy, expected):
-    socketname = ipc._get_socketname(basedir, '/runtimedir', legacy=legacy,
-                                     user=username)
-    assert socketname == expected
+    MD5 = 'cc8755609ad61864910f145119713de9'  # The MD5 of 'x'
+
+    LEGACY_TESTS = [
+        (None, 'qutebrowser-{}'.format(getpass.getuser())),
+        ('/x', 'qutebrowser-{}-{}'.format(getpass.getuser(), MD5)),
+    ]
+
+    @pytest.mark.parametrize('basedir, expected', LEGACY_TESTS)
+    def test_legacy(self, basedir, expected):
+        socketname = ipc._get_socketname(basedir, legacy=True)
+        assert socketname == expected
+
+    @pytest.mark.parametrize('basedir, expected', LEGACY_TESTS)
+    @pytest.mark.windows
+    def test_windows(self, basedir, expected):
+        socketname = ipc._get_socketname(basedir)
+        assert socketname == expected
+
+    @pytest.mark.osx
+    @pytest.mark.parametrize('basedir, expected', [
+        (None, 'ipc'),
+        ('/x', 'ipc-{}'.format(MD5)),
+    ])
+    def test_os_x(self, basedir, expected):
+        socketname = ipc._get_socketname(basedir)
+        parts = os.path.split(socketname)
+        assert parts[-2] == 'qutebrowser_test'
+        assert parts[-1] == expected
+
+    @pytest.mark.linux
+    @pytest.mark.parametrize('basedir, expected', [
+        (None, 'qutebrowser-ipc'),
+        ('/x', 'qutebrowser-ipc-{}'.format(MD5)),
+    ])
+    def test_linux(self, basedir, fake_runtime_dir, expected):
+        socketname = ipc._get_socketname(basedir)
+        expected_path = str(fake_runtime_dir / 'qutebrowser_test' / expected)
+        assert socketname == expected_path
+
+    def test_other_unix(self):
+        """Fake test for POSIX systems which aren't Linux/OS X.
+
+        We probably would adjust the code first to make it work on that
+        platform.
+        """
+        if os.name == 'nt':
+            pass
+        elif sys.platform == 'darwin':
+            pass
+        elif sys.platform.startswith('linux'):
+            pass
+        else:
+            raise Exception("Unexpected platform!")
 
 
 class TestExceptions:
@@ -523,6 +565,15 @@ class TestSendOrListen:
             setattr(m, attr, getattr(QLocalSocket, attr))
         return m
 
+    @pytest.yield_fixture
+    def legacy_server(self, args, tmpdir, monkeypatch):
+        monkeypatch.setenv('TMPDIR', str(tmpdir))
+        legacy_name = ipc._get_socketname(args.basedir, legacy=True)
+        legacy_server = ipc.IPCServer(legacy_name)
+        legacy_server.listen()
+        yield legacy_server
+        legacy_server.shutdown()
+
     @pytest.mark.posix   # Flaky on Windows
     def test_normal_connection(self, caplog, qtbot, args):
         ret_server = ipc.send_or_listen(args)
@@ -537,6 +588,21 @@ class TestSendOrListen:
 
         assert ret_client is None
         ret_server.shutdown()
+
+    @pytest.mark.posix   # Unneeded on Windows
+    def test_legacy_name(self, caplog, qtbot, args, legacy_server):
+        with qtbot.waitSignal(legacy_server.got_args, raising=True):
+            ret = ipc.send_or_listen(args)
+        assert ret is None
+        msgs = [e.message for e in caplog.records()]
+        assert "Connecting to {}".format(legacy_server._socketname) in msgs
+
+    @pytest.mark.posix   # Unneeded on Windows
+    def test_correct_socket_name(self, args):
+        server = ipc.send_or_listen(args)
+        expected_dir = ipc._get_socketname(args.basedir)
+        assert '/' in expected_dir
+        assert server._socketname == expected_dir
 
     def test_address_in_use_ok(self, qlocalserver_mock, qlocalsocket_mock,
                                stubs, caplog, args):
@@ -555,7 +621,9 @@ class TestSendOrListen:
 
         qlocalsocket_mock().waitForConnected.side_effect = [False, True]
         qlocalsocket_mock().error.side_effect = [
+            QLocalSocket.ServerNotFoundError,  # legacy name
             QLocalSocket.ServerNotFoundError,
+            QLocalSocket.ServerNotFoundError,  # legacy name
             QLocalSocket.UnknownSocketError,
             QLocalSocket.UnknownSocketError,  # error() gets called twice
         ]
@@ -591,8 +659,10 @@ class TestSendOrListen:
         # If it fails, that's the "not sent" case above.
         qlocalsocket_mock().waitForConnected.side_effect = [False, has_error]
         qlocalsocket_mock().error.side_effect = [
+            QLocalSocket.ServerNotFoundError,  # legacy name
             QLocalSocket.ServerNotFoundError,
             QLocalSocket.ServerNotFoundError,
+            QLocalSocket.ServerNotFoundError,  # legacy name
             QLocalSocket.ConnectionRefusedError,
             QLocalSocket.ConnectionRefusedError,  # error() gets called twice
         ]
@@ -641,13 +711,27 @@ class TestSendOrListen:
         assert records[0].msg == '\n'.join(error_msgs)
 
 
-def test_long_username(fake_runtime_dir):
+@pytest.mark.windows
+@pytest.mark.osx
+def test_long_username(monkeypatch):
     """See https://github.com/The-Compiler/qutebrowser/issues/888."""
-    name = ipc._get_socketname(basedir='/foo',
-                               runtime_dir=fake_runtime_dir,
-                               user='alexandercogneau')
+    username = 'alexandercogneau'
+    monkeypatch.setattr('qutebrowser.misc.ipc.standarddir.getpass.getuser',
+                        lambda: username)
+    name = ipc._get_socketname(basedir='/foo')
     server = ipc.IPCServer(name)
+    assert username in server._socketname
     try:
         server.listen()
     finally:
         server.shutdown()
+
+
+def test_connect_inexistant(qlocalsocket):
+    """Make sure connecting to an inexistant server fails immediately.
+
+    If this test fails, our connection logic checking for the old naming scheme
+    would not work properly.
+    """
+    qlocalsocket.connectToServer('qutebrowser-test-inexistent')
+    assert qlocalsocket.error() == QLocalSocket.ServerNotFoundError

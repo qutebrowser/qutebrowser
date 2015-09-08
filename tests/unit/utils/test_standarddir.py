@@ -232,7 +232,7 @@ class TestArguments:
             lambda _typ: str(tmpdir))
         args = types.SimpleNamespace(confdir=None, cachedir=None, datadir=None)
         standarddir.init(args)
-        assert standarddir.runtime() == str(tmpdir)
+        assert standarddir.runtime() == str(tmpdir / 'qutebrowser_test')
 
     @pytest.mark.parametrize('typ', ['config', 'data', 'cache', 'download',
                                      'runtime'])

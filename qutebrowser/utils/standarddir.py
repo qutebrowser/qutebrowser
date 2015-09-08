@@ -85,6 +85,7 @@ def _from_args(typ, args):
             override: boolean, if the user did override the path
             path: The overridden path, or None to turn off storage.
     """
+    # pylint: disable=too-many-return-statements
     typ_to_argparse_arg = {
         QStandardPaths.ConfigLocation: 'confdir',
         QStandardPaths.DataLocation: 'datadir',

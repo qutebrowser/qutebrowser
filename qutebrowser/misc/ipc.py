@@ -20,6 +20,7 @@
 """Utilities for IPC with existing instances."""
 
 import os
+import sys
 import time
 import json
 import getpass
@@ -39,11 +40,8 @@ READ_TIMEOUT = 5000
 PROTOCOL_VERSION = 1
 
 
-def _get_socketname(basedir, runtime_dir, legacy=True, user=None):
+def _get_socketname(basedir, legacy=False):
     """Get a socketname to use."""
-    if user is None:
-        user = getpass.getuser()
-
     if basedir is None:
         basedir_md5 = None
     else:
@@ -51,15 +49,22 @@ def _get_socketname(basedir, runtime_dir, legacy=True, user=None):
         basedir_md5 = md5.hexdigest()
 
     if legacy or os.name == 'nt':
-        parts = ['qutebrowser', user]
+        parts = ['qutebrowser', getpass.getuser()]
         if basedir_md5 is not None:
             parts.append(basedir_md5)
         return '-'.join(parts)
-    else:
+
+    if sys.platform.startswith('linux'):
+        target_dir = standarddir.runtime()
         parts = ['qutebrowser-ipc']
-        if basedir_md5 is not None:
-            parts.append(basedir_md5)
-        return os.path.join(runtime_dir, '-'.join(parts))
+    else:  # pragma: no cover
+        # OS X or other Unix
+        parts = ['ipc']
+        target_dir = standarddir.temp()
+
+    if basedir_md5 is not None:
+        parts.append(basedir_md5)
+    return os.path.join(target_dir, '-'.join(parts))
 
 
 class Error(Exception):
@@ -186,7 +191,7 @@ class IPCServer(QObject):
         if self._socket is None:
             # Sometimes this gets called from stale sockets.
             msg = "In on_error with None socket!"
-            if os.name == 'nt':  # pragma: no coverage
+            if os.name == 'nt':  # pragma: no cover
                 # This happens a lot on Windows, so we ignore it there.
                 log.ipc.debug(msg)
             else:
@@ -319,7 +324,28 @@ class IPCServer(QObject):
         self._remove_server()
 
 
-def send_to_running_instance(socketname, command, *, socket=None):
+def _has_legacy_server(name):
+    """Check if there is a legacy server.
+
+    Args:
+        name: The name to try to connect to.
+
+    Return:
+        True if there is a server with the given name, False otherwise.
+    """
+    socket = QLocalSocket()
+    log.ipc.debug("Trying to connect to {}".format(name))
+    socket.connectToServer(name)
+    if socket.error() != QLocalSocket.ServerNotFoundError:
+        return True
+    socket.disconnectFromServer()
+    if socket.state() != QLocalSocket.UnconnectedState:
+        socket.waitForDisconnected(100)
+    return False
+
+
+def send_to_running_instance(socketname, command, *, legacy_name=None,
+                             socket=None):
     """Try to send a commandline to a running instance.
 
     Blocks for CONNECT_TIMEOUT ms.
@@ -328,14 +354,23 @@ def send_to_running_instance(socketname, command, *, socket=None):
         socketname: The name which should be used for the socket.
         command: The command to send to the running instance.
         socket: The socket to read data from, or None.
+        legacy_name: The legacy name to first try to connect to.
 
     Return:
         True if connecting was successful, False if no connection was made.
     """
     if socket is None:
         socket = QLocalSocket()
-    log.ipc.debug("Connecting to {}".format(socketname))
-    socket.connectToServer(socketname)
+
+    if (legacy_name is not None and
+            _has_legacy_server(legacy_name)):
+        name_to_use = legacy_name
+    else:
+        name_to_use = socketname
+
+    log.ipc.debug("Connecting to {}".format(name_to_use))
+    socket.connectToServer(name_to_use)
+
     connected = socket.waitForConnected(100)
     if connected:
         log.ipc.info("Opening in existing instance")
@@ -386,10 +421,12 @@ def send_or_listen(args):
         The IPCServer instance if no running instance was detected.
         None if an instance was running and received our request.
     """
-    socketname = _get_socketname(args.basedir, standarddir.runtime())
+    socketname = _get_socketname(args.basedir)
+    legacy_socketname = _get_socketname(args.basedir, legacy=True)
     try:
         try:
-            sent = send_to_running_instance(socketname, args.command)
+            sent = send_to_running_instance(socketname, args.command,
+                                            legacy_name=legacy_socketname)
             if sent:
                 return None
             log.init.debug("Starting IPC server...")
@@ -401,7 +438,8 @@ def send_or_listen(args):
             # This could be a race condition...
             log.init.debug("Got AddressInUseError, trying again.")
             time.sleep(0.5)
-            sent = send_to_running_instance(socketname, args.command)
+            sent = send_to_running_instance(socketname, args.command,
+                                            legacy_name=legacy_socketname)
             if sent:
                 return None
             else:
