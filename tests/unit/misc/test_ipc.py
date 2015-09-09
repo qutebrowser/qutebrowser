@@ -610,8 +610,7 @@ class TestSendOrListen:
         return m
 
     @pytest.yield_fixture
-    def legacy_server(self, args, short_tmpdir, monkeypatch):
-        monkeypatch.setenv('TMPDIR', str(short_tmpdir))
+    def legacy_server(self, args):
         legacy_name = ipc._get_socketname(args.basedir, legacy=True)
         legacy_server = ipc.IPCServer(legacy_name)
         legacy_server.listen()
