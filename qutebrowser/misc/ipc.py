@@ -62,7 +62,6 @@ def _get_socketname(basedir, runtime_dir, legacy=True, user=None):
         return os.path.join(runtime_dir, '-'.join(parts))
 
 
-
 class Error(Exception):
 
     """Base class for IPC exceptions."""
