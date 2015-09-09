@@ -26,6 +26,7 @@ import sys
 import collections
 import itertools
 import logging
+import textwrap
 
 import pytest
 
@@ -298,3 +299,11 @@ def cookiejar_and_cache(stubs):
     yield
     objreg.delete('cookie-jar')
     objreg.delete('cache')
+
+
+@pytest.fixture
+def py_proc():
+    """Get a python executable and args list which executes the given code."""
+    def func(code):
+        return (sys.executable, ['-c', textwrap.dedent(code.strip('\n'))])
+    return func

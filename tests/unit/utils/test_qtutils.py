@@ -754,13 +754,13 @@ class TestPyQIODevice:
             pyqiodev.seek(0, whence)
 
     @pytest.mark.not_frozen
-    def test_qprocess(self):
+    def test_qprocess(self, py_proc):
         """Test PyQIODevice with a QProcess which is non-sequential.
 
         This also verifies seek() and tell() behave as expected.
         """
         proc = QProcess()
-        proc.start(sys.executable, ['-c', 'print("Hello World")'])
+        proc.start(*py_proc('print("Hello World")'))
         dev = qtutils.PyQIODevice(proc)
         assert not dev.closed
         with pytest.raises(OSError) as excinfo:
