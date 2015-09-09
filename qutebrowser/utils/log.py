@@ -266,7 +266,7 @@ def qt_message_handler(msg_type, context, msg):
         # PNGs in Qt with broken color profile
         # https://bugreports.qt.io/browse/QTBUG-39788
         'libpng warning: iCCP: Not recognizing known sRGB profile that has '
-            'been edited',
+            'been edited',  # noqa
         # Hopefully harmless warning
         'OpenType support missing for script ',
         # Error if a QNetworkReply gets two different errors set. Harmless Qt
@@ -298,7 +298,7 @@ def qt_message_handler(msg_type, context, msg):
             'libpng warning: iCCP: known incorrect sRGB profile',
             # https://bugreports.qt.io/browse/QTBUG-47154
             'virtual void QSslSocketBackendPrivate::transmit() SSLRead failed '
-                'with: -9805',
+                'with: -9805',  # noqa
         ]
 
     if any(msg.strip().startswith(pattern) for pattern in suppressed_msgs):
