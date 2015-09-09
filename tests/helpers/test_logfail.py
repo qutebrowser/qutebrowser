@@ -20,50 +20,111 @@
 """Tests for the LogFailHandler test helper."""
 
 
+import os.path
 import logging
 
 import pytest
 import pytest_capturelog  # pylint: disable=import-error
 
 
-def test_log_debug():
-    logging.debug('foo')
+pytest_plugins = 'pytester'
 
 
-def test_log_warning():
-    with pytest.raises(pytest.fail.Exception):
-        logging.warning('foo')
 
 
-def test_log_expected(caplog):
-    with caplog.atLevel(logging.ERROR):
-        logging.error('foo')
+@pytest.fixture
+def log_testdir(testdir):
+    """Testdir which uses our logfail.py as a conftest."""
+    log_fn = os.path.join(os.path.dirname(__file__), 'logfail.py')
+    with open(log_fn) as f:
+        testdir.makeconftest(f.read())
+    return testdir
 
 
-def test_log_expected_logger(caplog):
-    logger = 'logfail_test_logger'
-    with caplog.atLevel(logging.ERROR, logger):
-        logging.getLogger(logger).error('foo')
+def test_log_debug(testdir):
+    testdir.makepyfile("""
+        import logging
+
+        def test_foo():
+            logging.debug('foo')
+    """)
+    res = testdir.inline_run()
+    res.assertoutcome(passed=1)
 
 
-def test_log_expected_wrong_level(caplog):
-    with pytest.raises(pytest.fail.Exception):
-        with caplog.atLevel(logging.ERROR):
-            logging.critical('foo')
+def test_log_warning(testdir):
+    testdir.makepyfile("""
+        import logging
+
+        def test_foo():
+            logging.warning('foo')
+    """)
+    res = testdir.inline_run()
+    res.assertoutcome(failed=1)
 
 
-def test_log_expected_logger_wrong_level(caplog):
-    logger = 'logfail_test_logger'
-    with pytest.raises(pytest.fail.Exception):
-        with caplog.atLevel(logging.ERROR, logger):
-            logging.getLogger(logger).critical('foo')
+def test_log_expected(log_testdir):
+    """For some reason this fails with inline_run."""
+    log_testdir.makepyfile("""
+        import logging
+
+        def test_foo(caplog):
+            with caplog.atLevel(logging.ERROR):
+                logging.error('foo')
+    """)
+    res = log_testdir.runpytest('-p capturelog')
+    res.stdout.fnmatch_lines(['*1 passed in*'])
 
 
-def test_log_expected_wrong_logger(caplog):
-    logger = 'logfail_test_logger'
-    with pytest.raises(pytest.fail.Exception):
-        with caplog.atLevel(logging.ERROR, logger):
-            logging.error('foo')
+def test_log_expected_logger(testdir):
+    testdir.makepyfile("""
+        import logging
+
+        def test_foo(caplog):
+            logger = 'logfail_test_logger'
+            with caplog.atLevel(logging.ERROR, logger):
+                logging.getLogger(logger).error('foo')
+    """)
+    res = testdir.inline_run()
+    res.assertoutcome(passed=1)
+
+
+def test_log_expected_wrong_level(testdir):
+    testdir.makepyfile("""
+        import logging
+
+        def test_foo(caplog):
+            with caplog.atLevel(logging.ERROR):
+                logging.critical('foo')
+    """)
+    res = testdir.inline_run()
+    res.assertoutcome(failed=1)
+
+
+def test_log_expected_logger_wrong_level(testdir):
+    testdir.makepyfile("""
+        import logging
+
+        def test_foo(caplog):
+            logger = 'logfail_test_logger'
+            with caplog.atLevel(logging.ERROR, logger):
+                logging.getLogger(logger).critical('foo')
+    """)
+    res = testdir.inline_run()
+    res.assertoutcome(failed=1)
+
+
+def test_log_expected_wrong_logger(testdir):
+    testdir.makepyfile("""
+        import logging
+
+        def test_foo(caplog):
+            logger = 'logfail_test_logger'
+            with caplog.atLevel(logging.ERROR, logger):
+                logging.error('foo')
+    """)
+    res = testdir.inline_run()
+    res.assertoutcome(failed=1)
 
 
 @pytest.fixture
