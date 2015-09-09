@@ -41,26 +41,26 @@ def log_testdir(testdir):
     return testdir
 
 
-def test_log_debug(testdir):
-    testdir.makepyfile("""
+def test_log_debug(log_testdir):
+    log_testdir.makepyfile("""
         import logging
 
         def test_foo():
             logging.debug('foo')
     """)
-    res = testdir.inline_run()
-    res.assertoutcome(passed=1)
+    res = log_testdir.runpytest('-p capturelog')
+    res.stdout.fnmatch_lines(['*1 passed*'])
 
 
-def test_log_warning(testdir):
-    testdir.makepyfile("""
+def test_log_warning(log_testdir):
+    log_testdir.makepyfile("""
         import logging
 
         def test_foo():
             logging.warning('foo')
     """)
-    res = testdir.inline_run()
-    res.assertoutcome(failed=1)
+    res = log_testdir.runpytest('-p capturelog')
+    res.stdout.fnmatch_lines(['*1 error*'])
 
 
 def test_log_expected(log_testdir):
@@ -73,11 +73,11 @@ def test_log_expected(log_testdir):
                 logging.error('foo')
     """)
     res = log_testdir.runpytest('-p capturelog')
-    res.stdout.fnmatch_lines(['*1 passed in*'])
+    res.stdout.fnmatch_lines(['*1 passed*'])
 
 
-def test_log_expected_logger(testdir):
-    testdir.makepyfile("""
+def test_log_expected_logger(log_testdir):
+    log_testdir.makepyfile("""
         import logging
 
         def test_foo(caplog):
@@ -85,24 +85,24 @@ def test_log_expected_logger(testdir):
             with caplog.atLevel(logging.ERROR, logger):
                 logging.getLogger(logger).error('foo')
     """)
-    res = testdir.inline_run()
-    res.assertoutcome(passed=1)
+    res = log_testdir.runpytest('-p capturelog')
+    res.stdout.fnmatch_lines(['*1 passed*'])
 
 
-def test_log_expected_wrong_level(testdir):
-    testdir.makepyfile("""
+def test_log_expected_wrong_level(log_testdir):
+    log_testdir.makepyfile("""
         import logging
 
         def test_foo(caplog):
             with caplog.atLevel(logging.ERROR):
                 logging.critical('foo')
     """)
-    res = testdir.inline_run()
-    res.assertoutcome(failed=1)
+    res = log_testdir.runpytest('-p capturelog')
+    res.stdout.fnmatch_lines(['*1 error*'])
 
 
-def test_log_expected_logger_wrong_level(testdir):
-    testdir.makepyfile("""
+def test_log_expected_logger_wrong_level(log_testdir):
+    log_testdir.makepyfile("""
         import logging
 
         def test_foo(caplog):
@@ -110,12 +110,12 @@ def test_log_expected_logger_wrong_level(testdir):
             with caplog.atLevel(logging.ERROR, logger):
                 logging.getLogger(logger).critical('foo')
     """)
-    res = testdir.inline_run()
-    res.assertoutcome(failed=1)
+    res = log_testdir.runpytest('-p capturelog')
+    res.stdout.fnmatch_lines(['*1 error*'])
 
 
-def test_log_expected_wrong_logger(testdir):
-    testdir.makepyfile("""
+def test_log_expected_wrong_logger(log_testdir):
+    log_testdir.makepyfile("""
         import logging
 
         def test_foo(caplog):
@@ -123,8 +123,8 @@ def test_log_expected_wrong_logger(testdir):
             with caplog.atLevel(logging.ERROR, logger):
                 logging.error('foo')
     """)
-    res = testdir.inline_run()
-    res.assertoutcome(failed=1)
+    res = log_testdir.runpytest('-p capturelog')
+    res.stdout.fnmatch_lines(['*1 error*'])
 
 
 @pytest.fixture
