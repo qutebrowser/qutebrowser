@@ -259,7 +259,7 @@ def qt_message_handler(msg_type, context, msg):
     # Change levels of some well-known messages to debug so they don't get
     # shown to the user.
     # suppressed_msgs is a list of regexes matching the message texts to hide.
-    suppressed_msgs = (
+    suppressed_msgs = [
         # PNGs in Qt with broken color profile
         # https://bugreports.qt.io/browse/QTBUG-39788
         "libpng warning: iCCP: Not recognizing known sRGB profile that has "
@@ -289,7 +289,14 @@ def qt_message_handler(msg_type, context, msg):
         'QXcbWindow: Unhandled client message: "_GTK_',
         # Happens on AppVeyor CI
         'SetProcessDpiAwareness failed:',
-    )
+    ]
+    if sys.platform == 'darwin':
+        suppressed_msgs += [
+            "libpng warning: iCCP: known incorrect sRGB profile",
+            "virtual void QSslSocketBackendPrivate::transmit() SSLRead failed "
+                "with: -9805",
+        ]
+
     if any(msg.strip().startswith(pattern) for pattern in suppressed_msgs):
         level = logging.DEBUG
     else:
