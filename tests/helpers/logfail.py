@@ -40,7 +40,6 @@ class LogFailHandler(logging.Handler):
 
     def __init__(self, level=logging.NOTSET, min_level=logging.WARNING):
         self._min_level = min_level
-        self.failed = False
         super().__init__(level)
 
     def emit(self, record):
@@ -63,7 +62,9 @@ class LogFailHandler(logging.Handler):
             return
         if record.levelno < self._min_level:
             return
-        self.failed = True
+        pytest.fail("Got logging message on logger {} with level {}: "
+                    "{}!".format(record.name, record.levelname,
+                                 record.getMessage()))
 
 
 @pytest.yield_fixture(scope='session', autouse=True)
@@ -73,8 +74,6 @@ def fail_on_logging():
     yield
     logging.getLogger().removeHandler(handler)
     handler.close()
-    if handler.failed:
-        pytest.fail("Got unexpected logging message!", pytrace=False)
 
 
 @pytest.yield_fixture(autouse=True)
