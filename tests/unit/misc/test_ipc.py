@@ -35,7 +35,7 @@ from PyQt5.QtTest import QSignalSpy
 
 import qutebrowser
 from qutebrowser.misc import ipc
-from qutebrowser.utils import objreg
+from qutebrowser.utils import objreg, qtutils
 from helpers import stubs  # pylint: disable=import-error
 
 
@@ -773,3 +773,20 @@ def test_connect_inexistant(qlocalsocket):
     """
     qlocalsocket.connectToServer('qute-test-inexistent')
     assert qlocalsocket.error() == QLocalSocket.ServerNotFoundError
+
+
+def test_socket_options_listen_problem(qlocalserver, tmpdir):
+    """In earlier versions of Qt, listening fails when using socketOptions.
+
+    With this test, we verify that this bug exists in the Qt version/OS
+    combinations we expect it to, and doesn't exist in other versions.
+    """
+    servername = str(tmpdir / 'x')
+    qlocalserver.setSocketOptions(QLocalServer.UserAccessOption)
+    ok = qlocalserver.listen(servername)
+    if os.name == 'nt' or qtutils.version_check('5.4'):
+        assert ok
+    else:
+        assert not ok
+        assert qlocalserver.serverError() == QAbstractSocket.HostNotFoundError
+        assert qlocalserver.errorString() == 'QLocalServer::listen: Name error'

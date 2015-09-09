@@ -31,7 +31,8 @@ from PyQt5.QtCore import pyqtSignal, pyqtSlot, QObject
 from PyQt5.QtNetwork import QLocalSocket, QLocalServer, QAbstractSocket
 
 import qutebrowser
-from qutebrowser.utils import log, usertypes, error, objreg, standarddir
+from qutebrowser.utils import (log, usertypes, error, objreg, standarddir,
+                               qtutils)
 
 
 CONNECT_TIMEOUT = 100
@@ -143,6 +144,8 @@ class IPCServer(QObject):
         _server: A QLocalServer to accept new connections.
         _socket: The QLocalSocket we're currently connected to.
         _socketname: The socketname to use.
+        _socketopts_ok: Set if using setSocketOptions is working with this
+                        OS/Qt version.
 
     Signals:
         got_args: Emitted when there was an IPC connection and arguments were
@@ -169,9 +172,13 @@ class IPCServer(QObject):
         self._timer.setInterval(READ_TIMEOUT)
         self._timer.timeout.connect(self.on_timeout)
         self._server = QLocalServer(self)
-        self._server.setSocketOptions(QLocalServer.UserAccessOption)
         self._server.newConnection.connect(self.handle_connection)
         self._socket = None
+        self._socketopts_ok = os.name == 'nt' or qtutils.version_check('5.4')
+        if self._socketopts_ok:  # pragma: no cover
+            # If we use setSocketOptions on Unix with Qt < 5.4, we get a
+            # NameError while listening...
+            self._server.setSocketOptions(QLocalServer.UserAccessOption)
 
     def _remove_server(self):
         """Remove an existing server."""
@@ -190,6 +197,10 @@ class IPCServer(QObject):
                 raise AddressInUseError(self._server)
             else:
                 raise ListenError(self._server)
+        if not self._socketopts_ok:  # pragma: no cover
+            # If we use setSocketOptions on Unix with Qt < 5.4, we get a
+            # NameError while listening...
+            os.chmod(self._server.fullServerName(), 0o700)
 
     @pyqtSlot(int)
     def on_error(self, err):
