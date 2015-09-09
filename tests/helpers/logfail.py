@@ -24,7 +24,7 @@ import logging
 import pytest
 
 try:
-    import pytest_capturelog
+    import pytest_capturelog as caplog_mod
 except ImportError:
     # When using pytest for pyflakes/pep8/..., the plugin won't be available
     # but conftest.py will still be loaded.
@@ -47,7 +47,7 @@ class LogFailHandler(logging.Handler):
         root_logger = logging.getLogger()
 
         for h in root_logger.handlers:
-            if isinstance(h, pytest_capturelog.CaptureLogHandler):
+            if isinstance(h, caplog_mod.CaptureLogHandler):
                 caplog_handler = h
                 break
         else:
@@ -86,12 +86,12 @@ def caplog_bug_workaround(request):
     multiple CaptureLogHandlers.
     """
     yield
-    if pytest_capturelog is None:
+    if caplog_mod is None:
         return
 
     root_logger = logging.getLogger()
     caplog_handlers = [h for h in root_logger.handlers
-                       if isinstance(h, pytest_capturelog.CaptureLogHandler)]
+                       if isinstance(h, caplog_mod.CaptureLogHandler)]
 
     for h in caplog_handlers:
         root_logger.removeHandler(h)
