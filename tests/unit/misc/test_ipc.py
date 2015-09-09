@@ -26,9 +26,11 @@ import collections
 import logging
 import json
 import hashlib
+import tempfile
 from unittest import mock
 
 import pytest
+import py.path  # pylint: disable=import-error
 from PyQt5.QtCore import pyqtSignal, QObject
 from PyQt5.QtNetwork import QLocalServer, QLocalSocket, QAbstractSocket
 from PyQt5.QtTest import QSignalSpy
@@ -40,6 +42,12 @@ from helpers import stubs  # pylint: disable=import-error
 
 
 Args = collections.namedtuple('Args', 'basedir')
+
+
+@pytest.yield_fixture()
+def short_tmpdir():
+    with tempfile.TemporaryDirectory() as tdir:
+        yield py.path.local(tdir)
 
 
 @pytest.yield_fixture
@@ -74,9 +82,9 @@ def qlocalsocket(qapp):
 
 
 @pytest.fixture(autouse=True)
-def fake_runtime_dir(monkeypatch, tmpdir):
-    monkeypatch.setenv('XDG_RUNTIME_DIR', str(tmpdir))
-    return tmpdir
+def fake_runtime_dir(monkeypatch, short_tmpdir):
+    monkeypatch.setenv('XDG_RUNTIME_DIR', str(short_tmpdir))
+    return short_tmpdir
 
 
 class FakeSocket(QObject):
@@ -602,8 +610,8 @@ class TestSendOrListen:
         return m
 
     @pytest.yield_fixture
-    def legacy_server(self, args, tmpdir, monkeypatch):
-        monkeypatch.setenv('TMPDIR', str(tmpdir))
+    def legacy_server(self, args, short_tmpdir, monkeypatch):
+        monkeypatch.setenv('TMPDIR', str(short_tmpdir))
         legacy_name = ipc._get_socketname(args.basedir, legacy=True)
         legacy_server = ipc.IPCServer(legacy_name)
         legacy_server.listen()
@@ -775,13 +783,13 @@ def test_connect_inexistant(qlocalsocket):
     assert qlocalsocket.error() == QLocalSocket.ServerNotFoundError
 
 
-def test_socket_options_listen_problem(qlocalserver, tmpdir):
+def test_socket_options_listen_problem(qlocalserver, short_tmpdir):
     """In earlier versions of Qt, listening fails when using socketOptions.
 
     With this test, we verify that this bug exists in the Qt version/OS
     combinations we expect it to, and doesn't exist in other versions.
     """
-    servername = str(tmpdir / 'x')
+    servername = str(short_tmpdir / 'x')
     qlocalserver.setSocketOptions(QLocalServer.UserAccessOption)
     ok = qlocalserver.listen(servername)
     if os.name == 'nt' or qtutils.version_check('5.4'):
