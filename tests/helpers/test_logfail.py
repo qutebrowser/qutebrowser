@@ -127,6 +127,48 @@ def test_log_expected_wrong_logger(log_testdir):
     res.stdout.fnmatch_lines(['*1 error*'])
 
 
+def test_output_passing(log_testdir):
+    log_testdir.makepyfile("""
+        import logging
+
+        def test_foo():
+            logging.error('log msg 1')
+            logging.error('log msg 2')
+    """)
+    res = log_testdir.runpytest('-p capturelog')
+    res.stdout.fnmatch_lines([
+        '*= ERRORS =*',
+        '*_ ERROR at teardown of test_foo _*',
+        'Got unexpected logging message!',
+
+        '*1 error*',
+    ])
+
+
+def test_output_failing(log_testdir):
+    log_testdir.makepyfile("""
+        import logging
+
+        def test_foo():
+            logging.error('log msg 1')
+            logging.error('log msg 2')
+            raise Exception
+    """)
+    res = log_testdir.runpytest('-p capturelog')
+    res.stdout.fnmatch_lines([
+        '*= ERRORS =*',
+        '*_ ERROR at teardown of test_foo _*',
+        'Got unexpected logging message!',
+
+        '*= FAILURES =*',
+        '*- Captured log -*',
+        '*ERROR    log msg 1',
+        '*ERROR    log msg 2',
+
+        '*1 error*',
+    ])
+
+
 @pytest.fixture
 def skipping_fixture():
     pytest.skip("Skipping to test caplog workaround.")
