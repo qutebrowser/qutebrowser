@@ -21,7 +21,6 @@
 
 import os
 import os.path
-import getpass
 
 from PyQt5.QtCore import QCoreApplication, QStandardPaths
 
@@ -151,7 +150,10 @@ def _get(typ):
         elif typ == QStandardPaths.TempLocation:
             # "The returned value might be application-specific, shared among
             # other applications for this user, or even system-wide."
-            subdir = '{}-{}'.format(appname, getpass.getuser())
+            #
+            # Unfortunately this path could get too long for IPC sockets, so we
+            # don't add the username here...
+            subdir = appname
             path = os.path.join(path, subdir)
         elif typ == QStandardPaths.RuntimeLocation:
             # This is generic, but per-user.

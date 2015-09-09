@@ -25,6 +25,7 @@ import getpass
 import collections
 import logging
 import json
+import hashlib
 from unittest import mock
 
 import pytest
@@ -167,19 +168,26 @@ def test_getpass_getuser():
     assert getpass.getuser()
 
 
+def md5(inp):
+    return hashlib.md5(inp.encode('utf-8')).hexdigest()
+
+
 class TestSocketName:
 
-    MD5 = 'cc8755609ad61864910f145119713de9'  # The MD5 of 'x'
-
     LEGACY_TESTS = [
-        (None, 'qutebrowser-{}'.format(getpass.getuser())),
-        ('/x', 'qutebrowser-{}-{}'.format(getpass.getuser(), MD5)),
+        (None, 'qutebrowser-testusername'),
+        ('/x', 'qutebrowser-testusername-{}'.format(md5('/x'))),
     ]
 
     POSIX_TESTS = [
-        (None, 'ipc'),
-        ('/x', 'ipc-{}'.format(MD5)),
+        (None, 'ipc-{}'.format(md5('testusername'))),
+        ('/x', 'ipc-{}'.format(md5('testusername-/x'))),
     ]
+
+    @pytest.fixture(autouse=True)
+    def patch_user(self, monkeypatch):
+        monkeypatch.setattr('qutebrowser.misc.ipc.getpass.getuser',
+                            lambda: 'testusername')
 
     @pytest.mark.parametrize('basedir, expected', LEGACY_TESTS)
     def test_legacy(self, basedir, expected):
@@ -744,11 +752,13 @@ class TestSendOrListen:
 def test_long_username(monkeypatch):
     """See https://github.com/The-Compiler/qutebrowser/issues/888."""
     username = 'alexandercogneau'
+    basedir = '/this_is_a_long_basedir'
     monkeypatch.setattr('qutebrowser.misc.ipc.standarddir.getpass.getuser',
                         lambda: username)
-    name = ipc._get_socketname(basedir='/foo')
+    name = ipc._get_socketname(basedir=basedir)
     server = ipc.IPCServer(name)
-    assert username in server._socketname
+    expected_md5 = md5('{}-{}'.format(username, basedir))
+    assert expected_md5 in server._socketname
     try:
         server.listen()
     finally:

@@ -40,19 +40,26 @@ READ_TIMEOUT = 5000
 PROTOCOL_VERSION = 1
 
 
+def _get_socketname_legacy(basedir):
+    """Legacy implementation of _get_socketname."""
+    parts = ['qutebrowser', getpass.getuser()]
+    if basedir is not None:
+        md5 = hashlib.md5(basedir.encode('utf-8')).hexdigest()
+        parts.append(md5)
+    return '-'.join(parts)
+
+
 def _get_socketname(basedir, legacy=False):
     """Get a socketname to use."""
-    if basedir is None:
-        basedir_md5 = None
-    else:
-        md5 = hashlib.md5(basedir.encode('utf-8'))
-        basedir_md5 = md5.hexdigest()
-
     if legacy or os.name == 'nt':
-        parts = ['qutebrowser', getpass.getuser()]
-        if basedir_md5 is not None:
-            parts.append(basedir_md5)
-        return '-'.join(parts)
+        return _get_socketname_legacy(basedir)
+
+    parts_to_hash = [getpass.getuser()]
+    if basedir is not None:
+        parts_to_hash.append(basedir)
+
+    data_to_hash = '-'.join(parts_to_hash).encode('utf-8')
+    md5 = hashlib.md5(data_to_hash).hexdigest()
 
     if sys.platform.startswith('linux'):
         target_dir = standarddir.runtime()
@@ -61,8 +68,7 @@ def _get_socketname(basedir, legacy=False):
         target_dir = standarddir.temp()
 
     parts = ['ipc']
-    if basedir_md5 is not None:
-        parts.append(basedir_md5)
+    parts.append(md5)
     return os.path.join(target_dir, '-'.join(parts))
 
 

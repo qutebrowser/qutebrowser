@@ -58,12 +58,6 @@ def reset_standarddir():
     standarddir.init(None)
 
 
-@pytest.fixture(autouse=True)
-def patch_username(monkeypatch):
-    monkeypatch.setattr('qutebrowser.utils.standarddir.getpass.getuser',
-                        lambda: 'user')
-
-
 @pytest.mark.parametrize('data_subdir, config_subdir, expected', [
     ('foo', 'foo', 'foo/data'),
     ('foo', 'bar', 'foo'),
@@ -127,7 +121,7 @@ class TestGetStandardDirLinux:
     def test_temp_explicit(self, monkeypatch, tmpdir):
         """Test temp dir with TMPDIR explicitly set."""
         monkeypatch.setenv('TMPDIR', str(tmpdir))
-        assert standarddir.temp() == str(tmpdir / 'qute_test-user')
+        assert standarddir.temp() == str(tmpdir / 'qute_test')
 
     def test_data(self, monkeypatch, tmpdir):
         """Test data dir with XDG_DATA_HOME not set."""
@@ -153,7 +147,7 @@ class TestGetStandardDirLinux:
     def test_temp(self, monkeypatch, tmpdir):
         """Test temp dir with TMPDIR not set."""
         monkeypatch.delenv('TMPDIR', raising=False)
-        assert standarddir.temp().split(os.sep)[-1] == 'qute_test-user'
+        assert standarddir.temp().split(os.sep)[-1] == 'qute_test'
 
 
 @pytest.mark.windows
@@ -177,7 +171,7 @@ class TestGetStandardDirWindows:
         assert standarddir.cache().split(os.sep)[-2:] == expected
 
     def test_temp(self):
-        assert standarddir.temp().split(os.sep)[-1] == 'qute_test-user'
+        assert standarddir.temp().split(os.sep)[-1] == 'qute_test'
 
 
 DirArgTest = collections.namedtuple('DirArgTest', 'arg, expected')
