@@ -27,6 +27,7 @@ import logging
 import json
 import hashlib
 import tempfile
+import subprocess
 from unittest import mock
 
 import pytest
@@ -639,6 +640,47 @@ class TestSendOrListen:
         assert ret is None
         msgs = [e.message for e in caplog.records()]
         assert "Connecting to {}".format(legacy_server._socketname) in msgs
+
+    @pytest.mark.posix   # Unneeded on Windows
+    def test_stale_legacy_server(self, caplog, qtbot, args, legacy_server,
+                                 ipc_server, py_proc):
+        legacy_name = ipc._get_socketname(args.basedir, legacy=True)
+        logging.debug('== Setting up the legacy server ==')
+        cmdline = py_proc("""
+            import sys
+
+            from PyQt5.QtCore import QCoreApplication
+            from PyQt5.QtNetwork import QLocalServer
+
+            app = QCoreApplication([])
+
+            QLocalServer.removeServer(sys.argv[1])
+            server = QLocalServer()
+
+            ok = server.listen(sys.argv[1])
+            assert ok
+
+            print(server.fullServerName())
+        """)
+
+        name = subprocess.check_output(
+            [cmdline[0]] + cmdline[1] + [legacy_name])
+        name = name.decode('utf-8').rstrip('\n')
+
+        # Closing the server should not remove the FIFO yet
+        assert os.path.exists(name)
+
+        ## Setting up the new server
+        logging.debug('== Setting up new server ==')
+        ret_server = ipc.send_or_listen(args)
+        assert isinstance(ret_server, ipc.IPCServer)
+
+        logging.debug('== Connecting ==')
+        with qtbot.waitSignal(ret_server.got_args, raising=True):
+            ret_client = ipc.send_or_listen(args)
+
+        assert ret_client is None
+        ret_server.shutdown()
 
     @pytest.mark.posix   # Unneeded on Windows
     def test_correct_socket_name(self, args):

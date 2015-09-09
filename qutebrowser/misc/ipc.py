@@ -353,8 +353,17 @@ def _has_legacy_server(name):
     socket = QLocalSocket()
     log.ipc.debug("Trying to connect to {}".format(name))
     socket.connectToServer(name)
-    if socket.error() != QLocalSocket.ServerNotFoundError:
+
+    err = socket.error()
+
+    if err != QLocalSocket.UnknownSocketError:
+        log.ipc.debug("Socket error: {} ({})".format(
+            socket.errorString(), err))
+
+    if err not in [QLocalSocket.ServerNotFoundError,
+                   QLocalSocket.ConnectionRefusedError]:
         return True
+
     socket.disconnectFromServer()
     if socket.state() != QLocalSocket.UnconnectedState:
         socket.waitForDisconnected(100)
