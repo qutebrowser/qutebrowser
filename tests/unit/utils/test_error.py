@@ -55,15 +55,19 @@ def test_no_err_windows(caplog, exc, name, exc_text):
         with caplog.atLevel(logging.ERROR):
             error.handle_fatal_exc(e, Args(no_err_windows=True), 'title',
                                    pre_text='pre', post_text='post')
-    msgs = [rec.message for rec in caplog.records()]
+
+    records = caplog.records()
+    assert len(records) == 1
+
     expected = [
         'Handling fatal {} with --no-err-windows!'.format(name),
+        '',
         'title: title',
         'pre_text: pre',
         'post_text: post',
         'exception text: {}'.format(exc_text),
     ]
-    assert msgs[-5:] == expected
+    assert records[0].msg == '\n'.join(expected)
 
 
 @pytest.mark.parametrize('pre_text, post_text, expected', [

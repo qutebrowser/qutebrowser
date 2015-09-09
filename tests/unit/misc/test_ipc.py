@@ -601,16 +601,19 @@ class TestSendOrListen:
             with pytest.raises(ipc.Error):
                 ipc.send_or_listen(args)
 
-        msgs = [e.message for e in caplog.records()]
+        records = caplog.records()
+        assert len(records) == 1
+
         error_msgs = [
             'Handling fatal misc.ipc.{} with --no-err-windows!'.format(
                 exc_name),
+            '',
             'title: Error while connecting to running instance!',
             'pre_text: ',
             'post_text: Maybe another instance is running but frozen?',
             'exception text: {}'.format(exc_msg),
         ]
-        assert msgs[-5:] == error_msgs
+        assert records[0].msg == '\n'.join(error_msgs)
 
     @pytest.mark.posix   # Flaky on Windows
     def test_error_while_listening(self, qlocalserver_mock, caplog, args):
@@ -623,16 +626,19 @@ class TestSendOrListen:
             with pytest.raises(ipc.Error):
                 ipc.send_or_listen(args)
 
-        msgs = [e.message for e in caplog.records()]
+        records = caplog.records()
+        assert len(records) == 1
+
         error_msgs = [
             'Handling fatal misc.ipc.ListenError with --no-err-windows!',
+            '',
             'title: Error while connecting to running instance!',
             'pre_text: ',
             'post_text: Maybe another instance is running but frozen?',
             'exception text: Error while listening to IPC server: Error '
                 'string (error 4)',
         ]
-        assert msgs[-5:] == error_msgs
+        assert records[0].msg == '\n'.join(error_msgs)
 
 
 def test_long_username(fake_runtime_dir):
