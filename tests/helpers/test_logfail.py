@@ -30,13 +30,11 @@ import pytest_capturelog  # pylint: disable=import-error
 pytest_plugins = 'pytester'
 
 
-
-
 @pytest.fixture
 def log_testdir(testdir):
     """Testdir which uses our logfail.py as a conftest."""
     log_fn = os.path.join(os.path.dirname(__file__), 'logfail.py')
-    with open(log_fn) as f:
+    with open(log_fn, encoding='utf-8') as f:
         testdir.makeconftest(f.read())
     return testdir
 
