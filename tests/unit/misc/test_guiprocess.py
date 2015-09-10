@@ -176,6 +176,17 @@ def test_cmd_args(fake_proc):
     assert (fake_proc.cmd, fake_proc.args) == (cmd, args)
 
 
+def test_start_logging(fake_proc, caplog):
+    """Make sure that starting logs the executed commandline."""
+    cmd = 'does_not_exist'
+    args = ['arg', 'arg with spaces']
+    with caplog.atLevel(logging.DEBUG):
+        fake_proc.start(cmd, args)
+    msgs = [e.msg for e in caplog.records()]
+    assert msgs == ["Starting process.",
+                    "Executing: does_not_exist arg 'arg with spaces'"]
+
+
 def test_error(qtbot, proc, caplog, guiprocess_message_mock):
     """Test the process emitting an error."""
     with caplog.atLevel(logging.ERROR, 'message'):

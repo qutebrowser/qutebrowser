@@ -125,8 +125,9 @@ class GUIProcess(QObject):
             raise ValueError("Trying to start a running QProcess!")
         self.cmd = cmd
         self.args = args
+        fake_cmdline = ' '.join(shlex.quote(e) for e in [cmd] + list(args))
+        log.procs.debug("Executing: {}".format(fake_cmdline))
         if self.verbose:
-            fake_cmdline = ' '.join(shlex.quote(e) for e in [cmd] + list(args))
             message.info(self._win_id, 'Executing: ' + fake_cmdline)
 
     def start(self, cmd, args, mode=None):
