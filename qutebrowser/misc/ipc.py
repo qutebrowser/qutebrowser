@@ -366,7 +366,7 @@ class IPCServer(QObject):
             self._socket.deleteLater()
             self._socket = None
         self._timer.stop()
-        if self._atime_timer is not None:
+        if self._atime_timer is not None:  # pragma: no branch
             self._atime_timer.stop()
             try:
                 self._atime_timer.timeout.disconnect(self.update_atime)

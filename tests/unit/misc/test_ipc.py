@@ -343,6 +343,21 @@ class TestListen:
 
         assert old_atime != new_atime
 
+    @pytest.mark.posix
+    def test_atime_update_no_name(self, qtbot, caplog, ipc_server):
+        with caplog.atLevel(logging.ERROR):
+            ipc_server.update_atime()
+
+        records = caplog.records()
+        assert len(records) == 1
+        assert records[0].msg == "In update_atime with no server path!"
+
+    @pytest.mark.posix
+    def test_atime_shutdown_typeerror(self, qtbot, ipc_server):
+        """This should never happen, but let's handle it gracefully."""
+        ipc_server._atime_timer.timeout.disconnect(ipc_server.update_atime)
+        ipc_server.shutdown()
+
 
 class TestOnError:
 
