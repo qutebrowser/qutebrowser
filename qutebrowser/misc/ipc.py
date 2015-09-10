@@ -38,7 +38,7 @@ from qutebrowser.utils import (log, usertypes, error, objreg, standarddir,
 CONNECT_TIMEOUT = 100
 WRITE_TIMEOUT = 1000
 READ_TIMEOUT = 5000
-ATIME_INTERVAL = 60 * 60 * 6 * 1000 # 6 hours
+ATIME_INTERVAL = 60 * 60 * 6 * 1000  # 6 hours
 PROTOCOL_VERSION = 1
 
 
@@ -175,7 +175,7 @@ class IPCServer(QObject):
         self._timer.setInterval(READ_TIMEOUT)
         self._timer.timeout.connect(self.on_timeout)
 
-        if os.name == 'nt':
+        if os.name == 'nt':  # pragma: no coverage
             self._atime_timer = None
         else:
             self._atime_timer = usertypes.Timer(self, 'ipc-atime')
