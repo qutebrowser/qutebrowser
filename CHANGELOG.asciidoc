@@ -60,12 +60,16 @@ Changed
 - The completion widget doesn't show a border anymore.
 - The tabbar doesn't display ugly arrows anymore if there isn't enough space
   for all tabs.
+- Some insignificant Qt warnings which were printed on OS X are now hidden.
 
 Fixed
 ~~~~~
 
 - Fixed a bug where cookies were saved despite qutebrowser being started in
   private browsing mode.
+- The local socket used for inter-process communication (opening new instances)
+  is now ensured to only be accessible by the user on all operating systems.
+- Various corner cases for inter-process communication issues got fixed.
 - `link_pyqt.py` now should work better on untested distributions.
 - Fixed various corner-cases with crashes when reading invalid config values
   and the history file.
