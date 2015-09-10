@@ -203,7 +203,8 @@ class IPCServer(QObject):
     def listen(self):
         """Start listening on self._socketname."""
         log.ipc.debug("Listening as {}".format(self._socketname))
-        self._atime_timer.start()
+        if self._atime_timer is not None:  # pragma: no branch
+            self._atime_timer.start()
         self._remove_server()
         ok = self._server.listen(self._socketname)
         if not ok:
