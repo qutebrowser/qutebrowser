@@ -367,6 +367,10 @@ class IPCServer(QObject):
             self._socket = None
         self._timer.stop()
         self._atime_timer.stop()
+        try:
+            self._atime_timer.timeout.disconnect(self.update_atime)
+        except TypeError:
+            pass
         self._server.close()
         self._server.deleteLater()
         self._remove_server()
