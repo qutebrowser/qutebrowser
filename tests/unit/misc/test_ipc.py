@@ -324,6 +324,25 @@ class TestListen:
         assert file_owner_ok or dir_owner_ok
         assert file_mode_ok or dir_mode_ok
 
+    @pytest.mark.posix
+    def test_atime_update(self, qtbot, ipc_server):
+        ipc_server._atime_timer.setInterval(500)  # We don't want to wait 6h
+        ipc_server.listen()
+        old_atime = os.stat(ipc_server._server.fullServerName()).st_atime_ns
+
+        with qtbot.waitSignal(ipc_server._atime_timer.timeout, timeout=2000,
+                              raising=True):
+            pass
+
+        # Make sure the timer is not singleShot
+        with qtbot.waitSignal(ipc_server._atime_timer.timeout, timeout=2000,
+                              raising=True):
+            pass
+
+        new_atime = os.stat(ipc_server._server.fullServerName()).st_atime_ns
+
+        assert old_atime != new_atime
+
 
 class TestOnError:
 

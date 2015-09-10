@@ -27,7 +27,7 @@ import getpass
 import binascii
 import hashlib
 
-from PyQt5.QtCore import pyqtSignal, pyqtSlot, QObject
+from PyQt5.QtCore import pyqtSignal, pyqtSlot, QObject, Qt
 from PyQt5.QtNetwork import QLocalSocket, QLocalServer, QAbstractSocket
 
 import qutebrowser
@@ -38,6 +38,7 @@ from qutebrowser.utils import (log, usertypes, error, objreg, standarddir,
 CONNECT_TIMEOUT = 100
 WRITE_TIMEOUT = 1000
 READ_TIMEOUT = 5000
+ATIME_INTERVAL = 60 * 60 * 6 * 1000 # 6 hours
 PROTOCOL_VERSION = 1
 
 
@@ -146,6 +147,7 @@ class IPCServer(QObject):
         _socketname: The socketname to use.
         _socketopts_ok: Set if using setSocketOptions is working with this
                         OS/Qt version.
+        _atime_timer: Timer to update the atime of the socket regularily.
 
     Signals:
         got_args: Emitted when there was an IPC connection and arguments were
@@ -168,11 +170,22 @@ class IPCServer(QObject):
         super().__init__(parent)
         self.ignored = False
         self._socketname = socketname
+
         self._timer = usertypes.Timer(self, 'ipc-timeout')
         self._timer.setInterval(READ_TIMEOUT)
         self._timer.timeout.connect(self.on_timeout)
+
+        if os.name == 'nt':
+            self._atime_timer = None
+        else:
+            self._atime_timer = usertypes.Timer(self, 'ipc-atime')
+            self._atime_timer.setInterval(READ_TIMEOUT)
+            self._atime_timer.timeout.connect(self.update_atime)
+            self._atime_timer.setTimerType(Qt.VeryCoarseTimer)
+
         self._server = QLocalServer(self)
         self._server.newConnection.connect(self.handle_connection)
+
         self._socket = None
         self._socketopts_ok = os.name == 'nt' or qtutils.version_check('5.4')
         if self._socketopts_ok:  # pragma: no cover
@@ -190,6 +203,7 @@ class IPCServer(QObject):
     def listen(self):
         """Start listening on self._socketname."""
         log.ipc.debug("Listening as {}".format(self._socketname))
+        self._atime_timer.start()
         self._remove_server()
         ok = self._server.listen(self._socketname)
         if not ok:
@@ -330,12 +344,29 @@ class IPCServer(QObject):
         log.ipc.error("IPC connection timed out.")
         self._socket.close()
 
+    @pyqtSlot()
+    def update_atime(self):
+        """Update the atime of the socket file all few hours.
+
+        From the XDG basedir spec:
+
+        To ensure that your files are not removed, they should have their
+        access time timestamp modified at least once every 6 hours of monotonic
+        time or the 'sticky' bit should be set on the file.
+        """
+        path = self._server.fullServerName()
+        if not path:
+            log.ipc.error("In update_atime with no server path!")
+            return
+        os.utime(path)
+
     def shutdown(self):
         """Shut down the IPC server cleanly."""
         if self._socket is not None:
             self._socket.deleteLater()
             self._socket = None
         self._timer.stop()
+        self._atime_timer.stop()
         self._server.close()
         self._server.deleteLater()
         self._remove_server()
