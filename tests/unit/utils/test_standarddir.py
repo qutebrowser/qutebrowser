@@ -112,14 +112,20 @@ class TestStandardDir:
     ])
     @pytest.mark.linux
     def test_linux_explicit(self, monkeypatch, tmpdir, func, varname):
-        """Test dirs with XDG_*_HOME explicitly set."""
+        """Test dirs with XDG environment variables explicitly set.
+
+        Args:
+            func: The function to test.
+            varname: The environment variable which should be set.
+        """
         monkeypatch.setenv(varname, str(tmpdir))
         assert func() == str(tmpdir / 'qute_test')
 
     @pytest.mark.parametrize('func, subdirs', [
-        (standarddir.data, ['.local', 'share']),
-        (standarddir.config, ['.config']),
-        (standarddir.cache, ['.cache']),
+        (standarddir.data, ['.local', 'share', 'qute_test']),
+        (standarddir.config, ['.config', 'qute_test']),
+        (standarddir.cache, ['.cache', 'qute_test']),
+        (standarddir.download, ['Downloads']),
     ])
     @pytest.mark.linux
     def test_linux_normal(self, monkeypatch, tmpdir, func, subdirs):
@@ -127,12 +133,13 @@ class TestStandardDir:
         monkeypatch.setenv('HOME', str(tmpdir))
         for var in ('DATA', 'CONFIG', 'CACHE'):
             monkeypatch.delenv('XDG_{}_HOME'.format(var), raising=False)
-        assert func() == str(tmpdir.join(*subdirs) / 'qute_test')
+        assert func() == str(tmpdir.join(*subdirs))
 
     @pytest.mark.parametrize('func, elems, expected', [
         (standarddir.data, 2, ['qute_test', 'data']),
         (standarddir.config, 1, ['qute_test']),
         (standarddir.cache, 2, ['qute_test', 'cache']),
+        (standarddir.download, 1, ['Downloads']),
     ])
     @pytest.mark.windows
     def test_windows(self, func, elems, expected):

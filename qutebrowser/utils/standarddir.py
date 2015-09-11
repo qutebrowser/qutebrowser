@@ -39,7 +39,7 @@ def config():
     if not overridden:
         path = _writable_location(typ)
         appname = QCoreApplication.instance().applicationName()
-        if path.split(os.sep)[-1] != appname:
+        if path.split(os.sep)[-1] != appname:  # pragma: no branch
             # WORKAROUND - see
             # https://bugreports.qt.io/browse/QTBUG-38872
             path = os.path.join(path, appname)
