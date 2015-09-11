@@ -32,84 +32,33 @@ _args = None
 
 
 def config():
-    """Get a location for configs."""
-    typ = QStandardPaths.ConfigLocation
-    overridden, path = _from_args(typ, _args)
-    if not overridden:
-        path = _writable_location(typ)
-        appname = QCoreApplication.instance().applicationName()
-        if path.split(os.sep)[-1] != appname:
-            # WORKAROUND - see
-            # https://bugreports.qt.io/browse/QTBUG-38872
-            path = os.path.join(path, appname)
-    _maybe_create(path)
-    return path
+    """Convenience function to get the config location."""
+    return _get(QStandardPaths.ConfigLocation)
 
 
 def data():
-    """Get a location for data."""
-    typ = QStandardPaths.DataLocation
-    overridden, path = _from_args(typ, _args)
-    if not overridden:
-        path = _writable_location(typ)
-        if os.name == 'nt':
-            # Under windows, config/data might end up in the same directory.
-            data_path = QStandardPaths.writableLocation(
-                QStandardPaths.DataLocation)
-            config_path = QStandardPaths.writableLocation(
-                QStandardPaths.ConfigLocation)
-            if data_path == config_path:
-                path = os.path.join(path, 'data')
-    _maybe_create(path)
-    return path
+    """Convenience function to get the data location."""
+    return _get(QStandardPaths.DataLocation)
 
 
 def cache():
-    """Get a location for the cache."""
-    typ = QStandardPaths.CacheLocation
-    overridden, path = _from_args(typ, _args)
-    if not overridden:
-        path = _writable_location(typ)
-    _maybe_create(path)
-    return path
+    """Convenience function to get the cache location."""
+    return _get(QStandardPaths.CacheLocation)
 
 
 def download():
-    """Get a location for downloads."""
-    typ = QStandardPaths.DownloadLocation
-    overridden, path = _from_args(typ, _args)
-    if not overridden:
-        path = _writable_location(typ)
-    _maybe_create(path)
-    return path
+    """Convenience function to get the download location."""
+    return _get(QStandardPaths.DownloadLocation)
 
 
 def runtime():
-    """Get a location for runtime data."""
-    typ = QStandardPaths.RuntimeLocation
-    overridden, path = _from_args(typ, _args)
-    if not overridden:
-        path = _writable_location(typ)
-        # This is generic, but per-user.
-        appname = QCoreApplication.instance().applicationName()
-        path = os.path.join(path, appname)
-    _maybe_create(path)
-    return path
+    """Convenience function to get the runtime location."""
+    return _get(QStandardPaths.RuntimeLocation)
 
 
 def temp():
-    """Get a location for temporary files."""
-    typ = QStandardPaths.TempLocation
-    path = _writable_location(typ)
-    # "The returned value might be application-specific, shared among
-    # other applications for this user, or even system-wide."
-    #
-    # Unfortunately this path could get too long for IPC sockets, so we
-    # don't add the username here...
-    appname = QCoreApplication.instance().applicationName()
-    path = os.path.join(path, appname)
-    _maybe_create(path)
-    return path
+    """Convenience function to get the temporary files location."""
+    return _get(QStandardPaths.TempLocation)
 
 
 def _writable_location(typ):
@@ -173,20 +122,53 @@ def _from_args(typ, args):
         return (True, arg_value)
 
 
-def _maybe_create(path):
-    """Create the `path` directory if path is not None.
+def _get(typ):
+    """Get the directory where files of the given type should be written to.
 
-    From the XDG basedir spec:
-        If, when attempting to write a file, the destination directory is
-        non-existant an attempt should be made to create it with permission
-        0700. If the destination directory exists already the permissions
-        should not be changed.
+    Args:
+        typ: A member of the QStandardPaths::StandardLocation enum,
+             see http://doc.qt.io/qt-5/qstandardpaths.html#StandardLocation-enum
     """
+    overridden, path = _from_args(typ, _args)
+    if not overridden:
+        path = _writable_location(typ)
+        appname = QCoreApplication.instance().applicationName()
+
+        if (typ == QStandardPaths.ConfigLocation and
+                path.split(os.sep)[-1] != appname):
+            # WORKAROUND - see
+            # https://bugreports.qt.io/browse/QTBUG-38872
+            path = os.path.join(path, appname)
+        elif typ == QStandardPaths.DataLocation and os.name == 'nt':
+            # Under windows, config/data might end up in the same directory.
+            data_path = QStandardPaths.writableLocation(
+                QStandardPaths.DataLocation)
+            config_path = QStandardPaths.writableLocation(
+                QStandardPaths.ConfigLocation)
+            if data_path == config_path:
+                path = os.path.join(path, 'data')
+        elif typ == QStandardPaths.TempLocation:
+            # "The returned value might be application-specific, shared among
+            # other applications for this user, or even system-wide."
+            #
+            # Unfortunately this path could get too long for IPC sockets, so we
+            # don't add the username here...
+            subdir = appname
+            path = os.path.join(path, subdir)
+        elif typ == QStandardPaths.RuntimeLocation:
+            # This is generic, but per-user.
+            path = os.path.join(path, appname)
+    # From the XDG basedir spec:
+    #     If, when attempting to write a file, the destination directory is
+    #     non-existant an attempt should be made to create it with permission
+    #     0700. If the destination directory exists already the permissions
+    #     should not be changed.
     if path is not None:
         try:
             os.makedirs(path, 0o700)
         except FileExistsError:
             pass
+    return path
 
 
 def init(args):
