@@ -61,6 +61,7 @@ Changed
 - The tabbar doesn't display ugly arrows anymore if there isn't enough space
   for all tabs.
 - Some insignificant Qt warnings which were printed on OS X are now hidden.
+- Better support for Qt 5.5 and Python 3.5.
 
 Fixed
 ~~~~~
@@ -88,6 +89,7 @@ Fixed
   anymore.
 - `~` is now always expanded when spawning a script.
 - Fixed various corner cases when opening links in an existing instance.
+- Fixed a race-condition causing an exception when starting qutebrowser.
 
 Removed
 ~~~~~~~
