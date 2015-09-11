@@ -38,9 +38,6 @@ def guiprocess_message_mock(message_mock):
 @pytest.yield_fixture()
 def proc(qtbot):
     """A fixture providing a GUIProcess and cleaning it up after the test."""
-    if os.name == 'nt':
-        # WORKAROUND for https://github.com/pytest-dev/pytest-qt/issues/67
-        pytest.skip("Test is flaky on Windows...")
     p = guiprocess.GUIProcess(0, 'testprocess')
     yield p
     if p._proc.state() == QProcess.Running:
@@ -88,8 +85,6 @@ def test_start_verbose(proc, qtbot, guiprocess_message_mock, py_proc):
     assert bytes(proc._proc.readAll()).rstrip() == b'test'
 
 
-# WORKAROUND for https://github.com/pytest-dev/pytest-qt/issues/67
-@pytest.mark.skipif(os.name == 'nt', reason="Test is flaky on Windows...")
 @pytest.mark.not_frozen
 def test_start_env(monkeypatch, qtbot, py_proc):
     monkeypatch.setenv('QUTEBROWSER_TEST_1', '1')
