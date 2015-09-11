@@ -52,9 +52,12 @@ def no_cachedir_tag(monkeypatch):
                         lambda: None)
 
 
-@pytest.fixture(autouse=True)
+@pytest.yield_fixture(autouse=True)
 @pytest.mark.usefixtures('no_cachedir_tag')
 def reset_standarddir():
+    """Clean up standarddir arguments before and after each test."""
+    standarddir.init(None)
+    yield
     standarddir.init(None)
 
 
