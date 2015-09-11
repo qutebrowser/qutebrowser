@@ -86,24 +86,23 @@ class TestFileHandling:
         editor._proc.finished.emit(0, QProcess.NormalExit)
         assert not os.path.exists(filename)
 
-    def test_error(self, caplog, editor):
+    def test_error(self, editor):
         """Test file handling when closing with an exit status != 0."""
         editor.edit("")
         filename = editor._filename
         assert os.path.exists(filename)
-        with caplog.atLevel(logging.ERROR):
-            editor._proc.finished.emit(1, QProcess.NormalExit)
-            assert len(caplog.records()) == 2
+
+        editor._proc.finished.emit(1, QProcess.NormalExit)
+
         assert not os.path.exists(filename)
 
-    def test_crash(self, caplog, editor):
+    def test_crash(self, editor):
         """Test file handling when closing with a crash."""
         editor.edit("")
         filename = editor._filename
         assert os.path.exists(filename)
-        with caplog.atLevel(logging.ERROR):
-            editor._proc.error.emit(QProcess.Crashed)
-            assert len(caplog.records()) == 2
+        editor._proc.error.emit(QProcess.Crashed)
+
         editor._proc.finished.emit(0, QProcess.CrashExit)
         assert not os.path.exists(filename)
 
@@ -154,19 +153,3 @@ def test_modify(editor, initial_text, edited_text):
 
     editor._proc.finished.emit(0, QProcess.NormalExit)
     editor.editing_finished.emit.assert_called_with(edited_text)
-
-
-def test_proc_error(caplog, editor):
-    """Test on_proc_error."""
-    editor.edit("")
-    with caplog.atLevel(logging.ERROR):
-        editor.on_proc_error(QProcess.Crashed)
-        assert len(caplog.records()) == 2
-
-
-def test_proc_return(caplog, editor):
-    """Test on_proc_finished with a bad exit status."""
-    editor.edit("")
-    with caplog.atLevel(logging.ERROR):
-        editor.on_proc_closed(1, QProcess.NormalExit)
-        assert len(caplog.records()) == 2
