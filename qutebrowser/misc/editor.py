@@ -65,6 +65,7 @@ class ExternalEditor(QObject):
             message.error(self._win_id,
                           "Failed to delete tempfile... ({})".format(e))
 
+    @pyqtSlot(int, QProcess.ExitStatus)
     def on_proc_closed(self, exitcode, exitstatus):
         """Write the editor text into the form field and clean up tempfile.
 
