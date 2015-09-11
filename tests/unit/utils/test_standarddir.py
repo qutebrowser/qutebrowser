@@ -293,3 +293,26 @@ class TestInitCacheDirTag:
         assert len(caplog.records()) == 1
         assert caplog.records()[0].message == 'Failed to create CACHEDIR.TAG'
         assert not tmpdir.listdir()
+
+
+class TestCreatingDir:
+
+    """Make sure inexistant directories are created properly."""
+
+    DIR_TYPES = ['config', 'data', 'cache', 'download', 'runtime', 'temp']
+
+    @pytest.mark.parametrize('typ', DIR_TYPES)
+    def test_basedir(self, tmpdir, typ):
+        """Test --basedir."""
+        basedir = tmpdir / 'basedir'
+        assert not basedir.exists()
+        args = types.SimpleNamespace(basedir=str(basedir))
+        standarddir.init(args)
+
+        func = getattr(standarddir, typ)
+        func()
+
+        assert basedir.exists()
+
+        if os.name == 'posix':
+            assert basedir.stat().mode & 0o777 == 0o700
