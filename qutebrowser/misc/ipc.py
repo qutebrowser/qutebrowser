@@ -63,11 +63,7 @@ def _get_socketname(basedir, legacy=False):
     data_to_hash = '-'.join(parts_to_hash).encode('utf-8')
     md5 = hashlib.md5(data_to_hash).hexdigest()
 
-    if sys.platform.startswith('linux'):
-        target_dir = standarddir.runtime()
-    else:  # pragma: no cover
-        # OS X or other Unix
-        target_dir = standarddir.temp()
+    target_dir = standarddir.runtime()
 
     parts = ['ipc']
     parts.append(md5)

@@ -20,6 +20,7 @@
 """Utilities to get and initialize data/config paths."""
 
 import os
+import sys
 import os.path
 
 from PyQt5.QtCore import QCoreApplication, QStandardPaths
@@ -86,11 +87,22 @@ def download():
 
 def runtime():
     """Get a location for runtime data."""
-    typ = QStandardPaths.RuntimeLocation
+    if sys.platform.startswith('linux'):
+        typ = QStandardPaths.RuntimeLocation
+    else:  # pragma: no cover
+        # RuntimeLocation is a weird path on OS X and Windows.
+        typ = QStandardPaths.TempLocation
     overridden, path = _from_args(typ, _args)
     if not overridden:
         path = _writable_location(typ)
         # This is generic, but per-user.
+        #
+        # For TempLocation:
+        # "The returned value might be application-specific, shared among
+        # other applications for this user, or even system-wide."
+        #
+        # Unfortunately this path could get too long for sockets (which have a
+        # maximum length of 104 chars), so we don't add the username here...
         appname = QCoreApplication.instance().applicationName()
         path = os.path.join(path, appname)
     _maybe_create(path)
