@@ -32,7 +32,7 @@ from unittest import mock
 
 import pytest
 import py.path  # pylint: disable=import-error
-from PyQt5.QtCore import pyqtSignal, QObject, PYQT_VERSION
+from PyQt5.QtCore import pyqtSignal, QObject
 from PyQt5.QtNetwork import QLocalServer, QLocalSocket, QAbstractSocket
 from PyQt5.QtTest import QSignalSpy
 
@@ -325,9 +325,6 @@ class TestListen:
         assert file_mode_ok or dir_mode_ok
 
     @pytest.mark.posix
-    @pytest.mark.skipif(PYQT_VERSION < 0x050300, reason="Breaks stuff - "
-                        "FIXME: Remove this when there's a new pytest-qt "
-                        "release!")
     def test_atime_update(self, qtbot, ipc_server):
         ipc_server._atime_timer.setInterval(500)  # We don't want to wait 6h
         ipc_server.listen()
