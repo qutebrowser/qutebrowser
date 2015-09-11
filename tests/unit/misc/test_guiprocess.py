@@ -19,7 +19,6 @@
 
 """Tests for qutebrowser.misc.guiprocess."""
 
-import os
 import json
 import logging
 
