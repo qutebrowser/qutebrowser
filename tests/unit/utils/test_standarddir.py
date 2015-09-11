@@ -121,11 +121,6 @@ class TestGetStandardDirLinux:
         monkeypatch.setenv('XDG_CACHE_HOME', str(tmpdir))
         assert standarddir.cache() == str(tmpdir / 'qute_test')
 
-    def test_temp_explicit(self, monkeypatch, tmpdir):
-        """Test temp dir with TMPDIR explicitly set."""
-        monkeypatch.setenv('TMPDIR', str(tmpdir))
-        assert standarddir.temp() == str(tmpdir / 'qute_test')
-
     def test_data(self, monkeypatch, tmpdir):
         """Test data dir with XDG_DATA_HOME not set."""
         monkeypatch.setenv('HOME', str(tmpdir))
@@ -147,11 +142,6 @@ class TestGetStandardDirLinux:
         expected = tmpdir / '.cache' / 'qute_test'
         assert standarddir.cache() == expected
 
-    def test_temp(self, monkeypatch, tmpdir):
-        """Test temp dir with TMPDIR not set."""
-        monkeypatch.delenv('TMPDIR', raising=False)
-        assert standarddir.temp().split(os.sep)[-1] == 'qute_test'
-
 
 @pytest.mark.windows
 @pytest.mark.usefixtures('no_cachedir_tag')
@@ -172,9 +162,6 @@ class TestGetStandardDirWindows:
         """Test cache dir."""
         expected = ['qute_test', 'cache']
         assert standarddir.cache().split(os.sep)[-2:] == expected
-
-    def test_temp(self):
-        assert standarddir.temp().split(os.sep)[-1] == 'qute_test'
 
 
 DirArgTest = collections.namedtuple('DirArgTest', 'arg, expected')
@@ -241,13 +228,6 @@ class TestArguments:
         func = getattr(standarddir, typ)
         assert func() == expected
 
-    def test_basedir_temp(self, tmpdir):
-        """Make sure the temp file location is not influenced by basedir."""
-        args = types.SimpleNamespace(basedir=str(tmpdir))
-        standarddir.init(args)
-        qute_tempdir = standarddir.temp()
-        assert not qute_tempdir.startswith(str(tmpdir))
-
 
 class TestInitCacheDirTag:
 
@@ -302,7 +282,7 @@ class TestCreatingDir:
 
     """Make sure inexistant directories are created properly."""
 
-    DIR_TYPES = ['config', 'data', 'cache', 'download', 'runtime', 'temp']
+    DIR_TYPES = ['config', 'data', 'cache', 'download', 'runtime']
 
     @pytest.mark.parametrize('typ', DIR_TYPES)
     def test_basedir(self, tmpdir, typ):

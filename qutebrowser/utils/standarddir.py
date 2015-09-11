@@ -109,21 +109,6 @@ def runtime():
     return path
 
 
-def temp():
-    """Get a location for temporary files."""
-    typ = QStandardPaths.TempLocation
-    path = _writable_location(typ)
-    # "The returned value might be application-specific, shared among
-    # other applications for this user, or even system-wide."
-    #
-    # Unfortunately this path could get too long for IPC sockets, so we
-    # don't add the username here...
-    appname = QCoreApplication.instance().applicationName()
-    path = os.path.join(path, appname)
-    _maybe_create(path)
-    return path
-
-
 def _writable_location(typ):
     """Wrapper around QStandardPaths.writableLocation."""
     with qtutils.unset_organization():
@@ -166,6 +151,7 @@ def _from_args(typ, args):
 
     if getattr(args, 'basedir', None) is not None:
         basedir = args.basedir
+
         try:
             suffix = basedir_suffix[typ]
         except KeyError:
