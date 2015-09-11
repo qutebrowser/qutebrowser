@@ -100,68 +100,43 @@ class TestWritableLocation:
         assert '\\' in loc
 
 
-@pytest.mark.linux
 @pytest.mark.usefixtures('no_cachedir_tag')
-class TestGetStandardDirLinux:
+class TestStandardDir:
 
-    """Tests for standarddir under Linux."""
+    """Tests for standarddir."""
 
-    def test_data_explicit(self, monkeypatch, tmpdir):
-        """Test data dir with XDG_DATA_HOME explicitly set."""
-        monkeypatch.setenv('XDG_DATA_HOME', str(tmpdir))
-        assert standarddir.data() == str(tmpdir / 'qute_test')
+    @pytest.mark.parametrize('func, varname', [
+        (standarddir.data, 'XDG_DATA_HOME'),
+        (standarddir.config, 'XDG_CONFIG_HOME'),
+        (standarddir.cache, 'XDG_CACHE_HOME'),
+    ])
+    @pytest.mark.linux
+    def test_linux_explicit(self, monkeypatch, tmpdir, func, varname):
+        """Test dirs with XDG_*_HOME explicitly set."""
+        monkeypatch.setenv(varname, str(tmpdir))
+        assert func() == str(tmpdir / 'qute_test')
 
-    def test_config_explicit(self, monkeypatch, tmpdir):
-        """Test config dir with XDG_CONFIG_HOME explicitly set."""
-        monkeypatch.setenv('XDG_CONFIG_HOME', str(tmpdir))
-        assert standarddir.config() == str(tmpdir / 'qute_test')
-
-    def test_cache_explicit(self, monkeypatch, tmpdir):
-        """Test cache dir with XDG_CACHE_HOME explicitly set."""
-        monkeypatch.setenv('XDG_CACHE_HOME', str(tmpdir))
-        assert standarddir.cache() == str(tmpdir / 'qute_test')
-
-    def test_data(self, monkeypatch, tmpdir):
-        """Test data dir with XDG_DATA_HOME not set."""
+    @pytest.mark.parametrize('func, subdirs', [
+        (standarddir.data, ['.local', 'share']),
+        (standarddir.config, ['.config']),
+        (standarddir.cache, ['.cache']),
+    ])
+    @pytest.mark.linux
+    def test_linux_normal(self, monkeypatch, tmpdir, func, subdirs):
+        """Test dirs with XDG_*_HOME not set."""
         monkeypatch.setenv('HOME', str(tmpdir))
-        monkeypatch.delenv('XDG_DATA_HOME', raising=False)
-        expected = tmpdir / '.local' / 'share' / 'qute_test'
-        assert standarddir.data() == str(expected)
+        for var in ('DATA', 'CONFIG', 'CACHE'):
+            monkeypatch.delenv('XDG_{}_HOME'.format(var), raising=False)
+        assert func() == str(tmpdir.join(*subdirs) / 'qute_test')
 
-    def test_config(self, monkeypatch, tmpdir):
-        """Test config dir with XDG_CONFIG_HOME not set."""
-        monkeypatch.setenv('HOME', str(tmpdir))
-        monkeypatch.delenv('XDG_CONFIG_HOME', raising=False)
-        expected = tmpdir / '.config' / 'qute_test'
-        assert standarddir.config() == str(expected)
-
-    def test_cache(self, monkeypatch, tmpdir):
-        """Test cache dir with XDG_CACHE_HOME not set."""
-        monkeypatch.setenv('HOME', str(tmpdir))
-        monkeypatch.delenv('XDG_CACHE_HOME', raising=False)
-        expected = tmpdir / '.cache' / 'qute_test'
-        assert standarddir.cache() == expected
-
-
-@pytest.mark.windows
-@pytest.mark.usefixtures('no_cachedir_tag')
-class TestGetStandardDirWindows:
-
-    """Tests for standarddir under Windows."""
-
-    def test_data(self):
-        """Test data dir."""
-        expected = ['qute_test', 'data']
-        assert standarddir.data().split(os.sep)[-2:] == expected
-
-    def test_config(self):
-        """Test config dir."""
-        assert standarddir.config().split(os.sep)[-1] == 'qute_test'
-
-    def test_cache(self):
-        """Test cache dir."""
-        expected = ['qute_test', 'cache']
-        assert standarddir.cache().split(os.sep)[-2:] == expected
+    @pytest.mark.parametrize('func, elems, expected', [
+        (standarddir.data, 2, ['qute_test', 'data']),
+        (standarddir.config, 1, ['qute_test']),
+        (standarddir.cache, 2, ['qute_test', 'cache']),
+    ])
+    @pytest.mark.windows
+    def test_windows(self, func, elems, expected):
+        assert func().split(os.sep)[-elems:] == expected
 
 
 DirArgTest = collections.namedtuple('DirArgTest', 'arg, expected')
