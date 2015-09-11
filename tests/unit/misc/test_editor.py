@@ -21,7 +21,6 @@
 
 import os
 import os.path
-import logging
 from unittest import mock
 
 from PyQt5.QtCore import QProcess
