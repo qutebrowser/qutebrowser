@@ -163,8 +163,11 @@ def _get(typ):
     #     non-existant an attempt should be made to create it with permission
     #     0700. If the destination directory exists already the permissions
     #     should not be changed.
-    if path is not None and not os.path.exists(path):
-        os.makedirs(path, 0o700)
+    if path is not None:
+        try:
+            os.makedirs(path, 0o700)
+        except FileExistsError:
+            pass
     return path
 
 

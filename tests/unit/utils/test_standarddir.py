@@ -316,3 +316,23 @@ class TestCreatingDir:
 
         if os.name == 'posix':
             assert basedir.stat().mode & 0o777 == 0o700
+
+    @pytest.mark.parametrize('typ', DIR_TYPES)
+    def test_exists_race_condition(self, mocker, tmpdir, typ):
+        """Make sure there can't be a TOCTOU issue when creating the file.
+
+        See https://github.com/The-Compiler/qutebrowser/issues/942.
+        """
+        (tmpdir / typ).ensure(dir=True)
+
+        m = mocker.patch('qutebrowser.utils.standarddir.os')
+        m.makedirs = os.makedirs
+        m.sep = os.sep
+        m.path.join = os.path.join
+        m.path.exists.return_value = False
+
+        args = types.SimpleNamespace(basedir=str(tmpdir))
+        standarddir.init(args)
+
+        func = getattr(standarddir, typ)
+        func()
