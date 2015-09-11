@@ -553,22 +553,32 @@ qutebrowser release
 
 * Make sure there are no unstaged changes.
 * Run `src2asciidoc.py` and commit changes if necessary.
-* Run `asciidoc2html.py`.
-* Adjust `__version_info__` in `qutebrowser/__init__.py`.
 
 * Run all tests on all supported systems.
 * Test an upgrade from the previous version (no manual intervention).
 * Test an upgrade from the first version (no manual intervention).
 
+* Run `asciidoc2html.py`.
+* Adjust `__version_info__` in `qutebrowser/__init__.py`.
+* Remove *(unreleased)* from changelog.
+* Commit
+
 * Create annotated git tag (`git tag -s "v0.X.Y" -m "Release v0.X.Y"`)
 * If it's a new minor, create git branch `v0.X.x`
-* `git push`; `git push "v0.X.Y"`
+* `git push origin`; `git push origin v0.X.Y`
 * Create release on github
 * Mark the milestone at https://github.com/The-Compiler/qutebrowser/milestones
 as closed.
 
-* Create standalone Windows package (32/64bit) in Windows VM
-* Upload to PyPI: `python setup.py register sdist upload --sign`
-* Upload to qutebrowser.org with checksum/GPG
+* Build sdist: `python3 setup.py sdist --sign`
+* Sign: `gpg --detach-sign -a dist/qutebrowser-0.X.Y.tar.gz`
+* Upload to PyPI: `twine upload dist/foo{,.asc}`
+* Create Windows packages via `scripts/dev/build_release.py` and upload.
 
+* Upload to qutebrowser.org with checksum/GPG
+    - On server: `sudo mkdir -p /srv/http/qutebrowser/releases/v0.X.Y/windows`
+    - `rsync -avPh dist/ tonks:`
+    - On server: `sudo mv qutebrowser-0.X.Y.tar.gz* /srv/http/qutebrowser/releases/v0.X.Y`
+
+* Update AUR package
 * Announce to qutebrowser mailinglist
