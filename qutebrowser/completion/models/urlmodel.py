@@ -94,7 +94,6 @@ class UrlCompletionModel(base.BaseCompletionModel):
 
     def _remove_oldest_history(self):
         """Remove the oldest history entry."""
-
         self._history_cat.removeRow(0)
 
     def _add_history_entry(self, entry):
