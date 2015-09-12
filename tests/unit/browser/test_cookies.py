@@ -28,7 +28,7 @@ import pytest
 
 from qutebrowser.browser import cookies
 from qutebrowser.utils import objreg
-from qutebrowser.misc import lineparser
+from qutebrowser.misc import lineparser, savemanager
 
 CONFIG_ALL_COOKIES = {'content': {'cookies-accept': 'all'}}
 CONFIG_NEVER_COOKIES = {'content': {'cookies-accept': 'never'}}
@@ -49,8 +49,8 @@ class LineparserSaveStub(lineparser.BaseLineParser):
         saved: The .data before save()
     """
 
-    def __init__(self, configdir, fname, *, binary=False, parent=None):
-        super().__init__(configdir, fname, binary=binary, parent=parent)
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
         self.saved = []
         self.data = []
 
@@ -67,7 +67,7 @@ class LineparserSaveStub(lineparser.BaseLineParser):
 @pytest.yield_fixture
 def fake_save_manager():
     """Create a mock of save-manager and register it into objreg."""
-    fake_save_manager = mock.Mock()
+    fake_save_manager = mock.Mock(spec=savemanager.SaveManager)
     objreg.register('save-manager', fake_save_manager)
     yield
     objreg.delete('save-manager')
@@ -96,8 +96,10 @@ def test_set_cookies_never_accept(config_stub):
     ram_jar = cookies.RAMCookieJar()
     changed_signal_spy = QSignalSpy(ram_jar.changed)
 
-    assert not ram_jar.setCookiesFromUrl('test', 'test')
+    url = QUrl('http://example.com/')
+    assert not ram_jar.setCookiesFromUrl(url, 'test')
     assert not changed_signal_spy
+    assert not ram_jar.getCookiesForUrl(url)
 
 
 def test_cookie_jar_init(config_stub, fake_save_manager):
@@ -109,8 +111,7 @@ def test_cookie_jar_init(config_stub, fake_save_manager):
     # Test that cookies are added to the jar
     assert len(jar.allCookies()) == 2
     raw_cookies = [c.toRawForm().data() for c in jar.allCookies()]
-    assert raw_cookies[0] == cookie1
-    assert raw_cookies[1] == cookie2
+    assert raw_cookies == [cookie1, cookie2]
 
 
 def test_purge_old_cookies(config_stub, fake_save_manager):
@@ -123,10 +124,8 @@ def test_purge_old_cookies(config_stub, fake_save_manager):
     jar.purge_old_cookies()
 
     # Test that old cookies are gone
-    assert len(jar.allCookies()) == 3
-    assert jar.allCookies()[0].toRawForm().data() == cookie1
-    assert jar.allCookies()[1].toRawForm().data() == cookie2
-    assert jar.allCookies()[2].toRawForm().data() == session_cookie
+    raw_cookies = [cookie.toRawForm().data() for cookie in jar.allCookies()]
+    assert raw_cookies == [cookie1, cookie2, session_cookie]
 
 
 def test_save(config_stub, fake_save_manager, monkeypatch):
@@ -140,9 +139,8 @@ def test_save(config_stub, fake_save_manager, monkeypatch):
     # Update the cookies on the jar itself
     jar.parse_cookies()
     jar.save()
-    assert len(jar._lineparser.saved) == 2
-    assert jar._lineparser.saved[0].data() == cookie1
-    assert jar._lineparser.saved[1].data() == cookie2
+    saved_cookies = [cookie.data() for cookie in jar._lineparser.saved]
+    assert saved_cookies == [cookie1, cookie2]
 
 
 def test_cookies_changed_emit(config_stub, fake_save_manager,
@@ -165,13 +163,13 @@ def test_cookies_changed_not_emitted(config_stub, fake_save_manager,
                         'LineParser', LineparserSaveStub)
     jar = cookies.CookieJar()
     changed_spy = QSignalSpy(jar.changed)
-    assert len(changed_spy) == 0
+    assert not changed_spy
 
 
 @pytest.mark.parametrize('store_cookies,empty', [
-                         (True, False),
-                         (False, True)
-                         ])
+    (True, False),
+    (False, True)
+])
 def test_cookies_changed(config_stub, fake_save_manager, monkeypatch,
                          qtbot, store_cookies, empty):
     """Test that cookies are saved correctly."""
