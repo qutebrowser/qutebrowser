@@ -99,7 +99,7 @@ def test_set_cookies_never_accept(config_stub):
     url = QUrl('http://example.com/')
     assert not ram_jar.setCookiesFromUrl(url, 'test')
     assert not changed_signal_spy
-    assert not ram_jar.getCookiesForUrl(url)
+    assert not ram_jar.cookiesForUrl(url)
 
 
 def test_cookie_jar_init(config_stub, fake_save_manager):
