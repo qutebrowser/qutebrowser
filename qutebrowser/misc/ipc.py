@@ -175,7 +175,7 @@ class IPCServer(QObject):
             self._atime_timer = None
         else:
             self._atime_timer = usertypes.Timer(self, 'ipc-atime')
-            self._atime_timer.setInterval(READ_TIMEOUT)
+            self._atime_timer.setInterval(ATIME_INTERVAL)
             self._atime_timer.timeout.connect(self.update_atime)
             self._atime_timer.setTimerType(Qt.VeryCoarseTimer)
 
