@@ -211,7 +211,7 @@ class TestArguments:
         assert standarddir.runtime() == str(tmpdir / 'qute_test')
 
     @pytest.mark.parametrize('typ', ['config', 'data', 'cache', 'download',
-                                     'runtime'])
+                                     pytest.mark.not_osx('runtime')])
     def test_basedir(self, tmpdir, typ):
         """Test --basedir."""
         expected = str(tmpdir / typ)
