@@ -187,7 +187,10 @@ class IPCServer(QObject):
         if self._socketopts_ok:  # pragma: no cover
             # If we use setSocketOptions on Unix with Qt < 5.4, we get a
             # NameError while listening...
+            log.ipc.debug("Calling setSocketOptions")
             self._server.setSocketOptions(QLocalServer.UserAccessOption)
+        else:
+            log.ipc.debug("Not calling setSocketOptions")
 
     def _remove_server(self):
         """Remove an existing server."""
@@ -355,10 +358,12 @@ class IPCServer(QObject):
         if not path:
             log.ipc.error("In update_atime with no server path!")
             return
+        log.ipc.debug("Touching {}".format(path))
         os.utime(path)
 
     def shutdown(self):
         """Shut down the IPC server cleanly."""
+        log.ipc.debug("Shutting down IPC")
         if self._socket is not None:
             self._socket.deleteLater()
             self._socket = None
