@@ -12,6 +12,10 @@ cache:
     - $HOME/.cache/pip
     - $HOME/build/The-Compiler/qutebrowser/.cache
 
+env:
+  - PATH=/home/travis/bin:/home/travis/.local/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
+
+
 install:
   - python scripts/dev/ci_install.py
 
