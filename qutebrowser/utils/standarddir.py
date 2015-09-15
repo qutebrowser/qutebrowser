@@ -154,7 +154,7 @@ def _from_args(typ, args):
 
         try:
             suffix = basedir_suffix[typ]
-        except KeyError:
+        except KeyError:  # pragma: no cover
             return (False, None)
         return (True, os.path.join(basedir, suffix))
 
