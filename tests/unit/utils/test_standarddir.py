@@ -145,6 +145,16 @@ class TestStandardDir:
     def test_windows(self, func, elems, expected):
         assert func().split(os.sep)[-elems:] == expected
 
+    @pytest.mark.parametrize('func, elems, expected', [
+        (standarddir.data, 2, ['Application Support', 'qute_test']),
+        (standarddir.config, 1, ['qute_test']),
+        (standarddir.cache, 2, ['Caches', 'qute_test']),
+        (standarddir.download, 1, ['Downloads']),
+    ])
+    @pytest.mark.osx
+    def test_os_x(self, func, elems, expected):
+        assert func().split(os.sep)[-elems:] == expected
+
 
 DirArgTest = collections.namedtuple('DirArgTest', 'arg, expected')
 
