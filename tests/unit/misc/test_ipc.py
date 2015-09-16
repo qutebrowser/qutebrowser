@@ -51,6 +51,18 @@ def short_tmpdir():
         yield py.path.local(tdir)
 
 
+@pytest.yield_fixture(autouse=True)
+def shutdown_server():
+    """If ipc.send_or_listen was called, make sure to shut server down."""
+    yield
+    try:
+        server = objreg.get('ipc-server')
+    except KeyError:
+        pass
+    else:
+        server.shutdown()
+
+
 @pytest.yield_fixture
 def ipc_server(qapp, qtbot):
     server = ipc.IPCServer('qute-test')
@@ -662,7 +674,6 @@ class TestSendOrListen:
             ret_client = ipc.send_or_listen(args)
 
         assert ret_client is None
-        ret_server.shutdown()
 
     @pytest.mark.posix   # Unneeded on Windows
     def test_legacy_name(self, caplog, qtbot, args, legacy_server):
@@ -711,7 +722,6 @@ class TestSendOrListen:
             ret_client = ipc.send_or_listen(args)
 
         assert ret_client is None
-        ret_server.shutdown()
 
     @pytest.mark.posix   # Unneeded on Windows
     def test_correct_socket_name(self, args):
