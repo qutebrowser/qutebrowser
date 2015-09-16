@@ -35,10 +35,10 @@ CONFIG_NEVER_COOKIES = {'content': {'cookies-accept': 'never'}}
 CONFIG_COOKIES_ENABLED = {'content': {'cookies-store': True}}
 
 
-cookie1 = b'foo1=bar; expires=Tue, 01-Jan-2036 08:00:01 GMT'
-cookie2 = b'foo2=bar; expires=Tue, 01-Jan-2036 08:00:01 GMT'
-session_cookie = b'foo3=bar'
-expired_cookie = b'foo4=bar; expires=Sat, 01-Jan-2000 08:00:01 GMT'
+COOKIE1 = b'foo1=bar; expires=Tue, 01-Jan-2036 08:00:01 GMT'
+COOKIE2 = b'foo2=bar; expires=Tue, 01-Jan-2036 08:00:01 GMT'
+SESSION_COOKIE = b'foo3=bar'
+EXPIRED_COOKIE = b'foo4=bar; expires=Sat, 01-Jan-2000 08:00:01 GMT'
 
 
 class LineparserSaveStub(lineparser.BaseLineParser):
@@ -104,19 +104,19 @@ def test_set_cookies_never_accept(config_stub):
 
 def test_cookie_jar_init(config_stub, fake_save_manager):
     """Test the CookieJar constructor."""
-    line_parser_stub = [cookie1, cookie2]
+    line_parser_stub = [COOKIE1, COOKIE2]
     jar = cookies.CookieJar(line_parser=line_parser_stub)
     assert objreg.get('save-manager').add_saveable.called
 
     # Test that cookies are added to the jar
     assert len(jar.allCookies()) == 2
     raw_cookies = [c.toRawForm().data() for c in jar.allCookies()]
-    assert raw_cookies == [cookie1, cookie2]
+    assert raw_cookies == [COOKIE1, COOKIE2]
 
 
 def test_purge_old_cookies(config_stub, fake_save_manager):
     """Test that expired cookies are deleted."""
-    line_parser_stub = [cookie1, cookie2, session_cookie, expired_cookie]
+    line_parser_stub = [COOKIE1, COOKIE2, SESSION_COOKIE, EXPIRED_COOKIE]
     jar = cookies.CookieJar(line_parser=line_parser_stub)
 
     assert len(jar.allCookies()) == 4
@@ -125,7 +125,7 @@ def test_purge_old_cookies(config_stub, fake_save_manager):
 
     # Test that old cookies are gone
     raw_cookies = [cookie.toRawForm().data() for cookie in jar.allCookies()]
-    assert raw_cookies == [cookie1, cookie2, session_cookie]
+    assert raw_cookies == [COOKIE1, COOKIE2, SESSION_COOKIE]
 
 
 def test_save(config_stub, fake_save_manager, monkeypatch):
@@ -134,13 +134,13 @@ def test_save(config_stub, fake_save_manager, monkeypatch):
                         'LineParser', LineparserSaveStub)
 
     jar = cookies.CookieJar()
-    jar._lineparser.data = [cookie1, cookie2, session_cookie, expired_cookie]
+    jar._lineparser.data = [COOKIE1, COOKIE2, SESSION_COOKIE, EXPIRED_COOKIE]
 
     # Update the cookies on the jar itself
     jar.parse_cookies()
     jar.save()
     saved_cookies = [cookie.data() for cookie in jar._lineparser.saved]
-    assert saved_cookies == [cookie1, cookie2]
+    assert saved_cookies == [COOKIE1, COOKIE2]
 
 
 def test_cookies_changed_emit(config_stub, fake_save_manager,
@@ -177,7 +177,7 @@ def test_cookies_changed(config_stub, fake_save_manager, monkeypatch,
     monkeypatch.setattr(lineparser,
                         'LineParser', LineparserSaveStub)
     jar = cookies.CookieJar()
-    jar._lineparser.data = [cookie1, cookie2]
+    jar._lineparser.data = [COOKIE1, COOKIE2]
     jar.parse_cookies()
     config_stub.set('content', 'cookies-store', store_cookies)
 
