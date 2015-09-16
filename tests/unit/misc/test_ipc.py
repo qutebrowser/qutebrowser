@@ -338,7 +338,7 @@ class TestListen:
 
     @pytest.mark.posix
     def test_atime_update(self, qtbot, ipc_server):
-        ipc_server._atime_timer.setInterval(500)  # We don't want to wait 6h
+        ipc_server._atime_timer.setInterval(100)  # We don't want to wait 6h
         ipc_server.listen()
         old_atime = os.stat(ipc_server._server.fullServerName()).st_atime_ns
 
