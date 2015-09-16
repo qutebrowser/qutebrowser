@@ -75,7 +75,7 @@ def test_no_err_windows(caplog, exc, name, exc_text):
     ('foo', '', 'foo: exception'),
     ('foo', 'bar', 'foo: exception\n\nbar'),
     ('', 'bar', 'exception\n\nbar'),
-])
+], ids=repr)
 def test_err_windows(qtbot, qapp, pre_text, post_text, expected):
 
     @pyqtSlot()

@@ -178,7 +178,7 @@ def test_signal_name(signal, expected):
     (None, {'foo': 'bar'}, "foo='bar'"),
     (['foo', 'bar'], {'baz': 'fish'}, "'foo', 'bar', baz='fish'"),
     (['x' * 300], None, "'{}".format('x' * 198 + '…')),
-])
+], ids=lambda val: str(val)[:20])
 def test_format_args(args, kwargs, expected):
     assert debug.format_args(args, kwargs) == expected
 
@@ -201,7 +201,7 @@ def test_format_call(func, args, kwargs, full, expected):
     ([23, 42], 'fake(23, 42)'),
     (['x' * 201], "fake('{}\u2026)".format('x' * 198)),
     (['foo\nbar'], r"fake('foo\nbar')"),
-])
+], ids=lambda val: str(val)[:20])
 def test_dbg_signal(stubs, args, expected):
     assert debug.dbg_signal(stubs.FakeSignal(), args) == expected
 

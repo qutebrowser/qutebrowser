@@ -57,7 +57,7 @@ class TestCompactText:
         ('foo\nbar', 'foobar'),
         ('  foo  \n  bar  ', 'foobar'),
         ('\nfoo\n', 'foo'),
-    ])
+    ], ids=repr)
     def test_compact_text(self, text, expected):
         """Test folding of newlines."""
         assert utils.compact_text(text) == expected
@@ -68,7 +68,7 @@ class TestCompactText:
         (5, 'foobar', 'foob' + ELLIPSIS),
         (5, 'foo\nbar', 'foob' + ELLIPSIS),
         (7, 'foo\nbar', 'foobar'),
-    ])
+    ], ids=lambda val: str(val)[:20])
     def test_eliding(self, elidelength, text, expected):
         """Test eliding."""
         assert utils.compact_text(text, elidelength) == expected
