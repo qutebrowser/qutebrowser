@@ -355,6 +355,15 @@ class ConfigStub(QObject):
         except KeyError:
             raise configexc.NoOptionError(opt, sect)
 
+    def set(self, sect, opt, value):
+        """Set a value in the config."""
+        data = self.data[sect]
+        try:
+            data[opt] = value
+            self.changed.emit(sect, opt)
+        except KeyError:
+            raise configexc.NoOptionError(opt, sect)
+
 
 class KeyConfigStub:
 
