@@ -71,6 +71,8 @@ class WebView(QWebView):
         _check_insertmode: If True, in mouseReleaseEvent we should check if we
                            need to enter/leave insert mode.
         _default_zoom_changed: Whether the zoom was changed from the default.
+        _ignore_wheel_event: Ignore the next wheel event.
+                             See https://github.com/The-Compiler/qutebrowser/issues/395
 
     Signals:
         scroll_pos_changed: Scroll percentage of current tab changed.
@@ -103,6 +105,7 @@ class WebView(QWebView):
         self._old_scroll_pos = (-1, -1)
         self._zoom = None
         self._has_ssl_errors = False
+        self._ignore_wheel_event = False
         self.keep_icon = False
         self.search_text = None
         self.search_flags = 0
@@ -616,6 +619,7 @@ class WebView(QWebView):
             return
         self._mousepress_insertmode(e)
         self._mousepress_opentarget(e)
+        self._ignore_wheel_event = True
         super().mousePressEvent(e)
 
     def mouseReleaseEvent(self, e):
@@ -638,6 +642,10 @@ class WebView(QWebView):
         Args:
             e: The QWheelEvent.
         """
+        if self._ignore_wheel_event:
+            self._ignore_wheel_event = False
+            # See https://github.com/The-Compiler/qutebrowser/issues/395
+            return
         if e.modifiers() & Qt.ControlModifier:
             e.accept()
             divider = config.get('input', 'mouse-zoom-divider')
