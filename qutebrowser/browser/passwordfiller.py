@@ -19,6 +19,8 @@
 
 """Password filler."""
 
+# TODO: show a message when the password is saved.
+
 import os
 import shlex
 import subprocess
@@ -30,6 +32,8 @@ from qutebrowser.browser import webelem
 from qutebrowser.commands import cmdexc, cmdutils
 from qutebrowser.config import config
 from qutebrowser.utils import message, objreg, standarddir, usertypes
+
+DEFAULT_USERNAME = "__qutebrowser_no_username__"
 
 
 class PasswordManager:
@@ -83,7 +87,9 @@ class YamlPasswordManager(PasswordManager):
             if data is None:
                 data = {}
         password_data = data[host]
-        return list(password_data.keys())
+        usernames = list(password_data.keys())
+        usernames.remove(DEFAULT_USERNAME)
+        return usernames
 
     def load(self, host, username):
         with open(self._filename, "r", encoding="utf-8") as password_file:
@@ -103,7 +109,11 @@ class YamlPasswordManager(PasswordManager):
                 data = {}
             if host not in data:
                 data[host] = {}
-            username = password_data["username"]["value"]
+            if "username" in password_data:
+                username = password_data["username"]["value"]
+            else:
+                username = DEFAULT_USERNAME
+
             data[host][username] = {
                 "password": password_data["password"]["value"],
             }
@@ -157,7 +167,8 @@ class PassPasswordManager(PasswordManager):
         for line in lines:
             if len(line) > 0:
                 username = unquote_plus(line[4:])
-                usernames.append(username)
+                if username != DEFAULT_USERNAME:
+                    usernames.append(username)
         return usernames
 
     def load(self, host, username):
@@ -184,8 +195,13 @@ class PassPasswordManager(PasswordManager):
 
     def save(self, host, password_data):
         key = shlex.quote(host)
-        username = password_data["username"]["value"]
-        username = quote_plus(username)
+
+        if "username" in password_data:
+            username = password_data["username"]["value"]
+            username = quote_plus(username)
+        else:
+            username = DEFAULT_USERNAME
+
         content = password_data["password"]["value"]
         if "checkbox" in password_data:
             content += "\n" + str(password_data["checkbox"]["value"])
@@ -353,20 +369,24 @@ class PasswordFiller:
             elif elem_type == "text" and username_element is None:
                 username_element = element
 
-        if username_element is None or password_element is None:
+        if password_element is None:
+            # TODO: check if this can happen.
             raise RuntimeError
 
         data = {
-            "username": {
-                "element": username_element,
-                "value": username_element.evaluateJavaScript("this.value"),
-            },
             "password": {
                 "element": password_element,
                 "value": password_element.evaluateJavaScript("this.value"),
             },
             "form_action": form.attribute("action"),
         }
+
+        if username_element is not None:
+            data["username"] = {
+                "element": username_element,
+                "value": username_element.evaluateJavaScript("this.value"),
+            }
+
         if checkbox_element is not None:
             data["checkbox"] = {
                 "element": checkbox_element,
@@ -452,12 +472,20 @@ class PasswordFiller:
 
         form_action = None
         try:
-            username = self._choose_username(host)
-            password_data = self._load(host, username)
-
             unique_forms_count = self._find_unique_forms_count()
-            if unique_forms_count > 1:
+
+            username = None
+            if unique_forms_count == 1:
+                login_form = self._find_login_forms()[0]
+                elem_count = self._find_login_form_input(login_form).count()
+                if elem_count == 1:
+                    username = DEFAULT_USERNAME
+            elif unique_forms_count > 1:
                 form_action = password_data["form_action"]
+
+            if username is None:
+                username = self._choose_username(host)
+            password_data = self._load(host, username)
         except (KeyError, FileNotFoundError):
             raise cmdexc.CommandError("No password data for the current URL!")
 
@@ -467,7 +495,8 @@ class PasswordFiller:
         except RuntimeError:
             raise cmdexc.CommandError(
                 "No login form found in the current page!")
-        self._set_value(form_elements["username"]["element"], username)
+        if "username" in form_elements:
+            self._set_value(form_elements["username"]["element"], username)
         self._set_value(form_elements["password"]["element"], password)
 
         if "checkbox" in form_elements and "checkbox" in password_data:
@@ -509,7 +538,7 @@ class PasswordFiller:
             host: The URL host for the password data to save.
             password_data: The password data.
         """
-        if len(password_data["username"]["value"]) == 0:
+        if "username" in password_data and len(password_data["username"]["value"]) == 0:
             raise cmdexc.CommandError(
                 "Enter your username to be able to save your credentials.")
         if len(password_data["password"]["value"]) == 0:
@@ -533,7 +562,10 @@ class PasswordFiller:
             if unique_forms_count < 2:
                 del password_data["form_action"]
 
-            username = password_data["username"]["value"]
+            if "username" in password_data:
+                username = password_data["username"]["value"]
+            else:
+                username = DEFAULT_USERNAME
 
             save = False
             if self._password_exists(host, username):
