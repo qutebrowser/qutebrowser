@@ -5,3 +5,4 @@ pyPEG2==2.15.1
 PyYAML==3.11
 colorama==0.3.3
 colorlog==2.6.0
+fuzzywuzzy=0.6.2

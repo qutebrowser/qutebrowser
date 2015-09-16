@@ -27,6 +27,7 @@ from PyQt5.QtCore import QSortFilterProxyModel, QModelIndex, Qt
 
 from qutebrowser.utils import log, qtutils, debug
 from qutebrowser.completion.models import base as completion
+from fuzzywuzzy import fuzz
 
 
 class CompletionFilterModel(QSortFilterProxyModel):
@@ -146,7 +147,10 @@ class CompletionFilterModel(QSortFilterProxyModel):
                 data = self.srcmodel.data(idx)
                 if not data:
                     continue
-                elif self.pattern.casefold() in data.casefold():
+            else:
+                contain = self.pattern.casefold() in data.casefold()
+                r = fuzz.ratio(self.pattern.casefold(), data.casefold())
+                if contain or (r >= len(self.pattern) * 10 and len(self.pattern) <= len(data)):
                     return True
             return False
 
