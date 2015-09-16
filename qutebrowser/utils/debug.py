@@ -225,23 +225,44 @@ def format_call(func, args=None, kwargs=None, full=True):
     return '{}({})'.format(name, format_args(args, kwargs))
 
 
-@contextlib.contextmanager
-def log_time(logger, action='operation'):
-    """Log the time the operation in the with-block takes.
+class log_time:  # pylint: disable=invalid-name
 
-    Args:
-        logger: The logging.Logger to use for logging, or a logger name.
-        action: A description of what's being done.
+    """Log the time an operation takes.
+
+    Usable as context manager or as decorator.
     """
-    if isinstance(logger, str):
-        logger = logging.getLogger(logger)
-    started = datetime.datetime.now()
-    try:
-        yield
-    finally:
+
+    def __init__(self, logger, action='operation'):
+        """Constructor.
+
+        Args:
+            logger: The logging.Logger to use for logging, or a logger name.
+            action: A description of what's being done.
+        """
+        if isinstance(logger, str):
+            self._logger = logging.getLogger(logger)
+        else:
+            self._logger = logger
+        self._started = None
+        self._action = action
+
+    def __enter__(self):
+        self._started = datetime.datetime.now()
+
+    def __exit__(self, _exc_type, _exc_val, _exc_tb):
+        assert self._started is not None
         finished = datetime.datetime.now()
-        delta = (finished - started).total_seconds()
-        logger.debug("{} took {} seconds.".format(action.capitalize(), delta))
+        delta = (finished - self._started).total_seconds()
+        self._logger.debug(
+            "{} took {} seconds.".format(self._action.capitalize(), delta))
+
+    def __call__(self, func):
+        @functools.wraps(func)
+        def wrapped(*args, **kwargs):
+            with self:
+                func(*args, **kwargs)
+
+        return wrapped
 
 
 def _get_widgets():

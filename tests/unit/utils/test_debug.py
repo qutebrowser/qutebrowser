@@ -110,6 +110,21 @@ class TestLogTime:
 
         assert len(caplog.records()) == 1
 
+    def test_decorator(self, caplog):
+        logger_name = 'qt-tests'
+
+        @debug.log_time(logger_name, action='foo')
+        def func(arg, *, kwarg):
+            assert arg == 1
+            assert kwarg == 2
+
+        with caplog.atLevel(logging.DEBUG, logger_name):
+            func(1, kwarg=2)
+
+        records = caplog.records()
+        assert len(records) == 1
+        assert records[0].msg.startswith('Foo took')
+
 
 class TestQEnumKey:
 
