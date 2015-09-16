@@ -13,7 +13,7 @@
 #     mpv = spawn --userscript /path/to/view_in_mpv
 #
 # Background:
-#   Most of my machines are to slow to play youtube videos using html5, but
+#   Most of my machines are too slow to play youtube videos using html5, but
 #   they work fine in mpv (and mpv has further advantages like video scaling,
 #   etc). Of course, I don't want the video to be played (or even to be
 #   downloaded) twice — in MPV and in qwebkit. So I often close the tab after
