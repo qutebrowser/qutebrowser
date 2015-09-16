@@ -24,7 +24,6 @@ import inspect
 import logging
 import functools
 import datetime
-import contextlib
 
 from PyQt5.QtCore import Qt, QEvent, QMetaMethod, QObject
 from PyQt5.QtWidgets import QApplication
