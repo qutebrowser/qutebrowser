@@ -20,6 +20,7 @@
 """Our own QNetworkAccessManager."""
 
 import collections
+import fnmatch
 
 from PyQt5.QtCore import (pyqtSlot, pyqtSignal, PYQT_VERSION, QCoreApplication,
                           QUrl, QByteArray)
@@ -47,6 +48,22 @@ def init():
         good_ciphers = [c for c in QSslSocket.supportedCiphers()
                         if c.usedBits() >= 128]
         QSslSocket.setDefaultCiphers(good_ciphers)
+
+
+def is_whitelisted_domain(host):
+    """Check if the given host is on the adblock whitelist.
+
+    Args:
+        host: The host as given by the adblocker as string.
+    """
+    whitelist = config.get('content', 'host-blocking-whitelist')
+    if whitelist is None:
+        return False
+
+    for pattern in whitelist:
+        if fnmatch.fnmatch(host, pattern.lower()):
+            return True
+    return False
 
 
 class SslError(QSslError):
@@ -347,7 +364,8 @@ class NetworkManager(QNetworkAccessManager):
         host_blocker = objreg.get('host-blocker')
         if (op == QNetworkAccessManager.GetOperation and
                 req.url().host() in host_blocker.blocked_hosts and
-                config.get('content', 'host-blocking-enabled')):
+                config.get('content', 'host-blocking-enabled') and
+                not is_whitelisted_domain(req.url().host())):
             log.webview.info("Request to {} blocked by host blocker.".format(
                 req.url().host()))
             return networkreply.ErrorNetworkReply(

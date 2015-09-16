@@ -24,7 +24,6 @@ import os.path
 import functools
 import posixpath
 import zipfile
-import fnmatch
 
 from qutebrowser.config import config
 from qutebrowser.utils import objreg, standarddir, log, message
@@ -58,22 +57,6 @@ def get_fileobj(byte_io):
     else:
         byte_io.seek(0)  # rewind what zipfile.is_zipfile did
     return io.TextIOWrapper(byte_io, encoding='utf-8')
-
-
-def is_whitelisted_domain(host):
-    """Check if the given host is on the adblock whitelist.
-
-    Args:
-        host: The host as given by the adblocker as string.
-    """
-    whitelist = config.get('content', 'host-blocking-whitelist')
-    if whitelist is None:
-        return False
-
-    for pattern in whitelist:
-        if fnmatch.fnmatch(host, pattern.lower()):
-            return True
-    return False
 
 
 class FakeDownload:
@@ -205,8 +188,7 @@ class HostBlocker:
             else:
                 error_count += 1
                 continue
-            if (host not in self.WHITELISTED
-                    and not is_whitelisted_domain(host)):
+            if host not in self.WHITELISTED:
                 self.blocked_hosts.add(host)
         log.misc.debug("{}: read {} lines".format(byte_io.name, line_count))
         if error_count > 0:
