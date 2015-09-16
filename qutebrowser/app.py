@@ -418,6 +418,7 @@ def _init_modules(args, crash_handler):
     log.init.debug("Initializing completions...")
     completionmodels.init()
     log.init.debug("Misc initialization...")
+    os.environ['QT_WAYLAND_DISABLE_WINDOWDECORATION'] = '1'
     _maybe_hide_mouse_cursor()
     objreg.get('config').changed.connect(_maybe_hide_mouse_cursor)
 
