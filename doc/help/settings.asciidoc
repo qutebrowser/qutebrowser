@@ -159,6 +159,7 @@
 |<<content-cookies-store,cookies-store>>|Whether to store cookies.
 |<<content-host-block-lists,host-block-lists>>|List of URLs of lists which contain hosts to block.
 |<<content-host-blocking-enabled,host-blocking-enabled>>|Whether host blocking is enabled.
+|<<content-host-blocking-whitelist,host-blocking-whitelist>>|List of domains that should always be loaded, despite being ad-blocked.
 |==============
 
 .Quick reference for section ``hints''
@@ -1432,6 +1433,16 @@ Valid values:
  * +false+
 
 Default: +pass:[true]+
+
+[[content-host-blocking-whitelist]]
+=== host-blocking-whitelist
+List of domains that should always be loaded, despite being ad-blocked.
+
+Domains may contain * and ? wildcards and are otherwise required to exactly match the requested domain.
+
+Local domains are always exempt from hostblocking.
+
+Default: empty
 
 == hints
 Hinting settings.
