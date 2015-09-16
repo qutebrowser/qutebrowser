@@ -349,8 +349,7 @@ class TestListen:
             ipc_server.update_atime()
 
         records = caplog.records()
-        assert len(records) == 1
-        assert records[0].msg == "In update_atime with no server path!"
+        assert records[-1].msg == "In update_atime with no server path!"
 
     @pytest.mark.posix
     def test_atime_shutdown_typeerror(self, qtbot, ipc_server):
@@ -396,8 +395,7 @@ class TestHandleConnection:
 
     def test_no_connection(self, ipc_server, caplog):
         ipc_server.handle_connection()
-        assert len(caplog.records()) == 1
-        record = caplog.records()[0]
+        record = caplog.records()[-1]
         assert record.message == "No new connection to handle."
 
     def test_double_connection(self, qlocalsocket, ipc_server, caplog):
@@ -606,9 +604,8 @@ def test_ipcserver_socket_none(ipc_server, caplog, method, args):
         func(*args)
 
     records = caplog.records()
-    assert len(records) == 1
     msg = "In {} with None socket!".format(method)
-    assert records[0].message == msg
+    assert records[-1].message == msg
 
 
 class TestSendOrListen:
