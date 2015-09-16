@@ -146,13 +146,13 @@ Contributors, sorted by the number of commits in descending order:
 * Austin Anderson
 * Artur Shaik
 * ZDarian
+* Thorsten Wißmann
 * Peter Vilim
 * John ShaggyTwoDope Jenkins
 * Daniel
 * Jimmy
 * Zach-Button
 * rikn00
-* Thorsten Wißmann
 * Patric Schmitz
 * Martin Zimmermann
 * Error 800
