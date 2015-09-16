@@ -25,7 +25,6 @@ import functools
 import posixpath
 import zipfile
 import fnmatch
-import re
 
 from qutebrowser.config import config
 from qutebrowser.utils import objreg, standarddir, log, message
@@ -67,14 +66,12 @@ def is_whitelisted_domain(host):
     Args:
         host: The host as given by the adblocker as string.
     """
-    whitelist = objreg.get('config').get('content', 'host-blocking-whitelist')
+    whitelist = config.get('content', 'host-blocking-whitelist')
     if whitelist is None:
         return False
 
-    for domain in whitelist:
-        fnmatch_translated = fnmatch.translate(domain)
-        domain_regex = re.compile(fnmatch_translated, re.IGNORECASE)
-        if domain_regex.match(host):
+    for pattern in whitelist:
+        if fnmatch.fnmatch(host, pattern.lower()):
             return True
     return False
 
