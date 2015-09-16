@@ -53,7 +53,7 @@ def enum(name, items, start=1, is_int=False):
 
 class NeighborList(collections.abc.Sequence):
 
-    """A list of items which saves it current position.
+    """A list of items which saves its current position.
 
     Class attributes:
         Modes: Different modes, see constructor documentation.

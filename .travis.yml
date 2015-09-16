@@ -10,14 +10,17 @@ language: c
 cache:
   directories:
     - $HOME/.cache/pip
-    - $HOME/build/The-Compiler/qutebrowser/.tox
     - $HOME/build/The-Compiler/qutebrowser/.cache
+
+env:
+  - PATH=/home/travis/bin:/home/travis/.local/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
+
 
 install:
   - python scripts/dev/ci_install.py
 
 script:
-    - xvfb-run -s "-screen 0 640x480x16" tox -e py34
+    - xvfb-run -s "-screen 0 640x480x16" tox -e py34,py34-integration
     - tox -e misc
     - tox -e pep257
     - tox -e pyflakes

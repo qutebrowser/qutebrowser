@@ -43,9 +43,11 @@ class BaseCompletionModel(QStandardItemModel):
     Class Attributes:
         COLUMN_WIDTHS: The width percentages of the columns used in the
                         completion view.
+        DUMB_SORT: the dumb sorting used by the model
     """
 
     COLUMN_WIDTHS = (30, 70, 0)
+    DUMB_SORT = None
 
     def __init__(self, parent=None):
         super().__init__(parent)
@@ -86,16 +88,15 @@ class BaseCompletionModel(QStandardItemModel):
         assert not isinstance(name, int)
         assert not isinstance(desc, int)
         assert not isinstance(misc, int)
+
         nameitem = QStandardItem(name)
         descitem = QStandardItem(desc)
         if misc is None:
             miscitem = QStandardItem()
         else:
             miscitem = QStandardItem(misc)
-        idx = cat.rowCount()
-        cat.setChild(idx, 0, nameitem)
-        cat.setChild(idx, 1, descitem)
-        cat.setChild(idx, 2, miscitem)
+
+        cat.appendRow([nameitem, descitem, miscitem])
         if sort is not None:
             nameitem.setData(sort, Role.sort)
         if userdata is not None:

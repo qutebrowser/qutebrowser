@@ -27,7 +27,7 @@ from PyQt5.QtWidgets import QApplication
 import yaml
 try:
     from yaml import CSafeLoader as YamlLoader, CSafeDumper as YamlDumper
-except ImportError:
+except ImportError:  # pragma: no cover
     from yaml import SafeLoader as YamlLoader, SafeDumper as YamlDumper
 
 from qutebrowser.browser import tabhistory
@@ -47,7 +47,17 @@ def init(parent=None):
     Args:
         parent: The parent to use for the SessionManager.
     """
-    session_manager = SessionManager(parent)
+    data_dir = standarddir.data()
+    if data_dir is None:
+        base_path = None
+    else:
+        base_path = os.path.join(standarddir.data(), 'sessions')
+        try:
+            os.mkdir(base_path)
+        except FileExistsError:
+            pass
+
+    session_manager = SessionManager(base_path, parent)
     objreg.register('session-manager', session_manager)
 
 
@@ -79,18 +89,12 @@ class SessionManager(QObject):
 
     update_completion = pyqtSignal()
 
-    def __init__(self, parent=None):
+    def __init__(self, base_path, parent=None):
         super().__init__(parent)
         self._current = None
-        data_dir = standarddir.data()
-        if data_dir is None:
-            self._base_path = None
-        else:
-            self._base_path = os.path.join(standarddir.data(), 'sessions')
+        self._base_path = base_path
         self._last_window_session = None
         self.did_load = False
-        if self._base_path is not None and not os.path.exists(self._base_path):
-            os.mkdir(self._base_path)
 
     def _get_session_path(self, name, check_exists=False):
         """Get the session path based on a session name or absolute path.
@@ -184,6 +188,22 @@ class SessionManager(QObject):
             data['windows'].append(win_data)
         return data
 
+    def _get_session_name(self, name):
+        """Helper for save to get the name to save the session to.
+
+        Args:
+            name: The name of the session to save, or the 'default' sentinel
+                  object.
+        """
+        if name is default:
+            name = config.get('general', 'session-default-name')
+            if name is None:
+                if self._current is not None:
+                    name = self._current
+                else:
+                    name = 'default'
+        return name
+
     def save(self, name, last_window=False, load_next_time=False):
         """Save a named session.
 
@@ -197,13 +217,7 @@ class SessionManager(QObject):
         Return:
             The name of the saved session.
         """
-        if name is default:
-            name = config.get('general', 'session-default-name')
-            if name is None:
-                if self._current is not None:
-                    name = self._current
-                else:
-                    name = 'default'
+        name = self._get_session_name(name)
         path = self._get_session_path(name)
         if path is None:
             raise SessionError("No data storage configured.")
@@ -337,8 +351,8 @@ class SessionManager(QObject):
                    underline).
         """
         if name.startswith('_') and not force:
-            raise cmdexc.CommandError("{!r} is an internal session, use "
-                                      "--force to load anyways.".format(name))
+            raise cmdexc.CommandError("{} is an internal session, use --force "
+                                      "to load anyways.".format(name))
         old_windows = list(objreg.window_registry.values())
         try:
             self.load(name, temp=temp)
@@ -370,8 +384,8 @@ class SessionManager(QObject):
         if (name is not default and
                 name.startswith('_') and  # pylint: disable=no-member
                 not force):
-            raise cmdexc.CommandError("{!r} is an internal session, use "
-                                      "--force to save anyways.".format(name))
+            raise cmdexc.CommandError("{} is an internal session, use --force "
+                                      "to save anyways.".format(name))
         if current:
             if self._current is None:
                 raise cmdexc.CommandError("No session loaded currently!")
@@ -384,7 +398,7 @@ class SessionManager(QObject):
                                       .format(e))
         else:
             if not quiet:
-                message.info(win_id, "Saved session {!r}.".format(name),
+                message.info(win_id, "Saved session {}.".format(name),
                              immediately=True)
 
     @cmdutils.register(completion=[usertypes.Completion.sessions],
@@ -398,14 +412,12 @@ class SessionManager(QObject):
                    underline).
         """
         if name.startswith('_') and not force:
-            raise cmdexc.CommandError("{!r} is an internal session, use "
-                                      "--force to delete anyways.".format(
-                                          name))
+            raise cmdexc.CommandError("{} is an internal session, use --force "
+                                      "to delete anyways.".format(name))
         try:
             self.delete(name)
-        except SessionNotFoundError as e:
-            log.sessions.exception("Session not found!")
-            raise cmdexc.CommandError("Session {} not found".format(e))
+        except SessionNotFoundError:
+            raise cmdexc.CommandError("Session {} not found!".format(name))
         except (OSError, SessionError) as e:
             log.sessions.exception("Error while deleting session!")
             raise cmdexc.CommandError("Error while deleting session: {}"

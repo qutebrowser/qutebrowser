@@ -49,9 +49,12 @@ class PyPIVersionClient(QObject):
     success = pyqtSignal(str)
     error = pyqtSignal(str)
 
-    def __init__(self, parent=None):
+    def __init__(self, parent=None, client=None):
         super().__init__(parent)
-        self._client = httpclient.HTTPClient(self)
+        if client is None:
+            self._client = httpclient.HTTPClient(self)
+        else:
+            self._client = client
         self._client.error.connect(self.error)
         self._client.success.connect(self.on_client_success)
 

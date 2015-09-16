@@ -89,6 +89,20 @@ def read_file(filename, binary=False):
         return data
 
 
+def resource_filename(filename):
+    """Get the absolute filename of a file contained with qutebrowser.
+
+    Args:
+        filename: The filename.
+
+    Return:
+        The absolute filename.
+    """
+    if hasattr(sys, 'frozen'):
+        return os.path.join(os.path.dirname(sys.executable), filename)
+    return pkg_resources.resource_filename(qutebrowser.__name__, filename)
+
+
 def actute_warning():
     """Display a warning about the dead_actute issue if needed."""
     # WORKAROUND (remove this when we bump the requirements to 5.3.0)

@@ -12,7 +12,8 @@ image:https://img.shields.io/pypi/l/qutebrowser.svg?style=flat["license badge",l
 image:https://img.shields.io/pypi/v/qutebrowser.svg?style=flat["version badge",link="https://pypi.python.org/pypi/qutebrowser/"]
 image:https://img.shields.io/github/issues/The-Compiler/qutebrowser.svg?style=flat["issues badge",link="https://github.com/The-Compiler/qutebrowser/issues"]
 image:https://requires.io/github/The-Compiler/qutebrowser/requirements.svg?branch=master["requirements badge",link="https://requires.io/github/The-Compiler/qutebrowser/requirements/?branch=master"]
-image:http://qutebrowser.org:8010/png?builder=archlinux["build badge",link="http://qutebrowser.org:8010/waterfall"]
+image:https://travis-ci.org/The-Compiler/qutebrowser.svg?branch=master["Build Status", link="https://travis-ci.org/The-Compiler/qutebrowser"]
+image:https://ci.appveyor.com/api/projects/status/9gmnuip6i1oq7046?svg=true["AppVeyor build status", link="https://ci.appveyor.com/project/The-Compiler/qutebrowser"]
 
 qutebrowser is a keyboard-focused browser with a minimal GUI. It's based
 on Python, PyQt5 and QtWebKit and free software, licensed under the GPL.
@@ -23,7 +24,7 @@ Screenshots
 -----------
 
 image:doc/img/main.png["screenshot 1",width=300,link="doc/img/main.png"]
-image:doc/img/downloads.png["screenshot 2",width=300,link="doc/img/downloads.png"]
+image:doc/img/downloads.png["screenshot 2",width=300j,link="doc/img/downloads.png"]
 image:doc/img/completion.png["screenshot 3",width=300,link="doc/img/completion.png"]
 image:doc/img/hints.png["screenshot 4",width=300,link="doc/img/hints.png"]
 
@@ -134,8 +135,9 @@ Contributors, sorted by the number of commits in descending order:
 
 // QUTE_AUTHORS_START
 * Florian Bruhin
-* Bruno Oliveira
 * Antoni Boucher
+* Bruno Oliveira
+* Alexander Cogneau
 * Martin Tournoij
 * Raphael Pierzina
 * Joel Torstensson
@@ -143,8 +145,8 @@ Contributors, sorted by the number of commits in descending order:
 * Lamar Pavel
 * Austin Anderson
 * Artur Shaik
-* Alexander Cogneau
 * ZDarian
+* Thorsten Wißmann
 * Peter Vilim
 * John ShaggyTwoDope Jenkins
 * Daniel
@@ -156,9 +158,9 @@ Contributors, sorted by the number of commits in descending order:
 * Error 800
 * Brian Jackson
 * sbinix
+* jnphilipp
 * Tobias Patzl
 * Johannes Altmanninger
-* Thorsten Wißmann
 * Samir Benmendil
 * Regina Hug
 * Mathias Fussenegger
@@ -166,6 +168,7 @@ Contributors, sorted by the number of commits in descending order:
 * Fritz V155 Reichwald
 * Franz Fellner
 * zwarag
+* meles5
 * error800
 * Tim Harder
 * Thiago Barroso Perrotta
@@ -174,6 +177,7 @@ Contributors, sorted by the number of commits in descending order:
 * HalosGhost
 * Gregor Pohl
 * Eivind Uggedal
+* Averrin
 * Arseniy Seroka
 * Andreas Fischer
 // QUTE_AUTHORS_END

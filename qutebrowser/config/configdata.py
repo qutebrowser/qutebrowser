@@ -297,6 +297,10 @@ def data(readonly=False):
              SettingValue(typ.Bool(), 'false'),
              "Whether to hide the statusbar unless a message is shown."),
 
+            ('statusbar-padding',
+             SettingValue(typ.Padding(), '1,1,0,0'),
+             "Padding for statusbar (top, bottom, left, right)."),
+
             ('window-title-format',
              SettingValue(typ.FormatString(fields=['perc', 'perc_raw', 'title',
                                                    'title_sep', 'id']),
@@ -435,7 +439,7 @@ def data(readonly=False):
 
             ('spatial-navigation',
              SettingValue(typ.Bool(), 'false'),
-             "Enables or disables the Spatial Navigation feature\n\n"
+             "Enables or disables the Spatial Navigation feature.\n\n"
              "Spatial navigation consists in the ability to navigate between "
              "focusable elements in a Web page, such as hyperlinks and form "
              "controls, by using Left, Right, Up and Down arrow keys. For "
@@ -1073,7 +1077,7 @@ def data(readonly=False):
              "Font used for the downloadbar."),
 
             ('hints',
-             SettingValue(typ.Font(), 'bold 12px Monospace'),
+             SettingValue(typ.Font(), 'bold 13px Monospace'),
              "Font used for the hints."),
 
             ('debug-console',
@@ -1219,11 +1223,11 @@ RETURN_KEYS = ['<Return>', '<Ctrl-M>', '<Ctrl-J>', '<Shift-Return>', '<Enter>',
 
 KEY_DATA = collections.OrderedDict([
     ('!normal', collections.OrderedDict([
-        ('leave-mode', ['<Escape>', '<Ctrl-[>']),
+        ('clear-keychain ;; leave-mode', ['<Escape>', '<Ctrl-[>']),
     ])),
 
     ('normal', collections.OrderedDict([
-        ('search ;; clear-keychain', ['<Escape>']),
+        ('clear-keychain ;; search', ['<Escape>']),
         ('set-cmd-text -s :open', ['o']),
         ('set-cmd-text :open {url}', ['go']),
         ('set-cmd-text -s :open -t', ['O']),
@@ -1425,8 +1429,8 @@ CHANGED_KEY_COMMANDS = [
     (re.compile(r'^download-page$'), r'download'),
     (re.compile(r'^cancel-download$'), r'download-cancel'),
 
-    (re.compile(r"""^search (''|"")$"""), r'search ;; clear-keychain'),
-    (re.compile(r'^search$'), r'search ;; clear-keychain'),
+    (re.compile(r"""^search (''|"")$"""), r'clear-keychain ;; search'),
+    (re.compile(r'^search$'), r'clear-keychain ;; search'),
 
     (re.compile(r"""^set-cmd-text ['"](.*) ['"]$"""), r'set-cmd-text -s \1'),
     (re.compile(r"""^set-cmd-text ['"](.*)['"]$"""), r'set-cmd-text \1'),
@@ -1439,4 +1443,7 @@ CHANGED_KEY_COMMANDS = [
     (re.compile(r'^scroll 0 -50$'), r'scroll up'),
     (re.compile(r'^scroll 50 0$'), r'scroll right'),
     (re.compile(r'^scroll ([-\d]+ [-\d]+)$'), r'scroll-px \1'),
+
+    (re.compile(r'^search *;; *clear-keychain$'), r'clear-keychain ;; search'),
+    (re.compile(r'^leave-mode$'), r'clear-keychain ;; leave-mode'),
 ]

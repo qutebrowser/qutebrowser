@@ -967,8 +967,10 @@ class CommandDispatcher:
         log.procs.debug("Executing {} with args {}, userscript={}".format(
             cmd, args, userscript))
         if userscript:
+            # ~ expansion is handled by the userscript module.
             self.run_userscript(cmd, *args, verbose=verbose)
         else:
+            cmd = os.path.expanduser(cmd)
             proc = guiprocess.GUIProcess(self._win_id, what='command',
                                          verbose=verbose,
                                          parent=self._tabbed_browser)
@@ -992,7 +994,6 @@ class CommandDispatcher:
             args: Arguments to pass to the userscript.
             verbose: Show notifications when the command started/exited.
         """
-        cmd = os.path.expanduser(cmd)
         env = {
             'QUTE_MODE': 'command',
         }
@@ -1049,10 +1050,14 @@ class CommandDispatcher:
     def bookmark_add(self):
         """Save the current page as a bookmark."""
         bookmark_manager = objreg.get('bookmark-manager')
+        url = self._current_url()
         try:
-            bookmark_manager.add(self._current_url(), self._current_title())
+            bookmark_manager.add(url, self._current_title())
         except urlmarks.Error as e:
             raise cmdexc.CommandError(str(e))
+        else:
+            message.info(self._win_id,
+                         "Bookmarked {}!".format(url.toDisplayString()))
 
     @cmdutils.register(instance='command-dispatcher', scope='window',
                        maxsplit=0,

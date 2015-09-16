@@ -47,12 +47,12 @@ class GUIProcess(QObject):
     Args:
         cmd: The command which was started.
         args: A list of arguments which gets passed.
+        verbose: Whether to show more messages.
         _started: Whether the underlying process is started.
         _proc: The underlying QProcess.
         _win_id: The window ID this process is used in.
         _what: What kind of thing is spawned (process/editor/userscript/...).
                Used in messages.
-        _verbose: Whether to show more messages.
 
     Signals:
         error/finished/started signals proxied from QProcess.
@@ -67,7 +67,7 @@ class GUIProcess(QObject):
         super().__init__(parent)
         self._win_id = win_id
         self._what = what
-        self._verbose = verbose
+        self.verbose = verbose
         self._started = False
         self.cmd = None
         self.args = None
@@ -104,7 +104,7 @@ class GUIProcess(QObject):
                           "{} crashed!".format(self._what.capitalize()),
                           immediately=True)
         elif status == QProcess.NormalExit and code == 0:
-            if self._verbose:
+            if self.verbose:
                 message.info(self._win_id, "{} exited successfully.".format(
                     self._what.capitalize()))
         else:
@@ -125,8 +125,9 @@ class GUIProcess(QObject):
             raise ValueError("Trying to start a running QProcess!")
         self.cmd = cmd
         self.args = args
-        if self._verbose:
-            fake_cmdline = ' '.join(shlex.quote(e) for e in [cmd] + list(args))
+        fake_cmdline = ' '.join(shlex.quote(e) for e in [cmd] + list(args))
+        log.procs.debug("Executing: {}".format(fake_cmdline))
+        if self.verbose:
             message.info(self._win_id, 'Executing: ' + fake_cmdline)
 
     def start(self, cmd, args, mode=None):

@@ -41,11 +41,13 @@ class CompletionFilterModel(QSortFilterProxyModel):
         _sort_order: The order to use for sorting if using dumb_sort.
     """
 
-    def __init__(self, source, parent=None, *, dumb_sort=None):
+    def __init__(self, source, parent=None):
         super().__init__(parent)
         super().setSourceModel(source)
         self.srcmodel = source
         self.pattern = ''
+
+        dumb_sort = self.srcmodel.DUMB_SORT
         if dumb_sort is None:
             # pylint: disable=invalid-name
             self.lessThan = self.intelligentLessThan

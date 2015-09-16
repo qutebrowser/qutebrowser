@@ -29,6 +29,8 @@ profile qutebrowser /usr/{local/,}bin/qutebrowser {
 
     /proc/*/mounts r,
     owner /tmp/** rwkl,
+    owner /run/user/*/ rw,
+    owner /run/user/*/** krw,
 
     @{HOME}/.config/qutebrowser/** krw,
     @{HOME}/.local/share/qutebrowser/** krw,

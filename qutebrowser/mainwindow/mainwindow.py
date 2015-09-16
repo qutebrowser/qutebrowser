@@ -190,6 +190,8 @@ class MainWindow(QWidget):
         """Resize the completion if related config options changed."""
         if section == 'completion' and option in ('height', 'shrink'):
             self.resize_completion()
+        elif section == 'ui' and option == 'statusbar-padding':
+            self.resize_completion()
         elif section == 'ui' and option == 'downloads-position':
             self._add_widgets()
 

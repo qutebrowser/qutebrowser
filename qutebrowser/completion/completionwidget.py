@@ -59,6 +59,7 @@ class CompletionView(QTreeView):
             {{ color['completion.bg'] }}
             alternate-background-color: {{ color['completion.alternate-bg'] }};
             outline: 0;
+            border: 0px;
         }
 
         QTreeView::item:disabled {
@@ -197,10 +198,16 @@ class CompletionView(QTreeView):
         Args:
             model: The model to use.
         """
+        old_model = self.model()
         sel_model = self.selectionModel()
+
         self.setModel(model)
+
         if sel_model is not None:
             sel_model.deleteLater()
+        if old_model is not None:
+            old_model.deleteLater()
+
         for i in range(model.rowCount()):
             self.expand(model.index(i, 0))
 

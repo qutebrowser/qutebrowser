@@ -43,6 +43,7 @@
 |<<ui-smooth-scrolling,smooth-scrolling>>|Whether to enable smooth scrolling for webpages.
 |<<ui-remove-finished-downloads,remove-finished-downloads>>|Whether to remove finished downloads automatically.
 |<<ui-hide-statusbar,hide-statusbar>>|Whether to hide the statusbar unless a message is shown.
+|<<ui-statusbar-padding,statusbar-padding>>|Padding for statusbar (top, bottom, left, right).
 |<<ui-window-title-format,window-title-format>>|The format to use for the window title. The following placeholders are defined:
 |<<ui-hide-mouse-cursor,hide-mouse-cursor>>|Whether to hide the mouse cursor.
 |<<ui-modal-js-dialog,modal-js-dialog>>|Use standard JavaScript modal dialog for alert() and confirm()
@@ -87,7 +88,7 @@
 |<<input-auto-leave-insert-mode,auto-leave-insert-mode>>|Whether to leave insert mode if a non-editable element is clicked.
 |<<input-auto-insert-mode,auto-insert-mode>>|Whether to automatically enter insert mode if an editable element is focused after page load.
 |<<input-forward-unbound-keys,forward-unbound-keys>>|Whether to forward unbound keys to the webview in normal mode.
-|<<input-spatial-navigation,spatial-navigation>>|Enables or disables the Spatial Navigation feature
+|<<input-spatial-navigation,spatial-navigation>>|Enables or disables the Spatial Navigation feature.
 |<<input-links-included-in-focus-chain,links-included-in-focus-chain>>|Whether hyperlinks should be included in the keyboard focus chain.
 |<<input-rocker-gestures,rocker-gestures>>|Whether to enable Opera-like mouse rocker gestures. This disables the context menu.
 |<<input-mouse-zoom-divider,mouse-zoom-divider>>|How much to divide the mouse wheel movements to translate them into zoom increments.
@@ -589,6 +590,12 @@ Valid values:
 
 Default: +pass:[false]+
 
+[[ui-statusbar-padding]]
+=== statusbar-padding
+Padding for statusbar (top, bottom, left, right).
+
+Default: +pass:[1,1,0,0]+
+
 [[ui-window-title-format]]
 === window-title-format
 The format to use for the window title. The following placeholders are defined:
@@ -857,7 +864,7 @@ Default: +pass:[auto]+
 
 [[input-spatial-navigation]]
 === spatial-navigation
-Enables or disables the Spatial Navigation feature
+Enables or disables the Spatial Navigation feature.
 
 Spatial navigation consists in the ability to navigate between focusable elements in a Web page, such as hyperlinks and form controls, by using Left, Right, Up and Down arrow keys. For example, if a user presses the Right key, heuristics determine whether there is an element he might be trying to reach towards the right and which element he probably wants.
 
@@ -1941,7 +1948,7 @@ Default: +pass:[8pt ${_monospace}]+
 === hints
 Font used for the hints.
 
-Default: +pass:[bold 12px Monospace]+
+Default: +pass:[bold 13px Monospace]+
 
 [[fonts-debug-console]]
 === debug-console

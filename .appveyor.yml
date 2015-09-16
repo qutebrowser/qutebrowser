@@ -1,7 +1,6 @@
 shallow_clone: true
 version: '{branch}-{build}'
 cache:
-  - C:\projects\qutebrowser\.tox
   - C:\projects\qutebrowser\.cache
 build: off
 environment:
@@ -13,7 +12,7 @@ install:
 
 test_script:
   - C:\Python34\Scripts\tox -e py34
+  - C:\Python34\Scripts\tox -e py34-integration
   - C:\Python34\Scripts\tox -e unittests-frozen
   - C:\Python34\Scripts\tox -e smoke-frozen
-  - C:\Python34\Scripts\tox -e pyflakes
   - C:\Python34\Scripts\tox -e pylint

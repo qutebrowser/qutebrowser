@@ -17,6 +17,8 @@
 # You should have received a copy of the GNU General Public License
 # along with qutebrowser.  If not, see <http://www.gnu.org/licenses/>.
 
+# pylint: disable=unused-import,import-error
+
 """The qutebrowser test suite contest file."""
 
 import os
@@ -24,82 +26,18 @@ import sys
 import collections
 import itertools
 import logging
+import textwrap
 
 import pytest
 
-import stubs as stubsmod
-import logfail
-from qutebrowser.config import configexc
-from qutebrowser.utils import objreg, usertypes
+import helpers.stubs as stubsmod
+from helpers import logfail
+from helpers.logfail import fail_on_logging, caplog_bug_workaround
+from helpers.messagemock import message_mock
+from qutebrowser.config import config
+from qutebrowser.utils import objreg
 
-
-
-@pytest.yield_fixture(scope='session', autouse=True)
-def fail_on_logging():
-    handler = logfail.LogFailHandler()
-    logging.getLogger().addHandler(handler)
-    yield
-    logging.getLogger().removeHandler(handler)
-    handler.close()
-
-
-@pytest.fixture(scope='session')
-def stubs():
-    """Provide access to stub objects useful for testing."""
-    return stubsmod
-
-
-@pytest.fixture(scope='session')
-def unicode_encode_err():
-    """Provide a fake UnicodeEncodeError exception."""
-    return UnicodeEncodeError('ascii',  # codec
-                              '',  # object
-                              0,  # start
-                              2,  # end
-                              'fake exception')  # reason
-
-
-@pytest.fixture(scope='session')
-def qnam(qapp):
-    """Session-wide QNetworkAccessManager."""
-    from PyQt5.QtNetwork import QNetworkAccessManager
-    nam = QNetworkAccessManager()
-    nam.setNetworkAccessible(QNetworkAccessManager.NotAccessible)
-    return nam
-
-
-@pytest.fixture
-def webpage(qnam):
-    """Get a new QWebPage object."""
-    from PyQt5.QtWebKitWidgets import QWebPage
-
-    page = QWebPage()
-    page.networkAccessManager().deleteLater()
-    page.setNetworkAccessManager(qnam)
-    return page
-
-
-@pytest.fixture
-def webframe(webpage):
-    """Convenience fixture to get a mainFrame of a QWebPage."""
-    return webpage.mainFrame()
-
-
-@pytest.fixture
-def fake_keyevent_factory():
-    """Fixture that when called will return a mock instance of a QKeyEvent."""
-    from unittest import mock
-    from PyQt5.QtGui import QKeyEvent
-
-    def fake_keyevent(key, modifiers=0, text=''):
-        """Generate a new fake QKeyPressEvent."""
-        evtmock = mock.create_autospec(QKeyEvent, instance=True)
-        evtmock.key.return_value = key
-        evtmock.modifiers.return_value = modifiers
-        evtmock.text.return_value = text
-        return evtmock
-
-    return fake_keyevent
+from PyQt5.QtNetwork import QNetworkCookieJar
 
 
 def pytest_collection_modifyitems(items):
@@ -128,6 +66,79 @@ def pytest_collection_modifyitems(items):
                 skip_marker = pytest.mark.skipif(
                     True, reason="No DISPLAY available")
                 item.add_marker(skip_marker)
+
+        if hasattr(item, 'module'):
+            module_path = os.path.relpath(
+                item.module.__file__,
+                os.path.commonprefix([__file__, item.module.__file__]))
+
+            module_root_dir = os.path.split(module_path)[0]
+            if module_root_dir == 'integration':
+                item.add_marker(pytest.mark.integration)
+
+
+def pytest_runtest_setup(item):
+    """Add some custom markers."""
+    if not isinstance(item, item.Function):
+        return
+
+    if item.get_marker('posix') and os.name != 'posix':
+        pytest.skip("Requires a POSIX os.")
+    elif item.get_marker('windows') and os.name != 'nt':
+        pytest.skip("Requires Windows.")
+    elif item.get_marker('linux') and not sys.platform.startswith('linux'):
+        pytest.skip("Requires Linux.")
+    elif item.get_marker('osx') and sys.platform != 'darwin':
+        pytest.skip("Requires OS X.")
+    elif item.get_marker('not_frozen') and getattr(sys, 'frozen', False):
+        pytest.skip("Can't be run when frozen!")
+    elif item.get_marker('frozen') and not getattr(sys, 'frozen', False):
+        pytest.skip("Can only run when frozen!")
+
+
+@pytest.fixture(autouse=True, scope='session')
+def change_qapp_name(qapp):
+    """Change the name of the QApplication instance."""
+    qapp.setApplicationName('qute_test')
+
+
+class WinRegistryHelper:
+
+    """Helper class for win_registry."""
+
+    FakeWindow = collections.namedtuple('FakeWindow', ['registry'])
+
+    def __init__(self):
+        self._ids = []
+
+    def add_window(self, win_id):
+        assert win_id not in objreg.window_registry
+        registry = objreg.ObjectRegistry()
+        window = self.FakeWindow(registry)
+        objreg.window_registry[win_id] = window
+        self._ids.append(win_id)
+
+    def cleanup(self):
+        for win_id in self._ids:
+            del objreg.window_registry[win_id]
+
+
+@pytest.yield_fixture
+def win_registry():
+    """Fixture providing a window registry for win_id 0 and 1."""
+    helper = WinRegistryHelper()
+    helper.add_window(0)
+    yield helper
+    helper.cleanup()
+
+
+@pytest.yield_fixture
+def tab_registry(win_registry):
+    """Fixture providing a tab registry for win_id 0."""
+    registry = objreg.ObjectRegistry()
+    objreg.register('tab-registry', registry, scope='window', window=0)
+    yield registry
+    objreg.delete('tab-registry', scope='window', window=0)
 
 
 def _generate_cmdline_tests():
@@ -168,121 +179,131 @@ def cmdline_test(request):
     return request.param
 
 
-class ConfigStub:
-
-    """Stub for the config module.
-
-    Attributes:
-        data: The config data to return.
-    """
-
-    def __init__(self, signal):
-        """Constructor.
-
-        Args:
-            signal: The signal to use for self.changed.
-        """
-        self.data = {}
-        self.changed = signal
-
-    def section(self, name):
-        """Get a section from the config.
-
-        Args:
-            name: The section name to get.
-
-        Return:
-            The section as dict.
-        """
-        return self.data[name]
-
-    def get(self, sect, opt):
-        """Get a value from the config."""
-        data = self.data[sect]
-        try:
-            return data[opt]
-        except KeyError:
-            raise configexc.NoOptionError(opt, sect)
-
-
 @pytest.yield_fixture
 def config_stub(stubs):
     """Fixture which provides a fake config object."""
-    stub = ConfigStub(stubs.FakeSignal())
+    stub = stubs.ConfigStub()
     objreg.register('config', stub)
     yield stub
     objreg.delete('config')
 
 
-def pytest_runtest_setup(item):
-    """Add some custom markers."""
-    if not isinstance(item, item.Function):
-        return
-
-    if item.get_marker('posix') and os.name != 'posix':
-        pytest.skip("Requires a POSIX os.")
-    elif item.get_marker('windows') and os.name != 'nt':
-        pytest.skip("Requires Windows.")
-    elif item.get_marker('linux') and not sys.platform.startswith('linux'):
-        pytest.skip("Requires Linux.")
-    elif item.get_marker('osx') and sys.platform != 'darwin':
-        pytest.skip("Requires OS X.")
-    elif item.get_marker('not_frozen') and getattr(sys, 'frozen', False):
-        pytest.skip("Can't be run when frozen!")
-    elif item.get_marker('frozen') and not getattr(sys, 'frozen', False):
-        pytest.skip("Can only run when frozen!")
+@pytest.yield_fixture
+def default_config():
+    """Fixture that provides and registers an empty default config object."""
+    config_obj = config.ConfigManager(configdir=None, fname=None, relaxed=True)
+    objreg.register('config', config_obj)
+    yield config_obj
+    objreg.delete('config')
 
 
-class MessageMock:
+@pytest.yield_fixture
+def key_config_stub(stubs):
+    """Fixture which provides a fake key config object."""
+    stub = stubs.KeyConfigStub()
+    objreg.register('key-config', stub)
+    yield stub
+    objreg.delete('key-config')
 
-    """Helper object for message_mock.
 
-    Attributes:
-        _monkeypatch: The pytest monkeypatch fixture.
-        MessageLevel: An enum with possible message levels.
-        Message: A namedtuple representing a message.
-        messages: A list of Message tuples.
-    """
+@pytest.yield_fixture
+def host_blocker_stub(stubs):
+    """Fixture which provides a fake host blocker object."""
+    stub = stubs.HostBlockerStub()
+    objreg.register('host-blocker', stub)
+    yield stub
+    objreg.delete('host-blocker')
 
-    Message = collections.namedtuple('Message', ['level', 'win_id', 'text',
-                                                 'immediate'])
-    MessageLevel = usertypes.enum('Level', ('error', 'info', 'warning'))
 
-    def __init__(self, monkeypatch):
-        self._monkeypatch = monkeypatch
-        self.messages = []
+@pytest.fixture(scope='session')
+def stubs():
+    """Provide access to stub objects useful for testing."""
+    return stubsmod
 
-    def _handle(self, level, win_id, text, immediately=False):
-        self.messages.append(self.Message(level, win_id, text, immediately))
 
-    def _handle_error(self, *args, **kwargs):
-        self._handle(self.MessageLevel.error, *args, **kwargs)
+@pytest.fixture(scope='session')
+def unicode_encode_err():
+    """Provide a fake UnicodeEncodeError exception."""
+    return UnicodeEncodeError('ascii',  # codec
+                              '',  # object
+                              0,  # start
+                              2,  # end
+                              'fake exception')  # reason
 
-    def _handle_info(self, *args, **kwargs):
-        self._handle(self.MessageLevel.info, *args, **kwargs)
 
-    def _handle_warning(self, *args, **kwargs):
-        self._handle(self.MessageLevel.warning, *args, **kwargs)
-
-    def getmsg(self):
-        """Get the only message in self.messages.
-
-        Raises ValueError if there are multiple or no messages.
-        """
-        if len(self.messages) != 1:
-            raise ValueError("Got {} messages but expected a single "
-                             "one.".format(len(self.messages)))
-        return self.messages[0]
-
-    def patch(self, module_path):
-        """Patch message.* in the given module (as a string)."""
-        self._monkeypatch.setattr(module_path + '.error', self._handle_error)
-        self._monkeypatch.setattr(module_path + '.info', self._handle_info)
-        self._monkeypatch.setattr(module_path + '.warning',
-                                  self._handle_warning)
+@pytest.fixture(scope='session')
+def qnam(qapp):
+    """Session-wide QNetworkAccessManager."""
+    from PyQt5.QtNetwork import QNetworkAccessManager
+    nam = QNetworkAccessManager()
+    nam.setNetworkAccessible(QNetworkAccessManager.NotAccessible)
+    return nam
 
 
 @pytest.fixture
-def message_mock(monkeypatch):
-    """Fixture to get a MessageMock."""
-    return MessageMock(monkeypatch)
+def webpage(qnam):
+    """Get a new QWebPage object."""
+    from PyQt5.QtWebKitWidgets import QWebPage
+
+    page = QWebPage()
+    page.networkAccessManager().deleteLater()
+    page.setNetworkAccessManager(qnam)
+    return page
+
+
+@pytest.fixture
+def webview(qtbot, webpage):
+    """Get a new QWebView object."""
+    from PyQt5.QtWebKitWidgets import QWebView
+
+    view = QWebView()
+    qtbot.add_widget(view)
+
+    view.page().deleteLater()
+    view.setPage(webpage)
+
+    view.resize(640, 480)
+    return view
+
+
+@pytest.fixture
+def webframe(webpage):
+    """Convenience fixture to get a mainFrame of a QWebPage."""
+    return webpage.mainFrame()
+
+
+@pytest.fixture
+def fake_keyevent_factory():
+    """Fixture that when called will return a mock instance of a QKeyEvent."""
+    from unittest import mock
+    from PyQt5.QtGui import QKeyEvent
+
+    def fake_keyevent(key, modifiers=0, text=''):
+        """Generate a new fake QKeyPressEvent."""
+        evtmock = mock.create_autospec(QKeyEvent, instance=True)
+        evtmock.key.return_value = key
+        evtmock.modifiers.return_value = modifiers
+        evtmock.text.return_value = text
+        return evtmock
+
+    return fake_keyevent
+
+
+@pytest.yield_fixture
+def cookiejar_and_cache(stubs):
+    """Fixture providing a fake cookie jar and cache."""
+    jar = QNetworkCookieJar()
+    cache = stubs.FakeNetworkCache()
+    objreg.register('cookie-jar', jar)
+    objreg.register('cache', cache)
+    yield
+    objreg.delete('cookie-jar')
+    objreg.delete('cache')
+
+
+@pytest.fixture
+def py_proc():
+    """Get a python executable and args list which executes the given code."""
+    def func(code):
+        return (sys.executable, ['-c', textwrap.dedent(code.strip('\n'))])
+    return func

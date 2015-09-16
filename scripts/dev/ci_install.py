@@ -33,7 +33,10 @@ import sys
 import subprocess
 import urllib
 
-PYQT_VERSION = '5.4.2'
+try:
+    import _winreg as winreg
+except ImportError:
+    winreg = None
 
 
 def apt_get(args):
@@ -48,12 +51,23 @@ def brew(args, silent=False):
         subprocess.check_call(['brew'] + args)
 
 
+def check_setup(executable):
+    print("Checking setup...")
+    subprocess.check_call([executable, '-c', 'import PyQt5'])
+    subprocess.check_call([executable, '-c', 'import sip'])
+
+
 if 'APPVEYOR' in os.environ:
     print("Getting PyQt5...")
     urllib.urlretrieve(
-        ('http://sourceforge.net/projects/pyqt/files/PyQt5/PyQt-{v}/'
-         'PyQt5-{v}-gpl-Py3.4-Qt{v}-x32.exe'.format(v=PYQT_VERSION)),
+        'http://www.qutebrowser.org/pyqt/PyQt5-5.5-gpl-Py3.4-Qt5.5.0-x32.exe',
         r'C:\install-PyQt5.exe')
+
+    print("Fixing registry...")
+    with winreg.OpenKey(winreg.HKEY_CURRENT_USER,
+                        r'Software\Python\PythonCore\3.4', 0,
+                        winreg.KEY_WRITE) as key:
+        winreg.SetValue(key, 'InstallPath', winreg.REG_SZ, r'C:\Python34')
 
     print("Installing PyQt5...")
     subprocess.check_call([r'C:\install-PyQt5.exe', '/S'])
@@ -64,13 +78,17 @@ if 'APPVEYOR' in os.environ:
     print("Linking Python...")
     with open(r'C:\Windows\system32\python3.bat', 'w') as f:
         f.write(r'@C:\Python34\python %*')
+
+    check_setup(r'C:\Python34\python')
 elif os.environ.get('TRAVIS_OS_NAME', None) == 'linux':
     print("apt-get update...")
     apt_get(['update'])
 
     print("Installing packages...")
-    pkgs = 'python3-pyqt5 python3-pyqt5.qtwebkit python-tox python3-dev xvfb'
-    apt_get(['install'] + pkgs.split())
+    pkgs = ['python3-pyqt5', 'python3-pyqt5.qtwebkit', 'python-tox',
+            'python3-dev', 'libpython3.4-dev', 'xvfb']
+    apt_get(['install'] + pkgs)
+    check_setup('python3')
 elif os.environ.get('TRAVIS_OS_NAME', None) == 'osx':
     print("brew update...")
     brew(['update'], silent=True)
@@ -81,7 +99,8 @@ elif os.environ.get('TRAVIS_OS_NAME', None) == 'osx':
     print("Installing tox...")
     subprocess.check_call(['sudo', 'pip3.4', 'install', 'tox'])
 
-    os.system('ls -l /usr/local/bin/xvfb-run')
+    check_setup('python3')
+
     print("Creating xvfb-run stub...")
     with open('/usr/local/bin/xvfb-run', 'w') as f:
         # This will break when xvfb-run is called differently in .travis.yml,
@@ -89,8 +108,7 @@ elif os.environ.get('TRAVIS_OS_NAME', None) == 'osx':
         f.write('#!/bin/bash\n')
         f.write('shift 2\n')
         f.write('exec "$@"\n')
-    os.system('sudo chmod 755 /usr/local/bin/xvfb-run')
-    os.system('ls -l /usr/local/bin/xvfb-run')
+    subprocess.check_call(['sudo', 'chmod', '755', '/usr/local/bin/xvfb-run'])
 else:
     def env(key):
         return os.environ.get(key, None)
