@@ -189,7 +189,7 @@ class IPCServer(QObject):
             # NameError while listening...
             log.ipc.debug("Calling setSocketOptions")
             self._server.setSocketOptions(QLocalServer.UserAccessOption)
-        else:
+        else:  # pragma: no cover
             log.ipc.debug("Not calling setSocketOptions")
 
     def _remove_server(self):
