@@ -81,22 +81,34 @@ def test_log_signals(caplog, signal_obj):
     assert records[1].msg == "Signal in <repr>: signal2('foo', 'bar')"
 
 
-def test_log_time(caplog):
-    logger_name = 'qt-tests'
+class TestLogTime:
 
-    with caplog.atLevel(logging.DEBUG, logger_name):
-        with debug.log_time(logging.getLogger(logger_name), action='foobar'):
-            time.sleep(0.1)
+    def test_duration(self, caplog):
+        logger_name = 'qt-tests'
 
-        records = caplog.records()
-        assert len(records) == 1
+        with caplog.atLevel(logging.DEBUG, logger_name):
+            with debug.log_time(logger_name, action='foobar'):
+                time.sleep(0.1)
 
-        pattern = re.compile(r'^Foobar took ([\d.]*) seconds\.$')
-        match = pattern.match(records[0].msg)
-        assert match
+            records = caplog.records()
+            assert len(records) == 1
 
-        duration = float(match.group(1))
-        assert 0 < duration < 5
+            pattern = re.compile(r'^Foobar took ([\d.]*) seconds\.$')
+            match = pattern.match(records[0].msg)
+            assert match
+
+            duration = float(match.group(1))
+            assert 0 < duration < 5
+
+    def test_logger(self, caplog):
+        """Test with an explicit logger instead of a name."""
+        logger_name = 'qt-tests'
+
+        with caplog.atLevel(logging.DEBUG, logger_name):
+            with debug.log_time(logging.getLogger(logger_name)):
+                pass
+
+        assert len(caplog.records()) == 1
 
 
 class TestQEnumKey:

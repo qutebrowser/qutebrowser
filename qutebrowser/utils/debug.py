@@ -21,6 +21,7 @@
 
 import re
 import inspect
+import logging
 import functools
 import datetime
 import contextlib
@@ -229,9 +230,11 @@ def log_time(logger, action='operation'):
     """Log the time the operation in the with-block takes.
 
     Args:
-        logger: The logging.Logger to use for logging.
+        logger: The logging.Logger to use for logging, or a logger name.
         action: A description of what's being done.
     """
+    if isinstance(logger, str):
+        logger = logging.getLogger(logger)
     started = datetime.datetime.now()
     try:
         yield
