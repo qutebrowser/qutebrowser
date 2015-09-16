@@ -54,7 +54,7 @@ def is_whitelisted_domain(host):
     """Check if the given host is on the adblock whitelist.
 
     Args:
-        host: The host as given by the adblocker as string.
+        host: The host of the request as string.
     """
     whitelist = config.get('content', 'host-blocking-whitelist')
     if whitelist is None:
