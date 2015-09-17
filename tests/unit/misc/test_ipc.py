@@ -31,7 +31,7 @@ import subprocess
 from unittest import mock
 
 import pytest
-import py.path  # pylint: disable=import-error
+import py.path  # pylint: disable=no-name-in-module
 from PyQt5.QtCore import pyqtSignal, QObject
 from PyQt5.QtNetwork import QLocalServer, QLocalSocket, QAbstractSocket
 from PyQt5.QtTest import QSignalSpy
@@ -51,7 +51,7 @@ pytestmark = pytest.mark.usefixtures('qapp')
 @pytest.yield_fixture()
 def short_tmpdir():
     with tempfile.TemporaryDirectory() as tdir:
-        yield py.path.local(tdir)
+        yield py.path.local(tdir)  # pylint: disable=no-member
 
 
 @pytest.yield_fixture
