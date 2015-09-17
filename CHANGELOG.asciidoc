@@ -17,6 +17,12 @@ This project adheres to http://semver.org/[Semantic Versioning].
 v0.5.0 (unreleased)
 -------------------
 
+Added
+~~~~~
+
+- New setting `ui -> hide-wayland-decoration` to hide the window decoration
+  when using wayland.
+
 Fixed
 ~~~~~
 
