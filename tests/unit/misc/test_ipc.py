@@ -679,6 +679,7 @@ class TestSendOrListen:
         assert "Connecting to {}".format(legacy_server._socketname) in msgs
 
     @pytest.mark.posix   # Unneeded on Windows
+    @pytest.mark.not_frozen
     def test_stale_legacy_server(self, caplog, qtbot, args, legacy_server,
                                  ipc_server, py_proc):
         legacy_name = ipc._get_socketname(args.basedir, legacy=True)
