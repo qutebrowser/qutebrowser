@@ -30,6 +30,7 @@ from qutebrowser.completion.models import base as completion
 from qutebrowser.config import config
 import re
 
+
 class CompletionFilterModel(QSortFilterProxyModel):
 
     """Subclass of QSortFilterProxyModel with custom sorting/filtering.
@@ -150,15 +151,25 @@ class CompletionFilterModel(QSortFilterProxyModel):
                 else:
                     matchers = {
                         'contain': self.containMatcher,
+                        'fuzzy': self.fuzzyMatcher,
                         'start': self.startMatcher
                     }
                     match_type = config.get('completion', 'match-type')
                     if match_type not in matchers:
-                        match_type = 'match'
+                        match_type = 'contain'
                     matcher = matchers[match_type]
                     if matcher(data):
                         return True
             return False
+
+    def fuzzyMatcher(self, data):
+        """Matcher for 'fuzzy' matching type logic."""
+        data = data.casefold()
+        pattern = self.pattern.casefold()
+        for char in pattern:
+            if char not in data:
+                return False
+        return True
 
     def containMatcher(self, data):
         """Matcher for 'contain' matching type logic."""
