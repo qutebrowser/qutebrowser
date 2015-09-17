@@ -20,6 +20,8 @@
 """Password filler."""
 
 # TODO: show a message when the password is saved.
+# FIXME: bug in zeste de savoir (auto-submit not working).
+# FIXME: bug in inscription.ssap.usherbrooke.ca (probably because there is an hidden text field).
 
 import os
 import shlex
