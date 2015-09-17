@@ -125,8 +125,15 @@ class HTTPBin(QObject):
 
     def start(self):
         """Start the webserver."""
-        filename = os.path.join(os.path.dirname(__file__), 'webserver.py')
-        self.proc.start(sys.executable, [filename, str(self.port)])
+        if hasattr(sys, 'frozen'):
+            executable = os.path.join(os.path.dirname(sys.executable),
+                                      'webserver')
+            args = []
+        else:
+            executable = sys.executable
+            args = [os.path.join(os.path.dirname(__file__), 'webserver.py')]
+
+        self.proc.start(executable, args + [str(self.port)])
         ok = self.proc.waitForStarted()
         assert ok
         self.proc.readyRead.connect(self.read_log)

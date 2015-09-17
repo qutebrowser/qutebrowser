@@ -31,9 +31,22 @@ import flask
 
 @app.route('/data/<path:path>')
 def send_data(path):
-    basedir = os.path.realpath(os.path.dirname(__file__))
+    if hasattr(sys, 'frozen'):
+        basedir = os.path.realpath(os.path.dirname(sys.executable))
+        data_dir = os.path.join(basedir, 'integration', 'data')
+    else:
+        basedir = os.path.realpath(os.path.dirname(__file__))
+        data_dir = os.path.join(basedir, 'data')
     print(basedir)
-    return flask.send_from_directory(os.path.join(basedir, 'data'), path)
+    return flask.send_from_directory(data_dir, path)
 
 
-app.run(port=int(sys.argv[1]), debug=True, use_reloader=False)
+def main():
+    if hasattr(sys, 'frozen'):
+        basedir = os.path.realpath(os.path.dirname(sys.executable))
+        app.template_folder = os.path.join(basedir, 'integration', 'templates')
+    app.run(port=int(sys.argv[1]), debug=True, use_reloader=False)
+
+
+if __name__ == '__main__':
+    main()
