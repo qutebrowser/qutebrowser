@@ -82,6 +82,12 @@ ls-files() {
 
 mapfile -t entries < <(ls-files)
 
+# we need to manually check that there are items, because rofi doesn't show up
+# if there are no items and -no-custom is passed to rofi.
+if [ "${#entries[@]}" -eq 0 ] ; then
+    die "Download directory »${DOWNLOAD_DIR}« empty"
+fi
+
 line=$(printf "%s\n" "${entries[@]}"  \
        | crop-first-column 55 \
        | column -s $'\t' -t \
