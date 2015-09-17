@@ -1442,7 +1442,7 @@ Domains may contain * and ? wildcards and are otherwise required to exactly matc
 
 Local domains are always exempt from hostblocking.
 
-Default: empty
+Default: +pass:[piwik.org]+
 
 == hints
 Hinting settings.
