@@ -736,7 +736,7 @@ def data(readonly=False):
              "Whether host blocking is enabled."),
 
             ('host-blocking-whitelist',
-             SettingValue(typ.List(none_ok=True), ''),
+             SettingValue(typ.List(none_ok=True), 'piwik.org'),
              "List of domains that should always be loaded, despite being "
              "ad-blocked.\n\n"
              "Domains may contain * and ? wildcards and are otherwise "
