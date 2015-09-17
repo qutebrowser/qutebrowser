@@ -98,7 +98,7 @@ class TestLogTime:
             assert match
 
             duration = float(match.group(1))
-            assert 0 < duration < 5
+            assert 0 < duration < 30
 
     def test_logger(self, caplog):
         """Test with an explicit logger instead of a name."""

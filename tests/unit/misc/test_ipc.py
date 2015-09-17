@@ -597,7 +597,8 @@ def test_timeout(qtbot, caplog, qlocalsocket, ipc_server):
         qlocalsocket.connectToServer('qute-test')
 
     with caplog.atLevel(logging.ERROR):
-        with qtbot.waitSignal(qlocalsocket.disconnected, raising=True):
+        with qtbot.waitSignal(qlocalsocket.disconnected, raising=True,
+                              timeout=5000):
             pass
 
     assert caplog.records()[-1].message == "IPC connection timed out."
