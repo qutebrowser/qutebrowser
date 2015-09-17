@@ -27,8 +27,8 @@ from PyQt5.QtCore import QSortFilterProxyModel, QModelIndex, Qt
 
 from qutebrowser.utils import log, qtutils, debug
 from qutebrowser.completion.models import base as completion
-from fuzzywuzzy import fuzz
-
+from qutebrowser.config import config
+import re
 
 class CompletionFilterModel(QSortFilterProxyModel):
 
@@ -147,12 +147,25 @@ class CompletionFilterModel(QSortFilterProxyModel):
                 data = self.srcmodel.data(idx)
                 if not data:
                     continue
-            else:
-                contain = self.pattern.casefold() in data.casefold()
-                r = fuzz.ratio(self.pattern.casefold(), data.casefold())
-                if contain or (r >= len(self.pattern) * 10 and len(self.pattern) <= len(data)):
-                    return True
+                else:
+                    matchers = {
+                        'match': lambda data, query: query in data,
+                        'start': lambda data, query: self.startMatcher(data)
+                    }
+                    match_type = config.get('completion', 'match-type')
+                    if match_type not in matchers:
+                        match_type = 'match'
+                    matcher = matchers[match_type]
+                    if matcher(data, self.pattern):
+                        return True
             return False
+
+    def startMatcher(self, data):
+        """Matcher for 'start' matching type logic."""
+        protocol = re.compile('^(?:(ht|f)tp(s?):\/\/)?')
+        if protocol.match(data) is not None:
+            data = protocol.sub('', data)
+        return data.startswith(self.pattern)
 
     def intelligentLessThan(self, lindex, rindex):
         """Custom sorting implementation.
