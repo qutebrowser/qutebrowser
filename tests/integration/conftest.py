@@ -101,7 +101,7 @@ class HTTPBin(QObject):
         """Read the log from httpbin's stdout and parse it."""
         while self.proc.canReadLine():
             line = self.proc.readLine()
-            line = bytes(line).decode('utf-8').rstrip('\n')
+            line = bytes(line).decode('utf-8').rstrip('\r\n')
             print(line)
 
             if line == (' * Running on http://127.0.0.1:{}/ (Press CTRL+C to '
