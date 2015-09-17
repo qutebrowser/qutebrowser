@@ -149,23 +149,31 @@ class CompletionFilterModel(QSortFilterProxyModel):
                     continue
                 else:
                     matchers = {
-                        'match': lambda data, query: query in data,
-                        'start': lambda data, query: self.startMatcher(data)
+                        'contain': self.containMatcher,
+                        'start': self.startMatcher
                     }
                     match_type = config.get('completion', 'match-type')
                     if match_type not in matchers:
                         match_type = 'match'
                     matcher = matchers[match_type]
-                    if matcher(data, self.pattern):
+                    if matcher(data):
                         return True
             return False
 
+    def containMatcher(self, data):
+        """Matcher for 'contain' matching type logic."""
+        data = data.casefold()
+        pattern = self.pattern.casefold()
+        return pattern in data
+
     def startMatcher(self, data):
         """Matcher for 'start' matching type logic."""
-        protocol = re.compile('^(?:(ht|f)tp(s?):\/\/)?')
-        if protocol.match(data) is not None:
+        protocol = re.compile('^(?:(ht|f)tp(s?)://)?')
+        data = data.casefold()
+        pattern = self.pattern.casefold()
+        if protocol.match(data).lastindex is not None:
             data = protocol.sub('', data)
-        return data.startswith(self.pattern)
+        return data.startswith(pattern)
 
     def intelligentLessThan(self, lindex, rindex):
         """Custom sorting implementation.
