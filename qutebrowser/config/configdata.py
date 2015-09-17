@@ -735,6 +735,14 @@ def data(readonly=False):
              SettingValue(typ.Bool(), 'true'),
              "Whether host blocking is enabled."),
 
+            ('host-blocking-whitelist',
+             SettingValue(typ.List(none_ok=True), ''),
+             "List of domains that should always be loaded, despite being "
+             "ad-blocked.\n\n"
+             "Domains may contain * and ? wildcards and are otherwise "
+             "required to exactly match the requested domain.\n\n"
+             "Local domains are always exempt from hostblocking."),
+
             readonly=readonly
         )),
 
