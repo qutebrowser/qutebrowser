@@ -8,7 +8,7 @@ import pytest
     ('/', '<title>httpbin(1): HTTP Client Testing Service</title>', True),
     # https://github.com/Runscope/httpbin/issues/245
     ('/', 'www.google-analytics.com', False),
-    ('/html/hello.html', 'Hello World!', True),
+    ('/data/hello.txt', 'Hello World!', True),
 ])
 def test_httpbin(httpbin, qtbot, path, content, expected):
     with qtbot.waitSignal(httpbin.got_new_url, raising=True, timeout=100):
