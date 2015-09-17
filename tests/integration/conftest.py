@@ -3,10 +3,14 @@ import sys
 import socket
 import functools
 import os.path
+import collections
 
 import pytest
 import pytestqt.plugin
 from PyQt5.QtCore import pyqtSlot, pyqtSignal, QProcess, QObject
+
+
+Request = collections.namedtuple('Request', 'verb, url')
 
 
 class InvalidLine(Exception):
@@ -19,12 +23,26 @@ class InvalidLine(Exception):
 class HTTPBin(QObject):
 
     ready = pyqtSignal()
-    got_new_url = pyqtSignal(str)
+    new_request = pyqtSignal(Request)
+
+    LOG_RE = re.compile(r"""
+        (?P<host>[^ ]*)
+        \ ([^ ]*) # ignored
+        \ (?P<user>[^ ]*)
+        \ \[(?P<date>[^]]*)\]
+        \ "(?P<request>
+            (?P<verb>[^ ]*)
+            \ (?P<url>[^ ]*)
+            \ (?P<protocol>[^ ]*)
+        )"
+        \ (?P<status>[^ ]*)
+        \ (?P<size>[^ ]*)
+    """, re.VERBOSE)
 
     def __init__(self, parent=None):
         super().__init__(parent)
         self._invalid = False
-        self._visited_urls = []
+        self._requests = []
         self.port = self._get_port()
         self.proc = QProcess()
         self.proc.setReadChannel(QProcess.StandardError)
@@ -36,13 +54,13 @@ class HTTPBin(QObject):
         sock.close()
         return port
 
-    def get_visited(self):
+    def get_requests(self):
         self.proc.waitForReadyRead(500)
-        self.read_urls()
-        return self._visited_urls
+        self.read_log()
+        return self._requests
 
     @pyqtSlot()
-    def read_urls(self):
+    def read_log(self):
         while self.proc.canReadLine():
             line = self.proc.readLine()
             line = bytes(line).decode('utf-8').rstrip('\n')
@@ -53,25 +71,29 @@ class HTTPBin(QObject):
                 self.ready.emit()
                 continue
 
-            match = re.match(r'.*"(GET [^ ]*) .*', line)  # FIXME
+            match = self.LOG_RE.match(line)
             if match is None:
                 self._invalid = True
                 print("INVALID: {}".format(line))
                 continue
-            url = match.group(1)
-            print(url)
-            self._visited_urls.append(url)
-            self.got_new_url.emit(url)
+
+            # FIXME do we need to allow other options?
+            assert match.group('protocol') == 'HTTP/1.1'
+
+            request = Request(verb=match.group('verb'), url=match.group('url'))
+            print(request)
+            self._requests.append(request)
+            self.new_request.emit(request)
 
     def start(self):
         filename = os.path.join(os.path.dirname(__file__), 'webserver.py')
         self.proc.start(sys.executable, [filename, str(self.port)])
         ok = self.proc.waitForStarted()
         assert ok
-        self.proc.readyRead.connect(self.read_urls)
+        self.proc.readyRead.connect(self.read_log)
 
     def after_test(self):
-        self._visited_urls.clear()
+        self._requests.clear()
         if self._invalid:
             raise InvalidLine
 

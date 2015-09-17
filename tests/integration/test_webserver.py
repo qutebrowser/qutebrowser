@@ -11,7 +11,7 @@ import pytest
     ('/data/hello.txt', 'Hello World!', True),
 ])
 def test_httpbin(httpbin, qtbot, path, content, expected):
-    with qtbot.waitSignal(httpbin.got_new_url, raising=True, timeout=100):
+    with qtbot.waitSignal(httpbin.new_request, raising=True, timeout=100):
         url = 'http://localhost:{}{}'.format(httpbin.port, path)
         try:
             response = urllib.request.urlopen(url)
@@ -25,5 +25,5 @@ def test_httpbin(httpbin, qtbot, path, content, expected):
 
     data = response.read().decode('utf-8')
 
-    assert httpbin.get_visited() == ['GET {}'.format(path)]
+    assert httpbin.get_requests() == [('GET', path)]
     assert (content in data) == expected
