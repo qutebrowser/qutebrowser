@@ -127,11 +127,12 @@ class HTTPBin(QObject):
         """Start the webserver."""
         if hasattr(sys, 'frozen'):
             executable = os.path.join(os.path.dirname(sys.executable),
-                                      'webserver')
+                                      'webserver_sub')
             args = []
         else:
             executable = sys.executable
-            args = [os.path.join(os.path.dirname(__file__), 'webserver.py')]
+            args = [os.path.join(os.path.dirname(__file__),
+                                 'webserver_sub.py')]
 
         self.proc.start(executable, args + [str(self.port)])
         ok = self.proc.waitForStarted()

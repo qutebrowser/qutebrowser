@@ -73,8 +73,8 @@ def main():
         cx.setup(
             executables=[cx.Executable('scripts/dev/run_frozen_tests.py',
                                        targetName='run-frozen-tests'),
-                         cx.Executable('tests/integration/webserver.py',
-                                       targetName='webserver')],
+                         cx.Executable('tests/integration/webserver_sub.py',
+                                       targetName='webserver_sub')],
             options={'build_exe': get_build_exe_options()},
             **setupcommon.setupdata
         )
