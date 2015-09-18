@@ -1269,6 +1269,17 @@ class CommandDispatcher:
         except webelem.IsNullError:
             raise cmdexc.CommandError("Element vanished while editing!")
 
+    def _clear_search(self, view, text):
+        """Clear search string/highlights for the given view.
+
+        This does nothing if the view's search text is the same as the given
+        text.
+        """
+        if view.search_text is not None and view.search_text != text:
+            # We first clear the marked text, then the highlights
+            view.search('', 0)
+            view.search('', QWebPage.HighlightAllOccurrences)
+
     @cmdutils.register(instance='command-dispatcher', scope='window',
                        maxsplit=0)
     def search(self, text="", reverse=False):
@@ -1279,11 +1290,7 @@ class CommandDispatcher:
             reverse: Reverse search direction.
         """
         view = self._current_widget()
-        if view.search_text is not None and view.search_text != text:
-            # We first clear the marked text, then the highlights
-            view.search('', 0)
-            view.search('', QWebPage.HighlightAllOccurrences)
-
+        self._clear_search(view, text)
         flags = 0
         ignore_case = config.get('general', 'ignore-case')
         if ignore_case == 'smart':
@@ -1301,6 +1308,8 @@ class CommandDispatcher:
         view.search(text, flags | QWebPage.HighlightAllOccurrences)
         view.search_text = text
         view.search_flags = flags
+        self._tabbed_browser.search_text = text
+        self._tabbed_browser.search_flags = flags
 
     @cmdutils.register(instance='command-dispatcher', hide=True,
                        scope='window', count='count')
@@ -1311,7 +1320,14 @@ class CommandDispatcher:
             count: How many elements to ignore.
         """
         view = self._current_widget()
-        if view.search_text is not None:
+
+        self._clear_search(view, self._tabbed_browser.search_text)
+
+        if self._tabbed_browser.search_text is not None:
+            view.search_text = self._tabbed_browser.search_text
+            view.search_flags = self._tabbed_browser.search_flags
+            view.search(view.search_text,
+                        view.search_flags | QWebPage.HighlightAllOccurrences)
             for _ in range(count):
                 view.search(view.search_text, view.search_flags)
 
@@ -1324,8 +1340,13 @@ class CommandDispatcher:
             count: How many elements to ignore.
         """
         view = self._current_widget()
-        if view.search_text is None:
-            return
+        self._clear_search(view, self._tabbed_browser.search_text)
+
+        if self._tabbed_browser.search_text is not None:
+            view.search_text = self._tabbed_browser.search_text
+            view.search_flags = self._tabbed_browser.search_flags
+            view.search(view.search_text,
+                        view.search_flags | QWebPage.HighlightAllOccurrences)
         # The int() here serves as a QFlags constructor to create a copy of the
         # QFlags instance rather as a reference. I don't know why it works this
         # way, but it does.
