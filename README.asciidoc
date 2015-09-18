@@ -145,9 +145,9 @@ Contributors, sorted by the number of commits in descending order:
 * Lamar Pavel
 * Austin Anderson
 * Artur Shaik
+* Thorsten Wißmann
 * Daniel
 * ZDarian
-* Thorsten Wißmann
 * Peter Vilim
 * John ShaggyTwoDope Jenkins
 * Jimmy
