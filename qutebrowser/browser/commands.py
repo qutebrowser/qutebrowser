@@ -1330,6 +1330,8 @@ class CommandDispatcher:
         if main_window.search_text is not None:
             view.search_text = main_window.search_text
             view.search_flags = main_window.search_flags
+            view.search(view.search_text,
+                        view.search_flags | QWebPage.HighlightAllOccurrences)
             for _ in range(count):
                 view.search(view.search_text, view.search_flags)
 
@@ -1349,6 +1351,8 @@ class CommandDispatcher:
         if main_window.search_text is not None:
             view.search_text = main_window.search_text
             view.search_flags = main_window.search_flags
+            view.search(view.search_text,
+                        view.search_flags | QWebPage.HighlightAllOccurrences)
         # The int() here serves as a QFlags constructor to create a copy of the
         # QFlags instance rather as a reference. I don't know why it works this
         # way, but it does.
