@@ -1269,10 +1269,12 @@ class CommandDispatcher:
         except webelem.IsNullError:
             raise cmdexc.CommandError("Element vanished while editing!")
 
-    def _clear_search(self, text):
-        """Clear existing search string & highlights for the current view if
-        it's different from text."""
-        view = self._current_widget()
+    def _clear_search(self, view, text):
+        """Clear search string/highlights for the given view.
+
+        This does nothing if the view's search text is the same as the given
+        text.
+        """
         if view.search_text is not None and view.search_text != text:
             # We first clear the marked text, then the highlights
             view.search('', 0)
@@ -1288,7 +1290,7 @@ class CommandDispatcher:
             reverse: Reverse search direction.
         """
         view = self._current_widget()
-        self._clear_search(text)
+        self._clear_search(view, text)
         flags = 0
         ignore_case = config.get('general', 'ignore-case')
         if ignore_case == 'smart':
@@ -1321,9 +1323,9 @@ class CommandDispatcher:
         """
         view = self._current_widget()
         main_window = objreg.get('main-window', scope='window',
-                                window=self._win_id)
+                                 window=self._win_id)
 
-        self._clear_search(main_window.search_text)
+        self._clear_search(view, main_window.search_text)
 
         if main_window.search_text is not None:
             view.search_text = main_window.search_text
@@ -1342,7 +1344,7 @@ class CommandDispatcher:
         view = self._current_widget()
         main_window = objreg.get('main-window', scope='window',
                                 window=self._win_id)
-        self._clear_search(main_window.search_text)
+        self._clear_search(view, main_window.search_text)
 
         if main_window.search_text is not None:
             view.search_text = main_window.search_text
