@@ -109,6 +109,8 @@ class MainWindow(QWidget):
         self._commandrunner = None
         self.win_id = next(win_id_gen)
         self.registry = objreg.ObjectRegistry()
+        self.search_text = None
+        self.search_flags = 0
         objreg.window_registry[self.win_id] = self
         objreg.register('main-window', self, scope='window',
                         window=self.win_id)
