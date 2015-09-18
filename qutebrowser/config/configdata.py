@@ -1178,6 +1178,8 @@ KEY_FIRST_COMMENT = """
 # with Shift. For special keys (with `<>`-signs), you need to explicitly add
 # `Shift-` to match a key pressed with shift.  You can bind multiple commands
 # by separating them with `;;`.
+#
+# You can use <Ctrl-k> to get the name of a key.
 """
 
 KEY_SECTION_DESC = {
@@ -1355,6 +1357,7 @@ KEY_DATA = collections.OrderedDict([
         ('open qute:settings', ['Ss']),
         ('follow-selected', RETURN_KEYS),
         ('follow-selected -t', ['<Ctrl-Return>', '<Ctrl-Enter>']),
+        ('show-keystring', ['<Ctrl-k>']),
     ])),
 
     ('insert', collections.OrderedDict([

@@ -813,6 +813,7 @@ How many steps to zoom out.
 |<<scroll-px,scroll-px>>|Scroll the current tab by 'count * dx/dy' pixels.
 |<<search-next,search-next>>|Continue the search to the ([count]th) next term.
 |<<search-prev,search-prev>>|Continue the search to the ([count]th) previous term.
+|<<show-keystring,show-keystring>>|Show the keystring for the next pressed key.
 |<<toggle-selection,toggle-selection>>|Toggle caret selection mode.
 |==============
 [[clear-keychain]]
@@ -1164,6 +1165,10 @@ Continue the search to the ([count]th) previous term.
 
 ==== count
 How many elements to ignore.
+
+[[show-keystring]]
+=== show-keystring
+Show the keystring for the next pressed key.
 
 [[toggle-selection]]
 === toggle-selection

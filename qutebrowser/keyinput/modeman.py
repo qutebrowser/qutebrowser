@@ -28,7 +28,7 @@ from PyQt5.QtWebKitWidgets import QWebView
 from qutebrowser.keyinput import modeparsers, keyparser
 from qutebrowser.config import config
 from qutebrowser.commands import cmdexc, cmdutils
-from qutebrowser.utils import usertypes, log, objreg, utils
+from qutebrowser.utils import usertypes, log, objreg, utils, message
 
 
 class KeyEvent:
@@ -125,6 +125,7 @@ class ModeManager(QObject):
         _releaseevents_to_pass: A set of KeyEvents where the keyPressEvent was
                                 passed through, so the release event should as
                                 well.
+        _show_key: Show the next pressed key, and don't do anything.
 
     Signals:
         entered: Emitted when a mode is entered.
@@ -143,6 +144,7 @@ class ModeManager(QObject):
         super().__init__(parent)
         self._win_id = win_id
         self._parsers = {}
+        self._show_key = False
         self.mode = usertypes.KeyMode.normal
         self._releaseevents_to_pass = set()
         self._forward_unbound_keys = config.get(
@@ -310,6 +312,24 @@ class ModeManager(QObject):
         Return:
             True if event should be filtered, False otherwise.
         """
+
+        # The keypress to start "show key mode" also ends up here
+        if self._show_key == 1:
+            self._show_key = 2
+            return True
+
+        if self._show_key == 2:
+            key = utils.keyevent_to_string(event)
+
+            # Only modifier key
+            if key is not None:
+                if len(key) > 1:
+                    key = '<{}>'.format(key)
+                self._show_key = False
+                message.set_text(self._win_id, '')
+                message.info(self._win_id, 'Pressed key: {}'.format(key))
+            return True
+
         if self.mode is None:
             # We got events before mode is set, so just pass them through.
             return False
@@ -322,3 +342,9 @@ class ModeManager(QObject):
     def clear_keychain(self):
         """Clear the currently entered key chain."""
         self._parsers[self.mode].clear_keystring()
+
+    @cmdutils.register(instance='mode-manager', scope='window', hide=True)
+    def show_keystring(self):
+        """Show the keystring for the next pressed key."""
+        message.set_text(self._win_id, 'Press a key')
+        self._show_key = 1
