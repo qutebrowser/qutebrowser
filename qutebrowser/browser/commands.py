@@ -1308,10 +1308,8 @@ class CommandDispatcher:
         view.search(text, flags | QWebPage.HighlightAllOccurrences)
         view.search_text = text
         view.search_flags = flags
-        main_window = objreg.get('main-window', scope='window',
-                                 window=self._win_id)
-        main_window.search_text = text
-        main_window.search_flags = flags
+        self._tabbed_browser.search_text = text
+        self._tabbed_browser.search_flags = flags
 
     @cmdutils.register(instance='command-dispatcher', hide=True,
                        scope='window', count='count')
@@ -1322,14 +1320,12 @@ class CommandDispatcher:
             count: How many elements to ignore.
         """
         view = self._current_widget()
-        main_window = objreg.get('main-window', scope='window',
-                                 window=self._win_id)
 
-        self._clear_search(view, main_window.search_text)
+        self._clear_search(view, self._tabbed_browser.search_text)
 
-        if main_window.search_text is not None:
-            view.search_text = main_window.search_text
-            view.search_flags = main_window.search_flags
+        if self._tabbed_browser.search_text is not None:
+            view.search_text = self._tabbed_browser.search_text
+            view.search_flags = self._tabbed_browser.search_flags
             view.search(view.search_text,
                         view.search_flags | QWebPage.HighlightAllOccurrences)
             for _ in range(count):
@@ -1344,13 +1340,11 @@ class CommandDispatcher:
             count: How many elements to ignore.
         """
         view = self._current_widget()
-        main_window = objreg.get('main-window', scope='window',
-                                window=self._win_id)
-        self._clear_search(view, main_window.search_text)
+        self._clear_search(view, self._tabbed_browser.search_text)
 
-        if main_window.search_text is not None:
-            view.search_text = main_window.search_text
-            view.search_flags = main_window.search_flags
+        if self._tabbed_browser.search_text is not None:
+            view.search_text = self._tabbed_browser.search_text
+            view.search_flags = self._tabbed_browser.search_flags
             view.search(view.search_text,
                         view.search_flags | QWebPage.HighlightAllOccurrences)
         # The int() here serves as a QFlags constructor to create a copy of the
