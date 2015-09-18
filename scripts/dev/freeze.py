@@ -101,26 +101,27 @@ bdist_mac_options = {
     'bundle_name': 'qutebrowser',
 }
 
-if sys.platform.startswith('win'):
-    base = 'Win32GUI'
-    target_name = 'qutebrowser.exe'
-else:
-    base = None
-    target_name = 'qutebrowser'
 
-executable = cx.Executable('qutebrowser/__main__.py', base=base,
-                           targetName=target_name,
-                           shortcutName='qutebrowser',
-                           shortcutDir='ProgramMenuFolder',
-                           icon=os.path.join(BASEDIR, 'icons',
-                                             'qutebrowser.ico'))
+def get_exe(base, target_name):
+    return cx.Executable('qutebrowser/__main__.py', base=base,
+                         targetName=target_name, shortcutName='qutebrowser',
+                         shortcutDir='ProgramMenuFolder',
+                         icon=os.path.join(BASEDIR, 'icons',
+                                           'qutebrowser.ico'))
 
 
 if __name__ == '__main__':
+    if sys.platform.startswith('win'):
+        base = 'Win32GUI'
+        target_name = 'qutebrowser.exe'
+    else:
+        base = None
+        target_name = 'qutebrowser'
+
     try:
         setupcommon.write_git_file()
         cx.setup(
-            executables=[executable],
+            executables=[get_exe(base, target_name)],
             options={
                 'build_exe': get_build_exe_options(),
                 'bdist_msi': bdist_msi_options,

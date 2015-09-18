@@ -21,13 +21,17 @@
 
 
 import sys
+import os.path
 import subprocess
 
 import pytest
 
 
-@pytest.mark.not_frozen
 def test_smoke():
-    argv = [sys.executable, '-m', 'qutebrowser', '--debug', '--no-err-windows',
-            '--nowindow', '--temp-basedir', 'about:blank', ':later 500 quit']
+    if hasattr(sys, 'frozen'):
+        argv = [os.path.join(os.path.dirname(sys.executable), 'qutebrowser')]
+    else:
+        argv = [sys.executable, '-m', 'qutebrowser']
+    argv += ['--debug', '--no-err-windows', '--nowindow', '--temp-basedir',
+             'about:blank', ':later 500 quit']
     subprocess.check_call(argv)

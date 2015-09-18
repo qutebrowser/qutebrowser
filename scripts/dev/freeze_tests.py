@@ -69,12 +69,14 @@ def get_build_exe_options():
 
 def main():
     """Main entry point."""
+    base = 'Win32GUI' if sys.platform.startswith('win') else None
     with temp_git_commit_file():
         cx.setup(
             executables=[cx.Executable('scripts/dev/run_frozen_tests.py',
                                        targetName='run-frozen-tests'),
                          cx.Executable('tests/integration/webserver_sub.py',
-                                       targetName='webserver_sub')],
+                                       targetName='webserver_sub'),
+                         freeze.get_exe(base, target_name='qutebrowser')],
             options={'build_exe': get_build_exe_options()},
             **setupcommon.setupdata
         )
