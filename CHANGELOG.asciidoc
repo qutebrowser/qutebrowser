@@ -23,6 +23,12 @@ Added
 - New setting `ui -> hide-wayland-decoration` to hide the window decoration
   when using wayland.
 
+Changed
+~~~~~~~
+
+- The `colors -> tabs.bg/fg.selected` option got split into
+  `tabs.bg/fg.selected.odd/even`.
+
 Fixed
 ~~~~~
 
