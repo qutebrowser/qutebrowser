@@ -221,8 +221,10 @@
 |<<colors-tabs.bg.odd,tabs.bg.odd>>|Background color of unselected odd tabs.
 |<<colors-tabs.fg.even,tabs.fg.even>>|Foreground color of unselected even tabs.
 |<<colors-tabs.bg.even,tabs.bg.even>>|Background color of unselected even tabs.
-|<<colors-tabs.fg.selected,tabs.fg.selected>>|Foreground color of selected tabs.
-|<<colors-tabs.bg.selected,tabs.bg.selected>>|Background color of selected tabs.
+|<<colors-tabs.fg.selected.odd,tabs.fg.selected.odd>>|Foreground color of selected odd tabs.
+|<<colors-tabs.bg.selected.odd,tabs.bg.selected.odd>>|Background color of selected odd tabs.
+|<<colors-tabs.fg.selected.even,tabs.fg.selected.even>>|Foreground color of selected even tabs.
+|<<colors-tabs.bg.selected.even,tabs.bg.selected.even>>|Background color of selected even tabs.
 |<<colors-tabs.bg.bar,tabs.bg.bar>>|Background color of the tab bar.
 |<<colors-tabs.indicator.start,tabs.indicator.start>>|Color gradient start for the tab indicator.
 |<<colors-tabs.indicator.stop,tabs.indicator.stop>>|Color gradient end for the tab indicator.
@@ -1792,17 +1794,29 @@ Background color of unselected even tabs.
 
 Default: +pass:[darkgrey]+
 
-[[colors-tabs.fg.selected]]
-=== tabs.fg.selected
-Foreground color of selected tabs.
+[[colors-tabs.fg.selected.odd]]
+=== tabs.fg.selected.odd
+Foreground color of selected odd tabs.
 
 Default: +pass:[white]+
 
-[[colors-tabs.bg.selected]]
-=== tabs.bg.selected
-Background color of selected tabs.
+[[colors-tabs.bg.selected.odd]]
+=== tabs.bg.selected.odd
+Background color of selected odd tabs.
 
 Default: +pass:[black]+
+
+[[colors-tabs.fg.selected.even]]
+=== tabs.fg.selected.even
+Foreground color of selected even tabs.
+
+Default: +pass:[${tabs.fg.selected.odd}]+
+
+[[colors-tabs.bg.selected.even]]
+=== tabs.bg.selected.even
+Background color of selected even tabs.
+
+Default: +pass:[${tabs.bg.selected.odd}]+
 
 [[colors-tabs.bg.bar]]
 === tabs.bg.bar
