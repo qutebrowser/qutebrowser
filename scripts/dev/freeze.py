@@ -86,6 +86,7 @@ def get_build_exe_options(skip_html=False):
 
 
 def get_exe(base, target_name):
+    """Get the qutebrowser cx.Executable to build."""
     return cx.Executable('qutebrowser/__main__.py', base=base,
                          targetName=target_name, shortcutName='qutebrowser',
                          shortcutDir='ProgramMenuFolder',
@@ -94,6 +95,7 @@ def get_exe(base, target_name):
 
 
 def main():
+    """Main entry point."""
     if sys.platform.startswith('win'):
         base = 'Win32GUI'
         target_name = 'qutebrowser.exe'

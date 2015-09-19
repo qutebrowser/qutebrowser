@@ -24,8 +24,6 @@ import sys
 import os.path
 import subprocess
 
-import pytest
-
 
 def test_smoke():
     if hasattr(sys, 'frozen'):
