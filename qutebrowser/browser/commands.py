@@ -42,7 +42,7 @@ from qutebrowser.keyinput import modeman
 from qutebrowser.utils import (message, usertypes, log, qtutils, urlutils,
                                objreg, utils)
 from qutebrowser.utils.usertypes import KeyMode
-from qutebrowser.misc import editor, guiprocess
+from qutebrowser.misc import editor, guiprocess, mhtml
 
 
 class CommandDispatcher:
@@ -1156,6 +1156,16 @@ class CommandDispatcher:
         else:
             page = self._current_widget().page()
             download_manager.get(self._current_url(), page=page)
+
+    @cmdutils.register(instance='command-dispatcher', scope='window')
+    def download_whole(self, dest):
+        """Download the current page as a MHTML file, including all assets
+        (e.g. images)
+
+        Args:
+            dest: The file path to write the download to.
+        """
+        mhtml.start_download(dest)
 
     @cmdutils.register(instance='command-dispatcher', scope='window',
                        deprecated="Use :download instead.")

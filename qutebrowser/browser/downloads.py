@@ -201,6 +201,7 @@ class DownloadItem(QObject):
         fileobj: The file object to download the file to.
         reply: The QNetworkReply associated with this download.
         retry_info: A RetryInfo instance.
+        raw_headers: The headers sent by the server.
         _filename: The filename of the download.
         _redirects: How many time we were redirected already.
         _buffer: A BytesIO object to buffer incoming data until we know the
@@ -255,6 +256,7 @@ class DownloadItem(QObject):
         self._filename = None
         self.init_reply(reply)
         self._win_id = win_id
+        self.raw_headers = {}
 
     def __repr__(self):
         return utils.get_repr(self, basename=self.basename)
@@ -354,6 +356,7 @@ class DownloadItem(QObject):
         reply.finished.connect(self.on_reply_finished)
         reply.error.connect(self.on_reply_error)
         reply.readyRead.connect(self.on_ready_read)
+        reply.metaDataChanged.connect(self.on_meta_data_change)
         self.retry_info = RetryInfo(request=reply.request(),
                                     manager=reply.manager())
         if not self.fileobj:
@@ -582,6 +585,9 @@ class DownloadItem(QObject):
         if code == QNetworkReply.OperationCanceledError:
             return
         else:
+            if self.reply is None:
+                log.downloads.debug("QNetworkReply disappeared %s", self)
+                return
             self._die(self.reply.errorString())
 
     @pyqtSlot()
@@ -592,6 +598,14 @@ class DownloadItem(QObject):
         data = self.reply.read(1024)
         if data is not None:
             self._buffer.write(data)
+
+    @pyqtSlot()
+    def on_meta_data_change(self):
+        if self.reply is None:
+            return
+        self.raw_headers = {}
+        for key, value in self.reply.rawHeaderPairs():
+            self.raw_headers[bytes(key)] = bytes(value)
 
     def _handle_redirect(self):
         """Handle a HTTP redirect.
