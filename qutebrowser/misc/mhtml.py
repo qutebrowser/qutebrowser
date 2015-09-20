@@ -259,7 +259,7 @@ class _Downloader(object):
         self.finish_file()
 
     def error(self, url, item, *_args):
-        """Callback when a download error occurs.
+        """Callback when a download error occurred.
 
         Args:
             url: The orignal url of the asset as QUrl.
