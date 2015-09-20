@@ -53,12 +53,33 @@ def _chunked_base64(data, maxlen=76, linesep=b"\r\n"):
 
 def _rn_quopri(data):
     """Return a quoted-printable representation of data."""
-    orig_funcs = (quopri.b2a_qp, quopri.a2b_qp)
-    # Workaround for quopri mixing \n and \r\n
-    quopri.b2a_qp = quopri.a2b_qp = None
-    encoded = quopri.encodestring(data)
-    quopri.b2a_qp, quopri.a2b_qp = orig_funcs
-    return encoded.replace(b"\n", b"\r\n")
+    # See RFC 2045 https://tools.ietf.org/html/rfc2045#section-6.7
+    # The stdlib version in the quopri module has inconsistencies with line
+    # endings and breaks up character escapes over multiple lines, which isn't
+    # understood by qute and leads to jumbled text
+    MAXLEN = 76
+    WHITESPACE = {ord(b"\t"), ord(b" ")}
+    output = []
+    current_line = b""
+    for byte in data:
+        # Literal representation according to (2) and (3)
+        if (ord(b"!") <= byte <= ord(b"<") or
+            ord(b">") <= byte <= ord(b"~") or
+            byte in WHITESPACE):
+            current_line += bytes([byte])
+        else:
+            current_line += b"=" + "{:02X}".format(byte).encode("ascii")
+        if len(current_line) >= MAXLEN:
+            # We need to account for the = character
+            split = [current_line[:MAXLEN-1], current_line[MAXLEN-1:]]
+            quoted_pos = split[0].rfind(b"=")
+            if quoted_pos + 2 >= MAXLEN - 1:
+                split[0], token = split[0][:quoted_pos], split[0][quoted_pos:]
+                split[1] = token + split[1]
+            current_line = split[1]
+            output.append(split[0] + b"=")
+    output.append(current_line)
+    return b"\r\n".join(output)
 
 
 E_NONE = (None, lambda x: x)
@@ -86,7 +107,7 @@ class MHTMLWriter(object):
         self._files = {}
 
     def add_file(self, location, content, content_type=None,
-                 transfer_encoding=E_BASE64):
+                 transfer_encoding=E_QUOPRI):
         """Add a file to the given MHTML collection.
 
         Args:
@@ -178,7 +199,7 @@ def start_download(dest):
     # I've found no way of getting the content type of a QWebView, but since
     # we're using .toHtml, it's probably safe to say that the content-type is
     # HTML
-    writer.content_type = "text/html"
+    writer.content_type = 'text/html; charset="UTF-8"'
     # Currently only downloading <link> (stylesheets), <script> (javascript) and
     # <img> (image) elements.
     elements = (web_frame.findAllElements("link") +
