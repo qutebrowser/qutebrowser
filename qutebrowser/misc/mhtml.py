@@ -29,7 +29,7 @@ from uuid import uuid4
 
 from PyQt5.QtCore import QUrl
 
-from qutebrowser.utils import log, objreg
+from qutebrowser.utils import log, objreg, message
 
 
 _File = namedtuple("_File",
@@ -276,6 +276,7 @@ class _Downloader(object):
         log.misc.debug("All assets downloaded, ready to finish off!")
         with open(self.dest, "wb") as file_output:
             self.writer.write_to(file_output)
+        message.info("current", "Page saved as {}".format(self.dest), True)
 
 
 def start_download(dest):
