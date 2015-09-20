@@ -182,83 +182,108 @@ class MHTMLWriter(object):
         fp.write(b"\r\n\r\n")
 
 
+class _Downloader(object):
+
+    """A class to download whole websites."""
+
+    def __init__(self, web_view, dest):
+        self.web_view = web_view
+        self.dest = dest
+        self.writer = MHTMLWriter()
+        self.loaded_urls = set()
+        self.pending_downloads = set()
+
+    def run(self):
+        """Download and save the page.
+
+        The object must not be reused, you should create a new one if
+        you want to download another page.
+        """
+        download_manager = objreg.get("download-manager", scope="window",
+                                      window="current")
+        web_url_str = self.web_view.url().toString()
+        web_frame = self.web_view.page().mainFrame()
+
+        self.writer.root_content = web_frame.toHtml().encode("utf-8")
+        self.writer.content_location = web_url_str
+        # I've found no way of getting the content type of a QWebView, but
+        # since we're using .toHtml, it's probably safe to say that the
+        # content-type is HTML
+        self.writer.content_type = 'text/html; charset="UTF-8"'
+        # Currently only downloading <link> (stylesheets), <script>
+        # (javascript) and <img> (image) elements.
+        elements = (web_frame.findAllElements("link") +
+                    web_frame.findAllElements("script") +
+                    web_frame.findAllElements("img"))
+
+        for element in elements:
+            element_url = element.attribute("src")
+            if not element_url:
+                element_url = element.attribute("href")
+            if not element_url:
+                # Might be a local <script> tag or something else
+                continue
+            absolute_url = QUrl(urljoin(web_url_str, element_url))
+            # Prevent loading an asset twice
+            if absolute_url in self.loaded_urls:
+                continue
+            self.loaded_urls.add(absolute_url)
+
+            log.misc.debug("asset at %s", absolute_url)
+
+            item = download_manager.get(absolute_url, fileobj=io.BytesIO(),
+                                        auto_remove=True)
+            self.pending_downloads.add(item)
+            item.finished.connect(
+                functools.partial(self.finished, absolute_url, item))
+            item.error.connect(
+                functools.partial(self.error, absolute_url, item))
+            item.cancelled.connect(
+                functools.partial(self.error, absolute_url, item))
+
+    def finished(self, url, item):
+        """Callback when a single asset is downloaded.
+
+        Args:
+            url: The original url of the asset as QUrl.
+            item: The DownloadItem given by the DownloadManager
+        """
+        self.pending_downloads.remove(item)
+        mime = item.raw_headers.get(b"Content-Type", b"")
+        mime = mime.decode("ascii", "ignore")
+        encode = E_QUOPRI if mime.startswith("text/") else E_BASE64
+        self.writer.add_file(url.toString(), item.fileobj.getvalue(), mime,
+                             encode)
+        if self.pending_downloads:
+            return
+        self.finish_file()
+
+    def error(self, url, item, *_args):
+        """Callback when a download error occurs.
+
+        Args:
+            url: The orignal url of the asset as QUrl.
+            item: The DownloadItem given by the DownloadManager.
+        """
+        self.pending_downloads.remove(item)
+        self.writer.add_file(url.toString(), b"")
+        if self.pending_downloads:
+            return
+        self.finish_file()
+
+    def finish_file(self):
+        """Save the file to the filename given in __init__."""
+        log.misc.debug("All assets downloaded, ready to finish off!")
+        with open(self.dest, "wb") as file_output:
+            self.writer.write_to(file_output)
+
+
 def start_download(dest):
     """Start downloading the current page and all assets to a MHTML file.
 
     Args:
         dest: The filename where the resulting file should be saved.
     """
-    download_manager = objreg.get("download-manager", scope="window",
-                                  window="current")
     web_view = objreg.get("webview", scope="tab", tab="current")
-    web_url_str = web_view.url().toString()
-    web_frame = web_view.page().mainFrame()
-
-    writer = MHTMLWriter()
-    writer.root_content = web_frame.toHtml().encode("utf-8")
-    writer.content_location = web_url_str
-    # I've found no way of getting the content type of a QWebView, but since
-    # we're using .toHtml, it's probably safe to say that the content-type is
-    # HTML
-    writer.content_type = 'text/html; charset="UTF-8"'
-    # Currently only downloading <link> (stylesheets), <script> (javascript)
-    # and <img> (image) elements.
-    elements = (web_frame.findAllElements("link") +
-                web_frame.findAllElements("script") +
-                web_frame.findAllElements("img"))
-
-    loaded_urls = set()
-    pending_downloads = set()
-
-    # Callback for when a single asset is downloaded
-    # closes over the local variables
-    def finished(name, item):
-        pending_downloads.remove(item)
-        mime = item.raw_headers.get(b"Content-Type", b"")
-        mime = mime.decode("ascii", "ignore")
-        encode = E_QUOPRI if mime.startswith("text/") else E_BASE64
-        writer.add_file(name, item.fileobj.getvalue(), mime, encode)
-        if pending_downloads:
-            return
-        finish_file()
-
-    def error(name, item, *_args):
-        pending_downloads.remove(item)
-        writer.add_file(name, b"")
-        if pending_downloads:
-            return
-        finish_file()
-
-    def finish_file():
-        # If we get here, all assets are downloaded and we're ready to finis
-        # the file
-        log.misc.debug("All assets downloaded, ready to finish off!")
-        with open(dest, "wb") as file_output:
-            writer.write_to(file_output)
-
-    for element in elements:
-        element_url = element.attribute("src")
-        if not element_url:
-            element_url = element.attribute("href")
-        if not element_url:
-            # Might be a local <script> tag or something else
-            continue
-        absolute_url_str = urljoin(web_url_str, element_url)
-        # Prevent loading an asset twice
-        if absolute_url_str in loaded_urls:
-            continue
-        loaded_urls.add(absolute_url_str)
-
-        log.misc.debug("asset at %s", absolute_url_str)
-        absolute_url = QUrl(absolute_url_str)
-
-        fileobj = io.BytesIO()
-        item = download_manager.get(absolute_url, fileobj=fileobj,
-                                    auto_remove=True)
-        pending_downloads.add(item)
-        item.finished.connect(
-            functools.partial(finished, absolute_url_str, item))
-        item.error.connect(
-            functools.partial(error, absolute_url_str, item))
-        item.cancelled.connect(
-            functools.partial(error, absolute_url_str, item))
+    loader = _Downloader(web_view, dest)
+    loader.run()
