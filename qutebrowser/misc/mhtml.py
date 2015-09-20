@@ -20,7 +20,6 @@
 """Utils for writing a MHTML file."""
 
 import functools
-import quopri
 import io
 
 from collections import namedtuple
@@ -29,7 +28,6 @@ from urllib.parse import urljoin
 from uuid import uuid4
 
 from PyQt5.QtCore import QUrl
-from PyQt5.QtNetwork import QNetworkRequest, QNetworkReply
 
 from qutebrowser.utils import log, objreg
 
@@ -48,8 +46,9 @@ def _chunked_base64(data, maxlen=76, linesep=b"\r\n"):
     encoded = b64encode(data)
     result = []
     for i in range(0, len(encoded), maxlen):
-        result.append(encoded[i:i+maxlen])
+        result.append(encoded[i:i + maxlen])
     return linesep.join(result)
+
 
 def _rn_quopri(data):
     """Return a quoted-printable representation of data."""
@@ -57,23 +56,22 @@ def _rn_quopri(data):
     # The stdlib version in the quopri module has inconsistencies with line
     # endings and breaks up character escapes over multiple lines, which isn't
     # understood by qute and leads to jumbled text
-    MAXLEN = 76
-    WHITESPACE = {ord(b"\t"), ord(b" ")}
+    maxlen = 76
+    whitespace = {ord(b"\t"), ord(b" ")}
     output = []
     current_line = b""
     for byte in data:
         # Literal representation according to (2) and (3)
-        if (ord(b"!") <= byte <= ord(b"<") or
-            ord(b">") <= byte <= ord(b"~") or
-            byte in WHITESPACE):
+        if (ord(b"!") <= byte <= ord(b"<") or ord(b">") <= byte <= ord(b"~")
+                or byte in whitespace):
             current_line += bytes([byte])
         else:
             current_line += b"=" + "{:02X}".format(byte).encode("ascii")
-        if len(current_line) >= MAXLEN:
+        if len(current_line) >= maxlen:
             # We need to account for the = character
-            split = [current_line[:MAXLEN-1], current_line[MAXLEN-1:]]
+            split = [current_line[:maxlen - 1], current_line[maxlen - 1:]]
             quoted_pos = split[0].rfind(b"=")
-            if quoted_pos + 2 >= MAXLEN - 1:
+            if quoted_pos + 2 >= maxlen - 1:
                 split[0], token = split[0][:quoted_pos], split[0][quoted_pos:]
                 split[1] = token + split[1]
             current_line = split[1]
@@ -93,8 +91,8 @@ E_QUOPRI = ("quoted-printable", _rn_quopri)
 
 
 class MHTMLWriter(object):
-    """A class for aggregating multiple files and outputting them to a MHTML
-    file."""
+
+    """A class for outputting multiple files to a MHTML document."""
 
     BOUNDARY = b"---qute-mhtml-" + str(uuid4()).encode("ascii")
 
@@ -102,7 +100,7 @@ class MHTMLWriter(object):
                  content_type=None):
         self.root_content = root_content
         self.content_location = content_location
-        self.content_type = None
+        self.content_type = content_type
 
         self._files = {}
 
@@ -130,7 +128,7 @@ class MHTMLWriter(object):
         del self._files[location]
 
     def write_to(self, fp):
-        """Output the MHTML file to the given file-like object
+        """Output the MHTML file to the given file-like object.
 
         Args:
             fp: The file-object, openend in "wb" mode.
@@ -144,6 +142,7 @@ class MHTMLWriter(object):
         fp.write(b"--")
 
     def _output_header(self, fp):
+        """Output only the header to the given fileobject."""
         if self.content_location is None:
             raise ValueError("content_location must be set")
         if self.content_type is None:
@@ -158,6 +157,7 @@ class MHTMLWriter(object):
         fp.write(b'"\r\n\r\n')
 
     def _output_root_file(self, fp):
+        """Output the root document to the fileobject."""
         root_file = _File(
             content=self.root_content, content_type=self.content_type,
             content_location=self.content_location, transfer_encoding=E_QUOPRI,
@@ -165,6 +165,7 @@ class MHTMLWriter(object):
         self._output_file(fp, root_file)
 
     def _output_file(self, fp, file_struct):
+        """Output the single given file to the fileobject."""
         fp.write(b"--")
         fp.write(self.BOUNDARY)
         fp.write(b"\r\nContent-Location: ")
@@ -200,8 +201,8 @@ def start_download(dest):
     # we're using .toHtml, it's probably safe to say that the content-type is
     # HTML
     writer.content_type = 'text/html; charset="UTF-8"'
-    # Currently only downloading <link> (stylesheets), <script> (javascript) and
-    # <img> (image) elements.
+    # Currently only downloading <link> (stylesheets), <script> (javascript)
+    # and <img> (image) elements.
     elements = (web_frame.findAllElements("link") +
                 web_frame.findAllElements("script") +
                 web_frame.findAllElements("img"))
@@ -221,7 +222,7 @@ def start_download(dest):
             return
         finish_file()
 
-    def error(name, item, *args):
+    def error(name, item, *_args):
         pending_downloads.remove(item)
         writer.add_file(name, b"")
         if pending_downloads:
@@ -234,7 +235,6 @@ def start_download(dest):
         log.misc.debug("All assets downloaded, ready to finish off!")
         with open(dest, "wb") as file_output:
             writer.write_to(file_output)
-
 
     for element in elements:
         element_url = element.attribute("src")

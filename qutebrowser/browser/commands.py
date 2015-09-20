@@ -1159,8 +1159,7 @@ class CommandDispatcher:
 
     @cmdutils.register(instance='command-dispatcher', scope='window')
     def download_whole(self, dest):
-        """Download the current page as a MHTML file, including all assets
-        (e.g. images)
+        """Download the current page as a MHTML file, including all assets.
 
         Args:
             dest: The file path to write the download to.

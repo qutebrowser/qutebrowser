@@ -601,6 +601,7 @@ class DownloadItem(QObject):
 
     @pyqtSlot()
     def on_meta_data_change(self):
+        """Update the download's metadata."""
         if self.reply is None:
             return
         self.raw_headers = {}
