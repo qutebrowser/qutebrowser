@@ -126,7 +126,7 @@ def test_untested(covtest):
             pass
     """)
     covtest.run()
-    expected = 'module.py has 75.0% line and 0.0% branch coverage!'
+    expected = 'module.py has 75.0% line and 100.0% branch coverage!'
     assert covtest.check() == [expected]
 
 
