@@ -21,6 +21,7 @@
 
 import functools
 import io
+import os
 
 from collections import namedtuple
 from base64 import b64encode
@@ -285,6 +286,7 @@ def start_download(dest):
     Args:
         dest: The filename where the resulting file should be saved.
     """
+    dest = os.path.expanduser(dest)
     web_view = objreg.get("webview", scope="tab", tab="current")
     loader = _Downloader(web_view, dest)
     loader.run()

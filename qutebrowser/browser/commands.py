@@ -43,6 +43,8 @@ from qutebrowser.utils import (message, usertypes, log, qtutils, urlutils,
                                objreg, utils)
 from qutebrowser.utils.usertypes import KeyMode
 from qutebrowser.misc import editor, guiprocess, mhtml
+from qutebrowser.browser.downloads import (_path_suggestion as
+                                           download_path_suggestion)
 
 
 class CommandDispatcher:
@@ -1158,13 +1160,25 @@ class CommandDispatcher:
             download_manager.get(self._current_url(), page=page)
 
     @cmdutils.register(instance='command-dispatcher', scope='window')
-    def download_whole(self, dest):
+    def download_whole(self, dest=None):
         """Download the current page as a MHTML file, including all assets.
 
         Args:
             dest: The file path to write the download to.
         """
-        mhtml.start_download(dest)
+        if dest is None:
+            suggested_fn = self._current_title() + ".mht"
+            q = usertypes.Question()
+            q.text = "Save page to: "
+            q.mode = usertypes.PromptMode.text
+            q.completed.connect(q.deleteLater)
+            q.default = download_path_suggestion(suggested_fn)
+            q.answered.connect(mhtml.start_download)
+            message_bridge = objreg.get("message-bridge", scope="window",
+                                        window=self._win_id)
+            message_bridge.ask(q, blocking=False)
+        else:
+            mhtml.start_download(dest)
 
     @cmdutils.register(instance='command-dispatcher', scope='window',
                        deprecated="Use :download instead.")
