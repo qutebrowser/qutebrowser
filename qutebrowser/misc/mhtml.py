@@ -22,6 +22,7 @@
 import functools
 import io
 import os
+import re
 
 from collections import namedtuple
 from base64 import b64encode
@@ -35,6 +36,32 @@ from qutebrowser.utils import log, objreg, message
 
 _File = namedtuple("_File",
                    "content content_type content_location transfer_encoding")
+
+
+_CSS_URL_PATTERNS = [re.compile(x) for x in [
+    rb"@import '(?P<url>[^']+)'",
+    rb'@import "(?P<url>[^"]+)"',
+    rb'''url\((?P<url>[^'"][^)]*)\)''',
+    rb'url\("(?P<url>[^"]+)"\)',
+    rb"url\('(?P<url>[^']+)'\)",
+]]
+
+
+def _get_css_imports(data):
+    """Return all assets that are referenced in the given CSS document.
+
+    The returned URLs are relative to the stylesheet's URL.
+
+    Args:
+        data: The content of the stylesheet to scan as bytes.
+    """
+    urls = []
+    for pattern in _CSS_URL_PATTERNS:
+        for match in pattern.finditer(data):
+            url = match.group("url")
+            if url:
+                urls.append(url)
+    return urls
 
 
 def _chunked_base64(data, maxlen=76, linesep=b"\r\n"):
@@ -191,7 +218,7 @@ class _Downloader(object):
         self.web_view = web_view
         self.dest = dest
         self.writer = MHTMLWriter()
-        self.loaded_urls = set()
+        self.loaded_urls = {web_view.url()}
         self.pending_downloads = set()
 
     def run(self):
@@ -200,8 +227,6 @@ class _Downloader(object):
         The object must not be reused, you should create a new one if
         you want to download another page.
         """
-        download_manager = objreg.get("download-manager", scope="window",
-                                      window="current")
         web_url_str = self.web_view.url().toString()
         web_frame = self.web_view.page().mainFrame()
 
@@ -225,22 +250,32 @@ class _Downloader(object):
                 # Might be a local <script> tag or something else
                 continue
             absolute_url = QUrl(urljoin(web_url_str, element_url))
-            # Prevent loading an asset twice
-            if absolute_url in self.loaded_urls:
-                continue
-            self.loaded_urls.add(absolute_url)
+            self.fetch_url(absolute_url)
 
-            log.misc.debug("asset at %s", absolute_url)
+    def fetch_url(self, url):
+        """Download the given url and add the file to the collection.
 
-            item = download_manager.get(absolute_url, fileobj=io.BytesIO(),
-                                        auto_remove=True)
-            self.pending_downloads.add(item)
-            item.finished.connect(
-                functools.partial(self.finished, absolute_url, item))
-            item.error.connect(
-                functools.partial(self.error, absolute_url, item))
-            item.cancelled.connect(
-                functools.partial(self.error, absolute_url, item))
+        Args:
+            url: The file to download as QUrl.
+        """
+        # Prevent loading an asset twice
+        if url in self.loaded_urls:
+            return
+        self.loaded_urls.add(url)
+
+        log.misc.debug("loading asset at %s", url)
+
+        download_manager = objreg.get("download-manager", scope="window",
+                                      window="current")
+        item = download_manager.get(url, fileobj=io.BytesIO(),
+                                    auto_remove=True)
+        self.pending_downloads.add(item)
+        item.finished.connect(
+            functools.partial(self.finished, url, item))
+        item.error.connect(
+            functools.partial(self.error, url, item))
+        item.cancelled.connect(
+            functools.partial(self.error, url, item))
 
     def finished(self, url, item):
         """Callback when a single asset is downloaded.
@@ -252,6 +287,14 @@ class _Downloader(object):
         self.pending_downloads.remove(item)
         mime = item.raw_headers.get(b"Content-Type", b"")
         mime = mime.decode("ascii", "ignore")
+
+        if mime.lower() == "text/css":
+            import_urls = _get_css_imports(item.fileobj.getvalue())
+            for import_url in import_urls:
+                import_url = import_url.decode("ascii")
+                absolute_url = QUrl(urljoin(url.toString(), import_url))
+                self.fetch_url(absolute_url)
+
         encode = E_QUOPRI if mime.startswith("text/") else E_BASE64
         self.writer.add_file(url.toString(), item.fileobj.getvalue(), mime,
                              encode)
