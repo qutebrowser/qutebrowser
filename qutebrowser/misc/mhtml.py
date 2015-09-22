@@ -227,11 +227,11 @@ class _Downloader(object):
         The object must not be reused, you should create a new one if
         you want to download another page.
         """
-        web_url_str = self.web_view.url().toString()
+        web_url = self.web_view.url()
         web_frame = self.web_view.page().mainFrame()
 
         self.writer.root_content = web_frame.toHtml().encode("utf-8")
-        self.writer.content_location = web_url_str
+        self.writer.content_location = web_url.toString()
         # I've found no way of getting the content type of a QWebView, but
         # since we're using .toHtml, it's probably safe to say that the
         # content-type is HTML
@@ -249,7 +249,7 @@ class _Downloader(object):
             if not element_url:
                 # Might be a local <script> tag or something else
                 continue
-            absolute_url = QUrl(urljoin(web_url_str, element_url))
+            absolute_url = web_url.resolved(QUrl(element_url))
             self.fetch_url(absolute_url)
 
     def fetch_url(self, url):
@@ -292,7 +292,7 @@ class _Downloader(object):
             import_urls = _get_css_imports(item.fileobj.getvalue())
             for import_url in import_urls:
                 import_url = import_url.decode("ascii")
-                absolute_url = QUrl(urljoin(url.toString(), import_url))
+                absolute_url = url.resolved(QUrl(import_url))
                 self.fetch_url(absolute_url)
 
         encode = E_QUOPRI if mime.startswith("text/") else E_BASE64
