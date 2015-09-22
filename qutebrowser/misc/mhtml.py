@@ -26,7 +26,6 @@ import re
 
 from collections import namedtuple
 from base64 import b64encode
-from urllib.parse import urljoin
 from uuid import uuid4
 
 from PyQt5.QtCore import QUrl
