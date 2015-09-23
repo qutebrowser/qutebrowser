@@ -391,11 +391,11 @@ class _Downloader(object):
             self.finished(url, item)
 
 
-class _NoCloseBytesIO(io.BytesIO):
+class _NoCloseBytesIO(io.BytesIO):  # pylint: disable=no-init
 
-    """BytesIO that can't be .closed()
+    """BytesIO that can't be .closed().
 
-    This is needed to prevent the downloadmanager from closing the stream, thus
+    This is needed to prevent the DownloadManager from closing the stream, thus
     discarding the data.
     """
 
