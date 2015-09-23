@@ -119,7 +119,14 @@ E_QUOPRI = ("quoted-printable", _rn_quopri)
 
 class MHTMLWriter(object):
 
-    """A class for outputting multiple files to a MHTML document."""
+    """A class for outputting multiple files to a MHTML document.
+
+    Attributes:
+        root_content: The root content as bytes.
+        content_location: The url of the page as str.
+        content_type: The MIME-type of the root content as str.
+        _files: Mapping of location->_File struct.
+    """
 
     BOUNDARY = b"---qute-mhtml-" + str(uuid4()).encode("ascii")
 
@@ -211,7 +218,16 @@ class MHTMLWriter(object):
 
 class _Downloader(object):
 
-    """A class to download whole websites."""
+    """A class to download whole websites.
+
+    Attributes:
+        web_view: The QWebView which contains the website that will be saved.
+        dest: Destination filename.
+        writer: The MHTMLWriter object which is used to save the page.
+        loaded_urls: A set of QUrls of finished asset downloads.
+        pending_downloads: A set of unfinished DownloadItems.
+        _finished: A flag indicating if the file has already been written.
+    """
 
     def __init__(self, web_view, dest):
         self.web_view = web_view
@@ -219,6 +235,7 @@ class _Downloader(object):
         self.writer = MHTMLWriter()
         self.loaded_urls = {web_view.url()}
         self.pending_downloads = set()
+        self._finished = False
 
     def run(self):
         """Download and save the page.
@@ -250,6 +267,11 @@ class _Downloader(object):
                 continue
             absolute_url = web_url.resolved(QUrl(element_url))
             self.fetch_url(absolute_url)
+
+        # Shortcut if no assets need to be downloaded, otherwise the file would
+        # never be saved
+        if not elements and not self.pending_downloads:
+            self.finish_file()
 
     def fetch_url(self, url):
         """Download the given url and add the file to the collection.
@@ -316,6 +338,9 @@ class _Downloader(object):
 
     def finish_file(self):
         """Save the file to the filename given in __init__."""
+        if self._finished:
+            return
+        self._finished = True
         log.misc.debug("All assets downloaded, ready to finish off!")
         with open(self.dest, "wb") as file_output:
             self.writer.write_to(file_output)
