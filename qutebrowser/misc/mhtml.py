@@ -130,7 +130,7 @@ class MHTMLWriter(object):
         _files: Mapping of location->_File struct.
     """
 
-    BOUNDARY = b"---qute-mhtml-" + str(uuid4()).encode("ascii")
+    BOUNDARY = b"---=_qute-" + str(uuid4()).encode("ascii")
 
     def __init__(self, root_content=None, content_location=None,
                  content_type=None):
