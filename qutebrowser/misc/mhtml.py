@@ -52,8 +52,10 @@ def _get_css_imports(data):
     The returned URLs are relative to the stylesheet's URL.
 
     Args:
-        data: The content of the stylesheet to scan as bytes.
+        data: The content of the stylesheet to scan.
     """
+    if isinstance(data, str):
+        data = data.encode("utf-8")
     urls = []
     for pattern in _CSS_URL_PATTERNS:
         for match in pattern.finditer(data):
@@ -225,7 +227,7 @@ class _Downloader(object):
         dest: Destination filename.
         writer: The MHTMLWriter object which is used to save the page.
         loaded_urls: A set of QUrls of finished asset downloads.
-        pending_downloads: A set of unfinished DownloadItems.
+        pending_downloads: A set of unfinished (url, DownloadItem) tuples.
         _finished: A flag indicating if the file has already been written.
     """
 
@@ -268,9 +270,28 @@ class _Downloader(object):
             absolute_url = web_url.resolved(QUrl(element_url))
             self.fetch_url(absolute_url)
 
+        styles = web_frame.findAllElements("style")
+        for style in styles:
+            if style.attribute("type", "text/css") != "text/css":
+                continue
+            for element_url in _get_css_imports(style.toPlainText()):
+                element_url = element_url.decode("ascii")
+                self.fetch_url(web_url.resolved(QUrl(element_url)))
+
+        # Search for references in inline styles
+        for element in web_frame.findAllElements("*"):
+            style = element.attribute("style")
+            if not style:
+                continue
+            for element_url in _get_css_imports(style):
+                element_url = element_url.decode("ascii")
+                self.fetch_url(web_url.resolved(QUrl(element_url)))
+
         # Shortcut if no assets need to be downloaded, otherwise the file would
-        # never be saved
-        if not elements and not self.pending_downloads:
+        # never be saved. Also might happen if the downloads are fast enough to
+        # complete before connecting their finished signal.
+        self.collect_zombies()
+        if not self.pending_downloads and not self._finished:
             self.finish_file()
 
     def fetch_url(self, url):
@@ -279,6 +300,8 @@ class _Downloader(object):
         Args:
             url: The file to download as QUrl.
         """
+        if url.scheme() == "data":
+            return
         # Prevent loading an asset twice
         if url in self.loaded_urls:
             return
@@ -288,9 +311,9 @@ class _Downloader(object):
 
         download_manager = objreg.get("download-manager", scope="window",
                                       window="current")
-        item = download_manager.get(url, fileobj=io.BytesIO(),
+        item = download_manager.get(url, fileobj=_NoCloseBytesIO(),
                                     auto_remove=True)
-        self.pending_downloads.add(item)
+        self.pending_downloads.add((url, item))
         item.finished.connect(
             functools.partial(self.finished, url, item))
         item.error.connect(
@@ -305,7 +328,7 @@ class _Downloader(object):
             url: The original url of the asset as QUrl.
             item: The DownloadItem given by the DownloadManager
         """
-        self.pending_downloads.remove(item)
+        self.pending_downloads.remove((url, item))
         mime = item.raw_headers.get(b"Content-Type", b"")
         mime = mime.decode("ascii", "ignore")
 
@@ -319,6 +342,7 @@ class _Downloader(object):
         encode = E_QUOPRI if mime.startswith("text/") else E_BASE64
         self.writer.add_file(url.toString(), item.fileobj.getvalue(), mime,
                              encode)
+        item.fileobj.actual_close()
         if self.pending_downloads:
             return
         self.finish_file()
@@ -330,7 +354,14 @@ class _Downloader(object):
             url: The orignal url of the asset as QUrl.
             item: The DownloadItem given by the DownloadManager.
         """
-        self.pending_downloads.remove(item)
+        try:
+            self.pending_downloads.remove((url, item))
+        except KeyError:
+            # This might happen if .collect_zombies() calls .finished() and the
+            # error handler will be called after .collect_zombies
+            log.misc.debug("Oops! Download already gone: %s", item)
+            return
+        item.fileobj.actual_close()
         self.writer.add_file(url.toString(), b"")
         if self.pending_downloads:
             return
@@ -339,12 +370,42 @@ class _Downloader(object):
     def finish_file(self):
         """Save the file to the filename given in __init__."""
         if self._finished:
+            log.misc.debug("finish_file called twice, ignored!")
             return
         self._finished = True
         log.misc.debug("All assets downloaded, ready to finish off!")
         with open(self.dest, "wb") as file_output:
             self.writer.write_to(file_output)
         message.info("current", "Page saved as {}".format(self.dest), True)
+
+    def collect_zombies(self):
+        """Collect done downloads and add their data to the MHTML file.
+
+        This is needed if a download finishes before attaching its
+        finished signal.
+        """
+        items = set((url, item) for url, item in self.pending_downloads
+                    if item.done)
+        log.misc.debug("Zombie downloads: %s", items)
+        for url, item in items:
+            self.finished(url, item)
+
+
+class _NoCloseBytesIO(io.BytesIO):
+
+    """BytesIO that can't be .closed()
+
+    This is needed to prevent the downloadmanager from closing the stream, thus
+    discarding the data.
+    """
+
+    def close(self):
+        """Do nothing."""
+        pass
+
+    def actual_close(self):
+        """Close the stream."""
+        super().close()
 
 
 def start_download(dest):
