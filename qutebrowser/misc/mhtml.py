@@ -27,6 +27,9 @@ import re
 from collections import namedtuple
 from base64 import b64encode
 from uuid import uuid4
+from email import policy
+from email.mime.multipart import MIMEMultipart
+from email.generator import BytesGenerator
 
 from PyQt5.QtCore import QUrl
 
@@ -63,6 +66,9 @@ def _get_css_imports(data):
             if url:
                 urls.append(url)
     return urls
+
+
+MHTMLPolicy = policy.default.clone(linesep="\r\n", max_line_length=0)
 
 
 def _chunked_base64(data, maxlen=76, linesep=b"\r\n"):
@@ -130,7 +136,7 @@ class MHTMLWriter(object):
         _files: Mapping of location->_File struct.
     """
 
-    BOUNDARY = b"---=_qute-" + str(uuid4()).encode("ascii")
+    BOUNDARY = "---=_qute-" + str(uuid4())
 
     def __init__(self, root_content=None, content_location=None,
                  content_type=None):
@@ -169,53 +175,38 @@ class MHTMLWriter(object):
         Args:
             fp: The file-object, openend in "wb" mode.
         """
-        self._output_header(fp)
-        self._output_root_file(fp)
+        msg = MIMEMultipart("related", self.BOUNDARY)
+
+        root = self._create_root_file()
+        msg.attach(root)
+
         for file_data in self._files.values():
-            self._output_file(fp, file_data)
-        fp.write(b"\r\n--")
-        fp.write(self.BOUNDARY)
-        fp.write(b"--")
+            msg.attach(self._create_file(file_data))
 
-    def _output_header(self, fp):
-        """Output only the header to the given fileobject."""
-        if self.content_location is None:
-            raise ValueError("content_location must be set")
-        if self.content_type is None:
-            raise ValueError("content_type must be set for the root document")
+        gen = BytesGenerator(fp, policy=MHTMLPolicy)
+        gen.flatten(msg)
 
-        fp.write(b"Content-Location: ")
-        fp.write(self.content_location.encode("utf-8"))
-        fp.write(b'\r\nContent-Type: multipart/related;boundary="')
-        fp.write(self.BOUNDARY)
-        fp.write(b'";type="')
-        fp.write(self.content_type.encode("utf-8"))
-        fp.write(b'"\r\n\r\n')
-
-    def _output_root_file(self, fp):
-        """Output the root document to the fileobject."""
+    def _create_root_file(self):
+        """Return the root document as MIMEMultipart."""
         root_file = _File(
             content=self.root_content, content_type=self.content_type,
             content_location=self.content_location, transfer_encoding=E_QUOPRI,
         )
-        self._output_file(fp, root_file)
+        return self._create_file(root_file)
 
-    def _output_file(self, fp, file_struct):
-        """Output the single given file to the fileobject."""
-        fp.write(b"--")
-        fp.write(self.BOUNDARY)
-        fp.write(b"\r\nContent-Location: ")
-        fp.write(file_struct.content_location.encode("utf-8"))
-        if file_struct.content_type is not None:
-            fp.write(b"\r\nContent-Type: ")
-            fp.write(file_struct.content_type.encode("utf-8"))
-        encoding_name, encoding_func = file_struct.transfer_encoding
+    def _create_file(self, f):
+        """Return the single given file as MIMEMultipart."""
+        msg = MIMEMultipart()
+        msg["Content-Location"] = f.content_location
+        # Get rid of the default type multipart/mixed
+        del msg["Content-Type"]
+        if f.content_type:
+            msg.set_type(f.content_type)
+        encoding_name, encoding_func = f.transfer_encoding
         if encoding_name:
-            fp.write(b"\r\nContent-Transfer-Encoding: ")
-            fp.write(encoding_name.encode("utf-8"))
-        fp.write(b"\r\n\r\n")
-        fp.write(encoding_func(file_struct.content))
-        fp.write(b"\r\n\r\n")
+            msg["Content-Transfer-Encoding"] = encoding_name
+        msg.set_payload(encoding_func(f.content).decode("ascii"))
+        return msg
 
 
 class _Downloader(object):
