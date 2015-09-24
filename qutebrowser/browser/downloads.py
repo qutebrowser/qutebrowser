@@ -356,7 +356,7 @@ class DownloadItem(QObject):
         reply.finished.connect(self.on_reply_finished)
         reply.error.connect(self.on_reply_error)
         reply.readyRead.connect(self.on_ready_read)
-        reply.metaDataChanged.connect(self.on_meta_data_change)
+        reply.metaDataChanged.connect(self.on_meta_data_changed)
         self.retry_info = RetryInfo(request=reply.request(),
                                     manager=reply.manager())
         if not self.fileobj:
@@ -600,7 +600,7 @@ class DownloadItem(QObject):
             self._buffer.write(data)
 
     @pyqtSlot()
-    def on_meta_data_change(self):
+    def on_meta_data_changed(self):
         """Update the download's metadata."""
         if self.reply is None:
             return
