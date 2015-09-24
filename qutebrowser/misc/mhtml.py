@@ -42,11 +42,11 @@ _File = collections.namedtuple("_File",
 
 
 _CSS_URL_PATTERNS = [re.compile(x) for x in [
-    rb"@import '(?P<url>[^']+)'",
-    rb'@import "(?P<url>[^"]+)"',
-    rb'''url\((?P<url>[^'"][^)]*)\)''',
-    rb'url\("(?P<url>[^"]+)"\)',
-    rb"url\('(?P<url>[^']+)'\)",
+    r"@import '(?P<url>[^']+)'",
+    r'@import "(?P<url>[^"]+)"',
+    r'''url\((?P<url>[^'"][^)]*)\)''',
+    r'url\("(?P<url>[^"]+)"\)',
+    r"url\('(?P<url>[^']+)'\)",
 ]]
 
 
@@ -56,10 +56,8 @@ def _get_css_imports(data):
     The returned URLs are relative to the stylesheet's URL.
 
     Args:
-        data: The content of the stylesheet to scan.
+        data: The content of the stylesheet to scan as string.
     """
-    if isinstance(data, str):
-        data = data.encode("utf-8")
     urls = []
     for pattern in _CSS_URL_PATTERNS:
         for match in pattern.finditer(data):
@@ -246,11 +244,11 @@ class _Downloader():
 
         self.writer = MHTMLWriter(
             web_frame.toHtml().encode("utf-8"),
-            content_location = web_url.toString(),
+            content_location=web_url.toString(),
             # I've found no way of getting the content type of a QWebView, but
             # since we're using .toHtml, it's probably safe to say that the
             # content-type is HTML
-            content_type = 'text/html; charset="UTF-8"',
+            content_type='text/html; charset="UTF-8"',
         )
         # Currently only downloading <link> (stylesheets), <script>
         # (javascript) and <img> (image) elements.
@@ -276,7 +274,6 @@ class _Downloader():
             if "type" in style and style["type"] != "text/css":
                 continue
             for element_url in _get_css_imports(str(style)):
-                element_url = element_url.decode("ascii")
                 self.fetch_url(web_url.resolved(QUrl(element_url)))
 
         # Search for references in inline styles
@@ -286,7 +283,6 @@ class _Downloader():
                 continue
             style = element["style"]
             for element_url in _get_css_imports(style):
-                element_url = element_url.decode("ascii")
                 self.fetch_url(web_url.resolved(QUrl(element_url)))
 
         # Shortcut if no assets need to be downloaded, otherwise the file would
@@ -335,9 +331,19 @@ class _Downloader():
         mime = mime.decode("ascii", "ignore")
 
         if mime.lower() == "text/css":
-            import_urls = _get_css_imports(item.fileobj.getvalue())
+            # We can't always assume that CSS files are UTF-8, but CSS files
+            # shouldn't contain many non-ASCII characters anyway (in most
+            # cases). Using "ignore" lets us decode the file even if it's
+            # invalid UTF-8 data.
+            # The file written to the MHTML file won't be modified by this
+            # decoding, since there we're taking the original bytestream.
+            try:
+                css_string = item.fileobj.getvalue().decode("utf-8")
+            except UnicodeDecodeError:
+                log.misc.warning("Invalid UTF-8 data in %s", url)
+                css_string = item.fileobj.getvalue().decode("utf-8", "ignore")
+            import_urls = _get_css_imports(css_string)
             for import_url in import_urls:
-                import_url = import_url.decode("ascii")
                 absolute_url = url.resolved(QUrl(import_url))
                 self.fetch_url(absolute_url)
 
