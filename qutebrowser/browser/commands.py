@@ -37,14 +37,12 @@ import pygments.formatters
 
 from qutebrowser.commands import userscripts, cmdexc, cmdutils, runners
 from qutebrowser.config import config, configexc
-from qutebrowser.browser import webelem, inspector, urlmarks
+from qutebrowser.browser import webelem, inspector, urlmarks, downloads
 from qutebrowser.keyinput import modeman
 from qutebrowser.utils import (message, usertypes, log, qtutils, urlutils,
                                objreg, utils)
 from qutebrowser.utils.usertypes import KeyMode
 from qutebrowser.misc import editor, guiprocess, mhtml
-from qutebrowser.browser.downloads import (_path_suggestion as
-                                           download_path_suggestion)
 
 
 class CommandDispatcher:
@@ -1172,7 +1170,7 @@ class CommandDispatcher:
             q.text = "Save page to: "
             q.mode = usertypes.PromptMode.text
             q.completed.connect(q.deleteLater)
-            q.default = download_path_suggestion(suggested_fn)
+            q.default = downloads.path_suggestion(suggested_fn)
             q.answered.connect(mhtml.start_download)
             message_bridge = objreg.get("message-bridge", scope="window",
                                         window=self._win_id)

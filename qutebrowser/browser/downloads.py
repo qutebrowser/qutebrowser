@@ -70,7 +70,7 @@ def _download_dir():
         return directory
 
 
-def _path_suggestion(filename):
+def path_suggestion(filename):
     """Get the suggested file path.
 
     Args:
@@ -750,7 +750,7 @@ class DownloadManager(QAbstractListModel):
             suggested_fn = utils.force_encoding(suggested_fn, encoding)
 
         q = self._prepare_question()
-        q.default = _path_suggestion(suggested_fn)
+        q.default = path_suggestion(suggested_fn)
         message_bridge = objreg.get('message-bridge', scope='window',
                                     window=self._win_id)
         q.answered.connect(
@@ -839,7 +839,7 @@ class DownloadManager(QAbstractListModel):
             download.autoclose = False
         else:
             q = self._prepare_question()
-            q.default = _path_suggestion(suggested_filename)
+            q.default = path_suggestion(suggested_filename)
             q.answered.connect(download.set_filename)
             q.cancelled.connect(download.cancel)
             download.cancelled.connect(q.abort)
