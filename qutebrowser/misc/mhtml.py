@@ -25,9 +25,8 @@ import os
 import re
 
 import collections
-import base64
 import uuid
-from email import policy, generator
+from email import policy, generator, encoders
 from email.mime import multipart
 
 from PyQt5.QtCore import QUrl
@@ -70,57 +69,10 @@ def _get_css_imports(data):
 MHTMLPolicy = policy.default.clone(linesep="\r\n", max_line_length=0)
 
 
-def _chunked_base64(data, maxlen=76, linesep=b"\r\n"):
-    """Just like b64encode, except that it breaks long lines.
-
-    Args:
-        maxlen: Maximum length of a line, not including the line separator.
-        linesep: Line separator to use as bytes.
-    """
-    encoded = base64.b64encode(data)
-    result = []
-    for i in range(0, len(encoded), maxlen):
-        result.append(encoded[i:i + maxlen])
-    return linesep.join(result)
-
-
-def _rn_quopri(data):
-    """Return a quoted-printable representation of data."""
-    # See RFC 2045 https://tools.ietf.org/html/rfc2045#section-6.7
-    # The stdlib version in the quopri module has inconsistencies with line
-    # endings and breaks up character escapes over multiple lines, which isn't
-    # understood by qute and leads to jumbled text
-    maxlen = 76
-    whitespace = {ord(b"\t"), ord(b" ")}
-    output = []
-    current_line = b""
-    for byte in data:
-        # Literal representation according to (2) and (3)
-        if (ord(b"!") <= byte <= ord(b"<") or ord(b">") <= byte <= ord(b"~")
-                or byte in whitespace):
-            current_line += bytes([byte])
-        else:
-            current_line += b"=" + "{:02X}".format(byte).encode("ascii")
-        if len(current_line) >= maxlen:
-            # We need to account for the = character
-            split = [current_line[:maxlen - 1], current_line[maxlen - 1:]]
-            quoted_pos = split[0].rfind(b"=")
-            if quoted_pos + 2 >= maxlen - 1:
-                split[0], token = split[0][:quoted_pos], split[0][quoted_pos:]
-                split[1] = token + split[1]
-            current_line = split[1]
-            output.append(split[0] + b"=")
-    output.append(current_line)
-    return b"\r\n".join(output)
-
-
-E_NONE = (None, lambda x: x)
-"""No transfer encoding, copy the bytes from input to output"""
-
-E_BASE64 = ("base64", _chunked_base64)
+E_BASE64 = encoders.encode_base64
 """Encode the file using base64 encoding"""
 
-E_QUOPRI = ("quoted-printable", _rn_quopri)
+E_QUOPRI = encoders.encode_quopri
 """Encode the file using MIME quoted-printable encoding."""
 
 
@@ -200,10 +152,8 @@ class MHTMLWriter():
         del msg["Content-Type"]
         if f.content_type:
             msg.set_type(f.content_type)
-        encoding_name, encoding_func = f.transfer_encoding
-        if encoding_name:
-            msg["Content-Transfer-Encoding"] = encoding_name
-        msg.set_payload(encoding_func(f.content).decode("ascii"))
+        msg.set_payload(f.content)
+        f.transfer_encoding(msg)
         return msg
 
 
