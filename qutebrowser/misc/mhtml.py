@@ -87,8 +87,6 @@ class MHTMLWriter():
         _files: Mapping of location->_File struct.
     """
 
-    BOUNDARY = "---=_qute-" + str(uuid.uuid4())
-
     def __init__(self, root_content, content_location, content_type):
         self.root_content = root_content
         self.content_location = content_location
@@ -125,12 +123,13 @@ class MHTMLWriter():
         Args:
             fp: The file-object, openend in "wb" mode.
         """
-        msg = multipart.MIMEMultipart("related", self.BOUNDARY)
+        msg = multipart.MIMEMultipart("related",
+                                      "---=_qute-{}".format(uuid.uuid4()))
 
         root = self._create_root_file()
         msg.attach(root)
 
-        for file_data in self._files.values():
+        for _, file_data in sorted(self._files.items()):
             msg.attach(self._create_file(file_data))
 
         gen = generator.BytesGenerator(fp, policy=MHTMLPolicy)
