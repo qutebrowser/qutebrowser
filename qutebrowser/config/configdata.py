@@ -403,7 +403,7 @@ def data(readonly=False):
              "configured size if there are no scrollbars."),
 
             ('match-type',
-             SettingValue(typ.String(none_ok=True), 'contain'),
+             SettingValue(typ.MatchType(), 'contain'),
              "Completion matching type"),
 
             readonly=readonly

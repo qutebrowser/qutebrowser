@@ -149,20 +149,18 @@ class CompletionFilterModel(QSortFilterProxyModel):
                 if not data:
                     continue
                 else:
-                    matchers = {
-                        'contain': self.containMatcher,
-                        'fuzzy': self.fuzzyMatcher,
-                        'start': self.startMatcher
+                    match_functions = {
+                        'contain': self._match_contain,
+                        'fuzzy': self._match_fuzzy,
+                        'start': self._match_start
                     }
                     match_type = config.get('completion', 'match-type')
-                    if match_type not in matchers:
-                        match_type = 'contain'
-                    matcher = matchers[match_type]
-                    if matcher(data):
+                    match_function = match_functions[match_type]
+                    if match_function(data):
                         return True
             return False
 
-    def fuzzyMatcher(self, data):
+    def _match_fuzzy(self, data):
         """Matcher for 'fuzzy' matching type logic."""
         data = data.casefold()
         pattern = self.pattern.casefold()
@@ -171,18 +169,18 @@ class CompletionFilterModel(QSortFilterProxyModel):
                 return False
         return True
 
-    def containMatcher(self, data):
+    def _match_contain(self, data):
         """Matcher for 'contain' matching type logic."""
         data = data.casefold()
         pattern = self.pattern.casefold()
         return pattern in data
 
-    def startMatcher(self, data):
+    def _match_start(self, data):
         """Matcher for 'start' matching type logic."""
-        protocol = re.compile('^(?:(ht|f)tp(s?)://)?')
+        protocol = re.compile('^(ht|f)tp(s?)://')
         data = data.casefold()
         pattern = self.pattern.casefold()
-        if protocol.match(data).lastindex is not None:
+        if protocol.match(data) is not None:
             data = protocol.sub('', data)
         return data.startswith(pattern)
 
