@@ -28,12 +28,12 @@ class Checker:
         return self.fp.getvalue()
 
     def expect(self, expected):
-        actual = self.value.decode("ascii")
+        actual = self.value.decode('ascii')
         # Make sure there are no stray \r or \n
-        assert re.search(r"\r[^\n]", actual) is None
-        assert re.search(r"[^\r]\n", actual) is None
-        actual = actual.replace("\r\n", "\n")
-        expected = textwrap.dedent(expected).lstrip("\n")
+        assert re.search(r'\r[^\n]', actual) is None
+        assert re.search(r'[^\r]\n', actual) is None
+        actual = actual.replace('\r\n', '\n')
+        expected = textwrap.dedent(expected).lstrip('\n')
         assert expected == actual
 
 
@@ -43,11 +43,11 @@ def checker():
 
 
 def test_quoted_printable_umlauts(checker):
-    content = "Die süße Hündin läuft in die Höhle des Bären"
-    content = content.encode("iso-8859-1")
+    content = 'Die süße Hündin läuft in die Höhle des Bären'
+    content = content.encode('iso-8859-1')
     writer = mhtml.MHTMLWriter(root_content=content,
-                               content_location="localhost",
-                               content_type="text/plain")
+                               content_location='localhost',
+                               content_type='text/plain')
     writer.write_to(checker.fp)
     checker.expect("""
         Content-Type: multipart/related; boundary="---=_qute-UUID"
@@ -64,15 +64,15 @@ def test_quoted_printable_umlauts(checker):
         """)
 
 
-@pytest.mark.parametrize("header, value", [
-    ("content_location", "http://brötli.com"),
-    ("content_type", "text/pläin"),
+@pytest.mark.parametrize('header, value', [
+    ('content_location', 'http://brötli.com'),
+    ('content_type', 'text/pläin'),
 ])
 def test_refuses_non_ascii_header_value(checker, header, value):
     defaults = {
-        "root_content": b"",
-        "content_location": "http://example.com",
-        "content_type": "text/plain",
+        'root_content': b'',
+        'content_location': 'http://example.com',
+        'content_type': 'text/plain',
     }
     defaults[header] = value
     writer = mhtml.MHTMLWriter(**defaults)
@@ -82,12 +82,12 @@ def test_refuses_non_ascii_header_value(checker, header, value):
 
 
 def test_file_encoded_as_base64(checker):
-    content = b"Image file attached"
-    writer = mhtml.MHTMLWriter(root_content=content, content_type="text/plain",
-                               content_location="http://example.com")
-    writer.add_file(location="http://a.example.com/image.png",
-                    content="\U0001F601 image data".encode("utf-8"),
-                    content_type="image/png",
+    content = b'Image file attached'
+    writer = mhtml.MHTMLWriter(root_content=content, content_type='text/plain',
+                               content_location='http://example.com')
+    writer.add_file(location='http://a.example.com/image.png',
+                    content='\U0001F601 image data'.encode('utf-8'),
+                    content_type='image/png',
                     transfer_encoding=mhtml.E_BASE64)
     writer.write_to(checker.fp)
     checker.expect("""
@@ -113,28 +113,28 @@ def test_file_encoded_as_base64(checker):
         """)
 
 
-@pytest.mark.parametrize("transfer_encoding", [mhtml.E_BASE64, mhtml.E_QUOPRI],
-                         ids=["base64", "quoted-printable"])
+@pytest.mark.parametrize('transfer_encoding', [mhtml.E_BASE64, mhtml.E_QUOPRI],
+                         ids=['base64', 'quoted-printable'])
 def test_payload_lines_wrap(checker, transfer_encoding):
-    payload = b"1234567890" * 10
-    writer = mhtml.MHTMLWriter(root_content=b"", content_type="text/plain",
-                               content_location="http://example.com")
-    writer.add_file(location="http://example.com/payload", content=payload,
-                    content_type="text/plain",
+    payload = b'1234567890' * 10
+    writer = mhtml.MHTMLWriter(root_content=b'', content_type='text/plain',
+                               content_location='http://example.com')
+    writer.add_file(location='http://example.com/payload', content=payload,
+                    content_type='text/plain',
                     transfer_encoding=transfer_encoding)
     writer.write_to(checker.fp)
-    for line in checker.value.split(b"\r\n"):
+    for line in checker.value.split(b'\r\n'):
         assert len(line) < 77
 
 
 def test_files_appear_sorted(checker):
-    writer = mhtml.MHTMLWriter(root_content=b"root file",
-                               content_type="text/plain",
-                               content_location="http://www.example.com/")
-    for subdomain in "ahgbizt":
-        writer.add_file(location="http://{}.example.com/".format(subdomain),
-                        content="file {}".format(subdomain).encode("utf-8"),
-                        content_type="text/plain",
+    writer = mhtml.MHTMLWriter(root_content=b'root file',
+                               content_type='text/plain',
+                               content_location='http://www.example.com/')
+    for subdomain in 'ahgbizt':
+        writer.add_file(location='http://{}.example.com/'.format(subdomain),
+                        content='file {}'.format(subdomain).encode('utf-8'),
+                        content_type='text/plain',
                         transfer_encoding=mhtml.E_QUOPRI)
     writer.write_to(checker.fp)
     checker.expect("""
@@ -202,10 +202,10 @@ def test_files_appear_sorted(checker):
 
 
 def test_empty_content_type(checker):
-    writer = mhtml.MHTMLWriter(root_content=b"",
-                               content_location="http://example.com/",
-                               content_type="text/plain")
-    writer.add_file("http://example.com/file", b"file content")
+    writer = mhtml.MHTMLWriter(root_content=b'',
+                               content_location='http://example.com/',
+                               content_type='text/plain')
+    writer.add_file('http://example.com/file', b'file content')
     writer.write_to(checker.fp)
     checker.expect("""
         Content-Type: multipart/related; boundary="---=_qute-UUID"
@@ -229,11 +229,11 @@ def test_empty_content_type(checker):
 
 
 def test_removing_file_from_mhtml(checker):
-    writer = mhtml.MHTMLWriter(root_content=b"root",
-                               content_location="http://example.com/",
-                               content_type="text/plain")
-    writer.add_file("http://evil.com/", b"file content")
-    writer.remove_file("http://evil.com/")
+    writer = mhtml.MHTMLWriter(root_content=b'root',
+                               content_location='http://example.com/',
+                               content_type='text/plain')
+    writer.add_file('http://evil.com/', b'file content')
+    writer.remove_file('http://evil.com/')
     writer.write_to(checker.fp)
     checker.expect("""
         Content-Type: multipart/related; boundary="---=_qute-UUID"
@@ -250,16 +250,16 @@ def test_removing_file_from_mhtml(checker):
         """)
 
 
-@pytest.mark.parametrize("style, expected_urls", [
-    ("@import 'default.css'", ["default.css"]),
-    ('@import "default.css"', ["default.css"]),
-    ("@import \t 'tabbed.css'", ["tabbed.css"]),
-    ("@import url('default.css')", ["default.css"]),
+@pytest.mark.parametrize('style, expected_urls', [
+    ("@import 'default.css'", ['default.css']),
+    ('@import "default.css"', ['default.css']),
+    ("@import \t 'tabbed.css'", ['tabbed.css']),
+    ("@import url('default.css')", ['default.css']),
     ("""body {
     background: url("/bg-img.png")
-    }""", ["/bg-img.png"]),
-    ("background: url(folder/file.png)", ["folder/file.png"]),
-    ("content: url()", []),
+    }""", ['/bg-img.png']),
+    ('background: url(folder/file.png)', ['folder/file.png']),
+    ('content: url()', []),
 ])
 def test_css_url_scanner(style, expected_urls):
     expected_urls.sort()

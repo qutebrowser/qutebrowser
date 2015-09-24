@@ -35,9 +35,9 @@ from qutebrowser.browser import webelem
 from qutebrowser.utils import log, objreg, message
 
 
-_File = collections.namedtuple("_File",
-                               ["content", "content_type", "content_location",
-                                "transfer_encoding"])
+_File = collections.namedtuple('_File',
+                               ['content', 'content_type', 'content_location',
+                                'transfer_encoding'])
 
 
 _CSS_URL_PATTERNS = [re.compile(x) for x in [
@@ -51,9 +51,7 @@ _CSS_URL_PATTERNS = [re.compile(x) for x in [
 
 def _get_css_imports(data):
     """Return all assets that are referenced in the given CSS document.
-
     The returned URLs are relative to the stylesheet's URL.
-
     Args:
         data: The content of the stylesheet to scan as string.
     """
@@ -66,7 +64,7 @@ def _get_css_imports(data):
     return urls
 
 
-MHTMLPolicy = policy.default.clone(linesep="\r\n", max_line_length=0)
+MHTMLPolicy = policy.default.clone(linesep='\r\n', max_line_length=0)
 
 
 E_BASE64 = encoders.encode_base64
@@ -123,8 +121,8 @@ class MHTMLWriter():
         Args:
             fp: The file-object, openend in "wb" mode.
         """
-        msg = multipart.MIMEMultipart("related",
-                                      "---=_qute-{}".format(uuid.uuid4()))
+        msg = multipart.MIMEMultipart('related',
+                                      '---=_qute-{}'.format(uuid.uuid4()))
 
         root = self._create_root_file()
         msg.attach(root)
@@ -146,9 +144,9 @@ class MHTMLWriter():
     def _create_file(self, f):
         """Return the single given file as MIMEMultipart."""
         msg = multipart.MIMEMultipart()
-        msg["Content-Location"] = f.content_location
+        msg['Content-Location'] = f.content_location
         # Get rid of the default type multipart/mixed
-        del msg["Content-Type"]
+        del msg['Content-Type']
         if f.content_type:
             msg.set_type(f.content_type)
         msg.set_payload(f.content)
@@ -192,7 +190,7 @@ class _Downloader():
         web_frame = self.web_view.page().mainFrame()
 
         self.writer = MHTMLWriter(
-            web_frame.toHtml().encode("utf-8"),
+            web_frame.toHtml().encode('utf-8'),
             content_location=web_url.toString(),
             # I've found no way of getting the content type of a QWebView, but
             # since we're using .toHtml, it's probably safe to say that the
@@ -201,32 +199,32 @@ class _Downloader():
         )
         # Currently only downloading <link> (stylesheets), <script>
         # (javascript) and <img> (image) elements.
-        elements = web_frame.findAllElements("link, script, img")
+        elements = web_frame.findAllElements('link, script, img')
 
         for element in elements:
             element = webelem.WebElementWrapper(element)
-            if "src" in element:
-                element_url = element["src"]
-            elif "href" in element:
-                element_url = element["href"]
+            if 'src' in element:
+                element_url = element['src']
+            elif 'href' in element:
+                element_url = element['href']
             else:
                 # Might be a local <script> tag or something else
                 continue
             absolute_url = web_url.resolved(QUrl(element_url))
             self.fetch_url(absolute_url)
 
-        styles = web_frame.findAllElements("style")
+        styles = web_frame.findAllElements('style')
         for style in styles:
             style = webelem.WebElementWrapper(style)
-            if "type" in style and style["type"] != "text/css":
+            if 'type' in style and style['type'] != 'text/css':
                 continue
             for element_url in _get_css_imports(str(style)):
                 self.fetch_url(web_url.resolved(QUrl(element_url)))
 
         # Search for references in inline styles
-        for element in web_frame.findAllElements("[style]"):
+        for element in web_frame.findAllElements('[style]'):
             element = webelem.WebElementWrapper(element)
-            style = element["style"]
+            style = element['style']
             for element_url in _get_css_imports(style):
                 self.fetch_url(web_url.resolved(QUrl(element_url)))
 
@@ -243,7 +241,7 @@ class _Downloader():
         Args:
             url: The file to download as QUrl.
         """
-        if url.scheme() == "data":
+        if url.scheme() == 'data':
             return
         # Prevent loading an asset twice
         if url in self.loaded_urls:
@@ -252,8 +250,8 @@ class _Downloader():
 
         log.downloads.debug("loading asset at %s", url)
 
-        download_manager = objreg.get("download-manager", scope="window",
-                                      window="current")
+        download_manager = objreg.get('download-manager', scope='window',
+                                      window='current')
         item = download_manager.get(url, fileobj=_NoCloseBytesIO(),
                                     auto_remove=True)
         self.pending_downloads.add((url, item))
@@ -272,7 +270,7 @@ class _Downloader():
             item: The DownloadItem given by the DownloadManager
         """
         self.pending_downloads.remove((url, item))
-        mime = item.raw_headers.get(b"Content-Type", b"")
+        mime = item.raw_headers.get(b'Content-Type', b'')
 
         # Note that this decoding always works and doesn't produce errors
         # RFC 7230 (https://tools.ietf.org/html/rfc7230) states:
@@ -283,9 +281,9 @@ class _Downloader():
         # Newly defined header fields SHOULD limit their field values to
         # US-ASCII octets.  A recipient SHOULD treat other octets in field
         # content (obs-text) as opaque data.
-        mime = mime.decode("iso-8859-1")
+        mime = mime.decode('iso-8859-1')
 
-        if mime.lower() == "text/css":
+        if mime.lower() == 'text/css':
             # We can't always assume that CSS files are UTF-8, but CSS files
             # shouldn't contain many non-ASCII characters anyway (in most
             # cases). Using "ignore" lets us decode the file even if it's
@@ -293,16 +291,16 @@ class _Downloader():
             # The file written to the MHTML file won't be modified by this
             # decoding, since there we're taking the original bytestream.
             try:
-                css_string = item.fileobj.getvalue().decode("utf-8")
+                css_string = item.fileobj.getvalue().decode('utf-8')
             except UnicodeDecodeError:
                 log.downloads.warning("Invalid UTF-8 data in %s", url)
-                css_string = item.fileobj.getvalue().decode("utf-8", "ignore")
+                css_string = item.fileobj.getvalue().decode('utf-8', 'ignore')
             import_urls = _get_css_imports(css_string)
             for import_url in import_urls:
                 absolute_url = url.resolved(QUrl(import_url))
                 self.fetch_url(absolute_url)
 
-        encode = E_QUOPRI if mime.startswith("text/") else E_BASE64
+        encode = E_QUOPRI if mime.startswith('text/') else E_BASE64
         self.writer.add_file(url.toString(), item.fileobj.getvalue(), mime,
                              encode)
         item.fileobj.actual_close()
@@ -325,7 +323,7 @@ class _Downloader():
             log.downloads.debug("Oops! Download already gone: %s", item)
             return
         item.fileobj.actual_close()
-        self.writer.add_file(url.toString(), b"")
+        self.writer.add_file(url.toString(), b'')
         if self.pending_downloads:
             return
         self.finish_file()
@@ -337,9 +335,9 @@ class _Downloader():
             return
         self._finished = True
         log.downloads.debug("All assets downloaded, ready to finish off!")
-        with open(self.dest, "wb") as file_output:
+        with open(self.dest, 'wb') as file_output:
             self.writer.write_to(file_output)
-        message.info("current", "Page saved as {}".format(self.dest))
+        message.info('current', "Page saved as {}".format(self.dest))
 
     def collect_zombies(self):
         """Collect done downloads and add their data to the MHTML file.
@@ -378,6 +376,6 @@ def start_download(dest):
         dest: The filename where the resulting file should be saved.
     """
     dest = os.path.expanduser(dest)
-    web_view = objreg.get("webview", scope="tab", tab="current")
+    web_view = objreg.get('webview', scope='tab', tab='current')
     loader = _Downloader(web_view, dest)
     loader.run()
