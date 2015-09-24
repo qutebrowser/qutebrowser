@@ -32,6 +32,7 @@ from email.mime import multipart
 
 from PyQt5.QtCore import QUrl
 
+from qutebrowser.browser import webelem
 from qutebrowser.utils import log, objreg, message
 
 
@@ -125,7 +126,7 @@ E_QUOPRI = ("quoted-printable", _rn_quopri)
 """Encode the file using MIME quoted-printable encoding."""
 
 
-class MHTMLWriter(object):
+class MHTMLWriter():
 
     """A class for outputting multiple files to a MHTML document.
 
@@ -209,7 +210,7 @@ class MHTMLWriter(object):
         return msg
 
 
-class _Downloader(object):
+class _Downloader():
 
     """A class to download whole websites.
 
@@ -220,6 +221,7 @@ class _Downloader(object):
         loaded_urls: A set of QUrls of finished asset downloads.
         pending_downloads: A set of unfinished (url, DownloadItem) tuples.
         _finished: A flag indicating if the file has already been written.
+        _used: A flag indicating if the downloader has already been used.
     """
 
     def __init__(self, web_view, dest):
@@ -229,6 +231,7 @@ class _Downloader(object):
         self.loaded_urls = {web_view.url()}
         self.pending_downloads = set()
         self._finished = False
+        self._used = False
 
     def run(self):
         """Download and save the page.
@@ -236,6 +239,9 @@ class _Downloader(object):
         The object must not be reused, you should create a new one if
         you want to download another page.
         """
+        if self._used:
+            raise ValueError("Downloader already used")
+        self._used = True
         web_url = self.web_view.url()
         web_frame = self.web_view.page().mainFrame()
 
@@ -252,10 +258,12 @@ class _Downloader(object):
                     web_frame.findAllElements("img"))
 
         for element in elements:
-            element_url = element.attribute("src")
-            if not element_url:
-                element_url = element.attribute("href")
-            if not element_url:
+            element = webelem.WebElementWrapper(element)
+            if "src" in element:
+                element_url = element["src"]
+            elif "href" in element:
+                element_url = element["href"]
+            else:
                 # Might be a local <script> tag or something else
                 continue
             absolute_url = web_url.resolved(QUrl(element_url))
@@ -263,17 +271,19 @@ class _Downloader(object):
 
         styles = web_frame.findAllElements("style")
         for style in styles:
-            if style.attribute("type", "text/css") != "text/css":
+            style = webelem.WebElementWrapper(style)
+            if "type" in style and style["type"] != "text/css":
                 continue
-            for element_url in _get_css_imports(style.toPlainText()):
+            for element_url in _get_css_imports(str(style)):
                 element_url = element_url.decode("ascii")
                 self.fetch_url(web_url.resolved(QUrl(element_url)))
 
         # Search for references in inline styles
         for element in web_frame.findAllElements("*"):
-            style = element.attribute("style")
-            if not style:
+            element = webelem.WebElementWrapper(element)
+            if "style" not in element:
                 continue
+            style = element["style"]
             for element_url in _get_css_imports(style):
                 element_url = element_url.decode("ascii")
                 self.fetch_url(web_url.resolved(QUrl(element_url)))
@@ -367,7 +377,7 @@ class _Downloader(object):
         log.misc.debug("All assets downloaded, ready to finish off!")
         with open(self.dest, "wb") as file_output:
             self.writer.write_to(file_output)
-        message.info("current", "Page saved as {}".format(self.dest), True)
+        message.info("current", "Page saved as {}".format(self.dest))
 
     def collect_zombies(self):
         """Collect done downloads and add their data to the MHTML file.
