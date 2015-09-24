@@ -201,9 +201,7 @@ class _Downloader():
         )
         # Currently only downloading <link> (stylesheets), <script>
         # (javascript) and <img> (image) elements.
-        elements = (web_frame.findAllElements("link") +
-                    web_frame.findAllElements("script") +
-                    web_frame.findAllElements("img"))
+        elements = web_frame.findAllElements("link, script, img")
 
         for element in elements:
             element = webelem.WebElementWrapper(element)
@@ -226,10 +224,8 @@ class _Downloader():
                 self.fetch_url(web_url.resolved(QUrl(element_url)))
 
         # Search for references in inline styles
-        for element in web_frame.findAllElements("*"):
+        for element in web_frame.findAllElements("[style]"):
             element = webelem.WebElementWrapper(element)
-            if "style" not in element:
-                continue
             style = element["style"]
             for element_url in _get_css_imports(style):
                 self.fetch_url(web_url.resolved(QUrl(element_url)))
