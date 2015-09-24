@@ -168,10 +168,10 @@ class CompletionFilterModel(QSortFilterProxyModel):
         for char in pattern:
             if char not in data:
                 return False
-            index = data.index(char)
-            if index < last_index:
+            positions = [g.start() for g in re.finditer(char, data)]
+            if max(positions) < last_index:
                 return False
-            last_index = index
+            last_index = min(positions)
         return True
 
     def _match_contain(self, data):
