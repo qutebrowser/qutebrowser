@@ -24,20 +24,20 @@ import io
 import os
 import re
 
-from collections import namedtuple
-from base64 import b64encode
-from uuid import uuid4
-from email import policy
-from email.mime.multipart import MIMEMultipart
-from email.generator import BytesGenerator
+import collections
+import base64
+import uuid
+from email import policy, generator
+from email.mime import multipart
 
 from PyQt5.QtCore import QUrl
 
 from qutebrowser.utils import log, objreg, message
 
 
-_File = namedtuple("_File",
-                   "content content_type content_location transfer_encoding")
+_File = collections.namedtuple("_File",
+                               ["content", "content_type", "content_location",
+                                "transfer_encoding"])
 
 
 _CSS_URL_PATTERNS = [re.compile(x) for x in [
@@ -78,7 +78,7 @@ def _chunked_base64(data, maxlen=76, linesep=b"\r\n"):
         maxlen: Maximum length of a line, not including the line separator.
         linesep: Line separator to use as bytes.
     """
-    encoded = b64encode(data)
+    encoded = base64.b64encode(data)
     result = []
     for i in range(0, len(encoded), maxlen):
         result.append(encoded[i:i + maxlen])
@@ -136,7 +136,7 @@ class MHTMLWriter(object):
         _files: Mapping of location->_File struct.
     """
 
-    BOUNDARY = "---=_qute-" + str(uuid4())
+    BOUNDARY = "---=_qute-" + str(uuid.uuid4())
 
     def __init__(self, root_content=None, content_location=None,
                  content_type=None):
@@ -175,7 +175,7 @@ class MHTMLWriter(object):
         Args:
             fp: The file-object, openend in "wb" mode.
         """
-        msg = MIMEMultipart("related", self.BOUNDARY)
+        msg = multipart.MIMEMultipart("related", self.BOUNDARY)
 
         root = self._create_root_file()
         msg.attach(root)
@@ -183,7 +183,7 @@ class MHTMLWriter(object):
         for file_data in self._files.values():
             msg.attach(self._create_file(file_data))
 
-        gen = BytesGenerator(fp, policy=MHTMLPolicy)
+        gen = generator.BytesGenerator(fp, policy=MHTMLPolicy)
         gen.flatten(msg)
 
     def _create_root_file(self):
@@ -196,7 +196,7 @@ class MHTMLWriter(object):
 
     def _create_file(self, f):
         """Return the single given file as MIMEMultipart."""
-        msg = MIMEMultipart()
+        msg = multipart.MIMEMultipart()
         msg["Content-Location"] = f.content_location
         # Get rid of the default type multipart/mixed
         del msg["Content-Type"]
