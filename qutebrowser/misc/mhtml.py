@@ -41,8 +41,8 @@ _File = collections.namedtuple("_File",
 
 
 _CSS_URL_PATTERNS = [re.compile(x) for x in [
-    r"@import '(?P<url>[^']+)'",
-    r'@import "(?P<url>[^"]+)"',
+    r"@import\s+'(?P<url>[^']+)'",
+    r'@import\s+"(?P<url>[^"]+)"',
     r'''url\((?P<url>[^'"][^)]*)\)''',
     r'url\("(?P<url>[^"]+)"\)',
     r"url\('(?P<url>[^']+)'\)",
