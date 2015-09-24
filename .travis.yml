@@ -1,4 +1,5 @@
-dist: trusty
+# So we get Ubuntu Trusty - using "dist: trusty" breaks OS X.
+services: docker
 
 os:
   - linux
@@ -29,9 +30,3 @@ script:
     - tox -e pylint
     - tox -e pyroma
     - tox -e check-manifest
-
-# Travis bug - OS X builds get routed to Ubuntu Trusty if "dist: trusty" is
-# given.
-matrix:
-  allow_failures:
-    - os: osx
