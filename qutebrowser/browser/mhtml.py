@@ -51,7 +51,9 @@ _CSS_URL_PATTERNS = [re.compile(x) for x in [
 
 def _get_css_imports(data):
     """Return all assets that are referenced in the given CSS document.
+
     The returned URLs are relative to the stylesheet's URL.
+
     Args:
         data: The content of the stylesheet to scan as string.
     """

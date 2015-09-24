@@ -5,7 +5,7 @@ import re
 
 import pytest
 
-from qutebrowser.misc import mhtml
+from qutebrowser.browser import mhtml
 
 @pytest.fixture(autouse=True)
 def patch_uuid(monkeypatch):
