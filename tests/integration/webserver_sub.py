@@ -17,19 +17,36 @@
 # You should have received a copy of the GNU General Public License
 # along with qutebrowser.  If not, see <http://www.gnu.org/licenses/>.
 
-"""Test which simply runs qutebrowser to check if it starts properly."""
+"""httpbin web server for integration tests.
 
+This script gets called as a QProcess from integration/conftest.py.
+"""
 
 import sys
 import os.path
-import subprocess
+
+from httpbin.core import app
+import flask
 
 
-def test_smoke():
+@app.route('/data/<path:path>')
+def send_data(path):
     if hasattr(sys, 'frozen'):
-        argv = [os.path.join(os.path.dirname(sys.executable), 'qutebrowser')]
+        basedir = os.path.realpath(os.path.dirname(sys.executable))
+        data_dir = os.path.join(basedir, 'integration', 'data')
     else:
-        argv = [sys.executable, '-m', 'qutebrowser']
-    argv += ['--debug', '--no-err-windows', '--nowindow', '--temp-basedir',
-             'about:blank', ':later 500 quit']
-    subprocess.check_call(argv)
+        basedir = os.path.realpath(os.path.dirname(__file__))
+        data_dir = os.path.join(basedir, 'data')
+    print(basedir)
+    return flask.send_from_directory(data_dir, path)
+
+
+def main():
+    if hasattr(sys, 'frozen'):
+        basedir = os.path.realpath(os.path.dirname(sys.executable))
+        app.template_folder = os.path.join(basedir, 'integration', 'templates')
+    app.run(port=int(sys.argv[1]), debug=True, use_reloader=False)
+
+
+if __name__ == '__main__':
+    main()

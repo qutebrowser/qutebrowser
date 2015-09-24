@@ -54,6 +54,8 @@ class TabbedBrowser(tabwidget.TabWidget):
          emitted if the signal occurred in the current tab.
 
     Attributes:
+        search_text/search_flags: Search parameters which are shared between
+                                  all tabs.
         _win_id: The window ID this tabbedbrowser is associated with.
         _filter: A SignalFilter instance.
         _now_focused: The tab which is focused now.
@@ -108,6 +110,8 @@ class TabbedBrowser(tabwidget.TabWidget):
         self._undo_stack = []
         self._filter = signalfilter.SignalFilter(win_id, self)
         self._now_focused = None
+        self.search_text = None
+        self.search_flags = 0
         objreg.get('config').changed.connect(self.update_favicons)
         objreg.get('config').changed.connect(self.update_window_title)
         objreg.get('config').changed.connect(self.update_tab_titles)
@@ -517,7 +521,7 @@ class TabbedBrowser(tabwidget.TabWidget):
         log.modes.debug("Current tab changed, focusing {!r}".format(tab))
         tab.setFocus()
         for mode in (usertypes.KeyMode.hint, usertypes.KeyMode.insert,
-                     usertypes.KeyMode.caret):
+                     usertypes.KeyMode.caret, usertypes.KeyMode.passthrough):
             modeman.maybe_leave(self._win_id, mode, 'tab changed')
         if self._now_focused is not None:
             objreg.register('last-focused-tab', self._now_focused, update=True,

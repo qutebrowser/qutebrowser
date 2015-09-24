@@ -149,6 +149,15 @@ class TestDirbrowserHtml:
         bar_item = self.Item('file://' + str(bar_file), bar_file.relto(tmpdir))
         assert parsed.files == [bar_item, foo_item]
 
+    def test_html_special_chars(self, tmpdir, parser):
+        special_file = tmpdir / 'foo&bar'
+        special_file.ensure()
+
+        parsed = parser(str(tmpdir))
+        item = self.Item('file://' + str(special_file),
+                         special_file.relto(tmpdir))
+        assert parsed.files == [item]
+
     def test_dirs(self, tmpdir, parser):
         foo_dir = tmpdir / 'foo'
         bar_dir = tmpdir / 'bar'

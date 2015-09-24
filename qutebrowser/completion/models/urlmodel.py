@@ -69,8 +69,8 @@ class UrlCompletionModel(base.BaseCompletionModel):
         bookmark_manager.removed.connect(self.on_bookmark_removed)
 
         self._history = objreg.get('web-history')
-        max_history = config.get('completion', 'web-history-max-items')
-        history = utils.newest_slice(self._history, max_history)
+        self._max_history = config.get('completion', 'web-history-max-items')
+        history = utils.newest_slice(self._history, self._max_history)
         for entry in history:
             self._add_history_entry(entry)
         self._history.add_completion_item.connect(
@@ -92,11 +92,18 @@ class UrlCompletionModel(base.BaseCompletionModel):
         else:
             return dt.strftime(fmt)
 
+    def _remove_oldest_history(self):
+        """Remove the oldest history entry."""
+        self._history_cat.removeRow(0)
+
     def _add_history_entry(self, entry):
         """Add a new history entry to the completion."""
         self.new_item(self._history_cat, entry.url.toDisplayString(), "",
                       self._fmt_atime(entry.atime), sort=int(entry.atime),
                       userdata=entry.url)
+
+        if self._history_cat.rowCount() > self._max_history:
+            self._remove_oldest_history()
 
     @config.change_filter('completion', 'timestamp-format')
     def reformat_timestamps(self):

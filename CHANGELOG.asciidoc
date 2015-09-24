@@ -14,6 +14,27 @@ This project adheres to http://semver.org/[Semantic Versioning].
 // `Fixed` for any bug fixes.
 // `Security` to invite users to upgrade in case of vulnerabilities.
 
+v0.5.0 (unreleased)
+-------------------
+
+Added
+~~~~~
+
+- New setting `ui -> hide-wayland-decoration` to hide the window decoration
+  when using wayland.
+
+Changed
+~~~~~~~
+
+- The `colors -> tabs.bg/fg.selected` option got split into
+  `tabs.bg/fg.selected.odd/even`.
+
+Fixed
+~~~~~
+
+- Adjusted AppArmor config for the IPC changes in v0.4.0.
+- Fixed atime update frequency for IPC file.
+
 v0.4.0
 ------
 

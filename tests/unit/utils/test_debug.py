@@ -81,22 +81,49 @@ def test_log_signals(caplog, signal_obj):
     assert records[1].msg == "Signal in <repr>: signal2('foo', 'bar')"
 
 
-def test_log_time(caplog):
-    logger_name = 'qt-tests'
+class TestLogTime:
 
-    with caplog.atLevel(logging.DEBUG, logger_name):
-        with debug.log_time(logging.getLogger(logger_name), action='foobar'):
-            time.sleep(0.1)
+    def test_duration(self, caplog):
+        logger_name = 'qt-tests'
+
+        with caplog.atLevel(logging.DEBUG, logger_name):
+            with debug.log_time(logger_name, action='foobar'):
+                time.sleep(0.1)
+
+            records = caplog.records()
+            assert len(records) == 1
+
+            pattern = re.compile(r'^Foobar took ([\d.]*) seconds\.$')
+            match = pattern.match(records[0].msg)
+            assert match
+
+            duration = float(match.group(1))
+            assert 0 < duration < 30
+
+    def test_logger(self, caplog):
+        """Test with an explicit logger instead of a name."""
+        logger_name = 'qt-tests'
+
+        with caplog.atLevel(logging.DEBUG, logger_name):
+            with debug.log_time(logging.getLogger(logger_name)):
+                pass
+
+        assert len(caplog.records()) == 1
+
+    def test_decorator(self, caplog):
+        logger_name = 'qt-tests'
+
+        @debug.log_time(logger_name, action='foo')
+        def func(arg, *, kwarg):
+            assert arg == 1
+            assert kwarg == 2
+
+        with caplog.atLevel(logging.DEBUG, logger_name):
+            func(1, kwarg=2)
 
         records = caplog.records()
         assert len(records) == 1
-
-        pattern = re.compile(r'^Foobar took ([\d.]*) seconds\.$')
-        match = pattern.match(records[0].msg)
-        assert match
-
-        duration = float(match.group(1))
-        assert 0 < duration < 5
+        assert records[0].msg.startswith('Foo took')
 
 
 class TestQEnumKey:
@@ -178,7 +205,7 @@ def test_signal_name(signal, expected):
     (None, {'foo': 'bar'}, "foo='bar'"),
     (['foo', 'bar'], {'baz': 'fish'}, "'foo', 'bar', baz='fish'"),
     (['x' * 300], None, "'{}".format('x' * 198 + '…')),
-])
+], ids=lambda val: str(val)[:20])
 def test_format_args(args, kwargs, expected):
     assert debug.format_args(args, kwargs) == expected
 
@@ -201,7 +228,7 @@ def test_format_call(func, args, kwargs, full, expected):
     ([23, 42], 'fake(23, 42)'),
     (['x' * 201], "fake('{}\u2026)".format('x' * 198)),
     (['foo\nbar'], r"fake('foo\nbar')"),
-])
+], ids=lambda val: str(val)[:20])
 def test_dbg_signal(stubs, args, expected):
     assert debug.dbg_signal(stubs.FakeSignal(), args) == expected
 

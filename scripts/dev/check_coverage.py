@@ -37,6 +37,7 @@ PERFECT_FILES = [
     'qutebrowser/commands/cmdutils.py',
     'qutebrowser/commands/argparser.py',
 
+    'qutebrowser/browser/cookies.py',
     'qutebrowser/browser/tabhistory.py',
     'qutebrowser/browser/http.py',
     'qutebrowser/browser/rfc6266.py',
@@ -119,12 +120,7 @@ def check(fileobj, perfect_files):
         assert 0 <= branch_cov <= 100, branch_cov
         assert '\\' not in filename, filename
 
-        # Files without any branches have 0% coverage
-        has_branches = klass.find('./lines/line[@branch="true"]') is not None
-        if branch_cov < 100 and has_branches:
-            is_bad = True
-        else:
-            is_bad = line_cov < 100
+        is_bad = line_cov < 100 or branch_cov < 100
 
         if filename in perfect_files and is_bad:
             messages.append(("{} has {}% line and {}% branch coverage!".format(

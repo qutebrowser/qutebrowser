@@ -318,6 +318,11 @@ def data(readonly=False):
              SettingValue(typ.Bool(), 'false'),
              "Use standard JavaScript modal dialog for alert() and confirm()"),
 
+            ('hide-wayland-decoration',
+             SettingValue(typ.Bool(), 'false'),
+             "Hide the window decoration when using wayland "
+             "(requires restart)"),
+
             readonly=readonly
         )),
 
@@ -739,6 +744,14 @@ def data(readonly=False):
              SettingValue(typ.Bool(), 'true'),
              "Whether host blocking is enabled."),
 
+            ('host-blocking-whitelist',
+             SettingValue(typ.List(none_ok=True), 'piwik.org'),
+             "List of domains that should always be loaded, despite being "
+             "ad-blocked.\n\n"
+             "Domains may contain * and ? wildcards and are otherwise "
+             "required to exactly match the requested domain.\n\n"
+             "Local domains are always exempt from hostblocking."),
+
             readonly=readonly
         )),
 
@@ -964,13 +977,21 @@ def data(readonly=False):
              SettingValue(typ.QtColor(), 'darkgrey'),
              "Background color of unselected even tabs."),
 
-            ('tabs.fg.selected',
+            ('tabs.fg.selected.odd',
              SettingValue(typ.QtColor(), 'white'),
-             "Foreground color of selected tabs."),
+             "Foreground color of selected odd tabs."),
 
-            ('tabs.bg.selected',
+            ('tabs.bg.selected.odd',
              SettingValue(typ.QtColor(), 'black'),
-             "Background color of selected tabs."),
+             "Background color of selected odd tabs."),
+
+            ('tabs.fg.selected.even',
+             SettingValue(typ.QtColor(), '${tabs.fg.selected.odd}'),
+             "Foreground color of selected even tabs."),
+
+            ('tabs.bg.selected.even',
+             SettingValue(typ.QtColor(), '${tabs.bg.selected.odd}'),
+             "Background color of selected even tabs."),
 
             ('tabs.bg.bar',
              SettingValue(typ.QtColor(), '#555555'),

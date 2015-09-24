@@ -47,6 +47,7 @@
 |<<ui-window-title-format,window-title-format>>|The format to use for the window title. The following placeholders are defined:
 |<<ui-hide-mouse-cursor,hide-mouse-cursor>>|Whether to hide the mouse cursor.
 |<<ui-modal-js-dialog,modal-js-dialog>>|Use standard JavaScript modal dialog for alert() and confirm()
+|<<ui-hide-wayland-decoration,hide-wayland-decoration>>|Hide the window decoration when using wayland (requires restart)
 |==============
 
 .Quick reference for section ``network''
@@ -159,6 +160,7 @@
 |<<content-cookies-store,cookies-store>>|Whether to store cookies.
 |<<content-host-block-lists,host-block-lists>>|List of URLs of lists which contain hosts to block.
 |<<content-host-blocking-enabled,host-blocking-enabled>>|Whether host blocking is enabled.
+|<<content-host-blocking-whitelist,host-blocking-whitelist>>|List of domains that should always be loaded, despite being ad-blocked.
 |==============
 
 .Quick reference for section ``hints''
@@ -219,8 +221,10 @@
 |<<colors-tabs.bg.odd,tabs.bg.odd>>|Background color of unselected odd tabs.
 |<<colors-tabs.fg.even,tabs.fg.even>>|Foreground color of unselected even tabs.
 |<<colors-tabs.bg.even,tabs.bg.even>>|Background color of unselected even tabs.
-|<<colors-tabs.fg.selected,tabs.fg.selected>>|Foreground color of selected tabs.
-|<<colors-tabs.bg.selected,tabs.bg.selected>>|Background color of selected tabs.
+|<<colors-tabs.fg.selected.odd,tabs.fg.selected.odd>>|Foreground color of selected odd tabs.
+|<<colors-tabs.bg.selected.odd,tabs.bg.selected.odd>>|Background color of selected odd tabs.
+|<<colors-tabs.fg.selected.even,tabs.fg.selected.even>>|Foreground color of selected even tabs.
+|<<colors-tabs.bg.selected.even,tabs.bg.selected.even>>|Background color of selected even tabs.
 |<<colors-tabs.bg.bar,tabs.bg.bar>>|Background color of the tab bar.
 |<<colors-tabs.indicator.start,tabs.indicator.start>>|Color gradient start for the tab indicator.
 |<<colors-tabs.indicator.stop,tabs.indicator.stop>>|Color gradient end for the tab indicator.
@@ -622,6 +626,17 @@ Default: +pass:[false]+
 [[ui-modal-js-dialog]]
 === modal-js-dialog
 Use standard JavaScript modal dialog for alert() and confirm()
+
+Valid values:
+
+ * +true+
+ * +false+
+
+Default: +pass:[false]+
+
+[[ui-hide-wayland-decoration]]
+=== hide-wayland-decoration
+Hide the window decoration when using wayland (requires restart)
 
 Valid values:
 
@@ -1433,6 +1448,16 @@ Valid values:
 
 Default: +pass:[true]+
 
+[[content-host-blocking-whitelist]]
+=== host-blocking-whitelist
+List of domains that should always be loaded, despite being ad-blocked.
+
+Domains may contain * and ? wildcards and are otherwise required to exactly match the requested domain.
+
+Local domains are always exempt from hostblocking.
+
+Default: +pass:[piwik.org]+
+
 == hints
 Hinting settings.
 
@@ -1769,17 +1794,29 @@ Background color of unselected even tabs.
 
 Default: +pass:[darkgrey]+
 
-[[colors-tabs.fg.selected]]
-=== tabs.fg.selected
-Foreground color of selected tabs.
+[[colors-tabs.fg.selected.odd]]
+=== tabs.fg.selected.odd
+Foreground color of selected odd tabs.
 
 Default: +pass:[white]+
 
-[[colors-tabs.bg.selected]]
-=== tabs.bg.selected
-Background color of selected tabs.
+[[colors-tabs.bg.selected.odd]]
+=== tabs.bg.selected.odd
+Background color of selected odd tabs.
 
 Default: +pass:[black]+
+
+[[colors-tabs.fg.selected.even]]
+=== tabs.fg.selected.even
+Foreground color of selected even tabs.
+
+Default: +pass:[${tabs.fg.selected.odd}]+
+
+[[colors-tabs.bg.selected.even]]
+=== tabs.bg.selected.even
+Background color of selected even tabs.
+
+Default: +pass:[${tabs.bg.selected.odd}]+
 
 [[colors-tabs.bg.bar]]
 === tabs.bg.bar

@@ -137,22 +137,22 @@ Contributors, sorted by the number of commits in descending order:
 * Florian Bruhin
 * Antoni Boucher
 * Bruno Oliveira
-* Martin Tournoij
 * Alexander Cogneau
+* Martin Tournoij
 * Raphael Pierzina
 * Joel Torstensson
 * Claude
 * Lamar Pavel
 * Austin Anderson
 * Artur Shaik
+* Thorsten Wißmann
+* Daniel
 * ZDarian
 * Peter Vilim
 * John ShaggyTwoDope Jenkins
-* Daniel
 * Jimmy
 * Zach-Button
 * rikn00
-* Thorsten Wißmann
 * Patric Schmitz
 * Martin Zimmermann
 * Error 800
@@ -177,6 +177,7 @@ Contributors, sorted by the number of commits in descending order:
 * HalosGhost
 * Gregor Pohl
 * Eivind Uggedal
+* Averrin
 * Arseniy Seroka
 * Andreas Fischer
 // QUTE_AUTHORS_END

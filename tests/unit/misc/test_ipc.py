@@ -31,7 +31,7 @@ import subprocess
 from unittest import mock
 
 import pytest
-import py.path  # pylint: disable=import-error
+import py.path  # pylint: disable=no-name-in-module,import-error
 from PyQt5.QtCore import pyqtSignal, QObject
 from PyQt5.QtNetwork import QLocalServer, QLocalSocket, QAbstractSocket
 from PyQt5.QtTest import QSignalSpy
@@ -48,7 +48,7 @@ Args = collections.namedtuple('Args', 'basedir')
 @pytest.yield_fixture()
 def short_tmpdir():
     with tempfile.TemporaryDirectory() as tdir:
-        yield py.path.local(tdir)
+        yield py.path.local(tdir)  # pylint: disable=no-member
 
 
 @pytest.yield_fixture(autouse=True)
@@ -597,7 +597,8 @@ def test_timeout(qtbot, caplog, qlocalsocket, ipc_server):
         qlocalsocket.connectToServer('qute-test')
 
     with caplog.atLevel(logging.ERROR):
-        with qtbot.waitSignal(qlocalsocket.disconnected, raising=True):
+        with qtbot.waitSignal(qlocalsocket.disconnected, raising=True,
+                              timeout=5000):
             pass
 
     assert caplog.records()[-1].message == "IPC connection timed out."
@@ -684,6 +685,7 @@ class TestSendOrListen:
         assert "Connecting to {}".format(legacy_server._socketname) in msgs
 
     @pytest.mark.posix   # Unneeded on Windows
+    @pytest.mark.not_frozen
     def test_stale_legacy_server(self, caplog, qtbot, args, legacy_server,
                                  ipc_server, py_proc):
         legacy_name = ipc._get_socketname(args.basedir, legacy=True)

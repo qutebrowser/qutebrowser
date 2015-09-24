@@ -184,7 +184,7 @@ def test_start_logging(fake_proc, caplog):
 def test_error(qtbot, proc, caplog, guiprocess_message_mock):
     """Test the process emitting an error."""
     with caplog.atLevel(logging.ERROR, 'message'):
-        with qtbot.waitSignal(proc.error, raising=True):
+        with qtbot.waitSignal(proc.error, raising=True, timeout=5000):
             proc.start('this_does_not_exist_either', [])
 
     msg = guiprocess_message_mock.getmsg(guiprocess_message_mock.Level.error,

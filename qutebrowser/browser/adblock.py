@@ -24,6 +24,7 @@ import os.path
 import functools
 import posixpath
 import zipfile
+import fnmatch
 
 from qutebrowser.config import config
 from qutebrowser.utils import objreg, standarddir, log, message
@@ -59,6 +60,22 @@ def get_fileobj(byte_io):
     return io.TextIOWrapper(byte_io, encoding='utf-8')
 
 
+def is_whitelisted_host(host):
+    """Check if the given host is on the adblock whitelist.
+
+    Args:
+        host: The host of the request as string.
+    """
+    whitelist = config.get('content', 'host-blocking-whitelist')
+    if whitelist is None:
+        return False
+
+    for pattern in whitelist:
+        if fnmatch.fnmatch(host, pattern.lower()):
+            return True
+    return False
+
+
 class FakeDownload:
 
     """A download stub to use on_download_finished with local files."""
@@ -74,7 +91,7 @@ class HostBlocker:
     """Manage blocked hosts based from /etc/hosts-like files.
 
     Attributes:
-        blocked_hosts: A set of blocked hosts.
+        _blocked_hosts: A set of blocked hosts.
         _in_progress: The DownloadItems which are currently downloading.
         _done_count: How many files have been read successfully.
         _hosts_file: The path to the blocked-hosts file.
@@ -87,7 +104,7 @@ class HostBlocker:
                    'local')
 
     def __init__(self):
-        self.blocked_hosts = set()
+        self._blocked_hosts = set()
         self._in_progress = []
         self._done_count = 0
         data_dir = standarddir.data()
@@ -97,16 +114,23 @@ class HostBlocker:
             self._hosts_file = os.path.join(data_dir, 'blocked-hosts')
         objreg.get('config').changed.connect(self.on_config_changed)
 
+    def is_blocked(self, url):
+        """Check if the given URL (as QUrl) is blocked."""
+        if not config.get('content', 'host-blocking-enabled'):
+            return False
+        host = url.host()
+        return host in self._blocked_hosts and not is_whitelisted_host(host)
+
     def read_hosts(self):
         """Read hosts from the existing blocked-hosts file."""
-        self.blocked_hosts = set()
+        self._blocked_hosts = set()
         if self._hosts_file is None:
             return
         if os.path.exists(self._hosts_file):
             try:
                 with open(self._hosts_file, 'r', encoding='utf-8') as f:
                     for line in f:
-                        self.blocked_hosts.add(line.strip())
+                        self._blocked_hosts.add(line.strip())
             except OSError:
                 log.misc.exception("Failed to read host blocklist!")
         else:
@@ -121,7 +145,7 @@ class HostBlocker:
         """Update the adblock block lists."""
         if self._hosts_file is None:
             raise cmdexc.CommandError("No data storage is configured!")
-        self.blocked_hosts = set()
+        self._blocked_hosts = set()
         self._done_count = 0
         urls = config.get('content', 'host-block-lists')
         download_manager = objreg.get('download-manager', scope='window',
@@ -189,7 +213,7 @@ class HostBlocker:
                 error_count += 1
                 continue
             if host not in self.WHITELISTED:
-                self.blocked_hosts.add(host)
+                self._blocked_hosts.add(host)
         log.misc.debug("{}: read {} lines".format(byte_io.name, line_count))
         if error_count > 0:
             message.error('current', "adblock: {} read errors for {}".format(
@@ -198,10 +222,10 @@ class HostBlocker:
     def on_lists_downloaded(self):
         """Install block lists after files have been downloaded."""
         with open(self._hosts_file, 'w', encoding='utf-8') as f:
-            for host in sorted(self.blocked_hosts):
+            for host in sorted(self._blocked_hosts):
                 f.write(host + '\n')
             message.info('current', "adblock: Read {} hosts from {} sources."
-                         .format(len(self.blocked_hosts), self._done_count))
+                         .format(len(self._blocked_hosts), self._done_count))
 
     @config.change_filter('content', 'host-block-lists')
     def on_config_changed(self):

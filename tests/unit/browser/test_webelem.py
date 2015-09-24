@@ -320,7 +320,7 @@ class TestWebElementWrapper:
         ('<fakeelem/>', '<fakeelem/>'),
         ('<foo>\n<bar/>\n</foo>', '<foo><bar/></foo>'),
         ('<foo>{}</foo>'.format('x' * 500), '<foo>{}…'.format('x' * 494)),
-    ])
+    ], ids=['fakeelem', 'newlines', 'long'])
     def test_debug_text(self, elem, xml, expected):
         elem._elem.toOuterXml.return_value = xml
         assert elem.debug_text() == expected
@@ -594,7 +594,7 @@ class TestJavascriptEscape:
     # http://qutebrowser.org:8010/builders/debian-jessie/builds/765/steps/unittests/
     # Should that be ignored?
 
-    @pytest.mark.parametrize('before, after', TESTS.items())
+    @pytest.mark.parametrize('before, after', TESTS.items(), ids=repr)
     def test_fake_escape(self, before, after):
         """Test javascript escaping with some expected outcomes."""
         assert webelem.javascript_escape(before) == after
@@ -639,7 +639,7 @@ class TestJavascriptEscape:
         result = webframe.evaluateJavaScript('"{}";'.format(escaped))
         assert result == text
 
-    @pytest.mark.parametrize('text', TESTS)
+    @pytest.mark.parametrize('text', TESTS, ids=repr)
     def test_real_escape(self, webframe, qtbot, text):
         """Test javascript escaping with a real QWebPage."""
         self._test_escape(text, qtbot, webframe)

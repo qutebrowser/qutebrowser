@@ -30,6 +30,8 @@ import cx_Freeze as cx  # pylint: disable=import-error
 # cx_Freeze is hard to install (needs C extensions) so we don't check for it.
 import pytest
 
+import httpbin
+
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), os.pardir,
                 os.pardir))
 from scripts import setupcommon
@@ -52,17 +54,29 @@ def get_build_exe_options():
     """Get build_exe options with additional includes."""
     opts = freeze.get_build_exe_options(skip_html=True)
     opts['includes'] += pytest.freeze_includes()  # pylint: disable=no-member
-    opts['includes'] += ['unittest.mock', 'PyQt5.QtTest', 'hypothesis', 'bs4']
+    opts['includes'] += ['unittest.mock', 'PyQt5.QtTest', 'hypothesis', 'bs4',
+                         'httpbin', 'jinja2.ext']
+
+    httpbin_dir = os.path.dirname(httpbin.__file__)
+    opts['include_files'] += [
+        ('tests/integration/data', 'integration/data'),
+        (os.path.join(httpbin_dir, 'templates'), 'integration/templates'),
+    ]
+
     opts['packages'].append('qutebrowser')
     return opts
 
 
 def main():
     """Main entry point."""
+    base = 'Win32GUI' if sys.platform.startswith('win') else None
     with temp_git_commit_file():
         cx.setup(
             executables=[cx.Executable('scripts/dev/run_frozen_tests.py',
-                                       targetName='run-frozen-tests')],
+                                       targetName='run-frozen-tests'),
+                         cx.Executable('tests/integration/webserver_sub.py',
+                                       targetName='webserver_sub'),
+                         freeze.get_exe(base, target_name='qutebrowser')],
             options={'build_exe': get_build_exe_options()},
             **setupcommon.setupdata
         )

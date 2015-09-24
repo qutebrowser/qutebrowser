@@ -404,22 +404,32 @@ class TabBar(QTabBar):
 
     def paintEvent(self, _e):
         """Override paintEvent to draw the tabs like we want to."""
+        # pylint: disable=bad-config-call
+        # WORKAROUND for https://bitbucket.org/logilab/astroid/issue/104
         p = QStylePainter(self)
         selected = self.currentIndex()
         for idx in range(self.count()):
             tab = QStyleOptionTab()
             self.initStyleOption(tab, idx)
+
+            bg_parts = ['tabs', 'bg']
+            fg_parts = ['tabs', 'fg']
             if idx == selected:
-                bg_color = config.get('colors', 'tabs.bg.selected')
-                fg_color = config.get('colors', 'tabs.fg.selected')
-            elif idx % 2:
-                bg_color = config.get('colors', 'tabs.bg.odd')
-                fg_color = config.get('colors', 'tabs.fg.odd')
+                bg_parts.append('selected')
+                fg_parts.append('selected')
+
+            if idx % 2:
+                bg_parts.append('odd')
+                fg_parts.append('odd')
             else:
-                bg_color = config.get('colors', 'tabs.bg.even')
-                fg_color = config.get('colors', 'tabs.fg.even')
+                bg_parts.append('even')
+                fg_parts.append('even')
+
+            bg_color = config.get('colors', '.'.join(bg_parts))
+            fg_color = config.get('colors', '.'.join(fg_parts))
             tab.palette.setColor(QPalette.Window, bg_color)
             tab.palette.setColor(QPalette.WindowText, fg_color)
+
             try:
                 indicator_color = self.tab_data(idx, 'indicator-color')
             except KeyError:

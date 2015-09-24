@@ -17,19 +17,6 @@
 # You should have received a copy of the GNU General Public License
 # along with qutebrowser.  If not, see <http://www.gnu.org/licenses/>.
 
-"""Test which simply runs qutebrowser to check if it starts properly."""
+"""Things needed for integration testing."""
 
-
-import sys
-import os.path
-import subprocess
-
-
-def test_smoke():
-    if hasattr(sys, 'frozen'):
-        argv = [os.path.join(os.path.dirname(sys.executable), 'qutebrowser')]
-    else:
-        argv = [sys.executable, '-m', 'qutebrowser']
-    argv += ['--debug', '--no-err-windows', '--nowindow', '--temp-basedir',
-             'about:blank', ':later 500 quit']
-    subprocess.check_call(argv)
+from webserver import httpbin, httpbin_clean  # pylint: disable=unused-import
