@@ -50,18 +50,18 @@ def test_quoted_printable_umlauts(checker):
                                content_type="text/plain")
     writer.write_to(checker.fp)
     checker.expect("""
-    Content-Type: multipart/related; boundary="---=_qute-UUID"
-    MIME-Version: 1.0
+        Content-Type: multipart/related; boundary="---=_qute-UUID"
+        MIME-Version: 1.0
 
-    -----=_qute-UUID
-    Content-Location: localhost
-    MIME-Version: 1.0
-    Content-Type: text/plain
-    Content-Transfer-Encoding: quoted-printable
+        -----=_qute-UUID
+        Content-Location: localhost
+        MIME-Version: 1.0
+        Content-Type: text/plain
+        Content-Transfer-Encoding: quoted-printable
 
-    Die=20s=FC=DFe=20H=FCndin=20l=E4uft=20in=20die=20H=F6hle=20des=20B=E4ren
-    -----=_qute-UUID--
-    """)
+        Die=20s=FC=DFe=20H=FCndin=20l=E4uft=20in=20die=20H=F6hle=20des=20B=E4ren
+        -----=_qute-UUID--
+        """)
 
 
 @pytest.mark.parametrize("header, value", [
@@ -76,9 +76,9 @@ def test_refuses_non_ascii_header_value(checker, header, value):
     }
     defaults[header] = value
     writer = mhtml.MHTMLWriter(**defaults)
-    with pytest.raises(UnicodeEncodeError) as e:
+    with pytest.raises(UnicodeEncodeError) as excinfo:
         writer.write_to(checker.fp)
-        assert "'ascii' codec can't encode" in str(e)
+        assert "'ascii' codec can't encode" in str(excinfo.value)
 
 
 def test_file_encoded_as_base64(checker):
@@ -91,26 +91,26 @@ def test_file_encoded_as_base64(checker):
                     transfer_encoding=mhtml.E_BASE64)
     writer.write_to(checker.fp)
     checker.expect("""
-    Content-Type: multipart/related; boundary="---=_qute-UUID"
-    MIME-Version: 1.0
+        Content-Type: multipart/related; boundary="---=_qute-UUID"
+        MIME-Version: 1.0
 
-    -----=_qute-UUID
-    Content-Location: http://example.com
-    MIME-Version: 1.0
-    Content-Type: text/plain
-    Content-Transfer-Encoding: quoted-printable
+        -----=_qute-UUID
+        Content-Location: http://example.com
+        MIME-Version: 1.0
+        Content-Type: text/plain
+        Content-Transfer-Encoding: quoted-printable
 
-    Image=20file=20attached
-    -----=_qute-UUID
-    Content-Location: http://a.example.com/image.png
-    MIME-Version: 1.0
-    Content-Type: image/png
-    Content-Transfer-Encoding: base64
+        Image=20file=20attached
+        -----=_qute-UUID
+        Content-Location: http://a.example.com/image.png
+        MIME-Version: 1.0
+        Content-Type: image/png
+        Content-Transfer-Encoding: base64
 
-    8J+YgSBpbWFnZSBkYXRh
+        8J+YgSBpbWFnZSBkYXRh
 
-    -----=_qute-UUID--
-    """)
+        -----=_qute-UUID--
+        """)
 
 
 @pytest.mark.parametrize("transfer_encoding", [mhtml.E_BASE64, mhtml.E_QUOPRI],
@@ -138,67 +138,67 @@ def test_files_appear_sorted(checker):
                         transfer_encoding=mhtml.E_QUOPRI)
     writer.write_to(checker.fp)
     checker.expect("""
-    Content-Type: multipart/related; boundary="---=_qute-UUID"
-    MIME-Version: 1.0
+        Content-Type: multipart/related; boundary="---=_qute-UUID"
+        MIME-Version: 1.0
 
-    -----=_qute-UUID
-    Content-Location: http://www.example.com/
-    MIME-Version: 1.0
-    Content-Type: text/plain
-    Content-Transfer-Encoding: quoted-printable
+        -----=_qute-UUID
+        Content-Location: http://www.example.com/
+        MIME-Version: 1.0
+        Content-Type: text/plain
+        Content-Transfer-Encoding: quoted-printable
 
-    root=20file
-    -----=_qute-UUID
-    Content-Location: http://a.example.com/
-    MIME-Version: 1.0
-    Content-Type: text/plain
-    Content-Transfer-Encoding: quoted-printable
+        root=20file
+        -----=_qute-UUID
+        Content-Location: http://a.example.com/
+        MIME-Version: 1.0
+        Content-Type: text/plain
+        Content-Transfer-Encoding: quoted-printable
 
-    file=20a
-    -----=_qute-UUID
-    Content-Location: http://b.example.com/
-    MIME-Version: 1.0
-    Content-Type: text/plain
-    Content-Transfer-Encoding: quoted-printable
+        file=20a
+        -----=_qute-UUID
+        Content-Location: http://b.example.com/
+        MIME-Version: 1.0
+        Content-Type: text/plain
+        Content-Transfer-Encoding: quoted-printable
 
-    file=20b
-    -----=_qute-UUID
-    Content-Location: http://g.example.com/
-    MIME-Version: 1.0
-    Content-Type: text/plain
-    Content-Transfer-Encoding: quoted-printable
+        file=20b
+        -----=_qute-UUID
+        Content-Location: http://g.example.com/
+        MIME-Version: 1.0
+        Content-Type: text/plain
+        Content-Transfer-Encoding: quoted-printable
 
-    file=20g
-    -----=_qute-UUID
-    Content-Location: http://h.example.com/
-    MIME-Version: 1.0
-    Content-Type: text/plain
-    Content-Transfer-Encoding: quoted-printable
+        file=20g
+        -----=_qute-UUID
+        Content-Location: http://h.example.com/
+        MIME-Version: 1.0
+        Content-Type: text/plain
+        Content-Transfer-Encoding: quoted-printable
 
-    file=20h
-    -----=_qute-UUID
-    Content-Location: http://i.example.com/
-    MIME-Version: 1.0
-    Content-Type: text/plain
-    Content-Transfer-Encoding: quoted-printable
+        file=20h
+        -----=_qute-UUID
+        Content-Location: http://i.example.com/
+        MIME-Version: 1.0
+        Content-Type: text/plain
+        Content-Transfer-Encoding: quoted-printable
 
-    file=20i
-    -----=_qute-UUID
-    Content-Location: http://t.example.com/
-    MIME-Version: 1.0
-    Content-Type: text/plain
-    Content-Transfer-Encoding: quoted-printable
+        file=20i
+        -----=_qute-UUID
+        Content-Location: http://t.example.com/
+        MIME-Version: 1.0
+        Content-Type: text/plain
+        Content-Transfer-Encoding: quoted-printable
 
-    file=20t
-    -----=_qute-UUID
-    Content-Location: http://z.example.com/
-    MIME-Version: 1.0
-    Content-Type: text/plain
-    Content-Transfer-Encoding: quoted-printable
+        file=20t
+        -----=_qute-UUID
+        Content-Location: http://z.example.com/
+        MIME-Version: 1.0
+        Content-Type: text/plain
+        Content-Transfer-Encoding: quoted-printable
 
-    file=20z
-    -----=_qute-UUID--
-    """)
+        file=20z
+        -----=_qute-UUID--
+        """)
 
 
 def test_empty_content_type(checker):
@@ -208,24 +208,24 @@ def test_empty_content_type(checker):
     writer.add_file("http://example.com/file", b"file content")
     writer.write_to(checker.fp)
     checker.expect("""
-    Content-Type: multipart/related; boundary="---=_qute-UUID"
-    MIME-Version: 1.0
+        Content-Type: multipart/related; boundary="---=_qute-UUID"
+        MIME-Version: 1.0
 
-    -----=_qute-UUID
-    Content-Location: http://example.com/
-    MIME-Version: 1.0
-    Content-Type: text/plain
-    Content-Transfer-Encoding: quoted-printable
+        -----=_qute-UUID
+        Content-Location: http://example.com/
+        MIME-Version: 1.0
+        Content-Type: text/plain
+        Content-Transfer-Encoding: quoted-printable
 
 
-    -----=_qute-UUID
-    MIME-Version: 1.0
-    Content-Location: http://example.com/file
-    Content-Transfer-Encoding: quoted-printable
+        -----=_qute-UUID
+        MIME-Version: 1.0
+        Content-Location: http://example.com/file
+        Content-Transfer-Encoding: quoted-printable
 
-    file=20content
-    -----=_qute-UUID--
-    """)
+        file=20content
+        -----=_qute-UUID--
+        """)
 
 
 def test_removing_file_from_mhtml(checker):
@@ -236,18 +236,18 @@ def test_removing_file_from_mhtml(checker):
     writer.remove_file("http://evil.com/")
     writer.write_to(checker.fp)
     checker.expect("""
-    Content-Type: multipart/related; boundary="---=_qute-UUID"
-    MIME-Version: 1.0
+        Content-Type: multipart/related; boundary="---=_qute-UUID"
+        MIME-Version: 1.0
 
-    -----=_qute-UUID
-    Content-Location: http://example.com/
-    MIME-Version: 1.0
-    Content-Type: text/plain
-    Content-Transfer-Encoding: quoted-printable
+        -----=_qute-UUID
+        Content-Location: http://example.com/
+        MIME-Version: 1.0
+        Content-Type: text/plain
+        Content-Transfer-Encoding: quoted-printable
 
-    root
-    -----=_qute-UUID--
-    """)
+        root
+        -----=_qute-UUID--
+        """)
 
 
 @pytest.mark.parametrize("style, expected_urls", [
@@ -266,3 +266,24 @@ def test_css_url_scanner(style, expected_urls):
     urls = mhtml._get_css_imports(style)
     urls.sort()
     assert urls == expected_urls
+
+
+def test_noclose_bytesio_fake_close():
+    fp = mhtml._NoCloseBytesIO()
+    fp.write(b'Value')
+    fp.close()
+    assert fp.getvalue() == b'Value'
+    fp.write(b'Eulav')
+    assert fp.getvalue() == b'ValueEulav'
+
+
+def test_noclose_bytesio_actual_close():
+    fp = mhtml._NoCloseBytesIO()
+    fp.write(b'Value')
+    fp.actual_close()
+    with pytest.raises(ValueError) as excinfo:
+        fp.getvalue()
+        assert 'I/O operation on closed file.' == str(excinfo.value)
+    with pytest.raises(ValueError) as excinfo:
+        fp.write(b'Closed')
+        assert 'I/O operation on closed file.' == str(excinfo.value)
