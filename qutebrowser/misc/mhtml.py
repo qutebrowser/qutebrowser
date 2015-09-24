@@ -139,8 +139,7 @@ class MHTMLWriter():
 
     BOUNDARY = "---=_qute-" + str(uuid.uuid4())
 
-    def __init__(self, root_content=None, content_location=None,
-                 content_type=None):
+    def __init__(self, root_content, content_location, content_type):
         self.root_content = root_content
         self.content_location = content_location
         self.content_type = content_type
@@ -227,7 +226,7 @@ class _Downloader():
     def __init__(self, web_view, dest):
         self.web_view = web_view
         self.dest = dest
-        self.writer = MHTMLWriter()
+        self.writer = None
         self.loaded_urls = {web_view.url()}
         self.pending_downloads = set()
         self._finished = False
@@ -245,12 +244,14 @@ class _Downloader():
         web_url = self.web_view.url()
         web_frame = self.web_view.page().mainFrame()
 
-        self.writer.root_content = web_frame.toHtml().encode("utf-8")
-        self.writer.content_location = web_url.toString()
-        # I've found no way of getting the content type of a QWebView, but
-        # since we're using .toHtml, it's probably safe to say that the
-        # content-type is HTML
-        self.writer.content_type = 'text/html; charset="UTF-8"'
+        self.writer = MHTMLWriter(
+            web_frame.toHtml().encode("utf-8"),
+            content_location = web_url.toString(),
+            # I've found no way of getting the content type of a QWebView, but
+            # since we're using .toHtml, it's probably safe to say that the
+            # content-type is HTML
+            content_type = 'text/html; charset="UTF-8"',
+        )
         # Currently only downloading <link> (stylesheets), <script>
         # (javascript) and <img> (image) elements.
         elements = (web_frame.findAllElements("link") +
