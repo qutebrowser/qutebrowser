@@ -37,12 +37,12 @@ import pygments.formatters
 
 from qutebrowser.commands import userscripts, cmdexc, cmdutils, runners
 from qutebrowser.config import config, configexc
-from qutebrowser.browser import webelem, inspector, urlmarks, downloads
+from qutebrowser.browser import webelem, inspector, urlmarks, downloads, mhtml
 from qutebrowser.keyinput import modeman
 from qutebrowser.utils import (message, usertypes, log, qtutils, urlutils,
                                objreg, utils)
 from qutebrowser.utils.usertypes import KeyMode
-from qutebrowser.misc import editor, guiprocess, mhtml
+from qutebrowser.misc import editor, guiprocess
 
 
 class CommandDispatcher:
