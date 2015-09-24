@@ -278,7 +278,17 @@ class _Downloader():
         """
         self.pending_downloads.remove((url, item))
         mime = item.raw_headers.get(b"Content-Type", b"")
-        mime = mime.decode("ascii", "ignore")
+
+        # Note that this decoding always works and doesn't produce errors
+        # RFC 7230 (https://tools.ietf.org/html/rfc7230) states:
+        # Historically, HTTP has allowed field content with text in the
+        # ISO-8859-1 charset [ISO-8859-1], supporting other charsets only
+        # through use of [RFC2047] encoding.  In practice, most HTTP header
+        # field values use only a subset of the US-ASCII charset [USASCII].
+        # Newly defined header fields SHOULD limit their field values to
+        # US-ASCII octets.  A recipient SHOULD treat other octets in field
+        # content (obs-text) as opaque data.
+        mime = mime.decode("iso-8859-1")
 
         if mime.lower() == "text/css":
             # We can't always assume that CSS files are UTF-8, but CSS files
