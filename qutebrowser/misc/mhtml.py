@@ -255,7 +255,7 @@ class _Downloader():
             return
         self.loaded_urls.add(url)
 
-        log.misc.debug("loading asset at %s", url)
+        log.downloads.debug("loading asset at %s", url)
 
         download_manager = objreg.get("download-manager", scope="window",
                                       window="current")
@@ -300,7 +300,7 @@ class _Downloader():
             try:
                 css_string = item.fileobj.getvalue().decode("utf-8")
             except UnicodeDecodeError:
-                log.misc.warning("Invalid UTF-8 data in %s", url)
+                log.downloads.warning("Invalid UTF-8 data in %s", url)
                 css_string = item.fileobj.getvalue().decode("utf-8", "ignore")
             import_urls = _get_css_imports(css_string)
             for import_url in import_urls:
@@ -327,7 +327,7 @@ class _Downloader():
         except KeyError:
             # This might happen if .collect_zombies() calls .finished() and the
             # error handler will be called after .collect_zombies
-            log.misc.debug("Oops! Download already gone: %s", item)
+            log.downloads.debug("Oops! Download already gone: %s", item)
             return
         item.fileobj.actual_close()
         self.writer.add_file(url.toString(), b"")
@@ -338,10 +338,10 @@ class _Downloader():
     def finish_file(self):
         """Save the file to the filename given in __init__."""
         if self._finished:
-            log.misc.debug("finish_file called twice, ignored!")
+            log.downloads.debug("finish_file called twice, ignored!")
             return
         self._finished = True
-        log.misc.debug("All assets downloaded, ready to finish off!")
+        log.downloads.debug("All assets downloaded, ready to finish off!")
         with open(self.dest, "wb") as file_output:
             self.writer.write_to(file_output)
         message.info("current", "Page saved as {}".format(self.dest))
@@ -354,7 +354,7 @@ class _Downloader():
         """
         items = set((url, item) for url, item in self.pending_downloads
                     if item.done)
-        log.misc.debug("Zombie downloads: %s", items)
+        log.downloads.debug("Zombie downloads: %s", items)
         for url, item in items:
             self.finished(url, item)
 
