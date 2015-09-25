@@ -250,20 +250,26 @@ def test_removing_file_from_mhtml(checker):
         """)
 
 
-@pytest.mark.parametrize('style, expected_urls', [
-    ("@import 'default.css'", ['default.css']),
-    ('@import "default.css"', ['default.css']),
-    ("@import \t 'tabbed.css'", ['tabbed.css']),
-    ("@import url('default.css')", ['default.css']),
-    ("""body {
+@pytest.mark.parametrize('has_cssutils', [True, False])
+@pytest.mark.parametrize('inline, style, expected_urls', [
+    (False, "@import 'default.css'", ['default.css']),
+    (False, '@import "default.css"', ['default.css']),
+    (False, "@import \t 'tabbed.css'", ['tabbed.css']),
+    (False, "@import url('default.css')", ['default.css']),
+    (False, """body {
     background: url("/bg-img.png")
     }""", ['/bg-img.png']),
-    ('background: url(folder/file.png)', ['folder/file.png']),
-    ('content: url()', []),
+    (True, 'background: url(folder/file.png) no-repeat', ['folder/file.png']),
+    (True, 'content: url()', []),
 ])
-def test_css_url_scanner(style, expected_urls):
+def test_css_url_scanner(monkeypatch, has_cssutils, inline, style,
+                         expected_urls):
+    if has_cssutils:
+        assert mhtml.cssutils is not None
+    else:
+        monkeypatch.setattr('qutebrowser.browser.mhtml.cssutils', None)
     expected_urls.sort()
-    urls = mhtml._get_css_imports(style)
+    urls = mhtml._get_css_imports(style, inline=inline)
     urls.sort()
     assert urls == expected_urls
 
