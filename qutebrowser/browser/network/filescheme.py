@@ -76,11 +76,6 @@ def dirbrowser_html(path):
     # pylint: disable=no-member
     # https://bitbucket.org/logilab/pylint/issue/490/
 
-    folder_icon = utils.resource_filename('img/folder.svg')
-    file_icon = utils.resource_filename('img/file.svg')
-
-    folder_url = QUrl.fromLocalFile(folder_icon).toString(QUrl.FullyEncoded)
-    file_url = QUrl.fromLocalFile(file_icon).toString(QUrl.FullyEncoded)
 
     if is_root(path):
         parent = None
@@ -101,8 +96,7 @@ def dirbrowser_html(path):
     directories = get_file_list(path, all_files, os.path.isdir)
     html = template.render(title=title, url=path, icon='',
                            parent=parent, files=files,
-                           directories=directories, folder_url=folder_url,
-                           file_url=file_url)
+                           directories=directories)
     return html.encode('UTF-8', errors='xmlcharrefreplace')
 
 
