@@ -120,12 +120,14 @@ class BrowserPage(QWebPage):
         Return:
             False if no error page should be displayed, True otherwise.
         """
+        
         ignored_errors = [
             (QWebPage.QtNetwork, QNetworkReply.OperationCanceledError),
             (QWebPage.WebKit, 203),  # "Loading is handled by the media engine"
         ]
         errpage.baseUrl = info.url
         urlstr = info.url.toDisplayString()
+        
         if (info.domain, info.error) == (QWebPage.QtNetwork,
                                          QNetworkReply.ProtocolUnknownError):
             # For some reason, we get a segfault when we use
@@ -167,12 +169,17 @@ class BrowserPage(QWebPage):
                 info.domain, info.error))
             title = "Error loading page: {}".format(urlstr)
             template = jinja.env.get_template('error.html')
+            
             # pylint: disable=no-member
             # https://bitbucket.org/logilab/pylint/issue/490/
+            logo = utils.resource_filename('img/broken_qutebrowser_logo.png')
+            logo_url = QUrl.fromLocalFile(logo).toString(QUrl.FullyEncoded)
+            
             html = template.render(
-                title=title, url=urlstr, error=error_str, icon='')
+                title=title, url=urlstr, error=error_str, icon='', logo_url=logo_url)
             errpage.content = html.encode('utf-8')
             errpage.encoding = 'utf-8'
+            
             return True
 
     def _handle_multiple_files(self, info, files):
