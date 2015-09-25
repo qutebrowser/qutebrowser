@@ -78,7 +78,7 @@ def test_refuses_non_ascii_header_value(checker, header, value):
     writer = mhtml.MHTMLWriter(**defaults)
     with pytest.raises(UnicodeEncodeError) as excinfo:
         writer.write_to(checker.fp)
-        assert "'ascii' codec can't encode" in str(excinfo.value)
+    assert "'ascii' codec can't encode" in str(excinfo.value)
 
 
 def test_file_encoded_as_base64(checker):
@@ -268,22 +268,25 @@ def test_css_url_scanner(style, expected_urls):
     assert urls == expected_urls
 
 
-def test_noclose_bytesio_fake_close():
-    fp = mhtml._NoCloseBytesIO()
-    fp.write(b'Value')
-    fp.close()
-    assert fp.getvalue() == b'Value'
-    fp.write(b'Eulav')
-    assert fp.getvalue() == b'ValueEulav'
+class TestNoCloseBytesIO:
+    # WORKAROUND for https://bitbucket.org/logilab/pylint/issues/540/
+    # pylint: disable=no-member
 
+    def test_fake_close(self):
+        fp = mhtml._NoCloseBytesIO()
+        fp.write(b'Value')
+        fp.close()
+        assert fp.getvalue() == b'Value'
+        fp.write(b'Eulav')
+        assert fp.getvalue() == b'ValueEulav'
 
-def test_noclose_bytesio_actual_close():
-    fp = mhtml._NoCloseBytesIO()
-    fp.write(b'Value')
-    fp.actual_close()
-    with pytest.raises(ValueError) as excinfo:
-        fp.getvalue()
-        assert 'I/O operation on closed file.' == str(excinfo.value)
-    with pytest.raises(ValueError) as excinfo:
-        fp.write(b'Closed')
-        assert 'I/O operation on closed file.' == str(excinfo.value)
+    def test_actual_close(self):
+        fp = mhtml._NoCloseBytesIO()
+        fp.write(b'Value')
+        fp.actual_close()
+        with pytest.raises(ValueError) as excinfo:
+            fp.getvalue()
+        assert str(excinfo.value) == 'I/O operation on closed file.'
+        with pytest.raises(ValueError) as excinfo:
+            fp.write(b'Closed')
+        assert str(excinfo.value) == 'I/O operation on closed file.'

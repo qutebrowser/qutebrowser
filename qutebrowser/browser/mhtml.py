@@ -23,11 +23,12 @@ import functools
 import io
 import os
 import re
-
 import collections
 import uuid
-from email import policy, generator, encoders
-from email.mime import multipart
+import email.policy
+import email.generator
+import email.encoders
+import email.mime.multipart
 
 from PyQt5.QtCore import QUrl
 
@@ -66,13 +67,13 @@ def _get_css_imports(data):
     return urls
 
 
-MHTMLPolicy = policy.default.clone(linesep='\r\n', max_line_length=0)
+MHTMLPolicy = email.policy.default.clone(linesep='\r\n', max_line_length=0)
 
 
-E_BASE64 = encoders.encode_base64
+E_BASE64 = email.encoders.encode_base64
 """Encode the file using base64 encoding"""
 
-E_QUOPRI = encoders.encode_quopri
+E_QUOPRI = email.encoders.encode_quopri
 """Encode the file using MIME quoted-printable encoding."""
 
 
@@ -123,8 +124,8 @@ class MHTMLWriter():
         Args:
             fp: The file-object, openend in "wb" mode.
         """
-        msg = multipart.MIMEMultipart('related',
-                                      '---=_qute-{}'.format(uuid.uuid4()))
+        msg = email.mime.multipart.MIMEMultipart(
+            'related', '---=_qute-{}'.format(uuid.uuid4()))
 
         root = self._create_root_file()
         msg.attach(root)
@@ -132,7 +133,7 @@ class MHTMLWriter():
         for _, file_data in sorted(self._files.items()):
             msg.attach(self._create_file(file_data))
 
-        gen = generator.BytesGenerator(fp, policy=MHTMLPolicy)
+        gen = email.generator.BytesGenerator(fp, policy=MHTMLPolicy)
         gen.flatten(msg)
 
     def _create_root_file(self):
@@ -145,7 +146,7 @@ class MHTMLWriter():
 
     def _create_file(self, f):
         """Return the single given file as MIMEMultipart."""
-        msg = multipart.MIMEMultipart()
+        msg = email.mime.multipart.MIMEMultipart()
         msg['Content-Location'] = f.content_location
         # Get rid of the default type multipart/mixed
         del msg['Content-Type']
