@@ -19,6 +19,7 @@
 
 """Tests for qutebrowser.utils.jinja."""
 
+import os
 import os.path
 
 import pytest
@@ -59,7 +60,14 @@ def test_resource_url():
     url = QUrl(data)
     assert url.isValid()
     assert url.scheme() == 'file'
-    with open(url.path(), 'r', encoding='utf-8') as f:
+
+    path = url.path()
+
+    if os.name == "nt":
+        path = path.replace("/", os.sep)
+        path = path[-1:]
+
+    with open(path, 'r', encoding='utf-8') as f:
         assert f.read().splitlines()[0] == "Hello World!"
 
 
