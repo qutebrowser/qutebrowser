@@ -25,6 +25,8 @@ import jinja2
 
 from qutebrowser.utils import utils
 
+from PyQt5.QtCore import QUrl
+
 
 class Loader(jinja2.BaseLoader):
 
@@ -59,4 +61,9 @@ def _guess_autoescape(template_name):
     return ext in ('html', 'htm', 'xml')
 
 
+def resource_url(path):
+    image = utils.resource_filename(path)
+    return QUrl.fromLocalFile(image).toString(QUrl.FullyEncoded)
+
 env = jinja2.Environment(loader=Loader('html'), autoescape=_guess_autoescape)
+env.globals['resource_url'] = resource_url
