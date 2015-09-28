@@ -61,7 +61,8 @@ def pytest_collection_modifyitems(items):
         if 'qapp' in getattr(item, 'fixturenames', ()):
             item.add_marker('gui')
             if sys.platform == 'linux' and not os.environ.get('DISPLAY', ''):
-                if 'CI' in os.environ:
+                if ('CI' in os.environ and
+                        not os.environ.get('QUTE_NO_DISPLAY_OK', '')):
                     raise Exception("No display available on CI!")
                 skip_marker = pytest.mark.skipif(
                     True, reason="No DISPLAY available")
