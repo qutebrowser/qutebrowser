@@ -21,6 +21,7 @@ install:
 
 script:
     - xvfb-run -s "-screen 0 640x480x16" tox -e py34,py34-integration
+    - tox -e unittests-nodisp
     - tox -e misc
     - tox -e pep257
     - tox -e pyflakes
