@@ -45,6 +45,9 @@ from helpers import stubs  # pylint: disable=import-error
 Args = collections.namedtuple('Args', 'basedir')
 
 
+pytestmark = pytest.mark.usefixtures('qapp')
+
+
 @pytest.yield_fixture()
 def short_tmpdir():
     with tempfile.TemporaryDirectory() as tdir:

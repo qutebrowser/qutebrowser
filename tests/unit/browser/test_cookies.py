@@ -128,7 +128,7 @@ def test_purge_old_cookies(config_stub, fake_save_manager):
     assert raw_cookies == [COOKIE1, COOKIE2, SESSION_COOKIE]
 
 
-def test_save(config_stub, fake_save_manager, monkeypatch):
+def test_save(config_stub, fake_save_manager, monkeypatch, qapp):
     """Test that expired and session cookies are not saved."""
     monkeypatch.setattr(lineparser,
                         'LineParser', LineparserSaveStub)
@@ -156,7 +156,7 @@ def test_cookies_changed_emit(config_stub, fake_save_manager,
 
 
 def test_cookies_changed_not_emitted(config_stub, fake_save_manager,
-                                     monkeypatch):
+                                     monkeypatch, qapp):
     """Test that changed is not emitted when nothing changes."""
     config_stub.data = CONFIG_COOKIES_ENABLED
     monkeypatch.setattr(lineparser,
