@@ -21,7 +21,7 @@ install:
   - python scripts/dev/ci_install.py
 
 script:
-    - xvfb-run -s "-screen 0 640x480x16" tox -e py34,py34-integration
+    - tox -e py34-integration -- -s
     - '[[ $TRAVIS_OS_NAME == linux ]] && tox -e unittests-nodisp || true'
     - '[[ $TRAVIS_OS_NAME == linux ]] && tox -e misc || true'
     - '[[ $TRAVIS_OS_NAME == linux ]] && tox -e pep257 || true'
