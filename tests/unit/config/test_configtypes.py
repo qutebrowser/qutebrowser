@@ -75,7 +75,7 @@ class RegexEq:
 
     def __init__(self, pattern, flags=0):
         # We compile the regex because re.compile also adds flags defined in
-        # the pattern and implicit flags to it's .flags.
+        # the pattern and implicit flags to its .flags.
         # See https://docs.python.org/3/library/re.html#re.regex.flags
         compiled = re.compile(pattern, flags)
         self.pattern = compiled.pattern
@@ -1901,3 +1901,29 @@ class TestUserAgent:
     def test_complete(self, klass):
         """Simple smoke test for completion."""
         klass().complete()
+
+
+@pytest.mark.parametrize('first, second, equal', [
+    (re.compile('foo'), RegexEq('foo'), True),
+    (RegexEq('bar'), re.compile('bar'), True),
+    (RegexEq('qwer'), RegexEq('qwer'), True),
+    (re.compile('qux'), RegexEq('foo'), False),
+    (RegexEq('spam'), re.compile('eggs'), False),
+    (RegexEq('qwer'), RegexEq('rewq'), False),
+
+    (re.compile('foo', re.I), RegexEq('foo', re.I), True),
+    (RegexEq('bar', re.M), re.compile('bar', re.M), True),
+    (re.compile('qux', re.M), RegexEq('qux', re.I), False),
+    (RegexEq('spam', re.S), re.compile('eggs', re.S), False),
+
+    (re.compile('(?i)foo'), RegexEq('(?i)foo'), True),
+    (re.compile('(?i)bar'), RegexEq('bar'), False),
+])
+def test_regex_eq(first, second, equal):
+    if equal:
+        # Assert that the check is commutative
+        assert first == second
+        assert second == first
+    else:
+        assert first != second
+        assert second != first
