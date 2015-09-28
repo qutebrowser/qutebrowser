@@ -96,10 +96,11 @@ def pytest_runtest_setup(item):
         pytest.skip("Can only run when frozen!")
 
 
-@pytest.fixture(autouse=True, scope='session')
-def change_qapp_name(qapp):
+@pytest.fixture(scope='session')
+def qapp(qapp):
     """Change the name of the QApplication instance."""
     qapp.setApplicationName('qute_test')
+    return qapp
 
 
 class WinRegistryHelper:
