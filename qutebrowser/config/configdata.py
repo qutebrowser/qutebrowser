@@ -308,7 +308,7 @@ def data(readonly=False):
              "* `{title}`: The title of the current web page\n"
              "* `{title_sep}`: The string ` - ` if a title is set, empty "
              "otherwise.\n"
-             "* `{id}`: The internal window ID of this window."
+             "* `{id}`: The internal window ID of this window.\n"
              "* `{scroll_pos}`: The page scroll position."),
 
             ('hide-mouse-cursor',
@@ -544,7 +544,7 @@ def data(readonly=False):
              "* `{title_sep}`: The string ` - ` if a title is set, empty "
              "otherwise.\n"
              "* `{index}`: The index of this tab.\n"
-             "* `{id}`: The internal tab ID of this tab."
+             "* `{id}`: The internal tab ID of this tab.\n"
              "* `{scroll_pos}`: The page scroll position."),
 
             ('mousewheel-tab-switching',
