@@ -69,6 +69,34 @@ class NetworkProxy(QNetworkProxy):
                               password=self.password())
 
 
+class RegexEq:
+
+    """A class to compare regex objects."""
+
+    def __init__(self, pattern, flags=0):
+        # We compile the regex because re.compile also adds flags defined in
+        # the pattern and implicit flags to its .flags.
+        # See https://docs.python.org/3/library/re.html#re.regex.flags
+        compiled = re.compile(pattern, flags)
+        self.pattern = compiled.pattern
+        self.flags = compiled.flags
+        self._user_flags = flags
+
+    def __eq__(self, other):
+        try:
+            # Works for RegexEq objects and re.compile objects
+            return (self.pattern, self.flags) == (other.pattern, other.flags)
+        except AttributeError:
+            return NotImplemented
+
+    def __repr__(self):
+        if self._user_flags:
+            return "RegexEq({!r}, flags={})".format(self.pattern,
+                                                    self._user_flags)
+        else:
+            return "RegexEq({!r})".format(self.pattern)
+
+
 @pytest.fixture
 def os_mock(mocker):
     """Fixture that mocks and returns os from the configtypes module."""
@@ -1037,7 +1065,7 @@ class TestRegex:
             klass().validate(val)
 
     @pytest.mark.parametrize('val, expected', [
-        (r'foobar', re.compile(r'foobar')),
+        (r'foobar', RegexEq(r'foobar')),
         ('', None),
     ])
     def test_transform_empty(self, klass, val, expected):
@@ -1070,10 +1098,10 @@ class TestRegexList:
             klass().validate(val)
 
     @pytest.mark.parametrize('val, expected', [
-        ('foo', [re.compile('foo')]),
-        ('foo,bar,baz', [re.compile('foo'), re.compile('bar'),
-                         re.compile('baz')]),
-        ('foo,,bar', [re.compile('foo'), None, re.compile('bar')]),
+        ('foo', [RegexEq('foo')]),
+        ('foo,bar,baz', [RegexEq('foo'), RegexEq('bar'),
+                         RegexEq('baz')]),
+        ('foo,,bar', [RegexEq('foo'), None, RegexEq('bar')]),
         ('', None),
     ])
     def test_transform(self, klass, val, expected):
@@ -1873,3 +1901,29 @@ class TestUserAgent:
     def test_complete(self, klass):
         """Simple smoke test for completion."""
         klass().complete()
+
+
+@pytest.mark.parametrize('first, second, equal', [
+    (re.compile('foo'), RegexEq('foo'), True),
+    (RegexEq('bar'), re.compile('bar'), True),
+    (RegexEq('qwer'), RegexEq('qwer'), True),
+    (re.compile('qux'), RegexEq('foo'), False),
+    (RegexEq('spam'), re.compile('eggs'), False),
+    (RegexEq('qwer'), RegexEq('rewq'), False),
+
+    (re.compile('foo', re.I), RegexEq('foo', re.I), True),
+    (RegexEq('bar', re.M), re.compile('bar', re.M), True),
+    (re.compile('qux', re.M), RegexEq('qux', re.I), False),
+    (RegexEq('spam', re.S), re.compile('eggs', re.S), False),
+
+    (re.compile('(?i)foo'), RegexEq('(?i)foo'), True),
+    (re.compile('(?i)bar'), RegexEq('bar'), False),
+])
+def test_regex_eq(first, second, equal):
+    if equal:
+        # Assert that the check is commutative
+        assert first == second
+        assert second == first
+    else:
+        assert first != second
+        assert second != first
