@@ -18,6 +18,8 @@
 
 """Hypothesis tests for qutebrowser.config.configtypes."""
 
+import os
+import sys
 import inspect
 import functools
 
@@ -44,6 +46,11 @@ def gen_classes():
 @hypothesis.given(strategies.text())
 @hypothesis.example('\x00')
 def test_configtypes_hypothesis(klass, s):
+    if (klass in [configtypes.File, configtypes.UserStyleSheet] and
+            sys.platform == 'linux' and
+            not os.environ.get('DISPLAY', '')):
+        pytest.skip("No DISPLAY available")
+
     try:
         klass().validate(s)
     except configexc.ValidationError:
