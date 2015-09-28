@@ -22,12 +22,12 @@ install:
 
 script:
     - xvfb-run -s "-screen 0 640x480x16" tox -e py34,py34-integration
-    - tox -e unittests-nodisp
-    - tox -e misc
-    - tox -e pep257
-    - tox -e pyflakes
-    - tox -e pep8
-    - tox -e mccabe
+    - [[ $TRAVIS_OS_NAME == linux ]] && tox -e unittests-nodisp
+    - [[ $TRAVIS_OS_NAME == linux ]] && tox -e misc
+    - [[ $TRAVIS_OS_NAME == linux ]] && tox -e pep257
+    - [[ $TRAVIS_OS_NAME == linux ]] && tox -e pyflakes
+    - [[ $TRAVIS_OS_NAME == linux ]] && tox -e pep8
+    - [[ $TRAVIS_OS_NAME == linux ]] && tox -e mccabe
+    - [[ $TRAVIS_OS_NAME == linux ]] && tox -e pyroma
+    - [[ $TRAVIS_OS_NAME == linux ]] && tox -e check-manifest
     - tox -e pylint
-    - tox -e pyroma
-    - tox -e check-manifest
