@@ -299,7 +299,7 @@ def data(readonly=False):
 
             ('window-title-format',
              SettingValue(typ.FormatString(fields=['perc', 'perc_raw', 'title',
-                                                   'title_sep', 'id']),
+                                                   'title_sep', 'id', 'scroll_pos']),
                           '{perc}{title}{title_sep}qutebrowser'),
              "The format to use for the window title. The following "
              "placeholders are defined:\n\n"
@@ -308,7 +308,8 @@ def data(readonly=False):
              "* `{title}`: The title of the current web page\n"
              "* `{title_sep}`: The string ` - ` if a title is set, empty "
              "otherwise.\n"
-             "* `{id}`: The internal window ID of this window."),
+             "* `{id}`: The internal window ID of this window."
+             "* `{scroll_pos}`: The page scroll position."),
 
             ('hide-mouse-cursor',
              SettingValue(typ.Bool(), 'false'),
@@ -543,7 +544,8 @@ def data(readonly=False):
              "* `{title_sep}`: The string ` - ` if a title is set, empty "
              "otherwise.\n"
              "* `{index}`: The index of this tab.\n"
-             "* `{id}`: The internal tab ID of this tab."),
+             "* `{id}`: The internal tab ID of this tab."
+             "* `{scroll_pos}`: The page scroll position."),
 
             ('mousewheel-tab-switching',
              SettingValue(typ.Bool(), 'true'),

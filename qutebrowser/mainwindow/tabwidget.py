@@ -120,7 +120,7 @@ class TabWidget(QTabWidget):
         else:
             scroll_pos = '{:2}%'.format(y)
 
-        fields['scroll_pos'] = '{}'.format(scroll_pos)
+        fields['scroll_pos'] = str(scroll_pos)
 
         fmt = config.get('tabs', 'title-format')
         self.tabBar().setTabText(idx, fmt.format(**fields))
@@ -167,7 +167,6 @@ class TabWidget(QTabWidget):
             text = text_or_empty
             new_idx = super().addTab(page, icon, '')
         self.set_page_title(new_idx, text)
-        page.scroll_pos_changed.connect(lambda: self.update_tab_title(new_idx))
         return new_idx
 
     def insertTab(self, idx, page, icon_or_text, text_or_empty=None):
@@ -198,7 +197,6 @@ class TabWidget(QTabWidget):
             text = text_or_empty
             new_idx = super().insertTab(idx, page, icon, '')
         self.set_page_title(new_idx, text)
-        page.scroll_pos_changed.connect(lambda: self.update_tab_title(new_idx))
         return new_idx
 
     @pyqtSlot(int)

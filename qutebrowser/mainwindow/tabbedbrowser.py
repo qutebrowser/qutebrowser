@@ -165,6 +165,15 @@ class TabbedBrowser(tabwidget.TabWidget):
         fields['title'] = tabtitle
         fields['title_sep'] = ' - ' if tabtitle else ''
         fields['id'] = self._win_id
+        y = widget.scroll_pos[1]
+        if y <= 0:
+            scroll_pos = 'top'
+        elif y >= 100:
+            scroll_pos = 'bot'
+        else:
+            scroll_pos = '{:2}%'.format(y)
+
+        fields['scroll_pos'] = str(scroll_pos)
         fmt = config.get('ui', 'window-title-format')
         self.window().setWindowTitle(fmt.format(**fields))
 
@@ -185,6 +194,7 @@ class TabbedBrowser(tabwidget.TabWidget):
             self._filter.create(self.cur_statusbar_message, tab))
         tab.scroll_pos_changed.connect(
             self._filter.create(self.cur_scroll_perc_changed, tab))
+        tab.scroll_pos_changed.connect(self.on_scroll_pos_changed)
         tab.url_text_changed.connect(
             self._filter.create(self.cur_url_text_changed, tab))
         tab.load_status_changed.connect(
@@ -576,6 +586,12 @@ class TabbedBrowser(tabwidget.TabWidget):
         self.update_tab_title(idx)
         if idx == self.currentIndex():
             self.update_window_title()
+
+    @pyqtSlot(int, int)
+    def on_scroll_pos_changed(self, x, y):
+        """Update tab and window title when scroll position changed."""
+        self.update_window_title()
+        self.update_tab_titles()
 
     def resizeEvent(self, e):
         """Extend resizeEvent of QWidget to emit a resized signal afterwards.
