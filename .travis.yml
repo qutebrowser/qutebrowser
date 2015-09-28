@@ -30,4 +30,4 @@ script:
     - [[ $TRAVIS_OS_NAME == linux ]] && tox -e mccabe
     - [[ $TRAVIS_OS_NAME == linux ]] && tox -e pyroma
     - [[ $TRAVIS_OS_NAME == linux ]] && tox -e check-manifest
-    - tox -e pylint
+    - [[ $TRAVIS_OS_NAME == linux ]] && tox -e pylint
