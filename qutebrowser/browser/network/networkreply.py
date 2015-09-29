@@ -127,7 +127,7 @@ class ErrorNetworkReply(QNetworkReply):
         """We always have 0 bytes available."""
         return 0
 
-    def readData(self):
+    def readData(self, _maxlen):
         """No data available."""
         return bytes()
 
