@@ -451,25 +451,16 @@ class TestOsInfo:
 
     """Tests for _os_info."""
 
-    @pytest.mark.parametrize('dist, dist_str', [
-        (('x', '', 'y'), 'x, y'),
-        (('a', 'b', 'c'), 'a, b, c'),
-        (('', '', ''), ''),
-    ])
-    def test_linux_fake(self, monkeypatch, dist, dist_str):
+    def test_linux_fake(self, monkeypatch):
         """Test with a fake Linux.
 
-        Args:
-            dist: The value to set platform.dist() to.
-            dist_str: The expected distribution string in version._os_info().
+        No args because osver is set to '' if the OS is linux.
         """
         monkeypatch.setattr('qutebrowser.utils.version.sys.platform', 'linux')
         monkeypatch.setattr('qutebrowser.utils.version._release_info',
                             lambda: [('releaseinfo', 'Hello World')])
-        monkeypatch.setattr('qutebrowser.utils.version.platform.dist',
-                            lambda: dist)
         ret = version._os_info()
-        expected = ['OS Version: {}'.format(dist_str), '',
+        expected = ['OS Version: ', '',
                     '--- releaseinfo ---', 'Hello World']
         assert ret == expected
 
