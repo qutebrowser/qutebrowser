@@ -299,7 +299,8 @@ def data(readonly=False):
 
             ('window-title-format',
              SettingValue(typ.FormatString(fields=['perc', 'perc_raw', 'title',
-                                                   'title_sep', 'id', 'scroll_pos']),
+                                                   'title_sep', 'id',
+                                                   'scroll_pos']),
                           '{perc}{title}{title_sep}qutebrowser'),
              "The format to use for the window title. The following "
              "placeholders are defined:\n\n"
