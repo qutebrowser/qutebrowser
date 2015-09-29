@@ -88,6 +88,6 @@ def test_error_network_reply(qtbot, req):
     assert reply.isFinished()
     assert not reply.isRunning()
     assert reply.bytesAvailable() == 0
-    assert reply.readData() == b''
+    assert reply.readData(1) == b''
     assert reply.error() == QNetworkReply.UnknownNetworkError
     assert reply.errorString() == "This is an error"
