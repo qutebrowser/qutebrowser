@@ -587,8 +587,8 @@ class TabbedBrowser(tabwidget.TabWidget):
         if idx == self.currentIndex():
             self.update_window_title()
 
-    @pyqtSlot(int, int)
-    def on_scroll_pos_changed(self, x, y):
+    @pyqtSlot()
+    def on_scroll_pos_changed(self, *args):
         """Update tab and window title when scroll position changed."""
         self.update_window_title()
         self.update_tab_titles()
