@@ -288,6 +288,8 @@ class TabbedBrowser(tabwidget.TabWidget):
         tab.shutdown()
         self.removeTab(idx)
         tab.deleteLater()
+        self.setCurrentWidget(objreg.get('last-focused-tab', None, scope='window',
+                             window=self._win_id))
 
     def undo(self):
         """Undo removing of a tab."""
