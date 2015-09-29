@@ -42,6 +42,9 @@ from qutebrowser.utils import (message, objreg, utils, standarddir, log,
 from qutebrowser.utils.usertypes import Completion
 
 
+UNSET = object()
+
+
 class change_filter:  # pylint: disable=invalid-name
 
     """Decorator to filter calls based on a config section/option matching.
@@ -621,8 +624,12 @@ class ConfigManager(QObject):
         return existed
 
     @functools.lru_cache()
-    def get(self, sectname, optname, raw=False, transformed=True):
+    def get(self, sectname, optname, raw=False, transformed=True,
+            fallback=UNSET):
         """Get the value from a section/option.
+
+        We don't support the vars argument from configparser.get as it's not
+        hashable.
 
         Args:
             sectname: The section to get the option from.
@@ -636,13 +643,18 @@ class ConfigManager(QObject):
         if not self._initialized:
             raise Exception("get got called before initialization was "
                             "complete!")
+
         try:
             sect = self.sections[sectname]
         except KeyError:
+            if fallback is not UNSET:
+                return fallback
             raise configexc.NoSectionError(sectname)
         try:
             val = sect[optname]
         except KeyError:
+            if fallback is not UNSET:
+                return fallback
             raise configexc.NoOptionError(optname, sectname)
         if raw:
             return val.value()
