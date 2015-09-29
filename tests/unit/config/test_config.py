@@ -66,6 +66,9 @@ class TestConfigParser:
 
     def test_transformed_option_old(self):
         """Test a transformed option with the old name."""
+        # WORKAROUND
+        # Instance of 'object' has no 'name' member (no-member)
+        # pylint: disable=no-member
         self.cp.read_dict({'colors': {'tab.fg.odd': 'pink'}})
         self.cfg._from_cp(self.cp)
         actual = self.cfg.get('colors', 'tabs.fg.odd').name()
@@ -74,6 +77,9 @@ class TestConfigParser:
 
     def test_transformed_option_new(self):
         """Test a transformed section with the new name."""
+        # WORKAROUND
+        # Instance of 'object' has no 'name' member (no-member)
+        # pylint: disable=no-member
         self.cp.read_dict({'colors': {'tabs.fg.odd': 'pink'}})
         self.cfg._from_cp(self.cp)
         actual = self.cfg.get('colors', 'tabs.fg.odd').name()
@@ -153,6 +159,27 @@ class TestConfigParser:
         self.cfg._from_cp(self.cp, relaxed=True)
         with pytest.raises(configexc.NoOptionError):
             self.cfg.get('general', 'bar')  # pylint: disable=bad-config-call
+
+    def test_fallback(self):
+        """Test getting an option with fallback.
+
+        This is done during interpolation in later Python 3.4 versions.
+
+        See https://github.com/The-Compiler/qutebrowser/issues/968
+        """
+        # pylint: disable=bad-config-call
+        assert self.cfg.get('general', 'blabla', fallback='blub') == 'blub'
+
+    def test_sectionproxy(self):
+        """Test getting an option via the section proxy."""
+        self.cp.read_dict({'general': {'ignore-case': 'false'}})
+        self.cfg._from_cp(self.cp)
+        assert not self.cfg['general'].get('ignore-case')
+
+    def test_sectionproxy_keyerror(self):
+        """Test getting an inexistent option via the section proxy."""
+        with pytest.raises(configexc.NoOptionError):
+            self.cfg['general'].get('blahblahblub')
 
 
 class TestKeyConfigParser:
