@@ -162,7 +162,7 @@ def _os_info():
     lines = []
     releaseinfo = None
     if sys.platform == 'linux':
-        osver = ', '.join([e for e in platform.linux_distribution() if e])
+        osver = ''
         releaseinfo = _release_info()
     elif sys.platform == 'win32':
         osver = ', '.join(platform.win32_ver())
