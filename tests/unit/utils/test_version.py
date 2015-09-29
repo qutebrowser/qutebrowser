@@ -460,13 +460,13 @@ class TestOsInfo:
         """Test with a fake Linux.
 
         Args:
-            dist: The value to set platform.dist() to.
+            dist: The value to set platform.linux_distribution() to.
             dist_str: The expected distribution string in version._os_info().
         """
         monkeypatch.setattr('qutebrowser.utils.version.sys.platform', 'linux')
         monkeypatch.setattr('qutebrowser.utils.version._release_info',
                             lambda: [('releaseinfo', 'Hello World')])
-        monkeypatch.setattr('qutebrowser.utils.version.platform.dist',
+        monkeypatch.setattr('qutebrowser.utils.version.platform.linux_distribution',
                             lambda: dist)
         ret = version._os_info()
         expected = ['OS Version: {}'.format(dist_str), '',
