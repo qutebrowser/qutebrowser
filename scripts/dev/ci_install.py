@@ -48,7 +48,7 @@ def brew(args, silent=False):
         with open(os.devnull, 'w') as f:
             subprocess.check_call(['brew'] + args, stdout=f)
     else:
-        subprocess.check_call(['brew', '--verbose'] + args)
+        subprocess.check_call(['brew'] + args + ['--verbose'])
 
 
 def check_setup(executable):
