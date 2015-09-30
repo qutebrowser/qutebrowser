@@ -22,6 +22,11 @@ Added
 
 - New setting `ui -> hide-wayland-decoration` to hide the window decoration
   when using wayland.
+- New userscripts in `misc/userscripts`:
+    - `open_download` to easily open a file in your downloads folder.
+    - `view_in_mpv` to open a video in mpv and remove it from the page.
+- New setting `content -> host-blocking-whitelist` to whitelist certain domains
+  from the adblocker.
 
 Changed
 ~~~~~~~
@@ -29,11 +34,27 @@ Changed
 - The `colors -> tabs.bg/fg.selected` option got split into
   `tabs.bg/fg.selected.odd/even`.
 
+v0.4.1 (unreleased)
+-------------------
+
 Fixed
 ~~~~~
 
 - Adjusted AppArmor config for the IPC changes in v0.4.0.
 - Fixed atime update frequency for IPC file.
+- Worked around a Qt issue where middle-clicking caused scrolling with a
+  touchpad to restart at the beginning of the page.
+- The `completion -> web-history-max-items` setting is now also respected for
+  items added after starting qutebrowser.
+- Search terms are now shared between different tabs again
+- Tests (a reduced subset of them) now run correctly again when DISPLAY is not
+  set.
+- Fixed an issue causing qutebrowser to crash with Python 3.5 as soon as an ad
+  was blocked.
+- Fixed an issue causing qutebrowser to not start with more recent Python 3.4
+  versions (e.g. on Debian experimental).
+- Fixed a `PendingDeprecationWarning` shown with Python 3.5 in the crash
+  reporter or when opening `qute:version`
 
 v0.4.0
 ------
