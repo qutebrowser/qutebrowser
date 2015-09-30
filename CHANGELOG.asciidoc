@@ -34,8 +34,8 @@ Changed
 - The `colors -> tabs.bg/fg.selected` option got split into
   `tabs.bg/fg.selected.odd/even`.
 
-v0.4.1 (unreleased)
--------------------
+v0.4.1
+------
 
 Fixed
 ~~~~~
