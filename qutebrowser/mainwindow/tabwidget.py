@@ -120,7 +120,7 @@ class TabWidget(QTabWidget):
         else:
             scroll_pos = '{:2}%'.format(y)
 
-        fields['scroll_pos'] = str(scroll_pos)
+        fields['scroll_pos'] = scroll_pos
 
         fmt = config.get('tabs', 'title-format')
         self.tabBar().setTabText(idx, fmt.format(**fields))

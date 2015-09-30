@@ -173,7 +173,7 @@ class TabbedBrowser(tabwidget.TabWidget):
         else:
             scroll_pos = '{:2}%'.format(y)
 
-        fields['scroll_pos'] = str(scroll_pos)
+        fields['scroll_pos'] = scroll_pos
         fmt = config.get('ui', 'window-title-format')
         self.window().setWindowTitle(fmt.format(**fields))
 
