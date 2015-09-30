@@ -112,6 +112,15 @@ class TabWidget(QTabWidget):
         fields['index'] = idx + 1
         fields['id'] = widget.tab_id
         fields['title_sep'] = ' - ' if page_title else ''
+        y = widget.scroll_pos[1]
+        if y <= 0:
+            scroll_pos = 'top'
+        elif y >= 100:
+            scroll_pos = 'bot'
+        else:
+            scroll_pos = '{:2}%'.format(y)
+
+        fields['scroll_pos'] = str(scroll_pos)
 
         fmt = config.get('tabs', 'title-format')
         self.tabBar().setTabText(idx, fmt.format(**fields))
