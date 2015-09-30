@@ -428,19 +428,19 @@ def _init_modules(args, crash_handler):
 
 def _init_late_modules(args):
     """Initialize modules which can be inited after the window is shown."""
-    try:
-        log.init.debug("Reading web history...")
-        reader = objreg.get('web-history').async_read()
-        with debug.log_time(log.init, 'Reading history'):
-            while True:
-                QApplication.processEvents()
+    log.init.debug("Reading web history...")
+    reader = objreg.get('web-history').async_read()
+    with debug.log_time(log.init, 'Reading history'):
+        while True:
+            QApplication.processEvents()
+            try:
                 next(reader)
-    except StopIteration:
-        pass
-    except (OSError, UnicodeDecodeError) as e:
-        error.handle_fatal_exc(e, args, "Error while initializing!",
-                               pre_text="Error while initializing")
-        sys.exit(usertypes.Exit.err_init)
+            except StopIteration:
+                break
+            except (OSError, UnicodeDecodeError) as e:
+                error.handle_fatal_exc(e, args, "Error while initializing!",
+                                       pre_text="Error while initializing")
+                sys.exit(usertypes.Exit.err_init)
 
 
 class Quitter:
