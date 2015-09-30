@@ -152,6 +152,7 @@ Contributors, sorted by the number of commits in descending order:
 * John ShaggyTwoDope Jenkins
 * Jimmy
 * Zach-Button
+* Alexey Nabrodov
 * rikn00
 * Patric Schmitz
 * Martin Zimmermann
