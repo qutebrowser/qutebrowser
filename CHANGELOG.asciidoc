@@ -53,8 +53,7 @@ Fixed
   was blocked.
 - Fixed an issue causing qutebrowser to not start with more recent Python 3.4
   versions (e.g. on Debian experimental).
-- Fixed a `PendingDeprecationWarning` shown with Python 3.5 in the crash
-  reporter or when opening `qute:version`
+- Fixed various `PendingDeprecationWarnings` shown with Python 3.5.
 
 v0.4.0
 ------
