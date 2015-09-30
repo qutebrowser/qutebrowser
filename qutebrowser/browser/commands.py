@@ -472,6 +472,10 @@ class CommandDispatcher:
             window: Open the link in a new window.
         """
         segments = config.get('general', 'url-incdec-segments')
+        if segments is None:
+            segments = set()
+        else:
+            segments = set(segments)
         try:
             new_url = urlutils.incdec_number(url, incdec, segments=segments)
         except urlutils.IncDecError as error:

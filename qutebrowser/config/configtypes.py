@@ -260,6 +260,37 @@ class List(BaseType):
             raise configexc.ValidationError(value, "items may not be empty!")
 
 
+class FlagList(List):
+
+    """Base class for a list setting that contains one or more flags.
+
+    Lists with duplicate flags are invalid and each item is checked against
+    self.valid_values (if not empty).
+    """
+
+    def validate(self, value):
+        self._basic_validation(value)
+        if not value:
+            return
+
+        vals = self.transform(value)
+        if None in vals and not self.none_ok:
+            raise configexc.ValidationError(
+                value, "May not contain empty values!")
+
+        # Check for duplicate values
+        if len(set(vals)) != len(vals):
+            raise configexc.ValidationError(
+                value, "List contains duplicate values!")
+
+        # Check if each value is valid, ignores None values
+        set_vals = set(val for val in vals if val)
+        if (self.valid_values and self.valid_values.values and
+                not set_vals.issubset(set(self.valid_values))):
+            raise configexc.ValidationError(
+                value, "List contains invalid values!")
+
+
 class Bool(BaseType):
 
     """Base class for a boolean setting."""
@@ -1340,7 +1371,7 @@ class AcceptCookies(BaseType):
                                ('never', "Don't accept cookies at all."))
 
 
-class ConfirmQuit(List):
+class ConfirmQuit(FlagList):
 
     """Whether to display a confirmation when the window is closed."""
 
@@ -1355,18 +1386,11 @@ class ConfirmQuit(List):
     combinable_values = ('multiple-tabs', 'downloads')
 
     def validate(self, value):
-        self._basic_validation(value)
+        super().validate(value)
         if not value:
             return
-        values = []
-        for v in self.transform(value):
-            if v:
-                values.append(v)
-            elif self.none_ok:
-                pass
-            else:
-                raise configexc.ValidationError(value, "May not contain empty "
-                                                       "values!")
+        values = [x for x in self.transform(value) if x]
+
         # Never can't be set with other options
         if 'never' in values and len(values) > 1:
             raise configexc.ValidationError(
@@ -1375,14 +1399,6 @@ class ConfirmQuit(List):
         elif 'always' in values and len(values) > 1:
             raise configexc.ValidationError(
                 value, "List cannot contain always!")
-        # Values have to be valid
-        elif not set(values).issubset(set(self.valid_values.values)):
-            raise configexc.ValidationError(
-                value, "List contains invalid values!")
-        # List can't have duplicates
-        elif len(set(values)) != len(values):
-            raise configexc.ValidationError(
-                value, "List contains duplicate values!")
 
     def complete(self):
         combinations = []
@@ -1580,35 +1596,8 @@ class TabBarShow(BaseType):
                                              "tabs."))
 
 
-class URLSegmentList(List):
+class URLSegmentList(FlagList):
 
     """A list of URL segments."""
 
     valid_values = ValidValues('host', 'path', 'query', 'anchor')
-
-    def transform(self, value):
-        values = super().transform(value)
-        if values is None:
-            return set()
-        return set(values)
-
-    def validate(self, value):
-        self._basic_validation(value)
-        segments = super().transform(value)
-        if segments is None:
-            # Basic validation already checked if none_ok is True
-            return
-        faulty_segments = set(segments) - set(self.valid_values.values)
-        # faulty_segments is a set of options that are given but not valid
-        if None in faulty_segments:
-            raise configexc.ValidationError(value,
-                                            "Empty list item is not allowed")
-        if faulty_segments:
-            error_str = ("List contains invalid segments: {}"
-                         .format(', '.join(faulty_segments)))
-            raise configexc.ValidationError(value, error_str)
-
-        # Make sure there are no duplicates
-        if len(set(segments)) != len(segments):
-            raise configexc.ValidationError(value,
-                                            "List contains duplicate segments")

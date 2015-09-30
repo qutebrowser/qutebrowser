@@ -363,6 +363,56 @@ class TestList:
         assert klass().transform(val) == expected
 
 
+class FlagListSubclass(configtypes.FlagList):
+
+    """A subclass of FlagList which we use in tests.
+
+    Valid values are 'foo', 'bar' and 'baz'.
+    """
+
+    valid_values = configtypes.ValidValues('foo', 'bar', 'baz')
+
+
+class TestFlagList:
+
+    """Test FlagList."""
+
+    @pytest.fixture
+    def klass(self):
+        return FlagListSubclass
+
+    @pytest.fixture
+    def klass_valid_none(self):
+        """Return a FlagList with valid_values = None"""
+        return configtypes.FlagList
+
+    @pytest.mark.parametrize('val', ['', 'foo', 'foo,bar', 'foo,'])
+    def test_validate_valid(self, klass, val):
+        klass(none_ok=True).validate(val)
+
+    @pytest.mark.parametrize('val', ['qux', 'foo,qux', 'foo,foo'])
+    def test_validate_invalid(self, klass, val):
+        with pytest.raises(configexc.ValidationError):
+            klass(none_ok=True).validate(val)
+
+    @pytest.mark.parametrize('val', ['', 'foo,', 'foo,,bar'])
+    def test_validate_empty_value_not_okay(self, klass, val):
+        with pytest.raises(configexc.ValidationError):
+            klass(none_ok=False).validate(val)
+
+    @pytest.mark.parametrize('val, expected', [
+        ('', None),
+        ('foo', ['foo']),
+        ('foo,bar', ['foo', 'bar']),
+    ])
+    def test_transform(self, klass, val, expected):
+        assert klass().transform(val) == expected
+
+    @pytest.mark.parametrize('val', ['spam', 'spam,eggs'])
+    def test_validate_values_none(self, klass_valid_none, val):
+        klass_valid_none().validate(val)
+
+
 class TestBool:
 
     """Test Bool."""
@@ -1897,43 +1947,6 @@ class TestUserAgent:
 
     def test_transform(self, klass):
         assert klass().transform('foobar') == 'foobar'
-
-    def test_complete(self, klass):
-        """Simple smoke test for completion."""
-        klass().complete()
-
-class TestURLSegmentList:
-
-    """Test URLSegmentList."""
-
-    @pytest.fixture
-    def klass(self):
-        return configtypes.URLSegmentList
-
-    @pytest.mark.parametrize('val', [
-        '', 'host', 'path', 'query', 'anchor', 'host,path,anchor',
-    ])
-    def test_validate_valid(self, klass, val):
-        klass(none_ok=True).validate(val)
-
-    def test_validate_empty(self, klass):
-        with pytest.raises(configexc.ValidationError):
-            klass(none_ok=False).validate('')
-
-    @pytest.mark.parametrize('val', [
-        'foo', 'bar', 'foo,bar', 'host,path,foo', 'host,host', 'host,',
-    ])
-    def test_validate_invalid(self, klass, val):
-        with pytest.raises(configexc.ValidationError):
-            klass(none_ok=True).validate(val)
-
-    @pytest.mark.parametrize('val, expected', [
-        ('', set()),
-        ('path', {'path'}),
-        ('path,query', {'path', 'query'}),
-    ])
-    def test_transform(self, klass, val, expected):
-        assert klass().transform(val) == expected
 
     def test_complete(self, klass):
         """Simple smoke test for completion."""
