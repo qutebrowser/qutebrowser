@@ -1902,6 +1902,43 @@ class TestUserAgent:
         """Simple smoke test for completion."""
         klass().complete()
 
+class TestURLSegmentList:
+
+    """Test URLSegmentList."""
+
+    @pytest.fixture
+    def klass(self):
+        return configtypes.URLSegmentList
+
+    @pytest.mark.parametrize('val', [
+        '', 'host', 'path', 'query', 'anchor', 'host,path,anchor',
+    ])
+    def test_validate_valid(self, klass, val):
+        klass(none_ok=True).validate(val)
+
+    def test_validate_empty(self, klass):
+        with pytest.raises(configexc.ValidationError):
+            klass(none_ok=False).validate('')
+
+    @pytest.mark.parametrize('val', [
+        'foo', 'bar', 'foo,bar', 'host,path,foo', 'host,host'
+    ])
+    def test_validate_invalid(self, klass, val):
+        with pytest.raises(configexc.ValidationError):
+            klass(none_ok=True).validate(val)
+
+    @pytest.mark.parametrize('val, expected', [
+        ('', set()),
+        ('path', {'path'}),
+        ('path,query', {'path', 'query'}),
+    ])
+    def test_transform(self, klass, val, expected):
+        assert klass().transform(val) == expected
+
+    def test_complete(self, klass):
+        """Simple smoke test for completion."""
+        klass().complete()
+
 
 @pytest.mark.parametrize('first, second, equal', [
     (re.compile('foo'), RegexEq('foo'), True),

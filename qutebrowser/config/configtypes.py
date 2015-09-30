@@ -1578,3 +1578,37 @@ class TabBarShow(BaseType):
                                             "is open."),
                                ('switching', "Show the tab bar when switching "
                                              "tabs."))
+
+
+class URLSegmentList(List):
+
+    """A list of URL segments."""
+
+    valid_values = ValidValues('host', 'path', 'query', 'anchor')
+
+    def transform(self, value):
+        values = super().transform(value)
+        if values is None:
+            return set()
+        return set(values)
+
+    def validate(self, value):
+        self._basic_validation(value)
+        segments = super().transform(value)
+        if segments is None:
+            # Basic validation already checked if none_ok is True
+            return
+        faulty_segments = set(segments) - set(self.valid_values.values)
+        # faulty_segments is a set of options that are given but not valid
+        if None in faulty_segments:
+            raise configexc.ValidationError(value,
+                                            "Empty list item is not allowed")
+        if faulty_segments:
+            error_str = ("List contains invalid segments: {}"
+                         .format(', '.join(faulty_segments)))
+            raise configexc.ValidationError(value, error_str)
+
+        # Make sure there are no duplicates
+        if len(set(segments)) != len(segments):
+            raise configexc.ValidationError(value,
+                                            "List contains duplicate segments")

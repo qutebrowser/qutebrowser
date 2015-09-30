@@ -531,22 +531,36 @@ class TestIncDecNumber:
 
     """Tests for urlutils.incdec_number()."""
 
-    @pytest.mark.parametrize('url, incdec, output', [
-        ("http://example.com/index1.html", "increment", "http://example.com/index2.html"),
-        ("http://foo.bar/folder_1/image_2", "increment", "http://foo.bar/folder_1/image_3"),
-        ("http://bbc.c0.uk:80/story_1", "increment", "http://bbc.c0.uk:80/story_2"),
-        ("http://mydomain.tld/1_%C3%A4", "increment", "http://mydomain.tld/2_%C3%A4"),
-        ("http://example.com/site/5#5", "increment", "http://example.com/site/6#5"),
+    @pytest.mark.parametrize('url, incdec, output, segments', [
+        ("http://example.com/index1.html", "increment",
+         "http://example.com/index2.html", {'path'}),
+        ("http://foo.bar/folder_1/image_2", "increment",
+         "http://foo.bar/folder_1/image_3", {'path'}),
+        ("http://bbc.c0.uk:80/story_1", "increment",
+         "http://bbc.c0.uk:80/story_2", {'path'}),
+        ("http://mydomain.tld/1_%C3%A4", "increment",
+         "http://mydomain.tld/2_%C3%A4", {'path'}),
+        ("http://example.com/site/5#5", "increment",
+         "http://example.com/site/6#5", {'path'}),
+        ("http://example.com/site/1#1", "increment",
+         "http://example.com/site/1#2", {'path', 'anchor'}),
+        ("http://example.com/site/1?page=2#3", "increment",
+         "http://example.com/site/1?page=3#3", {'path', 'query'}),
 
-        ("http://example.com/index10.html", "decrement", "http://example.com/index9.html"),
-        ("http://foo.bar/folder_1/image_3", "decrement", "http://foo.bar/folder_1/image_2"),
-        ("http://bbc.c0.uk:80/story_1", "decrement", "http://bbc.c0.uk:80/story_0"),
-        ("http://mydomain.tld/2_%C3%A4", "decrement", "http://mydomain.tld/1_%C3%A4"),
-        ("http://example.com/site/5#5", "decrement", "http://example.com/site/4#5"),
+        ("http://example.com/index10.html", "decrement",
+         "http://example.com/index9.html", {'path'}),
+        ("http://foo.bar/folder_1/image_3", "decrement",
+         "http://foo.bar/folder_1/image_2", {'path'}),
+        ("http://bbc.c0.uk:80/story_1", "decrement",
+         "http://bbc.c0.uk:80/story_0", {'path'}),
+        ("http://mydomain.tld/2_%C3%A4", "decrement",
+         "http://mydomain.tld/1_%C3%A4", {'path'}),
+        ("http://example.com/site/5#5", "decrement",
+         "http://example.com/site/4#5", {'path'}),
     ])
-    def test_incdec_number(self, url, incdec, output):
+    def test_incdec_number(self, url, incdec, output, segments):
         """Test incdec_number with valid URLs."""
-        new_url = urlutils.incdec_number(QUrl(url), incdec)
+        new_url = urlutils.incdec_number(QUrl(url), incdec, segments=segments)
         assert new_url == QUrl(output)
 
     @pytest.mark.parametrize('url', [
@@ -581,6 +595,12 @@ class TestIncDecNumber:
         valid_url = QUrl("http://example.com/0")
         with pytest.raises(ValueError):
             urlutils.incdec_number(valid_url, "foobar")
+
+    def test_wrong_segment(self):
+        """Test if incdec_number rejects a wrong segment"""
+        with pytest.raises(urlutils.IncDecError):
+            urlutils.incdec_number(QUrl('http://example.com'),
+                                   'increment', segments={'foobar'})
 
     @pytest.mark.parametrize("url, msg, expected_str", [
         ("http://example.com", "Invalid", "Invalid: http://example.com"),
