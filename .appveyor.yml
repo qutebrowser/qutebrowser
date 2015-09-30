@@ -14,5 +14,4 @@ test_script:
   - C:\Python34\Scripts\tox -e py34
   - C:\Python34\Scripts\tox -e py34-integration
   - C:\Python34\Scripts\tox -e unittests-frozen
-  - C:\Python34\Scripts\tox -e smoke-frozen
   - C:\Python34\Scripts\tox -e pylint

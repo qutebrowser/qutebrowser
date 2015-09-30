@@ -1,4 +1,5 @@
-dist: trusty
+# So we get Ubuntu Trusty - using "dist: trusty" breaks OS X.
+services: docker
 
 os:
   - linux
@@ -12,22 +13,21 @@ cache:
     - $HOME/.cache/pip
     - $HOME/build/The-Compiler/qutebrowser/.cache
 
+env:
+  - PATH=/home/travis/bin:/home/travis/.local/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
+
+
 install:
   - python scripts/dev/ci_install.py
 
 script:
     - xvfb-run -s "-screen 0 640x480x16" tox -e py34,py34-integration
-    - tox -e misc
-    - tox -e pep257
-    - tox -e pyflakes
-    - tox -e pep8
-    - tox -e mccabe
-    - tox -e pylint
-    - tox -e pyroma
-    - tox -e check-manifest
-
-# Travis bug - OS X builds get routed to Ubuntu Trusty if "dist: trusty" is
-# given.
-matrix:
-  allow_failures:
-    - os: osx
+    - '[[ $TRAVIS_OS_NAME == linux ]] && tox -e unittests-nodisp || true'
+    - '[[ $TRAVIS_OS_NAME == linux ]] && tox -e misc || true'
+    - '[[ $TRAVIS_OS_NAME == linux ]] && tox -e pep257 || true'
+    - '[[ $TRAVIS_OS_NAME == linux ]] && tox -e pyflakes || true'
+    - '[[ $TRAVIS_OS_NAME == linux ]] && tox -e pep8 || true'
+    - '[[ $TRAVIS_OS_NAME == linux ]] && tox -e mccabe || true'
+    - '[[ $TRAVIS_OS_NAME == linux ]] && tox -e pyroma || true'
+    - '[[ $TRAVIS_OS_NAME == linux ]] && tox -e check-manifest || true'
+    - '[[ $TRAVIS_OS_NAME == linux ]] && tox -e pylint || true'
