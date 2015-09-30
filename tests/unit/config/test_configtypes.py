@@ -1921,7 +1921,7 @@ class TestURLSegmentList:
             klass(none_ok=False).validate('')
 
     @pytest.mark.parametrize('val', [
-        'foo', 'bar', 'foo,bar', 'host,path,foo', 'host,host'
+        'foo', 'bar', 'foo,bar', 'host,path,foo', 'host,host', 'host,',
     ])
     def test_validate_invalid(self, klass, val):
         with pytest.raises(configexc.ValidationError):
