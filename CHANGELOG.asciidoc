@@ -27,6 +27,8 @@ Added
     - `view_in_mpv` to open a video in mpv and remove it from the page.
 - New setting `content -> host-blocking-whitelist` to whitelist certain domains
   from the adblocker.
+- `{scroll_pos}` can now be used in `ui -> window-title-format` and
+  `tabs -> title-format`.
 
 Changed
 ~~~~~~~
