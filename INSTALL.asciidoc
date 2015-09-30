@@ -57,7 +57,7 @@ To generate the documentation for the `:help` command, when using the git
 repository (rather than a release):
 
 ----
-# apt-get install asciidoc
+# apt-get install asciidoc source-highlight
 $ python3 scripts/asciidoc2html.py
 ----
 
@@ -83,7 +83,7 @@ To generate the documentation for the `:help` command, when using the git
 repository (rather than a release):
 
 ----
-# dnf install asciidoc
+# dnf install asciidoc source-highlight
 $ python3 scripts/asciidoc2html.py
 ----
 
