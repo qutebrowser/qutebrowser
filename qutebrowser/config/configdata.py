@@ -409,10 +409,6 @@ def data(readonly=False):
              "Whether to shrink the completion to be smaller than the "
              "configured size if there are no scrollbars."),
 
-            ('match-type',
-             SettingValue(typ.MatchType(), 'contain'),
-             "Completion matching type"),
-
             readonly=readonly
         )),
 
