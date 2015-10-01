@@ -27,6 +27,7 @@ import collections
 import itertools
 import logging
 import textwrap
+import warnings
 
 import pytest
 
@@ -309,3 +310,10 @@ def py_proc():
     def func(code):
         return (sys.executable, ['-c', textwrap.dedent(code.strip('\n'))])
     return func
+
+
+@pytest.yield_fixture(autouse=True)
+def fail_tests_on_warnings():
+    warnings.simplefilter('error')
+    yield
+    warnings.resetwarnings()
