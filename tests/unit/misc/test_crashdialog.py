@@ -81,37 +81,24 @@ class TestParseFatalStacktrace:
         assert (typ, func) == ('', '')
 
 
-class TestCrashDialog:
-
-    """Tests for crashdialog."""
-
-    @classmethod
-    def setup_class(cls):
-        """Clear env."""
-        cls.env = os.environ.copy()
-        os.environ = {}
-
-    @classmethod
-    def teardown_class(cls):
-        """Restore env."""
-        os.environ = cls.env.copy()
-
-    @pytest.mark.parametrize('env, expected', [
-        ({'FOO': 'bar'}, ""),
-        ({'FOO': 'bar', 'LC_ALL': 'baz'}, "LC_ALL = baz"),
-        ({'LC_ALL': 'baz', 'PYTHONFOO': 'fish'}, "LC_ALL = baz\nPYTHONFOO = fish"),
-        (
-            {'DE': 'KDE', 'DESKTOP_SESSION': 'plasma'},
-            "DE = KDE\nDESKTOP_SESSION = plasma"
-        ),
-        (
-            {'QT5_IM_MODULE': 'fcitx', 'QT_IM_MODULE': 'fcitx'},
-            "QT_IM_MODULE = fcitx"
-        ),
-        ({'LANGUAGE': 'foo', 'LANG': 'en_US.UTF-8'}, "LANG = en_US.UTF-8"),
-    ])
-    def test_get_environment_vars(self, monkeypatch, env, expected):
-        """Test for crashdialog._get_environment_vars."""
-        for k, v in env.items():
-            monkeypatch.setenv(k, v)
-        assert crashdialog._get_environment_vars() == expected
+@pytest.mark.parametrize('env, expected', [
+    ({'FOO': 'bar'}, ""),
+    ({'FOO': 'bar', 'LC_ALL': 'baz'}, "LC_ALL = baz"),
+    ({'LC_ALL': 'baz', 'PYTHONFOO': 'fish'}, "LC_ALL = baz\nPYTHONFOO = fish"),
+    (
+        {'DE': 'KDE', 'DESKTOP_SESSION': 'plasma'},
+        "DE = KDE\nDESKTOP_SESSION = plasma"
+    ),
+    (
+        {'QT5_IM_MODULE': 'fcitx', 'QT_IM_MODULE': 'fcitx'},
+        "QT_IM_MODULE = fcitx"
+    ),
+    ({'LANGUAGE': 'foo', 'LANG': 'en_US.UTF-8'}, "LANG = en_US.UTF-8"),
+])
+def test_get_environment_vars(monkeypatch, env, expected):
+    """Test for crashdialog._get_environment_vars."""
+    for key in os.environ.copy():
+        monkeypatch.delenv(key)
+    for k, v in env.items():
+        monkeypatch.setenv(k, v)
+    assert crashdialog._get_environment_vars() == expected
