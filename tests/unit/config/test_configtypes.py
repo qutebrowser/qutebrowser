@@ -1092,10 +1092,27 @@ class TestRegex:
         Warning('foo'), DeprecationWarning('foo'),
     ])
     def test_passed_warnings(self, mocker, klass, warning):
+        """Simulate re.compile showing a warning we don't know about yet.
+
+        The warning should be passed.
+        """
         m = mocker.patch('qutebrowser.config.configtypes.re')
         m.compile.side_effect = lambda *args: warnings.warn(warning)
         m.error = re.error
         with pytest.raises(type(warning)):
+            klass().validate('foo')
+
+    def test_bad_pattern_warning(self, mocker, klass):
+        """Test a simulated bad pattern warning.
+
+        This only seems to happen with Python 3.5, so we simulate this for
+        better coverage.
+        """
+        m = mocker.patch('qutebrowser.config.configtypes.re')
+        m.compile.side_effect = lambda *args: warnings.warn(r'bad escape \C',
+                                                            DeprecationWarning)
+        m.error = re.error
+        with pytest.raises(configexc.ValidationError):
             klass().validate('foo')
 
 

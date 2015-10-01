@@ -46,6 +46,12 @@ BOOLEAN_STATES = {'1': True, 'yes': True, 'true': True, 'on': True,
 
 
 def _validate_regex(pattern, flags):
+    """Check if the given regex is valid.
+
+    This is more complicated than it could be since there's a warning on
+    invalid escapes with newer Python versions, and we want to catch that case
+    and treat it as invalid.
+    """
     with warnings.catch_warnings(record=True) as recorded_warnings:
         warnings.simplefilter('always')
         try:
