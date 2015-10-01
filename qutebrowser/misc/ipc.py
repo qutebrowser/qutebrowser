@@ -226,7 +226,7 @@ class IPCServer(QObject):
                 # This happens a lot on Windows, so we ignore it there.
                 log.ipc.debug(msg)
             else:
-                log.ipc.warn(msg)
+                log.ipc.warning(msg)
             return
         self._timer.stop()
         log.ipc.debug("Socket error {}: {}".format(
@@ -270,7 +270,7 @@ class IPCServer(QObject):
         log.ipc.debug("Client disconnected.")
         self._timer.stop()
         if self._socket is None:
-            log.ipc.warn("In on_disconnected with None socket!")
+            log.ipc.warning("In on_disconnected with None socket!")
         else:
             self._socket.deleteLater()
             self._socket = None
@@ -290,7 +290,7 @@ class IPCServer(QObject):
         if self._socket is None:
             # This happens when doing a connection while another one is already
             # active for some reason.
-            log.ipc.warn("In on_ready_read with None socket!")
+            log.ipc.warning("In on_ready_read with None socket!")
             return
         self._timer.start()
         while self._socket is not None and self._socket.canReadLine():
