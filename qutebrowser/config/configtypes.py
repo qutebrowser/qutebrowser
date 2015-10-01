@@ -285,7 +285,7 @@ class FlagList(List):
 
         # Check if each value is valid, ignores None values
         set_vals = set(val for val in vals if val)
-        if (self.valid_values and self.valid_values.values and
+        if (self.valid_values is not None and
                 not set_vals.issubset(set(self.valid_values))):
             raise configexc.ValidationError(
                 value, "List contains invalid values!")
