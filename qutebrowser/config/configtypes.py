@@ -24,7 +24,6 @@ import shlex
 import base64
 import codecs
 import os.path
-import sre_constants
 import itertools
 import collections
 
@@ -43,6 +42,14 @@ SYSTEM_PROXY = object()  # Return value for Proxy type
 # Taken from configparser
 BOOLEAN_STATES = {'1': True, 'yes': True, 'true': True, 'on': True,
                   '0': False, 'no': False, 'false': False, 'off': False}
+
+
+def _validate_regex(pattern, flags):
+    try:
+        re.compile(pattern, flags)
+    except re.error as e:
+        raise configexc.ValidationError(pattern, "must be a valid regex - " +
+                                        str(e))
 
 
 class ValidValues:
@@ -751,11 +758,7 @@ class Regex(BaseType):
         self._basic_validation(value)
         if not value:
             return
-        try:
-            re.compile(value, self.flags)
-        except sre_constants.error as e:
-            raise configexc.ValidationError(value, "must be a valid regex - " +
-                                            str(e))
+        _validate_regex(value, self.flags)
 
     def transform(self, value):
         if not value:
@@ -783,13 +786,15 @@ class RegexList(List):
         self._basic_validation(value)
         if not value:
             return
-        try:
-            vals = self.transform(value)
-        except sre_constants.error as e:
-            raise configexc.ValidationError(value, "must be a list valid "
-                                            "regexes - " + str(e))
-        if not self.none_ok and None in vals:
-            raise configexc.ValidationError(value, "items may not be empty!")
+        vals = super().transform(value)
+
+        for val in vals:
+            if val is None:
+                if not self.none_ok:
+                    raise configexc.ValidationError(
+                        value, "items may not be empty!")
+            else:
+                _validate_regex(val, self.flags)
 
 
 class File(BaseType):
