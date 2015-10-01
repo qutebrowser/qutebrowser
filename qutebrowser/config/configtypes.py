@@ -26,6 +26,7 @@ import codecs
 import os.path
 import itertools
 import collections
+import warnings
 
 from PyQt5.QtCore import QUrl
 from PyQt5.QtGui import QColor, QFont
@@ -45,11 +46,21 @@ BOOLEAN_STATES = {'1': True, 'yes': True, 'true': True, 'on': True,
 
 
 def _validate_regex(pattern, flags):
-    try:
-        re.compile(pattern, flags)
-    except re.error as e:
-        raise configexc.ValidationError(pattern, "must be a valid regex - " +
-                                        str(e))
+    with warnings.catch_warnings(record=True) as recorded_warnings:
+        warnings.simplefilter('always')
+        try:
+            re.compile(pattern, flags)
+        except re.error as e:
+            raise configexc.ValidationError(
+                pattern, "must be a valid regex - " + str(e))
+
+    for w in recorded_warnings:
+        if (issubclass(w.category, DeprecationWarning) and
+                str(w.message).startswith('bad escape')):
+            raise configexc.ValidationError(
+                pattern, "must be a valid regex - " + str(w.message))
+        else:
+            warnings.warn(w.message)
 
 
 class ValidValues:

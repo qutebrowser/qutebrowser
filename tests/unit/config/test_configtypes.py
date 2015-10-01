@@ -23,6 +23,7 @@ import collections
 import itertools
 import os.path
 import base64
+import warnings
 
 import pytest
 from PyQt5.QtCore import QUrl
@@ -1064,12 +1065,38 @@ class TestRegex:
         with pytest.raises(configexc.ValidationError):
             klass().validate(val)
 
+    @pytest.mark.parametrize('val', [
+        r'foo\Xbar',
+        r'foo\Cbar',
+    ])
+    def test_validate_maybe_valid(self, klass, val):
+        """Those values are valid on some Python versions (and systems?).
+
+        On others, they raise a DeprecationWarning because of an invalid
+        escape. This tests makes sure this gets translated to a
+        ValidationError.
+        """
+        try:
+            klass().validate(val)
+        except configexc.ValidationError:
+            pass
+
     @pytest.mark.parametrize('val, expected', [
         (r'foobar', RegexEq(r'foobar')),
         ('', None),
     ])
     def test_transform_empty(self, klass, val, expected):
         assert klass().transform(val) == expected
+
+    @pytest.mark.parametrize('warning', [
+        Warning('foo'), DeprecationWarning('foo'),
+    ])
+    def test_passed_warnings(self, mocker, klass, warning):
+        m = mocker.patch('qutebrowser.config.configtypes.re')
+        m.compile.side_effect = lambda *args: warnings.warn(warning)
+        m.error = re.error
+        with pytest.raises(type(warning)):
+            klass().validate('foo')
 
 
 class TestRegexList:
@@ -1096,6 +1123,22 @@ class TestRegexList:
     def test_validate_invalid(self, klass, val):
         with pytest.raises(configexc.ValidationError):
             klass().validate(val)
+
+    @pytest.mark.parametrize('val', [
+        r'foo\Xbar',
+        r'foo\Cbar',
+    ])
+    def test_validate_maybe_valid(self, klass, val):
+        """Those values are valid on some Python versions (and systems?).
+
+        On others, they raise a DeprecationWarning because of an invalid
+        escape. This tests makes sure this gets translated to a
+        ValidationError.
+        """
+        try:
+            klass().validate(val)
+        except configexc.ValidationError:
+            pass
 
     @pytest.mark.parametrize('val, expected', [
         ('foo', [RegexEq('foo')]),
