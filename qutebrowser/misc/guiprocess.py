@@ -151,3 +151,6 @@ class GUIProcess(QObject):
         else:
             message.error(self._win_id, "Error while spawning {}: {}.".format(
                           self._what, self._proc.error()), immediately=True)
+
+    def exit_status(self):
+        return self._proc.exitStatus()
