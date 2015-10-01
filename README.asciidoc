@@ -147,12 +147,12 @@ Contributors, sorted by the number of commits in descending order:
 * Artur Shaik
 * Daniel
 * Thorsten Wißmann
+* Alexey "Averrin" Nabrodov
 * ZDarian
 * Peter Vilim
 * John ShaggyTwoDope Jenkins
 * Jimmy
 * Zach-Button
-* Alexey Nabrodov
 * rikn00
 * Patric Schmitz
 * Martin Zimmermann
@@ -179,7 +179,6 @@ Contributors, sorted by the number of commits in descending order:
 * HalosGhost
 * Gregor Pohl
 * Eivind Uggedal
-* Averrin
 * Arseniy Seroka
 * Andy Balaam
 * Andreas Fischer
