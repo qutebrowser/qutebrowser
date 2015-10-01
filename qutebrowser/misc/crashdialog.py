@@ -20,6 +20,7 @@
 """The dialog which gets shown when qutebrowser crashes."""
 
 import re
+import os
 import sys
 import html
 import getpass
@@ -234,6 +235,11 @@ class _CrashDialog(QDialog):
             self._crash_info.append(("Config", conf.dump_userconfig()))
         except Exception:
             self._crash_info.append(("Config", traceback.format_exc()))
+        masks = ('DESKTOP_SESSION', 'DE', 'QT_.*', 'PYTHON.*', 'LC_.*', 'LANG')
+        for key, value in os.environ.items():
+            for m in masks:
+                if re.match(m, key) is not None:
+                    self._crash_info.append((key, value))
 
     def _set_crash_info(self):
         """Set/update the crash info."""
