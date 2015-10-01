@@ -25,6 +25,6 @@ def test_qapp_name(qapp):
     assert qapp.applicationName() == 'qute_test'
 
 
-def test_foo(request):
+def test_no_qapp(request):
     """Make sure a test without qapp doesn't use qapp (via autouse)."""
     assert 'qapp' not in request.fixturenames
