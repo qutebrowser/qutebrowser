@@ -181,6 +181,7 @@ Contributors, sorted by the number of commits in descending order:
 * Eivind Uggedal
 * Averrin
 * Arseniy Seroka
+* Andy Balaam
 * Andreas Fischer
 // QUTE_AUTHORS_END
 
