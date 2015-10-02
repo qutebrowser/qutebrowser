@@ -343,10 +343,10 @@ class IPCServer(QObject):
         """Cancel the current connection if it was idle for too long."""
         log.ipc.error("IPC connection timed out.")
         self._socket.disconnectFromServer()
-        if self._socket is not None:  # pragma: no branch
+        if self._socket is not None:  # pragma: no cover
             # on_socket_disconnected sets it to None
             self._socket.waitForDisconnected(CONNECT_TIMEOUT)
-        if self._socket is not None:  # pragma: no branch
+        if self._socket is not None:  # pragma: no cover
             # on_socket_disconnected sets it to None
             self._socket.abort()
 
