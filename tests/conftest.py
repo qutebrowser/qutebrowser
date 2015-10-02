@@ -57,7 +57,7 @@ def _apply_platform_markers(item):
 
     for searched_marker, condition, default_reason in markers:
         marker = item.get_marker(searched_marker)
-        if not marker:
+        if not marker or not condition:
             continue
 
         if 'reason' in marker.kwargs:
