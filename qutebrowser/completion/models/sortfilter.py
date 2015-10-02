@@ -163,7 +163,7 @@ class CompletionFilterModel(QSortFilterProxyModel):
     def _match_fuzzy(self, data):
         """Matcher for 'fuzzy' matching type logic."""
         data = data.casefold()
-        pattern = self.pattern.casefold()
+        pattern = re.escape(self.pattern.casefold())
         last_index = 0
         for char in pattern:
             if char not in data:

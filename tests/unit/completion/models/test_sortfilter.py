@@ -46,6 +46,7 @@ from qutebrowser.completion.models import base, sortfilter
     ('fuzzy', '14', 'bar1234Foobar', True),
     ('fuzzy', '14', 'bar3Foobar', False),
     ('fuzzy', 'ab', 'boneatwo', False),
+    ('fuzzy', '/?', 'http://00hta.com', False),
 
     ('start', 'foo', 'foobar', True),
     ('start', '1oo', '1oobar', True),
