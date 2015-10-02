@@ -546,12 +546,12 @@ class TestIncDecNumber:
         """Test incdec_number with valid URLs."""
         # The integer used should not affect test output, as long as it's
         # bigger than 1
-        # 4 was chosen by dice roll, guaranteed to be random
-        base_value = value.format(4)
+        # 20 was chosen by dice roll, guaranteed to be random
+        base_value = value.format(20)
         if incdec == 'increment':
-            expected_value = value.format(5)
+            expected_value = value.format(21)
         else:
-            expected_value = value.format(3)
+            expected_value = value.format(19)
 
         base_url = QUrl(url.format(base_value))
         expected_url = QUrl(url.format(expected_value))
