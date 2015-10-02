@@ -449,5 +449,6 @@ def start_download_checked(dest):
     q.text = "{} exists. Overwrite?".format(dest)
     q.completed.connect(q.deleteLater)
     q.answered_yes.connect(functools.partial(start_download, dest))
-    message_bridge = objreg.get('message-bridge', scope='window', window='current')
+    message_bridge = objreg.get('message-bridge', scope='window',
+                                window='current')
     message_bridge.ask(q, blocking=False)
