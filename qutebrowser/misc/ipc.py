@@ -35,7 +35,7 @@ from qutebrowser.utils import (log, usertypes, error, objreg, standarddir,
                                qtutils)
 
 
-CONNECT_TIMEOUT = 100
+CONNECT_TIMEOUT = 100  # timeout for connecting/disconnecting
 WRITE_TIMEOUT = 1000
 READ_TIMEOUT = 5000
 ATIME_INTERVAL = 60 * 60 * 6 * 1000  # 6 hours
@@ -345,7 +345,7 @@ class IPCServer(QObject):
         self._socket.disconnectFromServer()
         if self._socket is not None:  # pragma: no branch
             # on_socket_disconnected sets it to None
-            self._socket.waitForDisconnected(100)
+            self._socket.waitForDisconnected(CONNECT_TIMEOUT)
         if self._socket is not None:  # pragma: no branch
             # on_socket_disconnected sets it to None
             self._socket.abort()
@@ -414,7 +414,7 @@ def _has_legacy_server(name):
 
     socket.disconnectFromServer()
     if socket.state() != QLocalSocket.UnconnectedState:
-        socket.waitForDisconnected(100)
+        socket.waitForDisconnected(CONNECT_TIMEOUT)
     return False
 
 
@@ -445,7 +445,7 @@ def send_to_running_instance(socketname, command, *, legacy_name=None,
     log.ipc.debug("Connecting to {}".format(name_to_use))
     socket.connectToServer(name_to_use)
 
-    connected = socket.waitForConnected(100)
+    connected = socket.waitForConnected(CONNECT_TIMEOUT)
     if connected:
         log.ipc.info("Opening in existing instance")
         json_data = {'args': command, 'version': qutebrowser.__version__,
@@ -466,7 +466,7 @@ def send_to_running_instance(socketname, command, *, legacy_name=None,
         else:
             socket.disconnectFromServer()
             if socket.state() != QLocalSocket.UnconnectedState:
-                socket.waitForDisconnected(100)
+                socket.waitForDisconnected(CONNECT_TIMEOUT)
             return True
     else:
         if socket.error() not in (QLocalSocket.ConnectionRefusedError,
