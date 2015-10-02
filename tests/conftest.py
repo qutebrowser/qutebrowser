@@ -89,6 +89,7 @@ def pytest_runtest_setup(item):
         ('windows', os.name != 'nt', "Requires Windows"),
         ('linux', not sys.platform.startswith('linux'), "Requires Linux"),
         ('osx', sys.platform != 'darwin', "Requires OS X"),
+        ('not_osx', sys.platform == 'darwin', "Skipped on OS X"),
         ('not_frozen', getattr(sys, 'frozen', False),
             "Can't be run when frozen"),
         ('frozen', not getattr(sys, 'frozen', False),
