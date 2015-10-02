@@ -536,11 +536,11 @@ class TestIncDecNumber:
         '{}foo', 'foo{}', 'foo{}bar', '42foo{}'
     ])
     @pytest.mark.parametrize('url', [
-        'http://example.com/v1/path/{}/test',
-        'http://example.com/v1/query_test?value={}',
-        'http://example.com/v1/anchor_test#{}',
-        'http://host_{}_test.com',
-        'http://m4ny.c0m/number5/3very?where=yes#{}'
+        'http://example.com:80/v1/path/{}/test',
+        'http://example.com:80/v1/query_test?value={}',
+        'http://example.com:80/v1/anchor_test#{}',
+        'http://host_{}_test.com:80',
+        'http://m4ny.c0m:80/number5/3very?where=yes#{}'
     ])
     def test_incdec_number(self, incdec, value, url):
         """Test incdec_number with valid URLs."""
