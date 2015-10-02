@@ -179,16 +179,25 @@ class TestGitStrSubprocess:
         """
         def _git(*args):
             """Helper closure to call git."""
-            env = {
+            env = os.environ.copy()
+            env.update({
                 'GIT_AUTHOR_NAME': 'qutebrowser testsuite',
                 'GIT_AUTHOR_EMAIL': 'mail@qutebrowser.org',
                 'GIT_AUTHOR_DATE': 'Thu  1 Jan 01:00:00 CET 1970',
                 'GIT_COMMITTER_NAME': 'qutebrowser testsuite',
                 'GIT_COMMITTER_EMAIL': 'mail@qutebrowser.org',
                 'GIT_COMMITTER_DATE': 'Thu  1 Jan 01:00:00 CET 1970',
-            }
-            subprocess.check_call(['git', '-C', str(tmpdir)] + list(args),
-                                  env=env)
+            })
+            if os.name == 'nt':
+                # If we don't call this with shell=True it might fail under
+                # some environments on Windows...
+                # http://bugs.python.org/issue24493
+                subprocess.check_call(
+                    'git -C "{}" {}'.format(tmpdir, ' '.join(args)),
+                    env=env, shell=True)
+            else:
+                subprocess.check_call(
+                    ['git', '-C', str(tmpdir)] + list(args), env=env)
 
         (tmpdir / 'file').write_text("Hello World!", encoding='utf-8')
         _git('init')
