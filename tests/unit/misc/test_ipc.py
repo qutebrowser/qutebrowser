@@ -818,7 +818,7 @@ class TestSendOrListen:
         ]
         assert records[0].msg == '\n'.join(error_msgs)
 
-    @pytest.mark.posix("Flaky on Windows")
+    @pytest.mark.posix(reason="Flaky on Windows")
     def test_error_while_listening(self, qlocalserver_mock, caplog, args):
         """Test an error with the first listen call."""
         qlocalserver_mock().listen.return_value = False

@@ -41,15 +41,51 @@ from qutebrowser.utils import objreg
 from PyQt5.QtNetwork import QNetworkCookieJar
 
 
-def pytest_collection_modifyitems(items):
-    """Automatically add a 'gui' marker to all gui-related tests.
+def _apply_platform_markers(item):
+    """Apply a skip marker to a given item."""
+    markers = [
+        ('posix', os.name != 'posix', "Requires a POSIX os"),
+        ('windows', os.name != 'nt', "Requires Windows"),
+        ('linux', not sys.platform.startswith('linux'), "Requires Linux"),
+        ('osx', sys.platform != 'darwin', "Requires OS X"),
+        ('not_osx', sys.platform == 'darwin', "Skipped on OS X"),
+        ('not_frozen', getattr(sys, 'frozen', False),
+            "Can't be run when frozen"),
+        ('frozen', not getattr(sys, 'frozen', False),
+            "Can only run when frozen"),
+    ]
 
-    pytest hook called after collection has been performed, adds a marker
-    named "gui" which can be used to filter gui tests from the command line.
+    for searched_marker, condition, default_reason in markers:
+        marker = item.get_marker(searched_marker)
+        if not marker:
+            continue
+
+        if 'reason' in marker.kwargs:
+            reason = '{}: {}'.format(default_reason,
+                                        marker.kwargs['reason'])
+            del marker.kwargs['reason']
+        else:
+            reason = default_reason + '.'
+        skipif_marker = pytest.mark.skipif(condition, *marker.args,
+                                           reason=reason, **marker.kwargs)
+        item.add_marker(skipif_marker)
+
+
+def pytest_collection_modifyitems(items):
+    """Handle custom markers.
+
+    pytest hook called after collection has been performed.
+
+    Adds a marker named "gui" which can be used to filter gui tests from the
+    command line.
+
     For example:
 
         py.test -m "not gui"  # run all tests except gui tests
         py.test -m "gui"  # run only gui tests
+
+    It also handles the platform specific markers by translating them to skipif
+    markers.
 
     Args:
         items: list of _pytest.main.Node items, where each item represents
@@ -78,35 +114,7 @@ def pytest_collection_modifyitems(items):
             if module_root_dir == 'integration':
                 item.add_marker(pytest.mark.integration)
 
-
-def pytest_runtest_setup(item):
-    """Add some custom markers."""
-    if not isinstance(item, item.Function):
-        return
-
-    markers = [
-        ('posix', os.name != 'posix', "Requires a POSIX os"),
-        ('windows', os.name != 'nt', "Requires Windows"),
-        ('linux', not sys.platform.startswith('linux'), "Requires Linux"),
-        ('osx', sys.platform != 'darwin', "Requires OS X"),
-        ('not_osx', sys.platform == 'darwin', "Skipped on OS X"),
-        ('not_frozen', getattr(sys, 'frozen', False),
-            "Can't be run when frozen"),
-        ('frozen', not getattr(sys, 'frozen', False),
-            "Can only run when frozen"),
-    ]
-
-    for searched_marker, condition, default_reason in markers:
-        marker = item.get_marker(searched_marker)
-        if marker and condition:
-            assert not marker.args
-            assert set(marker.kwargs).issubset({'reason'})
-            if 'reason' in marker.kwargs:
-                reason = '{}: {}'.format(default_reason,
-                                         marker.kwargs['reason'])
-            else:
-                reason = default_reason + '.'
-            pytest.skip(reason)
+        _apply_platform_markers(item)
 
 
 @pytest.fixture(scope='session')
