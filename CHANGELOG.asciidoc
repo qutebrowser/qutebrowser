@@ -36,6 +36,11 @@ Changed
 - The `colors -> tabs.bg/fg.selected` option got split into
   `tabs.bg/fg.selected.odd/even`.
 
+Fixed
+~~~~~
+
+- Fixed displaying of web history if `web-history-max-items` is set to -1.
+
 v0.4.1
 ------
 

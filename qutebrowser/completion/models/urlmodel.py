@@ -102,7 +102,8 @@ class UrlCompletionModel(base.BaseCompletionModel):
                       self._fmt_atime(entry.atime), sort=int(entry.atime),
                       userdata=entry.url)
 
-        if self._history_cat.rowCount() > self._max_history:
+        if (self._max_history != -1 and
+                self._history_cat.rowCount() > self._max_history):
             self._remove_oldest_history()
 
     @config.change_filter('completion', 'timestamp-format')
