@@ -371,6 +371,7 @@ class FlagListSubclass(configtypes.FlagList):
     """
 
     valid_values = configtypes.ValidValues('foo', 'bar', 'baz')
+    combinable_values = ['foo', 'bar']
 
 
 class TestFlagList:
@@ -411,6 +412,30 @@ class TestFlagList:
     @pytest.mark.parametrize('val', ['spam', 'spam,eggs'])
     def test_validate_values_none(self, klass_valid_none, val):
         klass_valid_none().validate(val)
+
+    def test_complete(self, klass):
+        """Test completing by doing some samples."""
+        completions = [e[0] for e in klass().complete()]
+        assert 'foo' in completions
+        assert 'bar' in completions
+        assert 'baz' in completions
+        assert 'foo,bar' in completions
+        for val in completions:
+            assert 'baz,' not in val
+            assert ',baz' not in val
+
+    def test_complete_all_valid_values(self, klass):
+        inst = klass()
+        inst.combinable_values = None
+        completions = [e[0] for e in inst.complete()]
+        assert 'foo' in completions
+        assert 'bar' in completions
+        assert 'baz' in completions
+        assert 'foo,bar' in completions
+        assert 'foo,baz' in completions
+
+    def test_complete_no_valid_values(self, klass_valid_none):
+        assert klass_valid_none().complete() == None
 
 
 class TestBool:

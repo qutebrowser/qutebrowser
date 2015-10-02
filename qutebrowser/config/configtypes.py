@@ -268,6 +268,8 @@ class FlagList(List):
     self.valid_values (if not empty).
     """
 
+    combinable_values = None
+
     def validate(self, value):
         self._basic_validation(value)
         if not value:
@@ -289,6 +291,25 @@ class FlagList(List):
                 not set_vals.issubset(set(self.valid_values))):
             raise configexc.ValidationError(
                 value, "List contains invalid values!")
+
+    def complete(self):
+        if self.valid_values is None:
+            return None
+
+        out = []
+        # Single value completions
+        for value in self.valid_values:
+            desc = self.valid_values.descriptions.get(value, "")
+            out.append((value, desc))
+
+        combinables = self.combinable_values
+        if combinables is None:
+            combinables = list(self.valid_values)
+        # Generate combinations of each possible value combination
+        for size in range(2, len(combinables) + 1):
+            for combination in itertools.combinations(combinables, size):
+                out.append((','.join(combination), ''))
+        return out
 
 
 class Bool(BaseType):
@@ -1399,22 +1420,6 @@ class ConfirmQuit(FlagList):
         elif 'always' in values and len(values) > 1:
             raise configexc.ValidationError(
                 value, "List cannot contain always!")
-
-    def complete(self):
-        combinations = []
-        # Generate combinations of the options that can be combined
-        for size in range(2, len(self.combinable_values) + 1):
-            combinations += list(
-                itertools.combinations(self.combinable_values, size))
-        out = []
-        # Add valid single values
-        for val in self.valid_values:
-            out.append((val, self.valid_values.descriptions[val]))
-        # Add combinations to list of options
-        for val in combinations:
-            desc = ''
-            out.append((','.join(val), desc))
-        return out
 
 
 class ForwardUnboundKeys(BaseType):
