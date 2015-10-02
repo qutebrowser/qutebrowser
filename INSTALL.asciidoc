@@ -8,7 +8,7 @@ qutebrowser should run on these systems:
 
 * Debian jessie or newer
 * Ubuntu Trusty (14.04 LTS) or newer
-* Any other distribution based on these (e.g. Linux Mint)
+* Any other distribution based on these (e.g. Linux Mint 17+)
 
 Unfortunately there is no Debian package yet, but installing qutebrowser is
 still relatively easy! If you want to help packaging it for Debian, please
