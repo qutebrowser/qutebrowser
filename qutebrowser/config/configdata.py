@@ -225,6 +225,10 @@ def data(readonly=False):
              "The name of the session to save by default, or empty for the "
              "last loaded session."),
 
+            ('password-storage',
+             SettingValue(typ.PasswordStorage(), 'default'),
+             "The name of the password storage to use."),
+
             readonly=readonly
         )),
 
