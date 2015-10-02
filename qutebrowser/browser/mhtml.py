@@ -33,7 +33,7 @@ import email.mime.multipart
 from PyQt5.QtCore import QUrl
 
 from qutebrowser.browser import webelem
-from qutebrowser.utils import log, objreg, message
+from qutebrowser.utils import log, objreg, message, usertypes
 
 try:
     import cssutils
@@ -80,7 +80,10 @@ def _get_css_imports_cssutils(data, inline=False):
         data: The content of the stylesheet to scan as string.
         inline: True if the argument is a inline HTML style attribute.
     """
-    parser = cssutils.CSSParser(fetcher=lambda url: (None, ""), validate=False)
+    # We don't care about invalid CSS data, this will only litter the log
+    # output with CSS errors
+    parser = cssutils.CSSParser(loglevel=100,
+                                fetcher=lambda url: (None, ""), validate=False)
     if not inline:
         sheet = parser.parseString(data)
         return list(cssutils.getUrls(sheet))
@@ -420,6 +423,8 @@ class _NoCloseBytesIO(io.BytesIO):  # pylint: disable=no-init
 def start_download(dest):
     """Start downloading the current page and all assets to a MHTML file.
 
+    This will overwrite dest if it already exists.
+
     Args:
         dest: The filename where the resulting file should be saved.
     """
@@ -427,3 +432,22 @@ def start_download(dest):
     web_view = objreg.get('webview', scope='tab', tab='current')
     loader = _Downloader(web_view, dest)
     loader.run()
+
+
+def start_download_checked(dest):
+    """First check if dest is already a file, then start the download.
+
+    Args:
+        dest: The filename where the resulting file should be saved.
+    """
+    if not os.path.isfile(dest):
+        start_download(dest)
+        return
+
+    q = usertypes.Question()
+    q.mode = usertypes.PromptMode.yesno
+    q.text = "{} exists. Overwrite?".format(dest)
+    q.completed.connect(q.deleteLater)
+    q.answered_yes.connect(functools.partial(start_download, dest))
+    message_bridge = objreg.get('message-bridge', scope='window', window='current')
+    message_bridge.ask(q, blocking=False)

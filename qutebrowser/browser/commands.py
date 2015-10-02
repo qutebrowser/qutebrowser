@@ -1171,12 +1171,12 @@ class CommandDispatcher:
             q.mode = usertypes.PromptMode.text
             q.completed.connect(q.deleteLater)
             q.default = downloads.path_suggestion(suggested_fn)
-            q.answered.connect(mhtml.start_download)
+            q.answered.connect(mhtml.start_download_checked)
             message_bridge = objreg.get("message-bridge", scope="window",
                                         window=self._win_id)
             message_bridge.ask(q, blocking=False)
         else:
-            mhtml.start_download(dest)
+            mhtml.start_download_checked(dest)
 
     @cmdutils.register(instance='command-dispatcher', scope='window',
                        deprecated="Use :download instead.")
