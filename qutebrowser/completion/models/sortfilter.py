@@ -27,6 +27,8 @@ from PyQt5.QtCore import QSortFilterProxyModel, QModelIndex, Qt
 
 from qutebrowser.utils import log, qtutils, debug
 from qutebrowser.completion.models import base as completion
+from qutebrowser.config import config
+import re
 
 
 class CompletionFilterModel(QSortFilterProxyModel):
@@ -146,9 +148,46 @@ class CompletionFilterModel(QSortFilterProxyModel):
                 data = self.srcmodel.data(idx)
                 if not data:
                     continue
-                elif self.pattern.casefold() in data.casefold():
-                    return True
+                else:
+                    match_functions = {
+                        'contain': self._match_contain,
+                        'fuzzy': self._match_fuzzy,
+                        'start': self._match_start
+                    }
+                    match_type = config.get('completion', 'match-type')
+                    match_function = match_functions[match_type]
+                    if match_function(data):
+                        return True
             return False
+
+    def _match_fuzzy(self, data):
+        """Matcher for 'fuzzy' matching type logic."""
+        data = data.casefold()
+        pattern = re.escape(self.pattern.casefold())
+        last_index = 0
+        for char in pattern:
+            if char not in data:
+                return False
+            positions = [g.start() for g in re.finditer(char, data)]
+            if max(positions) < last_index:
+                return False
+            last_index = min(positions)
+        return True
+
+    def _match_contain(self, data):
+        """Matcher for 'contain' matching type logic."""
+        data = data.casefold()
+        pattern = self.pattern.casefold()
+        return pattern in data
+
+    def _match_start(self, data):
+        """Matcher for 'start' matching type logic."""
+        protocol = re.compile('^(ht|f)tp(s?)://')
+        data = data.casefold()
+        pattern = self.pattern.casefold()
+        if protocol.match(data) is not None:
+            data = protocol.sub('', data)
+        return data.startswith(pattern)
 
     def intelligentLessThan(self, lindex, rindex):
         """Custom sorting implementation.

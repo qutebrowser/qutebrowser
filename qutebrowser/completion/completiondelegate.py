@@ -197,9 +197,21 @@ class CompletionItemDelegate(QStyledItemDelegate):
             pattern = index.model().pattern
             columns_to_filter = index.model().srcmodel.columns_to_filter
             if index.column() in columns_to_filter and pattern:
-                repl = r'<span class="highlight">\g<0></span>'
-                text = re.sub(re.escape(pattern), repl, self._opt.text,
-                              flags=re.IGNORECASE)
+                if config.get('completion', 'match-type') == 'fuzzy':
+                    text = ''
+                    for char in self._opt.text:
+                        if char in pattern:
+                            text += '<span class="highlight">%s</span>' % char
+                            pattern = pattern.replace(char, '')
+                        else:
+                            text += char
+                else:
+                    repl = r'<span class="highlight">\g<0></span>'
+                    text = re.sub(
+                        re.escape(pattern),
+                        repl,
+                        self._opt.text,
+                        flags=re.IGNORECASE)
                 self._doc.setHtml(text)
             else:
                 self._doc.setPlainText(self._opt.text)

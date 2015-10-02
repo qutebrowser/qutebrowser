@@ -686,7 +686,8 @@ class Font(BaseType):
                 (?P<size>[0-9]+((\.[0-9]+)?[pP][tT]|[pP][xX]))
             )\                         # size/weight/style are space-separated
         )*                             # 0-inf size/weight/style tags
-        (?P<family>[A-Za-z0-9, "-]*)$  # mandatory font family""", re.VERBOSE)
+        (?P<family>[A-Za-z0-9, "-]*)$  # mandatory font family
+    """, re.VERBOSE)
 
     def validate(self, value):
         self._basic_validation(value)
@@ -1602,3 +1603,15 @@ class TabBarShow(BaseType):
                                             "is open."),
                                ('switching', "Show the tab bar when switching "
                                              "tabs."))
+
+
+class MatchType(BaseType):
+
+    """How to match values in the completion."""
+
+    valid_values = ValidValues(('contain', "Match items which contain the "
+                                           "entered text."),
+                               ('fuzzy', "Match items with a fuzzy matching "
+                                         "logic."),
+                               ('start', "Only match items starting with the "
+                                         "entered text."))
