@@ -84,18 +84,28 @@ def pytest_runtest_setup(item):
     if not isinstance(item, item.Function):
         return
 
-    if item.get_marker('posix') and os.name != 'posix':
-        pytest.skip("Requires a POSIX os.")
-    elif item.get_marker('windows') and os.name != 'nt':
-        pytest.skip("Requires Windows.")
-    elif item.get_marker('linux') and not sys.platform.startswith('linux'):
-        pytest.skip("Requires Linux.")
-    elif item.get_marker('osx') and sys.platform != 'darwin':
-        pytest.skip("Requires OS X.")
-    elif item.get_marker('not_frozen') and getattr(sys, 'frozen', False):
-        pytest.skip("Can't be run when frozen!")
-    elif item.get_marker('frozen') and not getattr(sys, 'frozen', False):
-        pytest.skip("Can only run when frozen!")
+    markers = [
+        ('posix', os.name != 'posix', "Requires a POSIX os"),
+        ('windows', os.name != 'nt', "Requires Windows"),
+        ('linux', not sys.platform.startswith('linux'), "Requires Linux"),
+        ('osx', sys.platform != 'darwin', "Requires OS X"),
+        ('not_frozen', getattr(sys, 'frozen', False),
+            "Can't be run when frozen"),
+        ('frozen', not getattr(sys, 'frozen', False),
+            "Can only run when frozen"),
+    ]
+
+    for searched_marker, condition, default_reason in markers:
+        marker = item.get_marker(searched_marker)
+        if marker and condition:
+            assert not marker.args
+            assert set(marker.kwargs).issubset({'reason'})
+            if 'reason' in marker.kwargs:
+                reason = '{}: {}'.format(default_reason,
+                                         marker.kwargs['reason'])
+            else:
+                reason = default_reason + '.'
+            pytest.skip(reason)
 
 
 @pytest.fixture(scope='session')

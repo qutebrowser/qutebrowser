@@ -538,7 +538,7 @@ class TestSendToRunningInstance:
         assert msg == "No existing instance present (error 2)"
 
     @pytest.mark.parametrize('has_cwd', [True, False])
-    @pytest.mark.posix   # Causes random trouble on Windows
+    @pytest.mark.posix(reason="Causes random trouble on Windows")
     def test_normal(self, qtbot, tmpdir, ipc_server, mocker, has_cwd):
         ipc_server.listen()
         spy = QSignalSpy(ipc_server.got_args)
@@ -665,7 +665,7 @@ class TestSendOrListen:
         yield legacy_server
         legacy_server.shutdown()
 
-    @pytest.mark.posix   # Flaky on Windows
+    @pytest.mark.posix(reason="Flaky on Windows")
     def test_normal_connection(self, caplog, qtbot, args):
         ret_server = ipc.send_or_listen(args)
         assert isinstance(ret_server, ipc.IPCServer)
@@ -679,7 +679,7 @@ class TestSendOrListen:
 
         assert ret_client is None
 
-    @pytest.mark.posix   # Unneeded on Windows
+    @pytest.mark.posix(reason="Unneeded on Windows")
     def test_legacy_name(self, caplog, qtbot, args, legacy_server):
         with qtbot.waitSignal(legacy_server.got_args, raising=True):
             ret = ipc.send_or_listen(args)
@@ -687,7 +687,7 @@ class TestSendOrListen:
         msgs = [e.message for e in caplog.records()]
         assert "Connecting to {}".format(legacy_server._socketname) in msgs
 
-    @pytest.mark.posix   # Unneeded on Windows
+    @pytest.mark.posix(reason="Unneeded on Windows")
     @pytest.mark.not_frozen
     def test_stale_legacy_server(self, caplog, qtbot, args, legacy_server,
                                  ipc_server, py_proc):
@@ -728,7 +728,7 @@ class TestSendOrListen:
 
         assert ret_client is None
 
-    @pytest.mark.posix   # Unneeded on Windows
+    @pytest.mark.posix(reason="Unneeded on Windows")
     def test_correct_socket_name(self, args):
         server = ipc.send_or_listen(args)
         expected_dir = ipc._get_socketname(args.basedir)
@@ -816,7 +816,7 @@ class TestSendOrListen:
         ]
         assert records[0].msg == '\n'.join(error_msgs)
 
-    @pytest.mark.posix   # Flaky on Windows
+    @pytest.mark.posix("Flaky on Windows")
     def test_error_while_listening(self, qlocalserver_mock, caplog, args):
         """Test an error with the first listen call."""
         qlocalserver_mock().listen.return_value = False
