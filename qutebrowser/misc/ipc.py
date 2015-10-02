@@ -342,7 +342,13 @@ class IPCServer(QObject):
     def on_timeout(self):
         """Cancel the current connection if it was idle for too long."""
         log.ipc.error("IPC connection timed out.")
-        self._socket.close()
+        self._socket.disconnectFromServer()
+        if self._socket is not None:  # pragma: no branch
+            # on_socket_disconnected sets it to None
+            self._socket.waitForDisconnected(100)
+        if self._socket is not None:  # pragma: no branch
+            # on_socket_disconnected sets it to None
+            self._socket.abort()
 
     @pyqtSlot()
     def update_atime(self):
