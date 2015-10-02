@@ -141,8 +141,13 @@ def info(win_id, message, immediately=True):
     _wrapper(win_id, 'info', message, immediately)
 
 
+def set_text(win_id, txt):
+    """Convienience function to set the normal text of the statusbar."""
+    _wrapper(win_id, 'set_text', txt)
+
+
 def set_cmd_text(win_id, txt):
-    """Convienience function to Set the statusbar command line to a text."""
+    """Convienience function to set the statusbar command line to a text."""
     _wrapper(win_id, 'set_cmd_text', txt)
 
 
