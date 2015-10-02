@@ -592,6 +592,8 @@ class TestSendToRunningInstance:
         assert str(excinfo.value) == msg
 
 
+@pytest.mark.not_osx(reason="https://github.com/The-Compiler/qutebrowser/"
+                            "issues/975")
 def test_timeout(qtbot, caplog, qlocalsocket, ipc_server):
     ipc_server._timer.setInterval(100)
     ipc_server.listen()
