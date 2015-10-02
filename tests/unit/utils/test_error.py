@@ -70,6 +70,11 @@ def test_no_err_windows(caplog, exc, name, exc_text):
     assert records[0].msg == '\n'.join(expected)
 
 
+# This happens on Xvfb for some reason
+# See https://github.com/The-Compiler/qutebrowser/issues/984
+@pytest.mark.qt_log_ignore(r'^QXcbConnection: XCB error: 8 \(BadMatch\), '
+                           r'sequence: \d+, resource id: \d+, major code: 42 '
+                           r'\(SetInputFocus\), minor code: 0$')
 @pytest.mark.parametrize('pre_text, post_text, expected', [
     ('', '', 'exception'),
     ('foo', '', 'foo: exception'),
