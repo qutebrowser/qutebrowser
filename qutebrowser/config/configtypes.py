@@ -79,6 +79,8 @@ class ValidValues:
     """
 
     def __init__(self, *vals):
+        if not vals:
+            raise ValueError("ValidValues with no values makes no sense!")
         self.descriptions = {}
         self.values = []
         for v in vals:

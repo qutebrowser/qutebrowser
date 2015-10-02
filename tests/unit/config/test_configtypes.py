@@ -159,6 +159,10 @@ class TestValidValues:
     def test_repr(self, klass, args, expected):
         assert repr(klass(*args)) == expected
 
+    def test_empty(self, klass):
+        with pytest.raises(ValueError):
+            klass()
+
 
 class TestBaseType:
 
