@@ -407,7 +407,12 @@ class TabBar(QTabBar):
         else:
             # If we *do* have enough space, tabs should occupy the whole window
             # width.
-            size = QSize(self.width() / self.count(), height)
+            width = self.width() / self.count()
+            # If width is not divisible by count, add a pixel to some tabs so
+            # that there is no ugly leftover space.
+            if index < self.width() % self.count():
+                width += 1
+            size = QSize(width, height)
         qtutils.ensure_valid(size)
         return size
 
