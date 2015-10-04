@@ -565,6 +565,7 @@ qutebrowser release
 
 * Create annotated git tag (`git tag -s "v0.X.Y" -m "Release v0.X.Y"`)
 * If it's a new minor, create git branch `v0.X.x`
+* If commiting on minor branch, cherry-pick release commit to master.
 * `git push origin`; `git push origin v0.X.Y`
 * Create release on github
 * Mark the milestone at https://github.com/The-Compiler/qutebrowser/milestones
