@@ -368,6 +368,81 @@ class TestList:
         assert klass().transform(val) == expected
 
 
+class FlagListSubclass(configtypes.FlagList):
+
+    """A subclass of FlagList which we use in tests.
+
+    Valid values are 'foo', 'bar' and 'baz'.
+    """
+
+    valid_values = configtypes.ValidValues('foo', 'bar', 'baz')
+    combinable_values = ['foo', 'bar']
+
+
+class TestFlagList:
+
+    """Test FlagList."""
+
+    @pytest.fixture
+    def klass(self):
+        return FlagListSubclass
+
+    @pytest.fixture
+    def klass_valid_none(self):
+        """Return a FlagList with valid_values = None"""
+        return configtypes.FlagList
+
+    @pytest.mark.parametrize('val', ['', 'foo', 'foo,bar', 'foo,'])
+    def test_validate_valid(self, klass, val):
+        klass(none_ok=True).validate(val)
+
+    @pytest.mark.parametrize('val', ['qux', 'foo,qux', 'foo,foo'])
+    def test_validate_invalid(self, klass, val):
+        with pytest.raises(configexc.ValidationError):
+            klass(none_ok=True).validate(val)
+
+    @pytest.mark.parametrize('val', ['', 'foo,', 'foo,,bar'])
+    def test_validate_empty_value_not_okay(self, klass, val):
+        with pytest.raises(configexc.ValidationError):
+            klass(none_ok=False).validate(val)
+
+    @pytest.mark.parametrize('val, expected', [
+        ('', None),
+        ('foo', ['foo']),
+        ('foo,bar', ['foo', 'bar']),
+    ])
+    def test_transform(self, klass, val, expected):
+        assert klass().transform(val) == expected
+
+    @pytest.mark.parametrize('val', ['spam', 'spam,eggs'])
+    def test_validate_values_none(self, klass_valid_none, val):
+        klass_valid_none().validate(val)
+
+    def test_complete(self, klass):
+        """Test completing by doing some samples."""
+        completions = [e[0] for e in klass().complete()]
+        assert 'foo' in completions
+        assert 'bar' in completions
+        assert 'baz' in completions
+        assert 'foo,bar' in completions
+        for val in completions:
+            assert 'baz,' not in val
+            assert ',baz' not in val
+
+    def test_complete_all_valid_values(self, klass):
+        inst = klass()
+        inst.combinable_values = None
+        completions = [e[0] for e in inst.complete()]
+        assert 'foo' in completions
+        assert 'bar' in completions
+        assert 'baz' in completions
+        assert 'foo,bar' in completions
+        assert 'foo,baz' in completions
+
+    def test_complete_no_valid_values(self, klass_valid_none):
+        assert klass_valid_none().complete() is None
+
+
 class TestBool:
 
     """Test Bool."""

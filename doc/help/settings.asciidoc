@@ -23,6 +23,7 @@
 |<<general-log-javascript-console,log-javascript-console>>|Whether to log javascript console messages.
 |<<general-save-session,save-session>>|Whether to always save the open pages.
 |<<general-session-default-name,session-default-name>>|The name of the session to save by default, or empty for the last loaded session.
+|<<general-url-incdec-segments,url-incdec-segments>>|The URL segments where `:navigate increment/decrement` will search for a number.
 |==============
 
 .Quick reference for section ``ui''
@@ -456,6 +457,19 @@ Default: +pass:[false]+
 The name of the session to save by default, or empty for the last loaded session.
 
 Default: empty
+
+[[general-url-incdec-segments]]
+=== url-incdec-segments
+The URL segments where `:navigate increment/decrement` will search for a number.
+
+Valid values:
+
+ * +host+
+ * +path+
+ * +query+
+ * +anchor+
+
+Default: +pass:[path,query]+
 
 == ui
 General options related to the user interface.

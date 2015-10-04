@@ -456,12 +456,15 @@ class IncDecError(Exception):
         return '{}: {}'.format(self.msg, self.url.toString())
 
 
-def incdec_number(url, incdec):
+def incdec_number(url, incdec, segments=None):
     """Find a number in the url and increment or decrement it.
 
     Args:
         url: The current url
         incdec: Either 'increment' or 'decrement'
+        segments: A set of URL segments to search. Valid segments are:
+                  'host', 'path', 'query', 'anchor'.
+                  Default: {'path', 'query'}
 
     Return:
         The new url with the number incremented/decremented.
@@ -471,24 +474,46 @@ def incdec_number(url, incdec):
     if not url.isValid():
         raise InvalidUrlError(url)
 
-    path = url.path()
-    # Get the last number in a string
-    match = re.match(r'(.*\D|^)(\d+)(.*)', path)
-    if not match:
-        raise IncDecError("No number found in URL!", url)
-    pre, number, post = match.groups()
-    # This should always succeed because we match \d+
-    val = int(number)
-    if incdec == 'decrement':
-        if val <= 0:
-            raise IncDecError("Can't decrement {}!".format(val), url)
-        val -= 1
-    elif incdec == 'increment':
-        val += 1
-    else:
-        raise ValueError("Invalid value {} for indec!".format(incdec))
-    new_path = ''.join([pre, str(val), post])
+    if segments is None:
+        segments = {'path', 'query'}
+    valid_segments = {'host', 'path', 'query', 'anchor'}
+    if segments - valid_segments:
+        extra_elements = segments - valid_segments
+        raise IncDecError("Invalid segments: {}".format(
+            ', '.join(extra_elements)), url)
+
     # Make a copy of the QUrl so we don't modify the original
-    new_url = QUrl(url)
-    new_url.setPath(new_path)
-    return new_url
+    url = QUrl(url)
+    # Order as they appear in a URL
+    segment_modifiers = [
+        ('host', url.host, url.setHost),
+        ('path', url.path, url.setPath),
+        ('query', url.query, url.setQuery),
+        ('anchor', url.fragment, url.setFragment),
+    ]
+    # We're searching the last number so we walk the url segments backwards
+    for segment, getter, setter in reversed(segment_modifiers):
+        if segment not in segments:
+            continue
+
+        # Get the last number in a string
+        match = re.match(r'(.*\D|^)(\d+)(.*)', getter())
+        if not match:
+            continue
+
+        pre, number, post = match.groups()
+        # This should always succeed because we match \d+
+        val = int(number)
+        if incdec == 'decrement':
+            if val <= 0:
+                raise IncDecError("Can't decrement {}!".format(val), url)
+            val -= 1
+        elif incdec == 'increment':
+            val += 1
+        else:
+            raise ValueError("Invalid value {} for indec!".format(incdec))
+        new_value = ''.join([pre, str(val), post])
+        setter(new_value)
+        return url
+
+    raise IncDecError("No number found in URL!", url)

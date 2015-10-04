@@ -531,23 +531,46 @@ class TestIncDecNumber:
 
     """Tests for urlutils.incdec_number()."""
 
-    @pytest.mark.parametrize('url, incdec, output', [
-        ("http://example.com/index1.html", "increment", "http://example.com/index2.html"),
-        ("http://foo.bar/folder_1/image_2", "increment", "http://foo.bar/folder_1/image_3"),
-        ("http://bbc.c0.uk:80/story_1", "increment", "http://bbc.c0.uk:80/story_2"),
-        ("http://mydomain.tld/1_%C3%A4", "increment", "http://mydomain.tld/2_%C3%A4"),
-        ("http://example.com/site/5#5", "increment", "http://example.com/site/6#5"),
-
-        ("http://example.com/index10.html", "decrement", "http://example.com/index9.html"),
-        ("http://foo.bar/folder_1/image_3", "decrement", "http://foo.bar/folder_1/image_2"),
-        ("http://bbc.c0.uk:80/story_1", "decrement", "http://bbc.c0.uk:80/story_0"),
-        ("http://mydomain.tld/2_%C3%A4", "decrement", "http://mydomain.tld/1_%C3%A4"),
-        ("http://example.com/site/5#5", "decrement", "http://example.com/site/4#5"),
+    @pytest.mark.parametrize('incdec', ['increment', 'decrement'])
+    @pytest.mark.parametrize('value', [
+        '{}foo', 'foo{}', 'foo{}bar', '42foo{}'
     ])
-    def test_incdec_number(self, url, incdec, output):
+    @pytest.mark.parametrize('url', [
+        'http://example.com:80/v1/path/{}/test',
+        'http://example.com:80/v1/query_test?value={}',
+        'http://example.com:80/v1/anchor_test#{}',
+        'http://host_{}_test.com:80',
+        'http://m4ny.c0m:80/number5/3very?where=yes#{}'
+    ])
+    def test_incdec_number(self, incdec, value, url):
         """Test incdec_number with valid URLs."""
-        new_url = urlutils.incdec_number(QUrl(url), incdec)
-        assert new_url == QUrl(output)
+        # The integer used should not affect test output, as long as it's
+        # bigger than 1
+        # 20 was chosen by dice roll, guaranteed to be random
+        base_value = value.format(20)
+        if incdec == 'increment':
+            expected_value = value.format(21)
+        else:
+            expected_value = value.format(19)
+
+        base_url = QUrl(url.format(base_value))
+        expected_url = QUrl(url.format(expected_value))
+        new_url = urlutils.incdec_number(
+            base_url, incdec, segments={'host', 'path', 'query', 'anchor'})
+        assert new_url == expected_url
+
+    @pytest.mark.parametrize('url, segments, expected', [
+        ('http://ex4mple.com/test_4?page=3#anchor2', {'host'},
+         'http://ex5mple.com/test_4?page=3#anchor2'),
+        ('http://ex4mple.com/test_4?page=3#anchor2', {'host', 'path'},
+         'http://ex4mple.com/test_5?page=3#anchor2'),
+        ('http://ex4mple.com/test_4?page=3#anchor5', {'host', 'path', 'query'},
+         'http://ex4mple.com/test_4?page=4#anchor5'),
+    ])
+    def test_incdec_segment_ignored(self, url, segments, expected):
+        new_url = urlutils.incdec_number(QUrl(url), 'increment',
+                                         segments=segments)
+        assert new_url == QUrl(expected)
 
     @pytest.mark.parametrize('url', [
         "http://example.com/long/path/but/no/number",
@@ -581,6 +604,12 @@ class TestIncDecNumber:
         valid_url = QUrl("http://example.com/0")
         with pytest.raises(ValueError):
             urlutils.incdec_number(valid_url, "foobar")
+
+    def test_wrong_segment(self):
+        """Test if incdec_number rejects a wrong segment"""
+        with pytest.raises(urlutils.IncDecError):
+            urlutils.incdec_number(QUrl('http://example.com'),
+                                   'increment', segments={'foobar'})
 
     @pytest.mark.parametrize("url, msg, expected_str", [
         ("http://example.com", "Invalid", "Invalid: http://example.com"),

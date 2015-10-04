@@ -143,9 +143,9 @@ Contributors, sorted by the number of commits in descending order:
 * Joel Torstensson
 * Claude
 * Lamar Pavel
+* Daniel
 * Austin Anderson
 * Artur Shaik
-* Daniel
 * Thorsten Wißmann
 * Alexey "Averrin" Nabrodov
 * ZDarian
