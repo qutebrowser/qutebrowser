@@ -286,6 +286,58 @@ class List(BaseType):
             raise configexc.ValidationError(value, "items may not be empty!")
 
 
+class FlagList(List):
+
+    """Base class for a list setting that contains one or more flags.
+
+    Lists with duplicate flags are invalid and each item is checked against
+    self.valid_values (if not empty).
+    """
+
+    combinable_values = None
+
+    def validate(self, value):
+        self._basic_validation(value)
+        if not value:
+            return
+
+        vals = self.transform(value)
+        if None in vals and not self.none_ok:
+            raise configexc.ValidationError(
+                value, "May not contain empty values!")
+
+        # Check for duplicate values
+        if len(set(vals)) != len(vals):
+            raise configexc.ValidationError(
+                value, "List contains duplicate values!")
+
+        # Check if each value is valid, ignores None values
+        set_vals = set(val for val in vals if val)
+        if (self.valid_values is not None and
+                not set_vals.issubset(set(self.valid_values))):
+            raise configexc.ValidationError(
+                value, "List contains invalid values!")
+
+    def complete(self):
+        if self.valid_values is None:
+            return None
+
+        out = []
+        # Single value completions
+        for value in self.valid_values:
+            desc = self.valid_values.descriptions.get(value, "")
+            out.append((value, desc))
+
+        combinables = self.combinable_values
+        if combinables is None:
+            combinables = list(self.valid_values)
+        # Generate combinations of each possible value combination
+        for size in range(2, len(combinables) + 1):
+            for combination in itertools.combinations(combinables, size):
+                out.append((','.join(combination), ''))
+        return out
+
+
 class Bool(BaseType):
 
     """Base class for a boolean setting."""
@@ -1364,7 +1416,7 @@ class AcceptCookies(BaseType):
                                ('never', "Don't accept cookies at all."))
 
 
-class ConfirmQuit(List):
+class ConfirmQuit(FlagList):
 
     """Whether to display a confirmation when the window is closed."""
 
@@ -1379,18 +1431,11 @@ class ConfirmQuit(List):
     combinable_values = ('multiple-tabs', 'downloads')
 
     def validate(self, value):
-        self._basic_validation(value)
+        super().validate(value)
         if not value:
             return
-        values = []
-        for v in self.transform(value):
-            if v:
-                values.append(v)
-            elif self.none_ok:
-                pass
-            else:
-                raise configexc.ValidationError(value, "May not contain empty "
-                                                       "values!")
+        values = [x for x in self.transform(value) if x]
+
         # Never can't be set with other options
         if 'never' in values and len(values) > 1:
             raise configexc.ValidationError(
@@ -1399,30 +1444,6 @@ class ConfirmQuit(List):
         elif 'always' in values and len(values) > 1:
             raise configexc.ValidationError(
                 value, "List cannot contain always!")
-        # Values have to be valid
-        elif not set(values).issubset(set(self.valid_values.values)):
-            raise configexc.ValidationError(
-                value, "List contains invalid values!")
-        # List can't have duplicates
-        elif len(set(values)) != len(values):
-            raise configexc.ValidationError(
-                value, "List contains duplicate values!")
-
-    def complete(self):
-        combinations = []
-        # Generate combinations of the options that can be combined
-        for size in range(2, len(self.combinable_values) + 1):
-            combinations += list(
-                itertools.combinations(self.combinable_values, size))
-        out = []
-        # Add valid single values
-        for val in self.valid_values:
-            out.append((val, self.valid_values.descriptions[val]))
-        # Add combinations to list of options
-        for val in combinations:
-            desc = ''
-            out.append((','.join(val), desc))
-        return out
 
 
 class ForwardUnboundKeys(BaseType):
@@ -1602,3 +1623,10 @@ class TabBarShow(BaseType):
                                             "is open."),
                                ('switching', "Show the tab bar when switching "
                                              "tabs."))
+
+
+class URLSegmentList(FlagList):
+
+    """A list of URL segments."""
+
+    valid_values = ValidValues('host', 'path', 'query', 'anchor')
