@@ -467,6 +467,25 @@ class Quitter:
         """Slot which gets invoked when the last window was closed."""
         self.shutdown(last_window=True)
 
+    def _compile_modules(self):
+        """Compile all modules to catch SyntaxErrors."""
+        if os.path.basename(sys.argv[0]) == 'qutebrowser':
+            # Launched via launcher script
+            return
+        elif hasattr(sys, 'frozen'):
+            return
+        else:
+            path = os.path.abspath(os.path.dirname(qutebrowser.__file__))
+            if not os.path.isdir(path):
+                # Probably running from an python egg.
+                return
+
+        for dirpath, _dirnames, filenames in os.walk(path):
+            for fn in filenames:
+                if os.path.splitext(fn)[1] == '.py':
+                    with open(os.path.join(dirpath, fn)) as f:
+                        compile(f.read(), fn, 'exec')
+
     def _get_restart_args(self, pages=(), session=None):
         """Get the current working directory and args to relaunch qutebrowser.
 
@@ -535,6 +554,10 @@ class Quitter:
         except sessions.SessionError as e:
             log.destroy.exception("Failed to save session!")
             raise cmdexc.CommandError("Failed to save session: {}!".format(e))
+        except SyntaxError as e:
+            log.destroy.exception("Got SyntaxError")
+            raise cmdexc.CommandError("SyntaxError in {}:{}: {}".format(
+                e.filename, e.lineno, e))
         if ok:
             self.shutdown()
 
@@ -555,6 +578,7 @@ class Quitter:
         Return:
             True if the restart succeeded, False otherwise.
         """
+        self._compile_modules()
         log.destroy.debug("sys.executable: {}".format(sys.executable))
         log.destroy.debug("sys.path: {}".format(sys.path))
         log.destroy.debug("sys.argv: {}".format(sys.argv))
