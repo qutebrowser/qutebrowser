@@ -126,7 +126,9 @@ def test_untested(covtest):
             pass
     """)
     covtest.run()
-    expected = 'module.py has 75.0% line and 100.0% branch coverage!'
+    expected = check_coverage.Message(
+        check_coverage.MsgType.insufficent_coverage,
+        'module.py has 75.0% line and 100.0% branch coverage!')
     assert covtest.check() == [expected]
 
 
@@ -142,7 +144,9 @@ def test_untested_branches(covtest):
             func2(True)
     """)
     covtest.run()
-    expected = 'module.py has 100.0% line and 50.0% branch coverage!'
+    expected = check_coverage.Message(
+        check_coverage.MsgType.insufficent_coverage,
+        'module.py has 100.0% line and 50.0% branch coverage!')
     assert covtest.check() == [expected]
 
 
@@ -152,7 +156,9 @@ def test_tested_unlisted(covtest):
             pass
     """)
     covtest.run()
-    expected = 'module.py has 100% coverage but is not in perfect_files!'
+    expected = check_coverage.Message(
+        check_coverage.MsgType.perfect_file,
+        'module.py has 100% coverage but is not in perfect_files!')
     assert covtest.check(perfect_files=[]) == [expected]
 
 

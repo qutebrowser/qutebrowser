@@ -22,7 +22,10 @@
 
 import os
 import sys
+import enum
 import os.path
+import subprocess
+import collections
 
 from xml.etree import ElementTree
 
@@ -30,6 +33,11 @@ sys.path.insert(0, os.path.join(os.path.dirname(__file__), os.pardir,
                                 os.pardir))
 
 from scripts import utils
+
+
+Message = collections.namedtuple('Message', 'typ, text')
+MsgType = enum.Enum('MsgType', 'insufficent_coverage, perfect_file')
+
 
 # A list of (test_file, tested_file) tuples. test_file can be None.
 PERFECT_FILES = [
@@ -172,13 +180,61 @@ def check(fileobj, perfect_files):
         is_bad = line_cov < 100 or branch_cov < 100
 
         if filename in perfect_src_files and is_bad:
-            messages.append(("{} has {}% line and {}% branch coverage!".format(
-                filename, line_cov, branch_cov)))
+            text = "{} has {}% line and {}% branch coverage!".format(
+                filename, line_cov, branch_cov)
+            messages.append(Message(MsgType.insufficent_coverage, text))
         elif filename not in perfect_src_files and not is_bad:
-            messages.append("{} has 100% coverage but is not in "
-                            "perfect_files!".format(filename))
+            text = ("{} has 100% coverage but is not in "
+                    "perfect_files!".format(filename))
+            messages.append(Message(MsgType.perfect_file, text))
 
     return messages
+
+
+def main_check():
+    """Check coverage after a test run."""
+    try:
+        with open('coverage.xml', encoding='utf-8') as f:
+            messages = check(f, PERFECT_FILES)
+    except Skipped as e:
+        print(e)
+        messages = []
+
+    for msg in messages:
+        print(msg.text)
+
+    os.remove('coverage.xml')
+    return 1 if messages else 0
+
+
+def main_check_all():
+    """Check the coverage for all files individually.
+
+    This makes sure the files have 100% coverage without running unrelated
+    tests.
+
+    This runs py.test with the used executable, so check_coverage.py should be
+    called with something like ./.tox/py34/bin/python.
+    """
+    for test_file, src_file in PERFECT_FILES:
+        if test_file is None:
+            continue
+        subprocess.check_call([sys.executable, '-m', 'py.test', '--cov',
+                               'qutebrowser', '--cov-report', 'xml',
+                               test_file])
+        with open('coverage.xml', encoding='utf-8') as f:
+            messages = check(f, [(test_file, src_file)])
+        os.remove('coverage.xml')
+
+        messages = [msg for msg in messages
+                    if msg.typ == MsgType.insufficent_coverage]
+        if messages:
+            for msg in messages:
+                print(msg.text)
+            return 1
+        else:
+            print("Check ok!")
+    return 0
 
 
 def main():
@@ -188,19 +244,10 @@ def main():
         The return code to return.
     """
     utils.change_cwd()
-
-    try:
-        with open('coverage.xml', encoding='utf-8') as f:
-            messages = check(f, PERFECT_FILES)
-    except Skipped as e:
-        print(e)
-        messages = []
-
-    for msg in messages:
-        print(msg)
-
-    os.remove('coverage.xml')
-    return 1 if messages else 0
+    if '--check-all' in sys.argv:
+        main_check_all()
+    else:
+        main_check()
 
 
 if __name__ == '__main__':

@@ -52,7 +52,7 @@ class HTTPGetStub(httpclient.HTTPClient):
             self.error.emit("error")
 
 
-def test_constructor():
+def test_constructor(qapp):
     client = autoupdate.PyPIVersionClient()
     assert isinstance(client._client, httpclient.HTTPClient)
 
