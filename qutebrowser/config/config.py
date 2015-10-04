@@ -333,7 +333,6 @@ class ConfigManager(QObject):
         ('colors', 'tab.bg.even'): 'tabs.bg.even',
         ('colors', 'tab.bg.selected'): 'tabs.bg.selected.odd',
         ('colors', 'tabs.bg.selected'): 'tabs.bg.selected.odd',
-        ('colors', 'tab.bg.bar'): 'tabs.bg.bar',
         ('colors', 'tab.indicator.start'): 'tabs.indicator.start',
         ('colors', 'tab.indicator.stop'): 'tabs.indicator.stop',
         ('colors', 'tab.indicator.error'): 'tabs.indicator.error',
@@ -349,6 +348,8 @@ class ConfigManager(QObject):
         ('tabs', 'indicator-space'),
         ('tabs', 'hide-auto'),
         ('tabs', 'hide-always'),
+        ('colors', 'tab.bg.bar'),
+        ('colors', 'tabs.bg.bar'),
     ]
     CHANGED_OPTIONS = {
         ('content', 'cookies-accept'):

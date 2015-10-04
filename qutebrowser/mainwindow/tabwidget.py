@@ -235,8 +235,6 @@ class TabBar(QTabBar):
             config.get('tabs', 'show-switching-delay'))
         self._auto_hide_timer.timeout.connect(self._tabhide)
         self.setAutoFillBackground(True)
-        self.set_colors()
-        config_obj.changed.connect(self.set_colors)
         QTimer.singleShot(0, self._tabhide)
         config_obj.changed.connect(self.on_tab_colors_changed)
         config_obj.changed.connect(self.on_show_switching_delay_changed)
@@ -320,13 +318,6 @@ class TabBar(QTabBar):
         size = self.fontMetrics().height() - 2
         self.setIconSize(QSize(size, size))
 
-    @config.change_filter('colors', 'tabs.bg.bar')
-    def set_colors(self):
-        """Set the tab bar colors."""
-        p = self.palette()
-        p.setColor(QPalette.Window, config.get('colors', 'tabs.bg.bar'))
-        self.setPalette(p)
-
     @pyqtSlot(str, str)
     def on_tab_colors_changed(self, section, option):
         """Set the tab colors."""
@@ -407,7 +398,12 @@ class TabBar(QTabBar):
         else:
             # If we *do* have enough space, tabs should occupy the whole window
             # width.
-            size = QSize(self.width() / self.count(), height)
+            width = self.width() / self.count()
+            # If width is not divisible by count, add a pixel to some tabs so
+            # that there is no ugly leftover space.
+            if index < self.width() % self.count():
+                width += 1
+            size = QSize(width, height)
         qtutils.ensure_valid(size)
         return size
 
