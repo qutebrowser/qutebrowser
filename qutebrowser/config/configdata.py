@@ -997,6 +997,10 @@ def data(readonly=False):
              SettingValue(typ.QtColor(), '${tabs.bg.selected.odd}'),
              "Background color of selected even tabs."),
 
+            ('tabs.bg.bar',
+             SettingValue(typ.QtColor(), '#555555'),
+             "Background color of the tab bar."),
+
             ('tabs.indicator.start',
              SettingValue(typ.QtColor(), '#0000aa'),
              "Color gradient start for the tab indicator."),
