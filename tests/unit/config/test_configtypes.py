@@ -440,7 +440,7 @@ class TestFlagList:
         assert 'foo,baz' in completions
 
     def test_complete_no_valid_values(self, klass_valid_none):
-        assert klass_valid_none().complete() == None
+        assert klass_valid_none().complete() is None
 
 
 class TestBool:
