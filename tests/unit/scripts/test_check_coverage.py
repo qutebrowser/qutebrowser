@@ -135,6 +135,8 @@ def test_untested_branches(covtest):
         def func2(arg):
             if arg:
                 pass
+            else:
+                pass
 
         def func():
             func2(True)
