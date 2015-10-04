@@ -43,12 +43,6 @@ Fixed
 
 - Fixed displaying of web history if `web-history-max-items` is set to -1.
 
-Removed
-~~~~~~~
-
-- The `colors -> tabs.bg.bar` setting got removed as the tab size is now
-  adjusted so the bar is never visible.
-
 v0.4.1
 ------
 
