@@ -89,7 +89,7 @@ def check_overflow(arg, ctype, fatal=True):
     Args:
         arg: The argument to check
         ctype: The C/Qt type to check as a string.
-        fatal: Wether to raise exceptions (True) or truncate values (False)
+        fatal: Whether to raise exceptions (True) or truncate values (False)
 
     Return
         The truncated argument if fatal=False

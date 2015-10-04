@@ -289,7 +289,7 @@ class Prompter(QObject):
 
     @pyqtSlot(usertypes.Question, bool)
     def ask_question(self, question, blocking):
-        """Dispkay a question in the statusbar.
+        """Display a question in the statusbar.
 
         Args:
             question: The Question object to ask.

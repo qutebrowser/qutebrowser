@@ -171,7 +171,7 @@
 |<<hints-opacity,opacity>>|Opacity for hints.
 |<<hints-mode,mode>>|Mode to use for hints.
 |<<hints-chars,chars>>|Chars used for hint strings.
-|<<hints-min-chars,min-chars>>|Mininum number of chars used for hint strings.
+|<<hints-min-chars,min-chars>>|Minimum number of chars used for hint strings.
 |<<hints-scatter,scatter>>|Whether to scatter hint key chains (like Vimium) or not (like dwb).
 |<<hints-uppercase,uppercase>>|Make chars in hint strings uppercase.
 |<<hints-auto-follow,auto-follow>>|Whether to auto-follow a hint if there's only one left.
@@ -1494,7 +1494,7 @@ Default: +pass:[asdfghjkl]+
 
 [[hints-min-chars]]
 === min-chars
-Mininum number of chars used for hint strings.
+Minimum number of chars used for hint strings.
 
 Default: +pass:[1]+
 

@@ -81,7 +81,7 @@ class KeyConfigParser(QObject):
         Args:
             configdir: The directory to save the configs in.
             fname: The filename of the config.
-            relaxed: If given, unknwon commands are ignored.
+            relaxed: If given, unknown commands are ignored.
         """
         super().__init__(parent)
         self.is_dirty = False

@@ -38,7 +38,7 @@ class ArgumentParserError(Exception):
 
 class ArgumentParserExit(Exception):
 
-    """Exception raised when the argument parser exitted.
+    """Exception raised when the argument parser exited.
 
     Attributes:
         status: The exit status.

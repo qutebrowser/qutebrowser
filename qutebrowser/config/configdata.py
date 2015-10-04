@@ -773,7 +773,7 @@ def data(readonly=False):
 
             ('min-chars',
              SettingValue(typ.Int(minval=1), '1'),
-             "Mininum number of chars used for hint strings."),
+             "Minimum number of chars used for hint strings."),
 
             ('scatter',
              SettingValue(typ.Bool(), 'true'),

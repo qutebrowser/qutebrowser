@@ -272,7 +272,7 @@ class TestInitCacheDirTag:
 
 class TestCreatingDir:
 
-    """Make sure inexistant directories are created properly."""
+    """Make sure inexistent directories are created properly."""
 
     DIR_TYPES = ['config', 'data', 'cache', 'download', 'runtime']
 

@@ -42,7 +42,7 @@ def test_elided_text(qtbot, elidemode, check):
         qtbot: pytestqt.plugin.QtBot fixture
         elidemode: parametrized elide mode
         check: function that receives the elided text and must return True
-        if the elipsis is placed correctly according to elidemode.
+        if the ellipsis is placed correctly according to elidemode.
     """
     label = TextBase(elidemode=elidemode)
     qtbot.add_widget(label)

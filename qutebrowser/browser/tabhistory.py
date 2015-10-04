@@ -138,7 +138,7 @@ def serialize(items):
 
     Return:
         A (stream, data, user_data) tuple.
-            stream: The reseted QDataStream.
+            stream: The reset QDataStream.
             data: The QByteArray with the raw data.
             user_data: A list with each item's user data.
 

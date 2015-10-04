@@ -143,7 +143,7 @@ class IPCServer(QObject):
         _socketname: The socketname to use.
         _socketopts_ok: Set if using setSocketOptions is working with this
                         OS/Qt version.
-        _atime_timer: Timer to update the atime of the socket regularily.
+        _atime_timer: Timer to update the atime of the socket regularly.
 
     Signals:
         got_args: Emitted when there was an IPC connection and arguments were

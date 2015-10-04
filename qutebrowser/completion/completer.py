@@ -124,7 +124,7 @@ class Completer(QObject):
                 self.update_completion()
 
     def _model(self):
-        """Convienience method to get the current completion model."""
+        """Convenience method to get the current completion model."""
         completion = objreg.get('completion', scope='window',
                                 window=self._win_id)
         return completion.model()
@@ -254,7 +254,7 @@ class Completer(QObject):
 
         Args:
             selected: New selection.
-            _delected: Previous selection.
+            _deselected: Previous selection.
         """
         indexes = selected.indexes()
         if not indexes:

@@ -39,7 +39,7 @@ class FakeDNS:
 
     Attributes:
         used: Whether the fake DNS server was used since it was
-              created/reseted.
+              created/reset.
         answer: What to return for the given host(True/False). Needs to be set
                 when fromname_mock is called.
     """

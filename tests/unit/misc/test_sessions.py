@@ -97,7 +97,7 @@ class TestExists:
         assert man.exists(name)
 
     @pytest.mark.parametrize('absolute', [True, False])
-    def test_inexistant(self, tmpdir, absolute):
+    def test_inexistent(self, tmpdir, absolute):
         man = sessions.SessionManager(str(tmpdir))
 
         if absolute:

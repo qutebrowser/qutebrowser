@@ -87,14 +87,14 @@ def get_fatal_crash_dialog(debug, data):
         text = ("<b>qutebrowser was restarted after a fatal crash!</b><br/>"
                 "Unfortunately, this crash occurred in Qt (the library "
                 "qutebrowser uses), and your version ({}) is outdated - "
-                "Qt 5.4 or later is recommended. Unfortuntately Debian and "
+                "Qt 5.4 or later is recommended. Unfortunately Debian and "
                 "Ubuntu don't ship a newer version (yet?)...".format(
                     qVersion()))
         return QMessageBox(QMessageBox.Critical, title, text, QMessageBox.Ok)
 
 
 def _get_environment_vars():
-    """Gather enveronment variables for the crash info."""
+    """Gather environment variables for the crash info."""
     masks = ('DESKTOP_SESSION', 'DE', 'QT_*', 'PYTHON*', 'LC_*', 'LANG')
     info = []
     for key, value in os.environ.items():

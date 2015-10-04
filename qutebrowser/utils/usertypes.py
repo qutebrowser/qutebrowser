@@ -271,11 +271,11 @@ class Question(QObject):
         answered: Emitted when the question has been answered by the user.
                   arg: The answer to the question.
         cancelled: Emitted when the question has been cancelled by the user.
-        aborted: Emitted when the question was aborted programatically.
+        aborted: Emitted when the question was aborted programmatically.
                  In this case, cancelled is not emitted.
-        answered_yes: Convienience signal emitted when a yesno question was
+        answered_yes: Convenience signal emitted when a yesno question was
                       answered with yes.
-        answered_no: Convienience signal emitted when a yesno question was
+        answered_no: Convenience signal emitted when a yesno question was
                      answered with no.
         completed: Emitted when the question was completed in any way.
     """

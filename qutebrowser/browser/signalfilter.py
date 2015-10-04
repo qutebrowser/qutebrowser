@@ -55,7 +55,7 @@ class SignalFilter(QObject):
             tab: The WebView to create filters for.
 
         Return:
-            A partial functon calling _filter_signals with a signal.
+            A partial function calling _filter_signals with a signal.
         """
         return functools.partial(self._filter_signals, signal, tab)
 

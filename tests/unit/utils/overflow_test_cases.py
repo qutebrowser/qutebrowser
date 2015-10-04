@@ -62,7 +62,7 @@ def iter_good_values():
 def iter_bad_values():
     """Yield pairs of "bad" (C type, value, repl) tuples.
 
-    Theose should not pass overflow checking. The third value is the value they
+    These should not pass overflow checking. The third value is the value they
     should be replaced with if overflow checking should not be fatal.
     """
     for ctype, values in BAD_VALUES.items():

@@ -84,7 +84,10 @@ def check_spelling():
              '[Oo]ccur[^r .]', '[Ss]eperator', '[Ee]xplicitely', '[Rr]esetted',
              '[Aa]uxillary', '[Aa]ccidentaly', '[Aa]mbigious', '[Ll]oosly',
              '[Ii]nitialis', '[Cc]onvienence', '[Ss]imiliar', '[Uu]ncommited',
-             '[Rr]eproducable', '[Aa]n [Uu]ser'}
+             '[Rr]eproducable', '[Aa]n [Uu]ser', '[Cc]onvienience',
+             '[Ww]ether', '[Pp]rogramatically', '[Ss]plitted', '[Ee]xitted',
+             '[Mm]ininum', '[Rr]esett?ed', '[Rr]ecieved', '[Rr]egularily',
+             '[Uu]nderlaying', '[Ii]nexistant', '[Ee]lipsis'}
 
     # Words which look better when splitted, but might need some fine tuning.
     words |= {'[Ww]ebelements', '[Mm]ouseevent', '[Kk]eysequence',

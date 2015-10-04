@@ -33,7 +33,7 @@ class HTTPGetStub(httpclient.HTTPClient):
 
     Attributes:
         url: the last url used by get()
-        _success: Wether get() will emit a success signal.
+        _success: Whether get() will emit a success signal.
     """
 
     def __init__(self, success=True, json=None):

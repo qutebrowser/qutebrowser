@@ -58,7 +58,7 @@ qApp = None
 
 
 def run(args):
-    """Initialize everthing and run the application."""
+    """Initialize everything and run the application."""
     # pylint: disable=too-many-statements
     if args.version:
         print(version.version(short=True))
@@ -661,7 +661,7 @@ class Quitter:
         if self._args.temp_basedir:
             atexit.register(shutil.rmtree, self._args.basedir)
         # If we don't kill our custom handler here we might get segfaults
-        log.destroy.debug("Deactiving message handler...")
+        log.destroy.debug("Deactivating message handler...")
         qInstallMessageHandler(None)
         # Now we can hopefully quit without segfaults
         log.destroy.debug("Deferring QApplication::exit...")

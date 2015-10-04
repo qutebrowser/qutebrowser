@@ -84,6 +84,6 @@ class PyPIVersionClient(QObject):
         try:
             self.success.emit(json_data['info']['version'])
         except KeyError as e:
-            self.error.emit("Malformed data recieved in reply "
+            self.error.emit("Malformed data received in reply "
                             "({!r} not found)!".format(e))
             return

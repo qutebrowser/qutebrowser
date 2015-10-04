@@ -862,8 +862,8 @@ def test_long_username(monkeypatch):
         server.shutdown()
 
 
-def test_connect_inexistant(qlocalsocket):
-    """Make sure connecting to an inexistant server fails immediately.
+def test_connect_inexistent(qlocalsocket):
+    """Make sure connecting to an inexistent server fails immediately.
 
     If this test fails, our connection logic checking for the old naming scheme
     would not work properly.

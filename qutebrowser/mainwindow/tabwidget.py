@@ -309,7 +309,7 @@ class TabBar(QTabBar):
 
     def refresh(self):
         """Properly repaint the tab bar and relayout tabs."""
-        # This is a horrible hack, but we need to do this so the underlaying Qt
+        # This is a horrible hack, but we need to do this so the underlying Qt
         # code sets layoutDirty so it actually relayouts the tabs.
         self.setIconSize(self.iconSize())
 
