@@ -31,55 +31,96 @@ sys.path.insert(0, os.path.join(os.path.dirname(__file__), os.pardir,
 
 from scripts import utils
 
-
+# A list of (test_file, tested_file) tuples. test_file can be None.
 PERFECT_FILES = [
-    'qutebrowser/commands/cmdexc.py',
-    'qutebrowser/commands/cmdutils.py',
-    'qutebrowser/commands/argparser.py',
+    (None,
+        'qutebrowser/commands/cmdexc.py'),
+    ('tests/unit/commands/test_cmdutils.py',
+        'qutebrowser/commands/cmdutils.py'),
+    ('tests/unit/commands/test_argparser.py',
+        'qutebrowser/commands/argparser.py'),
 
-    'qutebrowser/browser/cookies.py',
-    'qutebrowser/browser/tabhistory.py',
-    'qutebrowser/browser/http.py',
-    'qutebrowser/browser/rfc6266.py',
-    'qutebrowser/browser/webelem.py',
-    'qutebrowser/browser/network/schemehandler.py',
-    'qutebrowser/browser/network/filescheme.py',
-    'qutebrowser/browser/network/networkreply.py',
-    'qutebrowser/browser/signalfilter.py',
+    ('tests/unit/browser/test_cookies.py',
+        'qutebrowser/browser/cookies.py'),
+    ('tests/unit/browser/test_tabhistory.py',
+        'qutebrowser/browser/tabhistory.py'),
+    ('tests/unit/browser/http/test_http.py',
+        'qutebrowser/browser/http.py'),
+    ('tests/unit/browser/http/test_content_disposition.py',
+        'qutebrowser/browser/rfc6266.py'),
+    ('tests/unit/browser/test_webelem.py',
+        'qutebrowser/browser/webelem.py'),
+    ('tests/unit/browser/network/test_schemehandler.py',
+        'qutebrowser/browser/network/schemehandler.py'),
+    ('tests/unit/browser/network/test_filescheme.py',
+        'qutebrowser/browser/network/filescheme.py'),
+    ('tests/unit/browser/network/test_networkreply.py',
+        'qutebrowser/browser/network/networkreply.py'),
+    ('tests/unit/browser/test_signalfilter.py',
+        'qutebrowser/browser/signalfilter.py'),
 
-    'qutebrowser/keyinput/basekeyparser.py',
+    ('tests/unit/keyinput/test_basekeyparser.py',
+        'qutebrowser/keyinput/basekeyparser.py'),
 
-    'qutebrowser/misc/autoupdate.py',
-    'qutebrowser/misc/readline.py',
-    'qutebrowser/misc/split.py',
-    'qutebrowser/misc/msgbox.py',
-    'qutebrowser/misc/checkpyver.py',
-    'qutebrowser/misc/guiprocess.py',
-    'qutebrowser/misc/editor.py',
-    'qutebrowser/misc/cmdhistory.py',
-    'qutebrowser/misc/ipc.py',
+    ('tests/unit/misc/test_autoupdate.py',
+        'qutebrowser/misc/autoupdate.py'),
+    ('tests/unit/misc/test_readline.py',
+        'qutebrowser/misc/readline.py'),
+    ('tests/unit/misc/test_split.py',
+        'qutebrowser/misc/split.py'),
+    ('tests/unit/misc/test_msgbox.py',
+        'qutebrowser/misc/msgbox.py'),
+    ('tests/unit/misc/test_checkpyver.py',
+        'qutebrowser/misc/checkpyver.py'),
+    ('tests/unit/misc/test_guiprocess.py',
+        'qutebrowser/misc/guiprocess.py'),
+    ('tests/unit/misc/test_editor.py',
+        'qutebrowser/misc/editor.py'),
+    ('tests/unit/misc/test_cmdhistory.py',
+        'qutebrowser/misc/cmdhistory.py'),
+    ('tests/unit/misc/test_ipc.py',
+        'qutebrowser/misc/ipc.py'),
 
-    'qutebrowser/mainwindow/statusbar/keystring.py',
-    'qutebrowser/mainwindow/statusbar/percentage.py',
-    'qutebrowser/mainwindow/statusbar/progress.py',
-    'qutebrowser/mainwindow/statusbar/tabindex.py',
-    'qutebrowser/mainwindow/statusbar/textbase.py',
+    (None,
+        'qutebrowser/mainwindow/statusbar/keystring.py'),
+    ('tests/unit/mainwindow/statusbar/test_percentage.py',
+        'qutebrowser/mainwindow/statusbar/percentage.py'),
+    ('tests/unit/mainwindow/statusbar/test_progress.py',
+        'qutebrowser/mainwindow/statusbar/progress.py'),
+    ('tests/unit/mainwindow/statusbar/test_tabindex.py',
+        'qutebrowser/mainwindow/statusbar/tabindex.py'),
+    ('tests/unit/mainwindow/statusbar/test_textbase.py',
+        'qutebrowser/mainwindow/statusbar/textbase.py'),
 
-    'qutebrowser/config/configtypes.py',
-    'qutebrowser/config/configdata.py',
-    'qutebrowser/config/configexc.py',
-    'qutebrowser/config/textwrapper.py',
-    'qutebrowser/config/style.py',
+    ('tests/unit/config/test_configtypes.py',
+        'qutebrowser/config/configtypes.py'),
+    ('tests/unit/config/test_configdata.py',
+        'qutebrowser/config/configdata.py'),
+    ('tests/unit/config/test_configexc.py',
+        'qutebrowser/config/configexc.py'),
+    ('tests/unit/config/test_textwrapper.py',
+        'qutebrowser/config/textwrapper.py'),
+    ('tests/unit/config/test_style.py',
+        'qutebrowser/config/style.py'),
 
-    'qutebrowser/utils/qtutils.py',
-    'qutebrowser/utils/standarddir.py',
-    'qutebrowser/utils/urlutils.py',
-    'qutebrowser/utils/usertypes.py',
-    'qutebrowser/utils/utils.py',
-    'qutebrowser/utils/version.py',
-    'qutebrowser/utils/debug.py',
-    'qutebrowser/utils/jinja.py',
-    'qutebrowser/utils/error.py',
+    ('tests/unit/utils/test_qtutils.py',
+        'qutebrowser/utils/qtutils.py'),
+    ('tests/unit/utils/test_standarddir.py',
+        'qutebrowser/utils/standarddir.py'),
+    ('tests/unit/utils/test_urlutils.py',
+        'qutebrowser/utils/urlutils.py'),
+    ('tests/unit/utils/usertypes',
+        'qutebrowser/utils/usertypes.py'),
+    ('tests/unit/utils/test_utils.py',
+        'qutebrowser/utils/utils.py'),
+    ('tests/unit/utils/test_version.py',
+        'qutebrowser/utils/version.py'),
+    ('tests/unit/utils/test_debug.py',
+        'qutebrowser/utils/debug.py'),
+    ('tests/unit/utils/test_jinja.py',
+        'qutebrowser/utils/jinja.py'),
+    ('tests/unit/utils/test_error.py',
+        'qutebrowser/utils/error.py'),
 ]
 
 
@@ -100,11 +141,16 @@ def check(fileobj, perfect_files):
         raise Skipped("because -k is given.")
     elif '-m' in sys.argv[1:]:
         raise Skipped("because -m is given.")
-    elif any(arg.startswith('tests' + os.sep) for arg in sys.argv[1:]):
-        raise Skipped("because a filename is given.")
 
-    for path in perfect_files:
-        assert os.path.exists(path)
+    perfect_src_files = [e[1] for e in perfect_files]
+
+    filename_args = [arg for arg in sys.argv[1:]
+                     if arg.startswith('tests' + os.sep)]
+    filtered_files = [tpl[1] for tpl in perfect_files if tpl[0] in
+                      filename_args]
+
+    if filename_args and not filtered_files:
+        raise Skipped("because there is nothing to check.")
 
     tree = ElementTree.parse(fileobj)
     classes = tree.getroot().findall('./packages/package/classes/class')
@@ -116,16 +162,19 @@ def check(fileobj, perfect_files):
         line_cov = float(klass.attrib['line-rate']) * 100
         branch_cov = float(klass.attrib['branch-rate']) * 100
 
+        if filtered_files and filename not in filtered_files:
+            continue
+
         assert 0 <= line_cov <= 100, line_cov
         assert 0 <= branch_cov <= 100, branch_cov
         assert '\\' not in filename, filename
 
         is_bad = line_cov < 100 or branch_cov < 100
 
-        if filename in perfect_files and is_bad:
+        if filename in perfect_src_files and is_bad:
             messages.append(("{} has {}% line and {}% branch coverage!".format(
                 filename, line_cov, branch_cov)))
-        elif filename not in perfect_files and not is_bad:
+        elif filename not in perfect_src_files and not is_bad:
             messages.append("{} has 100% coverage but is not in "
                             "perfect_files!".format(filename))
 

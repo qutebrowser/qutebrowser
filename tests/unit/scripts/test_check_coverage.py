@@ -58,7 +58,7 @@ class CovtestHelper:
         coverage_file = self._testdir.tmpdir / 'coverage.xml'
 
         if perfect_files is None:
-            perfect_files = ['module.py']
+            perfect_files = [(None, 'module.py')]
 
         argv = [sys.argv[0]]
         self._monkeypatch.setattr('scripts.dev.check_coverage.sys.argv', argv)
@@ -160,7 +160,7 @@ def test_tested_unlisted(covtest):
     (['-k', 'foo'], "because -k is given."),
     (['-m', 'foo'], "because -m is given."),
     (['blah', '-m', 'foo'], "because -m is given."),
-    (['tests/foo'], "because a filename is given."),
+    (['tests/foo'], "because there is nothing to check."),
 ])
 def test_skipped_args(covtest, args, reason):
     covtest.check_skipped(args, reason)
