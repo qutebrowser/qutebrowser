@@ -64,7 +64,6 @@ class WebView(QWebView):
         win_id: The window ID of the view.
         search_text: The text of the last search.
         search_flags: The search flags of the last search.
-        _cur_url: The current URL (accessed via cur_url property).
         _has_ssl_errors: Whether SSL errors occurred during loading.
         _zoom: A NeighborList with the zoom levels.
         _old_scroll_pos: The old scroll position.
@@ -119,7 +118,6 @@ class WebView(QWebView):
         # See https://github.com/The-Compiler/qutebrowser/issues/390
         self.destroyed.connect(functools.partial(
             cfg.changed.disconnect, self.init_neighborlist))
-        self._cur_url = None
         self.cur_url = QUrl()
         self.progress = 0
         self.registry = objreg.ObjectRegistry()

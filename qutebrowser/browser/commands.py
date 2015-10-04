@@ -217,14 +217,6 @@ class CommandDispatcher:
             raise cmdexc.CommandError("Last focused tab vanished!")
         self._set_current_index(idx)
 
-    def _editor_cleanup(self, oshandle, filename):
-        """Clean up temporary file when the editor was closed."""
-        try:
-            os.close(oshandle)
-            os.remove(filename)
-        except OSError:
-            raise cmdexc.CommandError("Failed to delete tempfile...")
-
     def _get_selection_override(self, left, right, opposite):
         """Helper function for tab_close to get the tab to select.
 

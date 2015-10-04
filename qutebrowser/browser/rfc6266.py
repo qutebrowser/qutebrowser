@@ -42,7 +42,6 @@ class UniqueNamespace(peg.Namespace):
 # RFC 2616
 separator_chars = "()<>@,;:\\\"/[]?={} \t"
 ctl_chars = ''.join(chr(i) for i in range(32)) + chr(127)
-nontoken_chars = separator_chars + ctl_chars
 
 
 # RFC 5987
