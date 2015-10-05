@@ -4,13 +4,14 @@ cache:
   - C:\projects\qutebrowser\.cache
 build: off
 environment:
-    PYTHON: 'C:\Python34'
     PYTHONUNBUFFERED: 1
+    matrix:
+    - TESTENV: py34
+    - TESTENV: unittests-frozen
+    - TESTENV: pylint
 
 install:
   - C:\Python27\python -u scripts\dev\ci_install.py
 
 test_script:
-  - C:\Python34\Scripts\tox -e py34
-  - C:\Python34\Scripts\tox -e unittests-frozen
-  - C:\Python34\Scripts\tox -e pylint
+  - C:\Python34\Scripts\tox -e %TESTENV%
