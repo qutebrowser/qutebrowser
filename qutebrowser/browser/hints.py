@@ -336,7 +336,7 @@ class HintManager(QObject):
             ('display', 'inline !important'),
             ('z-index', '{} !important'.format(int(2 ** 32 / 2 - 1))),
             ('pointer-events', 'none !important'),
-            ('position', 'absolute !important'),
+            ('position', 'fixed !important'),
             ('color', config.get('colors', 'hints.fg') + ' !important'),
             ('background', config.get('colors', 'hints.bg') + ' !important'),
             ('font', config.get('fonts', 'hints') + ' !important'),
@@ -363,9 +363,11 @@ class HintManager(QObject):
             label: The label QWebElement.
         """
         rect = elem.geometry()
-        left = rect.x()
-        top = rect.y()
-        zoom = elem.webFrame().zoomFactor()
+        frame = elem.webFrame()
+        pos = frame.scrollPosition()
+        left = rect.x() - pos.x()
+        top = rect.y() - pos.y()
+        zoom = frame.zoomFactor()
         if not config.get('ui', 'zoom-text-only'):
             left /= zoom
             top /= zoom
