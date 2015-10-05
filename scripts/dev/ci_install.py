@@ -40,7 +40,7 @@ except ImportError:
 
 TESTENV = os.environ['TESTENV']
 TRAVIS_OS = os.environ.get('TRAVIS_OS_NAME', None)
-INSTALL_PYQT = TESTENV in ('py34', 'py35', 'unittests-nodisp', 'misc',
+INSTALL_PYQT = TESTENV in ('py34', 'py35', 'unittests-nodisp', 'vulture',
                            'pylint')
 XVFB = TRAVIS_OS == 'linux' and TESTENV == 'py34'
 

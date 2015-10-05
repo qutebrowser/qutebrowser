@@ -14,6 +14,7 @@ env:
     - TESTENV=py34
     - TESTENV=unittests-nodisp
     - TESTENV=misc
+    - TESTENV=vulture
     - TESTENV=pep257
     - TESTENV=pyflakes
     - TESTENV=pep8
@@ -46,6 +47,8 @@ matrix:
       env: TESTENV=unittests-nodisp
     - os: osx
       env: TESTENV=misc
+    - os: osx
+      env: TESTENV=vulture
     - os: osx
       env: TESTENV=pep257
     - os: osx
