@@ -103,8 +103,9 @@ def run(args):
     if server is None:
         sys.exit(usertypes.Exit.ok)
     else:
-        server.got_args.connect(lambda args, cwd:
-                                process_pos_args(args, cwd=cwd, via_ipc=True))
+        server.got_args.connect(lambda args, target_arg, cwd:
+                                process_pos_args(args, cwd=cwd, via_ipc=True,
+                                                 target_arg=target_arg))
 
     init(args, crash_handler)
     ret = qt_mainloop()
@@ -229,7 +230,7 @@ def _load_session(name):
         session_manager.delete('_restart')
 
 
-def process_pos_args(args, via_ipc=False, cwd=None):
+def process_pos_args(args, via_ipc=False, cwd=None, target_arg=None):
     """Process positional commandline args.
 
     URLs to open have no prefix, commands to execute begin with a colon.
@@ -255,7 +256,11 @@ def process_pos_args(args, via_ipc=False, cwd=None):
             log.init.debug("Empty argument")
             win_id = mainwindow.get_window(via_ipc, force_window=True)
         else:
-            win_id = mainwindow.get_window(via_ipc)
+            if via_ipc and target_arg and target_arg != 'auto':
+                open_target = target_arg
+            else:
+                open_target = config.get('general', 'new-instance-open-target')
+            win_id = mainwindow.get_window(via_ipc, open_target=open_target)
             tabbed_browser = objreg.get('tabbed-browser', scope='window',
                                         window=win_id)
             log.init.debug("Startup URL {}".format(cmd))
@@ -265,7 +270,6 @@ def process_pos_args(args, via_ipc=False, cwd=None):
                 message.error('current', "Error in startup argument '{}': "
                               "{}".format(cmd, e))
             else:
-                open_target = config.get('general', 'new-instance-open-target')
                 background = open_target in ('tab-bg', 'tab-bg-silent')
                 tabbed_browser.tabopen(url, background=background)
 

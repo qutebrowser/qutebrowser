@@ -442,8 +442,8 @@ class TestHandleConnection:
         assert msg in all_msgs
 
     def test_read_line_immediately(self, qtbot, ipc_server, caplog):
-        data = '{{"args": ["foo"], "protocol_version": {}}}\n'.format(
-            ipc.PROTOCOL_VERSION)
+        data = '{{"args": ["foo"], "target_arg": "tab", ' \
+               '"protocol_version": {}}}\n'.format(ipc.PROTOCOL_VERSION)
         socket = FakeSocket(data=data.encode('utf-8'))
 
         ipc_server._server = FakeServer(socket)
@@ -454,6 +454,7 @@ class TestHandleConnection:
 
         assert len(spy) == 1
         assert spy[0][0] == ['foo']
+        assert spy[0][1] == 'tab'
 
         all_msgs = [r.message for r in caplog.records()]
         assert "We can read a line immediately." in all_msgs
@@ -490,12 +491,14 @@ NEW_VERSION = str(ipc.PROTOCOL_VERSION + 1).encode('utf-8')
     (b'\n', 'invalid json'),
     (b'{"is this invalid json?": true\n', 'invalid json'),
     (b'{"valid json without args": true}\n', 'no args'),
-    (b'{"args": [], "protocol_version": ' + OLD_VERSION + b'}\n',
-        'incompatible version'),
-    (b'{"args": [], "protocol_version": ' + NEW_VERSION + b'}\n',
-        'incompatible version'),
-    (b'{"args": [], "protocol_version": "foo"}\n', 'invalid version'),
-    (b'{"args": []}\n', 'invalid version'),
+    (b'{"args": []}\n', 'target arg missing'),
+    (b'{"args": [], "target_arg": null, "protocol_version": ' + OLD_VERSION +
+        b'}\n', 'incompatible version'),
+    (b'{"args": [], "target_arg": null, "protocol_version": ' + NEW_VERSION +
+        b'}\n', 'incompatible version'),
+    (b'{"args": [], "target_arg": null, "protocol_version": "foo"}\n',
+        'invalid version'),
+    (b'{"args": [], "target_arg": null}\n', 'invalid version'),
 ])
 def test_invalid_data(qtbot, ipc_server, connected_socket, caplog, data, msg):
     got_args_spy = QSignalSpy(ipc_server.got_args)
@@ -515,8 +518,10 @@ def test_multiline(qtbot, ipc_server, connected_socket):
     spy = QSignalSpy(ipc_server.got_args)
     error_spy = QSignalSpy(ipc_server.got_invalid_data)
 
-    data = ('{{"args": ["one"], "protocol_version": {version}}}\n'
-            '{{"args": ["two"], "protocol_version": {version}}}\n'.format(
+    data = ('{{"args": ["one"], "target_arg": "tab",'
+            ' "protocol_version": {version}}}\n'
+            '{{"args": ["two"], "target_arg": null,'
+            ' "protocol_version": {version}}}\n'.format(
                 version=ipc.PROTOCOL_VERSION))
 
     with qtbot.waitSignals([ipc_server.got_args, ipc_server.got_args],
@@ -526,13 +531,15 @@ def test_multiline(qtbot, ipc_server, connected_socket):
     assert len(spy) == 2
     assert not error_spy
     assert spy[0][0] == ['one']
+    assert spy[0][1] == 'tab'
     assert spy[1][0] == ['two']
+    assert spy[1][1] == ''
 
 
 class TestSendToRunningInstance:
 
     def test_no_server(self, caplog):
-        sent = ipc.send_to_running_instance('qute-test', [])
+        sent = ipc.send_to_running_instance('qute-test', [], None)
         assert not sent
         msg = caplog.records()[-1].message
         assert msg == "No existing instance present (error 2)"
@@ -550,7 +557,7 @@ class TestSendToRunningInstance:
                 if not has_cwd:
                     m = mocker.patch('qutebrowser.misc.ipc.os')
                     m.getcwd.side_effect = OSError
-                sent = ipc.send_to_running_instance('qute-test', ['foo'])
+                sent = ipc.send_to_running_instance('qute-test', ['foo'], None)
 
         assert sent
 
@@ -558,11 +565,12 @@ class TestSendToRunningInstance:
         expected_cwd = str(tmpdir) if has_cwd else ''
 
         assert len(spy) == 1
-        assert spy[0] == [['foo'], expected_cwd]
+        assert spy[0] == [['foo'], '', expected_cwd]
 
         assert len(raw_spy) == 1
         assert len(raw_spy[0]) == 1
-        raw_expected = {'args': ['foo'], 'version': qutebrowser.__version__,
+        raw_expected = {'args': ['foo'], 'target_arg': None,
+                        'version': qutebrowser.__version__,
                         'protocol_version': ipc.PROTOCOL_VERSION}
         if has_cwd:
             raw_expected['cwd'] = str(tmpdir)
@@ -572,20 +580,20 @@ class TestSendToRunningInstance:
     def test_socket_error(self):
         socket = FakeSocket(error=QLocalSocket.ConnectionError)
         with pytest.raises(ipc.Error) as excinfo:
-            ipc.send_to_running_instance('qute-test', [], socket=socket)
+            ipc.send_to_running_instance('qute-test', [], None, socket=socket)
 
         msg = "Error while writing to running instance: Error string (error 7)"
         assert str(excinfo.value) == msg
 
     def test_not_disconnected_immediately(self):
         socket = FakeSocket()
-        ipc.send_to_running_instance('qute-test', [], socket=socket)
+        ipc.send_to_running_instance('qute-test', [], None, socket=socket)
 
     def test_socket_error_no_server(self):
         socket = FakeSocket(error=QLocalSocket.ConnectionError,
                             connect_successful=False)
         with pytest.raises(ipc.Error) as excinfo:
-            ipc.send_to_running_instance('qute-test', [], socket=socket)
+            ipc.send_to_running_instance('qute-test', [], None, socket=socket)
 
         msg = ("Error while connecting to running instance: Error string "
                "(error 7)")
@@ -628,12 +636,13 @@ def test_ipcserver_socket_none(ipc_server, caplog, method, args):
 
 class TestSendOrListen:
 
-    Args = collections.namedtuple('Args', 'no_err_windows, basedir, command')
+    Args = collections.namedtuple('Args', 'no_err_windows, basedir, command, '
+                                          'target')
 
     @pytest.fixture
     def args(self):
         return self.Args(no_err_windows=True, basedir='/basedir/for/testing',
-                         command=['test'])
+                         command=['test'], target=None)
 
     @pytest.fixture(autouse=True)
     def cleanup(self):

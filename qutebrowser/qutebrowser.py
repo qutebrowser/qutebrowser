@@ -66,6 +66,10 @@ def get_argparser():
                         "session even if one would be restored.",
                         action='store_true')
     parser.add_argument('--json-args', help=argparse.SUPPRESS)
+    parser.add_argument('--target', choices=['auto', 'tab', 'tab-bg',
+                        'tab-silent', 'tab-bg-silent', 'window'],
+                        help="How the urls should be opened if there is "
+                        "already a qutebrowser instance running.")
 
     debug = parser.add_argument_group('debug arguments')
     debug.add_argument('-l', '--loglevel', dest='loglevel',

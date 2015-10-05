@@ -152,7 +152,7 @@ class IPCServer(QObject):
         got_invalid_data: Emitted when there was invalid incoming data.
     """
 
-    got_args = pyqtSignal(list, str)
+    got_args = pyqtSignal(list, str, str)
     got_raw = pyqtSignal(bytes)
     got_invalid_data = pyqtSignal()
 
@@ -287,6 +287,7 @@ class IPCServer(QObject):
     @pyqtSlot()
     def on_ready_read(self):
         """Read json data from the client."""
+        # pylint: disable=too-many-return-statements
         if self._socket is None:
             # This happens when doing a connection while another one is already
             # active for some reason.
@@ -322,6 +323,13 @@ class IPCServer(QObject):
                 return
 
             try:
+                target_arg = json_data['target_arg']
+            except KeyError:
+                log.ipc.error("target arg missing: {}".format(decoded.strip()))
+                self._handle_invalid_data()
+                return
+
+            try:
                 protocol_version = int(json_data['protocol_version'])
             except (KeyError, ValueError):
                 log.ipc.error("invalid version: {}".format(decoded.strip()))
@@ -336,7 +344,7 @@ class IPCServer(QObject):
                 return
 
             cwd = json_data.get('cwd', None)
-            self.got_args.emit(args, cwd)
+            self.got_args.emit(args, target_arg, cwd)
 
     @pyqtSlot()
     def on_timeout(self):
@@ -418,8 +426,8 @@ def _has_legacy_server(name):
     return False
 
 
-def send_to_running_instance(socketname, command, *, legacy_name=None,
-                             socket=None):
+def send_to_running_instance(socketname, command, target_arg, *,
+                             legacy_name=None, socket=None):
     """Try to send a commandline to a running instance.
 
     Blocks for CONNECT_TIMEOUT ms.
@@ -448,7 +456,8 @@ def send_to_running_instance(socketname, command, *, legacy_name=None,
     connected = socket.waitForConnected(CONNECT_TIMEOUT)
     if connected:
         log.ipc.info("Opening in existing instance")
-        json_data = {'args': command, 'version': qutebrowser.__version__,
+        json_data = {'args': command, 'target_arg': target_arg,
+                     'version': qutebrowser.__version__,
                      'protocol_version': PROTOCOL_VERSION}
         try:
             cwd = os.getcwd()
@@ -500,6 +509,7 @@ def send_or_listen(args):
     try:
         try:
             sent = send_to_running_instance(socketname, args.command,
+                                            args.target,
                                             legacy_name=legacy_socketname)
             if sent:
                 return None
@@ -513,6 +523,7 @@ def send_or_listen(args):
             log.init.debug("Got AddressInUseError, trying again.")
             time.sleep(0.5)
             sent = send_to_running_instance(socketname, args.command,
+                                            args.target,
                                             legacy_name=legacy_socketname)
             if sent:
                 return None
