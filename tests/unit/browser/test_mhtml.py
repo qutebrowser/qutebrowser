@@ -250,7 +250,6 @@ def test_removing_file_from_mhtml(checker):
         """)
 
 
-@pytest.mark.parametrize('has_cssutils', [True, False])
 @pytest.mark.parametrize('inline, style, expected_urls', [
     (False, "@import 'default.css'", ['default.css']),
     (False, '@import "default.css"', ['default.css']),
@@ -262,12 +261,7 @@ def test_removing_file_from_mhtml(checker):
     (True, 'background: url(folder/file.png) no-repeat', ['folder/file.png']),
     (True, 'content: url()', []),
 ])
-def test_css_url_scanner(monkeypatch, has_cssutils, inline, style,
-                         expected_urls):
-    if has_cssutils:
-        assert mhtml.cssutils is not None
-    else:
-        monkeypatch.setattr('qutebrowser.browser.mhtml.cssutils', None)
+def test_css_url_scanner(monkeypatch, inline, style, expected_urls):
     expected_urls.sort()
     urls = mhtml._get_css_imports(style, inline=inline)
     urls.sort()
