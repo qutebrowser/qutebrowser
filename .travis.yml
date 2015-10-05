@@ -5,6 +5,23 @@ os:
   - linux
   - osx
 
+
+env:
+  global:
+    - PATH=/home/travis/bin:/home/travis/.local/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
+  matrix:
+    - TESTENV=py35
+    - TESTENV=py34
+    - TESTENV=unittests-nodisp
+    - TESTENV=misc
+    - TESTENV=pep257
+    - TESTENV=pyflakes
+    - TESTENV=pep8
+    - TESTENV=mccabe
+    - TESTENV=pyroma
+    - TESTENV=check-manifest
+    - TESTENV=pylint
+
 # Not really, but this is here so we can do stuff by hand.
 language: c
 
@@ -13,22 +30,33 @@ cache:
     - $HOME/.cache/pip
     - $HOME/build/The-Compiler/qutebrowser/.cache
 
-env:
-  - PATH=/home/travis/bin:/home/travis/.local/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
-
-
 install:
   - python scripts/dev/ci_install.py
 
 script:
-    - '[[ $TRAVIS_OS_NAME == osx ]] && tox -e py35 || true'
-    - '[[ $TRAVIS_OS_NAME == linux ]] && xvfb-run -s "-screen 0 640x480x16" tox -e py34 || true'
-    - '[[ $TRAVIS_OS_NAME == linux ]] && tox -e unittests-nodisp || true'
-    - '[[ $TRAVIS_OS_NAME == linux ]] && tox -e misc || true'
-    - '[[ $TRAVIS_OS_NAME == linux ]] && tox -e pep257 || true'
-    - '[[ $TRAVIS_OS_NAME == linux ]] && tox -e pyflakes || true'
-    - '[[ $TRAVIS_OS_NAME == linux ]] && tox -e pep8 || true'
-    - '[[ $TRAVIS_OS_NAME == linux ]] && tox -e mccabe || true'
-    - '[[ $TRAVIS_OS_NAME == linux ]] && tox -e pyroma || true'
-    - '[[ $TRAVIS_OS_NAME == linux ]] && tox -e check-manifest || true'
-    - '[[ $TRAVIS_OS_NAME == linux ]] && tox -e pylint || true'
+  - python scripts/dev/ci_run.py
+
+matrix:
+  exclude:
+    - os: linux
+      env: TESTENV=py35
+    - os: osx
+      env: TESTENV=py34
+    - os: osx
+      env: TESTENV=unittests-nodisp
+    - os: osx
+      env: TESTENV=misc
+    - os: osx
+      env: TESTENV=pep257
+    - os: osx
+      env: TESTENV=pyflakes
+    - os: osx
+      env: TESTENV=pep8
+    - os: osx
+      env: TESTENV=mccabe
+    - os: osx
+      env: TESTENV=pyroma
+    - os: osx
+      env: TESTENV=check-manifest
+    - os: osx
+      env: TESTENV=pylint

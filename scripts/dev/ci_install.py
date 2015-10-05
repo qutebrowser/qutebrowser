@@ -38,6 +38,12 @@ try:
 except ImportError:
     winreg = None
 
+TESTENV = os.environ['TESTENV']
+TRAVIS_OS = os.environ.get('TRAVIS_OS_NAME', None)
+INSTALL_PYQT = TESTENV in ('py34', 'py35', 'unittests-nodisp', 'misc',
+                           'pylint')
+XVFB = TRAVIS_OS == 'linux' and TESTENV == 'py34'
+
 
 def apt_get(args):
     subprocess.check_call(['sudo', 'apt-get', '-y', '-q'] + args)
@@ -52,9 +58,10 @@ def brew(args, silent=False):
 
 
 def check_setup(executable):
-    print("Checking setup...")
-    subprocess.check_call([executable, '-c', 'import PyQt5'])
-    subprocess.check_call([executable, '-c', 'import sip'])
+    if INSTALL_PYQT:
+        print("Checking setup...")
+        subprocess.check_call([executable, '-c', 'import PyQt5'])
+        subprocess.check_call([executable, '-c', 'import sip'])
 
 
 if 'APPVEYOR' in os.environ:
@@ -80,21 +87,27 @@ if 'APPVEYOR' in os.environ:
         f.write(r'@C:\Python34\python %*')
 
     check_setup(r'C:\Python34\python')
-elif os.environ.get('TRAVIS_OS_NAME', None) == 'linux':
+elif TRAVIS_OS == 'linux':
     print("apt-get update...")
     apt_get(['update'])
 
     print("Installing packages...")
-    pkgs = ['python3-pyqt5', 'python3-pyqt5.qtwebkit', 'python-tox',
-            'python3-dev', 'libpython3.4-dev', 'xvfb']
+    pkgs = ['python-tox', 'python3-dev', 'libpython3.4-dev']
+    if XVFB:
+        pkgs.append('xvfb')
+    if INSTALL_PYQT:
+        pkgs += ['python3-pyqt5', 'python3-pyqt5.qtwebkit']
     apt_get(['install'] + pkgs)
     check_setup('python3')
-elif os.environ.get('TRAVIS_OS_NAME', None) == 'osx':
+elif TRAVIS_OS == 'osx':
     print("brew update...")
     brew(['update'], silent=True)
 
     print("Installing packages...")
-    brew(['install', 'python3', 'pyqt5'])
+    pkgs = ['python3']
+    if INSTALL_PYQT:
+        pkgs.append('pyqt5')
+    brew(['install'] + pkgs)
 
     print("Installing tox...")
     subprocess.check_call(['sudo', 'pip3', 'install', 'tox'])
