@@ -29,6 +29,7 @@ import shutil
 import tempfile
 import atexit
 import datetime
+import tokenize
 
 from PyQt5.QtWidgets import QApplication
 from PyQt5.QtGui import QDesktopServices, QPixmap, QIcon, QCursor, QWindow
@@ -483,7 +484,7 @@ class Quitter:
         for dirpath, _dirnames, filenames in os.walk(path):
             for fn in filenames:
                 if os.path.splitext(fn)[1] == '.py':
-                    with open(os.path.join(dirpath, fn)) as f:
+                    with tokenize.open(os.path.join(dirpath, fn)) as f:
                         compile(f.read(), fn, 'exec')
 
     def _get_restart_args(self, pages=(), session=None):

@@ -23,7 +23,6 @@
 import sys
 import os
 import re
-import string
 import tempfile
 import inspect
 
@@ -36,6 +35,7 @@ from qutebrowser.browser import rfc6266
 
 
 def whitelist_generator():
+    """Generator which yields lines to add to a vulture whitelist."""
     # qutebrowser commands
     for cmd in cmdutils.cmd_dict.values():
         yield utils.qualname(cmd.handler)
@@ -98,6 +98,12 @@ def whitelist_generator():
 
 
 def filter_func(item):
+    """Check if a missing function should be filtered or not.
+
+    Return:
+        True if the missing function should be filtered/ignored, False
+        otherwise.
+    """
     if re.match(r'[a-z]+[A-Z][a-zA-Z]+', str(item)):
         # probably a virtual Qt method
         return True
@@ -106,8 +112,13 @@ def filter_func(item):
 
 
 def report(items):
+    """Generate a report based on the given vulture.Item's.
+
+    Based on vulture.Vulture.report, but we can't use that as we can't set the
+    properties which get used for the items.
+    """
     unused_item_found = False
-    for item in sorted(items, key=lambda: (item.file.lower(), item.lineno)):
+    for item in sorted(items, key=lambda e: (e.file.lower(), e.lineno)):
         relpath = os.path.relpath(item.file)
         path = relpath if not relpath.startswith('..') else item.file
         print("%s:%d: Unused %s '%s'" % (path, item.lineno, item.typ,
@@ -116,7 +127,8 @@ def report(items):
     return unused_item_found
 
 
-if __name__ == '__main__':
+def main():
+    """Run vulture over all files."""
     with tempfile.NamedTemporaryFile(mode='w', delete=False) as whitelist_file:
         for line in whitelist_generator():
             whitelist_file.write(line + '\n')
@@ -145,3 +157,7 @@ if __name__ == '__main__':
                 items.append(item)
 
     sys.exit(report(items))
+
+
+if __name__ == '__main__':
+    main()
