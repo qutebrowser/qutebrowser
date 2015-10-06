@@ -88,16 +88,22 @@ if 'APPVEYOR' in os.environ:
 
     check_setup(r'C:\Python34\python')
 elif TRAVIS_OS == 'linux':
-    print("apt-get update...")
-    apt_get(['update'])
+    print("sudo pip install tox")
+    subprocess.check_call(['sudo', 'pip', 'install', 'tox'])
 
     print("Installing packages...")
-    pkgs = ['python-tox']
+    pkgs = []
+
     if XVFB:
         pkgs.append('xvfb')
     if INSTALL_PYQT:
         pkgs += ['python3-pyqt5', 'python3-pyqt5.qtwebkit']
-    apt_get(['install'] + pkgs)
+
+    if pkgs:
+        print("apt-get update...")
+        apt_get(['update'])
+        print("apt-get install...")
+        apt_get(['install'] + pkgs)
     check_setup('python3')
 elif TRAVIS_OS == 'osx':
     print("brew update...")
