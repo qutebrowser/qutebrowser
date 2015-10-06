@@ -53,7 +53,9 @@ if travis_os == 'linux' and testenv == 'py35':
 elif travis_os == 'osx' and testenv == 'py34':
     raise Exception("Can't run py34 on OS X")
 
-if testenv == 'py34' and travis_os == 'linux':
+if testenv == 'eslint':
+    subprocess.check_call(['eslint', 'qutebrowser'])
+elif testenv == 'py34' and travis_os == 'linux':
     subprocess.check_call(['xvfb-run', '-s', '-screen 0 640x480x16',
                            'tox', '-e', testenv])
 else:

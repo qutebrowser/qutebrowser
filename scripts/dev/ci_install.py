@@ -88,8 +88,9 @@ if 'APPVEYOR' in os.environ:
 
     check_setup(r'C:\Python34\python')
 elif TRAVIS_OS == 'linux':
-    print("sudo pip install tox")
-    subprocess.check_call(['sudo', 'pip', 'install', 'tox'])
+    if TESTENV != 'eslint':
+        print("sudo pip install tox/npm")
+        subprocess.check_call(['sudo', 'pip', 'install', 'tox'])
 
     print("Installing packages...")
     pkgs = []
@@ -98,13 +99,19 @@ elif TRAVIS_OS == 'linux':
         pkgs.append('xvfb')
     if INSTALL_PYQT:
         pkgs += ['python3-pyqt5', 'python3-pyqt5.qtwebkit']
+    if TESTENV == 'eslint':
+        pkgs += ['npm', 'nodejs']
 
     if pkgs:
         print("apt-get update...")
         apt_get(['update'])
         print("apt-get install...")
         apt_get(['install'] + pkgs)
-    check_setup('python3')
+
+    if TESTENV == 'eslint':
+        subprocess.check_call(['sudo', 'npm', 'install', '-g', 'eslint'])
+    else:
+        check_setup('python3')
 elif TRAVIS_OS == 'osx':
     print("brew update...")
     brew(['update'], silent=True)

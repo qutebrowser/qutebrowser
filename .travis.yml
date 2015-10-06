@@ -22,6 +22,7 @@ env:
     - TESTENV=pyroma
     - TESTENV=check-manifest
     - TESTENV=pylint
+    - TESTENV=eslint
 
 # Not really, but this is here so we can do stuff by hand.
 language: c
@@ -63,3 +64,5 @@ matrix:
       env: TESTENV=check-manifest
     - os: osx
       env: TESTENV=pylint
+    - os: osx
+      env: TESTENV=eslint
