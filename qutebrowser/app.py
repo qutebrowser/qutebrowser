@@ -244,9 +244,9 @@ def process_pos_args(args, via_ipc=False, cwd=None, target_arg=None):
                     will be an empty string instead of None. This behavior is
                     caused by the PyQt signal
                     ``got_args = pyqtSignal(list, str, str)``
-                    used in the misc.ipc.IPCServer class. PyQt converts the None
-                    value into a null QString and then back to an empty python
-                    string
+                    used in the misc.ipc.IPCServer class. PyQt converts the
+                    None value into a null QString and then back to an empty
+                    python string
     """
     if via_ipc and not args:
         win_id = mainwindow.get_window(via_ipc, force_window=True)

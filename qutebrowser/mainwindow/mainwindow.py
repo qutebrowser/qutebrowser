@@ -41,7 +41,8 @@ from qutebrowser.misc import crashsignal
 win_id_gen = itertools.count(0)
 
 
-def get_window(via_ipc, force_window=False, force_tab=False, force_target=None):
+def get_window(via_ipc, force_window=False, force_tab=False,
+               force_target=None):
     """Helper function for app.py to get a window id.
 
     Args:
