@@ -92,7 +92,7 @@ elif TRAVIS_OS == 'linux':
     apt_get(['update'])
 
     print("Installing packages...")
-    pkgs = ['python-tox', 'python3-dev', 'libpython3.4-dev']
+    pkgs = ['python-tox']
     if XVFB:
         pkgs.append('xvfb')
     if INSTALL_PYQT:
