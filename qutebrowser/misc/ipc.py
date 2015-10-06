@@ -287,7 +287,6 @@ class IPCServer(QObject):
     @pyqtSlot()
     def on_ready_read(self):
         """Read json data from the client."""
-        # pylint: disable=too-many-return-statements
         if self._socket is None:
             # This happens when doing a connection while another one is already
             # active for some reason.
@@ -315,19 +314,12 @@ class IPCServer(QObject):
                 self._handle_invalid_data()
                 return
 
-            try:
-                args = json_data['args']
-            except KeyError:
-                log.ipc.error("no args: {}".format(decoded.strip()))
-                self._handle_invalid_data()
-                return
-
-            try:
-                target_arg = json_data['target_arg']
-            except KeyError:
-                log.ipc.error("target arg missing: {}".format(decoded.strip()))
-                self._handle_invalid_data()
-                return
+            for name in ('args', 'target_arg'):
+                if name not in json_data:
+                    log.ipc.error("Missing {}: {}".format(name,
+                                                          decoded.strip()))
+                    self._handle_invalid_data()
+                    return
 
             try:
                 protocol_version = int(json_data['protocol_version'])
@@ -344,7 +336,7 @@ class IPCServer(QObject):
                 return
 
             cwd = json_data.get('cwd', None)
-            self.got_args.emit(args, target_arg, cwd)
+            self.got_args.emit(json_data['args'], json_data['target_arg'], cwd)
 
     @pyqtSlot()
     def on_timeout(self):
@@ -435,6 +427,7 @@ def send_to_running_instance(socketname, command, target_arg, *,
     Args:
         socketname: The name which should be used for the socket.
         command: The command to send to the running instance.
+        target_arg: --target command line argument
         socket: The socket to read data from, or None.
         legacy_name: The legacy name to first try to connect to.
 

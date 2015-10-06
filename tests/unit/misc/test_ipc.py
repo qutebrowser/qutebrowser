@@ -442,8 +442,8 @@ class TestHandleConnection:
         assert msg in all_msgs
 
     def test_read_line_immediately(self, qtbot, ipc_server, caplog):
-        data = '{{"args": ["foo"], "target_arg": "tab", ' \
-               '"protocol_version": {}}}\n'.format(ipc.PROTOCOL_VERSION)
+        data = ('{{"args": ["foo"], "target_arg": "tab", '
+                '"protocol_version": {}}}\n'.format(ipc.PROTOCOL_VERSION))
         socket = FakeSocket(data=data.encode('utf-8'))
 
         ipc_server._server = FakeServer(socket)
@@ -490,8 +490,8 @@ NEW_VERSION = str(ipc.PROTOCOL_VERSION + 1).encode('utf-8')
     (b'\x80\n', 'invalid utf-8'),
     (b'\n', 'invalid json'),
     (b'{"is this invalid json?": true\n', 'invalid json'),
-    (b'{"valid json without args": true}\n', 'no args'),
-    (b'{"args": []}\n', 'target arg missing'),
+    (b'{"valid json without args": true}\n', 'Missing args'),
+    (b'{"args": []}\n', 'Missing target_arg'),
     (b'{"args": [], "target_arg": null, "protocol_version": ' + OLD_VERSION +
         b'}\n', 'incompatible version'),
     (b'{"args": [], "target_arg": null, "protocol_version": ' + NEW_VERSION +
