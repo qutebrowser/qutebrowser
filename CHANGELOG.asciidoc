@@ -31,6 +31,8 @@ Added
   `tabs -> title-format`.
 - New setting `general -> url-incdec-segments` to configure which segments of
   the URL should be affected by `:navigate increment/decrement`.
+- New `--target` argument to specify how URLs should be opened in an existing
+  instance.
 
 Changed
 ~~~~~~~
