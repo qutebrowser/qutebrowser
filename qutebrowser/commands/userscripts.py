@@ -346,9 +346,9 @@ def run(cmd, *args, win_id, env, verbose=False):
     cmd = os.path.expanduser(cmd)
 
     # check if userscript is in absolute path or in $XDG_DATA_DIRS
-    if not os.path.isabs(cmd) :
+    if not os.path.isabs(cmd):
         log.misc.debug("{} is no absoulte path".format(cmd))
-        c = os.path.join(standarddir.data(),"userscripts", cmd)
+        c = os.path.join(standarddir.data(), "userscripts", cmd)
         if os.path.isfile(c):
             cmd = c
 
