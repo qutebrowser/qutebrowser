@@ -41,13 +41,15 @@ from qutebrowser.misc import crashsignal
 win_id_gen = itertools.count(0)
 
 
-def get_window(via_ipc, force_window=False, force_tab=False):
+def get_window(via_ipc, force_window=False, force_tab=False,
+               force_target=None):
     """Helper function for app.py to get a window id.
 
     Args:
         via_ipc: Whether the request was made via IPC.
         force_window: Whether to force opening in a window.
         force_tab: Whether to force opening in a tab.
+        force_target: Override the new-instance-open-target config
     """
     if force_window and force_tab:
         raise ValueError("force_window and force_tab are mutually exclusive!")
@@ -55,7 +57,10 @@ def get_window(via_ipc, force_window=False, force_tab=False):
         # Initial main window
         return 0
     window_to_raise = None
-    open_target = config.get('general', 'new-instance-open-target')
+    if force_target is not None:
+        open_target = force_target
+    else:
+        open_target = config.get('general', 'new-instance-open-target')
     if (open_target == 'window' or force_window) and not force_tab:
         window = MainWindow()
         window.show()
