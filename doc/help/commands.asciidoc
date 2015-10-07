@@ -19,7 +19,6 @@
 |<<download-open,download-open>>|Open the last/[count]th download.
 |<<download-remove,download-remove>>|Remove the last/[count]th download from the list.
 |<<download-retry,download-retry>>|Retry the first failed/[count]th download.
-|<<download-whole,download-whole>>|Download the current page as a MHTML file, including all assets.
 |<<forward,forward>>|Go forward in the history of the current tab.
 |<<fullscreen,fullscreen>>|Toggle fullscreen mode.
 |<<help,help>>|Show help about a command or setting.
@@ -146,7 +145,7 @@ Close the current window.
 
 [[download]]
 === download
-Syntax: +:download [*--dest* 'DEST'] ['url'] ['dest-old']+
+Syntax: +:download [*--mhtml*] [*--dest* 'DEST'] ['url'] ['dest-old']+
 
 Download a given URL, or current page if no URL given.
 
@@ -157,6 +156,7 @@ The form `:download [url] [dest]` is deprecated, use `:download --dest [dest] [u
 * +'dest-old'+: (deprecated) Same as dest.
 
 ==== optional arguments
+* +*-m*+, +*--mhtml*+: Download the current page and all assets as mhtml file.
 * +*-d*+, +*--dest*+: The file path to write the download to, or not given to ask.
 
 [[download-cancel]]
@@ -202,15 +202,6 @@ Retry the first failed/[count]th download.
 
 ==== count
 The index of the download to cancel.
-
-[[download-whole]]
-=== download-whole
-Syntax: +:download-whole ['dest']+
-
-Download the current page as a MHTML file, including all assets.
-
-==== positional arguments
-* +'dest'+: The file path to write the download to.
 
 [[forward]]
 === forward
