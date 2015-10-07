@@ -339,13 +339,19 @@ def fail_tests_on_warnings():
     warnings.resetwarnings()
 
 
+def pytest_addoption(parser):
+    parser.addoption('--no-xvfb', action='store_true', default=False,
+                     help='Disable xvfb in tests.')
+
+
 def pytest_configure(config):
     """Start Xvfb if we're on Linux, not on a CI and Xvfb is available.
 
     This is a lot nicer than having windows popping up.
     """
     config.xvfb_display = None
-    if sys.platform.startswith('linux') and 'CI' not in os.environ:
+    if sys.platform.startswith('linux') and not config.getoption('--no-xvfb'):
+        assert 'QUTE_BUILDBOT' not in os.environ
         try:
             disp = xvfbwrapper.Xvfb(width=800, height=600, colordepth=16)
             disp.start()

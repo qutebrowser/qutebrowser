@@ -55,10 +55,6 @@ elif travis_os == 'osx' and testenv == 'py34':
 
 if testenv == 'eslint':
     subprocess.check_call(['eslint', 'qutebrowser'])
-elif testenv == 'py34' and travis_os == 'linux':
-    cmdline = ['xvfb-run', '-s', '-screen 0 640x480x16']
 else:
-    cmdline = []
-
-cmdline += ['tox', '-e', testenv, '--', '-p', 'no:sugar', 'tests']
-subprocess.check_call(cmdline)
+    cmdline = ['tox', '-e', testenv, '--', '-p', 'no:sugar', 'tests']
+    subprocess.check_call(cmdline)
