@@ -183,7 +183,7 @@ class IPCServer(QObject):
         self._server.newConnection.connect(self.handle_connection)
 
         self._socket = None
-        self._socketopts_ok = os.name == 'nt' or qtutils.version_check('5.4')
+        self._socketopts_ok = os.name == 'nt'
         if self._socketopts_ok:  # pragma: no cover
             # If we use setSocketOptions on Unix with Qt < 5.4, we get a
             # NameError while listening...
@@ -213,7 +213,13 @@ class IPCServer(QObject):
                 raise ListenError(self._server)
         if not self._socketopts_ok:  # pragma: no cover
             # If we use setSocketOptions on Unix with Qt < 5.4, we get a
-            # NameError while listening...
+            # NameError while listening.
+            # (see b135569d5c6e68c735ea83f42e4baf51f7972281)
+            #
+            # Also, we don't get an AddressInUseError with Qt 5.5:
+            # https://bugreports.qt.io/browse/QTBUG-48635
+            #
+            # This means we only use setSocketOption on Windows...
             os.chmod(self._server.fullServerName(), 0o700)
 
     @pyqtSlot(int)

@@ -299,8 +299,6 @@ class TestListen:
             ipc_server.listen()
 
     @pytest.mark.posix
-    @pytest.mark.xfail(reason="Fails since adding setSocketOptions to "
-                       "IPCServer.")
     def test_in_use(self, qlocalserver, ipc_server, monkeypatch):
         monkeypatch.setattr('qutebrowser.misc.ipc.QLocalServer.removeServer',
                             lambda self: True)
@@ -896,3 +894,25 @@ def test_socket_options_listen_problem(qlocalserver, short_tmpdir):
         assert not ok
         assert qlocalserver.serverError() == QAbstractSocket.HostNotFoundError
         assert qlocalserver.errorString() == 'QLocalServer::listen: Name error'
+
+
+@pytest.mark.posix
+def test_socket_options_address_in_use_problem(qlocalserver, short_tmpdir):
+    """Qt seems to ignore AddressInUseError when using socketOptions.
+
+    With this test we verify this bug still exists. If it fails, we can
+    probably start using setSocketOptions again.
+    """
+    servername = str(short_tmpdir / 'x')
+
+    s1 = QLocalServer()
+    ok = s1.listen(servername)
+    assert ok
+
+    s2 = QLocalServer()
+    s2.setSocketOptions(QLocalServer.UserAccessOption)
+    ok = s2.listen(servername)
+    print(s2.errorString())
+    # We actually would expect ok == False here - but we want the test to fail
+    # when the Qt bug is fixed.
+    assert ok
