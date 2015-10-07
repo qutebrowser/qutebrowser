@@ -37,7 +37,10 @@ from qutebrowser.utils import log, objreg, message, usertypes
 
 try:
     import cssutils
-except ImportError:
+except (ImportError, re.error):
+    # Catching re.error because cssutils in earlier releases (<= 1.0) is broken
+    # on Python 3.5
+    # See https://bitbucket.org/cthedot/cssutils/issues/52
     cssutils = None
 
 _File = collections.namedtuple('_File',
