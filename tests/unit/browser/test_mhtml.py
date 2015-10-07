@@ -228,28 +228,6 @@ def test_empty_content_type(checker):
         """)
 
 
-def test_removing_file_from_mhtml(checker):
-    writer = mhtml.MHTMLWriter(root_content=b'root',
-                               content_location='http://example.com/',
-                               content_type='text/plain')
-    writer.add_file('http://evil.com/', b'file content')
-    writer.remove_file('http://evil.com/')
-    writer.write_to(checker.fp)
-    checker.expect("""
-        Content-Type: multipart/related; boundary="---=_qute-UUID"
-        MIME-Version: 1.0
-
-        -----=_qute-UUID
-        Content-Location: http://example.com/
-        MIME-Version: 1.0
-        Content-Type: text/plain
-        Content-Transfer-Encoding: quoted-printable
-
-        root
-        -----=_qute-UUID--
-        """)
-
-
 @pytest.mark.parametrize('has_cssutils', [True, False])
 @pytest.mark.parametrize('inline, style, expected_urls', [
     (False, "@import 'default.css'", ['default.css']),
