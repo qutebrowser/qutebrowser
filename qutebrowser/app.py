@@ -103,8 +103,9 @@ def run(args):
     if server is None:
         sys.exit(usertypes.Exit.ok)
     else:
-        server.got_args.connect(lambda args, cwd:
-                                process_pos_args(args, cwd=cwd, via_ipc=True))
+        server.got_args.connect(lambda args, target_arg, cwd:
+                                process_pos_args(args, cwd=cwd, via_ipc=True,
+                                                 target_arg=target_arg))
 
     init(args, crash_handler)
     ret = qt_mainloop()
@@ -229,7 +230,7 @@ def _load_session(name):
         session_manager.delete('_restart')
 
 
-def process_pos_args(args, via_ipc=False, cwd=None):
+def process_pos_args(args, via_ipc=False, cwd=None, target_arg=None):
     """Process positional commandline args.
 
     URLs to open have no prefix, commands to execute begin with a colon.
@@ -238,6 +239,14 @@ def process_pos_args(args, via_ipc=False, cwd=None):
         args: A list of arguments to process.
         via_ipc: Whether the arguments were transmitted over IPC.
         cwd: The cwd to use for fuzzy_url.
+        target_arg: Command line argument received by a running instance via
+                    ipc. If the --target argument was not specified, target_arg
+                    will be an empty string instead of None. This behavior is
+                    caused by the PyQt signal
+                    ``got_args = pyqtSignal(list, str, str)``
+                    used in the misc.ipc.IPCServer class. PyQt converts the
+                    None value into a null QString and then back to an empty
+                    python string
     """
     if via_ipc and not args:
         win_id = mainwindow.get_window(via_ipc, force_window=True)
@@ -255,7 +264,11 @@ def process_pos_args(args, via_ipc=False, cwd=None):
             log.init.debug("Empty argument")
             win_id = mainwindow.get_window(via_ipc, force_window=True)
         else:
-            win_id = mainwindow.get_window(via_ipc)
+            if via_ipc and target_arg and target_arg != 'auto':
+                open_target = target_arg
+            else:
+                open_target = config.get('general', 'new-instance-open-target')
+            win_id = mainwindow.get_window(via_ipc, force_target=open_target)
             tabbed_browser = objreg.get('tabbed-browser', scope='window',
                                         window=win_id)
             log.init.debug("Startup URL {}".format(cmd))
@@ -265,7 +278,6 @@ def process_pos_args(args, via_ipc=False, cwd=None):
                 message.error('current', "Error in startup argument '{}': "
                               "{}".format(cmd, e))
             else:
-                open_target = config.get('general', 'new-instance-open-target')
                 background = open_target in ('tab-bg', 'tab-bg-silent')
                 tabbed_browser.tabopen(url, background=background)
 
