@@ -19,6 +19,7 @@
 |<<download-open,download-open>>|Open the last/[count]th download.
 |<<download-remove,download-remove>>|Remove the last/[count]th download from the list.
 |<<download-retry,download-retry>>|Retry the first failed/[count]th download.
+|<<download-whole,download-whole>>|Download the current page as a MHTML file, including all assets.
 |<<forward,forward>>|Go forward in the history of the current tab.
 |<<fullscreen,fullscreen>>|Toggle fullscreen mode.
 |<<help,help>>|Show help about a command or setting.
@@ -196,6 +197,15 @@ Retry the first failed/[count]th download.
 
 ==== count
 The index of the download to cancel.
+
+[[download-whole]]
+=== download-whole
+Syntax: +:download-whole ['dest']+
+
+Download the current page as a MHTML file, including all assets.
+
+==== positional arguments
+* +'dest'+: The file path to write the download to.
 
 [[forward]]
 === forward
