@@ -161,14 +161,6 @@ class MHTMLWriter():
             content_location=location, transfer_encoding=transfer_encoding,
         )
 
-    def remove_file(self, location):
-        """Remove a file.
-
-        Args:
-            location: The URL that identifies the file.
-        """
-        del self._files[location]
-
     def write_to(self, fp):
         """Output the MHTML file to the given file-like object.
 
