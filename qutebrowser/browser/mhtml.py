@@ -435,7 +435,11 @@ def start_download_checked(dest):
     Args:
         dest: The filename where the resulting file should be saved.
     """
-    if not os.path.isfile(dest):
+    # start_download will call os.path.expanduser on dest too, so no need to
+    # overwrite dest. We just want to make sure that we're checking
+    # the right path here. This also means that the user question will show the
+    # original path, not the expanded.
+    if not os.path.isfile(os.path.expanduser(dest)):
         start_download(dest)
         return
 
