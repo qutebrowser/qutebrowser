@@ -1140,13 +1140,25 @@ class CommandDispatcher:
                 cur.inspector.show()
 
     @cmdutils.register(instance='command-dispatcher', scope='window')
-    def download(self, url=None, dest=None):
+    def download(self, url=None, dest_old=None, *, dest=None):
         """Download a given URL, or current page if no URL given.
+
+        The form `:download [url] [dest]` is deprecated, use `:download --dest
+        [dest] [url]` instead.
 
         Args:
             url: The URL to download. If not given, download the current page.
+            dest_old: (deprecated) Same as dest.
             dest: The file path to write the download to, or None to ask.
         """
+        if dest_old is not None:
+            message.warning('current', ":download [url] [dest] is deprecated -"
+                            " use download --dest [dest] [url]")
+            if dest is not None:
+                raise cmdexc.CommandError("Can't give two destinations for the"
+                                          " download.")
+            dest = dest_old
+
         download_manager = objreg.get('download-manager', scope='window',
                                       window=self._win_id)
         if url:
@@ -1155,7 +1167,7 @@ class CommandDispatcher:
             download_manager.get(url, filename=dest)
         else:
             page = self._current_widget().page()
-            download_manager.get(self._current_url(), page=page)
+            download_manager.get(self._current_url(), page=page, filename=dest)
 
     @cmdutils.register(instance='command-dispatcher', scope='window')
     def download_whole(self, dest=None):
