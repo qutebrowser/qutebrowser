@@ -1140,7 +1140,7 @@ class CommandDispatcher:
                 cur.inspector.show()
 
     @cmdutils.register(instance='command-dispatcher', scope='window')
-    def download(self, url=None, dest_old=None, *, mhtml=False, dest=None):
+    def download(self, url=None, dest_old=None, *, mhtml_=False, dest=None):
         """Download a given URL, or current page if no URL given.
 
         The form `:download [url] [dest]` is deprecated, use `:download --dest
@@ -1150,7 +1150,7 @@ class CommandDispatcher:
             url: The URL to download. If not given, download the current page.
             dest_old: (deprecated) Same as dest.
             dest: The file path to write the download to, or None to ask.
-            mhtml: Download the current page and all assets as mhtml file.
+            mhtml_: Download the current page and all assets as mhtml file.
         """
         if dest_old is not None:
             message.warning('current', ":download [url] [dest] is deprecated -"
@@ -1163,18 +1163,19 @@ class CommandDispatcher:
         download_manager = objreg.get('download-manager', scope='window',
                                       window=self._win_id)
         if url:
-            if mhtml:
+            if mhtml_:
                 raise cmdexc.CommandError("Can only download the current page"
                                           " as mhtml.")
             url = urlutils.qurl_from_user_input(url)
             urlutils.raise_cmdexc_if_invalid(url)
             download_manager.get(url, filename=dest)
         else:
-            if mhtml:
+            if mhtml_:
                 self._download_mhtml(dest)
             else:
                 page = self._current_widget().page()
-                download_manager.get(self._current_url(), page=page, filename=dest)
+                download_manager.get(self._current_url(), page=page,
+                                     filename=dest)
 
     def _download_mhtml(self, dest=None):
         """Download the current page as a MHTML file, including all assets.
