@@ -897,6 +897,8 @@ def test_socket_options_listen_problem(qlocalserver, short_tmpdir):
 
 
 @pytest.mark.posix
+@pytest.mark.skipif(not qtutils.version_check('5.4'),
+                    reason="setSocketOptions is even more broken on Qt < 5.4.")
 def test_socket_options_address_in_use_problem(qlocalserver, short_tmpdir):
     """Qt seems to ignore AddressInUseError when using socketOptions.
 
