@@ -35,6 +35,10 @@ from PyQt5.QtCore import QUrl
 from qutebrowser.browser import webelem
 from qutebrowser.utils import log, objreg, message, usertypes
 
+try:
+    import cssutils
+except ImportError:
+    cssutils = None
 
 _File = collections.namedtuple('_File',
                                ['content', 'content_type', 'content_location',
@@ -50,18 +54,14 @@ _CSS_URL_PATTERNS = [re.compile(x) for x in [
 ]]
 
 
-def _get_css_imports(data, inline=False):
+def _get_css_imports_regex(data):
     """Return all assets that are referenced in the given CSS document.
 
     The returned URLs are relative to the stylesheet's URL.
 
     Args:
         data: The content of the stylesheet to scan as string.
-        inline: True if data is a HTML inline style (style="...").
     """
-    # We keep the inline argument to stay consistent with the cssutils
-    # interface, in case we reintroduce cssutils.
-    # pylint: disable=unused-argument
     urls = []
     for pattern in _CSS_URL_PATTERNS:
         for match in pattern.finditer(data):
@@ -69,6 +69,50 @@ def _get_css_imports(data, inline=False):
             if url:
                 urls.append(url)
     return urls
+
+
+def _get_css_imports_cssutils(data, inline=False):
+    """Return all assets that are referenced in the given CSS document.
+
+    The returned URLs are relative to the stylesheet's URL.
+
+    Args:
+        data: The content of the stylesheet to scan as string.
+        inline: True if the argument is a inline HTML style attribute.
+    """
+    # We don't care about invalid CSS data, this will only litter the log
+    # output with CSS errors
+    parser = cssutils.CSSParser(loglevel=100,
+                                fetcher=lambda url: (None, ""), validate=False)
+    if not inline:
+        sheet = parser.parseString(data)
+        return list(cssutils.getUrls(sheet))
+    else:
+        urls = []
+        declaration = parser.parseStyle(data)
+        # prop = background, color, margin, ...
+        for prop in declaration:
+            # value = red, 10px, url(foobar), ...
+            for value in prop.propertyValue:
+                if isinstance(value, cssutils.css.URIValue):
+                    if value.uri:
+                        urls.append(value.uri)
+        return urls
+
+
+def _get_css_imports(data, inline=False):
+    """Return all assets that are referenced in the given CSS document.
+
+    The returned URLs are relative to the stylesheet's URL.
+
+    Args:
+        data: The content of the stylesheet to scan as string.
+        inline: True if the argument is a inline HTML style attribute.
+    """
+    if cssutils is None:
+        return _get_css_imports_regex(data)
+    else:
+        return _get_css_imports_cssutils(data, inline)
 
 
 MHTMLPolicy = email.policy.default.clone(linesep='\r\n', max_line_length=0)
