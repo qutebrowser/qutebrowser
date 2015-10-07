@@ -39,6 +39,7 @@ from qutebrowser.config import config
 from qutebrowser.utils import objreg
 
 from PyQt5.QtNetwork import QNetworkCookieJar
+import xvfbwrapper
 
 
 def _apply_platform_markers(item):
@@ -336,3 +337,25 @@ def fail_tests_on_warnings():
     warnings.simplefilter('error')
     yield
     warnings.resetwarnings()
+
+
+def pytest_configure(config):
+    """Start Xvfb if we're on Linux, not on a CI and Xvfb is available.
+
+    This is a lot nicer than having windows popping up.
+    """
+    config.xvfb_display = None
+    if sys.platform.startswith('linux') and 'CI' not in os.environ:
+        try:
+            disp = xvfbwrapper.Xvfb(width=800, height=600, colordepth=16)
+            disp.start()
+        except FileNotFoundError:
+            # We run without Xvfb if it's unavailable.
+            pass
+        else:
+            config.xvfb_display = disp
+
+
+def pytest_unconfigure(config):
+    if config.xvfb_display is not None:
+        config.xvfb_display.stop()
