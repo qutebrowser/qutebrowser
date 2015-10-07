@@ -31,8 +31,7 @@ from PyQt5.QtCore import pyqtSignal, pyqtSlot, QObject, Qt
 from PyQt5.QtNetwork import QLocalSocket, QLocalServer, QAbstractSocket
 
 import qutebrowser
-from qutebrowser.utils import (log, usertypes, error, objreg, standarddir,
-                               qtutils)
+from qutebrowser.utils import log, usertypes, error, objreg, standarddir
 
 
 CONNECT_TIMEOUT = 100  # timeout for connecting/disconnecting
