@@ -231,7 +231,7 @@ def test_empty_content_type(checker):
 
 @pytest.mark.parametrize('has_cssutils', [
     # TODO: remove xfail once new cssutils is released
-    pytest.mark.xfail(sys.version_info >= (3,5), reason='https://'
+    pytest.mark.xfail(sys.version_info >= (3, 5), reason='https://'
                       'bitbucket.org/cthedot/cssutils/issues/52')(True),
     False,
 ])
