@@ -261,7 +261,11 @@ Start hinting.
  - With `spawn`: The executable and arguments to spawn.
  `{hint-url}` will get replaced by the selected
  URL.
- - With `userscript`: The userscript to execute.
+ - With `userscript`: The userscript to execute. Either store
+ the userscript in
+ `~/.local/share/qutebrowser/userscripts`
+ (or `$XDG_DATA_DIR`), or use an absolute
+ path.
  - With `fill`: The command to fill the statusbar with.
  `{hint-url}` will get replaced by the selected
  URL.
@@ -580,7 +584,9 @@ Note the {url} variable which gets replaced by the current URL might be useful h
 * +'cmdline'+: The commandline to execute.
 
 ==== optional arguments
-* +*-u*+, +*--userscript*+: Run the command as a userscript.
+* +*-u*+, +*--userscript*+: Run the command as a userscript. Either store the userscript in `~/.local/share/qutebrowser/userscripts`
+ (or `$XDG_DATA_DIR`), or use an absolute path.
+
 * +*-v*+, +*--verbose*+: Show notifications when the command started/exited.
 * +*-d*+, +*--detach*+: Whether the command should be detached from qutebrowser.
 
