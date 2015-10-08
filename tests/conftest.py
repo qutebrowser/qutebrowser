@@ -350,6 +350,9 @@ def pytest_configure(config):
     This is a lot nicer than having windows popping up.
     """
     config.xvfb_display = None
+    if os.environ.get('DISPLAY', None) == '':
+        # xvfbwrapper doesn't handle DISPLAY="" correctly
+        del os.environ['DISPLAY']
     if sys.platform.startswith('linux') and not config.getoption('--no-xvfb'):
         assert 'QUTE_BUILDBOT' not in os.environ
         try:
