@@ -324,6 +324,7 @@ class ImportFake:
             'jinja2': True,
             'pygments': True,
             'yaml': True,
+            'cssutils': True,
         }
         self.version_attribute = '__version__'
         self.version = '1.2.3'
@@ -383,12 +384,13 @@ class TestModuleVersions:
         """Test with all modules present in version 1.2.3."""
         expected = ['sip: yes', 'colorlog: yes', 'colorama: 1.2.3',
                     'pypeg2: 1.2.3', 'jinja2: 1.2.3', 'pygments: 1.2.3',
-                    'yaml: 1.2.3']
+                    'yaml: 1.2.3', 'cssutils: 1.2.3']
         assert version._module_versions() == expected
 
     @pytest.mark.parametrize('module, idx, expected', [
         ('colorlog', 1, 'colorlog: no'),
         ('colorama', 2, 'colorama: no'),
+        ('cssutils', 7, 'cssutils: no'),
     ])
     def test_missing_module(self, module, idx, expected, import_fake):
         """Test with a module missing.
@@ -404,12 +406,13 @@ class TestModuleVersions:
     @pytest.mark.parametrize('value, expected', [
         ('VERSION', ['sip: yes', 'colorlog: yes', 'colorama: 1.2.3',
                      'pypeg2: yes', 'jinja2: yes', 'pygments: yes',
-                     'yaml: yes']),
+                     'yaml: yes', 'cssutils: yes']),
         ('SIP_VERSION_STR', ['sip: 1.2.3', 'colorlog: yes', 'colorama: yes',
                              'pypeg2: yes', 'jinja2: yes', 'pygments: yes',
-                             'yaml: yes']),
+                             'yaml: yes', 'cssutils: yes']),
         (None, ['sip: yes', 'colorlog: yes', 'colorama: yes', 'pypeg2: yes',
-                'jinja2: yes', 'pygments: yes', 'yaml: yes']),
+                'jinja2: yes', 'pygments: yes', 'yaml: yes',
+                'cssutils: yes']),
     ])
     def test_version_attribute(self, value, expected, import_fake):
         """Test with a different version attribute.
@@ -432,6 +435,9 @@ class TestModuleVersions:
         ('jinja2', True),
         ('pygments', True),
         ('yaml', True),
+        pytest.mark.xfail(sys.version_info >= (3, 5), reason='cssutils 1.0 and'
+                          ' earlier are broken on Python 3.5')(('cssutils',
+                                                                True)),
     ])
     def test_existing_attributes(self, name, has_version):
         """Check if all dependencies have an expected __version__ attribute.
