@@ -39,6 +39,10 @@ Changed
 
 - The `colors -> tabs.bg/fg.selected` option got split into
   `tabs.bg/fg.selected.odd/even`.
+- `:spawn --userscript` and `:hint` with the `userscript` target now look up
+  relative paths in `~/.local/share/qutebrowser/userscripts` or
+  `$XDG_DATA_DIR`. Using a binary in `$PATH` won't work anymore with
+  `--userscript`.
 
 Fixed
 ~~~~~
