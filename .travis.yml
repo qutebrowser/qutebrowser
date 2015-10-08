@@ -36,8 +36,7 @@ install:
   - python scripts/dev/ci_install.py
 
 script:
-  - '[[ $TESTENV != eslint ]] && tox -e $TESTENV -- -p no:sugar tests || true'
-  - '[[ $TESTENV == eslint ]] && eslint qutebrowser || true'
+  - tox -e $TESTENV -- -p no:sugar tests
 
 matrix:
   exclude:
