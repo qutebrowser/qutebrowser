@@ -949,8 +949,8 @@ class CommandDispatcher:
 
         Args:
             userscript: Run the command as a userscript. Either store the
-                        userscript in ~/.local/share/qutebrowser/userscripts
-                        (or $XDG_DATA_DIR), or use an absolute path.
+                        userscript in `~/.local/share/qutebrowser/userscripts`
+                        (or `$XDG_DATA_DIR`), or use an absolute path.
             verbose: Show notifications when the command started/exited.
             detach: Whether the command should be detached from qutebrowser.
             cmdline: The commandline to execute.

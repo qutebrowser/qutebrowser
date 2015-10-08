@@ -751,8 +751,9 @@ class HintManager(QObject):
                                 URL.
                 - With `userscript`: The userscript to execute. Either store
                                      the userscript in
-                                     ~/.local/share/qutebrowser/userscripts (or
-                                     $XDG_DATA_DIR), or use an absolute path.
+                                     `~/.local/share/qutebrowser/userscripts`
+                                     (or `$XDG_DATA_DIR`), or use an absolute
+                                     path.
                 - With `fill`: The command to fill the statusbar with.
                                 `{hint-url}` will get replaced by the selected
                                 URL.
