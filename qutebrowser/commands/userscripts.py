@@ -345,12 +345,11 @@ def run(cmd, *args, win_id, env, verbose=False):
         env['QUTE_USER_AGENT'] = user_agent
     cmd = os.path.expanduser(cmd)
 
-    # check if userscript is in absolute path or in $XDG_DATA_DIRS
+    # if cmd is not given as an absolute path, look it up
+    # ~/.local/share/qutebrowser/userscripts (or $XDG_DATA_DIR)
     if not os.path.isabs(cmd):
-        log.misc.debug("{} is no absoulte path".format(cmd))
-        c = os.path.join(standarddir.data(), "userscripts", cmd)
-        if os.path.isfile(c):
-            cmd = c
+        log.misc.debug("{} is no absolute path".format(cmd))
+        cmd = os.path.join(standarddir.data(), "userscripts", cmd)
 
     runner.run(cmd, *args, env=env, verbose=verbose)
     runner.finished.connect(commandrunner.deleteLater)

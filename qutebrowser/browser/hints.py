@@ -749,7 +749,10 @@ class HintManager(QObject):
                 - With `spawn`: The executable and arguments to spawn.
                                 `{hint-url}` will get replaced by the selected
                                 URL.
-                - With `userscript`: The userscript to execute.
+                - With `userscript`: The userscript to execute. Either store
+                                     the userscript in
+                                     ~/.local/share/qutebrowser/userscripts (or
+                                     $XDG_DATA_DIR), or use an absolute path.
                 - With `fill`: The command to fill the statusbar with.
                                 `{hint-url}` will get replaced by the selected
                                 URL.
