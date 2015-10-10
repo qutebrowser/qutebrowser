@@ -48,6 +48,7 @@ Fixed
 ~~~~~
 
 - Fixed displaying of web history if `web-history-max-items` is set to -1.
+- Cloned tabs now don't display favicons anymore if show-favicons is False.
 
 v0.4.1
 ------
