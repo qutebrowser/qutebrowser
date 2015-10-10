@@ -33,3 +33,7 @@ def test_smoke():
     argv += ['--debug', '--no-err-windows', '--nowindow', '--temp-basedir',
              'about:blank', ':later 500 quit']
     subprocess.check_call(argv)
+
+
+def test_smoke_quteproc(quteproc):
+    pass

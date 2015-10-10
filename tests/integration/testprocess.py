@@ -44,9 +44,11 @@ class Process(QObject):
     Reads the log from its stdout and parses it.
 
     Signals:
+        ready: Emitted when the server finished starting up.
         new_data: Emitted when a new line was parsed.
     """
 
+    ready = pyqtSignal()
     new_data = pyqtSignal(object)
 
     def __init__(self, parent=None):
@@ -80,6 +82,16 @@ class Process(QObject):
         self.read_log()
         return self._data
 
+    def _wait_signal(self, signal, timeout=5000, raising=True):
+        """Wait for a signal to be emitted.
+
+        Should be used in a contextmanager.
+        """
+        blocker = pytestqt.plugin.SignalBlocker(
+            timeout=timeout, raising=raising)
+        blocker.connect(signal)
+        return blocker
+
     @pyqtSlot()
     def read_log(self):
         """Read the log from the process' stdout."""
@@ -95,16 +107,13 @@ class Process(QObject):
                 print("INVALID: {}".format(line))
                 continue
 
-            print('parsed: {}'.format(parsed))
             if parsed is not None:
                 self._data.append(parsed)
                 self.new_data.emit(parsed)
 
     def start(self):
         """Start the process and wait until it started."""
-        blocker = pytestqt.plugin.SignalBlocker(timeout=5000, raising=True)
-        blocker.connect(self.ready)
-        with blocker:
+        with self._wait_signal(self.ready):
             self._start()
 
     def _start(self):
@@ -113,6 +122,7 @@ class Process(QObject):
         self.proc.start(executable, args)
         ok = self.proc.waitForStarted()
         assert ok
+        assert self.is_running()
         self.proc.readyRead.connect(self.read_log)
 
     def after_test(self):
@@ -122,7 +132,7 @@ class Process(QObject):
         unexpected output lines earlier.
         """
         self._data.clear()
-        if self.proc.state() != QProcess.Running:
+        if not self.is_running():
             print("Restarting process...")
             self.start()
             raise ProcessExited
@@ -133,3 +143,7 @@ class Process(QObject):
         """Clean up and shut down the process."""
         self.proc.terminate()
         self.proc.waitForFinished()
+
+    def is_running(self):
+        """Check if the process is currently running."""
+        return self.proc.state() == QProcess.Running

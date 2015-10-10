@@ -47,11 +47,9 @@ class HTTPBin(testprocess.Process):
         LOG_RE: Used to parse the CLF log which httpbin outputs.
 
     Signals:
-        ready: Emitted when the server finished starting up.
         new_request: Emitted when there's a new request received.
     """
 
-    ready = pyqtSignal()
     new_request = pyqtSignal(Request)
 
     LOG_RE = re.compile(r"""
@@ -127,7 +125,7 @@ def httpbin(qapp):
 
 
 @pytest.yield_fixture(autouse=True)
-def httpbin_clean(httpbin):
+def httpbin_after_test(httpbin):
     """Fixture to clean httpbin request list after each test."""
     yield
     httpbin.after_test()
