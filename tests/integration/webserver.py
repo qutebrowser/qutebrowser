@@ -35,13 +35,6 @@ from tests.integration import testprocess  # pylint: disable=import-error
 Request = collections.namedtuple('Request', 'verb, url')
 
 
-class InvalidLine(Exception):
-
-    """Exception raised when HTTPBin prints a line which is not parsable."""
-
-    pass
-
-
 class HTTPBin(testprocess.Process):
 
     """Abstraction over a running HTTPbin server process.
@@ -100,7 +93,7 @@ class HTTPBin(testprocess.Process):
 
         match = self.LOG_RE.match(line)
         if match is None:
-            raise InvalidLine
+            raise testprocess.InvalidLine
         # FIXME do we need to allow other options?
         assert match.group('protocol') == 'HTTP/1.1'
 
