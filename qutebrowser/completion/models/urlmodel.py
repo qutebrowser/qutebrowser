@@ -169,8 +169,9 @@ class UrlCompletionModel(base.BaseCompletionModel):
         """
         index = completion.currentIndex()
         qtutils.ensure_valid(index)
-        url = index.data()
         category = index.parent()
+        index = category.child(index.row(), self.URL_COLUMN)
+        url = index.data()
         qtutils.ensure_valid(category)
 
         if category.data() == 'Bookmarks':
