@@ -17,17 +17,19 @@
 # You should have received a copy of the GNU General Public License
 # along with qutebrowser.  If not, see <http://www.gnu.org/licenses/>.
 
+# pylint doesn't understand the testprocess import
+# pylint: disable=no-member
+
 """Fixtures for the httpbin webserver."""
 
 import re
-import sys
 import socket
-import os.path
 import collections
 
 import pytest
-import pytestqt.plugin  # pylint: disable=import-error
-from PyQt5.QtCore import pyqtSlot, pyqtSignal, QProcess, QObject
+from PyQt5.QtCore import pyqtSignal
+
+from tests.integration import testprocess  # pylint: disable=import-error
 
 
 Request = collections.namedtuple('Request', 'verb, url')
@@ -40,7 +42,7 @@ class InvalidLine(Exception):
     pass
 
 
-class HTTPBin(QObject):
+class HTTPBin(testprocess.Process):
 
     """Abstraction over a running HTTPbin server process.
 
@@ -71,13 +73,12 @@ class HTTPBin(QObject):
         \ (?P<size>[^ ]*)
     """, re.VERBOSE)
 
+    PROCESS_NAME = 'webserver_sub'
+
     def __init__(self, parent=None):
         super().__init__(parent)
-        self._invalid = False
-        self._requests = []
         self.port = self._get_port()
-        self.proc = QProcess()
-        self.proc.setReadChannel(QProcess.StandardError)
+        self.new_data.connect(self.new_request)
 
     def _get_port(self):
         """Get a random free port to use for the server."""
@@ -88,66 +89,25 @@ class HTTPBin(QObject):
         return port
 
     def get_requests(self):
-        """Get the requests to the server during this test.
+        """Get the requests to the server during this test."""
+        return self._get_data()
 
-        Also waits for 0.5s to make sure any new requests are received.
-        """
-        self.proc.waitForReadyRead(500)
-        self.read_log()
-        return self._requests
+    def _parse_line(self, line):
+        if line == (' * Running on http://127.0.0.1:{}/ (Press CTRL+C to '
+                    'quit)'.format(self.port)):
+            self.ready.emit()
+            return None
 
-    @pyqtSlot()
-    def read_log(self):
-        """Read the log from httpbin's stdout and parse it."""
-        while self.proc.canReadLine():
-            line = self.proc.readLine()
-            line = bytes(line).decode('utf-8').rstrip('\r\n')
-            print(line)
-
-            if line == (' * Running on http://127.0.0.1:{}/ (Press CTRL+C to '
-                        'quit)'.format(self.port)):
-                self.ready.emit()
-                continue
-
-            match = self.LOG_RE.match(line)
-            if match is None:
-                self._invalid = True
-                print("INVALID: {}".format(line))
-                continue
-
-            # FIXME do we need to allow other options?
-            assert match.group('protocol') == 'HTTP/1.1'
-
-            request = Request(verb=match.group('verb'), url=match.group('url'))
-            print(request)
-            self._requests.append(request)
-            self.new_request.emit(request)
-
-    def start(self):
-        """Start the webserver."""
-        if hasattr(sys, 'frozen'):
-            executable = os.path.join(os.path.dirname(sys.executable),
-                                      'webserver_sub')
-            args = []
-        else:
-            executable = sys.executable
-            args = [os.path.join(os.path.dirname(__file__),
-                                 'webserver_sub.py')]
-
-        self.proc.start(executable, args + [str(self.port)])
-        ok = self.proc.waitForStarted()
-        assert ok
-        self.proc.readyRead.connect(self.read_log)
-
-    def after_test(self):
-        """Clean request list after each test.
-
-        Also checks self._invalid so the test counts as failed if there were
-        unexpected output lines earlier.
-        """
-        self._requests.clear()
-        if self._invalid:
+        match = self.LOG_RE.match(line)
+        if match is None:
             raise InvalidLine
+        # FIXME do we need to allow other options?
+        assert match.group('protocol') == 'HTTP/1.1'
+
+        return Request(verb=match.group('verb'), url=match.group('url'))
+
+    def _executable_args(self):
+        return [str(self.port)]
 
     def cleanup(self):
         """Clean up and shut down the process."""
@@ -159,14 +119,8 @@ class HTTPBin(QObject):
 def httpbin(qapp):
     """Fixture for a httpbin object which ensures clean setup/teardown."""
     httpbin = HTTPBin()
-
-    blocker = pytestqt.plugin.SignalBlocker(timeout=5000, raising=True)
-    blocker.connect(httpbin.ready)
-    with blocker:
-        httpbin.start()
-
+    httpbin.start()
     yield httpbin
-
     httpbin.cleanup()
 
 
