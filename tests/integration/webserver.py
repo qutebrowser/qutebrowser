@@ -23,7 +23,9 @@
 """Fixtures for the httpbin webserver."""
 
 import re
+import sys
 import socket
+import os.path
 import collections
 
 import pytest
@@ -66,8 +68,6 @@ class HTTPBin(testprocess.Process):
         \ (?P<size>[^ ]*)
     """, re.VERBOSE)
 
-    PROCESS_NAME = 'webserver_sub'
-
     def __init__(self, parent=None):
         super().__init__(parent)
         self.port = self._get_port()
@@ -100,7 +100,16 @@ class HTTPBin(testprocess.Process):
         return Request(verb=match.group('verb'), url=match.group('url'))
 
     def _executable_args(self):
-        return [str(self.port)]
+        if hasattr(sys, 'frozen'):
+            executable = os.path.join(os.path.dirname(sys.executable),
+                                      'webserver_sub')
+            args = [str(self.port)]
+        else:
+            executable = sys.executable
+            py_file = os.path.join(os.path.dirname(__file__),
+                                   'webserver_sub.py')
+            args = [py_file, str(self.port)]
+        return executable, args
 
     def cleanup(self):
         """Clean up and shut down the process."""

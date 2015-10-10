@@ -19,9 +19,6 @@
 
 """Base class for a subprocess run for tests.."""
 
-import sys
-import os.path
-
 import pytestqt.plugin  # pylint: disable=import-error
 from PyQt5.QtCore import pyqtSlot, pyqtSignal, QProcess, QObject
 
@@ -43,12 +40,10 @@ class Process(QObject):
         new_data: Emitted when a new line was parsed.
     """
 
-    PROCESS_NAME = None
     new_data = pyqtSignal(object)
 
     def __init__(self, parent=None):
         super().__init__(parent)
-        assert self.PROCESS_NAME is not None
         self._invalid = False
         self._data = []
         self.proc = QProcess()
@@ -63,7 +58,7 @@ class Process(QObject):
         raise NotImplementedError
 
     def _executable_args(self):
-        """Get the arguments to pass to the executable."""
+        """Get the executable and arguments to pass to it as a tuple."""
         raise NotImplementedError
 
     def _get_data(self):
@@ -107,16 +102,8 @@ class Process(QObject):
 
     def _start(self):
         """Actually start the process."""
-        if hasattr(sys, 'frozen'):
-            executable = os.path.join(os.path.dirname(sys.executable),
-                                      self.PROCESS_NAME)
-            args = []
-        else:
-            executable = sys.executable
-            args = [os.path.join(os.path.dirname(__file__),
-                                 self.PROCESS_NAME + '.py')]
-
-        self.proc.start(executable, args + self._executable_args())
+        executable, args = self._executable_args()
+        self.proc.start(executable, args)
         ok = self.proc.waitForStarted()
         assert ok
         self.proc.readyRead.connect(self.read_log)
