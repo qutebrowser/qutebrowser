@@ -30,6 +30,13 @@ class InvalidLine(Exception):
     pass
 
 
+class ProcessExited(Exception):
+
+    """Raised when the child process did exit."""
+
+    pass
+
+
 class Process(QObject):
 
     """Abstraction over a running test subprocess process.
@@ -115,6 +122,10 @@ class Process(QObject):
         unexpected output lines earlier.
         """
         self._data.clear()
+        if self.proc.state() != QProcess.Running:
+            print("Restarting process...")
+            self.start()
+            raise ProcessExited
         if self._invalid:
             raise InvalidLine
 
