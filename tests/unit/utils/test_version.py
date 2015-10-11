@@ -435,9 +435,7 @@ class TestModuleVersions:
         ('jinja2', True),
         ('pygments', True),
         ('yaml', True),
-        pytest.mark.xfail(sys.version_info >= (3, 5), reason='cssutils 1.0 and'
-                          ' earlier are broken on Python 3.5')(('cssutils',
-                                                                True)),
+        ('cssutils', True),
     ])
     def test_existing_attributes(self, name, has_version):
         """Check if all dependencies have an expected __version__ attribute.

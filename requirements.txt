@@ -5,4 +5,4 @@ pyPEG2==2.15.2
 PyYAML==3.11
 colorama==0.3.3
 colorlog==2.6.0
-cssutils==1.0
+cssutils==1.0.1
