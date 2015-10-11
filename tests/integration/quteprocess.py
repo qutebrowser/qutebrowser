@@ -46,6 +46,7 @@ class QuteProc(testprocess.Process):
 
     Attributes:
         _ipc_socket: The IPC socket of the started instance.
+        _httpbin: The HTTPBin webserver.
     """
 
     LOG_RE = re.compile(r"""
@@ -57,9 +58,12 @@ class QuteProc(testprocess.Process):
     """, re.VERBOSE)
 
     executing_command = pyqtSignal()
+    setting_done = pyqtSignal()
+    url_loaded = pyqtSignal()
 
-    def __init__(self, parent=None):
+    def __init__(self, httpbin, parent=None):
         super().__init__(parent)
+        self._httpbin = httpbin
         self._ipc_socket = None
 
     def _parse_line(self, line):
@@ -78,6 +82,10 @@ class QuteProc(testprocess.Process):
                               "<qutebrowser.browser.webview.WebView tab_id=0 "
                               "url='about:blank'>: LoadStatus.success")
 
+        url_loaded_pattern = re.compile(
+            r"load status for <qutebrowser.browser.webview.WebView tab_id=\d+ "
+            r"url='[^']+'>: LoadStatus.success")
+
         if (log_line.category == 'ipc' and
                 log_line.message.startswith("Listening as ")):
             self._ipc_socket = log_line.message.split(' ', maxsplit=2)[2]
@@ -85,9 +93,15 @@ class QuteProc(testprocess.Process):
                 log_line.message == start_okay_message):
             self.ready.emit()
         elif (log_line.category == 'commands' and
-              log_line.module =='command' and log_line.function == 'run' and
+              log_line.module == 'command' and log_line.function == 'run' and
               log_line.message.startswith('Calling ')):
             self.executing_command.emit()
+        elif (log_line.category == 'config' and log_line.message.startswith(
+                'Config option changed: ')):
+            self.setting_done.emit()
+        elif (log_line.category == 'webview' and
+                url_loaded_pattern.match(log_line.message)):
+            self.url_loaded.emit()
 
         return log_line
 
@@ -115,16 +129,25 @@ class QuteProc(testprocess.Process):
     def send_cmd(self, command):
         assert self._ipc_socket is not None
         with self._wait_signal(self.executing_command):
-            ipc.send_to_running_instance(self._ipc_socket, [':' + command],
+            ipc.send_to_running_instance(self._ipc_socket, [command],
                                          target_arg='')
         # Wait a bit in cause the command triggers any error.
         time.sleep(0.5)
 
+    def set_setting(self, sect, opt, value):
+        with self._wait_signal(self.setting_done):
+            self.send_cmd(':set "{}" "{}" "{}"'.format(sect, opt, value))
+
+    def open_path(self, path):
+        url = 'http://localhost:{}/{}'.format(self._httpbin.port, path)
+        with self._wait_signal(self.url_loaded):
+            self.send_cmd(':open ' + url)
+
 
 @pytest.yield_fixture(scope='session', autouse=True)
-def quteproc(qapp):
+def quteproc(qapp, httpbin):
     """Fixture for qutebrowser process."""
-    proc = QuteProc()
+    proc = QuteProc(httpbin)
     proc.start()
     yield proc
     proc.cleanup()
