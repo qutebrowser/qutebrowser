@@ -2,8 +2,6 @@
 import io
 import textwrap
 import re
-import sys
-
 import pytest
 
 from qutebrowser.browser import mhtml
