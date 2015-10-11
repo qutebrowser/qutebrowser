@@ -21,6 +21,7 @@
 
 
 import warnings
+import inspect
 
 import pytest
 
@@ -38,3 +39,8 @@ def test_no_qapp(request):
 def test_fail_on_warnings():
     with pytest.raises(PendingDeprecationWarning):
         warnings.warn('test', PendingDeprecationWarning)
+
+
+def test_getargspec():
+    """Make sure the getargspec DeprecationWarning gets ignored."""
+    inspect.getargspec(lambda: None)
