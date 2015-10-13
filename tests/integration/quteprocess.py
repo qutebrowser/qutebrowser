@@ -151,17 +151,11 @@ class QuteProc(testprocess.Process):
                 self.send_cmd(':open ' + url)
 
 
-@pytest.yield_fixture(scope='session', autouse=True)
+@pytest.yield_fixture
 def quteproc(qapp, httpbin):
     """Fixture for qutebrowser process."""
     proc = QuteProc(httpbin)
     proc.start()
     yield proc
+    proc.after_test()
     proc.cleanup()
-
-
-@pytest.yield_fixture(autouse=True)
-def quteproc_after_test(quteproc):
-    """Fixture to check the status of and restart the qutebrowser process."""
-    yield
-    quteproc.after_test()
