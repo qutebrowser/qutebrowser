@@ -142,10 +142,13 @@ class QuteProc(testprocess.Process):
         with self._wait_signal(self.setting_done):
             self.send_cmd(':set "{}" "{}" "{}"'.format(sect, opt, value))
 
-    def open_path(self, path):
+    def open_path(self, path, new_tab=False):
         url = 'http://localhost:{}/{}'.format(self._httpbin.port, path)
         with self._wait_signal(self.url_loaded):
-            self.send_cmd(':open ' + url)
+            if new_tab:
+                self.send_cmd(':open -t ' + url)
+            else:
+                self.send_cmd(':open ' + url)
 
 
 @pytest.yield_fixture(scope='session', autouse=True)

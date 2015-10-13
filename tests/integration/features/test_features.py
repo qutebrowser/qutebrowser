@@ -29,7 +29,7 @@ def set_setting(quteproc, sect, opt, value):
 
 @bdd.given(bdd.parsers.parse("I open {path}"))
 def open_path(quteproc, path):
-    quteproc.open_path(path)
+    quteproc.open_path(path, new_tab=True)
 
 
 @bdd.when(bdd.parsers.parse("I open {path}"))
