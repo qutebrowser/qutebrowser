@@ -23,6 +23,7 @@
 |<<general-log-javascript-console,log-javascript-console>>|Whether to log javascript console messages.
 |<<general-save-session,save-session>>|Whether to always save the open pages.
 |<<general-session-default-name,session-default-name>>|The name of the session to save by default, or empty for the last loaded session.
+|<<general-url-incdec-segments,url-incdec-segments>>|The URL segments where `:navigate increment/decrement` will search for a number.
 |==============
 
 .Quick reference for section ``ui''
@@ -43,9 +44,11 @@
 |<<ui-smooth-scrolling,smooth-scrolling>>|Whether to enable smooth scrolling for webpages.
 |<<ui-remove-finished-downloads,remove-finished-downloads>>|Whether to remove finished downloads automatically.
 |<<ui-hide-statusbar,hide-statusbar>>|Whether to hide the statusbar unless a message is shown.
+|<<ui-statusbar-padding,statusbar-padding>>|Padding for statusbar (top, bottom, left, right).
 |<<ui-window-title-format,window-title-format>>|The format to use for the window title. The following placeholders are defined:
 |<<ui-hide-mouse-cursor,hide-mouse-cursor>>|Whether to hide the mouse cursor.
 |<<ui-modal-js-dialog,modal-js-dialog>>|Use standard JavaScript modal dialog for alert() and confirm()
+|<<ui-hide-wayland-decoration,hide-wayland-decoration>>|Hide the window decoration when using wayland (requires restart)
 |==============
 
 .Quick reference for section ``network''
@@ -54,6 +57,7 @@
 |Setting|Description
 |<<network-do-not-track,do-not-track>>|Value to send in the `DNT` header.
 |<<network-accept-language,accept-language>>|Value to send in the `accept-language` header.
+|<<network-referer-header,referer-header>>|Send the Referer header
 |<<network-user-agent,user-agent>>|User agent to send. Empty to send the default.
 |<<network-proxy,proxy>>|The proxy to use.
 |<<network-proxy-dns-requests,proxy-dns-requests>>|Whether to send DNS requests over the configured proxy.
@@ -86,7 +90,7 @@
 |<<input-auto-leave-insert-mode,auto-leave-insert-mode>>|Whether to leave insert mode if a non-editable element is clicked.
 |<<input-auto-insert-mode,auto-insert-mode>>|Whether to automatically enter insert mode if an editable element is focused after page load.
 |<<input-forward-unbound-keys,forward-unbound-keys>>|Whether to forward unbound keys to the webview in normal mode.
-|<<input-spatial-navigation,spatial-navigation>>|Enables or disables the Spatial Navigation feature
+|<<input-spatial-navigation,spatial-navigation>>|Enables or disables the Spatial Navigation feature.
 |<<input-links-included-in-focus-chain,links-included-in-focus-chain>>|Whether hyperlinks should be included in the keyboard focus chain.
 |<<input-rocker-gestures,rocker-gestures>>|Whether to enable Opera-like mouse rocker gestures. This disables the context menu.
 |<<input-mouse-zoom-divider,mouse-zoom-divider>>|How much to divide the mouse wheel movements to translate them into zoom increments.
@@ -101,8 +105,8 @@
 |<<tabs-new-tab-position,new-tab-position>>|How new tabs are positioned.
 |<<tabs-new-tab-position-explicit,new-tab-position-explicit>>|How new tabs opened explicitly are positioned.
 |<<tabs-last-close,last-close>>|Behavior when the last tab is closed.
-|<<tabs-hide-auto,hide-auto>>|Hide the tab bar if only one tab is open.
-|<<tabs-hide-always,hide-always>>|Always hide the tab bar.
+|<<tabs-show,show>>|When to show the tab bar
+|<<tabs-show-switching-delay,show-switching-delay>>|Time to show the tab bar before hiding it when tabs->show is set to 'switching'.
 |<<tabs-wrap,wrap>>|Whether to wrap when changing tabs.
 |<<tabs-movable,movable>>|Whether tabs should be movable.
 |<<tabs-close-mouse-button,close-mouse-button>>|On which mouse button to close tabs.
@@ -110,10 +114,11 @@
 |<<tabs-show-favicons,show-favicons>>|Whether to show favicons in the tab bar.
 |<<tabs-width,width>>|The width of the tab bar if it's vertical, in px or as percentage of the window.
 |<<tabs-indicator-width,indicator-width>>|Width of the progress indicator (0 to disable).
-|<<tabs-indicator-space,indicator-space>>|Spacing between tab edge and indicator.
 |<<tabs-tabs-are-windows,tabs-are-windows>>|Whether to open windows instead of tabs.
 |<<tabs-title-format,title-format>>|The format to use for the tab title. The following placeholders are defined:
 |<<tabs-mousewheel-tab-switching,mousewheel-tab-switching>>|Switch between tabs using the mouse wheel.
+|<<tabs-padding,padding>>|Padding for tabs (top, bottom, left, right).
+|<<tabs-indicator-padding,indicator-padding>>|Padding for indicators (top, bottom, left, right).
 |==============
 
 .Quick reference for section ``storage''
@@ -121,6 +126,8 @@
 |==============
 |Setting|Description
 |<<storage-download-directory,download-directory>>|The directory to save downloads to. An empty value selects a sensible os-specific default. Will expand environment variables.
+|<<storage-prompt-download-directory,prompt-download-directory>>|Whether to prompt the user for the download location.
+|<<storage-remember-download-directory,remember-download-directory>>|Whether to remember the last used download directory.
 |<<storage-maximum-pages-in-cache,maximum-pages-in-cache>>|The maximum number of pages to hold in the global memory page cache.
 |<<storage-object-cache-capacities,object-cache-capacities>>|The capacities for the global memory cache for dead objects such as stylesheets or scripts. Syntax: cacheMinDeadCapacity, cacheMaxDead, totalCapacity.
 |<<storage-offline-storage-default-quota,offline-storage-default-quota>>|Default quota for new offline storage databases.
@@ -154,6 +161,7 @@
 |<<content-cookies-store,cookies-store>>|Whether to store cookies.
 |<<content-host-block-lists,host-block-lists>>|List of URLs of lists which contain hosts to block.
 |<<content-host-blocking-enabled,host-blocking-enabled>>|Whether host blocking is enabled.
+|<<content-host-blocking-whitelist,host-blocking-whitelist>>|List of domains that should always be loaded, despite being ad-blocked.
 |==============
 
 .Quick reference for section ``hints''
@@ -164,7 +172,7 @@
 |<<hints-opacity,opacity>>|Opacity for hints.
 |<<hints-mode,mode>>|Mode to use for hints.
 |<<hints-chars,chars>>|Chars used for hint strings.
-|<<hints-min-chars,min-chars>>|Mininum number of chars used for hint strings.
+|<<hints-min-chars,min-chars>>|Minimum number of chars used for hint strings.
 |<<hints-scatter,scatter>>|Whether to scatter hint key chains (like Vimium) or not (like dwb).
 |<<hints-uppercase,uppercase>>|Make chars in hint strings uppercase.
 |<<hints-auto-follow,auto-follow>>|Whether to auto-follow a hint if there's only one left.
@@ -214,8 +222,10 @@
 |<<colors-tabs.bg.odd,tabs.bg.odd>>|Background color of unselected odd tabs.
 |<<colors-tabs.fg.even,tabs.fg.even>>|Foreground color of unselected even tabs.
 |<<colors-tabs.bg.even,tabs.bg.even>>|Background color of unselected even tabs.
-|<<colors-tabs.fg.selected,tabs.fg.selected>>|Foreground color of selected tabs.
-|<<colors-tabs.bg.selected,tabs.bg.selected>>|Background color of selected tabs.
+|<<colors-tabs.fg.selected.odd,tabs.fg.selected.odd>>|Foreground color of selected odd tabs.
+|<<colors-tabs.bg.selected.odd,tabs.bg.selected.odd>>|Background color of selected odd tabs.
+|<<colors-tabs.fg.selected.even,tabs.fg.selected.even>>|Foreground color of selected even tabs.
+|<<colors-tabs.bg.selected.even,tabs.bg.selected.even>>|Background color of selected even tabs.
 |<<colors-tabs.bg.bar,tabs.bg.bar>>|Background color of the tab bar.
 |<<colors-tabs.indicator.start,tabs.indicator.start>>|Color gradient start for the tab indicator.
 |<<colors-tabs.indicator.stop,tabs.indicator.stop>>|Color gradient end for the tab indicator.
@@ -449,6 +459,19 @@ The name of the session to save by default, or empty for the last loaded session
 
 Default: empty
 
+[[general-url-incdec-segments]]
+=== url-incdec-segments
+The URL segments where `:navigate increment/decrement` will search for a number.
+
+Valid values:
+
+ * +host+
+ * +path+
+ * +query+
+ * +anchor+
+
+Default: +pass:[path,query]+
+
 == ui
 General options related to the user interface.
 
@@ -470,10 +493,10 @@ Where to show the downloaded files.
 
 Valid values:
 
- * +north+
- * +south+
+ * +top+
+ * +bottom+
 
-Default: +pass:[north]+
+Default: +pass:[top]+
 
 [[ui-message-timeout]]
 === message-timeout
@@ -585,6 +608,12 @@ Valid values:
 
 Default: +pass:[false]+
 
+[[ui-statusbar-padding]]
+=== statusbar-padding
+Padding for statusbar (top, bottom, left, right).
+
+Default: +pass:[1,1,0,0]+
+
 [[ui-window-title-format]]
 === window-title-format
 The format to use for the window title. The following placeholders are defined:
@@ -594,6 +623,7 @@ The format to use for the window title. The following placeholders are defined:
 * `{title}`: The title of the current web page
 * `{title_sep}`: The string ` - ` if a title is set, empty otherwise.
 * `{id}`: The internal window ID of this window.
+* `{scroll_pos}`: The page scroll position.
 
 Default: +pass:[{perc}{title}{title_sep}qutebrowser]+
 
@@ -611,6 +641,17 @@ Default: +pass:[false]+
 [[ui-modal-js-dialog]]
 === modal-js-dialog
 Use standard JavaScript modal dialog for alert() and confirm()
+
+Valid values:
+
+ * +true+
+ * +false+
+
+Default: +pass:[false]+
+
+[[ui-hide-wayland-decoration]]
+=== hide-wayland-decoration
+Hide the window decoration when using wayland (requires restart)
 
 Valid values:
 
@@ -638,6 +679,18 @@ Default: +pass:[true]+
 Value to send in the `accept-language` header.
 
 Default: +pass:[en-US,en]+
+
+[[network-referer-header]]
+=== referer-header
+Send the Referer header
+
+Valid values:
+
+ * +always+: Always send.
+ * +never+: Never send; this is not recommended, as some sites may break.
+ * +same-domain+: Only send for the same domain. This will still protect your privacy, but shouldn't break any sites.
+
+Default: +pass:[same-domain]+
 
 [[network-user-agent]]
 === user-agent
@@ -841,7 +894,7 @@ Default: +pass:[auto]+
 
 [[input-spatial-navigation]]
 === spatial-navigation
-Enables or disables the Spatial Navigation feature
+Enables or disables the Spatial Navigation feature.
 
 Spatial navigation consists in the ability to navigate between focusable elements in a Web page, such as hyperlinks and form controls, by using Left, Right, Up and Down arrow keys. For example, if a user presses the Right key, heuristics determine whether there is an element he might be trying to reach towards the right and which element he probably wants.
 
@@ -946,27 +999,24 @@ Valid values:
 
 Default: +pass:[ignore]+
 
-[[tabs-hide-auto]]
-=== hide-auto
-Hide the tab bar if only one tab is open.
+[[tabs-show]]
+=== show
+When to show the tab bar
 
 Valid values:
 
- * +true+
- * +false+
+ * +always+: Always show the tab bar.
+ * +never+: Always hide the tab bar.
+ * +multiple+: Hide the tab bar if only one tab is open.
+ * +switching+: Show the tab bar when switching tabs.
 
-Default: +pass:[false]+
+Default: +pass:[always]+
 
-[[tabs-hide-always]]
-=== hide-always
-Always hide the tab bar.
+[[tabs-show-switching-delay]]
+=== show-switching-delay
+Time to show the tab bar before hiding it when tabs->show is set to 'switching'.
 
-Valid values:
-
- * +true+
- * +false+
-
-Default: +pass:[false]+
+Default: +pass:[800]+
 
 [[tabs-wrap]]
 === wrap
@@ -1008,12 +1058,12 @@ The position of the tab bar.
 
 Valid values:
 
- * +north+
- * +south+
- * +east+
- * +west+
+ * +top+
+ * +bottom+
+ * +left+
+ * +right+
 
-Default: +pass:[north]+
+Default: +pass:[top]+
 
 [[tabs-show-favicons]]
 === show-favicons
@@ -1038,12 +1088,6 @@ Width of the progress indicator (0 to disable).
 
 Default: +pass:[3]+
 
-[[tabs-indicator-space]]
-=== indicator-space
-Spacing between tab edge and indicator.
-
-Default: +pass:[3]+
-
 [[tabs-tabs-are-windows]]
 === tabs-are-windows
 Whether to open windows instead of tabs.
@@ -1065,6 +1109,7 @@ The format to use for the tab title. The following placeholders are defined:
 * `{title_sep}`: The string ` - ` if a title is set, empty otherwise.
 * `{index}`: The index of this tab.
 * `{id}`: The internal tab ID of this tab.
+* `{scroll_pos}`: The page scroll position.
 
 Default: +pass:[{index}: {title}]+
 
@@ -1079,6 +1124,18 @@ Valid values:
 
 Default: +pass:[true]+
 
+[[tabs-padding]]
+=== padding
+Padding for tabs (top, bottom, left, right).
+
+Default: +pass:[0,0,5,5]+
+
+[[tabs-indicator-padding]]
+=== indicator-padding
+Padding for indicators (top, bottom, left, right).
+
+Default: +pass:[2,2,0,4]+
+
 == storage
 Settings related to cache and storage.
 
@@ -1087,6 +1144,29 @@ Settings related to cache and storage.
 The directory to save downloads to. An empty value selects a sensible os-specific default. Will expand environment variables.
 
 Default: empty
+
+[[storage-prompt-download-directory]]
+=== prompt-download-directory
+Whether to prompt the user for the download location.
+If set to false, 'download-directory' will be used.
+
+Valid values:
+
+ * +true+
+ * +false+
+
+Default: +pass:[true]+
+
+[[storage-remember-download-directory]]
+=== remember-download-directory
+Whether to remember the last used download directory.
+
+Valid values:
+
+ * +true+
+ * +false+
+
+Default: +pass:[true]+
 
 [[storage-maximum-pages-in-cache]]
 === maximum-pages-in-cache
@@ -1384,6 +1464,16 @@ Valid values:
 
 Default: +pass:[true]+
 
+[[content-host-blocking-whitelist]]
+=== host-blocking-whitelist
+List of domains that should always be loaded, despite being ad-blocked.
+
+Domains may contain * and ? wildcards and are otherwise required to exactly match the requested domain.
+
+Local domains are always exempt from hostblocking.
+
+Default: +pass:[piwik.org]+
+
 == hints
 Hinting settings.
 
@@ -1418,7 +1508,7 @@ Default: +pass:[asdfghjkl]+
 
 [[hints-min-chars]]
 === min-chars
-Mininum number of chars used for hint strings.
+Minimum number of chars used for hint strings.
 
 Default: +pass:[1]+
 
@@ -1720,17 +1810,29 @@ Background color of unselected even tabs.
 
 Default: +pass:[darkgrey]+
 
-[[colors-tabs.fg.selected]]
-=== tabs.fg.selected
-Foreground color of selected tabs.
+[[colors-tabs.fg.selected.odd]]
+=== tabs.fg.selected.odd
+Foreground color of selected odd tabs.
 
 Default: +pass:[white]+
 
-[[colors-tabs.bg.selected]]
-=== tabs.bg.selected
-Background color of selected tabs.
+[[colors-tabs.bg.selected.odd]]
+=== tabs.bg.selected.odd
+Background color of selected odd tabs.
 
 Default: +pass:[black]+
+
+[[colors-tabs.fg.selected.even]]
+=== tabs.fg.selected.even
+Foreground color of selected even tabs.
+
+Default: +pass:[${tabs.fg.selected.odd}]+
+
+[[colors-tabs.bg.selected.even]]
+=== tabs.bg.selected.even
+Background color of selected even tabs.
+
+Default: +pass:[${tabs.bg.selected.odd}]+
 
 [[colors-tabs.bg.bar]]
 === tabs.bg.bar
@@ -1899,7 +2001,7 @@ Default: +pass:[8pt ${_monospace}]+
 === hints
 Font used for the hints.
 
-Default: +pass:[bold 12px Monospace]+
+Default: +pass:[bold 13px Monospace]+
 
 [[fonts-debug-console]]
 === debug-console

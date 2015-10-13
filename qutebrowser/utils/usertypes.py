@@ -53,7 +53,7 @@ def enum(name, items, start=1, is_int=False):
 
 class NeighborList(collections.abc.Sequence):
 
-    """A list of items which saves it current position.
+    """A list of items which saves its current position.
 
     Class attributes:
         Modes: Different modes, see constructor documentation.
@@ -147,7 +147,7 @@ class NeighborList(collections.abc.Sequence):
                 self._idx += offset
                 self._idx %= len(self.items)
                 new = self.curitem()
-            elif self._mode == self.Modes.exception:
+            elif self._mode == self.Modes.exception:  # pragma: no branch
                 raise
         else:
             self._idx += offset
@@ -236,8 +236,8 @@ KeyMode = enum('KeyMode', ['normal', 'hint', 'command', 'yesno', 'prompt',
 
 # Available command completions
 Completion = enum('Completion', ['command', 'section', 'option', 'value',
-                                 'helptopic', 'quickmark_by_url',
-                                 'quickmark_by_name', 'url', 'sessions'])
+                                 'helptopic', 'quickmark_by_name',
+                                 'bookmark_by_url', 'url', 'sessions'])
 
 
 # Exit statuses for errors. Needs to be an int for sys.exit.
@@ -271,11 +271,11 @@ class Question(QObject):
         answered: Emitted when the question has been answered by the user.
                   arg: The answer to the question.
         cancelled: Emitted when the question has been cancelled by the user.
-        aborted: Emitted when the question was aborted programatically.
+        aborted: Emitted when the question was aborted programmatically.
                  In this case, cancelled is not emitted.
-        answered_yes: Convienience signal emitted when a yesno question was
+        answered_yes: Convenience signal emitted when a yesno question was
                       answered with yes.
-        answered_no: Convienience signal emitted when a yesno question was
+        answered_no: Convenience signal emitted when a yesno question was
                      answered with no.
         completed: Emitted when the question was completed in any way.
     """

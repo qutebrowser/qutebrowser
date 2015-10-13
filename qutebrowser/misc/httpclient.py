@@ -40,7 +40,7 @@ class HTTPClient(QObject):
 
     Signals:
         success: Emitted when the operation succeeded.
-                 arg: The recieved data.
+                 arg: The received data.
         error: Emitted when the request failed.
                arg: The error message, as string.
     """

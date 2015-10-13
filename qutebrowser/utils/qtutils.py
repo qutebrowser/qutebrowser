@@ -50,6 +50,26 @@ MINVALS = {
 }
 
 
+class QtOSError(OSError):
+
+    """An OSError triggered by a QFileDevice.
+
+    Attributes:
+        qt_errno: The error attribute of the given QFileDevice, if applicable.
+    """
+
+    def __init__(self, dev, msg=None):
+        if msg is None:
+            msg = dev.errorString()
+
+        super().__init__(msg)
+
+        try:
+            self.qt_errno = dev.error()
+        except AttributeError:
+            self.qt_errno = None
+
+
 def version_check(version, op=operator.ge):
     """Check if the Qt runtime version is the version supplied or newer.
 
@@ -69,7 +89,7 @@ def check_overflow(arg, ctype, fatal=True):
     Args:
         arg: The argument to check
         ctype: The C/Qt type to check as a string.
-        fatal: Wether to raise exceptions (True) or truncate values (False)
+        fatal: Whether to raise exceptions (True) or truncate values (False)
 
     Return
         The truncated argument if fatal=False
@@ -183,7 +203,7 @@ def savefile_open(filename, binary=False, encoding='utf-8'):
     try:
         ok = f.open(QIODevice.WriteOnly)
         if not ok:
-            raise OSError(f.errorString())
+            raise QtOSError(f)
         if binary:
             new_f = PyQIODevice(f)
         else:
@@ -198,7 +218,7 @@ def savefile_open(filename, binary=False, encoding='utf-8'):
     finally:
         commit_ok = f.commit()
         if not commit_ok and not cancelled:
-            raise OSError("Commit failed!")
+            raise QtOSError(f, msg="Commit failed!")
 
 
 @contextlib.contextmanager
@@ -266,7 +286,7 @@ class PyQIODevice(io.BufferedIOBase):
         """
         ok = self.dev.open(mode)
         if not ok:
-            raise OSError(self.dev.errorString())
+            raise QtOSError(self.dev)
         return contextlib.closing(self)
 
     def close(self):
@@ -289,7 +309,7 @@ class PyQIODevice(io.BufferedIOBase):
             raise io.UnsupportedOperation("whence = {} is not "
                                           "supported!".format(whence))
         if not ok:
-            raise OSError("seek failed!")
+            raise QtOSError(self.dev, msg="seek failed!")
 
     def truncate(self, size=None):  # pylint: disable=unused-argument
         raise io.UnsupportedOperation
@@ -329,7 +349,7 @@ class PyQIODevice(io.BufferedIOBase):
                 buf = self.dev.read(size)
 
         if buf is None:
-            raise OSError(self.dev.errorString())
+            raise QtOSError(self.dev)
         return buf
 
     def seekable(self):
@@ -348,7 +368,7 @@ class PyQIODevice(io.BufferedIOBase):
         self._check_writable()
         num = self.dev.write(b)
         if num == -1 or num < len(b):
-            raise OSError(self.dev.errorString())
+            raise QtOSError(self.dev)
         return num
 
     def read(self, size=-1):
@@ -359,7 +379,7 @@ class PyQIODevice(io.BufferedIOBase):
         else:
             buf = self.dev.read(size)
         if buf is None:
-            raise OSError(self.dev.errorString())
+            raise QtOSError(self.dev)
         return buf
 
 

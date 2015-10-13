@@ -31,14 +31,10 @@ class Progress(QProgressBar):
 
     """The progress bar part of the status bar."""
 
-    # FIXME for some reason, margin-left is not shown
-    # https://github.com/The-Compiler/qutebrowser/issues/125
-
     STYLESHEET = """
         QProgressBar {
             border-radius: 0px;
             border: 2px solid transparent;
-            margin-left: 1px;
             background-color: transparent;
         }
 
@@ -66,10 +62,10 @@ class Progress(QProgressBar):
     @pyqtSlot(int)
     def on_tab_changed(self, tab):
         """Set the correct value when the current tab changed."""
-        if self is None:
+        if self is None:  # pragma: no branch
             # This should never happen, but for some weird reason it does
             # sometimes.
-            return
+            return  # pragma: no cover
         self.setValue(tab.progress)
         if tab.load_status == webview.LoadStatus.loading:
             self.show()
@@ -77,7 +73,10 @@ class Progress(QProgressBar):
             self.hide()
 
     def sizeHint(self):
-        """Set the height to the text height plus some padding."""
+        """Set the height to the text height."""
         width = super().sizeHint().width()
-        height = self.fontMetrics().height() + 3
+        height = self.fontMetrics().height()
         return QSize(width, height)
+
+    def minimumSizeHint(self):
+        return self.sizeHint()

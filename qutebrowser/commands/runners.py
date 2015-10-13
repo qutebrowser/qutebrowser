@@ -172,7 +172,7 @@ class CommandRunner(QObject):
             keep: Whether to keep special chars and whitespace
 
         Return:
-            A list containing the splitted strings.
+            A list containing the split strings.
         """
         if not argstr:
             return []

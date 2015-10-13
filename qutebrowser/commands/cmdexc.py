@@ -42,13 +42,6 @@ class NoSuchCommandError(CommandMetaError):
     pass
 
 
-class ArgumentCountError(CommandMetaError):
-
-    """Raised when a command was called with an invalid count of arguments."""
-
-    pass
-
-
 class ArgumentTypeError(CommandMetaError):
 
     """Raised when an argument had an invalid type."""

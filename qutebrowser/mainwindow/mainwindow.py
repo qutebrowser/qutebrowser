@@ -35,18 +35,21 @@ from qutebrowser.mainwindow.statusbar import bar
 from qutebrowser.completion import completionwidget
 from qutebrowser.keyinput import modeman
 from qutebrowser.browser import hints, downloads, downloadview, commands
+from qutebrowser.misc import crashsignal
 
 
 win_id_gen = itertools.count(0)
 
 
-def get_window(via_ipc, force_window=False, force_tab=False):
+def get_window(via_ipc, force_window=False, force_tab=False,
+               force_target=None):
     """Helper function for app.py to get a window id.
 
     Args:
         via_ipc: Whether the request was made via IPC.
         force_window: Whether to force opening in a window.
         force_tab: Whether to force opening in a tab.
+        force_target: Override the new-instance-open-target config
     """
     if force_window and force_tab:
         raise ValueError("force_window and force_tab are mutually exclusive!")
@@ -54,7 +57,10 @@ def get_window(via_ipc, force_window=False, force_tab=False):
         # Initial main window
         return 0
     window_to_raise = None
-    open_target = config.get('general', 'new-instance-open-target')
+    if force_target is not None:
+        open_target = force_target
+    else:
+        open_target = config.get('general', 'new-instance-open-target')
     if (open_target == 'window' or force_window) and not force_tab:
         window = MainWindow()
         window.show()
@@ -189,6 +195,8 @@ class MainWindow(QWidget):
         """Resize the completion if related config options changed."""
         if section == 'completion' and option in ('height', 'shrink'):
             self.resize_completion()
+        elif section == 'ui' and option == 'statusbar-padding':
+            self.resize_completion()
         elif section == 'ui' and option == 'downloads-position':
             self._add_widgets()
 
@@ -198,10 +206,10 @@ class MainWindow(QWidget):
         self._vbox.removeWidget(self._downloadview)
         self._vbox.removeWidget(self.status)
         position = config.get('ui', 'downloads-position')
-        if position == 'north':
+        if position == 'top':
             self._vbox.addWidget(self._downloadview)
             self._vbox.addWidget(self.tabbed_browser)
-        elif position == 'south':
+        elif position == 'bottom':
             self._vbox.addWidget(self.tabbed_browser)
             self._vbox.addWidget(self._downloadview)
         else:
@@ -392,8 +400,18 @@ class MainWindow(QWidget):
         self._downloadview.updateGeometry()
         self.tabbed_browser.tabBar().refresh()
 
+    def _do_close(self):
+        """Helper function for closeEvent."""
+        objreg.get('session-manager').save_last_window_session()
+        self._save_geometry()
+        log.destroy.debug("Closing window {}".format(self.win_id))
+        self.tabbed_browser.shutdown()
+
     def closeEvent(self, e):
         """Override closeEvent to display a confirmation if needed."""
+        if crashsignal.is_crashing:
+            e.accept()
+            return
         confirm_quit = config.get('ui', 'confirm-quit')
         tab_count = self.tabbed_browser.count()
         download_manager = objreg.get('download-manager', scope='window',
@@ -425,7 +443,4 @@ class MainWindow(QWidget):
                 e.ignore()
                 return
         e.accept()
-        objreg.get('session-manager').save_last_window_session()
-        self._save_geometry()
-        log.destroy.debug("Closing window {}".format(self.win_id))
-        self.tabbed_browser.shutdown()
+        self._do_close()

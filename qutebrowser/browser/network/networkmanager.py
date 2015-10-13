@@ -22,7 +22,7 @@
 import collections
 
 from PyQt5.QtCore import (pyqtSlot, pyqtSignal, PYQT_VERSION, QCoreApplication,
-                          QUrl)
+                          QUrl, QByteArray)
 from PyQt5.QtNetwork import (QNetworkAccessManager, QNetworkReply, QSslError,
                              QSslSocket)
 
@@ -31,6 +31,7 @@ from qutebrowser.utils import (message, log, usertypes, utils, objreg, qtutils,
                                urlutils)
 from qutebrowser.browser import cookies
 from qutebrowser.browser.network import qutescheme, networkreply
+from qutebrowser.browser.network import filescheme
 
 
 HOSTBLOCK_ERROR_STRING = '%HOSTBLOCK%'
@@ -97,8 +98,9 @@ class NetworkManager(QNetworkAccessManager):
         self._requests = []
         self._scheme_handlers = {
             'qute': qutescheme.QuteSchemeHandler(win_id),
+            'file': filescheme.FileSchemeHandler(win_id),
         }
-        self._set_cookiejar()
+        self._set_cookiejar(private=config.get('general', 'private-browsing'))
         self._set_cache()
         self.sslErrors.connect(self.on_ssl_errors)
         self._rejected_ssl_errors = collections.defaultdict(list)
@@ -295,6 +297,25 @@ class NetworkManager(QNetworkAccessManager):
         download.destroyed.connect(self.on_adopted_download_destroyed)
         download.do_retry.connect(self.adopt_download)
 
+    def set_referer(self, req, current_url):
+        """Set the referer header."""
+        referer_header_conf = config.get('network', 'referer-header')
+
+        try:
+            if referer_header_conf == 'never':
+                # Note: using ''.encode('ascii') sends a header with no value,
+                # instead of no header at all
+                req.setRawHeader('Referer'.encode('ascii'), QByteArray())
+            elif (referer_header_conf == 'same-domain' and
+                    not urlutils.same_domain(req.url(), current_url)):
+                req.setRawHeader('Referer'.encode('ascii'), QByteArray())
+            # If refer_header_conf is set to 'always', we leave the header
+            # alone as QtWebKit did set it.
+        except urlutils.InvalidUrlError:
+            # req.url() or current_url can be invalid - this happens on
+            # https://www.playstation.com/ for example.
+            pass
+
     # WORKAROUND for:
     # http://www.riverbankcomputing.com/pipermail/pyqt/2014-September/034806.html
     #
@@ -318,13 +339,14 @@ class NetworkManager(QNetworkAccessManager):
         """
         scheme = req.url().scheme()
         if scheme in self._scheme_handlers:
-            return self._scheme_handlers[scheme].createRequest(
+            result = self._scheme_handlers[scheme].createRequest(
                 op, req, outgoing_data)
+            if result is not None:
+                return result
 
         host_blocker = objreg.get('host-blocker')
         if (op == QNetworkAccessManager.GetOperation and
-                req.url().host() in host_blocker.blocked_hosts and
-                config.get('content', 'host-blocking-enabled')):
+                host_blocker.is_blocked(req.url())):
             log.webview.info("Request to {} blocked by host blocker.".format(
                 req.url().host()))
             return networkreply.ErrorNetworkReply(
@@ -337,6 +359,16 @@ class NetworkManager(QNetworkAccessManager):
             dnt = '0'.encode('ascii')
         req.setRawHeader('DNT'.encode('ascii'), dnt)
         req.setRawHeader('X-Do-Not-Track'.encode('ascii'), dnt)
+
+        if self._tab_id is None:
+            current_url = QUrl()  # generic NetworkManager, e.g. for downloads
+        else:
+            webview = objreg.get('webview', scope='tab', window=self._win_id,
+                                 tab=self._tab_id)
+            current_url = webview.url()
+
+        self.set_referer(req, current_url)
+
         accept_language = config.get('network', 'accept-language')
         if accept_language is not None:
             req.setRawHeader('Accept-Language'.encode('ascii'),

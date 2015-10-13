@@ -26,7 +26,7 @@ import re
 
 import pypeg2 as peg
 
-from qutebrowser.utils import log, utils
+from qutebrowser.utils import utils
 
 
 class UniqueNamespace(peg.Namespace):
@@ -40,9 +40,7 @@ class UniqueNamespace(peg.Namespace):
 
 
 # RFC 2616
-separator_chars = "()<>@,;:\\\"/[]?={} \t"
 ctl_chars = ''.join(chr(i) for i in range(32)) + chr(127)
-nontoken_chars = separator_chars + ctl_chars
 
 
 # RFC 5987
@@ -215,17 +213,22 @@ class ContentDispositionValue:
 LangTagged = collections.namedtuple('LangTagged', ['string', 'langtag'])
 
 
-class DuplicateParamError(Exception):
+class Error(Exception):
+
+    """Base class for RFC6266 errors."""
+
+
+class DuplicateParamError(Error):
 
     """Exception raised when a parameter has been given twice."""
 
 
-class InvalidISO8859Error(Exception):
+class InvalidISO8859Error(Error):
 
     """Exception raised when a byte is invalid in ISO-8859-1."""
 
 
-class ContentDisposition:
+class _ContentDisposition:
 
     """Records various indications and hints about content disposition.
 
@@ -234,24 +237,15 @@ class ContentDisposition:
     in the download case.
     """
 
-    def __init__(self, disposition='inline', assocs=None):
-        """Used internally after parsing the header.
-
-        Instances should generally be created from a factory
-        function, such as parse_headers and its variants.
-        """
-        if len(disposition) != 1:
-            self.disposition = 'inline'
-        else:
-            self.disposition = disposition[0]
-        if assocs is None:
-            self.assocs = {}
-        else:
-            self.assocs = dict(assocs)  # So we can change values
-            if 'filename*' in self.assocs:
-                param = self.assocs['filename*']
-                assert isinstance(param, ExtDispositionParm)
-                self.assocs['filename*'] = parse_ext_value(param.value).string
+    def __init__(self, disposition, assocs):
+        """Used internally after parsing the header."""
+        assert len(disposition) == 1
+        self.disposition = disposition[0]
+        self.assocs = dict(assocs)  # So we can change values
+        if 'filename*' in self.assocs:
+            param = self.assocs['filename*']
+            assert isinstance(param, ExtDispositionParm)
+            self.assocs['filename*'] = parse_ext_value(param.value).string
 
     def filename(self):
         """The filename from the Content-Disposition header or None.
@@ -291,7 +285,7 @@ def normalize_ws(text):
 
 
 def parse_headers(content_disposition):
-    """Build a ContentDisposition from header values."""
+    """Build a _ContentDisposition from header values."""
     # https://bitbucket.org/logilab/pylint/issue/492/
     # pylint: disable=no-member
 
@@ -302,8 +296,6 @@ def parse_headers(content_disposition):
     # filename parameter. But it does mean we occasionally give
     # less-than-certain values for some legacy senders.
     content_disposition = content_disposition.decode('iso-8859-1')
-    log.rfc6266.debug("Parsing Content-Disposition: {}".format(
-        content_disposition))
     # Our parsing is relaxed in these regards:
     # - The grammar allows a final ';' in the header;
     # - We do LWS-folding, and possibly normalise other broken
@@ -311,14 +303,8 @@ def parse_headers(content_disposition):
     # XXX Would prefer to accept only the quoted whitespace
     # case, rather than normalising everything.
     content_disposition = normalize_ws(content_disposition)
-    try:
-        parsed = peg.parse(content_disposition, ContentDispositionValue)
-    except (SyntaxError, DuplicateParamError, InvalidISO8859Error):
-        log.rfc6266.exception("Error while parsing Content-Disposition")
-        return ContentDisposition()
-    else:
-        return ContentDisposition(disposition=parsed.dtype,
-                                  assocs=parsed.params)
+    parsed = peg.parse(content_disposition, ContentDispositionValue)
+    return _ContentDisposition(disposition=parsed.dtype, assocs=parsed.params)
 
 
 def parse_ext_value(val):

@@ -22,9 +22,9 @@
 from PyQt5.QtCore import pyqtSignal, pyqtSlot, QObject, QTimer
 
 from qutebrowser.config import config
-from qutebrowser.commands import cmdutils, runners
+from qutebrowser.commands import cmdexc, cmdutils, runners
 from qutebrowser.utils import usertypes, log, objreg, utils
-from qutebrowser.completion.models import instances
+from qutebrowser.completion.models import instances, sortfilter
 
 
 class Completer(QObject):
@@ -124,7 +124,7 @@ class Completer(QObject):
                 self.update_completion()
 
     def _model(self):
-        """Convienience method to get the current completion model."""
+        """Convenience method to get the current completion model."""
         completion = objreg.get('completion', scope='window',
                                 window=self._win_id)
         return completion.model()
@@ -138,7 +138,7 @@ class Completer(QObject):
             cursor_part: The part the cursor is in.
 
         Return:
-            A completion model.
+            A completion model or None.
         """
         if completion == usertypes.Completion.option:
             section = parts[cursor_part - 1]
@@ -153,7 +153,11 @@ class Completer(QObject):
                 model = None
         else:
             model = instances.get(completion)
-        return model
+
+        if model is None:
+            return None
+        else:
+            return sortfilter.CompletionFilterModel(source=model, parent=self)
 
     def _filter_cmdline_parts(self, parts, cursor_part):
         """Filter a list of commandline parts to exclude flags.
@@ -202,7 +206,8 @@ class Completer(QObject):
                              "{}".format(parts, cursor_part))
         if cursor_part == 0:
             # '|' or 'set|'
-            return instances.get(usertypes.Completion.command)
+            model = instances.get(usertypes.Completion.command)
+            return sortfilter.CompletionFilterModel(source=model, parent=self)
         # delegate completion to command
         try:
             completions = cmdutils.cmd_dict[parts[0]].completion
@@ -249,7 +254,7 @@ class Completer(QObject):
 
         Args:
             selected: New selection.
-            _delected: Previous selection.
+            _deselected: Previous selection.
         """
         indexes = selected.indexes()
         if not indexes:
@@ -481,3 +486,16 @@ class Completer(QObject):
         """Select the next completion item."""
         self._open_completion_if_needed()
         self.next_prev_item.emit(False)
+
+    @cmdutils.register(instance='completion', hide=True,
+                       modes=[usertypes.KeyMode.command], scope='window')
+    def completion_item_del(self):
+        """Delete the current completion item."""
+        completion = objreg.get('completion', scope='window',
+                                window=self._win_id)
+        if not completion.currentIndex().isValid():
+            raise cmdexc.CommandError("No item selected!")
+        try:
+            self.model().srcmodel.delete_cur_item(completion)
+        except NotImplementedError:
+            raise cmdexc.CommandError("Cannot delete this item.")

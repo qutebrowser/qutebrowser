@@ -154,3 +154,4 @@ class DocstringParser:
             self.arg_descs[argname].append(line.strip() + '\n')
         else:
             self._process_arg(line)
+        return False

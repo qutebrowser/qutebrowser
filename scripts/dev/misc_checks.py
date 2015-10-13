@@ -40,9 +40,11 @@ def _get_files(only_py=False):
     """Iterate over all python files and yield filenames."""
     for (dirpath, _dirnames, filenames) in os.walk('.'):
         parts = dirpath.split(os.sep)
-        if len(parts) >= 2 and parts[1].startswith('.'):
-            # ignore hidden dirs
-            continue
+        if len(parts) >= 2:
+            rootdir = parts[1]
+            if rootdir.startswith('.') or rootdir == 'htmlcov':
+                # ignore hidden dirs and htmlcov
+                continue
 
         if only_py:
             endings = {'.py'}
@@ -82,7 +84,10 @@ def check_spelling():
              '[Oo]ccur[^r .]', '[Ss]eperator', '[Ee]xplicitely', '[Rr]esetted',
              '[Aa]uxillary', '[Aa]ccidentaly', '[Aa]mbigious', '[Ll]oosly',
              '[Ii]nitialis', '[Cc]onvienence', '[Ss]imiliar', '[Uu]ncommited',
-             '[Rr]eproducable', '[Aa]n [Uu]ser'}
+             '[Rr]eproducable', '[Aa]n [Uu]ser', '[Cc]onvienience',
+             '[Ww]ether', '[Pp]rogramatically', '[Ss]plitted', '[Ee]xitted',
+             '[Mm]ininum', '[Rr]esett?ed', '[Rr]ecieved', '[Rr]egularily',
+             '[Uu]nderlaying', '[Ii]nexistant', '[Ee]lipsis'}
 
     # Words which look better when splitted, but might need some fine tuning.
     words |= {'[Ww]ebelements', '[Mm]ouseevent', '[Kk]eysequence',

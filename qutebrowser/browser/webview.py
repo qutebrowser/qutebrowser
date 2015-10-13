@@ -64,13 +64,14 @@ class WebView(QWebView):
         win_id: The window ID of the view.
         search_text: The text of the last search.
         search_flags: The search flags of the last search.
-        _cur_url: The current URL (accessed via cur_url property).
         _has_ssl_errors: Whether SSL errors occurred during loading.
         _zoom: A NeighborList with the zoom levels.
         _old_scroll_pos: The old scroll position.
         _check_insertmode: If True, in mouseReleaseEvent we should check if we
                            need to enter/leave insert mode.
         _default_zoom_changed: Whether the zoom was changed from the default.
+        _ignore_wheel_event: Ignore the next wheel event.
+                             See https://github.com/The-Compiler/qutebrowser/issues/395
 
     Signals:
         scroll_pos_changed: Scroll percentage of current tab changed.
@@ -103,6 +104,7 @@ class WebView(QWebView):
         self._old_scroll_pos = (-1, -1)
         self._zoom = None
         self._has_ssl_errors = False
+        self._ignore_wheel_event = False
         self.keep_icon = False
         self.search_text = None
         self.search_flags = 0
@@ -116,7 +118,6 @@ class WebView(QWebView):
         # See https://github.com/The-Compiler/qutebrowser/issues/390
         self.destroyed.connect(functools.partial(
             cfg.changed.disconnect, self.init_neighborlist))
-        self._cur_url = None
         self.cur_url = QUrl()
         self.progress = 0
         self.registry = objreg.ObjectRegistry()
@@ -616,6 +617,7 @@ class WebView(QWebView):
             return
         self._mousepress_insertmode(e)
         self._mousepress_opentarget(e)
+        self._ignore_wheel_event = True
         super().mousePressEvent(e)
 
     def mouseReleaseEvent(self, e):
@@ -638,6 +640,10 @@ class WebView(QWebView):
         Args:
             e: The QWheelEvent.
         """
+        if self._ignore_wheel_event:
+            self._ignore_wheel_event = False
+            # See https://github.com/The-Compiler/qutebrowser/issues/395
+            return
         if e.modifiers() & Qt.ControlModifier:
             e.accept()
             divider = config.get('input', 'mouse-zoom-divider')

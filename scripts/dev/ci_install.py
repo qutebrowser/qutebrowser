@@ -33,7 +33,16 @@ import sys
 import subprocess
 import urllib
 
-PYQT_VERSION = '5.4.2'
+try:
+    import _winreg as winreg
+except ImportError:
+    winreg = None
+
+TESTENV = os.environ['TESTENV']
+TRAVIS_OS = os.environ.get('TRAVIS_OS_NAME', None)
+INSTALL_PYQT = TESTENV in ('py34', 'py35', 'unittests-nodisp', 'vulture',
+                           'pylint')
+XVFB = TRAVIS_OS == 'linux' and TESTENV == 'py34'
 
 
 def apt_get(args):
@@ -45,15 +54,27 @@ def brew(args, silent=False):
         with open(os.devnull, 'w') as f:
             subprocess.check_call(['brew'] + args, stdout=f)
     else:
-        subprocess.check_call(['brew'] + args)
+        subprocess.check_call(['brew'] + args + ['--verbose'])
+
+
+def check_setup(executable):
+    if INSTALL_PYQT:
+        print("Checking setup...")
+        subprocess.check_call([executable, '-c', 'import PyQt5'])
+        subprocess.check_call([executable, '-c', 'import sip'])
 
 
 if 'APPVEYOR' in os.environ:
     print("Getting PyQt5...")
     urllib.urlretrieve(
-        ('http://sourceforge.net/projects/pyqt/files/PyQt5/PyQt-{v}/'
-         'PyQt5-{v}-gpl-Py3.4-Qt{v}-x32.exe'.format(v=PYQT_VERSION)),
+        'http://www.qutebrowser.org/pyqt/PyQt5-5.5-gpl-Py3.4-Qt5.5.0-x32.exe',
         r'C:\install-PyQt5.exe')
+
+    print("Fixing registry...")
+    with winreg.OpenKey(winreg.HKEY_CURRENT_USER,
+                        r'Software\Python\PythonCore\3.4', 0,
+                        winreg.KEY_WRITE) as key:
+        winreg.SetValue(key, 'InstallPath', winreg.REG_SZ, r'C:\Python34')
 
     print("Installing PyQt5...")
     subprocess.check_call([r'C:\install-PyQt5.exe', '/S'])
@@ -64,33 +85,46 @@ if 'APPVEYOR' in os.environ:
     print("Linking Python...")
     with open(r'C:\Windows\system32\python3.bat', 'w') as f:
         f.write(r'@C:\Python34\python %*')
-elif os.environ.get('TRAVIS_OS_NAME', None) == 'linux':
-    print("apt-get update...")
-    apt_get(['update'])
+
+    check_setup(r'C:\Python34\python')
+elif TRAVIS_OS == 'linux':
+    print("sudo pip install tox/npm")
+    subprocess.check_call(['sudo', 'pip', 'install', 'tox'])
 
     print("Installing packages...")
-    pkgs = 'python3-pyqt5 python3-pyqt5.qtwebkit python-tox python3-dev xvfb'
-    apt_get(['install'] + pkgs.split())
-elif os.environ.get('TRAVIS_OS_NAME', None) == 'osx':
+    pkgs = []
+
+    if XVFB:
+        pkgs.append('xvfb')
+    if INSTALL_PYQT:
+        pkgs += ['python3-pyqt5', 'python3-pyqt5.qtwebkit']
+    if TESTENV == 'eslint':
+        pkgs += ['npm', 'nodejs', 'nodejs-legacy']
+
+    if pkgs:
+        print("apt-get update...")
+        apt_get(['update'])
+        print("apt-get install...")
+        apt_get(['install'] + pkgs)
+
+    if TESTENV == 'eslint':
+        subprocess.check_call(['sudo', 'npm', 'install', '-g', 'eslint'])
+    else:
+        check_setup('python3')
+elif TRAVIS_OS == 'osx':
     print("brew update...")
     brew(['update'], silent=True)
 
     print("Installing packages...")
-    brew(['install', 'python3', 'pyqt5'])
+    pkgs = ['python3']
+    if INSTALL_PYQT:
+        pkgs.append('pyqt5')
+    brew(['install'] + pkgs)
 
     print("Installing tox...")
-    subprocess.check_call(['sudo', 'pip3.4', 'install', 'tox'])
+    subprocess.check_call(['sudo', 'pip3', 'install', 'tox'])
 
-    os.system('ls -l /usr/local/bin/xvfb-run')
-    print("Creating xvfb-run stub...")
-    with open('/usr/local/bin/xvfb-run', 'w') as f:
-        # This will break when xvfb-run is called differently in .travis.yml,
-        # but I can't be bothered to do it in a nicer way.
-        f.write('#!/bin/bash\n')
-        f.write('shift 2\n')
-        f.write('exec "$@"\n')
-    os.system('sudo chmod 755 /usr/local/bin/xvfb-run')
-    os.system('ls -l /usr/local/bin/xvfb-run')
+    check_setup('python3')
 else:
     def env(key):
         return os.environ.get(key, None)

@@ -42,6 +42,10 @@ ExceptionInfo = collections.namedtuple('ExceptionInfo',
                                        'pages, cmd_history, objects')
 
 
+# Used by mainwindow.py to skip confirm questions on crashes
+is_crashing = False
+
+
 class CrashHandler(QObject):
 
     """Handler for crashes, reports and exceptions.
@@ -236,6 +240,10 @@ class CrashHandler(QObject):
                 self._quitter.on_last_window_closed)
         except TypeError:
             log.destroy.exception("Error while preventing shutdown")
+
+        global is_crashing
+        is_crashing = True
+
         self._app.closeAllWindows()
         if self._args.no_err_windows:
             crashdialog.dump_exception_info(exc, info.pages, info.cmd_history,

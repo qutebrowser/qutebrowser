@@ -23,7 +23,7 @@ import functools
 import collections
 
 from PyQt5.QtWidgets import QSizePolicy
-from PyQt5.QtCore import pyqtSignal, pyqtSlot, QSize, QTimer, QUrl
+from PyQt5.QtCore import pyqtSignal, pyqtSlot, QTimer, QUrl
 from PyQt5.QtGui import QIcon
 
 from qutebrowser.config import config
@@ -54,6 +54,8 @@ class TabbedBrowser(tabwidget.TabWidget):
          emitted if the signal occurred in the current tab.
 
     Attributes:
+        search_text/search_flags: Search parameters which are shared between
+                                  all tabs.
         _win_id: The window ID this tabbedbrowser is associated with.
         _filter: A SignalFilter instance.
         _now_focused: The tab which is focused now.
@@ -108,9 +110,8 @@ class TabbedBrowser(tabwidget.TabWidget):
         self._undo_stack = []
         self._filter = signalfilter.SignalFilter(win_id, self)
         self._now_focused = None
-        # FIXME adjust this to font size
-        # https://github.com/The-Compiler/qutebrowser/issues/119
-        self.setIconSize(QSize(12, 12))
+        self.search_text = None
+        self.search_flags = 0
         objreg.get('config').changed.connect(self.update_favicons)
         objreg.get('config').changed.connect(self.update_window_title)
         objreg.get('config').changed.connect(self.update_tab_titles)
@@ -164,6 +165,15 @@ class TabbedBrowser(tabwidget.TabWidget):
         fields['title'] = tabtitle
         fields['title_sep'] = ' - ' if tabtitle else ''
         fields['id'] = self._win_id
+        y = widget.scroll_pos[1]
+        if y <= 0:
+            scroll_pos = 'top'
+        elif y >= 100:
+            scroll_pos = 'bot'
+        else:
+            scroll_pos = '{:2}%'.format(y)
+
+        fields['scroll_pos'] = scroll_pos
         fmt = config.get('ui', 'window-title-format')
         self.window().setWindowTitle(fmt.format(**fields))
 
@@ -184,6 +194,7 @@ class TabbedBrowser(tabwidget.TabWidget):
             self._filter.create(self.cur_statusbar_message, tab))
         tab.scroll_pos_changed.connect(
             self._filter.create(self.cur_scroll_perc_changed, tab))
+        tab.scroll_pos_changed.connect(self.on_scroll_pos_changed)
         tab.url_text_changed.connect(
             self._filter.create(self.cur_url_text_changed, tab))
         tab.load_status_changed.connect(
@@ -234,17 +245,24 @@ class TabbedBrowser(tabwidget.TabWidget):
             tab: The QWebView to be closed.
         """
         last_close = config.get('tabs', 'last-close')
-        if self.count() > 1:
-            self._remove_tab(tab)
-        elif last_close == 'close':
-            self._remove_tab(tab)
-            self.close_window.emit()
-        elif last_close == 'blank':
-            tab.openurl(QUrl('about:blank'))
-        elif last_close == 'startpage':
-            tab.openurl(QUrl(config.get('general', 'startpage')[0]))
-        elif last_close == 'default-page':
-            tab.openurl(config.get('general', 'default-page'))
+        count = self.count()
+
+        if last_close == 'ignore' and count == 1:
+            return
+
+        self._remove_tab(tab)
+
+        if count == 1:  # We just closed the last tab above.
+            if last_close == 'close':
+                self.close_window.emit()
+            elif last_close == 'blank':
+                self.openurl(QUrl('about:blank'), newtab=True)
+            elif last_close == 'startpage':
+                url = QUrl(config.get('general', 'startpage')[0])
+                self.openurl(url, newtab=True)
+            elif last_close == 'default-page':
+                url = config.get('general', 'default-page')
+                self.openurl(url, newtab=True)
 
     def _remove_tab(self, tab):
         """Remove a tab from the tab list and delete it properly.
@@ -513,7 +531,7 @@ class TabbedBrowser(tabwidget.TabWidget):
         log.modes.debug("Current tab changed, focusing {!r}".format(tab))
         tab.setFocus()
         for mode in (usertypes.KeyMode.hint, usertypes.KeyMode.insert,
-                     usertypes.KeyMode.caret):
+                     usertypes.KeyMode.caret, usertypes.KeyMode.passthrough):
             modeman.maybe_leave(self._win_id, mode, 'tab changed')
         if self._now_focused is not None:
             objreg.register('last-focused-tab', self._now_focused, update=True,
@@ -568,6 +586,12 @@ class TabbedBrowser(tabwidget.TabWidget):
         self.update_tab_title(idx)
         if idx == self.currentIndex():
             self.update_window_title()
+
+    @pyqtSlot()
+    def on_scroll_pos_changed(self):
+        """Update tab and window title when scroll position changed."""
+        self.update_window_title()
+        self.update_tab_titles()
 
     def resizeEvent(self, e):
         """Extend resizeEvent of QWidget to emit a resized signal afterwards.

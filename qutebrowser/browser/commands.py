@@ -19,7 +19,6 @@
 
 """Command dispatcher for TabbedBrowser."""
 
-import re
 import os
 import shlex
 import posixpath
@@ -38,7 +37,7 @@ import pygments.formatters
 
 from qutebrowser.commands import userscripts, cmdexc, cmdutils, runners
 from qutebrowser.config import config, configexc
-from qutebrowser.browser import webelem, inspector
+from qutebrowser.browser import webelem, inspector, urlmarks
 from qutebrowser.keyinput import modeman
 from qutebrowser.utils import (message, usertypes, log, qtutils, urlutils,
                                objreg, utils)
@@ -99,6 +98,10 @@ class CommandDispatcher:
                 msg += " ({})".format(e.reason)
             msg += "!"
             raise cmdexc.CommandError(msg)
+
+    def _current_title(self):
+        """Convenience method to get the current title."""
+        return self._current_widget().title()
 
     def _current_widget(self):
         """Get the currently active widget from a command."""
@@ -214,14 +217,6 @@ class CommandDispatcher:
             raise cmdexc.CommandError("Last focused tab vanished!")
         self._set_current_index(idx)
 
-    def _editor_cleanup(self, oshandle, filename):
-        """Clean up temporary file when the editor was closed."""
-        try:
-            os.close(oshandle)
-            os.remove(filename)
-        except OSError:
-            raise cmdexc.CommandError("Failed to delete tempfile...")
-
     def _get_selection_override(self, left, right, opposite):
         """Helper function for tab_close to get the tab to select.
 
@@ -300,7 +295,7 @@ class CommandDispatcher:
         else:
             try:
                 url = urlutils.fuzzy_url(url)
-            except urlutils.FuzzyUrlError as e:
+            except urlutils.InvalidUrlError as e:
                 raise cmdexc.CommandError(e)
         if tab or bg or window:
             self._open(url, tab, bg, window)
@@ -399,7 +394,8 @@ class CommandDispatcher:
                                         window=newtab.win_id)
         idx = new_tabbed_browser.indexOf(newtab)
         new_tabbed_browser.set_page_title(idx, cur_title)
-        new_tabbed_browser.setTabIcon(idx, curtab.icon())
+        if config.get('tabs', 'show-favicons'):
+            new_tabbed_browser.setTabIcon(idx, curtab.icon())
         newtab.keep_icon = True
         newtab.setZoomFactor(curtab.zoomFactor())
         history = qtutils.serialize(curtab.history())
@@ -468,29 +464,15 @@ class CommandDispatcher:
             background: Open the link in a new background tab.
             window: Open the link in a new window.
         """
-        encoded = bytes(url.toEncoded()).decode('ascii')
-        # Get the last number in a string
-        match = re.match(r'(.*\D|^)(\d+)(.*)', encoded)
-        if not match:
-            raise cmdexc.CommandError("No number found in URL!")
-        pre, number, post = match.groups()
-        if not number:
-            raise cmdexc.CommandError("No number found in URL!")
-        try:
-            val = int(number)
-        except ValueError:
-            raise cmdexc.CommandError("Could not parse number '{}'.".format(
-                number))
-        if incdec == 'decrement':
-            if val <= 0:
-                raise cmdexc.CommandError("Can't decrement {}!".format(val))
-            val -= 1
-        elif incdec == 'increment':
-            val += 1
+        segments = config.get('general', 'url-incdec-segments')
+        if segments is None:
+            segments = set()
         else:
-            raise ValueError("Invalid value {} for indec!".format(incdec))
-        urlstr = ''.join([pre, str(val), post]).encode('ascii')
-        new_url = QUrl.fromEncoded(urlstr)
+            segments = set(segments)
+        try:
+            new_url = urlutils.incdec_number(url, incdec, segments=segments)
+        except urlutils.IncDecError as error:
+            raise cmdexc.CommandError(error.msg)
         self._open(new_url, tab, background, window)
 
     def _navigate_up(self, url, tab, background, window):
@@ -614,6 +596,8 @@ class CommandDispatcher:
                                       "expected one of: {}".format(
                                           direction, ', '.join(fake_keys)))
         widget = self._current_widget()
+        frame = widget.page().currentFrame()
+
         press_evt = QKeyEvent(QEvent.KeyPress, key, Qt.NoModifier, 0, 0, 0)
         release_evt = QKeyEvent(QEvent.KeyRelease, key, Qt.NoModifier, 0, 0, 0)
 
@@ -621,7 +605,25 @@ class CommandDispatcher:
         if direction in ('top', 'bottom'):
             count = 1
 
+        max_min = {
+            'up': [Qt.Vertical, frame.scrollBarMinimum],
+            'down': [Qt.Vertical, frame.scrollBarMaximum],
+            'left': [Qt.Horizontal, frame.scrollBarMinimum],
+            'right': [Qt.Horizontal, frame.scrollBarMaximum],
+            'page-up': [Qt.Vertical, frame.scrollBarMinimum],
+            'page-down': [Qt.Vertical, frame.scrollBarMaximum],
+        }
+
         for _ in range(count):
+            # Abort scrolling if the minimum/maximum was reached.
+            try:
+                qt_dir, getter = max_min[direction]
+            except KeyError:
+                pass
+            else:
+                if frame.scrollBarValue(qt_dir) == getter(qt_dir):
+                    return
+
             widget.keyPressEvent(press_evt)
             widget.keyReleaseEvent(release_evt)
 
@@ -865,7 +867,7 @@ class CommandDispatcher:
         log.misc.debug("{} contained: '{}'".format(target, text))
         try:
             url = urlutils.fuzzy_url(text)
-        except urlutils.FuzzyUrlError as e:
+        except urlutils.InvalidUrlError as e:
             raise cmdexc.CommandError(e)
         self._open(url, tab, bg, window)
 
@@ -874,6 +876,8 @@ class CommandDispatcher:
     def tab_focus(self, index: {'type': (int, 'last')}=None, count=None):
         """Select the tab given as argument/[count].
 
+        If neither count nor index are given, it behaves like tab-next.
+
         Args:
             index: The tab index to focus, starting with 1. The special value
                    `last` focuses the last focused tab.
@@ -881,6 +885,9 @@ class CommandDispatcher:
         """
         if index == 'last':
             self._tab_focus_last()
+            return
+        if index is None and count is None:
+            self.tab_next()
             return
         try:
             idx = cmdutils.arg_or_count(index, count, default=1,
@@ -942,7 +949,9 @@ class CommandDispatcher:
         useful here.
 
         Args:
-            userscript: Run the command as a userscript.
+            userscript: Run the command as a userscript. Either store the
+                        userscript in `~/.local/share/qutebrowser/userscripts`
+                        (or `$XDG_DATA_DIR`), or use an absolute path.
             verbose: Show notifications when the command started/exited.
             detach: Whether the command should be detached from qutebrowser.
             cmdline: The commandline to execute.
@@ -958,8 +967,10 @@ class CommandDispatcher:
         log.procs.debug("Executing {} with args {}, userscript={}".format(
             cmd, args, userscript))
         if userscript:
+            # ~ expansion is handled by the userscript module.
             self.run_userscript(cmd, *args, verbose=verbose)
         else:
+            cmd = os.path.expanduser(cmd)
             proc = guiprocess.GUIProcess(self._win_id, what='command',
                                          verbose=verbose,
                                          parent=self._tabbed_browser)
@@ -983,7 +994,6 @@ class CommandDispatcher:
             args: Arguments to pass to the userscript.
             verbose: Show notifications when the command started/exited.
         """
-        cmd = os.path.expanduser(cmd)
         env = {
             'QUTE_MODE': 'command',
         }
@@ -1030,7 +1040,41 @@ class CommandDispatcher:
             bg: Load the quickmark in a new background tab.
             window: Load the quickmark in a new window.
         """
-        url = objreg.get('quickmark-manager').get(name)
+        try:
+            url = objreg.get('quickmark-manager').get(name)
+        except urlmarks.Error as e:
+            raise cmdexc.CommandError(str(e))
+        self._open(url, tab, bg, window)
+
+    @cmdutils.register(instance='command-dispatcher', scope='window')
+    def bookmark_add(self):
+        """Save the current page as a bookmark."""
+        bookmark_manager = objreg.get('bookmark-manager')
+        url = self._current_url()
+        try:
+            bookmark_manager.add(url, self._current_title())
+        except urlmarks.Error as e:
+            raise cmdexc.CommandError(str(e))
+        else:
+            message.info(self._win_id,
+                         "Bookmarked {}!".format(url.toDisplayString()))
+
+    @cmdutils.register(instance='command-dispatcher', scope='window',
+                       maxsplit=0,
+                       completion=[usertypes.Completion.bookmark_by_url])
+    def bookmark_load(self, url, tab=False, bg=False, window=False):
+        """Load a bookmark.
+
+        Args:
+            url: The url of the bookmark to load.
+            tab: Load the bookmark in a new tab.
+            bg: Load the bookmark in a new background tab.
+            window: Load the bookmark in a new window.
+        """
+        try:
+            url = urlutils.fuzzy_url(url)
+        except urlutils.InvalidUrlError as e:
+            raise cmdexc.CommandError(e)
         self._open(url, tab, bg, window)
 
     @cmdutils.register(instance='command-dispatcher', hide=True,
@@ -1069,7 +1113,11 @@ class CommandDispatcher:
     @cmdutils.register(instance='command-dispatcher', name='inspector',
                        scope='window')
     def toggle_inspector(self):
-        """Toggle the web inspector."""
+        """Toggle the web inspector.
+
+        Note: Due a bug in Qt, the inspector will show incorrect request
+        headers in the network tab.
+        """
         cur = self._current_widget()
         if cur.inspector is None:
             if not config.get('general', 'developer-extras'):
@@ -1105,7 +1153,7 @@ class CommandDispatcher:
             download_manager.get(url, filename=dest)
         else:
             page = self._current_widget().page()
-            download_manager.get(self._current_url(), page)
+            download_manager.get(self._current_url(), page=page)
 
     @cmdutils.register(instance='command-dispatcher', scope='window',
                        deprecated="Use :download instead.")
@@ -1221,6 +1269,17 @@ class CommandDispatcher:
         except webelem.IsNullError:
             raise cmdexc.CommandError("Element vanished while editing!")
 
+    def _clear_search(self, view, text):
+        """Clear search string/highlights for the given view.
+
+        This does nothing if the view's search text is the same as the given
+        text.
+        """
+        if view.search_text is not None and view.search_text != text:
+            # We first clear the marked text, then the highlights
+            view.search('', 0)
+            view.search('', QWebPage.HighlightAllOccurrences)
+
     @cmdutils.register(instance='command-dispatcher', scope='window',
                        maxsplit=0)
     def search(self, text="", reverse=False):
@@ -1231,11 +1290,7 @@ class CommandDispatcher:
             reverse: Reverse search direction.
         """
         view = self._current_widget()
-        if view.search_text is not None and view.search_text != text:
-            # We first clear the marked text, then the highlights
-            view.search('', 0)
-            view.search('', QWebPage.HighlightAllOccurrences)
-
+        self._clear_search(view, text)
         flags = 0
         ignore_case = config.get('general', 'ignore-case')
         if ignore_case == 'smart':
@@ -1253,6 +1308,8 @@ class CommandDispatcher:
         view.search(text, flags | QWebPage.HighlightAllOccurrences)
         view.search_text = text
         view.search_flags = flags
+        self._tabbed_browser.search_text = text
+        self._tabbed_browser.search_flags = flags
 
     @cmdutils.register(instance='command-dispatcher', hide=True,
                        scope='window', count='count')
@@ -1263,7 +1320,14 @@ class CommandDispatcher:
             count: How many elements to ignore.
         """
         view = self._current_widget()
-        if view.search_text is not None:
+
+        self._clear_search(view, self._tabbed_browser.search_text)
+
+        if self._tabbed_browser.search_text is not None:
+            view.search_text = self._tabbed_browser.search_text
+            view.search_flags = self._tabbed_browser.search_flags
+            view.search(view.search_text,
+                        view.search_flags | QWebPage.HighlightAllOccurrences)
             for _ in range(count):
                 view.search(view.search_text, view.search_flags)
 
@@ -1276,8 +1340,13 @@ class CommandDispatcher:
             count: How many elements to ignore.
         """
         view = self._current_widget()
-        if view.search_text is None:
-            return
+        self._clear_search(view, self._tabbed_browser.search_text)
+
+        if self._tabbed_browser.search_text is not None:
+            view.search_text = self._tabbed_browser.search_text
+            view.search_flags = self._tabbed_browser.search_flags
+            view.search(view.search_text,
+                        view.search_flags | QWebPage.HighlightAllOccurrences)
         # The int() here serves as a QFlags constructor to create a copy of the
         # QFlags instance rather as a reference. I don't know why it works this
         # way, but it does.
@@ -1522,8 +1591,7 @@ class CommandDispatcher:
             act = QWebPage.SelectEndOfDocument
         webview.triggerPageAction(act)
 
-    @cmdutils.register(instance='command-dispatcher', hide=True,
-                       modes=[KeyMode.caret], scope='window')
+    @cmdutils.register(instance='command-dispatcher', scope='window')
     def yank_selected(self, sel=False, keep=False):
         """Yank the selected text to the clipboard or primary selection.
 
@@ -1548,7 +1616,7 @@ class CommandDispatcher:
         message.info(self._win_id, "{} {} yanked to {}".format(
             len(s), "char" if len(s) == 1 else "chars", target))
         if not keep:
-            modeman.leave(self._win_id, KeyMode.caret, "yank selected")
+            modeman.maybe_leave(self._win_id, KeyMode.caret, "yank selected")
 
     @cmdutils.register(instance='command-dispatcher', hide=True,
                        modes=[KeyMode.caret], scope='window')

@@ -14,8 +14,90 @@ This project adheres to http://semver.org/[Semantic Versioning].
 // `Fixed` for any bug fixes.
 // `Security` to invite users to upgrade in case of vulnerabilities.
 
+v0.5.0 (unreleased)
+-------------------
+
+Added
+~~~~~
+
+- New setting `ui -> hide-wayland-decoration` to hide the window decoration
+  when using wayland.
+- New userscripts in `misc/userscripts`:
+    - `open_download` to easily open a file in your downloads folder.
+    - `view_in_mpv` to open a video in mpv and remove it from the page.
+- New setting `content -> host-blocking-whitelist` to whitelist certain domains
+  from the adblocker.
+- `{scroll_pos}` can now be used in `ui -> window-title-format` and
+  `tabs -> title-format`.
+- New setting `general -> url-incdec-segments` to configure which segments of
+  the URL should be affected by `:navigate increment/decrement`.
+- New `--target` argument to specify how URLs should be opened in an existing
+  instance.
+
+Changed
+~~~~~~~
+
+- The `colors -> tabs.bg/fg.selected` option got split into
+  `tabs.bg/fg.selected.odd/even`.
+- `:spawn --userscript` and `:hint` with the `userscript` target now look up
+  relative paths in `~/.local/share/qutebrowser/userscripts` or
+  `$XDG_DATA_DIR`. Using a binary in `$PATH` won't work anymore with
+  `--userscript`.
+
+Fixed
+~~~~~
+
+- Fixed displaying of web history if `web-history-max-items` is set to -1.
+- Cloned tabs now don't display favicons anymore if show-favicons is False.
+- Fixed a crash when clicking a bookmark name and pressing `Ctrl-D`.
+
+v0.4.1
+------
+
+Fixed
+~~~~~
+
+- Adjusted AppArmor config for the IPC changes in v0.4.0.
+- Fixed atime update frequency for IPC file.
+- Worked around a Qt issue where middle-clicking caused scrolling with a
+  touchpad to restart at the beginning of the page.
+- The `completion -> web-history-max-items` setting is now also respected for
+  items added after starting qutebrowser.
+- Search terms are now shared between different tabs again
+- Tests (a reduced subset of them) now run correctly again when DISPLAY is not
+  set.
+- Fixed an issue causing qutebrowser to crash with Python 3.5 as soon as an ad
+  was blocked.
+- Fixed an issue causing qutebrowser to not start with more recent Python 3.4
+  versions (e.g. on Debian experimental).
+- Fixed various `PendingDeprecationWarnings` shown with Python 3.5.
+
 v0.4.0
 ------
+
+Added
+~~~~~
+
+- New bookmark functionality (similar to quickmarks without a name).
+    * New command `:bookmark-add` to bookmark the current page (bound to `M`).
+    * New command `:bookmark-load` to load a bookmark (bound to `gb`/`gB`/`wB`).
+- New (hidden) command `:completion-item-del` (bound to `<Ctrl-D>`) to delete
+  the current item in the completion (for quickmarks/bookmarks).
+- New settings `tabs -> padding` and `tabs -> indicator-tabbing` to control the
+  size/padding of the tabbar.
+- New setting `ui -> statusbar-padding` to control the size/padding of the
+  status bar.
+- New setting `network -> referer-header` to configure when the referer should
+  be sent (by default it's only sent while on the same domain).
+- New setting `tabs -> show` which supersedes the old `tabs -> hide-*` options
+  and has an additional `switching` option which shows tab while switching
+  them. There's also a new `show-switching` option to configure the timeout.
+- New setting `storage -> remember-download-directory` to remember the last
+  used download directory.
+- New setting `storage -> prompt-download-directory` to download all downloads
+  without asking.
+- Rapid hinting is now also possible for downloads.
+- Directory browsing via `file://` is now supported.
 
 Changed
 ~~~~~~~
@@ -23,6 +105,57 @@ Changed
 - Some developer scripts got moved to `scripts/dev/`
 - When downloading to a FIFO or special file, a confirmation is displayed as
   this might cause qutebrowser to hang.
+- The `:yank-selected` command now works in all modes instead of just caret
+  mode and is not hidden anymore.
+- `minimal_webkit_testbrowser.py` now has a `--webengine` switch to test
+  QtWebEngine if it's installed.
+- The column width percentages for the completion view now depend on the
+  completion model.
+- The values for `tabs -> position` and `ui -> downloads-position` got changed
+  from `north`/`south`/`west/`east` to `top`/`bottom`/`left`/`right`. Existing
+  configs should be adjusted automatically.
+- `:tab-focus`/`gt` now behaves like `:tab-next` if no count/index is given.
+- The completion widget doesn't show a border anymore.
+- The tabbar doesn't display ugly arrows anymore if there isn't enough space
+  for all tabs.
+- Some insignificant Qt warnings which were printed on OS X are now hidden.
+- Better support for Qt 5.5 and Python 3.5.
+
+Fixed
+~~~~~
+
+- Fixed a bug where cookies were saved despite qutebrowser being started in
+  private browsing mode.
+- The local socket used for inter-process communication (opening new instances)
+  is now ensured to only be accessible by the user on all operating systems.
+- Various corner cases for inter-process communication issues got fixed.
+- `link_pyqt.py` now should work better on untested distributions.
+- Fixed various corner-cases with crashes when reading invalid config values
+  and the history file.
+- Fixed various corner-cases when setting text via an external editor.
+- Fixed potential crash when hinting a text field.
+- Fixed entering of insert mode when certain disabled text fields were clicked.
+- Fixed a crash when using `:set` with `-p` and `!` (invert value)
+- Downloads with unknown size are now handled correctly.
+- `:navigate increment/decrement` (`<Ctrl-A>`/`<Ctrl-X>`) now handles some
+  corner-cases better.
+- Fixed a bug where the completion got affected by another window's completion
+  if it was open in both windows.
+- Fixed a performance issue with large histories when opening previously
+  unvisited websites.
+- The progress bar now doesn't cause the statusbar to change it's height
+  anymore.
+- `~` is now always expanded when spawning a script.
+- Fixed various corner cases when opening links in an existing instance.
+- Fixed a race-condition causing an exception when starting qutebrowser.
+
+Removed
+~~~~~~~
+
+- The `tabs -> indicator-space` setting got removed as the new padding settings
+  should be used instead.
+- The `tabs -> hide-always` and `tabs -> hide-auto` settings got merged into
+  the new `tabs -> show` setting.
 
 v0.3.0
 ------

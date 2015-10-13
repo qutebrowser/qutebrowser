@@ -96,19 +96,26 @@ class QuickmarkCompletionModel(base.BaseCompletionModel):
 
     # pylint: disable=abstract-method
 
-    def __init__(self, match_field='url', parent=None):
+    def __init__(self, parent=None):
         super().__init__(parent)
         cat = self.new_category("Quickmarks")
         quickmarks = objreg.get('quickmark-manager').marks.items()
-        if match_field == 'url':
-            for qm_name, qm_url in quickmarks:
-                self.new_item(cat, qm_url, qm_name)
-        elif match_field == 'name':
-            for qm_name, qm_url in quickmarks:
-                self.new_item(cat, qm_name, qm_url)
-        else:
-            raise ValueError("Invalid value '{}' for match_field!".format(
-                match_field))
+        for qm_name, qm_url in quickmarks:
+            self.new_item(cat, qm_name, qm_url)
+
+
+class BookmarkCompletionModel(base.BaseCompletionModel):
+
+    """A CompletionModel filled with all bookmarks."""
+
+    # pylint: disable=abstract-method
+
+    def __init__(self, parent=None):
+        super().__init__(parent)
+        cat = self.new_category("Bookmarks")
+        bookmarks = objreg.get('bookmark-manager').marks.items()
+        for bm_url, bm_title in bookmarks:
+            self.new_item(cat, bm_url, bm_title)
 
 
 class SessionCompletionModel(base.BaseCompletionModel):

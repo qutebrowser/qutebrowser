@@ -1,28 +1,68 @@
-dist: trusty
+# So we get Ubuntu Trusty - using "dist: trusty" breaks OS X.
+services: docker
 
 os:
   - linux
   - osx
 
+
+env:
+  global:
+    - PATH=/home/travis/bin:/home/travis/.local/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
+  matrix:
+    - TESTENV=py35
+    - TESTENV=py34
+    - TESTENV=unittests-nodisp
+    - TESTENV=misc
+    - TESTENV=vulture
+    - TESTENV=pep257
+    - TESTENV=pyflakes
+    - TESTENV=pep8
+    - TESTENV=mccabe
+    - TESTENV=pyroma
+    - TESTENV=check-manifest
+    - TESTENV=pylint
+    - TESTENV=eslint
+
 # Not really, but this is here so we can do stuff by hand.
 language: c
+
+cache:
+  directories:
+    - $HOME/.cache/pip
+    - $HOME/build/The-Compiler/qutebrowser/.cache
 
 install:
   - python scripts/dev/ci_install.py
 
 script:
-    - xvfb-run -s "-screen 0 640x480x16" tox -e unittests,smoke
-    - tox -e misc
-    - tox -e pep257
-    - tox -e pyflakes
-    - tox -e pep8
-    - tox -e mccabe
-    - tox -e pylint
-    - tox -e pyroma
-    - tox -e check-manifest
+  - tox -e $TESTENV -- -p no:sugar tests
 
-# Travis bug - OS X builds get routed to Ubuntu Trusty if "dist: trusty" is
-# given.
 matrix:
-  allow_failures:
+  exclude:
+    - os: linux
+      env: TESTENV=py35
     - os: osx
+      env: TESTENV=py34
+    - os: osx
+      env: TESTENV=unittests-nodisp
+    - os: osx
+      env: TESTENV=misc
+    - os: osx
+      env: TESTENV=vulture
+    - os: osx
+      env: TESTENV=pep257
+    - os: osx
+      env: TESTENV=pyflakes
+    - os: osx
+      env: TESTENV=pep8
+    - os: osx
+      env: TESTENV=mccabe
+    - os: osx
+      env: TESTENV=pyroma
+    - os: osx
+      env: TESTENV=check-manifest
+    - os: osx
+      env: TESTENV=pylint
+    - os: osx
+      env: TESTENV=eslint

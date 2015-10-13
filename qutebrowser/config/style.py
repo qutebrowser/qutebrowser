@@ -20,6 +20,7 @@
 """Utilities related to the look&feel of qutebrowser."""
 
 import functools
+import collections
 
 import jinja2
 import sip
@@ -42,8 +43,7 @@ def get_stylesheet(template_str):
     colordict = ColorDict(config.section('colors'))
     fontdict = FontDict(config.section('fonts'))
     template = jinja2.Template(template_str)
-    return template.render(color=colordict, font=fontdict,
-                           config=objreg.get('config'))
+    return template.render(color=colordict, font=fontdict)
 
 
 def set_register_stylesheet(obj):
@@ -69,7 +69,7 @@ def update_stylesheet(obj):
         obj.setStyleSheet(get_stylesheet(obj.STYLESHEET))
 
 
-class ColorDict(dict):
+class ColorDict(collections.UserDict):
 
     """A dict aimed at Qt stylesheet colors."""
 
@@ -89,9 +89,9 @@ class ColorDict(dict):
             In all other cases, return the plain value.
         """
         try:
-            val = super().__getitem__(key)
+            val = self.data[key]
         except KeyError:
-            log.config.exception("No color defined for {}!")
+            log.config.exception("No color defined for {}!".format(key))
             return ''
         if isinstance(val, QColor):
             # This could happen when accidentally declaring something as
@@ -106,7 +106,7 @@ class ColorDict(dict):
             return val
 
 
-class FontDict(dict):
+class FontDict(collections.UserDict):
 
     """A dict aimed at Qt stylesheet fonts."""
 
@@ -123,7 +123,7 @@ class FontDict(dict):
             In all other cases, return font: <value>.
         """
         try:
-            val = super().__getitem__(key)
+            val = self.data[key]
         except KeyError:
             return ''
         else:

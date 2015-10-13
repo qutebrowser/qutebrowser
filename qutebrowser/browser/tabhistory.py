@@ -35,14 +35,19 @@ class TabHistoryItem:
 
     Attributes:
         url: The QUrl of this item.
+        original_url: The QUrl of this item which was originally requested.
         title: The title as string of this item.
         active: Whether this item is the item currently navigated to.
         user_data: The user data for this item.
     """
 
-    def __init__(self, url, original_url, title, active=False, user_data=None):
+    def __init__(self, url, title, *, original_url=None, active=False,
+                 user_data=None):
         self.url = url
-        self.original_url = original_url
+        if original_url is None:
+            self.original_url = url
+        else:
+            self.original_url = original_url
         self.title = title
         self.active = active
         self.user_data = user_data
@@ -133,7 +138,7 @@ def serialize(items):
 
     Return:
         A (stream, data, user_data) tuple.
-            stream: The reseted QDataStream.
+            stream: The reset QDataStream.
             data: The QByteArray with the raw data.
             user_data: A list with each item's user data.
 

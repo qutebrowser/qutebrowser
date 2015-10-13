@@ -25,10 +25,11 @@ import subprocess
 import configparser
 import functools
 import json
-import time
 import shutil
 import tempfile
 import atexit
+import datetime
+import tokenize
 
 from PyQt5.QtWidgets import QApplication
 from PyQt5.QtGui import QDesktopServices, QPixmap, QIcon, QCursor, QWindow
@@ -44,7 +45,7 @@ import qutebrowser.resources  # pylint: disable=unused-import
 from qutebrowser.completion.models import instances as completionmodels
 from qutebrowser.commands import cmdutils, runners, cmdexc
 from qutebrowser.config import style, config, websettings, configexc
-from qutebrowser.browser import quickmarks, cookies, cache, adblock, history
+from qutebrowser.browser import urlmarks, cookies, cache, adblock, history
 from qutebrowser.browser.network import qutescheme, proxy, networkmanager
 from qutebrowser.mainwindow import mainwindow
 from qutebrowser.misc import readline, ipc, savemanager, sessions, crashsignal
@@ -58,7 +59,7 @@ qApp = None
 
 
 def run(args):
-    """Initialize everthing and run the application."""
+    """Initialize everything and run the application."""
     # pylint: disable=too-many-statements
     if args.version:
         print(version.version(short=True))
@@ -77,6 +78,9 @@ def run(args):
 
     global qApp
     qApp = Application(args)
+    qApp.setOrganizationName("qutebrowser")
+    qApp.setApplicationName("qutebrowser")
+    qApp.setApplicationVersion(qutebrowser.__version__)
     qApp.lastWindowClosed.connect(quitter.on_last_window_closed)
 
     crash_handler = crashsignal.CrashHandler(
@@ -90,28 +94,18 @@ def run(args):
     objreg.register('signal-handler', signal_handler)
 
     try:
-        sent = ipc.send_to_running_instance(args)
-        if sent:
-            sys.exit(usertypes.Exit.ok)
-        log.init.debug("Starting IPC server...")
-        server = ipc.IPCServer(args, qApp)
-        objreg.register('ipc-server', server)
-        server.got_args.connect(lambda args, cwd:
-                                process_pos_args(args, cwd=cwd, via_ipc=True))
-    except ipc.AddressInUseError as e:
-        # This could be a race condition...
-        log.init.debug("Got AddressInUseError, trying again.")
-        time.sleep(500)
-        sent = ipc.send_to_running_instance(args)
-        if sent:
-            sys.exit(usertypes.Exit.ok)
-        else:
-            ipc.display_error(e, args)
-            sys.exit(usertypes.Exit.err_ipc)
-    except ipc.Error as e:
-        ipc.display_error(e, args)
+        server = ipc.send_or_listen(args)
+    except ipc.Error:
+        # ipc.send_or_listen already displays the error message for us.
         # We didn't really initialize much so far, so we just quit hard.
         sys.exit(usertypes.Exit.err_ipc)
+
+    if server is None:
+        sys.exit(usertypes.Exit.ok)
+    else:
+        server.got_args.connect(lambda args, target_arg, cwd:
+                                process_pos_args(args, cwd=cwd, via_ipc=True,
+                                                 target_arg=target_arg))
 
     init(args, crash_handler)
     ret = qt_mainloop()
@@ -136,9 +130,6 @@ def init(args, crash_handler):
     """
     log.init.debug("Starting init...")
     qApp.setQuitOnLastWindowClosed(False)
-    qApp.setOrganizationName("qutebrowser")
-    qApp.setApplicationName("qutebrowser")
-    qApp.setApplicationVersion(qutebrowser.__version__)
     _init_icon()
     utils.actute_warning()
 
@@ -239,7 +230,7 @@ def _load_session(name):
         session_manager.delete('_restart')
 
 
-def process_pos_args(args, via_ipc=False, cwd=None):
+def process_pos_args(args, via_ipc=False, cwd=None, target_arg=None):
     """Process positional commandline args.
 
     URLs to open have no prefix, commands to execute begin with a colon.
@@ -248,6 +239,14 @@ def process_pos_args(args, via_ipc=False, cwd=None):
         args: A list of arguments to process.
         via_ipc: Whether the arguments were transmitted over IPC.
         cwd: The cwd to use for fuzzy_url.
+        target_arg: Command line argument received by a running instance via
+                    ipc. If the --target argument was not specified, target_arg
+                    will be an empty string instead of None. This behavior is
+                    caused by the PyQt signal
+                    ``got_args = pyqtSignal(list, str, str)``
+                    used in the misc.ipc.IPCServer class. PyQt converts the
+                    None value into a null QString and then back to an empty
+                    python string
     """
     if via_ipc and not args:
         win_id = mainwindow.get_window(via_ipc, force_window=True)
@@ -265,17 +264,20 @@ def process_pos_args(args, via_ipc=False, cwd=None):
             log.init.debug("Empty argument")
             win_id = mainwindow.get_window(via_ipc, force_window=True)
         else:
-            win_id = mainwindow.get_window(via_ipc)
+            if via_ipc and target_arg and target_arg != 'auto':
+                open_target = target_arg
+            else:
+                open_target = config.get('general', 'new-instance-open-target')
+            win_id = mainwindow.get_window(via_ipc, force_target=open_target)
             tabbed_browser = objreg.get('tabbed-browser', scope='window',
                                         window=win_id)
             log.init.debug("Startup URL {}".format(cmd))
             try:
                 url = urlutils.fuzzy_url(cmd, cwd, relative=True)
-            except urlutils.FuzzyUrlError as e:
-                message.error(0, "Error in startup argument '{}': {}".format(
-                    cmd, e))
+            except urlutils.InvalidUrlError as e:
+                message.error('current', "Error in startup argument '{}': "
+                              "{}".format(cmd, e))
             else:
-                open_target = config.get('general', 'new-instance-open-target')
                 background = open_target in ('tab-bg', 'tab-bg-silent')
                 tabbed_browser.tabopen(url, background=background)
 
@@ -301,9 +303,9 @@ def _open_startpage(win_id=None):
             for urlstr in config.get('general', 'startpage'):
                 try:
                     url = urlutils.fuzzy_url(urlstr, do_search=False)
-                except urlutils.FuzzyUrlError as e:
-                    message.error(0, "Error when opening startpage: {}".format(
-                        e))
+                except urlutils.InvalidUrlError as e:
+                    message.error('current', "Error when opening startpage: "
+                                  "{}".format(e))
                     tabbed_browser.tabopen(QUrl('about:blank'))
                 else:
                     tabbed_browser.tabopen(url)
@@ -413,8 +415,11 @@ def _init_modules(args, crash_handler):
     host_blocker.read_hosts()
     objreg.register('host-blocker', host_blocker)
     log.init.debug("Initializing quickmarks...")
-    quickmark_manager = quickmarks.QuickmarkManager(qApp)
+    quickmark_manager = urlmarks.QuickmarkManager(qApp)
     objreg.register('quickmark-manager', quickmark_manager)
+    log.init.debug("Initializing bookmarks...")
+    bookmark_manager = urlmarks.BookmarkManager(qApp)
+    objreg.register('bookmark-manager', bookmark_manager)
     log.init.debug("Initializing proxy...")
     proxy.init()
     log.init.debug("Initializing cookies...")
@@ -426,25 +431,29 @@ def _init_modules(args, crash_handler):
     log.init.debug("Initializing completions...")
     completionmodels.init()
     log.init.debug("Misc initialization...")
+    if config.get('ui', 'hide-wayland-decoration'):
+        os.environ['QT_WAYLAND_DISABLE_WINDOWDECORATION'] = '1'
+    else:
+        os.environ.pop('QT_WAYLAND_DISABLE_WINDOWDECORATION', None)
     _maybe_hide_mouse_cursor()
     objreg.get('config').changed.connect(_maybe_hide_mouse_cursor)
 
 
 def _init_late_modules(args):
     """Initialize modules which can be inited after the window is shown."""
-    try:
-        log.init.debug("Reading web history...")
-        reader = objreg.get('web-history').async_read()
-        with debug.log_time(log.init, 'Reading history'):
-            while True:
-                QApplication.processEvents()
+    log.init.debug("Reading web history...")
+    reader = objreg.get('web-history').async_read()
+    with debug.log_time(log.init, 'Reading history'):
+        while True:
+            QApplication.processEvents()
+            try:
                 next(reader)
-    except StopIteration:
-        pass
-    except (OSError, UnicodeDecodeError) as e:
-        error.handle_fatal_exc(e, args, "Error while initializing!",
-                               pre_text="Error while initializing")
-        sys.exit(usertypes.Exit.err_init)
+            except StopIteration:
+                break
+            except (OSError, UnicodeDecodeError) as e:
+                error.handle_fatal_exc(e, args, "Error while initializing!",
+                                       pre_text="Error while initializing")
+                sys.exit(usertypes.Exit.err_init)
 
 
 class Quitter:
@@ -470,6 +479,25 @@ class Quitter:
     def on_last_window_closed(self):
         """Slot which gets invoked when the last window was closed."""
         self.shutdown(last_window=True)
+
+    def _compile_modules(self):
+        """Compile all modules to catch SyntaxErrors."""
+        if os.path.basename(sys.argv[0]) == 'qutebrowser':
+            # Launched via launcher script
+            return
+        elif hasattr(sys, 'frozen'):
+            return
+        else:
+            path = os.path.abspath(os.path.dirname(qutebrowser.__file__))
+            if not os.path.isdir(path):
+                # Probably running from an python egg.
+                return
+
+        for dirpath, _dirnames, filenames in os.walk(path):
+            for fn in filenames:
+                if os.path.splitext(fn)[1] == '.py':
+                    with tokenize.open(os.path.join(dirpath, fn)) as f:
+                        compile(f.read(), fn, 'exec')
 
     def _get_restart_args(self, pages=(), session=None):
         """Get the current working directory and args to relaunch qutebrowser.
@@ -539,6 +567,10 @@ class Quitter:
         except sessions.SessionError as e:
             log.destroy.exception("Failed to save session!")
             raise cmdexc.CommandError("Failed to save session: {}!".format(e))
+        except SyntaxError as e:
+            log.destroy.exception("Got SyntaxError")
+            raise cmdexc.CommandError("SyntaxError in {}:{}: {}".format(
+                e.filename, e.lineno, e))
         if ok:
             self.shutdown()
 
@@ -559,6 +591,7 @@ class Quitter:
         Return:
             True if the restart succeeded, False otherwise.
         """
+        self._compile_modules()
         log.destroy.debug("sys.executable: {}".format(sys.executable))
         log.destroy.debug("sys.path: {}".format(sys.path))
         log.destroy.debug("sys.argv: {}".format(sys.argv))
@@ -665,7 +698,7 @@ class Quitter:
         if self._args.temp_basedir:
             atexit.register(shutil.rmtree, self._args.basedir)
         # If we don't kill our custom handler here we might get segfaults
-        log.destroy.debug("Deactiving message handler...")
+        log.destroy.debug("Deactivating message handler...")
         qInstallMessageHandler(None)
         # Now we can hopefully quit without segfaults
         log.destroy.debug("Deferring QApplication::exit...")
@@ -708,6 +741,8 @@ class Application(QApplication):
         self._args = args
         objreg.register('args', args)
         objreg.register('app', self)
+
+        self.launch_time = datetime.datetime.now()
 
     def __repr__(self):
         return utils.get_repr(self)

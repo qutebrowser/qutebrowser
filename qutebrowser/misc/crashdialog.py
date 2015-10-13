@@ -20,16 +20,18 @@
 """The dialog which gets shown when qutebrowser crashes."""
 
 import re
+import os
 import sys
 import html
 import getpass
+import fnmatch
 import traceback
 
 import pkg_resources
 from PyQt5.QtCore import pyqtSlot, Qt, QSize, qVersion
 from PyQt5.QtWidgets import (QDialog, QLabel, QTextEdit, QPushButton,
                              QVBoxLayout, QHBoxLayout, QCheckBox,
-                             QDialogButtonBox, QMessageBox)
+                             QDialogButtonBox, QMessageBox, QApplication)
 
 import qutebrowser
 from qutebrowser.utils import version, log, utils, objreg, qtutils
@@ -85,10 +87,21 @@ def get_fatal_crash_dialog(debug, data):
         text = ("<b>qutebrowser was restarted after a fatal crash!</b><br/>"
                 "Unfortunately, this crash occurred in Qt (the library "
                 "qutebrowser uses), and your version ({}) is outdated - "
-                "Qt 5.4 or later is recommended. Unfortuntately Debian and "
+                "Qt 5.4 or later is recommended. Unfortunately Debian and "
                 "Ubuntu don't ship a newer version (yet?)...".format(
                     qVersion()))
         return QMessageBox(QMessageBox.Critical, title, text, QMessageBox.Ok)
+
+
+def _get_environment_vars():
+    """Gather environment variables for the crash info."""
+    masks = ('DESKTOP_SESSION', 'DE', 'QT_*', 'PYTHON*', 'LC_*', 'LANG')
+    info = []
+    for key, value in os.environ.items():
+        for m in masks:
+            if fnmatch.fnmatch(key, m):
+                info.append('%s = %s' % (key, value))
+    return '\n'.join(sorted(info))
 
 
 class _CrashDialog(QDialog):
@@ -220,6 +233,12 @@ class _CrashDialog(QDialog):
             exc: An exception tuple (type, value, traceback)
         """
         try:
+            application = QApplication.instance()
+            launch_time = application.launch_time.ctime()
+            self._crash_info.append(('Launch time', launch_time))
+        except Exception:
+            self._crash_info.append(("Launch time", traceback.format_exc()))
+        try:
             self._crash_info.append(("Version info", version.version()))
         except Exception:
             self._crash_info.append(("Version info", traceback.format_exc()))
@@ -228,6 +247,11 @@ class _CrashDialog(QDialog):
             self._crash_info.append(("Config", conf.dump_userconfig()))
         except Exception:
             self._crash_info.append(("Config", traceback.format_exc()))
+        try:
+            self._crash_info.append(
+                ("Environment", _get_environment_vars()))
+        except Exception:
+            self._crash_info.append(("Environment", traceback.format_exc()))
 
     def _set_crash_info(self):
         """Set/update the crash info."""
@@ -618,3 +642,8 @@ def dump_exception_info(exc, pages, cmdhist, objects):
     print('\n'.join(cmdhist), file=sys.stderr)
     print("\n---- Objects ----", file=sys.stderr)
     print(objects, file=sys.stderr)
+    print("\n---- Environment ----", file=sys.stderr)
+    try:
+        print(_get_environment_vars(), file=sys.stderr)
+    except Exception:
+        traceback.print_exc()

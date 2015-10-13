@@ -38,7 +38,7 @@ class ArgumentParserError(Exception):
 
 class ArgumentParserExit(Exception):
 
-    """Exception raised when the argument parser exitted.
+    """Exception raised when the argument parser exited.
 
     Attributes:
         status: The exit status.
@@ -81,7 +81,7 @@ class ArgumentParser(argparse.ArgumentParser):
         raise ArgumentParserExit(status, msg)
 
     def error(self, msg):
-        raise ArgumentParserError(msg[0].upper() + msg[1:])
+        raise ArgumentParserError(msg.capitalize())
 
 
 def enum_getter(enum):
@@ -101,11 +101,11 @@ def enum_getter(enum):
     return _get_enum_item
 
 
-def multitype_conv(tpl):
+def multitype_conv(types):
     """Function factory to get a type converter for a choice of types."""
     def _convert(value):
         """Convert a value according to an iterable of possible arg types."""
-        for typ in set(tpl):
+        for typ in set(types):
             if isinstance(typ, str):
                 if value == typ:
                     return value
@@ -119,6 +119,8 @@ def multitype_conv(tpl):
                     return typ(value)
                 except (TypeError, ValueError):
                     pass
+            else:
+                raise ValueError("Unknown type {!r}!".format(typ))
         raise cmdexc.ArgumentTypeError('Invalid value {}.'.format(value))
 
     return _convert

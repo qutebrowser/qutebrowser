@@ -43,7 +43,7 @@ def call_script(name, *args, python=sys.executable):
         *args: The arguments to pass.
         python: The python interpreter to use.
     """
-    path = os.path.join(os.path.dirname(__file__), name)
+    path = os.path.join(os.path.dirname(__file__), os.pardir, name)
     subprocess.check_call([python, path] + list(args))
 
 

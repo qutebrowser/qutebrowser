@@ -60,7 +60,7 @@ Why Python?::
 
 But isn't Python too slow for a browser?::
     http://www.infoworld.com/d/application-development/van-rossum-python-not-too-slow-188715[No.]
-    I believe efficency while coding is a lot more important than efficency
+    I believe efficiency while coding is a lot more important than efficiency
     while running. Also, most of the heavy lifting of qutebrowser is done by Qt
     and WebKit in C++, with the
     https://wiki.python.org/moin/GlobalInterpreterLock[GIL] released.
@@ -82,6 +82,10 @@ How do I play Youtube videos with mpv?::
 :bind x spawn mpv {url}
 :bind ;x hint links spawn mpv {hint-url}
 ----
++
+Note that you might need an additional package (e.g.
+https://www.archlinux.org/packages/community/any/youtube-dl/[youtube-dl] on
+Archlinux) to play web videos with mpv.
 
 == Troubleshooting
 
@@ -99,7 +103,7 @@ Unable to view flash content.::
 Experiencing freezing on sites like duckduckgo and youtube.::
     This issue could be caused by stale plugin files installed by `mozplugger`
     if mozplugger was subsequently removed.
-    Try exiting qutebroser and removing `~/.mozilla/plugins/mozplugger*.so`.
+    Try exiting qutebrowser and removing `~/.mozilla/plugins/mozplugger*.so`.
     See https://github.com/The-Compiler/qutebrowser/issues/357[Issue #357]
     for more details.
 

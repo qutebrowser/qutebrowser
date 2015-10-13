@@ -39,11 +39,20 @@ class BaseCompletionModel(QStandardItemModel):
 
     Used for showing completions later in the CompletionView. Supports setting
     marks and adding new categories/items easily.
+
+    Class Attributes:
+        COLUMN_WIDTHS: The width percentages of the columns used in the
+                        completion view.
+        DUMB_SORT: the dumb sorting used by the model
     """
+
+    COLUMN_WIDTHS = (30, 70, 0)
+    DUMB_SORT = None
 
     def __init__(self, parent=None):
         super().__init__(parent)
         self.setColumnCount(3)
+        self.columns_to_filter = [0]
 
     def new_category(self, name, sort=None):
         """Add a new category to the model.
@@ -79,21 +88,24 @@ class BaseCompletionModel(QStandardItemModel):
         assert not isinstance(name, int)
         assert not isinstance(desc, int)
         assert not isinstance(misc, int)
+
         nameitem = QStandardItem(name)
         descitem = QStandardItem(desc)
         if misc is None:
             miscitem = QStandardItem()
         else:
             miscitem = QStandardItem(misc)
-        idx = cat.rowCount()
-        cat.setChild(idx, 0, nameitem)
-        cat.setChild(idx, 1, descitem)
-        cat.setChild(idx, 2, miscitem)
+
+        cat.appendRow([nameitem, descitem, miscitem])
         if sort is not None:
             nameitem.setData(sort, Role.sort)
         if userdata is not None:
             nameitem.setData(userdata, Role.userdata)
         return nameitem, descitem, miscitem
+
+    def delete_cur_item(self, win_id):
+        """Delete the selected item."""
+        raise NotImplementedError
 
     def flags(self, index):
         """Return the item flags for index.
@@ -119,5 +131,15 @@ class BaseCompletionModel(QStandardItemModel):
         """Sort the data in column according to order.
 
         Override QAbstractItemModel::sort.
+        """
+        raise NotImplementedError
+
+    def custom_filter(self, pattern, row, parent):
+        """Custom filter.
+
+        Args:
+            pattern: The current filter pattern.
+            row: The row to accept or reject in the filter.
+            parent: The parent item QModelIndex.
         """
         raise NotImplementedError

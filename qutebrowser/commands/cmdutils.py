@@ -21,6 +21,7 @@
 
 Module attributes:
     cmd_dict: A mapping from command-strings to command objects.
+    aliases: A list of all aliases, needed for doc generation.
 """
 
 from qutebrowser.utils import qtutils, log

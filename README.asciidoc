@@ -12,9 +12,10 @@ image:https://img.shields.io/pypi/l/qutebrowser.svg?style=flat["license badge",l
 image:https://img.shields.io/pypi/v/qutebrowser.svg?style=flat["version badge",link="https://pypi.python.org/pypi/qutebrowser/"]
 image:https://img.shields.io/github/issues/The-Compiler/qutebrowser.svg?style=flat["issues badge",link="https://github.com/The-Compiler/qutebrowser/issues"]
 image:https://requires.io/github/The-Compiler/qutebrowser/requirements.svg?branch=master["requirements badge",link="https://requires.io/github/The-Compiler/qutebrowser/requirements/?branch=master"]
-image:http://qutebrowser.org:8010/png?builder=archlinux["build badge",link="http://qutebrowser.org:8010/waterfall"]
+image:https://travis-ci.org/The-Compiler/qutebrowser.svg?branch=master["Build Status", link="https://travis-ci.org/The-Compiler/qutebrowser"]
+image:https://ci.appveyor.com/api/projects/status/9gmnuip6i1oq7046?svg=true["AppVeyor build status", link="https://ci.appveyor.com/project/The-Compiler/qutebrowser"]
 
-qutebrowser is a keyboard-focused browser with with a minimal GUI. It's based
+qutebrowser is a keyboard-focused browser with a minimal GUI. It's based
 on Python, PyQt5 and QtWebKit and free software, licensed under the GPL.
 
 It was inspired by other browsers/addons like dwb and Vimperator/Pentadactyl.
@@ -23,7 +24,7 @@ Screenshots
 -----------
 
 image:doc/img/main.png["screenshot 1",width=300,link="doc/img/main.png"]
-image:doc/img/downloads.png["screenshot 2",width=300,link="doc/img/downloads.png"]
+image:doc/img/downloads.png["screenshot 2",width=300j,link="doc/img/downloads.png"]
 image:doc/img/completion.png["screenshot 3",width=300,link="doc/img/completion.png"]
 image:doc/img/hints.png["screenshot 4",width=300,link="doc/img/hints.png"]
 
@@ -89,10 +90,10 @@ Requirements
 The following software and libraries are required to run qutebrowser:
 
 * http://www.python.org/[Python] 3.4
-* http://qt.io/[Qt] 5.2.0 or newer (5.4.2 recommended)
+* http://qt.io/[Qt] 5.2.0 or newer (5.5.0 recommended)
 * QtWebKit
 * http://www.riverbankcomputing.com/software/pyqt/intro[PyQt] 5.2.0 or newer
-(5.4.2 recommended) for Python 3
+(5.5.0 recommended) for Python 3
 * https://pypi.python.org/pypi/setuptools/[pkg_resources/setuptools]
 * http://fdik.org/pyPEG/[pyPEG2]
 * http://jinja.pocoo.org/[jinja2]
@@ -134,15 +135,19 @@ Contributors, sorted by the number of commits in descending order:
 
 // QUTE_AUTHORS_START
 * Florian Bruhin
+* Antoni Boucher
 * Bruno Oliveira
+* Alexander Cogneau
+* Martin Tournoij
 * Raphael Pierzina
 * Joel Torstensson
-* Martin Tournoij
 * Claude
 * Lamar Pavel
+* Daniel
 * Austin Anderson
 * Artur Shaik
-* Antoni Boucher
+* Thorsten Wißmann
+* Alexey "Averrin" Nabrodov
 * ZDarian
 * Peter Vilim
 * John ShaggyTwoDope Jenkins
@@ -154,7 +159,11 @@ Contributors, sorted by the number of commits in descending order:
 * Error 800
 * Brian Jackson
 * sbinix
+* neeasade
+* jnphilipp
 * Tobias Patzl
+* Peter Michely
+* Jonas Schürmann
 * Johannes Altmanninger
 * Samir Benmendil
 * Regina Hug
@@ -162,16 +171,19 @@ Contributors, sorted by the number of commits in descending order:
 * Larry Hynes
 * Fritz V155 Reichwald
 * Franz Fellner
+* zwarag
+* meles5
 * error800
 * Tim Harder
-* Thorsten Wißmann
 * Thiago Barroso Perrotta
 * Matthias Lisin
 * Helen Sherwood-Taylor
 * HalosGhost
 * Gregor Pohl
 * Eivind Uggedal
+* Daniel Lu
 * Arseniy Seroka
+* Andy Balaam
 * Andreas Fischer
 // QUTE_AUTHORS_END
 

@@ -21,11 +21,11 @@
 
 import re
 import inspect
+import logging
 import functools
 import datetime
-import contextlib
 
-from PyQt5.QtCore import QEvent, QMetaMethod, QObject
+from PyQt5.QtCore import Qt, QEvent, QMetaMethod, QObject
 from PyQt5.QtWidgets import QApplication
 
 from qutebrowser.utils import log, utils, qtutils, objreg
@@ -56,7 +56,7 @@ def log_signals(obj):
         dbg = dbg_signal(signal, args)
         try:
             r = repr(obj)
-        except RuntimeError:
+        except RuntimeError:  # pragma: no cover
             r = '<deleted>'
         log.signals.debug("Signal in {}: {}".format(r, dbg))
 
@@ -68,8 +68,9 @@ def log_signals(obj):
             qtutils.ensure_valid(meta_method)
             if meta_method.methodType() == QMetaMethod.Signal:
                 name = bytes(meta_method.name()).decode('ascii')
-                signal = getattr(obj, name)
-                signal.connect(functools.partial(log_slot, obj, signal))
+                if name != 'destroyed':
+                    signal = getattr(obj, name)
+                    signal.connect(functools.partial(log_slot, obj, signal))
 
     if inspect.isclass(obj):
         old_init = obj.__init__
@@ -105,19 +106,21 @@ def qenum_key(base, value, add_base=False, klass=None):
         klass = value.__class__
         if klass == int:
             raise TypeError("Can't guess enum class of an int!")
+
     try:
-        idx = klass.staticMetaObject.indexOfEnumerator(klass.__name__)
+        idx = base.staticMetaObject.indexOfEnumerator(klass.__name__)
+        ret = base.staticMetaObject.enumerator(idx).valueToKey(value)
     except AttributeError:
-        idx = -1
-    if idx != -1:
-        ret = klass.staticMetaObject.enumerator(idx).valueToKey(value)
-    else:
+        ret = None
+
+    if ret is None:
         for name, obj in vars(base).items():
             if isinstance(obj, klass) and obj == value:
                 ret = name
                 break
         else:
             ret = '0x{:04x}'.format(int(value))
+
     if add_base and hasattr(base, '__name__'):
         return '.'.join([base.__name__, ret])
     else:
@@ -177,7 +180,7 @@ def signal_name(sig):
     return m.group(1)
 
 
-def _format_args(args=None, kwargs=None):
+def format_args(args=None, kwargs=None):
     """Format a list of arguments/kwargs to a function-call like string."""
     if args is not None:
         arglist = [utils.compact_text(repr(arg), 200) for arg in args]
@@ -199,7 +202,7 @@ def dbg_signal(sig, args):
     Return:
         A human-readable string representation of signal/args.
     """
-    return '{}({})'.format(signal_name(sig), _format_args(args))
+    return '{}({})'.format(signal_name(sig), format_args(args))
 
 
 def format_call(func, args=None, kwargs=None, full=True):
@@ -218,24 +221,47 @@ def format_call(func, args=None, kwargs=None, full=True):
         name = utils.qualname(func)
     else:
         name = func.__name__
-    return '{}({})'.format(name, _format_args(args, kwargs))
+    return '{}({})'.format(name, format_args(args, kwargs))
 
 
-@contextlib.contextmanager
-def log_time(logger, action='operation'):
-    """Log the time the operation in the with-block takes.
+class log_time:  # pylint: disable=invalid-name
 
-    Args:
-        logger: The logging.Logger to use for logging.
-        action: A description of what's being done.
+    """Log the time an operation takes.
+
+    Usable as context manager or as decorator.
     """
-    started = datetime.datetime.now()
-    try:
-        yield
-    finally:
+
+    def __init__(self, logger, action='operation'):
+        """Constructor.
+
+        Args:
+            logger: The logging.Logger to use for logging, or a logger name.
+            action: A description of what's being done.
+        """
+        if isinstance(logger, str):
+            self._logger = logging.getLogger(logger)
+        else:
+            self._logger = logger
+        self._started = None
+        self._action = action
+
+    def __enter__(self):
+        self._started = datetime.datetime.now()
+
+    def __exit__(self, _exc_type, _exc_val, _exc_tb):
+        assert self._started is not None
         finished = datetime.datetime.now()
-        delta = (finished - started).total_seconds()
-        logger.debug("{} took {} seconds.".format(action.capitalize(), delta))
+        delta = (finished - self._started).total_seconds()
+        self._logger.debug(
+            "{} took {} seconds.".format(self._action.capitalize(), delta))
+
+    def __call__(self, func):
+        @functools.wraps(func)
+        def wrapped(*args, **kwargs):
+            with self:
+                func(*args, **kwargs)
+
+        return wrapped
 
 
 def _get_widgets():
@@ -247,25 +273,30 @@ def _get_widgets():
 
 def _get_pyqt_objects(lines, obj, depth=0):
     """Recursive method for get_all_objects to get Qt objects."""
-    for kid in obj.findChildren(QObject):
+    for kid in obj.findChildren(QObject, '', Qt.FindDirectChildrenOnly):
         lines.append('    ' * depth + repr(kid))
         _get_pyqt_objects(lines, kid, depth + 1)
 
 
-def get_all_objects():
+def get_all_objects(start_obj=None):
     """Get all children of an object recursively as a string."""
     output = ['']
     widget_lines = _get_widgets()
     widget_lines = ['    ' + e for e in widget_lines]
-    widget_lines.insert(0, "Qt widgets - {} objects".format(
+    widget_lines.insert(0, "Qt widgets - {} objects:".format(
         len(widget_lines)))
     output += widget_lines
+
+    if start_obj is None:
+        start_obj = QApplication.instance()
+
     pyqt_lines = []
-    _get_pyqt_objects(pyqt_lines, QApplication.instance())
+    _get_pyqt_objects(pyqt_lines, start_obj)
     pyqt_lines = ['    ' + e for e in pyqt_lines]
     pyqt_lines.insert(0, 'Qt objects - {} objects:'.format(
         len(pyqt_lines)))
-    output += pyqt_lines
+
     output += ['']
+    output += pyqt_lines
     output += objreg.dump_objects()
     return '\n'.join(output)

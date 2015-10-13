@@ -49,9 +49,12 @@ class PyPIVersionClient(QObject):
     success = pyqtSignal(str)
     error = pyqtSignal(str)
 
-    def __init__(self, parent=None):
+    def __init__(self, parent=None, client=None):
         super().__init__(parent)
-        self._client = httpclient.HTTPClient(self)
+        if client is None:
+            self._client = httpclient.HTTPClient(self)
+        else:
+            self._client = client
         self._client.error.connect(self.error)
         self._client.success.connect(self.on_client_success)
 
@@ -81,6 +84,6 @@ class PyPIVersionClient(QObject):
         try:
             self.success.emit(json_data['info']['version'])
         except KeyError as e:
-            self.error.emit("Malformed data recieved in reply "
+            self.error.emit("Malformed data received in reply "
                             "({!r} not found)!".format(e))
             return

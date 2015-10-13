@@ -1,5 +1,6 @@
 __pycache__
 *.pyc
+*.swp
 /build
 /dist
 /qutebrowser.egg-info
@@ -20,6 +21,10 @@ __pycache__
 /.venv
 /.coverage
 /htmlcov
+/.coverage.xml
 /.tox
 /testresults.html
 /.cache
+/.testmondata
+/.hypothesis
+TODO

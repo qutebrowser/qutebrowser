@@ -17,7 +17,7 @@
 # You should have received a copy of the GNU General Public License
 # along with qutebrowser.  If not, see <http://www.gnu.org/licenses/>.
 
-"""Other utilities which don't fit anywhere else."""
+"""Parsing functions for various HTTP headers."""
 
 
 import os.path
@@ -46,16 +46,19 @@ def parse_content_disposition(reply):
         # We use the unsafe variant of the filename as we sanitize it via
         # os.path.basename later.
         try:
-            content_disposition = rfc6266.parse_headers(
-                bytes(reply.rawHeader(content_disposition_header)))
+            value = bytes(reply.rawHeader(content_disposition_header))
+            log.rfc6266.debug("Parsing Content-Disposition: {}".format(value))
+            content_disposition = rfc6266.parse_headers(value)
             filename = content_disposition.filename()
-        except UnicodeDecodeError:
-            log.rfc6266.exception("Error while decoding filename")
+        except (SyntaxError, UnicodeDecodeError, rfc6266.Error):
+            log.rfc6266.exception("Error while parsing filename")
         else:
             is_inline = content_disposition.is_inline()
     # Then try to get filename from url
     if not filename:
-        filename = reply.url().path()
+        path = reply.url().path()
+        if path is not None:
+            filename = path.rstrip('/')
     # If that fails as well, use a fallback
     if not filename:
         filename = 'qutebrowser-download'

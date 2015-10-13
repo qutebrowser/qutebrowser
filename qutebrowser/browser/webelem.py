@@ -43,18 +43,23 @@ Group = usertypes.enum('Group', ['all', 'links', 'images', 'url', 'prevnext',
 
 SELECTORS = {
     Group.all: ('a, area, textarea, select, input:not([type=hidden]), button, '
-                'frame, iframe, [onclick], [onmousedown], [role=link], '
+                'frame, iframe, link, [onclick], [onmousedown], [role=link], '
                 '[role=option], [role=button], img'),
     Group.links: 'a, area, link, [role=link]',
     Group.images: 'img',
     Group.url: '[src], [href]',
-    Group.prevnext: 'a, area, button, [role=button]',
+    Group.prevnext: 'a, area, button, link, [role=button]',
     Group.focus: '*:focus',
 }
 
+
+def filter_links(elem):
+    return 'href' in elem and QUrl(elem['href']).scheme() != 'javascript'
+
+
 FILTERS = {
-    Group.links: (lambda e: 'href' in e and
-                            QUrl(e['href']).scheme() != 'javascript'),
+    Group.links: filter_links,
+    Group.prevnext: filter_links,
 }
 
 
@@ -136,7 +141,7 @@ class WebElementWrapper(collections.abc.MutableMapping):
         self._check_vanished()
         if key not in self:
             raise KeyError(key)
-        self.removeAttribute(key)
+        self._elem.removeAttribute(key)
 
     def __contains__(self, key):
         self._check_vanished()
@@ -178,8 +183,6 @@ class WebElementWrapper(collections.abc.MutableMapping):
 
     def is_content_editable(self):
         """Check if an element has a contenteditable attribute.
-
-        FIXME: Add tests.
 
         Args:
             elem: The QWebElement to check.
@@ -240,11 +243,10 @@ class WebElementWrapper(collections.abc.MutableMapping):
         for klass in self._elem.classes():
             if any([klass.startswith(e) for e in div_classes]):
                 return True
+        return False
 
     def is_editable(self, strict=False):
         """Check whether we should switch to insert mode for this element.
-
-        FIXME: add tests
 
         Args:
             strict: Whether to do stricter checking so only fields where we can
@@ -261,7 +263,7 @@ class WebElementWrapper(collections.abc.MutableMapping):
         tag = self._elem.tagName().lower()
         if self.is_content_editable() and self.is_writable():
             return True
-        elif self.get('role', None) in roles:
+        elif self.get('role', None) in roles and self.is_writable():
             return True
         elif tag == 'input':
             return self._is_editable_input()
@@ -279,6 +281,7 @@ class WebElementWrapper(collections.abc.MutableMapping):
 
     def is_text_input(self):
         """Check if this element is some kind of text box."""
+        self._check_vanished()
         roles = ('combobox', 'textbox')
         tag = self._elem.tagName().lower()
         return self.get('role', None) in roles or tag in ('input', 'textarea')
@@ -303,6 +306,8 @@ def javascript_escape(text):
         ("'", r"\'"),   # Then escape ' and " as \' and \".
         ('"', r'\"'),   # (note it won't hurt when we escape the wrong one).
         ('\n', r'\n'),  # We also need to escape newlines for some reason.
+        ('\r', r'\r'),
+        ('\x00', r'\x00'),
     )
     for orig, repl in replacements:
         text = text.replace(orig, repl)
@@ -333,8 +338,6 @@ def get_child_frames(startframe):
 
 def focus_elem(frame):
     """Get the focused element in a web frame.
-
-    FIXME: Add tests.
 
     Args:
         frame: The QWebFrame to search in.

@@ -385,7 +385,11 @@ def generate_settings(filename):
 
 def _get_authors():
     """Get a list of authors based on git commit logs."""
-    corrections = {'binix': 'sbinix'}
+    corrections = {
+        'binix': 'sbinix',
+        'Averrin': 'Alexey "Averrin" Nabrodov',
+        'Alexey Nabrodov': 'Alexey "Averrin" Nabrodov',
+    }
     commits = subprocess.check_output(['git', 'log', '--format=%aN'])
     authors = [corrections.get(author, author)
                for author in commits.decode('utf-8').splitlines()]

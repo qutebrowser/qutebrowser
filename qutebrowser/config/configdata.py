@@ -225,6 +225,11 @@ def data(readonly=False):
              "The name of the session to save by default, or empty for the "
              "last loaded session."),
 
+            ('url-incdec-segments',
+             SettingValue(typ.URLSegmentList(none_ok=True), 'path,query'),
+             "The URL segments where `:navigate increment/decrement` will "
+             "search for a number."),
+
             readonly=readonly
         )),
 
@@ -240,7 +245,7 @@ def data(readonly=False):
              "The default zoom level."),
 
             ('downloads-position',
-             SettingValue(typ.VerticalPosition(), 'north'),
+             SettingValue(typ.VerticalPosition(), 'top'),
              "Where to show the downloaded files."),
 
             ('message-timeout',
@@ -271,7 +276,7 @@ def data(readonly=False):
              "page."),
 
             ('user-stylesheet',
-             SettingValue(typ.UserStyleSheet(),
+             SettingValue(typ.UserStyleSheet(none_ok=True),
                           '::-webkit-scrollbar { width: 0px; height: 0px; }'),
              "User stylesheet to use (absolute filename, filename relative to "
              "the config directory or CSS string). Will expand environment "
@@ -293,9 +298,14 @@ def data(readonly=False):
              SettingValue(typ.Bool(), 'false'),
              "Whether to hide the statusbar unless a message is shown."),
 
+            ('statusbar-padding',
+             SettingValue(typ.Padding(), '1,1,0,0'),
+             "Padding for statusbar (top, bottom, left, right)."),
+
             ('window-title-format',
              SettingValue(typ.FormatString(fields=['perc', 'perc_raw', 'title',
-                                                   'title_sep', 'id']),
+                                                   'title_sep', 'id',
+                                                   'scroll_pos']),
                           '{perc}{title}{title_sep}qutebrowser'),
              "The format to use for the window title. The following "
              "placeholders are defined:\n\n"
@@ -304,7 +314,8 @@ def data(readonly=False):
              "* `{title}`: The title of the current web page\n"
              "* `{title_sep}`: The string ` - ` if a title is set, empty "
              "otherwise.\n"
-             "* `{id}`: The internal window ID of this window."),
+             "* `{id}`: The internal window ID of this window.\n"
+             "* `{scroll_pos}`: The page scroll position."),
 
             ('hide-mouse-cursor',
              SettingValue(typ.Bool(), 'false'),
@@ -313,6 +324,11 @@ def data(readonly=False):
             ('modal-js-dialog',
              SettingValue(typ.Bool(), 'false'),
              "Use standard JavaScript modal dialog for alert() and confirm()"),
+
+            ('hide-wayland-decoration',
+             SettingValue(typ.Bool(), 'false'),
+             "Hide the window decoration when using wayland "
+             "(requires restart)"),
 
             readonly=readonly
         )),
@@ -325,6 +341,10 @@ def data(readonly=False):
             ('accept-language',
              SettingValue(typ.String(none_ok=True), 'en-US,en'),
              "Value to send in the `accept-language` header."),
+
+            ('referer-header',
+             SettingValue(typ.Referer(), 'same-domain'),
+             "Send the Referer header"),
 
             ('user-agent',
              SettingValue(typ.UserAgent(none_ok=True), ''),
@@ -427,7 +447,7 @@ def data(readonly=False):
 
             ('spatial-navigation',
              SettingValue(typ.Bool(), 'false'),
-             "Enables or disables the Spatial Navigation feature\n\n"
+             "Enables or disables the Spatial Navigation feature.\n\n"
              "Spatial navigation consists in the ability to navigate between "
              "focusable elements in a Web page, such as hyperlinks and form "
              "controls, by using Left, Right, Up and Down arrow keys. For "
@@ -475,13 +495,14 @@ def data(readonly=False):
              SettingValue(typ.LastClose(), 'ignore'),
              "Behavior when the last tab is closed."),
 
-            ('hide-auto',
-             SettingValue(typ.Bool(), 'false'),
-             "Hide the tab bar if only one tab is open."),
+            ('show',
+             SettingValue(typ.TabBarShow(), 'always'),
+             "When to show the tab bar"),
 
-            ('hide-always',
-             SettingValue(typ.Bool(), 'false'),
-             "Always hide the tab bar."),
+            ('show-switching-delay',
+             SettingValue(typ.Int(), '800'),
+             "Time to show the tab bar before hiding it when tabs->show is "
+             "set to 'switching'."),
 
             ('wrap',
              SettingValue(typ.Bool(), 'true'),
@@ -496,7 +517,7 @@ def data(readonly=False):
              "On which mouse button to close tabs."),
 
             ('position',
-             SettingValue(typ.Position(), 'north'),
+             SettingValue(typ.Position(), 'top'),
              "The position of the tab bar."),
 
             ('show-favicons',
@@ -513,10 +534,6 @@ def data(readonly=False):
              SettingValue(typ.Int(minval=0), '3'),
              "Width of the progress indicator (0 to disable)."),
 
-            ('indicator-space',
-             SettingValue(typ.Int(minval=0), '3'),
-             "Spacing between tab edge and indicator."),
-
             ('tabs-are-windows',
              SettingValue(typ.Bool(), 'false'),
              "Whether to open windows instead of tabs."),
@@ -524,7 +541,7 @@ def data(readonly=False):
             ('title-format',
              SettingValue(typ.FormatString(
                  fields=['perc', 'perc_raw', 'title', 'title_sep', 'index',
-                         'id']), '{index}: {title}'),
+                         'id', 'scroll_pos']), '{index}: {title}'),
              "The format to use for the tab title. The following placeholders "
              "are defined:\n\n"
              "* `{perc}`: The percentage as a string like `[10%]`.\n"
@@ -533,11 +550,20 @@ def data(readonly=False):
              "* `{title_sep}`: The string ` - ` if a title is set, empty "
              "otherwise.\n"
              "* `{index}`: The index of this tab.\n"
-             "* `{id}`: The internal tab ID of this tab."),
+             "* `{id}`: The internal tab ID of this tab.\n"
+             "* `{scroll_pos}`: The page scroll position."),
 
             ('mousewheel-tab-switching',
              SettingValue(typ.Bool(), 'true'),
              "Switch between tabs using the mouse wheel."),
+
+            ('padding',
+             SettingValue(typ.Padding(), '0,0,5,5'),
+             "Padding for tabs (top, bottom, left, right)."),
+
+            ('indicator-padding',
+             SettingValue(typ.Padding(), '2,2,0,4'),
+             "Padding for indicators (top, bottom, left, right)."),
 
             readonly=readonly
         )),
@@ -548,6 +574,15 @@ def data(readonly=False):
              "The directory to save downloads to. An empty value selects a "
              "sensible os-specific default. Will expand environment "
              "variables."),
+
+            ('prompt-download-directory',
+             SettingValue(typ.Bool(), 'true'),
+             "Whether to prompt the user for the download location.\n"
+             "If set to false, 'download-directory' will be used."),
+
+            ('remember-download-directory',
+             SettingValue(typ.Bool(), 'true'),
+             "Whether to remember the last used download directory."),
 
             ('maximum-pages-in-cache',
              SettingValue(
@@ -562,7 +597,8 @@ def data(readonly=False):
 
             ('object-cache-capacities',
              SettingValue(
-                 typ.WebKitBytesList(length=3, maxsize=MAXVALS['int']), ''),
+                 typ.WebKitBytesList(length=3, maxsize=MAXVALS['int'],
+                                     none_ok=True), ''),
              "The capacities for the global memory cache for dead objects "
              "such as stylesheets or scripts. Syntax: cacheMinDeadCapacity, "
              "cacheMaxDead, totalCapacity.\n\n"
@@ -575,11 +611,13 @@ def data(readonly=False):
              "that the cache should consume *overall*."),
 
             ('offline-storage-default-quota',
-             SettingValue(typ.WebKitBytes(maxsize=MAXVALS['int64']), ''),
+             SettingValue(typ.WebKitBytes(maxsize=MAXVALS['int64'],
+                                          none_ok=True), ''),
              "Default quota for new offline storage databases."),
 
             ('offline-web-application-cache-quota',
-             SettingValue(typ.WebKitBytes(maxsize=MAXVALS['int64']), ''),
+             SettingValue(typ.WebKitBytes(maxsize=MAXVALS['int64'],
+                                          none_ok=True), ''),
              "Quota for the offline web application cache."),
 
             ('offline-storage-database',
@@ -710,6 +748,14 @@ def data(readonly=False):
              SettingValue(typ.Bool(), 'true'),
              "Whether host blocking is enabled."),
 
+            ('host-blocking-whitelist',
+             SettingValue(typ.List(none_ok=True), 'piwik.org'),
+             "List of domains that should always be loaded, despite being "
+             "ad-blocked.\n\n"
+             "Domains may contain * and ? wildcards and are otherwise "
+             "required to exactly match the requested domain.\n\n"
+             "Local domains are always exempt from hostblocking."),
+
             readonly=readonly
         )),
 
@@ -732,7 +778,7 @@ def data(readonly=False):
 
             ('min-chars',
              SettingValue(typ.Int(minval=1), '1'),
-             "Mininum number of chars used for hint strings."),
+             "Minimum number of chars used for hint strings."),
 
             ('scatter',
              SettingValue(typ.Bool(), 'true'),
@@ -935,13 +981,21 @@ def data(readonly=False):
              SettingValue(typ.QtColor(), 'darkgrey'),
              "Background color of unselected even tabs."),
 
-            ('tabs.fg.selected',
+            ('tabs.fg.selected.odd',
              SettingValue(typ.QtColor(), 'white'),
-             "Foreground color of selected tabs."),
+             "Foreground color of selected odd tabs."),
 
-            ('tabs.bg.selected',
+            ('tabs.bg.selected.odd',
              SettingValue(typ.QtColor(), 'black'),
-             "Background color of selected tabs."),
+             "Background color of selected odd tabs."),
+
+            ('tabs.fg.selected.even',
+             SettingValue(typ.QtColor(), '${tabs.fg.selected.odd}'),
+             "Foreground color of selected even tabs."),
+
+            ('tabs.bg.selected.even',
+             SettingValue(typ.QtColor(), '${tabs.bg.selected.odd}'),
+             "Background color of selected even tabs."),
 
             ('tabs.bg.bar',
              SettingValue(typ.QtColor(), '#555555'),
@@ -1048,7 +1102,7 @@ def data(readonly=False):
              "Font used for the downloadbar."),
 
             ('hints',
-             SettingValue(typ.Font(), 'bold 12px Monospace'),
+             SettingValue(typ.Font(), 'bold 13px Monospace'),
              "Font used for the hints."),
 
             ('debug-console',
@@ -1194,11 +1248,11 @@ RETURN_KEYS = ['<Return>', '<Ctrl-M>', '<Ctrl-J>', '<Shift-Return>', '<Enter>',
 
 KEY_DATA = collections.OrderedDict([
     ('!normal', collections.OrderedDict([
-        ('leave-mode', ['<Escape>', '<Ctrl-[>']),
+        ('clear-keychain ;; leave-mode', ['<Escape>', '<Ctrl-[>']),
     ])),
 
     ('normal', collections.OrderedDict([
-        ('search ;; clear-keychain', ['<Escape>']),
+        ('clear-keychain ;; search', ['<Escape>']),
         ('set-cmd-text -s :open', ['o']),
         ('set-cmd-text :open {url}', ['go']),
         ('set-cmd-text -s :open -t', ['O']),
@@ -1215,12 +1269,12 @@ KEY_DATA = collections.OrderedDict([
         ('tab-move', ['gm']),
         ('tab-move -', ['gl']),
         ('tab-move +', ['gr']),
-        ('tab-next', ['J', 'gt']),
+        ('tab-focus', ['J', 'gt']),
         ('tab-prev', ['K', 'gT']),
         ('tab-clone', ['gC']),
         ('reload', ['r']),
         ('reload -f', ['R']),
-        ('back', ['H', '<Backspace>']),
+        ('back', ['H']),
         ('back -t', ['th']),
         ('back -w', ['wh']),
         ('forward', ['L']),
@@ -1271,6 +1325,10 @@ KEY_DATA = collections.OrderedDict([
         ('set-cmd-text -s :quickmark-load', ['b']),
         ('set-cmd-text -s :quickmark-load -t', ['B']),
         ('set-cmd-text -s :quickmark-load -w', ['wb']),
+        ('bookmark-add', ['M']),
+        ('set-cmd-text -s :bookmark-load', ['gb']),
+        ('set-cmd-text -s :bookmark-load -t', ['gB']),
+        ('set-cmd-text -s :bookmark-load -w', ['wB']),
         ('save', ['sf']),
         ('set-cmd-text -s :set', ['ss']),
         ('set-cmd-text -s :set -t', ['sl']),
@@ -1333,6 +1391,7 @@ KEY_DATA = collections.OrderedDict([
         ('command-history-next', ['<Ctrl-N>']),
         ('completion-item-prev', ['<Shift-Tab>', '<Up>']),
         ('completion-item-next', ['<Tab>', '<Down>']),
+        ('completion-item-del', ['<Ctrl-D>']),
         ('command-accept', RETURN_KEYS),
     ])),
 
@@ -1395,8 +1454,8 @@ CHANGED_KEY_COMMANDS = [
     (re.compile(r'^download-page$'), r'download'),
     (re.compile(r'^cancel-download$'), r'download-cancel'),
 
-    (re.compile(r"""^search (''|"")$"""), r'search ;; clear-keychain'),
-    (re.compile(r'^search$'), r'search ;; clear-keychain'),
+    (re.compile(r"""^search (''|"")$"""), r'clear-keychain ;; search'),
+    (re.compile(r'^search$'), r'clear-keychain ;; search'),
 
     (re.compile(r"""^set-cmd-text ['"](.*) ['"]$"""), r'set-cmd-text -s \1'),
     (re.compile(r"""^set-cmd-text ['"](.*)['"]$"""), r'set-cmd-text \1'),
@@ -1409,4 +1468,7 @@ CHANGED_KEY_COMMANDS = [
     (re.compile(r'^scroll 0 -50$'), r'scroll up'),
     (re.compile(r'^scroll 50 0$'), r'scroll right'),
     (re.compile(r'^scroll ([-\d]+ [-\d]+)$'), r'scroll-px \1'),
+
+    (re.compile(r'^search *;; *clear-keychain$'), r'clear-keychain ;; search'),
+    (re.compile(r'^leave-mode$'), r'clear-keychain ;; leave-mode'),
 ]

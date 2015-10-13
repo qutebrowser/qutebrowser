@@ -37,6 +37,22 @@ from qutebrowser.commands import cmdexc
 # https://github.com/The-Compiler/qutebrowser/issues/108
 
 
+class InvalidUrlError(ValueError):
+
+    """Error raised if a function got an invalid URL.
+
+    Inherits ValueError because that was the exception originally used for
+    that, so there still might be some code around which checks for that.
+    """
+
+    def __init__(self, url):
+        if url.isValid():
+            raise ValueError("Got valid URL {}!".format(url.toDisplayString()))
+        self.url = url
+        self.msg = get_errstring(url)
+        super().__init__(self.msg)
+
+
 def _parse_search_term(s):
     """Get a search engine name and search term from a string.
 
@@ -153,15 +169,15 @@ def fuzzy_url(urlstr, cwd=None, relative=False, do_search=True):
         A target QUrl to a search page or the original URL.
     """
     expanded = os.path.expanduser(urlstr)
-    if relative and cwd:
+    if os.path.isabs(expanded):
+        path = expanded
+    elif relative and cwd:
         path = os.path.join(cwd, expanded)
     elif relative:
         try:
             path = os.path.abspath(expanded)
         except OSError:
             path = None
-    elif os.path.isabs(expanded):
-        path = expanded
     else:
         path = None
 
@@ -185,7 +201,7 @@ def fuzzy_url(urlstr, cwd=None, relative=False, do_search=True):
         qtutils.ensure_valid(url)
     else:
         if not url.isValid():
-            raise FuzzyUrlError("Invalid URL '{}'!".format(urlstr), url)
+            raise InvalidUrlError(url)
     return url
 
 
@@ -266,7 +282,7 @@ def is_url(urlstr):
     elif autosearch == 'naive':
         log.url.debug("Checking via naive check")
         url = _is_url_naive(urlstr)
-    else:
+    else:  # pragma: no cover
         raise ValueError("Invalid autosearch value")
     log.url.debug("url = {}".format(url))
     return url
@@ -355,7 +371,7 @@ def host_tuple(url):
     This is suitable to identify a connection, e.g. for SSL errors.
     """
     if not url.isValid():
-        raise ValueError(get_errstring(url))
+        raise InvalidUrlError(url)
     scheme, host, port = url.scheme(), url.host(), url.port()
     assert scheme
     if not host:
@@ -392,24 +408,112 @@ def get_errstring(url, base="Invalid URL"):
         return base
 
 
-class FuzzyUrlError(Exception):
+def same_domain(url1, url2):
+    """Check if url1 and url2 belong to the same website.
 
-    """Exception raised by fuzzy_url on problems.
+    This will use a "public suffix list" to determine what a "top level domain"
+    is. All further domains are ignored.
+
+    For example example.com and www.example.com are considered the same. but
+    example.co.uk and test.co.uk are not.
+
+    Return:
+        True if the domains are the same, False otherwise.
+    """
+    if not url1.isValid():
+        raise InvalidUrlError(url1)
+    if not url2.isValid():
+        raise InvalidUrlError(url2)
+
+    suffix1 = url1.topLevelDomain()
+    suffix2 = url2.topLevelDomain()
+    if suffix1 == '':
+        return url1.host() == url2.host()
+
+    if not suffix1 == suffix2:
+        return False
+
+    domain1 = url1.host()[:-len(suffix1)].split('.')[-1]
+    domain2 = url2.host()[:-len(suffix2)].split('.')[-1]
+    return domain1 == domain2
+
+
+class IncDecError(Exception):
+
+    """Exception raised by incdec_number on problems.
 
     Attributes:
-        msg: The error message to use.
+        msg: The error message.
         url: The QUrl which caused the error.
     """
 
-    def __init__(self, msg, url=None):
+    def __init__(self, msg, url):
         super().__init__(msg)
-        if url is not None and url.isValid():
-            raise ValueError("Got valid URL {}!".format(url.toDisplayString()))
         self.url = url
         self.msg = msg
 
     def __str__(self):
-        if self.url is None or not self.url.errorString():
-            return self.msg
+        return '{}: {}'.format(self.msg, self.url.toString())
+
+
+def incdec_number(url, incdec, segments=None):
+    """Find a number in the url and increment or decrement it.
+
+    Args:
+        url: The current url
+        incdec: Either 'increment' or 'decrement'
+        segments: A set of URL segments to search. Valid segments are:
+                  'host', 'path', 'query', 'anchor'.
+                  Default: {'path', 'query'}
+
+    Return:
+        The new url with the number incremented/decremented.
+
+    Raises IncDecError if the url contains no number.
+    """
+    if not url.isValid():
+        raise InvalidUrlError(url)
+
+    if segments is None:
+        segments = {'path', 'query'}
+    valid_segments = {'host', 'path', 'query', 'anchor'}
+    if segments - valid_segments:
+        extra_elements = segments - valid_segments
+        raise IncDecError("Invalid segments: {}".format(
+            ', '.join(extra_elements)), url)
+
+    # Make a copy of the QUrl so we don't modify the original
+    url = QUrl(url)
+    # Order as they appear in a URL
+    segment_modifiers = [
+        ('host', url.host, url.setHost),
+        ('path', url.path, url.setPath),
+        ('query', url.query, url.setQuery),
+        ('anchor', url.fragment, url.setFragment),
+    ]
+    # We're searching the last number so we walk the url segments backwards
+    for segment, getter, setter in reversed(segment_modifiers):
+        if segment not in segments:
+            continue
+
+        # Get the last number in a string
+        match = re.match(r'(.*\D|^)(\d+)(.*)', getter())
+        if not match:
+            continue
+
+        pre, number, post = match.groups()
+        # This should always succeed because we match \d+
+        val = int(number)
+        if incdec == 'decrement':
+            if val <= 0:
+                raise IncDecError("Can't decrement {}!".format(val), url)
+            val -= 1
+        elif incdec == 'increment':
+            val += 1
         else:
-            return '{}: {}'.format(self.msg, self.url.errorString())
+            raise ValueError("Invalid value {} for indec!".format(incdec))
+        new_value = ''.join([pre, str(val), post])
+        setter(new_value)
+        return url
+
+    raise IncDecError("No number found in URL!", url)

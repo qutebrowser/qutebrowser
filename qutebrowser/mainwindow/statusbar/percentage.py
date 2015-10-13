@@ -34,11 +34,11 @@ class Percentage(textbase.TextBase):
         self.set_perc(0, 0)
 
     @pyqtSlot(int, int)
-    def set_perc(self, _, y):
+    def set_perc(self, x, y):  # pylint: disable=unused-argument
         """Setter to be used as a Qt slot.
 
         Args:
-            _: The x percentage (int), currently ignored.
+            x: The x percentage (int), currently ignored.
             y: The y percentage (int)
         """
         if y == 0:
@@ -48,7 +48,7 @@ class Percentage(textbase.TextBase):
         else:
             self.setText('[{:2}%]'.format(y))
 
-    @pyqtSlot(int)
+    @pyqtSlot(object)
     def on_tab_changed(self, tab):
         """Update scroll position when tab changed."""
         self.set_perc(*tab.scroll_pos)

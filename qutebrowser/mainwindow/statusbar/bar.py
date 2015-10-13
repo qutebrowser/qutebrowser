@@ -180,7 +180,8 @@ class StatusBar(QWidget):
         self._stopwatch = QTime()
 
         self._hbox = QHBoxLayout(self)
-        self._hbox.setContentsMargins(0, 0, 0, 0)
+        self.set_hbox_padding()
+        objreg.get('config').changed.connect(self.set_hbox_padding)
         self._hbox.setSpacing(5)
 
         self._stack = QStackedLayout()
@@ -245,6 +246,11 @@ class StatusBar(QWidget):
             self.hide()
         else:
             self.show()
+
+    @config.change_filter('ui', 'statusbar-padding')
+    def set_hbox_padding(self):
+        padding = config.get('ui', 'statusbar-padding')
+        self._hbox.setContentsMargins(padding.left, 0, padding.right, 0)
 
     @pyqtProperty(str)
     def severity(self):
@@ -558,6 +564,7 @@ class StatusBar(QWidget):
 
     def minimumSizeHint(self):
         """Set the minimum height to the text height plus some padding."""
+        padding = config.get('ui', 'statusbar-padding')
         width = super().minimumSizeHint().width()
-        height = self.fontMetrics().height() + 3
+        height = self.fontMetrics().height() + padding.top + padding.bottom
         return QSize(width, height)

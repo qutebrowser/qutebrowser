@@ -20,6 +20,7 @@
 """Utilities to get and initialize data/config paths."""
 
 import os
+import sys
 import os.path
 
 from PyQt5.QtCore import QCoreApplication, QStandardPaths
@@ -32,28 +33,80 @@ _args = None
 
 
 def config():
-    """Convenience function to get the config location."""
-    return _get(QStandardPaths.ConfigLocation)
+    """Get a location for configs."""
+    typ = QStandardPaths.ConfigLocation
+    overridden, path = _from_args(typ, _args)
+    if not overridden:
+        path = _writable_location(typ)
+        appname = QCoreApplication.instance().applicationName()
+        if path.split(os.sep)[-1] != appname:  # pragma: no branch
+            # WORKAROUND - see
+            # https://bugreports.qt.io/browse/QTBUG-38872
+            path = os.path.join(path, appname)
+    _maybe_create(path)
+    return path
 
 
 def data():
-    """Convenience function to get the data location."""
-    return _get(QStandardPaths.DataLocation)
+    """Get a location for data."""
+    typ = QStandardPaths.DataLocation
+    overridden, path = _from_args(typ, _args)
+    if not overridden:
+        path = _writable_location(typ)
+        if os.name == 'nt':
+            # Under windows, config/data might end up in the same directory.
+            data_path = QStandardPaths.writableLocation(
+                QStandardPaths.DataLocation)
+            config_path = QStandardPaths.writableLocation(
+                QStandardPaths.ConfigLocation)
+            if data_path == config_path:
+                path = os.path.join(path, 'data')
+    _maybe_create(path)
+    return path
 
 
 def cache():
-    """Convenience function to get the cache location."""
-    return _get(QStandardPaths.CacheLocation)
+    """Get a location for the cache."""
+    typ = QStandardPaths.CacheLocation
+    overridden, path = _from_args(typ, _args)
+    if not overridden:
+        path = _writable_location(typ)
+    _maybe_create(path)
+    return path
 
 
 def download():
-    """Convenience function to get the download location."""
-    return _get(QStandardPaths.DownloadLocation)
+    """Get a location for downloads."""
+    typ = QStandardPaths.DownloadLocation
+    overridden, path = _from_args(typ, _args)
+    if not overridden:
+        path = _writable_location(typ)
+    _maybe_create(path)
+    return path
 
 
 def runtime():
-    """Convenience function to get the runtime location."""
-    return _get(QStandardPaths.RuntimeLocation)
+    """Get a location for runtime data."""
+    if sys.platform.startswith('linux'):
+        typ = QStandardPaths.RuntimeLocation
+    else:  # pragma: no cover
+        # RuntimeLocation is a weird path on OS X and Windows.
+        typ = QStandardPaths.TempLocation
+    overridden, path = _from_args(typ, _args)
+    if not overridden:
+        path = _writable_location(typ)
+        # This is generic, but per-user.
+        #
+        # For TempLocation:
+        # "The returned value might be application-specific, shared among
+        # other applications for this user, or even system-wide."
+        #
+        # Unfortunately this path could get too long for sockets (which have a
+        # maximum length of 104 chars), so we don't add the username here...
+        appname = QCoreApplication.instance().applicationName()
+        path = os.path.join(path, appname)
+    _maybe_create(path)
+    return path
 
 
 def _writable_location(typ):
@@ -79,6 +132,7 @@ def _from_args(typ, args):
             override: boolean, if the user did override the path
             path: The overridden path, or None to turn off storage.
     """
+    # pylint: disable=too-many-return-statements
     typ_to_argparse_arg = {
         QStandardPaths.ConfigLocation: 'confdir',
         QStandardPaths.DataLocation: 'datadir',
@@ -97,7 +151,11 @@ def _from_args(typ, args):
 
     if getattr(args, 'basedir', None) is not None:
         basedir = args.basedir
-        suffix = basedir_suffix[typ]
+
+        try:
+            suffix = basedir_suffix[typ]
+        except KeyError:  # pragma: no cover
+            return (False, None)
         return (True, os.path.join(basedir, suffix))
 
     try:
@@ -113,38 +171,20 @@ def _from_args(typ, args):
         return (True, arg_value)
 
 
-def _get(typ):
-    """Get the directory where files of the given type should be written to.
+def _maybe_create(path):
+    """Create the `path` directory if path is not None.
 
-    Args:
-        typ: A member of the QStandardPaths::StandardLocation enum,
-             see http://doc.qt.io/qt-5/qstandardpaths.html#StandardLocation-enum
+    From the XDG basedir spec:
+        If, when attempting to write a file, the destination directory is
+        non-existant an attempt should be made to create it with permission
+        0700. If the destination directory exists already the permissions
+        should not be changed.
     """
-    overridden, path = _from_args(typ, _args)
-    if not overridden:
-        path = _writable_location(typ)
-        appname = QCoreApplication.instance().applicationName()
-        if (typ == QStandardPaths.ConfigLocation and
-                path.split(os.sep)[-1] != appname):
-            # WORKAROUND - see
-            # https://bugreports.qt.io/browse/QTBUG-38872
-            path = os.path.join(path, appname)
-        if typ == QStandardPaths.DataLocation and os.name == 'nt':
-            # Under windows, config/data might end up in the same directory.
-            data_path = QStandardPaths.writableLocation(
-                QStandardPaths.DataLocation)
-            config_path = QStandardPaths.writableLocation(
-                QStandardPaths.ConfigLocation)
-            if data_path == config_path:
-                path = os.path.join(path, 'data')
-    # From the XDG basedir spec:
-    #     If, when attempting to write a file, the destination directory is
-    #     non-existant an attempt should be made to create it with permission
-    #     0700. If the destination directory exists already the permissions
-    #     should not be changed.
-    if path is not None and not os.path.exists(path):
-        os.makedirs(path, 0o700)
-    return path
+    if path is not None:
+        try:
+            os.makedirs(path, 0o700)
+        except FileExistsError:
+            pass
 
 
 def init(args):

@@ -48,13 +48,26 @@ ModelRole = usertypes.enum('ModelRole', ['item'], start=Qt.UserRole,
 
 RetryInfo = collections.namedtuple('RetryInfo', ['request', 'manager'])
 
+# Remember the last used directory
+_last_used_directory = None
+
+
+# All REFRESH_INTERVAL milliseconds, speeds will be recalculated and downloads
+# redrawn.
+REFRESH_INTERVAL = 500
+
 
 def _download_dir():
     """Get the download directory to use."""
     directory = config.get('storage', 'download-directory')
-    if directory is None:
-        directory = standarddir.download()
-    return directory
+    remember_dir = config.get('storage', 'remember-download-directory')
+
+    if remember_dir and _last_used_directory is not None:
+        return _last_used_directory
+    elif directory is None:
+        return standarddir.download()
+    else:
+        return directory
 
 
 def _path_suggestion(filename):
@@ -80,7 +93,6 @@ class DownloadItemStats(QObject):
     """Statistics (bytes done, total bytes, time, etc.) about a download.
 
     Class attributes:
-        SPEED_REFRESH_INTERVAL: How often to refresh the speed, in msec.
         SPEED_AVG_WINDOW: How many seconds of speed data to average to
                           estimate the remaining time.
 
@@ -93,10 +105,7 @@ class DownloadItemStats(QObject):
                     the speed the last time.
     """
 
-    SPEED_REFRESH_INTERVAL = 500
     SPEED_AVG_WINDOW = 30
-
-    updated = pyqtSignal()
 
     def __init__(self, parent=None):
         super().__init__(parent)
@@ -104,31 +113,32 @@ class DownloadItemStats(QObject):
         self.done = 0
         self.speed = 0
         self._last_done = 0
-        samples = int(self.SPEED_AVG_WINDOW *
-                      (1000 / self.SPEED_REFRESH_INTERVAL))
+        samples = int(self.SPEED_AVG_WINDOW * (1000 / REFRESH_INTERVAL))
         self._speed_avg = collections.deque(maxlen=samples)
-        self.timer = usertypes.Timer(self, 'speed_refresh')
-        self.timer.timeout.connect(self._update_speed)
-        self.timer.setInterval(self.SPEED_REFRESH_INTERVAL)
-        self.timer.start()
 
-    @pyqtSlot()
-    def _update_speed(self):
-        """Recalculate the current download speed."""
+    def update_speed(self):
+        """Recalculate the current download speed.
+
+        The caller needs to guarantee this is called all REFRESH_INTERVAL ms.
+        """
+        if self.done is None:
+            # this can happen for very fast downloads, e.g. when actually
+            # opening a file
+            return
         delta = self.done - self._last_done
-        self.speed = delta * 1000 / self.SPEED_REFRESH_INTERVAL
+        self.speed = delta * 1000 / REFRESH_INTERVAL
         self._speed_avg.append(self.speed)
         self._last_done = self.done
-        self.updated.emit()
 
     def finish(self):
         """Set the download stats as finished."""
-        self.timer.stop()
         self.done = self.total
 
     def percentage(self):
         """The current download percentage, or None if unknown."""
-        if self.total == 0 or self.total is None:
+        if self.done == self.total:
+            return 100
+        elif self.total == 0 or self.total is None:
             return None
         else:
             return 100 * self.done / self.total
@@ -230,7 +240,6 @@ class DownloadItem(QObject):
         self.retry_info = None
         self.done = False
         self.stats = DownloadItemStats(self)
-        self.stats.updated.connect(self.data_changed)
         self.index = 0
         self.autoclose = True
         self.reply = None
@@ -433,6 +442,7 @@ class DownloadItem(QObject):
             filename: The full filename to save the download to.
                       None: special value to stop the download.
         """
+        global _last_used_directory
         if self.fileobj is not None:
             raise ValueError("fileobj was already set! filename: {}, "
                              "existing: {}, fileobj {}".format(
@@ -447,6 +457,8 @@ class DownloadItem(QObject):
             # from the user, so we append that to the default directory and
             # try again.
             self._create_full_filename(os.path.join(_download_dir(), filename))
+
+        _last_used_directory = os.path.dirname(self._filename)
 
         log.downloads.debug("Setting filename to {}".format(filename))
         if os.path.isfile(self._filename):
@@ -630,6 +642,9 @@ class DownloadManager(QAbstractListModel):
         self.questions = []
         self._networkmanager = networkmanager.NetworkManager(
             win_id, None, self)
+        self._update_timer = usertypes.Timer(self, 'download-update')
+        self._update_timer.timeout.connect(self.update_gui)
+        self._update_timer.setInterval(REFRESH_INTERVAL)
 
     def __repr__(self):
         return utils.get_repr(self, downloads=len(self.downloads))
@@ -644,18 +659,21 @@ class DownloadManager(QAbstractListModel):
         self.questions.append(q)
         return q
 
+    @pyqtSlot()
+    def update_gui(self):
+        """Periodical GUI update of all items."""
+        assert self.downloads
+        for dl in self.downloads:
+            dl.stats.update_speed()
+        self.dataChanged.emit(self.index(0), self.last_index())
+
     @pyqtSlot('QUrl', 'QWebPage')
-    def get(self, url, page=None, fileobj=None, filename=None,
-            auto_remove=False):
+    def get(self, url, **kwargs):
         """Start a download with a link URL.
 
         Args:
             url: The URL to get, as QUrl
-            page: The QWebPage to get the download from.
-            fileobj: The file object to write the answer to.
-            filename: A path to write the data to.
-            auto_remove: Whether to remove the download even if
-                         ui -> remove-finished-downloads is set to false.
+            **kwargs: passed to get_request().
 
         Return:
             If the download could start immediately, (fileobj/filename given),
@@ -663,25 +681,24 @@ class DownloadManager(QAbstractListModel):
 
             If not, None.
         """
-        if fileobj is not None and filename is not None:
-            raise TypeError("Only one of fileobj/filename may be given!")
         if not url.isValid():
             urlutils.invalid_url_error(self._win_id, url, "start download")
             return
         req = QNetworkRequest(url)
-        return self.get_request(req, page, fileobj, filename, auto_remove)
+        return self.get_request(req, **kwargs)
 
-    def get_request(self, request, page=None, fileobj=None, filename=None,
-                    auto_remove=False):
+    def get_request(self, request, *, fileobj=None, filename=None,
+                    prompt_download_directory=None, **kwargs):
         """Start a download with a QNetworkRequest.
 
         Args:
             request: The QNetworkRequest to download.
-            page: The QWebPage to use.
             fileobj: The file object to write the answer to.
             filename: A path to write the data to.
-            auto_remove: Whether to remove the download even if
-                         ui -> remove-finished-downloads is set to false.
+            prompt_download_directory: Whether to prompt for the download dir
+                                       or automatically download. If None, the
+                                       config is used.
+            **kwargs: Passed to fetch_request.
 
         Return:
             If the download could start immediately, (fileobj/filename given),
@@ -696,9 +713,19 @@ class DownloadManager(QAbstractListModel):
         request.setAttribute(QNetworkRequest.CacheLoadControlAttribute,
                              QNetworkRequest.AlwaysNetwork)
         suggested_fn = urlutils.filename_from_url(request.url())
+
+        if prompt_download_directory is None:
+            prompt_download_directory = config.get(
+                'storage', 'prompt-download-directory')
+        if not prompt_download_directory and not fileobj:
+            filename = config.get('storage', 'download-directory')
+
         if fileobj is not None or filename is not None:
-            return self.fetch_request(request, page, fileobj, filename,
-                                      auto_remove, suggested_fn)
+            return self.fetch_request(request,
+                                      fileobj=fileobj,
+                                      filename=filename,
+                                      suggested_filename=suggested_fn,
+                                      **kwargs)
         if suggested_fn is None:
             suggested_fn = 'qutebrowser-download'
         else:
@@ -709,23 +736,20 @@ class DownloadManager(QAbstractListModel):
         message_bridge = objreg.get('message-bridge', scope='window',
                                     window=self._win_id)
         q.answered.connect(
-            lambda fn: self.fetch_request(request, page, filename=fn,
-                                          auto_remove=auto_remove,
-                                          suggested_filename=suggested_fn))
+            lambda fn: self.fetch_request(request,
+                                          filename=fn,
+                                          suggested_filename=suggested_fn,
+                                          **kwargs))
         message_bridge.ask(q, blocking=False)
         return None
 
-    def fetch_request(self, request, page=None, fileobj=None, filename=None,
-                      auto_remove=False, suggested_filename=None):
+    def fetch_request(self, request, *, page=None, **kwargs):
         """Download a QNetworkRequest to disk.
 
         Args:
             request: The QNetworkRequest to download.
             page: The QWebPage to use.
-            fileobj: The file object to write the answer to.
-            filename: A path to write the data to.
-            auto_remove: Whether to remove the download even if
-                         ui -> remove-finished-downloads is set to false.
+            **kwargs: passed to fetch().
 
         Return:
             The created DownloadItem.
@@ -735,12 +759,11 @@ class DownloadManager(QAbstractListModel):
         else:
             nam = page.networkAccessManager()
         reply = nam.get(request)
-        return self.fetch(reply, fileobj, filename, auto_remove,
-                          suggested_filename)
+        return self.fetch(reply, **kwargs)
 
     @pyqtSlot('QNetworkReply')
-    def fetch(self, reply, fileobj=None, filename=None, auto_remove=False,
-              suggested_filename=None):
+    def fetch(self, reply, *, fileobj=None, filename=None, auto_remove=False,
+              suggested_filename=None, prompt_download_directory=None):
         """Download a QNetworkReply to disk.
 
         Args:
@@ -781,6 +804,14 @@ class DownloadManager(QAbstractListModel):
         self.beginInsertRows(QModelIndex(), idx, idx)
         self.downloads.append(download)
         self.endInsertRows()
+
+        if not self._update_timer.isActive():
+            self._update_timer.start()
+
+        prompt_download_directory = config.get('storage',
+                                               'prompt-download-directory')
+        if not prompt_download_directory and not fileobj:
+            filename = config.get('storage', 'download-directory')
 
         if filename is not None:
             download.set_filename(filename)
@@ -977,6 +1008,8 @@ class DownloadManager(QAbstractListModel):
         self.endRemoveRows()
         download.deleteLater()
         self.update_indexes()
+        if not self.downloads:
+            self._update_timer.stop()
 
     def remove_items(self, downloads):
         """Remove an iterable of downloads."""
@@ -1005,6 +1038,8 @@ class DownloadManager(QAbstractListModel):
             else:
                 download.deleteLater()
         self.endRemoveRows()
+        if not self.downloads:
+            self._update_timer.stop()
 
     def update_indexes(self):
         """Update indexes of all DownloadItems."""

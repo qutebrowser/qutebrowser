@@ -161,7 +161,8 @@ class Command:
         elif 'self' not in signature.parameters and self._instance is not None:
             raise TypeError("{} is not a class method, but instance was "
                             "given!".format(self.name[0]))
-        elif inspect.getfullargspec(self.handler).varkw is not None:
+        elif any(param.kind == inspect.Parameter.VAR_KEYWORD
+                 for param in signature.parameters.values()):
             raise TypeError("{}: functions with varkw arguments are not "
                             "supported!".format(self.name[0]))
 

@@ -22,7 +22,6 @@
 import io
 import sys
 import enum
-import inspect
 import os.path
 import collections
 import functools
@@ -88,6 +87,20 @@ def read_file(filename, binary=False):
         if not binary:
             data = data.decode('UTF-8')
         return data
+
+
+def resource_filename(filename):
+    """Get the absolute filename of a file contained with qutebrowser.
+
+    Args:
+        filename: The filename.
+
+    Return:
+        The absolute filename.
+    """
+    if hasattr(sys, 'frozen'):
+        return os.path.join(os.path.dirname(sys.executable), filename)
+    return pkg_resources.resource_filename(qutebrowser.__name__, filename)
 
 
 def actute_warning():
@@ -548,20 +561,18 @@ def qualname(obj):
     """
     if isinstance(obj, functools.partial):
         obj = obj.func
-    if hasattr(obj, '__qualname__'):
-        name = obj.__qualname__
-    elif hasattr(obj, '__name__'):
-        name = obj.__name__
-    else:
-        name = repr(obj)
 
-    if inspect.isclass(obj) or inspect.isfunction(obj):
-        module = obj.__module__
-        return "{}.{}".format(module, name)
-    elif inspect.ismethod(obj):
-        return "{}.{}".format(obj.__module__, name)
+    if hasattr(obj, '__module__'):
+        prefix = '{}.'.format(obj.__module__)
     else:
-        return name
+        prefix = ''
+
+    if hasattr(obj, '__qualname__'):
+        return '{}{}'.format(prefix, obj.__qualname__)
+    elif hasattr(obj, '__name__'):
+        return '{}{}'.format(prefix, obj.__name__)
+    else:
+        return repr(obj)
 
 
 def raises(exc, func, *args):

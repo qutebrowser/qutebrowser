@@ -186,9 +186,6 @@ class BaseKeyParser(QObject):
 
         match, binding = self._match_key(cmd_input)
 
-        if not isinstance(match, self.Match):
-            raise TypeError("Value {} is no Match member!".format(match))
-
         if match == self.Match.definitive:
             self._debug_log("Definitive match for '{}'.".format(
                 self._keystring))
@@ -205,6 +202,8 @@ class BaseKeyParser(QObject):
             self._debug_log("Giving up with '{}', no matches".format(
                 self._keystring))
             self._keystring = ''
+        else:
+            raise AssertionError("Invalid match value {!r}".format(match))
         return match
 
     def _match_key(self, cmd_input):
@@ -327,17 +326,21 @@ class BaseKeyParser(QObject):
         self.special_bindings = {}
         keyconfparser = objreg.get('key-config')
         for (key, cmd) in keyconfparser.get_bindings_for(modename).items():
-            if not cmd:
-                continue
-            elif key.startswith('<') and key.endswith('>'):
-                keystr = utils.normalize_keystr(key[1:-1])
-                self.special_bindings[keystr] = cmd
-            elif self._supports_chains:
-                self.bindings[key] = cmd
-            elif self._warn_on_keychains:
-                log.keyboard.warning(
-                    "Ignoring keychain '{}' in mode '{}' because "
-                    "keychains are not supported there.".format(key, modename))
+            assert cmd
+            self._parse_key_command(modename, key, cmd)
+
+    def _parse_key_command(self, modename, key, cmd):
+        """Parse the keys and their command and store them in the object."""
+        if key.startswith('<') and key.endswith('>'):
+            keystr = utils.normalize_keystr(key[1:-1])
+            self.special_bindings[keystr] = cmd
+        elif self._supports_chains:
+            self.bindings[key] = cmd
+        elif self._warn_on_keychains:
+            log.keyboard.warning(
+                "Ignoring keychain '{}' in mode '{}' because "
+                "keychains are not supported there."
+                .format(key, modename))
 
     def execute(self, cmdstr, keytype, count=None):
         """Handle a completed keychain.
@@ -353,7 +356,7 @@ class BaseKeyParser(QObject):
     def on_keyconfig_changed(self, mode):
         """Re-read the config if a key binding was changed."""
         if self._modename is None:
-            raise AttributeError("on_keyconfig_changed called but no section "
+            raise AssertionError("on_keyconfig_changed called but no section "
                                  "defined!")
         if mode == self._modename:
             self.read_config()

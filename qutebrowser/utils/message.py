@@ -112,7 +112,7 @@ def on_focus_changed():
 
 
 def error(win_id, message, immediately=False):
-    """Convienience function to display an error message in the statusbar.
+    """Convenience function to display an error message in the statusbar.
 
     Args:
         win_id: The ID of the window which is calling this function.
@@ -122,7 +122,7 @@ def error(win_id, message, immediately=False):
 
 
 def warning(win_id, message, immediately=False):
-    """Convienience function to display a warning message in the statusbar.
+    """Convenience function to display a warning message in the statusbar.
 
     Args:
         win_id: The ID of the window which is calling this function.
@@ -132,7 +132,7 @@ def warning(win_id, message, immediately=False):
 
 
 def info(win_id, message, immediately=True):
-    """Convienience function to display an info message in the statusbar.
+    """Convenience function to display an info message in the statusbar.
 
     Args:
         win_id: The ID of the window which is calling this function.
@@ -142,7 +142,7 @@ def info(win_id, message, immediately=True):
 
 
 def set_cmd_text(win_id, txt):
-    """Convienience function to Set the statusbar command line to a text."""
+    """Convenience function to Set the statusbar command line to a text."""
     _wrapper(win_id, 'set_cmd_text', txt)
 
 

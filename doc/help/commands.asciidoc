@@ -8,6 +8,9 @@
 |<<adblock-update,adblock-update>>|Update the adblock block lists.
 |<<back,back>>|Go back in the history of the current tab.
 |<<bind,bind>>|Bind a key to a command.
+|<<bookmark-add,bookmark-add>>|Save the current page as a bookmark.
+|<<bookmark-del,bookmark-del>>|Delete a bookmark.
+|<<bookmark-load,bookmark-load>>|Load a bookmark.
 |<<close,close>>|Close the current window.
 |<<download,download>>|Download a given URL, or current page if no URL given.
 |<<download-cancel,download-cancel>>|Cancel the last/[count]th download.
@@ -57,6 +60,7 @@
 |<<view-source,view-source>>|Show the source of the current page.
 |<<wq,wq>>|Save open pages and quit.
 |<<yank,yank>>|Yank the current URL/title to the clipboard or primary selection.
+|<<yank-selected,yank-selected>>|Yank the selected text to the clipboard or primary selection.
 |<<zoom,zoom>>|Set the zoom level for the current tab.
 |<<zoom-in,zoom-in>>|Increase the zoom level for the current tab.
 |<<zoom-out,zoom-out>>|Decrease the zoom level for the current tab.
@@ -93,6 +97,41 @@ Bind a key to a command.
 * +*-m*+, +*--mode*+: A comma-separated list of modes to bind the key in (default: `normal`).
 
 * +*-f*+, +*--force*+: Rebind the key if it is already bound.
+
+==== note
+* This command does not split arguments after the last argument and handles quotes literally.
+* With this command, +;;+ is interpreted literally instead of splitting off a second command.
+
+[[bookmark-add]]
+=== bookmark-add
+Save the current page as a bookmark.
+
+[[bookmark-del]]
+=== bookmark-del
+Syntax: +:bookmark-del 'url'+
+
+Delete a bookmark.
+
+==== positional arguments
+* +'url'+: The URL of the bookmark to delete.
+
+==== note
+* This command does not split arguments after the last argument and handles quotes literally.
+* With this command, +;;+ is interpreted literally instead of splitting off a second command.
+
+[[bookmark-load]]
+=== bookmark-load
+Syntax: +:bookmark-load [*--tab*] [*--bg*] [*--window*] 'url'+
+
+Load a bookmark.
+
+==== positional arguments
+* +'url'+: The url of the bookmark to load.
+
+==== optional arguments
+* +*-t*+, +*--tab*+: Load the bookmark in a new tab.
+* +*-b*+, +*--bg*+: Load the bookmark in a new background tab.
+* +*-w*+, +*--window*+: Load the bookmark in a new window.
 
 ==== note
 * This command does not split arguments after the last argument and handles quotes literally.
@@ -222,7 +261,11 @@ Start hinting.
  - With `spawn`: The executable and arguments to spawn.
  `{hint-url}` will get replaced by the selected
  URL.
- - With `userscript`: The userscript to execute.
+ - With `userscript`: The userscript to execute. Either store
+ the userscript in
+ `~/.local/share/qutebrowser/userscripts`
+ (or `$XDG_DATA_DIR`), or use an absolute
+ path.
  - With `fill`: The command to fill the statusbar with.
  `{hint-url}` will get replaced by the selected
  URL.
@@ -241,6 +284,8 @@ Open main startpage in current tab.
 [[inspector]]
 === inspector
 Toggle the web inspector.
+
+Note: Due a bug in Qt, the inspector will show incorrect request headers in the network tab.
 
 [[jseval]]
 === jseval
@@ -539,7 +584,9 @@ Note the {url} variable which gets replaced by the current URL might be useful h
 * +'cmdline'+: The commandline to execute.
 
 ==== optional arguments
-* +*-u*+, +*--userscript*+: Run the command as a userscript.
+* +*-u*+, +*--userscript*+: Run the command as a userscript. Either store the userscript in `~/.local/share/qutebrowser/userscripts`
+ (or `$XDG_DATA_DIR`), or use an absolute path.
+
 * +*-v*+, +*--verbose*+: Show notifications when the command started/exited.
 * +*-d*+, +*--detach*+: Whether the command should be detached from qutebrowser.
 
@@ -588,6 +635,8 @@ Detach the current tab to its own window.
 Syntax: +:tab-focus ['index']+
 
 Select the tab given as argument/[count].
+
+If neither count nor index are given, it behaves like tab-next.
 
 ==== positional arguments
 * +'index'+: The tab index to focus, starting with 1. The special value `last` focuses the last focused tab.
@@ -673,6 +722,16 @@ Yank the current URL/title to the clipboard or primary selection.
 * +*-s*+, +*--sel*+: Use the primary selection instead of the clipboard.
 * +*-d*+, +*--domain*+: Yank only the scheme, domain, and port number.
 
+[[yank-selected]]
+=== yank-selected
+Syntax: +:yank-selected [*--sel*] [*--keep*]+
+
+Yank the selected text to the clipboard or primary selection.
+
+==== optional arguments
+* +*-s*+, +*--sel*+: Use the primary selection instead of the clipboard.
+* +*-k*+, +*--keep*+: If given, stay in visual mode after yanking.
+
 [[zoom]]
 === zoom
 Syntax: +:zoom ['zoom']+
@@ -711,6 +770,7 @@ How many steps to zoom out.
 |<<command-accept,command-accept>>|Execute the command currently in the commandline.
 |<<command-history-next,command-history-next>>|Go forward in the commandline history.
 |<<command-history-prev,command-history-prev>>|Go back in the commandline history.
+|<<completion-item-del,completion-item-del>>|Delete the current completion item.
 |<<completion-item-next,completion-item-next>>|Select the next completion item.
 |<<completion-item-prev,completion-item-prev>>|Select the previous completion item.
 |<<drop-selection,drop-selection>>|Drop selection and keep selection mode enabled.
@@ -760,7 +820,6 @@ How many steps to zoom out.
 |<<search-next,search-next>>|Continue the search to the ([count]th) next term.
 |<<search-prev,search-prev>>|Continue the search to the ([count]th) previous term.
 |<<toggle-selection,toggle-selection>>|Toggle caret selection mode.
-|<<yank-selected,yank-selected>>|Yank the selected text to the clipboard or primary selection.
 |==============
 [[clear-keychain]]
 === clear-keychain
@@ -777,6 +836,10 @@ Go forward in the commandline history.
 [[command-history-prev]]
 === command-history-prev
 Go back in the commandline history.
+
+[[completion-item-del]]
+=== completion-item-del
+Delete the current completion item.
 
 [[completion-item-next]]
 === completion-item-next
@@ -1111,16 +1174,6 @@ How many elements to ignore.
 [[toggle-selection]]
 === toggle-selection
 Toggle caret selection mode.
-
-[[yank-selected]]
-=== yank-selected
-Syntax: +:yank-selected [*--sel*] [*--keep*]+
-
-Yank the selected text to the clipboard or primary selection.
-
-==== optional arguments
-* +*-s*+, +*--sel*+: Use the primary selection instead of the clipboard.
-* +*-k*+, +*--keep*+: If given, stay in visual mode after yanking.
 
 
 == Debugging commands

@@ -16,7 +16,7 @@ qutebrowser - a keyboard-driven, vim-like browser based on PyQt5 and QtWebKit.
 *qutebrowser* ['-OPTION' ['...']] [':COMMAND' ['...']] ['URL' ['...']]
 
 == DESCRIPTION
-qutebrowser is a keyboard-focused browser with with a minimal GUI. It's based
+qutebrowser is a keyboard-focused browser with a minimal GUI. It's based
 on Python, PyQt5 and QtWebKit and free software, licensed under the GPL.
 
 It was inspired by other browsers/addons like dwb and Vimperator/Pentadactyl.
@@ -61,6 +61,9 @@ show it.
 
 *-R*, *--override-restore*::
     Don't restore a session even if one would be restored.
+
+*--target* '{auto,tab,tab-bg,tab-silent,tab-bg-silent,window}'::
+    How URLs should be opened if there is already a qutebrowser instance running.
 
 === debug arguments
 *-l* 'LOGLEVEL', *--loglevel* 'LOGLEVEL'::

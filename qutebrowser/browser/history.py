@@ -52,11 +52,6 @@ class HistoryEntry:
     def __str__(self):
         return '{} {}'.format(int(self.atime), self.url_string)
 
-    @classmethod
-    def from_str(cls, s):
-        """Get a history based on a 'TIME URL' string."""
-        return cls(*s.split(' ', maxsplit=1))
-
 
 class WebHistory(QWebHistoryInterface):
 

@@ -41,11 +41,13 @@ class CompletionFilterModel(QSortFilterProxyModel):
         _sort_order: The order to use for sorting if using dumb_sort.
     """
 
-    def __init__(self, source, parent=None, *, dumb_sort=None):
+    def __init__(self, source, parent=None):
         super().__init__(parent)
         super().setSourceModel(source)
         self.srcmodel = source
         self.pattern = ''
+
+        dumb_sort = self.srcmodel.DUMB_SORT
         if dumb_sort is None:
             # pylint: disable=invalid-name
             self.lessThan = self.intelligentLessThan
@@ -130,19 +132,23 @@ class CompletionFilterModel(QSortFilterProxyModel):
             True if self.pattern is contained in item, or if it's a root item
             (category). False in all other cases
         """
-        if parent == QModelIndex():
+        if parent == QModelIndex() or not self.pattern:
             return True
-        idx = self.srcmodel.index(row, 0, parent)
-        if not idx.isValid():
-            # No entries in parent model
+
+        try:
+            return self.srcmodel.custom_filter(self.pattern, row, parent)
+        except NotImplementedError:
+            for col in self.srcmodel.columns_to_filter:
+                idx = self.srcmodel.index(row, col, parent)
+                if not idx.isValid():
+                    # No entries in parent model
+                    continue
+                data = self.srcmodel.data(idx)
+                if not data:
+                    continue
+                elif self.pattern.casefold() in data.casefold():
+                    return True
             return False
-        data = self.srcmodel.data(idx)
-        # TODO more sophisticated filtering
-        if not self.pattern:
-            return True
-        if not data:
-            return False
-        return self.pattern.casefold() in data.casefold()
 
     def intelligentLessThan(self, lindex, rindex):
         """Custom sorting implementation.

@@ -514,9 +514,15 @@ class HintManager(QObject):
         if url is None:
             self._show_url_error()
             return
+        if context.rapid:
+            prompt = False
+        else:
+            prompt = None
+
         download_manager = objreg.get('download-manager', scope='window',
                                       window=self._win_id)
-        download_manager.get(url, elem.webFrame().page())
+        download_manager.get(url, page=elem.webFrame().page(),
+                             prompt_download_directory=prompt)
 
     def _call_userscript(self, elem, context):
         """Call a userscript from a hint.
@@ -596,13 +602,16 @@ class HintManager(QObject):
         # Then check for regular links/buttons.
         elems = frame.findAllElements(
             webelem.SELECTORS[webelem.Group.prevnext])
+        elems = [webelem.WebElementWrapper(e) for e in elems]
+        filterfunc = webelem.FILTERS[webelem.Group.prevnext]
+        elems = [e for e in elems if filterfunc(e)]
+
         option = 'prev-regexes' if prev else 'next-regexes'
         if not elems:
             return None
         for regex in config.get('hints', option):
             log.hints.vdebug("== Checking regex '{}'.".format(regex.pattern))
             for e in elems:
-                e = webelem.WebElementWrapper(e)
                 text = str(e)
                 if not text:
                     continue
@@ -740,7 +749,11 @@ class HintManager(QObject):
                 - With `spawn`: The executable and arguments to spawn.
                                 `{hint-url}` will get replaced by the selected
                                 URL.
-                - With `userscript`: The userscript to execute.
+                - With `userscript`: The userscript to execute. Either store
+                                     the userscript in
+                                     `~/.local/share/qutebrowser/userscripts`
+                                     (or `$XDG_DATA_DIR`), or use an absolute
+                                     path.
                 - With `fill`: The command to fill the statusbar with.
                                 `{hint-url}` will get replaced by the selected
                                 URL.
@@ -761,7 +774,8 @@ class HintManager(QObject):
 
         if rapid:
             if target in [Target.tab_bg, Target.window, Target.run,
-                          Target.hover, Target.userscript, Target.spawn]:
+                          Target.hover, Target.userscript, Target.spawn,
+                          Target.download]:
                 pass
             elif (target == Target.tab and
                   config.get('tabs', 'background-tabs')):
