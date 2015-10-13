@@ -98,7 +98,6 @@ class Process(QObject):
         while self.proc.canReadLine():
             line = self.proc.readLine()
             line = bytes(line).decode('utf-8').rstrip('\r\n')
-            print(line)
 
             try:
                 parsed = self._parse_line(line)

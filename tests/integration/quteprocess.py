@@ -78,6 +78,10 @@ class QuteProc(testprocess.Process):
                 raise testprocess.InvalidLine
         log_line = LogLine(**match.groupdict())
 
+        if (log_line.loglevel in ['INFO', 'WARNING', 'ERROR'] or
+                pytest.config.getoption('--verbose')):
+            print(line)
+
         start_okay_message = ("load status for "
                               "<qutebrowser.browser.webview.WebView tab_id=0 "
                               "url='about:blank'>: LoadStatus.success")

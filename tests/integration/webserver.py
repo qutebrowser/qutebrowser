@@ -84,6 +84,7 @@ class HTTPBin(testprocess.Process):
         return self._get_data()
 
     def _parse_line(self, line):
+        print(line)
         if line == (' * Running on http://127.0.0.1:{}/ (Press CTRL+C to '
                     'quit)'.format(self.port)):
             self.ready.emit()
