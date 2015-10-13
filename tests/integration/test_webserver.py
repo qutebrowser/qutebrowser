@@ -46,5 +46,5 @@ def test_httpbin(httpbin, qtbot, path, content, expected):
 
     data = response.read().decode('utf-8')
 
-    assert httpbin.get_requests() == [('GET', path)]
+    assert httpbin.get_requests() == [httpbin.Request('GET', path)]
     assert (content in data) == expected

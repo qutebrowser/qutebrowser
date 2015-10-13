@@ -51,6 +51,7 @@ class HTTPBin(testprocess.Process):
     """
 
     new_request = pyqtSignal(Request)
+    Request = Request  # So it can be used from the fixture easily.
 
     LOG_RE = re.compile(r"""
         (?P<host>[^ ]*)

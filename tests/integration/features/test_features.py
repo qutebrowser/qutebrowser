@@ -45,10 +45,11 @@ def run_command(quteproc, command):
 @bdd.then(bdd.parsers.parse("{path} should be loaded"))
 def path_should_be_loaded(httpbin, path):
     requests = httpbin.get_requests()
-    assert requests[-1] == ('GET', '/' + path)
+    assert requests[-1] == httpbin.Request('GET', '/' + path)
 
 
 @bdd.then(bdd.parsers.parse("The requests should be:\n{pages}"))
 def lost_of_loaded_pages(httpbin, pages):
-    requests = [('GET', '/' + path.strip()) for path in pages.split('\n')]
+    requests = [httpbin.Request('GET', '/' + path.strip())
+                for path in pages.split('\n')]
     assert httpbin.get_requests() == requests
