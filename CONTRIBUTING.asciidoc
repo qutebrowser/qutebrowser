@@ -227,7 +227,7 @@ Hints
 Python and Qt objects
 ~~~~~~~~~~~~~~~~~~~~~
 
-For many tasks, there are solutions in both Qt and the Python standard libary
+For many tasks, there are solutions in both Qt and the Python standard library
 available.
 
 In qutebrowser, the policy is usually using the Python libraries, as they
@@ -565,7 +565,7 @@ qutebrowser release
 
 * Create annotated git tag (`git tag -s "v0.X.Y" -m "Release v0.X.Y"`)
 * If it's a new minor, create git branch `v0.X.x`
-* If commiting on minor branch, cherry-pick release commit to master.
+* If committing on minor branch, cherry-pick release commit to master.
 * `git push origin`; `git push origin v0.X.Y`
 * Create release on github
 * Mark the milestone at https://github.com/The-Compiler/qutebrowser/milestones

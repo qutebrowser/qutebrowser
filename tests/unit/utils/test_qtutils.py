@@ -478,7 +478,7 @@ class TestSavefileOpen:
         assert tmpdir.listdir() == [filename]
 
     def test_failing_commit(self, tmpdir):
-        """Test with the file being closed before comitting."""
+        """Test with the file being closed before committing."""
         filename = tmpdir / 'foo'
         with pytest.raises(OSError) as excinfo:
             with qtutils.savefile_open(str(filename), binary=True) as f:
@@ -695,7 +695,7 @@ class TestPyQIODevice:
         assert len(pyqiodev) == len(data)
 
     def test_failing_open(self, tmpdir):
-        """Test open() which fails (because it's an existant directory)."""
+        """Test open() which fails (because it's an existent directory)."""
         qf = QFile(str(tmpdir))
         dev = qtutils.PyQIODevice(qf)
         with pytest.raises(qtutils.QtOSError) as excinfo:

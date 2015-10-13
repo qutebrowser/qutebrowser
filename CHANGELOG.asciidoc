@@ -481,7 +481,7 @@ Removed
 Fixed
 ~~~~~
 
-* Fix rare exception when a key is pressed shorly after opening a window
+* Fix rare exception when a key is pressed shortly after opening a window
 * Fix exception with certain invalid URLs like `http:foo:0`
 * Work around Qt bug which renders checkboxes on OS X unusable
 * Fix exception when a local files can't be read in `:adblock-update`

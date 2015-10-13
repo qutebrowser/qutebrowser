@@ -115,7 +115,7 @@ Experiencing segfaults (crashes) on Debian systems.::
 
 Segfaults on Facebook, Medium, Amazon, ...::
     If you are on a Debian or Ubuntu based system, you might experience some crashes
-    visting these sites. This is caused by various bugs in Qt which have been
+    visiting these sites. This is caused by various bugs in Qt which have been
     fixed in Qt 5.4. However Debian and Ubuntu are slow to adopt or upgrade
     some packages. On Debian Jessie, it's recommended to use the experimental
     repos as described in https://github.com/The-Compiler/qutebrowser/blob/master/INSTALL.asciidoc#on-debian--ubuntu[INSTALL].
