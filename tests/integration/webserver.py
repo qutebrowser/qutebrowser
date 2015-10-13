@@ -34,7 +34,7 @@ from PyQt5.QtCore import pyqtSignal
 import testprocess  # pylint: disable=import-error
 
 
-Request = collections.namedtuple('Request', 'verb, url')
+Request = collections.namedtuple('Request', 'verb, path')
 
 
 class HTTPBin(testprocess.Process):
@@ -59,7 +59,7 @@ class HTTPBin(testprocess.Process):
         \ \[(?P<date>[^]]*)\]
         \ "(?P<request>
             (?P<verb>[^ ]*)
-            \ (?P<url>[^ ]*)
+            \ (?P<path>[^ ]*)
             \ (?P<protocol>[^ ]*)
         )"
         \ (?P<status>[^ ]*)
@@ -81,7 +81,8 @@ class HTTPBin(testprocess.Process):
 
     def get_requests(self):
         """Get the requests to the server during this test."""
-        return self._get_data()
+        requests = self._get_data()
+        return [r for r in requests if r.path != '/favicon.ico']
 
     def _parse_line(self, line):
         print(line)
@@ -96,7 +97,7 @@ class HTTPBin(testprocess.Process):
         # FIXME do we need to allow other options?
         assert match.group('protocol') == 'HTTP/1.1'
 
-        return Request(verb=match.group('verb'), url=match.group('url'))
+        return Request(verb=match.group('verb'), path=match.group('path'))
 
     def _executable_args(self):
         if hasattr(sys, 'frozen'):
