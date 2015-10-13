@@ -78,7 +78,7 @@ def test_did_not_load(sess_man):
 class TestExists:
 
     @pytest.mark.parametrize('absolute', [True, False])
-    def test_existant(self, tmpdir, absolute):
+    def test_existent(self, tmpdir, absolute):
         session_dir = tmpdir / 'sessions'
         abs_session = tmpdir / 'foo.yml'
         rel_session = session_dir / 'foo.yml'

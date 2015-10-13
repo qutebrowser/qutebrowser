@@ -232,8 +232,8 @@ class TestInitCacheDirTag:
         mocker.patch('builtins.open', side_effect=AssertionError)
         standarddir._init_cachedir_tag()
 
-    def test_existant_cache_dir_tag(self, tmpdir, mocker, monkeypatch):
-        """Test with an existant CACHEDIR.TAG."""
+    def test_existent_cache_dir_tag(self, tmpdir, mocker, monkeypatch):
+        """Test with an existent CACHEDIR.TAG."""
         monkeypatch.setattr('qutebrowser.utils.standarddir.cache',
                             lambda: str(tmpdir))
         mocker.patch('builtins.open', side_effect=AssertionError)
