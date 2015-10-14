@@ -28,7 +28,7 @@ from qutebrowser.utils import usertypes
 
 
 # Note this has entries for success/error/warn from widgets.webview:LoadStatus
-UrlType = usertypes.enum('UrlType', ['success', 'error', 'warn', 'hover',
+UrlType = usertypes.enum('UrlType', ['success', 'success_https', ' error', 'warn', 'hover',
                                      'normal'])
 
 
@@ -59,6 +59,10 @@ class UrlText(textbase.TextBase):
 
         QLabel#UrlText[urltype="success"] {
             {{ color['statusbar.url.fg.success'] }}
+        }
+
+        QLabel#UrlText[urltype="success_https"] {
+            {{ color['statusbar.url.fg.success.https'] }}
         }
 
         QLabel#UrlText[urltype="error"] {
@@ -116,8 +120,8 @@ class UrlText(textbase.TextBase):
             status_str: The LoadStatus as string.
         """
         status = webview.LoadStatus[status_str]
-        if status in (webview.LoadStatus.success, webview.LoadStatus.error,
-                      webview.LoadStatus.warn):
+        if status in (webview.LoadStatus.success, webview.LoadStatus.success_https,
+                      webview.LoadStatus.error, webview.LoadStatus.warn):
             self._normal_url_type = UrlType[status_str]
         else:
             self._normal_url_type = UrlType.normal
