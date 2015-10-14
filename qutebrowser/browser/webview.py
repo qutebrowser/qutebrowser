@@ -35,8 +35,8 @@ from qutebrowser.utils import message, log, usertypes, utils, qtutils, objreg
 from qutebrowser.browser import webpage, hints, webelem
 
 
-LoadStatus = usertypes.enum('LoadStatus', ['none', 'success', 'success_https', 'error', 'warn',
-                                           'loading'])
+LoadStatus = usertypes.enum('LoadStatus', ['none', 'success', 'success_https',
+                                           'error', 'warn', 'loading'])
 
 
 tab_id_gen = itertools.count(0)
