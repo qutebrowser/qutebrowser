@@ -423,7 +423,7 @@ class WebView(QWebView):
         """
         ok = not self.page().error_occurred
         if ok and not self._has_ssl_errors:
-            if self.cur_url.toDisplayString().startswith('https'):
+            if self.cur_url.scheme() == 'https':
                 self._set_load_status(LoadStatus.success_https)
             else:
                 self._set_load_status(LoadStatus.success)

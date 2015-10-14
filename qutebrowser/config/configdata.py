@@ -872,17 +872,13 @@ def data(readonly=False):
              SettingValue(typ.QssColor(), '#ff4444'),
              "Foreground color of the matched text in the completion."),
 
-            ('statusbar.fg.https',
-             SettingValue(typ.QssColor(), 'white'),
-             "Foreground color of the statusbar(https)."),
-
             ('statusbar.fg',
              SettingValue(typ.QssColor(), 'white'),
              "Foreground color of the statusbar(http)."),
 
             ('statusbar.bg',
              SettingValue(typ.QssColor(), 'black'),
-             "Background color of the statusbar(http)."),
+             "Background color of the statusbar."),
 
             ('statusbar.fg.error',
              SettingValue(typ.QssColor(), '${statusbar.fg}'),
