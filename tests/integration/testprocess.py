@@ -97,7 +97,7 @@ class Process(QObject):
         """Read the log from the process' stdout."""
         while self.proc.canReadLine():
             line = self.proc.readLine()
-            line = bytes(line).decode('utf-8').rstrip('\r\n')
+            line = bytes(line).decode('utf-8', errors='ignore').rstrip('\r\n')
 
             try:
                 parsed = self._parse_line(line)
