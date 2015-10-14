@@ -87,7 +87,8 @@ def check_spelling():
              '[Rr]eproducable', '[Aa]n [Uu]ser', '[Cc]onvienience',
              '[Ww]ether', '[Pp]rogramatically', '[Ss]plitted', '[Ee]xitted',
              '[Mm]ininum', '[Rr]esett?ed', '[Rr]ecieved', '[Rr]egularily',
-             '[Uu]nderlaying', '[Ii]nexistant', '[Ee]lipsis'}
+             '[Uu]nderlaying', '[Ii]nexistant', '[Ee]lipsis', 'commiting',
+             'existant'}
 
     # Words which look better when splitted, but might need some fine tuning.
     words |= {'[Ww]ebelements', '[Mm]ouseevent', '[Kk]eysequence',
