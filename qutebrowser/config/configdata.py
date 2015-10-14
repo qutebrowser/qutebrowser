@@ -874,7 +874,7 @@ def data(readonly=False):
 
             ('statusbar.fg',
              SettingValue(typ.QssColor(), 'white'),
-             "Foreground color of the statusbar(http)."),
+             "Foreground color of the statusbar."),
 
             ('statusbar.bg',
              SettingValue(typ.QssColor(), 'black'),
