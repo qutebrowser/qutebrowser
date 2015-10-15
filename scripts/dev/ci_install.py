@@ -88,7 +88,7 @@ if 'APPVEYOR' in os.environ:
 
     check_setup(r'C:\Python34\python')
 elif TRAVIS_OS == 'linux':
-    print("travis_fold:start:install")
+    print("travis_fold:start:ci_install")
     print("sudo pip install tox/npm")
     subprocess.check_call(['sudo', 'pip', 'install', 'tox'])
 
@@ -112,7 +112,7 @@ elif TRAVIS_OS == 'linux':
         subprocess.check_call(['sudo', 'npm', 'install', '-g', 'eslint'])
     else:
         check_setup('python3')
-    print("travis_fold:end:install")
+    print("travis_fold:end:ci_install")
 elif TRAVIS_OS == 'osx':
     print("brew update...")
     brew(['update'], silent=True)
