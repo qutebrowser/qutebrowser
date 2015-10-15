@@ -83,24 +83,24 @@ class CompletionView(QTreeView):
         }
 
         QTreeView QScrollBar {
-            width: 12px;
-            {{ color['completion.scrollbar.bg'] }};
+            width: {{ config.get('completion', 'scrollbar.width') }}px;
+            {{ color['completion.scrollbar.bg'] }}
         }
 
-        QTreeView QScrollBar::handle{
-            /**
+        QTreeView QScrollBar::handle {
+            /*
             This is done this way to evade 'magic'
             ref: http://git.io/vCMqZ
             Will need to be changed when we utilize jinja better.
-            **/
+            */
             background: {{ config.get('colors', 'completion.scrollbar.fg') }};
-            border: 2px solid
+            border: {{ config.get('completion', 'scrollbar.padding') }}px solid
                     {{ config.get('colors', 'completion.scrollbar.bg') }};
         }
 
         QTreeView QScrollBar::sub-line, QScrollBar::add-line {
             border: none;
-            background:none;
+            background: none;
         }
     """
 
