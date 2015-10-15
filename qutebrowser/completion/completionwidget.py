@@ -81,10 +81,28 @@ class CompletionView(QTreeView):
         QTreeView:item::hover {
             border: 0px;
         }
-    """
 
-    # FIXME style scrollbar
-    # https://github.com/The-Compiler/qutebrowser/issues/117
+        QTreeView QScrollBar {
+            width: 12px;
+            {{ color['completion.scrollbar.bg'] }};
+        }
+
+        QTreeView QScrollBar::handle{
+            /**
+            This is done this way to evade 'magic'
+            ref: http://git.io/vCMqZ
+            Will need to be changed when we utilize jinja better.
+            **/
+            background: {{ config.get('colors', 'completion.scrollbar.fg') }};
+            border: 2px solid
+                    {{ config.get('colors', 'completion.scrollbar.bg') }};
+        }
+
+        QTreeView QScrollBar::sub-line, QScrollBar::add-line {
+            border: none;
+            background:none;
+        }
+    """
 
     resize_completion = pyqtSignal()
 
