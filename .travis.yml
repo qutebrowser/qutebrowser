@@ -1,5 +1,6 @@
 # So we get Ubuntu Trusty - using "dist: trusty" breaks OS X.
-services: docker
+sudo: required
+dist: trusty
 
 os:
   - linux
