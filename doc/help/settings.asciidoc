@@ -197,7 +197,7 @@
 |<<colors-completion.item.selected.border.bottom,completion.item.selected.border.bottom>>|Bottom border color of the selected completion item.
 |<<colors-completion.match.fg,completion.match.fg>>|Foreground color of the matched text in the completion.
 |<<colors-statusbar.fg,statusbar.fg>>|Foreground color of the statusbar.
-|<<colors-statusbar.bg,statusbar.bg>>|Foreground color of the statusbar.
+|<<colors-statusbar.bg,statusbar.bg>>|Background color of the statusbar.
 |<<colors-statusbar.fg.error,statusbar.fg.error>>|Foreground color of the statusbar if there was an error.
 |<<colors-statusbar.bg.error,statusbar.bg.error>>|Background color of the statusbar if there was an error.
 |<<colors-statusbar.fg.warning,statusbar.fg.warning>>|Foreground color of the statusbar if there is a warning.
@@ -214,7 +214,8 @@
 |<<colors-statusbar.bg.caret-selection,statusbar.bg.caret-selection>>|Background color of the statusbar in caret mode with a selection
 |<<colors-statusbar.progress.bg,statusbar.progress.bg>>|Background color of the progress bar.
 |<<colors-statusbar.url.fg,statusbar.url.fg>>|Default foreground color of the URL in the statusbar.
-|<<colors-statusbar.url.fg.success,statusbar.url.fg.success>>|Foreground color of the URL in the statusbar on successful load.
+|<<colors-statusbar.url.fg.success,statusbar.url.fg.success>>|Foreground color of the URL in the statusbar on successful load (http).
+|<<colors-statusbar.url.fg.success.https,statusbar.url.fg.success.https>>|Foreground color of the URL in the statusbar on successful load (https).
 |<<colors-statusbar.url.fg.error,statusbar.url.fg.error>>|Foreground color of the URL in the statusbar on error.
 |<<colors-statusbar.url.fg.warn,statusbar.url.fg.warn>>|Foreground color of the URL in the statusbar when there's a warning.
 |<<colors-statusbar.url.fg.hover,statusbar.url.fg.hover>>|Foreground color of the URL in the statusbar for hovered links.
@@ -1662,7 +1663,7 @@ Default: +pass:[white]+
 
 [[colors-statusbar.bg]]
 === statusbar.bg
-Foreground color of the statusbar.
+Background color of the statusbar.
 
 Default: +pass:[black]+
 
@@ -1764,7 +1765,13 @@ Default: +pass:[${statusbar.fg}]+
 
 [[colors-statusbar.url.fg.success]]
 === statusbar.url.fg.success
-Foreground color of the URL in the statusbar on successful load.
+Foreground color of the URL in the statusbar on successful load (http).
+
+Default: +pass:[white]+
+
+[[colors-statusbar.url.fg.success.https]]
+=== statusbar.url.fg.success.https
+Foreground color of the URL in the statusbar on successful load (https).
 
 Default: +pass:[lime]+
 

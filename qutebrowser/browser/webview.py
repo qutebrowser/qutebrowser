@@ -35,8 +35,8 @@ from qutebrowser.utils import message, log, usertypes, utils, qtutils, objreg
 from qutebrowser.browser import webpage, hints, webelem
 
 
-LoadStatus = usertypes.enum('LoadStatus', ['none', 'success', 'error', 'warn',
-                                           'loading'])
+LoadStatus = usertypes.enum('LoadStatus', ['none', 'success', 'success_https',
+                                           'error', 'warn', 'loading'])
 
 
 tab_id_gen = itertools.count(0)
@@ -423,7 +423,11 @@ class WebView(QWebView):
         """
         ok = not self.page().error_occurred
         if ok and not self._has_ssl_errors:
-            self._set_load_status(LoadStatus.success)
+            if self.cur_url.scheme() == 'https':
+                self._set_load_status(LoadStatus.success_https)
+            else:
+                self._set_load_status(LoadStatus.success)
+
         elif ok:
             self._set_load_status(LoadStatus.warn)
         else:

@@ -33,6 +33,8 @@ Added
   the URL should be affected by `:navigate increment/decrement`.
 - New `--target` argument to specify how URLs should be opened in an existing
   instance.
+- New setting `statusbar.url.fg.success.https` to set the foreground color for
+  the URL when a page was loaded via HTTPS.
 
 Changed
 ~~~~~~~

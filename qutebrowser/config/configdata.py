@@ -878,7 +878,7 @@ def data(readonly=False):
 
             ('statusbar.bg',
              SettingValue(typ.QssColor(), 'black'),
-             "Foreground color of the statusbar."),
+             "Background color of the statusbar."),
 
             ('statusbar.fg.error',
              SettingValue(typ.QssColor(), '${statusbar.fg}'),
@@ -947,9 +947,14 @@ def data(readonly=False):
              "Default foreground color of the URL in the statusbar."),
 
             ('statusbar.url.fg.success',
+             SettingValue(typ.QssColor(), 'white'),
+             "Foreground color of the URL in the statusbar on successful "
+             "load (http)."),
+
+            ('statusbar.url.fg.success.https',
              SettingValue(typ.QssColor(), 'lime'),
              "Foreground color of the URL in the statusbar on successful "
-             "load."),
+             "load (https)."),
 
             ('statusbar.url.fg.error',
              SettingValue(typ.QssColor(), 'orange'),
