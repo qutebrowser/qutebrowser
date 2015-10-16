@@ -28,7 +28,7 @@ from qutebrowser.utils import usertypes
 
 
 # Note this has entries for success/error/warn from widgets.webview:LoadStatus
-UrlType = usertypes.enum('UrlType', ['success', 'success_https', ' error',
+UrlType = usertypes.enum('UrlType', ['success', 'success_https', 'error',
                                      'warn', 'hover', 'normal'])
 
 
