@@ -83,10 +83,7 @@ class ColorDict(collections.UserDict):
             If a value wasn't found, return an empty string.
             (Color not defined, so no output in the stylesheet)
 
-            If the key has a .fg. element in it, return  color: X;.
-            If the key has a .bg. element in it, return  background-color: X;.
-
-            In all other cases, return the plain value.
+            else, return the plain value.
         """
         try:
             val = self.data[key]
@@ -98,10 +95,6 @@ class ColorDict(collections.UserDict):
             # QtColor instead of Color in the config, and it'd go unnoticed as
             # the CSS is invalid then.
             raise TypeError("QColor passed to ColorDict!")
-        if 'fg' in key.split('.'):
-            return 'color: {};'.format(val)
-        elif 'bg' in key.split('.'):
-            return 'background-color: {};'.format(val)
         else:
             return val
 
