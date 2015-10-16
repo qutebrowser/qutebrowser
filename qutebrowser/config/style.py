@@ -41,9 +41,8 @@ def get_stylesheet(template_str):
         The formatted template as string.
     """
     colordict = ColorDict(config.section('colors'))
-    fontdict = FontDict(config.section('fonts'))
     template = jinja2.Template(template_str)
-    return template.render(color=colordict, font=fontdict)
+    return template.render(color=colordict, font=config.section('fonts'))
 
 
 def set_register_stylesheet(obj):
@@ -97,27 +96,3 @@ class ColorDict(collections.UserDict):
             raise TypeError("QColor passed to ColorDict!")
         else:
             return val
-
-
-class FontDict(collections.UserDict):
-
-    """A dict aimed at Qt stylesheet fonts."""
-
-    def __getitem__(self, key):
-        """Override dict __getitem__.
-
-        Args:
-            key: The key to get from the dict.
-
-        Return:
-            If a value wasn't found, return an empty string.
-            (Color not defined, so no output in the stylesheet)
-
-            In all other cases, return font: <value>.
-        """
-        try:
-            val = self.data[key]
-        except KeyError:
-            return ''
-        else:
-            return 'font: {};'.format(val)
