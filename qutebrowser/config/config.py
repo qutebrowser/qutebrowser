@@ -33,6 +33,7 @@ import collections
 import collections.abc
 
 from PyQt5.QtCore import pyqtSignal, pyqtSlot, QObject, QUrl, QSettings
+from PyQt5.QtWidgets import QApplication
 
 from qutebrowser.config import configdata, configexc, textwrapper
 from qutebrowser.config.parsers import ini, keyconf
@@ -134,11 +135,13 @@ def section(sect):
     return objreg.get('config')[sect]
 
 
-def _init_main_config(parent=None):
+def _init_main_config(parent=None, reload=False):
     """Initialize the main config.
 
     Args:
         parent: The parent to pass to ConfigManager.
+        reload: Indicated we are reloading the file, rather than reading it on
+        startup.
     """
     args = objreg.get('args')
     try:
@@ -154,31 +157,38 @@ def _init_main_config(parent=None):
             pass
         errstr += "\n"
         error.handle_fatal_exc(e, args, "Error while reading config!",
-                               pre_text=errstr)
+                                pre_text=errstr)
+        if reload:
+            raise e
         # We didn't really initialize much so far, so we just quit hard.
-        sys.exit(usertypes.Exit.err_config)
-    else:
-        objreg.register('config', config_obj)
-        if standarddir.config() is not None:
-            filename = os.path.join(standarddir.config(), 'qutebrowser.conf')
-            save_manager = objreg.get('save-manager')
-            save_manager.add_saveable(
-                'config', config_obj.save, config_obj.changed,
-                config_opt=('general', 'auto-save-config'), filename=filename)
-            for sect in config_obj.sections.values():
-                for opt in sect.values.values():
-                    if opt.values['conf'] is None:
-                        # Option added to built-in defaults but not in user's
-                        # config yet
-                        save_manager.save('config', explicit=True, force=True)
-                        return
+        else:
+            sys.exit(usertypes.Exit.err_config)
+
+    objreg.register('config', config_obj)
+    if standarddir.config() is not None:
+        filename = os.path.join(standarddir.config(), 'qutebrowser.conf')
+        save_manager = objreg.get('save-manager')
+        if 'config' in save_manager.saveables:
+            save_manager.remove_saveable('config')
+        save_manager.add_saveable(
+            'config', config_obj.save, config_obj.changed,
+            config_opt=('general', 'auto-save-config'), filename=filename)
+        for sect in config_obj.sections.values():
+            for opt in sect.values.values():
+                if opt.values['conf'] is None:
+                    # Option added to built-in defaults but not in user's
+                    # config yet
+                    save_manager.save('config', explicit=True, force=True)
+                    return
 
 
-def _init_key_config(parent):
+def _init_key_config(parent, reload=False):
     """Initialize the key config.
 
     Args:
         parent: The parent to use for the KeyConfigParser.
+        reload: Indicated we are reloading the file, rather than reading it on
+        startup.
     """
     args = objreg.get('args')
     try:
@@ -191,18 +201,23 @@ def _init_key_config(parent):
         if e.lineno is not None:
             errstr += "In line {}: ".format(e.lineno)
         error.handle_fatal_exc(e, args, "Error while reading key config!",
-                               pre_text=errstr)
+                            pre_text=errstr)
+        if reload:
+            raise e
         # We didn't really initialize much so far, so we just quit hard.
-        sys.exit(usertypes.Exit.err_key_config)
-    else:
-        objreg.register('key-config', key_config)
-        if standarddir.config() is not None:
-            save_manager = objreg.get('save-manager')
-            filename = os.path.join(standarddir.config(), 'keys.conf')
-            save_manager.add_saveable(
-                'key-config', key_config.save, key_config.config_dirty,
-                config_opt=('general', 'auto-save-config'), filename=filename,
-                dirty=key_config.is_dirty)
+        else:
+            sys.exit(usertypes.Exit.err_config)
+
+    objreg.register('key-config', key_config)
+    if standarddir.config() is not None:
+        save_manager = objreg.get('save-manager')
+        filename = os.path.join(standarddir.config(), 'keys.conf')
+        if 'key-config' in save_manager.saveables:
+            save_manager.remove_saveable('key-config')
+        save_manager.add_saveable(
+            'key-config', key_config.save, key_config.config_dirty,
+            config_opt=('general', 'auto-save-config'), filename=filename,
+            dirty=key_config.is_dirty)
 
 
 def _init_misc():
@@ -726,6 +741,52 @@ class ConfigManager(QObject):
             val = self.get(section_, option, transformed=False)
             message.info(win_id, "{} {} = {}".format(
                 section_, option, val), immediately=True)
+
+    @cmdutils.register(instance='config', win_id='win_id')
+    def reload_config(self, win_id):
+        """Reload the config & keyconfig files."""
+        old_config = objreg.get('config')
+        objreg.delete('config')
+        try:
+            _init_main_config(QApplication.instance(), True)
+        # Restore the old config if we failed
+        except:
+            if objreg.get('config', None) is not None:
+                objreg.delete('config')
+            objreg.register('config', old_config)
+            message.error(win_id, 'Reloading config failed; previous configuration restored.')
+            return
+
+        # Run _after_set() to notify code the setting has changed, but only for
+        # settings that actually changed value
+        for sect, settings in objreg.get('config').sections.items():
+            for key, _value in settings.items():
+                try:
+                    old_value = old_config.get(sect, key)
+                except:
+                    continue
+
+                new_value = objreg.get('config').get(sect, key)
+                if old_value == new_value:
+                    continue
+                log.config.debug('Setting {}.{} changed from {} to {}'.format(
+                                 sect, key, old_value, new_value))
+                self._after_set(sect, key)
+
+        # Also reload the key config
+        # TODO: Doesn't seem to take effect
+        old_key_config = objreg.get('key-config')
+        objreg.delete('key-config')
+        try:
+            _init_key_config(QApplication.instance(), True)
+        except:
+            if objreg.get('key-config', None) is not None:
+                objreg.delete('config')
+            objreg.register('key-config', old_key_config)
+            message.error(win_id, 'Reloading key config failed; previous configuration restored.')
+            return
+
+        objreg.get('key-config').changed.emit('normal')
 
     def set(self, layer, sectname, optname, value, validate=True):
         """Set an option.
