@@ -35,7 +35,7 @@ def test_get_stylesheet(config_stub):
     }
     template = "{{ color['completion.bg'] }}\n{{ font['completion'] }}"
     rendered = style.get_stylesheet(template)
-    assert rendered == 'background-color: black;\nfont: foo;'
+    assert rendered == 'black\nfont: foo;'
 
 
 class Obj(QObject):

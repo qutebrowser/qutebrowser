@@ -39,7 +39,7 @@ class Progress(QProgressBar):
         }
 
         QProgressBar::chunk {
-            {{ color['statusbar.progress.bg'] }}
+            background-color: {{ color['statusbar.progress.bg'] }};
         }
     """
 

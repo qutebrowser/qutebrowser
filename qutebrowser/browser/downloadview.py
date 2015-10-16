@@ -64,7 +64,7 @@ class DownloadView(QListView):
 
     STYLESHEET = """
         QListView {
-            {{ color['downloads.bg.bar'] }}
+            background-color: {{ color['downloads.bg.bar'] }};
             {{ font['downloads'] }}
         }
 
