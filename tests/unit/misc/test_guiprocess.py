@@ -109,7 +109,7 @@ def test_start_env(monkeypatch, qtbot, py_proc):
 
 
 @pytest.mark.not_frozen
-@pytest.mark.qt_log_ignore('QIODevice::read.*: WriteOnly device')
+@pytest.mark.qt_log_ignore('QIODevice::read.*: WriteOnly device', extend=True)
 def test_start_mode(proc, qtbot, py_proc):
     """Test simply starting a process with mode parameter."""
     with qtbot.waitSignals([proc.started, proc.finished], raising=True,
