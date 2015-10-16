@@ -55,7 +55,7 @@ class CompletionView(QTreeView):
     # don't define that in this stylesheet.
     STYLESHEET = """
         QTreeView {
-            {{ font['completion'] }}
+            font: {{ font['completion'] }};
             background-color: {{ color['completion.bg'] }};
             alternate-background-color: {{ color['completion.alternate-bg'] }};
             outline: 0;

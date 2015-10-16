@@ -110,7 +110,7 @@ class StatusBar(QWidget):
         QWidget#StatusBar,
         QWidget#StatusBar QLabel,
         QWidget#StatusBar QLineEdit {
-            {{ font['statusbar'] }}
+            font: {{ font['statusbar'] }};
             background-color: {{ color['statusbar.bg'] }};
             color: {{ color['statusbar.fg'] }};
         }
