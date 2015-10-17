@@ -148,6 +148,7 @@ Contributors, sorted by the number of commits in descending order:
 * Artur Shaik
 * Thorsten Wißmann
 * Alexey "Averrin" Nabrodov
+* meles5
 * ZDarian
 * John ShaggyTwoDope Jenkins
 * Peter Vilim
@@ -173,7 +174,6 @@ Contributors, sorted by the number of commits in descending order:
 * Fritz V155 Reichwald
 * Franz Fellner
 * zwarag
-* meles5
 * error800
 * Tim Harder
 * Thiago Barroso Perrotta
