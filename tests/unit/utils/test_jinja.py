@@ -64,8 +64,8 @@ def test_resource_url():
     path = url.path()
 
     if os.name == "nt":
-        path = path.replace("/", os.sep)
-        path = path[-1:]
+        path = path.lstrip('/')
+        path = path.replace('/', os.sep)
 
     with open(path, 'r', encoding='utf-8') as f:
         assert f.read().splitlines()[0] == "Hello World!"
