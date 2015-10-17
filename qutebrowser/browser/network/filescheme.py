@@ -25,10 +25,8 @@
 
 import os
 
-from PyQt5.QtCore import QUrl
-
 from qutebrowser.browser.network import schemehandler, networkreply
-from qutebrowser.utils import utils, jinja
+from qutebrowser.utils import jinja
 
 
 def get_file_list(basedir, all_files, filterfunc):
@@ -75,7 +73,6 @@ def dirbrowser_html(path):
     template = jinja.env.get_template('dirbrowser.html')
     # pylint: disable=no-member
     # https://bitbucket.org/logilab/pylint/issue/490/
-
 
     if is_root(path):
         parent = None

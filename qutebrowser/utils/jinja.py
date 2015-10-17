@@ -63,11 +63,11 @@ def _guess_autoescape(template_name):
 
 
 def resource_url(path):
-    # If Windows is the operating system, replace slashes with backslashes
-    if os.name == "nt":
-        path = path.replace("/", os.sep)
-        path = path[:-1]
-    
+    """Load images from a relative path (to qutebrowser).
+
+    Arguments:
+        path: The relative path to the image
+    """
     image = utils.resource_filename(path)
     return QUrl.fromLocalFile(image).toString(QUrl.FullyEncoded)
 
