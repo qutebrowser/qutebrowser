@@ -78,7 +78,7 @@ function searchFor(uri) {
 			<td style="padding-left: 40px;">
 				<h1>Unable to load page</h1>
 				Error while opening {{ url }}: <br>
-				<p style="color: #a31a1a;">{{ error }}</p><br><br>
+				<p id="error-message-text" style="color: #a31a1a;">{{ error }}</p><br><br>
 				
 				<form name="bl">
 					<input type="button" value="Try again" onclick="javascript:tryagain()" />
