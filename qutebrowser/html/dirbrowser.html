@@ -32,11 +32,11 @@ ul > li {
 }
 
 ul > li {
-    background-image: url('{{folder_url}}');
+    background-image: url('{{ resource_url('img/folder.svg') }}');
 }
 
 ul.files > li {
-    background-image: url('{{file_url}}');
+    background-image: url('{{ resource_url('img/file.svg') }}');
 }
 {% endblock %}
 

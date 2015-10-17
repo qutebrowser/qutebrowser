@@ -45,6 +45,7 @@ Changed
   relative paths in `~/.local/share/qutebrowser/userscripts` or
   `$XDG_DATA_DIR`. Using a binary in `$PATH` won't work anymore with
   `--userscript`.
+- New design for error pages
 
 Fixed
 ~~~~~

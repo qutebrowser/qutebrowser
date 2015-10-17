@@ -120,7 +120,7 @@ class TestDirbrowserHtml:
     def test_icons(self, monkeypatch):
         """Make sure icon paths are correct file:// URLs."""
         monkeypatch.setattr(
-            'qutebrowser.browser.network.filescheme.utils.resource_filename',
+            'qutebrowser.utils.jinja.utils.resource_filename',
             lambda name: '/test path/foo.svg')
 
         html = filescheme.dirbrowser_html(os.getcwd())
@@ -198,9 +198,7 @@ class TestDirbrowserHtml:
         html = filescheme.dirbrowser_html('')
         soup = bs4.BeautifulSoup(html, 'html.parser')
         print(soup.prettify())
-        error_title = soup('p', id='errorTitleText')[0].string
-        error_msg = soup('p', id='errorMessageText')[0].string
-        assert error_title == 'Unable to load page'
+        error_msg = soup('p', id='error-message-text')[0].string
         assert error_msg == 'Error message'
 
 
