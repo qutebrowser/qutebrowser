@@ -19,10 +19,12 @@
 
 """Tests for qutebrowser.utils.jinja."""
 
+import os
 import os.path
 
 import pytest
 import jinja2
+from PyQt5.QtCore import QUrl
 
 from qutebrowser.utils import jinja
 
@@ -34,6 +36,8 @@ def patch_read_file(monkeypatch):
         """A read_file which returns a simple template if the path is right."""
         if path == os.path.join('html', 'test.html'):
             return """Hello {{var}}"""
+        elif path == os.path.join('html', 'test2.html'):
+            return """{{ resource_url('utils/testfile') }}"""
         else:
             raise IOError("Invalid path {}!".format(path))
 
@@ -46,6 +50,25 @@ def test_simple_template():
     # https://bitbucket.org/logilab/pylint/issue/490/
     data = template.render(var='World')  # pylint: disable=no-member
     assert data == "Hello World"
+
+
+def test_resource_url():
+    """Test resource_url() which can be used from templates."""
+    template = jinja.env.get_template('test2.html')
+    data = template.render()  # pylint: disable=no-member
+    print(data)
+    url = QUrl(data)
+    assert url.isValid()
+    assert url.scheme() == 'file'
+
+    path = url.path()
+
+    if os.name == "nt":
+        path = path.lstrip('/')
+        path = path.replace('/', os.sep)
+
+    with open(path, 'r', encoding='utf-8') as f:
+        assert f.read().splitlines()[0] == "Hello World!"
 
 
 def test_not_found():
