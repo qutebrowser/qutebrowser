@@ -82,10 +82,14 @@ class TestColorDict:
 
     @pytest.mark.parametrize('key, expected', [
         ('foo', 'one'),
+        ('foo.fg', 'two'),
+        ('foo.bg', 'three'),
     ])
     def test_values(self, key, expected):
         d = style.ColorDict()
         d['foo'] = 'one'
+        d['foo.fg'] = 'two'
+        d['foo.bg'] = 'three'
         assert d[key] == expected
 
     def test_key_error(self, caplog):
