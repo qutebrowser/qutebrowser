@@ -81,10 +81,24 @@ class CompletionView(QTreeView):
         QTreeView:item::hover {
             border: 0px;
         }
-    """
 
-    # FIXME style scrollbar
-    # https://github.com/The-Compiler/qutebrowser/issues/117
+        QTreeView QScrollBar {
+            width: {{ config.get('completion', 'scrollbar.width') }}px;
+            background: {{ color['completion.scrollbar.bg'] }};
+        }
+
+        QTreeView QScrollBar::handle {
+            background: {{ color[completion.scrollbar.fg] }};
+            border: {{ config.get('completion', 'scrollbar.padding') }}px solid
+                    {{ color['completion.scrollbar.bg'] }};
+            min-height: 10px;
+        }
+
+        QTreeView QScrollBar::sub-line, QScrollBar::add-line {
+            border: none;
+            background: none;
+        }
+    """
 
     resize_completion = pyqtSignal()
 
