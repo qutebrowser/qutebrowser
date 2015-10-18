@@ -147,6 +147,7 @@ Contributors, sorted by the number of commits in descending order:
 * Austin Anderson
 * Artur Shaik
 * Thorsten Wißmann
+* Nathan Isom
 * Alexey "Averrin" Nabrodov
 * meles5
 * ZDarian
@@ -156,7 +157,6 @@ Contributors, sorted by the number of commits in descending order:
 * Zach-Button
 * rikn00
 * Patric Schmitz
-* Nathan Isom
 * Martin Zimmermann
 * Error 800
 * Brian Jackson
