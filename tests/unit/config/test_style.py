@@ -27,15 +27,25 @@ from PyQt5.QtGui import QColor
 from qutebrowser.config import style
 
 
-def test_get_stylesheet(config_stub):
+@pytest.mark.parametrize('template, expected', [
+    ("{{ color['completion.bg'] }}", "background-color: black;"),
+    ("{{ color['completion.fg'] }}", "color: red;"),
+    ("{{ font['completion'] }}", "font: foo;"),
+    ("{{ config.get('foo', 'bar') }}", "baz"),
+])
+def test_get_stylesheet(config_stub, template, expected):
     config_stub.data = {
-        'colors': {'completion.bg': 'black'},
-        'fonts': {'completion': 'foo'},
+        'colors': {
+            'completion.bg': 'black',
+            'completion.fg': 'red',
+        },
+        'fonts': {
+            'completion': 'foo',
+        },
         'foo': {'bar': 'baz'},
     }
-    template = "{{ color['completion.bg'] }}\n{{ font['completion'] }}"
     rendered = style.get_stylesheet(template)
-    assert rendered == 'background-color: black;\nfont: foo;'
+    assert rendered == expected
 
 
 class Obj(QObject):
@@ -105,7 +115,6 @@ class TestColorDict:
         d['foo'] = QColor()
         with pytest.raises(TypeError):
             d['foo']  # pylint: disable=pointless-statement
-
 
 @pytest.mark.parametrize('key, expected', [
     ('foo', 'font: one;'),
