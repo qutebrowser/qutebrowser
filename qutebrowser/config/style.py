@@ -42,7 +42,8 @@ def get_stylesheet(template_str):
     """
     colordict = ColorDict(config.section('colors'))
     template = jinja2.Template(template_str)
-    return template.render(color=colordict, font=config.section('fonts'))
+    return template.render(color=colordict, font=config.section('fonts'),
+                           config=objreg.get('config'))
 
 
 def set_register_stylesheet(obj):
