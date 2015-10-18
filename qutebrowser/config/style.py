@@ -1,4 +1,4 @@
-# vim: ft=python fileencoding=utf-8 sts=4 sw=4 et:D
+# vim: ft=python fileencoding=utf-8 sts=4 sw=4 et:
 
 # Copyright 2014-2015 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
 #

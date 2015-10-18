@@ -88,7 +88,7 @@ class CompletionView(QTreeView):
         }
 
         QTreeView QScrollBar::handle {
-            background: {{ color[completion.scrollbar.fg] }};
+            background: {{ color['completion.scrollbar.fg'] }};
             border: {{ config.get('completion', 'scrollbar.padding') }}px solid
                     {{ color['completion.scrollbar.bg'] }};
             min-height: 10px;
