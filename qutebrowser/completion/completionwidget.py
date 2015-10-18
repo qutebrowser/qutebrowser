@@ -55,15 +55,15 @@ class CompletionView(QTreeView):
     # don't define that in this stylesheet.
     STYLESHEET = """
         QTreeView {
-            {{ font['completion'] }}
-            {{ color['completion.bg'] }}
+            font: {{ font['completion'] }};
+            background-color: {{ color['completion.bg'] }};
             alternate-background-color: {{ color['completion.alternate-bg'] }};
             outline: 0;
             border: 0px;
         }
 
         QTreeView::item:disabled {
-            {{ color['completion.category.bg'] }}
+            background-color: {{ color['completion.category.bg'] }};
             border-top: 1px solid
                 {{ color['completion.category.border.top'] }};
             border-bottom: 1px solid
@@ -75,7 +75,7 @@ class CompletionView(QTreeView):
                 {{ color['completion.item.selected.border.top'] }};
             border-bottom: 1px solid
                 {{ color['completion.item.selected.border.bottom'] }};
-            {{ color['completion.item.selected.bg'] }}
+            background-color: {{ color['completion.item.selected.bg'] }};
         }
 
         QTreeView:item::hover {

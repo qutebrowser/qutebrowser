@@ -110,58 +110,58 @@ class StatusBar(QWidget):
         QWidget#StatusBar,
         QWidget#StatusBar QLabel,
         QWidget#StatusBar QLineEdit {
-            {{ font['statusbar'] }}
-            {{ color['statusbar.bg'] }}
-            {{ color['statusbar.fg'] }}
+            font: {{ font['statusbar'] }};
+            background-color: {{ color['statusbar.bg'] }};
+            color: {{ color['statusbar.fg'] }};
         }
 
         QWidget#StatusBar[caret_mode="on"],
         QWidget#StatusBar[caret_mode="on"] QLabel,
         QWidget#StatusBar[caret_mode="on"] QLineEdit {
-            {{ color['statusbar.fg.caret'] }}
-            {{ color['statusbar.bg.caret'] }}
+            color: {{ color['statusbar.fg.caret'] }};
+            background-color: {{ color['statusbar.bg.caret'] }};
         }
 
         QWidget#StatusBar[caret_mode="selection"],
         QWidget#StatusBar[caret_mode="selection"] QLabel,
         QWidget#StatusBar[caret_mode="selection"] QLineEdit {
-            {{ color['statusbar.fg.caret-selection'] }}
-            {{ color['statusbar.bg.caret-selection'] }}
+            color: {{ color['statusbar.fg.caret-selection'] }};
+            background-color: {{ color['statusbar.bg.caret-selection'] }};
         }
 
         QWidget#StatusBar[severity="error"],
         QWidget#StatusBar[severity="error"] QLabel,
         QWidget#StatusBar[severity="error"] QLineEdit {
-            {{ color['statusbar.fg.error'] }}
-            {{ color['statusbar.bg.error'] }}
+            color: {{ color['statusbar.fg.error'] }};
+            background-color: {{ color['statusbar.bg.error'] }};
         }
 
         QWidget#StatusBar[severity="warning"],
         QWidget#StatusBar[severity="warning"] QLabel,
         QWidget#StatusBar[severity="warning"] QLineEdit {
-            {{ color['statusbar.fg.warning'] }}
-            {{ color['statusbar.bg.warning'] }}
+            color: {{ color['statusbar.fg.warning'] }};
+            background-color: {{ color['statusbar.bg.warning'] }};
         }
 
         QWidget#StatusBar[prompt_active="true"],
         QWidget#StatusBar[prompt_active="true"] QLabel,
         QWidget#StatusBar[prompt_active="true"] QLineEdit {
-            {{ color['statusbar.fg.prompt'] }}
-            {{ color['statusbar.bg.prompt'] }}
+            color: {{ color['statusbar.fg.prompt'] }};
+            background-color: {{ color['statusbar.bg.prompt'] }};
         }
 
         QWidget#StatusBar[insert_active="true"],
         QWidget#StatusBar[insert_active="true"] QLabel,
         QWidget#StatusBar[insert_active="true"] QLineEdit {
-            {{ color['statusbar.fg.insert'] }}
-            {{ color['statusbar.bg.insert'] }}
+            color: {{ color['statusbar.fg.insert'] }};
+            background-color: {{ color['statusbar.bg.insert'] }};
         }
 
         QWidget#StatusBar[command_active="true"],
         QWidget#StatusBar[command_active="true"] QLabel,
         QWidget#StatusBar[command_active="true"] QLineEdit {
-            {{ color['statusbar.fg.command'] }}
-            {{ color['statusbar.bg.command'] }}
+            color: {{ color['statusbar.fg.command'] }};
+            background-color: {{ color['statusbar.bg.command'] }};
         }
 
     """
