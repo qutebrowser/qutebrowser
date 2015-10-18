@@ -35,7 +35,7 @@ def test_get_stylesheet(config_stub):
     }
     template = "{{ color['completion.bg'] }}\n{{ font['completion'] }}"
     rendered = style.get_stylesheet(template)
-    assert rendered == 'black\nfont: foo;'
+    assert rendered == 'black\nfoo'
 
 
 class Obj(QObject):
@@ -59,9 +59,9 @@ def test_set_register_stylesheet(delete, qtbot, config_stub, caplog):
 
     records = caplog.records()
     assert len(records) == 1
-    assert records[0].message == 'stylesheet for Obj: font: bar;'
+    assert records[0].message == 'stylesheet for Obj: bar'
 
-    assert obj.rendered_stylesheet == 'font: bar;'
+    assert obj.rendered_stylesheet == 'bar'
 
     if delete:
         with qtbot.waitSignal(obj.destroyed):
@@ -72,9 +72,9 @@ def test_set_register_stylesheet(delete, qtbot, config_stub, caplog):
     config_stub.changed.emit('fonts', 'foo')
 
     if delete:
-        expected = 'font: bar;'
+        expected = 'bar'
     else:
-        expected = 'font: baz;'
+        expected = 'baz'
     assert obj.rendered_stylesheet == expected
 
 
@@ -103,11 +103,3 @@ class TestColorDict:
             d['foo']  # pylint: disable=pointless-statement
 
 
-@pytest.mark.parametrize('key, expected', [
-    ('foo', 'font: one;'),
-    ('bar', ''),
-])
-def test_font_dict(key, expected):
-    d = style.FontDict()
-    d['foo'] = 'one'
-    assert d[key] == expected
