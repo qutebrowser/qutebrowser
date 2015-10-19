@@ -33,7 +33,7 @@ import email.mime.multipart
 from PyQt5.QtCore import QUrl
 
 from qutebrowser.browser import webelem
-from qutebrowser.utils import log, objreg, message, usertypes
+from qutebrowser.utils import log, objreg, message, usertypes, utils, urlutils
 
 try:
     import cssutils
@@ -237,7 +237,7 @@ class _Downloader():
 
         self.writer = MHTMLWriter(
             web_frame.toHtml().encode('utf-8'),
-            content_location=web_url.toString(),
+            content_location=urlutils.encoded_url(web_url),
             # I've found no way of getting the content type of a QWebView, but
             # since we're using .toHtml, it's probably safe to say that the
             # content-type is HTML
@@ -347,8 +347,12 @@ class _Downloader():
                 self.fetch_url(absolute_url)
 
         encode = E_QUOPRI if mime.startswith('text/') else E_BASE64
-        self.writer.add_file(url.toString(), item.fileobj.getvalue(), mime,
-                             encode)
+        # Our MHTML handler refuses non-ASCII headers. This will replace every
+        # non-ASCII char with '?'. This is probably okay, as official Content-
+        # Type headers contain ASCII only anyway. Anything else is madness.
+        mime = utils.force_encoding(mime, 'ascii')
+        self.writer.add_file(urlutils.encoded_url(url),
+                             item.fileobj.getvalue(), mime, encode)
         item.fileobj.actual_close()
         if self.pending_downloads:
             return
@@ -369,7 +373,7 @@ class _Downloader():
             log.downloads.debug("Oops! Download already gone: %s", item)
             return
         item.fileobj.actual_close()
-        self.writer.add_file(url.toString(), b'')
+        self.writer.add_file(ulrutils.encoded_url(url), b'')
         if self.pending_downloads:
             return
         self.finish_file()

@@ -527,6 +527,19 @@ def test_same_domain_invalid_url(url1, url2):
     with pytest.raises(urlutils.InvalidUrlError):
         urlutils.same_domain(QUrl(url1), QUrl(url2))
 
+
+@pytest.mark.parametrize('url, expected', [
+    ('http://example.com', 'http://example.com'),
+    ('http://ünicode.com', 'http://xn--nicode-2ya.com'),
+    ('http://foo.bar/?header=text/pläin',
+     'http://foo.bar/?header=text/pl%C3%A4in'),
+])
+def test_encoded_url(url, expected):
+    """Test encoded_url"""
+    url = QUrl(url)
+    assert urlutils.encoded_url(url) == expected
+
+
 class TestIncDecNumber:
 
     """Tests for urlutils.incdec_number()."""
