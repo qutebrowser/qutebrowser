@@ -117,11 +117,20 @@ elif TRAVIS_OS == 'osx':
     print("brew update...")
     brew(['update'], silent=True)
 
+    # https://github.com/Homebrew/homebrew/issues/45114
+    print("Patching PyQt formula...")
+    brew_path = subprocess.check_output(['brew', '--prefix']).strip()
+    pyqt_file = os.path.join(brew_path, 'Library', 'Formula', 'pyqt5.rb')
+    os.remove(pyqt_file)
+    urllib.urlretrieve(
+        'https://raw.githubusercontent.com/UniqMartin/homebrew/023a20a7959680952d166beca66d2995439d4540/Library/Formula/pyqt5.rb',
+        pyqt_file)
+
     print("Installing packages...")
-    pkgs = ['python3']
+    brew(['install', 'python3'])
     if INSTALL_PYQT:
-        pkgs.append('pyqt5')
-    brew(['install'] + pkgs)
+        brew(['install', 'qt5', 'sip'])
+        brew(['install', 'pyqt5', '--build-from-source'])
 
     print("Installing tox...")
     subprocess.check_call(['sudo', 'pip3', 'install', 'tox'])
