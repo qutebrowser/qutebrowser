@@ -49,7 +49,7 @@ ModelRole = usertypes.enum('ModelRole', ['item'], start=Qt.UserRole,
 RetryInfo = collections.namedtuple('RetryInfo', ['request', 'manager'])
 
 # Remember the last used directory
-_last_used_directory = None
+last_used_directory = None
 
 
 # All REFRESH_INTERVAL milliseconds, speeds will be recalculated and downloads
@@ -57,13 +57,13 @@ _last_used_directory = None
 REFRESH_INTERVAL = 500
 
 
-def _download_dir():
+def download_dir():
     """Get the download directory to use."""
     directory = config.get('storage', 'download-directory')
     remember_dir = config.get('storage', 'remember-download-directory')
 
-    if remember_dir and _last_used_directory is not None:
-        return _last_used_directory
+    if remember_dir and last_used_directory is not None:
+        return last_used_directory
     elif directory is None:
         return standarddir.download()
     else:
@@ -79,13 +79,34 @@ def path_suggestion(filename):
     suggestion = config.get('completion', 'download-path-suggestion')
     if suggestion == 'path':
         # add trailing '/' if not present
-        return os.path.join(_download_dir(), '')
+        return os.path.join(download_dir(), '')
     elif suggestion == 'filename':
         return filename
     elif suggestion == 'both':
-        return os.path.join(_download_dir(), filename)
+        return os.path.join(download_dir(), filename)
     else:
         raise ValueError("Invalid suggestion value {}!".format(suggestion))
+
+
+def create_full_filename(basename, filename):
+    """Create a full filename based on the given basename and filename.
+
+    Args:
+        basename: The basename to use if filename is a directory.
+        filename: The path to a folder or file where you want to save.
+
+    Return:
+        The full absolute path, or None if filename creation was not possible.
+    """
+    if os.path.isabs(filename) and os.path.isdir(filename):
+        # We got an absolute directory from the user, so we save it under
+        # the default filename in that directory.
+        return os.path.join(filename, basename)
+    elif os.path.isabs(filename):
+        # We got an absolute filename from the user, so we save it under
+        # that filename.
+        return filename
+    return None
 
 
 class DownloadItemStats(QObject):
@@ -447,7 +468,7 @@ class DownloadItem(QObject):
             filename: The full filename to save the download to.
                       None: special value to stop the download.
         """
-        global _last_used_directory
+        global last_used_directory
         if self.fileobj is not None:
             raise ValueError("fileobj was already set! filename: {}, "
                              "existing: {}, fileobj {}".format(
@@ -457,13 +478,16 @@ class DownloadItem(QObject):
         # See https://github.com/The-Compiler/qutebrowser/issues/427
         encoding = sys.getfilesystemencoding()
         filename = utils.force_encoding(filename, encoding)
-        if not self._create_full_filename(filename):
+        self._filename = create_full_filename(self.basename, filename)
+        if self._filename is None:
             # We only got a filename (without directory) or a relative path
             # from the user, so we append that to the default directory and
             # try again.
-            self._create_full_filename(os.path.join(_download_dir(), filename))
+            self._filename = create_full_filename(
+                self.basename, os.path.join(download_dir(), filename))
 
-        _last_used_directory = os.path.dirname(self._filename)
+        self.basename = os.path.basename(self._filename)
+        last_used_directory = os.path.dirname(self._filename)
 
         log.downloads.debug("Setting filename to {}".format(filename))
         if os.path.isfile(self._filename):
@@ -479,25 +503,6 @@ class DownloadItem(QObject):
             self._ask_confirm_question(txt)
         else:
             self._create_fileobj()
-
-    def _create_full_filename(self, filename):
-        """Try to create the full filename.
-
-        Return:
-            True if the full filename was created, False otherwise.
-        """
-        if os.path.isabs(filename) and os.path.isdir(filename):
-            # We got an absolute directory from the user, so we save it under
-            # the default filename in that directory.
-            self._filename = os.path.join(filename, self.basename)
-            return True
-        elif os.path.isabs(filename):
-            # We got an absolute filename from the user, so we save it under
-            # that filename.
-            self._filename = filename
-            self.basename = os.path.basename(self._filename)
-            return True
-        return False
 
     def set_fileobj(self, fileobj):
         """"Set the file object to write the download to.

@@ -23,6 +23,7 @@ import functools
 import io
 import os
 import re
+import sys
 import collections
 import uuid
 import email.policy
@@ -32,7 +33,7 @@ import email.mime.multipart
 
 from PyQt5.QtCore import QUrl
 
-from qutebrowser.browser import webelem
+from qutebrowser.browser import webelem, downloads
 from qutebrowser.utils import log, objreg, message, usertypes, utils, urlutils
 
 try:
@@ -373,7 +374,7 @@ class _Downloader():
             log.downloads.debug("Oops! Download already gone: %s", item)
             return
         item.fileobj.actual_close()
-        self.writer.add_file(ulrutils.encoded_url(url), b'')
+        self.writer.add_file(urlutils.encoded_url(url), b'')
         if self.pending_downloads:
             return
         self.finish_file()
@@ -428,11 +429,10 @@ def _start_download(dest, win_id, tab_id):
         dest: The filename where the resulting file should be saved.
         win_id, tab_id: Specify the tab whose page should be loaded.
     """
-
-    dest = os.path.expanduser(dest)
     web_view = objreg.get('webview', scope='tab', window=win_id, tab=tab_id)
     loader = _Downloader(web_view, dest)
     loader.run()
+
 
 def start_download_checked(dest, win_id, tab_id):
     """First check if dest is already a file, then start the download.
@@ -441,20 +441,37 @@ def start_download_checked(dest, win_id, tab_id):
         dest: The filename where the resulting file should be saved.
         win_id, tab_id: Specify the tab whose page should be loaded.
     """
-    # start_download will call os.path.expanduser on dest too, so no need to
-    # overwrite dest. We just want to make sure that we're checking
-    # the right path here. This also means that the user question will show the
-    # original path, not the expanded.
-    if not os.path.isfile(os.path.expanduser(dest)):
-        _start_download(dest, win_id=win_id, tab_id=tab_id)
+    # The default name is 'page title.mht'
+    title = (objreg.get('webview', scope='tab', window=win_id, tab=tab_id)
+             .title())
+    default_name = title + '.mht'
+
+    # Remove characters which cannot be expressed in the file system encoding
+    encoding = sys.getfilesystemencoding()
+    default_name = utils.force_encoding(default_name, encoding)
+    dest = utils.force_encoding(dest, encoding)
+
+    dest = os.path.expanduser(dest)
+
+    # See if we already have an absolute path
+    path = downloads.create_full_filename(default_name, dest)
+    if path is None:
+        # We still only have a relative path, prepend download_dir and
+        # try again.
+        path = downloads.create_full_filename(
+            default_name, os.path.join(downloads.download_dir(), dest))
+    downloads.last_used_directory = os.path.dirname(path)
+
+    if not os.path.isfile(path):
+        _start_download(path, win_id=win_id, tab_id=tab_id)
         return
 
     q = usertypes.Question()
     q.mode = usertypes.PromptMode.yesno
-    q.text = "{} exists. Overwrite?".format(dest)
+    q.text = "{} exists. Overwrite?".format(path)
     q.completed.connect(q.deleteLater)
     q.answered_yes.connect(functools.partial(
-        _start_download, dest, win_id=win_id, tab_id=tab_id))
+        _start_download, path, win_id=win_id, tab_id=tab_id))
     message_bridge = objreg.get('message-bridge', scope='window',
                                 window=win_id)
     message_bridge.ask(q, blocking=False)
