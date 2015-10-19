@@ -414,11 +414,11 @@ def data(readonly=False):
              "Whether to shrink the completion to be smaller than the "
              "configured size if there are no scrollbars."),
 
-            ('scrollbar.width',
+            ('scrollbar-width',
              SettingValue(typ.Int(minval=0), '12'),
              "Width of the scrollbar in the completion window (in px)."),
 
-            ('scrollbar.padding',
+            ('scrollbar-padding',
              SettingValue(typ.Int(minval=0), '2'),
              "Padding of scrollbar handle in completion window (in px)."),
 
