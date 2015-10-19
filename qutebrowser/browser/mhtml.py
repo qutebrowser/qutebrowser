@@ -415,39 +415,42 @@ class _NoCloseBytesIO(io.BytesIO):  # pylint: disable=no-init
         super().close()
 
 
-def start_download(dest):
+def _start_download(dest, win_id, tab_id):
     """Start downloading the current page and all assets to a MHTML file.
 
     This will overwrite dest if it already exists.
 
     Args:
         dest: The filename where the resulting file should be saved.
+        win_id, tab_id: Specify the tab whose page should be loaded.
     """
+
     dest = os.path.expanduser(dest)
-    web_view = objreg.get('webview', scope='tab', tab='current')
+    web_view = objreg.get('webview', scope='tab', window=win_id, tab=tab_id)
     loader = _Downloader(web_view, dest)
     loader.run()
 
-
-def start_download_checked(dest):
+def start_download_checked(dest, win_id, tab_id):
     """First check if dest is already a file, then start the download.
 
     Args:
         dest: The filename where the resulting file should be saved.
+        win_id, tab_id: Specify the tab whose page should be loaded.
     """
     # start_download will call os.path.expanduser on dest too, so no need to
     # overwrite dest. We just want to make sure that we're checking
     # the right path here. This also means that the user question will show the
     # original path, not the expanded.
     if not os.path.isfile(os.path.expanduser(dest)):
-        start_download(dest)
+        _start_download(dest, win_id=win_id, tab_id=tab_id)
         return
 
     q = usertypes.Question()
     q.mode = usertypes.PromptMode.yesno
     q.text = "{} exists. Overwrite?".format(dest)
     q.completed.connect(q.deleteLater)
-    q.answered_yes.connect(functools.partial(start_download, dest))
+    q.answered_yes.connect(functools.partial(
+        _start_download, dest, win_id=win_id, tab_id=tab_id))
     message_bridge = objreg.get('message-bridge', scope='window',
-                                window='current')
+                                window=win_id)
     message_bridge.ask(q, blocking=False)

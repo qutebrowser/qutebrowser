@@ -1153,8 +1153,8 @@ class CommandDispatcher:
             mhtml_: Download the current page and all assets as mhtml file.
         """
         if dest_old is not None:
-            message.warning('current', ":download [url] [dest] is deprecated -"
-                            " use download --dest [dest] [url]")
+            message.warning(self._win_id, ":download [url] [dest] is deprecated"
+                            " - use download --dest [dest] [url]")
             if dest is not None:
                 raise cmdexc.CommandError("Can't give two destinations for the"
                                           " download.")
@@ -1183,6 +1183,7 @@ class CommandDispatcher:
         Args:
             dest: The file path to write the download to.
         """
+        tab_id = self._current_index()
         if dest is None:
             suggested_fn = self._current_title() + ".mht"
             q = usertypes.Question()
@@ -1190,12 +1191,15 @@ class CommandDispatcher:
             q.mode = usertypes.PromptMode.text
             q.completed.connect(q.deleteLater)
             q.default = downloads.path_suggestion(suggested_fn)
-            q.answered.connect(mhtml.start_download_checked)
+            q.answered.connect(functools.partial(
+                mhtml.start_download_checked, win_id=self._win_id,
+                tab_id=tab_id))
             message_bridge = objreg.get("message-bridge", scope="window",
                                         window=self._win_id)
             message_bridge.ask(q, blocking=False)
         else:
-            mhtml.start_download_checked(dest)
+            mhtml.start_download_checked(dest, win_id=self._win_id,
+                                         tab_id=tab_id)
 
     @cmdutils.register(instance='command-dispatcher', scope='window',
                        deprecated="Use :download instead.")
