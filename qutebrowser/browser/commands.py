@@ -1153,8 +1153,9 @@ class CommandDispatcher:
             mhtml_: Download the current page and all assets as mhtml file.
         """
         if dest_old is not None:
-            message.warning(self._win_id, ":download [url] [dest] is deprecated"
-                            " - use download --dest [dest] [url]")
+            message.warning(
+                self._win_id, ":download [url] [dest] is deprecated - use"
+                              " download --dest [dest] [url]")
             if dest is not None:
                 raise cmdexc.CommandError("Can't give two destinations for the"
                                           " download.")
