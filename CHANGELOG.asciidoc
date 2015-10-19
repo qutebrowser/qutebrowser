@@ -35,6 +35,12 @@ Added
   instance.
 - New setting `statusbar.url.fg.success.https` to set the foreground color for
   the URL when a page was loaded via HTTPS.
+- The scrollbar in the completion is now styled, and the following new options
+  got added:
+    * `completion -> scrollbar-width`
+    * `completion -> scrollbar-padding`
+    * `colors -> completion.scrollbar.fg`
+    * `colors -> completion.scrollbar.bg`
 
 Changed
 ~~~~~~~

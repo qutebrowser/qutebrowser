@@ -78,6 +78,8 @@
 |<<completion-web-history-max-items,web-history-max-items>>|How many URLs to show in the web history.
 |<<completion-quick-complete,quick-complete>>|Whether to move on to the next part when there's only one possible completion left.
 |<<completion-shrink,shrink>>|Whether to shrink the completion to be smaller than the configured size if there are no scrollbars.
+|<<completion-scrollbar-width,scrollbar-width>>|Width of the scrollbar in the completion window (in px).
+|<<completion-scrollbar-padding,scrollbar-padding>>|Padding of scrollbar handle in completion window (in px).
 |==============
 
 .Quick reference for section ``input''
@@ -196,6 +198,8 @@
 |<<colors-completion.item.selected.border.top,completion.item.selected.border.top>>|Top border color of the completion widget category headers.
 |<<colors-completion.item.selected.border.bottom,completion.item.selected.border.bottom>>|Bottom border color of the selected completion item.
 |<<colors-completion.match.fg,completion.match.fg>>|Foreground color of the matched text in the completion.
+|<<colors-completion.scrollbar.fg,completion.scrollbar.fg>>|Color of the scrollbar handle in completion view.
+|<<colors-completion.scrollbar.bg,completion.scrollbar.bg>>|Color of the scrollbar in completion view
 |<<colors-statusbar.fg,statusbar.fg>>|Foreground color of the statusbar.
 |<<colors-statusbar.bg,statusbar.bg>>|Background color of the statusbar.
 |<<colors-statusbar.fg.error,statusbar.fg.error>>|Foreground color of the statusbar if there was an error.
@@ -832,6 +836,18 @@ Valid values:
  * +false+
 
 Default: +pass:[false]+
+
+[[completion-scrollbar-width]]
+=== scrollbar-width
+Width of the scrollbar in the completion window (in px).
+
+Default: +pass:[12]+
+
+[[completion-scrollbar-padding]]
+=== scrollbar-padding
+Padding of scrollbar handle in completion window (in px).
+
+Default: +pass:[2]+
 
 == input
 Options related to input modes.
@@ -1654,6 +1670,18 @@ Default: +pass:[${completion.item.selected.border.top}]+
 Foreground color of the matched text in the completion.
 
 Default: +pass:[#ff4444]+
+
+[[colors-completion.scrollbar.fg]]
+=== completion.scrollbar.fg
+Color of the scrollbar handle in completion view.
+
+Default: +pass:[${completion.fg}]+
+
+[[colors-completion.scrollbar.bg]]
+=== completion.scrollbar.bg
+Color of the scrollbar in completion view
+
+Default: +pass:[${completion.bg}]+
 
 [[colors-statusbar.fg]]
 === statusbar.fg
