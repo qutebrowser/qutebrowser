@@ -121,11 +121,12 @@ def _get_css_imports(data, inline=False):
 MHTMLPolicy = email.policy.default.clone(linesep='\r\n', max_line_length=0)
 
 
+# Encode the file using base64 encoding.
 E_BASE64 = email.encoders.encode_base64
-"""Encode the file using base64 encoding"""
 
+
+# Encode the file using MIME quoted-printable encoding.
 E_QUOPRI = email.encoders.encode_quopri
-"""Encode the file using MIME quoted-printable encoding."""
 
 
 class MHTMLWriter():
@@ -136,14 +137,13 @@ class MHTMLWriter():
         root_content: The root content as bytes.
         content_location: The url of the page as str.
         content_type: The MIME-type of the root content as str.
-        _files: Mapping of location->_File struct.
+        _files: Mapping of location->_File namedtuple.
     """
 
     def __init__(self, root_content, content_location, content_type):
         self.root_content = root_content
         self.content_location = content_location
         self.content_type = content_type
-
         self._files = {}
 
     def add_file(self, location, content, content_type=None,
@@ -165,7 +165,7 @@ class MHTMLWriter():
         """Output the MHTML file to the given file-like object.
 
         Args:
-            fp: The file-object, openend in "wb" mode.
+            fp: The file-object, opened in "wb" mode.
         """
         msg = email.mime.multipart.MIMEMultipart(
             'related', '---=_qute-{}'.format(uuid.uuid4()))
