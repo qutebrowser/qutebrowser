@@ -25,6 +25,8 @@ import os.path
 import sys
 import subprocess
 import glob
+import shutil
+import tempfile
 import argparse
 
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), os.pardir))
@@ -46,10 +48,24 @@ class AsciiDoc:
     def __init__(self, args):
         self._cmd = None
         self._args = args
+        self._homedir = None
+        self._themedir = None
+        self._tempdir = None
 
     def prepare(self):
         """Get the asciidoc command and create the homedir to use."""
         self._cmd = self._get_asciidoc_cmd()
+        self._homedir = tempfile.mkdtemp()
+        self._themedir = os.path.join(
+            self._homedir, '.asciidoc', 'themes', 'qute')
+        self._tempdir = os.path.join(self._homedir, 'tmp')
+        os.makedirs(self._tempdir)
+        os.makedirs(self._themedir)
+
+    def cleanup(self):
+        """Clean up the temporary home directory for asciidoc."""
+        if self._homedir is not None:
+            shutil.rmtree(self._homedir)
 
     def build(self):
         if self._args.website:
@@ -67,21 +83,39 @@ class AsciiDoc:
             self.call(src, dst)
 
     def _build_website(self):
+        theme_file = os.path.abspath(os.path.join('www', 'qute.css'))
+        shutil.copy(theme_file, self._themedir)
+
+        outdir = self._args.website[0]
+
         for root, _dirs, files in os.walk(os.getcwd()):
             for filename in files:
                 if os.path.splitext(filename)[1] != '.asciidoc':
                     continue
+
                 src = os.path.join(root, filename)
-                parts = [self._args.all[0]]
+                src_basename = os.path.basename(src)
+                parts = [outdir]
                 dirname = os.path.dirname(src)
                 if dirname:
                     parts.append(os.path.relpath(os.path.dirname(src)))
                 parts.append(
-                    os.extsep.join((os.path.splitext(os.path.basename(src))[0],
+                    os.extsep.join((os.path.splitext(src_basename)[0],
                                     'html')))
                 dst = os.path.join(*parts)
                 os.makedirs(os.path.dirname(dst), exist_ok=True)
-                self.call(src, dst)
+
+                modified_src = os.path.join(self._tempdir, src_basename)
+                shutil.copy('www/header.asciidoc', modified_src)
+
+                with open(modified_src, 'a', encoding='utf-8') as outfp:
+                    with open(src, 'r', encoding='utf-8') as infp:
+                        outfp.write(infp.read())
+
+                self.call(modified_src, dst, '--theme=qute')
+
+        for path in ['icons', 'doc/img']:
+            shutil.copytree(path, os.path.join(outdir, path))
 
     def _get_asciidoc_cmd(self):
         """Try to find out what commandline to use to invoke asciidoc."""
@@ -106,21 +140,22 @@ class AsciiDoc:
 
         raise FileNotFoundError
 
-    def call(self, src, dst, theme=None):
+    def call(self, src, dst, *args):
         """Call asciidoc for the given files.
 
         Args:
             src: The source .asciidoc file.
             dst: The destination .html file, or None to auto-guess.
-            theme: The CSS to use as a theme.
+            *args: Additional arguments passed to asciidoc.
         """
         print("Calling asciidoc for {}...".format(os.path.basename(src)))
-        args = self._cmd[:]
+        cmdline = self._cmd[:]
         if dst is not None:
-            args += ['--out-file', dst]
-        args.append(src)
+            cmdline += ['--out-file', dst]
+        cmdline += args
+        cmdline.append(src)
         try:
-            subprocess.check_call(args)
+            subprocess.check_call(cmdline, env={'HOME': self._homedir})
         except (subprocess.CalledProcessError, OSError) as e:
             utils.print_col(str(e), 'red')
             sys.exit(1)
@@ -151,7 +186,11 @@ def main(colors=False):
                         "the --asciidoc argument to point this script to the "
                         "correct python/asciidoc.py location!", 'red')
         sys.exit(1)
-    asciidoc.build()
+
+    try:
+        asciidoc.build()
+    finally:
+        asciidoc.cleanup()
 
 
 if __name__ == '__main__':
