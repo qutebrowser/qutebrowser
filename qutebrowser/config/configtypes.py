@@ -1558,7 +1558,7 @@ class UserAgent(BaseType):
     def validate(self, value):
         self._basic_validation(value)
 
-    # To update the following list of user agents, run the script 'ua_fetch.py'.
+    # To update the following list of user agents, run the script 'ua_fetch.py'
     # Vim-protip: Place your cursor below this comment and run
     # :r!python scripts/dev/ua_fetch.py
     def complete(self):
