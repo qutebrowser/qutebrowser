@@ -1,4 +1,11 @@
 #!/usr/bin/env python3
+# vim: ft=python fileencoding=utf-8 sts=4 sw=4 et:
+
+"""Fetch list of popular user-agents.
+
+The script is based on a gist posted by github.com/averrin, the ouput of this
+script is formatted to be pasted into configtypes.py.
+"""
 
 import requests
 from lxml import html
