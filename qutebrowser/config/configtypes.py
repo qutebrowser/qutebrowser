@@ -1560,7 +1560,7 @@ class UserAgent(BaseType):
 
     # To update the following list of user agents, run the script 'ua_fetch.py'.
     # Vim-protip: Place your cursor below this comment and run
-    # :r!python scripts/ua_fetch.py
+    # :r!python scripts/dev/ua_fetch.py
     def complete(self):
         """Complete a list of common user agents."""
         out = [
