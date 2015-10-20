@@ -118,23 +118,17 @@ def report(items):
     Based on vulture.Vulture.report, but we can't use that as we can't set the
     properties which get used for the items.
     """
-    unused_item_found = False
+    output = []
     for item in sorted(items, key=lambda e: (e.file.lower(), e.lineno)):
         relpath = os.path.relpath(item.file)
         path = relpath if not relpath.startswith('..') else item.file
-        print("%s:%d: Unused %s '%s'" % (path, item.lineno, item.typ,
-                                         item))
-        unused_item_found = True
-    return unused_item_found
+        output.append("%s:%d: Unused %s '%s'" % (path, item.lineno, item.typ,
+                                                 item))
+    return output
 
 
-def main():
-    """Run vulture over all files."""
-    parser = argparse.ArgumentParser()
-    parser.add_argument('files', nargs='*',
-                        default=['qutebrowser', 'scripts'])
-    args = parser.parse_args()
-
+def run(files):
+    """Run vulture over the given files."""
     with tempfile.NamedTemporaryFile(mode='w', delete=False) as whitelist_file:
         for line in whitelist_generator():
             whitelist_file.write(line + '\n')
@@ -142,7 +136,7 @@ def main():
         whitelist_file.close()
 
         vult = vulture.Vulture(exclude=[], verbose=False)
-        vult.scavenge(args.files + [whitelist_file.name])
+        vult.scavenge(files + [whitelist_file.name])
 
         os.remove(whitelist_file.name)
 
@@ -162,7 +156,19 @@ def main():
             if not filtered:
                 items.append(item)
 
-    sys.exit(report(items))
+    return report(items)
+
+
+def main():
+    """Run vulture over all files."""
+    parser = argparse.ArgumentParser()
+    parser.add_argument('files', nargs='*',
+                        default=['qutebrowser', 'scripts'])
+    args = parser.parse_args()
+    out = run(args.files)
+    for line in out:
+        print(line)
+    sys.exit(bool(out))
 
 
 if __name__ == '__main__':
