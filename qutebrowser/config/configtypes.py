@@ -1558,49 +1558,52 @@ class UserAgent(BaseType):
     def validate(self, value):
         self._basic_validation(value)
 
+    # To update the following list of user agents, run the script 'ua_fetch.py'.
+    # Vim-protip: Place your cursor below this comment and run
+    # :r!python scripts/ua_fetch.py
     def complete(self):
         """Complete a list of common user agents."""
         out = [
-            ('Mozilla/5.0 (Windows NT 6.1; WOW64; rv:35.0) Gecko/20100101 '
-             'Firefox/35.0',
-             "Firefox 35.0 Win7 64-bit"),
-            ('Mozilla/5.0 (X11; Ubuntu; Linux x86_64; rv:35.0) Gecko/20100101 '
-             'Firefox/35.0',
-             "Firefox 35.0 Ubuntu"),
-            ('Mozilla/5.0 (Macintosh; Intel Mac OS X 10.10; rv:35.0) '
-             'Gecko/20100101 Firefox/35.0',
-             "Firefox 35.0 MacOSX"),
-
-            ('Mozilla/5.0 (Macintosh; Intel Mac OS X 10_10_2) '
-             'AppleWebKit/600.3.18 (KHTML, like Gecko) Version/8.0.3 '
-             'Safari/600.3.18',
-             "Safari 8.0 MacOSX"),
-
             ('Mozilla/5.0 (Windows NT 6.1; WOW64) AppleWebKit/537.36 (KHTML, '
-             'like Gecko) Chrome/40.0.2214.111 Safari/537.36',
-             "Chrome 40.0 Win7 64-bit"),
-            ('Mozilla/5.0 (Macintosh; Intel Mac OS X 10_10_2) '
-             'AppleWebKit/537.36 (KHTML, like Gecko) Chrome/40.0.2214.111 '
+             'like Gecko) Chrome/45.0.2454.101 Safari/537.36',
+             "Chrome 45.0  Win7 64-bit"),
+            ('Mozilla/5.0 (Macintosh; Intel Mac OS X 10_10_5) '
+             'AppleWebKit/537.36 (KHTML, like Gecko) Chrome/45.0.2454.101 '
              'Safari/537.36',
-             "Chrome 40.0 MacOSX"),
-            ('Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 '
-             '(KHTML, like Gecko) Chrome/40.0.2214.111 Safari/537.36',
-             "Chrome 40.0 Linux"),
-
+             "Chrome 45.0  MacOSX"),
+            ('Mozilla/5.0 (Macintosh; Intel Mac OS X 10_10_5) '
+             'AppleWebKit/600.8.9 (KHTML, like Gecko) Version/8.0.8 '
+             'Safari/600.8.9',
+             "Safari 8.0  MacOSX"),
+            ('Mozilla/5.0 (Windows NT 10.0; WOW64) AppleWebKit/537.36 (KHTML, '
+             'like Gecko) Chrome/45.0.2454.101 Safari/537.36',
+             "Chrome 45.0  Win10 64-bit"),
+            ('Mozilla/5.0 (Windows NT 6.1; WOW64; rv:41.0) Gecko/20100101 '
+             'Firefox/41.0',
+             "Firefox 41.0  Win7 64-bit"),
+            ('Mozilla/5.0 (Macintosh; Intel Mac OS X 10_11) '
+             'AppleWebKit/601.1.56 (KHTML, like Gecko) Version/9.0 '
+             'Safari/601.1.56',
+             "Safari Generic  MacOSX"),
+            ('Mozilla/5.0 (Windows NT 6.3; WOW64) AppleWebKit/537.36 (KHTML, '
+             'like Gecko) Chrome/45.0.2454.101 Safari/537.36',
+             "Chrome 45.0  Win8.1 64-bit"),
+            ('Mozilla/5.0 (Windows NT 6.1; WOW64; rv:40.0) Gecko/20100101 '
+             'Firefox/40.0',
+             "Firefox 40.0  Win7 64-bit"),
             ('Mozilla/5.0 (Windows NT 6.1; WOW64; Trident/7.0; rv:11.0) like '
              'Gecko',
-             "IE 11.0 Win7 64-bit"),
-
-            ('Mozilla/5.0 (iPhone; CPU iPhone OS 8_1_2 like Mac OS X) '
-             'AppleWebKit/600.1.4 (KHTML, like Gecko) Version/8.0 '
-             'Mobile/12B440 Safari/600.1.4',
-             "Mobile Safari 8.0 iOS"),
-            ('Mozilla/5.0 (Android; Mobile; rv:35.0) Gecko/35.0 Firefox/35.0',
-             "Firefox 35, Android"),
-            ('Mozilla/5.0 (Linux; Android 5.0.2; One Build/KTU84L.H4) '
-             'AppleWebKit/537.36 (KHTML, like Gecko) Version/4.0 '
-             'Chrome/37.0.0.0 Mobile Safari/537.36',
-             "Android Browser"),
+             "IE 11.0 for Desktop  Win7 64-bit"),
+            ('Mozilla/5.0 (Windows NT 6.1; WOW64) AppleWebKit/537.36 (KHTML, '
+             'like Gecko) Chrome/45.0.2454.93 Safari/537.36',
+             "Chrome 45.0  Win7 64-bit"),
+            ('Mozilla/5.0 (Macintosh; Intel Mac OS X 10_11_0) '
+             'AppleWebKit/537.36 (KHTML, like Gecko) Chrome/45.0.2454.101 '
+             'Safari/537.36',
+             "Chrome 45.0  MacOSX"),
+            ('Mozilla/5.0 (Windows NT 6.1; WOW64) AppleWebKit/537.36 (KHTML, '
+             'like Gecko) Chrome/45.0.2454.99 Safari/537.36',
+             "Chrome 45.0  Win7 64-bit"),
 
             ('Mozilla/5.0 (compatible; Googlebot/2.1; '
              '+http://www.google.com/bot.html',
