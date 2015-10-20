@@ -426,7 +426,7 @@ def _init_modules(args, crash_handler):
     cookie_jar = cookies.CookieJar(qApp)
     objreg.register('cookie-jar', cookie_jar)
     log.init.debug("Initializing cache...")
-    diskcache = cache.DiskCache(qApp)
+    diskcache = cache.DiskCache(standarddir.cache(), parent=qApp)
     objreg.register('cache', diskcache)
     log.init.debug("Initializing completions...")
     completionmodels.init()

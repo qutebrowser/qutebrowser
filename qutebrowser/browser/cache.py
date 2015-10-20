@@ -34,16 +34,15 @@ class DiskCache(QNetworkDiskCache):
 
     Attributes:
         _activated: Whether the cache should be used.
+        _cache_dir: The base directory for cache files (standarddir.cache())
+        _http_cache_dir: the HTTP subfolder in _cache_dir.
     """
 
-    def __init__(self, parent=None):
+    def __init__(self, cache_dir, parent=None):
         super().__init__(parent)
-        cache_dir = standarddir.cache()
-        if config.get('general', 'private-browsing') or cache_dir is None:
-            self._activated = False
-        else:
-            self._activated = True
-            self.setCacheDirectory(os.path.join(standarddir.cache(), 'http'))
+        self._cache_dir = cache_dir
+        self._http_cache_dir = os.path.join(cache_dir, 'http')
+        self._maybe_activate()
         self.setMaximumCacheSize(config.get('storage', 'cache-size'))
         objreg.get('config').changed.connect(self.on_config_changed)
 
@@ -52,19 +51,22 @@ class DiskCache(QNetworkDiskCache):
                               maxsize=self.maximumCacheSize(),
                               path=self.cacheDirectory())
 
+    def _maybe_activate(self):
+        """Activate/deactivate the cache based on the config."""
+        if (config.get('general', 'private-browsing') or
+                self._cache_dir is None):
+            self._activated = False
+        else:
+            self._activated = True
+            self.setCacheDirectory(self._http_cache_dir)
+
     @pyqtSlot(str, str)
     def on_config_changed(self, section, option):
         """Update cache size/activated if the config was changed."""
         if (section, option) == ('storage', 'cache-size'):
             self.setMaximumCacheSize(config.get('storage', 'cache-size'))
         elif (section, option) == ('general', 'private-browsing'):
-            if (config.get('general', 'private-browsing') or
-                    standarddir.cache() is None):
-                self._activated = False
-            else:
-                self._activated = True
-                self.setCacheDirectory(
-                    os.path.join(standarddir.cache(), 'http'))
+            self._maybe_activate()
 
     def cacheSize(self):
         """Return the current size taken up by the cache.
