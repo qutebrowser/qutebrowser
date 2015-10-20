@@ -25,7 +25,7 @@ from PyQt5.QtCore import pyqtSlot
 from PyQt5.QtNetwork import QNetworkDiskCache, QNetworkCacheMetaData
 
 from qutebrowser.config import config
-from qutebrowser.utils import utils, standarddir, objreg
+from qutebrowser.utils import utils, objreg
 
 
 class DiskCache(QNetworkDiskCache):
