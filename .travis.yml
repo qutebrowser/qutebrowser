@@ -67,7 +67,3 @@ matrix:
       env: TESTENV=pylint
     - os: osx
       env: TESTENV=eslint
-  # https://github.com/Homebrew/homebrew/issues/45114
-  allow_failures:
-    - os: osx
-      env: TESTENV=py35
