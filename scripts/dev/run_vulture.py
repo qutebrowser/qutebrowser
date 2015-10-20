@@ -25,6 +25,7 @@ import os
 import re
 import tempfile
 import inspect
+import argparse
 
 import vulture
 
@@ -129,6 +130,11 @@ def report(items):
 
 def main():
     """Run vulture over all files."""
+    parser = argparse.ArgumentParser()
+    parser.add_argument('files', nargs='*',
+                        default=['qutebrowser', 'scripts'])
+    args = parser.parse_args()
+
     with tempfile.NamedTemporaryFile(mode='w', delete=False) as whitelist_file:
         for line in whitelist_generator():
             whitelist_file.write(line + '\n')
@@ -136,7 +142,7 @@ def main():
         whitelist_file.close()
 
         vult = vulture.Vulture(exclude=[], verbose=False)
-        vult.scavenge(['qutebrowser', 'scripts', whitelist_file.name])
+        vult.scavenge(args.files + [whitelist_file.name])
 
         os.remove(whitelist_file.name)
 
