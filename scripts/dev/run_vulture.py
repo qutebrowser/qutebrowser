@@ -142,9 +142,9 @@ def run(files):
 
     filters = {
         'unused_funcs': filter_func,
-        'unused_props': lambda: False,
-        'unused_vars': lambda: False,
-        'unused_attrs': lambda: False,
+        'unused_props': lambda item: False,
+        'unused_vars': lambda item: False,
+        'unused_attrs': lambda item: False,
     }
 
     items = []
