@@ -381,7 +381,7 @@ def data(readonly=False):
              "What to display in the download filename input."),
 
             ('timestamp-format',
-             SettingValue(typ.String(none_ok=True), '%Y-%m-%d'),
+             SettingValue(typ.TimestampTemplate(none_ok=True), '%Y-%m-%d'),
              "How to format timestamps (e.g. for history)"),
 
             ('show',

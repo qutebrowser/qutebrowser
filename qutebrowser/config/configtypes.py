@@ -27,6 +27,7 @@ import os.path
 import itertools
 import collections
 import warnings
+import datetime
 
 from PyQt5.QtCore import QUrl
 from PyQt5.QtGui import QColor, QFont
@@ -1630,3 +1631,25 @@ class URLSegmentList(FlagList):
     """A list of URL segments."""
 
     valid_values = ValidValues('host', 'path', 'query', 'anchor')
+
+
+class TimestampTemplate(BaseType):
+
+    """A strftime-like template for timestamps.
+
+    See
+    https://docs.python.org/3/library/datetime.html#strftime-strptime-behavior
+    for reference.
+    """
+
+    def validate(self, value):
+        self._basic_validation(value)
+        if not value:
+            return
+        try:
+            # Dummy check to see if the template is valid
+            datetime.datetime.now().strftime(value)
+        except ValueError as error:
+            # thrown on invalid template string
+            raise configexc.ValidationError(
+                value, "Invalid format string: {}".format(error))
