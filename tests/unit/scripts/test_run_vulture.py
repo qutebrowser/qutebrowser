@@ -18,11 +18,19 @@
 # You should have received a copy of the GNU General Public License
 # along with qutebrowser.  If not, see <http://www.gnu.org/licenses/>.
 
+import sys
 import textwrap
 
 import pytest
 
-from scripts.dev import run_vulture
+try:
+    from scripts.dev import run_vulture
+except ImportError:
+    if hasattr(sys, 'frozen'):
+        # Tests aren't going to run anyways because of the mark
+        pass
+    else:
+        raise
 
 
 pytestmark = [pytest.mark.not_frozen]
