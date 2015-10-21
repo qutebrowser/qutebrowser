@@ -24,7 +24,7 @@ Screenshots
 -----------
 
 image:doc/img/main.png["screenshot 1",width=300,link="doc/img/main.png"]
-image:doc/img/downloads.png["screenshot 2",width=300j,link="doc/img/downloads.png"]
+image:doc/img/downloads.png["screenshot 2",width=300,link="doc/img/downloads.png"]
 image:doc/img/completion.png["screenshot 3",width=300,link="doc/img/completion.png"]
 image:doc/img/hints.png["screenshot 4",width=300,link="doc/img/hints.png"]
 
