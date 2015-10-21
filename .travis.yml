@@ -39,6 +39,9 @@ install:
 script:
   - tox -e $TESTENV -- -p no:sugar tests
 
+after_success:
+  - bash <(curl -s https://codecov.io/bash) -e TOXENV,TESTENV
+
 matrix:
   exclude:
     - os: linux
