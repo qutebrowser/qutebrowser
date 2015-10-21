@@ -60,6 +60,7 @@ class QuteProc(testprocess.Process):
     executing_command = pyqtSignal()
     setting_done = pyqtSignal()
     url_loaded = pyqtSignal()
+    got_error = pyqtSignal()
 
     def __init__(self, httpbin, parent=None):
         super().__init__(parent)
@@ -106,6 +107,8 @@ class QuteProc(testprocess.Process):
         elif (log_line.category == 'webview' and
                 url_loaded_pattern.match(log_line.message)):
             self.url_loaded.emit()
+        elif log_line.loglevel in ['WARNING', 'ERROR']:
+                self.got_error.emit()
 
         return log_line
 
