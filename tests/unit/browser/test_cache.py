@@ -53,3 +53,14 @@ def test_cache_deactivated_no_cachedir(config_stub):
             }
     disk_cache = cache.DiskCache("")
     assert(0 == disk_cache.cacheSize())
+
+
+def test_clear_cache_activated(config_stub, tmpdir):
+    """Test if cache empty after clearing it."""
+    config_stub.data = {
+            'storage': {'cache-size': 1024},
+            'general': {'private-browsing': False}
+            }
+    disk_cache = cache.DiskCache(str(tmpdir))
+    disk_cache.clear()
+    assert(0 == disk_cache.cacheSize())
