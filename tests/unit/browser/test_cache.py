@@ -28,39 +28,39 @@ from qutebrowser.utils import objreg
 def test_cache_size_leq_max_cache_size(config_stub, tmpdir):
     """Test cacheSize <= MaximumCacheSize when cache is activated."""
     config_stub.data = {
-            'storage': {'cache-size': 1024},
-            'general': {'private-browsing': False}
-            }
+        'storage': {'cache-size': 1024},
+        'general': {'private-browsing': False}
+    }
     disk_cache = cache.DiskCache(str(tmpdir))
-    assert(1024 >= disk_cache.cacheSize())
+    assert(disk_cache.cacheSize() <= 1024)
 
 
 def test_cache_deactivated_private_browsing(config_stub, tmpdir):
     """Test if cache is deactivated in private-browsing mode."""
     config_stub.data = {
-            'storage': {'cache-size': 1024},
-            'general': {'private-browsing': True}
-            }
+        'storage': {'cache-size': 1024},
+        'general': {'private-browsing': True}
+    }
     disk_cache = cache.DiskCache(str(tmpdir))
-    assert(0 == disk_cache.cacheSize())
+    assert(disk_cache.cacheSize() == 0)
 
 
 def test_cache_deactivated_no_cachedir(config_stub):
     """Test if cache is deactivated when there is no cache-dir."""
     config_stub.data = {
-            'storage': {'cache-size': 1024},
-            'general': {'private-browsing': False}
-            }
+        'storage': {'cache-size': 1024},
+        'general': {'private-browsing': False}
+    }
     disk_cache = cache.DiskCache("")
-    assert(0 == disk_cache.cacheSize())
+    assert(disk_cache.cacheSize() == 0)
 
 
 def test_clear_cache_activated(config_stub, tmpdir):
-    """Test if cache empty after clearing it."""
+    """Test if cache is empty after clearing it."""
     config_stub.data = {
-            'storage': {'cache-size': 1024},
-            'general': {'private-browsing': False}
-            }
+        'storage': {'cache-size': 1024},
+        'general': {'private-browsing': False}
+    }
     disk_cache = cache.DiskCache(str(tmpdir))
     disk_cache.clear()
     assert(0 == disk_cache.cacheSize())
