@@ -128,6 +128,21 @@ li {
 	border-bottom: 1px solid #CCCCCC;
 }
 
+code {
+	background-color: #DDDDDD;
+	border-radius: 2px;
+}
+
+.listingblock {
+	padding: 10px 10px;
+	background-color: #DDDDDD;
+	border-radius: 4px;
+}
+
+table td {
+	padding: 10px 10px;
+}
+
 @media screen and (max-width: 480px) {
 	#headline .qutebrowser-logo {
 		margin-left: auto;
