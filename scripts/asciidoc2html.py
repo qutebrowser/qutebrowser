@@ -51,6 +51,7 @@ class AsciiDoc:
         self._homedir = None
         self._themedir = None
         self._tempdir = None
+        self._failed = False
 
     def prepare(self):
         """Get the asciidoc command and create the homedir to use."""
@@ -64,7 +65,7 @@ class AsciiDoc:
 
     def cleanup(self):
         """Clean up the temporary home directory for asciidoc."""
-        if self._homedir is not None:
+        if self._homedir is not None and not self._failed:
             shutil.rmtree(self._homedir)
 
     def build(self):
@@ -157,7 +158,9 @@ class AsciiDoc:
         try:
             subprocess.check_call(cmdline, env={'HOME': self._homedir})
         except (subprocess.CalledProcessError, OSError) as e:
+            self._failed = True
             utils.print_col(str(e), 'red')
+            print("Keeping modified sources in {}.".format(self._homedir))
             sys.exit(1)
 
 
