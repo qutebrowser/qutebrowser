@@ -89,8 +89,8 @@ if 'APPVEYOR' in os.environ:
     check_setup(r'C:\Python34\python')
 elif TRAVIS_OS == 'linux':
     print("travis_fold:start:ci_install")
-    print("sudo pip install tox/npm")
-    subprocess.check_call(['sudo', 'pip', 'install', 'tox'])
+    print("Installing via pip...")
+    subprocess.check_call(['sudo', 'pip', 'install', 'tox', 'codecov'])
 
     print("Installing packages...")
     pkgs = []
