@@ -63,4 +63,4 @@ def test_clear_cache_activated(config_stub, tmpdir):
     }
     disk_cache = cache.DiskCache(str(tmpdir))
     disk_cache.clear()
-    assert(0 == disk_cache.cacheSize())
+    assert(disk_cache.cacheSize() == 0)
