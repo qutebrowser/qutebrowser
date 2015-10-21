@@ -20,6 +20,7 @@
 
 """Generate the html documentation based on the asciidoc files."""
 
+import re
 import os
 import os.path
 import sys
@@ -111,12 +112,31 @@ class AsciiDoc:
 
                 with open(modified_src, 'a', encoding='utf-8') as outfp:
                     with open(src, 'r', encoding='utf-8') as infp:
-                        outfp.write(infp.read())
+                        outfp.write('\n')
+                        hidden = False
+                        for line in infp:
+                            if line.strip() == '// QUTE_WEB_HIDE':
+                                assert not hidden
+                                hidden = True
+                            elif line.strip() == '// QUTE_WEB_HIDE_END':
+                                assert hidden
+                                hidden = False
+
+                            # Let's see if this looks good everywhere...
+                            if re.match(r'^=+$', line):
+                                line = line.replace('=', '-')
+                            elif re.match(r'^= .+', line):
+                                line = '==' + line[1:]
+
+                            if not hidden:
+                                outfp.write(line)
 
                 self.call(modified_src, dst, '--theme=qute')
 
         for path in ['icons', 'doc/img']:
             shutil.copytree(path, os.path.join(outdir, path))
+
+        os.symlink('README.html', os.path.join(outdir, 'index.html'))
 
     def _get_asciidoc_cmd(self):
         """Try to find out what commandline to use to invoke asciidoc."""
