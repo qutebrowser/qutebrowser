@@ -25,23 +25,23 @@ from qutebrowser.browser import cache
 from qutebrowser.utils import objreg
 
 
-def test_cache_size_leq_max_cache_size(config_stub):
+def test_cache_size_leq_max_cache_size(config_stub, tmpdir):
     """Test cacheSize <= MaximumCacheSize when cache is activated."""
     config_stub.data = {
             'storage': {'cache-size': 1024},
             'general': {'private-browsing': False}
             }
-    disk_cache = cache.DiskCache("/foo/bar")
+    disk_cache = cache.DiskCache(str(tmpdir))
     assert(1024 >= disk_cache.cacheSize())
 
 
-def test_cache_deactivated_private_browsing(config_stub):
+def test_cache_deactivated_private_browsing(config_stub, tmpdir):
     """Test if cache is deactivated in private-browsing mode."""
     config_stub.data = {
             'storage': {'cache-size': 1024},
             'general': {'private-browsing': True}
             }
-    disk_cache = cache.DiskCache("/foo/bar")
+    disk_cache = cache.DiskCache(str(tmpdir))
     assert(0 == disk_cache.cacheSize())
 
 
