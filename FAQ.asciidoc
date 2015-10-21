@@ -1,5 +1,6 @@
 Frequently asked questions
 ==========================
+:title: Frequently asked questions
 The Compiler <mail@qutebrowser.org>
 
 [qanda]

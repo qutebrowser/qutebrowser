@@ -114,6 +114,8 @@ class AsciiDoc:
                     with open(src, 'r', encoding='utf-8') as infp:
                         outfp.write('\n')
                         hidden = False
+                        replaced_title = False
+
                         for line in infp:
                             if line.strip() == '// QUTE_WEB_HIDE':
                                 assert not hidden
@@ -122,11 +124,13 @@ class AsciiDoc:
                                 assert hidden
                                 hidden = False
 
-                            # Let's see if this looks good everywhere...
-                            if re.match(r'^=+$', line):
-                                line = line.replace('=', '-')
-                            elif re.match(r'^= .+', line):
-                                line = '==' + line[1:]
+                            if not replaced_title:
+                                if re.match(r'^=+$', line):
+                                    line = line.replace('=', '-')
+                                    replaced_title = True
+                                elif re.match(r'^= .+', line):
+                                    line = '==' + line[1:]
+                                    replaced_title = True
 
                             if not hidden:
                                 outfp.write(line)
@@ -177,6 +181,7 @@ class AsciiDoc:
         cmdline.append(src)
         try:
             subprocess.check_call(cmdline, env={'HOME': self._homedir})
+            self._failed = True
         except (subprocess.CalledProcessError, OSError) as e:
             self._failed = True
             utils.print_col(str(e), 'red')
