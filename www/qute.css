@@ -1,0 +1,166 @@
+* {
+	margin: 0px 0px;
+	padding: 0px 0px;
+}
+
+body {
+	font-family: "Open Sans", "Helvetica Neue", Helvetica, Arial, sans-serif;
+	-webkit-text-size-adjust: none;
+	color: #333333;
+}
+
+#header {
+	display: none;
+}
+
+#headline {
+	background-color: #333333;
+	padding: 20px 20px;
+	overflow: auto;
+	color: #888;
+	
+	-webkit-user-select: none;
+	-moz-user-select: none;
+	-ms-user-select: none;
+}
+
+#headline .qutebrowser-logo {
+	display: block;
+	height: 70px;
+	float: left;
+}
+
+#headline .text {
+	float: right;
+	text-align: right;
+}
+
+#headline .text h1 {
+	color: #1e89c6;
+	border: none;
+}
+
+#headline .text {
+	color: #666666;
+}
+
+#menu {
+	padding: 0px 20px;
+	background-color: #555555;
+	color: #CCC;
+	overflow: auto;
+	margin-bottom: 10px;
+	
+	-webkit-user-select: none;
+	-moz-user-select: none;
+	-ms-user-select: none;
+}
+
+#menu a {
+	color: #CCC;
+	text-decoration: none;
+	background-color: #555555;
+	padding: 10px 20px;
+	float: left;
+}
+
+#menu a:hover {
+	background-color: #1e89c6;
+}
+
+.sect1 {
+	padding: 10px 40px;
+}
+
+.sect2 {
+	padding: 10px 0px;
+}
+
+div.footnote {
+	padding: 10px 40px;
+}
+
+hr {
+	margin: 0px 40px;
+	color: #CCCCCC;
+}
+
+h1, h2, h3, h4, h5, h6 {
+	color: #0A396E;
+	margin-bottom: 10px;
+	border-bottom: 1px solid #CCCCCC;
+}
+
+.ulist {
+	padding-left: 20px;
+	margin-top: 10px; 
+}
+
+#footer {
+	padding: 20px 40px;
+	border-top: 1px solid #CCCCCC;
+	color: #888888;
+}
+
+a {
+	color: #1e89c6;
+	text-decoration: none;
+}
+
+a:hover {
+	text-decoration: underline;
+}
+
+ol {
+	margin-left: 20px;
+	margin-top: 20px;
+	margin-bottom: 20px;
+}
+
+li {
+	margin-bottom: 10px;
+}
+
+.hdlist1 {
+	color: #0A396E;
+	margin-bottom: 10px;
+	margin-top: 10px;
+	border-bottom: 1px solid #CCCCCC;
+}
+
+@media screen and (max-width: 480px) {
+	#headline .qutebrowser-logo {
+		margin-left: auto;
+		margin-right: auto;
+		display: block;
+		width: 30%;
+		height: auto;
+		float: none;
+	}
+	
+	#headline .text {
+		display: none;
+	}
+	
+	#menu {
+		padding: 0px 0px;
+		background-color: #555555;
+		color: #CCC;
+		overflow: hidden;
+		width: 100%;
+	}
+	
+	#menu a {
+		color: #CCC;
+		text-decoration: none;
+		background-color: #555555;
+		width: 100%;
+		padding: 10px 40px;
+	}
+}
+
+</style>
+<meta name="viewport" content="width=device-width; initial-scale=1.0; maximum-scale=1.0;">
+<link href='media/font.css' rel='stylesheet' type='text/css'>
+<link rel="icon" href="media/favicon.png" type="image/png">
+<style>

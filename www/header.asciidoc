@@ -1,0 +1,14 @@
++++
+<div id="headline">
+	<img class="qutebrowser-logo" src="icons/qutebrowser.svg" />
+	<div class="text">
+		<h1>qutebrowser</h1>
+		A keyboard-driven browser.
+	</div>
+</div>
+<div id="menu">
+	<a href="index.html">Home</a>
+	<a href="FAQ.html">FAQ</a>
+	<a href="https://www.github.com/The-Compiler/qutebrowser">GitHub</a>
+</div>
++++
