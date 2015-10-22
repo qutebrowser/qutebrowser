@@ -33,10 +33,11 @@ from qutebrowser.utils import objreg
 from qutebrowser.misc import lineparser, savemanager
 
 # autouse fixtures (so no need to pass to tests)
+# @pytest.yield_fixture(autouse=True)
 
 HISTORY = ['first', 'second', 'third', 'fourth', 'fifth']
 
-@pytest.yield_fixture
+@pytest.yield_fixture(autouse=True)
 def fake_save_manager():
     """Create a mock of save-manager and register it into objreg."""
     fake_save_manager = mock.Mock(spec=savemanager.SaveManager)
@@ -44,16 +45,14 @@ def fake_save_manager():
     yield
     objreg.delete('save-manager')
 
-# web history object to be used in the tests
-@pytest.yield_fixture
-def web_history():
-    wb = WebHistory()
-    yield
 
-@pytest.yield_fixture(autouse=True)
-def test_readhistory(qapp):
+def test_async_read(qapp):
+    wb = WebHistory()
+    wb._lineparser = LineparserSaveStub()
+    wb.async_read()
     rp = wb.__repr__()
-    assert rp  == 'asdf'
+    assert rp  == '<qutebrowser.browser.history.WebHistory length=0>'
+
 
 class LineparserSaveStub(lineparser.BaseLineParser):
     """A stub for LineParser's save()
@@ -75,6 +74,5 @@ class LineparserSaveStub(lineparser.BaseLineParser):
 
     def __getitem__(self, key):
         return self.data[key]
-
 
 
