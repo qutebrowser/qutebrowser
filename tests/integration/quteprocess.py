@@ -35,9 +35,29 @@ import testprocess  # pylint: disable=import-error
 from qutebrowser.misc import ipc
 
 
-LogLine = collections.namedtuple('LogLine', [
-    'timestamp', 'loglevel', 'category', 'module', 'function', 'line',
-    'message'])
+class NoLineMatch(Exception):
+
+    """Raised by LogLine on unmatched lines."""
+
+    pass
+
+
+class LogLine:
+
+    LOG_RE = re.compile(r"""
+        (?P<timestamp>\d\d:\d\d:\d\d)
+        \ (?P<loglevel>VDEBUG|DEBUG|INFO|WARNING|ERROR)
+        \ +(?P<category>\w+)
+        \ +(?P<module>(\w+|Unknown\ module)):(?P<function>\w+):(?P<line>\d+)
+        \ (?P<message>.+)
+    """, re.VERBOSE)
+
+    def __init__(self, line):
+        match = self.LOG_RE.match(line)
+        if match is None:
+            raise NoLineMatch(line)
+        self.__dict__.update(match.groupdict())
+        self.expected = False
 
 
 class QuteProc(testprocess.Process):
@@ -48,14 +68,6 @@ class QuteProc(testprocess.Process):
         _ipc_socket: The IPC socket of the started instance.
         _httpbin: The HTTPBin webserver.
     """
-
-    LOG_RE = re.compile(r"""
-        (?P<timestamp>\d\d:\d\d:\d\d)
-        \ (?P<loglevel>VDEBUG|DEBUG|INFO|WARNING|ERROR)
-        \ +(?P<category>\w+)
-        \ +(?P<module>(\w+|Unknown\ module)):(?P<function>\w+):(?P<line>\d+)
-        \ (?P<message>.+)
-    """, re.VERBOSE)
 
     executing_command = pyqtSignal()
     setting_done = pyqtSignal()
@@ -68,8 +80,9 @@ class QuteProc(testprocess.Process):
         self._ipc_socket = None
 
     def _parse_line(self, line):
-        match = self.LOG_RE.match(line)
-        if match is None:
+        try:
+            log_line = LogLine(line)
+        except NoLineMatch:
             if line.startswith('  '):
                 # Multiple lines in some log output...
                 return None
@@ -77,7 +90,6 @@ class QuteProc(testprocess.Process):
                 return None
             else:
                 raise testprocess.InvalidLine
-        log_line = LogLine(**match.groupdict())
 
         if (log_line.loglevel in ['INFO', 'WARNING', 'ERROR'] or
                 pytest.config.getoption('--verbose')):
@@ -126,7 +138,8 @@ class QuteProc(testprocess.Process):
 
     def after_test(self):
         bad_msgs = [msg for msg in self._data
-                    if msg.loglevel not in ['VDEBUG', 'DEBUG', 'INFO']]
+                    if msg.loglevel not in ['VDEBUG', 'DEBUG', 'INFO']
+                    and not msg.expected]
         super().after_test()
         if bad_msgs:
             text = 'Logged unexpected errors:\n\n' + '\n'.join(
@@ -152,6 +165,17 @@ class QuteProc(testprocess.Process):
                 self.send_cmd(':open -t ' + url)
             else:
                 self.send_cmd(':open ' + url)
+
+    def mark_expected(self, category=None, loglevel=None, msg=None):
+        """Mark a given logging message as expected."""
+        for item in self._data:
+            if category is not None and item.category != category:
+                continue
+            elif loglevel is not None and item.loglevel != loglevel:
+                continue
+            elif msg is not None and item.message != msg:
+                continue
+            item.expected = True
 
 
 @pytest.yield_fixture

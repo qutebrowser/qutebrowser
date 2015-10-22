@@ -59,3 +59,8 @@ def lost_of_loaded_pages(httpbin, pages):
     requests = [httpbin.Request('GET', '/' + path.strip())
                 for path in pages.split('\n')]
     assert httpbin.get_requests() == requests
+
+
+@bdd.then(bdd.parsers.parse('the error "{msg}" should be shown.'))
+def expect_error(quteproc, msg):
+    quteproc.mark_expected(category='message', loglevel='ERROR', msg=msg)
