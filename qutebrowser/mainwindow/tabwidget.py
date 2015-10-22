@@ -465,59 +465,6 @@ class TabBar(QTabBar):
         super().tabRemoved(idx)
         self._tabhide()
 
-    def addTab(self, icon_or_text, text_or_empty=None):
-        """Override addTab to use our own text setting logic.
-
-        Unfortunately QTabBar::addTab has these two overloads:
-            - const QIcon & icon, const QString & label
-            - const QString & label
-
-        This means we'll get different arguments based on the chosen overload.
-
-        Args:
-            icon_or_text: Either the QIcon to add or the label.
-            text_or_empty: Either the label or None.
-
-        Return:
-            The index of the newly added tab.
-        """
-        if text_or_empty is None:
-            icon = None
-            text = icon_or_text
-            new_idx = super().addTab('')
-        else:
-            icon = icon_or_text
-            text = text_or_empty
-            new_idx = super().addTab(icon, '')
-        self.set_page_title(new_idx, text)
-
-    def insertTab(self, idx, icon_or_text, text_or_empty=None):
-        """Override insertTab to use our own text setting logic.
-
-        Unfortunately QTabBar::insertTab has these two overloads:
-            - int index, const QIcon & icon, const QString & label
-            - int index, const QString & label
-
-        This means we'll get different arguments based on the chosen overload.
-
-        Args:
-            idx: Where to insert the widget.
-            icon_or_text: Either the QIcon to add or the label.
-            text_or_empty: Either the label or None.
-
-        Return:
-            The index of the newly added tab.
-        """
-        if text_or_empty is None:
-            icon = None
-            text = icon_or_text
-            new_idx = super().InsertTab(idx, '')
-        else:
-            icon = icon_or_text
-            text = text_or_empty
-            new_idx = super().insertTab(idx, icon, '')
-        self.set_page_title(new_idx, text)
-
     def wheelEvent(self, e):
         """Override wheelEvent to make the action configurable.
 
