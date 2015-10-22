@@ -19,10 +19,7 @@
 
 """Tests for qutebrowser.browser.cache"""
 
-from unittest import mock
-
 from qutebrowser.browser import cache
-from qutebrowser.utils import objreg
 
 
 def test_cache_size_leq_max_cache_size(config_stub, tmpdir):
@@ -32,7 +29,7 @@ def test_cache_size_leq_max_cache_size(config_stub, tmpdir):
         'general': {'private-browsing': False}
     }
     disk_cache = cache.DiskCache(str(tmpdir))
-    assert(disk_cache.cacheSize() <= 1024)
+    assert disk_cache.cacheSize() <= 1024
 
 
 def test_cache_deactivated_private_browsing(config_stub, tmpdir):
@@ -42,7 +39,7 @@ def test_cache_deactivated_private_browsing(config_stub, tmpdir):
         'general': {'private-browsing': True}
     }
     disk_cache = cache.DiskCache(str(tmpdir))
-    assert(disk_cache.cacheSize() == 0)
+    assert disk_cache.cacheSize() == 0
 
 
 def test_cache_deactivated_no_cachedir(config_stub):
@@ -52,7 +49,7 @@ def test_cache_deactivated_no_cachedir(config_stub):
         'general': {'private-browsing': False}
     }
     disk_cache = cache.DiskCache("")
-    assert(disk_cache.cacheSize() == 0)
+    assert disk_cache.cacheSize() == 0
 
 
 def test_clear_cache_activated(config_stub, tmpdir):
@@ -63,4 +60,4 @@ def test_clear_cache_activated(config_stub, tmpdir):
     }
     disk_cache = cache.DiskCache(str(tmpdir))
     disk_cache.clear()
-    assert(disk_cache.cacheSize() == 0)
+    assert disk_cache.cacheSize() == 0
