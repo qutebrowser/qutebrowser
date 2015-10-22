@@ -629,7 +629,7 @@ class TabBarStyle(QCommonStyle):
             # any sophisticated drawing.
             super().drawControl(QStyle.CE_TabBarTabShape, opt, p, widget)
         elif element == QStyle.CE_TabBarTabLabel:
-            if not opt.icon.isNull():
+            if not opt.icon.isNull() and layouts.icon.isValid():
                 self._draw_icon(layouts, opt, p)
             alignment = Qt.AlignLeft | Qt.AlignVCenter | Qt.TextHideMnemonic
             self._style.drawItemText(p, layouts.text, alignment, opt.palette,
@@ -721,7 +721,8 @@ class TabBarStyle(QCommonStyle):
         else:
             icon_padding = self.pixelMetric(PixelMetrics.icon_padding, opt)
             icon_rect = self._get_icon_rect(opt, text_rect)
-            text_rect.adjust(icon_rect.width() + icon_padding, 0, 0, 0)
+            if icon_rect.isValid():
+                text_rect.adjust(icon_rect.width() + icon_padding, 0, 0, 0)
 
         text_rect = self._style.visualRect(opt.direction, opt.rect, text_rect)
         return Layouts(text=text_rect, icon=icon_rect,
@@ -751,5 +752,4 @@ class TabBarStyle(QCommonStyle):
         icon_rect = QRect(text_rect.left(), text_rect.top() + 1,
                           tab_icon_size.width(), tab_icon_size.height())
         icon_rect = self._style.visualRect(opt.direction, opt.rect, icon_rect)
-        qtutils.ensure_valid(icon_rect)
         return icon_rect
