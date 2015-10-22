@@ -19,8 +19,12 @@
 
 """Base class for a subprocess run for tests.."""
 
+import re
+import fnmatch
+
 import pytestqt.plugin  # pylint: disable=import-error
-from PyQt5.QtCore import pyqtSlot, pyqtSignal, QProcess, QObject
+from PyQt5.QtCore import pyqtSlot, pyqtSignal, QProcess, QObject, QElapsedTimer
+from PyQt5.QtTest import QSignalSpy
 
 
 class InvalidLine(Exception):
@@ -35,6 +39,11 @@ class ProcessExited(Exception):
     """Raised when the child process did exit."""
 
     pass
+
+
+class WaitForTimeout(Exception):
+
+    """Raised when wait_for didn't get the expected message."""
 
 
 class Process(QObject):
@@ -147,3 +156,47 @@ class Process(QObject):
     def is_running(self):
         """Check if the process is currently running."""
         return self.proc.state() == QProcess.Running
+
+    def wait_for(self, timeout=5000, **kwargs):
+        """Wait until a given value is found in the data.
+
+        Keyword arguments to this function get interpreted as attributes of the
+        searched data. Every given argument is treated as a pattern which
+        the attribute has to match against.
+
+        If a string is passed, the patterns are treated as a fnmatch glob
+        pattern. Alternatively, a compiled regex can be passed to match against
+        that.
+        """
+
+        # FIXME make this a context manager which inserts a marker in
+        # self._data in __enter__ and checks if the signal already did arrive
+        # after marker in __exit__, and if not, waits?
+
+        regex_type = type(re.compile(''))
+
+        spy = QSignalSpy(self.new_data)
+        elapsed_timer = QElapsedTimer()
+        elapsed_timer.start()
+
+        while True:
+            got_signal = spy.wait(timeout)
+            if not got_signal or elapsed_timer.hasExpired(timeout):
+                raise WaitForTimeout
+
+            for args in spy:
+                assert len(args) == 1
+                line = args[0]
+
+                matches = []
+
+                for key, expected in kwargs.items():
+                    value = getattr(line, key)
+
+                    if isinstance(expected, regex_type):
+                        matches.append(expected.match(value))
+                    else:
+                        matches.append(fnmatch.fnmatchcase(value, expected))
+
+                if all(matches):
+                    return

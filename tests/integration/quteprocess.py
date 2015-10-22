@@ -61,11 +61,15 @@ class LogLine:
     """, re.VERBOSE)
 
     def __init__(self, line):
+        self._line = line
         match = self.LOG_RE.match(line)
         if match is None:
             raise NoLineMatch(line)
         self.__dict__.update(match.groupdict())
         self.expected = False
+
+    def __repr__(self):
+        return 'LogLine({!r})'.format(self._line)
 
 
 class QuteProc(testprocess.Process):
@@ -77,9 +81,6 @@ class QuteProc(testprocess.Process):
         _httpbin: The HTTPBin webserver.
     """
 
-    executing_command = pyqtSignal()
-    setting_done = pyqtSignal()
-    url_loaded = pyqtSignal()
     got_error = pyqtSignal()
 
     def __init__(self, httpbin, parent=None):
@@ -107,26 +108,12 @@ class QuteProc(testprocess.Process):
                               "<qutebrowser.browser.webview.WebView tab_id=0 "
                               "url='about:blank'>: LoadStatus.success")
 
-        url_loaded_pattern = re.compile(
-            r"load status for <qutebrowser.browser.webview.WebView tab_id=\d+ "
-            r"url='[^']+'>: LoadStatus.success")
-
         if (log_line.category == 'ipc' and
                 log_line.message.startswith("Listening as ")):
             self._ipc_socket = log_line.message.split(' ', maxsplit=2)[2]
         elif (log_line.category == 'webview' and
                 log_line.message == start_okay_message):
             self.ready.emit()
-        elif (log_line.category == 'commands' and
-              log_line.module == 'command' and log_line.function == 'run' and
-              log_line.message.startswith('Calling ')):
-            self.executing_command.emit()
-        elif (log_line.category == 'config' and log_line.message.startswith(
-                'Config option changed: ')):
-            self.setting_done.emit()
-        elif (log_line.category == 'webview' and
-                url_loaded_pattern.match(log_line.message)):
-            self.url_loaded.emit()
         elif log_line.loglevel in ['WARNING', 'ERROR']:
             self.got_error.emit()
 
@@ -156,23 +143,29 @@ class QuteProc(testprocess.Process):
 
     def send_cmd(self, command):
         assert self._ipc_socket is not None
-        with self._wait_signal(self.executing_command):
-            ipc.send_to_running_instance(self._ipc_socket, [command],
-                                         target_arg='')
+
+        ipc.send_to_running_instance(self._ipc_socket, [command],
+                                     target_arg='')
+        self.wait_for(category='commands', module='command', function='run',
+                      message='Calling *')
         # Wait a bit in cause the command triggers any error.
         time.sleep(0.5)
 
     def set_setting(self, sect, opt, value):
-        with self._wait_signal(self.setting_done):
-            self.send_cmd(':set "{}" "{}" "{}"'.format(sect, opt, value))
+        self.send_cmd(':set "{}" "{}" "{}"'.format(sect, opt, value))
+        self.wait_for(category='config', message='Config option changed: *')
 
     def open_path(self, path, new_tab=False):
+        url_loaded_pattern = re.compile(
+            r"load status for <qutebrowser.browser.webview.WebView tab_id=\d+ "
+            r"url='[^']+'>: LoadStatus.success")
+
         url = 'http://localhost:{}/{}'.format(self._httpbin.port, path)
-        with self._wait_signal(self.url_loaded):
-            if new_tab:
-                self.send_cmd(':open -t ' + url)
-            else:
-                self.send_cmd(':open ' + url)
+        if new_tab:
+            self.send_cmd(':open -t ' + url)
+        else:
+            self.send_cmd(':open ' + url)
+        self.wait_for(category='webview', message=url_loaded_pattern)
 
     def mark_expected(self, category=None, loglevel=None, msg=None):
         """Mark a given logging message as expected."""
