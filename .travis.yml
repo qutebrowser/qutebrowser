@@ -37,7 +37,7 @@ install:
   - python scripts/dev/ci_install.py
 
 script:
-  - tox -e $TESTENV -- -p no:sugar --faulthandler-timeout=20 tests
+  - tox -e $TESTENV -- -p no:sugar --faulthandler-timeout=20 -v tests
 
 matrix:
   exclude:
