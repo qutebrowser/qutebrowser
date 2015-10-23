@@ -203,7 +203,10 @@ def main_check():
     for msg in messages:
         print(msg.text)
 
-    os.remove('coverage.xml')
+    if 'CI' in os.environ:
+        print("Keeping coverage.xml on CI.")
+    else:
+        os.remove('coverage.xml')
     return 1 if messages else 0
 
 
