@@ -26,8 +26,9 @@ from unittest import mock
 from PyQt5.QtCore import pyqtSignal, QPoint, QProcess, QObject
 from PyQt5.QtNetwork import (QNetworkRequest, QAbstractNetworkCache,
                              QNetworkCacheMetaData)
-from PyQt5.QtWidgets import QCommonStyle
+from PyQt5.QtWidgets import QCommonStyle, QWidget
 
+from qutebrowser.browser import webview
 from qutebrowser.config import configexc
 
 
@@ -202,6 +203,18 @@ def fake_qprocess():
                  'Timedout', 'WriteError', 'ReadError', 'UnknownError']:
         setattr(m, attr, getattr(QProcess, attr))
     return m
+
+
+class FakeWebView(QWidget):
+
+    """Fake WebView which can be added to a tab."""
+
+    def __init__(self):
+        super().__init__()
+        self.progress = 0
+        self.scroll_pos = (-1, -1)
+        self.load_status = webview.LoadStatus.none
+        self.tab_id = 0
 
 
 class FakeSignal:
