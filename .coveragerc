@@ -1,4 +1,5 @@
 [run]
+source = qutebrowser
 branch = true
 omit =
     qutebrowser/__main__.py
