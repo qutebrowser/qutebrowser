@@ -1,5 +1,4 @@
 # vim: ft=python fileencoding=utf-8 sts=4 sw=4 et:
-
 # Copyright 2015 Florian Bruhin (The-Compiler) <me@the-compiler.org>
 #
 # This file is part of qutebrowser.
@@ -52,21 +51,31 @@ def fake_save_manager():
     objreg.delete('save-manager')
 
 
-def test_contained(qapp, config_stub, monkeypatch):
-    """ Test historyContains() """
-    config_stub.data = CONFIG_NOT_PRIVATE
-
+def test_add_entry(qapp, config_stub, monkeypatch):
+    """ Test addHistoryEntry() """
+    config_stub.data = CONFIG_PRIVATE
     wb = WebHistory()
-    #monkeypatch.setattr(wb, '_lineparser', LineparserSaveStub)
-    lp = LineparserSaveStub(None, 'temp.stub')
+    lp = LineparserSaveStub(None, 'temp')
     monkeypatch.setattr(wb, '_lineparser', lp)
 
-    #entry = HistoryEntry('1444397977', 'http://asdf.com')
+    # Test premature additions:
+    history_length = len(wb._history_dict)
+    wb.addHistoryEntry('')
+    assert history_length == len(wb._history_dict)
+    # Private config_stub.
     wb.addHistoryEntry('http://asdf.com')
-    wb.save()
+    assert history_length == len(wb._history_dict)
 
-    result = wb.historyContains('http://asdf.com')
-    assert result == True
+    config_stub.data = CONFIG_NOT_PRIVATE
+    # _initial_read_done is false test
+    wb.addHistoryEntry('http://asdf.com')
+    assert history_length == len(wb._history_dict)
+
+    # should be addable now:
+    wb._initial_read_done = True
+    assert wb.historyContains('http://asdf.com') == False
+    wb.addHistoryEntry('http://asdf.com')
+    assert wb.historyContains('http://asdf.com') == True
 
 
 class LineparserSaveStub(lineparser.BaseLineParser):
