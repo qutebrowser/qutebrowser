@@ -20,7 +20,6 @@
 """Tests for the custom TabWidget/TabBar."""
 
 import pytest
-import functools
 
 from qutebrowser.mainwindow import tabwidget
 from PyQt5.QtGui import QIcon, QPixmap
