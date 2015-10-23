@@ -40,7 +40,7 @@ script:
   - tox -e $TESTENV -- -p no:sugar --faulthandler-timeout=20 -v tests
 
 after_success:
-  - codecov -e TESTENV -X gcov -X search
+  - codecov -e TESTENV
 
 matrix:
   exclude:
