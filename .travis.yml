@@ -42,6 +42,9 @@ script:
 after_success:
   - codecov -e TESTENV
 
+after_success:
+  - bash <(curl -s https://codecov.io/bash) -e TOXENV,TESTENV
+
 matrix:
   exclude:
     - os: linux

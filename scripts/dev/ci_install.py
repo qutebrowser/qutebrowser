@@ -82,6 +82,9 @@ if 'APPVEYOR' in os.environ:
     print("Installing tox...")
     subprocess.check_call([r'C:\Python34\Scripts\pip', 'install', 'tox'])
 
+    print("Installing codecov...")
+    subprocess.check_call([r'C:\Python34\Scripts\pip', 'install', 'codecov'])
+
     print("Linking Python...")
     with open(r'C:\Windows\system32\python3.bat', 'w') as f:
         f.write(r'@C:\Python34\python %*')
