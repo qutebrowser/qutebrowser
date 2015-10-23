@@ -20,17 +20,12 @@
 
 import pytest
 
-import qutebrowser.browser.history
 
 from unittest import mock
 
-from qutebrowser.misc import cmdhistory
 from qutebrowser.browser.history import WebHistory
 from qutebrowser.browser.history import HistoryEntry
-from PyQt5.QtCore import QUrl
-import datetime
 
-from qutebrowser.browser import cookies
 from qutebrowser.utils import objreg
 from qutebrowser.misc import lineparser, savemanager
 
@@ -52,7 +47,6 @@ def fake_save_manager():
 
 
 def test_add_entry(qapp, config_stub, monkeypatch):
-    """ Test addHistoryEntry() """
     config_stub.data = CONFIG_PRIVATE
     wb = WebHistory()
     lp = LineparserSaveStub(None, 'temp')
@@ -76,6 +70,19 @@ def test_add_entry(qapp, config_stub, monkeypatch):
     assert wb.historyContains('http://asdf.com') == False
     wb.addHistoryEntry('http://asdf.com')
     assert wb.historyContains('http://asdf.com') == True
+
+
+def test_save(qapp, config_stub, monkeypatch):
+    config_stub.data = CONFIG_NOT_PRIVATE
+    wb = WebHistory()
+    lp = LineparserSaveStub(None, 'temp')
+    monkeypatch.setattr(wb, '_lineparser', lp)
+    wb._initial_read_done = True
+    wb.addHistoryEntry('http://asdf.com')
+    wb.addHistoryEntry('http://asdf.com')
+    before = wb._saved_count
+    wb.save()
+    assert before < wb._saved_count
 
 
 class LineparserSaveStub(lineparser.BaseLineParser):
