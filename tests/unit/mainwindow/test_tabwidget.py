@@ -22,15 +22,39 @@
 import pytest
 
 from qutebrowser.mainwindow import tabwidget
-from PyQt5.QtGui import QIcon, QPixmap
+from qutebrowser.config import configtypes
+from PyQt5.QtGui import QIcon, QPixmap, QFont, QColor
 
 
 class TestTabWidget:
 
-    """Tests for TabBar."""
+    """Tests for TabWidget."""
+
+    CONFIG = {
+        'fonts': {
+            'tabbar': QFont(),
+        },
+        'tabs': {
+            'show-switching-delay': 800,
+            'movable': True,
+            'position': 0,
+            'select-on-remove': 1,
+            'show': 'always',
+            'padding': configtypes.PaddingValues(0, 0, 5, 5),
+            'indicator-width': 3,
+            'indicator-padding': configtypes.PaddingValues(2, 2, 0, 4),
+            'title-format': '{index}: {title}',
+        },
+        'colors': {
+            'tabs.bg.bar': QColor(),
+            'tabs.bg.selected.even': QColor(),
+            'tabs.fg.selected.even': QColor(),
+        }
+    }
 
     @pytest.fixture
-    def widget(self, qtbot, default_config):
+    def widget(self, qtbot, config_stub):
+        config_stub.data = self.CONFIG
         w = tabwidget.TabWidget(0)
         qtbot.addWidget(w)
         return w
@@ -47,3 +71,4 @@ class TestTabWidget:
         widget.addTab(page, icon, 'foobar')
         widget.show()
         qtbot.waitForWindowShown(widget)
+        widget.close()
