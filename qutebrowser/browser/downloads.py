@@ -590,9 +590,6 @@ class DownloadItem(QObject):
         if code == QNetworkReply.OperationCanceledError:
             return
         else:
-            if self.reply is None:
-                log.downloads.debug("QNetworkReply disappeared %s", self)
-                return
             self._die(self.reply.errorString())
 
     @pyqtSlot()
