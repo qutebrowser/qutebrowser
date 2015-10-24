@@ -297,6 +297,10 @@ class _Downloader():
 
         log.downloads.debug("loading asset at %s", url)
 
+        # Using the download manager to download host-blocked urls might crash
+        # qute, see the comments/discussion on
+        # https://github.com/The-Compiler/qutebrowser/pull/962#discussion_r40256987
+        # and https://github.com/The-Compiler/qutebrowser/issues/1053
         host_blocker = objreg.get('host-blocker')
         if host_blocker.is_blocked(url):
             log.downloads.debug("Skipping %s, host-blocked", url)
