@@ -1902,6 +1902,7 @@ Valid values:
  * +rgb+: Interpolate in the RGB color system.
  * +hsv+: Interpolate in the HSV color system.
  * +hsl+: Interpolate in the HSL color system.
+ * +none+: Don't show a gradient.
 
 Default: +pass:[rgb]+
 
@@ -1962,6 +1963,7 @@ Valid values:
  * +rgb+: Interpolate in the RGB color system.
  * +hsv+: Interpolate in the HSV color system.
  * +hsl+: Interpolate in the HSL color system.
+ * +none+: Don't show a gradient.
 
 Default: +pass:[rgb]+
 
@@ -1974,6 +1976,7 @@ Valid values:
  * +rgb+: Interpolate in the RGB color system.
  * +hsv+: Interpolate in the HSV color system.
  * +hsl+: Interpolate in the HSL color system.
+ * +none+: Don't show a gradient.
 
 Default: +pass:[rgb]+
 
