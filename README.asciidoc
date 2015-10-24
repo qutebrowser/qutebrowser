@@ -141,9 +141,9 @@ Contributors, sorted by the number of commits in descending order:
 * Martin Tournoij
 * Raphael Pierzina
 * Joel Torstensson
+* Daniel
 * Claude
 * Lamar Pavel
-* Daniel
 * Nathan Isom
 * Austin Anderson
 * Artur Shaik
