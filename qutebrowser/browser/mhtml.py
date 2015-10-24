@@ -297,6 +297,15 @@ class _Downloader():
 
         log.downloads.debug("loading asset at %s", url)
 
+        host_blocker = objreg.get('host-blocker')
+        if host_blocker.is_blocked(url):
+            log.downloads.debug("Skipping %s, host-blocked", url)
+            # We still need an empty file in the output, QWebView can be pretty
+            # picky about displaying a file correctly when not all assets are
+            # at least referenced in the mhtml file.
+            self.writer.add_file(urlutils.encoded_url(url), b'')
+            return
+
         download_manager = objreg.get('download-manager', scope='window',
                                       window='current')
         item = download_manager.get(url, fileobj=_NoCloseBytesIO(),
@@ -374,6 +383,7 @@ class _Downloader():
             log.downloads.debug("Oops! Download already gone: %s", item)
             return
         item.fileobj.actual_close()
+        # Add a stub file, see comment in .fetch_url() for more information
         self.writer.add_file(urlutils.encoded_url(url), b'')
         if self.pending_downloads:
             return
