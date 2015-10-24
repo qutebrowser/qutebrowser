@@ -164,12 +164,20 @@ def interpolate_color(start, end, percent, colorspace=QColor.Rgb):
         percent: Which value to get (0 - 100)
         colorspace: The desired interpolation color system,
                     QColor::{Rgb,Hsv,Hsl} (from QColor::Spec enum)
+                    If None, start is used except when percent is 100.
 
     Return:
         The interpolated QColor, with the same spec as the given start color.
     """
     qtutils.ensure_valid(start)
     qtutils.ensure_valid(end)
+
+    if colorspace is None:
+        if percent == 100:
+            return end
+        else:
+            return start
+
     out = QColor()
     if colorspace == QColor.Rgb:
         a_c1, a_c2, a_c3, _alpha = start.getRgb()

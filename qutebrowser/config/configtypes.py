@@ -644,12 +644,14 @@ class ColorSystem(MappingType):
     special = True
     valid_values = ValidValues(('rgb', "Interpolate in the RGB color system."),
                                ('hsv', "Interpolate in the HSV color system."),
-                               ('hsl', "Interpolate in the HSL color system."))
+                               ('hsl', "Interpolate in the HSL color system."),
+                               ('none', "Don't show a gradient."))
 
     MAPPING = {
         'rgb': QColor.Rgb,
         'hsv': QColor.Hsv,
         'hsl': QColor.Hsl,
+        'none': None,
     }
 
 

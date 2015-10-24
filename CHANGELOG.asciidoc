@@ -41,6 +41,8 @@ Added
     * `completion -> scrollbar-padding`
     * `colors -> completion.scrollbar.fg`
     * `colors -> completion.scrollbar.bg`
+- New value `none` for `colors -> tabs.indicator.system` to not display a
+  gradient for tab indicators.
 
 Changed
 ~~~~~~~

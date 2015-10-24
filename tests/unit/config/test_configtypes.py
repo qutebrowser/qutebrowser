@@ -844,6 +844,8 @@ class TestColorSystem:
         'hsv': QColor.Hsv,
         'HSL': QColor.Hsl,
         'hsl': QColor.Hsl,
+        'none': None,
+        'None': None,
         '': None,
     }
     INVALID = ['RRGB', 'HSV ', '']  # '' is invalid with none_ok=False
