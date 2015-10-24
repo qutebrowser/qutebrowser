@@ -465,59 +465,6 @@ class TabBar(QTabBar):
         super().tabRemoved(idx)
         self._tabhide()
 
-    def addTab(self, icon_or_text, text_or_empty=None):
-        """Override addTab to use our own text setting logic.
-
-        Unfortunately QTabBar::addTab has these two overloads:
-            - const QIcon & icon, const QString & label
-            - const QString & label
-
-        This means we'll get different arguments based on the chosen overload.
-
-        Args:
-            icon_or_text: Either the QIcon to add or the label.
-            text_or_empty: Either the label or None.
-
-        Return:
-            The index of the newly added tab.
-        """
-        if text_or_empty is None:
-            icon = None
-            text = icon_or_text
-            new_idx = super().addTab('')
-        else:
-            icon = icon_or_text
-            text = text_or_empty
-            new_idx = super().addTab(icon, '')
-        self.set_page_title(new_idx, text)
-
-    def insertTab(self, idx, icon_or_text, text_or_empty=None):
-        """Override insertTab to use our own text setting logic.
-
-        Unfortunately QTabBar::insertTab has these two overloads:
-            - int index, const QIcon & icon, const QString & label
-            - int index, const QString & label
-
-        This means we'll get different arguments based on the chosen overload.
-
-        Args:
-            idx: Where to insert the widget.
-            icon_or_text: Either the QIcon to add or the label.
-            text_or_empty: Either the label or None.
-
-        Return:
-            The index of the newly added tab.
-        """
-        if text_or_empty is None:
-            icon = None
-            text = icon_or_text
-            new_idx = super().InsertTab(idx, '')
-        else:
-            icon = icon_or_text
-            text = text_or_empty
-            new_idx = super().insertTab(idx, icon, '')
-        self.set_page_title(new_idx, text)
-
     def wheelEvent(self, e):
         """Override wheelEvent to make the action configurable.
 
@@ -629,7 +576,7 @@ class TabBarStyle(QCommonStyle):
             # any sophisticated drawing.
             super().drawControl(QStyle.CE_TabBarTabShape, opt, p, widget)
         elif element == QStyle.CE_TabBarTabLabel:
-            if not opt.icon.isNull():
+            if not opt.icon.isNull() and layouts.icon.isValid():
                 self._draw_icon(layouts, opt, p)
             alignment = Qt.AlignLeft | Qt.AlignVCenter | Qt.TextHideMnemonic
             self._style.drawItemText(p, layouts.text, alignment, opt.palette,
@@ -721,7 +668,8 @@ class TabBarStyle(QCommonStyle):
         else:
             icon_padding = self.pixelMetric(PixelMetrics.icon_padding, opt)
             icon_rect = self._get_icon_rect(opt, text_rect)
-            text_rect.adjust(icon_rect.width() + icon_padding, 0, 0, 0)
+            if icon_rect.isValid():
+                text_rect.adjust(icon_rect.width() + icon_padding, 0, 0, 0)
 
         text_rect = self._style.visualRect(opt.direction, opt.rect, text_rect)
         return Layouts(text=text_rect, icon=icon_rect,
@@ -751,5 +699,4 @@ class TabBarStyle(QCommonStyle):
         icon_rect = QRect(text_rect.left(), text_rect.top() + 1,
                           tab_icon_size.width(), tab_icon_size.height())
         icon_rect = self._style.visualRect(opt.direction, opt.rect, icon_rect)
-        qtutils.ensure_valid(icon_rect)
         return icon_rect
