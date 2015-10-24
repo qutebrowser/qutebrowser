@@ -228,9 +228,10 @@ def test_empty_content_type(checker):
 
 
 @pytest.mark.parametrize('has_cssutils', [
-    True,
+    pytest.mark.skipif(mhtml.cssutils is None,
+                       reason="requires cssutils")(True),
     False,
-])
+], ids=['with_cssutils', 'no_cssutils'])
 @pytest.mark.parametrize('inline, style, expected_urls', [
     (False, "@import 'default.css'", ['default.css']),
     (False, '@import "default.css"', ['default.css']),
@@ -244,9 +245,7 @@ def test_empty_content_type(checker):
 ])
 def test_css_url_scanner(monkeypatch, has_cssutils, inline, style,
                          expected_urls):
-    if has_cssutils:
-        assert mhtml.cssutils is not None
-    else:
+    if not has_cssutils:
         monkeypatch.setattr('qutebrowser.browser.mhtml.cssutils', None)
     expected_urls.sort()
     urls = mhtml._get_css_imports(style, inline=inline)
