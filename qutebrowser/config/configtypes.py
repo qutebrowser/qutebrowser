@@ -236,10 +236,11 @@ class String(BaseType):
         minlen: Minimum length (inclusive).
         maxlen: Maximum length (inclusive).
         forbidden: Forbidden chars in the string.
+        _completions: completions to be used, or None
     """
 
     def __init__(self, minlen=None, maxlen=None, forbidden=None,
-                 none_ok=False):
+                 none_ok=False, completions=None):
         super().__init__(none_ok)
         if minlen is not None and minlen < 1:
             raise ValueError("minlen ({}) needs to be >= 1!".format(minlen))
@@ -251,6 +252,7 @@ class String(BaseType):
         self.minlen = minlen
         self.maxlen = maxlen
         self.forbidden = forbidden
+        self._completions = completions
 
     def validate(self, value):
         self._basic_validation(value)
@@ -266,6 +268,9 @@ class String(BaseType):
         if self.maxlen is not None and len(value) > self.maxlen:
             raise configexc.ValidationError(value, "must be at most {} chars "
                                             "long!".format(self.maxlen))
+
+    def complete(self):
+        return self._completions
 
 
 class List(BaseType):

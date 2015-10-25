@@ -334,6 +334,14 @@ class TestString:
     def test_transform(self, klass):
         assert klass().transform('foobar') == 'foobar'
 
+    @pytest.mark.parametrize('value', [
+        None,
+        ['one', 'two'],
+        [('1', 'one'), ('2', 'two')],
+    ])
+    def test_complete(self, klass, value):
+        assert klass(completions=value).complete() == value
+
 
 class TestList:
 
