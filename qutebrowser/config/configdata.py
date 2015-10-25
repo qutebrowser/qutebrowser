@@ -781,7 +781,11 @@ def data(readonly=False):
              "Mode to use for hints."),
 
             ('chars',
-             SettingValue(typ.String(minlen=2), 'asdfghjkl'),
+             SettingValue(typ.String(minlen=2, completions=[
+		 ('asdfghjkl', "Home row"),
+		 ('dhtnaoeu', "Home row (Dvorak)"),
+		 ('abcdefghijklmnopqrstuvwxyz', "All letters"),
+             ]), 'asdfghjkl'),
              "Chars used for hint strings."),
 
             ('min-chars',
