@@ -24,5 +24,5 @@ after_test:
           (New-Object 'System.Net.WebClient').UploadFile($url, (Resolve-Path $file))
       }
       if ($env:TESTENV -eq 'py34') {
-          Invoke-Command codecov -e TESTENV -X gcov --required
+          $ codecov -e TESTENV -X gcov --required
       }
