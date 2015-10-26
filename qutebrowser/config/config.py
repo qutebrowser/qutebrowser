@@ -558,7 +558,8 @@ class ConfigManager(QObject):
 
     def _after_set(self, changed_sect, changed_opt):
         """Clean up caches and emit signals after an option has been set."""
-        self.get.cache_clear()
+        # WORKAROUND for https://bitbucket.org/logilab/pylint/issues/659/
+        self.get.cache_clear()  # pylint: disable=no-member
         self._changed(changed_sect, changed_opt)
         # Options in the same section and ${optname} interpolation.
         for optname, option in self.sections[changed_sect].items():
@@ -620,7 +621,8 @@ class ConfigManager(QObject):
         existed = optname in sectdict
         if existed:
             del sectdict[optname]
-            self.get.cache_clear()
+            # WORKAROUND for https://bitbucket.org/logilab/pylint/issues/659/
+            self.get.cache_clear()  # pylint: disable=no-member
         return existed
 
     @functools.lru_cache()

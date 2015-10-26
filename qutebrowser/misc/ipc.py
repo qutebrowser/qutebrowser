@@ -340,7 +340,8 @@ class IPCServer(QObject):
                 self._handle_invalid_data()
                 return
 
-            cwd = json_data.get('cwd', None)
+            # WORKAROUND for https://bitbucket.org/logilab/astroid/issues/75/
+            cwd = json_data.get('cwd', None)  # pylint: disable=no-member
             self.got_args.emit(json_data['args'], json_data['target_arg'], cwd)
 
     @pyqtSlot()
