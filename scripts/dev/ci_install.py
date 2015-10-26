@@ -123,8 +123,8 @@ elif TRAVIS_OS == 'osx':
         pkgs.append('pyqt5')
     brew(['install'] + pkgs)
 
-    print("Installing tox...")
-    subprocess.check_call(['sudo', 'pip3', 'install', 'tox'])
+    print("Installing tox/codecov...")
+    subprocess.check_call(['sudo', 'pip3', 'install', 'tox', 'codecov'])
 
     check_setup('python3')
 else:
