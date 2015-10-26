@@ -43,6 +43,10 @@ TRAVIS_OS = os.environ.get('TRAVIS_OS_NAME', None)
 INSTALL_PYQT = TESTENV in ('py34', 'py35', 'unittests-nodisp', 'vulture',
                            'pylint')
 XVFB = TRAVIS_OS == 'linux' and TESTENV == 'py34'
+pip_packages = ['tox']
+if TESTENV in ['py34', 'py35']:
+    pip_packages.append('codecov')
+
 
 
 def apt_get(args):
@@ -80,7 +84,8 @@ if 'APPVEYOR' in os.environ:
     subprocess.check_call([r'C:\install-PyQt5.exe', '/S'])
 
     print("Installing tox...")
-    subprocess.check_call([r'C:\Python34\Scripts\pip', 'install', 'tox'])
+    subprocess.check_call([r'C:\Python34\Scripts\pip', 'install'] +
+                          pip_packages)
 
     print("Linking Python...")
     with open(r'C:\Windows\system32\python3.bat', 'w') as f:
@@ -90,7 +95,7 @@ if 'APPVEYOR' in os.environ:
 elif TRAVIS_OS == 'linux':
     print("travis_fold:start:ci_install")
     print("Installing via pip...")
-    subprocess.check_call(['sudo', 'pip', 'install', 'tox', 'codecov'])
+    subprocess.check_call(['sudo', 'pip', 'install'] + pip_packages)
 
     print("Installing packages...")
     pkgs = []
@@ -124,7 +129,7 @@ elif TRAVIS_OS == 'osx':
     brew(['install'] + pkgs)
 
     print("Installing tox/codecov...")
-    subprocess.check_call(['sudo', 'pip3', 'install', 'tox', 'codecov'])
+    subprocess.check_call(['sudo', 'pip3', 'install'] + pip_packages)
 
     check_setup('python3')
 else:
