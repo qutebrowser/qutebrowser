@@ -57,6 +57,8 @@ Changed
   `$XDG_DATA_DIR`. Using a binary in `$PATH` won't work anymore with
   `--userscript`.
 - New design for error pages
+- Link filtering for hints now checks if the text is contained anywhere in
+  the link, and matches case-insensitively.
 
 Fixed
 ~~~~~

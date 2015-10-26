@@ -178,6 +178,7 @@ Contributors, sorted by the number of commits in descending order:
 * Tim Harder
 * Thiago Barroso Perrotta
 * Matthias Lisin
+* Jean-Christophe Petkovich
 * Helen Sherwood-Taylor
 * HalosGhost
 * Gregor Pohl
