@@ -48,7 +48,6 @@ if TESTENV in ['py34', 'py35']:
     pip_packages.append('codecov')
 
 
-
 def apt_get(args):
     subprocess.check_call(['sudo', 'apt-get', '-y', '-q'] + args)
 
