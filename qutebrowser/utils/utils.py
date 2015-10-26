@@ -174,9 +174,9 @@ def interpolate_color(start, end, percent, colorspace=QColor.Rgb):
 
     if colorspace is None:
         if percent == 100:
-            return end
+            return QColor(*end.getRgb())
         else:
-            return start
+            return QColor(*start.getRgb())
 
     out = QColor()
     if colorspace == QColor.Rgb:

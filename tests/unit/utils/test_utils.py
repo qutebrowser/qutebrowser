@@ -347,6 +347,7 @@ class TestInterpolateColor:
         """Test an interpolation with a gradient turned off."""
         color = utils.interpolate_color(Color(0, 0, 0), Color(255, 255, 255),
                                         percentage, None)
+        assert isinstance(color, QColor)
         assert Color(color) == Color(*expected)
 
 
