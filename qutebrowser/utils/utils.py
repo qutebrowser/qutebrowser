@@ -419,6 +419,7 @@ class FakeIOStream(io.TextIOBase):
     """A fake file-like stream which calls a function for write-calls."""
 
     def __init__(self, write_func):
+        super().__init__()
         self.write = write_func
 
     def flush(self):

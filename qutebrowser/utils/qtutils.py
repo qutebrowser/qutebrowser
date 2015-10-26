@@ -247,6 +247,7 @@ class PyQIODevice(io.BufferedIOBase):
     # pylint: disable=missing-docstring
 
     def __init__(self, dev):
+        super().__init__()
         self.dev = dev
 
     def __len__(self):
