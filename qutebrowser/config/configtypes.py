@@ -171,8 +171,6 @@ class BaseType:
         if not value:
             return
         if self.valid_values is not None:
-            # WORKAROUND for https://bitbucket.org/logilab/pylint/issues/685/
-            # pylint: disable=unsupported-membership-test
             if value not in self.valid_values:
                 raise configexc.ValidationError(
                     value, "valid values: {}".format(', '.join(
@@ -194,8 +192,7 @@ class BaseType:
             return None
         else:
             out = []
-            # WORKAROUND for https://bitbucket.org/logilab/pylint/issues/685/
-            for val in self.valid_values:  # pylint: disable=not-an-iterable
+            for val in self.valid_values:
                 try:
                     desc = self.valid_values.descriptions[val]
                 except KeyError:
@@ -333,8 +330,7 @@ class FlagList(List):
 
         out = []
         # Single value completions
-        # WORKAROUND for https://bitbucket.org/logilab/pylint/issues/685/
-        for value in self.valid_values:  # pylint: disable=not-an-iterable
+        for value in self.valid_values:
             desc = self.valid_values.descriptions.get(value, "")
             out.append((value, desc))
 

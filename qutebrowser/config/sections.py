@@ -62,8 +62,6 @@ class Section:
 
     def __contains__(self, key):
         """Return whether the section contains a given key."""
-        # WORKAROUND for https://bitbucket.org/logilab/pylint/issues/685/
-        # pylint: disable=unsupported-membership-test
         return key in self.values
 
     def items(self):

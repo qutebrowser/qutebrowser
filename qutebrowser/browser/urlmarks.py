@@ -95,8 +95,7 @@ class UrlMarkManager(QObject):
             return
 
         self._init_lineparser()
-        # WORKAROUND for https://bitbucket.org/logilab/pylint/issues/685/
-        for line in self._lineparser:  # pylint: disable=not-an-iterable
+        for line in self._lineparser:
             if not line.strip():
                 # Ignore empty or whitespace-only lines.
                 continue
