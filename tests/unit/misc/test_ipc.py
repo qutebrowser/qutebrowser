@@ -460,6 +460,9 @@ class TestHandleConnection:
 
 @pytest.yield_fixture
 def connected_socket(qtbot, qlocalsocket, ipc_server):
+    if sys.platform == 'darwin':
+        pytest.skip("Skipping connected_socket test - "
+                    "https://github.com/The-Compiler/qutebrowser/issues/1045")
     ipc_server.listen()
     with qtbot.waitSignal(ipc_server._server.newConnection, raising=True):
         qlocalsocket.connectToServer('qute-test')
