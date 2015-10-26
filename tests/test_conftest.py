@@ -20,9 +20,13 @@
 """Various meta-tests for conftest.py."""
 
 
+import os
+import sys
 import warnings
 
 import pytest
+
+import qutebrowser
 
 
 def test_qapp_name(qapp):
@@ -38,3 +42,10 @@ def test_no_qapp(request):
 def test_fail_on_warnings():
     with pytest.raises(PendingDeprecationWarning):
         warnings.warn('test', PendingDeprecationWarning)
+
+
+@pytest.mark.xfail(reason="https://github.com/The-Compiler/qutebrowser/issues/1070")
+def test_installed_package():
+    """Make sure the tests are running against the installed package."""
+    print(sys.path)
+    assert '.tox' in qutebrowser.__file__.split(os.sep)
