@@ -95,6 +95,9 @@ class Process(QObject):
     @pyqtSlot()
     def read_log(self):
         """Read the log from the process' stdout."""
+        if not hasattr(self, 'proc'):
+            # I have no idea how this happens, but it does...
+            return
         while self.proc.canReadLine():
             line = self.proc.readLine()
             line = bytes(line).decode('utf-8', errors='ignore').rstrip('\r\n')
