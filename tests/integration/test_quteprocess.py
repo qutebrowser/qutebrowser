@@ -21,8 +21,6 @@
 
 import pytest
 
-import testprocess  # pylint: disable=import-error
-
 
 def test_quteproc_error_message(qtbot, quteproc):
     """Make sure the test fails with an unexpected error message."""

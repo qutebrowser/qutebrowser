@@ -26,7 +26,6 @@ import re
 import sys
 import time
 import os.path
-import collections
 
 import pytest
 from PyQt5.QtCore import pyqtSignal
@@ -120,7 +119,7 @@ class QuteProc(testprocess.Process):
                 url_loaded_pattern.match(log_line.message)):
             self.url_loaded.emit()
         elif log_line.loglevel in ['WARNING', 'ERROR']:
-                self.got_error.emit()
+            self.got_error.emit()
 
         return log_line
 
