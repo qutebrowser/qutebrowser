@@ -183,5 +183,5 @@ def quteproc(qapp, httpbin):
     proc = QuteProc(httpbin)
     proc.start()
     yield proc
-    proc.after_test()
     proc.terminate()
+    proc.after_test()

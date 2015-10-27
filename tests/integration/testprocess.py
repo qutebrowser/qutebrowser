@@ -134,15 +134,13 @@ class Process(QObject):
         unexpected output lines earlier.
         """
         self._data.clear()
-        if not self.is_running():
-            print("Restarting process...")
-            self.start()
-            raise ProcessExited
         if self._invalid:
             raise InvalidLine
 
     def terminate(self):
         """Clean up and shut down the process."""
+        if not self.is_running():
+            raise ProcessExited
         self.proc.terminate()
         self.proc.waitForFinished()
 
