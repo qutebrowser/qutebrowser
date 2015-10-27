@@ -158,6 +158,7 @@ Contributors, sorted by the number of commits in descending order:
 * rikn00
 * Patric Schmitz
 * Martin Zimmermann
+* Jonas Schürmann
 * Error 800
 * Brian Jackson
 * sbinix
@@ -165,7 +166,6 @@ Contributors, sorted by the number of commits in descending order:
 * jnphilipp
 * Tobias Patzl
 * Peter Michely
-* Jonas Schürmann
 * Johannes Altmanninger
 * Samir Benmendil
 * Regina Hug
