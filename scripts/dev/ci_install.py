@@ -83,7 +83,7 @@ if 'APPVEYOR' in os.environ:
     subprocess.check_call([r'C:\install-PyQt5.exe', '/S'])
 
     print("Installing tox...")
-    subprocess.check_call([r'C:\Python34\Scripts\pip', 'install'] +
+    subprocess.check_call([r'C:\Python34\Scripts\pip', 'install', '-U'] +
                           pip_packages)
 
     print("Linking Python...")
