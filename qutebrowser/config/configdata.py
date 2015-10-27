@@ -140,7 +140,7 @@ def data(readonly=False):
              "end."),
 
             ('startpage',
-             SettingValue(typ.List(), 'https://www.duckduckgo.com'),
+             SettingValue(typ.List(), 'https://duckduckgo.com'),
              "The default page(s) to open at the start, separated by commas."),
 
             ('default-page',
