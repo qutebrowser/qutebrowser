@@ -48,6 +48,12 @@ def run_command(quteproc, command):
     quteproc.send_cmd(command)
 
 
+@bdd.when(bdd.parsers.parse("I reload"))
+def run_command(qtbot, httpbin, quteproc, command):
+    with qtbot.waitSignal(httpbin.new_request, raising=True):
+        quteproc.send_cmd(':reload')
+
+
 @bdd.then(bdd.parsers.parse("{path} should be loaded"))
 def path_should_be_loaded(httpbin, path):
     requests = httpbin.get_requests()
