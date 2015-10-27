@@ -1,4 +1,3 @@
-shallow_clone: true
 version: '{branch}-{build}'
 cache:
   - C:\projects\qutebrowser\.cache
