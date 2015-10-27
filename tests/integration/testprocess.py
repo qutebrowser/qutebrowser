@@ -141,7 +141,7 @@ class Process(QObject):
         if self._invalid:
             raise InvalidLine
 
-    def cleanup(self):
+    def terminate(self):
         """Clean up and shut down the process."""
         self.proc.terminate()
         self.proc.waitForFinished()
