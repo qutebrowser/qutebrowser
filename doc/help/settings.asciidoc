@@ -304,7 +304,7 @@ Default: +pass:[true]+
 === startpage
 The default page(s) to open at the start, separated by commas.
 
-Default: +pass:[https://www.duckduckgo.com]+
+Default: +pass:[https://duckduckgo.com]+
 
 [[general-default-page]]
 === default-page
