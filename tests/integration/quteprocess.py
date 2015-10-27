@@ -43,6 +43,15 @@ class NoLineMatch(Exception):
 
 class LogLine:
 
+    """A parsed line from the qutebrowser log output.
+
+    Attributes:
+        timestamp/loglevel/category/module/function/line/message:
+            Parsed from the log output.
+        _line: The entire unparsed line.
+        expected: Whether the message was expected or not.
+    """
+
     LOG_RE = re.compile(r"""
         (?P<timestamp>\d\d:\d\d:\d\d)
         \ (?P<loglevel>VDEBUG|DEBUG|INFO|WARNING|ERROR)

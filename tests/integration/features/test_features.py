@@ -49,7 +49,7 @@ def run_command(quteproc, command):
 
 
 @bdd.when(bdd.parsers.parse("I reload"))
-def run_command(qtbot, httpbin, quteproc, command):
+def reload(qtbot, httpbin, quteproc, command):
     with qtbot.waitSignal(httpbin.new_request, raising=True):
         quteproc.send_cmd(':reload')
 
@@ -61,7 +61,7 @@ def path_should_be_loaded(httpbin, path):
 
 
 @bdd.then(bdd.parsers.parse("The requests should be:\n{pages}"))
-def lost_of_loaded_pages(httpbin, pages):
+def list_of_loaded_pages(httpbin, pages):
     requests = [httpbin.Request('GET', '/' + path.strip())
                 for path in pages.split('\n')]
     assert httpbin.get_requests() == requests
