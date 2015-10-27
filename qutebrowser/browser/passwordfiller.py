@@ -326,8 +326,8 @@ class PasswordFiller:
             elements = frame.findAllElements('input[type="password"]')
             for elem in elements:
                 form = elem
-                while not form.isNull() and (form.tagName() != "FORM" and
-                                             form.tagName() != "BODY"):
+                while not form.isNull() and (form.tagName().lower() != "form" and
+                                             form.tagName().lower() != "body"):
                     form = form.parent()
                 password_fields = form.findAll('input[type="password"]')
                 # Return forms with one password field.
@@ -482,12 +482,13 @@ class PasswordFiller:
                 elem_count = self._find_login_form_input(login_form).count()
                 if elem_count == 1:
                     username = DEFAULT_USERNAME
-            elif unique_forms_count > 1:
-                form_action = password_data["form_action"]
 
             if username is None:
                 username = self._choose_username(host)
             password_data = self._load(host, username)
+
+            if unique_forms_count > 1:
+                form_action = password_data["form_action"]
         except (KeyError, FileNotFoundError):
             raise cmdexc.CommandError("No password data for the current URL!")
 
