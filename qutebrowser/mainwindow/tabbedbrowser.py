@@ -301,7 +301,6 @@ class TabbedBrowser(tabwidget.TabWidget):
 
     def undo(self):
         """Undo removing of a tab."""
-
         # Remove unused tab which may be created after the last tab is closed
         last_close = config.get('tabs', 'last-close')
         if last_close in ['blank', 'startpage', 'default-page']:
