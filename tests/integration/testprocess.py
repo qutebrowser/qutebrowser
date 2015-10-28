@@ -130,11 +130,11 @@ class Process(QObject):
     def _start(self):
         """Actually start the process."""
         executable, args = self._executable_args()
+        self.proc.readyRead.connect(self.read_log)
         self.proc.start(executable, args)
         ok = self.proc.waitForStarted()
         assert ok
         assert self.is_running()
-        self.proc.readyRead.connect(self.read_log)
 
     def after_test(self):
         """Clean up data after each test.
