@@ -51,7 +51,8 @@ class CovtestHelper:
         coveragerc = str(self._testdir.tmpdir / 'coveragerc')
         return self._testdir.runpytest('--cov=module',
                                        '--cov-config={}'.format(coveragerc),
-                                       '--cov-report=xml')
+                                       '--cov-report=xml',
+                                       plugins=['no:faulthandler'])
 
     def check(self, perfect_files=None):
         """Run check_coverage.py and run its return value."""
