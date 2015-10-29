@@ -311,8 +311,10 @@ class TabbedBrowser(tabwidget.TabWidget):
                 'startpage': QUrl(config.get('general', 'startpage')[0]),
                 'default-page': config.get('general', 'default-page'),
             }
-            first_tab_url = self.widget(0).url()
-            last_close_url_used = first_tab_url == urls[last_close]
+            first_tab_url = self.widget(0).page().mainFrame().requestedUrl()
+            last_close_urlstr = urls[last_close].toString().rstrip('/')
+            first_tab_urlstr = first_tab_url.toString().rstrip('/')
+            last_close_url_used = first_tab_urlstr == last_close_urlstr
 
             if only_one_tab_open and no_history and last_close_url_used:
                 self.removeTab(0)
