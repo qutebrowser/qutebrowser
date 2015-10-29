@@ -19,17 +19,52 @@
 
 """Tests for qutebrowser.browser.cache"""
 
+from PyQt5.QtCore import QUrl
+from PyQt5.QtNetwork import QNetworkDiskCache, QNetworkCacheMetaData
+
 from qutebrowser.browser import cache
+
+
+def preload_cache(cache, url='http://www.example.com/', content=b'foobar'):
+    metadata = QNetworkCacheMetaData()
+    metadata.setUrl(QUrl(url))
+    assert metadata.isValid()
+    device = cache.prepare(metadata)
+    assert device is not None
+    device.write(content)
+    cache.insert(device)
+
+
+def test_cache_insert_data(tmpdir):
+    """Test if entries inserted into the cache are actually there."""
+    URL = 'http://qutebrowser.org'
+    CONTENT = b'foobar'
+    cache = QNetworkDiskCache()
+    cache.setCacheDirectory(str(tmpdir))
+    assert cache.cacheSize() == 0
+
+    preload_cache(cache, URL, CONTENT)
+
+    assert cache.cacheSize() != 0
+    assert cache.data(QUrl(URL)).readAll() == CONTENT
 
 
 def test_cache_size_leq_max_cache_size(config_stub, tmpdir):
     """Test cacheSize <= MaximumCacheSize when cache is activated."""
+    LIMIT = 100
     config_stub.data = {
-        'storage': {'cache-size': 1024},
+        'storage': {'cache-size': LIMIT},
         'general': {'private-browsing': False}
     }
     disk_cache = cache.DiskCache(str(tmpdir))
-    assert disk_cache.cacheSize() <= 1024
+    assert disk_cache.maximumCacheSize() == LIMIT
+
+    preload_cache(disk_cache, 'http://www.example/com/')
+    preload_cache(disk_cache, 'http://qutebrowser.org')
+    preload_cache(disk_cache, 'http://foo.xxx')
+    preload_cache(disk_cache, 'http://bar.net')
+    assert disk_cache.expire() < LIMIT
+    assert disk_cache.cacheSize() <= LIMIT
 
 
 def test_cache_deactivated_private_browsing(config_stub, tmpdir):
@@ -39,17 +74,11 @@ def test_cache_deactivated_private_browsing(config_stub, tmpdir):
         'general': {'private-browsing': True}
     }
     disk_cache = cache.DiskCache(str(tmpdir))
-    assert disk_cache.cacheSize() == 0
 
-
-def test_cache_deactivated_no_cachedir(config_stub):
-    """Test if cache is deactivated when there is no cache-dir."""
-    config_stub.data = {
-        'storage': {'cache-size': 1024},
-        'general': {'private-browsing': False}
-    }
-    disk_cache = cache.DiskCache("")
-    assert disk_cache.cacheSize() == 0
+    metadata = QNetworkCacheMetaData()
+    metadata.setUrl(QUrl('http://www.example.com/'))
+    assert metadata.isValid()
+    assert disk_cache.prepare(metadata) is None
 
 
 def test_clear_cache_activated(config_stub, tmpdir):
@@ -59,5 +88,10 @@ def test_clear_cache_activated(config_stub, tmpdir):
         'general': {'private-browsing': False}
     }
     disk_cache = cache.DiskCache(str(tmpdir))
+    assert disk_cache.cacheSize() == 0
+
+    preload_cache(disk_cache)
+    assert disk_cache.cacheSize() != 0
+
     disk_cache.clear()
     assert disk_cache.cacheSize() == 0
