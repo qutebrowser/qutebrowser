@@ -154,8 +154,10 @@ class AsciiDoc:
 
                 self.call(modified_src, dst, '--theme=qute')
 
-        for path in ['icons', 'doc/img']:
-            shutil.copytree(path, os.path.join(outdir, path))
+        copy = {'icons':'icons', 'doc/img':'doc/img', 'www/media':'media/'}
+
+        for src, dest in copy.items():
+            shutil.copytree(src, os.path.join(outdir, dest))
 
         os.symlink('README.html', os.path.join(outdir, 'index.html'))
 
