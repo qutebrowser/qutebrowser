@@ -147,6 +147,7 @@ class AsciiDoc:
                             last_line = line
 
                 current_lines = outfp.getvalue()
+                outfp.close()
 
                 with open(modified_src, "w+") as final_version:
                     final_version.write(title + "\n\n" + header + current_lines)
