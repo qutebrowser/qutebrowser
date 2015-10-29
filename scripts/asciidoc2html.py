@@ -29,6 +29,7 @@ import glob
 import shutil
 import tempfile
 import argparse
+import io
 
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), os.pardir))
 
@@ -110,41 +111,45 @@ class AsciiDoc:
                 modified_src = os.path.join(self._tempdir, src_basename)
                 shutil.copy('www/header.asciidoc', modified_src)
 
-                with open(modified_src, 'a', encoding='utf-8') as outfp:
-                    with open(src, 'r', encoding='utf-8') as infp:
-                        outfp.write("\n\n")
-                        hidden = False
-                        found_title = False
-                        title = ""
-                        last_line = ""
+                outfp = io.StringIO()
 
-                        for line in infp:
-                            if line.strip() == '// QUTE_WEB_HIDE':
-                                assert not hidden
-                                hidden = True
-                            elif line.strip() == '// QUTE_WEB_HIDE_END':
-                                assert hidden
-                                hidden = False
+                with open(modified_src) as header_file:
+                    header = header_file.read()
+                    header += "\n\n"
 
-                            if not found_title:
-                                if re.match(r'^=+$', line):
-                                    line = line.replace('=', '-')
-                                    found_title = True
-                                    title = last_line + "=" * (len(last_line) - 1)
-                                elif re.match(r'^= .+', line):
-                                    line = '==' + line[1:]
-                                    found_title = True
-                                    title = last_line + "=" * (len(last_line) - 1)
+                with open(src, 'r', encoding='utf-8') as infp:
+                    outfp.write("\n\n")
+                    hidden = False
+                    found_title = False
+                    title = ""
+                    last_line = ""
 
-                            if not hidden:
-                                outfp.write(line.replace(".asciidoc[", ".html["))
-                                last_line = line
+                    for line in infp:
+                        if line.strip() == '// QUTE_WEB_HIDE':
+                            assert not hidden
+                            hidden = True
+                        elif line.strip() == '// QUTE_WEB_HIDE_END':
+                            assert hidden
+                            hidden = False
 
-                with open(modified_src) as current:
-                    current_lines = current.read()
+                        if not found_title:
+                            if re.match(r'^=+$', line):
+                                line = line.replace('=', '-')
+                                found_title = True
+                                title = last_line + "=" * (len(last_line) - 1)
+                            elif re.match(r'^= .+', line):
+                                line = '==' + line[1:]
+                                found_title = True
+                                title = last_line + "=" * (len(last_line) - 1)
+
+                        if not hidden:
+                            outfp.write(line.replace(".asciidoc[", ".html["))
+                            last_line = line
+
+                current_lines = outfp.getvalue()
 
                 with open(modified_src, "w+") as final_version:
-                    final_version.write(title + "\n\n" + current_lines)
+                    final_version.write(title + "\n\n" + header + current_lines)
 
                 self.call(modified_src, dst, '--theme=qute')
 
