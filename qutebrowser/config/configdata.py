@@ -291,8 +291,9 @@ def data(readonly=False):
              "Whether to enable smooth scrolling for webpages."),
 
             ('remove-finished-downloads',
-             SettingValue(typ.Bool(), 'false'),
-             "Whether to remove finished downloads automatically."),
+             SettingValue(typ.Int(minval=-1), '-1'),
+             "Number of milliseconds to wait before removing finished "
+             "downloads. Will not be removed if value is -1."),
 
             ('hide-statusbar',
              SettingValue(typ.Bool(), 'false'),
