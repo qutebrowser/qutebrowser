@@ -1012,11 +1012,9 @@ class DownloadManager(QAbstractListModel):
         if not self.downloads:
             self._update_timer.stop()
 
-
     def remove_item_delayed(self, download, delay):
         """Remove a given download after a short delay."""
         QTimer.singleShot(delay, functools.partial(self.remove_item, download))
-
 
     def remove_items(self, downloads):
         """Remove an iterable of downloads."""
