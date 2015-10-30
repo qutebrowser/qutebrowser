@@ -255,21 +255,20 @@ def init(parent=None):
     _init_misc()
 
 
-def _get_value_transformer(old, new):
+def _get_value_transformer(mapping):
     """Get a function which transforms a value for CHANGED_OPTIONS.
 
     Args:
-        old: The old value - if the supplied value doesn't match this, it's
-             returned untransformed.
-        new: The new value.
+        mapping: A dictionary mapping old values to new values. Value is not
+                 transformed if the supplied value doesn't match the old value.
 
     Return:
         A function which takes a value and transforms it.
     """
     def transformer(val):
-        if val == old:
-            return new
-        else:
+        try:
+            return mapping[val]
+        except KeyError:
             return val
     return transformer
 
@@ -352,9 +351,11 @@ class ConfigManager(QObject):
     ]
     CHANGED_OPTIONS = {
         ('content', 'cookies-accept'):
-            _get_value_transformer('default', 'no-3rdparty'),
+            _get_value_transformer({'default': 'no-3rdparty'}),
         ('tabs', 'position'): _transform_position,
         ('ui', 'downloads-position'): _transform_position,
+        ('ui', 'remove-finished-downloads'):
+            _get_value_transformer({'false': '-1', 'true': '2000'})
     }
 
     changed = pyqtSignal(str, str)
