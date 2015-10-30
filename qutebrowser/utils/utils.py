@@ -611,6 +611,27 @@ def force_encoding(text, encoding):
     return text.encode(encoding, errors='replace').decode(encoding)
 
 
+def sanitize_filename(name, replacement='_'):
+    """Replace invalid filename characters.
+
+    Note: This should be used for the basename, as it also removes the path
+    separator.
+
+    Args:
+        name: The filename.
+        replacement: The replacement character (or None).
+    """
+    if replacement is None:
+        replacement = ''
+    # Bad characters taken from Windows, there are even fewer on Linux
+    # See also
+    # https://en.wikipedia.org/wiki/Filename#Reserved_characters_and_words
+    bad_chars = '\\/:*?"<>|'
+    for bad_char in bad_chars:
+        name = name.replace(bad_char, replacement)
+    return name
+
+
 def newest_slice(iterable, count):
     """Get an iterable for the n newest items of the given iterable.
 

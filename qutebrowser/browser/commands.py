@@ -1187,6 +1187,7 @@ class CommandDispatcher:
         tab_id = self._current_index()
         if dest is None:
             suggested_fn = self._current_title() + ".mht"
+            suggested_fn = utils.sanitize_filename(suggested_fn)
             q = usertypes.Question()
             q.text = "Save page to: "
             q.mode = usertypes.PromptMode.text

@@ -458,7 +458,7 @@ def start_download_checked(dest, win_id, tab_id):
     # The default name is 'page title.mht'
     title = (objreg.get('webview', scope='tab', window=win_id, tab=tab_id)
              .title())
-    default_name = title + '.mht'
+    default_name = utils.sanitize_filename(title + '.mht')
 
     # Remove characters which cannot be expressed in the file system encoding
     encoding = sys.getfilesystemencoding()
