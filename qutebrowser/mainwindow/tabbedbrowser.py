@@ -301,6 +301,24 @@ class TabbedBrowser(tabwidget.TabWidget):
 
     def undo(self):
         """Undo removing of a tab."""
+        # Remove unused tab which may be created after the last tab is closed
+        last_close = config.get('tabs', 'last-close')
+        if last_close in ['blank', 'startpage', 'default-page']:
+            only_one_tab_open = self.count() == 1
+            no_history = self.widget(0).history().count() == 1
+            urls = {
+                'blank': QUrl('about:blank'),
+                'startpage': QUrl(config.get('general', 'startpage')[0]),
+                'default-page': config.get('general', 'default-page'),
+            }
+            first_tab_url = self.widget(0).page().mainFrame().requestedUrl()
+            last_close_urlstr = urls[last_close].toString().rstrip('/')
+            first_tab_urlstr = first_tab_url.toString().rstrip('/')
+            last_close_url_used = first_tab_urlstr == last_close_urlstr
+
+            if only_one_tab_open and no_history and last_close_url_used:
+                self.removeTab(0)
+
         url, history_data = self._undo_stack.pop()
         newtab = self.tabopen(url, background=False)
         qtutils.deserialize(history_data, newtab.history())
