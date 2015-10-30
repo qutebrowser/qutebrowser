@@ -71,8 +71,3 @@ class TestTabWidget:
         widget.addTab(page, icon, 'foobar')
         widget.show()
         qtbot.waitForWindowShown(widget)
-        # We need to call close() here because closing needs the stubbed config
-        # on OS X, but when qtbot closes it, the config stub is already gone.
-        # WORKAROUND for https://github.com/pytest-dev/pytest-qt/issues/106
-        # https://github.com/The-Compiler/qutebrowser/pull/1048#issuecomment-150660769
-        widget.close()
