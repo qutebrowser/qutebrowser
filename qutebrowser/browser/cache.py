@@ -43,7 +43,6 @@ class DiskCache(QNetworkDiskCache):
         self._cache_dir = cache_dir
         self._http_cache_dir = os.path.join(cache_dir, 'http')
         self._maybe_activate()
-        self.setMaximumCacheSize(config.get('storage', 'cache-size'))
         objreg.get('config').changed.connect(self.on_config_changed)
 
     def __repr__(self):
@@ -59,6 +58,7 @@ class DiskCache(QNetworkDiskCache):
         else:
             self._activated = True
             self.setCacheDirectory(self._http_cache_dir)
+            self.setMaximumCacheSize(config.get('storage', 'cache-size'))
 
     @pyqtSlot(str, str)
     def on_config_changed(self, section, option):
