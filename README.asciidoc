@@ -153,12 +153,12 @@ Contributors, sorted by the number of commits in descending order:
 * ZDarian
 * John ShaggyTwoDope Jenkins
 * Peter Vilim
+* Jonas Schürmann
 * Jimmy
 * Zach-Button
 * rikn00
 * Patric Schmitz
 * Martin Zimmermann
-* Jonas Schürmann
 * Error 800
 * Brian Jackson
 * sbinix
