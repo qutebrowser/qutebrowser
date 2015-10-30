@@ -68,6 +68,42 @@ def test_cache_deactivated_private_browsing(config_stub, tmpdir):
     assert disk_cache.prepare(metadata) is None
 
 
+def test_cache_deactivated_get_data(config_stub, tmpdir):
+    """Query some data from a deactivated cache."""
+    config_stub.data = {
+        'storage': {'cache-size': 1024},
+        'general': {'private-browsing': True}
+    }
+    disk_cache = cache.DiskCache(str(tmpdir))
+
+    url = QUrl('http://www.example.com/')
+    assert disk_cache.data(url) is None
+
+
+def test_cache_get_nonexistant_data(config_stub, tmpdir):
+    """Test querying some data that was never inserted."""
+    config_stub.data = {
+        'storage': {'cache-size': 1024},
+        'general': {'private-browsing': False}
+    }
+    disk_cache = cache.DiskCache(str(tmpdir))
+    preload_cache(disk_cache, 'https://qutebrowser.org')
+
+    assert disk_cache.data(QUrl('http://qutebrowser.org')) is None
+
+
+def test_cache_deactivated_remove_data(config_stub, tmpdir):
+    """Test removing some data from a deactivated cache."""
+    config_stub.data = {
+        'storage': {'cache-size': 1024},
+        'general': {'private-browsing': True}
+    }
+    disk_cache = cache.DiskCache(str(tmpdir))
+
+    url = QUrl('http://www.example.com/')
+    assert disk_cache.remove(url) == False
+
+
 def test_cache_insert_data(tmpdir):
     """Test if entries inserted into the cache are actually there."""
     url = 'http://qutebrowser.org'
