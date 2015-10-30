@@ -26,12 +26,15 @@ import re
 import sys
 import time
 import os.path
+import datetime
+import logging
 
 import pytest
 from PyQt5.QtCore import pyqtSignal
 
 import testprocess  # pylint: disable=import-error
 from qutebrowser.misc import ipc
+from qutebrowser.utils import log
 
 
 class NoLineMatch(Exception):
@@ -66,6 +69,27 @@ class LogLine:
         if match is None:
             raise NoLineMatch(line)
         self.__dict__.update(match.groupdict())
+
+        self.timestamp = datetime.datetime.strptime(match.group('timestamp'),
+                                                    '%H:%M:%S')
+        loglevel = match.group('loglevel')
+        if loglevel == 'VDEBUG':
+            self.loglevel = log.VDEBUG_LEVEL
+        else:
+            self.loglevel = getattr(logging, loglevel)
+
+        self.category = match.group('category')
+
+        module = match.group('module')
+        if module == 'Unknown module':
+            self.module = None
+        else:
+            self.module = module
+
+        self.function = match.group('function')
+        self.line = int(match.group('line'))
+        self.message = match.group('message')
+
         self.expected = False
 
     def __repr__(self):
@@ -114,7 +138,7 @@ class QuteProc(testprocess.Process):
         elif (log_line.category == 'webview' and
                 log_line.message == start_okay_message):
             self.ready.emit()
-        elif log_line.loglevel in ['WARNING', 'ERROR']:
+        elif log_line.loglevel > logging.INFO:
             self.got_error.emit()
 
         return log_line
@@ -133,8 +157,7 @@ class QuteProc(testprocess.Process):
 
     def after_test(self):
         bad_msgs = [msg for msg in self._data
-                    if msg.loglevel not in ['VDEBUG', 'DEBUG', 'INFO']
-                    and not msg.expected]
+                    if msg.loglevel > logging.INFO and not msg.expected]
         super().after_test()
         if bad_msgs:
             text = 'Logged unexpected errors:\n\n' + '\n'.join(
