@@ -77,6 +77,7 @@ class AsciiDoc:
             self._build_docs()
 
     def _build_docs(self):
+        """Build the documentation by rendering .asciidoc files to .html sites."""
         files = self.FILES[:]
         for src in glob.glob('doc/help/*.asciidoc'):
             name, _ext = os.path.splitext(os.path.basename(src))
@@ -86,6 +87,7 @@ class AsciiDoc:
             self.call(src, dst)
 
     def _build_website(self):
+        """Prepare and build the website."""
         theme_file = os.path.abspath(os.path.join('www', 'qute.css'))
         shutil.copy(theme_file, self._themedir)
 
@@ -113,7 +115,7 @@ class AsciiDoc:
 
                 outfp = io.StringIO()
 
-                with open(modified_src) as header_file:
+                with open(modified_src, 'r', encoding='utf-8') as header_file:
                     header = header_file.read()
                     header += "\n\n"
 
@@ -149,12 +151,12 @@ class AsciiDoc:
                 current_lines = outfp.getvalue()
                 outfp.close()
 
-                with open(modified_src, "w+") as final_version:
+                with open(modified_src, 'w+', encoding='utf-8') as final_version:
                     final_version.write(title + "\n\n" + header + current_lines)
 
                 self.call(modified_src, dst, '--theme=qute')
 
-        copy = {'icons':'icons', 'doc/img':'doc/img', 'www/media':'media/'}
+        copy = {'icons': 'icons', 'doc/img': 'doc/img', 'www/media': 'media/'}
 
         for src, dest in copy.items():
             shutil.copytree(src, os.path.join(outdir, dest))
