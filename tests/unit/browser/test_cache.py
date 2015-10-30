@@ -80,7 +80,7 @@ def test_cache_deactivated_get_data(config_stub, tmpdir):
     assert disk_cache.data(url) is None
 
 
-def test_cache_get_nonexistant_data(config_stub, tmpdir):
+def test_cache_get_nonexistent_data(config_stub, tmpdir):
     """Test querying some data that was never inserted."""
     config_stub.data = {
         'storage': {'cache-size': 1024},
