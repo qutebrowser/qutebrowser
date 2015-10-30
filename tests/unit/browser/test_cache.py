@@ -19,7 +19,7 @@
 
 """Tests for qutebrowser.browser.cache"""
 
-from PyQt5.QtCore import QUrl
+from PyQt5.QtCore import QUrl, QDateTime
 from PyQt5.QtNetwork import QNetworkDiskCache, QNetworkCacheMetaData
 
 from qutebrowser.browser import cache
@@ -138,3 +138,32 @@ def test_cache_update_metadata(tmpdir):
     assert metadata.isValid()
     disk_cache.updateMetaData(metadata)
     assert disk_cache.metaData(QUrl(url)) == metadata
+
+
+def test_cache_full(config_stub, tmpdir):
+    """Do a sanity test involving everything."""
+    config_stub.data = {
+        'storage': {'cache-size': 1024},
+        'general': {'private-browsing': False}
+    }
+    disk_cache = QNetworkDiskCache()
+    disk_cache.setCacheDirectory(str(tmpdir))
+
+    url = 'http://qutebrowser.org'
+    content = b'cutebowser'
+    preload_cache(disk_cache, url, content)
+    url2 = 'https://qutebrowser.org'
+    content2 = b'ohmycert'
+    preload_cache(disk_cache, url2, content2)
+
+    metadata = QNetworkCacheMetaData()
+    metadata.setUrl(QUrl(url))
+    soon = QDateTime.currentDateTime().addMonths(4)
+    assert soon.isValid()
+    metadata.setLastModified(soon)
+    assert metadata.isValid()
+    disk_cache.updateMetaData(metadata)
+    disk_cache.remove(QUrl(url2))
+
+    assert disk_cache.metaData(QUrl(url)).lastModified() == soon
+    assert disk_cache.data(QUrl(url)).readAll() == content
