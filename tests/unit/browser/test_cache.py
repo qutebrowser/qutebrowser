@@ -152,11 +152,14 @@ def test_cache_deactivated_insert_data(config_stub, tmpdir):
 
 
 
-def test_cache_remove_data(tmpdir):
+def test_cache_remove_data(config_stub, tmpdir):
     """Test if a previously inserted entry can be removed from the cache."""
+    config_stub.data = {
+        'storage': {'cache-size': 1024},
+        'general': {'private-browsing': False}
+    }
     url = 'http://qutebrowser.org'
-    disk_cache = QNetworkDiskCache()
-    disk_cache.setCacheDirectory(str(tmpdir))
+    disk_cache = cache.DiskCache(str(tmpdir))
     preload_cache(disk_cache, url)
     assert disk_cache.cacheSize() > 0
 
