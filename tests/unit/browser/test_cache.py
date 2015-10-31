@@ -19,7 +19,7 @@
 
 """Tests for qutebrowser.browser.cache"""
 
-from PyQt5.QtCore import QUrl, QDateTime, QDataStream
+from PyQt5.QtCore import QUrl, QDateTime
 from PyQt5.QtNetwork import QNetworkDiskCache, QNetworkCacheMetaData
 
 from qutebrowser.browser import cache
@@ -150,7 +150,7 @@ def test_cache_deactivated_insert_data(config_stub, tmpdir):
     }
 
     deactivated_cache = cache.DiskCache(str(tmpdir))
-    assert disk_cache.insert(device) is None
+    assert deactivated_cache.insert(device) is None
 
 
 
