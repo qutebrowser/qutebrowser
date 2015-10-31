@@ -20,8 +20,6 @@
 """Password filler."""
 
 # TODO: show a message when the password is saved.
-# FIXME: bug in zeste de savoir (auto-submit not working).
-# FIXME: bug in inscription.ssap.usherbrooke.ca (probably because there is an hidden text field).
 
 import os
 import shlex
@@ -438,6 +436,31 @@ class PasswordFiller:
                                     window=self._win_id)
         return tabbed_browser.current_url().host()
 
+    def _get_password_data(self, host):
+        """Get the form action, username and password for the current URL.
+
+        It asks the username if there is more than one."""
+        form_action = None
+        try:
+            unique_forms_count = self._find_unique_forms_count()
+
+            username = None
+            if unique_forms_count == 1:
+                login_form = self._find_login_forms()[0]
+                elem_count = self._find_login_form_input(login_form).count()
+                if elem_count == 1:
+                    username = DEFAULT_USERNAME
+
+            if username is None:
+                username = self._choose_username(host)
+            password_data = self._load(host, username)
+
+            if unique_forms_count > 1:
+                form_action = password_data["form_action"]
+        except (KeyError, FileNotFoundError):
+            raise cmdexc.CommandError("No password data for the current URL!")
+        return (form_action, username, password_data)
+
     def _hash_form(self, form):
         """Compute the hash of a form.
 
@@ -462,6 +485,26 @@ class PasswordFiller:
         return self._password_manager.load(host, username)
 
     @cmdutils.register(instance="password-filler", win_id="win_id")
+    def load_password_in_current_field(self, win_id):
+        """Load the password in the focused field."""
+        self._win_id = win_id
+        host = self._get_host()
+        (form_action, username, password_data) = self._get_password_data(host)
+        password = password_data["password"]
+
+        tabbed_browser = objreg.get("tabbed-browser", scope="window",
+                                    window=self._win_id)
+        widget = tabbed_browser.currentWidget()
+        frame = widget.page().mainFrame()
+        element = frame.findFirstElement(":focus")
+        if (not element.isNull() and element.tagName().lower() == "input" and
+                element.attribute("type") == "password"):
+            self._set_value(element, password)
+        else:
+            raise cmdexc.CommandError(
+                "Please select a password input field!")
+
+    @cmdutils.register(instance="password-filler", win_id="win_id")
     def load_password(self, win_id):
         """Load the password data from the current URL.
 
@@ -469,29 +512,8 @@ class PasswordFiller:
             The form action of the form if it was saved.
         """
         self._win_id = win_id
-
         host = self._get_host()
-
-        form_action = None
-        try:
-            unique_forms_count = self._find_unique_forms_count()
-
-            username = None
-            if unique_forms_count == 1:
-                login_form = self._find_login_forms()[0]
-                elem_count = self._find_login_form_input(login_form).count()
-                if elem_count == 1:
-                    username = DEFAULT_USERNAME
-
-            if username is None:
-                username = self._choose_username(host)
-            password_data = self._load(host, username)
-
-            if unique_forms_count > 1:
-                form_action = password_data["form_action"]
-        except (KeyError, FileNotFoundError):
-            raise cmdexc.CommandError("No password data for the current URL!")
-
+        (form_action, username, password_data) = self._get_password_data(host)
         password = password_data["password"]
         try:
             form_elements = self._find_login_form_elements(form_action)
