@@ -160,7 +160,7 @@ def test_cache_remove_data(tmpdir):
     preload_cache(disk_cache, url)
     assert disk_cache.cacheSize() > 0
 
-    assert disk_cache.remove(QUrl(url))
+    assert disk_cache.remove(QUrl(url)) == True
     assert disk_cache.cacheSize() == 0
 
 
@@ -208,6 +208,21 @@ def test_cache_update_metadata(tmpdir):
     assert metadata.isValid()
     disk_cache.updateMetaData(metadata)
     assert disk_cache.metaData(QUrl(url)) == metadata
+
+
+def test_cache_deactivated_update_metadata(config_stub, tmpdir):
+    """Test updating the meta data when cache is not activated."""
+    config_stub.data = {
+        'storage': {'cache-size': 1024},
+        'general': {'private-browsing': True}
+    }
+    url = 'http://qutebrowser.org'
+    disk_cache = cache.DiskCache(str(tmpdir))
+
+    metadata = QNetworkCacheMetaData()
+    metadata.setUrl(QUrl(url))
+    assert metadata.isValid()
+    assert disk_cache.updateMetaData(metadata) is None
 
 
 def test_cache_full(config_stub, tmpdir):
