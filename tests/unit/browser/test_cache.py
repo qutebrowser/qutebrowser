@@ -64,6 +64,54 @@ def test_cache_size_deactivated(config_stub, tmpdir):
     assert disk_cache.cacheSize() == 0
 
 
+def test_cache_existing_metadata_file(config_stub, tmpdir):
+    """Test querying existing meta data file from activated cache."""
+    config_stub.data = {
+        'storage': {'cache-size': 1024},
+        'general': {'private-browsing': False}
+    }
+    url = 'http://qutebrowser.org'
+    content = b'foobar'
+
+    metadata = QNetworkCacheMetaData()
+    metadata.setUrl(QUrl(url))
+    assert metadata.isValid()
+
+    disk_cache = cache.DiskCache(str(tmpdir))
+    device = disk_cache.prepare(metadata)
+    assert device is not None
+    device.write(content)
+    disk_cache.insert(device)
+    disk_cache.updateMetaData(metadata)
+
+    # TODO: Get path and name of file that device has been writing to
+    #fname = str(tmpdir) + "/cache_" + url + ".cache"
+    #assert disk_cache.fileMetaData(fname) == metadata
+    assert True
+
+
+def test_cache_nonexistent_metadata_file(config_stub, tmpdir):
+    """Test querying nonexistent meta data file from activated cache."""
+    config_stub.data = {
+        'storage': {'cache-size': 1024},
+        'general': {'private-browsing': False}
+    }
+
+    disk_cache = cache.DiskCache(str(tmpdir))
+    cache_file = disk_cache.fileMetaData("nosuchfile")
+    assert cache_file.isValid() == False
+
+
+def test_cache_deactivated_metadata_file(config_stub, tmpdir):
+    """Test querying meta data file when cache is deactivated."""
+    config_stub.data = {
+        'storage': {'cache-size': 1024},
+        'general': {'private-browsing': True}
+    }
+    disk_cache = cache.DiskCache(str(tmpdir))
+    assert disk_cache.fileMetaData("foo") == QNetworkCacheMetaData()
+
+
 def test_cache_deactivated_private_browsing(config_stub, tmpdir):
     """Test if cache is deactivated in private-browsing mode."""
     config_stub.data = {
