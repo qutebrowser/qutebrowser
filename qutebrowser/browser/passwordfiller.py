@@ -19,8 +19,6 @@
 
 """Password filler."""
 
-# TODO: show a message when the password is saved.
-
 import os
 import shlex
 import subprocess
@@ -604,6 +602,7 @@ class PasswordFiller:
 
             if save:
                 self._save(host, password_data)
+                message.info(self._win_id, "Password saved!")
 
     def _set_checkbox_value(self, element, value):
         """Set the checkbox element value.
