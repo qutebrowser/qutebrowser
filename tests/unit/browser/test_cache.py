@@ -213,6 +213,18 @@ def test_cache_metadata(config_stub, tmpdir):
     assert disk_cache.metaData(QUrl(url)) == metadata
 
 
+def test_cache_deactivated_metadata(config_stub, tmpdir):
+    """Test querying metaData() on not activated cache."""
+    config_stub.data = {
+        'storage': {'cache-size': 1024},
+        'general': {'private-browsing': True}
+    }
+    url = 'http://qutebrowser.org'
+
+    disk_cache = cache.DiskCache(str(tmpdir))
+    assert disk_cache.metaData(QUrl(url)) == QNetworkCacheMetaData()
+
+
 def test_cache_update_metadata(config_stub, tmpdir):
     """Test updating the meta data for an existing cache entry."""
     config_stub.data = {
