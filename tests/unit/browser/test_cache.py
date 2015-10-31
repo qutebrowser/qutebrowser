@@ -19,7 +19,7 @@
 
 """Tests for qutebrowser.browser.cache"""
 
-from PyQt5.QtCore import QUrl, QDateTime
+from PyQt5.QtCore import QUrl, QDateTime, QDataStream
 from PyQt5.QtNetwork import QNetworkDiskCache, QNetworkCacheMetaData
 
 from qutebrowser.browser import cache
@@ -52,6 +52,16 @@ def test_cache_size_leq_max_cache_size(config_stub, tmpdir):
     assert disk_cache.expire() < limit
     # Add a threshold to the limit due to unforseeable Qt internals
     assert disk_cache.cacheSize() < limit+100
+
+
+def test_cache_size_deactivated(config_stub, tmpdir):
+    """Confirm that the cache size returns 0 when deactivated."""
+    config_stub.data = {
+        'storage': {'cache-size': 1024},
+        'general': {'private-browsing': True}
+    }
+    disk_cache = cache.DiskCache(str(tmpdir))
+    assert disk_cache.cacheSize() == 0
 
 
 def test_cache_deactivated_private_browsing(config_stub, tmpdir):
@@ -116,6 +126,30 @@ def test_cache_insert_data(tmpdir):
 
     assert disk_cache.cacheSize() != 0
     assert disk_cache.data(QUrl(url)).readAll() == content
+
+
+def test_cache_deactivated_insert_data(config_stub, tmpdir):
+    """Insert data when cache is deactivated."""
+    # First create an activated cache to get a valid QIODevice from it
+    url = 'http://qutebrowser.org'
+    disk_cache = QNetworkDiskCache()
+    disk_cache.setCacheDirectory(str(tmpdir))
+    metadata = QNetworkCacheMetaData()
+    metadata.setUrl(QUrl(url))
+    device = disk_cache.prepare(metadata)
+    assert device is not None
+
+    # Now create the deactivated cache and insert the valid device created
+    # above (there probably is a better way to get a valid QIODevice...)
+    config_stub.data = {
+        'storage': {'cache-size': 1024},
+        'general': {'private-browsing': True}
+    }
+
+    deactivated_cache = QNetworkDiskCache()
+    deactivated_cache.setCacheDirectory(str(tmpdir))
+    assert disk_cache.insert(device) is None
+
 
 
 def test_cache_remove_data(tmpdir):
