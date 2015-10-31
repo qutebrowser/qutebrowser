@@ -180,6 +180,16 @@ def test_cache_clear_activated(config_stub, tmpdir):
     assert disk_cache.cacheSize() == 0
 
 
+def test_cache_clear_deactivated(config_stub, tmpdir):
+    """Test method clear() on deactivated cache."""
+    config_stub.data = {
+        'storage': {'cache-size': 1024},
+        'general': {'private-browsing': True}
+    }
+    disk_cache = cache.DiskCache(str(tmpdir))
+    assert disk_cache.clear() is None
+
+
 def test_cache_metadata(tmpdir):
     """Ensure that DiskCache.metaData() returns exactly what was inserted."""
     url = 'http://qutebrowser.org'
