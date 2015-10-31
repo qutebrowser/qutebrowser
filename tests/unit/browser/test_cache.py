@@ -114,12 +114,15 @@ def test_cache_deactivated_remove_data(config_stub, tmpdir):
     assert disk_cache.remove(url) == False
 
 
-def test_cache_insert_data(tmpdir):
+def test_cache_insert_data(config_stub, tmpdir):
     """Test if entries inserted into the cache are actually there."""
+    config_stub.data = {
+        'storage': {'cache-size': 1024},
+        'general': {'private-browsing': False}
+    }
     url = 'http://qutebrowser.org'
     content = b'foobar'
-    disk_cache = QNetworkDiskCache()
-    disk_cache.setCacheDirectory(str(tmpdir))
+    disk_cache = cache.DiskCache(str(tmpdir))
     assert disk_cache.cacheSize() == 0
 
     preload_cache(disk_cache, url, content)
@@ -130,7 +133,7 @@ def test_cache_insert_data(tmpdir):
 
 def test_cache_deactivated_insert_data(config_stub, tmpdir):
     """Insert data when cache is deactivated."""
-    # First create an activated cache to get a valid QIODevice from it
+    # First create QNetworkDiskCache just to get a valid QIODevice from it
     url = 'http://qutebrowser.org'
     disk_cache = QNetworkDiskCache()
     disk_cache.setCacheDirectory(str(tmpdir))
@@ -139,15 +142,14 @@ def test_cache_deactivated_insert_data(config_stub, tmpdir):
     device = disk_cache.prepare(metadata)
     assert device is not None
 
-    # Now create the deactivated cache and insert the valid device created
+    # Now create a deactivated DiskCache and insert the valid device created
     # above (there probably is a better way to get a valid QIODevice...)
     config_stub.data = {
         'storage': {'cache-size': 1024},
         'general': {'private-browsing': True}
     }
 
-    deactivated_cache = QNetworkDiskCache()
-    deactivated_cache.setCacheDirectory(str(tmpdir))
+    deactivated_cache = cache.DiskCache(str(tmpdir))
     assert disk_cache.insert(device) is None
 
 
@@ -193,14 +195,17 @@ def test_cache_clear_deactivated(config_stub, tmpdir):
     assert disk_cache.clear() is None
 
 
-def test_cache_metadata(tmpdir):
+def test_cache_metadata(config_stub, tmpdir):
     """Ensure that DiskCache.metaData() returns exactly what was inserted."""
+    config_stub.data = {
+        'storage': {'cache-size': 1024},
+        'general': {'private-browsing': False}
+    }
     url = 'http://qutebrowser.org'
     metadata = QNetworkCacheMetaData()
     metadata.setUrl(QUrl(url))
     assert metadata.isValid()
-    disk_cache = QNetworkDiskCache()
-    disk_cache.setCacheDirectory(str(tmpdir))
+    disk_cache = cache.DiskCache(str(tmpdir))
     device = disk_cache.prepare(metadata)
     device.write(b'foobar')
     disk_cache.insert(device)
@@ -208,11 +213,14 @@ def test_cache_metadata(tmpdir):
     assert disk_cache.metaData(QUrl(url)) == metadata
 
 
-def test_cache_update_metadata(tmpdir):
+def test_cache_update_metadata(config_stub, tmpdir):
     """Test updating the meta data for an existing cache entry."""
+    config_stub.data = {
+        'storage': {'cache-size': 1024},
+        'general': {'private-browsing': False}
+    }
     url = 'http://qutebrowser.org'
-    disk_cache = QNetworkDiskCache()
-    disk_cache.setCacheDirectory(str(tmpdir))
+    disk_cache = cache.DiskCache(str(tmpdir))
     preload_cache(disk_cache, url, b'foo')
     assert disk_cache.cacheSize() > 0
 
