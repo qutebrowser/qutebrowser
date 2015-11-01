@@ -18,6 +18,7 @@
 # along with qutebrowser.  If not, see <http://www.gnu.org/licenses/>.
 
 import sys
+import logging
 
 import pytest
 
@@ -67,6 +68,7 @@ def list_of_loaded_pages(httpbin, pages):
     assert httpbin.get_requests() == requests
 
 
-@bdd.then(bdd.parsers.parse('the error "{msg}" should be shown.'))
-def expect_error(quteproc, msg):
-    quteproc.mark_expected(category='message', loglevel='ERROR', msg=msg)
+@bdd.then(bdd.parsers.parse('the error "{message}" should be shown.'))
+def expect_error(quteproc, message):
+    quteproc.mark_expected(category='message', loglevel=logging.ERROR,
+                           message=message)

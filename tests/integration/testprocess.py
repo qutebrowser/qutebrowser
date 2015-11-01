@@ -164,9 +164,17 @@ class Process(QObject):
         searched data. Every given argument is treated as a pattern which
         the attribute has to match against.
 
-        If a string is passed, the patterns are treated as a fnmatch glob
-        pattern. Alternatively, a compiled regex can be passed to match against
-        that.
+        The behavior of this method is slightly different depending on the
+        types of the filtered values:
+
+        - If the value is a string or bytes object and the expected value is
+          too, the pattern is treated as a fnmatch glob pattern.
+        - If the value is a string or bytes object and the expected value is a
+          compiled regex, it is used for matching.
+        - If the value is any other type, == is used.
+
+        Return:
+            The matched line.
         """
 
         # FIXME make this a context manager which inserts a marker in
@@ -191,12 +199,17 @@ class Process(QObject):
                 matches = []
 
                 for key, expected in kwargs.items():
+                    if expected is None:
+                        continue
+
                     value = getattr(line, key)
 
                     if isinstance(expected, regex_type):
                         matches.append(expected.match(value))
-                    else:
+                    elif isinstance(value, (bytes, str)):
                         matches.append(fnmatch.fnmatchcase(value, expected))
+                    else:
+                        matches.append(value == expected)
 
                 if all(matches):
-                    return
+                    return line

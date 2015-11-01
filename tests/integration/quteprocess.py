@@ -190,16 +190,26 @@ class QuteProc(testprocess.Process):
             self.send_cmd(':open ' + url)
         self.wait_for(category='webview', message=url_loaded_pattern)
 
-    def mark_expected(self, category=None, loglevel=None, msg=None):
+    def mark_expected(self, category=None, loglevel=None, message=None):
         """Mark a given logging message as expected."""
+        found_message = False
+
+        # Search existing messages
         for item in self._data:
             if category is not None and item.category != category:
                 continue
             elif loglevel is not None and item.loglevel != loglevel:
                 continue
-            elif msg is not None and item.message != msg:
+            elif message is not None and item.message != message:
                 continue
             item.expected = True
+            found_message = True
+
+        # If there is none, wait for the message
+        if not found_message:
+            line = self.wait_for(category=category, loglevel=loglevel,
+                                 message=message)
+            line.expected = True
 
 
 @pytest.yield_fixture
