@@ -29,6 +29,10 @@ from qutebrowser.browser.tabhistory import TabHistoryItem as Item
 from qutebrowser.utils import qtutils
 
 
+pytestmark = pytest.mark.qt_log_ignore('QIODevice::read.*: device not open',
+                                       extend=True)
+
+
 ITEMS = [
     Item(QUrl('https://www.heise.de/'), 'heise'),
     Item(QUrl('http://example.com/%E2%80%A6'), 'percent', active=True),
