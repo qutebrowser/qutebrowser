@@ -35,6 +35,39 @@ def preload_cache(cache, url='http://www.example.com/', content=b'foobar'):
     cache.insert(device)
 
 
+def test_cache_config_change_cache_size(config_stub, tmpdir):
+    """Change cache size and emit signal to trigger on_config_changed."""
+    max_cache_size = 1024
+    config_stub.data = {
+        'storage': {'cache-size': max_cache_size},
+        'general': {'private-browsing': False}
+    }
+    disk_cache = cache.DiskCache(str(tmpdir))
+    assert disk_cache.maximumCacheSize() == max_cache_size
+
+    config_stub.data['storage']['cache-size'] = max_cache_size * 2
+    config_stub.changed.emit('storage', 'cache-size')
+    assert disk_cache.maximumCacheSize() == max_cache_size * 2
+
+
+def test_cache_config_change_private_browsing(config_stub, tmpdir):
+    """Change private-browsing config and emit signal."""
+    config_stub.data = {
+        'storage': {'cache-size': 1024},
+        'general': {'private-browsing': False}
+    }
+    url = 'http://qutebrowser.org'
+    content = b'cute'
+    disk_cache = cache.DiskCache(str(tmpdir))
+    assert disk_cache.cacheSize() == 0
+    preload_cache(disk_cache, url, content)
+    assert disk_cache.cacheSize() > 0
+
+    config_stub.data['general']['private-browsing'] = True
+    config_stub.changed.emit('general', 'private-browsing')
+    assert disk_cache.cacheSize() == 0
+
+
 def test_cache_size_leq_max_cache_size(config_stub, tmpdir):
     """Test cacheSize <= MaximumCacheSize when cache is activated."""
     limit = 100
