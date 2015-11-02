@@ -124,7 +124,7 @@ class Process(QObject):
 
     def start(self):
         """Start the process and wait until it started."""
-        with self._wait_signal(self.ready, timeout=20000):
+        with self._wait_signal(self.ready, timeout=30000):
             self._start()
 
     def _start(self):
