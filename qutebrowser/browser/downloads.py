@@ -771,7 +771,7 @@ class DownloadManager(QAbstractListModel):
             fileobj: The file object to write the answer to.
             filename: A path to write the data to.
             auto_remove: Whether to remove the download even if
-                         ui -> remove-finished-downloads is set to false.
+                         ui -> remove-finished-downloads is set to -1.
 
         Return:
             The created DownloadItem.
@@ -790,9 +790,10 @@ class DownloadManager(QAbstractListModel):
         download = DownloadItem(reply, self._win_id, self)
         download.cancelled.connect(
             functools.partial(self.remove_item, download))
-        if config.get('ui', 'remove-finished-downloads') or auto_remove:
+        delay = config.get('ui', 'remove-finished-downloads')
+        if delay > -1 or auto_remove:
             download.finished.connect(
-                functools.partial(self.remove_item, download))
+                functools.partial(self.remove_item_delayed, download, delay))
         download.data_changed.connect(
             functools.partial(self.on_data_changed, download))
         download.error.connect(self.on_error)
@@ -1010,6 +1011,10 @@ class DownloadManager(QAbstractListModel):
         self.update_indexes()
         if not self.downloads:
             self._update_timer.stop()
+
+    def remove_item_delayed(self, download, delay):
+        """Remove a given download after a short delay."""
+        QTimer.singleShot(delay, functools.partial(self.remove_item, download))
 
     def remove_items(self, downloads):
         """Remove an iterable of downloads."""

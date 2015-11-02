@@ -59,6 +59,9 @@ Changed
 - New design for error pages
 - Link filtering for hints now checks if the text is contained anywhere in
   the link, and matches case-insensitively.
+- The `ui -> remove-finished-downloads` option got changed to an integer and
+  now takes a time (in milliseconds) to keep the download around after it's
+  finished. When set to `-1`, downloads are never removed.
 
 Fixed
 ~~~~~
