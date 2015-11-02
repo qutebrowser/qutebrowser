@@ -42,7 +42,7 @@
 |<<ui-user-stylesheet,user-stylesheet>>|User stylesheet to use (absolute filename, filename relative to the config directory or CSS string). Will expand environment variables.
 |<<ui-css-media-type,css-media-type>>|Set the CSS media type.
 |<<ui-smooth-scrolling,smooth-scrolling>>|Whether to enable smooth scrolling for webpages.
-|<<ui-remove-finished-downloads,remove-finished-downloads>>|Whether to remove finished downloads automatically.
+|<<ui-remove-finished-downloads,remove-finished-downloads>>|Number of milliseconds to wait before removing finished downloads. Will not be removed if value is -1.
 |<<ui-hide-statusbar,hide-statusbar>>|Whether to hide the statusbar unless a message is shown.
 |<<ui-statusbar-padding,statusbar-padding>>|Padding for statusbar (top, bottom, left, right).
 |<<ui-window-title-format,window-title-format>>|The format to use for the window title. The following placeholders are defined:
@@ -593,14 +593,9 @@ Default: +pass:[false]+
 
 [[ui-remove-finished-downloads]]
 === remove-finished-downloads
-Whether to remove finished downloads automatically.
+Number of milliseconds to wait before removing finished downloads. Will not be removed if value is -1.
 
-Valid values:
-
- * +true+
- * +false+
-
-Default: +pass:[false]+
+Default: +pass:[-1]+
 
 [[ui-hide-statusbar]]
 === hide-statusbar
