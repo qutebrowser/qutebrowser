@@ -94,7 +94,7 @@ class TestWaitFor:
         """Using wait_for with the expected text."""
         pyproc.code = "import time; time.sleep(0.5); print('foobar')"
         pyproc.start()
-        with stopwatch(min_ms=500):
+        with stopwatch(min_ms=300):  # on Windows, this can be done faster...
             pyproc.wait_for(data="foobar")
 
     def test_other_text(self, pyproc):
