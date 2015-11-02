@@ -121,6 +121,10 @@ class QuteProc(testprocess.Process):
                 return None
             elif not line.strip():
                 return None
+            elif (line == "QWaitCondition: Destroyed while threads are still "
+                          "waiting"):
+                # Happens on Windows during exit sometimes
+                return None
             else:
                 raise testprocess.InvalidLine
 
