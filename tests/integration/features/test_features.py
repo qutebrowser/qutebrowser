@@ -57,6 +57,12 @@ def reload(qtbot, httpbin, quteproc, command):
         quteproc.send_cmd(':reload')
 
 
+@bdd.when("selection is supported")
+def selection_supported(qapp):
+    if not qapp.clipboard().supportsSelection():
+        pytest.skip("OS doesn't support primary selection!")
+
+
 @bdd.then(bdd.parsers.parse("{path} should be loaded"))
 def path_should_be_loaded(httpbin, path):
     requests = httpbin.get_requests()
@@ -86,18 +92,14 @@ def expect_error(quteproc, httpbin, category, message):
 @bdd.then(bdd.parsers.re(r'the (?P<what>primary selection|clipboard) should '
                          r'contain "(?P<content>.*)"'))
 def clipboard_contains(qapp, httpbin, what, content):
-    clipboard = qapp.clipboard()
-
     if what == 'clipboard':
         mode = QClipboard.Clipboard
     elif what == 'primary selection':
-        if not clipboard.supportsSelection():
-            pytest.skip("OS doesn't support primary selection!")
         mode = QClipboard.Selection
     else:
         raise AssertionError
 
     expected = content.replace('(port)', str(httpbin.port))
 
-    data = clipboard.text(mode=mode)
+    data = qapp.clipboard().text(mode=mode)
     assert data == expected

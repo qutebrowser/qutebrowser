@@ -11,7 +11,8 @@ Feature: Yanking and pasting.
         And the clipboard should contain "http://localhost:(port)/data/yankpaste/test.html"
 
     Scenario: Yanking URLs to primary selection
-        When I run :yank --sel
+        When selection is supported
+        And I run :yank --sel
         Then the message "Yanked URL to primary selection: http://localhost:(port)/data/yankpaste/test.html" should be shown.
         And the primary selection should contain "http://localhost:(port)/data/yankpaste/test.html"
 
