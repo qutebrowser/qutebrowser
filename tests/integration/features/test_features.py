@@ -22,6 +22,8 @@ import logging
 
 import pytest
 
+from PyQt5.QtGui import QClipboard
+
 if hasattr(sys, 'frozen'):
     pytest.skip("test")
 else:
@@ -68,7 +70,34 @@ def list_of_loaded_pages(httpbin, pages):
     assert httpbin.get_requests() == requests
 
 
-@bdd.then(bdd.parsers.parse('the error "{message}" should be shown.'))
-def expect_error(quteproc, message):
-    quteproc.mark_expected(category='message', loglevel=logging.ERROR,
+@bdd.then(bdd.parsers.re(r'the (?P<category>error|message) "(?P<message>.*)" '
+                         r'should be shown.'))
+def expect_error(quteproc, httpbin, category, message):
+    category_to_loglevel = {
+        'message': logging.INFO,
+        'error': logging.ERROR,
+    }
+    message = message.replace('(port)', str(httpbin.port))
+    quteproc.mark_expected(category='message',
+                           loglevel=category_to_loglevel[category],
                            message=message)
+
+
+@bdd.then(bdd.parsers.re(r'the (?P<what>primary selection|clipboard) should '
+                         r'contain "(?P<content>.*)"'))
+def clipboard_contains(qapp, httpbin, what, content):
+    clipboard = qapp.clipboard()
+
+    if what == 'clipboard':
+        mode = QClipboard.Clipboard
+    elif what == 'primary selection':
+        if not clipboard.supportsSelection():
+            pytest.skip("OS doesn't support primary selection!")
+        mode = QClipboard.Selection
+    else:
+        raise AssertionError
+
+    expected = content.replace('(port)', str(httpbin.port))
+
+    data = clipboard.text(mode=mode)
+    assert data == expected
