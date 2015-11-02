@@ -37,7 +37,7 @@ install:
   - python scripts/dev/ci_install.py
 
 script:
-  - tox -e $TESTENV -- -p no:sugar --faulthandler-timeout=20 -v tests
+  - tox -e $TESTENV -- -p no:sugar --faulthandler-timeout=30 -v tests
 
 after_success:
   - '[[ $TESTENV == py34 || $TESTENV == py35 ]] && codecov -e TESTENV -X gcov'
