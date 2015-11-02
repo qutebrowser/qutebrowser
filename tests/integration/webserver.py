@@ -23,7 +23,9 @@
 """Fixtures for the httpbin webserver."""
 
 import re
+import sys
 import socket
+import os.path
 import collections
 
 import pytest
@@ -32,7 +34,7 @@ from PyQt5.QtCore import pyqtSignal
 import testprocess  # pylint: disable=import-error
 
 
-Request = collections.namedtuple('Request', 'verb, url')
+Request = collections.namedtuple('Request', 'verb, path')
 
 
 class HTTPBin(testprocess.Process):
@@ -45,12 +47,11 @@ class HTTPBin(testprocess.Process):
         LOG_RE: Used to parse the CLF log which httpbin outputs.
 
     Signals:
-        ready: Emitted when the server finished starting up.
         new_request: Emitted when there's a new request received.
     """
 
-    ready = pyqtSignal()
     new_request = pyqtSignal(Request)
+    Request = Request  # So it can be used from the fixture easily.
 
     LOG_RE = re.compile(r"""
         (?P<host>[^ ]*)
@@ -59,14 +60,12 @@ class HTTPBin(testprocess.Process):
         \ \[(?P<date>[^]]*)\]
         \ "(?P<request>
             (?P<verb>[^ ]*)
-            \ (?P<url>[^ ]*)
+            \ (?P<path>[^ ]*)
             \ (?P<protocol>[^ ]*)
         )"
         \ (?P<status>[^ ]*)
         \ (?P<size>[^ ]*)
     """, re.VERBOSE)
-
-    PROCESS_NAME = 'webserver_sub'
 
     def __init__(self, parent=None):
         super().__init__(parent)
@@ -83,9 +82,11 @@ class HTTPBin(testprocess.Process):
 
     def get_requests(self):
         """Get the requests to the server during this test."""
-        return self._get_data()
+        requests = self._get_data()
+        return [r for r in requests if r.path != '/favicon.ico']
 
     def _parse_line(self, line):
+        print(line)
         if line == (' * Running on http://127.0.0.1:{}/ (Press CTRL+C to '
                     'quit)'.format(self.port)):
             self.ready.emit()
@@ -97,10 +98,19 @@ class HTTPBin(testprocess.Process):
         # FIXME do we need to allow other options?
         assert match.group('protocol') == 'HTTP/1.1'
 
-        return Request(verb=match.group('verb'), url=match.group('url'))
+        return Request(verb=match.group('verb'), path=match.group('path'))
 
     def _executable_args(self):
-        return [str(self.port)]
+        if hasattr(sys, 'frozen'):
+            executable = os.path.join(os.path.dirname(sys.executable),
+                                      'webserver_sub')
+            args = [str(self.port)]
+        else:
+            executable = sys.executable
+            py_file = os.path.join(os.path.dirname(__file__),
+                                   'webserver_sub.py')
+            args = [py_file, str(self.port)]
+        return executable, args
 
     def cleanup(self):
         """Clean up and shut down the process."""
@@ -118,7 +128,7 @@ def httpbin(qapp):
 
 
 @pytest.yield_fixture(autouse=True)
-def httpbin_clean(httpbin):
+def httpbin_after_test(httpbin):
     """Fixture to clean httpbin request list after each test."""
     yield
     httpbin.after_test()

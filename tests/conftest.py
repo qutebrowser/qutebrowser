@@ -335,6 +335,10 @@ def py_proc():
 @pytest.yield_fixture(autouse=True)
 def fail_tests_on_warnings():
     warnings.simplefilter('error')
+    # https://github.com/pytest-dev/pytest-bdd/issues/153
+    warnings.filterwarnings('ignore', message=r'inspect.getargspec\(\) is '
+                            r'deprecated, use inspect.signature\(\) instead',
+                            category=DeprecationWarning)
     yield
     warnings.resetwarnings()
 

@@ -226,12 +226,7 @@ class IPCServer(QObject):
         """Raise SocketError on fatal errors."""
         if self._socket is None:
             # Sometimes this gets called from stale sockets.
-            msg = "In on_error with None socket!"
-            if os.name == 'nt':  # pragma: no cover
-                # This happens a lot on Windows, so we ignore it there.
-                log.ipc.debug(msg)
-            else:
-                log.ipc.warning(msg)
+            log.ipc.debug("In on_error with None socket!")
             return
         self._timer.stop()
         log.ipc.debug("Socket error {}: {}".format(
@@ -275,7 +270,7 @@ class IPCServer(QObject):
         log.ipc.debug("Client disconnected.")
         self._timer.stop()
         if self._socket is None:
-            log.ipc.warning("In on_disconnected with None socket!")
+            log.ipc.debug("In on_disconnected with None socket!")
         else:
             self._socket.deleteLater()
             self._socket = None

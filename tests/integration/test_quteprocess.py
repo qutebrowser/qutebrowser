@@ -17,23 +17,22 @@
 # You should have received a copy of the GNU General Public License
 # along with qutebrowser.  If not, see <http://www.gnu.org/licenses/>.
 
-"""Test which simply runs qutebrowser to check if it starts properly."""
+"""Test the quteproc fixture used for tests."""
+
+import pytest
 
 
-import sys
-import os.path
-import subprocess
+def test_quteproc_error_message(qtbot, quteproc):
+    """Make sure the test fails with an unexpected error message."""
+    with qtbot.waitSignal(quteproc.got_error, raising=True):
+        quteproc.send_cmd(':message-error test')
+    # Usually we wouldn't call this from inside a test, but here we force the
+    # error to occur during the test rather than at teardown time.
+    with pytest.raises(pytest.fail.Exception):
+        quteproc.after_test()
 
 
-def test_smoke():
-    if hasattr(sys, 'frozen'):
-        argv = [os.path.join(os.path.dirname(sys.executable), 'qutebrowser')]
-    else:
-        argv = [sys.executable, '-m', 'qutebrowser']
-    argv += ['--debug', '--no-err-windows', '--nowindow', '--temp-basedir',
-             'about:blank', ':later 500 quit']
-    subprocess.check_call(argv)
-
-
-def test_smoke_quteproc(quteproc):
-    pass
+def test_qt_log_ignore(qtbot, quteproc):
+    """Make sure the test passes when logging a qt_log_ignore message."""
+    with qtbot.waitSignal(quteproc.got_error, raising=True):
+        quteproc.send_cmd(':message-error "SpellCheck: test"')

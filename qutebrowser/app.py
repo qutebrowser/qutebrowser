@@ -32,6 +32,7 @@ import datetime
 import tokenize
 
 from PyQt5.QtWidgets import QApplication
+from PyQt5.QtWebKit import QWebSettings
 from PyQt5.QtGui import QDesktopServices, QPixmap, QIcon, QCursor, QWindow
 from PyQt5.QtCore import (pyqtSlot, qInstallMessageHandler, QTimer, QUrl,
                           QObject, Qt, QEvent)
@@ -691,6 +692,8 @@ class Quitter:
                     error.handle_fatal_exc(
                         e, self._args, "Error while saving!",
                         pre_text="Error while saving {}".format(key))
+        # Disable favicons so removing tempdir will work
+        QWebSettings.setIconDatabasePath("")
         # Re-enable faulthandler to stdout, then remove crash log
         log.destroy.debug("Deactivating crash log...")
         objreg.get('crash-handler').destroy_crashlogfile()
