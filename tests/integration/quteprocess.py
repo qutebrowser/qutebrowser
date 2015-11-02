@@ -90,10 +90,18 @@ class LogLine:
         self.line = int(match.group('line'))
         self.message = match.group('message')
 
-        self.expected = False
+        self.expected = self._is_ignored()
 
     def __repr__(self):
         return 'LogLine({!r})'.format(self._line)
+
+    def _is_ignored(self):
+        """Check if the message is listed in qt_log_ignore."""
+        regexes = pytest.config.getini('qt_log_ignore')
+        for regex in regexes:
+            if re.match(regex, self.message):
+                return True
+        return False
 
 
 class QuteProc(testprocess.Process):

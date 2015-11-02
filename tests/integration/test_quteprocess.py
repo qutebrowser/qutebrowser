@@ -30,3 +30,9 @@ def test_quteproc_error_message(qtbot, quteproc):
     # error to occur during the test rather than at teardown time.
     with pytest.raises(pytest.fail.Exception):
         quteproc.after_test()
+
+
+def test_qt_log_ignore(qtbot, quteproc):
+    """Make sure the test passes when logging a qt_log_ignore message."""
+    with qtbot.waitSignal(quteproc.got_error, raising=True):
+        quteproc.send_cmd(':message-error "SpellCheck: test"')
