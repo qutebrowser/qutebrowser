@@ -1,6 +1,10 @@
+import re
 import logging
 
+import yaml
 import pytest_bdd as bdd
+
+from helpers import utils
 
 
 @bdd.given(bdd.parsers.parse("I set {sect} -> {opt} to {value}"))
@@ -53,3 +57,21 @@ def expect_error(quteproc, httpbin, category, message):
     quteproc.mark_expected(category='message',
                            loglevel=category_to_loglevel[category],
                            message=message)
+
+
+@bdd.then(bdd.parsers.parse("The session should look like:\n{expected}"))
+def compare_session(quteproc, tmpdir, expected):
+    session = tmpdir / 'session.yml'
+    quteproc.send_cmd(':session-save "{}"'.format(session))
+    quteproc.wait_for(category='message', loglevel=logging.INFO,
+                      message='Saved session {}.'.format(session))
+
+    # Translate ... to ellipsis in YAML.
+    loader = yaml.SafeLoader(expected)
+    loader.add_constructor('!ellipsis', lambda loader, node: ...)
+    loader.add_implicit_resolver('!ellipsis', re.compile('\.\.\.'), None)
+
+    data = yaml.load(session.read())
+    expected = loader.get_data()
+
+    assert utils.partial_compare(data, expected)
