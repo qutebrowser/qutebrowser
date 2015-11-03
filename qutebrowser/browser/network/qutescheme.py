@@ -45,10 +45,10 @@ from qutebrowser.config import configexc, configdata
 pyeval_output = ":pyeval was never called"
 
 
-HANDLERS = dict()
+HANDLERS = {}
 
-def addHandler(name):
-    """Add a handler to the qute: sheme."""
+def add_handler(name):
+    """Add a handler to the qute: scheme."""
     def namedecorator(function):
         HANDLERS[name] = function
     return namedecorator
