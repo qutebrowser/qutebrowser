@@ -124,7 +124,7 @@ class Process(QObject):
 
     def start(self):
         """Start the process and wait until it started."""
-        with self._wait_signal(self.ready, timeout=30000):
+        with self._wait_signal(self.ready, timeout=60000):
             self._start()
 
     def _start(self):
@@ -157,7 +157,7 @@ class Process(QObject):
         """Check if the process is currently running."""
         return self.proc.state() == QProcess.Running
 
-    def wait_for(self, timeout=5000, **kwargs):
+    def wait_for(self, timeout=10000, **kwargs):
         """Wait until a given value is found in the data.
 
         Keyword arguments to this function get interpreted as attributes of the
