@@ -566,6 +566,7 @@ class CommandDispatcher:
             dy: Deprecated argument to support the old dx/dy form.
             count: multiplier
         """
+        # pylint: disable=too-many-locals
         try:
             # Check for deprecated dx/dy form (like with scroll-px).
             dx = float(direction)
@@ -592,9 +593,10 @@ class CommandDispatcher:
         try:
             key = fake_keys[direction]
         except KeyError:
+            expected_values = ', '.join(sorted(fake_keys))
             raise cmdexc.CommandError("Invalid value {!r} for direction - "
                                       "expected one of: {}".format(
-                                          direction, ', '.join(fake_keys)))
+                                          direction, expected_values))
         widget = self._current_widget()
         frame = widget.page().currentFrame()
 
