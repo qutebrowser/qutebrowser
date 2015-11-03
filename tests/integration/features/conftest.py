@@ -72,12 +72,13 @@ def list_of_loaded_pages(httpbin, pages):
     assert httpbin.get_requests() == requests
 
 
-@bdd.then(bdd.parsers.re(r'the (?P<category>error|message) "(?P<message>.*)" '
-                         r'should be shown.'))
+@bdd.then(bdd.parsers.re(r'the (?P<category>error|message|warning) '
+                         r'"(?P<message>.*)" should be shown.'))
 def expect_error(quteproc, httpbin, category, message):
     category_to_loglevel = {
         'message': logging.INFO,
         'error': logging.ERROR,
+        'warning': logging.WARNING,
     }
     message = message.replace('(port)', str(httpbin.port))
     quteproc.mark_expected(category='message',
