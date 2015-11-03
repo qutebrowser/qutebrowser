@@ -157,7 +157,7 @@ class Process(QObject):
         """Check if the process is currently running."""
         return self.proc.state() == QProcess.Running
 
-    def wait_for(self, timeout=10000, **kwargs):
+    def wait_for(self, timeout=15000, **kwargs):
         """Wait until a given value is found in the data.
 
         Keyword arguments to this function get interpreted as attributes of the
