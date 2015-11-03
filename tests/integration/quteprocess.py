@@ -28,7 +28,9 @@ import time
 import os.path
 import datetime
 import logging
+import tempfile
 
+import yaml
 import pytest
 from PyQt5.QtCore import pyqtSignal
 
@@ -221,6 +223,16 @@ class QuteProc(testprocess.Process):
             line = self.wait_for(category=category, loglevel=loglevel,
                                  message=message)
             line.expected = True
+
+    def get_session(self):
+        """Save the session and get the parsed session data."""
+        with tempfile.TemporaryDirectory() as tmpdir:
+            session = os.path.join(tmpdir, 'session.yml')
+            self.send_cmd(':session-save "{}"'.format(session))
+            self.wait_for(category='message', loglevel=logging.INFO,
+                          message='Saved session {}.'.format(session))
+            with open(session, encoding='utf-8') as f:
+                return yaml.load(f)
 
 
 @pytest.yield_fixture(scope='module')

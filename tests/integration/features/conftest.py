@@ -86,18 +86,12 @@ def expect_error(quteproc, httpbin, category, message):
 
 
 @bdd.then(bdd.parsers.parse("The session should look like:\n{expected}"))
-def compare_session(quteproc, tmpdir, expected):
-    session = tmpdir / 'session.yml'
-    quteproc.send_cmd(':session-save "{}"'.format(session))
-    quteproc.wait_for(category='message', loglevel=logging.INFO,
-                      message='Saved session {}.'.format(session))
-
+def compare_session(quteproc, expected):
     # Translate ... to ellipsis in YAML.
     loader = yaml.SafeLoader(expected)
     loader.add_constructor('!ellipsis', lambda loader, node: ...)
     loader.add_implicit_resolver('!ellipsis', re.compile(r'\.\.\.'), None)
 
-    data = yaml.load(session.read())
+    data = quteproc.get_session()
     expected = loader.get_data()
-
     assert utils.partial_compare(data, expected)
