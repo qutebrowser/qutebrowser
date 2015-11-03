@@ -51,11 +51,11 @@ class QuteSchemeHandler(schemehandler.SchemeHandler):
 
     handlers = dict()
 
-    @staticmethod
-    def addHandler(name):
+    @classmethod
+    def addHandler(cls, name):
         """Add a handler to the qute: sheme."""
         def namedecorator(function):
-            QuteSchemeHandler.handlers[name] = function
+            cls.handlers[name] = function
         return namedecorator
 
     def createRequest(self, _op, request, _outgoing_data):
