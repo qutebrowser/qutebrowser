@@ -2,6 +2,7 @@ Feature: Zooming in and out
 
     Background:
         Given I open data/hello.txt
+        And I run :tab-only
 
     Scenario: Zooming in
         When I run :zoom-in
@@ -9,7 +10,6 @@ Feature: Zooming in and out
         And the session should look like:
             windows:
             - tabs:
-              - ...
               - history:
                 - zoom: 1.1
 
@@ -19,7 +19,6 @@ Feature: Zooming in and out
         And the session should look like:
             windows:
             - tabs:
-              - ...
               - history:
                 - zoom: 0.9
 
@@ -29,7 +28,6 @@ Feature: Zooming in and out
         And the session should look like:
             windows:
             - tabs:
-              - ...
               - history:
                 - zoom: 0.5
 
@@ -40,6 +38,5 @@ Feature: Zooming in and out
         And the session should look like:
             windows:
             - tabs:
-              - ...
               - history:
                 - zoom: 1.0

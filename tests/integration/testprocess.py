@@ -145,11 +145,11 @@ class Process(QObject):
         self._data.clear()
         if self._invalid:
             raise InvalidLine
+        if not self.is_running():
+            raise ProcessExited
 
     def terminate(self):
         """Clean up and shut down the process."""
-        if not self.is_running():
-            raise ProcessExited
         self.proc.terminate()
         self.proc.waitForFinished()
 

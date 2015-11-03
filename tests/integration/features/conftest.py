@@ -34,7 +34,7 @@ def set_setting(quteproc, sect, opt, value):
 
 
 @bdd.given(bdd.parsers.parse("I open {path}"))
-def open_path(quteproc, path):
+def open_path_given(quteproc, path):
     quteproc.open_path(path, new_tab=True)
 
 
@@ -43,8 +43,13 @@ def open_path_when(quteproc, path):
     quteproc.open_path(path)
 
 
+@bdd.given(bdd.parsers.parse("I run {command}"))
+def run_command_given(quteproc, command):
+    quteproc.send_cmd(command)
+
+
 @bdd.when(bdd.parsers.parse("I run {command}"))
-def run_command(quteproc, command):
+def run_command_when(quteproc, command):
     quteproc.send_cmd(command)
 
 

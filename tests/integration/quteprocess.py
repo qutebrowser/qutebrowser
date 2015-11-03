@@ -223,11 +223,17 @@ class QuteProc(testprocess.Process):
             line.expected = True
 
 
-@pytest.yield_fixture
+@pytest.yield_fixture(scope='module')
 def quteproc(qapp, httpbin):
     """Fixture for qutebrowser process."""
     proc = QuteProc(httpbin)
     proc.start()
     yield proc
     proc.terminate()
-    proc.after_test()
+
+
+@pytest.yield_fixture(autouse=True)
+def httpbin_after_test(quteproc):
+    """Fixture to run cleanup tasks after each test."""
+    yield
+    quteproc.after_test()
