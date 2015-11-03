@@ -232,7 +232,10 @@ class QuteProc(testprocess.Process):
             self.wait_for(category='message', loglevel=logging.INFO,
                           message='Saved session {}.'.format(session))
             with open(session, encoding='utf-8') as f:
-                return yaml.load(f)
+                data = f.read()
+
+        print(data)
+        return yaml.load(data)
 
 
 @pytest.yield_fixture(scope='module')
