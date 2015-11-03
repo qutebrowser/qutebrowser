@@ -37,6 +37,15 @@ from qutebrowser.misc import ipc
 from qutebrowser.utils import log
 
 
+def is_ignored_qt_message(message):
+    """Check if the message is listed in qt_log_ignore."""
+    regexes = pytest.config.getini('qt_log_ignore')
+    for regex in regexes:
+        if re.match(regex, message):
+            return True
+    return False
+
+
 class NoLineMatch(Exception):
 
     """Raised by LogLine on unmatched lines."""
@@ -90,18 +99,10 @@ class LogLine:
         self.line = int(match.group('line'))
         self.message = match.group('message')
 
-        self.expected = self._is_ignored()
+        self.expected = is_ignored_qt_message(self.message)
 
     def __repr__(self):
         return 'LogLine({!r})'.format(self._line)
-
-    def _is_ignored(self):
-        """Check if the message is listed in qt_log_ignore."""
-        regexes = pytest.config.getini('qt_log_ignore')
-        for regex in regexes:
-            if re.match(regex, self.message):
-                return True
-        return False
 
 
 class QuteProc(testprocess.Process):
@@ -129,9 +130,7 @@ class QuteProc(testprocess.Process):
                 return None
             elif not line.strip():
                 return None
-            elif (line == "QWaitCondition: Destroyed while threads are still "
-                          "waiting"):
-                # Happens on Windows during exit sometimes
+            elif is_ignored_qt_message(line):
                 return None
             else:
                 raise testprocess.InvalidLine
