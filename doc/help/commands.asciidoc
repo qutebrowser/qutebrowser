@@ -14,6 +14,7 @@
 |<<close,close>>|Close the current window.
 |<<download,download>>|Download a given URL, or current page if no URL given.
 |<<download-cancel,download-cancel>>|Cancel the last/[count]th download.
+|<<download-clear,download-clear>>|Remove all finished downloads from the list.
 |<<download-delete,download-delete>>|Delete the last/[count]th download from disk.
 |<<download-open,download-open>>|Open the last/[count]th download.
 |<<download-remove,download-remove>>|Remove the last/[count]th download from the list.
@@ -157,6 +158,10 @@ Cancel the last/[count]th download.
 
 ==== count
 The index of the download to cancel.
+
+[[download-clear]]
+=== download-clear
+Remove all finished downloads from the list.
 
 [[download-delete]]
 === download-delete
