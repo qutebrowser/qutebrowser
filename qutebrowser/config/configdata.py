@@ -1497,4 +1497,6 @@ CHANGED_KEY_COMMANDS = [
 
     (re.compile(r'^search *;; *clear-keychain$'), r'clear-keychain ;; search'),
     (re.compile(r'^leave-mode$'), r'clear-keychain ;; leave-mode'),
+
+    (re.compile(r'^download-remove --all$'), r'download-clear'),
 ]
