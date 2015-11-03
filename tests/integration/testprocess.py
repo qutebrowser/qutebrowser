@@ -190,7 +190,8 @@ class Process(QObject):
         while True:
             got_signal = spy.wait(timeout)
             if not got_signal or elapsed_timer.hasExpired(timeout):
-                raise WaitForTimeout
+                raise WaitForTimeout("Timed out after {}ms waiting for "
+                                     "{!r}.".format(timeout, kwargs))
 
             for args in spy:
                 assert len(args) == 1
