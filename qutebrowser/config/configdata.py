@@ -1373,7 +1373,7 @@ KEY_DATA = collections.OrderedDict([
         ('inspector', ['wi']),
         ('download', ['gd']),
         ('download-cancel', ['ad']),
-        ('download-remove --all', ['cd']),
+        ('download-clear', ['cd']),
         ('view-source', ['gf']),
         ('tab-focus last', ['<Ctrl-Tab>']),
         ('enter-mode passthrough', ['<Ctrl-V>']),
@@ -1497,4 +1497,6 @@ CHANGED_KEY_COMMANDS = [
 
     (re.compile(r'^search *;; *clear-keychain$'), r'clear-keychain ;; search'),
     (re.compile(r'^leave-mode$'), r'clear-keychain ;; leave-mode'),
+
+    (re.compile(r'^download-remove --all$'), r'download-clear'),
 ]
