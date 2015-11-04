@@ -208,7 +208,7 @@ it as part of the packaging process.
 Installing qutebrowser with tox
 -------------------------------
 
-Run tox like this to set up a
+Run tox inside the qutebrowser repository to set up a
 https://docs.python.org/3/library/venv.html[virtual environment]:
 
 ----
