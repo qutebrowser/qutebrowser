@@ -60,6 +60,9 @@ def _validate_regex(pattern, flags):
         except re.error as e:
             raise configexc.ValidationError(
                 pattern, "must be a valid regex - " + str(e))
+        except RuntimeError:
+            raise configexc.ValidationError(
+                pattern, "must be a valid regex - recursion depth exceeded")
 
     for w in recorded_warnings:
         if (issubclass(w.category, DeprecationWarning) and

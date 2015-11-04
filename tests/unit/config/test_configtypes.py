@@ -1149,7 +1149,7 @@ class TestRegex:
     def test_validate_valid(self, klass, val):
         klass(none_ok=True).validate(val)
 
-    @pytest.mark.parametrize('val', [r'(foo|bar))?baz[fis]h', ''])
+    @pytest.mark.parametrize('val', [r'(foo|bar))?baz[fis]h', '', '(' * 500])
     def test_validate_invalid(self, klass, val):
         with pytest.raises(configexc.ValidationError):
             klass().validate(val)
@@ -1225,6 +1225,7 @@ class TestRegexList:
         r'(foo|bar),,1337{42}',
         r'',
         r'(foo|bar),((),1337{42}',
+        r'(' * 500,
     ])
     def test_validate_invalid(self, klass, val):
         with pytest.raises(configexc.ValidationError):
