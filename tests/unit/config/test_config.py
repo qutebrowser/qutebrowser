@@ -251,6 +251,8 @@ class TestKeyConfigParser:
             ('search;;foo', None),
             ('leave-mode', 'clear-keychain ;; leave-mode'),
             ('leave-mode ;; foo', None),
+
+            ('download-remove --all', 'download-clear'),
         ]
     )
     def test_migrations(self, old, new_expected):
