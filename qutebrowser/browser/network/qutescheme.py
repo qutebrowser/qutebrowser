@@ -127,6 +127,7 @@ def qute_pyeval(_win_id, _request):
     return html.encode('UTF-8', errors='xmlcharrefreplace')
 
 
+@add_handler('version')
 def qute_version(_win_id, _request):
     """Handler for qute:version. Return HTML content as bytes."""
     html = jinja.env.get_template('version.html').render(
