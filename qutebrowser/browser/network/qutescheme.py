@@ -47,12 +47,14 @@ pyeval_output = ":pyeval was never called"
 
 HANDLERS = {}
 
+
 def add_handler(name):
     """Add a handler to the qute: scheme."""
     def namedecorator(function):
         HANDLERS[name] = function
         return function
     return namedecorator
+
 
 class QuteSchemeHandler(schemehandler.SchemeHandler):
 
@@ -198,4 +200,3 @@ def qute_settings(win_id, _request):
         win_id=win_id, title='settings', config=configdata,
         confget=config_getter)
     return html.encode('UTF-8', errors='xmlcharrefreplace')
-
