@@ -33,6 +33,7 @@ import qutebrowser.app  # pylint: disable=unused-import
 from qutebrowser.commands import cmdutils
 from qutebrowser.utils import utils
 from qutebrowser.browser import rfc6266
+from qutebrowser.browser.network import qutescheme
 
 
 def whitelist_generator():
@@ -70,6 +71,10 @@ def whitelist_generator():
     yield 'PyQt5.QtWebKit.QWebPage.ErrorPageExtensionReturn().fileNames'
     yield 'PyQt5.QtGui.QAbstractTextDocumentLayout.PaintContext().clip'
     yield 'PyQt5.QtWidgets.QStyleOptionViewItem.backgroundColor'
+
+    # qute:... handlers
+    for func in qutescheme.HANDLERS.values():
+        yield 'qutebrowser.browser.network.qutescheme.' + func.__name__
 
     # Globals
     # https://bitbucket.org/jendrikseipp/vulture/issues/10/

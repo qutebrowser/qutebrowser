@@ -45,6 +45,17 @@ from qutebrowser.config import configexc, configdata
 pyeval_output = ":pyeval was never called"
 
 
+HANDLERS = {}
+
+
+def add_handler(name):
+    """Add a handler to the qute: scheme."""
+    def namedecorator(function):
+        HANDLERS[name] = function
+        return function
+    return namedecorator
+
+
 class QuteSchemeHandler(schemehandler.SchemeHandler):
 
     """Scheme handler for qute: URLs."""
@@ -108,6 +119,7 @@ class JSBridge(QObject):
             message.error(win_id, e)
 
 
+@add_handler('pyeval')
 def qute_pyeval(_win_id, _request):
     """Handler for qute:pyeval. Return HTML content as bytes."""
     html = jinja.env.get_template('pre.html').render(
@@ -115,6 +127,7 @@ def qute_pyeval(_win_id, _request):
     return html.encode('UTF-8', errors='xmlcharrefreplace')
 
 
+@add_handler('version')
 def qute_version(_win_id, _request):
     """Handler for qute:version. Return HTML content as bytes."""
     html = jinja.env.get_template('version.html').render(
@@ -123,6 +136,7 @@ def qute_version(_win_id, _request):
     return html.encode('UTF-8', errors='xmlcharrefreplace')
 
 
+@add_handler('plainlog')
 def qute_plainlog(_win_id, _request):
     """Handler for qute:plainlog. Return HTML content as bytes."""
     if log.ram_handler is None:
@@ -133,6 +147,7 @@ def qute_plainlog(_win_id, _request):
     return html.encode('UTF-8', errors='xmlcharrefreplace')
 
 
+@add_handler('log')
 def qute_log(_win_id, _request):
     """Handler for qute:log. Return HTML content as bytes."""
     if log.ram_handler is None:
@@ -144,11 +159,13 @@ def qute_log(_win_id, _request):
     return html.encode('UTF-8', errors='xmlcharrefreplace')
 
 
+@add_handler('gpl')
 def qute_gpl(_win_id, _request):
     """Handler for qute:gpl. Return HTML content as bytes."""
     return utils.read_file('html/COPYING.html').encode('ASCII')
 
 
+@add_handler('help')
 def qute_help(win_id, request):
     """Handler for qute:help. Return HTML content as bytes."""
     try:
@@ -176,6 +193,7 @@ def qute_help(win_id, request):
     return utils.read_file(path).encode('UTF-8', errors='xmlcharrefreplace')
 
 
+@add_handler('settings')
 def qute_settings(win_id, _request):
     """Handler for qute:settings. View/change qute configuration."""
     config_getter = functools.partial(objreg.get('config').get, raw=True)
@@ -183,14 +201,3 @@ def qute_settings(win_id, _request):
         win_id=win_id, title='settings', config=configdata,
         confget=config_getter)
     return html.encode('UTF-8', errors='xmlcharrefreplace')
-
-
-HANDLERS = {
-    'pyeval': qute_pyeval,
-    'version': qute_version,
-    'plainlog': qute_plainlog,
-    'log': qute_log,
-    'gpl': qute_gpl,
-    'help': qute_help,
-    'settings': qute_settings,
-}

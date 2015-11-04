@@ -157,6 +157,7 @@ Contributors, sorted by the number of commits in descending order:
 * Jimmy
 * skinnay
 * Zach-Button
+* Felix Van der Jeugt
 * rikn00
 * Patric Schmitz
 * Martin Zimmermann
