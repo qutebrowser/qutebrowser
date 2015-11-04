@@ -184,7 +184,7 @@ Syntax: +:download-remove [*--all*]+
 Remove the last/[count]th download from the list.
 
 ==== optional arguments
-* +*-a*+, +*--all*+: If given removes all finished downloads.
+* +*-a*+, +*--all*+: Deprecated argument for removing all finished downloads.
 
 ==== count
 The index of the download to cancel.
