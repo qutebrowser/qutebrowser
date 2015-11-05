@@ -121,9 +121,9 @@ class TestWaitFor:
 
     def test_existing_message_previous_test(self, pyproc):
         """Make sure the message of a previous test gets ignored."""
-        pyproc.code = "print('foobar')"
+        pyproc.code = "import time; time.sleep(0.1); print('foobar')"
         pyproc.start()
-        time.sleep(0.5)  # to make sure the message is printed
+        pyproc.wait_for(data="foobar")
         pyproc.after_test()
         with pytest.raises(testprocess.WaitForTimeout):
             pyproc.wait_for(data="foobar", timeout=100)
