@@ -136,10 +136,9 @@ def test_cache_existing_metadata_file(config_stub, tmpdir):
     disk_cache.insert(device)
     disk_cache.updateMetaData(metadata)
 
-    # TODO: Get path and name of file that device has been writing to
-    #fname = str(tmpdir) + "/cache_" + url + ".cache"
-    #assert disk_cache.fileMetaData(fname) == metadata
-    assert True
+    files = list(tmpdir.visit(fil=lambda path: path.isfile()))
+    assert len(files) == 1
+    assert disk_cache.fileMetaData(str(files[0])) == metadata
 
 
 def test_cache_nonexistent_metadata_file(config_stub, tmpdir):
