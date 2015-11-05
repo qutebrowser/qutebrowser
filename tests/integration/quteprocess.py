@@ -184,8 +184,6 @@ class QuteProc(testprocess.Process):
                                      target_arg='')
         self.wait_for(category='commands', module='command', function='run',
                       message='Calling *')
-        # Wait a bit in cause the command triggers any error.
-        time.sleep(0.5)
 
     def set_setting(self, sect, opt, value):
         self.send_cmd(':set "{}" "{}" "{}"'.format(sect, opt, value))
