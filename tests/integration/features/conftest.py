@@ -64,6 +64,14 @@ def wait_until_loaded(quteproc, path):
     quteproc.wait_for_load_finished(path)
 
 
+@bdd.when(bdd.parsers.re(r'I wait for (?P<is_regex>regex )?"'
+                         r'(?P<pattern>[^"]+)" in the log'))
+def wait_in_log(quteproc, is_regex, pattern):
+    if is_regex:
+        pattern = re.compile(pattern)
+    quteproc.wait_for(message=pattern)
+
+
 @bdd.then(bdd.parsers.parse("{path} should be loaded"))
 def path_should_be_loaded(httpbin, path):
     requests = httpbin.get_requests()
