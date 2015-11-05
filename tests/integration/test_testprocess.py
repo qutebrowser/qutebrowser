@@ -93,14 +93,14 @@ class TestWaitFor:
 
     def test_successful(self, pyproc):
         """Using wait_for with the expected text."""
-        pyproc.code = "import time; time.sleep(0.5); print('foobar')"
+        pyproc.code = "time.sleep(0.5); print('foobar')"
         pyproc.start()
         with stopwatch(min_ms=300):  # on Windows, this can be done faster...
             pyproc.wait_for(data="foobar")
 
     def test_other_text(self, pyproc):
         """Test wait_for when getting some unrelated text."""
-        pyproc.code = "import time; time.sleep(0.1); print('blahblah')"
+        pyproc.code = "time.sleep(0.1); print('blahblah')"
         pyproc.start()
         with pytest.raises(testprocess.WaitForTimeout):
             pyproc.wait_for(data="foobar", timeout=500)
@@ -121,7 +121,7 @@ class TestWaitFor:
 
     def test_existing_message_previous_test(self, pyproc):
         """Make sure the message of a previous test gets ignored."""
-        pyproc.code = "import time; time.sleep(0.1); print('foobar')"
+        pyproc.code = "time.sleep(0.1); print('foobar')"
         pyproc.start()
         pyproc.wait_for(data="foobar")
         pyproc.after_test()
