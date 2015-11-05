@@ -205,24 +205,17 @@ class QuteProc(testprocess.Process):
 
     def mark_expected(self, category=None, loglevel=None, message=None):
         """Mark a given logging message as expected."""
-        found_message = False
+        line = self.wait_for(category=category, loglevel=loglevel,
+                             message=message)
+        line.expected = True
 
-        # Search existing messages
-        for item in self._data:
-            if category is not None and item.category != category:
-                continue
-            elif loglevel is not None and item.loglevel != loglevel:
-                continue
-            elif message is not None and item.message != message:
-                continue
-            item.expected = True
-            found_message = True
+    def wait_for(self, timeout=15000, **kwargs):
+        """Override testprocess.wait_for to check past messages.
 
-        # If there is none, wait for the message
-        if not found_message:
-            line = self.wait_for(category=category, loglevel=loglevel,
-                                 message=message)
-            line.expected = True
+        self._data is cleared after every test to provide at least some
+        isolation.
+        """
+        return super().wait_for(timeout, **kwargs)
 
     def get_session(self):
         """Save the session and get the parsed session data."""

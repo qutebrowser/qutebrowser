@@ -157,16 +157,13 @@ class Process(QObject):
         """Check if the process is currently running."""
         return self.proc.state() == QProcess.Running
 
-    def wait_for(self, timeout=15000, **kwargs):
-        """Wait until a given value is found in the data.
-
-        Keyword arguments to this function get interpreted as attributes of the
-        searched data. Every given argument is treated as a pattern which
-        the attribute has to match against.
+    def _match_data(self, value, expected):
+        """Helper for wait_for to match a given value.
 
         The behavior of this method is slightly different depending on the
         types of the filtered values:
 
+        - If expected is None, the filter always matches.
         - If the value is a string or bytes object and the expected value is
           too, the pattern is treated as a fnmatch glob pattern.
         - If the value is a string or bytes object and the expected value is a
@@ -174,15 +171,40 @@ class Process(QObject):
         - If the value is any other type, == is used.
 
         Return:
+            A bool
+        """
+        regex_type = type(re.compile(''))
+        if expected is None:
+            return True
+        elif isinstance(expected, regex_type):
+            return expected.match(value)
+        elif isinstance(value, (bytes, str)):
+            return fnmatch.fnmatchcase(value, expected)
+        else:
+            return value == expected
+
+    def wait_for(self, timeout=15000, **kwargs):
+        """Wait until a given value is found in the data.
+
+        Keyword arguments to this function get interpreted as attributes of the
+        searched data. Every given argument is treated as a pattern which
+        the attribute has to match against.
+
+        Return:
             The matched line.
         """
+        # Search existing messages
+        for item in self._data:
+            matches = []
 
-        # FIXME make this a context manager which inserts a marker in
-        # self._data in __enter__ and checks if the signal already did arrive
-        # after marker in __exit__, and if not, waits?
+            for key, expected in kwargs.items():
+                value = getattr(item, key)
+                matches.append(self._match_data(value, expected))
 
-        regex_type = type(re.compile(''))
+            if all(matches):
+                return item
 
+        # If there is none, wait for the message
         spy = QSignalSpy(self.new_data)
         elapsed_timer = QElapsedTimer()
         elapsed_timer.start()
@@ -200,17 +222,8 @@ class Process(QObject):
                 matches = []
 
                 for key, expected in kwargs.items():
-                    if expected is None:
-                        continue
-
                     value = getattr(line, key)
-
-                    if isinstance(expected, regex_type):
-                        matches.append(expected.match(value))
-                    elif isinstance(value, (bytes, str)):
-                        matches.append(fnmatch.fnmatchcase(value, expected))
-                    else:
-                        matches.append(value == expected)
+                    matches.append(self._match_data(value, expected))
 
                 if all(matches):
                     return line

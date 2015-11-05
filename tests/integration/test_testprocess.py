@@ -20,6 +20,7 @@
 """Test testprocess.Process."""
 
 import sys
+import time
 import contextlib
 import datetime
 
@@ -108,5 +109,21 @@ class TestWaitFor:
         """Test wait_for when getting no text at all."""
         pyproc.code = "pass"
         pyproc.start()
+        with pytest.raises(testprocess.WaitForTimeout):
+            pyproc.wait_for(data="foobar", timeout=100)
+
+    def test_existing_message(self, pyproc):
+        """Test with a message which already passed when waiting."""
+        pyproc.code = "print('foobar')"
+        pyproc.start()
+        time.sleep(0.5)  # to make sure the message is printed
+        pyproc.wait_for(data="foobar")
+
+    def test_existing_message_previous_test(self, pyproc):
+        """Make sure the message of a previous test gets ignored."""
+        pyproc.code = "print('foobar')"
+        pyproc.start()
+        time.sleep(0.5)  # to make sure the message is printed
+        pyproc.after_test()
         with pytest.raises(testprocess.WaitForTimeout):
             pyproc.wait_for(data="foobar", timeout=100)
