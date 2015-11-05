@@ -345,7 +345,8 @@ Default: +pass:[15000]+
 === editor
 The editor (and arguments) to use for the `open-editor` command.
 
-Use `{}` for the filename. The value gets split like in a shell, so you can use `"` or `'` to quote arguments.
+The arguments get split like in a shell, so you can use `"` or `'` to quote them.
+`{}` gets replaced by the filename of the file to be edited.
 
 Default: +pass:[gvim -f &quot;{}&quot;]+
 

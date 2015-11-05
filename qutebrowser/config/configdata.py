@@ -165,8 +165,9 @@ def data(readonly=False):
              SettingValue(typ.ShellCommand(placeholder=True), 'gvim -f "{}"'),
              "The editor (and arguments) to use for the `open-editor` "
              "command.\n\n"
-             "Use `{}` for the filename. The value gets split like in a "
-             "shell, so you can use `\"` or `'` to quote arguments."),
+             "The arguments get split like in a shell, so you can use `\"` or "
+             "`'` to quote them.\n"
+             "`{}` gets replaced by the filename of the file to be edited."),
 
             ('editor-encoding',
              SettingValue(typ.Encoding(), 'utf-8'),
