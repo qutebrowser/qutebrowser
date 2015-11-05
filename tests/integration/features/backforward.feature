@@ -5,8 +5,10 @@ Feature: Going back and forward.
         Given I open data/backforward/1.txt
         When I open data/backforward/2.txt
         And I run :back
+        And I wait until data/backforward/1.txt is loaded
         And I reload
         And I run :forward
+        And I wait until data/backforward/2.txt is loaded
         And I reload
         Then the requests should be:
             data/backforward/1.txt

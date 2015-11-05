@@ -59,6 +59,11 @@ def reload(qtbot, httpbin, quteproc, command):
         quteproc.send_cmd(':reload')
 
 
+@bdd.when(bdd.parsers.parse("I wait until {path} is loaded"))
+def wait_until_loaded(quteproc, path):
+    quteproc.wait_for_load_finished(path)
+
+
 @bdd.then(bdd.parsers.parse("{path} should be loaded"))
 def path_should_be_loaded(httpbin, path):
     requests = httpbin.get_requests()

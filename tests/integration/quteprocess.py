@@ -192,16 +192,12 @@ class QuteProc(testprocess.Process):
         self.wait_for(category='config', message='Config option changed: *')
 
     def open_path(self, path, new_tab=False):
-        url_loaded_pattern = re.compile(
-            r"load status for <qutebrowser.browser.webview.WebView tab_id=\d+ "
-            r"url='[^']+'>: LoadStatus.success")
-
         url = 'http://localhost:{}/{}'.format(self._httpbin.port, path)
         if new_tab:
             self.send_cmd(':open -t ' + url)
         else:
             self.send_cmd(':open ' + url)
-        self.wait_for(category='webview', message=url_loaded_pattern)
+        self.wait_for_load_finished(path)
 
     def mark_expected(self, category=None, loglevel=None, message=None):
         """Mark a given logging message as expected."""
@@ -216,6 +212,14 @@ class QuteProc(testprocess.Process):
         isolation.
         """
         return super().wait_for(timeout, **kwargs)
+
+    def wait_for_load_finished(self, path, timeout=15000):
+        """Wait until any tab has finished loading."""
+        url = 'http://localhost:{}/{}'.format(self._httpbin.port, path)
+        pattern = re.compile(
+            r"load status for <qutebrowser.browser.webview.WebView tab_id=\d+ "
+            r"url='{}'>: LoadStatus.success".format(url))
+        self.wait_for(category='webview', message=pattern, timeout=timeout)
 
     def get_session(self):
         """Save the session and get the parsed session data."""
