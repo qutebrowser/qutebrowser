@@ -17,7 +17,8 @@ Feature: Yanking and pasting.
         And the primary selection should contain "http://localhost:(port)/data/yankpaste.html"
 
     Scenario: Yanking title to clipboard
-        When I run :yank --title
+        When I wait for regex "Changing title for idx \d to 'Test title'" in the log
+        And I run :yank --title
         Then the message "Yanked title to clipboard: Test title" should be shown.
         And the clipboard should contain "Test title"
 
