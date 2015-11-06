@@ -125,6 +125,7 @@ class DownloadView(QListView):
                 - (QAction, callable) tuples.
                 - (None, None) for a separator
         """
+        model = self.model()
         actions = []
         if item is None:
             pass
@@ -134,13 +135,12 @@ class DownloadView(QListView):
             else:
                 actions.append(("Retry", item.retry))
             actions.append(("Remove",
-                            functools.partial(self.model().remove_item, item)))
+                            functools.partial(model.remove_item, item)))
         else:
             actions.append(("Cancel", item.cancel))
-        if self.model().can_clear():
+        if model.can_clear():
             actions.append((None, None))
-            actions.append(("Remove all finished", functools.partial(
-                self.model().download_remove, True)))
+            actions.append(("Remove all finished", model.download_clear))
         return actions
 
     @pyqtSlot('QPoint')
