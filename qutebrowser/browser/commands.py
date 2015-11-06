@@ -273,6 +273,16 @@ class CommandDispatcher:
             self._tabbed_browser.close_tab(tab)
             tabbar.setSelectionBehaviorOnRemove(old_selection_behavior)
 
+    @cmdutils.register(instance='command-dispatcher', name='set-window-name',
+                       maxsplit=0, scope='window')
+    def set_window_name(self, name=""):
+        """Set the current windows name.
+
+        Args:
+            name: The new name of the window.
+        """
+        self._tabbed_browser.setName(name)
+
     @cmdutils.register(instance='command-dispatcher', name='open',
                        maxsplit=0, scope='window', count='count',
                        completion=[usertypes.Completion.url])

@@ -307,14 +307,17 @@ def data(readonly=False):
             ('window-title-format',
              SettingValue(typ.FormatString(fields=['perc', 'perc_raw', 'title',
                                                    'title_sep', 'id',
-                                                   'scroll_pos']),
-                          '{perc}{title}{title_sep}qutebrowser'),
+                                                   'scroll_pos', 'name', 'name_sep']),
+                          '{perc}{title}{title_sep}qutebrowser{name_sep}{name}'),
              "The format to use for the window title. The following "
              "placeholders are defined:\n\n"
              "* `{perc}`: The percentage as a string like `[10%]`.\n"
              "* `{perc_raw}`: The raw percentage, e.g. `10`\n"
              "* `{title}`: The title of the current web page\n"
              "* `{title_sep}`: The string ` - ` if a title is set, empty "
+             "otherwise.\n"
+             "* `{name}`: The name of the current web page\n"
+             "* `{name_sep}`: The string `-` if a name is set, empty "
              "otherwise.\n"
              "* `{id}`: The internal window ID of this window.\n"
              "* `{scroll_pos}`: The page scroll position."),

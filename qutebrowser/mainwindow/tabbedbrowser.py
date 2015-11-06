@@ -100,6 +100,7 @@ class TabbedBrowser(tabwidget.TabWidget):
     def __init__(self, win_id, parent=None):
         super().__init__(win_id, parent)
         self._win_id = win_id
+        self._name = ""
         self._tab_insert_idx_left = 0
         self._tab_insert_idx_right = -1
         self._shutting_down = False
@@ -145,6 +146,10 @@ class TabbedBrowser(tabwidget.TabWidget):
             w.append(self.widget(i))
         return w
 
+    def setName(self, name):
+        self._name = name
+        self.update_window_title()
+
     @config.change_filter('ui', 'window-title-format')
     def update_window_title(self):
         """Change the window title to match the current tab."""
@@ -165,6 +170,8 @@ class TabbedBrowser(tabwidget.TabWidget):
         fields['title'] = tabtitle
         fields['title_sep'] = ' - ' if tabtitle else ''
         fields['id'] = self._win_id
+        fields['name_sep'] = '-' if self._name else ''
+        fields['name'] = self._name
         y = widget.scroll_pos[1]
         if y <= 0:
             scroll_pos = 'top'
