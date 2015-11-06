@@ -1,13 +1,13 @@
 @font-face {
 	font-family: 'Open Sans';
-	font-style: normal;
 	font-weight: 400;
-	src: local('Open Sans'), local('OpenSans'), url(opensans.woff2) format('woff2');
+	src: url(OpenSans-Regular.ttf) format("truetype");
+	src: local('Open Sans'), local('OpenSans'), url(OpenSans-Regular.ttf) format('truetype');
 }
 
 @font-face {
 	font-family: 'Open Sans';
-	font-style: normal;
 	font-weight: 700;
-	src: local('Open Sans Bold'), local('OpenSans-Bold'), url(opensans-bold.woff2) format('woff2');
+	src: url(OpenSans-Bold.ttf) format("truetype");
+	src: local('Open Sans'), local('OpenSans'), url(OpenSans-Bold.ttf) format('truetype');
 }
