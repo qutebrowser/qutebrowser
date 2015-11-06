@@ -112,9 +112,25 @@ class TestWaitFor:
 
     def test_existing_message_previous_test(self, pyproc):
         """Make sure the message of a previous test gets ignored."""
+        pyproc.code = "print('foobar')"
+        pyproc.start()
+        # We can't use wait_for here, as that'd actually test what the next
+        # test does.
+        time.sleep(0.5)
+        pyproc.after_test()
+        with pytest.raises(testprocess.WaitForTimeout):
+            pyproc.wait_for(data="foobar", timeout=100)
+
+    def test_existing_message_already_waited(self, pyproc):
+        """Make sure an existing message doesn't stop waiting twice.
+
+        wait_for checks existing messages (see above), but we don't want it to
+        automatically proceed if we already *did* use wait_for on one of the
+        existing messages, as that makes it likely it's not what we actually
+        want.
+        """
         pyproc.code = "time.sleep(0.1); print('foobar')"
         pyproc.start()
         pyproc.wait_for(data="foobar")
-        pyproc.after_test()
         with pytest.raises(testprocess.WaitForTimeout):
             pyproc.wait_for(data="foobar", timeout=100)

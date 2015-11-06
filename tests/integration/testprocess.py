@@ -52,10 +52,12 @@ class Line:
 
     Attributes:
         data: The raw data passed to the constructor.
+        waited_for: If Process.wait_for was used on this line already.
     """
 
     def __init__(self, data):
         self.data = data
+        self.waited_for = False
 
     def __repr__(self):
         return '{}({!r})'.format(self.__class__.__name__, self.data)
@@ -209,15 +211,19 @@ class Process(QObject):
             The matched line.
         """
         # Search existing messages
-        for item in self._data:
+        for line in self._data:
             matches = []
 
             for key, expected in kwargs.items():
-                value = getattr(item, key)
+                value = getattr(line, key)
                 matches.append(self._match_data(value, expected))
 
-            if all(matches):
-                return item
+            if all(matches) and not line.waited_for:
+                # If we waited for this line, chances are we don't mean the
+                # same thing the next time we use wait_for and it matches
+                # this line again.
+                line.waited_for = True
+                return line
 
         # If there is none, wait for the message
         spy = QSignalSpy(self.new_data)
@@ -241,4 +247,8 @@ class Process(QObject):
                     matches.append(self._match_data(value, expected))
 
                 if all(matches):
+                    # If we waited for this line, chances are we don't mean the
+                    # same thing the next time we use wait_for and it matches
+                    # this line again.
+                    line.waited_for = True
                     return line
