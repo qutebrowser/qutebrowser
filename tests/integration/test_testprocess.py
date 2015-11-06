@@ -47,15 +47,6 @@ def stopwatch(min_ms=None, max_ms=None):
         assert delta_ms <= max_ms
 
 
-class Line:
-
-    def __init__(self, data):
-        self.data = data
-
-    def __repr__(self):
-        return 'Line({!r})'.format(self.data)
-
-
 class PythonProcess(testprocess.Process):
 
     """A testprocess which runs the given Python code."""
@@ -69,7 +60,7 @@ class PythonProcess(testprocess.Process):
         print("LINE: {}".format(line))
         if line.strip() == 'ready':
             self.ready.emit()
-        return Line(line)
+        return testprocess.Line(line)
 
     def _executable_args(self):
         code = [

@@ -46,6 +46,21 @@ class WaitForTimeout(Exception):
     """Raised when wait_for didn't get the expected message."""
 
 
+class Line:
+
+    """Container for a line of data the process emits.
+
+    Attributes:
+        data: The raw data passed to the constructor.
+    """
+
+    def __init__(self, data):
+        self.data = data
+
+    def __repr__(self):
+        return '{}({!r})'.format(self.__class__.__name__, self.data)
+
+
 class Process(QObject):
 
     """Abstraction over a running test subprocess process.

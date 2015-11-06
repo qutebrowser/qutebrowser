@@ -54,14 +54,13 @@ class NoLineMatch(Exception):
     pass
 
 
-class LogLine:
+class LogLine(testprocess.Line):
 
     """A parsed line from the qutebrowser log output.
 
     Attributes:
         timestamp/loglevel/category/module/function/line/message:
             Parsed from the log output.
-        _line: The entire unparsed line.
         expected: Whether the message was expected or not.
     """
 
@@ -73,12 +72,11 @@ class LogLine:
         \ (?P<message>.+)
     """, re.VERBOSE)
 
-    def __init__(self, line):
-        self._line = line
-        match = self.LOG_RE.match(line)
+    def __init__(self, data):
+        super().__init__(data)
+        match = self.LOG_RE.match(data)
         if match is None:
-            raise NoLineMatch(line)
-        self.__dict__.update(match.groupdict())
+            raise NoLineMatch(data)
 
         self.timestamp = datetime.datetime.strptime(match.group('timestamp'),
                                                     '%H:%M:%S')
@@ -101,9 +99,6 @@ class LogLine:
         self.message = match.group('message')
 
         self.expected = is_ignored_qt_message(self.message)
-
-    def __repr__(self):
-        return 'LogLine({!r})'.format(self._line)
 
 
 class QuteProc(testprocess.Process):
