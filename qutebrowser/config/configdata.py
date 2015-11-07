@@ -214,8 +214,13 @@ def data(readonly=False):
              "launched."),
 
             ('log-javascript-console',
-             SettingValue(typ.Bool(), 'false'),
-             "Whether to log javascript console messages."),
+             SettingValue(
+                 typ.String(
+                     valid_values=typ.ValidValues('none', 'debug', 'info')),
+                 'debug'),
+             "How to log javascript console messages. "
+             "None suppresses output, debug logs to stdout if in debug mode, "
+             "info always logs to stdout."),
 
             ('save-session',
              SettingValue(typ.Bool(), 'false'),
