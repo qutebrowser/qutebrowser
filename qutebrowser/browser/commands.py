@@ -110,7 +110,7 @@ class CommandDispatcher:
             raise cmdexc.CommandError("No WebView available yet!")
         return widget
 
-    def _open(self, url, tab=False, background=False, window=False):
+    def _open(self, url, tab=False, background=False, window=False, name=""):
         """Helper function to open a page.
 
         Args:
@@ -124,6 +124,8 @@ class CommandDispatcher:
         cmdutils.check_exclusive((tab, background, window), 'tbw')
         if window:
             tabbed_browser = self._new_tabbed_browser()
+            if name:
+                tabbed_browser.setName(name)
             tabbed_browser.tabopen(url)
         elif tab:
             tabbed_browser.tabopen(url, background=False, explicit=True)
@@ -286,7 +288,8 @@ class CommandDispatcher:
     @cmdutils.register(instance='command-dispatcher', name='open',
                        maxsplit=0, scope='window', count='count',
                        completion=[usertypes.Completion.url])
-    def openurl(self, url=None, bg=False, tab=False, window=False, count=None):
+    def openurl(self, url=None, bg=False, tab=False, window=False, count=None,
+                *, name=""):
         """Open a URL in the current/[count]th tab.
 
         Args:
@@ -307,8 +310,10 @@ class CommandDispatcher:
                 url = urlutils.fuzzy_url(url)
             except urlutils.InvalidUrlError as e:
                 raise cmdexc.CommandError(e)
+        if (tab or bg) and name:
+            raise cmdexc.CommandError("--name only makes sense with --window!")
         if tab or bg or window:
-            self._open(url, tab, bg, window)
+            self._open(url, tab, bg, window, name)
         else:
             curtab = self._cntwidget(count)
             if curtab is None:
