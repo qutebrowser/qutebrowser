@@ -146,6 +146,9 @@ class TabbedBrowser(tabwidget.TabWidget):
             w.append(self.widget(i))
         return w
 
+    def name(self):
+        return self._name
+
     def setName(self, name):
         self._name = name
         self.update_window_title()
