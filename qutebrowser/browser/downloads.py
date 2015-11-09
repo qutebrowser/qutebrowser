@@ -420,6 +420,8 @@ class DownloadItem(QObject):
     @pyqtSlot()
     def retry(self):
         """Retry a failed download."""
+        assert self.done
+        assert not self.successful
         download_manager = objreg.get('download-manager', scope='window',
                                       window=self._win_id)
         new_reply = self.retry_info.manager.get(self.retry_info.request)
