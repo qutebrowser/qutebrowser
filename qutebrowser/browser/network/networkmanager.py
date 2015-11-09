@@ -363,9 +363,14 @@ class NetworkManager(QNetworkAccessManager):
         if self._tab_id is None:
             current_url = QUrl()  # generic NetworkManager, e.g. for downloads
         else:
-            webview = objreg.get('webview', scope='tab', window=self._win_id,
-                                 tab=self._tab_id)
-            current_url = webview.url()
+            try:
+                webview = objreg.get('webview', scope='tab',
+                                     window=self._win_id, tab=self._tab_id)
+            except KeyError:
+                # https://github.com/The-Compiler/qutebrowser/issues/889
+                current_url = QUrl()
+            else:
+                current_url = webview.url()
 
         self.set_referer(req, current_url)
 
