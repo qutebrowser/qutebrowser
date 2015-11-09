@@ -737,7 +737,7 @@ class DownloadManager(QAbstractListModel):
             prompt_download_directory = config.get(
                 'storage', 'prompt-download-directory')
         if not prompt_download_directory and not fileobj:
-            filename = _download_dir()
+            filename = download_dir()
 
         if fileobj is not None or filename is not None:
             return self.fetch_request(request,
@@ -832,7 +832,7 @@ class DownloadManager(QAbstractListModel):
         prompt_download_directory = config.get('storage',
                                                'prompt-download-directory')
         if not prompt_download_directory and not fileobj:
-            filename = _download_dir()
+            filename = download_dir()
 
         if filename is not None:
             download.set_filename(filename)
