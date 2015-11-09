@@ -209,18 +209,32 @@ def data(readonly=False):
              "be used."),
 
             ('new-instance-open-target',
-             SettingValue(typ.NewInstanceOpenTarget(), 'tab'),
+             SettingValue(typ.String(
+                 valid_values=typ.ValidValues(
+                     ('tab', "Open a new tab in the existing "
+                      "window and activate the window."),
+                     ('tab-bg', "Open a new background tab in the "
+                      "existing window and activate the "
+                      "window."),
+                     ('tab-silent', "Open a new tab in the existing "
+                      "window without activating "
+                      "the window."),
+                     ('tab-bg-silent', "Open a new background tab "
+                      "in the existing window "
+                      "without activating the "
+                      "window."),
+                     ('window', "Open in a new window.")
+                 )), 'tab'),
              "How to open links in an existing instance if a new one is "
              "launched."),
 
             ('log-javascript-console',
-             SettingValue(
-                 typ.String(
-                     valid_values=typ.ValidValues(
-                         ('none',  'Not displayed'),
-                         ('debug', 'Display in debug mode'),
-                         ('info',  'Display always'))),
-                 'debug'),
+             SettingValue(typ.String(
+                 valid_values=typ.ValidValues(
+                     ('none',  'Not displayed'),
+                     ('debug', 'Display in debug mode'),
+                     ('info',  'Display always')
+                 )), 'debug'),
              "How to log javascript console messages."),
 
             ('save-session',
@@ -351,7 +365,15 @@ def data(readonly=False):
              "Value to send in the `accept-language` header."),
 
             ('referer-header',
-             SettingValue(typ.Referer(), 'same-domain'),
+             SettingValue(typ.String(
+                 valid_values=typ.ValidValues(
+                     ('always', "Always send."),
+                     ('never', "Never send; this is not recommended,"
+                      " as some sites may break."),
+                     ('same-domain', "Only send for the same domain."
+                      " This will still protect your privacy, but"
+                      " shouldn't break any sites.")
+                 )), 'same-domain'),
              "Send the Referer header"),
 
             ('user-agent',
@@ -385,7 +407,12 @@ def data(readonly=False):
              "Automatically open completion when typing."),
 
             ('download-path-suggestion',
-             SettingValue(typ.DownloadPathSuggestion(), 'path'),
+             SettingValue(typ.String(
+                 valid_values=typ.ValidValues(
+                     ('path', "Show only the download path."),
+                     ('filename', "Show only download filename."),
+                     ('both', "Show download path and filename."))),
+                'path'),
              "What to display in the download filename input."),
 
             ('timestamp-format',
@@ -458,7 +485,13 @@ def data(readonly=False):
              "element is focused after page load."),
 
             ('forward-unbound-keys',
-             SettingValue(typ.ForwardUnboundKeys(), 'auto'),
+             SettingValue(typ.String(
+                 valid_values=typ.ValidValues(
+                     ('all', "Forward all unbound keys."),
+                     ('auto', "Forward unbound non-alphanumeric "
+                      "keys."),
+                     ('none', "Don't forward any keys.")
+                 )), 'auto'),
              "Whether to forward unbound keys to the webview in normal mode."),
 
             ('spatial-navigation',
@@ -508,11 +541,26 @@ def data(readonly=False):
              "How new tabs opened explicitly are positioned."),
 
             ('last-close',
-             SettingValue(typ.LastClose(), 'ignore'),
+             SettingValue(typ.String(
+                 valid_values=typ.ValidValues(
+                     ('ignore', "Don't do anything."),
+                     ('blank', "Load a blank page."),
+                     ('startpage', "Load the start page."),
+                     ('default-page', "Load the default page."),
+                     ('close', "Close the window.")
+                 )), 'ignore'),
              "Behavior when the last tab is closed."),
 
             ('show',
-             SettingValue(typ.TabBarShow(), 'always'),
+             SettingValue(typ.String(
+                 valid_values=typ.ValidValues(
+                 ('always', "Always show the tab bar."),
+                 ('never', "Always hide the tab bar."),
+                 ('multiple', "Hide the tab bar if only one tab "
+                  "is open."),
+                 ('switching', "Show the tab bar when switching "
+                  "tabs.")
+                 )), 'always'),
              "When to show the tab bar"),
 
             ('show-switching-delay',
@@ -529,7 +577,12 @@ def data(readonly=False):
              "Whether tabs should be movable."),
 
             ('close-mouse-button',
-             SettingValue(typ.CloseButton(), 'middle'),
+             SettingValue(typ.String(
+                 valid_values=typ.ValidValues(
+                     ('right', "Close tabs on right-click."),
+                     ('middle', "Close tabs on middle-click."),
+                     ('none', "Don't close tabs using the mouse.")
+                 )), 'middle'),
              "On which mouse button to close tabs."),
 
             ('position',
@@ -737,7 +790,16 @@ def data(readonly=False):
              "local urls."),
 
             ('cookies-accept',
-             SettingValue(typ.AcceptCookies(), 'no-3rdparty'),
+             SettingValue(typ.String(
+                 valid_values=typ.ValidValues(
+                     ('all', "Accept all cookies."),
+                     ('no-3rdparty', "Accept cookies from the same"
+                      " origin only."),
+                     ('no-unknown-3rdparty', "Accept cookies from "
+                      "the same origin only, unless a cookie is "
+                      "already set for the domain."),
+                     ('never', "Don't accept cookies at all.")
+                 )), 'no-3rdparty'),
              "Control which cookies to accept."),
 
             ('cookies-store',
@@ -785,7 +847,12 @@ def data(readonly=False):
              "Opacity for hints."),
 
             ('mode',
-             SettingValue(typ.HintMode(), 'letter'),
+             SettingValue(typ.String(
+                 valid_values=typ.ValidValues(
+                     ('number', "Use numeric hints."),
+                     ('letter', "Use the chars in the hints -> "
+                      "chars setting.")
+                 )), 'letter'),
              "Mode to use for hints."),
 
             ('chars',

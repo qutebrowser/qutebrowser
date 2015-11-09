@@ -652,11 +652,11 @@ class ColorSystem(MappingType):
     special = True
 
     def __init__(self):
-        self.valid_values = \
-            ValidValues(('rgb', "Interpolate in the RGB color system."),
-                        ('hsv', "Interpolate in the HSV color system."),
-                        ('hsl', "Interpolate in the HSL color system."),
-                        ('none', "Don't show a gradient."))
+        self.valid_values = ValidValues(
+            ('rgb', "Interpolate in the RGB color system."),
+            ('hsv', "Interpolate in the HSV color system."),
+            ('hsl', "Interpolate in the HSL color system."),
+            ('none', "Don't show a gradient."))
 
     MAPPING = {
         'rgb': QColor.Rgb,
@@ -1090,19 +1090,6 @@ class ShellCommand(BaseType):
             return shlex.split(value)
 
 
-class HintMode(BaseType):
-
-    """Base class for the hints -> mode setting."""
-
-    special = True
-
-    def __init__(self):
-        self.valid_values = \
-            ValidValues(('number', "Use numeric hints."),
-                        ('letter', "Use the chars in the hints -> "
-                         "chars setting."))
-
-
 class Proxy(BaseType):
 
     """A proxy URL or special value."""
@@ -1110,9 +1097,9 @@ class Proxy(BaseType):
     special = True
 
     def __init__(self):
-        self.valid_values = \
-            ValidValues(('system', "Use the system wide proxy."),
-                        ('none', "Don't use any proxy"))
+        self.valid_values = ValidValues(
+            ('system', "Use the system wide proxy."),
+            ('none', "Don't use any proxy"))
 
     PROXY_TYPES = {
         'http': QNetworkProxy.HttpProxy,
@@ -1413,38 +1400,6 @@ class SelectOnRemove(MappingType):
     }
 
 
-class LastClose(BaseType):
-
-    """Behavior when the last tab is closed."""
-
-    special = True
-
-    def __init__(self):
-        self.valid_values = \
-            ValidValues(('ignore', "Don't do anything."),
-                        ('blank', "Load a blank page."),
-                        ('startpage', "Load the start page."),
-                        ('default-page', "Load the default page."),
-                        ('close', "Close the window."))
-
-
-class AcceptCookies(BaseType):
-
-    """Control which cookies to accept."""
-
-    special = True
-
-    def __init__(self):
-        self.valid_values = \
-            ValidValues(('all', "Accept all cookies."),
-                        ('no-3rdparty', "Accept cookies from the same"
-                         " origin only."),
-                        ('no-unknown-3rdparty', "Accept cookies from "
-                         "the same origin only, unless a cookie is "
-                         "already set for the domain."),
-                        ('never', "Don't accept cookies at all."))
-
-
 class ConfirmQuit(FlagList):
 
     """Whether to display a confirmation when the window is closed."""
@@ -1477,33 +1432,6 @@ class ConfirmQuit(FlagList):
                 value, "List cannot contain always!")
 
 
-class ForwardUnboundKeys(BaseType):
-
-    """Whether to forward unbound keys."""
-
-    special = True
-
-    def __init__(self):
-        self.valid_values = \
-            ValidValues(('all', "Forward all unbound keys."),
-                        ('auto', "Forward unbound non-alphanumeric "
-                         "keys."),
-                        ('none', "Don't forward any keys."))
-
-
-class CloseButton(BaseType):
-
-    """Mouse button used to close tabs."""
-
-    special = True
-
-    def __init__(self):
-        self.valid_values = \
-            ValidValues(('right', "Close tabs on right-click."),
-                        ('middle', "Close tabs on middle-click."),
-                        ('none', "Don't close tabs using the mouse."))
-
-
 class NewTabPosition(BaseType):
 
     """How new tabs are positioned."""
@@ -1511,11 +1439,11 @@ class NewTabPosition(BaseType):
     special = True
     
     def __init__(self):
-        self.valid_values = \
-            ValidValues(('left', "On the left of the current tab."),
-                        ('right', "On the right of the current tab."),
-                        ('first', "At the left end."),
-                        ('last', "At the right end."))
+        self.valid_values = ValidValues(
+            ('left', "On the left of the current tab."),
+            ('right', "On the right of the current tab."),
+            ('first', "At the left end."),
+            ('last', "At the right end."))
 
 
 class IgnoreCase(Bool):
@@ -1525,11 +1453,11 @@ class IgnoreCase(Bool):
     special = True
 
     def __init__(self):
-        self.valid_values = \
-            ValidValues(('true', "Search case-insensitively"),
-                        ('false', "Search case-sensitively"),
-                        ('smart', "Search case-sensitively if there "
-                         "are capital chars"))
+        self.valid_values = ValidValues(
+            ('true', "Search case-insensitively"),
+            ('false', "Search case-sensitively"),
+            ('smart', "Search case-sensitively if there "
+             "are capital chars"))
 
     def transform(self, value):
         if value.lower() == 'smart':
@@ -1545,56 +1473,6 @@ class IgnoreCase(Bool):
             return
         else:
             super().validate(value)
-
-
-class NewInstanceOpenTarget(BaseType):
-
-    """How to open links in an existing instance if a new one is launched."""
-
-    special = True
-
-    def __init__(self):
-        self.valid_values = \
-            ValidValues(('tab', "Open a new tab in the existing "
-                         "window and activate the window."),
-                        ('tab-bg', "Open a new background tab in the "
-                         "existing window and activate the "
-                         "window."),
-                        ('tab-silent', "Open a new tab in the existing "
-                         "window without activating "
-                         "the window."),
-                        ('tab-bg-silent', "Open a new background tab "
-                         "in the existing window "
-                         "without activating the "
-                         "window."),
-                        ('window', "Open in a new window."))
-
-
-class DownloadPathSuggestion(BaseType):
-
-    """How to format the question when downloading."""
-
-    special = True
-
-    def __init__(self):
-        self.valid_values = \
-            ValidValues(('path', "Show only the download path."),
-                        ('filename', "Show only download filename."),
-                        ('both', "Show download path and filename."))
-
-
-class Referer(BaseType):
-
-    """Send the Referer header."""
-
-    def __init__(self):
-        self.valid_values = \
-            ValidValues(('always', "Always send."),
-                        ('never', "Never send; this is not recommended,"
-                         " as some sites may break."),
-                        ('same-domain', "Only send for the same domain."
-                         " This will still protect your privacy, but"
-                         " shouldn't break any sites."))
 
 
 class UserAgent(BaseType):
@@ -1658,29 +1536,6 @@ class UserAgent(BaseType):
              "IE 11.0 for Desktop  Win7 64-bit")
         ]
         return out
-
-
-class TabBarShow(BaseType):
-
-    """When to show the tab bar."""
-
-    def __init__(self):
-        self.valid_values = \
-            ValidValues(('always', "Always show the tab bar."),
-                        ('never', "Always hide the tab bar."),
-                        ('multiple', "Hide the tab bar if only one tab "
-                         "is open."),
-                        ('switching', "Show the tab bar when switching "
-                         "tabs."))
-
-
-class URLSegmentList(FlagList):
-
-    """A list of URL segments."""
-
-    def __init__(self, none_ok=False):
-        super().__init__(none_ok)
-        self.valid_values = ValidValues('host', 'path', 'query', 'anchor')
 
 
 class TimestampTemplate(BaseType):
