@@ -22,4 +22,4 @@
 """Things needed for integration testing."""
 
 from webserver import httpbin, httpbin_after_test
-from quteprocess import quteproc
+from quteprocess import quteproc, quteproc_after_test
