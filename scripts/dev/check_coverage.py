@@ -248,9 +248,9 @@ def main():
     """
     utils.change_cwd()
     if '--check-all' in sys.argv:
-        main_check_all()
+        return main_check_all()
     else:
-        main_check()
+        return main_check()
 
 
 if __name__ == '__main__':
