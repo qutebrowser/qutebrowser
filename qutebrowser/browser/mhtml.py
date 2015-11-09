@@ -119,6 +119,23 @@ def _get_css_imports(data, inline=False):
         return _get_css_imports_cssutils(data, inline)
 
 
+def _check_rel(element):
+    """Return true if the element's rel attribute fits our criteria.
+
+    rel has to contain 'stylesheet' or 'icon'. Also returns True if the rel
+    attribute is unset.
+
+    Args:
+        element: The WebElementWrapper which should be checked.
+    """
+    if 'rel' not in element:
+        return True
+    must_have = {'stylesheet', 'icon'}
+    rels = [rel.lower() for rel in element['rel'].split(' ')]
+    return any(rel in rels for rel in must_have)
+
+
+
 MHTMLPolicy = email.policy.default.clone(linesep='\r\n', max_line_length=0)
 
 
@@ -250,6 +267,10 @@ class _Downloader():
 
         for element in elements:
             element = webelem.WebElementWrapper(element)
+            # Websites are free to set whatever rel=... attribute they want.
+            # We just care about stylesheets and icons.
+            if not _check_rel(element):
+                continue
             if 'src' in element:
                 element_url = element['src']
             elif 'href' in element:
