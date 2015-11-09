@@ -121,3 +121,11 @@ def compare_session(quteproc, expected):
     data = quteproc.get_session()
     expected = loader.get_data()
     assert utils.partial_compare(data, expected)
+
+
+@bdd.then("no crash should happen")
+def no_crash():
+    """Don't do anything.
+
+    This is actually a NOP as a crash is already checked in the log."""
+    pass
