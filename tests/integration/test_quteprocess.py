@@ -74,7 +74,31 @@ def test_qt_log_ignore(qtbot, quteproc):
         # Expected message
         '00:00:00 VDEBUG    foo       foo:foo:0 SpellCheck: test',
         {'expected': True},
-    )
+    ),
+    (
+        # Weird Qt location
+        '00:00:00 DEBUG    qt         qnetworkreplyhttpimpl:"void '
+        'QNetworkReplyHttpImplPrivate::error(QNetworkReply::NetworkError, '
+        'const QString&)":1929 QNetworkReplyImplPrivate::error: Internal '
+        'problem, this method must only be called once.',
+        {
+            'module': 'qnetworkreplyhttpimpl',
+            'function': 'void QNetworkReplyHttpImplPrivate::error('
+                        'QNetworkReply::NetworkError, const QString&)',
+            'line': 1929
+        }
+    ),
+    (
+	'00:00:00 WARNING  qt         qxcbxsettings:"QXcbXSettings::'
+	'QXcbXSettings(QXcbScreen*)":233 '
+	'QXcbXSettings::QXcbXSettings(QXcbScreen*) Failed to get selection '
+	'owner for XSETTINGS_S atom ',
+        {
+            'module': 'qxcbxsettings',
+            'function': 'QXcbXSettings::QXcbXSettings(QXcbScreen*)',
+            'line': 233,
+        }
+    ),
 ])
 def test_log_line_parse(data, attrs):
     line = quteprocess.LogLine(data)

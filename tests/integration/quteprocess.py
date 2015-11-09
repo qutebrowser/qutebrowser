@@ -68,7 +68,9 @@ class LogLine(testprocess.Line):
         (?P<timestamp>\d\d:\d\d:\d\d)
         \ (?P<loglevel>VDEBUG|DEBUG|INFO|WARNING|ERROR)
         \ +(?P<category>\w+)
-        \ +(?P<module>(\w+|Unknown\ module)):(?P<function>\w+):(?P<line>\d+)
+        \ +(?P<module>(\w+|Unknown\ module)):
+	   (?P<function>[^"][^:]*|"[^"]+"):
+           (?P<line>\d+)
         \ (?P<message>.+)
     """, re.VERBOSE)
 
@@ -98,7 +100,7 @@ class LogLine(testprocess.Line):
         if function == 'none':
             self.function = None
         else:
-            self.function = function
+            self.function = function.strip('"')
 
         line = int(match.group('line'))
         if self.function is None and line == 0:

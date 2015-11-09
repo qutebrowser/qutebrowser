@@ -320,10 +320,14 @@ def qt_message_handler(msg_type, context, msg):
         level = logging.DEBUG
     else:
         level = qt_to_logging[msg_type]
+
     if context.function is None:
         func = 'none'
+    elif ':' in context.function:
+        func = '"{}"'.format(context.function)
     else:
         func = context.function
+
     if context.category is None or context.category == 'default':
         name = 'qt'
     else:
