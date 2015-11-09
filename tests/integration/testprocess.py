@@ -79,7 +79,7 @@ class Process(QObject):
 
     def __init__(self, parent=None):
         super().__init__(parent)
-        self._invalid = False
+        self._invalid = []
         self._data = []
         self.proc = QProcess()
         self.proc.setReadChannel(QProcess.StandardError)
@@ -131,7 +131,7 @@ class Process(QObject):
             try:
                 parsed = self._parse_line(line)
             except InvalidLine:
-                self._invalid = True
+                self._invalid.append(line)
                 print("INVALID: {}".format(line))
                 continue
 
@@ -161,7 +161,7 @@ class Process(QObject):
         """
         self._data.clear()
         if self._invalid:
-            raise InvalidLine
+            raise InvalidLine(self._invalid)
         if not self.is_running():
             raise ProcessExited
 
