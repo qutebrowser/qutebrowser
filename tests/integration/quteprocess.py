@@ -94,8 +94,18 @@ class LogLine(testprocess.Line):
         else:
             self.module = module
 
-        self.function = match.group('function')
-        self.line = int(match.group('line'))
+        function = match.group('function')
+        if function == 'none':
+            self.function = None
+        else:
+            self.function = function
+
+        line = int(match.group('line'))
+        if self.function is None and line == 0:
+            self.line = None
+        else:
+            self.line = line
+
         self.message = match.group('message')
 
         self.expected = is_ignored_qt_message(self.message)
