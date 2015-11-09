@@ -360,17 +360,21 @@ class NetworkManager(QNetworkAccessManager):
         req.setRawHeader('DNT'.encode('ascii'), dnt)
         req.setRawHeader('X-Do-Not-Track'.encode('ascii'), dnt)
 
-        if self._tab_id is None:
-            current_url = QUrl()  # generic NetworkManager, e.g. for downloads
-        else:
+        # There are some scenarios where we can't figure out current_url:
+        # - There's a generic NetworkManager, e.g. for downloads
+        # - The download was in a tab which is now closed.
+        current_url = QUrl()
+
+        if self._tab_id is not None:
             try:
                 webview = objreg.get('webview', scope='tab',
                                      window=self._win_id, tab=self._tab_id)
-            except KeyError:
-                # https://github.com/The-Compiler/qutebrowser/issues/889
-                current_url = QUrl()
-            else:
                 current_url = webview.url()
+            except (KeyError, RuntimeError, TypeError):
+                # https://github.com/The-Compiler/qutebrowser/issues/889
+                # Catching RuntimeError and TypeError because we could be in
+                # the middle of the webpage shutdown here.
+                current_url = QUrl()
 
         self.set_referer(req, current_url)
 
