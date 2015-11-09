@@ -78,6 +78,12 @@ def wait_in_log(quteproc, is_regex, pattern):
     quteproc.wait_for(message=pattern)
 
 
+@bdd.when(bdd.parsers.re(r'I wait for the (?P<category>error|message|warning) '
+                         r'"(?P<message>.*)"'))
+def wait_for_message(quteproc, httpbin, category, message):
+    expect_error(quteproc, httpbin, category, message)
+
+
 @bdd.then(bdd.parsers.parse("{path} should be loaded"))
 def path_should_be_loaded(httpbin, path):
     requests = httpbin.get_requests()
