@@ -720,7 +720,7 @@ class DownloadManager(QAbstractListModel):
             prompt_download_directory = config.get(
                 'storage', 'prompt-download-directory')
         if not prompt_download_directory and not fileobj:
-            filename = config.get('storage', 'download-directory')
+            filename = _download_dir()
 
         if fileobj is not None or filename is not None:
             return self.fetch_request(request,
@@ -733,6 +733,7 @@ class DownloadManager(QAbstractListModel):
         else:
             encoding = sys.getfilesystemencoding()
             suggested_fn = utils.force_encoding(suggested_fn, encoding)
+
         q = self._prepare_question()
         q.default = _path_suggestion(suggested_fn)
         message_bridge = objreg.get('message-bridge', scope='window',
@@ -814,7 +815,7 @@ class DownloadManager(QAbstractListModel):
         prompt_download_directory = config.get('storage',
                                                'prompt-download-directory')
         if not prompt_download_directory and not fileobj:
-            filename = config.get('storage', 'download-directory')
+            filename = _download_dir()
 
         if filename is not None:
             download.set_filename(filename)
