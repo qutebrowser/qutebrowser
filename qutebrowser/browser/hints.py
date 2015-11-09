@@ -959,6 +959,8 @@ class HintManager(QObject):
                 raise cmdexc.CommandError("No hint to follow")
             else:
                 keystring = self._context.to_follow
+        elif keystring not in self._context.elems:
+            raise cmdexc.CommandError("No hint {}!".format(keystring))
         self.fire(keystring, force=True)
 
     @pyqtSlot('QSize')
