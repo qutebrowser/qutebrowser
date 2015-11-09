@@ -946,7 +946,8 @@ class HintManager(QObject):
                 elems.label.setInnerXml(string)
         handler()
 
-    @cmdutils.register(instance='hintmanager', scope='tab', hide=True)
+    @cmdutils.register(instance='hintmanager', scope='tab', hide=True,
+                       modes=[usertypes.KeyMode.hint])
     def follow_hint(self, keystring=None):
         """Follow a hint.
 
