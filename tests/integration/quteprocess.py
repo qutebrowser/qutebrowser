@@ -177,7 +177,7 @@ class QuteProc(testprocess.Process):
         ipc.send_to_running_instance(self._ipc_socket, [command],
                                      target_arg='')
         self.wait_for(category='commands', module='command', function='run',
-                      message='Calling *')
+                      message='command called: *')
 
     def set_setting(self, sect, opt, value):
         self.send_cmd(':set "{}" "{}" "{}"'.format(sect, opt, value))
