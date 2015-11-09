@@ -788,7 +788,7 @@ How many steps to zoom out.
 |<<completion-item-prev,completion-item-prev>>|Select the previous completion item.
 |<<drop-selection,drop-selection>>|Drop selection and keep selection mode enabled.
 |<<enter-mode,enter-mode>>|Enter a key mode.
-|<<follow-hint,follow-hint>>|Follow the currently selected hint.
+|<<follow-hint,follow-hint>>|Follow a hint.
 |<<follow-selected,follow-selected>>|Follow the selected text.
 |<<leave-mode,leave-mode>>|Leave the mode we're currently in.
 |<<message-error,message-error>>|Show an error message in the statusbar.
@@ -877,7 +877,12 @@ Enter a key mode.
 
 [[follow-hint]]
 === follow-hint
-Follow the currently selected hint.
+Syntax: +:follow-hint ['keystring']+
+
+Follow a hint.
+
+==== positional arguments
+* +'keystring'+: The hint to follow.
 
 [[follow-selected]]
 === follow-selected
