@@ -43,13 +43,19 @@ def open_path_when(quteproc, path):
     quteproc.open_path(path)
 
 
+@bdd.when(bdd.parsers.parse("I set {sect} -> {opt} to {value}"))
+def set_setting_when(quteproc, sect, opt, value):
+    quteproc.set_setting(sect, opt, value)
+
+
 @bdd.given(bdd.parsers.parse("I run {command}"))
 def run_command_given(quteproc, command):
     quteproc.send_cmd(command)
 
 
 @bdd.when(bdd.parsers.parse("I run {command}"))
-def run_command_when(quteproc, command):
+def run_command_when(quteproc, httpbin, command):
+    command = command.replace('(port)', str(httpbin.port))
     quteproc.send_cmd(command)
 
 
