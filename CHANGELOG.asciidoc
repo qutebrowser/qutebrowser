@@ -46,6 +46,8 @@ Added
     * `colors -> tabs.indicator.system`
     * `colors -> downloads.fg.system`
     * `colors -> downloads.bg.system`
+- New command `:download-retry` to retry a failed download.
+- New command `:download-clear` which replaces `:download-remove --all`.
 
 Changed
 ~~~~~~~
@@ -62,6 +64,14 @@ Changed
 - The `ui -> remove-finished-downloads` option got changed to an integer and
   now takes a time (in milliseconds) to keep the download around after it's
   finished. When set to `-1`, downloads are never removed.
+- The `:follow-hint` command now optionally takes the keystring of a hint to
+  follow.
+
+Deprecated
+~~~~~~~~~~
+
+- `:download-remove --all` is now deprecated and `:download-clear` should be
+  used instead.
 
 Fixed
 ~~~~~
@@ -69,6 +79,9 @@ Fixed
 - Fixed displaying of web history if `web-history-max-items` is set to -1.
 - Cloned tabs now don't display favicons anymore if show-favicons is False.
 - Fixed a crash when clicking a bookmark name and pressing `Ctrl-D`.
+- Fixed a crash when a website presents a very small favicon.
+- Fixed prompting for download directory when
+  `storage -> prompt-download-directory` was unset.
 
 v0.4.1
 ------
