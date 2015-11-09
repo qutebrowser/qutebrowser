@@ -92,9 +92,10 @@ def path_should_be_loaded(httpbin, path):
 
 @bdd.then(bdd.parsers.parse("The requests should be:\n{pages}"))
 def list_of_loaded_pages(httpbin, pages):
-    requests = [httpbin.Request('GET', '/' + path.strip())
-                for path in pages.split('\n')]
-    assert httpbin.get_requests() == requests
+    expected_requests = [httpbin.Request('GET', '/' + path.strip())
+                         for path in pages.split('\n')]
+    actual_requests = httpbin.get_requests()
+    assert actual_requests == expected_requests
 
 
 @bdd.then(bdd.parsers.re(r'the (?P<category>error|message|warning) '
