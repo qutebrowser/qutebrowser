@@ -909,6 +909,31 @@ class DownloadManager(QAbstractListModel):
             raise cmdexc.CommandError("Download {} is not done!".format(count))
         download.open_file()
 
+    @cmdutils.register(instance='download-manager', scope='window',
+                       count='count')
+    def download_retry(self, count=0):
+        """Retry the first failed/[count]th download.
+
+        Args:
+            count: The index of the download to cancel.
+        """
+        if count:
+            try:
+                download = self.downloads[count - 1]
+            except IndexError:
+                self.raise_no_download(count)
+            if download.successful or not download.done:
+                raise cmdexc.CommandError("Download {} did not fail!".format(
+                    count))
+        else:
+            to_retry = [d for d in self.downloads
+                        if d.done and not d.successful]
+            if not to_retry:
+                raise cmdexc.CommandError("No failed downloads!")
+            else:
+                download = to_retry[0]
+        download.retry()
+
     @pyqtSlot(QNetworkRequest, QNetworkReply)
     def on_redirect(self, download, request, reply):
         """Handle a HTTP redirect of a download.
