@@ -23,9 +23,11 @@ This script gets called as a QProcess from integration/conftest.py.
 """
 
 import sys
+import time
 import os.path
 
 from httpbin.core import app
+from httpbin.structures import CaseInsensitiveDict
 import flask
 
 
@@ -39,6 +41,14 @@ def send_data(path):
         data_dir = os.path.join(basedir, 'data')
     print(basedir)
     return flask.send_from_directory(data_dir, path)
+
+
+@app.route('/custom/redirect-later')
+def redirect_later():
+    """302 redirects to / after the given delay."""
+    args = CaseInsensitiveDict(flask.request.args.items())
+    time.sleep(int(args.get('delay', '1')))
+    return flask.redirect('/')
 
 
 def main():
