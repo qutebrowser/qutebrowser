@@ -240,5 +240,6 @@ def quteproc(qapp, httpbin):
 @pytest.yield_fixture(autouse=True)
 def quteproc_after_test(quteproc):
     """Fixture to run cleanup tasks after each test."""
+    quteproc.before_test()
     yield
     quteproc.after_test()

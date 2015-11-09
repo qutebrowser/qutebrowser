@@ -20,6 +20,7 @@
 """Base class for a subprocess run for tests.."""
 
 import re
+import time
 import fnmatch
 
 import pytestqt.plugin  # pylint: disable=import-error
@@ -153,15 +154,27 @@ class Process(QObject):
         assert ok
         assert self.is_running()
 
+    def before_test(self):
+        """Restart process before a test if it exited before."""
+        self._invalid = []
+        if not self.is_running():
+            self.start()
+
     def after_test(self):
         """Clean up data after each test.
 
         Also checks self._invalid so the test counts as failed if there were
         unexpected output lines earlier.
         """
-        self._data.clear()
         if self._invalid:
+            # Wait for a bit so the full error has a chance to arrive
+            time.sleep(1)
+            # Exit the process to make sure we're in a defined state again
+            self.terminate()
+            self._data.clear()
             raise InvalidLine(self._invalid)
+
+        self._data.clear()
         if not self.is_running():
             raise ProcessExited
 
