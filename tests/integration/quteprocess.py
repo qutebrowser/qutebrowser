@@ -209,9 +209,10 @@ class QuteProc(testprocess.Process):
         """Wait until any tab has finished loading."""
         url = 'http://localhost:{}/{}'.format(self._httpbin.port, path)
         pattern = re.compile(
-            r"load status for <qutebrowser.browser.webview.WebView tab_id=\d+ "
-            r"url='{}'>: LoadStatus.success".format(url))
-        self.wait_for(category='webview', message=pattern, timeout=timeout)
+            r"(load status for <qutebrowser.browser.webview.WebView "
+            r"tab_id=\d+ url='{url}'>: LoadStatus.success|fetch: "
+            r"PyQt5.QtCore.QUrl\('{url}'\) -> .*)".format(url=re.escape(url)))
+        self.wait_for(message=pattern, timeout=timeout)
 
     def get_session(self):
         """Save the session and get the parsed session data."""
