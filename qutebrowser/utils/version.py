@@ -112,7 +112,7 @@ def _release_info():
     for fn in glob.glob("/etc/*-release"):
         try:
             with open(fn, 'r', encoding='utf-8') as f:
-                data.append((fn, ''.join(f.readlines())))  # pragma: no branch
+                data.append((fn, f.read()))  # pragma: no branch
         except OSError:
             log.misc.exception("Error while reading {}.".format(fn))
     return data
