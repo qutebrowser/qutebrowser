@@ -20,6 +20,9 @@
 """Partial comparison of dicts/lists."""
 
 
+import fnmatch
+
+
 def _partial_compare_dict(val1, val2):
     for key in val2:
         if key not in val1:
@@ -71,6 +74,9 @@ def partial_compare(val1, val2):
     elif isinstance(val2, float):
         print("Doing float comparison")
         equal = abs(val1 - val2) < 0.00001
+    elif isinstance(val2, str):
+        print("Doing string comparison")
+        equal = fnmatch.fnmatchcase(val1, val2)
     else:
         print("Comparing via ==")
         equal = val1 == val2

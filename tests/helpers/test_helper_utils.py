@@ -29,6 +29,7 @@ from helpers import utils  # pylint: disable=import-error
     ({'a': [1, 2, 3]}, {'a': [1]}),
     ({'a': [1, 2, 3]}, {'a': [..., 2]}),
     (1.0, 1.00000001),
+    ("foobarbaz", "foo*baz"),
 ])
 def test_partial_compare_equal(val1, val2):
     assert utils.partial_compare(val1, val2)
@@ -43,6 +44,7 @@ def test_partial_compare_equal(val1, val2):
     ([1], {1: 2}),
     ({1: 1}, {1: [1]}),
     ({'a': [1, 2, 3]}, {'a': [..., 3]}),
+    ("foo*baz", "foobarbaz"),
 ])
 def test_partial_compare_not_equal(val1, val2):
     assert not utils.partial_compare(val1, val2)
