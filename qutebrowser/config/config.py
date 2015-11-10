@@ -29,6 +29,7 @@ import sys
 import os.path
 import functools
 import configparser
+import contextlib
 import collections
 import collections.abc
 
@@ -666,6 +667,18 @@ class ConfigManager(QObject):
             newval = val.typ.transform(newval)
         return newval
 
+    @contextlib.contextmanager
+    def _handle_config_error(self):
+        """Catch errors in set_command and raise CommandError."""
+        try:
+            yield
+        except (configexc.NoOptionError, configexc.NoSectionError,
+                configexc.ValidationError) as e:
+            raise cmdexc.CommandError("set: {}".format(e))
+        except (configexc.Error, configparser.Error) as e:
+            raise cmdexc.CommandError("set: {} - {}".format(
+                e.__class__.__name__, e))
+
     @cmdutils.register(name='set', instance='config', win_id='win_id',
                        completion=[Completion.section, Completion.option,
                                    Completion.value])
@@ -703,7 +716,7 @@ class ConfigManager(QObject):
             option = option[:-1]
             print_ = True
         else:
-            try:
+            with self._handle_config_error():
                 if option.endswith('!') and option != '!' and value is None:
                     option = option[:-1]
                     val = self.get(section_, option)
@@ -719,16 +732,10 @@ class ConfigManager(QObject):
                 else:
                     raise cmdexc.CommandError("set: The following arguments "
                                               "are required: value")
-            except (configexc.Error, configparser.Error) as e:
-                raise cmdexc.CommandError("set: {} - {}".format(
-                    e.__class__.__name__, e))
 
         if print_:
-            try:
+            with self._handle_config_error():
                 val = self.get(section_, option, transformed=False)
-            except configexc.Error as e:
-                raise cmdexc.CommandError("set: {} - {}".format(
-                    e.__class__.__name__, e))
             message.info(win_id, "{} {} = {}".format(
                 section_, option, val), immediately=True)
 
