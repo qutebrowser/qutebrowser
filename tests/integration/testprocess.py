@@ -20,6 +20,7 @@
 """Base class for a subprocess run for tests.."""
 
 import re
+import os
 import time
 import fnmatch
 
@@ -215,7 +216,7 @@ class Process(QObject):
         else:
             return value == expected
 
-    def wait_for(self, timeout=15000, **kwargs):
+    def wait_for(self, timeout=None, **kwargs):
         """Wait until a given value is found in the data.
 
         Keyword arguments to this function get interpreted as attributes of the
@@ -225,6 +226,11 @@ class Process(QObject):
         Return:
             The matched line.
         """
+        if timeout is None:
+            if 'CI' in os.environ:
+                timeout = 15000
+            else:
+                timeout = 5000
         # Search existing messages
         for line in self._data:
             matches = []

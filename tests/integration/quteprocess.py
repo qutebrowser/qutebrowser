@@ -212,7 +212,7 @@ class QuteProc(testprocess.Process):
                              message=message)
         line.expected = True
 
-    def wait_for(self, timeout=15000, **kwargs):
+    def wait_for(self, timeout=None, **kwargs):
         """Override testprocess.wait_for to check past messages.
 
         self._data is cleared after every test to provide at least some
