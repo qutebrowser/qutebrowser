@@ -80,6 +80,7 @@ def whitelist_generator():
     # https://bitbucket.org/jendrikseipp/vulture/issues/10/
     yield 'qutebrowser.misc.utilcmds.pyeval_output'
     yield 'utils.use_color'
+    yield 'qutebrowser.browser.mhtml.last_used_directory'
 
     # Other false-positives
     yield ('qutebrowser.completion.models.sortfilter.CompletionFilterModel().'

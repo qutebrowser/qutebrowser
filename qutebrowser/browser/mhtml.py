@@ -1,0 +1,511 @@
+# vim: ft=python fileencoding=utf-8 sts=4 sw=4 et:
+
+# Copyright 2015 Daniel Schadt
+#
+# This file is part of qutebrowser.
+#
+# qutebrowser is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
+#
+# qutebrowser is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with qutebrowser.  If not, see <http://www.gnu.org/licenses/>.
+
+"""Utils for writing a MHTML file."""
+
+import functools
+import io
+import os
+import re
+import sys
+import collections
+import uuid
+import email.policy
+import email.generator
+import email.encoders
+import email.mime.multipart
+
+from PyQt5.QtCore import QUrl
+
+from qutebrowser.browser import webelem, downloads
+from qutebrowser.utils import log, objreg, message, usertypes, utils, urlutils
+
+try:
+    import cssutils
+except (ImportError, re.error):
+    # Catching re.error because cssutils in earlier releases (<= 1.0) is broken
+    # on Python 3.5
+    # See https://bitbucket.org/cthedot/cssutils/issues/52
+    cssutils = None
+
+_File = collections.namedtuple('_File',
+                               ['content', 'content_type', 'content_location',
+                                'transfer_encoding'])
+
+
+_CSS_URL_PATTERNS = [re.compile(x) for x in [
+    r"@import\s+'(?P<url>[^']+)'",
+    r'@import\s+"(?P<url>[^"]+)"',
+    r'''url\((?P<url>[^'"][^)]*)\)''',
+    r'url\("(?P<url>[^"]+)"\)',
+    r"url\('(?P<url>[^']+)'\)",
+]]
+
+
+def _get_css_imports_regex(data):
+    """Return all assets that are referenced in the given CSS document.
+
+    The returned URLs are relative to the stylesheet's URL.
+
+    Args:
+        data: The content of the stylesheet to scan as string.
+    """
+    urls = []
+    for pattern in _CSS_URL_PATTERNS:
+        for match in pattern.finditer(data):
+            url = match.group("url")
+            if url:
+                urls.append(url)
+    return urls
+
+
+def _get_css_imports_cssutils(data, inline=False):
+    """Return all assets that are referenced in the given CSS document.
+
+    The returned URLs are relative to the stylesheet's URL.
+
+    Args:
+        data: The content of the stylesheet to scan as string.
+        inline: True if the argument is a inline HTML style attribute.
+    """
+    # We don't care about invalid CSS data, this will only litter the log
+    # output with CSS errors
+    parser = cssutils.CSSParser(loglevel=100,
+                                fetcher=lambda url: (None, ""), validate=False)
+    if not inline:
+        sheet = parser.parseString(data)
+        return list(cssutils.getUrls(sheet))
+    else:
+        urls = []
+        declaration = parser.parseStyle(data)
+        # prop = background, color, margin, ...
+        for prop in declaration:
+            # value = red, 10px, url(foobar), ...
+            for value in prop.propertyValue:
+                if isinstance(value, cssutils.css.URIValue):
+                    if value.uri:
+                        urls.append(value.uri)
+        return urls
+
+
+def _get_css_imports(data, inline=False):
+    """Return all assets that are referenced in the given CSS document.
+
+    The returned URLs are relative to the stylesheet's URL.
+
+    Args:
+        data: The content of the stylesheet to scan as string.
+        inline: True if the argument is a inline HTML style attribute.
+    """
+    if cssutils is None:
+        return _get_css_imports_regex(data)
+    else:
+        return _get_css_imports_cssutils(data, inline)
+
+
+def _check_rel(element):
+    """Return true if the element's rel attribute fits our criteria.
+
+    rel has to contain 'stylesheet' or 'icon'. Also returns True if the rel
+    attribute is unset.
+
+    Args:
+        element: The WebElementWrapper which should be checked.
+    """
+    if 'rel' not in element:
+        return True
+    must_have = {'stylesheet', 'icon'}
+    rels = [rel.lower() for rel in element['rel'].split(' ')]
+    return any(rel in rels for rel in must_have)
+
+
+MHTMLPolicy = email.policy.default.clone(linesep='\r\n', max_line_length=0)
+
+
+# Encode the file using base64 encoding.
+E_BASE64 = email.encoders.encode_base64
+
+
+# Encode the file using MIME quoted-printable encoding.
+E_QUOPRI = email.encoders.encode_quopri
+
+
+class MHTMLWriter():
+
+    """A class for outputting multiple files to a MHTML document.
+
+    Attributes:
+        root_content: The root content as bytes.
+        content_location: The url of the page as str.
+        content_type: The MIME-type of the root content as str.
+        _files: Mapping of location->_File namedtuple.
+    """
+
+    def __init__(self, root_content, content_location, content_type):
+        self.root_content = root_content
+        self.content_location = content_location
+        self.content_type = content_type
+        self._files = {}
+
+    def add_file(self, location, content, content_type=None,
+                 transfer_encoding=E_QUOPRI):
+        """Add a file to the given MHTML collection.
+
+        Args:
+            location: The original location (URL) of the file.
+            content: The binary content of the file.
+            content_type: The MIME-type of the content (if available)
+            transfer_encoding: The transfer encoding to use for this file.
+        """
+        self._files[location] = _File(
+            content=content, content_type=content_type,
+            content_location=location, transfer_encoding=transfer_encoding,
+        )
+
+    def write_to(self, fp):
+        """Output the MHTML file to the given file-like object.
+
+        Args:
+            fp: The file-object, opened in "wb" mode.
+        """
+        msg = email.mime.multipart.MIMEMultipart(
+            'related', '---=_qute-{}'.format(uuid.uuid4()))
+
+        root = self._create_root_file()
+        msg.attach(root)
+
+        for _, file_data in sorted(self._files.items()):
+            msg.attach(self._create_file(file_data))
+
+        gen = email.generator.BytesGenerator(fp, policy=MHTMLPolicy)
+        gen.flatten(msg)
+
+    def _create_root_file(self):
+        """Return the root document as MIMEMultipart."""
+        root_file = _File(
+            content=self.root_content, content_type=self.content_type,
+            content_location=self.content_location, transfer_encoding=E_QUOPRI,
+        )
+        return self._create_file(root_file)
+
+    def _create_file(self, f):
+        """Return the single given file as MIMEMultipart."""
+        msg = email.mime.multipart.MIMEMultipart()
+        msg['Content-Location'] = f.content_location
+        # Get rid of the default type multipart/mixed
+        del msg['Content-Type']
+        if f.content_type:
+            msg.set_type(f.content_type)
+        msg.set_payload(f.content)
+        f.transfer_encoding(msg)
+        return msg
+
+
+class _Downloader():
+
+    """A class to download whole websites.
+
+    Attributes:
+        web_view: The QWebView which contains the website that will be saved.
+        dest: Destination filename.
+        writer: The MHTMLWriter object which is used to save the page.
+        loaded_urls: A set of QUrls of finished asset downloads.
+        pending_downloads: A set of unfinished (url, DownloadItem) tuples.
+        _finished: A flag indicating if the file has already been written.
+        _used: A flag indicating if the downloader has already been used.
+    """
+
+    def __init__(self, web_view, dest):
+        self.web_view = web_view
+        self.dest = dest
+        self.writer = None
+        self.loaded_urls = {web_view.url()}
+        self.pending_downloads = set()
+        self._finished = False
+        self._used = False
+
+    def run(self):
+        """Download and save the page.
+
+        The object must not be reused, you should create a new one if
+        you want to download another page.
+        """
+        if self._used:
+            raise ValueError("Downloader already used")
+        self._used = True
+        web_url = self.web_view.url()
+        web_frame = self.web_view.page().mainFrame()
+
+        self.writer = MHTMLWriter(
+            web_frame.toHtml().encode('utf-8'),
+            content_location=urlutils.encoded_url(web_url),
+            # I've found no way of getting the content type of a QWebView, but
+            # since we're using .toHtml, it's probably safe to say that the
+            # content-type is HTML
+            content_type='text/html; charset="UTF-8"',
+        )
+        # Currently only downloading <link> (stylesheets), <script>
+        # (javascript) and <img> (image) elements.
+        elements = web_frame.findAllElements('link, script, img')
+
+        for element in elements:
+            element = webelem.WebElementWrapper(element)
+            # Websites are free to set whatever rel=... attribute they want.
+            # We just care about stylesheets and icons.
+            if not _check_rel(element):
+                continue
+            if 'src' in element:
+                element_url = element['src']
+            elif 'href' in element:
+                element_url = element['href']
+            else:
+                # Might be a local <script> tag or something else
+                continue
+            absolute_url = web_url.resolved(QUrl(element_url))
+            self.fetch_url(absolute_url)
+
+        styles = web_frame.findAllElements('style')
+        for style in styles:
+            style = webelem.WebElementWrapper(style)
+            if 'type' in style and style['type'] != 'text/css':
+                continue
+            for element_url in _get_css_imports(str(style)):
+                self.fetch_url(web_url.resolved(QUrl(element_url)))
+
+        # Search for references in inline styles
+        for element in web_frame.findAllElements('[style]'):
+            element = webelem.WebElementWrapper(element)
+            style = element['style']
+            for element_url in _get_css_imports(style, inline=True):
+                self.fetch_url(web_url.resolved(QUrl(element_url)))
+
+        # Shortcut if no assets need to be downloaded, otherwise the file would
+        # never be saved. Also might happen if the downloads are fast enough to
+        # complete before connecting their finished signal.
+        self.collect_zombies()
+        if not self.pending_downloads and not self._finished:
+            self.finish_file()
+
+    def fetch_url(self, url):
+        """Download the given url and add the file to the collection.
+
+        Args:
+            url: The file to download as QUrl.
+        """
+        if url.scheme() not in {'http', 'https'}:
+            return
+        # Prevent loading an asset twice
+        if url in self.loaded_urls:
+            return
+        self.loaded_urls.add(url)
+
+        log.downloads.debug("loading asset at %s", url)
+
+        # Using the download manager to download host-blocked urls might crash
+        # qute, see the comments/discussion on
+        # https://github.com/The-Compiler/qutebrowser/pull/962#discussion_r40256987
+        # and https://github.com/The-Compiler/qutebrowser/issues/1053
+        host_blocker = objreg.get('host-blocker')
+        if host_blocker.is_blocked(url):
+            log.downloads.debug("Skipping %s, host-blocked", url)
+            # We still need an empty file in the output, QWebView can be pretty
+            # picky about displaying a file correctly when not all assets are
+            # at least referenced in the mhtml file.
+            self.writer.add_file(urlutils.encoded_url(url), b'')
+            return
+
+        download_manager = objreg.get('download-manager', scope='window',
+                                      window='current')
+        item = download_manager.get(url, fileobj=_NoCloseBytesIO(),
+                                    auto_remove=True)
+        self.pending_downloads.add((url, item))
+        item.finished.connect(
+            functools.partial(self.finished, url, item))
+        item.error.connect(
+            functools.partial(self.error, url, item))
+        item.cancelled.connect(
+            functools.partial(self.error, url, item))
+
+    def finished(self, url, item):
+        """Callback when a single asset is downloaded.
+
+        Args:
+            url: The original url of the asset as QUrl.
+            item: The DownloadItem given by the DownloadManager
+        """
+        self.pending_downloads.remove((url, item))
+        mime = item.raw_headers.get(b'Content-Type', b'')
+
+        # Note that this decoding always works and doesn't produce errors
+        # RFC 7230 (https://tools.ietf.org/html/rfc7230) states:
+        # Historically, HTTP has allowed field content with text in the
+        # ISO-8859-1 charset [ISO-8859-1], supporting other charsets only
+        # through use of [RFC2047] encoding.  In practice, most HTTP header
+        # field values use only a subset of the US-ASCII charset [USASCII].
+        # Newly defined header fields SHOULD limit their field values to
+        # US-ASCII octets.  A recipient SHOULD treat other octets in field
+        # content (obs-text) as opaque data.
+        mime = mime.decode('iso-8859-1')
+
+        if mime.lower() == 'text/css':
+            # We can't always assume that CSS files are UTF-8, but CSS files
+            # shouldn't contain many non-ASCII characters anyway (in most
+            # cases). Using "ignore" lets us decode the file even if it's
+            # invalid UTF-8 data.
+            # The file written to the MHTML file won't be modified by this
+            # decoding, since there we're taking the original bytestream.
+            try:
+                css_string = item.fileobj.getvalue().decode('utf-8')
+            except UnicodeDecodeError:
+                log.downloads.warning("Invalid UTF-8 data in %s", url)
+                css_string = item.fileobj.getvalue().decode('utf-8', 'ignore')
+            import_urls = _get_css_imports(css_string)
+            for import_url in import_urls:
+                absolute_url = url.resolved(QUrl(import_url))
+                self.fetch_url(absolute_url)
+
+        encode = E_QUOPRI if mime.startswith('text/') else E_BASE64
+        # Our MHTML handler refuses non-ASCII headers. This will replace every
+        # non-ASCII char with '?'. This is probably okay, as official Content-
+        # Type headers contain ASCII only anyway. Anything else is madness.
+        mime = utils.force_encoding(mime, 'ascii')
+        self.writer.add_file(urlutils.encoded_url(url),
+                             item.fileobj.getvalue(), mime, encode)
+        item.fileobj.actual_close()
+        if self.pending_downloads:
+            return
+        self.finish_file()
+
+    def error(self, url, item, *_args):
+        """Callback when a download error occurred.
+
+        Args:
+            url: The orignal url of the asset as QUrl.
+            item: The DownloadItem given by the DownloadManager.
+        """
+        try:
+            self.pending_downloads.remove((url, item))
+        except KeyError:
+            # This might happen if .collect_zombies() calls .finished() and the
+            # error handler will be called after .collect_zombies
+            log.downloads.debug("Oops! Download already gone: %s", item)
+            return
+        item.fileobj.actual_close()
+        # Add a stub file, see comment in .fetch_url() for more information
+        self.writer.add_file(urlutils.encoded_url(url), b'')
+        if self.pending_downloads:
+            return
+        self.finish_file()
+
+    def finish_file(self):
+        """Save the file to the filename given in __init__."""
+        if self._finished:
+            log.downloads.debug("finish_file called twice, ignored!")
+            return
+        self._finished = True
+        log.downloads.debug("All assets downloaded, ready to finish off!")
+        with open(self.dest, 'wb') as file_output:
+            self.writer.write_to(file_output)
+        message.info('current', "Page saved as {}".format(self.dest))
+
+    def collect_zombies(self):
+        """Collect done downloads and add their data to the MHTML file.
+
+        This is needed if a download finishes before attaching its
+        finished signal.
+        """
+        items = set((url, item) for url, item in self.pending_downloads
+                    if item.done)
+        log.downloads.debug("Zombie downloads: %s", items)
+        for url, item in items:
+            self.finished(url, item)
+
+
+class _NoCloseBytesIO(io.BytesIO):  # pylint: disable=no-init
+
+    """BytesIO that can't be .closed().
+
+    This is needed to prevent the DownloadManager from closing the stream, thus
+    discarding the data.
+    """
+
+    def close(self):
+        """Do nothing."""
+        pass
+
+    def actual_close(self):
+        """Close the stream."""
+        super().close()
+
+
+def _start_download(dest, win_id, tab_id):
+    """Start downloading the current page and all assets to a MHTML file.
+
+    This will overwrite dest if it already exists.
+
+    Args:
+        dest: The filename where the resulting file should be saved.
+        win_id, tab_id: Specify the tab whose page should be loaded.
+    """
+    web_view = objreg.get('webview', scope='tab', window=win_id, tab=tab_id)
+    loader = _Downloader(web_view, dest)
+    loader.run()
+
+
+def start_download_checked(dest, win_id, tab_id):
+    """First check if dest is already a file, then start the download.
+
+    Args:
+        dest: The filename where the resulting file should be saved.
+        win_id, tab_id: Specify the tab whose page should be loaded.
+    """
+    # The default name is 'page title.mht'
+    title = (objreg.get('webview', scope='tab', window=win_id, tab=tab_id)
+             .title())
+    default_name = utils.sanitize_filename(title + '.mht')
+
+    # Remove characters which cannot be expressed in the file system encoding
+    encoding = sys.getfilesystemencoding()
+    default_name = utils.force_encoding(default_name, encoding)
+    dest = utils.force_encoding(dest, encoding)
+
+    dest = os.path.expanduser(dest)
+
+    # See if we already have an absolute path
+    path = downloads.create_full_filename(default_name, dest)
+    if path is None:
+        # We still only have a relative path, prepend download_dir and
+        # try again.
+        path = downloads.create_full_filename(
+            default_name, os.path.join(downloads.download_dir(), dest))
+    downloads.last_used_directory = os.path.dirname(path)
+
+    if not os.path.isfile(path):
+        _start_download(path, win_id=win_id, tab_id=tab_id)
+        return
+
+    q = usertypes.Question()
+    q.mode = usertypes.PromptMode.yesno
+    q.text = "{} exists. Overwrite?".format(path)
+    q.completed.connect(q.deleteLater)
+    q.answered_yes.connect(functools.partial(
+        _start_download, path, win_id=win_id, tab_id=tab_id))
+    message_bridge = objreg.get('message-bridge', scope='window',
+                                window=win_id)
+    message_bridge.ask(q, blocking=False)

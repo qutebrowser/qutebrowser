@@ -438,6 +438,15 @@ def same_domain(url1, url2):
     return domain1 == domain2
 
 
+def encoded_url(url):
+    """Return the fully encoded url as string.
+
+    Args:
+        url: The url to encode as QUrl.
+    """
+    return bytes(url.toEncoded()).decode('ascii')
+
+
 class IncDecError(Exception):
 
     """Exception raised by incdec_number on problems.
