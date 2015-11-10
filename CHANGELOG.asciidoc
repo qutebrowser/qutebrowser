@@ -84,7 +84,8 @@ Fixed
 - Fixed a crash when a website presents a very small favicon.
 - Fixed prompting for download directory when
   `storage -> prompt-download-directory` was unset.
-- Fixed crash when using `:follow-hint outside of hint mode.
+- Fixed crash when using `:follow-hint` outside of hint mode.
+- Fixed crash when using `:set foo bar?` with invalid section/option.
 
 v0.4.1
 ------

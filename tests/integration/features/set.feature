@@ -41,6 +41,11 @@ Feature: Setting settings.
         When I run :set -p colors statusbar.bg red
         Then the message "colors statusbar.bg = red" should be shown.
 
+    Scenario: Using ! and -p
+        When I run :set general auto-save-config false
+        And I run :set -p general auto-save-config!
+        Then the message "general auto-save-config = True" should be shown.
+
     Scenario: Setting a temporary option
         # We don't actually check if the option is temporary as this isn't easy
         # to check.
@@ -58,3 +63,35 @@ Feature: Setting settings.
               - url: about:blank
               - active: true
                 url: qute:settings
+
+    Scenario: Empty option with ? (issue 1109)
+        When I run :set general ?
+        Then the error "set: The following arguments are required: value" should be shown.
+
+    Scenario: Invalid section and empty option with ? (issue 1109)
+        When I run :set blah ?
+        Then the error "set: The following arguments are required: value" should be shown.
+
+    Scenario: Invalid option with ? (issue 1109)
+        When I run :set general foo?
+        Then the error "set: NoOptionError - No option 'foo' in section 'general'" should be shown.
+
+    Scenario: Invalid section/option with ? (issue 1109)
+        When I run :set blah foo ?
+        Then the error "set: NoSectionError - Section 'blah' does not exist!" should be shown.
+
+    Scenario: Empty option with !
+        When I run :set general !
+        Then the error "set: The following arguments are required: value" should be shown.
+
+    Scenario: Invalid section and empty option with !
+        When I run :set blah !
+        Then the error "set: The following arguments are required: value" should be shown.
+
+    Scenario: Invalid option with !
+        When I run :set general foo!
+        Then the error "set: NoOptionError - No option 'foo' in section 'general'" should be shown.
+
+    Scenario: Invalid section/option with !
+        When I run :set blah foo !
+        Then the error "set: NoSectionError - Section 'blah' does not exist!" should be shown.

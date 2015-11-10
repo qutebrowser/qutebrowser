@@ -699,12 +699,12 @@ class ConfigManager(QObject):
             tabbed_browser.openurl(QUrl('qute:settings'), newtab=False)
             return
 
-        if option.endswith('?'):
+        if option.endswith('?') and option != '?':
             option = option[:-1]
             print_ = True
         else:
             try:
-                if option.endswith('!') and value is None:
+                if option.endswith('!') and option != '!' and value is None:
                     option = option[:-1]
                     val = self.get(section_, option)
                     layer = 'temp' if temp else 'conf'
@@ -724,7 +724,11 @@ class ConfigManager(QObject):
                     e.__class__.__name__, e))
 
         if print_:
-            val = self.get(section_, option, transformed=False)
+            try:
+                val = self.get(section_, option, transformed=False)
+            except configexc.Error as e:
+                raise cmdexc.CommandError("set: {} - {}".format(
+                    e.__class__.__name__, e))
             message.info(win_id, "{} {} = {}".format(
                 section_, option, val), immediately=True)
 
