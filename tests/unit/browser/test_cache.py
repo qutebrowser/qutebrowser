@@ -45,8 +45,7 @@ def test_cache_config_change_cache_size(config_stub, tmpdir):
     disk_cache = cache.DiskCache(str(tmpdir))
     assert disk_cache.maximumCacheSize() == max_cache_size
 
-    config_stub.data['storage']['cache-size'] = max_cache_size * 2
-    config_stub.changed.emit('storage', 'cache-size')
+    config_stub.set('storage', 'cache-size', max_cache_size * 2)
     assert disk_cache.maximumCacheSize() == max_cache_size * 2
 
 
@@ -61,8 +60,7 @@ def test_cache_config_enable_private_browsing(config_stub, tmpdir):
     preload_cache(disk_cache)
     assert disk_cache.cacheSize() > 0
 
-    config_stub.data['general']['private-browsing'] = True
-    config_stub.changed.emit('general', 'private-browsing')
+    config_stub.set('general', 'private-browsing', True)
     assert disk_cache.cacheSize() == 0
 
 
@@ -80,8 +78,7 @@ def test_cache_config_disable_private_browsing(config_stub, tmpdir):
     disk_cache = cache.DiskCache(str(tmpdir))
     assert disk_cache.prepare(metadata) is None
 
-    config_stub.data['general']['private-browsing'] = False
-    config_stub.changed.emit('general', 'private-browsing')
+    config_stub.set('general', 'private-browsing', False)
     content = b'cute'
     preload_cache(disk_cache, url, content)
     assert disk_cache.data(QUrl(url)).readAll() == content
