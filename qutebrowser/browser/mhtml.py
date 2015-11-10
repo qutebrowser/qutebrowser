@@ -135,7 +135,6 @@ def _check_rel(element):
     return any(rel in rels for rel in must_have)
 
 
-
 MHTMLPolicy = email.policy.default.clone(linesep='\r\n', max_line_length=0)
 
 
