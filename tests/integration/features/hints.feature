@@ -4,6 +4,7 @@ Feature: Using hints
         When I open data/hints/link.html
         And I run :hint links normal
         And I run :follow-hint a
+        And I wait until data/hello.txt is loaded
         Then the requests should be:
             data/hints/link.html
             data/hello.txt
