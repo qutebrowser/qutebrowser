@@ -261,7 +261,7 @@ def test_cache_remove_data(config_stub, tmpdir):
     preload_cache(disk_cache, url)
     assert disk_cache.cacheSize() > 0
 
-    assert disk_cache.remove(QUrl(url)) == True
+    assert disk_cache.remove(QUrl(url))
     assert disk_cache.cacheSize() == 0
 
 
