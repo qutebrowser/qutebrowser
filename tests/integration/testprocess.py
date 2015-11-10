@@ -136,7 +136,9 @@ class Process(QObject):
                 print("INVALID: {}".format(line))
                 continue
 
-            if parsed is not None:
+            if parsed is None:
+                print("IGNORED: {}".format(line))
+            else:
                 self._data.append(parsed)
                 self.new_data.emit(parsed)
 
