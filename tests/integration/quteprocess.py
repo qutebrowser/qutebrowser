@@ -69,7 +69,7 @@ class LogLine(testprocess.Line):
         \ (?P<loglevel>VDEBUG|DEBUG|INFO|WARNING|ERROR)
         \ +(?P<category>\w+)
         \ +(?P<module>(\w+|Unknown\ module)):
-	   (?P<function>[^"][^:]*|"[^"]+"):
+           (?P<function>[^"][^:]*|"[^"]+"):
            (?P<line>\d+)
         \ (?P<message>.+)
     """, re.VERBOSE)
@@ -108,7 +108,10 @@ class LogLine(testprocess.Line):
         else:
             self.line = line
 
-        self.message = match.group('message')
+        msg_match = re.match(r'^(\[(?P<prefix>\d+s ago)\] )?(?P<message>.*)',
+                             match.group('message'))
+        self.prefix = msg_match.group('prefix')
+        self.message = msg_match.group('message')
 
         self.expected = is_ignored_qt_message(self.message)
 

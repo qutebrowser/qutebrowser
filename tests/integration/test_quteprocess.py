@@ -99,6 +99,11 @@ def test_qt_log_ignore(qtbot, quteproc):
             'line': 233,
         }
     ),
+    (
+        # With [2s ago] marker
+        '00:00:00 DEBUG    foo       foo:foo:0 [2s ago] test',
+        {'prefix': '2s ago', 'message': 'test'}
+    ),
 ])
 def test_log_line_parse(data, attrs):
     line = quteprocess.LogLine(data)
