@@ -48,6 +48,8 @@ PERFECT_FILES = [
     ('tests/unit/commands/test_argparser.py',
         'qutebrowser/commands/argparser.py'),
 
+    ('tests/unit/browser/test_cache.py',
+        'qutebrowser/browser/cache.py'),
     ('tests/unit/browser/test_cookies.py',
         'qutebrowser/browser/cookies.py'),
     ('tests/unit/browser/test_tabhistory.py',

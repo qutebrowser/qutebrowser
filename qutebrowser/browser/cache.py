@@ -65,7 +65,8 @@ class DiskCache(QNetworkDiskCache):
         """Update cache size/activated if the config was changed."""
         if (section, option) == ('storage', 'cache-size'):
             self.setMaximumCacheSize(config.get('storage', 'cache-size'))
-        elif (section, option) == ('general', 'private-browsing'):
+        elif (section, option) == ('general',   # pragma: no branch
+                                   'private-browsing'):
             self._maybe_activate()
 
     def cacheSize(self):
