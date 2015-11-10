@@ -48,6 +48,8 @@ Added
     * `colors -> downloads.bg.system`
 - New command `:download-retry` to retry a failed download.
 - New command `:download-clear` which replaces `:download-remove --all`.
+- `:set-cmd-text` has a new `--append` argument to append to the current
+  statusbar text.
 
 Changed
 ~~~~~~~
