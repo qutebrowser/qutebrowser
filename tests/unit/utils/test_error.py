@@ -52,12 +52,11 @@ def test_no_err_windows(caplog, exc, name, exc_text):
     try:
         raise exc
     except Exception as e:
-        with caplog.atLevel(logging.ERROR):
+        with caplog.at_level(logging.ERROR):
             error.handle_fatal_exc(e, Args(no_err_windows=True), 'title',
                                    pre_text='pre', post_text='post')
 
-    records = caplog.records()
-    assert len(records) == 1
+    assert len(caplog.records) == 1
 
     expected = [
         'Handling fatal {} with --no-err-windows!'.format(name),
@@ -67,7 +66,7 @@ def test_no_err_windows(caplog, exc, name, exc_text):
         'post_text: post',
         'exception text: {}'.format(exc_text),
     ]
-    assert records[0].msg == '\n'.join(expected)
+    assert caplog.records[0].msg == '\n'.join(expected)
 
 
 # This happens on Xvfb for some reason

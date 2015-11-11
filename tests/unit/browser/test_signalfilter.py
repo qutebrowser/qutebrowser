@@ -106,13 +106,12 @@ def test_logging(caplog, objects, tabbed_browser, index_of, verb):
     tabbed_browser.current_index = 0
     tabbed_browser.index_of = index_of
 
-    with caplog.atLevel(logging.DEBUG, logger='signals'):
+    with caplog.at_level(logging.DEBUG, logger='signals'):
         objects.signaller.signal.emit('foo')
 
-    records = caplog.records()
-    assert len(records) == 1
+    assert len(caplog.records) == 1
     expected_msg = "{}: filtered_signal('foo') (tab {})".format(verb, index_of)
-    assert records[0].msg == expected_msg
+    assert caplog.records[0].msg == expected_msg
 
 
 @pytest.mark.parametrize('index_of', [0, 1])
@@ -120,10 +119,10 @@ def test_no_logging(caplog, objects, tabbed_browser, index_of):
     tabbed_browser.current_index = 0
     tabbed_browser.index_of = index_of
 
-    with caplog.atLevel(logging.DEBUG, logger='signals'):
+    with caplog.at_level(logging.DEBUG, logger='signals'):
         objects.signaller.statusbar_message.emit('foo')
 
-    assert not caplog.records()
+    assert not caplog.records
 
 
 def test_runtime_error(objects, tabbed_browser):

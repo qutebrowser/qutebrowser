@@ -24,7 +24,7 @@ import logging
 import pytest
 
 try:
-    import pytest_capturelog as caplog_mod
+    import pytest_catchlog as catchlog_mod
 except ImportError:
     # When using pytest for pyflakes/pep8/..., the plugin won't be available
     # but conftest.py will still be loaded.
@@ -47,18 +47,18 @@ class LogFailHandler(logging.Handler):
         root_logger = logging.getLogger()
 
         for h in root_logger.handlers:
-            if isinstance(h, caplog_mod.CaptureLogHandler):
-                caplog_handler = h
+            if isinstance(h, catchlog_mod.LogCaptureHandler):
+                catchlog_handler = h
                 break
         else:
-            # The CaptureLogHandler is not available anymore during fixture
+            # The LogCaptureHandler is not available anymore during fixture
             # teardown, so we ignore logging messages emitted there..
             return
 
         if (logger.level == record.levelno or
-                caplog_handler.level == record.levelno):
-            # caplog.atLevel(...) was used with the level of this message, i.e.
-            # it was expected.
+                catchlog_handler.level == record.levelno):
+            # caplog.at_level(...) was used with the level of this message,
+            # i.e.  it was expected.
             return
         if record.levelno < self._min_level:
             return
@@ -74,25 +74,3 @@ def fail_on_logging():
     yield
     logging.getLogger().removeHandler(handler)
     handler.close()
-
-
-@pytest.yield_fixture(autouse=True)
-def caplog_bug_workaround(request):
-    """WORKAROUND for pytest-capturelog bug.
-
-    https://bitbucket.org/memedough/pytest-capturelog/issues/7/
-
-    This would lead to LogFailHandler failing after skipped tests as there are
-    multiple CaptureLogHandlers.
-    """
-    yield
-    if caplog_mod is None:
-        return
-
-    root_logger = logging.getLogger()
-    caplog_handlers = [h for h in root_logger.handlers
-                       if isinstance(h, caplog_mod.CaptureLogHandler)]
-
-    for h in caplog_handlers:
-        root_logger.removeHandler(h)
-        h.close()

@@ -33,7 +33,7 @@ import pytest
 
 import helpers.stubs as stubsmod
 from helpers import logfail
-from helpers.logfail import fail_on_logging, caplog_bug_workaround
+from helpers.logfail import fail_on_logging
 from helpers.messagemock import message_mock
 from qutebrowser.config import config
 from qutebrowser.utils import objreg

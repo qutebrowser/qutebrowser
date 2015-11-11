@@ -74,14 +74,14 @@ class TestDebugLog:
 
     def test_log(self, keyparser, caplog):
         keyparser._debug_log('foo')
-        assert len(caplog.records()) == 1
-        record = caplog.records()[0]
+        assert len(caplog.records) == 1
+        record = caplog.records[0]
         assert record.message == 'foo'
 
     def test_no_log(self, keyparser, caplog):
         keyparser.do_log = False
         keyparser._debug_log('foo')
-        assert not caplog.records()
+        assert not caplog.records
 
 
 @pytest.mark.parametrize('input_key, supports_count, expected', [
@@ -161,10 +161,10 @@ class TestReadConfig:
             0, supports_count=False, supports_chains=False)
         kp._warn_on_keychains = warn_on_keychains
 
-        with caplog.atLevel(logging.WARNING):
+        with caplog.at_level(logging.WARNING):
             kp.read_config('normal')
 
-        assert bool(caplog.records()) == warn_on_keychains
+        assert bool(caplog.records) == warn_on_keychains
 
 
 class TestSpecialKeys:
