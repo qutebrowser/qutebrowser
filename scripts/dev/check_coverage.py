@@ -175,7 +175,7 @@ def check(fileobj, perfect_files):
         basedir = os.path.abspath(os.path.join(os.path.dirname(__file__), '..',
                                                '..'))
         if os.path.isabs(filename):
-            common_path = os.path.commonpath([basedir, filename])
+            common_path = os.path.commonprefix([basedir, filename])
             if common_path:
                 filename = filename[len(common_path):].lstrip('/')
 
