@@ -841,6 +841,11 @@ def data(readonly=False):
              "required to exactly match the requested domain.\n\n"
              "Local domains are always exempt from hostblocking."),
 
+            ('enable-pdfjs', SettingValue(typ.Bool(), 'true'),
+             "Enable pdf.js to view PDF files in the browser.\n\n"
+             "Note that the files can still be downloaded by clicking"
+             " the download button in the pdf.js viewer."),
+
             readonly=readonly
         )),
 
