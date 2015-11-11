@@ -622,6 +622,4 @@ def _generate_pdfjs(reply):
     viewer = utils.read_file('pdfjs/web/viewer.html')
     source = viewer.replace('%% QUTE_SCRIPT_CONTENT %%', script.getvalue())
     script.close()
-    with open("pdf_file.html", "w") as f:
-        f.write(source)
     return source
