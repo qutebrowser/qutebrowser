@@ -142,6 +142,19 @@ class Skipped(Exception):
         super().__init__("Skipping coverage checks " + reason)
 
 
+def _get_filename(filename):
+    """Transform the absolute test filenames to relative ones."""
+    if os.path.isabs(filename):
+        basedir = os.path.abspath(
+            os.path.join(os.path.dirname(__file__), '..', '..'))
+        common_path = os.path.commonprefix([basedir, filename])
+        if common_path:
+            filename = filename[len(common_path):].lstrip('/')
+
+    return filename
+
+
+
 def check(fileobj, perfect_files):
     """Main entry point which parses/checks coverage.xml if applicable."""
     if sys.platform != 'linux':
@@ -167,14 +180,7 @@ def check(fileobj, perfect_files):
     messages = []
 
     for klass in classes:
-        filename = klass.attrib['filename']
-
-        basedir = os.path.abspath(os.path.join(os.path.dirname(__file__), '..',
-                                               '..'))
-        if os.path.isabs(filename):
-            common_path = os.path.commonprefix([basedir, filename])
-            if common_path:
-                filename = filename[len(common_path):].lstrip('/')
+        filename = _get_filename(klass.attrib['filename'])
 
         line_cov = float(klass.attrib['line-rate']) * 100
         branch_cov = float(klass.attrib['branch-rate']) * 100
