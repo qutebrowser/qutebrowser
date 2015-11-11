@@ -26,3 +26,18 @@ Feature: Yanking and pasting.
         When I run :yank --domain
         Then the message "Yanked domain to clipboard: http://localhost:(port)" should be shown.
         And the clipboard should contain "http://localhost:(port)"
+
+    Scenario: Pasting an URL
+        When I put "http://localhost:(port)/data/hello.txt" into the clipboard
+        And I run :paste
+        And I wait until data/hello.txt is loaded
+        Then the requests should be:
+            data/hello.txt
+
+    Scenario: Pasting an URL from primary selection
+        When selection is supported
+        And I put "http://localhost:(port)/data/hello2.txt" into the primary selection
+        And I run :paste --sel
+        And I wait until data/hello2.txt is loaded
+        Then the requests should be:
+            data/hello2.txt

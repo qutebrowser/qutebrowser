@@ -27,22 +27,34 @@ import pytest_bdd as bdd
 bdd.scenarios('yankpaste.feature')
 
 
+def _get_mode(qapp, what):
+    """Get the QClipboard::Mode to use based on a string."""
+    if what == 'clipboard':
+        return QClipboard.Clipboard
+    elif what == 'primary selection':
+        assert qapp.clipboard().supportsSelection()
+        return QClipboard.Selection
+    else:
+        raise AssertionError
+
+
 @bdd.when("selection is supported")
 def selection_supported(qapp):
     if not qapp.clipboard().supportsSelection():
         pytest.skip("OS doesn't support primary selection!")
 
+@bdd.when(bdd.parsers.re(r'I put "(?P<content>.*)" into the '
+                         r'(?P<what>primary selection|clipboard)'))
+def fill_clipboard(qapp, httpbin, what, content):
+    mode = _get_mode(qapp, what)
+    content = content.replace('(port)', str(httpbin.port))
+    qapp.clipboard().setText(content, mode)
+
 
 @bdd.then(bdd.parsers.re(r'the (?P<what>primary selection|clipboard) should '
                          r'contain "(?P<content>.*)"'))
 def clipboard_contains(qapp, httpbin, what, content):
-    if what == 'clipboard':
-        mode = QClipboard.Clipboard
-    elif what == 'primary selection':
-        mode = QClipboard.Selection
-    else:
-        raise AssertionError
-
+    mode = _get_mode(qapp, what)
     expected = content.replace('(port)', str(httpbin.port))
 
     data = qapp.clipboard().text(mode=mode)
