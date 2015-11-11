@@ -34,9 +34,6 @@ sys.path.insert(0, os.path.join(os.path.dirname(__file__), os.pardir,
 
 from scripts import utils
 
-import qutebrowser
-
-
 Message = collections.namedtuple('Message', 'typ, text')
 MsgType = enum.Enum('MsgType', 'insufficent_coverage, perfect_file')
 
