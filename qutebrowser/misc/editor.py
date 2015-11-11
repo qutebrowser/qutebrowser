@@ -82,7 +82,7 @@ class ExternalEditor(QObject):
             encoding = config.get('general', 'editor-encoding')
             try:
                 with open(self._filename, 'r', encoding=encoding) as f:
-                    text = ''.join(f.readlines())  # pragma: no branch
+                    text = f.read()  # pragma: no branch
             except OSError as e:
                 # NOTE: Do not replace this with "raise CommandError" as it's
                 # executed async.

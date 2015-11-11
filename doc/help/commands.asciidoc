@@ -577,7 +577,7 @@ If the option name ends with '?', the value of the option is shown instead. If t
 
 [[set-cmd-text]]
 === set-cmd-text
-Syntax: +:set-cmd-text [*--space*] 'text'+
+Syntax: +:set-cmd-text [*--space*] [*--append*] 'text'+
 
 Preset the statusbar to some text.
 
@@ -586,6 +586,7 @@ Preset the statusbar to some text.
 
 ==== optional arguments
 * +*-s*+, +*--space*+: If given, a space is added to the end.
+* +*-a*+, +*--append*+: If given, the text is appended to the current text.
 
 ==== note
 * This command does not split arguments after the last argument and handles quotes literally.

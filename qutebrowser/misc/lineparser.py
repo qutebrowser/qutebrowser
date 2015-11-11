@@ -213,9 +213,9 @@ class LineParser(BaseLineParser):
         """Read the data from self._configfile."""
         with self._open('r') as f:
             if self._binary:
-                self.data = [line.rstrip(b'\n') for line in f.readlines()]
+                self.data = [line.rstrip(b'\n') for line in f]
             else:
-                self.data = [line.rstrip('\n') for line in f.readlines()]
+                self.data = [line.rstrip('\n') for line in f]
 
     def save(self):
         """Save the config file."""

@@ -53,6 +53,13 @@ def run_command_given(quteproc, command):
     quteproc.send_cmd(command)
 
 
+@bdd.given("I have a fresh instance")
+def fresh_instance(quteproc):
+    """Restart qutebrowser instance for tests needing a fresh state."""
+    quteproc.terminate()
+    quteproc.start()
+
+
 @bdd.when(bdd.parsers.parse("I run {command}"))
 def run_command_when(quteproc, httpbin, command):
     command = command.replace('(port)', str(httpbin.port))

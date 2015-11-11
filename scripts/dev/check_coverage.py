@@ -48,6 +48,8 @@ PERFECT_FILES = [
     ('tests/unit/commands/test_argparser.py',
         'qutebrowser/commands/argparser.py'),
 
+    ('tests/unit/browser/test_cache.py',
+        'qutebrowser/browser/cache.py'),
     ('tests/unit/browser/test_cookies.py',
         'qutebrowser/browser/cookies.py'),
     ('tests/unit/browser/test_tabhistory.py',
@@ -248,9 +250,9 @@ def main():
     """
     utils.change_cwd()
     if '--check-all' in sys.argv:
-        main_check_all()
+        return main_check_all()
     else:
-        main_check()
+        return main_check()
 
 
 if __name__ == '__main__':

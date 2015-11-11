@@ -520,10 +520,12 @@ def test_unset_organization(qapp, orgname, expected):
     assert qapp.organizationName() == expected
 
 
-if test_file is not None:
+if test_file is not None and sys.platform != 'darwin':
     # If we were able to import Python's test_file module, we run some code
     # here which defines unittest TestCases to run the python tests over
     # PyQIODevice.
+
+    # Those are not run on OS X because that seems to cause a hang sometimes.
 
     @pytest.yield_fixture(scope='session', autouse=True)
     def clean_up_python_testfile():

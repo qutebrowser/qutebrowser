@@ -92,7 +92,7 @@ class Command(misc.MinimalLineEditMixin, misc.CommandLineEdit):
 
     @cmdutils.register(instance='status-command', name='set-cmd-text',
                        scope='window', maxsplit=0)
-    def set_cmd_text_command(self, text, space=False):
+    def set_cmd_text_command(self, text, space=False, append=False):
         """Preset the statusbar to some text.
 
         //
@@ -103,6 +103,7 @@ class Command(misc.MinimalLineEditMixin, misc.CommandLineEdit):
         Args:
             text: The commandline to set.
             space: If given, a space is added to the end.
+            append: If given, the text is appended to the current text.
         """
         tabbed_browser = objreg.get('tabbed-browser', scope='window',
                                     window=self._win_id)
@@ -122,8 +123,14 @@ class Command(misc.MinimalLineEditMixin, misc.CommandLineEdit):
             # I'm not sure what's the best thing to do here
             # https://github.com/The-Compiler/qutebrowser/issues/123
             text = text.replace('{url}', url)
+
         if space:
             text += ' '
+        if append:
+            if not self.text():
+                raise cmdexc.CommandError("No current text!")
+            text = self.text() + text
+
         if not text or text[0] not in modeparsers.STARTCHARS:
             raise cmdexc.CommandError(
                 "Invalid command text '{}'.".format(text))

@@ -48,6 +48,8 @@ Added
     * `colors -> downloads.bg.system`
 - New command `:download-retry` to retry a failed download.
 - New command `:download-clear` which replaces `:download-remove --all`.
+- `:set-cmd-text` has a new `--append` argument to append to the current
+  statusbar text.
 
 Changed
 ~~~~~~~
@@ -82,6 +84,8 @@ Fixed
 - Fixed a crash when a website presents a very small favicon.
 - Fixed prompting for download directory when
   `storage -> prompt-download-directory` was unset.
+- Fixed crash when using `:follow-hint` outside of hint mode.
+- Fixed crash when using `:set foo bar?` with invalid section/option.
 
 v0.4.1
 ------

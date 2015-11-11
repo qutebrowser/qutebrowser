@@ -946,7 +946,8 @@ class HintManager(QObject):
                 elems.label.setInnerXml(string)
         handler()
 
-    @cmdutils.register(instance='hintmanager', scope='tab', hide=True)
+    @cmdutils.register(instance='hintmanager', scope='tab', hide=True,
+                       modes=[usertypes.KeyMode.hint])
     def follow_hint(self, keystring=None):
         """Follow a hint.
 
@@ -958,6 +959,8 @@ class HintManager(QObject):
                 raise cmdexc.CommandError("No hint to follow")
             else:
                 keystring = self._context.to_follow
+        elif keystring not in self._context.elems:
+            raise cmdexc.CommandError("No hint {}!".format(keystring))
         self.fire(keystring, force=True)
 
     @pyqtSlot('QSize')

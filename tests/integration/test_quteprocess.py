@@ -19,7 +19,13 @@
 
 """Test the quteproc fixture used for tests."""
 
+import logging
+import datetime
+
 import pytest
+
+import quteprocess
+from qutebrowser.utils import log
 
 
 def test_quteproc_error_message(qtbot, quteproc):
@@ -36,3 +42,76 @@ def test_qt_log_ignore(qtbot, quteproc):
     """Make sure the test passes when logging a qt_log_ignore message."""
     with qtbot.waitSignal(quteproc.got_error, raising=True):
         quteproc.send_cmd(':message-error "SpellCheck: test"')
+
+
+@pytest.mark.parametrize('data, attrs', [
+    (
+        # Normal message
+        '01:02:03 DEBUG    init       earlyinit:init_log:280 Log initialized.',
+        {
+            'timestamp': datetime.datetime(year=1900, month=1, day=1,
+                                           hour=1, minute=2, second=3),
+            'loglevel': logging.DEBUG,
+            'category': 'init',
+            'module': 'earlyinit',
+            'function': 'init_log',
+            'line':  280,
+            'message': 'Log initialized.',
+            'expected': False,
+        }
+    ),
+    (
+        # VDEBUG
+        '00:00:00 VDEBUG    foo       foo:foo:0 test',
+        {'loglevel': log.VDEBUG_LEVEL}
+    ),
+    (
+        # Unknown module
+        '00:00:00 WARNING  qt         Unknown module:none:0 test',
+        {'module': None, 'function': None, 'line': None},
+    ),
+    (
+        # Expected message
+        '00:00:00 VDEBUG    foo       foo:foo:0 SpellCheck: test',
+        {'expected': True},
+    ),
+    (
+        # Weird Qt location
+        '00:00:00 DEBUG    qt         qnetworkreplyhttpimpl:"void '
+        'QNetworkReplyHttpImplPrivate::error(QNetworkReply::NetworkError, '
+        'const QString&)":1929 QNetworkReplyImplPrivate::error: Internal '
+        'problem, this method must only be called once.',
+        {
+            'module': 'qnetworkreplyhttpimpl',
+            'function': 'void QNetworkReplyHttpImplPrivate::error('
+                        'QNetworkReply::NetworkError, const QString&)',
+            'line': 1929
+        }
+    ),
+    (
+	'00:00:00 WARNING  qt         qxcbxsettings:"QXcbXSettings::'
+	'QXcbXSettings(QXcbScreen*)":233 '
+	'QXcbXSettings::QXcbXSettings(QXcbScreen*) Failed to get selection '
+	'owner for XSETTINGS_S atom ',
+        {
+            'module': 'qxcbxsettings',
+            'function': 'QXcbXSettings::QXcbXSettings(QXcbScreen*)',
+            'line': 233,
+        }
+    ),
+    (
+        # With [2s ago] marker
+        '00:00:00 DEBUG    foo       foo:foo:0 [2s ago] test',
+        {'prefix': '2s ago', 'message': 'test'}
+    ),
+])
+def test_log_line_parse(data, attrs):
+    line = quteprocess.LogLine(data)
+    for name, expected in attrs.items():
+        actual = getattr(line, name)
+        assert actual == expected, name
+
+
+def test_log_line_no_match():
+    with pytest.raises(quteprocess.NoLineMatch):
+        quteprocess.LogLine("Hello World!")

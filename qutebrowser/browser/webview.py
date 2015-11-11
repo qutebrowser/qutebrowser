@@ -292,7 +292,7 @@ class WebView(QWebView):
         try:
             elem = webelem.focus_elem(self.page().currentFrame())
         except (webelem.IsNullError, RuntimeError):
-            log.mouse.warning("Element/page vanished!")
+            log.mouse.debug("Element/page vanished!")
             return
         if elem.is_editable():
             log.mouse.debug("Clicked editable element (delayed)!")

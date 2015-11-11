@@ -810,10 +810,15 @@ class DownloadManager(QAbstractListModel):
         download = DownloadItem(reply, self._win_id, self)
         download.cancelled.connect(
             functools.partial(self.remove_item, download))
+
         delay = config.get('ui', 'remove-finished-downloads')
-        if delay > -1 or auto_remove:
+        if delay > -1:
             download.finished.connect(
                 functools.partial(self.remove_item_delayed, download, delay))
+        elif auto_remove:
+            download.finished.connect(
+                functools.partial(self.remove_item, download))
+
         download.data_changed.connect(
             functools.partial(self.on_data_changed, download))
         download.error.connect(self.on_error)

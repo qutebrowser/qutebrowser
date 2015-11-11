@@ -68,7 +68,9 @@ class LogLine(testprocess.Line):
         (?P<timestamp>\d\d:\d\d:\d\d)
         \ (?P<loglevel>VDEBUG|DEBUG|INFO|WARNING|ERROR)
         \ +(?P<category>\w+)
-        \ +(?P<module>(\w+|Unknown\ module)):(?P<function>\w+):(?P<line>\d+)
+        \ +(?P<module>(\w+|Unknown\ module)):
+           (?P<function>[^"][^:]*|"[^"]+"):
+           (?P<line>\d+)
         \ (?P<message>.+)
     """, re.VERBOSE)
 
@@ -94,9 +96,22 @@ class LogLine(testprocess.Line):
         else:
             self.module = module
 
-        self.function = match.group('function')
-        self.line = int(match.group('line'))
-        self.message = match.group('message')
+        function = match.group('function')
+        if function == 'none':
+            self.function = None
+        else:
+            self.function = function.strip('"')
+
+        line = int(match.group('line'))
+        if self.function is None and line == 0:
+            self.line = None
+        else:
+            self.line = line
+
+        msg_match = re.match(r'^(\[(?P<prefix>\d+s ago)\] )?(?P<message>.*)',
+                             match.group('message'))
+        self.prefix = msg_match.group('prefix')
+        self.message = msg_match.group('message')
 
         self.expected = is_ignored_qt_message(self.message)
 
@@ -177,7 +192,7 @@ class QuteProc(testprocess.Process):
         ipc.send_to_running_instance(self._ipc_socket, [command],
                                      target_arg='')
         self.wait_for(category='commands', module='command', function='run',
-                      message='Calling *')
+                      message='command called: *')
 
     def set_setting(self, sect, opt, value):
         self.send_cmd(':set "{}" "{}" "{}"'.format(sect, opt, value))
@@ -197,7 +212,7 @@ class QuteProc(testprocess.Process):
                              message=message)
         line.expected = True
 
-    def wait_for(self, timeout=15000, **kwargs):
+    def wait_for(self, timeout=None, **kwargs):
         """Override testprocess.wait_for to check past messages.
 
         self._data is cleared after every test to provide at least some
