@@ -20,6 +20,7 @@
 """The main browser widgets."""
 
 import functools
+import io
 
 from PyQt5.QtCore import (pyqtSlot, pyqtSignal, PYQT_VERSION, Qt, QUrl, QPoint,
                           QTimer)
@@ -305,6 +306,14 @@ class BrowserPage(QWebPage):
             else:
                 reply.finished.connect(functools.partial(
                     self.display_content, reply, 'image/jpeg'))
+        elif mimetype in {'application/pdf', 'application/x-pdf'}:
+            # Use pdf.js to display the page
+            html_page = _generate_pdfjs(reply)
+            #url = reply.url()
+            url = QUrl('qute://pdfjs/web/viewer.js')
+            self.mainFrame().setContent(html_page.encode('utf-8'),
+                                        'text/html', url)
+            reply.deleteLater()
         else:
             # Unknown mimetype, so download anyways.
             download_manager.fetch(reply,
@@ -585,3 +594,34 @@ class BrowserPage(QWebPage):
             return False
         else:
             return True
+
+
+def _generate_pdfjs(reply):
+    """Generate a HTML page that includes pdf.js to show the given data.
+
+    Args:
+        reply: The QNetworkReply.
+    """
+    script = io.StringIO()
+    script.write('var data = new Uint8Array([\n')
+    while True:
+        data = reply.read(1024 * 1024 * 1024)  # read 1 MB in advance
+        if not data:
+            break
+        newline = 0
+        for byte in data:
+            newline += script.write('{},'.format(byte))
+            if newline > 75:
+                script.write('\n')
+                newline = 0
+    script.write("""]);
+        PDFJS.getDocument(data).then(function(pdf) {
+            PDFView.load(pdf);
+        });
+    """)
+    viewer = utils.read_file('pdfjs/web/viewer.html')
+    source = viewer.replace('%% QUTE_SCRIPT_CONTENT %%', script.getvalue())
+    script.close()
+    with open("pdf_file.html", "w") as f:
+        f.write(source)
+    return source

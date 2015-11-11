@@ -145,6 +145,12 @@ class WebView(QWebView):
         self.loadProgress.connect(lambda p: setattr(self, 'progress', p))
         objreg.get('config').changed.connect(self.on_config_changed)
 
+        # Allow pdf.js to retrieve pages
+        self.settings().setAttribute(
+            QWebSettings.LocalContentCanAccessRemoteUrls, True)
+        self.settings().setAttribute(
+            QWebSettings.LocalContentCanAccessFileUrls, True)
+
     def _init_page(self):
         """Initialize the QWebPage used by this view."""
         page = webpage.BrowserPage(self.win_id, self.tab_id, self)
