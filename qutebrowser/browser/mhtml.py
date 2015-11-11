@@ -229,9 +229,10 @@ class _Downloader():
         pending_downloads: A set of unfinished (url, DownloadItem) tuples.
         _finished: A flag indicating if the file has already been written.
         _used: A flag indicating if the downloader has already been used.
+        _win_id: The window this downloader belongs to.
     """
 
-    def __init__(self, web_view, dest):
+    def __init__(self, web_view, dest, win_id):
         self.web_view = web_view
         self.dest = dest
         self.writer = None
@@ -239,6 +240,7 @@ class _Downloader():
         self.pending_downloads = set()
         self._finished = False
         self._used = False
+        self._win_id = win_id
 
     def run(self):
         """Download and save the page.
@@ -420,9 +422,21 @@ class _Downloader():
             return
         self._finished = True
         log.downloads.debug("All assets downloaded, ready to finish off!")
-        with open(self.dest, 'wb') as file_output:
-            self.writer.write_to(file_output)
-        message.info('current', "Page saved as {}".format(self.dest))
+        try:
+            file_output = open(self.dest, 'wb')
+        except OSError as error:
+            message.error(self._win_id,
+                          "Could not save file: {}".format(error))
+            return
+        else:
+            # Yes, ugly nesting of try-blocks, but necessary because there's
+            # no way to let the try block only affect the with-statement-
+            # entry-code and not the with-statement-body.
+            try:
+                self.writer.write_to(file_output)
+            finally:
+                file_output.close()
+        message.info(self._win_id, "Page saved as {}".format(self.dest))
 
     def collect_zombies(self):
         """Collect done downloads and add their data to the MHTML file.
@@ -464,7 +478,7 @@ def _start_download(dest, win_id, tab_id):
         win_id, tab_id: Specify the tab whose page should be loaded.
     """
     web_view = objreg.get('webview', scope='tab', window=win_id, tab=tab_id)
-    loader = _Downloader(web_view, dest)
+    loader = _Downloader(web_view, dest, win_id)
     loader.run()
 
 
