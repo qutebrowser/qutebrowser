@@ -154,7 +154,6 @@ def _get_filename(filename):
     return filename
 
 
-
 def check(fileobj, perfect_files):
     """Main entry point which parses/checks coverage.xml if applicable."""
     if sys.platform != 'linux':
