@@ -510,6 +510,14 @@ def start_download_checked(dest, win_id, tab_id):
             default_name, os.path.join(downloads.download_dir(), dest))
     downloads.last_used_directory = os.path.dirname(path)
 
+    # Avoid downloading files if we can't save the output anyway...
+    # Yes, this is prone to race conditions, but we're checking again before
+    # saving the file anyway.
+    if not os.path.isdir(os.path.dirname(path)):
+        dir = os.path.dirname(path)
+        message.error(win_id, "Directory {} does not exist.".format(dir))
+        return
+
     if not os.path.isfile(path):
         _start_download(path, win_id=win_id, tab_id=tab_id)
         return
