@@ -34,6 +34,8 @@ sys.path.insert(0, os.path.join(os.path.dirname(__file__), os.pardir,
 
 from scripts import utils
 
+import qutebrowser
+
 
 Message = collections.namedtuple('Message', 'typ, text')
 MsgType = enum.Enum('MsgType', 'insufficent_coverage, perfect_file')
@@ -169,6 +171,14 @@ def check(fileobj, perfect_files):
 
     for klass in classes:
         filename = klass.attrib['filename']
+
+        basedir = os.path.abspath(os.path.join(os.path.dirname(__file__), '..',
+                                               '..'))
+        if os.path.isabs(filename):
+            common_path = os.path.commonpath([basedir, filename])
+            if common_path:
+                filename = filename[len(common_path):].lstrip('/')
+
         line_cov = float(klass.attrib['line-rate']) * 100
         branch_cov = float(klass.attrib['branch-rate']) * 100
 
