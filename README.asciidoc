@@ -271,3 +271,9 @@ GNU General Public License for more details.
 
 You should have received a copy of the GNU General Public License
 along with this program.  If not, see <http://www.gnu.org/licenses/>.
+
+pdf.js
+------
+
+pdf.js is distributed under the terms of the Apache License. You can
+find a copy of the license in `qutebrowser/pdfjs/LICNSE`.
