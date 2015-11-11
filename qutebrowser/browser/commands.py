@@ -1185,6 +1185,8 @@ class CommandDispatcher:
             dest: The file path to write the download to.
         """
         tab_id = self._current_index()
+        if not config.get('storage', 'prompt-download-directory'):
+            dest = downloads.download_dir()
         if dest is None:
             suggested_fn = self._current_title() + ".mht"
             suggested_fn = utils.sanitize_filename(suggested_fn)
