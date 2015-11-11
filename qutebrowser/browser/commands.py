@@ -1185,22 +1185,20 @@ class CommandDispatcher:
             dest: The file path to write the download to.
         """
         tab_id = self._current_index()
-        if not config.get('storage', 'prompt-download-directory'):
-            dest = downloads.download_dir()
         if dest is None:
             suggested_fn = self._current_title() + ".mht"
             suggested_fn = utils.sanitize_filename(suggested_fn)
-            q = usertypes.Question()
-            q.text = "Save page to: "
-            q.mode = usertypes.PromptMode.text
-            q.completed.connect(q.deleteLater)
-            q.default = downloads.path_suggestion(suggested_fn)
-            q.answered.connect(functools.partial(
-                mhtml.start_download_checked, win_id=self._win_id,
-                tab_id=tab_id))
-            message_bridge = objreg.get("message-bridge", scope="window",
-                                        window=self._win_id)
-            message_bridge.ask(q, blocking=False)
+            filename, q = downloads.ask_for_filename(
+                suggested_fn, self._win_id, parent=self,
+            )
+            if filename is not None:
+                mhtml.start_download_checked(filename, win_id=self._win_id,
+                                             tab_id=tab_id)
+            else:
+                q.answered.connect(functools.partial(
+                    mhtml.start_download_checked, win_id=self._win_id,
+                    tab_id=tab_id))
+                q.ask()
         else:
             mhtml.start_download_checked(dest, win_id=self._win_id,
                                          tab_id=tab_id)

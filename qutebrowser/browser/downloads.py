@@ -48,6 +48,11 @@ ModelRole = usertypes.enum('ModelRole', ['item'], start=Qt.UserRole,
 
 RetryInfo = collections.namedtuple('RetryInfo', ['request', 'manager'])
 
+
+DownloadPath = collections.namedtuple('DownloadPath', ['filename',
+                                                       'question'])
+
+
 # Remember the last used directory
 last_used_directory = None
 
@@ -107,6 +112,49 @@ def create_full_filename(basename, filename):
         # that filename.
         return filename
     return None
+
+
+def ask_for_filename(suggested_filename, win_id, *, parent=None,
+                     prompt_download_directory=None):
+    """Prepare a question for a download-path.
+
+    If a filename can be determined directly, it is returned instead.
+
+    Returns a (filename, question)-namedtuple, in which one component is
+    None. filename is a string, question is a usertypes.Question. The
+    question has a special .ask() method that takes no arguments for
+    convenience, as this function does not yet ask the question, it
+    only prepares it.
+
+    Args:
+        suggested_filename: The "default"-name that is pre-entered as path.
+        win_id: The window where the question will be asked.
+        parent: The parent of the question (a QObject).
+        prompt_download_directory: If this is something else than None, it
+                                   will overwrite the
+                                   storage->prompt-download-directory setting.
+    """
+    if prompt_download_directory is None:
+        prompt_download_directory = config.get('storage',
+                                               'prompt-download-directory')
+
+    if not prompt_download_directory:
+        return DownloadPath(download_dir(), None)
+
+    encoding = sys.getfilesystemencoding()
+    suggested_filename = utils.force_encoding(suggested_filename,
+                                              encoding)
+
+    q = usertypes.Question(parent)
+    q.text = "Save file to:"
+    q.mode = usertypes.PromptMode.text
+    q.completed.connect(q.deleteLater)
+    q.default = path_suggestion(suggested_filename)
+
+    message_bridge = objreg.get('message-bridge', scope='window',
+                                window=win_id)
+    q.ask = lambda: message_bridge.ask(q, blocking=False)
+    return DownloadPath(None, q)
 
 
 class DownloadItemStats(QObject):
@@ -668,15 +716,10 @@ class DownloadManager(QAbstractListModel):
     def __repr__(self):
         return utils.get_repr(self, downloads=len(self.downloads))
 
-    def _prepare_question(self):
-        """Prepare a Question object to be asked."""
-        q = usertypes.Question(self)
-        q.text = "Save file to:"
-        q.mode = usertypes.PromptMode.text
-        q.completed.connect(q.deleteLater)
+    def _postprocess_question(self, q):
+        """Postprocess a Question object that is asked."""
         q.destroyed.connect(functools.partial(self.questions.remove, q))
         self.questions.append(q)
-        return q
 
     @pyqtSlot()
     def update_gui(self):
@@ -733,11 +776,11 @@ class DownloadManager(QAbstractListModel):
                              QNetworkRequest.AlwaysNetwork)
         suggested_fn = urlutils.filename_from_url(request.url())
 
-        if prompt_download_directory is None:
-            prompt_download_directory = config.get(
-                'storage', 'prompt-download-directory')
-        if not prompt_download_directory and not fileobj:
-            filename = download_dir()
+        if fileobj is None:
+            filename, q = ask_for_filename(
+                suggested_fn, self._win_id, parent=self,
+                prompt_download_directory=prompt_download_directory
+            )
 
         if fileobj is not None or filename is not None:
             return self.fetch_request(request,
@@ -745,22 +788,13 @@ class DownloadManager(QAbstractListModel):
                                       filename=filename,
                                       suggested_filename=suggested_fn,
                                       **kwargs)
-        if suggested_fn is None:
-            suggested_fn = 'qutebrowser-download'
-        else:
-            encoding = sys.getfilesystemencoding()
-            suggested_fn = utils.force_encoding(suggested_fn, encoding)
-
-        q = self._prepare_question()
-        q.default = path_suggestion(suggested_fn)
-        message_bridge = objreg.get('message-bridge', scope='window',
-                                    window=self._win_id)
         q.answered.connect(
             lambda fn: self.fetch_request(request,
                                           filename=fn,
                                           suggested_filename=suggested_fn,
                                           **kwargs))
-        message_bridge.ask(q, blocking=False)
+        self._postprocess_question(q)
+        q.ask()
         return None
 
     def fetch_request(self, request, *, page=None, **kwargs):
@@ -834,26 +868,25 @@ class DownloadManager(QAbstractListModel):
         if not self._update_timer.isActive():
             self._update_timer.start()
 
-        prompt_download_directory = config.get('storage',
-                                               'prompt-download-directory')
-        if not prompt_download_directory and not fileobj:
-            filename = download_dir()
-
-        if filename is not None:
-            download.set_filename(filename)
-        elif fileobj is not None:
+        if fileobj is not None:
             download.set_fileobj(fileobj)
             download.autoclose = False
-        else:
-            q = self._prepare_question()
-            q.default = path_suggestion(suggested_filename)
-            q.answered.connect(download.set_filename)
-            q.cancelled.connect(download.cancel)
-            download.cancelled.connect(q.abort)
-            download.error.connect(q.abort)
-            message_bridge = objreg.get('message-bridge', scope='window',
-                                        window=self._win_id)
-            message_bridge.ask(q, blocking=False)
+            return download
+
+        filename, q = ask_for_filename(
+            suggested_filename, self._win_id, parent=self,
+            prompt_download_directory=prompt_download_directory,
+        )
+        if filename is not None:
+            download.set_filename(filename)
+            return download
+
+        self._postprocess_question(q)
+        q.answered.connect(download.set_filename)
+        q.cancelled.connect(download.cancel)
+        download.cancelled.connect(q.abort)
+        download.error.connect(q.abort)
+        q.ask()
 
         return download
 
