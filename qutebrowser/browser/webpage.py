@@ -219,6 +219,12 @@ class BrowserPage(QWebPage):
         q.deleteLater()
         return q.answer
 
+    def _show_pdfjs(self, reply):
+        """Show the reply with pdfjs."""
+        html_page = _generate_pdfjs(reply).encode('utf-8')
+        self.mainFrame().setContent(html_page, 'text/html', reply.url())
+        reply.deleteLater()
+
     def shutdown(self):
         """Prepare the web page for being deleted."""
         self._is_shutting_down = True
@@ -309,12 +315,10 @@ class BrowserPage(QWebPage):
         elif (mimetype in {'application/pdf', 'application/x-pdf'} and
               config.get('content', 'enable-pdfjs')):
             # Use pdf.js to display the page
-            html_page = _generate_pdfjs(reply)
-            url = reply.url()
-            #url = QUrl('qute://pdfjs/web/viewer.js')
-            self.mainFrame().setContent(html_page.encode('utf-8'),
-                                        'text/html', url)
-            reply.deleteLater()
+            if reply.isFinished():
+                self._show_pdfjs(reply)
+            else:
+                reply.finished.connect(lambda: self._show_pdfjs(reply))
         else:
             # Unknown mimetype, so download anyways.
             download_manager.fetch(reply,
@@ -605,16 +609,17 @@ def _generate_pdfjs(reply):
     """
     script = io.StringIO()
     script.write('var data = new Uint8Array([\n')
-    while True:
-        data = reply.read(1024 * 1024 * 1024)  # read 1 MB in advance
-        if not data:
-            break
-        newline = 0
-        for byte in data:
-            newline += script.write('{},'.format(byte))
-            if newline > 75:
-                script.write('\n')
-                newline = 0
+    data = reply.readAll()
+
+    newline = 0
+    # Iterating over QByteArray directly will somehow try to decode as ASCII
+    # which will fail, so we need .data() here
+    for byte in data.data():
+        newline += script.write('{},'.format(byte))
+        if newline > 75:
+            script.write('\n')
+            newline = 0
+
     script.write("""]);
         PDFJS.getDocument(data).then(function(pdf) {
             PDFView.load(pdf);
