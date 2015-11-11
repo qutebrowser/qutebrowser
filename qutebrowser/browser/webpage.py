@@ -309,8 +309,8 @@ class BrowserPage(QWebPage):
         elif mimetype in {'application/pdf', 'application/x-pdf'}:
             # Use pdf.js to display the page
             html_page = _generate_pdfjs(reply)
-            #url = reply.url()
-            url = QUrl('qute://pdfjs/web/viewer.js')
+            url = reply.url()
+            #url = QUrl('qute://pdfjs/web/viewer.js')
             self.mainFrame().setContent(html_page.encode('utf-8'),
                                         'text/html', url)
             reply.deleteLater()
