@@ -514,8 +514,8 @@ def start_download_checked(dest, win_id, tab_id):
     # Yes, this is prone to race conditions, but we're checking again before
     # saving the file anyway.
     if not os.path.isdir(os.path.dirname(path)):
-        dir = os.path.dirname(path)
-        message.error(win_id, "Directory {} does not exist.".format(dir))
+        folder = os.path.dirname(path)
+        message.error(win_id, "Directory {} does not exist.".format(folder))
         return
 
     if not os.path.isfile(path):
