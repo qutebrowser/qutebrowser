@@ -206,8 +206,9 @@ def qute_settings(win_id, _request):
         confget=config_getter)
     return html.encode('UTF-8', errors='xmlcharrefreplace')
 
+
 @add_handler('pdfjs')
-def qute_pdfjs(win_id, request):
+def qute_pdfjs(_win_id, request):
     """Handler for qute://pdfjs. Return the pdf.js viewer."""
     urlpath = request.url().path().lstrip('/')
     res_path = 'pdfjs/{}'.format(urlpath)

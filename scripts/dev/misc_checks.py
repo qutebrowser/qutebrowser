@@ -96,12 +96,19 @@ def check_spelling():
               '[Ss]tatemachine', '[Mm]etaobject', '[Ll]ogrecord',
               '[Ff]iletype'}
 
+    # Files which should be ignored, e.g. because they come from another
+    # package
+    ignored = [
+        os.path.join('.', 'scripts', 'dev', 'misc_checks.py'),
+        os.path.join('.', 'qutebrowser', 'pdfjs'),
+    ]
+
     seen = collections.defaultdict(list)
     try:
         ok = True
         for fn in _get_files():
             with tokenize.open(fn) as f:
-                if fn == os.path.join('.', 'scripts', 'dev', 'misc_checks.py'):
+                if any(fn.startswith(i) for i in ignored):
                     continue
                 for line in f:
                     for w in words:

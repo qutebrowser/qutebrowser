@@ -20,7 +20,6 @@
 """The main browser widgets."""
 
 import functools
-import io
 
 from PyQt5.QtCore import (pyqtSlot, pyqtSignal, PYQT_VERSION, Qt, QUrl, QPoint,
                           QTimer)
