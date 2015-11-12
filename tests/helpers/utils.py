@@ -21,31 +21,38 @@
 
 
 import fnmatch
+import pprint
 
 
-def _partial_compare_dict(val1, val2):
+def print_i(text, indent, error=False):
+    if error:
+        text = '| ****** {} ******'.format(text)
+    for line in text.splitlines():
+        print('|   ' * indent + line)
+
+
+def _partial_compare_dict(val1, val2, *, indent=0):
     for key in val2:
         if key not in val1:
-            print("Key {!r} is in second dict but not in first!".format(key))
+            print_i("Key {!r} is in second dict but not in first!".format(key),
+                    indent, error=True)
             return False
-        if not partial_compare(val1[key], val2[key]):
-            print("Comparison failed for {!r} and {!r}!".format(
-                val1[key], val2[key]))
+        if not partial_compare(val1[key], val2[key], indent=indent+1):
             return False
     return True
 
 
-def _partial_compare_list(val1, val2):
+def _partial_compare_list(val1, val2, *, indent=0):
     if len(val1) < len(val2):
-        print("Second list is longer than first list -> False!")
+        print_i("Second list is longer than first list", indent, error=True)
         return False
     for item1, item2 in zip(val1, val2):
-        if not partial_compare(item1, item2):
+        if not partial_compare(item1, item2, indent=indent+1):
             return False
     return True
 
 
-def partial_compare(val1, val2):
+def partial_compare(val1, val2, *, indent=0):
     """Do a partial comparison between the given values.
 
     For dicts, keys in val2 are checked, others are ignored.
@@ -54,31 +61,34 @@ def partial_compare(val1, val2):
 
     This happens recursively.
     """
-    print()
-    print("Comparing\n    {!r}\nto\n    {!r}".format(val1, val2))
+    print_i("Comparing", indent)
+    print_i(pprint.pformat(val1), indent + 1)
+    print_i("|---- to ----", indent)
+    print_i(pprint.pformat(val2), indent + 1)
+
 
     if val2 is Ellipsis:
-        print("Ignoring ellipsis comparison")
+        print_i("Ignoring ellipsis comparison", indent, error=True)
         return True
     elif type(val1) != type(val2):  # pylint: disable=unidiomatic-typecheck
-        print("Different types ({}, {}) -> False".format(
-            type(val1), type(val2)))
+        print_i("Different types ({}, {}) -> False".format(
+                type(val1), type(val2)), indent, error=True)
         return False
 
     if isinstance(val2, dict):
-        print("Comparing as dicts")
-        equal = _partial_compare_dict(val1, val2)
+        print_i("|======= Comparing as dicts", indent)
+        equal = _partial_compare_dict(val1, val2, indent=indent)
     elif isinstance(val2, list):
-        print("Comparing as lists")
-        equal = _partial_compare_list(val1, val2)
+        print_i("|======= Comparing as lists", indent)
+        equal = _partial_compare_list(val1, val2, indent=indent)
     elif isinstance(val2, float):
-        print("Doing float comparison")
+        print_i("|======= Doing float comparison", indent)
         equal = abs(val1 - val2) < 0.00001
     elif isinstance(val2, str):
-        print("Doing string comparison")
+        print_i("|======= Doing string comparison", indent)
         equal = fnmatch.fnmatchcase(val1, val2)
     else:
-        print("Comparing via ==")
+        print_i("|======= Comparing via ==", indent)
         equal = val1 == val2
-    print("---> {}".format(equal))
+    print_i("---> {}".format(equal), indent)
     return equal
