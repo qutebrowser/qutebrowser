@@ -177,6 +177,12 @@ class QuteProc(testprocess.Process):
                  'about:blank']
         return executable, args
 
+    def _path_to_url(self, path):
+        if path.startswith('about:') or path.startswith('qute:'):
+            return path
+        else:
+            return 'http://localhost:{}/{}'.format(self._httpbin.port, path)
+
     def after_test(self):
         bad_msgs = [msg for msg in self._data
                     if msg.loglevel > logging.INFO and not msg.expected]
@@ -199,7 +205,7 @@ class QuteProc(testprocess.Process):
         self.wait_for(category='config', message='Config option changed: *')
 
     def open_path(self, path, new_tab=False):
-        url = 'http://localhost:{}/{}'.format(self._httpbin.port, path)
+        url = self._path_to_url(path)
         if new_tab:
             self.send_cmd(':open -t ' + url)
         else:
@@ -222,7 +228,7 @@ class QuteProc(testprocess.Process):
 
     def wait_for_load_finished(self, path, timeout=15000):
         """Wait until any tab has finished loading."""
-        url = 'http://localhost:{}/{}'.format(self._httpbin.port, path)
+        url = self._path_to_url(path)
         pattern = re.compile(
             r"(load status for <qutebrowser.browser.webview.WebView "
             r"tab_id=\d+ url='{url}'>: LoadStatus.success|fetch: "
