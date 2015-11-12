@@ -221,7 +221,11 @@ class BrowserPage(QWebPage):
 
     def _show_pdfjs(self, reply):
         """Show the reply with pdfjs."""
-        html_page = _generate_pdfjs(reply).encode('utf-8')
+        data = reply.readAll().data()
+        script = _generate_pdfjs_script(data)
+        viewer = utils.read_file('pdfjs/web/viewer.html')
+        html_page = viewer.replace('%% QUTE_SCRIPT_CONTENT %%', script)
+        html_page = html_page.encode('utf-8')
         self.mainFrame().setContent(html_page, 'text/html', reply.url())
         reply.deleteLater()
 
@@ -601,31 +605,27 @@ class BrowserPage(QWebPage):
             return True
 
 
-def _generate_pdfjs(reply):
-    """Generate a HTML page that includes pdf.js to show the given data.
+def _generate_pdfjs_script(data):
+    """Generate the script that shows the pdf with pdf.js.
 
     Args:
-        reply: The QNetworkReply.
+        data: The binary data of the pdf page.
     """
     script = io.StringIO()
     script.write('var data = new Uint8Array([\n')
-    data = reply.readAll()
 
     newline = 0
-    # Iterating over QByteArray directly will somehow try to decode as ASCII
-    # which will fail, so we need .data() here
-    for byte in data.data():
+    for byte in data:
         newline += script.write('{},'.format(byte))
         if newline > 75:
             script.write('\n')
             newline = 0
 
-    script.write("""]);
-        PDFJS.getDocument(data).then(function(pdf) {
-            PDFView.load(pdf);
-        });
-    """)
-    viewer = utils.read_file('pdfjs/web/viewer.html')
-    source = viewer.replace('%% QUTE_SCRIPT_CONTENT %%', script.getvalue())
+    script.write("]);\n"
+        "PDFJS.getDocument(data).then(function(pdf) {\n"
+        "    PDFView.load(pdf);\n"
+        "});"
+    )
+    source = script.getvalue()
     script.close()
     return source
