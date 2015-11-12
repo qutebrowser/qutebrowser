@@ -275,5 +275,9 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 pdf.js
 ------
 
+Qutebrowser uses https://github.com/mozilla/pdf.js/[pdf.js] to display
+PDF files in the browser.
+
 pdf.js is distributed under the terms of the Apache License. You can
-find a copy of the license in `qutebrowser/pdfjs/LICNSE`.
+find a copy of the license in `qutebrowser/pdfjs/LICENSE` or online
+http://www.apache.org/licenses/LICENSE-2.0.html[here].
