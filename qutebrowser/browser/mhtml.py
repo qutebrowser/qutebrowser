@@ -436,6 +436,7 @@ class _Downloader():
                 self.writer.write_to(file_output)
             finally:
                 file_output.close()
+        log.downloads.debug("File successfully written.")
         message.info(self._win_id, "Page saved as {}".format(self.dest))
 
     def collect_zombies(self):
