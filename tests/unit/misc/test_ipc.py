@@ -544,7 +544,7 @@ class TestSendToRunningInstance:
         assert msg == "No existing instance present (error 2)"
 
     @pytest.mark.parametrize('has_cwd', [True, False])
-    @pytest.mark.posix(reason="Causes random trouble on Windows")
+    @pytest.mark.linux(reason="Causes random trouble on Windows and OS X")
     def test_normal(self, qtbot, tmpdir, ipc_server, mocker, has_cwd):
         ipc_server.listen()
         spy = QSignalSpy(ipc_server.got_args)
