@@ -365,7 +365,7 @@ class _Downloader():
         # content (obs-text) as opaque data.
         mime = mime.decode('iso-8859-1')
 
-        if mime.lower() == 'text/css':
+        if mime.lower() == 'text/css' or url.fileName().endswith('.css'):
             # We can't always assume that CSS files are UTF-8, but CSS files
             # shouldn't contain many non-ASCII characters anyway (in most
             # cases). Using "ignore" lets us decode the file even if it's
