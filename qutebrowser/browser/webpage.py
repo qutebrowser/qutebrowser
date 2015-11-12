@@ -221,8 +221,7 @@ class BrowserPage(QWebPage):
 
     def _show_pdfjs(self, reply):
         """Show the reply with pdfjs."""
-        data = reply.readAll().data()
-        script = _generate_pdfjs_script(data)
+        script = _generate_pdfjs_script(reply.url())
         viewer = utils.read_file('pdfjs/web/viewer.html')
         html_page = viewer.replace('%% QUTE_SCRIPT_CONTENT %%', script)
         html_page = html_page.encode('utf-8')
@@ -319,10 +318,7 @@ class BrowserPage(QWebPage):
         elif (mimetype in {'application/pdf', 'application/x-pdf'} and
               config.get('content', 'enable-pdfjs')):
             # Use pdf.js to display the page
-            if reply.isFinished():
-                self._show_pdfjs(reply)
-            else:
-                reply.finished.connect(lambda: self._show_pdfjs(reply))
+            self._show_pdfjs(reply)
         else:
             # Unknown mimetype, so download anyways.
             download_manager.fetch(reply,
@@ -605,27 +601,14 @@ class BrowserPage(QWebPage):
             return True
 
 
-def _generate_pdfjs_script(data):
+def _generate_pdfjs_script(url):
     """Generate the script that shows the pdf with pdf.js.
 
     Args:
-        data: The binary data of the pdf page.
+        url: The url of the pdf page as QUrl.
     """
-    script = io.StringIO()
-    script.write('var data = new Uint8Array([\n')
-
-    newline = 0
-    for byte in data:
-        newline += script.write('{},'.format(byte))
-        if newline > 75:
-            script.write('\n')
-            newline = 0
-
-    script.write("]);\n"
-        "PDFJS.getDocument(data).then(function(pdf) {\n"
-        "    PDFView.load(pdf);\n"
-        "});"
-    )
-    source = script.getvalue()
-    script.close()
-    return source
+    return (
+        'PDFJS.getDocument("{url}").then(function(pdf) {{\n'
+        '    PDFView.load(pdf);\n'
+        '}});'
+    ).format(url=url.toString())
