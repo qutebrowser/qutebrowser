@@ -19,3 +19,10 @@
 
 import pytest_bdd as bdd
 bdd.scenarios('zoom.feature')
+
+
+@bdd.then(bdd.parsers.parse("the zoom should be {zoom}%"))
+def check_zoom(quteproc, zoom):
+    data = quteproc.get_session()
+    value = data['windows'][0]['tabs'][0]['history'][0]['zoom'] * 100
+    assert abs(value - float(zoom)) < 0.0001
