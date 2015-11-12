@@ -1,7 +1,7 @@
-Content-Type: multipart/related; boundary="---=_qute-510287e3-01a6-4b99-8ec9-d0f703c87fef"
+Content-Type: multipart/related; boundary="---=_qute-e6103319-e76c-4b6a-bcae-c568a6307a42"
 MIME-Version: 1.0
 
------=_qute-510287e3-01a6-4b99-8ec9-d0f703c87fef
+-----=_qute-e6103319-e76c-4b6a-bcae-c568a6307a42
 Content-Location: http://localhost:1234/data/downloads/mhtml/complex/complex.html
 MIME-Version: 1.0
 Content-Type: text/html; charset="UTF-8"
@@ -33,17 +33,14 @@ body=20{
 =20=20=20=20=20=20=20=20<link=20rel=3D"author"=20href=3D"author.html">
 =20=20=20=20=20=20=20=20<!--=20make=20sure=20scripts=20are=20included=20-->
 =20=20=20=20=20=20=20=20<script=20type=3D"text/javascript"=20src=3D"script.=
-js"></script></head><body>The=20story=20so=20far:=20In=20the=20beginning=20=
-the=20Universe=20was=20created.=20This=20has=20made=20a=20lot=20of=20people=
-=20very=20angry=20and=20has=20been=20widely=20regarded=20as=20a=20bad=20mov=
-e.=20-=20Douglas=20Adams<br>
+js"></script>
 =20=20=20=20=20=20=20=20<!--=20...but=20don't=20crash=20on=20scripts=20with=
 out=20src=20-->
 =20=20=20=20=20=20=20=20<script>
 var=20l=20=3D=201+1;
 =20=20=20=20=20=20=20=20</script>
-=20=20=20=20
-=20=20=20=20
+=20=20=20=20</head>
+=20=20=20=20<body>
 =20=20=20=20=20=20=20=20<!--=20include=20a=20normal=20image=20-->
 =20=20=20=20=20=20=20=20<img=20src=3D"image.gif">
 =20=20=20=20=20=20=20=20<!--=20make=20sure=20only=20http(s)=20assets=20are=
@@ -59,7 +56,7 @@ requested=20once=20-->
 =20=20=20=20
 
 </body></html>
------=_qute-510287e3-01a6-4b99-8ec9-d0f703c87fef
+-----=_qute-e6103319-e76c-4b6a-bcae-c568a6307a42
 Content-Location: http://localhost:1234/data/downloads/mhtml/complex/background.png
 MIME-Version: 1.0
 Content-Type: image/png
@@ -146,7 +143,7 @@ YZ94xJLOaok75NKBIQU+U2KZEsvoI8N2NbajeKsqheMOXh7iCiEOa8N4XaTUhuYfFXm7UTEBXBIC
 BuP2n3WVJR33K1qrcikplMLNFeiIFPil1IbQCENK1WvTc7A6dVAI0aChTgpZlUi5mzr/vTj9za0p
 4n8BgjXlKCMEM1EAAAAASUVORK5CYII=
 
------=_qute-510287e3-01a6-4b99-8ec9-d0f703c87fef
+-----=_qute-e6103319-e76c-4b6a-bcae-c568a6307a42
 Content-Location: http://localhost:1234/data/downloads/mhtml/complex/base.css
 MIME-Version: 1.0
 Content-Type: text/css; charset=utf-8
@@ -156,7 +153,7 @@ div.fancy=20{
 =20=20=20=20background-color:=20url("div-image.png");
 }
 
------=_qute-510287e3-01a6-4b99-8ec9-d0f703c87fef
+-----=_qute-e6103319-e76c-4b6a-bcae-c568a6307a42
 Content-Location: http://localhost:1234/data/downloads/mhtml/complex/div-image.png
 MIME-Version: 1.0
 Content-Type: image/png
@@ -245,7 +242,7 @@ dGUAMjAxNS0xMS0xMlQxMjoxOTowMCswMTowMPsHOmMAAAAldEVYdGRhdGU6bW9kaWZ5ADIwMTUt
 MTEtMTJUMTI6MTk6MDArMDE6MDCKWoLfAAAAGXRFWHRTb2Z0d2FyZQB3d3cuaW5rc2NhcGUub3Jn
 m+48GgAAAABJRU5ErkJggg==
 
------=_qute-510287e3-01a6-4b99-8ec9-d0f703c87fef
+-----=_qute-e6103319-e76c-4b6a-bcae-c568a6307a42
 Content-Location: http://localhost:1234/data/downloads/mhtml/complex/extern-css.css
 MIME-Version: 1.0
 Content-Type: text/css; charset=utf-8
@@ -256,7 +253,7 @@ p=20{
 =20=20=20=20font-family:=20"Monospace";
 }
 
------=_qute-510287e3-01a6-4b99-8ec9-d0f703c87fef
+-----=_qute-e6103319-e76c-4b6a-bcae-c568a6307a42
 Content-Location: http://localhost:1234/data/downloads/mhtml/complex/external-in-external.css
 MIME-Version: 1.0
 Content-Type: text/css; charset=utf-8
@@ -266,7 +263,7 @@ img=20{
 =20=20=20=20width:=20100%;
 }
 
------=_qute-510287e3-01a6-4b99-8ec9-d0f703c87fef
+-----=_qute-e6103319-e76c-4b6a-bcae-c568a6307a42
 Content-Location: http://localhost:1234/data/downloads/mhtml/complex/favicon.ico
 MIME-Version: 1.0
 Content-Type: image/x-icon
@@ -571,7 +568,7 @@ AAAAAAAAB+AAAAAAAAAH8AAAAAAAAA/wAAAAAAAAD/gAAAAAAAAf/AAAAAAAAD/+AAAAAAAAf/4A
 AAAAAAD//wAAAAAAAP//gAAAAAAB///AAAAAAAf///AAAAAAD///+AAAAAAf///8AAAAAH////8A
 AAAA/////8AAAAP/////+AAAH///////AAD///8=
 
------=_qute-510287e3-01a6-4b99-8ec9-d0f703c87fef
+-----=_qute-e6103319-e76c-4b6a-bcae-c568a6307a42
 Content-Location: http://localhost:1234/data/downloads/mhtml/complex/image.gif
 MIME-Version: 1.0
 Content-Type: image/gif
@@ -692,7 +689,7 @@ Sn3aREkRHjZVrlyp0WAAw6BlzZ4VWmBBhxtAnpxRYyfPIEh1NWmixOjMmSty8GChIqMBWbSFDR+W
 SMAABBM8mDipQiaNnD2V7dhhQ+YIDhBiCSNABh26cIAABh5k+KBjSBIjSowMkZFhQYHPom3fPsuQ
 9O7auH3/Bh5c+HDixY0fR55c+XLmzZ0/hx5d+nTq1R0GBAA7
 
------=_qute-510287e3-01a6-4b99-8ec9-d0f703c87fef
+-----=_qute-e6103319-e76c-4b6a-bcae-c568a6307a42
 Content-Location: http://localhost:1234/data/downloads/mhtml/complex/inline.png
 MIME-Version: 1.0
 Content-Type: image/png
@@ -781,15 +778,12 @@ ZWF0ZQAyMDE1LTExLTEyVDEyOjE5OjAwKzAxOjAw+wc6YwAAACV0RVh0ZGF0ZTptb2RpZnkAMjAx
 NS0xMS0xMlQxMjoxOTowMCswMTowMIpagt8AAAAZdEVYdFNvZnR3YXJlAHd3dy5pbmtzY2FwZS5v
 cmeb7jwaAAAAAElFTkSuQmCC
 
------=_qute-510287e3-01a6-4b99-8ec9-d0f703c87fef
+-----=_qute-e6103319-e76c-4b6a-bcae-c568a6307a42
 Content-Location: http://localhost:1234/data/downloads/mhtml/complex/script.js
 MIME-Version: 1.0
 Content-Type: application/javascript
 Content-Transfer-Encoding: base64
 
-ZG9jdW1lbnQud3JpdGUoIlRoZSBzdG9yeSBzbyBmYXI6IEluIHRoZSBiZWdpbm5pbmcgdGhlIFVu
-aXZlcnNlIHdhcyBjcmVhdGVkLiBUaGlzIGhhcyBtYWRlIGEgbG90IG9mIHBlb3BsZSB2ZXJ5IGFu
-Z3J5IGFuZCBoYXMgYmVlbiB3aWRlbHkgcmVnYXJkZWQgYXMgYSBiYWQgbW92ZS4gLSBEb3VnbGFz
-IEFkYW1zPGJyPiIpCg==
+ZnVuY3Rpb24gbm9vcCgpIHt9Cm5vb3AoKTsK
 
------=_qute-510287e3-01a6-4b99-8ec9-d0f703c87fef--
+-----=_qute-e6103319-e76c-4b6a-bcae-c568a6307a42--
