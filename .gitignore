@@ -22,6 +22,7 @@ __pycache__
 /.coverage
 /htmlcov
 /.coverage.xml
+/.coverage.*
 /.tox
 /testresults.html
 /.cache
