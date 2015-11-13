@@ -27,6 +27,18 @@ import pytest_bdd as bdd
 bdd.scenarios('yankpaste.feature')
 
 
+@pytest.fixture(autouse=True)
+def skip_with_broken_clipboard(qapp):
+    """The clipboard seems to be broken on some platforms (OS X Yosemite?).
+
+    This skips the tests if this is the case.
+    """
+    clipboard = qapp.clipboard()
+    clipboard.setText("Does this work?")
+    if clipboard.text() != "Does this work?":
+        pytest.skip("Clipboard seems to be broken on this platform.")
+
+
 def _get_mode(qapp, what):
     """Get the QClipboard::Mode to use based on a string."""
     if what == 'clipboard':
