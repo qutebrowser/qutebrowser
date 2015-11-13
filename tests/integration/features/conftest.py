@@ -131,6 +131,11 @@ def compare_session(quteproc, expected):
     assert utils.partial_compare(data, expected)
 
 
+@bdd.then(bdd.parsers.parse('"{pattern}" should not be logged'))
+def ensure_not_logged(quteproc, pattern):
+    quteproc.ensure_not_logged(message=pattern)
+
+
 @bdd.then("no crash should happen")
 def no_crash():
     """Don't do anything.

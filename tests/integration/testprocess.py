@@ -49,6 +49,11 @@ class WaitForTimeout(Exception):
     """Raised when wait_for didn't get the expected message."""
 
 
+class BlacklistedMessageError(Exception):
+
+    """Raised when ensure_not_logged found a message."""
+
+
 class Line:
 
     """Container for a line of data the process emits.
@@ -219,12 +224,17 @@ class Process(QObject):
         else:
             return value == expected
 
-    def wait_for(self, timeout=None, **kwargs):
+    def wait_for(self, timeout=None, *, override_waited_for=False, **kwargs):
         """Wait until a given value is found in the data.
 
         Keyword arguments to this function get interpreted as attributes of the
         searched data. Every given argument is treated as a pattern which
         the attribute has to match against.
+
+        Args:
+            timeout: How long to wait for the message.
+            override_waited_for: If set, gets triggered by previous messages
+                                 again.
 
         Return:
             The matched line.
@@ -246,7 +256,7 @@ class Process(QObject):
                 value = getattr(line, key)
                 matches.append(self._match_data(value, expected))
 
-            if all(matches) and not line.waited_for:
+            if all(matches) and (not line.waited_for or override_waited_for):
                 # If we waited for this line, chances are we don't mean the
                 # same thing the next time we use wait_for and it matches
                 # this line again.
@@ -280,3 +290,18 @@ class Process(QObject):
                     # this line again.
                     line.waited_for = True
                     return line
+
+    def ensure_not_logged(self, delay=500, **kwargs):
+        """Make sure the data matching the given arguments is not logged.
+
+        If nothing is found in the log, we wait for delay ms to make sure
+        nothing arrives.
+        """
+        __tracebackhide__ = True
+        try:
+            line = self.wait_for(timeout=delay, override_waited_for=True,
+                                 **kwargs)
+        except WaitForTimeout:
+            return
+        else:
+            raise BlacklistedMessageError(line)

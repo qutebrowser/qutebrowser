@@ -74,13 +74,14 @@ class PythonProcess(testprocess.Process):
         return (sys.executable, ['-c', ';'.join(code)])
 
 
-class TestWaitFor:
+@pytest.yield_fixture
+def pyproc():
+    proc = PythonProcess()
+    yield proc
+    proc.terminate()
 
-    @pytest.yield_fixture
-    def pyproc(self):
-        proc = PythonProcess()
-        yield proc
-        proc.terminate()
+
+class TestWaitFor:
 
     def test_successful(self, pyproc):
         """Using wait_for with the expected text."""
@@ -134,3 +135,36 @@ class TestWaitFor:
         pyproc.wait_for(data="foobar")
         with pytest.raises(testprocess.WaitForTimeout):
             pyproc.wait_for(data="foobar", timeout=100)
+
+
+class TestEnsureNotLogged:
+
+    @pytest.mark.parametrize('message, pattern', [
+        ('blacklisted', 'blacklisted'),
+        ('bl[a]cklisted', 'bl[a]cklisted'),
+        ('blacklisted', 'black*'),
+    ])
+    def test_existing_message(self, pyproc, message, pattern):
+        pyproc.code = "print('{}')".format(message)
+        pyproc.start()
+        with stopwatch(max_ms=1000):
+            with pytest.raises(testprocess.BlacklistedMessageError):
+                pyproc.ensure_not_logged(data=pattern, delay=2000)
+
+    def test_late_message(self, pyproc):
+        pyproc.code = "time.sleep(0.5); print('blacklisted')"
+        pyproc.start()
+        with pytest.raises(testprocess.BlacklistedMessageError):
+            pyproc.ensure_not_logged(data='blacklisted', delay=1000)
+
+    def test_no_matching_message(self, pyproc):
+        pyproc.code = "print('blacklisted... nope!')"
+        pyproc.start()
+        pyproc.ensure_not_logged(data='blacklisted', delay=100)
+
+    def test_wait_for_and_blacklist(self, pyproc):
+        pyproc.code = "print('blacklisted')"
+        pyproc.start()
+        pyproc.wait_for(data='blacklisted')
+        with pytest.raises(testprocess.BlacklistedMessageError):
+            pyproc.ensure_not_logged(data='blacklisted', delay=0)
