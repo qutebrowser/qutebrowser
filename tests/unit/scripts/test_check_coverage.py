@@ -166,6 +166,7 @@ def test_tested_unlisted(covtest):
 @pytest.mark.parametrize('args, reason', [
     (['-k', 'foo'], "because -k is given."),
     (['-m', 'foo'], "because -m is given."),
+    (['--lf'], "because --lf is given."),
     (['blah', '-m', 'foo'], "because -m is given."),
     (['tests/foo'], "because there is nothing to check."),
 ])

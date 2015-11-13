@@ -162,6 +162,8 @@ def check(fileobj, perfect_files):
         raise Skipped("because -k is given.")
     elif '-m' in sys.argv[1:]:
         raise Skipped("because -m is given.")
+    elif '--lf' in sys.argv[1:]:
+        raise Skipped("because --lf is given.")
 
     perfect_src_files = [e[1] for e in perfect_files]
 
