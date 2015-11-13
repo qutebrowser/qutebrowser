@@ -42,3 +42,9 @@ Feature: Various utility commands.
     Scenario: :message-warning
         When I run :message-warning "Hello World"
         Then the warning "Hello World" should be shown.
+
+    Scenario: :jseval
+        When I set general -> log-javascript-console to true
+        And I run :jseval console.log("Hello from JS!");
+        And I wait for "[:0] Hello from JS!" in the log
+        Then the message "No output or error" should be shown.
