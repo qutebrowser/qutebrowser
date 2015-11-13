@@ -1,5 +1,7 @@
 Feature: Various utility commands.
 
+    ## :set-cmd-text
+
     Scenario: :set-cmd-text and :command-accept
         When I run :set-cmd-text :message-info "Hello World"
         And I run :command-accept
@@ -31,6 +33,8 @@ Feature: Various utility commands.
         When I run :set-cmd-text foo
         Then the error "Invalid command text 'foo'." should be shown.
 
+    ## :message-*
+
     Scenario: :message-error
         When I run :message-error "Hello World"
         Then the error "Hello World" should be shown.
@@ -42,6 +46,8 @@ Feature: Various utility commands.
     Scenario: :message-warning
         When I run :message-warning "Hello World"
         Then the warning "Hello World" should be shown.
+
+    ## :jseval
 
     Scenario: :jseval
         When I set general -> log-javascript-console to true
