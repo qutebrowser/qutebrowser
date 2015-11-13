@@ -224,6 +224,7 @@ class QuteProc(testprocess.Process):
         self._data is cleared after every test to provide at least some
         isolation.
         """
+        __tracebackhide__ = True
         return super().wait_for(timeout, **kwargs)
 
     def wait_for_load_finished(self, path, timeout=15000):

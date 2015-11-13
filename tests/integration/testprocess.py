@@ -227,6 +227,7 @@ class Process(QObject):
         Return:
             The matched line.
         """
+        __tracebackhide__ = True
         if timeout is None:
             if 'CI' in os.environ:
                 timeout = 15000
