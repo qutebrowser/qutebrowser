@@ -273,10 +273,8 @@ class KeyConfigParser(QObject):
             return True
         if keychain in bindings:
             return False
-        elif command in bindings.values():
-            return False
         else:
-            return True
+            return command not in bindings.values()
 
     def _read(self, relaxed=False):
         """Read the config file from disk and parse it.

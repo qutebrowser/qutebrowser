@@ -122,10 +122,7 @@ def _is_url_naive(urlstr):
     if not QHostAddress(urlstr).isNull():
         return False
 
-    if '.' in url.host():
-        return True
-    else:
-        return False
+    return '.' in url.host()
 
 
 def _is_url_dns(urlstr):
@@ -254,10 +251,7 @@ def is_url(urlstr):
         # no autosearch, so everything is a URL unless it has an explicit
         # search engine.
         engine, _term = _parse_search_term(urlstr)
-        if engine is None:
-            return True
-        else:
-            return False
+        return engine is None
 
     if not qurl_userinput.isValid():
         # This will also catch URLs containing spaces.

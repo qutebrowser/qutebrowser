@@ -110,11 +110,7 @@ def filter_func(item):
         True if the missing function should be filtered/ignored, False
         otherwise.
     """
-    if re.match(r'[a-z]+[A-Z][a-zA-Z]+', str(item)):
-        # probably a virtual Qt method
-        return True
-    else:
-        return False
+    return bool(re.match(r'[a-z]+[A-Z][a-zA-Z]+', str(item)))
 
 
 def report(items):

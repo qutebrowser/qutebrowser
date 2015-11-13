@@ -77,7 +77,7 @@ class HelpCompletionModel(base.BaseCompletionModel):
         """Fill completion with section->option entries."""
         cat = self.new_category("Settings")
         for sectname, sectdata in configdata.DATA.items():
-            for optname in sectdata.keys():
+            for optname in sectdata:
                 try:
                     desc = sectdata.descriptions[optname]
                 except (KeyError, AttributeError):

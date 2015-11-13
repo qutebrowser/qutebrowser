@@ -371,10 +371,8 @@ class QtWarningFilter(logging.Filter):
 
     def filter(self, record):
         """Determine if the specified record is to be logged."""
-        if record.msg.strip().startswith(self._pattern):
-            return False  # filter
-        else:
-            return True  # log
+        do_log = not record.msg.strip().startswith(self._pattern)
+        return do_log
 
 
 class LogFilter(logging.Filter):
