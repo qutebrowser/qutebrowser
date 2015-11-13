@@ -103,12 +103,13 @@ class TestWaitFor:
         with pytest.raises(testprocess.WaitForTimeout):
             pyproc.wait_for(data="foobar", timeout=100)
 
-    def test_existing_message(self, pyproc):
+    @pytest.mark.parametrize('message', ['foobar', 'literal [x]'])
+    def test_existing_message(self, message, pyproc):
         """Test with a message which already passed when waiting."""
-        pyproc.code = "print('foobar')"
+        pyproc.code = "print('{}')".format(message)
         pyproc.start()
         time.sleep(0.5)  # to make sure the message is printed
-        pyproc.wait_for(data="foobar")
+        pyproc.wait_for(data=message)
 
     def test_existing_message_previous_test(self, pyproc):
         """Make sure the message of a previous test gets ignored."""

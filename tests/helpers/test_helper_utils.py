@@ -48,3 +48,24 @@ def test_partial_compare_equal(val1, val2):
 ])
 def test_partial_compare_not_equal(val1, val2):
     assert not utils.partial_compare(val1, val2)
+
+
+@pytest.mark.parametrize('pattern, value, expected', [
+    ('foo', 'foo', True),
+    ('foo', 'bar', False),
+    ('foo', 'Foo', False),
+    ('foo', 'foobar', False),
+    ('foo', 'barfoo', False),
+
+    ('foo*', 'foobarbaz', True),
+    ('*bar', 'foobar', True),
+    ('foo*baz', 'foobarbaz', True),
+
+    ('foo[b]ar', 'foobar', False),
+    ('foo[b]ar', 'foo[b]ar', True),
+
+    ('foo?ar', 'foobar', False),
+    ('foo?ar', 'foo?ar', True),
+])
+def test_pattern_match(pattern, value, expected):
+    assert utils.pattern_match(pattern=pattern, value=value) == expected

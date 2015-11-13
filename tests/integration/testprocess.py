@@ -22,11 +22,12 @@
 import re
 import os
 import time
-import fnmatch
 
 import pytestqt.plugin  # pylint: disable=import-error
 from PyQt5.QtCore import pyqtSlot, pyqtSignal, QProcess, QObject, QElapsedTimer
 from PyQt5.QtTest import QSignalSpy
+
+from helpers import utils  # pylint: disable=import-error
 
 
 class InvalidLine(Exception):
@@ -199,7 +200,7 @@ class Process(QObject):
 
         - If expected is None, the filter always matches.
         - If the value is a string or bytes object and the expected value is
-          too, the pattern is treated as a fnmatch glob pattern.
+          too, the pattern is treated as a glob pattern (with only * active).
         - If the value is a string or bytes object and the expected value is a
           compiled regex, it is used for matching.
         - If the value is any other type, == is used.
@@ -213,7 +214,7 @@ class Process(QObject):
         elif isinstance(expected, regex_type):
             return expected.match(value)
         elif isinstance(value, (bytes, str)):
-            return fnmatch.fnmatchcase(value, expected)
+            return utils.pattern_match(pattern=expected, value=value)
         else:
             return value == expected
 

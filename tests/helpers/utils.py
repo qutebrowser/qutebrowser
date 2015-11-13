@@ -20,7 +20,7 @@
 """Partial comparison of dicts/lists."""
 
 
-import fnmatch
+import re
 import pprint
 
 
@@ -86,9 +86,19 @@ def partial_compare(val1, val2, *, indent=0):
         equal = abs(val1 - val2) < 0.00001
     elif isinstance(val2, str):
         print_i("|======= Doing string comparison", indent)
-        equal = fnmatch.fnmatchcase(val1, val2)
+        equal = pattern_match(pattern=val2, value=val1)
     else:
         print_i("|======= Comparing via ==", indent)
         equal = val1 == val2
     print_i("---> {}".format(equal), indent)
     return equal
+
+
+def pattern_match(*, pattern, value):
+    """Do fnmatch.fnmatchcase like matching, but only with * active.
+
+    Return:
+        True on a match, False otherwise.
+    """
+    re_pattern = '.*'.join(re.escape(part) for part in pattern.split('*'))
+    return re.fullmatch(re_pattern, value) is not None
