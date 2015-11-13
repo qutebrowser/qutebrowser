@@ -5,9 +5,9 @@ Open Sans font by https://www.google.com/fonts/specimen/Open+Sans[Google], licen
 
 [options="header"]
 |=================================================================================
-|File                   |Copyright
-|`OpenSans-Regular.ttf` |Digitized data copyright 2010-2011, Google Corporation.
-|`OpenSans-Bold.ttf`    |Digitized data copyright 2010-2011, Google Corporation.
+|File                     |Copyright
+|`OpenSans-Regular.woff2` |Digitized data copyright 2010-2011, Google Corporation.
+|`OpenSans-Bold.woff2`    |Digitized data copyright 2010-2011, Google Corporation.
 |=================================================================================
 
 
