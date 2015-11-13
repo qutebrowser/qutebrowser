@@ -79,6 +79,7 @@ class Process(QObject):
 
     ready = pyqtSignal()
     new_data = pyqtSignal(object)
+    KEYS = ['data']
 
     def __init__(self, parent=None):
         super().__init__(parent)
@@ -234,6 +235,9 @@ class Process(QObject):
                 timeout = 15000
             else:
                 timeout = 5000
+        for key in kwargs:
+            assert key in self.KEYS
+
         # Search existing messages
         for line in self._data:
             matches = []

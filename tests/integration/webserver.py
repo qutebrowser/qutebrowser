@@ -67,6 +67,8 @@ class HTTPBin(testprocess.Process):
         \ (?P<size>[^ ]*)
     """, re.VERBOSE)
 
+    KEYS = ['verb', 'path']
+
     def __init__(self, parent=None):
         super().__init__(parent)
         self.port = self._get_port()

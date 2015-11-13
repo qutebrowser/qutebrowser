@@ -127,6 +127,9 @@ class QuteProc(testprocess.Process):
 
     got_error = pyqtSignal()
 
+    KEYS = ['timestamp', 'loglevel', 'category', 'module', 'function', 'line',
+            'message']
+
     def __init__(self, httpbin, parent=None):
         super().__init__(parent)
         self._httpbin = httpbin
