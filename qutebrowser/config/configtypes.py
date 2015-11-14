@@ -1564,6 +1564,22 @@ class UserAgent(BaseType):
     def complete(self):
         """Complete a list of common user agents."""
         out = [
+            ('Mozilla/5.0 (Windows NT 6.1; WOW64; rv:41.0) Gecko/20100101 '
+             'Firefox/41.0',
+             "Firefox 41.0  Win7 64-bit"),
+            ('Mozilla/5.0 (Windows NT 6.1; WOW64; rv:40.0) Gecko/20100101 '
+             'Firefox/40.0',
+             "Firefox 40.0  Win7 64-bit"),
+
+            ('Mozilla/5.0 (Macintosh; Intel Mac OS X 10_10_5) '
+             'AppleWebKit/600.8.9 (KHTML, like Gecko) Version/8.0.8 '
+             'Safari/600.8.9',
+             "Safari 8.0  MacOSX"),
+            ('Mozilla/5.0 (Macintosh; Intel Mac OS X 10_11) '
+             'AppleWebKit/601.1.56 (KHTML, like Gecko) Version/9.0 '
+             'Safari/601.1.56',
+             "Safari Generic  MacOSX"),
+
             ('Mozilla/5.0 (Windows NT 6.1; WOW64) AppleWebKit/537.36 (KHTML, '
              'like Gecko) Chrome/45.0.2454.101 Safari/537.36',
              "Chrome 45.0  Win7 64-bit"),
@@ -1571,29 +1587,12 @@ class UserAgent(BaseType):
              'AppleWebKit/537.36 (KHTML, like Gecko) Chrome/45.0.2454.101 '
              'Safari/537.36',
              "Chrome 45.0  MacOSX"),
-            ('Mozilla/5.0 (Macintosh; Intel Mac OS X 10_10_5) '
-             'AppleWebKit/600.8.9 (KHTML, like Gecko) Version/8.0.8 '
-             'Safari/600.8.9',
-             "Safari 8.0  MacOSX"),
             ('Mozilla/5.0 (Windows NT 10.0; WOW64) AppleWebKit/537.36 (KHTML, '
              'like Gecko) Chrome/45.0.2454.101 Safari/537.36',
              "Chrome 45.0  Win10 64-bit"),
-            ('Mozilla/5.0 (Windows NT 6.1; WOW64; rv:41.0) Gecko/20100101 '
-             'Firefox/41.0',
-             "Firefox 41.0  Win7 64-bit"),
-            ('Mozilla/5.0 (Macintosh; Intel Mac OS X 10_11) '
-             'AppleWebKit/601.1.56 (KHTML, like Gecko) Version/9.0 '
-             'Safari/601.1.56',
-             "Safari Generic  MacOSX"),
             ('Mozilla/5.0 (Windows NT 6.3; WOW64) AppleWebKit/537.36 (KHTML, '
              'like Gecko) Chrome/45.0.2454.101 Safari/537.36',
              "Chrome 45.0  Win8.1 64-bit"),
-            ('Mozilla/5.0 (Windows NT 6.1; WOW64; rv:40.0) Gecko/20100101 '
-             'Firefox/40.0',
-             "Firefox 40.0  Win7 64-bit"),
-            ('Mozilla/5.0 (Windows NT 6.1; WOW64; Trident/7.0; rv:11.0) like '
-             'Gecko',
-             "IE 11.0 for Desktop  Win7 64-bit"),
             ('Mozilla/5.0 (Windows NT 6.1; WOW64) AppleWebKit/537.36 (KHTML, '
              'like Gecko) Chrome/45.0.2454.93 Safari/537.36',
              "Chrome 45.0  Win7 64-bit"),
@@ -1604,6 +1603,10 @@ class UserAgent(BaseType):
             ('Mozilla/5.0 (Windows NT 6.1; WOW64) AppleWebKit/537.36 (KHTML, '
              'like Gecko) Chrome/45.0.2454.99 Safari/537.36',
              "Chrome 45.0  Win7 64-bit"),
+
+            ('Mozilla/5.0 (Windows NT 6.1; WOW64; Trident/7.0; rv:11.0) like '
+             'Gecko',
+             "IE 11.0 for Desktop  Win7 64-bit"),
 
             ('Mozilla/5.0 (compatible; Googlebot/2.1; '
              '+http://www.google.com/bot.html',

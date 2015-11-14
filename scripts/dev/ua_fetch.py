@@ -29,33 +29,81 @@ script is formatted to be pasted into configtypes.py.
 import requests
 from lxml import html   # pylint: disable=import-error
 
-# Fetch list of popular user-agents and store the relevant strings
-url = 'https://techblog.willshouse.com/2012/01/03/most-common-user-agents/'
-page = requests.get(url)
-page = html.fromstring(page.text)
-path = '//*[@id="post-2229"]/div[2]/table/tbody'
-table = page.xpath(path)[0]
-indent = "    "
 
-# Print function defition followed by an automatically fetched list of popular
-# user agents and a few additional entries for diversity.
-print("%sdef complete(self):" % indent)
-print("%s\"\"\"Complete a list of common user agents.\"\"\"" % (2 * indent))
-print("%sout = [" % (2 * indent))
-for row in table[:12]:
-    ua = row[1].text_content()
-    browser = row[2].text_content()
-    print("%s(\'%s\',\n%s \"%s\")," % (3 * indent, ua, 3 * indent, browser))
-print("""
-            ('Mozilla/5.0 (iPhone; CPU iPhone OS 8_1_2 like Mac OS X) '
-             'AppleWebKit/600.1.4 (KHTML, like Gecko) Version/8.0 '
-             'Mobile/12B440 Safari/600.1.4',
-             "Mobile Safari 8.0 iOS"),
-            ('Mozilla/5.0 (Android; Mobile; rv:35.0) Gecko/35.0 Firefox/35.0',
-             "Firefox 35, Android"),
-            ('Mozilla/5.0 (Linux; Android 5.0.2; One Build/KTU84L.H4) '
-             'AppleWebKit/537.36 (KHTML, like Gecko) Version/4.0 '
-             'Chrome/37.0.0.0 Mobile Safari/537.36',
-             "Android Browser")
-""")
-print("%s]\n%sreturn out\n" % (2 * indent, 2 * indent))
+# Fetch list of popular user-agents and return list of relevant strings
+def fetch():
+    url = 'https://techblog.willshouse.com/2012/01/03/most-common-user-agents/'
+    page = requests.get(url)
+    page = html.fromstring(page.text)
+    path = '//*[@id="post-2229"]/div[2]/table/tbody'
+    return page.xpath(path)[0]
+
+
+# Filter the received list based on a look up table. The LUT should be a
+# dictionary of the format {browser: versions}, where 'browser' is the name of
+# the browser (eg. "Firefox") as string and 'versions' is a set of different
+# versions of this browser that should be included when found (eg. {"Linux",
+# "MacOSX"}). This function returns a dictionary with the same keys as the
+# LUT, but storing lists of tuples (user_agent, browser_description) as values.
+def filter_list(complete_list, browsers):
+    table = {}
+    for entry in complete_list:
+        # Tuple of (user_agent, browser_description)
+        candidate = (entry[1].text_content(), entry[2].text_content())
+        for name in browsers:
+            found = False
+            if name.lower() in candidate[1].lower():
+                for version in browsers[name]:
+                    if version.lower() in candidate[1].lower():
+                        if table.get(name) is None:
+                            table[name] = []
+                        table[name].append(candidate)
+                        browsers[name].remove(version)
+                        found = True
+                        break
+            if found:
+                break
+    return table
+
+
+# Insert a few additional entries for diversity into the dict (as returned by
+# filter_list())
+def add_diversity(table):
+    table["Obscure"] = [
+        ('Mozilla/5.0 (compatible; Googlebot/2.1; '
+         '+http://www.google.com/bot.html',
+         "Google Bot"),
+        ('Wget/1.16.1 (linux-gnu)',
+         "wget 1.16.1"),
+        ('curl/7.40.0',
+         "curl 7.40.0")
+    ]
+    return table
+
+
+if __name__ == '__main__':
+    fetched = fetch()
+    lut = {
+        "Firefox": {"Win", "MacOSX", "Linux", "Android"},
+        "Chrome": {"Win", "MacOSX", "Linux"},
+        "Safari": {"MacOSX", "iOS"}
+        }
+    filtered = filter_list(fetched, lut)
+    filtered = add_diversity(filtered)
+
+    tab = "    "
+    print("%sdef complete(self):" % tab)
+    print("%s\"\"\"Complete a list of common user agents.\"\"\"" % (2 * tab))
+    print("%sout = [" %(2 * tab))
+
+    for browser in ["Firefox", "Safari", "Chrome", "Obscure"]:
+        for it in filtered[browser]:
+            print("%s(\'%s\',\n%s \"%s\")," % (3 * tab, it[0], 3 * tab, it[1]))
+        print("")
+
+    print("""\
+            ('Mozilla/5.0 (Windows NT 6.1; WOW64; Trident/7.0; rv:11.0) like '
+             'Gecko',
+             "IE 11.0 for Desktop  Win7 64-bit")""")
+
+    print("%s]\n%sreturn out\n" % (2 * tab, 2 * tab))
