@@ -164,9 +164,10 @@ class CommandDispatcher:
             perc = 100
         elif perc is None:
             perc = count
-        if perc == 0:
+
+        if perc == 0 and orientation == Qt.Vertical:
             self.scroll('top')
-        elif perc == 100:
+        elif perc == 100 and orientation == Qt.Vertical:
             self.scroll('bottom')
         else:
             perc = qtutils.check_overflow(perc, 'int', fatal=False)

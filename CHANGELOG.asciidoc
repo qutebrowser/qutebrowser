@@ -86,6 +86,7 @@ Fixed
   `storage -> prompt-download-directory` was unset.
 - Fixed crash when using `:follow-hint` outside of hint mode.
 - Fixed crash when using `:set foo bar?` with invalid section/option.
+- Fixed scrolling to the very left/right with `:scroll-perc`.
 
 v0.4.1
 ------
