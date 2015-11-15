@@ -74,3 +74,29 @@ Feature: Various utility commands.
     Scenario: :jseval with a long, truncated value
         When I run :jseval Array(5002).join("x")
         Then the message "x* [...trimmed...]" should be shown.
+
+    # :debug-webaction
+
+    Scenario: :debug-webaction with valid value
+        Given I open data/backforward/1.txt
+        When I open data/backforward/2.txt
+        And I run :tab-only
+        And I run :debug-webaction Back
+        And I wait until data/backforward/1.txt is loaded
+        Then the session should look like:
+            windows:
+            - tabs:
+              - history:
+                - active: true
+                  url: http://localhost:*/data/backforward/1.txt
+                - url: http://localhost:*/data/backforward/2.txt
+
+    Scenario: :debug-webaction with invalid value
+        When I open data/hello.txt
+        And I run :debug-webaction blah
+        Then the error "blah is not a valid web action!" should be shown.
+
+    Scenario: :debug-webaction with non-webaction member
+        When I open data/hello.txt
+        And I run :debug-webaction PermissionUnknown
+        Then the error "PermissionUnknown is not a valid web action!" should be shown.
