@@ -54,3 +54,23 @@ Feature: Various utility commands.
         And I run :jseval console.log("Hello from JS!");
         And I wait for "[:0] Hello from JS!" in the log
         Then the message "No output or error" should be shown.
+
+    Scenario: :jseval without logging
+        When I set general -> log-javascript-console to false
+        And I run :jseval console.log("Hello from JS!");
+        Then the message "No output or error" should be shown.
+        And "[:0] Hello from JS!" should not be logged
+
+    Scenario: :jseval with --quiet
+        When I set general -> log-javascript-console to true
+        And I run :jseval --quiet console.log("Hello from JS!");
+        And I wait for "[:0] Hello from JS!" in the log
+        Then "No output or error" should not be logged
+
+    Scenario: :jseval with a value
+        When I run :jseval "foo"
+        Then the message "foo" should be shown.
+
+    Scenario: :jseval with a long, truncated value
+        When I run :jseval Array(5002).join("x")
+        Then the message "x* [...trimmed...]" should be shown.
