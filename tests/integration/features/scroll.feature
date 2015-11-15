@@ -128,3 +128,12 @@ Feature: Scrolling
         When I run :scroll-page 1 0
         And I run :scroll-page -1 0
         Then the page should not be scrolled.
+
+    Scenario: :scroll-page with --bottom-navigate
+        When I run :scroll-perc 100
+        And I run :scroll-page --bottom-navigate next 0 1
+        Then data/hello.txt should be loaded
+
+    Scenario: :scroll-page with --top-navigate
+        When I run :scroll-page --top-navigate prev 0 -1
+        Then data/hello2.txt should be loaded
