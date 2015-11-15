@@ -5,6 +5,8 @@ Feature: Scrolling
         Given I open data/scroll.html
         And I run :tab-only
 
+    ## :scroll-px
+
     Scenario: Scrolling pixel-wise vertically
         When I run :scroll-px 0 10
         Then the page should be scrolled vertically.
@@ -12,6 +14,8 @@ Feature: Scrolling
     Scenario: Scrolling pixel-wise horizontally
         When I run :scroll-px 10 0
         Then the page should be scrolled horizontally.
+
+    ## :scroll
 
     Scenario: Scrolling down
         When I run :scroll down
