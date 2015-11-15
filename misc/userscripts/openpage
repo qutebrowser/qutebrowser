@@ -1,0 +1,3 @@
+#!/usr/bin/env bash
+
+"${XDG_DATA_HOME:-$HOME/.local/share}"/qutebrowser/userscripts/qutedmenu open
