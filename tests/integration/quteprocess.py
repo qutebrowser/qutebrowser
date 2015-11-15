@@ -195,8 +195,11 @@ class QuteProc(testprocess.Process):
                 str(e) for e in bad_msgs)
             pytest.fail(text, pytrace=False)
 
-    def send_cmd(self, command):
+    def send_cmd(self, command, count=None):
         assert self._ipc_socket is not None
+
+        if count is not None:
+            command = ':{}:{}'.format(count, command.lstrip(':'))
 
         ipc.send_to_running_instance(self._ipc_socket, [command],
                                      target_arg='')

@@ -15,6 +15,28 @@ Feature: Scrolling
         When I run :scroll-px 10 0
         Then the page should be scrolled horizontally.
 
+    Scenario: Scrolling down and up
+        When I run :scroll-px 10 0
+        And I run :scroll-px -10 0
+        Then the page should not be scrolled.
+
+    Scenario: Scrolling right and left
+        When I run :scroll-px 0 10
+        And I run :scroll-px 0 -10
+        Then the page should not be scrolled.
+
+    Scenario: Scrolling down and up with count
+        When I run :scroll-px 0 10 with count 2
+        When I run :scroll-px 0 -10
+        When I run :scroll-px 0 -10
+        Then the page should not be scrolled.
+
+    Scenario: Scrolling left and right with count
+        When I run :scroll-px 10 0 with count 2
+        When I run :scroll-px -10 0
+        When I run :scroll-px -10 0
+        Then the page should not be scrolled.
+
     ## :scroll
 
     Scenario: Scrolling down
@@ -63,6 +85,27 @@ Feature: Scrolling
         Then the warning ":scroll with dx/dy arguments is deprecated - use :scroll-px instead!" should be shown.
         Then the page should be scrolled vertically.
 
+    Scenario: Scrolling down and up with count
+        When I run :scroll down with count 2
+        And I run :scroll up
+        And I run :scroll up
+        Then the page should not be scrolled.
+
+    Scenario: Scrolling right
+        When I run :scroll right
+        Then the page should be scrolled horizontally.
+
+    Scenario: Scrolling right and left
+        When I run :scroll right
+        And I run :scroll left
+        Then the page should not be scrolled.
+
+    Scenario: Scrolling right and left with count
+        When I run :scroll right with count 2
+        And I run :scroll left
+        And I run :scroll left
+        Then the page should not be scrolled.
+
     ## :scroll-perc
 
     Scenario: Scrolling to bottom with :scroll-perc
@@ -109,6 +152,10 @@ Feature: Scrolling
         When I run :scroll-perc --horizontal
         Then the page should be scrolled horizontally.
 
+    Scenario: :scroll-perc with count
+        When I run :scroll-perc with count 50
+        Then the page should be scrolled vertically.
+
     ## :scroll-page
 
     Scenario: Scrolling down with :scroll-page
@@ -126,6 +173,12 @@ Feature: Scrolling
 
     Scenario: Scrolling right and left with :scroll-page
         When I run :scroll-page 1 0
+        And I run :scroll-page -1 0
+        Then the page should not be scrolled.
+
+    Scenario: Scrolling right and left with :scroll-page and count
+        When I run :scroll-page 1 0 with count 2
+        And I run :scroll-page -1 0
         And I run :scroll-page -1 0
         Then the page should not be scrolled.
 

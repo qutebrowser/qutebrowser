@@ -62,6 +62,23 @@ Feature: Going back and forward.
                   url: http://localhost:*/data/backforward/1.txt
                 - url: http://localhost:*/data/backforward/2.txt
 
+    Scenario: Going back with count.
+        Given I open data/backforward/1.txt
+        When I open data/backforward/2.txt
+        And I open data/backforward/3.txt
+        And I run :tab-only
+        And I run :back with count 2
+        And I wait until data/backforward/1.txt is loaded
+        And I reload
+        Then the session should look like:
+            windows:
+            - tabs:
+              - history:
+                - active: true
+                  url: http://localhost:*/data/backforward/1.txt
+                - url: http://localhost:*/data/backforward/2.txt
+                - url: http://localhost:*/data/backforward/3.txt
+
     Scenario: Going back in a new window
         Given I have a fresh instance
         When I open data/backforward/1.txt

@@ -2,7 +2,7 @@ Feature: Zooming in and out
 
     Background:
         Given I open data/hello.txt
-        And I set ui -> zoom-levels to 50%,90%,110%
+        And I set ui -> zoom-levels to 50%,90%,100%,110%,120%
         And I run :tab-only
 
     Scenario: Zooming in
@@ -15,10 +15,25 @@ Feature: Zooming in and out
         Then the message "Zoom level: 90%" should be shown.
         And the zoom should be 90%
 
+    Scenario: Zooming in with count
+        When I run :zoom-in with count 2
+        Then the message "Zoom level: 120%" should be shown.
+        And the zoom should be 120%
+
+    Scenario: Zooming out with count
+        When I run :zoom-out with count 2
+        Then the message "Zoom level: 50%" should be shown.
+        And the zoom should be 50%
+
     Scenario: Setting zoom
         When I run :zoom 50
         Then the message "Zoom level: 50%" should be shown.
         And the zoom should be 50%
+
+    Scenario: Setting zoom with count
+        When I run :zoom with count 40
+        Then the message "Zoom level: 40%" should be shown.
+        And the zoom should be 40%
 
     Scenario: Resetting zoom
         When I set ui -> default-zoom to 42%

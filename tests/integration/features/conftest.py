@@ -62,8 +62,13 @@ def fresh_instance(quteproc):
 
 @bdd.when(bdd.parsers.parse("I run {command}"))
 def run_command_when(quteproc, httpbin, command):
+    if 'with count' in command:
+        command, count = command.split(' with count ')
+        count = int(count)
+    else:
+        count = None
     command = command.replace('(port)', str(httpbin.port))
-    quteproc.send_cmd(command)
+    quteproc.send_cmd(command, count=count)
 
 
 @bdd.when(bdd.parsers.parse("I reload"))
