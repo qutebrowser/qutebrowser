@@ -29,7 +29,8 @@ from qutebrowser.utils import message, log, objreg, qtutils
 from qutebrowser.misc import split
 
 
-ParseResult = collections.namedtuple('ParseResult', 'cmd, args, cmdline')
+ParseResult = collections.namedtuple('ParseResult', ['cmd', 'args', 'cmdline',
+                                                     'count'])
 
 
 def replace_variables(win_id, arglist):
@@ -128,9 +129,19 @@ class CommandRunner(QObject):
             keep: Whether to keep special chars and whitespace
 
         Return:
-            A (cmd, args, cmdline) ParseResult tuple.
+            A ParseResult tuple.
         """
         cmdstr, sep, argstr = text.partition(' ')
+        if ':' in cmdstr:
+            count, cmdstr = cmdstr.split(':', maxsplit=1)
+            try:
+                count = int(count)
+            except ValueError as e:
+                # We just ignore invalid prefixes
+                count = None
+        else:
+            count = None
+
         if not cmdstr and not fallback:
             raise cmdexc.NoSuchCommandError("No command given")
         if aliases:
@@ -161,7 +172,7 @@ class CommandRunner(QObject):
                 cmdline = [cmdstr, sep]
             else:
                 cmdline = [cmdstr] + args[:]
-        return ParseResult(cmd=cmd, args=args, cmdline=cmdline)
+        return ParseResult(cmd=cmd, args=args, cmdline=cmdline, count=count)
 
     def _split_args(self, cmd, argstr, keep):
         """Split the arguments from an arg string.
@@ -216,7 +227,12 @@ class CommandRunner(QObject):
         for result in self.parse_all(text):
             args = replace_variables(self._win_id, result.args)
             if count is not None:
+                if result.count is not None:
+                    raise cmdexc.CommandMetaError("Got count via command and "
+                                                  "prefix!")
                 result.cmd.run(self._win_id, args, count=count)
+            elif result.count is not None:
+                result.cmd.run(self._win_id, args, count=result.count)
             else:
                 result.cmd.run(self._win_id, args)
 
