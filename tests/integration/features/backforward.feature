@@ -43,6 +43,19 @@ Feature: Going back and forward.
                   url: http://localhost:*/data/backforward/1.txt
                 - url: http://localhost:*/data/backforward/2.txt
 
+    Scenario: Going back in a new tab without history
+        Given I open data/backforward/1.txt
+        When I run :tab-only
+        And I run :back -t
+        Then the error "At beginning of history." should be shown.
+        Then the session should look like:
+            windows:
+            - tabs:
+              - active: true
+                history:
+                - active: true
+                  url: http://localhost:*/data/backforward/1.txt
+
     Scenario: Going back in a new background tab
         Given I open data/backforward/1.txt
         When I open data/backforward/2.txt
