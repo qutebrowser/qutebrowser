@@ -152,31 +152,6 @@ class CommandDispatcher:
         else:
             return None
 
-    def _scroll_percent(self, perc=None, count=None, orientation=None):
-        """Inner logic for scroll_percent_(x|y).
-
-        Args:
-            perc: How many percent to scroll, or None
-            count: How many percent to scroll, or None
-            orientation: Qt.Horizontal or Qt.Vertical
-        """
-        if perc is None and count is None:
-            perc = 100
-        elif perc is None:
-            perc = count
-
-        if perc == 0 and orientation == Qt.Vertical:
-            self.scroll('top')
-        elif perc == 100 and orientation == Qt.Vertical:
-            self.scroll('bottom')
-        else:
-            perc = qtutils.check_overflow(perc, 'int', fatal=False)
-            frame = self._current_widget().page().currentFrame()
-            m = frame.scrollBarMaximum(orientation)
-            if m == 0:
-                return
-            frame.setScrollBarValue(orientation, int(m * perc / 100))
-
     def _tab_move_absolute(self, idx):
         """Get an index for moving a tab absolutely.
 
@@ -651,8 +626,24 @@ class CommandDispatcher:
             horizontal: Scroll horizontally instead of vertically.
             count: Percentage to scroll.
         """
-        self._scroll_percent(perc, count,
-                             Qt.Horizontal if horizontal else Qt.Vertical)
+        if perc is None and count is None:
+            perc = 100
+        elif perc is None:
+            perc = count
+
+        orientation = Qt.Horizontal if horizontal else Qt.Vertical
+
+        if perc == 0 and orientation == Qt.Vertical:
+            self.scroll('top')
+        elif perc == 100 and orientation == Qt.Vertical:
+            self.scroll('bottom')
+        else:
+            perc = qtutils.check_overflow(perc, 'int', fatal=False)
+            frame = self._current_widget().page().currentFrame()
+            m = frame.scrollBarMaximum(orientation)
+            if m == 0:
+                return
+            frame.setScrollBarValue(orientation, int(m * perc / 100))
 
     @cmdutils.register(instance='command-dispatcher', hide=True,
                        scope='window', count='count')
