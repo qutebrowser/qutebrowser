@@ -99,12 +99,12 @@ def wait_for_message(quteproc, httpbin, category, message):
 @bdd.then(bdd.parsers.parse("{path} should be loaded"))
 def path_should_be_loaded(httpbin, path):
     requests = httpbin.get_requests()
-    assert requests[-1] == httpbin.Request('GET', '/' + path)
+    assert requests[-1] == httpbin.ExpectedRequest('GET', '/' + path)
 
 
 @bdd.then(bdd.parsers.parse("The requests should be:\n{pages}"))
 def list_of_loaded_pages(httpbin, pages):
-    expected_requests = [httpbin.Request('GET', '/' + path.strip())
+    expected_requests = [httpbin.ExpectedRequest('GET', '/' + path.strip())
                          for path in pages.split('\n')]
     actual_requests = httpbin.get_requests()
     assert actual_requests == expected_requests

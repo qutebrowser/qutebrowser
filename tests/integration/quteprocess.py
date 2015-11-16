@@ -47,13 +47,6 @@ def is_ignored_qt_message(message):
     return False
 
 
-class NoLineMatch(Exception):
-
-    """Raised by LogLine on unmatched lines."""
-
-    pass
-
-
 class LogLine(testprocess.Line):
 
     """A parsed line from the qutebrowser log output.
@@ -78,7 +71,7 @@ class LogLine(testprocess.Line):
         super().__init__(data)
         match = self.LOG_RE.match(data)
         if match is None:
-            raise NoLineMatch(data)
+            raise testprocess.InvalidLine(data)
 
         self.timestamp = datetime.datetime.strptime(match.group('timestamp'),
                                                     '%H:%M:%S')
@@ -138,7 +131,7 @@ class QuteProc(testprocess.Process):
     def _parse_line(self, line):
         try:
             log_line = LogLine(line)
-        except NoLineMatch:
+        except testprocess.InvalidLine:
             if line.startswith('  '):
                 # Multiple lines in some log output...
                 return None
@@ -147,7 +140,7 @@ class QuteProc(testprocess.Process):
             elif is_ignored_qt_message(line):
                 return None
             else:
-                raise testprocess.InvalidLine
+                raise
 
         if (log_line.loglevel in ['INFO', 'WARNING', 'ERROR'] or
                 pytest.config.getoption('--verbose')):
