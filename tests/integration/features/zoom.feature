@@ -20,6 +20,12 @@ Feature: Zooming in and out
         Then the message "Zoom level: 120%" should be shown.
         And the zoom should be 120%
 
+    # https://github.com/The-Compiler/qutebrowser/issues/1118
+    Scenario: Zooming in with very big count
+        When I run :zoom-in with count 99999999999
+        Then the message "Zoom level: 100%" should be shown.
+        And the zoom should be 100%
+
     Scenario: Zooming out with count
         When I run :zoom-out with count 2
         Then the message "Zoom level: 50%" should be shown.
@@ -45,3 +51,7 @@ Feature: Zooming in and out
     Scenario: Setting zoom to invalid value
         When I run :zoom -1
         Then the error "Can't zoom -1%!" should be shown.
+
+    Scenario: Setting zoom with very big count
+        When I run :zoom with count 99999999999
+        Then the message "Zoom level: 99999999999%" should be shown.

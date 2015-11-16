@@ -79,6 +79,14 @@ Feature: Going back and forward.
                 - url: http://localhost:*/data/backforward/2.txt
                 - url: http://localhost:*/data/backforward/3.txt
 
+    Scenario: Going back with very big count.
+        Given I open data/backforward/1.txt
+        When I run :back with count 99999999999
+        # Make sure it doesn't hang
+        And I run :message-info "Still alive!"
+        Then the error "At beginning of history." should be shown.
+        And the message "Still alive!" should be shown.
+
     Scenario: Going back in a new window
         Given I have a fresh instance
         When I open data/backforward/1.txt
