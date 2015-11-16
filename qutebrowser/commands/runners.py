@@ -118,6 +118,26 @@ class CommandRunner(QObject):
         for sub in sub_texts:
             yield self.parse(sub, *args, **kwargs)
 
+    def _parse_count(self, cmdstr):
+        """Split a count prefix off from a command for parse().
+
+        Args:
+            cmdstr: The command/args including the count.
+
+        Return:
+            A (count, cmdstr) tuple, with count being None or int.
+        """
+        if ':' not in cmdstr:
+            return (None, cmdstr)
+
+        count, cmdstr = cmdstr.split(':', maxsplit=1)
+        try:
+            count = int(count)
+        except ValueError:
+            # We just ignore invalid prefixes
+            count = None
+        return (count, cmdstr)
+
     def parse(self, text, *, aliases=True, fallback=False, keep=False):
         """Split the commandline text into command and arguments.
 
@@ -132,15 +152,7 @@ class CommandRunner(QObject):
             A ParseResult tuple.
         """
         cmdstr, sep, argstr = text.partition(' ')
-        if ':' in cmdstr:
-            count, cmdstr = cmdstr.split(':', maxsplit=1)
-            try:
-                count = int(count)
-            except ValueError as e:
-                # We just ignore invalid prefixes
-                count = None
-        else:
-            count = None
+        count, cmdstr = self._parse_count(cmdstr)
 
         if not cmdstr and not fallback:
             raise cmdexc.NoSuchCommandError("No command given")
