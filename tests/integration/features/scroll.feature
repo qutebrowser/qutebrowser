@@ -41,6 +41,11 @@ Feature: Scrolling
         When I run :scroll-px 99999999999 0
         Then the error "Numeric argument is too large for internal int representation." should be shown.
 
+    Scenario: :scroll-px on a page without scrolling
+        When I open data/hello.txt
+        And I run :scroll-px 10 10
+        Then no crash should happen
+
     ## :scroll
 
     Scenario: Scrolling down
@@ -116,6 +121,11 @@ Feature: Scrolling
         And I run :message-info "Still alive!"
         Then the message "Still alive!" should be shown.
 
+    Scenario: :scroll on a page without scrolling
+        When I open data/hello.txt
+        And I run :scroll down
+        Then no crash should happen
+
     ## :scroll-perc
 
     Scenario: Scrolling to bottom with :scroll-perc
@@ -170,6 +180,11 @@ Feature: Scrolling
         When I run :scroll-perc 99999999999
         Then no crash should happen
 
+    Scenario: :scroll-perc on a page without scrolling
+        When I open data/hello.txt
+        And I run :scroll-perc 20
+        Then no crash should happen
+
     ## :scroll-page
 
     Scenario: Scrolling down with :scroll-page
@@ -208,3 +223,8 @@ Feature: Scrolling
     Scenario: :scroll-page with a very big value
         When I run :scroll-page 99999999999 99999999999
         Then the error "Numeric argument is too large for internal int representation." should be shown.
+
+    Scenario: :scroll-page on a page without scrolling
+        When I open data/hello.txt
+        And I run :scroll-page 1 1
+        Then no crash should happen
