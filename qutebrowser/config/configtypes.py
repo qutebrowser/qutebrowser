@@ -1569,49 +1569,41 @@ class UserAgent(BaseType):
     def validate(self, value):
         self._basic_validation(value)
 
+    # To update the following list of user agents, run the script 'ua_fetch.py'
+    # Vim-protip: Place your cursor below this comment and run
+    # :r!python scripts/dev/ua_fetch.py
     def complete(self):
         """Complete a list of common user agents."""
         out = [
-            ('Mozilla/5.0 (Windows NT 6.1; WOW64; rv:35.0) Gecko/20100101 '
-             'Firefox/35.0',
-             "Firefox 35.0 Win7 64-bit"),
-            ('Mozilla/5.0 (X11; Ubuntu; Linux x86_64; rv:35.0) Gecko/20100101 '
-             'Firefox/35.0',
-             "Firefox 35.0 Ubuntu"),
-            ('Mozilla/5.0 (Macintosh; Intel Mac OS X 10.10; rv:35.0) '
-             'Gecko/20100101 Firefox/35.0',
-             "Firefox 35.0 MacOSX"),
+            ('Mozilla/5.0 (Windows NT 6.1; WOW64; rv:41.0) Gecko/20100101 '
+             'Firefox/41.0',
+             "Firefox 41.0  Win7 64-bit"),
+            ('Mozilla/5.0 (Macintosh; Intel Mac OS X 10.10; rv:41.0) '
+             'Gecko/20100101 Firefox/41.0',
+             "Firefox 41.0  MacOSX"),
+            ('Mozilla/5.0 (X11; Linux x86_64; rv:41.0) Gecko/20100101 '
+             'Firefox/41.0',
+             "Firefox 41.0  Linux"),
 
-            ('Mozilla/5.0 (Macintosh; Intel Mac OS X 10_10_2) '
-             'AppleWebKit/600.3.18 (KHTML, like Gecko) Version/8.0.3 '
-             'Safari/600.3.18',
-             "Safari 8.0 MacOSX"),
+            ('Mozilla/5.0 (Macintosh; Intel Mac OS X 10_11_1) '
+             'AppleWebKit/601.2.7 (KHTML, like Gecko) Version/9.0.1 '
+             'Safari/601.2.7',
+             "Safari Generic  MacOSX"),
+            ('Mozilla/5.0 (iPad; CPU OS 9_1 like Mac OS X) '
+             'AppleWebKit/601.1.46 (KHTML, like Gecko) Version/9.0 '
+             'Mobile/13B143 Safari/601.1',
+             "Mobile Safari Generic  iOS"),
 
             ('Mozilla/5.0 (Windows NT 6.1; WOW64) AppleWebKit/537.36 (KHTML, '
-             'like Gecko) Chrome/40.0.2214.111 Safari/537.36',
-             "Chrome 40.0 Win7 64-bit"),
-            ('Mozilla/5.0 (Macintosh; Intel Mac OS X 10_10_2) '
-             'AppleWebKit/537.36 (KHTML, like Gecko) Chrome/40.0.2214.111 '
+             'like Gecko) Chrome/46.0.2490.80 Safari/537.36',
+             "Chrome 46.0  Win7 64-bit"),
+            ('Mozilla/5.0 (Macintosh; Intel Mac OS X 10_10_5) '
+             'AppleWebKit/537.36 (KHTML, like Gecko) Chrome/46.0.2490.80 '
              'Safari/537.36',
-             "Chrome 40.0 MacOSX"),
-            ('Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 '
-             '(KHTML, like Gecko) Chrome/40.0.2214.111 Safari/537.36',
-             "Chrome 40.0 Linux"),
-
-            ('Mozilla/5.0 (Windows NT 6.1; WOW64; Trident/7.0; rv:11.0) like '
-             'Gecko',
-             "IE 11.0 Win7 64-bit"),
-
-            ('Mozilla/5.0 (iPhone; CPU iPhone OS 8_1_2 like Mac OS X) '
-             'AppleWebKit/600.1.4 (KHTML, like Gecko) Version/8.0 '
-             'Mobile/12B440 Safari/600.1.4',
-             "Mobile Safari 8.0 iOS"),
-            ('Mozilla/5.0 (Android; Mobile; rv:35.0) Gecko/35.0 Firefox/35.0',
-             "Firefox 35, Android"),
-            ('Mozilla/5.0 (Linux; Android 5.0.2; One Build/KTU84L.H4) '
-             'AppleWebKit/537.36 (KHTML, like Gecko) Version/4.0 '
-             'Chrome/37.0.0.0 Mobile Safari/537.36',
-             "Android Browser"),
+             "Chrome 46.0  MacOSX"),
+            ('Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, '
+             'like Gecko) Chrome/46.0.2490.80 Safari/537.36',
+             "Chrome 46.0  Linux"),
 
             ('Mozilla/5.0 (compatible; Googlebot/2.1; '
              '+http://www.google.com/bot.html',
@@ -1619,7 +1611,11 @@ class UserAgent(BaseType):
             ('Wget/1.16.1 (linux-gnu)',
              "wget 1.16.1"),
             ('curl/7.40.0',
-             "curl 7.40.0")
+             "curl 7.40.0"),
+
+            ('Mozilla/5.0 (Windows NT 6.1; WOW64; Trident/7.0; rv:11.0) like '
+             'Gecko',
+             "IE 11.0 for Desktop  Win7 64-bit")
         ]
         return out
 
