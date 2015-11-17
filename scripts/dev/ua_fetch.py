@@ -22,7 +22,7 @@
 
 """Fetch list of popular user-agents.
 
-The script is based on a gist posted by github.com/averrin, the ouput of this
+The script is based on a gist posted by github.com/averrin, the output of this
 script is formatted to be pasted into configtypes.py.
 """
 
@@ -87,7 +87,7 @@ if __name__ == '__main__':
         "Firefox": {"Win", "MacOSX", "Linux", "Android"},
         "Chrome": {"Win", "MacOSX", "Linux"},
         "Safari": {"MacOSX", "iOS"}
-        }
+    }
     filtered = filter_list(fetched, lut)
     filtered = add_diversity(filtered)
 
