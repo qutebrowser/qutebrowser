@@ -3,7 +3,7 @@
 
 # Broken out to two files to handle flag passing
 #:bind o spawn --userscript /path/to/userscripts/qutedmenu open
-#:bind O spawn --userscript /path/to/userscripts/qutedmenu
+#:bind O spawn --userscript /path/to/userscripts/qutedmenu tab
 
 # If you would like to set a custom colorscheme/font use these dirs.
 # https://github.com/halfwit/dotfiles/blob/master/.config/dmenu/bemenucolors
@@ -57,5 +57,5 @@ url=${url/*http/http}
 
 case $1 in
     open) printf '%s' "open $url" >> "$QUTE_FIFO" || qutebrowser "$url" ;;
-    *)    printf '%s' "open -t $url" >> "$QUTE_FIFO" || qutebrowser "$url"  ;;
+    tab)    printf '%s' "open -t $url" >> "$QUTE_FIFO" || qutebrowser "$url"  ;;
 esac
