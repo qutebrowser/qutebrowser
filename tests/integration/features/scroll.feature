@@ -152,6 +152,10 @@ Feature: Scrolling
         When I run :scroll-perc 50
         Then the page should be scrolled vertically.
 
+    Scenario: Scrolling to middle with :scroll-perc (float)
+        When I run :scroll-perc 50.5
+        Then the page should be scrolled vertically.
+
     Scenario: Scrolling to middle and to top with :scroll-perc
         When I run :scroll-perc 50
         And I run :scroll-perc 0
@@ -202,6 +206,10 @@ Feature: Scrolling
         When I run :scroll-page 0 1
         Then the page should be scrolled vertically.
 
+    Scenario: Scrolling down with :scroll-page (float)
+        When I run :scroll-page 0 1.5
+        Then the page should be scrolled vertically.
+
     Scenario: Scrolling down and up with :scroll-page
         When I run :scroll-page 0 1
         And I run :scroll-page 0 -1
@@ -209,6 +217,10 @@ Feature: Scrolling
 
     Scenario: Scrolling right with :scroll-page
         When I run :scroll-page 1 0
+        Then the page should be scrolled horizontally.
+
+    Scenario: Scrolling right with :scroll-page (float)
+        When I run :scroll-page 1.5 0
         Then the page should be scrolled horizontally.
 
     Scenario: Scrolling right and left with :scroll-page

@@ -685,7 +685,7 @@ class CommandDispatcher:
                 pass
             elif mult_y < 0:
                 self.scroll('page-up', count=-int(mult_y))
-            elif mult_y > 0:
+            elif mult_y > 0:  # pragma: no branch
                 self.scroll('page-down', count=int(mult_y))
             mult_y = 0
         if mult_x == 0 and mult_y == 0:
