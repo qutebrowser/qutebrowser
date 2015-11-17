@@ -2,7 +2,8 @@
 # Handle open -s && open -t with bemenu
 
 # Broken out to two files to handle flag passing
-#:bind o spawn --userscript /path/to/userscripts/qutedmenu
+#:bind o spawn --userscript /path/to/userscripts/qutedmenu open
+#:bind O spawn --userscript /path/to/userscripts/qutedmenu
 
 # If you would like to set a custom colorscheme/font use these dirs.
 # https://github.com/halfwit/dotfiles/blob/master/.config/dmenu/bemenucolors
