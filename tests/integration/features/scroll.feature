@@ -214,11 +214,11 @@ Feature: Scrolling
     Scenario: :scroll-page with --bottom-navigate
         When I run :scroll-perc 100
         And I run :scroll-page --bottom-navigate next 0 1
-        Then data/hello.txt should be loaded
+        Then data/hello2.txt should be loaded
 
     Scenario: :scroll-page with --top-navigate
         When I run :scroll-page --top-navigate prev 0 -1
-        Then data/hello2.txt should be loaded
+        Then data/hello3.txt should be loaded
 
     Scenario: :scroll-page with a very big value
         When I run :scroll-page 99999999999 99999999999
