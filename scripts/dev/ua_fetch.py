@@ -30,8 +30,8 @@ import requests
 from lxml import html   # pylint: disable=import-error
 
 
-# Fetch list of popular user-agents and return list of relevant strings
 def fetch():
+    """Fetch list of popular user-agents and return list of relevant strings"""
     url = 'https://techblog.willshouse.com/2012/01/03/most-common-user-agents/'
     page = requests.get(url)
     page = html.fromstring(page.text)
@@ -39,13 +39,16 @@ def fetch():
     return page.xpath(path)[0]
 
 
-# Filter the received list based on a look up table. The LUT should be a
-# dictionary of the format {browser: versions}, where 'browser' is the name of
-# the browser (eg. "Firefox") as string and 'versions' is a set of different
-# versions of this browser that should be included when found (eg. {"Linux",
-# "MacOSX"}). This function returns a dictionary with the same keys as the
-# LUT, but storing lists of tuples (user_agent, browser_description) as values.
 def filter_list(complete_list, browsers):
+    """Filter the received list based on a look up table
+
+    The LUT should be a dictionary of the format {browser: versions}, where
+    'browser' is the name of the browser (eg. "Firefox") as string and
+    'versions' is a set of different versions of this browser that should be
+    included when found (eg. {"Linux", "MacOSX"}). This function returns a
+    dictionary with the same keys as the LUT, but storing lists of tuples
+    (user_agent, browser_description) as values.
+    """
     table = {}
     for entry in complete_list:
         # Tuple of (user_agent, browser_description)
@@ -66,9 +69,11 @@ def filter_list(complete_list, browsers):
     return table
 
 
-# Insert a few additional entries for diversity into the dict (as returned by
-# filter_list())
 def add_diversity(table):
+    """Insert a few additional entries for diversity into the dict.
+
+    (as returned by filter_list())
+    """
     table["Obscure"] = [
         ('Mozilla/5.0 (compatible; Googlebot/2.1; '
          '+http://www.google.com/bot.html',
@@ -81,7 +86,8 @@ def add_diversity(table):
     return table
 
 
-if __name__ == '__main__':
+def main():
+    """Generate user agent code."""
     fetched = fetch()
     lut = {
         "Firefox": {"Win", "MacOSX", "Linux", "Android"},
@@ -107,3 +113,7 @@ if __name__ == '__main__':
              "IE 11.0 for Desktop  Win7 64-bit")""")
 
     print("%s]\n%sreturn out\n" % (2 * tab, 2 * tab))
+
+
+if __name__ == '__main__':
+    main()
