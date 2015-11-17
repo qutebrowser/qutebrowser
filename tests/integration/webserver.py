@@ -26,7 +26,6 @@ import re
 import sys
 import socket
 import os.path
-import datetime
 
 import pytest
 from PyQt5.QtCore import pyqtSignal
@@ -67,8 +66,7 @@ class Request(testprocess.Line):
 
         assert match.group('host') == '127.0.0.1'
         assert match.group('user') == '-'
-        self.timestamp = datetime.datetime.strptime(match.group('date'),
-                                                    '%d/%b/%Y %H:%M:%S')
+        self.timestamp = match.group('date')
         self.verb = match.group('verb')
 
         # FIXME do we need to allow other options?
