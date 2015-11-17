@@ -77,7 +77,7 @@ class AsciiDoc:
             self._build_docs()
 
     def _build_docs(self):
-        """Build the documentation by rendering .asciidoc files to .html sites."""
+        """Render .asciidoc files to .html sites."""
         files = self.FILES[:]
         for src in glob.glob('doc/help/*.asciidoc'):
             name, _ext = os.path.splitext(os.path.basename(src))
@@ -85,6 +85,68 @@ class AsciiDoc:
             files.append((src, dst))
         for src, dst in files:
             self.call(src, dst)
+
+
+    def _build_website_file(self, root, filename):
+        """Build a single website file."""
+        # pylint: disable=too-many-locals
+        src = os.path.join(root, filename)
+        src_basename = os.path.basename(src)
+        parts = [self._args.website[0]]
+        dirname = os.path.dirname(src)
+        if dirname:
+            parts.append(os.path.relpath(os.path.dirname(src)))
+        parts.append(
+            os.extsep.join((os.path.splitext(src_basename)[0],
+                            'html')))
+        dst = os.path.join(*parts)
+        os.makedirs(os.path.dirname(dst), exist_ok=True)
+
+        modified_src = os.path.join(self._tempdir, src_basename)
+        shutil.copy('www/header.asciidoc', modified_src)
+
+        outfp = io.StringIO()
+
+        with open(modified_src, 'r', encoding='utf-8') as header_file:
+            header = header_file.read()
+            header += "\n\n"
+
+        with open(src, 'r', encoding='utf-8') as infp:
+            outfp.write("\n\n")
+            hidden = False
+            found_title = False
+            title = ""
+            last_line = ""
+
+            for line in infp:
+                if line.strip() == '// QUTE_WEB_HIDE':
+                    assert not hidden
+                    hidden = True
+                elif line.strip() == '// QUTE_WEB_HIDE_END':
+                    assert hidden
+                    hidden = False
+
+                if not found_title:
+                    if re.match(r'^=+$', line):
+                        line = line.replace('=', '-')
+                        found_title = True
+                        title = last_line + "=" * (len(last_line) - 1)
+                    elif re.match(r'^= .+', line):
+                        line = '==' + line[1:]
+                        found_title = True
+                        title = last_line + "=" * (len(last_line) - 1)
+
+                if not hidden:
+                    outfp.write(line.replace(".asciidoc[", ".html["))
+                    last_line = line
+
+        current_lines = outfp.getvalue()
+        outfp.close()
+
+        with open(modified_src, 'w+', encoding='utf-8') as final_version:
+            final_version.write(title + "\n\n" + header + current_lines)
+
+        self.call(modified_src, dst, '--theme=qute')
 
     def _build_website(self):
         """Prepare and build the website."""
@@ -97,64 +159,7 @@ class AsciiDoc:
             for filename in files:
                 if os.path.splitext(filename)[1] != '.asciidoc':
                     continue
-
-                src = os.path.join(root, filename)
-                src_basename = os.path.basename(src)
-                parts = [outdir]
-                dirname = os.path.dirname(src)
-                if dirname:
-                    parts.append(os.path.relpath(os.path.dirname(src)))
-                parts.append(
-                    os.extsep.join((os.path.splitext(src_basename)[0],
-                                    'html')))
-                dst = os.path.join(*parts)
-                os.makedirs(os.path.dirname(dst), exist_ok=True)
-
-                modified_src = os.path.join(self._tempdir, src_basename)
-                shutil.copy('www/header.asciidoc', modified_src)
-
-                outfp = io.StringIO()
-
-                with open(modified_src, 'r', encoding='utf-8') as header_file:
-                    header = header_file.read()
-                    header += "\n\n"
-
-                with open(src, 'r', encoding='utf-8') as infp:
-                    outfp.write("\n\n")
-                    hidden = False
-                    found_title = False
-                    title = ""
-                    last_line = ""
-
-                    for line in infp:
-                        if line.strip() == '// QUTE_WEB_HIDE':
-                            assert not hidden
-                            hidden = True
-                        elif line.strip() == '// QUTE_WEB_HIDE_END':
-                            assert hidden
-                            hidden = False
-
-                        if not found_title:
-                            if re.match(r'^=+$', line):
-                                line = line.replace('=', '-')
-                                found_title = True
-                                title = last_line + "=" * (len(last_line) - 1)
-                            elif re.match(r'^= .+', line):
-                                line = '==' + line[1:]
-                                found_title = True
-                                title = last_line + "=" * (len(last_line) - 1)
-
-                        if not hidden:
-                            outfp.write(line.replace(".asciidoc[", ".html["))
-                            last_line = line
-
-                current_lines = outfp.getvalue()
-                outfp.close()
-
-                with open(modified_src, 'w+', encoding='utf-8') as final_version:
-                    final_version.write(title + "\n\n" + header + current_lines)
-
-                self.call(modified_src, dst, '--theme=qute')
+                self._build_website_file(root, filename)
 
         copy = {'icons': 'icons', 'doc/img': 'doc/img', 'www/media': 'media/'}
 
