@@ -1,7 +1,6 @@
 #!/usr/bin/env bash
 # Handle open -s && open -t with bemenu
 
-# Broken out to two files to handle flag passing
 #:bind o spawn --userscript /path/to/userscripts/qutedmenu open
 #:bind O spawn --userscript /path/to/userscripts/qutedmenu tab
 
