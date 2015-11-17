@@ -68,6 +68,7 @@ Changed
   finished. When set to `-1`, downloads are never removed.
 - The `:follow-hint` command now optionally takes the keystring of a hint to
   follow.
+- `:scroll-px` now doesn't take floats anymore, which made little sense.
 
 Deprecated
 ~~~~~~~~~~

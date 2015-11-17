@@ -46,6 +46,12 @@ Feature: Scrolling
         And I run :scroll-px 10 10
         Then no crash should happen
 
+    Scenario: :scroll-px with floats
+        # This used to be allowed, but doesn't make much sense.
+        When I run :scroll-px 2.5 2.5
+        Then the error "scroll-px: Argument dx: invalid int value: '2.5'" should be shown.
+        And the page should not be scrolled.
+
     ## :scroll
 
     Scenario: Scrolling down
@@ -93,6 +99,11 @@ Feature: Scrolling
         When I run :scroll 0 10
         Then the warning ":scroll with dx/dy arguments is deprecated - use :scroll-px instead!" should be shown.
         Then the page should be scrolled vertically.
+
+    Scenario: :scroll with deprecated pixel argument (float)
+        When I run :scroll 2.5 2.5
+        Then the error "scroll: Argument dy: invalid int value: '2.5'" should be shown.
+        And the page should not be scrolled.
 
     Scenario: Scrolling down and up with count
         When I run :scroll down with count 2

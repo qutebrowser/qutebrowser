@@ -521,7 +521,7 @@ class CommandDispatcher:
 
     @cmdutils.register(instance='command-dispatcher', hide=True,
                        scope='window', count='count')
-    def scroll_px(self, dx: {'type': float}, dy: {'type': float}, count=1):
+    def scroll_px(self, dx: {'type': int}, dy: {'type': int}, count=1):
         """Scroll the current tab by 'count * dx/dy' pixels.
 
         Args:
@@ -538,8 +538,8 @@ class CommandDispatcher:
     @cmdutils.register(instance='command-dispatcher', hide=True,
                        scope='window', count='count')
     def scroll(self,
-               direction: {'type': (str, float)},
-               dy: {'type': float, 'hide': True}=None,
+               direction: {'type': (str, int)},
+               dy: {'type': int, 'hide': True}=None,
                count=1):
         """Scroll the current tab in the given direction.
 
@@ -552,8 +552,8 @@ class CommandDispatcher:
         # pylint: disable=too-many-locals
         try:
             # Check for deprecated dx/dy form (like with scroll-px).
-            dx = float(direction)
-            dy = float(dy)
+            dx = int(direction)
+            dy = int(dy)
         except (ValueError, TypeError):
             # Invalid values will get handled later.
             pass
