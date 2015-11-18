@@ -44,7 +44,7 @@ INSTALL_PYQT = TESTENV in ('py34', 'py35', 'unittests-nodisp', 'vulture',
                            'pylint')
 XVFB = TRAVIS_OS == 'linux' and TESTENV == 'py34'
 pip_packages = ['tox']
-if TESTENV in ['py34', 'py35']:
+if TESTENV in ['py34', 'py35'] and TRAVIS_OS == 'linux':
     pip_packages.append('codecov')
 
 

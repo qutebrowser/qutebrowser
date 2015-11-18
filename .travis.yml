@@ -40,7 +40,7 @@ script:
   - tox -e $TESTENV -- -p no:sugar -v --cov-report term tests
 
 after_success:
-  - '[[ $TESTENV == py34 || $TESTENV == py35 ]] && codecov -e TESTENV -X gcov'
+  - '[[ ($TESTENV == py34 || $TESTENV == py35) && $TRAVIS_OX == linux ]] && codecov -e TESTENV -X gcov'
 
 matrix:
   exclude:
