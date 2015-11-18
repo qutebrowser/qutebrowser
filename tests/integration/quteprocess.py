@@ -24,6 +24,7 @@
 
 import re
 import sys
+import time
 import os.path
 import datetime
 import logging
@@ -114,6 +115,7 @@ class QuteProc(testprocess.Process):
     """A running qutebrowser process used for tests.
 
     Attributes:
+        _delay: Delay to wait between commands.
         _ipc_socket: The IPC socket of the started instance.
         _httpbin: The HTTPBin webserver.
     """
@@ -123,8 +125,9 @@ class QuteProc(testprocess.Process):
     KEYS = ['timestamp', 'loglevel', 'category', 'module', 'function', 'line',
             'message']
 
-    def __init__(self, httpbin, parent=None):
+    def __init__(self, httpbin, delay, parent=None):
         super().__init__(parent)
+        self._delay = delay
         self._httpbin = httpbin
         self._ipc_socket = None
 
@@ -191,6 +194,8 @@ class QuteProc(testprocess.Process):
     def send_cmd(self, command, count=None):
         assert self._ipc_socket is not None
 
+        time.sleep(self._delay / 1000)
+
         if count is not None:
             command = ':{}:{}'.format(count, command.lstrip(':'))
 
@@ -241,9 +246,10 @@ class QuteProc(testprocess.Process):
 
 
 @pytest.yield_fixture(scope='module')
-def quteproc(qapp, httpbin):
+def quteproc(qapp, httpbin, request):
     """Fixture for qutebrowser process."""
-    proc = QuteProc(httpbin)
+    delay = request.config.getoption('--qute-delay')
+    proc = QuteProc(httpbin, delay)
     proc.start()
     yield proc
     proc.terminate()

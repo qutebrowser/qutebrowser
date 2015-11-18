@@ -353,6 +353,8 @@ def fail_tests_on_warnings():
 def pytest_addoption(parser):
     parser.addoption('--no-xvfb', action='store_true', default=False,
                      help='Disable xvfb in tests.')
+    parser.addoption('--qute-delay', action='store', default=0, type=int,
+                     help="Delay between qutebrowser commands.")
 
 
 def pytest_configure(config):
