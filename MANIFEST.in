@@ -30,6 +30,7 @@ exclude qutebrowser.rcc
 exclude .coveragerc
 exclude .pylintrc
 exclude .eslintrc
+exclude .eslintignore
 exclude doc/help
 exclude .appveyor.yml
 exclude .travis.yml
