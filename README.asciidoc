@@ -158,13 +158,13 @@ Contributors, sorted by the number of commits in descending order:
 * Jonas Schürmann
 * Jimmy
 * skinnay
+* error800
 * Zach-Button
 * Halfwit
 * Felix Van der Jeugt
 * rikn00
 * Patric Schmitz
 * Martin Zimmermann
-* Error 800
 * Brian Jackson
 * sbinix
 * neeasade
@@ -180,7 +180,6 @@ Contributors, sorted by the number of commits in descending order:
 * Fritz V155 Reichwald
 * Franz Fellner
 * zwarag
-* error800
 * Tim Harder
 * Thiago Barroso Perrotta
 * Matthias Lisin
