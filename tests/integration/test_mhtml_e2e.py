@@ -97,7 +97,10 @@ def test_mhtml(test_name, download_dir, quteproc, httpbin):
             if line.startswith('#'):
                 continue
             path = '/{}/{}'.format(test_path, line.strip())
-            expected_requests.append(httpbin.Request('GET', path))
+            expected_requests.append(httpbin.ExpectedRequest('GET', path))
 
     actual_requests = httpbin.get_requests()
+    # Requests are unorderable, we need to convert to ExpectedRequests
+    actual_requests = map(httpbin.ExpectedRequest.from_request,
+                          actual_requests)
     assert sorted(actual_requests) == sorted(expected_requests)

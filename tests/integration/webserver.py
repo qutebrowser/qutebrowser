@@ -26,6 +26,7 @@ import re
 import sys
 import socket
 import os.path
+import functools
 
 import pytest
 from PyQt5.QtCore import pyqtSignal
@@ -89,6 +90,7 @@ class Request(testprocess.Line):
         return NotImplemented
 
 
+@functools.total_ordering
 class ExpectedRequest:
 
     """Class to compare expected requests easily."""
@@ -97,10 +99,21 @@ class ExpectedRequest:
         self.verb = verb
         self.path = path
 
+    @classmethod
+    def from_request(cls, request):
+        """Create an ExpectedRequest from a Request."""
+        return cls(request.verb, request.path)
+
     def __eq__(self, other):
         if isinstance(other, (Request, ExpectedRequest)):
             return (self.verb == other.verb and
                     self.path == other.path)
+        else:
+            return NotImplemented
+
+    def __lt__(self, other):
+        if isinstance(other, (Request, ExpectedRequest)):
+            return (self.verb, self.path) < (other.verb, other.path)
         else:
             return NotImplemented
 
