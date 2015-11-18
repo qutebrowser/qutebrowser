@@ -9,6 +9,9 @@
 <div id="menu">
 	<a href="index.html">Home</a>
 	<a href="FAQ.html">FAQ</a>
+	<a href="INSTALL.html">Install</a>
+	<a href="CHANGELOG.html">Changelog</a>
+	<a href="CONTRIBUTING.html">Contributing</a>
 	<a href="https://www.github.com/The-Compiler/qutebrowser">GitHub</a>
 </div>
 +++
