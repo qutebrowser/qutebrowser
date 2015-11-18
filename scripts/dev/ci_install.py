@@ -70,7 +70,8 @@ def check_setup(executable):
 if 'APPVEYOR' in os.environ:
     print("Getting PyQt5...")
     urllib.urlretrieve(
-        'http://www.qutebrowser.org/pyqt/PyQt5-5.5-gpl-Py3.4-Qt5.5.0-x32.exe',
+        'http://www.qutebrowser.org/pyqt/'
+            'PyQt5-5.5.1-gpl-Py3.4-Qt5.5.1-x32.exe',
         r'C:\install-PyQt5.exe')
 
     print("Fixing registry...")
