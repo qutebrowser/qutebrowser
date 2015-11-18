@@ -162,7 +162,9 @@ class AsciiDoc:
 
         for root, _dirs, files in os.walk(os.getcwd()):
             for filename in files:
-                if os.path.splitext(filename)[1] != '.asciidoc':
+                basename, ext =  os.path.splitext(filename)
+                if (ext != '.asciidoc' or
+                        basename in ('header', 'OpenSans-License')):
                     continue
                 self._build_website_file(root, filename)
 
