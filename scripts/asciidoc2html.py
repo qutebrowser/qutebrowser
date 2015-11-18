@@ -164,9 +164,17 @@ class AsciiDoc:
         copy = {'icons': 'icons', 'doc/img': 'doc/img', 'www/media': 'media/'}
 
         for src, dest in copy.items():
-            shutil.copytree(src, os.path.join(outdir, dest))
+            full_dest = os.path.join(outdir, dest)
+            try:
+                shutil.rmtree(full_dest)
+            except FileNotFoundError:
+                pass
+            shutil.copytree(src, full_dest)
 
-        os.symlink('README.html', os.path.join(outdir, 'index.html'))
+        try:
+            os.symlink('README.html', os.path.join(outdir, 'index.html'))
+        except FileExistsError:
+            pass
 
     def _get_asciidoc_cmd(self):
         """Try to find out what commandline to use to invoke asciidoc."""
