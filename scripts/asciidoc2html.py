@@ -86,7 +86,6 @@ class AsciiDoc:
         for src, dst in files:
             self.call(src, dst)
 
-
     def _build_website_file(self, root, filename):
         """Build a single website file."""
         # pylint: disable=too-many-locals
@@ -162,7 +161,7 @@ class AsciiDoc:
 
         for root, _dirs, files in os.walk(os.getcwd()):
             for filename in files:
-                basename, ext =  os.path.splitext(filename)
+                basename, ext = os.path.splitext(filename)
                 if (ext != '.asciidoc' or
                         basename in ('header', 'OpenSans-License')):
                     continue

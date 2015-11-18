@@ -31,7 +31,11 @@ from lxml import html   # pylint: disable=import-error
 
 
 def fetch():
-    """Fetch list of popular user-agents and return list of relevant strings"""
+    """Fetch list of popular user-agents.
+
+    Return:
+        List of relevant strings.
+    """
     url = 'https://techblog.willshouse.com/2012/01/03/most-common-user-agents/'
     page = requests.get(url)
     page = html.fromstring(page.text)
@@ -40,7 +44,7 @@ def fetch():
 
 
 def filter_list(complete_list, browsers):
-    """Filter the received list based on a look up table
+    """Filter the received list based on a look up table.
 
     The LUT should be a dictionary of the format {browser: versions}, where
     'browser' is the name of the browser (eg. "Firefox") as string and
@@ -98,13 +102,14 @@ def main():
     filtered = add_diversity(filtered)
 
     tab = "    "
-    print("%sdef complete(self):" % tab)
-    print("%s\"\"\"Complete a list of common user agents.\"\"\"" % (2 * tab))
-    print("%sout = [" %(2 * tab))
+    print(tab + "def complete(self):")
+    print((2 * tab) + "\"\"\"Complete a list of common user agents.\"\"\"")
+    print((2 * tab) + "%sout = [")
 
     for browser in ["Firefox", "Safari", "Chrome", "Obscure"]:
         for it in filtered[browser]:
-            print("%s(\'%s\',\n%s \"%s\")," % (3 * tab, it[0], 3 * tab, it[1]))
+            print("{}(\'{}\',\n{} \"{}\"),".format(3 * tab, it[0],
+                                                   3 * tab, it[1]))
         print("")
 
     print("""\
@@ -112,7 +117,7 @@ def main():
              'Gecko',
              "IE 11.0 for Desktop  Win7 64-bit")""")
 
-    print("%s]\n%sreturn out\n" % (2 * tab, 2 * tab))
+    print("{}]\n{}return out\n".format(2 * tab, 2 * tab))
 
 
 if __name__ == '__main__':
