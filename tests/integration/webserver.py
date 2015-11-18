@@ -117,6 +117,11 @@ class ExpectedRequest:
         else:
             return NotImplemented
 
+    def __str__(self):
+        return '<ExpectedRequest {} "{}">'.format(self.verb, self.path)
+
+    __repr__ = __str__
+
 
 class HTTPBin(testprocess.Process):
 
