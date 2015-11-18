@@ -43,9 +43,6 @@ var=20l=20=3D=201+1;
 =20=20=20=20<body>
 =20=20=20=20=20=20=20=20<!--=20include=20a=20normal=20image=20-->
 =20=20=20=20=20=20=20=20<img=20src=3D"image.gif">
-=20=20=20=20=20=20=20=20<!--=20make=20sure=20only=20http(s)=20assets=20are=
-=20loaded=20-->
-=20=20=20=20=20=20=20=20<img=20src=3D"ftp://localhost/image.png">
 =20=20=20=20=20=20=20=20<!--=20make=20sure=20inline=20styles=20are=20parsed=
 =20-->
 =20=20=20=20=20=20=20=20<p=20style=3D"background-image:=20url('inline.png')=
