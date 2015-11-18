@@ -182,6 +182,7 @@ Contributors, sorted by the number of commits in descending order:
 * zwarag
 * Tim Harder
 * Thiago Barroso Perrotta
+* Samuel Loury
 * Matthias Lisin
 * Jean-Christophe Petkovich
 * Helen Sherwood-Taylor
