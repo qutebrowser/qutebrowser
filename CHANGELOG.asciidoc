@@ -50,6 +50,7 @@ Added
 - New command `:download-clear` which replaces `:download-remove --all`.
 - `:set-cmd-text` has a new `--append` argument to append to the current
   statusbar text.
+- qutebrowser now uses `~/.netrc` if available to authenticate via HTTP.
 
 Changed
 ~~~~~~~
@@ -69,6 +70,7 @@ Changed
 - The `:follow-hint` command now optionally takes the keystring of a hint to
   follow.
 - `:scroll-px` now doesn't take floats anymore, which made little sense.
+- Updated the user agent list for the `:set network user-agent` completion.
 
 Deprecated
 ~~~~~~~~~~
