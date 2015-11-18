@@ -125,6 +125,11 @@ class AsciiDoc:
                 elif line.strip() == '// QUTE_WEB_HIDE_END':
                     assert hidden
                     hidden = False
+                elif line == "The Compiler <mail@qutebrowser.org>\n":
+                    continue
+                elif re.match(r'^:\w+:.*', line):
+                    # asciidoc field
+                    continue
 
                 if not found_title:
                     if re.match(r'^=+$', line):
