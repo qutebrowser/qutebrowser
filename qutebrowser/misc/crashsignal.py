@@ -355,17 +355,23 @@ class SignalHandler(QObject):
             log.destroy.exception("Failed to read wakeup fd.")
         self._notifier.setEnabled(True)
 
+    def _log_later(self, *lines):
+        """Log the given text line-wise with a QTimer."""
+        for line in lines:
+            QTimer.singleShot(0, functools.partial(log.destroy.info, line))
+
     def interrupt(self, signum, _frame):
         """Handler for signals to gracefully shutdown (SIGINT/SIGTERM).
 
         This calls shutdown and remaps the signal to call
         interrupt_forcefully the next time.
         """
-        log.destroy.info("SIGINT/SIGTERM received, shutting down!")
-        log.destroy.info("Do the same again to forcefully quit.")
         signal.signal(signal.SIGINT, self.interrupt_forcefully)
         signal.signal(signal.SIGTERM, self.interrupt_forcefully)
-        # If we call shutdown directly here, we get a segfault.
+        # Signals can arrive anywhere, so we do this in the main thread
+        self._log_later(
+            "SIGINT/SIGTERM received, shutting down!",
+            "Do the same again to forcefully quit.")
         QTimer.singleShot(0, functools.partial(
             self._quitter.shutdown, 128 + signum))
 
@@ -376,12 +382,12 @@ class SignalHandler(QObject):
         It then remaps the signals to call self.interrupt_really_forcefully the
         next time.
         """
-        log.destroy.info("Forceful quit requested, goodbye cruel world!")
-        log.destroy.info("Do the same again to quit with even more force.")
         signal.signal(signal.SIGINT, self.interrupt_really_forcefully)
         signal.signal(signal.SIGTERM, self.interrupt_really_forcefully)
-        # This *should* work without a QTimer, but because of the trouble in
-        # self.interrupt we're better safe than sorry.
+        # Signals can arrive anywhere, so we do this in the main thread
+        self._log_later(
+            "Forceful quit requested, goodbye cruel world!",
+            "Do the same again to quit with even more force.")
         QTimer.singleShot(0, functools.partial(self._app.exit, 128 + signum))
 
     def interrupt_really_forcefully(self, signum, _frame):
@@ -390,5 +396,5 @@ class SignalHandler(QObject):
         This doesn't run *any* Qt cleanup and simply exits via Python.
         It will most likely lead to a segfault.
         """
-        log.destroy.info("WHY ARE YOU DOING THIS TO ME? :(")
+        print("WHY ARE YOU DOING THIS TO ME? :(")
         sys.exit(128 + signum)
