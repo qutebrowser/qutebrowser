@@ -146,12 +146,12 @@ Contributors, sorted by the number of commits in descending order:
 * Joel Torstensson
 * Daniel
 * Claude
+* meles5
 * Nathan Isom
 * Austin Anderson
 * Artur Shaik
 * Thorsten Wißmann
 * Alexey "Averrin" Nabrodov
-* meles5
 * ZDarian
 * John ShaggyTwoDope Jenkins
 * Peter Vilim
