@@ -427,8 +427,7 @@ class TestFormatSize:
 
 class TestKeyToString:
 
-    KEYS = [(k, v) for k, v in sorted(vars(Qt).items())
-            if isinstance(v, Qt.Key)]
+    """Test key_to_string."""
 
     @pytest.mark.parametrize('key, expected', [
         (Qt.Key_Blue, 'Blue'),
@@ -449,13 +448,15 @@ class TestKeyToString:
         # want to know if the mapping still behaves properly.
         assert utils.key_to_string(Qt.Key_A) == 'A'
 
-    @pytest.mark.parametrize('key', [e[1] for e in KEYS],
-                             ids=[e[0] for e in KEYS])
-    def test_all(self, key):
+    def test_all(self):
         """Make sure there's some sensible output for all keys."""
-        string = utils.key_to_string(key)
-        assert string
-        string.encode('utf-8')  # make sure it's encodable
+        for name, value in sorted(vars(Qt).items()):
+            if not isinstance(value, Qt.Key):
+                continue
+            print(name)
+            string = utils.key_to_string(value)
+            assert string
+            string.encode('utf-8')  # make sure it's encodable
 
 
 class TestKeyEventToString:
