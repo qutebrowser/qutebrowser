@@ -20,6 +20,7 @@
 """Our own QNetworkAccessManager."""
 
 import collections
+import netrc
 
 from PyQt5.QtCore import (pyqtSlot, pyqtSignal, PYQT_VERSION, QCoreApplication,
                           QUrl, QByteArray)
@@ -241,12 +242,33 @@ class NetworkManager(QNetworkAccessManager):
     @pyqtSlot('QNetworkReply', 'QAuthenticator')
     def on_authentication_required(self, reply, authenticator):
         """Called when a website needs authentication."""
-        answer = self._ask("Username ({}):".format(authenticator.realm()),
-                           mode=usertypes.PromptMode.user_pwd,
-                           owner=reply)
-        if answer is not None:
-            authenticator.setUser(answer.user)
-            authenticator.setPassword(answer.password)
+        user, password = None, None
+        if not hasattr(reply, "netrc_used"):
+            reply.netrc_used = True
+            try:
+                net = netrc.netrc()
+                authenticators = net.authenticators(reply.url().host())
+                if authenticators is not None:
+                    # pylint: disable=unpacking-non-sequence
+                    (user, _account, password) = authenticators
+            except FileNotFoundError:
+                log.misc.debug("No .netrc file found")
+            except OSError:
+                log.misc.exception("Unable to read the netrc file")
+            except netrc.NetrcParseError:
+                log.misc.exception("Error when parsing the netrc file")
+
+        if user is None:
+            # netrc check failed
+            answer = self._ask(
+                "Username ({}):".format(authenticator.realm()),
+                mode=usertypes.PromptMode.user_pwd,
+                owner=reply)
+            if answer is not None:
+                user, password = answer.user, answer.password
+        if user is not None:
+            authenticator.setUser(user)
+            authenticator.setPassword(password)
 
     @pyqtSlot('QNetworkProxy', 'QAuthenticator')
     def on_proxy_authentication_required(self, proxy, authenticator):
