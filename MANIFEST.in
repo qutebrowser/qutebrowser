@@ -17,6 +17,7 @@ include requirements.txt
 include tox.ini
 include qutebrowser.py
 
+prune www
 prune scripts/dev
 exclude scripts/asciidoc2html.py
 exclude doc/notes

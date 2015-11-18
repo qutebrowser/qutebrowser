@@ -86,6 +86,6 @@ def test_abort_typeerror(question, qtbot, mocker, caplog):
     """Test Question.abort() with .emit() raising a TypeError."""
     signal_mock = mocker.patch('qutebrowser.utils.usertypes.Question.aborted')
     signal_mock.emit.side_effect = TypeError
-    with caplog.atLevel(logging.ERROR, 'misc'):
+    with caplog.at_level(logging.ERROR, 'misc'):
         question.abort()
-    assert caplog.records()[0].message == 'Error while aborting question'
+    assert caplog.records[0].message == 'Error while aborting question'

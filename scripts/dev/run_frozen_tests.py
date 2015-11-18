@@ -27,7 +27,7 @@ import sys
 import pytest
 import pytestqt.plugin
 import pytest_mock
-import pytest_capturelog
+import pytest_catchlog
 
 sys.exit(pytest.main(plugins=[pytestqt.plugin, pytest_mock,
-                              pytest_capturelog]))
+                              pytest_catchlog]))

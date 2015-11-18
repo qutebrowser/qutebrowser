@@ -25,6 +25,7 @@ import datetime
 import pytest
 
 import quteprocess
+import testprocess
 from qutebrowser.utils import log
 
 
@@ -113,5 +114,5 @@ def test_log_line_parse(data, attrs):
 
 
 def test_log_line_no_match():
-    with pytest.raises(quteprocess.NoLineMatch):
+    with pytest.raises(testprocess.InvalidLine):
         quteprocess.LogLine("Hello World!")

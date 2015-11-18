@@ -147,7 +147,7 @@ def test_cache_nonexistent_metadata_file(config_stub, tmpdir):
 
     disk_cache = cache.DiskCache(str(tmpdir))
     cache_file = disk_cache.fileMetaData("nosuchfile")
-    assert cache_file.isValid() == False
+    assert not cache_file.isValid()
 
 
 def test_cache_deactivated_metadata_file(config_stub, tmpdir):
@@ -207,7 +207,7 @@ def test_cache_deactivated_remove_data(config_stub, tmpdir):
     disk_cache = cache.DiskCache(str(tmpdir))
 
     url = QUrl('http://www.example.com/')
-    assert disk_cache.remove(url) == False
+    assert not disk_cache.remove(url)
 
 
 def test_cache_insert_data(config_stub, tmpdir):

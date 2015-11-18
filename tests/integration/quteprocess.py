@@ -47,13 +47,6 @@ def is_ignored_qt_message(message):
     return False
 
 
-class NoLineMatch(Exception):
-
-    """Raised by LogLine on unmatched lines."""
-
-    pass
-
-
 class LogLine(testprocess.Line):
 
     """A parsed line from the qutebrowser log output.
@@ -78,7 +71,7 @@ class LogLine(testprocess.Line):
         super().__init__(data)
         match = self.LOG_RE.match(data)
         if match is None:
-            raise NoLineMatch(data)
+            raise testprocess.InvalidLine(data)
 
         self.timestamp = datetime.datetime.strptime(match.group('timestamp'),
                                                     '%H:%M:%S')
@@ -127,6 +120,9 @@ class QuteProc(testprocess.Process):
 
     got_error = pyqtSignal()
 
+    KEYS = ['timestamp', 'loglevel', 'category', 'module', 'function', 'line',
+            'message']
+
     def __init__(self, httpbin, parent=None):
         super().__init__(parent)
         self._httpbin = httpbin
@@ -135,7 +131,7 @@ class QuteProc(testprocess.Process):
     def _parse_line(self, line):
         try:
             log_line = LogLine(line)
-        except NoLineMatch:
+        except testprocess.InvalidLine:
             if line.startswith('  '):
                 # Multiple lines in some log output...
                 return None
@@ -144,7 +140,7 @@ class QuteProc(testprocess.Process):
             elif is_ignored_qt_message(line):
                 return None
             else:
-                raise testprocess.InvalidLine
+                raise
 
         if (log_line.loglevel in ['INFO', 'WARNING', 'ERROR'] or
                 pytest.config.getoption('--verbose')):
@@ -177,6 +173,12 @@ class QuteProc(testprocess.Process):
                  'about:blank']
         return executable, args
 
+    def _path_to_url(self, path):
+        if path.startswith('about:') or path.startswith('qute:'):
+            return path
+        else:
+            return 'http://localhost:{}/{}'.format(self._httpbin.port, path)
+
     def after_test(self):
         bad_msgs = [msg for msg in self._data
                     if msg.loglevel > logging.INFO and not msg.expected]
@@ -186,8 +188,11 @@ class QuteProc(testprocess.Process):
                 str(e) for e in bad_msgs)
             pytest.fail(text, pytrace=False)
 
-    def send_cmd(self, command):
+    def send_cmd(self, command, count=None):
         assert self._ipc_socket is not None
+
+        if count is not None:
+            command = ':{}:{}'.format(count, command.lstrip(':'))
 
         ipc.send_to_running_instance(self._ipc_socket, [command],
                                      target_arg='')
@@ -199,7 +204,7 @@ class QuteProc(testprocess.Process):
         self.wait_for(category='config', message='Config option changed: *')
 
     def open_path(self, path, new_tab=False):
-        url = 'http://localhost:{}/{}'.format(self._httpbin.port, path)
+        url = self._path_to_url(path)
         if new_tab:
             self.send_cmd(':open -t ' + url)
         else:
@@ -218,11 +223,12 @@ class QuteProc(testprocess.Process):
         self._data is cleared after every test to provide at least some
         isolation.
         """
+        __tracebackhide__ = True
         return super().wait_for(timeout, **kwargs)
 
     def wait_for_load_finished(self, path, timeout=15000):
         """Wait until any tab has finished loading."""
-        url = 'http://localhost:{}/{}'.format(self._httpbin.port, path)
+        url = self._path_to_url(path)
         pattern = re.compile(
             r"(load status for <qutebrowser.browser.webview.WebView "
             r"tab_id=\d+ url='{url}'>: LoadStatus.success|fetch: "

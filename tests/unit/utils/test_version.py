@@ -108,7 +108,7 @@ class TestGitStr:
         monkeypatch.setattr(qutebrowser.utils.version.sys, 'frozen', True,
                             raising=False)
         commit_file_mock.side_effect = OSError
-        with caplog.atLevel(logging.ERROR, 'misc'):
+        with caplog.at_level(logging.ERROR, 'misc'):
             assert version._git_str() is None
 
     @pytest.mark.not_frozen
@@ -136,7 +136,7 @@ class TestGitStr:
         m.path.join.side_effect = OSError
         mocker.patch('qutebrowser.utils.version.utils.read_file',
                      side_effect=OSError)
-        with caplog.atLevel(logging.ERROR, 'misc'):
+        with caplog.at_level(logging.ERROR, 'misc'):
             assert version._git_str() is None
 
     @pytest.mark.not_frozen
@@ -145,10 +145,10 @@ class TestGitStr:
         """Test with undefined __file__ but available git-commit-id."""
         monkeypatch.delattr('qutebrowser.utils.version.__file__')
         commit_file_mock.return_value = '0deadcode'
-        with caplog.atLevel(logging.ERROR, 'misc'):
+        with caplog.at_level(logging.ERROR, 'misc'):
             assert version._git_str() == '0deadcode'
-        assert len(caplog.records()) == 1
-        assert caplog.records()[0].message == "Error while getting git path"
+        assert len(caplog.records) == 1
+        assert caplog.records[0].message == "Error while getting git path"
 
 
 def _has_git():
@@ -294,11 +294,11 @@ def test_release_info(files, expected, caplog, monkeypatch):
     fake = ReleaseInfoFake(files)
     monkeypatch.setattr('qutebrowser.utils.version.glob.glob', fake.glob_fake)
     monkeypatch.setattr(version, 'open', fake.open_fake, raising=False)
-    with caplog.atLevel(logging.ERROR, 'misc'):
+    with caplog.at_level(logging.ERROR, 'misc'):
         assert version._release_info() == expected
     if files is None:
-        assert len(caplog.records()) == 1
-        assert caplog.records()[0].message == "Error while reading fake-file."
+        assert len(caplog.records) == 1
+        assert caplog.records[0].message == "Error while reading fake-file."
 
 
 class ImportFake:

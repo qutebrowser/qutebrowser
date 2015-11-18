@@ -25,7 +25,7 @@ import itertools
 import sys
 
 import pytest
-import pytest_capturelog  # pylint: disable=import-error
+import pytest_catchlog  # pylint: disable=import-error
 
 from qutebrowser.utils import log
 
@@ -60,10 +60,11 @@ def restore_loggers():
     while root_logger.handlers:
         h = root_logger.handlers[0]
         root_logger.removeHandler(h)
-        h.close()
+        if not isinstance(h, pytest_catchlog.LogCaptureHandler):
+            h.close()
     root_logger.setLevel(original_logging_level)
     for h in root_handlers:
-        if not isinstance(h, pytest_capturelog.CaptureLogHandler):
+        if not isinstance(h, pytest_catchlog.LogCaptureHandler):
             # https://github.com/The-Compiler/qutebrowser/issues/856
             root_logger.addHandler(h)
     logging._acquireLock()
@@ -238,30 +239,30 @@ class TestHideQtWarning:
     def test_unfiltered(self, logger, caplog):
         """Test a message which is not filtered."""
         with log.hide_qt_warning("World", 'qt-tests'):
-            with caplog.atLevel(logging.WARNING, 'qt-tests'):
+            with caplog.at_level(logging.WARNING, 'qt-tests'):
                 logger.warning("Hello World")
-        assert len(caplog.records()) == 1
-        record = caplog.records()[0]
+        assert len(caplog.records) == 1
+        record = caplog.records[0]
         assert record.levelname == 'WARNING'
         assert record.message == "Hello World"
 
     def test_filtered_exact(self, logger, caplog):
         """Test a message which is filtered (exact match)."""
         with log.hide_qt_warning("Hello", 'qt-tests'):
-            with caplog.atLevel(logging.WARNING, 'qt-tests'):
+            with caplog.at_level(logging.WARNING, 'qt-tests'):
                 logger.warning("Hello")
-        assert not caplog.records()
+        assert not caplog.records
 
     def test_filtered_start(self, logger, caplog):
         """Test a message which is filtered (match at line start)."""
         with log.hide_qt_warning("Hello", 'qt-tests'):
-            with caplog.atLevel(logging.WARNING, 'qt-tests'):
+            with caplog.at_level(logging.WARNING, 'qt-tests'):
                 logger.warning("Hello World")
-        assert not caplog.records()
+        assert not caplog.records
 
     def test_filtered_whitespace(self, logger, caplog):
         """Test a message which is filtered (match with whitespace)."""
         with log.hide_qt_warning("Hello", 'qt-tests'):
-            with caplog.atLevel(logging.WARNING, 'qt-tests'):
+            with caplog.at_level(logging.WARNING, 'qt-tests'):
                 logger.warning("  Hello World  ")
-        assert not caplog.records()
+        assert not caplog.records

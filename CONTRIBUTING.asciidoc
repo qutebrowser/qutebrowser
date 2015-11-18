@@ -548,6 +548,13 @@ workaround.
 https://github.com/The-Compiler/qutebrowser/issues?q=is%3Aopen+is%3Aissue+label%3Aqt[qutebrowser
 bugs] and check if they're fixed.
 
+New PyQt release
+~~~~~~~~~~~~~~~~
+
+* See above
+* Install new PyQt in Windows VM (32- and 64-bit)
+* Download new installer and update PyQt installer path in `ci_install.py`.
+
 qutebrowser release
 ~~~~~~~~~~~~~~~~~~~
 

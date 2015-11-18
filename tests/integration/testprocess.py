@@ -22,11 +22,12 @@
 import re
 import os
 import time
-import fnmatch
 
 import pytestqt.plugin  # pylint: disable=import-error
 from PyQt5.QtCore import pyqtSlot, pyqtSignal, QProcess, QObject, QElapsedTimer
 from PyQt5.QtTest import QSignalSpy
+
+from helpers import utils  # pylint: disable=import-error
 
 
 class InvalidLine(Exception):
@@ -46,6 +47,11 @@ class ProcessExited(Exception):
 class WaitForTimeout(Exception):
 
     """Raised when wait_for didn't get the expected message."""
+
+
+class BlacklistedMessageError(Exception):
+
+    """Raised when ensure_not_logged found a message."""
 
 
 class Line:
@@ -78,6 +84,7 @@ class Process(QObject):
 
     ready = pyqtSignal()
     new_data = pyqtSignal(object)
+    KEYS = ['data']
 
     def __init__(self, parent=None):
         super().__init__(parent)
@@ -138,7 +145,8 @@ class Process(QObject):
                 continue
 
             if parsed is None:
-                print("IGNORED: {}".format(line))
+                if self._invalid:
+                    print("IGNORED: {}".format(line))
             else:
                 self._data.append(parsed)
                 self.new_data.emit(parsed)
@@ -198,7 +206,7 @@ class Process(QObject):
 
         - If expected is None, the filter always matches.
         - If the value is a string or bytes object and the expected value is
-          too, the pattern is treated as a fnmatch glob pattern.
+          too, the pattern is treated as a glob pattern (with only * active).
         - If the value is a string or bytes object and the expected value is a
           compiled regex, it is used for matching.
         - If the value is any other type, == is used.
@@ -212,25 +220,34 @@ class Process(QObject):
         elif isinstance(expected, regex_type):
             return expected.match(value)
         elif isinstance(value, (bytes, str)):
-            return fnmatch.fnmatchcase(value, expected)
+            return utils.pattern_match(pattern=expected, value=value)
         else:
             return value == expected
 
-    def wait_for(self, timeout=None, **kwargs):
+    def wait_for(self, timeout=None, *, override_waited_for=False, **kwargs):
         """Wait until a given value is found in the data.
 
         Keyword arguments to this function get interpreted as attributes of the
         searched data. Every given argument is treated as a pattern which
         the attribute has to match against.
 
+        Args:
+            timeout: How long to wait for the message.
+            override_waited_for: If set, gets triggered by previous messages
+                                 again.
+
         Return:
             The matched line.
         """
+        __tracebackhide__ = True
         if timeout is None:
             if 'CI' in os.environ:
                 timeout = 15000
             else:
                 timeout = 5000
+        for key in kwargs:
+            assert key in self.KEYS
+
         # Search existing messages
         for line in self._data:
             matches = []
@@ -239,7 +256,7 @@ class Process(QObject):
                 value = getattr(line, key)
                 matches.append(self._match_data(value, expected))
 
-            if all(matches) and not line.waited_for:
+            if all(matches) and (not line.waited_for or override_waited_for):
                 # If we waited for this line, chances are we don't mean the
                 # same thing the next time we use wait_for and it matches
                 # this line again.
@@ -273,3 +290,18 @@ class Process(QObject):
                     # this line again.
                     line.waited_for = True
                     return line
+
+    def ensure_not_logged(self, delay=500, **kwargs):
+        """Make sure the data matching the given arguments is not logged.
+
+        If nothing is found in the log, we wait for delay ms to make sure
+        nothing arrives.
+        """
+        __tracebackhide__ = True
+        try:
+            line = self.wait_for(timeout=delay, override_waited_for=True,
+                                 **kwargs)
+        except WaitForTimeout:
+            return
+        else:
+            raise BlacklistedMessageError(line)

@@ -1,5 +1,6 @@
 Frequently asked questions
 ==========================
+:title: Frequently asked questions
 The Compiler <mail@qutebrowser.org>
 
 [qanda]
@@ -86,6 +87,16 @@ How do I play Youtube videos with mpv?::
 Note that you might need an additional package (e.g.
 https://www.archlinux.org/packages/community/any/youtube-dl/[youtube-dl] on
 Archlinux) to play web videos with mpv.
+
+How do I use qutebrowser with mutt?::
+    Due to a Qt limitation, local files without `.html` extensions are
+    "downloaded" instead of displayed, see
+    https://github.com/The-Compiler/qutebrowser/issues/566[#566]. You can work
+    around this by using this in your `mailcap`:
++
+----
+    text/html; mv %s %s.html && qutebrowser %s.html >/dev/null 2>/dev/null; needsterminal;
+----
 
 == Troubleshooting
 

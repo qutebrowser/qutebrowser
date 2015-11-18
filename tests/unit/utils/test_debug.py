@@ -41,9 +41,8 @@ def test_log_events(qapp, caplog):
     obj = EventObject()
     qapp.postEvent(obj, QEvent(QEvent.User))
     qapp.processEvents()
-    records = caplog.records()
-    assert len(records) == 1
-    assert records[0].msg == 'Event in test_debug.EventObject: User'
+    assert len(caplog.records) == 1
+    assert caplog.records[0].msg == 'Event in test_debug.EventObject: User'
 
 
 class SignalObject(QObject):
@@ -75,10 +74,9 @@ def test_log_signals(caplog, signal_obj):
     signal_obj.signal1.emit()
     signal_obj.signal2.emit('foo', 'bar')
 
-    records = caplog.records()
-    assert len(records) == 2
-    assert records[0].msg == 'Signal in <repr>: signal1()'
-    assert records[1].msg == "Signal in <repr>: signal2('foo', 'bar')"
+    assert len(caplog.records) == 2
+    assert caplog.records[0].msg == 'Signal in <repr>: signal1()'
+    assert caplog.records[1].msg == "Signal in <repr>: signal2('foo', 'bar')"
 
 
 class TestLogTime:
@@ -86,15 +84,14 @@ class TestLogTime:
     def test_duration(self, caplog):
         logger_name = 'qt-tests'
 
-        with caplog.atLevel(logging.DEBUG, logger_name):
+        with caplog.at_level(logging.DEBUG, logger_name):
             with debug.log_time(logger_name, action='foobar'):
                 time.sleep(0.1)
 
-            records = caplog.records()
-            assert len(records) == 1
+            assert len(caplog.records) == 1
 
             pattern = re.compile(r'^Foobar took ([\d.]*) seconds\.$')
-            match = pattern.match(records[0].msg)
+            match = pattern.match(caplog.records[0].msg)
             assert match
 
             duration = float(match.group(1))
@@ -104,11 +101,11 @@ class TestLogTime:
         """Test with an explicit logger instead of a name."""
         logger_name = 'qt-tests'
 
-        with caplog.atLevel(logging.DEBUG, logger_name):
+        with caplog.at_level(logging.DEBUG, logger_name):
             with debug.log_time(logging.getLogger(logger_name)):
                 pass
 
-        assert len(caplog.records()) == 1
+        assert len(caplog.records) == 1
 
     def test_decorator(self, caplog):
         logger_name = 'qt-tests'
@@ -118,12 +115,11 @@ class TestLogTime:
             assert arg == 1
             assert kwarg == 2
 
-        with caplog.atLevel(logging.DEBUG, logger_name):
+        with caplog.at_level(logging.DEBUG, logger_name):
             func(1, kwarg=2)
 
-        records = caplog.records()
-        assert len(records) == 1
-        assert records[0].msg.startswith('Foo took')
+        assert len(caplog.records) == 1
+        assert caplog.records[0].msg.startswith('Foo took')
 
 
 class TestQEnumKey:

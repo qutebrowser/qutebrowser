@@ -1,3 +1,4 @@
+shallow_clone: true
 version: '{branch}-{build}'
 cache:
   - C:\projects\qutebrowser\.cache
@@ -13,7 +14,7 @@ install:
   - C:\Python27\python -u scripts\dev\ci_install.py
 
 test_script:
-  - C:\Python34\Scripts\tox -e %TESTENV% -- -p "no:sugar" --junitxml=junit.xml
+  - C:\Python34\Scripts\tox -e %TESTENV% -- -p "no:sugar" -v --junitxml=junit.xml
 
 after_test:
   - ps: |
@@ -21,7 +22,4 @@ after_test:
           $url = "https://ci.appveyor.com/api/testresults/junit/$($env:APPVEYOR_JOB_ID)"
           $file = '.\junit.xml'
           (New-Object 'System.Net.WebClient').UploadFile($url, (Resolve-Path $file))
-      }
-      if ($env:TESTENV -eq 'py34') {
-          C:\Python34\Scripts\codecov -e TESTENV -X gcov
       }

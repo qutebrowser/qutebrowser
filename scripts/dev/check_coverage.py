@@ -34,7 +34,6 @@ sys.path.insert(0, os.path.join(os.path.dirname(__file__), os.pardir,
 
 from scripts import utils
 
-
 Message = collections.namedtuple('Message', 'typ, text')
 MsgType = enum.Enum('MsgType', 'insufficent_coverage, perfect_file')
 
@@ -143,6 +142,18 @@ class Skipped(Exception):
         super().__init__("Skipping coverage checks " + reason)
 
 
+def _get_filename(filename):
+    """Transform the absolute test filenames to relative ones."""
+    if os.path.isabs(filename):
+        basedir = os.path.abspath(
+            os.path.join(os.path.dirname(__file__), '..', '..'))
+        common_path = os.path.commonprefix([basedir, filename])
+        if common_path:
+            filename = filename[len(common_path):].lstrip('/')
+
+    return filename
+
+
 def check(fileobj, perfect_files):
     """Main entry point which parses/checks coverage.xml if applicable."""
     if sys.platform != 'linux':
@@ -151,6 +162,8 @@ def check(fileobj, perfect_files):
         raise Skipped("because -k is given.")
     elif '-m' in sys.argv[1:]:
         raise Skipped("because -m is given.")
+    elif '--lf' in sys.argv[1:]:
+        raise Skipped("because --lf is given.")
 
     perfect_src_files = [e[1] for e in perfect_files]
 
@@ -168,7 +181,8 @@ def check(fileobj, perfect_files):
     messages = []
 
     for klass in classes:
-        filename = klass.attrib['filename']
+        filename = _get_filename(klass.attrib['filename'])
+
         line_cov = float(klass.attrib['line-rate']) * 100
         branch_cov = float(klass.attrib['branch-rate']) * 100
 

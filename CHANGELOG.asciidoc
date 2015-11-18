@@ -68,6 +68,7 @@ Changed
   finished. When set to `-1`, downloads are never removed.
 - The `:follow-hint` command now optionally takes the keystring of a hint to
   follow.
+- `:scroll-px` now doesn't take floats anymore, which made little sense.
 
 Deprecated
 ~~~~~~~~~~
@@ -86,6 +87,7 @@ Fixed
   `storage -> prompt-download-directory` was unset.
 - Fixed crash when using `:follow-hint` outside of hint mode.
 - Fixed crash when using `:set foo bar?` with invalid section/option.
+- Fixed scrolling to the very left/right with `:scroll-perc`.
 
 v0.4.1
 ------

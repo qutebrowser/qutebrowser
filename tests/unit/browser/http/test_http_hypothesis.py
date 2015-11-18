@@ -41,7 +41,7 @@ def test_parse_content_disposition(caplog, template, stubs, s):
     """Test parsing headers based on templates which hypothesis completes."""
     header = template.format(s)
     reply = stubs.FakeNetworkReply(headers={'Content-Disposition': header})
-    with caplog.atLevel(logging.ERROR, 'rfc6266'):
+    with caplog.at_level(logging.ERROR, 'rfc6266'):
         http.parse_content_disposition(reply)
 
 

@@ -241,11 +241,11 @@ class TestActuteWarning:
         mocker.patch('qutebrowser.utils.utils.open', side_effect=OSError,
                      create=True)
 
-        with caplog.atLevel(logging.ERROR, 'init'):
+        with caplog.at_level(logging.ERROR, 'init'):
             utils.actute_warning()
 
-        assert len(caplog.records()) == 1
-        assert caplog.records()[0].message == 'Failed to read Compose file'
+        assert len(caplog.records) == 1
+        assert caplog.records[0].message == 'Failed to read Compose file'
         out, _err = capsys.readouterr()
         assert not out
 
@@ -427,8 +427,7 @@ class TestFormatSize:
 
 class TestKeyToString:
 
-    KEYS = [(k, v) for k, v in sorted(vars(Qt).items())
-            if isinstance(v, Qt.Key)]
+    """Test key_to_string."""
 
     @pytest.mark.parametrize('key, expected', [
         (Qt.Key_Blue, 'Blue'),
@@ -449,13 +448,15 @@ class TestKeyToString:
         # want to know if the mapping still behaves properly.
         assert utils.key_to_string(Qt.Key_A) == 'A'
 
-    @pytest.mark.parametrize('key', [e[1] for e in KEYS],
-                             ids=[e[0] for e in KEYS])
-    def test_all(self, key):
+    def test_all(self):
         """Make sure there's some sensible output for all keys."""
-        string = utils.key_to_string(key)
-        assert string
-        string.encode('utf-8')  # make sure it's encodable
+        for name, value in sorted(vars(Qt).items()):
+            if not isinstance(value, Qt.Key):
+                continue
+            print(name)
+            string = utils.key_to_string(value)
+            assert string
+            string.encode('utf-8')  # make sure it's encodable
 
 
 class TestKeyEventToString:
@@ -669,12 +670,12 @@ class TestPreventExceptions:
 
     def test_raising(self, caplog):
         """Test with a raising function."""
-        with caplog.atLevel(logging.ERROR, 'misc'):
+        with caplog.at_level(logging.ERROR, 'misc'):
             ret = self.func_raising()
         assert ret == 42
-        assert len(caplog.records()) == 1
+        assert len(caplog.records) == 1
         expected = 'Error in test_utils.TestPreventExceptions.func_raising'
-        actual = caplog.records()[0].message
+        actual = caplog.records[0].message
         assert actual == expected
 
     @utils.prevent_exceptions(42)
@@ -683,10 +684,10 @@ class TestPreventExceptions:
 
     def test_not_raising(self, caplog):
         """Test with a non-raising function."""
-        with caplog.atLevel(logging.ERROR, 'misc'):
+        with caplog.at_level(logging.ERROR, 'misc'):
             ret = self.func_not_raising()
         assert ret == 23
-        assert not caplog.records()
+        assert not caplog.records
 
     @utils.prevent_exceptions(42, True)
     def func_predicate_true(self):
@@ -694,10 +695,10 @@ class TestPreventExceptions:
 
     def test_predicate_true(self, caplog):
         """Test with a True predicate."""
-        with caplog.atLevel(logging.ERROR, 'misc'):
+        with caplog.at_level(logging.ERROR, 'misc'):
             ret = self.func_predicate_true()
         assert ret == 42
-        assert len(caplog.records()) == 1
+        assert len(caplog.records) == 1
 
     @utils.prevent_exceptions(42, False)
     def func_predicate_false(self):
@@ -705,10 +706,10 @@ class TestPreventExceptions:
 
     def test_predicate_false(self, caplog):
         """Test with a False predicate."""
-        with caplog.atLevel(logging.ERROR, 'misc'):
+        with caplog.at_level(logging.ERROR, 'misc'):
             with pytest.raises(Exception):
                 self.func_predicate_false()
-        assert not caplog.records()
+        assert not caplog.records
 
 
 class Obj:

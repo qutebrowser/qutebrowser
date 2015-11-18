@@ -33,7 +33,7 @@ import pytest
 
 import helpers.stubs as stubsmod
 from helpers import logfail
-from helpers.logfail import fail_on_logging, caplog_bug_workaround
+from helpers.logfail import fail_on_logging
 from helpers.messagemock import message_mock
 from qutebrowser.config import config
 from qutebrowser.utils import objreg
@@ -121,11 +121,8 @@ def pytest_collection_modifyitems(items):
 def pytest_ignore_collect(path):
     """Ignore BDD tests during collection if frozen."""
     rel_path = path.relto(os.path.dirname(__file__))
-    if (rel_path == os.path.join('integration', 'features') and
-            hasattr(sys, 'frozen')):
-        return True
-    else:
-        return False
+    return (rel_path == os.path.join('integration', 'features') and
+            hasattr(sys, 'frozen'))
 
 
 @pytest.fixture(scope='session')

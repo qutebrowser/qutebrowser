@@ -814,12 +814,9 @@ class EventFilter(QObject):
         Return:
             True if the event should be filtered, False if it's passed through.
         """
-        if qApp.overrideCursor() is None:
-            # Mouse cursor shown -> don't filter event
-            return False
-        else:
-            # Mouse cursor hidden -> filter event
-            return True
+        # Mouse cursor shown (overrideCursor None) -> don't filter event
+        # Mouse cursor hidden (overrideCursor not None) -> filter event
+        return qApp.overrideCursor() is not None
 
     def eventFilter(self, obj, event):
         """Handle an event.

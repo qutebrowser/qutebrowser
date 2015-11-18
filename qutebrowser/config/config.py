@@ -368,7 +368,7 @@ class ConfigManager(QObject):
         self.sections = configdata.data()
         self._interpolation = configparser.ExtendedInterpolation()
         self._proxies = {}
-        for sectname in self.sections.keys():
+        for sectname in self.sections:
             self._proxies[sectname] = SectionProxy(self, sectname)
         self._fname = fname
         if configdir is None:

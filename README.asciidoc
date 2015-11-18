@@ -6,6 +6,7 @@
 qutebrowser
 ===========
 
+// QUTE_WEB_HIDE
 image:icons/qutebrowser-64x64.png[qutebrowser logo] *A keyboard-driven, vim-like browser based on PyQt5 and QtWebKit.*
 
 image:https://img.shields.io/pypi/l/qutebrowser.svg?style=flat["license badge",link="https://github.com/The-Compiler/qutebrowser/blob/master/COPYING"]
@@ -14,6 +15,7 @@ image:https://img.shields.io/github/issues/The-Compiler/qutebrowser.svg?style=fl
 image:https://requires.io/github/The-Compiler/qutebrowser/requirements.svg?branch=master["requirements badge",link="https://requires.io/github/The-Compiler/qutebrowser/requirements/?branch=master"]
 image:https://travis-ci.org/The-Compiler/qutebrowser.svg?branch=master["Build Status", link="https://travis-ci.org/The-Compiler/qutebrowser"]
 image:https://ci.appveyor.com/api/projects/status/9gmnuip6i1oq7046?svg=true["AppVeyor build status", link="https://ci.appveyor.com/project/The-Compiler/qutebrowser"]
+// QUTE_WEB_HIDE_END
 
 qutebrowser is a keyboard-focused browser with a minimal GUI. It's based
 on Python, PyQt5 and QtWebKit and free software, licensed under the GPL.
@@ -24,7 +26,7 @@ Screenshots
 -----------
 
 image:doc/img/main.png["screenshot 1",width=300,link="doc/img/main.png"]
-image:doc/img/downloads.png["screenshot 2",width=300j,link="doc/img/downloads.png"]
+image:doc/img/downloads.png["screenshot 2",width=300,link="doc/img/downloads.png"]
 image:doc/img/completion.png["screenshot 3",width=300,link="doc/img/completion.png"]
 image:doc/img/hints.png["screenshot 4",width=300,link="doc/img/hints.png"]
 
@@ -89,11 +91,11 @@ Requirements
 
 The following software and libraries are required to run qutebrowser:
 
-* http://www.python.org/[Python] 3.4
-* http://qt.io/[Qt] 5.2.0 or newer (5.5.0 recommended)
+* http://www.python.org/[Python] 3.4 or newer
+* http://qt.io/[Qt] 5.2.0 or newer (5.5.1 recommended)
 * QtWebKit
 * http://www.riverbankcomputing.com/software/pyqt/intro[PyQt] 5.2.0 or newer
-(5.5.0 recommended) for Python 3
+(5.5.1 recommended) for Python 3
 * https://pypi.python.org/pypi/setuptools/[pkg_resources/setuptools]
 * http://fdik.org/pyPEG/[pyPEG2]
 * http://jinja.pocoo.org/[jinja2]
@@ -139,32 +141,33 @@ Contributors, sorted by the number of commits in descending order:
 // QUTE_AUTHORS_START
 * Florian Bruhin
 * Antoni Boucher
-* Bruno Oliveira
 * Lamar Pavel
+* Bruno Oliveira
 * Alexander Cogneau
 * Martin Tournoij
 * Raphael Pierzina
 * Joel Torstensson
 * Daniel
 * Claude
+* meles5
 * Nathan Isom
 * Austin Anderson
 * Artur Shaik
 * Thorsten Wißmann
 * Alexey "Averrin" Nabrodov
-* meles5
 * ZDarian
 * John ShaggyTwoDope Jenkins
 * Peter Vilim
 * Jonas Schürmann
 * Jimmy
 * skinnay
+* error800
 * Zach-Button
+* Halfwit
 * Felix Van der Jeugt
 * rikn00
 * Patric Schmitz
 * Martin Zimmermann
-* Error 800
 * Brian Jackson
 * sbinix
 * neeasade
@@ -180,7 +183,6 @@ Contributors, sorted by the number of commits in descending order:
 * Fritz V155 Reichwald
 * Franz Fellner
 * zwarag
-* error800
 * Tim Harder
 * Thiago Barroso Perrotta
 * Matthias Lisin

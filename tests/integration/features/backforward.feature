@@ -43,6 +43,19 @@ Feature: Going back and forward.
                   url: http://localhost:*/data/backforward/1.txt
                 - url: http://localhost:*/data/backforward/2.txt
 
+    Scenario: Going back in a new tab without history
+        Given I open data/backforward/1.txt
+        When I run :tab-only
+        And I run :back -t
+        Then the error "At beginning of history." should be shown.
+        Then the session should look like:
+            windows:
+            - tabs:
+              - active: true
+                history:
+                - active: true
+                  url: http://localhost:*/data/backforward/1.txt
+
     Scenario: Going back in a new background tab
         Given I open data/backforward/1.txt
         When I open data/backforward/2.txt
@@ -61,6 +74,31 @@ Feature: Going back and forward.
                 - active: true
                   url: http://localhost:*/data/backforward/1.txt
                 - url: http://localhost:*/data/backforward/2.txt
+
+    Scenario: Going back with count.
+        Given I open data/backforward/1.txt
+        When I open data/backforward/2.txt
+        And I open data/backforward/3.txt
+        And I run :tab-only
+        And I run :back with count 2
+        And I wait until data/backforward/1.txt is loaded
+        And I reload
+        Then the session should look like:
+            windows:
+            - tabs:
+              - history:
+                - active: true
+                  url: http://localhost:*/data/backforward/1.txt
+                - url: http://localhost:*/data/backforward/2.txt
+                - url: http://localhost:*/data/backforward/3.txt
+
+    Scenario: Going back with very big count.
+        Given I open data/backforward/1.txt
+        When I run :back with count 99999999999
+        # Make sure it doesn't hang
+        And I run :message-info "Still alive!"
+        Then the error "At beginning of history." should be shown.
+        And the message "Still alive!" should be shown.
 
     Scenario: Going back in a new window
         Given I have a fresh instance

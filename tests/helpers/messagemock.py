@@ -61,7 +61,7 @@ class MessageMock:
         }
         log_level = log_levels[level]
 
-        with self._caplog.atLevel(log_level):  # needed so we don't fail
+        with self._caplog.at_level(log_level):  # needed so we don't fail
             logging.getLogger('message').log(log_level, text)
 
         self.messages.append(Message(level, win_id, text, immediately))

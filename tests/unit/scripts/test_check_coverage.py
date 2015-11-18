@@ -51,7 +51,8 @@ class CovtestHelper:
         coveragerc = str(self._testdir.tmpdir / 'coveragerc')
         return self._testdir.runpytest('--cov=module',
                                        '--cov-config={}'.format(coveragerc),
-                                       '--cov-report=xml')
+                                       '--cov-report=xml',
+                                       plugins=['no:faulthandler'])
 
     def check(self, perfect_files=None):
         """Run check_coverage.py and run its return value."""
@@ -165,6 +166,7 @@ def test_tested_unlisted(covtest):
 @pytest.mark.parametrize('args, reason', [
     (['-k', 'foo'], "because -k is given."),
     (['-m', 'foo'], "because -m is given."),
+    (['--lf'], "because --lf is given."),
     (['blah', '-m', 'foo'], "because -m is given."),
     (['tests/foo'], "because there is nothing to check."),
 ])

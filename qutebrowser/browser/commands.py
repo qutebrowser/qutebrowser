@@ -152,30 +152,6 @@ class CommandDispatcher:
         else:
             return None
 
-    def _scroll_percent(self, perc=None, count=None, orientation=None):
-        """Inner logic for scroll_percent_(x|y).
-
-        Args:
-            perc: How many percent to scroll, or None
-            count: How many percent to scroll, or None
-            orientation: Qt.Horizontal or Qt.Vertical
-        """
-        if perc is None and count is None:
-            perc = 100
-        elif perc is None:
-            perc = count
-        if perc == 0:
-            self.scroll('top')
-        elif perc == 100:
-            self.scroll('bottom')
-        else:
-            perc = qtutils.check_overflow(perc, 'int', fatal=False)
-            frame = self._current_widget().page().currentFrame()
-            m = frame.scrollBarMaximum(orientation)
-            if m == 0:
-                return
-            frame.setScrollBarValue(orientation, int(m * perc / 100))
-
     def _tab_move_absolute(self, idx):
         """Get an index for moving a tab absolutely.
 
@@ -412,20 +388,27 @@ class CommandDispatcher:
 
     def _back_forward(self, tab, bg, window, count, forward):
         """Helper function for :back/:forward."""
-        if (not forward and not
-                self._current_widget().page().history().canGoBack()):
+        # Catch common cases before e.g. cloning tab
+        history = self._current_widget().page().history()
+        if not forward and not history.canGoBack():
             raise cmdexc.CommandError("At beginning of history.")
-        if (forward and not
-                self._current_widget().page().history().canGoForward()):
+        elif forward and not history.canGoForward():
             raise cmdexc.CommandError("At end of history.")
+
         if tab or bg or window:
             widget = self.tab_clone(bg, window)
         else:
             widget = self._current_widget()
+
+        history = widget.page().history()
         for _ in range(count):
             if forward:
+                if not history.canGoForward():
+                    raise cmdexc.CommandError("At end of history.")
                 widget.forward()
             else:
+                if not history.canGoBack():
+                    raise cmdexc.CommandError("At beginning of history.")
                 widget.back()
 
     @cmdutils.register(instance='command-dispatcher', scope='window',
@@ -538,7 +521,7 @@ class CommandDispatcher:
 
     @cmdutils.register(instance='command-dispatcher', hide=True,
                        scope='window', count='count')
-    def scroll_px(self, dx: {'type': float}, dy: {'type': float}, count=1):
+    def scroll_px(self, dx: {'type': int}, dy: {'type': int}, count=1):
         """Scroll the current tab by 'count * dx/dy' pixels.
 
         Args:
@@ -555,8 +538,8 @@ class CommandDispatcher:
     @cmdutils.register(instance='command-dispatcher', hide=True,
                        scope='window', count='count')
     def scroll(self,
-               direction: {'type': (str, float)},
-               dy: {'type': float, 'hide': True}=None,
+               direction: {'type': (str, int)},
+               dy: {'type': int, 'hide': True}=None,
                count=1):
         """Scroll the current tab in the given direction.
 
@@ -569,8 +552,8 @@ class CommandDispatcher:
         # pylint: disable=too-many-locals
         try:
             # Check for deprecated dx/dy form (like with scroll-px).
-            dx = float(direction)
-            dy = float(dy)
+            dx = int(direction)
+            dy = int(dy)
         except (ValueError, TypeError):
             # Invalid values will get handled later.
             pass
@@ -643,8 +626,24 @@ class CommandDispatcher:
             horizontal: Scroll horizontally instead of vertically.
             count: Percentage to scroll.
         """
-        self._scroll_percent(perc, count,
-                             Qt.Horizontal if horizontal else Qt.Vertical)
+        if perc is None and count is None:
+            perc = 100
+        elif perc is None:
+            perc = count
+
+        orientation = Qt.Horizontal if horizontal else Qt.Vertical
+
+        if perc == 0 and orientation == Qt.Vertical:
+            self.scroll('top')
+        elif perc == 100 and orientation == Qt.Vertical:
+            self.scroll('bottom')
+        else:
+            perc = qtutils.check_overflow(perc, 'int', fatal=False)
+            frame = self._current_widget().page().currentFrame()
+            m = frame.scrollBarMaximum(orientation)
+            if m == 0:
+                return
+            frame.setScrollBarValue(orientation, int(m * perc / 100))
 
     @cmdutils.register(instance='command-dispatcher', hide=True,
                        scope='window', count='count')
@@ -686,7 +685,7 @@ class CommandDispatcher:
                 pass
             elif mult_y < 0:
                 self.scroll('page-up', count=-int(mult_y))
-            elif mult_y > 0:
+            elif mult_y > 0:  # pragma: no branch
                 self.scroll('page-down', count=int(mult_y))
             mult_y = 0
         if mult_x == 0 and mult_y == 0:

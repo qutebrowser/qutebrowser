@@ -263,10 +263,10 @@ class TestInitCacheDirTag:
         monkeypatch.setattr('qutebrowser.utils.standarddir.cache',
                             lambda: str(tmpdir))
         mocker.patch('builtins.open', side_effect=OSError)
-        with caplog.atLevel(logging.ERROR, 'init'):
+        with caplog.at_level(logging.ERROR, 'init'):
             standarddir._init_cachedir_tag()
-        assert len(caplog.records()) == 1
-        assert caplog.records()[0].message == 'Failed to create CACHEDIR.TAG'
+        assert len(caplog.records) == 1
+        assert caplog.records[0].message == 'Failed to create CACHEDIR.TAG'
         assert not tmpdir.listdir()
 
 

@@ -70,7 +70,7 @@ def _init_setting_completions():
         model = configmodel.SettingOptionCompletionModel(sectname)
         _instances[usertypes.Completion.option][sectname] = model
         _instances[usertypes.Completion.value][sectname] = {}
-        for opt in configdata.DATA[sectname].keys():
+        for opt in configdata.DATA[sectname]:
             model = configmodel.SettingValueCompletionModel(sectname, opt)
             _instances[usertypes.Completion.value][sectname][opt] = model
 

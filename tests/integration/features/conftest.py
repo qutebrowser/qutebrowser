@@ -62,8 +62,13 @@ def fresh_instance(quteproc):
 
 @bdd.when(bdd.parsers.parse("I run {command}"))
 def run_command_when(quteproc, httpbin, command):
+    if 'with count' in command:
+        command, count = command.split(' with count ')
+        count = int(count)
+    else:
+        count = None
     command = command.replace('(port)', str(httpbin.port))
-    quteproc.send_cmd(command)
+    quteproc.send_cmd(command, count=count)
 
 
 @bdd.when(bdd.parsers.parse("I reload"))
@@ -93,13 +98,12 @@ def wait_for_message(quteproc, httpbin, category, message):
 
 @bdd.then(bdd.parsers.parse("{path} should be loaded"))
 def path_should_be_loaded(httpbin, path):
-    requests = httpbin.get_requests()
-    assert requests[-1] == httpbin.Request('GET', '/' + path)
+    httpbin.wait_for(verb='GET', path='/' + path)
 
 
 @bdd.then(bdd.parsers.parse("The requests should be:\n{pages}"))
 def list_of_loaded_pages(httpbin, pages):
-    expected_requests = [httpbin.Request('GET', '/' + path.strip())
+    expected_requests = [httpbin.ExpectedRequest('GET', '/' + path.strip())
                          for path in pages.split('\n')]
     actual_requests = httpbin.get_requests()
     assert actual_requests == expected_requests
@@ -129,6 +133,11 @@ def compare_session(quteproc, expected):
     data = quteproc.get_session()
     expected = loader.get_data()
     assert utils.partial_compare(data, expected)
+
+
+@bdd.then(bdd.parsers.parse('"{pattern}" should not be logged'))
+def ensure_not_logged(quteproc, pattern):
+    quteproc.ensure_not_logged(message=pattern)
 
 
 @bdd.then("no crash should happen")

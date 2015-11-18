@@ -44,7 +44,7 @@ INSTALL_PYQT = TESTENV in ('py34', 'py35', 'unittests-nodisp', 'vulture',
                            'pylint')
 XVFB = TRAVIS_OS == 'linux' and TESTENV == 'py34'
 pip_packages = ['tox']
-if TESTENV in ['py34', 'py35']:
+if TESTENV in ['py34', 'py35'] and TRAVIS_OS == 'linux':
     pip_packages.append('codecov')
 
 
@@ -69,9 +69,12 @@ def check_setup(executable):
 
 if 'APPVEYOR' in os.environ:
     print("Getting PyQt5...")
-    urllib.urlretrieve(
-        'http://www.qutebrowser.org/pyqt/PyQt5-5.5-gpl-Py3.4-Qt5.5.0-x32.exe',
-        r'C:\install-PyQt5.exe')
+    qt_version = '5.5.1'
+    pyqt_version = '5.5.1'
+    pyqt_url = ('http://www.qutebrowser.org/pyqt/'
+                'PyQt5-{}-gpl-Py3.4-Qt{}-x32.exe'.format(
+                    pyqt_version, qt_version))
+    urllib.urlretrieve(pyqt_url, r'C:\install-PyQt5.exe')
 
     print("Fixing registry...")
     with winreg.OpenKey(winreg.HKEY_CURRENT_USER,

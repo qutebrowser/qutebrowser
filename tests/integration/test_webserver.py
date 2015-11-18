@@ -46,5 +46,19 @@ def test_httpbin(httpbin, qtbot, path, content, expected):
 
     data = response.read().decode('utf-8')
 
-    assert httpbin.get_requests() == [httpbin.Request('GET', path)]
+    assert httpbin.get_requests() == [httpbin.ExpectedRequest('GET', path)]
     assert (content in data) == expected
+
+
+@pytest.mark.parametrize('line, verb, path, equal', [
+    ('127.0.0.1 - - [01/Jan/1990 00:00:00] "GET / HTTP/1.1" 200 -',
+        'GET', '/', True),
+    ('127.0.0.1 - - [01/Jan/1990 00:00:00] "GET / HTTP/1.1" 200 -',
+        'GET', '/foo', False),
+    ('127.0.0.1 - - [01/Jan/1990 00:00:00] "GET / HTTP/1.1" 200 -',
+        'POST', '/foo', False),
+])
+def test_expected_request(httpbin, line, verb, path, equal):
+    expected = httpbin.ExpectedRequest(verb, path)
+    request = httpbin.Request(line)
+    assert (expected == request) == equal

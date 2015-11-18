@@ -93,10 +93,8 @@ def is_qutebrowser_dump(parsed):
             return True
         else:
             return '-m qutebrowser' in cmdline
-    elif basename == 'qutebrowser':
-        return True
     else:
-        return False
+        return basename == 'qutebrowser'
 
 
 def dump_infos_gdb(parsed):

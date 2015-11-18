@@ -26,7 +26,6 @@ import re
 import sys
 import socket
 import os.path
-import collections
 
 import pytest
 from PyQt5.QtCore import pyqtSignal
@@ -34,24 +33,16 @@ from PyQt5.QtCore import pyqtSignal
 import testprocess  # pylint: disable=import-error
 
 
-Request = collections.namedtuple('Request', 'verb, path')
+class Request(testprocess.Line):
 
+    """A parsed line from the httpbin/flask log output.
 
-class HTTPBin(testprocess.Process):
-
-    """Abstraction over a running HTTPbin server process.
-
-    Reads the log from its stdout and parses it.
+    Attributes:
+        timestamp/verb/path/status: Parsed from the log output.
 
     Class attributes:
         LOG_RE: Used to parse the CLF log which httpbin outputs.
-
-    Signals:
-        new_request: Emitted when there's a new request received.
     """
-
-    new_request = pyqtSignal(Request)
-    Request = Request  # So it can be used from the fixture easily.
 
     LOG_RE = re.compile(r"""
         (?P<host>[^ ]*)
@@ -66,6 +57,69 @@ class HTTPBin(testprocess.Process):
         \ (?P<status>[^ ]*)
         \ (?P<size>[^ ]*)
     """, re.VERBOSE)
+
+    def __init__(self, data):
+        super().__init__(data)
+        match = self.LOG_RE.match(data)
+        if match is None:
+            raise testprocess.InvalidLine(data)
+
+        assert match.group('host') == '127.0.0.1'
+        assert match.group('user') == '-'
+        self.timestamp = match.group('date')
+        self.verb = match.group('verb')
+
+        # FIXME do we need to allow other options?
+        assert match.group('protocol') == 'HTTP/1.1'
+        assert self.verb == 'GET'
+
+        self.path = match.group('path')
+        self.status = int(match.group('status'))
+
+        missing_paths = ['/favicon.ico', '/does-not-exist']
+
+        if self.path in missing_paths:
+            assert self.status == 404
+        else:
+            assert self.status < 400
+
+        assert match.group('size') == '-'
+
+    def __eq__(self, other):
+        return NotImplemented
+
+
+class ExpectedRequest:
+
+    """Class to compare expected requests easily."""
+
+    def __init__(self, verb, path):
+        self.verb = verb
+        self.path = path
+
+    def __eq__(self, other):
+        if isinstance(other, (Request, ExpectedRequest)):
+            return (self.verb == other.verb and
+                    self.path == other.path)
+        else:
+            return NotImplemented
+
+
+class HTTPBin(testprocess.Process):
+
+    """Abstraction over a running HTTPbin server process.
+
+    Reads the log from its stdout and parses it.
+
+    Signals:
+        new_request: Emitted when there's a new request received.
+    """
+
+    new_request = pyqtSignal(Request)
+    Request = Request  # So it can be used from the fixture easily.
+    ExpectedRequest = ExpectedRequest
+
+    KEYS = ['verb', 'path']
 
     def __init__(self, parent=None):
         super().__init__(parent)
@@ -91,14 +145,7 @@ class HTTPBin(testprocess.Process):
                     'quit)'.format(self.port)):
             self.ready.emit()
             return None
-
-        match = self.LOG_RE.match(line)
-        if match is None:
-            raise testprocess.InvalidLine
-        # FIXME do we need to allow other options?
-        assert match.group('protocol') == 'HTTP/1.1'
-
-        return Request(verb=match.group('verb'), path=match.group('path'))
+        return Request(line)
 
     def _executable_args(self):
         if hasattr(sys, 'frozen'):
