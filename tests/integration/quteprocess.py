@@ -217,15 +217,6 @@ class QuteProc(testprocess.Process):
                              message=message)
         line.expected = True
 
-    def wait_for(self, timeout=None, **kwargs):
-        """Override testprocess.wait_for to check past messages.
-
-        self._data is cleared after every test to provide at least some
-        isolation.
-        """
-        __tracebackhide__ = True
-        return super().wait_for(timeout, **kwargs)
-
     def wait_for_load_finished(self, path, timeout=15000):
         """Wait until any tab has finished loading."""
         url = self._path_to_url(path)
