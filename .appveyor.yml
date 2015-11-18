@@ -23,6 +23,3 @@ after_test:
           $file = '.\junit.xml'
           (New-Object 'System.Net.WebClient').UploadFile($url, (Resolve-Path $file))
       }
-      if ($env:TESTENV -eq 'py34') {
-          C:\Python34\Scripts\codecov -e TESTENV -X gcov
-      }
