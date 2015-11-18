@@ -100,3 +100,16 @@ Feature: Various utility commands.
         When I open data/hello.txt
         And I run :debug-webaction PermissionUnknown
         Then the error "PermissionUnknown is not a valid web action!" should be shown.
+
+    # :inspect
+
+    Scenario: Inspector without developer extras
+        When I set general -> developer-extras to false
+        And I run :inspector
+        Then the error "Please enable developer-extras before using the webinspector!" should be shown.
+
+    Scenario: Inspector smoke test
+        When I set general -> developer-extras to true
+        And I run :inspector
+        And I run :inspector
+        Then no crash should happen
