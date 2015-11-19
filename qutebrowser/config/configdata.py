@@ -1221,6 +1221,14 @@ KEY_FIRST_COMMENT = """
 # with Shift. For special keys (with `<>`-signs), you need to explicitly add
 # `Shift-` to match a key pressed with shift.  You can bind multiple commands
 # by separating them with `;;`.
+#
+# Note that default keybindings are always bound, and need to be explicitly
+# unbound if you wish to remove them:
+#
+# <unbound>
+#   keychain
+#   keychain2
+#   ...
 """
 
 KEY_SECTION_DESC = {
