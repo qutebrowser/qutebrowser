@@ -180,6 +180,7 @@ Contributors, sorted by the number of commits in descending order:
 * Fritz V155 Reichwald
 * Franz Fellner
 * zwarag
+* xd1le
 * Tim Harder
 * Thiago Barroso Perrotta
 * Samuel Loury
