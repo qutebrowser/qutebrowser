@@ -500,6 +500,46 @@ class TestKeyEventToString:
         assert utils.keyevent_to_string(evt) == 'Meta+A'
 
 
+@pytest.mark.parametrize('keystr, expected', [
+    ('<Control-x>', utils.KeyInfo(Qt.Key_X, Qt.ControlModifier, '')),
+    ('<Meta-x>', utils.KeyInfo(Qt.Key_X, Qt.MetaModifier, '')),
+    ('<Ctrl-Alt-y>',
+        utils.KeyInfo(Qt.Key_Y, Qt.ControlModifier | Qt.AltModifier, '')),
+    ('x', utils.KeyInfo(Qt.Key_X, Qt.NoModifier, 'x')),
+    ('X', utils.KeyInfo(Qt.Key_X, Qt.ShiftModifier, 'X')),
+    ('<Escape>', utils.KeyInfo(Qt.Key_Escape, Qt.NoModifier, '')),
+
+    ('foobar', utils.KeyParseError),
+    ('x, y', utils.KeyParseError),
+    ('xyz', utils.KeyParseError),
+    ('Escape', utils.KeyParseError),
+    ('<Ctrl-x>, <Ctrl-y>', utils.KeyParseError),
+])
+def test_parse_single_key(keystr, expected):
+    if expected is utils.KeyParseError:
+        with pytest.raises(utils.KeyParseError):
+            utils._parse_single_key(keystr)
+    else:
+        assert utils._parse_single_key(keystr) == expected
+
+
+
+@pytest.mark.parametrize('keystr, expected', [
+    ('<Control-x>', [utils.KeyInfo(Qt.Key_X, Qt.ControlModifier, '')]),
+    ('x', [utils.KeyInfo(Qt.Key_X, Qt.NoModifier, 'x')]),
+    ('xy', [utils.KeyInfo(Qt.Key_X, Qt.NoModifier, 'x'),
+            utils.KeyInfo(Qt.Key_Y, Qt.NoModifier, 'y')]),
+
+    ('<Control-x><Meta-x>', utils.KeyParseError),
+])
+def test_parse_keystring(keystr, expected):
+    if expected is utils.KeyParseError:
+        with pytest.raises(utils.KeyParseError):
+            utils.parse_keystring(keystr)
+    else:
+        assert utils.parse_keystring(keystr) == expected
+
+
 @pytest.mark.parametrize('orig, repl', [
     ('Control+x', 'ctrl+x'),
     ('Windows+x', 'meta+x'),

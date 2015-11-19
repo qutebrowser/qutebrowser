@@ -391,6 +391,100 @@ def keyevent_to_string(e):
     return '+'.join(parts)
 
 
+class KeyInfo:
+
+    """Stores information about a key, like used in a QKeyEvent.
+
+    Attributes:
+        key: Qt::Key
+        modifiers: Qt::KeyboardModifiers
+        text: str
+    """
+
+    def __init__(self, key, modifiers, text):
+        self.key = key
+        self.modifiers = modifiers
+        self.text = text
+
+    def __repr__(self):
+        # Meh, dependency cycle...
+        from qutebrowser.utils.debug import qenum_key
+        if self.modifiers is None:
+            modifiers = None
+        else:
+            #modifiers = qflags_key(Qt, self.modifiers)
+            modifiers = hex(int(self.modifiers))
+        return get_repr(self, constructor=True, key=qenum_key(Qt, self.key),
+                        modifiers=modifiers, text=self.text)
+
+    def __eq__(self, other):
+        return (self.key == other.key and self.modifiers == other.modifiers and
+                self.text == other.text)
+
+
+class KeyParseError(Exception):
+
+    """Raised by _parse_single_key/parse_keystring on parse errors."""
+
+    def __init__(self, keystr, error):
+        super().__init__("Could not parse {!r}: {}".format(keystr, error))
+
+
+def _parse_single_key(keystr):
+    """Convert a single key string to a (Qt.Key, Qt.Modifiers, text) tuple."""
+    if keystr.startswith('<') and keystr.endswith('>'):
+        # Special key
+        keystr = keystr[1:-1]
+    elif len(keystr) == 1:
+        # vim-like key
+        pass
+    else:
+        raise KeyParseError(keystr, "Expecting either a single key or a "
+                            "<Ctrl-x> like keybinding.")
+
+    seq = QKeySequence(normalize_keystr(keystr), QKeySequence.PortableText)
+    if len(seq) != 1:
+        raise KeyParseError(keystr, "Got {} keys instead of 1.".format(
+            len(seq)))
+    result = seq[0]
+
+    if result == Qt.Key_unknown:
+        raise KeyParseError(keystr, "Got unknown key.")
+
+    modifier_mask = int(Qt.ShiftModifier | Qt.ControlModifier |
+                        Qt.AltModifier | Qt.MetaModifier | Qt.KeypadModifier |
+                        Qt.GroupSwitchModifier)
+    assert Qt.Key_unknown & ~modifier_mask == Qt.Key_unknown
+
+    modifiers = result & modifier_mask
+    key = result & ~modifier_mask
+
+    if len(keystr) == 1 and keystr.isupper():
+        modifiers |= Qt.ShiftModifier
+
+    assert key != 0, key
+    key = Qt.Key(key)
+    modifiers = Qt.KeyboardModifiers(modifiers)
+
+    # Let's hope this is accurate...
+    if len(keystr) == 1 and not modifiers:
+        text = keystr
+    elif len(keystr) == 1 and modifiers == Qt.ShiftModifier:
+        text = keystr.upper()
+    else:
+        text = ''
+
+    return KeyInfo(key, modifiers, text)
+
+
+def parse_keystring(keystr):
+    """Parse a keystring like <Ctrl-x> or xyz and return a KeyInfo list."""
+    if keystr.startswith('<') and keystr.endswith('>'):
+        return [_parse_single_key(keystr)]
+    else:
+        return [_parse_single_key(char) for char in keystr]
+
+
 def normalize_keystr(keystr):
     """Normalize a keystring like Ctrl-Q to a keystring like Ctrl+Q.
 
