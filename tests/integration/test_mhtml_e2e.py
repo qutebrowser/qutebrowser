@@ -22,6 +22,7 @@
 import os
 import re
 import os.path
+import collections
 
 import pytest
 
@@ -102,7 +103,8 @@ def test_mhtml(test_name, download_dir, quteproc, httpbin):
             expected_requests.append(httpbin.ExpectedRequest('GET', path))
 
     actual_requests = httpbin.get_requests()
-    # Requests are unorderable, we need to convert to ExpectedRequests
+    # Requests are not hashable, we need to convert to ExpectedRequests
     actual_requests = map(httpbin.ExpectedRequest.from_request,
                           actual_requests)
-    assert sorted(actual_requests) == sorted(expected_requests)
+    assert (collections.Counter(actual_requests) ==
+            collections.Counter(expected_requests))
