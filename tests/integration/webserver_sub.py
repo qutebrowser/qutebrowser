@@ -95,7 +95,7 @@ def main():
         basedir = os.path.realpath(os.path.dirname(sys.executable))
         app.template_folder = os.path.join(basedir, 'integration', 'templates')
     port = int(sys.argv[1])
-    server = WSGIServer(('0.0.0.0', port), app)
+    server = WSGIServer(('127.0.0.1', port), app)
 
     signal.signal(signal.SIGTERM, lambda *args: server.stop())
 
