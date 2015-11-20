@@ -146,6 +146,8 @@ class CommandDispatcher:
         """
         if count is None:
             return self._tabbed_browser.currentWidget()
+        elif count == '$':
+            count = self._count()
         elif 1 <= count <= self._count():
             cmdutils.check_overflow(count + 1, 'int')
             return self._tabbed_browser.widget(count - 1)
@@ -177,9 +179,9 @@ class CommandDispatcher:
             # gets called from tab_move which has delta set to None by default.
             delta = 1
         if direction == '-':
-            return self._current_index() - delta
+            return max(0, self._current_index() - delta)
         elif direction == '+':
-            return self._current_index() + delta
+            return min(self._count() - 1, self._current_index() + delta)
 
     def _tab_focus_last(self):
         """Select the tab which was last focused."""
@@ -225,17 +227,27 @@ class CommandDispatcher:
 
     @cmdutils.register(instance='command-dispatcher', scope='window',
                        count='count')
-    def tab_close(self, left=False, right=False, opposite=False, count=None):
+    def tab_close(self, index=None, left=False, right=False, opposite=False,
+                  count=None):
         """Close the current/[count]th tab.
 
         Args:
+            index: The tab index, starting with 1. Use `$` for the last tab.
             left: Force selecting the tab to the left of the current tab.
             right: Force selecting the tab to the right of the current tab.
             opposite: Force selecting the tab in the opposite direction of
                       what's configured in 'tabs->select-on-remove'.
             count: The tab index to close, or None
         """
-        tab = self._cntwidget(count)
+        if index is not None:
+            idx = index
+        else:
+            idx = count
+        if idx == '$':
+            idx = self._count()
+        elif idx is not None:
+            idx = int(idx)
+        tab = self._cntwidget(idx)
         if tab is None:
             return
         tabbar = self._tabbed_browser.tabBar()
@@ -874,14 +886,15 @@ class CommandDispatcher:
 
     @cmdutils.register(instance='command-dispatcher', scope='window',
                        count='count')
-    def tab_focus(self, index: {'type': (int, 'last')}=None, count=None):
+    def tab_focus(self, index: {'type': (int, 'last', '$')}=None, count=None):
         """Select the tab given as argument/[count].
 
         If neither count nor index are given, it behaves like tab-next.
 
         Args:
             index: The tab index to focus, starting with 1. The special value
-                   `last` focuses the last focused tab.
+                   `last` focuses the last focused tab, and `$` focuses the
+                   last tab in the tabbar.
             count: The tab index to focus, starting with 1.
         """
         if index == 'last':
@@ -895,6 +908,8 @@ class CommandDispatcher:
                                         countzero=self._count())
         except ValueError as e:
             raise cmdexc.CommandError(e)
+        if idx == '$':
+            idx = self._count()
         cmdutils.check_overflow(idx + 1, 'int')
         if 1 <= idx <= self._count():
             self._set_current_index(idx - 1)
@@ -904,29 +919,49 @@ class CommandDispatcher:
 
     @cmdutils.register(instance='command-dispatcher', scope='window',
                        count='count')
-    def tab_move(self, direction: {'type': ('+', '-')}=None, count=None):
+    def tab_move(self, direction=None, count=None):
         """Move the current tab.
 
         Args:
             direction: `+` or `-` for relative moving, not given for absolute
-                       moving.
+                       moving, `$` to move to the end.
             count: If moving absolutely: New position (default: 0)
                    If moving relatively: Offset.
         """
+        count = self._count() if count == '$' else count
         if direction is None:
-            new_idx = self._tab_move_absolute(count)
+            new_idx = self._tab_move_absolute(count or 0)
         elif direction in '+-':
             try:
                 new_idx = self._tab_move_relative(direction, count)
             except ValueError:
                 raise cmdexc.CommandError("Count must be given for relative "
                                           "moving!")
+        elif direction[0] in '+-':
+            try:
+                count = int(direction[1:])
+            except ValueError:
+                raise cmdexc.CommandError("Invalid count '{}'!".format(
+                    direction))
+            direction = direction[0]
+            try:
+                new_idx = self._tab_move_relative(direction, count)
+            except ValueError:
+                raise cmdexc.CommandError("Count must be given for relative "
+                                          "moving!")
+        elif direction == '$':
+            new_idx = self._count() - 1
         else:
-            raise cmdexc.CommandError("Invalid direction '{}'!".format(
-                direction))
-        if not 0 <= new_idx < self._count():
-            raise cmdexc.CommandError("Can't move tab to position {}!".format(
-                new_idx))
+            try:
+                new_idx = int(direction) - 1
+            except ValueError:
+                raise cmdexc.CommandError("Invalid direction '{}'!".format(
+                    direction))
+
+        if new_idx < 0:
+            new_idx = 0
+        if new_idx > self._count() - 1:
+            new_idx = self._count() - 1
         tab = self._current_widget()
         cur_idx = self._current_index()
         icon = self._tabbed_browser.tabIcon(cur_idx)
@@ -935,9 +970,12 @@ class CommandDispatcher:
         cmdutils.check_overflow(new_idx, 'int')
         self._tabbed_browser.setUpdatesEnabled(False)
         try:
+            color = self._tabbed_browser.tabBar().tab_data(
+                    cur_idx, 'indicator-color')
             self._tabbed_browser.removeTab(cur_idx)
             self._tabbed_browser.insertTab(new_idx, tab, icon, label)
             self._set_current_index(new_idx)
+            self._tabbed_browser.set_tab_indicator_color(new_idx, color)
         finally:
             self._tabbed_browser.setUpdatesEnabled(True)
 
