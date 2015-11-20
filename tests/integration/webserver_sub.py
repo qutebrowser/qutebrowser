@@ -93,6 +93,10 @@ class WSGIServer(cherrypy.wsgiserver.CherryPyWSGIServer):
 
 
 def main():
+    # pylint: disable=no-member
+    # "Instance of 'WSGIServer' has no 'start' member (no-member)"
+    # "Instance of 'WSGIServer' has no 'stop' member (no-member)"
+
     if hasattr(sys, 'frozen'):
         basedir = os.path.realpath(os.path.dirname(sys.executable))
         app.template_folder = os.path.join(basedir, 'integration', 'templates')
