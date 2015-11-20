@@ -69,7 +69,9 @@ def log_request(response):
 
 
 class WSGIServer(cherrypy.wsgiserver.CherryPyWSGIServer):
+
     """A custom WSGIServer that prints a line on stderr when it's ready."""
+
     # pylint: disable=no-member
 
     def __init__(self, *args, **kwargs):
