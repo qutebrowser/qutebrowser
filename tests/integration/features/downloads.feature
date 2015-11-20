@@ -42,3 +42,26 @@ Feature: Downloading things from a website.
     Scenario: Retrying with no downloads
         When I run :download-retry
         Then the error "No failed downloads!" should be shown.
+
+    Scenario: :download with deprecated dest-old argument
+        When I run :download http://localhost:(port)/ deprecated-argument
+        Then the warning ":download [url] [dest] is deprecated - use download --dest [dest] [url]" should be shown.
+
+    Scenario: Two destinations given
+        When I run :download --dest destination2 http://localhost:(port)/ destination1
+        Then the warning ":download [url] [dest] is deprecated - use download --dest [dest] [url]" should be shown.
+        Then the error "Can't give two destinations for the download." should be shown.
+
+    Scenario: :download --mhtml with an URL given
+        When I run :download --mhtml http://foobar/
+        Then the error "Can only download the current page as mhtml." should be shown.
+
+    Scenario: Downloading as mhtml is available
+        When I open html
+        And I run :download --mhtml
+        Then no crash should happen
+
+    Scenario: Downloading as mhtml with non-ASCII headers
+        When I open response-headers?Content-Type=text%2Fpl%C3%A4in
+        And I run :download --dest mhtml-response-headers.mht
+        Then no crash should happen
