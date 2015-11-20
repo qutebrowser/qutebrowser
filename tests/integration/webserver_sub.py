@@ -24,12 +24,17 @@ This script gets called as a QProcess from integration/conftest.py.
 
 import sys
 import time
-import os.path
+import signal
+import os
+import threading
+from datetime import datetime
 
 from httpbin.core import app
 from httpbin.structures import CaseInsensitiveDict
+import cherrypy.wsgiserver
 import flask
 
+server = None
 
 @app.route('/data/<path:path>')
 def send_data(path):
@@ -51,11 +56,51 @@ def redirect_later():
     return flask.redirect('/')
 
 
+@app.after_request
+def log_request(response):
+    request = flask.request
+    template = '127.0.0.1 - - [{date}] "{verb} {path} {http}" {status} -'
+    print(template.format(
+        date=datetime.now().strftime('%d/%b/%Y %H:%M:%S'),
+        verb=request.method,
+        path=request.full_path if request.query_string else request.path,
+        http=request.environ['SERVER_PROTOCOL'],
+        status=response.status_code,
+    ), file=sys.stderr, flush=True)
+    return response
+
+
+def ready_checker(server):
+    """Wait until the server is ready and display the ready message."""
+    while not server.ready:
+        time.sleep(0.2)
+    print(' * Running on http://127.0.0.1:{}/ (Press CTRL+C to quit)'
+          .format(server.bind_addr[1]), file=sys.stderr, flush=True)
+
+
+def shutdown(*args):
+    """Stop the server."""
+    if server is None:
+        return
+    server.stop()
+
+
 def main():
+    global server
     if hasattr(sys, 'frozen'):
         basedir = os.path.realpath(os.path.dirname(sys.executable))
         app.template_folder = os.path.join(basedir, 'integration', 'templates')
-    app.run(port=int(sys.argv[1]), debug=True, use_reloader=False)
+    port = int(sys.argv[1])
+    server = cherrypy.wsgiserver.CherryPyWSGIServer(('0.0.0.0', port), app)
+
+    checker = threading.Thread(target=ready_checker, args=[server])
+    checker.start()
+    signal.signal(signal.SIGTERM, shutdown)
+
+    try:
+        server.start()
+    except KeyboardInterrupt:
+        shutdown()
 
 
 if __name__ == '__main__':
