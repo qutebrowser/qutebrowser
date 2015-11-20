@@ -1184,7 +1184,7 @@ class CommandDispatcher:
         Args:
             dest: The file path to write the download to.
         """
-        tab_id = self._current_index()
+        tab_id = self._current_widget().tab_id
         if dest is None:
             suggested_fn = self._current_title() + ".mht"
             suggested_fn = utils.sanitize_filename(suggested_fn)
