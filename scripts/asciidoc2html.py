@@ -88,7 +88,7 @@ class AsciiDoc:
 
     def _build_website_file(self, root, filename):
         """Build a single website file."""
-        # pylint: disable=too-many-locals
+        # pylint: disable=too-many-locals,too-many-statements
         src = os.path.join(root, filename)
         src_basename = os.path.basename(src)
         parts = [self._args.website[0]]
