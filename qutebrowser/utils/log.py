@@ -297,6 +297,11 @@ def qt_message_handler(msg_type, context, msg):
         'QXcbWindow: Unhandled client message: "_GTK_',
         # Happens on AppVeyor CI
         'SetProcessDpiAwareness failed:',
+        # https://bugreports.qt.io/browse/QTBUG-49174
+        'QObject::connect: Cannot connect (null)::stateChanged('
+            'QNetworkSession::State) to '
+            'QNetworkReplyHttpImpl::_q_networkSessionStateChanged('
+            'QNetworkSession::State)',
     ]
     if sys.platform == 'darwin':
         suppressed_msgs += [
