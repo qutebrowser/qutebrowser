@@ -134,11 +134,13 @@ class AsciiDoc:
                     if re.match(r'^=+$', line):
                         line = line.replace('=', '-')
                         found_title = True
-                        title = last_line[:-1] + " | qutebrowser\n" + "=" * (len(last_line[:-1] + " | qutebrowser") - 1)
+                        title = last_line.rstrip('\n') + " | qutebrowser\n"
+                        title += "=" * (len(title) - 1)
                     elif re.match(r'^= .+', line):
                         line = '==' + line[1:]
                         found_title = True
-                        title = last_line[:-1] + " | qutebrowser\n" + "=" * (len(last_line[:-1] + " | qutebrowser") - 1)
+                        title = last_line.rstrip('\n') + " | qutebrowser\n"
+                        title += "=" * (len(title) - 1)
 
                 if not hidden:
                     outfp.write(line.replace(".asciidoc[", ".html["))
