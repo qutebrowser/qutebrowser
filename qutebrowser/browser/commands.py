@@ -1139,7 +1139,8 @@ class CommandDispatcher:
                 cur.inspector.show()
 
     @cmdutils.register(instance='command-dispatcher', scope='window')
-    def download(self, url=None, dest_old=None, *, mhtml_=False, dest=None):
+    def download(self, url=None, dest_old: {'hide': True}=None, *,
+                 mhtml_=False, dest=None):
         """Download a given URL, or current page if no URL given.
 
         The form `:download [url] [dest]` is deprecated, use `:download --dest
