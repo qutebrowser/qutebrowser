@@ -1184,24 +1184,21 @@ class CommandDispatcher:
         Args:
             dest: The file path to write the download to.
         """
-        tab_id = self._current_widget().tab_id
+        web_view = self._current_widget()
         if dest is None:
             suggested_fn = self._current_title() + ".mht"
             suggested_fn = utils.sanitize_filename(suggested_fn)
             filename, q = downloads.ask_for_filename(
-                suggested_fn, self._win_id, parent=self,
+                suggested_fn, self._win_id, parent=web_view,
             )
             if filename is not None:
-                mhtml.start_download_checked(filename, win_id=self._win_id,
-                                             tab_id=tab_id)
+                mhtml.start_download_checked(filename, web_view=web_view)
             else:
                 q.answered.connect(functools.partial(
-                    mhtml.start_download_checked, win_id=self._win_id,
-                    tab_id=tab_id))
+                    mhtml.start_download_checked, web_view=web_view))
                 q.ask()
         else:
-            mhtml.start_download_checked(dest, win_id=self._win_id,
-                                         tab_id=tab_id)
+            mhtml.start_download_checked(dest, web_view=web_view)
 
     @cmdutils.register(instance='command-dispatcher', scope='window',
                        deprecated="Use :download instead.")

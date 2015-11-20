@@ -139,7 +139,7 @@ def ask_for_filename(suggested_filename, win_id, *, parent=None,
                                                'prompt-download-directory')
 
     if not prompt_download_directory:
-        return DownloadPath(download_dir(), None)
+        return DownloadPath(filename=download_dir(), question=None)
 
     encoding = sys.getfilesystemencoding()
     suggested_filename = utils.force_encoding(suggested_filename,
@@ -154,7 +154,7 @@ def ask_for_filename(suggested_filename, win_id, *, parent=None,
     message_bridge = objreg.get('message-bridge', scope='window',
                                 window=win_id)
     q.ask = lambda: message_bridge.ask(q, blocking=False)
-    return DownloadPath(None, q)
+    return DownloadPath(filename=None, question=q)
 
 
 class DownloadItemStats(QObject):

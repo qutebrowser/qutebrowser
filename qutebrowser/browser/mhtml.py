@@ -146,7 +146,7 @@ E_BASE64 = email.encoders.encode_base64
 E_QUOPRI = email.encoders.encode_quopri
 
 
-class MHTMLWriter():
+class MHTMLWriter:
 
     """A class for outputting multiple files to a MHTML document.
 
@@ -217,7 +217,7 @@ class MHTMLWriter():
         return msg
 
 
-class _Downloader():
+class _Downloader:
 
     """A class to download whole websites.
 
@@ -227,20 +227,21 @@ class _Downloader():
         writer: The MHTMLWriter object which is used to save the page.
         loaded_urls: A set of QUrls of finished asset downloads.
         pending_downloads: A set of unfinished (url, DownloadItem) tuples.
-        _finished: A flag indicating if the file has already been written.
+        _finished_file: A flag indicating if the file has already been
+                        written.
         _used: A flag indicating if the downloader has already been used.
         _win_id: The window this downloader belongs to.
     """
 
-    def __init__(self, web_view, dest, win_id):
+    def __init__(self, web_view, dest):
         self.web_view = web_view
         self.dest = dest
         self.writer = None
         self.loaded_urls = {web_view.url()}
         self.pending_downloads = set()
-        self._finished = False
+        self._finished_file = False
         self._used = False
-        self._win_id = win_id
+        self._win_id = web_view.win_id
 
     def run(self):
         """Download and save the page.
@@ -280,31 +281,36 @@ class _Downloader():
                 # Might be a local <script> tag or something else
                 continue
             absolute_url = web_url.resolved(QUrl(element_url))
-            self.fetch_url(absolute_url)
+            self._fetch_url(absolute_url)
 
         styles = web_frame.findAllElements('style')
         for style in styles:
             style = webelem.WebElementWrapper(style)
+            # The Mozilla Developer Network says:
+            # type: This attribute defines the styling language as a MIME type
+            # (charset should not be specified). This attribute is optional and
+            # default to text/css if it's missing.
+            # https://developer.mozilla.org/en/docs/Web/HTML/Element/style
             if 'type' in style and style['type'] != 'text/css':
                 continue
             for element_url in _get_css_imports(str(style)):
-                self.fetch_url(web_url.resolved(QUrl(element_url)))
+                self._fetch_url(web_url.resolved(QUrl(element_url)))
 
         # Search for references in inline styles
         for element in web_frame.findAllElements('[style]'):
             element = webelem.WebElementWrapper(element)
             style = element['style']
             for element_url in _get_css_imports(style, inline=True):
-                self.fetch_url(web_url.resolved(QUrl(element_url)))
+                self._fetch_url(web_url.resolved(QUrl(element_url)))
 
         # Shortcut if no assets need to be downloaded, otherwise the file would
         # never be saved. Also might happen if the downloads are fast enough to
         # complete before connecting their finished signal.
-        self.collect_zombies()
-        if not self.pending_downloads and not self._finished:
-            self.finish_file()
+        self._collect_zombies()
+        if not self.pending_downloads and not self._finished_file:
+            self._finish_file()
 
-    def fetch_url(self, url):
+    def _fetch_url(self, url):
         """Download the given url and add the file to the collection.
 
         Args:
@@ -317,7 +323,7 @@ class _Downloader():
             return
         self.loaded_urls.add(url)
 
-        log.downloads.debug("loading asset at %s", url)
+        log.downloads.debug("loading asset at {}".format(url))
 
         # Using the download manager to download host-blocked urls might crash
         # qute, see the comments/discussion on
@@ -325,7 +331,7 @@ class _Downloader():
         # and https://github.com/The-Compiler/qutebrowser/issues/1053
         host_blocker = objreg.get('host-blocker')
         if host_blocker.is_blocked(url):
-            log.downloads.debug("Skipping %s, host-blocked", url)
+            log.downloads.debug("Skipping {}, host-blocked".format(url))
             # We still need an empty file in the output, QWebView can be pretty
             # picky about displaying a file correctly when not all assets are
             # at least referenced in the mhtml file.
@@ -333,18 +339,18 @@ class _Downloader():
             return
 
         download_manager = objreg.get('download-manager', scope='window',
-                                      window='current')
+                                      window=self._win_id)
         item = download_manager.get(url, fileobj=_NoCloseBytesIO(),
                                     auto_remove=True)
         self.pending_downloads.add((url, item))
         item.finished.connect(
-            functools.partial(self.finished, url, item))
+            functools.partial(self._finished, url, item))
         item.error.connect(
-            functools.partial(self.error, url, item))
+            functools.partial(self._error, url, item))
         item.cancelled.connect(
-            functools.partial(self.error, url, item))
+            functools.partial(self._error, url, item))
 
-    def finished(self, url, item):
+    def _finished(self, url, item):
         """Callback when a single asset is downloaded.
 
         Args:
@@ -375,12 +381,12 @@ class _Downloader():
             try:
                 css_string = item.fileobj.getvalue().decode('utf-8')
             except UnicodeDecodeError:
-                log.downloads.warning("Invalid UTF-8 data in %s", url)
+                log.downloads.warning("Invalid UTF-8 data in {}".format(url))
                 css_string = item.fileobj.getvalue().decode('utf-8', 'ignore')
             import_urls = _get_css_imports(css_string)
             for import_url in import_urls:
                 absolute_url = url.resolved(QUrl(import_url))
-                self.fetch_url(absolute_url)
+                self._fetch_url(absolute_url)
 
         encode = E_QUOPRI if mime.startswith('text/') else E_BASE64
         # Our MHTML handler refuses non-ASCII headers. This will replace every
@@ -392,9 +398,9 @@ class _Downloader():
         item.fileobj.actual_close()
         if self.pending_downloads:
             return
-        self.finish_file()
+        self._finish_file()
 
-    def error(self, url, item, *_args):
+    def _error(self, url, item, *_args):
         """Callback when a download error occurred.
 
         Args:
@@ -406,40 +412,33 @@ class _Downloader():
         except KeyError:
             # This might happen if .collect_zombies() calls .finished() and the
             # error handler will be called after .collect_zombies
-            log.downloads.debug("Oops! Download already gone: %s", item)
+            log.downloads.debug("Oops! Download already gone: {}".format(item))
             return
         item.fileobj.actual_close()
         # Add a stub file, see comment in .fetch_url() for more information
         self.writer.add_file(urlutils.encoded_url(url), b'')
         if self.pending_downloads:
             return
-        self.finish_file()
+        self._finish_file()
 
-    def finish_file(self):
+    def _finish_file(self):
         """Save the file to the filename given in __init__."""
-        if self._finished:
+        if self._finished_file:
             log.downloads.debug("finish_file called twice, ignored!")
             return
-        self._finished = True
+        self._finished_file = True
         log.downloads.debug("All assets downloaded, ready to finish off!")
         try:
-            file_output = open(self.dest, 'wb')
+            with open(self.dest, 'wb') as file_output:
+                self.writer.write_to(file_output)
         except OSError as error:
             message.error(self._win_id,
                           "Could not save file: {}".format(error))
             return
-        else:
-            # Yes, ugly nesting of try-blocks, but necessary because there's
-            # no way to let the try block only affect the with-statement-
-            # entry-code and not the with-statement-body.
-            try:
-                self.writer.write_to(file_output)
-            finally:
-                file_output.close()
         log.downloads.debug("File successfully written.")
         message.info(self._win_id, "Page saved as {}".format(self.dest))
 
-    def collect_zombies(self):
+    def _collect_zombies(self):
         """Collect done downloads and add their data to the MHTML file.
 
         This is needed if a download finishes before attaching its
@@ -447,9 +446,9 @@ class _Downloader():
         """
         items = set((url, item) for url, item in self.pending_downloads
                     if item.done)
-        log.downloads.debug("Zombie downloads: %s", items)
+        log.downloads.debug("Zombie downloads: {}".format(items))
         for url, item in items:
-            self.finished(url, item)
+            self._finished(url, item)
 
 
 class _NoCloseBytesIO(io.BytesIO):  # pylint: disable=no-init
@@ -469,7 +468,7 @@ class _NoCloseBytesIO(io.BytesIO):  # pylint: disable=no-init
         super().close()
 
 
-def _start_download(dest, win_id, tab_id):
+def _start_download(dest, web_view):
     """Start downloading the current page and all assets to a MHTML file.
 
     This will overwrite dest if it already exists.
@@ -478,21 +477,19 @@ def _start_download(dest, win_id, tab_id):
         dest: The filename where the resulting file should be saved.
         win_id, tab_id: Specify the tab whose page should be loaded.
     """
-    web_view = objreg.get('webview', scope='tab', window=win_id, tab=tab_id)
-    loader = _Downloader(web_view, dest, win_id)
+    loader = _Downloader(web_view, dest)
     loader.run()
 
 
-def start_download_checked(dest, win_id, tab_id):
+def start_download_checked(dest, web_view):
     """First check if dest is already a file, then start the download.
 
     Args:
         dest: The filename where the resulting file should be saved.
-        win_id, tab_id: Specify the tab whose page should be loaded.
+        web_view: Specify the webview whose page should be loaded.
     """
     # The default name is 'page title.mht'
-    title = (objreg.get('webview', scope='tab', window=win_id, tab=tab_id)
-             .title())
+    title = web_view.title()
     default_name = utils.sanitize_filename(title + '.mht')
 
     # Remove characters which cannot be expressed in the file system encoding
@@ -516,11 +513,12 @@ def start_download_checked(dest, win_id, tab_id):
     # saving the file anyway.
     if not os.path.isdir(os.path.dirname(path)):
         folder = os.path.dirname(path)
-        message.error(win_id, "Directory {} does not exist.".format(folder))
+        message.error(web_view.win_id,
+                      "Directory {} does not exist.".format(folder))
         return
 
     if not os.path.isfile(path):
-        _start_download(path, win_id=win_id, tab_id=tab_id)
+        _start_download(path, web_view=web_view)
         return
 
     q = usertypes.Question()
@@ -528,7 +526,7 @@ def start_download_checked(dest, win_id, tab_id):
     q.text = "{} exists. Overwrite?".format(path)
     q.completed.connect(q.deleteLater)
     q.answered_yes.connect(functools.partial(
-        _start_download, path, win_id=win_id, tab_id=tab_id))
+        _start_download, path, web_view=web_view))
     message_bridge = objreg.get('message-bridge', scope='window',
-                                window=win_id)
+                                window=web_view.win_id)
     message_bridge.ask(q, blocking=False)

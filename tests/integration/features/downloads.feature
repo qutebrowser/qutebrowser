@@ -50,7 +50,7 @@ Feature: Downloading things from a website.
     Scenario: Two destinations given
         When I run :download --dest destination2 http://localhost:(port)/ destination1
         Then the warning ":download [url] [dest] is deprecated - use download --dest [dest] [url]" should be shown.
-        Then the error "Can't give two destinations for the download." should be shown.
+        And the error "Can't give two destinations for the download." should be shown.
 
     Scenario: :download --mhtml with an URL given
         When I run :download --mhtml http://foobar/

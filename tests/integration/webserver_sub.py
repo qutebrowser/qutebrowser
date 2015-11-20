@@ -73,6 +73,7 @@ class WSGIServer(cherrypy.wsgiserver.CherryPyWSGIServer):
     """A custom WSGIServer that prints a line on stderr when it's ready."""
 
     # pylint: disable=no-member
+    # WORKAROUND for https://bitbucket.org/logilab/pylint/issues/702
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
@@ -94,6 +95,7 @@ class WSGIServer(cherrypy.wsgiserver.CherryPyWSGIServer):
 
 def main():
     # pylint: disable=no-member
+    # WORKAROUND for https://bitbucket.org/logilab/pylint/issues/702
     # "Instance of 'WSGIServer' has no 'start' member (no-member)"
     # "Instance of 'WSGIServer' has no 'stop' member (no-member)"
 
