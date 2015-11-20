@@ -33,7 +33,6 @@ from httpbin.structures import CaseInsensitiveDict
 import cherrypy.wsgiserver
 import flask
 
-server = None
 
 @app.route('/data/<path:path>')
 def send_data(path):
@@ -91,27 +90,19 @@ class WSGIServer(cherrypy.wsgiserver.CherryPyWSGIServer):
         self._ready = value
 
 
-def shutdown(*args):
-    """Stop the server."""
-    if server is None:
-        return
-    server.stop()
-
-
 def main():
-    global server
     if hasattr(sys, 'frozen'):
         basedir = os.path.realpath(os.path.dirname(sys.executable))
         app.template_folder = os.path.join(basedir, 'integration', 'templates')
     port = int(sys.argv[1])
     server = WSGIServer(('0.0.0.0', port), app)
 
-    signal.signal(signal.SIGTERM, shutdown)
+    signal.signal(signal.SIGTERM, lambda *args: server.stop())
 
     try:
         server.start()
     except KeyboardInterrupt:
-        shutdown()
+        server.stop()
 
 
 if __name__ == '__main__':
