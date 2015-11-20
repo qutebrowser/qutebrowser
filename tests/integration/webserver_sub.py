@@ -26,7 +26,6 @@ import sys
 import time
 import signal
 import os
-import threading
 from datetime import datetime
 
 from httpbin.core import app
@@ -70,12 +69,26 @@ def log_request(response):
     return response
 
 
-def ready_checker(server):
-    """Wait until the server is ready and display the ready message."""
-    while not server.ready:
-        time.sleep(0.2)
-    print(' * Running on http://127.0.0.1:{}/ (Press CTRL+C to quit)'
-          .format(server.bind_addr[1]), file=sys.stderr, flush=True)
+class WSGIServer(cherrypy.wsgiserver.CherryPyWSGIServer):
+    """A custom WSGIServer that prints a line on stderr when it's ready."""
+    # pylint: disable=no-member
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self._ready = False
+        self._printed_ready = False
+
+    @property
+    def ready(self):
+        return self._ready
+
+    @ready.setter
+    def ready(self, value):
+        if value and not self._printed_ready:
+            print(' * Running on http://127.0.0.1:{}/ (Press CTRL+C to quit)'
+                  .format(self.bind_addr[1]), file=sys.stderr, flush=True)
+            self._printed_ready = True
+        self._ready = value
 
 
 def shutdown(*args):
@@ -91,11 +104,8 @@ def main():
         basedir = os.path.realpath(os.path.dirname(sys.executable))
         app.template_folder = os.path.join(basedir, 'integration', 'templates')
     port = int(sys.argv[1])
-    server = cherrypy.wsgiserver.CherryPyWSGIServer(  # pylint: disable=no-member
-        ('0.0.0.0', port), app)
+    server = WSGIServer(('0.0.0.0', port), app)
 
-    checker = threading.Thread(target=ready_checker, args=[server])
-    checker.start()
     signal.signal(signal.SIGTERM, shutdown)
 
     try:
