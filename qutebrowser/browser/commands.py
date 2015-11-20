@@ -1684,3 +1684,40 @@ class CommandDispatcher:
                 message.info(self._win_id, out[:5000] + ' [...trimmed...]')
             else:
                 message.info(self._win_id, out)
+
+    @cmdutils.register(instance='command-dispatcher', scope='window')
+    def fake_key(self, keystring, global_=False):
+        """Send a fake keypress or key string to the website or qutebrowser.
+
+        :fake-key xy - sends the keychain 'xy'
+        :fake-key <Ctrl-x> - sends Ctrl-x
+        :fake-key <Escape> - sends the escape key
+
+        Args:
+            keystring: The keystring to send.
+            global_: If given, the keys are sent to the qutebrowser UI.
+        """
+        try:
+            keyinfos = utils.parse_keystring(keystring)
+        except utils.KeyParseError as e:
+            raise cmdexc.CommandError(str(e))
+
+        for keyinfo in keyinfos:
+            press_event = QKeyEvent(QEvent.KeyPress, keyinfo.key,
+                                    keyinfo.modifiers, keyinfo.text)
+            release_event = QKeyEvent(QEvent.KeyRelease, keyinfo.key,
+                                      keyinfo.modifiers, keyinfo.text)
+
+            if global_:
+                receiver = QApplication.focusWindow()
+                if receiver is None:
+                    raise cmdexc.CommandError("No focused window!")
+            else:
+                try:
+                    receiver = objreg.get('webview', scope='tab',
+                                          tab='current')
+                except KeyError:
+                    raise cmdexc.CommandError("No focused webview!")
+
+            QApplication.postEvent(receiver, press_event)
+            QApplication.postEvent(receiver, release_event)

@@ -113,3 +113,37 @@ Feature: Various utility commands.
         And I run :inspector
         And I run :inspector
         Then no crash should happen
+
+    # :fake-key
+
+    Scenario: :fake-key with an unparsable key
+        When I run :fake-key <blub>
+        Then the error "Could not parse 'blub': Got unknown key." should be shown.
+
+    Scenario: :fake-key sending key to the website
+        When I set general -> log-javascript-console to true
+        And I open data/misc/fakekey.html
+        And I run :fake-key x
+        Then the javascript message "key press: 88" should be logged
+        And the javascript message "key release: 88" should be logged
+
+    Scenario: :fake-key sending special key to the website
+        When I set general -> log-javascript-console to true
+        And I open data/misc/fakekey.html
+        And I run :fake-key <Escape>
+        Then the javascript message "key press: 27" should be logged
+        And the javascript message "key release: 27" should be logged
+
+    Scenario: :fake-key sending keychain to the website
+        When I set general -> log-javascript-console to true
+        And I open data/misc/fakekey.html
+        And I run :fake-key xy
+        Then the javascript message "key press: 88" should be logged
+        And the javascript message "key release: 88" should be logged
+        And the javascript message "key press: 89" should be logged
+        And the javascript message "key release: 89" should be logged
+
+    Scenario: :fake-key sending keypress to qutebrowser
+        When I run :fake-key -g x
+        And I wait for "got keypress in mode KeyMode.normal - delegating to <qutebrowser.keyinput.modeparsers.NormalKeyParser>" in the log
+        Then no crash should happen

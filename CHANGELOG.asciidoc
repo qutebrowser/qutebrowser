@@ -51,6 +51,8 @@ Added
 - `:set-cmd-text` has a new `--append` argument to append to the current
   statusbar text.
 - qutebrowser now uses `~/.netrc` if available to authenticate via HTTP.
+- New `:fake-key` command to send a fake keypress to a website or to
+  qutebrowser.
 
 Changed
 ~~~~~~~
