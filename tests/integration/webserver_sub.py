@@ -91,7 +91,8 @@ def main():
         basedir = os.path.realpath(os.path.dirname(sys.executable))
         app.template_folder = os.path.join(basedir, 'integration', 'templates')
     port = int(sys.argv[1])
-    server = cherrypy.wsgiserver.CherryPyWSGIServer(('0.0.0.0', port), app)
+    server = cherrypy.wsgiserver.CherryPyWSGIServer(
+        ('0.0.0.0', port), app)  # pylint: disable=no-member
 
     checker = threading.Thread(target=ready_checker, args=[server])
     checker.start()
