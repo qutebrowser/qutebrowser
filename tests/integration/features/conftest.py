@@ -140,6 +140,13 @@ def ensure_not_logged(quteproc, pattern):
     quteproc.ensure_not_logged(message=pattern)
 
 
+@bdd.then(bdd.parsers.parse('the javascript message "{message}" should be '
+                            'logged'))
+def javascript_message_logged(quteproc, message):
+    quteproc.wait_for(category='js', function='javaScriptConsoleMessage',
+                      message='[*] {}'.format(message))
+
+
 @bdd.then("no crash should happen")
 def no_crash():
     """Don't do anything.
