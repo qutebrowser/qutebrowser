@@ -159,7 +159,7 @@ class WebView(QWebView):
         return page
 
     def __repr__(self):
-        url = utils.elide(self.url().toDisplayString(), 100)
+        url = utils.elide(self.url().toDisplayString(QUrl.EncodeUnicode), 100)
         return utils.get_repr(self, tab_id=self.tab_id, url=url)
 
     def __del__(self):
