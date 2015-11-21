@@ -28,6 +28,7 @@ import itertools
 import collections
 import warnings
 import datetime
+import json
 
 from PyQt5.QtCore import QUrl
 from PyQt5.QtGui import QColor, QFont
@@ -1209,6 +1210,26 @@ class FuzzyUrl(BaseType):
             return None
         else:
             return urlutils.fuzzy_url(value, do_search=False)
+
+
+class Dict(BaseType):
+
+    """A json dictionary."""
+
+    def validate(self, value):
+        self._basic_validation(value)
+        if not value:
+            return
+        try:
+            self.transform(value)
+        except urlutils.InvalidUrlError as e:
+            raise configexc.ValidationError(value, str(e))
+
+    def transform(self, value):
+        if not value:
+            return None
+        else:
+            return json.loads(value)
 
 
 PaddingValues = collections.namedtuple('PaddingValues', ['top', 'bottom',
