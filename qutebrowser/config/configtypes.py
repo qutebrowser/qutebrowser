@@ -1222,7 +1222,7 @@ class Dict(BaseType):
             return
         try:
             self.transform(value)
-        except urlutils.InvalidUrlError as e:
+        except json.decoder.JSONDecodeError as e:
             raise configexc.ValidationError(value, str(e))
 
     def transform(self, value):
