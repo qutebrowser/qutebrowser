@@ -385,7 +385,7 @@ class NetworkManager(QNetworkAccessManager):
         # Load custom headers
         custom_headers = config.get('network', 'custom-headers')
 
-        if custom_headers:
+        if custom_headers is not None:
             for header in custom_headers:
                 req.setRawHeader(header.encode('ascii'), custom_headers[header].encode('ascii'))
 
