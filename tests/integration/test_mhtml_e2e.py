@@ -40,6 +40,12 @@ def normalize_line(line):
                   'boundary="---=_qute-UUID"', line)
     line = re.sub('^-----=_qute-[0-9a-f-]+$', '-----=_qute-UUID', line)
     line = re.sub(r'localhost:\d{1,5}', 'localhost:(port)', line)
+
+    # Depending on Python's mimetypes module/the system's mime files, .js
+    # files could be either identified as x-javascript or just javascript
+    line = line.replace('Content-Type: application/x-javascript',
+                        'Content-Type: application/javascript')
+
     return line
 
 
