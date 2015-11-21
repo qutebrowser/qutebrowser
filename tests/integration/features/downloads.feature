@@ -63,5 +63,5 @@ Feature: Downloading things from a website.
 
     Scenario: Downloading as mhtml with non-ASCII headers
         When I open response-headers?Content-Type=text%2Fpl%C3%A4in
-        And I run :download --dest mhtml-response-headers.mht
+        And I run :download --mhtml --dest mhtml-response-headers.mht
         Then no crash should happen
