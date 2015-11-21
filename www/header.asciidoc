@@ -1,6 +1,6 @@
 +++
 <div id="headline">
-	<img class="qutebrowser-logo" src="icons/qutebrowser.svg" />
+	<img class="qutebrowser-logo" src="icons/qutebrowser.svg" alt="qutebrowser" />
 	<div class="text">
 		<h1>qutebrowser</h1>
 		A keyboard-driven browser.

@@ -88,7 +88,7 @@ class AsciiDoc:
 
     def _build_website_file(self, root, filename):
         """Build a single website file."""
-        # pylint: disable=too-many-locals
+        # pylint: disable=too-many-locals,too-many-statements
         src = os.path.join(root, filename)
         src_basename = os.path.basename(src)
         parts = [self._args.website[0]]
@@ -134,11 +134,13 @@ class AsciiDoc:
                     if re.match(r'^=+$', line):
                         line = line.replace('=', '-')
                         found_title = True
-                        title = last_line + "=" * (len(last_line) - 1)
+                        title = last_line.rstrip('\n') + " | qutebrowser\n"
+                        title += "=" * (len(title) - 1)
                     elif re.match(r'^= .+', line):
                         line = '==' + line[1:]
                         found_title = True
-                        title = last_line + "=" * (len(last_line) - 1)
+                        title = last_line.rstrip('\n') + " | qutebrowser\n"
+                        title += "=" * (len(title) - 1)
 
                 if not hidden:
                     outfp.write(line.replace(".asciidoc[", ".html["))
