@@ -59,9 +59,11 @@ Feature: Downloading things from a website.
     Scenario: Downloading as mhtml is available
         When I open html
         And I run :download --mhtml
+        And I wait for "File successfully written." in the log
         Then no crash should happen
 
     Scenario: Downloading as mhtml with non-ASCII headers
         When I open response-headers?Content-Type=text%2Fpl%C3%A4in
         And I run :download --mhtml --dest mhtml-response-headers.mht
+        And I wait for "File successfully written." in the log
         Then no crash should happen
