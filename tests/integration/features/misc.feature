@@ -159,5 +159,5 @@ Feature: Various utility commands.
         And I run :stop
         And I wait 2s
         Then the requests should be:
-            custom/redirect-later
+            custom/redirect-later?delay=2
         # no request on / because we stopped the redirect
