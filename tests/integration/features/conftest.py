@@ -20,6 +20,7 @@
 """Steps for bdd-like tests."""
 
 import re
+import time
 import logging
 
 import yaml
@@ -133,6 +134,11 @@ def compare_session(quteproc, expected):
     data = quteproc.get_session()
     expected = loader.get_data()
     assert utils.partial_compare(data, expected)
+
+
+@bdd.when(bdd.parsers.parse("I wait {delay}s"))
+def wait_time(quteproc, delay):
+    time.sleep(float(delay))
 
 
 @bdd.then(bdd.parsers.parse('"{pattern}" should not be logged'))
