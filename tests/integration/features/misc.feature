@@ -151,6 +151,7 @@ Feature: Various utility commands.
     # :stop
 
     Scenario: :stop
+        Given I have a fresh instance
         # We can't use "When I open" because we don't want to wait for load
         # finished
         When I run :open http://localhost:(port)/custom/redirect-later?delay=2
