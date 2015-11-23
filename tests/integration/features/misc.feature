@@ -148,7 +148,7 @@ Feature: Various utility commands.
         And I wait for "got keypress in mode KeyMode.normal - delegating to <qutebrowser.keyinput.modeparsers.NormalKeyParser>" in the log
         Then no crash should happen
 
-    # :stop
+    # :stop/:reload
 
     Scenario: :stop
         Given I have a fresh instance
@@ -162,3 +162,15 @@ Feature: Various utility commands.
         Then the requests should be:
             custom/redirect-later?delay=2
         # no request on / because we stopped the redirect
+
+    Scenario: :reload
+        When I open data/hello.txt
+        And I run :reload
+        Then the requests should be:
+            data/hello.txt
+            data/hello.txt
+
+    Scenario: :reload with force
+        When I open headers
+        And I run :reload --force
+        Then the header Cache-Control should be set to no-cache
