@@ -19,7 +19,7 @@
 
 # pylint: disable=unused-import,import-error
 
-"""The qutebrowser test suite contest file."""
+"""The qutebrowser test suite conftest file."""
 
 import os
 import sys

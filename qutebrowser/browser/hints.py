@@ -859,7 +859,7 @@ class HintManager(QObject):
         """Filter displayed hints according to a text.
 
         Args:
-            filterstr: The string to filer with, or None to show all.
+            filterstr: The string to filter with, or None to show all.
         """
         for elems in self._context.elems.values():
             try:
