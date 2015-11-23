@@ -208,13 +208,5 @@ def qute_settings(win_id, _request):
 @add_handler('pdfjs')
 def qute_pdfjs(_win_id, request):
     """Handler for qute://pdfjs. Return the pdf.js viewer."""
-    urlpath = request.url().path().lstrip('/')
-    res_path = '3rdparty/pdfjs/{}'.format(urlpath)
-    content = utils.read_file(res_path, binary=True)
-    try:
-        # Might be script/html or might be binary
-        text_content = content.decode('utf-8')
-    except UnicodeDecodeError:
-        return content
-    text_content = pdfjs.fix_urls(text_content)
-    return text_content.encode('utf-8')
+    urlpath = request.url().path()
+    return pdfjs.get_pdfjs_res(urlpath)

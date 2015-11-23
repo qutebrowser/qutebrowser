@@ -19,8 +19,17 @@
 
 """pdf.js integration for qutebrowser."""
 
+import os
+
 from qutebrowser.browser import webelem
 from qutebrowser.utils import utils
+
+
+class PDFJSNotFound(Exception):
+
+    """Raised when no pdf.js installation is found."""
+
+    pass
 
 
 def generate_pdfjs_page(url):
@@ -31,8 +40,7 @@ def generate_pdfjs_page(url):
     Args:
         url: The url of the pdf as QUrl.
     """
-    viewer = utils.read_file('3rdparty/pdfjs/web/viewer.html')
-    viewer = fix_urls(viewer)
+    viewer = get_pdfjs_res('web/viewer.html').decode('utf-8')
     script = _generate_pdfjs_script(url)
     html_page = viewer.replace(
         '</body>', '</body><script>{}</script>'.format(script)
@@ -78,3 +86,65 @@ def fix_urls(asset):
     for original, new in new_urls.items():
         asset = asset.replace(original, new)
     return asset
+
+
+SYSTEM_PDFJS_PATHS = [
+    '/usr/share/pdf.js/',  # Debian pdf.js-common
+    '/usr/share/javascript/pdf/',  # Debian libjs-pdf
+]
+
+
+def get_pdfjs_res(path):
+    """Get a pdf.js resource in binary format.
+
+    Args:
+        path: The path inside the pdfjs directory.
+    """
+    path = path.lstrip('/')
+    content = None
+
+    # First try a system wide installation
+    # System installations might strip off the 'build/' or 'web/' prefixes.
+    # qute expects them, so we need to adjust for it.
+    names_to_try = [path, path[path.index('/')+1:]]
+    for system_path in SYSTEM_PDFJS_PATHS:
+        content = _read_from_system(system_path, names_to_try)
+        if content is not None:
+            break
+
+    # Fallback to bundled pdf.js
+    if content is None:
+        res_path = '3rdparty/pdfjs/{}'.format(path)
+        try:
+            content = utils.read_file(res_path, binary=True)
+        except FileNotFoundError:
+            raise PDFJSNotFound
+
+    try:
+        # Might be script/html or might be binary
+        text_content = content.decode('utf-8')
+    except UnicodeDecodeError:
+        return content
+    text_content = fix_urls(text_content)
+    return text_content.encode('utf-8')
+
+
+def _read_from_system(system_path, names):
+    """Try to read a file with one of the given names in system_path.
+
+    Each file in names is considered equal, the first file that is found
+    is read and its binary content returned.
+
+    Returns None if no file could be found
+
+    Args:
+        system_path: The folder where the file should be searched.
+        names: List of possible file names.
+    """
+    for name in names:
+        try:
+            with open(os.path.join(system_path, name)) as f:
+                return f.read()
+        except OSError:
+            continue
+    return None
