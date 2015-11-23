@@ -37,13 +37,11 @@ from PyQt5.QtNetwork import QNetworkReply
 from PyQt5.QtWebKit import QWebSecurityOrigin
 
 import qutebrowser
+from qutebrowser.browser import pdfjs
 from qutebrowser.browser.network import schemehandler, networkreply
 from qutebrowser.utils import (version, utils, jinja, log, message, docutils,
                                objreg)
 from qutebrowser.config import configexc, configdata
-
-
-QWebSecurityOrigin.addLocalScheme('qute')
 
 
 pyeval_output = ":pyeval was never called"
@@ -211,5 +209,12 @@ def qute_settings(win_id, _request):
 def qute_pdfjs(_win_id, request):
     """Handler for qute://pdfjs. Return the pdf.js viewer."""
     urlpath = request.url().path().lstrip('/')
-    res_path = 'pdfjs/{}'.format(urlpath)
-    return utils.read_file(res_path, binary=True)
+    res_path = '3rdparty/pdfjs/{}'.format(urlpath)
+    content = utils.read_file(res_path, binary=True)
+    try:
+        # Might be script/html or might be binary
+        text_content = content.decode('utf-8')
+    except UnicodeDecodeError:
+        return content
+    text_content = pdfjs.fix_urls(text_content)
+    return text_content.encode('utf-8')

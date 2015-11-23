@@ -30,7 +30,7 @@ from PyQt5.QtPrintSupport import QPrintDialog
 from PyQt5.QtWebKitWidgets import QWebPage
 
 from qutebrowser.config import config
-from qutebrowser.browser import http, tabhistory
+from qutebrowser.browser import http, tabhistory, pdfjs
 from qutebrowser.browser.network import networkmanager
 from qutebrowser.utils import (message, usertypes, log, jinja, qtutils, utils,
                                objreg, debug)
@@ -220,11 +220,8 @@ class BrowserPage(QWebPage):
 
     def _show_pdfjs(self, reply):
         """Show the reply with pdfjs."""
-        script = _generate_pdfjs_script(reply.url())
-        viewer = utils.read_file('pdfjs/web/viewer.html')
-        html_page = viewer.replace('%% QUTE_SCRIPT_CONTENT %%', script)
-        html_page = html_page.encode('utf-8')
-        self.mainFrame().setContent(html_page, 'text/html', reply.url())
+        page = pdfjs.generate_pdfjs_page(reply.url()).encode('utf-8')
+        self.mainFrame().setContent(page, 'text/html', reply.url())
         reply.deleteLater()
 
     def shutdown(self):
@@ -598,16 +595,3 @@ class BrowserPage(QWebPage):
             return False
         else:
             return True
-
-
-def _generate_pdfjs_script(url):
-    """Generate the script that shows the pdf with pdf.js.
-
-    Args:
-        url: The url of the pdf page as QUrl.
-    """
-    return (
-        'PDFJS.getDocument("{url}").then(function(pdf) {{\n'
-        '    PDFView.load(pdf);\n'
-        '}});'
-    ).format(url=url.toString())
