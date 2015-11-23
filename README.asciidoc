@@ -164,6 +164,7 @@ Contributors, sorted by the number of commits in descending order:
 * Felix Van der Jeugt
 * rikn00
 * Patric Schmitz
+* Panagiotis Ktistakis
 * Martin Zimmermann
 * Brian Jackson
 * sbinix
@@ -171,7 +172,6 @@ Contributors, sorted by the number of commits in descending order:
 * jnphilipp
 * Tobias Patzl
 * Peter Michely
-* Panagiotis Ktistakis
 * Johannes Altmanninger
 * Samir Benmendil
 * Regina Hug
