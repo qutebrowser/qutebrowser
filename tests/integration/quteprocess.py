@@ -29,6 +29,7 @@ import os.path
 import datetime
 import logging
 import tempfile
+import contextlib
 
 import yaml
 import pytest
@@ -214,6 +215,14 @@ class QuteProc(testprocess.Process):
     def set_setting(self, sect, opt, value):
         self.send_cmd(':set "{}" "{}" "{}"'.format(sect, opt, value))
         self.wait_for(category='config', message='Config option changed: *')
+
+    @contextlib.contextmanager
+    def temp_setting(self, sect, opt, value):
+        """Context manager to set a setting and reset it on exit."""
+        old_value = self.get_setting(sect, opt)
+        self.set_setting(sect, opt, value)
+        yield
+        self.set_setting(sect, opt, old_value)
 
     def open_path(self, path, new_tab=False):
         url = self._path_to_url(path)
