@@ -65,7 +65,7 @@ def get_build_exe_options(skip_html=False):
         ('qutebrowser/git-commit-id', 'git-commit-id'),
         ('qutebrowser/utils/testfile', 'utils/testfile'),
         ('qutebrowser/html', 'html'),
-        ('qutebrowser/pdfjs', 'pdfjs'),
+        ('qutebrowser/3rdparty/pdfjs', '3rdparty/pdfjs'),
     ]
 
     if not skip_html:
