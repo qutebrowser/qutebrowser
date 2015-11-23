@@ -42,7 +42,14 @@ def open_path_given(quteproc, path):
 
 @bdd.when(bdd.parsers.parse("I open {path}"))
 def open_path_when(quteproc, path):
-    quteproc.open_path(path)
+    new_tab_suffix = ' in a new tab'
+    if path.endswith(new_tab_suffix):
+        path = path[:-len(new_tab_suffix)]
+        new_tab = True
+    else:
+        new_tab = False
+
+    quteproc.open_path(path, new_tab=new_tab)
 
 
 @bdd.when(bdd.parsers.parse("I set {sect} -> {opt} to {value}"))
