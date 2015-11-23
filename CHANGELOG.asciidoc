@@ -53,6 +53,8 @@ Added
 - qutebrowser now uses `~/.netrc` if available to authenticate via HTTP.
 - New `:fake-key` command to send a fake keypress to a website or to
   qutebrowser.
+- New `--mhtml` argument for `:download` to download a page including all
+  ressources as MHTML file.
 
 Changed
 ~~~~~~~
@@ -79,6 +81,8 @@ Deprecated
 
 - `:download-remove --all` is now deprecated and `:download-clear` should be
   used instead.
+- `:download <url> <destination>` is now deprecated and
+  `:download --dest <destination> <url>` should be used instead.
 
 Fixed
 ~~~~~
