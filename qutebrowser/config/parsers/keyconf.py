@@ -362,7 +362,7 @@ class KeyConfigParser(QObject):
 
     def _add_binding(self, sectname, keychain, command, *, force=False):
         """Add a new binding from keychain to command in section sectname."""
-        log.keyboard.debug("Adding binding {} -> {} in mode {}.".format(
+        log.keyboard.vdebug("Adding binding {} -> {} in mode {}.".format(
             keychain, command, sectname))
         if sectname not in self.keybindings:
             self.keybindings[sectname] = collections.OrderedDict()
