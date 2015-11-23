@@ -23,6 +23,7 @@ import re
 import time
 import json
 import logging
+import collections
 
 import yaml
 import pytest_bdd as bdd
@@ -116,6 +117,18 @@ def list_of_loaded_pages(httpbin, pages):
                          for path in pages.split('\n')]
     actual_requests = httpbin.get_requests()
     assert actual_requests == expected_requests
+
+
+@bdd.then(bdd.parsers.parse("The unordered requests should be:\n{pages}"))
+def list_of_loaded_pages_unordered(httpbin, pages):
+    expected_requests = [httpbin.ExpectedRequest('GET', '/' + path.strip())
+                         for path in pages.split('\n')]
+    actual_requests = httpbin.get_requests()
+    # Requests are not hashable, we need to convert to ExpectedRequests
+    actual_requests = map(httpbin.ExpectedRequest.from_request,
+                          actual_requests)
+    assert (collections.Counter(actual_requests) ==
+            collections.Counter(expected_requests))
 
 
 @bdd.then(bdd.parsers.re(r'the (?P<category>error|message|warning) '

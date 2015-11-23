@@ -160,7 +160,7 @@ Feature: Various utility commands.
         And I run :stop
         And I open custom/redirect-later-continue in a new tab
         And I wait 1s
-        Then the requests should be:
+        Then the unordered requests should be:
             custom/redirect-later-continue
             custom/redirect-later?delay=-1
         # no request on / because we stopped the redirect
