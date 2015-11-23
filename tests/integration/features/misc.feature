@@ -168,6 +168,7 @@ Feature: Various utility commands.
     Scenario: :reload
         When I open data/hello.txt
         And I run :reload
+        And I wait until data/hello.txt is loaded
         Then the requests should be:
             data/hello.txt
             data/hello.txt
@@ -175,4 +176,5 @@ Feature: Various utility commands.
     Scenario: :reload with force
         When I open headers
         And I run :reload --force
+        And I wait until headers is loaded
         Then the header Cache-Control should be set to no-cache
