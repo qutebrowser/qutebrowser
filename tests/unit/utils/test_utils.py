@@ -880,6 +880,20 @@ def test_force_encoding(inp, enc, expected):
     assert utils.force_encoding(inp, enc) == expected
 
 
+@pytest.mark.parametrize('inp, expected', [
+    ('normal.txt', 'normal.txt'),
+    ('user/repo issues.mht', 'user_repo issues.mht'),
+    ('<Test\\File> - "*?:|', '_Test_File_ - _____'),
+])
+def test_sanitize_filename(inp, expected):
+    assert utils.sanitize_filename(inp) == expected
+
+
+def test_sanitize_filename_empty_replacement():
+    name = '/<Bad File>/'
+    assert utils.sanitize_filename(name, replacement=None) == 'Bad File'
+
+
 class TestNewestSlice:
 
     """Test newest_slice."""

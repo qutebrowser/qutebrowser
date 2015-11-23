@@ -1,0 +1,20 @@
+Content-Type: multipart/related; boundary="---=_qute-6d584056-b1e4-4882-91e6-d4a6d23adb67"
+MIME-Version: 1.0
+
+-----=_qute-6d584056-b1e4-4882-91e6-d4a6d23adb67
+Content-Location: http://localhost:1234/data/downloads/mhtml/simple/simple.html
+MIME-Version: 1.0
+Content-Type: text/html; charset="UTF-8"
+Content-Transfer-Encoding: quoted-printable
+
+<!DOCTYPE=20html><html><head>
+=20=20=20=20=20=20=20=20<meta=20charset=3D"utf-8">
+=20=20=20=20=20=20=20=20<title>Simple=20MHTML=20test</title>
+=20=20=20=20</head>
+=20=20=20=20<body>
+=20=20=20=20=20=20=20=20<a=20href=3D"/">normal=20link=20to=20another=20page=
+</a>
+=20=20=20=20
+
+</body></html>
+-----=_qute-6d584056-b1e4-4882-91e6-d4a6d23adb67--

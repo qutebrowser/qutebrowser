@@ -102,6 +102,9 @@ The following software and libraries are required to run qutebrowser:
 * http://pygments.org/[pygments]
 * http://pyyaml.org/wiki/PyYAML[PyYAML]
 
+The following libraries are optional and provide a better user experience:
+* http://cthedot.de/cssutils/[cssutils]
+
 To generate the documentation for the `:help` command, when using the git
 repository (rather than a release), http://asciidoc.org/[asciidoc] is needed.
 

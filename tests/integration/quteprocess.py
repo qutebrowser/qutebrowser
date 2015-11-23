@@ -32,11 +32,11 @@ import tempfile
 
 import yaml
 import pytest
-from PyQt5.QtCore import pyqtSignal
+from PyQt5.QtCore import pyqtSignal, QUrl
 
 import testprocess  # pylint: disable=import-error
 from qutebrowser.misc import ipc
-from qutebrowser.utils import log
+from qutebrowser.utils import log, utils
 
 
 def is_ignored_qt_message(message):
@@ -225,6 +225,9 @@ class QuteProc(testprocess.Process):
     def wait_for_load_finished(self, path, timeout=15000):
         """Wait until any tab has finished loading."""
         url = self._path_to_url(path)
+        # We really need the same representation that the webview uses in its
+        # __repr__
+        url = utils.elide(QUrl(url).toDisplayString(QUrl.EncodeUnicode), 100)
         pattern = re.compile(
             r"(load status for <qutebrowser.browser.webview.WebView "
             r"tab_id=\d+ url='{url}'>: LoadStatus.success|fetch: "
