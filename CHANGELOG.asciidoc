@@ -75,6 +75,8 @@ Changed
   follow.
 - `:scroll-px` now doesn't take floats anymore, which made little sense.
 - Updated the user agent list for the `:set network user-agent` completion.
+- Starting with `--debug` doesn't log `VDEBUG` messages anymore (add
+  `--loglevel VDEBUG` to get them).
 
 Deprecated
 ~~~~~~~~~~
