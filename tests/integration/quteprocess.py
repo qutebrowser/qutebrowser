@@ -204,6 +204,13 @@ class QuteProc(testprocess.Process):
         self.wait_for(category='commands', module='command', function='run',
                       message='command called: *')
 
+    def get_setting(self, sect, opt):
+        """Get the value of a qutebrowser setting."""
+        self.send_cmd(':set {} {}?'.format(sect, opt))
+        msg = self.wait_for(loglevel=logging.INFO, category='message',
+                            message='{} {} = *'.format(sect, opt))
+        return msg.message.split(' = ')[1]
+
     def set_setting(self, sect, opt, value):
         self.send_cmd(':set "{}" "{}" "{}"'.format(sect, opt, value))
         self.wait_for(category='config', message='Config option changed: *')

@@ -25,8 +25,5 @@ bdd.scenarios('set.feature')
 
 @bdd.then(bdd.parsers.parse("{section} -> {option} should be {value}"))
 def check_option(quteproc, section, option, value):
-    quteproc.send_cmd(':set {} {}?'.format(section, option))
-    msg = quteproc.wait_for(loglevel=logging.INFO, category='message',
-                            message='{} {} = *'.format(section, option))
-    actual_value = msg.message.split(' = ')[1]
+    actual_value = quteproc.get_setting(section, option)
     assert actual_value == value
