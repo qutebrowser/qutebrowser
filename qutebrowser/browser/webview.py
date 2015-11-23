@@ -531,7 +531,7 @@ class WebView(QWebView):
                                     immediately=True)
             else:
                 message.warning(self.win_id, "Text '{}' not found on "
-                              "page!".format(text), immediately=True)
+                                "page!".format(text), immediately=True)
         else:
             def check_scroll_pos():
                 """Check if the scroll position got smaller and show info."""
