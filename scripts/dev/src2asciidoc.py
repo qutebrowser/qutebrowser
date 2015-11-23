@@ -391,6 +391,7 @@ def _get_authors():
         'Alexey Nabrodov': 'Alexey "Averrin" Nabrodov',
         'Michael': 'Halfwit',
         'Error 800': 'error800',
+        'larryhynes': 'Larry Hynes',
     }
     commits = subprocess.check_output(['git', 'log', '--format=%aN'])
     authors = [corrections.get(author, author)

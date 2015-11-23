@@ -172,11 +172,11 @@ Contributors, sorted by the number of commits in descending order:
 * jnphilipp
 * Tobias Patzl
 * Peter Michely
+* Larry Hynes
 * Johannes Altmanninger
 * Samir Benmendil
 * Regina Hug
 * Mathias Fussenegger
-* Larry Hynes
 * Fritz V155 Reichwald
 * Franz Fellner
 * zwarag
