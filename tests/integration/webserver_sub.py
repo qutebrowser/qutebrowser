@@ -26,12 +26,16 @@ import sys
 import time
 import signal
 import os
+import threading
 from datetime import datetime
 
 from httpbin.core import app
 from httpbin.structures import CaseInsensitiveDict
 import cherrypy.wsgiserver
 import flask
+
+
+_redirect_later_event = None
 
 
 @app.route('/data/<path:path>')
@@ -48,10 +52,28 @@ def send_data(path):
 
 @app.route('/custom/redirect-later')
 def redirect_later():
-    """302 redirects to / after the given delay."""
+    """302 redirects to / after the given delay.
+
+    If delay is -1, waits until a request on redirect-later-continue is done.
+    """
+    global _redirect_later_event
     args = CaseInsensitiveDict(flask.request.args.items())
-    time.sleep(int(args.get('delay', '1')))
-    return flask.redirect('/')
+    delay = int(args.get('delay', '1'))
+    if delay == -1:
+        _redirect_later_event = threading.Event()
+        _redirect_later_event.wait()
+        _redirect_later_event = None
+    else:
+        time.sleep(delay)
+    x = flask.redirect('/')
+    return x
+
+
+@app.route('/custom/redirect-later-continue')
+def redirect_later_continue():
+    """Continues a redirect-later with a token."""
+    _redirect_later_event.set()
+    return flask.Response(b'Continued redirect.')
 
 
 @app.after_request

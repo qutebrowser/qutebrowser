@@ -154,13 +154,15 @@ Feature: Various utility commands.
         Given I have a fresh instance
         # We can't use "When I open" because we don't want to wait for load
         # finished
-        When I run :open http://localhost:(port)/custom/redirect-later?delay=2
+        When I run :open http://localhost:(port)/custom/redirect-later?delay=-1
         And I wait for "emitting: cur_load_status_changed('loading') (tab *)" in the log
         And I wait 1s
         And I run :stop
-        And I wait 2s
+        And I open custom/redirect-later-continue in a new tab
+        And I wait 1s
         Then the requests should be:
-            custom/redirect-later?delay=2
+            custom/redirect-later-continue
+            custom/redirect-later?delay=-1
         # no request on / because we stopped the redirect
 
     Scenario: :reload
