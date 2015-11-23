@@ -1225,6 +1225,24 @@ class CommandDispatcher:
         tab.setHtml(highlighted, current_url)
         tab.viewing_source = True
 
+    @cmdutils.register(instance='command-dispatcher', scope='window',
+                       debug=True)
+    def debug_dump_page(self, dest, plain=False):
+        """Dump the current page's content to a file.
+
+        Args:
+            dest: Where to write the file to.
+            plain: Write plain text instead of HTML.
+        """
+        web_view = self._current_widget()
+        mainframe = web_view.page().mainFrame()
+        if plain:
+            data = mainframe.toPlainText()
+        else:
+            data = mainframe.toHtml()
+        with open(dest, 'w', encoding='utf-8') as f:
+            f.write(data)
+
     @cmdutils.register(instance='command-dispatcher', name='help',
                        completion=[usertypes.Completion.helptopic],
                        scope='window')

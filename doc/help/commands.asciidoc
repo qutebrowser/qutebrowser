@@ -1226,6 +1226,7 @@ These commands are mainly intended for debugging. They are hidden if qutebrowser
 |<<debug-cache-stats,debug-cache-stats>>|Print LRU cache stats.
 |<<debug-console,debug-console>>|Show the debugging console.
 |<<debug-crash,debug-crash>>|Crash for debugging purposes.
+|<<debug-dump-page,debug-dump-page>>|Dump the current page's content to a file.
 |<<debug-pyeval,debug-pyeval>>|Evaluate a python string and display the results as a web page.
 |<<debug-trace,debug-trace>>|Trace executed code via hunter.
 |<<debug-webaction,debug-webaction>>|Execute a webaction.
@@ -1250,6 +1251,18 @@ Crash for debugging purposes.
 
 ==== positional arguments
 * +'typ'+: either 'exception' or 'segfault'.
+
+[[debug-dump-page]]
+=== debug-dump-page
+Syntax: +:debug-dump-page [*--plain*] 'dest'+
+
+Dump the current page's content to a file.
+
+==== positional arguments
+* +'dest'+: Where to write the file to.
+
+==== optional arguments
+* +*-p*+, +*--plain*+: Write plain text instead of HTML.
 
 [[debug-pyeval]]
 === debug-pyeval
