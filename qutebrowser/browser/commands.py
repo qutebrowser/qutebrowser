@@ -1242,6 +1242,7 @@ class CommandDispatcher:
             data = mainframe.toHtml()
         with open(dest, 'w', encoding='utf-8') as f:
             f.write(data)
+        message.info(self._win_id, "Dumped page to {}.".format(dest))
 
     @cmdutils.register(instance='command-dispatcher', name='help',
                        completion=[usertypes.Completion.helptopic],

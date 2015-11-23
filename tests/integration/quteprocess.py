@@ -268,6 +268,8 @@ class QuteProc(testprocess.Process):
         with tempfile.TemporaryDirectory() as tmpdir:
             path = os.path.join(tmpdir, 'page')
             self.send_cmd(':debug-dump-page --plain "{}"'.format(path))
+            self.wait_for(category='message', loglevel=logging.INFO,
+                          message='Dumped page to {}.'.format(path))
 
             with open(path, 'r', encoding='utf-8') as f:
                 return f.read()
