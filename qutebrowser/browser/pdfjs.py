@@ -143,7 +143,7 @@ def _read_from_system(system_path, names):
     """
     for name in names:
         try:
-            with open(os.path.join(system_path, name)) as f:
+            with open(os.path.join(system_path, name), 'rb') as f:
                 return f.read()
         except OSError:
             continue
