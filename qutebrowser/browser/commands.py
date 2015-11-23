@@ -69,10 +69,10 @@ class CommandDispatcher:
     def __repr__(self):
         return utils.get_repr(self)
 
-    def _new_tabbed_browser(self):
+    def _new_tabbed_browser(self, name=""):
         """Get a tabbed-browser from a new window."""
         from qutebrowser.mainwindow import mainwindow
-        new_window = mainwindow.MainWindow()
+        new_window = mainwindow.MainWindow(name=name)
         new_window.show()
         return new_window.tabbed_browser
 
@@ -123,9 +123,7 @@ class CommandDispatcher:
         tabbed_browser = self._tabbed_browser
         cmdutils.check_exclusive((tab, background, window), 'tbw')
         if window:
-            tabbed_browser = self._new_tabbed_browser()
-            if name:
-                tabbed_browser.setName(name)
+            tabbed_browser = self._new_tabbed_browser(name)
             tabbed_browser.tabopen(url)
         elif tab:
             tabbed_browser.tabopen(url, background=False, explicit=True)

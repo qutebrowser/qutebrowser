@@ -146,13 +146,6 @@ class TabbedBrowser(tabwidget.TabWidget):
             w.append(self.widget(i))
         return w
 
-    def name(self):
-        return self._name
-
-    def setName(self, name):
-        self._name = name
-        self.update_window_title()
-
     @config.change_filter('ui', 'window-title-format')
     def update_window_title(self):
         """Change the window title to match the current tab."""
@@ -165,16 +158,13 @@ class TabbedBrowser(tabwidget.TabWidget):
         widget = self.widget(idx)
 
         fields = {}
-        if widget.load_status == webview.LoadStatus.loading:
+        if widget and widget.load_status == webview.LoadStatus.loading:
             fields['perc'] = '[{}%] '.format(widget.progress)
         else:
             fields['perc'] = ''
         fields['perc_raw'] = widget.progress
         fields['title'] = tabtitle
         fields['title_sep'] = ' - ' if tabtitle else ''
-        fields['id'] = self._win_id
-        fields['name_sep'] = '-' if self._name else ''
-        fields['name'] = self._name
         y = widget.scroll_pos[1]
         if y <= 0:
             scroll_pos = 'top'
@@ -184,8 +174,13 @@ class TabbedBrowser(tabwidget.TabWidget):
             scroll_pos = '{:2}%'.format(y)
 
         fields['scroll_pos'] = scroll_pos
+
+        # there's a better/cleaner solution: http://stackoverflow.com/a/11284026
+        fields['id'] = "{id}"
+        fields['name_sep'] = "{name_sep}"
+        fields['name'] = "{name}"
         fmt = config.get('ui', 'window-title-format')
-        self.window().setWindowTitle(fmt.format(**fields))
+        self.window().update_window_title(fmt.format(**fields))
 
     def _connect_tab_signals(self, tab):
         """Set up the needed signals for tab."""
