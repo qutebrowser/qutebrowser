@@ -140,11 +140,14 @@ class CriticalQtWarning(Exception):
 
 def init_log(args):
     """Init loggers based on the argparse namespace passed."""
-    level = 'VDEBUG' if args.debug else args.loglevel.upper()
+    level = args.loglevel.upper()
     try:
         numeric_level = getattr(logging, level)
     except AttributeError:
         raise ValueError("Invalid log level: {}".format(args.loglevel))
+
+    if numeric_level > logging.DEBUG and args.debug:
+        numeric_level = logging.DEBUG
 
     console, ram = _init_handlers(numeric_level, args.color, args.loglines)
     root = logging.getLogger()
