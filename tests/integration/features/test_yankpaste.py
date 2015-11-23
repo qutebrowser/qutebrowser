@@ -26,6 +26,9 @@ import pytest_bdd as bdd
 
 bdd.scenarios('yankpaste.feature')
 
+# https://github.com/The-Compiler/qutebrowser/issues/1124#issuecomment-158073581
+pytestmark = pytest.mark.qt_log_ignore(
+    '^QXcbClipboard: SelectionRequest too old', extend=True)
 
 @pytest.fixture(autouse=True)
 def skip_with_broken_clipboard(qapp):
