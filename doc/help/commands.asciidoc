@@ -154,7 +154,6 @@ The form `:download [url] [dest]` is deprecated, use `:download --dest [dest] [u
 
 ==== positional arguments
 * +'url'+: The URL to download. If not given, download the current page.
-* +'dest-old'+: (deprecated) Same as dest.
 
 ==== optional arguments
 * +*-m*+, +*--mhtml*+: Download the current page and all assets as mhtml file.
