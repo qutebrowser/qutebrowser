@@ -21,6 +21,7 @@
 
 import re
 import time
+import json
 import logging
 
 import yaml
@@ -159,3 +160,15 @@ def no_crash():
 
     This is actually a NOP as a crash is already checked in the log."""
     pass
+
+
+@bdd.then(bdd.parsers.parse("the header {header} should be set to {value}"))
+def check_header(quteproc, header, value):
+    """Check if a given header is set correctly.
+
+    This assumes we're on the httpbin header page.
+    """
+    content = quteproc.get_content()
+    data = json.loads(content)
+    print(data)
+    assert data['headers'][header] == value
