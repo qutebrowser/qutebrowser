@@ -43,6 +43,7 @@ def get_latest_pdfjs_url():
 
 
 def update_pdfjs():
+    """Download and extract the latest pdf.js version."""
     version, url = get_latest_pdfjs_url()
     target_path = os.path.join('qutebrowser', '3rdparty', 'pdfjs')
     print("=> Downloading pdf.js {}".format(version))
@@ -54,8 +55,6 @@ def update_pdfjs():
         os.makedirs(target_path)
         print("Extracting new version")
         shutil.unpack_archive(archive, target_path, 'zip')
-
-
 
 
 def main():

@@ -107,7 +107,7 @@ def get_pdfjs_res(path):
     # First try a system wide installation
     # System installations might strip off the 'build/' or 'web/' prefixes.
     # qute expects them, so we need to adjust for it.
-    names_to_try = [path, path[path.index('/')+1:]]
+    names_to_try = [path, path[path.index('/') + 1:]]
     for system_path in SYSTEM_PDFJS_PATHS:
         content = _read_from_system(system_path, names_to_try)
         if content is not None:

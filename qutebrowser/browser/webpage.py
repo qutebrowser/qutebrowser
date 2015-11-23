@@ -223,6 +223,8 @@ class BrowserPage(QWebPage):
         try:
             page = pdfjs.generate_pdfjs_page(reply.url()).encode('utf-8')
         except pdfjs.PDFJSNotFound:
+            # pylint: disable=no-member
+            # Instance of 'str' has no 'render' member (no-member)
             page = (jinja.env.get_template('no_pdfjs.html')
                     .render(url=reply.url().toDisplayString())
                     .encode('utf-8'))

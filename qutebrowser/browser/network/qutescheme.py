@@ -34,7 +34,6 @@ import configparser
 
 from PyQt5.QtCore import pyqtSlot, QObject
 from PyQt5.QtNetwork import QNetworkReply
-from PyQt5.QtWebKit import QWebSecurityOrigin
 
 import qutebrowser
 from qutebrowser.browser import pdfjs
