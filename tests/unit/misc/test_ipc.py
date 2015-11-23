@@ -677,7 +677,7 @@ class TestSendOrListen:
         yield legacy_server
         legacy_server.shutdown()
 
-    @pytest.mark.posix(reason="Flaky on Windows")
+    @pytest.mark.linux(reason="Flaky on Windows and OS X")
     def test_normal_connection(self, caplog, qtbot, args):
         ret_server = ipc.send_or_listen(args)
         assert isinstance(ret_server, ipc.IPCServer)
