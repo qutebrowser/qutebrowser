@@ -1,0 +1,38 @@
+<html>
+    <head>
+        <!-- make sure external css is included -->
+        <link rel="stylesheet" href="base.css">
+        <!-- make sure <style> is parsed -->
+        <style>
+@import "extern-css.css";
+body {
+    background-image: url("background.png");
+    font-weight: bold;
+    color: white;
+    text-shadow: -1px 0 black, 0 1px black, 1px 0 black, 0 -1px black;
+}
+        </style>
+        <!-- don't parse non-CSS styles -->
+        <style rel="stylesheet" type="text/qss">
+@import "actually-it's-css";
+        </style>
+        <!-- make sure icons are included -->
+        <link rel="icon" href="favicon.png">
+        <!-- make sure authors are NOT included -->
+        <link rel="author" href="author.html">
+        <!-- make sure scripts are included -->
+        <script type="text/javascript" src="script.js"></script>
+        <!-- ...but don't crash on scripts without src -->
+        <script>
+var l = 1+1;
+        </script>
+    </head>
+    <body>
+        <!-- include a normal image -->
+        <img src="image.gif">
+        <!-- make sure inline styles are parsed -->
+        <p style="background-image: url('inline.png')">foobar</p>
+        <!-- make sure inline.png is only be requested once -->
+        <img src="inline.png">
+    </body>
+</html>

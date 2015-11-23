@@ -182,12 +182,16 @@ class Process(QObject):
             time.sleep(1)
             # Exit the process to make sure we're in a defined state again
             self.terminate()
-            self._data.clear()
+            self.clear_data()
             raise InvalidLine(self._invalid)
 
-        self._data.clear()
+        self.clear_data()
         if not self.is_running():
             raise ProcessExited
+
+    def clear_data(self):
+        """Clear the collected data."""
+        self._data.clear()
 
     def terminate(self):
         """Clean up and shut down the process."""

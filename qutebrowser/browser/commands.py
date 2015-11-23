@@ -37,7 +37,7 @@ import pygments.formatters
 
 from qutebrowser.commands import userscripts, cmdexc, cmdutils, runners
 from qutebrowser.config import config, configexc
-from qutebrowser.browser import webelem, inspector, urlmarks
+from qutebrowser.browser import webelem, inspector, urlmarks, downloads, mhtml
 from qutebrowser.keyinput import modeman
 from qutebrowser.utils import (message, usertypes, log, qtutils, urlutils,
                                objreg, utils)
@@ -1139,22 +1139,66 @@ class CommandDispatcher:
                 cur.inspector.show()
 
     @cmdutils.register(instance='command-dispatcher', scope='window')
-    def download(self, url=None, dest=None):
+    def download(self, url=None, dest_old: {'hide': True}=None, *,
+                 mhtml_=False, dest=None):
         """Download a given URL, or current page if no URL given.
+
+        The form `:download [url] [dest]` is deprecated, use `:download --dest
+        [dest] [url]` instead.
 
         Args:
             url: The URL to download. If not given, download the current page.
+            dest_old: (deprecated) Same as dest.
             dest: The file path to write the download to, or None to ask.
+            mhtml_: Download the current page and all assets as mhtml file.
         """
+        if dest_old is not None:
+            message.warning(
+                self._win_id, ":download [url] [dest] is deprecated - use"
+                              " download --dest [dest] [url]")
+            if dest is not None:
+                raise cmdexc.CommandError("Can't give two destinations for the"
+                                          " download.")
+            dest = dest_old
+
         download_manager = objreg.get('download-manager', scope='window',
                                       window=self._win_id)
         if url:
+            if mhtml_:
+                raise cmdexc.CommandError("Can only download the current page"
+                                          " as mhtml.")
             url = urlutils.qurl_from_user_input(url)
             urlutils.raise_cmdexc_if_invalid(url)
             download_manager.get(url, filename=dest)
         else:
-            page = self._current_widget().page()
-            download_manager.get(self._current_url(), page=page)
+            if mhtml_:
+                self._download_mhtml(dest)
+            else:
+                page = self._current_widget().page()
+                download_manager.get(self._current_url(), page=page,
+                                     filename=dest)
+
+    def _download_mhtml(self, dest=None):
+        """Download the current page as a MHTML file, including all assets.
+
+        Args:
+            dest: The file path to write the download to.
+        """
+        web_view = self._current_widget()
+        if dest is None:
+            suggested_fn = self._current_title() + ".mht"
+            suggested_fn = utils.sanitize_filename(suggested_fn)
+            filename, q = downloads.ask_for_filename(
+                suggested_fn, self._win_id, parent=web_view,
+            )
+            if filename is not None:
+                mhtml.start_download_checked(filename, web_view=web_view)
+            else:
+                q.answered.connect(functools.partial(
+                    mhtml.start_download_checked, web_view=web_view))
+                q.ask()
+        else:
+            mhtml.start_download_checked(dest, web_view=web_view)
 
     @cmdutils.register(instance='command-dispatcher', scope='window',
                        deprecated="Use :download instead.")
