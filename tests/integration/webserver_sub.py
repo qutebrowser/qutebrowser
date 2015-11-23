@@ -61,7 +61,8 @@ def redirect_later():
     delay = int(args.get('delay', '1'))
     if delay == -1:
         _redirect_later_event = threading.Event()
-        _redirect_later_event.wait()
+        ok = _redirect_later_event.wait(timeout=30 * 1000)
+        assert ok
         _redirect_later_event = None
     else:
         time.sleep(delay)
