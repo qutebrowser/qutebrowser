@@ -91,6 +91,7 @@ def fix_urls(asset):
 SYSTEM_PDFJS_PATHS = [
     '/usr/share/pdf.js/',  # Debian pdf.js-common
     '/usr/share/javascript/pdf/',  # Debian libjs-pdf
+    os.path.expanduser('~/.local/share/qutebrowser/pdfjs/'),  # fallback
 ]
 
 
