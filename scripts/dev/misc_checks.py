@@ -100,7 +100,7 @@ def check_spelling():
     # package
     ignored = [
         os.path.join('.', 'scripts', 'dev', 'misc_checks.py'),
-        os.path.join('.', 'qutebrowser', 'pdfjs'),
+        os.path.join('.', 'qutebrowser', '3rdparty', 'pdfjs'),
     ]
 
     seen = collections.defaultdict(list)
