@@ -31,13 +31,16 @@ pytestmark = pytest.mark.qt_log_ignore(
     '^QXcbClipboard: SelectionRequest too old', extend=True)
 
 @pytest.fixture(autouse=True)
-def skip_with_broken_clipboard(qapp):
+def skip_with_broken_clipboard(qtbot, qapp):
     """The clipboard seems to be broken on some platforms (OS X Yosemite?).
 
     This skips the tests if this is the case.
     """
     clipboard = qapp.clipboard()
-    clipboard.setText("Does this work?")
+
+    with qtbot.waitSignal(clipboard.changed):
+        clipboard.setText("Does this work?")
+
     if clipboard.text() != "Does this work?":
         pytest.skip("Clipboard seems to be broken on this platform.")
 
@@ -60,10 +63,13 @@ def selection_supported(qapp):
 
 @bdd.when(bdd.parsers.re(r'I put "(?P<content>.*)" into the '
                          r'(?P<what>primary selection|clipboard)'))
-def fill_clipboard(qapp, httpbin, what, content):
+def fill_clipboard(qtbot, qapp, httpbin, what, content):
     mode = _get_mode(qapp, what)
     content = content.replace('(port)', str(httpbin.port))
-    qapp.clipboard().setText(content, mode)
+
+    clipboard = qapp.clipboard()
+    with qtbot.waitSignal(clipboard.changed):
+        clipboard.setText(content, mode)
 
 
 @bdd.then(bdd.parsers.re(r'the (?P<what>primary selection|clipboard) should '
