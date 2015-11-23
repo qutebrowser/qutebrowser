@@ -776,7 +776,8 @@ class DownloadManager(QAbstractListModel):
                              QNetworkRequest.AlwaysNetwork)
         suggested_fn = urlutils.filename_from_url(request.url())
 
-        if fileobj is None:
+        # We won't need a question if a filename or fileobj is already given
+        if fileobj is None and filename is None:
             filename, q = ask_for_filename(
                 suggested_fn, self._win_id, parent=self,
                 prompt_download_directory=prompt_download_directory
@@ -873,14 +874,22 @@ class DownloadManager(QAbstractListModel):
             download.autoclose = False
             return download
 
-        filename, q = ask_for_filename(
-            suggested_filename, self._win_id, parent=self,
-            prompt_download_directory=prompt_download_directory,
-        )
         if filename is not None:
             download.set_filename(filename)
             return download
 
+        # Neither filename nor fileobj were given, prepare a question
+        filename, q = ask_for_filename(
+            suggested_filename, self._win_id, parent=self,
+            prompt_download_directory=prompt_download_directory,
+        )
+
+        # User doesn't want to be asked, so just use the download_dir
+        if filename is not None:
+            download.set_filename(filename)
+            return download
+
+        # Ask the user for a filename
         self._postprocess_question(q)
         q.answered.connect(download.set_filename)
         q.cancelled.connect(download.cancel)
