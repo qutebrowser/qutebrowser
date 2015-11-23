@@ -44,7 +44,7 @@ from qutebrowser.misc import earlyinit
 
 def get_argparser():
     """Get the argparse parser."""
-    parser = argparse.ArgumentParser("usage: qutebrowser",
+    parser = argparse.ArgumentParser(prog='qutebrowser',
                                      description=qutebrowser.__description__)
     parser.add_argument('-c', '--confdir', help="Set config directory (empty "
                         "for no config storage).")
