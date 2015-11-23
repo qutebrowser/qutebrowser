@@ -71,7 +71,7 @@ def redirect_later():
 
 @app.route('/custom/redirect-later-continue')
 def redirect_later_continue():
-    """Continues a redirect-later with a token."""
+    """Continue a redirect-later request."""
     _redirect_later_event.set()
     return flask.Response(b'Continued redirect.')
 
