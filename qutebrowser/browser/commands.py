@@ -516,7 +516,7 @@ class CommandDispatcher:
             self._navigate_up(url, tab, bg, window)
         elif where in ('decrement', 'increment'):
             self._navigate_incdec(url, where, tab, bg, window)
-        else:
+        else:  # pragma: no cover
             raise ValueError("Got called with invalid value {} for "
                              "`where'.".format(where))
 
