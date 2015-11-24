@@ -224,7 +224,7 @@ class BrowserPage(QWebPage):
             page = pdfjs.generate_pdfjs_page(reply.url()).encode('utf-8')
         except pdfjs.PDFJSNotFound:
             # pylint: disable=no-member
-            # Instance of 'str' has no 'render' member (no-member)
+            # WORKAROUND for https://bitbucket.org/logilab/pylint/issue/490/
             page = (jinja.env.get_template('no_pdfjs.html')
                     .render(url=reply.url().toDisplayString())
                     .encode('utf-8'))
