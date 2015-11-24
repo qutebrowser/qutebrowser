@@ -108,7 +108,7 @@ Feature: Various utility commands.
         And I run :inspector
         Then the error "Please enable developer-extras before using the webinspector!" should be shown.
 
-    @not_xvfb
+    @not_xvfb @posix
     Scenario: Inspector smoke test
         When I set general -> developer-extras to true
         And I run :inspector
@@ -130,7 +130,7 @@ Feature: Various utility commands.
         Then the javascript message "key press: 88" should be logged
         And the javascript message "key release: 88" should be logged
 
-    @not_xvfb
+    @not_xvfb @posix
     Scenario: :fake-key sending key to the website with other window focused
         When I open data/misc/fakekey.html
         And I set general -> developer-extras to true
