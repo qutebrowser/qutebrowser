@@ -275,6 +275,7 @@ def qt_message_handler(msg_type, context, msg):
         # https://bugreports.qt.io/browse/QTBUG-39788
         'libpng warning: iCCP: Not recognizing known sRGB profile that has '
             'been edited',  # noqa
+        'libpng warning: iCCP: known incorrect sRGB profile',
         # Hopefully harmless warning
         'OpenType support missing for script ',
         # Error if a QNetworkReply gets two different errors set. Harmless Qt
