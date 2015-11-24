@@ -263,11 +263,16 @@ class QuteProc(testprocess.Process):
         print(data)
         return yaml.load(data)
 
-    def get_content(self):
+    def get_content(self, plain=True):
         """Get the contents of the current page."""
         with tempfile.TemporaryDirectory() as tmpdir:
             path = os.path.join(tmpdir, 'page')
-            self.send_cmd(':debug-dump-page --plain "{}"'.format(path))
+
+            if plain:
+                self.send_cmd(':debug-dump-page --plain "{}"'.format(path))
+            else:
+                self.send_cmd(':debug-dump-page "{}"'.format(path))
+
             self.wait_for(category='message', loglevel=logging.INFO,
                           message='Dumped page to {}.'.format(path))
 
