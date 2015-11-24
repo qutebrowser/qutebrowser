@@ -28,6 +28,10 @@ Feature: Opening pages
         And I run :open foo!
         Then the error "Invalid URL" should be shown.
 
+    Scenario: :open with -t and -b
+        When I run :open -t -b foo.bar
+        Then the error "Only one of -t/-b/-w can be given!" should be shown.
+
     Scenario: Searching with :open
         When I set general -> auto-search to naive
         And I set searchengines -> DEFAULT to http://localhost:(port)/data/open/{}.txt
