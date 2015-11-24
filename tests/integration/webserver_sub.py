@@ -47,6 +47,8 @@ def send_data(path):
         basedir = os.path.realpath(os.path.dirname(__file__))
         data_dir = os.path.join(basedir, 'data')
     print(basedir)
+    if os.path.isdir(os.path.join(data_dir, path)):
+        path = path + '/index.html'
     return flask.send_from_directory(data_dir, path)
 
 
