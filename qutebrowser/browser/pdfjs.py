@@ -21,6 +21,8 @@
 
 import os
 
+from PyQt5.QtCore import QUrl
+
 from qutebrowser.browser import webelem
 from qutebrowser.utils import utils
 
@@ -56,7 +58,7 @@ def _generate_pdfjs_script(url):
     """
     return (
         'PDFView.open("{url}");\n'
-    ).format(url=webelem.javascript_escape(url.toString()))
+    ).format(url=webelem.javascript_escape(url.toString(QUrl.FullyEncoded)))
 
 
 def fix_urls(asset):
