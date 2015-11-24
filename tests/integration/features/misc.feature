@@ -214,3 +214,12 @@ Feature: Various utility commands.
         And I run :view-source
         And I run :view-source
         Then the error "Already viewing source!" should be shown.
+
+    # :debug-console
+    @not_xvfb
+    Scenario: :debug-console smoke test
+        When I run :debug-console
+        And I wait for "Focus object changed: <qutebrowser.misc.consolewidget.ConsoleLineEdit *>" in the log
+        And I run :debug-console
+        And I wait for "Focus object changed: *" in the log
+        Then no crash should happen
