@@ -692,8 +692,10 @@ class Quitter:
                     error.handle_fatal_exc(
                         e, self._args, "Error while saving!",
                         pre_text="Error while saving {}".format(key))
-        # Disable favicons so removing tempdir will work
-        QWebSettings.setIconDatabasePath("")
+        # Disable storage so removing tempdir will work
+        QWebSettings.setIconDatabasePath('')
+        QWebSettings.setOfflineWebApplicationCachePath('')
+        QWebSettings.globalSettings().setLocalStoragePath('')
         # Re-enable faulthandler to stdout, then remove crash log
         log.destroy.debug("Deactivating crash log...")
         objreg.get('crash-handler').destroy_crashlogfile()
