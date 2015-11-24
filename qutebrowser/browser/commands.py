@@ -1779,7 +1779,7 @@ class CommandDispatcher:
                 try:
                     receiver = objreg.get('webview', scope='tab',
                                           tab='current')
-                except KeyError:
+                except objreg.RegistryUnavailableError:
                     raise cmdexc.CommandError("No focused webview!")
 
             QApplication.postEvent(receiver, press_event)
