@@ -1240,9 +1240,14 @@ class CommandDispatcher:
             data = mainframe.toPlainText()
         else:
             data = mainframe.toHtml()
-        with open(dest, 'w', encoding='utf-8') as f:
-            f.write(data)
-        message.info(self._win_id, "Dumped page to {}.".format(dest))
+
+        try:
+            with open(dest, 'w', encoding='utf-8') as f:
+                f.write(data)
+        except OSError as e:
+            raise cmdexc.CommandError('Could not write page: {}'.format(e))
+        else:
+            message.info(self._win_id, "Dumped page to {}.".format(dest))
 
     @cmdutils.register(instance='command-dispatcher', name='help',
                        completion=[usertypes.Completion.helptopic],
