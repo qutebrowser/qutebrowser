@@ -33,7 +33,8 @@ from helpers import utils  # pylint: disable=import-error
 
 
 @bdd.given(bdd.parsers.parse("I set {sect} -> {opt} to {value}"))
-def set_setting(quteproc, sect, opt, value):
+def set_setting(quteproc, httpbin, sect, opt, value):
+    value = value.replace('(port)', str(httpbin.port))
     quteproc.set_setting(sect, opt, value)
 
 
@@ -55,7 +56,8 @@ def open_path_when(quteproc, path):
 
 
 @bdd.when(bdd.parsers.parse("I set {sect} -> {opt} to {value}"))
-def set_setting_when(quteproc, sect, opt, value):
+def set_setting_when(quteproc, httpbin, sect, opt, value):
+    value = value.replace('(port)', str(httpbin.port))
     quteproc.set_setting(sect, opt, value)
 
 
