@@ -54,6 +54,8 @@ def _apply_platform_markers(item):
             "Can't be run when frozen"),
         ('frozen', not getattr(sys, 'frozen', False),
             "Can only run when frozen"),
+        ('not_xvfb', item.config.xvfb_display is not None,
+            "Can't be run with Xvfb."),
     ]
 
     for searched_marker, condition, default_reason in markers:
