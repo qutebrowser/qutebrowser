@@ -20,6 +20,7 @@
 """Command dispatcher for TabbedBrowser."""
 
 import os
+import os.path
 import shlex
 import posixpath
 import functools
@@ -1240,6 +1241,8 @@ class CommandDispatcher:
             data = mainframe.toPlainText()
         else:
             data = mainframe.toHtml()
+
+        dest = os.path.expanduser(dest)
 
         try:
             with open(dest, 'w', encoding='utf-8') as f:
