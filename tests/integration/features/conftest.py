@@ -22,6 +22,7 @@
 import re
 import time
 import json
+import os.path
 import logging
 import collections
 
@@ -192,3 +193,16 @@ def check_header(quteproc, header, value):
     data = json.loads(content)
     print(data)
     assert data['headers'][header] == value
+
+
+@bdd.then(bdd.parsers.parse("the page source should look like {filename}"))
+def check_contents(quteproc, filename):
+    """Check the current page's content.
+
+    The filename is interpreted relative to tests/integration/data.
+    """
+    content = quteproc.get_content(plain=False)
+    path = os.path.join(os.path.abspath(os.path.dirname(__file__)), '..',
+                        'data', os.path.join(*filename.split('/')))
+    with open(path, 'r', encoding='utf-8') as f:
+        assert content == f.read()
