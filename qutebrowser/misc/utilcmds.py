@@ -152,7 +152,11 @@ def debug_console():
     except KeyError:
         con_widget = consolewidget.ConsoleWidget()
         objreg.register('debug-console', con_widget)
-    con_widget.show()
+
+    if con_widget.isVisible():
+        con_widget.hide()
+    else:
+        con_widget.show()
 
 
 @cmdutils.register(debug=True, maxsplit=0, no_cmd_split=True)
