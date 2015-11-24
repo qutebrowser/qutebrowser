@@ -35,7 +35,7 @@ import httpbin
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), os.pardir,
                 os.pardir))
 from scripts import setupcommon
-from scripts.dev import freeze
+from scripts.dev import freeze, update_3rdparty
 
 
 @contextlib.contextmanager
@@ -72,6 +72,7 @@ def get_build_exe_options():
 def main():
     """Main entry point."""
     base = 'Win32GUI' if sys.platform.startswith('win') else None
+    update_3rdparty.main()
     with temp_git_commit_file():
         cx.setup(
             executables=[cx.Executable('scripts/dev/run_frozen_tests.py',
