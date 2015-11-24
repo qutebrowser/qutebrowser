@@ -216,6 +216,7 @@ Feature: Various utility commands.
         Then the error "Already viewing source!" should be shown.
 
     # :debug-console
+
     @not_xvfb
     Scenario: :debug-console smoke test
         When I run :debug-console
