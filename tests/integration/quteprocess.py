@@ -181,7 +181,9 @@ class QuteProc(testprocess.Process):
         if path.startswith('about:') or path.startswith('qute:'):
             return path
         else:
-            return 'http://localhost:{}/{}'.format(self._httpbin.port, path)
+            return 'http://localhost:{}/{}'.format(
+                self._httpbin.port,
+                path if path != '/' else '')
 
     def after_test(self):
         bad_msgs = [msg for msg in self._data
