@@ -701,7 +701,8 @@ class Quitter:
         objreg.get('crash-handler').destroy_crashlogfile()
         # Delete temp basedir
         if self._args.temp_basedir:
-            atexit.register(shutil.rmtree, self._args.basedir)
+            atexit.register(shutil.rmtree, self._args.basedir,
+                            ignore_errors=True)
         # If we don't kill our custom handler here we might get segfaults
         log.destroy.debug("Deactivating message handler...")
         qInstallMessageHandler(None)
