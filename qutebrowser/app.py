@@ -746,6 +746,12 @@ class Application(QApplication):
         objreg.register('app', self)
 
         self.launch_time = datetime.datetime.now()
+        self.focusObjectChanged.connect(self.on_focus_object_changed)
+
+    @pyqtSlot(QObject)
+    def on_focus_object_changed(self, obj):
+        """Log when the focus object changed."""
+        log.misc.debug("Focus object changed: {!r}".format(obj))
 
     def __repr__(self):
         return utils.get_repr(self)
