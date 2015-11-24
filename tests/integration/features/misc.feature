@@ -108,10 +108,13 @@ Feature: Various utility commands.
         And I run :inspector
         Then the error "Please enable developer-extras before using the webinspector!" should be shown.
 
+    @not_xvfb
     Scenario: Inspector smoke test
         When I set general -> developer-extras to true
         And I run :inspector
+        And I wait for "Focus object changed: <PyQt5.QtWebKitWidgets.QWebView object at *>" in the log
         And I run :inspector
+        And I wait for "Focus object changed: <qutebrowser.browser.webview.WebView *>" in the log
         Then no crash should happen
 
     # :fake-key
