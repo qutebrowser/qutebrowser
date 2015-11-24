@@ -192,3 +192,25 @@ Feature: Various utility commands.
         And I run :reload --force
         And I wait until headers is loaded
         Then the header Cache-Control should be set to no-cache
+
+    # :view-source
+
+    Scenario: :view-source
+        Given I open data/hello.txt
+        When I run :tab-only
+        And I run :view-source
+        Then the session should look like:
+            windows:
+            - tabs:
+              - history:
+                - active: true
+                  url: http://localhost:*/data/hello.txt
+              - active: true
+                history: []
+        And the page source should look like misc/hello.txt.html
+
+    Scenario: :view-source on source page.
+        When I open data/hello.txt
+        And I run :view-source
+        And I run :view-source
+        Then the error "Already viewing source!" should be shown.
