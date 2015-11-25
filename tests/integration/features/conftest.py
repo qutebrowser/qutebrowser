@@ -182,6 +182,14 @@ def javascript_message_logged(quteproc, message):
                       message='[*] {}'.format(message))
 
 
+@bdd.then(bdd.parsers.re(r'(?P<is_regex>regex )?"(?P<pattern>[^"]+)" should '
+                         r'be logged'))
+def should_be_logged(quteproc, is_regex, pattern):
+    if is_regex:
+        pattern = re.compile(pattern)
+    quteproc.wait_for(message=pattern)
+
+
 @bdd.then("no crash should happen")
 def no_crash():
     """Don't do anything.
