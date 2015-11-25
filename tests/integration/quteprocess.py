@@ -281,6 +281,10 @@ class QuteProc(testprocess.Process):
             with open(path, 'r', encoding='utf-8') as f:
                 return f.read()
 
+    def press_keys(self, keys):
+        """Press the given keys using :fake-key."""
+        self.send_cmd(':fake-key -g "{}"'.format(keys))
+
 
 @pytest.yield_fixture(scope='module')
 def quteproc(qapp, httpbin, request):

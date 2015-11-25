@@ -165,6 +165,11 @@ def wait_time(quteproc, delay):
     time.sleep(float(delay))
 
 
+@bdd.when(bdd.parsers.re('I press the keys? "(?P<keys>[^"]*)"'))
+def press_keys(quteproc, keys):
+    quteproc.press_keys(keys)
+
+
 @bdd.then(bdd.parsers.parse('"{pattern}" should not be logged'))
 def ensure_not_logged(quteproc, pattern):
     quteproc.ensure_not_logged(message=pattern)
@@ -175,6 +180,22 @@ def ensure_not_logged(quteproc, pattern):
 def javascript_message_logged(quteproc, message):
     quteproc.wait_for(category='js', function='javaScriptConsoleMessage',
                       message='[*] {}'.format(message))
+
+
+@bdd.then(bdd.parsers.parse('the javascript message "{message}" should not be '
+                            'logged'))
+def javascript_message_not_logged(quteproc, message):
+    quteproc.ensure_not_logged(category='js',
+                               function='javaScriptConsoleMessage',
+                               message='[*] {}'.format(message))
+
+
+@bdd.then(bdd.parsers.re(r'(?P<is_regex>regex )?"(?P<pattern>[^"]+)" should '
+                         r'be logged'))
+def should_be_logged(quteproc, is_regex, pattern):
+    if is_regex:
+        pattern = re.compile(pattern)
+    quteproc.wait_for(message=pattern)
 
 
 @bdd.then("no crash should happen")

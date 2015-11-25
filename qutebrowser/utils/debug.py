@@ -156,7 +156,7 @@ def qflags_key(base, value, add_base=False, klass=None):
     names = []
     mask = 0x01
     value = int(value)
-    while mask < value:
+    while mask <= value:
         if value & mask:
             bits.append(mask)
         mask <<= 1

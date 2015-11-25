@@ -29,26 +29,26 @@ Feature: Using :navigate
         Then data/navigate/next.html should be loaded
 
     Scenario: Navigating to previous page without links
-        When I open data/navigate/1.txt
+        When I open data/numbers/1.txt
         And I run :navigate prev
         Then the error "No prev links found!" should be shown.
 
     Scenario: Navigating to next page without links
-        When I open data/navigate/1.txt
+        When I open data/numbers/1.txt
         And I run :navigate next
         Then the error "No forward links found!" should be shown.
 
     # increment/decrement
 
     Scenario: Incrementing number in URL
-        When I open data/navigate/1.txt
+        When I open data/numbers/1.txt
         And I run :navigate increment
-        Then data/navigate/2.txt should be loaded
+        Then data/numbers/2.txt should be loaded
 
     Scenario: Decrementing number in URL
-        When I open data/navigate/4.txt
+        When I open data/numbers/4.txt
         And I run :navigate decrement
-        Then data/navigate/3.txt should be loaded
+        Then data/numbers/3.txt should be loaded
 
     Scenario: Decrementing with no number in URL
         When I open data/navigate
@@ -62,6 +62,6 @@ Feature: Using :navigate
 
     Scenario: Setting url-incdec-segments
         When I set general -> url-incdec-segments to anchor
-        And I open data/navigate/1.txt
+        And I open data/numbers/1.txt
         And I run :navigate increment
         Then the error "No number found in URL!" should be shown.

@@ -222,6 +222,9 @@ class CommandDispatcher:
                 raise cmdexc.CommandError(
                     "-o is not supported with 'tabs->select-on-remove' set to "
                     "'previous'!")
+            else:  # pragma: no cover
+                raise ValueError("Invalid select-on-remove value "
+                                 "{!r}!".format(conf_selection))
         return None
 
     @cmdutils.register(instance='command-dispatcher', scope='window',
