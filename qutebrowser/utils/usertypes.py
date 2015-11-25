@@ -114,17 +114,26 @@ class NeighborList(collections.abc.Sequence):
             False when the value already was in the list.
         """
         op = operator.le if offset < 0 else operator.ge
+        currentval = self.fuzzyval or self.items[self._idx]
         items = [(idx, e) for (idx, e) in enumerate(self._items)
-                 if op(e, self.fuzzyval)]
+                 if op(e, currentval)]
         if items:
-            item = min(items, key=lambda tpl: abs(self.fuzzyval - tpl[1]))
+            if offset < 0:
+                item = items[max(0, len(items) + offset)]
+            else:
+                item = items[min(len(items) - 1, offset - 1)]
         else:
             sorted_items = sorted([(idx, e) for (idx, e) in
                                    enumerate(self.items)], key=lambda e: e[1])
             idx = 0 if offset < 0 else -1
             item = sorted_items[idx]
         self._idx = item[0]
-        return self.fuzzyval not in self._items
+
+        is_fuzzy_value = self.fuzzyval is not None
+        fuzzy_value_is_not_standard = self.fuzzyval not in self._items
+        did_snap_to_nearest_standard_value = is_fuzzy_value and fuzzy_value_is_not_standard
+
+        return did_snap_to_nearest_standard_value
 
     def _get_new_item(self, offset):
         """Logic for getitem to get the item at offset.
@@ -171,16 +180,18 @@ class NeighborList(collections.abc.Sequence):
             len(self._items), self._idx, offset))
         if not self._items:
             raise IndexError("No items found!")
-        if self.fuzzyval is not None:
+
+        did_snap_to_nearest_standard_value = self._snap_in(offset)
+
+        if did_snap_to_nearest_standard_value:
             # Value has been set to something not in the list, so we snap in to
             # the closest value in the right direction and count this as one
             # step towards offset.
-            snapped = self._snap_in(offset)
-            if snapped and offset > 0:
-                offset -= 1
-            elif snapped:
-                offset += 1
-            self.fuzzyval = None
+            offset_that_happened_when_snapping = 1 if offset > 0 else -1
+            offset -= offset_that_happened_when_snapping
+
+        self.fuzzyval = None
+
         return self._get_new_item(offset)
 
     def curitem(self):
