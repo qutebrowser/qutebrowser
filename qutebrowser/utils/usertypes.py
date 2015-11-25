@@ -119,9 +119,9 @@ class NeighborList(collections.abc.Sequence):
                  if op(e, currentval)]
         if items:
             if offset < 0:
-                item = items[max(0, len(items) + offset)]
+                item = items[max(0, len(items) - 1)]
             else:
-                item = items[min(len(items) - 1, offset - 1)]
+                item = items[min(len(items) - 1, 0)]
         else:
             sorted_items = sorted([(idx, e) for (idx, e) in
                                    enumerate(self.items)], key=lambda e: e[1])
@@ -144,11 +144,11 @@ class NeighborList(collections.abc.Sequence):
         Return:
             The new item.
         """
+        new_idx = self._idx
+
         try:
-            if self._idx + offset >= 0:
-                new = self._items[self._idx + offset]
-            else:
-                raise IndexError
+            new_idx = max(min(self._idx + offset, len(self._items) - 1), 0)
+            new = self._items[new_idx]
         except IndexError:
             if self._mode == self.Modes.block:
                 new = self.curitem()
@@ -159,7 +159,7 @@ class NeighborList(collections.abc.Sequence):
             elif self._mode == self.Modes.exception:  # pragma: no branch
                 raise
         else:
-            self._idx += offset
+            self._idx = new_idx
         return new
 
     @property
