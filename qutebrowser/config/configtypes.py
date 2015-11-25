@@ -123,9 +123,8 @@ class BaseType:
 
     special = False
 
-    def __init__(self, none_ok=False, valid_values=None):
+    def __init__(self, none_ok=False):
         self.none_ok = none_ok
-        self.valid_values = valid_values
 
     def _basic_validation(self, value):
         """Do some basic validation for the value (empty, non-printable chars).
@@ -244,7 +243,8 @@ class String(BaseType):
 
     def __init__(self, minlen=None, maxlen=None, forbidden=None,
                  none_ok=False, completions=None, valid_values=None):
-        super().__init__(none_ok, valid_values)
+        super().__init__(none_ok)
+        self.valid_values = valid_values
         if minlen is not None and minlen < 1:
             raise ValueError("minlen ({}) needs to be >= 1!".format(minlen))
         elif maxlen is not None and maxlen < 1:
@@ -651,13 +651,12 @@ class ColorSystem(MappingType):
 
     special = True
 
-    def __init__(self):
-        self.valid_values = ValidValues(
-            ('rgb', "Interpolate in the RGB color system."),
-            ('hsv', "Interpolate in the HSV color system."),
-            ('hsl', "Interpolate in the HSL color system."),
-            ('none', "Don't show a gradient."))
-
+    valid_values = ValidValues(
+        ('rgb', "Interpolate in the RGB color system."),
+        ('hsv', "Interpolate in the HSV color system."),
+        ('hsl', "Interpolate in the HSL color system."),
+        ('none', "Don't show a gradient."))
+    
     MAPPING = {
         'rgb': QColor.Rgb,
         'hsv': QColor.Hsv,
@@ -1095,11 +1094,9 @@ class Proxy(BaseType):
     """A proxy URL or special value."""
 
     special = True
-
-    def __init__(self):
-        self.valid_values = ValidValues(
-            ('system', "Use the system wide proxy."),
-            ('none', "Don't use any proxy"))
+    valid_values = ValidValues(
+        ('system', "Use the system wide proxy."),
+        ('none', "Don't use any proxy"))
 
     PROXY_TYPES = {
         'http': QNetworkProxy.HttpProxy,
@@ -1209,12 +1206,10 @@ class FuzzyUrl(BaseType):
 
 PaddingValues = collections.namedtuple('PaddingValues', ['top', 'bottom',
                                                          'left', 'right'])
-
-
 class Padding(IntList):
 
     """Setting for paddings around elements."""
-
+    
     def validate(self, value):
         self._basic_validation(value)
         if not value:
@@ -1326,8 +1321,7 @@ class Position(MappingType):
 
     """The position of the tab bar."""
 
-    def __init__(self):
-        self.valid_values = ValidValues('top', 'bottom', 'left', 'right')
+    valid_values = ValidValues('top', 'bottom', 'left', 'right')
 
     MAPPING = {
         'top': QTabWidget.North,
@@ -1341,8 +1335,7 @@ class VerticalPosition(BaseType):
 
     """The position of the download bar."""
 
-    def __init__(self):
-        self.valid_values = ValidValues('top', 'bottom')
+    valid_values = ValidValues('top', 'bottom')
 
 
 class UrlList(List):
@@ -1387,11 +1380,11 @@ class SelectOnRemove(MappingType):
     """Which tab to select when the focused tab is removed."""
 
     special = True
-    def __init__(self):
-        self.valid_values = ValidValues(
-            ('left', "Select the tab on the left."),
-            ('right', "Select the tab on the right."),
-            ('previous', "Select the previously selected tab."))
+
+    valid_values = ValidValues(
+        ('left', "Select the tab on the left."),
+        ('right', "Select the tab on the right."),
+        ('previous', "Select the previously selected tab."))
 
     MAPPING = {
         'left': QTabBar.SelectLeftTab,
@@ -1406,13 +1399,12 @@ class ConfirmQuit(FlagList):
 
     special = True
 
-    def __init__(self):
-        self.valid_values = ValidValues(('always', "Always show a confirmation."),
-                                        ('multiple-tabs', "Show a confirmation if "
-                                         "multiple tabs are opened."),
-                                        ('downloads', "Show a confirmation if "
-                                         "downloads are running"),
-                                        ('never', "Never show a confirmation."))
+    valid_values = ValidValues(('always', "Always show a confirmation."),
+                               ('multiple-tabs', "Show a confirmation if "
+                                "multiple tabs are opened."),
+                               ('downloads', "Show a confirmation if "
+                                "downloads are running"),
+                               ('never', "Never show a confirmation."))
     # Values that can be combined with commas
     combinable_values = ('multiple-tabs', 'downloads')
 
@@ -1438,12 +1430,11 @@ class NewTabPosition(BaseType):
 
     special = True
     
-    def __init__(self):
-        self.valid_values = ValidValues(
-            ('left', "On the left of the current tab."),
-            ('right', "On the right of the current tab."),
-            ('first', "At the left end."),
-            ('last', "At the right end."))
+    valid_values = ValidValues(
+        ('left', "On the left of the current tab."),
+        ('right', "On the right of the current tab."),
+        ('first', "At the left end."),
+        ('last', "At the right end."))
 
 
 class IgnoreCase(Bool):
@@ -1452,12 +1443,11 @@ class IgnoreCase(Bool):
 
     special = True
 
-    def __init__(self):
-        self.valid_values = ValidValues(
-            ('true', "Search case-insensitively"),
-            ('false', "Search case-sensitively"),
-            ('smart', "Search case-sensitively if there "
-             "are capital chars"))
+    valid_values = ValidValues(
+        ('true', "Search case-insensitively"),
+        ('false', "Search case-sensitively"),
+        ('smart', "Search case-sensitively if there "
+         "are capital chars"))
 
     def transform(self, value):
         if value.lower() == 'smart':
@@ -1480,9 +1470,6 @@ class UserAgent(BaseType):
     """The user agent to use."""
 
     special = True
-
-    def __init__(self, none_ok=False):
-        super().__init__(none_ok)
 
     def validate(self, value):
         self._basic_validation(value)
