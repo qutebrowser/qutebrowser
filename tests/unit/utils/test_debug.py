@@ -163,7 +163,7 @@ class TestQFlagsKey:
     fixme = pytest.mark.xfail(reason="See issue #42", raises=AssertionError)
 
     @pytest.mark.parametrize('base, value, klass, expected', [
-        fixme((Qt, Qt.AlignTop, None, 'AlignTop')),
+        (Qt, Qt.AlignTop, None, 'AlignTop'),
         fixme((Qt, Qt.AlignLeft | Qt.AlignTop, None, 'AlignLeft|AlignTop')),
         (Qt, Qt.AlignCenter, None, 'AlignHCenter|AlignVCenter'),
         fixme((Qt, 0x0021, Qt.Alignment, 'AlignLeft|AlignTop')),
@@ -173,7 +173,6 @@ class TestQFlagsKey:
         flags = debug.qflags_key(base, value, klass=klass)
         assert flags == expected
 
-    @fixme
     def test_add_base(self):
         """Test with add_base=True."""
         flags = debug.qflags_key(Qt, Qt.AlignTop, add_base=True)
