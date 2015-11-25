@@ -165,6 +165,11 @@ def wait_time(quteproc, delay):
     time.sleep(float(delay))
 
 
+@bdd.when(bdd.parsers.re('I press the keys? "(?P<keys>[^"]*)"'))
+def press_keys(quteproc, keys):
+    quteproc.press_keys(keys)
+
+
 @bdd.then(bdd.parsers.parse('"{pattern}" should not be logged'))
 def ensure_not_logged(quteproc, pattern):
     quteproc.ensure_not_logged(message=pattern)
