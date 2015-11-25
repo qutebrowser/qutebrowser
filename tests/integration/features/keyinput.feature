@@ -72,8 +72,8 @@ Feature: Keyboard input
         And I press the key "q"
         And I press the key "<F1>"
         # q
-        Then the javascript message "key press: 90" should be logged
-        And the javascript message "key release: 90" should be logged
+        Then the javascript message "key press: 81" should be logged
+        And the javascript message "key release: 81" should be logged
         # <F1>
         And the javascript message "key press: 112" should be logged
         And the javascript message "key release: 112" should be logged
