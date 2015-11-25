@@ -119,9 +119,9 @@ class NeighborList(collections.abc.Sequence):
                  if op(e, currentval)]
         if items:
             if offset < 0:
-                item = items[max(0, len(items)+offset)]
+                item = items[max(0, len(items) + offset)]
             else:
-                item = items[min(len(items)-1, offset-1)]
+                item = items[min(len(items) - 1, offset - 1)]
         else:
             sorted_items = sorted([(idx, e) for (idx, e) in
                                    enumerate(self.items)], key=lambda e: e[1])
