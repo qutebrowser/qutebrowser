@@ -182,6 +182,14 @@ def javascript_message_logged(quteproc, message):
                       message='[*] {}'.format(message))
 
 
+@bdd.then(bdd.parsers.parse('the javascript message "{message}" should not be '
+                            'logged'))
+def javascript_message_not_logged(quteproc, message):
+    quteproc.ensure_not_logged(category='js',
+                               function='javaScriptConsoleMessage',
+                               message='[*] {}'.format(message))
+
+
 @bdd.then(bdd.parsers.re(r'(?P<is_regex>regex )?"(?P<pattern>[^"]+)" should '
                          r'be logged'))
 def should_be_logged(quteproc, is_regex, pattern):
