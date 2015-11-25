@@ -588,6 +588,7 @@ class TestJavascriptEscape:
         '\x80Ā': '\x80Ā',
         '𐀀\x00𐀀\x00': r'𐀀\x00𐀀\x00',
         '𐀀\ufeff': r'𐀀\ufeff',
+        '\ufeff': r'\ufeff',
         # http://stackoverflow.com/questions/2965293/
         '\u2028': r'\u2028',
         '\u2029': r'\u2029',
