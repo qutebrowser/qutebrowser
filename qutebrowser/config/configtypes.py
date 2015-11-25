@@ -244,8 +244,9 @@ class String(BaseType):
 
     def __init__(self, minlen=None, maxlen=None, forbidden=None,
                  none_ok=False, completions=None, valid_values=None):
-        super().__init__(none_ok)
         self.valid_values = valid_values
+        super().__init__(none_ok)
+
         if minlen is not None and minlen < 1:
             raise ValueError("minlen ({}) needs to be >= 1!".format(minlen))
         elif maxlen is not None and maxlen < 1:
@@ -352,7 +353,9 @@ class Bool(BaseType):
 
     """Base class for a boolean setting."""
 
-    valid_values = ValidValues('true', 'false')
+    def __init__(self, none_ok=False):
+        self.valid_values = ValidValues('true', 'false')
+        super().__init__(none_ok)
 
     def transform(self, value):
         if not value:
@@ -372,7 +375,9 @@ class BoolAsk(Bool):
 
     """A yes/no/ask question."""
 
-    valid_values = ValidValues('true', 'false', 'ask')
+    def __init__(self, none_ok=False):
+        self.valid_values = ValidValues('true', 'false', 'ask')
+        super().__init__(none_ok)
 
     def transform(self, value):
         if value.lower() == 'ask':
@@ -652,11 +657,13 @@ class ColorSystem(MappingType):
 
     special = True
 
-    valid_values = ValidValues(
-        ('rgb', "Interpolate in the RGB color system."),
-        ('hsv', "Interpolate in the HSV color system."),
-        ('hsl', "Interpolate in the HSL color system."),
-        ('none', "Don't show a gradient."))
+    def __init__(self, none_ok=False):
+        self.valid_values = ValidValues(
+            ('rgb', "Interpolate in the RGB color system."),
+            ('hsv', "Interpolate in the HSV color system."),
+            ('hsl', "Interpolate in the HSL color system."),
+            ('none', "Don't show a gradient."))
+        super().__init__(none_ok)
     
     MAPPING = {
         'rgb': QColor.Rgb,
@@ -1095,15 +1102,18 @@ class Proxy(BaseType):
     """A proxy URL or special value."""
 
     special = True
-    valid_values = ValidValues(
-        ('system', "Use the system wide proxy."),
-        ('none', "Don't use any proxy"))
 
     PROXY_TYPES = {
         'http': QNetworkProxy.HttpProxy,
         'socks': QNetworkProxy.Socks5Proxy,
         'socks5': QNetworkProxy.Socks5Proxy,
     }
+
+    def __init__(self, none_ok=False):
+        self.valid_values = ValidValues(
+            ('system', "Use the system wide proxy."),
+            ('none', "Don't use any proxy"))
+        super().__init__(none_ok)
 
     def validate(self, value):
         self._basic_validation(value)
@@ -1289,13 +1299,14 @@ class AutoSearch(BaseType):
     """Whether to start a search when something else than a URL is entered."""
 
     special = True
-    valid_values = ValidValues(('naive', "Use simple/naive check."),
-                               ('dns', "Use DNS requests (might be slow!)."),
-                               ('false', "Never search automatically."))
 
     def __init__(self, none_ok=False):
-        super().__init__(none_ok)
         self.booltype = Bool(none_ok=none_ok)
+        self.valid_values = ValidValues(
+            ('naive', "Use simple/naive check."),
+            ('dns', "Use DNS requests (might be slow!)."),
+            ('false', "Never search automatically."))
+        super().__init__(none_ok)
 
     def validate(self, value):
         self._basic_validation(value)
@@ -1322,8 +1333,6 @@ class Position(MappingType):
 
     """The position of the tab bar."""
 
-    valid_values = ValidValues('top', 'bottom', 'left', 'right')
-
     MAPPING = {
         'top': QTabWidget.North,
         'bottom': QTabWidget.South,
@@ -1331,12 +1340,18 @@ class Position(MappingType):
         'right': QTabWidget.East,
     }
 
+    def __init__(self, none_ok=False):
+        self.valid_values = ValidValues('top', 'bottom', 'left', 'right')
+        super().__init__(none_ok)
+
 
 class VerticalPosition(BaseType):
 
     """The position of the download bar."""
 
-    valid_values = ValidValues('top', 'bottom')
+    def __init__(self, none_ok=False):
+        self.valid_values = ValidValues('top', 'bottom')
+        super().__init__(none_ok)
 
 
 class UrlList(List):
@@ -1382,16 +1397,18 @@ class SelectOnRemove(MappingType):
 
     special = True
 
-    valid_values = ValidValues(
-        ('left', "Select the tab on the left."),
-        ('right', "Select the tab on the right."),
-        ('previous', "Select the previously selected tab."))
-
     MAPPING = {
         'left': QTabBar.SelectLeftTab,
         'right': QTabBar.SelectRightTab,
         'previous': QTabBar.SelectPreviousTab,
     }
+
+    def __init__(self, none_ok=False):
+        self.valid_values = ValidValues(
+            ('left', "Select the tab on the left."),
+            ('right', "Select the tab on the right."),
+            ('previous', "Select the previously selected tab."))
+        super().__init__(none_ok)
 
 
 class ConfirmQuit(FlagList):
@@ -1400,15 +1417,19 @@ class ConfirmQuit(FlagList):
 
     special = True
 
-    valid_values = ValidValues(('always', "Always show a confirmation."),
-                               ('multiple-tabs', "Show a confirmation if "
-                                "multiple tabs are opened."),
-                               ('downloads', "Show a confirmation if "
-                                "downloads are running"),
-                               ('never', "Never show a confirmation."))
     # Values that can be combined with commas
     combinable_values = ('multiple-tabs', 'downloads')
 
+    def __init__(self, none_ok=False):
+        self.valid_values = ValidValues(
+            ('always', "Always show a confirmation."),
+            ('multiple-tabs', "Show a confirmation if "
+             "multiple tabs are opened."),
+            ('downloads', "Show a confirmation if "
+             "downloads are running"),
+            ('never', "Never show a confirmation."))
+        super().__init__(none_ok)
+    
     def validate(self, value):
         super().validate(value)
         if not value:
@@ -1430,12 +1451,14 @@ class NewTabPosition(BaseType):
     """How new tabs are positioned."""
 
     special = True
-    
-    valid_values = ValidValues(
-        ('left', "On the left of the current tab."),
-        ('right', "On the right of the current tab."),
-        ('first', "At the left end."),
-        ('last', "At the right end."))
+
+    def __init__(self, none_ok=False):
+        self.valid_values = ValidValues(
+            ('left', "On the left of the current tab."),
+            ('right', "On the right of the current tab."),
+            ('first', "At the left end."),
+            ('last', "At the right end."))
+        super().__init__(none_ok)
 
 
 class IgnoreCase(Bool):
@@ -1444,11 +1467,13 @@ class IgnoreCase(Bool):
 
     special = True
 
-    valid_values = ValidValues(
-        ('true', "Search case-insensitively"),
-        ('false', "Search case-sensitively"),
-        ('smart', "Search case-sensitively if there "
-         "are capital chars"))
+    def __init__(self, none_ok=False):
+        self.valid_values = ValidValues(
+            ('true', "Search case-insensitively"),
+            ('false', "Search case-sensitively"),
+            ('smart', "Search case-sensitively if there "
+             "are capital chars"))
+        super().__init__(none_ok)
 
     def transform(self, value):
         if value.lower() == 'smart':
