@@ -227,7 +227,7 @@ def data(readonly=False):
              "last loaded session."),
 
             ('url-incdec-segments',
-             SettingValue(typ.URLSegmentList(none_ok=True), 'path,query'),
+             SettingValue(typ.URLSegmentList(), 'path,query'),
              "The URL segments where `:navigate increment/decrement` will "
              "search for a number."),
 
