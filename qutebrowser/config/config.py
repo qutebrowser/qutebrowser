@@ -356,9 +356,7 @@ class ConfigManager(QObject):
         ('tabs', 'position'): _transform_position,
         ('ui', 'downloads-position'): _transform_position,
         ('ui', 'remove-finished-downloads'):
-            _get_value_transformer({'false': '-1', 'true': '1000'}),
-        ('general', 'log-javascript-console'):
-            _get_value_transformer({'false': 'none', 'true': 'debug'}),
+            _get_value_transformer({'false': '-1', 'true': '1000'})
     }
 
     changed = pyqtSignal(str, str)
