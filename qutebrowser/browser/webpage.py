@@ -503,16 +503,8 @@ class BrowserPage(QWebPage):
 
     def javaScriptConsoleMessage(self, msg, line, source):
         """Override javaScriptConsoleMessage to use debug log."""
-
-        log_javascript_console = config.get('general',
-                                            'log-javascript-console' )
-        logstring = "[{}:{}] {}".format(source, line, msg)
-        logmap = {
-            'debug': log.js.debug,
-            'info':  log.js.info,
-            'none':  lambda arg: None
-        }
-        logmap[log_javascript_console](logstring)
+        if config.get('general', 'log-javascript-console'):
+            log.js.debug("[{}:{}] {}".format(source, line, msg))
 
     def chooseFile(self, _frame, suggested_file):
         """Override QWebPage's chooseFile to be able to chose a file to upload.
