@@ -308,6 +308,9 @@ def javascript_escape(text):
         ('\n', r'\n'),  # We also need to escape newlines for some reason.
         ('\r', r'\r'),
         ('\x00', r'\x00'),
+        # http://stackoverflow.com/questions/2965293/
+        ('\u2028', r'\u2028'),
+        ('\u2029', r'\u2029'),
     )
     for orig, repl in replacements:
         text = text.replace(orig, repl)
