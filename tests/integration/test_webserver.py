@@ -53,6 +53,9 @@ def test_httpbin(httpbin, qtbot, path, content, expected):
 @pytest.mark.parametrize('line, verb, path, equal', [
     ('127.0.0.1 - - [01/Jan/1990 00:00:00] "GET / HTTP/1.1" 200 -',
         'GET', '/', True),
+    ('127.0.0.1 - - [01/Jan/1990 00:00:00] "GET /foo/ HTTP/1.1" 200 -',
+        'GET', '/foo', True),
+
     ('127.0.0.1 - - [01/Jan/1990 00:00:00] "GET / HTTP/1.1" 200 -',
         'GET', '/foo', False),
     ('127.0.0.1 - - [01/Jan/1990 00:00:00] "GET / HTTP/1.1" 200 -',

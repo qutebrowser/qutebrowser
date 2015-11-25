@@ -73,7 +73,9 @@ class Request(testprocess.Line):
         assert match.group('protocol') == 'HTTP/1.1'
         assert self.verb == 'GET'
 
-        self.path = match.group('path')
+        path = match.group('path')
+        self.path = '/' if path == '/' else path.rstrip('/')
+
         self.status = int(match.group('status'))
 
         missing_paths = ['/favicon.ico', '/does-not-exist']
