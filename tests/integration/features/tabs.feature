@@ -247,3 +247,97 @@ Feature: Tab management
     Scenario: :tab-only with --left and --right
         When I run :tab-only --left --right
         Then the error "Only one of -l/-r can be given!" should be shown.
+
+    # :tab-focus
+
+    Scenario: :tab-focus with invalid index
+        When I run :tab-focus foo
+        Then the error "Invalid value foo." should be shown.
+
+    Scenario: :tab-focus with index
+        When I open data/numbers/1.txt
+        And I open data/numbers/2.txt in a new tab
+        And I open data/numbers/3.txt in a new tab
+        And I run :tab-focus 2
+        Then the session should look like:
+          windows:
+            - tabs:
+              - history:
+                - ...
+                - url: http://localhost:*/data/numbers/1.txt
+              - active: true
+                history:
+                - url: http://localhost:*/data/numbers/2.txt
+              - history:
+                - url: http://localhost:*/data/numbers/3.txt
+
+    Scenario: :tab-focus without index/count
+        When I open data/numbers/1.txt
+        And I open data/numbers/2.txt in a new tab
+        And I open data/numbers/3.txt in a new tab
+        And I run :tab-focus 2
+        And I run :tab-focus
+        Then the session should look like:
+          windows:
+            - tabs:
+              - history:
+                - ...
+                - url: http://localhost:*/data/numbers/1.txt
+              - history:
+                - url: http://localhost:*/data/numbers/2.txt
+              - active: true
+                history:
+                - url: http://localhost:*/data/numbers/3.txt
+
+    Scenario: :tab-focus with invalid index
+        When I run :tab-focus 23
+        Then the error "There's no tab with index 23!" should be shown.
+
+    Scenario: :tab-focus with very big index
+        When I run :tab-focus 99999999999999
+        Then the error "Numeric argument is too large for internal int representation." should be shown.
+
+    Scenario: :tab-focus with count
+        When I open data/numbers/1.txt
+        And I open data/numbers/2.txt in a new tab
+        And I open data/numbers/3.txt in a new tab
+        And I run :tab-focus with count 2
+        Then the session should look like:
+          windows:
+            - tabs:
+              - history:
+                - ...
+                - url: http://localhost:*/data/numbers/1.txt
+              - active: true
+                history:
+                - url: http://localhost:*/data/numbers/2.txt
+              - history:
+                - url: http://localhost:*/data/numbers/3.txt
+
+    Scenario: :tab-focus with count and index
+        When I run :tab-focus 2 with count 2
+        Then the error "Both count and argument given!" should be shown.
+
+    Scenario: :tab-focus last
+        When I open data/numbers/1.txt
+        And I open data/numbers/2.txt in a new tab
+        And I open data/numbers/3.txt in a new tab
+        And I run :tab-focus 1
+        And I run :tab-focus 3
+        And I run :tab-focus last
+        Then the session should look like:
+          windows:
+            - tabs:
+              - active: true
+                history:
+                - ...
+                - url: http://localhost:*/data/numbers/1.txt
+              - history:
+                - url: http://localhost:*/data/numbers/2.txt
+              - history:
+                - url: http://localhost:*/data/numbers/3.txt
+
+    Scenario: :tab-focus last with no last focused tab
+        Given I have a fresh instance
+        And I run :tab-focus last
+        Then the error "No last focused tab!" should be shown.
