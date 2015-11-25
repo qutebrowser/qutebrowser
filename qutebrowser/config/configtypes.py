@@ -122,6 +122,7 @@ class BaseType:
     """
 
     special = False
+    valid_values = None
 
     def __init__(self, none_ok=False):
         self.none_ok = none_ok
