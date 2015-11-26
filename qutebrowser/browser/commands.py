@@ -921,9 +921,8 @@ class CommandDispatcher:
             except ValueError:
                 raise cmdexc.CommandError("Count must be given for relative "
                                           "moving!")
-        else:
-            raise cmdexc.CommandError("Invalid direction '{}'!".format(
-                direction))
+        else:  # pragma: no cover
+            raise ValueError("Invalid direction '{}'!".format(direction))
         if not 0 <= new_idx < self._count():
             raise cmdexc.CommandError("Can't move tab to position {}!".format(
                 new_idx))
