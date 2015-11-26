@@ -114,14 +114,21 @@ class NeighborList(collections.abc.Sequence):
             True if the value snapped in (changed),
             False when the value already was in the list.
         """
-        op = operator.le if offset < 0 else operator.ge
-        currentval = 0
-        if self.fuzzyval is None:
+        optype = operator.le if offset < 0 else operator.ge
+        currentval = None
+        items = None
+
+        is_int = lambda s: s.lstrip("-+").isdigit()
+        if self.fuzzyval is None \
+                and is_int(self.items[self._idx]):
             currentval = self.items[self._idx]
         else:
             currentval = self.fuzzyval
-        items = [(idx, e) for (idx, e) in enumerate(self._items)
-                 if op(e, currentval)]
+
+        if currentval:
+            items = [(idx, e) for (idx, e) in enumerate(self._items)
+                    if optype(e, currentval)]
+
         if items:
             item = min(items, key=lambda tpl: abs(currentval - tpl[1]))
         else:
@@ -133,9 +140,9 @@ class NeighborList(collections.abc.Sequence):
 
         is_fuzzy_value = self.fuzzyval is not None
         fuzzy_value_is_not_standard = self.fuzzyval not in self._items
-        did_snap_to_nearest_standard_value = is_fuzzy_value and fuzzy_value_is_not_standard
+        did_snap_to_value = is_fuzzy_value and fuzzy_value_is_not_standard
 
-        return did_snap_to_nearest_standard_value
+        return did_snap_to_value
 
     def _get_new_item(self, offset):
         """Logic for getitem to get the item at offset.
@@ -161,7 +168,11 @@ class NeighborList(collections.abc.Sequence):
             elif self._mode == self.Modes.exception:  # pragma: no branch
                 raise
             elif self._mode == self.Modes.edge:
-                self._idx = max(min(self._idx + offset, len(self._items) - 1), 0)
+                new_idx = self._idx + offset
+                right_edge = len(self._items) - 1
+                left_edge = 0
+
+                self._idx = max(min(new_idx, right_edge), left_edge)
                 new = self._items[self._idx]
         else:
             self._idx += offset
@@ -186,14 +197,14 @@ class NeighborList(collections.abc.Sequence):
         if not self._items:
             raise IndexError("No items found!")
 
-        did_snap_to_nearest_standard_value = self._snap_in(offset)
+        did_snap_to_value = self._snap_in(offset)
 
-        if did_snap_to_nearest_standard_value:
+        if did_snap_to_value:
             # Value has been set to something not in the list, so we snap in to
             # the closest value in the right direction and count this as one
             # step towards offset.
-            offset_that_happened_when_snapping = 1 if offset > 0 else -1
-            offset -= offset_that_happened_when_snapping
+            offset_from_snapping = 1 if offset > 0 else -1
+            offset -= offset_from_snapping
 
         self.fuzzyval = None
 
