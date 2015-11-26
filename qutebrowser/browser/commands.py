@@ -1655,7 +1655,6 @@ class CommandDispatcher:
         else:
             mode = QClipboard.Clipboard
             target = "clipboard"
-        log.misc.debug("Yanking to {}: '{}'".format(target, s))
         clipboard.setText(s, mode)
         message.info(self._win_id, "{} {} yanked to {}".format(
             len(s), "char" if len(s) == 1 else "chars", target))
