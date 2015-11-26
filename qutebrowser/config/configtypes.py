@@ -219,7 +219,7 @@ class MappingType(BaseType):
     def __init__(self, none_ok=False,
                  valid_values=None):
         super().__init__(none_ok)
-        self.valid_values = valid_values;
+        self.valid_values = valid_values
         if list(sorted(self.MAPPING)) != list(sorted(self.valid_values)):
             raise ValueError("Mapping {!r} doesn't match valid values "
                              "{!r}".format(self.MAPPING, self.valid_values))
@@ -284,6 +284,10 @@ class List(BaseType):
 
     """Base class for a (string-)list setting."""
 
+    def __init__(self, none_ok=False, valid_values=None):
+        super().__init__(none_ok)
+        self.valid_values = valid_values
+
     def transform(self, value):
         if not value:
             return None
@@ -308,6 +312,9 @@ class FlagList(List):
     """
 
     combinable_values = None
+
+    def __init__(self, none_ok=False, valid_values=None):
+        super().__init__(none_ok, valid_values)
 
     def validate(self, value):
         self._basic_validation(value)
@@ -662,12 +669,12 @@ class ColorSystem(MappingType):
     def __init__(self, none_ok=False):
         super().__init__(
             none_ok,
-            valid_values = ValidValues(
+            valid_values=ValidValues(
                 ('rgb', "Interpolate in the RGB color system."),
                 ('hsv', "Interpolate in the HSV color system."),
                 ('hsl', "Interpolate in the HSL color system."),
                 ('none', "Don't show a gradient.")))
-    
+
     MAPPING = {
         'rgb': QColor.Rgb,
         'hsv': QColor.Hsv,
@@ -1220,10 +1227,12 @@ class FuzzyUrl(BaseType):
 
 PaddingValues = collections.namedtuple('PaddingValues', ['top', 'bottom',
                                                          'left', 'right'])
+
+
 class Padding(IntList):
 
     """Setting for paddings around elements."""
-    
+
     def validate(self, value):
         self._basic_validation(value)
         if not value:
@@ -1346,7 +1355,7 @@ class Position(MappingType):
     def __init__(self, none_ok=False):
         super().__init__(
             none_ok,
-            valid_values = ValidValues('top', 'bottom', 'left', 'right'))
+            valid_values=ValidValues('top', 'bottom', 'left', 'right'))
 
 
 class VerticalPosition(BaseType):
@@ -1410,7 +1419,7 @@ class SelectOnRemove(MappingType):
     def __init__(self, none_ok=False):
         super().__init__(
             none_ok,
-            valid_values = ValidValues(
+            valid_values=ValidValues(
                 ('left', "Select the tab on the left."),
                 ('right', "Select the tab on the right."),
                 ('previous', "Select the previously selected tab.")))
@@ -1434,7 +1443,7 @@ class ConfirmQuit(FlagList):
             ('downloads', "Show a confirmation if "
              "downloads are running"),
             ('never', "Never show a confirmation."))
-    
+
     def validate(self, value):
         super().validate(value)
         if not value:

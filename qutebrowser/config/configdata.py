@@ -242,7 +242,10 @@ def data(readonly=False):
              "last loaded session."),
 
             ('url-incdec-segments',
-             SettingValue(typ.URLSegmentList(), 'path,query'),
+             SettingValue(
+                 typ.FlagList(valid_values=typ.ValidValues(
+                     'host', 'path', 'query', 'anchor')),
+                 'path,query'),
              "The URL segments where `:navigate increment/decrement` will "
              "search for a number."),
 
@@ -402,12 +405,12 @@ def data(readonly=False):
              "Automatically open completion when typing."),
 
             ('download-path-suggestion',
-             SettingValue(typ.String(
-                 valid_values=typ.ValidValues(
+             SettingValue(
+                 typ.String(valid_values=typ.ValidValues(
                      ('path', "Show only the download path."),
                      ('filename', "Show only download filename."),
                      ('both', "Show download path and filename."))),
-                'path'),
+                 'path'),
              "What to display in the download filename input."),
 
             ('timestamp-format',
@@ -547,14 +550,14 @@ def data(readonly=False):
              "Behavior when the last tab is closed."),
 
             ('show',
-             SettingValue(typ.String(
-                 valid_values=typ.ValidValues(
-                 ('always', "Always show the tab bar."),
-                 ('never', "Always hide the tab bar."),
-                 ('multiple', "Hide the tab bar if only one tab "
-                  "is open."),
-                 ('switching', "Show the tab bar when switching "
-                  "tabs.")
+             SettingValue(
+                 typ.String(valid_values=typ.ValidValues(
+                     ('always', "Always show the tab bar."),
+                     ('never', "Always hide the tab bar."),
+                     ('multiple', "Hide the tab bar if only one tab "
+                      "is open."),
+                     ('switching', "Show the tab bar when switching "
+                      "tabs.")
                  )), 'always'),
              "When to show the tab bar"),
 
