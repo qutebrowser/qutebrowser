@@ -330,8 +330,7 @@ class CommandDispatcher:
         Return:
             The new QWebView.
         """
-        if bg and window:
-            raise cmdexc.CommandError("Only one of -b/-w can be given!")
+        cmdutils.check_exclusive((bg, window), 'bw')
         curtab = self._current_widget()
         cur_title = self._tabbed_browser.page_title(self._current_index())
         # The new tab could be in a new tabbed_browser (e.g. because of
