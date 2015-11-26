@@ -16,7 +16,7 @@ Feature: Opening pages
 
     Scenario: :open without URL and no -t/-b/-w
         When I run :open
-        Then the error "No URL given, but -t/-b/-w is not set!" should be shown.
+        Then the error "No URL given, but -t/-b/-w is not set!" should be shown
 
     Scenario: :open without URL and -t
         When I set general -> default-page to http://localhost:(port)/data/numbers/2.txt
@@ -26,11 +26,11 @@ Feature: Opening pages
     Scenario: :open with invalid URL
         When I set general -> auto-search to false
         And I run :open foo!
-        Then the error "Invalid URL" should be shown.
+        Then the error "Invalid URL" should be shown
 
     Scenario: :open with -t and -b
         When I run :open -t -b foo.bar
-        Then the error "Only one of -t/-b/-w can be given!" should be shown.
+        Then the error "Only one of -t/-b/-w can be given!" should be shown
 
     Scenario: Searching with :open
         When I set general -> auto-search to naive

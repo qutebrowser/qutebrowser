@@ -116,7 +116,7 @@ Feature: Tab management
     Scenario: :tab-close with select-on-remove = previous and --opposite
         When I set tabs -> select-on-remove to previous
         And I run :tab-close --opposite
-        Then the error "-o is not supported with 'tabs->select-on-remove' set to 'previous'!" should be shown.
+        Then the error "-o is not supported with 'tabs->select-on-remove' set to 'previous'!" should be shown
 
     Scenario: :tab-close should restore selection behaviour
         When I set tabs -> select-on-remove to right
@@ -164,13 +164,13 @@ Feature: Tab management
 
     Scenario: :tab-only with --left and --right
         When I run :tab-only --left --right
-        Then the error "Only one of -l/-r can be given!" should be shown.
+        Then the error "Only one of -l/-r can be given!" should be shown
 
     # :tab-focus
 
     Scenario: :tab-focus with invalid index
         When I run :tab-focus foo
-        Then the error "Invalid value foo." should be shown.
+        Then the error "Invalid value foo." should be shown
 
     Scenario: :tab-focus with index
         When I open data/numbers/1.txt
@@ -195,11 +195,11 @@ Feature: Tab management
 
     Scenario: :tab-focus with invalid index
         When I run :tab-focus 23
-        Then the error "There's no tab with index 23!" should be shown.
+        Then the error "There's no tab with index 23!" should be shown
 
     Scenario: :tab-focus with very big index
         When I run :tab-focus 99999999999999
-        Then the error "Numeric argument is too large for internal int representation." should be shown.
+        Then the error "Numeric argument is too large for internal int representation." should be shown
 
     Scenario: :tab-focus with count
         When I open data/numbers/1.txt
@@ -213,7 +213,7 @@ Feature: Tab management
 
     Scenario: :tab-focus with count and index
         When I run :tab-focus 2 with count 2
-        Then the error "Both count and argument given!" should be shown.
+        Then the error "Both count and argument given!" should be shown
 
     Scenario: :tab-focus last
         When I open data/numbers/1.txt
@@ -230,7 +230,7 @@ Feature: Tab management
     Scenario: :tab-focus last with no last focused tab
         Given I have a fresh instance
         And I run :tab-focus last
-        Then the error "No last focused tab!" should be shown.
+        Then the error "No last focused tab!" should be shown
 
     # tab-prev/tab-next
 
@@ -276,13 +276,13 @@ Feature: Tab management
         When I set tabs -> wrap to false
         And I open data/numbers/1.txt
         And I run :tab-prev
-        Then the error "First tab" should be shown.
+        Then the error "First tab" should be shown
 
     Scenario: :tab-next with last tab without wrap
         When I set tabs -> wrap to false
         And I open data/numbers/1.txt
         And I run :tab-next
-        Then the error "Last tab" should be shown.
+        Then the error "Last tab" should be shown
 
     Scenario: :tab-prev on first tab with wrap
         When I set tabs -> wrap to true

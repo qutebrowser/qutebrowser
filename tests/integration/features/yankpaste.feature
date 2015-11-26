@@ -10,27 +10,27 @@ Feature: Yanking and pasting.
     Scenario: Yanking URLs to clipboard
         When I open data/yankpaste.html
         And I run :yank
-        Then the message "Yanked URL to clipboard: http://localhost:(port)/data/yankpaste.html" should be shown.
+        Then the message "Yanked URL to clipboard: http://localhost:(port)/data/yankpaste.html" should be shown
         And the clipboard should contain "http://localhost:(port)/data/yankpaste.html"
 
     Scenario: Yanking URLs to primary selection
         When selection is supported
         And I open data/yankpaste.html
         And I run :yank --sel
-        Then the message "Yanked URL to primary selection: http://localhost:(port)/data/yankpaste.html" should be shown.
+        Then the message "Yanked URL to primary selection: http://localhost:(port)/data/yankpaste.html" should be shown
         And the primary selection should contain "http://localhost:(port)/data/yankpaste.html"
 
     Scenario: Yanking title to clipboard
         When I open data/yankpaste.html
         And I wait for regex "Changing title for idx \d to 'Test title'" in the log
         And I run :yank --title
-        Then the message "Yanked title to clipboard: Test title" should be shown.
+        Then the message "Yanked title to clipboard: Test title" should be shown
         And the clipboard should contain "Test title"
 
     Scenario: Yanking domain to clipboard
         When I open data/yankpaste.html
         And I run :yank --domain
-        Then the message "Yanked domain to clipboard: http://localhost:(port)" should be shown.
+        Then the message "Yanked domain to clipboard: http://localhost:(port)" should be shown
         And the clipboard should contain "http://localhost:(port)"
 
     #### :paste
@@ -53,13 +53,13 @@ Feature: Yanking and pasting.
     Scenario: Pasting with empty clipboard
         When I put "" into the clipboard
         And I run :paste
-        Then the error "Clipboard is empty." should be shown.
+        Then the error "Clipboard is empty." should be shown
 
     Scenario: Pasting with empty selection
         When selection is supported
         And I put "" into the primary selection
         And I run :paste --sel
-        Then the error "Primary selection is empty." should be shown.
+        Then the error "Primary selection is empty." should be shown
 
     Scenario: Pasting in a new tab
         Given I open about:blank

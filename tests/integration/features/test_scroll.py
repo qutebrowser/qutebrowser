@@ -39,7 +39,7 @@ def check_scrolled(quteproc, direction):
         assert y != 0
 
 
-@bdd.then("the page should not be scrolled.")
+@bdd.then("the page should not be scrolled")
 def check_not_scrolled(quteproc):
     x, y = _get_scroll_values(quteproc)
     assert x == 0

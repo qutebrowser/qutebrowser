@@ -191,7 +191,7 @@ def list_of_requests_unordered(httpbin, pages):
 
 
 @bdd.then(bdd.parsers.re(r'the (?P<category>error|message|warning) '
-                         r'"(?P<message>.*)" should be shown.'))
+                         r'"(?P<message>.*)" should be shown'))
 def expect_message(quteproc, httpbin, category, message):
     """Expect the given message in the qutebrowser log."""
     category_to_loglevel = {
