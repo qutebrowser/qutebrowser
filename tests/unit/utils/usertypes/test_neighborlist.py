@@ -299,6 +299,31 @@ class TestExceptionMode:
         assert neighborlist._idx == 4
 
 
+class TestEdgeMode:
+
+    """Tests with mode=edge."""
+
+    @pytest.fixture
+    def neighborlist(self):
+        return usertypes.NeighborList(
+            [1, 2, 3, 4, 5], default=3,
+            mode=usertypes.NeighborList.Modes.edge)
+
+    def test_first(self, neighborlist):
+        """Test out of bounds previtem()."""
+        neighborlist.firstitem()
+        assert neighborlist._idx == 0
+        neighborlist.previtem()
+        assert neighborlist._idx == 0
+
+    def test_last(self, neighborlist):
+        """Test out of bounds nextitem()."""
+        neighborlist.lastitem()
+        assert neighborlist._idx == 4
+        neighborlist.nextitem()
+        assert neighborlist._idx == 4
+
+
 class TestSnapIn:
 
     """Tests for the fuzzyval/_snap_in features."""
