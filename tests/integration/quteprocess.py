@@ -177,7 +177,7 @@ class QuteProc(testprocess.Process):
                  'about:blank']
         return executable, args
 
-    def _path_to_url(self, path):
+    def path_to_url(self, path):
         if path.startswith('about:') or path.startswith('qute:'):
             return path
         else:
@@ -227,7 +227,7 @@ class QuteProc(testprocess.Process):
         self.set_setting(sect, opt, old_value)
 
     def open_path(self, path, new_tab=False):
-        url = self._path_to_url(path)
+        url = self.path_to_url(path)
         if new_tab:
             self.send_cmd(':open -t ' + url)
         else:
@@ -242,7 +242,7 @@ class QuteProc(testprocess.Process):
 
     def wait_for_load_finished(self, path, timeout=15000):
         """Wait until any tab has finished loading."""
-        url = self._path_to_url(path)
+        url = self.path_to_url(path)
         # We really need the same representation that the webview uses in its
         # __repr__
         url = utils.elide(QUrl(url).toDisplayString(QUrl.EncodeUnicode), 100)
