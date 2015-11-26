@@ -8,27 +8,27 @@ Feature: Yanking and pasting.
     #### :yank
 
     Scenario: Yanking URLs to clipboard
-        When I open data/yankpaste.html
+        When I open data/title.html
         And I run :yank
-        Then the message "Yanked URL to clipboard: http://localhost:(port)/data/yankpaste.html" should be shown
-        And the clipboard should contain "http://localhost:(port)/data/yankpaste.html"
+        Then the message "Yanked URL to clipboard: http://localhost:(port)/data/title.html" should be shown
+        And the clipboard should contain "http://localhost:(port)/data/title.html"
 
     Scenario: Yanking URLs to primary selection
         When selection is supported
-        And I open data/yankpaste.html
+        And I open data/title.html
         And I run :yank --sel
-        Then the message "Yanked URL to primary selection: http://localhost:(port)/data/yankpaste.html" should be shown
-        And the primary selection should contain "http://localhost:(port)/data/yankpaste.html"
+        Then the message "Yanked URL to primary selection: http://localhost:(port)/data/title.html" should be shown
+        And the primary selection should contain "http://localhost:(port)/data/title.html"
 
     Scenario: Yanking title to clipboard
-        When I open data/yankpaste.html
+        When I open data/title.html
         And I wait for regex "Changing title for idx \d to 'Test title'" in the log
         And I run :yank --title
         Then the message "Yanked title to clipboard: Test title" should be shown
         And the clipboard should contain "Test title"
 
     Scenario: Yanking domain to clipboard
-        When I open data/yankpaste.html
+        When I open data/title.html
         And I run :yank --domain
         Then the message "Yanked domain to clipboard: http://localhost:(port)" should be shown
         And the clipboard should contain "http://localhost:(port)"
