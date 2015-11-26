@@ -925,7 +925,7 @@ class CommandDispatcher:
             raise ValueError("Invalid direction '{}'!".format(direction))
         if not 0 <= new_idx < self._count():
             raise cmdexc.CommandError("Can't move tab to position {}!".format(
-                new_idx))
+                new_idx + 1))
         tab = self._current_widget()
         cur_idx = self._current_index()
         icon = self._tabbed_browser.tabIcon(cur_idx)
