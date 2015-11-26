@@ -287,8 +287,8 @@ class QuteProc(testprocess.Process):
 
 
 @pytest.yield_fixture(scope='module')
-def quteproc(qapp, httpbin, request):
-    """Fixture for qutebrowser process."""
+def quteproc_process(qapp, httpbin, request):
+    """Fixture for qutebrowser process which is started once per file."""
     delay = request.config.getoption('--qute-delay')
     proc = QuteProc(httpbin, delay)
     proc.start()
@@ -296,9 +296,9 @@ def quteproc(qapp, httpbin, request):
     proc.terminate()
 
 
-@pytest.yield_fixture(autouse=True)
-def quteproc_after_test(quteproc):
-    """Fixture to run cleanup tasks after each test."""
-    quteproc.before_test()
-    yield
-    quteproc.after_test()
+@pytest.yield_fixture
+def quteproc(quteproc_process, httpbin):
+    """Per-test qutebrowser fixture which uses the per-file process."""
+    quteproc_process.before_test()
+    yield quteproc_process
+    quteproc_process.after_test()
