@@ -892,7 +892,7 @@ class CommandDispatcher:
             delta = 1 if count is None else count
             if direction == '-':
                 new_idx = self._current_index() - delta
-            elif direction == '+':
+            elif direction == '+':  # pragma: no branch
                 new_idx = self._current_index() + delta
         else:  # pragma: no cover
             raise ValueError("Invalid direction '{}'!".format(direction))

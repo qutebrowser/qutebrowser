@@ -317,3 +317,91 @@ Feature: Tab management
             - data/numbers/1.txt
             - data/numbers/2.txt (active)
             - data/numbers/3.txt
+
+    # :tab-move
+
+    Scenario: :tab-move with absolute position.
+        When I open data/numbers/1.txt
+        And I open data/numbers/2.txt in a new tab
+        And I open data/numbers/3.txt in a new tab
+        And I run :tab-move
+        Then the following tabs should be open:
+            - data/numbers/3.txt (active)
+            - data/numbers/1.txt
+            - data/numbers/2.txt
+
+    Scenario: :tab-move with absolute position and count.
+        When I open data/numbers/1.txt
+        And I open data/numbers/2.txt in a new tab
+        And I open data/numbers/3.txt in a new tab
+        And I run :tab-move with count 2
+        Then the following tabs should be open:
+            - data/numbers/1.txt
+            - data/numbers/3.txt (active)
+            - data/numbers/2.txt
+
+    Scenario: :tab-move with absolute position and invalid count.
+        When I open data/numbers/1.txt
+        And I open data/numbers/2.txt in a new tab
+        And I open data/numbers/3.txt in a new tab
+        And I run :tab-move with count 23
+        Then the error "Can't move tab to position 23!" should be shown.
+        And the following tabs should be open:
+            - data/numbers/1.txt
+            - data/numbers/2.txt
+            - data/numbers/3.txt (active)
+
+    Scenario: :tab-move with relative position (negative).
+        When I open data/numbers/1.txt
+        And I open data/numbers/2.txt in a new tab
+        And I open data/numbers/3.txt in a new tab
+        And I run :tab-move -
+        Then the following tabs should be open:
+            - data/numbers/1.txt
+            - data/numbers/3.txt (active)
+            - data/numbers/2.txt
+
+    Scenario: :tab-move with relative position (positive).
+        When I open data/numbers/1.txt
+        And I open data/numbers/2.txt in a new tab
+        And I open data/numbers/3.txt in a new tab
+        And I run :tab-focus 1
+        And I run :tab-move +
+        Then the following tabs should be open:
+            - data/numbers/2.txt
+            - data/numbers/1.txt (active)
+            - data/numbers/3.txt
+
+    Scenario: :tab-move with relative position (negative) and count.
+        When I open data/numbers/1.txt
+        And I open data/numbers/2.txt in a new tab
+        And I open data/numbers/3.txt in a new tab
+        And I run :tab-move - with count 2
+        Then the following tabs should be open:
+            - data/numbers/3.txt (active)
+            - data/numbers/1.txt
+            - data/numbers/2.txt
+
+    Scenario: :tab-move with relative position and too big count.
+        When I open data/numbers/1.txt
+        And I open data/numbers/2.txt in a new tab
+        And I open data/numbers/3.txt in a new tab
+        And I run :tab-focus 1
+        And I run :tab-move + with count 3
+        Then the error "Can't move tab to position 4!" should be shown
+
+    Scenario: Make sure :tab-move retains metadata
+        When I open data/title.html
+        And I open data/hello.txt in a new tab
+        And I run :tab-focus 1
+        And I run :tab-move +
+        Then the session should look like:
+            windows:
+            - tabs:
+              - history:
+                - url: http://localhost:*/data/hello.txt
+              - active: true
+                history:
+                - url: about:blank
+                - url: http://localhost:*/data/title.html
+                  title: Test title
