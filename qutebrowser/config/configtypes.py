@@ -122,10 +122,10 @@ class BaseType:
     """
 
     special = False
-    valid_values = None
 
     def __init__(self, none_ok=False):
         self.none_ok = none_ok
+        self.valid_values = None
 
     def _basic_validation(self, value):
         """Do some basic validation for the value (empty, non-printable chars).
@@ -216,8 +216,10 @@ class MappingType(BaseType):
 
     MAPPING = {}
 
-    def __init__(self, none_ok=False):
+    def __init__(self, none_ok=False,
+                 valid_values=None):
         super().__init__(none_ok)
+        self.valid_values = valid_values;
         if list(sorted(self.MAPPING)) != list(sorted(self.valid_values)):
             raise ValueError("Mapping {!r} doesn't match valid values "
                              "{!r}".format(self.MAPPING, self.valid_values))
@@ -244,8 +246,8 @@ class String(BaseType):
 
     def __init__(self, minlen=None, maxlen=None, forbidden=None,
                  none_ok=False, completions=None, valid_values=None):
-        self.valid_values = valid_values
         super().__init__(none_ok)
+        self.valid_values = valid_values
 
         if minlen is not None and minlen < 1:
             raise ValueError("minlen ({}) needs to be >= 1!".format(minlen))
@@ -354,8 +356,8 @@ class Bool(BaseType):
     """Base class for a boolean setting."""
 
     def __init__(self, none_ok=False):
-        self.valid_values = ValidValues('true', 'false')
         super().__init__(none_ok)
+        self.valid_values = ValidValues('true', 'false')
 
     def transform(self, value):
         if not value:
@@ -376,8 +378,8 @@ class BoolAsk(Bool):
     """A yes/no/ask question."""
 
     def __init__(self, none_ok=False):
-        self.valid_values = ValidValues('true', 'false', 'ask')
         super().__init__(none_ok)
+        self.valid_values = ValidValues('true', 'false', 'ask')
 
     def transform(self, value):
         if value.lower() == 'ask':
@@ -658,12 +660,13 @@ class ColorSystem(MappingType):
     special = True
 
     def __init__(self, none_ok=False):
-        self.valid_values = ValidValues(
-            ('rgb', "Interpolate in the RGB color system."),
-            ('hsv', "Interpolate in the HSV color system."),
-            ('hsl', "Interpolate in the HSL color system."),
-            ('none', "Don't show a gradient."))
-        super().__init__(none_ok)
+        super().__init__(
+            none_ok,
+            valid_values = ValidValues(
+                ('rgb', "Interpolate in the RGB color system."),
+                ('hsv', "Interpolate in the HSV color system."),
+                ('hsl', "Interpolate in the HSL color system."),
+                ('none', "Don't show a gradient.")))
     
     MAPPING = {
         'rgb': QColor.Rgb,
@@ -1110,10 +1113,10 @@ class Proxy(BaseType):
     }
 
     def __init__(self, none_ok=False):
+        super().__init__(none_ok)
         self.valid_values = ValidValues(
             ('system', "Use the system wide proxy."),
             ('none', "Don't use any proxy"))
-        super().__init__(none_ok)
 
     def validate(self, value):
         self._basic_validation(value)
@@ -1301,12 +1304,12 @@ class AutoSearch(BaseType):
     special = True
 
     def __init__(self, none_ok=False):
+        super().__init__(none_ok)
         self.booltype = Bool(none_ok=none_ok)
         self.valid_values = ValidValues(
             ('naive', "Use simple/naive check."),
             ('dns', "Use DNS requests (might be slow!)."),
             ('false', "Never search automatically."))
-        super().__init__(none_ok)
 
     def validate(self, value):
         self._basic_validation(value)
@@ -1341,8 +1344,9 @@ class Position(MappingType):
     }
 
     def __init__(self, none_ok=False):
-        self.valid_values = ValidValues('top', 'bottom', 'left', 'right')
-        super().__init__(none_ok)
+        super().__init__(
+            none_ok,
+            valid_values = ValidValues('top', 'bottom', 'left', 'right'))
 
 
 class VerticalPosition(BaseType):
@@ -1350,8 +1354,8 @@ class VerticalPosition(BaseType):
     """The position of the download bar."""
 
     def __init__(self, none_ok=False):
-        self.valid_values = ValidValues('top', 'bottom')
         super().__init__(none_ok)
+        self.valid_values = ValidValues('top', 'bottom')
 
 
 class UrlList(List):
@@ -1404,11 +1408,12 @@ class SelectOnRemove(MappingType):
     }
 
     def __init__(self, none_ok=False):
-        self.valid_values = ValidValues(
-            ('left', "Select the tab on the left."),
-            ('right', "Select the tab on the right."),
-            ('previous', "Select the previously selected tab."))
-        super().__init__(none_ok)
+        super().__init__(
+            none_ok,
+            valid_values = ValidValues(
+                ('left', "Select the tab on the left."),
+                ('right', "Select the tab on the right."),
+                ('previous', "Select the previously selected tab.")))
 
 
 class ConfirmQuit(FlagList):
@@ -1421,6 +1426,7 @@ class ConfirmQuit(FlagList):
     combinable_values = ('multiple-tabs', 'downloads')
 
     def __init__(self, none_ok=False):
+        super().__init__(none_ok)
         self.valid_values = ValidValues(
             ('always', "Always show a confirmation."),
             ('multiple-tabs', "Show a confirmation if "
@@ -1428,7 +1434,6 @@ class ConfirmQuit(FlagList):
             ('downloads', "Show a confirmation if "
              "downloads are running"),
             ('never', "Never show a confirmation."))
-        super().__init__(none_ok)
     
     def validate(self, value):
         super().validate(value)
@@ -1453,12 +1458,12 @@ class NewTabPosition(BaseType):
     special = True
 
     def __init__(self, none_ok=False):
+        super().__init__(none_ok)
         self.valid_values = ValidValues(
             ('left', "On the left of the current tab."),
             ('right', "On the right of the current tab."),
             ('first', "At the left end."),
             ('last', "At the right end."))
-        super().__init__(none_ok)
 
 
 class IgnoreCase(Bool):
@@ -1468,12 +1473,12 @@ class IgnoreCase(Bool):
     special = True
 
     def __init__(self, none_ok=False):
+        super().__init__(none_ok)
         self.valid_values = ValidValues(
             ('true', "Search case-insensitively"),
             ('false', "Search case-sensitively"),
             ('smart', "Search case-sensitively if there "
              "are capital chars"))
-        super().__init__(none_ok)
 
     def transform(self, value):
         if value.lower() == 'smart':

@@ -229,23 +229,29 @@ class GoodMappingSubclass(configtypes.MappingType):
 
     """A MappingType we use in TestMappingType which is valid/good."""
 
-    valid_values = configtypes.ValidValues('one', 'two')
-
     MAPPING = {
         'one': 1,
         'two': 2,
     }
+
+    def __init__(self, none_ok=False):
+        super().__init__(
+            none_ok,
+            valid_values = configtypes.ValidValues('one', 'two'))
 
 
 class BadMappingSubclass(configtypes.MappingType):
 
     """A MappingType which is missing a value in MAPPING."""
 
-    valid_values = configtypes.ValidValues('one', 'two')
-
     MAPPING = {
         'one': 1,
     }
+
+    def __init__(self, none_ok=False):
+        super().__init__(
+            none_ok,
+            valid_values = configtypes.ValidValues('one', 'two'))
 
 
 class TestMappingType:
@@ -383,8 +389,11 @@ class FlagListSubclass(configtypes.FlagList):
     Valid values are 'foo', 'bar' and 'baz'.
     """
 
-    valid_values = configtypes.ValidValues('foo', 'bar', 'baz')
     combinable_values = ['foo', 'bar']
+
+    def __init__(self, none_ok=False):
+        super().__init__(none_ok)
+        self.valid_values = configtypes.ValidValues('foo', 'bar', 'baz')
 
 
 class TestFlagList:
