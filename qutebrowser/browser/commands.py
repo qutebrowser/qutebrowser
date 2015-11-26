@@ -153,35 +153,6 @@ class CommandDispatcher:
         else:
             return None
 
-    def _tab_move_absolute(self, idx):
-        """Get an index for moving a tab absolutely.
-
-        Args:
-            idx: The index to get, as passed as count.
-        """
-        if idx is None:
-            return 0
-        elif idx == 0:
-            return self._count() - 1
-        else:
-            return idx - 1
-
-    def _tab_move_relative(self, direction, delta):
-        """Get an index for moving a tab relatively.
-
-        Args:
-            direction: + or - for relative moving, None for absolute.
-            delta: Delta to the current tab.
-        """
-        if delta is None:
-            # We don't set delta to 1 in the function arguments because this
-            # gets called from tab_move which has delta set to None by default.
-            delta = 1
-        if direction == '-':
-            return self._current_index() - delta
-        elif direction == '+':
-            return self._current_index() + delta
-
     def _tab_focus_last(self):
         """Select the tab which was last focused."""
         try:
@@ -914,18 +885,22 @@ class CommandDispatcher:
                    If moving relatively: Offset.
         """
         if direction is None:
-            new_idx = self._tab_move_absolute(count)
+            # absolute moving
+            new_idx = 0 if count is None else count - 1
         elif direction in '+-':
-            try:
-                new_idx = self._tab_move_relative(direction, count)
-            except ValueError:
-                raise cmdexc.CommandError("Count must be given for relative "
-                                          "moving!")
+            # relative moving
+            delta = 1 if count is None else count
+            if direction == '-':
+                new_idx = self._current_index() - delta
+            elif direction == '+':
+                new_idx = self._current_index() + delta
         else:  # pragma: no cover
             raise ValueError("Invalid direction '{}'!".format(direction))
+
         if not 0 <= new_idx < self._count():
             raise cmdexc.CommandError("Can't move tab to position {}!".format(
                 new_idx + 1))
+
         tab = self._current_widget()
         cur_idx = self._current_index()
         icon = self._tabbed_browser.tabIcon(cur_idx)
