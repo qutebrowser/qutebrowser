@@ -231,3 +231,89 @@ Feature: Tab management
         Given I have a fresh instance
         And I run :tab-focus last
         Then the error "No last focused tab!" should be shown.
+
+    # tab-prev/tab-next
+
+    Scenario: :tab-prev
+        When I open data/numbers/1.txt
+        And I open data/numbers/2.txt in a new tab
+        And I run :tab-prev
+        Then the following tabs should be open:
+            - data/numbers/1.txt (active)
+            - data/numbers/2.txt
+
+    Scenario: :tab-next
+        When I open data/numbers/1.txt
+        And I open data/numbers/2.txt in a new tab
+        And I run :tab-focus 1
+        And I run :tab-next
+        Then the following tabs should be open:
+            - data/numbers/1.txt
+            - data/numbers/2.txt (active)
+
+    Scenario: :tab-prev with count
+        When I open data/numbers/1.txt
+        And I open data/numbers/2.txt in a new tab
+        And I open data/numbers/3.txt in a new tab
+        And I run :tab-prev with count 2
+        Then the following tabs should be open:
+            - data/numbers/1.txt (active)
+            - data/numbers/2.txt
+            - data/numbers/3.txt
+
+    Scenario: :tab-next with count
+        When I open data/numbers/1.txt
+        And I open data/numbers/2.txt in a new tab
+        And I open data/numbers/3.txt in a new tab
+        And I run :tab-focus 1
+        And I run :tab-next with count 2
+        Then the following tabs should be open:
+            - data/numbers/1.txt
+            - data/numbers/2.txt
+            - data/numbers/3.txt (active)
+
+    Scenario: :tab-prev on first tab without wrap
+        When I set tabs -> wrap to false
+        And I open data/numbers/1.txt
+        And I run :tab-prev
+        Then the error "First tab" should be shown.
+
+    Scenario: :tab-next with last tab without wrap
+        When I set tabs -> wrap to false
+        And I open data/numbers/1.txt
+        And I run :tab-next
+        Then the error "Last tab" should be shown.
+
+    Scenario: :tab-prev on first tab with wrap
+        When I set tabs -> wrap to true
+        And I open data/numbers/1.txt
+        And I open data/numbers/2.txt in a new tab
+        And I open data/numbers/3.txt in a new tab
+        And I run :tab-focus 1
+        And I run :tab-prev
+        Then the following tabs should be open:
+            - data/numbers/1.txt
+            - data/numbers/2.txt
+            - data/numbers/3.txt (active)
+
+    Scenario: :tab-next with last tab with wrap
+        When I set tabs -> wrap to true
+        And I open data/numbers/1.txt
+        And I open data/numbers/2.txt in a new tab
+        And I open data/numbers/3.txt in a new tab
+        And I run :tab-next
+        Then the following tabs should be open:
+            - data/numbers/1.txt (active)
+            - data/numbers/2.txt
+            - data/numbers/3.txt
+
+    Scenario: :tab-next with last tab, wrap and count
+        When I set tabs -> wrap to true
+        And I open data/numbers/1.txt
+        And I open data/numbers/2.txt in a new tab
+        And I open data/numbers/3.txt in a new tab
+        And I run :tab-next with count 2
+        Then the following tabs should be open:
+            - data/numbers/1.txt
+            - data/numbers/2.txt (active)
+            - data/numbers/3.txt
