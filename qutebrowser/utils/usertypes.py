@@ -135,8 +135,9 @@ class NeighborList(collections.abc.Sequence):
         if items:
             item = min(items, key=lambda tpl: abs(currentval - tpl[1]))
         else:
+            enum_items = enumerate(self.items)
             sorted_items = sorted([(idx, e) for (idx, e)
-                                   in enumerate(self.items)], key=lambda e: e[1])
+                                   in enum_items], key=lambda e: e[1])
             idx = 0 if offset < 0 else -1
             item = sorted_items[idx]
         self._idx = item[0]
