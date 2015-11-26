@@ -19,6 +19,7 @@
 
 """Test the httpbin webserver used for tests."""
 
+import json
 import urllib.request
 import urllib.error
 
@@ -51,17 +52,13 @@ def test_httpbin(httpbin, qtbot, path, content, expected):
 
 
 @pytest.mark.parametrize('line, verb, path, equal', [
-    ('127.0.0.1 - - [01/Jan/1990 00:00:00] "GET / HTTP/1.1" 200 -',
-        'GET', '/', True),
-    ('127.0.0.1 - - [01/Jan/1990 00:00:00] "GET /foo/ HTTP/1.1" 200 -',
-        'GET', '/foo', True),
+   ({'verb': 'GET', 'path': '/', 'status': 200}, 'GET', '/', True),
+   ({'verb': 'GET', 'path': '/foo/', 'status': 200}, 'GET', '/foo', True),
 
-    ('127.0.0.1 - - [01/Jan/1990 00:00:00] "GET / HTTP/1.1" 200 -',
-        'GET', '/foo', False),
-    ('127.0.0.1 - - [01/Jan/1990 00:00:00] "GET / HTTP/1.1" 200 -',
-        'POST', '/foo', False),
+   ({'verb': 'GET', 'path': '/', 'status': 200}, 'GET', '/foo', False),
+   ({'verb': 'POST', 'path': '/', 'status': 200}, 'GET', '/', False),
 ])
 def test_expected_request(httpbin, line, verb, path, equal):
     expected = httpbin.ExpectedRequest(verb, path)
-    request = httpbin.Request(line)
+    request = httpbin.Request(json.dumps(line))
     assert (expected == request) == equal

@@ -23,6 +23,7 @@ This script gets called as a QProcess from integration/conftest.py.
 """
 
 import sys
+import json
 import time
 import signal
 import os
@@ -87,14 +88,12 @@ def redirect_later_continue():
 def log_request(response):
     """Log a webserver request."""
     request = flask.request
-    template = '127.0.0.1 - - [{date}] "{verb} {path} {http}" {status} -'
-    print(template.format(
-        date=datetime.now().strftime('%d/%b/%Y %H:%M:%S'),
-        verb=request.method,
-        path=request.full_path if request.query_string else request.path,
-        http=request.environ['SERVER_PROTOCOL'],
-        status=response.status_code,
-    ), file=sys.stderr, flush=True)
+    data = {
+        'verb': request.method,
+        'path': request.full_path if request.query_string else request.path,
+        'status': response.status_code,
+    }
+    print(json.dumps(data), file=sys.stderr, flush=True)
     return response
 
 
