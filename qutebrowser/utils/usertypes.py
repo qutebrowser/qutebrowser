@@ -65,7 +65,7 @@ class NeighborList(collections.abc.Sequence):
         _mode: The current mode.
     """
 
-    Modes = enum('Modes', ['block', 'wrap', 'exception'])
+    Modes = enum('Modes', ['block', 'wrap', 'exception', 'edge'])
 
     def __init__(self, items=None, default=_UNSET, mode=Modes.exception):
         """Constructor.
