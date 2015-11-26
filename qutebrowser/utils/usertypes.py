@@ -118,11 +118,12 @@ class NeighborList(collections.abc.Sequence):
         currentval = None
         items = None
 
-        is_int = lambda s: s.lstrip("-+").isdigit()
+        is_int = lambda s: isinstance(self.items[self._idx], int) \
+                or s.lstrip("-+").isdigit()
         if self.fuzzyval is None \
                 and is_int(self.items[self._idx]):
             currentval = self.items[self._idx]
-        elif self.fuzzyval:
+        elif self.fuzzyval is not None:
             currentval = self.fuzzyval
         else:
             # Don't attempt to snap if no numeric value is determined
