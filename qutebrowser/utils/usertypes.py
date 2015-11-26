@@ -122,18 +122,20 @@ class NeighborList(collections.abc.Sequence):
         if self.fuzzyval is None \
                 and is_int(self.items[self._idx]):
             currentval = self.items[self._idx]
-        else:
+        elif self.fuzzyval:
             currentval = self.fuzzyval
+        else:
+            # Don't attempt to snap if no numeric value is determined
+            return False
 
-        if currentval:
-            items = [(idx, e) for (idx, e) in enumerate(self._items)
-                    if optype(e, currentval)]
+        items = [(idx, e) for (idx, e) in enumerate(self._items)
+                 if optype(e, currentval)]
 
         if items:
             item = min(items, key=lambda tpl: abs(currentval - tpl[1]))
         else:
-            sorted_items = sorted([(idx, e) for (idx, e) in
-                                   enumerate(self.items)], key=lambda e: e[1])
+            sorted_items = sorted([(idx, e) for (idx, e)
+                                   in enumerate(self.items)], key=lambda e: e[1])
             idx = 0 if offset < 0 else -1
             item = sorted_items[idx]
         self._idx = item[0]
