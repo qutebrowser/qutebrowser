@@ -28,7 +28,6 @@ import time
 import signal
 import os
 import threading
-from datetime import datetime
 
 from httpbin.core import app
 from httpbin.structures import CaseInsensitiveDict

@@ -22,7 +22,6 @@
 
 """Fixtures for the httpbin webserver."""
 
-import re
 import sys
 import json
 import socket
