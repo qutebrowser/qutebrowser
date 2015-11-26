@@ -354,6 +354,7 @@ def check_open_tabs(quteproc, tabs):
 def clipboard_contains(qapp, httpbin, what, content):
     mode = _clipboard_mode(qapp, what)
     expected = content.replace('(port)', str(httpbin.port))
+    expected = expected.replace('\\n', '\n')
 
     data = qapp.clipboard().text(mode=mode)
     assert data == expected
