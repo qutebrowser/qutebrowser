@@ -491,3 +491,20 @@ Feature: Tab management
                 - url: about:blank
                 - url: http://localhost:*/data/title.html
                   title: Test title
+
+    # :tab-detach
+
+    Scenario: Detaching a tab
+        Given I have a fresh instance
+        When I open data/numbers/1.txt
+        And I open data/numbers/2.txt in a new tab
+        And I run :tab-detach
+        Then the session should look like:
+            windows:
+            - tabs:
+              - history:
+                - url: about:blank
+                - url: http://localhost:*/data/numbers/1.txt
+            - tabs:
+              - history:
+                - url: http://localhost:*/data/numbers/2.txt
