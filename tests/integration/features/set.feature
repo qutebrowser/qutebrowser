@@ -59,14 +59,8 @@ Feature: Setting settings.
     Scenario: Opening qute:settings
         When I run :set
         And I wait for "load status for <qutebrowser.browser.webview.WebView tab_id=0 url='qute:settings'>: LoadStatus.success" in the log
-        Then the session should look like:
-          windows:
-          - tabs:
-            - active: true
-              history:
-              - url: about:blank
-              - active: true
-                url: qute:settings
+        Then the following tabs should be open:
+            - qute:settings (active)
 
     Scenario: Empty option with ? (issue 1109)
         When I run :set general ?

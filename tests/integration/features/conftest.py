@@ -229,3 +229,29 @@ def check_contents(quteproc, filename):
                         'data', os.path.join(*filename.split('/')))
     with open(path, 'r', encoding='utf-8') as f:
         assert content == f.read()
+
+
+@bdd.then(bdd.parsers.parse("the following tabs should be open:\n{tabs}"))
+def check_open_tabs(quteproc, tabs):
+    session = quteproc.get_session()
+    active_suffix = ' (active)'
+    tabs = tabs.splitlines()
+    assert len(session['windows']) == 1
+    assert len(session['windows'][0]['tabs']) == len(tabs)
+
+    for i, line in enumerate(tabs):
+        line = line.strip()
+        line = line[2:]  # remove "- " prefix
+        if line.endswith(active_suffix):
+            path = line[:-len(active_suffix)]
+            active = True
+        else:
+            path = line
+            active = False
+
+        session_tab = session['windows'][0]['tabs'][i]
+        assert session_tab['history'][-1]['url'] == quteproc.path_to_url(path)
+        if active:
+            assert session_tab['active']
+        else:
+            assert 'active' not in session_tab

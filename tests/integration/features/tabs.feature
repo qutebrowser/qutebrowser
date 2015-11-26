@@ -11,46 +11,28 @@ Feature: Tab management
         And I open data/numbers/2.txt in a new tab
         And I open data/numbers/3.txt in a new tab
         And I run :tab-close
-        Then the session should look like:
-          windows:
-            - tabs:
-              - history:
-                - ...
-                - url: http://localhost:*/data/numbers/1.txt
-              - active: true
-                history:
-                - url: http://localhost:*/data/numbers/2.txt
+        Then the following tabs should be open:
+            - data/numbers/1.txt
+            - data/numbers/2.txt (active)
 
     Scenario: :tab-close with count
         When I open data/numbers/1.txt
         And I open data/numbers/2.txt in a new tab
         And I open data/numbers/3.txt in a new tab
         And I run :tab-close with count 1
-        Then the session should look like:
-          windows:
-            - tabs:
-              - history:
-                - url: http://localhost:*/data/numbers/2.txt
-              - active: true
-                history:
-                - url: http://localhost:*/data/numbers/3.txt
+        Then the following tabs should be open:
+            - data/numbers/2.txt
+            - data/numbers/3.txt (active)
 
     Scenario: :tab-close with invalid count
         When I open data/numbers/1.txt
         And I open data/numbers/2.txt in a new tab
         And I open data/numbers/3.txt in a new tab
         And I run :tab-close with count 23
-        Then the session should look like:
-          windows:
-            - tabs:
-              - history:
-                - ...
-                - url: http://localhost:*/data/numbers/1.txt
-              - history:
-                - url: http://localhost:*/data/numbers/2.txt
-              - active: true
-                history:
-                - url: http://localhost:*/data/numbers/3.txt
+        Then the following tabs should be open:
+            - data/numbers/1.txt
+            - data/numbers/2.txt
+            - data/numbers/3.txt (active)
 
     Scenario: :tab-close with select-on-remove = right
         When I set tabs -> select-on-remove to right
@@ -59,15 +41,9 @@ Feature: Tab management
         And I open data/numbers/3.txt in a new tab
         And I run :tab-focus 2
         And I run :tab-close
-        Then the session should look like:
-          windows:
-            - tabs:
-              - history:
-                - ...
-                - url: http://localhost:*/data/numbers/1.txt
-              - active: true
-                history:
-                - url: http://localhost:*/data/numbers/3.txt
+        Then the following tabs should be open:
+            - data/numbers/1.txt
+            - data/numbers/3.txt (active)
 
     Scenario: :tab-close with select-on-remove = left
         When I set tabs -> select-on-remove to left
@@ -76,15 +52,9 @@ Feature: Tab management
         And I open data/numbers/3.txt in a new tab
         And I run :tab-focus 2
         And I run :tab-close
-        Then the session should look like:
-          windows:
-            - tabs:
-              - active: true
-                history:
-                - ...
-                - url: http://localhost:*/data/numbers/1.txt
-              - history:
-                - url: http://localhost:*/data/numbers/3.txt
+        Then the following tabs should be open:
+            - data/numbers/1.txt (active)
+            - data/numbers/3.txt
 
     Scenario: :tab-close with select-on-remove = previous
         When I set tabs -> select-on-remove to previous
@@ -94,17 +64,10 @@ Feature: Tab management
         And I open data/numbers/4.txt in a new tab
         And I run :tab-focus 2
         And I run :tab-close
-        Then the session should look like:
-          windows:
-            - tabs:
-              - history:
-                - ...
-                - url: http://localhost:*/data/numbers/1.txt
-              - history:
-                - url: http://localhost:*/data/numbers/3.txt
-              - active: true
-                history:
-                - url: http://localhost:*/data/numbers/4.txt
+        Then the following tabs should be open:
+            - data/numbers/1.txt
+            - data/numbers/3.txt
+            - data/numbers/4.txt (active)
 
     Scenario: :tab-close with select-on-remove = left and --right
         When I set tabs -> select-on-remove to left
@@ -113,15 +76,9 @@ Feature: Tab management
         And I open data/numbers/3.txt in a new tab
         And I run :tab-focus 2
         And I run :tab-close --right
-        Then the session should look like:
-          windows:
-            - tabs:
-              - history:
-                - ...
-                - url: http://localhost:*/data/numbers/1.txt
-              - active: true
-                history:
-                - url: http://localhost:*/data/numbers/3.txt
+        Then the following tabs should be open:
+            - data/numbers/1.txt
+            - data/numbers/3.txt (active)
 
     Scenario: :tab-close with select-on-remove = right and --left
         When I set tabs -> select-on-remove to right
@@ -130,15 +87,9 @@ Feature: Tab management
         And I open data/numbers/3.txt in a new tab
         And I run :tab-focus 2
         And I run :tab-close --left
-        Then the session should look like:
-          windows:
-            - tabs:
-              - active: true
-                history:
-                - ...
-                - url: http://localhost:*/data/numbers/1.txt
-              - history:
-                - url: http://localhost:*/data/numbers/3.txt
+        Then the following tabs should be open:
+            - data/numbers/1.txt (active)
+            - data/numbers/3.txt
 
     Scenario: :tab-close with select-on-remove = left and --opposite
         When I set tabs -> select-on-remove to left
@@ -147,15 +98,9 @@ Feature: Tab management
         And I open data/numbers/3.txt in a new tab
         And I run :tab-focus 2
         And I run :tab-close --opposite
-        Then the session should look like:
-          windows:
-            - tabs:
-              - history:
-                - ...
-                - url: http://localhost:*/data/numbers/1.txt
-              - active: true
-                history:
-                - url: http://localhost:*/data/numbers/3.txt
+        Then the following tabs should be open:
+            - data/numbers/1.txt
+            - data/numbers/3.txt (active)
 
     Scenario: :tab-close with select-on-remove = right and --opposite
         When I set tabs -> select-on-remove to right
@@ -164,15 +109,9 @@ Feature: Tab management
         And I open data/numbers/3.txt in a new tab
         And I run :tab-focus 2
         And I run :tab-close --opposite
-        Then the session should look like:
-          windows:
-            - tabs:
-              - active: true
-                history:
-                - ...
-                - url: http://localhost:*/data/numbers/1.txt
-              - history:
-                - url: http://localhost:*/data/numbers/3.txt
+        Then the following tabs should be open:
+            - data/numbers/1.txt (active)
+            - data/numbers/3.txt
 
     Scenario: :tab-close with select-on-remove = previous and --opposite
         When I set tabs -> select-on-remove to previous
@@ -189,15 +128,9 @@ Feature: Tab management
         And I run :tab-close --left
         And I run :tab-focus 2
         And I run :tab-close
-        Then the session should look like:
-          windows:
-            - tabs:
-              - history:
-                - ...
-                - url: http://localhost:*/data/numbers/1.txt
-              - active: true
-                history:
-                - url: http://localhost:*/data/numbers/4.txt
+        Then the following tabs should be open:
+            - data/numbers/1.txt
+            - data/numbers/4.txt (active)
 
     # :tab-only
 
@@ -206,12 +139,8 @@ Feature: Tab management
         And I open data/numbers/2.txt in a new tab
         And I open data/numbers/3.txt in a new tab
         And I run :tab-only
-        Then the session should look like:
-          windows:
-            - tabs:
-              - active: true
-                history:
-                - url: http://localhost:*/data/numbers/3.txt
+        Then the following tabs should be open:
+            - data/numbers/3.txt (active)
 
     Scenario: :tab-only with --left
         When I open data/numbers/1.txt
@@ -219,15 +148,9 @@ Feature: Tab management
         And I open data/numbers/3.txt in a new tab
         And I run :tab-focus 2
         And I run :tab-only --left
-        Then the session should look like:
-          windows:
-            - tabs:
-              - history:
-                - ...
-                - url: http://localhost:*/data/numbers/1.txt
-              - active: true
-                history:
-                - url: http://localhost:*/data/numbers/2.txt
+        Then the following tabs should be open:
+            - data/numbers/1.txt
+            - data/numbers/2.txt (active)
 
     Scenario: :tab-only with --right
         When I open data/numbers/1.txt
@@ -235,14 +158,9 @@ Feature: Tab management
         And I open data/numbers/3.txt in a new tab
         And I run :tab-focus 2
         And I run :tab-only --right
-        Then the session should look like:
-          windows:
-            - tabs:
-              - active: true
-                history:
-                - url: http://localhost:*/data/numbers/2.txt
-              - history:
-                - url: http://localhost:*/data/numbers/3.txt
+        Then the following tabs should be open:
+            - data/numbers/2.txt (active)
+            - data/numbers/3.txt
 
     Scenario: :tab-only with --left and --right
         When I run :tab-only --left --right
@@ -259,17 +177,10 @@ Feature: Tab management
         And I open data/numbers/2.txt in a new tab
         And I open data/numbers/3.txt in a new tab
         And I run :tab-focus 2
-        Then the session should look like:
-          windows:
-            - tabs:
-              - history:
-                - ...
-                - url: http://localhost:*/data/numbers/1.txt
-              - active: true
-                history:
-                - url: http://localhost:*/data/numbers/2.txt
-              - history:
-                - url: http://localhost:*/data/numbers/3.txt
+        Then the following tabs should be open:
+            - data/numbers/1.txt
+            - data/numbers/2.txt (active)
+            - data/numbers/3.txt
 
     Scenario: :tab-focus without index/count
         When I open data/numbers/1.txt
@@ -277,17 +188,10 @@ Feature: Tab management
         And I open data/numbers/3.txt in a new tab
         And I run :tab-focus 2
         And I run :tab-focus
-        Then the session should look like:
-          windows:
-            - tabs:
-              - history:
-                - ...
-                - url: http://localhost:*/data/numbers/1.txt
-              - history:
-                - url: http://localhost:*/data/numbers/2.txt
-              - active: true
-                history:
-                - url: http://localhost:*/data/numbers/3.txt
+        Then the following tabs should be open:
+            - data/numbers/1.txt
+            - data/numbers/2.txt
+            - data/numbers/3.txt (active)
 
     Scenario: :tab-focus with invalid index
         When I run :tab-focus 23
@@ -302,17 +206,10 @@ Feature: Tab management
         And I open data/numbers/2.txt in a new tab
         And I open data/numbers/3.txt in a new tab
         And I run :tab-focus with count 2
-        Then the session should look like:
-          windows:
-            - tabs:
-              - history:
-                - ...
-                - url: http://localhost:*/data/numbers/1.txt
-              - active: true
-                history:
-                - url: http://localhost:*/data/numbers/2.txt
-              - history:
-                - url: http://localhost:*/data/numbers/3.txt
+        Then the following tabs should be open:
+            - data/numbers/1.txt
+            - data/numbers/2.txt (active)
+            - data/numbers/3.txt
 
     Scenario: :tab-focus with count and index
         When I run :tab-focus 2 with count 2
@@ -325,17 +222,10 @@ Feature: Tab management
         And I run :tab-focus 1
         And I run :tab-focus 3
         And I run :tab-focus last
-        Then the session should look like:
-          windows:
-            - tabs:
-              - active: true
-                history:
-                - ...
-                - url: http://localhost:*/data/numbers/1.txt
-              - history:
-                - url: http://localhost:*/data/numbers/2.txt
-              - history:
-                - url: http://localhost:*/data/numbers/3.txt
+        Then the following tabs should be open:
+            - data/numbers/1.txt (active)
+            - data/numbers/2.txt
+            - data/numbers/3.txt
 
     Scenario: :tab-focus last with no last focused tab
         Given I have a fresh instance

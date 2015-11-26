@@ -67,16 +67,9 @@ Feature: Yanking and pasting.
         And I put "http://localhost:(port)/data/hello.txt" into the clipboard
         And I run :paste -t
         And I wait until data/hello.txt is loaded
-        Then the session should look like:
-            windows:
-            - tabs:
-              - history:
-                - active: true
-                  url: about:blank
-              - active: true
-                history:
-                - active: true
-                  url: http://localhost:*/data/hello.txt
+        Then the following tabs should be open:
+            - about:blank
+            - data/hello.txt (active)
 
     Scenario: Pasting in a background tab
         Given I open about:blank
@@ -84,16 +77,9 @@ Feature: Yanking and pasting.
         And I put "http://localhost:(port)/data/hello.txt" into the clipboard
         And I run :paste -b
         And I wait until data/hello.txt is loaded
-        Then the session should look like:
-            windows:
-            - tabs:
-              - active: true
-                history:
-                - active: true
-                  url: about:blank
-              - history:
-                - active: true
-                  url: http://localhost:*/data/hello.txt
+        Then the following tabs should be open:
+            - about:blank (active)
+            - data/hello.txt
 
     Scenario: Pasting in a new window
         Given I have a fresh instance
