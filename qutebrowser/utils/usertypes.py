@@ -76,7 +76,8 @@ class NeighborList(collections.abc.Sequence):
             _mode: Behavior when the first/last item is reached.
                    Modes.block: Stay on the selected item
                    Modes.wrap: Wrap around to the other end
-                   Modes.exception: Raise an IndexError.
+                   Modes.exception: Raise an IndexError
+                   Modes.edge: Go to the first/last item
         """
         if not isinstance(mode, self.Modes):
             raise TypeError("Mode {} is not a Modes member!".format(mode))
@@ -114,14 +115,15 @@ class NeighborList(collections.abc.Sequence):
             False when the value already was in the list.
         """
         op = operator.le if offset < 0 else operator.ge
-        currentval = self.fuzzyval or self.items[self._idx]
+        currentval = 0
+        if self.fuzzyval is None:
+            currentval = self.items[self._idx]
+        else:
+            currentval = self.fuzzyval
         items = [(idx, e) for (idx, e) in enumerate(self._items)
                  if op(e, currentval)]
         if items:
-            if offset < 0:
-                item = items[max(0, len(items) - 1)]
-            else:
-                item = items[min(len(items) - 1, 0)]
+            item = min(items, key=lambda tpl: abs(currentval - tpl[1]))
         else:
             sorted_items = sorted([(idx, e) for (idx, e) in
                                    enumerate(self.items)], key=lambda e: e[1])
@@ -144,11 +146,11 @@ class NeighborList(collections.abc.Sequence):
         Return:
             The new item.
         """
-        new_idx = self._idx
-
         try:
-            new_idx = max(min(self._idx + offset, len(self._items) - 1), 0)
-            new = self._items[new_idx]
+            if self._idx + offset >= 0:
+                new = self._items[self._idx + offset]
+            else:
+                raise IndexError
         except IndexError:
             if self._mode == self.Modes.block:
                 new = self.curitem()
@@ -158,8 +160,11 @@ class NeighborList(collections.abc.Sequence):
                 new = self.curitem()
             elif self._mode == self.Modes.exception:  # pragma: no branch
                 raise
+            elif self._mode == self.Modes.edge:
+                self._idx = max(min(self._idx + offset, len(self._items) - 1), 0)
+                new = self._items[self._idx]
         else:
-            self._idx = new_idx
+            self._idx += offset
         return new
 
     @property
