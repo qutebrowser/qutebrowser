@@ -3,6 +3,7 @@ Feature: Tab management
 
     Background:
         Given I clean up open tabs
+        And I set tabs -> tabs-are-windows to false
 
     # :tab-close
 
@@ -400,6 +401,91 @@ Feature: Tab management
             - tabs:
               - history:
                 - url: http://localhost:*/data/hello.txt
+              - active: true
+                history:
+                - url: about:blank
+                - url: http://localhost:*/data/title.html
+                  title: Test title
+
+    # :tab-clone
+
+    Scenario: :tab-clone with -b and -w
+        When I run :tab-clone -b -w
+        Then the error "Only one of -b/-w can be given!" should be shown.
+
+    Scenario: Cloning a tab with history and title
+        When I open data/title.html
+        And I run :tab-clone
+        Then the session should look like:
+            windows:
+            - tabs:
+              - history:
+                - url: about:blank
+                - url: http://localhost:*/data/title.html
+                  title: Test title
+              - active: true
+                history:
+                - url: about:blank
+                - url: http://localhost:*/data/title.html
+                  title: Test title
+
+    Scenario: Cloning zoom value
+        When I open data/hello.txt
+        And I run :zoom 120
+        And I run :tab-clone
+        Then the session should look like:
+            windows:
+            - tabs:
+              - history:
+                - url: about:blank
+                - url: http://localhost:*/data/hello.txt
+                  zoom: 1.2
+              - active: true
+                history:
+                - url: about:blank
+                - url: http://localhost:*/data/hello.txt
+                  zoom: 1.2
+
+    Scenario: Cloning to background tab
+        When I open data/hello.txt
+        And I run :tab-clone -b
+        Then the following tabs should be open:
+            - data/hello.txt (active)
+            - data/hello.txt
+
+    Scenario: Cloning to new window
+        Given I have a fresh instance
+        When I open data/title.html
+        And I run :tab-clone -w
+        Then the session should look like:
+            windows:
+            - tabs:
+              - active: true
+                history:
+                - url: about:blank
+                - url: http://localhost:*/data/title.html
+                  title: Test title
+            - tabs:
+              - active: true
+                history:
+                - url: about:blank
+                - url: http://localhost:*/data/title.html
+                  title: Test title
+
+    Scenario: Cloning with tabs-are-windows = true
+        Given I have a fresh instance
+        When I open data/title.html
+        And I set tabs -> tabs-are-windows to true
+        And I run :tab-clone
+        Then the session should look like:
+            windows:
+            - tabs:
+              - active: true
+                history:
+                - url: about:blank
+                - url: http://localhost:*/data/title.html
+                  title: Test title
+            - tabs:
               - active: true
                 history:
                 - url: about:blank
