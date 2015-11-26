@@ -40,6 +40,10 @@ _redirect_later_event = None
 
 @app.route('/data/<path:path>')
 def send_data(path):
+    """Send a given data file to qutebrowser.
+
+    If a directory is requested, its index.html is sent.
+    """
     if hasattr(sys, 'frozen'):
         basedir = os.path.realpath(os.path.dirname(sys.executable))
         data_dir = os.path.join(basedir, 'integration', 'data')
@@ -54,9 +58,9 @@ def send_data(path):
 
 @app.route('/custom/redirect-later')
 def redirect_later():
-    """302 redirects to / after the given delay.
+    """302 redirect to / after the given delay.
 
-    If delay is -1, waits until a request on redirect-later-continue is done.
+    If delay is -1, wait until a request on redirect-later-continue is done.
     """
     global _redirect_later_event
     args = CaseInsensitiveDict(flask.request.args.items())
@@ -81,6 +85,7 @@ def redirect_later_continue():
 
 @app.after_request
 def log_request(response):
+    """Log a webserver request."""
     request = flask.request
     template = '127.0.0.1 - - [{date}] "{verb} {path} {http}" {status} -'
     print(template.format(
@@ -95,7 +100,12 @@ def log_request(response):
 
 class WSGIServer(cherrypy.wsgiserver.CherryPyWSGIServer):
 
-    """A custom WSGIServer that prints a line on stderr when it's ready."""
+    """A custom WSGIServer that prints a line on stderr when it's ready.
+
+    Attributes:
+        _ready: Internal state for the 'ready' property.
+        _printed_ready: Whether the initial ready message was printed.
+    """
 
     # pylint: disable=no-member
     # WORKAROUND for https://bitbucket.org/logilab/pylint/issues/702

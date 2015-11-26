@@ -119,6 +119,9 @@ class QuteProc(testprocess.Process):
         _delay: Delay to wait between commands.
         _ipc_socket: The IPC socket of the started instance.
         _httpbin: The HTTPBin webserver.
+
+    Signals:
+        got_error: Emitted when there was an error log line.
     """
 
     got_error = pyqtSignal()
@@ -178,6 +181,11 @@ class QuteProc(testprocess.Process):
         return executable, args
 
     def path_to_url(self, path):
+        """Get a URL based on a filename for the localhost webserver.
+
+        URLs like about:... and qute:... are handled specially and returned
+        verbatim.
+        """
         if path.startswith('about:') or path.startswith('qute:'):
             return path
         else:
@@ -195,6 +203,7 @@ class QuteProc(testprocess.Process):
             pytest.fail(text, pytrace=False)
 
     def send_cmd(self, command, count=None):
+        """Send a command to the running qutebrowser instance."""
         assert self._ipc_socket is not None
 
         time.sleep(self._delay / 1000)
@@ -227,6 +236,7 @@ class QuteProc(testprocess.Process):
         self.set_setting(sect, opt, old_value)
 
     def open_path(self, path, new_tab=False):
+        """Open the given path on the local webserver in qutebrowser."""
         url = self.path_to_url(path)
         if new_tab:
             self.send_cmd(':open -t ' + url)
