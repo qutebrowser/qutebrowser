@@ -28,8 +28,20 @@ import collections
 
 import yaml
 import pytest_bdd as bdd
+from PyQt5.QtGui import QClipboard
 
 from helpers import utils  # pylint: disable=import-error
+
+
+def _clipboard_mode(qapp, what):
+    """Get the QClipboard::Mode to use based on a string."""
+    if what == 'clipboard':
+        return QClipboard.Clipboard
+    elif what == 'primary selection':
+        assert qapp.clipboard().supportsSelection()
+        return QClipboard.Selection
+    else:
+        raise AssertionError
 
 
 ## Given
@@ -157,6 +169,24 @@ def wait_time(quteproc, delay):
 def press_keys(quteproc, keys):
     """Send the given fake keys to qutebrowser."""
     quteproc.press_keys(keys)
+
+
+@bdd.when("selection is supported")
+def selection_supported(qapp):
+    """Skip the test if selection isn't supported."""
+    if not qapp.clipboard().supportsSelection():
+        pytest.skip("OS doesn't support primary selection!")
+
+
+@bdd.when(bdd.parsers.re(r'I put "(?P<content>.*)" into the '
+                         r'(?P<what>primary selection|clipboard)'))
+def fill_clipboard(qtbot, qapp, httpbin, what, content):
+    mode = _clipboard_mode(qapp, what)
+    content = content.replace('(port)', str(httpbin.port))
+
+    clipboard = qapp.clipboard()
+    with qtbot.waitSignal(clipboard.changed):
+        clipboard.setText(content, mode)
 
 
 ## Then
@@ -317,3 +347,13 @@ def check_open_tabs(quteproc, tabs):
             assert session_tab['active']
         else:
             assert 'active' not in session_tab
+
+
+@bdd.then(bdd.parsers.re(r'the (?P<what>primary selection|clipboard) should '
+                         r'contain "(?P<content>.*)"'))
+def clipboard_contains(qapp, httpbin, what, content):
+    mode = _clipboard_mode(qapp, what)
+    expected = content.replace('(port)', str(httpbin.port))
+
+    data = qapp.clipboard().text(mode=mode)
+    assert data == expected
