@@ -90,6 +90,11 @@ def test_mhtml(test_name, download_dir, quteproc, httpbin):
     quteproc.open_path('{}/{}.html'.format(test_path, test_name))
     download_dest = os.path.join(download_dir.location,
                                  '{}-downloaded.mht'.format(test_name))
+
+    # Wait for favicon.ico to be loaded if there is one
+    if os.path.exists(os.path.join(test_dir, 'favicon.png')):
+        httpbin.wait_for(path='/{}/favicon.png'.format(test_path))
+
     # Discard all requests that were necessary to display the page
     httpbin.clear_data()
     quteproc.send_cmd(':download --mhtml --dest "{}"'.format(download_dest))
