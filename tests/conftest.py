@@ -184,8 +184,8 @@ def _generate_cmdline_tests():
     for item in valid:
         yield TestCase(''.join(item), True)
     # Invalid command only -> invalid
-    for item in valid:
-        yield TestCase(''.join(item), True)
+    for item in invalid:
+        yield TestCase(''.join(item), False)
     # Invalid command combined with invalid command -> invalid
     for item in itertools.product(invalid, separators, invalid):
         yield TestCase(''.join(item), False)
