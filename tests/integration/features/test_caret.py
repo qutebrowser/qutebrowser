@@ -33,6 +33,13 @@ pytestmark = pytest.mark.qt_log_ignore(
 bdd.scenarios('caret.feature')
 
 
+@bdd.when("I yank the selected text")
+def yank_selected_text(qtbot, qapp, quteproc):
+    """Run :yank-selected and wait until the clipboard content changes."""
+    with qtbot.wait_signal(qapp.clipboard().changed):
+        quteproc.send_cmd(':yank-selected')
+
+
 @bdd.then(bdd.parsers.parse('the clipboard should contain:\n{content}'))
 def clipboard_contains_multiline(qapp, content):
     data = qapp.clipboard().text()

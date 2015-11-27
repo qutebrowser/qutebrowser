@@ -10,7 +10,7 @@ Feature: Caret mode
     Scenario: Selecting the entire document
         When I run :toggle-selection
         And I run :move-to-end-of-document
-        And I run :yank-selected
+        And I yank the selected text
         Then the clipboard should contain:
             one two three
             eins zwei drei
@@ -24,14 +24,14 @@ Feature: Caret mode
         And I run :move-to-start-of-document
         And I run :toggle-selection
         And I run :move-to-end-of-word
-        And I run :yank-selected
+        And I yank the selected text
         Then the clipboard should contain "one"
 
     Scenario: Moving to end and to start of document (with selection)
         When I run :move-to-end-of-document
         And I run :toggle-selection
         And I run :move-to-start-of-document
-        And I run :yank-selected
+        And I yank the selected text
         Then the clipboard should contain:
             one two three
             eins zwei drei
@@ -44,7 +44,7 @@ Feature: Caret mode
     Scenario: Selecting a block
         When I run :toggle-selection
         And I run :move-to-end-of-next-block
-        And I run :yank-selected
+        And I yank the selected text
         Then the clipboard should contain:
             one two three
             eins zwei drei
@@ -55,7 +55,7 @@ Feature: Caret mode
         And I run :toggle-selection
         And I run :move-to-end-of-prev-block
         And I run :move-to-prev-word
-        And I run :yank-selected
+        And I yank the selected text
         Then the clipboard should contain:
             drei
 
@@ -67,14 +67,14 @@ Feature: Caret mode
         And I run :move-to-end-of-prev-block
         And I run :toggle-selection
         And I run :move-to-prev-word
-        And I run :yank-selected
+        And I yank the selected text
         Then the clipboard should contain "drei"
 
     Scenario: Moving back to the start of previous block (with selection)
         When I run :move-to-end-of-next-block with count 2
         And I run :toggle-selection
         And I run :move-to-start-of-prev-block
-        And I run :yank-selected
+        And I yank the selected text
         Then the clipboard should contain:
             eins zwei drei
 
@@ -86,14 +86,14 @@ Feature: Caret mode
         And I run :move-to-start-of-prev-block
         And I run :toggle-selection
         And I run :move-to-next-word
-        And I run :yank-selected
+        And I yank the selected text
         Then the clipboard should contain "eins "
 
     @xfail_issue1142_osx
     Scenario: Moving to the start of next block (with selection)
         When I run :toggle-selection
         And I run :move-to-start-of-next-block
-        And I run :yank-selected
+        And I yank the selected text
         Then the clipboard should contain "one two three\n"
 
     @xfail_issue1142_windows
@@ -101,7 +101,7 @@ Feature: Caret mode
         When I run :move-to-start-of-next-block
         And I run :toggle-selection
         And I run :move-to-end-of-word
-        And I run :yank-selected
+        And I yank the selected text
         Then the clipboard should contain "eins"
 
     # line
@@ -109,22 +109,20 @@ Feature: Caret mode
     Scenario: Selecting a line
         When I run :toggle-selection
         And I run :move-to-end-of-line
-        And I run :yank-selected
+        And I yank the selected text
         Then the clipboard should contain "one two three"
 
-    @xfail_issue1142_windows
     Scenario: Moving and selecting a line
         When I run :move-to-next-line
         And I run :toggle-selection
         And I run :move-to-end-of-line
-        And I run :yank-selected
+        And I yank the selected text
         Then the clipboard should contain "eins zwei drei"
 
-    @xfail_issue1142_windows
     Scenario: Selecting next line
         When I run :toggle-selection
         And I run :move-to-next-line
-        And I run :yank-selected
+        And I yank the selected text
         Then the clipboard should contain "one two three\n"
 
     @xfail_issue1142_windows
@@ -133,21 +131,21 @@ Feature: Caret mode
         And I run :move-to-start-of-line
         And I run :toggle-selection
         And I run :move-to-end-of-word
-        And I run :yank-selected
+        And I yank the selected text
         Then the clipboard should contain "one"
 
     Scenario: Selecting a line (backwards)
         When I run :move-to-end-of-line
         And I run :toggle-selection
         When I run :move-to-start-of-line
-        And I run :yank-selected
+        And I yank the selected text
         Then the clipboard should contain "one two three"
 
     Scenario: Selecting previous line
         When I run :move-to-next-line
         And I run :toggle-selection
         When I run :move-to-prev-line
-        And I run :yank-selected
+        And I yank the selected text
         Then the clipboard should contain "one two three\n"
 
     Scenario: Moving to previous line
@@ -155,7 +153,7 @@ Feature: Caret mode
         When I run :move-to-prev-line
         And I run :toggle-selection
         When I run :move-to-next-line
-        And I run :yank-selected
+        And I yank the selected text
         Then the clipboard should contain "one two three\n"
 
     # word
@@ -164,7 +162,7 @@ Feature: Caret mode
     Scenario: Selecting a word
         When I run :toggle-selection
         And I run :move-to-end-of-word
-        And I run :yank-selected
+        And I yank the selected text
         Then the clipboard should contain "one"
 
     @xfail_issue1142_windows
@@ -172,7 +170,7 @@ Feature: Caret mode
         When I run :move-to-end-of-word
         And I run :toggle-selection
         And I run :move-to-end-of-word
-        And I run :yank-selected
+        And I yank the selected text
         Then the clipboard should contain " two"
 
     @xfail_issue1142_windows
@@ -180,7 +178,7 @@ Feature: Caret mode
         When I run :move-to-next-word
         And I run :toggle-selection
         And I run :move-to-end-of-word
-        And I run :yank-selected
+        And I yank the selected text
         Then the clipboard should contain "two"
 
     @xfail_issue1142_windows
@@ -188,7 +186,7 @@ Feature: Caret mode
         When I run :move-to-next-word
         And I run :toggle-selection
         And I run :move-to-next-word
-        And I run :yank-selected
+        And I yank the selected text
         Then the clipboard should contain "two "
 
     @xfail_issue1142_windows
@@ -196,7 +194,7 @@ Feature: Caret mode
         When I run :move-to-end-of-word
         And I run :toggle-selection
         And I run :move-to-prev-word
-        And I run :yank-selected
+        And I yank the selected text
         Then the clipboard should contain "one"
 
     @xfail_issue1142_windows
@@ -205,7 +203,7 @@ Feature: Caret mode
         And I run :move-to-prev-word
         And I run :toggle-selection
         And I run :move-to-end-of-word
-        And I run :yank-selected
+        And I yank the selected text
         Then the clipboard should contain "one"
 
     # char
@@ -213,14 +211,14 @@ Feature: Caret mode
     Scenario: Selecting a char
         When I run :toggle-selection
         And I run :move-to-next-char
-        And I run :yank-selected
+        And I yank the selected text
         Then the clipboard should contain "o"
 
     Scenario: Moving and selecting a char
         When I run :move-to-next-char
         And I run :toggle-selection
         And I run :move-to-next-char
-        And I run :yank-selected
+        And I yank the selected text
         Then the clipboard should contain "n"
 
     @xfail_issue1142_windows
@@ -228,7 +226,7 @@ Feature: Caret mode
         When I run :move-to-end-of-word
         And I run :toggle-selection
         And I run :move-to-prev-char
-        And I run :yank-selected
+        And I yank the selected text
         Then the clipboard should contain "e"
 
     @xfail_issue1142_windows
@@ -237,7 +235,7 @@ Feature: Caret mode
         And I run :move-to-prev-char
         And I run :toggle-selection
         And I run :move-to-end-of-word
-        And I run :yank-selected
+        And I yank the selected text
         Then the clipboard should contain "e"
 
     # :yank-selected
