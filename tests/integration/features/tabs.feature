@@ -499,6 +499,7 @@ Feature: Tab management
         When I open data/numbers/1.txt
         And I open data/numbers/2.txt in a new tab
         And I run :tab-detach
+        And I wait until data/numbers/2.txt is loaded
         Then the session should look like:
             windows:
             - tabs:
