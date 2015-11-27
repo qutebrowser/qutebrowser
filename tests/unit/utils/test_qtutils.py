@@ -369,6 +369,7 @@ class SavefileTestException(Exception):
     pass
 
 
+@pytest.mark.usefixtures('qapp')
 class TestSavefileOpen:
 
     """Tests for savefile_open."""
