@@ -26,6 +26,7 @@ import os.path
 import logging
 import collections
 
+import pytest
 import yaml
 import pytest_bdd as bdd
 from PyQt5.QtGui import QClipboard

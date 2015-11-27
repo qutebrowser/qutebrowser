@@ -19,8 +19,6 @@
 
 import pytest
 
-from PyQt5.QtGui import QClipboard
-
 import pytest_bdd as bdd
 
 
