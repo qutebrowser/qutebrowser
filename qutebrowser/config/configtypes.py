@@ -313,9 +313,6 @@ class FlagList(List):
 
     combinable_values = None
 
-    def __init__(self, none_ok=False, valid_values=None):
-        super().__init__(none_ok, valid_values)
-
     def validate(self, value):
         self._basic_validation(value)
         if not value:
