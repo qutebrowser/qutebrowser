@@ -185,6 +185,7 @@ Feature: Various utility commands.
 
     Scenario: :rl-backward-delete-char
         When I run :set-cmd-text :message-info testx
+        And I wait for "Setting command text, focusing *" in the log
         And I run :rl-backward-delete-char
         And I run :command-accept
         Then the message "test" should be shown.
