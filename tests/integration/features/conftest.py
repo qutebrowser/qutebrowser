@@ -19,7 +19,9 @@
 
 """Steps for bdd-like tests."""
 
+import os
 import re
+import sys
 import time
 import json
 import os.path
@@ -43,6 +45,28 @@ def _clipboard_mode(qapp, what):
         return QClipboard.Selection
     else:
         raise AssertionError
+
+
+def pytest_collection_modifyitems(items):
+    """Handle markers for xfail caret tests on OS X/Windows.
+
+    See https://github.com/The-Compiler/qutebrowser/issues/1142
+
+    We need to do this this way because we can't use markers with arguments
+    inside feature files.
+    """
+    osx_xfail_marker = pytest.mark.xfail(
+        sys.platform == 'darwin',
+        reason='https://github.com/The-Compiler/qutebrowser/issues/1142')
+    windows_xfail_marker = pytest.mark.xfail(
+        os.name == 'nt',
+        reason='https://github.com/The-Compiler/qutebrowser/issues/1142')
+
+    for item in items:
+        if item.get_marker('xfail_issue1142_osx'):
+            item.add_marker(osx_xfail_marker)
+        if item.get_marker('xfail_issue1142_windows'):
+            item.add_marker(windows_xfail_marker)
 
 
 ## Given
