@@ -35,7 +35,7 @@ cache:
 
 install:
   - python scripts/dev/ci_install.py
-  - [[ $TRAVIS_OS_NAME == osx ]] && defaults write NSGlobalDomain NSAppSleepDisabled -bool YES
+  - '[[ $TRAVIS_OS_NAME == osx ]] && defaults write NSGlobalDomain NSAppSleepDisabled -bool YES'
 
 script:
   - tox -e $TESTENV -- -p no:sugar -v --cov-report term tests
