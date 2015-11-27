@@ -118,10 +118,8 @@ class NeighborList(collections.abc.Sequence):
         currentval = None
         items = None
 
-        is_int = lambda s: isinstance(self.items[self._idx], int) \
-                or s.lstrip("-+").isdigit()
         if self.fuzzyval is None \
-                and is_int(self.items[self._idx]):
+                and self.is_int(self.items[self._idx]):
             currentval = self.items[self._idx]
         elif self.fuzzyval is not None:
             currentval = self.fuzzyval
@@ -147,6 +145,10 @@ class NeighborList(collections.abc.Sequence):
         did_snap_to_value = is_fuzzy_value and fuzzy_value_is_not_standard
 
         return did_snap_to_value
+
+    def is_int(self, text):
+        return isinstance(text, int) \
+            or text.lstrip("-+").isdigit()
 
     def _get_new_item(self, offset):
         """Logic for getitem to get the item at offset.
