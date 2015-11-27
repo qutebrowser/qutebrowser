@@ -153,35 +153,6 @@ class CommandDispatcher:
         else:
             return None
 
-    def _tab_move_absolute(self, idx):
-        """Get an index for moving a tab absolutely.
-
-        Args:
-            idx: The index to get, as passed as count.
-        """
-        if idx is None:
-            return 0
-        elif idx == 0:
-            return self._count() - 1
-        else:
-            return idx - 1
-
-    def _tab_move_relative(self, direction, delta):
-        """Get an index for moving a tab relatively.
-
-        Args:
-            direction: + or - for relative moving, None for absolute.
-            delta: Delta to the current tab.
-        """
-        if delta is None:
-            # We don't set delta to 1 in the function arguments because this
-            # gets called from tab_move which has delta set to None by default.
-            delta = 1
-        if direction == '-':
-            return self._current_index() - delta
-        elif direction == '+':
-            return self._current_index() + delta
-
     def _tab_focus_last(self):
         """Select the tab which was last focused."""
         try:
@@ -359,8 +330,7 @@ class CommandDispatcher:
         Return:
             The new QWebView.
         """
-        if bg and window:
-            raise cmdexc.CommandError("Only one of -b/-w can be given!")
+        cmdutils.check_exclusive((bg, window), 'bw')
         curtab = self._current_widget()
         cur_title = self._tabbed_browser.page_title(self._current_index())
         # The new tab could be in a new tabbed_browser (e.g. because of
@@ -451,11 +421,7 @@ class CommandDispatcher:
             background: Open the link in a new background tab.
             window: Open the link in a new window.
         """
-        segments = config.get('general', 'url-incdec-segments')
-        if segments is None:
-            segments = set()
-        else:
-            segments = set(segments)
+        segments = set(config.get('general', 'url-incdec-segments'))
         try:
             new_url = urlutils.incdec_number(url, incdec, segments=segments)
         except urlutils.IncDecError as error:
@@ -731,9 +697,16 @@ class CommandDispatcher:
             mode = QClipboard.Clipboard
             target = "clipboard"
         log.misc.debug("Yanking to {}: '{}'".format(target, s))
+
+        msg = "Yanked {} to {}: {}".format(what, target, s)
+        clipboard.changed.connect(functools.partial(
+            self._display_yank_msg, clipboard, msg))
         clipboard.setText(s, mode)
-        message.info(self._win_id, "Yanked {} to {}: {}".format(
-                     what, target, s))
+
+    def _display_yank_msg(self, clipboard, msg):
+        """Display a message when something was yanked."""
+        message.info(self._win_id, msg)
+        clipboard.changed.disconnect()
 
     @cmdutils.register(instance='command-dispatcher', scope='window',
                        count='count')
@@ -918,19 +891,22 @@ class CommandDispatcher:
                    If moving relatively: Offset.
         """
         if direction is None:
-            new_idx = self._tab_move_absolute(count)
+            # absolute moving
+            new_idx = 0 if count is None else count - 1
         elif direction in '+-':
-            try:
-                new_idx = self._tab_move_relative(direction, count)
-            except ValueError:
-                raise cmdexc.CommandError("Count must be given for relative "
-                                          "moving!")
-        else:
-            raise cmdexc.CommandError("Invalid direction '{}'!".format(
-                direction))
+            # relative moving
+            delta = 1 if count is None else count
+            if direction == '-':
+                new_idx = self._current_index() - delta
+            elif direction == '+':  # pragma: no branch
+                new_idx = self._current_index() + delta
+        else:  # pragma: no cover
+            raise ValueError("Invalid direction '{}'!".format(direction))
+
         if not 0 <= new_idx < self._count():
             raise cmdexc.CommandError("Can't move tab to position {}!".format(
-                new_idx))
+                new_idx + 1))
+
         tab = self._current_widget()
         cur_idx = self._current_index()
         icon = self._tabbed_browser.tabIcon(cur_idx)
@@ -1686,7 +1662,6 @@ class CommandDispatcher:
         else:
             mode = QClipboard.Clipboard
             target = "clipboard"
-        log.misc.debug("Yanking to {}: '{}'".format(target, s))
         clipboard.setText(s, mode)
         message.info(self._win_id, "{} {} yanked to {}".format(
             len(s), "char" if len(s) == 1 else "chars", target))

@@ -8,28 +8,28 @@ Feature: Keyboard input
     Scenario: Binding a keychain
         When I run :bind test1 message-info test1
         And I press the keys "test1"
-        Then the message "test1" should be shown.
+        Then the message "test1" should be shown
 
     Scenario: Binding an invalid command
         When I run :bind test2 abcd
-        Then the error "Invalid command 'abcd'!" should be shown.
+        Then the error "Invalid command 'abcd'!" should be shown
 
     Scenario: Binding with invalid mode.
         When I run :bind --mode abcd test3 message-info test3
-        Then the error "Invalid mode abcd!" should be shown.
+        Then the error "Invalid mode abcd!" should be shown
 
     Scenario: Double-binding a key
         When I run :bind test4 message-info test4
         And I run :bind test4 message-info test4-2
         And I press the keys "test4"
-        Then the error "Duplicate keychain test4 - use --force to override!" should be shown.
-        And the message "test4" should be shown.
+        Then the error "Duplicate keychain test4 - use --force to override!" should be shown
+        And the message "test4" should be shown
 
     Scenario: Double-binding with --force
         When I run :bind test5 message-info test5
         And I run :bind --force test5 message-info test5-2
         And I press the keys "test5"
-        Then the message "test5-2" should be shown.
+        Then the message "test5-2" should be shown
 
     # :unbind
 
@@ -41,11 +41,11 @@ Feature: Keyboard input
 
     Scenario: Unbinding with invalid mode.
         When I run :unbind test7 abcd
-        Then the error "Invalid mode abcd!" should be shown.
+        Then the error "Invalid mode abcd!" should be shown
 
     Scenario: Unbinding with invalid keychain.
         When I run :unbind test8
-        Then the error "Can't find binding 'test8' in section 'normal'!" should be shown.
+        Then the error "Can't find binding 'test8' in section 'normal'!" should be shown
 
     Scenario: Unbinding a built-in binding
         When I run :unbind o
@@ -61,7 +61,7 @@ Feature: Keyboard input
         And I press the keys "fo"
         And I run :clear-keychain
         And I press the keys "bar"
-        Then the message "test9-2" should be shown.
+        Then the message "test9-2" should be shown
 
     # input -> forward-unbound-keys
 
@@ -104,7 +104,7 @@ Feature: Keyboard input
 
     Scenario: :fake-key with an unparsable key
         When I run :fake-key <blub>
-        Then the error "Could not parse 'blub': Got unknown key." should be shown.
+        Then the error "Could not parse 'blub': Got unknown key." should be shown
 
     Scenario: :fake-key sending key to the website
         When I set general -> log-javascript-console to true
@@ -122,7 +122,7 @@ Feature: Keyboard input
         And I run :fake-key x
         And I run :inspector
         And I wait for "Focus object changed: *" in the log
-        Then the error "No focused webview!" should be shown.
+        Then the error "No focused webview!" should be shown
 
     Scenario: :fake-key sending special key to the website
         When I set general -> log-javascript-console to true

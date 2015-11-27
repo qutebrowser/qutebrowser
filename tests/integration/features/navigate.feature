@@ -2,7 +2,7 @@ Feature: Using :navigate
 
     Scenario: :navigate with invalid argument
         When I run :navigate foo
-        Then the error "Invalid value foo." should be shown.
+        Then the error "Invalid value foo." should be shown
 
     # up
 
@@ -14,7 +14,7 @@ Feature: Using :navigate
     Scenario: Navigating up with root directory
         When I open /
         And I run :navigate up
-        Then the error "Can't go up!" should be shown.
+        Then the error "Can't go up!" should be shown
 
     # prev/next
 
@@ -31,12 +31,12 @@ Feature: Using :navigate
     Scenario: Navigating to previous page without links
         When I open data/numbers/1.txt
         And I run :navigate prev
-        Then the error "No prev links found!" should be shown.
+        Then the error "No prev links found!" should be shown
 
     Scenario: Navigating to next page without links
         When I open data/numbers/1.txt
         And I run :navigate next
-        Then the error "No forward links found!" should be shown.
+        Then the error "No forward links found!" should be shown
 
     # increment/decrement
 
@@ -53,15 +53,15 @@ Feature: Using :navigate
     Scenario: Decrementing with no number in URL
         When I open data/navigate
         And I run :navigate decrement
-        Then the error "No number found in URL!" should be shown.
+        Then the error "No number found in URL!" should be shown
 
     Scenario: Incrementing with no number in URL
         When I open data/navigate
         And I run :navigate increment
-        Then the error "No number found in URL!" should be shown.
+        Then the error "No number found in URL!" should be shown
 
     Scenario: Setting url-incdec-segments
         When I set general -> url-incdec-segments to anchor
         And I open data/numbers/1.txt
         And I run :navigate increment
-        Then the error "No number found in URL!" should be shown.
+        Then the error "No number found in URL!" should be shown

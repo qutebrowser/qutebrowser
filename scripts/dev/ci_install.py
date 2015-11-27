@@ -121,6 +121,9 @@ elif TRAVIS_OS == 'linux':
         check_setup('python3')
     print("travis_fold:end:ci_install")
 elif TRAVIS_OS == 'osx':
+    print("Disabling App Nap...")
+    subprocess.check_call(['defaults', 'write', 'NSGlobalDomain',
+                           'NSAppSleepDisabled', '-bool', 'YES'])
     print("brew update...")
     brew(['update'], silent=True)
 

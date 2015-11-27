@@ -119,6 +119,9 @@ class QuteProc(testprocess.Process):
         _delay: Delay to wait between commands.
         _ipc_socket: The IPC socket of the started instance.
         _httpbin: The HTTPBin webserver.
+
+    Signals:
+        got_error: Emitted when there was an error log line.
     """
 
     got_error = pyqtSignal()
@@ -177,7 +180,12 @@ class QuteProc(testprocess.Process):
                  'about:blank']
         return executable, args
 
-    def _path_to_url(self, path):
+    def path_to_url(self, path):
+        """Get a URL based on a filename for the localhost webserver.
+
+        URLs like about:... and qute:... are handled specially and returned
+        verbatim.
+        """
         if path.startswith('about:') or path.startswith('qute:'):
             return path
         else:
@@ -195,6 +203,7 @@ class QuteProc(testprocess.Process):
             pytest.fail(text, pytrace=False)
 
     def send_cmd(self, command, count=None):
+        """Send a command to the running qutebrowser instance."""
         assert self._ipc_socket is not None
 
         time.sleep(self._delay / 1000)
@@ -227,7 +236,8 @@ class QuteProc(testprocess.Process):
         self.set_setting(sect, opt, old_value)
 
     def open_path(self, path, new_tab=False):
-        url = self._path_to_url(path)
+        """Open the given path on the local webserver in qutebrowser."""
+        url = self.path_to_url(path)
         if new_tab:
             self.send_cmd(':open -t ' + url)
         else:
@@ -242,7 +252,7 @@ class QuteProc(testprocess.Process):
 
     def wait_for_load_finished(self, path, timeout=15000):
         """Wait until any tab has finished loading."""
-        url = self._path_to_url(path)
+        url = self.path_to_url(path)
         # We really need the same representation that the webview uses in its
         # __repr__
         url = utils.elide(QUrl(url).toDisplayString(QUrl.EncodeUnicode), 100)
@@ -287,8 +297,8 @@ class QuteProc(testprocess.Process):
 
 
 @pytest.yield_fixture(scope='module')
-def quteproc(qapp, httpbin, request):
-    """Fixture for qutebrowser process."""
+def quteproc_process(qapp, httpbin, request):
+    """Fixture for qutebrowser process which is started once per file."""
     delay = request.config.getoption('--qute-delay')
     proc = QuteProc(httpbin, delay)
     proc.start()
@@ -296,9 +306,9 @@ def quteproc(qapp, httpbin, request):
     proc.terminate()
 
 
-@pytest.yield_fixture(autouse=True)
-def quteproc_after_test(quteproc):
-    """Fixture to run cleanup tasks after each test."""
-    quteproc.before_test()
-    yield
-    quteproc.after_test()
+@pytest.yield_fixture
+def quteproc(quteproc_process, httpbin):
+    """Per-test qutebrowser fixture which uses the per-file process."""
+    quteproc_process.before_test()
+    yield quteproc_process
+    quteproc_process.after_test()

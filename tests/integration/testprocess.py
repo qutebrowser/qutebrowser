@@ -77,6 +77,11 @@ class Process(QObject):
 
     Reads the log from its stdout and parses it.
 
+    Attributes:
+        _invalid: A list of lines which could not be parsed.
+        _data: A list of parsed lines.
+        proc: The QProcess for the underlying process.
+
     Signals:
         ready: Emitted when the server finished starting up.
         new_data: Emitted when a new line was parsed.

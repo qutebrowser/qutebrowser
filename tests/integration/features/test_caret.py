@@ -21,23 +21,27 @@ import pytest
 
 import pytest_bdd as bdd
 
+# pylint: disable=unused-import
+from test_yankpaste import skip_with_broken_clipboard
 
-bdd.scenarios('yankpaste.feature')
 
 # https://github.com/The-Compiler/qutebrowser/issues/1124#issuecomment-158073581
 pytestmark = pytest.mark.qt_log_ignore(
     '^QXcbClipboard: SelectionRequest too old', extend=True)
 
-@pytest.fixture(autouse=True)
-def skip_with_broken_clipboard(qtbot, qapp):
-    """The clipboard seems to be broken on some platforms (OS X Yosemite?).
 
-    This skips the tests if this is the case.
-    """
-    clipboard = qapp.clipboard()
+bdd.scenarios('caret.feature')
 
-    with qtbot.waitSignal(clipboard.changed):
-        clipboard.setText("Does this work?")
 
-    if clipboard.text() != "Does this work?":
-        pytest.skip("Clipboard seems to be broken on this platform.")
+@bdd.when("I yank the selected text")
+def yank_selected_text(qtbot, qapp, quteproc):
+    """Run :yank-selected and wait until the clipboard content changes."""
+    with qtbot.wait_signal(qapp.clipboard().changed):
+        quteproc.send_cmd(':yank-selected')
+
+
+@bdd.then(bdd.parsers.parse('the clipboard should contain:\n{content}'))
+def clipboard_contains_multiline(qapp, content):
+    data = qapp.clipboard().text()
+    expected = '\n'.join(line.strip() for line in content.splitlines())
+    assert data == expected

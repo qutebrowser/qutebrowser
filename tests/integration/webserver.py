@@ -22,8 +22,8 @@
 
 """Fixtures for the httpbin webserver."""
 
-import re
 import sys
+import json
 import socket
 import os.path
 
@@ -38,45 +38,25 @@ class Request(testprocess.Line):
     """A parsed line from the httpbin/flask log output.
 
     Attributes:
-        timestamp/verb/path/status: Parsed from the log output.
-
-    Class attributes:
-        LOG_RE: Used to parse the CLF log which httpbin outputs.
+        verb/path/status: Parsed from the log output.
     """
-
-    LOG_RE = re.compile(r"""
-        (?P<host>[^ ]*)
-        \ ([^ ]*) # ignored
-        \ (?P<user>[^ ]*)
-        \ \[(?P<date>[^]]*)\]
-        \ "(?P<request>
-            (?P<verb>[^ ]*)
-            \ (?P<path>[^ ]*)
-            \ (?P<protocol>[^ ]*)
-        )"
-        \ (?P<status>[^ ]*)
-        \ (?P<size>[^ ]*)
-    """, re.VERBOSE)
 
     def __init__(self, data):
         super().__init__(data)
-        match = self.LOG_RE.match(data)
-        if match is None:
+        try:
+            parsed = json.loads(data)
+        except ValueError:
             raise testprocess.InvalidLine(data)
 
-        assert match.group('host') == '127.0.0.1'
-        assert match.group('user') == '-'
-        self.timestamp = match.group('date')
-        self.verb = match.group('verb')
+        assert isinstance(parsed, dict)
+        assert set(parsed.keys()) == {'path', 'verb', 'status'}
 
-        # FIXME do we need to allow other options?
-        assert match.group('protocol') == 'HTTP/1.1'
-        assert self.verb == 'GET'
+        self.verb = parsed['verb']
 
-        path = match.group('path')
+        path = parsed['path']
         self.path = '/' if path == '/' else path.rstrip('/')
 
-        self.status = int(match.group('status'))
+        self.status = parsed['status']
 
         missing_paths = ['/favicon.ico', '/does-not-exist']
 
@@ -84,8 +64,6 @@ class Request(testprocess.Line):
             assert self.status == 404
         else:
             assert self.status < 400
-
-        assert match.group('size') == '-'
 
     def __eq__(self, other):
         return NotImplemented

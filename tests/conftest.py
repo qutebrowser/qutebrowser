@@ -184,8 +184,8 @@ def _generate_cmdline_tests():
     for item in valid:
         yield TestCase(''.join(item), True)
     # Invalid command only -> invalid
-    for item in valid:
-        yield TestCase(''.join(item), True)
+    for item in invalid:
+        yield TestCase(''.join(item), False)
     # Invalid command combined with invalid command -> invalid
     for item in itertools.product(invalid, separators, invalid):
         yield TestCase(''.join(item), False)
@@ -203,7 +203,7 @@ def _generate_cmdline_tests():
         yield TestCase(''.join(item), True)
 
 
-@pytest.fixture(params=_generate_cmdline_tests())
+@pytest.fixture(params=_generate_cmdline_tests(), ids=lambda e: e.cmd)
 def cmdline_test(request):
     """Fixture which generates tests for things validating commandlines."""
     # Import qutebrowser.app so all cmdutils.register decorators get run.
