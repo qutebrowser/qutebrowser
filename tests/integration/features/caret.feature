@@ -80,6 +80,7 @@ Feature: Caret mode
 
             four five six
 
+    @xfail_issue1142_windows
     Scenario: Moving back to the start of previous block
         When I run :move-to-end-of-next-block with count 2
         And I run :move-to-start-of-prev-block
@@ -174,6 +175,7 @@ Feature: Caret mode
         And I run :yank-selected
         Then the clipboard should contain " two"
 
+    @xfail_issue1142_windows
     Scenario: Moving to next word and selecting a word
         When I run :move-to-next-word
         And I run :toggle-selection
