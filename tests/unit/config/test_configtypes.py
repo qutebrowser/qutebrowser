@@ -249,9 +249,8 @@ class BadMappingSubclass(configtypes.MappingType):
     }
 
     def __init__(self, none_ok=False):
-        super().__init__(
-            none_ok,
-            valid_values = configtypes.ValidValues('one', 'two'))
+        super().__init__(none_ok)
+        self.valid_values = configtypes.ValidValues('one', 'two'))
 
 
 class TestMappingType:
