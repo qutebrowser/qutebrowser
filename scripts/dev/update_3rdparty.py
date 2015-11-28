@@ -21,7 +21,6 @@
 """Update all third-party-modules."""
 
 import urllib.request
-import tempfile
 import shutil
 import json
 import os
