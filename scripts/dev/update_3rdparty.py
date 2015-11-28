@@ -47,14 +47,15 @@ def update_pdfjs():
     version, url = get_latest_pdfjs_url()
     target_path = os.path.join('qutebrowser', '3rdparty', 'pdfjs')
     print("=> Downloading pdf.js {}".format(version))
-    with tempfile.NamedTemporaryFile(prefix='qute-pdfjs-') as archive:
-        urllib.request.urlretrieve(url, archive.name)
-        if os.path.isdir(target_path):
-            print("Removing old version in {}".format(target_path))
-            shutil.rmtree(target_path)
-        os.makedirs(target_path)
-        print("Extracting new version")
+    (archive_path, _headers) = urllib.request.urlretrieve(url)
+    if os.path.isdir(target_path):
+        print("Removing old version in {}".format(target_path))
+        shutil.rmtree(target_path)
+    os.makedirs(target_path)
+    print("Extracting new version")
+    with open(archive_path, 'rb') as archive:
         shutil.unpack_archive(archive, target_path, 'zip')
+    urllib.request.urlcleanup()
 
 
 def main():
