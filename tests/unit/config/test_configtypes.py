@@ -235,9 +235,8 @@ class GoodMappingSubclass(configtypes.MappingType):
     }
 
     def __init__(self, none_ok=False):
-        super().__init__(
-            none_ok,
-            valid_values = configtypes.ValidValues('one', 'two'))
+        super().__init__(none_ok)
+        self.valid_values = configtypes.ValidValues('one', 'two')
 
 
 class BadMappingSubclass(configtypes.MappingType):
@@ -250,7 +249,7 @@ class BadMappingSubclass(configtypes.MappingType):
 
     def __init__(self, none_ok=False):
         super().__init__(none_ok)
-        self.valid_values = configtypes.ValidValues('one', 'two'))
+        self.valid_values = configtypes.ValidValues('one', 'two')
 
 
 class TestMappingType:
@@ -281,11 +280,13 @@ class TestMappingType:
     def test_transform(self, klass, val, expected):
         assert klass().transform(val) == expected
 
-    def test_bad_subclass_init(self):
-        with pytest.raises(ValueError):
-            BadMappingSubclass()
+    @pytest.mark.parametrize('typ', [configtypes.ColorSystem(),
+                                     configtypes.Position(),
+                                     configtypes.SelectOnRemove()])
+    def test_mapping_type_matches_valid_values(self, typ):
+        assert list(sorted(typ.MAPPING)) == list(sorted(typ.valid_values))
 
-
+        
 class TestString:
 
     """Test String."""

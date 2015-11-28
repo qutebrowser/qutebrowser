@@ -220,9 +220,6 @@ class MappingType(BaseType):
                  valid_values=None):
         super().__init__(none_ok)
         self.valid_values = valid_values
-        if list(sorted(self.MAPPING)) != list(sorted(self.valid_values)):
-            raise ValueError("Mapping {!r} doesn't match valid values "
-                             "{!r}".format(self.MAPPING, self.valid_values))
 
     def validate(self, value):
         super().validate(value.lower())
