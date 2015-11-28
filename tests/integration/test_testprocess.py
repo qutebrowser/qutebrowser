@@ -136,6 +136,14 @@ class TestWaitFor:
         with pytest.raises(testprocess.WaitForTimeout):
             pyproc.wait_for(data="foobar", timeout=100)
 
+    def test_no_kwargs(self, pyproc):
+        """Using wait_for without kwargs should raise an exception.
+
+        Otherwise it'd match automatically because of the all(matches).
+        """
+        with pytest.raises(TypeError):
+            pyproc.wait_for()
+
 
 class TestEnsureNotLogged:
 

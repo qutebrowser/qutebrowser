@@ -254,6 +254,8 @@ class Process(QObject):
                 timeout = 15000
             else:
                 timeout = 5000
+        if not kwargs:
+            raise TypeError("No keyword arguments given!")
         for key in kwargs:
             assert key in self.KEYS
 
