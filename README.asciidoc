@@ -150,6 +150,7 @@ Contributors, sorted by the number of commits in descending order:
 * Joel Torstensson
 * Claude
 * meles5
+* Patric Schmitz
 * Nathan Isom
 * Austin Anderson
 * Artur Shaik
@@ -166,7 +167,6 @@ Contributors, sorted by the number of commits in descending order:
 * Halfwit
 * Felix Van der Jeugt
 * rikn00
-* Patric Schmitz
 * Panagiotis Ktistakis
 * Martin Zimmermann
 * Brian Jackson
