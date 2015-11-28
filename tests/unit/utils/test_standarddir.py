@@ -177,27 +177,28 @@ class TestArguments:
     def test_confdir(self, testcase):
         """Test --confdir."""
         args = types.SimpleNamespace(confdir=testcase.arg, cachedir=None,
-                                     datadir=None)
+                                     datadir=None, basedir=None)
         standarddir.init(args)
         assert standarddir.config() == testcase.expected
 
     def test_cachedir(self, testcase):
         """Test --cachedir."""
         args = types.SimpleNamespace(confdir=None, cachedir=testcase.arg,
-                                     datadir=None)
+                                     datadir=None, basedir=None)
         standarddir.init(args)
         assert standarddir.cache() == testcase.expected
 
     def test_datadir(self, testcase):
         """Test --datadir."""
         args = types.SimpleNamespace(confdir=None, cachedir=None,
-                                     datadir=testcase.arg)
+                                     datadir=testcase.arg, basedir=None)
         standarddir.init(args)
         assert standarddir.data() == testcase.expected
 
     def test_confdir_none(self):
         """Test --confdir with None given."""
-        args = types.SimpleNamespace(confdir=None, cachedir=None, datadir=None)
+        args = types.SimpleNamespace(confdir=None, cachedir=None, datadir=None,
+                                     basedir=None)
         standarddir.init(args)
         assert standarddir.config().split(os.sep)[-1] == 'qute_test'
 
@@ -206,7 +207,8 @@ class TestArguments:
         monkeypatch.setattr(
             'qutebrowser.utils.standarddir.QStandardPaths.writableLocation',
             lambda _typ: str(tmpdir))
-        args = types.SimpleNamespace(confdir=None, cachedir=None, datadir=None)
+        args = types.SimpleNamespace(confdir=None, cachedir=None, datadir=None,
+                                     basedir=None)
         standarddir.init(args)
         assert standarddir.runtime() == str(tmpdir / 'qute_test')
 

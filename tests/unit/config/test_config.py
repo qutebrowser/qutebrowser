@@ -315,7 +315,8 @@ class TestConfigInit:
 
     def test_config_none(self, monkeypatch):
         """Test initializing with config path set to None."""
-        args = types.SimpleNamespace(confdir='', datadir='', cachedir='')
+        args = types.SimpleNamespace(confdir='', datadir='', cachedir='',
+                                     basedir='')
         for k, v in self.env.items():
             monkeypatch.setenv(k, v)
         standarddir.init(args)
