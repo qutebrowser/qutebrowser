@@ -225,27 +225,18 @@ class TestBaseType:
         assert basetype.complete() == completions
 
 
-class GoodMappingSubclass(configtypes.MappingType):
+class MappingSubclass(configtypes.MappingType):
 
     """A MappingType we use in TestMappingType which is valid/good."""
-
-    valid_values = configtypes.ValidValues('one', 'two')
 
     MAPPING = {
         'one': 1,
         'two': 2,
     }
 
-
-class BadMappingSubclass(configtypes.MappingType):
-
-    """A MappingType which is missing a value in MAPPING."""
-
-    valid_values = configtypes.ValidValues('one', 'two')
-
-    MAPPING = {
-        'one': 1,
-    }
+    def __init__(self, none_ok=False):
+        super().__init__(none_ok)
+        self.valid_values = configtypes.ValidValues('one', 'two')
 
 
 class TestMappingType:
@@ -261,7 +252,7 @@ class TestMappingType:
 
     @pytest.fixture
     def klass(self):
-        return GoodMappingSubclass
+        return MappingSubclass
 
     @pytest.mark.parametrize('val', TESTS.keys())
     def test_validate_valid(self, klass, val):
@@ -276,9 +267,11 @@ class TestMappingType:
     def test_transform(self, klass, val, expected):
         assert klass().transform(val) == expected
 
-    def test_bad_subclass_init(self):
-        with pytest.raises(ValueError):
-            BadMappingSubclass()
+    @pytest.mark.parametrize('typ', [configtypes.ColorSystem(),
+                                     configtypes.Position(),
+                                     configtypes.SelectOnRemove()])
+    def test_mapping_type_matches_valid_values(self, typ):
+        assert list(sorted(typ.MAPPING)) == list(sorted(typ.valid_values))
 
 
 class TestString:
@@ -383,8 +376,11 @@ class FlagListSubclass(configtypes.FlagList):
     Valid values are 'foo', 'bar' and 'baz'.
     """
 
-    valid_values = configtypes.ValidValues('foo', 'bar', 'baz')
     combinable_values = ['foo', 'bar']
+
+    def __init__(self, none_ok=False):
+        super().__init__(none_ok)
+        self.valid_values = configtypes.ValidValues('foo', 'bar', 'baz')
 
 
 class TestFlagList:
