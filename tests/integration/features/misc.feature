@@ -179,3 +179,51 @@ Feature: Various utility commands.
         And I run :debug-console
         And I wait for "Focus object changed: *" in the log
         Then no crash should happen
+
+    # :help
+
+    Scenario: :help without topic
+        When I run :tab-only
+        And I run :help
+        Then the following tabs should be open:
+            - qute://help/index.html (active)
+
+    Scenario: :help with invalid topic
+        When I run :help foo
+        Then the error "Invalid help topic foo!" should be shown
+
+    Scenario: :help with command
+        When I run :tab-only
+        And I run :help :back
+        Then the following tabs should be open:
+            - qute://help/commands.html#back (active)
+
+    Scenario: :help with invalid command
+        When I run :help :foo
+        Then the error "Invalid command foo!" should be shown
+
+    Scenario: :help with setting
+        When I run :tab-only
+        And I run :help general->editor
+        Then the following tabs should be open:
+            - qute://help/settings.html#general-editor (active)
+
+    Scenario: :help with invalid setting (2 arrows)
+        When I run :help general->editor->foo
+        Then the error "Invalid help topic general->editor->foo!" should be shown
+
+    Scenario: :help with invalid setting (unknown section)
+        When I run :help foo->bar
+        Then the error "Invalid section foo!" should be shown
+
+    Scenario: :help with invalid setting (unknown option)
+        When I run :help general->bar
+        Then the error "Invalid option bar!" should be shown
+
+    Scenario: :help with -t
+        When I open about:blank
+        And I run :tab-only
+        And I run :help -t
+        Then the following tabs should be open:
+            - about:blank
+            - qute://help/index.html (active)
