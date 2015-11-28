@@ -225,26 +225,13 @@ class TestBaseType:
         assert basetype.complete() == completions
 
 
-class GoodMappingSubclass(configtypes.MappingType):
+class MappingSubclass(configtypes.MappingType):
 
     """A MappingType we use in TestMappingType which is valid/good."""
 
     MAPPING = {
         'one': 1,
         'two': 2,
-    }
-
-    def __init__(self, none_ok=False):
-        super().__init__(none_ok)
-        self.valid_values = configtypes.ValidValues('one', 'two')
-
-
-class BadMappingSubclass(configtypes.MappingType):
-
-    """A MappingType which is missing a value in MAPPING."""
-
-    MAPPING = {
-        'one': 1,
     }
 
     def __init__(self, none_ok=False):
@@ -265,7 +252,7 @@ class TestMappingType:
 
     @pytest.fixture
     def klass(self):
-        return GoodMappingSubclass
+        return MappingSubclass
 
     @pytest.mark.parametrize('val', TESTS.keys())
     def test_validate_valid(self, klass, val):
