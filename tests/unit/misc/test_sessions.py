@@ -25,7 +25,7 @@ import logging
 
 import pytest
 import yaml
-from PyQt5.QtCore import QUrl, QPoint, QByteArray
+from PyQt5.QtCore import QUrl, QPoint, QByteArray, QObject
 from PyQt5.QtWebKitWidgets import QWebView
 
 from qutebrowser.misc import sessions
@@ -277,14 +277,17 @@ class TestSaveTab:
         assert hist[1]['scroll-pos'] == {'x': pos_x, 'y': pos_y}
 
 
-class FakeMainWindow:
+class FakeMainWindow(QObject):
 
     """Helper class for the fake_main_window fixture.
 
     A fake MainWindow which provides a saveGeometry method.
+
+    Needs to be a QObject so sip.isdeleted works.
     """
 
-    def __init__(self, geometry, win_id):
+    def __init__(self, geometry, win_id, parent=None):
+        super().__init__(parent)
         self._geometry = QByteArray(geometry)
         self.win_id = win_id
 
