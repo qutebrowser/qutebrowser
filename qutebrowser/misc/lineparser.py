@@ -78,10 +78,13 @@ class BaseLineParser(QObject):
         """
         if self._configdir is None:
             return False
-        log.destroy.debug("Saving to {}".format(self._configfile))
         if not os.path.exists(self._configdir):
             os.makedirs(self._configdir, 0o755)
         return True
+
+    def _after_save(self):
+        """Log a message after saving is done."""
+        log.destroy.debug("Saved to {}".format(self._configfile))
 
     @contextlib.contextmanager
     def _open(self, mode):
@@ -178,6 +181,7 @@ class AppendLineParser(BaseLineParser):
         with self._open('a') as f:
             self._write(f, self.new_data)
         self.new_data = []
+        self._after_save()
 
 
 class LineParser(BaseLineParser):
@@ -231,6 +235,7 @@ class LineParser(BaseLineParser):
                 self._write(f, self.data)
         finally:
             self._opened = False
+        self._after_save()
 
 
 class LimitLineParser(LineParser):
@@ -283,3 +288,4 @@ class LimitLineParser(LineParser):
         assert self._configfile is not None
         with qtutils.savefile_open(self._configfile, self._binary) as f:
             self._write(f, self.data[-limit:])
+        self._after_save()
