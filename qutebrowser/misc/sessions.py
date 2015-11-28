@@ -20,6 +20,7 @@
 """Management of sessions - saved tabs/windows."""
 
 import os
+import sip
 import os.path
 
 from PyQt5.QtCore import pyqtSignal, QUrl, QObject, QPoint, QTimer
@@ -176,6 +177,11 @@ class SessionManager(QObject):
                                         window=win_id)
             main_window = objreg.get('main-window', scope='window',
                                      window=win_id)
+
+            # We could be in the middle of destroying a window here
+            if sip.isdeleted(main_window):
+                continue
+
             win_data = {}
             active_window = QApplication.instance().activeWindow()
             if getattr(active_window, 'win_id', None) == win_id:
