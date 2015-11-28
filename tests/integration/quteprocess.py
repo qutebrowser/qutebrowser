@@ -119,6 +119,7 @@ class QuteProc(testprocess.Process):
         _delay: Delay to wait between commands.
         _ipc_socket: The IPC socket of the started instance.
         _httpbin: The HTTPBin webserver.
+        basedir: The base directory for this instance.
 
     Signals:
         got_error: Emitted when there was an error log line.
@@ -134,6 +135,7 @@ class QuteProc(testprocess.Process):
         self._delay = delay
         self._httpbin = httpbin
         self._ipc_socket = None
+        self.basedir = None
 
     def _parse_line(self, line):
         try:
@@ -163,6 +165,11 @@ class QuteProc(testprocess.Process):
         elif (log_line.category == 'webview' and
                 log_line.message == start_okay_message):
             self.ready.emit()
+        elif (log_line.category == 'init' and
+                log_line.module == 'standarddir' and
+                log_line.function == 'init' and
+                log_line.message.startswith('Base directory:')):
+            self.basedir = log_line.message.split(':', maxsplit=1)[1].strip()
         elif log_line.loglevel > logging.INFO:
             self.got_error.emit()
 

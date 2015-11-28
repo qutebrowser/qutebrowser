@@ -190,6 +190,7 @@ def _maybe_create(path):
 def init(args):
     """Initialize all standard dirs."""
     global _args
+    log.init.debug("Base directory: {}".format(args.basedir))
     _args = args
     _init_cachedir_tag()
 
