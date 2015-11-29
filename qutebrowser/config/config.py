@@ -421,10 +421,7 @@ class ConfigManager(QObject):
         for optname, option in sect.items():
 
             lines.append('#')
-            if option.typ.special:
-                typestr = ''
-            else:
-                typestr = ' ({})'.format(option.typ.__class__.__name__)
+            typestr = ' ({})'.format(option.typ.__class__.__name__)
             lines.append("# {}{}:".format(optname, typestr))
 
             try:
