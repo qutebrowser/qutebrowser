@@ -233,6 +233,26 @@ class Process(QObject):
         else:
             return value == expected
 
+    def _wait_for_existing(self, override_waited_for, **kwargs):
+        """Check if there are any line in the history for wait_for.
+
+        Return: either the found line or None.
+        """
+        for line in self._data:
+            matches = []
+
+            for key, expected in kwargs.items():
+                value = getattr(line, key)
+                matches.append(self._match_data(value, expected))
+
+            if all(matches) and (not line.waited_for or override_waited_for):
+                # If we waited for this line, chances are we don't mean the
+                # same thing the next time we use wait_for and it matches
+                # this line again.
+                line.waited_for = True
+                return line
+        return None
+
     def wait_for(self, timeout=None, *, override_waited_for=False, **kwargs):
         """Wait until a given value is found in the data.
 
@@ -260,19 +280,9 @@ class Process(QObject):
             assert key in self.KEYS
 
         # Search existing messages
-        for line in self._data:
-            matches = []
-
-            for key, expected in kwargs.items():
-                value = getattr(line, key)
-                matches.append(self._match_data(value, expected))
-
-            if all(matches) and (not line.waited_for or override_waited_for):
-                # If we waited for this line, chances are we don't mean the
-                # same thing the next time we use wait_for and it matches
-                # this line again.
-                line.waited_for = True
-                return line
+        existing = self._wait_for_existing(override_waited_for, **kwargs)
+        if existing is not None:
+            return existing
 
         # If there is none, wait for the message
         spy = QSignalSpy(self.new_data)
