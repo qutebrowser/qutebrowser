@@ -50,19 +50,19 @@ Feature: Various utility commands.
     ## :jseval
 
     Scenario: :jseval
-        When I set general -> log-javascript-console to true
+        When I set general -> log-javascript-console to info
         And I run :jseval console.log("Hello from JS!");
         And I wait for "[:0] Hello from JS!" in the log
         Then the message "No output or error" should be shown
 
     Scenario: :jseval without logging
-        When I set general -> log-javascript-console to false
+        When I set general -> log-javascript-console to none
         And I run :jseval console.log("Hello from JS!");
         Then the message "No output or error" should be shown
         And "[:0] Hello from JS!" should not be logged
 
     Scenario: :jseval with --quiet
-        When I set general -> log-javascript-console to true
+        When I set general -> log-javascript-console to info
         And I run :jseval --quiet console.log("Hello from JS!");
         And I wait for "[:0] Hello from JS!" in the log
         Then "No output or error" should not be logged

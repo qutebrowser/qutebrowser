@@ -67,7 +67,7 @@ Feature: Keyboard input
 
     Scenario: Forwarding all keys
         When I open data/keyinput/log.html
-        And I set general -> log-javascript-console to true
+        And I set general -> log-javascript-console to info
         And I set input -> forward-unbound-keys to all
         And I press the key "q"
         And I press the key "<F1>"
@@ -80,7 +80,7 @@ Feature: Keyboard input
 
     Scenario: Forwarding special keys
         When I open data/keyinput/log.html
-        And I set general -> log-javascript-console to true
+        And I set general -> log-javascript-console to info
         And I set input -> forward-unbound-keys to auto
         And I press the key "x"
         And I press the key "<F1>"
@@ -93,7 +93,7 @@ Feature: Keyboard input
 
     Scenario: Forwarding no keys
         When I open data/keyinput/log.html
-        And I set general -> log-javascript-console to true
+        And I set general -> log-javascript-console to info
         And I set input -> forward-unbound-keys to none
         And I press the key "<F1>"
         # <F1>
@@ -107,7 +107,7 @@ Feature: Keyboard input
         Then the error "Could not parse 'blub': Got unknown key." should be shown
 
     Scenario: :fake-key sending key to the website
-        When I set general -> log-javascript-console to true
+        When I set general -> log-javascript-console to info
         And I open data/keyinput/log.html
         And I run :fake-key x
         Then the javascript message "key press: 88" should be logged
@@ -125,14 +125,14 @@ Feature: Keyboard input
         Then the error "No focused webview!" should be shown
 
     Scenario: :fake-key sending special key to the website
-        When I set general -> log-javascript-console to true
+        When I set general -> log-javascript-console to info
         And I open data/keyinput/log.html
         And I run :fake-key <Escape>
         Then the javascript message "key press: 27" should be logged
         And the javascript message "key release: 27" should be logged
 
     Scenario: :fake-key sending keychain to the website
-        When I set general -> log-javascript-console to true
+        When I set general -> log-javascript-console to info
         And I open data/keyinput/log.html
         And I run :fake-key xy
         Then the javascript message "key press: 88" should be logged
