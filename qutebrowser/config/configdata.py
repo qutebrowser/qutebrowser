@@ -231,9 +231,9 @@ def data(readonly=False):
             ('log-javascript-console',
              SettingValue(typ.String(
                  valid_values=typ.ValidValues(
-                     ('none', 'Not displayed'),
-                     ('debug', 'Display in debug mode'),
-                     ('info', 'Display always')
+                     ('none', "Don't log messages."),
+                     ('debug', "Log messages with debug level."),
+                     ('info', "Log messages with info level.")
                  )), 'debug'),
              "How to log javascript console messages."),
 
