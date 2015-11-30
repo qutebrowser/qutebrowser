@@ -1611,11 +1611,9 @@ class CommandDispatcher:
         """
         webview = self._current_widget()
         if not webview.selection_enabled:
-            act = [QWebPage.MoveToStartOfBlock, QWebPage.MoveToPreviousLine,
-                   QWebPage.MoveToEndOfBlock]
+            act = [QWebPage.MoveToPreviousLine, QWebPage.MoveToEndOfBlock]
         else:
-            act = [QWebPage.SelectStartOfBlock, QWebPage.SelectPreviousLine,
-                   QWebPage.SelectEndOfBlock]
+            act = [QWebPage.SelectPreviousLine, QWebPage.SelectEndOfBlock]
         for _ in range(count):
             for a in act:
                 webview.triggerPageAction(a)
