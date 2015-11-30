@@ -53,10 +53,10 @@ def compact_text(text, elidelength=None):
         text: The text to compact.
         elidelength: To how many chars to elide.
     """
-    out = []
+    lines = []
     for line in text.splitlines():
-        out.append(line.strip())
-    out = ''.join(out)
+        lines.append(line.strip())
+    out = ''.join(lines)
     if elidelength is not None:
         out = elide(out, elidelength)
     return out
