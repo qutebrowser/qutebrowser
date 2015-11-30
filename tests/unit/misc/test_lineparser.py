@@ -27,7 +27,7 @@ import pytest
 from qutebrowser.misc import lineparser as lineparsermod
 
 
-class LineParserWrapper:
+class LineParserMixin:
 
     """A wrapper over lineparser.BaseLineParser to make it testable."""
 
@@ -70,7 +70,7 @@ class LineParserWrapper:
         return True
 
 
-class AppendLineParserTestable(LineParserWrapper,
+class AppendLineParserTestable(LineParserMixin,
                                lineparsermod.AppendLineParser):
 
     """Wrapper over AppendLineParser to make it testable."""
@@ -78,14 +78,14 @@ class AppendLineParserTestable(LineParserWrapper,
     pass
 
 
-class LineParserTestable(LineParserWrapper, lineparsermod.LineParser):
+class LineParserTestable(LineParserMixin, lineparsermod.LineParser):
 
     """Wrapper over LineParser to make it testable."""
 
     pass
 
 
-class LimitLineParserTestable(LineParserWrapper,
+class LimitLineParserTestable(LineParserMixin,
                               lineparsermod.LimitLineParser):
 
     """Wrapper over LimitLineParser to make it testable."""
