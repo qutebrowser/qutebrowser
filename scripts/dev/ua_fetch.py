@@ -53,6 +53,7 @@ def filter_list(complete_list, browsers):
     dictionary with the same keys as the LUT, but storing lists of tuples
     (user_agent, browser_description) as values.
     """
+    # pylint: disable=too-many-nested-blocks
     table = {}
     for entry in complete_list:
         # Tuple of (user_agent, browser_description)
