@@ -20,7 +20,7 @@
 |<<general-site-specific-quirks,site-specific-quirks>>|Enable workarounds for broken sites.
 |<<general-default-encoding,default-encoding>>|Default encoding to use for websites.
 |<<general-new-instance-open-target,new-instance-open-target>>|How to open links in an existing instance if a new one is launched.
-|<<general-log-javascript-console,log-javascript-console>>|Whether to log javascript console messages.
+|<<general-log-javascript-console,log-javascript-console>>|How to log javascript console messages.
 |<<general-save-session,save-session>>|Whether to always save the open pages.
 |<<general-session-default-name,session-default-name>>|The name of the session to save by default, or empty for the last loaded session.
 |<<general-url-incdec-segments,url-incdec-segments>>|The URL segments where `:navigate increment/decrement` will search for a number.
@@ -439,14 +439,15 @@ Default: +pass:[tab]+
 
 [[general-log-javascript-console]]
 === log-javascript-console
-Whether to log javascript console messages.
+How to log javascript console messages.
 
 Valid values:
 
- * +true+
- * +false+
+ * +none+: Don't log messages.
+ * +debug+: Log messages with debug level.
+ * +info+: Log messages with info level.
 
-Default: +pass:[false]+
+Default: +pass:[debug]+
 
 [[general-save-session]]
 === save-session
