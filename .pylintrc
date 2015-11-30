@@ -49,6 +49,7 @@ docstring-min-length=3
 [FORMAT]
 max-line-length=79
 ignore-long-lines=<?https?://
+expected-line-ending-format=LF
 
 [SIMILARITIES]
 min-similarity-lines=8
