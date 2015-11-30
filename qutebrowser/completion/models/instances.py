@@ -67,12 +67,12 @@ def _init_setting_completions():
     _instances[usertypes.Completion.option] = {}
     _instances[usertypes.Completion.value] = {}
     for sectname in configdata.DATA:
-        model = configmodel.SettingOptionCompletionModel(sectname)
-        _instances[usertypes.Completion.option][sectname] = model
+        opt_model = configmodel.SettingOptionCompletionModel(sectname)
+        _instances[usertypes.Completion.option][sectname] = opt_model
         _instances[usertypes.Completion.value][sectname] = {}
         for opt in configdata.DATA[sectname]:
-            model = configmodel.SettingValueCompletionModel(sectname, opt)
-            _instances[usertypes.Completion.value][sectname][opt] = model
+            val_model = configmodel.SettingValueCompletionModel(sectname, opt)
+            _instances[usertypes.Completion.value][sectname][opt] = val_model
 
 
 @pyqtSlot()
