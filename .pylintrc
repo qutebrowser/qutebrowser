@@ -28,7 +28,11 @@ disable=no-self-use,
         bare-except,
         eval-used,
         exec-used,
-        file-ignored
+        file-ignored,
+        wrong-import-order,
+        ungrouped-imports,
+        wrong-import-position,
+        redefined-variable-type
 
 [BASIC]
 module-rgx=(__)?[a-z][a-z0-9_]*(__)?$
