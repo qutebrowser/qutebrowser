@@ -133,3 +133,19 @@ class SessionCompletionModel(base.BaseCompletionModel):
                     self.new_item(cat, name)
         except OSError:
             log.completion.exception("Failed to list sessions!")
+
+class AutocommandsCompletionModel(base.BaseCompletionModel):
+
+    """A CompletionModel filled with the available webkit events"""
+
+    def __init__(self, event = None, parent = None):
+        super().__init__(parent)
+        events = objreg.get('autocmds-manager').available_events
+        if event is None:
+            cat = self.new_category("Autocommands")
+            for key in events.keys():
+                self.new_item(cat, key, events[key]['help'])
+        else:
+            cat = self.new_category(event)
+            for key in events[event]['commands']:
+                self.new_item(cat, key, events[event]['commands'][key], 'val')

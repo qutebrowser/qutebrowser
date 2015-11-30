@@ -104,6 +104,7 @@ logging.Logger.vdebug = vdebug
 
 
 # The different loggers used.
+autocmds = logging.getLogger('autocmds')
 statusbar = logging.getLogger('statusbar')
 completion = logging.getLogger('completion')
 destroy = logging.getLogger('destroy')
