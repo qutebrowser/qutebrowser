@@ -383,10 +383,7 @@ class Completer(QObject):
         """Get the part index of the commandline where the cursor is over."""
         cursor_pos = self._cmd.cursorPosition()
         snippet = slice(cursor_pos - 1, cursor_pos + 1)
-        if self._cmd.text()[snippet] == '  ':
-            spaces = True
-        else:
-            spaces = False
+        spaces = self._cmd.text()[snippet] == '  '
         cursor_pos -= len(self._cmd.prefix())
         parts = self.split(keep=True)
         log.completion.vdebug(
