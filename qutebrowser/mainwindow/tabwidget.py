@@ -532,8 +532,7 @@ class TabBarStyle(QCommonStyle):
         """
         color = opt.palette.base().color()
         rect = layouts.indicator
-        indicator_width = config.get('tabs', 'indicator-width')
-        if color.isValid() and indicator_width != 0:
+        if color.isValid() and rect.isValid():
             p.fillRect(rect, color)
 
     def _draw_icon(self, layouts, opt, p):
@@ -643,7 +642,6 @@ class TabBarStyle(QCommonStyle):
         indicator_padding = config.get('tabs', 'indicator-padding')
 
         text_rect = QRect(opt.rect)
-        indicator_rect = QRect(opt.rect)
 
         qtutils.ensure_valid(text_rect)
         text_rect.adjust(padding.left, padding.top, -padding.right,
@@ -651,8 +649,9 @@ class TabBarStyle(QCommonStyle):
 
         indicator_width = config.get('tabs', 'indicator-width')
         if indicator_width == 0:
-            indicator_rect = 0
+            indicator_rect = QRect()
         else:
+            indicator_rect = QRect(opt.rect)
             qtutils.ensure_valid(indicator_rect)
             indicator_rect.adjust(padding.left + indicator_padding.left,
                                   padding.top + indicator_padding.top,
