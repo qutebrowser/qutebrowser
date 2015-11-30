@@ -117,11 +117,7 @@ class BaseType:
     Class attributes:
         valid_values: Possible values if they can be expressed as a fixed
                       string. ValidValues instance.
-        special: If set, the type is only used for one option and isn't
-                 mentioned in the config file.
     """
-
-    special = False
 
     def __init__(self, none_ok=False):
         self.none_ok = none_ok
@@ -658,8 +654,6 @@ class ColorSystem(MappingType):
 
     """Color systems for interpolation."""
 
-    special = True
-
     def __init__(self, none_ok=False):
         super().__init__(
             none_ok,
@@ -1105,8 +1099,6 @@ class Proxy(BaseType):
 
     """A proxy URL or special value."""
 
-    special = True
-
     PROXY_TYPES = {
         'http': QNetworkProxy.HttpProxy,
         'socks': QNetworkProxy.Socks5Proxy,
@@ -1165,8 +1157,6 @@ class SearchEngineName(BaseType):
 
     """A search engine name."""
 
-    special = True
-
     def validate(self, value):
         self._basic_validation(value)
 
@@ -1174,8 +1164,6 @@ class SearchEngineName(BaseType):
 class SearchEngineUrl(BaseType):
 
     """A search engine URL."""
-
-    special = True
 
     def validate(self, value):
         self._basic_validation(value)
@@ -1268,8 +1256,6 @@ class UserStyleSheet(File):
 
     """QWebSettings UserStyleSheet."""
 
-    special = True
-
     def transform(self, value):
         if not value:
             return None
@@ -1303,8 +1289,6 @@ class UserStyleSheet(File):
 class AutoSearch(BaseType):
 
     """Whether to start a search when something else than a URL is entered."""
-
-    special = True
 
     def __init__(self, none_ok=False):
         super().__init__(none_ok)
@@ -1390,8 +1374,6 @@ class SessionName(BaseType):
 
     """The name of a session."""
 
-    special = True
-
     def validate(self, value):
         self._basic_validation(value)
         if value.startswith('_'):
@@ -1401,8 +1383,6 @@ class SessionName(BaseType):
 class SelectOnRemove(MappingType):
 
     """Which tab to select when the focused tab is removed."""
-
-    special = True
 
     MAPPING = {
         'left': QTabBar.SelectLeftTab,
@@ -1422,8 +1402,6 @@ class SelectOnRemove(MappingType):
 class ConfirmQuit(FlagList):
 
     """Whether to display a confirmation when the window is closed."""
-
-    special = True
 
     # Values that can be combined with commas
     combinable_values = ('multiple-tabs', 'downloads')
@@ -1458,8 +1436,6 @@ class NewTabPosition(BaseType):
 
     """How new tabs are positioned."""
 
-    special = True
-
     def __init__(self, none_ok=False):
         super().__init__(none_ok)
         self.valid_values = ValidValues(
@@ -1472,8 +1448,6 @@ class NewTabPosition(BaseType):
 class IgnoreCase(Bool):
 
     """Whether to ignore case when searching."""
-
-    special = True
 
     def __init__(self, none_ok=False):
         super().__init__(none_ok)
@@ -1502,8 +1476,6 @@ class IgnoreCase(Bool):
 class UserAgent(BaseType):
 
     """The user agent to use."""
-
-    special = True
 
     def validate(self, value):
         self._basic_validation(value)
