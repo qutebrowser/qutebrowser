@@ -10,7 +10,6 @@ load-plugins=pylint_checkers.config,
 
 [MESSAGES CONTROL]
 disable=no-self-use,
-        bad-builtin,
         fixme,
         global-statement,
         locally-disabled,
@@ -22,12 +21,7 @@ disable=no-self-use,
         too-many-instance-attributes,
         blacklisted-name,
         too-many-lines,
-        logging-format-interpolation,
-        interface-not-implemented,
         broad-except,
-        bare-except,
-        eval-used,
-        exec-used,
         file-ignored,
         wrong-import-order,
         ungrouped-imports,
@@ -35,15 +29,12 @@ disable=no-self-use,
         redefined-variable-type
 
 [BASIC]
-module-rgx=(__)?[a-z][a-z0-9_]*(__)?$
-function-rgx=([a-z_][a-z0-9_]{2,50}|setUpModule|tearDownModule)$
+function-rgx=[a-z_][a-z0-9_]{2,50}$
 const-rgx=[A-Za-z_][A-Za-z0-9_]{0,30}$
 method-rgx=[a-z_][A-Za-z0-9_]{2,50}$
 attr-rgx=[a-z_][a-z0-9_]{0,30}$
 argument-rgx=[a-z_][a-z0-9_]{0,30}$
 variable-rgx=[a-z_][a-z0-9_]{0,30}$
-class-attribute-rgx=[A-Za-z_][A-Za-z0-9_]{1,30}$
-inlinevar-rgx=[a-z_][a-z0-9_]*$
 docstring-min-length=3
 
 [FORMAT]
