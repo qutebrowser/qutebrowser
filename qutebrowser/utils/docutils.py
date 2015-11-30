@@ -68,6 +68,8 @@ class DocstringParser:
     Attributes:
         _state: The current state of the parser state machine.
         _cur_arg_name: The name of the argument we're currently handling.
+        _short_desc_parts: The short description of the function as list.
+        _long_desc_parts: The long description of the function as list.
         short_desc: The short description of the function.
         long_desc: The long description of the function.
         arg_descs: A dict of argument names to their descriptions
@@ -84,8 +86,8 @@ class DocstringParser:
         """
         self._state = self.State.short
         self._cur_arg_name = None
-        self.short_desc = []
-        self.long_desc = []
+        self._short_desc_parts = []
+        self._long_desc_parts = []
         self.arg_descs = collections.OrderedDict()
         doc = inspect.getdoc(func)
         handlers = {
@@ -106,8 +108,8 @@ class DocstringParser:
             desc = re.sub(r', or None($|\.)', r'\1', desc)
             desc = re.sub(r', or None', r', or not given', desc)
             self.arg_descs[k] = desc
-        self.long_desc = ' '.join(self.long_desc)
-        self.short_desc = ' '.join(self.short_desc)
+        self.long_desc = ' '.join(self._long_desc_parts)
+        self.short_desc = ' '.join(self._short_desc_parts)
 
     def _process_arg(self, line):
         """Helper method to process a line like 'fooarg: Blah blub'."""
@@ -125,7 +127,7 @@ class DocstringParser:
         if not line:
             self._state = self.State.desc
         else:
-            self.short_desc.append(line.strip())
+            self._short_desc_parts.append(line.strip())
 
     def _parse_desc(self, line):
         """Parse the long description in the docstring."""
@@ -134,7 +136,7 @@ class DocstringParser:
         elif line.strip() == '//':
             self._state = self.State.desc_hidden
         elif line.strip():
-            self.long_desc.append(line.strip())
+            self._long_desc_parts.append(line.strip())
 
     def _parse_arg_start(self, line):
         """Parse first argument line."""
