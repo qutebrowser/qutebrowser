@@ -424,7 +424,7 @@ def same_domain(url1, url2):
     if suffix1 == '':
         return url1.host() == url2.host()
 
-    if not suffix1 == suffix2:
+    if suffix1 != suffix2:
         return False
 
     domain1 = url1.host()[:-len(suffix1)].split('.')[-1]

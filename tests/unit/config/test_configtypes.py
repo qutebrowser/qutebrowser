@@ -1984,10 +1984,10 @@ class TestConfirmQuit:
         assert 'never' in completions
         assert 'multiple-tabs,downloads' in completions
         for val in completions:
-            assert not 'always,' in val
-            assert not ',always' in val
-            assert not 'never,' in val
-            assert not ',never' in val
+            assert 'always,' not in val
+            assert ',always' not in val
+            assert 'never,' not in val
+            assert ',never' not in val
 
 
 class TestFormatString:
