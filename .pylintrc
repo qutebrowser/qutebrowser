@@ -59,4 +59,6 @@ defining-attr-methods=__init__,__new__,setUp
 max-args=10
 
 [TYPECHECK]
-ignored-classes=WebElementWrapper,AnsiCodes,UnsetObject
+# MsgType added as WORKAROUND for
+# https://bitbucket.org/logilab/pylint/issues/690/
+ignored-classes=WebElementWrapper,AnsiCodes,UnsetObject,MsgType
