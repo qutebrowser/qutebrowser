@@ -57,9 +57,6 @@ min-similarity-lines=8
 [VARIABLES]
 dummy-variables-rgx=_.*
 
-[CLASSES]
-defining-attr-methods=__init__,__new__,setUp
-
 [DESIGN]
 max-args=10
 
