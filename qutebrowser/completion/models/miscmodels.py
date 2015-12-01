@@ -29,6 +29,7 @@ class CommandCompletionModel(base.BaseCompletionModel):
 
     """A CompletionModel filled with all commands and descriptions."""
 
+    # https://github.com/The-Compiler/qutebrowser/issues/545
     # pylint: disable=abstract-method
 
     def __init__(self, parent=None):
@@ -52,6 +53,7 @@ class HelpCompletionModel(base.BaseCompletionModel):
 
     """A CompletionModel filled with help topics."""
 
+    # https://github.com/The-Compiler/qutebrowser/issues/545
     # pylint: disable=abstract-method
 
     def __init__(self, parent=None):
@@ -94,6 +96,7 @@ class QuickmarkCompletionModel(base.BaseCompletionModel):
 
     """A CompletionModel filled with all quickmarks."""
 
+    # https://github.com/The-Compiler/qutebrowser/issues/545
     # pylint: disable=abstract-method
 
     def __init__(self, parent=None):
@@ -108,6 +111,7 @@ class BookmarkCompletionModel(base.BaseCompletionModel):
 
     """A CompletionModel filled with all bookmarks."""
 
+    # https://github.com/The-Compiler/qutebrowser/issues/545
     # pylint: disable=abstract-method
 
     def __init__(self, parent=None):
@@ -122,6 +126,7 @@ class SessionCompletionModel(base.BaseCompletionModel):
 
     """A CompletionModel filled with session names."""
 
+    # https://github.com/The-Compiler/qutebrowser/issues/545
     # pylint: disable=abstract-method
 
     def __init__(self, parent=None):
