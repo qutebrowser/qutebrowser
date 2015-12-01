@@ -23,7 +23,7 @@
 import logging
 
 import pytest
-import pytest_catchlog  # pylint: disable=import-error
+import pytest_catchlog
 
 
 def test_log_debug():

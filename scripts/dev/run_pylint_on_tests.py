@@ -56,6 +56,8 @@ def main():
         'protected-access',
         # https://bitbucket.org/logilab/pylint/issue/511/
         'undefined-variable',
+        # directories without __init__.py...
+        'import-error',
     ]
 
     toxinidir = sys.argv[1]

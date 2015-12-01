@@ -23,7 +23,7 @@ import re
 import os
 import time
 
-import pytestqt.plugin  # pylint: disable=import-error
+import pytestqt.plugin
 from PyQt5.QtCore import pyqtSlot, pyqtSignal, QProcess, QObject, QElapsedTimer
 from PyQt5.QtTest import QSignalSpy
 
