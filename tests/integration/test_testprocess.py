@@ -163,7 +163,7 @@ class TestEnsureNotLogged:
         pyproc.code = "time.sleep(0.5); print('blacklisted')"
         pyproc.start()
         with pytest.raises(testprocess.BlacklistedMessageError):
-            pyproc.ensure_not_logged(data='blacklisted', delay=1000)
+            pyproc.ensure_not_logged(data='blacklisted', delay=5000)
 
     def test_no_matching_message(self, pyproc):
         pyproc.code = "print('blacklisted... nope!')"
