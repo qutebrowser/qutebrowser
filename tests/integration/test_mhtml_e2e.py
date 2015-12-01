@@ -115,7 +115,7 @@ def test_mhtml(test_name, download_dir, quteproc, httpbin):
 
     actual_requests = httpbin.get_requests()
     # Requests are not hashable, we need to convert to ExpectedRequests
-    actual_requests = map(httpbin.ExpectedRequest.from_request,
-                          actual_requests)
+    actual_requests = [httpbin.ExpectedRequest.from_request(req)
+                       for req in actual_requests]
     assert (collections.Counter(actual_requests) ==
             collections.Counter(expected_requests))

@@ -262,7 +262,7 @@ def _get_action_metavar(action, nargs=1):
             elems = action.metavar
         return ' '.join("'{}'".format(e) for e in elems)
     elif action.choices is not None:
-        choices = ','.join(map(str, action.choices))
+        choices = ','.join(str(e) for e in action.choices)
         return "'{{{}}}'".format(choices)
     else:
         return "'{}'".format(action.dest.upper())

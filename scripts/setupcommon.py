@@ -101,7 +101,7 @@ def write_git_file():
 
 setupdata = {
     'name': 'qutebrowser',
-    'version': '.'.join(map(str, _get_constant('version_info'))),
+    'version': '.'.join(str(e) for e in _get_constant('version_info')),
     'description': _get_constant('description'),
     'long_description': read_file('README.asciidoc'),
     'url': 'http://www.qutebrowser.org/',

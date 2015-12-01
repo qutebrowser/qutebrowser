@@ -17,7 +17,7 @@
 # You should have received a copy of the GNU General Public License
 # along with qutebrowser.  If not, see <http://www.gnu.org/licenses/>.
 
-# pylint: disable=line-too-long
+# pylint: disable=line-too-long,bad-builtin
 
 """A keyboard-driven, vim-like browser based on PyQt5 and QtWebKit."""
 
@@ -29,7 +29,7 @@ __license__ = "GPL"
 __maintainer__ = __author__
 __email__ = "mail@qutebrowser.org"
 __version_info__ = (0, 4, 1)
-__version__ = '.'.join(map(str, __version_info__))
+__version__ = '.'.join(str(e) for e in __version_info__)
 __description__ = "A keyboard-driven, vim-like browser based on PyQt5 and QtWebKit."
 
 basedir = os.path.dirname(os.path.realpath(__file__))
