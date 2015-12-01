@@ -26,7 +26,7 @@ import os.path
 import sys
 import contextlib
 
-import cx_Freeze as cx  # pylint: disable=import-error
+import cx_Freeze as cx  # pylint: disable=import-error,useless-suppression
 # cx_Freeze is hard to install (needs C extensions) so we don't check for it.
 import pytest
 

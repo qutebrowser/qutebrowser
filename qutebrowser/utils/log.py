@@ -259,7 +259,7 @@ def qt_message_handler(msg_type, context, msg):
         QtCore.QtFatalMsg: logging.CRITICAL,
     }
     try:
-        # pylint: disable=no-member
+        # pylint: disable=no-member,useless-suppression
         qt_to_logging[QtCore.QtInfoMsg] = logging.INFO
     except AttributeError:
         # Qt < 5.5

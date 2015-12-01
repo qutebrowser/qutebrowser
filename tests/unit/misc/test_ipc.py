@@ -316,7 +316,7 @@ class TestListen:
 
     @pytest.mark.posix
     def test_permissions_posix(self, ipc_server):
-        # pylint: disable=no-member
+        # pylint: disable=no-member,useless-suppression
         ipc_server.listen()
         sockfile = ipc_server._server.fullServerName()
         sockdir = os.path.dirname(sockfile)

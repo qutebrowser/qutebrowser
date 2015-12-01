@@ -9,6 +9,7 @@ load-plugins=pylint_checkers.config,
              pylint_checkers.settrace
 
 [MESSAGES CONTROL]
+enable=all
 disable=no-self-use,
         fixme,
         global-statement,
@@ -30,7 +31,8 @@ disable=no-self-use,
         wrong-import-order,
         ungrouped-imports,
         wrong-import-position,
-        redefined-variable-type
+        redefined-variable-type,
+        suppressed-message
 
 [BASIC]
 function-rgx=[a-z_][a-z0-9_]{2,50}$

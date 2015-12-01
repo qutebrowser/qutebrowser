@@ -44,8 +44,8 @@ class _QtFIFOReader(QObject):
         # See http://www.outflux.net/blog/archives/2008/03/09/using-select-on-a-fifo/
         # We also use os.open and os.fdopen rather than built-in open so we
         # can add O_NONBLOCK.
-        fd = os.open(filepath, os.O_RDWR |
-                     os.O_NONBLOCK)  # pylint: disable=no-member
+        # pylint: disable=no-member,useless-suppression
+        fd = os.open(filepath, os.O_RDWR | os.O_NONBLOCK)
         self.fifo = os.fdopen(fd, 'r')
         self._notifier = QSocketNotifier(fd, QSocketNotifier.Read, self)
         self._notifier.activated.connect(self.read_line)
@@ -175,7 +175,8 @@ class _POSIXUserscriptRunner(_BaseUserscriptRunner):
             # exist, it shouldn't be a big issue.
             self._filepath = tempfile.mktemp(prefix='qutebrowser-userscript-',
                                              dir=standarddir.runtime())
-            os.mkfifo(self._filepath)  # pylint: disable=no-member
+            # pylint: disable=no-member,useless-suppression
+            os.mkfifo(self._filepath)
         except OSError as e:
             message.error(self._win_id, "Error while creating FIFO: {}".format(
                 e))

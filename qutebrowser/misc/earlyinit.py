@@ -123,7 +123,8 @@ def init_faulthandler(fileobj=sys.__stderr__):
     faulthandler.enable(fileobj)
     if hasattr(faulthandler, 'register') and hasattr(signal, 'SIGUSR1'):
         # If available, we also want a traceback on SIGUSR1.
-        faulthandler.register(signal.SIGUSR1)  # pylint: disable=no-member
+        # pylint: disable=no-member,useless-suppression
+        faulthandler.register(signal.SIGUSR1)
 
 
 def fix_harfbuzz(args):

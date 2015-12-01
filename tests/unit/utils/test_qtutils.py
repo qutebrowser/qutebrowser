@@ -25,7 +25,8 @@ import sys
 import operator
 import os.path
 try:
-    from test import test_file  # pylint: disable=no-name-in-module
+    # pylint: disable=no-name-in-module,useless-suppression
+    from test import test_file
 except ImportError:
     # Debian patches Python to remove the tests...
     test_file = None
@@ -748,10 +749,11 @@ class TestPyQIODevice:
 
     def test_seek_unsupported(self, pyqiodev):
         """Test seeking with unsupported whence arguments."""
+        # pylint: disable=no-member,useless-suppression
         if hasattr(os, 'SEEK_HOLE'):
-            whence = os.SEEK_HOLE  # pylint: disable=no-member
+            whence = os.SEEK_HOLE
         elif hasattr(os, 'SEEK_DATA'):
-            whence = os.SEEK_DATA  # pylint: disable=no-member
+            whence = os.SEEK_DATA
         else:
             pytest.skip("Needs os.SEEK_HOLE or os.SEEK_DATA available.")
         pyqiodev.open(QIODevice.ReadOnly)
