@@ -27,7 +27,7 @@ import os.path
 import pytest
 from PyQt5.QtCore import pyqtSignal
 
-import testprocess  # pylint: disable=import-error
+import testprocess
 
 
 class Request(testprocess.Line):

@@ -39,7 +39,7 @@ from PyQt5.QtTest import QSignalSpy
 import qutebrowser
 from qutebrowser.misc import ipc
 from qutebrowser.utils import objreg, qtutils
-from helpers import stubs  # pylint: disable=import-error
+from helpers import stubs
 
 
 Args = collections.namedtuple('Args', 'basedir')
