@@ -54,4 +54,4 @@ def test_installed_package():
 
 def test_getargspec():
     """Make sure the getargspec DeprecationWarning gets ignored."""
-    inspect.getargspec(lambda: None)
+    inspect.getargspec(lambda: None)  # pylint: disable=deprecated-method
