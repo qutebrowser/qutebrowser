@@ -32,7 +32,7 @@ import yaml
 import pytest
 from PyQt5.QtCore import pyqtSignal, QUrl
 
-from tests.integration import testprocess
+import testprocess  # pylint: disable=import-error
 from qutebrowser.misc import ipc
 from qutebrowser.utils import log, utils
 

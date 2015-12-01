@@ -38,7 +38,7 @@ from PyQt5.QtCore import (QDataStream, QPoint, QUrl, QByteArray, QIODevice,
 
 from qutebrowser import qutebrowser
 from qutebrowser.utils import qtutils
-from tests.unit.utils import overflow_test_cases
+import overflow_test_cases
 
 
 @pytest.mark.parametrize('qversion, version, op, expected', [

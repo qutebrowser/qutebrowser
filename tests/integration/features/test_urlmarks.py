@@ -21,7 +21,7 @@ import os.path
 
 import pytest_bdd as bdd
 
-from tests.helpers import utils
+from helpers import utils  # pylint: disable=import-error
 
 bdd.scenarios('urlmarks.feature')
 

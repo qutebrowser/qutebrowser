@@ -24,8 +24,8 @@ import datetime
 
 import pytest
 
-from tests.integration import quteprocess
-from tests.integration import testprocess
+import quteprocess
+import testprocess
 from qutebrowser.utils import log
 
 

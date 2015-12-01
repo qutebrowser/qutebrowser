@@ -21,8 +21,8 @@ import pytest
 
 import pytest_bdd as bdd
 
-# pylint: disable=unused-import,line-too-long
-from tests.integration.features.test_yankpaste import skip_with_broken_clipboard
+# pylint: disable=unused-import
+from test_yankpaste import skip_with_broken_clipboard
 
 
 # https://github.com/The-Compiler/qutebrowser/issues/1124#issuecomment-158073581
