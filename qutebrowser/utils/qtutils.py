@@ -77,8 +77,6 @@ def version_check(version, op=operator.ge):
         version: The version to check against.
         op: The operator to use for the check.
     """
-    # pylint: disable=no-member
-    # https://bitbucket.org/logilab/pylint/issue/73/
     return op(pkg_resources.parse_version(qVersion()),
               pkg_resources.parse_version(version))
 
@@ -243,8 +241,6 @@ class PyQIODevice(io.BufferedIOBase):
     Attributes:
         dev: The underlying QIODevice.
     """
-
-    # pylint: disable=missing-docstring
 
     def __init__(self, dev):
         super().__init__()

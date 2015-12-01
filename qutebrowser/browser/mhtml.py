@@ -451,7 +451,7 @@ class _Downloader:
             self._finished(url, item)
 
 
-class _NoCloseBytesIO(io.BytesIO):  # pylint: disable=no-init
+class _NoCloseBytesIO(io.BytesIO):
 
     """BytesIO that can't be .closed().
 

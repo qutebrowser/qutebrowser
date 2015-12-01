@@ -349,8 +349,6 @@ class _CrashDialog(QDialog):
         Args:
             newest: The newest version as a string.
         """
-        # pylint: disable=no-member
-        # https://bitbucket.org/logilab/pylint/issue/73/
         new_version = pkg_resources.parse_version(newest)
         cur_version = pkg_resources.parse_version(qutebrowser.__version__)
         lines = ['The report has been sent successfully. Thanks!']

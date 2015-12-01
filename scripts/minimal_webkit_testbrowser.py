@@ -29,7 +29,6 @@ from PyQt5.QtWebKit import QWebSettings
 from PyQt5.QtWebKitWidgets import QWebView
 
 try:
-    # pylint: disable=no-name-in-module,import-error
     from PyQt5.QtWebEngineWidgets import QWebEngineView
     WEBENGINE = True
 except ImportError:

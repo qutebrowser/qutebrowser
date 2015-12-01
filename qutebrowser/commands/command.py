@@ -75,7 +75,7 @@ class Command:
                  deprecated=False, no_cmd_split=False, scope='global',
                  count=None, win_id=None):
         # I really don't know how to solve this in a better way, I tried.
-        # pylint: disable=too-many-arguments,too-many-locals
+        # pylint: disable=too-many-locals
         if modes is not None and not_modes is not None:
             raise ValueError("Only modes or not_modes can be given!")
         if modes is not None:

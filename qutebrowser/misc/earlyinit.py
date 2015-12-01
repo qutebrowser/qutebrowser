@@ -23,7 +23,7 @@ At this point we can be sure we have all python 3.4 features available.
 try:
     # Importing hunter to register its atexit handler early so it gets called
     # late.
-    import hunter  # pylint: disable=import-error,unused-import
+    import hunter  # pylint: disable=unused-import
 except ImportError:
     hunter = None
 
@@ -35,7 +35,7 @@ import signal
 import operator
 import importlib
 try:
-    import tkinter  # pylint: disable=import-error
+    import tkinter
 except ImportError:
     tkinter = None
 # NOTE: No qutebrowser or PyQt import should be done here, as some early
@@ -180,7 +180,7 @@ def fix_harfbuzz(args):
 def check_pyqt_core():
     """Check if PyQt core is installed."""
     try:
-        import PyQt5.QtCore  # pylint: disable=unused-variable
+        import PyQt5.QtCore
     except ImportError as e:
         text = _missing_str('PyQt5',
                             windows="Use the installer by Riverbank computing "

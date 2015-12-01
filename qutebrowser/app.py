@@ -42,7 +42,7 @@ except ImportError:
     hunter = None
 
 import qutebrowser
-import qutebrowser.resources  # pylint: disable=unused-import
+import qutebrowser.resources
 from qutebrowser.completion.models import instances as completionmodels
 from qutebrowser.commands import cmdutils, runners, cmdexc
 from qutebrowser.config import style, config, websettings, configexc
@@ -61,7 +61,6 @@ qApp = None
 
 def run(args):
     """Initialize everything and run the application."""
-    # pylint: disable=too-many-statements
     if args.version:
         print(version.version(short=True))
         print()

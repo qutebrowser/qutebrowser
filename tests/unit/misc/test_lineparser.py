@@ -50,7 +50,7 @@ class LineParserMixin:
         else:
             prev_val = None
 
-        if self._binary:  # pylint: disable=no-member
+        if self._binary:
             fobj = io.BytesIO(prev_val)
         else:
             fobj = io.StringIO(prev_val)

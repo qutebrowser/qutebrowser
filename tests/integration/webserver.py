@@ -17,9 +17,6 @@
 # You should have received a copy of the GNU General Public License
 # along with qutebrowser.  If not, see <http://www.gnu.org/licenses/>.
 
-# pylint doesn't understand the testprocess import
-# pylint: disable=no-member
-
 """Fixtures for the httpbin webserver."""
 
 import sys

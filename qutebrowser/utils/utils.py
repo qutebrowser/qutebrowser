@@ -609,7 +609,7 @@ class prevent_exceptions:  # pylint: disable=invalid-name
         retval = self._retval
 
         @functools.wraps(func)
-        def wrapper(*args, **kwargs):  # pylint: disable=missing-docstring
+        def wrapper(*args, **kwargs):
             try:
                 return func(*args, **kwargs)
             except BaseException:

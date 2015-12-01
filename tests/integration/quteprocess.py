@@ -17,9 +17,6 @@
 # You should have received a copy of the GNU General Public License
 # along with qutebrowser.  If not, see <http://www.gnu.org/licenses/>.
 
-# pylint doesn't understand the testprocess import
-# pylint: disable=no-member
-
 """Fixtures to run qutebrowser in a QProcess and communicate."""
 
 import re
@@ -42,6 +39,9 @@ from qutebrowser.utils import log, utils
 
 def is_ignored_qt_message(message):
     """Check if the message is listed in qt_log_ignore."""
+    # pylint: disable=no-member
+    # WORKAROUND for https://bitbucket.org/logilab/pylint/issues/717/
+    # we should switch to generated-members after that
     regexes = pytest.config.getini('qt_log_ignore')
     for regex in regexes:
         if re.match(regex, message):
@@ -151,6 +151,9 @@ class QuteProc(testprocess.Process):
             else:
                 raise
 
+        # WORKAROUND for https://bitbucket.org/logilab/pylint/issues/717/
+        # we should switch to generated-members after that
+        # pylint: disable=no-member
         if (log_line.loglevel in ['INFO', 'WARNING', 'ERROR'] or
                 pytest.config.getoption('--verbose')):
             print(line)

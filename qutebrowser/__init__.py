@@ -17,7 +17,7 @@
 # You should have received a copy of the GNU General Public License
 # along with qutebrowser.  If not, see <http://www.gnu.org/licenses/>.
 
-# pylint: disable=line-too-long,bad-builtin
+# pylint: disable=line-too-long
 
 """A keyboard-driven, vim-like browser based on PyQt5 and QtWebKit."""
 

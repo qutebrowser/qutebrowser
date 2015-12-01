@@ -25,7 +25,7 @@ import itertools
 import sys
 
 import pytest
-import pytest_catchlog  # pylint: disable=import-error
+import pytest_catchlog
 
 from qutebrowser.utils import log
 

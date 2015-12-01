@@ -97,7 +97,6 @@ class change_filter:  # pylint: disable=invalid-name
             @pyqtSlot(str, str)
             @functools.wraps(func)
             def wrapper(sectname=None, optname=None):
-                # pylint: disable=missing-docstring
                 if sectname is None and optname is None:
                     # Called directly, not from a config change event.
                     return func()
@@ -111,7 +110,6 @@ class change_filter:  # pylint: disable=invalid-name
             @pyqtSlot(str, str)
             @functools.wraps(func)
             def wrapper(wrapper_self, sectname=None, optname=None):
-                # pylint: disable=missing-docstring
                 if sectname is None and optname is None:
                     # Called directly, not from a config change event.
                     return func(wrapper_self)
@@ -150,7 +148,7 @@ def _init_main_config(parent=None):
         errstr = "Error while reading config:"
         try:
             errstr += "\n\n{} -> {}:".format(
-                e.section, e.option)  # pylint: disable=no-member
+                e.section, e.option)
         except AttributeError:
             pass
         errstr += "\n"

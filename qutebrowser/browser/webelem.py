@@ -106,7 +106,6 @@ class WebElementWrapper(collections.abc.MutableMapping):
             method = getattr(self._elem, name)
 
             def _wrapper(meth, *args, **kwargs):
-                # pylint: disable=missing-docstring
                 self._check_vanished()
                 return meth(*args, **kwargs)
 

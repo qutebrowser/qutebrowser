@@ -31,7 +31,7 @@ import subprocess
 from unittest import mock
 
 import pytest
-import py.path  # pylint: disable=no-name-in-module,import-error
+import py.path  # pylint: disable=no-name-in-module
 from PyQt5.QtCore import pyqtSignal, QObject
 from PyQt5.QtNetwork import QLocalServer, QLocalSocket, QAbstractSocket
 from PyQt5.QtTest import QSignalSpy

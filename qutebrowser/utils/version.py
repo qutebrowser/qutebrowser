@@ -168,8 +168,6 @@ def _os_info():
     elif sys.platform == 'win32':
         osver = ', '.join(platform.win32_ver())
     elif sys.platform == 'darwin':
-        # pylint: disable=unpacking-non-sequence
-        # See https://bitbucket.org/logilab/pylint/issue/165/
         release, versioninfo, machine = platform.mac_ver()
         if all(not e for e in versioninfo):
             versioninfo = ''

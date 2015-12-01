@@ -275,8 +275,6 @@ def test_css_url_scanner(monkeypatch, has_cssutils, inline, style,
 
 
 class TestNoCloseBytesIO:
-    # WORKAROUND for https://bitbucket.org/logilab/pylint/issues/540/
-    # pylint: disable=no-member
 
     def test_fake_close(self):
         fp = mhtml._NoCloseBytesIO()

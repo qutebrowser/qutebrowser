@@ -207,7 +207,7 @@ def _generate_cmdline_tests():
 def cmdline_test(request):
     """Fixture which generates tests for things validating commandlines."""
     # Import qutebrowser.app so all cmdutils.register decorators get run.
-    import qutebrowser.app  # pylint: disable=unused-variable
+    import qutebrowser.app
     return request.param
 
 

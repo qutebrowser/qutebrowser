@@ -249,7 +249,6 @@ class NetworkManager(QNetworkAccessManager):
                 net = netrc.netrc()
                 authenticators = net.authenticators(reply.url().host())
                 if authenticators is not None:
-                    # pylint: disable=unpacking-non-sequence
                     (user, _account, password) = authenticators
             except FileNotFoundError:
                 log.misc.debug("No .netrc file found")

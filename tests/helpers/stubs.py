@@ -281,8 +281,6 @@ class FakeTimer(QObject):
 
     """Stub for a usertypes.Timer."""
 
-    # pylint: disable=missing-docstring
-
     timeout_signal = pyqtSignal()
 
     def __init__(self, parent=None, name=None):
