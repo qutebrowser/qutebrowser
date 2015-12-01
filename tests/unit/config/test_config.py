@@ -23,6 +23,7 @@ import os.path
 import configparser
 import types
 import argparse
+import collections
 from unittest import mock
 
 from PyQt5.QtCore import QObject
@@ -39,128 +40,132 @@ class TestConfigParser:
 
     """Test reading of ConfigParser."""
 
-    @pytest.fixture(autouse=True)
-    def setup(self):
-        self.cp = configparser.ConfigParser(interpolation=None,
-                                            comment_prefixes='#')
-        self.cp.optionxform = lambda opt: opt  # be case-insensitive
-        self.cfg = config.ConfigManager(None, None)
+    Objects = collections.namedtuple('Objects', ['cp', 'cfg'])
 
-    def test_simple(self):
+    @pytest.fixture
+    def objects(self):
+        cp = configparser.ConfigParser(interpolation=None,
+                                       comment_prefixes='#')
+        cp.optionxform = lambda opt: opt  # be case-insensitive
+        cfg = config.ConfigManager(None, None)
+        return self.Objects(cp=cp, cfg=cfg)
+
+    def test_simple(self, objects):
         """Test a simple option which is not transformed."""
-        self.cp.read_dict({'general': {'ignore-case': 'false'}})
-        self.cfg._from_cp(self.cp)
-        assert not self.cfg.get('general', 'ignore-case')
+        objects.cp.read_dict({'general': {'ignore-case': 'false'}})
+        objects.cfg._from_cp(objects.cp)
+        assert not objects.cfg.get('general', 'ignore-case')
 
-    def test_transformed_section_old(self):
+    def test_transformed_section_old(self, objects):
         """Test a transformed section with the old name."""
-        self.cp.read_dict({'permissions': {'allow-plugins': 'true'}})
-        self.cfg._from_cp(self.cp)
-        assert self.cfg.get('content', 'allow-plugins')
+        objects.cp.read_dict({'permissions': {'allow-plugins': 'true'}})
+        objects.cfg._from_cp(objects.cp)
+        assert objects.cfg.get('content', 'allow-plugins')
 
-    def test_transformed_section_new(self):
+    def test_transformed_section_new(self, objects):
         """Test a transformed section with the new name."""
-        self.cp.read_dict({'content': {'allow-plugins': 'true'}})
-        self.cfg._from_cp(self.cp)
-        assert self.cfg.get('content', 'allow-plugins')
+        objects.cp.read_dict({'content': {'allow-plugins': 'true'}})
+        objects.cfg._from_cp(objects.cp)
+        assert objects.cfg.get('content', 'allow-plugins')
 
-    def test_transformed_option_old(self):
+    def test_transformed_option_old(self, objects):
         """Test a transformed option with the old name."""
         # WORKAROUND
         # Instance of 'object' has no 'name' member (no-member)
         # pylint: disable=no-member
-        self.cp.read_dict({'colors': {'tab.fg.odd': 'pink'}})
-        self.cfg._from_cp(self.cp)
-        actual = self.cfg.get('colors', 'tabs.fg.odd').name()
+        objects.cp.read_dict({'colors': {'tab.fg.odd': 'pink'}})
+        objects.cfg._from_cp(objects.cp)
+        actual = objects.cfg.get('colors', 'tabs.fg.odd').name()
         expected = QColor('pink').name()
         assert actual == expected
 
-    def test_transformed_option_new(self):
+    def test_transformed_option_new(self, objects):
         """Test a transformed section with the new name."""
         # WORKAROUND
         # Instance of 'object' has no 'name' member (no-member)
         # pylint: disable=no-member
-        self.cp.read_dict({'colors': {'tabs.fg.odd': 'pink'}})
-        self.cfg._from_cp(self.cp)
-        actual = self.cfg.get('colors', 'tabs.fg.odd').name()
+        objects.cp.read_dict({'colors': {'tabs.fg.odd': 'pink'}})
+        objects.cfg._from_cp(objects.cp)
+        actual = objects.cfg.get('colors', 'tabs.fg.odd').name()
         expected = QColor('pink').name()
         assert actual == expected
 
-    def test_invalid_value(self):
+    def test_invalid_value(self, objects):
         """Test setting an invalid value."""
-        self.cp.read_dict({'general': {'ignore-case': 'invalid'}})
-        self.cfg._from_cp(self.cp)
+        objects.cp.read_dict({'general': {'ignore-case': 'invalid'}})
+        objects.cfg._from_cp(objects.cp)
         with pytest.raises(configexc.ValidationError):
-            self.cfg._validate_all()
+            objects.cfg._validate_all()
 
-    def test_invalid_value_interpolated(self):
+    def test_invalid_value_interpolated(self, objects):
         """Test setting an invalid interpolated value."""
-        self.cp.read_dict({'general': {'ignore-case': 'smart',
+        objects.cp.read_dict({'general': {'ignore-case': 'smart',
                                        'wrap-search': '${ignore-case}'}})
-        self.cfg._from_cp(self.cp)
+        objects.cfg._from_cp(objects.cp)
         with pytest.raises(configexc.ValidationError):
-            self.cfg._validate_all()
+            objects.cfg._validate_all()
 
-    def test_interpolation(self):
+    def test_interpolation(self, objects):
         """Test setting an interpolated value."""
-        self.cp.read_dict({'general': {'ignore-case': 'false',
+        objects.cp.read_dict({'general': {'ignore-case': 'false',
                                        'wrap-search': '${ignore-case}'}})
-        self.cfg._from_cp(self.cp)
-        assert not self.cfg.get('general', 'ignore-case')
-        assert not self.cfg.get('general', 'wrap-search')
+        objects.cfg._from_cp(objects.cp)
+        assert not objects.cfg.get('general', 'ignore-case')
+        assert not objects.cfg.get('general', 'wrap-search')
 
-    def test_interpolation_cross_section(self):
+    def test_interpolation_cross_section(self, objects):
         """Test setting an interpolated value from another section."""
-        self.cp.read_dict(
+        objects.cp.read_dict(
             {
                 'general': {'ignore-case': '${network:do-not-track}'},
                 'network': {'do-not-track': 'false'},
             }
         )
-        self.cfg._from_cp(self.cp)
-        assert not self.cfg.get('general', 'ignore-case')
-        assert not self.cfg.get('network', 'do-not-track')
+        objects.cfg._from_cp(objects.cp)
+        assert not objects.cfg.get('general', 'ignore-case')
+        assert not objects.cfg.get('network', 'do-not-track')
 
-    def test_invalid_interpolation(self):
+    def test_invalid_interpolation(self, objects):
         """Test an invalid interpolation."""
-        self.cp.read_dict({'general': {'ignore-case': '${foo}'}})
-        self.cfg._from_cp(self.cp)
+        objects.cp.read_dict({'general': {'ignore-case': '${foo}'}})
+        objects.cfg._from_cp(objects.cp)
         with pytest.raises(configparser.InterpolationError):
-            self.cfg._validate_all()
+            objects.cfg._validate_all()
 
-    def test_invalid_interpolation_syntax(self):
+    def test_invalid_interpolation_syntax(self, objects):
         """Test an invalid interpolation syntax."""
-        self.cp.read_dict({'general': {'ignore-case': '${'}})
+        objects.cp.read_dict({'general': {'ignore-case': '${'}})
         with pytest.raises(configexc.InterpolationSyntaxError):
-            self.cfg._from_cp(self.cp)
+            objects.cfg._from_cp(objects.cp)
 
-    def test_invalid_section(self):
+    def test_invalid_section(self, objects):
         """Test an invalid section."""
-        self.cp.read_dict({'foo': {'bar': 'baz'}})
+        objects.cp.read_dict({'foo': {'bar': 'baz'}})
         with pytest.raises(configexc.NoSectionError):
-            self.cfg._from_cp(self.cp)
+            objects.cfg._from_cp(objects.cp)
 
-    def test_invalid_option(self):
+    def test_invalid_option(self, objects):
         """Test an invalid option."""
-        self.cp.read_dict({'general': {'bar': 'baz'}})
+        objects.cp.read_dict({'general': {'bar': 'baz'}})
         with pytest.raises(configexc.NoOptionError):
-            self.cfg._from_cp(self.cp)
+            objects.cfg._from_cp(objects.cp)
 
-    def test_invalid_section_relaxed(self):
+    def test_invalid_section_relaxed(self, objects):
         """Test an invalid section with relaxed=True."""
-        self.cp.read_dict({'foo': {'bar': 'baz'}})
-        self.cfg._from_cp(self.cp, relaxed=True)
+        objects.cp.read_dict({'foo': {'bar': 'baz'}})
+        objects.cfg._from_cp(objects.cp, relaxed=True)
         with pytest.raises(configexc.NoSectionError):
-            self.cfg.get('foo', 'bar')  # pylint: disable=bad-config-call
+            objects.cfg.get('foo', 'bar')  # pylint: disable=bad-config-call
 
-    def test_invalid_option_relaxed(self):
+    def test_invalid_option_relaxed(self, objects):
         """Test an invalid option with relaxed=True."""
-        self.cp.read_dict({'general': {'bar': 'baz'}})
-        self.cfg._from_cp(self.cp, relaxed=True)
+        objects.cp.read_dict({'general': {'bar': 'baz'}})
+        objects.cfg._from_cp(objects.cp, relaxed=True)
         with pytest.raises(configexc.NoOptionError):
-            self.cfg.get('general', 'bar')  # pylint: disable=bad-config-call
+            # pylint: disable=bad-config-call
+            objects.cfg.get('general', 'bar')
 
-    def test_fallback(self):
+    def test_fallback(self, objects):
         """Test getting an option with fallback.
 
         This is done during interpolation in later Python 3.4 versions.
@@ -168,18 +173,18 @@ class TestConfigParser:
         See https://github.com/The-Compiler/qutebrowser/issues/968
         """
         # pylint: disable=bad-config-call
-        assert self.cfg.get('general', 'blabla', fallback='blub') == 'blub'
+        assert objects.cfg.get('general', 'blabla', fallback='blub') == 'blub'
 
-    def test_sectionproxy(self):
+    def test_sectionproxy(self, objects):
         """Test getting an option via the section proxy."""
-        self.cp.read_dict({'general': {'ignore-case': 'false'}})
-        self.cfg._from_cp(self.cp)
-        assert not self.cfg['general'].get('ignore-case')
+        objects.cp.read_dict({'general': {'ignore-case': 'false'}})
+        objects.cfg._from_cp(objects.cp)
+        assert not objects.cfg['general'].get('ignore-case')
 
-    def test_sectionproxy_keyerror(self):
+    def test_sectionproxy_keyerror(self, objects):
         """Test getting an inexistent option via the section proxy."""
         with pytest.raises(configexc.NoOptionError):
-            self.cfg['general'].get('blahblahblub')
+            objects.cfg['general'].get('blahblahblub')
 
 
 class TestKeyConfigParser:
@@ -295,15 +300,7 @@ class TestConfigInit:
     """Test initializing of the config."""
 
     @pytest.yield_fixture(autouse=True)
-    def setup(self, tmpdir):
-        self.conf_path = (tmpdir / 'config').ensure(dir=1)
-        self.data_path = (tmpdir / 'data').ensure(dir=1)
-        self.cache_path = (tmpdir / 'cache').ensure(dir=1)
-        self.env = {
-            'XDG_CONFIG_HOME': str(self.conf_path),
-            'XDG_DATA_HOME': str(self.data_path),
-            'XDG_CACHE_HOME': str(self.cache_path),
-        }
+    def patch(self):
         objreg.register('app', QObject())
         objreg.register('save-manager', mock.MagicMock())
         args = argparse.Namespace(relaxed_config=False)
@@ -313,12 +310,24 @@ class TestConfigInit:
         objreg.global_registry.clear()
         standarddir._args = old_standarddir_args
 
-    def test_config_none(self, monkeypatch):
+    @pytest.fixture
+    def env(self, tmpdir):
+        conf_path = (tmpdir / 'config').ensure(dir=1)
+        data_path = (tmpdir / 'data').ensure(dir=1)
+        cache_path = (tmpdir / 'cache').ensure(dir=1)
+        env = {
+            'XDG_CONFIG_HOME': str(conf_path),
+            'XDG_DATA_HOME': str(data_path),
+            'XDG_CACHE_HOME': str(cache_path),
+        }
+        return env
+
+    def test_config_none(self, monkeypatch, env):
         """Test initializing with config path set to None."""
         args = types.SimpleNamespace(confdir='', datadir='', cachedir='',
                                      basedir=None)
-        for k, v in self.env.items():
+        for k, v in env.items():
             monkeypatch.setenv(k, v)
         standarddir.init(args)
         config.init()
-        assert not os.listdir(str(self.conf_path))
+        assert not os.listdir(env['XDG_CONFIG_HOME'])

@@ -39,8 +39,8 @@ class TestsNormalKeyParser:
         kp: The NormalKeyParser to be tested.
     """
 
-    @pytest.yield_fixture(autouse=True)
-    def setup(self, monkeypatch, stubs, config_stub, fake_keyconfig):
+    @pytest.fixture(autouse=True)
+    def patch_stuff(self, monkeypatch, stubs, config_stub, fake_keyconfig):
         """Set up mocks and read the test config."""
         monkeypatch.setattr(
             'qutebrowser.keyinput.basekeyparser.usertypes.Timer',
@@ -49,37 +49,40 @@ class TestsNormalKeyParser:
         monkeypatch.setattr('qutebrowser.keyinput.modeparsers.config',
                             config_stub)
 
-        self.kp = modeparsers.NormalKeyParser(0)
-        self.kp.execute = mock.Mock()
-        yield
+    @pytest.fixture
+    def keyparser(self):
+        kp = modeparsers.NormalKeyParser(0)
+        kp.execute = mock.Mock()
+        return kp
 
-    def test_keychain(self, fake_keyevent_factory):
+    def test_keychain(self, keyparser, fake_keyevent_factory):
         """Test valid keychain."""
         # Press 'x' which is ignored because of no match
-        self.kp.handle(fake_keyevent_factory(Qt.Key_X, text='x'))
+        keyparser.handle(fake_keyevent_factory(Qt.Key_X, text='x'))
         # Then start the real chain
-        self.kp.handle(fake_keyevent_factory(Qt.Key_B, text='b'))
-        self.kp.handle(fake_keyevent_factory(Qt.Key_A, text='a'))
-        self.kp.execute.assert_called_once_with('ba', self.kp.Type.chain, None)
-        assert self.kp._keystring == ''
+        keyparser.handle(fake_keyevent_factory(Qt.Key_B, text='b'))
+        keyparser.handle(fake_keyevent_factory(Qt.Key_A, text='a'))
+        keyparser.execute.assert_called_once_with('ba', keyparser.Type.chain,
+                                                  None)
+        assert keyparser._keystring == ''
 
-    def test_partial_keychain_timeout(self, fake_keyevent_factory):
+    def test_partial_keychain_timeout(self, keyparser, fake_keyevent_factory):
         """Test partial keychain timeout."""
-        timer = self.kp._partial_timer
+        timer = keyparser._partial_timer
         assert not timer.isActive()
         # Press 'b' for a partial match.
         # Then we check if the timer has been set up correctly
-        self.kp.handle(fake_keyevent_factory(Qt.Key_B, text='b'))
+        keyparser.handle(fake_keyevent_factory(Qt.Key_B, text='b'))
         assert timer.isSingleShot()
         assert timer.interval() == 100
         assert timer.isActive()
 
-        assert not self.kp.execute.called
-        assert self.kp._keystring == 'b'
+        assert not keyparser.execute.called
+        assert keyparser._keystring == 'b'
         # Now simulate a timeout and check the keystring has been cleared.
         keystring_updated_mock = mock.Mock()
-        self.kp.keystring_updated.connect(keystring_updated_mock)
+        keyparser.keystring_updated.connect(keystring_updated_mock)
         timer.timeout.emit()
-        assert not self.kp.execute.called
-        assert self.kp._keystring == ''
+        assert not keyparser.execute.called
+        assert keyparser._keystring == ''
         keystring_updated_mock.assert_called_once_with('')
