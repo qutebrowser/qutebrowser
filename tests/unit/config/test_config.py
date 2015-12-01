@@ -70,9 +70,6 @@ class TestConfigParser:
 
     def test_transformed_option_old(self, objects):
         """Test a transformed option with the old name."""
-        # WORKAROUND
-        # Instance of 'object' has no 'name' member (no-member)
-        # pylint: disable=no-member
         objects.cp.read_dict({'colors': {'tab.fg.odd': 'pink'}})
         objects.cfg._from_cp(objects.cp)
         actual = objects.cfg.get('colors', 'tabs.fg.odd').name()
@@ -81,9 +78,6 @@ class TestConfigParser:
 
     def test_transformed_option_new(self, objects):
         """Test a transformed section with the new name."""
-        # WORKAROUND
-        # Instance of 'object' has no 'name' member (no-member)
-        # pylint: disable=no-member
         objects.cp.read_dict({'colors': {'tabs.fg.odd': 'pink'}})
         objects.cfg._from_cp(objects.cp)
         actual = objects.cfg.get('colors', 'tabs.fg.odd').name()
@@ -155,14 +149,13 @@ class TestConfigParser:
         objects.cp.read_dict({'foo': {'bar': 'baz'}})
         objects.cfg._from_cp(objects.cp, relaxed=True)
         with pytest.raises(configexc.NoSectionError):
-            objects.cfg.get('foo', 'bar')  # pylint: disable=bad-config-call
+            objects.cfg.get('foo', 'bar')
 
     def test_invalid_option_relaxed(self, objects):
         """Test an invalid option with relaxed=True."""
         objects.cp.read_dict({'general': {'bar': 'baz'}})
         objects.cfg._from_cp(objects.cp, relaxed=True)
         with pytest.raises(configexc.NoOptionError):
-            # pylint: disable=bad-config-call
             objects.cfg.get('general', 'bar')
 
     def test_fallback(self, objects):
@@ -172,7 +165,6 @@ class TestConfigParser:
 
         See https://github.com/The-Compiler/qutebrowser/issues/968
         """
-        # pylint: disable=bad-config-call
         assert objects.cfg.get('general', 'blabla', fallback='blub') == 'blub'
 
     def test_sectionproxy(self, objects):
