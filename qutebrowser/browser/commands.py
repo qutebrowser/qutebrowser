@@ -21,6 +21,7 @@
 
 import os
 import os.path
+import sys
 import shlex
 import posixpath
 import functools
@@ -1483,11 +1484,16 @@ class CommandDispatcher:
         """
         webview = self._current_widget()
         if not webview.selection_enabled:
-            act = QWebPage.MoveToNextWord
+            act = [QWebPage.MoveToNextWord]
+            if sys.platform == 'win32':
+                act.append(QWebPage.MoveToPreviousChar)
         else:
-            act = QWebPage.SelectNextWord
+            act = [QWebPage.SelectNextWord]
+            if sys.platform == 'win32':
+                act.append(QWebPage.SelectPreviousChar)
         for _ in range(count):
-            webview.triggerPageAction(act)
+            for a in act:
+                webview.triggerPageAction(a)
 
     @cmdutils.register(instance='command-dispatcher', hide=True,
                        modes=[KeyMode.caret], scope='window', count='count')
