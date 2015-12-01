@@ -96,7 +96,7 @@ def whitelist_generator():
     for attr in ('fileno', 'truncate', 'closed', 'readable'):
         yield 'qutebrowser.utils.qtutils.PyQIODevice.' + attr
 
-    for attr in ('priority', 'visit_callfunc'):
+    for attr in ('priority', 'visit_call'):
         yield 'scripts.dev.pylint_checkers.config.' + attr
 
     yield 'scripts.dev.pylint_checkers.modeline.process_module'
