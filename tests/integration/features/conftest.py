@@ -33,7 +33,7 @@ import yaml
 import pytest_bdd as bdd
 from PyQt5.QtGui import QClipboard
 
-from helpers import utils  # pylint: disable=import-error
+from tests.helpers import utils
 
 
 def _clipboard_mode(qapp, what):

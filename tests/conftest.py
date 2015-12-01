@@ -31,10 +31,10 @@ import warnings
 
 import pytest
 
-import helpers.stubs as stubsmod
-from helpers import logfail
-from helpers.logfail import fail_on_logging
-from helpers.messagemock import message_mock
+import tests.helpers.stubs as stubsmod
+from tests.helpers import logfail
+from tests.helpers.logfail import fail_on_logging
+from tests.helpers.messagemock import message_mock
 from qutebrowser.config import config
 from qutebrowser.utils import objreg
 

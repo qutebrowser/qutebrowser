@@ -27,7 +27,7 @@ import pytestqt.plugin
 from PyQt5.QtCore import pyqtSlot, pyqtSignal, QProcess, QObject, QElapsedTimer
 from PyQt5.QtTest import QSignalSpy
 
-from helpers import utils  # pylint: disable=import-error
+from tests.helpers import utils
 
 
 class InvalidLine(Exception):

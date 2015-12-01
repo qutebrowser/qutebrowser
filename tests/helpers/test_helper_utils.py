@@ -20,7 +20,7 @@
 
 import pytest
 
-from helpers import utils  # pylint: disable=import-error
+from tests.helpers import utils
 
 
 @pytest.mark.parametrize('val1, val2', [
