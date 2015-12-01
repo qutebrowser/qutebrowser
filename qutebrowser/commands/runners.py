@@ -224,10 +224,10 @@ class CommandRunner(QObject):
                     maxsplit = i + cmd.maxsplit + flag_arg_count
                     return split.simple_split(argstr, keep=keep,
                                               maxsplit=maxsplit)
-            else:  # pylint: disable=useless-else-on-loop
-                # If there are only flags, we got it right on the first try
-                # already.
-                return split_args
+
+            # If there are only flags, we got it right on the first try
+            # already.
+            return split_args
 
     def run(self, text, count=None):
         """Parse a command from a line of text and run it.
