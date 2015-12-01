@@ -47,7 +47,8 @@ class FakeDNS:
     FakeDNSAnswer = collections.namedtuple('FakeDNSAnswer', ['error'])
 
     def __init__(self):
-        self.reset()
+        self.used = False
+        self.answer = None
 
     def __repr__(self):
         return utils.get_repr(self, used=self.used, answer=self.answer)

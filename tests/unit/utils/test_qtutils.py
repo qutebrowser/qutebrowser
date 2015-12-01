@@ -933,6 +933,8 @@ class TestEventLoop:
         loop: The EventLoop we're testing.
     """
 
+    # pylint: disable=attribute-defined-outside-init
+
     def _assert_executing(self):
         """Slot which gets called from timers to be sure the loop runs."""
         assert self.loop._executing

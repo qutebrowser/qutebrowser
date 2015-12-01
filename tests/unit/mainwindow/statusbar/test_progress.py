@@ -71,7 +71,9 @@ def fake_statusbar(qtbot):
     vbox.addStretch()
 
     statusbar = FakeStatusBar(container)
-    statusbar.container = container  # to make sure container isn't GCed
+    # to make sure container isn't GCed
+    # pylint: disable=attribute-defined-outside-init
+    statusbar.container = container
     vbox.addWidget(statusbar)
 
     container.show()

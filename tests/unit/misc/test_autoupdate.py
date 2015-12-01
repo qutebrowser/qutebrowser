@@ -38,6 +38,7 @@ class HTTPGetStub(httpclient.HTTPClient):
 
     def __init__(self, success=True, json=None):
         super().__init__()
+        self.url = None
         self._success = success
         if json:
             self._json = json

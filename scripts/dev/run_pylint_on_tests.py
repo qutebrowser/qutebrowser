@@ -49,7 +49,6 @@ def main():
                 files.append(os.path.join(dirpath, fn))
 
     disabled = [
-        'attribute-defined-outside-init',
         'redefined-outer-name',
         'unused-argument',
         'missing-docstring',
