@@ -47,6 +47,7 @@ def main():
         for fn in filenames:
             if os.path.splitext(fn)[1] == '.py':
                 files.append(os.path.join(dirpath, fn))
+
     disabled = [
         'attribute-defined-outside-init',
         'redefined-outer-name',
@@ -56,11 +57,20 @@ def main():
         # https://bitbucket.org/logilab/pylint/issue/511/
         'undefined-variable',
     ]
+
+    toxinidir = sys.argv[1]
+    pythonpath = os.environ['PYTHONPATH'].split(os.pathsep) + [
+        toxinidir,
+    ]
+
     no_docstring_rgx = ['^__.*__$', '^setup$']
     args = (['--disable={}'.format(','.join(disabled)),
              '--no-docstring-rgx=({})'.format('|'.join(no_docstring_rgx))] +
-            sys.argv[1:] + files)
-    ret = subprocess.call(['pylint'] + args)
+            sys.argv[2:] + files)
+    env = os.environ.copy()
+    env['PYTHONPATH'] = os.pathsep.join(pythonpath)
+
+    ret = subprocess.call(['pylint'] + args, env=env)
     return ret
 
 
