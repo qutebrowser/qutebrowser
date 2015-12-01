@@ -29,9 +29,11 @@ from PyQt5.QtCore import pyqtSlot, pyqtSignal, QUrl, QObject
 from PyQt5 import QtCore, QtGui
 from PyQt5.QtWidgets import QApplication
 
-from qutebrowser.utils import usertypes, standarddir, objreg, log
+from qutebrowser.utils import usertypes, standarddir, objreg, log, jinja
 from qutebrowser.commands import runners, cmdutils, cmdexc
+from qutebrowser.completion.models import instances
 from qutebrowser.misc import lineparser
+from qutebrowser.browser.network import qutescheme
 from qutebrowser.mainwindow import mainwindow
 
 class add_as_event:
@@ -116,6 +118,7 @@ class AutocommandsManager(QObject):
         page = self.sender()
         parent = page.parent()
         win_id = parent.win_id
+        tab_id = parent.tab_id
         url = page.mainFrame().requestedUrl().toString()
         for url_pattern in self.available_events[event]['commands']:
             if url_pattern == '*' or re.match(url_pattern, url) != None:
@@ -129,7 +132,8 @@ class AutocommandsManager(QObject):
 
     @cmdutils.register(instance='autocmds-manager', 
             completion=[usertypes.Completion.autocommands, 
-                usertypes.Completion.autocommand_events])
+            usertypes.Completion.autocommand_events], 
+            maxsplit = 2, no_cmd_split = True)
     def autocmd(self, event = None, url_pattern = None, cmd = None):
         """Adds an auto command
 
@@ -138,16 +142,43 @@ class AutocommandsManager(QObject):
             url_pattern: The url pattern for which the command will be executed
             cmd: The command to be executed
         """
-        if event is not None and url_pattern is not None:
-            if cmd is not None:
-                self.available_events[event]['commands'][url_pattern] = cmd
-                self.changed.emit()
+        app = objreg.get('app')
+        window = app.activeWindow()
+        if cmd is not None and url_pattern is not None and event is not None:
+            self.available_events[event]['commands'][url_pattern] = cmd
+            self.__changed()
+        elif url_pattern != None and event is not None:
+            if url_pattern in self.available_events[event]['commands']:
+                del self.available_events[event]['commands'][url_pattern]
+                self.__changed()
             else:
-                if url_pattern in self.available_events[event]['commands']:
-                    del self.available_events[event]['commands'][url_pattern]
-                    self.changed.emit()
-                else:
-                    raise cmdexc.CommandError("No autocmd set for this event and this url pattern")
+                raise cmdexc.CommandError("No autocmd set for %s and %s" % (event, url_pattern))
+        elif event != None:
+            cmds = len(self.available_events[event]['commands'])
+            if cmds == 0:
+                raise cmdexc.CommandError("No auto command for %s" % event)
+            do_del = True
+            if cmds >= 2:
+                q = usertypes.Question()
+                q.text = 'Are you sure you want to delete \n    all commands for {} event? (Y/N)'.format(event) 
+                q.mode = mode=usertypes.PromptMode.yesno
+                bridge = objreg.get('message-bridge', scope='window', window=window.win_id)
+                bridge.ask(q, blocking=True)
+                if not q.answer:
+                    do_del = False
+
+            if do_del:
+                self.available_events[event]['commands'] = {}
+                self.__changed()
+        else:
+            tabbed_browser = objreg.get('tabbed-browser', scope='window', window=window.win_id)
+            tabbed_browser.tabopen(QUrl('qute:autocmds'), background=False, explicit=True)
+
+
+
+    def __changed(self):
+        self.changed.emit()
+        instances.init_autocommands_completions()
 
 
 @add_as_event(help_text = '(bool ok) The page has finished loading')
@@ -197,4 +228,16 @@ def selectionChanged():
 def downloadRequested(request):
     autocmds_manager = objreg.get('autocmds-manager')
     autocmds_manager.run_command('downloadRequested', {'url': request.url().toString()})
+
+@qutescheme.add_handler('autocmds')
+def autocommands_list(win_id, request):
+    """Handler for qute:autocmds. View the list of auto commands"""
+    autocmds_manager = objreg.get('autocmds-manager')
+    autocommands = {}
+    for event in autocmds_manager.available_events:
+        if len(autocmds_manager.available_events[event]['commands']) > 0:
+            autocommands[event] = autocmds_manager.available_events[event]
+    html = jinja.env.get_template('autocommands.html').render(
+        autocommands = autocommands)
+    return html.encode('UTF-8', errors='xmlcharrefreplace')
 

@@ -1,0 +1,24 @@
+{% extends "base.html" %}
+
+{% block style %}
+table { border: 1px solid grey; border-collapse: collapse; }
+pre { margin: 2px; }
+th, td { border: 1px solid grey; padding: 0px 5px; }
+th { background: lightgrey; }
+th pre { color: grey; text-align: left; }
+{% endblock %}
+
+{% block content %}
+<header><h1>Available auto commands and events</h1></header>
+<table>
+{% for event in autocommands %}
+  <tr><th colspan="2"><h3>{{ event }}</h3></th></tr>
+  {% for url_pattern in autocommands[event]['commands'] %}
+    <tr>
+      <td>{{ url_pattern }}</td>
+      <td><pre>{{ autocommands[event]['commands'][url_pattern] }}</pre></td>
+    </tr>
+  {% endfor %}
+{% endfor %}
+</table>
+{% endblock %}
