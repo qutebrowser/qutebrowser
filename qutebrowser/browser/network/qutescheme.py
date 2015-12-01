@@ -21,7 +21,7 @@
 # up for this whole module.
 
 # pylint: disable=no-member
-# https://bitbucket.org/logilab/pylint/issue/490/
+# WORKAROUND for https://bitbucket.org/logilab/pylint/issue/490/
 
 """Handler functions for different qute:... pages.
 

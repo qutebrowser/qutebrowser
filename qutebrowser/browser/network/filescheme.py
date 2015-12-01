@@ -72,7 +72,7 @@ def dirbrowser_html(path):
     title = "Browse directory: {}".format(path)
     template = jinja.env.get_template('dirbrowser.html')
     # pylint: disable=no-member
-    # https://bitbucket.org/logilab/pylint/issue/490/
+    # WORKAROUND for https://bitbucket.org/logilab/pylint/issue/490/
 
     if is_root(path):
         parent = None

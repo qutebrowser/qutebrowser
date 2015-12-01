@@ -1190,7 +1190,7 @@ class CommandDispatcher:
     def view_source(self):
         """Show the source of the current page."""
         # pylint: disable=no-member
-        # https://bitbucket.org/logilab/pylint/issue/491/
+        # WORKAROUND for https://bitbucket.org/logilab/pylint/issue/491/
         widget = self._current_widget()
         if widget.viewing_source:
             raise cmdexc.CommandError("Already viewing source!")
