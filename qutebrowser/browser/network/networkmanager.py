@@ -57,7 +57,7 @@ class SslError(QSslError):
     def __hash__(self):
         try:
             # Qt >= 5.4
-            return super().__hash__()
+            return super().__hash__()  # pylint: disable=not-callable
         except TypeError:
             return hash((self.certificate().toDer(), self.error()))
 
