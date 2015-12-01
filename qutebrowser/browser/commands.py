@@ -1554,10 +1554,10 @@ class CommandDispatcher:
         """
         webview = self._current_widget()
         if not webview.selection_enabled:
-            act = [QWebPage.MoveToEndOfBlock, QWebPage.MoveToNextLine,
+            act = [QWebPage.MoveToNextLine,
                    QWebPage.MoveToStartOfBlock]
         else:
-            act = [QWebPage.SelectEndOfBlock, QWebPage.SelectNextLine,
+            act = [QWebPage.SelectNextLine,
                    QWebPage.SelectStartOfBlock]
         for _ in range(count):
             for a in act:
@@ -1573,10 +1573,10 @@ class CommandDispatcher:
         """
         webview = self._current_widget()
         if not webview.selection_enabled:
-            act = [QWebPage.MoveToStartOfBlock, QWebPage.MoveToPreviousLine,
+            act = [QWebPage.MoveToPreviousLine,
                    QWebPage.MoveToStartOfBlock]
         else:
-            act = [QWebPage.SelectStartOfBlock, QWebPage.SelectPreviousLine,
+            act = [QWebPage.SelectPreviousLine,
                    QWebPage.SelectStartOfBlock]
         for _ in range(count):
             for a in act:
@@ -1592,10 +1592,10 @@ class CommandDispatcher:
         """
         webview = self._current_widget()
         if not webview.selection_enabled:
-            act = [QWebPage.MoveToEndOfBlock, QWebPage.MoveToNextLine,
+            act = [QWebPage.MoveToNextLine,
                    QWebPage.MoveToEndOfBlock]
         else:
-            act = [QWebPage.SelectEndOfBlock, QWebPage.SelectNextLine,
+            act = [QWebPage.SelectNextLine,
                    QWebPage.SelectEndOfBlock]
         for _ in range(count):
             for a in act:
