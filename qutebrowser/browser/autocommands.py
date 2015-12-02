@@ -37,6 +37,7 @@ from qutebrowser.browser.network import qutescheme
 from qutebrowser.mainwindow import mainwindow
 
 class add_as_event:
+    """Add a new method as autocmd event."""
     available_events = {}
 
     def __init__(self, help_text):
@@ -47,13 +48,9 @@ class add_as_event:
 
 
 class AutocommandsManager(QObject):
-    """Manager for autocommands.
+    """Manage for autocommands.
 
-    The primary key for commands is the combination between the regexp url pattern and the event type, this means:
-
-        - self.marks maps URLs to titles.
-        - changed gets emitted with the URL as first argument and the title as
-          second argument.
+    The primary key for commands is the combination between the regexp url pattern and the event type.
     """
 
     changed = pyqtSignal()
@@ -88,6 +85,12 @@ class AutocommandsManager(QObject):
         self._init_savemanager(objreg.get('save-manager'))
 
     def register_events(self, obj):
+        """Registers the events (connect the slots to the defined methods)
+
+        Args:
+            obj: The object which will emmit the signals (for the moment the webview.page() object)
+        """
+
         methods = dir(obj)
         for key in self.available_events.keys():
             idx = methods.index(key)
@@ -115,6 +118,12 @@ class AutocommandsManager(QObject):
                 self.available_events[self.current_section]['commands'][parts[0]] = parts[1]
 
     def run_command(self, event, parameters = {}):
+        """ Runs a commands
+
+        Args: 
+            event: The event which triggered the command
+            parameters: A dictionary with the arguments of the event.
+        """
         page = self.sender()
         parent = page.parent()
         win_id = parent.win_id
@@ -126,6 +135,8 @@ class AutocommandsManager(QObject):
                 for key in parameters.keys():
                     cmd = cmd.replace('{' + key + '}', str(parameters[key]))
                 log.autocmds.debug("Executing {} because of {} for {}".format(cmd, event, url_pattern))
+                # It would be nice if we could run a command in a specific tab. Like this, 
+                # we would be able to run the autoevents in the tab which triggered them
                 runner = runners.CommandRunner(win_id)
                 runner.run_safely(cmd)
 
