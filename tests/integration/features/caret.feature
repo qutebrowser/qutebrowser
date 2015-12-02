@@ -18,7 +18,6 @@ Feature: Caret mode
             four five six
             vier fünf sechs
 
-    @xfail_issue1142_windows
     Scenario: Moving to end and to start of document
         When I run :move-to-end-of-document
         And I run :move-to-start-of-document
@@ -49,7 +48,6 @@ Feature: Caret mode
             one two three
             eins zwei drei
 
-    @xfail_issue1142_osx
     Scenario: Moving back to the end of previous block (with selection)
         When I run :move-to-end-of-next-block with count 2
         And I run :toggle-selection
@@ -61,7 +59,6 @@ Feature: Caret mode
 
             four five six
 
-    @xfail_issue1142_windows
     Scenario: Moving back to the end of previous block
         When I run :move-to-end-of-next-block with count 2
         And I run :move-to-end-of-prev-block
@@ -80,7 +77,6 @@ Feature: Caret mode
 
             four five six
 
-    @xfail_issue1142_windows
     Scenario: Moving back to the start of previous block
         When I run :move-to-end-of-next-block with count 2
         And I run :move-to-start-of-prev-block
@@ -89,14 +85,12 @@ Feature: Caret mode
         And I yank the selected text
         Then the clipboard should contain "eins "
 
-    @xfail_issue1142_osx
     Scenario: Moving to the start of next block (with selection)
         When I run :toggle-selection
         And I run :move-to-start-of-next-block
         And I yank the selected text
         Then the clipboard should contain "one two three\n"
 
-    @xfail_issue1142_windows
     Scenario: Moving to the start of next block
         When I run :move-to-start-of-next-block
         And I run :toggle-selection
@@ -125,7 +119,6 @@ Feature: Caret mode
         And I yank the selected text
         Then the clipboard should contain "one two three\n"
 
-    @xfail_issue1142_windows
     Scenario: Moving to end and to start of line
         When I run :move-to-end-of-line
         And I run :move-to-start-of-line
@@ -158,14 +151,12 @@ Feature: Caret mode
 
     # word
 
-    @xfail_issue1142_windows
     Scenario: Selecting a word
         When I run :toggle-selection
         And I run :move-to-end-of-word
         And I yank the selected text
         Then the clipboard should contain "one"
 
-    @xfail_issue1142_windows
     Scenario: Moving to end and selecting a word
         When I run :move-to-end-of-word
         And I run :toggle-selection
@@ -173,7 +164,6 @@ Feature: Caret mode
         And I yank the selected text
         Then the clipboard should contain " two"
 
-    @xfail_issue1142_windows
     Scenario: Moving to next word and selecting a word
         When I run :move-to-next-word
         And I run :toggle-selection
@@ -181,7 +171,6 @@ Feature: Caret mode
         And I yank the selected text
         Then the clipboard should contain "two"
 
-    @xfail_issue1142_windows
     Scenario: Moving to next word and selecting until next word
         When I run :move-to-next-word
         And I run :toggle-selection
@@ -189,7 +178,6 @@ Feature: Caret mode
         And I yank the selected text
         Then the clipboard should contain "two "
 
-    @xfail_issue1142_windows
     Scenario: Moving to previous word and selecting a word
         When I run :move-to-end-of-word
         And I run :toggle-selection
@@ -197,7 +185,6 @@ Feature: Caret mode
         And I yank the selected text
         Then the clipboard should contain "one"
 
-    @xfail_issue1142_windows
     Scenario: Moving to previous word
         When I run :move-to-end-of-word
         And I run :move-to-prev-word
@@ -221,7 +208,6 @@ Feature: Caret mode
         And I yank the selected text
         Then the clipboard should contain "n"
 
-    @xfail_issue1142_windows
     Scenario: Selecting previous char
         When I run :move-to-end-of-word
         And I run :toggle-selection
@@ -229,7 +215,6 @@ Feature: Caret mode
         And I yank the selected text
         Then the clipboard should contain "e"
 
-    @xfail_issue1142_windows
     Scenario: Moving to previous char
         When I run :move-to-end-of-word
         And I run :move-to-prev-char
@@ -244,7 +229,6 @@ Feature: Caret mode
         When I run :yank-selected
         Then the message "Nothing to yank" should be shown.
 
-    @xfail_issue1142_windows
     Scenario: :yank-selected message
         When I run :toggle-selection
         And I run :move-to-end-of-word
@@ -265,7 +249,6 @@ Feature: Caret mode
         Then the message "3 chars yanked to primary selection" should be shown.
         And the primary selection should contain "one"
 
-    @xfail_issue1142_windows
     Scenario: :yank-selected with --keep
         When I run :toggle-selection
         And I run :move-to-end-of-word

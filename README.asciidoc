@@ -151,9 +151,9 @@ Contributors, sorted by the number of commits in descending order:
 * Claude
 * meles5
 * Patric Schmitz
+* Artur Shaik
 * Nathan Isom
 * Austin Anderson
-* Artur Shaik
 * Thorsten Wißmann
 * Alexey "Averrin" Nabrodov
 * ZDarian
