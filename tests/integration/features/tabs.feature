@@ -384,7 +384,8 @@ Feature: Tab management
             - data/numbers/2.txt
 
     Scenario: :tab-move with relative position and too big count.
-        When I open data/numbers/1.txt
+        When I set tabs -> wrap to false
+        And I open data/numbers/1.txt
         And I open data/numbers/2.txt in a new tab
         And I open data/numbers/3.txt in a new tab
         And I run :tab-focus 1

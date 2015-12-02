@@ -900,6 +900,8 @@ class CommandDispatcher:
                 new_idx = self._current_index() - delta
             elif direction == '+':  # pragma: no branch
                 new_idx = self._current_index() + delta
+            if config.get('tabs', 'wrap'):
+                new_idx = new_idx % self._count()
         else:  # pragma: no cover
             raise ValueError("Invalid direction '{}'!".format(direction))
 
