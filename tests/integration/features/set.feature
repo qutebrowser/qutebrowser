@@ -58,7 +58,7 @@ Feature: Setting settings.
 
     Scenario: Opening qute:settings
         When I run :set
-        And I wait for "load status for <qutebrowser.browser.webview.WebView tab_id=0 url='qute:settings'>: LoadStatus.success" in the log
+        And I wait until qute:settings is loaded
         Then the following tabs should be open:
             - qute:settings (active)
 
