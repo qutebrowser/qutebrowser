@@ -25,6 +25,7 @@ Added
 - New userscripts in `misc/userscripts`:
     - `open_download` to easily open a file in your downloads folder.
     - `view_in_mpv` to open a video in mpv and remove it from the page.
+    - `qutedmenu` and `dmenu_qutebrowser` to select URLs via dmenu
 - New setting `content -> host-blocking-whitelist` to whitelist certain domains
   from the adblocker.
 - `{scroll_pos}` can now be used in `ui -> window-title-format` and
@@ -77,6 +78,11 @@ Changed
 - Updated the user agent list for the `:set network user-agent` completion.
 - Starting with `--debug` doesn't log `VDEBUG` messages anymore (add
   `--loglevel VDEBUG` to get them).
+- `:debug-console` now hides the console if it's already shown.
+- `:yank-selected` now doesn't log the selected text anymore.
+- `general -> log-javascript-console` got changed from a boolean to an option
+  taking a loglevel (`none`, `info`, `debug`).
+- `:tab-move +/-` now wraps around if `tabs -> wrap` is `true`.
 
 Deprecated
 ~~~~~~~~~~
@@ -98,6 +104,9 @@ Fixed
 - Fixed crash when using `:follow-hint` outside of hint mode.
 - Fixed crash when using `:set foo bar?` with invalid section/option.
 - Fixed scrolling to the very left/right with `:scroll-perc`.
+- Using an external editor should now work correctly with some funny chars
+  (U+2028/U+2029/BOM).
+- Movements in caret mode now should work correctly on OS X and Windows.
 
 v0.4.1
 ------
