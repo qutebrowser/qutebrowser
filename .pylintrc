@@ -30,7 +30,6 @@ disable=no-self-use,
         file-ignored,
         wrong-import-order,
         ungrouped-imports,
-        wrong-import-position,
         redefined-variable-type,
         suppressed-message
 
