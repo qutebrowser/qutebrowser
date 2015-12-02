@@ -384,12 +384,36 @@ Feature: Tab management
             - data/numbers/2.txt
 
     Scenario: :tab-move with relative position and too big count.
-        When I open data/numbers/1.txt
+        When I set tabs -> wrap to false
+        And I open data/numbers/1.txt
         And I open data/numbers/2.txt in a new tab
         And I open data/numbers/3.txt in a new tab
         And I run :tab-focus 1
         And I run :tab-move + with count 3
         Then the error "Can't move tab to position 4!" should be shown
+
+    Scenario: :tab-move with relative position (positive) and wrap
+        When I set tabs -> wrap to true
+        And I open data/numbers/1.txt
+        And I open data/numbers/2.txt in a new tab
+        And I open data/numbers/3.txt in a new tab
+        And I run :tab-move +
+        Then the following tabs should be open:
+            - data/numbers/3.txt (active)
+            - data/numbers/1.txt
+            - data/numbers/2.txt
+
+    Scenario: :tab-move with relative position (negative), wrap and count
+        When I set tabs -> wrap to true
+        And I open data/numbers/1.txt
+        And I open data/numbers/2.txt in a new tab
+        And I open data/numbers/3.txt in a new tab
+        And I run :tab-focus 1
+        And I run :tab-move - with count 8
+        Then the following tabs should be open:
+            - data/numbers/2.txt
+            - data/numbers/1.txt (active)
+            - data/numbers/3.txt
 
     Scenario: Make sure :tab-move retains metadata
         When I open data/title.html
