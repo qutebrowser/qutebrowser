@@ -185,6 +185,7 @@ Feature: Various utility commands.
     Scenario: :help without topic
         When I run :tab-only
         And I run :help
+        And I wait until qute://help/index.html is loaded
         Then the following tabs should be open:
             - qute://help/index.html (active)
 
@@ -195,6 +196,7 @@ Feature: Various utility commands.
     Scenario: :help with command
         When I run :tab-only
         And I run :help :back
+        And I wait until qute://help/commands.html#back is loaded
         Then the following tabs should be open:
             - qute://help/commands.html#back (active)
 
@@ -205,6 +207,7 @@ Feature: Various utility commands.
     Scenario: :help with setting
         When I run :tab-only
         And I run :help general->editor
+        And I wait until qute://help/settings.html#general-editor is loaded
         Then the following tabs should be open:
             - qute://help/settings.html#general-editor (active)
 
@@ -224,6 +227,7 @@ Feature: Various utility commands.
         When I open about:blank
         And I run :tab-only
         And I run :help -t
+        And I wait until qute://help/index.html is loaded
         Then the following tabs should be open:
             - about:blank
             - qute://help/index.html (active)
