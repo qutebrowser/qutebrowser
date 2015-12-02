@@ -21,6 +21,7 @@
 
 import os
 import os.path
+import sys
 import shlex
 import posixpath
 import functools
@@ -1486,11 +1487,16 @@ class CommandDispatcher:
         """
         webview = self._current_widget()
         if not webview.selection_enabled:
-            act = QWebPage.MoveToNextWord
+            act = [QWebPage.MoveToNextWord]
+            if sys.platform == 'win32':
+                act.append(QWebPage.MoveToPreviousChar)
         else:
-            act = QWebPage.SelectNextWord
+            act = [QWebPage.SelectNextWord]
+            if sys.platform == 'win32':
+                act.append(QWebPage.SelectPreviousChar)
         for _ in range(count):
-            webview.triggerPageAction(act)
+            for a in act:
+                webview.triggerPageAction(a)
 
     @cmdutils.register(instance='command-dispatcher', hide=True,
                        modes=[KeyMode.caret], scope='window', count='count')
@@ -1502,9 +1508,13 @@ class CommandDispatcher:
         """
         webview = self._current_widget()
         if not webview.selection_enabled:
-            act = [QWebPage.MoveToNextWord, QWebPage.MoveToNextChar]
+            act = [QWebPage.MoveToNextWord]
+            if sys.platform != 'win32':
+                act.append(QWebPage.MoveToNextChar)
         else:
-            act = [QWebPage.SelectNextWord, QWebPage.SelectNextChar]
+            act = [QWebPage.SelectNextWord]
+            if sys.platform != 'win32':
+                act.append(QWebPage.SelectNextChar)
         for _ in range(count):
             for a in act:
                 webview.triggerPageAction(a)
@@ -1557,10 +1567,10 @@ class CommandDispatcher:
         """
         webview = self._current_widget()
         if not webview.selection_enabled:
-            act = [QWebPage.MoveToEndOfBlock, QWebPage.MoveToNextLine,
+            act = [QWebPage.MoveToNextLine,
                    QWebPage.MoveToStartOfBlock]
         else:
-            act = [QWebPage.SelectEndOfBlock, QWebPage.SelectNextLine,
+            act = [QWebPage.SelectNextLine,
                    QWebPage.SelectStartOfBlock]
         for _ in range(count):
             for a in act:
@@ -1576,10 +1586,10 @@ class CommandDispatcher:
         """
         webview = self._current_widget()
         if not webview.selection_enabled:
-            act = [QWebPage.MoveToStartOfBlock, QWebPage.MoveToPreviousLine,
+            act = [QWebPage.MoveToPreviousLine,
                    QWebPage.MoveToStartOfBlock]
         else:
-            act = [QWebPage.SelectStartOfBlock, QWebPage.SelectPreviousLine,
+            act = [QWebPage.SelectPreviousLine,
                    QWebPage.SelectStartOfBlock]
         for _ in range(count):
             for a in act:
@@ -1595,10 +1605,10 @@ class CommandDispatcher:
         """
         webview = self._current_widget()
         if not webview.selection_enabled:
-            act = [QWebPage.MoveToEndOfBlock, QWebPage.MoveToNextLine,
+            act = [QWebPage.MoveToNextLine,
                    QWebPage.MoveToEndOfBlock]
         else:
-            act = [QWebPage.SelectEndOfBlock, QWebPage.SelectNextLine,
+            act = [QWebPage.SelectNextLine,
                    QWebPage.SelectEndOfBlock]
         for _ in range(count):
             for a in act:
@@ -1614,11 +1624,9 @@ class CommandDispatcher:
         """
         webview = self._current_widget()
         if not webview.selection_enabled:
-            act = [QWebPage.MoveToStartOfBlock, QWebPage.MoveToPreviousLine,
-                   QWebPage.MoveToEndOfBlock]
+            act = [QWebPage.MoveToPreviousLine, QWebPage.MoveToEndOfBlock]
         else:
-            act = [QWebPage.SelectStartOfBlock, QWebPage.SelectPreviousLine,
-                   QWebPage.SelectEndOfBlock]
+            act = [QWebPage.SelectPreviousLine, QWebPage.SelectEndOfBlock]
         for _ in range(count):
             for a in act:
                 webview.triggerPageAction(a)
