@@ -50,8 +50,7 @@ class Section:
         Return:
             The value, as value class.
         """
-        # WORKAROUND for https://bitbucket.org/logilab/pylint/issues/685/
-        return self.values[key]  # pylint: disable=unsubscriptable-object
+        return self.values[key]
 
     def __iter__(self):
         """Iterate over all set values."""
