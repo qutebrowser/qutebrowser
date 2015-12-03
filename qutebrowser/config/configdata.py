@@ -231,6 +231,10 @@ def data(readonly=False):
              "The URL segments where `:navigate increment/decrement` will "
              "search for a number."),
 
+            ('enable-autocmds',
+             SettingValue(typ.Bool(), 'false'),
+             "Enable the auto commands (requires restart)"),
+
             readonly=readonly
         )),
 

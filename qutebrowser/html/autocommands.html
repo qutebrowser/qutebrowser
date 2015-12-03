@@ -9,7 +9,7 @@ th pre { color: grey; text-align: left; }
 {% endblock %}
 
 {% block content %}
-<header><h1>Available auto commands and events</h1></header>
+<header><h1>{{ header_text }}</h1></header>
 <table>
 {% for event in autocommands %}
   <tr><th colspan="2"><h3>{{ event }}</h3></th></tr>

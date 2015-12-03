@@ -157,7 +157,8 @@ class WebView(QWebView):
         page.networkAccessManager().sslErrors.connect(
             lambda *args: setattr(self, '_has_ssl_errors', True))
         autocmds_manager = objreg.get('autocmds-manager')
-        autocmds_manager.register_events(page)
+        if autocmds_manager.enabled:
+            autocmds_manager.register_events(page)
         return page
 
     def __repr__(self):

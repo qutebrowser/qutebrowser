@@ -1,6 +1,5 @@
 # vim: ft=python fileencoding=utf-8 sts=4 sw=4 et:
 
-# Copyright 2014-2015 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
 # Copyright 2015 Antoni Boucher <bouanto@zoho.com>
 #
 # This file is part of qutebrowser.
@@ -29,6 +28,7 @@ from PyQt5.QtCore import pyqtSlot, pyqtSignal, QUrl, QObject
 from PyQt5 import QtCore, QtGui
 from PyQt5.QtWidgets import QApplication
 
+from qutebrowser.config import config
 from qutebrowser.utils import usertypes, standarddir, objreg, log, jinja
 from qutebrowser.commands import runners, cmdutils, cmdexc
 from qutebrowser.completion.models import instances
@@ -72,6 +72,7 @@ class AutocommandsManager(QObject):
         super().__init__(parent)
 
         self.available_events = add_as_event.available_events
+        self.enabled = config.get('general', 'enable-autocmds')
 
         self._lineparser = None
 
@@ -248,7 +249,12 @@ def autocommands_list(win_id, request):
     for event in autocmds_manager.available_events:
         if len(autocmds_manager.available_events[event]['commands']) > 0:
             autocommands[event] = autocmds_manager.available_events[event]
+    header_text = "Available auto commands and events"
+    if not autocmds_manager.enabled:
+        header_text = "NOTE: The autocommands are disabled. " \
+        "To enable them, set the general.enable_autocmds option " \
+        "and then restart the browser"
     html = jinja.env.get_template('autocommands.html').render(
-        autocommands = autocommands)
+        autocommands=autocommands, header_text=header_text)
     return html.encode('UTF-8', errors='xmlcharrefreplace')
 
