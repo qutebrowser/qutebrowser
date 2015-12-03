@@ -72,10 +72,6 @@ class Section:
         """Get value keys."""
         return self.values.keys()
 
-    def delete(self, key):
-        """Delete item with given key"""
-        del self.values[key]
-
     def setv(self, layer, key, value, interpolated):
         """Set the value on a layer.
 
