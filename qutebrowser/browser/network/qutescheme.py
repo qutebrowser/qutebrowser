@@ -31,6 +31,7 @@ Module attributes:
 
 import functools
 import configparser
+import mimetypes
 
 from PyQt5.QtCore import pyqtSlot, QObject
 from PyQt5.QtNetwork import QNetworkReply
@@ -94,8 +95,11 @@ class QuteSchemeHandler(schemehandler.SchemeHandler):
             return networkreply.ErrorNetworkReply(
                 request, str(e), QNetworkReply.ContentNotFoundError,
                 self.parent())
+        mimetype, _encoding = mimetypes.guess_type(request.url().fileName())
+        if mimetype is None:
+            mimetype = 'text/html'
         return networkreply.FixedDataNetworkReply(
-            request, data, 'text/html', self.parent())
+            request, data, mimetype, self.parent())
 
 
 class JSBridge(QObject):
