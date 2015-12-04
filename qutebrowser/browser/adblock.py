@@ -26,7 +26,7 @@ import posixpath
 import zipfile
 import fnmatch
 
-from qutebrowser.config import config
+from qutebrowser.config import config, configexc
 from qutebrowser.utils import objreg, standarddir, log, message
 from qutebrowser.commands import cmdutils, cmdexc
 
@@ -66,7 +66,11 @@ def is_whitelisted_host(host):
     Args:
         host: The host of the request as string.
     """
-    whitelist = config.get('content', 'host-blocking-whitelist')
+    try:
+        whitelist = config.get('content', 'host-blocking-whitelist')
+    except configexc.NoOptionError:
+        return False
+
     for pattern in whitelist:
         if fnmatch.fnmatch(host, pattern.lower()):
             return True
