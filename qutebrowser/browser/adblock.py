@@ -67,9 +67,6 @@ def is_whitelisted_host(host):
         host: The host of the request as string.
     """
     whitelist = config.get('content', 'host-blocking-whitelist')
-    if whitelist is None:
-        return False
-
     for pattern in whitelist:
         if fnmatch.fnmatch(host, pattern.lower()):
             return True
