@@ -183,6 +183,7 @@ Contributors, sorted by the number of commits in descending order:
 * Mathias Fussenegger
 * Fritz V155 Reichwald
 * Franz Fellner
+* Corentin Jule
 * zwarag
 * xd1le
 * Tim Harder

@@ -619,7 +619,7 @@ class ConfigManager(QObject):
         optname = self.optionxform(optname)
         existed = optname in sectdict
         if existed:
-            del sectdict[optname]
+            sectdict.delete(optname)
             # WORKAROUND for https://bitbucket.org/logilab/pylint/issues/659/
             self.get.cache_clear()  # pylint: disable=no-member
         return existed
