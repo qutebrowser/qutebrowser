@@ -30,6 +30,7 @@ import email.policy
 import email.generator
 import email.encoders
 import email.mime.multipart
+import email.message
 
 from PyQt5.QtCore import QUrl
 
@@ -205,11 +206,10 @@ class MHTMLWriter:
         return self._create_file(root_file)
 
     def _create_file(self, f):
-        """Return the single given file as MIMEMultipart."""
-        msg = email.mime.multipart.MIMEMultipart()
+        """Return the single given file as email.message.Message."""
+        msg = email.message.Message()
+        msg['MIME-Version'] = '1.0'
         msg['Content-Location'] = f.content_location
-        # Get rid of the default type multipart/mixed
-        del msg['Content-Type']
         if f.content_type:
             msg.set_type(f.content_type)
         msg.set_payload(f.content)
@@ -475,7 +475,7 @@ def _start_download(dest, web_view):
 
     Args:
         dest: The filename where the resulting file should be saved.
-        win_id, tab_id: Specify the tab whose page should be loaded.
+        web_view: Specify the webview whose page should be loaded.
     """
     loader = _Downloader(web_view, dest)
     loader.run()
