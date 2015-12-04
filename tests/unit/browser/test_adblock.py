@@ -1,6 +1,5 @@
-#!/usr/bin/env python3
-
 # vim: ft=python fileencoding=utf-8 sts=4 sw=4 et:
+#!/usr/bin/env python3
 
 # Copyright 2014-2015 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
 #
@@ -21,18 +20,22 @@
 
 """Tests for qutebrowser.browser.adblock"""
 
+import os
+import zipfile
+
 import pytest
+
 from qutebrowser.browser import adblock
 from qutebrowser.config import config
 from qutebrowser.utils import objreg
-import os
-import zipfile
 
 # TODO Should I use it ? And how ?
 # @pytest.yield_fixture
 # def default_config():
 #     """Fixture that provides and registers an empty default config object."""
-#     config_obj = config.ConfigManager(configdir=None, fname=None, relaxed=True)
+#     config_obj = config.ConfigManager(configdir=None,
+#                                       fname=None,
+#                                       relaxed=True)
 #     objreg.register('config', config_obj)
 #     yield config_obj
 #     objreg.delete('config')
@@ -45,7 +48,7 @@ def create_text_files(files_names, directory):
     created_files = []
     for file_name in files_names:
         test_file = os.path.join(directory, file_name)
-        with open(test_file, 'w') as f:
+        with open(test_file, 'w', encoding='utf-8') as f:
             f.write('inside ' + file_name)
         created_files.append(test_file)
     return created_files
@@ -106,24 +109,32 @@ class TestIsWhitelistedHost:
     # FIXME Error since we deleted host-blocking-whitelist
     # If we don't remove host-block-whitelist, test behaves as in a mismatch
     # def test_with_no_whitelist(self):
-    #     config_obj = config.ConfigManager(configdir=None, fname=None, relaxed=True)
+    #     config_obj = config.ConfigManager(configdir=None,
+    #                                       fname=None,
+    #                                       relaxed=True)
     #     config_obj.remove_option('content','host-blocking-whitelist')
     #     objreg.register('config', config_obj)
     #     assert adblock.is_whitelisted_host('pimpmytest.com') == False
     #     objreg.delete('config')
 
     def test_with_match(self):
-        config_obj = config.ConfigManager(configdir=None, fname=None, relaxed=True)
-        config_obj.set('conf', 'content', 'host-blocking-whitelist', 'qutebrowser.org')
+        config_obj = config.ConfigManager(configdir=None, fname=None,
+                                          relaxed=True)
+        config_obj.set_command(0, section_='content',
+                                  option='host-blocking-whitelist',
+                                  value='qutebrowser.org')
         objreg.register('config', config_obj)
-        assert adblock.is_whitelisted_host('qutebrowser.org') == True
+        assert adblock.is_whitelisted_host('qutebrowser.org')
         objreg.delete('config')
 
     def test_without_match(self):
-        config_obj = config.ConfigManager(configdir=None, fname=None, relaxed=True)
-        config_obj.set('conf', 'content', 'host-blocking-whitelist', 'cutebrowser.org')
+        config_obj = config.ConfigManager(configdir=None, fname=None,
+                                          relaxed=True)
+        config_obj.set_command(0, section_='content',
+                                  option='host-blocking-whitelist',
+                                  value='cutebrowser.org')
         objreg.register('config', config_obj)
-        assert adblock.is_whitelisted_host('qutebrowser.org') == False
+        assert not adblock.is_whitelisted_host('qutebrowser.org')
         objreg.delete('config')
 
 
