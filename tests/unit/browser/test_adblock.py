@@ -97,38 +97,16 @@ class TestGetFileObj:
 class TestIsWhitelistedHost:
     """Test function adblock.is_whitelisted_host."""
 
-    # FIXME Error since we deleted host-blocking-whitelist
-    # If we don't remove host-block-whitelist, test behaves as in a mismatch
-    # def test_with_no_whitelist(self):
-    #     config_obj = config.ConfigManager(configdir=None,
-    #                                       fname=None,
-    #                                       relaxed=True)
-    #     config_obj.remove_option('content','host-blocking-whitelist')
-    #     objreg.register('config', config_obj)
-    #     assert adblock.is_whitelisted_host('pimpmytest.com') == False
-    #     objreg.delete('config')
-
-    def test_with_match(self):
+    def test_with_match(self, config_stub):
         """Given host is in the whitelist."""
-        config_obj = config.ConfigManager(configdir=None, fname=None,
-                                          relaxed=True)
-        config_obj.set_command(0, section_='content',
-                               option='host-blocking-whitelist',
-                               value='qutebrowser.org')
-        objreg.register('config', config_obj)
+        config_stub.data = {'content': {'host-blocking-whitelist': ['qutebrowser.org']}}
         assert adblock.is_whitelisted_host('qutebrowser.org')
-        objreg.delete('config')
 
-    def test_without_match(self):
+    def test_without_match(self, config_stub):
         """Given host is not in the whitelist."""
-        config_obj = config.ConfigManager(configdir=None, fname=None,
-                                          relaxed=True)
-        config_obj.set_command(0, section_='content',
-                               option='host-blocking-whitelist',
-                               value='cutebrowser.org')
-        objreg.register('config', config_obj)
-        assert not adblock.is_whitelisted_host('qutebrowser.org')
-        objreg.delete('config')
+        config_stub.data = {'content':
+                           {'host-blocking-whitelist':['qutebrowser.org']}}
+        assert not adblock.is_whitelisted_host('cutebrowser.org')
 
 
 class TestHostBlocker:
