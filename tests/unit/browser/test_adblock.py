@@ -26,8 +26,7 @@ import zipfile
 import pytest
 
 from qutebrowser.browser import adblock
-from qutebrowser.config import config
-from qutebrowser.utils import objreg
+from qutebrowser.config import configexc
 
 
 def create_text_files(files_names, directory):
@@ -97,19 +96,25 @@ class TestGetFileObj:
 class TestIsWhitelistedHost:
     """Test function adblock.is_whitelisted_host."""
 
+    def test_without_option(self, config_stub):
+        """Option host-blocking-whitelist does not exist"""
+        config_stub.data = {'content': {}}
+        with pytest.raises(configexc.NoOptionError):
+            adblock.is_whitelisted_host('qutebrowser.org')
+
     def test_with_match(self, config_stub):
         """Given host is in the whitelist."""
-        config_stub.data = {'content': {'host-blocking-whitelist': ['qutebrowser.org']}}
+        config_stub.data = {'content':
+                            {'host-blocking-whitelist': ['qutebrowser.org']}}
         assert adblock.is_whitelisted_host('qutebrowser.org')
 
     def test_without_match(self, config_stub):
         """Given host is not in the whitelist."""
         config_stub.data = {'content':
-                           {'host-blocking-whitelist':['qutebrowser.org']}}
+                            {'host-blocking-whitelist':['qutebrowser.org']}}
         assert not adblock.is_whitelisted_host('cutebrowser.org')
 
 
 class TestHostBlocker:
     """Test for class HostBlocker."""
-    # TODO
     pass
