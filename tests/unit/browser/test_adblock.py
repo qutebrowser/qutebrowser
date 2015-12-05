@@ -29,10 +29,11 @@ import pytest
 from PyQt5.QtCore import pyqtSignal, QUrl, QObject
 
 from qutebrowser.browser import adblock
-from qutebrowser.config import configexc
 from qutebrowser.utils import objreg
 
-UNDESIRED_HOSTS = ['badsite.org','verybadsite.com','worstsiteever.net']
+
+UNDESIRED_HOSTS = ['badsite.org', 'verybadsite.com', 'worstsiteever.net']
+
 
 class FakeDownloadItem(QObject):
     """Mock browser.downloads.DownloadItem."""
@@ -52,7 +53,7 @@ class FakeDownloadManager:
         """Returns a FakeDownloadItem instance with a fileobj
            copied from given fake url file."""
         download_item = FakeDownloadItem(fileobj)
-        with open(url.path(), 'rb') as fake_url_file :
+        with open(url.path(), 'rb') as fake_url_file:
             # Ensure cursors are at position 0 before copying
             fake_url_file.seek(0)
             download_item.fileobj.seek(0)
@@ -166,7 +167,7 @@ class TestHostBlocker:
         monkeypatch.setattr('qutebrowser.utils.standarddir.data',
                             lambda: None)
         host_blocker = adblock.HostBlocker()
-        assert host_blocker._hosts_file == None
+        assert host_blocker._hosts_file is None
 
     def test_with_datadir(self, config_stub, data_tmpdir, tmpdir):
         #TODO Remove since now useless as already tested by test_update
@@ -176,7 +177,7 @@ class TestHostBlocker:
 
     def test_update_with_url(self, config_stub, download_stub,
                              data_tmpdir, tmpdir, win_registry):
-        """Test update, checked Url host is in the new blocklist added by update
+        """Test update, checked Url is in the new blocklist added by update
            Remote Url is faked by a local file."""
         # Create blocklist and add it to config
         blocklist = QUrl(os.path.join(str(tmpdir), 'new_hosts.txt'))
@@ -196,7 +197,7 @@ class TestHostBlocker:
 
     def test_update_with_local_file(self, config_stub, download_stub,
                                     data_tmpdir, tmpdir, win_registry):
-        """Test update, checked Url host is in the new blocklist added by update
+        """Test update, checked Url is in the new blocklist added by update
            Url is a local file."""
         # Create blocklist
         local_blocklist = QUrl(os.path.join(str(tmpdir), 'new_hosts.txt'))
