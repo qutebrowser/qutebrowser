@@ -174,8 +174,8 @@ class TestHostBlocker:
         hosts_file_path = os.path.join(str(tmpdir), 'blocked-hosts')
         assert host_blocker._hosts_file == hosts_file_path
 
-    def test_update_with_fake_url(self, config_stub, download_stub,
-                                  data_tmpdir, tmpdir, win_registry):
+    def test_update_with_url(self, config_stub, download_stub,
+                             data_tmpdir, tmpdir, win_registry):
         """Test update, checked Url host is in the new blocklist added by update
            Remote Url is faked by a local file."""
         # Create blocklist and add it to config
@@ -191,16 +191,16 @@ class TestHostBlocker:
         host_blocker.adblock_update(0)
         #Simulate download is finished
         host_blocker._in_progress[0].finished.emit()
-        url_to_check = QUrl("www.ugly.verybadsite.com")
-        url_to_check.setHost("verybadsite.com")
+        url_to_check = QUrl("http://verybadsite.com")
         assert host_blocker.is_blocked(url_to_check)
 
     def test_update_with_local_file(self, config_stub, download_stub,
                                     data_tmpdir, tmpdir, win_registry):
         """Test update, checked Url host is in the new blocklist added by update
            Url is a local file."""
-        # Create blocklist and add it to config
+        # Create blocklist
         local_blocklist = QUrl(os.path.join(str(tmpdir), 'new_hosts.txt'))
+        # Declare the blacklist as a local file
         local_blocklist.setScheme("file")
         with open(local_blocklist.path(), 'w', encoding='UTF-8') as hosts:
             for path in UNDESIRED_HOSTS:
@@ -211,6 +211,5 @@ class TestHostBlocker:
                              'host-blocking-whitelist': None}}
         host_blocker = adblock.HostBlocker()
         host_blocker.adblock_update(0)
-        url_to_check = QUrl("www.ugly.verybadsite.com")
-        url_to_check.setHost("verybadsite.com")
+        url_to_check = QUrl("http://verybadsite.com")
         assert host_blocker.is_blocked(url_to_check)
