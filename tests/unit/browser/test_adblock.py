@@ -96,11 +96,10 @@ class TestGetFileObj:
 class TestIsWhitelistedHost:
     """Test function adblock.is_whitelisted_host."""
 
-    def test_without_option(self, config_stub):
-        """Option host-blocking-whitelist does not exist."""
-        config_stub.data = {'content': {}}
-        with pytest.raises(configexc.NoOptionError):
-            adblock.is_whitelisted_host('qutebrowser.org')
+    def test_without_hosts(self, config_stub):
+        """No hosts are whitelisted."""
+        config_stub.data = {'content': {'host-blocking-whitelist': None}}
+        assert not adblock.is_whitelisted_host('qutebrowser.org')
 
     def test_with_match(self, config_stub):
         """Given host is in the whitelist."""
