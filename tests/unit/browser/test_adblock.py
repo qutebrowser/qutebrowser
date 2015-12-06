@@ -33,17 +33,46 @@ from qutebrowser.utils import objreg
 from qutebrowser.commands import cmdexc
 
 
-WHITELISTED_HOSTS = ['qutebrowser.org', 'badsite.org']
-BLOCKED_HOSTS = ['badsite.org', 'localhost',
-                 'verybadsite.com', 'worstsiteever.net']
-URLS_TO_CHECK = ['http://verybadsite.com', 'http://badsite.org',
-                 'http://localhost', 'http://qutebrowser.org',
-                 'http://a.com', 'http://b.com']
+WHITELISTED_HOSTS = ['qutebrowser.org',
+                     'mediumsite.org']
 
+BLOCKED_HOSTS = ['localhost',
+                 'mediumsite.io',
+                 'badsite.org',
+                 'verybadsite.com',
+                 'worstsiteever.net']
+
+URLS_TO_CHECK = ['http://verybadsite.com',
+                 'http://badsite.org',
+                 'http://localhost',
+                 'http://qutebrowser.org',
+                 'http://testa.com',
+                 'http://testb.com']
+
+
+@pytest.fixture
+def data_tmpdir(monkeypatch, tmpdir):
+    """Set tmpdir as datadir"""
+    monkeypatch.setattr('qutebrowser.utils.standarddir.data',
+                        lambda: str(tmpdir))
+
+
+# XXX Why does read_hosts needs basedir to be None
+# in order to print message 'run adblock-update to read host blocklist' ?
+# browser/adblock.py line 138
 class BaseDirStub:
-    """Mock for objreg.get['args'] called in adblock.HostBlocker.read_hosts."""
+    """Mock for objreg.get['args']
+       called in adblock.HostBlocker.read_hosts."""
     def __init__(self):
         self.basedir = None
+
+@pytest.yield_fixture
+def basedir():
+    """Register a Fake basedir."""
+    args = BaseDirStub()
+    objreg.register('args', args)
+    yield args
+    objreg.delete('args')
 
 
 class FakeDownloadItem(QObject):
@@ -55,7 +84,6 @@ class FakeDownloadItem(QObject):
         super().__init__()
         self.fileobj = fileobj
         self.successful = True
-
 
 class FakeDownloadManager:
     """Mock browser.downloads.DownloadManager."""
@@ -71,7 +99,6 @@ class FakeDownloadManager:
             shutil.copyfileobj(fake_url_file, download_item.fileobj)
         return download_item
 
-
 @pytest.yield_fixture
 def download_stub(win_registry):
     """Register a FakeDownloadManager."""
@@ -81,19 +108,7 @@ def download_stub(win_registry):
     yield stub
     objreg.delete('download-manager', scope='window', window='last-focused')
 
-@pytest.yield_fixture
-def basedir():
-    """Register a Fake basedir."""
-    args = BaseDirStub()
-    objreg.register('args', args)
-    yield args
-    objreg.delete('args')
 
-@pytest.fixture
-def data_tmpdir(monkeypatch, tmpdir):
-    """Use tmpdir as datadir"""
-    monkeypatch.setattr('qutebrowser.utils.standarddir.data',
-                        lambda: str(tmpdir))
 
 def create_zipfile(files, directory):
     """Returns a zipfile populated with given files and its name."""
@@ -105,7 +120,7 @@ def create_zipfile(files, directory):
             # Removes path from file name
     return new_zipfile, zipfile_path
 
-def create_blocklist(blocked_hosts, name, directory):
+def create_blocklist(directory, blocked_hosts=BLOCKED_HOSTS, name='hosts'):
     """Returns a QUrl instance linking to a file with given name in given
        directory which contains a list of given blocked_hosts."""
     blocklist = QUrl(os.path.join(str(directory), name))
@@ -114,8 +129,14 @@ def create_blocklist(blocked_hosts, name, directory):
             hosts.write(path + '\n')
     return blocklist
 
-def assert_urls(host_blocker, blocked_hosts, whitelisted_hosts, urls_to_check):
-    """Test if urls_to_check are effectively blocked or not by HostBlocker."""
+def assert_urls(host_blocker,
+                blocked_hosts=BLOCKED_HOSTS,
+                whitelisted_hosts=WHITELISTED_HOSTS,
+                urls_to_check=URLS_TO_CHECK):
+    """Test if urls_to_check are effectively blocked or not by HostBlocker
+       Url in blocked_hosts and not in whitelisted_hosts should be blocked
+       All other Urls should not be blocked."""
+    whitelisted_hosts += list(host_blocker.WHITELISTED)
     for str_url in urls_to_check:
         url = QUrl(str_url)
         host = url.host()
@@ -125,114 +146,166 @@ def assert_urls(host_blocker, blocked_hosts, whitelisted_hosts, urls_to_check):
             assert not host_blocker.is_blocked(url)
 
 
-class TestHostBlocker:
-    """Tests for class HostBlocker."""
+class TestHostBlockerUpdate:
 
-    def test_unsuccessful_update(self, config_stub, monkeypatch, win_registry):
-        """No directory for data configured so no hosts file exists."""
+    """Tests for function adblock_update of class HostBlocker."""
+
+    def test_without_datadir(self, config_stub, tmpdir,
+                             monkeypatch, win_registry):
+        """No directory for data configured so no hosts file exists.
+           CommandError is raised by adblock_update
+           Ensure no url is blocked."""
+        blocklist = create_blocklist(tmpdir)
+        config_stub.data = {'content':
+                            {'host-block-lists': [blocklist],
+                             'host-blocking-enabled': True}}
         monkeypatch.setattr('qutebrowser.utils.standarddir.data',
                             lambda: None)
         host_blocker = adblock.HostBlocker()
         with pytest.raises(cmdexc.CommandError):
             host_blocker.adblock_update(0)
-        assert host_blocker.read_hosts() is None
+        host_blocker.read_hosts()
+        for str_url in URLS_TO_CHECK:
+            assert not host_blocker.is_blocked(QUrl(str_url))
 
-    def test_host_blocking_disabled(self, basedir, config_stub, download_stub,
-                                    data_tmpdir, tmpdir, win_registry):
-        """Assert that no host is blocked when blocking is disabled."""
-        blocklist = create_blocklist(BLOCKED_HOSTS, 'hosts.txt', tmpdir)
+    def test_disabled_blocking(self, basedir, config_stub, download_stub,
+                               data_tmpdir, tmpdir, win_registry):
+        """Ensure that no url is blocked when host blocking is disabled."""
+        blocklist = create_blocklist(tmpdir)
         config_stub.data = {'content':
                             {'host-block-lists': [blocklist],
                              'host-blocking-enabled': False}}
         host_blocker = adblock.HostBlocker()
         host_blocker.adblock_update(0)
+        host_blocker._in_progress[0].finished.emit()
         host_blocker.read_hosts()
-        for strurl in URLS_TO_CHECK:
-            url = QUrl(strurl)
-            assert not host_blocker.is_blocked(url)
+        for str_url in URLS_TO_CHECK:
+            assert not host_blocker.is_blocked(QUrl(str_url))
 
-    def test_update_no_blocklist(self, config_stub, download_stub,
-                                 data_tmpdir, basedir, win_registry):
-        """Assert that no host is blocked when no blocklist exists."""
+    def test_no_blocklist(self, config_stub, download_stub,
+                          data_tmpdir, basedir, tmpdir, win_registry):
+        """Ensure no host is blocked when no blocklist exists."""
         config_stub.data = {'content':
                             {'host-block-lists' : None,
                              'host-blocking-enabled': True}}
         host_blocker = adblock.HostBlocker()
         host_blocker.adblock_update(0)
         host_blocker.read_hosts()
-        for strurl in URLS_TO_CHECK:
-            url = QUrl(strurl)
-            assert not host_blocker.is_blocked(url)
+        for str_url in URLS_TO_CHECK:
+            assert not host_blocker.is_blocked(QUrl(str_url))
 
-    def test_successful_update(self, config_stub, basedir, download_stub,
-                               data_tmpdir, tmpdir, win_registry):
-        """
-           Test successfull update with :
-           - fake remote text file
-           - local text file
-           - fake remote zip file (contains 1 text file)
-           - fake remote zip file (contains 2 text files, 0 named hosts)
-           - fake remote zip file (contains 2 text files, 1 named hosts).
-        """
-
-        # Primary test with fake remote text file
-        blocklist = create_blocklist(BLOCKED_HOSTS, 'blocklist.txt', tmpdir)
+    def test_remote_text(self, config_stub, basedir, download_stub,
+                         data_tmpdir, tmpdir, win_registry):
+        """Update with single fakely remote text blocklist.
+           Ensure urls from hosts in this blocklist get blocked."""
+        blocklist = create_blocklist(tmpdir)
         config_stub.data = {'content':
                             {'host-block-lists': [blocklist],
                              'host-blocking-enabled': True,
-                             'host-blocking-whitelist': WHITELISTED_HOSTS}}
+                             'host-blocking-whitelist': None}}
         host_blocker = adblock.HostBlocker()
-        whitelisted = list(host_blocker.WHITELISTED) + WHITELISTED_HOSTS
-        # host file has not been created yet, message run-adblock will be sent
-        # host_blocker.read_hosts()
         host_blocker.adblock_update(0)
-        #Simulate download is finished
+        # Simulate download is finished
+        # XXX Is it ok to use private attribute hostblocker._in_progress ?
         host_blocker._in_progress[0].finished.emit()
         host_blocker.read_hosts()
-        assert_urls(host_blocker, BLOCKED_HOSTS, whitelisted, URLS_TO_CHECK)
+        assert_urls(host_blocker, whitelisted_hosts=[])
 
-        # Alternative test with local file
-        local_blocklist = blocklist
-        local_blocklist.setScheme("file")
-        config_stub.set('content', 'host-block-lists', [local_blocklist])
+    def test_remote_zip_single(self, config_stub, basedir, download_stub,
+                               data_tmpdir, tmpdir, win_registry):
+        """Update with single fakely remote zip containing one blocklist file.
+           Ensure urls from hosts in this blocklist get blocked."""
+        blocklist = create_blocklist(tmpdir)
+        zip_url = QUrl(create_zipfile([blocklist.path()], tmpdir)[1])
+        config_stub.data = {'content':
+                            {'host-block-lists': [zip_url],
+                             'host-blocking-enabled': True,
+                             'host-blocking-whitelist': None}}
+        host_blocker = adblock.HostBlocker()
         host_blocker.adblock_update(0)
-        host_blocker.read_hosts()
-        assert_urls(host_blocker, BLOCKED_HOSTS, whitelisted, URLS_TO_CHECK)
-
-        # Alternative test with fake remote zip file containing one file
-        zip_blocklist_url = QUrl(create_zipfile([blocklist.path()], tmpdir)[1])
-        config_stub.set('content', 'host-block-lists', [zip_blocklist_url])
-        host_blocker.adblock_update(0)
-        #Simulate download is finished
         host_blocker._in_progress[0].finished.emit()
         host_blocker.read_hosts()
-        assert_urls(host_blocker, BLOCKED_HOSTS, whitelisted, URLS_TO_CHECK)
+        assert_urls(host_blocker, whitelisted_hosts=[])
 
-        # Alternative test with fake remote zip file containing multiple files
-        # FIXME adblock.guess_zip_filename should raise FileNotFound Error
-        # as no files in the zip are called hosts
-        first_file = create_blocklist(BLOCKED_HOSTS, 'file1.txt', tmpdir)
-        second_file = create_blocklist(['a.com', 'b.com'], 'file2.txt', tmpdir)
-        files_to_zip = [first_file.path(), second_file.path()]
-        zip_blocklist_path = create_zipfile(files_to_zip, tmpdir)[1]
-        zip_blocklist_url = QUrl(zip_blocklist_path)
-        config_stub.set('content', 'host-block-lists', [zip_blocklist_url])
+    # FIXME adblock.guess_zip_filename should raise FileNotFound Error
+    # as no files in the zip are called hosts
+    def test_remote_zip_multi1(self, config_stub, basedir, download_stub,
+                               data_tmpdir, tmpdir, win_registry):
+        """Update with single fakely remote zip containing two files.
+           None of them is called hosts, FileNotFoundError should be raised."""
+        file1 = create_blocklist(tmpdir, name='file1.txt')
+        file2_hosts = ['testa.com', 'testb.com']
+        file2 = create_blocklist(tmpdir, file2_hosts, name='file2.txt')
+        files_to_zip = [file1.path(), file2.path()]
+        zip_path = create_zipfile(files_to_zip, tmpdir)[1]
+        zip_url = QUrl(zip_path)
+        config_stub.data = {'content':
+                            {'host-block-lists': [zip_url],
+                             'host-blocking-enabled': True,
+                             'host-blocking-whitelist': None}}
+        host_blocker = adblock.HostBlocker()
         host_blocker.adblock_update(0)
-        #Simulate download is finished
-        with pytest.raises(FileNotFoundError):
-            host_blocker._in_progress[0].finished.emit()
-        host_blocker.read_hosts()
-
-        # Alternative test with fake remote zip file containing multiple files
-        # Including a file called hosts
-        first_file = create_blocklist(BLOCKED_HOSTS, 'hosts.txt', tmpdir)
-        second_file = create_blocklist(['a.com', 'b.com'], 'file2.txt', tmpdir)
-        files_to_zip = [first_file.path(), second_file.path()]
-        zip_blocklist_path = create_zipfile(files_to_zip, tmpdir)[1]
-        zip_blocklist_url = QUrl(zip_blocklist_path)
-        config_stub.set('content', 'host-block-lists', [zip_blocklist_url])
-        host_blocker.adblock_update(0)
-        #Simulate download is finished
         host_blocker._in_progress[0].finished.emit()
         host_blocker.read_hosts()
-        assert_urls(host_blocker, BLOCKED_HOSTS, whitelisted, URLS_TO_CHECK)
+        #with pytest.raises(FileNotFoundError):
+        for str_url in URLS_TO_CHECK:
+            assert not host_blocker.is_blocked(QUrl(str_url))
+
+    def test_remote_zip_multi2(self, config_stub, basedir, download_stub,
+                               data_tmpdir, tmpdir, win_registry):
+        """Update with single fakely remote zip containing two files.
+           One of them is called hosts and should be used as blocklist.
+           Ensure urls from hosts in this blocklist get blocked
+           and the hosts from the other file are not."""
+        file1 = create_blocklist(tmpdir, name='hosts.txt')
+        file2_hosts = ['testa.com', 'testb.com']
+        file2 = create_blocklist(tmpdir, file2_hosts, name='file2.txt')
+        files_to_zip = [file1.path(), file2.path()]
+        zip_path = create_zipfile(files_to_zip, tmpdir)[1]
+        zip_url = QUrl(zip_path)
+        config_stub.data = {'content':
+                            {'host-block-lists': [zip_url],
+                             'host-blocking-enabled': True,
+                             'host-blocking-whitelist': None}}
+        host_blocker = adblock.HostBlocker()
+        host_blocker.adblock_update(0)
+        host_blocker._in_progress[0].finished.emit()
+        host_blocker.read_hosts()
+        assert_urls(host_blocker, whitelisted_hosts=[])
+
+    def test_local_text(self, config_stub, basedir, download_stub,
+                        data_tmpdir, tmpdir, win_registry):
+        """Update with single local text blocklist.
+           Ensure urls from hosts in this blocklist get blocked."""
+        blocklist = create_blocklist(tmpdir)
+        blocklist.setScheme("file")
+        config_stub.data = {'content':
+                            {'host-block-lists': [blocklist],
+                             'host-blocking-enabled': True,
+                             'host-blocking-whitelist': None}}
+        host_blocker = adblock.HostBlocker()
+        host_blocker.adblock_update(0)
+        host_blocker.read_hosts()
+        assert_urls(host_blocker, whitelisted_hosts=[])
+
+    def test_local_zip_multi(self, config_stub, basedir, download_stub,
+                             data_tmpdir, tmpdir, win_registry):
+        """Update with single local zip containing two files.
+           One of them is called hosts and should be used as blocklist.
+           Ensure urls from hosts in this blocklist get blocked
+           and the hosts from the other file are not."""
+        file1 = create_blocklist(tmpdir, name='hosts.txt')
+        file2_hosts = ['testa.com', 'testb.com']
+        file2 = create_blocklist(tmpdir, file2_hosts, name='file2.txt')
+        files_to_zip = [file1.path(), file2.path()]
+        zip_path = create_zipfile(files_to_zip, tmpdir)[1]
+        zip_url = QUrl(zip_path)
+        zip_url.setScheme('file')
+        config_stub.data = {'content':
+                            {'host-block-lists': [zip_url],
+                             'host-blocking-enabled': True,
+                             'host-blocking-whitelist': None}}
+        host_blocker = adblock.HostBlocker()
+        host_blocker.adblock_update(0)
+        host_blocker.read_hosts()
+        assert_urls(host_blocker, whitelisted_hosts=[])
