@@ -625,6 +625,10 @@ def data(readonly=False):
              "* `{id}`: The internal tab ID of this tab.\n"
              "* `{scroll_pos}`: The page scroll position."),
 
+            ('title-alignment',
+             SettingValue(typ.TextAlignment(), 'left'),
+             "Alignment of the text inside of tabs"),
+
             ('mousewheel-tab-switching',
              SettingValue(typ.Bool(), 'true'),
              "Switch between tabs using the mouse wheel."),
