@@ -118,6 +118,7 @@
 |<<tabs-indicator-width,indicator-width>>|Width of the progress indicator (0 to disable).
 |<<tabs-tabs-are-windows,tabs-are-windows>>|Whether to open windows instead of tabs.
 |<<tabs-title-format,title-format>>|The format to use for the tab title. The following placeholders are defined:
+|<<tabs-title-alignment,title-alignment>>|Alignment of the text inside of tabs
 |<<tabs-mousewheel-tab-switching,mousewheel-tab-switching>>|Switch between tabs using the mouse wheel.
 |<<tabs-padding,padding>>|Padding for tabs (top, bottom, left, right).
 |<<tabs-indicator-padding,indicator-padding>>|Padding for indicators (top, bottom, left, right).
@@ -1126,6 +1127,18 @@ The format to use for the tab title. The following placeholders are defined:
 * `{scroll_pos}`: The page scroll position.
 
 Default: +pass:[{index}: {title}]+
+
+[[tabs-title-alignment]]
+=== title-alignment
+Alignment of the text inside of tabs
+
+Valid values:
+
+ * +left+
+ * +right+
+ * +center+
+
+Default: +pass:[left]+
 
 [[tabs-mousewheel-tab-switching]]
 === mousewheel-tab-switching
