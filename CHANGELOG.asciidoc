@@ -56,6 +56,7 @@ Added
   qutebrowser.
 - New `--mhtml` argument for `:download` to download a page including all
   ressources as MHTML file.
+- New option `tabs -> title-alignment` to change the alignment of tab titles.
 
 Changed
 ~~~~~~~
