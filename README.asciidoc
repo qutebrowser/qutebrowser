@@ -186,6 +186,7 @@ Contributors, sorted by the number of commits in descending order:
 * Corentin Jule
 * zwarag
 * xd1le
+* dylan araps
 * Tim Harder
 * Thiago Barroso Perrotta
 * Samuel Loury
