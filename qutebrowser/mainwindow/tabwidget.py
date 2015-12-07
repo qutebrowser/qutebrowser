@@ -577,7 +577,8 @@ class TabBarStyle(QCommonStyle):
         elif element == QStyle.CE_TabBarTabLabel:
             if not opt.icon.isNull() and layouts.icon.isValid():
                 self._draw_icon(layouts, opt, p)
-            alignment = Qt.AlignLeft | Qt.AlignVCenter | Qt.TextHideMnemonic
+            alignment = (config.get('tabs', 'title-alignment') |
+                         Qt.AlignVCenter | Qt.TextHideMnemonic)
             self._style.drawItemText(p, layouts.text, alignment, opt.palette,
                                      opt.state & QStyle.State_Enabled,
                                      opt.text, QPalette.WindowText)

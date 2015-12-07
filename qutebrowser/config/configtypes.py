@@ -29,7 +29,7 @@ import collections
 import warnings
 import datetime
 
-from PyQt5.QtCore import QUrl
+from PyQt5.QtCore import QUrl, Qt
 from PyQt5.QtGui import QColor, QFont
 from PyQt5.QtNetwork import QNetworkProxy
 from PyQt5.QtWidgets import QTabWidget, QTabBar
@@ -1334,6 +1334,22 @@ class Position(MappingType):
         super().__init__(
             none_ok,
             valid_values=ValidValues('top', 'bottom', 'left', 'right'))
+
+
+class TextAlignment(MappingType):
+
+    """Alignment of text."""
+
+    MAPPING = {
+        'left': Qt.AlignLeft,
+        'right': Qt.AlignRight,
+        'center': Qt.AlignCenter,
+    }
+
+    def __init__(self, none_ok=False):
+        super().__init__(
+            none_ok,
+            valid_values=ValidValues('left', 'right', 'center'))
 
 
 class VerticalPosition(BaseType):
