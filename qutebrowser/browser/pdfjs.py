@@ -107,7 +107,7 @@ def get_pdfjs_res(path):
     # First try a system wide installation
     # System installations might strip off the 'build/' or 'web/' prefixes.
     # qute expects them, so we need to adjust for it.
-    names_to_try = [path, path[path.index('/') + 1:]]
+    names_to_try = [path, _remove_prefix(path)]
     for system_path in SYSTEM_PDFJS_PATHS:
         content = _read_from_system(system_path, names_to_try)
         if content is not None:
@@ -128,6 +128,19 @@ def get_pdfjs_res(path):
         return content
     text_content = fix_urls(text_content)
     return text_content.encode('utf-8')
+
+
+def _remove_prefix(path):
+    """Remove the web/ or build/ prefix of a pdfjs-file-path.
+
+    Args:
+        path: Path as string where the prefix should be stripped off.
+    """
+    prefixes = {'web/', 'build/'}
+    if any(path.startswith(prefix) for prefix in prefixes):
+        return path.split('/', maxsplit=1)[1]
+    # Return the unchanged path if no prefix is found
+    return path
 
 
 def _read_from_system(system_path, names):
