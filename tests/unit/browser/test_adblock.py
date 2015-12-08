@@ -1,3 +1,4 @@
+# TODO See utils/test_standarddirutils for OSEError and caplog assertion
 # vim: ft=python fileencoding=utf-8 sts=4 sw=4 et:
 #!/usr/bin/env python3
 
@@ -65,6 +66,7 @@ def data_tmpdir(monkeypatch, tmpdir):
 # XXX Why does read_hosts needs basedir to be None
 # in order to print message 'run adblock-update to read host blocklist' ?
 # browser/adblock.py line 138
+# TODO Replace with unittest mock.mock / See test webelem
 class BaseDirStub:
 
     """Mock for objreg.get('args') called in adblock.HostBlocker.read_hosts."""
