@@ -108,10 +108,12 @@ class _BaseUserscriptRunner(QObject):
 
     def _cleanup(self):
         """Clean up temporary files."""
-        tempfiles = [self._filepath]
-        if 'QUTE_HTML' in self._env:
+        tempfiles = []
+        if self._filepath is not None:
+            tempfiles.append(self._filepath)
+        if self._env is not None and 'QUTE_HTML' in self._env:
             tempfiles.append(self._env['QUTE_HTML'])
-        if 'QUTE_TEXT' in self._env:
+        if self._env is not None and 'QUTE_TEXT' in self._env:
             tempfiles.append(self._env['QUTE_TEXT'])
         for fn in tempfiles:
             log.procs.debug("Deleting temporary file {}.".format(fn))
@@ -198,10 +200,11 @@ class _POSIXUserscriptRunner(_BaseUserscriptRunner):
     def finish(self):
         """Quit the thread and clean up when the reader finished."""
         log.procs.debug("Cleaning up")
-        self._reader.cleanup()
-        self._reader.fifo.close()
-        self._reader.deleteLater()
-        self._reader = None
+        if self._reader is not None:
+            self._reader.cleanup()
+            self._reader.fifo.close()
+            self._reader.deleteLater()
+            self._reader = None
         super()._cleanup()
         self.finished.emit()
 
