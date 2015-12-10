@@ -138,9 +138,6 @@ class HintManager(QObject):
         Target.spawn: "Spawn command via hint",
     }
 
-    with open(os.path.join(standarddir.config(), "hints")) as hintfile:
-        HINT_WORDS = [hint.rstrip() for hint in hintfile]
-
     mouse_event = pyqtSignal('QMouseEvent')
     start_hinting = pyqtSignal(usertypes.ClickTarget)
     stop_hinting = pyqtSignal()
@@ -154,6 +151,12 @@ class HintManager(QObject):
         mode_manager = objreg.get('mode-manager', scope='window',
                                   window=win_id)
         mode_manager.left.connect(self.on_mode_left)
+
+    def _get_word_hints(self, words=[]):
+        if not words:
+            with open(os.path.join(standarddir.config(), "hints")) as hintfile:
+                words.extend(hint.rstrip() for hint in hintfile)
+        return words
 
     def _get_text(self):
         """Get a hint text based on the current context."""
@@ -204,7 +207,7 @@ class HintManager(QObject):
             A list of hint strings, in the same order as the elements.
         """
         if config.get('hints', 'mode') == 'words':
-            return HINT_WORDS[:len(elems)]
+            return self._get_word_hints()[:len(elems)]
         if config.get('hints', 'mode') == 'number':
             chars = '0123456789'
         else:
