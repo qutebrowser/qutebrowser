@@ -20,6 +20,7 @@
 """A HintManager to draw hints over links."""
 
 import os
+import string
 import math
 import functools
 import collections
@@ -154,8 +155,17 @@ class HintManager(QObject):
 
     def _get_word_hints(self, words=[]):
         if not words:
-            with open(os.path.join(standarddir.config(), "hints")) as hintfile:
-                words.extend(hint.rstrip() for hint in hintfile)
+            with open("/usr/share/dict/words") as wordfile:
+                alphabet = set(string.ascii_lowercase)
+                hints = set()
+                lines = (line.rstrip().lower() for line in wordfile)
+                for word in lines:
+                    if not set(word) <= alphabet: continue
+                    if not len(word) <= 4: continue
+                    for i in range(len(word)):
+                        hints.discard(word[:i+1])
+                    hints.add(word)
+                words.extend(hints)
         return words
 
     def _get_text(self):
@@ -207,7 +217,12 @@ class HintManager(QObject):
             A list of hint strings, in the same order as the elements.
         """
         if config.get('hints', 'mode') == 'words':
-            return self._get_word_hints()[:len(elems)]
+            try:
+                return self._get_word_hints()[:len(elems)]
+            except IOError:
+                message.error(self._win_id, "Word hints require a dictionary" +
+                              " at /usr/share/dict/words.", immediately=True)
+                # falls back on letter hints
         if config.get('hints', 'mode') == 'number':
             chars = '0123456789'
         else:
