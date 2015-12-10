@@ -149,12 +149,13 @@ class HintManager(QObject):
         self._win_id = win_id
         self._tab_id = tab_id
         self._context = None
+        self._words = [] # initialized on first word hint use
         mode_manager = objreg.get('mode-manager', scope='window',
                                   window=win_id)
         mode_manager.left.connect(self.on_mode_left)
 
-    def _get_word_hints(self, words=[]):
-        if not words:
+    def _get_word_hints(self):
+        if not self._words:
             with open("/usr/share/dict/words") as wordfile:
                 alphabet = set(string.ascii_lowercase)
                 hints = set()
@@ -165,8 +166,8 @@ class HintManager(QObject):
                     for i in range(len(word)):
                         hints.discard(word[:i+1])
                     hints.add(word)
-                words.extend(hints)
-        return words
+                self._words.extend(hints)
+        return self._words
 
     def _get_text(self):
         """Get a hint text based on the current context."""
