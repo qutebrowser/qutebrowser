@@ -246,12 +246,26 @@ class HintManager(QObject):
         Return:
             A list of hint strings, in the same order as the elements.
         """
+
+        def html_text_to_hint(text):
+            if not text: return None
+            hint = text.split()[0].lower()
+            if hint.isalpha():
+                return hint
+            return None
+
+        def is_prefix(hint, existing):
+            return set(hint[:i+1] for i in range(len(hint))) & set(existing)
+
         hints = []
         hintss = set()
         words = iter(self._words)
         for elem in elems:
-            hint = _html_text_to_hint(str(elem)) or next(words)
-            while set(hint[:i+1] for i in range(len(hint))) & set(hintss):
+            hint = html_text_to_hint(str(elem))
+            if hint and len(hint) >= 3 and not is_prefix(hint, hintss):
+                hint = next(hint[:i] for i in range(3, len(hint) + 1)
+                            if not is_prefix(hint[:i], hintss))
+            while not hint or is_prefix(hint, hintss):
                 hint = next(words)
             hintss.add(hint)
             hints.append(hint)
@@ -1010,9 +1024,3 @@ class HintManager(QObject):
             return
         self._cleanup()
 
-def _html_text_to_hint(text):
-    if not text: return None
-    hint = text.split()[0].lower()
-    if hint.isalpha():
-        return hint
-    return None
