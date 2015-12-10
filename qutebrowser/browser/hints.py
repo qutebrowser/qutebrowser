@@ -19,6 +19,7 @@
 
 """A HintManager to draw hints over links."""
 
+import os
 import math
 import functools
 import collections
@@ -34,7 +35,8 @@ from qutebrowser.config import config
 from qutebrowser.keyinput import modeman, modeparsers
 from qutebrowser.browser import webelem
 from qutebrowser.commands import userscripts, cmdexc, cmdutils, runners
-from qutebrowser.utils import usertypes, log, qtutils, message, objreg
+from qutebrowser.utils import (usertypes, log, qtutils, message,
+                               objreg, standarddir)
 from qutebrowser.misc import guiprocess
 
 
@@ -136,6 +138,9 @@ class HintManager(QObject):
         Target.spawn: "Spawn command via hint",
     }
 
+    with open(os.path.join(standarddir.config(), "hints")) as hintfile:
+        HINT_WORDS = [hint.rstrip() for hint in hintfile]
+
     mouse_event = pyqtSignal('QMouseEvent')
     start_hinting = pyqtSignal(usertypes.ClickTarget)
     stop_hinting = pyqtSignal()
@@ -198,6 +203,8 @@ class HintManager(QObject):
         Return:
             A list of hint strings, in the same order as the elements.
         """
+        if config.get('hints', 'mode') == 'words':
+            return HINT_WORDS[:len(elems)]
         if config.get('hints', 'mode') == 'number':
             chars = '0123456789'
         else:
