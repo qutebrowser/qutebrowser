@@ -149,12 +149,12 @@ class HintManager(QObject):
         self._win_id = win_id
         self._tab_id = tab_id
         self._context = None
-        self._words = [] # initialized on first word hint use
+        self._words = set() # initialized on first word hint use
         mode_manager = objreg.get('mode-manager', scope='window',
                                   window=win_id)
         mode_manager.left.connect(self.on_mode_left)
 
-    def _get_word_hints(self):
+    def _initialize_word_hints(self):
         if not self._words:
             with open("/usr/share/dict/words") as wordfile:
                 alphabet = set(string.ascii_lowercase)
@@ -166,7 +166,7 @@ class HintManager(QObject):
                     for i in range(len(word)):
                         hints.discard(word[:i+1])
                     hints.add(word)
-                self._words.extend(hints)
+                self._words.update(hints)
         return self._words
 
     def _get_text(self):
@@ -219,7 +219,8 @@ class HintManager(QObject):
         """
         if config.get('hints', 'mode') == 'words':
             try:
-                return self._get_word_hints()[:len(elems)]
+                self._initialize_word_hints()
+                return self._hint_words(elems)
             except IOError:
                 message.error(self._win_id, "Word hints require a dictionary" +
                               " at /usr/share/dict/words.", immediately=True)
@@ -233,6 +234,29 @@ class HintManager(QObject):
             return self._hint_scattered(min_chars, chars, elems)
         else:
             return self._hint_linear(min_chars, chars, elems)
+
+    def _hint_words(self, elems):
+        """Produce hint words based on the link text and random words
+        from the words arg as fallback.
+
+        Args:
+            words: Words to use as fallback when no link text can be used.
+            elems: The elements to get hint strings for.
+
+        Return:
+            A list of hint strings, in the same order as the elements.
+        """
+        hints = []
+        hintss = set()
+        words = iter(self._words)
+        for elem in elems:
+            hint = _html_text_to_hint(str(elem)) or next(words)
+            while set(hint[:i+1] for i in range(len(hint))) & set(hintss):
+                hint = next(words)
+            hintss.add(hint)
+            hints.append(hint)
+        return hints
+
 
     def _hint_scattered(self, min_chars, chars, elems):
         """Produce scattered hint labels with variable length (like Vimium).
@@ -985,3 +1009,10 @@ class HintManager(QObject):
             # hinting.
             return
         self._cleanup()
+
+def _html_text_to_hint(text):
+    if not text: return None
+    hint = text.split()[0].lower()
+    if hint.isalpha():
+        return hint
+    return None
