@@ -47,7 +47,8 @@ class TestConfigParser:
         cp = configparser.ConfigParser(interpolation=None,
                                        comment_prefixes='#')
         cp.optionxform = lambda opt: opt  # be case-insensitive
-        cfg = config.ConfigManager(None, None)
+        cfg = config.ConfigManager()
+        cfg.read(None, None)
         return self.Objects(cp=cp, cfg=cfg)
 
     def test_simple(self, objects):
@@ -272,7 +273,7 @@ class TestDefaultConfig:
     @pytest.mark.usefixtures('qapp')
     def test_default_config(self):
         """Test validating of the default config."""
-        conf = config.ConfigManager(None, None)
+        conf = config.ConfigManager()
         conf._validate_all()
 
     def test_default_key_config(self):

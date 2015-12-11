@@ -140,9 +140,10 @@ def _init_main_config(parent=None):
         parent: The parent to pass to ConfigManager.
     """
     args = objreg.get('args')
+    config_obj = ConfigManager(parent=parent)
     try:
-        config_obj = ConfigManager(standarddir.config(), 'qutebrowser.conf',
-                                   args.relaxed_config, parent=parent)
+        config_obj.read(standarddir.config(), 'qutebrowser.conf',
+                        relaxed=args.relaxed_config)
     except (configexc.Error, configparser.Error, UnicodeDecodeError) as e:
         log.init.exception(e)
         errstr = "Error while reading config:"
@@ -362,24 +363,16 @@ class ConfigManager(QObject):
     changed = pyqtSignal(str, str)
     style_changed = pyqtSignal(str, str)
 
-    def __init__(self, configdir, fname, relaxed=False, parent=None):
+    def __init__(self, parent=None):
         super().__init__(parent)
         self._initialized = False
+        self._configdir = None
+        self._fname = None
         self.sections = configdata.data()
         self._interpolation = configparser.ExtendedInterpolation()
         self._proxies = {}
         for sectname in self.sections:
             self._proxies[sectname] = SectionProxy(self, sectname)
-        self._fname = fname
-        if configdir is None:
-            self._configdir = None
-            self._initialized = True
-        else:
-            self._configdir = configdir
-            parser = ini.ReadConfigParser(configdir, fname)
-            self._from_cp(parser, relaxed)
-            self._initialized = True
-            self._validate_all()
 
     def __getitem__(self, key):
         """Get a section from the config."""
@@ -570,6 +563,19 @@ class ConfigManager(QObject):
                 if ('${' + changed_sect + ':' + changed_opt + '}' in
                         option.value()):
                     self._changed(sectname, optname)
+
+    def read(self, configdir, fname, relaxed=False):
+        """Read the config from the given directory/file."""
+        self._fname = fname
+        if configdir is None:
+            self._configdir = None
+            self._initialized = True
+        else:
+            self._configdir = configdir
+            parser = ini.ReadConfigParser(configdir, fname)
+            self._from_cp(parser, relaxed)
+            self._initialized = True
+            self._validate_all()
 
     def items(self, sectname, raw=True):
         """Get a list of (optname, value) tuples for a section.
