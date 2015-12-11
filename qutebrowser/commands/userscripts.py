@@ -46,7 +46,7 @@ class _QtFIFOReader(QObject):
         # can add O_NONBLOCK.
         # pylint: disable=no-member,useless-suppression
         fd = os.open(filepath, os.O_RDWR | os.O_NONBLOCK)
-        self.fifo = os.fdopen(fd, 'r')
+        self._fifo = os.fdopen(fd, 'r')
         self._notifier = QSocketNotifier(fd, QSocketNotifier.Read, self)
         self._notifier.activated.connect(self.read_line)
 
@@ -55,14 +55,14 @@ class _QtFIFOReader(QObject):
         """(Try to) read a line from the FIFO."""
         log.procs.debug("QSocketNotifier triggered!")
         self._notifier.setEnabled(False)
-        for line in self.fifo:
+        for line in self._fifo:
             self.got_line.emit(line.rstrip('\r\n'))
         self._notifier.setEnabled(True)
 
     def cleanup(self):
         """Clean up so the FIFO can be closed."""
         self._notifier.setEnabled(False)
-        self.fifo.close()
+        self._fifo.close()
 
 
 class _BaseUserscriptRunner(QObject):
