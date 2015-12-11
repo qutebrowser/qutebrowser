@@ -62,6 +62,7 @@ class _QtFIFOReader(QObject):
     def cleanup(self):
         """Clean up so the FIFO can be closed."""
         self._notifier.setEnabled(False)
+        self.fifo.close()
 
 
 class _BaseUserscriptRunner(QObject):
@@ -199,7 +200,6 @@ class _POSIXUserscriptRunner(_BaseUserscriptRunner):
         """Quit the thread and clean up when the reader finished."""
         log.procs.debug("Cleaning up")
         self._reader.cleanup()
-        self._reader.fifo.close()
         self._reader.deleteLater()
         self._reader = None
         super()._cleanup()
