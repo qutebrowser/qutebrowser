@@ -181,6 +181,27 @@ class TestConfigParser:
         with pytest.raises(configexc.NoOptionError):
             objects.cfg['general'].get('blahblahblub')
 
+    @pytest.mark.parametrize('old_sect, new_sect',
+        config.ConfigManager.RENAMED_SECTIONS.items())
+    def test_renamed_sections(self, old_sect, new_sect):
+        """Make sure renamed sections don't exist anymore."""
+        assert old_sect not in configdata.DATA
+        assert new_sect in configdata.DATA
+
+    @pytest.mark.parametrize('old_tuple, new_option',
+        config.ConfigManager.RENAMED_OPTIONS.items())
+    def test_renamed_options(self, old_tuple, new_option):
+        """Make sure renamed options exist under the new name."""
+        section, old_option = old_tuple
+        assert old_option not in configdata.DATA[section]
+        assert new_option in configdata.DATA[section]
+
+    @pytest.mark.parametrize('section, option',
+        config.ConfigManager.DELETED_OPTIONS)
+    def test_deleted_options(self, section, option):
+        """Make sure renamed options don't exist anymore."""
+        assert option not in configdata.DATA[section]
+
 
 class TestKeyConfigParser:
 
