@@ -297,6 +297,7 @@ class TestDefaultConfig:
     def test_default_config(self):
         """Test validating of the default config."""
         conf = config.ConfigManager()
+        conf.read(None, None)
         conf._validate_all()
 
     def test_default_key_config(self):
