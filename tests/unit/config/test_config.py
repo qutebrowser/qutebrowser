@@ -325,7 +325,7 @@ class TestDefaultConfig:
     @pytest.mark.parametrize('filename',
         os.listdir(os.path.join(os.path.dirname(__file__), 'old_configs')),
         ids=os.path.basename)
-    def test_old_config(self, tmpdir, filename):
+    def test_old_config(self, qapp, tmpdir, filename):
         """Check if upgrading old configs works correctly."""
         full_path = os.path.join(os.path.dirname(__file__), 'old_configs',
                                  filename)
