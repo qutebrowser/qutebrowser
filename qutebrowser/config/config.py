@@ -337,7 +337,6 @@ class ConfigManager(QObject):
         ('colors', 'tab.indicator.stop'): 'tabs.indicator.stop',
         ('colors', 'tab.indicator.error'): 'tabs.indicator.error',
         ('colors', 'tab.indicator.system'): 'tabs.indicator.system',
-        ('tabs', 'auto-hide'): 'hide-auto',
         ('completion', 'history-length'): 'cmd-history-max-items',
         ('colors', 'downloads.fg'): 'downloads.fg.start',
     }
@@ -347,6 +346,7 @@ class ConfigManager(QObject):
         ('colors', 'completion.item.bg'),
         ('tabs', 'indicator-space'),
         ('tabs', 'hide-auto'),
+        ('tabs', 'auto-hide'),
         ('tabs', 'hide-always'),
     ]
     CHANGED_OPTIONS = {
