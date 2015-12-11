@@ -24,12 +24,14 @@ import configparser
 import types
 import argparse
 import collections
+import shutil
 from unittest import mock
 
 from PyQt5.QtCore import QObject
 from PyQt5.QtGui import QColor
 import pytest
 
+import qutebrowser
 from qutebrowser.config import config, configexc, configdata
 from qutebrowser.config.parsers import keyconf
 from qutebrowser.commands import runners
@@ -285,6 +287,30 @@ class TestDefaultConfig:
         for sectname in configdata.KEY_DATA:
             for cmd in conf.get_bindings_for(sectname).values():
                 runner.parse(cmd, aliases=False)
+
+    def test_upgrade_version(self):
+        """Fail when the qutebrowser version changed.
+
+        The aim of this is to remind us to add a new file to old_configs.
+
+        If the config file of the current release didn't change compared to the
+        last one in old_configs, just increment the version here.
+
+        If it did change, place a new qutebrowser-vx.y.z.conf in old_configs
+        and then increment the version.
+        """
+        assert qutebrowser.__version__ == '0.4.1'
+
+    @pytest.mark.parametrize('filename',
+        os.listdir(os.path.join(os.path.dirname(__file__), 'old_configs')),
+        ids=os.path.basename)
+    def test_old_config(self, tmpdir, filename):
+        """Check if upgrading old configs works correctly."""
+        full_path = os.path.join(os.path.dirname(__file__), 'old_configs',
+                                 filename)
+        shutil.copy(full_path, str(tmpdir / 'qutebrowser.conf'))
+        conf = config.ConfigManager()
+        conf.read(str(tmpdir), 'qutebrowser.conf')
 
 
 @pytest.mark.integration

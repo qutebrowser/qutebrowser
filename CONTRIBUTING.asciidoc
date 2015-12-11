@@ -561,13 +561,10 @@ qutebrowser release
 * Make sure there are no unstaged changes.
 * Run `src2asciidoc.py` and commit changes if necessary.
 
-* Run all tests on all supported systems.
-* Test an upgrade from the previous version (no manual intervention).
-* Test an upgrade from the first version (no manual intervention).
-
 * Run `asciidoc2html.py`.
 * Adjust `__version_info__` in `qutebrowser/__init__.py`.
 * Remove *(unreleased)* from changelog.
+* Run all tests on all supported systems.
 * Commit
 
 * Create annotated git tag (`git tag -s "v0.X.Y" -m "Release v0.X.Y"`)
