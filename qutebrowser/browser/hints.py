@@ -19,11 +19,13 @@
 
 """A HintManager to draw hints over links."""
 
-import os
-import string
-import math
-import functools
 import collections
+import itertools
+import functools
+import math
+import os
+import re
+import string
 
 from PyQt5.QtCore import (pyqtSignal, pyqtSlot, QObject, QEvent, Qt, QUrl,
                           QTimer)
@@ -48,7 +50,6 @@ Target = usertypes.enum('Target', ['normal', 'tab', 'tab_fg', 'tab_bg',
                                    'window', 'yank', 'yank_primary', 'run',
                                    'fill', 'hover', 'download', 'userscript',
                                    'spawn'])
-
 
 @pyqtSlot(usertypes.KeyMode)
 def on_mode_entered(mode, win_id):
@@ -138,6 +139,8 @@ class HintManager(QObject):
         Target.userscript: "Call userscript via hint",
         Target.spawn: "Spawn command via hint",
     }
+
+    FIRST_ALPHABETIC = re.compile('[A-Za-z]{3,}')
 
     mouse_event = pyqtSignal('QMouseEvent')
     start_hinting = pyqtSignal(usertypes.ClickTarget)
@@ -247,27 +250,42 @@ class HintManager(QObject):
             A list of hint strings, in the same order as the elements.
         """
 
-        def html_text_to_hint(text):
-            if not text: return None
-            hint = text.split()[0].lower()
-            if hint.isalpha():
-                return hint
-            return None
+        def html_elem_to_hints(elem):
+            candidates = []
+            if elem.tagName() == "IMG":
+                "alt"   in elem and candidates.append(elem["alt"])
+                "title" in elem and candidates.append(elem["title"])
+                "src"   in elem and candidates.append(elem["src"].split('/')[-1])
+            elif elem.tagName() == "A":
+                candidates.append(str(elem))
+                "title" in elem and candidates.append(elem["title"])
+                "href"  in elem and candidates.append(elem["href"].split('/')[-1])
+            elif elem.tagName() == "INPUT":
+                "name"  in elem and candidates.append(elem["name"])
+            for candidate in candidates:
+                if not candidate: continue
+                match = self.FIRST_ALPHABETIC.search(candidate)
+                if not match: continue
+                yield candidate[match.start():match.end()].lower()
 
         def is_prefix(hint, existing):
             return set(hint[:i+1] for i in range(len(hint))) & set(existing)
 
+        def first_good_hint(new, existing):
+            for hint in new:
+                # some none's
+                if not hint: continue
+                if len(hint) < 3: continue
+                # not a prefix of an existing hint
+                if set(hint[:i+1] for i in range(len(hint))) & set(existing): continue
+                return hint
+
         hints = []
-        hintss = set()
-        words = iter(self._words)
+        used_hints = set()
+        words = iter(self._initialize_word_hints())
         for elem in elems:
-            hint = html_text_to_hint(str(elem))
-            if hint and len(hint) >= 3 and not is_prefix(hint, hintss):
-                hint = next(hint[:i] for i in range(3, len(hint) + 1)
-                            if not is_prefix(hint[:i], hintss))
-            while not hint or is_prefix(hint, hintss):
-                hint = next(words)
-            hintss.add(hint)
+            hint = first_good_hint(html_elem_to_hints(elem), used_hints) or next(words)
+            used_hints.add(hint)
             hints.append(hint)
         return hints
 
