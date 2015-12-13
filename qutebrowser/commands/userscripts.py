@@ -33,7 +33,16 @@ from qutebrowser.misc import guiprocess
 
 class _QtFIFOReader(QObject):
 
-    """A FIFO reader based on a QSocketNotifier."""
+    """A FIFO reader based on a QSocketNotifier.
+
+    Attributes:
+        _filepath: The path to the opened FIFO.
+        _fifo: The Python file object for the FIFO.
+        _notifier: The QSocketNotifier used.
+
+    Signals:
+        got_line: Emitted when a whole line arrived.
+    """
 
     got_line = pyqtSignal(str)
 
