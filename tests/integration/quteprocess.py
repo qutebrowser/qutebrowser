@@ -120,6 +120,8 @@ class QuteProc(testprocess.Process):
         _ipc_socket: The IPC socket of the started instance.
         _httpbin: The HTTPBin webserver.
         basedir: The base directory for this instance.
+        _focus_ready: Whether the main window got focused.
+        _load_ready: Whether the about:blank page got loaded.
 
     Signals:
         got_error: Emitted when there was an error log line.
@@ -136,6 +138,22 @@ class QuteProc(testprocess.Process):
         self._httpbin = httpbin
         self._ipc_socket = None
         self.basedir = None
+        self._focus_ready = False
+        self._load_ready = False
+
+    def _is_ready(self, what):
+        """Called by _parse_line if loading/focusing is done.
+
+        When both are done, emits the 'ready' signal.
+        """
+        if what == 'load':
+            self._load_ready = True
+        elif what == 'focus':
+            self._focus_ready = True
+        else:
+            raise ValueError("Invalid value {!r} for 'what'.".format(what))
+        if self._load_ready and self._focus_ready:
+            self.ready.emit()
 
     def _parse_line(self, line):
         try:
@@ -158,16 +176,22 @@ class QuteProc(testprocess.Process):
                 pytest.config.getoption('--verbose')):
             print(line)
 
-        start_okay_message = ("load status for "
-                              "<qutebrowser.browser.webview.WebView tab_id=0 "
-                              "url='about:blank'>: LoadStatus.success")
+        start_okay_message_load = (
+            "load status for <qutebrowser.browser.webview.WebView tab_id=0 "
+            "url='about:blank'>: LoadStatus.success")
+        start_okay_message_focus = (
+            "Focus object changed: <qutebrowser.browser.webview.WebView "
+            "tab_id=0 url='about:blank'>")
 
         if (log_line.category == 'ipc' and
                 log_line.message.startswith("Listening as ")):
             self._ipc_socket = log_line.message.split(' ', maxsplit=2)[2]
         elif (log_line.category == 'webview' and
-                log_line.message == start_okay_message):
-            self.ready.emit()
+                log_line.message == start_okay_message_load):
+            self._is_ready('load')
+        elif (log_line.category == 'misc' and
+                log_line.message == start_okay_message_focus):
+            self._is_ready('focus')
         elif (log_line.category == 'init' and
                 log_line.module == 'standarddir' and
                 log_line.function == 'init' and
