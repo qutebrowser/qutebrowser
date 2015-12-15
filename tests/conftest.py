@@ -44,7 +44,7 @@ import xvfbwrapper
 
 
 # Set hypothesis settings
-hypothesis.Settings.default.strict = True
+hypothesis.Settings.default.strict = True  # pylint: disable=no-member
 
 
 def _apply_platform_markers(item):
