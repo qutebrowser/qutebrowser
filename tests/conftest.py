@@ -30,6 +30,7 @@ import textwrap
 import warnings
 
 import pytest
+import hypothesis
 
 import helpers.stubs as stubsmod
 from helpers import logfail
@@ -40,6 +41,10 @@ from qutebrowser.utils import objreg
 
 from PyQt5.QtNetwork import QNetworkCookieJar
 import xvfbwrapper
+
+
+# Set hypothesis settings
+hypothesis.Settings.default.strict = True
 
 
 def _apply_platform_markers(item):
