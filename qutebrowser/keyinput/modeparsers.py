@@ -49,6 +49,9 @@ class NormalKeyParser(keyparser.CommandKeyParser):
         self.read_config('normal')
         self._partial_timer = usertypes.Timer(self, 'partial-match')
         self._partial_timer.setSingleShot(True)
+        self._inhibited = False
+        self._inhibited_timer = usertypes.Timer(self, 'normal-inhibited')
+        self._inhibited_timer.setSingleShot(True)
 
     def __repr__(self):
         return utils.get_repr(self)
@@ -63,6 +66,10 @@ class NormalKeyParser(keyparser.CommandKeyParser):
             A self.Match member.
         """
         txt = e.text().strip()
+        if self._inhibited is True:
+            self._debug_log("Ignoring key '{}', because the normal mode is "
+                "currently inhibited.".format(txt))
+            return self.Match.none
         if not self._keystring and any(txt == c for c in STARTCHARS):
             message.set_cmd_text(self._win_id, txt)
             return self.Match.definitive
@@ -75,6 +82,15 @@ class NormalKeyParser(keyparser.CommandKeyParser):
                 self._partial_timer.start()
         return match
 
+    def set_inhibited_timeout(self, timeout):
+        if timeout != 0:
+            self._debug_log("Inhibiting the normal mode for {}ms.".format(
+                timeout))
+            self._inhibited = True
+            self._inhibited_timer.setInterval(timeout)
+            self._inhibited_timer.timeout.connect(self._clear_inhibited)
+            self._inhibited_timer.start()
+
     @pyqtSlot()
     def _clear_partial_match(self):
         """Clear a partial keystring after a timeout."""
@@ -84,11 +100,23 @@ class NormalKeyParser(keyparser.CommandKeyParser):
         self.keystring_updated.emit(self._keystring)
 
     @pyqtSlot()
+    def _clear_inhibited(self):
+        """Reset inhibition state after a timeout."""
+        self._debug_log("Releasing inhibition state of normal mode.")
+        self._inhibited = False
+
+    @pyqtSlot()
     def _stop_timers(self):
         super()._stop_timers()
         self._partial_timer.stop()
         try:
             self._partial_timer.timeout.disconnect(self._clear_partial_match)
+        except TypeError:
+            # no connections
+            pass
+        self._inhibited_timer.stop()
+        try:
+            self._inhibited_timer.timeout.disconnect(self._clear_inhibited)
         except TypeError:
             # no connections
             pass

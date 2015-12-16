@@ -913,6 +913,11 @@ def data(readonly=False):
              "Follow a hint immediately when the hint text is completely "
              "matched."),
 
+            ('auto-follow-timeout',
+             SettingValue(typ.Int(), 0),
+             "A timeout to inhibit normal-mode key bindings after a successful"
+             "auto-follow."),
+
             ('next-regexes',
              SettingValue(typ.RegexList(flags=re.IGNORECASE),
                           r'\bnext\b,\bmore\b,\bnewer\b,\b[>→≫]\b,\b(>>|»)\b,'
