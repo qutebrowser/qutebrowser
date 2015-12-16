@@ -215,6 +215,7 @@ class Process(QObject):
         Also checks self._invalid so the test counts as failed if there were
         unexpected output lines earlier.
         """
+        self.captured_log = []
         if self._invalid:
             # Wait for a bit so the full error has a chance to arrive
             time.sleep(1)
