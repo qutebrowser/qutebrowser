@@ -86,6 +86,11 @@ def pytest_runtest_makereport(item, call):
     quteproc_log = getattr(item, '_quteproc_log', None)
     httpbin_log = getattr(item, '_httpbin_log', None)
 
+    if not hasattr(report.longrepr, 'addsection'):
+        # In some conditions (on OS X and Windows it seems), report.longrepr is
+        # actually a tuple. This is handled similarily in pytest-qt too.
+        return
+
     if quteproc_log is not None:
         report.longrepr.addsection("qutebrowser output",
                                    '\n'.join(quteproc_log))
