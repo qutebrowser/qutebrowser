@@ -884,6 +884,12 @@ class HintManager(QObject):
             # Whoops, filtered all hints
             modeman.leave(self._win_id, usertypes.KeyMode.hint, 'all filtered')
         elif len(visible) == 1 and config.get('hints', 'auto-follow'):
+            # apply auto-follow-timeout
+            timeout = config.get('hints', 'auto-follow-timeout')
+            man_inst = modeman.instance(self._win_id)
+            normal_parser = man_inst._parsers[usertypes.KeyMode.normal]
+            normal_parser.set_inhibited_timeout(timeout)
+
             # unpacking gets us the first (and only) key in the dict.
             self.fire(*visible)
 
