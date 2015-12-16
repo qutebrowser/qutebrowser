@@ -23,3 +23,4 @@
 
 from webserver import httpbin, httpbin_after_test
 from quteprocess import quteproc_process, quteproc
+from testprocess import pytest_runtest_makereport

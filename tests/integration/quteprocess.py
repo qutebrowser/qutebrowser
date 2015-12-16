@@ -174,7 +174,7 @@ class QuteProc(testprocess.Process):
         # pylint: disable=no-member
         if (log_line.loglevel in ['INFO', 'WARNING', 'ERROR'] or
                 pytest.config.getoption('--verbose')):
-            print(line)
+            self._log(line)
 
         start_okay_message_load = (
             "load status for <qutebrowser.browser.webview.WebView tab_id=0 "
@@ -306,7 +306,7 @@ class QuteProc(testprocess.Process):
             with open(session, encoding='utf-8') as f:
                 data = f.read()
 
-        print(data)
+        self._log(data)
         return yaml.load(data)
 
     def get_content(self, plain=True):
@@ -341,8 +341,9 @@ def quteproc_process(qapp, httpbin, request):
 
 
 @pytest.yield_fixture
-def quteproc(quteproc_process, httpbin):
+def quteproc(quteproc_process, httpbin, request):
     """Per-test qutebrowser fixture which uses the per-file process."""
+    request.node._quteproc_log = quteproc_process.captured_log
     quteproc_process.before_test()
     yield quteproc_process
     quteproc_process.after_test()

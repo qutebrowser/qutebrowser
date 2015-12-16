@@ -129,7 +129,7 @@ class HTTPBin(testprocess.Process):
         return [r for r in requests if r.path != '/favicon.ico']
 
     def _parse_line(self, line):
-        print(line)
+        self._log(line)
         if line == (' * Running on http://127.0.0.1:{}/ (Press CTRL+C to '
                     'quit)'.format(self.port)):
             self.ready.emit()
@@ -164,7 +164,8 @@ def httpbin(qapp):
 
 
 @pytest.yield_fixture(autouse=True)
-def httpbin_after_test(httpbin):
+def httpbin_after_test(httpbin, request):
     """Fixture to clean httpbin request list after each test."""
+    request.node._httpbin_log = httpbin.captured_log
     yield
     httpbin.after_test()

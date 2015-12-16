@@ -23,6 +23,7 @@ import re
 import os
 import time
 
+import pytest
 import pytestqt.plugin
 from PyQt5.QtCore import pyqtSlot, pyqtSignal, QProcess, QObject, QElapsedTimer
 from PyQt5.QtTest import QSignalSpy
@@ -71,6 +72,28 @@ class Line:
         return '{}({!r})'.format(self.__class__.__name__, self.data)
 
 
+@pytest.hookimpl(hookwrapper=True)
+def pytest_runtest_makereport(item, call):
+    """Add qutebrowser/httpbin sections to captured output if a test failed."""
+    outcome = yield
+    if call.when != 'call':
+        return
+    report = outcome.get_result()
+
+    if report.passed:
+        return
+
+    quteproc_log = getattr(item, '_quteproc_log', None)
+    httpbin_log = getattr(item, '_httpbin_log', None)
+
+    if quteproc_log is not None:
+        report.longrepr.addsection("qutebrowser output",
+                                   '\n'.join(quteproc_log))
+    if httpbin_log is not None:
+        report.longrepr.addsection("httpbin output",
+                                   '\n'.join(httpbin_log))
+
+
 class Process(QObject):
 
     """Abstraction over a running test subprocess process.
@@ -93,10 +116,15 @@ class Process(QObject):
 
     def __init__(self, parent=None):
         super().__init__(parent)
+        self.captured_log = []
         self._invalid = []
         self._data = []
         self.proc = QProcess()
         self.proc.setReadChannel(QProcess.StandardError)
+
+    def _log(self, line):
+        """Add the given line to the captured log output."""
+        self.captured_log.append(line)
 
     def _parse_line(self, line):
         """Parse the given line from the log.
@@ -146,12 +174,12 @@ class Process(QObject):
                 parsed = self._parse_line(line)
             except InvalidLine:
                 self._invalid.append(line)
-                print("INVALID: {}".format(line))
+                self._log("INVALID: {}".format(line))
                 continue
 
             if parsed is None:
                 if self._invalid:
-                    print("IGNORED: {}".format(line))
+                    self._log("IGNORED: {}".format(line))
             else:
                 self._data.append(parsed)
                 self.new_data.emit(parsed)
