@@ -69,7 +69,7 @@ class TestCompactText:
         (5, 'foobar', 'foob' + ELLIPSIS),
         (5, 'foo\nbar', 'foob' + ELLIPSIS),
         (7, 'foo\nbar', 'foobar'),
-    ], ids=lambda val: str(val)[:20])
+    ], ids=lambda val: repr(val)[:20])
     def test_eliding(self, elidelength, text, expected):
         """Test eliding."""
         assert utils.compact_text(text, elidelength) == expected

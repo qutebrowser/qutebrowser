@@ -1145,7 +1145,9 @@ class TestRegex:
     def test_validate_valid(self, klass, val):
         klass(none_ok=True).validate(val)
 
-    @pytest.mark.parametrize('val', [r'(foo|bar))?baz[fis]h', '', '(' * 500])
+    @pytest.mark.parametrize('val', [r'(foo|bar))?baz[fis]h', '', '(' * 500],
+                             ids=['unmatched parens', 'empty',
+                                  'too many parens'])
     def test_validate_invalid(self, klass, val):
         with pytest.raises(configexc.ValidationError):
             klass().validate(val)
@@ -1222,7 +1224,7 @@ class TestRegexList:
         r'',
         r'(foo|bar),((),1337{42}',
         r'(' * 500,
-    ])
+    ], ids=['empty value', 'empty', 'unmatched parens', 'too many parens'])
     def test_validate_invalid(self, klass, val):
         with pytest.raises(configexc.ValidationError):
             klass().validate(val)
@@ -1329,7 +1331,7 @@ class TestFileAndUserStyleSheet:
         (configtypes.File(), 'foobar', True),
         (configtypes.UserStyleSheet(), 'foobar', False),
         (configtypes.UserStyleSheet(), '\ud800', True),
-    ])
+    ], ids=['file-foobar', 'userstylesheet-foobar', 'userstylesheet-unicode'])
     def test_validate_rel_inexistent(self, os_mock, monkeypatch, configtype,
                                      value, raises):
         """Test with a relative path and standarddir.config returning None."""

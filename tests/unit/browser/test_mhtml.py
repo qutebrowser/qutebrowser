@@ -263,7 +263,8 @@ def test_empty_content_type(checker):
     }""", ['/bg-img.png']),
     (True, 'background: url(folder/file.png) no-repeat', ['folder/file.png']),
     (True, 'content: url()', []),
-])
+], ids=['import with apostrophe', 'import with quote', 'import with tab',
+        'import with url()', 'background with body', 'background', 'content'])
 def test_css_url_scanner(monkeypatch, has_cssutils, inline, style,
                          expected_urls):
     if not has_cssutils:

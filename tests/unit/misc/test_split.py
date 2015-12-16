@@ -163,20 +163,21 @@ class TestSimpleSplit:
         'foo\nbar': ['foo', '\nbar'],
     }
 
-    @pytest.mark.parametrize('test', TESTS)
+    @pytest.mark.parametrize('test', TESTS, ids=repr)
     def test_str_split(self, test):
         """Test if the behavior matches str.split."""
         assert split.simple_split(test) == test.rstrip().split()
 
     @pytest.mark.parametrize('s, maxsplit',
-                             [("foo bar baz", 1), ("  foo bar baz  ", 0)])
+                             [("foo bar baz", 1), ("  foo bar baz  ", 0)],
+                             ids=repr)
     def test_str_split_maxsplit(self, s, maxsplit):
         """Test if the behavior matches str.split with given maxsplit."""
         actual = split.simple_split(s, maxsplit=maxsplit)
         expected = s.rstrip().split(maxsplit=maxsplit)
         assert actual == expected
 
-    @pytest.mark.parametrize('test, expected', TESTS.items())
+    @pytest.mark.parametrize('test, expected', TESTS.items(), ids=repr)
     def test_split_keep(self, test, expected):
         """Test splitting with keep=True."""
         assert split.simple_split(test, keep=True) == expected

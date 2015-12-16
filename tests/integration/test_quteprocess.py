@@ -105,7 +105,8 @@ def test_qt_log_ignore(qtbot, quteproc):
         '00:00:00 DEBUG    foo       foo:foo:0 [2s ago] test',
         {'prefix': '2s ago', 'message': 'test'}
     ),
-])
+], ids=['normal', 'vdebug', 'unknown module', 'expected message',
+        'weird Qt location', 'QXcbXSettings', '2s ago marker'])
 def test_log_line_parse(data, attrs):
     line = quteprocess.LogLine(data)
     for name, expected in attrs.items():
