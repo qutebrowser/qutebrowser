@@ -26,9 +26,4 @@ from PyQt5.QtGui import QClipboard
 from test_yankpaste import skip_with_broken_clipboard
 
 
-# https://github.com/The-Compiler/qutebrowser/issues/1124#issuecomment-158073581
-pytestmark = pytest.mark.qt_log_ignore(
-    '^QXcbClipboard: SelectionRequest too old', extend=True)
-
-
 bdd.scenarios('caret.feature')
