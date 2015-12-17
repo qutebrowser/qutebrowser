@@ -628,8 +628,9 @@ class TestJavascriptEscape:
         with open(path, encoding='utf-8') as f:
             html_source = f.read().replace('%INPUT%', escaped)
 
-        with qtbot.waitSignal(webframe.loadFinished, raising=True):
+        with qtbot.waitSignal(webframe.loadFinished, raising=True) as blocker:
             webframe.setHtml(html_source)
+        assert blocker.args == [True]
 
         result = webframe.evaluateJavaScript('window.qute_test_result')
         assert result is not None
