@@ -20,7 +20,6 @@
 import pytest
 
 import pytest_bdd as bdd
-from PyQt5.QtGui import QClipboard
 
 # pylint: disable=unused-import
 from test_yankpaste import skip_with_broken_clipboard
