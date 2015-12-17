@@ -29,6 +29,7 @@ import collections
 import pytest
 import yaml
 import pytest_bdd as bdd
+from PyQt5.QtCore import QElapsedTimer
 from PyQt5.QtGui import QClipboard
 
 from helpers import utils
@@ -350,12 +351,37 @@ def check_open_tabs(quteproc, tabs):
             assert 'active' not in session_tab
 
 
+def _wait_for_clipboard(qtbot, clipboard, mode, expected):
+    timeout = 1000
+    timer = QElapsedTimer()
+    timer.start()
+
+    while True:
+        if clipboard.text(mode=mode) == expected:
+            return
+        with qtbot.waitSignal(clipboard.changed, timeout=timeout) as blocker:
+            pass
+        if not blocker.signal_emitted or timer.hasExpired(timeout):
+            mode_names = {
+                QClipboard.Clipboard: 'clipboard',
+                QClipboard.Selection: 'primary selection',
+            }
+            raise WaitForTimeout(
+                "Timed out after {}ms waiting for {} in {}.".format(
+                    timeout, expected, mode_names[mode]))
+
+
 @bdd.then(bdd.parsers.re(r'the (?P<what>primary selection|clipboard) should '
                          r'contain "(?P<content>.*)"'))
-def clipboard_contains(qapp, httpbin, what, content):
+def clipboard_contains(qtbot, qapp, httpbin, what, content):
     mode = _clipboard_mode(qapp, what)
     expected = content.replace('(port)', str(httpbin.port))
     expected = expected.replace('\\n', '\n')
+    _wait_for_clipboard(qtbot, qapp.clipboard(), mode, expected)
 
-    data = qapp.clipboard().text(mode=mode)
-    assert data == expected
+
+@bdd.then(bdd.parsers.parse('the clipboard should contain:\n{content}'))
+def clipboard_contains_multiline(qtbot, qapp, content):
+    expected = '\n'.join(line.strip() for line in content.splitlines())
+    _wait_for_clipboard(qtbot, qapp.clipboard(), QClipboard.Clipboard,
+                        expected)
