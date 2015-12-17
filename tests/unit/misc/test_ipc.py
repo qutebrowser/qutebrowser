@@ -444,14 +444,10 @@ class TestHandleConnection:
 
         ipc_server._server = FakeServer(socket)
 
-        spy = QSignalSpy(ipc_server.got_args)
-        with qtbot.waitSignal(ipc_server.got_args, raising=True):
+        with qtbot.waitSignal(ipc_server.got_args, raising=True) as blocker:
             ipc_server.handle_connection()
 
-        assert len(spy) == 1
-        assert spy[0][0] == ['foo']
-        assert spy[0][1] == 'tab'
-
+        assert blocker.args == [['foo'], 'tab', '']
         all_msgs = [r.message for r in caplog.records]
         assert "We can read a line immediately." in all_msgs
 
@@ -527,12 +523,10 @@ def test_multiline(qtbot, ipc_server, connected_socket):
                            raising=True):
         connected_socket.write(data.encode('utf-8'))
 
-    assert len(spy) == 2
     assert not error_spy
-    assert spy[0][0] == ['one']
-    assert spy[0][1] == 'tab'
-    assert spy[1][0] == ['two']
-    assert spy[1][1] == ''
+    assert len(spy) == 2
+    assert spy[0] == [['one'], 'tab', '']
+    assert spy[1] == [['two'], '', '']
 
 
 class TestSendToRunningInstance:
@@ -547,11 +541,11 @@ class TestSendToRunningInstance:
     @pytest.mark.linux(reason="Causes random trouble on Windows and OS X")
     def test_normal(self, qtbot, tmpdir, ipc_server, mocker, has_cwd):
         ipc_server.listen()
-        spy = QSignalSpy(ipc_server.got_args)
         raw_spy = QSignalSpy(ipc_server.got_raw)
         error_spy = QSignalSpy(ipc_server.got_invalid_data)
 
-        with qtbot.waitSignal(ipc_server.got_args, raising=True, timeout=5000):
+        with qtbot.waitSignal(ipc_server.got_args, raising=True,
+                              timeout=5000) as blocker:
             with tmpdir.as_cwd():
                 if not has_cwd:
                     m = mocker.patch('qutebrowser.misc.ipc.os')
@@ -563,8 +557,7 @@ class TestSendToRunningInstance:
         assert not error_spy
         expected_cwd = str(tmpdir) if has_cwd else ''
 
-        assert len(spy) == 1
-        assert spy[0] == [['foo'], '', expected_cwd]
+        assert blocker.args == [['foo'], '', expected_cwd]
 
         assert len(raw_spy) == 1
         assert len(raw_spy[0]) == 1
