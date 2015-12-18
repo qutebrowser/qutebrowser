@@ -25,6 +25,7 @@ import json
 import os.path
 import logging
 import collections
+import urllib.request
 
 import pytest
 import yaml
@@ -189,6 +190,13 @@ def fill_clipboard(qtbot, qapp, httpbin, what, content):
     clipboard = qapp.clipboard()
     with qtbot.waitSignal(clipboard.changed):
         clipboard.setText(content, mode)
+
+
+@bdd.when("I continue the redirect")
+def continue_redirect(httpbin):
+    url = 'http://localhost:{}/custom/redirect-later-continue'.format(
+        httpbin.port)
+    urllib.request.urlopen(url)
 
 
 ## Then
