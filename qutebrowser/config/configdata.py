@@ -864,7 +864,8 @@ def data(readonly=False):
                      ('number', "Use numeric hints."),
                      ('letter', "Use the chars in the hints -> "
                       "chars setting."),
-                     ('word', "Use hints words based on the html elements and the extra words."),
+                     ('word', "Use hints words based on the html "
+                      "elements and the extra words."),
                  )), 'letter'),
              "Mode to use for hints."),
 

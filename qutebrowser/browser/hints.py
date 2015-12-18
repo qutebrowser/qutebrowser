@@ -20,10 +20,8 @@
 """A HintManager to draw hints over links."""
 
 import collections
-import itertools
 import functools
 import math
-import os
 import re
 from string import ascii_lowercase
 
@@ -39,7 +37,7 @@ from qutebrowser.keyinput import modeman, modeparsers
 from qutebrowser.browser import webelem
 from qutebrowser.commands import userscripts, cmdexc, cmdutils, runners
 from qutebrowser.utils import (usertypes, log, qtutils, message,
-                               objreg, standarddir)
+                               objreg)
 from qutebrowser.misc import guiprocess
 
 
@@ -165,9 +163,10 @@ class HintManager(QObject):
                 hints = set()
                 lines = (line.rstrip().lower() for line in wordfile)
                 for word in lines:
-                    if not set(word) <= alphabet:
+                    if set(word) - alphabet:
+                        # contains none-alphabetic chars
                         continue
-                    if not len(word) <= 4:
+                    if len(word) > 4:
                         continue
                     for i in range(len(word)):
                         hints.discard(word[:i + 1])
@@ -254,21 +253,23 @@ class HintManager(QObject):
         Return:
             A list of hint strings, in the same order as the elements.
         """
-        just_get_it    = lambda tag: lambda elem: elem[tag]
-        take_last_part = lambda tag: lambda elem: elem[tag].split('/')[-1]
-        tag_extractors = {
-                "alt": just_get_it("alt"),
-                "title": just_get_it("title"),
-                "src": take_last_part("src"),
-                "href": take_last_part("href"),
-                "name": just_get_it("name"),
-        }
+        def just_get_it(tag):
+            return lambda elem: elem[tag]
+
+        def take_last_part(tag):
+            return lambda elem: elem[tag].split('/')[-1]
+
+        tag_extractors = dict(
+                alt=just_get_it("alt"),
+                title=just_get_it("title"),
+                src=take_last_part("src"),
+                href=take_last_part("href"),
+                name=just_get_it("name"))
 
         tags_for = collections.defaultdict(list, {
-                "IMG":   ["alt", "title", "src"],
-                "A":     ["title", "href"],
-                "INPUT": ["name"],
-        })
+                "IMG": ["alt", "title", "src"],
+                "A": ["title", "href"],
+                "INPUT": ["name"]})
 
         def extract_tag_words(elem):
             if elem.tagName() == "A":
