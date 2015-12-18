@@ -268,16 +268,15 @@ class HintManager(QObject):
                 if not match: continue
                 yield candidate[match.start():match.end()].lower()
 
-        def is_prefix(hint, existing):
-            return set(hint[:i+1] for i in range(len(hint))) & set(existing)
+        def any_prefix(hint, existing):
+            return any(hint.startswith(e) or e.startswith(hint) for e in existing)
 
         def first_good_hint(new, existing):
             for hint in new:
                 # some none's
                 if not hint: continue
                 if len(hint) < 3: continue
-                # not a prefix of an existing hint
-                if set(hint[:i+1] for i in range(len(hint))) & set(existing): continue
+                if any_prefix(hint, existing): continue
                 return hint
 
         hints = []
