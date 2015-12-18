@@ -84,6 +84,8 @@ Changed
 - `general -> log-javascript-console` got changed from a boolean to an option
   taking a loglevel (`none`, `info`, `debug`).
 - `:tab-move +/-` now wraps around if `tabs -> wrap` is `true`.
+- When a subprocess (like launched by `:spawn`) fails, its stdout/stderr is now
+  logged to the console.
 
 Deprecated
 ~~~~~~~~~~

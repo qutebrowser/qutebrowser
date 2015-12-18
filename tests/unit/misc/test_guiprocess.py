@@ -93,6 +93,8 @@ def test_start_env(monkeypatch, qtbot, py_proc):
     argv = py_proc("""
         import os
         import json
+        import sys
+
         env = dict(os.environ)
         print(json.dumps(env))
         sys.exit(0)
@@ -201,3 +203,33 @@ def test_exit_unsuccessful(qtbot, proc, guiprocess_message_mock, py_proc):
 
     msg = guiprocess_message_mock.getmsg(guiprocess_message_mock.Level.error)
     assert msg.text == "Testprocess exited with status 1."
+
+
+@pytest.mark.not_frozen
+@pytest.mark.parametrize('stream', ['stdout', 'stderr'])
+def test_exit_unsuccessful_output(qtbot, proc, caplog, py_proc, stream):
+    """When a process fails, its output should be logged."""
+    with caplog.atLevel(logging.ERROR):
+        with qtbot.waitSignal(proc.finished, raising=True, timeout=10000):
+            proc.start(*py_proc("""
+                import sys
+                print("test", file=sys.{})
+                sys.exit(1)
+            """.format(stream)))
+    assert len(caplog.records) == 2
+    assert caplog.records[1].msg == 'Process {}:\ntest'.format(stream)
+
+
+@pytest.mark.parametrize('stream', ['stdout', 'stderr'])
+def test_exit_successful_output(qtbot, proc, py_proc, stream):
+    """When a process suceeds, no output should be logged.
+
+    The test doesn't actually check the log as it'd fail because of the error
+    logging.
+    """
+    with qtbot.waitSignal(proc.finished, raising=True, timeout=10000):
+        proc.start(*py_proc("""
+            import sys
+            print("test", file=sys.{})
+            sys.exit(0)
+        """.format(stream)))

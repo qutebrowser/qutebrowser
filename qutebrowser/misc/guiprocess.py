@@ -109,8 +109,17 @@ class GUIProcess(QObject):
                     self._what.capitalize()))
         else:
             assert status == QProcess.NormalExit
+            # We call this 'status' here as it makes more sense to the user -
+            # it's actually 'code'.
             message.error(self._win_id, "{} exited with status {}.".format(
                 self._what.capitalize(), code))
+
+            stderr = bytes(self._proc.readAllStandardError()).decode('utf-8')
+            stdout = bytes(self._proc.readAllStandardOutput()).decode('utf-8')
+            if stdout:
+                log.procs.error("Process stdout:\n" + stdout.strip())
+            if stderr:
+                log.procs.error("Process stderr:\n" + stderr.strip())
 
     @pyqtSlot()
     def on_started(self):
