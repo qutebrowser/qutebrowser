@@ -127,7 +127,7 @@ Feature: Various utility commands.
         And I wait for "emitting: cur_load_status_changed('loading') (tab *)" in the log
         And I wait 1s
         And I run :stop
-        And I continue the redirect
+        And I open custom/redirect-later-continue in a new tab
         And I wait 1s
         Then the unordered requests should be:
             custom/redirect-later-continue
