@@ -25,7 +25,7 @@ import functools
 import math
 import os
 import re
-import string
+from string import ascii_lowercase
 
 from PyQt5.QtCore import (pyqtSignal, pyqtSlot, QObject, QEvent, Qt, QUrl,
                           QTimer)
@@ -161,7 +161,7 @@ class HintManager(QObject):
     def _initialize_word_hints(self):
         if not self._words:
             with open(config.get("hints", "dictionary")) as wordfile:
-                alphabet = set(string.ascii_lowercase)
+                alphabet = set(ascii_lowercase)
                 hints = set()
                 lines = (line.rstrip().lower() for line in wordfile)
                 for word in lines:
@@ -254,39 +254,53 @@ class HintManager(QObject):
         Return:
             A list of hint strings, in the same order as the elements.
         """
-        def html_elem_to_hints(elem):
-            candidates = []
-            if elem.tagName() == "IMG":
-                "alt" in elem and candidates.append(elem["alt"])
-                "title" in elem and candidates.append(elem["title"])
-                "src" in elem and candidates.append(elem["src"].split('/')[-1])
-            elif elem.tagName() == "A":
-                candidates.append(str(elem))
-                "title" in elem and candidates.append(elem["title"])
-                "href" in elem and candidates.append(elem["href"].split('/')[-1])
-            elif elem.tagName() == "INPUT":
-                "name"  in elem and candidates.append(elem["name"])
-            for candidate in candidates:
-                if not candidate:
-                    continue
+        just_get_it    = lambda tag: lambda elem: elem[tag]
+        take_last_part = lambda tag: lambda elem: elem[tag].split('/')[-1]
+        tag_extractors = {
+                "alt": just_get_it("alt"),
+                "title": just_get_it("title"),
+                "src": take_last_part("src"),
+                "href": take_last_part("href"),
+                "name": just_get_it("name"),
+        }
+
+        tags_for = collections.defaultdict(list, {
+                "IMG":   ["alt", "title", "src"],
+                "A":     ["title", "href"],
+                "INPUT": ["name"],
+        })
+
+        def extract_tag_words(elem):
+            if elem.tagName() == "A":
+                # link text is a special case, alas.
+                yield str(elem)
+            yield from (tag_extractors[tag](elem)
+                        for tag in tags_for[elem.tagName()]
+                        if tag in elem)
+
+        def tag_words_to_hints(words):
+            for candidate in filter(bool, words):
                 match = self.FIRST_ALPHABETIC.search(candidate)
                 if not match:
+                    continue
+                if match.end() - match.start() < 4:
                     continue
                 yield candidate[match.start():match.end()].lower()
 
         def any_prefix(hint, existing):
-            return any(hint.startswith(e) or e.startswith(hint) for e in existing)
+            return any(hint.startswith(e) or e.startswith(hint)
+                       for e in existing)
 
-        def first_good_hint(new, existing):
-            new = filter(bool, new)
-            new = filter(lambda h: len(h) > 4, new)
+        def new_hint_for(elem, existing):
+            new = tag_words_to_hints(extract_tag_words(elem))
             new = filter(lambda h: not any_prefix(h, existing), new)
-            return next(new, None)  # either the first good, or None
+            # either the first good, or None
+            return next(new, None)
 
         hints = []
         used_hints = set()
         for elem in elems:
-            hint = first_good_hint(html_elem_to_hints(elem), used_hints) or next(words)
+            hint = new_hint_for(elem, used_hints) or next(words)
             used_hints.add(hint)
             hints.append(hint)
         return hints
