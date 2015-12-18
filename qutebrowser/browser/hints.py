@@ -25,6 +25,7 @@ import functools
 import math
 import os
 import re
+import string
 
 from PyQt5.QtCore import (pyqtSignal, pyqtSlot, QObject, QEvent, Qt, QUrl,
                           QTimer)
@@ -159,7 +160,7 @@ class HintManager(QObject):
 
     def _initialize_word_hints(self):
         if not self._words:
-            with open("/usr/share/dict/words") as wordfile:
+            with open(config.get("hints", "dictionary")) as wordfile:
                 alphabet = set(string.ascii_lowercase)
                 hints = set()
                 lines = (line.rstrip().lower() for line in wordfile)
@@ -280,7 +281,7 @@ class HintManager(QObject):
             new = filter(bool, new)
             new = filter(lambda h: len(h) > 4, new)
             new = filter(lambda h: not any_prefix(h, existing), new)
-            return next(hint, None)  # either the first good, or None
+            return next(new, None)  # either the first good, or None
 
         hints = []
         used_hints = set()
