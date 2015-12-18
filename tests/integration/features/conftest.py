@@ -361,7 +361,7 @@ def _wait_for_clipboard(qtbot, clipboard, mode, expected):
             return
         with qtbot.waitSignal(clipboard.changed, timeout=timeout) as blocker:
             pass
-        if not blocker.signal_emitted or timer.hasExpired(timeout):
+        if not blocker.signal_triggered or timer.hasExpired(timeout):
             mode_names = {
                 QClipboard.Clipboard: 'clipboard',
                 QClipboard.Selection: 'primary selection',
