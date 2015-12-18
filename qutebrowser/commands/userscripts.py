@@ -108,7 +108,8 @@ class _BaseUserscriptRunner(QObject):
             verbose: Show notifications when the command started/exited.
         """
         self._env = {'QUTE_FIFO': self._filepath}
-        self._env.update(env)
+        if env is not None:
+            self._env.update(env)
         self._proc = guiprocess.GUIProcess(self._win_id, 'userscript',
                                            additional_env=self._env,
                                            verbose=verbose, parent=self)
