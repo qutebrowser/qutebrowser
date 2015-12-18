@@ -25,7 +25,6 @@ import functools
 import math
 import os
 import re
-import string
 
 from PyQt5.QtCore import (pyqtSignal, pyqtSlot, QObject, QEvent, Qt, QUrl,
                           QTimer)
@@ -50,6 +49,7 @@ Target = usertypes.enum('Target', ['normal', 'tab', 'tab_fg', 'tab_bg',
                                    'window', 'yank', 'yank_primary', 'run',
                                    'fill', 'hover', 'download', 'userscript',
                                    'spawn'])
+
 
 @pyqtSlot(usertypes.KeyMode)
 def on_mode_entered(mode, win_id):
@@ -152,7 +152,7 @@ class HintManager(QObject):
         self._win_id = win_id
         self._tab_id = tab_id
         self._context = None
-        self._words = set() # initialized on first word hint use
+        self._words = set()  # initialized on first word hint use
         mode_manager = objreg.get('mode-manager', scope='window',
                                   window=win_id)
         mode_manager.left.connect(self.on_mode_left)
@@ -164,10 +164,12 @@ class HintManager(QObject):
                 hints = set()
                 lines = (line.rstrip().lower() for line in wordfile)
                 for word in lines:
-                    if not set(word) <= alphabet: continue
-                    if not len(word) <= 4: continue
+                    if not set(word) <= alphabet:
+                        continue
+                    if not len(word) <= 4:
+                        continue
                     for i in range(len(word)):
-                        hints.discard(word[:i+1])
+                        hints.discard(word[:i + 1])
                     hints.add(word)
                 self._words.update(hints)
         return self._words
@@ -222,8 +224,8 @@ class HintManager(QObject):
         """
         if config.get('hints', 'mode') == 'words':
             try:
-                self._initialize_word_hints()
-                return self._hint_words(elems)
+                words = iter(self._initialize_word_hints())
+                return self._hint_words(words, elems)
             except IOError:
                 message.error(self._win_id, "Word hints require a dictionary" +
                               " at /usr/share/dict/words.", immediately=True)
@@ -238,8 +240,10 @@ class HintManager(QObject):
         else:
             return self._hint_linear(min_chars, chars, elems)
 
-    def _hint_words(self, elems):
-        """Produce hint words based on the link text and random words
+    def _hint_words(self, words, elems):
+        """Produce hint labels based on the html tags.
+
+        Produce hint words based on the link text and random words
         from the words arg as fallback.
 
         Args:
@@ -249,45 +253,42 @@ class HintManager(QObject):
         Return:
             A list of hint strings, in the same order as the elements.
         """
-
         def html_elem_to_hints(elem):
             candidates = []
             if elem.tagName() == "IMG":
-                "alt"   in elem and candidates.append(elem["alt"])
+                "alt" in elem and candidates.append(elem["alt"])
                 "title" in elem and candidates.append(elem["title"])
-                "src"   in elem and candidates.append(elem["src"].split('/')[-1])
+                "src" in elem and candidates.append(elem["src"].split('/')[-1])
             elif elem.tagName() == "A":
                 candidates.append(str(elem))
                 "title" in elem and candidates.append(elem["title"])
-                "href"  in elem and candidates.append(elem["href"].split('/')[-1])
+                "href" in elem and candidates.append(elem["href"].split('/')[-1])
             elif elem.tagName() == "INPUT":
                 "name"  in elem and candidates.append(elem["name"])
             for candidate in candidates:
-                if not candidate: continue
+                if not candidate:
+                    continue
                 match = self.FIRST_ALPHABETIC.search(candidate)
-                if not match: continue
+                if not match:
+                    continue
                 yield candidate[match.start():match.end()].lower()
 
         def any_prefix(hint, existing):
             return any(hint.startswith(e) or e.startswith(hint) for e in existing)
 
         def first_good_hint(new, existing):
-            for hint in new:
-                # some none's
-                if not hint: continue
-                if len(hint) < 3: continue
-                if any_prefix(hint, existing): continue
-                return hint
+            new = filter(bool, new)
+            new = filter(lambda h: len(h) > 4, new)
+            new = filter(lambda h: not any_prefix(h, existing), new)
+            return next(hint, None)  # either the first good, or None
 
         hints = []
         used_hints = set()
-        words = iter(self._initialize_word_hints())
         for elem in elems:
             hint = first_good_hint(html_elem_to_hints(elem), used_hints) or next(words)
             used_hints.add(hint)
             hints.append(hint)
         return hints
-
 
     def _hint_scattered(self, min_chars, chars, elems):
         """Produce scattered hint labels with variable length (like Vimium).
@@ -1040,4 +1041,3 @@ class HintManager(QObject):
             # hinting.
             return
         self._cleanup()
-
