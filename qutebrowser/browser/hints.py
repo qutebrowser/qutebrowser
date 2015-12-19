@@ -260,17 +260,18 @@ class HintManager(QObject):
         def take_last_part(tag):
             return lambda elem: elem[tag].split('/')[-1]
 
-        tag_extractors = dict(
-                alt=just_get_it("alt"),
-                title=just_get_it("title"),
-                src=take_last_part("src"),
-                href=take_last_part("href"),
-                name=just_get_it("name"))
+        tag_extractors = dict(alt=just_get_it("alt"),
+                              title=just_get_it("title"),
+                              src=take_last_part("src"),
+                              href=take_last_part("href"),
+                              name=just_get_it("name"))
 
-        tags_for = collections.defaultdict(list, {
+        tags_for = collections.defaultdict(
+            list, {
                 "IMG": ["alt", "title", "src"],
                 "A": ["title", "href"],
-                "INPUT": ["name"]})
+                "INPUT": ["name"]
+            })
 
         def extract_tag_words(elem):
             "Extract tag words form the given element."
