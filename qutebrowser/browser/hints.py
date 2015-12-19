@@ -158,7 +158,8 @@ class HintManager(QObject):
 
     def _initialize_word_hints(self):
         if not self._words:
-            with open(config.get("hints", "dictionary")) as wordfile:
+            dictionary = config.get("hints", "dictionary")
+            with open(dictionary, encoding="UTF-8") as wordfile:
                 alphabet = set(ascii_lowercase)
                 hints = set()
                 lines = (line.rstrip().lower() for line in wordfile)
@@ -272,6 +273,7 @@ class HintManager(QObject):
                 "INPUT": ["name"]})
 
         def extract_tag_words(elem):
+            "Extract tag words form the given element."
             if elem.tagName() == "A":
                 # link text is a special case, alas.
                 yield str(elem)
@@ -280,7 +282,10 @@ class HintManager(QObject):
                         if tag in elem)
 
         def tag_words_to_hints(words):
-            for candidate in filter(bool, words):
+            "Takes words and transform them to proper hints if possible."
+            for candidate in words:
+                if not candidate:
+                    continue
                 match = self.FIRST_ALPHABETIC.search(candidate)
                 if not match:
                     continue
@@ -293,10 +298,11 @@ class HintManager(QObject):
                        for e in existing)
 
         def new_hint_for(elem, existing):
+            "Returns a hint for elem, without conflicting with the existing."
             new = tag_words_to_hints(extract_tag_words(elem))
-            new = filter(lambda h: not any_prefix(h, existing), new)
+            without_prefixes = (h for h in new if not any_prefix(h, existing))
             # either the first good, or None
-            return next(new, None)
+            return next(without_prefixes, None)
 
         hints = []
         used_hints = set()
