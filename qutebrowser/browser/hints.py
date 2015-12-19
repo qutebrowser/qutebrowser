@@ -147,7 +147,7 @@ class HintManager(QObject):
         title=lambda elem: elem["title"],
         src=lambda elem: elem["src"].split('/')[-1],
         href=lambda elem: elem["href"].split('/')[-1],
-        text=lambda elem: str(elem),
+        text=str,
     )
 
     TAGS_FOR = collections.defaultdict(
@@ -156,7 +156,6 @@ class HintManager(QObject):
             "A": ["title", "href", "text"],
             "INPUT": ["name"]
         })
-
 
     mouse_event = pyqtSignal('QMouseEvent')
     start_hinting = pyqtSignal(usertypes.ClickTarget)
@@ -286,7 +285,6 @@ class HintManager(QObject):
         no_prefixes = (h for h in new if not self._any_prefix(h, existing))
         # either the first good, or None
         return next(no_prefixes, None)
-
 
     def _hint_words(self, words, elems):
         """Produce hint labels based on the html tags.
