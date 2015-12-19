@@ -141,6 +141,23 @@ class HintManager(QObject):
 
     FIRST_ALPHABETIC = re.compile('[A-Za-z]{3,}')
 
+    TAG_EXTRACTORS = dict(
+        alt=lambda elem: elem["alt"],
+        name=lambda elem: elem["name"],
+        title=lambda elem: elem["title"],
+        src=lambda elem: elem["src"].split('/')[-1],
+        href=lambda elem: elem["href"].split('/')[-1],
+        text=lambda elem: str(elem),
+    )
+
+    TAGS_FOR = collections.defaultdict(
+        list, {
+            "IMG": ["alt", "title", "src"],
+            "A": ["title", "href", "text"],
+            "INPUT": ["name"]
+        })
+
+
     mouse_event = pyqtSignal('QMouseEvent')
     start_hinting = pyqtSignal(usertypes.ClickTarget)
     stop_hinting = pyqtSignal()
@@ -241,6 +258,36 @@ class HintManager(QObject):
         else:
             return self._hint_linear(min_chars, chars, elems)
 
+    def _extract_tag_words(self, elem):
+        """Extract tag words form the given element."""
+        yield from (self.TAG_EXTRACTORS[tag](elem)
+                    for tag in self.TAGS_FOR[elem.tagName()]
+                    if tag in elem or tag == "text")
+
+    def _tag_words_to_hints(self, words):
+        """Take words and transform them to proper hints if possible."""
+        for candidate in words:
+            if not candidate:
+                continue
+            match = self.FIRST_ALPHABETIC.search(candidate)
+            if not match:
+                continue
+            if match.end() - match.start() < 4:
+                continue
+            yield candidate[match.start():match.end()].lower()
+
+    def _any_prefix(self, hint, existing):
+        return any(hint.startswith(e) or e.startswith(hint)
+                   for e in existing)
+
+    def _new_hint_for(self, elem, existing):
+        """Return a hint for elem, not conflicting with the existing."""
+        new = self._tag_words_to_hints(self._extract_tag_words(elem))
+        no_prefixes = (h for h in new if not self._any_prefix(h, existing))
+        # either the first good, or None
+        return next(no_prefixes, None)
+
+
     def _hint_words(self, words, elems):
         """Produce hint labels based on the html tags.
 
@@ -254,61 +301,10 @@ class HintManager(QObject):
         Return:
             A list of hint strings, in the same order as the elements.
         """
-        def just_get_it(tag):
-            return lambda elem: elem[tag]
-
-        def take_last_part(tag):
-            return lambda elem: elem[tag].split('/')[-1]
-
-        tag_extractors = dict(alt=just_get_it("alt"),
-                              title=just_get_it("title"),
-                              src=take_last_part("src"),
-                              href=take_last_part("href"),
-                              name=just_get_it("name"))
-
-        tags_for = collections.defaultdict(
-            list, {
-                "IMG": ["alt", "title", "src"],
-                "A": ["title", "href"],
-                "INPUT": ["name"]
-            })
-
-        def extract_tag_words(elem):
-            "Extract tag words form the given element."
-            if elem.tagName() == "A":
-                # link text is a special case, alas.
-                yield str(elem)
-            yield from (tag_extractors[tag](elem)
-                        for tag in tags_for[elem.tagName()]
-                        if tag in elem)
-
-        def tag_words_to_hints(words):
-            "Takes words and transform them to proper hints if possible."
-            for candidate in words:
-                if not candidate:
-                    continue
-                match = self.FIRST_ALPHABETIC.search(candidate)
-                if not match:
-                    continue
-                if match.end() - match.start() < 4:
-                    continue
-                yield candidate[match.start():match.end()].lower()
-
-        def any_prefix(hint, existing):
-            return any(hint.startswith(e) or e.startswith(hint)
-                       for e in existing)
-
-        def new_hint_for(elem, existing):
-            "Returns a hint for elem, without conflicting with the existing."
-            new = tag_words_to_hints(extract_tag_words(elem))
-            without_prefixes = (h for h in new if not any_prefix(h, existing))
-            # either the first good, or None
-            return next(without_prefixes, None)
-
         hints = []
         used_hints = set()
         for elem in elems:
-            hint = new_hint_for(elem, used_hints) or next(words)
+            hint = self._new_hint_for(elem, used_hints) or next(words)
             used_hints.add(hint)
             hints.append(hint)
         return hints
