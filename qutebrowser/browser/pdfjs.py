@@ -163,3 +163,13 @@ def _read_from_system(system_path, names):
         except OSError:
             continue
     return None
+
+
+def is_available():
+    """Return true if a pdfjs installation is available."""
+    try:
+        get_pdfjs_res('build/pdf.js')
+    except PDFJSNotFound:
+        return False
+    else:
+        return True

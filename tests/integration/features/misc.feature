@@ -243,3 +243,17 @@ Feature: Various utility commands.
         When I set general -> startpage to http://localhost:(port)/data/numbers/1.txt,http://localhost:(port)/data/numbers/2.txt
         And I run :home
         Then data/numbers/1.txt should be loaded
+
+    # pdfjs support
+
+    Scenario: pdfjs is used for pdf files
+        Given pdfjs is available
+        When I set content -> enable-pdfjs to true
+        And I open data/misc/test.pdf
+        Then the javascript message "PDF * [*] (PDF.js: *)" should be logged
+
+    Scenario: pdfjs is not used when disabled
+        When I set content -> enable-pdfjs to false
+        And I set storage -> prompt-download-directory to false
+        And I open data/misc/test.pdf
+        Then "Download finished" should be logged
