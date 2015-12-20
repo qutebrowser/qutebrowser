@@ -23,7 +23,6 @@
 import os
 import sys
 import warnings
-import inspect
 
 import pytest
 
@@ -50,8 +49,3 @@ def test_installed_package():
     """Make sure the tests are running against the installed package."""
     print(sys.path)
     assert '.tox' in qutebrowser.__file__.split(os.sep)
-
-
-def test_getargspec():
-    """Make sure the getargspec DeprecationWarning gets ignored."""
-    inspect.getargspec(lambda: None)  # pylint: disable=deprecated-method
