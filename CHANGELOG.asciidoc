@@ -86,6 +86,7 @@ Changed
 - `:tab-move +/-` now wraps around if `tabs -> wrap` is `true`.
 - When a subprocess (like launched by `:spawn`) fails, its stdout/stderr is now
   logged to the console.
+- A search engine name can now contain any non-space character, like dashes.
 
 Deprecated
 ~~~~~~~~~~

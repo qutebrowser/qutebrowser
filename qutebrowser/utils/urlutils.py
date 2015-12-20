@@ -62,19 +62,22 @@ def _parse_search_term(s):
     Return:
         A (engine, term) tuple, where engine is None for the default engine.
     """
-    m = re.search(r'(^\w+)\s+(.+)($|\s+)', s)
-    if m:
-        engine = m.group(1)
+    s = s.strip()
+    splitted = s.split(maxsplit=1)
+
+    if len(splitted) == 2:
+        engine = splitted[0]
         try:
             config.get('searchengines', engine)
         except configexc.NoOptionError:
             engine = None
             term = s
         else:
-            term = m.group(2).rstrip()
+            term = splitted[1]
     else:
         engine = None
         term = s
+
     log.url.debug("engine {}, term '{}'".format(engine, term))
     return (engine, term)
 

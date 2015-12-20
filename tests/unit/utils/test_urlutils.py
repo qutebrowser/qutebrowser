@@ -98,6 +98,7 @@ def urlutils_config_stub(config_stub, monkeypatch):
         'general': {'auto-search': True},
         'searchengines': {
             'test': 'http://www.qutebrowser.org/?q={}',
+            'test-with-dash': 'http://www.example.org/?q={}',
             'DEFAULT': 'http://www.example.com/?q={}',
         },
     }
@@ -247,6 +248,8 @@ def test_special_urls(url, special):
     ('test testfoo ', 'www.qutebrowser.org', 'q=testfoo'),
     ('!python testfoo', 'www.example.com', 'q=%21python testfoo'),
     ('blub testfoo', 'www.example.com', 'q=blub testfoo'),
+    ('stripped ', 'www.example.com', 'q=stripped'),
+    ('test-with-dash testfoo', 'www.example.org', 'q=testfoo'),
 ])
 def test_get_search_url(urlutils_config_stub, url, host, query):
     """Test _get_search_url().
