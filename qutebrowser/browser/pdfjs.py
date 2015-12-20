@@ -57,6 +57,7 @@ def _generate_pdfjs_script(url):
         url: The url of the pdf page as QUrl.
     """
     return (
+        'PDFJS.verbosity = PDFJS.VERBOSITY_LEVELS.info;\n'
         'PDFView.open("{url}");\n'
     ).format(url=webelem.javascript_escape(url.toString(QUrl.FullyEncoded)))
 
