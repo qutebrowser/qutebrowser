@@ -31,10 +31,17 @@ from qutebrowser.browser import pdfjs
 # because we use qutebrowser.browser.webelem.javascript_escape.  Characters
 # like " are already replaced by QUrl.
 @pytest.mark.parametrize('url, expected', [
-    ('http://foo.bar', 'PDFView.open("http://foo.bar");\n'),
-    ('http://"', 'PDFView.open("");\n'),
-    ('\0', 'PDFView.open("%00");\n'),
+    ('http://foo.bar',
+     'PDFJS.verbosity = PDFJS.VERBOSITY_LEVELS.info;\n'
+     'PDFView.open("http://foo.bar");\n'),
+    ('http://"',
+     'PDFJS.verbosity = PDFJS.VERBOSITY_LEVELS.info;\n'
+     'PDFView.open("");\n'),
+    ('\0',
+     'PDFJS.verbosity = PDFJS.VERBOSITY_LEVELS.info;\n'
+     'PDFView.open("%00");\n'),
     ('http://foobar/");alert("attack!");',
+     'PDFJS.verbosity = PDFJS.VERBOSITY_LEVELS.info;\n'
      'PDFView.open("http://foobar/%22);alert(%22attack!%22);");\n'),
 ])
 def test_generate_pdfjs_script(url, expected):
