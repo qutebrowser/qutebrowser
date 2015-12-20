@@ -220,6 +220,7 @@ def test_exit_unsuccessful_output(qtbot, proc, caplog, py_proc, stream):
     assert caplog.records[1].msg == 'Process {}:\ntest'.format(stream)
 
 
+@pytest.mark.not_frozen
 @pytest.mark.parametrize('stream', ['stdout', 'stderr'])
 def test_exit_successful_output(qtbot, proc, py_proc, stream):
     """When a process suceeds, no output should be logged.
