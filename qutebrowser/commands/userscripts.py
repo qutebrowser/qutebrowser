@@ -271,7 +271,7 @@ class _WindowsUserscriptRunner(_BaseUserscriptRunner):
         self._run_process(cmd, *args, env=env, verbose=verbose)
 
 
-class _DummyUserscriptRunner:
+class _DummyUserscriptRunner(QObject):
 
     """Simple dummy runner which displays an error when using userscripts.
 
@@ -283,6 +283,10 @@ class _DummyUserscriptRunner:
     """
 
     finished = pyqtSignal()
+
+    def __init__(self, win_id, parent=None):
+        # pylint: disable=unused-argument
+        super().__init__(parent)
 
     def run(self, cmd, *args, env=None, verbose=False):
         """Print an error as userscripts are not supported."""
