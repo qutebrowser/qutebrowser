@@ -96,6 +96,15 @@ Deprecated
 - `:download <url> <destination>` is now deprecated and
   `:download --dest <destination> <url>` should be used instead.
 
+Removed
+~~~~~~~
+
+- `:scroll` with two pixel-arguments (deprecated in v0.3.0)
+- The `:run-userscript` command (deprecated in v0.2.0)
+- The `rapid` and `rapid-win` targets for `:hint` (deprecated in v0.2.0)
+- The `:cancel-download` command (deprecated in v0.2.0)
+- The `:download-page` command (deprecated in v0.2.0)
+
 Fixed
 ~~~~~
 

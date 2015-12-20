@@ -508,32 +508,14 @@ class CommandDispatcher:
 
     @cmdutils.register(instance='command-dispatcher', hide=True,
                        scope='window', count='count')
-    def scroll(self,
-               direction: {'type': (str, int)},
-               dy: {'type': int, 'hide': True}=None,
-               count=1):
+    def scroll(self, direction: {'type': (str, int)}, count=1):
         """Scroll the current tab in the given direction.
 
         Args:
             direction: In which direction to scroll
                        (up/down/left/right/top/bottom).
-            dy: Deprecated argument to support the old dx/dy form.
             count: multiplier
         """
-        # pylint: disable=too-many-locals
-        try:
-            # Check for deprecated dx/dy form (like with scroll-px).
-            dx = int(direction)
-            dy = int(dy)
-        except (ValueError, TypeError):
-            # Invalid values will get handled later.
-            pass
-        else:
-            message.warning(self._win_id, ":scroll with dx/dy arguments is "
-                            "deprecated - use :scroll-px instead!")
-            self.scroll_px(dx, dy, count=count)
-            return
-
         fake_keys = {
             'up': Qt.Key_Up,
             'down': Qt.Key_Down,
@@ -953,7 +935,7 @@ class CommandDispatcher:
             cmd, args, userscript))
         if userscript:
             # ~ expansion is handled by the userscript module.
-            self.run_userscript(cmd, *args, verbose=verbose)
+            self._run_userscript(cmd, *args, verbose=verbose)
         else:
             cmd = os.path.expanduser(cmd)
             proc = guiprocess.GUIProcess(self._win_id, what='command',
@@ -969,9 +951,7 @@ class CommandDispatcher:
         """Open main startpage in current tab."""
         self.openurl(config.get('general', 'startpage')[0])
 
-    @cmdutils.register(instance='command-dispatcher', scope='window',
-                       deprecated='Use :spawn --userscript instead!')
-    def run_userscript(self, cmd, *args: {'nargs': '*'}, verbose=False):
+    def _run_userscript(self, cmd, *args, verbose=False):
         """Run a userscript given as argument.
 
         Args:
@@ -1183,12 +1163,6 @@ class CommandDispatcher:
                 q.ask()
         else:
             mhtml.start_download_checked(dest, web_view=web_view)
-
-    @cmdutils.register(instance='command-dispatcher', scope='window',
-                       deprecated="Use :download instead.")
-    def download_page(self):
-        """Download the current page."""
-        self.download()
 
     @cmdutils.register(instance='command-dispatcher', scope='window')
     def view_source(self):

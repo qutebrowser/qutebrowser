@@ -1136,7 +1136,7 @@ This acts like readline's yank.
 
 [[scroll]]
 === scroll
-Syntax: +:scroll 'direction' ['dy']+
+Syntax: +:scroll 'direction'+
 
 Scroll the current tab in the given direction.
 

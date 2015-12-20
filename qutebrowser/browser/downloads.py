@@ -948,17 +948,6 @@ class DownloadManager(QAbstractListModel):
         self.remove_item(download)
 
     @cmdutils.register(instance='download-manager', scope='window',
-                       deprecated="Use :download-cancel instead.",
-                       count='count')
-    def cancel_download(self, count=1):
-        """Cancel the first/[count]th download.
-
-        Args:
-            count: The index of the download to cancel.
-        """
-        self.download_cancel(count)
-
-    @cmdutils.register(instance='download-manager', scope='window',
                        count='count')
     def download_open(self, count=0):
         """Open the last/[count]th download.

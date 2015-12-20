@@ -95,16 +95,6 @@ Feature: Scrolling
         Then the error "Invalid value 'foobar' for direction - expected one of: bottom, down, left, page-down, page-up, right, top, up" should be shown
         And the page should not be scrolled
 
-    Scenario: :scroll with deprecated pixel argument
-        When I run :scroll 0 10
-        Then the warning ":scroll with dx/dy arguments is deprecated - use :scroll-px instead!" should be shown
-        Then the page should be scrolled vertically
-
-    Scenario: :scroll with deprecated pixel argument (float)
-        When I run :scroll 2.5 2.5
-        Then the error "scroll: Argument dy: invalid int value: '2.5'" should be shown
-        And the page should not be scrolled
-
     Scenario: Scrolling down and up with count
         When I run :scroll down with count 2
         And I run :scroll up
