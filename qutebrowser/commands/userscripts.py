@@ -300,9 +300,9 @@ class _DummyUserscriptRunner(QObject):
 # right thing depending on the platform.
 if os.name == 'posix':
     UserscriptRunner = _POSIXUserscriptRunner
-elif os.name == 'nt':
+elif os.name == 'nt':  # pragma: no cover
     UserscriptRunner = _WindowsUserscriptRunner
-else:
+else:  # pragma: no cover
     UserscriptRunner = _DummyUserscriptRunner
 
 
