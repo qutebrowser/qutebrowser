@@ -113,7 +113,6 @@ class _BaseUserscriptRunner(QObject):
         self._proc = guiprocess.GUIProcess(self._win_id, 'userscript',
                                            additional_env=self._env,
                                            verbose=verbose, parent=self)
-        self._proc.error.connect(self.on_proc_error)
         self._proc.finished.connect(self.on_proc_finished)
         self._proc.start(cmd, args)
 
@@ -158,10 +157,6 @@ class _BaseUserscriptRunner(QObject):
         """
         raise NotImplementedError
 
-    def on_proc_error(self, error):
-        """Called when the process encountered an error."""
-        raise NotImplementedError
-
 
 class _POSIXUserscriptRunner(_BaseUserscriptRunner):
 
@@ -200,10 +195,6 @@ class _POSIXUserscriptRunner(_BaseUserscriptRunner):
 
     def on_proc_finished(self):
         """Interrupt the reader when the process finished."""
-        self.finish()
-
-    def on_proc_error(self, error):
-        """Interrupt the reader when the process had an error."""
         self.finish()
 
     def finish(self):
@@ -253,11 +244,6 @@ class _WindowsUserscriptRunner(_BaseUserscriptRunner):
                     self.got_cmd.emit(line.rstrip())
         except OSError:
             log.procs.exception("Failed to read command file!")
-        self._cleanup()
-        self.finished.emit()
-
-    def on_proc_error(self, error):
-        """Clean up when the process had an error."""
         self._cleanup()
         self.finished.emit()
 

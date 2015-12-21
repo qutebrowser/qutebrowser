@@ -121,6 +121,7 @@ Fixed
   (U+2028/U+2029/BOM).
 - Movements in caret mode now should work correctly on OS X and Windows.
 - Fixed upgrade from earlier config versions.
+- Fixed crash when killing a running userscript.
 
 v0.4.1
 ------
