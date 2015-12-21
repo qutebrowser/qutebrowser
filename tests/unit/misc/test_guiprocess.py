@@ -54,7 +54,6 @@ def fake_proc(monkeypatch, stubs):
     return p
 
 
-@pytest.mark.not_frozen
 def test_start(proc, qtbot, guiprocess_message_mock, py_proc):
     """Test simply starting a process."""
     with qtbot.waitSignals([proc.started, proc.finished], raising=True,
@@ -66,7 +65,6 @@ def test_start(proc, qtbot, guiprocess_message_mock, py_proc):
     assert bytes(proc._proc.readAll()).rstrip() == b'test'
 
 
-@pytest.mark.not_frozen
 def test_start_verbose(proc, qtbot, guiprocess_message_mock, py_proc):
     """Test starting a process verbosely."""
     proc.verbose = True
@@ -84,7 +82,6 @@ def test_start_verbose(proc, qtbot, guiprocess_message_mock, py_proc):
     assert bytes(proc._proc.readAll()).rstrip() == b'test'
 
 
-@pytest.mark.not_frozen
 def test_start_env(monkeypatch, qtbot, py_proc):
     monkeypatch.setenv('QUTEBROWSER_TEST_1', '1')
     env = {'QUTEBROWSER_TEST_2': '2'}
@@ -110,7 +107,6 @@ def test_start_env(monkeypatch, qtbot, py_proc):
     assert 'QUTEBROWSER_TEST_2' in ret_env
 
 
-@pytest.mark.not_frozen
 @pytest.mark.qt_log_ignore('QIODevice::read.*: WriteOnly device', extend=True)
 def test_start_mode(proc, qtbot, py_proc):
     """Test simply starting a process with mode parameter."""
@@ -141,7 +137,6 @@ def test_start_detached_error(fake_proc, guiprocess_message_mock):
     assert msg.text == "Error while spawning testprocess: Error message."
 
 
-@pytest.mark.not_frozen
 def test_double_start(qtbot, proc, py_proc):
     """Test starting a GUIProcess twice."""
     with qtbot.waitSignal(proc.started, raising=True, timeout=10000):
@@ -151,7 +146,6 @@ def test_double_start(qtbot, proc, py_proc):
         proc.start('', [])
 
 
-@pytest.mark.not_frozen
 def test_double_start_finished(qtbot, proc, py_proc):
     """Test starting a GUIProcess twice (with the first call finished)."""
     with qtbot.waitSignals([proc.started, proc.finished], raising=True,
@@ -196,7 +190,6 @@ def test_error(qtbot, proc, caplog, guiprocess_message_mock):
     assert msg.text == expected_msg
 
 
-@pytest.mark.not_frozen
 def test_exit_unsuccessful(qtbot, proc, guiprocess_message_mock, py_proc):
     with qtbot.waitSignal(proc.finished, raising=True, timeout=10000):
         proc.start(*py_proc('import sys; sys.exit(1)'))
@@ -205,7 +198,6 @@ def test_exit_unsuccessful(qtbot, proc, guiprocess_message_mock, py_proc):
     assert msg.text == "Testprocess exited with status 1."
 
 
-@pytest.mark.not_frozen
 @pytest.mark.parametrize('stream', ['stdout', 'stderr'])
 def test_exit_unsuccessful_output(qtbot, proc, caplog, py_proc, stream):
     """When a process fails, its output should be logged."""
@@ -220,7 +212,6 @@ def test_exit_unsuccessful_output(qtbot, proc, caplog, py_proc, stream):
     assert caplog.records[1].msg == 'Process {}:\ntest'.format(stream)
 
 
-@pytest.mark.not_frozen
 @pytest.mark.parametrize('stream', ['stdout', 'stderr'])
 def test_exit_successful_output(qtbot, proc, py_proc, stream):
     """When a process suceeds, no output should be logged.
