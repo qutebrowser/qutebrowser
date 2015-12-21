@@ -220,9 +220,8 @@ def test_temporary_files_failed_cleanup(caplog, qtbot, tmpdir, py_proc,
             runner.run(cmd, *args, env={'QUTE_HTML': str(test_file)})
 
     assert len(caplog.records) == 1
-    expected = ("Failed to delete tempfile {file} ([Errno 2] No such file or "
-                "directory: '{file}')!".format(file=test_file))
-    assert caplog.records[0].message == expected
+    expected = "Failed to delete tempfile {} (".format(test_file)
+    assert caplog.records[0].message.startswith(expected)
 
 
 def test_dummy_runner(qtbot):
