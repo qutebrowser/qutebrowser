@@ -201,7 +201,7 @@ def test_exit_unsuccessful(qtbot, proc, guiprocess_message_mock, py_proc):
 @pytest.mark.parametrize('stream', ['stdout', 'stderr'])
 def test_exit_unsuccessful_output(qtbot, proc, caplog, py_proc, stream):
     """When a process fails, its output should be logged."""
-    with caplog.atLevel(logging.ERROR):
+    with caplog.at_level(logging.ERROR):
         with qtbot.waitSignal(proc.finished, raising=True, timeout=10000):
             proc.start(*py_proc("""
                 import sys
