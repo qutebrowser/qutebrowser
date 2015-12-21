@@ -41,7 +41,7 @@ class TestQtFIFOReader:
     @pytest.yield_fixture
     def reader(self, tmpdir, qapp):
         fifo_path = str(tmpdir / 'fifo')
-        os.mkfifo(fifo_path)
+        os.mkfifo(fifo_path)  # pylint: disable=no-member,unneeded-suppression
         reader = userscripts._QtFIFOReader(fifo_path)
         yield reader
         if reader._notifier.isEnabled():
