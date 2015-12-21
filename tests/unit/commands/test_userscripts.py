@@ -19,6 +19,7 @@
 
 import os
 import json
+import time
 import logging
 import signal
 
@@ -193,6 +194,9 @@ def test_killed_command(qtbot, tmpdir, py_proc, runner):
     with qtbot.waitSignal(watcher.directoryChanged, raising=True,
                           timeout=10000):
         runner.run(cmd, *args, env=env)
+
+    # Make sure the PID was written to the file, not just the file created
+    time.sleep(0.5)
 
     with qtbot.waitSignal(runner.finished, raising=True):
         os.kill(int(pidfile.read()), signal.SIGTERM)
