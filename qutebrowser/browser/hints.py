@@ -111,6 +111,7 @@ class HintManager(QObject):
         _context: The HintContext for the current invocation.
         _win_id: The window ID this HintManager is associated with.
         _tab_id: The tab ID this HintManager is associated with.
+        _filterstr: Used to save the filter string for restoring in rapid mode.
 
     Signals:
         mouse_event: Mouse event to be posted in the web view.
@@ -832,8 +833,16 @@ class HintManager(QObject):
         """Filter displayed hints according to a text.
 
         Args:
-            filterstr: The string to filter with, or None to show all.
+            filterstr: The string to filter with, or None to use the filter from
+                       previous call (saved in `self._filterstr`). If `filterstr`
+                       is an empty string or if both `filterstr` and
+                       `self._filterstr` are None, all hints are shown.
         """
+        if filterstr is None:
+            filterstr = self._filterstr
+        else:
+            self._filterstr = filterstr
+
         for elems in self._context.elems.values():
             try:
                 if (filterstr is None or
@@ -918,7 +927,7 @@ class HintManager(QObject):
             modeman.maybe_leave(self._win_id, usertypes.KeyMode.hint,
                                 'followed')
         else:
-            # Show all hints again
+            # Reset filtering
             self.filter_hints(None)
             # Undo keystring highlighting
             for (string, elems) in self._context.elems.items():
