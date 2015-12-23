@@ -181,6 +181,11 @@ class HintKeyParser(keyparser.CommandKeyParser):
             elif self._last_press == LastPress.keystring and self._keystring:
                 self._keystring = self._keystring[:-1]
                 self.keystring_updated.emit(self._keystring)
+                if not self._keystring and self._filtertext:
+                    # Switch back to hint filtering mode (this can happen only
+                    # in numeric mode after the number has been deleted).
+                    hintmanager.filter_hints(self._filtertext)
+                    self._last_press = LastPress.filtertext
                 return True
             else:
                 return super()._handle_special_key(e)
