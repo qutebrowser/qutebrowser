@@ -67,7 +67,9 @@ class HintContext:
         frames: The QWebFrames to use.
         destroyed_frames: id()'s of QWebFrames which have been destroyed.
                           (Workaround for https://github.com/The-Compiler/qutebrowser/issues/152)
+        all_elems: A list of all (elem, label) namedtuples ever created.
         elems: A mapping from key strings to (elem, label) namedtuples.
+               May contain less elements than `all_elems` due to filtering.
         baseurl: The URL of the current page.
         target: What to do with the opened links.
                 normal/current/tab/tab_fg/tab_bg/window: Get passed to
@@ -86,6 +88,7 @@ class HintContext:
     """
 
     def __init__(self):
+        self.all_elems = []
         self.elems = {}
         self.target = None
         self.baseurl = None
@@ -169,7 +172,7 @@ class HintManager(QObject):
 
     def _cleanup(self):
         """Clean up after hinting."""
-        for elem in self._context.elems.values():
+        for elem in self._context.all_elems:
             try:
                 elem.label.removeFromDocument()
             except webelem.IsNullError:
@@ -692,15 +695,33 @@ class HintManager(QObject):
         elems = [e for e in elems if filterfunc(e)]
         if not elems:
             raise cmdexc.CommandError("No elements found.")
-        hints = self._hint_strings(elems)
-        log.hints.debug("hints: {}".format(', '.join(hints)))
-        for e, hint in zip(elems, hints):
-            label = self._draw_label(e, hint)
-            self._context.elems[hint] = ElemTuple(e, label)
+        strings = self._hint_strings(elems)
+        log.hints.debug("hints: {}".format(', '.join(strings)))
+        for e, string in zip(elems, strings):
+            label = self._draw_label(e, string)
+            elem = ElemTuple(e, label)
+            self._context.all_elems.append(elem)
+            self._context.elems[string] = elem
         keyparsers = objreg.get('keyparsers', scope='window',
                                 window=self._win_id)
         keyparser = keyparsers[usertypes.KeyMode.hint]
-        keyparser.update_bindings(hints)
+        keyparser.update_bindings(strings)
+
+    def _update_strings(self, elems):
+        """Update the `self._context.elems` mapping based on filtered elements.
+
+        Args:
+            elems: List of ElemTuple objects.
+        """
+        strings = self._hint_strings(elems)
+        self._context.elems = {}
+        for elem, string in zip(elems, strings):
+            elem.label.setInnerXml(string)
+            self._context.elems[string] = elem
+        keyparsers = objreg.get('keyparsers', scope='window',
+                                window=self._win_id)
+        keyparser = keyparsers[usertypes.KeyMode.hint]
+        keyparser.update_bindings(strings, preserve_filter=True)
 
     def follow_prevnext(self, frame, baseurl, prev=False, tab=False,
                         background=False, window=False):
@@ -877,7 +898,7 @@ class HintManager(QObject):
         else:
             self._filterstr = filterstr
 
-        for elems in self._context.elems.values():
+        for elems in self._context.all_elems:
             try:
                 if (filterstr is None or
                         filterstr.casefold() in str(elems.elem).casefold()):
@@ -889,19 +910,38 @@ class HintManager(QObject):
                     self._hide_elem(elems.label)
             except webelem.IsNullError:
                 pass
-        visible = {}
-        for k, e in self._context.elems.items():
-            try:
-                if not self._is_hidden(e.label):
-                    visible[k] = e
-            except webelem.IsNullError:
-                pass
-        if not visible:
-            # Whoops, filtered all hints
-            modeman.leave(self._win_id, usertypes.KeyMode.hint, 'all filtered')
-        elif (len(visible) == 1 and
-              config.get('hints', 'auto-follow') and
-              filterstr is not None):
+
+        if config.get('hints', 'mode') == 'number':
+            # renumber filtered hints
+            elems = []
+            for e in self._context.all_elems:
+                try:
+                    if not self._is_hidden(e.label):
+                        elems.append(e)
+                except webelem.IsNullError:
+                    pass
+            if not elems:
+                # Whoops, filtered all hints
+                modeman.leave(self._win_id, usertypes.KeyMode.hint, 'all filtered')
+                return
+            self._update_strings(elems)
+            visible = self._context.elems
+        else:
+            visible = {}
+            for k, e in self._context.elems.items():
+                try:
+                    if not self._is_hidden(e.label):
+                        visible[k] = e
+                except webelem.IsNullError:
+                    pass
+            if not visible:
+                # Whoops, filtered all hints
+                modeman.leave(self._win_id, usertypes.KeyMode.hint, 'all filtered')
+                return
+
+        if (len(visible) == 1 and
+                config.get('hints', 'auto-follow') and
+                filterstr is not None):
             # apply auto-follow-timeout
             timeout = config.get('hints', 'auto-follow-timeout')
             man_inst = modeman.instance(self._win_id)
@@ -992,7 +1032,7 @@ class HintManager(QObject):
     def on_contents_size_changed(self, _size):
         """Reposition hints if contents size changed."""
         log.hints.debug("Contents size changed...!")
-        for elems in self._context.elems.values():
+        for elems in self._context.all_elems:
             try:
                 if elems.elem.webFrame() is None:
                     # This sometimes happens for some reason...
