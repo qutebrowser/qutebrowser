@@ -236,14 +236,17 @@ class HintKeyParser(keyparser.CommandKeyParser):
             # execute as command
             super().execute(cmdstr, keytype, count)
 
-    def update_bindings(self, strings):
+    def update_bindings(self, strings, preserve_filter=False):
         """Update bindings when the hint strings changed.
 
         Args:
             strings: A list of hint strings.
+            preserve_filter: Whether to keep the current value of
+                             `self._filtertext`.
         """
         self.bindings = {s: s for s in strings}
-        self._filtertext = ''
+        if preserve_filter is False:
+            self._filtertext = ''
 
     @pyqtSlot(str)
     def on_keystring_updated(self, keystr):
