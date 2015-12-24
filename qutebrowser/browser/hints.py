@@ -691,6 +691,16 @@ class HintManager(QObject):
         keyparser = keyparsers[usertypes.KeyMode.hint]
         keyparser.update_bindings(strings, preserve_filter=True)
 
+    def _filter_matches(self, filterstr, elemstr):
+        """Returns True if `filterstr` matches `elemstr`."""
+        # Empty string and None always match
+        if not filterstr:
+            return True
+        filterstr = filterstr.casefold()
+        elemstr = elemstr.casefold()
+        # Do multi-word matching
+        return all(word in elemstr for word in filterstr.split())
+
     def follow_prevnext(self, frame, baseurl, prev=False, tab=False,
                         background=False, window=False):
         """Click a "previous"/"next" element on the page.
@@ -866,8 +876,7 @@ class HintManager(QObject):
 
         for elems in self._context.all_elems:
             try:
-                if (filterstr is None or
-                        filterstr.casefold() in str(elems.elem).casefold()):
+                if self._filter_matches(filterstr, str(elems.elem)):
                     if self._is_hidden(elems.label):
                         # hidden element which matches again -> show it
                         self._show_elem(elems.label)
