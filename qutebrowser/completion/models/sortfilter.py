@@ -27,7 +27,7 @@ from PyQt5.QtCore import QSortFilterProxyModel, QModelIndex, Qt
 
 from qutebrowser.utils import log, qtutils, debug
 from qutebrowser.completion.models import base as completion
-
+import re
 
 class CompletionFilterModel(QSortFilterProxyModel):
 
@@ -69,6 +69,7 @@ class CompletionFilterModel(QSortFilterProxyModel):
         """
         with debug.log_time(log.completion, 'Setting filter pattern'):
             self.pattern = val
+            self.patternRe = re.compile(val.casefold().replace(" ", ".*"));
             self.invalidateFilter()
             sortcol = 0
             try:
@@ -146,8 +147,11 @@ class CompletionFilterModel(QSortFilterProxyModel):
                 data = self.srcmodel.data(idx)
                 if not data:
                     continue
-                elif self.pattern.casefold() in data.casefold():
-                    return True
+                else:
+                    if self.patternRe.search(data.casefold()):
+                        return True
+                    else:
+                        return False
             return False
 
     def intelligentLessThan(self, lindex, rindex):
