@@ -150,7 +150,7 @@ class CompletionFilterModel(QSortFilterProxyModel):
                 if not data:
                     continue
                 else:
-                    return self.patternre.search(data.casefold()) == True
+                    return self.patternre.search(data.casefold())
             return False
 
     def intelligentLessThan(self, lindex, rindex):
