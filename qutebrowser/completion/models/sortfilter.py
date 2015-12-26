@@ -71,7 +71,7 @@ class CompletionFilterModel(QSortFilterProxyModel):
         """
         with debug.log_time(log.completion, 'Setting filter pattern'):
             self.pattern = val
-            self.patternre = re.compile(val.casefold().replace(" ", ".*"))
+            self.patternre = re.compile(re.escape(val.casefold()).replace("\ ", ".*"))
             self.invalidateFilter()
             sortcol = 0
             try:
@@ -149,8 +149,8 @@ class CompletionFilterModel(QSortFilterProxyModel):
                 data = self.srcmodel.data(idx)
                 if not data:
                     continue
-                else:
-                    return self.patternre.search(data.casefold())
+                elif self.patternre.search(data.casefold()):
+                    return True
             return False
 
     def intelligentLessThan(self, lindex, rindex):
