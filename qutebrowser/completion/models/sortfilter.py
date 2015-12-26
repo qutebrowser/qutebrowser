@@ -29,6 +29,7 @@ from qutebrowser.utils import log, qtutils, debug
 from qutebrowser.completion.models import base as completion
 import re
 
+
 class CompletionFilterModel(QSortFilterProxyModel):
 
     """Subclass of QSortFilterProxyModel with custom sorting/filtering.
@@ -149,10 +150,7 @@ class CompletionFilterModel(QSortFilterProxyModel):
                 if not data:
                     continue
                 else:
-                    if self.patternre.search(data.casefold()):
-                        return True
-                    else:
-                        return False
+                    return self.patternre.search(data.casefold()) == True
             return False
 
     def intelligentLessThan(self, lindex, rindex):
