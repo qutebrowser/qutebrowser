@@ -23,7 +23,7 @@ import collections
 import functools
 import math
 import re
-from string import ascii_lowercase
+import string
 
 from PyQt5.QtCore import (pyqtSignal, pyqtSlot, QObject, QEvent, Qt, QUrl,
                           QTimer)
@@ -41,6 +41,10 @@ from qutebrowser.utils import (usertypes, log, qtutils, message,
 from qutebrowser.misc import guiprocess
 
 
+__all__ = ("ElemTuple", "Target", "on_mode_entered", "HintContext",
+           "HintManager")
+
+
 ElemTuple = collections.namedtuple('ElemTuple', ['elem', 'label'])
 
 
@@ -48,6 +52,9 @@ Target = usertypes.enum('Target', ['normal', 'tab', 'tab_fg', 'tab_bg',
                                    'window', 'yank', 'yank_primary', 'run',
                                    'fill', 'hover', 'download', 'userscript',
                                    'spawn'])
+
+
+WordHintingError = Exception
 
 
 @pyqtSlot(usertypes.KeyMode)
@@ -139,24 +146,6 @@ class HintManager(QObject):
         Target.spawn: "Spawn command via hint",
     }
 
-    FIRST_ALPHABETIC = re.compile('[A-Za-z]{3,}')
-
-    TAG_EXTRACTORS = dict(
-        alt=lambda elem: elem["alt"],
-        name=lambda elem: elem["name"],
-        title=lambda elem: elem["title"],
-        src=lambda elem: elem["src"].split('/')[-1],
-        href=lambda elem: elem["href"].split('/')[-1],
-        text=str,
-    )
-
-    TAGS_FOR = collections.defaultdict(
-        list, {
-            "IMG": ["alt", "title", "src"],
-            "A": ["title", "href", "text"],
-            "INPUT": ["name"]
-        })
-
     mouse_event = pyqtSignal('QMouseEvent')
     start_hinting = pyqtSignal(usertypes.ClickTarget)
     stop_hinting = pyqtSignal()
@@ -167,29 +156,10 @@ class HintManager(QObject):
         self._win_id = win_id
         self._tab_id = tab_id
         self._context = None
-        self._words = set()  # initialized on first word hint use
+        self._word_hinter = WordHinter()
         mode_manager = objreg.get('mode-manager', scope='window',
                                   window=win_id)
         mode_manager.left.connect(self.on_mode_left)
-
-    def _initialize_word_hints(self):
-        if not self._words:
-            dictionary = config.get("hints", "dictionary")
-            with open(dictionary, encoding="UTF-8") as wordfile:
-                alphabet = set(ascii_lowercase)
-                hints = set()
-                lines = (line.rstrip().lower() for line in wordfile)
-                for word in lines:
-                    if set(word) - alphabet:
-                        # contains none-alphabetic chars
-                        continue
-                    if len(word) > 4:
-                        continue
-                    for i in range(len(word)):
-                        hints.discard(word[:i + 1])
-                    hints.add(word)
-                self._words.update(hints)
-        return self._words
 
     def _get_text(self):
         """Get a hint text based on the current context."""
@@ -241,11 +211,9 @@ class HintManager(QObject):
         """
         if config.get('hints', 'mode') == 'words':
             try:
-                words = iter(self._initialize_word_hints())
-                return self._hint_words(words, elems)
-            except IOError:
-                message.error(self._win_id, "Word hints require a dictionary" +
-                              " at /usr/share/dict/words.", immediately=True)
+                return self._word_hinter.hint(elems)
+            except WordHintingError as e:
+                message.error(self._win_id, str(e), immediately=True)
                 # falls back on letter hints
         if config.get('hints', 'mode') == 'number':
             chars = '0123456789'
@@ -256,56 +224,6 @@ class HintManager(QObject):
             return self._hint_scattered(min_chars, chars, elems)
         else:
             return self._hint_linear(min_chars, chars, elems)
-
-    def _extract_tag_words(self, elem):
-        """Extract tag words form the given element."""
-        yield from (self.TAG_EXTRACTORS[tag](elem)
-                    for tag in self.TAGS_FOR[elem.tagName()]
-                    if tag in elem or tag == "text")
-
-    def _tag_words_to_hints(self, words):
-        """Take words and transform them to proper hints if possible."""
-        for candidate in words:
-            if not candidate:
-                continue
-            match = self.FIRST_ALPHABETIC.search(candidate)
-            if not match:
-                continue
-            if match.end() - match.start() < 4:
-                continue
-            yield candidate[match.start():match.end()].lower()
-
-    def _any_prefix(self, hint, existing):
-        return any(hint.startswith(e) or e.startswith(hint)
-                   for e in existing)
-
-    def _new_hint_for(self, elem, existing):
-        """Return a hint for elem, not conflicting with the existing."""
-        new = self._tag_words_to_hints(self._extract_tag_words(elem))
-        no_prefixes = (h for h in new if not self._any_prefix(h, existing))
-        # either the first good, or None
-        return next(no_prefixes, None)
-
-    def _hint_words(self, words, elems):
-        """Produce hint labels based on the html tags.
-
-        Produce hint words based on the link text and random words
-        from the words arg as fallback.
-
-        Args:
-            words: Words to use as fallback when no link text can be used.
-            elems: The elements to get hint strings for.
-
-        Return:
-            A list of hint strings, in the same order as the elements.
-        """
-        hints = []
-        used_hints = set()
-        for elem in elems:
-            hint = self._new_hint_for(elem, used_hints) or next(words)
-            used_hints.add(hint)
-            hints.append(hint)
-        return hints
 
     def _hint_scattered(self, min_chars, chars, elems):
         """Produce scattered hint labels with variable length (like Vimium).
@@ -472,7 +390,7 @@ class HintManager(QObject):
         label.setStyleProperty('left', '{}px !important'.format(left))
         label.setStyleProperty('top', '{}px !important'.format(top))
 
-    def _draw_label(self, elem, string):
+    def _draw_label(self, elem, strng):
         """Draw a hint label over an element.
 
         Args:
@@ -497,7 +415,7 @@ class HintManager(QObject):
         label = webelem.WebElementWrapper(parent.lastChild())
         label['class'] = 'qutehint'
         self._set_style_properties(elem, label)
-        label.setPlainText(string)
+        label.setPlainText(strng)
         return label
 
     def _show_url_error(self):
@@ -760,9 +678,9 @@ class HintManager(QObject):
         if not elems:
             raise cmdexc.CommandError("No elements found.")
         strings = self._hint_strings(elems)
-        for e, string in zip(elems, strings):
-            label = self._draw_label(e, string)
-            self._context.elems[string] = ElemTuple(e, label)
+        for e, strng in zip(elems, strings):
+            label = self._draw_label(e, strng)
+            self._context.elems[strng] = ElemTuple(e, label)
         keyparsers = objreg.get('keyparsers', scope='window',
                                 window=self._win_id)
         keyparser = keyparsers[usertypes.KeyMode.hint]
@@ -909,11 +827,11 @@ class HintManager(QObject):
     def handle_partial_key(self, keystr):
         """Handle a new partial keypress."""
         log.hints.debug("Handling new keystring: '{}'".format(keystr))
-        for (string, elems) in self._context.elems.items():
+        for (strng, elems) in self._context.elems.items():
             try:
-                if string.startswith(keystr):
-                    matched = string[:len(keystr)]
-                    rest = string[len(keystr):]
+                if strng.startswith(keystr):
+                    matched = strng[:len(keystr)]
+                    rest = strng[len(keystr):]
                     match_color = config.get('colors', 'hints.fg.match')
                     elems.label.setInnerXml(
                         '<font color="{}">{}</font>{}'.format(
@@ -1014,8 +932,8 @@ class HintManager(QObject):
             # Show all hints again
             self.filter_hints(None)
             # Undo keystring highlighting
-            for (string, elems) in self._context.elems.items():
-                elems.label.setInnerXml(string)
+            for (strng, elems) in self._context.elems.items():
+                elems.label.setInnerXml(strng)
         handler()
 
     @cmdutils.register(instance='hintmanager', scope='tab', hide=True,
@@ -1058,3 +976,112 @@ class HintManager(QObject):
             # hinting.
             return
         self._cleanup()
+
+
+class WordHinter(object):
+
+    """Generator for word hints.
+
+    Class attributes:
+
+    Attributes:
+
+    """
+
+    TAG_EXTRACTORS = {
+        "alt": lambda elem: elem["alt"],
+        "name": lambda elem: elem["name"],
+        "title": lambda elem: elem["title"],
+        "src": lambda elem: elem["src"].split('/')[-1],
+        "href": lambda elem: elem["href"].split('/')[-1],
+        "text": str,
+    }
+
+    TAGS_FOR = collections.defaultdict(
+        list, {
+            "IMG": ["alt", "title", "src"],
+            "A": ["title", "href", "text"],
+            "INPUT": ["name"]
+        }
+    )
+
+    FIRST_ALPHABETIC = re.compile('[A-Za-z]{3,}')
+
+    def __init__(self):
+        # will be initialized on first use.
+        self.words = set()
+
+    def ensure_initialized(self):
+        """Generate the used words if yet uninialized."""
+        if not self.words:
+            dictionary = config.get("hints", "dictionary")
+            try:
+                with open(dictionary, encoding="UTF-8") as wordfile:
+                    alphabet = set(string.ascii_lowercase)
+                    hints = set()
+                    lines = (line.rstrip().lower() for line in wordfile)
+                    for word in lines:
+                        if set(word) - alphabet:
+                            # contains none-alphabetic chars
+                            continue
+                        if len(word) > 4:
+                            continue
+                        for i in range(len(word)):
+                            hints.discard(word[:i + 1])
+                        hints.add(word)
+                    self.words.update(hints)
+            except IOError:
+                error = "Word hints require a dictionary at {}."
+                raise WordHintingError(error.format(dictionary))
+
+    def extract_tag_words(self, elem):
+        """Extract tag words form the given element."""
+        yield from (self.TAG_EXTRACTORS[tag](elem)
+                    for tag in self.TAGS_FOR[elem.tagName()]
+                    if tag in elem or tag == "text")
+
+    def tag_words_to_hints(self, words):
+        """Take words and transform them to proper hints if possible."""
+        for candidate in words:
+            if not candidate:
+                continue
+            match = self.FIRST_ALPHABETIC.search(candidate)
+            if not match:
+                continue
+            if match.end() - match.start() < 4:
+                continue
+            yield candidate[match.start():match.end()].lower()
+
+    def any_prefix(self, hint, existing):
+        return any(hint.startswith(e) or e.startswith(hint)
+                   for e in existing)
+
+    def new_hint_for(self, elem, existing):
+        """Return a hint for elem, not conflicting with the existing."""
+        new = self.tag_words_to_hints(self.extract_tag_words(elem))
+        no_prefixes = (h for h in new if not self.any_prefix(h, existing))
+        # either the first good, or None
+        return next(no_prefixes, None)
+
+    def hint(self, elems):
+        """Produce hint labels based on the html tags.
+
+        Produce hint words based on the link text and random words
+        from the words arg as fallback.
+
+        Args:
+            words: Words to use as fallback when no link text can be used.
+            elems: The elements to get hint strings for.
+
+        Return:
+            A list of hint strings, in the same order as the elements.
+        """
+        self.ensure_initialized()
+        hints = []
+        used_hints = set()
+        words = iter(self.words)
+        for elem in elems:
+            hint = self.new_hint_for(elem, used_hints) or next(words)
+            used_hints.add(hint)
+            hints.append(hint)
+        return hints
