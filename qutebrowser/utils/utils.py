@@ -73,7 +73,6 @@ def read_file(filename, binary=False):
     Return:
         The file contents as string.
     """
-    # pylint: disable=assignment-from-no-return
     if hasattr(sys, 'frozen'):
         # cx_Freeze doesn't support pkg_resources :(
         fn = os.path.join(os.path.dirname(sys.executable), filename)
