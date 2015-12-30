@@ -71,8 +71,10 @@ class CompletionFilterModel(QSortFilterProxyModel):
         """
         with debug.log_time(log.completion, 'Setting filter pattern'):
             self.pattern = val
-            self.patternre = re.compile(re.escape(
-                             val.casefold()).replace(r'\ ', r'.*'))
+            val = val.casefold()
+            val = re.escape(val)
+            val = val.replace(r'\ ', r'.*')
+            self.patternre = re.compile(val)
             self.invalidateFilter()
             sortcol = 0
             try:
