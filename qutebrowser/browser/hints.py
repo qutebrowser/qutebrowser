@@ -1033,9 +1033,9 @@ class WordHinter:
             }
         )
 
-        return (attr_extractors[tag](elem)
+        return (attr_extractors[attr](elem)
                 for attr in extractable_attrs[elem.tagName()]
-                if attr in elem or attr == "text"))
+                if attr in elem or attr == "text")
 
     def tag_words_to_hints(self, words):
         """Take words and transform them to proper hints if possible."""
@@ -1082,4 +1082,3 @@ class WordHinter:
             used_hints.add(hint)
             hints.append(hint)
         return hints
-
