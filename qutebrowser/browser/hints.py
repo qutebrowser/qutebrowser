@@ -41,10 +41,6 @@ from qutebrowser.utils import (usertypes, log, qtutils, message,
 from qutebrowser.misc import guiprocess
 
 
-__all__ = ("ElemTuple", "Target", "on_mode_entered", "HintContext",
-           "HintManager")
-
-
 ElemTuple = collections.namedtuple('ElemTuple', ['elem', 'label'])
 
 
@@ -54,7 +50,8 @@ Target = usertypes.enum('Target', ['normal', 'tab', 'tab_fg', 'tab_bg',
                                    'spawn'])
 
 
-WordHintingError = Exception
+class WordHintingError(Exception):
+    """Exception raised on errors during word hinting."""
 
 
 @pyqtSlot(usertypes.KeyMode)
@@ -209,13 +206,14 @@ class HintManager(QObject):
         Return:
             A list of hint strings, in the same order as the elements.
         """
-        if config.get('hints', 'mode') == 'words':
+        hint_mode = config.get('hints', 'mode')
+        if hint_mode == 'words':
             try:
                 return self._word_hinter.hint(elems)
             except WordHintingError as e:
                 message.error(self._win_id, str(e), immediately=True)
                 # falls back on letter hints
-        if config.get('hints', 'mode') == 'number':
+        if hint_mode == 'number':
             chars = '0123456789'
         else:
             chars = config.get('hints', 'chars')
@@ -390,7 +388,7 @@ class HintManager(QObject):
         label.setStyleProperty('left', '{}px !important'.format(left))
         label.setStyleProperty('top', '{}px !important'.format(top))
 
-    def _draw_label(self, elem, strng):
+    def _draw_label(self, elem, text):
         """Draw a hint label over an element.
 
         Args:
@@ -415,7 +413,7 @@ class HintManager(QObject):
         label = webelem.WebElementWrapper(parent.lastChild())
         label['class'] = 'qutehint'
         self._set_style_properties(elem, label)
-        label.setPlainText(strng)
+        label.setPlainText(text)
         return label
 
     def _show_url_error(self):
@@ -978,7 +976,7 @@ class HintManager(QObject):
         self._cleanup()
 
 
-class WordHinter(object):
+class WordHinter:
 
     """Generator for word hints.
 
@@ -987,24 +985,6 @@ class WordHinter(object):
     Attributes:
 
     """
-
-    TAG_EXTRACTORS = {
-        "alt": lambda elem: elem["alt"],
-        "name": lambda elem: elem["name"],
-        "title": lambda elem: elem["title"],
-        "src": lambda elem: elem["src"].split('/')[-1],
-        "href": lambda elem: elem["href"].split('/')[-1],
-        "text": str,
-    }
-
-    TAGS_FOR = collections.defaultdict(
-        list, {
-            "IMG": ["alt", "title", "src"],
-            "A": ["title", "href", "text"],
-            "INPUT": ["name"]
-        }
-    )
-
     FIRST_ALPHABETIC = re.compile('[A-Za-z]{3,}')
 
     def __init__(self):
@@ -1030,15 +1010,32 @@ class WordHinter(object):
                             hints.discard(word[:i + 1])
                         hints.add(word)
                     self.words.update(hints)
-            except IOError:
-                error = "Word hints require a dictionary at {}."
-                raise WordHintingError(error.format(dictionary))
+            except IOError as e:
+                error = "Word hints requires reading the file at {}: {}"
+                raise WordHintingError(error.format(dictionary, str(e)))
 
     def extract_tag_words(self, elem):
         """Extract tag words form the given element."""
-        yield from (self.TAG_EXTRACTORS[tag](elem)
-                    for tag in self.TAGS_FOR[elem.tagName()]
-                    if tag in elem or tag == "text")
+        attr_extractors = {
+            "alt": lambda elem: elem["alt"],
+            "name": lambda elem: elem["name"],
+            "title": lambda elem: elem["title"],
+            "src": lambda elem: elem["src"].split('/')[-1],
+            "href": lambda elem: elem["href"].split('/')[-1],
+            "text": str,
+        }
+
+        extractable_attrs = collections.defaultdict(
+            list, {
+                "IMG": ["alt", "title", "src"],
+                "A": ["title", "href", "text"],
+                "INPUT": ["name"]
+            }
+        )
+
+        return (attr_extractors[tag](elem)
+                for attr in extractable_attrs[elem.tagName()]
+                if attr in elem or attr == "text"))
 
     def tag_words_to_hints(self, words):
         """Take words and transform them to proper hints if possible."""
@@ -1085,3 +1082,4 @@ class WordHinter(object):
             used_hints.add(hint)
             hints.append(hint)
         return hints
+
