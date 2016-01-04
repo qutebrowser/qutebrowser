@@ -194,7 +194,8 @@ Feature: Various utility commands.
         Then the error "Invalid help topic foo!" should be shown
 
     Scenario: :help with command
-        When I run :tab-only
+        When the documentation is up to date
+        And I run :tab-only
         And I run :help :back
         And I wait until qute://help/commands.html#back is loaded
         Then the following tabs should be open:
@@ -205,7 +206,8 @@ Feature: Various utility commands.
         Then the error "Invalid command foo!" should be shown
 
     Scenario: :help with setting
-        When I run :tab-only
+        When the documentation is up to date
+        And I run :tab-only
         And I run :help general->editor
         And I wait until qute://help/settings.html#general-editor is loaded
         Then the following tabs should be open:

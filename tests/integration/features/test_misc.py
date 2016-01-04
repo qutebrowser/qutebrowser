@@ -17,5 +17,33 @@
 # You should have received a copy of the GNU General Public License
 # along with qutebrowser.  If not, see <http://www.gnu.org/licenses/>.
 
+import sys
+import os.path
+import subprocess
+
+import pytest
 import pytest_bdd as bdd
 bdd.scenarios('misc.feature')
+
+import qutebrowser
+from qutebrowser.utils import docutils
+
+
+@bdd.when("the documentation is up to date")
+def update_documentation():
+    """Update the docs before testing :help."""
+    base_path = os.path.dirname(os.path.abspath(qutebrowser.__file__))
+    doc_path = os.path.join(base_path, 'html', 'doc')
+    script_path = os.path.join(base_path, '..', 'scripts')
+
+    if all(docutils.docs_up_to_date(path) for path in os.listdir(doc_path)):
+        return
+
+    try:
+        subprocess.call(['asciidoc'], stdout=subprocess.DEVNULL,
+                        stderr=subprocess.DEVNULL)
+    except OSError:
+        pytest.skip("Docs outdated and asciidoc unavailable!")
+
+    update_script = os.path.join(script_path, 'asciidoc2html.py')
+    subprocess.call([sys.executable, update_script])
