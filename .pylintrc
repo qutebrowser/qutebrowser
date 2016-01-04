@@ -44,7 +44,7 @@ docstring-min-length=3
 
 [FORMAT]
 max-line-length=79
-ignore-long-lines=<?https?://
+ignore-long-lines=(<?https?://|^# Copyright 201\d)
 expected-line-ending-format=LF
 
 [SIMILARITIES]
