@@ -36,9 +36,12 @@ def update_documentation():
     doc_path = os.path.join(base_path, 'html', 'doc')
     script_path = os.path.join(base_path, '..', 'scripts')
 
-    if os.path.exists(doc_path):
-        if all(docutils.docs_up_to_date(p) for p in os.listdir(doc_path)):
-            return
+    if not os.path.exists(doc_path):
+        # On CI, we can test this without actually building the docs
+        return
+
+    if all(docutils.docs_up_to_date(p) for p in os.listdir(doc_path)):
+        return
 
     try:
         subprocess.call(['asciidoc'], stdout=subprocess.DEVNULL,
