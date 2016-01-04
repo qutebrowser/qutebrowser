@@ -179,10 +179,14 @@ class AsciiDoc:
                 pass
             shutil.copytree(src, full_dest)
 
-        try:
-            os.symlink('README.html', os.path.join(outdir, 'index.html'))
-        except FileExistsError:
-            pass
+        for dst, link_name in [
+            ('README.html', 'index.html'),
+            (os.path.join('doc', 'quickstart.html'), 'quickstart.html'),
+        ]:
+            try:
+                os.symlink(dst, os.path.join(outdir, link_name))
+            except FileExistsError:
+                pass
 
     def _get_asciidoc_cmd(self):
         """Try to find out what commandline to use to invoke asciidoc."""
