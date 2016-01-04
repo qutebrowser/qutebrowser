@@ -39,6 +39,7 @@ from helpers.messagemock import message_mock
 from qutebrowser.config import config
 from qutebrowser.utils import objreg
 
+from PyQt5.QtCore import QEvent
 from PyQt5.QtNetwork import QNetworkCookieJar
 import xvfbwrapper
 
@@ -315,12 +316,13 @@ def fake_keyevent_factory():
     from unittest import mock
     from PyQt5.QtGui import QKeyEvent
 
-    def fake_keyevent(key, modifiers=0, text=''):
+    def fake_keyevent(key, modifiers=0, text='', typ=QEvent.KeyPress):
         """Generate a new fake QKeyPressEvent."""
         evtmock = mock.create_autospec(QKeyEvent, instance=True)
         evtmock.key.return_value = key
         evtmock.modifiers.return_value = modifiers
         evtmock.text.return_value = text
+        evtmock.type.return_value = typ
         return evtmock
 
     return fake_keyevent

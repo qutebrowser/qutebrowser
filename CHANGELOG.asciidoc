@@ -123,6 +123,8 @@ Fixed
 - Movements in caret mode now should work correctly on OS X and Windows.
 - Fixed upgrade from earlier config versions.
 - Fixed crash when killing a running userscript.
+- Fixed characters being passed through when shifted with
+  `forward-unbound-keys` set to `auto`.
 
 v0.4.1
 ------
