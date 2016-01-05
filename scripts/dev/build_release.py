@@ -150,7 +150,7 @@ def build_sdist():
     """Build an sdist and list the contents."""
     utils.print_title("Building sdist")
 
-    shutil.rmtree('dist')
+    _maybe_remove('dist')
 
     subprocess.check_call([sys.executable, 'setup.py', 'sdist'])
     dist_files = os.listdir(os.path.abspath('dist'))
