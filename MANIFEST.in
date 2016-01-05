@@ -1,5 +1,3 @@
-global-exclude __pycache__ *.pyc *.pyo
-
 recursive-include qutebrowser *.py
 recursive-include qutebrowser/html *.html
 recursive-include qutebrowser/img *.svg *.png
@@ -8,7 +6,7 @@ recursive-include qutebrowser/javascript *.js
 graft icons
 graft doc/img
 graft misc
-graft scripts
+recursive-include scripts *.py
 include qutebrowser/utils/testfile
 include qutebrowser/git-commit-id
 include COPYING doc/* README.asciidoc CONTRIBUTING.asciidoc FAQ.asciidoc INSTALL.asciidoc CHANGELOG.asciidoc
@@ -33,3 +31,5 @@ exclude doc/help
 exclude .appveyor.yml
 exclude .travis.yml
 exclude misc/appveyor_install.py
+
+global-exclude __pycache__ *.pyc *.pyo
