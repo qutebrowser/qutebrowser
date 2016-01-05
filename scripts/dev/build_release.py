@@ -29,7 +29,6 @@ import subprocess
 import argparse
 import tarfile
 import collections
-import shutil
 
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), os.pardir,
                 os.pardir))
@@ -176,7 +175,6 @@ def build_sdist():
     for ext, files in sorted(by_ext.items()):
         utils.print_subtitle(ext)
         print('\n'.join(files))
-
 
 
 def main():
