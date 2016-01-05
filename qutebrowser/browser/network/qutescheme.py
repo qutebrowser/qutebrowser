@@ -31,11 +31,13 @@ Module attributes:
 
 import functools
 import configparser
+import mimetypes
 
 from PyQt5.QtCore import pyqtSlot, QObject
 from PyQt5.QtNetwork import QNetworkReply
 
 import qutebrowser
+from qutebrowser.browser import pdfjs
 from qutebrowser.browser.network import schemehandler, networkreply
 from qutebrowser.utils import (version, utils, jinja, log, message, docutils,
                                objreg)
@@ -93,8 +95,11 @@ class QuteSchemeHandler(schemehandler.SchemeHandler):
             return networkreply.ErrorNetworkReply(
                 request, str(e), QNetworkReply.ContentNotFoundError,
                 self.parent())
+        mimetype, _encoding = mimetypes.guess_type(request.url().fileName())
+        if mimetype is None:
+            mimetype = 'text/html'
         return networkreply.FixedDataNetworkReply(
-            request, data, 'text/html', self.parent())
+            request, data, mimetype, self.parent())
 
 
 class JSBridge(QObject):
@@ -201,3 +206,10 @@ def qute_settings(win_id, _request):
         win_id=win_id, title='settings', config=configdata,
         confget=config_getter)
     return html.encode('UTF-8', errors='xmlcharrefreplace')
+
+
+@add_handler('pdfjs')
+def qute_pdfjs(_win_id, request):
+    """Handler for qute://pdfjs. Return the pdf.js viewer."""
+    urlpath = request.url().path()
+    return pdfjs.get_pdfjs_res(urlpath)

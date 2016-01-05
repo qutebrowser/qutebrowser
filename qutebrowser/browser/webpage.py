@@ -30,7 +30,7 @@ from PyQt5.QtPrintSupport import QPrintDialog
 from PyQt5.QtWebKitWidgets import QWebPage
 
 from qutebrowser.config import config
-from qutebrowser.browser import http, tabhistory
+from qutebrowser.browser import http, tabhistory, pdfjs
 from qutebrowser.browser.network import networkmanager
 from qutebrowser.utils import (message, usertypes, log, jinja, qtutils, utils,
                                objreg, debug)
@@ -218,6 +218,19 @@ class BrowserPage(QWebPage):
         q.deleteLater()
         return q.answer
 
+    def _show_pdfjs(self, reply):
+        """Show the reply with pdfjs."""
+        try:
+            page = pdfjs.generate_pdfjs_page(reply.url()).encode('utf-8')
+        except pdfjs.PDFJSNotFound:
+            # pylint: disable=no-member
+            # WORKAROUND for https://bitbucket.org/logilab/pylint/issue/490/
+            page = (jinja.env.get_template('no_pdfjs.html')
+                    .render(url=reply.url().toDisplayString())
+                    .encode('utf-8'))
+        self.mainFrame().setContent(page, 'text/html', reply.url())
+        reply.deleteLater()
+
     def shutdown(self):
         """Prepare the web page for being deleted."""
         self._is_shutting_down = True
@@ -305,6 +318,10 @@ class BrowserPage(QWebPage):
             else:
                 reply.finished.connect(functools.partial(
                     self.display_content, reply, 'image/jpeg'))
+        elif (mimetype in {'application/pdf', 'application/x-pdf'} and
+              config.get('content', 'enable-pdfjs')):
+            # Use pdf.js to display the page
+            self._show_pdfjs(reply)
         else:
             # Unknown mimetype, so download anyways.
             download_manager.fetch(reply,
