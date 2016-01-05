@@ -891,6 +891,10 @@ class File(BaseType):
 
     """A file on the local filesystem."""
 
+    def __init__(self, required=True, **kwargs):
+        super().__init__(**kwargs)
+        self.required = required
+
     def transform(self, value):
         if not value:
             return None
@@ -899,7 +903,9 @@ class File(BaseType):
         if not os.path.isabs(value):
             cfgdir = standarddir.config()
             assert cfgdir is not None
-            return os.path.join(cfgdir, value)
+            value = os.path.join(cfgdir, value)
+        #if not self.required and not os.access(value, os.F_OK | os.R_OK):
+        #    return None
         return value
 
     def validate(self, value):
@@ -915,15 +921,13 @@ class File(BaseType):
                     raise configexc.ValidationError(
                         value, "must be an absolute path when not using a "
                         "config directory!")
-                elif not os.path.isfile(os.path.join(cfgdir, value)):
-                    raise configexc.ValidationError(
-                        value, "must be a valid path relative to the config "
-                        "directory!")
-                else:
-                    return
-            elif not os.path.isfile(value):
-                raise configexc.ValidationError(
-                    value, "must be a valid file!")
+                value = os.path.join(cfgdir, value)
+                not_isfile_message = ("must be a valid path relative to the "
+                                      "config directory!")
+            else:
+                not_isfile_message = "must be a valid file!"
+            if self.required and not os.path.isfile(value):
+                raise configexc.ValidationError(value, not_isfile_message)
         except UnicodeEncodeError as e:
             raise configexc.ValidationError(value, e)
 

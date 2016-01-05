@@ -891,7 +891,7 @@ def data(readonly=False):
              "Make chars in hint strings uppercase."),
 
             ('dictionary',
-             SettingValue(typ.File(), '/usr/share/dict/words'),
+             SettingValue(typ.File(required=False), '/usr/share/dict/words'),
              "The dictionary file to be used by the word hints."),
 
             ('auto-follow',

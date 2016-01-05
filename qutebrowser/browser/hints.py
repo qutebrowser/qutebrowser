@@ -51,6 +51,7 @@ Target = usertypes.enum('Target', ['normal', 'tab', 'tab_fg', 'tab_bg',
 
 
 class WordHintingError(Exception):
+
     """Exception raised on errors during word hinting."""
 
 
@@ -985,6 +986,7 @@ class WordHinter:
     Attributes:
 
     """
+
     FIRST_ALPHABETIC = re.compile('[A-Za-z]{3,}')
 
     def __init__(self):
