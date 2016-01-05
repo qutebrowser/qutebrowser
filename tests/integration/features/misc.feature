@@ -119,6 +119,7 @@ Feature: Various utility commands.
 
     # :stop/:reload
 
+    # WORKAROUND for https://bitbucket.org/cherrypy/cherrypy/pull-requests/117/
     @not_osx
     Scenario: :stop
         Given I have a fresh instance
@@ -136,12 +137,12 @@ Feature: Various utility commands.
         # no request on / because we stopped the redirect
 
     Scenario: :reload
-        When I open data/hello.txt
+        When I open data/reload.txt
         And I run :reload
-        And I wait until data/hello.txt is loaded
+        And I wait until data/reload.txt is loaded
         Then the requests should be:
-            data/hello.txt
-            data/hello.txt
+            data/reload.txt
+            data/reload.txt
 
     Scenario: :reload with force
         When I open headers
