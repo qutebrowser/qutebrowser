@@ -31,23 +31,18 @@ from qutebrowser.browser import pdfjs
 # because we use qutebrowser.browser.webelem.javascript_escape.  Characters
 # like " are already replaced by QUrl.
 @pytest.mark.parametrize('url, expected', [
-    ('http://foo.bar',
-     'PDFJS.verbosity = PDFJS.VERBOSITY_LEVELS.info;\n'
-     'PDFView.open("http://foo.bar");\n'),
-    ('http://"',
-     'PDFJS.verbosity = PDFJS.VERBOSITY_LEVELS.info;\n'
-     'PDFView.open("");\n'),
-    ('\0',
-     'PDFJS.verbosity = PDFJS.VERBOSITY_LEVELS.info;\n'
-     'PDFView.open("%00");\n'),
+    ('http://foo.bar', "http://foo.bar"),
+    ('http://"', ''),
+    ('\0', '%00'),
     ('http://foobar/");alert("attack!");',
-     'PDFJS.verbosity = PDFJS.VERBOSITY_LEVELS.info;\n'
-     'PDFView.open("http://foobar/%22);alert(%22attack!%22);");\n'),
+     'http://foobar/%22);alert(%22attack!%22);'),
 ])
 def test_generate_pdfjs_script(url, expected):
+    expected_code = ('PDFJS.verbosity = PDFJS.VERBOSITY_LEVELS.info;\n'
+                     'PDFView.open("{}");\n'.format(expected))
     url = QUrl(url)
     actual = pdfjs._generate_pdfjs_script(url)
-    assert actual == expected
+    assert actual == expected_code
 
 
 def test_fix_urls():
@@ -79,4 +74,3 @@ def test_fix_urls():
 ])
 def test_remove_prefix(path, expected):
     assert pdfjs._remove_prefix(path) == expected
-
