@@ -904,8 +904,6 @@ class File(BaseType):
             cfgdir = standarddir.config()
             assert cfgdir is not None
             value = os.path.join(cfgdir, value)
-        #if not self.required and not os.access(value, os.F_OK | os.R_OK):
-        #    return None
         return value
 
     def validate(self, value):

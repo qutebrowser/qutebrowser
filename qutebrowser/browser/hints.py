@@ -683,7 +683,7 @@ class HintManager(QObject):
         keyparsers = objreg.get('keyparsers', scope='window',
                                 window=self._win_id)
         keyparser = keyparsers[usertypes.KeyMode.hint]
-        keyparser.update_bindings(strings)
+        keyparser.update_bindings(hints)
 
     def follow_prevnext(self, frame, baseurl, prev=False, tab=False,
                         background=False, window=False):
@@ -981,13 +981,10 @@ class WordHinter:
 
     """Generator for word hints.
 
-    Class attributes:
-
     Attributes:
-
+        words: A set of words to be used when no "smart hint" can be
+            derived from the hinted element.
     """
-
-    FIRST_ALPHABETIC = re.compile('[A-Za-z]{3,}')
 
     def __init__(self):
         # will be initialized on first use.
@@ -1007,8 +1004,10 @@ class WordHinter:
                             # contains none-alphabetic chars
                             continue
                         if len(word) > 4:
+                            # we don't need words longer than 4
                             continue
                         for i in range(len(word)):
+                            # remove all prefixes of this word
                             hints.discard(word[:i + 1])
                         hints.add(word)
                     self.words.update(hints)
@@ -1044,7 +1043,7 @@ class WordHinter:
         for candidate in words:
             if not candidate:
                 continue
-            match = self.FIRST_ALPHABETIC.search(candidate)
+            match = re.search('[A-Za-z]{3,}', candidate)
             if not match:
                 continue
             if match.end() - match.start() < 4:
