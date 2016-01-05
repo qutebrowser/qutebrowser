@@ -226,7 +226,9 @@ class AsciiDoc:
         cmdline += args
         cmdline.append(src)
         try:
-            subprocess.check_call(cmdline, env={'HOME': self._homedir})
+            env = os.environ.copy()
+            env['HOME'] = self._homedir
+            subprocess.check_call(cmdline, env=env)
             self._failed = True
         except (subprocess.CalledProcessError, OSError) as e:
             self._failed = True
