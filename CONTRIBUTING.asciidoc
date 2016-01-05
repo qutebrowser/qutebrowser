@@ -558,13 +558,12 @@ New PyQt release
 qutebrowser release
 ~~~~~~~~~~~~~~~~~~~
 
-* Make sure there are no unstaged changes.
-* Run `src2asciidoc.py` and commit changes if necessary.
+* Make sure there are no unstaged changes and the tests are green.
 
-* Run `asciidoc2html.py`.
 * Adjust `__version_info__` in `qutebrowser/__init__.py`.
 * Remove *(unreleased)* from changelog.
-* Run all tests on all supported systems.
+* Run tests again
+* Run `asciidoc2html.py`.
 * Commit
 
 * Create annotated git tag (`git tag -s "v0.X.Y" -m "Release v0.X.Y"`)
@@ -575,8 +574,7 @@ qutebrowser release
 * Mark the milestone at https://github.com/The-Compiler/qutebrowser/milestones
 as closed.
 
-* Build sdist: `python3 setup.py sdist --sign`
-* Sign: `gpg --detach-sign -a dist/qutebrowser-0.X.Y.tar.gz`
+* Run `scripts/dev/build_release.py` on Linux to build an sdist
 * Upload to PyPI: `twine upload dist/foo{,.asc}`
 * Create Windows packages via `scripts/dev/build_release.py` and upload.
 
