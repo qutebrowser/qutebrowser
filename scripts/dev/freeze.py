@@ -35,7 +35,6 @@ import cx_Freeze as cx  # pylint: disable=import-error,useless-suppression
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), os.pardir,
                 os.pardir))
 from scripts import setupcommon
-from scripts.dev import update_3rdparty
 
 
 BASEDIR = os.path.join(os.path.dirname(os.path.realpath(__file__)),
@@ -120,8 +119,6 @@ def main():
         'iconfile': os.path.join(BASEDIR, 'icons', 'qutebrowser.icns'),
         'bundle_name': 'qutebrowser',
     }
-
-    update_3rdparty.main()
 
     try:
         setupcommon.write_git_file()
