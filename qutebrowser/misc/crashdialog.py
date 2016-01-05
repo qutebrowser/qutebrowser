@@ -220,8 +220,9 @@ class _CrashDialog(QDialog):
     def _init_info_text(self):
         """Add an info text encouraging the user to report crashes."""
         info_label = QLabel("<br/><b>Note that without your help, I can't fix "
-                            "the bug you encountered.<br/>I read and respond "
-                            "to all crash reports!</b>", wordWrap=True)
+                            "the bug you encountered.<br/> Crash reports are "
+                            "currently publicly accessible.</b>",
+                            wordWrap=True)
         self._vbox.addWidget(info_label)
 
     def _gather_crash_info(self):
