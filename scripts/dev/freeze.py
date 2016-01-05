@@ -65,8 +65,12 @@ def get_build_exe_options(skip_html=False):
         ('qutebrowser/git-commit-id', 'git-commit-id'),
         ('qutebrowser/utils/testfile', 'utils/testfile'),
         ('qutebrowser/html', 'html'),
-        ('qutebrowser/3rdparty/pdfjs', '3rdparty/pdfjs'),
     ]
+
+    if os.path.exists(os.path.join('qutebrowser', '3rdparty', 'pdfjs')):
+        include_files.append(('qutebrowser/3rdparty/pdfjs', '3rdparty/pdfjs'))
+    else:
+        print("Warning: excluding pdfjs as it's not present!")
 
     if not skip_html:
         include_files += [
