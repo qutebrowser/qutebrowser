@@ -125,6 +125,8 @@ Fixed
 - Fixed crash when killing a running userscript.
 - Fixed characters being passed through when shifted with
   `forward-unbound-keys` set to `auto`.
+- Fixed restarting after a crash is reported.
+- Removed `.pyc` files accidentally contained in source releases.
 
 v0.4.1
 ------
