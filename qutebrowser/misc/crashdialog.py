@@ -357,7 +357,7 @@ class _CrashDialog(QDialog):
                          "but you're currently running v{} - please "
                          "update!".format(newest, qutebrowser.__version__))
         text = '<br/><br/>'.join(lines)
-        self.hide()
+        self.finish()
         msgbox.information(self, "Report successfully sent!", text,
                            on_finished=self.finish, plain_text=False)
 
@@ -374,7 +374,7 @@ class _CrashDialog(QDialog):
                      "<a href=http://www.qutebrowser.org/>qutebrowser.org</a> "
                      "by yourself.".format(msg))
         text = '<br/><br/>'.join(lines)
-        self.hide()
+        self.finish()
         msgbox.information(self, "Report successfully sent!", text,
                            on_finished=self.finish, plain_text=False)
 
