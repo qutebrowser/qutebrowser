@@ -676,10 +676,10 @@ class HintManager(QObject):
         elems = [e for e in elems if filterfunc(e)]
         if not elems:
             raise cmdexc.CommandError("No elements found.")
-        strings = self._hint_strings(elems)
-        for e, strng in zip(elems, strings):
-            label = self._draw_label(e, strng)
-            self._context.elems[strng] = ElemTuple(e, label)
+        hints = self._hint_strings(elems)
+        for e, hint in zip(elems, hints):
+            label = self._draw_label(e, hint)
+            self._context.elems[hint] = ElemTuple(e, label)
         keyparsers = objreg.get('keyparsers', scope='window',
                                 window=self._win_id)
         keyparser = keyparsers[usertypes.KeyMode.hint]
@@ -826,11 +826,11 @@ class HintManager(QObject):
     def handle_partial_key(self, keystr):
         """Handle a new partial keypress."""
         log.hints.debug("Handling new keystring: '{}'".format(keystr))
-        for (strng, elems) in self._context.elems.items():
+        for (text, elems) in self._context.elems.items():
             try:
-                if strng.startswith(keystr):
-                    matched = strng[:len(keystr)]
-                    rest = strng[len(keystr):]
+                if text.startswith(keystr):
+                    matched = text[:len(keystr)]
+                    rest = text[len(keystr):]
                     match_color = config.get('colors', 'hints.fg.match')
                     elems.label.setInnerXml(
                         '<font color="{}">{}</font>{}'.format(
@@ -931,8 +931,8 @@ class HintManager(QObject):
             # Show all hints again
             self.filter_hints(None)
             # Undo keystring highlighting
-            for (strng, elems) in self._context.elems.items():
-                elems.label.setInnerXml(strng)
+            for (text, elems) in self._context.elems.items():
+                elems.label.setInnerXml(text)
         handler()
 
     @cmdutils.register(instance='hintmanager', scope='tab', hide=True,
