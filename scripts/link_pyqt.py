@@ -46,15 +46,13 @@ def run_py(executable, *code):
             f.write('\n'.join(code))
         cmd = [executable, filename]
         try:
-            ret = subprocess.check_output(cmd, universal_newlines=True,
-                                          stderr=subprocess.DEVNULL).rstrip()
+            ret = subprocess.check_output(cmd, universal_newlines=True)
         finally:
             os.remove(filename)
     else:
         cmd = [executable, '-c', '\n'.join(code)]
-        ret = subprocess.check_output(cmd, universal_newlines=True,
-                                      stderr=subprocess.DEVNULL).rstrip()
-    return ret
+        ret = subprocess.check_output(cmd, universal_newlines=True)
+    return ret.rstrip()
 
 
 def verbose_copy(src, dst, *, follow_symlinks=True):
