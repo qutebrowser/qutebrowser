@@ -19,6 +19,7 @@
 
 """Utilities to show various version informations."""
 
+import re
 import sys
 import glob
 import os.path
@@ -34,6 +35,7 @@ from PyQt5.QtWidgets import QApplication
 
 import qutebrowser
 from qutebrowser.utils import log, utils
+from qutebrowser.browser import pdfjs
 
 
 GPL_BOILERPLATE = """
@@ -183,6 +185,25 @@ def _os_info():
     return lines
 
 
+def _pdfjs_version():
+    """Get the pdf.js version.
+
+    Return:
+        A string with the version number.
+    """
+    try:
+        pdfjs_file = pdfjs.get_pdfjs_res('build/pdf.js').decode('utf-8')
+    except pdfjs.PDFJSNotFound:
+        return 'no'
+    else:
+        version_re = re.compile(r"^PDFJS\.version = '([^']+)';$", re.MULTILINE)
+        match = version_re.search(pdfjs_file)
+        if not match:
+            return 'unknown'
+        else:
+            return match.group(1)
+
+
 def version(short=False):
     """Return a string with various version informations.
 
@@ -211,6 +232,7 @@ def version(short=False):
         lines += _module_versions()
 
         lines += [
+            'pdf.js: {}'.format(_pdfjs_version()),
             'Webkit: {}'.format(qWebKitVersion()),
             'Harfbuzz: {}'.format(os.environ.get('QT_HARFBUZZ', 'system')),
             'SSL: {}'.format(QSslSocket.sslLibraryVersionString()),

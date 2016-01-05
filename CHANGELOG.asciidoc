@@ -20,6 +20,9 @@ v0.5.0 (unreleased)
 Added
 ~~~~~
 
+- Ability to preview PDFs using pdf.js in the browser if it's installed. This
+  is disabled by default and can be enabled using the
+  `content -> pdfjs-enabled` setting.
 - New setting `ui -> hide-wayland-decoration` to hide the window decoration
   when using wayland.
 - New userscripts in `misc/userscripts`:

@@ -165,6 +165,7 @@
 |<<content-host-block-lists,host-block-lists>>|List of URLs of lists which contain hosts to block.
 |<<content-host-blocking-enabled,host-blocking-enabled>>|Whether host blocking is enabled.
 |<<content-host-blocking-whitelist,host-blocking-whitelist>>|List of domains that should always be loaded, despite being ad-blocked.
+|<<content-enable-pdfjs,enable-pdfjs>>|Enable pdf.js to view PDF files in the browser.
 |==============
 
 .Quick reference for section ``hints''
@@ -1500,6 +1501,19 @@ Domains may contain * and ? wildcards and are otherwise required to exactly matc
 Local domains are always exempt from hostblocking.
 
 Default: +pass:[piwik.org]+
+
+[[content-enable-pdfjs]]
+=== enable-pdfjs
+Enable pdf.js to view PDF files in the browser.
+
+Note that the files can still be downloaded by clicking the download button in the pdf.js viewer.
+
+Valid values:
+
+ * +true+
+ * +false+
+
+Default: +pass:[false]+
 
 == hints
 Hinting settings.

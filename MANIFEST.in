@@ -3,6 +3,7 @@ recursive-include qutebrowser/html *.html
 recursive-include qutebrowser/img *.svg *.png
 recursive-include qutebrowser/test *.py
 recursive-include qutebrowser/javascript *.js
+graft qutebrowser/3rdparty
 graft icons
 graft doc/img
 graft misc
@@ -27,6 +28,7 @@ exclude qutebrowser.rcc
 exclude .coveragerc
 exclude .pylintrc
 exclude .eslintrc
+exclude .eslintignore
 exclude doc/help
 exclude .appveyor.yml
 exclude .travis.yml

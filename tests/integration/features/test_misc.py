@@ -23,10 +23,13 @@ import subprocess
 
 import pytest
 import pytest_bdd as bdd
-bdd.scenarios('misc.feature')
 
 import qutebrowser
 from qutebrowser.utils import docutils
+from qutebrowser.browser import pdfjs
+
+
+bdd.scenarios('misc.feature')
 
 
 @bdd.when("the documentation is up to date")
@@ -51,3 +54,9 @@ def update_documentation():
 
     update_script = os.path.join(script_path, 'asciidoc2html.py')
     subprocess.call([sys.executable, update_script])
+
+
+@bdd.given('pdfjs is available')
+def pdfjs_available():
+    if not pdfjs.is_available():
+        pytest.skip("No pdfjs installation found.")
