@@ -1462,11 +1462,11 @@ class CommandDispatcher:
         webview = self._current_widget()
         if not webview.selection_enabled:
             act = [QWebPage.MoveToNextWord]
-            if sys.platform == 'win32':
+            if sys.platform == 'win32':  # pragma: no cover
                 act.append(QWebPage.MoveToPreviousChar)
         else:
             act = [QWebPage.SelectNextWord]
-            if sys.platform == 'win32':
+            if sys.platform == 'win32':  # pragma: no cover
                 act.append(QWebPage.SelectPreviousChar)
         for _ in range(count):
             for a in act:
@@ -1483,11 +1483,11 @@ class CommandDispatcher:
         webview = self._current_widget()
         if not webview.selection_enabled:
             act = [QWebPage.MoveToNextWord]
-            if sys.platform != 'win32':
+            if sys.platform != 'win32':  # pragma: no branch
                 act.append(QWebPage.MoveToNextChar)
         else:
             act = [QWebPage.SelectNextWord]
-            if sys.platform != 'win32':
+            if sys.platform != 'win32':  # pragma: no branch
                 act.append(QWebPage.SelectNextChar)
         for _ in range(count):
             for a in act:
