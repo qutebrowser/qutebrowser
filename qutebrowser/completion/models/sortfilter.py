@@ -47,7 +47,7 @@ class CompletionFilterModel(QSortFilterProxyModel):
         super().setSourceModel(source)
         self.srcmodel = source
         self.pattern = ''
-        self.patternre = None
+        self.pattern_re = None
 
         dumb_sort = self.srcmodel.DUMB_SORT
         if dumb_sort is None:
@@ -71,10 +71,9 @@ class CompletionFilterModel(QSortFilterProxyModel):
         """
         with debug.log_time(log.completion, 'Setting filter pattern'):
             self.pattern = val
-            val = val.casefold()
             val = re.escape(val)
             val = val.replace(r'\ ', r'.*')
-            self.patternre = re.compile(val)
+            self.pattern_re = re.compile(val, re.IGNORECASE)
             self.invalidateFilter()
             sortcol = 0
             try:
@@ -152,7 +151,7 @@ class CompletionFilterModel(QSortFilterProxyModel):
                 data = self.srcmodel.data(idx)
                 if not data:
                     continue
-                elif self.patternre.search(data.casefold()):
+                elif self.pattern_re.search(data):
                     return True
             return False
 
