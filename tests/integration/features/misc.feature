@@ -285,6 +285,9 @@ Feature: Various utility commands.
         And I run :debug-pyeval QApplication.instance().activeModalWidget().close()
         Then no crash should happen
 
+    # On Windows/OS X, we get a "QPrintDialog: Cannot be used on non-native
+    # printers" qWarning.
+    @linux
     Scenario: print
         When I open data/hello.txt
         And I run :print
