@@ -320,8 +320,8 @@ def check_contents(quteproc, filename):
 
 
 @bdd.then(bdd.parsers.parse('the page should contain the plaintext "{text}"'))
-def check_contents(quteproc, text):
-    """Check the current page's content."""
+def check_contents_plain(quteproc, text):
+    """Check the current page's content based on a substring."""
     content = quteproc.get_content().strip()
     assert text in content
 
