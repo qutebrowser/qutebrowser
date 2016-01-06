@@ -98,3 +98,9 @@ Feature: Yanking and pasting.
                 history:
                 - active: true
                   url: http://localhost:*/data/hello.txt
+
+    Scenario: Pasting an invalid URL
+        When I set general -> auto-search to false
+        And I put "foo bar" into the clipboard
+        And I run :paste
+        Then the error "Invalid URL" should be shown
