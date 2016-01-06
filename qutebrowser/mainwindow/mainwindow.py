@@ -417,9 +417,6 @@ class MainWindow(QWidget):
                                       window=self.win_id)
         download_count = download_manager.rowCount()
         quit_texts = []
-        # Close if set to never ask for confirmation
-        if 'never' in confirm_quit:
-            pass
         # Ask if multiple-tabs are open
         if 'multiple-tabs' in confirm_quit and tab_count > 1:
             quit_texts.append("{} {} open.".format(
