@@ -109,7 +109,7 @@ def pytest_collection_modifyitems(items):
             item.add_marker('gui')
             if sys.platform == 'linux' and not os.environ.get('DISPLAY', ''):
                 if ('CI' in os.environ and
-                        not os.environ.get('QUTE_NO_DISPLAY_OK', '')):
+                        not os.environ.get('QUTE_NO_DISPLAY', '')):
                     raise Exception("No display available on CI!")
                 skip_marker = pytest.mark.skipif(
                     True, reason="No DISPLAY available")
@@ -374,7 +374,10 @@ def pytest_configure(config):
     if os.environ.get('DISPLAY', None) == '':
         # xvfbwrapper doesn't handle DISPLAY="" correctly
         del os.environ['DISPLAY']
-    if sys.platform.startswith('linux') and not config.getoption('--no-xvfb'):
+
+    if (sys.platform.startswith('linux') and
+            not config.getoption('--no-xvfb') and
+            'QUTE_NO_DISPLAY' not in os.environ):
         assert 'QUTE_BUILDBOT' not in os.environ
         try:
             disp = xvfbwrapper.Xvfb(width=800, height=600, colordepth=16)
