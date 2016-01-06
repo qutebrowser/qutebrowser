@@ -291,9 +291,9 @@ class QuteProc(testprocess.Process):
         # __repr__
         url = utils.elide(QUrl(url).toDisplayString(QUrl.EncodeUnicode), 100)
         pattern = re.compile(
-            r"(load status for <qutebrowser.browser.webview.WebView "
-            r"tab_id=\d+ url='{url}'>: LoadStatus.success|fetch: "
-            r"PyQt5.QtCore.QUrl\('{url}'\) -> .*)".format(url=re.escape(url)))
+            r"(load status for <qutebrowser\.browser\.webview\.WebView "
+            r"tab_id=\d+ url='{url}'>: LoadStatus\.success|fetch: "
+            r"PyQt5\.QtCore\.QUrl\('{url}'\) -> .*)".format(url=re.escape(url)))
         self.wait_for(message=pattern, timeout=timeout)
 
     def get_session(self):
