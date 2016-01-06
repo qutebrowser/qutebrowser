@@ -258,3 +258,12 @@ Feature: Caret mode
         Then the message "3 chars yanked to clipboard" should be shown.
         And the message "7 chars yanked to clipboard" should be shown.
         And the clipboard should contain "one two"
+
+    # :drop-selection
+
+    Scenario: :drop-selection
+        When I run :toggle-selection
+        And I run :move-to-end-of-word
+        And I run :drop-selection
+        And I run :yank-selected
+        Then the message "Nothing to yank" should be shown.
