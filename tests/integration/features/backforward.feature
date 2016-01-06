@@ -92,6 +92,13 @@ Feature: Going back and forward.
                 - url: http://localhost:*/data/backforward/2.txt
                 - url: http://localhost:*/data/backforward/3.txt
 
+    Scenario: Going back too much with count.
+        Given I open data/backforward/1.txt
+        When I open data/backforward/2.txt
+        And I open data/backforward/3.txt
+        And I run :back with count 3
+        Then the error "At beginning of history." should be shown
+
     Scenario: Going back with very big count.
         Given I open data/backforward/1.txt
         When I run :back with count 99999999999
@@ -131,4 +138,12 @@ Feature: Going back and forward.
     Scenario: Going forward without history
         Given I open data/backforward/1.txt
         When I run :forward
+        Then the error "At end of history." should be shown
+
+    Scenario: Going forward too much with count.
+        Given I open data/backforward/1.txt
+        When I open data/backforward/2.txt
+        And I open data/backforward/3.txt
+        And I run :back with count 2
+        And I run :forward with count 3
         Then the error "At end of history." should be shown
