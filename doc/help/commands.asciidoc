@@ -1266,12 +1266,15 @@ Dump the current page's content to a file.
 
 [[debug-pyeval]]
 === debug-pyeval
-Syntax: +:debug-pyeval 's'+
+Syntax: +:debug-pyeval [*--quiet*] 's'+
 
 Evaluate a python string and display the results as a web page.
 
 ==== positional arguments
 * +'s'+: The string to evaluate.
+
+==== optional arguments
+* +*-q*+, +*--quiet*+: Don't show the output in a new tab.
 
 ==== note
 * This command does not split arguments after the last argument and handles quotes literally.
