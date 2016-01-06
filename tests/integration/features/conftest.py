@@ -32,7 +32,6 @@ import pytest_bdd as bdd
 from PyQt5.QtCore import QElapsedTimer
 from PyQt5.QtGui import QClipboard
 
-from integration import testprocess
 from helpers import utils
 
 
