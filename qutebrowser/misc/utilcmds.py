@@ -35,6 +35,8 @@ from qutebrowser.config import style
 from qutebrowser.misc import consolewidget
 
 from PyQt5.QtCore import QUrl
+# so it's available for :debug-pyeval
+from PyQt5.QtWidgets import QApplication  # pylint: disable=unused-import
 
 
 @cmdutils.register(maxsplit=1, no_cmd_split=True, win_id='win_id')
