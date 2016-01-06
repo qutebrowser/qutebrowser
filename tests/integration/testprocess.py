@@ -287,6 +287,26 @@ class Process(QObject):
                 return line
         return None
 
+    def _wait_for_match(self, spy, kwargs):
+        """Try matching the kwargs with the given QSignalSpy."""
+        for args in spy:
+            assert len(args) == 1
+            line = args[0]
+
+            matches = []
+
+            for key, expected in kwargs.items():
+                value = getattr(line, key)
+                matches.append(self._match_data(value, expected))
+
+            if all(matches):
+                # If we waited for this line, chances are we don't mean the
+                # same thing the next time we use wait_for and it matches
+                # this line again.
+                line.waited_for = True
+                return line
+        return None
+
     def wait_for(self, timeout=None, *, override_waited_for=False,
                  do_skip=False, **kwargs):
         """Wait until a given value is found in the data.
@@ -337,22 +357,9 @@ class Process(QObject):
                 else:
                     raise WaitForTimeout(msg)
 
-            for args in spy:
-                assert len(args) == 1
-                line = args[0]
-
-                matches = []
-
-                for key, expected in kwargs.items():
-                    value = getattr(line, key)
-                    matches.append(self._match_data(value, expected))
-
-                if all(matches):
-                    # If we waited for this line, chances are we don't mean the
-                    # same thing the next time we use wait_for and it matches
-                    # this line again.
-                    line.waited_for = True
-                    return line
+            match = self._wait_for_match(spy, kwargs)
+            if match is not None:
+                return match
 
     def ensure_not_logged(self, delay=500, **kwargs):
         """Make sure the data matching the given arguments is not logged.
