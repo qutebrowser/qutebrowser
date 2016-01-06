@@ -197,7 +197,20 @@ def fill_clipboard(qtbot, qapp, httpbin, what, content):
 
 
 @bdd.then(bdd.parsers.parse("{path} should be loaded"))
-def path_should_be_loaded(httpbin, path):
+def path_should_be_loaded(quteproc, path):
+    """Make sure the given path was loaded according to the log.
+
+    This is usally the better check compared to "should be requested" as the
+    page could be loaded from local cache.
+    """
+    url = quteproc.path_to_url(path)
+    pattern = ("load status for <qutebrowser.browser.webview.WebView tab_id=* "
+               "url='{}'>: LoadStatus.success".format(url))
+    quteproc.wait_for(message=pattern)
+
+
+@bdd.then(bdd.parsers.parse("{path} should be requested"))
+def path_should_be_requested(httpbin, path):
     """Make sure the given path was loaded from the webserver."""
     httpbin.wait_for(verb='GET', path='/' + path)
 
