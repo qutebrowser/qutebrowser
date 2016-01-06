@@ -287,7 +287,9 @@ Feature: Various utility commands.
 
     # On Windows/OS X, we get a "QPrintDialog: Cannot be used on non-native
     # printers" qWarning.
-    @linux
+    #
+    # Disabled because it causes weird segfaults and QPainter warnings in Qt...
+    @skip
     Scenario: print
         When I open data/hello.txt
         And I run :print
