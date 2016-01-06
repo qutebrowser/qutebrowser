@@ -136,6 +136,12 @@ Feature: Various utility commands.
             custom/redirect-later?delay=-1
         # no request on / because we stopped the redirect
 
+    Scenario: :stop with wrong count
+        When I open data/hello.txt
+        And I run :tab-only
+        And I run :stop with count 2
+        Then no crash should happen
+
     Scenario: :reload
         When I open data/reload.txt
         And I run :reload
@@ -149,6 +155,12 @@ Feature: Various utility commands.
         And I run :reload --force
         And I wait until headers is loaded
         Then the header Cache-Control should be set to no-cache
+
+    Scenario: :reload with wrong count
+        When I open data/hello.txt
+        And I run :tab-only
+        And I run :reload with count 2
+        Then no crash should happen
 
     # :view-source
 
