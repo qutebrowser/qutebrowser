@@ -319,6 +319,13 @@ def check_contents(quteproc, filename):
         assert content == f.read()
 
 
+@bdd.then(bdd.parsers.parse('the page should contain the plaintext "{text}"'))
+def check_contents(quteproc, text):
+    """Check the current page's content."""
+    content = quteproc.get_content().strip()
+    assert content == text
+
+
 @bdd.then(bdd.parsers.parse("the following tabs should be open:\n{tabs}"))
 def check_open_tabs(quteproc, tabs):
     """Check the list of open tabs in the session.
