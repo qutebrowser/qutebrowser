@@ -291,3 +291,14 @@ Feature: Various utility commands.
         And I wait for "Focus object changed: *" in the log
         And I run :debug-pyeval QApplication.instance().activeModalWidget().close()
         Then no crash should happen
+
+    # :pyeval
+
+    Scenario: Running :pyeval
+        When I run :debug-pyeval 1+1
+        And I wait until qute:pyeval is loaded
+        Then the page should contain the plaintext "2"
+
+    Scenario: Running :pyeval with --quiet
+        When I run :debug-pyeval --quiet 1+1
+        Then "pyeval output: 2" should be logged
