@@ -295,8 +295,21 @@ Feature: Caret mode
         And I run :follow-selected
         Then data/hello.txt should be loaded
 
-    Scenario: :follow-selected with --tab
-        When I run :tab-only
+    Scenario: :follow-selected with --tab (with JS)
+        When I set content -> allow-javascript to true
+        And I run :tab-only
+        And I run :enter-mode caret
+        And I run :toggle-selection
+        And I run :move-to-end-of-word
+        And I run :follow-selected --tab
+        Then data/hello.txt should be loaded
+        And the following tabs should be open:
+            - data/caret.html
+            - data/hello.txt (active)
+
+    Scenario: :follow-selected with --tab (without JS)
+        When I set content -> allow-javascript to false
+        And I run :tab-only
         And I run :enter-mode caret
         And I run :toggle-selection
         And I run :move-to-end-of-word
