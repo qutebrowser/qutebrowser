@@ -291,7 +291,7 @@ Feature: Various utility commands.
     Scenario: print
         When I open data/hello.txt
         And I run :print
-        And I wait for "Focus object changed: *" in the log
+        And I wait for "Focus object changed: *" in the log or skip the test
         And I run :debug-pyeval QApplication.instance().activeModalWidget().close()
         Then no crash should happen
 
