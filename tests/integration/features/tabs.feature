@@ -533,3 +533,47 @@ Feature: Tab management
             - tabs:
               - history:
                 - url: http://localhost:*/data/numbers/2.txt
+
+    # :undo
+
+    Scenario: Undo without any closed tabs
+        Given I have a fresh instance
+        When I run :undo
+        Then the error "Nothing to undo!" should be shown
+
+    Scenario: Undo closing a tab
+        When I open data/numbers/1.txt
+        And I run :tab-only
+        And I open data/numbers/2.txt in a new tab
+        And I open data/numbers/3.txt
+        And I run :tab-close
+        And I run :undo
+        Then the session should look like:
+            windows:
+            - tabs:
+              - history:
+                - url: about:blank
+                - url: http://localhost:*/data/numbers/1.txt
+              - active: true
+                history:
+                - url: http://localhost:*/data/numbers/2.txt
+                - url: http://localhost:*/data/numbers/3.txt
+
+    Scenario: Undo with auto-created last tab
+        When I open data/hello.txt
+        And I run :tab-only
+        And I set tabs -> last-close to blank
+        And I run :tab-close
+        And I run :undo
+        Then the following tabs should be open:
+            - data/hello.txt (active)
+
+    Scenario: Undo with auto-created last tab, with history
+        When I open data/hello.txt
+        And I open data/hello2.txt
+        And I run :tab-only
+        And I set tabs -> last-close to blank
+        And I run :tab-close
+        And I run :undo
+        Then the following tabs should be open:
+            - data/hello2.txt (active)
