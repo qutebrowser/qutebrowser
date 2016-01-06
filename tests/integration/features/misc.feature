@@ -273,3 +273,21 @@ Feature: Various utility commands.
         And I set storage -> prompt-download-directory to false
         And I open data/misc/test.pdf
         Then "Download finished" should be logged
+
+    # :print
+
+    # Disabled because it causes weird segfaults and QPainter warnings in Qt...
+    @skip
+    Scenario: print preview
+        When I open data/hello.txt
+        And I run :print --preview
+        And I wait for "Focus object changed: *" in the log
+        And I run :debug-pyeval QApplication.instance().activeModalWidget().close()
+        Then no crash should happen
+
+    Scenario: print
+        When I open data/hello.txt
+        And I run :print
+        And I wait for "Focus object changed: *" in the log
+        And I run :debug-pyeval QApplication.instance().activeModalWidget().close()
+        Then no crash should happen
