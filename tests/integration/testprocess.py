@@ -287,7 +287,8 @@ class Process(QObject):
                 return line
         return None
 
-    def wait_for(self, timeout=None, *, override_waited_for=False, **kwargs):
+    def wait_for(self, timeout=None, *, override_waited_for=False,
+                 do_skip=False, **kwargs):
         """Wait until a given value is found in the data.
 
         Keyword arguments to this function get interpreted as attributes of the
@@ -298,13 +299,16 @@ class Process(QObject):
             timeout: How long to wait for the message.
             override_waited_for: If set, gets triggered by previous messages
                                  again.
+            do_skip: If set, call pytest.skip on a timeout.
 
         Return:
             The matched line.
         """
         __tracebackhide__ = True
         if timeout is None:
-            if 'CI' in os.environ:
+            if do_skip:
+                timeout = 2000
+            elif 'CI' in os.environ:
                 timeout = 15000
             else:
                 timeout = 5000
@@ -326,8 +330,12 @@ class Process(QObject):
         while True:
             got_signal = spy.wait(timeout)
             if not got_signal or elapsed_timer.hasExpired(timeout):
-                raise WaitForTimeout("Timed out after {}ms waiting for "
-                                     "{!r}.".format(timeout, kwargs))
+                msg = "Timed out after {}ms waiting for {!r}.".format(
+                    timeout, kwargs)
+                if do_skip:
+                    pytest.skip(msg)
+                else:
+                    raise WaitForTimeout(msg)
 
             for args in spy:
                 assert len(args) == 1

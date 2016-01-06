@@ -32,6 +32,7 @@ import pytest_bdd as bdd
 from PyQt5.QtCore import QElapsedTimer
 from PyQt5.QtGui import QClipboard
 
+from integration import testprocess
 from helpers import utils
 
 
@@ -142,8 +143,9 @@ def wait_until_loaded(quteproc, path):
 
 
 @bdd.when(bdd.parsers.re(r'I wait for (?P<is_regex>regex )?"'
-                         r'(?P<pattern>[^"]+)" in the log'))
-def wait_in_log(quteproc, is_regex, pattern):
+                         r'(?P<pattern>[^"]+)" in the log(?P<do_skip> or skip '
+                         r'the test)?'))
+def wait_in_log(quteproc, is_regex, pattern, do_skip):
     """Wait for a given pattern in the qutebrowser log.
 
     If used like "When I wait for regex ... in the log" the argument is treated
@@ -151,7 +153,8 @@ def wait_in_log(quteproc, is_regex, pattern):
     """
     if is_regex:
         pattern = re.compile(pattern)
-    quteproc.wait_for(message=pattern)
+
+    quteproc.wait_for(message=pattern, do_skip=bool(do_skip))
 
 
 @bdd.when(bdd.parsers.re(r'I wait for the (?P<category>error|message|warning) '

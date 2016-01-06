@@ -144,6 +144,13 @@ class TestWaitFor:
         with pytest.raises(TypeError):
             pyproc.wait_for()
 
+    def test_do_skip(self, pyproc):
+        """Test wait_for when getting no text at all, with do_skip."""
+        pyproc.code = "pass"
+        pyproc.start()
+        with pytest.raises(pytest.skip.Exception):
+            pyproc.wait_for(data="foobar", timeout=100, do_skip=True)
+
 
 class TestEnsureNotLogged:
 
