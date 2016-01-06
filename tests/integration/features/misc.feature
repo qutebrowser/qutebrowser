@@ -299,6 +299,11 @@ Feature: Various utility commands.
         And I wait until qute:pyeval is loaded
         Then the page should contain the plaintext "2"
 
+    Scenario: Causing exception in :pyeval
+        When I run :debug-pyeval 1/0
+        And I wait until qute:pyeval is loaded
+        Then the page should contain the plaintext "ZeroDivisionError"
+
     Scenario: Running :pyeval with --quiet
         When I run :debug-pyeval --quiet 1+1
         Then "pyeval output: 2" should be logged

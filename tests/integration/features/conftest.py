@@ -323,7 +323,7 @@ def check_contents(quteproc, filename):
 def check_contents(quteproc, text):
     """Check the current page's content."""
     content = quteproc.get_content().strip()
-    assert content == text
+    assert text in content
 
 
 @bdd.then(bdd.parsers.parse("the following tabs should be open:\n{tabs}"))
