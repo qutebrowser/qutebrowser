@@ -11,6 +11,12 @@ Feature: Searching on a page
         And I run :yank-selected
         Then the clipboard should contain "foo"
 
+    Scenario: Searching twice
+        When I run :search foo
+        And I run :search bar
+        And I run :yank-selected
+        Then the clipboard should contain "Bar"
+
     Scenario: Searching with --reverse
         When I set general -> ignore-case to true
         And I run :search -r foo
@@ -54,7 +60,7 @@ Feature: Searching on a page
         And I run :yank-selected
         Then the clipboard should contain "Foo"  # even though foo was first
 
-    ## :search-prev/next
+    ## :search-next
 
     Scenario: Jumping to next match
         When I set general -> ignore-case to true
@@ -63,9 +69,27 @@ Feature: Searching on a page
         And I run :yank-selected
         Then the clipboard should contain "Foo"
 
+    Scenario: Jumping to next match with count
+        When I set general -> ignore-case to true
+        And I run :search baz
+        And I run :search-next with count 2
+        And I run :yank-selected
+        Then the clipboard should contain "BAZ"
+
+    Scenario: Jumping to next match with --reverse
+        When I set general -> ignore-case to true
+        And I run :search --reverse foo
+        And I run :search-next
+        And I run :yank-selected
+        Then the clipboard should contain "foo"
+
     Scenario: Jumping to next match without search
-        When I run :search-next
+        # Make sure there was no search in the same window before
+        When I open data/search.html in a new window
+        And I run :search-next
         Then no crash should happen
+
+    ## :search-prev
 
     Scenario: Jumping to previous match
         When I set general -> ignore-case to true
@@ -75,11 +99,28 @@ Feature: Searching on a page
         And I run :yank-selected
         Then the clipboard should contain "foo"
 
-    Scenario: Jumping to previous match without search
-        When I run :search-prev
-        Then no crash should happen
+    Scenario: Jumping to previous match with count
+        When I set general -> ignore-case to true
+        And I run :search baz
+        And I run :search-next
+        And I run :search-next
+        And I run :search-prev with count 2
+        And I run :yank-selected
+        Then the clipboard should contain "baz"
 
-    # TODO: with count
+    Scenario: Jumping to previous match with --reverse
+        When I set general -> ignore-case to true
+        And I run :search --reverse foo
+        And I run :search-next
+        And I run :search-prev
+        And I run :yank-selected
+        Then the clipboard should contain "Foo"
+
+    Scenario: Jumping to previous match without search
+        # Make sure there was no search in the same window before
+        When I open data/search.html in a new window
+        And I run :search-prev
+        Then no crash should happen
 
     ## wrapping
 
@@ -112,6 +153,14 @@ Feature: Searching on a page
         And I run :search-next
         And I run :search-next
         Then the warning "Search hit TOP without match for: foo" should be shown
+
+    Scenario: Wrapping around page
+        When I set general -> wrap-search to true
+        And I run :search foo
+        And I run :search-next
+        And I run :search-next
+        And I run :yank-selected
+        Then the clipboard should contain "foo"
 
     # TODO: wrapping message with scrolling
     # TODO: wrapping message without scrolling
