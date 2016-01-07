@@ -103,6 +103,10 @@ def pytest_runtest_makereport(item, call):
         # actually a tuple. This is handled similarily in pytest-qt too.
         return
 
+    if pytest.config.getoption('--capture') == 'no':
+        # Already printed live
+        return
+
     if quteproc_log is not None:
         report.longrepr.addsection("qutebrowser output",
                                    _render_log(quteproc_log))
@@ -140,6 +144,8 @@ class Process(QObject):
 
     def _log(self, line):
         """Add the given line to the captured log output."""
+        if pytest.config.getoption('--capture') == 'no':
+            print(line)
         self.captured_log.append(line)
 
     def _parse_line(self, line):
