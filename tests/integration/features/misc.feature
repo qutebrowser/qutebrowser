@@ -117,6 +117,22 @@ Feature: Various utility commands.
         And I wait for "Focus object changed: *" in the log
         Then no crash should happen
 
+    # Different code path as an inspector got created now
+    Scenario: Inspector without developer extras (after smoke)
+        When I set general -> developer-extras to false
+        And I run :inspector
+        Then the error "Please enable developer-extras before using the webinspector!" should be shown
+
+    # Different code path as an inspector got created now
+    @not_xvfb @posix
+    Scenario: Inspector smoke test 2
+        When I set general -> developer-extras to true
+        And I run :inspector
+        And I wait for "Focus object changed: <PyQt5.QtWebKitWidgets.QWebView object at *>" in the log
+        And I run :inspector
+        And I wait for "Focus object changed: *" in the log
+        Then no crash should happen
+
     # :stop/:reload
 
     # WORKAROUND for https://bitbucket.org/cherrypy/cherrypy/pull-requests/117/
