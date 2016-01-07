@@ -35,6 +35,11 @@ from PyQt5.QtGui import QClipboard
 from helpers import utils
 
 
+class WaitForClipboardTimeout(Exception):
+
+    """Raised when _wait_for_clipboard didn't get the expected message."""
+
+
 def _clipboard_mode(qapp, what):
     """Get the QClipboard::Mode to use based on a string."""
     if what == 'clipboard':
@@ -390,7 +395,7 @@ def _wait_for_clipboard(qtbot, clipboard, mode, expected):
                 QClipboard.Clipboard: 'clipboard',
                 QClipboard.Selection: 'primary selection',
             }
-            raise WaitForTimeout(
+            raise WaitForClipboardTimeout(
                 "Timed out after {}ms waiting for {} in {}.".format(
                     timeout, expected, mode_names[mode]))
 
