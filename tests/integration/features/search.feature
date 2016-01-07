@@ -3,6 +3,7 @@ Feature: Searching on a page
 
     Background:
         Given I open data/search.html
+        And I run :tab-only
 
     ## searching
 
