@@ -269,11 +269,16 @@ class QuteProc(testprocess.Process):
         yield
         self.set_setting(sect, opt, old_value)
 
-    def open_path(self, path, new_tab=False):
+    def open_path(self, path, new_tab=False, new_window=False):
         """Open the given path on the local webserver in qutebrowser."""
+        if new_tab and new_window:
+            raise ValueError("new_tab and new_window given!")
+
         url = self.path_to_url(path)
         if new_tab:
             self.send_cmd(':open -t ' + url)
+        elif new_window:
+            self.send_cmd(':open -w ' + url)
         else:
             self.send_cmd(':open ' + url)
         self.wait_for_load_finished(path)
