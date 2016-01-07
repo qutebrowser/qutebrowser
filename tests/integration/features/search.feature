@@ -27,6 +27,19 @@ Feature: Searching on a page
         When I run :search doesnotmatch
         Then the warning "Text 'doesnotmatch' not found on page!" should be shown
 
+    @skip
+    Scenario: Searching with / and spaces at the end (issue 874)
+        When I run :set-cmd-text -s /space
+        And I run :command-accept
+        And I run :yank-selected
+        Then the clipboard should contain "space "
+
+    Scenario: Searching with / and slash in search term (issue 507)
+        When I run :set-cmd-text -s //slash
+        And I run :command-accept
+        And I run :yank-selected
+        Then the clipboard should contain "/slash"
+
     # xfail takes a long time to timeout, and this doesn't work because this is
     # QtWebKit behaviour.
     @skip
@@ -88,6 +101,14 @@ Feature: Searching on a page
         When I open data/search.html in a new window
         And I run :search-next
         Then no crash should happen
+
+    Scenario: Repeating search in a second tab (issue #940)
+        When I open data/search.html in a new tab
+        And I run :search foo
+        And I run :tab-prev
+        And I run :search-next
+        And I run :yank-selected
+        Then the clipboard should contain "foo"
 
     ## :search-prev
 
