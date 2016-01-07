@@ -72,6 +72,18 @@ class Line:
         return '{}({!r})'.format(self.__class__.__name__, self.data)
 
 
+def _render_log(data, threshold=50):
+    """Shorten the given log without -v and convert to a string."""
+    # WORKAROUND for https://bitbucket.org/logilab/pylint/issues/717/
+    # we should switch to generated-members after that
+    # pylint: disable=no-member
+    if len(data) > threshold and not pytest.config.getoption('--verbose'):
+        msg = '[{} lines suppressed, use -v to show]'.format(
+            len(data) - threshold)
+        data = [msg] + data[-threshold:]
+    return '\n'.join(data)
+
+
 @pytest.hookimpl(hookwrapper=True)
 def pytest_runtest_makereport(item, call):
     """Add qutebrowser/httpbin sections to captured output if a test failed."""
@@ -93,10 +105,9 @@ def pytest_runtest_makereport(item, call):
 
     if quteproc_log is not None:
         report.longrepr.addsection("qutebrowser output",
-                                   '\n'.join(quteproc_log))
+                                   _render_log(quteproc_log))
     if httpbin_log is not None:
-        report.longrepr.addsection("httpbin output",
-                                   '\n'.join(httpbin_log))
+        report.longrepr.addsection("httpbin output", _render_log(httpbin_log))
 
 
 class Process(QObject):

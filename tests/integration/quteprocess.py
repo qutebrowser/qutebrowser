@@ -169,12 +169,7 @@ class QuteProc(testprocess.Process):
             else:
                 raise
 
-        # WORKAROUND for https://bitbucket.org/logilab/pylint/issues/717/
-        # we should switch to generated-members after that
-        # pylint: disable=no-member
-        if (log_line.loglevel in ['INFO', 'WARNING', 'ERROR'] or
-                pytest.config.getoption('--verbose')):
-            self._log(line)
+        self._log(line)
 
         start_okay_message_load = (
             "load status for <qutebrowser.browser.webview.WebView tab_id=0 "
