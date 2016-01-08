@@ -403,8 +403,12 @@ def _wait_for_clipboard(qtbot, clipboard, mode, expected):
                 QClipboard.Selection: 'primary selection',
             }
             raise WaitForClipboardTimeout(
-                "Timed out after {}ms waiting for {} in {}.".format(
-                    timeout, expected, mode_names[mode]))
+                "Timed out after {}ms waiting for {} in {} (clipboard: {!r}, "
+                "primary {!r}).".format(
+                    timeout, expected, mode_names[mode],
+                    clipboard.text(mode=QClipboard.Clipboard),
+                    clipboard.text(mode=QClipboard.Selection))
+            )
 
 
 @bdd.then(bdd.parsers.re(r'the (?P<what>primary selection|clipboard) should '
