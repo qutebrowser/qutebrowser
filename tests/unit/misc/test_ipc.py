@@ -410,9 +410,9 @@ class TestHandleConnection:
     def test_double_connection(self, qlocalsocket, ipc_server, caplog):
         ipc_server._socket = qlocalsocket
         ipc_server.handle_connection()
-        message = ("Got new connection but ignoring it because we're still "
-                   "handling another one.")
-        assert message in [rec.message for rec in caplog.records]
+        msg = ("Got new connection but ignoring it because we're still "
+               "handling another one")
+        assert any(rec.message.startswith(msg) for rec in caplog.records)
 
     def test_disconnected_immediately(self, ipc_server, caplog):
         socket = FakeSocket(state=QLocalSocket.UnconnectedState)
@@ -501,7 +501,7 @@ def test_invalid_data(qtbot, ipc_server, connected_socket, caplog, data, msg):
                 connected_socket.write(data)
 
     messages = [r.message for r in caplog.records]
-    assert messages[-1] == 'Ignoring invalid IPC data.'
+    assert messages[-1].startswith('Ignoring invalid IPC data from socket ')
     assert messages[-2].startswith(msg)
 
 
@@ -599,7 +599,7 @@ def test_timeout(qtbot, caplog, qlocalsocket, ipc_server):
         with qtbot.waitSignal(qlocalsocket.disconnected, timeout=5000):
             pass
 
-    assert caplog.records[-1].message == "IPC connection timed out."
+    assert caplog.records[-1].message.startswith("IPC connection timed out")
 
 
 @pytest.mark.parametrize('method, args, is_warning', [
