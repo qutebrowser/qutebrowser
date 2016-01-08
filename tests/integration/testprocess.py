@@ -74,8 +74,6 @@ class Line:
 
 def _render_log(data, threshold=50):
     """Shorten the given log without -v and convert to a string."""
-    # WORKAROUND for https://bitbucket.org/logilab/pylint/issues/717/
-    # we should switch to generated-members after that
     # pylint: disable=no-member
     if len(data) > threshold and not pytest.config.getoption('--verbose'):
         msg = '[{} lines suppressed, use -v to show]'.format(
@@ -103,6 +101,7 @@ def pytest_runtest_makereport(item, call):
         # actually a tuple. This is handled similarily in pytest-qt too.
         return
 
+    # pylint: disable=no-member
     if pytest.config.getoption('--capture') == 'no':
         # Already printed live
         return
@@ -144,6 +143,7 @@ class Process(QObject):
 
     def _log(self, line):
         """Add the given line to the captured log output."""
+        # pylint: disable=no-member
         if pytest.config.getoption('--capture') == 'no':
             print(line)
         self.captured_log.append(line)
