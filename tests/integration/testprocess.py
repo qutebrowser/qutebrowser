@@ -86,7 +86,7 @@ def _render_log(data, threshold=50):
 def pytest_runtest_makereport(item, call):
     """Add qutebrowser/httpbin sections to captured output if a test failed."""
     outcome = yield
-    if call.when != 'call':
+    if call.when not in ['call', 'teardown']:
         return
     report = outcome.get_result()
 
