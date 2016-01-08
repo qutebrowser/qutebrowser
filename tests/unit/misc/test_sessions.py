@@ -439,9 +439,8 @@ class TestSave:
 
     def test_update_completion_signal(self, sess_man, tmpdir, qtbot):
         session_path = tmpdir / 'foo.yml'
-        blocker = qtbot.waitSignal(sess_man.update_completion)
-        sess_man.save(str(session_path))
-        assert blocker.signal_triggered
+        with qtbot.waitSignal(sess_man.update_completion):
+            sess_man.save(str(session_path))
 
     def test_no_state_config(self, sess_man, tmpdir, state_config):
         session_path = tmpdir / 'foo.yml'
@@ -691,9 +690,8 @@ class TestDelete:
         sess = tmpdir / 'foo.yml'
         sess.ensure()
 
-        blocker = qtbot.waitSignal(sess_man.update_completion)
-        sess_man.delete(str(sess))
-        assert blocker.signal_triggered
+        with qtbot.waitSignal(sess_man.update_completion):
+            sess_man.delete(str(sess))
 
     def test_not_existing(self, sess_man, qtbot, tmpdir):
         sess = tmpdir / 'foo.yml'

@@ -143,7 +143,7 @@ def run_command(quteproc, httpbin, command):
 @bdd.when(bdd.parsers.parse("I reload"))
 def reload(qtbot, httpbin, quteproc, command):
     """Reload and wait until a new request is received."""
-    with qtbot.waitSignal(httpbin.new_request, raising=True):
+    with qtbot.waitSignal(httpbin.new_request):
         quteproc.send_cmd(':reload')
 
 
@@ -398,7 +398,7 @@ def _wait_for_clipboard(qtbot, clipboard, mode, expected):
 
         # We need to poll the clipboard, as for some reason it can change with
         # emitting changed (?).
-        with qtbot.waitSignal(clipboard.changed, timeout=100) as blocker:
+        with qtbot.waitSignal(clipboard.changed, timeout=100, raising=False) as blocker:
             pass
 
         if timer.hasExpired(timeout):

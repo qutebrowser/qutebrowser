@@ -282,7 +282,7 @@ class TestKeyChain:
         assert not keyparser.execute.called
         assert keyparser._ambiguous_timer.isActive()
         # We wait for the timeout to occur.
-        with qtbot.waitSignal(keyparser.keystring_updated, raising=True):
+        with qtbot.waitSignal(keyparser.keystring_updated):
             pass
         assert keyparser.execute.called
 

@@ -31,7 +31,7 @@ from qutebrowser.utils import log
 
 def test_quteproc_error_message(qtbot, quteproc):
     """Make sure the test fails with an unexpected error message."""
-    with qtbot.waitSignal(quteproc.got_error, raising=True):
+    with qtbot.waitSignal(quteproc.got_error):
         quteproc.send_cmd(':message-error test')
     # Usually we wouldn't call this from inside a test, but here we force the
     # error to occur during the test rather than at teardown time.
@@ -41,7 +41,7 @@ def test_quteproc_error_message(qtbot, quteproc):
 
 def test_qt_log_ignore(qtbot, quteproc):
     """Make sure the test passes when logging a qt_log_ignore message."""
-    with qtbot.waitSignal(quteproc.got_error, raising=True):
+    with qtbot.waitSignal(quteproc.got_error):
         quteproc.send_cmd(':message-error "SpellCheck: test"')
 
 

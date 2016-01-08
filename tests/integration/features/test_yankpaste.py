@@ -33,7 +33,7 @@ def skip_with_broken_clipboard(qtbot, qapp):
     """
     clipboard = qapp.clipboard()
 
-    with qtbot.waitSignal(clipboard.changed):
+    with qtbot.waitSignal(clipboard.changed, raising=False):
         clipboard.setText("Does this work?")
 
     if clipboard.text() != "Does this work?":

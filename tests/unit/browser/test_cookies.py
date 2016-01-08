@@ -79,7 +79,7 @@ def test_set_cookies_accept(config_stub, qtbot, monkeypatch):
     ram_jar = cookies.RAMCookieJar()
     cookie = QNetworkCookie(b'foo', b'bar')
     url = QUrl('http://example.com/')
-    with qtbot.waitSignal(ram_jar.changed, raising=True):
+    with qtbot.waitSignal(ram_jar.changed):
         assert ram_jar.setCookiesFromUrl([cookie], url)
 
     # assert the cookies are added correctly
@@ -151,7 +151,7 @@ def test_cookies_changed_emit(config_stub, fake_save_manager,
                         'LineParser', LineparserSaveStub)
     jar = cookies.CookieJar()
 
-    with qtbot.waitSignal(jar.changed, raising=True):
+    with qtbot.waitSignal(jar.changed):
         config_stub.set('content', 'cookies-store', False)
 
 

@@ -66,7 +66,7 @@ def test_get_version_success(qtbot):
     # Use a spy to inspect the signal
     error_spy = QSignalSpy(client.error)
 
-    with qtbot.waitSignal(client.success, raising=True):
+    with qtbot.waitSignal(client.success):
         client.get_version('test')
 
     assert len(error_spy) == 0
@@ -82,7 +82,7 @@ def test_get_version_error(qtbot):
     # Use a spy to inspect the signal
     success_spy = QSignalSpy(client.success)
 
-    with qtbot.waitSignal(client.error, raising=True):
+    with qtbot.waitSignal(client.error):
         client.get_version('test')
 
     assert len(success_spy) == 0
@@ -98,7 +98,7 @@ def test_invalid_json(qtbot, json):
     # Use a spy to inspect the signal
     success_spy = QSignalSpy(client.success)
 
-    with qtbot.waitSignal(client.error, raising=True):
+    with qtbot.waitSignal(client.error):
         client.get_version('test')
 
     assert len(success_spy) == 0
