@@ -37,7 +37,7 @@ install:
   - python scripts/dev/ci_install.py
 
 script:
-  - tox -e $TESTENV -- -p no:sugar -v --cov-report term tests
+  - tox -e $TESTENV -- -v --cov-report term tests
 
 after_success:
   - '[[ ($TESTENV == py34 || $TESTENV == py35) && $TRAVIS_OX == linux ]] && codecov -e TESTENV -X gcov'
