@@ -403,11 +403,14 @@ def _wait_for_clipboard(qtbot, clipboard, mode, expected):
                 QClipboard.Selection: 'primary selection',
             }
             raise WaitForClipboardTimeout(
-                "Timed out after {}ms waiting for {} in {} (clipboard: {!r}, "
-                "primary {!r}).".format(
-                    timeout, expected, mode_names[mode],
-                    clipboard.text(mode=QClipboard.Clipboard),
-                    clipboard.text(mode=QClipboard.Selection))
+                "Timed out after {timeout}ms waiting for {what}:\n"
+                "   expected: {expected!r}\n"
+                "  clipboard: {clipboard!r}\n"
+                "    primary: {primary!r}.".format(
+                    timeout=timeout, what=mode_names[mode],
+                    expected=expected,
+                    clipboard=clipboard.text(mode=QClipboard.Clipboard),
+                    primary=clipboard.text(mode=QClipboard.Selection))
             )
 
 
