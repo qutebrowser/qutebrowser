@@ -395,9 +395,13 @@ def _wait_for_clipboard(qtbot, clipboard, mode, expected):
     while True:
         if clipboard.text(mode=mode) == expected:
             return
-        with qtbot.waitSignal(clipboard.changed, timeout=timeout) as blocker:
+
+        # We need to poll the clipboard, as for some reason it can change with
+        # emitting changed (?).
+        with qtbot.waitSignal(clipboard.changed, timeout=100) as blocker:
             pass
-        if not blocker.signal_triggered or timer.hasExpired(timeout):
+
+        if timer.hasExpired(timeout):
             mode_names = {
                 QClipboard.Clipboard: 'clipboard',
                 QClipboard.Selection: 'primary selection',
