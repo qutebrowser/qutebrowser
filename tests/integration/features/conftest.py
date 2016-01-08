@@ -371,6 +371,7 @@ def check_open_tabs(quteproc, tabs):
 
     for i, line in enumerate(tabs):
         line = line.strip()
+        assert line.startswith('- ')
         line = line[2:]  # remove "- " prefix
         if line.endswith(active_suffix):
             path = line[:-len(active_suffix)]
