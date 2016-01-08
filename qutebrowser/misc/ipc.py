@@ -296,7 +296,7 @@ class IPCServer(QObject):
             # active for some reason.
             log.ipc.warning("In on_ready_read with None socket!")
             return
-        self._timer.start()
+        self._timer.stop()
         while self._socket is not None and self._socket.canReadLine():
             data = bytes(self._socket.readLine())
             self.got_raw.emit(data)
@@ -342,6 +342,7 @@ class IPCServer(QObject):
 
             cwd = json_data.get('cwd', None)
             self.got_args.emit(json_data['args'], json_data['target_arg'], cwd)
+        self._timer.start()
 
     @pyqtSlot()
     def on_timeout(self):
