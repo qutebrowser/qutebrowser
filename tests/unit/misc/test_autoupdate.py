@@ -20,7 +20,6 @@
 """Tests for qutebrowser.misc.autoupdate"""
 
 import pytest
-from PyQt5.QtTest import QSignalSpy
 from PyQt5.QtCore import QUrl
 
 from qutebrowser.misc import autoupdate, httpclient
@@ -63,13 +62,9 @@ def test_get_version_success(qtbot):
     http_stub = HTTPGetStub(success=True)
     client = autoupdate.PyPIVersionClient(client=http_stub)
 
-    # Use a spy to inspect the signal
-    error_spy = QSignalSpy(client.error)
-
-    with qtbot.waitSignal(client.success):
-        client.get_version('test')
-
-    assert len(error_spy) == 0
+    with qtbot.assertNotEmitted(client.error):
+        with qtbot.waitSignal(client.success):
+            client.get_version('test')
 
     assert http_stub.url == QUrl('https://pypi.python.org/pypi/test/json')
 
@@ -79,13 +74,9 @@ def test_get_version_error(qtbot):
     http_stub = HTTPGetStub(success=False)
     client = autoupdate.PyPIVersionClient(client=http_stub)
 
-    # Use a spy to inspect the signal
-    success_spy = QSignalSpy(client.success)
-
-    with qtbot.waitSignal(client.error):
-        client.get_version('test')
-
-    assert len(success_spy) == 0
+    with qtbot.assertNotEmitted(client.success):
+        with qtbot.waitSignal(client.error):
+            client.get_version('test')
 
 
 @pytest.mark.parametrize('json', INVALID_JSON)
@@ -95,10 +86,6 @@ def test_invalid_json(qtbot, json):
     client = autoupdate.PyPIVersionClient(client=http_stub)
     client.get_version('test')
 
-    # Use a spy to inspect the signal
-    success_spy = QSignalSpy(client.success)
-
-    with qtbot.waitSignal(client.error):
-        client.get_version('test')
-
-    assert len(success_spy) == 0
+    with qtbot.assertNotEmitted(client.success):
+        with qtbot.waitSignal(client.error):
+            client.get_version('test')

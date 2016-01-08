@@ -494,22 +494,19 @@ NEW_VERSION = str(ipc.PROTOCOL_VERSION + 1).encode('utf-8')
     (b'{"args": [], "target_arg": null}\n', 'invalid version'),
 ])
 def test_invalid_data(qtbot, ipc_server, connected_socket, caplog, data, msg):
-    got_args_spy = QSignalSpy(ipc_server.got_args)
-
     signals = [ipc_server.got_invalid_data, connected_socket.disconnected]
     with caplog.at_level(logging.ERROR):
-        with qtbot.waitSignals(signals):
-            connected_socket.write(data)
+        with qtbot.assertNotEmitted(ipc_server.got_args):
+            with qtbot.waitSignals(signals):
+                connected_socket.write(data)
 
     messages = [r.message for r in caplog.records]
     assert messages[-1] == 'Ignoring invalid IPC data.'
     assert messages[-2].startswith(msg)
-    assert not got_args_spy
 
 
 def test_multiline(qtbot, ipc_server, connected_socket):
     spy = QSignalSpy(ipc_server.got_args)
-    error_spy = QSignalSpy(ipc_server.got_invalid_data)
 
     data = ('{{"args": ["one"], "target_arg": "tab",'
             ' "protocol_version": {version}}}\n'
@@ -517,10 +514,10 @@ def test_multiline(qtbot, ipc_server, connected_socket):
             ' "protocol_version": {version}}}\n'.format(
                 version=ipc.PROTOCOL_VERSION))
 
-    with qtbot.waitSignals([ipc_server.got_args, ipc_server.got_args]):
-        connected_socket.write(data.encode('utf-8'))
+    with qtbot.assertNotEmitted(ipc_server.got_invalid_data):
+        with qtbot.waitSignals([ipc_server.got_args, ipc_server.got_args]):
+            connected_socket.write(data.encode('utf-8'))
 
-    assert not error_spy
     assert len(spy) == 2
     assert spy[0] == [['one'], 'tab', '']
     assert spy[1] == [['two'], '', '']
@@ -539,18 +536,19 @@ class TestSendToRunningInstance:
     def test_normal(self, qtbot, tmpdir, ipc_server, mocker, has_cwd):
         ipc_server.listen()
         raw_spy = QSignalSpy(ipc_server.got_raw)
-        error_spy = QSignalSpy(ipc_server.got_invalid_data)
 
-        with qtbot.waitSignal(ipc_server.got_args, timeout=5000) as blocker:
-            with tmpdir.as_cwd():
-                if not has_cwd:
-                    m = mocker.patch('qutebrowser.misc.ipc.os')
-                    m.getcwd.side_effect = OSError
-                sent = ipc.send_to_running_instance('qute-test', ['foo'], None)
+        with qtbot.assertNotEmitted(ipc_server.got_invalid_data):
+            with qtbot.waitSignal(ipc_server.got_args,
+                                  timeout=5000) as blocker:
+                with tmpdir.as_cwd():
+                    if not has_cwd:
+                        m = mocker.patch('qutebrowser.misc.ipc.os')
+                        m.getcwd.side_effect = OSError
+                    sent = ipc.send_to_running_instance('qute-test', ['foo'],
+                                                        None)
 
-        assert sent
+            assert sent
 
-        assert not error_spy
         expected_cwd = str(tmpdir) if has_cwd else ''
 
         assert blocker.args == [['foo'], '', expected_cwd]

@@ -22,7 +22,6 @@
 from unittest import mock
 
 from PyQt5.QtNetwork import QNetworkCookie
-from PyQt5.QtTest import QSignalSpy
 from PyQt5.QtCore import QUrl
 import pytest
 
@@ -90,15 +89,15 @@ def test_set_cookies_accept(config_stub, qtbot, monkeypatch):
     assert saved_cookie.name(), saved_cookie.value() == expected
 
 
-def test_set_cookies_never_accept(config_stub):
+def test_set_cookies_never_accept(qtbot, config_stub):
     """Test setCookiesFromUrl when cookies are not accepted."""
     config_stub.data = CONFIG_NEVER_COOKIES
     ram_jar = cookies.RAMCookieJar()
-    changed_signal_spy = QSignalSpy(ram_jar.changed)
 
     url = QUrl('http://example.com/')
-    assert not ram_jar.setCookiesFromUrl(url, 'test')
-    assert not changed_signal_spy
+
+    with qtbot.assertNotEmitted(ram_jar.changed):
+        assert not ram_jar.setCookiesFromUrl(url, 'test')
     assert not ram_jar.cookiesForUrl(url)
 
 
