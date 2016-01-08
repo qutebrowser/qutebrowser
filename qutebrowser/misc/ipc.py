@@ -282,7 +282,7 @@ class IPCServer(QObject):
 
     def _handle_invalid_data(self):
         """Handle invalid data we got from a QLocalSocket."""
-        log.ipc.error("Ignoring invalid IPC data from socket {:x}.".format(
+        log.ipc.error("Ignoring invalid IPC data from socket 0x{:x}.".format(
             id(self._socket)))
         self.got_invalid_data.emit()
         self._socket.error.connect(self.on_error)
@@ -300,7 +300,7 @@ class IPCServer(QObject):
         while self._socket is not None and self._socket.canReadLine():
             data = bytes(self._socket.readLine())
             self.got_raw.emit(data)
-            log.ipc.debug("Read from socket {:x}: {}".format(
+            log.ipc.debug("Read from socket 0x{:x}: {}".format(
                 id(self._socket), data))
 
             try:
@@ -347,7 +347,7 @@ class IPCServer(QObject):
     def on_timeout(self):
         """Cancel the current connection if it was idle for too long."""
         log.ipc.error("IPC connection timed out "
-                      "(socket {:x}).".format(id(self._socket)))
+                      "(socket 0x{:x}).".format(id(self._socket)))
         self._socket.disconnectFromServer()
         if self._socket is not None:  # pragma: no cover
             # on_socket_disconnected sets it to None
@@ -375,7 +375,7 @@ class IPCServer(QObject):
 
     def shutdown(self):
         """Shut down the IPC server cleanly."""
-        log.ipc.debug("Shutting down IPC (socket {:x})".format(
+        log.ipc.debug("Shutting down IPC (socket 0x{:x})".format(
             id(self._socket)))
         if self._socket is not None:
             self._socket.deleteLater()
