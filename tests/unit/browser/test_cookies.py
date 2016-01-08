@@ -155,17 +155,6 @@ def test_cookies_changed_emit(config_stub, fake_save_manager,
         config_stub.set('content', 'cookies-store', False)
 
 
-def test_cookies_changed_not_emitted(config_stub, fake_save_manager,
-                                     monkeypatch, qapp):
-    """Test that changed is not emitted when nothing changes."""
-    config_stub.data = CONFIG_COOKIES_ENABLED
-    monkeypatch.setattr(lineparser,
-                        'LineParser', LineparserSaveStub)
-    jar = cookies.CookieJar()
-    changed_spy = QSignalSpy(jar.changed)
-    assert not changed_spy
-
-
 @pytest.mark.parametrize('store_cookies,empty', [
     (True, False),
     (False, True)
