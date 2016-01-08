@@ -26,8 +26,13 @@ from helpers import utils
 bdd.scenarios('urlmarks.feature')
 
 
-@bdd.then(bdd.parsers.parse('the bookmark file should contain "{expected}"'))
-def bookmark_file_contains(quteproc, expected):
+def _check_bookmarks(quteproc, expected, contains):
+    """Make sure the given line does (not) exist in the bookmarks.
+
+    Args:
+        expected: The line to search for.
+        contains: True if the line should be there, False otherwise.
+    """
     bookmark_file = os.path.join(quteproc.basedir, 'config', 'bookmarks',
                                  'urls')
 
@@ -42,4 +47,14 @@ def bookmark_file_contains(quteproc, expected):
         utils.pattern_match(pattern=expected, value=line.rstrip('\n'))
         for line in lines)
 
-    assert matched_line, lines
+    assert matched_line == contains, lines
+
+
+@bdd.then(bdd.parsers.parse('the bookmark file should contain "{line}"'))
+def bookmark_file_contains(quteproc, line):
+    _check_bookmarks(quteproc, line, True)
+
+
+@bdd.then(bdd.parsers.parse('the bookmark file should not contain "{line}"'))
+def bookmark_file_does_not_contain(quteproc, line):
+    _check_bookmarks(quteproc, line, False)
