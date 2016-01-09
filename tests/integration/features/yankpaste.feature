@@ -104,3 +104,62 @@ Feature: Yanking and pasting.
         And I put "foo bar" into the clipboard
         And I run :paste
         Then the error "Invalid URL" should be shown
+
+    Scenario: Pasting multiple urls in a new tab
+        Given I have a fresh instance
+        When I run :tab-only
+        And I put "http://localhost:(port)/data/hello.txt\nhttp://localhost:(port)/data/hello2.txt\nhttp://localhost:(port)/data/hello3.txt" into the clipboard
+        And I run :paste -t
+        And I wait until data/hello.txt is loaded
+        And I wait until data/hello2.txt is loaded
+        And I wait until data/hello3.txt is loaded
+        Then the following tabs should be open:
+            - about:blank
+            - data/hello.txt (active)
+            - data/hello2.txt
+            - data/hello3.txt
+
+    Scenario: Pasting multiple urls in a background tab
+        Given I open about:blank
+        When I run :tab-only
+        And I put "http://localhost:(port)/data/hello.txt\nhttp://localhost:(port)/data/hello2.txt\nhttp://localhost:(port)/data/hello3.txt" into the clipboard
+        And I run :paste -b
+        And I wait until data/hello.txt is loaded
+        And I wait until data/hello2.txt is loaded
+        And I wait until data/hello3.txt is loaded
+        Then the following tabs should be open:
+            - about:blank (active)
+            - data/hello.txt
+            - data/hello2.txt
+            - data/hello3.txt
+
+    Scenario: Pasting multiple urls in new windows
+        Given I have a fresh instance
+        When I put "http://localhost:(port)/data/hello.txt\nhttp://localhost:(port)/data/hello2.txt\nhttp://localhost:(port)/data/hello3.txt" into the clipboard
+        And I run :paste -w
+        And I wait until data/hello.txt is loaded
+        And I wait until data/hello2.txt is loaded
+        And I wait until data/hello3.txt is loaded
+        Then the session should look like:
+            windows:
+            - tabs:
+              - active: true
+                history:
+                - active: true
+                  url: about:blank
+            - tabs:
+              - active: true
+                history:
+                - active: true
+                  url: http://localhost:*/data/hello.txt
+            - tabs:
+              - active: true
+                history:
+                - active: true
+                  url: http://localhost:*/data/hello2.txt
+            - tabs:
+              - active: true
+                history:
+                - active: true
+                  url: http://localhost:*/data/hello3.txt
+
