@@ -39,7 +39,8 @@ from helpers.messagemock import message_mock
 from qutebrowser.config import config
 from qutebrowser.utils import objreg
 
-from PyQt5.QtCore import QEvent
+from PyQt5.QtCore import QEvent, QSize, Qt
+from PyQt5.QtWidgets import QWidget, QHBoxLayout, QVBoxLayout
 from PyQt5.QtNetwork import QNetworkCookieJar
 import xvfbwrapper
 
@@ -162,6 +163,41 @@ class WinRegistryHelper:
     def cleanup(self):
         for win_id in self._ids:
             del objreg.window_registry[win_id]
+
+
+class FakeStatusBar(QWidget):
+
+    """Fake statusbar to test progressbar sizing."""
+
+    def __init__(self, parent=None):
+        super().__init__(parent)
+        self.hbox = QHBoxLayout(self)
+        self.hbox.addStretch()
+        self.hbox.setContentsMargins(0, 0, 0, 0)
+        self.setAttribute(Qt.WA_StyledBackground, True)
+        self.setStyleSheet('background-color: red;')
+
+    def minimumSizeHint(self):
+        return QSize(1, self.fontMetrics().height())
+
+
+@pytest.fixture
+def fake_statusbar(qtbot):
+    """Fixture providing a statusbar in a container window."""
+    container = QWidget()
+    qtbot.add_widget(container)
+    vbox = QVBoxLayout(container)
+    vbox.addStretch()
+
+    statusbar = FakeStatusBar(container)
+    # to make sure container isn't GCed
+    # pylint: disable=attribute-defined-outside-init
+    statusbar.container = container
+    vbox.addWidget(statusbar)
+
+    container.show()
+    qtbot.waitForWindowShown(container)
+    return statusbar
 
 
 @pytest.yield_fixture

@@ -100,6 +100,8 @@ PERFECT_FILES = [
         'qutebrowser/mainwindow/statusbar/tabindex.py'),
     ('tests/unit/mainwindow/statusbar/test_textbase.py',
         'qutebrowser/mainwindow/statusbar/textbase.py'),
+    ('tests/unit/mainwindow/statusbar/test_prompt.py',
+        'qutebrowser/mainwindow/statusbar/prompt.py'),
 
     ('tests/unit/config/test_configtypes.py',
         'qutebrowser/config/configtypes.py'),
@@ -134,9 +136,7 @@ PERFECT_FILES = [
 
 
 # 100% coverage because of integration tests, but no perfect unit tests yet.
-WHITELISTED_FILES = [
-    'qutebrowser/mainwindow/statusbar/prompt.py'
-]
+WHITELISTED_FILES = []
 
 
 class Skipped(Exception):
