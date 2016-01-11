@@ -19,6 +19,8 @@
 
 """Test Prompt widget."""
 
+import sip
+
 import pytest
 
 from qutebrowser.mainwindow.statusbar.prompt import Prompt
@@ -35,8 +37,7 @@ def prompt(qtbot, win_registry):
     # If we don't clean up here, this test will remove 'prompter' from the
     # objreg at some point in the future, which will cause some other test to
     # fail.
-    with qtbot.waitSignal(prompt.destroyed):
-        prompt.deleteLater()
+    sip.delete(prompt)
 
 
 def test_prompt(prompt):
