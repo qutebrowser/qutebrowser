@@ -108,7 +108,10 @@ Feature: Yanking and pasting.
     Scenario: Pasting multiple urls in a new tab
         Given I have a fresh instance
         When I run :tab-only
-        And I put "http://localhost:(port)/data/hello.txt\nhttp://localhost:(port)/data/hello2.txt\nhttp://localhost:(port)/data/hello3.txt" into the clipboard
+        And I put the following lines into the clipboard:
+           http://localhost:(port)/data/hello.txt
+           http://localhost:(port)/data/hello2.txt
+           http://localhost:(port)/data/hello3.txt
         And I run :paste -t
         And I wait until data/hello.txt is loaded
         And I wait until data/hello2.txt is loaded
@@ -122,7 +125,10 @@ Feature: Yanking and pasting.
     Scenario: Pasting multiple urls in a background tab
         Given I open about:blank
         When I run :tab-only
-        And I put "http://localhost:(port)/data/hello.txt\nhttp://localhost:(port)/data/hello2.txt\nhttp://localhost:(port)/data/hello3.txt" into the clipboard
+        And I put the following lines into the clipboard:
+           http://localhost:(port)/data/hello.txt
+           http://localhost:(port)/data/hello2.txt
+           http://localhost:(port)/data/hello3.txt
         And I run :paste -b
         And I wait until data/hello.txt is loaded
         And I wait until data/hello2.txt is loaded
@@ -135,7 +141,10 @@ Feature: Yanking and pasting.
 
     Scenario: Pasting multiple urls in new windows
         Given I have a fresh instance
-        When I put "http://localhost:(port)/data/hello.txt\nhttp://localhost:(port)/data/hello2.txt\nhttp://localhost:(port)/data/hello3.txt" into the clipboard
+        When I put the following lines into the clipboard:
+           http://localhost:(port)/data/hello.txt
+           http://localhost:(port)/data/hello2.txt
+           http://localhost:(port)/data/hello3.txt
         And I run :paste -w
         And I wait until data/hello.txt is loaded
         And I wait until data/hello2.txt is loaded

@@ -199,11 +199,18 @@ def selection_supported(qapp):
 def fill_clipboard(qtbot, qapp, httpbin, what, content):
     mode = _clipboard_mode(qapp, what)
     content = content.replace('(port)', str(httpbin.port))
-    content = content.replace('\\n', '\n')
 
     clipboard = qapp.clipboard()
     with qtbot.waitSignal(clipboard.changed):
         clipboard.setText(content, mode)
+
+
+@bdd.when(bdd.parsers.re(r'I put the following lines into the '
+                         r'(?P<what>primary selection|clipboard):\n'
+                         r'(?P<content>.+)$', flags=re.DOTALL))
+def fill_clipboard_multiline(qtbot, qapp, httpbin, what, content):
+    content = '\n'.join(l.strip() for l in content.strip().split('\n'))
+    fill_clipboard(qtbot, qapp, httpbin, what, content)
 
 
 ## Then
