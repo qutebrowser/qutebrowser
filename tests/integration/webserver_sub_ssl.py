@@ -7,6 +7,12 @@ import os.path
 import flask
 
 
+"""Minimal flask webserver serving a Hello World via SSL.
+
+This script gets called as a QProcess from integration/conftest.py.
+"""
+
+
 app = flask.Flask(__name__)
 
 
