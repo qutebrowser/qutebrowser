@@ -18,7 +18,7 @@
 # along with qutebrowser.  If not, see <http://www.gnu.org/licenses/>.
 
 import pytest_bdd as bdd
-bdd.scenarios('prompt.feature')
+bdd.scenarios('prompts.feature')
 
 
 @bdd.when("I click the button")
