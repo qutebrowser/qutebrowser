@@ -335,6 +335,15 @@ class TestString:
     def test_complete(self, klass, value):
         assert klass(completions=value).complete() == value
 
+    @pytest.mark.parametrize('valid_values, expected', [
+        (configtypes.ValidValues('one', 'two'),
+            [('one', ''), ('two', '')]),
+        (configtypes.ValidValues(('1', 'one'), ('2', 'two')),
+            [('1', 'one'), ('2', 'two')]),
+    ])
+    def test_complete_valid_values(self, klass, valid_values, expected):
+        assert klass(valid_values=valid_values).complete() == expected
+
 
 class TestList:
 

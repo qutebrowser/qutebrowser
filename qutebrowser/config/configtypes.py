@@ -270,7 +270,10 @@ class String(BaseType):
                                             "long!".format(self.maxlen))
 
     def complete(self):
-        return self._completions
+        if self._completions is not None:
+            return self._completions
+        else:
+            return super().complete()
 
 
 class List(BaseType):
