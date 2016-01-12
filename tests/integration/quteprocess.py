@@ -209,7 +209,7 @@ class QuteProc(testprocess.Process):
                  'about:blank']
         return executable, args
 
-    def path_to_url(self, path):
+    def path_to_url(self, path, *, port=None, https=False):
         """Get a URL based on a filename for the localhost webserver.
 
         URLs like about:... and qute:... are handled specially and returned
@@ -218,8 +218,9 @@ class QuteProc(testprocess.Process):
         if path.startswith('about:') or path.startswith('qute:'):
             return path
         else:
-            return 'http://localhost:{}/{}'.format(
-                self._httpbin.port,
+            return '{}://localhost:{}/{}'.format(
+                'https' if https else 'http',
+                self._httpbin.port if port is None else port,
                 path if path != '/' else '')
 
     def after_test(self):
@@ -266,12 +267,13 @@ class QuteProc(testprocess.Process):
         yield
         self.set_setting(sect, opt, old_value)
 
-    def open_path(self, path, new_tab=False, new_window=False):
+    def open_path(self, path, *, new_tab=False, new_window=False, port=None,
+                  https=False):
         """Open the given path on the local webserver in qutebrowser."""
         if new_tab and new_window:
             raise ValueError("new_tab and new_window given!")
 
-        url = self.path_to_url(path)
+        url = self.path_to_url(path, port=port, https=https)
         if new_tab:
             self.send_cmd(':open -t ' + url)
         elif new_window:
@@ -285,9 +287,10 @@ class QuteProc(testprocess.Process):
                              message=message)
         line.expected = True
 
-    def wait_for_load_finished(self, path, timeout=15000):
+    def wait_for_load_finished(self, path, *, port=None, https=False,
+                               timeout=15000):
         """Wait until any tab has finished loading."""
-        url = self.path_to_url(path)
+        url = self.path_to_url(path, port=port, https=https)
         # We really need the same representation that the webview uses in its
         # __repr__
         url = utils.elide(QUrl(url).toDisplayString(QUrl.EncodeUnicode), 100)

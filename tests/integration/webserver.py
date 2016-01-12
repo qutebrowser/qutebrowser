@@ -19,6 +19,7 @@
 
 """Fixtures for the httpbin webserver."""
 
+import re
 import sys
 import json
 import socket
@@ -94,7 +95,7 @@ class ExpectedRequest:
                 .format(self.verb, self.path))
 
 
-class HTTPBin(testprocess.Process):
+class WebserverProcess(testprocess.Process):
 
     """Abstraction over a running HTTPbin server process.
 
@@ -110,8 +111,9 @@ class HTTPBin(testprocess.Process):
 
     KEYS = ['verb', 'path']
 
-    def __init__(self, parent=None):
+    def __init__(self, script, parent=None):
         super().__init__(parent)
+        self._script = script
         self.port = self._get_port()
         self.new_data.connect(self.new_request)
 
@@ -130,8 +132,9 @@ class HTTPBin(testprocess.Process):
 
     def _parse_line(self, line):
         self._log(line)
-        if line == (' * Running on http://127.0.0.1:{}/ (Press CTRL+C to '
-                    'quit)'.format(self.port)):
+        started_re = re.compile(r' \* Running on https?://127\.0\.0\.1:{}/ '
+                                r'\(Press CTRL\+C to quit\)'.format(self.port))
+        if started_re.fullmatch(line):
             self.ready.emit()
             return None
         return Request(line)
@@ -139,12 +142,12 @@ class HTTPBin(testprocess.Process):
     def _executable_args(self):
         if hasattr(sys, 'frozen'):
             executable = os.path.join(os.path.dirname(sys.executable),
-                                      'webserver_sub')
+                                      self._script)
             args = [str(self.port)]
         else:
             executable = sys.executable
             py_file = os.path.join(os.path.dirname(__file__),
-                                   'webserver_sub.py')
+                                   self._script + '.py')
             args = [py_file, str(self.port)]
         return executable, args
 
@@ -157,7 +160,7 @@ class HTTPBin(testprocess.Process):
 @pytest.yield_fixture(scope='session', autouse=True)
 def httpbin(qapp):
     """Fixture for a httpbin object which ensures clean setup/teardown."""
-    httpbin = HTTPBin()
+    httpbin = WebserverProcess('webserver_sub')
     httpbin.start()
     yield httpbin
     httpbin.cleanup()
@@ -169,3 +172,18 @@ def httpbin_after_test(httpbin, request):
     request.node._httpbin_log = httpbin.captured_log
     yield
     httpbin.after_test()
+
+
+@pytest.yield_fixture
+def ssl_server(request, qapp):
+    """Fixture for a webserver with a self-signed SSL certificate.
+
+    This needs to be explicitly used in a test, and overwrites the httpbin log
+    used in that test.
+    """
+    server = WebserverProcess('webserver_sub_ssl')
+    request.node._httpbin_log = server.captured_log
+    server.start()
+    yield server
+    server.after_test()
+    server.cleanup()

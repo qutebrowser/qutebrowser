@@ -87,7 +87,10 @@ def test_mhtml(test_name, download_dir, quteproc, httpbin):
                             'data', 'downloads', 'mhtml', test_name)
     test_path = 'data/downloads/mhtml/{}'.format(test_name)
 
-    quteproc.open_path('{}/{}.html'.format(test_path, test_name))
+    url_path = '{}/{}.html'.format(test_path, test_name)
+    quteproc.open_path(url_path)
+    quteproc.wait_for_load_finished(url_path)
+
     download_dest = os.path.join(download_dir.location,
                                  '{}-downloaded.mht'.format(test_name))
 
