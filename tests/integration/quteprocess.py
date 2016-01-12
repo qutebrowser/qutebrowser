@@ -19,6 +19,7 @@
 
 """Fixtures to run qutebrowser in a QProcess and communicate."""
 
+import os
 import re
 import sys
 import time
@@ -288,8 +289,14 @@ class QuteProc(testprocess.Process):
         line.expected = True
 
     def wait_for_load_finished(self, path, *, port=None, https=False,
-                               timeout=15000):
+                               timeout=None):
         """Wait until any tab has finished loading."""
+        if timeout is None:
+            if 'CI' in os.environ:
+                timeout = 15000
+            else:
+                timeout = 5000
+
         url = self.path_to_url(path, port=port, https=https)
         # We really need the same representation that the webview uses in its
         # __repr__
