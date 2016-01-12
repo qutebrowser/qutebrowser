@@ -69,5 +69,5 @@ Feature: Prompts
         When I set network -> ssl-strict to false
         And I load a SSL page
         And I wait until the SSL page finished loading
-        Then the error "SSL error: The certificate is self-signed, and untrusted" should be shown
+        Then the error "SSL error: *" should be shown
         And the page should contain the plaintext "Hello World via SSL!"
