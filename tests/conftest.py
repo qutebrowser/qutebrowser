@@ -39,7 +39,7 @@ from helpers.messagemock import message_mock
 from qutebrowser.config import config
 from qutebrowser.utils import objreg
 
-from PyQt5.QtCore import QEvent, QSize, Qt
+from PyQt5.QtCore import QEvent, QSize, Qt, PYQT_VERSION
 from PyQt5.QtWidgets import QWidget, QHBoxLayout, QVBoxLayout
 from PyQt5.QtNetwork import QNetworkCookieJar
 import xvfbwrapper
@@ -66,6 +66,8 @@ def _apply_platform_markers(item):
         ('not_xvfb', item.config.xvfb_display is not None,
             "Can't be run with Xvfb."),
         ('skip', True, "Always skipped."),
+        ('pyqt531_or_newer', PYQT_VERSION < 0x050301,
+            "Needs PyQt 5.3.1 or newer"),
     ]
 
     for searched_marker, condition, default_reason in markers:
