@@ -25,6 +25,7 @@ import json
 import os.path
 import logging
 import collections
+import textwrap
 
 import pytest
 import yaml
@@ -209,8 +210,7 @@ def fill_clipboard(qtbot, qapp, httpbin, what, content):
                          r'(?P<what>primary selection|clipboard):\n'
                          r'(?P<content>.+)$', flags=re.DOTALL))
 def fill_clipboard_multiline(qtbot, qapp, httpbin, what, content):
-    content = '\n'.join(l.strip() for l in content.strip().split('\n'))
-    fill_clipboard(qtbot, qapp, httpbin, what, content)
+    fill_clipboard(qtbot, qapp, httpbin, what, textwrap.dedent(content))
 
 
 ## Then
