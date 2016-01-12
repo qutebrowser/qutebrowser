@@ -278,7 +278,6 @@ class QuteProc(testprocess.Process):
             self.send_cmd(':open -w ' + url)
         else:
             self.send_cmd(':open ' + url)
-        self.wait_for_load_finished(path)
 
     def mark_expected(self, category=None, loglevel=None, message=None):
         """Mark a given logging message as expected."""
