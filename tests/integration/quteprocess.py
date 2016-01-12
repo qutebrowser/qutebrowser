@@ -289,7 +289,7 @@ class QuteProc(testprocess.Process):
         line.expected = True
 
     def wait_for_load_finished(self, path, *, port=None, https=False,
-                               timeout=None):
+                               timeout=None, load_status='success'):
         """Wait until any tab has finished loading."""
         if timeout is None:
             if 'CI' in os.environ:
@@ -303,9 +303,9 @@ class QuteProc(testprocess.Process):
         url = utils.elide(QUrl(url).toDisplayString(QUrl.EncodeUnicode), 100)
         pattern = re.compile(
             r"(load status for <qutebrowser\.browser\.webview\.WebView "
-            r"tab_id=\d+ url='{url}'>: LoadStatus\.success|fetch: "
+            r"tab_id=\d+ url='{url}'>: LoadStatus\.{load_status}|fetch: "
             r"PyQt5\.QtCore\.QUrl\('{url}'\) -> .*)".format(
-                url=re.escape(url)))
+                load_status=re.escape(load_status), url=re.escape(url)))
         self.wait_for(message=pattern, timeout=timeout)
 
     def get_session(self):

@@ -62,3 +62,12 @@ Feature: Prompts
         And I run :hint
         And I run :follow-hint a
         Then the javascript message "Prompt reply: null" should be logged
+
+    # SSL
+
+    Scenario: SSL error with ssl-strict = false
+        When I set network -> ssl-strict to false
+        And I load a SSL page
+        And I wait until the SSL page finished loading
+        Then the error "SSL error: The certificate is self-signed, and untrusted" should be shown
+        And the page should contain the plaintext "Hello World via SSL!"
