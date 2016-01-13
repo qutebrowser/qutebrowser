@@ -29,7 +29,7 @@ from PyQt5.QtNetwork import (QNetworkAccessManager, QNetworkReply, QSslError,
 
 from qutebrowser.config import config
 from qutebrowser.utils import (message, log, usertypes, utils, objreg, qtutils,
-                               urlutils)
+                               urlutils, debug)
 from qutebrowser.browser import cookies
 from qutebrowser.browser.network import qutescheme, networkreply
 from qutebrowser.browser.network import filescheme
@@ -61,6 +61,11 @@ class SslError(QSslError):
             return super().__hash__()
         except TypeError:
             return hash((self.certificate().toDer(), self.error()))
+
+    def __repr__(self):
+        return utils.get_repr(
+            self, error=debug.qenum_key(QSslError, self.error()),
+            string=self.errorString())
 
 
 class NetworkManager(QNetworkAccessManager):
@@ -189,6 +194,8 @@ class NetworkManager(QNetworkAccessManager):
         """
         errors = [SslError(e) for e in errors]
         ssl_strict = config.get('network', 'ssl-strict')
+        log.webview.debug("SSL errors {!r}, strict {}".format(
+            errors, ssl_strict))
         if ssl_strict == 'ask':
             try:
                 host_tpl = urlutils.host_tuple(reply.url())
