@@ -1764,3 +1764,10 @@ class CommandDispatcher:
 
             QApplication.postEvent(receiver, press_event)
             QApplication.postEvent(receiver, release_event)
+
+    @cmdutils.register(instance='command-dispatcher', scope='window',
+                       debug=True)
+    def debug_clear_ssl_errors(self):
+        """Clear remembered SSL error answers."""
+        nam = self._current_widget().page().networkAccessManager()
+        nam.clear_all_ssl_errors()

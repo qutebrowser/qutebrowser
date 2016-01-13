@@ -235,6 +235,11 @@ class NetworkManager(QNetworkAccessManager):
             reply.ignoreSslErrors()
             self._accepted_ssl_errors[host_tpl] += errors
 
+    def clear_all_ssl_errors(self):
+        """Clear all remembered SSL errors."""
+        self._accepted_ssl_errors.clear()
+        self._rejected_ssl_errors.clear()
+
     @pyqtSlot(QUrl)
     def clear_rejected_ssl_errors(self, url):
         """Clear the rejected SSL errors on a reload.

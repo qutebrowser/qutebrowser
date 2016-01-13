@@ -1226,6 +1226,7 @@ These commands are mainly intended for debugging. They are hidden if qutebrowser
 |Command|Description
 |<<debug-all-objects,debug-all-objects>>|Print a list of  all objects to the debug log.
 |<<debug-cache-stats,debug-cache-stats>>|Print LRU cache stats.
+|<<debug-clear-ssl-errors,debug-clear-ssl-errors>>|Clear remembered SSL error answers.
 |<<debug-console,debug-console>>|Show the debugging console.
 |<<debug-crash,debug-crash>>|Crash for debugging purposes.
 |<<debug-dump-page,debug-dump-page>>|Dump the current page's content to a file.
@@ -1240,6 +1241,10 @@ Print a list of  all objects to the debug log.
 [[debug-cache-stats]]
 === debug-cache-stats
 Print LRU cache stats.
+
+[[debug-clear-ssl-errors]]
+=== debug-clear-ssl-errors
+Clear remembered SSL error answers.
 
 [[debug-console]]
 === debug-console
