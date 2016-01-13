@@ -440,6 +440,6 @@ def clipboard_contains(qtbot, qapp, httpbin, what, content):
 
 @bdd.then(bdd.parsers.parse('the clipboard should contain:\n{content}'))
 def clipboard_contains_multiline(qtbot, qapp, content):
-    expected = '\n'.join(line.strip() for line in content.splitlines())
+    expected = textwrap.dedent(content)
     _wait_for_clipboard(qtbot, qapp.clipboard(), QClipboard.Clipboard,
                         expected)
