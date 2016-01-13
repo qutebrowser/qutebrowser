@@ -25,6 +25,7 @@ import json
 import os.path
 import logging
 import collections
+import textwrap
 
 import pytest
 import yaml
@@ -205,6 +206,13 @@ def fill_clipboard(qtbot, qapp, httpbin, what, content):
     clipboard = qapp.clipboard()
     with qtbot.waitSignal(clipboard.changed):
         clipboard.setText(content, mode)
+
+
+@bdd.when(bdd.parsers.re(r'I put the following lines into the '
+                         r'(?P<what>primary selection|clipboard):\n'
+                         r'(?P<content>.+)$', flags=re.DOTALL))
+def fill_clipboard_multiline(qtbot, qapp, httpbin, what, content):
+    fill_clipboard(qtbot, qapp, httpbin, what, textwrap.dedent(content))
 
 
 ## Then
