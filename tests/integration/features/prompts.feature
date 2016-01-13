@@ -66,7 +66,8 @@ Feature: Prompts
     # SSL
 
     Scenario: SSL error with ssl-strict = false
-        When I set network -> ssl-strict to false
+        When I run :debug-clear-ssl-errors
+        And I set network -> ssl-strict to false
         And I load a SSL page
         And I wait until the SSL page finished loading
         Then the error "SSL error: *" should be shown
