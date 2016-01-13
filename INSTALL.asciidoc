@@ -154,7 +154,19 @@ On Windows
 
 You can either use one of the
 https://github.com/The-Compiler/qutebrowser/releases[prebuilt standalone
-packages or MSI installers], or install manually:
+packages or MSI installers], or a package manager for the https://chocolatey.org/packages/qutebrowser[Chocolatey repo], or install manually.
+
+To use the PackageManagement PowerShell module
+----
+PS C:\> Install-Package qutebrowser
+----
+To use Chocolatey's client
+----
+C:\> choco install qutebrowser
+----
+
+
+To install manually:
 
 * Use the installer from http://www.python.org/downloads[python.org] to get
 Python 3 (be sure to install pip).
