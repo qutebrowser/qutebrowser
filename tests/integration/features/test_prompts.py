@@ -28,7 +28,7 @@ def load_ssl_page(quteproc, ssl_server):
 
 
 @bdd.when("I wait until the SSL page finished loading")
-def load_ssl_page(quteproc, ssl_server):
+def wait_ssl_page_finished_loading(quteproc, ssl_server):
     quteproc.wait_for_load_finished('/', port=ssl_server.port, https=True,
                                     load_status='warn')
 

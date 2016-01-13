@@ -24,11 +24,12 @@ This script gets called as a QProcess from integration/conftest.py.
 
 import ssl
 import sys
-import json
 import logging
 import os.path
 
 import flask
+
+import webserver_sub
 
 
 app = flask.Flask(__name__)
@@ -41,15 +42,7 @@ def hello_world():
 
 @app.after_request
 def log_request(response):
-    """Log a webserver request."""
-    request = flask.request
-    data = {
-        'verb': request.method,
-        'path': request.full_path if request.query_string else request.path,
-        'status': response.status_code,
-    }
-    print(json.dumps(data), file=sys.stderr, flush=True)
-    return response
+    return webserver_sub.log_request(response)
 
 
 @app.before_first_request
@@ -61,7 +54,8 @@ def turn_off_logging():
 def main():
     ssl_dir = os.path.join(os.path.abspath(os.path.dirname(__file__)),
                            'data', 'ssl')
-    context = ssl.SSLContext(ssl.PROTOCOL_TLSv1_2)
+    # WORKAROUND for https://github.com/PyCQA/pylint/issues/399
+    context = ssl.SSLContext(ssl.PROTOCOL_TLSv1_2)  # pylint: disable=no-member
     context.load_cert_chain(os.path.join(ssl_dir, 'cert.pem'),
                             os.path.join(ssl_dir, 'key.pem'))
     app.run(port=int(sys.argv[1]), debug=False, ssl_context=context)
