@@ -168,6 +168,7 @@ def fuzzy_url(urlstr, cwd=None, relative=False, do_search=True):
     Return:
         A target QUrl to a search page or the original URL.
     """
+    urlstr = urlstr.strip()
     expanded = os.path.expanduser(urlstr)
     if os.path.isabs(expanded):
         path = expanded
@@ -181,11 +182,10 @@ def fuzzy_url(urlstr, cwd=None, relative=False, do_search=True):
     else:
         path = None
 
-    stripped = urlstr.strip()
     if path is not None and os.path.exists(path):
         log.url.debug("URL is a local file")
         url = QUrl.fromLocalFile(path)
-    elif (not do_search) or is_url(stripped):
+    elif (not do_search) or is_url(urlstr):
         # probably an address
         log.url.debug("URL is a fuzzy address")
         url = qurl_from_user_input(urlstr)
@@ -194,7 +194,7 @@ def fuzzy_url(urlstr, cwd=None, relative=False, do_search=True):
         try:
             url = _get_search_url(urlstr)
         except ValueError:  # invalid search engine
-            url = qurl_from_user_input(stripped)
+            url = qurl_from_user_input(urlstr)
     log.url.debug("Converting fuzzy term {} to URL -> {}".format(
                   urlstr, url.toDisplayString()))
     if do_search and config.get('general', 'auto-search'):

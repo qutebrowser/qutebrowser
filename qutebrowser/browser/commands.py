@@ -809,6 +809,9 @@ class CommandDispatcher:
     def paste(self, sel=False, tab=False, bg=False, window=False):
         """Open a page from the clipboard.
 
+        If the pasted text contains newlines, each line gets opened in its own
+        tab.
+
         Args:
             sel: Use the primary selection instead of the clipboard.
             tab: Open in a new tab.
@@ -825,12 +828,18 @@ class CommandDispatcher:
         text = clipboard.text(mode)
         if not text:
             raise cmdexc.CommandError("{} is empty.".format(target))
-        log.misc.debug("{} contained: '{}'".format(target, text))
-        try:
-            url = urlutils.fuzzy_url(text)
-        except urlutils.InvalidUrlError as e:
-            raise cmdexc.CommandError(e)
-        self._open(url, tab, bg, window)
+        log.misc.debug("{} contained: '{}'".format(target,
+                                                   text.replace('\n', '\\n')))
+        text_urls = enumerate(u for u in text.split('\n') if u)
+        for i, text_url in text_urls:
+            if not window and i > 0:
+                tab = False
+                bg = True
+            try:
+                url = urlutils.fuzzy_url(text_url)
+            except urlutils.InvalidUrlError as e:
+                raise cmdexc.CommandError(e)
+            self._open(url, tab, bg, window)
 
     @cmdutils.register(instance='command-dispatcher', scope='window',
                        count='count')

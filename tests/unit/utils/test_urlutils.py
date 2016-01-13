@@ -166,13 +166,17 @@ class TestFuzzyUrl:
         assert not os_mock.path.exists.called
         assert url == QUrl('http://foo')
 
-    def test_file_absolute(self, os_mock):
+    @pytest.mark.parametrize('path, expected', [
+        ('/foo', QUrl('file:///foo')),
+        ('/bar\n', QUrl('file:///bar')),
+    ])
+    def test_file_absolute(self, path, expected, os_mock):
         """Test with an absolute path."""
         os_mock.path.exists.return_value = True
         os_mock.path.isabs.return_value = True
 
-        url = urlutils.fuzzy_url('/foo')
-        assert url == QUrl('file:///foo')
+        url = urlutils.fuzzy_url(path)
+        assert url == expected
 
     @pytest.mark.posix
     def test_file_absolute_expanded(self, os_mock):
