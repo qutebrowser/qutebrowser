@@ -196,44 +196,44 @@ class NetworkManager(QNetworkAccessManager):
         ssl_strict = config.get('network', 'ssl-strict')
         log.webview.debug("SSL errors {!r}, strict {}".format(
             errors, ssl_strict))
+
+        try:
+            host_tpl = urlutils.host_tuple(reply.url())
+        except ValueError:
+            host_tpl = None
+            is_accepted = False
+            is_rejected = False
+        else:
+            is_accepted = set(errors).issubset(
+                self._accepted_ssl_errors[host_tpl])
+            is_rejected = set(errors).issubset(
+                self._rejected_ssl_errors[host_tpl])
+
+        if ssl_strict or is_rejected:
+            return
+        elif is_accepted:
+            reply.ignoreSslErrors()
+            return
+
         if ssl_strict == 'ask':
-            try:
-                host_tpl = urlutils.host_tuple(reply.url())
-            except ValueError:
-                host_tpl = None
-                is_accepted = False
-                is_rejected = False
-            else:
-                is_accepted = set(errors).issubset(
-                    self._accepted_ssl_errors[host_tpl])
-                is_rejected = set(errors).issubset(
-                    self._rejected_ssl_errors[host_tpl])
-            if is_accepted:
+            err_string = '\n'.join('- ' + err.errorString() for err in errors)
+            answer = self._ask('SSL errors - continue?\n{}'.format(err_string),
+                               mode=usertypes.PromptMode.yesno, owner=reply)
+            if answer:
                 reply.ignoreSslErrors()
-            elif is_rejected:
-                pass
+                err_dict = self._accepted_ssl_errors
             else:
-                err_string = '\n'.join('- ' + err.errorString() for err in
-                                       errors)
-                answer = self._ask('SSL errors - continue?\n{}'.format(
-                    err_string), mode=usertypes.PromptMode.yesno,
-                    owner=reply)
-                if answer:
-                    reply.ignoreSslErrors()
-                    d = self._accepted_ssl_errors
-                else:
-                    d = self._rejected_ssl_errors
-                if host_tpl is not None:
-                    d[host_tpl] += errors
-        elif ssl_strict:
-            pass
+                err_dict = self._rejected_ssl_errors
+            if host_tpl is not None:
+                err_dict[host_tpl] += errors
         else:
             for err in errors:
                 # FIXME we might want to use warn here (non-fatal error)
                 # https://github.com/The-Compiler/qutebrowser/issues/114
-                message.error(self._win_id,
-                              'SSL error: {}'.format(err.errorString()))
+                message.error(self._win_id, 'SSL error: {}'.format(
+                    err.errorString()))
             reply.ignoreSslErrors()
+            self._accepted_ssl_errors[host_tpl] += errors
 
     @pyqtSlot(QUrl)
     def clear_rejected_ssl_errors(self, url):
