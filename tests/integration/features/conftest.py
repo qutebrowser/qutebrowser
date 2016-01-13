@@ -168,7 +168,8 @@ def wait_in_log(quteproc, is_regex, pattern, do_skip):
     if is_regex:
         pattern = re.compile(pattern)
 
-    quteproc.wait_for(message=pattern, do_skip=bool(do_skip))
+    line = quteproc.wait_for(message=pattern, do_skip=bool(do_skip))
+    line.expected = True
 
 
 @bdd.when(bdd.parsers.re(r'I wait for the (?P<category>error|message|warning) '
@@ -282,7 +283,8 @@ def should_be_logged(quteproc, is_regex, pattern):
     """Expect the given pattern on regex in the log."""
     if is_regex:
         pattern = re.compile(pattern)
-    quteproc.wait_for(message=pattern)
+    line = quteproc.wait_for(message=pattern)
+    line.expected = True
 
 
 @bdd.then(bdd.parsers.parse('"{pattern}" should not be logged'))
