@@ -160,6 +160,7 @@ Contributors, sorted by the number of commits in descending order:
 * ZDarian
 * John ShaggyTwoDope Jenkins
 * Peter Vilim
+* Tarcisio Fedrizzi
 * Jonas Schürmann
 * Panagiotis Ktistakis
 * Jimmy

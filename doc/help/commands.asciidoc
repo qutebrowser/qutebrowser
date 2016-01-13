@@ -402,6 +402,8 @@ Syntax: +:paste [*--sel*] [*--tab*] [*--bg*] [*--window*]+
 
 Open a page from the clipboard.
 
+If the pasted text contains newlines, each line gets opened in its own tab.
+
 ==== optional arguments
 * +*-s*+, +*--sel*+: Use the primary selection instead of the clipboard.
 * +*-t*+, +*--tab*+: Open in a new tab.

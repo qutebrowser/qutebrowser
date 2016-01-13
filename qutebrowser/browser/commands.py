@@ -809,6 +809,9 @@ class CommandDispatcher:
     def paste(self, sel=False, tab=False, bg=False, window=False):
         """Open a page from the clipboard.
 
+        If the pasted text contains newlines, each line gets opened in its own
+        tab.
+
         Args:
             sel: Use the primary selection instead of the clipboard.
             tab: Open in a new tab.
