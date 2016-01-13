@@ -209,7 +209,7 @@ class NetworkManager(QNetworkAccessManager):
             is_rejected = set(errors).issubset(
                 self._rejected_ssl_errors[host_tpl])
 
-        if ssl_strict or is_rejected:
+        if (ssl_strict and ssl_strict != 'ask') or is_rejected:
             return
         elif is_accepted:
             reply.ignoreSslErrors()
