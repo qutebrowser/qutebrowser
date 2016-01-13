@@ -170,4 +170,3 @@ Feature: Yanking and pasting.
                 history:
                 - active: true
                   url: http://localhost:*/data/hello3.txt
-
