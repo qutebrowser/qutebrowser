@@ -72,3 +72,28 @@ Feature: Prompts
         And I wait until the SSL page finished loading
         Then the error "SSL error: *" should be shown
         And the page should contain the plaintext "Hello World via SSL!"
+
+    Scenario: SSL error with ssl-strict = true
+        When I run :debug-clear-ssl-errors
+        And I set network -> ssl-strict to true
+        And I load a SSL page
+        Then "Error while loading *: SSL handshake failed" should be logged
+        And the page should contain the plaintext "Unable to load page"
+
+    Scenario: SSL error with ssl-strict = ask -> yes
+        When I run :debug-clear-ssl-errors
+        And I set network -> ssl-strict to ask
+        And I load a SSL page
+        And I wait for a prompt
+        And I run :prompt-yes
+        And I wait until the SSL page finished loading
+        Then the page should contain the plaintext "Hello World via SSL!"
+
+    Scenario: SSL error with ssl-strict = ask -> no
+        When I run :debug-clear-ssl-errors
+        And I set network -> ssl-strict to ask
+        And I load a SSL page
+        And I wait for a prompt
+        And I run :prompt-no
+        Then "Error while loading *: SSL handshake failed" should be logged
+        And the page should contain the plaintext "Unable to load page"
