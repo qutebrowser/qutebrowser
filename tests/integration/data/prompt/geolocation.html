@@ -14,7 +14,8 @@
                         console.log("geolocation permission denied");
                         break;
                     default:
-                        console.log("[FAIL] geolocation error: " + error.message);
+                        console.log("[FAIL] geolocation error " + error.code +
+                                    ": " + error.message);
                         break;
                 }
             }
