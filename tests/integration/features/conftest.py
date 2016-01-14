@@ -373,6 +373,15 @@ def check_contents_plain(quteproc, text):
     assert text in content
 
 
+@bdd.then(bdd.parsers.parse('the json on the page should be:\n{text}'))
+def check_contents_json(quteproc, text):
+    """Check the current page's content as json."""
+    content = quteproc.get_content().strip()
+    expected = json.loads(text)
+    actual = json.loads(content)
+    assert actual == expected
+
+
 @bdd.then(bdd.parsers.parse("the following tabs should be open:\n{tabs}"))
 def check_open_tabs(quteproc, tabs):
     """Check the list of open tabs in the session.
