@@ -43,21 +43,24 @@ def test_quteproc_error_message(qtbot, quteproc, cmd):
         quteproc.after_test()
 
 
-@pytest.mark.parametrize('texts, expected', [
-    (["[SKIP] test"], "test"),
-    (["[SKIP] foo", "[SKIP] bar"], "foo, bar"),
-])
-def test_quteproc_skip_via_js(qtbot, quteproc, texts, expected):
-    for text in texts:
-        quteproc.send_cmd(':jseval console.log("{}");'.format(text))
-        quteproc.wait_for_js(text)
-
-    # Usually we wouldn't call this from inside a test, but here we force the
-    # error to occur during the test rather than at teardown time.
+def test_quteproc_skip_via_js(qtbot, quteproc):
     with pytest.raises(pytest.skip.Exception) as excinfo:
+        quteproc.send_cmd(':jseval console.log("[SKIP] test");')
+        quteproc.wait_for_js('[SKIP] test')
+
+        # Usually we wouldn't call this from inside a test, but here we force
+        # the error to occur during the test rather than at teardown time.
         quteproc.after_test()
 
-    assert str(excinfo.value) == expected
+    assert str(excinfo.value) == 'test'
+
+
+def test_quteproc_skip_and_wait_for(qtbot, quteproc):
+    """This test will skip *again* during teardown, but we don't care."""
+    with pytest.raises(pytest.skip.Exception):
+        quteproc.send_cmd(':jseval console.log("[SKIP] foo");')
+        quteproc.wait_for_js("[SKIP] foo")
+        quteproc.wait_for(message='This will not match')
 
 
 def test_qt_log_ignore(qtbot, quteproc):

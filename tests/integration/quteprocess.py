@@ -238,32 +238,35 @@ class QuteProc(testprocess.Process):
                                                value=msg.message))
         return msg.loglevel > logging.INFO or is_js_error
 
-    def _is_js_skip_logline(self, msg):
-        """Check if a JS snippet wanted to skip a test."""
-        return (msg.category == 'js' and
-                msg.function == 'javaScriptConsoleMessage' and
-                testutils.pattern_match(pattern='[*] [SKIP] *',
-                                        value=msg.message))
+    def _maybe_skip(self):
+        """Skip the test if [SKIP] lines were logged."""
+        skip_texts = []
+
+        for msg in self._data:
+            if (msg.category == 'js' and
+                    msg.function == 'javaScriptConsoleMessage' and
+                    testutils.pattern_match(pattern='[*] [SKIP] *',
+                                            value=msg.message)):
+                skip_texts.append(msg.message.partition(' [SKIP] ')[2])
+
+        if skip_texts:
+            pytest.skip(', '.join(skip_texts))
 
     def after_test(self):
         bad_msgs = [msg for msg in self._data
                     if self._is_error_logline(msg) and not msg.expected]
-        skip_msgs = [msg for msg in self._data
-                     if self._is_js_skip_logline(msg)]
 
-        super().after_test()
-
-        if bad_msgs:
-            text = 'Logged unexpected errors:\n\n' + '\n'.join(
-                str(e) for e in bad_msgs)
-            # We'd like to use pytrace=False here but don't as a WORKAROUND
-            # for https://github.com/pytest-dev/pytest/issues/1316
-            pytest.fail(text)
-        elif skip_msgs:
-            texts = []
-            for msg in skip_msgs:
-                texts.append(msg.message.partition(' [SKIP] ')[2])
-            pytest.skip(', '.join(texts))
+        try:
+            if bad_msgs:
+                text = 'Logged unexpected errors:\n\n' + '\n'.join(
+                    str(e) for e in bad_msgs)
+                # We'd like to use pytrace=False here but don't as a WORKAROUND
+                # for https://github.com/pytest-dev/pytest/issues/1316
+                pytest.fail(text)
+            else:
+                self._maybe_skip()
+        finally:
+            super().after_test()
 
     def send_cmd(self, command, count=None):
         """Send a command to the running qutebrowser instance."""

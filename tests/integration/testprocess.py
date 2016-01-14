@@ -324,6 +324,19 @@ class Process(QObject):
                 return line
         return None
 
+    def _maybe_skip(self):
+        """Can be overridden by subclasses to skip on certain log lines.
+
+        We can't run pytest.skip directly while parsing the log, as that would
+        lead to a pytest.skip.Exception error in a virtual Qt method, which
+        means pytest-qt fails the test.
+
+        Instead, we check for skip messages periodically in
+        QuteProc._maybe_skip, and call _maybe_skip after every parsed message
+        in wait_for (where it's most likely that new messages arrive).
+        """
+        pass
+
     def wait_for(self, timeout=None, *, override_waited_for=False,
                  do_skip=False, **kwargs):
         """Wait until a given value is found in the data.
@@ -342,6 +355,7 @@ class Process(QObject):
             The matched line.
         """
         __tracebackhide__ = True
+
         if timeout is None:
             if do_skip:
                 timeout = 2000
@@ -365,6 +379,8 @@ class Process(QObject):
         elapsed_timer.start()
 
         while True:
+            # Skip if there are pending messages causing a skip
+            self._maybe_skip()
             got_signal = spy.wait(timeout)
             if not got_signal or elapsed_timer.hasExpired(timeout):
                 msg = "Timed out after {}ms waiting for {!r}.".format(
