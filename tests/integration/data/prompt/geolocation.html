@@ -23,7 +23,7 @@
                 if ("geolocation" in navigator) {
                     navigator.geolocation.getCurrentPosition(on_success, on_error);
                 } else {
-                    console.log("[FAIL] geolocation unavailable");
+                    console.log("[SKIP] geolocation unavailable");
                 }
             }
         </script>
