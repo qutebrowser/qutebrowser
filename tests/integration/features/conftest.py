@@ -103,22 +103,29 @@ def open_path(quteproc, path):
     If used like "When I open ... in a new tab", the URL is opened in a new
     tab. With "... in a new window", it's opened in a new window.
     """
+    new_tab = False
+    new_window = False
+    wait_for_load_finished = True
+
     new_tab_suffix = ' in a new tab'
     new_window_suffix = ' in a new window'
+    do_not_wait_suffix = ' without waiting'
+
     if path.endswith(new_tab_suffix):
         path = path[:-len(new_tab_suffix)]
         new_tab = True
-        new_window = False
     elif path.endswith(new_window_suffix):
         path = path[:-len(new_window_suffix)]
-        new_tab = False
         new_window = True
-    else:
-        new_tab = False
-        new_window = False
+
+    if path.endswith(do_not_wait_suffix):
+        path = path[:-len(do_not_wait_suffix)]
+        wait_for_load_finished = False
 
     quteproc.open_path(path, new_tab=new_tab, new_window=new_window)
-    quteproc.wait_for_load_finished(path)
+
+    if wait_for_load_finished:
+        quteproc.wait_for_load_finished(path)
 
 
 @bdd.when(bdd.parsers.parse("I set {sect} -> {opt} to {value}"))
