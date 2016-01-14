@@ -13,6 +13,9 @@
                     case error.PERMISSION_DENIED:
                         console.log("geolocation permission denied");
                         break;
+                    case error.POSITION_UNAVAILABLE:
+                        console.log("geolocation position unavailable (ignored)");
+                        break;
                     default:
                         console.log("[FAIL] geolocation error " + error.code +
                                     ": " + error.message);
