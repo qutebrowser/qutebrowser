@@ -177,3 +177,18 @@ Feature: Prompts
         And I wait for a prompt
         And I run :leave-mode
         Then the javascript message "notification permission aborted" should be logged
+
+    # Page authentication
+
+    Scenario: Successful webpage authentification
+        When I open basic-auth/user/password without waiting
+        And I wait for a prompt
+        And I press the keys "user"
+        And I run :prompt-accept
+        And I press the keys "password"
+        And I run :prompt-accept
+        Then the json on the page should be:
+            {
+              "authenticated": true,
+              "user": "user"
+            }
