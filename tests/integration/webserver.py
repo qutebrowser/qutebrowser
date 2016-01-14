@@ -24,6 +24,7 @@ import sys
 import json
 import socket
 import os.path
+import http.client
 
 import pytest
 from PyQt5.QtCore import pyqtSignal
@@ -59,9 +60,14 @@ class Request(testprocess.Line):
         missing_paths = ['/favicon.ico', '/does-not-exist']
 
         if self.path in missing_paths:
-            assert self.status == 404
+            assert self.status == http.client.NOT_FOUND  # 404
         else:
-            assert self.status < 400
+            expected_http_statuses = [
+                http.client.OK,  # 200
+                http.client.FOUND,  # 302
+                http.client.UNAUTHORIZED  # 401
+            ]
+            assert self.status in expected_http_statuses
 
     def __eq__(self, other):
         return NotImplemented
