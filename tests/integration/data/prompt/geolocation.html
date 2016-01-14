@@ -1,0 +1,34 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <meta charset="utf-8">
+        <script type="text/javascript">
+
+            function on_success(position) {
+                console.log("geolocation permission granted");
+            }
+
+            function on_error(error) {
+                switch(error.code) {
+                    case error.PERMISSION_DENIED:
+                        console.log("geolocation permission denied");
+                        break;
+                    default:
+                        console.log("[FAIL] geolocation error: " + error.message);
+                        break;
+                }
+            }
+
+            function get_location() {
+                if ("geolocation" in navigator) {
+                    navigator.geolocation.getCurrentPosition(on_success, on_error);
+                } else {
+                    console.log("[FAIL] geolocation unavailable");
+                }
+            }
+        </script>
+    </head>
+    <body>
+        <input type="button" onclick="get_location()" value="Get position">
+    </body>
+</html>
