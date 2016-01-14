@@ -36,6 +36,7 @@ from PyQt5.QtCore import pyqtSignal, QUrl
 import testprocess
 from qutebrowser.misc import ipc
 from qutebrowser.utils import log, utils
+from helpers import utils as testutils
 
 
 def is_ignored_qt_message(message):
@@ -193,7 +194,7 @@ class QuteProc(testprocess.Process):
                 log_line.function == 'init' and
                 log_line.message.startswith('Base directory:')):
             self.basedir = log_line.message.split(':', maxsplit=1)[1].strip()
-        elif log_line.loglevel > logging.INFO:
+        elif self._is_error_logline(log_line):
             self.got_error.emit()
 
         return log_line
@@ -224,9 +225,17 @@ class QuteProc(testprocess.Process):
                 self._httpbin.port if port is None else port,
                 path if path != '/' else '')
 
+    def _is_error_logline(self, msg):
+        """Check if the given LogLine is some kind of error message."""
+        is_js_error = (msg.category == 'js' and
+                       msg.function == 'javaScriptConsoleMessage' and
+                       testutils.pattern_match(pattern='[*] [FAIL] *',
+                                               value=msg.message))
+        return msg.loglevel > logging.INFO or is_js_error
+
     def after_test(self):
         bad_msgs = [msg for msg in self._data
-                    if msg.loglevel > logging.INFO and not msg.expected]
+                    if self._is_error_logline(msg) and not msg.expected]
         super().after_test()
         if bad_msgs:
             text = 'Logged unexpected errors:\n\n' + '\n'.join(

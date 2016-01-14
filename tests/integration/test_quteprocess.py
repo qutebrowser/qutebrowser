@@ -29,10 +29,14 @@ import testprocess
 from qutebrowser.utils import log
 
 
-def test_quteproc_error_message(qtbot, quteproc):
+@pytest.mark.parametrize('cmd', [
+    ':message-error test',
+    ':jseval console.log("[FAIL] test");'
+])
+def test_quteproc_error_message(qtbot, quteproc, cmd):
     """Make sure the test fails with an unexpected error message."""
     with qtbot.waitSignal(quteproc.got_error):
-        quteproc.send_cmd(':message-error test')
+        quteproc.send_cmd(cmd)
     # Usually we wouldn't call this from inside a test, but here we force the
     # error to occur during the test rather than at teardown time.
     with pytest.raises(pytest.fail.Exception):
