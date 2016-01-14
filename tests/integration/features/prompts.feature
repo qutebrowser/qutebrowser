@@ -169,7 +169,7 @@ Feature: Prompts
         Then the javascript message "notification permission granted" should be logged
 
     # This actually gives us a denied rather than an aborted
-    @skip
+    @xfail_norun
     Scenario: notifications with ask -> abort
         When I set content -> notifications to ask
         And I open data/prompt/notifications.html

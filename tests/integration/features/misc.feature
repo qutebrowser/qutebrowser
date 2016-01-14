@@ -293,7 +293,7 @@ Feature: Various utility commands.
     # :print
 
     # Disabled because it causes weird segfaults and QPainter warnings in Qt...
-    @skip
+    @xfail_norun
     Scenario: print preview
         When I open data/hello.txt
         And I run :print --preview
@@ -305,7 +305,7 @@ Feature: Various utility commands.
     # printers" qWarning.
     #
     # Disabled because it causes weird segfaults and QPainter warnings in Qt...
-    @skip
+    @xfail_norun
     Scenario: print
         When I open data/hello.txt
         And I run :print

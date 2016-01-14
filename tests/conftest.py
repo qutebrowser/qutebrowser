@@ -130,6 +130,8 @@ def pytest_collection_modifyitems(items):
                 item.add_marker(pytest.mark.integration)
 
         _apply_platform_markers(item)
+        if item.get_marker('xfail_norun'):
+            item.add_marker(pytest.mark.xfail(run=False))
 
 
 def pytest_ignore_collect(path):

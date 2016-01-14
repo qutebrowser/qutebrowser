@@ -28,7 +28,7 @@ Feature: Searching on a page
         When I run :search doesnotmatch
         Then the warning "Text 'doesnotmatch' not found on page!" should be shown
 
-    @skip
+    @xfail_norun
     Scenario: Searching with / and spaces at the end (issue 874)
         When I run :set-cmd-text -s /space
         And I run :command-accept
@@ -41,9 +41,8 @@ Feature: Searching on a page
         And I run :yank-selected
         Then the clipboard should contain "/slash"
 
-    # xfail takes a long time to timeout, and this doesn't work because this is
-    # QtWebKit behaviour.
-    @skip
+    # This doesn't work because this is QtWebKit behaviour.
+    @xfail_norun
     Scenario: Searching text with umlauts
         When I run :search blub
         Then the warning "Text 'blub' not found on page!" should be shown
