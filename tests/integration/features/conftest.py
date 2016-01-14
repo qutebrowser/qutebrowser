@@ -297,8 +297,7 @@ def ensure_not_logged(quteproc, pattern):
                             'logged'))
 def javascript_message_logged(quteproc, message):
     """Make sure the given message was logged via javascript."""
-    quteproc.wait_for(category='js', function='javaScriptConsoleMessage',
-                      message='[*] {}'.format(message))
+    quteproc.wait_for_js(message)
 
 
 @bdd.then(bdd.parsers.parse('the javascript message "{message}" should not be '

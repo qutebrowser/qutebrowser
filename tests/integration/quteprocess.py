@@ -225,6 +225,11 @@ class QuteProc(testprocess.Process):
                 self._httpbin.port if port is None else port,
                 path if path != '/' else '')
 
+    def wait_for_js(self, message):
+        """Wait for the given javascript console message."""
+        self.wait_for(category='js', function='javaScriptConsoleMessage',
+                      message='[*] {}'.format(message))
+
     def _is_error_logline(self, msg):
         """Check if the given LogLine is some kind of error message."""
         is_js_error = (msg.category == 'js' and
@@ -233,16 +238,32 @@ class QuteProc(testprocess.Process):
                                                value=msg.message))
         return msg.loglevel > logging.INFO or is_js_error
 
+    def _is_js_skip_logline(self, msg):
+        """Check if a JS snippet wanted to skip a test."""
+        return (msg.category == 'js' and
+                msg.function == 'javaScriptConsoleMessage' and
+                testutils.pattern_match(pattern='[*] [SKIP] *',
+                                        value=msg.message))
+
     def after_test(self):
         bad_msgs = [msg for msg in self._data
                     if self._is_error_logline(msg) and not msg.expected]
+        skip_msgs = [msg for msg in self._data
+                     if self._is_js_skip_logline(msg)]
+
         super().after_test()
+
         if bad_msgs:
             text = 'Logged unexpected errors:\n\n' + '\n'.join(
                 str(e) for e in bad_msgs)
             # We'd like to use pytrace=False here but don't as a WORKAROUND
             # for https://github.com/pytest-dev/pytest/issues/1316
             pytest.fail(text)
+        elif skip_msgs:
+            texts = []
+            for msg in skip_msgs:
+                texts.append(msg.message.partition(' [SKIP] ')[2])
+            pytest.skip(', '.join(texts))
 
     def send_cmd(self, command, count=None):
         """Send a command to the running qutebrowser instance."""

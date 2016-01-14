@@ -43,6 +43,23 @@ def test_quteproc_error_message(qtbot, quteproc, cmd):
         quteproc.after_test()
 
 
+@pytest.mark.parametrize('texts, expected', [
+    (["[SKIP] test"], "test"),
+    (["[SKIP] foo", "[SKIP] bar"], "foo, bar"),
+])
+def test_quteproc_skip_via_js(qtbot, quteproc, texts, expected):
+    for text in texts:
+        quteproc.send_cmd(':jseval console.log("{}");'.format(text))
+        quteproc.wait_for_js(text)
+
+    # Usually we wouldn't call this from inside a test, but here we force the
+    # error to occur during the test rather than at teardown time.
+    with pytest.raises(pytest.skip.Exception) as excinfo:
+        quteproc.after_test()
+
+    assert str(excinfo.value) == expected
+
+
 def test_qt_log_ignore(qtbot, quteproc):
     """Make sure the test passes when logging a qt_log_ignore message."""
     with qtbot.waitSignal(quteproc.got_error):
