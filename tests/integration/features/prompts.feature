@@ -137,3 +137,43 @@ Feature: Prompts
         And I wait for a prompt
         And I run :leave-mode
         Then the javascript message "geolocation permission denied" should be logged
+
+    # Notifications
+
+    Scenario: Always rejecting notifications
+        When I set content -> notifications to false
+        And I open data/prompt/notifications.html
+        And I click the button
+        Then the javascript message "notification permission denied" should be logged
+
+    Scenario: Always accepting notifications
+        When I set content -> notifications to true
+        And I open data/prompt/notifications.html
+        And I click the button
+        Then the javascript message "notification permission granted" should be logged
+
+    Scenario: notifications with ask -> false
+        When I set content -> notifications to ask
+        And I open data/prompt/notifications.html
+        And I click the button
+        And I wait for a prompt
+        And I run :prompt-no
+        Then the javascript message "notification permission denied" should be logged
+
+    Scenario: notifications with ask -> true
+        When I set content -> notifications to ask
+        And I open data/prompt/notifications.html
+        And I click the button
+        And I wait for a prompt
+        And I run :prompt-yes
+        Then the javascript message "notification permission granted" should be logged
+
+    # This actually gives us a denied rather than an aborted
+    @skip
+    Scenario: notifications with ask -> abort
+        When I set content -> notifications to ask
+        And I open data/prompt/notifications.html
+        And I click the button
+        And I wait for a prompt
+        And I run :leave-mode
+        Then the javascript message "notification permission aborted" should be logged

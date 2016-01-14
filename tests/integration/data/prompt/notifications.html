@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <meta charset="utf-8">
+        <script type="text/javascript">
+            function permission_cb(permission) {
+                switch (permission) {
+                    case "granted":
+                        console.log("notification permission granted");
+                        break;
+                    case "denied":
+                        console.log("notification permission denied");
+                        break;
+                    case "default":
+                        console.log("notification permission aborted");
+                        break;
+                    default:
+                        console.log("[FAIL] unknown value for permission: " + Notification.permission);
+                        break;
+                }
+            }
+
+            function get_notification_permission() {
+                if ("Notification" in window) {
+                    if (Notification.permission === "default") {
+                        Notification.requestPermission(permission_cb);
+                    } else {
+                        console.log("[FAIL] unknown initial value for Notification.permission: " + Notification.permission);
+                    }
+                } else {
+                    console.log("[FAIL] notifications unavailable");
+                }
+            }
+        </script>
+    </head>
+    <body>
+        <input type="button" onclick="get_notification_permission()" value="Get notification permission">
+    </body>
+</html>
