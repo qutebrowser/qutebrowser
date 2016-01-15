@@ -19,6 +19,7 @@
 
 """Our own QNetworkAccessManager."""
 
+import os
 import collections
 import netrc
 
@@ -244,7 +245,10 @@ class NetworkManager(QNetworkAccessManager):
     def on_authentication_required(self, reply, authenticator):
         """Called when a website needs authentication."""
         user, password = None, None
-        if not hasattr(reply, "netrc_used"):
+        if not hasattr(reply, "netrc_used") and 'HOME' in os.environ:
+            # We'll get an OSError by netrc if 'HOME' isn't available in
+            # os.environ. We don't want to log that, so we prevent it
+            # altogether.
             reply.netrc_used = True
             try:
                 net = netrc.netrc()
