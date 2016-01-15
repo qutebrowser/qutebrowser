@@ -104,19 +104,19 @@ Feature: Prompts
 
     Scenario: Always rejecting geolocation
         When I set content -> geolocation to false
-        And I open data/prompt/geolocation.html
+        And I open data/prompt/geolocation.html in a new tab
         And I click the button
         Then the javascript message "geolocation permission denied" should be logged
 
     Scenario: Always accepting geolocation
         When I set content -> geolocation to true
-        And I open data/prompt/geolocation.html
+        And I open data/prompt/geolocation.html in a new tab
         And I click the button
         Then the javascript message "geolocation permission denied" should not be logged
 
     Scenario: geolocation with ask -> true
         When I set content -> geolocation to ask
-        And I open data/prompt/geolocation.html
+        And I open data/prompt/geolocation.html in a new tab
         And I click the button
         And I wait for a prompt
         And I run :prompt-yes
@@ -124,7 +124,7 @@ Feature: Prompts
 
     Scenario: geolocation with ask -> false
         When I set content -> geolocation to ask
-        And I open data/prompt/geolocation.html
+        And I open data/prompt/geolocation.html in a new tab
         And I click the button
         And I wait for a prompt
         And I run :prompt-no
@@ -132,7 +132,7 @@ Feature: Prompts
 
     Scenario: geolocation with ask -> abort
         When I set content -> geolocation to ask
-        And I open data/prompt/geolocation.html
+        And I open data/prompt/geolocation.html in a new tab
         And I click the button
         And I wait for a prompt
         And I run :leave-mode
@@ -142,19 +142,19 @@ Feature: Prompts
 
     Scenario: Always rejecting notifications
         When I set content -> notifications to false
-        And I open data/prompt/notifications.html
+        And I open data/prompt/notifications.html in a new tab
         And I click the button
         Then the javascript message "notification permission denied" should be logged
 
     Scenario: Always accepting notifications
         When I set content -> notifications to true
-        And I open data/prompt/notifications.html
+        And I open data/prompt/notifications.html in a new tab
         And I click the button
         Then the javascript message "notification permission granted" should be logged
 
     Scenario: notifications with ask -> false
         When I set content -> notifications to ask
-        And I open data/prompt/notifications.html
+        And I open data/prompt/notifications.html in a new tab
         And I click the button
         And I wait for a prompt
         And I run :prompt-no
@@ -162,7 +162,7 @@ Feature: Prompts
 
     Scenario: notifications with ask -> true
         When I set content -> notifications to ask
-        And I open data/prompt/notifications.html
+        And I open data/prompt/notifications.html in a new tab
         And I click the button
         And I wait for a prompt
         And I run :prompt-yes
@@ -172,7 +172,7 @@ Feature: Prompts
     @xfail_norun
     Scenario: notifications with ask -> abort
         When I set content -> notifications to ask
-        And I open data/prompt/notifications.html
+        And I open data/prompt/notifications.html in a new tab
         And I click the button
         And I wait for a prompt
         And I run :leave-mode
