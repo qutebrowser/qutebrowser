@@ -32,6 +32,8 @@ Fixed
 ~~~~~
 
 - Fixed completion for various config values when using `:set`.
+- Prevented an error being logged when a website with HTTP authentication was
+  opened on Windows.
 
 v0.5.0
 ------
