@@ -152,9 +152,23 @@ $ nix-env -i qutebrowser
 On Windows
 ----------
 
-You can either use one of the
+There are different ways to install qutebrowser on Windows:
+
 https://github.com/The-Compiler/qutebrowser/releases[prebuilt standalone
-packages or MSI installers], or install manually:
+packages or MSI installers]
+
+A package manager for the https://chocolatey.org/packages/qutebrowser[Chocolatey package]
+
+* PackageManagement PowerShell module
+----
+PS C:\> Install-Package qutebrowser
+----
+* Chocolatey's client
+----
+C:\> choco install qutebrowser
+----
+
+Manual install
 
 * Use the installer from http://www.python.org/downloads[python.org] to get
 Python 3 (be sure to install pip).
