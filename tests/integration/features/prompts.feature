@@ -187,6 +187,7 @@ Feature: Prompts
         And I run :prompt-accept
         And I press the keys "password"
         And I run :prompt-accept
+        And I wait until basic-auth/user/password is loaded
         Then the json on the page should be:
             {
               "authenticated": true,
