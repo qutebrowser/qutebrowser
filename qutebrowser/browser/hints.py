@@ -468,8 +468,10 @@ class HintManager(QObject):
         mode = QClipboard.Selection if sel else QClipboard.Clipboard
         urlstr = url.toString(QUrl.FullyEncoded | QUrl.RemovePassword)
         QApplication.clipboard().setText(urlstr, mode)
-        message.info(self._win_id, "URL yanked to {}".format(
-            "primary selection" if sel else "clipboard"))
+        msg = "Yanked URL to {}: {}".format(
+            "primary selection" if sel else "clipboard",
+            urlstr)
+        message.info(self._win_id, msg)
 
     def _run_cmd(self, url, context):
         """Run the command based on a hint URL.
