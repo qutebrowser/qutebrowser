@@ -27,7 +27,7 @@ import os.path
 import http.client
 
 import pytest
-from PyQt5.QtCore import pyqtSignal
+from PyQt5.QtCore import pyqtSignal, QUrl
 
 import testprocess
 
@@ -56,18 +56,21 @@ class Request(testprocess.Line):
         self.path = '/' if path == '/' else path.rstrip('/')
 
         self.status = parsed['status']
+        self._check_status()
 
-        missing_paths = ['/favicon.ico', '/does-not-exist']
+    def _check_status(self):
+        """Check if the http status is what we expected."""
+        path_to_statuses = {
+            '/favicon.ico': [http.client.NOT_FOUND],
+            '/does-not-exist': [http.client.NOT_FOUND],
+            '/custom/redirect-later': [http.client.FOUND],
+            '/basic-auth/user/password':
+                [http.client.UNAUTHORIZED, http.client.OK],
+        }
 
-        if self.path in missing_paths:
-            assert self.status == http.client.NOT_FOUND  # 404
-        else:
-            expected_http_statuses = [
-                http.client.OK,  # 200
-                http.client.FOUND,  # 302
-                http.client.UNAUTHORIZED  # 401
-            ]
-            assert self.status in expected_http_statuses
+        sanitized = QUrl('http://localhost' + self.path).path()  # Remove ?foo
+        expected_statuses = path_to_statuses.get(sanitized, [http.client.OK])
+        assert self.status in expected_statuses
 
     def __eq__(self, other):
         return NotImplemented
