@@ -71,7 +71,7 @@ def test_qt_log_ignore(qtbot, quteproc):
 
 def test_quteprocess_quitting(qtbot, quteproc_process):
     """When qutebrowser quits, after_test should fail."""
-    with qtbot.waitSignal(quteproc_process.proc.finished):
+    with qtbot.waitSignal(quteproc_process.proc.finished, timeout=5000):
         quteproc_process.send_cmd(':quit')
     with pytest.raises(testprocess.ProcessExited):
         quteproc_process.after_test()
