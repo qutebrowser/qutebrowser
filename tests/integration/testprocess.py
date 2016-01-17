@@ -123,6 +123,7 @@ class Process(QObject):
         _invalid: A list of lines which could not be parsed.
         _data: A list of parsed lines.
         proc: The QProcess for the underlying process.
+        exit_expected: Whether the process is expected to quit.
 
     Signals:
         ready: Emitted when the server finished starting up.
@@ -140,6 +141,7 @@ class Process(QObject):
         self._data = []
         self.proc = QProcess()
         self.proc.setReadChannel(QProcess.StandardError)
+        self.exit_expected = False
 
     def _log(self, line):
         """Add the given line to the captured log output."""
@@ -242,8 +244,9 @@ class Process(QObject):
             raise InvalidLine(self._invalid)
 
         self.clear_data()
-        if not self.is_running():
+        if not self.is_running() and not self.exit_expected:
             raise ProcessExited
+        self.exit_expected = False
 
     def clear_data(self):
         """Clear the collected data."""

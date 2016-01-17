@@ -118,6 +118,13 @@ def test_quitting_process(qtbot, quit_pyproc):
         quit_pyproc.after_test()
 
 
+def test_quitting_process_expected(qtbot, quit_pyproc):
+    quit_pyproc.exit_expected = True
+    with qtbot.waitSignal(quit_pyproc.proc.finished):
+        quit_pyproc.start()
+    quit_pyproc.after_test()
+
+
 def test_wait_signal_raising(qtbot):
     """testprocess._wait_signal should raise by default."""
     proc = testprocess.Process()

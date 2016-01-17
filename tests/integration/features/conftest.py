@@ -460,3 +460,10 @@ def clipboard_contains_multiline(qtbot, qapp, content):
     expected = textwrap.dedent(content)
     _wait_for_clipboard(qtbot, qapp.clipboard(), QClipboard.Clipboard,
                         expected)
+
+
+@bdd.then("qutebrowser should quit")
+def should_quit(qtbot, quteproc):
+    quteproc.exit_expected = True
+    with qtbot.waitSignal(quteproc.proc.finished):
+        pass
