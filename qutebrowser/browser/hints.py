@@ -1046,7 +1046,8 @@ class WordHinter:
             match = re.search('[A-Za-z]{3,}', candidate)
             if not match:
                 continue
-            if match.end() - match.start() < 4:
+            length = match.end() - match.start()
+            if 4 > length or length > 8:
                 continue
             yield candidate[match.start():match.end()].lower()
 
