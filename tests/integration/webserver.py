@@ -60,6 +60,8 @@ class Request(testprocess.Line):
 
     def _check_status(self):
         """Check if the http status is what we expected."""
+        # WORKAROUND for https://github.com/PyCQA/pylint/issues/399 (?)
+        # pylint: disable=no-member, useless-suppression
         path_to_statuses = {
             '/favicon.ico': [http.client.NOT_FOUND],
             '/does-not-exist': [http.client.NOT_FOUND],
