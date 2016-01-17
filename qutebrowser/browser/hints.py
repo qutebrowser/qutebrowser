@@ -1046,10 +1046,8 @@ class WordHinter:
             match = re.search('[A-Za-z]{3,}', candidate)
             if not match:
                 continue
-            length = match.end() - match.start()
-            if 4 > length or length > 8:
-                continue
-            yield candidate[match.start():match.end()].lower()
+            if 4 < match.end() - match.start() < 8:
+                yield candidate[match.start():match.end()].lower()
 
     def any_prefix(self, hint, existing):
         return any(hint.startswith(e) or e.startswith(hint)
