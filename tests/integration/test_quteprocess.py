@@ -69,6 +69,14 @@ def test_qt_log_ignore(qtbot, quteproc):
         quteproc.send_cmd(':message-error "SpellCheck: test"')
 
 
+def test_quteprocess_quitting(qtbot, quteproc_process):
+    """When qutebrowser quits, after_test should fail."""
+    with qtbot.waitSignal(quteproc_process.proc.finished):
+        quteproc_process.send_cmd(':quit')
+    with pytest.raises(testprocess.ProcessExited):
+        quteproc_process.after_test()
+
+
 @pytest.mark.parametrize('data, attrs', [
     (
         # Normal message
