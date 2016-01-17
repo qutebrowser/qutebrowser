@@ -81,6 +81,14 @@ def pyproc():
     proc.terminate()
 
 
+def test_wait_signal_raising(qtbot):
+    """testprocess._wait_signal should raise by default."""
+    proc = testprocess.Process()
+    with pytest.raises(qtbot.SignalTimeoutError):
+        with proc._wait_signal(proc.proc.started, timeout=0):
+            pass
+
+
 class TestWaitFor:
 
     def test_successful(self, pyproc):

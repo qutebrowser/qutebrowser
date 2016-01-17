@@ -172,7 +172,7 @@ class Process(QObject):
         self.read_log()
         return self._data
 
-    def _wait_signal(self, signal, timeout=5000, raising=None):
+    def _wait_signal(self, signal, timeout=5000, raising=True):
         """Wait for a signal to be emitted.
 
         Should be used in a contextmanager.
