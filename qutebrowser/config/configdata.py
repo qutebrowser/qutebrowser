@@ -892,6 +892,11 @@ def data(readonly=False):
              SettingValue(typ.Bool(), 'true'),
              "Whether to auto-follow a hint if there's only one left."),
 
+            ('auto-follow-timeout',
+             SettingValue(typ.Int(), 0),
+             "A timeout to inhibit normal-mode key bindings after a successful"
+             "auto-follow."),
+
             ('next-regexes',
              SettingValue(typ.RegexList(flags=re.IGNORECASE),
                           r'\bnext\b,\bmore\b,\bnewer\b,\b[>→≫]\b,\b(>>|»)\b,'
