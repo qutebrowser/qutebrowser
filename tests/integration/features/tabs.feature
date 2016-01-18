@@ -548,6 +548,7 @@ Feature: Tab management
         And I open data/numbers/3.txt
         And I run :tab-close
         And I run :undo
+        And I wait until data/numbers/3.txt is loaded
         Then the session should look like:
             windows:
             - tabs:
@@ -565,6 +566,7 @@ Feature: Tab management
         And I set tabs -> last-close to blank
         And I run :tab-close
         And I run :undo
+        And I wait until data/hello.txt is loaded
         Then the following tabs should be open:
             - data/hello.txt (active)
 
@@ -575,6 +577,7 @@ Feature: Tab management
         And I set tabs -> last-close to blank
         And I run :tab-close
         And I run :undo
+        And I wait until data/hello2.txt is loaded
         Then the following tabs should be open:
             - data/hello2.txt (active)
 
@@ -585,6 +588,7 @@ Feature: Tab management
         And I set general -> startpage to http://localhost:(port)/data/numbers/4.txt,http://localhost:(port)/data/numbers/5.txt
         And I run :tab-close
         And I run :undo
+        And I wait until data/hello.txt is loaded
         Then the following tabs should be open:
             - data/hello.txt (active)
 
@@ -595,6 +599,7 @@ Feature: Tab management
         And I set general -> default-page to http://localhost:(port)/data/numbers/6.txt
         And I run :tab-close
         And I run :undo
+        And I wait until data/hello.txt is loaded
         Then the following tabs should be open:
             - data/hello.txt (active)
 
