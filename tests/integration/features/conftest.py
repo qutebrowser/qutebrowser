@@ -466,5 +466,5 @@ def clipboard_contains_multiline(qtbot, qapp, content):
 @bdd.then("qutebrowser should quit")
 def should_quit(qtbot, quteproc):
     quteproc.exit_expected = True
-    with qtbot.waitSignal(quteproc.proc.finished):
+    with qtbot.waitSignal(quteproc.proc.finished, timeout=5000):
         pass
