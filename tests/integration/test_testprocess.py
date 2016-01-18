@@ -74,11 +74,63 @@ class PythonProcess(testprocess.Process):
         return (sys.executable, ['-c', ';'.join(code)])
 
 
+class QuitPythonProcess(testprocess.Process):
+
+    """A testprocess which quits immediately."""
+
+    def __init__(self):
+        super().__init__()
+        self.proc.setReadChannel(QProcess.StandardOutput)
+
+    def _parse_line(self, line):
+        print("LINE: {}".format(line))
+        if line.strip() == 'ready':
+            self.ready.emit()
+        return testprocess.Line(line)
+
+    def _executable_args(self):
+        code = [
+            'import sys',
+            'print("ready")',
+            'sys.exit(0)',
+        ]
+        return (sys.executable, ['-c', ';'.join(code)])
+
+
 @pytest.yield_fixture
 def pyproc():
     proc = PythonProcess()
     yield proc
     proc.terminate()
+
+
+@pytest.yield_fixture
+def quit_pyproc():
+    proc = QuitPythonProcess()
+    yield proc
+    proc.terminate()
+
+
+def test_quitting_process(qtbot, quit_pyproc):
+    with qtbot.waitSignal(quit_pyproc.proc.finished):
+        quit_pyproc.start()
+    with pytest.raises(testprocess.ProcessExited):
+        quit_pyproc.after_test()
+
+
+def test_quitting_process_expected(qtbot, quit_pyproc):
+    quit_pyproc.exit_expected = True
+    with qtbot.waitSignal(quit_pyproc.proc.finished):
+        quit_pyproc.start()
+    quit_pyproc.after_test()
+
+
+def test_wait_signal_raising(qtbot):
+    """testprocess._wait_signal should raise by default."""
+    proc = testprocess.Process()
+    with pytest.raises(qtbot.SignalTimeoutError):
+        with proc._wait_signal(proc.proc.started, timeout=0):
+            pass
 
 
 class TestWaitFor:
@@ -143,6 +195,13 @@ class TestWaitFor:
         """
         with pytest.raises(TypeError):
             pyproc.wait_for()
+
+    def test_do_skip(self, pyproc):
+        """Test wait_for when getting no text at all, with do_skip."""
+        pyproc.code = "pass"
+        pyproc.start()
+        with pytest.raises(pytest.skip.Exception):
+            pyproc.wait_for(data="foobar", timeout=100, do_skip=True)
 
 
 class TestEnsureNotLogged:

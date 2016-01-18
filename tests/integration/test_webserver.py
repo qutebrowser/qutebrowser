@@ -33,7 +33,7 @@ import pytest
     ('/data/hello.txt', 'Hello World!', True),
 ])
 def test_httpbin(httpbin, qtbot, path, content, expected):
-    with qtbot.waitSignal(httpbin.new_request, raising=True, timeout=100):
+    with qtbot.waitSignal(httpbin.new_request, timeout=100):
         url = 'http://localhost:{}{}'.format(httpbin.port, path)
         try:
             response = urllib.request.urlopen(url)

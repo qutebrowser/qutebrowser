@@ -160,6 +160,7 @@ Contributors, sorted by the number of commits in descending order:
 * ZDarian
 * John ShaggyTwoDope Jenkins
 * Peter Vilim
+* Tarcisio Fedrizzi
 * Jonas Schürmann
 * Panagiotis Ktistakis
 * Jimmy
@@ -176,6 +177,7 @@ Contributors, sorted by the number of commits in descending order:
 * jnphilipp
 * Tobias Patzl
 * Peter Michely
+* Link
 * Larry Hynes
 * Johannes Altmanninger
 * Samir Benmendil
@@ -186,6 +188,7 @@ Contributors, sorted by the number of commits in descending order:
 * Corentin Jule
 * zwarag
 * xd1le
+* evan
 * dylan araps
 * Tim Harder
 * Thiago Barroso Perrotta

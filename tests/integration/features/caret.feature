@@ -3,7 +3,7 @@ Feature: Caret mode
 
     Background:
         Given I open data/caret.html
-        And I run :enter-mode caret
+        And I run :tab-only ;; :enter-mode caret
 
     # document
 
@@ -258,3 +258,63 @@ Feature: Caret mode
         Then the message "3 chars yanked to clipboard" should be shown.
         And the message "7 chars yanked to clipboard" should be shown.
         And the clipboard should contain "one two"
+
+    # :drop-selection
+
+    Scenario: :drop-selection
+        When I run :toggle-selection
+        And I run :move-to-end-of-word
+        And I run :drop-selection
+        And I run :yank-selected
+        Then the message "Nothing to yank" should be shown.
+
+    # :follow-selected
+
+    Scenario: :follow-selected without a selection
+        When I run :follow-selected
+        Then no crash should happen
+
+    Scenario: :follow-selected with text
+        When I run :move-to-next-word
+        And I run :toggle-selection
+        And I run :move-to-end-of-word
+        And I run :follow-selected
+        Then no crash should happen
+
+    Scenario: :follow-selected with link (with JS)
+        When I set content -> allow-javascript to true
+        And I run :toggle-selection
+        And I run :move-to-end-of-word
+        And I run :follow-selected
+        Then data/hello.txt should be loaded
+
+    Scenario: :follow-selected with link (without JS)
+        When I set content -> allow-javascript to false
+        And I run :toggle-selection
+        And I run :move-to-end-of-word
+        And I run :follow-selected
+        Then data/hello.txt should be loaded
+
+    Scenario: :follow-selected with --tab (with JS)
+        When I set content -> allow-javascript to true
+        And I run :tab-only
+        And I run :enter-mode caret
+        And I run :toggle-selection
+        And I run :move-to-end-of-word
+        And I run :follow-selected --tab
+        Then data/hello.txt should be loaded
+        And the following tabs should be open:
+            - data/caret.html
+            - data/hello.txt (active)
+
+    Scenario: :follow-selected with --tab (without JS)
+        When I set content -> allow-javascript to false
+        And I run :tab-only
+        And I run :enter-mode caret
+        And I run :toggle-selection
+        And I run :move-to-end-of-word
+        And I run :follow-selected --tab
+        Then data/hello.txt should be loaded
+        And the following tabs should be open:
+            - data/caret.html
+            - data/hello.txt (active)

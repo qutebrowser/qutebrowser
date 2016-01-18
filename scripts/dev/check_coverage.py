@@ -100,6 +100,8 @@ PERFECT_FILES = [
         'qutebrowser/mainwindow/statusbar/tabindex.py'),
     ('tests/unit/mainwindow/statusbar/test_textbase.py',
         'qutebrowser/mainwindow/statusbar/textbase.py'),
+    ('tests/unit/mainwindow/statusbar/test_prompt.py',
+        'qutebrowser/mainwindow/statusbar/prompt.py'),
 
     ('tests/unit/config/test_configtypes.py',
         'qutebrowser/config/configtypes.py'),
@@ -131,6 +133,10 @@ PERFECT_FILES = [
     ('tests/unit/utils/test_error.py',
         'qutebrowser/utils/error.py'),
 ]
+
+
+# 100% coverage because of integration tests, but no perfect unit tests yet.
+WHITELISTED_FILES = []
 
 
 class Skipped(Exception):
@@ -199,7 +205,8 @@ def check(fileobj, perfect_files):
             text = "{} has {}% line and {}% branch coverage!".format(
                 filename, line_cov, branch_cov)
             messages.append(Message(MsgType.insufficent_coverage, text))
-        elif filename not in perfect_src_files and not is_bad:
+        elif (filename not in perfect_src_files and not is_bad and
+                filename not in WHITELISTED_FILES):
             text = ("{} has 100% coverage but is not in "
                     "perfect_files!".format(filename))
             messages.append(Message(MsgType.perfect_file, text))

@@ -55,3 +55,7 @@ Feature: Zooming in and out
     Scenario: Setting zoom with very big count
         When I run :zoom with count 99999999999
         Then the message "Zoom level: 99999999999%" should be shown
+
+    Scenario: Setting zoom with argument and count
+        When I run :zoom 50 with count 60
+        Then the error "Both count and argument given!" should be shown

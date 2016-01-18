@@ -94,8 +94,7 @@ class JSTester:
             **kwargs: Passed to jinja's template.render().
         """
         template = self._jinja_env.get_template(path)
-        with self._qtbot.waitSignal(self.webview.loadFinished,
-                                    raising=True) as blocker:
+        with self._qtbot.waitSignal(self.webview.loadFinished) as blocker:
             self.webview.setHtml(template.render(**kwargs))
         assert blocker.args == [True]
 

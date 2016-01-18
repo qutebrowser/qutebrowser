@@ -258,6 +258,13 @@ class String(BaseType):
         self._basic_validation(value)
         if not value:
             return
+
+        if self.valid_values is not None:
+            if value not in self.valid_values:
+                raise configexc.ValidationError(
+                    value, "valid values: {}".format(', '.join(
+                        self.valid_values)))
+
         if self.forbidden is not None and any(c in value
                                               for c in self.forbidden):
             raise configexc.ValidationError(value, "may not contain the chars "
@@ -270,7 +277,10 @@ class String(BaseType):
                                             "long!".format(self.maxlen))
 
     def complete(self):
-        return self._completions
+        if self._completions is not None:
+            return self._completions
+        else:
+            return super().complete()
 
 
 class List(BaseType):

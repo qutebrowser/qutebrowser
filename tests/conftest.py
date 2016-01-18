@@ -39,13 +39,16 @@ from helpers.messagemock import message_mock
 from qutebrowser.config import config
 from qutebrowser.utils import objreg
 
-from PyQt5.QtCore import QEvent
+from PyQt5.QtCore import QEvent, QSize, Qt, PYQT_VERSION
+from PyQt5.QtWidgets import QWidget, QHBoxLayout, QVBoxLayout
 from PyQt5.QtNetwork import QNetworkCookieJar
 import xvfbwrapper
 
 
 # Set hypothesis settings
-hypothesis.Settings.default.strict = True  # pylint: disable=no-member
+hypothesis.settings.register_profile('default',
+                                     hypothesis.settings(strict=True))
+hypothesis.settings.load_profile('default')
 
 
 def _apply_platform_markers(item):
@@ -62,6 +65,9 @@ def _apply_platform_markers(item):
             "Can only run when frozen"),
         ('not_xvfb', item.config.xvfb_display is not None,
             "Can't be run with Xvfb."),
+        ('skip', True, "Always skipped."),
+        ('pyqt531_or_newer', PYQT_VERSION < 0x050301,
+            "Needs PyQt 5.3.1 or newer"),
     ]
 
     for searched_marker, condition, default_reason in markers:
@@ -108,7 +114,7 @@ def pytest_collection_modifyitems(items):
             item.add_marker('gui')
             if sys.platform == 'linux' and not os.environ.get('DISPLAY', ''):
                 if ('CI' in os.environ and
-                        not os.environ.get('QUTE_NO_DISPLAY_OK', '')):
+                        not os.environ.get('QUTE_NO_DISPLAY', '')):
                     raise Exception("No display available on CI!")
                 skip_marker = pytest.mark.skipif(
                     True, reason="No DISPLAY available")
@@ -124,6 +130,8 @@ def pytest_collection_modifyitems(items):
                 item.add_marker(pytest.mark.integration)
 
         _apply_platform_markers(item)
+        if item.get_marker('xfail_norun'):
+            item.add_marker(pytest.mark.xfail(run=False))
 
 
 def pytest_ignore_collect(path):
@@ -159,6 +167,41 @@ class WinRegistryHelper:
     def cleanup(self):
         for win_id in self._ids:
             del objreg.window_registry[win_id]
+
+
+class FakeStatusBar(QWidget):
+
+    """Fake statusbar to test progressbar sizing."""
+
+    def __init__(self, parent=None):
+        super().__init__(parent)
+        self.hbox = QHBoxLayout(self)
+        self.hbox.addStretch()
+        self.hbox.setContentsMargins(0, 0, 0, 0)
+        self.setAttribute(Qt.WA_StyledBackground, True)
+        self.setStyleSheet('background-color: red;')
+
+    def minimumSizeHint(self):
+        return QSize(1, self.fontMetrics().height())
+
+
+@pytest.fixture
+def fake_statusbar(qtbot):
+    """Fixture providing a statusbar in a container window."""
+    container = QWidget()
+    qtbot.add_widget(container)
+    vbox = QVBoxLayout(container)
+    vbox.addStretch()
+
+    statusbar = FakeStatusBar(container)
+    # to make sure container isn't GCed
+    # pylint: disable=attribute-defined-outside-init
+    statusbar.container = container
+    vbox.addWidget(statusbar)
+
+    container.show()
+    qtbot.waitForWindowShown(container)
+    return statusbar
 
 
 @pytest.yield_fixture
@@ -373,7 +416,10 @@ def pytest_configure(config):
     if os.environ.get('DISPLAY', None) == '':
         # xvfbwrapper doesn't handle DISPLAY="" correctly
         del os.environ['DISPLAY']
-    if sys.platform.startswith('linux') and not config.getoption('--no-xvfb'):
+
+    if (sys.platform.startswith('linux') and
+            not config.getoption('--no-xvfb') and
+            'QUTE_NO_DISPLAY' not in os.environ):
         assert 'QUTE_BUILDBOT' not in os.environ
         try:
             disp = xvfbwrapper.Xvfb(width=800, height=600, colordepth=16)

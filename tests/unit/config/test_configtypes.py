@@ -305,6 +305,8 @@ class TestString:
         ({'minlen': 2}, 'fo'),
         ({'minlen': 2, 'maxlen': 3}, 'fo'),
         ({'minlen': 2, 'maxlen': 3}, 'foo'),
+        # valid_values
+        ({'valid_values': configtypes.ValidValues('fooo')}, 'fooo'),
     ])
     def test_validate_valid(self, klass, kwargs, val):
         klass(**kwargs).validate(val)
@@ -319,6 +321,8 @@ class TestString:
         ({'maxlen': 2}, 'fob'),
         ({'minlen': 2, 'maxlen': 3}, 'f'),
         ({'minlen': 2, 'maxlen': 3}, 'fooo'),
+        # valid_values
+        ({'valid_values': configtypes.ValidValues('blah')}, 'fooo'),
     ])
     def test_validate_invalid(self, klass, kwargs, val):
         with pytest.raises(configexc.ValidationError):
@@ -334,6 +338,15 @@ class TestString:
     ])
     def test_complete(self, klass, value):
         assert klass(completions=value).complete() == value
+
+    @pytest.mark.parametrize('valid_values, expected', [
+        (configtypes.ValidValues('one', 'two'),
+            [('one', ''), ('two', '')]),
+        (configtypes.ValidValues(('1', 'one'), ('2', 'two')),
+            [('1', 'one'), ('2', 'two')]),
+    ])
+    def test_complete_valid_values(self, klass, valid_values, expected):
+        assert klass(valid_values=valid_values).complete() == expected
 
 
 class TestList:
