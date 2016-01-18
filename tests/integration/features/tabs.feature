@@ -605,6 +605,7 @@ Feature: Tab management
         And I set tabs -> last-close to blank
         And I run :tab-only
         And I run :tab-close
+        And I wait until about:blank is loaded
         Then the following tabs should be open:
             - about:blank (active)
 
@@ -614,6 +615,7 @@ Feature: Tab management
         And I open data/hello.txt
         And I run :tab-only
         And I run :tab-close
+        And I wait until data/numbers/7.txt is loaded
         Then the following tabs should be open:
             - data/numbers/7.txt (active)
 
@@ -623,6 +625,7 @@ Feature: Tab management
         And I open data/hello.txt
         And I run :tab-only
         And I run :tab-close
+        And I wait until data/numbers/9.txt is loaded
         Then the following tabs should be open:
             - data/numbers/9.txt (active)
 
