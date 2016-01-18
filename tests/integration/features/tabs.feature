@@ -577,3 +577,58 @@ Feature: Tab management
         And I run :undo
         Then the following tabs should be open:
             - data/hello2.txt (active)
+
+    Scenario: Undo with auto-created last tab (startpage)
+        When I open data/hello.txt
+        And I run :tab-only
+        And I set tabs -> last-close to startpage
+        And I set general -> startpage to http://localhost:(port)/data/numbers/4.txt,http://localhost:(port)/data/numbers/5.txt
+        And I run :tab-close
+        And I run :undo
+        Then the following tabs should be open:
+            - data/hello.txt (active)
+
+    Scenario: Undo with auto-created last tab (default-page)
+        When I open data/hello.txt
+        And I run :tab-only
+        And I set tabs -> last-close to default-page
+        And I set general -> default-page to http://localhost:(port)/data/numbers/6.txt
+        And I run :tab-close
+        And I run :undo
+        Then the following tabs should be open:
+            - data/hello.txt (active)
+
+    # last-close
+
+    Scenario: last-close = blank
+        When I open data/hello.txt
+        And I set tabs -> last-close to blank
+        And I run :tab-only
+        And I run :tab-close
+        Then the following tabs should be open:
+            - about:blank (active)
+
+    Scenario: last-close = startpage
+        When I set general -> startpage to http://localhost:(port)/data/numbers/7.txt,http://localhost:(port)/data/numbers/8.txt
+        And I set tabs -> last-close to startpage
+        And I open data/hello.txt
+        And I run :tab-only
+        And I run :tab-close
+        Then the following tabs should be open:
+            - data/numbers/7.txt (active)
+
+    Scenario: last-close = default-page
+        When I set general -> default-page to http://localhost:(port)/data/numbers/9.txt
+        And I set tabs -> last-close to default-page
+        And I open data/hello.txt
+        And I run :tab-only
+        And I run :tab-close
+        Then the following tabs should be open:
+            - data/numbers/9.txt (active)
+
+    Scenario: last-close = close
+        When I open data/hello.txt
+        And I set tabs -> last-close to close
+        And I run :tab-only
+        And I run :tab-close
+        Then qutebrowser should quit
