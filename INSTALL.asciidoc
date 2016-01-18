@@ -200,7 +200,7 @@ installed to compile PyQt5 in a later step.
 
 ----
 $ brew install python3 pyqt5
-$ pip3.4 install qutebrowser
+$ pip3.5 install qutebrowser
 ----
 
 if you are using Homebrew. For MacPorts, run:
