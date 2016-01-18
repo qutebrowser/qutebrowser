@@ -28,10 +28,14 @@ Changed
 
 - Pasting multiple lines via `:paste` now opens each line in a new tab.
 
+v0.5.1
+------
+
 Fixed
 ~~~~~
 
 - Fixed completion for various config values when using `:set`.
+- Fixed config validation for various config values.
 - Prevented an error being logged when a website with HTTP authentication was
   opened on Windows.
 
