@@ -363,7 +363,8 @@ def check_contents(quteproc, filename):
     path = os.path.join(os.path.abspath(os.path.dirname(__file__)), '..',
                         'data', os.path.join(*filename.split('/')))
     with open(path, 'r', encoding='utf-8') as f:
-        assert content == f.read()
+        file_content = f.read()
+        assert content == file_content
 
 
 @bdd.then(bdd.parsers.parse('the page should contain the plaintext "{text}"'))
