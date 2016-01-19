@@ -268,6 +268,12 @@ def test_get_search_url(urlutils_config_stub, url, host, query):
     assert url.query() == query
 
 
+@pytest.mark.parametrize('url', ['\n', ' ', '\n '])
+def test_get_search_url_invalid(urlutils_config_stub, url):
+    with pytest.raises(ValueError):
+        urlutils._get_search_url(url)
+
+
 @pytest.mark.parametrize('is_url, is_url_no_autosearch, uses_dns, url', [
     # Normal hosts
     (True, True, False, 'http://foobar'),
@@ -288,7 +294,7 @@ def test_get_search_url(urlutils_config_stub, url, host, query):
     # _has_explicit_scheme False, special_url True
     (True, True, False, 'qute::foo'),
     # Invalid URLs
-    (False, True, False, ''),
+    (False, False, False, ''),
     (False, True, False, 'http:foo:0'),
     # Not URLs
     (False, True, False, 'foo bar'),  # no DNS because of space

@@ -74,6 +74,8 @@ def _parse_search_term(s):
             term = s
         else:
             term = split[1]
+    elif not split:
+        raise ValueError("Empty search term!")
     else:
         engine = None
         term = s
@@ -253,8 +255,12 @@ def is_url(urlstr):
     if not autosearch:
         # no autosearch, so everything is a URL unless it has an explicit
         # search engine.
-        engine, _term = _parse_search_term(urlstr)
-        return engine is None
+        try:
+            engine, _term = _parse_search_term(urlstr)
+        except ValueError:
+            return False
+        else:
+            return engine is None
 
     if not qurl_userinput.isValid():
         # This will also catch URLs containing spaces.
