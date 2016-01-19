@@ -208,7 +208,7 @@ class HintManager(QObject):
             A list of hint strings, in the same order as the elements.
         """
         hint_mode = config.get('hints', 'mode')
-        if hint_mode == 'words':
+        if hint_mode == 'word':
             try:
                 return self._word_hinter.hint(elems)
             except WordHintingError as e:
