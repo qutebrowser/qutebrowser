@@ -550,6 +550,10 @@ class Quitter:
         else:
             argdict['session'] = session
             argdict['override_restore'] = False
+        # Ensure :restart works with --temp-basedir
+        argdict['temp_basedir'] = False
+        argdict['temp_basedir_restarted'] = True
+
         # Dump the data
         data = json.dumps(argdict)
         args += ['--json-args', data]
@@ -572,7 +576,7 @@ class Quitter:
             raise cmdexc.CommandError("SyntaxError in {}:{}: {}".format(
                 e.filename, e.lineno, e))
         if ok:
-            self.shutdown()
+            self.shutdown(restart=True)
 
     def restart(self, pages=(), session=None):
         """Inner logic to restart qutebrowser.
@@ -615,7 +619,8 @@ class Quitter:
 
     @cmdutils.register(instance='quitter', name=['quit', 'q'],
                        ignore_args=True)
-    def shutdown(self, status=0, session=None, last_window=False):
+    def shutdown(self, status=0, session=None, last_window=False,
+                 restart=False):
         """Quit qutebrowser.
 
         Args:
@@ -623,6 +628,7 @@ class Quitter:
             session: A session name if saving should be forced.
             last_window: If the shutdown was triggered due to the last window
                             closing.
+            restart: If we're planning to restart.
         """
         if self._shutting_down:
             return
@@ -652,13 +658,14 @@ class Quitter:
             # in the real main event loop, or we'll get a segfault.
             log.destroy.debug("Deferring real shutdown because question was "
                               "active.")
-            QTimer.singleShot(0, functools.partial(self._shutdown, status))
+            QTimer.singleShot(0, functools.partial(self._shutdown, status,
+                                                   restart=restart))
         else:
             # If we have no questions to shut down, we are already in the real
             # event loop, so we can shut down immediately.
-            self._shutdown(status)
+            self._shutdown(status, restart=restart)
 
-    def _shutdown(self, status):
+    def _shutdown(self, status, restart):
         """Second stage of shutdown."""
         log.destroy.debug("Stage 2 of shutting down...")
         if qApp is None:
@@ -699,7 +706,8 @@ class Quitter:
         log.destroy.debug("Deactivating crash log...")
         objreg.get('crash-handler').destroy_crashlogfile()
         # Delete temp basedir
-        if self._args.temp_basedir:
+        if ((self._args.temp_basedir or self._args.temp_basedir_restarted) and
+                not restart):
             atexit.register(shutil.rmtree, self._args.basedir,
                             ignore_errors=True)
         # If we don't kill our custom handler here we might get segfaults

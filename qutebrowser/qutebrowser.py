@@ -70,6 +70,7 @@ def get_argparser():
                         help="How URLs should be opened if there is already a "
                              "qutebrowser instance running.")
     parser.add_argument('--json-args', help=argparse.SUPPRESS)
+    parser.add_argument('--temp-basedir-restarted', help=argparse.SUPPRESS)
 
     debug = parser.add_argument_group('debug arguments')
     debug.add_argument('-l', '--loglevel', dest='loglevel',
