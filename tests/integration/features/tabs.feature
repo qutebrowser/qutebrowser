@@ -565,6 +565,7 @@ Feature: Tab management
         And I run :tab-only
         And I set tabs -> last-close to blank
         And I run :tab-close
+        And I wait until about:blank is loaded
         And I run :undo
         And I wait until data/hello.txt is loaded
         Then the following tabs should be open:
@@ -576,6 +577,7 @@ Feature: Tab management
         And I run :tab-only
         And I set tabs -> last-close to blank
         And I run :tab-close
+        And I wait until about:blank is loaded
         And I run :undo
         And I wait until data/hello2.txt is loaded
         Then the following tabs should be open:
@@ -587,6 +589,7 @@ Feature: Tab management
         And I set tabs -> last-close to startpage
         And I set general -> startpage to http://localhost:(port)/data/numbers/4.txt,http://localhost:(port)/data/numbers/5.txt
         And I run :tab-close
+        And I wait until data/numbers/4.txt is loaded
         And I run :undo
         And I wait until data/hello.txt is loaded
         Then the following tabs should be open:
@@ -598,6 +601,7 @@ Feature: Tab management
         And I set tabs -> last-close to default-page
         And I set general -> default-page to http://localhost:(port)/data/numbers/6.txt
         And I run :tab-close
+        And I wait until data/numbers/6.txt is loaded
         And I run :undo
         And I wait until data/hello.txt is loaded
         Then the following tabs should be open:
