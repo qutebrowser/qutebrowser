@@ -216,7 +216,8 @@ class Process(QObject):
     def start(self, args=None, *, env=None):
         """Start the process and wait until it started."""
         self._start(args, env=env)
-        for _ in range(30):
+        timeout = 60 if 'CI' in os.environ else 20
+        for _ in range(timeout):
             with self._wait_signal(self.ready, timeout=1000,
                                    raising=False) as blocker:
                 pass
