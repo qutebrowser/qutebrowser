@@ -215,8 +215,21 @@ class Process(QObject):
 
     def start(self, args=None, *, env=None):
         """Start the process and wait until it started."""
-        with self._wait_signal(self.ready, timeout=60000):
-            self._start(args, env=env)
+        self._start(args, env=env)
+        for _ in range(30):
+            with self._wait_signal(self.ready, timeout=1000,
+                                   raising=False) as blocker:
+                pass
+
+            if not self.is_running():
+                # _start ensures it actually started, but it might quit shortly
+                # afterwards
+                raise ProcessExited()
+
+            if blocker.signal_triggered:
+                return
+
+        raise WaitForTimeout("Timed out while waiting for process start.")
 
     def _start(self, args, env):
         """Actually start the process."""

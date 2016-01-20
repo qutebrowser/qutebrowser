@@ -90,6 +90,18 @@ class QuitPythonProcess(PythonProcess):
         return (sys.executable, ['-c', ';'.join(code)])
 
 
+class NoReadyPythonProcess(PythonProcess):
+
+    """A testprocess which never emits 'ready' and quits."""
+
+    def _executable_args(self):
+        code = [
+            'import sys',
+            'sys.exit(0)',
+        ]
+        return (sys.executable, ['-c', ';'.join(code)])
+
+
 @pytest.yield_fixture
 def pyproc():
     proc = PythonProcess()
@@ -102,6 +114,20 @@ def quit_pyproc():
     proc = QuitPythonProcess()
     yield proc
     proc.terminate()
+
+
+@pytest.yield_fixture
+def noready_pyproc():
+    proc = NoReadyPythonProcess()
+    yield proc
+    proc.terminate()
+
+
+def test_no_ready_python_process(noready_pyproc):
+    """When a process quits immediately, waiting for start should interrupt."""
+    with pytest.raises(testprocess.ProcessExited):
+        with stopwatch(max_ms=5000):
+            noready_pyproc.start()
 
 
 def test_quitting_process(qtbot, quit_pyproc):
