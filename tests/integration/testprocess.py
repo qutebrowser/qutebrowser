@@ -25,7 +25,8 @@ import time
 
 import pytest
 import pytestqt.plugin
-from PyQt5.QtCore import pyqtSlot, pyqtSignal, QProcess, QObject, QElapsedTimer
+from PyQt5.QtCore import (pyqtSlot, pyqtSignal, QProcess, QObject,
+                          QElapsedTimer, QProcessEnvironment)
 from PyQt5.QtTest import QSignalSpy
 
 from helpers import utils
@@ -212,17 +213,27 @@ class Process(QObject):
                 self._data.append(parsed)
                 self.new_data.emit(parsed)
 
-    def start(self, args=None):
+    def start(self, args=None, *, env=None):
         """Start the process and wait until it started."""
         with self._wait_signal(self.ready, timeout=60000):
-            self._start(args)
+            self._start(args, env=env)
 
-    def _start(self, args):
+    def _start(self, args, env):
         """Actually start the process."""
         executable, exec_args = self._executable_args()
         if args is None:
             args = self._default_args()
+
+        if env is None:
+            procenv = QProcessEnvironment.systemEnvironment()
+        else:
+            procenv = QProcessEnvironment()
+            for k, v in env.items():
+                procenv.insert(k, v)
+            procenv.insert('DISPLAY', os.environ['DISPLAY'])
+
         self.proc.readyRead.connect(self.read_log)
+        self.proc.setProcessEnvironment(procenv)
         self.proc.start(executable, exec_args + args)
         ok = self.proc.waitForStarted()
         assert ok
