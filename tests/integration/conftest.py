@@ -22,5 +22,5 @@
 """Things needed for integration testing."""
 
 from webserver import httpbin, httpbin_after_test, ssl_server
-from quteprocess import quteproc_process, quteproc
+from quteprocess import quteproc_process, quteproc, quteproc_new
 from testprocess import pytest_runtest_makereport

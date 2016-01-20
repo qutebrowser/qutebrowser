@@ -393,3 +393,14 @@ def quteproc(quteproc_process, httpbin, request):
     quteproc_process.before_test()
     yield quteproc_process
     quteproc_process.after_test()
+
+
+@pytest.yield_fixture
+def quteproc_new(qapp, httpbin, request):
+    """Per-test qutebrowser process to test invocations."""
+    delay = request.config.getoption('--qute-delay')
+    proc = QuteProc(httpbin, delay)
+    request.node._quteproc_log = proc.captured_log
+    # Not calling before_test here as that would start the process
+    yield proc
+    proc.after_test()
