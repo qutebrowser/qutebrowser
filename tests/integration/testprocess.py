@@ -244,8 +244,11 @@ class Process(QObject):
             procenv = QProcessEnvironment()
             for k, v in env.items():
                 procenv.insert(k, v)
-            if 'DISPLAY' in os.environ:
-                procenv.insert('DISPLAY', os.environ['DISPLAY'])
+
+            passthrough_vars = ['DISPLAY', 'HOME']  # so --no-xvfb works
+            for var in passthrough_vars:
+                if var in os.environ:
+                    procenv.insert(var, os.environ[var])
 
         self.proc.readyRead.connect(self.read_log)
         self.proc.setProcessEnvironment(procenv)
