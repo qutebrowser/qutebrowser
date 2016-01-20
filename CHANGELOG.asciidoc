@@ -22,6 +22,7 @@ Added
 
 - New `--quiet` argument for the `:debug-pyeval` command to not open a tab with
   the results. Note `:debug-pyeval` is still only intended for debugging.
+- The completion now matches each entered word separately.
 
 Changed
 ~~~~~~~
