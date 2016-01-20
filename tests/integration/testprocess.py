@@ -417,3 +417,9 @@ class Process(QObject):
             return
         else:
             raise BlacklistedMessageError(line)
+
+    def wait_for_quit(self):
+        """Wait until the process has quit."""
+        self.exit_expected = True
+        with self._wait_signal(self.proc.finished, timeout=15000):
+            pass
