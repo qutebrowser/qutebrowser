@@ -272,8 +272,8 @@ class TabbedBrowser(tabwidget.TabWidget):
         """
         idx = self.indexOf(tab)
         if idx == -1:
-            raise ValueError("tab {} is not contained in TabbedWidget!".format(
-                tab))
+            raise TabDeletedError("tab {} is not contained in "
+                                  "TabbedWidget!".format(tab))
         if tab is self._now_focused:
             self._now_focused = None
         if tab is objreg.get('last-focused-tab', None, scope='window',
@@ -350,7 +350,11 @@ class TabbedBrowser(tabwidget.TabWidget):
     @pyqtSlot(webview.WebView)
     def on_window_close_requested(self, widget):
         """Close a tab with a widget given."""
-        self.close_tab(widget)
+        try:
+            self.close_tab(widget)
+        except TabDeletedError:
+            log.webview.debug("Requested to close {!r} which does not "
+                              "exist!".format(widget))
 
     @pyqtSlot('QUrl', bool)
     def tabopen(self, url=None, background=None, explicit=False):
