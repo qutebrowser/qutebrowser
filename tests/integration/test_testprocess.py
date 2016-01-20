@@ -77,19 +77,9 @@ class PythonProcess(testprocess.Process):
         return []
 
 
-class QuitPythonProcess(testprocess.Process):
+class QuitPythonProcess(PythonProcess):
 
     """A testprocess which quits immediately."""
-
-    def __init__(self):
-        super().__init__()
-        self.proc.setReadChannel(QProcess.StandardOutput)
-
-    def _parse_line(self, line):
-        print("LINE: {}".format(line))
-        if line.strip() == 'ready':
-            self.ready.emit()
-        return testprocess.Line(line)
 
     def _executable_args(self):
         code = [
@@ -98,9 +88,6 @@ class QuitPythonProcess(testprocess.Process):
             'sys.exit(0)',
         ]
         return (sys.executable, ['-c', ';'.join(code)])
-
-    def _default_args(self):
-        return []
 
 
 @pytest.yield_fixture
