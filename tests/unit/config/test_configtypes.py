@@ -1391,14 +1391,6 @@ class TestFileAndUserStyleSheet:
     def test_transform_abs(self, klass, os_mock, val, expected):
         assert klass().transform(val) == self._expected(klass, expected)
 
-    def test_transform_relative_confdir_none(self, klass, monkeypatch,
-                                             os_mock):
-        """Test transform() with relative dir and no configdir."""
-        monkeypatch.setattr(
-            'qutebrowser.config.configtypes.standarddir.config', lambda: None)
-        os_mock.path.exists.return_value = True
-        assert klass().transform('foo') == self._expected(klass, 'foo')
-
     def test_transform_relative(self, klass, os_mock, monkeypatch):
         """Test transform() with relative dir and an available configdir."""
         os_mock.path.exists.return_value = True  # for TestUserStyleSheet
@@ -1409,8 +1401,14 @@ class TestFileAndUserStyleSheet:
         expected = self._expected(klass, '/configdir/foo')
         assert klass().transform('foo') == expected
 
-    def test_transform_userstylesheet_base64(self):
+    @pytest.mark.parametrize('no_config', [False, True])
+    def test_transform_userstylesheet_base64(self, monkeypatch, no_config):
         """Test transform with a data string."""
+        if no_config:
+            monkeypatch.setattr(
+                'qutebrowser.config.configtypes.standarddir.config',
+                lambda: None)
+
         b64 = base64.b64encode(b"test").decode('ascii')
         url = QUrl("data:text/css;charset=utf-8;base64,{}".format(b64))
         assert configtypes.UserStyleSheet().transform("test") == url
