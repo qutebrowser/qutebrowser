@@ -159,7 +159,11 @@ class Process(QObject):
         raise NotImplementedError
 
     def _executable_args(self):
-        """Get the executable and arguments to pass to it as a tuple."""
+        """Get the executable and necessary arguments as a tuple."""
+        raise NotImplementedError
+
+    def _default_args(self):
+        """Get the default arguments to use if none were passed to start()."""
         raise NotImplementedError
 
     def _get_data(self):
@@ -208,16 +212,18 @@ class Process(QObject):
                 self._data.append(parsed)
                 self.new_data.emit(parsed)
 
-    def start(self):
+    def start(self, args=None):
         """Start the process and wait until it started."""
         with self._wait_signal(self.ready, timeout=60000):
-            self._start()
+            self._start(args)
 
-    def _start(self):
+    def _start(self, args):
         """Actually start the process."""
-        executable, args = self._executable_args()
+        executable, exec_args = self._executable_args()
+        if args is None:
+            args = self._default_args()
         self.proc.readyRead.connect(self.read_log)
-        self.proc.start(executable, args)
+        self.proc.start(executable, exec_args + args)
         ok = self.proc.waitForStarted()
         assert ok
         assert self.is_running()

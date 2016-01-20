@@ -154,13 +154,16 @@ class WebserverProcess(testprocess.Process):
         if hasattr(sys, 'frozen'):
             executable = os.path.join(os.path.dirname(sys.executable),
                                       self._script)
-            args = [str(self.port)]
+            args = []
         else:
             executable = sys.executable
             py_file = os.path.join(os.path.dirname(__file__),
                                    self._script + '.py')
-            args = [py_file, str(self.port)]
+            args = [py_file]
         return executable, args
+
+    def _default_args(self):
+        return [str(self.port)]
 
     def cleanup(self):
         """Clean up and shut down the process."""

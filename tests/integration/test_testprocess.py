@@ -73,6 +73,9 @@ class PythonProcess(testprocess.Process):
         ]
         return (sys.executable, ['-c', ';'.join(code)])
 
+    def _default_args(self):
+        return []
+
 
 class QuitPythonProcess(testprocess.Process):
 
@@ -95,6 +98,9 @@ class QuitPythonProcess(testprocess.Process):
             'sys.exit(0)',
         ]
         return (sys.executable, ['-c', ';'.join(code)])
+
+    def _default_args(self):
+        return []
 
 
 @pytest.yield_fixture

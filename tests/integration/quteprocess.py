@@ -207,9 +207,10 @@ class QuteProc(testprocess.Process):
         else:
             executable = sys.executable
             args = ['-m', 'qutebrowser']
-        args += ['--debug', '--no-err-windows', '--temp-basedir',
-                 'about:blank']
         return executable, args
+
+    def _default_args(self):
+        return ['--debug', '--no-err-windows', '--temp-basedir', 'about:blank']
 
     def path_to_url(self, path, *, port=None, https=False):
         """Get a URL based on a filename for the localhost webserver.
