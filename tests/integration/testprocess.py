@@ -244,7 +244,8 @@ class Process(QObject):
             procenv = QProcessEnvironment()
             for k, v in env.items():
                 procenv.insert(k, v)
-            procenv.insert('DISPLAY', os.environ['DISPLAY'])
+            if 'DISPLAY' in os.environ:
+                procenv.insert('DISPLAY', os.environ['DISPLAY'])
 
         self.proc.readyRead.connect(self.read_log)
         self.proc.setProcessEnvironment(procenv)
