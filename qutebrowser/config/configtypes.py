@@ -1269,8 +1269,16 @@ class UserStyleSheet(File):
     def transform(self, value):
         if not value:
             return None
-        path = super().transform(value)
-        if os.path.exists(path):
+
+        if standarddir.config() is None:
+            # We can't call super().transform() here as this counts on the
+            # validation previously ensuring that we don't have a relative path
+            # when starting with -c "".
+            path = None
+        else:
+            path = super().transform(value)
+
+        if path is not None and os.path.exists(path):
             return QUrl.fromLocalFile(path)
         else:
             data = base64.b64encode(value.encode('utf-8')).decode('ascii')
