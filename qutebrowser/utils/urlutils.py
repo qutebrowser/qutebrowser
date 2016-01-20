@@ -528,7 +528,7 @@ def incdec_number(url, incdec, segments=None):
             if len(number) < len(str(val)):
                 zeroes = zeroes[1:]
             if len(number) > len(str(val)):
-                zeroes = ''.join([zeroes,'0'])
+                zeroes = ''.join([zeroes, '0'])
 
         new_value = ''.join([pre, zeroes, str(val), post])
         setter(new_value)
