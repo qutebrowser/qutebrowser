@@ -30,7 +30,7 @@ class FixedDataNetworkReply(QNetworkReply):
 
     """QNetworkReply subclass for fixed data."""
 
-    def __init__(self, request, fileData, mimeType, parent=None):
+    def __init__(self, request, fileData, mimeType, parent=None):  # noqa
         """Constructor.
 
         Args:
