@@ -22,7 +22,7 @@
 import os
 import sys
 import bdb
-import pdb
+import pdb  # noqa
 import signal
 import functools
 import faulthandler
