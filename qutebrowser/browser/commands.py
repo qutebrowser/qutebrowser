@@ -1307,6 +1307,39 @@ class CommandDispatcher:
         except webelem.IsNullError:
             raise cmdexc.CommandError("Element vanished while editing!")
 
+    @cmdutils.register(instance='command-dispatcher',
+                       modes=[KeyMode.insert], hide=True, scope='window')
+    def paste_primary(self):
+        """Paste the primary selection at cursor position into the curently
+        selected form field.
+        """
+        frame = self._current_widget().page().currentFrame()
+        try:
+            elem = webelem.focus_elem(frame)
+        except webelem.IsNullError:
+            raise cmdexc.CommandError("No element focused!")
+        if not elem.is_editable(strict=True):
+            raise cmdexc.CommandError("Focused element is not editable!")
+
+        clipboard = QApplication.clipboard()
+        if clipboard.supportsSelection():
+            sel = clipboard.text(QClipboard.Selection)
+            log.misc.debug("Pasting selection: '{}'".format(sel))
+            elem.evaluateJavaScript("""
+                var sel = '%s';
+                if (this.selectionStart || this.selectionStart == '0') {
+                    var startPos = this.selectionStart;
+                    var endPos = this.selectionEnd;
+                    this.value = this.value.substring(0, startPos)
+                        + sel
+                        + this.value.substring(endPos, this.value.length);
+                    this.selectionStart = startPos + sel.length;
+                    this.selectionEnd = startPos + sel.length;
+                } else {
+                    this.value += sel;
+                }
+                """ % sel)
+
     def _clear_search(self, view, text):
         """Clear search string/highlights for the given view.
 
