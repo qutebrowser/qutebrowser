@@ -65,7 +65,7 @@ class NotInModeError(Exception):
 
 def init(win_id, parent):
     """Initialize the mode manager and the keyparsers for the given win_id."""
-    KM = usertypes.KeyMode  # noqa # pylint: disable=invalid-name
+    KM = usertypes.KeyMode  # pylint: disable=invalid-name
     modeman = ModeManager(win_id, parent)
     objreg.register('mode-manager', modeman, scope='window', window=win_id)
     keyparsers = {

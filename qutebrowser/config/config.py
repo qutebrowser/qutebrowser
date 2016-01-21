@@ -46,7 +46,7 @@ from qutebrowser.utils.usertypes import Completion
 UNSET = object()
 
 
-class change_filter:  # noqa # pylint: disable=invalid-name
+class change_filter:  # pylint: disable=invalid-name
 
     """Decorator to filter calls based on a config section/option matching.
 

@@ -91,7 +91,7 @@ def check_exclusive(flags, names):
             argstr))
 
 
-class register:  # noqa # pylint: disable=invalid-name
+class register:  # pylint: disable=invalid-name
 
     """Decorator to register a new command handler.
 

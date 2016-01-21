@@ -247,8 +247,8 @@ class TestGetAllObjects:
 
         root = QObject()
         o1 = self.Object('Object 1', root)
-        o2 = self.Object('Object 2', o1)  # noqa
-        o3 = self.Object('Object 3', root)  # noqa
+        o2 = self.Object('Object 2', o1)  # flake8: disable=F841
+        o3 = self.Object('Object 3', root)  # flake8: disable=F841
 
         expected = textwrap.dedent("""
             Qt widgets - 2 objects:
