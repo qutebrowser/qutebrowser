@@ -52,11 +52,11 @@ def test_httpbin(httpbin, qtbot, path, content, expected):
 
 
 @pytest.mark.parametrize('line, verb, path, equal', [
-   ({'verb': 'GET', 'path': '/', 'status': 200}, 'GET', '/', True),
-   ({'verb': 'GET', 'path': '/foo/', 'status': 200}, 'GET', '/foo', True),
+    ({'verb': 'GET', 'path': '/', 'status': 200}, 'GET', '/', True),
+    ({'verb': 'GET', 'path': '/foo/', 'status': 200}, 'GET', '/foo', True),
 
-   ({'verb': 'GET', 'path': '/', 'status': 200}, 'GET', '/foo', False),
-   ({'verb': 'POST', 'path': '/', 'status': 200}, 'GET', '/', False),
+    ({'verb': 'GET', 'path': '/', 'status': 200}, 'GET', '/foo', False),
+    ({'verb': 'POST', 'path': '/', 'status': 200}, 'GET', '/', False),
 ])
 def test_expected_request(httpbin, line, verb, path, equal):
     expected = httpbin.ExpectedRequest(verb, path)

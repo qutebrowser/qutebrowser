@@ -76,8 +76,7 @@ def _apply_platform_markers(item):
             continue
 
         if 'reason' in marker.kwargs:
-            reason = '{}: {}'.format(default_reason,
-                                        marker.kwargs['reason'])
+            reason = '{}: {}'.format(default_reason, marker.kwargs['reason'])
             del marker.kwargs['reason']
         else:
             reason = default_reason + '.'
@@ -388,8 +387,10 @@ def py_proc():
     """Get a python executable and args list which executes the given code."""
     if getattr(sys, 'frozen', False):
         pytest.skip("Can't be run when frozen")
+
     def func(code):
         return (sys.executable, ['-c', textwrap.dedent(code.strip('\n'))])
+
     return func
 
 

@@ -532,6 +532,7 @@ def test_same_domain(are_same, url1, url2):
     assert urlutils.same_domain(QUrl(url1), QUrl(url2)) == are_same
     assert urlutils.same_domain(QUrl(url2), QUrl(url1)) == are_same
 
+
 @pytest.mark.parametrize('url1, url2', [
     ('http://example.com', ''),
     ('', 'http://example.com'),
@@ -618,7 +619,7 @@ class TestIncDecNumber:
         after decrementing."""
         with pytest.raises(urlutils.IncDecError):
             urlutils.incdec_number(QUrl('http://example.com/page_0.html'),
-                    'decrement')
+                                   'decrement')
 
     def test_invalid_url(self):
         """Test if incdec_number rejects an invalid URL."""

@@ -329,10 +329,10 @@ class TestListen:
         file_mode_ok = file_stat.st_mode & 0o777 == 0o700
         dir_mode_ok = dir_stat.st_mode & 0o777 == 0o700
 
-        print('sockdir: {} / owner {} / mode {:o}'.format(sockdir,
-            dir_stat.st_uid, dir_stat.st_mode))
-        print('sockfile: {} / owner {} / mode {:o}'.format(sockfile,
-            file_stat.st_uid, file_stat.st_mode))
+        print('sockdir: {} / owner {} / mode {:o}'.format(
+            sockdir, dir_stat.st_uid, dir_stat.st_mode))
+        print('sockfile: {} / owner {} / mode {:o}'.format(
+            sockfile, file_stat.st_uid, file_stat.st_mode))
 
         assert file_owner_ok or dir_owner_ok
         assert file_mode_ok or dir_mode_ok
@@ -831,8 +831,8 @@ class TestSendOrListen:
             'title: Error while connecting to running instance!',
             'pre_text: ',
             'post_text: Maybe another instance is running but frozen?',
-            'exception text: Error while listening to IPC server: Error '
-                'string (error 4)',
+            ('exception text: Error while listening to IPC server: Error '
+                'string (error 4)'),
         ]
         assert caplog.records[0].msg == '\n'.join(error_msgs)
 

@@ -44,7 +44,7 @@ def test_name(enum):
 def test_unknown(enum):
     """Test invalid values which should raise an AttributeError."""
     with pytest.raises(AttributeError):
-        _ = enum.three
+        _ = enum.three  # noqa
 
 
 def test_start():

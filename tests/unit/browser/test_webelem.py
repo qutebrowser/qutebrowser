@@ -67,7 +67,7 @@ def get_webelem(geometry=None, frame=None, null=False, style=None,
     elem.hasAttribute.side_effect = lambda k: k in attribute_dict
     elem.attribute.side_effect = lambda k: attribute_dict.get(k, '')
     elem.setAttribute.side_effect = (lambda k, v:
-        operator.setitem(attribute_dict, k, v))
+                                     operator.setitem(attribute_dict, k, v))
     elem.removeAttribute.side_effect = attribute_dict.pop
     elem.attributeNames.return_value = list(attribute_dict)
 
@@ -112,7 +112,7 @@ class SelectionAndFilterTests:
         ('<a href="foo" />', [webelem.Group.all, webelem.Group.links,
                               webelem.Group.prevnext, webelem.Group.url]),
         ('<a href="javascript://foo" />', [webelem.Group.all,
-                                          webelem.Group.url]),
+                                           webelem.Group.url]),
 
         ('<area />', [webelem.Group.all]),
         ('<area href="foo" />', [webelem.Group.all, webelem.Group.links,

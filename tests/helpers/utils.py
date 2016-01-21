@@ -66,7 +66,6 @@ def partial_compare(val1, val2, *, indent=0):
     print_i("|---- to ----", indent)
     print_i(pprint.pformat(val2), indent + 1)
 
-
     if val2 is Ellipsis:
         print_i("Ignoring ellipsis comparison", indent, error=True)
         return True

@@ -239,7 +239,6 @@ class TestGetAllObjects:
         def __repr__(self):
             return '<{}>'.format(self._name)
 
-
     def test_get_all_objects(self, stubs, monkeypatch):
         # pylint: disable=unused-variable
         widgets = [self.Object('Widget 1'), self.Object('Widget 2')]
@@ -248,8 +247,8 @@ class TestGetAllObjects:
 
         root = QObject()
         o1 = self.Object('Object 1', root)
-        o2 = self.Object('Object 2', o1)
-        o3 = self.Object('Object 3', root)
+        o2 = self.Object('Object 2', o1)  # noqa
+        o3 = self.Object('Object 3', root)  # noqa
 
         expected = textwrap.dedent("""
             Qt widgets - 2 objects:

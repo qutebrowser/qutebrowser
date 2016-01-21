@@ -55,7 +55,7 @@ class ShellLexer:
         self.token = ''
         self.state = ' '
 
-    def __iter__(self):  # pragma: no mccabe
+    def __iter__(self):  # noqa
         """Read a raw token from the input stream."""
         # pylint: disable=too-many-branches,too-many-statements
         self.reset()
