@@ -1094,7 +1094,7 @@ class ShellCommand(BaseType):
             shlex.split(value)
         except ValueError as e:
             raise configexc.ValidationError(value, str(e))
-        if self.placeholder and '{}' not in self.transform(value):
+        if self.placeholder and '{}' not in value:
             raise configexc.ValidationError(value, "needs to contain a "
                                             "{}-placeholder.")
 
