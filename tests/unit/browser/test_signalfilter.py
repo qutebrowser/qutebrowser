@@ -82,6 +82,7 @@ def objects():
         signal_filter.create(signaller.cur_statusbar_message, tab))
     return Objects(signal_filter=signal_filter, signaller=signaller)
 
+
 @pytest.yield_fixture
 def tabbed_browser(win_registry):
     tb = FakeTabbedBrowser()

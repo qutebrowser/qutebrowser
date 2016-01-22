@@ -72,7 +72,8 @@ class UsageFormatter(argparse.HelpFormatter):
             result = "'{}'".format(action.metavar)
         elif action.choices is not None:
             choice_strs = [str(choice) for choice in action.choices]
-            result = '{%s}' % ','.join('*{}*'.format(e) for e in choice_strs)
+            result = ('{' + ','.join('*{}*'.format(e) for e in choice_strs) +
+                      '}')
         else:
             result = "'{}'".format(default_metavar)
 

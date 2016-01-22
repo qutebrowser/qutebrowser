@@ -77,7 +77,6 @@ class TestCheckExclusive:
         assert str(excinfo.value) == "Only one of -x/-y/-z can be given!"
 
 
-
 class TestRegister:
 
     # pylint: disable=unused-variable

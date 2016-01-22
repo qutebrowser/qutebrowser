@@ -27,6 +27,7 @@ import pytest
 
 from qutebrowser.browser import mhtml
 
+
 @pytest.fixture(autouse=True)
 def patch_uuid(monkeypatch):
     monkeypatch.setattr("uuid.uuid4", lambda: "UUID")

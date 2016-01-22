@@ -88,7 +88,7 @@ def test_quteprocess_quitting(qtbot, quteproc_process):
             'category': 'init',
             'module': 'earlyinit',
             'function': 'init_log',
-            'line':  280,
+            'line': 280,
             'message': 'Log initialized.',
             'expected': False,
         }
@@ -122,10 +122,10 @@ def test_quteprocess_quitting(qtbot, quteproc_process):
         }
     ),
     (
-	'00:00:00 WARNING  qt         qxcbxsettings:"QXcbXSettings::'
-	'QXcbXSettings(QXcbScreen*)":233 '
-	'QXcbXSettings::QXcbXSettings(QXcbScreen*) Failed to get selection '
-	'owner for XSETTINGS_S atom ',
+        '00:00:00 WARNING  qt         qxcbxsettings:"QXcbXSettings::'
+        'QXcbXSettings(QXcbScreen*)":233 '
+        'QXcbXSettings::QXcbXSettings(QXcbScreen*) Failed to get selection '
+        'owner for XSETTINGS_S atom ',
         {
             'module': 'qxcbxsettings',
             'function': 'QXcbXSettings::QXcbXSettings(QXcbScreen*)',

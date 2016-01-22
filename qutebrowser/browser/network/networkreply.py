@@ -30,7 +30,8 @@ class FixedDataNetworkReply(QNetworkReply):
 
     """QNetworkReply subclass for fixed data."""
 
-    def __init__(self, request, fileData, mimeType, parent=None):
+    def __init__(self, request, fileData, mimeType,  # flake8: disable=N803
+                 parent=None):
         """Constructor.
 
         Args:

@@ -29,7 +29,6 @@ from PyQt5.QtCore import QUrl
 from qutebrowser.browser import http
 
 
-
 class TestNoContentDisposition:
 
     """Test parse_content_disposition with no Content-Disposition header."""

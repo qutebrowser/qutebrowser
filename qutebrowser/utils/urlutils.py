@@ -217,9 +217,9 @@ def _has_explicit_scheme(url):
     # after the scheme delimiter. Since we don't know of any URIs
     # using this and want to support e.g. searching for scoped C++
     # symbols, we treat this as not an URI anyways.
-    return (url.isValid() and url.scheme()
-            and not url.path().startswith(' ')
-            and not url.path().startswith(':'))
+    return (url.isValid() and url.scheme() and
+            not url.path().startswith(' ') and
+            not url.path().startswith(':'))
 
 
 def is_special_url(url):

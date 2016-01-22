@@ -17,9 +17,7 @@ env:
     - TESTENV=misc
     - TESTENV=vulture
     - TESTENV=pep257
-    - TESTENV=pyflakes
-    - TESTENV=pep8
-    - TESTENV=mccabe
+    - TESTENV=flake8
     - TESTENV=pyroma
     - TESTENV=check-manifest
     - TESTENV=pylint
@@ -57,11 +55,7 @@ matrix:
     - os: osx
       env: TESTENV=pep257
     - os: osx
-      env: TESTENV=pyflakes
-    - os: osx
-      env: TESTENV=pep8
-    - os: osx
-      env: TESTENV=mccabe
+      env: TESTENV=flake8
     - os: osx
       env: TESTENV=pyroma
     - os: osx

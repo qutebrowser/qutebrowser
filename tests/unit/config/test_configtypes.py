@@ -362,7 +362,7 @@ class TestList:
     def test_validate_valid(self, klass, val):
         klass(none_ok=True).validate(val)
 
-    @pytest.mark.parametrize('val', ['', 'foo,,bar',])
+    @pytest.mark.parametrize('val', ['', 'foo,,bar'])
     def test_validate_invalid(self, klass, val):
         with pytest.raises(configexc.ValidationError):
             klass().validate(val)
@@ -1035,7 +1035,6 @@ class TestFont:
     }
 
     font_xfail = pytest.mark.xfail(reason='FIXME: #103')
-
 
     @pytest.fixture(params=[configtypes.Font, configtypes.QtFont])
     def klass(self, request):

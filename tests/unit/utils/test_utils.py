@@ -530,7 +530,6 @@ def test_parse_single_key(keystr, expected):
         assert utils._parse_single_key(keystr) == expected
 
 
-
 @pytest.mark.parametrize('keystr, expected', [
     ('<Control-x>', [utils.KeyInfo(Qt.Key_X, Qt.ControlModifier, '')]),
     ('x', [utils.KeyInfo(Qt.Key_X, Qt.NoModifier, 'x')]),

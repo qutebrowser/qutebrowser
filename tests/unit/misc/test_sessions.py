@@ -38,6 +38,7 @@ from qutebrowser.commands import cmdexc
 pytestmark = pytest.mark.qt_log_ignore('QIODevice::read.*: device not open',
                                        extend=True)
 
+
 @pytest.fixture
 def sess_man():
     """Fixture providing a SessionManager with no session dir."""
@@ -246,7 +247,7 @@ class TestSaveTab:
 
         items = [
             Item(url=QUrl('http://www.example.com/'), title='Test title',
-                           active=True),
+                 active=True),
             Item(url=QUrl('http://www.example.com/'), title='Test title',
                  user_data={'zoom': factor}),
         ]

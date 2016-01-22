@@ -44,6 +44,7 @@ def wait_for_prompt(quteproc):
     quteproc.wait_for(message='Entering mode KeyMode.* (reason: question '
                               'asked)')
 
+
 @bdd.then("no prompt should be shown")
 def no_prompt_shown(quteproc):
     quteproc.ensure_not_logged(message='Entering mode KeyMode.* (reason: '

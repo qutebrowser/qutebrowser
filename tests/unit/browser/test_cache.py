@@ -100,7 +100,7 @@ def test_cache_size_leq_max_cache_size(config_stub, tmpdir):
     preload_cache(disk_cache, 'http://bar.net')
     assert disk_cache.expire() < limit
     # Add a threshold to the limit due to unforseeable Qt internals
-    assert disk_cache.cacheSize() < limit+100
+    assert disk_cache.cacheSize() < limit + 100
 
 
 def test_cache_size_deactivated(config_stub, tmpdir):
@@ -247,7 +247,6 @@ def test_cache_deactivated_insert_data(config_stub, tmpdir):
 
     deactivated_cache = cache.DiskCache(str(tmpdir))
     assert deactivated_cache.insert(device) is None
-
 
 
 def test_cache_remove_data(config_stub, tmpdir):
