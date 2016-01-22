@@ -92,26 +92,23 @@ Then <<tox,install qutebrowser via tox>>.
 On Archlinux
 ------------
 
-There are two Archlinux packages available in the AUR:
-https://aur.archlinux.org/packages/qutebrowser/[qutebrowser] and
-https://aur.archlinux.org/packages/qutebrowser-git/[qutebrowser-git].
-
-You can install them (and the needed pypeg2 dependency) like this:
+Qutebrowser is available in the official [community] repository.
 
 ----
-$ wget https://aur.archlinux.org/packages/py/python-pypeg2/python-pypeg2.tar.gz
-$ tar xzf python-pypeg2.tar.gz
-$ cd python-pypeg2
-$ makepkg -si
-$ cd ..
-$ rm -r python-pypeg2 python-pypeg2.tar.gz
+# pacman -S qutebrowser
+----
 
-$ wget https://aur.archlinux.org/packages/qu/qutebrowser/qutebrowser.tar.gz
-$ tar xzf qutebrowser.tar.gz
-$ cd qutebrowser
+There is also a -git version available in the AUR:
+https://aur.archlinux.org/packages/qutebrowser-git/[qutebrowser-git].
+
+You can install it using `makepkg` like this:
+
+----
+$ git clone https://aur.archlinux.org/qutebrowser-git.git
+$ cd qutebrowser-git
 $ makepkg -si
 $ cd ..
-$ rm -r qutebrowser qutebrowser.tar.gz
+$ rm -r qutebrowser-git
 ----
 
 or you could use an AUR helper, e.g. `yaourt -S qutebrowser-git`.
