@@ -1324,21 +1324,14 @@ class CommandDispatcher:
         clipboard = QApplication.clipboard()
         if clipboard.supportsSelection():
             sel = clipboard.text(QClipboard.Selection)
-            log.misc.debug("Pasting selection: '{}'".format(sel))
+            log.misc.debug("Pasting primary selection into element {} "
+                "(selection is '{}')".format(elem.debug_text(), sel))
             elem.evaluateJavaScript("""
-                var sel = '%s';
-                if (this.selectionStart || this.selectionStart == '0') {
-                    var startPos = this.selectionStart;
-                    var endPos = this.selectionEnd;
-                    this.value = this.value.substring(0, startPos)
-                        + sel
-                        + this.value.substring(endPos, this.value.length);
-                    this.selectionStart = startPos + sel.length;
-                    this.selectionEnd = startPos + sel.length;
-                } else {
-                    this.value += sel;
-                }
-                """ % sel)
+                var sel = '{}';
+                var event = document.createEvent('TextEvent');
+                event.initTextEvent('textInput', true, true, null, sel);
+                this.dispatchEvent(event);
+                """.format(sel))
 
     def _clear_search(self, view, text):
         """Clear search string/highlights for the given view.
