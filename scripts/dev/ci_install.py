@@ -116,6 +116,14 @@ elif TRAVIS_OS == 'linux':
         print("apt-get install...")
         apt_get(['install'] + pkgs)
 
+    if TESTENV == 'flake8':
+        print("apt-get update...")
+        apt_get(['update'])
+        # We need an up-to-date Python because of:
+        # https://github.com/google/yapf/issues/46
+        print("Updating Python...")
+        apt_get(['install', '-t', 'trusty-updates', 'python3.4'])
+
     if TESTENV == 'eslint':
         subprocess.check_call(['sudo', 'npm', 'install', '-g', 'eslint'])
     else:
