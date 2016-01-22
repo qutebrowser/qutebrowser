@@ -41,7 +41,8 @@ class ConfigChecker(checkers.BaseChecker):
     __implements__ = interfaces.IAstroidChecker
     name = 'config'
     msgs = {
-        'E0000': ('"%s -> %s" is no valid config option.', 'bad-config-call',
+        'E0000': ('"%s -> %s" is no valid config option.',  # flake8: disable=S001
+                  'bad-config-call',
                   None),
     }
     priority = -1

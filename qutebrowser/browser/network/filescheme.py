@@ -84,7 +84,7 @@ def dirbrowser_html(path):
     except OSError as e:
         html = jinja.env.get_template('error.html').render(
             title="Error while reading directory",
-            url='file://%s' % path,
+            url='file://{}'.format(path),
             error=str(e),
             icon='')
         return html.encode('UTF-8', errors='xmlcharrefreplace')

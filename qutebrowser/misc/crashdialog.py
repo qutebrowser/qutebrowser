@@ -100,7 +100,7 @@ def _get_environment_vars():
     for key, value in os.environ.items():
         for m in masks:
             if fnmatch.fnmatch(key, m):
-                info.append('%s = %s' % (key, value))
+                info.append('{} = {}'.format(key, value))
     return '\n'.join(sorted(info))
 
 
