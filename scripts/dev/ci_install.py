@@ -65,6 +65,7 @@ def check_setup(executable):
         print("Checking setup...")
         subprocess.check_call([executable, '-c', 'import PyQt5'])
         subprocess.check_call([executable, '-c', 'import sip'])
+    subprocess.check_call([executable, '--version'])
 
 
 if 'APPVEYOR' in os.environ:
