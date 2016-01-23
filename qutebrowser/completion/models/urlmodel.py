@@ -76,6 +76,7 @@ class UrlCompletionModel(base.BaseCompletionModel):
             self._add_history_entry(entry)
         self._history.add_completion_item.connect(
             self.on_history_item_added)
+        self._history.cleared.connect(self.on_history_cleared)
 
         objreg.get('config').changed.connect(self.reformat_timestamps)
 
@@ -129,6 +130,10 @@ class UrlCompletionModel(base.BaseCompletionModel):
                 break
         else:
             self._add_history_entry(entry)
+
+    @pyqtSlot()
+    def on_history_cleared(self):
+        self._history_cat.removeRows(0, self._history_cat.rowCount())
 
     def _remove_item(self, data, category, column):
         """Helper function for on_quickmark_removed and on_bookmark_removed.
