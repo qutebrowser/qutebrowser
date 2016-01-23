@@ -86,7 +86,7 @@ def get_build_exe_options(skip_html=False):
         'include_msvcr': True,
         'includes': [],
         'excludes': ['tkinter'],
-        'packages': ['pygments'],
+        'packages': ['pygments', 'pkg_resources._vendor.packaging'],
     }
 
 
