@@ -125,6 +125,10 @@ class BaseLineParser(QObject):
         """Save the history to disk."""
         raise NotImplementedError
 
+    def clear(self):
+        """Clear the contents of the file."""
+        raise NotImplementedError
+
 
 class AppendLineParser(BaseLineParser):
 
@@ -183,6 +187,15 @@ class AppendLineParser(BaseLineParser):
         self.new_data = []
         self._after_save()
 
+    def clear(self):
+        do_save = self._prepare_save()
+        if not do_save:
+            return
+        with self._open('w') as f:
+            pass
+        self.new_data = []
+        self._after_save()
+
 
 class LineParser(BaseLineParser):
 
@@ -237,6 +250,9 @@ class LineParser(BaseLineParser):
             self._opened = False
         self._after_save()
 
+    def clear(self):
+        self.data = []
+        self.save()
 
 class LimitLineParser(LineParser):
 
@@ -289,3 +305,7 @@ class LimitLineParser(LineParser):
         with qtutils.savefile_open(self._configfile, self._binary) as f:
             self._write(f, self.data[-limit:])
         self._after_save()
+
+    def clear(self):
+        self.data = []
+        self.save()
