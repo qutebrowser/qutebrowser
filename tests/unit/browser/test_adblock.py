@@ -50,8 +50,9 @@ URLS_TO_CHECK = ('http://localhost',
                  'http://4-verybadhost.com',
                  'http://ads.worsthostever.net',
                  'http://goodhost.gov',
-                 'ftp://verygoodhost.com'
+                 'ftp://verygoodhost.com',
                  'http://qutebrowser.org')
+
 
 @pytest.fixture
 def data_tmpdir(monkeypatch, tmpdir):
@@ -147,7 +148,7 @@ def create_blocklist(directory, blocked_hosts=BLOCKLIST_HOSTS,
     with open(str(blocklist_file), 'w', encoding='UTF-8') as blocklist:
         # ensure comments are ignored when processing blocklist
         blocklist.write('# Blocked Hosts List #\n\n')
-        if line_format == 'etc_hosts': # /etc/hosts like format
+        if line_format == 'etc_hosts':  # /etc/hosts like format
             for host in blocked_hosts:
                 blocklist.write('127.0.0.1  ' + host + '\n')
         elif line_format == 'one_per_line':
@@ -263,7 +264,7 @@ def test_no_blocklist_update(config_stub, download_stub,
                              data_tmpdir, basedir, tmpdir, win_registry):
     """Ensure no Url is blocked when no block list exists."""
     config_stub.data = {'content':
-                        {'host-block-lists' : None,
+                        {'host-block-lists': None,
                          'host-blocking-enabled': True}}
     host_blocker = adblock.HostBlocker()
     host_blocker.adblock_update(0)
@@ -354,13 +355,13 @@ def test_blocking_with_whitelist(config_stub, basedir, download_stub,
 def test_config_change(config_stub, basedir, download_stub,
                        data_tmpdir, tmpdir):
     """Ensure blocked-hosts resets if host-block-list is changed to None."""
-    filtered_blocked_hosts = BLOCKLIST_HOSTS[1:] # Exclude localhost
-    blocklist = create_blocklist(tmpdir,
-                                 blocked_hosts=filtered_blocked_hosts,
-                                 name='blocked-hosts',
-                                 line_format='one_per_line')
+    filtered_blocked_hosts = BLOCKLIST_HOSTS[1:]  # Exclude localhost
+    blocklist = QUrl(create_blocklist(tmpdir,
+                                      blocked_hosts=filtered_blocked_hosts,
+                                      name='blocked-hosts',
+                                      line_format='one_per_line'))
     config_stub.data = {'content':
-                        {'host-block-lists': [],
+                        {'host-block-lists': [blocklist],
                          'host-blocking-enabled': True,
                          'host-blocking-whitelist': None}}
     host_blocker = adblock.HostBlocker()
