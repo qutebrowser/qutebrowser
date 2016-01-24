@@ -294,6 +294,8 @@ def qt_message_handler(msg_type, context, msg):
         # Hopefully harmless
         '"Method "GetAll" with signature "s" on interface '
             '"org.freedesktop.DBus.Properties" doesn\'t exist',
+        '"Method \\"GetAll\\" with signature \\"s\\" on interface '
+            '\\"org.freedesktop.DBus.Properties\\" doesn\'t exist\\n"',
         'WOFF support requires QtWebKit to be built with zlib support.',
         # Weird Enlightment/GTK X extensions
         'QXcbWindow: Unhandled client message: "_E_',
