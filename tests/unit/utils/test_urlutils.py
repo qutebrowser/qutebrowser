@@ -600,8 +600,7 @@ class TestIncDecNumber:
         url = 'http://example.com/{}'
         base_url = QUrl(url.format(number))
         expected_url = QUrl(url.format(expected))
-        new_url = urlutils.incdec_number(
-                base_url, incdec, segments={'path'})
+        new_url = urlutils.incdec_number(base_url, incdec, segments={'path'})
         assert new_url == expected_url
 
     @pytest.mark.parametrize('url, segments, expected', [
