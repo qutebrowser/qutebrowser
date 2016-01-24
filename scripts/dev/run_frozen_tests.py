@@ -26,6 +26,9 @@ import pytest
 import pytestqt.plugin
 import pytest_mock
 import pytest_catchlog
+import pytest_instafail
+import pytest_faulthandler
 
 sys.exit(pytest.main(plugins=[pytestqt.plugin, pytest_mock,
-                              pytest_catchlog]))
+                              pytest_catchlog, pytest_instafail,
+                              pytest_faulthandler]))
