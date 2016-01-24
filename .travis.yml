@@ -12,7 +12,7 @@ env:
     - PATH=/home/travis/bin:/home/travis/.local/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
   matrix:
     - TESTENV=py35
-    - TESTENV=py34
+    - TESTENV=py34-cov
     - TESTENV=unittests-nodisp
     - TESTENV=misc
     - TESTENV=vulture
@@ -38,14 +38,14 @@ script:
   - tox -e $TESTENV -- -v --cov-report term tests
 
 after_success:
-  - '[[ ($TESTENV == py34 || $TESTENV == py35) && $TRAVIS_OX == linux ]] && codecov -e TESTENV -X gcov'
+  - '[[ $TESTENV == *-cov ]] && codecov -e TESTENV -X gcov'
 
 matrix:
   exclude:
     - os: linux
       env: TESTENV=py35
     - os: osx
-      env: TESTENV=py34
+      env: TESTENV=py34-cov
     - os: osx
       env: TESTENV=unittests-nodisp
     - os: osx

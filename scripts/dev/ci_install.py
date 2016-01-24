@@ -40,11 +40,11 @@ except ImportError:
 
 TESTENV = os.environ['TESTENV']
 TRAVIS_OS = os.environ.get('TRAVIS_OS_NAME', None)
-INSTALL_PYQT = TESTENV in ('py34', 'py35', 'unittests-nodisp', 'vulture',
-                           'pylint')
+INSTALL_PYQT = TESTENV in ('py34', 'py35', 'py34-cov', 'py35-cov',
+                           'unittests-nodisp', 'vulture', 'pylint')
 XVFB = TRAVIS_OS == 'linux' and TESTENV == 'py34'
 pip_packages = ['tox']
-if TESTENV in ['py34', 'py35'] and TRAVIS_OS == 'linux':
+if TESTENV.endswith('-cov'):
     pip_packages.append('codecov')
 
 
