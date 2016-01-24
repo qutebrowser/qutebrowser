@@ -468,6 +468,28 @@ class IncDecError(Exception):
         return '{}: {}'.format(self.msg, self.url.toString())
 
 
+def _get_incdec_value(match, incdec, url):
+    """Get a incremented/decremented URL based on a URL match."""
+    pre, zeroes, number, post = match.groups()
+    # This should always succeed because we match \d+
+    val = int(number)
+    if incdec == 'decrement':
+        if val <= 0:
+            raise IncDecError("Can't decrement {}!".format(val), url)
+        val -= 1
+    elif incdec == 'increment':
+        val += 1
+    else:
+        raise ValueError("Invalid value {} for indec!".format(incdec))
+    if zeroes:
+        if len(number) < len(str(val)):
+            zeroes = zeroes[1:]
+        elif len(number) > len(str(val)):
+            zeroes += '0'
+
+    return ''.join([pre, zeroes, str(val), post])
+
+
 def incdec_number(url, incdec, segments=None):
     """Find a number in the url and increment or decrement it.
 
@@ -509,23 +531,11 @@ def incdec_number(url, incdec, segments=None):
             continue
 
         # Get the last number in a string
-        match = re.match(r'(.*\D|^)(\d+)(.*)', getter())
+        match = re.match(r'(.*\D|^)(0*)(\d+)(.*)', getter())
         if not match:
             continue
 
-        pre, number, post = match.groups()
-        # This should always succeed because we match \d+
-        val = int(number)
-        if incdec == 'decrement':
-            if val <= 0:
-                raise IncDecError("Can't decrement {}!".format(val), url)
-            val -= 1
-        elif incdec == 'increment':
-            val += 1
-        else:
-            raise ValueError("Invalid value {} for indec!".format(incdec))
-        new_value = ''.join([pre, str(val), post])
-        setter(new_value)
+        setter(_get_incdec_value(match, incdec, url))
         return url
 
     raise IncDecError("No number found in URL!", url)
