@@ -509,11 +509,11 @@ def incdec_number(url, incdec, segments=None):
             continue
 
         # Get the last number in a string
-        match = re.match(r'(.*\D|^)(\d+)(.*)', getter())
+        match = re.match(r'(.*\D|^)(0*)(\d+)(.*)', getter())
         if not match:
             continue
 
-        pre, number, post = match.groups()
+        pre, zeroes, number, post = match.groups()
         # This should always succeed because we match \d+
         val = int(number)
         if incdec == 'decrement':
@@ -524,8 +524,15 @@ def incdec_number(url, incdec, segments=None):
             val += 1
         else:
             raise ValueError("Invalid value {} for indec!".format(incdec))
-        new_value = ''.join([pre, str(val), post])
+        if zeroes:
+            if len(number) < len(str(val)):
+                zeroes = zeroes[1:]
+            elif len(number) > len(str(val)):
+                zeroes += '0'
+
+        new_value = ''.join([pre, zeroes, str(val), post])
         setter(new_value)
+
         return url
 
     raise IncDecError("No number found in URL!", url)

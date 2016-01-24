@@ -587,6 +587,23 @@ class TestIncDecNumber:
             base_url, incdec, segments={'host', 'path', 'query', 'anchor'})
         assert new_url == expected_url
 
+    @pytest.mark.parametrize('number, expected, incdec', [
+        ('01', '02', 'increment'),
+        ('09', '10', 'increment'),
+        ('009', '010', 'increment'),
+        ('02', '01', 'decrement'),
+        ('10', '9', 'decrement'),
+        ('010', '009', 'decrement')
+    ])
+    def test_incdec_leading_zeroes(self, number, expected, incdec):
+        """Test incdec_number with leading zeroes."""
+        url = 'http://example.com/{}'
+        base_url = QUrl(url.format(number))
+        expected_url = QUrl(url.format(expected))
+        new_url = urlutils.incdec_number(
+                base_url, incdec, segments={'path'})
+        assert new_url == expected_url
+
     @pytest.mark.parametrize('url, segments, expected', [
         ('http://ex4mple.com/test_4?page=3#anchor2', {'host'},
          'http://ex5mple.com/test_4?page=3#anchor2'),
