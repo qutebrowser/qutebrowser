@@ -471,11 +471,11 @@ Feature: Tab management
                   zoom: 1.2
 
     Scenario: Cloning to background tab
-        When I open data/hello.txt
+        When I open data/hello2.txt
         And I run :tab-clone -b
         Then the following tabs should be open:
-            - data/hello.txt (active)
-            - data/hello.txt
+            - data/hello2.txt (active)
+            - data/hello2.txt
 
     Scenario: Cloning to new window
         Given I have a fresh instance
