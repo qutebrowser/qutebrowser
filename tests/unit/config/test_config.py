@@ -189,7 +189,7 @@ class TestConfigParser:
         assert new_sect in configdata.DATA
 
     @pytest.mark.parametrize('old_tuple, new_option',
-        config.ConfigManager.RENAMED_OPTIONS.items())
+        sorted(config.ConfigManager.RENAMED_OPTIONS.items()))
     def test_renamed_options(self, old_tuple, new_option):
         """Make sure renamed options exist under the new name."""
         section, old_option = old_tuple

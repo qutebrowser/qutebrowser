@@ -599,7 +599,7 @@ class TestJavascriptEscape:
     # http://qutebrowser.org:8010/builders/debian-jessie/builds/765/steps/unittests/
     # Should that be ignored?
 
-    @pytest.mark.parametrize('before, after', TESTS.items(), ids=repr)
+    @pytest.mark.parametrize('before, after', sorted(TESTS.items()), ids=repr)
     def test_fake_escape(self, before, after):
         """Test javascript escaping with some expected outcomes."""
         assert webelem.javascript_escape(before) == after
@@ -645,7 +645,7 @@ class TestJavascriptEscape:
         result = webframe.evaluateJavaScript('"{}";'.format(escaped))
         assert result == text
 
-    @pytest.mark.parametrize('text', TESTS, ids=repr)
+    @pytest.mark.parametrize('text', sorted(TESTS), ids=repr)
     def test_real_escape(self, webframe, qtbot, text):
         """Test javascript escaping with a real QWebPage."""
         self._test_escape(text, qtbot, webframe)
