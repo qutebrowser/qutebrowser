@@ -36,6 +36,8 @@ Fixed
 - Fixed starting with -c "".
 - Fixed crash when a tab is closed twice via javascript (e.g. Dropbox
   authentication dialogs)
+- Fixed crash when a notification/geolocation prompt is answered after closing
+  the tab it belongs to.
 
 v0.5.1
 ------

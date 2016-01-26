@@ -372,6 +372,7 @@ class BrowserPage(QWebPage):
             q.answered_no.connect(no_action)
             q.cancelled.connect(no_action)
 
+            self.shutting_down.connect(q.abort)
             q.completed.connect(q.deleteLater)
 
             self.featurePermissionRequestCanceled.connect(functools.partial(
