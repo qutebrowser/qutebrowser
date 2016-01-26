@@ -143,5 +143,5 @@ My issue is not listed.::
     https://github.com/The-Compiler/qutebrowser/issues[the issue tracker] or
     using the `:report` command.
     If you are reporting a segfault, make sure you read the
-    https://github.com/The-Compiler/qutebrowser/blob/master/doc/stacktrace.asciidoc[guide]
-    on how to report them with all needed information.
+    link:doc/stacktrace.asciidoc[guide] on how to report them with all needed
+    information.
