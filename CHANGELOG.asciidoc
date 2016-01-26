@@ -38,6 +38,8 @@ Fixed
   authentication dialogs)
 - Fixed crash when a notification/geolocation prompt is answered after closing
   the tab it belongs to.
+- Fixed crash when downloading a file without any path information (e.g a
+  magnet link).
 
 v0.5.1
 ------
