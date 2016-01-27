@@ -1308,10 +1308,10 @@ class CommandDispatcher:
             raise cmdexc.CommandError("Element vanished while editing!")
 
     @cmdutils.register(instance='command-dispatcher',
-                       modes=[KeyMode.insert], hide=True, scope='window')
+                       modes=[KeyMode.insert], hide=True, scope='window',
+                       needs_js=True)
     def paste_primary(self):
-        """Paste the primary selection at cursor position into the curently
-        selected form field.
+        """Paste the primary selection at cursor position.
         """
         frame = self._current_widget().page().currentFrame()
         try:
@@ -1324,14 +1324,14 @@ class CommandDispatcher:
         clipboard = QApplication.clipboard()
         if clipboard.supportsSelection():
             sel = clipboard.text(QClipboard.Selection)
-            log.misc.debug("Pasting primary selection into element {} "
-                "(selection is '{}')".format(elem.debug_text(), sel))
+            log.misc.debug("Pasting primary selection into element {}".format(
+                elem.debug_text()))
             elem.evaluateJavaScript("""
                 var sel = '{}';
                 var event = document.createEvent('TextEvent');
                 event.initTextEvent('textInput', true, true, null, sel);
                 this.dispatchEvent(event);
-                """.format(sel))
+            """.format(webelem.javascript_escape(sel)))
 
     def _clear_search(self, view, text):
         """Clear search string/highlights for the given view.
