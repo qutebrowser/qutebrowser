@@ -451,6 +451,9 @@ class MainWindow(QWidget):
         tabs.cur_load_finished.connect(status.prog.hide)
         tabs.cur_load_started.connect(status.prog.on_load_started)
 
+        tabs.current_tab_changed.connect(status.settings.on_tab_changed)
+        tabs.cur_url_changed.connect(status.settings.set_text)
+
         tabs.current_tab_changed.connect(status.percentage.on_tab_changed)
         tabs.cur_scroll_perc_changed.connect(status.percentage.set_perc)
 
