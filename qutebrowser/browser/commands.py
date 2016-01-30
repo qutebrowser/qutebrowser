@@ -1311,8 +1311,7 @@ class CommandDispatcher:
                        modes=[KeyMode.insert], hide=True, scope='window',
                        needs_js=True)
     def paste_primary(self):
-        """Paste the primary selection at cursor position.
-        """
+        """Paste the primary selection at cursor position."""
         frame = self._current_widget().page().currentFrame()
         try:
             elem = webelem.focus_elem(frame)
