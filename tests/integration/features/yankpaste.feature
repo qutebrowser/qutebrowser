@@ -203,20 +203,16 @@ Feature: Yanking and pasting.
     Scenario: Pasting the primary selection into a text field with undo
         When selection is supported
         And I open data/paste_primary.html
-        And I run :jseval document.getElementById('qute-textarea').value = 'one two three four';
-        And I put " Hello world" into the primary selection
         # Click the text field
         And I run :hint all
         And I run :follow-hint a
-        # Move to the beginning and after the first word
-        And I press the keys "<Home>"
-        And I press the key "<Ctrl+Right>"
         # Paste and undo
+        And I put "This text should be undone" into the primary selection
         And I run :paste-primary
         And I press the key "<Ctrl+z>"
-        # One word to the right
-        And I press the key "<Ctrl+Right>"
+        # Paste final text
+        And I put "This text should stay" into the primary selection
         And I run :paste-primary
         # Compare
         And I run :jseval console.log(document.getElementById('qute-textarea').value);
-        Then the javascript message "one two Hello world three four" should be logged
+        Then the javascript message "This text should stay" should be logged
