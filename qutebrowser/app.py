@@ -53,7 +53,7 @@ from qutebrowser.browser.webkit.network import networkmanager
 from qutebrowser.keyinput import macros
 from qutebrowser.mainwindow import mainwindow, prompt
 from qutebrowser.misc import (readline, ipc, savemanager, sessions,
-                              crashsignal, earlyinit)
+                              crashsignal, earlyinit, domains)
 from qutebrowser.misc import utilcmds  # pylint: disable=unused-import
 from qutebrowser.utils import (log, version, message, utils, qtutils, urlutils,
                                objreg, usertypes, standarddir, error, debug)
@@ -190,6 +190,7 @@ def _process_args(args):
         except (configexc.Error, configparser.Error) as e:
             message.error("set: {} - {}".format(e.__class__.__name__, e))
 
+    domains.init()
     if not args.override_restore:
         _load_session(args.session)
     session_manager = objreg.get('session-manager')

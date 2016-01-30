@@ -151,6 +151,78 @@ class WebView(QWebView):
             bridge = objreg.get('js-bridge')
             frame.addToJavaScriptWindowObject('qute', bridge)
 
+    def apply_local_js_policy(self, url):
+        # Apply per-domain javascript policy. Doing this in view rather
+        # than tabbed-browser or on the title changed signal so we can
+        # apply it to background tabs too.
+
+        # dwb does match(host)||match(uri)||match(scheme)
+        # QUrl has host(), path(), scheme(), matches(url),
+        # isLocalFile()
+        if url.scheme() == 'qute' or url.scheme() == 'file':
+            log.webview.debug("js policy scheme match for url {}".format(url))
+            self.settings().setAttribute(QWebSettings.JavascriptEnabled, True)
+            return
+        domains = objreg.get('domain-manager')
+        js_policy = domains.get_setting(url.host()+url.path(),
+                                              'enable-javascript')
+        if js_policy is not None:
+            log.webview.debug("js policy path match for url {}".format(url))
+            self.settings().setAttribute(QWebSettings.JavascriptEnabled,
+                                     js_policy)
+            return
+        js_policy = domains.get_setting(url.host(),
+                                              'enable-javascript')
+        if js_policy is not None:
+            # TODO: What do for subdomains? Loop through
+            # domains.data looking for matches or w.x.y.z, x.y.z
+            # etc?
+            log.webview.debug("js policy host match for url {}".format(url))
+            self.settings().setAttribute(QWebSettings.JavascriptEnabled,
+                                     js_policy)
+            return
+
+        log.webview.debug("No js policy match for url {} {} {}".format(
+                                                 url.scheme(),
+                                                 url.host(), url.path()))
+        default_policy = QWebSettings.globalSettings().testAttribute(
+                QWebSettings.JavascriptEnabled)
+
+        self.settings().setAttribute(QWebSettings.JavascriptEnabled,
+                        default_policy)
+
+
+    @pyqtSlot()
+    def on_load_finished(self):
+        """Handle a finished page load.
+
+        We don't take loadFinished's ok argument here as it always seems to be
+        true when the QWebPage has an ErrorPageExtension implemented.
+        See https://github.com/The-Compiler/qutebrowser/issues/84
+        """
+        ok = not self.page().error_occurred
+        self._handle_auto_insert_mode(ok)
+
+    def _handle_auto_insert_mode(self, ok):
+        """Handle auto-insert-mode after loading finished."""
+        if not config.get('input', 'auto-insert-mode'):
+            return
+        mode_manager = objreg.get('mode-manager', scope='window',
+                                  window=self.win_id)
+        cur_mode = mode_manager.mode
+        if cur_mode == usertypes.KeyMode.insert or not ok:
+            return
+        frame = self.page().currentFrame()
+        try:
+            elem = webkitelem.focus_elem(frame)
+        except webkitelem.IsNullError:
+            log.webview.debug("Focused element is null!")
+            return
+        log.modes.debug("focus element: {}".format(repr(elem)))
+        if elem.is_editable():
+            modeman.enter(self.win_id, usertypes.KeyMode.insert,
+                          'load finished', only_if_normal=True)
+
     @pyqtSlot(usertypes.KeyMode)
     def on_mode_entered(self, mode):
         """Ignore attempts to focus the widget if in any status-input mode.
