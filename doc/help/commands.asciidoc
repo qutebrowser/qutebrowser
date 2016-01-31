@@ -833,6 +833,7 @@ How many steps to zoom out.
 |<<move-to-start-of-next-block,move-to-start-of-next-block>>|Move the cursor or selection to the start of next block.
 |<<move-to-start-of-prev-block,move-to-start-of-prev-block>>|Move the cursor or selection to the start of previous block.
 |<<open-editor,open-editor>>|Open an external editor with the currently selected form field.
+|<<paste-primary,paste-primary>>|Paste the primary selection at cursor position.
 |<<prompt-accept,prompt-accept>>|Accept the current prompt.
 |<<prompt-no,prompt-no>>|Answer no to a yes/no prompt.
 |<<prompt-yes,prompt-yes>>|Answer yes to a yes/no prompt.
@@ -1045,6 +1046,10 @@ How many blocks to move.
 Open an external editor with the currently selected form field.
 
 The editor which should be launched can be configured via the `general -> editor` config option.
+
+[[paste-primary]]
+=== paste-primary
+Paste the primary selection at cursor position.
 
 [[prompt-accept]]
 === prompt-accept
