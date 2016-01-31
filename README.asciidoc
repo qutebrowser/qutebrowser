@@ -165,6 +165,7 @@ Contributors, sorted by the number of commits in descending order:
 * Jonas Schürmann
 * Panagiotis Ktistakis
 * Jimmy
+* Jakub Klinkovský
 * skinnay
 * error800
 * Zach-Button

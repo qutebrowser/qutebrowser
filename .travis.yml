@@ -16,7 +16,7 @@ env:
     - TESTENV=unittests-nodisp
     - TESTENV=misc
     - TESTENV=vulture
-    - TESTENV=pep257
+    - TESTENV=pydocstyle
     - TESTENV=flake8
     - TESTENV=pyroma
     - TESTENV=check-manifest
@@ -53,7 +53,7 @@ matrix:
     - os: osx
       env: TESTENV=vulture
     - os: osx
-      env: TESTENV=pep257
+      env: TESTENV=pydocstyle
     - os: osx
       env: TESTENV=flake8
     - os: osx

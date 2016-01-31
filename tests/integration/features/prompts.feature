@@ -178,6 +178,15 @@ Feature: Prompts
         And I run :leave-mode
         Then the javascript message "notification permission aborted" should be logged
 
+    Scenario: answering notification after closing tab
+        When I set content -> notifications to ask
+        And I open data/prompt/notifications.html in a new tab
+        And I click the button
+        And I wait for a prompt
+        And I run :tab-close
+        And I wait for "Leaving mode KeyMode.yesno (reason: aborted)" in the log
+        Then no crash should happen
+
     # Page authentication
 
     Scenario: Successful webpage authentification

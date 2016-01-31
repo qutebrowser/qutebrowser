@@ -805,7 +805,8 @@ QUALNAME_OBJ = QualnameObj()
     (qutebrowser, 'qutebrowser'),  # module
     (qutebrowser.utils, 'qutebrowser.utils'),  # submodule
     (utils, 'qutebrowser.utils.utils'),  # submodule (from-import)
-])
+], ids=['instance', 'class', 'unbound-method', 'bound-method', 'function',
+        'partial', 'module', 'submodule', 'from-import'])
 def test_qualname(obj, expected):
     assert utils.qualname(obj) == expected
 

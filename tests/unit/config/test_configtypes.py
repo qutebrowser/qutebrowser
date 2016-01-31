@@ -254,7 +254,7 @@ class TestMappingType:
     def klass(self):
         return MappingSubclass
 
-    @pytest.mark.parametrize('val', TESTS.keys())
+    @pytest.mark.parametrize('val', sorted(TESTS.keys()))
     def test_validate_valid(self, klass, val):
         klass(none_ok=True).validate(val)
 
@@ -263,7 +263,7 @@ class TestMappingType:
         with pytest.raises(configexc.ValidationError):
             klass().validate(val)
 
-    @pytest.mark.parametrize('val, expected', TESTS.items())
+    @pytest.mark.parametrize('val, expected', sorted(TESTS.items()))
     def test_transform(self, klass, val, expected):
         assert klass().transform(val) == expected
 
@@ -488,11 +488,11 @@ class TestBool:
     def klass(self):
         return configtypes.Bool
 
-    @pytest.mark.parametrize('val, expected', TESTS.items())
+    @pytest.mark.parametrize('val, expected', sorted(TESTS.items()))
     def test_transform(self, klass, val, expected):
         assert klass().transform(val) == expected
 
-    @pytest.mark.parametrize('val', TESTS)
+    @pytest.mark.parametrize('val', sorted(TESTS))
     def test_validate_valid(self, klass, val):
         klass(none_ok=True).validate(val)
 
@@ -518,11 +518,11 @@ class TestBoolAsk:
     def klass(self):
         return configtypes.BoolAsk
 
-    @pytest.mark.parametrize('val, expected', TESTS.items())
+    @pytest.mark.parametrize('val, expected', sorted(TESTS.items()))
     def test_transform(self, klass, val, expected):
         assert klass().transform(val) == expected
 
-    @pytest.mark.parametrize('val', TESTS)
+    @pytest.mark.parametrize('val', sorted(TESTS))
     def test_validate_valid(self, klass, val):
         klass(none_ok=True).validate(val)
 
@@ -871,7 +871,7 @@ class TestColorSystem:
     def klass(self):
         return configtypes.ColorSystem
 
-    @pytest.mark.parametrize('val', TESTS)
+    @pytest.mark.parametrize('val', sorted(TESTS))
     def test_validate_valid(self, klass, val):
         klass(none_ok=True).validate(val)
 
@@ -880,7 +880,7 @@ class TestColorSystem:
         with pytest.raises(configexc.ValidationError):
             klass().validate(val)
 
-    @pytest.mark.parametrize('val, expected', TESTS.items())
+    @pytest.mark.parametrize('val, expected', sorted(TESTS.items()))
     def test_transform(self, klass, val, expected):
         assert klass().transform(val) == expected
 
@@ -1048,7 +1048,7 @@ class TestFont:
     def qtfont_class(self):
         return configtypes.QtFont
 
-    @pytest.mark.parametrize('val', list(TESTS) + [''])
+    @pytest.mark.parametrize('val', sorted(list(TESTS)) + [''])
     def test_validate_valid(self, klass, val):
         klass(none_ok=True).validate(val)
 
@@ -1077,11 +1077,11 @@ class TestFont:
         with pytest.raises(configexc.ValidationError):
             klass().validate('')
 
-    @pytest.mark.parametrize('string', TESTS)
+    @pytest.mark.parametrize('string', sorted(TESTS))
     def test_transform_font(self, font_class, string):
         assert font_class().transform(string) == string
 
-    @pytest.mark.parametrize('string, desc', TESTS.items())
+    @pytest.mark.parametrize('string, desc', sorted(TESTS.items()))
     def test_transform_qtfont(self, qtfont_class, string, desc):
         assert Font(qtfont_class().transform(string)) == Font.fromdesc(desc)
 
@@ -1828,7 +1828,7 @@ class TestAutoSearch:
     def klass(self):
         return configtypes.AutoSearch
 
-    @pytest.mark.parametrize('val', TESTS)
+    @pytest.mark.parametrize('val', sorted(TESTS))
     def test_validate_valid(self, klass, val):
         klass(none_ok=True).validate(val)
 
@@ -1837,7 +1837,7 @@ class TestAutoSearch:
         with pytest.raises(configexc.ValidationError):
             klass().validate(val)
 
-    @pytest.mark.parametrize('val, expected', TESTS.items())
+    @pytest.mark.parametrize('val, expected', sorted(TESTS.items()))
     def test_transform(self, klass, val, expected):
         assert klass().transform(val) == expected
 
@@ -1858,7 +1858,7 @@ class TestIgnoreCase:
     def klass(self):
         return configtypes.IgnoreCase
 
-    @pytest.mark.parametrize('val', TESTS)
+    @pytest.mark.parametrize('val', sorted(TESTS))
     def test_validate_valid(self, klass, val):
         klass(none_ok=True).validate(val)
 
@@ -1867,7 +1867,7 @@ class TestIgnoreCase:
         with pytest.raises(configexc.ValidationError):
             klass().validate(val)
 
-    @pytest.mark.parametrize('val, expected', TESTS.items())
+    @pytest.mark.parametrize('val, expected', sorted(TESTS.items()))
     def test_transform(self, klass, val, expected):
         assert klass().transform(val) == expected
 
@@ -1909,7 +1909,7 @@ class TestUrlList:
     def klass(self):
         return configtypes.UrlList
 
-    @pytest.mark.parametrize('val', TESTS)
+    @pytest.mark.parametrize('val', sorted(TESTS))
     def test_validate_valid(self, klass, val):
         klass(none_ok=True).validate(val)
 
@@ -1927,7 +1927,7 @@ class TestUrlList:
         with pytest.raises(configexc.ValidationError):
             klass().validate('foo,,bar')
 
-    @pytest.mark.parametrize('val, expected', TESTS.items())
+    @pytest.mark.parametrize('val, expected', sorted(TESTS.items()))
     def test_transform_single(self, klass, val, expected):
         assert klass().transform(val) == expected
 
@@ -1967,7 +1967,7 @@ class TestConfirmQuit:
     def klass(self):
         return configtypes.ConfirmQuit
 
-    @pytest.mark.parametrize('val', TESTS.keys())
+    @pytest.mark.parametrize('val', sorted(TESTS.keys()))
     def test_validate_valid(self, klass, val):
         klass(none_ok=True).validate(val)
 
@@ -1984,7 +1984,7 @@ class TestConfirmQuit:
         with pytest.raises(configexc.ValidationError):
             klass().validate(val)
 
-    @pytest.mark.parametrize('val, expected', TESTS.items())
+    @pytest.mark.parametrize('val, expected', sorted(TESTS.items()))
     def test_transform(self, klass, val, expected):
         assert klass().transform(val) == expected
 

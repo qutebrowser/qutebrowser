@@ -774,7 +774,10 @@ class DownloadManager(QAbstractListModel):
         # https://bugreports.qt.io/browse/QTBUG-42757
         request.setAttribute(QNetworkRequest.CacheLoadControlAttribute,
                              QNetworkRequest.AlwaysNetwork)
+
         suggested_fn = urlutils.filename_from_url(request.url())
+        if suggested_fn is None:
+            suggested_fn = 'qutebrowser-download'
 
         # We won't need a question if a filename or fileobj is already given
         if fileobj is None and filename is None:

@@ -32,6 +32,7 @@ exclude .eslintignore
 exclude doc/help
 exclude .appveyor.yml
 exclude .travis.yml
+exclude .pydocstylerc
 exclude misc/appveyor_install.py
 
 global-exclude __pycache__ *.pyc *.pyo

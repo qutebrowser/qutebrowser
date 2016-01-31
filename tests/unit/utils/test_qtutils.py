@@ -69,21 +69,21 @@ class TestCheckOverflow:
     """Test check_overflow."""
 
     @pytest.mark.parametrize('ctype, val',
-                             overflow_test_cases.iter_good_values())
+                             overflow_test_cases.good_values())
     def test_good_values(self, ctype, val):
         """Test values which are inside bounds."""
         qtutils.check_overflow(val, ctype)
 
     @pytest.mark.parametrize('ctype, val',
                              [(ctype, val) for (ctype, val, _) in
-                              overflow_test_cases.iter_bad_values()])
+                              overflow_test_cases.bad_values()])
     def test_bad_values_fatal(self, ctype, val):
         """Test values which are outside bounds with fatal=True."""
         with pytest.raises(OverflowError):
             qtutils.check_overflow(val, ctype)
 
     @pytest.mark.parametrize('ctype, val, repl',
-                             overflow_test_cases.iter_bad_values())
+                             overflow_test_cases.bad_values())
     def test_bad_values_nonfatal(self, ctype, val, repl):
         """Test values which are outside bounds with fatal=False."""
         newval = qtutils.check_overflow(val, ctype, fatal=False)

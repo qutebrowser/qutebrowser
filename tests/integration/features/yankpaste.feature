@@ -170,3 +170,67 @@ Feature: Yanking and pasting.
                 history:
                 - active: true
                   url: http://localhost:*/data/hello3.txt
+
+    #### :paste-primary
+
+    Scenario: Pasting the primary selection into an empty text field
+        When selection is supported
+        And I open data/paste_primary.html
+        And I put "Hello world" into the primary selection
+        # Click the text field
+        And I run :hint all
+        And I run :follow-hint a
+        And I run :paste-primary
+        # Compare
+        Then the text field should contain "Hello world"
+
+    Scenario: Pasting the primary selection into a text field at specific position
+        When selection is supported
+        And I open data/paste_primary.html
+        And I set the text field to "one two three four"
+        And I put " Hello world" into the primary selection
+        # Click the text field
+        And I run :hint all
+        And I run :follow-hint a
+        # Move to the beginning and two words to the right
+        And I press the keys "<Home>"
+        And I press the key "<Ctrl+Right>"
+        And I press the key "<Ctrl+Right>"
+        And I run :paste-primary
+        # Compare
+        Then the text field should contain "one two Hello world three four"
+
+    Scenario: Pasting the primary selection into a text field with undo
+        When selection is supported
+        And I open data/paste_primary.html
+        # Click the text field
+        And I run :hint all
+        And I run :follow-hint a
+        # Paste and undo
+        And I put "This text should be undone" into the primary selection
+        And I run :paste-primary
+        And I press the key "<Ctrl+z>"
+        # Paste final text
+        And I put "This text should stay" into the primary selection
+        And I run :paste-primary
+        # Compare
+        Then the text field should contain "This text should stay"
+
+    Scenario: Pasting the primary selection without a focused field
+        When selection is supported
+        And I open data/paste_primary.html
+        And I put "test" into the primary selection
+        And I run :enter-mode insert
+        And I run :paste-primary
+        Then the error "No element focused!" should be shown
+
+    Scenario: Pasting the primary selection with a read-only field
+        When selection is supported
+        And I open data/paste_primary.html
+        # Click the text field
+        And I run :hint all
+        And I run :follow-hint s
+        And I put "test" into the primary selection
+        And I run :enter-mode insert
+        And I run :paste-primary
+        Then the error "Focused element is not editable!" should be shown

@@ -126,7 +126,8 @@ class TestSplit:
 
     """Test split."""
 
-    @pytest.fixture(params=_parse_split_test_data_str(), ids=lambda e: e.input)
+    @pytest.fixture(params=list(_parse_split_test_data_str()),
+                    ids=lambda e: e.input)
     def split_test_case(self, request):
         """Fixture to automatically parametrize all depending tests.
 
@@ -163,7 +164,7 @@ class TestSimpleSplit:
         'foo\nbar': ['foo', '\nbar'],
     }
 
-    @pytest.mark.parametrize('test', TESTS, ids=repr)
+    @pytest.mark.parametrize('test', sorted(TESTS), ids=repr)
     def test_str_split(self, test):
         """Test if the behavior matches str.split."""
         assert split.simple_split(test) == test.rstrip().split()
@@ -177,7 +178,7 @@ class TestSimpleSplit:
         expected = s.rstrip().split(maxsplit=maxsplit)
         assert actual == expected
 
-    @pytest.mark.parametrize('test, expected', TESTS.items(), ids=repr)
+    @pytest.mark.parametrize('test, expected', sorted(TESTS.items()), ids=repr)
     def test_split_keep(self, test, expected):
         """Test splitting with keep=True."""
         assert split.simple_split(test, keep=True) == expected

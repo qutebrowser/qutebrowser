@@ -23,6 +23,9 @@ Added
 - New `--quiet` argument for the `:debug-pyeval` command to not open a tab with
   the results. Note `:debug-pyeval` is still only intended for debugging.
 - The completion now matches each entered word separately.
+- A new command `:paste-primary` got added to paste the primary selection, and
+  `<Shift-Insert>` got added as a binding so it pastes primary rather than
+  clipboard.
 
 Changed
 ~~~~~~~
@@ -36,6 +39,10 @@ Fixed
 - Fixed starting with -c "".
 - Fixed crash when a tab is closed twice via javascript (e.g. Dropbox
   authentication dialogs)
+- Fixed crash when a notification/geolocation prompt is answered after closing
+  the tab it belongs to.
+- Fixed crash when downloading a file without any path information (e.g a
+  magnet link).
 
 v0.5.1
 ------
