@@ -1586,7 +1586,6 @@ class TestShellCommand:
 
     @pytest.mark.parametrize('kwargs, val', [
         ({}, ''),
-        ({'placeholder': '{}'}, 'foo{} bar'),
         ({'placeholder': '{}'}, 'foo bar'),
         ({}, 'foo"'),  # not splittable with shlex
     ])
