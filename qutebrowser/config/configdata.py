@@ -1324,7 +1324,8 @@ KEY_SECTION_DESC = {
         "Since normal keypresses are passed through, only special keys are "
         "supported in this mode.\n"
         "Useful hidden commands to map in this section:\n\n"
-        " * `open-editor`: Open a texteditor with the focused field."),
+        " * `open-editor`: Open a texteditor with the focused field.\n"
+        " * `paste-primary`: Paste primary selection at cursor position."),
     'hint': (
         "Keybindings for hint mode.\n"
         "Since normal keypresses are passed through, only special keys are "
@@ -1495,6 +1496,7 @@ KEY_DATA = collections.OrderedDict([
 
     ('insert', collections.OrderedDict([
         ('open-editor', ['<Ctrl-E>']),
+        ('paste-primary', ['<Shift-Ins>']),
     ])),
 
     ('hint', collections.OrderedDict([
