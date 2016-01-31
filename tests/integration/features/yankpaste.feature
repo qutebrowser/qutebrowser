@@ -171,6 +171,8 @@ Feature: Yanking and pasting.
                 - active: true
                   url: http://localhost:*/data/hello3.txt
 
+    #### :paste-primary
+
     Scenario: Pasting the primary selection into an empty text field
         When selection is supported
         And I open data/paste_primary.html
@@ -180,13 +182,12 @@ Feature: Yanking and pasting.
         And I run :follow-hint a
         And I run :paste-primary
         # Compare
-        And I run :jseval console.log(document.getElementById('qute-textarea').value);
-        Then the javascript message "Hello world" should be logged
+        Then the text field should contain "Hello world"
 
     Scenario: Pasting the primary selection into a text field at specific position
         When selection is supported
         And I open data/paste_primary.html
-        And I run :jseval document.getElementById('qute-textarea').value = 'one two three four';
+        And I set the text field to "one two three four"
         And I put " Hello world" into the primary selection
         # Click the text field
         And I run :hint all
@@ -197,8 +198,7 @@ Feature: Yanking and pasting.
         And I press the key "<Ctrl+Right>"
         And I run :paste-primary
         # Compare
-        And I run :jseval console.log(document.getElementById('qute-textarea').value);
-        Then the javascript message "one two Hello world three four" should be logged
+        Then the text field should contain "one two Hello world three four"
 
     Scenario: Pasting the primary selection into a text field with undo
         When selection is supported
@@ -214,5 +214,4 @@ Feature: Yanking and pasting.
         And I put "This text should stay" into the primary selection
         And I run :paste-primary
         # Compare
-        And I run :jseval console.log(document.getElementById('qute-textarea').value);
-        Then the javascript message "This text should stay" should be logged
+        Then the text field should contain "This text should stay"
