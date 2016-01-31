@@ -124,6 +124,6 @@ class ExternalEditor(QObject):
         self._proc.error.connect(self.on_proc_error)
         editor = config.get('general', 'editor')
         executable = editor[0]
-        args = [arg.replace('{}', self._filename) if '{}' in arg else arg for arg in editor[1:]]
+        args = [arg.replace('{}', self._filename) for arg in editor[1:]]
         log.procs.debug("Calling \"{}\" with args {}".format(executable, args))
         self._proc.start(executable, args)
