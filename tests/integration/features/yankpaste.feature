@@ -215,3 +215,22 @@ Feature: Yanking and pasting.
         And I run :paste-primary
         # Compare
         Then the text field should contain "This text should stay"
+
+    Scenario: Pasting the primary selection without a focused field
+        When selection is supported
+        And I open data/paste_primary.html
+        And I put "test" into the primary selection
+        And I run :enter-mode insert
+        And I run :paste-primary
+        Then the error "No element focused!" should be shown
+
+    Scenario: Pasting the primary selection with a read-only field
+        When selection is supported
+        And I open data/paste_primary.html
+        # Click the text field
+        And I run :hint all
+        And I run :follow-hint s
+        And I put "test" into the primary selection
+        And I run :enter-mode insert
+        And I run :paste-primary
+        Then the error "Focused element is not editable!" should be shown
