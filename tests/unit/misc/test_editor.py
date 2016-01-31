@@ -57,7 +57,7 @@ class TestArg:
         editor: The ExternalEditor instance to test.
     """
 
-    @pytest.mark.parametrize('args', [[], ['foo', 'bar'], ['foo{}bar']])
+    @pytest.mark.parametrize('args', [[], ['foo'], ['foo', 'bar']])
     def test_start_no_placeholder(self, config_stub, editor, args):
         """Test starting editor without arguments."""
         config_stub.data['general']['editor'] = ['bin'] + args
