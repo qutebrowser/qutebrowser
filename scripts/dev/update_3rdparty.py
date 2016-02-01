@@ -20,7 +20,9 @@
 
 """Update all third-party-modules."""
 
+import argparse
 import urllib.request
+import urllib.error
 import shutil
 import json
 import os
@@ -41,12 +43,34 @@ def get_latest_pdfjs_url():
     return (version_name, download_url)
 
 
-def update_pdfjs():
-    """Download and extract the latest pdf.js version."""
-    version, url = get_latest_pdfjs_url()
+def update_pdfjs(target_version=None):
+    """Download and extract the latest pdf.js version.
+
+    If target_version is not None, download the given version instead.
+
+    Args:
+        target_version: None or version string ('x.y.z')
+    """
+    if target_version is None:
+        version, url = get_latest_pdfjs_url()
+    else:
+        # We need target_version as x.y.z, without the 'v' prefix, though the
+        # user might give it on the command line
+        if target_version.startswith('v'):
+            target_version = target_version[1:]
+        # version should have the prefix to be consistent with the return value
+        # of get_latest_pdfjs_url()
+        version = 'v' + target_version
+        url = ('https://github.com/mozilla/pdf.js/releases/download/'
+               'v{0}/pdfjs-{0}-dist.zip').format(target_version)
+
     target_path = os.path.join('qutebrowser', '3rdparty', 'pdfjs')
     print("=> Downloading pdf.js {}".format(version))
-    (archive_path, _headers) = urllib.request.urlretrieve(url)
+    try:
+        (archive_path, _headers) = urllib.request.urlretrieve(url)
+    except urllib.error.HTTPError as error:
+        print("Could not retrieve pdfjs {}: {}".format(version, error))
+        return
     if os.path.isdir(target_path):
         print("Removing old version in {}".format(target_path))
         shutil.rmtree(target_path)
@@ -58,7 +82,15 @@ def update_pdfjs():
 
 
 def main():
-    update_pdfjs()
+    parser = argparse.ArgumentParser()
+    parser.add_argument(
+        '--pdfjs', '-p',
+        help='Specify pdfjs version. If not given, '
+        'the latest version is used.',
+        required=False, metavar='VERSION')
+    args = parser.parse_args()
+
+    update_pdfjs(args.pdfjs)
 
 if __name__ == '__main__':
     main()
