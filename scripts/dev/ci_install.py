@@ -87,6 +87,8 @@ if 'APPVEYOR' in os.environ:
     subprocess.check_call([r'C:\install-PyQt5.exe', '/S'])
 
     print("Installing tox...")
+    # WORKAROUND for https://github.com/pypa/virtualenv/issues/858
+    pip_packages.insert(0, 'virtualenv==14.0.3')
     subprocess.check_call([r'C:\Python34\Scripts\pip', 'install', '-U'] +
                           pip_packages)
 
