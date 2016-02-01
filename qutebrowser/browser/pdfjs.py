@@ -63,7 +63,7 @@ def _generate_pdfjs_script(url):
 
 
 def fix_urls(asset):
-    """Take a html page and replace each relative URL wth an absolute.
+    """Take a html page and replace each relative URL with an absolute.
 
     This is specialized for pdf.js files and not a general purpose function.
 
@@ -90,9 +90,13 @@ def fix_urls(asset):
 
 
 SYSTEM_PDFJS_PATHS = [
-    '/usr/share/pdf.js/',  # Debian pdf.js-common
-    '/usr/share/javascript/pdf/',  # Debian libjs-pdf
-    os.path.expanduser('~/.local/share/qutebrowser/pdfjs/'),  # fallback
+    # Debian pdf.js-common
+    # Arch Linux pdfjs (AUR)
+    '/usr/share/pdf.js/',
+    # Debian libjs-pdf
+    '/usr/share/javascript/pdf/',
+    # fallback
+    os.path.expanduser('~/.local/share/qutebrowser/pdfjs/'),
 ]
 
 
