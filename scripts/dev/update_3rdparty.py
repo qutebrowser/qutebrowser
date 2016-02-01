@@ -82,7 +82,6 @@ def update_pdfjs(target_version=None):
 
 
 def main():
-    """Update 3rd party modules."""
     parser = argparse.ArgumentParser()
     parser.add_argument(
         '--pdfjs', '-p',
