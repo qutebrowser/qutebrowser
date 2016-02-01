@@ -535,14 +535,15 @@ class TestPDFJSVersion:
     """Tests for _pdfjs_version."""
 
     def test_not_found(self, mocker):
-        mocker.patch('qutebrowser.utils.version.pdfjs.get_pdfjs_res',
+        mocker.patch('qutebrowser.utils.version.pdfjs.get_pdfjs_res_and_path',
                      side_effect=pdfjs.PDFJSNotFound)
         assert version._pdfjs_version() == 'no'
 
     def test_unknown(self, monkeypatch):
-        monkeypatch.setattr('qutebrowser.utils.version.pdfjs.get_pdfjs_res',
-                            lambda path: b'foobar')
-        assert version._pdfjs_version() == 'unknown'
+        monkeypatch.setattr(
+            'qutebrowser.utils.version.pdfjs.get_pdfjs_res_and_path',
+            lambda path: (b'foobar', None))
+        assert version._pdfjs_version() == 'unknown (bundled)'
 
     def test_known(self, monkeypatch):
         pdfjs_code = textwrap.dedent("""
@@ -558,9 +559,10 @@ class TestPDFJSVersion:
               // Use strict in our context only - users might not want it
               'use strict';
         """).strip().encode('utf-8')
-        monkeypatch.setattr('qutebrowser.utils.version.pdfjs.get_pdfjs_res',
-                            lambda path: pdfjs_code)
-        assert version._pdfjs_version() == '1.2.109'
+        monkeypatch.setattr(
+            'qutebrowser.utils.version.pdfjs.get_pdfjs_res_and_path',
+            lambda path: (pdfjs_code, '/foo/bar/pdf.js'))
+        assert version._pdfjs_version() == '1.2.109 (/foo/bar/pdf.js)'
 
 
 class FakeQSslSocket:
