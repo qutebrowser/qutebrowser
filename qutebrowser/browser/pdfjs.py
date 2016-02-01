@@ -100,21 +100,26 @@ SYSTEM_PDFJS_PATHS = [
 ]
 
 
-def get_pdfjs_res(path):
+def get_pdfjs_res_and_path(path):
     """Get a pdf.js resource in binary format.
+
+    Returns a (content, path) tuple, where content is the file content and path
+    is the path where the file was found. If path is None, the bundled version
+    was used.
 
     Args:
         path: The path inside the pdfjs directory.
     """
     path = path.lstrip('/')
     content = None
+    file_path = None
 
     # First try a system wide installation
     # System installations might strip off the 'build/' or 'web/' prefixes.
     # qute expects them, so we need to adjust for it.
     names_to_try = [path, _remove_prefix(path)]
     for system_path in SYSTEM_PDFJS_PATHS:
-        content = _read_from_system(system_path, names_to_try)
+        content, file_path = _read_from_system(system_path, names_to_try)
         if content is not None:
             break
 
@@ -130,9 +135,19 @@ def get_pdfjs_res(path):
         # Might be script/html or might be binary
         text_content = content.decode('utf-8')
     except UnicodeDecodeError:
-        return content
+        return (content, file_path)
     text_content = fix_urls(text_content)
-    return text_content.encode('utf-8')
+    return (text_content.encode('utf-8'), file_path)
+
+
+def get_pdfjs_res(path):
+    """Get a pdf.js resource in binary format.
+
+    Args:
+        path: The path inside the pdfjs directory.
+    """
+    content, _path = get_pdfjs_res_and_path(path)
+    return content
 
 
 def _remove_prefix(path):
@@ -151,10 +166,13 @@ def _remove_prefix(path):
 def _read_from_system(system_path, names):
     """Try to read a file with one of the given names in system_path.
 
+    Returns a (content, path) tuple, where the path is the filepath that was
+    used.
+
     Each file in names is considered equal, the first file that is found
     is read and its binary content returned.
 
-    Returns None if no file could be found
+    Returns (None, None) if no file could be found
 
     Args:
         system_path: The folder where the file should be searched.
@@ -162,11 +180,12 @@ def _read_from_system(system_path, names):
     """
     for name in names:
         try:
-            with open(os.path.join(system_path, name), 'rb') as f:
-                return f.read()
+            full_path = os.path.join(system_path, name)
+            with open(full_path, 'rb') as f:
+                return (f.read(), full_path)
         except OSError:
             continue
-    return None
+    return (None, None)
 
 
 def is_available():

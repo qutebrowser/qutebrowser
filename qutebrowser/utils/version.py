@@ -192,16 +192,20 @@ def _pdfjs_version():
         A string with the version number.
     """
     try:
-        pdfjs_file = pdfjs.get_pdfjs_res('build/pdf.js').decode('utf-8')
+        pdfjs_file, file_path = pdfjs.get_pdfjs_res_and_path('build/pdf.js')
     except pdfjs.PDFJSNotFound:
         return 'no'
     else:
+        pdfjs_file = pdfjs_file.decode('utf-8')
         version_re = re.compile(r"^PDFJS\.version = '([^']+)';$", re.MULTILINE)
         match = version_re.search(pdfjs_file)
         if not match:
-            return 'unknown'
+            pdfjs_version = 'unknown'
         else:
-            return match.group(1)
+            pdfjs_version = match.group(1)
+        if file_path is None:
+            file_path = 'bundled'
+        return '{} ({})'.format(pdfjs_version, file_path)
 
 
 def version(short=False):
