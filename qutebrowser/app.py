@@ -165,11 +165,14 @@ def init(args, crash_handler):
 def _init_icon():
     """Initialize the icon of qutebrowser."""
     icon = QIcon()
+    fallback_icon = QIcon()
     for size in (16, 24, 32, 48, 64, 96, 128, 256, 512):
         filename = ':/icons/qutebrowser-{}x{}.png'.format(size, size)
         pixmap = QPixmap(filename)
         qtutils.ensure_not_null(pixmap)
-        icon.addPixmap(pixmap)
+        fallback_icon.addPixmap(pixmap)
+    qtutils.ensure_not_null(fallback_icon)
+    icon = QIcon.fromTheme('qutebrowser', fallback_icon)
     qtutils.ensure_not_null(icon)
     qApp.setWindowIcon(icon)
 
