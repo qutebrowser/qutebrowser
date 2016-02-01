@@ -141,7 +141,6 @@ def check_vcs_conflict():
 
 
 def main():
-    """Main entry point."""
     parser = argparse.ArgumentParser()
     parser.add_argument('checker', choices=('git', 'vcs', 'spelling'),
                         help="Which checker to run.")

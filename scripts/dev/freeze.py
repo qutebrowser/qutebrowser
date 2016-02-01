@@ -100,7 +100,6 @@ def get_exe(base, target_name):
 
 
 def main():
-    """Main entry point."""
     if sys.platform.startswith('win'):
         base = 'Win32GUI'
         target_name = 'qutebrowser.exe'
