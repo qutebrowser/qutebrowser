@@ -182,7 +182,6 @@ def build_sdist():
 
 
 def main():
-    """Main entry point."""
     parser = argparse.ArgumentParser()
     parser.add_argument('--asciidoc', help="Full path to python and "
                         "asciidoc.py. If not given, it's searched in PATH.",

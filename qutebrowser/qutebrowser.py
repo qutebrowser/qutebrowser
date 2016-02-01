@@ -130,7 +130,6 @@ def get_argparser():
 
 
 def main():
-    """Main entry point for qutebrowser."""
     parser = get_argparser()
     if sys.platform == 'darwin' and getattr(sys, 'frozen', False):
         # Ignore Mac OS X' idiotic -psn_* argument...

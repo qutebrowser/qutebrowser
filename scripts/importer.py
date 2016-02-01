@@ -29,7 +29,6 @@ import argparse
 
 
 def main():
-    """Main entry point."""
     args = get_args()
     if args.browser == 'chromium':
         import_chromium(args.bookmarks)

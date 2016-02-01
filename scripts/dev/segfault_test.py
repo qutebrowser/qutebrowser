@@ -66,7 +66,6 @@ def print_ret(ret):
 
 
 def main():
-    """Main entry point."""
     retvals = []
     if len(sys.argv) < 2:
         # pages which previously caused problems

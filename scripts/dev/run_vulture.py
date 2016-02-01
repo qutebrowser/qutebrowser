@@ -166,7 +166,6 @@ def run(files):
 
 
 def main():
-    """Run vulture over all files."""
     parser = argparse.ArgumentParser()
     parser.add_argument('files', nargs='*',
                         default=['qutebrowser', 'scripts'])

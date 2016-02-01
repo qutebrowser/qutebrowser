@@ -135,7 +135,6 @@ def check_prerequisites():
 
 
 def main():
-    """Main entry point."""
     check_prerequisites()
 
     parser = argparse.ArgumentParser()

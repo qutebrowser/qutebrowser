@@ -264,11 +264,6 @@ def main_check_all():
 
 
 def main():
-    """Main entry point.
-
-    Return:
-        The return code to return.
-    """
     utils.change_cwd()
     if '--check-all' in sys.argv:
         return main_check_all()

@@ -70,7 +70,6 @@ def get_build_exe_options():
 
 
 def main():
-    """Main entry point."""
     base = 'Win32GUI' if sys.platform.startswith('win') else None
     with temp_git_commit_file():
         cx.setup(

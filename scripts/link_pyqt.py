@@ -197,7 +197,6 @@ def get_tox_syspython(tox_path):
 
 
 def main():
-    """Main entry point."""
     parser = argparse.ArgumentParser()
     parser.add_argument('path', help="Base path to the venv.")
     parser.add_argument('--tox', help="Add when called via tox.",
