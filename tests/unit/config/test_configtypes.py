@@ -1581,7 +1581,7 @@ class TestShellCommand:
         ({}, 'foobar'),
         ({'placeholder': '{}'}, 'foo {} bar'),
         ({'placeholder': '{}'}, 'foo{}bar'),
-        ({'placeholder': '{}'}, 'foo "bar {}"')
+        ({'placeholder': '{}'}, 'foo "bar {}"'),
     ])
     def test_validate_valid(self, klass, kwargs, val):
         klass(**kwargs).validate(val)
@@ -1589,7 +1589,7 @@ class TestShellCommand:
     @pytest.mark.parametrize('kwargs, val', [
         ({}, ''),
         ({'placeholder': '{}'}, 'foo bar'),
-        ({'placeholder': '{}'}, 'foo { } bar')
+        ({'placeholder': '{}'}, 'foo { } bar'),
         ({}, 'foo"'),  # not splittable with shlex
     ])
     def test_validate_invalid(self, klass, kwargs, val):
