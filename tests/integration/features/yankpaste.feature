@@ -61,6 +61,11 @@ Feature: Yanking and pasting.
         And I run :paste --sel
         Then the error "Primary selection is empty." should be shown
 
+    Scenario: Pasting with a space in clipboard
+        When I put " " into the clipboard
+        And I run :paste
+        Then the error "Clipboard is empty." should be shown
+
     Scenario: Pasting in a new tab
         Given I open about:blank
         When I run :tab-only
@@ -170,6 +175,18 @@ Feature: Yanking and pasting.
                 history:
                 - active: true
                   url: http://localhost:*/data/hello3.txt
+
+    Scenario: Pasting multiple urls with an empty one
+        When I open about:blank
+        And I put "http://localhost:(port)/data/hello.txt\n\nhttp://localhost:(port)/data/hello2.txt" into the clipboard
+        And I run :paste -t
+        Then no crash should happen
+
+    Scenario: Pasting multiple urls with an almost empty one
+        When I open about:blank
+        And I put "http://localhost:(port)/data/hello.txt\n \nhttp://localhost:(port)/data/hello2.txt" into the clipboard
+        And I run :paste -t
+        Then no crash should happen
 
     #### :paste-primary
 

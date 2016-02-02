@@ -210,6 +210,7 @@ def selection_supported(qapp):
 def fill_clipboard(qtbot, qapp, httpbin, what, content):
     mode = _clipboard_mode(qapp, what)
     content = content.replace('(port)', str(httpbin.port))
+    content = content.replace(r'\n', '\n')
 
     clipboard = qapp.clipboard()
     with qtbot.waitSignal(clipboard.changed):
