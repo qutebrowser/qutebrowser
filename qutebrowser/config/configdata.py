@@ -914,7 +914,7 @@ def data(readonly=False):
              "matched."),
 
             ('auto-follow-timeout',
-             SettingValue(typ.Int(), 0),
+             SettingValue(typ.Int(), '0'),
              "A timeout to inhibit normal-mode key bindings after a successful"
              "auto-follow."),
 
