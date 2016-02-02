@@ -233,6 +233,11 @@ class TestFuzzyUrl:
         with pytest.raises(exception):
             urlutils.fuzzy_url('foo', do_search=do_search)
 
+    @pytest.mark.parametrize('url', ['', ' '])
+    def test_empty(self, url):
+        with pytest.raises(urlutils.InvalidUrlError):
+            urlutils.fuzzy_url(url, do_search=True)
+
 
 @pytest.mark.parametrize('url, special', [
     ('file:///tmp/foo', True),

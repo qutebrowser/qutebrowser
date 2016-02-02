@@ -172,6 +172,7 @@ def fuzzy_url(urlstr, cwd=None, relative=False, do_search=True):
     """
     urlstr = urlstr.strip()
     expanded = os.path.expanduser(urlstr)
+
     if os.path.isabs(expanded):
         path = expanded
     elif relative and cwd:
@@ -199,7 +200,7 @@ def fuzzy_url(urlstr, cwd=None, relative=False, do_search=True):
             url = qurl_from_user_input(urlstr)
     log.url.debug("Converting fuzzy term {} to URL -> {}".format(
                   urlstr, url.toDisplayString()))
-    if do_search and config.get('general', 'auto-search'):
+    if do_search and config.get('general', 'auto-search') and urlstr:
         qtutils.ensure_valid(url)
     else:
         if not url.isValid():
