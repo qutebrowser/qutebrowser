@@ -57,7 +57,7 @@ class TestArg:
         editor: The ExternalEditor instance to test.
     """
 
-    @pytest.mark.parametrize('args', [[], ['foo', 'bar'], ['foo{}bar']])
+    @pytest.mark.parametrize('args', [[], ['foo'], ['foo', 'bar']])
     def test_start_no_placeholder(self, config_stub, editor, args):
         """Test starting editor without arguments."""
         config_stub.data['general']['editor'] = ['bin'] + args
@@ -70,6 +70,13 @@ class TestArg:
         editor.edit("")
         editor._proc._proc.start.assert_called_with(
             "bin", ["foo", editor._filename, "bar"])
+
+    def test_placeholder_inline(self, config_stub, editor):
+        """Test starting editor with placeholder arg inside of another arg."""
+        config_stub.data['general']['editor'] = ['bin', 'foo{}', 'bar']
+        editor.edit("")
+        editor._proc._proc.start.assert_called_with(
+            "bin", ["foo" + editor._filename, "bar"])
 
 
 class TestFileHandling:
