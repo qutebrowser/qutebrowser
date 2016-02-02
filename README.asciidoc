@@ -149,6 +149,7 @@ Contributors, sorted by the number of commits in descending order:
 * Martin Tournoij
 * Raphael Pierzina
 * Joel Torstensson
+* Felix Van der Jeugt
 * Claude
 * meles5
 * Patric Schmitz
@@ -171,7 +172,6 @@ Contributors, sorted by the number of commits in descending order:
 * error800
 * Zach-Button
 * Halfwit
-* Felix Van der Jeugt
 * rikn00
 * Michael Ilsaas
 * Martin Zimmermann
