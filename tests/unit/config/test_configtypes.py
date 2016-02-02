@@ -1268,7 +1268,6 @@ class TestRegexList:
         assert klass().transform(val) == expected
 
 
-
 def unrequired_class(**kwargs):
     return configtypes.File(required=False, **kwargs)
 
