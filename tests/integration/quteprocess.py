@@ -254,6 +254,7 @@ class QuteProc(testprocess.Process):
             pytest.skip(', '.join(skip_texts))
 
     def after_test(self):
+        __tracebackhide__ = True
         bad_msgs = [msg for msg in self._data
                     if self._is_error_logline(msg) and not msg.expected]
 
