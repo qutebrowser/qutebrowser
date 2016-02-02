@@ -613,7 +613,7 @@ class TabbedBrowser(tabwidget.TabWidget):
     def on_scroll_pos_changed(self):
         """Update tab and window title when scroll position changed."""
         self.update_window_title()
-        self.update_tab_titles()
+        self.update_tab_title(self.currentIndex())
 
     def resizeEvent(self, e):
         """Extend resizeEvent of QWidget to emit a resized signal afterwards.
