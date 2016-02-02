@@ -888,7 +888,7 @@ def data(readonly=False):
              "Whether to auto-follow a hint if there's only one left."),
 
             ('auto-follow-timeout',
-             SettingValue(typ.Int(), 0),
+             SettingValue(typ.Int(), '0'),
              "A timeout to inhibit normal-mode key bindings after a successful"
              "auto-follow."),
 
