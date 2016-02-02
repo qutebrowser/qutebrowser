@@ -71,6 +71,13 @@ class TestArg:
         editor._proc._proc.start.assert_called_with(
             "bin", ["foo", editor._filename, "bar"])
 
+    def test_placeholder_inline(self, config_stub, editor):
+        """Test starting editor with placeholder arg inside of another arg."""
+        config_stub.data['general']['editor'] = ['bin', 'foo{}', 'bar']
+        editor.edit("")
+        editor._proc._proc.start.assert_called_with(
+            "bin", ["foo" + editor._filename, "bar"])
+
 
 class TestFileHandling:
 
