@@ -1268,12 +1268,21 @@ class TestRegexList:
         assert klass().transform(val) == expected
 
 
+
+def unrequired_class(**kwargs):
+    return configtypes.File(required=False, **kwargs)
+
+
 @pytest.mark.usefixtures('qapp')
 class TestFileAndUserStyleSheet:
 
     """Test File/UserStyleSheet."""
 
-    @pytest.fixture(params=[configtypes.File, configtypes.UserStyleSheet])
+    @pytest.fixture(params=[
+        configtypes.File,
+        configtypes.UserStyleSheet,
+        unrequired_class,
+    ])
     def klass(self, request):
         return request.param
 
@@ -1293,6 +1302,8 @@ class TestFileAndUserStyleSheet:
             return arg
         elif klass is configtypes.UserStyleSheet:
             return QUrl.fromLocalFile(arg)
+        elif klass is unrequired_class:
+            return arg
         else:
             assert False, klass
 
@@ -1308,6 +1319,11 @@ class TestFileAndUserStyleSheet:
         os_mock.path.isfile.return_value = False
         with pytest.raises(configexc.ValidationError):
             configtypes.File().validate('foobar')
+
+    def test_validate_does_not_exist_optional_file(self, os_mock):
+        """Test validate with a file which does not exist (File)."""
+        os_mock.path.isfile.return_value = False
+        configtypes.File(required=False).validate('foobar')
 
     def test_validate_does_not_exist_userstylesheet(self, os_mock):
         """Test validate with a file which does not exist (UserStyleSheet)."""
@@ -1343,7 +1359,9 @@ class TestFileAndUserStyleSheet:
         (configtypes.File(), 'foobar', True),
         (configtypes.UserStyleSheet(), 'foobar', False),
         (configtypes.UserStyleSheet(), '\ud800', True),
-    ], ids=['file-foobar', 'userstylesheet-foobar', 'userstylesheet-unicode'])
+        (configtypes.File(required=False), 'foobar', False),
+    ], ids=['file-foobar', 'userstylesheet-foobar', 'userstylesheet-unicode',
+            'file-optional-foobar'])
     def test_validate_rel_inexistent(self, os_mock, monkeypatch, configtype,
                                      value, raises):
         """Test with a relative path and standarddir.config returning None."""

@@ -863,7 +863,9 @@ def data(readonly=False):
                  valid_values=typ.ValidValues(
                      ('number', "Use numeric hints."),
                      ('letter', "Use the chars in the hints -> "
-                      "chars setting.")
+                      "chars setting."),
+                     ('word', "Use hints words based on the html "
+                      "elements and the extra words."),
                  )), 'letter'),
              "Mode to use for hints."),
 
@@ -887,6 +889,10 @@ def data(readonly=False):
             ('uppercase',
              SettingValue(typ.Bool(), 'false'),
              "Make chars in hint strings uppercase."),
+
+            ('dictionary',
+             SettingValue(typ.File(required=False), '/usr/share/dict/words'),
+             "The dictionary file to be used by the word hints."),
 
             ('auto-follow',
              SettingValue(typ.Bool(), 'true'),

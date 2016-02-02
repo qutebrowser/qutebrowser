@@ -179,6 +179,7 @@
 |<<hints-min-chars,min-chars>>|Minimum number of chars used for hint strings.
 |<<hints-scatter,scatter>>|Whether to scatter hint key chains (like Vimium) or not (like dwb).
 |<<hints-uppercase,uppercase>>|Make chars in hint strings uppercase.
+|<<hints-dictionary,dictionary>>|The dictionary file to be used by the word hints.
 |<<hints-auto-follow,auto-follow>>|Whether to auto-follow a hint if there's only one left.
 |<<hints-next-regexes,next-regexes>>|A comma-separated list of regexes to use for 'next' links.
 |<<hints-prev-regexes,prev-regexes>>|A comma-separated list of regexes to use for 'prev' links.
@@ -1538,6 +1539,7 @@ Valid values:
 
  * +number+: Use numeric hints.
  * +letter+: Use the chars in the hints -> chars setting.
+ * +word+: Use hints words based on the html elements and the extra words.
 
 Default: +pass:[letter]+
 
@@ -1574,6 +1576,12 @@ Valid values:
  * +false+
 
 Default: +pass:[false]+
+
+[[hints-dictionary]]
+=== dictionary
+The dictionary file to be used by the word hints.
+
+Default: +pass:[/usr/share/dict/words]+
 
 [[hints-auto-follow]]
 === auto-follow

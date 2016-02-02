@@ -26,6 +26,8 @@ Added
 - A new command `:paste-primary` got added to paste the primary selection, and
   `<Shift-Insert>` got added as a binding so it pastes primary rather than
   clipboard.
+- New mode `word` for `hints -> mode` which uses a dictionary and link-texts
+  for hints instead of single characters.
 
 Changed
 ~~~~~~~
