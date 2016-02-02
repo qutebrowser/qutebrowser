@@ -1,6 +1,6 @@
 # vim: ft=python fileencoding=utf-8 sts=4 sw=4 et:
 
-# Copyright 2015 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
+# Copyright 2015-2016 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
 #
 # This file is part of qutebrowser.
 #
@@ -37,6 +37,7 @@ from qutebrowser.commands import cmdexc
 
 pytestmark = pytest.mark.qt_log_ignore('QIODevice::read.*: device not open',
                                        extend=True)
+
 
 @pytest.fixture
 def sess_man():
@@ -246,7 +247,7 @@ class TestSaveTab:
 
         items = [
             Item(url=QUrl('http://www.example.com/'), title='Test title',
-                           active=True),
+                 active=True),
             Item(url=QUrl('http://www.example.com/'), title='Test title',
                  user_data={'zoom': factor}),
         ]
@@ -439,9 +440,8 @@ class TestSave:
 
     def test_update_completion_signal(self, sess_man, tmpdir, qtbot):
         session_path = tmpdir / 'foo.yml'
-        blocker = qtbot.waitSignal(sess_man.update_completion)
-        sess_man.save(str(session_path))
-        assert blocker.signal_triggered
+        with qtbot.waitSignal(sess_man.update_completion):
+            sess_man.save(str(session_path))
 
     def test_no_state_config(self, sess_man, tmpdir, state_config):
         session_path = tmpdir / 'foo.yml'
@@ -691,9 +691,8 @@ class TestDelete:
         sess = tmpdir / 'foo.yml'
         sess.ensure()
 
-        blocker = qtbot.waitSignal(sess_man.update_completion)
-        sess_man.delete(str(sess))
-        assert blocker.signal_triggered
+        with qtbot.waitSignal(sess_man.update_completion):
+            sess_man.delete(str(sess))
 
     def test_not_existing(self, sess_man, qtbot, tmpdir):
         sess = tmpdir / 'foo.yml'

@@ -1,6 +1,6 @@
 # vim: ft=python fileencoding=utf-8 sts=4 sw=4 et:
 
-# Copyright 2014-2015 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
+# Copyright 2014-2016 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
 #
 # This file is part of qutebrowser.
 #
@@ -258,6 +258,13 @@ class String(BaseType):
         self._basic_validation(value)
         if not value:
             return
+
+        if self.valid_values is not None:
+            if value not in self.valid_values:
+                raise configexc.ValidationError(
+                    value, "valid values: {}".format(', '.join(
+                        self.valid_values)))
+
         if self.forbidden is not None and any(c in value
                                               for c in self.forbidden):
             raise configexc.ValidationError(value, "may not contain the chars "
@@ -270,7 +277,10 @@ class String(BaseType):
                                             "long!".format(self.maxlen))
 
     def complete(self):
-        return self._completions
+        if self._completions is not None:
+            return self._completions
+        else:
+            return super().complete()
 
 
 class List(BaseType):
@@ -891,6 +901,10 @@ class File(BaseType):
 
     """A file on the local filesystem."""
 
+    def __init__(self, required=True, **kwargs):
+        super().__init__(**kwargs)
+        self.required = required
+
     def transform(self, value):
         if not value:
             return None
@@ -899,7 +913,7 @@ class File(BaseType):
         if not os.path.isabs(value):
             cfgdir = standarddir.config()
             assert cfgdir is not None
-            return os.path.join(cfgdir, value)
+            value = os.path.join(cfgdir, value)
         return value
 
     def validate(self, value):
@@ -915,15 +929,13 @@ class File(BaseType):
                     raise configexc.ValidationError(
                         value, "must be an absolute path when not using a "
                         "config directory!")
-                elif not os.path.isfile(os.path.join(cfgdir, value)):
-                    raise configexc.ValidationError(
-                        value, "must be a valid path relative to the config "
-                        "directory!")
-                else:
-                    return
-            elif not os.path.isfile(value):
-                raise configexc.ValidationError(
-                    value, "must be a valid file!")
+                value = os.path.join(cfgdir, value)
+                not_isfile_message = ("must be a valid path relative to the "
+                                      "config directory!")
+            else:
+                not_isfile_message = "must be a valid file!"
+            if self.required and not os.path.isfile(value):
+                raise configexc.ValidationError(value, not_isfile_message)
         except UnicodeEncodeError as e:
             raise configexc.ValidationError(value, e)
 
@@ -1084,7 +1096,7 @@ class ShellCommand(BaseType):
             shlex.split(value)
         except ValueError as e:
             raise configexc.ValidationError(value, str(e))
-        if self.placeholder and '{}' not in self.transform(value):
+        if self.placeholder and '{}' not in value:
             raise configexc.ValidationError(value, "needs to contain a "
                                             "{}-placeholder.")
 
@@ -1259,8 +1271,16 @@ class UserStyleSheet(File):
     def transform(self, value):
         if not value:
             return None
-        path = super().transform(value)
-        if os.path.exists(path):
+
+        if standarddir.config() is None:
+            # We can't call super().transform() here as this counts on the
+            # validation previously ensuring that we don't have a relative path
+            # when starting with -c "".
+            path = None
+        else:
+            path = super().transform(value)
+
+        if path is not None and os.path.exists(path):
             return QUrl.fromLocalFile(path)
         else:
             data = base64.b64encode(value.encode('utf-8')).decode('ascii')

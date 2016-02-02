@@ -117,8 +117,26 @@ Feature: Various utility commands.
         And I wait for "Focus object changed: *" in the log
         Then no crash should happen
 
+    # Different code path as an inspector got created now
+    Scenario: Inspector without developer extras (after smoke)
+        When I set general -> developer-extras to false
+        And I run :inspector
+        Then the error "Please enable developer-extras before using the webinspector!" should be shown
+
+    # Different code path as an inspector got created now
+    @not_xvfb @posix
+    Scenario: Inspector smoke test 2
+        When I set general -> developer-extras to true
+        And I run :inspector
+        And I wait for "Focus object changed: <PyQt5.QtWebKitWidgets.QWebView object at *>" in the log
+        And I run :inspector
+        And I wait for "Focus object changed: *" in the log
+        Then no crash should happen
+
     # :stop/:reload
 
+    # WORKAROUND for https://bitbucket.org/cherrypy/cherrypy/pull-requests/117/
+    @not_osx
     Scenario: :stop
         Given I have a fresh instance
         # We can't use "When I open" because we don't want to wait for load
@@ -134,19 +152,31 @@ Feature: Various utility commands.
             custom/redirect-later?delay=-1
         # no request on / because we stopped the redirect
 
-    Scenario: :reload
+    Scenario: :stop with wrong count
         When I open data/hello.txt
+        And I run :tab-only
+        And I run :stop with count 2
+        Then no crash should happen
+
+    Scenario: :reload
+        When I open data/reload.txt
         And I run :reload
-        And I wait until data/hello.txt is loaded
+        And I wait until data/reload.txt is loaded
         Then the requests should be:
-            data/hello.txt
-            data/hello.txt
+            data/reload.txt
+            data/reload.txt
 
     Scenario: :reload with force
         When I open headers
         And I run :reload --force
         And I wait until headers is loaded
         Then the header Cache-Control should be set to no-cache
+
+    Scenario: :reload with wrong count
+        When I open data/hello.txt
+        And I run :tab-only
+        And I run :reload with count 2
+        Then no crash should happen
 
     # :view-source
 
@@ -194,7 +224,8 @@ Feature: Various utility commands.
         Then the error "Invalid help topic foo!" should be shown
 
     Scenario: :help with command
-        When I run :tab-only
+        When the documentation is up to date
+        And I run :tab-only
         And I run :help :back
         And I wait until qute://help/commands.html#back is loaded
         Then the following tabs should be open:
@@ -205,7 +236,8 @@ Feature: Various utility commands.
         Then the error "Invalid command foo!" should be shown
 
     Scenario: :help with setting
-        When I run :tab-only
+        When the documentation is up to date
+        And I run :tab-only
         And I run :help general->editor
         And I wait until qute://help/settings.html#general-editor is loaded
         Then the following tabs should be open:
@@ -243,3 +275,56 @@ Feature: Various utility commands.
         When I set general -> startpage to http://localhost:(port)/data/numbers/1.txt,http://localhost:(port)/data/numbers/2.txt
         And I run :home
         Then data/numbers/1.txt should be loaded
+
+    # pdfjs support
+
+    Scenario: pdfjs is used for pdf files
+        Given pdfjs is available
+        When I set content -> enable-pdfjs to true
+        And I open data/misc/test.pdf
+        Then the javascript message "PDF * [*] (PDF.js: *)" should be logged
+
+    Scenario: pdfjs is not used when disabled
+        When I set content -> enable-pdfjs to false
+        And I set storage -> prompt-download-directory to false
+        And I open data/misc/test.pdf
+        Then "Download finished" should be logged
+
+    # :print
+
+    # Disabled because it causes weird segfaults and QPainter warnings in Qt...
+    @xfail_norun
+    Scenario: print preview
+        When I open data/hello.txt
+        And I run :print --preview
+        And I wait for "Focus object changed: *" in the log
+        And I run :debug-pyeval QApplication.instance().activeModalWidget().close()
+        Then no crash should happen
+
+    # On Windows/OS X, we get a "QPrintDialog: Cannot be used on non-native
+    # printers" qWarning.
+    #
+    # Disabled because it causes weird segfaults and QPainter warnings in Qt...
+    @xfail_norun
+    Scenario: print
+        When I open data/hello.txt
+        And I run :print
+        And I wait for "Focus object changed: *" in the log or skip the test
+        And I run :debug-pyeval QApplication.instance().activeModalWidget().close()
+        Then no crash should happen
+
+    # :pyeval
+
+    Scenario: Running :pyeval
+        When I run :debug-pyeval 1+1
+        And I wait until qute:pyeval is loaded
+        Then the page should contain the plaintext "2"
+
+    Scenario: Causing exception in :pyeval
+        When I run :debug-pyeval 1/0
+        And I wait until qute:pyeval is loaded
+        Then the page should contain the plaintext "ZeroDivisionError"
+
+    Scenario: Running :pyeval with --quiet
+        When I run :debug-pyeval --quiet 1+1
+        Then "pyeval output: 2" should be logged

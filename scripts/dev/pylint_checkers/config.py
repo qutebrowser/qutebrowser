@@ -1,6 +1,6 @@
 # vim: ft=python fileencoding=utf-8 sts=4 sw=4 et:
 
-# Copyright 2014-2015 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
+# Copyright 2014-2016 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
 #
 # This file is part of qutebrowser.
 #
@@ -41,7 +41,8 @@ class ConfigChecker(checkers.BaseChecker):
     __implements__ = interfaces.IAstroidChecker
     name = 'config'
     msgs = {
-        'E0000': ('"%s -> %s" is no valid config option.', 'bad-config-call',
+        'E0000': ('"%s -> %s" is no valid config option.',  # flake8: disable=S001
+                  'bad-config-call',
                   None),
     }
     priority = -1

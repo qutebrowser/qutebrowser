@@ -1,6 +1,6 @@
 # vim: ft=python fileencoding=utf-8 sts=4 sw=4 et:
 
-# Copyright 2015 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
+# Copyright 2015-2016 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
 #
 # This file is part of qutebrowser.
 #
@@ -33,7 +33,7 @@ import pytest
     ('/data/hello.txt', 'Hello World!', True),
 ])
 def test_httpbin(httpbin, qtbot, path, content, expected):
-    with qtbot.waitSignal(httpbin.new_request, raising=True, timeout=100):
+    with qtbot.waitSignal(httpbin.new_request, timeout=100):
         url = 'http://localhost:{}{}'.format(httpbin.port, path)
         try:
             response = urllib.request.urlopen(url)
@@ -52,11 +52,11 @@ def test_httpbin(httpbin, qtbot, path, content, expected):
 
 
 @pytest.mark.parametrize('line, verb, path, equal', [
-   ({'verb': 'GET', 'path': '/', 'status': 200}, 'GET', '/', True),
-   ({'verb': 'GET', 'path': '/foo/', 'status': 200}, 'GET', '/foo', True),
+    ({'verb': 'GET', 'path': '/', 'status': 200}, 'GET', '/', True),
+    ({'verb': 'GET', 'path': '/foo/', 'status': 200}, 'GET', '/foo', True),
 
-   ({'verb': 'GET', 'path': '/', 'status': 200}, 'GET', '/foo', False),
-   ({'verb': 'POST', 'path': '/', 'status': 200}, 'GET', '/', False),
+    ({'verb': 'GET', 'path': '/', 'status': 200}, 'GET', '/foo', False),
+    ({'verb': 'POST', 'path': '/', 'status': 200}, 'GET', '/', False),
 ])
 def test_expected_request(httpbin, line, verb, path, equal):
     expected = httpbin.ExpectedRequest(verb, path)

@@ -1,6 +1,6 @@
 # vim: ft=python fileencoding=utf-8 sts=4 sw=4 et:
 
-# Copyright 2014-2015 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
+# Copyright 2014-2016 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
 #
 # This file is part of qutebrowser.
 #
@@ -530,7 +530,6 @@ def test_parse_single_key(keystr, expected):
         assert utils._parse_single_key(keystr) == expected
 
 
-
 @pytest.mark.parametrize('keystr, expected', [
     ('<Control-x>', [utils.KeyInfo(Qt.Key_X, Qt.ControlModifier, '')]),
     ('x', [utils.KeyInfo(Qt.Key_X, Qt.NoModifier, 'x')]),
@@ -806,7 +805,8 @@ QUALNAME_OBJ = QualnameObj()
     (qutebrowser, 'qutebrowser'),  # module
     (qutebrowser.utils, 'qutebrowser.utils'),  # submodule
     (utils, 'qutebrowser.utils.utils'),  # submodule (from-import)
-])
+], ids=['instance', 'class', 'unbound-method', 'bound-method', 'function',
+        'partial', 'module', 'submodule', 'from-import'])
 def test_qualname(obj, expected):
     assert utils.qualname(obj) == expected
 

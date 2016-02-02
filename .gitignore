@@ -11,6 +11,7 @@ __pycache__
 /setuptools-*.egg
 /setuptools-*.zip
 /qutebrowser/git-commit-id
+/qutebrowser/3rdparty
 /doc/*.html
 /README.html
 /CHANGELOG.html

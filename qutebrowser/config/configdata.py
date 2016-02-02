@@ -1,6 +1,6 @@
 # vim: ft=python fileencoding=utf-8 sts=4 sw=4 et:
 
-# Copyright 2014-2015 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
+# Copyright 2014-2016 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
 #
 # This file is part of qutebrowser.
 #
@@ -841,6 +841,11 @@ def data(readonly=False):
              "required to exactly match the requested domain.\n\n"
              "Local domains are always exempt from hostblocking."),
 
+            ('enable-pdfjs', SettingValue(typ.Bool(), 'false'),
+             "Enable pdf.js to view PDF files in the browser.\n\n"
+             "Note that the files can still be downloaded by clicking"
+             " the download button in the pdf.js viewer."),
+
             readonly=readonly
         )),
 
@@ -858,7 +863,9 @@ def data(readonly=False):
                  valid_values=typ.ValidValues(
                      ('number', "Use numeric hints."),
                      ('letter', "Use the chars in the hints -> "
-                      "chars setting.")
+                      "chars setting."),
+                     ('word', "Use hints words based on the html "
+                      "elements and the extra words."),
                  )), 'letter'),
              "Mode to use for hints."),
 
@@ -882,6 +889,10 @@ def data(readonly=False):
             ('uppercase',
              SettingValue(typ.Bool(), 'false'),
              "Make chars in hint strings uppercase."),
+
+            ('dictionary',
+             SettingValue(typ.File(required=False), '/usr/share/dict/words'),
+             "The dictionary file to be used by the word hints."),
 
             ('auto-follow',
              SettingValue(typ.Bool(), 'true'),
@@ -1324,7 +1335,8 @@ KEY_SECTION_DESC = {
         "Since normal keypresses are passed through, only special keys are "
         "supported in this mode.\n"
         "Useful hidden commands to map in this section:\n\n"
-        " * `open-editor`: Open a texteditor with the focused field."),
+        " * `open-editor`: Open a texteditor with the focused field.\n"
+        " * `paste-primary`: Paste primary selection at cursor position."),
     'hint': (
         "Keybindings for hint mode.\n"
         "Since normal keypresses are passed through, only special keys are "
@@ -1495,6 +1507,7 @@ KEY_DATA = collections.OrderedDict([
 
     ('insert', collections.OrderedDict([
         ('open-editor', ['<Ctrl-E>']),
+        ('paste-primary', ['<Shift-Ins>']),
     ])),
 
     ('hint', collections.OrderedDict([

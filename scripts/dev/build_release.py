@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 # vim: ft=python fileencoding=utf-8 sts=4 sw=4 et:
 
-# Copyright 2014-2015 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
+# Copyright 2014-2016 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
 #
 # This file is part of qutebrowser.
 #
@@ -27,12 +27,15 @@ import os.path
 import shutil
 import subprocess
 import argparse
+import tarfile
+import collections
 
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), os.pardir,
                 os.pardir))
 
 import qutebrowser
 from scripts import utils
+from scripts.dev import update_3rdparty
 
 
 def call_script(name, *args, python=sys.executable):
@@ -61,7 +64,7 @@ def call_freeze(*args, python=sys.executable):
         env=env)
 
 
-def build_common(args):
+def run_asciidoc2html(args):
     """Common buildsteps used for all OS'."""
     utils.print_title("Running asciidoc2html.py")
     if args.asciidoc is not None:
@@ -87,6 +90,10 @@ def smoke_test(executable):
 
 def build_windows():
     """Build windows executables/setups."""
+    utils.print_title("Updating 3rdparty content")
+    update_3rdparty.main()
+
+    utils.print_title("Building Windows binaries")
     parts = str(sys.version_info.major), str(sys.version_info.minor)
     ver = ''.join(parts)
     dotver = '.'.join(parts)
@@ -142,8 +149,39 @@ def build_windows():
         qutebrowser.__version__), 'zip', destdir)
 
 
+def build_sdist():
+    """Build an sdist and list the contents."""
+    utils.print_title("Building sdist")
+
+    _maybe_remove('dist')
+
+    subprocess.check_call([sys.executable, 'setup.py', 'sdist'])
+    dist_files = os.listdir(os.path.abspath('dist'))
+    assert len(dist_files) == 1
+
+    dist_file = os.path.join('dist', dist_files[0])
+    subprocess.check_call(['gpg', '--detach-sign', '-a', dist_file])
+
+    tar = tarfile.open(dist_file)
+    by_ext = collections.defaultdict(list)
+
+    for tarinfo in tar.getmembers():
+        if not tarinfo.isfile():
+            continue
+        name = os.sep.join(tarinfo.name.split(os.sep)[1:])
+        _base, ext = os.path.splitext(name)
+        by_ext[ext].append(name)
+
+    assert '.pyc' not in by_ext
+
+    utils.print_title("sdist contents")
+
+    for ext, files in sorted(by_ext.items()):
+        utils.print_subtitle(ext)
+        print('\n'.join(files))
+
+
 def main():
-    """Main entry point."""
     parser = argparse.ArgumentParser()
     parser.add_argument('--asciidoc', help="Full path to python and "
                         "asciidoc.py. If not given, it's searched in PATH.",
@@ -151,6 +189,7 @@ def main():
                         metavar=('PYTHON', 'ASCIIDOC'))
     args = parser.parse_args()
     utils.change_cwd()
+
     if os.name == 'nt':
         if sys.maxsize > 2**32:
             # WORKAROUND
@@ -160,10 +199,10 @@ def main():
             print("See http://bugs.python.org/issue24493 and ")
             print("https://github.com/pypa/virtualenv/issues/774")
             sys.exit(1)
-        build_common(args)
+        run_asciidoc2html(args)
         build_windows()
     else:
-        print("This script does nothing except on Windows currently.")
+        build_sdist()
 
 
 if __name__ == '__main__':

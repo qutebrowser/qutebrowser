@@ -1,6 +1,6 @@
 # vim: ft=python fileencoding=utf-8 sts=4 sw=4 et:
 
-# Copyright 2014-2015 Florian Bruhin (The Compiler) <mail@qutebrowser.org>:
+# Copyright 2014-2016 Florian Bruhin (The Compiler) <mail@qutebrowser.org>:
 #
 # This file is part of qutebrowser.
 #
@@ -282,7 +282,7 @@ class TestKeyChain:
         assert not keyparser.execute.called
         assert keyparser._ambiguous_timer.isActive()
         # We wait for the timeout to occur.
-        with qtbot.waitSignal(keyparser.keystring_updated, raising=True):
+        with qtbot.waitSignal(keyparser.keystring_updated):
             pass
         assert keyparser.execute.called
 

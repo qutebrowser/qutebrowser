@@ -1,4 +1,4 @@
-# Copyright 2015 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
+# Copyright 2015-2016 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
 # vim: ft=python fileencoding=utf-8 sts=4 sw=4 et:
 
 # This file is part of qutebrowser.
@@ -37,8 +37,9 @@ def test_python2():
     """Run checkpyver with python 2."""
     try:
         proc = subprocess.Popen(['python2', checkpyver.__file__,
-                                 '--no-err-windows'], stdout=subprocess.PIPE,
-                                 stderr=subprocess.PIPE)
+                                 '--no-err-windows'],
+                                stdout=subprocess.PIPE,
+                                stderr=subprocess.PIPE)
         stdout, stderr = proc.communicate()
     except FileNotFoundError:
         pytest.skip("python2 not found")

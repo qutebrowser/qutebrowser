@@ -1,0 +1,13 @@
+[pydocstyle]
+# Disabled checks:
+# D102: Missing docstring in public method (will be handled by others)
+# D103: Missing docstring in public function (will be handled by others)
+# D104: Missing docstring in public package (will be handled by others)
+# D105: Missing docstring in magic method (will be handled by others)
+# D209: Blank line before closing """ (removed from PEP257)
+# D211: No blank lines allowed before class docstring
+#       (PEP257 got changed, but let's stick to the old standard)
+# D402: First line should not be function's signature (false-positives)
+ignore = D102,D103,D104,D105,D209,D211,D402
+match = (?!resources|test_*).*\.py
+inherit = false

@@ -402,6 +402,8 @@ Syntax: +:paste [*--sel*] [*--tab*] [*--bg*] [*--window*]+
 
 Open a page from the clipboard.
 
+If the pasted text contains newlines, each line gets opened in its own tab.
+
 ==== optional arguments
 * +*-s*+, +*--sel*+: Use the primary selection instead of the clipboard.
 * +*-t*+, +*--tab*+: Open in a new tab.
@@ -831,6 +833,7 @@ How many steps to zoom out.
 |<<move-to-start-of-next-block,move-to-start-of-next-block>>|Move the cursor or selection to the start of next block.
 |<<move-to-start-of-prev-block,move-to-start-of-prev-block>>|Move the cursor or selection to the start of previous block.
 |<<open-editor,open-editor>>|Open an external editor with the currently selected form field.
+|<<paste-primary,paste-primary>>|Paste the primary selection at cursor position.
 |<<prompt-accept,prompt-accept>>|Accept the current prompt.
 |<<prompt-no,prompt-no>>|Answer no to a yes/no prompt.
 |<<prompt-yes,prompt-yes>>|Answer yes to a yes/no prompt.
@@ -1044,6 +1047,10 @@ Open an external editor with the currently selected form field.
 
 The editor which should be launched can be configured via the `general -> editor` config option.
 
+[[paste-primary]]
+=== paste-primary
+Paste the primary selection at cursor position.
+
 [[prompt-accept]]
 === prompt-accept
 Accept the current prompt.
@@ -1224,6 +1231,7 @@ These commands are mainly intended for debugging. They are hidden if qutebrowser
 |Command|Description
 |<<debug-all-objects,debug-all-objects>>|Print a list of  all objects to the debug log.
 |<<debug-cache-stats,debug-cache-stats>>|Print LRU cache stats.
+|<<debug-clear-ssl-errors,debug-clear-ssl-errors>>|Clear remembered SSL error answers.
 |<<debug-console,debug-console>>|Show the debugging console.
 |<<debug-crash,debug-crash>>|Crash for debugging purposes.
 |<<debug-dump-page,debug-dump-page>>|Dump the current page's content to a file.
@@ -1238,6 +1246,10 @@ Print a list of  all objects to the debug log.
 [[debug-cache-stats]]
 === debug-cache-stats
 Print LRU cache stats.
+
+[[debug-clear-ssl-errors]]
+=== debug-clear-ssl-errors
+Clear remembered SSL error answers.
 
 [[debug-console]]
 === debug-console
@@ -1266,12 +1278,15 @@ Dump the current page's content to a file.
 
 [[debug-pyeval]]
 === debug-pyeval
-Syntax: +:debug-pyeval 's'+
+Syntax: +:debug-pyeval [*--quiet*] 's'+
 
 Evaluate a python string and display the results as a web page.
 
 ==== positional arguments
 * +'s'+: The string to evaluate.
+
+==== optional arguments
+* +*-q*+, +*--quiet*+: Don't show the output in a new tab.
 
 ==== note
 * This command does not split arguments after the last argument and handles quotes literally.

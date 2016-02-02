@@ -1,6 +1,6 @@
 # vim: ft=python fileencoding=utf-8 sts=4 sw=4 et:
 
-# Copyright 2014-2015 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
+# Copyright 2014-2016 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
 #
 # This file is part of qutebrowser.
 #
@@ -73,7 +73,6 @@ def read_file(filename, binary=False):
     Return:
         The file contents as string.
     """
-    # pylint: disable=assignment-from-no-return
     if hasattr(sys, 'frozen'):
         # cx_Freeze doesn't support pkg_resources :(
         fn = os.path.join(os.path.dirname(sys.executable), filename)

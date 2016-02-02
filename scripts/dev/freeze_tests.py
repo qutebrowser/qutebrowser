@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 # vim: ft=python fileencoding=utf-8 sts=4 sw=4 et:
 
-# Copyright 2015 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
+# Copyright 2015-2016 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
 #
 # This file is part of qutebrowser.
 #
@@ -70,7 +70,6 @@ def get_build_exe_options():
 
 
 def main():
-    """Main entry point."""
     base = 'Win32GUI' if sys.platform.startswith('win') else None
     with temp_git_commit_file():
         cx.setup(

@@ -1,7 +1,7 @@
 #!/usr/bin/env python2
 # vim: ft=python fileencoding=utf-8 sts=4 sw=4 et:
 
-# Copyright 2015 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
+# Copyright 2015-2016 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
 
 # This file is part of qutebrowser.
 #
@@ -40,11 +40,11 @@ except ImportError:
 
 TESTENV = os.environ['TESTENV']
 TRAVIS_OS = os.environ.get('TRAVIS_OS_NAME', None)
-INSTALL_PYQT = TESTENV in ('py34', 'py35', 'unittests-nodisp', 'vulture',
-                           'pylint')
+INSTALL_PYQT = TESTENV in ('py34', 'py35', 'py34-cov', 'py35-cov',
+                           'unittests-nodisp', 'vulture', 'pylint')
 XVFB = TRAVIS_OS == 'linux' and TESTENV == 'py34'
 pip_packages = ['tox']
-if TESTENV in ['py34', 'py35'] and TRAVIS_OS == 'linux':
+if TESTENV.endswith('-cov'):
     pip_packages.append('codecov')
 
 
@@ -65,6 +65,7 @@ def check_setup(executable):
         print("Checking setup...")
         subprocess.check_call([executable, '-c', 'import PyQt5'])
         subprocess.check_call([executable, '-c', 'import sip'])
+    subprocess.check_call([executable, '--version'])
 
 
 if 'APPVEYOR' in os.environ:
@@ -114,6 +115,14 @@ elif TRAVIS_OS == 'linux':
         apt_get(['update'])
         print("apt-get install...")
         apt_get(['install'] + pkgs)
+
+    if TESTENV == 'flake8':
+        print("apt-get update...")
+        apt_get(['update'])
+        # We need an up-to-date Python because of:
+        # https://github.com/google/yapf/issues/46
+        print("Updating Python...")
+        apt_get(['install', '-t', 'trusty-updates', 'python3.4'])
 
     if TESTENV == 'eslint':
         subprocess.check_call(['sudo', 'npm', 'install', '-g', 'eslint'])

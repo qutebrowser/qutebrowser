@@ -1,6 +1,6 @@
 # vim: ft=python fileencoding=utf-8 sts=4 sw=4 et:
 
-# Copyright 2015 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
+# Copyright 2015-2016 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
 #
 # This file is part of qutebrowser.
 #
@@ -73,12 +73,98 @@ class PythonProcess(testprocess.Process):
         ]
         return (sys.executable, ['-c', ';'.join(code)])
 
+    def _default_args(self):
+        return []
+
+
+class QuitPythonProcess(PythonProcess):
+
+    """A testprocess which quits immediately."""
+
+    def _executable_args(self):
+        code = [
+            'import sys',
+            'print("ready")',
+            'sys.exit(0)',
+        ]
+        return (sys.executable, ['-c', ';'.join(code)])
+
+
+class NoReadyPythonProcess(PythonProcess):
+
+    """A testprocess which never emits 'ready' and quits."""
+
+    def _executable_args(self):
+        code = [
+            'import sys',
+            'sys.exit(0)',
+        ]
+        return (sys.executable, ['-c', ';'.join(code)])
+
 
 @pytest.yield_fixture
 def pyproc():
     proc = PythonProcess()
     yield proc
     proc.terminate()
+
+
+@pytest.yield_fixture
+def quit_pyproc():
+    proc = QuitPythonProcess()
+    yield proc
+    proc.terminate()
+
+
+@pytest.yield_fixture
+def noready_pyproc():
+    proc = NoReadyPythonProcess()
+    yield proc
+    proc.terminate()
+
+
+def test_no_ready_python_process(noready_pyproc):
+    """When a process quits immediately, waiting for start should interrupt."""
+    with pytest.raises(testprocess.ProcessExited):
+        with stopwatch(max_ms=5000):
+            noready_pyproc.start()
+
+
+def test_quitting_process(qtbot, quit_pyproc):
+    with qtbot.waitSignal(quit_pyproc.proc.finished):
+        quit_pyproc.start()
+    with pytest.raises(testprocess.ProcessExited):
+        quit_pyproc.after_test()
+
+
+def test_quitting_process_expected(qtbot, quit_pyproc):
+    quit_pyproc.exit_expected = True
+    with qtbot.waitSignal(quit_pyproc.proc.finished):
+        quit_pyproc.start()
+    quit_pyproc.after_test()
+
+
+def test_wait_signal_raising(qtbot):
+    """testprocess._wait_signal should raise by default."""
+    proc = testprocess.Process()
+    with pytest.raises(qtbot.SignalTimeoutError):
+        with proc._wait_signal(proc.proc.started, timeout=0):
+            pass
+
+
+def test_custom_environment(pyproc):
+    pyproc.code = 'import os; print(os.environ["CUSTOM_ENV"])'
+    pyproc.start(env={'CUSTOM_ENV': 'blah'})
+    pyproc.wait_for(data='blah')
+
+
+@pytest.mark.posix
+def test_custom_environment_no_system(monkeypatch, pyproc):
+    """When env=... is given, no system environment should be present."""
+    monkeypatch.setenv('QUTE_TEST_ENV', 'blah')
+    pyproc.code = 'import os; print(os.environ.get("QUTE_TEST_ENV", "None"))'
+    pyproc.start(env={})
+    pyproc.wait_for(data='None')
 
 
 class TestWaitFor:
@@ -143,6 +229,13 @@ class TestWaitFor:
         """
         with pytest.raises(TypeError):
             pyproc.wait_for()
+
+    def test_do_skip(self, pyproc):
+        """Test wait_for when getting no text at all, with do_skip."""
+        pyproc.code = "pass"
+        pyproc.start()
+        with pytest.raises(pytest.skip.Exception):
+            pyproc.wait_for(data="foobar", timeout=100, do_skip=True)
 
 
 class TestEnsureNotLogged:

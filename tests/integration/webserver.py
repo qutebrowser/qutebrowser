@@ -1,6 +1,6 @@
 # vim: ft=python fileencoding=utf-8 sts=4 sw=4 et:
 
-# Copyright 2015 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
+# Copyright 2015-2016 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
 #
 # This file is part of qutebrowser.
 #
@@ -19,13 +19,15 @@
 
 """Fixtures for the httpbin webserver."""
 
+import re
 import sys
 import json
 import socket
 import os.path
+import http.client
 
 import pytest
-from PyQt5.QtCore import pyqtSignal
+from PyQt5.QtCore import pyqtSignal, QUrl
 
 import testprocess
 
@@ -54,13 +56,23 @@ class Request(testprocess.Line):
         self.path = '/' if path == '/' else path.rstrip('/')
 
         self.status = parsed['status']
+        self._check_status()
 
-        missing_paths = ['/favicon.ico', '/does-not-exist']
+    def _check_status(self):
+        """Check if the http status is what we expected."""
+        # WORKAROUND for https://github.com/PyCQA/pylint/issues/399 (?)
+        # pylint: disable=no-member, useless-suppression
+        path_to_statuses = {
+            '/favicon.ico': [http.client.NOT_FOUND],
+            '/does-not-exist': [http.client.NOT_FOUND],
+            '/custom/redirect-later': [http.client.FOUND],
+            '/basic-auth/user/password':
+                [http.client.UNAUTHORIZED, http.client.OK],
+        }
 
-        if self.path in missing_paths:
-            assert self.status == 404
-        else:
-            assert self.status < 400
+        sanitized = QUrl('http://localhost' + self.path).path()  # Remove ?foo
+        expected_statuses = path_to_statuses.get(sanitized, [http.client.OK])
+        assert self.status in expected_statuses
 
     def __eq__(self, other):
         return NotImplemented
@@ -94,7 +106,7 @@ class ExpectedRequest:
                 .format(self.verb, self.path))
 
 
-class HTTPBin(testprocess.Process):
+class WebserverProcess(testprocess.Process):
 
     """Abstraction over a running HTTPbin server process.
 
@@ -110,8 +122,9 @@ class HTTPBin(testprocess.Process):
 
     KEYS = ['verb', 'path']
 
-    def __init__(self, parent=None):
+    def __init__(self, script, parent=None):
         super().__init__(parent)
+        self._script = script
         self.port = self._get_port()
         self.new_data.connect(self.new_request)
 
@@ -130,8 +143,9 @@ class HTTPBin(testprocess.Process):
 
     def _parse_line(self, line):
         self._log(line)
-        if line == (' * Running on http://127.0.0.1:{}/ (Press CTRL+C to '
-                    'quit)'.format(self.port)):
+        started_re = re.compile(r' \* Running on https?://127\.0\.0\.1:{}/ '
+                                r'\(Press CTRL\+C to quit\)'.format(self.port))
+        if started_re.fullmatch(line):
             self.ready.emit()
             return None
         return Request(line)
@@ -139,14 +153,17 @@ class HTTPBin(testprocess.Process):
     def _executable_args(self):
         if hasattr(sys, 'frozen'):
             executable = os.path.join(os.path.dirname(sys.executable),
-                                      'webserver_sub')
-            args = [str(self.port)]
+                                      self._script)
+            args = []
         else:
             executable = sys.executable
             py_file = os.path.join(os.path.dirname(__file__),
-                                   'webserver_sub.py')
-            args = [py_file, str(self.port)]
+                                   self._script + '.py')
+            args = [py_file]
         return executable, args
+
+    def _default_args(self):
+        return [str(self.port)]
 
     def cleanup(self):
         """Clean up and shut down the process."""
@@ -157,7 +174,7 @@ class HTTPBin(testprocess.Process):
 @pytest.yield_fixture(scope='session', autouse=True)
 def httpbin(qapp):
     """Fixture for a httpbin object which ensures clean setup/teardown."""
-    httpbin = HTTPBin()
+    httpbin = WebserverProcess('webserver_sub')
     httpbin.start()
     yield httpbin
     httpbin.cleanup()
@@ -169,3 +186,18 @@ def httpbin_after_test(httpbin, request):
     request.node._httpbin_log = httpbin.captured_log
     yield
     httpbin.after_test()
+
+
+@pytest.yield_fixture
+def ssl_server(request, qapp):
+    """Fixture for a webserver with a self-signed SSL certificate.
+
+    This needs to be explicitly used in a test, and overwrites the httpbin log
+    used in that test.
+    """
+    server = WebserverProcess('webserver_sub_ssl')
+    request.node._httpbin_log = server.captured_log
+    server.start()
+    yield server
+    server.after_test()
+    server.cleanup()

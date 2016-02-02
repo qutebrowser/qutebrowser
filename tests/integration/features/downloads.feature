@@ -24,6 +24,16 @@ Feature: Downloading things from a website.
         And I wait for the error "Download error: * - server replied: NOT FOUND"
         Then no crash should happen
 
+    Scenario: Downloading a link without path information (issue 1243)
+        When I set completion -> download-path-suggestion to filename
+        And I set storage -> prompt-download-directory to true
+        And I open data/downloads/issue1243.html
+        And I run :hint links download
+        And I run :follow-hint a
+        And I wait for "Asking question <qutebrowser.utils.usertypes.Question default='qutebrowser-download' mode=<PromptMode.text: 2> text='Save file to:'>, *" in the log
+        And I run :leave-mode
+        Then no crash should happen
+
     Scenario: Retrying a failed download
         When I run :download http://localhost:(port)/does-not-exist
         And I wait for the error "Download error: * - server replied: NOT FOUND"

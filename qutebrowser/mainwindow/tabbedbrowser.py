@@ -1,6 +1,6 @@
 # vim: ft=python fileencoding=utf-8 sts=4 sw=4 et:
 
-# Copyright 2014-2015 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
+# Copyright 2014-2016 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
 #
 # This file is part of qutebrowser.
 #
@@ -272,8 +272,8 @@ class TabbedBrowser(tabwidget.TabWidget):
         """
         idx = self.indexOf(tab)
         if idx == -1:
-            raise ValueError("tab {} is not contained in TabbedWidget!".format(
-                tab))
+            raise TabDeletedError("tab {} is not contained in "
+                                  "TabbedWidget!".format(tab))
         if tab is self._now_focused:
             self._now_focused = None
         if tab is objreg.get('last-focused-tab', None, scope='window',
@@ -350,7 +350,11 @@ class TabbedBrowser(tabwidget.TabWidget):
     @pyqtSlot(webview.WebView)
     def on_window_close_requested(self, widget):
         """Close a tab with a widget given."""
-        self.close_tab(widget)
+        try:
+            self.close_tab(widget)
+        except TabDeletedError:
+            log.webview.debug("Requested to close {!r} which does not "
+                              "exist!".format(widget))
 
     @pyqtSlot('QUrl', bool)
     def tabopen(self, url=None, background=None, explicit=False):
@@ -609,7 +613,7 @@ class TabbedBrowser(tabwidget.TabWidget):
     def on_scroll_pos_changed(self):
         """Update tab and window title when scroll position changed."""
         self.update_window_title()
-        self.update_tab_titles()
+        self.update_tab_title(self.currentIndex())
 
     def resizeEvent(self, e):
         """Extend resizeEvent of QWidget to emit a resized signal afterwards.

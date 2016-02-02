@@ -1,6 +1,6 @@
 # vim: ft=python fileencoding=utf-8 sts=4 sw=4 et:
 
-# Copyright 2014-2015 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
+# Copyright 2014-2016 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
 #
 # This file is part of qutebrowser.
 #
@@ -23,27 +23,9 @@
 from collections import namedtuple
 
 import pytest
-from PyQt5.QtWidgets import QWidget, QHBoxLayout, QVBoxLayout
-from PyQt5.QtCore import QSize, Qt
 
 from qutebrowser.browser import webview
 from qutebrowser.mainwindow.statusbar.progress import Progress
-
-
-class FakeStatusBar(QWidget):
-
-    """Fake statusbar to test progressbar sizing."""
-
-    def __init__(self, parent=None):
-        super().__init__(parent)
-        self.hbox = QHBoxLayout(self)
-        self.hbox.addStretch()
-        self.hbox.setContentsMargins(0, 0, 0, 0)
-        self.setAttribute(Qt.WA_StyledBackground, True)
-        self.setStyleSheet('background-color: red;')
-
-    def minimumSizeHint(self):
-        return QSize(1, self.fontMetrics().height())
 
 
 @pytest.fixture
@@ -60,25 +42,6 @@ def progress_widget(qtbot, monkeypatch, config_stub):
     assert not widget.isVisible()
     assert not widget.isTextVisible()
     return widget
-
-
-@pytest.fixture
-def fake_statusbar(qtbot):
-    """Fixture providing a statusbar in a container window."""
-    container = QWidget()
-    qtbot.add_widget(container)
-    vbox = QVBoxLayout(container)
-    vbox.addStretch()
-
-    statusbar = FakeStatusBar(container)
-    # to make sure container isn't GCed
-    # pylint: disable=attribute-defined-outside-init
-    statusbar.container = container
-    vbox.addWidget(statusbar)
-
-    container.show()
-    qtbot.waitForWindowShown(container)
-    return statusbar
 
 
 def test_load_started(progress_widget):

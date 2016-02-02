@@ -1,6 +1,6 @@
 # vim: ft=python fileencoding=utf-8 sts=4 sw=4 et:
 
-# Copyright 2014-2015 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
+# Copyright 2014-2016 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
 #
 # This file is part of qutebrowser.
 #
@@ -67,7 +67,7 @@ def get_webelem(geometry=None, frame=None, null=False, style=None,
     elem.hasAttribute.side_effect = lambda k: k in attribute_dict
     elem.attribute.side_effect = lambda k: attribute_dict.get(k, '')
     elem.setAttribute.side_effect = (lambda k, v:
-        operator.setitem(attribute_dict, k, v))
+                                     operator.setitem(attribute_dict, k, v))
     elem.removeAttribute.side_effect = attribute_dict.pop
     elem.attributeNames.return_value = list(attribute_dict)
 
@@ -112,7 +112,7 @@ class SelectionAndFilterTests:
         ('<a href="foo" />', [webelem.Group.all, webelem.Group.links,
                               webelem.Group.prevnext, webelem.Group.url]),
         ('<a href="javascript://foo" />', [webelem.Group.all,
-                                          webelem.Group.url]),
+                                           webelem.Group.url]),
 
         ('<area />', [webelem.Group.all]),
         ('<area href="foo" />', [webelem.Group.all, webelem.Group.links,
@@ -599,7 +599,7 @@ class TestJavascriptEscape:
     # http://qutebrowser.org:8010/builders/debian-jessie/builds/765/steps/unittests/
     # Should that be ignored?
 
-    @pytest.mark.parametrize('before, after', TESTS.items(), ids=repr)
+    @pytest.mark.parametrize('before, after', sorted(TESTS.items()), ids=repr)
     def test_fake_escape(self, before, after):
         """Test javascript escaping with some expected outcomes."""
         assert webelem.javascript_escape(before) == after
@@ -628,7 +628,7 @@ class TestJavascriptEscape:
         with open(path, encoding='utf-8') as f:
             html_source = f.read().replace('%INPUT%', escaped)
 
-        with qtbot.waitSignal(webframe.loadFinished, raising=True) as blocker:
+        with qtbot.waitSignal(webframe.loadFinished) as blocker:
             webframe.setHtml(html_source)
         assert blocker.args == [True]
 
@@ -645,12 +645,14 @@ class TestJavascriptEscape:
         result = webframe.evaluateJavaScript('"{}";'.format(escaped))
         assert result == text
 
-    @pytest.mark.parametrize('text', TESTS, ids=repr)
+    @pytest.mark.parametrize('text', sorted(TESTS), ids=repr)
     def test_real_escape(self, webframe, qtbot, text):
         """Test javascript escaping with a real QWebPage."""
         self._test_escape(text, qtbot, webframe)
 
-    @pytest.mark.qt_log_ignore('^load glyph failed', extend=True)
+    @pytest.mark.qt_log_ignore('^load glyph failed',
+                               '^OpenType support missing for script',
+                               extend=True)
     @hypothesis.given(hypothesis.strategies.text())
     def test_real_escape_hypothesis(self, webframe, qtbot, text):
         """Test javascript escaping with a real QWebPage and hypothesis."""

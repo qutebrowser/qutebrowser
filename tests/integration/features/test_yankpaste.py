@@ -1,6 +1,6 @@
 # vim: ft=python fileencoding=utf-8 sts=4 sw=4 et:
 
-# Copyright 2015 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
+# Copyright 2015-2016 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
 #
 # This file is part of qutebrowser.
 #
@@ -33,8 +33,21 @@ def skip_with_broken_clipboard(qtbot, qapp):
     """
     clipboard = qapp.clipboard()
 
-    with qtbot.waitSignal(clipboard.changed):
+    with qtbot.waitSignal(clipboard.changed, raising=False):
         clipboard.setText("Does this work?")
 
     if clipboard.text() != "Does this work?":
         pytest.skip("Clipboard seems to be broken on this platform.")
+
+
+@bdd.when(bdd.parsers.parse('I set the text field to "{value}"'))
+def set_text_field(quteproc, value):
+    quteproc.send_cmd(":jseval document.getElementById('qute-textarea').value "
+                      "= '{}';".format(value))
+
+
+@bdd.then(bdd.parsers.parse('the text field should contain "{value}"'))
+def check_text_field(quteproc, value):
+    quteproc.send_cmd(":jseval console.log('text: ' + "
+                      "document.getElementById('qute-textarea').value);")
+    quteproc.wait_for_js('text: ' + value)

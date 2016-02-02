@@ -1,6 +1,6 @@
 # vim: ft=python fileencoding=utf-8 sts=4 sw=4 et:
 
-# Copyright 2015 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
+# Copyright 2015-2016 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
 #
 # This file is part of qutebrowser.
 #
@@ -25,7 +25,8 @@ import time
 
 import pytest
 import pytestqt.plugin
-from PyQt5.QtCore import pyqtSlot, pyqtSignal, QProcess, QObject, QElapsedTimer
+from PyQt5.QtCore import (pyqtSlot, pyqtSignal, QProcess, QObject,
+                          QElapsedTimer, QProcessEnvironment)
 from PyQt5.QtTest import QSignalSpy
 
 from helpers import utils
@@ -72,11 +73,21 @@ class Line:
         return '{}({!r})'.format(self.__class__.__name__, self.data)
 
 
+def _render_log(data, threshold=50):
+    """Shorten the given log without -v and convert to a string."""
+    # pylint: disable=no-member
+    if len(data) > threshold and not pytest.config.getoption('--verbose'):
+        msg = '[{} lines suppressed, use -v to show]'.format(
+            len(data) - threshold)
+        data = [msg] + data[-threshold:]
+    return '\n'.join(data)
+
+
 @pytest.hookimpl(hookwrapper=True)
 def pytest_runtest_makereport(item, call):
     """Add qutebrowser/httpbin sections to captured output if a test failed."""
     outcome = yield
-    if call.when != 'call':
+    if call.when not in ['call', 'teardown']:
         return
     report = outcome.get_result()
 
@@ -91,12 +102,16 @@ def pytest_runtest_makereport(item, call):
         # actually a tuple. This is handled similarily in pytest-qt too.
         return
 
+    # pylint: disable=no-member
+    if pytest.config.getoption('--capture') == 'no':
+        # Already printed live
+        return
+
     if quteproc_log is not None:
         report.longrepr.addsection("qutebrowser output",
-                                   '\n'.join(quteproc_log))
+                                   _render_log(quteproc_log))
     if httpbin_log is not None:
-        report.longrepr.addsection("httpbin output",
-                                   '\n'.join(httpbin_log))
+        report.longrepr.addsection("httpbin output", _render_log(httpbin_log))
 
 
 class Process(QObject):
@@ -109,6 +124,7 @@ class Process(QObject):
         _invalid: A list of lines which could not be parsed.
         _data: A list of parsed lines.
         proc: The QProcess for the underlying process.
+        exit_expected: Whether the process is expected to quit.
 
     Signals:
         ready: Emitted when the server finished starting up.
@@ -126,9 +142,13 @@ class Process(QObject):
         self._data = []
         self.proc = QProcess()
         self.proc.setReadChannel(QProcess.StandardError)
+        self.exit_expected = False
 
     def _log(self, line):
         """Add the given line to the captured log output."""
+        # pylint: disable=no-member
+        if pytest.config.getoption('--capture') == 'no':
+            print(line)
         self.captured_log.append(line)
 
     def _parse_line(self, line):
@@ -140,7 +160,11 @@ class Process(QObject):
         raise NotImplementedError
 
     def _executable_args(self):
-        """Get the executable and arguments to pass to it as a tuple."""
+        """Get the executable and necessary arguments as a tuple."""
+        raise NotImplementedError
+
+    def _default_args(self):
+        """Get the default arguments to use if none were passed to start()."""
         raise NotImplementedError
 
     def _get_data(self):
@@ -189,16 +213,46 @@ class Process(QObject):
                 self._data.append(parsed)
                 self.new_data.emit(parsed)
 
-    def start(self):
+    def start(self, args=None, *, env=None):
         """Start the process and wait until it started."""
-        with self._wait_signal(self.ready, timeout=60000):
-            self._start()
+        self._start(args, env=env)
+        timeout = 60 if 'CI' in os.environ else 20
+        for _ in range(timeout):
+            with self._wait_signal(self.ready, timeout=1000,
+                                   raising=False) as blocker:
+                pass
 
-    def _start(self):
+            if not self.is_running():
+                # _start ensures it actually started, but it might quit shortly
+                # afterwards
+                raise ProcessExited()
+
+            if blocker.signal_triggered:
+                return
+
+        raise WaitForTimeout("Timed out while waiting for process start.")
+
+    def _start(self, args, env):
         """Actually start the process."""
-        executable, args = self._executable_args()
+        executable, exec_args = self._executable_args()
+        if args is None:
+            args = self._default_args()
+
+        if env is None:
+            procenv = QProcessEnvironment.systemEnvironment()
+        else:
+            procenv = QProcessEnvironment()
+            for k, v in env.items():
+                procenv.insert(k, v)
+
+            passthrough_vars = ['DISPLAY', 'HOME']  # so --no-xvfb works
+            for var in passthrough_vars:
+                if var in os.environ:
+                    procenv.insert(var, os.environ[var])
+
         self.proc.readyRead.connect(self.read_log)
-        self.proc.start(executable, args)
+        self.proc.setProcessEnvironment(procenv)
+        self.proc.start(executable, exec_args + args)
         ok = self.proc.waitForStarted()
         assert ok
         assert self.is_running()
@@ -225,8 +279,9 @@ class Process(QObject):
             raise InvalidLine(self._invalid)
 
         self.clear_data()
-        if not self.is_running():
+        if not self.is_running() and not self.exit_expected:
             raise ProcessExited
+        self.exit_expected = False
 
     def clear_data(self):
         """Clear the collected data."""
@@ -287,7 +342,41 @@ class Process(QObject):
                 return line
         return None
 
-    def wait_for(self, timeout=None, *, override_waited_for=False, **kwargs):
+    def _wait_for_match(self, spy, kwargs):
+        """Try matching the kwargs with the given QSignalSpy."""
+        for args in spy:
+            assert len(args) == 1
+            line = args[0]
+
+            matches = []
+
+            for key, expected in kwargs.items():
+                value = getattr(line, key)
+                matches.append(self._match_data(value, expected))
+
+            if all(matches):
+                # If we waited for this line, chances are we don't mean the
+                # same thing the next time we use wait_for and it matches
+                # this line again.
+                line.waited_for = True
+                return line
+        return None
+
+    def _maybe_skip(self):
+        """Can be overridden by subclasses to skip on certain log lines.
+
+        We can't run pytest.skip directly while parsing the log, as that would
+        lead to a pytest.skip.Exception error in a virtual Qt method, which
+        means pytest-qt fails the test.
+
+        Instead, we check for skip messages periodically in
+        QuteProc._maybe_skip, and call _maybe_skip after every parsed message
+        in wait_for (where it's most likely that new messages arrive).
+        """
+        pass
+
+    def wait_for(self, timeout=None, *, override_waited_for=False,
+                 do_skip=False, **kwargs):
         """Wait until a given value is found in the data.
 
         Keyword arguments to this function get interpreted as attributes of the
@@ -298,13 +387,17 @@ class Process(QObject):
             timeout: How long to wait for the message.
             override_waited_for: If set, gets triggered by previous messages
                                  again.
+            do_skip: If set, call pytest.skip on a timeout.
 
         Return:
             The matched line.
         """
         __tracebackhide__ = True
+
         if timeout is None:
-            if 'CI' in os.environ:
+            if do_skip:
+                timeout = 2000
+            elif 'CI' in os.environ:
                 timeout = 15000
             else:
                 timeout = 5000
@@ -324,27 +417,20 @@ class Process(QObject):
         elapsed_timer.start()
 
         while True:
+            # Skip if there are pending messages causing a skip
+            self._maybe_skip()
             got_signal = spy.wait(timeout)
             if not got_signal or elapsed_timer.hasExpired(timeout):
-                raise WaitForTimeout("Timed out after {}ms waiting for "
-                                     "{!r}.".format(timeout, kwargs))
+                msg = "Timed out after {}ms waiting for {!r}.".format(
+                    timeout, kwargs)
+                if do_skip:
+                    pytest.skip(msg)
+                else:
+                    raise WaitForTimeout(msg)
 
-            for args in spy:
-                assert len(args) == 1
-                line = args[0]
-
-                matches = []
-
-                for key, expected in kwargs.items():
-                    value = getattr(line, key)
-                    matches.append(self._match_data(value, expected))
-
-                if all(matches):
-                    # If we waited for this line, chances are we don't mean the
-                    # same thing the next time we use wait_for and it matches
-                    # this line again.
-                    line.waited_for = True
-                    return line
+            match = self._wait_for_match(spy, kwargs)
+            if match is not None:
+                return match
 
     def ensure_not_logged(self, delay=500, **kwargs):
         """Make sure the data matching the given arguments is not logged.
@@ -360,3 +446,9 @@ class Process(QObject):
             return
         else:
             raise BlacklistedMessageError(line)
+
+    def wait_for_quit(self):
+        """Wait until the process has quit."""
+        self.exit_expected = True
+        with self._wait_signal(self.proc.finished, timeout=15000):
+            pass

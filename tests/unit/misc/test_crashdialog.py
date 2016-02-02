@@ -1,6 +1,6 @@
 # vim: ft=python fileencoding=utf-8 sts=4 sw=4 et:
 
-# Copyright 2015 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
+# Copyright 2015-2016 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
 #
 # This file is part of qutebrowser.
 #
@@ -94,7 +94,7 @@ class TestParseFatalStacktrace:
         "QT_IM_MODULE = fcitx"
     ),
     ({'LANGUAGE': 'foo', 'LANG': 'en_US.UTF-8'}, "LANG = en_US.UTF-8"),
-], ids=repr)
+], ids=lambda e: e[1])
 def test_get_environment_vars(monkeypatch, env, expected):
     """Test for crashdialog._get_environment_vars."""
     for key in os.environ.copy():

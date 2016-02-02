@@ -1,4 +1,4 @@
-# Copyright 2015 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
+# Copyright 2015-2016 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
 # vim: ft=python fileencoding=utf-8 sts=4 sw=4 et:
 
 # This file is part of qutebrowser.
@@ -74,7 +74,7 @@ def test_finished_signal(qtbot):
 
     qtbot.add_widget(box)
 
-    with qtbot.waitSignal(box.finished, raising=True):
+    with qtbot.waitSignal(box.finished):
         box.accept()
 
     assert signal_triggered

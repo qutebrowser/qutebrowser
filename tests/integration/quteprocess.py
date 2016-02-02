@@ -1,6 +1,6 @@
 # vim: ft=python fileencoding=utf-8 sts=4 sw=4 et:
 
-# Copyright 2015 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
+# Copyright 2015-2016 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
 #
 # This file is part of qutebrowser.
 #
@@ -19,6 +19,7 @@
 
 """Fixtures to run qutebrowser in a QProcess and communicate."""
 
+import os
 import re
 import sys
 import time
@@ -35,6 +36,7 @@ from PyQt5.QtCore import pyqtSignal, QUrl
 import testprocess
 from qutebrowser.misc import ipc
 from qutebrowser.utils import log, utils
+from helpers import utils as testutils
 
 
 def is_ignored_qt_message(message):
@@ -169,12 +171,7 @@ class QuteProc(testprocess.Process):
             else:
                 raise
 
-        # WORKAROUND for https://bitbucket.org/logilab/pylint/issues/717/
-        # we should switch to generated-members after that
-        # pylint: disable=no-member
-        if (log_line.loglevel in ['INFO', 'WARNING', 'ERROR'] or
-                pytest.config.getoption('--verbose')):
-            self._log(line)
+        self._log(line)
 
         start_okay_message_load = (
             "load status for <qutebrowser.browser.webview.WebView tab_id=0 "
@@ -197,7 +194,7 @@ class QuteProc(testprocess.Process):
                 log_line.function == 'init' and
                 log_line.message.startswith('Base directory:')):
             self.basedir = log_line.message.split(':', maxsplit=1)[1].strip()
-        elif log_line.loglevel > logging.INFO:
+        elif self._is_error_logline(log_line):
             self.got_error.emit()
 
         return log_line
@@ -210,11 +207,12 @@ class QuteProc(testprocess.Process):
         else:
             executable = sys.executable
             args = ['-m', 'qutebrowser']
-        args += ['--debug', '--no-err-windows', '--temp-basedir',
-                 'about:blank']
         return executable, args
 
-    def path_to_url(self, path):
+    def _default_args(self):
+        return ['--debug', '--no-err-windows', '--temp-basedir', 'about:blank']
+
+    def path_to_url(self, path, *, port=None, https=False):
         """Get a URL based on a filename for the localhost webserver.
 
         URLs like about:... and qute:... are handled specially and returned
@@ -223,18 +221,53 @@ class QuteProc(testprocess.Process):
         if path.startswith('about:') or path.startswith('qute:'):
             return path
         else:
-            return 'http://localhost:{}/{}'.format(
-                self._httpbin.port,
+            return '{}://localhost:{}/{}'.format(
+                'https' if https else 'http',
+                self._httpbin.port if port is None else port,
                 path if path != '/' else '')
+
+    def wait_for_js(self, message):
+        """Wait for the given javascript console message."""
+        self.wait_for(category='js', function='javaScriptConsoleMessage',
+                      message='[*] {}'.format(message))
+
+    def _is_error_logline(self, msg):
+        """Check if the given LogLine is some kind of error message."""
+        is_js_error = (msg.category == 'js' and
+                       msg.function == 'javaScriptConsoleMessage' and
+                       testutils.pattern_match(pattern='[*] [FAIL] *',
+                                               value=msg.message))
+        return msg.loglevel > logging.INFO or is_js_error
+
+    def _maybe_skip(self):
+        """Skip the test if [SKIP] lines were logged."""
+        skip_texts = []
+
+        for msg in self._data:
+            if (msg.category == 'js' and
+                    msg.function == 'javaScriptConsoleMessage' and
+                    testutils.pattern_match(pattern='[*] [SKIP] *',
+                                            value=msg.message)):
+                skip_texts.append(msg.message.partition(' [SKIP] ')[2])
+
+        if skip_texts:
+            pytest.skip(', '.join(skip_texts))
 
     def after_test(self):
         bad_msgs = [msg for msg in self._data
-                    if msg.loglevel > logging.INFO and not msg.expected]
-        super().after_test()
-        if bad_msgs:
-            text = 'Logged unexpected errors:\n\n' + '\n'.join(
-                str(e) for e in bad_msgs)
-            pytest.fail(text, pytrace=False)
+                    if self._is_error_logline(msg) and not msg.expected]
+
+        try:
+            if bad_msgs:
+                text = 'Logged unexpected errors:\n\n' + '\n'.join(
+                    str(e) for e in bad_msgs)
+                # We'd like to use pytrace=False here but don't as a WORKAROUND
+                # for https://github.com/pytest-dev/pytest/issues/1316
+                pytest.fail(text)
+            else:
+                self._maybe_skip()
+        finally:
+            super().after_test()
 
     def send_cmd(self, command, count=None):
         """Send a command to the running qutebrowser instance."""
@@ -269,14 +302,19 @@ class QuteProc(testprocess.Process):
         yield
         self.set_setting(sect, opt, old_value)
 
-    def open_path(self, path, new_tab=False):
+    def open_path(self, path, *, new_tab=False, new_window=False, port=None,
+                  https=False):
         """Open the given path on the local webserver in qutebrowser."""
-        url = self.path_to_url(path)
+        if new_tab and new_window:
+            raise ValueError("new_tab and new_window given!")
+
+        url = self.path_to_url(path, port=port, https=https)
         if new_tab:
             self.send_cmd(':open -t ' + url)
+        elif new_window:
+            self.send_cmd(':open -w ' + url)
         else:
             self.send_cmd(':open ' + url)
-        self.wait_for_load_finished(path)
 
     def mark_expected(self, category=None, loglevel=None, message=None):
         """Mark a given logging message as expected."""
@@ -284,16 +322,24 @@ class QuteProc(testprocess.Process):
                              message=message)
         line.expected = True
 
-    def wait_for_load_finished(self, path, timeout=15000):
+    def wait_for_load_finished(self, path, *, port=None, https=False,
+                               timeout=None, load_status='success'):
         """Wait until any tab has finished loading."""
-        url = self.path_to_url(path)
+        if timeout is None:
+            if 'CI' in os.environ:
+                timeout = 15000
+            else:
+                timeout = 5000
+
+        url = self.path_to_url(path, port=port, https=https)
         # We really need the same representation that the webview uses in its
         # __repr__
         url = utils.elide(QUrl(url).toDisplayString(QUrl.EncodeUnicode), 100)
         pattern = re.compile(
-            r"(load status for <qutebrowser.browser.webview.WebView "
-            r"tab_id=\d+ url='{url}'>: LoadStatus.success|fetch: "
-            r"PyQt5.QtCore.QUrl\('{url}'\) -> .*)".format(url=re.escape(url)))
+            r"(load status for <qutebrowser\.browser\.webview\.WebView "
+            r"tab_id=\d+ url='{url}'>: LoadStatus\.{load_status}|fetch: "
+            r"PyQt5\.QtCore\.QUrl\('{url}'\) -> .*)".format(
+                load_status=re.escape(load_status), url=re.escape(url)))
         self.wait_for(message=pattern, timeout=timeout)
 
     def get_session(self):
@@ -347,3 +393,14 @@ def quteproc(quteproc_process, httpbin, request):
     quteproc_process.before_test()
     yield quteproc_process
     quteproc_process.after_test()
+
+
+@pytest.yield_fixture
+def quteproc_new(qapp, httpbin, request):
+    """Per-test qutebrowser process to test invocations."""
+    delay = request.config.getoption('--qute-delay')
+    proc = QuteProc(httpbin, delay)
+    request.node._quteproc_log = proc.captured_log
+    # Not calling before_test here as that would start the process
+    yield proc
+    proc.after_test()

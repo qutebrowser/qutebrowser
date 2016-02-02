@@ -1,6 +1,6 @@
 # vim: ft=python fileencoding=utf-8 sts=4 sw=4 et:
 
-# Copyright 2015 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
+# Copyright 2015-2016 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
 #
 # This file is part of qutebrowser.
 #
@@ -34,6 +34,7 @@ import pytest
 
 import qutebrowser
 from qutebrowser.utils import version
+from qutebrowser.browser import pdfjs
 
 
 class GitStrSubprocessFake:
@@ -529,6 +530,41 @@ class TestOsInfo:
         version._os_info()
 
 
+class TestPDFJSVersion:
+
+    """Tests for _pdfjs_version."""
+
+    def test_not_found(self, mocker):
+        mocker.patch('qutebrowser.utils.version.pdfjs.get_pdfjs_res_and_path',
+                     side_effect=pdfjs.PDFJSNotFound)
+        assert version._pdfjs_version() == 'no'
+
+    def test_unknown(self, monkeypatch):
+        monkeypatch.setattr(
+            'qutebrowser.utils.version.pdfjs.get_pdfjs_res_and_path',
+            lambda path: (b'foobar', None))
+        assert version._pdfjs_version() == 'unknown (bundled)'
+
+    def test_known(self, monkeypatch):
+        pdfjs_code = textwrap.dedent("""
+            // Initializing PDFJS global object (if still undefined)
+            if (typeof PDFJS === 'undefined') {
+              (typeof window !== 'undefined' ? window : this).PDFJS = {};
+            }
+
+            PDFJS.version = '1.2.109';
+            PDFJS.build = '875588d';
+
+            (function pdfjsWrapper() {
+              // Use strict in our context only - users might not want it
+              'use strict';
+        """).strip().encode('utf-8')
+        monkeypatch.setattr(
+            'qutebrowser.utils.version.pdfjs.get_pdfjs_res_and_path',
+            lambda path: (pdfjs_code, '/foo/bar/pdf.js'))
+        assert version._pdfjs_version() == '1.2.109 (/foo/bar/pdf.js)'
+
+
 class FakeQSslSocket:
 
     """Fake for the QSslSocket Qt class.
@@ -571,6 +607,7 @@ def test_version_output(git_commit, harfbuzz, frozen, short, stubs,
         'qVersion': lambda: 'QT RUNTIME VERSION',
         'PYQT_VERSION_STR': 'PYQT VERSION',
         '_module_versions': lambda: ['MODULE VERSION 1', 'MODULE VERSION 2'],
+        '_pdfjs_version': lambda: 'PDFJS VERSION',
         'qWebKitVersion': lambda: 'WEBKIT VERSION',
         'QSslSocket': FakeQSslSocket('SSL VERSION'),
         'platform.platform': lambda: 'PLATFORM',
@@ -613,6 +650,7 @@ def test_version_output(git_commit, harfbuzz, frozen, short, stubs,
             Desktop: DESKTOP
             MODULE VERSION 1
             MODULE VERSION 2
+            pdf.js: PDFJS VERSION
             Webkit: WEBKIT VERSION
             Harfbuzz: {harfbuzz}
             SSL: SSL VERSION

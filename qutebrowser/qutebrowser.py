@@ -1,6 +1,6 @@
 # vim: ft=python fileencoding=utf-8 sts=4 sw=4 et:
 
-# Copyright 2014-2015 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
+# Copyright 2014-2016 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
 
 # This file is part of qutebrowser.
 #
@@ -70,6 +70,7 @@ def get_argparser():
                         help="How URLs should be opened if there is already a "
                              "qutebrowser instance running.")
     parser.add_argument('--json-args', help=argparse.SUPPRESS)
+    parser.add_argument('--temp-basedir-restarted', help=argparse.SUPPRESS)
 
     debug = parser.add_argument_group('debug arguments')
     debug.add_argument('-l', '--loglevel', dest='loglevel',
@@ -129,7 +130,6 @@ def get_argparser():
 
 
 def main():
-    """Main entry point for qutebrowser."""
     parser = get_argparser()
     if sys.platform == 'darwin' and getattr(sys, 'frozen', False):
         # Ignore Mac OS X' idiotic -psn_* argument...

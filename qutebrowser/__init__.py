@@ -1,6 +1,6 @@
 # vim: ft=python fileencoding=utf-8 sts=4 sw=4 et:
 
-# Copyright 2014-2015 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
+# Copyright 2014-2016 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
 #
 # This file is part of qutebrowser.
 #
@@ -24,11 +24,11 @@
 import os.path
 
 __author__ = "Florian Bruhin"
-__copyright__ = "Copyright 2014-2015 Florian Bruhin (The Compiler)"
+__copyright__ = "Copyright 2014-2016 Florian Bruhin (The Compiler)"
 __license__ = "GPL"
 __maintainer__ = __author__
 __email__ = "mail@qutebrowser.org"
-__version_info__ = (0, 4, 1)
+__version_info__ = (0, 5, 1)
 __version__ = '.'.join(str(e) for e in __version_info__)
 __description__ = "A keyboard-driven, vim-like browser based on PyQt5 and QtWebKit."
 

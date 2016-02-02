@@ -1,6 +1,6 @@
 # vim: ft=python fileencoding=utf-8 sts=4 sw=4 et:
 
-# Copyright 2014-2015 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
+# Copyright 2014-2016 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
 #
 # This file is part of qutebrowser.
 #
@@ -35,6 +35,8 @@ from qutebrowser.config import style
 from qutebrowser.misc import consolewidget
 
 from PyQt5.QtCore import QUrl
+# so it's available for :debug-pyeval
+from PyQt5.QtWidgets import QApplication  # pylint: disable=unused-import
 
 
 @cmdutils.register(maxsplit=1, no_cmd_split=True, win_id='win_id')
@@ -176,18 +178,23 @@ def debug_trace(expr=""):
 
 
 @cmdutils.register(maxsplit=0, debug=True, no_cmd_split=True)
-def debug_pyeval(s):
+def debug_pyeval(s, quiet=False):
     """Evaluate a python string and display the results as a web page.
 
     Args:
         s: The string to evaluate.
+        quiet: Don't show the output in a new tab.
     """
     try:
         r = eval(s)
         out = repr(r)
     except Exception:
         out = traceback.format_exc()
+
     qutescheme.pyeval_output = out
-    tabbed_browser = objreg.get('tabbed-browser', scope='window',
-                                window='last-focused')
-    tabbed_browser.openurl(QUrl('qute:pyeval'), newtab=True)
+    if quiet:
+        log.misc.debug("pyeval output: {}".format(out))
+    else:
+        tabbed_browser = objreg.get('tabbed-browser', scope='window',
+                                    window='last-focused')
+        tabbed_browser.openurl(QUrl('qute:pyeval'), newtab=True)

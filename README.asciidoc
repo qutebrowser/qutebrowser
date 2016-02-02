@@ -149,6 +149,7 @@ Contributors, sorted by the number of commits in descending order:
 * Martin Tournoij
 * Raphael Pierzina
 * Joel Torstensson
+* Felix Van der Jeugt
 * Claude
 * meles5
 * Patric Schmitz
@@ -158,17 +159,21 @@ Contributors, sorted by the number of commits in descending order:
 * Thorsten Wißmann
 * Alexey "Averrin" Nabrodov
 * ZDarian
+* Milan Svoboda
 * John ShaggyTwoDope Jenkins
 * Peter Vilim
+* Tarcisio Fedrizzi
+* Oliver Caldwell
 * Jonas Schürmann
-* Panagiotis Ktistakis
 * Jimmy
+* Panagiotis Ktistakis
+* Jakub Klinkovský
 * skinnay
 * error800
 * Zach-Button
 * Halfwit
-* Felix Van der Jeugt
 * rikn00
+* Michael Ilsaas
 * Martin Zimmermann
 * Brian Jackson
 * sbinix
@@ -176,6 +181,7 @@ Contributors, sorted by the number of commits in descending order:
 * jnphilipp
 * Tobias Patzl
 * Peter Michely
+* Link
 * Larry Hynes
 * Johannes Altmanninger
 * Samir Benmendil
@@ -186,11 +192,15 @@ Contributors, sorted by the number of commits in descending order:
 * Corentin Jule
 * zwarag
 * xd1le
+* evan
 * dylan araps
 * Tim Harder
 * Thiago Barroso Perrotta
+* Stefan Tatschner
+* Sorokin Alexei
 * Samuel Loury
 * Matthias Lisin
+* Marcel Schilling
 * Jean-Christophe Petkovich
 * Helen Sherwood-Taylor
 * HalosGhost
@@ -271,3 +281,14 @@ GNU General Public License for more details.
 
 You should have received a copy of the GNU General Public License
 along with this program.  If not, see <http://www.gnu.org/licenses/>.
+
+pdf.js
+------
+
+qutebrowser optionally uses https://github.com/mozilla/pdf.js/[pdf.js] to
+display PDF files in the browser. Windows releases come with a bundled pdf.js.
+
+pdf.js is distributed under the terms of the Apache License. You can
+find a copy of the license in `qutebrowser/3rdparty/pdfjs/LICENSE` (in the
+Windows release or after running `scripts/dev/update_3rdparty.py`), or online
+http://www.apache.org/licenses/LICENSE-2.0.html[here].

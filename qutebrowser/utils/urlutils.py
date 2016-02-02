@@ -1,6 +1,6 @@
 # vim: ft=python fileencoding=utf-8 sts=4 sw=4 et:
 
-# Copyright 2014-2015 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
+# Copyright 2014-2016 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
 #
 # This file is part of qutebrowser.
 #
@@ -74,6 +74,8 @@ def _parse_search_term(s):
             term = s
         else:
             term = split[1]
+    elif not split:
+        raise ValueError("Empty search term!")
     else:
         engine = None
         term = s
@@ -168,7 +170,9 @@ def fuzzy_url(urlstr, cwd=None, relative=False, do_search=True):
     Return:
         A target QUrl to a search page or the original URL.
     """
+    urlstr = urlstr.strip()
     expanded = os.path.expanduser(urlstr)
+
     if os.path.isabs(expanded):
         path = expanded
     elif relative and cwd:
@@ -181,11 +185,10 @@ def fuzzy_url(urlstr, cwd=None, relative=False, do_search=True):
     else:
         path = None
 
-    stripped = urlstr.strip()
     if path is not None and os.path.exists(path):
         log.url.debug("URL is a local file")
         url = QUrl.fromLocalFile(path)
-    elif (not do_search) or is_url(stripped):
+    elif (not do_search) or is_url(urlstr):
         # probably an address
         log.url.debug("URL is a fuzzy address")
         url = qurl_from_user_input(urlstr)
@@ -194,10 +197,10 @@ def fuzzy_url(urlstr, cwd=None, relative=False, do_search=True):
         try:
             url = _get_search_url(urlstr)
         except ValueError:  # invalid search engine
-            url = qurl_from_user_input(stripped)
+            url = qurl_from_user_input(urlstr)
     log.url.debug("Converting fuzzy term {} to URL -> {}".format(
                   urlstr, url.toDisplayString()))
-    if do_search and config.get('general', 'auto-search'):
+    if do_search and config.get('general', 'auto-search') and urlstr:
         qtutils.ensure_valid(url)
     else:
         if not url.isValid():
@@ -215,9 +218,9 @@ def _has_explicit_scheme(url):
     # after the scheme delimiter. Since we don't know of any URIs
     # using this and want to support e.g. searching for scoped C++
     # symbols, we treat this as not an URI anyways.
-    return (url.isValid() and url.scheme()
-            and not url.path().startswith(' ')
-            and not url.path().startswith(':'))
+    return (url.isValid() and url.scheme() and
+            not url.path().startswith(' ') and
+            not url.path().startswith(':'))
 
 
 def is_special_url(url):
@@ -253,8 +256,12 @@ def is_url(urlstr):
     if not autosearch:
         # no autosearch, so everything is a URL unless it has an explicit
         # search engine.
-        engine, _term = _parse_search_term(urlstr)
-        return engine is None
+        try:
+            engine, _term = _parse_search_term(urlstr)
+        except ValueError:
+            return False
+        else:
+            return engine is None
 
     if not qurl_userinput.isValid():
         # This will also catch URLs containing spaces.
@@ -462,6 +469,28 @@ class IncDecError(Exception):
         return '{}: {}'.format(self.msg, self.url.toString())
 
 
+def _get_incdec_value(match, incdec, url):
+    """Get a incremented/decremented URL based on a URL match."""
+    pre, zeroes, number, post = match.groups()
+    # This should always succeed because we match \d+
+    val = int(number)
+    if incdec == 'decrement':
+        if val <= 0:
+            raise IncDecError("Can't decrement {}!".format(val), url)
+        val -= 1
+    elif incdec == 'increment':
+        val += 1
+    else:
+        raise ValueError("Invalid value {} for indec!".format(incdec))
+    if zeroes:
+        if len(number) < len(str(val)):
+            zeroes = zeroes[1:]
+        elif len(number) > len(str(val)):
+            zeroes += '0'
+
+    return ''.join([pre, zeroes, str(val), post])
+
+
 def incdec_number(url, incdec, segments=None):
     """Find a number in the url and increment or decrement it.
 
@@ -503,23 +532,11 @@ def incdec_number(url, incdec, segments=None):
             continue
 
         # Get the last number in a string
-        match = re.match(r'(.*\D|^)(\d+)(.*)', getter())
+        match = re.match(r'(.*\D|^)(0*)(\d+)(.*)', getter())
         if not match:
             continue
 
-        pre, number, post = match.groups()
-        # This should always succeed because we match \d+
-        val = int(number)
-        if incdec == 'decrement':
-            if val <= 0:
-                raise IncDecError("Can't decrement {}!".format(val), url)
-            val -= 1
-        elif incdec == 'increment':
-            val += 1
-        else:
-            raise ValueError("Invalid value {} for indec!".format(incdec))
-        new_value = ''.join([pre, str(val), post])
-        setter(new_value)
+        setter(_get_incdec_value(match, incdec, url))
         return url
 
     raise IncDecError("No number found in URL!", url)

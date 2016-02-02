@@ -1,8 +1,8 @@
 #!/usr/bin/env python3
 # vim: ft=python fileencoding=utf-8 sts=4 sw=4 et:
 
-# Copyright 2015 lamarpavel
-# Copyright 2015 Alexey Nabrodov (Averrin)
+# Copyright 2015-2016 lamarpavel
+# Copyright 2015-2016 Alexey Nabrodov (Averrin)
 #
 # This file is part of qutebrowser.
 #

@@ -1,6 +1,6 @@
 # vim: ft=python fileencoding=utf-8 sts=4 sw=4 et:
 
-# Copyright 2015 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
+# Copyright 2015-2016 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
 #
 # This file is part of qutebrowser.
 #
@@ -42,8 +42,8 @@ ITEMS = [
     # From https://github.com/OtterBrowser/otter-browser/issues/709#issuecomment-74749471
     Item(QUrl('http://github.com/OtterBrowser/24/134/2344/otter-browser/'
               'issues/709/'),
-        'Page not found | github',
-        user_data={'zoom': 149, 'scroll-pos': QPoint(0, 0)}),
+         'Page not found | github',
+         user_data={'zoom': 149, 'scroll-pos': QPoint(0, 0)}),
     Item(QUrl('https://mail.google.com/mail/u/0/#label/some+label/'
               '234lkjsd0932lkjf884jqwerdf4'),
          '"some label" - email@gmail.com - Gmail"',

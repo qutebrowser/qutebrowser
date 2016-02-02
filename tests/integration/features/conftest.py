@@ -1,6 +1,6 @@
 # vim: ft=python fileencoding=utf-8 sts=4 sw=4 et:
 
-# Copyright 2015 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
+# Copyright 2015-2016 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
 #
 # This file is part of qutebrowser.
 #
@@ -25,6 +25,7 @@ import json
 import os.path
 import logging
 import collections
+import textwrap
 
 import pytest
 import yaml
@@ -33,6 +34,11 @@ from PyQt5.QtCore import QElapsedTimer
 from PyQt5.QtGui import QClipboard
 
 from helpers import utils
+
+
+class WaitForClipboardTimeout(Exception):
+
+    """Raised when _wait_for_clipboard didn't get the expected message."""
 
 
 def _clipboard_mode(qapp, what):
@@ -68,6 +74,7 @@ def open_path_given(quteproc, path):
     It always opens a new tab, unlike "When I open ..."
     """
     quteproc.open_path(path, new_tab=True)
+    quteproc.wait_for_load_finished(path)
 
 
 @bdd.given(bdd.parsers.parse("I run {command}"))
@@ -93,17 +100,32 @@ def fresh_instance(quteproc):
 def open_path(quteproc, path):
     """Open a URL.
 
-    If used like "When I open ... in a new tab", the URL is opened ina new
-    tab.
+    If used like "When I open ... in a new tab", the URL is opened in a new
+    tab. With "... in a new window", it's opened in a new window.
     """
+    new_tab = False
+    new_window = False
+    wait_for_load_finished = True
+
     new_tab_suffix = ' in a new tab'
+    new_window_suffix = ' in a new window'
+    do_not_wait_suffix = ' without waiting'
+
     if path.endswith(new_tab_suffix):
         path = path[:-len(new_tab_suffix)]
         new_tab = True
-    else:
-        new_tab = False
+    elif path.endswith(new_window_suffix):
+        path = path[:-len(new_window_suffix)]
+        new_window = True
 
-    quteproc.open_path(path, new_tab=new_tab)
+    if path.endswith(do_not_wait_suffix):
+        path = path[:-len(do_not_wait_suffix)]
+        wait_for_load_finished = False
+
+    quteproc.open_path(path, new_tab=new_tab, new_window=new_window)
+
+    if wait_for_load_finished:
+        quteproc.wait_for_load_finished(path)
 
 
 @bdd.when(bdd.parsers.parse("I set {sect} -> {opt} to {value}"))
@@ -131,7 +153,7 @@ def run_command(quteproc, httpbin, command):
 @bdd.when(bdd.parsers.parse("I reload"))
 def reload(qtbot, httpbin, quteproc, command):
     """Reload and wait until a new request is received."""
-    with qtbot.waitSignal(httpbin.new_request, raising=True):
+    with qtbot.waitSignal(httpbin.new_request):
         quteproc.send_cmd(':reload')
 
 
@@ -142,8 +164,9 @@ def wait_until_loaded(quteproc, path):
 
 
 @bdd.when(bdd.parsers.re(r'I wait for (?P<is_regex>regex )?"'
-                         r'(?P<pattern>[^"]+)" in the log'))
-def wait_in_log(quteproc, is_regex, pattern):
+                         r'(?P<pattern>[^"]+)" in the log(?P<do_skip> or skip '
+                         r'the test)?'))
+def wait_in_log(quteproc, is_regex, pattern, do_skip):
     """Wait for a given pattern in the qutebrowser log.
 
     If used like "When I wait for regex ... in the log" the argument is treated
@@ -151,7 +174,9 @@ def wait_in_log(quteproc, is_regex, pattern):
     """
     if is_regex:
         pattern = re.compile(pattern)
-    quteproc.wait_for(message=pattern)
+
+    line = quteproc.wait_for(message=pattern, do_skip=bool(do_skip))
+    line.expected = True
 
 
 @bdd.when(bdd.parsers.re(r'I wait for the (?P<category>error|message|warning) '
@@ -185,17 +210,40 @@ def selection_supported(qapp):
 def fill_clipboard(qtbot, qapp, httpbin, what, content):
     mode = _clipboard_mode(qapp, what)
     content = content.replace('(port)', str(httpbin.port))
+    content = content.replace(r'\n', '\n')
 
     clipboard = qapp.clipboard()
     with qtbot.waitSignal(clipboard.changed):
         clipboard.setText(content, mode)
 
 
+@bdd.when(bdd.parsers.re(r'I put the following lines into the '
+                         r'(?P<what>primary selection|clipboard):\n'
+                         r'(?P<content>.+)$', flags=re.DOTALL))
+def fill_clipboard_multiline(qtbot, qapp, httpbin, what, content):
+    fill_clipboard(qtbot, qapp, httpbin, what, textwrap.dedent(content))
+
+
 ## Then
 
 
 @bdd.then(bdd.parsers.parse("{path} should be loaded"))
-def path_should_be_loaded(httpbin, path):
+def path_should_be_loaded(quteproc, path):
+    """Make sure the given path was loaded according to the log.
+
+    This is usally the better check compared to "should be requested" as the
+    page could be loaded from local cache.
+    """
+    url = quteproc.path_to_url(path)
+    pattern = re.compile(
+        r"load status for <qutebrowser\.browser\.webview\.WebView "
+        r"tab_id=\d+ url='{url}/?'>: LoadStatus\.success".format(
+            url=re.escape(url)))
+    quteproc.wait_for(message=pattern)
+
+
+@bdd.then(bdd.parsers.parse("{path} should be requested"))
+def path_should_be_requested(httpbin, path):
     """Make sure the given path was loaded from the webserver."""
     httpbin.wait_for(verb='GET', path='/' + path)
 
@@ -243,7 +291,8 @@ def should_be_logged(quteproc, is_regex, pattern):
     """Expect the given pattern on regex in the log."""
     if is_regex:
         pattern = re.compile(pattern)
-    quteproc.wait_for(message=pattern)
+    line = quteproc.wait_for(message=pattern)
+    line.expected = True
 
 
 @bdd.then(bdd.parsers.parse('"{pattern}" should not be logged'))
@@ -256,8 +305,7 @@ def ensure_not_logged(quteproc, pattern):
                             'logged'))
 def javascript_message_logged(quteproc, message):
     """Make sure the given message was logged via javascript."""
-    quteproc.wait_for(category='js', function='javaScriptConsoleMessage',
-                      message='[*] {}'.format(message))
+    quteproc.wait_for_js(message)
 
 
 @bdd.then(bdd.parsers.parse('the javascript message "{message}" should not be '
@@ -316,7 +364,24 @@ def check_contents(quteproc, filename):
     path = os.path.join(os.path.abspath(os.path.dirname(__file__)), '..',
                         'data', os.path.join(*filename.split('/')))
     with open(path, 'r', encoding='utf-8') as f:
-        assert content == f.read()
+        file_content = f.read()
+        assert content == file_content
+
+
+@bdd.then(bdd.parsers.parse('the page should contain the plaintext "{text}"'))
+def check_contents_plain(quteproc, text):
+    """Check the current page's content based on a substring."""
+    content = quteproc.get_content().strip()
+    assert text in content
+
+
+@bdd.then(bdd.parsers.parse('the json on the page should be:\n{text}'))
+def check_contents_json(quteproc, text):
+    """Check the current page's content as json."""
+    content = quteproc.get_content().strip()
+    expected = json.loads(text)
+    actual = json.loads(content)
+    assert actual == expected
 
 
 @bdd.then(bdd.parsers.parse("the following tabs should be open:\n{tabs}"))
@@ -335,6 +400,7 @@ def check_open_tabs(quteproc, tabs):
 
     for i, line in enumerate(tabs):
         line = line.strip()
+        assert line.startswith('- ')
         line = line[2:]  # remove "- " prefix
         if line.endswith(active_suffix):
             path = line[:-len(active_suffix)]
@@ -359,16 +425,27 @@ def _wait_for_clipboard(qtbot, clipboard, mode, expected):
     while True:
         if clipboard.text(mode=mode) == expected:
             return
-        with qtbot.waitSignal(clipboard.changed, timeout=timeout) as blocker:
+
+        # We need to poll the clipboard, as for some reason it can change with
+        # emitting changed (?).
+        with qtbot.waitSignal(clipboard.changed, timeout=100, raising=False):
             pass
-        if not blocker.signal_triggered or timer.hasExpired(timeout):
+
+        if timer.hasExpired(timeout):
             mode_names = {
                 QClipboard.Clipboard: 'clipboard',
                 QClipboard.Selection: 'primary selection',
             }
-            raise WaitForTimeout(
-                "Timed out after {}ms waiting for {} in {}.".format(
-                    timeout, expected, mode_names[mode]))
+            raise WaitForClipboardTimeout(
+                "Timed out after {timeout}ms waiting for {what}:\n"
+                "   expected: {expected!r}\n"
+                "  clipboard: {clipboard!r}\n"
+                "    primary: {primary!r}.".format(
+                    timeout=timeout, what=mode_names[mode],
+                    expected=expected,
+                    clipboard=clipboard.text(mode=QClipboard.Clipboard),
+                    primary=clipboard.text(mode=QClipboard.Selection))
+            )
 
 
 @bdd.then(bdd.parsers.re(r'the (?P<what>primary selection|clipboard) should '
@@ -382,6 +459,11 @@ def clipboard_contains(qtbot, qapp, httpbin, what, content):
 
 @bdd.then(bdd.parsers.parse('the clipboard should contain:\n{content}'))
 def clipboard_contains_multiline(qtbot, qapp, content):
-    expected = '\n'.join(line.strip() for line in content.splitlines())
+    expected = textwrap.dedent(content)
     _wait_for_clipboard(qtbot, qapp.clipboard(), QClipboard.Clipboard,
                         expected)
+
+
+@bdd.then("qutebrowser should quit")
+def should_quit(qtbot, quteproc):
+    quteproc.wait_for_quit()

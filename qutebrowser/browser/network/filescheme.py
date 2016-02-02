@@ -1,7 +1,7 @@
 # vim: ft=python fileencoding=utf-8 sts=4 sw=4 et:
 
-# Copyright 2014-2015 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
-# Copyright 2015 Antoni Boucher (antoyo) <bouanto@zoho.com>
+# Copyright 2014-2016 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
+# Copyright 2015-2016 Antoni Boucher (antoyo) <bouanto@zoho.com>
 #
 # This file is part of qutebrowser.
 #
@@ -84,7 +84,7 @@ def dirbrowser_html(path):
     except OSError as e:
         html = jinja.env.get_template('error.html').render(
             title="Error while reading directory",
-            url='file://%s' % path,
+            url='file://{}'.format(path),
             error=str(e),
             icon='')
         return html.encode('UTF-8', errors='xmlcharrefreplace')

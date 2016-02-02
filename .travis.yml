@@ -12,14 +12,12 @@ env:
     - PATH=/home/travis/bin:/home/travis/.local/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
   matrix:
     - TESTENV=py35
-    - TESTENV=py34
+    - TESTENV=py34-cov
     - TESTENV=unittests-nodisp
     - TESTENV=misc
     - TESTENV=vulture
-    - TESTENV=pep257
-    - TESTENV=pyflakes
-    - TESTENV=pep8
-    - TESTENV=mccabe
+    - TESTENV=pydocstyle
+    - TESTENV=flake8
     - TESTENV=pyroma
     - TESTENV=check-manifest
     - TESTENV=pylint
@@ -37,17 +35,17 @@ install:
   - python scripts/dev/ci_install.py
 
 script:
-  - tox -e $TESTENV -- -p no:sugar -v --cov-report term tests
+  - tox -e $TESTENV -- -v --cov-report term tests
 
 after_success:
-  - '[[ ($TESTENV == py34 || $TESTENV == py35) && $TRAVIS_OX == linux ]] && codecov -e TESTENV -X gcov'
+  - '[[ $TESTENV == *-cov ]] && codecov -e TESTENV -X gcov'
 
 matrix:
   exclude:
     - os: linux
       env: TESTENV=py35
     - os: osx
-      env: TESTENV=py34
+      env: TESTENV=py34-cov
     - os: osx
       env: TESTENV=unittests-nodisp
     - os: osx
@@ -55,13 +53,9 @@ matrix:
     - os: osx
       env: TESTENV=vulture
     - os: osx
-      env: TESTENV=pep257
+      env: TESTENV=pydocstyle
     - os: osx
-      env: TESTENV=pyflakes
-    - os: osx
-      env: TESTENV=pep8
-    - os: osx
-      env: TESTENV=mccabe
+      env: TESTENV=flake8
     - os: osx
       env: TESTENV=pyroma
     - os: osx

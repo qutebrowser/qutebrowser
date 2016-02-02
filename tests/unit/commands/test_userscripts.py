@@ -1,6 +1,6 @@
 # vim: ft=python fileencoding=utf-8 sts=4 sw=4 et:
 
-# Copyright 2015 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
+# Copyright 2015-2016 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
 #
 # This file is part of qutebrowser.
 #
@@ -79,8 +79,7 @@ def test_command(qtbot, py_proc, runner):
         with open(os.environ['QUTE_FIFO'], 'w') as f:
             f.write('foo\n')
     """)
-    with qtbot.waitSignal(runner.got_cmd, raising=True,
-                          timeout=10000) as blocker:
+    with qtbot.waitSignal(runner.got_cmd, timeout=10000) as blocker:
         runner.run(cmd, *args)
     assert blocker.args == ['foo']
 
@@ -100,8 +99,7 @@ def test_custom_env(qtbot, monkeypatch, py_proc, runner):
             f.write('\n')
     """)
 
-    with qtbot.waitSignal(runner.got_cmd, raising=True,
-                          timeout=10000) as blocker:
+    with qtbot.waitSignal(runner.got_cmd, timeout=10000) as blocker:
         runner.run(cmd, *args, env=env)
 
     data = blocker.args[0]
@@ -136,9 +134,8 @@ def test_temporary_files(qtbot, tmpdir, py_proc, runner):
             f.write('\n')
     """)
 
-    with qtbot.waitSignal(runner.finished, raising=True, timeout=10000):
-        with qtbot.waitSignal(runner.got_cmd, raising=True,
-                              timeout=10000) as blocker:
+    with qtbot.waitSignal(runner.finished, timeout=10000):
+        with qtbot.waitSignal(runner.got_cmd, timeout=10000) as blocker:
             runner.run(cmd, *args, env=env)
 
     data = blocker.args[0]
@@ -160,7 +157,7 @@ def test_command_with_error(qtbot, tmpdir, py_proc, runner):
         sys.exit(1)
     """)
 
-    with qtbot.waitSignal(runner.finished, raising=True, timeout=10000):
+    with qtbot.waitSignal(runner.finished, timeout=10000):
         runner.run(cmd, *args, env=env)
 
     assert not text_file.exists()
@@ -191,14 +188,13 @@ def test_killed_command(qtbot, tmpdir, py_proc, runner):
     """)
     args.append(str(pidfile))
 
-    with qtbot.waitSignal(watcher.directoryChanged, raising=True,
-                          timeout=10000):
+    with qtbot.waitSignal(watcher.directoryChanged, timeout=10000):
         runner.run(cmd, *args, env=env)
 
     # Make sure the PID was written to the file, not just the file created
     time.sleep(0.5)
 
-    with qtbot.waitSignal(runner.finished, raising=True):
+    with qtbot.waitSignal(runner.finished):
         os.kill(int(pidfile.read()), signal.SIGTERM)
 
     assert not text_file.exists()
@@ -216,7 +212,7 @@ def test_temporary_files_failed_cleanup(caplog, qtbot, tmpdir, py_proc,
     """)
 
     with caplog.at_level(logging.ERROR):
-        with qtbot.waitSignal(runner.finished, raising=True, timeout=10000):
+        with qtbot.waitSignal(runner.finished, timeout=10000):
             runner.run(cmd, *args, env={'QUTE_HTML': str(test_file)})
 
     assert len(caplog.records) == 1

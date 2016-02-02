@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 # vim: ft=python fileencoding=utf-8 sts=4 sw=4 et:
 
-# Copyright 2014-2015 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
+# Copyright 2014-2016 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
 
 # This file is part of qutebrowser.
 #
@@ -72,7 +72,8 @@ class UsageFormatter(argparse.HelpFormatter):
             result = "'{}'".format(action.metavar)
         elif action.choices is not None:
             choice_strs = [str(choice) for choice in action.choices]
-            result = '{%s}' % ','.join('*{}*'.format(e) for e in choice_strs)
+            result = ('{' + ','.join('*{}*'.format(e) for e in choice_strs) +
+                      '}')
         else:
             result = "'{}'".format(default_metavar)
 

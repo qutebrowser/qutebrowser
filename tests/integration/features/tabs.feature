@@ -471,11 +471,11 @@ Feature: Tab management
                   zoom: 1.2
 
     Scenario: Cloning to background tab
-        When I open data/hello.txt
+        When I open data/hello2.txt
         And I run :tab-clone -b
         Then the following tabs should be open:
-            - data/hello.txt (active)
-            - data/hello.txt
+            - data/hello2.txt (active)
+            - data/hello2.txt
 
     Scenario: Cloning to new window
         Given I have a fresh instance
@@ -533,3 +533,114 @@ Feature: Tab management
             - tabs:
               - history:
                 - url: http://localhost:*/data/numbers/2.txt
+
+    # :undo
+
+    Scenario: Undo without any closed tabs
+        Given I have a fresh instance
+        When I run :undo
+        Then the error "Nothing to undo!" should be shown
+
+    Scenario: Undo closing a tab
+        When I open data/numbers/1.txt
+        And I run :tab-only
+        And I open data/numbers/2.txt in a new tab
+        And I open data/numbers/3.txt
+        And I run :tab-close
+        And I run :undo
+        And I wait until data/numbers/3.txt is loaded
+        Then the session should look like:
+            windows:
+            - tabs:
+              - history:
+                - url: about:blank
+                - url: http://localhost:*/data/numbers/1.txt
+              - active: true
+                history:
+                - url: http://localhost:*/data/numbers/2.txt
+                - url: http://localhost:*/data/numbers/3.txt
+
+    Scenario: Undo with auto-created last tab
+        When I open data/hello.txt
+        And I run :tab-only
+        And I set tabs -> last-close to blank
+        And I run :tab-close
+        And I wait until about:blank is loaded
+        And I run :undo
+        And I wait until data/hello.txt is loaded
+        Then the following tabs should be open:
+            - data/hello.txt (active)
+
+    Scenario: Undo with auto-created last tab, with history
+        When I open data/hello.txt
+        And I open data/hello2.txt
+        And I run :tab-only
+        And I set tabs -> last-close to blank
+        And I run :tab-close
+        And I wait until about:blank is loaded
+        And I run :undo
+        And I wait until data/hello2.txt is loaded
+        Then the following tabs should be open:
+            - data/hello2.txt (active)
+
+    Scenario: Undo with auto-created last tab (startpage)
+        When I open data/hello.txt
+        And I run :tab-only
+        And I set tabs -> last-close to startpage
+        And I set general -> startpage to http://localhost:(port)/data/numbers/4.txt,http://localhost:(port)/data/numbers/5.txt
+        And I run :tab-close
+        And I wait until data/numbers/4.txt is loaded
+        And I run :undo
+        And I wait until data/hello.txt is loaded
+        Then the following tabs should be open:
+            - data/hello.txt (active)
+
+    Scenario: Undo with auto-created last tab (default-page)
+        When I open data/hello.txt
+        And I run :tab-only
+        And I set tabs -> last-close to default-page
+        And I set general -> default-page to http://localhost:(port)/data/numbers/6.txt
+        And I run :tab-close
+        And I wait until data/numbers/6.txt is loaded
+        And I run :undo
+        And I wait until data/hello.txt is loaded
+        Then the following tabs should be open:
+            - data/hello.txt (active)
+
+    # last-close
+
+    Scenario: last-close = blank
+        When I open data/hello.txt
+        And I set tabs -> last-close to blank
+        And I run :tab-only
+        And I run :tab-close
+        And I wait until about:blank is loaded
+        Then the following tabs should be open:
+            - about:blank (active)
+
+    Scenario: last-close = startpage
+        When I set general -> startpage to http://localhost:(port)/data/numbers/7.txt,http://localhost:(port)/data/numbers/8.txt
+        And I set tabs -> last-close to startpage
+        And I open data/hello.txt
+        And I run :tab-only
+        And I run :tab-close
+        And I wait until data/numbers/7.txt is loaded
+        Then the following tabs should be open:
+            - data/numbers/7.txt (active)
+
+    Scenario: last-close = default-page
+        When I set general -> default-page to http://localhost:(port)/data/numbers/9.txt
+        And I set tabs -> last-close to default-page
+        And I open data/hello.txt
+        And I run :tab-only
+        And I run :tab-close
+        And I wait until data/numbers/9.txt is loaded
+        Then the following tabs should be open:
+            - data/numbers/9.txt (active)
+
+    Scenario: last-close = close
+        When I open data/hello.txt
+        And I set tabs -> last-close to close
+        And I run :tab-only
+        And I run :tab-close
+        Then qutebrowser should quit

@@ -1,6 +1,6 @@
 # vim: ft=python fileencoding=utf-8 sts=4 sw=4 et:
 
-# Copyright 2014-2015 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
+# Copyright 2014-2016 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
 #
 # This file is part of qutebrowser.
 #
@@ -49,7 +49,7 @@ attr_chars = string.ascii_letters + string.digits + attr_chars_nonalnum
 
 
 # RFC 5987 gives this alternative construction of the token character class
-token_chars = attr_chars + "*'%"
+token_chars = attr_chars + "*'%"  # flake8: disable=S001
 
 
 # Definitions from https://tools.ietf.org/html/rfc2616#section-2.2

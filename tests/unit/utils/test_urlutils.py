@@ -1,6 +1,6 @@
 # vim: ft=python fileencoding=utf-8 sts=4 sw=4 et:
 
-# Copyright 2014-2015 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
+# Copyright 2014-2016 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
 #
 # This file is part of qutebrowser.
 #
@@ -166,13 +166,17 @@ class TestFuzzyUrl:
         assert not os_mock.path.exists.called
         assert url == QUrl('http://foo')
 
-    def test_file_absolute(self, os_mock):
+    @pytest.mark.parametrize('path, expected', [
+        ('/foo', QUrl('file:///foo')),
+        ('/bar\n', QUrl('file:///bar')),
+    ])
+    def test_file_absolute(self, path, expected, os_mock):
         """Test with an absolute path."""
         os_mock.path.exists.return_value = True
         os_mock.path.isabs.return_value = True
 
-        url = urlutils.fuzzy_url('/foo')
-        assert url == QUrl('file:///foo')
+        url = urlutils.fuzzy_url(path)
+        assert url == expected
 
     @pytest.mark.posix
     def test_file_absolute_expanded(self, os_mock):
@@ -229,6 +233,11 @@ class TestFuzzyUrl:
         with pytest.raises(exception):
             urlutils.fuzzy_url('foo', do_search=do_search)
 
+    @pytest.mark.parametrize('url', ['', ' '])
+    def test_empty(self, url):
+        with pytest.raises(urlutils.InvalidUrlError):
+            urlutils.fuzzy_url(url, do_search=True)
+
 
 @pytest.mark.parametrize('url, special', [
     ('file:///tmp/foo', True),
@@ -264,6 +273,12 @@ def test_get_search_url(urlutils_config_stub, url, host, query):
     assert url.query() == query
 
 
+@pytest.mark.parametrize('url', ['\n', ' ', '\n '])
+def test_get_search_url_invalid(urlutils_config_stub, url):
+    with pytest.raises(ValueError):
+        urlutils._get_search_url(url)
+
+
 @pytest.mark.parametrize('is_url, is_url_no_autosearch, uses_dns, url', [
     # Normal hosts
     (True, True, False, 'http://foobar'),
@@ -284,7 +299,7 @@ def test_get_search_url(urlutils_config_stub, url, host, query):
     # _has_explicit_scheme False, special_url True
     (True, True, False, 'qute::foo'),
     # Invalid URLs
-    (False, True, False, ''),
+    (False, False, False, ''),
     (False, True, False, 'http:foo:0'),
     # Not URLs
     (False, True, False, 'foo bar'),  # no DNS because of space
@@ -522,6 +537,7 @@ def test_same_domain(are_same, url1, url2):
     assert urlutils.same_domain(QUrl(url1), QUrl(url2)) == are_same
     assert urlutils.same_domain(QUrl(url2), QUrl(url1)) == are_same
 
+
 @pytest.mark.parametrize('url1, url2', [
     ('http://example.com', ''),
     ('', 'http://example.com'),
@@ -576,6 +592,22 @@ class TestIncDecNumber:
             base_url, incdec, segments={'host', 'path', 'query', 'anchor'})
         assert new_url == expected_url
 
+    @pytest.mark.parametrize('number, expected, incdec', [
+        ('01', '02', 'increment'),
+        ('09', '10', 'increment'),
+        ('009', '010', 'increment'),
+        ('02', '01', 'decrement'),
+        ('10', '9', 'decrement'),
+        ('010', '009', 'decrement')
+    ])
+    def test_incdec_leading_zeroes(self, number, expected, incdec):
+        """Test incdec_number with leading zeroes."""
+        url = 'http://example.com/{}'
+        base_url = QUrl(url.format(number))
+        expected_url = QUrl(url.format(expected))
+        new_url = urlutils.incdec_number(base_url, incdec, segments={'path'})
+        assert new_url == expected_url
+
     @pytest.mark.parametrize('url, segments, expected', [
         ('http://ex4mple.com/test_4?page=3#anchor2', {'host'},
          'http://ex5mple.com/test_4?page=3#anchor2'),
@@ -608,7 +640,7 @@ class TestIncDecNumber:
         after decrementing."""
         with pytest.raises(urlutils.IncDecError):
             urlutils.incdec_number(QUrl('http://example.com/page_0.html'),
-                    'decrement')
+                                   'decrement')
 
     def test_invalid_url(self):
         """Test if incdec_number rejects an invalid URL."""

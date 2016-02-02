@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 # vim: ft=python fileencoding=utf-8 sts=4 sw=4 et:
 
-# Copyright 2014-2015 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
+# Copyright 2014-2016 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
 #
 # This file is part of qutebrowser.
 #
@@ -96,12 +96,19 @@ def check_spelling():
               '[Ss]tatemachine', '[Mm]etaobject', '[Ll]ogrecord',
               '[Ff]iletype'}
 
+    # Files which should be ignored, e.g. because they come from another
+    # package
+    ignored = [
+        os.path.join('.', 'scripts', 'dev', 'misc_checks.py'),
+        os.path.join('.', 'qutebrowser', '3rdparty', 'pdfjs'),
+    ]
+
     seen = collections.defaultdict(list)
     try:
         ok = True
         for fn in _get_files():
             with tokenize.open(fn) as f:
-                if fn == os.path.join('.', 'scripts', 'dev', 'misc_checks.py'):
+                if any(fn.startswith(i) for i in ignored):
                     continue
                 for line in f:
                     for w in words:
@@ -134,7 +141,6 @@ def check_vcs_conflict():
 
 
 def main():
-    """Main entry point."""
     parser = argparse.ArgumentParser()
     parser.add_argument('checker', choices=('git', 'vcs', 'spelling'),
                         help="Which checker to run.")

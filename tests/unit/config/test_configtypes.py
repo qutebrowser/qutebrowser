@@ -1,5 +1,5 @@
 # vim: ft=python fileencoding=utf-8 sts=4 sw=4 et:
-# Copyright 2014-2015 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
+# Copyright 2014-2016 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
 
 # This file is part of qutebrowser.
 #
@@ -254,7 +254,7 @@ class TestMappingType:
     def klass(self):
         return MappingSubclass
 
-    @pytest.mark.parametrize('val', TESTS.keys())
+    @pytest.mark.parametrize('val', sorted(TESTS.keys()))
     def test_validate_valid(self, klass, val):
         klass(none_ok=True).validate(val)
 
@@ -263,7 +263,7 @@ class TestMappingType:
         with pytest.raises(configexc.ValidationError):
             klass().validate(val)
 
-    @pytest.mark.parametrize('val, expected', TESTS.items())
+    @pytest.mark.parametrize('val, expected', sorted(TESTS.items()))
     def test_transform(self, klass, val, expected):
         assert klass().transform(val) == expected
 
@@ -305,6 +305,8 @@ class TestString:
         ({'minlen': 2}, 'fo'),
         ({'minlen': 2, 'maxlen': 3}, 'fo'),
         ({'minlen': 2, 'maxlen': 3}, 'foo'),
+        # valid_values
+        ({'valid_values': configtypes.ValidValues('fooo')}, 'fooo'),
     ])
     def test_validate_valid(self, klass, kwargs, val):
         klass(**kwargs).validate(val)
@@ -319,6 +321,8 @@ class TestString:
         ({'maxlen': 2}, 'fob'),
         ({'minlen': 2, 'maxlen': 3}, 'f'),
         ({'minlen': 2, 'maxlen': 3}, 'fooo'),
+        # valid_values
+        ({'valid_values': configtypes.ValidValues('blah')}, 'fooo'),
     ])
     def test_validate_invalid(self, klass, kwargs, val):
         with pytest.raises(configexc.ValidationError):
@@ -335,6 +339,15 @@ class TestString:
     def test_complete(self, klass, value):
         assert klass(completions=value).complete() == value
 
+    @pytest.mark.parametrize('valid_values, expected', [
+        (configtypes.ValidValues('one', 'two'),
+            [('one', ''), ('two', '')]),
+        (configtypes.ValidValues(('1', 'one'), ('2', 'two')),
+            [('1', 'one'), ('2', 'two')]),
+    ])
+    def test_complete_valid_values(self, klass, valid_values, expected):
+        assert klass(valid_values=valid_values).complete() == expected
+
 
 class TestList:
 
@@ -349,7 +362,7 @@ class TestList:
     def test_validate_valid(self, klass, val):
         klass(none_ok=True).validate(val)
 
-    @pytest.mark.parametrize('val', ['', 'foo,,bar',])
+    @pytest.mark.parametrize('val', ['', 'foo,,bar'])
     def test_validate_invalid(self, klass, val):
         with pytest.raises(configexc.ValidationError):
             klass().validate(val)
@@ -475,11 +488,11 @@ class TestBool:
     def klass(self):
         return configtypes.Bool
 
-    @pytest.mark.parametrize('val, expected', TESTS.items())
+    @pytest.mark.parametrize('val, expected', sorted(TESTS.items()))
     def test_transform(self, klass, val, expected):
         assert klass().transform(val) == expected
 
-    @pytest.mark.parametrize('val', TESTS)
+    @pytest.mark.parametrize('val', sorted(TESTS))
     def test_validate_valid(self, klass, val):
         klass(none_ok=True).validate(val)
 
@@ -505,11 +518,11 @@ class TestBoolAsk:
     def klass(self):
         return configtypes.BoolAsk
 
-    @pytest.mark.parametrize('val, expected', TESTS.items())
+    @pytest.mark.parametrize('val, expected', sorted(TESTS.items()))
     def test_transform(self, klass, val, expected):
         assert klass().transform(val) == expected
 
-    @pytest.mark.parametrize('val', TESTS)
+    @pytest.mark.parametrize('val', sorted(TESTS))
     def test_validate_valid(self, klass, val):
         klass(none_ok=True).validate(val)
 
@@ -858,7 +871,7 @@ class TestColorSystem:
     def klass(self):
         return configtypes.ColorSystem
 
-    @pytest.mark.parametrize('val', TESTS)
+    @pytest.mark.parametrize('val', sorted(TESTS))
     def test_validate_valid(self, klass, val):
         klass(none_ok=True).validate(val)
 
@@ -867,7 +880,7 @@ class TestColorSystem:
         with pytest.raises(configexc.ValidationError):
             klass().validate(val)
 
-    @pytest.mark.parametrize('val, expected', TESTS.items())
+    @pytest.mark.parametrize('val, expected', sorted(TESTS.items()))
     def test_transform(self, klass, val, expected):
         assert klass().transform(val) == expected
 
@@ -1023,7 +1036,6 @@ class TestFont:
 
     font_xfail = pytest.mark.xfail(reason='FIXME: #103')
 
-
     @pytest.fixture(params=[configtypes.Font, configtypes.QtFont])
     def klass(self, request):
         return request.param
@@ -1036,7 +1048,7 @@ class TestFont:
     def qtfont_class(self):
         return configtypes.QtFont
 
-    @pytest.mark.parametrize('val', list(TESTS) + [''])
+    @pytest.mark.parametrize('val', sorted(list(TESTS)) + [''])
     def test_validate_valid(self, klass, val):
         klass(none_ok=True).validate(val)
 
@@ -1065,11 +1077,11 @@ class TestFont:
         with pytest.raises(configexc.ValidationError):
             klass().validate('')
 
-    @pytest.mark.parametrize('string', TESTS)
+    @pytest.mark.parametrize('string', sorted(TESTS))
     def test_transform_font(self, font_class, string):
         assert font_class().transform(string) == string
 
-    @pytest.mark.parametrize('string, desc', TESTS.items())
+    @pytest.mark.parametrize('string, desc', sorted(TESTS.items()))
     def test_transform_qtfont(self, qtfont_class, string, desc):
         assert Font(qtfont_class().transform(string)) == Font.fromdesc(desc)
 
@@ -1256,12 +1268,21 @@ class TestRegexList:
         assert klass().transform(val) == expected
 
 
+
+def unrequired_class(**kwargs):
+    return configtypes.File(required=False, **kwargs)
+
+
 @pytest.mark.usefixtures('qapp')
 class TestFileAndUserStyleSheet:
 
     """Test File/UserStyleSheet."""
 
-    @pytest.fixture(params=[configtypes.File, configtypes.UserStyleSheet])
+    @pytest.fixture(params=[
+        configtypes.File,
+        configtypes.UserStyleSheet,
+        unrequired_class,
+    ])
     def klass(self, request):
         return request.param
 
@@ -1281,6 +1302,8 @@ class TestFileAndUserStyleSheet:
             return arg
         elif klass is configtypes.UserStyleSheet:
             return QUrl.fromLocalFile(arg)
+        elif klass is unrequired_class:
+            return arg
         else:
             assert False, klass
 
@@ -1296,6 +1319,11 @@ class TestFileAndUserStyleSheet:
         os_mock.path.isfile.return_value = False
         with pytest.raises(configexc.ValidationError):
             configtypes.File().validate('foobar')
+
+    def test_validate_does_not_exist_optional_file(self, os_mock):
+        """Test validate with a file which does not exist (File)."""
+        os_mock.path.isfile.return_value = False
+        configtypes.File(required=False).validate('foobar')
 
     def test_validate_does_not_exist_userstylesheet(self, os_mock):
         """Test validate with a file which does not exist (UserStyleSheet)."""
@@ -1331,7 +1359,9 @@ class TestFileAndUserStyleSheet:
         (configtypes.File(), 'foobar', True),
         (configtypes.UserStyleSheet(), 'foobar', False),
         (configtypes.UserStyleSheet(), '\ud800', True),
-    ], ids=['file-foobar', 'userstylesheet-foobar', 'userstylesheet-unicode'])
+        (configtypes.File(required=False), 'foobar', False),
+    ], ids=['file-foobar', 'userstylesheet-foobar', 'userstylesheet-unicode',
+            'file-optional-foobar'])
     def test_validate_rel_inexistent(self, os_mock, monkeypatch, configtype,
                                      value, raises):
         """Test with a relative path and standarddir.config returning None."""
@@ -1378,14 +1408,6 @@ class TestFileAndUserStyleSheet:
     def test_transform_abs(self, klass, os_mock, val, expected):
         assert klass().transform(val) == self._expected(klass, expected)
 
-    def test_transform_relative_confdir_none(self, klass, monkeypatch,
-                                             os_mock):
-        """Test transform() with relative dir and no configdir."""
-        monkeypatch.setattr(
-            'qutebrowser.config.configtypes.standarddir.config', lambda: None)
-        os_mock.path.exists.return_value = True
-        assert klass().transform('foo') == self._expected(klass, 'foo')
-
     def test_transform_relative(self, klass, os_mock, monkeypatch):
         """Test transform() with relative dir and an available configdir."""
         os_mock.path.exists.return_value = True  # for TestUserStyleSheet
@@ -1396,8 +1418,14 @@ class TestFileAndUserStyleSheet:
         expected = self._expected(klass, '/configdir/foo')
         assert klass().transform('foo') == expected
 
-    def test_transform_userstylesheet_base64(self):
+    @pytest.mark.parametrize('no_config', [False, True])
+    def test_transform_userstylesheet_base64(self, monkeypatch, no_config):
         """Test transform with a data string."""
+        if no_config:
+            monkeypatch.setattr(
+                'qutebrowser.config.configtypes.standarddir.config',
+                lambda: None)
+
         b64 = base64.b64encode(b"test").decode('ascii')
         url = QUrl("data:text/css;charset=utf-8;base64,{}".format(b64))
         assert configtypes.UserStyleSheet().transform("test") == url
@@ -1570,14 +1598,16 @@ class TestShellCommand:
         ({'none_ok': True}, ''),
         ({}, 'foobar'),
         ({'placeholder': '{}'}, 'foo {} bar'),
+        ({'placeholder': '{}'}, 'foo{}bar'),
+        ({'placeholder': '{}'}, 'foo "bar {}"'),
     ])
     def test_validate_valid(self, klass, kwargs, val):
         klass(**kwargs).validate(val)
 
     @pytest.mark.parametrize('kwargs, val', [
         ({}, ''),
-        ({'placeholder': '{}'}, 'foo{} bar'),
         ({'placeholder': '{}'}, 'foo bar'),
+        ({'placeholder': '{}'}, 'foo { } bar'),
         ({}, 'foo"'),  # not splittable with shlex
     ])
     def test_validate_invalid(self, klass, kwargs, val):
@@ -1819,7 +1849,7 @@ class TestAutoSearch:
     def klass(self):
         return configtypes.AutoSearch
 
-    @pytest.mark.parametrize('val', TESTS)
+    @pytest.mark.parametrize('val', sorted(TESTS))
     def test_validate_valid(self, klass, val):
         klass(none_ok=True).validate(val)
 
@@ -1828,7 +1858,7 @@ class TestAutoSearch:
         with pytest.raises(configexc.ValidationError):
             klass().validate(val)
 
-    @pytest.mark.parametrize('val, expected', TESTS.items())
+    @pytest.mark.parametrize('val, expected', sorted(TESTS.items()))
     def test_transform(self, klass, val, expected):
         assert klass().transform(val) == expected
 
@@ -1849,7 +1879,7 @@ class TestIgnoreCase:
     def klass(self):
         return configtypes.IgnoreCase
 
-    @pytest.mark.parametrize('val', TESTS)
+    @pytest.mark.parametrize('val', sorted(TESTS))
     def test_validate_valid(self, klass, val):
         klass(none_ok=True).validate(val)
 
@@ -1858,7 +1888,7 @@ class TestIgnoreCase:
         with pytest.raises(configexc.ValidationError):
             klass().validate(val)
 
-    @pytest.mark.parametrize('val, expected', TESTS.items())
+    @pytest.mark.parametrize('val, expected', sorted(TESTS.items()))
     def test_transform(self, klass, val, expected):
         assert klass().transform(val) == expected
 
@@ -1900,7 +1930,7 @@ class TestUrlList:
     def klass(self):
         return configtypes.UrlList
 
-    @pytest.mark.parametrize('val', TESTS)
+    @pytest.mark.parametrize('val', sorted(TESTS))
     def test_validate_valid(self, klass, val):
         klass(none_ok=True).validate(val)
 
@@ -1918,7 +1948,7 @@ class TestUrlList:
         with pytest.raises(configexc.ValidationError):
             klass().validate('foo,,bar')
 
-    @pytest.mark.parametrize('val, expected', TESTS.items())
+    @pytest.mark.parametrize('val, expected', sorted(TESTS.items()))
     def test_transform_single(self, klass, val, expected):
         assert klass().transform(val) == expected
 
@@ -1958,7 +1988,7 @@ class TestConfirmQuit:
     def klass(self):
         return configtypes.ConfirmQuit
 
-    @pytest.mark.parametrize('val', TESTS.keys())
+    @pytest.mark.parametrize('val', sorted(TESTS.keys()))
     def test_validate_valid(self, klass, val):
         klass(none_ok=True).validate(val)
 
@@ -1975,7 +2005,7 @@ class TestConfirmQuit:
         with pytest.raises(configexc.ValidationError):
             klass().validate(val)
 
-    @pytest.mark.parametrize('val, expected', TESTS.items())
+    @pytest.mark.parametrize('val, expected', sorted(TESTS.items()))
     def test_transform(self, klass, val, expected):
         assert klass().transform(val) == expected
 

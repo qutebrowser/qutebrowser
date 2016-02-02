@@ -1,6 +1,6 @@
 # vim: ft=python fileencoding=utf-8 sts=4 sw=4 et:
 
-# Copyright 2015 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
+# Copyright 2015-2016 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
 #
 # This file is part of qutebrowser.
 #
@@ -53,7 +53,7 @@ class TestFixedDataNetworkReply:
     def test_data(self, qtbot, req, data):
         reply = networkreply.FixedDataNetworkReply(req, data, 'test/foo')
         with qtbot.waitSignals([reply.metaDataChanged, reply.readyRead,
-                                reply.finished], raising=True):
+                                reply.finished]):
             pass
 
         assert reply.bytesAvailable() == len(data)
@@ -78,7 +78,7 @@ def test_error_network_reply(qtbot, req):
     reply = networkreply.ErrorNetworkReply(
         req, "This is an error", QNetworkReply.UnknownNetworkError)
 
-    with qtbot.waitSignals([reply.error, reply.finished], raising=True):
+    with qtbot.waitSignals([reply.error, reply.finished]):
         pass
 
     reply.abort()  # shouldn't do anything

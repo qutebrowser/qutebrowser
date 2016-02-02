@@ -1,6 +1,6 @@
 # vim: ft=python fileencoding=utf-8 sts=4 sw=4 et:
 
-# Copyright 2014-2015 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
+# Copyright 2014-2016 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
 #
 # This file is part of qutebrowser.
 #
@@ -79,8 +79,8 @@ def get_window(via_ipc, force_window=False, force_tab=False,
         if open_target not in ('tab-silent', 'tab-bg-silent'):
             window_to_raise = window
     if window_to_raise is not None:
-        window_to_raise.setWindowState(window.windowState() &
-                                       ~Qt.WindowMinimized | Qt.WindowActive)
+        window_to_raise.setWindowState(
+            window.windowState() & ~Qt.WindowMinimized | Qt.WindowActive)
         window_to_raise.raise_()
         window_to_raise.activateWindow()
         QApplication.instance().alert(window_to_raise)
@@ -417,9 +417,6 @@ class MainWindow(QWidget):
                                       window=self.win_id)
         download_count = download_manager.rowCount()
         quit_texts = []
-        # Close if set to never ask for confirmation
-        if 'never' in confirm_quit:
-            pass
         # Ask if multiple-tabs are open
         if 'multiple-tabs' in confirm_quit and tab_count > 1:
             quit_texts.append("{} {} open.".format(

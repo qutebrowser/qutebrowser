@@ -1,6 +1,6 @@
 # vim: ft=python fileencoding=utf-8 sts=4 sw=4 et:
 
-# Copyright 2015 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
+# Copyright 2015-2016 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
 #
 # This file is part of qutebrowser.
 #
@@ -65,7 +65,6 @@ def partial_compare(val1, val2, *, indent=0):
     print_i(pprint.pformat(val1), indent + 1)
     print_i("|---- to ----", indent)
     print_i(pprint.pformat(val2), indent + 1)
-
 
     if val2 is Ellipsis:
         print_i("Ignoring ellipsis comparison", indent, error=True)

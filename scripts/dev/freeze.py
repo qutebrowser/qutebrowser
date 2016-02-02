@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 # vim: ft=python fileencoding=utf-8 sts=4 sw=4 et:
 
-# Copyright 2014-2015 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
+# Copyright 2014-2016 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
 #
 # This file is part of qutebrowser.
 #
@@ -67,6 +67,11 @@ def get_build_exe_options(skip_html=False):
         ('qutebrowser/html', 'html'),
     ]
 
+    if os.path.exists(os.path.join('qutebrowser', '3rdparty', 'pdfjs')):
+        include_files.append(('qutebrowser/3rdparty/pdfjs', '3rdparty/pdfjs'))
+    else:
+        print("Warning: excluding pdfjs as it's not present!")
+
     if not skip_html:
         include_files += [
             ('qutebrowser/html/doc', 'html/doc'),
@@ -81,7 +86,7 @@ def get_build_exe_options(skip_html=False):
         'include_msvcr': True,
         'includes': [],
         'excludes': ['tkinter'],
-        'packages': ['pygments'],
+        'packages': ['pygments', 'pkg_resources._vendor.packaging'],
     }
 
 
@@ -95,7 +100,6 @@ def get_exe(base, target_name):
 
 
 def main():
-    """Main entry point."""
     if sys.platform.startswith('win'):
         base = 'Win32GUI'
         target_name = 'qutebrowser.exe'

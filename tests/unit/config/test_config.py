@@ -1,5 +1,5 @@
 # vim: ft=python fileencoding=utf-8 sts=4 sw=4 et:
-# Copyright 2014-2015 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
+# Copyright 2014-2016 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
 
 # This file is part of qutebrowser.
 #
@@ -97,7 +97,7 @@ class TestConfigParser:
     def test_invalid_value_interpolated(self, objects):
         """Test setting an invalid interpolated value."""
         objects.cp.read_dict({'general': {'ignore-case': 'smart',
-                                       'wrap-search': '${ignore-case}'}})
+                                          'wrap-search': '${ignore-case}'}})
         objects.cfg._from_cp(objects.cp)
         with pytest.raises(configexc.ValidationError):
             objects.cfg._validate_all()
@@ -105,7 +105,7 @@ class TestConfigParser:
     def test_interpolation(self, objects):
         """Test setting an interpolated value."""
         objects.cp.read_dict({'general': {'ignore-case': 'false',
-                                       'wrap-search': '${ignore-case}'}})
+                                          'wrap-search': '${ignore-case}'}})
         objects.cfg._from_cp(objects.cp)
         assert not objects.cfg.get('general', 'ignore-case')
         assert not objects.cfg.get('general', 'wrap-search')
@@ -189,7 +189,7 @@ class TestConfigParser:
         assert new_sect in configdata.DATA
 
     @pytest.mark.parametrize('old_tuple, new_option',
-        config.ConfigManager.RENAMED_OPTIONS.items())
+        sorted(config.ConfigManager.RENAMED_OPTIONS.items()))
     def test_renamed_options(self, old_tuple, new_option):
         """Make sure renamed options exist under the new name."""
         section, old_option = old_tuple
@@ -321,7 +321,7 @@ class TestDefaultConfig:
         If it did change, place a new qutebrowser-vx.y.z.conf in old_configs
         and then increment the version.
         """
-        assert qutebrowser.__version__ == '0.4.1'
+        assert qutebrowser.__version__ == '0.5.1'
 
     @pytest.mark.parametrize('filename',
         os.listdir(os.path.join(os.path.dirname(__file__), 'old_configs')),

@@ -1,6 +1,6 @@
 # vim: ft=python fileencoding=utf-8 sts=4 sw=4 et:
 
-# Copyright 2014-2015 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
+# Copyright 2014-2016 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
 #
 # This file is part of qutebrowser.
 #
@@ -168,7 +168,9 @@ class ModeManager(QObject):
                             "{}".format(curmode, utils.qualname(parser)))
         handled = parser.handle(event)
 
-        is_non_alnum = bool(event.modifiers()) or not event.text().strip()
+        is_non_alnum = (
+            event.modifiers() not in (Qt.NoModifier, Qt.ShiftModifier) or
+            not event.text().strip())
         focus_widget = QApplication.instance().focusWidget()
         is_tab = event.key() in (Qt.Key_Tab, Qt.Key_Backtab)
 

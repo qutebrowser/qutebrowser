@@ -1,6 +1,6 @@
 # vim: ft=python fileencoding=utf-8 sts=4 sw=4 et:
 
-# Copyright 2015 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
+# Copyright 2015-2016 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
 #
 # This file is part of qutebrowser.
 #
@@ -81,6 +81,7 @@ def objects():
     signaller.statusbar_message.connect(
         signal_filter.create(signaller.cur_statusbar_message, tab))
     return Objects(signal_filter=signal_filter, signaller=signaller)
+
 
 @pytest.yield_fixture
 def tabbed_browser(win_registry):

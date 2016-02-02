@@ -1,6 +1,6 @@
 # vim: ft=python fileencoding=utf-8 sts=4 sw=4 et:
 
-# Copyright 2015 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
+# Copyright 2015-2016 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
 #
 # This file is part of qutebrowser.
 #
@@ -61,23 +61,21 @@ def test_done(mode, answer, signal_names, question, qtbot):
     question.mode = mode
     question.answer = answer
     signals = [getattr(question, name) for name in signal_names]
-    with qtbot.waitSignals(signals, raising=True):
+    with qtbot.waitSignals(signals):
         question.done()
     assert not question.is_aborted
 
 
 def test_cancel(question, qtbot):
     """Test Question.cancel()."""
-    with qtbot.waitSignals([question.cancelled, question.completed],
-                           raising=True):
+    with qtbot.waitSignals([question.cancelled, question.completed]):
         question.cancel()
     assert not question.is_aborted
 
 
 def test_abort(question, qtbot):
     """Test Question.abort()."""
-    with qtbot.waitSignals([question.aborted, question.completed],
-                           raising=True):
+    with qtbot.waitSignals([question.aborted, question.completed]):
         question.abort()
     assert question.is_aborted
 

@@ -1,6 +1,6 @@
 # vim: ft=python fileencoding=utf-8 sts=4 sw=4 et:
 
-# Copyright 2014-2015 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
+# Copyright 2014-2016 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
 #
 # This file is part of qutebrowser.
 #
@@ -274,7 +274,7 @@ def qt_message_handler(msg_type, context, msg):
         # PNGs in Qt with broken color profile
         # https://bugreports.qt.io/browse/QTBUG-39788
         'libpng warning: iCCP: Not recognizing known sRGB profile that has '
-            'been edited',  # noqa
+            'been edited',  # flake8: disable=E131
         'libpng warning: iCCP: known incorrect sRGB profile',
         # Hopefully harmless warning
         'OpenType support missing for script ',
@@ -294,6 +294,8 @@ def qt_message_handler(msg_type, context, msg):
         # Hopefully harmless
         '"Method "GetAll" with signature "s" on interface '
             '"org.freedesktop.DBus.Properties" doesn\'t exist',
+        '"Method \\"GetAll\\" with signature \\"s\\" on interface '
+            '\\"org.freedesktop.DBus.Properties\\" doesn\'t exist\\n"',
         'WOFF support requires QtWebKit to be built with zlib support.',
         # Weird Enlightment/GTK X extensions
         'QXcbWindow: Unhandled client message: "_E_',
@@ -312,7 +314,7 @@ def qt_message_handler(msg_type, context, msg):
             'libpng warning: iCCP: known incorrect sRGB profile',
             # https://bugreports.qt.io/browse/QTBUG-47154
             'virtual void QSslSocketBackendPrivate::transmit() SSLRead failed '
-                'with: -9805',  # noqa
+                'with: -9805',  # flake8: disable=E131
         ]
 
     # Messages which will trigger an exception immediately

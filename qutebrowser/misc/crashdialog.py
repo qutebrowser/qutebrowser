@@ -1,6 +1,6 @@
 # vim: ft=python fileencoding=utf-8 sts=4 sw=4 et:
 
-# Copyright 2014-2015 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
+# Copyright 2014-2016 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
 #
 # This file is part of qutebrowser.
 #
@@ -100,7 +100,7 @@ def _get_environment_vars():
     for key, value in os.environ.items():
         for m in masks:
             if fnmatch.fnmatch(key, m):
-                info.append('%s = %s' % (key, value))
+                info.append('{} = {}'.format(key, value))
     return '\n'.join(sorted(info))
 
 
@@ -220,8 +220,9 @@ class _CrashDialog(QDialog):
     def _init_info_text(self):
         """Add an info text encouraging the user to report crashes."""
         info_label = QLabel("<br/><b>Note that without your help, I can't fix "
-                            "the bug you encountered.<br/>I read and respond "
-                            "to all crash reports!</b>", wordWrap=True)
+                            "the bug you encountered.<br/> Crash reports are "
+                            "currently publicly accessible.</b>",
+                            wordWrap=True)
         self._vbox.addWidget(info_label)
 
     def _gather_crash_info(self):
@@ -357,7 +358,7 @@ class _CrashDialog(QDialog):
                          "but you're currently running v{} - please "
                          "update!".format(newest, qutebrowser.__version__))
         text = '<br/><br/>'.join(lines)
-        self.hide()
+        self.finish()
         msgbox.information(self, "Report successfully sent!", text,
                            on_finished=self.finish, plain_text=False)
 
@@ -374,7 +375,7 @@ class _CrashDialog(QDialog):
                      "<a href=http://www.qutebrowser.org/>qutebrowser.org</a> "
                      "by yourself.".format(msg))
         text = '<br/><br/>'.join(lines)
-        self.hide()
+        self.finish()
         msgbox.information(self, "Report successfully sent!", text,
                            on_finished=self.finish, plain_text=False)
 

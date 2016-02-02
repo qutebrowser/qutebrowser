@@ -1,6 +1,6 @@
 # vim: ft=python fileencoding=utf-8 sts=4 sw=4 et:
 
-# Copyright 2014-2015 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
+# Copyright 2014-2016 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
 #
 # This file is part of qutebrowser.
 #
@@ -809,6 +809,9 @@ class CommandDispatcher:
     def paste(self, sel=False, tab=False, bg=False, window=False):
         """Open a page from the clipboard.
 
+        If the pasted text contains newlines, each line gets opened in its own
+        tab.
+
         Args:
             sel: Use the primary selection instead of the clipboard.
             tab: Open in a new tab.
@@ -823,14 +826,20 @@ class CommandDispatcher:
             mode = QClipboard.Clipboard
             target = "Clipboard"
         text = clipboard.text(mode)
-        if not text:
+        if not text.strip():
             raise cmdexc.CommandError("{} is empty.".format(target))
-        log.misc.debug("{} contained: '{}'".format(target, text))
-        try:
-            url = urlutils.fuzzy_url(text)
-        except urlutils.InvalidUrlError as e:
-            raise cmdexc.CommandError(e)
-        self._open(url, tab, bg, window)
+        log.misc.debug("{} contained: '{}'".format(target,
+                                                   text.replace('\n', '\\n')))
+        text_urls = enumerate(u for u in text.split('\n') if u.strip())
+        for i, text_url in text_urls:
+            if not window and i > 0:
+                tab = False
+                bg = True
+            try:
+                url = urlutils.fuzzy_url(text_url)
+            except urlutils.InvalidUrlError as e:
+                raise cmdexc.CommandError(e)
+            self._open(url, tab, bg, window)
 
     @cmdutils.register(instance='command-dispatcher', scope='window',
                        count='count')
@@ -1298,6 +1307,31 @@ class CommandDispatcher:
         except webelem.IsNullError:
             raise cmdexc.CommandError("Element vanished while editing!")
 
+    @cmdutils.register(instance='command-dispatcher',
+                       modes=[KeyMode.insert], hide=True, scope='window',
+                       needs_js=True)
+    def paste_primary(self):
+        """Paste the primary selection at cursor position."""
+        frame = self._current_widget().page().currentFrame()
+        try:
+            elem = webelem.focus_elem(frame)
+        except webelem.IsNullError:
+            raise cmdexc.CommandError("No element focused!")
+        if not elem.is_editable(strict=True):
+            raise cmdexc.CommandError("Focused element is not editable!")
+
+        clipboard = QApplication.clipboard()
+        if clipboard.supportsSelection():
+            sel = clipboard.text(QClipboard.Selection)
+            log.misc.debug("Pasting primary selection into element {}".format(
+                elem.debug_text()))
+            elem.evaluateJavaScript("""
+                var sel = '{}';
+                var event = document.createEvent('TextEvent');
+                event.initTextEvent('textInput', true, true, null, sel);
+                this.dispatchEvent(event);
+            """.format(webelem.javascript_escape(sel)))
+
     def _clear_search(self, view, text):
         """Clear search string/highlights for the given view.
 
@@ -1462,11 +1496,11 @@ class CommandDispatcher:
         webview = self._current_widget()
         if not webview.selection_enabled:
             act = [QWebPage.MoveToNextWord]
-            if sys.platform == 'win32':
+            if sys.platform == 'win32':  # pragma: no cover
                 act.append(QWebPage.MoveToPreviousChar)
         else:
             act = [QWebPage.SelectNextWord]
-            if sys.platform == 'win32':
+            if sys.platform == 'win32':  # pragma: no cover
                 act.append(QWebPage.SelectPreviousChar)
         for _ in range(count):
             for a in act:
@@ -1483,11 +1517,11 @@ class CommandDispatcher:
         webview = self._current_widget()
         if not webview.selection_enabled:
             act = [QWebPage.MoveToNextWord]
-            if sys.platform != 'win32':
+            if sys.platform != 'win32':  # pragma: no branch
                 act.append(QWebPage.MoveToNextChar)
         else:
             act = [QWebPage.SelectNextWord]
-            if sys.platform != 'win32':
+            if sys.platform != 'win32':  # pragma: no branch
                 act.append(QWebPage.SelectNextChar)
         for _ in range(count):
             for a in act:
@@ -1755,3 +1789,10 @@ class CommandDispatcher:
 
             QApplication.postEvent(receiver, press_event)
             QApplication.postEvent(receiver, release_event)
+
+    @cmdutils.register(instance='command-dispatcher', scope='window',
+                       debug=True)
+    def debug_clear_ssl_errors(self):
+        """Clear remembered SSL error answers."""
+        nam = self._current_widget().page().networkAccessManager()
+        nam.clear_all_ssl_errors()

@@ -1,6 +1,6 @@
 # vim: ft=python fileencoding=utf-8 sts=4 sw=4 et:
 
-# Copyright 2014-2015 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
+# Copyright 2014-2016 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
 #
 # This file is part of qutebrowser.
 #
@@ -198,8 +198,8 @@ class CompletionItemDelegate(QStyledItemDelegate):
             columns_to_filter = index.model().srcmodel.columns_to_filter
             if index.column() in columns_to_filter and pattern:
                 repl = r'<span class="highlight">\g<0></span>'
-                text = re.sub(re.escape(pattern), repl, self._opt.text,
-                              flags=re.IGNORECASE)
+                text = re.sub(re.escape(pattern).replace(r'\ ', r'.*'),
+                              repl, self._opt.text, flags=re.IGNORECASE)
                 self._doc.setHtml(text)
             else:
                 self._doc.setPlainText(self._opt.text)

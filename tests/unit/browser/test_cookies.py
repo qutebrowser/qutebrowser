@@ -1,6 +1,6 @@
 # vim: ft=python fileencoding=utf-8 sts=4 sw=4 et:
 
-# Copyright 2015 Alexander Cogneau (acogneau) <alexander.cogneau@gmail.com>:
+# Copyright 2015-2016 Alexander Cogneau (acogneau) <alexander.cogneau@gmail.com>:
 #
 # This file is part of qutebrowser.
 #
@@ -22,7 +22,6 @@
 from unittest import mock
 
 from PyQt5.QtNetwork import QNetworkCookie
-from PyQt5.QtTest import QSignalSpy
 from PyQt5.QtCore import QUrl
 import pytest
 
@@ -79,7 +78,7 @@ def test_set_cookies_accept(config_stub, qtbot, monkeypatch):
     ram_jar = cookies.RAMCookieJar()
     cookie = QNetworkCookie(b'foo', b'bar')
     url = QUrl('http://example.com/')
-    with qtbot.waitSignal(ram_jar.changed, raising=True):
+    with qtbot.waitSignal(ram_jar.changed):
         assert ram_jar.setCookiesFromUrl([cookie], url)
 
     # assert the cookies are added correctly
@@ -90,15 +89,15 @@ def test_set_cookies_accept(config_stub, qtbot, monkeypatch):
     assert saved_cookie.name(), saved_cookie.value() == expected
 
 
-def test_set_cookies_never_accept(config_stub):
+def test_set_cookies_never_accept(qtbot, config_stub):
     """Test setCookiesFromUrl when cookies are not accepted."""
     config_stub.data = CONFIG_NEVER_COOKIES
     ram_jar = cookies.RAMCookieJar()
-    changed_signal_spy = QSignalSpy(ram_jar.changed)
 
     url = QUrl('http://example.com/')
-    assert not ram_jar.setCookiesFromUrl(url, 'test')
-    assert not changed_signal_spy
+
+    with qtbot.assertNotEmitted(ram_jar.changed):
+        assert not ram_jar.setCookiesFromUrl(url, 'test')
     assert not ram_jar.cookiesForUrl(url)
 
 
@@ -151,19 +150,8 @@ def test_cookies_changed_emit(config_stub, fake_save_manager,
                         'LineParser', LineparserSaveStub)
     jar = cookies.CookieJar()
 
-    with qtbot.waitSignal(jar.changed, raising=True):
+    with qtbot.waitSignal(jar.changed):
         config_stub.set('content', 'cookies-store', False)
-
-
-def test_cookies_changed_not_emitted(config_stub, fake_save_manager,
-                                     monkeypatch, qapp):
-    """Test that changed is not emitted when nothing changes."""
-    config_stub.data = CONFIG_COOKIES_ENABLED
-    monkeypatch.setattr(lineparser,
-                        'LineParser', LineparserSaveStub)
-    jar = cookies.CookieJar()
-    changed_spy = QSignalSpy(jar.changed)
-    assert not changed_spy
 
 
 @pytest.mark.parametrize('store_cookies,empty', [

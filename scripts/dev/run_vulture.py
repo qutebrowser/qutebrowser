@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 # vim: ft=python fileencoding=utf-8 sts=4 sw=4 et:
 
-# Copyright 2015 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
+# Copyright 2015-2016 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
 
 # This file is part of qutebrowser.
 #
@@ -89,6 +89,7 @@ def whitelist_generator():
     yield 'qutebrowser.utils.log.VDEBUG'
     yield 'qutebrowser.utils.log.QtWarningFilter.filter'
     yield 'logging.LogRecord.log_color'
+    yield 'qutebrowser.browser.pdfjs.is_available'
     # vulture doesn't notice the hasattr() and thus thinks netrc_used is unused
     # in NetworkManager.on_authentication_required
     yield 'PyQt5.QtNetwork.QNetworkReply.netrc_used'
@@ -127,8 +128,8 @@ def report(items):
     for item in sorted(items, key=lambda e: (e.file.lower(), e.lineno)):
         relpath = os.path.relpath(item.file)
         path = relpath if not relpath.startswith('..') else item.file
-        output.append("%s:%d: Unused %s '%s'" % (path, item.lineno, item.typ,
-                                                 item))
+        output.append("{}:{}: Unused {} '{}'".format(path, item.lineno,
+                                                     item.typ, item))
     return output
 
 
@@ -165,7 +166,6 @@ def run(files):
 
 
 def main():
-    """Run vulture over all files."""
     parser = argparse.ArgumentParser()
     parser.add_argument('files', nargs='*',
                         default=['qutebrowser', 'scripts'])

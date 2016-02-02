@@ -1,6 +1,6 @@
 # vim: ft=python fileencoding=utf-8 sts=4 sw=4 et:
 
-# Copyright 2014-2015 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
+# Copyright 2014-2016 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
 #
 # This file is part of qutebrowser.
 #
@@ -49,12 +49,20 @@ BAD_VALUES = {
 }
 
 
+def good_values():
+    return list(iter_good_values())
+
+
+def bad_values():
+    return list(iter_bad_values())
+
+
 def iter_good_values():
     """Yield "good" (C data type, value) tuples.
 
     Those should pass overflow checking.
     """
-    for ctype, values in GOOD_VALUES.items():
+    for ctype, values in sorted(GOOD_VALUES.items()):
         for value in values:
             yield ctype, value
 
@@ -65,6 +73,6 @@ def iter_bad_values():
     These should not pass overflow checking. The third value is the value they
     should be replaced with if overflow checking should not be fatal.
     """
-    for ctype, values in BAD_VALUES.items():
+    for ctype, values in sorted(BAD_VALUES.items()):
         for value, repl in values:
             yield ctype, value, repl

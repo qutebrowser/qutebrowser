@@ -61,6 +61,11 @@ Feature: Yanking and pasting.
         And I run :paste --sel
         Then the error "Primary selection is empty." should be shown
 
+    Scenario: Pasting with a space in clipboard
+        When I put " " into the clipboard
+        And I run :paste
+        Then the error "Clipboard is empty." should be shown
+
     Scenario: Pasting in a new tab
         Given I open about:blank
         When I run :tab-only
@@ -98,3 +103,151 @@ Feature: Yanking and pasting.
                 history:
                 - active: true
                   url: http://localhost:*/data/hello.txt
+
+    Scenario: Pasting an invalid URL
+        When I set general -> auto-search to false
+        And I put "foo bar" into the clipboard
+        And I run :paste
+        Then the error "Invalid URL" should be shown
+
+    Scenario: Pasting multiple urls in a new tab
+        Given I have a fresh instance
+        When I put the following lines into the clipboard:
+            http://localhost:(port)/data/hello.txt
+            http://localhost:(port)/data/hello2.txt
+            http://localhost:(port)/data/hello3.txt
+        And I run :paste -t
+        And I wait until data/hello.txt is loaded
+        And I wait until data/hello2.txt is loaded
+        And I wait until data/hello3.txt is loaded
+        Then the following tabs should be open:
+            - about:blank
+            - data/hello.txt (active)
+            - data/hello2.txt
+            - data/hello3.txt
+
+    Scenario: Pasting multiple urls in a background tab
+        Given I open about:blank
+        When I run :tab-only
+        And I put the following lines into the clipboard:
+            http://localhost:(port)/data/hello.txt
+            http://localhost:(port)/data/hello2.txt
+            http://localhost:(port)/data/hello3.txt
+        And I run :paste -b
+        And I wait until data/hello.txt is loaded
+        And I wait until data/hello2.txt is loaded
+        And I wait until data/hello3.txt is loaded
+        Then the following tabs should be open:
+            - about:blank (active)
+            - data/hello.txt
+            - data/hello2.txt
+            - data/hello3.txt
+
+    Scenario: Pasting multiple urls in new windows
+        Given I have a fresh instance
+        When I put the following lines into the clipboard:
+            http://localhost:(port)/data/hello.txt
+            http://localhost:(port)/data/hello2.txt
+            http://localhost:(port)/data/hello3.txt
+        And I run :paste -w
+        And I wait until data/hello.txt is loaded
+        And I wait until data/hello2.txt is loaded
+        And I wait until data/hello3.txt is loaded
+        Then the session should look like:
+            windows:
+            - tabs:
+              - active: true
+                history:
+                - active: true
+                  url: about:blank
+            - tabs:
+              - active: true
+                history:
+                - active: true
+                  url: http://localhost:*/data/hello.txt
+            - tabs:
+              - active: true
+                history:
+                - active: true
+                  url: http://localhost:*/data/hello2.txt
+            - tabs:
+              - active: true
+                history:
+                - active: true
+                  url: http://localhost:*/data/hello3.txt
+
+    Scenario: Pasting multiple urls with an empty one
+        When I open about:blank
+        And I put "http://localhost:(port)/data/hello.txt\n\nhttp://localhost:(port)/data/hello2.txt" into the clipboard
+        And I run :paste -t
+        Then no crash should happen
+
+    Scenario: Pasting multiple urls with an almost empty one
+        When I open about:blank
+        And I put "http://localhost:(port)/data/hello.txt\n \nhttp://localhost:(port)/data/hello2.txt" into the clipboard
+        And I run :paste -t
+        Then no crash should happen
+
+    #### :paste-primary
+
+    Scenario: Pasting the primary selection into an empty text field
+        When selection is supported
+        And I open data/paste_primary.html
+        And I put "Hello world" into the primary selection
+        # Click the text field
+        And I run :hint all
+        And I run :follow-hint a
+        And I run :paste-primary
+        # Compare
+        Then the text field should contain "Hello world"
+
+    Scenario: Pasting the primary selection into a text field at specific position
+        When selection is supported
+        And I open data/paste_primary.html
+        And I set the text field to "one two three four"
+        And I put " Hello world" into the primary selection
+        # Click the text field
+        And I run :hint all
+        And I run :follow-hint a
+        # Move to the beginning and two words to the right
+        And I press the keys "<Home>"
+        And I press the key "<Ctrl+Right>"
+        And I press the key "<Ctrl+Right>"
+        And I run :paste-primary
+        # Compare
+        Then the text field should contain "one two Hello world three four"
+
+    Scenario: Pasting the primary selection into a text field with undo
+        When selection is supported
+        And I open data/paste_primary.html
+        # Click the text field
+        And I run :hint all
+        And I run :follow-hint a
+        # Paste and undo
+        And I put "This text should be undone" into the primary selection
+        And I run :paste-primary
+        And I press the key "<Ctrl+z>"
+        # Paste final text
+        And I put "This text should stay" into the primary selection
+        And I run :paste-primary
+        # Compare
+        Then the text field should contain "This text should stay"
+
+    Scenario: Pasting the primary selection without a focused field
+        When selection is supported
+        And I open data/paste_primary.html
+        And I put "test" into the primary selection
+        And I run :enter-mode insert
+        And I run :paste-primary
+        Then the error "No element focused!" should be shown
+
+    Scenario: Pasting the primary selection with a read-only field
+        When selection is supported
+        And I open data/paste_primary.html
+        # Click the text field
+        And I run :hint all
+        And I run :follow-hint s
+        And I put "test" into the primary selection
+        And I run :enter-mode insert
+        And I run :paste-primary
+        Then the error "Focused element is not editable!" should be shown

@@ -1,10 +1,8 @@
 Jinja2==2.8.0
 MarkupSafe==0.23
-Pygments==2.0.2
+Pygments==2.1
 pyPEG2==2.15.2
 PyYAML==3.11
-# "ValueError: I/O operation on closed file" with pytest since 0.3.5
-# WORKAROUND for https://github.com/tartley/colorama/issues/81
-colorama==0.3.3  # rq.filter: <=0.3.3
-colorlog==2.6.0
+colorama==0.3.6
+colorlog==2.6.1
 cssutils==1.0.1

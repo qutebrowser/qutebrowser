@@ -1,6 +1,6 @@
 # vim: ft=python fileencoding=utf-8 sts=4 sw=4 et:
 
-# Copyright 2015 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
+# Copyright 2015-2016 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
 #
 # This file is part of qutebrowser.
 #
@@ -86,9 +86,9 @@ class Saveable:
                 (not config.get(*self._config_opt)) and
                 (not explicit) and (not force)):
             if not silent:
-                log.save.debug("Not saving {} because autosaving has been "
+                log.save.debug("Not saving {name} because autosaving has been "
                                "disabled by {cfg[0]} -> {cfg[1]}.".format(
-                                   self._name, cfg=self._config_opt))
+                                   name=self._name, cfg=self._config_opt))
             return
         do_save = self._dirty or (self._save_on_exit and is_exit) or force
         if not silent:
