@@ -237,7 +237,13 @@ class QuteProc(testprocess.Process):
                        msg.function == 'javaScriptConsoleMessage' and
                        testutils.pattern_match(pattern='[*] [FAIL] *',
                                                value=msg.message))
-        return msg.loglevel > logging.INFO or is_js_error
+        # Try to complain about the most common mistake when accidentally
+        # loading external resources. A fuzzy_url line gets logged when
+        # initializing settings though, so ignore those.
+        is_ddg_page = ('duckduckgo' in msg.message and not
+                          (msg.module == 'urlutils' and
+                           msg.function == 'fuzzy_url'))
+        return msg.loglevel > logging.INFO or is_js_error or is_ddg_page
 
     def _maybe_skip(self):
         """Skip the test if [SKIP] lines were logged."""
