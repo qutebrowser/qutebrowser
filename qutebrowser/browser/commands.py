@@ -680,16 +680,9 @@ class CommandDispatcher:
             mode = QClipboard.Clipboard
             target = "clipboard"
         log.misc.debug("Yanking to {}: '{}'".format(target, s))
-
-        msg = "Yanked {} to {}: {}".format(what, target, s)
-        clipboard.changed.connect(functools.partial(
-            self._display_yank_msg, clipboard, msg))
         clipboard.setText(s, mode)
-
-    def _display_yank_msg(self, clipboard, msg):
-        """Display a message when something was yanked."""
-        message.info(self._win_id, msg)
-        clipboard.changed.disconnect()
+        message.info(self._win_id, "Yanked {} to {}: {}".format(
+                     what, target, s))
 
     @cmdutils.register(instance='command-dispatcher', scope='window',
                        count='count')
