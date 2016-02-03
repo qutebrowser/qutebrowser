@@ -39,6 +39,9 @@ def skip_with_broken_clipboard(qtbot, qapp):
     if clipboard.text() != "Does this work?":
         pytest.skip("Clipboard seems to be broken on this platform.")
 
+    with qtbot.waitSignal(clipboard.changed):
+        clipboard.clear()
+
 
 @bdd.when(bdd.parsers.parse('I set the text field to "{value}"'))
 def set_text_field(quteproc, value):
