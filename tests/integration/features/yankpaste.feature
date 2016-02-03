@@ -182,8 +182,6 @@ Feature: Yanking and pasting.
         And I run :paste -t
         Then no crash should happen
 
-    # https://github.com/The-Compiler/qutebrowser/issues/1285
-    @xfail
     Scenario: Pasting multiple urls with an almost empty one
         When I open about:blank
         And I put "http://localhost:(port)/data/hello.txt\n \nhttp://localhost:(port)/data/hello2.txt" into the clipboard
@@ -192,8 +190,6 @@ Feature: Yanking and pasting.
 
     #### :paste-primary
 
-    # https://github.com/The-Compiler/qutebrowser/issues/1285
-    @xfail
     Scenario: Pasting the primary selection into an empty text field
         When selection is supported
         And I open data/paste_primary.html

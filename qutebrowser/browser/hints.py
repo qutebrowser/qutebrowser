@@ -27,8 +27,7 @@ import string
 
 from PyQt5.QtCore import (pyqtSignal, pyqtSlot, QObject, QEvent, Qt, QUrl,
                           QTimer)
-from PyQt5.QtGui import QMouseEvent, QClipboard
-from PyQt5.QtWidgets import QApplication
+from PyQt5.QtGui import QMouseEvent
 from PyQt5.QtWebKit import QWebElement
 from PyQt5.QtWebKitWidgets import QWebPage
 
@@ -36,8 +35,7 @@ from qutebrowser.config import config
 from qutebrowser.keyinput import modeman, modeparsers
 from qutebrowser.browser import webelem
 from qutebrowser.commands import userscripts, cmdexc, cmdutils, runners
-from qutebrowser.utils import (usertypes, log, qtutils, message,
-                               objreg)
+from qutebrowser.utils import usertypes, log, qtutils, message, objreg, utils
 from qutebrowser.misc import guiprocess
 
 
@@ -481,9 +479,9 @@ class HintManager(QObject):
             context: The HintContext to use.
         """
         sel = context.target == Target.yank_primary
-        mode = QClipboard.Selection if sel else QClipboard.Clipboard
         urlstr = url.toString(QUrl.FullyEncoded | QUrl.RemovePassword)
-        QApplication.clipboard().setText(urlstr, mode)
+        utils.set_clipboard(urlstr, selection=sel)
+
         msg = "Yanked URL to {}: {}".format(
             "primary selection" if sel else "clipboard",
             urlstr)

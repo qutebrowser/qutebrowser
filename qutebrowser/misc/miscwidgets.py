@@ -20,9 +20,9 @@
 """Misc. widgets used at different places."""
 
 from PyQt5.QtCore import pyqtSlot, pyqtSignal, Qt, QSize
-from PyQt5.QtWidgets import (QLineEdit, QApplication, QWidget, QHBoxLayout,
-                             QLabel, QStyleOption, QStyle)
-from PyQt5.QtGui import QValidator, QClipboard, QPainter
+from PyQt5.QtWidgets import (QLineEdit, QWidget, QHBoxLayout, QLabel,
+                             QStyleOption, QStyle)
+from PyQt5.QtGui import QValidator, QPainter
 
 from qutebrowser.utils import utils
 from qutebrowser.misc import cmdhistory
@@ -101,10 +101,12 @@ class CommandLineEdit(QLineEdit):
     def keyPressEvent(self, e):
         """Override keyPressEvent to paste primary selection on Shift + Ins."""
         if e.key() == Qt.Key_Insert and e.modifiers() == Qt.ShiftModifier:
-            clipboard = QApplication.clipboard()
-            if clipboard.supportsSelection():
+            try:
+                text = utils.get_clipboard(selection=True)
+            except utils.SelectionUnsupportedError:
+                pass
+            else:
                 e.accept()
-                text = clipboard.text(QClipboard.Selection)
                 self.insert(text)
                 return
         super().keyPressEvent(e)

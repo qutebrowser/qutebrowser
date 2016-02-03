@@ -30,7 +30,7 @@ import xml.etree.ElementTree
 from PyQt5.QtWebKit import QWebSettings
 from PyQt5.QtWidgets import QApplication, QTabBar
 from PyQt5.QtCore import Qt, QUrl, QEvent
-from PyQt5.QtGui import QClipboard, QKeyEvent
+from PyQt5.QtGui import QKeyEvent
 from PyQt5.QtPrintSupport import QPrintDialog, QPrintPreviewDialog
 from PyQt5.QtWebKitWidgets import QWebPage
 import pygments
@@ -659,7 +659,6 @@ class CommandDispatcher:
             title: Yank the title instead of the URL.
             domain: Yank only the scheme, domain, and port number.
         """
-        clipboard = QApplication.clipboard()
         if title:
             s = self._tabbed_browser.page_title(self._current_index())
             what = 'title'
@@ -673,14 +672,14 @@ class CommandDispatcher:
             s = self._current_url().toString(
                 QUrl.FullyEncoded | QUrl.RemovePassword)
             what = 'URL'
-        if sel and clipboard.supportsSelection():
-            mode = QClipboard.Selection
+
+        if sel and QApplication.clipboard().supportsSelection():
             target = "primary selection"
         else:
-            mode = QClipboard.Clipboard
+            sel = False
             target = "clipboard"
-        log.misc.debug("Yanking to {}: '{}'".format(target, s))
-        clipboard.setText(s, mode)
+
+        utils.set_clipboard(s, selection=sel)
         message.info(self._win_id, "Yanked {} to {}: {}".format(
                      what, target, s))
 
@@ -811,14 +810,12 @@ class CommandDispatcher:
             bg: Open in a background tab.
             window: Open in new window.
         """
-        clipboard = QApplication.clipboard()
-        if sel and clipboard.supportsSelection():
-            mode = QClipboard.Selection
+        if sel and QApplication.clipboard().supportsSelection():
             target = "Primary selection"
         else:
-            mode = QClipboard.Clipboard
+            sel = False
             target = "Clipboard"
-        text = clipboard.text(mode)
+        text = utils.get_clipboard(selection=sel)
         if not text.strip():
             raise cmdexc.CommandError("{} is empty.".format(target))
         log.misc.debug("{} contained: '{}'".format(target,
@@ -1313,17 +1310,19 @@ class CommandDispatcher:
         if not elem.is_editable(strict=True):
             raise cmdexc.CommandError("Focused element is not editable!")
 
-        clipboard = QApplication.clipboard()
-        if clipboard.supportsSelection():
-            sel = clipboard.text(QClipboard.Selection)
-            log.misc.debug("Pasting primary selection into element {}".format(
-                elem.debug_text()))
-            elem.evaluateJavaScript("""
-                var sel = '{}';
-                var event = document.createEvent('TextEvent');
-                event.initTextEvent('textInput', true, true, null, sel);
-                this.dispatchEvent(event);
-            """.format(webelem.javascript_escape(sel)))
+        try:
+            sel = utils.get_clipboard(selection=True)
+        except utils.SelectionUnsupportedError:
+            return
+
+        log.misc.debug("Pasting primary selection into element {}".format(
+            elem.debug_text()))
+        elem.evaluateJavaScript("""
+            var sel = '{}';
+            var event = document.createEvent('TextEvent');
+            event.initTextEvent('textInput', true, true, null, sel);
+            this.dispatchEvent(event);
+        """.format(webelem.javascript_escape(sel)))
 
     def _clear_search(self, view, text):
         """Clear search string/highlights for the given view.
@@ -1667,14 +1666,12 @@ class CommandDispatcher:
             message.info(self._win_id, "Nothing to yank")
             return
 
-        clipboard = QApplication.clipboard()
-        if sel and clipboard.supportsSelection():
-            mode = QClipboard.Selection
+        if sel and QApplication.clipboard().supportsSelection():
             target = "primary selection"
         else:
-            mode = QClipboard.Clipboard
+            sel = False
             target = "clipboard"
-        clipboard.setText(s, mode)
+        utils.set_clipboard(s, sel)
         message.info(self._win_id, "{} {} yanked to {}".format(
             len(s), "char" if len(s) == 1 else "chars", target))
         if not keep:

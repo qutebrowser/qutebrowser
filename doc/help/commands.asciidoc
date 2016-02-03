@@ -1236,6 +1236,7 @@ These commands are mainly intended for debugging. They are hidden if qutebrowser
 |<<debug-crash,debug-crash>>|Crash for debugging purposes.
 |<<debug-dump-page,debug-dump-page>>|Dump the current page's content to a file.
 |<<debug-pyeval,debug-pyeval>>|Evaluate a python string and display the results as a web page.
+|<<debug-set-fake-clipboard,debug-set-fake-clipboard>>|Put data into the fake clipboard and enable logging, used for tests.
 |<<debug-trace,debug-trace>>|Trace executed code via hunter.
 |<<debug-webaction,debug-webaction>>|Execute a webaction.
 |==============
@@ -1291,6 +1292,15 @@ Evaluate a python string and display the results as a web page.
 ==== note
 * This command does not split arguments after the last argument and handles quotes literally.
 * With this command, +;;+ is interpreted literally instead of splitting off a second command.
+
+[[debug-set-fake-clipboard]]
+=== debug-set-fake-clipboard
+Syntax: +:debug-set-fake-clipboard ['s']+
+
+Put data into the fake clipboard and enable logging, used for tests.
+
+==== positional arguments
+* +'s'+: The text to put into the fake clipboard, or unset to enable logging.
 
 [[debug-trace]]
 === debug-trace

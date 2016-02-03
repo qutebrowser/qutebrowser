@@ -260,7 +260,7 @@ def process_pos_args(args, via_ipc=False, cwd=None, target_arg=None):
         if cmd.startswith(':'):
             if win_id is None:
                 win_id = mainwindow.get_window(via_ipc, force_tab=True)
-            log.init.debug("Startup cmd {}".format(cmd))
+            log.init.debug("Startup cmd {!r}".format(cmd))
             commandrunner = runners.CommandRunner(win_id)
             commandrunner.run_safely_init(cmd[1:])
         elif not cmd:

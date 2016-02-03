@@ -29,11 +29,21 @@ import contextlib
 import itertools
 
 from PyQt5.QtCore import Qt
-from PyQt5.QtGui import QKeySequence, QColor
+from PyQt5.QtGui import QKeySequence, QColor, QClipboard
+from PyQt5.QtWidgets import QApplication
 import pkg_resources
 
 import qutebrowser
 from qutebrowser.utils import qtutils, log
+
+
+fake_clipboard = None
+log_clipboard = False
+
+
+class SelectionUnsupportedError(Exception):
+
+    """Raised if [gs]et_clipboard is used and selection=True is unsupported."""
 
 
 def elide(text, length):
@@ -743,3 +753,33 @@ def newest_slice(iterable, count):
         return iterable
     else:
         return itertools.islice(iterable, len(iterable) - count, len(iterable))
+
+
+def set_clipboard(data, selection=False):
+    """Set the clipboard to some given data."""
+    clipboard = QApplication.clipboard()
+    if selection and not clipboard.supportsSelection():
+        raise SelectionUnsupportedError
+    if log_clipboard:
+        what = 'primary selection' if selection else 'clipboard'
+        log.misc.debug("Setting fake {}: {!r}".format(what, data))
+    else:
+        mode = QClipboard.Selection if selection else QClipboard.Clipboard
+        clipboard.setText(data, mode=mode)
+
+
+def get_clipboard(selection=False):
+    """Get data from the clipboard."""
+    global fake_clipboard
+    clipboard = QApplication.clipboard()
+    if selection and not clipboard.supportsSelection():
+        raise SelectionUnsupportedError
+
+    if fake_clipboard is not None:
+        data = fake_clipboard
+        fake_clipboard = None
+    else:
+        mode = QClipboard.Selection if selection else QClipboard.Clipboard
+        data = clipboard.text(mode=mode)
+
+    return data

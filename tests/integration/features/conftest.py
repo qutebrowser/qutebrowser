@@ -30,26 +30,8 @@ import textwrap
 import pytest
 import yaml
 import pytest_bdd as bdd
-from PyQt5.QtCore import QElapsedTimer
-from PyQt5.QtGui import QClipboard
 
 from helpers import utils
-
-
-class WaitForClipboardTimeout(Exception):
-
-    """Raised when _wait_for_clipboard didn't get the expected message."""
-
-
-def _clipboard_mode(qapp, what):
-    """Get the QClipboard::Mode to use based on a string."""
-    if what == 'clipboard':
-        return QClipboard.Clipboard
-    elif what == 'primary selection':
-        assert qapp.clipboard().supportsSelection()
-        return QClipboard.Selection
-    else:
-        raise AssertionError
 
 
 ## Given
@@ -207,21 +189,17 @@ def selection_supported(qapp):
 
 @bdd.when(bdd.parsers.re(r'I put "(?P<content>.*)" into the '
                          r'(?P<what>primary selection|clipboard)'))
-def fill_clipboard(qtbot, qapp, httpbin, what, content):
-    mode = _clipboard_mode(qapp, what)
+def fill_clipboard(quteproc, httpbin, what, content):
     content = content.replace('(port)', str(httpbin.port))
     content = content.replace(r'\n', '\n')
-
-    clipboard = qapp.clipboard()
-    clipboard.setText(content, mode)
-    _wait_for_clipboard(qtbot, qapp.clipboard(), mode, content)
+    quteproc.send_cmd(':debug-set-fake-clipboard "{}"'.format(content))
 
 
 @bdd.when(bdd.parsers.re(r'I put the following lines into the '
                          r'(?P<what>primary selection|clipboard):\n'
                          r'(?P<content>.+)$', flags=re.DOTALL))
-def fill_clipboard_multiline(qtbot, qapp, httpbin, what, content):
-    fill_clipboard(qtbot, qapp, httpbin, what, textwrap.dedent(content))
+def fill_clipboard_multiline(quteproc, httpbin, what, content):
+    fill_clipboard(quteproc, httpbin, what, textwrap.dedent(content))
 
 
 ## Then
@@ -417,51 +395,18 @@ def check_open_tabs(quteproc, tabs):
             assert 'active' not in session_tab
 
 
-def _wait_for_clipboard(qtbot, clipboard, mode, expected):
-    timeout = 1000
-    timer = QElapsedTimer()
-    timer.start()
-
-    while True:
-        if clipboard.text(mode=mode) == expected:
-            return
-
-        # We need to poll the clipboard, as for some reason it can change with
-        # emitting changed (?).
-        with qtbot.waitSignal(clipboard.changed, timeout=100, raising=False):
-            pass
-
-        if timer.hasExpired(timeout):
-            mode_names = {
-                QClipboard.Clipboard: 'clipboard',
-                QClipboard.Selection: 'primary selection',
-            }
-            raise WaitForClipboardTimeout(
-                "Timed out after {timeout}ms waiting for {what}:\n"
-                "   expected: {expected!r}\n"
-                "  clipboard: {clipboard!r}\n"
-                "    primary: {primary!r}.".format(
-                    timeout=timeout, what=mode_names[mode],
-                    expected=expected,
-                    clipboard=clipboard.text(mode=QClipboard.Clipboard),
-                    primary=clipboard.text(mode=QClipboard.Selection))
-            )
-
-
 @bdd.then(bdd.parsers.re(r'the (?P<what>primary selection|clipboard) should '
                          r'contain "(?P<content>.*)"'))
-def clipboard_contains(qtbot, qapp, httpbin, what, content):
-    mode = _clipboard_mode(qapp, what)
+def clipboard_contains(quteproc, httpbin, what, content):
     expected = content.replace('(port)', str(httpbin.port))
     expected = expected.replace('\\n', '\n')
-    _wait_for_clipboard(qtbot, qapp.clipboard(), mode, expected)
+    quteproc.wait_for(message='Setting fake {}: {!r}'.format(what, expected))
 
 
 @bdd.then(bdd.parsers.parse('the clipboard should contain:\n{content}'))
-def clipboard_contains_multiline(qtbot, qapp, content):
+def clipboard_contains_multiline(quteproc, content):
     expected = textwrap.dedent(content)
-    _wait_for_clipboard(qtbot, qapp.clipboard(), QClipboard.Clipboard,
-                        expected)
+    quteproc.wait_for(message='Setting fake clipboard: {!r}'.format(expected))
 
 
 @bdd.then("qutebrowser should quit")

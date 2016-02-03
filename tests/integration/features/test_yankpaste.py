@@ -26,21 +26,9 @@ bdd.scenarios('yankpaste.feature')
 
 
 @pytest.fixture(autouse=True)
-def skip_with_broken_clipboard(qtbot, qapp):
-    """The clipboard seems to be broken on some platforms (OS X Yosemite?).
-
-    This skips the tests if this is the case.
-    """
-    clipboard = qapp.clipboard()
-
-    with qtbot.waitSignal(clipboard.changed, raising=False):
-        clipboard.setText("Does this work?")
-
-    if clipboard.text() != "Does this work?":
-        pytest.skip("Clipboard seems to be broken on this platform.")
-
-    with qtbot.waitSignal(clipboard.changed):
-        clipboard.clear()
+def init_fake_clipboard(quteproc):
+    """Make sure the fake clipboard will be used."""
+    quteproc.send_cmd(':debug-set-fake-clipboard')
 
 
 @bdd.when(bdd.parsers.parse('I set the text field to "{value}"'))
