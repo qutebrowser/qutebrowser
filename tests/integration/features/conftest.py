@@ -217,7 +217,6 @@ def fill_clipboard(qtbot, qapp, httpbin, what, content):
     _wait_for_clipboard(qtbot, qapp.clipboard(), mode, content)
 
 
-
 @bdd.when(bdd.parsers.re(r'I put the following lines into the '
                          r'(?P<what>primary selection|clipboard):\n'
                          r'(?P<content>.+)$', flags=re.DOTALL))

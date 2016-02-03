@@ -240,9 +240,9 @@ class QuteProc(testprocess.Process):
         # Try to complain about the most common mistake when accidentally
         # loading external resources. A fuzzy_url line gets logged when
         # initializing settings though, so ignore those.
-        is_ddg_page = ('duckduckgo' in msg.message and not
-                          (msg.module == 'urlutils' and
-                           msg.function == 'fuzzy_url'))
+        is_ddg_page = (
+            'duckduckgo' in msg.message and not (msg.module == 'urlutils' and
+                                                 msg.function == 'fuzzy_url'))
         return msg.loglevel > logging.INFO or is_js_error or is_ddg_page
 
     def _maybe_skip(self):
