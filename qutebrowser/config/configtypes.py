@@ -283,6 +283,21 @@ class String(BaseType):
             return super().complete()
 
 
+class UniqueCharString(String):
+
+    """A string which may not contain duplicate chars."""
+
+    def validate(self, value):
+        super().validate(value)
+        if not value:
+            return
+
+        # Check for duplicate values
+        if len(set(value)) != len(value):
+            raise configexc.ValidationError(
+                value, "String contains duplicate values!")
+
+
 class List(BaseType):
 
     """Base class for a (string-)list setting."""

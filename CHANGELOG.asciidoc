@@ -48,6 +48,7 @@ Fixed
 - Fixed crash when downloading a file without any path information (e.g a
   magnet link).
 - Fixed crashes when opening an empty URL (e.g. via pasting).
+- Fixed validation of duplicate values in `hints -> chars`.
 
 v0.5.1
 ------
