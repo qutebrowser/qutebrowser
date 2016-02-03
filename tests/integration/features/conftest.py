@@ -213,8 +213,9 @@ def fill_clipboard(qtbot, qapp, httpbin, what, content):
     content = content.replace(r'\n', '\n')
 
     clipboard = qapp.clipboard()
-    with qtbot.waitSignal(clipboard.changed):
-        clipboard.setText(content, mode)
+    clipboard.setText(content, mode)
+    _wait_for_clipboard(qtbot, qapp.clipboard(), mode, content)
+
 
 
 @bdd.when(bdd.parsers.re(r'I put the following lines into the '
