@@ -22,6 +22,7 @@
 import io
 import sys
 import enum
+import json
 import os.path
 import collections
 import functools
@@ -762,7 +763,7 @@ def set_clipboard(data, selection=False):
         raise SelectionUnsupportedError
     if log_clipboard:
         what = 'primary selection' if selection else 'clipboard'
-        log.misc.debug("Setting fake {}: {!r}".format(what, data))
+        log.misc.debug("Setting fake {}: {}".format(what, json.dumps(data)))
     else:
         mode = QClipboard.Selection if selection else QClipboard.Clipboard
         clipboard.setText(data, mode=mode)

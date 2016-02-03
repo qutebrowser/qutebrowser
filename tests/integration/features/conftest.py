@@ -400,13 +400,15 @@ def check_open_tabs(quteproc, tabs):
 def clipboard_contains(quteproc, httpbin, what, content):
     expected = content.replace('(port)', str(httpbin.port))
     expected = expected.replace('\\n', '\n')
-    quteproc.wait_for(message='Setting fake {}: {!r}'.format(what, expected))
+    quteproc.wait_for(message='Setting fake {}: {!r}'.format(
+        what, json.dumps(expected)))
 
 
 @bdd.then(bdd.parsers.parse('the clipboard should contain:\n{content}'))
 def clipboard_contains_multiline(quteproc, content):
     expected = textwrap.dedent(content)
-    quteproc.wait_for(message='Setting fake clipboard: {!r}'.format(expected))
+    quteproc.wait_for(message='Setting fake clipboard: {}'.format(
+        json.dumps(expected)))
 
 
 @bdd.then("qutebrowser should quit")

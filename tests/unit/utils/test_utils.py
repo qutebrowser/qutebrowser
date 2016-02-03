@@ -953,15 +953,17 @@ class TestGetSetClipboard:
         with pytest.raises(utils.SelectionUnsupportedError):
             utils.set_clipboard('foo', selection=True)
 
-    @pytest.mark.parametrize('selection, what', [
-        (True, 'primary selection'),
-        (False, 'clipboard'),
+    @pytest.mark.parametrize('selection, what, text, expected', [
+        (True, 'primary selection', 'fake text', 'fake text'),
+        (False, 'clipboard', 'fake text', 'fake text'),
+        (False, 'clipboard', 'füb', r'f\u00fcb'),
     ])
-    def test_set_logging(self, clipboard_mock, caplog, selection, what):
+    def test_set_logging(self, clipboard_mock, caplog, selection, what,
+                         text, expected):
         utils.log_clipboard = True
-        utils.set_clipboard('fake clipboard text', selection=selection)
+        utils.set_clipboard(text, selection=selection)
         assert not clipboard_mock.setText.called
-        expected = "Setting fake {}: 'fake clipboard text'".format(what)
+        expected = 'Setting fake {}: "{}"'.format(what, expected)
         assert caplog.records[0].message == expected
 
     def test_get(self):
