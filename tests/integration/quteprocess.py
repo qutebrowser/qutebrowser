@@ -259,10 +259,20 @@ class QuteProc(testprocess.Process):
         if skip_texts:
             pytest.skip(', '.join(skip_texts))
 
-    def after_test(self):
+    def after_test(self, did_fail):
+        """Handle unexpected/skip logging and clean up after each test.
+
+        Args:
+            did_fail: Set if the main test failed already, then logged errors
+                      are ignored.
+        """
         __tracebackhide__ = True
         bad_msgs = [msg for msg in self._data
                     if self._is_error_logline(msg) and not msg.expected]
+
+        if did_fail:
+            super().after_test()
+            return
 
         try:
             if bad_msgs:
@@ -399,7 +409,7 @@ def quteproc(quteproc_process, httpbin, request):
     request.node._quteproc_log = quteproc_process.captured_log
     quteproc_process.before_test()
     yield quteproc_process
-    quteproc_process.after_test()
+    quteproc_process.after_test(did_fail=request.node.rep_call.failed)
 
 
 @pytest.yield_fixture
@@ -410,4 +420,4 @@ def quteproc_new(qapp, httpbin, request):
     request.node._quteproc_log = proc.captured_log
     # Not calling before_test here as that would start the process
     yield proc
-    proc.after_test()
+    proc.after_test(did_fail=request.node.rep_call.failed)

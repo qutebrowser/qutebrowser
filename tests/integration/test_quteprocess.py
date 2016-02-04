@@ -40,7 +40,16 @@ def test_quteproc_error_message(qtbot, quteproc, cmd):
     # Usually we wouldn't call this from inside a test, but here we force the
     # error to occur during the test rather than at teardown time.
     with pytest.raises(pytest.fail.Exception):
-        quteproc.after_test()
+        quteproc.after_test(did_fail=False)
+
+
+def test_quteproc_error_message_did_fail(qtbot, quteproc):
+    """Make sure the test does not fail on teardown if the main test failed."""
+    with qtbot.waitSignal(quteproc.got_error):
+        quteproc.send_cmd(':message-error test')
+    # Usually we wouldn't call this from inside a test, but here we force the
+    # error to occur during the test rather than at teardown time.
+    quteproc.after_test(did_fail=True)
 
 
 def test_quteproc_skip_via_js(qtbot, quteproc):
@@ -50,7 +59,7 @@ def test_quteproc_skip_via_js(qtbot, quteproc):
 
         # Usually we wouldn't call this from inside a test, but here we force
         # the error to occur during the test rather than at teardown time.
-        quteproc.after_test()
+        quteproc.after_test(did_fail=False)
 
     assert str(excinfo.value) == 'test'
 
@@ -74,7 +83,7 @@ def test_quteprocess_quitting(qtbot, quteproc_process):
     with qtbot.waitSignal(quteproc_process.proc.finished, timeout=15000):
         quteproc_process.send_cmd(':quit')
     with pytest.raises(testprocess.ProcessExited):
-        quteproc_process.after_test()
+        quteproc_process.after_test(did_fail=False)
 
 
 @pytest.mark.parametrize('data, attrs', [

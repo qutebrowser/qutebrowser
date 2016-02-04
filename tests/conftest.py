@@ -435,3 +435,14 @@ def pytest_configure(config):
 def pytest_unconfigure(config):
     if config.xvfb_display is not None:
         config.xvfb_display.stop()
+
+
+@pytest.hookimpl(tryfirst=True, hookwrapper=True)
+def pytest_runtest_makereport(item, call):
+    """Make test information available in fixtures.
+
+    See http://pytest.org/latest/example/simple.html#making-test-result-information-available-in-fixtures
+    """
+    outcome = yield
+    rep = outcome.get_result()
+    setattr(item, "rep_" + rep.when, rep)
