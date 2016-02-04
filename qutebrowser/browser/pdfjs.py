@@ -29,9 +29,16 @@ from qutebrowser.utils import utils
 
 class PDFJSNotFound(Exception):
 
-    """Raised when no pdf.js installation is found."""
+    """Raised when no pdf.js installation is found.
 
-    pass
+    Attributes:
+        path: path of the file that was requested but not found.
+    """
+
+    def __init__(self, path):
+        self.path = path
+        message = "Path '{}' not found".format(path)
+        super().__init__(message)
 
 
 def generate_pdfjs_page(url):
@@ -129,7 +136,7 @@ def get_pdfjs_res_and_path(path):
         try:
             content = utils.read_file(res_path, binary=True)
         except FileNotFoundError:
-            raise PDFJSNotFound
+            raise PDFJSNotFound(path) from None
 
     try:
         # Might be script/html or might be binary
