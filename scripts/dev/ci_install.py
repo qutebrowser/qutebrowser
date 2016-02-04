@@ -48,6 +48,12 @@ if TESTENV.endswith('-cov'):
     pip_packages.append('codecov')
 
 
+def fix_sources_list():
+    """The mirror used by Travis has trouble a lot, so switch to another."""
+    subprocess.check_call(['sudo', 'sed', '-i', r's/us-central1\.gce/us/',
+                           '/etc/apt/sources.list'])
+
+
 def apt_get(args):
     subprocess.check_call(['sudo', 'apt-get', '-y', '-q'] + args)
 
@@ -111,12 +117,14 @@ elif TRAVIS_OS == 'linux':
         pkgs += ['npm', 'nodejs', 'nodejs-legacy']
 
     if pkgs:
+        fix_sources_list()
         print("apt-get update...")
         apt_get(['update'])
         print("apt-get install...")
         apt_get(['install'] + pkgs)
 
     if TESTENV == 'flake8':
+        fix_sources_list()
         print("apt-get update...")
         apt_get(['update'])
         # We need an up-to-date Python because of:
