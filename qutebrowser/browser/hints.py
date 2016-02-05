@@ -23,7 +23,7 @@ import collections
 import functools
 import math
 import re
-import string
+from string import ascii_lowercase
 
 from PyQt5.QtCore import (pyqtSignal, pyqtSlot, QObject, QEvent, Qt, QUrl,
                           QTimer)
@@ -393,7 +393,7 @@ class HintManager(QObject):
         label.setStyleProperty('left', '{}px !important'.format(left))
         label.setStyleProperty('top', '{}px !important'.format(top))
 
-    def _draw_label(self, elem, text):
+    def _draw_label(self, elem, string):
         """Draw a hint label over an element.
 
         Args:
@@ -418,7 +418,7 @@ class HintManager(QObject):
         label = webelem.WebElementWrapper(parent.lastChild())
         label['class'] = 'qutehint'
         self._set_style_properties(elem, label)
-        label.setPlainText(text)
+        label.setPlainText(string)
         return label
 
     def _show_url_error(self):
@@ -860,21 +860,21 @@ class HintManager(QObject):
     def handle_partial_key(self, keystr):
         """Handle a new partial keypress."""
         log.hints.debug("Handling new keystring: '{}'".format(keystr))
-        for (text, elems) in self._context.elems.items():
+        for string, elem in self._context.elems.items():
             try:
-                if text.startswith(keystr):
-                    matched = text[:len(keystr)]
-                    rest = text[len(keystr):]
+                if string.startswith(keystr):
+                    matched = string[:len(keystr)]
+                    rest = string[len(keystr):]
                     match_color = config.get('colors', 'hints.fg.match')
-                    elems.label.setInnerXml(
+                    elem.label.setInnerXml(
                         '<font color="{}">{}</font>{}'.format(
                             match_color, matched, rest))
-                    if self._is_hidden(elems.label):
+                    if self._is_hidden(elem.label):
                         # hidden element which matches again -> show it
-                        self._show_elem(elems.label)
+                        self._show_elem(elem.label)
                 else:
                     # element doesn't match anymore -> hide it
-                    self._hide_elem(elems.label)
+                    self._hide_elem(elem.label)
             except webelem.IsNullError:
                 pass
 
@@ -892,15 +892,15 @@ class HintManager(QObject):
         else:
             self._filterstr = filterstr
 
-        for elems in self._context.all_elems:
+        for elem in self._context.all_elems:
             try:
-                if self._filter_matches(filterstr, str(elems.elem)):
-                    if self._is_hidden(elems.label):
+                if self._filter_matches(filterstr, str(elem.elem)):
+                    if self._is_hidden(elem.label):
                         # hidden element which matches again -> show it
-                        self._show_elem(elems.label)
+                        self._show_elem(elem.label)
                 else:
                     # element doesn't match anymore -> hide it
-                    self._hide_elem(elems.label)
+                    self._hide_elem(elem.label)
             except webelem.IsNullError:
                 pass
 
@@ -921,10 +921,10 @@ class HintManager(QObject):
             visible = self._context.elems
         else:
             visible = {}
-            for k, e in self._context.elems.items():
+            for string, elem in self._context.elems.items():
                 try:
-                    if not self._is_hidden(e.label):
-                        visible[k] = e
+                    if not self._is_hidden(elem.label):
+                        visible[string] = elem
                 except webelem.IsNullError:
                     pass
             if not visible:
@@ -997,8 +997,8 @@ class HintManager(QObject):
             # Reset filtering
             self.filter_hints(None)
             # Undo keystring highlighting
-            for (string, elems) in self._context.elems.items():
-                elems.label.setInnerXml(string)
+            for string, elem in self._context.elems.items():
+                elem.label.setInnerXml(string)
         handler()
 
     @cmdutils.register(instance='hintmanager', scope='tab', hide=True,
@@ -1022,13 +1022,13 @@ class HintManager(QObject):
     def on_contents_size_changed(self, _size):
         """Reposition hints if contents size changed."""
         log.hints.debug("Contents size changed...!")
-        for elems in self._context.all_elems:
+        for e in self._context.all_elems:
             try:
-                if elems.elem.webFrame() is None:
+                if e.elem.webFrame() is None:
                     # This sometimes happens for some reason...
-                    elems.label.removeFromDocument()
+                    e.label.removeFromDocument()
                     continue
-                self._set_style_position(elems.elem, elems.label)
+                self._set_style_position(e.elem, e.label)
             except webelem.IsNullError:
                 pass
 
@@ -1062,7 +1062,7 @@ class WordHinter:
             dictionary = config.get("hints", "dictionary")
             try:
                 with open(dictionary, encoding="UTF-8") as wordfile:
-                    alphabet = set(string.ascii_lowercase)
+                    alphabet = set(ascii_lowercase)
                     hints = set()
                     lines = (line.rstrip().lower() for line in wordfile)
                     for word in lines:
