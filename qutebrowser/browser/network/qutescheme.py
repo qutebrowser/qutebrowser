@@ -58,6 +58,25 @@ def add_handler(name):
     return namedecorator
 
 
+class QuteSchemeError(Exception):
+
+    """Exception to signal that a handler should return an ErrorReply.
+
+    Attributes correspond to the arguments in
+    networkreply.ErrorNetworkReply.
+
+    Attributes:
+        errorstring: Error string to print.
+        error: Numerical error value.
+    """
+
+    def __init__(self, errorstring, error):
+        """Constructor."""
+
+        self.errorstring = errorstring
+        self.error = error
+
+
 class QuteSchemeHandler(schemehandler.SchemeHandler):
 
     """Scheme handler for qute: URLs."""
@@ -95,6 +114,9 @@ class QuteSchemeHandler(schemehandler.SchemeHandler):
             return networkreply.ErrorNetworkReply(
                 request, str(e), QNetworkReply.ContentNotFoundError,
                 self.parent())
+        except QuteSchemeError as e:
+            return networkreply.ErrorNetworkReply(
+                request, e.errorstring, e.error, self.parent())
         mimetype, _encoding = mimetypes.guess_type(request.url().fileName())
         if mimetype is None:
             mimetype = 'text/html'
@@ -212,4 +234,13 @@ def qute_settings(win_id, _request):
 def qute_pdfjs(_win_id, request):
     """Handler for qute://pdfjs. Return the pdf.js viewer."""
     urlpath = request.url().path()
-    return pdfjs.get_pdfjs_res(urlpath)
+    try:
+        return pdfjs.get_pdfjs_res(urlpath)
+    except pdfjs.PDFJSNotFound as e:
+        # Logging as the error might get lost otherwise since we're not showing
+        # the error page if a single asset is missing. This way we don't lose
+        # information, as the failed pdfjs requests are still in the log.
+        log.misc.warning(
+            "pdfjs resource requested but not found: {}".format(e.path))
+        raise QuteSchemeError("Can't find pdfjs resource '{}'".format(e.path),
+                QNetworkReply.ContentNotFoundError)
