@@ -158,6 +158,7 @@ class HintManager(QObject):
         self._win_id = win_id
         self._tab_id = tab_id
         self._context = None
+        self._filterstr = None
         self._word_hinter = WordHinter()
         mode_manager = objreg.get('mode-manager', scope='window',
                                   window=win_id)
@@ -710,7 +711,7 @@ class HintManager(QObject):
         keyparser.update_bindings(strings, preserve_filter=True)
 
     def _filter_matches(self, filterstr, elemstr):
-        """Returns True if `filterstr` matches `elemstr`."""
+        """Return True if `filterstr` matches `elemstr`."""
         # Empty string and None always match
         if not filterstr:
             return True
@@ -882,10 +883,10 @@ class HintManager(QObject):
         """Filter displayed hints according to a text.
 
         Args:
-            filterstr: The string to filter with, or None to use the filter from
-                       previous call (saved in `self._filterstr`). If `filterstr`
-                       is an empty string or if both `filterstr` and
-                       `self._filterstr` are None, all hints are shown.
+            filterstr: The string to filter with, or None to use the filter
+                       from previous call (saved in `self._filterstr`). If
+                       `filterstr` is an empty string or if both `filterstr`
+                       and `self._filterstr` are None, all hints are shown.
         """
         if filterstr is None:
             filterstr = self._filterstr
@@ -915,7 +916,8 @@ class HintManager(QObject):
                     pass
             if not elems:
                 # Whoops, filtered all hints
-                modeman.leave(self._win_id, usertypes.KeyMode.hint, 'all filtered')
+                modeman.leave(self._win_id, usertypes.KeyMode.hint,
+                              'all filtered')
                 return
             self._update_strings(elems)
             visible = self._context.elems
@@ -929,7 +931,8 @@ class HintManager(QObject):
                     pass
             if not visible:
                 # Whoops, filtered all hints
-                modeman.leave(self._win_id, usertypes.KeyMode.hint, 'all filtered')
+                modeman.leave(self._win_id, usertypes.KeyMode.hint,
+                              'all filtered')
                 return
 
         if len(visible) == 1 and config.get('hints', 'auto-follow'):
