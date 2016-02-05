@@ -72,9 +72,9 @@ class QuteSchemeError(Exception):
 
     def __init__(self, errorstring, error):
         """Constructor."""
-
         self.errorstring = errorstring
         self.error = error
+        super().__init__(errorstring)
 
 
 class QuteSchemeHandler(schemehandler.SchemeHandler):
