@@ -536,7 +536,7 @@ class TestPDFJSVersion:
 
     def test_not_found(self, mocker):
         mocker.patch('qutebrowser.utils.version.pdfjs.get_pdfjs_res_and_path',
-                     side_effect=pdfjs.PDFJSNotFound)
+                     side_effect=pdfjs.PDFJSNotFound('/build/pdf.js'))
         assert version._pdfjs_version() == 'no'
 
     def test_unknown(self, monkeypatch):
