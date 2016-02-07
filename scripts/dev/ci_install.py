@@ -123,7 +123,7 @@ elif TRAVIS_OS == 'linux':
     if XVFB:
         pkgs.append('xvfb')
     if INSTALL_PYQT:
-        pkgs += ['python3-pyqt5', 'python3-pyqt5.qtwebkit']
+        pkgs += ['python3-pyqt5', 'python3-pyqt5.qtwebkit', 'libjs-pdf']
     if TESTENV == 'eslint':
         pkgs += ['npm', 'nodejs', 'nodejs-legacy']
 
