@@ -81,7 +81,7 @@ def fix_urls(asset):
         ('viewer.css', 'qute://pdfjs/web/viewer.css'),
         ('compatibility.js', 'qute://pdfjs/web/compatibility.js'),
         ('locale/locale.properties',
-            'qute,//pdfjs/web/locale/locale.properties'),
+            'qute://pdfjs/web/locale/locale.properties'),
         ('l10n.js', 'qute://pdfjs/web/l10n.js'),
         ('../build/pdf.js', 'qute://pdfjs/build/pdf.js'),
         ('debugger.js', 'qute://pdfjs/web/debugger.js'),
