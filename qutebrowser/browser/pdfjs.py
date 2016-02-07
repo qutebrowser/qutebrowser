@@ -29,9 +29,16 @@ from qutebrowser.utils import utils
 
 class PDFJSNotFound(Exception):
 
-    """Raised when no pdf.js installation is found."""
+    """Raised when no pdf.js installation is found.
 
-    pass
+    Attributes:
+        path: path of the file that was requested but not found.
+    """
+
+    def __init__(self, path):
+        self.path = path
+        message = "Path '{}' not found".format(path)
+        super().__init__(message)
 
 
 def generate_pdfjs_page(url):
@@ -70,21 +77,21 @@ def fix_urls(asset):
     Args:
         asset: js file or html page as string.
     """
-    new_urls = {
-        'viewer.css': 'qute://pdfjs/web/viewer.css',
-        'compatibility.js': 'qute://pdfjs/web/compatibility.js',
-        'locale/locale.properties':
-            'qute://pdfjs/web/locale/locale.properties',
-        'l10n.js': 'qute://pdfjs/web/l10n.js',
-        '../build/pdf.js': 'qute://pdfjs/build/pdf.js',
-        'debugger.js': 'qute://pdfjs/web/debugger.js',
-        'viewer.js': 'qute://pdfjs/web/viewer.js',
-        'compressed.tracemonkey-pldi-09.pdf': '',
-        './images/': 'qute://pdfjs/web/images/',
-        '../build/pdf.worker.js': 'qute://pdfjs/build/pdf.worker.js',
-        '../web/cmaps/': 'qute://pdfjs/web/cmaps/',
-    }
-    for original, new in new_urls.items():
+    new_urls = [
+        ('viewer.css', 'qute://pdfjs/web/viewer.css'),
+        ('compatibility.js', 'qute://pdfjs/web/compatibility.js'),
+        ('locale/locale.properties',
+            'qute,//pdfjs/web/locale/locale.properties'),
+        ('l10n.js', 'qute://pdfjs/web/l10n.js'),
+        ('../build/pdf.js', 'qute://pdfjs/build/pdf.js'),
+        ('debugger.js', 'qute://pdfjs/web/debugger.js'),
+        ('viewer.js', 'qute://pdfjs/web/viewer.js'),
+        ('compressed.tracemonkey-pldi-09.pdf', ''),
+        ('./images/', 'qute://pdfjs/web/images/'),
+        ('../build/pdf.worker.js', 'qute://pdfjs/build/pdf.worker.js'),
+        ('../web/cmaps/', 'qute://pdfjs/web/cmaps/'),
+    ]
+    for original, new in new_urls:
         asset = asset.replace(original, new)
     return asset
 
@@ -129,7 +136,7 @@ def get_pdfjs_res_and_path(path):
         try:
             content = utils.read_file(res_path, binary=True)
         except FileNotFoundError:
-            raise PDFJSNotFound
+            raise PDFJSNotFound(path) from None
 
     try:
         # Might be script/html or might be binary
