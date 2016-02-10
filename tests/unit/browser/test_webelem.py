@@ -468,7 +468,7 @@ class TestIsVisibleIframe:
 
     @pytest.fixture
     def invalid_objects(self, stubs):
-        """Set up the following base situation:
+        """Set up the following base situation.
 
              0, 0                         300, 0
               ##############################

@@ -244,7 +244,6 @@ class TestSaveTab:
     @pytest.mark.parametrize('factor', [-1.0, 0.0, 1.5])
     def test_zoom(self, hist_tester, factor):
         """Test zoom."""
-
         items = [
             Item(url=QUrl('http://www.example.com/'), title='Test title',
                  active=True),
