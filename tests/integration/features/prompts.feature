@@ -58,6 +58,20 @@ Feature: Prompts
         And I run :leave-mode
         Then the javascript message "Prompt reply: null" should be logged
 
+
+    # Shift-Insert with prompt (issue 1299)
+
+    @pyqt531_or_newer
+    Scenario: Pasting via shift-insert in prompt mode
+        When selection is supported
+        And I put "insert test" into the primary selection
+        And I open data/prompt/jsprompt.html
+        And I click the button
+        And I wait for a prompt
+        And I press the keys "<Shift-Insert>"
+        And I run :prompt-accept
+        Then the javascript message "Prompt reply: insert test" should be logged
+
     @pyqt531_or_newer
     Scenario: Using content -> ignore-javascript-prompt
         When I set content -> ignore-javascript-prompt to true

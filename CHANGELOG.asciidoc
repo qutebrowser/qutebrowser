@@ -36,6 +36,7 @@ Changed
 - `:navigate increment/decrement` now preserves leading zeroes in URLs.
 - `general -> editor` can now also handle `{}` inside another argument (e.g. to open `vim` via `termite`)
 - Improved performance when scrolling with many tabs open.
+- Shift-Insert now also pastes primary selection for prompts.
 
 Fixed
 ~~~~~

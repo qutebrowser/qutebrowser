@@ -42,6 +42,19 @@ class MinimalLineEditMixin:
         """)
         self.setAttribute(Qt.WA_MacShowFocusRect, False)
 
+    def keyPressEvent(self, e):
+        """Override keyPressEvent to paste primary selection on Shift + Ins."""
+        if e.key() == Qt.Key_Insert and e.modifiers() == Qt.ShiftModifier:
+            try:
+                text = utils.get_clipboard(selection=True)
+            except utils.SelectionUnsupportedError:
+                pass
+            else:
+                e.accept()
+                self.insert(text)
+                return
+        super().keyPressEvent(e)
+
     def __repr__(self):
         return utils.get_repr(self)
 
@@ -97,19 +110,6 @@ class CommandLineEdit(QLineEdit):
         self.setCursorPosition(self._promptlen)
         if mark:
             self.setSelection(self._promptlen, oldpos - self._promptlen)
-
-    def keyPressEvent(self, e):
-        """Override keyPressEvent to paste primary selection on Shift + Ins."""
-        if e.key() == Qt.Key_Insert and e.modifiers() == Qt.ShiftModifier:
-            try:
-                text = utils.get_clipboard(selection=True)
-            except utils.SelectionUnsupportedError:
-                pass
-            else:
-                e.accept()
-                self.insert(text)
-                return
-        super().keyPressEvent(e)
 
 
 class _CommandValidator(QValidator):
