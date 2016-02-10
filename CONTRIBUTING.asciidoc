@@ -289,22 +289,22 @@ When using Qt objects, two issues must be taken care of:
 * Methods of Qt objects report their status by using their return values,
 instead of using exceptions.
 +
-If a function gets or returns a Qt object which
-has an `.isValid()` method such as `QUrl` or `QModelIndex`, there's a helper
-function `ensure_valid` in `qutebrowser.utils.qt` which should get called on
-all such objects. It will raise `qutebrowser.utils.qt.QtValueError` if the
-value is not valid.
+If a function gets or returns a Qt object which has an `.isValid()`
+method such as `QUrl` or `QModelIndex`, there's a helper function
+`ensure_valid` in `qutebrowser.utils.qtutils` which should get called
+on all such objects. It will raise
+`qutebrowser.utils.qtutils.QtValueError` if the value is not valid.
 +
 If a function returns something else on error, the return value should
 carefully be checked.
 
-* Methods of Qt objects have certain maximum values, based on their underlying
-C++ types.
+* Methods of Qt objects have certain maximum values, based on their
+underlying C++ types.
 +
-When passing a numeric parameter to a Qt function, all numbers should be
-range-checked using `qutebrowser.utils.check_overflow`, or passing a value
-which is too large should be avoided by other means (e.g. by setting a maximum
-value for a config object).
+When passing a numeric parameter to a Qt function, all numbers should
+be range-checked using `qutebrowser.qtutils.check_overflow`, or
+passing a value which is too large should be avoided by other means
+(e.g. by setting a maximum value for a config object).
 
 [[object-registry]]
 The object registry
@@ -406,9 +406,9 @@ then gets passed as the `self` parameter to the handler. The `scope` argument
 selects which object registry (global, per-tab, etc.) to use.  See the
 <<object-registry,object registry>> section for details.
 
-There are also other arguments to customize the way the command is registered,
-see the class documentation for `register` in `qutebrowser.commands.utils` for
-details.
+There are also other arguments to customize the way the command is
+registered, see the class documentation for `register` in
+`qutebrowser.commands.cmdutils` for details.
 
 The types of the function arguments are inferred based on their default values,
 e.g. an argument `foo=True` will be converted to a flag `-f`/`--foo` in
