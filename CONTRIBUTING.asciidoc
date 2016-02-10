@@ -91,13 +91,11 @@ unittests and several linters/checkers.
 
 Currently, following tox environments are available:
 
-* Unit tests using https://www.pytest.org[pytest]:
+* Tests using https://www.pytest.org[pytest]:
   - `py34`: Run pytest for python-3.4.
   - `py35`: Run pytest for python-3.5.
   - `py34-cov`: Run pytest for python-3.4 with code coverage report.
   - `py35-cov`: Run pytest for python-3.4 with code coverage report.
-  - `unittests-frozen`: ?
-  - `unittests-nodisp`: ?
 * `flake8`: Run https://pypi.python.org/pypi/flake8[flake8] checks:
                 https://pypi.python.org/pypi/pyflakes[pyflakes],
                 https://pypi.python.org/pypi/pep8[pep8],
@@ -123,6 +121,7 @@ The default test suite is run with `tox`, the list of default
 environments is obtained with `tox -l` .
 
 Please make sure the checks run without any warnings on your new contributions.
+
 There's of course the possibility of false-positives, and the following
 techniques are useful to handle these:
 
