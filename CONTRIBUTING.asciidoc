@@ -89,19 +89,38 @@ Checkers
 qutebrowser uses http://tox.readthedocs.org/en/latest/[tox] to run its
 unittests and several linters/checkers.
 
-Currently, the following tools will be invoked when you run `tox`:
+Currently, following tox environments are available:
 
-* Unit tests using https://www.pytest.org[pytest].
-* https://pypi.python.org/pypi/pyflakes[pyflakes] via https://pypi.python.org/pypi/pytest-flakes[pytest-flakes]
-* https://pypi.python.org/pypi/pep8[pep8] via https://pypi.python.org/pypi/pytest-pep8[pytest-pep8]
-* https://pypi.python.org/pypi/mccabe[mccabe] via https://pypi.python.org/pypi/pytest-mccabe[pytest-mccabe]
-* https://github.com/GreenSteam/pep257/[pep257]
-* http://pylint.org/[pylint]
-* https://pypi.python.org/pypi/pyroma/[pyroma]
-* https://github.com/mgedmin/check-manifest[check-manifest]
-* `scripts/misc_checks.py` which checks for the following things:
+* Unit tests using https://www.pytest.org[pytest]:
+  - `py34`: Run pytest for python-3.4.
+  - `py35`: Run pytest for python-3.5.
+  - `py34-cov`: Run pytest for python-3.4 with code coverage report.
+  - `py35-cov`: Run pytest for python-3.4 with code coverage report.
+  - `unittests-frozen`: ?
+  - `unittests-nodisp`: ?
+* `flake8`: Run https://pypi.python.org/pypi/flake8[flake8] checks:
+                https://pypi.python.org/pypi/pyflakes[pyflakes],
+                https://pypi.python.org/pypi/pep8[pep8],
+                https://pypi.python.org/pypi/mccabe[mccabe]
+* `vulture`: Run https://pypi.python.org/pypi/vulture[vulture] to find
+  unused code portions.
+* `pylint`: Run http://pylint.org/[pylint] static code analysis.
+* `pydocstyle`: Check
+  https://www.python.org/dev/peps/pep-0257/[PEP257] compliance with
+  https://github.com/PyCQA/pydocstyle[pydocstyle]
+* `pyroma`: Check packaging practices with
+  https://pypi.python.org/pypi/pyroma/[pyroma]
+* `eslint`: Run http://eslint.org/[ESLint] javascript checker.
+* `check-manifest`: Check MANIFEST.in completeness with
+  https://github.com/mgedmin/check-manifest[check-manifest]
+* `mkvenv`: Bootstrap a virtualenv for testing.
+* `misc`: Run `scripts/misc_checks.py` to check for:
     - untracked git files
     - VCS conflict markers
+    - common spelling mistakes
+
+The default test suite is run with `tox`, the list of default
+environments is obtained with `tox -l` .
 
 Please make sure the checks run without any warnings on your new contributions.
 There's of course the possibility of false-positives, and the following
@@ -121,6 +140,31 @@ smallest scope which makes sense. Most of the time, this will be line scope.
 +
 * If you really think a check shouldn't be done globally as it yields a lot of
 false-positives, let me know! I'm still tweaking the parameters.
+
+
+Running Specific Tests
+~~~~~~~~~~~~~~~~~~~~~~
+
+While you are developing you often don't want to run the full test
+suite each time.
+
+Specific test environments can be run with `tox -e <envlist>`.
+
+Additional parameters can be passed to the test scripts by separating
+them from `tox` arguments with `--`.
+
+Examples:
+
+----
+# run only pytest tests which failed in last run:
+tox -e py35 -- --lf
+
+# run only the integration feature tests:
+tox -e py35 -- tests/integration/features
+
+# run everything with undo in the generated name, based on the scenario text
+tox -e py35 -- tests/integration/features/test_tabs.py -k undo
+----
 
 Profiling
 ~~~~~~~~~
