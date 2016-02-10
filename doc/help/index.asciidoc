@@ -12,6 +12,7 @@ The following help pages are currently available:
 * link:commands.html[Documentation of commands]
 * link:settings.html[Documentation of settings]
 * link:userscripts.html[How to write userscripts]
+* link:CONTRIBUTING.html[Contributing to qutebrowser]
 
 Getting help
 ------------
