@@ -21,6 +21,28 @@
 
 """Things needed for integration testing."""
 
+import os
+import shutil
+import pstats
+
 from webserver import httpbin, httpbin_after_test, ssl_server
 from quteprocess import quteproc_process, quteproc, quteproc_new
 from testprocess import pytest_runtest_makereport
+
+
+def pytest_configure(config):
+    """Remove old profile files."""
+    if config.getoption('--qute-profile-subprocs'):
+        try:
+            shutil.rmtree('prof')
+        except FileNotFoundError:
+            pass
+
+
+def pytest_unconfigure(config):
+    """Combine profiles."""
+    if config.getoption('--qute-profile-subprocs'):
+        stats = pstats.Stats()
+        for fn in os.listdir('prof'):
+            stats.add(os.path.join('prof', fn))
+        stats.dump_stats(os.path.join('prof', 'combined.pstats'))

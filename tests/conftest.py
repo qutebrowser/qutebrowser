@@ -151,6 +151,8 @@ def pytest_addoption(parser):
                      help='Disable xvfb in tests.')
     parser.addoption('--qute-delay', action='store', default=0, type=int,
                      help="Delay between qutebrowser commands.")
+    parser.addoption('--qute-profile-subprocs', action='store_true',
+                     default=False, help="Run cProfile for subprocesses.")
 
 
 def pytest_configure(config):
