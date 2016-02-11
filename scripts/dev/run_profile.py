@@ -37,6 +37,11 @@ import qutebrowser.qutebrowser
 
 
 def parse_args():
+    """Parse commandline arguments.
+
+    Return:
+        A (namespace, remaining_args) tuple from argparse.
+    """
     parser = argparse.ArgumentParser()
     parser.add_argument('--profile-tool', metavar='TOOL',
                         action='store', choices=['kcachegrind', 'snakeviz',
