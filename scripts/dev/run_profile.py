@@ -27,42 +27,57 @@ import os
 import tempfile
 import subprocess
 import shutil
+import argparse
+import shlex
 
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), os.pardir,
                 os.pardir))
 
 import qutebrowser.qutebrowser
 
-tempdir = tempfile.mkdtemp()
 
-if '--profile-keep' in sys.argv:
-    sys.argv.remove('--profile-keep')
-    profilefile = os.path.join(os.getcwd(), 'profile')
-else:
-    profilefile = os.path.join(tempdir, 'profile')
+def parse_args():
+    parser = argparse.ArgumentParser()
+    parser.add_argument('--profile-tool', metavar='TOOL',
+                        action='store', choices=['kcachegrind', 'snakeviz',
+                                                 'gprof2dot', 'none'],
+                        default='snakeviz',
+                        help="The tool to use to view the profiling data")
+    parser.add_argument('--profile-file', metavar='FILE', action='store',
+                        help="The filename to use with --profile-tool=none")
+    return parser.parse_known_args()
 
-if '--profile-noconv' in sys.argv:
-    sys.argv.remove('--profile-noconv')
-    noconv = True
-else:
-    noconv = False
 
-if '--profile-dot' in sys.argv:
-    sys.argv.remove('--profile-dot')
-    dot = True
-else:
-    dot = False
+def main():
+    args, remaining = parse_args()
+    tempdir = tempfile.mkdtemp()
 
-callgraphfile = os.path.join(tempdir, 'callgraph')
-profiler = cProfile.Profile()
-profiler.runcall(qutebrowser.qutebrowser.main)
-profiler.dump_stats(profilefile)
-
-if not noconv:
-    if dot:
-        subprocess.call('gprof2dot -f pstats profile | dot -Tpng | feh -F -',
-                        shell=True)  # yep, shell=True. I know what I'm doing.
+    if args.profile_tool == 'none':
+        profilefile = os.path.join(os.getcwd(), args.profile_file)
     else:
+        profilefile = os.path.join(tempdir, 'profile')
+
+    sys.argv = [sys.argv[0]] + remaining
+
+    profiler = cProfile.Profile()
+    profiler.runcall(qutebrowser.qutebrowser.main)
+    profiler.dump_stats(profilefile)
+
+    if args.profile_tool == 'none':
+        pass
+    elif args.profile_tool == 'gprof2dot':
+        # yep, shell=True. I know what I'm doing.
+        subprocess.call('gprof2dot -f pstats {} | dot -Tpng | feh -F -'.format(
+                        shlex.quote(profilefile)), shell=True)
+    elif args.profile_tool == 'kcachegrind':
+        callgraphfile = os.path.join(tempdir, 'callgraph')
         subprocess.call(['pyprof2calltree', '-k', '-i', profilefile,
                         '-o', callgraphfile])
-shutil.rmtree(tempdir)
+    elif args.profile_tool == 'snakeviz':
+        subprocess.call(['snakeviz', profilefile])
+
+    shutil.rmtree(tempdir)
+
+
+if __name__ == '__main__':
+    main()
