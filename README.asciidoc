@@ -151,8 +151,8 @@ Contributors, sorted by the number of commits in descending order:
 * Joel Torstensson
 * Felix Van der Jeugt
 * Claude
-* meles5
 * Patric Schmitz
+* meles5
 * Artur Shaik
 * Nathan Isom
 * Austin Anderson
