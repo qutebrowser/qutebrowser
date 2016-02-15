@@ -896,7 +896,7 @@ def data(readonly=False):
 
             ('auto-follow',
              SettingValue(typ.Bool(), 'true'),
-             "Whether to auto-follow a hint if there's only one left."),
+             "Follow a hint immediately when the hint text is completely matched."),
 
             ('next-regexes',
              SettingValue(typ.RegexList(flags=re.IGNORECASE),
