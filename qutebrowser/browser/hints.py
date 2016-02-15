@@ -26,7 +26,7 @@ import re
 import string
 
 from PyQt5.QtCore import (pyqtSignal, pyqtSlot, QObject, QEvent, Qt, QUrl,
-                          QTimer)
+                          QTimer, QPoint)
 from PyQt5.QtGui import QMouseEvent
 from PyQt5.QtWebKit import QWebElement
 from PyQt5.QtWebKitWidgets import QWebPage
@@ -438,14 +438,31 @@ class HintManager(QObject):
             target_mapping[Target.tab] = usertypes.ClickTarget.tab_bg
         else:
             target_mapping[Target.tab] = usertypes.ClickTarget.tab
+
+        action = "Hovering" if context.target == Target.hover else "Clicking"
+        log.hints.debug("{} on element '{}'".format(action, elem.debug_text()))
+
         # FIXME Instead of clicking the center, we could have nicer heuristics.
         # e.g. parse (-webkit-)border-radius correctly and click text fields at
         # the bottom right, and everything else on the top left or so.
         # https://github.com/The-Compiler/qutebrowser/issues/70
         pos = elem.rect_on_view().center()
-        action = "Hovering" if context.target == Target.hover else "Clicking"
-        log.hints.debug("{} on '{}' at {}/{}".format(
-            action, elem, pos.x(), pos.y()))
+        log.hints.debug("Center position: {}".format(pos))
+        boxes = elem.evaluateJavaScript("this.getClientRects()")
+        log.hints.debug("Bounding boxes: {}".format(boxes))
+        for key in sorted(boxes):
+            box = boxes[key]
+            width = box.get("width", 0)
+            height = box.get("height", 0)
+            # skip boxes with zero dimensions (happens to <a> if they contain
+            # other elements with display:block style)
+            # https://github.com/The-Compiler/qutebrowser/issues/1298
+            if width > 0 and height > 0:
+                pos = QPoint(box["left"] + width / 2, box["top"] + height / 2)
+                log.hints.debug("Updated position: {}".format(pos))
+                break
+        log.hints.debug("Final position is {}".format(pos))
+
         self.start_hinting.emit(target_mapping[context.target])
         if context.target in [Target.tab, Target.tab_fg, Target.tab_bg,
                               Target.window]:
