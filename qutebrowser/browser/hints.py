@@ -351,7 +351,7 @@ class HintManager(QObject):
             ('display', 'inline !important'),
             ('z-index', '{} !important'.format(int(2 ** 32 / 2 - 1))),
             ('pointer-events', 'none !important'),
-            ('position', 'absolute !important'),
+            ('position', 'fixed !important'),
             ('color', config.get('colors', 'hints.fg') + ' !important'),
             ('background', config.get('colors', 'hints.bg') + ' !important'),
             ('font', config.get('fonts', 'hints') + ' !important'),
@@ -377,15 +377,11 @@ class HintManager(QObject):
             elem: The QWebElement to set the style attributes for.
             label: The label QWebElement.
         """
-        rect = elem.geometry()
+        rect = self._get_first_rectangle(elem)
         left = rect.x()
         top = rect.y()
-        zoom = elem.webFrame().zoomFactor()
-        if not config.get('ui', 'zoom-text-only'):
-            left /= zoom
-            top /= zoom
-        log.hints.vdebug("Drawing label '{!r}' at {}/{} for element '{!r}', "
-                         "zoom level {}".format(label, left, top, elem, zoom))
+        log.hints.vdebug("Drawing label '{!r}' at {}/{} for element '{!r}'"
+                         .format(label, left, top, elem))
         label.setStyleProperty('left', '{}px !important'.format(left))
         label.setStyleProperty('top', '{}px !important'.format(top))
 
@@ -438,7 +434,7 @@ class HintManager(QObject):
             elem: The QWebElement of interest.
         """
         rects = elem.evaluateJavaScript("this.getClientRects()")
-        log.hints.debug("Client rectangles of element '{}': {}"
+        log.hints.vdebug("Client rectangles of element '{}': {}"
                 .format(elem.debug_text(), rects))
         for i in range(int(rects.get("length", 0))):
             rect = rects[str(i)]
