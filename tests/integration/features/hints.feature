@@ -44,7 +44,7 @@ Feature: Using hints
 
     Scenario: Following a link with zoom 125%.
         When I open data/hints/link.html
-        And I run :zoom 125
+        And I run :zoom 75
         And I run :hint links normal
         And I run :follow-hint h
         And I run :zoom 100
@@ -53,7 +53,7 @@ Feature: Using hints
     Scenario: Following a link with zoom 125% and zoom-text-only == True.
         When I open data/hints/link.html
         And I run :set ui zoom-text-only true
-        And I run :zoom 125
+        And I run :zoom 75
         And I run :hint links normal
         And I run :follow-hint h
         And I run :zoom 100
