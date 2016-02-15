@@ -425,7 +425,7 @@ def pytest_configure(config):
         try:
             disp = xvfbwrapper.Xvfb(width=800, height=600, colordepth=16)
             disp.start()
-        except FileNotFoundError:
+        except EnvironmentError:
             # We run without Xvfb if it's unavailable.
             pass
         else:
