@@ -472,9 +472,15 @@ class HintManager(QObject):
         rect = self._get_first_rectangle(elem)
         pos = rect.center()
 
+        # fix coordinates according to zoom level
+        zoom = elem.webFrame().zoomFactor()
+        if not config.get('ui', 'zoom-text-only'):
+            pos.setX(pos.x() * zoom)
+            pos.setY(pos.y() * zoom)
+
         action = "Hovering" if context.target == Target.hover else "Clicking"
-        log.hints.debug("{} on '{}' at position {}".format(
-            action, elem.debug_text(), pos))
+        log.hints.debug("{} on '{}' at position {} (zoom = {})".format(
+            action, elem.debug_text(), pos, zoom))
 
         self.start_hinting.emit(target_mapping[context.target])
         if context.target in [Target.tab, Target.tab_fg, Target.tab_bg,
