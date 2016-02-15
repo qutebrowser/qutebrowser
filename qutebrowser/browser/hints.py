@@ -482,11 +482,15 @@ class HintManager(QObject):
         else:
             target_mapping[Target.tab] = usertypes.ClickTarget.tab
 
-        # FIXME Instead of clicking the center, we could have nicer heuristics.
-        # e.g. parse (-webkit-)border-radius correctly and click text fields at
-        # the bottom right, and everything else on the top left or so.
-        # https://github.com/The-Compiler/qutebrowser/issues/70
+        # Click the center of the largest square fitting into the top/left
+        # corner of the rectangle, this will help if part of the <a> element
+        # is hidden behind other elements
+        # https://github.com/The-Compiler/qutebrowser/issues/1005
         rect = self._get_first_rectangle(elem)
+        if rect.width() > rect.height():
+            rect.setWidth(rect.height())
+        else:
+            rect.setHeight(rect.width())
         pos = rect.center()
 
         action = "Hovering" if context.target == Target.hover else "Clicking"
