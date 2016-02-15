@@ -26,7 +26,7 @@ import re
 import string
 
 from PyQt5.QtCore import (pyqtSignal, pyqtSlot, QObject, QEvent, Qt, QUrl,
-                          QTimer, QPoint)
+                          QTimer, QRect)
 from PyQt5.QtGui import QMouseEvent
 from PyQt5.QtWebKit import QWebElement
 from PyQt5.QtWebKitWidgets import QWebPage
@@ -420,6 +420,32 @@ class HintManager(QObject):
         message.error(self._win_id, "No suitable link found for this element.",
                       immediately=True)
 
+    def _get_first_rectangle(self, elem):
+        """Return the element's first client rectangle with positive size.
+
+        Uses the getClientRects() JavaScript method to obtain the collection of
+        rectangles containing the element and returns the first with positive
+        dimensions. Falls back to elem.rect_on_view() in case all rectangles
+        returned by getClientRects() have zero dimensions.
+
+        Skipping of rectangles with zero dimensions is due to <a> elements
+        containing other elements with "display:block" style, see
+        https://github.com/The-Compiler/qutebrowser/issues/1298
+
+        Args:
+            elem: The QWebElement of interest.
+        """
+        rects = elem.evaluateJavaScript("this.getClientRects()")
+        log.hints.debug("Client rectangles of element '{}': {}"
+                .format(elem.debug_text(), rects))
+        for i in range(int(rects.get("length", 0))):
+            rect = rects[str(i)]
+            width = rect.get("width", 0)
+            height = rect.get("height", 0)
+            if width > 0 and height > 0:
+                return QRect(rect["left"], rect["top"], width, height)
+        return elem.rect_on_view()
+
     def _click(self, elem, context):
         """Click an element.
 
@@ -439,29 +465,16 @@ class HintManager(QObject):
         else:
             target_mapping[Target.tab] = usertypes.ClickTarget.tab
 
-        action = "Hovering" if context.target == Target.hover else "Clicking"
-        log.hints.debug("{} on element '{}'".format(action, elem.debug_text()))
-
         # FIXME Instead of clicking the center, we could have nicer heuristics.
         # e.g. parse (-webkit-)border-radius correctly and click text fields at
         # the bottom right, and everything else on the top left or so.
         # https://github.com/The-Compiler/qutebrowser/issues/70
-        pos = elem.rect_on_view().center()
-        log.hints.debug("Center position: {}".format(pos))
-        boxes = elem.evaluateJavaScript("this.getClientRects()")
-        log.hints.debug("Bounding boxes: {}".format(boxes))
-        for key in sorted(boxes):
-            box = boxes[key]
-            width = box.get("width", 0)
-            height = box.get("height", 0)
-            # skip boxes with zero dimensions (happens to <a> if they contain
-            # other elements with display:block style)
-            # https://github.com/The-Compiler/qutebrowser/issues/1298
-            if width > 0 and height > 0:
-                pos = QPoint(box["left"] + width / 2, box["top"] + height / 2)
-                log.hints.debug("Updated position: {}".format(pos))
-                break
-        log.hints.debug("Final position is {}".format(pos))
+        rect = self._get_first_rectangle(elem)
+        pos = rect.center()
+
+        action = "Hovering" if context.target == Target.hover else "Clicking"
+        log.hints.debug("{} on '{}' at position {}".format(
+            action, elem.debug_text(), pos))
 
         self.start_hinting.emit(target_mapping[context.target])
         if context.target in [Target.tab, Target.tab_fg, Target.tab_bg,
