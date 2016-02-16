@@ -34,7 +34,6 @@ from helpers.messagemock import message_mock
 from helpers.fixtures import *  # pylint: disable=wildcard-import
 
 from PyQt5.QtCore import PYQT_VERSION
-import xvfbwrapper
 
 
 # Set hypothesis settings
@@ -55,8 +54,6 @@ def _apply_platform_markers(item):
             "Can't be run when frozen"),
         ('frozen', not getattr(sys, 'frozen', False),
             "Can only run when frozen"),
-        ('not_xvfb', item.config.xvfb_display is not None,
-            "Can't be run with Xvfb."),
         ('skip', True, "Always skipped."),
         ('pyqt531_or_newer', PYQT_VERSION < 0x050301,
             "Needs PyQt 5.3.1 or newer"),
@@ -147,41 +144,18 @@ def fail_tests_on_warnings():
 
 
 def pytest_addoption(parser):
-    parser.addoption('--no-xvfb', action='store_true', default=False,
-                     help='Disable xvfb in tests.')
     parser.addoption('--qute-delay', action='store', default=0, type=int,
                      help="Delay between qutebrowser commands.")
     parser.addoption('--qute-profile-subprocs', action='store_true',
                      default=False, help="Run cProfile for subprocesses.")
 
 
-def pytest_configure(config):
-    """Start Xvfb if we're on Linux, not on a CI and Xvfb is available.
-
-    This is a lot nicer than having windows popping up.
-    """
-    config.xvfb_display = None
-    if os.environ.get('DISPLAY', None) == '':
-        # xvfbwrapper doesn't handle DISPLAY="" correctly
-        del os.environ['DISPLAY']
-
-    if (sys.platform.startswith('linux') and
-            not config.getoption('--no-xvfb') and
-            'QUTE_NO_DISPLAY' not in os.environ):
-        assert 'QUTE_BUILDBOT' not in os.environ
-        try:
-            disp = xvfbwrapper.Xvfb(width=800, height=600, colordepth=16)
-            disp.start()
-        except EnvironmentError:
-            # We run without Xvfb if it's unavailable.
-            pass
-        else:
-            config.xvfb_display = disp
-
-
-def pytest_unconfigure(config):
-    if config.xvfb_display is not None:
-        config.xvfb_display.stop()
+@pytest.fixture(scope='session', autouse=True)
+def prevent_xvfb_on_buildbot(request):
+    if (not request.config.getoption('--no-xvfb') and
+            'QUTE_BUILDBOT' in os.environ and
+            request.config.xvfb is not None):
+        raise Exception("Xvfb is running on buildbot!")
 
 
 @pytest.hookimpl(tryfirst=True, hookwrapper=True)
