@@ -113,7 +113,7 @@ Feature: Keyboard input
         Then the javascript message "key press: 88" should be logged
         And the javascript message "key release: 88" should be logged
 
-    @not_xvfb @posix
+    @no_xvfb @posix
     Scenario: :fake-key sending key to the website with other window focused
         When I open data/keyinput/log.html
         And I set general -> developer-extras to true
