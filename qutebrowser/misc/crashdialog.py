@@ -26,6 +26,7 @@ import html
 import getpass
 import fnmatch
 import traceback
+import datetime
 
 import pkg_resources
 from PyQt5.QtCore import pyqtSlot, Qt, QSize, qVersion
@@ -239,6 +240,10 @@ class _CrashDialog(QDialog):
             self._crash_info.append(('Launch time', launch_time))
         except Exception:
             self._crash_info.append(("Launch time", traceback.format_exc()))
+        try:
+            self._crash_info.append(("Crash time", datetime.datetime.now().ctime()))
+        except Exception:
+            self._crash_info.append(("Crash time", traceback.format_exc()))
         try:
             self._crash_info.append(("Version info", version.version()))
         except Exception:
