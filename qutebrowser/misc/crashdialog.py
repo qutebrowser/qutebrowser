@@ -237,14 +237,11 @@ class _CrashDialog(QDialog):
         try:
             application = QApplication.instance()
             launch_time = application.launch_time.ctime()
-            self._crash_info.append(('Launch time', launch_time))
+            crash_time = datetime.datetime.now().ctime()
+            text = 'Launch: {}\nCrash: {}'.format(launch_time, crash_time)
+            self._crash_info.append(('Timestamps', text))
         except Exception:
             self._crash_info.append(("Launch time", traceback.format_exc()))
-        try:
-            self._crash_info.append(("Crash time",
-                                     datetime.datetime.now().ctime()))
-        except Exception:
-            self._crash_info.append(("Crash time", traceback.format_exc()))
         try:
             self._crash_info.append(("Version info", version.version()))
         except Exception:
