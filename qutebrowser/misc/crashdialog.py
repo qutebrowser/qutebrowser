@@ -241,7 +241,8 @@ class _CrashDialog(QDialog):
         except Exception:
             self._crash_info.append(("Launch time", traceback.format_exc()))
         try:
-            self._crash_info.append(("Crash time", datetime.datetime.now().ctime()))
+            self._crash_info.append(("Crash time",
+                                     datetime.datetime.now().ctime()))
         except Exception:
             self._crash_info.append(("Crash time", traceback.format_exc()))
         try:
