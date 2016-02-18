@@ -212,7 +212,6 @@ def path_should_be_loaded(quteproc, path):
     This is usally the better check compared to "should be requested" as the
     page could be loaded from local cache.
     """
-    url = quteproc.path_to_url(path)
     quteproc.wait_for_load_finished(path)
 
 
