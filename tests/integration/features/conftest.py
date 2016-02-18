@@ -213,11 +213,7 @@ def path_should_be_loaded(quteproc, path):
     page could be loaded from local cache.
     """
     url = quteproc.path_to_url(path)
-    pattern = re.compile(
-        r"load status for <qutebrowser\.browser\.webview\.WebView "
-        r"tab_id=\d+ url='{url}/?'>: LoadStatus\.success".format(
-            url=re.escape(url)))
-    quteproc.wait_for(message=pattern)
+    quteproc.wait_for_load_finished(path)
 
 
 @bdd.then(bdd.parsers.parse("{path} should be requested"))
