@@ -82,6 +82,7 @@ class TabbedBrowser(tabwidget.TabWidget):
                  widget can adjust its size to it.
                  arg: The new size.
         current_tab_changed: The current tab changed to the emitted WebView.
+        new_tab: Emits the new WebView and its index when a new tab is opened.
     """
 
     cur_progress = pyqtSignal(int)
@@ -96,6 +97,7 @@ class TabbedBrowser(tabwidget.TabWidget):
     resized = pyqtSignal('QRect')
     got_cmd = pyqtSignal(str)
     current_tab_changed = pyqtSignal(webview.WebView)
+    new_tab = pyqtSignal(webview.WebView, int)
 
     def __init__(self, win_id, parent=None):
         super().__init__(win_id, parent)
@@ -398,6 +400,7 @@ class TabbedBrowser(tabwidget.TabWidget):
         if not background:
             self.setCurrentWidget(tab)
         tab.show()
+        self.new_tab.emit(tab, idx)
         return tab
 
     def _get_new_tab_idx(self, explicit):
