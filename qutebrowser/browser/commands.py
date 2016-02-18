@@ -832,8 +832,9 @@ class CommandDispatcher:
             self._open(url, tab, bg, window)
 
     @cmdutils.register(instance='command-dispatcher', scope='window',
-                       count='count')
-    def tab_focus(self, index: {'type': (int, 'last')}=None, count=None):
+                       name=['tab-focus', 'b'], count='count',
+                       completion=[usertypes.Completion.tab])
+    def tab_focus(self, index=None, count=None):
         """Select the tab given as argument/[count].
 
         If neither count nor index are given, it behaves like tab-next.
@@ -849,6 +850,11 @@ class CommandDispatcher:
         if index is None and count is None:
             self.tab_next()
             return
+        if index:
+            try:
+                index = int(index)
+            except ValueError:
+                raise cmdexc.CommandError("tab-focus takes an int or 'last' not: {}".format(index))
         try:
             idx = cmdutils.arg_or_count(index, count, default=1,
                                         countzero=self._count())

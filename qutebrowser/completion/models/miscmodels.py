@@ -19,6 +19,9 @@
 
 """Misc. CompletionModels."""
 
+from PyQt5.QtCore import Qt, QTimer
+
+from qutebrowser.browser import webview
 from qutebrowser.config import config, configdata
 from qutebrowser.utils import objreg, log
 from qutebrowser.commands import cmdutils
@@ -138,3 +141,68 @@ class SessionCompletionModel(base.BaseCompletionModel):
                     self.new_item(cat, name)
         except OSError:
             log.completion.exception("Failed to list sessions!")
+
+class TabCompletionModel(base.BaseCompletionModel):
+
+    """A model to complete on open tabs in the current window.
+
+    Used for switching tab focus."""
+
+    # https://github.com/The-Compiler/qutebrowser/issues/545
+    # pylint: disable=abstract-method
+
+    TIME_COLUMN = 0
+    URL_COLUMN = 1
+    TEXT_COLUMN = 2
+
+    COLUMN_WIDTHS = (4, 40, 56)
+    DUMB_SORT = Qt.DescendingOrder
+
+    def __init__(self, parent=None):
+        super().__init__(parent)
+
+        self.columns_to_filter = [self.URL_COLUMN, self.TEXT_COLUMN]
+
+        self._tab_cat = self.new_category("Tabs")
+
+        # XXX: Work with multiple windows.
+        from qutebrowser.mainwindow.mainwindow import get_window
+        win_id = get_window(False)
+        tabbed_browser = objreg.get('tabbed-browser', scope='window',
+                                        window=win_id)
+        for i in range(tabbed_browser.count()):
+            tab = tabbed_browser.widget(i)
+            tab.url_text_changed.connect(self.rebuild_cat)
+            tab.shutting_down.connect(self.on_tab_close)
+        tabbed_browser.new_tab.connect(self.rebuild_cat)
+        self.rebuild_cat()
+
+    def on_tab_close(self):
+        QTimer.singleShot(0, self.rebuild_cat)
+
+    def rebuild_cat(self, arg=None):
+        """Rebuild completion model from current tabs.
+
+        Very lazy method of keeping the model up to date. We could connect to
+        signals for new tab, tab url/title changed, tab close, tab moved and
+        make sure we handled background loads too ... but iterating over a
+        few/few dozen/few hundred tabs doesn't take very long at all."""
+
+        self._tab_cat.removeRows(0, self._tab_cat.rowCount())
+
+        # XXX: Work with multiple windows.
+        # Import this at init time() instead of import time because it causes a
+        # circular import ;(
+        from qutebrowser.mainwindow.mainwindow import get_window
+        win_id = get_window(False)
+        tabbed_browser = objreg.get('tabbed-browser', scope='window',
+                                        window=win_id)
+        for i in range(tabbed_browser.count()):
+            tab = tabbed_browser.widget(i)
+            self.new_item(self._tab_cat, str(i+1), tab.url().toDisplayString(), 
+                          tabbed_browser.page_title(i))
+
+        if type(arg) == webview.WebView:
+            # Called from new_tab
+            arg.url_text_changed.connect(self.rebuild_cat)
+            arg.shutting_down.connect(self.on_tab_close)

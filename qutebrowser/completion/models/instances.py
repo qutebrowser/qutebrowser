@@ -58,6 +58,13 @@ def _init_url_completion():
         model = urlmodel.UrlCompletionModel()
         _instances[usertypes.Completion.url] = model
 
+def _init_tab_completion():
+    """Initialize the tab completion model."""
+    log.completion.debug("Initializing tab completion.")
+    with debug.log_time(log.completion, 'tab completion init'):
+        model = miscmodels.TabCompletionModel()
+        _instances[usertypes.Completion.tab] = model
+
 
 def _init_setting_completions():
     """Initialize setting completion models."""
@@ -115,6 +122,7 @@ INITIALIZERS = {
     usertypes.Completion.command: _init_command_completion,
     usertypes.Completion.helptopic: _init_helptopic_completion,
     usertypes.Completion.url: _init_url_completion,
+    usertypes.Completion.tab: _init_tab_completion,
     usertypes.Completion.section: _init_setting_completions,
     usertypes.Completion.option: _init_setting_completions,
     usertypes.Completion.value: _init_setting_completions,
