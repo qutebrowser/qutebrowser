@@ -775,7 +775,25 @@ class DownloadManager(QAbstractListModel):
         request.setAttribute(QNetworkRequest.CacheLoadControlAttribute,
                              QNetworkRequest.AlwaysNetwork)
 
-        suggested_fn = urlutils.filename_from_url(request.url())
+        if request.url().scheme().lower() != 'data':
+            suggested_fn = urlutils.filename_from_url(request.url())
+        else:
+            # We might be downloading a binary blob embedded on a page or even
+            # generated dynamically via javascript. We try to figure out a more
+            # sensible name than the base64 content of the data.
+            origin = request.originatingObject()
+            try:
+                origin_url = origin.url()
+            except AttributeError:
+                # Raised either if origin is None or some object that doesn't
+                # have its own url. We're probably fine with a default fallback
+                # then.
+                suggested_fn = 'binary blob'
+            else:
+                # Use the originating URL as a base for the filename (works
+                # e.g. for pdf.js).
+                suggested_fn = urlutils.filename_from_url(origin_url)
+
         if suggested_fn is None:
             suggested_fn = 'qutebrowser-download'
 
