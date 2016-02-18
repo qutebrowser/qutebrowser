@@ -24,7 +24,7 @@ import base64
 import itertools
 import functools
 
-from PyQt5.QtCore import pyqtSlot, QRect, QPoint, QTimer, Qt
+from PyQt5.QtCore import pyqtSlot, QRect, QPoint, QTimer, Qt, pyqtSignal
 from PyQt5.QtWidgets import QWidget, QVBoxLayout, QApplication
 
 from qutebrowser.commands import runners, cmdutils
@@ -186,6 +186,8 @@ class MainWindow(QWidget):
         #self.retranslateUi(MainWindow)
         #self.tabWidget.setCurrentIndex(0)
         #QtCore.QMetaObject.connectSlotsByName(MainWindow)
+
+        objreg.get("app").new_window.emit(self)
 
     def __repr__(self):
         return utils.get_repr(self)

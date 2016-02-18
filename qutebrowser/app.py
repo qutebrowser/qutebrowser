@@ -35,7 +35,7 @@ from PyQt5.QtWidgets import QApplication
 from PyQt5.QtWebKit import QWebSettings
 from PyQt5.QtGui import QDesktopServices, QPixmap, QIcon, QCursor, QWindow
 from PyQt5.QtCore import (pyqtSlot, qInstallMessageHandler, QTimer, QUrl,
-                          QObject, Qt, QEvent)
+                          QObject, Qt, QEvent, pyqtSignal)
 try:
     import hunter
 except ImportError:
@@ -741,6 +741,8 @@ class Application(QApplication):
     Attributes:
         _args: ArgumentParser instance.
     """
+
+    new_window = pyqtSignal(mainwindow.MainWindow)
 
     def __init__(self, args):
         """Constructor.

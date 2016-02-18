@@ -45,6 +45,7 @@ from qutebrowser.utils import (message, usertypes, log, qtutils, urlutils,
                                objreg, utils)
 from qutebrowser.utils.usertypes import KeyMode
 from qutebrowser.misc import editor, guiprocess
+from qutebrowser.completion.models import instances, sortfilter
 
 
 class CommandDispatcher:
@@ -830,6 +831,51 @@ class CommandDispatcher:
             except urlutils.InvalidUrlError as e:
                 raise cmdexc.CommandError(e)
             self._open(url, tab, bg, window)
+
+    @cmdutils.register(instance='command-dispatcher', scope='window',
+                       completion=[usertypes.Completion.tab])
+    def buffer(self, index):
+        """Select tab by index or url/title best match, focus window if
+        necessary.
+
+        Args:
+            index: The [win_id/]index of the tab to focus. Or a substring
+                   in which case the closest match will be focused.
+        """
+        try:
+            for part in index.split('/'):
+                int(part)
+        except ValueError:
+            model = instances.get(usertypes.Completion.tab)
+            sf = sortfilter.CompletionFilterModel(source=model)
+            sf.set_pattern(index)
+            if sf.count() > 0:
+                index = sf.data(sf.first_item())
+            else:
+                raise cmdexc.CommandError(
+                    "No matching tab for: {}".format(index))
+
+        if len(index.split('/')) == 2:
+            win_id, idx = map(int, index.split('/'))
+        elif len(index.split('/')) == 1:
+            idx = int(index)
+            win_id = 0
+            active_win = objreg.get('app').activeWindow()
+            if not active_win == None:
+                win_id = active_win.win_id
+
+        if win_id not in objreg.window_registry:
+            raise cmdexc.CommandError(
+                "There's no window with id {}!".format(win_id))
+
+        tabbed_browser = objreg.get('tabbed-browser', scope='window',
+                                    window=win_id)
+        if not 0 < idx <= tabbed_browser.count():
+            raise cmdexc.CommandError(
+                "There's no tab with index {}!".format(idx))
+
+        objreg.get('app').setActiveWindow(objreg.window_registry[win_id])
+        tabbed_browser.setCurrentIndex(idx-1)
 
     @cmdutils.register(instance='command-dispatcher', scope='window',
                        count='count')
