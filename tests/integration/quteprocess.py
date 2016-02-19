@@ -380,7 +380,7 @@ class QuteProc(testprocess.Process):
         url = utils.elide(QUrl(url).toDisplayString(QUrl.EncodeUnicode), 100)
         pattern = re.compile(
             r"(load status for <qutebrowser\.browser\.webview\.WebView "
-            r"tab_id=\d+ url='{url}'>: LoadStatus\.{load_status}|fetch: "
+            r"tab_id=\d+ url='{url}/?'>: LoadStatus\.{load_status}|fetch: "
             r"PyQt5\.QtCore\.QUrl\('{url}'\) -> .*)".format(
                 load_status=re.escape(load_status), url=re.escape(url)))
         self.wait_for(message=pattern, timeout=timeout)
