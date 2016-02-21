@@ -42,7 +42,7 @@ Feature: Using hints
         And I run :follow-hint g
         Then data/hello.txt should be loaded
 
-    Scenario: Following a link with zoom 125%.
+    Scenario: Following a link with zoom 75%.
         When I open data/hints/link.html
         And I run :zoom 75
         And I run :hint links normal
@@ -50,7 +50,7 @@ Feature: Using hints
         And I run :zoom 100
         Then data/hello.txt should be loaded
 
-    Scenario: Following a link with zoom 125% and zoom-text-only == True.
+    Scenario: Following a link with zoom 75% and zoom-text-only == True.
         When I open data/hints/link.html
         And I run :set ui zoom-text-only true
         And I run :zoom 75
