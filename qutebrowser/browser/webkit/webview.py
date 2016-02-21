@@ -165,14 +165,14 @@ class WebView(QWebView):
             return
         domains = objreg.get('domain-manager')
         js_policy = domains.get_setting(url.host()+url.path(),
-                                              'enable-javascript')
+                                              'javascript')
         if js_policy is not None:
             log.webview.debug("js policy path match for url {}".format(url))
             self.settings().setAttribute(QWebSettings.JavascriptEnabled,
                                      js_policy)
             return
         js_policy = domains.get_setting(url.host(),
-                                              'enable-javascript')
+                                              'javascript')
         if js_policy is not None:
             # TODO: What do for subdomains? Loop through
             # domains.data looking for matches or w.x.y.z, x.y.z

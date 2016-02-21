@@ -22,7 +22,6 @@
 import os
 
 from PyQt5.QtCore import pyqtSignal, QUrl, QObject
-from PyQt5.QtWebKit import QWebSettings
 
 import yaml
 try:
@@ -54,7 +53,8 @@ class DomainError(Exception):
     """Exception raised when domain settings failed to load/save."""
 
 class DomainManager(QObject):
-    # TODO: temporary settings that are not saved to disc.
+    # TODO: temporary settings that are not saved to disc. Maybe
+    # copy/integrate with the main settings model.
 
     domain_settings_changed = pyqtSignal()
 
@@ -93,14 +93,18 @@ class DomainManager(QObject):
         except (OSError, UnicodeEncodeError, yaml.YAMLError) as e:
             raise DomainError(e)
 
-    @cmdutils.register(name=['script-toggle'], win_id='win_id',
+    @cmdutils.register(name=['domain'],
                        instance='domain-manager')
-    def script_toggle(self, page=False, remove=False, win_id=None):
-        """Toggle javascript policy for host or url of current tab.
+    @cmdutils.argument('win_id', win_id=True)
+    def set(self, option, value=None, page=False, remove=False, win_id=None):
+        """Set an option for the current domain or page.
 
         Args:
-            page: toggle for domain (False) or just this url (True)
-            remove: remove domain/url from white/blacklist
+            option: the option to change/view. End with a '!' to toogle
+                    a boolean value or '?' to print the current value.
+            value: the new value for the setting
+            page: set for domain (False) or just this url (True)
+            remove: unset for this domain/url
         """
         full_url = objreg.get('tabbed-browser', scope='window',
                               window='current').current_url()
@@ -109,33 +113,66 @@ class DomainManager(QObject):
         else:
             part = full_url.host()+full_url.path()
         
+        if option[-1] == '!':
+            option = option[0:-1]
+            boolean = True
+            if value:
+                if value.lower() in ["false", "no"]:
+                    value = False
+                else:
+                    value = True
+        else:
+            boolean = False
+
+        if option[-1] == '?':
+            option = option[0:-1]
+            display = True
+        elif not boolean and value == None:
+            # Just print if the user doesn't provide a value. Too easy to remove
+            # settings by mistake otherwise.
+            display = True
+        else:
+            display = False
+
         domain_settings = self.data.get(part, {})
-        if remove or 'enable-javascript' not in domain_settings:
-            old_policy = QWebSettings.globalSettings().testAttribute(
-                    QWebSettings.JavascriptEnabled)
+        if option in domain_settings:
+            old_policy = domain_settings[option]
         else:
-            old_policy = domain_settings['enable-javascript']
+            old_policy = None
+
+        if display:
+            if old_policy == None:
+                old_policy = "<unset>"
+            msg = "{} = {} for {}".format(option, old_policy, part)
+            if win_id is None:
+                log.domains.info(msg)
+            else:
+                message.info(win_id, msg, immediately=True)
+            return
+
         if remove:
-            if 'enable-javascript' in domain_settings:
-                del domain_settings['enable-javascript']
+            if option in domain_settings:
+                del domain_settings[option]
+                msg = "set {} = {} for {}".format(option, "<unset>", part)
+                if win_id is None:
+                    log.domains.info(msg)
+                else:
+                    message.info(win_id, msg, immediately=True)
+            if not domain_settings:
+                if part in self.data:
+                    del self.data[part]
+                    log.domains.debug("No more settings for "+part)
         else:
-            domain_settings['enable-javascript'] = not old_policy
-
-        if not domain_settings:
-            if part in self.data:
-                del self.data[part]
-                log.domains.debug("No more settings for "+part)
-        else:
+            if boolean and value == None:
+                # True if not previously set
+                value = not old_policy
+            domain_settings[option] = value
             self.data[part] = domain_settings
-
-        msg="Scripts {} for {}: {}".format(
-            "blocked" if old_policy else "allowed",
-            "url" if page else "domain",
-            part)
-        if win_id is None:
-            log.domains.debug(msg)
-        else:
-            message.info(win_id, msg, immediately=True)
+            msg = "set {} = {} for {}".format(option, value, part)
+            if win_id is None:
+                log.domains.info(msg)
+            else:
+                message.info(win_id, msg, immediately=True)
 
         self.domain_settings_changed.emit()
 
