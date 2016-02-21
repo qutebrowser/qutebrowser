@@ -122,12 +122,14 @@ Feature: Prompts
         And I click the button
         Then the javascript message "geolocation permission denied" should be logged
 
+    @ci
     Scenario: Always accepting geolocation
         When I set content -> geolocation to true
         And I open data/prompt/geolocation.html in a new tab
         And I click the button
         Then the javascript message "geolocation permission denied" should not be logged
 
+    @ci
     Scenario: geolocation with ask -> true
         When I set content -> geolocation to ask
         And I open data/prompt/geolocation.html in a new tab
