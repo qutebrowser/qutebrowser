@@ -292,7 +292,11 @@ Feature: Various utility commands.
 
     Scenario: Downloading a pdf via pdf.js button (issue 1214)
         Given pdfjs is available
-        When I set content -> enable-pdfjs to true
+        # WORKAROUND to prevent the "Painter ended with 2 saved states" warning
+        # Might be related to https://bugreports.qt.io/browse/QTBUG-13524 and
+        # a weird interaction with the previous test.
+        When I wait 0.5s
+        And I set content -> enable-pdfjs to true
         And I set completion -> download-path-suggestion to filename
         And I set storage -> prompt-download-directory to true
         And I open data/misc/test.pdf
