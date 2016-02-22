@@ -57,6 +57,7 @@ def _apply_platform_markers(item):
         ('skip', True, "Always skipped."),
         ('pyqt531_or_newer', PYQT_VERSION < 0x050301,
             "Needs PyQt 5.3.1 or newer"),
+        ('ci', 'CI' not in os.environ, "Only runs on CI."),
     ]
 
     for searched_marker, condition, default_reason in markers:
