@@ -534,6 +534,22 @@ class DownloadItem(QObject):
             self._filename = create_full_filename(
                 self.basename, os.path.join(download_dir(), filename))
 
+        # At this point, we have a misconfigured XDG_DOWNLOAd_DIR, as
+        # download_dir() + filename is still no absolute path.
+        # The config value is checked for "absoluteness", but
+        # ~/.config/user-dirs.dirs may be misconfigured and a non-absolute path
+        # may be set for XDG_DOWNLOAD_DIR
+        if self._filename is None:
+            message.error(
+                self._win_id,
+                "XDG_DOWNLOAD_DIR points to a relative path - please check"
+                " your ~/.config/user-dirs.dirs. The download is saved in your "
+                "home directory.",
+            )
+            # fall back to $HOME as download_dir
+            self._filename = create_full_filename(
+                self.basename, os.path.expanduser(os.path.join('~', filename)))
+
         self.basename = os.path.basename(self._filename)
         last_used_directory = os.path.dirname(self._filename)
 
