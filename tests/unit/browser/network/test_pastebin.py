@@ -17,7 +17,7 @@
 # You should have received a copy of the GNU General Public License
 # along with qutebrowser.  If not, see <http://www.gnu.org/licenses/>.
 
-"""Tests for qutebrowser.browser.network"""
+"""Tests for qutebrowser.browser.network."""
 
 import pytest
 from PyQt5.QtCore import QUrl
@@ -25,15 +25,6 @@ from PyQt5.QtCore import QUrl
 from qutebrowser.browser.network import pastebin
 from qutebrowser.misc import httpclient
 
-DATA = [{"name" : "XYZ", "title" : "hello world", "text" : "xyz. 123 \n 172ANB", "reply" : "abc" },
-        {"name" : "the name", "title" : "the title", "text" : "some Text", "reply" : "some parent"}]
-
-DATA_NOPARENT = [{"name" : "XYZ", "title" : "hello world", "text" : "xyz. 123 \n 172ANB"},
-                 {"name" : "the name", "title" : "the title", "text" : "some Text"}]
-
-HTTP_VALID = ["http://paste.the-compiler.org/view/ges83nt3", "http://paste.the-compiler.org/view/3gjnwg4"]
-
-HTTP_INVALID = ["http invalid", "http:/invalid.org"]
 
 class HTTPPostStub(httpclient.HTTPClient):
 
@@ -46,50 +37,83 @@ class HTTPPostStub(httpclient.HTTPClient):
 
     def __init__(self):
         super().__init__()
-    
-    def post(self, url, data):
+        self.url = None
+        self.data = None
+
+    def post(self, url, data=None):
         self.url = url
         self.data = data
 
 
+@pytest.fixture
+def pbclient():
+    client = pastebin.PastebinClient()
+    http_stub = HTTPPostStub()
+    client._client = http_stub
+    return client
+
 
 def test_constructor(qapp):
-    client = pastebin.PastebinClient()
-    assert isinstance(client._client, httpclient.HTTPClient)
+    pbclient = pastebin.PastebinClient()
+    assert isinstance(pbclient._client, httpclient.HTTPClient)
 
-@pytest.mark.parametrize('data', DATA)
-def test_paste_with_parent(data):
-    client = pastebin.PastebinClient()
-    http_stub = HTTPPostStub()
-    client._client = http_stub
-    client.paste(data["name"], data["title"], data["text"], data["reply"])
+
+@pytest.mark.parametrize('data', [
+    {
+        "name": "XYZ",
+        "title": "hello world",
+        "text": "xyz. 123 \n 172ANB",
+        "reply": "abc"
+    },
+    {
+        "name": "the name",
+        "title": "the title",
+        "text": "some Text",
+        "reply": "some parent"
+    }
+])
+def test_paste_with_parent(data, pbclient):
+    http_stub = pbclient._client
+    pbclient.paste(data["name"], data["title"], data["text"], data["reply"])
     assert http_stub.data == data
     assert http_stub.url == QUrl('http://paste.the-compiler.org/api/create')
- 
-@pytest.mark.parametrize('data', DATA_NOPARENT)
-def test_paste_without_parent(data):
-    client = pastebin.PastebinClient()
-    http_stub = HTTPPostStub()
-    client._client = http_stub
-    client.paste(data["name"], data["title"], data["text"])
-    assert http_stub.data == data
+
+
+@pytest.mark.parametrize('data', [
+    {
+        "name": "XYZ",
+        "title": "hello world",
+        "text": "xyz. 123 \n 172ANB"
+    },
+    {
+        "name": "the name",
+        "title": "the title",
+        "text": "some Text"
+    }
+])
+def test_paste_without_parent(data, pbclient):
+    http_stub = pbclient._client
+    pbclient.paste(data["name"], data["title"], data["text"])
+    assert pbclient._client.data == data
     assert http_stub.url == QUrl('http://paste.the-compiler.org/api/create')
 
-@pytest.mark.parametrize('http', HTTP_VALID)
-def test_on_client_success(http, qtbot):
-    client = pastebin.PastebinClient()
-    http_stub = HTTPPostStub()
-    client._client = http_stub
-    with qtbot.assertNotEmitted(client.error):
-        with qtbot.waitSignal(client.success):
-            client.on_client_success(http)
 
-@pytest.mark.parametrize('http', HTTP_INVALID)
-def test_on_client_success_invalid_http(http, qtbot):
-    client = pastebin.PastebinClient()
-    http_stub = HTTPPostStub()
-    client._client = http_stub
-    with qtbot.assertNotEmitted(client.success):
-        with qtbot.waitSignal(client.error):
-            client.on_client_success(http)
+@pytest.mark.parametrize('http', [
+    "http://paste.the-compiler.org/view/ges83nt3",
+    "http://paste.the-compiler.org/view/3gjnwg4"
+])
+def test_on_client_success(http, pbclient, qtbot):
+    with qtbot.assertNotEmitted(pbclient.error):
+        with qtbot.waitSignal(pbclient.success):
+            pbclient.on_client_success(http)
 
+
+@pytest.mark.parametrize('http', [
+    "http invalid",
+    "http:/invalid.org"
+    "http//invalid.com"
+])
+def test_on_client_success_invalid_http(http, pbclient, qtbot):
+    with qtbot.assertNotEmitted(pbclient.success):
+        with qtbot.waitSignal(pbclient.error):
+            pbclient.on_client_success(http)
