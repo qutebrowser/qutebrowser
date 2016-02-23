@@ -714,6 +714,7 @@ class HintManager(QObject):
         if not elems:
             raise cmdexc.CommandError("No elements found.")
         hints = self._hint_strings(elems)
+        log.hints.debug("hints: {}".format(', '.join(hints)))
         for e, hint in zip(elems, hints):
             label = self._draw_label(e, hint)
             self._context.elems[hint] = ElemTuple(e, label)

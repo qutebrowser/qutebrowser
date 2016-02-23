@@ -51,10 +51,11 @@ else:
         colorama.deinit()
 
 # Log formats to use.
-SIMPLE_FMT = '{levelname}: {message}'
+SIMPLE_FMT = '{asctime:8} {levelname}: {message}'
 EXTENDED_FMT = ('{asctime:8} {levelname:8} {name:10} {module}:{funcName}:'
                 '{lineno} {message}')
-SIMPLE_FMT_COLORED = '%(log_color)s%(levelname)s%(reset)s: %(message)s'
+SIMPLE_FMT_COLORED = ('%(green)s%(asctime)-8s%(reset)s '
+                      '%(log_color)s%(levelname)s%(reset)s: %(message)s')
 EXTENDED_FMT_COLORED = (
     '%(green)s%(asctime)-8s%(reset)s '
     '%(log_color)s%(levelname)-8s%(reset)s '

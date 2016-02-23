@@ -108,7 +108,7 @@ Feature: Various utility commands.
         And I run :inspector
         Then the error "Please enable developer-extras before using the webinspector!" should be shown
 
-    @not_xvfb @posix
+    @no_xvfb @posix
     Scenario: Inspector smoke test
         When I set general -> developer-extras to true
         And I run :inspector
@@ -124,7 +124,7 @@ Feature: Various utility commands.
         Then the error "Please enable developer-extras before using the webinspector!" should be shown
 
     # Different code path as an inspector got created now
-    @not_xvfb @posix
+    @no_xvfb @posix
     Scenario: Inspector smoke test 2
         When I set general -> developer-extras to true
         And I run :inspector
@@ -202,7 +202,7 @@ Feature: Various utility commands.
 
     # :debug-console
 
-    @not_xvfb
+    @no_xvfb
     Scenario: :debug-console smoke test
         When I run :debug-console
         And I wait for "Focus object changed: <qutebrowser.misc.consolewidget.ConsoleLineEdit *>" in the log

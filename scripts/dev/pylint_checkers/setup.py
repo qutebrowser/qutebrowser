@@ -1,7 +1,8 @@
 #!/usr/bin/env python3
+
 # vim: ft=python fileencoding=utf-8 sts=4 sw=4 et:
 
-# Copyright 2015-2016 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
+# Copyright 2016 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
 #
 # This file is part of qutebrowser.
 #
@@ -18,18 +19,7 @@
 # You should have received a copy of the GNU General Public License
 # along with qutebrowser.  If not, see <http://www.gnu.org/licenses/>.
 
-"""cx_Freeze script to run qutebrowser tests on the frozen executable."""
+"""This is only here so we can install those plugins in tox.ini easily."""
 
-import sys
-
-import pytest
-import pytestqt.plugin
-import pytest_mock
-import pytest_catchlog
-import pytest_instafail
-import pytest_faulthandler
-import pytest_xvfb
-
-sys.exit(pytest.main(plugins=[pytestqt.plugin, pytest_mock,
-                              pytest_catchlog, pytest_instafail,
-                              pytest_faulthandler, pytest_xvfb]))
+from setuptools import setup
+setup(name='qute_pylint', packages=['qute_pylint'])
