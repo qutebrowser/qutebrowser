@@ -424,12 +424,12 @@ class HintManager(QObject):
         """Return the element's first client rectangle with positive size.
 
         Uses the getClientRects() JavaScript method to obtain the collection of
-        rectangles containing the element and returns the first with positive
-        dimensions. Falls back to elem.rect_on_view() in case all rectangles
-        returned by getClientRects() have zero dimensions.
+        rectangles containing the element and returns the first rectangle which
+        is large enough (larger than 1px times 1px). If all rectangles returned
+        by getClientRects() are too small, falls back to elem.rect_on_view().
 
-        Skipping of rectangles with zero dimensions is due to <a> elements
-        containing other elements with "display:block" style, see
+        Skipping of small rectangles is due to <a> elements containing other
+        elements with "display:block" style, see
         https://github.com/The-Compiler/qutebrowser/issues/1298
 
         Args:
@@ -442,7 +442,7 @@ class HintManager(QObject):
             rect = rects[str(i)]
             width = rect.get("width", 0)
             height = rect.get("height", 0)
-            if width > 0 and height > 0:
+            if width > 1 and height > 1:
                 # fix coordinates according to zoom level
                 zoom = elem.webFrame().zoomFactor()
                 if not config.get('ui', 'zoom-text-only'):
