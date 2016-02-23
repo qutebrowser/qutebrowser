@@ -9,23 +9,3 @@ Feature: Using hints
         And I run :hint links normal
         And I run :follow-hint xyz
         Then the error "No hint xyz!" should be shown
-
-    ### TODO: use test_hints_html.py for zoom tests
-
-    Scenario: Following a link with zoom 75%.
-        When I open data/hints/html/zoom_precision.html
-        And I run :zoom 75
-        And I run :hint links normal
-        And I run :follow-hint a
-        And I run :zoom 100
-        Then data/hello.txt should be loaded
-
-    Scenario: Following a link with zoom 75% and zoom-text-only == True.
-        When I open data/hints/html/zoom_precision.html
-        And I run :set ui zoom-text-only true
-        And I run :zoom 75
-        And I run :hint links normal
-        And I run :follow-hint a
-        And I run :zoom 100
-        And I run :set ui zoom-text-only false
-        Then data/hello.txt should be loaded

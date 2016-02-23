@@ -35,7 +35,9 @@ def collect_tests():
 
 
 @pytest.mark.parametrize('test_name', collect_tests())
-def test_hints(test_name, quteproc):
+@pytest.mark.parametrize('zoom_text_only', [True, False])
+@pytest.mark.parametrize('zoom_level', [100, 66, 33])
+def test_hints(test_name, zoom_text_only, zoom_level, quteproc):
     file_path = os.path.join(os.path.abspath(os.path.dirname(__file__)),
                              'data', 'hints', 'html', test_name)
     url_path = 'data/hints/html/{}'.format(test_name)
@@ -50,7 +52,14 @@ def test_hints(test_name, quteproc):
 
     assert set(parsed.keys()) == {'target'}
 
+    # setup
+    quteproc.send_cmd(':set ui zoom-text-only {}'.format(zoom_text_only))
+    quteproc.send_cmd(':zoom {}'.format(zoom_level))
+    # follow hint
     quteproc.send_cmd(':hint links normal')
     quteproc.wait_for(message='hints: a', category='hints')
     quteproc.send_cmd(':follow-hint a')
     quteproc.wait_for_load_finished('data/' + parsed['target'])
+    # reset
+    quteproc.send_cmd(':zoom 100')
+    quteproc.send_cmd(':set ui zoom-text-only false')
