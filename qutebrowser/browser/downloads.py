@@ -543,8 +543,8 @@ class DownloadItem(QObject):
             message.error(
                 self._win_id,
                 "XDG_DOWNLOAD_DIR points to a relative path - please check"
-                " your ~/.config/user-dirs.dirs. The download is saved in your "
-                "home directory.",
+                " your ~/.config/user-dirs.dirs. The download is saved in"
+                " your home directory.",
             )
             # fall back to $HOME as download_dir
             self._filename = create_full_filename(
