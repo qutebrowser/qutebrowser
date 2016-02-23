@@ -96,7 +96,8 @@ def get_fatal_crash_dialog(debug, data):
 
 def _get_environment_vars():
     """Gather environment variables for the crash info."""
-    masks = ('DESKTOP_SESSION', 'DE', 'QT_*', 'PYTHON*', 'LC_*', 'LANG')
+    masks = ('DESKTOP_SESSION', 'DE', 'QT_*', 'PYTHON*', 'LC_*', 'LANG',
+             'XDG_*')
     info = []
     for key, value in os.environ.items():
         for m in masks:
