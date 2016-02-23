@@ -820,8 +820,10 @@ class CommandDispatcher:
             raise cmdexc.CommandError("{} is empty.".format(target))
         log.misc.debug("{} contained: '{}'".format(target,
                                                    text.replace('\n', '\\n')))
-        text_urls = enumerate(u for u in text.split('\n') if u.strip())
-        for i, text_url in text_urls:
+        text_urls = [u for u in text.split('\n') if u.strip()]
+        if len(text_urls) > 1 and not urlutils.is_url(text_urls[0]):
+            text_urls = [text]
+        for i, text_url in enumerate(text_urls):
             if not window and i > 0:
                 tab = False
                 bg = True
