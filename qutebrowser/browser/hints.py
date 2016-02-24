@@ -450,7 +450,14 @@ class HintManager(QObject):
                     rect["top"] *= zoom
                     width *= zoom
                     height *= zoom
-                return QRect(rect["left"], rect["top"], width, height)
+                rect = QRect(rect["left"], rect["top"], width, height)
+                frame = elem.webFrame()
+                while frame is not None:
+                    # Translate to parent frames' position
+                    # (scroll position is taken care of inside getClientRects)
+                    rect.translate(frame.geometry().topLeft())
+                    frame = frame.parentFrame()
+                return rect
         return elem.rect_on_view()
 
     def _click(self, elem, context):
