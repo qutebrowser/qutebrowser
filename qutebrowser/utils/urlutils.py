@@ -345,9 +345,8 @@ def get_path_if_valid(pathstr, cwd=None, relative=False, check_exists=False):
     Return:
         True if it is a valid path, False otherwise.
     """
-    log.url.debug("Checking if '{}' is a path".format(pathstr))
-
     pathstr = pathstr.strip()
+    log.url.debug("Checking if '{}' is a path".format(pathstr))
     expanded = os.path.expanduser(pathstr)
 
     if os.path.isabs(expanded):
