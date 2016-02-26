@@ -171,22 +171,10 @@ def fuzzy_url(urlstr, cwd=None, relative=False, do_search=True):
         A target QUrl to a search page or the original URL.
     """
     urlstr = urlstr.strip()
-    expanded = os.path.expanduser(urlstr)
+    path   = get_path_if_valid(urlstr, cwd = cwd, relative = relative,
+                               check_exists = True)
 
-    if os.path.isabs(expanded):
-        path = expanded
-    elif relative and cwd:
-        path = os.path.join(cwd, expanded)
-    elif relative:
-        try:
-            path = os.path.abspath(expanded)
-        except OSError:
-            path = None
-    else:
-        path = None
-
-    if path is not None and os.path.exists(path):
-        log.url.debug("URL is a local file")
+    if path is not None:
         url = QUrl.fromLocalFile(path)
     elif (not do_search) or is_url(urlstr):
         # probably an address
