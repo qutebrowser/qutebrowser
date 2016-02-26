@@ -411,7 +411,7 @@ class TestFlagList:
 
     @pytest.fixture
     def klass_valid_none(self):
-        """Return a FlagList with valid_values = None"""
+        """Return a FlagList with valid_values = None."""
         return configtypes.FlagList
 
     @pytest.mark.parametrize('val', ['', 'foo', 'foo,bar', 'foo,'])

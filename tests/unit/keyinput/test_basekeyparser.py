@@ -331,7 +331,7 @@ class TestCount:
 
 
 def test_clear_keystring(qtbot, keyparser):
-    """Test that the keystring is cleared and the signal is emitted"""
+    """Test that the keystring is cleared and the signal is emitted."""
     keyparser._keystring = 'test'
     with qtbot.waitSignal(keyparser.keystring_updated):
         keyparser.clear_keystring()

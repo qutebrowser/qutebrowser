@@ -383,10 +383,11 @@ class TestAttachment:
                                       'foo-%41.html')
 
     def test_attwithnamepct(self, header_checker):
-        """'attachment', specifying a name parameter of foo-%41.html. (this
-        test was added to observe the behavior of the (unspecified) treatment
-        of "name" as synonym for "filename"; see Ned Freed's summary[1] where
-        this comes from in MIME messages)
+        """'attachment', specifying a name parameter of foo-%41.html.
+
+        (This test was added to observe the behavior of the (unspecified)
+        treatment of "name" as synonym for "filename"; see Ned Freed's
+        summary[1] where this comes from in MIME messages)
 
         Should be treated as extension parameter, therefore almost any behavior
         is acceptable.

@@ -26,6 +26,7 @@ import html
 import getpass
 import fnmatch
 import traceback
+import datetime
 
 import pkg_resources
 from PyQt5.QtCore import pyqtSlot, Qt, QSize, qVersion
@@ -95,7 +96,8 @@ def get_fatal_crash_dialog(debug, data):
 
 def _get_environment_vars():
     """Gather environment variables for the crash info."""
-    masks = ('DESKTOP_SESSION', 'DE', 'QT_*', 'PYTHON*', 'LC_*', 'LANG')
+    masks = ('DESKTOP_SESSION', 'DE', 'QT_*', 'PYTHON*', 'LC_*', 'LANG',
+             'XDG_*')
     info = []
     for key, value in os.environ.items():
         for m in masks:
@@ -236,7 +238,9 @@ class _CrashDialog(QDialog):
         try:
             application = QApplication.instance()
             launch_time = application.launch_time.ctime()
-            self._crash_info.append(('Launch time', launch_time))
+            crash_time = datetime.datetime.now().ctime()
+            text = 'Launch: {}\nCrash: {}'.format(launch_time, crash_time)
+            self._crash_info.append(('Timestamps', text))
         except Exception:
             self._crash_info.append(("Launch time", traceback.format_exc()))
         try:

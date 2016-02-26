@@ -28,6 +28,7 @@ import datetime
 import logging
 import tempfile
 import contextlib
+import itertools
 
 import yaml
 import pytest
@@ -37,6 +38,9 @@ import testprocess
 from qutebrowser.misc import ipc
 from qutebrowser.utils import log, utils
 from helpers import utils as testutils
+
+
+instance_counter = itertools.count()
 
 
 def is_ignored_qt_message(message):
@@ -124,6 +128,9 @@ class QuteProc(testprocess.Process):
         basedir: The base directory for this instance.
         _focus_ready: Whether the main window got focused.
         _load_ready: Whether the about:blank page got loaded.
+        _profile: If True, do profiling of the subprocesses.
+        _instance_id: An unique ID for this QuteProc instance
+        _run_counter: A counter to get an unique ID for each run.
 
     Signals:
         got_error: Emitted when there was an error log line.
@@ -134,14 +141,17 @@ class QuteProc(testprocess.Process):
     KEYS = ['timestamp', 'loglevel', 'category', 'module', 'function', 'line',
             'message']
 
-    def __init__(self, httpbin, delay, parent=None):
+    def __init__(self, httpbin, delay, *, profile=False, parent=None):
         super().__init__(parent)
+        self._profile = profile
         self._delay = delay
         self._httpbin = httpbin
         self._ipc_socket = None
         self.basedir = None
         self._focus_ready = False
         self._load_ready = False
+        self._instance_id = next(instance_counter)
+        self._run_counter = itertools.count()
 
     def _is_ready(self, what):
         """Called by _parse_line if loading/focusing is done.
@@ -201,12 +211,28 @@ class QuteProc(testprocess.Process):
 
     def _executable_args(self):
         if hasattr(sys, 'frozen'):
+            if self._profile:
+                raise Exception("Can't profile with sys.frozen!")
             executable = os.path.join(os.path.dirname(sys.executable),
                                       'qutebrowser')
             args = []
         else:
             executable = sys.executable
-            args = ['-m', 'qutebrowser']
+            if self._profile:
+                profile_dir = os.path.join(os.getcwd(), 'prof')
+                profile_id = '{}_{}'.format(self._instance_id,
+                                            next(self._run_counter))
+                profile_file = os.path.join(profile_dir,
+                                            '{}.pstats'.format(profile_id))
+                try:
+                    os.mkdir(profile_dir)
+                except FileExistsError:
+                    pass
+                args = [os.path.join('scripts', 'dev', 'run_profile.py'),
+                        '--profile-tool', 'none',
+                        '--profile-file', profile_file]
+            else:
+                args = ['-m', 'qutebrowser']
         return executable, args
 
     def _default_args(self):
@@ -354,7 +380,7 @@ class QuteProc(testprocess.Process):
         url = utils.elide(QUrl(url).toDisplayString(QUrl.EncodeUnicode), 100)
         pattern = re.compile(
             r"(load status for <qutebrowser\.browser\.webview\.WebView "
-            r"tab_id=\d+ url='{url}'>: LoadStatus\.{load_status}|fetch: "
+            r"tab_id=\d+ url='{url}/?'>: LoadStatus\.{load_status}|fetch: "
             r"PyQt5\.QtCore\.QUrl\('{url}'\) -> .*)".format(
                 load_status=re.escape(load_status), url=re.escape(url)))
         self.wait_for(message=pattern, timeout=timeout)
@@ -397,7 +423,8 @@ class QuteProc(testprocess.Process):
 def quteproc_process(qapp, httpbin, request):
     """Fixture for qutebrowser process which is started once per file."""
     delay = request.config.getoption('--qute-delay')
-    proc = QuteProc(httpbin, delay)
+    profile = request.config.getoption('--qute-profile-subprocs')
+    proc = QuteProc(httpbin, delay, profile=profile)
     proc.start()
     yield proc
     proc.terminate()
@@ -416,7 +443,8 @@ def quteproc(quteproc_process, httpbin, request):
 def quteproc_new(qapp, httpbin, request):
     """Per-test qutebrowser process to test invocations."""
     delay = request.config.getoption('--qute-delay')
-    proc = QuteProc(httpbin, delay)
+    profile = request.config.getoption('--qute-profile-subprocs')
+    proc = QuteProc(httpbin, delay, profile=profile)
     request.node._quteproc_log = proc.captured_log
     # Not calling before_test here as that would start the process
     yield proc

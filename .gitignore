@@ -29,4 +29,5 @@ __pycache__
 /.cache
 /.testmondata
 /.hypothesis
+/prof
 TODO

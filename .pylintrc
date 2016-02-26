@@ -3,10 +3,10 @@
 [MASTER]
 ignore=resources.py
 extension-pkg-whitelist=PyQt5,sip
-load-plugins=pylint_checkers.config,
-             pylint_checkers.modeline,
-             pylint_checkers.openencoding,
-             pylint_checkers.settrace
+load-plugins=qute_pylint.config,
+             qute_pylint.modeline,
+             qute_pylint.openencoding,
+             qute_pylint.settrace
 
 [MESSAGES CONTROL]
 enable=all

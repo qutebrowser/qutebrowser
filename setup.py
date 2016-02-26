@@ -19,7 +19,7 @@
 # You should have received a copy of the GNU General Public License
 # along with qutebrowser.  If not, see <http://www.gnu.org/licenses/>.
 
-"""setuptools installer script for qutebrowser"""
+"""setuptools installer script for qutebrowser."""
 
 import os
 import os.path

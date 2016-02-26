@@ -17,7 +17,7 @@
 # You should have received a copy of the GNU General Public License
 # along with qutebrowser.  If not, see <http://www.gnu.org/licenses/>.
 
-"""Tests for qutebrowser.completion.models column widths"""
+"""Tests for qutebrowser.completion.models column widths."""
 
 import pytest
 
@@ -33,7 +33,7 @@ from qutebrowser.completion.models.urlmodel import UrlCompletionModel
 
 class TestColumnWidths:
 
-    """Tests for the column widths of the completion models"""
+    """Tests for the column widths of the completion models."""
 
     CLASSES = [BaseCompletionModel, SettingOptionCompletionModel,
                SettingOptionCompletionModel, SettingSectionCompletionModel,
@@ -44,10 +44,10 @@ class TestColumnWidths:
 
     @pytest.mark.parametrize("model", CLASSES)
     def test_list_size(self, model):
-        """Test if there are 3 items in the COLUMN_WIDTHS property"""
+        """Test if there are 3 items in the COLUMN_WIDTHS property."""
         assert len(model.COLUMN_WIDTHS) == 3
 
     @pytest.mark.parametrize("model", CLASSES)
     def test_column_width_sum(self, model):
-        """Test if the sum of the widths asserts to 100"""
+        """Test if the sum of the widths asserts to 100."""
         assert sum(model.COLUMN_WIDTHS) == 100

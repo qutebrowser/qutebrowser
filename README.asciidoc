@@ -147,12 +147,12 @@ Contributors, sorted by the number of commits in descending order:
 * Bruno Oliveira
 * Alexander Cogneau
 * Martin Tournoij
+* Felix Van der Jeugt
 * Raphael Pierzina
 * Joel Torstensson
-* Felix Van der Jeugt
 * Claude
-* meles5
 * Patric Schmitz
+* meles5
 * Artur Shaik
 * Nathan Isom
 * Austin Anderson
@@ -184,6 +184,7 @@ Contributors, sorted by the number of commits in descending order:
 * Link
 * Larry Hynes
 * Johannes Altmanninger
+* avk
 * Samir Benmendil
 * Regina Hug
 * Mathias Fussenegger

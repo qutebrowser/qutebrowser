@@ -97,7 +97,7 @@ def test_setitem(hist):
 
 
 def test_not_browsing_error(hist):
-    """Test that next/previtem throws a ValueError"""
+    """Test that next/previtem throws a ValueError."""
     with pytest.raises(ValueError) as error1:
         hist.nextitem()
     assert str(error1.value) == "Currently not browsing history"
@@ -122,7 +122,7 @@ def test_previtem_single(hist, monkeypatch):
 
 
 def test_nextitem_previtem_chain(hist):
-    """Test a combination of nextitem and previtem statements"""
+    """Test a combination of nextitem and previtem statements."""
     assert hist.start('f') == 'fifth'
     assert hist.previtem() == 'fourth'
     assert hist.previtem() == 'first'
@@ -130,14 +130,14 @@ def test_nextitem_previtem_chain(hist):
 
 
 def test_nextitem_index_error(hist):
-    """"Test nextitem() when _tmphist raises an IndexError"""
+    """"Test nextitem() when _tmphist raises an IndexError."""
     hist.start('f')
     with pytest.raises(cmdhistory.HistoryEndReachedError):
         hist.nextitem()
 
 
 def test_previtem_index_error(hist):
-    """"Test previtem() when _tmphist raises an IndexError"""
+    """"Test previtem() when _tmphist raises an IndexError."""
     hist.start('f')
     with pytest.raises(cmdhistory.HistoryEndReachedError):
         for _ in range(10):

@@ -43,6 +43,7 @@ class AsciiDoc:
     FILES = [
         ('FAQ.asciidoc', 'qutebrowser/html/doc/FAQ.html'),
         ('CHANGELOG.asciidoc', 'qutebrowser/html/doc/CHANGELOG.html'),
+        ('CONTRIBUTING.asciidoc', 'qutebrowser/html/doc/CONTRIBUTING.html'),
         ('doc/quickstart.asciidoc', 'qutebrowser/html/doc/quickstart.html'),
         ('doc/userscripts.asciidoc', 'qutebrowser/html/doc/userscripts.html'),
     ]
