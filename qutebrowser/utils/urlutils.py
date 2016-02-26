@@ -171,8 +171,8 @@ def fuzzy_url(urlstr, cwd=None, relative=False, do_search=True):
         A target QUrl to a search page or the original URL.
     """
     urlstr = urlstr.strip()
-    path   = get_path_if_valid(urlstr, cwd = cwd, relative = relative,
-                               check_exists = True)
+    path = get_path_if_valid(urlstr, cwd=cwd, relative=relative,
+                             check_exists=True)
 
     if path is not None:
         url = QUrl.fromLocalFile(path)
@@ -336,7 +336,7 @@ def raise_cmdexc_if_invalid(url):
     if not url.isValid():
         raise cmdexc.CommandError(get_errstring(url))
 
-def get_path_if_valid(pathstr, cwd = None, relative=False, check_exists = False):
+def get_path_if_valid(pathstr, cwd=None, relative=False, check_exists=False):
     """Check if path is a valid path
 
     Args:
