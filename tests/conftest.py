@@ -45,33 +45,17 @@ hypothesis.settings.load_profile('default')
 def _apply_platform_markers(item):
     """Apply a skip marker to a given item."""
     markers = [
-        ('posix', os.name != 'posix', "Requires a POSIX os"),
-        ('windows', os.name != 'nt', "Requires Windows"),
-        ('linux', not sys.platform.startswith('linux'), "Requires Linux"),
-        ('osx', sys.platform != 'darwin', "Requires OS X"),
-        ('not_osx', sys.platform == 'darwin', "Skipped on OS X"),
-        ('not_frozen', getattr(sys, 'frozen', False),
-            "Can't be run when frozen"),
-        ('frozen', not getattr(sys, 'frozen', False),
-            "Can only run when frozen"),
         ('skip', True, "Always skipped."),
         ('pyqt531_or_newer', PYQT_VERSION < 0x050301,
-            "Needs PyQt 5.3.1 or newer"),
-        ('ci', 'CI' not in os.environ, "Only runs on CI."),
+            "Needs PyQt 5.3.1 or newer."),
     ]
 
-    for searched_marker, condition, default_reason in markers:
+    for searched_marker, condition, reason in markers:
         marker = item.get_marker(searched_marker)
         if not marker or not condition:
             continue
 
-        if 'reason' in marker.kwargs:
-            reason = '{}: {}'.format(default_reason, marker.kwargs['reason'])
-            del marker.kwargs['reason']
-        else:
-            reason = default_reason + '.'
-        skipif_marker = pytest.mark.skipif(condition, *marker.args,
-                                           reason=reason, **marker.kwargs)
+        skipif_marker = pytest.mark.skipif(condition, reason=reason)
         item.add_marker(skipif_marker)
 
 
