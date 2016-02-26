@@ -348,6 +348,40 @@ def raise_cmdexc_if_invalid(url):
     if not url.isValid():
         raise cmdexc.CommandError(get_errstring(url))
 
+def get_path_if_valid(pathstr, cwd = None, relative=False, check_exists = False):
+    """Check if path is a valid path
+
+    Args:
+        pathstr: The path as string
+
+    Return:
+        True if it is a valid path, False otherwise.
+    """
+    log.url.debug("Checking if '{}' is a path".format(pathstr))
+
+    pathstr = pathstr.strip()
+    expanded = os.path.expanduser(pathstr)
+
+    if os.path.isabs(expanded):
+        path = expanded
+    elif relative and cwd:
+        path = os.path.join(cwd, expanded)
+    elif relative:
+        try:
+            path = os.path.abspath(expanded)
+        except OSError:
+            path = None
+    else:
+        path = None
+
+    if check_exists:
+        if path is not None and os.path.exists(path):
+            log.url.debug("URL is a local file")
+        else:
+            path = None
+
+    return path
+
 
 def filename_from_url(url):
     """Get a suitable filename from an URL.
