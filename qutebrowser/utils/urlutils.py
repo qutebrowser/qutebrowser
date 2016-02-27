@@ -336,11 +336,12 @@ def raise_cmdexc_if_invalid(url):
     if not url.isValid():
         raise cmdexc.CommandError(get_errstring(url))
 
+
 def get_path_if_valid(pathstr, cwd=None, relative=False, check_exists=False):
-    """Check if path is a valid path
+    """Check if path is a valid path.
 
     Args:
-        pathstr: The path as string
+        pathstr: The path as string.
 
     Return:
         True if it is a valid path, False otherwise.
