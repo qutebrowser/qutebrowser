@@ -259,6 +259,7 @@ class QuteProc(testprocess.Process):
 
     def _is_error_logline(self, msg):
         """Check if the given LogLine is some kind of error message."""
+        valid_functions = ['fuzzy_url', 'get_path_if_valid']
         is_js_error = (msg.category == 'js' and
                        msg.function == 'javaScriptConsoleMessage' and
                        testutils.pattern_match(pattern='[*] [FAIL] *',
@@ -268,7 +269,7 @@ class QuteProc(testprocess.Process):
         # initializing settings though, so ignore those.
         is_ddg_page = (
             'duckduckgo' in msg.message and not (msg.module == 'urlutils' and
-                                                 msg.function == 'fuzzy_url'))
+                                                 msg.function in valid_functions))
         return msg.loglevel > logging.INFO or is_js_error or is_ddg_page
 
     def _maybe_skip(self):
