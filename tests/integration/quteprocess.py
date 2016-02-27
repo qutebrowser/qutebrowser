@@ -266,9 +266,9 @@ class QuteProc(testprocess.Process):
         # Try to complain about the most common mistake when accidentally
         # loading external resources.
         is_ddg_load = testutils.pattern_match(
-                pattern="load status for <qutebrowser.browser.webview.WebView "
-                "tab_id=* url='*duckduckgo*'>: *",
-                value=msg.message)
+            pattern="load status for <qutebrowser.browser.webview.WebView "
+            "tab_id=* url='*duckduckgo*'>: *",
+            value=msg.message)
         return msg.loglevel > logging.INFO or is_js_error or is_ddg_load
 
     def _maybe_skip(self):
