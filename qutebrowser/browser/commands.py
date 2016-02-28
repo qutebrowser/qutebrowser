@@ -818,8 +818,7 @@ class CommandDispatcher:
         text = utils.get_clipboard(selection=sel)
         if not text.strip():
             raise cmdexc.CommandError("{} is empty.".format(target))
-        log.misc.debug("{} contained: '{}'".format(target,
-                                                   text.replace('\n', '\\n')))
+        log.misc.debug("{} contained: {!r}".format(target, text))
         text_urls = [u for u in text.split('\n') if u.strip()]
         if (len(text_urls) > 1 and not urlutils.is_url(text_urls[0]) and
               urlutils.get_path_if_valid(

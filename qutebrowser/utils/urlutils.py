@@ -80,7 +80,7 @@ def _parse_search_term(s):
         engine = None
         term = s
 
-    log.url.debug("engine {}, term '{}'".format(engine, term))
+    log.url.debug("engine {}, term {!r}".format(engine, term))
     return (engine, term)
 
 
@@ -93,7 +93,7 @@ def _get_search_url(txt):
     Return:
         The search URL as a QUrl.
     """
-    log.url.debug("Finding search engine for '{}'".format(txt))
+    log.url.debug("Finding search engine for {!r}".format(txt))
     engine, term = _parse_search_term(txt)
     assert term
     if engine is None:
@@ -186,7 +186,7 @@ def fuzzy_url(urlstr, cwd=None, relative=False, do_search=True):
             url = _get_search_url(urlstr)
         except ValueError:  # invalid search engine
             url = qurl_from_user_input(urlstr)
-    log.url.debug("Converting fuzzy term {} to URL -> {}".format(
+    log.url.debug("Converting fuzzy term {!r} to URL -> {}".format(
                   urlstr, url.toDisplayString()))
     if do_search and config.get('general', 'auto-search') and urlstr:
         qtutils.ensure_valid(url)
@@ -234,7 +234,7 @@ def is_url(urlstr):
     """
     autosearch = config.get('general', 'auto-search')
 
-    log.url.debug("Checking if '{}' is a URL (autosearch={}).".format(
+    log.url.debug("Checking if {!r} is a URL (autosearch={}).".format(
                   urlstr, autosearch))
 
     urlstr = urlstr.strip()
@@ -351,7 +351,7 @@ def get_path_if_valid(pathstr, cwd=None, relative=False, check_exists=False):
         The path if it is a valid path, None otherwise.
     """
     pathstr = pathstr.strip()
-    log.url.debug("Checking if '{}' is a path".format(pathstr))
+    log.url.debug("Checking if {!r} is a path".format(pathstr))
     expanded = os.path.expanduser(pathstr)
 
     if os.path.isabs(expanded):
