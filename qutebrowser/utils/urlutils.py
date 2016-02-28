@@ -342,9 +342,13 @@ def get_path_if_valid(pathstr, cwd=None, relative=False, check_exists=False):
 
     Args:
         pathstr: The path as string.
+        cwd: The current working directory, or None.
+        relative: Whether to resolve relative files.
+        check_exists: Whether to check if the file
+                      actually exists of filesystem.
 
     Return:
-        True if it is a valid path, False otherwise.
+        The path if it is a valid path, None otherwise.
     """
     pathstr = pathstr.strip()
     log.url.debug("Checking if '{}' is a path".format(pathstr))
