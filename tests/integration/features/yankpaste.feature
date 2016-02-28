@@ -134,6 +134,7 @@ Feature: Yanking and pasting.
             http://qutebrowser.org
             should not open
         And I run :paste -t
+        And I wait until data/hello.txt?q=this%20url%3A%0Ahttp%3A//qutebrowser.org%0Ashould%20not%20open is loaded
         Then the following tabs should be open:
             - about:blank
             - data/hello.txt?q=this%20url%3A%0Ahttp%3A//qutebrowser.org%0Ashould%20not%20open (active)
