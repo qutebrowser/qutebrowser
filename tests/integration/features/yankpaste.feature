@@ -126,6 +126,18 @@ Feature: Yanking and pasting.
             - data/hello2.txt
             - data/hello3.txt
 
+    Scenario: Pasting multiline text
+        Given I have a fresh instance
+        When I set searchengines -> DEFAULT to http://localhost:(port)/data/hello.txt?q={}
+        And I put the following lines into the clipboard:
+            this url:
+            http://qutebrowser.org
+            should not open
+        And I run :paste -t
+        Then the following tabs should be open:
+            - about:blank
+            - data/hello.txt?q=this%20url%3A%0Ahttp%3A//qutebrowser.org%0Ashould%20not%20open (active)
+
     Scenario: Pasting multiple urls in a background tab
         Given I open about:blank
         When I run :tab-only
