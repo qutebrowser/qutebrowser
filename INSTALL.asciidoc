@@ -66,11 +66,13 @@ Then <<tox,install qutebrowser via tox>>.
 On Fedora
 ---------
 
-qutebrowser should run on Fedora 22.
+qutebrowser is available in the official repositories for Fedora 22 and newer.
 
-Unfortunately there is no Fedora package yet, but installing qutebrowser is
-still relatively easy! If you want to help packaging it for Fedora, please
-mailto:mail@qutebrowser.org[get in touch]!
+----
+# dnf install qutebrowser
+----
+
+Or you can install it manually on Fedora 22 and newer:
 
 Install the dependencies via dnf:
 
