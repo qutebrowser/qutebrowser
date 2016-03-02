@@ -54,7 +54,6 @@ def _apply_platform_markers(item):
             "Can't be run when frozen"),
         ('frozen', not getattr(sys, 'frozen', False),
             "Can only run when frozen"),
-        ('skip', True, "Always skipped."),
         ('pyqt531_or_newer', PYQT_VERSION < 0x050301,
             "Needs PyQt 5.3.1 or newer"),
         ('ci', 'CI' not in os.environ, "Only runs on CI."),
