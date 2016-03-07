@@ -644,3 +644,86 @@ Feature: Tab management
         And I run :tab-only
         And I run :tab-close
         Then qutebrowser should quit
+
+    Scenario: buffer without args
+        Given I have a fresh instance
+        When I run :buffer
+        Then the error "buffer: The following arguments are required: index" should be shown
+
+    Scenario: buffer one window title present
+        When I open data/title.html
+        And I open data/search.html in a new tab
+        And I open data/scroll.html in a new tab
+        And I run :buffer "Searching text"
+        Then the following tabs should be open:
+            - data/title.html
+            - data/search.html (active)
+            - data/scroll.html
+
+    Scenario: buffer one window title not present
+        When I run :buffer "invalid title"
+        Then the error "No matching tab for: invalid title" should be shown
+
+    Scenario: buffer two window title present
+        When I open data/title.html
+        And I open data/search.html in a new tab
+        And I open data/scroll.html in a new tab
+        And I run :open -w http://localhost:(port)/data/caret.html
+        And I open data/paste_primary.html in a new tab
+        And I run :buffer "Scrolling"
+        Then the session should look like:
+            windows:
+            - active: true
+              tabs:
+              - history:
+                - url: about:blank
+                - url: http://localhost:*/data/title.html
+              - history:
+                - url: http://localhost:*/data/search.html
+              - active: true
+                history:
+                - url: http://localhost:*/data/scroll.html
+            - tabs:
+              - history:
+                - url: http://localhost:*/data/caret.html
+              - active: true
+                history:
+                - url: http://localhost:*/data/paste_primary.html
+
+    Scenario: buffer one window index not present
+        When I open data/title.html
+        And I run :buffer "666"
+        Then the error "There's no tab with index 666!" should be shown
+
+    Scenario: buffer one window win not present
+        When I open data/title.html
+        And I run :buffer "2/1"
+        Then the error "There's no window with id 2!" should be shown
+
+    Scenario: buffer two window index present
+        Given I have a fresh instance
+        When I open data/title.html
+        And I open data/search.html in a new tab
+        And I open data/scroll.html in a new tab
+        And I run :open -w http://localhost:(port)/data/caret.html
+        And I open data/paste_primary.html in a new tab
+        And I wait until data/caret.html is loaded
+        And I run :buffer "0/2"
+        Then the session should look like:
+            windows:
+            - active: true
+              tabs:
+              - history:
+                - url: about:blank
+                - url: http://localhost:*/data/title.html
+              - active: true
+                history:
+                - url: http://localhost:*/data/search.html
+              - history:
+                - url: http://localhost:*/data/scroll.html
+            - tabs:
+              - history:
+                - url: http://localhost:*/data/caret.html
+              - active: true
+                history:
+                - url: http://localhost:*/data/paste_primary.html
