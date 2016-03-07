@@ -72,25 +72,6 @@ qutebrowser is available in the official repositories for Fedora 22 and newer.
 # dnf install qutebrowser
 ----
 
-Or you can install it manually on Fedora 22 and newer:
-
-Install the dependencies via dnf:
-
-----
-# dnf update
-# dnf install python3-qt5 python-tox python3-sip
-----
-
-To generate the documentation for the `:help` command, when using the git
-repository (rather than a release):
-
-----
-# dnf install asciidoc source-highlight
-$ python3 scripts/asciidoc2html.py
-----
-
-Then <<tox,install qutebrowser via tox>>.
-
 On Archlinux
 ------------
 
