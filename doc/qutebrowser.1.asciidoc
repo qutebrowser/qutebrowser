@@ -66,7 +66,7 @@ show it.
     How URLs should be opened if there is already a qutebrowser instance running.
 
 === debug arguments
-*-l* 'LOGLEVEL', *--loglevel* 'LOGLEVEL'::
+*-l* '{critical,error,warning,info,debug,vdebug}', *--loglevel* '{critical,error,warning,info,debug,vdebug}'::
     Set loglevel
 
 *--logfilter* 'LOGFILTER'::
