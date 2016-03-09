@@ -1199,7 +1199,7 @@ def data(readonly=False):
              SettingValue(typ.Font(), 'Terminus, Monospace, '
                           '"DejaVu Sans Mono", Monaco, '
                           '"Bitstream Vera Sans Mono", "Andale Mono", '
-                          '"Liberation Mono", "Courier New", Courier, '
+                          '"Courier New", Courier, "Liberation Mono", '
                           'monospace, Fixed, Consolas, Terminal'),
              "Default monospace fonts."),
 
