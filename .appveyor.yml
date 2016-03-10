@@ -14,4 +14,4 @@ install:
   - C:\Python27\python -u scripts\dev\ci_install.py
 
 test_script:
-  - C:\Python34\Scripts\tox -e %TESTENV% -- --junitxml=junit.xml
+  - C:\Python34\Scripts\tox -e %TESTENV%

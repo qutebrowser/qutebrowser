@@ -34,7 +34,7 @@ install:
   - python scripts/dev/ci_install.py
 
 script:
-  - tox -e $TESTENV -- tests
+  - tox -e $TESTENV
 
 after_success:
   - '[[ $TESTENV == *-cov ]] && codecov -e TESTENV -X gcov'
