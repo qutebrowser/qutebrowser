@@ -56,3 +56,5 @@ def test_configtypes_hypothesis(klass, s):
         klass().validate(s)
     except configexc.ValidationError:
         pass
+    else:
+        klass().transform(s)
