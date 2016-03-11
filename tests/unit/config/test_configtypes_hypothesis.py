@@ -42,6 +42,7 @@ def gen_classes():
             yield member
 
 
+@pytest.mark.usefixtures('qapp')
 @pytest.mark.parametrize('klass', gen_classes())
 @hypothesis.given(strategies.text())
 @hypothesis.example('\x00')
