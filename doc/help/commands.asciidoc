@@ -180,14 +180,14 @@ Remove all finished downloads from the list.
 Delete the last/[count]th download from disk.
 
 ==== count
-The index of the download to cancel.
+The index of the download to delete.
 
 [[download-open]]
 === download-open
 Open the last/[count]th download.
 
 ==== count
-The index of the download to cancel.
+The index of the download to open.
 
 [[download-remove]]
 === download-remove
@@ -199,14 +199,14 @@ Remove the last/[count]th download from the list.
 * +*-a*+, +*--all*+: Deprecated argument for removing all finished downloads.
 
 ==== count
-The index of the download to cancel.
+The index of the download to remove.
 
 [[download-retry]]
 === download-retry
 Retry the first failed/[count]th download.
 
 ==== count
-The index of the download to cancel.
+The index of the download to retry.
 
 [[fake-key]]
 === fake-key
