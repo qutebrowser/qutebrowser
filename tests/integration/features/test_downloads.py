@@ -37,3 +37,15 @@ def clean_old_downloads(quteproc):
 @bdd.when("I wait until the download is finished")
 def wait_for_download_finished(quteproc):
     quteproc.wait_for(category='downloads', message='Download finished')
+
+
+@bdd.then(bdd.parsers.parse("The downloaded file {filename} should not exist"))
+def download_should_not_exist(filename, tmpdir):
+    path = tmpdir / filename
+    assert not path.check()
+
+
+@bdd.then(bdd.parsers.parse("The downloaded file {filename} should exist"))
+def download_should_exist(filename, tmpdir):
+    path = tmpdir / filename
+    assert path.check()
