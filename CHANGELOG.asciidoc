@@ -28,6 +28,7 @@ Added
   clipboard.
 - New mode `word` for `hints -> mode` which uses a dictionary and link-texts
   for hints instead of single characters.
+- New `--all` argument for `:download-cancel` to cancel all running downloads.
 
 Changed
 ~~~~~~~

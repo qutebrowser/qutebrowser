@@ -948,22 +948,30 @@ class DownloadManager(QAbstractListModel):
 
     @cmdutils.register(instance='download-manager', scope='window',
                        count='count')
-    def download_cancel(self, count=0):
+    def download_cancel(self, all_=False, count=0):
         """Cancel the last/[count]th download.
 
         Args:
+            all_: Cancel all running downloads
             count: The index of the download to cancel.
         """
-        try:
-            download = self.downloads[count - 1]
-        except IndexError:
-            self.raise_no_download(count)
-        if download.done:
-            if not count:
-                count = len(self.downloads)
-            raise cmdexc.CommandError("Download {} is already done!"
-                                      .format(count))
-        download.cancel()
+        if all_:
+            # We need to make a copy as we're indirectly mutating
+            # self.downloads here
+            for download in self.downloads[:]:
+                if not download.done:
+                    download.cancel()
+        else:
+            try:
+                download = self.downloads[count - 1]
+            except IndexError:
+                self.raise_no_download(count)
+            if download.done:
+                if not count:
+                    count = len(self.downloads)
+                raise cmdexc.CommandError("Download {} is already done!"
+                                        .format(count))
+            download.cancel()
 
     @cmdutils.register(instance='download-manager', scope='window',
                        count='count')

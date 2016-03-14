@@ -161,7 +161,12 @@ The form `:download [url] [dest]` is deprecated, use `:download --dest [dest] [u
 
 [[download-cancel]]
 === download-cancel
+Syntax: +:download-cancel [*--all*]+
+
 Cancel the last/[count]th download.
+
+==== optional arguments
+* +*-a*+, +*--all*+: Cancel all running downloads
 
 ==== count
 The index of the download to cancel.
