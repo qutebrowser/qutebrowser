@@ -1102,12 +1102,10 @@ class DownloadManager(QAbstractListModel):
         """Remove the last/[count]th download from the list.
 
         Args:
-            all_: Deprecated argument for removing all finished downloads.
+            all_: Remove all finished downloads.
             count: The index of the download to remove.
         """
         if all_:
-            message.warning(self._win_id, ":download-remove --all is "
-                            "deprecated - use :download-clear instead!")
             self.download_clear()
         else:
             try:

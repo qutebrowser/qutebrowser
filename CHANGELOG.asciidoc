@@ -38,6 +38,8 @@ Changed
 - `general -> editor` can now also handle `{}` inside another argument (e.g. to open `vim` via `termite`)
 - Improved performance when scrolling with many tabs open.
 - Shift-Insert now also pastes primary selection for prompts.
+- `:download-remove --all` got un-deprecated to provide symmetry with
+  `:download-cancel --all`. It does the same as `:download-clear`.
 
 Fixed
 ~~~~~
