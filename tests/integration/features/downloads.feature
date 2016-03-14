@@ -1,8 +1,8 @@
 Feature: Downloading things from a website.
 
     Background:
-        Given I set storage -> prompt-download-directory to false
-        And I run :download-clear
+        Given I set up a temporary download dir
+        And I clean old downloads
 
     Scenario: Downloading which redirects with closed tab (issue 889)
         When I set tabs -> last-close to blank

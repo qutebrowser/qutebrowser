@@ -21,6 +21,19 @@ import pytest_bdd as bdd
 bdd.scenarios('downloads.feature')
 
 
+@bdd.given("I set up a temporary download dir")
+def temporary_download_dir(quteproc, tmpdir):
+    quteproc.set_setting('storage', 'prompt-download-directory', 'false')
+    quteproc.set_setting('storage', 'remember-download-directory', 'false')
+    quteproc.set_setting('storage', 'download-directory', str(tmpdir))
+
+
+@bdd.given("I clean old downloads")
+def clean_old_downloads(quteproc):
+    quteproc.send_cmd(':download-cancel --all')
+    quteproc.send_cmd(':download-clear')
+
+
 @bdd.when("I wait until the download is finished")
 def wait_for_download_finished(quteproc):
     quteproc.wait_for(category='downloads', message='Download finished')
