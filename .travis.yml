@@ -60,3 +60,7 @@ notifications:
       - "chat.freenode.net#qutebrowser"
     on_success: change
     on_failure: always
+    skip_join: true
+    template:
+      - "%{repository}#%{build_number} (%{branch} - %{commit} : %{author}): %{message}"
+      - "%{compare_url} - %{build_url}"
