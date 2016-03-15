@@ -50,6 +50,8 @@ def test_elided_text(fake_statusbar, qtbot, elidemode, check):
 
     long_string = 'Hello world! ' * 100
     label.setText(long_string)
+    label.show()
+    qtbot.waitForWindowShown(label)
 
     assert check(label._elided_text)
 
