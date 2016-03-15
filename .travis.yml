@@ -55,3 +55,8 @@ after_success:
 notifications:
   webhooks:
     - https://buildtimetrend.herokuapp.com/travis
+  irc:
+    channels:
+      - "chat.freenode.net#qutebrowser"
+    on_success: change
+    on_failure: always
