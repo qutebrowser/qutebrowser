@@ -35,7 +35,7 @@ cache:
     - $HOME/build/The-Compiler/qutebrowser/.cache
 
 install:
-  - python scripts/dev/ci_install.py
+  - python scripts/dev/ci/install.py
 
 script:
   - tox -e $TESTENV
