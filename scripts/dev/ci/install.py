@@ -115,7 +115,9 @@ if 'APPVEYOR' in os.environ:
         f.write(r'@C:\Python34\python %*')
 
     check_setup(r'C:\Python34\python')
-elif TRAVIS_OS == 'linux' and 'DOCKER' not in os.environ:
+elif TRAVIS_OS == 'linux' and 'DOCKER' in os.environ:
+    pass
+elif TRAVIS_OS == 'linux':
     folded_cmd(['sudo', 'pip', 'install'] + pip_packages)
 
     pkgs = []
