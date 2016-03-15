@@ -12,6 +12,12 @@ matrix:
       env: TESTENV=py34-cov
     - os: linux
       env: TESTENV=unittests-nodisp
+    - os: linux
+      env: DOCKER=debian-jessie
+      services: docker
+    - os: linux
+      env: DOCKER=archlinux
+      services: docker
     - os: osx
       env: TESTENV=py35
     - os: linux
@@ -38,7 +44,7 @@ install:
   - python scripts/dev/ci/install.py
 
 script:
-  - tox -e $TESTENV
+  - bash scripts/dev/ci/travis_run.sh
 
 after_success:
   - '[[ $TESTENV == *-cov ]] && codecov -e TESTENV -X gcov'
