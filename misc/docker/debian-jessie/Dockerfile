@@ -1,6 +1,8 @@
 FROM debian:jessie
 MAINTAINER Florian Bruhin <me@the-compiler.org>
 
+ENV DEBIAN_FRONTEND=noninteractive
+
 RUN apt-get -y update && \
     apt-get -y install python3-pyqt5 python3-pyqt5.qtwebkit python-tox \
                        python3-sip python3-dev xvfb git dbus \
