@@ -43,7 +43,7 @@ except ImportError:
 TESTENV = os.environ.get('TESTENV', None)
 TRAVIS_OS = os.environ.get('TRAVIS_OS_NAME', None)
 INSTALL_PYQT = TESTENV in ('py34', 'py35', 'py34-cov', 'py35-cov',
-                           'unittests-nodisp', 'vulture', 'pylint', 'docs')
+                           'unittests-nodisp', 'vulture', 'pylint')
 XVFB = TRAVIS_OS == 'linux' and TESTENV == 'py34'
 pip_packages = ['tox']
 if TESTENV is not None and TESTENV.endswith('-cov'):
@@ -128,8 +128,6 @@ elif TRAVIS_OS == 'linux':
         pkgs += ['python3-pyqt5', 'python3-pyqt5.qtwebkit']
     if TESTENV == 'eslint':
         pkgs += ['npm', 'nodejs', 'nodejs-legacy']
-    if TESTENV == 'docs':
-        pkgs += ['asciidoc']
 
     if pkgs:
         fix_sources_list()
