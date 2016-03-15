@@ -1,29 +1,33 @@
-# So we get Ubuntu Trusty - using "dist: trusty" breaks OS X.
 sudo: required
 dist: trusty
-
-os:
-  - linux
-  - osx
-
-
 env:
   global:
     - PATH=/home/travis/bin:/home/travis/.local/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
-  matrix:
-    - TESTENV=py35
-    - TESTENV=py34-cov
-    - TESTENV=unittests-nodisp
-    - TESTENV=misc
-    - TESTENV=vulture
-    - TESTENV=flake8
-    - TESTENV=pyroma
-    - TESTENV=check-manifest
-    - TESTENV=pylint
-    - TESTENV=eslint
-
 # Not really, but this is here so we can do stuff by hand.
 language: c
+
+matrix:
+  include:
+    - os: linux
+      env: TESTENV=py34-cov
+    - os: linux
+      env: TESTENV=unittests-nodisp
+    - os: osx
+      env: TESTENV=py35
+    - os: linux
+      env: TESTENV=pylint
+    - os: linux
+      env: TESTENV=flake8
+    - os: linux
+      env: TESTENV=vulture
+    - os: linux
+      env: TESTENV=misc
+    - os: linux
+      env: TESTENV=pyroma
+    - os: linux
+      env: TESTENV=check-manifest
+    - os: linux
+      env: TESTENV=eslint
 
 cache:
   directories:
@@ -38,29 +42,6 @@ script:
 
 after_success:
   - '[[ $TESTENV == *-cov ]] && codecov -e TESTENV -X gcov'
-
-matrix:
-  exclude:
-    - os: linux
-      env: TESTENV=py35
-    - os: osx
-      env: TESTENV=py34-cov
-    - os: osx
-      env: TESTENV=unittests-nodisp
-    - os: osx
-      env: TESTENV=misc
-    - os: osx
-      env: TESTENV=vulture
-    - os: osx
-      env: TESTENV=flake8
-    - os: osx
-      env: TESTENV=pyroma
-    - os: osx
-      env: TESTENV=check-manifest
-    - os: osx
-      env: TESTENV=pylint
-    - os: osx
-      env: TESTENV=eslint
 
 notifications:
   webhooks:
