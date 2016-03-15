@@ -1196,7 +1196,7 @@ class SearchEngineUrl(BaseType):
         self._basic_validation(value)
         if not value:
             return
-        elif '{}' not in value:
+        elif not ('{}' in value or '{0}' in value):
             raise configexc.ValidationError(value, "must contain \"{}\"")
         try:
             value.format("")
