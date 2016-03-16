@@ -28,3 +28,17 @@ Feature: Using hints
         And I run :hint links normal
         And I run :follow-hint a
         Then "acceptNavigationRequest, url http://localhost:*/data/hello2.txt, type NavigationTypeLinkClicked, *" should be logged
+
+    Scenario: Opening a link inside a specific iframe
+        When I open data/hints/iframe_target.html
+        And I run :hint links normal
+        And I run :follow-hint a
+        Then "acceptNavigationRequest, url http://localhost:*/data/hello.txt, type NavigationTypeLinkClicked, *" should be logged
+
+    Scenario: Opening a link with specific target frame in a new tab
+        When I open data/hints/iframe_target.html
+        And I run :hint links tab
+        And I run :follow-hint a
+        Then the following tabs should be open:
+            - data/hints/iframe_target.html
+            - data/hello.txt (active)
