@@ -1585,7 +1585,7 @@ Default: +pass:[/usr/share/dict/words]+
 
 [[hints-auto-follow]]
 === auto-follow
-Whether to auto-follow a hint if there's only one left.
+Follow a hint immediately when the hint text is completely matched.
 
 Valid values:
 
