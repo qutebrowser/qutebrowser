@@ -249,6 +249,7 @@ def main(colors=False):
                         "asciidoc.py. If not given, it's searched in PATH.",
                         nargs=2, required=False,
                         metavar=('PYTHON', 'ASCIIDOC'))
+    parser.add_argument('--no-authors', help=argparse.SUPPRESS)
     args = parser.parse_args()
     try:
         os.mkdir('qutebrowser/html/doc')
