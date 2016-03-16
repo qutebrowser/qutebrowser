@@ -17,7 +17,6 @@ RUN pacman -S --noconfirm \
     qt5-base-debug \
     qt5-webkit-debug \
     python-pyqt5-debug \
-    base-devel \
     xorg-xinit \
     herbstluftwm \
     xorg-server-xvfb
