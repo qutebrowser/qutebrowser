@@ -12,16 +12,14 @@ Feature: Using hints
 
     ### iframes
 
-    @xfail
     Scenario: Using :follow-hint inside an iframe
         When I open data/hints/iframe.html
         And I run :hint all normal
         And I run :follow-hint a
         And I run :hint links normal
         And I run :follow-hint a
-        Then data/hello.txt should be loaded
+        Then "acceptNavigationRequest, url http://localhost:*/data/hello.txt, type NavigationTypeLinkClicked, *" should be logged
 
-    @xfail
     Scenario: Using :follow-hint inside a scrolled iframe
         When I open data/hints/iframe_scroll.html
         And I run :hint all normal
@@ -29,4 +27,4 @@ Feature: Using hints
         And I run :scroll bottom
         And I run :hint links normal
         And I run :follow-hint a
-        Then data/hello2.txt should be loaded
+        Then "acceptNavigationRequest, url http://localhost:*/data/hello2.txt, type NavigationTypeLinkClicked, *" should be logged
