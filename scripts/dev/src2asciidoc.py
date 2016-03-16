@@ -491,8 +491,9 @@ def main():
     generate_settings('doc/help/settings.asciidoc')
     print("Generating command help...")
     generate_commands('doc/help/commands.asciidoc')
-    print("Generating authors in README...")
-    regenerate_authors('README.asciidoc')
+    if '--no-authors' not in sys.argv:
+        print("Generating authors in README...")
+        regenerate_authors('README.asciidoc')
     if '--html' in sys.argv:
         asciidoc2html.main()
 
