@@ -7,5 +7,5 @@ else
     args=()
     [[ $TESTENV == docs ]] && args=('--no-authors')
 
-    tox -e $TESTENV "${args[@]}"
+    tox -e $TESTENV -- "${args[@]}"
 fi
