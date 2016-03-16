@@ -30,6 +30,6 @@ if code != 0:
     print('   tox -e docs')
     print('   git commit -am "Update docs"')
     print()
-    print('(Or you have uncommited changes, in which case you can ignore '
+    print('(Or you have uncommitted changes, in which case you can ignore '
           'this.)')
 sys.exit(code)
