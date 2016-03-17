@@ -80,7 +80,7 @@ def _parse_search_term(s):
         engine = None
         term = s
 
-    log.url.debug("engine {}, term '{}'".format(engine, term))
+    log.url.debug("engine {}, term {!r}".format(engine, term))
     return (engine, term)
 
 
@@ -93,7 +93,7 @@ def _get_search_url(txt):
     Return:
         The search URL as a QUrl.
     """
-    log.url.debug("Finding search engine for '{}'".format(txt))
+    log.url.debug("Finding search engine for {!r}".format(txt))
     engine, term = _parse_search_term(txt)
     assert term
     if engine is None:
@@ -171,22 +171,10 @@ def fuzzy_url(urlstr, cwd=None, relative=False, do_search=True):
         A target QUrl to a search page or the original URL.
     """
     urlstr = urlstr.strip()
-    expanded = os.path.expanduser(urlstr)
+    path = get_path_if_valid(urlstr, cwd=cwd, relative=relative,
+                             check_exists=True)
 
-    if os.path.isabs(expanded):
-        path = expanded
-    elif relative and cwd:
-        path = os.path.join(cwd, expanded)
-    elif relative:
-        try:
-            path = os.path.abspath(expanded)
-        except OSError:
-            path = None
-    else:
-        path = None
-
-    if path is not None and os.path.exists(path):
-        log.url.debug("URL is a local file")
+    if path is not None:
         url = QUrl.fromLocalFile(path)
     elif (not do_search) or is_url(urlstr):
         # probably an address
@@ -198,7 +186,7 @@ def fuzzy_url(urlstr, cwd=None, relative=False, do_search=True):
             url = _get_search_url(urlstr)
         except ValueError:  # invalid search engine
             url = qurl_from_user_input(urlstr)
-    log.url.debug("Converting fuzzy term {} to URL -> {}".format(
+    log.url.debug("Converting fuzzy term {!r} to URL -> {}".format(
                   urlstr, url.toDisplayString()))
     if do_search and config.get('general', 'auto-search') and urlstr:
         qtutils.ensure_valid(url)
@@ -246,7 +234,7 @@ def is_url(urlstr):
     """
     autosearch = config.get('general', 'auto-search')
 
-    log.url.debug("Checking if '{}' is a URL (autosearch={}).".format(
+    log.url.debug("Checking if {!r} is a URL (autosearch={}).".format(
                   urlstr, autosearch))
 
     urlstr = urlstr.strip()
@@ -347,6 +335,44 @@ def raise_cmdexc_if_invalid(url):
     """Check if the given QUrl is invalid, and if so, raise a CommandError."""
     if not url.isValid():
         raise cmdexc.CommandError(get_errstring(url))
+
+
+def get_path_if_valid(pathstr, cwd=None, relative=False, check_exists=False):
+    """Check if path is a valid path.
+
+    Args:
+        pathstr: The path as string.
+        cwd: The current working directory, or None.
+        relative: Whether to resolve relative files.
+        check_exists: Whether to check if the file
+                      actually exists of filesystem.
+
+    Return:
+        The path if it is a valid path, None otherwise.
+    """
+    pathstr = pathstr.strip()
+    log.url.debug("Checking if {!r} is a path".format(pathstr))
+    expanded = os.path.expanduser(pathstr)
+
+    if os.path.isabs(expanded):
+        path = expanded
+    elif relative and cwd:
+        path = os.path.join(cwd, expanded)
+    elif relative:
+        try:
+            path = os.path.abspath(expanded)
+        except OSError:
+            path = None
+    else:
+        path = None
+
+    if check_exists:
+        if path is not None and os.path.exists(path):
+            log.url.debug("URL is a local file")
+        else:
+            path = None
+
+    return path
 
 
 def filename_from_url(url):
