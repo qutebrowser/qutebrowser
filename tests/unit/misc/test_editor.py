@@ -99,7 +99,7 @@ class TestFileHandling:
         assert os.path.exists(filename)
 
         editor._proc._proc.exitStatus = mock.Mock(
-                return_value=QProcess.CrashExit)
+            return_value=QProcess.CrashExit)
         editor._proc.finished.emit(1, QProcess.NormalExit)
 
         assert os.path.exists(filename)
@@ -113,7 +113,7 @@ class TestFileHandling:
         assert os.path.exists(filename)
 
         editor._proc._proc.exitStatus = mock.Mock(
-                return_value=QProcess.CrashExit)
+            return_value=QProcess.CrashExit)
         editor._proc.error.emit(QProcess.Crashed)
 
         editor._proc.finished.emit(0, QProcess.CrashExit)
