@@ -153,16 +153,16 @@ Contributors, sorted by the number of commits in descending order:
 * Claude
 * Patric Schmitz
 * meles5
+* Tarcisio Fedrizzi
 * Artur Shaik
 * Nathan Isom
-* Austin Anderson
 * Thorsten Wißmann
+* Austin Anderson
 * Alexey "Averrin" Nabrodov
 * ZDarian
 * Milan Svoboda
 * John ShaggyTwoDope Jenkins
 * Peter Vilim
-* Tarcisio Fedrizzi
 * Oliver Caldwell
 * Jonas Schürmann
 * Jimmy
@@ -193,9 +193,12 @@ Contributors, sorted by the number of commits in descending order:
 * Corentin Jule
 * zwarag
 * xd1le
+* haxwithaxe
 * evan
 * dylan araps
+* Tomasz Kramkowski
 * Tomas Orsava
+* Tobias Werth
 * Tim Harder
 * Thiago Barroso Perrotta
 * Stefan Tatschner
