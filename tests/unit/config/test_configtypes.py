@@ -1726,6 +1726,8 @@ class TestSearchEngineUrl:
 
     @pytest.mark.parametrize('val', [
         'http://example.com/?q={}',
+        'http://example.com/?q={0}',
+        'http://example.com/?q={0}&a={0}',
         '',  # empty value with none_ok
     ])
     def test_validate_valid(self, klass, val):
