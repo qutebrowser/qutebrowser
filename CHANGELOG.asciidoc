@@ -29,6 +29,7 @@ Added
 - New mode `word` for `hints -> mode` which uses a dictionary and link-texts
   for hints instead of single characters.
 - New `--all` argument for `:download-cancel` to cancel all running downloads.
+- New `password_fill` userscript to fill passwords using the `pass` executable.
 
 Changed
 ~~~~~~~
@@ -40,6 +41,8 @@ Changed
 - Shift-Insert now also pastes primary selection for prompts.
 - `:download-remove --all` got un-deprecated to provide symmetry with
   `:download-cancel --all`. It does the same as `:download-clear`.
+- Improved detection of URLs/search terms when pasting multiple lines.
+- Don't remove `qutebrowser-editor-*` temporary file if editor subprocess crashed
 
 Fixed
 ~~~~~
@@ -55,6 +58,9 @@ Fixed
 - Fixed validation of duplicate values in `hints -> chars`.
 - Fixed crash when PDF.js was partially installed.
 - Fixed crash when XDG_DOWNLOAD_DIR was not an absolute path.
+- Fixed very long filenames when downloading `data://`-URLs.
+- Fixed ugly UI fonts on Windows when Liberation Mono is installed
+- Fixed crash when unbinding key from a section which doesn't exist in the config
 
 v0.5.1
 ------
