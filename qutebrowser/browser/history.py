@@ -40,18 +40,18 @@ class HistoryEntry:
         url_string: The URL which was accessed as string.
     """
 
-    def __init__(self, atime, url):
+    def __init__(self, atime, url, title):
         self.atime = float(atime)
         self.url = QUrl(url)
         self.url_string = url
+        self.title = title
 
     def __repr__(self):
         return utils.get_repr(self, constructor=True, atime=self.atime,
-                              url=self.url.toDisplayString())
+                              url=self.url.toDisplayString(), title=self.title)
 
     def __str__(self):
-        return '{} {}'.format(int(self.atime), self.url_string)
-
+        return '{} {} {}'.format(int(self.atime), self.url_string, self.title)
 
 class WebHistory(QWebHistoryInterface):
 
@@ -118,16 +118,20 @@ class WebHistory(QWebHistoryInterface):
         with self._lineparser.open():
             for line in self._lineparser:
                 yield
-                data = line.rstrip().split(maxsplit=1)
+                data = line.rstrip().split(maxsplit=2)
                 if not data:
                     # empty line
                     continue
-                elif len(data) != 2:
+                elif len(data) == 2:
+                    atime, url = data
+                    title = ""
+                elif len(data) == 3:
+                    atime, url, title = data
+                else:
                     # other malformed line
                     log.init.warning("Invalid history entry {!r}!".format(
                         line))
                     continue
-                atime, url = data
                 if atime.startswith('\0'):
                     log.init.debug(
                         "Removing NUL bytes from entry {!r} - see "
@@ -139,7 +143,7 @@ class WebHistory(QWebHistoryInterface):
                 # information about previous hits change the items in
                 # old_urls to be lists or change HistoryEntry to have a
                 # list of atimes.
-                entry = HistoryEntry(atime, url)
+                entry = HistoryEntry(atime, url, title)
                 self._add_entry(entry)
 
         self._initial_read_done = True
@@ -169,7 +173,7 @@ class WebHistory(QWebHistoryInterface):
         self._lineparser.save()
         self._saved_count = len(self._new_history)
 
-    def addHistoryEntry(self, url_string):
+    def addHistoryEntry(self, url_string, title=""):
         """Called by WebKit when an URL should be added to the history.
 
         Args:
@@ -179,7 +183,7 @@ class WebHistory(QWebHistoryInterface):
             return
         if config.get('general', 'private-browsing'):
             return
-        entry = HistoryEntry(time.time(), url_string)
+        entry = HistoryEntry(time.time(), url_string, title)
         if self._initial_read_done:
             self.add_completion_item.emit(entry)
             self._new_history.append(entry)
