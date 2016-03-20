@@ -145,6 +145,12 @@ class WebView(QWebView):
         self.loadProgress.connect(lambda p: setattr(self, 'progress', p))
         objreg.get('config').changed.connect(self.on_config_changed)
 
+    @pyqtSlot()
+    def on_initial_layout_complete(self):
+        """Add url to history now that we have displayed something."""
+        objreg.get('web-history').addHistoryEntry(
+            self.url().toDisplayString(), self.title())
+
     def _init_page(self):
         """Initialize the QWebPage used by this view."""
         page = webpage.BrowserPage(self.win_id, self.tab_id, self)
@@ -152,6 +158,8 @@ class WebView(QWebView):
         page.linkHovered.connect(self.linkHovered)
         page.mainFrame().loadStarted.connect(self.on_load_started)
         page.mainFrame().loadFinished.connect(self.on_load_finished)
+        page.mainFrame().initialLayoutCompleted.connect(
+            self.on_initial_layout_complete)
         page.statusBarMessage.connect(
             lambda msg: setattr(self, 'statusbar_message', msg))
         page.networkAccessManager().sslErrors.connect(

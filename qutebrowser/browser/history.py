@@ -212,4 +212,3 @@ def init(parent=None):
     """
     history = WebHistory(parent)
     objreg.register('web-history', history)
-    QWebHistoryInterface.setDefaultInterface(history)
