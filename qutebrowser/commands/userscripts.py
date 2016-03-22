@@ -344,13 +344,17 @@ def run(cmd, *args, win_id, env, verbose=False):
     user_agent = config.get('network', 'user-agent')
     if user_agent is not None:
         env['QUTE_USER_AGENT'] = user_agent
-    cmd = os.path.expanduser(cmd)
+    cmd_path = os.path.expanduser(cmd)
 
     # if cmd is not given as an absolute path, look it up
     # ~/.local/share/qutebrowser/userscripts (or $XDG_DATA_DIR)
-    if not os.path.isabs(cmd):
-        log.misc.debug("{} is no absolute path".format(cmd))
-        cmd = os.path.join(standarddir.data(), "userscripts", cmd)
+    if not os.path.isabs(cmd_path):
+        log.misc.debug("{} is no absolute path".format(cmd_path))
+        cmd_path = os.path.join(standarddir.data(), "userscripts", cmd)
+        if not os.path.exists(cmd_path):
+            cmd_path = os.path.join(standarddir.system_data(),
+                                    "userscripts", cmd)
+    log.misc.debug("Userscript to run: {}".format(cmd_path))
 
     runner.run(cmd, *args, env=env, verbose=verbose)
     runner.finished.connect(commandrunner.deleteLater)
