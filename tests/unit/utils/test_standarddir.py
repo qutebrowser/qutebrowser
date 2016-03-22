@@ -313,3 +313,25 @@ class TestCreatingDir:
 
         func = getattr(standarddir, typ)
         func()
+
+
+class TestSystemData:
+
+    """Test system data path."""
+
+    def test_system_datadir_exist_linux(self, monkeypatch):
+        """Test that /usr/share/qutebrowser is used if path exists."""
+        monkeypatch.setattr('sys.platform', "linux")
+        monkeypatch.setattr(os.path, 'exists', lambda path: True)
+        assert standarddir.system_data() == "/usr/share/qutebrowser"
+
+    @pytest.mark.linux
+    def test_system_datadir_not_exist_linux(self, monkeypatch):
+        """Test that system-wide path isn't used on linux if path not exist."""
+        monkeypatch.setattr(os.path, 'exists', lambda path: False)
+        assert standarddir.system_data() == standarddir.data()
+
+    def test_system_datadir_unsupportedos(self, monkeypatch):
+        """Test that system-wide path is not used on non-Linux OS."""
+        monkeypatch.setattr('sys.platform', "potato")
+        assert standarddir.system_data() == standarddir.data()
