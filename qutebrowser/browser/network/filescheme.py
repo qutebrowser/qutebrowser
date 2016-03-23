@@ -44,7 +44,9 @@ def get_file_list(basedir, all_files, filterfunc):
     for filename in all_files:
         absname = os.path.join(basedir, filename)
         if filterfunc(absname):
-            items.append({'name': filename, 'absname': absname})
+            # Absolute paths in Unix start with a slash ('/'), but we already
+            # have enough slashes in the template, so we don't need it here
+            items.append({'name': filename, 'absname': absname.lstrip('/')})
     return sorted(items, key=lambda v: v['name'].lower())
 
 
@@ -57,6 +59,14 @@ def is_root(directory):
     Return:
         Whether the directory is a root directory or not.
     """
+    # If you're curious as why this works:
+    # dirname('/') = '/'
+    # dirname('/home') = '/'
+    # dirname('/home/') = '/home'
+    # dirname('/home/foo') = '/home'
+    # basically, for files (no trailing slash) it removes the file part, and for
+    # directories, it removes the trailing slash, so the only way for this to be
+    # equal is if the directory is the root directory.
     return os.path.dirname(directory) == directory
 
 
@@ -77,14 +87,14 @@ def dirbrowser_html(path):
     if is_root(path):
         parent = None
     else:
-        parent = os.path.dirname(path)
+        parent = os.path.normpath(os.path.join(path, '..')).lstrip('/')
 
     try:
         all_files = os.listdir(path)
     except OSError as e:
         html = jinja.env.get_template('error.html').render(
             title="Error while reading directory",
-            url='file://{}'.format(path),
+            url='file:///{}'.format(path),
             error=str(e),
             icon='')
         return html.encode('UTF-8', errors='xmlcharrefreplace')
