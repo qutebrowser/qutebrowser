@@ -44,9 +44,7 @@ def get_file_list(basedir, all_files, filterfunc):
     for filename in all_files:
         absname = os.path.join(basedir, filename)
         if filterfunc(absname):
-            # Absolute paths in Unix start with a slash ('/'), but we already
-            # have enough slashes in the template, so we don't need it here
-            items.append({'name': filename, 'absname': absname.lstrip('/')})
+            items.append({'name': filename, 'absname': absname})
     return sorted(items, key=lambda v: v['name'].lower())
 
 
@@ -87,7 +85,7 @@ def dirbrowser_html(path):
     if is_root(path):
         parent = None
     else:
-        parent = os.path.normpath(os.path.join(path, '..')).lstrip('/')
+        parent = os.path.normpath(os.path.join(path, '..'))
 
     try:
         all_files = os.listdir(path)

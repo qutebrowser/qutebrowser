@@ -48,19 +48,19 @@ ul.files > li {
 
         {% if parent is not none %}
             <ul class="parent">
-                <li><a href="file:///{{parent}}">..</a></li>
+                <li><a href="{{ file_url(parent) }}">..</a></li>
             </ul>
         {% endif %}
 
         <ul class="folders">
             {% for item in directories %}
-                <li><a href="file:///{{item.absname}}">{{item.name}}</a></li>
+                <li><a href="{{ file_url(item.absname) }}">{{item.name}}</a></li>
             {% endfor %}
         </ul>
 
         <ul class="files">
             {% for item in files %}
-                <li><a href="file:///{{item.absname}}">{{item.name}}</a></li>
+                <li><a href="{{ file_url(item.absname) }}">{{item.name}}</a></li>
             {% endfor %}
         </ul>
     </div>

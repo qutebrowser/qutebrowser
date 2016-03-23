@@ -71,5 +71,16 @@ def resource_url(path):
     image = utils.resource_filename(path)
     return QUrl.fromLocalFile(image).toString(QUrl.FullyEncoded)
 
+
+def file_url(path):
+    """Return a file:// url (as string) to the given local path.
+
+    Arguments:
+        path: The absolute path to the local file
+    """
+    return QUrl.fromLocalFile(path).toString(QUrl.FullyEncoded)
+
+
 env = jinja2.Environment(loader=Loader('html'), autoescape=_guess_autoescape)
 env.globals['resource_url'] = resource_url
+env.globals['file_url'] = file_url
