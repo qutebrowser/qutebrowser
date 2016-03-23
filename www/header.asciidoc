@@ -14,4 +14,7 @@
 	<a href="CONTRIBUTING.html">Contributing</a>
 	<a href="https://www.github.com/The-Compiler/qutebrowser">GitHub</a>
 </div>
+<div id="crowdfunding">
+qutebrowser is currently running a crowdfunding campaign to add support for the QtWebEngine backend, which fixes many issues. Please <a href="http://igg.me/at/qutebrowser">check it out</a>!
+</div>
 +++
