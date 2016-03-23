@@ -57,6 +57,8 @@ class TestIsRoot:
 
     @pytest.mark.windows
     @pytest.mark.parametrize('directory, is_root', [
+        ('C:\\foo\\bar', False),
+        ('C:\\foo\\', False),
         ('C:\\foo', False),
         ('C:\\', True)
     ])
@@ -65,6 +67,8 @@ class TestIsRoot:
 
     @pytest.mark.posix
     @pytest.mark.parametrize('directory, is_root', [
+        ('/foo/bar', False),
+        ('/foo/', False),
         ('/foo', False),
         ('/', True)
     ])
