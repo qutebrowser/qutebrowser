@@ -61,11 +61,10 @@ repository (rather than a release):
 $ python3 scripts/asciidoc2html.py
 ----
 
-If sound doesn't seem to work, try installing the gstreamer plugins:
+If video or sound don't seem to work, try installing the gstreamer plugins:
 
 ----
-# apt-get install gstreamer1.0-plugins-bad gstreamer1.0-plugins-base 
-gstreamer1.0-plugins-ugly gstreamer1.0-plugins-good
+# apt-get install gstreamer1.0-plugins-{bad,base,good,ugly}
 ----
 
 Then <<tox,install qutebrowser via tox>>.
