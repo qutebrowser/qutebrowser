@@ -356,6 +356,6 @@ def run(cmd, *args, win_id, env, verbose=False):
                                     "userscripts", cmd)
     log.misc.debug("Userscript to run: {}".format(cmd_path))
 
-    runner.run(cmd, *args, env=env, verbose=verbose)
+    runner.run(cmd_path, *args, env=env, verbose=verbose)
     runner.finished.connect(commandrunner.deleteLater)
     runner.finished.connect(runner.deleteLater)
