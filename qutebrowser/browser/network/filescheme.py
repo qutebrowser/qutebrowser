@@ -68,6 +68,18 @@ def is_root(directory):
     return os.path.dirname(directory) == directory
 
 
+def parent_dir(directory):
+    """Return the parent directory for the given directory.
+
+    Args:
+        directory: The path to the directory.
+
+    Return:
+        The path to the parent directory.
+    """
+    return os.path.normpath(os.path.join(directory, os.pardir))
+
+
 def dirbrowser_html(path):
     """Get the directory browser web page.
 
@@ -82,7 +94,7 @@ def dirbrowser_html(path):
     if is_root(path):
         parent = None
     else:
-        parent = os.path.normpath(os.path.join(path, '..'))
+        parent = parent_dir(path)
 
     try:
         all_files = os.listdir(path)

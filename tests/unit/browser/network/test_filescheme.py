@@ -77,6 +77,29 @@ class TestIsRoot:
         assert filescheme.is_root(directory) == is_root
 
 
+class TestParentDir:
+
+    @pytest.mark.windows
+    @pytest.mark.parametrize('directory, parent', [
+        ('C:\\foo\\bar', 'C:\\foo'),
+        ('C:\\foo', 'C:\\'),
+        ('C:\\foo\\', 'C:\\'),
+        ('C:\\', 'C:\\'),
+    ])
+    def test_windows(self, directory, parent):
+        assert filescheme.parent_dir(directory) == parent
+
+    @pytest.mark.posix
+    @pytest.mark.parametrize('directory, parent', [
+        ('/home/foo', '/home'),
+        ('/home', '/'),
+        ('/home/', '/'),
+        ('/', '/'),
+    ])
+    def test_posix(self, directory, parent):
+        assert filescheme.parent_dir(directory) == parent
+
+
 def _file_url(path):
     """Return a file:// url (as string) for the given LocalPath.
 
