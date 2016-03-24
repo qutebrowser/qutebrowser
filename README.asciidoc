@@ -170,6 +170,7 @@ Contributors, sorted by the number of commits in descending order:
 * John ShaggyTwoDope Jenkins
 * Peter Vilim
 * Oliver Caldwell
+* Philipp Hansch
 * Jonas Schürmann
 * Jimmy
 * Panagiotis Ktistakis
@@ -186,7 +187,6 @@ Contributors, sorted by the number of commits in descending order:
 * neeasade
 * jnphilipp
 * Tobias Patzl
-* Philipp Hansch
 * Peter Michely
 * Link
 * Larry Hynes
