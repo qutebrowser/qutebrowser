@@ -19,6 +19,7 @@
 
 """Test the built-in directory browser."""
 
+import os
 import bs4
 import collections
 
@@ -92,7 +93,11 @@ class DirLayout:
 
     def path(self, *parts):
         """Return the path to the given file inside the layout folder."""
-        return str(self.layout.join(*parts))
+        return os.path.normpath(str(self.layout.join(*parts)))
+
+    def base_path(self):
+        """Return the path of the base temporary folder."""
+        return os.path.normpath(str(self.base))
 
     def parse(self, quteproc):
         """Parse the dirbrowser content from the given quteproc.
@@ -107,6 +112,7 @@ class DirLayout:
         # Strip off the title prefix to obtain the path of the folder that
         # we're browsing
         path = soup.title.string[len(title_prefix):]
+        path = os.path.normpath(path)
 
         container = soup('div', id='dirbrowserContainer')[0]
 
@@ -115,6 +121,7 @@ class DirLayout:
             parent = None
         else:
             parent = QUrl(parent_elem[0].li.a['href']).toLocalFile()
+            parent = os.path.normpath(parent)
 
         folders = []
         files = []
@@ -122,6 +129,7 @@ class DirLayout:
         for css_class, list_ in [('folders', folders), ('files', files)]:
             for li in container('ul', class_=css_class)[0]('li'):
                 item_path = QUrl(li.a['href']).toLocalFile()
+                item_path = os.path.normpath(item_path)
                 list_.append(self.Item(path=item_path, link=li.a['href'],
                                        text=str(li.a.string)))
 
@@ -137,14 +145,14 @@ def dir_layout(tmpdir_factory):
 def test_parent_folder(dir_layout, quteproc):
     quteproc.open_url(dir_layout.file_url())
     page = dir_layout.parse(quteproc)
-    assert page.parent == str(dir_layout.base)
+    assert page.parent == dir_layout.base_path()
 
 
 def test_parent_with_slash(dir_layout, quteproc):
     """Test the parent link with an URL that has a trailing slash."""
     quteproc.open_url(dir_layout.file_url() + '/')
     page = dir_layout.parse(quteproc)
-    assert page.parent == str(dir_layout.base)
+    assert page.parent == dir_layout.base_path()
 
 
 def test_enter_folder_smoke(dir_layout, quteproc):
