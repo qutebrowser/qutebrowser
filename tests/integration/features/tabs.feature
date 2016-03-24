@@ -652,6 +652,7 @@ Feature: Tab management
         And I open data/hints/link.html
         And I run :hint all tab
         And I run :follow-hint a
+        And I wait until data/hello.txt is loaded
         Then the following tabs should be open:
             - data/hints/link.html (active)
             - data/hello.txt
