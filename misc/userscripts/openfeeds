@@ -30,9 +30,10 @@ import os
 import re
 
 from bs4 import BeautifulSoup
+from urllib.parse import urljoin
 
 with open(os.environ['QUTE_HTML'], 'r') as f:
     soup = BeautifulSoup(f)
 with open(os.environ['QUTE_FIFO'], 'w') as f:
     for link in soup.find_all('link', rel='alternate', type=re.compile(r'application/((rss|rdf|atom)\+)?xml|text/xml')):
-        f.write('open -t %s\n' % link.get('href'))
+        f.write('open -t %s\n' % urljoin(os.environ['QUTE_URL'], link.get('href')))
