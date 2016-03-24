@@ -195,6 +195,7 @@ Contributors, sorted by the number of commits in descending order:
 * Samir Benmendil
 * Regina Hug
 * Mathias Fussenegger
+* Marcelo Santos
 * Fritz V155 Reichwald
 * Franz Fellner
 * Corentin Jule
