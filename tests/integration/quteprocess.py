@@ -359,6 +359,18 @@ class QuteProc(testprocess.Process):
         else:
             self.send_cmd(':open ' + url)
 
+    def open_url(self, url, *, new_tab=False, new_window=False):
+        """Open the given url in qutebrowser."""
+        if new_tab and new_window:
+            raise ValueError("new_tab and new_window given!")
+
+        if new_tab:
+            self.send_cmd(':open -t ' + url)
+        elif new_window:
+            self.send_cmd(':open -w ' + url)
+        else:
+            self.send_cmd(':open ' + url)
+
     def mark_expected(self, category=None, loglevel=None, message=None):
         """Mark a given logging message as expected."""
         line = self.wait_for(category=category, loglevel=loglevel,
