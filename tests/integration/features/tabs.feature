@@ -644,3 +644,68 @@ Feature: Tab management
         And I run :tab-only
         And I run :tab-close
         Then qutebrowser should quit
+
+    # tab settings
+
+    Scenario: opening links with tabs->background-tabs true
+        When I set tabs -> background-tabs to true
+        And I open data/hints/link.html
+        And I run :hint all tab
+        And I run :follow-hint a
+        And I wait until data/hello.txt is loaded
+        Then the following tabs should be open:
+            - data/hints/link.html (active)
+            - data/hello.txt
+
+    Scenario: opening tab with tabs->new-tab-position left
+        When I set tabs -> new-tab-position to left
+        And I set tabs -> background-tabs to false
+        And I open about:blank
+        And I open data/hints/link.html in a new tab
+        And I run :hint all tab
+        And I run :follow-hint a
+        And I wait until data/hello.txt is loaded
+        Then the following tabs should be open:
+            - about:blank
+            - data/hello.txt (active)
+            - data/hints/link.html
+
+    Scenario: opening tab with tabs->new-tab-position right
+        When I set tabs -> new-tab-position to right
+        And I set tabs -> background-tabs to false
+        And I open about:blank
+        And I open data/hints/link.html in a new tab
+        And I run :hint all tab
+        And I run :follow-hint a
+        And I wait until data/hello.txt is loaded
+        Then the following tabs should be open:
+            - about:blank
+            - data/hints/link.html
+            - data/hello.txt (active)
+
+    Scenario: opening tab with tabs->new-tab-position first
+        When I set tabs -> new-tab-position to first
+        And I set tabs -> background-tabs to false
+        And I open about:blank
+        And I open data/hints/link.html in a new tab
+        And I run :hint all tab
+        And I run :follow-hint a
+        And I wait until data/hello.txt is loaded
+        Then the following tabs should be open:
+            - data/hello.txt (active)
+            - about:blank
+            - data/hints/link.html
+
+    Scenario: opening tab with tabs->new-tab-position last
+        When I set tabs -> new-tab-position to last
+        And I set tabs -> background-tabs to false
+        And I open data/hints/link.html
+        And I open about:blank in a new tab
+        And I run :tab-focus last
+        And I run :hint all tab
+        And I run :follow-hint a
+        And I wait until data/hello.txt is loaded
+        Then the following tabs should be open:
+            - data/hints/link.html
+            - about:blank
+            - data/hello.txt (active)
