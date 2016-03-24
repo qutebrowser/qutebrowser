@@ -62,9 +62,9 @@ def is_root(directory):
     # dirname('/home') = '/'
     # dirname('/home/') = '/home'
     # dirname('/home/foo') = '/home'
-    # basically, for files (no trailing slash) it removes the file part, and for
-    # directories, it removes the trailing slash, so the only way for this to be
-    # equal is if the directory is the root directory.
+    # basically, for files (no trailing slash) it removes the file part, and
+    # for directories, it removes the trailing slash, so the only way for this
+    # to be equal is if the directory is the root directory.
     return os.path.dirname(directory) == directory
 
 
