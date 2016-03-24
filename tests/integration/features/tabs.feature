@@ -682,6 +682,7 @@ Feature: Tab management
 
     Scenario: opening tab with tabs->new-tab-position first
         When I set tabs -> new-tab-position to first
+        And I set tabs -> background-tabs to false
         And I open about:blank
         And I open data/hints/link.html in a new tab
         And I run :hint all tab
@@ -693,6 +694,7 @@ Feature: Tab management
 
     Scenario: opening tab with tabs->new-tab-position last
         When I set tabs -> new-tab-position to last
+        And I set tabs -> background-tabs to false
         And I open data/hints/link.html
         And I open about:blank in a new tab
         And I run :tab-focus last
