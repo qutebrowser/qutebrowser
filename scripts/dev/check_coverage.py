@@ -223,8 +223,16 @@ def main_check():
         print(e)
         messages = []
 
-    for msg in messages:
-        print(msg.text)
+    if messages:
+        print()
+        print()
+        utils.print_title("Coverage check failed")
+        for msg in messages:
+            print(msg.text)
+        print()
+        print("You can run 'tox -e py35-cov' (or py34-cov) locally and check "
+              "htmlcov/index.html to debug this.")
+        print()
 
     if 'CI' in os.environ:
         print("Keeping coverage.xml on CI.")
