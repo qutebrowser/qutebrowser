@@ -663,6 +663,7 @@ Feature: Tab management
         And I open data/hints/link.html in a new tab
         And I run :hint all tab
         And I run :follow-hint a
+        And I wait until data/hello.txt is loaded
         Then the following tabs should be open:
             - about:blank
             - data/hello.txt (active)
@@ -675,6 +676,7 @@ Feature: Tab management
         And I open data/hints/link.html in a new tab
         And I run :hint all tab
         And I run :follow-hint a
+        And I wait until data/hello.txt is loaded
         Then the following tabs should be open:
             - about:blank
             - data/hints/link.html
@@ -687,6 +689,7 @@ Feature: Tab management
         And I open data/hints/link.html in a new tab
         And I run :hint all tab
         And I run :follow-hint a
+        And I wait until data/hello.txt is loaded
         Then the following tabs should be open:
             - data/hello.txt (active)
             - about:blank
@@ -700,6 +703,7 @@ Feature: Tab management
         And I run :tab-focus last
         And I run :hint all tab
         And I run :follow-hint a
+        And I wait until data/hello.txt is loaded
         Then the following tabs should be open:
             - data/hints/link.html
             - about:blank
