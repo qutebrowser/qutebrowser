@@ -43,6 +43,7 @@ Changed
   `:download-cancel --all`. It does the same as `:download-clear`.
 - Improved detection of URLs/search terms when pasting multiple lines.
 - Don't remove `qutebrowser-editor-*` temporary file if editor subprocess crashed
+- Userscripts are also searched in `/usr/share/qutebrowser/userscripts`.
 
 Fixed
 ~~~~~
