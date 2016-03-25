@@ -34,6 +34,7 @@ from qutebrowser.utils import utils, jinja
 def patch_read_file(monkeypatch):
     """pytest fixture to patch utils.read_file."""
     real_read_file = utils.read_file
+
     def _read_file(path):
         """A read_file which returns a simple template if the path is right."""
         if path == os.path.join('html', 'test.html'):

@@ -80,7 +80,8 @@ def render(template, **kwargs):
         return _env.get_template(template).render(**kwargs)
     except jinja2.exceptions.UndefinedError:
         log.misc.exception("UndefinedError while rendering " + template)
-        err_template = utils.read_file(os.path.join('html', 'undef_error.html'))
+        err_path = os.path.join('html', 'undef_error.html')
+        err_template = utils.read_file(err_path)
         tb = traceback.format_exc()
         return err_template.format(pagename=template, traceback=tb)
 
