@@ -15,3 +15,10 @@ Feature: :spawn
     Scenario: Running :spawn with url variable
         When I run :spawn echo {url}
         Then "Executing echo with args ['about:blank'], userscript=False" should be logged
+
+    Scenario: Running :spawn with userscript
+        When I run :spawn --userscript open_current_url
+        And I wait until about:blank is loaded
+        Then the following tabs should be open:
+            - about:blank
+            - about:blank (active)
