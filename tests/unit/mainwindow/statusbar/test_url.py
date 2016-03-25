@@ -110,7 +110,7 @@ def test_on_load_status_changed(url_widget, status, expected):
     (url.UrlType.success, 'http://reddit.com/r/linux'),
     (url.UrlType.success_https, 'www.google.com'),
     (url.UrlType.success_https, 'https://supersecret.gov/nsa/files.txt'),
-    (url.UrlType.warn, 'www.shadysite.org/some/path/to/a/file/that/has/issues.htm'),
+    (url.UrlType.warn, 'www.shadysite.org/some/path/to/file/with/issues.htm'),
     (url.UrlType.error, 'Th1$ i$ n0t @ n0rm@L uRL! P@n1c! <-->'),
     (url.UrlType.error, None)
 ])
