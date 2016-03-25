@@ -1,6 +1,6 @@
 # vim: ft=python fileencoding=utf-8 sts=4 sw=4 et:
 
-# Copyright 2014-2016 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
+# Copyright 2016 Clayton Craft (craftyguy) <craftyguy@gmail.com>
 #
 # This file is part of qutebrowser.
 #
@@ -21,22 +21,18 @@
 """Test Statusbar url."""
 
 import pytest
+import collections
 
-from collections import namedtuple
-from qutebrowser.mainwindow.statusbar.url import UrlText
+from qutebrowser.browser import webview
+from qutebrowser.mainwindow.statusbar import url
 from qutebrowser.utils import usertypes
-
-
-UrlType = usertypes.enum('UrlType', ['success', 'success_https', 'error',
-                                    'warn', 'hover', 'normal'])
 
 
 @pytest.fixture
 def tab_widget():
     """Fixture providing a fake tab widget."""
-    tab = namedtuple('Tab', 'cur_url load_status')
-    tab.load_status = namedtuple('load_status', 'name')
-    tab.cur_url = namedtuple('cur_url', 'toDisplayString')
+    tab = collections.namedtuple('Tab', 'cur_url load_status')
+    tab.cur_url = collections.namedtuple('cur_url', 'toDisplayString')
     return tab
 
 
@@ -56,71 +52,75 @@ def url_widget(qtbot, monkeypatch, config_stub):
     }
     monkeypatch.setattr(
         'qutebrowser.mainwindow.statusbar.url.style.config', config_stub)
-    widget = UrlText()
+    widget = url.UrlText()
     qtbot.add_widget(widget)
     assert not widget.isVisible()
     return widget
 
 
-@pytest.mark.parametrize('url', [
-    ('http://abc123.com/this/awesome/url.html'),
-    ('https://supersecret.gov/nsa/files.txt'),
-    ('Th1$ i$ n0t @ n0rm@L uRL! P@n1c! <-->'),
-    (None)
+@pytest.mark.parametrize('url_text', [
+    'http://abc123.com/this/awesome/url.html',
+    'https://supersecret.gov/nsa/files.txt',
+    'Th1$ i$ n0t @ n0rm@L uRL! P@n1c! <-->',
+    None
 ])
-def test_set_url(url_widget, url):
+def test_set_url(url_widget, url_text):
     """Test text displayed by the widget."""
-    url_widget.set_url(url)
-    if url is not None:
-        assert url_widget.text() == url
+    url_widget.set_url(url_text)
+    if url_text is not None:
+        assert url_widget.text() == url_text
     else:
         assert url_widget.text() == ""
 
 
-@pytest.mark.parametrize('url, title, text', [
+@pytest.mark.parametrize('url_text, title, text', [
     ('http://abc123.com/this/awesome/url.html', 'Awesome site', 'click me!'),
     ('https://supersecret.gov/nsa/files.txt', 'Secret area', None),
     ('Th1$ i$ n0t @ n0rm@L uRL! P@n1c! <-->', 'Probably spam', 'definitely'),
     (None, None, 'did I break?!')
 ])
-def test_set_hover_url(url_widget, url, title, text):
+def test_set_hover_url(url_widget, url_text, title, text):
     """Test text when hovering over a link."""
-    url_widget.set_hover_url(url, title, text)
-    if url is not None:
-        assert url_widget.text() == url
+    url_widget.set_hover_url(url_text, title, text)
+    if url_text is not None:
+        assert url_widget.text() == url_text
+        assert url_widget._urltype == url.UrlType.hover
     else:
         assert url_widget.text() == ''
+        assert url_widget._urltype == url.UrlType.normal
 
 
 @pytest.mark.parametrize('status, expected', [
-    ('success', 'success'),
-    ('success_https', 'success_https'),
-    ('error', 'error'),
-    ('warn', 'warn')
+    (webview.LoadStatus.success, url.UrlType.success),
+    (webview.LoadStatus.success_https, url.UrlType.success_https),
+    (webview.LoadStatus.error, url.UrlType.error),
+    (webview.LoadStatus.warn, url.UrlType.warn),
+    (webview.LoadStatus.loading, url.UrlType.normal),
+    (webview.LoadStatus.none, url.UrlType.normal)
 ])
 def test_on_load_status_changed(url_widget, status, expected):
     """Test text when status is changed."""
     url_widget.set_url('www.example.com')
-    url_widget.on_load_status_changed(status)
-    assert url_widget._urltype.name == expected
+    url_widget.on_load_status_changed(status.name)
+    assert url_widget._urltype == expected
 
 
-@pytest.mark.parametrize('load_status, url', [
-    ('success', 'http://abc123.com/this/awesome/url.html'),
-    ('success', 'http://reddit.com/r/linux'),
-    ('success_https', 'www.google.com'),
-    ('success_https', 'https://supersecret.gov/nsa/files.txt'),
-    ('warn', 'www.shadysite.org/some/path/to/a/file/that/has/issues.htm'),
-    ('error', 'Th1$ i$ n0t @ n0rm@L uRL! P@n1c! <-->'),
-    ('error', None)
+@pytest.mark.parametrize('load_status, url_text', [
+    (url.UrlType.success, 'http://abc123.com/this/awesome/url.html'),
+    (url.UrlType.success, 'http://reddit.com/r/linux'),
+    (url.UrlType.success_https, 'www.google.com'),
+    (url.UrlType.success_https, 'https://supersecret.gov/nsa/files.txt'),
+    (url.UrlType.warn, 'www.shadysite.org/some/path/to/a/file/that/has/issues.htm'),
+    (url.UrlType.error, 'Th1$ i$ n0t @ n0rm@L uRL! P@n1c! <-->'),
+    (url.UrlType.error, None)
 ])
-def test_on_tab_changed(url_widget, tab_widget, load_status, url):
-    tab_widget.load_status.name = load_status
-    tab_widget.cur_url.toDisplayString = lambda: url
+def test_on_tab_changed(url_widget, tab_widget, load_status, url_text):
+    tab_widget.load_status = load_status
+    tab_widget.cur_url.toDisplayString = lambda: url_text
     url_widget.on_tab_changed(tab_widget)
-    if url is not None:
-        assert url_widget._urltype.name == load_status
-        assert url_widget.text() == url
+    if url_text is not None:
+        assert url_widget._urltype == load_status
+        assert url_widget.text() == url_text
     else:
-        assert url_widget._urltype.name == 'normal'
+        assert url_widget._urltype == url.UrlType.normal
         assert url_widget.text() == ''
