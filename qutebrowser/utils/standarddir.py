@@ -65,6 +65,17 @@ def data():
     return path
 
 
+def system_data():
+    """Get a location for system-wide data. This path may be read-only."""
+    if sys.platform.startswith('linux'):
+        path = "/usr/share/qutebrowser"
+        if not os.path.exists(path):
+            path = data()
+    else:
+        path = data()
+    return path
+
+
 def cache():
     """Get a location for the cache."""
     typ = QStandardPaths.CacheLocation
