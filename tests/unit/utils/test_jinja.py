@@ -46,16 +46,13 @@ def patch_read_file(monkeypatch):
 
 def test_simple_template():
     """Test with a simple template."""
-    template = jinja.env.get_template('test.html')
-    # https://bitbucket.org/logilab/pylint/issue/490/
-    data = template.render(var='World')  # pylint: disable=no-member
+    data = jinja.render('test.html', var='World')
     assert data == "Hello World"
 
 
 def test_resource_url():
     """Test resource_url() which can be used from templates."""
-    template = jinja.env.get_template('test2.html')
-    data = template.render()  # pylint: disable=no-member
+    data = jinja.render('test2.html')
     print(data)
     url = QUrl(data)
     assert url.isValid()
@@ -74,7 +71,7 @@ def test_resource_url():
 def test_not_found():
     """Test with a template which does not exist."""
     with pytest.raises(jinja2.TemplateNotFound) as excinfo:
-        jinja.env.get_template('does_not_exist.html')
+        jinja.render('does_not_exist.html')
     assert str(excinfo.value) == 'does_not_exist.html'
 
 
@@ -86,9 +83,7 @@ def test_utf8():
 
     https://github.com/The-Compiler/qutebrowser/issues/127
     """
-    template = jinja.env.get_template('test.html')
-    # https://bitbucket.org/logilab/pylint/issue/490/
-    data = template.render(var='\u2603')  # pylint: disable=no-member
+    data = jinja.render('test.html', var='\u2603')
     assert data == "Hello \u2603"
 
 

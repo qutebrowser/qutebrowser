@@ -166,10 +166,8 @@ class BrowserPage(QWebPage):
             log.webview.debug("Error domain: {}, error code: {}".format(
                 info.domain, info.error))
             title = "Error loading page: {}".format(urlstr)
-            template = jinja.env.get_template('error.html')
-            # pylint: disable=no-member
-            # WORKAROUND for https://bitbucket.org/logilab/pylint/issue/490/
-            html = template.render(
+            html = jinja.render(
+                'error.html',
                 title=title, url=urlstr, error=error_str, icon='')
             errpage.content = html.encode('utf-8')
             errpage.encoding = 'utf-8'

@@ -70,9 +70,6 @@ def dirbrowser_html(path):
         The HTML of the web page.
     """
     title = "Browse directory: {}".format(path)
-    template = jinja.env.get_template('dirbrowser.html')
-    # pylint: disable=no-member
-    # WORKAROUND for https://bitbucket.org/logilab/pylint/issue/490/
 
     if is_root(path):
         parent = None
@@ -82,18 +79,16 @@ def dirbrowser_html(path):
     try:
         all_files = os.listdir(path)
     except OSError as e:
-        html = jinja.env.get_template('error.html').render(
-            title="Error while reading directory",
-            url='file://{}'.format(path),
-            error=str(e),
-            icon='')
+        html = jinja.render('error.html',
+                            title="Error while reading directory",
+                            url='file://{}'.format(path), error=str(e),
+                            icon='')
         return html.encode('UTF-8', errors='xmlcharrefreplace')
 
     files = get_file_list(path, all_files, os.path.isfile)
     directories = get_file_list(path, all_files, os.path.isdir)
-    html = template.render(title=title, url=path, icon='',
-                           parent=parent, files=files,
-                           directories=directories)
+    html = jinja.render('dirbrowser.html', title=title, url=path, icon='',
+                        parent=parent, files=files, directories=directories)
     return html.encode('UTF-8', errors='xmlcharrefreplace')
 
 

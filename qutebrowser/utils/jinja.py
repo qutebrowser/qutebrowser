@@ -71,5 +71,11 @@ def resource_url(path):
     image = utils.resource_filename(path)
     return QUrl.fromLocalFile(image).toString(QUrl.FullyEncoded)
 
-env = jinja2.Environment(loader=Loader('html'), autoescape=_guess_autoescape)
-env.globals['resource_url'] = resource_url
+
+def render(template, **kwargs):
+    """Render the given template and pass the given arguments to it."""
+    return _env.get_template(template).render(**kwargs)
+
+
+_env = jinja2.Environment(loader=Loader('html'), autoescape=_guess_autoescape)
+_env.globals['resource_url'] = resource_url

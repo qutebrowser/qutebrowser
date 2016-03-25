@@ -16,12 +16,6 @@
 #
 # You should have received a copy of the GNU General Public License
 # along with qutebrowser.  If not, see <http://www.gnu.org/licenses/>.
-#
-# pylint complains when using .render() on jinja templates, so we make it shut
-# up for this whole module.
-
-# pylint: disable=no-member
-# WORKAROUND for https://bitbucket.org/logilab/pylint/issue/490/
 
 """Handler functions for different qute:... pages.
 
@@ -149,17 +143,16 @@ class JSBridge(QObject):
 @add_handler('pyeval')
 def qute_pyeval(_win_id, _request):
     """Handler for qute:pyeval. Return HTML content as bytes."""
-    html = jinja.env.get_template('pre.html').render(
-        title='pyeval', content=pyeval_output)
+    html = jinja.render('pre.html', title='pyeval', content=pyeval_output)
     return html.encode('UTF-8', errors='xmlcharrefreplace')
 
 
 @add_handler('version')
 def qute_version(_win_id, _request):
     """Handler for qute:version. Return HTML content as bytes."""
-    html = jinja.env.get_template('version.html').render(
-        title='Version info', version=version.version(),
-        copyright=qutebrowser.__copyright__)
+    html = jinja.render('version.html', title='Version info',
+                        version=version.version(),
+                        copyright=qutebrowser.__copyright__)
     return html.encode('UTF-8', errors='xmlcharrefreplace')
 
 
@@ -170,7 +163,7 @@ def qute_plainlog(_win_id, _request):
         text = "Log output was disabled."
     else:
         text = log.ram_handler.dump_log()
-    html = jinja.env.get_template('pre.html').render(title='log', content=text)
+    html = jinja.render('pre.html', title='log', content=text)
     return html.encode('UTF-8', errors='xmlcharrefreplace')
 
 
@@ -181,8 +174,7 @@ def qute_log(_win_id, _request):
         html_log = None
     else:
         html_log = log.ram_handler.dump_log(html=True)
-    html = jinja.env.get_template('log.html').render(
-        title='log', content=html_log)
+    html = jinja.render('log.html', title='log', content=html_log)
     return html.encode('UTF-8', errors='xmlcharrefreplace')
 
 
@@ -198,7 +190,8 @@ def qute_help(win_id, request):
     try:
         utils.read_file('html/doc/index.html')
     except OSError:
-        html = jinja.env.get_template('error.html').render(
+        html = jinja.render(
+            'error.html',
             title="Error while loading documentation",
             url=request.url().toDisplayString(),
             error="This most likely means the documentation was not generated "
@@ -224,9 +217,8 @@ def qute_help(win_id, request):
 def qute_settings(win_id, _request):
     """Handler for qute:settings. View/change qute configuration."""
     config_getter = functools.partial(objreg.get('config').get, raw=True)
-    html = jinja.env.get_template('settings.html').render(
-        win_id=win_id, title='settings', config=configdata,
-        confget=config_getter)
+    html = jinja.render('settings.html', win_id=win_id, title='settings',
+                        config=configdata, confget=config_getter)
     return html.encode('UTF-8', errors='xmlcharrefreplace')
 
 
