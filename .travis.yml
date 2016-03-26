@@ -42,8 +42,6 @@ matrix:
   allow_failures:
     - os: osx
       env: TESTENV=py35
-    - os: linux
-      env: TESTENV=eslint
 
 cache:
   directories:
