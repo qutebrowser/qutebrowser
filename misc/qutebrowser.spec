@@ -29,6 +29,14 @@ def get_data_files():
 setupcommon.write_git_file()
 
 
+if os.name == 'nt':
+    icon = 'icons/qutebrowser.ico'
+elif sys.platform == 'darwin':
+    icon = 'icons/qutebrowser.icns'
+else:
+    icon = None
+
+
 a = Analysis(['../qutebrowser.py'],
              pathex=['misc'],
              binaries=None,
@@ -46,6 +54,7 @@ exe = EXE(pyz,
           a.scripts,
           exclude_binaries=True,
           name='qutebrowser',
+          icon=icon,
           debug=False,
           strip=False,
           upx=True,
