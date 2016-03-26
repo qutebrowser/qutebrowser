@@ -1,5 +1,11 @@
 # -*- mode: python -*-
 
+import sys
+import os
+
+sys.path.insert(0, os.getcwd())
+from scripts import setupcommon
+
 block_cipher = None
 
 
@@ -9,6 +15,7 @@ def get_data_files():
         ('../qutebrowser/img', 'img'),
         ('../qutebrowser/javascript', 'javascript'),
         ('../qutebrowser/html/doc', 'html/doc'),
+        ('../qutebrowser/git-commit-id', '')
     ]
 
     if os.path.exists(os.path.join('qutebrowser', '3rdparty', 'pdfjs')):
@@ -17,6 +24,9 @@ def get_data_files():
         print("Warning: excluding pdfjs as it's not present!")
 
     return data_files
+
+
+setupcommon.write_git_file()
 
 
 a = Analysis(['../qutebrowser.py'],
