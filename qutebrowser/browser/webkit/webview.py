@@ -191,6 +191,20 @@ class WebView(QWebView):
         self.settings().setAttribute(QWebSettings.JavascriptEnabled,
                         default_policy)
 
+    def apply_local_zoom_policy(self, url):
+        domains = objreg.get('domain-manager')
+        zoom_policy = domains.get_setting(url.host()+url.path(),
+                                          'zoom', None)
+        if not zoom_policy:
+            zoom_policy = domains.get_setting(url.host(),
+                                          'zoom', None)
+        if zoom_policy:
+            try:
+                zoom_policy = int(zoom_policy)
+            except ValueError:
+                log.webview.error("Invalid zoom value for {}".format(url))
+                return
+            self.tab.zoom.set_factor(float(zoom_policy) / 100)
 
     @pyqtSlot()
     def on_load_finished(self):
