@@ -361,6 +361,29 @@ class NetworkManager(QNetworkAccessManager):
         """Set the referer header."""
         referer_header_conf = config.get('network', 'referer-header')
 
+        # For per-domain stuff look at current url rather than req.url()
+        # It would be nicer to just send the referer to the sites that needed
+        # it but with for example a js loaded captcha that depends on the
+        # referer then it is hard to know what value to use without breaking
+        # out the developer tools.
+        domains = objreg.get('domain-manager')
+        ref_policy = domains.get_setting(current_url.host()+current_url.path(),
+                                              'referer')
+        if ref_policy is not None:
+            log.webview.debug("referer policy path match for url {}".format(
+                current_url))
+            if ref_policy == False:
+                req.setRawHeader('Referer'.encode('ascii'), QByteArray())
+            return
+        ref_policy = domains.get_setting(current_url.host(),
+                                              'referer')
+        if ref_policy is not None:
+            log.webview.debug("referer policy path match for url {}".format(
+                current_url))
+            if ref_policy == False:
+                req.setRawHeader('Referer'.encode('ascii'), QByteArray())
+            return
+
         try:
             if referer_header_conf == 'never':
                 # Note: using ''.encode('ascii') sends a header with no value,
