@@ -3,10 +3,26 @@
 block_cipher = None
 
 
+def get_data_files():
+    data_files = [
+        ('../qutebrowser/html', 'html'),
+        ('../qutebrowser/img', 'img'),
+        ('../qutebrowser/javascript', 'javascript'),
+        ('../qutebrowser/html/doc', 'html/doc'),
+    ]
+
+    if os.path.exists(os.path.join('qutebrowser', '3rdparty', 'pdfjs')):
+        data_files.append(('../qutebrowser/3rdparty/pdfjs', '3rdparty/pdfjs'))
+    else:
+        print("Warning: excluding pdfjs as it's not present!")
+
+    return data_files
+
+
 a = Analysis(['../qutebrowser.py'],
              pathex=['misc'],
              binaries=None,
-             datas=None,
+             datas=get_data_files(),
              hiddenimports=[],
              hookspath=[],
              runtime_hooks=[],
