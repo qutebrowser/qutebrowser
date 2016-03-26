@@ -214,7 +214,16 @@ it as part of the packaging process.
 Installing qutebrowser with tox
 -------------------------------
 
-Run tox inside the qutebrowser repository to set up a
+First of all, clone the repository using http://git-scm.org/[git] and switch
+into the repository folder:
+
+----
+$ git clone https://github.com/The-Compiler/qutebrowser.git
+$ cd qutebrowser
+----
+
+
+Then run tox inside the qutebrowser repository to set up a
 https://docs.python.org/3/library/venv.html[virtual environment]:
 
 ----
