@@ -62,6 +62,7 @@ Fixed
 - Fixed very long filenames when downloading `data://`-URLs.
 - Fixed ugly UI fonts on Windows when Liberation Mono is installed
 - Fixed crash when unbinding key from a section which doesn't exist in the config
+- Fixed report window after a segfault
 
 v0.5.1
 ------
