@@ -508,11 +508,23 @@ class FatalCrashDialog(_CrashDialog):
     def _init_text(self):
         super()._init_text()
         text = ("<b>qutebrowser was restarted after a fatal crash.</b><br/>"
-                "<br/>Note: Crash reports for fatal crashes sometimes don't "
+                "QTWEBENGINE_NOTE"
+                "<br/>Crash reports for fatal crashes sometimes don't "
                 "contain the information necessary to fix an issue. Please "
                 "follow the steps in <a href='https://github.com/The-Compiler/"
                 "qutebrowser/blob/master/doc/stacktrace.asciidoc'>"
                 "stacktrace.asciidoc</a> to submit a stacktrace.<br/>")
+
+        if datetime.datetime.now() < datetime.datetime(2016, 4, 23):
+            note = ("<br/>Fatal crashes like this are often caused by the "
+                    "current QtWebKit backend.<br/><b>I'm currently running a "
+                    "crowdfunding for the new QtWebEngine backend, based on "
+                    "Chromium:</b> <a href='http://igg.me/at/qutebrowser'>"
+                    "igg.me/at/qutebrowser</a><br/>")
+            text = text.replace('QTWEBENGINE_NOTE', note)
+        else:
+            text = text.replace('QTWEBENGINE_NOTE', '')
+
         self._lbl.setText(text)
 
     def _init_checkboxes(self):
