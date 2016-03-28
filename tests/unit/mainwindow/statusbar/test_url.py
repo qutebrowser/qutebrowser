@@ -25,7 +25,6 @@ import collections
 
 from qutebrowser.browser import webview
 from qutebrowser.mainwindow.statusbar import url
-from qutebrowser.utils import usertypes
 
 
 @pytest.fixture
