@@ -129,6 +129,8 @@ def run_command(quteproc, httpbin, command):
     else:
         count = None
     command = command.replace('(port)', str(httpbin.port))
+    command = command.replace('(datapath)', utils.abs_datapath(__file__))
+
     quteproc.send_cmd(command, count=count)
 
 
@@ -334,8 +336,8 @@ def check_contents(quteproc, filename):
     The filename is interpreted relative to tests/integration/data.
     """
     content = quteproc.get_content(plain=False)
-    path = os.path.join(os.path.abspath(os.path.dirname(__file__)), '..',
-                        'data', os.path.join(*filename.split('/')))
+    path = os.path.join(utils.abs_datapath(__file__),
+                        os.path.join(*filename.split('/')))
     with open(path, 'r', encoding='utf-8') as f:
         file_content = f.read()
         assert content == file_content

@@ -22,6 +22,7 @@
 
 import re
 import pprint
+import os.path
 
 
 def print_i(text, indent, error=False):
@@ -101,3 +102,14 @@ def pattern_match(*, pattern, value):
     """
     re_pattern = '.*'.join(re.escape(part) for part in pattern.split('*'))
     return re.fullmatch(re_pattern, value) is not None
+
+def abs_datapath(from_file):
+    """Returns the absolute datapath.
+
+    __FILE__ must be given as an argument
+
+    Return:
+        The absolute path to the tests/integration/data directory.
+    """
+    file_abs = os.path.abspath(os.path.dirname(from_file))
+    return os.path.join(file_abs, '..', 'data')
