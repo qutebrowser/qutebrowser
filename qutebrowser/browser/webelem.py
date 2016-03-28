@@ -285,6 +285,13 @@ class WebElementWrapper(collections.abc.MutableMapping):
         tag = self._elem.tagName().lower()
         return self.get('role', None) in roles or tag in ('input', 'textarea')
 
+    def remove_target(self):
+        """Remove target from link"""
+        if self._elem.tagName().lower() == 'a':
+            self._elem.removeAttribute('target')
+        elif self.parent().tagName().lower() == 'a':
+            self.parent().removeAttribute('target')
+
     def debug_text(self):
         """Get a text based on an element suitable for debug output."""
         self._check_vanished()

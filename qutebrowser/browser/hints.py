@@ -463,6 +463,7 @@ class HintManager(QObject):
                 QMouseEvent(QEvent.MouseButtonRelease, pos, Qt.LeftButton,
                             Qt.NoButton, modifiers),
             ]
+        elem.remove_target()
         for evt in events:
             self.mouse_event.emit(evt)
         if elem.is_text_input() and elem.is_editable():
