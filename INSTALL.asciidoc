@@ -135,6 +135,21 @@ it with:
 $ nix-env -i qutebrowser
 ----
 
+On openSUSE
+-----------
+
+There are prebuilt RPMs available for Tumbleweed and Leap 42.1:
+
+http://software.opensuse.org/download.html?project=home%3Aarpraher&package=qutebrowser[One Click Install]
+
+Or add the repo manually:
+
+----
+# zypper addrepo http://download.opensuse.org/repositories/home:arpraher/openSUSE_Tumbleweed/home:arpraher.repo
+# zypper refresh
+# zypper install qutebrowser
+----
+
 On Windows
 ----------
 
