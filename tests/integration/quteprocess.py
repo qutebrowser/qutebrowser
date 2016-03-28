@@ -348,16 +348,8 @@ class QuteProc(testprocess.Process):
     def open_path(self, path, *, new_tab=False, new_window=False, port=None,
                   https=False):
         """Open the given path on the local webserver in qutebrowser."""
-        if new_tab and new_window:
-            raise ValueError("new_tab and new_window given!")
-
         url = self.path_to_url(path, port=port, https=https)
-        if new_tab:
-            self.send_cmd(':open -t ' + url)
-        elif new_window:
-            self.send_cmd(':open -w ' + url)
-        else:
-            self.send_cmd(':open ' + url)
+        self.open_url(url, new_tab=new_tab, new_window=new_window)
 
     def open_url(self, url, *, new_tab=False, new_window=False):
         """Open the given url in qutebrowser."""
