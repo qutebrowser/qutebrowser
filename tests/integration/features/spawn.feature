@@ -9,7 +9,7 @@ Feature: :spawn
         Then the error "Error while spawning command: The process failed to start." should be shown
 
     Scenario: Running :spawn with invalid quoting
-        When I run :spawn """
+        When I run :spawn ""'""
         Then the error "Error while splitting command: No closing quotation" should be shown
 
     Scenario: Running :spawn with url variable
