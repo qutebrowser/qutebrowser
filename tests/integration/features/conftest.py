@@ -129,9 +129,21 @@ def run_command(quteproc, httpbin, command):
     else:
         count = None
     command = command.replace('(port)', str(httpbin.port))
-    command = command.replace('(datapath)', utils.abs_datapath(__file__))
 
     quteproc.send_cmd(command, count=count)
+
+
+@bdd.when(bdd.parsers.parse("I execute the userscript {userscript}"))
+def run_userscript(quteproc, userscript):
+    """Run a userscript located in tests/integration/data/userscripts.
+
+    Wrapper around :spawn --userscript {userscript} that uses an absolute
+    path.
+    """
+    abs_userscript_path = os.path.join(utils.abs_datapath(__file__),
+                                       'userscripts', userscript)
+    cmd = ':spawn --userscript {abs_userscript_path}'
+    quteproc.send_cmd(cmd.format(abs_userscript_path=abs_userscript_path))
 
 
 @bdd.when(bdd.parsers.parse("I reload"))
