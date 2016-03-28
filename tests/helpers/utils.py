@@ -103,8 +103,9 @@ def pattern_match(*, pattern, value):
     re_pattern = '.*'.join(re.escape(part) for part in pattern.split('*'))
     return re.fullmatch(re_pattern, value) is not None
 
+
 def abs_datapath(from_file):
-    """Returns the absolute datapath.
+    """Get the absolute datapath.
 
     __FILE__ must be given as an argument
 
