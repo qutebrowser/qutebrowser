@@ -124,3 +124,23 @@ def test_on_tab_changed(url_widget, tab_widget, load_status, url_text):
     else:
         assert url_widget._urltype == url.UrlType.normal
         assert url_widget.text() == ''
+
+
+@pytest.mark.parametrize('url_text, load_status, expected_status', [
+    ('http://abc123.com/this/awesome/url.html', webview.LoadStatus.success,
+        url.UrlType.success),
+    ('https://supersecret.gov/nsa/files.txt', webview.LoadStatus.success_https,
+        url.UrlType.success_https),
+    ('Th1$ i$ n0t @ n0rm@L uRL! P@n1c! <-->', webview.LoadStatus.error,
+        url.UrlType.error),
+    ('http://www.qutebrowser.org/CONTRIBUTING.html', webview.LoadStatus.loading,
+        url.UrlType.normal),
+    ('www.whatisthisurl.com', webview.LoadStatus.warn, url.UrlType.warn)
+])
+def test_normal_url(url_widget, url_text, load_status, expected_status):
+    url_widget.set_url(url_text)
+    url_widget.on_load_status_changed(load_status.name)
+    url_widget.set_hover_url(url_text, "", "")
+    url_widget.set_hover_url("", "", "")
+    assert url_widget.text() == url_text
+    assert url_widget._urltype == expected_status
