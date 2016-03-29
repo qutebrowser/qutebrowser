@@ -124,7 +124,7 @@ class TestDirbrowserHtml:
             container = soup('div', id='dirbrowserContainer')[0]
 
             parent_elem = container('ul', class_='parent')
-            if len(parent_elem) == 0:
+            if not parent_elem:
                 parent = None
             else:
                 parent = parent_elem[0].li.a.string

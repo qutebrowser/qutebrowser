@@ -117,7 +117,7 @@ class DirLayout:
         container = soup('div', id='dirbrowserContainer')[0]
 
         parent_elem = container('ul', class_='parent')
-        if len(parent_elem) == 0:
+        if not parent_elem:
             parent = None
         else:
             parent = QUrl(parent_elem[0].li.a['href']).toLocalFile()
@@ -153,6 +153,15 @@ def test_parent_with_slash(dir_layout, quteproc):
     quteproc.open_url(dir_layout.file_url() + '/')
     page = dir_layout.parse(quteproc)
     assert page.parent == dir_layout.base_path()
+
+
+def test_parent_in_root_dir(dir_layout, quteproc):
+    # This actually works on windows
+    root_path = os.path.realpath('/')
+    urlstr = QUrl.fromLocalFile(root_path).toString(QUrl.FullyEncoded)
+    quteproc.open_url(urlstr)
+    page = dir_layout.parse(quteproc)
+    assert page.parent is None
 
 
 def test_enter_folder_smoke(dir_layout, quteproc):
