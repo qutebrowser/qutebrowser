@@ -16,6 +16,7 @@ Feature: :spawn
         When I run :spawn echo {url}
         Then "Executing echo with args ['about:blank'], userscript=False" should be logged
 
+    @posix
     Scenario: Running :spawn with userscript
         When I execute the userscript open_current_url
         And I wait until about:blank is loaded
