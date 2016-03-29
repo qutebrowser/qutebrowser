@@ -190,7 +190,8 @@ class TestClickElement:
     ('Test', "'Test'"),
     ("Don't", '"Don\'t"'),
     # This is some serious string escaping madness
-    ('"Don\'t", he said', "concat('\"', 'Don', \"'\", 't', '\"', ', he said')"),
+    ('"Don\'t", he said',
+     "concat('\"', 'Don', \"'\", 't', '\"', ', he said')"),
 ])
 def test_xpath_escape(string, expected):
     assert quteprocess._xpath_escape(string) == expected

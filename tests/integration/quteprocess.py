@@ -259,7 +259,8 @@ class QuteProc(testprocess.Process):
         Return:
             The LogLine.
         """
-        return self.wait_for(category='js', function='javaScriptConsoleMessage',
+        return self.wait_for(category='js',
+                             function='javaScriptConsoleMessage',
                              message='[*] {}'.format(message))
 
     def _is_error_logline(self, msg):
@@ -429,8 +430,8 @@ class QuteProc(testprocess.Process):
 
     def click_element(self, text):
         """Click the element with the given text."""
-        # Use Javascript and XPath to find the right element, use console.log to
-        # return an error (no element found, ambiguous element)
+        # Use Javascript and XPath to find the right element, use console.log
+        # to return an error (no element found, ambiguous element)
         script = (
             'var _es = document.evaluate(\'//*[text()={text}]\', document, '
             'null, XPathResult.ORDERED_NODE_SNAPSHOT_TYPE, null);'
@@ -469,12 +470,12 @@ def _xpath_escape(text):
         The string "escaped" as a concat() call.
     """
     # Shortcut if at most a single quoting style is used
-    if not "'" in text or not '"' in text:
+    if "'" not in text or '"' not in text:
         return repr(text)
     parts = re.split('([\'"])', text)
-    # Python's repr() of strings will automatically choose the right quote type.
-    # Since each part only contains one "type" of quote, no escaping should be
-    # necessary.
+    # Python's repr() of strings will automatically choose the right quote
+    # type. Since each part only contains one "type" of quote, no escaping
+    # should be necessary.
     parts = [repr(part) for part in parts if part]
     return 'concat({})'.format(', '.join(parts))
 
