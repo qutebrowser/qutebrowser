@@ -11,6 +11,7 @@
 |<<bookmark-add,bookmark-add>>|Save the current page as a bookmark.
 |<<bookmark-del,bookmark-del>>|Delete a bookmark.
 |<<bookmark-load,bookmark-load>>|Load a bookmark.
+|<<buffer,buffer>>|Select tab by index or url/title best match.
 |<<close,close>>|Close the current window.
 |<<download,download>>|Download a given URL, or current page if no URL given.
 |<<download-cancel,download-cancel>>|Cancel the last/[count]th download.
@@ -141,6 +142,18 @@ Load a bookmark.
 ==== note
 * This command does not split arguments after the last argument and handles quotes literally.
 * With this command, +;;+ is interpreted literally instead of splitting off a second command.
+
+[[buffer]]
+=== buffer
+Syntax: +:buffer 'index'+
+
+Select tab by index or url/title best match.
+
+Focuses window if necessary.
+
+==== positional arguments
+* +'index'+: The [win_id/]index of the tab to focus. Or a substring in which case the closest match will be focused.
+
 
 [[close]]
 === close
