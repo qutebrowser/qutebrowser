@@ -28,6 +28,7 @@ from PyQt5.QtCore import QUrl
 from PyQt5.QtNetwork import QNetworkRequest
 
 from qutebrowser.browser.network import filescheme
+from qutebrowser.utils import jinja
 
 
 @pytest.mark.parametrize('create_file, create_dir, filterfunc, expected', [
@@ -57,6 +58,8 @@ class TestIsRoot:
 
     @pytest.mark.windows
     @pytest.mark.parametrize('directory, is_root', [
+        ('C:\\foo\\bar', False),
+        ('C:\\foo\\', False),
         ('C:\\foo', False),
         ('C:\\', True)
     ])
@@ -65,11 +68,45 @@ class TestIsRoot:
 
     @pytest.mark.posix
     @pytest.mark.parametrize('directory, is_root', [
+        ('/foo/bar', False),
+        ('/foo/', False),
         ('/foo', False),
         ('/', True)
     ])
     def test_posix(self, directory, is_root):
         assert filescheme.is_root(directory) == is_root
+
+
+class TestParentDir:
+
+    @pytest.mark.windows
+    @pytest.mark.parametrize('directory, parent', [
+        ('C:\\foo\\bar', 'C:\\foo'),
+        ('C:\\foo', 'C:\\'),
+        ('C:\\foo\\', 'C:\\'),
+        ('C:\\', 'C:\\'),
+    ])
+    def test_windows(self, directory, parent):
+        assert filescheme.parent_dir(directory) == parent
+
+    @pytest.mark.posix
+    @pytest.mark.parametrize('directory, parent', [
+        ('/home/foo', '/home'),
+        ('/home', '/'),
+        ('/home/', '/'),
+        ('/', '/'),
+    ])
+    def test_posix(self, directory, parent):
+        assert filescheme.parent_dir(directory) == parent
+
+
+def _file_url(path):
+    """Return a file:// url (as string) for the given LocalPath.
+
+    Arguments:
+        path: The filepath as LocalPath (as handled by py.path)
+    """
+    return jinja.file_url(str(path))
 
 
 class TestDirbrowserHtml:
@@ -87,7 +124,7 @@ class TestDirbrowserHtml:
             container = soup('div', id='dirbrowserContainer')[0]
 
             parent_elem = container('ul', class_='parent')
-            if len(parent_elem) == 0:
+            if not parent_elem:
                 parent = None
             else:
                 parent = parent_elem[0].li.a.string
@@ -145,8 +182,8 @@ class TestDirbrowserHtml:
         parsed = parser(str(tmpdir))
         assert parsed.parent
         assert not parsed.folders
-        foo_item = self.Item('file://' + str(foo_file), foo_file.relto(tmpdir))
-        bar_item = self.Item('file://' + str(bar_file), bar_file.relto(tmpdir))
+        foo_item = self.Item(_file_url(foo_file), foo_file.relto(tmpdir))
+        bar_item = self.Item(_file_url(bar_file), bar_file.relto(tmpdir))
         assert parsed.files == [bar_item, foo_item]
 
     def test_html_special_chars(self, tmpdir, parser):
@@ -154,8 +191,7 @@ class TestDirbrowserHtml:
         special_file.ensure()
 
         parsed = parser(str(tmpdir))
-        item = self.Item('file://' + str(special_file),
-                         special_file.relto(tmpdir))
+        item = self.Item(_file_url(special_file), special_file.relto(tmpdir))
         assert parsed.files == [item]
 
     def test_dirs(self, tmpdir, parser):
@@ -167,8 +203,8 @@ class TestDirbrowserHtml:
         parsed = parser(str(tmpdir))
         assert parsed.parent
         assert not parsed.files
-        foo_item = self.Item('file://' + str(foo_dir), foo_dir.relto(tmpdir))
-        bar_item = self.Item('file://' + str(bar_dir), bar_dir.relto(tmpdir))
+        foo_item = self.Item(_file_url(foo_dir), foo_dir.relto(tmpdir))
+        bar_item = self.Item(_file_url(bar_dir), bar_dir.relto(tmpdir))
         assert parsed.folders == [bar_item, foo_item]
 
     def test_mixed(self, tmpdir, parser):
@@ -178,8 +214,8 @@ class TestDirbrowserHtml:
         bar_dir.ensure(dir=True)
 
         parsed = parser(str(tmpdir))
-        foo_item = self.Item('file://' + str(foo_file), foo_file.relto(tmpdir))
-        bar_item = self.Item('file://' + str(bar_dir), bar_dir.relto(tmpdir))
+        foo_item = self.Item(_file_url(foo_file), foo_file.relto(tmpdir))
+        bar_item = self.Item(_file_url(bar_dir), bar_dir.relto(tmpdir))
         assert parsed.parent
         assert parsed.files == [foo_item]
         assert parsed.folders == [bar_item]
