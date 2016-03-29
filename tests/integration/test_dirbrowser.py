@@ -178,13 +178,7 @@ def test_enter_folder_smoke(dir_layout, quteproc):
 @pytest.mark.parametrize('folder', DirLayout.layout_folders())
 def test_enter_folder(dir_layout, quteproc, folder):
     quteproc.open_url(dir_layout.file_url())
-    # Use Javascript and XPath to click the link that has the folder name as
-    # text.
-    quteproc.send_cmd(
-        ':jseval document.evaluate(\'//a[text()="{}"]\', document, null, '
-        'XPathResult.ANY_TYPE, null).iterateNext().click()'
-        .format(folder)
-    )
+    quteproc.click_element(text=folder)
     page = parse(quteproc)
     assert page.path == dir_layout.path(folder)
     assert page.parent == dir_layout.path()

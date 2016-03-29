@@ -37,6 +37,7 @@ from PyQt5.QtCore import pyqtSignal, QUrl
 import testprocess
 from qutebrowser.misc import ipc
 from qutebrowser.utils import log, utils
+from qutebrowser.browser import webelem
 from helpers import utils as testutils
 
 
@@ -253,9 +254,13 @@ class QuteProc(testprocess.Process):
                 path if path != '/' else '')
 
     def wait_for_js(self, message):
-        """Wait for the given javascript console message."""
-        self.wait_for(category='js', function='javaScriptConsoleMessage',
-                      message='[*] {}'.format(message))
+        """Wait for the given javascript console message.
+
+        Return:
+            The LogLine.
+        """
+        return self.wait_for(category='js', function='javaScriptConsoleMessage',
+                             message='[*] {}'.format(message))
 
     def _is_error_logline(self, msg):
         """Check if the given LogLine is some kind of error message."""
@@ -421,6 +426,28 @@ class QuteProc(testprocess.Process):
     def press_keys(self, keys):
         """Press the given keys using :fake-key."""
         self.send_cmd(':fake-key -g "{}"'.format(keys))
+
+    def click_element(self, text):
+        """Click the element with the given text."""
+        # Use Javascript and XPath to find the right element, use console.log to
+        # return an error (no element found, ambiguous element)
+        script = (
+            'var _es = document.evaluate(\'//*[text()="{text}"]\', document, '
+            'null, XPathResult.ORDERED_NODE_SNAPSHOT_TYPE, null);'
+            'if (_es.snapshotLength == 0) {{ console.log("qute:no elems"); }} '
+            'else if (_es.snapshotLength > 1) {{ console.log("qute:ambiguous '
+            'elems") }} '
+            'else {{ console.log("qute:okay"); _es.snapshotItem(0).click() }}'
+        ).format(text=webelem.javascript_escape(text))
+        self.send_cmd(':jseval ' + script)
+        message = self.wait_for_js('qute:*').message
+        if message.endswith('qute:no elems'):
+            raise ValueError('No element with {!r} found'.format(text))
+        elif message.endswith('qute:ambiguous elems'):
+            raise ValueError('Element with {!r} is not unique'.format(text))
+        elif not message.endswith('qute:okay'):
+            raise ValueError('Invalid response from qutebrowser: {}'
+                             .format(message))
 
 
 @pytest.yield_fixture(scope='module')
