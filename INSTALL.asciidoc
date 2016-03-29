@@ -102,6 +102,12 @@ $ rm -r qutebrowser-git
 
 or you could use an AUR helper, e.g. `yaourt -S qutebrowser-git`.
 
+If video or sound don't seem to work, try installing the gstreamer plugins:
+
+----
+# pacman -S gst-plugins-{base,good,bad,ugly} gst-libav
+----
+
 On Gentoo
 ---------
 
