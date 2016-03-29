@@ -55,7 +55,7 @@ def pbclient():
 
 def test_constructor(qapp):
     http_client = httpclient.HTTPClient()
-    pbclient = pastebin.PastebinClient(http_client)
+    pastebin.PastebinClient(http_client)
 
 
 @pytest.mark.parametrize('data', [
