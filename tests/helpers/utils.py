@@ -104,13 +104,11 @@ def pattern_match(*, pattern, value):
     return re.fullmatch(re_pattern, value) is not None
 
 
-def abs_datapath(from_file):
-    """Get the absolute datapath.
-
-    __FILE__ must be given as an argument
+def abs_datapath():
+    """Get the absolute path to the integration data directory.
 
     Return:
         The absolute path to the tests/integration/data directory.
     """
-    file_abs = os.path.abspath(os.path.dirname(from_file))
-    return os.path.join(file_abs, '..', 'data')
+    file_abs = os.path.abspath(os.path.dirname(__file__))
+    return os.path.join(file_abs, '..', 'integration', 'data')

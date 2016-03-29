@@ -140,10 +140,10 @@ def run_userscript(quteproc, userscript):
     Wrapper around :spawn --userscript {userscript} that uses an absolute
     path.
     """
-    abs_userscript_path = os.path.join(utils.abs_datapath(__file__),
+    abs_userscript_path = os.path.join(utils.abs_datapath(),
                                        'userscripts', userscript)
 
-    cmd = ':spawn --userscript "{abs_userscript_path}"'
+    cmd = ':spawn --userscript {abs_userscript_path}'
     quteproc.send_cmd(cmd.format(abs_userscript_path=abs_userscript_path))
 
 
@@ -349,7 +349,7 @@ def check_contents(quteproc, filename):
     The filename is interpreted relative to tests/integration/data.
     """
     content = quteproc.get_content(plain=False)
-    path = os.path.join(utils.abs_datapath(__file__),
+    path = os.path.join(utils.abs_datapath(),
                         os.path.join(*filename.split('/')))
     with open(path, 'r', encoding='utf-8') as f:
         file_content = f.read()
