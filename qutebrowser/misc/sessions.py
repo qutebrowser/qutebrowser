@@ -184,6 +184,8 @@ class SessionManager(QObject):
 
             win_data = {}
             active_window = QApplication.instance().activeWindow()
+            if main_window.name():
+                win_data['name'] = main_window.name()
             if getattr(active_window, 'win_id', None) == win_id:
                 win_data['active'] = True
             win_data['geometry'] = bytes(main_window.saveGeometry())
@@ -309,7 +311,7 @@ class SessionManager(QObject):
             raise SessionError(e)
         log.sessions.debug("Loading session {} from {}...".format(name, path))
         for win in data['windows']:
-            window = mainwindow.MainWindow(geometry=win['geometry'])
+            window = mainwindow.MainWindow(geometry=win['geometry'],name=win['name'])
             window.show()
             tabbed_browser = objreg.get('tabbed-browser', scope='window',
                                         window=window.win_id)

@@ -71,10 +71,10 @@ class CommandDispatcher:
     def __repr__(self):
         return utils.get_repr(self)
 
-    def _new_tabbed_browser(self):
+    def _new_tabbed_browser(self, name=""):
         """Get a tabbed-browser from a new window."""
         from qutebrowser.mainwindow import mainwindow
-        new_window = mainwindow.MainWindow()
+        new_window = mainwindow.MainWindow(name=name)
         new_window.show()
         return new_window.tabbed_browser
 
@@ -112,7 +112,7 @@ class CommandDispatcher:
             raise cmdexc.CommandError("No WebView available yet!")
         return widget
 
-    def _open(self, url, tab=False, background=False, window=False):
+    def _open(self, url, tab=False, background=False, window=False, name=""):
         """Helper function to open a page.
 
         Args:
@@ -125,7 +125,7 @@ class CommandDispatcher:
         tabbed_browser = self._tabbed_browser
         cmdutils.check_exclusive((tab, background, window), 'tbw')
         if window:
-            tabbed_browser = self._new_tabbed_browser()
+            tabbed_browser = self._new_tabbed_browser(name)
             tabbed_browser.tabopen(url)
         elif tab:
             tabbed_browser.tabopen(url, background=False, explicit=True)
@@ -225,10 +225,21 @@ class CommandDispatcher:
             self._tabbed_browser.close_tab(tab)
             tabbar.setSelectionBehaviorOnRemove(old_selection_behavior)
 
+    @cmdutils.register(instance='command-dispatcher', name='set-window-name',
+                       maxsplit=0, scope='window')
+    def set_window_name(self, name=""):
+        """Set the current windows name.
+
+        Args:
+            name: The new name of the window.
+        """
+        self._tabbed_browser.setName(name)
+
     @cmdutils.register(instance='command-dispatcher', name='open',
                        maxsplit=0, scope='window', count='count',
                        completion=[usertypes.Completion.url])
-    def openurl(self, url=None, bg=False, tab=False, window=False, count=None):
+    def openurl(self, url=None, bg=False, tab=False, window=False, count=None,
+                *, name=""):
         """Open a URL in the current/[count]th tab.
 
         Args:
@@ -249,8 +260,10 @@ class CommandDispatcher:
                 url = urlutils.fuzzy_url(url)
             except urlutils.InvalidUrlError as e:
                 raise cmdexc.CommandError(e)
+        if (tab or bg) and name:
+            raise cmdexc.CommandError("--name only makes sense with --window!")
         if tab or bg or window:
-            self._open(url, tab, bg, window)
+            self._open(url, tab, bg, window, name)
         else:
             curtab = self._cntwidget(count)
             if curtab is None:

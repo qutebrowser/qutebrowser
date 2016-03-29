@@ -102,7 +102,7 @@ class MainWindow(QWidget):
         _commandrunner: The main CommandRunner instance.
     """
 
-    def __init__(self, geometry=None, parent=None):
+    def __init__(self, geometry=None, name="", parent=None):
         """Create a new main window.
 
         Args:
@@ -113,6 +113,9 @@ class MainWindow(QWidget):
         self.setAttribute(Qt.WA_DeleteOnClose)
         self._commandrunner = None
         self.win_id = next(win_id_gen)
+        self._name = name
+        self.update_window_title()
+
         self.registry = objreg.ObjectRegistry()
         objreg.window_registry[self.win_id] = self
         objreg.register('main-window', self, scope='window',
@@ -125,7 +128,6 @@ class MainWindow(QWidget):
         objreg.register('message-bridge', message_bridge, scope='window',
                         window=self.win_id)
 
-        self.setWindowTitle('qutebrowser')
         self._vbox = QVBoxLayout(self)
         self._vbox.setContentsMargins(0, 0, 0, 0)
         self._vbox.setSpacing(0)
@@ -186,6 +188,31 @@ class MainWindow(QWidget):
         #self.retranslateUi(MainWindow)
         #self.tabWidget.setCurrentIndex(0)
         #QtCore.QMetaObject.connectSlotsByName(MainWindow)
+
+    def update_window_title(self, title=""):
+        """Update window title.
+
+        :title: A format string for the window title.
+        """
+        fields = {}
+        if not title:
+            fields['perc'] = ''
+            fields['perc_raw'] = ''
+            fields['title'] = ''
+            fields['title_sep'] = ''
+            fields['scroll_pos'] = ''
+
+        fields['id'] = self.win_id
+        fields['name_sep'] = '-' if self._name else ''
+        fields['name'] = self._name
+        self.setWindowTitle(title.format(**fields))
+
+    def name(self):
+        return self._name
+
+    def setName(self, name):
+        self._name = name
+        self.update_window_title()
 
     def __repr__(self):
         return utils.get_repr(self)

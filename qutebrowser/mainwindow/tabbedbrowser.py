@@ -100,6 +100,7 @@ class TabbedBrowser(tabwidget.TabWidget):
     def __init__(self, win_id, parent=None):
         super().__init__(win_id, parent)
         self._win_id = win_id
+        self._name = ""
         self._tab_insert_idx_left = 0
         self._tab_insert_idx_right = -1
         self._shutting_down = False
@@ -157,14 +158,13 @@ class TabbedBrowser(tabwidget.TabWidget):
         widget = self.widget(idx)
 
         fields = {}
-        if widget.load_status == webview.LoadStatus.loading:
+        if widget and widget.load_status == webview.LoadStatus.loading:
             fields['perc'] = '[{}%] '.format(widget.progress)
         else:
             fields['perc'] = ''
         fields['perc_raw'] = widget.progress
         fields['title'] = tabtitle
         fields['title_sep'] = ' - ' if tabtitle else ''
-        fields['id'] = self._win_id
         y = widget.scroll_pos[1]
         if y <= 0:
             scroll_pos = 'top'
@@ -174,8 +174,13 @@ class TabbedBrowser(tabwidget.TabWidget):
             scroll_pos = '{:2}%'.format(y)
 
         fields['scroll_pos'] = scroll_pos
+
+        # there's a better/cleaner solution: http://stackoverflow.com/a/11284026
+        fields['id'] = "{id}"
+        fields['name_sep'] = "{name_sep}"
+        fields['name'] = "{name}"
         fmt = config.get('ui', 'window-title-format')
-        self.window().setWindowTitle(fmt.format(**fields))
+        self.window().update_window_title(fmt.format(**fields))
 
     def _connect_tab_signals(self, tab):
         """Set up the needed signals for tab."""
