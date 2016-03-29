@@ -65,6 +65,8 @@ PERFECT_FILES = [
         'qutebrowser/browser/network/filescheme.py'),
     ('tests/unit/browser/network/test_networkreply.py',
         'qutebrowser/browser/network/networkreply.py'),
+    ('tests/unit/browser/network/test_pastebin.py',
+        'qutebrowser/browser/network/pastebin.py'),
     ('tests/unit/browser/test_signalfilter.py',
         'qutebrowser/browser/signalfilter.py'),
 
