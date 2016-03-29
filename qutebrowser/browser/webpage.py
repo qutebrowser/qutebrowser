@@ -221,8 +221,6 @@ class BrowserPage(QWebPage):
         try:
             page = pdfjs.generate_pdfjs_page(reply.url())
         except pdfjs.PDFJSNotFound:
-            # pylint: disable=no-member
-            # WORKAROUND for https://bitbucket.org/logilab/pylint/issue/490/
             page = jinja.render('no_pdfjs.html',
                                 url=reply.url().toDisplayString())
         self.mainFrame().setContent(page.encode('utf-8'), 'text/html',
