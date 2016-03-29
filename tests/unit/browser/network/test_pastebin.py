@@ -17,16 +17,14 @@
 # You should have received a copy of the GNU General Public License
 # along with qutebrowser.  If not, see <http://www.gnu.org/licenses/>.
 
-"""Tests for qutebrowser.browser.network."""
-
 import pytest
-from PyQt5.QtCore import QUrl
+from PyQt5.QtCore import pyqtSignal, QUrl, QObject
 
 from qutebrowser.browser.network import pastebin
 from qutebrowser.misc import httpclient
 
 
-class HTTPPostStub(httpclient.HTTPClient):
+class HTTPPostStub(QObject):
 
     """A stub class for HTTPClient.
 
@@ -35,8 +33,11 @@ class HTTPPostStub(httpclient.HTTPClient):
         data: the last data send by post()
     """
 
-    def __init__(self):
-        super().__init__()
+    success = pyqtSignal(str)
+    error = pyqtSignal(str)
+
+    def __init__(self, parent=None):
+        super().__init__(parent)
         self.url = None
         self.data = None
 
@@ -47,15 +48,14 @@ class HTTPPostStub(httpclient.HTTPClient):
 
 @pytest.fixture
 def pbclient():
-    client = pastebin.PastebinClient()
     http_stub = HTTPPostStub()
-    client._client = http_stub
+    client = pastebin.PastebinClient(http_stub)
     return client
 
 
 def test_constructor(qapp):
-    pbclient = pastebin.PastebinClient()
-    assert isinstance(pbclient._client, httpclient.HTTPClient)
+    http_client = httpclient.HTTPClient()
+    pbclient = pastebin.PastebinClient(http_client)
 
 
 @pytest.mark.parametrize('data', [
@@ -105,7 +105,7 @@ def test_paste_without_parent(data, pbclient):
 def test_on_client_success(http, pbclient, qtbot):
     with qtbot.assertNotEmitted(pbclient.error):
         with qtbot.waitSignal(pbclient.success):
-            pbclient.on_client_success(http)
+            pbclient._client.success.emit(http)
 
 
 @pytest.mark.parametrize('http', [
@@ -113,7 +113,13 @@ def test_on_client_success(http, pbclient, qtbot):
     "http:/invalid.org"
     "http//invalid.com"
 ])
-def test_on_client_success_invalid_http(http, pbclient, qtbot):
+def test_client_success_invalid_http(http, pbclient, qtbot):
     with qtbot.assertNotEmitted(pbclient.success):
         with qtbot.waitSignal(pbclient.error):
-            pbclient.on_client_success(http)
+            pbclient._client.success.emit(http)
+
+
+def test_client_error(pbclient, qtbot):
+    with qtbot.assertNotEmitted(pbclient.success):
+        with qtbot.waitSignal(pbclient.error):
+            pbclient._client.error.emit("msg")
