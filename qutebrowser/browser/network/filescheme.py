@@ -57,7 +57,27 @@ def is_root(directory):
     Return:
         Whether the directory is a root directory or not.
     """
+    # If you're curious as why this works:
+    # dirname('/') = '/'
+    # dirname('/home') = '/'
+    # dirname('/home/') = '/home'
+    # dirname('/home/foo') = '/home'
+    # basically, for files (no trailing slash) it removes the file part, and
+    # for directories, it removes the trailing slash, so the only way for this
+    # to be equal is if the directory is the root directory.
     return os.path.dirname(directory) == directory
+
+
+def parent_dir(directory):
+    """Return the parent directory for the given directory.
+
+    Args:
+        directory: The path to the directory.
+
+    Return:
+        The path to the parent directory.
+    """
+    return os.path.normpath(os.path.join(directory, os.pardir))
 
 
 def dirbrowser_html(path):
@@ -74,14 +94,14 @@ def dirbrowser_html(path):
     if is_root(path):
         parent = None
     else:
-        parent = os.path.dirname(path)
+        parent = parent_dir(path)
 
     try:
         all_files = os.listdir(path)
     except OSError as e:
         html = jinja.render('error.html',
                             title="Error while reading directory",
-                            url='file://{}'.format(path), error=str(e),
+                            url='file:///{}'.format(path), error=str(e),
                             icon='')
         return html.encode('UTF-8', errors='xmlcharrefreplace')
 
