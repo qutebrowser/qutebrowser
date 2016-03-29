@@ -169,6 +169,7 @@ Contributors, sorted by the number of commits in descending order:
 * Milan Svoboda
 * John ShaggyTwoDope Jenkins
 * Peter Vilim
+* Clayton Craft
 * Oliver Caldwell
 * Philipp Hansch
 * Jonas Schürmann
@@ -182,7 +183,6 @@ Contributors, sorted by the number of commits in descending order:
 * rikn00
 * Michael Ilsaas
 * Martin Zimmermann
-* Clayton Craft
 * Brian Jackson
 * sbinix
 * neeasade
