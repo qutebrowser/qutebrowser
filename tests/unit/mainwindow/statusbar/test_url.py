@@ -46,7 +46,8 @@ def url_widget(qtbot, monkeypatch, config_stub):
             'statusbar.url.fg.success.https': 'green',
             'statusbar.url.fg.error': 'red',
             'statusbar.url.fg.warn': 'orange',
-            'statusbar.url.fg.hover': 'blue'},
+            'statusbar.url.fg.hover': 'blue'
+        },
         'fonts': {},
     }
     monkeypatch.setattr(
