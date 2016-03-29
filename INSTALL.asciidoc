@@ -102,6 +102,12 @@ $ rm -r qutebrowser-git
 
 or you could use an AUR helper, e.g. `yaourt -S qutebrowser-git`.
 
+If video or sound don't seem to work, try installing the gstreamer plugins:
+
+----
+# pacman -S gst-plugins-{base,good,bad,ugly} gst-libav
+----
+
 On Gentoo
 ---------
 
@@ -133,6 +139,21 @@ it with:
 
 ----
 $ nix-env -i qutebrowser
+----
+
+On openSUSE
+-----------
+
+There are prebuilt RPMs available for Tumbleweed and Leap 42.1:
+
+http://software.opensuse.org/download.html?project=home%3Aarpraher&package=qutebrowser[One Click Install]
+
+Or add the repo manually:
+
+----
+# zypper addrepo http://download.opensuse.org/repositories/home:arpraher/openSUSE_Tumbleweed/home:arpraher.repo
+# zypper refresh
+# zypper install qutebrowser
 ----
 
 On Windows
@@ -214,7 +235,16 @@ it as part of the packaging process.
 Installing qutebrowser with tox
 -------------------------------
 
-Run tox inside the qutebrowser repository to set up a
+First of all, clone the repository using http://git-scm.org/[git] and switch
+into the repository folder:
+
+----
+$ git clone https://github.com/The-Compiler/qutebrowser.git
+$ cd qutebrowser
+----
+
+
+Then run tox inside the qutebrowser repository to set up a
 https://docs.python.org/3/library/venv.html[virtual environment]:
 
 ----

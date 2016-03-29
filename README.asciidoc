@@ -165,10 +165,12 @@ Contributors, sorted by the number of commits in descending order:
 * Thorsten Wißmann
 * Austin Anderson
 * Alexey "Averrin" Nabrodov
+* avk
 * ZDarian
 * Milan Svoboda
 * John ShaggyTwoDope Jenkins
 * Peter Vilim
+* Clayton Craft
 * Oliver Caldwell
 * Philipp Hansch
 * Jonas Schürmann
@@ -191,7 +193,6 @@ Contributors, sorted by the number of commits in descending order:
 * Link
 * Larry Hynes
 * Johannes Altmanninger
-* avk
 * Samir Benmendil
 * Regina Hug
 * Mathias Fussenegger
@@ -199,9 +200,9 @@ Contributors, sorted by the number of commits in descending order:
 * Fritz V155 Reichwald
 * Franz Fellner
 * Corentin Jule
-* Clayton Craft
 * zwarag
 * xd1le
+* issue
 * haxwithaxe
 * evan
 * dylan araps

@@ -4,19 +4,15 @@ MAINTAINER Florian Bruhin <me@the-compiler.org>
 RUN echo 'Server = http://mirror.de.leaseweb.net/archlinux/$repo/os/$arch' > /etc/pacman.d/mirrorlist
 RUN pacman-key --init && pacman-key --populate archlinux && pacman -Sy --noconfirm archlinux-keyring
 
-RUN pacman-key -r 0xD6A1C70FE80A0C82 && \
-    pacman-key --lsign-key 0xD6A1C70FE80A0C82 && \
-    echo -e '[qt-debug]\nServer = http://qutebrowser.org/qt-debug/$arch' >> /etc/pacman.conf
-
 RUN pacman -Suyy --noconfirm
 RUN pacman-db-upgrade
 
 RUN pacman -S --noconfirm \
     git \
     python-tox \
-    qt5-base-debug \
-    qt5-webkit-debug \
-    python-pyqt5-debug \
+    qt5-base \
+    qt5-webkit \
+    python-pyqt5 \
     xorg-xinit \
     herbstluftwm \
     xorg-server-xvfb

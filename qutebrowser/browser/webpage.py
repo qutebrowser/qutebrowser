@@ -219,14 +219,12 @@ class BrowserPage(QWebPage):
     def _show_pdfjs(self, reply):
         """Show the reply with pdfjs."""
         try:
-            page = pdfjs.generate_pdfjs_page(reply.url()).encode('utf-8')
+            page = pdfjs.generate_pdfjs_page(reply.url())
         except pdfjs.PDFJSNotFound:
-            # pylint: disable=no-member
-            # WORKAROUND for https://bitbucket.org/logilab/pylint/issue/490/
-            page = (jinja.env.get_template('no_pdfjs.html')
-                    .render(url=reply.url().toDisplayString())
-                    .encode('utf-8'))
-        self.mainFrame().setContent(page, 'text/html', reply.url())
+            page = jinja.render('no_pdfjs.html',
+                                url=reply.url().toDisplayString())
+        self.mainFrame().setContent(page.encode('utf-8'), 'text/html',
+                                    reply.url())
         reply.deleteLater()
 
     def shutdown(self):

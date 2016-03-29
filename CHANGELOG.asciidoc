@@ -44,6 +44,8 @@ Changed
 - Improved detection of URLs/search terms when pasting multiple lines.
 - Don't remove `qutebrowser-editor-*` temporary file if editor subprocess crashed
 - Userscripts are also searched in `/usr/share/qutebrowser/userscripts`.
+- Blocked hosts are now also read from a `blocked-hosts` file in the config dir
+  (e.g. `~/.config/qutebrowser/blocked-hosts`).
 
 Fixed
 ~~~~~
@@ -62,6 +64,7 @@ Fixed
 - Fixed very long filenames when downloading `data://`-URLs.
 - Fixed ugly UI fonts on Windows when Liberation Mono is installed
 - Fixed crash when unbinding key from a section which doesn't exist in the config
+- Fixed report window after a segfault
 
 v0.5.1
 ------

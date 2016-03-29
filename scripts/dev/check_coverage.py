@@ -65,6 +65,8 @@ PERFECT_FILES = [
         'qutebrowser/browser/network/filescheme.py'),
     ('tests/unit/browser/network/test_networkreply.py',
         'qutebrowser/browser/network/networkreply.py'),
+    ('tests/unit/browser/network/test_pastebin.py',
+        'qutebrowser/browser/network/pastebin.py'),
     ('tests/unit/browser/test_signalfilter.py',
         'qutebrowser/browser/signalfilter.py'),
 
@@ -102,6 +104,8 @@ PERFECT_FILES = [
         'qutebrowser/mainwindow/statusbar/textbase.py'),
     ('tests/unit/mainwindow/statusbar/test_prompt.py',
         'qutebrowser/mainwindow/statusbar/prompt.py'),
+    ('tests/unit/mainwindow/statusbar/test_url.py',
+        'qutebrowser/mainwindow/statusbar/url.py'),
 
     ('tests/unit/config/test_configtypes.py',
         'qutebrowser/config/configtypes.py'),

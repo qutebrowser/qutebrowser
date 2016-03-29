@@ -72,6 +72,8 @@
 === adblock-update
 Update the adblock block lists.
 
+This updates ~/.local/share/qutebrowser/blocked-hosts with downloaded host lists and re-reads ~/.config/qutebrowser/blocked-hosts.
+
 [[back]]
 === back
 Syntax: +:back [*--tab*] [*--bg*] [*--window*]+
