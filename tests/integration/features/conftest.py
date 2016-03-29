@@ -129,7 +129,22 @@ def run_command(quteproc, httpbin, command):
     else:
         count = None
     command = command.replace('(port)', str(httpbin.port))
+
     quteproc.send_cmd(command, count=count)
+
+
+@bdd.when(bdd.parsers.parse("I execute the userscript {userscript}"))
+def run_userscript(quteproc, userscript):
+    """Run a userscript located in tests/integration/data/userscripts.
+
+    Wrapper around :spawn --userscript {userscript} that uses an absolute
+    path.
+    """
+    abs_userscript_path = os.path.join(utils.abs_datapath(),
+                                       'userscripts', userscript)
+
+    cmd = ':spawn --userscript {abs_userscript_path}'
+    quteproc.send_cmd(cmd.format(abs_userscript_path=abs_userscript_path))
 
 
 @bdd.when(bdd.parsers.parse("I reload"))
@@ -334,8 +349,8 @@ def check_contents(quteproc, filename):
     The filename is interpreted relative to tests/integration/data.
     """
     content = quteproc.get_content(plain=False)
-    path = os.path.join(os.path.abspath(os.path.dirname(__file__)), '..',
-                        'data', os.path.join(*filename.split('/')))
+    path = os.path.join(utils.abs_datapath(),
+                        os.path.join(*filename.split('/')))
     with open(path, 'r', encoding='utf-8') as f:
         file_content = f.read()
         assert content == file_content

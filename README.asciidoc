@@ -163,6 +163,7 @@ Contributors, sorted by the number of commits in descending order:
 * Artur Shaik
 * Nathan Isom
 * Thorsten Wißmann
+* Philipp Hansch
 * Austin Anderson
 * Alexey "Averrin" Nabrodov
 * avk
@@ -172,7 +173,6 @@ Contributors, sorted by the number of commits in descending order:
 * Peter Vilim
 * Clayton Craft
 * Oliver Caldwell
-* Philipp Hansch
 * Jonas Schürmann
 * Jimmy
 * Panagiotis Ktistakis
