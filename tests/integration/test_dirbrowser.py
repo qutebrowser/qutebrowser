@@ -33,9 +33,6 @@ class DirLayout:
 
     """Provide a fake directory layout to test dirbrowser."""
 
-    Parsed = collections.namedtuple('Parsed', 'path, parent, folders, files')
-    Item = collections.namedtuple('Item', 'path, link, text')
-
     LAYOUT = [
         'folder0/file00',
         'folder0/file01',
@@ -99,42 +96,47 @@ class DirLayout:
         """Return the path of the base temporary folder."""
         return os.path.normpath(str(self.base))
 
-    def parse(self, quteproc):
-        """Parse the dirbrowser content from the given quteproc.
 
-        Args:
-            quteproc: The quteproc fixture.
-        """
-        html = quteproc.get_content(plain=False)
-        soup = bs4.BeautifulSoup(html, 'html.parser')
-        print(soup.prettify())
-        title_prefix = 'Browse directory: '
-        # Strip off the title prefix to obtain the path of the folder that
-        # we're browsing
-        path = soup.title.string[len(title_prefix):]
-        path = os.path.normpath(path)
+Parsed = collections.namedtuple('Parsed', 'path, parent, folders, files')
+Item = collections.namedtuple('Item', 'path, link, text')
 
-        container = soup('div', id='dirbrowserContainer')[0]
 
-        parent_elem = container('ul', class_='parent')
-        if not parent_elem:
-            parent = None
-        else:
-            parent = QUrl(parent_elem[0].li.a['href']).toLocalFile()
-            parent = os.path.normpath(parent)
+def parse(quteproc):
+    """Parse the dirbrowser content from the given quteproc.
 
-        folders = []
-        files = []
+    Args:
+        quteproc: The quteproc fixture.
+    """
+    html = quteproc.get_content(plain=False)
+    soup = bs4.BeautifulSoup(html, 'html.parser')
+    print(soup.prettify())
+    title_prefix = 'Browse directory: '
+    # Strip off the title prefix to obtain the path of the folder that
+    # we're browsing
+    path = soup.title.string[len(title_prefix):]
+    path = os.path.normpath(path)
 
-        for css_class, list_ in [('folders', folders), ('files', files)]:
-            for li in container('ul', class_=css_class)[0]('li'):
-                item_path = QUrl(li.a['href']).toLocalFile()
-                item_path = os.path.normpath(item_path)
-                list_.append(self.Item(path=item_path, link=li.a['href'],
-                                       text=str(li.a.string)))
+    container = soup('div', id='dirbrowserContainer')[0]
 
-        return self.Parsed(path=path, parent=parent, folders=folders,
-                           files=files)
+    parent_elem = container('ul', class_='parent')
+    if not parent_elem:
+        parent = None
+    else:
+        parent = QUrl(parent_elem[0].li.a['href']).toLocalFile()
+        parent = os.path.normpath(parent)
+
+    folders = []
+    files = []
+
+    for css_class, list_ in [('folders', folders), ('files', files)]:
+        for li in container('ul', class_=css_class)[0]('li'):
+            item_path = QUrl(li.a['href']).toLocalFile()
+            item_path = os.path.normpath(item_path)
+            list_.append(Item(path=item_path, link=li.a['href'],
+                              text=str(li.a.string)))
+
+    return Parsed(path=path, parent=parent, folders=folders,
+                  files=files)
 
 
 @pytest.fixture(scope='module')
@@ -144,14 +146,14 @@ def dir_layout(tmpdir_factory):
 
 def test_parent_folder(dir_layout, quteproc):
     quteproc.open_url(dir_layout.file_url())
-    page = dir_layout.parse(quteproc)
+    page = parse(quteproc)
     assert page.parent == dir_layout.base_path()
 
 
 def test_parent_with_slash(dir_layout, quteproc):
     """Test the parent link with an URL that has a trailing slash."""
     quteproc.open_url(dir_layout.file_url() + '/')
-    page = dir_layout.parse(quteproc)
+    page = parse(quteproc)
     assert page.parent == dir_layout.base_path()
 
 
@@ -160,7 +162,7 @@ def test_parent_in_root_dir(dir_layout, quteproc):
     root_path = os.path.realpath('/')
     urlstr = QUrl.fromLocalFile(root_path).toString(QUrl.FullyEncoded)
     quteproc.open_url(urlstr)
-    page = dir_layout.parse(quteproc)
+    page = parse(quteproc)
     assert page.parent is None
 
 
@@ -169,7 +171,7 @@ def test_enter_folder_smoke(dir_layout, quteproc):
     quteproc.send_cmd(':hint all normal')
     # a is the parent link, s is the first listed folder/file
     quteproc.send_cmd(':follow-hint s')
-    page = dir_layout.parse(quteproc)
+    page = parse(quteproc)
     assert page.path == dir_layout.path('folder0')
 
 
@@ -183,7 +185,7 @@ def test_enter_folder(dir_layout, quteproc, folder):
         'XPathResult.ANY_TYPE, null).iterateNext().click()'
         .format(folder)
     )
-    page = dir_layout.parse(quteproc)
+    page = parse(quteproc)
     assert page.path == dir_layout.path(folder)
     assert page.parent == dir_layout.path()
     folders, files = DirLayout.get_folder_content(folder)
