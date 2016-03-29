@@ -144,7 +144,7 @@ class HostBlocker:
         Return:
             True if a read was attempted, False otherwise
         """
-        if not os.path.exists(filename):
+        if filename is None or not os.path.exists(filename):
             return False
 
         try:
