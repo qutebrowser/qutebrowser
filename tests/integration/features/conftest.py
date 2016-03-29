@@ -140,8 +140,10 @@ def run_userscript(quteproc, userscript):
     Wrapper around :spawn --userscript {userscript} that uses an absolute
     path.
     """
-    abs_userscript_path = os.path.join(utils.abs_datapath(__file__),
-                                       'userscripts', userscript)
+    joined_path = os.path.join(utils.abs_datapath(__file__),
+                               'userscripts', userscript)
+    abs_userscript_path = os.path.abspath(joined_path)
+
     cmd = ':spawn --userscript {abs_userscript_path}'
     quteproc.send_cmd(cmd.format(abs_userscript_path=abs_userscript_path))
 
