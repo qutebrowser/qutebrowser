@@ -219,7 +219,7 @@ def qnam(qapp):
 
 @pytest.fixture
 def webengineview():
-    """Get a QWebEngineView if QtWebEngine is available"""
+    """Get a QWebEngineView if QtWebEngine is available."""
     if QtWebEngineWidgets is None:
         pytest.skip("QtWebEngine unavailable")
     return QtWebEngineWidgets.QWebEngineView()
