@@ -36,7 +36,7 @@ from PyQt5.QtWidgets import (QDialog, QLabel, QTextEdit, QPushButton,
 
 import qutebrowser
 from qutebrowser.utils import version, log, utils, objreg, qtutils
-from qutebrowser.misc import miscwidgets, autoupdate, msgbox
+from qutebrowser.misc import miscwidgets, autoupdate, msgbox, httpclient
 from qutebrowser.browser.network import pastebin
 from qutebrowser.config import config
 
@@ -141,7 +141,8 @@ class _CrashDialog(QDialog):
         self.setWindowTitle("Whoops!")
         self.resize(QSize(640, 600))
         self._vbox = QVBoxLayout(self)
-        self._paste_client = pastebin.PastebinClient(self)
+        http_client = httpclient.HTTPClient()
+        self._paste_client = pastebin.PastebinClient(http_client, self)
         self._pypi_client = autoupdate.PyPIVersionClient(self)
         self._init_text()
 

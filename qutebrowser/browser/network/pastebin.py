@@ -23,8 +23,6 @@ import urllib.parse
 
 from PyQt5.QtCore import pyqtSignal, pyqtSlot, QObject, QUrl
 
-from qutebrowser.misc import httpclient
-
 
 class PastebinClient(QObject):
 
@@ -47,11 +45,17 @@ class PastebinClient(QObject):
     success = pyqtSignal(str)
     error = pyqtSignal(str)
 
-    def __init__(self, parent=None):
+    def __init__(self, client, parent=None):
+        """Constructor.
+
+        Args:
+            client: The HTTPClient to use. Will be reparented.
+        """
         super().__init__(parent)
-        self._client = httpclient.HTTPClient(self)
-        self._client.error.connect(self.error)
-        self._client.success.connect(self.on_client_success)
+        client.setParent(self)
+        client.error.connect(self.error)
+        client.success.connect(self.on_client_success)
+        self._client = client
 
     def paste(self, name, title, text, parent=None):
         """Paste the text into a pastebin and return the URL.
