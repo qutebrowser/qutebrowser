@@ -432,13 +432,13 @@ class QuteProc(testprocess.Process):
         # Use Javascript and XPath to find the right element, use console.log to
         # return an error (no element found, ambiguous element)
         script = (
-            'var _es = document.evaluate(\'//*[text()="{text}"]\', document, '
+            'var _es = document.evaluate(\'//*[text()={text}]\', document, '
             'null, XPathResult.ORDERED_NODE_SNAPSHOT_TYPE, null);'
             'if (_es.snapshotLength == 0) {{ console.log("qute:no elems"); }} '
             'else if (_es.snapshotLength > 1) {{ console.log("qute:ambiguous '
             'elems") }} '
             'else {{ console.log("qute:okay"); _es.snapshotItem(0).click() }}'
-        ).format(text=webelem.javascript_escape(text))
+        ).format(text=webelem.javascript_escape(_xpath_escape(text)))
         self.send_cmd(':jseval ' + script)
         message = self.wait_for_js('qute:*').message
         if message.endswith('qute:no elems'):
@@ -448,6 +448,35 @@ class QuteProc(testprocess.Process):
         elif not message.endswith('qute:okay'):
             raise ValueError('Invalid response from qutebrowser: {}'
                              .format(message))
+
+
+def _xpath_escape(text):
+    """Escape a string to be used in an XPath expression.
+
+    The resulting string should still be escaped with javascript_escape, to
+    prevent javascript from interpreting the quotes.
+
+    This function is needed because XPath does not provide any character
+    escaping mechanisms, so to get the string
+        "I'm back", he said
+    you have to use concat like
+        concat('"I', "'m back", '", he said')
+
+    Args:
+        text: Text to escape
+
+    Return:
+        The string "escaped" as a concat() call.
+    """
+    # Shortcut if at most a single quoting style is used
+    if not "'" in text or not '"' in text:
+        return repr(text)
+    parts = re.split('([\'"])', text)
+    # Python's repr() of strings will automatically choose the right quote type.
+    # Since each part only contains one "type" of quote, no escaping should be
+    # necessary.
+    parts = [repr(part) for part in parts if part]
+    return 'concat({})'.format(', '.join(parts))
 
 
 @pytest.yield_fixture(scope='module')
