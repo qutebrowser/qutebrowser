@@ -92,9 +92,11 @@ class HostBlocker:
 
     Attributes:
         _blocked_hosts: A set of blocked hosts.
+        _config_blocked_hosts: A set of blocked hosts from ~/.config.
         _in_progress: The DownloadItems which are currently downloading.
         _done_count: How many files have been read successfully.
-        _hosts_file: The path to the blocked-hosts file.
+        _local_hosts_file: The path to the blocked-hosts file.
+        _config_hosts_file: The path to a blocked-hosts in ~/.config
 
     Class attributes:
         WHITELISTED: Hosts which never should be blocked.
@@ -105,13 +107,22 @@ class HostBlocker:
 
     def __init__(self):
         self._blocked_hosts = set()
+        self._config_blocked_hosts = set()
         self._in_progress = []
         self._done_count = 0
+
         data_dir = standarddir.data()
         if data_dir is None:
-            self._hosts_file = None
+            self._local_hosts_file = None
         else:
-            self._hosts_file = os.path.join(data_dir, 'blocked-hosts')
+            self._local_hosts_file = os.path.join(data_dir, 'blocked-hosts')
+
+        config_dir = standarddir.config()
+        if config_dir is None:
+            self._config_hosts_file = None
+        else:
+            self._config_hosts_file = os.path.join(config_dir, 'blocked-hosts')
+
         objreg.get('config').changed.connect(self.on_config_changed)
 
     def is_blocked(self, url):
@@ -119,21 +130,46 @@ class HostBlocker:
         if not config.get('content', 'host-blocking-enabled'):
             return False
         host = url.host()
-        return host in self._blocked_hosts and not is_whitelisted_host(host)
+        return ((host in self._blocked_hosts or
+                 host in self._config_blocked_hosts) and
+                not is_whitelisted_host(host))
+
+    def _read_hosts_file(self, filename, target):
+        """Read hosts from the given filename.
+
+        Args:
+            filename: The file to read.
+            target: The set to store the hosts in.
+
+        Return:
+            True if a read was attempted, False otherwise
+        """
+        if not os.path.exists(filename):
+            return False
+
+        try:
+            with open(filename, 'r', encoding='utf-8') as f:
+                for line in f:
+                    target.add(line.strip())
+        except OSError:
+            log.misc.exception("Failed to read host blocklist!")
+
+        return True
 
     def read_hosts(self):
         """Read hosts from the existing blocked-hosts file."""
         self._blocked_hosts = set()
-        if self._hosts_file is None:
+
+        if self._local_hosts_file is None:
             return
-        if os.path.exists(self._hosts_file):
-            try:
-                with open(self._hosts_file, 'r', encoding='utf-8') as f:
-                    for line in f:
-                        self._blocked_hosts.add(line.strip())
-            except OSError:
-                log.misc.exception("Failed to read host blocklist!")
-        else:
+
+        self._read_hosts_file(self._config_hosts_file,
+                              self._config_blocked_hosts)
+
+        found = self._read_hosts_file(self._local_hosts_file,
+                                      self._blocked_hosts)
+
+        if not found:
             args = objreg.get('args')
             if (config.get('content', 'host-block-lists') is not None and
                     args.basedir is None):
@@ -142,8 +178,14 @@ class HostBlocker:
 
     @cmdutils.register(instance='host-blocker', win_id='win_id')
     def adblock_update(self, win_id):
-        """Update the adblock block lists."""
-        if self._hosts_file is None:
+        """Update the adblock block lists.
+
+        This updates ~/.local/share/qutebrowser/blocked-hosts with downloaded
+        host lists and re-reads ~/.config/qutebrowser/blocked-hosts.
+        """
+        self._read_hosts_file(self._config_hosts_file,
+                              self._config_blocked_hosts)
+        if self._local_hosts_file is None:
             raise cmdexc.CommandError("No data storage is configured!")
         self._blocked_hosts = set()
         self._done_count = 0
@@ -221,7 +263,7 @@ class HostBlocker:
 
     def on_lists_downloaded(self):
         """Install block lists after files have been downloaded."""
-        with open(self._hosts_file, 'w', encoding='utf-8') as f:
+        with open(self._local_hosts_file, 'w', encoding='utf-8') as f:
             for host in sorted(self._blocked_hosts):
                 f.write(host + '\n')
             message.info('current', "adblock: Read {} hosts from {} sources."
@@ -233,7 +275,7 @@ class HostBlocker:
         urls = config.get('content', 'host-block-lists')
         if urls is None:
             try:
-                os.remove(self._hosts_file)
+                os.remove(self._local_hosts_file)
             except OSError:
                 log.misc.exception("Failed to delete hosts file.")
 

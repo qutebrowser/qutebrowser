@@ -44,6 +44,8 @@ Changed
 - Improved detection of URLs/search terms when pasting multiple lines.
 - Don't remove `qutebrowser-editor-*` temporary file if editor subprocess crashed
 - Userscripts are also searched in `/usr/share/qutebrowser/userscripts`.
+- Blocked hosts are now also read from a `blocked-hosts` file in the config dir
+  (e.g. `~/.config/qutebrowser/blocked-hosts`).
 
 Fixed
 ~~~~~
