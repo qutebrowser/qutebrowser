@@ -66,3 +66,8 @@ coll = COLLECT(exe,
                strip=False,
                upx=True,
                name='qutebrowser')
+
+app = BUNDLE(coll,
+             name='qutebrowser.app',
+             icon=icon,
+             bundle_identifier=None)
