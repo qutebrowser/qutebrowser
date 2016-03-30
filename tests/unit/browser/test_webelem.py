@@ -339,13 +339,20 @@ class TestWebElementWrapper:
 
         elem = get_webelem(tagname='a')
         elem.remove_blank_target()
-        assert elem._elem.attribute('target') == ''
+        assert 'target' not in elem
 
         elem = get_webelem(tagname='a', attributes={'target': '_blank'})
         elem_child = get_webelem(tagname='img', parent=elem._elem)
         elem_child._elem.encloseWith(elem._elem)
         elem_child.remove_blank_target()
         assert elem._elem.attribute('target') == '_top'
+
+        elem = get_webelem(tagname='button')
+        elem_child = get_webelem(tagname='div', parent=elem._elem)
+        elem_child._elem.encloseWith(elem._elem)
+        elem_child.remove_blank_target()
+        assert 'target' not in elem_child
+        assert 'target' not in elem
 
 
 class TestIsVisible:
