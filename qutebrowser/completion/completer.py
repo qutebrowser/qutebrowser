@@ -140,7 +140,7 @@ class Completer(QObject):
         Return:
             A completion model or None.
         """
-        if completion == usertypes.Completion.option:
+        if completion == usertypes.Completion.option or completion == usertypes.Completion.autocommand_events:
             section = parts[cursor_part - 1]
             model = instances.get(completion).get(section)
         elif completion == usertypes.Completion.value:

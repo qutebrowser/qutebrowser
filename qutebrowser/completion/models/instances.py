@@ -75,6 +75,15 @@ def _init_setting_completions():
             _instances[usertypes.Completion.value][sectname][opt] = val_model
 
 
+def init_autocommands_completions():
+    """Initialize autocommands completion models."""
+    log.completion.debug("Initializing autocommands completion")
+    _instances[usertypes.Completion.autocommands] = (miscmodels.AutocommandsCompletionModel())
+    _instances[usertypes.Completion.autocommand_events] = {}
+    events = objreg.get('autocmds-manager').available_events
+    for event in events:
+        _instances[usertypes.Completion.autocommand_events][event] = miscmodels.AutocommandsCompletionModel(event)
+
 @pyqtSlot()
 def init_quickmark_completions():
     """Initialize quickmark completion models."""
@@ -98,7 +107,6 @@ def init_bookmark_completions():
     model = miscmodels.BookmarkCompletionModel()
     _instances[usertypes.Completion.bookmark_by_url] = model
 
-
 @pyqtSlot()
 def init_session_completion():
     """Initialize session completion model."""
@@ -120,6 +128,8 @@ INITIALIZERS = {
     usertypes.Completion.value: _init_setting_completions,
     usertypes.Completion.quickmark_by_name: init_quickmark_completions,
     usertypes.Completion.bookmark_by_url: init_bookmark_completions,
+    usertypes.Completion.autocommands: init_autocommands_completions,
+    usertypes.Completion.autocommand_events: init_autocommands_completions,
     usertypes.Completion.sessions: init_session_completion,
 }
 
