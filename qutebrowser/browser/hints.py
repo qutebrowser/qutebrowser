@@ -466,7 +466,7 @@ class HintManager(QObject):
                             Qt.NoButton, modifiers),
             ]
         if context.target == Target.current:
-            elem.remove_target()
+            elem.remove_blank_target()
         for evt in events:
             self.mouse_event.emit(evt)
         if elem.is_text_input() and elem.is_editable():
