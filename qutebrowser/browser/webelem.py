@@ -287,11 +287,13 @@ class WebElementWrapper(collections.abc.MutableMapping):
 
     def remove_blank_target(self):
         """Remove target from link."""
-        for elem in [self._elem, self.parent()]:
+        elem = self._elem
+        while elem is not None:
             if elem.tagName().lower() == 'a':
                 if elem.attribute('target') == '_blank':
                     elem.setAttribute('target', '_top')
                 break
+            elem = elem.parent()
 
     def debug_text(self):
         """Get a text based on an element suitable for debug output."""
