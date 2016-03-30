@@ -200,6 +200,10 @@ Then <<tox,install qutebrowser via tox>>.
 On OS X
 -------
 
+*Using qutebrowser with Homebrew on OS X is currently broken, as Homebrew
+dropped QtWebKit support with Qt 5.6. I'm working on building a standalone
+`.app` for OS X instead, but it'll still take a few days until it's ready.*
+
 To install qutebrowser on OS X, you'll want a package manager, e.g.
 http://brew.sh/[Homebrew] or https://www.macports.org/[MacPorts]. Also make
 sure, you have https://itunes.apple.com/en/app/xcode/id497799835[XCode]
