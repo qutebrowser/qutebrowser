@@ -18,3 +18,20 @@ Feature: Using hints
         And I run :hint links normal
         And I run :follow-hint xyz
         Then the error "No hint xyz!" should be shown
+
+    Scenario: Following a hint and force to open in current tab.
+        When I open data/hints/link.html
+        And I run :hint links current
+        And I run :follow-hint a
+        And I wait until data/hello.txt is loaded
+        Then the following tabs should be open:
+            - data/hello.txt (active)
+
+    Scenario: Following a hint and allow to open in new tab.
+        When I open data/hints/link_blank.html
+        And I run :hint links normal
+        And I run :follow-hint a
+        And I wait until data/hello.txt is loaded
+        Then the following tabs should be open:
+            - data/hints/link_blank.html
+            - data/hello.txt (active)
