@@ -36,7 +36,8 @@ from qutebrowser.browser import webelem
 
 
 def get_webelem(geometry=None, frame=None, null=False, style=None,
-                display='', attributes=None, tagname=None, classes=None):
+                display='', attributes=None, tagname=None, classes=None,
+                parent=None):
     """Factory for WebElementWrapper objects based on a mock.
 
     Args:
@@ -55,6 +56,7 @@ def get_webelem(geometry=None, frame=None, null=False, style=None,
     elem.tagName.return_value = tagname
     elem.toOuterXml.return_value = '<fakeelem/>'
     elem.toPlainText.return_value = 'text'
+    elem.parent.return_value = parent
 
     attribute_dict = {}
     if attributes is None:
@@ -324,6 +326,26 @@ class TestWebElementWrapper:
     def test_debug_text(self, elem, xml, expected):
         elem._elem.toOuterXml.return_value = xml
         assert elem.debug_text() == expected
+
+    def test_remove_blank_target(self):
+        elem = get_webelem(tagname='a', attributes={'target': '_blank'})
+        elem.remove_blank_target()
+        assert elem._elem.attribute('target') == '_top'
+
+        for target in ['_self', '_parent', '_top', '']:
+            elem = get_webelem(tagname='a', attributes={'target': target})
+            elem.remove_blank_target()
+            assert elem._elem.attribute('target') == target
+
+        elem = get_webelem(tagname='a')
+        elem.remove_blank_target()
+        assert elem._elem.attribute('target') == ''
+
+        elem = get_webelem(tagname='a', attributes={'target': '_blank'})
+        elem_child = get_webelem(tagname='img', attributes={'src':'test'}, parent=elem._elem)
+        elem_child._elem.encloseWith(elem._elem)
+        elem_child.remove_blank_target()
+        assert elem._elem.attribute('target') == '_top'
 
 
 class TestIsVisible:
