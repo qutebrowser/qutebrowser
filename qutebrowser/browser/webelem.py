@@ -286,7 +286,7 @@ class WebElementWrapper(collections.abc.MutableMapping):
         return self.get('role', None) in roles or tag in ('input', 'textarea')
 
     def remove_target(self):
-        """Remove target from link"""
+        """Remove target from link."""
         if self._elem.tagName().lower() == 'a':
             self._elem.removeAttribute('target')
         elif self.parent().tagName().lower() == 'a':
