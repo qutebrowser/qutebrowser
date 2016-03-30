@@ -95,7 +95,7 @@ Currently, following tox environments are available:
   - `py34`: Run pytest for python-3.4.
   - `py35`: Run pytest for python-3.5.
   - `py34-cov`: Run pytest for python-3.4 with code coverage report.
-  - `py35-cov`: Run pytest for python-3.4 with code coverage report.
+  - `py35-cov`: Run pytest for python-3.5 with code coverage report.
 * `flake8`: Run https://pypi.python.org/pypi/flake8[flake8] checks:
                 https://pypi.python.org/pypi/pyflakes[pyflakes],
                 https://pypi.python.org/pypi/pep8[pep8],
@@ -163,6 +163,9 @@ tox -e py35 -- tests/integration/features
 
 # run everything with undo in the generated name, based on the scenario text
 tox -e py35 -- tests/integration/features/test_tabs.py -k undo
+
+# run coverage test for specific file (updates htmlcov/index.html)
+tox -e py35-cov -- tests/unit/browser/test_webelem.py
 ----
 
 Profiling
