@@ -342,7 +342,7 @@ class TestWebElementWrapper:
         assert elem._elem.attribute('target') == ''
 
         elem = get_webelem(tagname='a', attributes={'target': '_blank'})
-        elem_child = get_webelem(tagname='img', attributes={'src':'test'}, parent=elem._elem)
+        elem_child = get_webelem(tagname='img', parent=elem._elem)
         elem_child._elem.encloseWith(elem._elem)
         elem_child.remove_blank_target()
         assert elem._elem.attribute('target') == '_top'
