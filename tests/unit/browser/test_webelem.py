@@ -327,37 +327,46 @@ class TestWebElementWrapper:
         elem._elem.toOuterXml.return_value = xml
         assert elem.debug_text() == expected
 
-    def test_remove_blank_target(self):
-        elem = get_webelem(tagname='a', attributes={'target': '_blank'})
+
+class TestRemoveBlankTarget:
+
+    @pytest.mark.parametrize('tagname', ['a', 'area'])
+    @pytest.mark.parametrize('target', ['_self', '_parent', '_top', ''])
+    def test_keep_target(self, tagname, target):
+        elem = get_webelem(tagname=tagname, attributes={'target': target})
         elem.remove_blank_target()
-        assert elem._elem.attribute('target') == '_top'
+        assert elem['target'] == target
 
-        for target in ['_self', '_parent', '_top', '']:
-            elem = get_webelem(tagname='a', attributes={'target': target})
-            elem.remove_blank_target()
-            assert elem._elem.attribute('target') == target
-
-        elem = get_webelem(tagname='a')
+    @pytest.mark.parametrize('tagname', ['a', 'area'])
+    def test_no_target(self, tagname):
+        elem = get_webelem(tagname=tagname)
         elem.remove_blank_target()
         assert 'target' not in elem
 
-        elem = get_webelem(tagname='a', attributes={'target': '_blank'})
+    @pytest.mark.parametrize('tagname', ['a', 'area'])
+    def test_blank_target(self, tagname):
+        elem = get_webelem(tagname=tagname, attributes={'target': '_blank'})
+        elem.remove_blank_target()
+        assert elem['target'] == '_top'
+
+    @pytest.mark.parametrize('tagname', ['a', 'area'])
+    def test_ancestor_blank_target(self, tagname):
+        elem = get_webelem(tagname=tagname, attributes={'target': '_blank'})
         elem_child = get_webelem(tagname='img', parent=elem._elem)
         elem_child._elem.encloseWith(elem._elem)
         elem_child.remove_blank_target()
-        assert elem._elem.attribute('target') == '_top'
+        assert elem['target'] == '_top'
 
+    @pytest.mark.parametrize('depth', [1, 5, 10])
+    def test_no_link(self, depth):
+        elem = [None] * depth
         elem[0] = get_webelem(tagname='div')
-        for i in range(1, 5):
+        for i in range(1, depth):
             elem[i] = get_webelem(tagname='div', parent=elem[i-1])
             elem[i]._elem.encloseWith(elem[i-1]._elem)
-        elem[4].remove_blank_target()
-        for i in range(5):
+        elem[-1].remove_blank_target()
+        for i in range(depth):
             assert 'target' not in elem[i]
-
-        elem = get_webelem(tagname='div')
-        elem.remove_blank_target()
-        assert 'target' not in elem
 
 
 class TestIsVisible:
