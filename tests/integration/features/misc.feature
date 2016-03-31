@@ -353,6 +353,7 @@ Feature: Various utility commands.
         And I press the key "<Ctrl-C>"
         Then no crash should happen
 
+    @pyqt531_or_newer
     Scenario: Focusing download widget via Tab (original issue)
         When I open data/prompt/jsprompt.html
         And I run :hint
