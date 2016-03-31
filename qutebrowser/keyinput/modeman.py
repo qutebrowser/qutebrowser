@@ -23,7 +23,6 @@ import functools
 
 from PyQt5.QtCore import pyqtSignal, Qt, QObject, QEvent
 from PyQt5.QtWidgets import QApplication
-from PyQt5.QtWebKitWidgets import QWebView
 
 from qutebrowser.keyinput import modeparsers, keyparser
 from qutebrowser.config import config
@@ -171,12 +170,8 @@ class ModeManager(QObject):
         is_non_alnum = (
             event.modifiers() not in (Qt.NoModifier, Qt.ShiftModifier) or
             not event.text().strip())
-        focus_widget = QApplication.instance().focusWidget()
-        is_tab = event.key() in (Qt.Key_Tab, Qt.Key_Backtab)
 
         if handled:
-            filter_this = True
-        elif is_tab and not isinstance(focus_widget, QWebView):
             filter_this = True
         elif (parser.passthrough or
                 self._forward_unbound_keys == 'all' or
@@ -189,11 +184,12 @@ class ModeManager(QObject):
             self._releaseevents_to_pass.add(KeyEvent(event))
 
         if curmode != usertypes.KeyMode.insert:
+            focus_widget = QApplication.instance().focusWidget()
             log.modes.debug("handled: {}, forward-unbound-keys: {}, "
-                            "passthrough: {}, is_non_alnum: {}, is_tab {} --> "
+                            "passthrough: {}, is_non_alnum: {} --> "
                             "filter: {} (focused: {!r})".format(
                                 handled, self._forward_unbound_keys,
-                                parser.passthrough, is_non_alnum, is_tab,
+                                parser.passthrough, is_non_alnum,
                                 filter_this, focus_widget))
         return filter_this
 

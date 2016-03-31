@@ -72,6 +72,8 @@ Fixed
 - Fixed some directory browser issues on Windows
 - Fixed crash when closing a window with a finished download and delayed
   `remove-finished-downloads` setting.
+- Fixed crash when hitting `<Tab>` then `<Ctrl-C>` on pages without keyboard
+  focus.
 
 Removed
 ~~~~~~~

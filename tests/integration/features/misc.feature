@@ -344,3 +344,20 @@ Feature: Various utility commands.
     Scenario: Running :pyeval with --quiet
         When I run :debug-pyeval --quiet 1+1
         Then "pyeval output: 2" should be logged
+        
+    ## https://github.com/The-Compiler/qutebrowser/issues/504
+
+    Scenario: Focusing download widget via Tab
+        When I open about:blank
+        And I press the key "<Tab>"
+        And I press the key "<Ctrl-C>"
+        Then no crash should happen
+
+    Scenario: Focusing download widget via Tab (original issue)
+        When I open data/prompt/jsprompt.html
+        And I run :hint
+        And I run :follow-hint a
+        And I wait for "Entering mode KeyMode.prompt *" in the log
+        And I press the key "<Tab>"
+        And I press the key "<Ctrl-C>"
+        Then no crash should happen
