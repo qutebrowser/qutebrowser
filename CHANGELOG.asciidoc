@@ -20,6 +20,10 @@ v0.6.0 (unreleased)
 Added
 ~~~~~
 
+- New `:buffer` command to easily switch tabs by name. This is not bound to a
+  key by default for existing users due to a conflict with the `gt`/`gT`
+  bindings (which are now removed from the default bindings).
+  You can bind it by hand by running `:bind -f gt set-cmd-text -s :buffer`.
 - New `--quiet` argument for the `:debug-pyeval` command to not open a tab with
   the results. Note `:debug-pyeval` is still only intended for debugging.
 - The completion now matches each entered word separately.
@@ -66,6 +70,13 @@ Fixed
 - Fixed crash when unbinding key from a section which doesn't exist in the config
 - Fixed report window after a segfault
 - Fixed some directory browser issues on Windows
+
+Removed
+~~~~~~~
+
+- The `gt`/`gT` bindings (luakit-like alternatives to `J`/`K`) were removed
+  (except for existing configs) to make room for the `gt` binding to show
+  buffers.
 
 v0.5.1
 ------
