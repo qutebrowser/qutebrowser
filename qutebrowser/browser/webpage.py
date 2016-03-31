@@ -122,7 +122,10 @@ class BrowserPage(QWebPage):
         """
         ignored_errors = [
             (QWebPage.QtNetwork, QNetworkReply.OperationCanceledError),
-            (QWebPage.WebKit, 203),  # "Loading is handled by the media engine"
+            # "Loading is handled by the media engine"
+            (QWebPage.WebKit, 203),
+            # "Frame load interrupted by policy change"
+            (QWebPage.WebKit, 102),
         ]
         errpage.baseUrl = info.url
         urlstr = info.url.toDisplayString()

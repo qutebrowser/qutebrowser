@@ -74,6 +74,8 @@ Fixed
   `remove-finished-downloads` setting.
 - Fixed crash when hitting `<Tab>` then `<Ctrl-C>` on pages without keyboard
   focus.
+- Fixed "Frame load interrupted by policy change" error showing up when
+  downloading files with Qt 5.6.
 
 Removed
 ~~~~~~~
