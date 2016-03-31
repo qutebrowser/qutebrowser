@@ -19,6 +19,9 @@
 
 """Misc. CompletionModels."""
 
+from PyQt5.QtCore import Qt, QTimer, pyqtSlot
+
+from qutebrowser.browser import webview
 from qutebrowser.config import config, configdata
 from qutebrowser.utils import objreg, log
 from qutebrowser.commands import cmdutils
@@ -138,3 +141,77 @@ class SessionCompletionModel(base.BaseCompletionModel):
                     self.new_item(cat, name)
         except OSError:
             log.completion.exception("Failed to list sessions!")
+
+
+class TabCompletionModel(base.BaseCompletionModel):
+
+    """A model to complete on open tabs across all windows.
+
+    Used for switching the buffer command."""
+
+    # https://github.com/The-Compiler/qutebrowser/issues/545
+    # pylint: disable=abstract-method
+
+    #IDX_COLUMN = 0
+    URL_COLUMN = 1
+    TEXT_COLUMN = 2
+
+    COLUMN_WIDTHS = (6, 40, 54)
+    DUMB_SORT = Qt.DescendingOrder
+
+    def __init__(self, parent=None):
+        super().__init__(parent)
+
+        self.columns_to_filter = [self.URL_COLUMN, self.TEXT_COLUMN]
+
+        for win_id in objreg.window_registry:
+            tabbed_browser = objreg.get('tabbed-browser', scope='window',
+                                    window=win_id)
+            for i in range(tabbed_browser.count()):
+                tab = tabbed_browser.widget(i)
+                tab.url_text_changed.connect(self.rebuild)
+                tab.shutting_down.connect(self.delayed_rebuild)
+            tabbed_browser.new_tab.connect(self.on_new_tab)
+        objreg.get("app").new_window.connect(self.on_new_window)
+        self.rebuild()
+
+    # slot argument should be mainwindow.MainWindow but can't import
+    # that at module level because of import loops.
+    @pyqtSlot(object)
+    def on_new_window(self, window):
+        """Add hooks to new windows."""
+        window.tabbed_browser.new_tab.connect(self.on_new_tab)
+
+    @pyqtSlot(webview.WebView)
+    def on_new_tab(self, tab):
+        """Add hooks to new tabs."""
+        tab.url_text_changed.connect(self.rebuild)
+        tab.shutting_down.connect(self.delayed_rebuild)
+        self.rebuild()
+
+    @pyqtSlot()
+    def delayed_rebuild(self):
+        """Fire a rebuild indirectly so widgets get a chance to update."""
+        QTimer.singleShot(0, self.rebuild)
+
+    @pyqtSlot()
+    def rebuild(self):
+        """Rebuild completion model from current tabs.
+
+        Very lazy method of keeping the model up to date. We could connect to
+        signals for new tab, tab url/title changed, tab close, tab moved and
+        make sure we handled background loads too ... but iterating over a
+        few/few dozen/few hundred tabs doesn't take very long at all.
+        """
+        self.removeRows(0, self.rowCount())
+        for win_id in objreg.window_registry:
+            tabbed_browser = objreg.get('tabbed-browser', scope='window',
+                                        window=win_id)
+            if tabbed_browser.shutting_down:
+                continue
+            c = self.new_category("{}".format(win_id))
+            for i in range(tabbed_browser.count()):
+                tab = tabbed_browser.widget(i)
+                self.new_item(c, "{}/{}".format(win_id, i+1),
+                              tab.url().toDisplayString(),
+                              tabbed_browser.page_title(i))

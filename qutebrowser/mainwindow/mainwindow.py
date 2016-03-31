@@ -187,6 +187,8 @@ class MainWindow(QWidget):
         #self.tabWidget.setCurrentIndex(0)
         #QtCore.QMetaObject.connectSlotsByName(MainWindow)
 
+        objreg.get("app").new_window.emit(self)
+
     def __repr__(self):
         return utils.get_repr(self)
 
