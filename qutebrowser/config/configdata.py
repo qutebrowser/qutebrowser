@@ -1477,6 +1477,7 @@ KEY_DATA = collections.OrderedDict([
         ('download-cancel', ['ad']),
         ('download-clear', ['cd']),
         ('view-source', ['gf']),
+        ('set-cmd-text -s :buffer', ['gt']),
         ('tab-focus last', ['<Ctrl-Tab>']),
         ('enter-mode passthrough', ['<Ctrl-V>']),
         ('quit', ['<Ctrl-Q>']),
