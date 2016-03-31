@@ -27,6 +27,7 @@ import shutil
 import functools
 import collections
 
+import sip
 from PyQt5.QtCore import (pyqtSlot, pyqtSignal, QObject, QTimer,
                           Qt, QVariant, QAbstractListModel, QModelIndex, QUrl)
 from PyQt5.QtGui import QDesktopServices
@@ -1130,6 +1131,9 @@ class DownloadManager(QAbstractListModel):
 
     def remove_item(self, download):
         """Remove a given download."""
+        if sip.isdeleted(self):
+            # https://github.com/The-Compiler/qutebrowser/issues/1242
+            return
         try:
             idx = self.downloads.index(download)
         except ValueError:

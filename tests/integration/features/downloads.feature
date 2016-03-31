@@ -161,3 +161,13 @@ Feature: Downloading things from a website.
         When I run :download http://localhost:(port)/drip?numbytes=128&duration=5
         And I run :download-open with count 1
         Then the error "Download 1 is not done!" should be shown
+        
+    ## https://github.com/The-Compiler/qutebrowser/issues/1242
+
+    Scenario: Closing window with remove-finished-downloads timeout
+        When I set ui -> remove-finished-downloads to 500
+        And I open data/downloads/download.bin in a new window
+        And I wait until the download is finished
+        And I run :close
+        And I wait 0.5s
+        Then no crash should happen

@@ -70,6 +70,8 @@ Fixed
 - Fixed crash when unbinding key from a section which doesn't exist in the config
 - Fixed report window after a segfault
 - Fixed some directory browser issues on Windows
+- Fixed crash when closing a window with a finished download and delayed
+  `remove-finished-downloads` setting.
 
 Removed
 ~~~~~~~
