@@ -68,12 +68,6 @@ def folded_cmd(argv):
         subprocess.check_call(argv)
 
 
-def fix_sources_list():
-    """The mirror used by Travis has trouble a lot, so switch to another."""
-    subprocess.check_call(['sudo', 'sed', '-i', r's/us-central1\.gce/us/',
-                           '/etc/apt/sources.list'])
-
-
 def apt_get(args):
     folded_cmd(['sudo', 'apt-get', '-y', '-q'] + args)
 
@@ -132,12 +126,10 @@ elif TRAVIS_OS == 'linux':
         pkgs += ['asciidoc']
 
     if pkgs:
-        fix_sources_list()
         apt_get(['update'])
         apt_get(['install'] + pkgs)
 
     if TESTENV == 'flake8':
-        fix_sources_list()
         apt_get(['update'])
         # We need an up-to-date Python because of:
         # https://github.com/google/yapf/issues/46
