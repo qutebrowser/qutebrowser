@@ -347,11 +347,16 @@ class TestWebElementWrapper:
         elem_child.remove_blank_target()
         assert elem._elem.attribute('target') == '_top'
 
-        elem = get_webelem(tagname='button')
-        elem_child = get_webelem(tagname='div', parent=elem._elem)
-        elem_child._elem.encloseWith(elem._elem)
-        elem_child.remove_blank_target()
-        assert 'target' not in elem_child
+        elem[0] = get_webelem(tagname='div')
+        for i in range(1, 5):
+            elem[i] = get_webelem(tagname='div', parent=elem[i-1])
+            elem[i]._elem.encloseWith(elem[i-1]._elem)
+        elem[4].remove_blank_target()
+        for i in range(5):
+            assert 'target' not in elem[i]
+
+        elem = get_webelem(tagname='div')
+        elem.remove_blank_target()
         assert 'target' not in elem
 
 
