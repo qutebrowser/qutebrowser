@@ -275,7 +275,8 @@ Start hinting.
 
 * +'target'+: What to do with the selected element. 
 
- - `normal`: Open the link in the current tab.
+ - `normal`: Open the link.
+ - `current`: Open the link in the current tab.
  - `tab`: Open the link in a new tab (honoring the
  background-tabs setting).
  - `tab-fg`: Open the link in a new foreground tab.
