@@ -71,7 +71,8 @@ class HintContext:
         elems: A mapping from key strings to (elem, label) namedtuples.
         baseurl: The URL of the current page.
         target: What to do with the opened links.
-                normal/current/tab/tab_fg/tab_bg/window: Get passed to BrowserTab.
+                normal/current/tab/tab_fg/tab_bg/window: Get passed to
+                                                         BrowserTab.
                 yank/yank_primary: Yank to clipboard/primary selection.
                 run: Run a command.
                 fill: Fill commandline with link.
