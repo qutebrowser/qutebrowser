@@ -285,6 +285,19 @@ class WebElementWrapper(collections.abc.MutableMapping):
         tag = self._elem.tagName().lower()
         return self.get('role', None) in roles or tag in ('input', 'textarea')
 
+    def remove_blank_target(self):
+        """Remove target from link."""
+        elem = self._elem
+        for _ in range(5):
+            if elem is None:
+                break
+            tag = elem.tagName().lower()
+            if tag == 'a' or tag == 'area':
+                if elem.attribute('target') == '_blank':
+                    elem.setAttribute('target', '_top')
+                break
+            elem = elem.parent()
+
     def debug_text(self):
         """Get a text based on an element suitable for debug output."""
         self._check_vanished()

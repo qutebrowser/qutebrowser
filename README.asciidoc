@@ -165,6 +165,7 @@ Contributors, sorted by the number of commits in descending order:
 * Thorsten Wißmann
 * Philipp Hansch
 * Austin Anderson
+* Kevin Velghe
 * Alexey "Averrin" Nabrodov
 * avk
 * ZDarian
@@ -216,7 +217,6 @@ Contributors, sorted by the number of commits in descending order:
 * Samuel Loury
 * Matthias Lisin
 * Marcel Schilling
-* Kevin Velghe
 * Jean-Christophe Petkovich
 * Helen Sherwood-Taylor
 * HalosGhost

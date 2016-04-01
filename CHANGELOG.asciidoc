@@ -34,6 +34,8 @@ Added
   for hints instead of single characters.
 - New `--all` argument for `:download-cancel` to cancel all running downloads.
 - New `password_fill` userscript to fill passwords using the `pass` executable.
+- New `current` hinting mode which forces opening hints in the current tab
+  (even with `target="_blank"`)
 
 Changed
 ~~~~~~~
