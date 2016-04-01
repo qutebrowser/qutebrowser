@@ -87,7 +87,6 @@ class AsciiDoc:
             files.append((src, dst))
 
         # patch image links to use local copy
-        modified_files = []
         replacements = [
             ("http://qutebrowser.org/img/cheatsheet-big.png",
                 "qute://help/img/cheatsheet-big.png"),

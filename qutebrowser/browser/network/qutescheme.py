@@ -213,7 +213,8 @@ def qute_help(win_id, request):
     if urlpath.endswith('.png'):
         return utils.read_file(path, binary=True)
     else:
-        return utils.read_file(path).encode('UTF-8', errors='xmlcharrefreplace')
+        data = utils.read_file(path)
+        return data.encode('UTF-8', errors='xmlcharrefreplace')
 
 
 @add_handler('settings')
