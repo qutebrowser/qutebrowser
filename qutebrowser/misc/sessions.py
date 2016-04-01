@@ -148,7 +148,9 @@ class SessionManager(QObject):
                 'url': bytes(item.url().toEncoded()).decode('ascii'),
             }
 
-            if not item.title():
+            if item.title():
+                item_data['title'] = item.title()
+            else:
                 # https://github.com/The-Compiler/qutebrowser/issues/879
                 if history.currentItemIndex() == idx:
                     item_data['title'] = tab.page().mainFrame().title()
