@@ -210,7 +210,10 @@ def qute_help(win_id, request):
         message.error(win_id, "Your documentation is outdated! Please re-run "
                       "scripts/asciidoc2html.py.")
     path = 'html/doc/{}'.format(urlpath)
-    return utils.read_file(path).encode('UTF-8', errors='xmlcharrefreplace')
+    if urlpath.endswith('.png'):
+        return utils.read_file(path, binary=True)
+    else:
+        return utils.read_file(path).encode('UTF-8', errors='xmlcharrefreplace')
 
 
 @add_handler('settings')
