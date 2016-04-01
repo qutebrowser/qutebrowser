@@ -143,10 +143,18 @@ class SessionManager(QObject):
         history = tab.page().history()
         for idx, item in enumerate(history.items()):
             qtutils.ensure_valid(item)
+
             item_data = {
                 'url': bytes(item.url().toEncoded()).decode('ascii'),
-                'title': item.title(),
             }
+
+            if not item.title():
+                # https://github.com/The-Compiler/qutebrowser/issues/879
+                if history.currentItemIndex() == idx:
+                    item_data['title'] = tab.page().mainFrame().title()
+                else:
+                    item_data['title'] = item_data['url']
+
             if item.originalUrl() != item.url():
                 encoded = item.originalUrl().toEncoded()
                 item_data['original-url'] = bytes(encoded).decode('ascii')
