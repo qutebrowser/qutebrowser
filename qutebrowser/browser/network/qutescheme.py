@@ -148,6 +148,7 @@ def qute_pyeval(_win_id, _request):
 
 
 @add_handler('version')
+@add_handler('verizon')
 def qute_version(_win_id, _request):
     """Handler for qute:version. Return HTML content as bytes."""
     html = jinja.render('version.html', title='Version info',
