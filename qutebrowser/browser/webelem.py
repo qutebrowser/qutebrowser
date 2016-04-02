@@ -293,7 +293,7 @@ class WebElementWrapper(collections.abc.MutableMapping):
                 break
             tag = elem.tagName().lower()
             if tag == 'a' or tag == 'area':
-                if elem.attribute('target') == '_blank':
+                if elem.attribute('target') in ('_blank', '_new'):
                     elem.setAttribute('target', '_top')
                 break
             elem = elem.parent()

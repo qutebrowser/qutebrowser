@@ -344,14 +344,16 @@ class TestRemoveBlankTarget:
         assert 'target' not in elem
 
     @pytest.mark.parametrize('tagname', ['a', 'area'])
-    def test_blank_target(self, tagname):
-        elem = get_webelem(tagname=tagname, attributes={'target': '_blank'})
+    @pytest.mark.parametrize('target', ['_blank', '_new'])
+    def test_blank_target(self, tagname, target):
+        elem = get_webelem(tagname=tagname, attributes={'target': target})
         elem.remove_blank_target()
         assert elem['target'] == '_top'
 
     @pytest.mark.parametrize('tagname', ['a', 'area'])
-    def test_ancestor_blank_target(self, tagname):
-        elem = get_webelem(tagname=tagname, attributes={'target': '_blank'})
+    @pytest.mark.parametrize('target', ['_blank', '_new'])
+    def test_ancestor_blank_target(self, tagname, target):
+        elem = get_webelem(tagname=tagname, attributes={'target': target})
         elem_child = get_webelem(tagname='img', parent=elem._elem)
         elem_child._elem.encloseWith(elem._elem)
         elem_child.remove_blank_target()
