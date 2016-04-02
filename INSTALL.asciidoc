@@ -266,14 +266,6 @@ your `$PATH` (e.g. `/usr/local/bin/qutebrowser` or `~/bin/qutebrowser`):
 ~/path/to/qutebrowser/.venv/bin/python3 -m qutebrowser "$@"
 ----
 
-If you are developing on qutebrowser, you may want to redirect it to a local
-config:
-
-----
-#!/bin/bash
-~/path/to/qutebrowser/.venv/bin/python3 -m qutebrowser -c .qutebrowser-local "$@"
-----
-
 Updating
 ~~~~~~~~
 
