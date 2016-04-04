@@ -146,9 +146,9 @@ class WebView(QWebView):
         objreg.get('config').changed.connect(self.on_config_changed)
 
     @pyqtSlot()
-    def on_initial_layout_complete(self):
+    def on_initial_layout_completed(self):
         """Add url to history now that we have displayed something."""
-        objreg.get('web-history').addHistoryEntry(
+        objreg.get('web-history').add_url(
             self.url().toDisplayString(), self.title())
 
     def _init_page(self):
@@ -159,7 +159,7 @@ class WebView(QWebView):
         page.mainFrame().loadStarted.connect(self.on_load_started)
         page.mainFrame().loadFinished.connect(self.on_load_finished)
         page.mainFrame().initialLayoutCompleted.connect(
-            self.on_initial_layout_complete)
+            self.on_initial_layout_completed)
         page.statusBarMessage.connect(
             lambda msg: setattr(self, 'statusbar_message', msg))
         page.networkAccessManager().sslErrors.connect(

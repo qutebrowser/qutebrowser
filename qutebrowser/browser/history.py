@@ -173,7 +173,11 @@ class WebHistory(QWebHistoryInterface):
         self._lineparser.save()
         self._saved_count = len(self._new_history)
 
-    def addHistoryEntry(self, url_string, title=""):
+    def addHistoryEntry(self, url_string):
+        """Required for a QWebHistoryInterface impl, obseleted by add_url."""
+        pass
+
+    def add_url(self, url_string, title=""):
         """Called by WebKit when an URL should be added to the history.
 
         Args:
@@ -212,3 +216,4 @@ def init(parent=None):
     """
     history = WebHistory(parent)
     objreg.register('web-history', history)
+    QWebHistoryInterface.setDefaultInterface(history)
