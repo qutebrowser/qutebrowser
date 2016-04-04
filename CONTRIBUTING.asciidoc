@@ -63,6 +63,35 @@ handy. Of course, if using git is the issue which prevents you from
 contributing, feel free to send normal patches instead, e.g. generated via
 `diff -Nur`.
 
+Running qutebrowser with tox
+-------------------------------
+
+Once you have cloned the repository, you can run tox inside the qutebrowser
+repository to set up a
+https://docs.python.org/3/library/venv.html[virtual environment]:
+
+----
+$ tox -e mkvenv
+----
+
+This installs all needed Python dependencies in a `.venv` subfolder. The
+system-wide Qt5/PyQt5 installations are symlinked into the virtual environment.
+
+You can then create a simple wrapper script to start qutebrowser:
+
+----
+#!/bin/bash
+~/path/to/qutebrowser/.venv/bin/python3 -m qutebrowser "$@"
+----
+
+If you regularly use a non-development version of qutebrowser, you may want to
+redirect your development version it to a local config using the `-c` flag:
+
+----
+#!/bin/bash
+~/path/to/qutebrowser/.venv/bin/python3 -m qutebrowser -c .qutebrowser-local "$@"
+----
+
 Getting patches
 ~~~~~~~~~~~~~~~
 
