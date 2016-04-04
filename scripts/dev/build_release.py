@@ -91,7 +91,7 @@ def smoke_test(executable):
 def build_windows():
     """Build windows executables/setups."""
     utils.print_title("Updating 3rdparty content")
-    update_3rdparty.main()
+    update_3rdparty.update_pdfjs()
 
     utils.print_title("Building Windows binaries")
     parts = str(sys.version_info.major), str(sys.version_info.minor)
