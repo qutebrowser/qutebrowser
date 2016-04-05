@@ -20,6 +20,7 @@
 |<<download-open,download-open>>|Open the last/[count]th download.
 |<<download-remove,download-remove>>|Remove the last/[count]th download from the list.
 |<<download-retry,download-retry>>|Retry the first failed/[count]th download.
+|<<edit-url,edit-url>>|Compose a url in an external editor and navigate to it.
 |<<fake-key,fake-key>>|Send a fake keypress or key string to the website or qutebrowser.
 |<<forward,forward>>|Go forward in the history of the current tab.
 |<<fullscreen,fullscreen>>|Toggle fullscreen mode.
@@ -222,6 +223,21 @@ Retry the first failed/[count]th download.
 
 ==== count
 The index of the download to retry.
+
+[[edit-url]]
+=== edit-url
+Syntax: +:edit-url [*--bg*] [*--tab*] [*--window*] ['url']+
+
+Open a URL in an external editor and navigate to it upon closing the editor.
+
+==== optional arguments
+* +'url'+: A URL to pre-populate the editor with; defaults to the current URL.
+* +*-b*+, +*--bg*+: Open in a new background tab.
+* +*-t*+, +*--tab*+: Open in a new tab.
+* +*-w*+, +*--window*+: Open in a new window.
+
+==== count
+The tab index to open the URL in.
 
 [[fake-key]]
 === fake-key
