@@ -65,7 +65,6 @@ class CommandDispatcher:
     """
 
     def __init__(self, win_id, tabbed_browser):
-        self._editor = None
         self._win_id = win_id
         self._tabbed_browser = tabbed_browser
 
@@ -1330,11 +1329,10 @@ class CommandDispatcher:
             text = str(elem)
         else:
             text = elem.evaluateJavaScript('this.value')
-        self._editor = editor.ExternalEditor(
-            self._win_id, self._tabbed_browser)
-        self._editor.editing_finished.connect(
-            functools.partial(self.on_editing_finished, elem))
-        self._editor.edit(text)
+        ed = editor.ExternalEditor(self._win_id, self._tabbed_browser)
+        ed.editing_finished.connect(functools.partial(
+            self.on_editing_finished, elem))
+        ed.edit(text)
 
     def on_editing_finished(self, elem, text):
         """Write the editor text into the form field and clean up tempfile.
