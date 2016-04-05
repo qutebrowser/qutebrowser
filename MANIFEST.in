@@ -18,6 +18,7 @@ include qutebrowser.py
 
 prune www
 prune scripts/dev
+prune scripts/testbrowser_cpp
 exclude scripts/asciidoc2html.py
 exclude doc/notes
 recursive-exclude doc *.asciidoc
