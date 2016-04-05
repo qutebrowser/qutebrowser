@@ -69,7 +69,13 @@ def folded_cmd(argv):
 
 
 def apt_get(args):
-    folded_cmd(['sudo', 'apt-get', '-y', '-q'] + args)
+    try:
+        folded_cmd(['sudo', 'apt-get', '-y', '-q'] + args)
+    except subprocess.CalledProcessError:
+        print()
+        print("apt-get failed... trying a second time!")
+        print()
+        folded_cmd(['sudo', 'apt-get', '-y', '-q'] + args)
 
 
 def brew(args):
