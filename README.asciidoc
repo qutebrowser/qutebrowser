@@ -183,6 +183,7 @@ Contributors, sorted by the number of commits in descending order:
 * Zach-Button
 * Halfwit
 * rikn00
+* Ryan Roden-Corrent
 * Michael Ilsaas
 * Martin Zimmermann
 * Brian Jackson
@@ -195,7 +196,6 @@ Contributors, sorted by the number of commits in descending order:
 * Larry Hynes
 * Johannes Altmanninger
 * Samir Benmendil
-* Ryan Roden-Corrent
 * Regina Hug
 * Mathias Fussenegger
 * Marcelo Santos
