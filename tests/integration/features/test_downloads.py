@@ -58,7 +58,7 @@ def download_should_exist(filename, tmpdir):
 def download_prompt(tmpdir, quteproc, path):
     full_path = path.replace('{downloaddir}', str(tmpdir)).replace('/', os.sep)
     msg = ("Asking question <qutebrowser.utils.usertypes.Question "
-           "default='{full_path!r}' mode=<PromptMode.text: 2> "
+           "default={full_path!r} mode=<PromptMode.text: 2> "
            "text='Save file to:'>, *".format(full_path=full_path))
     quteproc.wait_for(message=msg)
     quteproc.send_cmd(':leave-mode')
