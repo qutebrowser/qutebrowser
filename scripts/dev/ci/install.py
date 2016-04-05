@@ -136,6 +136,7 @@ elif TRAVIS_OS == 'linux':
         apt_get(['install', '-t', 'trusty-updates', 'python3.4'])
 
     if TESTENV == 'eslint':
+        folded_cmd(['sudo', 'npm', 'install', '-g', 'npm'])
         folded_cmd(['sudo', 'npm', 'install', '-g', 'eslint'])
     else:
         check_setup('python3')
