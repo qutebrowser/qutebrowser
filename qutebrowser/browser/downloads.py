@@ -90,7 +90,7 @@ def path_suggestion(filename):
         return filename
     elif suggestion == 'both':
         return os.path.join(download_dir(), filename)
-    else:
+    else:  # pragma: no cover
         raise ValueError("Invalid suggestion value {}!".format(suggestion))
 
 
@@ -518,7 +518,7 @@ class DownloadItem(QObject):
                       None: special value to stop the download.
         """
         global last_used_directory
-        if self.fileobj is not None:
+        if self.fileobj is not None:  # pragma: no cover
             raise ValueError("fileobj was already set! filename: {}, "
                              "existing: {}, fileobj {}".format(
                                  filename, self._filename, self.fileobj))
@@ -575,7 +575,7 @@ class DownloadItem(QObject):
         Args:
             fileobj: A file-like object.
         """
-        if self.fileobj is not None:
+        if self.fileobj is not None:  # pragma: no cover
             raise ValueError("fileobj was already set! Old: {}, new: "
                              "{}".format(self.fileobj, fileobj))
         self.fileobj = fileobj
@@ -785,7 +785,7 @@ class DownloadManager(QAbstractListModel):
 
             If not, None.
         """
-        if fileobj is not None and filename is not None:
+        if fileobj is not None and filename is not None:  # pragma: no cover
             raise TypeError("Only one of fileobj/filename may be given!")
         # WORKAROUND for Qt corrupting data loaded from cache:
         # https://bugreports.qt.io/browse/QTBUG-42757
@@ -869,7 +869,7 @@ class DownloadManager(QAbstractListModel):
         Return:
             The created DownloadItem.
         """
-        if fileobj is not None and filename is not None:
+        if fileobj is not None and filename is not None:  # pragma: no cover
             raise TypeError("Only one of fileobj/filename may be given!")
         if not suggested_filename:
             if filename is not None:
