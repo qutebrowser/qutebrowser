@@ -17,6 +17,8 @@
 # You should have received a copy of the GNU General Public License
 # along with qutebrowser.  If not, see <http://www.gnu.org/licenses/>.
 
+import os
+
 import pytest_bdd as bdd
 bdd.scenarios('downloads.feature')
 
@@ -49,3 +51,13 @@ def download_should_not_exist(filename, tmpdir):
 def download_should_exist(filename, tmpdir):
     path = tmpdir / filename
     assert path.check()
+
+
+@bdd.then(bdd.parsers.parse('The download prompt should be shown with "{path}"'))
+def download_prompt(tmpdir, quteproc, path):
+    full_path = path.replace('{downloaddir}', str(tmpdir)).replace('/', os.sep)
+    msg = ("Asking question <qutebrowser.utils.usertypes.Question "
+           "default='{full_path}' mode=<PromptMode.text: 2> "
+           "text='Save file to:'>, *".format(full_path=full_path))
+    quteproc.wait_for(message=msg)
+    quteproc.send_cmd(':leave-mode')

@@ -162,6 +162,26 @@ Feature: Downloading things from a website.
         And I run :download-open with count 1
         Then the error "Download 1 is not done!" should be shown
         
+    ## completion -> download-path-suggestion
+
+    Scenario: completion -> download-path-suggestion = path
+        When I set storage -> prompt-download-directory to true
+        And I set completion -> download-path-suggestion to path
+        And I open data/downloads/download.bin
+        Then the download prompt should be shown with "{downloaddir}/"
+
+    Scenario: completion -> download-path-suggestion = filename
+        When I set storage -> prompt-download-directory to true
+        And I set completion -> download-path-suggestion to filename
+        And I open data/downloads/download.bin
+        Then the download prompt should be shown with "download.bin"
+
+    Scenario: completion -> download-path-suggestion = both
+        When I set storage -> prompt-download-directory to true
+        And I set completion -> download-path-suggestion to both
+        And I open data/downloads/download.bin
+        Then the download prompt should be shown with "{downloaddir}/download.bin"
+
     ## https://github.com/The-Compiler/qutebrowser/issues/1242
 
     Scenario: Closing window with remove-finished-downloads timeout
