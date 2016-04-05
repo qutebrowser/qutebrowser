@@ -1848,7 +1848,8 @@ class CommandDispatcher:
         nam = self._current_widget().page().networkAccessManager()
         nam.clear_all_ssl_errors()
 
-    @cmdutils.register(instance='command-dispatcher', scope='window')
+    @cmdutils.register(instance='command-dispatcher', scope='window',
+                       count='count')
     def edit_url(self, url=None, bg=False, tab=False, window=False, count=None):
         """Navigate to a url formed in an external editor.
 
