@@ -1850,7 +1850,8 @@ class CommandDispatcher:
 
     @cmdutils.register(instance='command-dispatcher', scope='window',
                        count='count')
-    def edit_url(self, url=None, bg=False, tab=False, window=False, count=None):
+    def edit_url(self, url=None, bg=False, tab=False, window=False,
+                 count=None):
         """Navigate to a url formed in an external editor.
 
         The editor which should be launched can be configured via the
@@ -1866,8 +1867,7 @@ class CommandDispatcher:
         ed = editor.ExternalEditor(self._win_id, self._tabbed_browser)
 
         # Passthrough for openurl args (e.g. -t, -b, -w)
-        ed.editing_finished.connect(
-            functools.partial(self.openurl,
-            bg=bg, tab=tab, window=window, count=count))
+        ed.editing_finished.connect(functools.partial(
+            self.openurl, bg=bg, tab=tab, window=window, count=count))
 
         ed.edit(url or self._current_url().toString())
