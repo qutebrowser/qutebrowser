@@ -53,7 +53,8 @@ def download_should_exist(filename, tmpdir):
     assert path.check()
 
 
-@bdd.then(bdd.parsers.parse('The download prompt should be shown with "{path}"'))
+@bdd.then(bdd.parsers.parse('The download prompt should be shown with '
+                            '"{path}"'))
 def download_prompt(tmpdir, quteproc, path):
     full_path = path.replace('{downloaddir}', str(tmpdir)).replace('/', os.sep)
     msg = ("Asking question <qutebrowser.utils.usertypes.Question "
