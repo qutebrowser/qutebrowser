@@ -1847,3 +1847,26 @@ class CommandDispatcher:
         """Clear remembered SSL error answers."""
         nam = self._current_widget().page().networkAccessManager()
         nam.clear_all_ssl_errors()
+
+    @cmdutils.register(instance='command-dispatcher', scope='window')
+    def edit_url(self, url=None, bg=False, tab=False, window=False, count=None):
+        """Navigate to a url formed in an external editor.
+
+        The editor which should be launched can be configured via the
+        `general -> editor` config option.
+
+        Args:
+            url: URL to edit; defaults to the current page url.
+            bg: Open in a new background tab.
+            tab: Open in a new tab.
+            window: Open in a new window.
+            count: The tab index to open the URL in, or None.
+        """
+        ed = editor.ExternalEditor(self._win_id, self._tabbed_browser)
+
+        # Passthrough for openurl args (e.g. -t, -b, -w)
+        ed.editing_finished.connect(
+            functools.partial(self.openurl,
+            bg=bg, tab=tab, window=window, count=count))
+
+        ed.edit(url or self._current_url().toString())
