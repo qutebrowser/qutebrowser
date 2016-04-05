@@ -1862,12 +1862,11 @@ class CommandDispatcher:
             window: Open in a new window.
             count: The tab index to open the URL in, or None.
         """
-        self._editor = editor.ExternalEditor(
-            self._win_id, self._tabbed_browser)
+        ed = editor.ExternalEditor(self._win_id, self._tabbed_browser)
 
         # Passthrough for openurl args (e.g. -t, -b, -w)
-        self._editor.editing_finished.connect(
+        ed.editing_finished.connect(
             functools.partial(self.openurl,
-            bg = bg, tab = tab, window = window, count = count))
+            bg=bg, tab=tab, window=window, count=count))
 
-        self._editor.edit(url or self._current_url().toString())
+        ed.edit(url or self._current_url().toString())
