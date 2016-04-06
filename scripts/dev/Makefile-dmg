@@ -18,20 +18,19 @@
 # Customizable variables
 ################################################################################
 
-NAME ?= MyApp
-VERSION ?= 0.1
+NAME ?= qutebrowser
 
-SOURCE_DIR ?= src
-SOURCE_FILES ?= MyApp.app README COPYING
+SOURCE_DIR ?= .
+SOURCE_FILES ?= dist/qutebrowser.app COPYING
 
 TEMPLATE_DMG ?= template.dmg
-TEMPLATE_SIZE ?= 40m
+TEMPLATE_SIZE ?= 120m
 
 ################################################################################
 # DMG building. No editing should be needed beyond this point.
 ################################################################################
 
-MASTER_DMG=$(NAME)-$(VERSION).dmg
+MASTER_DMG=$(NAME).dmg
 WC_DMG=wc.dmg
 WC_DIR=wc
 
