@@ -195,3 +195,13 @@ class TestClickElement:
 ])
 def test_xpath_escape(string, expected):
     assert quteprocess._xpath_escape(string) == expected
+
+
+@pytest.mark.parametrize('value', [
+    'foo',
+    'foo"bar',  # Make sure a " is preserved
+])
+def test_set(quteproc, value):
+    quteproc.set_setting('network', 'accept-language', value)
+    read_back = quteproc.get_setting('network', 'accept-language')
+    assert read_back == value

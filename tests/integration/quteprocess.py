@@ -340,6 +340,8 @@ class QuteProc(testprocess.Process):
         return msg.message.split(' = ')[1]
 
     def set_setting(self, sect, opt, value):
+        # " in a value should be treated literally, so escape it
+        value = value.replace('"', '\\"')
         self.send_cmd(':set "{}" "{}" "{}"'.format(sect, opt, value))
         self.wait_for(category='config', message='Config option changed: *')
 
