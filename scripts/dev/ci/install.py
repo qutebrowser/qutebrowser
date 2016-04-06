@@ -34,6 +34,7 @@ import sys
 import subprocess
 import urllib
 import contextlib
+import time
 
 try:
     import _winreg as winreg
@@ -73,8 +74,9 @@ def apt_get(args):
         folded_cmd(['sudo', 'apt-get', '-y', '-q'] + args)
     except subprocess.CalledProcessError:
         print()
-        print("apt-get failed... trying a second time!")
+        print("apt-get failed... trying a second time in 30s...")
         print()
+        time.sleep(30)
         folded_cmd(['sudo', 'apt-get', '-y', '-q'] + args)
 
 
