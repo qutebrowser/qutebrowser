@@ -137,7 +137,7 @@ elif TRAVIS_OS == 'linux':
 
     if pkgs:
         apt_get(['update'])
-        apt_get(['install'] + pkgs)
+        apt_get(['install', '--no-install-recommends'] + pkgs)
 
     if TESTENV == 'flake8':
         apt_get(['update'])

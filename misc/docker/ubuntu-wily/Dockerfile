@@ -5,9 +5,17 @@ ENV DEBIAN_FRONTEND=noninteractive
 
 RUN apt-get -y update && \
     apt-get -y dist-upgrade && \
-    apt-get -y install python3-pyqt5 python3-pyqt5.qtwebkit python-tox \
-                       python3-sip xvfb git python3-setuptools wget \
-                       herbstluftwm language-pack-en
+    apt-get -y install --no-install-recommends \
+            python3-pyqt5 \
+            python3-pyqt5.qtwebkit \
+            python-tox \
+            python3-sip \
+            xvfb \
+            git \
+            python3-setuptools \
+            wget \
+            herbstluftwm \
+            language-pack-en
 
 RUN useradd user && mkdir /home/user && chown -R user:users /home/user
 USER user
