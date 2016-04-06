@@ -93,6 +93,13 @@ def build_osx():
     """Build OS X .dmg/.app."""
     utils.print_title("Building .app via pyinstaller")
     call_tox('pyinstaller')
+    utils.print_title("Building .dmg")
+    subprocess.check_call(['make', '-f', 'scripts/dev/Makefile-dmg'])
+    utils.print_title("Cleaning up...")
+    for f in ['wc.dmg', 'template.dmg']:
+        os.remove(f)
+    for d in ['dist', 'build']:
+        shutil.rmtree(d)
 
 
 def build_windows():
