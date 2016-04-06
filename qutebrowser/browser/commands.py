@@ -65,7 +65,6 @@ class CommandDispatcher:
     """
 
     def __init__(self, win_id, tabbed_browser):
-        self._editor = None
         self._win_id = win_id
         self._tabbed_browser = tabbed_browser
 
@@ -249,7 +248,10 @@ class CommandDispatcher:
             try:
                 url = urlutils.fuzzy_url(url)
             except urlutils.InvalidUrlError as e:
-                raise cmdexc.CommandError(e)
+                # We don't use cmdexc.CommandError here as this can be called
+                # async from edit_url
+                message.error(self._win_id, str(e))
+                return
         if tab or bg or window:
             self._open(url, tab, bg, window)
         else:
@@ -1330,11 +1332,10 @@ class CommandDispatcher:
             text = str(elem)
         else:
             text = elem.evaluateJavaScript('this.value')
-        self._editor = editor.ExternalEditor(
-            self._win_id, self._tabbed_browser)
-        self._editor.editing_finished.connect(
-            functools.partial(self.on_editing_finished, elem))
-        self._editor.edit(text)
+        ed = editor.ExternalEditor(self._win_id, self._tabbed_browser)
+        ed.editing_finished.connect(functools.partial(
+            self.on_editing_finished, elem))
+        ed.edit(text)
 
     def on_editing_finished(self, elem, text):
         """Write the editor text into the form field and clean up tempfile.
@@ -1847,3 +1848,29 @@ class CommandDispatcher:
         """Clear remembered SSL error answers."""
         nam = self._current_widget().page().networkAccessManager()
         nam.clear_all_ssl_errors()
+
+    @cmdutils.register(instance='command-dispatcher', scope='window',
+                       count='count')
+    def edit_url(self, url=None, bg=False, tab=False, window=False,
+                 count=None):
+        """Navigate to a url formed in an external editor.
+
+        The editor which should be launched can be configured via the
+        `general -> editor` config option.
+
+        Args:
+            url: URL to edit; defaults to the current page url.
+            bg: Open in a new background tab.
+            tab: Open in a new tab.
+            window: Open in a new window.
+            count: The tab index to open the URL in, or None.
+        """
+        cmdutils.check_exclusive((tab, bg, window), 'tbw')
+
+        ed = editor.ExternalEditor(self._win_id, self._tabbed_browser)
+
+        # Passthrough for openurl args (e.g. -t, -b, -w)
+        ed.editing_finished.connect(functools.partial(
+            self.openurl, bg=bg, tab=tab, window=window, count=count))
+
+        ed.edit(url or self._current_url().toString())
