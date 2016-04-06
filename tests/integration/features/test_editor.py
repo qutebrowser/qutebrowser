@@ -27,7 +27,7 @@ bdd.scenarios('editor.feature')
 @bdd.when(bdd.parsers.parse('I set up a fake editor replacing "{text}" by '
                             '"{replacement}"'))
 def set_up_editor_replacement(quteproc, httpbin, tmpdir, text, replacement):
-    """Set up general -> editor to a small python script doing a replacement"""
+    """Set up general->editor to a small python script doing a replacement."""
     text = text.replace('(port)', str(httpbin.port))
     script = tmpdir / 'script.py'
     script.write(textwrap.dedent("""
