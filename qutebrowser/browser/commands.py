@@ -1862,6 +1862,8 @@ class CommandDispatcher:
             window: Open in a new window.
             count: The tab index to open the URL in, or None.
         """
+        cmdutils.check_exclusive((tab, bg, window), 'tbw')
+
         ed = editor.ExternalEditor(self._win_id, self._tabbed_browser)
 
         # Passthrough for openurl args (e.g. -t, -b, -w)
