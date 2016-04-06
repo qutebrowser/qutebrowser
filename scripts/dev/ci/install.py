@@ -108,6 +108,7 @@ if 'APPVEYOR' in os.environ:
     print("Installing PyQt5...")
     subprocess.check_call([r'C:\install-PyQt5.exe', '/S'])
 
+    folded_cmd([r'C:\Python34\Scripts\pip', 'install', '-U', 'pip'])
     folded_cmd([r'C:\Python34\Scripts\pip', 'install', '-U'] + pip_packages)
 
     print("Linking Python...")
@@ -118,6 +119,7 @@ if 'APPVEYOR' in os.environ:
 elif TRAVIS_OS == 'linux' and 'DOCKER' in os.environ:
     pass
 elif TRAVIS_OS == 'linux':
+    folded_cmd(['sudo', 'pip', 'install', '-U', 'pip'])
     folded_cmd(['sudo', 'pip', 'install'] + pip_packages)
 
     pkgs = []
