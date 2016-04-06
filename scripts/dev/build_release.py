@@ -91,6 +91,8 @@ def smoke_test(executable):
 
 def build_osx():
     """Build OS X .dmg/.app."""
+    utils.print_title("Updating 3rdparty content")
+    update_3rdparty.update_pdfjs()
     utils.print_title("Building .app via pyinstaller")
     call_tox('pyinstaller')
     utils.print_title("Building .dmg")
@@ -216,6 +218,7 @@ def main():
         run_asciidoc2html(args)
         build_windows()
     elif sys.platform == 'darwin':
+        run_asciidoc2html(args)
         build_osx()
     else:
         build_sdist()
