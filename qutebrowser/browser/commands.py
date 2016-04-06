@@ -226,7 +226,7 @@ class CommandDispatcher:
             self._tabbed_browser.close_tab(tab)
             tabbar.setSelectionBehaviorOnRemove(old_selection_behavior)
 
-    @cmdutils.register(instance='command-dispatcher', name='open',
+    @cmdutils.register(instance='command-dispatcher', name=['open', 'o'],
                        maxsplit=0, scope='window', count='count',
                        completion=[usertypes.Completion.url])
     def openurl(self, url=None, bg=False, tab=False, window=False, count=None):
