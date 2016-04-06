@@ -354,7 +354,8 @@ class SessionManager(QObject):
                 sessions.append(base)
         return sessions
 
-    @cmdutils.register(completion=[usertypes.Completion.sessions],
+    @cmdutils.register(name=['session-load', 'e'],
+                       completion=[usertypes.Completion.sessions],
                        instance='session-manager')
     def session_load(self, name, clear=False, temp=False, force=False):
         """Load a session.
