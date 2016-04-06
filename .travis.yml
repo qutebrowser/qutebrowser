@@ -1,8 +1,5 @@
 sudo: required
 dist: trusty
-env:
-  global:
-    - PATH=/home/travis/bin:/home/travis/.local/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
 # Not really, but this is here so we can do stuff by hand.
 language: c
 
@@ -47,6 +44,10 @@ cache:
   directories:
     - $HOME/.cache/pip
     - $HOME/build/The-Compiler/qutebrowser/.cache
+
+before_install:
+  # We need to do this so we pick up the system-wide python properly
+  - 'export PATH="/usr/bin:$PATH"'
 
 install:
   - python scripts/dev/ci/install.py
