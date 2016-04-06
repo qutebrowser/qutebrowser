@@ -59,7 +59,7 @@ $(MASTER_DMG): $(WC_DMG) $(addprefix $(SOURCE_DIR)/,$(SOURCE_FILES))
 	hdiutil attach "$(WC_DMG)" -noautoopen -quiet -mountpoint "$(WC_DIR)"
 	for i in $(SOURCE_FILES); do  \
 		rm -rf "$(WC_DIR)/$$i"; \
-		ditto -rsrc "$(SOURCE_DIR)/$$i" "$(WC_DIR)/$$i"; \
+		ditto -rsrc "$(SOURCE_DIR)/$$i" "$(WC_DIR)/$${i##*/}"; \
 	done
 	#rm -f "$@"
 	#hdiutil create -srcfolder "$(WC_DIR)" -format UDZO -imagekey zlib-level=9 "$@" -volname "$(NAME) $(VERSION)" -scrub -quiet
