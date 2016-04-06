@@ -119,8 +119,8 @@ if 'APPVEYOR' in os.environ:
 elif TRAVIS_OS == 'linux' and 'DOCKER' in os.environ:
     pass
 elif TRAVIS_OS == 'linux':
-    folded_cmd(['sudo', 'pip', 'install', '-U', 'pip'])
-    folded_cmd(['sudo', 'pip', 'install', '-U'] + pip_packages)
+    folded_cmd(['sudo', '-H', 'pip', 'install', '-U', 'pip'])
+    folded_cmd(['sudo', '-H', 'pip', 'install', '-U'] + pip_packages)
 
     pkgs = []
 
