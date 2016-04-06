@@ -100,13 +100,6 @@ def pytest_collection_modifyitems(items):
     for item in items:
         if 'qapp' in getattr(item, 'fixturenames', ()):
             item.add_marker('gui')
-            if sys.platform == 'linux' and not os.environ.get('DISPLAY', ''):
-                if ('CI' in os.environ and
-                        not os.environ.get('QUTE_NO_DISPLAY', '')):
-                    raise Exception("No display available on CI!")
-                skip_marker = pytest.mark.skipif(
-                    True, reason="No DISPLAY available")
-                item.add_marker(skip_marker)
 
         if hasattr(item, 'module'):
             module_path = os.path.relpath(
@@ -151,11 +144,14 @@ def pytest_addoption(parser):
 
 
 @pytest.fixture(scope='session', autouse=True)
-def prevent_xvfb_on_buildbot(request):
+def check_display(request):
     if (not request.config.getoption('--no-xvfb') and
             'QUTE_BUILDBOT' in os.environ and
             request.config.xvfb is not None):
         raise Exception("Xvfb is running on buildbot!")
+
+    if sys.platform == 'linux' and not os.environ.get('DISPLAY', ''):
+        raise Exception("No display and no Xvfb available!")
 
 
 @pytest.hookimpl(tryfirst=True, hookwrapper=True)
