@@ -200,21 +200,25 @@ Then <<tox,install qutebrowser via tox>>.
 On OS X
 -------
 
-*Using qutebrowser with Homebrew on OS X is currently broken, as Homebrew
-dropped QtWebKit support with Qt 5.6. I'm working on building a standalone
-`.app` for OS X instead, but it'll still take a few days until it's ready.*
-
 To install qutebrowser on OS X, you'll want a package manager, e.g.
-http://brew.sh/[Homebrew] or https://www.macports.org/[MacPorts]. Also make
-sure, you have https://itunes.apple.com/en/app/xcode/id497799835[XCode]
-installed to compile PyQt5 in a later step.
+http://brew.sh/[Homebrew] or https://www.macports.org/[MacPorts].
+
+For Homebrew, a few extra steps are necessary since Homebrew dropped QtWebKit
+from Qt 5.6.
+
+This installs a Qt 5.5 and symlinks it so PyQt5 will work with it instead of Qt
+5.6. This requires that `qt5` is not installed via Homebrew:
 
 ----
-$ brew install python3 pyqt5
+$ brew install python3 d-bus mysql sip xz
+$ brew install homebrew/versions/qt55
+$ brew install --ignore-dependencies pyqt5
+$ ln -s /usr/local/opt/qt55 /usr/local/opt/qt5
+
 $ pip3.5 install qutebrowser
 ----
 
-if you are using Homebrew. For MacPorts, run:
+For MacPorts, run:
 
 ----
 $ sudo port install python34 py34-jinja2 asciidoc py34-pygments py34-pyqt5
