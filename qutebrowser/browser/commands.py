@@ -440,10 +440,14 @@ class CommandDispatcher:
             window: Open the link in a new window.
         """
         path = url.path()
+        #print (url.Qurl)
+        print (path)
         if not path or path == '/':
             raise cmdexc.CommandError("Can't go up!")
         new_path = posixpath.join(path, posixpath.pardir)
+        print (new_path)
         url.setPath(new_path)
+        url.setFragment('')
         self._open(url, tab, background, window)
 
     @cmdutils.register(instance='command-dispatcher', scope='window')

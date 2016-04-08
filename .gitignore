@@ -30,4 +30,5 @@ __pycache__
 /.testmondata
 /.hypothesis
 /prof
+/venv
 TODO
