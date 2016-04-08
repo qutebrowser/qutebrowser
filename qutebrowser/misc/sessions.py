@@ -140,7 +140,7 @@ class SessionManager(QObject):
         data = {'history': []}
         if active:
             data['active'] = True
-        history = tab.page().history()
+        history = tab.history()
         for idx, item in enumerate(history.items()):
             qtutils.ensure_valid(item)
 

@@ -641,6 +641,10 @@ def data(readonly=False):
              SettingValue(typ.Padding(), '2,2,0,4'),
              "Padding for indicators (top, bottom, left, right)."),
 
+            ('delay-load',
+             SettingValue(typ.Bool(), 'false'),
+             "Delay loading tabs until they made visible."),
+
             readonly=readonly
         )),
 
