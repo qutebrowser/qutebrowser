@@ -31,7 +31,8 @@ import os
 def get_latest_pdfjs_url():
     """Get the URL of the latest pdf.js prebuilt package.
 
-    Returns a (version, url)-tuple."""
+    Returns a (version, url)-tuple.
+    """
     github_api = 'https://api.github.com'
     endpoint = 'repos/mozilla/pdf.js/releases/latest'
     request_url = '{}/{}'.format(github_api, endpoint)

@@ -147,7 +147,8 @@ class TabCompletionModel(base.BaseCompletionModel):
 
     """A model to complete on open tabs across all windows.
 
-    Used for switching the buffer command."""
+    Used for switching the buffer command.
+    """
 
     # https://github.com/The-Compiler/qutebrowser/issues/545
     # pylint: disable=abstract-method

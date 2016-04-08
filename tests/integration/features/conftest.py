@@ -326,7 +326,8 @@ def compare_session(quteproc, expected):
 def no_crash():
     """Don't do anything.
 
-    This is actually a NOP as a crash is already checked in the log."""
+    This is actually a NOP as a crash is already checked in the log.
+    """
     pass
 
 

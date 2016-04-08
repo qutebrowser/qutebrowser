@@ -32,7 +32,8 @@ class UrlCompletionModel(base.BaseCompletionModel):
 
     """A model which combines bookmarks, quickmarks and web history URLs.
 
-    Used for the `open` command."""
+    Used for the `open` command.
+    """
 
     # https://github.com/The-Compiler/qutebrowser/issues/545
     # pylint: disable=abstract-method
