@@ -23,7 +23,7 @@ import sys
 import itertools
 import functools
 
-from PyQt5.QtCore import pyqtSignal, pyqtSlot, Qt, QTimer, QUrl
+from PyQt5.QtCore import pyqtSignal, pyqtSlot, Qt, QTimer, QUrl, QPoint
 from PyQt5.QtGui import QPalette
 from PyQt5.QtWidgets import QApplication, QStyleFactory
 from PyQt5.QtWebKit import QWebSettings
@@ -32,7 +32,7 @@ from PyQt5.QtWebKitWidgets import QWebView, QWebPage
 from qutebrowser.config import config
 from qutebrowser.keyinput import modeman
 from qutebrowser.utils import message, log, usertypes, utils, qtutils, objreg
-from qutebrowser.browser import webpage, hints, webelem
+from qutebrowser.browser import webpage, hints, webelem, tabhistory
 
 
 LoadStatus = usertypes.enum('LoadStatus', ['none', 'success', 'success_https',
@@ -385,6 +385,23 @@ class WebView(QWebView):
         level = self._zoom.getitem(offset)
         self.zoom_perc(level, fuzzyval=False)
         return level
+
+    def load_history(self, entries):
+        """Load the history from a list of TabHistoryItem objects."""
+        stream, _data, user_data = tabhistory.serialize(entries)
+        history = self.history()
+        qtutils.deserialize_stream(stream, history)
+        for i, data in enumerate(user_data):
+            history.itemAt(i).setUserData(data)
+        cur_data = history.currentItem().userData()
+        if cur_data is not None:
+            frame = self.page().mainFrame()
+            if 'zoom' in cur_data:
+                frame.page().view().zoom_perc(cur_data['zoom'] * 100)
+            if ('scroll-pos' in cur_data and
+                    frame.scrollPosition() == QPoint(0, 0)):
+                QTimer.singleShot(0, functools.partial(
+                    frame.setScrollPosition, cur_data['scroll-pos']))
 
     @pyqtSlot('QUrl')
     def on_url_changed(self, url):
