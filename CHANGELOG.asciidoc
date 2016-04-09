@@ -22,6 +22,12 @@ Added
 
 - New `:edit-url` command to edit the URL in an external editor.
 
+Changed
+~~~~~~~
+
+- `:tab-focus` can now take a negative index to focus the nth tab counted from
+  the right.
+
 v0.6.0
 ------
 
