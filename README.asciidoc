@@ -218,6 +218,7 @@ Contributors, sorted by the number of commits in descending order:
 * Samuel Loury
 * Matthias Lisin
 * Marcel Schilling
+* Johannes Martinsson
 * Jean-Christophe Petkovich
 * Jay Kamat
 * Helen Sherwood-Taylor
