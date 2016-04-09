@@ -228,6 +228,34 @@ Feature: Tab management
             - data/numbers/2.txt
             - data/numbers/3.txt
 
+    Scenario: :tab-focus with -1
+        When I open data/numbers/1.txt
+        And I open data/numbers/2.txt in a new tab
+        And I open data/numbers/3.txt in a new tab
+        And I run :tab-focus 1
+        And I run :tab-focus -1
+        Then the following tabs should be open:
+            - data/numbers/1.txt
+            - data/numbers/2.txt
+            - data/numbers/3.txt (active)
+
+    Scenario: :tab-focus negative index
+        When I open data/numbers/1.txt
+        And I open data/numbers/2.txt in a new tab
+        And I open data/numbers/3.txt in a new tab
+        And I run :tab-focus -2
+        Then the following tabs should be open:
+            - data/numbers/1.txt
+            - data/numbers/2.txt (active)
+            - data/numbers/3.txt
+
+    Scenario: :tab-focus with invalid negative index
+        When I open data/numbers/1.txt
+        And I open data/numbers/2.txt in a new tab
+        And I open data/numbers/3.txt in a new tab
+        And I run :tab-focus -99
+        Then the error "There's no tab with index -97!" should be shown
+
     Scenario: :tab-focus last with no last focused tab
         Given I have a fresh instance
         And I run :tab-focus last
