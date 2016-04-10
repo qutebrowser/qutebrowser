@@ -626,7 +626,7 @@ as closed.
 
 * Run `scripts/dev/build_release.py` on Linux to build an sdist
 * Upload to PyPI: `twine upload dist/foo{,.asc}`
-* Create Windows packages via `scripts/dev/build_release.py`
+* Create Windows packages via `C:\Python34_x32\python scripts\dev\build_release.py --asciidoc C:\Python27\python C:\asciidoc-8.6.9\asciidoc.py`
 * Upload to github
 
 * Upload to qutebrowser.org with checksum/GPG
