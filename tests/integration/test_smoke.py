@@ -19,10 +19,12 @@
 
 """Test which simply runs qutebrowser to check if it starts properly."""
 
-
 import sys
 import os.path
 import subprocess
+import signal
+
+import pytest
 
 
 def test_smoke():
@@ -32,7 +34,15 @@ def test_smoke():
         argv = [sys.executable, '-m', 'qutebrowser']
     argv += ['--debug', '--no-err-windows', '--nowindow', '--temp-basedir',
              'about:blank', ':later 500 quit']
-    subprocess.check_call(argv)
+    try:
+        subprocess.check_call(argv)
+    except subprocess.CalledProcessError as e:
+        if e.returncode == -signal.SIGSEGV:
+            # pylint: disable=no-member
+            # https://github.com/The-Compiler/qutebrowser/issues/1387
+            pytest.xfail("Ignoring segfault on exit...")
+        else:
+            raise
 
 
 def test_smoke_quteproc(quteproc):
