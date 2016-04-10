@@ -44,3 +44,10 @@ Feature: Using hints
         And I wait until data/hello.txt is loaded
         Then the following tabs should be open:
             - data/hello.txt (active)
+
+    @xfail
+    Scenario: Using :hint spawn with flags (issue 797)
+        When I open data/hints/link.html
+        And I run :hint all spawn -v echo
+        And I run :follow-hint a
+        Then the message "Command exited successfully" should be shown
