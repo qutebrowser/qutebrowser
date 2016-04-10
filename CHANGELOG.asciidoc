@@ -28,6 +28,17 @@ Changed
 - `:tab-focus` can now take a negative index to focus the nth tab counted from
   the right.
 
+v0.6.1
+-----
+
+Fixed
+~~~~~~
+
+- Fixed broken cheatsheet image which was missing from package
+- Fixed occasional crash when switching/disconnecting monitors
+- Fixed crash when downloading non-ascii files with a broken locale (`LC_ALL=C`)
+- Added workaround for a Qt/PyQt bug which is too weird to describe here
+
 v0.6.0
 ------
 
