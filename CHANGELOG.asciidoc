@@ -14,6 +14,17 @@ This project adheres to http://semver.org/[Semantic Versioning].
 // `Fixed` for any bug fixes.
 // `Security` to invite users to upgrade in case of vulnerabilities.
 
+v0.6.1
+-----
+
+Fixed
+~~~~~~
+
+- Fixed broken cheatsheet image which was missing from package
+- Fixed occasional crash when switching/disconnecting monitors
+- Fixed crash when downloading non-ascii files with a broken locale (`LC_ALL=C`)
+- Added workaround for a Qt/PyQt bug which is too weird to describe here
+
 v0.6.0
 ------
 
