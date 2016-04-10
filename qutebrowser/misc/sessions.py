@@ -241,7 +241,9 @@ class SessionManager(QObject):
         log.sessions.debug("Saving session {} to {}...".format(name, path))
         if last_window:
             data = self._last_window_session
-            assert data is not None
+            if data is None:
+                log.sessions.error("last_window_session is None while saving!")
+                return
         else:
             data = self._save_all()
         log.sessions.vdebug("Saving data: {}".format(data))
