@@ -447,10 +447,14 @@ class TestSave:
         sess_man.save(str(session_path))
         assert 'session' not in state_config['general']
 
-    def test_last_window_session_none(self, sess_man, tmpdir):
+    def test_last_window_session_none(self, caplog, sess_man, tmpdir):
         session_path = tmpdir / 'foo.yml'
-        with pytest.raises(AssertionError):
+        with caplog.at_level(logging.ERROR):
             sess_man.save(str(session_path), last_window=True)
+
+        assert len(caplog.records) == 1
+        msg = "last_window_session is None while saving!"
+        assert caplog.records[0].msg == msg
         assert not session_path.exists()
 
     def test_last_window_session(self, sess_man, tmpdir):
