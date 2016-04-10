@@ -27,7 +27,7 @@ from PyQt5.QtCore import pyqtSignal, pyqtSlot, Qt, QTimer, QUrl
 from PyQt5.QtGui import QPalette
 from PyQt5.QtWidgets import QApplication, QStyleFactory
 from PyQt5.QtWebKit import QWebSettings
-from PyQt5.QtWebKitWidgets import QWebView, QWebPage
+from PyQt5.QtWebKitWidgets import QWebView, QWebPage, QWebFrame
 
 from qutebrowser.config import config
 from qutebrowser.keyinput import modeman
@@ -352,9 +352,14 @@ class WebView(QWebView):
             frame = self.page().mainFrame()
             frame.javaScriptWindowObjectCleared.connect(self.add_js_bridge)
 
+    @pyqtSlot(QWebFrame)
     def add_js_bridge(self):
         """Add the javascript bridge for qute:... pages."""
         frame = self.sender()
+        if not isinstance(frame, QWebFrame):
+            log.webview.error("Got non-QWebFrame in add_js_bridge")
+            return
+
         if frame.url().scheme() == 'qute':
             bridge = objreg.get('js-bridge')
             frame.addToJavaScriptWindowObject('qute', bridge)
