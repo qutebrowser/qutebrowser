@@ -15,7 +15,8 @@ RUN apt-get -y update && \
             python3-setuptools \
             wget \
             herbstluftwm \
-            language-pack-en
+            language-pack-en \
+            libjs-pdf
 
 RUN useradd user && mkdir /home/user && chown -R user:users /home/user
 USER user
