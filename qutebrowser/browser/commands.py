@@ -62,11 +62,15 @@ class CommandDispatcher:
         _editor: The ExternalEditor object.
         _win_id: The window ID the CommandDispatcher is associated with.
         _tabbed_browser: The TabbedBrowser used.
+        _local_marks: Jump markers local to each tab
+        _global_marks: Jump markers used across tabs
     """
 
     def __init__(self, win_id, tabbed_browser):
         self._win_id = win_id
         self._tabbed_browser = tabbed_browser
+        self._local_marks = {}
+        self._global_marks = {}
 
     def __repr__(self):
         return utils.get_repr(self)
@@ -1877,3 +1881,52 @@ class CommandDispatcher:
             self.openurl, bg=bg, tab=tab, window=window, count=count))
 
         ed.edit(url or self._current_url().toString())
+
+    @cmdutils.register(instance='command-dispatcher', scope='window')
+    def set_mark(self, key):
+        """Set a mark at the current scroll position in the current tab
+
+        Args:
+            key: mark identifier; capital indicates a global mark
+        """
+        y = self._current_widget().page().currentFrame().scrollPosition().y()
+
+        if key.isupper():
+            # this is a global mark, so store the position and url
+            # since we are already storing the scroll, strip the fragment as it
+            # might interfere with our scrolling
+            url = self._current_url().adjusted(QUrl.RemoveFragment)
+            self._global_marks[key] = y, url
+        else:
+            idx = self._tabbed_browser.currentIndex()
+            if idx not in self._local_marks:
+                self._local_marks[idx] = {}
+            self._local_marks[idx][key] = y
+
+    @cmdutils.register(instance='command-dispatcher', scope='window')
+    def jump_mark(self, key):
+        """Jump to the mark named by `key`
+
+        Args:
+            key: mark identifier; capital indicates a global mark
+        """
+        idx = self._tabbed_browser.currentIndex()
+
+        if key.isupper() and key in self._global_marks:
+            # y is a pixel position relative to the top of the page
+            y, url = self._global_marks[key]
+
+            def callback(ok):
+                if ok:
+                    self._tabbed_browser.cur_load_finished.disconnect(callback)
+                    self.scroll('top')
+                    self.scroll_px(0, y)
+
+            self.openurl(url.toString())
+            self._tabbed_browser.cur_load_finished.connect(callback)
+
+        elif idx in self._local_marks and key in self._local_marks[idx]:
+            self.scroll('top')
+            self.scroll_px(0, self._local_marks[idx][key])
+        else:
+            message.error(self._win_id, "Mark {} is not set".format(key))
