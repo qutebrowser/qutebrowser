@@ -476,6 +476,9 @@ class CommandDispatcher:
             bg: Open in a background tab.
             window: Open in a new window.
         """
+        # save the pre-jump position in the special ' mark
+        self.set_mark("'")
+
         cmdutils.check_exclusive((tab, bg, window), 'tbw')
         widget = self._current_widget()
         frame = widget.page().currentFrame()
@@ -586,6 +589,9 @@ class CommandDispatcher:
             horizontal: Scroll horizontally instead of vertically.
             count: Percentage to scroll.
         """
+        # save the pre-jump position in the special ' mark
+        self.set_mark("'")
+
         if perc is None and count is None:
             perc = 100
         elif perc is None:
@@ -1889,7 +1895,7 @@ class CommandDispatcher:
         Args:
             key: mark identifier; capital indicates a global mark
         """
-        y = self._current_widget().page().currentFrame().scrollPosition().y()
+        y = self._current_y_px()
 
         if key.isupper():
             # this is a global mark, so store the position and url
@@ -1919,14 +1925,28 @@ class CommandDispatcher:
             def callback(ok):
                 if ok:
                     self._tabbed_browser.cur_load_finished.disconnect(callback)
-                    self.scroll('top')
-                    self.scroll_px(0, y)
+                    self._scroll_px_absolute(y)
 
             self.openurl(url.toString())
             self._tabbed_browser.cur_load_finished.connect(callback)
 
         elif idx in self._local_marks and key in self._local_marks[idx]:
-            self.scroll('top')
-            self.scroll_px(0, self._local_marks[idx][key])
+            y = self._local_marks[idx][key]
+
+            # save the pre-jump position in the special ' mark
+            # this has to happen after we read the mark, otherwise jump_mark "'"
+            # would just jump to the current position every time
+            self.set_mark("'")
+
+            self._scroll_px_absolute(y)
         else:
             message.error(self._win_id, "Mark {} is not set".format(key))
+
+    def _current_y_px(self):
+        """Return the current y scroll position in pixels from the top"""
+        return self._current_widget().page().currentFrame().scrollPosition().y()
+
+    def _scroll_px_absolute(self, y):
+        """Scroll to the position y pixels from the top of the page"""
+        self.scroll('top')
+        self.scroll_px(0, y)
