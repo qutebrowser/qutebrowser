@@ -500,7 +500,7 @@ class CommandDispatcher:
 
         Args:
             dx: How much to scroll in x-direction.
-            dy: How much to scroll in x-direction.
+            dy: How much to scroll in y-direction.
             count: multiplier
         """
         dx *= count
