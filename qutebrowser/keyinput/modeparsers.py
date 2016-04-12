@@ -25,9 +25,9 @@ Module attributes:
 
 from PyQt5.QtCore import pyqtSlot, Qt
 
-from qutebrowser.utils import message
+from qutebrowser.utils import utils, message
 from qutebrowser.config import config
-from qutebrowser.keyinput import keyparser
+from qutebrowser.keyinput import keyparser, modeman
 from qutebrowser.utils import usertypes, log, objreg, utils
 
 
@@ -230,3 +230,46 @@ class CaretKeyParser(keyparser.CommandKeyParser):
         super().__init__(win_id, parent, supports_count=True,
                          supports_chains=True)
         self.read_config('caret')
+
+class MarkKeyParser(keyparser.CommandKeyParser):
+
+    """KeyParser for set_mark and jump_mark mode.
+
+       Attributes:
+           _mode: Either KeyMode.set_mark or KeyMode.jump_mark.
+    """
+
+    def __init__(self, win_id, mode, parent=None):
+        super().__init__(win_id, parent, supports_count=False,
+                         supports_chains=False)
+        self._mode = mode
+
+    def handle(self, e):
+        """Override handle to always match the next key and create a mark
+
+        Args:
+            e: the KeyPressEvent from Qt.
+
+        Return:
+            True if event has been handled, False otherwise.
+        """
+
+        if utils.keyevent_to_string(e) is None:
+            # this is a modifier key, let it pass and keep going
+            return True;
+
+        if not e.text().isalpha() and e.text() != "'":
+            # only valid mark names are [a-zA-Z']
+            message.error(self._win_id, e.text() + " isn't a valid mark")
+            return True
+
+        if self._mode == usertypes.KeyMode.set_mark:
+            self._commandrunner.run('set-mark "{}"'.format(e.text()))
+        elif self._mode == usertypes.KeyMode.jump_mark:
+            self._commandrunner.run('jump-mark "{}"'.format(e.text()))
+        else:
+            raise ValueError("{} is not a valid mark mode".format(mode))
+
+        modeman.leave(self._win_id, self._mode, "valid mark key")
+
+        return True
