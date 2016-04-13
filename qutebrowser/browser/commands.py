@@ -62,8 +62,8 @@ class CommandDispatcher:
         _editor: The ExternalEditor object.
         _win_id: The window ID the CommandDispatcher is associated with.
         _tabbed_browser: The TabbedBrowser used.
-        _local_marks: Jump markers local to each tab
-        _global_marks: Jump markers used across tabs
+        _local_marks: Jump markers local to each page
+        _global_marks: Jump markers used across all pages
     """
 
     def __init__(self, win_id, tabbed_browser):
@@ -1895,19 +1895,19 @@ class CommandDispatcher:
         Args:
             key: mark identifier; capital indicates a global mark
         """
+        # consider urls that differ only in fragment to be identical
+        url = self._current_url().adjusted(QUrl.RemoveFragment)
         y = self._current_y_px()
 
         if key.isupper():
             # this is a global mark, so store the position and url
             # since we are already storing the scroll, strip the fragment as it
             # might interfere with our scrolling
-            url = self._current_url().adjusted(QUrl.RemoveFragment)
             self._global_marks[key] = y, url
         else:
-            idx = self._tabbed_browser.currentIndex()
-            if idx not in self._local_marks:
-                self._local_marks[idx] = {}
-            self._local_marks[idx][key] = y
+            if url not in self._local_marks:
+                self._local_marks[url] = {}
+            self._local_marks[url][key] = y
 
     @cmdutils.register(instance='command-dispatcher', scope='window')
     def jump_mark(self, key):
@@ -1916,7 +1916,8 @@ class CommandDispatcher:
         Args:
             key: mark identifier; capital indicates a global mark
         """
-        idx = self._tabbed_browser.currentIndex()
+        # consider urls that differ only in fragment to be identical
+        cur_url = self._current_url().adjusted(QUrl.RemoveFragment)
 
         if key.isupper() and key in self._global_marks:
             # y is a pixel position relative to the top of the page
@@ -1929,9 +1930,8 @@ class CommandDispatcher:
 
             self.openurl(url.toString())
             self._tabbed_browser.cur_load_finished.connect(callback)
-
-        elif idx in self._local_marks and key in self._local_marks[idx]:
-            y = self._local_marks[idx][key]
+        elif cur_url in self._local_marks and key in self._local_marks[cur_url]:
+            y = self._local_marks[cur_url][key]
 
             # save the pre-jump position in the special ' mark
             # this has to happen after we read the mark, otherwise jump_mark "'"
