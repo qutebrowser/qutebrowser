@@ -79,7 +79,7 @@ def test_word_hints_issue1393(quteproc, tmpdir):
         ('epsilon', 'l33t.txt'),
     ]
 
-    quteproc.set_setting('hints', 'mode', 'words')
+    quteproc.set_setting('hints', 'mode', 'word')
     quteproc.set_setting('hints', 'dictionary', str(dict_file))
 
     for hint, target in targets:
