@@ -1,3 +1,4 @@
+
 # vim: ft=python fileencoding=utf-8 sts=4 sw=4 et:
 
 # Copyright 2016 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
@@ -21,10 +22,12 @@
 
 import os
 import os.path
+import re
 
 import yaml
 import pytest
 import bs4
+import textwrap
 
 
 def collect_tests():
@@ -54,3 +57,34 @@ def test_hints(test_name, quteproc):
     quteproc.wait_for(message='hints: a', category='hints')
     quteproc.send_cmd(':follow-hint a')
     quteproc.wait_for_load_finished('data/' + parsed['target'])
+
+
+def test_word_hints_issue1393(quteproc, tmpdir):
+    dict_file = tmpdir / 'dict'
+    dict_file.write(textwrap.dedent("""
+        alpha
+        beta
+        gamma
+        delta
+        epsilon
+    """))
+    targets = [
+        ('words', 'words.txt'),
+        ('smart', 'smart.txt'),
+        ('hinting', 'hinting.txt'),
+        ('alpha', 'l33t.txt'),
+        ('beta', 'l33t.txt'),
+        ('gamma', 'l33t.txt'),
+        ('delta', 'l33t.txt'),
+        ('epsilon', 'l33t.txt'),
+    ]
+
+    quteproc.set_setting('hints', 'mode', 'words')
+    quteproc.set_setting('hints', 'dictionary', str(dict_file))
+
+    for hint, target in targets:
+        quteproc.open_path('data/hints/issue1393.html')
+        quteproc.send_cmd(':hint')
+        quteproc.wait_for(message=re.compile('hints: .*'), category='hints')
+        quteproc.send_cmd(':follow-hint {}'.format(hint))
+        quteproc.wait_for_load_finished('data/{}'.format(target))
