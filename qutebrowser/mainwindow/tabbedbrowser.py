@@ -533,7 +533,7 @@ class TabbedBrowser(tabwidget.TabWidget):
             # We can get signals for tabs we already deleted...
             return
         self.setTabIcon(idx, tab.icon())
-        if idx == self.currentIndex() and config.get('tabs', 
+        if idx == self.currentIndex() and config.get('tabs',
                                                      'tabs-are-windows'):
             self.window().setWindowIcon(tab.icon())
 
