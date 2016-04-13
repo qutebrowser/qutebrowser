@@ -1890,7 +1890,7 @@ class CommandDispatcher:
 
     @cmdutils.register(instance='command-dispatcher', scope='window')
     def set_mark(self, key):
-        """Set a mark at the current scroll position in the current tab
+        """Set a mark at the current scroll position in the current tab.
 
         Args:
             key: mark identifier; capital indicates a global mark
@@ -1911,13 +1911,13 @@ class CommandDispatcher:
 
     @cmdutils.register(instance='command-dispatcher', scope='window')
     def jump_mark(self, key):
-        """Jump to the mark named by `key`
+        """Jump to the mark named by `key`.
 
         Args:
             key: mark identifier; capital indicates a global mark
         """
         # consider urls that differ only in fragment to be identical
-        cur_url = self._current_url().adjusted(QUrl.RemoveFragment)
+        urlkey = self._current_url().adjusted(QUrl.RemoveFragment)
 
         if key.isupper() and key in self._global_marks:
             # y is a pixel position relative to the top of the page
@@ -1930,12 +1930,12 @@ class CommandDispatcher:
 
             self.openurl(url.toString())
             self._tabbed_browser.cur_load_finished.connect(callback)
-        elif cur_url in self._local_marks and key in self._local_marks[cur_url]:
-            y = self._local_marks[cur_url][key]
+        elif urlkey in self._local_marks and key in self._local_marks[urlkey]:
+            y = self._local_marks[urlkey][key]
 
             # save the pre-jump position in the special ' mark
-            # this has to happen after we read the mark, otherwise jump_mark "'"
-            # would just jump to the current position every time
+            # this has to happen after we read the mark, otherwise jump_mark
+            # "'" would just jump to the current position every time
             self.set_mark("'")
 
             self._scroll_px_absolute(y)
@@ -1943,10 +1943,11 @@ class CommandDispatcher:
             message.error(self._win_id, "Mark {} is not set".format(key))
 
     def _current_y_px(self):
-        """Return the current y scroll position in pixels from the top"""
-        return self._current_widget().page().currentFrame().scrollPosition().y()
+        """Return the current y scroll position in pixels from the top."""
+        frame = self._current_widget().page().currentFrame()
+        return frame.scrollPosition().y()
 
     def _scroll_px_absolute(self, y):
-        """Scroll to the position y pixels from the top of the page"""
+        """Scroll to the position y pixels from the top of the page."""
         self.scroll('top')
         self.scroll_px(0, y)

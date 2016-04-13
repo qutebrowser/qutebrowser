@@ -25,7 +25,7 @@ Module attributes:
 
 from PyQt5.QtCore import pyqtSlot, Qt
 
-from qutebrowser.utils import utils, message
+from qutebrowser.utils import message
 from qutebrowser.config import config
 from qutebrowser.keyinput import keyparser, modeman
 from qutebrowser.utils import usertypes, log, objreg, utils
@@ -231,6 +231,7 @@ class CaretKeyParser(keyparser.CommandKeyParser):
                          supports_chains=True)
         self.read_config('caret')
 
+
 class MarkKeyParser(keyparser.CommandKeyParser):
 
     """KeyParser for set_mark and jump_mark mode.
@@ -245,7 +246,7 @@ class MarkKeyParser(keyparser.CommandKeyParser):
         self._mode = mode
 
     def handle(self, e):
-        """Override handle to always match the next key and create a mark
+        """Override handle to always match the next key and create a mark.
 
         Args:
             e: the KeyPressEvent from Qt.
@@ -256,7 +257,7 @@ class MarkKeyParser(keyparser.CommandKeyParser):
 
         if utils.keyevent_to_string(e) is None:
             # this is a modifier key, let it pass and keep going
-            return True;
+            return True
 
         if not e.text().isalpha() and e.text() != "'":
             # only valid mark names are [a-zA-Z']
@@ -268,7 +269,7 @@ class MarkKeyParser(keyparser.CommandKeyParser):
         elif self._mode == usertypes.KeyMode.jump_mark:
             self._commandrunner.run('jump-mark "{}"'.format(e.text()))
         else:
-            raise ValueError("{} is not a valid mark mode".format(mode))
+            raise ValueError("{} is not a valid mark mode".format(self._mode))
 
         modeman.leave(self._win_id, self._mode, "valid mark key")
 
