@@ -85,6 +85,6 @@ def test_word_hints_issue1393(quteproc, tmpdir):
     for hint, target in targets:
         quteproc.open_path('data/hints/issue1393.html')
         quteproc.send_cmd(':hint')
-        quteproc.wait_for(message=re.compile('hints: .*'), category='hints')
+        quteproc.wait_for(message='hints: *', category='hints')
         quteproc.send_cmd(':follow-hint {}'.format(hint))
         quteproc.wait_for_load_finished('data/{}'.format(target))
