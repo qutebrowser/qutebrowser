@@ -29,7 +29,7 @@ import xml.etree.ElementTree
 
 from PyQt5.QtWebKit import QWebSettings
 from PyQt5.QtWidgets import QApplication, QTabBar
-from PyQt5.QtCore import Qt, QUrl, QEvent
+from PyQt5.QtCore import Qt, QUrl, QEvent, QPoint
 from PyQt5.QtGui import QKeyEvent
 from PyQt5.QtPrintSupport import QPrintDialog, QPrintPreviewDialog
 from PyQt5.QtWebKitWidgets import QWebPage
@@ -1892,7 +1892,6 @@ class CommandDispatcher:
         Args:
             key: mark identifier; capital indicates a global mark
         """
-        # consider urls that differ only in fragment to be identical
         self._tabbed_browser.set_mark(key)
 
     @cmdutils.register(instance='command-dispatcher', scope='window')
@@ -1925,5 +1924,5 @@ class CommandDispatcher:
 
     def _scroll_px_absolute(self, y):
         """Scroll to the position y pixels from the top of the page."""
-        self.scroll('top')
-        self.scroll_px(0, y)
+        frame = self._current_widget().page().currentFrame()
+        frame.setScrollPosition(QPoint(0, y))

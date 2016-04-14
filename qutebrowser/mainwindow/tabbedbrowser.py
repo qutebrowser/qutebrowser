@@ -43,7 +43,7 @@ class TabDeletedError(Exception):
 
 class MarkNotSetError(Exception):
 
-    """Exception raised when _tab_index is called for a deleted tab."""
+    """Exception raised when accessing a tab that is not set."""
 
 
 class TabbedBrowser(tabwidget.TabWidget):

@@ -1,6 +1,6 @@
 # vim: ft=python fileencoding=utf-8 sts=4 sw=4 et:
 
-# Copyright 2014-2016 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
+# Copyright 2016 Ryan Roden-Corrent (rcorre) <ryan@rcorre.net>
 #
 # This file is part of qutebrowser.
 #
@@ -27,7 +27,7 @@ def _get_scroll_y(quteproc):
     return pos['y']
 
 
-@bdd.then(bdd.parsers.re(r"the page should be scrolled to "
-                         r"(?P<y>\d+)"))
+@bdd.then(bdd.parsers.parse("the page should be scrolled to "
+                            "{y}"))
 def check_y(quteproc, y):
     assert int(y) == _get_scroll_y(quteproc)
