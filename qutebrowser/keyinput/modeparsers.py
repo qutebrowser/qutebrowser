@@ -232,7 +232,7 @@ class CaretKeyParser(keyparser.CommandKeyParser):
         self.read_config('caret')
 
 
-class MarkKeyParser(keyparser.CommandKeyParser):
+class MarkKeyParser(keyparser.BaseKeyParser):
 
     """KeyParser for set_mark and jump_mark mode.
 
@@ -259,15 +259,20 @@ class MarkKeyParser(keyparser.CommandKeyParser):
             # this is a modifier key, let it pass and keep going
             return True
 
-        if not e.text().isalpha() and e.text() != "'":
+        key = e.text()
+
+        if not key.isalpha() and key != "'":
             # only valid mark names are [a-zA-Z']
-            message.error(self._win_id, e.text() + " isn't a valid mark")
+            message.error(self._win_id, key + " isn't a valid mark")
             return True
 
+        tabbed_browser = objreg.get('tabbed-browser', scope='window',
+                                    window=self._win_id)
+
         if self._mode == usertypes.KeyMode.set_mark:
-            self._commandrunner.run('set-mark "{}"'.format(e.text()))
+            tabbed_browser.set_mark(key)
         elif self._mode == usertypes.KeyMode.jump_mark:
-            self._commandrunner.run('jump-mark "{}"'.format(e.text()))
+            tabbed_browser.jump_mark(key)
         else:
             raise ValueError("{} is not a valid mark mode".format(self._mode))
 

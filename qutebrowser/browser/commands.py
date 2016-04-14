@@ -29,7 +29,7 @@ import xml.etree.ElementTree
 
 from PyQt5.QtWebKit import QWebSettings
 from PyQt5.QtWidgets import QApplication, QTabBar
-from PyQt5.QtCore import Qt, QUrl, QEvent, QPoint
+from PyQt5.QtCore import Qt, QUrl, QEvent
 from PyQt5.QtGui import QKeyEvent
 from PyQt5.QtPrintSupport import QPrintDialog, QPrintPreviewDialog
 from PyQt5.QtWebKitWidgets import QWebPage
@@ -46,7 +46,6 @@ from qutebrowser.utils import (message, usertypes, log, qtutils, urlutils,
 from qutebrowser.utils.usertypes import KeyMode
 from qutebrowser.misc import editor, guiprocess
 from qutebrowser.completion.models import instances, sortfilter
-from qutebrowser.mainwindow.tabbedbrowser import MarkNotSetError
 
 
 class CommandDispatcher:
@@ -1901,28 +1900,4 @@ class CommandDispatcher:
         Args:
             key: mark identifier; capital indicates a global mark
         """
-        try:
-            y, url = self._tabbed_browser.get_mark(key)
-        except MarkNotSetError as e:
-            message.error(self._win_id, str(e))
-            return
-
-        if url is None:
-            # save the pre-jump position in the special ' mark
-            # this has to happen after we read the mark, otherwise jump_mark
-            # "'" would just jump to the current position every time
-            self.set_mark("'")
-            self._scroll_px_absolute(y)
-        else:
-            def callback(ok):
-                if ok:
-                    self._tabbed_browser.cur_load_finished.disconnect(callback)
-                    self._scroll_px_absolute(y)
-
-            self.openurl(url.toString())
-            self._tabbed_browser.cur_load_finished.connect(callback)
-
-    def _scroll_px_absolute(self, y):
-        """Scroll to the position y pixels from the top of the page."""
-        frame = self._current_widget().page().currentFrame()
-        frame.setScrollPosition(QPoint(0, y))
+        self._tabbed_browser.jump_mark(key)

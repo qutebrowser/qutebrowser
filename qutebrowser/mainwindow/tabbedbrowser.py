@@ -23,14 +23,15 @@ import functools
 import collections
 
 from PyQt5.QtWidgets import QSizePolicy
-from PyQt5.QtCore import pyqtSignal, pyqtSlot, QTimer, QUrl
+from PyQt5.QtCore import pyqtSignal, pyqtSlot, QTimer, QUrl, QPoint
 from PyQt5.QtGui import QIcon
 
 from qutebrowser.config import config
 from qutebrowser.keyinput import modeman
 from qutebrowser.mainwindow import tabwidget
 from qutebrowser.browser import signalfilter, webview
-from qutebrowser.utils import log, usertypes, utils, qtutils, objreg, urlutils
+from qutebrowser.utils import (log, usertypes, utils, qtutils, objreg, urlutils,
+                               message)
 
 
 UndoEntry = collections.namedtuple('UndoEntry', ['url', 'history'])
@@ -39,11 +40,6 @@ UndoEntry = collections.namedtuple('UndoEntry', ['url', 'history'])
 class TabDeletedError(Exception):
 
     """Exception raised when _tab_index is called for a deleted tab."""
-
-
-class MarkNotSetError(Exception):
-
-    """Exception raised when accessing a tab that is not set."""
 
 
 class TabbedBrowser(tabwidget.TabWidget):
@@ -665,22 +661,34 @@ class TabbedBrowser(tabwidget.TabWidget):
                 self._local_marks[url] = {}
             self._local_marks[url][key] = y
 
-    def get_mark(self, key):
-        """Retrieve the mark named by `key` as (y, url).
-
-        For a local mark, url is None
-        Returns None if the mark is not set.
+    def jump_mark(self, key):
+        """Jump to the mark named by `key`.
 
         Args:
             key: mark identifier; capital indicates a global mark
         """
         # consider urls that differ only in fragment to be identical
         urlkey = self.current_url().adjusted(QUrl.RemoveFragment)
+        frame = self.currentWidget().page().currentFrame()
 
         if key.isupper() and key in self._global_marks:
-            # y is a pixel position relative to the top of the page
-            return self._global_marks[key]
+            y, url = self._global_marks[key]
+
+            def callback(ok):
+                if ok:
+                    self.cur_load_finished.disconnect(callback)
+                    frame.setScrollPosition(QPoint(0, y))
+
+            self.openurl(url, newtab=False)
+            self.cur_load_finished.connect(callback)
         elif urlkey in self._local_marks and key in self._local_marks[urlkey]:
-            return self._local_marks[urlkey][key], None
+            y = self._local_marks[urlkey][key]
+
+            # save the pre-jump position in the special ' mark
+            # this has to happen after we read the mark, otherwise jump_mark
+            # "'" would just jump to the current position every time
+            self.set_mark("'")
+
+            frame.setScrollPosition(QPoint(0, y))
         else:
-            raise MarkNotSetError("Mark {} is not set".format(key))
+            message.error(self._win_id, "Mark {} is not set".format(key))
