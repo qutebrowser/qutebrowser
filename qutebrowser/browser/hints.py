@@ -921,6 +921,10 @@ class HintManager(QObject):
                           immediately=True)
             return
         if self._context.target in elem_handlers:
+            # Set the pre-jump mark ', so we can jump back here after following
+            tabbed_browser = objreg.get('tabbed-browser', scope='window',
+                                        window=self._win_id)
+            tabbed_browser.set_mark("'")
             handler = functools.partial(
                 elem_handlers[self._context.target], elem, self._context)
         elif self._context.target in url_handlers:

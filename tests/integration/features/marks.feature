@@ -63,3 +63,9 @@ Feature: Setting positional marks
         When I open data/marks.html#bottom
         And I run :jump-mark 'a'
         Then the page should be scrolled to 10
+
+    Scenario: Jumping back after following a link
+        When I run :hint links normal
+        And I run :follow-hint s
+        And I run :jump-mark "'"
+        Then the page should be scrolled to 0

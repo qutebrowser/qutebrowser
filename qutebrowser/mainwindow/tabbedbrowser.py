@@ -41,6 +41,11 @@ class TabDeletedError(Exception):
     """Exception raised when _tab_index is called for a deleted tab."""
 
 
+class MarkNotSetError(Exception):
+
+    """Exception raised when _tab_index is called for a deleted tab."""
+
+
 class TabbedBrowser(tabwidget.TabWidget):
 
     """A TabWidget with QWebViews inside.
@@ -64,6 +69,8 @@ class TabbedBrowser(tabwidget.TabWidget):
         _tab_insert_idx_right: Same as above, for 'right'.
         _undo_stack: List of UndoEntry namedtuples of closed tabs.
         shutting_down: Whether we're currently shutting down.
+        _local_marks: Jump markers local to each page
+        _global_marks: Jump markers used across all pages
 
     Signals:
         cur_progress: Progress of the current tab changed (loadProgress).
@@ -114,6 +121,8 @@ class TabbedBrowser(tabwidget.TabWidget):
         self._now_focused = None
         self.search_text = None
         self.search_flags = 0
+        self._local_marks = {}
+        self._global_marks = {}
         objreg.get('config').changed.connect(self.update_favicons)
         objreg.get('config').changed.connect(self.update_window_title)
         objreg.get('config').changed.connect(self.update_tab_titles)
@@ -637,3 +646,41 @@ class TabbedBrowser(tabwidget.TabWidget):
             self._now_focused.wheelEvent(e)
         else:
             e.ignore()
+
+    def set_mark(self, key):
+        """Set a mark at the current scroll position in the current tab.
+
+        Args:
+            key: mark identifier; capital indicates a global mark
+        """
+        # strip the fragment as it may interfere with scrolling
+        url = self.current_url().adjusted(QUrl.RemoveFragment)
+        frame = self.currentWidget().page().currentFrame()
+        y = frame.scrollPosition().y()
+
+        if key.isupper():
+            self._global_marks[key] = y, url
+        else:
+            if url not in self._local_marks:
+                self._local_marks[url] = {}
+            self._local_marks[url][key] = y
+
+    def get_mark(self, key):
+        """Retrieve the mark named by `key` as (y, url).
+
+        For a local mark, url is None
+        Returns None if the mark is not set.
+
+        Args:
+            key: mark identifier; capital indicates a global mark
+        """
+        # consider urls that differ only in fragment to be identical
+        urlkey = self.current_url().adjusted(QUrl.RemoveFragment)
+
+        if key.isupper() and key in self._global_marks:
+            # y is a pixel position relative to the top of the page
+            return self._global_marks[key]
+        elif urlkey in self._local_marks and key in self._local_marks[urlkey]:
+            return self._local_marks[urlkey][key], None
+        else:
+            raise MarkNotSetError("Mark {} is not set".format(key))

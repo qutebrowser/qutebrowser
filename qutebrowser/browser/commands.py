@@ -46,6 +46,7 @@ from qutebrowser.utils import (message, usertypes, log, qtutils, urlutils,
 from qutebrowser.utils.usertypes import KeyMode
 from qutebrowser.misc import editor, guiprocess
 from qutebrowser.completion.models import instances, sortfilter
+from qutebrowser.mainwindow.tabbedbrowser import MarkNotSetError
 
 
 class CommandDispatcher:
@@ -62,15 +63,11 @@ class CommandDispatcher:
         _editor: The ExternalEditor object.
         _win_id: The window ID the CommandDispatcher is associated with.
         _tabbed_browser: The TabbedBrowser used.
-        _local_marks: Jump markers local to each page
-        _global_marks: Jump markers used across all pages
     """
 
     def __init__(self, win_id, tabbed_browser):
         self._win_id = win_id
         self._tabbed_browser = tabbed_browser
-        self._local_marks = {}
-        self._global_marks = {}
 
     def __repr__(self):
         return utils.get_repr(self)
@@ -1896,18 +1893,7 @@ class CommandDispatcher:
             key: mark identifier; capital indicates a global mark
         """
         # consider urls that differ only in fragment to be identical
-        url = self._current_url().adjusted(QUrl.RemoveFragment)
-        y = self._current_y_px()
-
-        if key.isupper():
-            # this is a global mark, so store the position and url
-            # since we are already storing the scroll, strip the fragment as it
-            # might interfere with our scrolling
-            self._global_marks[key] = y, url
-        else:
-            if url not in self._local_marks:
-                self._local_marks[url] = {}
-            self._local_marks[url][key] = y
+        self._tabbed_browser.set_mark(key)
 
     @cmdutils.register(instance='command-dispatcher', scope='window')
     def jump_mark(self, key):
@@ -1916,13 +1902,19 @@ class CommandDispatcher:
         Args:
             key: mark identifier; capital indicates a global mark
         """
-        # consider urls that differ only in fragment to be identical
-        urlkey = self._current_url().adjusted(QUrl.RemoveFragment)
+        try:
+            y, url = self._tabbed_browser.get_mark(key)
+        except MarkNotSetError as e:
+            message.error(self._win_id, str(e))
+            return
 
-        if key.isupper() and key in self._global_marks:
-            # y is a pixel position relative to the top of the page
-            y, url = self._global_marks[key]
-
+        if url is None:
+            # save the pre-jump position in the special ' mark
+            # this has to happen after we read the mark, otherwise jump_mark
+            # "'" would just jump to the current position every time
+            self.set_mark("'")
+            self._scroll_px_absolute(y)
+        else:
             def callback(ok):
                 if ok:
                     self._tabbed_browser.cur_load_finished.disconnect(callback)
@@ -1930,22 +1922,6 @@ class CommandDispatcher:
 
             self.openurl(url.toString())
             self._tabbed_browser.cur_load_finished.connect(callback)
-        elif urlkey in self._local_marks and key in self._local_marks[urlkey]:
-            y = self._local_marks[urlkey][key]
-
-            # save the pre-jump position in the special ' mark
-            # this has to happen after we read the mark, otherwise jump_mark
-            # "'" would just jump to the current position every time
-            self.set_mark("'")
-
-            self._scroll_px_absolute(y)
-        else:
-            message.error(self._win_id, "Mark {} is not set".format(key))
-
-    def _current_y_px(self):
-        """Return the current y scroll position in pixels from the top."""
-        frame = self._current_widget().page().currentFrame()
-        return frame.scrollPosition().y()
 
     def _scroll_px_absolute(self, y):
         """Scroll to the position y pixels from the top of the page."""
