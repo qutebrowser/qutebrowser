@@ -233,7 +233,7 @@ Contributors, sorted by the number of commits in descending order:
 
 The following people have contributed graphics:
 
-* Jad/[yelo](yelostudio.com) (new icon)
+* Jad/http://yelostudio.com[yelo] (new icon)
 * WOFall (original icon)
 * regines (key binding cheatsheet)
 

@@ -25,6 +25,7 @@ Added
 Changed
 ~~~~~~~
 
+- qutebrowser got a new (slightly updated) logo
 - `:tab-focus` can now take a negative index to focus the nth tab counted from
   the right.
 
