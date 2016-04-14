@@ -651,15 +651,14 @@ class TabbedBrowser(tabwidget.TabWidget):
         """
         # strip the fragment as it may interfere with scrolling
         url = self.current_url().adjusted(QUrl.RemoveFragment)
-        frame = self.currentWidget().page().currentFrame()
-        y = frame.scrollPosition().y()
+        point = self.currentWidget().page().currentFrame().scrollPosition()
 
         if key.isupper():
-            self._global_marks[key] = y, url
+            self._global_marks[key] = point, url
         else:
             if url not in self._local_marks:
                 self._local_marks[url] = {}
-            self._local_marks[url][key] = y
+            self._local_marks[url][key] = point
 
     def jump_mark(self, key):
         """Jump to the mark named by `key`.
@@ -672,23 +671,23 @@ class TabbedBrowser(tabwidget.TabWidget):
         frame = self.currentWidget().page().currentFrame()
 
         if key.isupper() and key in self._global_marks:
-            y, url = self._global_marks[key]
+            point, url = self._global_marks[key]
 
             def callback(ok):
                 if ok:
                     self.cur_load_finished.disconnect(callback)
-                    frame.setScrollPosition(QPoint(0, y))
+                    frame.setScrollPosition(point)
 
             self.openurl(url, newtab=False)
             self.cur_load_finished.connect(callback)
         elif urlkey in self._local_marks and key in self._local_marks[urlkey]:
-            y = self._local_marks[urlkey][key]
+            point = self._local_marks[urlkey][key]
 
             # save the pre-jump position in the special ' mark
             # this has to happen after we read the mark, otherwise jump_mark
             # "'" would just jump to the current position every time
             self.set_mark("'")
 
-            frame.setScrollPosition(QPoint(0, y))
+            frame.setScrollPosition(point)
         else:
             message.error(self._win_id, "Mark {} is not set".format(key))
