@@ -27,7 +27,7 @@ from PyQt5.QtCore import pyqtSlot, Qt
 
 from qutebrowser.utils import message
 from qutebrowser.config import config
-from qutebrowser.keyinput import keyparser, modeman
+from qutebrowser.keyinput import keyparser
 from qutebrowser.utils import usertypes, log, objreg, utils
 
 
@@ -276,6 +276,6 @@ class MarkKeyParser(keyparser.BaseKeyParser):
         else:
             raise ValueError("{} is not a valid mark mode".format(self._mode))
 
-        modeman.leave(self._win_id, self._mode, "valid mark key")
+        self.request_leave.emit(self._mode, "valid mark key")
 
         return True

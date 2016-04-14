@@ -225,6 +225,7 @@ class ModeManager(QObject):
         assert isinstance(mode, usertypes.KeyMode)
         assert parser is not None
         self._parsers[mode] = parser
+        parser.request_leave.connect(self.leave)
 
     def enter(self, mode, reason=None, only_if_normal=False):
         """Enter a new mode.
