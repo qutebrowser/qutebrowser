@@ -1,0 +1,65 @@
+Feature: Setting positional marks
+
+    Background:
+        Given I open data/marks.html
+        And I run :tab-only
+
+    ## :set-mark, :jump-mark
+
+    Scenario: Setting and jumping to a local mark
+        When I run :scroll-px 0 10
+        And I run :set-mark 'a'
+        And I run :scroll-px 0 20
+        And I run :jump-mark 'a'
+        Then the page should be scrolled to 10
+
+    Scenario: Jumping back jumping to a particular percentage
+        When I run :scroll-px 0 20
+        And I run :scroll-perc 100
+        And I run :jump-mark "'"
+        Then the page should be scrolled to 20
+
+    Scenario: Setting the same local mark on another page
+        When I run :scroll-px 0 10
+        And I run :set-mark 'a'
+        And I open data/marks.html
+        And I run :scroll-px 0 20
+        And I run :set-mark 'a'
+        And I run :jump-mark 'a'
+        Then the page should be scrolled to 20
+
+    Scenario: Jumping to a local mark after returning to a page
+        When I run :scroll-px 0 10
+        And I run :set-mark 'a'
+        And I open data/numbers/1.txt
+        And I run :set-mark 'a'
+        And I open data/marks.html
+        And I run :jump-mark 'a'
+        Then the page should be scrolled to 10
+
+    Scenario: Setting and jumping to a global mark
+        When I run :scroll-px 0 20
+        And I run :set-mark 'A'
+        And I open data/numbers/1.txt
+        And I run :jump-mark 'A'
+        Then data/marks.html should be loaded
+        And the page should be scrolled to 20
+
+    Scenario: Jumping to an unset mark
+        When I run :jump-mark 'b'
+        Then the error "Mark b is not set" should be shown
+
+    Scenario: Jumping to a local mark that was set on another page
+        When I run :set-mark 'b'
+        And I open data/numbers/1.txt
+        And I run :jump-mark 'b'
+        Then the error "Mark b is not set" should be shown
+
+    Scenario: Jumping to a local mark after changing fragments
+        When I open data/marks.html#top
+        And I run :scroll 'top'
+        And I run :scroll-px 0 10
+        And I run :set-mark 'a'
+        When I open data/marks.html#bottom
+        And I run :jump-mark 'a'
+        Then the page should be scrolled to 10
