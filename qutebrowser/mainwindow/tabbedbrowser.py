@@ -472,7 +472,7 @@ class TabbedBrowser(tabwidget.TabWidget):
         else:
             self.setTabIcon(idx, QIcon())
             if (config.get('tabs', 'tabs-are-windows') and
-                config.get('tabs', 'show-favicons')):
+                    config.get('tabs', 'show-favicons')):
                 self.window().setWindowIcon(self.default_window_icon)
         if idx == self.currentIndex():
             self.update_window_title()
