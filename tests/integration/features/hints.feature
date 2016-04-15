@@ -40,7 +40,7 @@ Feature: Using hints
 
     @xfail
     Scenario: Using :hint spawn with flags (issue 797)
-        When I open data/hints/link.html
+        When I open data/hints/html/simple.html
         And I run :hint all spawn -v echo
         And I run :follow-hint a
         Then the message "Command exited successfully" should be shown
