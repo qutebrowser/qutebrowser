@@ -26,7 +26,6 @@ import urllib.error
 import shutil
 import json
 import os
-import sys
 
 
 def get_latest_pdfjs_url():
