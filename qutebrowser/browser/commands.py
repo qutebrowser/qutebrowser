@@ -45,6 +45,7 @@ from qutebrowser.utils import (message, usertypes, log, qtutils, urlutils,
                                objreg, utils)
 from qutebrowser.utils.usertypes import KeyMode
 from qutebrowser.misc import editor, guiprocess
+from qutebrowser.completion.models import instances, sortfilter
 
 
 class CommandDispatcher:
@@ -64,7 +65,6 @@ class CommandDispatcher:
     """
 
     def __init__(self, win_id, tabbed_browser):
-        self._editor = None
         self._win_id = win_id
         self._tabbed_browser = tabbed_browser
 
@@ -248,7 +248,10 @@ class CommandDispatcher:
             try:
                 url = urlutils.fuzzy_url(url)
             except urlutils.InvalidUrlError as e:
-                raise cmdexc.CommandError(e)
+                # We don't use cmdexc.CommandError here as this can be called
+                # async from edit_url
+                message.error(self._win_id, str(e))
+                return
         if tab or bg or window:
             self._open(url, tab, bg, window)
         else:
@@ -818,10 +821,13 @@ class CommandDispatcher:
         text = utils.get_clipboard(selection=sel)
         if not text.strip():
             raise cmdexc.CommandError("{} is empty.".format(target))
-        log.misc.debug("{} contained: '{}'".format(target,
-                                                   text.replace('\n', '\\n')))
-        text_urls = enumerate(u for u in text.split('\n') if u.strip())
-        for i, text_url in text_urls:
+        log.misc.debug("{} contained: {!r}".format(target, text))
+        text_urls = [u for u in text.split('\n') if u.strip()]
+        if (len(text_urls) > 1 and not urlutils.is_url(text_urls[0]) and
+            urlutils.get_path_if_valid(
+                text_urls[0], check_exists=True) is None):
+            text_urls = [text]
+        for i, text_url in enumerate(text_urls):
             if not window and i > 0:
                 tab = False
                 bg = True
@@ -832,6 +838,60 @@ class CommandDispatcher:
             self._open(url, tab, bg, window)
 
     @cmdutils.register(instance='command-dispatcher', scope='window',
+                       completion=[usertypes.Completion.tab])
+    def buffer(self, index):
+        """Select tab by index or url/title best match.
+
+        Focuses window if necessary.
+
+        Args:
+            index: The [win_id/]index of the tab to focus. Or a substring
+                   in which case the closest match will be focused.
+        """
+        index_parts = index.split('/', 1)
+
+        try:
+            for part in index_parts:
+                int(part)
+        except ValueError:
+            model = instances.get(usertypes.Completion.tab)
+            sf = sortfilter.CompletionFilterModel(source=model)
+            sf.set_pattern(index)
+            if sf.count() > 0:
+                index = sf.data(sf.first_item())
+                index_parts = index.split('/', 1)
+            else:
+                raise cmdexc.CommandError(
+                    "No matching tab for: {}".format(index))
+
+        if len(index_parts) == 2:
+            win_id = int(index_parts[0])
+            idx = int(index_parts[1])
+        elif len(index_parts) == 1:
+            idx = int(index_parts[0])
+            active_win = objreg.get('app').activeWindow()
+            if active_win is None:
+                # Not sure how you enter a command without an active window...
+                raise cmdexc.CommandError(
+                    "No window specified and couldn't find active window!")
+            win_id = active_win.win_id
+
+        if win_id not in objreg.window_registry:
+            raise cmdexc.CommandError(
+                "There's no window with id {}!".format(win_id))
+
+        tabbed_browser = objreg.get('tabbed-browser', scope='window',
+                                    window=win_id)
+        if not 0 < idx <= tabbed_browser.count():
+            raise cmdexc.CommandError(
+                "There's no tab with index {}!".format(idx))
+
+        window = objreg.window_registry[win_id]
+        window.activateWindow()
+        window.raise_()
+        tabbed_browser.setCurrentIndex(idx-1)
+
+    @cmdutils.register(instance='command-dispatcher', scope='window',
                        count='count')
     def tab_focus(self, index: {'type': (int, 'last')}=None, count=None):
         """Select the tab given as argument/[count].
@@ -840,7 +900,8 @@ class CommandDispatcher:
 
         Args:
             index: The tab index to focus, starting with 1. The special value
-                   `last` focuses the last focused tab.
+                   `last` focuses the last focused tab. Negative indexes
+                   counts from the end, such that -1 is the last tab.
             count: The tab index to focus, starting with 1.
         """
         if index == 'last':
@@ -849,6 +910,8 @@ class CommandDispatcher:
         if index is None and count is None:
             self.tab_next()
             return
+        if index is not None and index < 0:
+            index = self._count() + index + 1
         try:
             idx = cmdutils.arg_or_count(index, count, default=1,
                                         countzero=self._count())
@@ -915,9 +978,12 @@ class CommandDispatcher:
         useful here.
 
         Args:
-            userscript: Run the command as a userscript. Either store the
-                        userscript in `~/.local/share/qutebrowser/userscripts`
-                        (or `$XDG_DATA_DIR`), or use an absolute path.
+            userscript: Run the command as a userscript. You can use an
+                        absolute path, or store the userscript in one of those
+                        locations:
+                            - `~/.local/share/qutebrowser/userscripts`
+                              (or `$XDG_DATA_DIR`)
+                            - `/usr/share/qutebrowser/userscripts`
             verbose: Show notifications when the command started/exited.
             detach: Whether the command should be detached from qutebrowser.
             cmdline: The commandline to execute.
@@ -1269,11 +1335,10 @@ class CommandDispatcher:
             text = str(elem)
         else:
             text = elem.evaluateJavaScript('this.value')
-        self._editor = editor.ExternalEditor(
-            self._win_id, self._tabbed_browser)
-        self._editor.editing_finished.connect(
-            functools.partial(self.on_editing_finished, elem))
-        self._editor.edit(text)
+        ed = editor.ExternalEditor(self._win_id, self._tabbed_browser)
+        ed.editing_finished.connect(functools.partial(
+            self.on_editing_finished, elem))
+        ed.edit(text)
 
     def on_editing_finished(self, elem, text):
         """Write the editor text into the form field and clean up tempfile.
@@ -1786,3 +1851,29 @@ class CommandDispatcher:
         """Clear remembered SSL error answers."""
         nam = self._current_widget().page().networkAccessManager()
         nam.clear_all_ssl_errors()
+
+    @cmdutils.register(instance='command-dispatcher', scope='window',
+                       count='count')
+    def edit_url(self, url=None, bg=False, tab=False, window=False,
+                 count=None):
+        """Navigate to a url formed in an external editor.
+
+        The editor which should be launched can be configured via the
+        `general -> editor` config option.
+
+        Args:
+            url: URL to edit; defaults to the current page url.
+            bg: Open in a new background tab.
+            tab: Open in a new tab.
+            window: Open in a new window.
+            count: The tab index to open the URL in, or None.
+        """
+        cmdutils.check_exclusive((tab, bg, window), 'tbw')
+
+        ed = editor.ExternalEditor(self._win_id, self._tabbed_browser)
+
+        # Passthrough for openurl args (e.g. -t, -b, -w)
+        ed.editing_finished.connect(functools.partial(
+            self.openurl, bg=bg, tab=tab, window=window, count=count))
+
+        ed.edit(url or self._current_url().toString())

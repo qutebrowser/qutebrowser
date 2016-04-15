@@ -38,6 +38,10 @@ from qutebrowser.utils import objreg
 from PyQt5.QtCore import QEvent, QSize, Qt
 from PyQt5.QtWidgets import QWidget, QHBoxLayout, QVBoxLayout
 from PyQt5.QtNetwork import QNetworkCookieJar
+try:
+    from PyQt5 import QtWebEngineWidgets
+except ImportError as e:
+    QtWebEngineWidgets = None
 
 
 class WinRegistryHelper:
@@ -211,6 +215,14 @@ def qnam(qapp):
     nam = QNetworkAccessManager()
     nam.setNetworkAccessible(QNetworkAccessManager.NotAccessible)
     return nam
+
+
+@pytest.fixture
+def webengineview():
+    """Get a QWebEngineView if QtWebEngine is available."""
+    if QtWebEngineWidgets is None:
+        pytest.skip("QtWebEngine unavailable")
+    return QtWebEngineWidgets.QWebEngineView()
 
 
 @pytest.fixture

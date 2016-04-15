@@ -1,0 +1,16 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <meta charset="utf-8">
+        <title>Test title</title>
+        <script type="text/javascript">
+            window.onload = function () {
+                console.log("Calling history.replaceState");
+                history.replaceState({}, '', window.location + '?state=2');
+            }
+        </script>
+    </head>
+    <body>
+        This page calls history.replaceState() via JS.
+    </body>
+</html>

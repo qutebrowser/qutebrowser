@@ -36,7 +36,8 @@ from qutebrowser.browser import webelem
 
 
 def get_webelem(geometry=None, frame=None, null=False, style=None,
-                display='', attributes=None, tagname=None, classes=None):
+                display='', attributes=None, tagname=None, classes=None,
+                parent=None):
     """Factory for WebElementWrapper objects based on a mock.
 
     Args:
@@ -55,6 +56,7 @@ def get_webelem(geometry=None, frame=None, null=False, style=None,
     elem.tagName.return_value = tagname
     elem.toOuterXml.return_value = '<fakeelem/>'
     elem.toPlainText.return_value = 'text'
+    elem.parent.return_value = parent
 
     attribute_dict = {}
     if attributes is None:
@@ -324,6 +326,47 @@ class TestWebElementWrapper:
     def test_debug_text(self, elem, xml, expected):
         elem._elem.toOuterXml.return_value = xml
         assert elem.debug_text() == expected
+
+
+class TestRemoveBlankTarget:
+
+    @pytest.mark.parametrize('tagname', ['a', 'area'])
+    @pytest.mark.parametrize('target', ['_self', '_parent', '_top', ''])
+    def test_keep_target(self, tagname, target):
+        elem = get_webelem(tagname=tagname, attributes={'target': target})
+        elem.remove_blank_target()
+        assert elem['target'] == target
+
+    @pytest.mark.parametrize('tagname', ['a', 'area'])
+    def test_no_target(self, tagname):
+        elem = get_webelem(tagname=tagname)
+        elem.remove_blank_target()
+        assert 'target' not in elem
+
+    @pytest.mark.parametrize('tagname', ['a', 'area'])
+    def test_blank_target(self, tagname):
+        elem = get_webelem(tagname=tagname, attributes={'target': '_blank'})
+        elem.remove_blank_target()
+        assert elem['target'] == '_top'
+
+    @pytest.mark.parametrize('tagname', ['a', 'area'])
+    def test_ancestor_blank_target(self, tagname):
+        elem = get_webelem(tagname=tagname, attributes={'target': '_blank'})
+        elem_child = get_webelem(tagname='img', parent=elem._elem)
+        elem_child._elem.encloseWith(elem._elem)
+        elem_child.remove_blank_target()
+        assert elem['target'] == '_top'
+
+    @pytest.mark.parametrize('depth', [1, 5, 10])
+    def test_no_link(self, depth):
+        elem = [None] * depth
+        elem[0] = get_webelem(tagname='div')
+        for i in range(1, depth):
+            elem[i] = get_webelem(tagname='div', parent=elem[i-1])
+            elem[i]._elem.encloseWith(elem[i-1]._elem)
+        elem[-1].remove_blank_target()
+        for i in range(depth):
+            assert 'target' not in elem[i]
 
 
 class TestIsVisible:

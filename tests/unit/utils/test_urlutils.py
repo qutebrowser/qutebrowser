@@ -238,6 +238,18 @@ class TestFuzzyUrl:
         with pytest.raises(urlutils.InvalidUrlError):
             urlutils.fuzzy_url(url, do_search=True)
 
+    @pytest.mark.parametrize('path, check_exists', [
+        ('/foo', False),
+        ('/bar', True),
+    ])
+    def test_get_path_existing(self, path, check_exists, os_mock):
+        """Test with an absolute path."""
+        os_mock.path.exists.return_value = False
+        expected = None if check_exists else path
+
+        url = urlutils.get_path_if_valid(path, check_exists=check_exists)
+        assert url == expected
+
 
 @pytest.mark.parametrize('url, special', [
     ('file:///tmp/foo', True),

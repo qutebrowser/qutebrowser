@@ -14,12 +14,42 @@ This project adheres to http://semver.org/[Semantic Versioning].
 // `Fixed` for any bug fixes.
 // `Security` to invite users to upgrade in case of vulnerabilities.
 
-v0.6.0 (unreleased)
+v0.7.0 (unreleased)
 -------------------
 
 Added
 ~~~~~
 
+- New `:edit-url` command to edit the URL in an external editor.
+
+Changed
+~~~~~~~
+
+- qutebrowser got a new (slightly updated) logo
+- `:tab-focus` can now take a negative index to focus the nth tab counted from
+  the right.
+
+v0.6.1
+-----
+
+Fixed
+~~~~~~
+
+- Fixed broken cheatsheet image which was missing from package
+- Fixed occasional crash when switching/disconnecting monitors
+- Fixed crash when downloading non-ascii files with a broken locale (`LC_ALL=C`)
+- Added workaround for a Qt/PyQt bug which is too weird to describe here
+
+v0.6.0
+------
+
+Added
+~~~~~
+
+- New `:buffer` command to easily switch tabs by name. This is not bound to a
+  key by default for existing users due to a conflict with the `gt`/`gT`
+  bindings (which are now removed from the default bindings).
+  You can bind it by hand by running `:bind -f gt set-cmd-text -s :buffer`.
 - New `--quiet` argument for the `:debug-pyeval` command to not open a tab with
   the results. Note `:debug-pyeval` is still only intended for debugging.
 - The completion now matches each entered word separately.
@@ -28,6 +58,10 @@ Added
   clipboard.
 - New mode `word` for `hints -> mode` which uses a dictionary and link-texts
   for hints instead of single characters.
+- New `--all` argument for `:download-cancel` to cancel all running downloads.
+- New `password_fill` userscript to fill passwords using the `pass` executable.
+- New `current` hinting mode which forces opening hints in the current tab
+  (even with `target="_blank"`)
 
 Changed
 ~~~~~~~
@@ -37,6 +71,13 @@ Changed
 - `general -> editor` can now also handle `{}` inside another argument (e.g. to open `vim` via `termite`)
 - Improved performance when scrolling with many tabs open.
 - Shift-Insert now also pastes primary selection for prompts.
+- `:download-remove --all` got un-deprecated to provide symmetry with
+  `:download-cancel --all`. It does the same as `:download-clear`.
+- Improved detection of URLs/search terms when pasting multiple lines.
+- Don't remove `qutebrowser-editor-*` temporary file if editor subprocess crashed
+- Userscripts are also searched in `/usr/share/qutebrowser/userscripts`.
+- Blocked hosts are now also read from a `blocked-hosts` file in the config dir
+  (e.g. `~/.config/qutebrowser/blocked-hosts`).
 
 Fixed
 ~~~~~
@@ -51,6 +92,25 @@ Fixed
 - Fixed crashes when opening an empty URL (e.g. via pasting).
 - Fixed validation of duplicate values in `hints -> chars`.
 - Fixed crash when PDF.js was partially installed.
+- Fixed crash when XDG_DOWNLOAD_DIR was not an absolute path.
+- Fixed very long filenames when downloading `data://`-URLs.
+- Fixed ugly UI fonts on Windows when Liberation Mono is installed
+- Fixed crash when unbinding key from a section which doesn't exist in the config
+- Fixed report window after a segfault
+- Fixed some directory browser issues on Windows
+- Fixed crash when closing a window with a finished download and delayed
+  `remove-finished-downloads` setting.
+- Fixed crash when hitting `<Tab>` then `<Ctrl-C>` on pages without keyboard
+  focus.
+- Fixed "Frame load interrupted by policy change" error showing up when
+  downloading files with Qt 5.6.
+
+Removed
+~~~~~~~
+
+- The `gt`/`gT` bindings (luakit-like alternatives to `J`/`K`) were removed
+  (except for existing configs) to make room for the `gt` binding to show
+  buffers.
 
 v0.5.1
 ------

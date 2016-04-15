@@ -482,6 +482,19 @@ def regenerate_manpage(filename):
     _format_block(filename, 'options', options)
 
 
+def regenerate_cheatsheet():
+    """Generate cheatsheet PNGs based on the SVG."""
+    files = [
+        ('doc/img/cheatsheet-small.png', 300, 185),
+        ('doc/img/cheatsheet-big.png', 3342, 2060),
+    ]
+
+    for filename, x, y in files:
+        subprocess.check_call(['inkscape', '-e', filename, '-b', 'white',
+                               '-w', str(x), '-h', str(y),
+                               'misc/cheatsheet.svg'])
+
+
 def main():
     """Regenerate all documentation."""
     utils.change_cwd()
@@ -491,8 +504,12 @@ def main():
     generate_settings('doc/help/settings.asciidoc')
     print("Generating command help...")
     generate_commands('doc/help/commands.asciidoc')
-    print("Generating authors in README...")
-    regenerate_authors('README.asciidoc')
+    if '--no-authors' not in sys.argv:
+        print("Generating authors in README...")
+        regenerate_authors('README.asciidoc')
+    if '--cheatsheet' in sys.argv:
+        print("Regenerating cheatsheet .pngs")
+        regenerate_cheatsheet()
     if '--html' in sys.argv:
         asciidoc2html.main()
 

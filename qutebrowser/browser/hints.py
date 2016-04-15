@@ -42,10 +42,10 @@ from qutebrowser.misc import guiprocess
 ElemTuple = collections.namedtuple('ElemTuple', ['elem', 'label'])
 
 
-Target = usertypes.enum('Target', ['normal', 'tab', 'tab_fg', 'tab_bg',
-                                   'window', 'yank', 'yank_primary', 'run',
-                                   'fill', 'hover', 'download', 'userscript',
-                                   'spawn'])
+Target = usertypes.enum('Target', ['normal', 'current', 'tab', 'tab_fg',
+                                   'tab_bg', 'window', 'yank', 'yank_primary',
+                                   'run', 'fill', 'hover', 'download',
+                                   'userscript', 'spawn'])
 
 
 class WordHintingError(Exception):
@@ -71,7 +71,8 @@ class HintContext:
         elems: A mapping from key strings to (elem, label) namedtuples.
         baseurl: The URL of the current page.
         target: What to do with the opened links.
-                normal/tab/tab_fg/tab_bg/window: Get passed to BrowserTab.
+                normal/current/tab/tab_fg/tab_bg/window: Get passed to
+                                                         BrowserTab.
                 yank/yank_primary: Yank to clipboard/primary selection.
                 run: Run a command.
                 fill: Fill commandline with link.
@@ -128,6 +129,7 @@ class HintManager(QObject):
 
     HINT_TEXTS = {
         Target.normal: "Follow hint",
+        Target.current: "Follow hint in current tab",
         Target.tab: "Follow hint in new tab",
         Target.tab_fg: "Follow hint in foreground tab",
         Target.tab_bg: "Follow hint in background tab",
@@ -469,6 +471,7 @@ class HintManager(QObject):
         """
         target_mapping = {
             Target.normal: usertypes.ClickTarget.normal,
+            Target.current: usertypes.ClickTarget.normal,
             Target.tab_fg: usertypes.ClickTarget.tab,
             Target.tab_bg: usertypes.ClickTarget.tab_bg,
             Target.window: usertypes.ClickTarget.window,
@@ -507,6 +510,8 @@ class HintManager(QObject):
                 QMouseEvent(QEvent.MouseButtonRelease, pos, Qt.LeftButton,
                             Qt.NoButton, modifiers),
             ]
+        if context.target == Target.current:
+            elem.remove_blank_target()
         for evt in events:
             self.mouse_event.emit(evt)
         if elem.is_text_input() and elem.is_editable():
@@ -785,7 +790,8 @@ class HintManager(QObject):
 
             target: What to do with the selected element.
 
-                - `normal`: Open the link in the current tab.
+                - `normal`: Open the link.
+                - `current`: Open the link in the current tab.
                 - `tab`: Open the link in a new tab (honoring the
                          background-tabs setting).
                 - `tab-fg`: Open the link in a new foreground tab.
@@ -935,6 +941,7 @@ class HintManager(QObject):
         # Handlers which take a QWebElement
         elem_handlers = {
             Target.normal: self._click,
+            Target.current: self._click,
             Target.tab: self._click,
             Target.tab_fg: self._click,
             Target.tab_bg: self._click,

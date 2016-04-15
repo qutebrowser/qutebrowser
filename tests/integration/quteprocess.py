@@ -37,6 +37,7 @@ from PyQt5.QtCore import pyqtSignal, QUrl
 import testprocess
 from qutebrowser.misc import ipc
 from qutebrowser.utils import log, utils
+from qutebrowser.browser import webelem
 from helpers import utils as testutils
 
 
@@ -253,9 +254,14 @@ class QuteProc(testprocess.Process):
                 path if path != '/' else '')
 
     def wait_for_js(self, message):
-        """Wait for the given javascript console message."""
-        self.wait_for(category='js', function='javaScriptConsoleMessage',
-                      message='[*] {}'.format(message))
+        """Wait for the given javascript console message.
+
+        Return:
+            The LogLine.
+        """
+        return self.wait_for(category='js',
+                             function='javaScriptConsoleMessage',
+                             message='[*] {}'.format(message))
 
     def _is_error_logline(self, msg):
         """Check if the given LogLine is some kind of error message."""
@@ -264,12 +270,12 @@ class QuteProc(testprocess.Process):
                        testutils.pattern_match(pattern='[*] [FAIL] *',
                                                value=msg.message))
         # Try to complain about the most common mistake when accidentally
-        # loading external resources. A fuzzy_url line gets logged when
-        # initializing settings though, so ignore those.
-        is_ddg_page = (
-            'duckduckgo' in msg.message and not (msg.module == 'urlutils' and
-                                                 msg.function == 'fuzzy_url'))
-        return msg.loglevel > logging.INFO or is_js_error or is_ddg_page
+        # loading external resources.
+        is_ddg_load = testutils.pattern_match(
+            pattern="load status for <qutebrowser.browser.webview.WebView "
+            "tab_id=* url='*duckduckgo*'>: *",
+            value=msg.message)
+        return msg.loglevel > logging.INFO or is_js_error or is_ddg_load
 
     def _maybe_skip(self):
         """Skip the test if [SKIP] lines were logged."""
@@ -334,6 +340,8 @@ class QuteProc(testprocess.Process):
         return msg.message.split(' = ')[1]
 
     def set_setting(self, sect, opt, value):
+        # " in a value should be treated literally, so escape it
+        value = value.replace('"', '\\"')
         self.send_cmd(':set "{}" "{}" "{}"'.format(sect, opt, value))
         self.wait_for(category='config', message='Config option changed: *')
 
@@ -348,10 +356,14 @@ class QuteProc(testprocess.Process):
     def open_path(self, path, *, new_tab=False, new_window=False, port=None,
                   https=False):
         """Open the given path on the local webserver in qutebrowser."""
+        url = self.path_to_url(path, port=port, https=https)
+        self.open_url(url, new_tab=new_tab, new_window=new_window)
+
+    def open_url(self, url, *, new_tab=False, new_window=False):
+        """Open the given url in qutebrowser."""
         if new_tab and new_window:
             raise ValueError("new_tab and new_window given!")
 
-        url = self.path_to_url(path, port=port, https=https)
         if new_tab:
             self.send_cmd(':open -t ' + url)
         elif new_window:
@@ -417,6 +429,57 @@ class QuteProc(testprocess.Process):
     def press_keys(self, keys):
         """Press the given keys using :fake-key."""
         self.send_cmd(':fake-key -g "{}"'.format(keys))
+
+    def click_element(self, text):
+        """Click the element with the given text."""
+        # Use Javascript and XPath to find the right element, use console.log
+        # to return an error (no element found, ambiguous element)
+        script = (
+            'var _es = document.evaluate(\'//*[text()={text}]\', document, '
+            'null, XPathResult.ORDERED_NODE_SNAPSHOT_TYPE, null);'
+            'if (_es.snapshotLength == 0) {{ console.log("qute:no elems"); }} '
+            'else if (_es.snapshotLength > 1) {{ console.log("qute:ambiguous '
+            'elems") }} '
+            'else {{ console.log("qute:okay"); _es.snapshotItem(0).click() }}'
+        ).format(text=webelem.javascript_escape(_xpath_escape(text)))
+        self.send_cmd(':jseval ' + script)
+        message = self.wait_for_js('qute:*').message
+        if message.endswith('qute:no elems'):
+            raise ValueError('No element with {!r} found'.format(text))
+        elif message.endswith('qute:ambiguous elems'):
+            raise ValueError('Element with {!r} is not unique'.format(text))
+        elif not message.endswith('qute:okay'):
+            raise ValueError('Invalid response from qutebrowser: {}'
+                             .format(message))
+
+
+def _xpath_escape(text):
+    """Escape a string to be used in an XPath expression.
+
+    The resulting string should still be escaped with javascript_escape, to
+    prevent javascript from interpreting the quotes.
+
+    This function is needed because XPath does not provide any character
+    escaping mechanisms, so to get the string
+        "I'm back", he said
+    you have to use concat like
+        concat('"I', "'m back", '", he said')
+
+    Args:
+        text: Text to escape
+
+    Return:
+        The string "escaped" as a concat() call.
+    """
+    # Shortcut if at most a single quoting style is used
+    if "'" not in text or '"' not in text:
+        return repr(text)
+    parts = re.split('([\'"])', text)
+    # Python's repr() of strings will automatically choose the right quote
+    # type. Since each part only contains one "type" of quote, no escaping
+    # should be necessary.
+    parts = [repr(part) for part in parts if part]
+    return 'concat({})'.format(', '.join(parts))
 
 
 @pytest.yield_fixture(scope='module')

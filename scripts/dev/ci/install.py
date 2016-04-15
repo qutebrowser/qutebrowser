@@ -34,19 +34,20 @@ import sys
 import subprocess
 import urllib
 import contextlib
+import time
 
 try:
     import _winreg as winreg
 except ImportError:
     winreg = None
 
-TESTENV = os.environ['TESTENV']
+TESTENV = os.environ.get('TESTENV', None)
 TRAVIS_OS = os.environ.get('TRAVIS_OS_NAME', None)
 INSTALL_PYQT = TESTENV in ('py34', 'py35', 'py34-cov', 'py35-cov',
-                           'unittests-nodisp', 'vulture', 'pylint')
+                           'unittests-nodisp', 'vulture', 'pylint', 'docs')
 XVFB = TRAVIS_OS == 'linux' and TESTENV == 'py34'
 pip_packages = ['tox']
-if TESTENV.endswith('-cov'):
+if TESTENV is not None and TESTENV.endswith('-cov'):
     pip_packages.append('codecov')
 
 
@@ -68,14 +69,15 @@ def folded_cmd(argv):
         subprocess.check_call(argv)
 
 
-def fix_sources_list():
-    """The mirror used by Travis has trouble a lot, so switch to another."""
-    subprocess.check_call(['sudo', 'sed', '-i', r's/us-central1\.gce/us/',
-                           '/etc/apt/sources.list'])
-
-
 def apt_get(args):
-    folded_cmd(['sudo', 'apt-get', '-y', '-q'] + args)
+    try:
+        folded_cmd(['sudo', 'apt-get', '-y', '-q'] + args)
+    except subprocess.CalledProcessError:
+        print()
+        print("apt-get failed... trying a second time in 30s...")
+        print()
+        time.sleep(30)
+        folded_cmd(['sudo', 'apt-get', '-y', '-q'] + args)
 
 
 def brew(args):
@@ -108,6 +110,7 @@ if 'APPVEYOR' in os.environ:
     print("Installing PyQt5...")
     subprocess.check_call([r'C:\install-PyQt5.exe', '/S'])
 
+    folded_cmd([r'C:\Python34\python', '-m', 'pip', 'install', '-U', 'pip'])
     folded_cmd([r'C:\Python34\Scripts\pip', 'install', '-U'] + pip_packages)
 
     print("Linking Python...")
@@ -115,8 +118,11 @@ if 'APPVEYOR' in os.environ:
         f.write(r'@C:\Python34\python %*')
 
     check_setup(r'C:\Python34\python')
+elif TRAVIS_OS == 'linux' and 'DOCKER' in os.environ:
+    pass
 elif TRAVIS_OS == 'linux':
-    folded_cmd(['sudo', 'pip', 'install'] + pip_packages)
+    folded_cmd(['sudo', '-H', 'pip', 'install', '-U', 'pip'])
+    folded_cmd(['sudo', '-H', 'pip', 'install', '-U'] + pip_packages)
 
     pkgs = []
 
@@ -126,20 +132,21 @@ elif TRAVIS_OS == 'linux':
         pkgs += ['python3-pyqt5', 'python3-pyqt5.qtwebkit']
     if TESTENV == 'eslint':
         pkgs += ['npm', 'nodejs', 'nodejs-legacy']
+    if TESTENV == 'docs':
+        pkgs += ['asciidoc']
 
     if pkgs:
-        fix_sources_list()
         apt_get(['update'])
-        apt_get(['install'] + pkgs)
+        apt_get(['install', '--no-install-recommends'] + pkgs)
 
     if TESTENV == 'flake8':
-        fix_sources_list()
         apt_get(['update'])
         # We need an up-to-date Python because of:
         # https://github.com/google/yapf/issues/46
         apt_get(['install', '-t', 'trusty-updates', 'python3.4'])
 
     if TESTENV == 'eslint':
+        folded_cmd(['sudo', 'npm', 'install', '-g', 'npm'])
         folded_cmd(['sudo', 'npm', 'install', '-g', 'eslint'])
     else:
         check_setup('python3')

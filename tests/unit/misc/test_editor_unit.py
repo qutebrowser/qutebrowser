@@ -98,19 +98,28 @@ class TestFileHandling:
         filename = editor._filename
         assert os.path.exists(filename)
 
+        editor._proc._proc.exitStatus = mock.Mock(
+            return_value=QProcess.CrashExit)
         editor._proc.finished.emit(1, QProcess.NormalExit)
 
-        assert not os.path.exists(filename)
+        assert os.path.exists(filename)
+
+        os.remove(filename)
 
     def test_crash(self, editor):
         """Test file handling when closing with a crash."""
         editor.edit("")
         filename = editor._filename
         assert os.path.exists(filename)
+
+        editor._proc._proc.exitStatus = mock.Mock(
+            return_value=QProcess.CrashExit)
         editor._proc.error.emit(QProcess.Crashed)
 
         editor._proc.finished.emit(0, QProcess.CrashExit)
-        assert not os.path.exists(filename)
+        assert os.path.exists(filename)
+
+        os.remove(filename)
 
     @pytest.mark.posix
     def test_unreadable(self, message_mock, editor):

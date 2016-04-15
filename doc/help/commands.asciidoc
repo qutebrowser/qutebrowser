@@ -11,6 +11,7 @@
 |<<bookmark-add,bookmark-add>>|Save the current page as a bookmark.
 |<<bookmark-del,bookmark-del>>|Delete a bookmark.
 |<<bookmark-load,bookmark-load>>|Load a bookmark.
+|<<buffer,buffer>>|Select tab by index or url/title best match.
 |<<close,close>>|Close the current window.
 |<<download,download>>|Download a given URL, or current page if no URL given.
 |<<download-cancel,download-cancel>>|Cancel the last/[count]th download.
@@ -19,6 +20,7 @@
 |<<download-open,download-open>>|Open the last/[count]th download.
 |<<download-remove,download-remove>>|Remove the last/[count]th download from the list.
 |<<download-retry,download-retry>>|Retry the first failed/[count]th download.
+|<<edit-url,edit-url>>|Navigate to a url formed in an external editor.
 |<<fake-key,fake-key>>|Send a fake keypress or key string to the website or qutebrowser.
 |<<forward,forward>>|Go forward in the history of the current tab.
 |<<fullscreen,fullscreen>>|Toggle fullscreen mode.
@@ -71,6 +73,8 @@
 [[adblock-update]]
 === adblock-update
 Update the adblock block lists.
+
+This updates ~/.local/share/qutebrowser/blocked-hosts with downloaded host lists and re-reads ~/.config/qutebrowser/blocked-hosts.
 
 [[back]]
 === back
@@ -140,6 +144,18 @@ Load a bookmark.
 * This command does not split arguments after the last argument and handles quotes literally.
 * With this command, +;;+ is interpreted literally instead of splitting off a second command.
 
+[[buffer]]
+=== buffer
+Syntax: +:buffer 'index'+
+
+Select tab by index or url/title best match.
+
+Focuses window if necessary.
+
+==== positional arguments
+* +'index'+: The [win_id/]index of the tab to focus. Or a substring in which case the closest match will be focused.
+
+
 [[close]]
 === close
 Close the current window.
@@ -161,7 +177,12 @@ The form `:download [url] [dest]` is deprecated, use `:download --dest [dest] [u
 
 [[download-cancel]]
 === download-cancel
+Syntax: +:download-cancel [*--all*]+
+
 Cancel the last/[count]th download.
+
+==== optional arguments
+* +*-a*+, +*--all*+: Cancel all running downloads
 
 ==== count
 The index of the download to cancel.
@@ -175,14 +196,14 @@ Remove all finished downloads from the list.
 Delete the last/[count]th download from disk.
 
 ==== count
-The index of the download to cancel.
+The index of the download to delete.
 
 [[download-open]]
 === download-open
 Open the last/[count]th download.
 
 ==== count
-The index of the download to cancel.
+The index of the download to open.
 
 [[download-remove]]
 === download-remove
@@ -191,17 +212,36 @@ Syntax: +:download-remove [*--all*]+
 Remove the last/[count]th download from the list.
 
 ==== optional arguments
-* +*-a*+, +*--all*+: Deprecated argument for removing all finished downloads.
+* +*-a*+, +*--all*+: Remove all finished downloads.
 
 ==== count
-The index of the download to cancel.
+The index of the download to remove.
 
 [[download-retry]]
 === download-retry
 Retry the first failed/[count]th download.
 
 ==== count
-The index of the download to cancel.
+The index of the download to retry.
+
+[[edit-url]]
+=== edit-url
+Syntax: +:edit-url [*--bg*] [*--tab*] [*--window*] ['url']+
+
+Navigate to a url formed in an external editor.
+
+The editor which should be launched can be configured via the `general -> editor` config option.
+
+==== positional arguments
+* +'url'+: URL to edit; defaults to the current page url.
+
+==== optional arguments
+* +*-b*+, +*--bg*+: Open in a new background tab.
+* +*-t*+, +*--tab*+: Open in a new tab.
+* +*-w*+, +*--window*+: Open in a new window.
+
+==== count
+The tab index to open the URL in.
 
 [[fake-key]]
 === fake-key
@@ -270,7 +310,8 @@ Start hinting.
 
 * +'target'+: What to do with the selected element. 
 
- - `normal`: Open the link in the current tab.
+ - `normal`: Open the link.
+ - `current`: Open the link in the current tab.
  - `tab`: Open the link in a new tab (honoring the
  background-tabs setting).
  - `tab-fg`: Open the link in a new foreground tab.
@@ -620,8 +661,11 @@ Note the {url} variable which gets replaced by the current URL might be useful h
 * +'cmdline'+: The commandline to execute.
 
 ==== optional arguments
-* +*-u*+, +*--userscript*+: Run the command as a userscript. Either store the userscript in `~/.local/share/qutebrowser/userscripts`
- (or `$XDG_DATA_DIR`), or use an absolute path.
+* +*-u*+, +*--userscript*+: Run the command as a userscript. You can use an absolute path, or store the userscript in one of those
+ locations:
+ - `~/.local/share/qutebrowser/userscripts`
+ (or `$XDG_DATA_DIR`)
+ - `/usr/share/qutebrowser/userscripts`
 
 * +*-v*+, +*--verbose*+: Show notifications when the command started/exited.
 * +*-d*+, +*--detach*+: Whether the command should be detached from qutebrowser.
@@ -675,7 +719,8 @@ Select the tab given as argument/[count].
 If neither count nor index are given, it behaves like tab-next.
 
 ==== positional arguments
-* +'index'+: The tab index to focus, starting with 1. The special value `last` focuses the last focused tab.
+* +'index'+: The tab index to focus, starting with 1. The special value `last` focuses the last focused tab. Negative indexes
+ counts from the end, such that -1 is the last tab.
 
 
 ==== count

@@ -61,33 +61,22 @@ repository (rather than a release):
 $ python3 scripts/asciidoc2html.py
 ----
 
+If video or sound don't seem to work, try installing the gstreamer plugins:
+
+----
+# apt-get install gstreamer1.0-plugins-{bad,base,good,ugly}
+----
+
 Then <<tox,install qutebrowser via tox>>.
 
 On Fedora
 ---------
 
-qutebrowser should run on Fedora 22.
-
-Unfortunately there is no Fedora package yet, but installing qutebrowser is
-still relatively easy! If you want to help packaging it for Fedora, please
-mailto:mail@qutebrowser.org[get in touch]!
-
-Install the dependencies via dnf:
+qutebrowser is available in the official repositories for Fedora 22 and newer.
 
 ----
-# dnf update
-# dnf install python3-qt5 python-tox python3-sip
+# dnf install qutebrowser
 ----
-
-To generate the documentation for the `:help` command, when using the git
-repository (rather than a release):
-
-----
-# dnf install asciidoc source-highlight
-$ python3 scripts/asciidoc2html.py
-----
-
-Then <<tox,install qutebrowser via tox>>.
 
 On Archlinux
 ------------
@@ -112,6 +101,12 @@ $ rm -r qutebrowser-git
 ----
 
 or you could use an AUR helper, e.g. `yaourt -S qutebrowser-git`.
+
+If video or sound don't seem to work, try installing the gstreamer plugins:
+
+----
+# pacman -S gst-plugins-{base,good,bad,ugly} gst-libav
+----
 
 On Gentoo
 ---------
@@ -144,6 +139,21 @@ it with:
 
 ----
 $ nix-env -i qutebrowser
+----
+
+On openSUSE
+-----------
+
+There are prebuilt RPMs available for Tumbleweed and Leap 42.1:
+
+http://software.opensuse.org/download.html?project=home%3Aarpraher&package=qutebrowser[One Click Install]
+
+Or add the repo manually:
+
+----
+# zypper addrepo http://download.opensuse.org/repositories/home:arpraher/openSUSE_Tumbleweed/home:arpraher.repo
+# zypper refresh
+# zypper install qutebrowser
 ----
 
 On Windows
@@ -191,16 +201,24 @@ On OS X
 -------
 
 To install qutebrowser on OS X, you'll want a package manager, e.g.
-http://brew.sh/[Homebrew] or https://www.macports.org/[MacPorts]. Also make
-sure, you have https://itunes.apple.com/en/app/xcode/id497799835[XCode]
-installed to compile PyQt5 in a later step.
+http://brew.sh/[Homebrew] or https://www.macports.org/[MacPorts].
+
+For Homebrew, a few extra steps are necessary since Homebrew dropped QtWebKit
+from Qt 5.6.
+
+This installs a Qt 5.5 and symlinks it so PyQt5 will work with it instead of Qt
+5.6. This requires that `qt5` is not installed via Homebrew:
 
 ----
-$ brew install python3 pyqt5
+$ brew install python3 d-bus mysql sip xz
+$ brew install homebrew/versions/qt55
+$ brew install --ignore-dependencies pyqt5
+$ ln -s /usr/local/opt/qt55 /usr/local/opt/qt5
+
 $ pip3.5 install qutebrowser
 ----
 
-if you are using Homebrew. For MacPorts, run:
+For MacPorts, run:
 
 ----
 $ sudo port install python34 py34-jinja2 asciidoc py34-pygments py34-pyqt5
@@ -225,7 +243,16 @@ it as part of the packaging process.
 Installing qutebrowser with tox
 -------------------------------
 
-Run tox inside the qutebrowser repository to set up a
+First of all, clone the repository using http://git-scm.org/[git] and switch
+into the repository folder:
+
+----
+$ git clone https://github.com/The-Compiler/qutebrowser.git
+$ cd qutebrowser
+----
+
+
+Then run tox inside the qutebrowser repository to set up a
 https://docs.python.org/3/library/venv.html[virtual environment]:
 
 ----
@@ -241,6 +268,14 @@ your `$PATH` (e.g. `/usr/local/bin/qutebrowser` or `~/bin/qutebrowser`):
 ----
 #!/bin/bash
 ~/path/to/qutebrowser/.venv/bin/python3 -m qutebrowser "$@"
+----
+
+If you are developing on qutebrowser, you may want to redirect it to a local
+config:
+
+----
+#!/bin/bash
+~/path/to/qutebrowser/.venv/bin/python3 -m qutebrowser -c .qutebrowser-local "$@"
 ----
 
 Updating

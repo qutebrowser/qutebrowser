@@ -261,7 +261,8 @@ class CommandRunner(QObject):
         """Run a command and display exceptions in the statusbar.
 
         Contrary to run_safely, error messages are queued so this is more
-        suitable to use while initializing."""
+        suitable to use while initializing.
+        """
         try:
             self.run(text, count)
         except (cmdexc.CommandMetaError, cmdexc.CommandError) as e:

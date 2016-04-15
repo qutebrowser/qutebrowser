@@ -95,7 +95,7 @@ Currently, following tox environments are available:
   - `py34`: Run pytest for python-3.4.
   - `py35`: Run pytest for python-3.5.
   - `py34-cov`: Run pytest for python-3.4 with code coverage report.
-  - `py35-cov`: Run pytest for python-3.4 with code coverage report.
+  - `py35-cov`: Run pytest for python-3.5 with code coverage report.
 * `flake8`: Run https://pypi.python.org/pypi/flake8[flake8] checks:
                 https://pypi.python.org/pypi/pyflakes[pyflakes],
                 https://pypi.python.org/pypi/pep8[pep8],
@@ -163,6 +163,9 @@ tox -e py35 -- tests/integration/features
 
 # run everything with undo in the generated name, based on the scenario text
 tox -e py35 -- tests/integration/features/test_tabs.py -k undo
+
+# run coverage test for specific file (updates htmlcov/index.html)
+tox -e py35-cov -- tests/unit/browser/test_webelem.py
 ----
 
 Profiling
@@ -603,6 +606,11 @@ qutebrowser release
 
 * Make sure there are no unstaged changes and the tests are green.
 
+* Add newest config to `tests/unit/config/old_configs` and update `test_upgrade_version`
+    - `python -m qutebrowser --basedir conf :quit`
+    - `sed '/^#/d'  conf/config/qutebrowser.conf > tests/unit/config/old_configs/qutebrowser-v0.x.y.conf`
+    - `rm -r conf`
+    - commit
 * Adjust `__version_info__` in `qutebrowser/__init__.py`.
 * Remove *(unreleased)* from changelog.
 * Run tests again
@@ -610,7 +618,6 @@ qutebrowser release
 * Commit
 
 * Create annotated git tag (`git tag -s "v0.X.Y" -m "Release v0.X.Y"`)
-* If it's a new minor, create git branch `v0.X.x`
 * If committing on minor branch, cherry-pick release commit to master.
 * `git push origin`; `git push origin v0.X.Y`
 * Create release on github
@@ -619,12 +626,15 @@ as closed.
 
 * Run `scripts/dev/build_release.py` on Linux to build an sdist
 * Upload to PyPI: `twine upload dist/foo{,.asc}`
-* Create Windows packages via `scripts/dev/build_release.py` and upload.
+* Create Windows packages via `C:\Python34_x32\python scripts\dev\build_release.py --asciidoc C:\Python27\python C:\asciidoc-8.6.9\asciidoc.py`
+* Upload to github
 
 * Upload to qutebrowser.org with checksum/GPG
     - On server: `sudo mkdir -p /srv/http/qutebrowser/releases/v0.X.Y/windows`
     - `rsync -avPh dist/ tonks:`
     - On server: `sudo mv qutebrowser-0.X.Y.tar.gz* /srv/http/qutebrowser/releases/v0.X.Y`
-
-* Update AUR package
+    - Upload windows release:
+           - `scp bb-win8:proj/qutebrowser/qutebrowser-0.X.Y-windows.zip .`
+           - `aunpack qutebrowser-0.X.Y-windows.zip`
+           - `sudo mv qutebrowser-0.X.Y-windows/* /srv/http/qutebrowser/releases/v0.6.0/windows`
 * Announce to qutebrowser mailinglist

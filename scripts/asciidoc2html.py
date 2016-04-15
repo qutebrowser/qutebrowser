@@ -76,6 +76,7 @@ class AsciiDoc:
             self._build_website()
         else:
             self._build_docs()
+            self._copy_images()
 
     def _build_docs(self):
         """Render .asciidoc files to .html sites."""
@@ -84,8 +85,38 @@ class AsciiDoc:
             name, _ext = os.path.splitext(os.path.basename(src))
             dst = 'qutebrowser/html/doc/{}.html'.format(name)
             files.append((src, dst))
+
+        # patch image links to use local copy
+        replacements = [
+            ("http://qutebrowser.org/img/cheatsheet-big.png",
+                "qute://help/img/cheatsheet-big.png"),
+            ("http://qutebrowser.org/img/cheatsheet-small.png",
+                "qute://help/img/cheatsheet-small.png")
+        ]
+
         for src, dst in files:
-            self.call(src, dst)
+            src_basename = os.path.basename(src)
+            modified_src = os.path.join(self._tempdir, src_basename)
+            with open(modified_src, 'w', encoding='utf-8') as modified_f, \
+                    open(src, 'r', encoding='utf-8') as f:
+                for line in f:
+                    for orig, repl in replacements:
+                        line = line.replace(orig, repl)
+                    modified_f.write(line)
+            self.call(modified_src, dst)
+
+    def _copy_images(self):
+        """Copy image files to qutebrowser/html/doc."""
+        print("Copying files...")
+        dst_path = os.path.join('qutebrowser', 'html', 'doc', 'img')
+        try:
+            os.mkdir(dst_path)
+        except FileExistsError:
+            pass
+        for filename in ['cheatsheet-big.png', 'cheatsheet-small.png']:
+            src = os.path.join('doc', 'img', filename)
+            dst = os.path.join(dst_path, filename)
+            shutil.copy(src, dst)
 
     def _build_website_file(self, root, filename):
         """Build a single website file."""
@@ -249,6 +280,8 @@ def main(colors=False):
                         "asciidoc.py. If not given, it's searched in PATH.",
                         nargs=2, required=False,
                         metavar=('PYTHON', 'ASCIIDOC'))
+    parser.add_argument('--no-authors', help=argparse.SUPPRESS,
+                        action='store_true')
     args = parser.parse_args()
     try:
         os.mkdir('qutebrowser/html/doc')

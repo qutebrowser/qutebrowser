@@ -143,10 +143,20 @@ class SessionManager(QObject):
         history = tab.page().history()
         for idx, item in enumerate(history.items()):
             qtutils.ensure_valid(item)
+
             item_data = {
                 'url': bytes(item.url().toEncoded()).decode('ascii'),
-                'title': item.title(),
             }
+
+            if item.title():
+                item_data['title'] = item.title()
+            else:
+                # https://github.com/The-Compiler/qutebrowser/issues/879
+                if history.currentItemIndex() == idx:
+                    item_data['title'] = tab.page().mainFrame().title()
+                else:
+                    item_data['title'] = item_data['url']
+
             if item.originalUrl() != item.url():
                 encoded = item.originalUrl().toEncoded()
                 item_data['original-url'] = bytes(encoded).decode('ascii')
@@ -231,7 +241,9 @@ class SessionManager(QObject):
         log.sessions.debug("Saving session {} to {}...".format(name, path))
         if last_window:
             data = self._last_window_session
-            assert data is not None
+            if data is None:
+                log.sessions.error("last_window_session is None while saving!")
+                return
         else:
             data = self._save_all()
         log.sessions.vdebug("Saving data: {}".format(data))

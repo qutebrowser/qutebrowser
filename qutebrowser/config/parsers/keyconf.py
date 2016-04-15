@@ -201,7 +201,7 @@ class KeyConfigParser(QObject):
             sect = self.keybindings[mode]
         except KeyError:
             raise cmdexc.CommandError("Can't find mode section '{}'!".format(
-                sect))
+                mode))
         try:
             del sect[key]
         except KeyError:

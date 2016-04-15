@@ -36,7 +36,7 @@ from PyQt5.QtWidgets import (QDialog, QLabel, QTextEdit, QPushButton,
 
 import qutebrowser
 from qutebrowser.utils import version, log, utils, objreg, qtutils
-from qutebrowser.misc import miscwidgets, autoupdate, msgbox
+from qutebrowser.misc import miscwidgets, autoupdate, msgbox, httpclient
 from qutebrowser.browser.network import pastebin
 from qutebrowser.config import config
 
@@ -96,7 +96,8 @@ def get_fatal_crash_dialog(debug, data):
 
 def _get_environment_vars():
     """Gather environment variables for the crash info."""
-    masks = ('DESKTOP_SESSION', 'DE', 'QT_*', 'PYTHON*', 'LC_*', 'LANG')
+    masks = ('DESKTOP_SESSION', 'DE', 'QT_*', 'PYTHON*', 'LC_*', 'LANG',
+             'XDG_*')
     info = []
     for key, value in os.environ.items():
         for m in masks:
@@ -140,7 +141,8 @@ class _CrashDialog(QDialog):
         self.setWindowTitle("Whoops!")
         self.resize(QSize(640, 600))
         self._vbox = QVBoxLayout(self)
-        self._paste_client = pastebin.PastebinClient(self)
+        http_client = httpclient.HTTPClient()
+        self._paste_client = pastebin.PastebinClient(http_client, self)
         self._pypi_client = autoupdate.PyPIVersionClient(self)
         self._init_text()
 
@@ -196,7 +198,8 @@ class _CrashDialog(QDialog):
     def _init_text(self):
         """Initialize the main text to be displayed on an exception.
 
-        Should be extended by subclasses to set the actual text."""
+        Should be extended by subclasses to set the actual text.
+        """
         self._lbl = QLabel(wordWrap=True, openExternalLinks=True,
                            textInteractionFlags=Qt.LinksAccessibleByMouse)
         self._vbox.addWidget(self._lbl)
@@ -507,11 +510,23 @@ class FatalCrashDialog(_CrashDialog):
     def _init_text(self):
         super()._init_text()
         text = ("<b>qutebrowser was restarted after a fatal crash.</b><br/>"
-                "<br/>Note: Crash reports for fatal crashes sometimes don't "
+                "QTWEBENGINE_NOTE"
+                "<br/>Crash reports for fatal crashes sometimes don't "
                 "contain the information necessary to fix an issue. Please "
                 "follow the steps in <a href='https://github.com/The-Compiler/"
                 "qutebrowser/blob/master/doc/stacktrace.asciidoc'>"
                 "stacktrace.asciidoc</a> to submit a stacktrace.<br/>")
+
+        if datetime.datetime.now() < datetime.datetime(2016, 4, 23):
+            note = ("<br/>Fatal crashes like this are often caused by the "
+                    "current QtWebKit backend.<br/><b>I'm currently running a "
+                    "crowdfunding for the new QtWebEngine backend, based on "
+                    "Chromium:</b> <a href='http://igg.me/at/qutebrowser'>"
+                    "igg.me/at/qutebrowser</a><br/>")
+            text = text.replace('QTWEBENGINE_NOTE', note)
+        else:
+            text = text.replace('QTWEBENGINE_NOTE', '')
+
         self._lbl.setText(text)
 
     def _init_checkboxes(self):

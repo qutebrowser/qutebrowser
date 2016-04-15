@@ -180,7 +180,7 @@
 |<<hints-scatter,scatter>>|Whether to scatter hint key chains (like Vimium) or not (like dwb).
 |<<hints-uppercase,uppercase>>|Make chars in hint strings uppercase.
 |<<hints-dictionary,dictionary>>|The dictionary file to be used by the word hints.
-|<<hints-auto-follow,auto-follow>>|Whether to auto-follow a hint if there's only one left.
+|<<hints-auto-follow,auto-follow>>|Follow a hint immediately when the hint text is completely matched.
 |<<hints-next-regexes,next-regexes>>|A comma-separated list of regexes to use for 'next' links.
 |<<hints-prev-regexes,prev-regexes>>|A comma-separated list of regexes to use for 'prev' links.
 |==============
@@ -1585,7 +1585,7 @@ Default: +pass:[/usr/share/dict/words]+
 
 [[hints-auto-follow]]
 === auto-follow
-Whether to auto-follow a hint if there's only one left.
+Follow a hint immediately when the hint text is completely matched.
 
 Valid values:
 
@@ -2041,7 +2041,7 @@ Fonts used for the UI, with optional style/weight/size.
 === _monospace
 Default monospace fonts.
 
-Default: +pass:[Terminus, Monospace, &quot;DejaVu Sans Mono&quot;, Monaco, &quot;Bitstream Vera Sans Mono&quot;, &quot;Andale Mono&quot;, &quot;Liberation Mono&quot;, &quot;Courier New&quot;, Courier, monospace, Fixed, Consolas, Terminal]+
+Default: +pass:[Terminus, Monospace, &quot;DejaVu Sans Mono&quot;, Monaco, &quot;Bitstream Vera Sans Mono&quot;, &quot;Andale Mono&quot;, &quot;Courier New&quot;, Courier, &quot;Liberation Mono&quot;, monospace, Fixed, Consolas, Terminal]+
 
 [[fonts-completion]]
 === completion

@@ -21,10 +21,12 @@
 
 import os
 import os.path
+import traceback
 
 import jinja2
+import jinja2.exceptions
 
-from qutebrowser.utils import utils
+from qutebrowser.utils import utils, log
 
 from PyQt5.QtCore import QUrl
 
@@ -71,5 +73,28 @@ def resource_url(path):
     image = utils.resource_filename(path)
     return QUrl.fromLocalFile(image).toString(QUrl.FullyEncoded)
 
-env = jinja2.Environment(loader=Loader('html'), autoescape=_guess_autoescape)
-env.globals['resource_url'] = resource_url
+
+def file_url(path):
+    """Return a file:// url (as string) to the given local path.
+
+    Arguments:
+        path: The absolute path to the local file
+    """
+    return QUrl.fromLocalFile(path).toString(QUrl.FullyEncoded)
+
+
+def render(template, **kwargs):
+    """Render the given template and pass the given arguments to it."""
+    try:
+        return _env.get_template(template).render(**kwargs)
+    except jinja2.exceptions.UndefinedError:
+        log.misc.exception("UndefinedError while rendering " + template)
+        err_path = os.path.join('html', 'undef_error.html')
+        err_template = utils.read_file(err_path)
+        tb = traceback.format_exc()
+        return err_template.format(pagename=template, traceback=tb)
+
+
+_env = jinja2.Environment(loader=Loader('html'), autoescape=_guess_autoescape)
+_env.globals['resource_url'] = resource_url
+_env.globals['file_url'] = file_url

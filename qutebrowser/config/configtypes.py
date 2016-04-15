@@ -1159,6 +1159,8 @@ class Proxy(BaseType):
             out.append((val, self.valid_values.descriptions[val]))
         out.append(('http://', 'HTTP proxy URL'))
         out.append(('socks://', 'SOCKS proxy URL'))
+        out.append(('socks://localhost:9050/', 'Tor via SOCKS'))
+        out.append(('http://localhost:8080/', 'Local HTTP proxy'))
         return out
 
     def transform(self, value):
@@ -1196,7 +1198,7 @@ class SearchEngineUrl(BaseType):
         self._basic_validation(value)
         if not value:
             return
-        elif '{}' not in value:
+        elif not ('{}' in value or '{0}' in value):
             raise configexc.ValidationError(value, "must contain \"{}\"")
         try:
             value.format("")

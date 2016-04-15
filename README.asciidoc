@@ -22,6 +22,12 @@ on Python, PyQt5 and QtWebKit and free software, licensed under the GPL.
 
 It was inspired by other browsers/addons like dwb and Vimperator/Pentadactyl.
 
+// QUTE_WEB_HIDE
+**qutebrowser is currently running a crowdfunding campaign to add support for
+the QtWebEngine backend, which fixes many issues. Please
+link:http://igg.me/at/qutebrowser[check it out]!**
+// QUTE_WEB_HIDE_END
+
 Screenshots
 -----------
 
@@ -150,22 +156,26 @@ Contributors, sorted by the number of commits in descending order:
 * Felix Van der Jeugt
 * Raphael Pierzina
 * Joel Torstensson
-* Claude
 * Patric Schmitz
+* Claude
 * meles5
+* Tarcisio Fedrizzi
 * Artur Shaik
 * Nathan Isom
-* Austin Anderson
 * Thorsten Wißmann
+* Philipp Hansch
+* Kevin Velghe
+* Austin Anderson
 * Alexey "Averrin" Nabrodov
+* avk
 * ZDarian
 * Milan Svoboda
 * John ShaggyTwoDope Jenkins
+* Jimmy
 * Peter Vilim
-* Tarcisio Fedrizzi
+* Clayton Craft
 * Oliver Caldwell
 * Jonas Schürmann
-* Jimmy
 * Panagiotis Ktistakis
 * Jakub Klinkovský
 * skinnay
@@ -173,6 +183,7 @@ Contributors, sorted by the number of commits in descending order:
 * Zach-Button
 * Halfwit
 * rikn00
+* Ryan Roden-Corrent
 * Michael Ilsaas
 * Martin Zimmermann
 * Brian Jackson
@@ -184,17 +195,23 @@ Contributors, sorted by the number of commits in descending order:
 * Link
 * Larry Hynes
 * Johannes Altmanninger
-* avk
 * Samir Benmendil
 * Regina Hug
 * Mathias Fussenegger
+* Marcelo Santos
 * Fritz V155 Reichwald
 * Franz Fellner
 * Corentin Jule
 * zwarag
 * xd1le
+* issue
+* haxwithaxe
 * evan
 * dylan araps
+* Xitian9
+* Tomasz Kramkowski
+* Tomas Orsava
+* Tobias Werth
 * Tim Harder
 * Thiago Barroso Perrotta
 * Stefan Tatschner
@@ -202,7 +219,10 @@ Contributors, sorted by the number of commits in descending order:
 * Samuel Loury
 * Matthias Lisin
 * Marcel Schilling
+* Johannes Martinsson
 * Jean-Christophe Petkovich
+* Jay Kamat
+* Jan Verbeek
 * Helen Sherwood-Taylor
 * HalosGhost
 * Gregor Pohl
@@ -215,7 +235,8 @@ Contributors, sorted by the number of commits in descending order:
 
 The following people have contributed graphics:
 
-* WOFall (icon)
+* Jad/http://yelostudio.com[yelo] (new icon)
+* WOFall (original icon)
 * regines (key binding cheatsheet)
 
 Thanks / Similar projects

@@ -158,3 +158,50 @@ def test_log_line_parse(data, attrs):
 def test_log_line_no_match():
     with pytest.raises(testprocess.InvalidLine):
         quteprocess.LogLine("Hello World!")
+
+
+class TestClickElement:
+
+    @pytest.fixture(autouse=True)
+    def open_page(self, quteproc):
+        quteproc.open_path('data/click_element.html')
+        quteproc.wait_for_load_finished('data/click_element.html')
+
+    def test_click_element(self, quteproc):
+        quteproc.click_element('Test Element')
+        quteproc.wait_for_js('click_element clicked')
+
+    def test_click_special_chars(self, quteproc):
+        quteproc.click_element('"Don\'t", he shouted')
+        quteproc.wait_for_js('click_element special chars')
+
+    def test_duplicate(self, quteproc):
+        with pytest.raises(ValueError) as excinfo:
+            quteproc.click_element('Duplicate')
+        assert 'not unique' in str(excinfo.value)
+
+    def test_nonexistent(self, quteproc):
+        with pytest.raises(ValueError) as excinfo:
+            quteproc.click_element('no element exists with this text')
+        assert 'No element' in str(excinfo.value)
+
+
+@pytest.mark.parametrize('string, expected', [
+    ('Test', "'Test'"),
+    ("Don't", '"Don\'t"'),
+    # This is some serious string escaping madness
+    ('"Don\'t", he said',
+     "concat('\"', 'Don', \"'\", 't', '\"', ', he said')"),
+])
+def test_xpath_escape(string, expected):
+    assert quteprocess._xpath_escape(string) == expected
+
+
+@pytest.mark.parametrize('value', [
+    'foo',
+    'foo"bar',  # Make sure a " is preserved
+])
+def test_set(quteproc, value):
+    quteproc.set_setting('network', 'accept-language', value)
+    read_back = quteproc.get_setting('network', 'accept-language')
+    assert read_back == value

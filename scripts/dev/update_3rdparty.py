@@ -31,7 +31,8 @@ import os
 def get_latest_pdfjs_url():
     """Get the URL of the latest pdf.js prebuilt package.
 
-    Returns a (version, url)-tuple."""
+    Returns a (version, url)-tuple.
+    """
     github_api = 'https://api.github.com'
     endpoint = 'repos/mozilla/pdf.js/releases/latest'
     request_url = '{}/{}'.format(github_api, endpoint)
@@ -64,6 +65,8 @@ def update_pdfjs(target_version=None):
         url = ('https://github.com/mozilla/pdf.js/releases/download/'
                'v{0}/pdfjs-{0}-dist.zip').format(target_version)
 
+    os.chdir(os.path.join(os.path.dirname(os.path.abspath(__file__)),
+                          '..', '..'))
     target_path = os.path.join('qutebrowser', '3rdparty', 'pdfjs')
     print("=> Downloading pdf.js {}".format(version))
     try:

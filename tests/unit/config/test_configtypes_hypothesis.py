@@ -42,6 +42,7 @@ def gen_classes():
             yield member
 
 
+@pytest.mark.usefixtures('qapp')
 @pytest.mark.parametrize('klass', gen_classes())
 @hypothesis.given(strategies.text())
 @hypothesis.example('\x00')
@@ -55,3 +56,5 @@ def test_configtypes_hypothesis(klass, s):
         klass().validate(s)
     except configexc.ValidationError:
         pass
+    else:
+        klass().transform(s)
