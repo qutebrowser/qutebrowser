@@ -26,6 +26,7 @@ import urllib.error
 import shutil
 import json
 import os
+import sys
 
 
 def get_latest_pdfjs_url():
@@ -65,6 +66,8 @@ def update_pdfjs(target_version=None):
         url = ('https://github.com/mozilla/pdf.js/releases/download/'
                'v{0}/pdfjs-{0}-dist.zip').format(target_version)
 
+    os.chdir(os.path.join(os.path.dirname(os.path.abspath(__file__)),
+                          '..', '..'))
     target_path = os.path.join('qutebrowser', '3rdparty', 'pdfjs')
     print("=> Downloading pdf.js {}".format(version))
     try:
