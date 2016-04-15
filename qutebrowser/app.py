@@ -282,7 +282,8 @@ def process_pos_args(args, via_ipc=False, cwd=None, target_arg=None):
                               "{}".format(cmd, e))
             else:
                 background = open_target in ('tab-bg', 'tab-bg-silent')
-                tabbed_browser.tabopen(url, background=background)
+                tabbed_browser.tabopen(url, background=background,
+                                       explicit=True)
 
 
 def _open_startpage(win_id=None):
