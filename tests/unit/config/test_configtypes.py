@@ -1715,6 +1715,41 @@ class TestSearchEngineName:
         assert klass().transform(val) == expected
 
 
+class TestHeaderDict:
+
+    @pytest.fixture
+    def klass(self):
+        return configtypes.HeaderDict
+
+    @pytest.mark.parametrize('val', [
+        '{"foo": "bar"}',
+        '{"foo": "bar", "baz": "fish"}',
+        '',  # empty value with none_ok=true
+        '{}',  # ditto
+    ])
+    def test_validate_valid(self, klass, val):
+        klass(none_ok=True).validate(val)
+
+    @pytest.mark.parametrize('val', [
+        '["foo"]',  # valid json but not a dict
+        '{"hello": 23}',  # non-string as value
+        '{"hällo": "world"}',  # non-ascii data in key
+        '{"hello": "wörld"}',  # non-ascii data in value
+        '',  # empty value with none_ok=False
+        '{}',  # ditto
+    ])
+    def test_validate_invalid(self, klass, val):
+        with pytest.raises(configexc.ValidationError):
+            klass().validate(val)
+
+    @pytest.mark.parametrize('val, expected', [
+        ('{"foo": "bar"}', {"foo": "bar"}),
+        ('{}', None),
+    ])
+    def test_transform(self, klass, val, expected):
+        assert klass(none_ok=True).transform(val) == expected
+
+
 class TestSearchEngineUrl:
 
     """Test SearchEngineUrl."""

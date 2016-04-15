@@ -20,6 +20,7 @@
 """Setting options used for qutebrowser."""
 
 import re
+import json
 import shlex
 import base64
 import codecs
@@ -1421,6 +1422,61 @@ class UrlList(List):
             elif not val.isValid():
                 raise configexc.ValidationError(value, "invalid URL - "
                                                 "{}".format(val.errorString()))
+
+
+class HeaderDict(BaseType):
+
+    """A JSON-like dictionary for custom HTTP headers."""
+
+    def validate(self, value):
+        self._basic_validation(value)
+        if not value:
+            return
+
+        try:
+            json_val = json.loads(value)
+        except ValueError as e:
+            raise configexc.ValidationError(value, str(e))
+
+        if not isinstance(json_val, dict):
+            raise configexc.ValidationError(value, "Expected json dict, but "
+                                            "got {}".format(type(json_val)))
+
+        if not json_val:
+            if self.none_ok:
+                return
+            else:
+                raise configexc.ValidationError(value, "may not be empty!")
+
+        for key, val in json_val.items():
+            if not isinstance(key, str):
+                msg = "Expected string for key {!r} but got {}".format(
+                    key, type(key))
+                raise configexc.ValidationError(value, msg)
+
+            if not isinstance(val, str):
+                msg = "Expected string for value {!r} but got {}".format(
+                    key, type(key))
+                raise configexc.ValidationError(value, msg)
+
+            try:
+                key.encode('ascii')
+            except UnicodeEncodeError as e:
+                msg = "Key {!r} contains non-ascii characters: {}".format(
+                    key, e)
+                raise configexc.ValidationError(value, msg)
+
+            try:
+                val.encode('ascii')
+            except UnicodeEncodeError as e:
+                msg = "Value {!r} contains non-ascii characters: {}".format(
+                    val, e)
+                raise configexc.ValidationError(value, msg)
+
+
+    def transform(self, value):
+        val = json.loads(value)
+        return val or None
 
 
 class SessionName(BaseType):
