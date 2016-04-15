@@ -208,6 +208,7 @@ Contributors, sorted by the number of commits in descending order:
 * haxwithaxe
 * evan
 * dylan araps
+* Xitian9
 * Tomasz Kramkowski
 * Tomas Orsava
 * Tobias Werth
