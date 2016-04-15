@@ -23,15 +23,15 @@ import functools
 import collections
 
 from PyQt5.QtWidgets import QSizePolicy
-from PyQt5.QtCore import pyqtSignal, pyqtSlot, QTimer, QUrl, QPoint
+from PyQt5.QtCore import pyqtSignal, pyqtSlot, QTimer, QUrl
 from PyQt5.QtGui import QIcon
 
 from qutebrowser.config import config
 from qutebrowser.keyinput import modeman
 from qutebrowser.mainwindow import tabwidget
 from qutebrowser.browser import signalfilter, webview
-from qutebrowser.utils import (log, usertypes, utils, qtutils, objreg, urlutils,
-                               message)
+from qutebrowser.utils import (log, usertypes, utils, qtutils, objreg,
+                               urlutils, message)
 
 
 UndoEntry = collections.namedtuple('UndoEntry', ['url', 'history'])

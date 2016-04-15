@@ -236,8 +236,8 @@ class MarkKeyParser(keyparser.BaseKeyParser):
 
     """KeyParser for set_mark and jump_mark mode.
 
-       Attributes:
-           _mode: Either KeyMode.set_mark or KeyMode.jump_mark.
+    Attributes:
+        _mode: Either KeyMode.set_mark or KeyMode.jump_mark.
     """
 
     def __init__(self, win_id, mode, parent=None):
@@ -254,7 +254,6 @@ class MarkKeyParser(keyparser.BaseKeyParser):
         Return:
             True if event has been handled, False otherwise.
         """
-
         if utils.keyevent_to_string(e) is None:
             # this is a modifier key, let it pass and keep going
             return True
@@ -279,3 +278,11 @@ class MarkKeyParser(keyparser.BaseKeyParser):
         self.request_leave.emit(self._mode, "valid mark key")
 
         return True
+
+    def on_keyconfig_changed(self, mode):
+        """MarkKeyParser has no config section (no bindable keys)."""
+        pass
+
+    def execute(self, cmdstr, _keytype, count=None):
+        """Should never be called on MarkKeyParser."""
+        raise NotImplementedError
