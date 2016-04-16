@@ -69,3 +69,18 @@ Feature: Setting positional marks
         And I run :follow-hint s
         And I run :jump-mark "'"
         Then the page should be scrolled to 0 0
+
+    Scenario: Jumping back after searching
+        When I run :hint links normal
+        And I run :search 48
+        And I run :jump-mark "'"
+        Then the page should be scrolled to 0 0
+
+    Scenario: Jumping back after search-next
+        When I run :hint links normal
+        And I run :search 9
+        And I run :search-next
+        And I run :search-next
+        And I run :search-next
+        And I run :jump-mark "'"
+        Then the page should be scrolled to 0 0

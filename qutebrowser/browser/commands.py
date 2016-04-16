@@ -1415,6 +1415,7 @@ class CommandDispatcher:
             text: The text to search for.
             reverse: Reverse search direction.
         """
+        self.set_mark("'")
         view = self._current_widget()
         self._clear_search(view, text)
         flags = 0
@@ -1445,6 +1446,7 @@ class CommandDispatcher:
         Args:
             count: How many elements to ignore.
         """
+        self.set_mark("'")
         view = self._current_widget()
 
         self._clear_search(view, self._tabbed_browser.search_text)
@@ -1465,6 +1467,7 @@ class CommandDispatcher:
         Args:
             count: How many elements to ignore.
         """
+        self.set_mark("'")
         view = self._current_widget()
         self._clear_search(view, self._tabbed_browser.search_text)
 
