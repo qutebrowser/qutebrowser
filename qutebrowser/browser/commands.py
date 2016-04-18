@@ -654,13 +654,14 @@ class CommandDispatcher:
         frame.scroll(dx, dy)
 
     @cmdutils.register(instance='command-dispatcher', scope='window')
-    def yank(self, title=False, sel=False, domain=False):
+    def yank(self, title=False, sel=False, domain=False, pretty=False):
         """Yank the current URL/title to the clipboard or primary selection.
 
         Args:
             sel: Use the primary selection instead of the clipboard.
             title: Yank the title instead of the URL.
             domain: Yank only the scheme, domain, and port number.
+            pretty: Yank the URL in pretty decoded form.
         """
         if title:
             s = self._tabbed_browser.page_title(self._current_index())
@@ -672,8 +673,11 @@ class CommandDispatcher:
                                    ':' + str(port) if port > -1 else '')
             what = 'domain'
         else:
-            s = self._current_url().toString(
-                QUrl.FullyEncoded | QUrl.RemovePassword)
+            cur_url = self._current_url()
+            if pretty:
+                s = cur_url.toString(QUrl.RemovePassword)
+            else:
+                s = cur_url.toString(QUrl.FullyEncoded | QUrl.RemovePassword)
             what = 'URL'
 
         if sel and QApplication.clipboard().supportsSelection():
