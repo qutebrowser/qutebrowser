@@ -1443,6 +1443,8 @@ KEY_DATA = collections.OrderedDict([
         ('yank -ts', ['yT']),
         ('yank -d', ['yd']),
         ('yank -ds', ['yD']),
+        ('yank -p', ['yp']),
+        ('yank -ps', ['yP']),
         ('paste', ['pp']),
         ('paste -s', ['pP']),
         ('paste -t', ['Pp']),
