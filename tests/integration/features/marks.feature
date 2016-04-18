@@ -71,16 +71,13 @@ Feature: Setting positional marks
         Then the page should be scrolled to 0 0
 
     Scenario: Jumping back after searching
-        When I run :hint links normal
-        And I run :search 48
+        When I run :scroll-px 20 15
+        And I run :search Waldo
         And I run :jump-mark "'"
-        Then the page should be scrolled to 0 0
+        Then the page should be scrolled to 20 15
 
     Scenario: Jumping back after search-next
-        When I run :hint links normal
-        And I run :search 9
-        And I run :search-next
-        And I run :search-next
+        When I run :search Grail
         And I run :search-next
         And I run :jump-mark "'"
         Then the page should be scrolled to 0 0
