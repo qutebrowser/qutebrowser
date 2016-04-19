@@ -607,6 +607,16 @@ Feature: Tab management
         Then the following tabs should be open:
             - data/hello.txt (active)
 
+    Scenario: Double-undo with single tab on last-close default page
+        Given I have a fresh instance
+        When I open about:blank
+        And I set tabs -> last-close to default-page
+        And I set general -> default-page to about:blank
+        And I run :undo
+        Then the error "Nothing to undo!" should be shown
+        And the following tabs should be open:
+            - about:blank (active)
+
     # last-close
 
     Scenario: last-close = blank
