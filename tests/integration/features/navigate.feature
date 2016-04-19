@@ -38,6 +38,11 @@ Feature: Using :navigate
         And I run :navigate next
         Then the error "No forward links found!" should be shown
 
+    Scenario: Navigating to next page to a fragment
+        When I open data/navigate#fragment
+        And I run :navigate next
+        Then data/navigate/next.html should be loaded
+
     # increment/decrement
 
     Scenario: Incrementing number in URL
