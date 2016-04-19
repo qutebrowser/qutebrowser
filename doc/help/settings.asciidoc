@@ -63,6 +63,7 @@
 |<<network-proxy-dns-requests,proxy-dns-requests>>|Whether to send DNS requests over the configured proxy.
 |<<network-ssl-strict,ssl-strict>>|Whether to validate SSL handshakes.
 |<<network-dns-prefetch,dns-prefetch>>|Whether to try to pre-fetch DNS entries to speed up browsing.
+|<<network-custom-headers,custom-headers>>|Set custom headers for qutebrowser HTTP requests.
 |==============
 
 .Quick reference for section ``completion''
@@ -749,6 +750,12 @@ Valid values:
  * +false+
 
 Default: +pass:[true]+
+
+[[network-custom-headers]]
+=== custom-headers
+Set custom headers for qutebrowser HTTP requests.
+
+Default: empty
 
 == completion
 Options related to completion and command history.
