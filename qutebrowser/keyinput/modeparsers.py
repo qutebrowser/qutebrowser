@@ -256,7 +256,7 @@ class MarkKeyParser(keyparser.BaseKeyParser):
         """
         if utils.keyevent_to_string(e) is None:
             # this is a modifier key, let it pass and keep going
-            return True
+            return False
 
         key = e.text()
 
