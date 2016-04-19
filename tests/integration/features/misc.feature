@@ -362,3 +362,10 @@ Feature: Various utility commands.
         And I press the key "<Tab>"
         And I press the key "<Ctrl-C>"
         Then no crash should happen
+
+    ## Custom headers
+
+    Scenario: Setting a custom header
+        When I set network -> custom-headers to {"X-Qute-Test": "testvalue"}
+        And I open headers
+        Then the header X-Qute-Test should be set to testvalue

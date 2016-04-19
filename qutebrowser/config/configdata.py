@@ -401,6 +401,10 @@ def data(readonly=False):
              SettingValue(typ.Bool(), 'true'),
              "Whether to try to pre-fetch DNS entries to speed up browsing."),
 
+            ('custom-headers',
+             SettingValue(typ.HeaderDict(none_ok=True), ''),
+             "Set custom headers for qutebrowser HTTP requests."),
+
             readonly=readonly
         )),
 
