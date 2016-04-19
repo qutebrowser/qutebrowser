@@ -398,6 +398,13 @@ class NetworkManager(QNetworkAccessManager):
         req.setRawHeader('DNT'.encode('ascii'), dnt)
         req.setRawHeader('X-Do-Not-Track'.encode('ascii'), dnt)
 
+        # Load custom headers
+        custom_headers = config.get('network', 'custom-headers')
+
+        if custom_headers is not None:
+            for header in custom_headers:
+                req.setRawHeader(header.encode('ascii'), custom_headers[header].encode('ascii'))
+
         # There are some scenarios where we can't figure out current_url:
         # - There's a generic NetworkManager, e.g. for downloads
         # - The download was in a tab which is now closed.
