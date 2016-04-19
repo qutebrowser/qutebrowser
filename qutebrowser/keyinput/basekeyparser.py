@@ -127,7 +127,9 @@ class BaseKeyParser(QObject):
         except KeyError:
             self._debug_log("No binding found for {}.".format(binding))
             return False
-        self.execute(cmdstr, self.Type.special)
+        count, _ = self._split_count()
+        self.execute(cmdstr, self.Type.special, count)
+        self.clear_keystring()
         return True
 
     def _split_count(self):
