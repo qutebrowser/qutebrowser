@@ -279,10 +279,11 @@ class MarkKeyParser(keyparser.BaseKeyParser):
 
         return True
 
+    @pyqtSlot(str)
     def on_keyconfig_changed(self, mode):
         """MarkKeyParser has no config section (no bindable keys)."""
         pass
 
     def execute(self, cmdstr, _keytype, count=None):
         """Should never be called on MarkKeyParser."""
-        raise NotImplementedError
+        assert False

@@ -673,6 +673,7 @@ class TabbedBrowser(tabwidget.TabWidget):
         if key.isupper() and key in self._global_marks:
             point, url = self._global_marks[key]
 
+            @pyqtSlot(bool)
             def callback(ok):
                 if ok:
                     self.cur_load_finished.disconnect(callback)
