@@ -260,11 +260,6 @@ class MarkKeyParser(keyparser.BaseKeyParser):
 
         key = e.text()
 
-        if not key.isalpha() and key != "'":
-            # only valid mark names are [a-zA-Z']
-            message.error(self._win_id, key + " isn't a valid mark")
-            return True
-
         tabbed_browser = objreg.get('tabbed-browser', scope='window',
                                     window=self._win_id)
 
