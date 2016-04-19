@@ -1475,6 +1475,8 @@ class HeaderDict(BaseType):
 
 
     def transform(self, value):
+        if not value:
+            return None
         val = json.loads(value)
         return val or None
 

@@ -1745,6 +1745,7 @@ class TestHeaderDict:
     @pytest.mark.parametrize('val, expected', [
         ('{"foo": "bar"}', {"foo": "bar"}),
         ('{}', None),
+        ('', None),
     ])
     def test_transform(self, klass, val, expected):
         assert klass(none_ok=True).transform(val) == expected
