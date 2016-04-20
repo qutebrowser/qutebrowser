@@ -974,8 +974,10 @@ class CommandDispatcher:
     def spawn(self, cmdline, userscript=False, verbose=False, detach=False):
         """Spawn a command in a shell.
 
-        Note the {url} variable which gets replaced by the current URL might be
-        useful here.
+        Note the `{url}` and `{url:pretty}` variables might be useful here.
+        `{url}` gets replaced by the URL in fully encoded format and
+        `{url:pretty}` uses a "pretty form" with most percent-encoded
+        characters decoded.
 
         Args:
             userscript: Run the command as a userscript. You can use an
