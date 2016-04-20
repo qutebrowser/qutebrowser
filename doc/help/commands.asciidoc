@@ -794,7 +794,7 @@ Save open pages and quit.
 
 [[yank]]
 === yank
-Syntax: +:yank [*--title*] [*--sel*] [*--domain*]+
+Syntax: +:yank [*--title*] [*--sel*] [*--domain*] [*--pretty*]+
 
 Yank the current URL/title to the clipboard or primary selection.
 
@@ -802,6 +802,7 @@ Yank the current URL/title to the clipboard or primary selection.
 * +*-t*+, +*--title*+: Yank the title instead of the URL.
 * +*-s*+, +*--sel*+: Use the primary selection instead of the clipboard.
 * +*-d*+, +*--domain*+: Yank only the scheme, domain, and port number.
+* +*-p*+, +*--pretty*+: Yank the URL in pretty decoded form.
 
 [[yank-selected]]
 === yank-selected

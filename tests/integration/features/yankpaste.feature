@@ -33,6 +33,18 @@ Feature: Yanking and pasting.
         Then the message "Yanked domain to clipboard: http://localhost:(port)" should be shown
         And the clipboard should contain "http://localhost:(port)"
 
+    Scenario: Yanking fully encoded URL
+        When I open data/title with spaces.html
+        And I run :yank
+        Then the message "Yanked URL to clipboard: http://localhost:(port)/data/title%20with%20spaces.html" should be shown
+        And the clipboard should contain "http://localhost:(port)/data/title%20with%20spaces.html"
+
+    Scenario: Yanking pretty decoded URL
+        When I open data/title with spaces.html
+        And I run :yank --pretty
+        Then the message "Yanked URL to clipboard: http://localhost:(port)/data/title with spaces.html" should be shown
+        And the clipboard should contain "http://localhost:(port)/data/title with spaces.html"
+
     #### :paste
 
     Scenario: Pasting an URL
