@@ -385,6 +385,8 @@ class QuteProc(testprocess.Process):
     def wait_for_load_finished(self, path, *, port=None, https=False,
                                timeout=None, load_status='success'):
         """Wait until any tab has finished loading."""
+        __tracebackhide__ = True
+
         if timeout is None:
             if 'CI' in os.environ:
                 timeout = 15000
@@ -400,7 +402,12 @@ class QuteProc(testprocess.Process):
             r"tab_id=\d+ url='{url}/?'>: LoadStatus\.{load_status}|fetch: "
             r"PyQt5\.QtCore\.QUrl\('{url}'\) -> .*)".format(
                 load_status=re.escape(load_status), url=re.escape(url)))
-        self.wait_for(message=pattern, timeout=timeout)
+
+        try:
+            self.wait_for(message=pattern, timeout=timeout)
+        except testprocess.WaitForTimeout:
+            raise testprocess.WaitForTimeout("Timed out while waiting for {} "
+                                             "to be loaded".format(url))
 
     def get_session(self):
         """Save the session and get the parsed session data."""
