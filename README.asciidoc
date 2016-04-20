@@ -199,6 +199,7 @@ Contributors, sorted by the number of commits in descending order:
 * Regina Hug
 * Mathias Fussenegger
 * Marcelo Santos
+* Jan Verbeek
 * Fritz V155 Reichwald
 * Franz Fellner
 * Corentin Jule
@@ -222,7 +223,6 @@ Contributors, sorted by the number of commits in descending order:
 * Johannes Martinsson
 * Jean-Christophe Petkovich
 * Jay Kamat
-* Jan Verbeek
 * Helen Sherwood-Taylor
 * HalosGhost
 * Gregor Pohl
