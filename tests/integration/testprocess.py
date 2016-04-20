@@ -338,6 +338,7 @@ class Process(QObject):
 
         Return: either the found line or None.
         """
+        __tracebackhide__ = True
         for line in self._data:
             matches = []
 
@@ -358,6 +359,7 @@ class Process(QObject):
 
         Called via wait_for.
         """
+        __tracebackhide__ = True
         message = kwargs.get('message', None)
         if message is not None:
             elided = quteutils.elide(repr(message), 50)
