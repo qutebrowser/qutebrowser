@@ -31,6 +31,8 @@ from PyQt5.QtTest import QSignalSpy
 
 from helpers import utils
 
+from qutebrowser.utils import utils as quteutils
+
 
 class InvalidLine(Exception):
 
@@ -421,6 +423,11 @@ class Process(QObject):
             return existing
 
         # If there is none, wait for the message
+        message = kwargs.get('message', None)
+        if message is not None:
+            elided = quteutils.elide(repr(message), 50)
+            self._log("\n----> Waiting for {} in the log".format(elided))
+
         spy = QSignalSpy(self.new_data)
         elapsed_timer = QElapsedTimer()
         elapsed_timer.start()
@@ -439,6 +446,8 @@ class Process(QObject):
 
             match = self._wait_for_match(spy, kwargs)
             if match is not None:
+                if message is not None:
+                    self._log("----> found it".format(message))
                 return match
 
     def ensure_not_logged(self, delay=500, **kwargs):
