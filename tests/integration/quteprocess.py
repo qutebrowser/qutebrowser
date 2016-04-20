@@ -323,7 +323,7 @@ class QuteProc(testprocess.Process):
         summary = command
         if count is not None:
             summary += ' (count {})'.format(count)
-        self._log_summary(summary)
+        self.log_summary(summary)
 
         assert self._ipc_socket is not None
 
