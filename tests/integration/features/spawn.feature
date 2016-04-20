@@ -16,9 +16,20 @@ Feature: :spawn
         When I run :spawn echo {url}
         Then "Executing echo with args ['about:blank'], userscript=False" should be logged
 
+    Scenario: Running :spawn with url variable in fully encoded format
+        When I open data/title with spaces.html
+        And I run :spawn echo {url}
+        Then "Executing echo with args ['http://localhost:(port)/data/title%20with%20spaces.html'], userscript=False" should be logged
+
+    Scenario: Running :spawn with url variable in pretty decoded format
+        When I open data/title with spaces.html
+        And I run :spawn echo {url:pretty}
+        Then "Executing echo with args ['http://localhost:(port)/data/title with spaces.html'], userscript=False" should be logged
+
     @posix
     Scenario: Running :spawn with userscript
-        When I execute the userscript open_current_url
+        When I open about:blank
+        And I execute the userscript open_current_url
         And I wait until about:blank is loaded
         Then the following tabs should be open:
             - about:blank

@@ -276,10 +276,12 @@ def expect_message(quteproc, httpbin, category, message):
 
 @bdd.then(bdd.parsers.re(r'(?P<is_regex>regex )?"(?P<pattern>[^"]+)" should '
                          r'be logged'))
-def should_be_logged(quteproc, is_regex, pattern):
+def should_be_logged(quteproc, httpbin, is_regex, pattern):
     """Expect the given pattern on regex in the log."""
     if is_regex:
         pattern = re.compile(pattern)
+    else:
+        pattern = pattern.replace('(port)', str(httpbin.port))
     line = quteproc.wait_for(message=pattern)
     line.expected = True
 
