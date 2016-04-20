@@ -74,7 +74,7 @@ def test_auto_leave_insert_mode(quteproc):
 
     quteproc.send_cmd(':hint all')
 
-    # Select the disabled input box, to leave insert mode
+    # Select the disabled input box to leave insert mode
     quteproc.send_cmd(':follow-hint s')
     quteproc.send_cmd(':enter-mode caret')
     quteproc.send_cmd(':paste-primary')
