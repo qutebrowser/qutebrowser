@@ -28,7 +28,6 @@ import collections
 import textwrap
 
 import pytest
-import yaml
 import pytest_bdd as bdd
 
 from helpers import utils
@@ -315,14 +314,7 @@ def compare_session(quteproc, expected):
     partial_compare is used, which means only the keys/values listed will be
     compared.
     """
-    # Translate ... to ellipsis in YAML.
-    loader = yaml.SafeLoader(expected)
-    loader.add_constructor('!ellipsis', lambda loader, node: ...)
-    loader.add_implicit_resolver('!ellipsis', re.compile(r'\.\.\.'), None)
-
-    data = quteproc.get_session()
-    expected = loader.get_data()
-    assert utils.partial_compare(data, expected)
+    quteproc.compare_session(expected)
 
 
 @bdd.then("no crash should happen")

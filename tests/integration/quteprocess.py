@@ -419,7 +419,7 @@ class QuteProc(testprocess.Process):
             with open(session, encoding='utf-8') as f:
                 data = f.read()
 
-        self._log(data)
+        self._log('\nCurrent session data:\n' + data)
         return yaml.load(data)
 
     def get_content(self, plain=True):
@@ -463,6 +463,26 @@ class QuteProc(testprocess.Process):
         elif not message.endswith('qute:okay'):
             raise ValueError('Invalid response from qutebrowser: {}'
                              .format(message))
+
+    def compare_session(self, expected):
+        """Compare the current sessions against the given template.
+
+        partial_compare is used, which means only the keys/values listed will
+        be compared.
+        """
+        __tracebackhide__ = True
+        # Translate ... to ellipsis in YAML.
+        loader = yaml.SafeLoader(expected)
+        loader.add_constructor('!ellipsis', lambda loader, node: ...)
+        loader.add_implicit_resolver('!ellipsis', re.compile(r'\.\.\.'), None)
+
+        data = self.get_session()
+        expected = loader.get_data()
+        outcome = testutils.partial_compare(data, expected)
+        if not outcome:
+            msg = "Session comparison failed: {}".format(outcome.error)
+            msg += '\nsee stdout for details'
+            pytest.fail(msg)
 
 
 def _xpath_escape(text):
