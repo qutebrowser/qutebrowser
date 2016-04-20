@@ -353,6 +353,38 @@ class Process(QObject):
                 return line
         return None
 
+    def _wait_for_new(self, timeout, do_skip, **kwargs):
+        """Wait for a log message which doesn't exist yet.
+
+        Called via wait_for.
+        """
+        message = kwargs.get('message', None)
+        if message is not None:
+            elided = quteutils.elide(repr(message), 50)
+            self._log("\n----> Waiting for {} in the log".format(elided))
+
+        spy = QSignalSpy(self.new_data)
+        elapsed_timer = QElapsedTimer()
+        elapsed_timer.start()
+
+        while True:
+            # Skip if there are pending messages causing a skip
+            self._maybe_skip()
+            got_signal = spy.wait(timeout)
+            if not got_signal or elapsed_timer.hasExpired(timeout):
+                msg = "Timed out after {}ms waiting for {!r}.".format(
+                    timeout, kwargs)
+                if do_skip:
+                    pytest.skip(msg)
+                else:
+                    raise WaitForTimeout(msg)
+
+            match = self._wait_for_match(spy, kwargs)
+            if match is not None:
+                if message is not None:
+                    self._log("----> found it")
+                return match
+
     def _wait_for_match(self, spy, kwargs):
         """Try matching the kwargs with the given QSignalSpy."""
         for args in spy:
@@ -417,38 +449,12 @@ class Process(QObject):
         for key in kwargs:
             assert key in self.KEYS
 
-        # Search existing messages
         existing = self._wait_for_existing(override_waited_for, **kwargs)
         if existing is not None:
             return existing
-
-        # If there is none, wait for the message
-        message = kwargs.get('message', None)
-        if message is not None:
-            elided = quteutils.elide(repr(message), 50)
-            self._log("\n----> Waiting for {} in the log".format(elided))
-
-        spy = QSignalSpy(self.new_data)
-        elapsed_timer = QElapsedTimer()
-        elapsed_timer.start()
-
-        while True:
-            # Skip if there are pending messages causing a skip
-            self._maybe_skip()
-            got_signal = spy.wait(timeout)
-            if not got_signal or elapsed_timer.hasExpired(timeout):
-                msg = "Timed out after {}ms waiting for {!r}.".format(
-                    timeout, kwargs)
-                if do_skip:
-                    pytest.skip(msg)
-                else:
-                    raise WaitForTimeout(msg)
-
-            match = self._wait_for_match(spy, kwargs)
-            if match is not None:
-                if message is not None:
-                    self._log("----> found it".format(message))
-                return match
+        else:
+            return self._wait_for_new(timeout=timeout, do_skip=do_skip,
+                                      **kwargs)
 
     def ensure_not_logged(self, delay=500, **kwargs):
         """Make sure the data matching the given arguments is not logged.
