@@ -81,3 +81,11 @@ Feature: Setting positional marks
         And I run :search-next
         And I run :jump-mark "'"
         Then the page should be scrolled to 0 0
+
+    Scenario: Hovering a hint does not set the ' mark
+        When I run :scroll-px 30 20
+        And  I run :scroll-perc 0
+        And I run :hint links hover
+        And I run :follow-hint s
+        And I run :jump-mark "'"
+        Then the page should be scrolled to 30 20
