@@ -35,19 +35,22 @@ def test_partial_compare_equal(val1, val2):
     assert utils.partial_compare(val1, val2)
 
 
-@pytest.mark.parametrize('val1, val2', [
-    ({'a': 1}, {'a': 2}),
-    ({'a': 1}, {'b': 1}),
-    ({'a': 1, 'b': 2}, {'a': 2}),
-    ({'a': [1]}, {'a': [1, 2, 3]}),
-    ({'a': [1]}, {'a': [2, 3, 4]}),
-    ([1], {1: 2}),
-    ({1: 1}, {1: [1]}),
-    ({'a': [1, 2, 3]}, {'a': [..., 3]}),
-    ("foo*baz", "foobarbaz"),
+@pytest.mark.parametrize('val1, val2, error', [
+    ({'a': 1}, {'a': 2}, "1 != 2"),
+    ({'a': 1}, {'b': 1}, "Key 'b' is in second dict but not in first!"),
+    ({'a': 1, 'b': 2}, {'a': 2}, "1 != 2"),
+    ({'a': [1]}, {'a': [1, 2, 3]}, "Second list is longer than first list"),
+    ({'a': [1]}, {'a': [2, 3, 4]}, "Second list is longer than first list"),
+    ([1], {1: 2}, "Different types (list, dict) -> False"),
+    ({1: 1}, {1: [1]}, "Different types (int, list) -> False"),
+    ({'a': [1, 2, 3]}, {'a': [..., 3]}, "2 != 3"),
+    ("foo*baz", "foobarbaz", "'foo*baz' != 'foobarbaz' (pattern matching)"),
 ])
-def test_partial_compare_not_equal(val1, val2):
-    assert not utils.partial_compare(val1, val2)
+def test_partial_compare_not_equal(val1, val2, error):
+    outcome = utils.partial_compare(val1, val2)
+    assert not outcome
+    assert isinstance(outcome, utils.PartialCompareOutcome)
+    assert outcome.error == error
 
 
 @pytest.mark.parametrize('pattern, value, expected', [

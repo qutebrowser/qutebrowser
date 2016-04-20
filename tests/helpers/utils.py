@@ -17,12 +17,37 @@
 # You should have received a copy of the GNU General Public License
 # along with qutebrowser.  If not, see <http://www.gnu.org/licenses/>.
 
+# pylint: disable=unused-variable
+
 """Partial comparison of dicts/lists."""
 
 
 import re
 import pprint
 import os.path
+
+
+class PartialCompareOutcome:
+
+    """Storage for a partial_compare error.
+
+    Evaluates to False if an error was found.
+
+    Attributes:
+        error: A string describing an error or None.
+    """
+
+    def __init__(self, error=None):
+        self.error = error
+
+    def __bool__(self):
+        return self.error is None
+
+    def __repr__(self):
+        return 'PartialCompareOutcome(error={!r})'.format(self.error)
+
+    def __str__(self):
+        return 'true' if self.error is None else 'false'
 
 
 def print_i(text, indent, error=False):
@@ -32,25 +57,52 @@ def print_i(text, indent, error=False):
         print('|   ' * indent + line)
 
 
-def _partial_compare_dict(val1, val2, *, indent=0):
+def _partial_compare_dict(val1, val2, *, indent):
     for key in val2:
         if key not in val1:
-            print_i("Key {!r} is in second dict but not in first!".format(key),
-                    indent, error=True)
-            return False
-        if not partial_compare(val1[key], val2[key], indent=indent+1):
-            return False
-    return True
+            outcome = PartialCompareOutcome(
+                "Key {!r} is in second dict but not in first!".format(key))
+            print_i(outcome.error, indent, error=True)
+            return outcome
+        outcome = partial_compare(val1[key], val2[key], indent=indent+1)
+        if not outcome:
+            return outcome
+    return PartialCompareOutcome()
 
 
-def _partial_compare_list(val1, val2, *, indent=0):
+def _partial_compare_list(val1, val2, *, indent):
     if len(val1) < len(val2):
-        print_i("Second list is longer than first list", indent, error=True)
-        return False
+        outcome = PartialCompareOutcome(
+            "Second list is longer than first list")
+        print_i(outcome.error, indent, error=True)
+        return outcome
     for item1, item2 in zip(val1, val2):
-        if not partial_compare(item1, item2, indent=indent+1):
-            return False
-    return True
+        outcome = partial_compare(item1, item2, indent=indent+1)
+        if not outcome:
+            return outcome
+    return PartialCompareOutcome()
+
+
+def _partial_compare_float(val1, val2, *, indent):
+    if abs(val1 - val2) < 0.00001:
+        return PartialCompareOutcome()
+
+    return PartialCompareOutcome("{!r} != {!r} (float comparison)".format(
+        val1, val2))
+
+
+def _partial_compare_str(val1, val2, *, indent):
+    if pattern_match(pattern=val2, value=val1):
+        return PartialCompareOutcome()
+
+    return PartialCompareOutcome("{!r} != {!r} (pattern matching)".format(
+        val1, val2))
+
+
+def _partial_compare_eq(val1, val2, *, indent):
+    if val1 == val2:
+        return PartialCompareOutcome()
+    return PartialCompareOutcome("{!r} != {!r}".format(val1, val2))
 
 
 def partial_compare(val1, val2, *, indent=0):
@@ -69,29 +121,31 @@ def partial_compare(val1, val2, *, indent=0):
 
     if val2 is Ellipsis:
         print_i("Ignoring ellipsis comparison", indent, error=True)
-        return True
+        return PartialCompareOutcome()
     elif type(val1) != type(val2):  # pylint: disable=unidiomatic-typecheck
-        print_i("Different types ({}, {}) -> False".format(
-                type(val1), type(val2)), indent, error=True)
-        return False
+        outcome = PartialCompareOutcome(
+            "Different types ({}, {}) -> False".format(type(val1).__name__,
+                                                       type(val2).__name__))
+        print_i(outcome.error, indent, error=True)
+        return outcome
 
-    if isinstance(val2, dict):
-        print_i("|======= Comparing as dicts", indent)
-        equal = _partial_compare_dict(val1, val2, indent=indent)
-    elif isinstance(val2, list):
-        print_i("|======= Comparing as lists", indent)
-        equal = _partial_compare_list(val1, val2, indent=indent)
-    elif isinstance(val2, float):
-        print_i("|======= Doing float comparison", indent)
-        equal = abs(val1 - val2) < 0.00001
-    elif isinstance(val2, str):
-        print_i("|======= Doing string comparison", indent)
-        equal = pattern_match(pattern=val2, value=val1)
+    handlers = {
+        dict: _partial_compare_dict,
+        list: _partial_compare_list,
+        float: _partial_compare_float,
+        str: _partial_compare_str,
+    }
+
+    for typ, handler in handlers.items():
+        if isinstance(val2, typ):
+            print_i("|======= Comparing as {}".format(typ.__name__), indent)
+            outcome = handler(val1, val2, indent=indent)
+            break
     else:
         print_i("|======= Comparing via ==", indent)
-        equal = val1 == val2
-    print_i("---> {}".format(equal), indent)
-    return equal
+        outcome = _partial_compare_eq(val1, val2, indent=indent)
+    print_i("---> {}".format(outcome), indent)
+    return outcome
 
 
 def pattern_match(*, pattern, value):
