@@ -673,11 +673,10 @@ class CommandDispatcher:
                                    ':' + str(port) if port > -1 else '')
             what = 'domain'
         else:
-            cur_url = self._current_url()
-            if pretty:
-                s = cur_url.toString(QUrl.RemovePassword)
-            else:
-                s = cur_url.toString(QUrl.FullyEncoded | QUrl.RemovePassword)
+            flags = QUrl.RemovePassword
+            if not pretty:
+                flags |= QUrl.FullyEncoded
+            s = self._current_url().toString(flags)
             what = 'URL'
 
         if sel and QApplication.clipboard().supportsSelection():
