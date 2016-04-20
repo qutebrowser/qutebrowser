@@ -173,10 +173,10 @@ Contributors, sorted by the number of commits in descending order:
 * John ShaggyTwoDope Jenkins
 * Jimmy
 * Peter Vilim
+* Panagiotis Ktistakis
 * Clayton Craft
 * Oliver Caldwell
 * Jonas Schürmann
-* Panagiotis Ktistakis
 * Jakub Klinkovský
 * skinnay
 * error800
