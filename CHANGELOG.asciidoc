@@ -30,6 +30,7 @@ Changed
 - qutebrowser got a new (slightly updated) logo
 - `:tab-focus` can now take a negative index to focus the nth tab counted from
   the right.
+- `:yank` can now yank the pretty/decoded URL by adding `--pretty`
 
 v0.6.1
 -----

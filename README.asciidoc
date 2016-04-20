@@ -166,6 +166,7 @@ Contributors, sorted by the number of commits in descending order:
 * Philipp Hansch
 * Kevin Velghe
 * Austin Anderson
+* Panagiotis Ktistakis
 * Alexey "Averrin" Nabrodov
 * avk
 * ZDarian
@@ -173,7 +174,6 @@ Contributors, sorted by the number of commits in descending order:
 * John ShaggyTwoDope Jenkins
 * Jimmy
 * Peter Vilim
-* Panagiotis Ktistakis
 * Clayton Craft
 * Oliver Caldwell
 * Jonas Schürmann
