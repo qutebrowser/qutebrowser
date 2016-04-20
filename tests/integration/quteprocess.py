@@ -320,6 +320,11 @@ class QuteProc(testprocess.Process):
 
     def send_cmd(self, command, count=None):
         """Send a command to the running qutebrowser instance."""
+        summary = command
+        if count is not None:
+            summary += ' (count {})'.format(count)
+        self._log_summary(summary)
+
         assert self._ipc_socket is not None
 
         time.sleep(self._delay / 1000)

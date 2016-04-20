@@ -151,6 +151,11 @@ class Process(QObject):
             print(line)
         self.captured_log.append(line)
 
+    def _log_summary(self, text):
+        """Log the given line as summary/title."""
+        text = '\n{line} {text} {line}\n'.format(line='='*50, text=text)
+        self._log(text)
+
     def _parse_line(self, line):
         """Parse the given line from the log.
 

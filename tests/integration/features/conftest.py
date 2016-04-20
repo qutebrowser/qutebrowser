@@ -180,6 +180,7 @@ def wait_in_log(quteproc, is_regex, pattern, do_skip):
                          r'"(?P<message>.*)"'))
 def wait_for_message(quteproc, httpbin, category, message):
     """Wait for a given statusbar message/error/warning."""
+    quteproc.log_summary('Waiting for {} "{}"'.format(category, message))
     expect_message(quteproc, httpbin, category, message)
 
 
