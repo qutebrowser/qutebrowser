@@ -466,6 +466,13 @@ class HintManager(QObject):
                 QMouseEvent(QEvent.MouseButtonRelease, pos, Qt.LeftButton,
                             Qt.NoButton, modifiers),
             ]
+
+        if context.target in [Target.normal, Target.current]:
+            # Set the pre-jump mark ', so we can jump back here after following
+            tabbed_browser = objreg.get('tabbed-browser', scope='window',
+                                        window=self._win_id)
+            tabbed_browser.set_mark("'")
+
         if context.target == Target.current:
             elem.remove_blank_target()
         for evt in events:

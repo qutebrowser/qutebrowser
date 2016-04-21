@@ -160,6 +160,7 @@ Contributors, sorted by the number of commits in descending order:
 * Claude
 * meles5
 * Tarcisio Fedrizzi
+* Ryan Roden-Corrent
 * Artur Shaik
 * Nathan Isom
 * Thorsten Wißmann
@@ -183,7 +184,6 @@ Contributors, sorted by the number of commits in descending order:
 * Zach-Button
 * Halfwit
 * rikn00
-* Ryan Roden-Corrent
 * Michael Ilsaas
 * Martin Zimmermann
 * Brian Jackson

@@ -29,6 +29,7 @@
 |<<home,home>>|Open main startpage in current tab.
 |<<inspector,inspector>>|Toggle the web inspector.
 |<<jseval,jseval>>|Evaluate a JavaScript string.
+|<<jump-mark,jump-mark>>|Jump to the mark named by `key`.
 |<<later,later>>|Execute a command after some time.
 |<<navigate,navigate>>|Open typical prev/next links or navigate using the URL path.
 |<<open,open>>|Open a URL in the current/[count]th tab.
@@ -50,6 +51,7 @@
 |<<session-save,session-save>>|Save a session.
 |<<set,set>>|Set an option.
 |<<set-cmd-text,set-cmd-text>>|Preset the statusbar to some text.
+|<<set-mark,set-mark>>|Set a mark at the current scroll position in the current tab.
 |<<spawn,spawn>>|Spawn a command in a shell.
 |<<stop,stop>>|Stop loading in the current/[count]th tab.
 |<<tab-clone,tab-clone>>|Duplicate the current tab.
@@ -377,6 +379,15 @@ Evaluate a JavaScript string.
 * This command does not split arguments after the last argument and handles quotes literally.
 * With this command, +;;+ is interpreted literally instead of splitting off a second command.
 
+[[jump-mark]]
+=== jump-mark
+Syntax: +:jump-mark 'key'+
+
+Jump to the mark named by `key`.
+
+==== positional arguments
+* +'key'+: mark identifier; capital indicates a global mark
+
 [[later]]
 === later
 Syntax: +:later 'ms' 'command'+
@@ -648,6 +659,15 @@ Preset the statusbar to some text.
 ==== note
 * This command does not split arguments after the last argument and handles quotes literally.
 * With this command, +;;+ is interpreted literally instead of splitting off a second command.
+
+[[set-mark]]
+=== set-mark
+Syntax: +:set-mark 'key'+
+
+Set a mark at the current scroll position in the current tab.
+
+==== positional arguments
+* +'key'+: mark identifier; capital indicates a global mark
 
 [[spawn]]
 === spawn
@@ -1244,7 +1264,7 @@ Scroll the current tab by 'count * dx/dy' pixels.
 
 ==== positional arguments
 * +'dx'+: How much to scroll in x-direction.
-* +'dy'+: How much to scroll in x-direction.
+* +'dy'+: How much to scroll in y-direction.
 
 ==== count
 multiplier

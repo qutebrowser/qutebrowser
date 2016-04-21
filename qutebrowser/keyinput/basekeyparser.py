@@ -67,9 +67,13 @@ class BaseKeyParser(QObject):
     Signals:
         keystring_updated: Emitted when the keystring is updated.
                            arg: New keystring.
+        request_leave: Emitted to request leaving a mode.
+                       arg 0: Mode to leave.
+                       arg 1: Reason for leaving.
     """
 
     keystring_updated = pyqtSignal(str)
+    request_leave = pyqtSignal(usertypes.KeyMode, str)
     do_log = True
     passthrough = False
 

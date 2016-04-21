@@ -472,6 +472,9 @@ class CommandDispatcher:
             bg: Open in a background tab.
             window: Open in a new window.
         """
+        # save the pre-jump position in the special ' mark
+        self.set_mark("'")
+
         cmdutils.check_exclusive((tab, bg, window), 'tbw')
         widget = self._current_widget()
         frame = widget.page().currentFrame()
@@ -500,7 +503,7 @@ class CommandDispatcher:
 
         Args:
             dx: How much to scroll in x-direction.
-            dy: How much to scroll in x-direction.
+            dy: How much to scroll in y-direction.
             count: multiplier
         """
         dx *= count
@@ -582,6 +585,9 @@ class CommandDispatcher:
             horizontal: Scroll horizontally instead of vertically.
             count: Percentage to scroll.
         """
+        # save the pre-jump position in the special ' mark
+        self.set_mark("'")
+
         if perc is None and count is None:
             perc = 100
         elif perc is None:
@@ -1414,6 +1420,7 @@ class CommandDispatcher:
             text: The text to search for.
             reverse: Reverse search direction.
         """
+        self.set_mark("'")
         view = self._current_widget()
         self._clear_search(view, text)
         flags = 0
@@ -1444,6 +1451,7 @@ class CommandDispatcher:
         Args:
             count: How many elements to ignore.
         """
+        self.set_mark("'")
         view = self._current_widget()
 
         self._clear_search(view, self._tabbed_browser.search_text)
@@ -1464,6 +1472,7 @@ class CommandDispatcher:
         Args:
             count: How many elements to ignore.
         """
+        self.set_mark("'")
         view = self._current_widget()
         self._clear_search(view, self._tabbed_browser.search_text)
 
@@ -1882,3 +1891,21 @@ class CommandDispatcher:
             self.openurl, bg=bg, tab=tab, window=window, count=count))
 
         ed.edit(url or self._current_url().toString())
+
+    @cmdutils.register(instance='command-dispatcher', scope='window')
+    def set_mark(self, key):
+        """Set a mark at the current scroll position in the current tab.
+
+        Args:
+            key: mark identifier; capital indicates a global mark
+        """
+        self._tabbed_browser.set_mark(key)
+
+    @cmdutils.register(instance='command-dispatcher', scope='window')
+    def jump_mark(self, key):
+        """Jump to the mark named by `key`.
+
+        Args:
+            key: mark identifier; capital indicates a global mark
+        """
+        self._tabbed_browser.jump_mark(key)
