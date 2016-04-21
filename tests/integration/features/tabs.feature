@@ -804,6 +804,7 @@ Feature: Tab management
         And I open data/paste_primary.html in a new tab
         And I wait until data/caret.html is loaded
         And I run :buffer "0/2"
+        And I wait for "Current tab changed, *" in the log
         Then the session should look like:
             windows:
             - active: true
