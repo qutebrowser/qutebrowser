@@ -276,7 +276,7 @@ class ModeManager(QObject):
         """Leave a key mode.
 
         Args:
-            mode: The name of the mode to leave.
+            mode: The mode to leave as a usertypes.KeyMode member.
             reason: Why the mode was left.
         """
         if self.mode != mode:
