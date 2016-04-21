@@ -641,9 +641,9 @@ Feature: Tab management
         And I set tabs -> last-close to default-page
         And I set general -> default-page to about:blank
         And I run :undo
+        And I run :undo
         Then the error "Nothing to undo!" should be shown
-        And the following tabs should be open:
-            - about:blank (active)
+        And the error "Nothing to undo!" should be shown
 
     # last-close
 
