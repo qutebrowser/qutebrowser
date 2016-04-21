@@ -30,7 +30,8 @@ from qutebrowser.config import config
 from qutebrowser.keyinput import modeman
 from qutebrowser.mainwindow import tabwidget
 from qutebrowser.browser import signalfilter, webview
-from qutebrowser.utils import log, usertypes, utils, qtutils, objreg, urlutils
+from qutebrowser.utils import (log, usertypes, utils, qtutils, objreg,
+                               urlutils, message)
 
 
 UndoEntry = collections.namedtuple('UndoEntry', ['url', 'history'])
@@ -64,6 +65,8 @@ class TabbedBrowser(tabwidget.TabWidget):
         _tab_insert_idx_right: Same as above, for 'right'.
         _undo_stack: List of UndoEntry namedtuples of closed tabs.
         shutting_down: Whether we're currently shutting down.
+        _local_marks: Jump markers local to each page
+        _global_marks: Jump markers used across all pages
 
     Signals:
         cur_progress: Progress of the current tab changed (loadProgress).
@@ -114,6 +117,8 @@ class TabbedBrowser(tabwidget.TabWidget):
         self._now_focused = None
         self.search_text = None
         self.search_flags = 0
+        self._local_marks = {}
+        self._global_marks = {}
         objreg.get('config').changed.connect(self.update_favicons)
         objreg.get('config').changed.connect(self.update_window_title)
         objreg.get('config').changed.connect(self.update_tab_titles)
@@ -637,3 +642,53 @@ class TabbedBrowser(tabwidget.TabWidget):
             self._now_focused.wheelEvent(e)
         else:
             e.ignore()
+
+    def set_mark(self, key):
+        """Set a mark at the current scroll position in the current tab.
+
+        Args:
+            key: mark identifier; capital indicates a global mark
+        """
+        # strip the fragment as it may interfere with scrolling
+        url = self.current_url().adjusted(QUrl.RemoveFragment)
+        point = self.currentWidget().page().currentFrame().scrollPosition()
+
+        if key.isupper():
+            self._global_marks[key] = point, url
+        else:
+            if url not in self._local_marks:
+                self._local_marks[url] = {}
+            self._local_marks[url][key] = point
+
+    def jump_mark(self, key):
+        """Jump to the mark named by `key`.
+
+        Args:
+            key: mark identifier; capital indicates a global mark
+        """
+        # consider urls that differ only in fragment to be identical
+        urlkey = self.current_url().adjusted(QUrl.RemoveFragment)
+        frame = self.currentWidget().page().currentFrame()
+
+        if key.isupper() and key in self._global_marks:
+            point, url = self._global_marks[key]
+
+            @pyqtSlot(bool)
+            def callback(ok):
+                if ok:
+                    self.cur_load_finished.disconnect(callback)
+                    frame.setScrollPosition(point)
+
+            self.openurl(url, newtab=False)
+            self.cur_load_finished.connect(callback)
+        elif urlkey in self._local_marks and key in self._local_marks[urlkey]:
+            point = self._local_marks[urlkey][key]
+
+            # save the pre-jump position in the special ' mark
+            # this has to happen after we read the mark, otherwise jump_mark
+            # "'" would just jump to the current position every time
+            self.set_mark("'")
+
+            frame.setScrollPosition(point)
+        else:
+            message.error(self._win_id, "Mark {} is not set".format(key))

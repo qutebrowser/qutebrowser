@@ -23,6 +23,10 @@ Added
 - New `:edit-url` command to edit the URL in an external editor.
 - New `network -> custom-headers` setting to send custom headers with every request.
 - New `{url:pretty}` commandline replacement which gets replaced by the decoded URL.
+- New marks to remember a scroll position:
+    - New `:jump-mark` command to jump to a mark, bound to `'`
+    - New `:set-mark` command to set a mark, bound to ```(backtick)
+    - The `'` mark gets set when moving away (hinting link with anchor, searching, etc.) so you can move back with `''`
 
 Changed
 ~~~~~~~

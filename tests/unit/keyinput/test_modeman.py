@@ -22,14 +22,17 @@ import pytest
 from qutebrowser.keyinput import modeman as modeman_module
 from qutebrowser.utils import usertypes
 
-from PyQt5.QtCore import Qt
+from PyQt5.QtCore import Qt, QObject, pyqtSignal
 
 
-class FakeKeyparser:
+class FakeKeyparser(QObject):
 
     """A fake BaseKeyParser which doesn't handle anything."""
 
+    request_leave = pyqtSignal(usertypes.KeyMode, str)
+
     def __init__(self):
+        super().__init__()
         self.passthrough = False
 
     def handle(self, evt):
