@@ -740,12 +740,12 @@ Feature: Tab management
 
     # :buffer
 
-    Scenario: buffer without args
+    Scenario: :buffer without args
         Given I have a fresh instance
         When I run :buffer
         Then the error "buffer: The following arguments are required: index" should be shown
 
-    Scenario: buffer one window title present
+    Scenario: :buffer with a matching title
         When I open data/title.html
         And I open data/search.html in a new tab
         And I open data/scroll.html in a new tab
@@ -755,11 +755,11 @@ Feature: Tab management
             - data/search.html (active)
             - data/scroll.html
 
-    Scenario: buffer one window title not present
+    Scenario: :buffer with no matching title
         When I run :buffer "invalid title"
         Then the error "No matching tab for: invalid title" should be shown
 
-    Scenario: buffer two window title present
+    Scenario: :buffer with matching title and two windows
         When I open data/title.html
         And I open data/search.html in a new tab
         And I open data/scroll.html in a new tab
@@ -785,17 +785,17 @@ Feature: Tab management
                 history:
                 - url: http://localhost:*/data/paste_primary.html
 
-    Scenario: buffer one window index not present
+    Scenario: :buffer with no matching index
         When I open data/title.html
         And I run :buffer "666"
         Then the error "There's no tab with index 666!" should be shown
 
-    Scenario: buffer one window win not present
+    Scenario: :buffer with no matching window index
         When I open data/title.html
         And I run :buffer "2/1"
         Then the error "There's no window with id 2!" should be shown
 
-    Scenario: buffer two window index present
+    Scenario: :buffer with matching window index
         Given I have a fresh instance
         When I open data/title.html
         And I open data/search.html in a new tab
@@ -824,30 +824,30 @@ Feature: Tab management
                 history:
                 - url: http://localhost:*/data/paste_primary.html
 
-    Scenario: buffer troubling args 01
+    Scenario: :buffer with wrong argument (-1)
         Given I have a fresh instance
         When I open data/title.html
         And I run :buffer "-1"
         Then the error "There's no tab with index -1!" should be shown
 
-    Scenario: buffer troubling args 02
+    Scenario: :buffer with wrong argument (/)
         When I open data/title.html
         And I run :buffer "/"
         Then the following tabs should be open:
             - data/title.html (active)
 
-    Scenario: buffer troubling args 03
+    Scenario: :buffer with wrong argument (//)
         When I open data/title.html
         And I run :buffer "//"
         Then the following tabs should be open:
             - data/title.html (active)
 
-    Scenario: buffer troubling args 04
+    Scenario: :buffer with wrong argument (0/x)
         When I open data/title.html
         And I run :buffer "0/x"
         Then the error "No matching tab for: 0/x" should be shown
 
-    Scenario: buffer troubling args 05
+    Scenario: :buffer with wrong argument (1/2/3)
         When I open data/title.html
         And I run :buffer "1/2/3"
         Then the error "No matching tab for: 1/2/3" should be shown
