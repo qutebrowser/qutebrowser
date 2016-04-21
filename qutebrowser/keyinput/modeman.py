@@ -21,7 +21,7 @@
 
 import functools
 
-from PyQt5.QtCore import pyqtSignal, Qt, QObject, QEvent
+from PyQt5.QtCore import pyqtSlot, pyqtSignal, Qt, QObject, QEvent
 from PyQt5.QtWidgets import QApplication
 
 from qutebrowser.keyinput import modeparsers, keyparser
@@ -271,6 +271,7 @@ class ModeManager(QObject):
             raise cmdexc.CommandError("Mode {} does not exist!".format(mode))
         self.enter(m, 'command')
 
+    @pyqtSlot(str, str)
     def leave(self, mode, reason=None):
         """Leave a key mode.
 
