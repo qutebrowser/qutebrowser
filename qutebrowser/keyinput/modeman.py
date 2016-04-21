@@ -27,7 +27,7 @@ from PyQt5.QtWidgets import QApplication
 from qutebrowser.keyinput import modeparsers, keyparser
 from qutebrowser.config import config
 from qutebrowser.commands import cmdexc, cmdutils
-from qutebrowser.utils import usertypes, log, objreg, utils
+from qutebrowser.utils import usertypes, log, objreg, utils, usertypes
 
 
 class KeyEvent:
@@ -271,7 +271,7 @@ class ModeManager(QObject):
             raise cmdexc.CommandError("Mode {} does not exist!".format(mode))
         self.enter(m, 'command')
 
-    @pyqtSlot(str, str)
+    @pyqtSlot(usertypes.KeyMode, str)
     def leave(self, mode, reason=None):
         """Leave a key mode.
 
