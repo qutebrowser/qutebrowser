@@ -27,7 +27,7 @@ from PyQt5.QtWidgets import QApplication
 from qutebrowser.keyinput import modeparsers, keyparser
 from qutebrowser.config import config
 from qutebrowser.commands import cmdexc, cmdutils
-from qutebrowser.utils import usertypes, log, objreg, utils, usertypes
+from qutebrowser.utils import usertypes, log, objreg, utils
 
 
 class KeyEvent:
