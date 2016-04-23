@@ -27,7 +27,7 @@ from qutebrowser.completion.models.configmodel import (
     SettingValueCompletionModel)
 from qutebrowser.completion.models.miscmodels import (
     CommandCompletionModel, HelpCompletionModel, QuickmarkCompletionModel,
-    BookmarkCompletionModel, SessionCompletionModel)
+    BookmarkCompletionModel, SessionCompletionModel, KeybindingCompletionModel)
 from qutebrowser.completion.models.urlmodel import UrlCompletionModel
 
 
@@ -40,7 +40,7 @@ class TestColumnWidths:
                SettingValueCompletionModel, CommandCompletionModel,
                HelpCompletionModel, QuickmarkCompletionModel,
                BookmarkCompletionModel, SessionCompletionModel,
-               UrlCompletionModel]
+               UrlCompletionModel, KeybindingCompletionModel]
 
     @pytest.mark.parametrize("model", CLASSES)
     def test_list_size(self, model):

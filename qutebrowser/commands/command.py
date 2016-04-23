@@ -503,3 +503,12 @@ class Command:
         log.commands.debug('Calling {}'.format(
             debug_utils.format_call(self.handler, posargs, kwargs)))
         self.handler(*posargs, **kwargs)
+
+    def supports_mode(self, mode):
+        """Return True if the command can execute in the given mode.
+
+        Args:
+            mode: KeyMode enum member to check support for.
+        """
+        return ((self._modes is None or mode in self._modes) and
+                (self._not_modes is None or mode not in self._not_modes))
