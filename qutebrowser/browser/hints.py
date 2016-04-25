@@ -1004,11 +1004,14 @@ class WordHinter:
     def __init__(self):
         # will be initialized on first use.
         self.words = set()
+        self.dictionary = None
 
     def ensure_initialized(self):
         """Generate the used words if yet uninialized."""
-        if not self.words:
-            dictionary = config.get("hints", "dictionary")
+        dictionary = config.get("hints", "dictionary")
+        if not self.words or self.dictionary != dictionary:
+            self.words.clear()
+            self.dictionary = dictionary
             try:
                 with open(dictionary, encoding="UTF-8") as wordfile:
                     alphabet = set(string.ascii_lowercase)
@@ -1104,3 +1107,4 @@ class WordHinter:
             used_hints.add(hint)
             hints.append(hint)
         return hints
+

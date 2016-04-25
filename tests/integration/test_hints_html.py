@@ -62,21 +62,21 @@ def test_hints(test_name, quteproc):
 def test_word_hints_issue1393(quteproc, tmpdir):
     dict_file = tmpdir / 'dict'
     dict_file.write(textwrap.dedent("""
-        alpha
+        alph
         beta
-        gamma
-        delta
-        epsilon
+        gamm
+        delt
+        epsi
     """))
     targets = [
         ('words', 'words.txt'),
         ('smart', 'smart.txt'),
         ('hinting', 'hinting.txt'),
-        ('alpha', 'l33t.txt'),
+        ('alph', 'l33t.txt'),
         ('beta', 'l33t.txt'),
-        ('gamma', 'l33t.txt'),
-        ('delta', 'l33t.txt'),
-        ('epsilon', 'l33t.txt'),
+        ('gamm', 'l33t.txt'),
+        ('delt', 'l33t.txt'),
+        ('epsi', 'l33t.txt'),
     ]
 
     quteproc.set_setting('hints', 'mode', 'word')
