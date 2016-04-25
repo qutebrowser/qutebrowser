@@ -22,7 +22,6 @@
 
 import os
 import os.path
-import re
 
 import yaml
 import pytest
