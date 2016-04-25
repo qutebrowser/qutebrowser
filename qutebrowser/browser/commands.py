@@ -430,6 +430,8 @@ class CommandDispatcher:
             new_url = urlutils.incdec_number(url, incdec, segments=segments)
         except urlutils.IncDecError as error:
             raise cmdexc.CommandError(error.msg)
+        url.setFragment(None)
+
         self._open(new_url, tab, background, window)
 
     def _navigate_up(self, url, tab, background, window):
@@ -446,6 +448,7 @@ class CommandDispatcher:
             raise cmdexc.CommandError("Can't go up!")
         new_path = posixpath.join(path, posixpath.pardir)
         url.setPath(new_path)
+        url.setFragment(None)
         self._open(url, tab, background, window)
 
     @cmdutils.register(instance='command-dispatcher', scope='window')
