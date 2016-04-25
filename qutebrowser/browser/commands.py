@@ -430,6 +430,7 @@ class CommandDispatcher:
             new_url = urlutils.incdec_number(url, incdec, segments=segments)
         except urlutils.IncDecError as error:
             raise cmdexc.CommandError(error.msg)
+
         self._open(new_url, tab, background, window)
 
     def _navigate_up(self, url, tab, background, window):
@@ -478,7 +479,7 @@ class CommandDispatcher:
         cmdutils.check_exclusive((tab, bg, window), 'tbw')
         widget = self._current_widget()
         frame = widget.page().currentFrame()
-        url = self._current_url()
+        url = self._current_url().adjusted(QUrl.RemoveFragment)
         if frame is None:
             raise cmdexc.CommandError("No frame focused!")
         hintmanager = objreg.get('hintmanager', scope='tab', tab='current')
