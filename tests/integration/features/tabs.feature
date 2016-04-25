@@ -851,3 +851,17 @@ Feature: Tab management
         When I open data/title.html
         And I run :buffer "1/2/3"
         Then the error "No matching tab for: 1/2/3" should be shown
+        
+    Scenario: Using :tab-next after closing last tab (#1448)
+        When I set tabs -> last-close to close
+        And I run :tab-only
+        And I run :tab-close ;; :tab-next
+        Then qutebrowser should quit
+        And no crash should happen
+
+    Scenario: Using :tab-prev after closing last tab (#1448)
+        When I set tabs -> last-close to close
+        And I run :tab-only
+        And I run :tab-close ;; :tab-prev
+        Then qutebrowser should quit
+        And no crash should happen
