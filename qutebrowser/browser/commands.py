@@ -430,7 +430,6 @@ class CommandDispatcher:
             new_url = urlutils.incdec_number(url, incdec, segments=segments)
         except urlutils.IncDecError as error:
             raise cmdexc.CommandError(error.msg)
-        url.setFragment(None)
 
         self._open(new_url, tab, background, window)
 
@@ -448,7 +447,6 @@ class CommandDispatcher:
             raise cmdexc.CommandError("Can't go up!")
         new_path = posixpath.join(path, posixpath.pardir)
         url.setPath(new_path)
-        url.setFragment(None)
         self._open(url, tab, background, window)
 
     @cmdutils.register(instance='command-dispatcher', scope='window')
@@ -481,7 +479,7 @@ class CommandDispatcher:
         cmdutils.check_exclusive((tab, bg, window), 'tbw')
         widget = self._current_widget()
         frame = widget.page().currentFrame()
-        url = self._current_url()
+        url = self._current_url().adjusted(QUrl.RemoveFragment)
         if frame is None:
             raise cmdexc.CommandError("No frame focused!")
         hintmanager = objreg.get('hintmanager', scope='tab', tab='current')
