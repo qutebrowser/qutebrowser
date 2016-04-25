@@ -1077,7 +1077,8 @@ class WordHinter:
         new_no_prefixes = self.filter_prefixes(new, existing)
         fallback_no_prefixes = self.filter_prefixes(fallback, existing)
         # either the first good, or None
-        return next(new_no_prefixes, next(fallback_no_prefixes))
+        return (next(new_no_prefixes, None)
+             or next(fallback_no_prefixes, None))
 
     def hint(self, elems):
         """Produce hint labels based on the html tags.
@@ -1098,6 +1099,8 @@ class WordHinter:
         words = iter(self.words)
         for elem in elems:
             hint = self.new_hint_for(elem, used_hints, words)
+            if not hint:
+                raise WordHintingError("Not enough words in the dictionary.")
             used_hints.add(hint)
             hints.append(hint)
         return hints
