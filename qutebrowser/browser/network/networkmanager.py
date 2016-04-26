@@ -253,7 +253,7 @@ class NetworkManager(QNetworkAccessManager):
         except KeyError:
             pass
 
-    @pyqtSlot('QNetworkReply', 'QAuthenticator')
+    @pyqtSlot('QNetworkReply*', 'QAuthenticator*')
     def on_authentication_required(self, reply, authenticator):
         """Called when a website needs authentication."""
         user, password = None, None
@@ -286,7 +286,7 @@ class NetworkManager(QNetworkAccessManager):
             authenticator.setUser(user)
             authenticator.setPassword(password)
 
-    @pyqtSlot('QNetworkProxy', 'QAuthenticator')
+    @pyqtSlot('QNetworkProxy', 'QAuthenticator*')
     def on_proxy_authentication_required(self, proxy, authenticator):
         """Called when a proxy needs authentication."""
         proxy_id = ProxyId(proxy.type(), proxy.hostName(), proxy.port())

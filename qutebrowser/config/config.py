@@ -95,6 +95,7 @@ class change_filter:  # pylint: disable=invalid-name
         """
         if self._function:
             @pyqtSlot(str, str)
+            @pyqtSlot()
             @functools.wraps(func)
             def wrapper(sectname=None, optname=None):
                 if sectname is None and optname is None:
@@ -108,6 +109,7 @@ class change_filter:  # pylint: disable=invalid-name
                     return func()
         else:
             @pyqtSlot(str, str)
+            @pyqtSlot()
             @functools.wraps(func)
             def wrapper(wrapper_self, sectname=None, optname=None):
                 if sectname is None and optname is None:

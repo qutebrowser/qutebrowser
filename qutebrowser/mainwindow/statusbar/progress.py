@@ -59,7 +59,7 @@ class Progress(QProgressBar):
         self.setValue(0)
         self.show()
 
-    @pyqtSlot(int)
+    @pyqtSlot(webview.WebView)
     def on_tab_changed(self, tab):
         """Set the correct value when the current tab changed."""
         if self is None:  # pragma: no branch
