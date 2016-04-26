@@ -32,16 +32,23 @@ class DiskCache(QNetworkDiskCache):
 
     """Disk cache which sets correct cache dir and size.
 
+    If the cache is deactivated via the command line argument --cachedir="",
+    both attributes _cache_dir and _http_cache_dir are set to None.
+
     Attributes:
         _activated: Whether the cache should be used.
-        _cache_dir: The base directory for cache files (standarddir.cache())
-        _http_cache_dir: the HTTP subfolder in _cache_dir.
+        _cache_dir: The base directory for cache files (standarddir.cache()) or
+                    None.
+        _http_cache_dir: the HTTP subfolder in _cache_dir or None.
     """
 
     def __init__(self, cache_dir, parent=None):
         super().__init__(parent)
         self._cache_dir = cache_dir
-        self._http_cache_dir = os.path.join(cache_dir, 'http')
+        if cache_dir is None:
+            self._http_cache_dir = None
+        else:
+            self._http_cache_dir = os.path.join(cache_dir, 'http')
         self._maybe_activate()
         objreg.get('config').changed.connect(self.on_config_changed)
 
