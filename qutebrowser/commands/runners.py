@@ -249,6 +249,7 @@ class CommandRunner(QObject):
                 result.cmd.run(self._win_id, args)
 
     @pyqtSlot(str, int)
+    @pyqtSlot(str)
     def run_safely(self, text, count=None):
         """Run a command and display exceptions in the statusbar."""
         try:

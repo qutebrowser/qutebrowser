@@ -288,7 +288,7 @@ class BrowserPage(QWebPage):
                                       window=self._win_id)
         download_manager.get_request(req, page=self)
 
-    @pyqtSlot('QNetworkReply')
+    @pyqtSlot('QNetworkReply*')
     def on_unsupported_content(self, reply):
         """Handle an unsupportedContent signal.
 
@@ -334,7 +334,7 @@ class BrowserPage(QWebPage):
         else:
             self.error_occurred = False
 
-    @pyqtSlot('QWebFrame', 'QWebPage::Feature')
+    @pyqtSlot('QWebFrame*', 'QWebPage::Feature')
     def on_feature_permission_requested(self, frame, feature):
         """Ask the user for approval for geolocation/notifications."""
         options = {
@@ -439,7 +439,7 @@ class BrowserPage(QWebPage):
         if 'scroll-pos' in data and frame.scrollPosition() == QPoint(0, 0):
             frame.setScrollPosition(data['scroll-pos'])
 
-    @pyqtSlot(str)
+    @pyqtSlot(usertypes.ClickTarget)
     def on_start_hinting(self, hint_target):
         """Emitted before a hinting-click takes place.
 

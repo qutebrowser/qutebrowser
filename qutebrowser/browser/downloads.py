@@ -231,7 +231,7 @@ class DownloadItemStats(QObject):
         else:
             return remaining_bytes / avg
 
-    @pyqtSlot(int, int)
+    @pyqtSlot('qint64', 'qint64')
     def on_download_progress(self, bytes_done, bytes_total):
         """Update local variables when the download progress changed.
 
@@ -650,7 +650,7 @@ class DownloadItem(QObject):
         except OSError as e:
             self._die(e.strerror)
 
-    @pyqtSlot(int)
+    @pyqtSlot('QNetworkReply::NetworkError')
     def on_reply_error(self, code):
         """Handle QNetworkReply errors."""
         if code == QNetworkReply.OperationCanceledError:

@@ -24,6 +24,7 @@ from PyQt5.QtCore import pyqtSlot
 from qutebrowser.config import config
 from qutebrowser.mainwindow.statusbar import textbase
 from qutebrowser.utils import usertypes, log, objreg
+from qutebrowser.browser import webview
 
 
 class Text(textbase.TextBase):
@@ -98,7 +99,7 @@ class Text(textbase.TextBase):
         """Clear jstext when page loading started."""
         self._jstext = ''
 
-    @pyqtSlot(int)
+    @pyqtSlot(webview.WebView)
     def on_tab_changed(self, tab):
         """Set the correct jstext when the current tab changed."""
         self._jstext = tab.statusbar_message

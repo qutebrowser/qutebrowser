@@ -352,7 +352,7 @@ class WebView(QWebView):
             frame = self.page().mainFrame()
             frame.javaScriptWindowObjectCleared.connect(self.add_js_bridge)
 
-    @pyqtSlot(QWebFrame)
+    @pyqtSlot()
     def add_js_bridge(self):
         """Add the javascript bridge for qute:... pages."""
         frame = self.sender()

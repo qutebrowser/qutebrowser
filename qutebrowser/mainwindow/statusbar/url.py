@@ -158,7 +158,7 @@ class UrlText(textbase.TextBase):
             self._hover_url = None
         self._update_url()
 
-    @pyqtSlot(int)
+    @pyqtSlot(webview.WebView)
     def on_tab_changed(self, tab):
         """Update URL if the tab changed."""
         self._hover_url = None

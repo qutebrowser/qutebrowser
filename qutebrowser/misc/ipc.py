@@ -221,7 +221,7 @@ class IPCServer(QObject):
             # This means we only use setSocketOption on Windows...
             os.chmod(self._server.fullServerName(), 0o700)
 
-    @pyqtSlot(int)
+    @pyqtSlot('QLocalSocket::LocalSocketError')
     def on_error(self, err):
         """Raise SocketError on fatal errors."""
         if self._socket is None:
