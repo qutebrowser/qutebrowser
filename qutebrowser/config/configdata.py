@@ -470,11 +470,15 @@ def data(readonly=False):
         ('input', sect.KeyValue(
             ('timeout',
              SettingValue(typ.Int(minval=0, maxval=MAXVALS['int']), '500'),
-             "Timeout for ambiguous key bindings."),
+             "Timeout for ambiguous key bindings.\n\n"
+             "If the current input forms both a complete match and a partial "
+             "match, the complete match will be executed after this time."),
 
             ('partial-timeout',
              SettingValue(typ.Int(minval=0, maxval=MAXVALS['int']), '1000'),
-             "Timeout for partially typed key bindings."),
+             "Timeout for partially typed key bindings.\n\n"
+             "If the current input forms only partial matches, the keystring "
+             "will be cleared after this time."),
 
             ('insert-mode-on-plugins',
              SettingValue(typ.Bool(), 'false'),
