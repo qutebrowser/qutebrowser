@@ -26,7 +26,6 @@ from qutebrowser.config import config, configdata
 from qutebrowser.utils import objreg, log
 from qutebrowser.commands import cmdutils
 from qutebrowser.completion.models import base
-from qutebrowser.mainwindow import mainwindow
 
 
 class CommandCompletionModel(base.BaseCompletionModel):
@@ -177,7 +176,6 @@ class TabCompletionModel(base.BaseCompletionModel):
         objreg.get("app").new_window.connect(self.on_new_window)
         self.rebuild()
 
-    @pyqtSlot(mainwindow.MainWindow)
     def on_new_window(self, window):
         """Add hooks to new windows."""
         window.tabbed_browser.new_tab.connect(self.on_new_tab)
