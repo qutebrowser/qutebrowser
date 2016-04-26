@@ -54,6 +54,37 @@ def test_no_config(tmpdir, quteproc_new):
 
 
 @pytest.mark.linux
+def test_no_cache(tmpdir, quteproc_new):
+    """Test starting with --cachedir="".
+
+    We can't run --basedir or --temp-basedir to reproduce this, so we mess with
+    XDG_*_DIR to get things relocated.
+    """
+    data_dir = tmpdir / 'data'
+    config_dir = tmpdir / 'config'
+    runtime_dir = tmpdir / 'runtime'
+    cache_dir = tmpdir / 'cache'
+
+    runtime_dir.ensure(dir=True)
+    runtime_dir.chmod(0o700)
+
+    (data_dir / 'qutebrowser' / 'state').write_text(
+        '[general]\nquickstart-done = 1', encoding='utf-8', ensure=True)
+
+    env = {
+        'XDG_DATA_HOME': str(data_dir),
+        'XDG_CONFIG_HOME': str(config_dir),
+        'XDG_RUNTIME_DIR': str(runtime_dir),
+        'XDG_CACHE_HOME': str(cache_dir),
+    }
+
+    args = ['--debug', '--no-err-windows', '--cachedir=""', 'about:blank']
+    quteproc_new.start(args, env=env)
+    quteproc_new.send_cmd(':quit')
+    quteproc_new.wait_for_quit()
+
+
+@pytest.mark.linux
 def test_ascii_locale(httpbin, tmpdir, quteproc_new):
     """Test downloads with LC_ALL=C set.
 
