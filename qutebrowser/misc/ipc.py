@@ -340,8 +340,17 @@ class IPCServer(QObject):
                 self._handle_invalid_data()
                 return
 
-            cwd = json_data.get('cwd', None)
-            self.got_args.emit(json_data['args'], json_data['target_arg'], cwd)
+            args = json_data['args']
+
+            target_arg = json_data['target_arg']
+            if target_arg is None:
+                # https://www.riverbankcomputing.com/pipermail/pyqt/2016-April/037375.html
+                target_arg = ''
+
+            cwd = json_data.get('cwd', '')
+            assert cwd is not None
+
+            self.got_args.emit(args, target_arg, cwd)
         self._timer.start()
 
     @pyqtSlot()
