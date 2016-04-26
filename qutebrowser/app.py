@@ -244,12 +244,7 @@ def process_pos_args(args, via_ipc=False, cwd=None, target_arg=None):
         cwd: The cwd to use for fuzzy_url.
         target_arg: Command line argument received by a running instance via
                     ipc. If the --target argument was not specified, target_arg
-                    will be an empty string instead of None. This behavior is
-                    caused by the PyQt signal
-                    ``got_args = pyqtSignal(list, str, str)``
-                    used in the misc.ipc.IPCServer class. PyQt converts the
-                    None value into a null QString and then back to an empty
-                    python string
+                    will be an empty string.
     """
     if via_ipc and not args:
         win_id = mainwindow.get_window(via_ipc, force_window=True)
@@ -275,6 +270,8 @@ def process_pos_args(args, via_ipc=False, cwd=None, target_arg=None):
             tabbed_browser = objreg.get('tabbed-browser', scope='window',
                                         window=win_id)
             log.init.debug("Startup URL {}".format(cmd))
+            if not cwd:  # could also be an empty string due to the PyQt signal
+                cwd = None
             try:
                 url = urlutils.fuzzy_url(cmd, cwd, relative=True)
             except urlutils.InvalidUrlError as e:
