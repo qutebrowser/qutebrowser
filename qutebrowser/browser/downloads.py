@@ -993,6 +993,7 @@ class DownloadManager(QAbstractListModel):
             raise cmdexc.CommandError("Download {} is not done!".format(count))
         download.delete()
         self.remove_item(download)
+        log.downloads.debug("deleted download {}".format(download))
 
     @cmdutils.register(instance='download-manager', scope='window',
                        count='count')

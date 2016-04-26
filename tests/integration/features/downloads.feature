@@ -124,6 +124,7 @@ Feature: Downloading things from a website.
         When I open data/downloads/download.bin
         And I wait until the download is finished
         And I run :download-delete
+        And I wait for "deleted download *" in the log
         Then the downloaded file download.bin should not exist
 
     Scenario: Deleting a download which does not exist
