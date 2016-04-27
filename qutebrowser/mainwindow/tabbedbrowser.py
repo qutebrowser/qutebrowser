@@ -656,7 +656,13 @@ class TabbedBrowser(tabwidget.TabWidget):
             key: mark identifier; capital indicates a global mark
         """
         # strip the fragment as it may interfere with scrolling
-        url = self.current_url().adjusted(QUrl.RemoveFragment)
+        try:
+            url = self.current_url().adjusted(QUrl.RemoveFragment)
+        except qtutils.QtValueError:
+            # show an error only if the mark is not automatically set
+            if key != "'":
+                message.error(self._win_id, "Failed to set mark: url invalid")
+            return
         point = self.currentWidget().page().currentFrame().scrollPosition()
 
         if key.isupper():
