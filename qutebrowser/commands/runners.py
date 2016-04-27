@@ -172,6 +172,20 @@ class CommandRunner(QObject):
                 return self.parse(new_cmd, aliases=False, fallback=fallback,
                                   keep=keep)
         try:
+            
+            """ If the command given has only one completion match, replace
+                the given command with the match.
+                Ex: If they type "bac" and the only completion is "back", 
+                turn the command into "back".
+            """
+
+            matches = []
+            for valid_command in cmdutils.cmd_dict.keys():
+                if valid_command.find(cmdstr) == 0:
+                    matches.append(valid_command)
+            if len(matches) == 1:
+                cmdstr = matches[0]
+            
             cmd = cmdutils.cmd_dict[cmdstr]
         except KeyError:
             if fallback:
