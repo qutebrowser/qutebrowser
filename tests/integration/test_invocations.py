@@ -61,7 +61,7 @@ def test_no_config(temp_basedir_env, quteproc_new):
 @pytest.mark.linux
 def test_no_cache(temp_basedir_env, quteproc_new):
     """Test starting with --cachedir=""."""
-    args = ['--debug', '--no-err-windows', '--cachedir=""', 'about:blank']
+    args = ['--debug', '--no-err-windows', '--cachedir=', 'about:blank']
     quteproc_new.start(args, env=temp_basedir_env)
     quteproc_new.send_cmd(':quit')
     quteproc_new.wait_for_quit()
