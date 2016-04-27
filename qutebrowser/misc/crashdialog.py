@@ -255,8 +255,7 @@ class _CrashDialog(QDialog):
         except Exception:
             self._crash_info.append(("Config", traceback.format_exc()))
         try:
-            self._crash_info.append(
-                ("Environment", _get_environment_vars()))
+            self._crash_info.append(("Environment", _get_environment_vars()))
         except Exception:
             self._crash_info.append(("Environment", traceback.format_exc()))
 
@@ -283,8 +282,8 @@ class _CrashDialog(QDialog):
     def _get_paste_title(self):
         """Get a title for the paste."""
         desc = self._get_paste_title_desc()
-        title = "qute {} {}".format(
-            qutebrowser.__version__, self._get_error_type())
+        title = "qute {} {}".format(qutebrowser.__version__,
+                                    self._get_error_type())
         if desc:
             title += ' {}'.format(desc)
         return title
@@ -466,8 +465,7 @@ class ExceptionCrashDialog(_CrashDialog):
                 self._crash_info.append(
                     ("Debug log", log.ram_handler.dump_log()))
             except Exception:
-                self._crash_info.append(
-                    ("Debug log", traceback.format_exc()))
+                self._crash_info.append(("Debug log", traceback.format_exc()))
 
     @pyqtSlot()
     def finish(self):

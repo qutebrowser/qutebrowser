@@ -31,7 +31,7 @@ import argparse
 import shlex
 
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), os.pardir,
-                os.pardir))
+                                os.pardir))
 
 import qutebrowser.qutebrowser
 
@@ -77,7 +77,7 @@ def main():
     elif args.profile_tool == 'kcachegrind':
         callgraphfile = os.path.join(tempdir, 'callgraph')
         subprocess.call(['pyprof2calltree', '-k', '-i', profilefile,
-                        '-o', callgraphfile])
+                         '-o', callgraphfile])
     elif args.profile_tool == 'snakeviz':
         subprocess.call(['snakeviz', profilefile])
 

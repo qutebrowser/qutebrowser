@@ -842,8 +842,8 @@ class CommandDispatcher:
         log.misc.debug("{} contained: {!r}".format(target, text))
         text_urls = [u for u in text.split('\n') if u.strip()]
         if (len(text_urls) > 1 and not urlutils.is_url(text_urls[0]) and
-            urlutils.get_path_if_valid(
-                text_urls[0], check_exists=True) is None):
+                urlutils.get_path_if_valid(text_urls[0],
+                                           check_exists=True) is None):
             text_urls = [text]
         for i, text_url in enumerate(text_urls):
             if not window and i > 0:
@@ -1202,9 +1202,9 @@ class CommandDispatcher:
             mhtml_: Download the current page and all assets as mhtml file.
         """
         if dest_old is not None:
-            message.warning(
-                self._win_id, ":download [url] [dest] is deprecated - use"
-                              " download --dest [dest] [url]")
+            message.warning(self._win_id,
+                            ":download [url] [dest] is deprecated - use"
+                            " download --dest [dest] [url]")
             if dest is not None:
                 raise cmdexc.CommandError("Can't give two destinations for the"
                                           " download.")
@@ -1260,8 +1260,8 @@ class CommandDispatcher:
         frame = widget.page().currentFrame()
         html = frame.toHtml()
         lexer = pygments.lexers.HtmlLexer()
-        formatter = pygments.formatters.HtmlFormatter(
-            full=True, linenos='table')
+        formatter = pygments.formatters.HtmlFormatter(full=True,
+                                                      linenos='table')
         highlighted = pygments.highlight(html, lexer, formatter)
         current_url = self._current_url()
         tab = self._tabbed_browser.tabopen(explicit=True)

@@ -293,8 +293,7 @@ class IPCServer(QObject):
         try:
             decoded = data.decode('utf-8')
         except UnicodeDecodeError:
-            log.ipc.error("invalid utf-8: {}".format(
-                binascii.hexlify(data)))
+            log.ipc.error("invalid utf-8: {}".format(binascii.hexlify(data)))
             self._handle_invalid_data()
             return
 
@@ -455,8 +454,7 @@ def send_to_running_instance(socketname, command, target_arg, *,
     if socket is None:
         socket = QLocalSocket()
 
-    if (legacy_name is not None and
-            _has_legacy_server(legacy_name)):
+    if legacy_name is not None and _has_legacy_server(legacy_name):
         name_to_use = legacy_name
     else:
         name_to_use = socketname

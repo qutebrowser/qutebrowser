@@ -93,8 +93,7 @@ class ExpectedRequest:
 
     def __eq__(self, other):
         if isinstance(other, (Request, ExpectedRequest)):
-            return (self.verb == other.verb and
-                    self.path == other.path)
+            return self.verb == other.verb and self.path == other.path
         else:
             return NotImplemented
 

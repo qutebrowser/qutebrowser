@@ -157,8 +157,7 @@ class WebElementWrapper(collections.abc.MutableMapping):
     def _check_vanished(self):
         """Raise an exception if the element vanished (is null)."""
         if self._elem.isNull():
-            raise IsNullError('Element {} vanished!'.format(
-                self._elem))
+            raise IsNullError('Element {} vanished!'.format(self._elem))
 
     def is_visible(self, mainframe):
         """Check whether the element is currently visible on the screen.
@@ -421,8 +420,7 @@ def is_visible(elem, mainframe):
     else:
         # We got an invalid rectangle (width/height 0/0 probably), but this
         # can still be a valid link.
-        visible_on_screen = mainframe_geometry.contains(
-            elem_rect.topLeft())
+        visible_on_screen = mainframe_geometry.contains(elem_rect.topLeft())
     # Then check if it's visible in its frame if it's not in the main
     # frame.
     elem_frame = elem.webFrame()

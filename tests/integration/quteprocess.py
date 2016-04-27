@@ -195,15 +195,15 @@ class QuteProc(testprocess.Process):
                 log_line.message.startswith("Listening as ")):
             self._ipc_socket = log_line.message.split(' ', maxsplit=2)[2]
         elif (log_line.category == 'webview' and
-                log_line.message == start_okay_message_load):
+              log_line.message == start_okay_message_load):
             self._is_ready('load')
         elif (log_line.category == 'misc' and
-                log_line.message == start_okay_message_focus):
+              log_line.message == start_okay_message_focus):
             self._is_ready('focus')
         elif (log_line.category == 'init' and
-                log_line.module == 'standarddir' and
-                log_line.function == 'init' and
-                log_line.message.startswith('Base directory:')):
+              log_line.module == 'standarddir' and
+              log_line.function == 'init' and
+              log_line.message.startswith('Base directory:')):
             self.basedir = log_line.message.split(':', maxsplit=1)[1].strip()
         elif self._is_error_logline(log_line):
             self.got_error.emit()

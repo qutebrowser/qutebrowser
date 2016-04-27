@@ -195,8 +195,8 @@ class Process(QObject):
 
         Should be used in a contextmanager.
         """
-        blocker = pytestqt.plugin.SignalBlocker(
-            timeout=timeout, raising=raising)
+        blocker = pytestqt.plugin.SignalBlocker(timeout=timeout,
+                                                raising=raising)
         blocker.connect(signal)
         return blocker
 

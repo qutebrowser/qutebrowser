@@ -175,9 +175,8 @@ class ModeManager(QObject):
 
         if handled:
             filter_this = True
-        elif (parser.passthrough or
-                self._forward_unbound_keys == 'all' or
-                (self._forward_unbound_keys == 'auto' and is_non_alnum)):
+        elif (parser.passthrough or self._forward_unbound_keys == 'all' or
+              (self._forward_unbound_keys == 'auto' and is_non_alnum)):
             filter_this = False
         else:
             filter_this = True
@@ -191,8 +190,8 @@ class ModeManager(QObject):
                             "passthrough: {}, is_non_alnum: {} --> "
                             "filter: {} (focused: {!r})".format(
                                 handled, self._forward_unbound_keys,
-                                parser.passthrough, is_non_alnum,
-                                filter_this, focus_widget))
+                                parser.passthrough, is_non_alnum, filter_this,
+                                focus_widget))
         return filter_this
 
     def _eventFilter_keyrelease(self, event):

@@ -183,10 +183,6 @@ class MainWindow(QWidget):
         if config.get('ui', 'hide-mouse-cursor'):
             self.setCursor(Qt.BlankCursor)
 
-        #self.retranslateUi(MainWindow)
-        #self.tabWidget.setCurrentIndex(0)
-        #QtCore.QMetaObject.connectSlotsByName(MainWindow)
-
         objreg.get("app").new_window.emit(self)
 
     def __repr__(self):

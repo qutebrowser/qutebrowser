@@ -154,8 +154,7 @@ class QuickmarkManager(UrlMarkManager):
         try:
             key, url = line.rsplit(maxsplit=1)
         except ValueError:
-            message.error('current', "Invalid quickmark '{}'".format(
-                line))
+            message.error('current', "Invalid quickmark '{}'".format(line))
         else:
             self.marks[key] = url
 

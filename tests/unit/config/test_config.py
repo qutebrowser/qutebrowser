@@ -112,12 +112,10 @@ class TestConfigParser:
 
     def test_interpolation_cross_section(self, objects):
         """Test setting an interpolated value from another section."""
-        objects.cp.read_dict(
-            {
-                'general': {'ignore-case': '${network:do-not-track}'},
-                'network': {'do-not-track': 'false'},
-            }
-        )
+        objects.cp.read_dict({
+            'general': {'ignore-case': '${network:do-not-track}'},
+            'network': {'do-not-track': 'false'},
+        })
         objects.cfg._from_cp(objects.cp)
         assert not objects.cfg.get('general', 'ignore-case')
         assert not objects.cfg.get('network', 'do-not-track')

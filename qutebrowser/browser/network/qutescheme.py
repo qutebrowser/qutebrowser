@@ -109,13 +109,13 @@ class QuteSchemeHandler(schemehandler.SchemeHandler):
                 request, str(e), QNetworkReply.ContentNotFoundError,
                 self.parent())
         except QuteSchemeError as e:
-            return networkreply.ErrorNetworkReply(
-                request, e.errorstring, e.error, self.parent())
+            return networkreply.ErrorNetworkReply(request, e.errorstring,
+                                                  e.error, self.parent())
         mimetype, _encoding = mimetypes.guess_type(request.url().fileName())
         if mimetype is None:
             mimetype = 'text/html'
-        return networkreply.FixedDataNetworkReply(
-            request, data, mimetype, self.parent())
+        return networkreply.FixedDataNetworkReply(request, data, mimetype,
+                                                  self.parent())
 
 
 class JSBridge(QObject):
@@ -240,4 +240,4 @@ def qute_pdfjs(_win_id, request):
         log.misc.warning(
             "pdfjs resource requested but not found: {}".format(e.path))
         raise QuteSchemeError("Can't find pdfjs resource '{}'".format(e.path),
-                QNetworkReply.ContentNotFoundError)
+                              QNetworkReply.ContentNotFoundError)

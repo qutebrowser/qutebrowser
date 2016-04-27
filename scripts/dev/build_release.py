@@ -31,7 +31,7 @@ import tarfile
 import collections
 
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), os.pardir,
-                os.pardir))
+                                os.pardir))
 
 import qutebrowser
 from scripts import utils
@@ -85,7 +85,7 @@ def _maybe_remove(path):
 def smoke_test(executable):
     """Try starting the given qutebrowser executable."""
     subprocess.check_call([executable, '--no-err-windows', '--nowindow',
-                          '--temp-basedir', 'about:blank', ':later 500 quit'])
+                           '--temp-basedir', 'about:blank', ':later 500 quit'])
 
 
 def build_windows():

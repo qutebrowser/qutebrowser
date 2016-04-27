@@ -51,9 +51,8 @@ def generate_pdfjs_page(url):
     """
     viewer = get_pdfjs_res('web/viewer.html').decode('utf-8')
     script = _generate_pdfjs_script(url)
-    html_page = viewer.replace(
-        '</body>', '</body><script>{}</script>'.format(script)
-    )
+    html_page = viewer.replace('</body>',
+                               '</body><script>{}</script>'.format(script))
     return html_page
 
 

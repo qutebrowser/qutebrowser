@@ -208,8 +208,8 @@ class ValueList(Section):
 
     def dump_userconfig(self):
         changed = []
-        mapping = collections.ChainMap(
-            self.layers['temp'], self.layers['conf'])
+        mapping = collections.ChainMap(self.layers['temp'],
+                                       self.layers['conf'])
         for k, v in mapping.items():
             try:
                 if v.value() != self.layers['default'][k].value():

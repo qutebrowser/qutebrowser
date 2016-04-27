@@ -341,10 +341,9 @@ class BaseKeyParser(QObject):
         elif self._supports_chains:
             self.bindings[key] = cmd
         elif self._warn_on_keychains:
-            log.keyboard.warning(
-                "Ignoring keychain '{}' in mode '{}' because "
-                "keychains are not supported there."
-                .format(key, modename))
+            log.keyboard.warning("Ignoring keychain '{}' in mode '{}' because "
+                                 "keychains are not supported there."
+                                 .format(key, modename))
 
     def execute(self, cmdstr, keytype, count=None):
         """Handle a completed keychain.

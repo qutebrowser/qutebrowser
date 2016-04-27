@@ -49,10 +49,7 @@ ModelRole = usertypes.enum('ModelRole', ['item'], start=Qt.UserRole,
 
 RetryInfo = collections.namedtuple('RetryInfo', ['request', 'manager'])
 
-
-DownloadPath = collections.namedtuple('DownloadPath', ['filename',
-                                                       'question'])
-
+DownloadPath = collections.namedtuple('DownloadPath', ['filename', 'question'])
 
 # Remember the last used directory
 last_used_directory = None
@@ -148,8 +145,7 @@ def ask_for_filename(suggested_filename, win_id, *, parent=None,
         return DownloadPath(filename=download_dir(), question=None)
 
     encoding = sys.getfilesystemencoding()
-    suggested_filename = utils.force_encoding(suggested_filename,
-                                              encoding)
+    suggested_filename = utils.force_encoding(suggested_filename, encoding)
 
     q = usertypes.Question(parent)
     q.text = "Save file to:"
@@ -461,8 +457,8 @@ class DownloadItem(QObject):
         elif self.stats.percentage() is None:
             return start
         else:
-            return utils.interpolate_color(
-                start, stop, self.stats.percentage(), system)
+            return utils.interpolate_color(start, stop,
+                                           self.stats.percentage(), system)
 
     @pyqtSlot()
     def cancel(self, remove_data=True):
@@ -562,8 +558,8 @@ class DownloadItem(QObject):
             txt = self._filename + " already exists. Overwrite?"
             self._ask_confirm_question(txt)
         # FIFO, device node, etc. Make sure we want to do this
-        elif (os.path.exists(self._filename) and not
-                os.path.isdir(self._filename)):
+        elif (os.path.exists(self._filename) and
+              not os.path.isdir(self._filename)):
             txt = (self._filename + " already exists and is a special file. "
                    "Write to this?")
             self._ask_confirm_question(txt)

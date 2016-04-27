@@ -31,7 +31,7 @@ import traceback
 import collections
 
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), os.pardir,
-                os.pardir))
+                                os.pardir))
 
 from scripts import utils
 

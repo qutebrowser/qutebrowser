@@ -64,7 +64,7 @@ def _partial_compare_dict(val1, val2, *, indent):
                 "Key {!r} is in second dict but not in first!".format(key))
             print_i(outcome.error, indent, error=True)
             return outcome
-        outcome = partial_compare(val1[key], val2[key], indent=indent+1)
+        outcome = partial_compare(val1[key], val2[key], indent=indent + 1)
         if not outcome:
             return outcome
     return PartialCompareOutcome()
@@ -77,7 +77,7 @@ def _partial_compare_list(val1, val2, *, indent):
         print_i(outcome.error, indent, error=True)
         return outcome
     for item1, item2 in zip(val1, val2):
-        outcome = partial_compare(item1, item2, indent=indent+1)
+        outcome = partial_compare(item1, item2, indent=indent + 1)
         if not outcome:
             return outcome
     return PartialCompareOutcome()

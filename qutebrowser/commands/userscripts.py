@@ -184,8 +184,8 @@ class _POSIXUserscriptRunner(_BaseUserscriptRunner):
             # pylint: disable=no-member,useless-suppression
             os.mkfifo(self._filepath)
         except OSError as e:
-            message.error(self._win_id, "Error while creating FIFO: {}".format(
-                e))
+            message.error(self._win_id,
+                          "Error while creating FIFO: {}".format(e))
             return
 
         self._reader = _QtFIFOReader(self._filepath)
@@ -338,8 +338,8 @@ def run(cmd, *args, win_id, env, verbose=False):
     commandrunner = runners.CommandRunner(win_id, tabbed_browser)
     runner = UserscriptRunner(win_id, tabbed_browser)
     runner.got_cmd.connect(
-        lambda cmd: log.commands.debug("Got userscript command: {}".format(
-            cmd)))
+        lambda cmd:
+        log.commands.debug("Got userscript command: {}".format(cmd)))
     runner.got_cmd.connect(commandrunner.run_safely)
     user_agent = config.get('network', 'user-agent')
     if user_agent is not None:

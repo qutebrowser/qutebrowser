@@ -276,10 +276,9 @@ class NetworkManager(QNetworkAccessManager):
 
         if user is None:
             # netrc check failed
-            answer = self._ask(
-                "Username ({}):".format(authenticator.realm()),
-                mode=usertypes.PromptMode.user_pwd,
-                owner=reply)
+            answer = self._ask("Username ({}):".format(authenticator.realm()),
+                               mode=usertypes.PromptMode.user_pwd,
+                               owner=reply)
             if answer is not None:
                 user, password = answer.user, answer.password
         if user is not None:
@@ -295,8 +294,9 @@ class NetworkManager(QNetworkAccessManager):
             authenticator.setUser(user)
             authenticator.setPassword(password)
         else:
-            answer = self._ask("Proxy username ({}):".format(
-                authenticator.realm()), mode=usertypes.PromptMode.user_pwd)
+            answer = self._ask(
+                "Proxy username ({}):".format(authenticator.realm()),
+                mode=usertypes.PromptMode.user_pwd)
             if answer is not None:
                 authenticator.setUser(answer.user)
                 authenticator.setPassword(answer.password)
@@ -345,7 +345,7 @@ class NetworkManager(QNetworkAccessManager):
                 # instead of no header at all
                 req.setRawHeader('Referer'.encode('ascii'), QByteArray())
             elif (referer_header_conf == 'same-domain' and
-                    not urlutils.same_domain(req.url(), current_url)):
+                  not urlutils.same_domain(req.url(), current_url)):
                 req.setRawHeader('Referer'.encode('ascii'), QByteArray())
             # If refer_header_conf is set to 'always', we leave the header
             # alone as QtWebKit did set it.

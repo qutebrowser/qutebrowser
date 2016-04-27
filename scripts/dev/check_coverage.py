@@ -210,7 +210,7 @@ def check(fileobj, perfect_files):
                 filename, line_cov, branch_cov)
             messages.append(Message(MsgType.insufficent_coverage, text))
         elif (filename not in perfect_src_files and not is_bad and
-                filename not in WHITELISTED_FILES):
+              filename not in WHITELISTED_FILES):
             text = ("{} has 100% coverage but is not in "
                     "perfect_files!".format(filename))
             messages.append(Message(MsgType.perfect_file, text))
@@ -257,9 +257,9 @@ def main_check_all():
     for test_file, src_file in PERFECT_FILES:
         if test_file is None:
             continue
-        subprocess.check_call([sys.executable, '-m', 'py.test', '--cov',
-                               'qutebrowser', '--cov-report', 'xml',
-                               test_file])
+        subprocess.check_call(
+            [sys.executable, '-m', 'py.test', '--cov', 'qutebrowser',
+             '--cov-report', 'xml', test_file])
         with open('coverage.xml', encoding='utf-8') as f:
             messages = check(f, [(test_file, src_file)])
         os.remove('coverage.xml')

@@ -387,9 +387,8 @@ def keyevent_to_string(e):
             (Qt.ShiftModifier, 'Shift'),
         ])
     modifiers = (Qt.Key_Control, Qt.Key_Alt, Qt.Key_Shift, Qt.Key_Meta,
-                 Qt.Key_AltGr, Qt.Key_Super_L, Qt.Key_Super_R,
-                 Qt.Key_Hyper_L, Qt.Key_Hyper_R, Qt.Key_Direction_L,
-                 Qt.Key_Direction_R)
+                 Qt.Key_AltGr, Qt.Key_Super_L, Qt.Key_Super_R, Qt.Key_Hyper_L,
+                 Qt.Key_Hyper_R, Qt.Key_Direction_L, Qt.Key_Direction_R)
     if e.key() in modifiers:
         # Only modifier pressed
         return None

@@ -32,7 +32,7 @@ import tempfile
 import argparse
 
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), os.pardir,
-                os.pardir))
+                                os.pardir))
 
 # We import qutebrowser.app so all @cmdutils-register decorators are run.
 import qutebrowser.app

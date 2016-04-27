@@ -167,7 +167,7 @@ class TabCompletionModel(base.BaseCompletionModel):
 
         for win_id in objreg.window_registry:
             tabbed_browser = objreg.get('tabbed-browser', scope='window',
-                                    window=win_id)
+                                        window=win_id)
             for i in range(tabbed_browser.count()):
                 tab = tabbed_browser.widget(i)
                 tab.url_text_changed.connect(self.rebuild)
@@ -210,6 +210,6 @@ class TabCompletionModel(base.BaseCompletionModel):
             c = self.new_category("{}".format(win_id))
             for i in range(tabbed_browser.count()):
                 tab = tabbed_browser.widget(i)
-                self.new_item(c, "{}/{}".format(win_id, i+1),
+                self.new_item(c, "{}/{}".format(win_id, i + 1),
                               tab.url().toDisplayString(),
                               tabbed_browser.page_title(i))

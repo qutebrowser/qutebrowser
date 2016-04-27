@@ -173,8 +173,8 @@ class BaseType:
         if self.valid_values is not None:
             if value not in self.valid_values:
                 raise configexc.ValidationError(
-                    value, "valid values: {}".format(', '.join(
-                        self.valid_values)))
+                    value,
+                    "valid values: {}".format(', '.join(self.valid_values)))
         else:
             raise NotImplementedError("{} does not implement validate.".format(
                 self.__class__.__name__))
@@ -263,8 +263,8 @@ class String(BaseType):
         if self.valid_values is not None:
             if value not in self.valid_values:
                 raise configexc.ValidationError(
-                    value, "valid values: {}".format(', '.join(
-                        self.valid_values)))
+                    value,
+                    "valid values: {}".format(', '.join(self.valid_values)))
 
         if self.forbidden is not None and any(c in value
                                               for c in self.forbidden):
@@ -1147,8 +1147,8 @@ class Proxy(BaseType):
             return
         url = QUrl(value)
         if not url.isValid():
-            raise configexc.ValidationError(value, "invalid url, {}".format(
-                url.errorString()))
+            raise configexc.ValidationError(
+                value, "invalid url, {}".format(url.errorString()))
         elif url.scheme() not in self.PROXY_TYPES:
             raise configexc.ValidationError(value, "must be a proxy URL "
                                             "(http://... or socks://...) or "
@@ -1211,8 +1211,8 @@ class SearchEngineUrl(BaseType):
 
         url = QUrl(value.replace('{}', 'foobar'))
         if not url.isValid():
-            raise configexc.ValidationError(value, "invalid url, {}".format(
-                url.errorString()))
+            raise configexc.ValidationError(
+                value, "invalid url, {}".format(url.errorString()))
 
 
 class FuzzyUrl(BaseType):

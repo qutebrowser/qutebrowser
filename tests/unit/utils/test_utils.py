@@ -150,8 +150,8 @@ class Patcher:
 
     def patch_version(self, version='5.2.0'):
         """Patch Qt version."""
-        self.monkeypatch.setattr(
-            'qutebrowser.utils.utils.qtutils.qVersion', lambda: version)
+        self.monkeypatch.setattr('qutebrowser.utils.utils.qtutils.qVersion',
+                                 lambda: version)
 
     def patch_file(self, data):
         """Patch open() to return the given data."""

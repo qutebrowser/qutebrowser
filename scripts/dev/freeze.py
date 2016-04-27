@@ -33,7 +33,7 @@ import cx_Freeze as cx  # pylint: disable=import-error,useless-suppression
 # cx_Freeze is hard to install (needs C extensions) so we don't check for it.
 
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), os.pardir,
-                os.pardir))
+                                os.pardir))
 from scripts import setupcommon
 
 

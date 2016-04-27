@@ -35,19 +35,17 @@ def handler():
 
 
 class TestPDFJSHandler:
-
     """Test the qute://pdfjs endpoint."""
 
     @pytest.fixture(autouse=True)
     def fake_pdfjs(self, monkeypatch):
-
         def get_pdfjs_res(path):
             if path == '/existing/file':
                 return b'foobar'
             raise pdfjs.PDFJSNotFound(path)
 
         monkeypatch.setattr('qutebrowser.browser.pdfjs.get_pdfjs_res',
-            get_pdfjs_res)
+                            get_pdfjs_res)
 
     def test_existing_resource(self, handler):
         """Test with a resource that exists."""

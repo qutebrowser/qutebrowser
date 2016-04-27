@@ -27,7 +27,7 @@ script is formatted to be pasted into configtypes.py.
 """
 
 import requests
-from lxml import html   # pylint: disable=import-error
+from lxml import html  # pylint: disable=import-error
 
 
 def fetch():

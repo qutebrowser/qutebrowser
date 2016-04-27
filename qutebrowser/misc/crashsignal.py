@@ -314,8 +314,8 @@ class SignalHandler(QObject):
             for fd in (read_fd, write_fd):
                 flags = fcntl.fcntl(fd, fcntl.F_GETFL)
                 fcntl.fcntl(fd, fcntl.F_SETFL, flags | os.O_NONBLOCK)
-            self._notifier = QSocketNotifier(
-                read_fd, QSocketNotifier.Read, self)
+            self._notifier = QSocketNotifier(read_fd, QSocketNotifier.Read,
+                                             self)
             self._notifier.activated.connect(self.handle_signal_wakeup)
             self._orig_wakeup_fd = signal.set_wakeup_fd(write_fd)
         else:
@@ -369,9 +369,8 @@ class SignalHandler(QObject):
         signal.signal(signal.SIGINT, self.interrupt_forcefully)
         signal.signal(signal.SIGTERM, self.interrupt_forcefully)
         # Signals can arrive anywhere, so we do this in the main thread
-        self._log_later(
-            "SIGINT/SIGTERM received, shutting down!",
-            "Do the same again to forcefully quit.")
+        self._log_later("SIGINT/SIGTERM received, shutting down!",
+                        "Do the same again to forcefully quit.")
         QTimer.singleShot(0, functools.partial(
             self._quitter.shutdown, 128 + signum))
 
@@ -385,9 +384,8 @@ class SignalHandler(QObject):
         signal.signal(signal.SIGINT, self.interrupt_really_forcefully)
         signal.signal(signal.SIGTERM, self.interrupt_really_forcefully)
         # Signals can arrive anywhere, so we do this in the main thread
-        self._log_later(
-            "Forceful quit requested, goodbye cruel world!",
-            "Do the same again to quit with even more force.")
+        self._log_later("Forceful quit requested, goodbye cruel world!",
+                        "Do the same again to quit with even more force.")
         QTimer.singleShot(0, functools.partial(self._app.exit, 128 + signum))
 
     def interrupt_really_forcefully(self, signum, _frame):
