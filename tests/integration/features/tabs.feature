@@ -760,6 +760,7 @@ Feature: Tab management
         And I open data/search.html in a new tab
         And I open data/scroll.html in a new tab
         And I run :buffer "Searching text"
+        And I wait for "Current tab changed, *" in the log
         Then the following tabs should be open:
             - data/title.html
             - data/search.html (active)
@@ -776,6 +777,7 @@ Feature: Tab management
         And I open data/caret.html in a new window
         And I open data/paste_primary.html in a new tab
         And I run :buffer "Scrolling"
+        And I wait for "Current tab changed, *" in the log
         Then the session should look like:
             windows:
             - active: true
