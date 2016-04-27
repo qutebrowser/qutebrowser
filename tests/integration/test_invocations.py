@@ -22,11 +22,11 @@
 import pytest
 
 
-@pytest.mark.linux
-def test_no_config(tmpdir, quteproc_new):
-    """Test starting with -c "".
+@pytest.fixture
+def temp_basedir_env(tmpdir):
+    """Return a dict of environment variables that fakes --temp-basedir.
 
-    We can't run --basedir or --temp-basedir to reproduce this, so we mess with
+    We can't run --basedir or --temp-basedir for some tests, so we mess with
     XDG_*_DIR to get things relocated.
     """
     data_dir = tmpdir / 'data'
@@ -46,9 +46,23 @@ def test_no_config(tmpdir, quteproc_new):
         'XDG_RUNTIME_DIR': str(runtime_dir),
         'XDG_CACHE_HOME': str(cache_dir),
     }
+    return env
 
+
+@pytest.mark.linux
+def test_no_config(temp_basedir_env, quteproc_new):
+    """Test starting with -c ""."""
     args = ['--debug', '--no-err-windows', '-c', '', 'about:blank']
-    quteproc_new.start(args, env=env)
+    quteproc_new.start(args, env=temp_basedir_env)
+    quteproc_new.send_cmd(':quit')
+    quteproc_new.wait_for_quit()
+
+
+@pytest.mark.linux
+def test_no_cache(temp_basedir_env, quteproc_new):
+    """Test starting with --cachedir=""."""
+    args = ['--debug', '--no-err-windows', '--cachedir=', 'about:blank']
+    quteproc_new.start(args, env=temp_basedir_env)
     quteproc_new.send_cmd(':quit')
     quteproc_new.wait_for_quit()
 
