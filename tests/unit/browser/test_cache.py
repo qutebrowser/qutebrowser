@@ -113,6 +113,16 @@ def test_cache_size_deactivated(config_stub, tmpdir):
     assert disk_cache.cacheSize() == 0
 
 
+def test_cache_no_cache_dir(config_stub):
+    """Confirm that the cache is deactivated when cache_dir is None."""
+    config_stub.data = {
+        'storage': {'cache-size': 1024},
+        'general': {'private-browsing': False},
+    }
+    disk_cache = cache.DiskCache(None)
+    assert disk_cache.cacheSize() == 0
+
+
 def test_cache_existing_metadata_file(config_stub, tmpdir):
     """Test querying existing meta data file from activated cache."""
     config_stub.data = {
