@@ -44,6 +44,7 @@ Fixed
   tab with `last-close` set to `close`.
 - Fixed crash when doing `:undo` in a new instance with `tabs -> last-close` set
   to `default-page`.
+- Fixed crash when starting with --cachedir=""
 
 
 v0.6.1
