@@ -20,9 +20,9 @@
 """Misc. widgets used at different places."""
 
 from PyQt5.QtCore import pyqtSlot, pyqtSignal, Qt, QSize
-from PyQt5.QtWidgets import (QLineEdit, QApplication, QWidget, QHBoxLayout,
-                             QLabel, QStyleOption, QStyle)
-from PyQt5.QtGui import QValidator, QClipboard, QPainter
+from PyQt5.QtWidgets import (QLineEdit, QWidget, QHBoxLayout, QLabel,
+                             QStyleOption, QStyle)
+from PyQt5.QtGui import QValidator, QPainter
 
 from qutebrowser.utils import utils
 from qutebrowser.misc import cmdhistory
@@ -41,6 +41,19 @@ class MinimalLineEditMixin:
             }
         """)
         self.setAttribute(Qt.WA_MacShowFocusRect, False)
+
+    def keyPressEvent(self, e):
+        """Override keyPressEvent to paste primary selection on Shift + Ins."""
+        if e.key() == Qt.Key_Insert and e.modifiers() == Qt.ShiftModifier:
+            try:
+                text = utils.get_clipboard(selection=True)
+            except utils.SelectionUnsupportedError:
+                pass
+            else:
+                e.accept()
+                self.insert(text)
+                return
+        super().keyPressEvent(e)
 
     def __repr__(self):
         return utils.get_repr(self)
@@ -97,17 +110,6 @@ class CommandLineEdit(QLineEdit):
         self.setCursorPosition(self._promptlen)
         if mark:
             self.setSelection(self._promptlen, oldpos - self._promptlen)
-
-    def keyPressEvent(self, e):
-        """Override keyPressEvent to paste primary selection on Shift + Ins."""
-        if e.key() == Qt.Key_Insert and e.modifiers() == Qt.ShiftModifier:
-            clipboard = QApplication.clipboard()
-            if clipboard.supportsSelection():
-                e.accept()
-                text = clipboard.text(QClipboard.Selection)
-                self.insert(text)
-                return
-        super().keyPressEvent(e)
 
 
 class _CommandValidator(QValidator):

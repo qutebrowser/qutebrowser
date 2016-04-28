@@ -267,7 +267,8 @@ def remove_inputhook():
     """Remove the PyQt input hook.
 
     Doing this means we can't use the interactive shell anymore (which we don't
-    anyways), but we can use pdb instead."""
+    anyways), but we can use pdb instead.
+    """
     from PyQt5.QtCore import pyqtRemoveInputHook
     pyqtRemoveInputHook()
 

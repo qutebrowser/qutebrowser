@@ -1,70 +1,70 @@
-# So we get Ubuntu Trusty - using "dist: trusty" breaks OS X.
 sudo: required
 dist: trusty
-
-os:
-  - linux
-  - osx
-
-
-env:
-  global:
-    - PATH=/home/travis/bin:/home/travis/.local/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
-  matrix:
-    - TESTENV=py35
-    - TESTENV=py34-cov
-    - TESTENV=unittests-nodisp
-    - TESTENV=misc
-    - TESTENV=vulture
-    - TESTENV=pydocstyle
-    - TESTENV=flake8
-    - TESTENV=pyroma
-    - TESTENV=check-manifest
-    - TESTENV=pylint
-    - TESTENV=eslint
-
 # Not really, but this is here so we can do stuff by hand.
 language: c
+
+matrix:
+  include:
+    - os: linux
+      env: TESTENV=py34-cov
+    - os: linux
+      env: DOCKER=debian-jessie
+      services: docker
+    - os: linux
+      env: DOCKER=archlinux
+      services: docker
+    - os: linux
+      env: DOCKER=ubuntu-wily
+      services: docker
+    - os: osx
+      env: TESTENV=py35
+    - os: linux
+      env: TESTENV=pylint
+    - os: linux
+      env: TESTENV=flake8
+    - os: linux
+      env: TESTENV=docs
+    - os: linux
+      env: TESTENV=vulture
+    - os: linux
+      env: TESTENV=misc
+    - os: linux
+      env: TESTENV=pyroma
+    - os: linux
+      env: TESTENV=check-manifest
+    - os: linux
+      env: TESTENV=eslint
+  allow_failures:
+    - os: osx
+      env: TESTENV=py35
 
 cache:
   directories:
     - $HOME/.cache/pip
     - $HOME/build/The-Compiler/qutebrowser/.cache
 
+before_install:
+  # We need to do this so we pick up the system-wide python properly
+  - 'export PATH="/usr/bin:$PATH"'
+
 install:
-  - python scripts/dev/ci_install.py
+  - python scripts/dev/ci/install.py
 
 script:
-  - tox -e $TESTENV -- -v --cov-report term tests
+  - bash scripts/dev/ci/travis_run.sh
 
 after_success:
   - '[[ $TESTENV == *-cov ]] && codecov -e TESTENV -X gcov'
 
-matrix:
-  exclude:
-    - os: linux
-      env: TESTENV=py35
-    - os: osx
-      env: TESTENV=py34-cov
-    - os: osx
-      env: TESTENV=unittests-nodisp
-    - os: osx
-      env: TESTENV=misc
-    - os: osx
-      env: TESTENV=vulture
-    - os: osx
-      env: TESTENV=pydocstyle
-    - os: osx
-      env: TESTENV=flake8
-    - os: osx
-      env: TESTENV=pyroma
-    - os: osx
-      env: TESTENV=check-manifest
-    - os: osx
-      env: TESTENV=pylint
-    - os: osx
-      env: TESTENV=eslint
-
 notifications:
   webhooks:
     - https://buildtimetrend.herokuapp.com/travis
+  irc:
+    channels:
+      - "chat.freenode.net#qutebrowser"
+    on_success: change
+    on_failure: always
+    skip_join: true
+    template:
+      - "%{repository}#%{build_number} (%{branch} - %{commit} : %{author}): %{message}"
+      - "%{compare_url} - %{build_url}"

@@ -73,7 +73,7 @@ class Line:
         return '{}({!r})'.format(self.__class__.__name__, self.data)
 
 
-def _render_log(data, threshold=50):
+def _render_log(data, threshold=100):
     """Shorten the given log without -v and convert to a string."""
     # pylint: disable=no-member
     if len(data) > threshold and not pytest.config.getoption('--verbose'):

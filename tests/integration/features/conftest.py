@@ -30,26 +30,8 @@ import textwrap
 import pytest
 import yaml
 import pytest_bdd as bdd
-from PyQt5.QtCore import QElapsedTimer
-from PyQt5.QtGui import QClipboard
 
 from helpers import utils
-
-
-class WaitForClipboardTimeout(Exception):
-
-    """Raised when _wait_for_clipboard didn't get the expected message."""
-
-
-def _clipboard_mode(qapp, what):
-    """Get the QClipboard::Mode to use based on a string."""
-    if what == 'clipboard':
-        return QClipboard.Clipboard
-    elif what == 'primary selection':
-        assert qapp.clipboard().supportsSelection()
-        return QClipboard.Selection
-    else:
-        raise AssertionError
 
 
 ## Given
@@ -147,7 +129,22 @@ def run_command(quteproc, httpbin, command):
     else:
         count = None
     command = command.replace('(port)', str(httpbin.port))
+
     quteproc.send_cmd(command, count=count)
+
+
+@bdd.when(bdd.parsers.parse("I execute the userscript {userscript}"))
+def run_userscript(quteproc, userscript):
+    """Run a userscript located in tests/integration/data/userscripts.
+
+    Wrapper around :spawn --userscript {userscript} that uses an absolute
+    path.
+    """
+    abs_userscript_path = os.path.join(utils.abs_datapath(),
+                                       'userscripts', userscript)
+
+    cmd = ':spawn --userscript {abs_userscript_path}'
+    quteproc.send_cmd(cmd.format(abs_userscript_path=abs_userscript_path))
 
 
 @bdd.when(bdd.parsers.parse("I reload"))
@@ -207,21 +204,17 @@ def selection_supported(qapp):
 
 @bdd.when(bdd.parsers.re(r'I put "(?P<content>.*)" into the '
                          r'(?P<what>primary selection|clipboard)'))
-def fill_clipboard(qtbot, qapp, httpbin, what, content):
-    mode = _clipboard_mode(qapp, what)
+def fill_clipboard(quteproc, httpbin, what, content):
     content = content.replace('(port)', str(httpbin.port))
     content = content.replace(r'\n', '\n')
-
-    clipboard = qapp.clipboard()
-    with qtbot.waitSignal(clipboard.changed):
-        clipboard.setText(content, mode)
+    quteproc.send_cmd(':debug-set-fake-clipboard "{}"'.format(content))
 
 
 @bdd.when(bdd.parsers.re(r'I put the following lines into the '
                          r'(?P<what>primary selection|clipboard):\n'
                          r'(?P<content>.+)$', flags=re.DOTALL))
-def fill_clipboard_multiline(qtbot, qapp, httpbin, what, content):
-    fill_clipboard(qtbot, qapp, httpbin, what, textwrap.dedent(content))
+def fill_clipboard_multiline(quteproc, httpbin, what, content):
+    fill_clipboard(quteproc, httpbin, what, textwrap.dedent(content))
 
 
 ## Then
@@ -234,12 +227,7 @@ def path_should_be_loaded(quteproc, path):
     This is usally the better check compared to "should be requested" as the
     page could be loaded from local cache.
     """
-    url = quteproc.path_to_url(path)
-    pattern = re.compile(
-        r"load status for <qutebrowser\.browser\.webview\.WebView "
-        r"tab_id=\d+ url='{url}/?'>: LoadStatus\.success".format(
-            url=re.escape(url)))
-    quteproc.wait_for(message=pattern)
+    quteproc.wait_for_load_finished(path)
 
 
 @bdd.then(bdd.parsers.parse("{path} should be requested"))
@@ -338,7 +326,8 @@ def compare_session(quteproc, expected):
 def no_crash():
     """Don't do anything.
 
-    This is actually a NOP as a crash is already checked in the log."""
+    This is actually a NOP as a crash is already checked in the log.
+    """
     pass
 
 
@@ -361,8 +350,8 @@ def check_contents(quteproc, filename):
     The filename is interpreted relative to tests/integration/data.
     """
     content = quteproc.get_content(plain=False)
-    path = os.path.join(os.path.abspath(os.path.dirname(__file__)), '..',
-                        'data', os.path.join(*filename.split('/')))
+    path = os.path.join(utils.abs_datapath(),
+                        os.path.join(*filename.split('/')))
     with open(path, 'r', encoding='utf-8') as f:
         file_content = f.read()
         assert content == file_content
@@ -417,51 +406,20 @@ def check_open_tabs(quteproc, tabs):
             assert 'active' not in session_tab
 
 
-def _wait_for_clipboard(qtbot, clipboard, mode, expected):
-    timeout = 1000
-    timer = QElapsedTimer()
-    timer.start()
-
-    while True:
-        if clipboard.text(mode=mode) == expected:
-            return
-
-        # We need to poll the clipboard, as for some reason it can change with
-        # emitting changed (?).
-        with qtbot.waitSignal(clipboard.changed, timeout=100, raising=False):
-            pass
-
-        if timer.hasExpired(timeout):
-            mode_names = {
-                QClipboard.Clipboard: 'clipboard',
-                QClipboard.Selection: 'primary selection',
-            }
-            raise WaitForClipboardTimeout(
-                "Timed out after {timeout}ms waiting for {what}:\n"
-                "   expected: {expected!r}\n"
-                "  clipboard: {clipboard!r}\n"
-                "    primary: {primary!r}.".format(
-                    timeout=timeout, what=mode_names[mode],
-                    expected=expected,
-                    clipboard=clipboard.text(mode=QClipboard.Clipboard),
-                    primary=clipboard.text(mode=QClipboard.Selection))
-            )
-
-
 @bdd.then(bdd.parsers.re(r'the (?P<what>primary selection|clipboard) should '
                          r'contain "(?P<content>.*)"'))
-def clipboard_contains(qtbot, qapp, httpbin, what, content):
-    mode = _clipboard_mode(qapp, what)
+def clipboard_contains(quteproc, httpbin, what, content):
     expected = content.replace('(port)', str(httpbin.port))
     expected = expected.replace('\\n', '\n')
-    _wait_for_clipboard(qtbot, qapp.clipboard(), mode, expected)
+    quteproc.wait_for(message='Setting fake {}: {}'.format(
+        what, json.dumps(expected)))
 
 
 @bdd.then(bdd.parsers.parse('the clipboard should contain:\n{content}'))
-def clipboard_contains_multiline(qtbot, qapp, content):
+def clipboard_contains_multiline(quteproc, content):
     expected = textwrap.dedent(content)
-    _wait_for_clipboard(qtbot, qapp.clipboard(), QClipboard.Clipboard,
-                        expected)
+    quteproc.wait_for(message='Setting fake clipboard: {}'.format(
+        json.dumps(expected)))
 
 
 @bdd.then("qutebrowser should quit")

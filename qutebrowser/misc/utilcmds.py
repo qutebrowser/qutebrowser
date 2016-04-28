@@ -29,7 +29,7 @@ except ImportError:
     hunter = None
 
 from qutebrowser.browser.network import qutescheme
-from qutebrowser.utils import log, objreg, usertypes, message, debug
+from qutebrowser.utils import log, objreg, usertypes, message, debug, utils
 from qutebrowser.commands import cmdutils, runners, cmdexc
 from qutebrowser.config import style
 from qutebrowser.misc import consolewidget
@@ -198,3 +198,16 @@ def debug_pyeval(s, quiet=False):
         tabbed_browser = objreg.get('tabbed-browser', scope='window',
                                     window='last-focused')
         tabbed_browser.openurl(QUrl('qute:pyeval'), newtab=True)
+
+
+@cmdutils.register(debug=True)
+def debug_set_fake_clipboard(s=None):
+    """Put data into the fake clipboard and enable logging, used for tests.
+
+    Args:
+        s: The text to put into the fake clipboard, or unset to enable logging.
+    """
+    if s is None:
+        utils.log_clipboard = True
+    else:
+        utils.fake_clipboard = s

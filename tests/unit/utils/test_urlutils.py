@@ -238,6 +238,18 @@ class TestFuzzyUrl:
         with pytest.raises(urlutils.InvalidUrlError):
             urlutils.fuzzy_url(url, do_search=True)
 
+    @pytest.mark.parametrize('path, check_exists', [
+        ('/foo', False),
+        ('/bar', True),
+    ])
+    def test_get_path_existing(self, path, check_exists, os_mock):
+        """Test with an absolute path."""
+        os_mock.path.exists.return_value = False
+        expected = None if check_exists else path
+
+        url = urlutils.get_path_if_valid(path, check_exists=check_exists)
+        assert url == expected
+
 
 @pytest.mark.parametrize('url, special', [
     ('file:///tmp/foo', True),
@@ -555,7 +567,6 @@ def test_same_domain_invalid_url(url1, url2):
      'http://foo.bar/?header=text/pl%C3%A4in'),
 ])
 def test_encoded_url(url, expected):
-    """Test encoded_url"""
     url = QUrl(url)
     assert urlutils.encoded_url(url) == expected
 
@@ -636,8 +647,7 @@ class TestIncDecNumber:
             urlutils.incdec_number(QUrl(url), "increment")
 
     def test_number_below_0(self):
-        """Test incdec_number with a number that would be below zero
-        after decrementing."""
+        """Test incdec_number with a number <0 after decrementing."""
         with pytest.raises(urlutils.IncDecError):
             urlutils.incdec_number(QUrl('http://example.com/page_0.html'),
                                    'decrement')
@@ -648,14 +658,13 @@ class TestIncDecNumber:
             urlutils.incdec_number(QUrl(""), "increment")
 
     def test_wrong_mode(self):
-        """Test if incdec_number rejects a wrong parameter for the incdec
-        argument."""
+        """Test if incdec_number rejects a wrong parameter for incdec."""
         valid_url = QUrl("http://example.com/0")
         with pytest.raises(ValueError):
             urlutils.incdec_number(valid_url, "foobar")
 
     def test_wrong_segment(self):
-        """Test if incdec_number rejects a wrong segment"""
+        """Test if incdec_number rejects a wrong segment."""
         with pytest.raises(urlutils.IncDecError):
             urlutils.incdec_number(QUrl('http://example.com'),
                                    'increment', segments={'foobar'})

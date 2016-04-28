@@ -17,7 +17,7 @@
 # You should have received a copy of the GNU General Public License
 # along with qutebrowser.  If not, see <http://www.gnu.org/licenses/>.
 
-"""Test starting qutebrowser with various commandline arguments."""
+"""Test starting qutebrowser with special arguments/environments."""
 
 import pytest
 
@@ -51,3 +51,23 @@ def test_no_config(tmpdir, quteproc_new):
     quteproc_new.start(args, env=env)
     quteproc_new.send_cmd(':quit')
     quteproc_new.wait_for_quit()
+
+
+@pytest.mark.linux
+def test_ascii_locale(httpbin, tmpdir, quteproc_new):
+    """Test downloads with LC_ALL=C set.
+
+    https://github.com/The-Compiler/qutebrowser/issues/908
+    """
+    args = ['--debug', '--no-err-windows', '--temp-basedir', 'about:blank']
+    quteproc_new.start(args, env={'LC_ALL': 'C'})
+    quteproc_new.set_setting('storage', 'download-directory', str(tmpdir))
+    quteproc_new.set_setting('storage', 'prompt-download-directory', 'false')
+    url = 'http://localhost:{port}/data/downloads/ä-issue908.bin'.format(
+        port=httpbin.port)
+    quteproc_new.send_cmd(':download {}'.format(url))
+    quteproc_new.send_cmd(':quit')
+    quteproc_new.wait_for_quit()
+
+    assert len(tmpdir.listdir()) == 1
+    assert (tmpdir / '?-issue908.bin').exists()

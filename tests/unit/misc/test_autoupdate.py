@@ -17,7 +17,7 @@
 # You should have received a copy of the GNU General Public License
 # along with qutebrowser.  If not, see <http://www.gnu.org/licenses/>.
 
-"""Tests for qutebrowser.misc.autoupdate"""
+"""Tests for qutebrowser.misc.autoupdate."""
 
 import pytest
 from PyQt5.QtCore import QUrl
@@ -28,6 +28,7 @@ INVALID_JSON = ['{"invalid": { "json"}', '{"wrong": "keys"}']
 
 
 class HTTPGetStub(httpclient.HTTPClient):
+
     """A stub class for HTTPClient.
 
     Attributes:

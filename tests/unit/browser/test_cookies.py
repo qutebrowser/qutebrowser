@@ -17,7 +17,7 @@
 # You should have received a copy of the GNU General Public License
 # along with qutebrowser.  If not, see <http://www.gnu.org/licenses/>.
 
-"""Tests for qutebrowser.browser.cookies"""
+"""Tests for qutebrowser.browser.cookies."""
 
 from unittest import mock
 
@@ -41,7 +41,8 @@ EXPIRED_COOKIE = b'foo4=bar; expires=Sat, 01-Jan-2000 08:00:01 GMT'
 
 
 class LineparserSaveStub(lineparser.BaseLineParser):
-    """A stub for LineParser's save()
+
+    """A stub for LineParser's save().
 
     Attributes:
         data: The data before the write

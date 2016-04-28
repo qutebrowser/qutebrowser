@@ -8,7 +8,7 @@ time, use the `:help` command.
 What to do now
 --------------
 
-* View the http://qutebrowser.org/img/cheatsheet-big.png[key binding cheatsheet]
+* View the link:http://qutebrowser.org/img/cheatsheet-big.png[key binding cheatsheet]
 to make yourself familiar with the key bindings: +
 image:http://qutebrowser.org/img/cheatsheet-small.png["qutebrowser key binding cheatsheet",link="http://qutebrowser.org/img/cheatsheet-big.png"]
 * Run `:adblock-update` to download adblock lists and activate adblocking.

@@ -108,7 +108,7 @@ Feature: Various utility commands.
         And I run :inspector
         Then the error "Please enable developer-extras before using the webinspector!" should be shown
 
-    @not_xvfb @posix
+    @no_xvfb @posix
     Scenario: Inspector smoke test
         When I set general -> developer-extras to true
         And I run :inspector
@@ -124,7 +124,7 @@ Feature: Various utility commands.
         Then the error "Please enable developer-extras before using the webinspector!" should be shown
 
     # Different code path as an inspector got created now
-    @not_xvfb @posix
+    @no_xvfb @posix
     Scenario: Inspector smoke test 2
         When I set general -> developer-extras to true
         And I run :inspector
@@ -202,7 +202,7 @@ Feature: Various utility commands.
 
     # :debug-console
 
-    @not_xvfb
+    @no_xvfb
     Scenario: :debug-console smoke test
         When I run :debug-console
         And I wait for "Focus object changed: <qutebrowser.misc.consolewidget.ConsoleLineEdit *>" in the log
@@ -290,6 +290,22 @@ Feature: Various utility commands.
         And I open data/misc/test.pdf
         Then "Download finished" should be logged
 
+    Scenario: Downloading a pdf via pdf.js button (issue 1214)
+        Given pdfjs is available
+        # WORKAROUND to prevent the "Painter ended with 2 saved states" warning
+        # Might be related to https://bugreports.qt.io/browse/QTBUG-13524 and
+        # a weird interaction with the previous test.
+        And I have a fresh instance
+        When I set content -> enable-pdfjs to true
+        And I set completion -> download-path-suggestion to filename
+        And I set storage -> prompt-download-directory to true
+        And I open data/misc/test.pdf
+        And I wait for "[qute://pdfjs/*] PDF * (PDF.js: *)" in the log
+        And I run :jseval document.getElementById("download").click()
+        And I wait for "Asking question <qutebrowser.utils.usertypes.Question default='test.pdf' mode=<PromptMode.text: 2> text='Save file to:'>, *" in the log
+        And I run :leave-mode
+        Then no crash should happen
+
     # :print
 
     # Disabled because it causes weird segfaults and QPainter warnings in Qt...
@@ -328,3 +344,21 @@ Feature: Various utility commands.
     Scenario: Running :pyeval with --quiet
         When I run :debug-pyeval --quiet 1+1
         Then "pyeval output: 2" should be logged
+        
+    ## https://github.com/The-Compiler/qutebrowser/issues/504
+
+    Scenario: Focusing download widget via Tab
+        When I open about:blank
+        And I press the key "<Tab>"
+        And I press the key "<Ctrl-C>"
+        Then no crash should happen
+
+    @pyqt531_or_newer
+    Scenario: Focusing download widget via Tab (original issue)
+        When I open data/prompt/jsprompt.html
+        And I run :hint
+        And I run :follow-hint a
+        And I wait for "Entering mode KeyMode.prompt *" in the log
+        And I press the key "<Tab>"
+        And I press the key "<Ctrl-C>"
+        Then no crash should happen

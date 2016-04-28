@@ -760,6 +760,7 @@ class TestPyQIODevice:
         with pytest.raises(io.UnsupportedOperation):
             pyqiodev.seek(0, whence)
 
+    @pytest.mark.flaky(reruns=1)
     def test_qprocess(self, py_proc):
         """Test PyQIODevice with a QProcess which is non-sequential.
 

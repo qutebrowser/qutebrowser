@@ -73,18 +73,3 @@ class TestCommandLineEdit:
         """Test preventing of an invalid prompt being entered."""
         qtbot.keyClicks(cmd_edit, '$hello')
         assert cmd_edit.text() == ''
-
-    def test_clipboard_paste(self, qtbot, cmd_edit, mock_clipboard):
-        """Test pasting commands from clipboard."""
-        mock_clipboard.text.return_value = ':command'
-        qtbot.keyClick(cmd_edit, Qt.Key_Insert, Qt.ShiftModifier)
-        assert cmd_edit.text() == ':command'
-
-        mock_clipboard.text.return_value = ' param1'
-        qtbot.keyClick(cmd_edit, Qt.Key_Insert, Qt.ShiftModifier)
-        assert cmd_edit.text() == ':command param1'
-
-        cmd_edit.clear()
-        mock_clipboard.text.return_value = '$ command'
-        qtbot.keyClick(cmd_edit, Qt.Key_Insert, Qt.ShiftModifier)
-        assert cmd_edit.text() == ':command param1'

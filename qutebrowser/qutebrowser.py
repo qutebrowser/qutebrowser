@@ -74,7 +74,9 @@ def get_argparser():
 
     debug = parser.add_argument_group('debug arguments')
     debug.add_argument('-l', '--loglevel', dest='loglevel',
-                       help="Set loglevel", default='info')
+                       help="Set loglevel", default='info',
+                       choices=['critical', 'error', 'warning', 'info',
+                                'debug', 'vdebug'])
     debug.add_argument('--logfilter',
                        help="Comma-separated list of things to be logged "
                        "to the debug log on stdout.")

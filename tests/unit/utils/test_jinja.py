@@ -23,21 +23,28 @@ import os
 import os.path
 
 import pytest
+import logging
 import jinja2
 from PyQt5.QtCore import QUrl
 
-from qutebrowser.utils import jinja
+from qutebrowser.utils import utils, jinja
 
 
 @pytest.fixture(autouse=True)
 def patch_read_file(monkeypatch):
     """pytest fixture to patch utils.read_file."""
+    real_read_file = utils.read_file
+
     def _read_file(path):
         """A read_file which returns a simple template if the path is right."""
         if path == os.path.join('html', 'test.html'):
             return """Hello {{var}}"""
         elif path == os.path.join('html', 'test2.html'):
             return """{{ resource_url('utils/testfile') }}"""
+        elif path == os.path.join('html', 'undef.html'):
+            return """{{ does_not_exist() }}"""
+        elif path == os.path.join('html', 'undef_error.html'):
+            return real_read_file(path)
         else:
             raise IOError("Invalid path {}!".format(path))
 
@@ -46,16 +53,13 @@ def patch_read_file(monkeypatch):
 
 def test_simple_template():
     """Test with a simple template."""
-    template = jinja.env.get_template('test.html')
-    # https://bitbucket.org/logilab/pylint/issue/490/
-    data = template.render(var='World')  # pylint: disable=no-member
+    data = jinja.render('test.html', var='World')
     assert data == "Hello World"
 
 
 def test_resource_url():
     """Test resource_url() which can be used from templates."""
-    template = jinja.env.get_template('test2.html')
-    data = template.render()  # pylint: disable=no-member
+    data = jinja.render('test2.html')
     print(data)
     url = QUrl(data)
     assert url.isValid()
@@ -74,7 +78,7 @@ def test_resource_url():
 def test_not_found():
     """Test with a template which does not exist."""
     with pytest.raises(jinja2.TemplateNotFound) as excinfo:
-        jinja.env.get_template('does_not_exist.html')
+        jinja.render('does_not_exist.html')
     assert str(excinfo.value) == 'does_not_exist.html'
 
 
@@ -86,10 +90,20 @@ def test_utf8():
 
     https://github.com/The-Compiler/qutebrowser/issues/127
     """
-    template = jinja.env.get_template('test.html')
-    # https://bitbucket.org/logilab/pylint/issue/490/
-    data = template.render(var='\u2603')  # pylint: disable=no-member
+    data = jinja.render('test.html', var='\u2603')
     assert data == "Hello \u2603"
+
+
+def test_undefined_function(caplog):
+    """Make sure we don't crash if an undefined function is called."""
+    with caplog.at_level(logging.ERROR):
+        data = jinja.render('undef.html')
+    assert 'There was an error while rendering undef.html' in data
+    assert "'does_not_exist' is undefined" in data
+    assert data.startswith('<!DOCTYPE html>')
+
+    assert len(caplog.records) == 1
+    assert caplog.records[0].msg == "UndefinedError while rendering undef.html"
 
 
 @pytest.mark.parametrize('name, expected', [

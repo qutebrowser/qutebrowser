@@ -18,3 +18,36 @@ Feature: Using hints
         And I run :hint links normal
         And I run :follow-hint xyz
         Then the error "No hint xyz!" should be shown
+
+    Scenario: Following a hint and force to open in current tab.
+        When I open data/hints/link_blank.html
+        And I run :hint links current
+        And I run :follow-hint a
+        And I wait until data/hello.txt is loaded
+        Then the following tabs should be open:
+            - data/hello.txt (active)
+
+    Scenario: Following a hint and allow to open in new tab.
+        When I open data/hints/link_blank.html
+        And I run :hint links normal
+        And I run :follow-hint a
+        And I wait until data/hello.txt is loaded
+        Then the following tabs should be open:
+            - data/hints/link_blank.html
+            - data/hello.txt (active)
+
+    Scenario: Following a hint to link with sub-element and force to open in current tab.
+        When I open data/hints/link_span.html
+        And I run :tab-close
+        And I run :hint links current
+        And I run :follow-hint a
+        And I wait until data/hello.txt is loaded
+        Then the following tabs should be open:
+            - data/hello.txt (active)
+
+    @xfail
+    Scenario: Using :hint spawn with flags (issue 797)
+        When I open data/hints/link.html
+        And I run :hint all spawn -v echo
+        And I run :follow-hint a
+        Then the message "Command exited successfully" should be shown

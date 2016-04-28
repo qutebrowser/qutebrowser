@@ -63,7 +63,7 @@ class TabbedBrowser(tabwidget.TabWidget):
                          tabbar -> new-tab-position set to 'left'.
         _tab_insert_idx_right: Same as above, for 'right'.
         _undo_stack: List of UndoEntry namedtuples of closed tabs.
-        _shutting_down: Whether we're currently shutting down.
+        shutting_down: Whether we're currently shutting down.
 
     Signals:
         cur_progress: Progress of the current tab changed (loadProgress).
@@ -82,6 +82,7 @@ class TabbedBrowser(tabwidget.TabWidget):
                  widget can adjust its size to it.
                  arg: The new size.
         current_tab_changed: The current tab changed to the emitted WebView.
+        new_tab: Emits the new WebView and its index when a new tab is opened.
     """
 
     cur_progress = pyqtSignal(int)
@@ -96,13 +97,14 @@ class TabbedBrowser(tabwidget.TabWidget):
     resized = pyqtSignal('QRect')
     got_cmd = pyqtSignal(str)
     current_tab_changed = pyqtSignal(webview.WebView)
+    new_tab = pyqtSignal(webview.WebView, int)
 
     def __init__(self, win_id, parent=None):
         super().__init__(win_id, parent)
         self._win_id = win_id
         self._tab_insert_idx_left = 0
         self._tab_insert_idx_right = -1
-        self._shutting_down = False
+        self.shutting_down = False
         self.tabCloseRequested.connect(self.on_tab_close_requested)
         self.currentChanged.connect(self.on_current_changed)
         self.cur_load_started.connect(self.on_cur_load_started)
@@ -234,7 +236,7 @@ class TabbedBrowser(tabwidget.TabWidget):
 
     def shutdown(self):
         """Try to shut down all tabs cleanly."""
-        self._shutting_down = True
+        self.shutting_down = True
         for tab in self.widgets():
             self._remove_tab(tab)
 
@@ -398,6 +400,7 @@ class TabbedBrowser(tabwidget.TabWidget):
         if not background:
             self.setCurrentWidget(tab)
         tab.show()
+        self.new_tab.emit(tab, idx)
         return tab
 
     def _get_new_tab_idx(self, explicit):
@@ -546,7 +549,7 @@ class TabbedBrowser(tabwidget.TabWidget):
     @pyqtSlot(int)
     def on_current_changed(self, idx):
         """Set last-focused-tab and leave hinting mode when focus changed."""
-        if idx == -1 or self._shutting_down:
+        if idx == -1 or self.shutting_down:
             # closing the last tab (before quitting) or shutting down
             return
         tab = self.widget(idx)

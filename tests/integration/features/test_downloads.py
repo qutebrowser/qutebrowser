@@ -17,10 +17,48 @@
 # You should have received a copy of the GNU General Public License
 # along with qutebrowser.  If not, see <http://www.gnu.org/licenses/>.
 
+import os
+
 import pytest_bdd as bdd
 bdd.scenarios('downloads.feature')
+
+
+@bdd.given("I set up a temporary download dir")
+def temporary_download_dir(quteproc, tmpdir):
+    quteproc.set_setting('storage', 'prompt-download-directory', 'false')
+    quteproc.set_setting('storage', 'remember-download-directory', 'false')
+    quteproc.set_setting('storage', 'download-directory', str(tmpdir))
+
+
+@bdd.given("I clean old downloads")
+def clean_old_downloads(quteproc):
+    quteproc.send_cmd(':download-cancel --all')
+    quteproc.send_cmd(':download-clear')
 
 
 @bdd.when("I wait until the download is finished")
 def wait_for_download_finished(quteproc):
     quteproc.wait_for(category='downloads', message='Download finished')
+
+
+@bdd.then(bdd.parsers.parse("The downloaded file {filename} should not exist"))
+def download_should_not_exist(filename, tmpdir):
+    path = tmpdir / filename
+    assert not path.check()
+
+
+@bdd.then(bdd.parsers.parse("The downloaded file {filename} should exist"))
+def download_should_exist(filename, tmpdir):
+    path = tmpdir / filename
+    assert path.check()
+
+
+@bdd.then(bdd.parsers.parse('The download prompt should be shown with '
+                            '"{path}"'))
+def download_prompt(tmpdir, quteproc, path):
+    full_path = path.replace('{downloaddir}', str(tmpdir)).replace('/', os.sep)
+    msg = ("Asking question <qutebrowser.utils.usertypes.Question "
+           "default={full_path!r} mode=<PromptMode.text: 2> "
+           "text='Save file to:'>, *".format(full_path=full_path))
+    quteproc.wait_for(message=msg)
+    quteproc.send_cmd(':leave-mode')

@@ -16,12 +16,6 @@
 #
 # You should have received a copy of the GNU General Public License
 # along with qutebrowser.  If not, see <http://www.gnu.org/licenses/>.
-#
-# pylint complains when using .render() on jinja templates, so we make it shut
-# up for this whole module.
-
-# pylint: disable=no-member
-# WORKAROUND for https://bitbucket.org/logilab/pylint/issue/490/
 
 """Handler functions for different qute:... pages.
 
@@ -56,6 +50,25 @@ def add_handler(name):
         HANDLERS[name] = function
         return function
     return namedecorator
+
+
+class QuteSchemeError(Exception):
+
+    """Exception to signal that a handler should return an ErrorReply.
+
+    Attributes correspond to the arguments in
+    networkreply.ErrorNetworkReply.
+
+    Attributes:
+        errorstring: Error string to print.
+        error: Numerical error value.
+    """
+
+    def __init__(self, errorstring, error):
+        """Constructor."""
+        self.errorstring = errorstring
+        self.error = error
+        super().__init__(errorstring)
 
 
 class QuteSchemeHandler(schemehandler.SchemeHandler):
@@ -95,6 +108,9 @@ class QuteSchemeHandler(schemehandler.SchemeHandler):
             return networkreply.ErrorNetworkReply(
                 request, str(e), QNetworkReply.ContentNotFoundError,
                 self.parent())
+        except QuteSchemeError as e:
+            return networkreply.ErrorNetworkReply(
+                request, e.errorstring, e.error, self.parent())
         mimetype, _encoding = mimetypes.guess_type(request.url().fileName())
         if mimetype is None:
             mimetype = 'text/html'
@@ -127,17 +143,17 @@ class JSBridge(QObject):
 @add_handler('pyeval')
 def qute_pyeval(_win_id, _request):
     """Handler for qute:pyeval. Return HTML content as bytes."""
-    html = jinja.env.get_template('pre.html').render(
-        title='pyeval', content=pyeval_output)
+    html = jinja.render('pre.html', title='pyeval', content=pyeval_output)
     return html.encode('UTF-8', errors='xmlcharrefreplace')
 
 
 @add_handler('version')
+@add_handler('verizon')
 def qute_version(_win_id, _request):
     """Handler for qute:version. Return HTML content as bytes."""
-    html = jinja.env.get_template('version.html').render(
-        title='Version info', version=version.version(),
-        copyright=qutebrowser.__copyright__)
+    html = jinja.render('version.html', title='Version info',
+                        version=version.version(),
+                        copyright=qutebrowser.__copyright__)
     return html.encode('UTF-8', errors='xmlcharrefreplace')
 
 
@@ -148,7 +164,7 @@ def qute_plainlog(_win_id, _request):
         text = "Log output was disabled."
     else:
         text = log.ram_handler.dump_log()
-    html = jinja.env.get_template('pre.html').render(title='log', content=text)
+    html = jinja.render('pre.html', title='log', content=text)
     return html.encode('UTF-8', errors='xmlcharrefreplace')
 
 
@@ -159,8 +175,7 @@ def qute_log(_win_id, _request):
         html_log = None
     else:
         html_log = log.ram_handler.dump_log(html=True)
-    html = jinja.env.get_template('log.html').render(
-        title='log', content=html_log)
+    html = jinja.render('log.html', title='log', content=html_log)
     return html.encode('UTF-8', errors='xmlcharrefreplace')
 
 
@@ -176,7 +191,8 @@ def qute_help(win_id, request):
     try:
         utils.read_file('html/doc/index.html')
     except OSError:
-        html = jinja.env.get_template('error.html').render(
+        html = jinja.render(
+            'error.html',
             title="Error while loading documentation",
             url=request.url().toDisplayString(),
             error="This most likely means the documentation was not generated "
@@ -195,16 +211,19 @@ def qute_help(win_id, request):
         message.error(win_id, "Your documentation is outdated! Please re-run "
                       "scripts/asciidoc2html.py.")
     path = 'html/doc/{}'.format(urlpath)
-    return utils.read_file(path).encode('UTF-8', errors='xmlcharrefreplace')
+    if urlpath.endswith('.png'):
+        return utils.read_file(path, binary=True)
+    else:
+        data = utils.read_file(path)
+        return data.encode('UTF-8', errors='xmlcharrefreplace')
 
 
 @add_handler('settings')
 def qute_settings(win_id, _request):
     """Handler for qute:settings. View/change qute configuration."""
     config_getter = functools.partial(objreg.get('config').get, raw=True)
-    html = jinja.env.get_template('settings.html').render(
-        win_id=win_id, title='settings', config=configdata,
-        confget=config_getter)
+    html = jinja.render('settings.html', win_id=win_id, title='settings',
+                        config=configdata, confget=config_getter)
     return html.encode('UTF-8', errors='xmlcharrefreplace')
 
 
@@ -212,4 +231,13 @@ def qute_settings(win_id, _request):
 def qute_pdfjs(_win_id, request):
     """Handler for qute://pdfjs. Return the pdf.js viewer."""
     urlpath = request.url().path()
-    return pdfjs.get_pdfjs_res(urlpath)
+    try:
+        return pdfjs.get_pdfjs_res(urlpath)
+    except pdfjs.PDFJSNotFound as e:
+        # Logging as the error might get lost otherwise since we're not showing
+        # the error page if a single asset is missing. This way we don't lose
+        # information, as the failed pdfjs requests are still in the log.
+        log.misc.warning(
+            "pdfjs resource requested but not found: {}".format(e.path))
+        raise QuteSchemeError("Can't find pdfjs resource '{}'".format(e.path),
+                QNetworkReply.ContentNotFoundError)

@@ -35,7 +35,7 @@ from PyQt5.QtWidgets import QApplication
 from PyQt5.QtWebKit import QWebSettings
 from PyQt5.QtGui import QDesktopServices, QPixmap, QIcon, QCursor, QWindow
 from PyQt5.QtCore import (pyqtSlot, qInstallMessageHandler, QTimer, QUrl,
-                          QObject, Qt, QEvent)
+                          QObject, Qt, QEvent, pyqtSignal)
 try:
     import hunter
 except ImportError:
@@ -260,7 +260,7 @@ def process_pos_args(args, via_ipc=False, cwd=None, target_arg=None):
         if cmd.startswith(':'):
             if win_id is None:
                 win_id = mainwindow.get_window(via_ipc, force_tab=True)
-            log.init.debug("Startup cmd {}".format(cmd))
+            log.init.debug("Startup cmd {!r}".format(cmd))
             commandrunner = runners.CommandRunner(win_id)
             commandrunner.run_safely_init(cmd[1:])
         elif not cmd:
@@ -282,7 +282,8 @@ def process_pos_args(args, via_ipc=False, cwd=None, target_arg=None):
                               "{}".format(cmd, e))
             else:
                 background = open_target in ('tab-bg', 'tab-bg-silent')
-                tabbed_browser.tabopen(url, background=background)
+                tabbed_browser.tabopen(url, background=background,
+                                       explicit=True)
 
 
 def _open_startpage(win_id=None):
@@ -741,6 +742,8 @@ class Application(QApplication):
     Attributes:
         _args: ArgumentParser instance.
     """
+
+    new_window = pyqtSignal(mainwindow.MainWindow)
 
     def __init__(self, args):
         """Constructor.

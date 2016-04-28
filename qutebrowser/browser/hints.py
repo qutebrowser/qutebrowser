@@ -27,8 +27,7 @@ from string import ascii_lowercase
 
 from PyQt5.QtCore import (pyqtSignal, pyqtSlot, QObject, QEvent, Qt, QUrl,
                           QTimer)
-from PyQt5.QtGui import QMouseEvent, QClipboard
-from PyQt5.QtWidgets import QApplication
+from PyQt5.QtGui import QMouseEvent
 from PyQt5.QtWebKit import QWebElement
 from PyQt5.QtWebKitWidgets import QWebPage
 
@@ -36,18 +35,17 @@ from qutebrowser.config import config
 from qutebrowser.keyinput import modeman, modeparsers
 from qutebrowser.browser import webelem
 from qutebrowser.commands import userscripts, cmdexc, cmdutils, runners
-from qutebrowser.utils import (usertypes, log, qtutils, message,
-                               objreg)
+from qutebrowser.utils import usertypes, log, qtutils, message, objreg, utils
 from qutebrowser.misc import guiprocess
 
 
 ElemTuple = collections.namedtuple('ElemTuple', ['elem', 'label'])
 
 
-Target = usertypes.enum('Target', ['normal', 'tab', 'tab_fg', 'tab_bg',
-                                   'window', 'yank', 'yank_primary', 'run',
-                                   'fill', 'hover', 'download', 'userscript',
-                                   'spawn'])
+Target = usertypes.enum('Target', ['normal', 'current', 'tab', 'tab_fg',
+                                   'tab_bg', 'window', 'yank', 'yank_primary',
+                                   'run', 'fill', 'hover', 'download',
+                                   'userscript', 'spawn'])
 
 
 class WordHintingError(Exception):
@@ -75,7 +73,8 @@ class HintContext:
                May contain less elements than `all_elems` due to filtering.
         baseurl: The URL of the current page.
         target: What to do with the opened links.
-                normal/tab/tab_fg/tab_bg/window: Get passed to BrowserTab.
+                normal/current/tab/tab_fg/tab_bg/window: Get passed to
+                                                         BrowserTab.
                 yank/yank_primary: Yank to clipboard/primary selection.
                 run: Run a command.
                 fill: Fill commandline with link.
@@ -134,6 +133,7 @@ class HintManager(QObject):
 
     HINT_TEXTS = {
         Target.normal: "Follow hint",
+        Target.current: "Follow hint in current tab",
         Target.tab: "Follow hint in new tab",
         Target.tab_fg: "Follow hint in foreground tab",
         Target.tab_bg: "Follow hint in background tab",
@@ -436,6 +436,7 @@ class HintManager(QObject):
         """
         target_mapping = {
             Target.normal: usertypes.ClickTarget.normal,
+            Target.current: usertypes.ClickTarget.normal,
             Target.tab_fg: usertypes.ClickTarget.tab,
             Target.tab_bg: usertypes.ClickTarget.tab_bg,
             Target.window: usertypes.ClickTarget.window,
@@ -470,6 +471,8 @@ class HintManager(QObject):
                 QMouseEvent(QEvent.MouseButtonRelease, pos, Qt.LeftButton,
                             Qt.NoButton, modifiers),
             ]
+        if context.target == Target.current:
+            elem.remove_blank_target()
         for evt in events:
             self.mouse_event.emit(evt)
         if elem.is_text_input() and elem.is_editable():
@@ -486,9 +489,9 @@ class HintManager(QObject):
             context: The HintContext to use.
         """
         sel = context.target == Target.yank_primary
-        mode = QClipboard.Selection if sel else QClipboard.Clipboard
         urlstr = url.toString(QUrl.FullyEncoded | QUrl.RemovePassword)
-        QApplication.clipboard().setText(urlstr, mode)
+        utils.set_clipboard(urlstr, selection=sel)
+
         msg = "Yanked URL to {}: {}".format(
             "primary selection" if sel else "clipboard",
             urlstr)
@@ -684,6 +687,7 @@ class HintManager(QObject):
         if not elems:
             raise cmdexc.CommandError("No elements found.")
         strings = self._hint_strings(elems)
+        log.hints.debug("hints: {}".format(', '.join(strings)))
         for e, string in zip(elems, strings):
             label = self._draw_label(e, string)
             elem = ElemTuple(e, label)
@@ -775,7 +779,8 @@ class HintManager(QObject):
 
             target: What to do with the selected element.
 
-                - `normal`: Open the link in the current tab.
+                - `normal`: Open the link.
+                - `current`: Open the link in the current tab.
                 - `tab`: Open the link in a new tab (honoring the
                          background-tabs setting).
                 - `tab-fg`: Open the link in a new foreground tab.
@@ -959,6 +964,7 @@ class HintManager(QObject):
         # Handlers which take a QWebElement
         elem_handlers = {
             Target.normal: self._click,
+            Target.current: self._click,
             Target.tab: self._click,
             Target.tab_fg: self._click,
             Target.tab_bg: self._click,

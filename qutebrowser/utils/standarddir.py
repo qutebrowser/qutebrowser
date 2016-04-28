@@ -25,7 +25,7 @@ import os.path
 
 from PyQt5.QtCore import QCoreApplication, QStandardPaths
 
-from qutebrowser.utils import log, qtutils
+from qutebrowser.utils import log, qtutils, debug
 
 
 # The argparse namespace passed to init()
@@ -62,6 +62,17 @@ def data():
             if data_path == config_path:
                 path = os.path.join(path, 'data')
     _maybe_create(path)
+    return path
+
+
+def system_data():
+    """Get a location for system-wide data. This path may be read-only."""
+    if sys.platform.startswith('linux'):
+        path = "/usr/share/qutebrowser"
+        if not os.path.exists(path):
+            path = data()
+    else:
+        path = data()
     return path
 
 
@@ -113,6 +124,8 @@ def _writable_location(typ):
     """Wrapper around QStandardPaths.writableLocation."""
     with qtutils.unset_organization():
         path = QStandardPaths.writableLocation(typ)
+    typ_str = debug.qenum_key(QStandardPaths, typ)
+    log.misc.debug("writable location for {}: {}".format(typ_str, path))
     if not path:
         raise ValueError("QStandardPaths returned an empty value!")
     # Qt seems to use '/' as path separator even on Windows...

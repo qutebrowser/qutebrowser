@@ -29,7 +29,7 @@ import functools
 import collections
 
 from PyQt5.QtCore import Qt
-from PyQt5.QtGui import QColor
+from PyQt5.QtGui import QColor, QClipboard
 import pytest
 
 import qutebrowser
@@ -930,3 +930,52 @@ class TestNewestSlice:
         """Test slices which shouldn't raise an exception."""
         sliced = utils.newest_slice(items, count)
         assert list(sliced) == list(expected)
+
+
+class TestGetSetClipboard:
+
+    @pytest.fixture(autouse=True)
+    def clipboard_mock(self, mocker):
+        m = mocker.patch('qutebrowser.utils.utils.QApplication.clipboard',
+                         autospec=True)
+        clipboard = m()
+        clipboard.text.return_value = 'mocked clipboard text'
+        return clipboard
+
+    def test_set(self, clipboard_mock, caplog):
+        utils.set_clipboard('Hello World')
+        clipboard_mock.setText.assert_called_with('Hello World',
+                                                  mode=QClipboard.Clipboard)
+        assert not caplog.records
+
+    def test_set_unsupported_selection(self, clipboard_mock):
+        clipboard_mock.supportsSelection.return_value = False
+        with pytest.raises(utils.SelectionUnsupportedError):
+            utils.set_clipboard('foo', selection=True)
+
+    @pytest.mark.parametrize('selection, what, text, expected', [
+        (True, 'primary selection', 'fake text', 'fake text'),
+        (False, 'clipboard', 'fake text', 'fake text'),
+        (False, 'clipboard', 'füb', r'f\u00fcb'),
+    ])
+    def test_set_logging(self, clipboard_mock, caplog, selection, what,
+                         text, expected):
+        utils.log_clipboard = True
+        utils.set_clipboard(text, selection=selection)
+        assert not clipboard_mock.setText.called
+        expected = 'Setting fake {}: "{}"'.format(what, expected)
+        assert caplog.records[0].message == expected
+
+    def test_get(self):
+        assert utils.get_clipboard() == 'mocked clipboard text'
+
+    def test_get_unsupported_selection(self, clipboard_mock):
+        clipboard_mock.supportsSelection.return_value = False
+        with pytest.raises(utils.SelectionUnsupportedError):
+            utils.get_clipboard(selection=True)
+
+    @pytest.mark.parametrize('selection', [True, False])
+    def test_get_fake_clipboard(self, selection):
+        utils.fake_clipboard = 'fake clipboard text'
+        utils.get_clipboard(selection=selection)
+        assert utils.fake_clipboard is None

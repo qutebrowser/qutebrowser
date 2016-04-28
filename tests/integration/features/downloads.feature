@@ -1,8 +1,8 @@
 Feature: Downloading things from a website.
 
     Background:
-        Given I set storage -> prompt-download-directory to false
-        And I run :download-clear
+        Given I set up a temporary download dir
+        And I clean old downloads
 
     Scenario: Downloading which redirects with closed tab (issue 889)
         When I set tabs -> last-close to blank
@@ -31,6 +31,16 @@ Feature: Downloading things from a website.
         And I run :hint links download
         And I run :follow-hint a
         And I wait for "Asking question <qutebrowser.utils.usertypes.Question default='qutebrowser-download' mode=<PromptMode.text: 2> text='Save file to:'>, *" in the log
+        And I run :leave-mode
+        Then no crash should happen
+
+    Scenario: Downloading a data: link (issue 1214)
+        When I set completion -> download-path-suggestion to filename
+        And I set storage -> prompt-download-directory to true
+        And I open data/downloads/issue1214.html
+        And I run :hint links download
+        And I run :follow-hint a
+        And I wait for "Asking question <qutebrowser.utils.usertypes.Question default='binary blob' mode=<PromptMode.text: 2> text='Save file to:'>, *" in the log
         And I run :leave-mode
         Then no crash should happen
 
@@ -76,4 +86,108 @@ Feature: Downloading things from a website.
         When I open response-headers?Content-Type=text%2Fpl%C3%A4in
         And I run :download --mhtml --dest mhtml-response-headers.mht
         And I wait for "File successfully written." in the log
+        Then no crash should happen
+
+    ## :download-cancel
+
+    Scenario: Cancelling a download
+        When I run :download http://localhost:(port)/drip?numbytes=128&duration=5
+        And I run :download-cancel
+        Then "cancelled" should be logged
+
+    Scenario: Cancelling a download which does not exist
+        When I run :download-cancel with count 42
+        Then the error "There's no download 42!" should be shown
+
+    Scenario: Cancelling a download which is already done
+        When I open data/downloads/download.bin
+        And I wait until the download is finished
+        And I run :download-cancel
+        Then the error "Download 1 is already done!" should be shown
+
+    Scenario: Cancelling a download which is already done (with count)
+        When I open data/downloads/download.bin
+        And I wait until the download is finished
+        And I run :download-cancel with count 1
+        Then the error "Download 1 is already done!" should be shown
+
+    Scenario: Cancelling all downloads
+        When I run :download http://localhost:(port)/drip?numbytes=128&duration=5
+        And I run :download http://localhost:(port)/drip?numbytes=128&duration=5
+        And I run :download-cancel --all
+        Then "cancelled" should be logged
+        And "cancelled" should be logged
+
+    ## :download-delete
+
+    Scenario: Deleting a download
+        When I open data/downloads/download.bin
+        And I wait until the download is finished
+        And I run :download-delete
+        Then the downloaded file download.bin should not exist
+
+    Scenario: Deleting a download which does not exist
+        When I run :download-delete with count 42
+        Then the error "There's no download 42!" should be shown
+
+    Scenario: Deleting a download which is not done yet
+        When I run :download http://localhost:(port)/drip?numbytes=128&duration=5
+        And I run :download-delete
+        Then the error "Download 1 is not done!" should be shown
+
+    Scenario: Deleting a download which is not done yet (with count)
+        When I run :download http://localhost:(port)/drip?numbytes=128&duration=5
+        And I run :download-delete with count 1
+        Then the error "Download 1 is not done!" should be shown
+
+    ## :download-open
+
+    # Scenario: Opening a download
+    #     When I open data/downloads/download.bin
+    #     And I wait until the download is finished
+    #     And I run :download-open
+    #     Then ...
+
+    Scenario: Opening a download which does not exist
+        When I run :download-open with count 42
+        Then the error "There's no download 42!" should be shown
+
+    Scenario: Opening a download which is not done yet
+        When I run :download http://localhost:(port)/drip?numbytes=128&duration=5
+        And I run :download-open
+        Then the error "Download 1 is not done!" should be shown
+
+    Scenario: Opening a download which is not done yet (with count)
+        When I run :download http://localhost:(port)/drip?numbytes=128&duration=5
+        And I run :download-open with count 1
+        Then the error "Download 1 is not done!" should be shown
+        
+    ## completion -> download-path-suggestion
+
+    Scenario: completion -> download-path-suggestion = path
+        When I set storage -> prompt-download-directory to true
+        And I set completion -> download-path-suggestion to path
+        And I open data/downloads/download.bin
+        Then the download prompt should be shown with "{downloaddir}/"
+
+    Scenario: completion -> download-path-suggestion = filename
+        When I set storage -> prompt-download-directory to true
+        And I set completion -> download-path-suggestion to filename
+        And I open data/downloads/download.bin
+        Then the download prompt should be shown with "download.bin"
+
+    Scenario: completion -> download-path-suggestion = both
+        When I set storage -> prompt-download-directory to true
+        And I set completion -> download-path-suggestion to both
+        And I open data/downloads/download.bin
+        Then the download prompt should be shown with "{downloaddir}/download.bin"
+
+    ## https://github.com/The-Compiler/qutebrowser/issues/1242
+
+    Scenario: Closing window with remove-finished-downloads timeout
+        When I set ui -> remove-finished-downloads to 500
+        And I open data/downloads/download.bin in a new window
+        And I wait until the download is finished
+        And I run :close
+        And I wait 0.5s
         Then no crash should happen

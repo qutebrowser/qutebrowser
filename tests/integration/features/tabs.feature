@@ -228,6 +228,34 @@ Feature: Tab management
             - data/numbers/2.txt
             - data/numbers/3.txt
 
+    Scenario: :tab-focus with -1
+        When I open data/numbers/1.txt
+        And I open data/numbers/2.txt in a new tab
+        And I open data/numbers/3.txt in a new tab
+        And I run :tab-focus 1
+        And I run :tab-focus -1
+        Then the following tabs should be open:
+            - data/numbers/1.txt
+            - data/numbers/2.txt
+            - data/numbers/3.txt (active)
+
+    Scenario: :tab-focus negative index
+        When I open data/numbers/1.txt
+        And I open data/numbers/2.txt in a new tab
+        And I open data/numbers/3.txt in a new tab
+        And I run :tab-focus -2
+        Then the following tabs should be open:
+            - data/numbers/1.txt
+            - data/numbers/2.txt (active)
+            - data/numbers/3.txt
+
+    Scenario: :tab-focus with invalid negative index
+        When I open data/numbers/1.txt
+        And I open data/numbers/2.txt in a new tab
+        And I open data/numbers/3.txt in a new tab
+        And I run :tab-focus -5
+        Then the error "There's no tab with index -1!" should be shown
+
     Scenario: :tab-focus last with no last focused tab
         Given I have a fresh instance
         And I run :tab-focus last
@@ -644,3 +672,181 @@ Feature: Tab management
         And I run :tab-only
         And I run :tab-close
         Then qutebrowser should quit
+
+    # tab settings
+
+    Scenario: opening links with tabs->background-tabs true
+        When I set tabs -> background-tabs to true
+        And I open data/hints/link.html
+        And I run :hint all tab
+        And I run :follow-hint a
+        And I wait until data/hello.txt is loaded
+        Then the following tabs should be open:
+            - data/hints/link.html (active)
+            - data/hello.txt
+
+    Scenario: opening tab with tabs->new-tab-position left
+        When I set tabs -> new-tab-position to left
+        And I set tabs -> background-tabs to false
+        And I open about:blank
+        And I open data/hints/link.html in a new tab
+        And I run :hint all tab
+        And I run :follow-hint a
+        And I wait until data/hello.txt is loaded
+        Then the following tabs should be open:
+            - about:blank
+            - data/hello.txt (active)
+            - data/hints/link.html
+
+    Scenario: opening tab with tabs->new-tab-position right
+        When I set tabs -> new-tab-position to right
+        And I set tabs -> background-tabs to false
+        And I open about:blank
+        And I open data/hints/link.html in a new tab
+        And I run :hint all tab
+        And I run :follow-hint a
+        And I wait until data/hello.txt is loaded
+        Then the following tabs should be open:
+            - about:blank
+            - data/hints/link.html
+            - data/hello.txt (active)
+
+    Scenario: opening tab with tabs->new-tab-position first
+        When I set tabs -> new-tab-position to first
+        And I set tabs -> background-tabs to false
+        And I open about:blank
+        And I open data/hints/link.html in a new tab
+        And I run :hint all tab
+        And I run :follow-hint a
+        And I wait until data/hello.txt is loaded
+        Then the following tabs should be open:
+            - data/hello.txt (active)
+            - about:blank
+            - data/hints/link.html
+
+    Scenario: opening tab with tabs->new-tab-position last
+        When I set tabs -> new-tab-position to last
+        And I set tabs -> background-tabs to false
+        And I open data/hints/link.html
+        And I open about:blank in a new tab
+        And I run :tab-focus last
+        And I run :hint all tab
+        And I run :follow-hint a
+        And I wait until data/hello.txt is loaded
+        Then the following tabs should be open:
+            - data/hints/link.html
+            - about:blank
+            - data/hello.txt (active)
+
+    # :buffer
+
+    Scenario: buffer without args
+        Given I have a fresh instance
+        When I run :buffer
+        Then the error "buffer: The following arguments are required: index" should be shown
+
+    Scenario: buffer one window title present
+        When I open data/title.html
+        And I open data/search.html in a new tab
+        And I open data/scroll.html in a new tab
+        And I run :buffer "Searching text"
+        Then the following tabs should be open:
+            - data/title.html
+            - data/search.html (active)
+            - data/scroll.html
+
+    Scenario: buffer one window title not present
+        When I run :buffer "invalid title"
+        Then the error "No matching tab for: invalid title" should be shown
+
+    Scenario: buffer two window title present
+        When I open data/title.html
+        And I open data/search.html in a new tab
+        And I open data/scroll.html in a new tab
+        And I open data/caret.html in a new window
+        And I open data/paste_primary.html in a new tab
+        And I run :buffer "Scrolling"
+        Then the session should look like:
+            windows:
+            - active: true
+              tabs:
+              - history:
+                - url: about:blank
+                - url: http://localhost:*/data/title.html
+              - history:
+                - url: http://localhost:*/data/search.html
+              - active: true
+                history:
+                - url: http://localhost:*/data/scroll.html
+            - tabs:
+              - history:
+                - url: http://localhost:*/data/caret.html
+              - active: true
+                history:
+                - url: http://localhost:*/data/paste_primary.html
+
+    Scenario: buffer one window index not present
+        When I open data/title.html
+        And I run :buffer "666"
+        Then the error "There's no tab with index 666!" should be shown
+
+    Scenario: buffer one window win not present
+        When I open data/title.html
+        And I run :buffer "2/1"
+        Then the error "There's no window with id 2!" should be shown
+
+    Scenario: buffer two window index present
+        Given I have a fresh instance
+        When I open data/title.html
+        And I open data/search.html in a new tab
+        And I open data/scroll.html in a new tab
+        And I run :open -w http://localhost:(port)/data/caret.html
+        And I open data/paste_primary.html in a new tab
+        And I wait until data/caret.html is loaded
+        And I run :buffer "0/2"
+        Then the session should look like:
+            windows:
+            - active: true
+              tabs:
+              - history:
+                - url: about:blank
+                - url: http://localhost:*/data/title.html
+              - active: true
+                history:
+                - url: http://localhost:*/data/search.html
+              - history:
+                - url: http://localhost:*/data/scroll.html
+            - tabs:
+              - history:
+                - url: http://localhost:*/data/caret.html
+              - active: true
+                history:
+                - url: http://localhost:*/data/paste_primary.html
+
+    Scenario: buffer troubling args 01
+        Given I have a fresh instance
+        When I open data/title.html
+        And I run :buffer "-1"
+        Then the error "There's no tab with index -1!" should be shown
+
+    Scenario: buffer troubling args 02
+        When I open data/title.html
+        And I run :buffer "/"
+        Then the following tabs should be open:
+            - data/title.html (active)
+
+    Scenario: buffer troubling args 03
+        When I open data/title.html
+        And I run :buffer "//"
+        Then the following tabs should be open:
+            - data/title.html (active)
+
+    Scenario: buffer troubling args 04
+        When I open data/title.html
+        And I run :buffer "0/x"
+        Then the error "No matching tab for: 0/x" should be shown
+
+    Scenario: buffer troubling args 05
+        When I open data/title.html
+        And I run :buffer "1/2/3"
+        Then the error "No matching tab for: 1/2/3" should be shown

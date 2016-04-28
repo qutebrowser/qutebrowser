@@ -81,6 +81,8 @@ def whitelist_generator():
     yield 'qutebrowser.misc.utilcmds.pyeval_output'
     yield 'utils.use_color'
     yield 'qutebrowser.browser.mhtml.last_used_directory'
+    yield 'qutebrowser.utils.utils.fake_clipboard'
+    yield 'qutebrowser.utils.utils.log_clipboard'
 
     # Other false-positives
     yield ('qutebrowser.completion.models.sortfilter.CompletionFilterModel().'

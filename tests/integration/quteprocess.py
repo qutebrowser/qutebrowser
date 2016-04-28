@@ -28,6 +28,7 @@ import datetime
 import logging
 import tempfile
 import contextlib
+import itertools
 
 import yaml
 import pytest
@@ -36,7 +37,11 @@ from PyQt5.QtCore import pyqtSignal, QUrl
 import testprocess
 from qutebrowser.misc import ipc
 from qutebrowser.utils import log, utils
+from qutebrowser.browser import webelem
 from helpers import utils as testutils
+
+
+instance_counter = itertools.count()
 
 
 def is_ignored_qt_message(message):
@@ -124,6 +129,9 @@ class QuteProc(testprocess.Process):
         basedir: The base directory for this instance.
         _focus_ready: Whether the main window got focused.
         _load_ready: Whether the about:blank page got loaded.
+        _profile: If True, do profiling of the subprocesses.
+        _instance_id: An unique ID for this QuteProc instance
+        _run_counter: A counter to get an unique ID for each run.
 
     Signals:
         got_error: Emitted when there was an error log line.
@@ -134,14 +142,17 @@ class QuteProc(testprocess.Process):
     KEYS = ['timestamp', 'loglevel', 'category', 'module', 'function', 'line',
             'message']
 
-    def __init__(self, httpbin, delay, parent=None):
+    def __init__(self, httpbin, delay, *, profile=False, parent=None):
         super().__init__(parent)
+        self._profile = profile
         self._delay = delay
         self._httpbin = httpbin
         self._ipc_socket = None
         self.basedir = None
         self._focus_ready = False
         self._load_ready = False
+        self._instance_id = next(instance_counter)
+        self._run_counter = itertools.count()
 
     def _is_ready(self, what):
         """Called by _parse_line if loading/focusing is done.
@@ -201,12 +212,28 @@ class QuteProc(testprocess.Process):
 
     def _executable_args(self):
         if hasattr(sys, 'frozen'):
+            if self._profile:
+                raise Exception("Can't profile with sys.frozen!")
             executable = os.path.join(os.path.dirname(sys.executable),
                                       'qutebrowser')
             args = []
         else:
             executable = sys.executable
-            args = ['-m', 'qutebrowser']
+            if self._profile:
+                profile_dir = os.path.join(os.getcwd(), 'prof')
+                profile_id = '{}_{}'.format(self._instance_id,
+                                            next(self._run_counter))
+                profile_file = os.path.join(profile_dir,
+                                            '{}.pstats'.format(profile_id))
+                try:
+                    os.mkdir(profile_dir)
+                except FileExistsError:
+                    pass
+                args = [os.path.join('scripts', 'dev', 'run_profile.py'),
+                        '--profile-tool', 'none',
+                        '--profile-file', profile_file]
+            else:
+                args = ['-m', 'qutebrowser']
         return executable, args
 
     def _default_args(self):
@@ -227,9 +254,14 @@ class QuteProc(testprocess.Process):
                 path if path != '/' else '')
 
     def wait_for_js(self, message):
-        """Wait for the given javascript console message."""
-        self.wait_for(category='js', function='javaScriptConsoleMessage',
-                      message='[*] {}'.format(message))
+        """Wait for the given javascript console message.
+
+        Return:
+            The LogLine.
+        """
+        return self.wait_for(category='js',
+                             function='javaScriptConsoleMessage',
+                             message='[*] {}'.format(message))
 
     def _is_error_logline(self, msg):
         """Check if the given LogLine is some kind of error message."""
@@ -237,7 +269,13 @@ class QuteProc(testprocess.Process):
                        msg.function == 'javaScriptConsoleMessage' and
                        testutils.pattern_match(pattern='[*] [FAIL] *',
                                                value=msg.message))
-        return msg.loglevel > logging.INFO or is_js_error
+        # Try to complain about the most common mistake when accidentally
+        # loading external resources.
+        is_ddg_load = testutils.pattern_match(
+            pattern="load status for <qutebrowser.browser.webview.WebView "
+            "tab_id=* url='*duckduckgo*'>: *",
+            value=msg.message)
+        return msg.loglevel > logging.INFO or is_js_error or is_ddg_load
 
     def _maybe_skip(self):
         """Skip the test if [SKIP] lines were logged."""
@@ -253,9 +291,20 @@ class QuteProc(testprocess.Process):
         if skip_texts:
             pytest.skip(', '.join(skip_texts))
 
-    def after_test(self):
+    def after_test(self, did_fail):  # pylint: disable=arguments-differ
+        """Handle unexpected/skip logging and clean up after each test.
+
+        Args:
+            did_fail: Set if the main test failed already, then logged errors
+                      are ignored.
+        """
+        __tracebackhide__ = True
         bad_msgs = [msg for msg in self._data
                     if self._is_error_logline(msg) and not msg.expected]
+
+        if did_fail:
+            super().after_test()
+            return
 
         try:
             if bad_msgs:
@@ -291,6 +340,8 @@ class QuteProc(testprocess.Process):
         return msg.message.split(' = ')[1]
 
     def set_setting(self, sect, opt, value):
+        # " in a value should be treated literally, so escape it
+        value = value.replace('"', '\\"')
         self.send_cmd(':set "{}" "{}" "{}"'.format(sect, opt, value))
         self.wait_for(category='config', message='Config option changed: *')
 
@@ -305,10 +356,14 @@ class QuteProc(testprocess.Process):
     def open_path(self, path, *, new_tab=False, new_window=False, port=None,
                   https=False):
         """Open the given path on the local webserver in qutebrowser."""
+        url = self.path_to_url(path, port=port, https=https)
+        self.open_url(url, new_tab=new_tab, new_window=new_window)
+
+    def open_url(self, url, *, new_tab=False, new_window=False):
+        """Open the given url in qutebrowser."""
         if new_tab and new_window:
             raise ValueError("new_tab and new_window given!")
 
-        url = self.path_to_url(path, port=port, https=https)
         if new_tab:
             self.send_cmd(':open -t ' + url)
         elif new_window:
@@ -337,7 +392,7 @@ class QuteProc(testprocess.Process):
         url = utils.elide(QUrl(url).toDisplayString(QUrl.EncodeUnicode), 100)
         pattern = re.compile(
             r"(load status for <qutebrowser\.browser\.webview\.WebView "
-            r"tab_id=\d+ url='{url}'>: LoadStatus\.{load_status}|fetch: "
+            r"tab_id=\d+ url='{url}/?'>: LoadStatus\.{load_status}|fetch: "
             r"PyQt5\.QtCore\.QUrl\('{url}'\) -> .*)".format(
                 load_status=re.escape(load_status), url=re.escape(url)))
         self.wait_for(message=pattern, timeout=timeout)
@@ -375,12 +430,64 @@ class QuteProc(testprocess.Process):
         """Press the given keys using :fake-key."""
         self.send_cmd(':fake-key -g "{}"'.format(keys))
 
+    def click_element(self, text):
+        """Click the element with the given text."""
+        # Use Javascript and XPath to find the right element, use console.log
+        # to return an error (no element found, ambiguous element)
+        script = (
+            'var _es = document.evaluate(\'//*[text()={text}]\', document, '
+            'null, XPathResult.ORDERED_NODE_SNAPSHOT_TYPE, null);'
+            'if (_es.snapshotLength == 0) {{ console.log("qute:no elems"); }} '
+            'else if (_es.snapshotLength > 1) {{ console.log("qute:ambiguous '
+            'elems") }} '
+            'else {{ console.log("qute:okay"); _es.snapshotItem(0).click() }}'
+        ).format(text=webelem.javascript_escape(_xpath_escape(text)))
+        self.send_cmd(':jseval ' + script)
+        message = self.wait_for_js('qute:*').message
+        if message.endswith('qute:no elems'):
+            raise ValueError('No element with {!r} found'.format(text))
+        elif message.endswith('qute:ambiguous elems'):
+            raise ValueError('Element with {!r} is not unique'.format(text))
+        elif not message.endswith('qute:okay'):
+            raise ValueError('Invalid response from qutebrowser: {}'
+                             .format(message))
+
+
+def _xpath_escape(text):
+    """Escape a string to be used in an XPath expression.
+
+    The resulting string should still be escaped with javascript_escape, to
+    prevent javascript from interpreting the quotes.
+
+    This function is needed because XPath does not provide any character
+    escaping mechanisms, so to get the string
+        "I'm back", he said
+    you have to use concat like
+        concat('"I', "'m back", '", he said')
+
+    Args:
+        text: Text to escape
+
+    Return:
+        The string "escaped" as a concat() call.
+    """
+    # Shortcut if at most a single quoting style is used
+    if "'" not in text or '"' not in text:
+        return repr(text)
+    parts = re.split('([\'"])', text)
+    # Python's repr() of strings will automatically choose the right quote
+    # type. Since each part only contains one "type" of quote, no escaping
+    # should be necessary.
+    parts = [repr(part) for part in parts if part]
+    return 'concat({})'.format(', '.join(parts))
+
 
 @pytest.yield_fixture(scope='module')
 def quteproc_process(qapp, httpbin, request):
     """Fixture for qutebrowser process which is started once per file."""
     delay = request.config.getoption('--qute-delay')
-    proc = QuteProc(httpbin, delay)
+    profile = request.config.getoption('--qute-profile-subprocs')
+    proc = QuteProc(httpbin, delay, profile=profile)
     proc.start()
     yield proc
     proc.terminate()
@@ -392,15 +499,16 @@ def quteproc(quteproc_process, httpbin, request):
     request.node._quteproc_log = quteproc_process.captured_log
     quteproc_process.before_test()
     yield quteproc_process
-    quteproc_process.after_test()
+    quteproc_process.after_test(did_fail=request.node.rep_call.failed)
 
 
 @pytest.yield_fixture
 def quteproc_new(qapp, httpbin, request):
     """Per-test qutebrowser process to test invocations."""
     delay = request.config.getoption('--qute-delay')
-    proc = QuteProc(httpbin, delay)
+    profile = request.config.getoption('--qute-profile-subprocs')
+    proc = QuteProc(httpbin, delay, profile=profile)
     request.node._quteproc_log = proc.captured_log
     # Not calling before_test here as that would start the process
     yield proc
-    proc.after_test()
+    proc.after_test(did_fail=request.node.rep_call.failed)

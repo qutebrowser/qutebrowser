@@ -104,8 +104,7 @@ foo\ bar/foo bar/foo\ bar/
 
 
 def _parse_split_test_data_str():
-    """
-    Parse the test data set into a namedtuple to use in tests.
+    """Parse the test data set into a namedtuple to use in tests.
 
     Returns:
         A list of namedtuples with str attributes: input, keep, no_keep

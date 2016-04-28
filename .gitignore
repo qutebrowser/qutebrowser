@@ -29,4 +29,8 @@ __pycache__
 /.cache
 /.testmondata
 /.hypothesis
+/prof
 TODO
+/scripts/testbrowser_cpp/Makefile
+/scripts/testbrowser_cpp/main.o
+/scripts/testbrowser_cpp/testbrowser

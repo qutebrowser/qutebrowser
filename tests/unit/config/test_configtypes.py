@@ -278,9 +278,9 @@ class TestString:
 
     """Test String."""
 
-    @pytest.fixture
-    def klass(self):
-        return configtypes.String
+    @pytest.fixture(params=[configtypes.String, configtypes.UniqueCharString])
+    def klass(self, request):
+        return request.param
 
     @pytest.mark.parametrize('minlen, maxlen', [(1, None), (None, 1)])
     def test_lengths_valid(self, klass, minlen, maxlen):
@@ -297,16 +297,16 @@ class TestString:
 
     @pytest.mark.parametrize('kwargs, val', [
         ({'none_ok': True}, ''),  # Empty with none_ok
-        ({}, "Hello World! :-)"),
+        ({}, "Test! :-)"),
         # Forbidden chars
-        ({'forbidden': 'xyz'}, 'foobar'),
+        ({'forbidden': 'xyz'}, 'fobar'),
         ({'forbidden': 'xyz'}, 'foXbar'),
         # Lengths
         ({'minlen': 2}, 'fo'),
         ({'minlen': 2, 'maxlen': 3}, 'fo'),
-        ({'minlen': 2, 'maxlen': 3}, 'foo'),
+        ({'minlen': 2, 'maxlen': 3}, 'abc'),
         # valid_values
-        ({'valid_values': configtypes.ValidValues('fooo')}, 'fooo'),
+        ({'valid_values': configtypes.ValidValues('abcd')}, 'abcd'),
     ])
     def test_validate_valid(self, klass, kwargs, val):
         klass(**kwargs).validate(val)
@@ -320,16 +320,21 @@ class TestString:
         ({'minlen': 2}, 'f'),
         ({'maxlen': 2}, 'fob'),
         ({'minlen': 2, 'maxlen': 3}, 'f'),
-        ({'minlen': 2, 'maxlen': 3}, 'fooo'),
+        ({'minlen': 2, 'maxlen': 3}, 'abcd'),
         # valid_values
-        ({'valid_values': configtypes.ValidValues('blah')}, 'fooo'),
+        ({'valid_values': configtypes.ValidValues('blah')}, 'abcd'),
     ])
     def test_validate_invalid(self, klass, kwargs, val):
         with pytest.raises(configexc.ValidationError):
             klass(**kwargs).validate(val)
 
+    def test_validate_duplicate_invalid(self):
+        typ = configtypes.UniqueCharString()
+        with pytest.raises(configexc.ValidationError):
+            typ.validate('foobar')
+
     def test_transform(self, klass):
-        assert klass().transform('foobar') == 'foobar'
+        assert klass().transform('fobar') == 'fobar'
 
     @pytest.mark.parametrize('value', [
         None,
@@ -406,7 +411,7 @@ class TestFlagList:
 
     @pytest.fixture
     def klass_valid_none(self):
-        """Return a FlagList with valid_values = None"""
+        """Return a FlagList with valid_values = None."""
         return configtypes.FlagList
 
     @pytest.mark.parametrize('val', ['', 'foo', 'foo,bar', 'foo,'])
@@ -1268,7 +1273,6 @@ class TestRegexList:
         assert klass().transform(val) == expected
 
 
-
 def unrequired_class(**kwargs):
     return configtypes.File(required=False, **kwargs)
 
@@ -1659,9 +1663,8 @@ class TestProxy:
         actual = klass().complete()
         expected = [('system', "Use the system wide proxy."),
                     ('none', "Don't use any proxy"),
-                    ('http://', 'HTTP proxy URL'),
-                    ('socks://', 'SOCKS proxy URL')]
-        assert actual == expected
+                    ('http://', 'HTTP proxy URL')]
+        assert actual[:3] == expected
 
     @pytest.mark.parametrize('val, expected', [
         ('', None),
@@ -1722,6 +1725,8 @@ class TestSearchEngineUrl:
 
     @pytest.mark.parametrize('val', [
         'http://example.com/?q={}',
+        'http://example.com/?q={0}',
+        'http://example.com/?q={0}&a={0}',
         '',  # empty value with none_ok
     ])
     def test_validate_valid(self, klass, val):

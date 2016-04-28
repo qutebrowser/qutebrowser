@@ -27,6 +27,7 @@ import shutil
 import functools
 import collections
 
+import sip
 from PyQt5.QtCore import (pyqtSlot, pyqtSignal, QObject, QTimer,
                           Qt, QVariant, QAbstractListModel, QModelIndex, QUrl)
 from PyQt5.QtGui import QDesktopServices
@@ -89,7 +90,7 @@ def path_suggestion(filename):
         return filename
     elif suggestion == 'both':
         return os.path.join(download_dir(), filename)
-    else:
+    else:  # pragma: no cover
         raise ValueError("Invalid suggestion value {}!".format(suggestion))
 
 
@@ -103,6 +104,11 @@ def create_full_filename(basename, filename):
     Return:
         The full absolute path, or None if filename creation was not possible.
     """
+    # Remove chars which can't be encoded in the filename encoding.
+    # See https://github.com/The-Compiler/qutebrowser/issues/427
+    encoding = sys.getfilesystemencoding()
+    filename = utils.force_encoding(filename, encoding)
+    basename = utils.force_encoding(basename, encoding)
     if os.path.isabs(filename) and os.path.isdir(filename):
         # We got an absolute directory from the user, so we save it under
         # the default filename in that directory.
@@ -517,15 +523,11 @@ class DownloadItem(QObject):
                       None: special value to stop the download.
         """
         global last_used_directory
-        if self.fileobj is not None:
+        if self.fileobj is not None:  # pragma: no cover
             raise ValueError("fileobj was already set! filename: {}, "
                              "existing: {}, fileobj {}".format(
                                  filename, self._filename, self.fileobj))
         filename = os.path.expanduser(filename)
-        # Remove chars which can't be encoded in the filename encoding.
-        # See https://github.com/The-Compiler/qutebrowser/issues/427
-        encoding = sys.getfilesystemencoding()
-        filename = utils.force_encoding(filename, encoding)
         self._filename = create_full_filename(self.basename, filename)
         if self._filename is None:
             # We only got a filename (without directory) or a relative path
@@ -533,6 +535,22 @@ class DownloadItem(QObject):
             # try again.
             self._filename = create_full_filename(
                 self.basename, os.path.join(download_dir(), filename))
+
+        # At this point, we have a misconfigured XDG_DOWNLOAd_DIR, as
+        # download_dir() + filename is still no absolute path.
+        # The config value is checked for "absoluteness", but
+        # ~/.config/user-dirs.dirs may be misconfigured and a non-absolute path
+        # may be set for XDG_DOWNLOAD_DIR
+        if self._filename is None:
+            message.error(
+                self._win_id,
+                "XDG_DOWNLOAD_DIR points to a relative path - please check"
+                " your ~/.config/user-dirs.dirs. The download is saved in"
+                " your home directory.",
+            )
+            # fall back to $HOME as download_dir
+            self._filename = create_full_filename(
+                self.basename, os.path.expanduser(os.path.join('~', filename)))
 
         self.basename = os.path.basename(self._filename)
         last_used_directory = os.path.dirname(self._filename)
@@ -558,7 +576,7 @@ class DownloadItem(QObject):
         Args:
             fileobj: A file-like object.
         """
-        if self.fileobj is not None:
+        if self.fileobj is not None:  # pragma: no cover
             raise ValueError("fileobj was already set! Old: {}, new: "
                              "{}".format(self.fileobj, fileobj))
         self.fileobj = fileobj
@@ -768,14 +786,32 @@ class DownloadManager(QAbstractListModel):
 
             If not, None.
         """
-        if fileobj is not None and filename is not None:
+        if fileobj is not None and filename is not None:  # pragma: no cover
             raise TypeError("Only one of fileobj/filename may be given!")
         # WORKAROUND for Qt corrupting data loaded from cache:
         # https://bugreports.qt.io/browse/QTBUG-42757
         request.setAttribute(QNetworkRequest.CacheLoadControlAttribute,
                              QNetworkRequest.AlwaysNetwork)
 
-        suggested_fn = urlutils.filename_from_url(request.url())
+        if request.url().scheme().lower() != 'data':
+            suggested_fn = urlutils.filename_from_url(request.url())
+        else:
+            # We might be downloading a binary blob embedded on a page or even
+            # generated dynamically via javascript. We try to figure out a more
+            # sensible name than the base64 content of the data.
+            origin = request.originatingObject()
+            try:
+                origin_url = origin.url()
+            except AttributeError:
+                # Raised either if origin is None or some object that doesn't
+                # have its own url. We're probably fine with a default fallback
+                # then.
+                suggested_fn = 'binary blob'
+            else:
+                # Use the originating URL as a base for the filename (works
+                # e.g. for pdf.js).
+                suggested_fn = urlutils.filename_from_url(origin_url)
+
         if suggested_fn is None:
             suggested_fn = 'qutebrowser-download'
 
@@ -834,7 +870,7 @@ class DownloadManager(QAbstractListModel):
         Return:
             The created DownloadItem.
         """
-        if fileobj is not None and filename is not None:
+        if fileobj is not None and filename is not None:  # pragma: no cover
             raise TypeError("Only one of fileobj/filename may be given!")
         if not suggested_filename:
             if filename is not None:
@@ -914,22 +950,30 @@ class DownloadManager(QAbstractListModel):
 
     @cmdutils.register(instance='download-manager', scope='window',
                        count='count')
-    def download_cancel(self, count=0):
+    def download_cancel(self, all_=False, count=0):
         """Cancel the last/[count]th download.
 
         Args:
+            all_: Cancel all running downloads
             count: The index of the download to cancel.
         """
-        try:
-            download = self.downloads[count - 1]
-        except IndexError:
-            self.raise_no_download(count)
-        if download.done:
-            if not count:
-                count = len(self.downloads)
-            raise cmdexc.CommandError("Download {} is already done!"
-                                      .format(count))
-        download.cancel()
+        if all_:
+            # We need to make a copy as we're indirectly mutating
+            # self.downloads here
+            for download in self.downloads[:]:
+                if not download.done:
+                    download.cancel()
+        else:
+            try:
+                download = self.downloads[count - 1]
+            except IndexError:
+                self.raise_no_download(count)
+            if download.done:
+                if not count:
+                    count = len(self.downloads)
+                raise cmdexc.CommandError("Download {} is already done!"
+                                        .format(count))
+            download.cancel()
 
     @cmdutils.register(instance='download-manager', scope='window',
                        count='count')
@@ -937,7 +981,7 @@ class DownloadManager(QAbstractListModel):
         """Delete the last/[count]th download from disk.
 
         Args:
-            count: The index of the download to cancel.
+            count: The index of the download to delete.
         """
         try:
             download = self.downloads[count - 1]
@@ -956,7 +1000,7 @@ class DownloadManager(QAbstractListModel):
         """Open the last/[count]th download.
 
         Args:
-            count: The index of the download to cancel.
+            count: The index of the download to open.
         """
         try:
             download = self.downloads[count - 1]
@@ -974,7 +1018,7 @@ class DownloadManager(QAbstractListModel):
         """Retry the first failed/[count]th download.
 
         Args:
-            count: The index of the download to cancel.
+            count: The index of the download to retry.
         """
         if count:
             try:
@@ -1060,12 +1104,10 @@ class DownloadManager(QAbstractListModel):
         """Remove the last/[count]th download from the list.
 
         Args:
-            all_: Deprecated argument for removing all finished downloads.
-            count: The index of the download to cancel.
+            all_: Remove all finished downloads.
+            count: The index of the download to remove.
         """
         if all_:
-            message.warning(self._win_id, ":download-remove --all is "
-                            "deprecated - use :download-clear instead!")
             self.download_clear()
         else:
             try:
@@ -1090,6 +1132,9 @@ class DownloadManager(QAbstractListModel):
 
     def remove_item(self, download):
         """Remove a given download."""
+        if sip.isdeleted(self):
+            # https://github.com/The-Compiler/qutebrowser/issues/1242
+            return
         try:
             idx = self.downloads.index(download)
         except ValueError:
@@ -1184,7 +1229,8 @@ class DownloadManager(QAbstractListModel):
     def flags(self, _index):
         """Override flags so items aren't selectable.
 
-        The default would be Qt.ItemIsEnabled | Qt.ItemIsSelectable."""
+        The default would be Qt.ItemIsEnabled | Qt.ItemIsSelectable.
+        """
         return Qt.ItemIsEnabled | Qt.ItemNeverHasChildren
 
     def rowCount(self, parent=QModelIndex()):

@@ -72,7 +72,7 @@ class CrashHandler(QObject):
 
     def handle_segfault(self):
         """Handle a segfault from a previous run."""
-        data_dir = None
+        data_dir = standarddir.data()
         if data_dir is None:
             return
         logname = os.path.join(data_dir, 'crash.log')

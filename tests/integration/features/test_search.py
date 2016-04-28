@@ -20,7 +20,7 @@
 import pytest_bdd as bdd
 
 # pylint: disable=unused-import
-from test_yankpaste import skip_with_broken_clipboard
+from test_yankpaste import init_fake_clipboard
 
 
 bdd.scenarios('search.feature')

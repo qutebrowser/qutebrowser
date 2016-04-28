@@ -60,7 +60,7 @@ def main():
     ]
 
     toxinidir = sys.argv[1]
-    pythonpath = os.environ['PYTHONPATH'].split(os.pathsep) + [
+    pythonpath = os.environ.get('PYTHONPATH', '').split(os.pathsep) + [
         toxinidir,
     ]
 

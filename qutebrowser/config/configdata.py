@@ -870,7 +870,7 @@ def data(readonly=False):
              "Mode to use for hints."),
 
             ('chars',
-             SettingValue(typ.String(minlen=2, completions=[
+             SettingValue(typ.UniqueCharString(minlen=2, completions=[
                  ('asdfghjkl', "Home row"),
                  ('dhtnaoeu', "Home row (Dvorak)"),
                  ('abcdefghijklmnopqrstuvwxyz', "All letters"),
@@ -896,7 +896,8 @@ def data(readonly=False):
 
             ('auto-follow',
              SettingValue(typ.Bool(), 'true'),
-             "Whether to auto-follow a hint if there's only one left."),
+             "Follow a hint immediately when the hint text is completely "
+             "matched."),
 
             ('auto-follow-timeout',
              SettingValue(typ.Int(), '0'),
@@ -1204,7 +1205,7 @@ def data(readonly=False):
              SettingValue(typ.Font(), 'Terminus, Monospace, '
                           '"DejaVu Sans Mono", Monaco, '
                           '"Bitstream Vera Sans Mono", "Andale Mono", '
-                          '"Liberation Mono", "Courier New", Courier, '
+                          '"Courier New", Courier, "Liberation Mono", '
                           'monospace, Fixed, Consolas, Terminal'),
              "Default monospace fonts."),
 
@@ -1401,8 +1402,8 @@ KEY_DATA = collections.OrderedDict([
         ('tab-move', ['gm']),
         ('tab-move -', ['gl']),
         ('tab-move +', ['gr']),
-        ('tab-focus', ['J', 'gt']),
-        ('tab-prev', ['K', 'gT']),
+        ('tab-focus', ['J']),
+        ('tab-prev', ['K']),
         ('tab-clone', ['gC']),
         ('reload', ['r']),
         ('reload -f', ['R']),
@@ -1481,6 +1482,7 @@ KEY_DATA = collections.OrderedDict([
         ('download-cancel', ['ad']),
         ('download-clear', ['cd']),
         ('view-source', ['gf']),
+        ('set-cmd-text -s :buffer', ['gt']),
         ('tab-focus last', ['<Ctrl-Tab>']),
         ('enter-mode passthrough', ['<Ctrl-V>']),
         ('quit', ['<Ctrl-Q>']),

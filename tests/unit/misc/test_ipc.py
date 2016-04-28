@@ -734,7 +734,7 @@ class TestSendOrListen:
 
     def test_address_in_use_ok(self, qlocalserver_mock, qlocalsocket_mock,
                                stubs, caplog, args):
-        """Test the following scenario:
+        """Test the following scenario.
 
         - First call to send_to_running_instance:
             -> could not connect (server not found)
@@ -770,7 +770,7 @@ class TestSendOrListen:
     def test_address_in_use_error(self, qlocalserver_mock, qlocalsocket_mock,
                                   stubs, caplog, args, has_error, exc_name,
                                   exc_msg):
-        """Test the following scenario:
+        """Test the following scenario.
 
         - First call to send_to_running_instance:
             -> could not connect (server not found)

@@ -44,7 +44,8 @@ def test_fail_on_warnings():
         warnings.warn('test', PendingDeprecationWarning)
 
 
-@pytest.mark.xfail(reason="https://github.com/The-Compiler/qutebrowser/issues/1070")
+@pytest.mark.xfail(reason="https://github.com/The-Compiler/qutebrowser/issues/1070",
+                   strict=False)
 def test_installed_package():
     """Make sure the tests are running against the installed package."""
     print(sys.path)
