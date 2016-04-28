@@ -38,6 +38,7 @@ Changed
 - `:navigate` now clears the URL fragment
 - `:completion-item-del` (`Ctrl-D`) can now be used in `:buffer` completion to
   close a tab
+- Counts can now be used with special keybindings (e.g. with modifiers)
 
 Fixed
 ~~~~~
