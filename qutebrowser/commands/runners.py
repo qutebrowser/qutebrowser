@@ -171,21 +171,10 @@ class CommandRunner(QObject):
                 log.commands.debug("Re-parsing with '{}'.".format(new_cmd))
                 return self.parse(new_cmd, aliases=False, fallback=fallback,
                                   keep=keep)
-        try:
-            
-            """ If the command given has only one completion match, replace
-                the given command with the match.
-                Ex: If they type "bac" and the only completion is "back", 
-                turn the command into "back".
-            """
 
-            matches = []
-            for valid_command in cmdutils.cmd_dict.keys():
-                if valid_command.find(cmdstr) == 0:
-                    matches.append(valid_command)
-            if len(matches) == 1:
-                cmdstr = matches[0]
-            
+        cmdstr = self._completion_match(cmdstr)
+
+        try:
             cmd = cmdutils.cmd_dict[cmdstr]
         except KeyError:
             if fallback:
@@ -208,6 +197,23 @@ class CommandRunner(QObject):
             else:
                 cmdline = [cmdstr] + args[:]
         return ParseResult(cmd=cmd, args=args, cmdline=cmdline, count=count)
+
+    def _completion_match(self, cmdstr):
+        """Replace cmdstr with a matching completion if there's only one match.
+
+        Args:
+            cmdstr: The string representing the entered command so far
+
+        Return:
+            cmdstr modified to the matching completion or unmodified
+        """
+        matches = []
+        for valid_command in cmdutils.cmd_dict.keys():
+            if valid_command.find(cmdstr) == 0:
+                matches.append(valid_command)
+        if len(matches) == 1:
+            cmdstr = matches[0]
+        return cmdstr
 
     def _split_args(self, cmd, argstr, keep):
         """Split the arguments from an arg string.
