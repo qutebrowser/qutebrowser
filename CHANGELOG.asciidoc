@@ -36,6 +36,8 @@ Changed
   the right.
 - `:yank` can now yank the pretty/decoded URL by adding `--pretty`
 - `:navigate` now clears the URL fragment
+- `:completion-item-del` (`Ctrl-D`) can now be used in `:buffer` completion to
+  close a tab
 
 Fixed
 ~~~~~
