@@ -152,7 +152,8 @@ Feature: Yanking and pasting.
             - data/hello.txt?q=this%20url%3A%0Ahttp%3A//qutebrowser.org%0Ashould%20not%20open (active)
 
     Scenario: Pasting multiline whose first line looks like an URI
-        Given I have a fresh instance
+        Given I open about:blank
+        When I run :tab-only
         When I set searchengines -> DEFAULT to http://localhost:(port)/data/hello.txt?q={}
         And I put the following lines into the clipboard:
             text:

@@ -312,6 +312,7 @@ def test_get_search_url_invalid(urlutils_config_stub, url):
     (True, True, False, 'qute::foo'),
     # Invalid URLs
     (False, False, False, ''),
+    (False, True, False, 'onlyscheme:'),
     (False, True, False, 'http:foo:0'),
     # Not URLs
     (False, True, False, 'foo bar'),  # no DNS because of space

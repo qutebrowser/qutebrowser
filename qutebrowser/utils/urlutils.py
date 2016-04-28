@@ -179,16 +179,16 @@ def fuzzy_url(urlstr, cwd=None, relative=False, do_search=True,
 
     if path is not None:
         url = QUrl.fromLocalFile(path)
-    elif not force_search and (not do_search or is_url(urlstr)):
-        # probably an address
-        log.url.debug("URL is a fuzzy address")
-        url = qurl_from_user_input(urlstr)
-    else:  # probably a search term
+    elif force_search or (do_search and not is_url(urlstr)):
+        # probably a search term
         log.url.debug("URL is a fuzzy search term")
         try:
             url = _get_search_url(urlstr)
         except ValueError:  # invalid search engine
             url = qurl_from_user_input(urlstr)
+    else:  # probably an address
+        log.url.debug("URL is a fuzzy address")
+        url = qurl_from_user_input(urlstr)
     log.url.debug("Converting fuzzy term {!r} to URL -> {}".format(
                   urlstr, url.toDisplayString()))
     if do_search and config.get('general', 'auto-search') and urlstr:
@@ -199,21 +199,18 @@ def fuzzy_url(urlstr, cwd=None, relative=False, do_search=True,
     return url
 
 
-def _has_explicit_scheme(url, allow_only_scheme=True):
+def _has_explicit_scheme(url):
     """Check if an url has an explicit scheme given.
 
     Args:
         url: The URL as QUrl.
-        allow_only_scheme: if set to True the URL is allowed to contain only
-                           the scheme with an empty path.
-
     """
     # Note that generic URI syntax actually would allow a second colon
     # after the scheme delimiter. Since we don't know of any URIs
     # using this and want to support e.g. searching for scoped C++
     # symbols, we treat this as not an URI anyways.
     return (url.isValid() and url.scheme() and
-            (allow_only_scheme or len(url.path()) > 0) and
+            (url.host() or url.path()) and
             not url.path().startswith(' ') and
             not url.path().startswith(':'))
 
@@ -230,13 +227,11 @@ def is_special_url(url):
     return url.scheme() in special_schemes
 
 
-def is_url(urlstr, allow_only_scheme=True):
+def is_url(urlstr):
     """Check if url seems to be a valid URL.
 
     Args:
         urlstr: The URL as string.
-        allow_only_scheme: if set to True the URL is allowed to contain only
-                           the scheme with an empty path.
 
     Return:
         True if it is a valid URL, False otherwise.
@@ -264,7 +259,7 @@ def is_url(urlstr, allow_only_scheme=True):
         # This will also catch URLs containing spaces.
         return False
 
-    if _has_explicit_scheme(qurl, allow_only_scheme):
+    if _has_explicit_scheme(qurl):
         # URLs with explicit schemes are always URLs
         log.url.debug("Contains explicit scheme")
         url = True
