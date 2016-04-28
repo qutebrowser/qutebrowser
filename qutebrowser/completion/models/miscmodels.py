@@ -23,7 +23,7 @@ from PyQt5.QtCore import Qt, QTimer, pyqtSlot
 
 from qutebrowser.browser import webview
 from qutebrowser.config import config, configdata
-from qutebrowser.utils import objreg, log
+from qutebrowser.utils import objreg, log, qtutils
 from qutebrowser.commands import cmdutils
 from qutebrowser.completion.models import base
 
@@ -153,7 +153,7 @@ class TabCompletionModel(base.BaseCompletionModel):
     # https://github.com/The-Compiler/qutebrowser/issues/545
     # pylint: disable=abstract-method
 
-    #IDX_COLUMN = 0
+    IDX_COLUMN = 0
     URL_COLUMN = 1
     TEXT_COLUMN = 2
 
@@ -201,15 +201,58 @@ class TabCompletionModel(base.BaseCompletionModel):
         make sure we handled background loads too ... but iterating over a
         few/few dozen/few hundred tabs doesn't take very long at all.
         """
-        self.removeRows(0, self.rowCount())
+        window_count = 0
         for win_id in objreg.window_registry:
+            tabbed_browser = objreg.get('tabbed-browser', scope='window',
+                                        window=win_id)
+            if not tabbed_browser.shutting_down:
+                window_count = window_count + 1
+
+        if window_count < self.rowCount():
+            self.removeRows(window_count, self.rowCount()-window_count)
+
+        for i, win_id in enumerate(objreg.window_registry):
             tabbed_browser = objreg.get('tabbed-browser', scope='window',
                                         window=win_id)
             if tabbed_browser.shutting_down:
                 continue
-            c = self.new_category("{}".format(win_id))
-            for i in range(tabbed_browser.count()):
-                tab = tabbed_browser.widget(i)
-                self.new_item(c, "{}/{}".format(win_id, i + 1),
-                              tab.url().toDisplayString(),
-                              tabbed_browser.page_title(i))
+            if i >= self.rowCount():
+                c = self.new_category("{}".format(win_id))
+            else:
+                c = self.item(i, 0)
+                c.setData("{}".format(win_id), Qt.DisplayRole)
+            if tabbed_browser.count() < c.rowCount():
+                c.removeRows(tabbed_browser.count(),
+                             c.rowCount()-tabbed_browser.count())
+            for idx in range(tabbed_browser.count()):
+                tab = tabbed_browser.widget(idx)
+                if idx >= c.rowCount():
+                    self.new_item(c, "{}/{}".format(win_id, idx+1),
+                                  tab.url().toDisplayString(),
+                                  tabbed_browser.page_title(idx))
+                else:
+                    c.child(idx, 0).setData("{}/{}".format(win_id, idx+1),
+                                            Qt.DisplayRole)
+                    c.child(idx, 1).setData(tab.url().toDisplayString(),
+                                            Qt.DisplayRole)
+                    c.child(idx, 2).setData(tabbed_browser.page_title(idx),
+                                            Qt.DisplayRole)
+
+    def delete_cur_item(self, completion):
+        """Delete the selected item.
+
+        Args:
+            completion: The Completion object to use.
+        """
+        index = completion.currentIndex()
+        qtutils.ensure_valid(index)
+        category = index.parent()
+        qtutils.ensure_valid(category)
+        index = category.child(index.row(), self.IDX_COLUMN)
+        win_id, tab_index = index.data().split('/')
+        win_id = int(win_id)
+        tab_index = int(tab_index)
+
+        tabbed_browser = objreg.get('tabbed-browser', scope='window',
+                                    window=win_id)
+        tabbed_browser.on_tab_close_requested(tab_index-1)
