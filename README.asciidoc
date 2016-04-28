@@ -162,12 +162,12 @@ Contributors, sorted by the number of commits in descending order:
 * Kevin Velghe
 * Austin Anderson
 * Panagiotis Ktistakis
+* Jimmy
 * Alexey "Averrin" Nabrodov
 * avk
 * ZDarian
 * Milan Svoboda
 * John ShaggyTwoDope Jenkins
-* Jimmy
 * Peter Vilim
 * Clayton Craft
 * Oliver Caldwell
