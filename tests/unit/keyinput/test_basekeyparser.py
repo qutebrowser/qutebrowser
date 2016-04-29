@@ -183,17 +183,7 @@ class TestSpecialKeys:
         keyparser.handle(fake_keyevent_factory(Qt.Key_A, modifier))
         keyparser.handle(fake_keyevent_factory(Qt.Key_X, modifier))
         keyparser.execute.assert_called_once_with(
-            'ctrla', keyparser.Type.special, None)
-
-    def test_valid_key_count(self, fake_keyevent_factory, keyparser):
-        if sys.platform == 'darwin':
-            modifier = Qt.MetaModifier
-        else:
-            modifier = Qt.ControlModifier
-        keyparser.handle(fake_keyevent_factory(5, text='5'))
-        keyparser.handle(fake_keyevent_factory(Qt.Key_A, modifier, text='A'))
-        keyparser.execute.assert_called_once_with(
-            'ctrla', keyparser.Type.special, 5)
+            'ctrla', keyparser.Type.special)
 
     def test_invalid_key(self, fake_keyevent_factory, keyparser):
         keyparser.handle(fake_keyevent_factory(
@@ -227,7 +217,7 @@ class TestKeyChain:
         keyparser.handle(fake_keyevent_factory(Qt.Key_A, modifier))
         keyparser.handle(fake_keyevent_factory(Qt.Key_X, modifier))
         keyparser.execute.assert_called_once_with(
-            'ctrla', keyparser.Type.special, None)
+            'ctrla', keyparser.Type.special)
         assert keyparser._keystring == ''
 
     def test_invalid_special_key(self, fake_keyevent_factory, keyparser):
