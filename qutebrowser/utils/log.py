@@ -235,7 +235,7 @@ def _init_formatters(level, color):
             sys.stderr.isatty() and color):
         console_formatter = colorlog.ColoredFormatter(
             console_fmt_colored, DATEFMT, log_colors=LOG_COLORS)
-        if colorama:
+        if colorama and os.name != 'posix':
             use_colorama = True
     else:
         console_formatter = logging.Formatter(console_fmt, DATEFMT, '{')
