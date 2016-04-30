@@ -48,7 +48,8 @@ Fixed
 - Fixed crash when doing `:undo` in a new instance with `tabs -> last-close` set
   to `default-page`.
 - Fixed crash when starting with --cachedir=""
-
+- Fixed crash in some circumstances when using dictionary hints
+- Fixed various crashes related to PyQt 5.6
 
 v0.6.1
 -----
