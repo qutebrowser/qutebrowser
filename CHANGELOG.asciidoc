@@ -14,8 +14,22 @@ This project adheres to http://semver.org/[Semantic Versioning].
 // `Fixed` for any bug fixes.
 // `Security` to invite users to upgrade in case of vulnerabilities.
 
+v0.6.2
+------
+
+Fixed
+~~~~~
+
+- Fixed crash when using `:tab-{prev,next,focus}` right after closing the last
+  tab with `last-close` set to `close`.
+- Fixed crash when doing `:undo` in a new instance with `tabs -> last-close` set
+  to `default-page`.
+- Fixed crash when starting with --cachedir=""
+- Fixed crash in some circumstances when using dictionary hints
+- Fixed various crashes related to PyQt 5.6
+
 v0.6.1
------
+------
 
 Fixed
 ~~~~~~
