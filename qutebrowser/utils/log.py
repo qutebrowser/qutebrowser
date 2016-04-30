@@ -150,7 +150,8 @@ def init_log(args):
     if numeric_level > logging.DEBUG and args.debug:
         numeric_level = logging.DEBUG
 
-    console, ram = _init_handlers(numeric_level, args.color, args.loglines)
+    console, ram = _init_handlers(numeric_level, args.color, args.force_color,
+                                  args.loglines)
     root = logging.getLogger()
     if console is not None:
         if args.logfilter is not None:
@@ -174,22 +175,24 @@ def disable_qt_msghandler():
         QtCore.qInstallMessageHandler(old_handler)
 
 
-def _init_handlers(level, color, ram_capacity):
+def _init_handlers(level, color, force_color, ram_capacity):
     """Init log handlers.
 
     Args:
         level: The numeric logging level.
         color: Whether to use color if available.
+        force_color: Force colored output.
     """
     global ram_handler
     console_fmt, ram_fmt, html_fmt, use_colorama = _init_formatters(
-        level, color)
+        level, color, force_color)
 
     if sys.stderr is None:
         console_handler = None
     else:
+        strip = False if force_color else None
         if use_colorama:
-            stream = colorama.AnsiToWin32(sys.stderr)
+            stream = colorama.AnsiToWin32(sys.stderr, strip=strip)
         else:
             stream = sys.stderr
         console_handler = logging.StreamHandler(stream)
@@ -207,12 +210,13 @@ def _init_handlers(level, color, ram_capacity):
     return console_handler, ram_handler
 
 
-def _init_formatters(level, color):
+def _init_formatters(level, color, force_color):
     """Init log formatters.
 
     Args:
         level: The numeric logging level.
         color: Whether to use color if available.
+        force_color: Force colored output.
 
     Return:
         A (console_formatter, ram_formatter, use_colorama) tuple.
@@ -232,7 +236,7 @@ def _init_formatters(level, color):
         return None, ram_formatter, html_formatter, False
     use_colorama = False
     if (colorlog is not None and (os.name == 'posix' or colorama) and
-            sys.stderr.isatty() and color):
+            (sys.stderr.isatty() or force_color) and color):
         console_formatter = colorlog.ColoredFormatter(
             console_fmt_colored, DATEFMT, log_colors=LOG_COLORS)
         if colorama and os.name != 'posix':

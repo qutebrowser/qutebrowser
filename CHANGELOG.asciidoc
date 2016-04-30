@@ -27,6 +27,8 @@ Added
     - New `:jump-mark` command to jump to a mark, bound to `'`
     - New `:set-mark` command to set a mark, bound to ```(backtick)
     - The `'` mark gets set when moving away (hinting link with anchor, searching, etc.) so you can move back with `''`
+- New `--force-color` argument to force colored logging even if stdout is not a
+  terminal
 
 Changed
 ~~~~~~~

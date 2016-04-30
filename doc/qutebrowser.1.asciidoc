@@ -81,6 +81,9 @@ show it.
 *--nocolor*::
     Turn off colored logging.
 
+*--force-color*::
+    Force colored logging
+
 *--harfbuzz* '{old,new,system,auto}'::
     HarfBuzz engine version to use. Default: auto.
 
