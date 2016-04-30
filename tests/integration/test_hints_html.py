@@ -25,6 +25,7 @@ import os.path
 import yaml
 import pytest
 import bs4
+import textwrap
 
 
 def collect_tests():
@@ -54,3 +55,35 @@ def test_hints(test_name, quteproc):
     quteproc.wait_for(message='hints: a', category='hints')
     quteproc.send_cmd(':follow-hint a')
     quteproc.wait_for_load_finished('data/' + parsed['target'])
+
+
+def test_word_hints_issue1393(quteproc, tmpdir):
+    dict_file = tmpdir / 'dict'
+    dict_file.write(textwrap.dedent("""
+        alph
+        beta
+        gamm
+        delt
+        epsi
+    """))
+    targets = [
+        ('words', 'words.txt'),
+        ('smart', 'smart.txt'),
+        ('hinting', 'hinting.txt'),
+        ('alph', 'l33t.txt'),
+        ('beta', 'l33t.txt'),
+        ('gamm', 'l33t.txt'),
+        ('delt', 'l33t.txt'),
+        ('epsi', 'l33t.txt'),
+    ]
+
+    quteproc.set_setting('hints', 'mode', 'word')
+    quteproc.set_setting('hints', 'dictionary', str(dict_file))
+
+    for hint, target in targets:
+        quteproc.open_path('data/hints/issue1393.html')
+        quteproc.wait_for_load_finished('data/hints/issue1393.html')
+        quteproc.send_cmd(':hint')
+        quteproc.wait_for(message='hints: *', category='hints')
+        quteproc.send_cmd(':follow-hint {}'.format(hint))
+        quteproc.wait_for_load_finished('data/{}'.format(target))
