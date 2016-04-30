@@ -40,6 +40,9 @@ Changed
   close a tab
 - Counts can now be used with special keybindings (e.g. with modifiers)
 
+v0.6.2
+------
+
 Fixed
 ~~~~~
 
