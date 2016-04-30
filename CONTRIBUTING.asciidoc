@@ -636,5 +636,5 @@ as closed.
     - Upload windows release:
            - `scp bb-win8:proj/qutebrowser/qutebrowser-0.X.Y-windows.zip .`
            - `aunpack qutebrowser-0.X.Y-windows.zip`
-           - `sudo mv qutebrowser-0.X.Y-windows/* /srv/http/qutebrowser/releases/v0.6.0/windows`
+           - `sudo mv qutebrowser-0.X.Y-windows/* /srv/http/qutebrowser/releases/v0.X.Y/windows`
 * Announce to qutebrowser mailinglist
