@@ -319,7 +319,7 @@ class TestDefaultConfig:
         If it did change, place a new qutebrowser-vx.y.z.conf in old_configs
         and then increment the version.
         """
-        assert qutebrowser.__version__ == '0.6.1'
+        assert qutebrowser.__version__ == '0.6.2'
 
     @pytest.mark.parametrize('filename',
         os.listdir(os.path.join(os.path.dirname(__file__), 'old_configs')),
