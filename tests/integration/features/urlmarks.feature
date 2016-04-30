@@ -79,7 +79,7 @@ Feature: quickmarks and bookmarks
         Then the quickmark file should contain "six http://localhost:*/data/numbers/6.txt"
 
     Scenario: Saving a quickmark (:quickmark-save)
-        When I open http://localhost:(port)/data/numbers/7.txt
+        When I open data/numbers/7.txt
         And I run :quickmark-save
         And I wait for "Entering mode KeyMode.prompt (reason: question asked)" in the log
         And I press the keys "seven"
