@@ -234,9 +234,10 @@ def _init_formatters(level, color, force_color):
                                    log_colors=LOG_COLORS)
     if sys.stderr is None:
         return None, ram_formatter, html_formatter, False
+
     use_colorama = False
-    if (colorlog is not None and (os.name == 'posix' or colorama) and
-            (sys.stderr.isatty() or force_color) and color):
+    color_supported = colorlog is not None and (os.name == 'posix' or colorama)
+    if color_supported and (sys.stderr.isatty() or force_color) and color:
         console_formatter = colorlog.ColoredFormatter(
             console_fmt_colored, DATEFMT, log_colors=LOG_COLORS)
         if colorama and os.name != 'posix':
