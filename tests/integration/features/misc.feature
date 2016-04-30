@@ -135,8 +135,6 @@ Feature: Various utility commands.
 
     # :stop/:reload
 
-    # WORKAROUND for https://bitbucket.org/cherrypy/cherrypy/pull-requests/117/
-    @not_osx
     Scenario: :stop
         Given I have a fresh instance
         # We can't use "When I open" because we don't want to wait for load
