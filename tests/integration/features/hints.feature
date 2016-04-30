@@ -45,6 +45,12 @@ Feature: Using hints
         Then the following tabs should be open:
             - data/hello.txt (active)
 
+    Scenario: Entering and leaving hinting mode (issue 1464)
+      When I open data/hints/link.html
+      And I run :hint
+      And I run :fake-key -g <Esc>
+      Then no crash should happen
+
     @xfail
     Scenario: Using :hint spawn with flags (issue 797)
         When I open data/hints/link.html
