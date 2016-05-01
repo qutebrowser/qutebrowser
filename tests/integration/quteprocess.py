@@ -170,6 +170,7 @@ class QuteProc(testprocess.Process):
 
     def _parse_line(self, line):
         # http://stackoverflow.com/a/14693789/2085149
+        colored_line = line
         ansi_escape = re.compile(r'\x1b[^m]*m')
         line = ansi_escape.sub('', line)
 
@@ -186,7 +187,7 @@ class QuteProc(testprocess.Process):
             else:
                 raise
 
-        self._log(line)
+        self._log(colored_line)
 
         start_okay_message_load = (
             "load status for <qutebrowser.browser.webview.WebView tab_id=0 "
