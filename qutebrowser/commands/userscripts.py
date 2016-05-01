@@ -82,6 +82,7 @@ class _BaseUserscriptRunner(QObject):
         _filepath: The path of the file/FIFO which is being read.
         _proc: The GUIProcess which is being executed.
         _win_id: The window ID this runner is associated with.
+        _cleaned_up: Whether temporary files were cleaned up.
 
     Signals:
         got_cmd: Emitted when a new command arrived and should be executed.
@@ -114,10 +115,14 @@ class _BaseUserscriptRunner(QObject):
                                            additional_env=self._env,
                                            verbose=verbose, parent=self)
         self._proc.finished.connect(self.on_proc_finished)
+        self._proc.error.connect(self.on_proc_error)
         self._proc.start(cmd, args)
 
     def _cleanup(self):
         """Clean up temporary files."""
+        if self._cleaned_up:
+            return
+        self._cleaned_up = True
         tempfiles = [self._filepath]
         if 'QUTE_HTML' in self._env:
             tempfiles.append(self._env['QUTE_HTML'])
@@ -150,6 +155,7 @@ class _BaseUserscriptRunner(QObject):
         """
         raise NotImplementedError
 
+    @pyqtSlot()
     def on_proc_finished(self):
         """Called when the process has finished.
 
@@ -157,6 +163,13 @@ class _BaseUserscriptRunner(QObject):
         """
         raise NotImplementedError
 
+    @pyqtSlot()
+    def on_proc_error(self):
+        """Called when the process encountered an error.
+
+        Needs to be overridden by subclasses.
+        """
+        raise NotImplementedError
 
 class _POSIXUserscriptRunner(_BaseUserscriptRunner):
 
@@ -193,12 +206,18 @@ class _POSIXUserscriptRunner(_BaseUserscriptRunner):
 
         self._run_process(cmd, *args, env=env, verbose=verbose)
 
+    @pyqtSlot()
     def on_proc_finished(self):
-        """Interrupt the reader when the process finished."""
-        self.finish()
+        self._cleanup()
 
-    def finish(self):
-        """Quit the thread and clean up when the reader finished."""
+    @pyqtSlot()
+    def on_proc_error(self):
+        self._cleanup()
+
+    def _cleanup(self):
+        """Clean up reader and temorary files."""
+        if self._cleaned_up:
+            return
         log.procs.debug("Cleaning up")
         self._reader.cleanup()
         self._reader.deleteLater()
@@ -229,13 +248,21 @@ class _WindowsUserscriptRunner(_BaseUserscriptRunner):
 
     def _cleanup(self):
         """Clean up temporary files after the userscript finished."""
+        if self._cleaned_up:
+            return
         try:
             os.close(self._oshandle)
         except OSError:
             log.procs.exception("Failed to close file handle!")
         super()._cleanup()
         self._oshandle = None
+        self.finished.emit()
 
+    @pyqtSlot()
+    def on_proc_error(self):
+        self._cleanup()
+
+    @pyqtSlot()
     def on_proc_finished(self):
         """Read back the commands when the process finished."""
         try:
@@ -245,7 +272,6 @@ class _WindowsUserscriptRunner(_BaseUserscriptRunner):
         except OSError:
             log.procs.exception("Failed to read command file!")
         self._cleanup()
-        self.finished.emit()
 
     def run(self, cmd, *args, env=None, verbose=False):
         try:
