@@ -26,7 +26,7 @@ import netrc
 from PyQt5.QtCore import (pyqtSlot, pyqtSignal, PYQT_VERSION, QCoreApplication,
                           QUrl, QByteArray)
 from PyQt5.QtNetwork import (QNetworkAccessManager, QNetworkReply, QSslError,
-                             QSslSocket, QSsl)
+                             QSslSocket)
 
 from qutebrowser.config import config
 from qutebrowser.utils import (message, log, usertypes, utils, objreg, qtutils,
@@ -43,6 +43,7 @@ _proxy_auth_cache = {}
 
 def _is_secure_cipher(cipher):
     """Check if a given SSL cipher (hopefully) isn't broken yet."""
+    # pylint: disable=too-many-return-statements
     tokens = [e.upper() for e in cipher.name().split('-')]
     if cipher.usedBits() < 128:
         # https://codereview.qt-project.org/#/c/75943/
