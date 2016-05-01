@@ -172,6 +172,7 @@ class _BaseUserscriptRunner(QObject):
         """
         raise NotImplementedError
 
+
 class _POSIXUserscriptRunner(_BaseUserscriptRunner):
 
     """Userscript runner to be used on POSIX. Uses _QtFIFOReader.
