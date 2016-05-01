@@ -41,6 +41,9 @@ Changed
 - `:completion-item-del` (`Ctrl-D`) can now be used in `:buffer` completion to
   close a tab
 - Counts can now be used with special keybindings (e.g. with modifiers)
+- Various SSL ciphers are now disabled by default. With recent Qt/OpenSSL
+  versions those already all are disabled, but with older versions they might
+  not be.
 
 v0.6.2
 ------

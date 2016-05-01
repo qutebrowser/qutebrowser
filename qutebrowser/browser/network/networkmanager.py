@@ -26,7 +26,7 @@ import netrc
 from PyQt5.QtCore import (pyqtSlot, pyqtSignal, PYQT_VERSION, QCoreApplication,
                           QUrl, QByteArray)
 from PyQt5.QtNetwork import (QNetworkAccessManager, QNetworkReply, QSslError,
-                             QSslSocket)
+                             QSslSocket, QSsl)
 
 from qutebrowser.config import config
 from qutebrowser.utils import (message, log, usertypes, utils, objreg, qtutils,
@@ -41,14 +41,73 @@ ProxyId = collections.namedtuple('ProxyId', 'type, hostname, port')
 _proxy_auth_cache = {}
 
 
+def _is_secure_cipher(cipher):
+    """Check if a given SSL cipher (hopefully) isn't broken yet."""
+    tokens = [e.upper() for e in cipher.name().split('-')]
+    if cipher.usedBits() < 128:
+        # https://codereview.qt-project.org/#/c/75943/
+        return False
+    # OpenSSL should already protect against this in a better way
+    # elif cipher.keyExchangeMethod() in ['DH', 'EDH']:
+    #     # https://weakdh.org/
+    #     return False
+    elif cipher.encryptionMethod().upper().startswith('RC4'):
+        # http://en.wikipedia.org/wiki/RC4#Security
+        # https://codereview.qt-project.org/#/c/148906/
+        return False
+    elif cipher.encryptionMethod().upper().startswith('DES'):
+        # http://en.wikipedia.org/wiki/Data_Encryption_Standard#Security_and_cryptanalysis
+        return False
+    elif 'MD5' in tokens:
+        # http://www.win.tue.nl/hashclash/rogue-ca/
+        return False
+    # OpenSSL should already protect against this in a better way
+    # elif (('CBC3' in tokens or 'CBC' in tokens) and (cipher.protocol() not in
+    #         [QSsl.TlsV1_0, QSsl.TlsV1_1, QSsl.TlsV1_2])):
+    #     # http://en.wikipedia.org/wiki/POODLE
+    #     return False
+    ### These things should never happen as those are already filtered out by
+    ### either the SSL libraries or Qt - but let's be sure.
+    elif cipher.authenticationMethod() in ['aNULL', 'NULL']:
+        # Ciphers without authentication.
+        return False
+    elif cipher.encryptionMethod() in ['eNULL', 'NULL']:
+        # Ciphers without encryption.
+        return False
+    elif 'EXP' in tokens or 'EXPORT' in tokens:
+        # Weak export-grade ciphers
+        return False
+    elif 'ADH' in tokens:
+        # No MITM protection
+        return False
+    ### This *should* happen ;)
+    else:
+        return True
+
+
 def init():
     """Disable insecure SSL ciphers on old Qt versions."""
-    if not qtutils.version_check('5.3.0'):
-        # Disable weak SSL ciphers.
-        # See https://codereview.qt-project.org/#/c/75943/
-        good_ciphers = [c for c in QSslSocket.supportedCiphers()
-                        if c.usedBits() >= 128]
-        QSslSocket.setDefaultCiphers(good_ciphers)
+    if qtutils.version_check('5.3.0'):
+        default_ciphers = QSslSocket.defaultCiphers()
+        log.init.debug("Default Qt ciphers: {}".format(
+            ', '.join(c.name() for c in default_ciphers)))
+    else:
+        # https://codereview.qt-project.org/#/c/75943/
+        default_ciphers = QSslSocket.supportedCiphers()
+        log.init.debug("Supported Qt ciphers: {}".format(
+            ', '.join(c.name() for c in default_ciphers)))
+
+    good_ciphers = []
+    bad_ciphers = []
+    for cipher in default_ciphers:
+        if _is_secure_cipher(cipher):
+            good_ciphers.append(cipher)
+        else:
+            bad_ciphers.append(cipher)
+
+    log.init.debug("Disabling bad ciphers: {}".format(
+        ', '.join(c.name() for c in bad_ciphers)))
+    QSslSocket.setDefaultCiphers(good_ciphers)
 
 
 class SslError(QSslError):
