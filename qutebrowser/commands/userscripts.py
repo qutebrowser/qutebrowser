@@ -94,6 +94,7 @@ class _BaseUserscriptRunner(QObject):
 
     def __init__(self, win_id, parent=None):
         super().__init__(parent)
+        self._cleaned_up = False
         self._win_id = win_id
         self._filepath = None
         self._proc = None
