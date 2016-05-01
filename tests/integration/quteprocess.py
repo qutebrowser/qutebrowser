@@ -69,7 +69,7 @@ class LogLine(testprocess.Line):
     LOG_RE = re.compile(r"""
         (?P<timestamp>\d\d:\d\d:\d\d)
         \ (?P<loglevel>VDEBUG|DEBUG|INFO|WARNING|ERROR)
-        \ +(?P<category>\w+)
+        \ +(?P<category>[\w.]+)
         \ +(?P<module>(\w+|Unknown\ module)):
            (?P<function>[^"][^:]*|"[^"]+"):
            (?P<line>\d+)
