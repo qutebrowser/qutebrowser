@@ -251,6 +251,14 @@ class _WindowsUserscriptRunner(_BaseUserscriptRunner):
         """Clean up temporary files after the userscript finished."""
         if self._cleaned_up:
             return
+
+        try:
+            with open(self._filepath, 'r', encoding='utf-8') as f:
+                for line in f:
+                    self.got_cmd.emit(line.rstrip())
+        except OSError:
+            log.procs.exception("Failed to read command file!")
+
         try:
             os.close(self._oshandle)
         except OSError:
@@ -266,12 +274,6 @@ class _WindowsUserscriptRunner(_BaseUserscriptRunner):
     @pyqtSlot()
     def on_proc_finished(self):
         """Read back the commands when the process finished."""
-        try:
-            with open(self._filepath, 'r', encoding='utf-8') as f:
-                for line in f:
-                    self.got_cmd.emit(line.rstrip())
-        except OSError:
-            log.procs.exception("Failed to read command file!")
         self._cleanup()
 
     def run(self, cmd, *args, env=None, verbose=False):
