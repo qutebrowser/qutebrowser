@@ -1,0 +1,9 @@
+status:
+  project:
+    enabled: no
+  patch:
+    enabled: no
+  changes:
+    enabled: no
+
+comment: off
