@@ -15,24 +15,26 @@ still relatively easy!
 
 You can use packages that are built for every release or build it yourself from git.
 
-###### Using the packages:
+Using the packages
+~~~~~~~~~~~~~~~~~~
 
 Install the dependencies via apt-get:
 
----
+----
 # apt-get install python3-lxml python-tox python3-pyqt5 python3-pyqt5.qtwebkit python3-sip python3-jinja2 python3-pygments python3-yaml
----
+----
 
-Get the packages from [here](https://github.com/The-Compiler/qutebrowser/releases)
+Get the packages from https://github.com/The-Compiler/qutebrowser/releases[here]
 
 Install the packages:
 
----
+----
 # dpkg -i python3-pypeg2_*_all.deb
 # dpkg -i qutebrowser_*_all.deb
----
+----
 
-###### Build it from git
+Build it from git
+~~~~~~~~~~~~~~~~~
 
 Install the dependencies via apt-get:
 
