@@ -10,9 +10,29 @@ qutebrowser should run on these systems:
 * Ubuntu Trusty (14.04 LTS) or newer
 * Any other distribution based on these (e.g. Linux Mint 17+)
 
-Unfortunately there is no Debian package yet, but installing qutebrowser is
-still relatively easy! If you want to help packaging it for Debian, please
-https://github.com/The-Compiler/qutebrowser/issues/582[get in touch]!
+Unfortunately there is no Debian package in the official repos yet, but installing qutebrowser is
+still relatively easy!
+
+You can use packages that are built for every release or build it yourself from git.
+
+###### Using the packages:
+
+Install the dependencies via apt-get:
+
+---
+# apt-get install python3-lxml python-tox python3-pyqt5 python3-pyqt5.qtwebkit python3-sip python3-jinja2 python3-pygments python3-yaml
+---
+
+Get the packages from [here](https://github.com/The-Compiler/qutebrowser/releases)
+
+Install the packages:
+
+---
+# dpkg -i python3-pypeg2_*_all.deb
+# dpkg -i qutebrowser_*_all.deb
+---
+
+###### Build it from git
 
 Install the dependencies via apt-get:
 
