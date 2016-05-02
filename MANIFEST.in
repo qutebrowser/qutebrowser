@@ -35,6 +35,7 @@ exclude .eslintignore
 exclude doc/help
 exclude .appveyor.yml
 exclude .travis.yml
+exclude codecov.yml
 exclude .pydocstylerc
 exclude misc/appveyor_install.py
 
