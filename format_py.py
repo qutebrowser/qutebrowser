@@ -29,8 +29,8 @@ def fix_file(path):
                             file1.write(autopep8.fix_code(source_code))
                             file1.close()
                         except:
-                            print filename
-                            print sys.exc_info()[0]
+                            print(filename)
+                            print(sys.exc_info()[0])
 
 
 if __name__ == "__main__":
