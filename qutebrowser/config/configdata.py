@@ -745,7 +745,7 @@ def data(readonly=False):
              "are not affected by this setting."),
 
             ('webgl',
-             SettingValue(typ.Bool(), 'true'),
+             SettingValue(typ.Bool(), 'false'),
              "Enables or disables WebGL."),
 
             ('css-regions',
