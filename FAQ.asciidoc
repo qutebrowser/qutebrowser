@@ -80,13 +80,27 @@ How do I play Youtube videos with mpv?::
     player - optionally even with hinting for links:
 +
 ----
-:bind x spawn mpv {url}
-:bind ;x hint links spawn mpv {hint-url}
+:bind m spawn mpv {url}
+:bind M hint links spawn mpv {hint-url}
 ----
 +
 Note that you might need an additional package (e.g.
 https://www.archlinux.org/packages/community/any/youtube-dl/[youtube-dl] on
 Archlinux) to play web videos with mpv.
++
+There is a very useful script for mpv, which emulates "unique application"
+functionality. This way you can add links to the mpv playlist instead of
+playing them all at once.
++
+You can find the script here: https://github.com/mpv-player/mpv/blob/master/TOOLS/umpv
++
+It also works nicely with rapid hints:
++
+----
+:bind m spawn umpv {url}
+:bind M hint links spawn umpv {hint-url}
+:bind ;M hint --rapid links spawn umpv {hint-url}
+----
 
 How do I use qutebrowser with mutt?::
     Due to a Qt limitation, local files without `.html` extensions are
