@@ -25,6 +25,7 @@ from PyQt5.QtWebKitWidgets import QWebView
 
 from qutebrowser.mainwindow.statusbar import textbase
 from qutebrowser.utils import objreg
+from qutebrowser.browser import browsertab
 
 
 class TabSettings(textbase.TextBase):
@@ -36,7 +37,7 @@ class TabSettings(textbase.TextBase):
         super().__init__(parent)
         objreg.get('domain-manager').domain_settings_changed.connect(self.set_text)
 
-    @pyqtSlot(int, int)
+    @pyqtSlot(str)
     def set_text(self, tab=None):  # pylint: disable=unused-argument
         """Setter to be used as a Qt slot.
 
@@ -60,7 +61,7 @@ class TabSettings(textbase.TextBase):
                 text = text + 'C'
         self.setText('['+text+']')
 
-    @pyqtSlot(object)
+    @pyqtSlot(browsertab.AbstractTab)
     def on_tab_changed(self, tab):
         """Update tab settings text when tab changed."""
         self.set_text(tab)

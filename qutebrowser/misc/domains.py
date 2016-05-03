@@ -56,7 +56,7 @@ class DomainManager(QObject):
     # TODO: temporary settings that are not saved to disc. Maybe
     # copy/integrate with the main settings model.
 
-    domain_settings_changed = pyqtSignal()
+    domain_settings_changed = pyqtSignal(str)
 
     def __init__(self, path, parent=None):
         super().__init__(parent)
