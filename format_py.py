@@ -1,4 +1,5 @@
-#!/usr/bin/env python
+"""This module does that automatially checks for pep8 format."""
+# !/usr/bin/env python
 
 import os
 import autopep8
@@ -9,6 +10,7 @@ BASE_DIR = os.path.abspath(__file__)
 
 
 def fix_file(path):
+    """This is the main function that does the work."""
     p = ""
     for dirpath, _, filenames in os.walk(path):
         if(os.path.exists(os.path.join(dirpath, 'bin/activate'))):
@@ -27,13 +29,13 @@ def fix_file(path):
                             file1.write(autopep8.fix_code(source_code))
                             file1.close()
                         except:
-                            print(filename)
-                            print(sys.exc_info()[0])
+                            print filename
+                            print sys.exc_info()[0]
 
 
-    if __name__ == "__main__":
-        path_of_dir = [
-            os.path.dirname(BASE_DIR),
-        ]
-        for x in path_of_dir:
-            fix_file(x)
+if __name__ == "__main__":
+    path_of_dir = [
+        os.path.dirname(BASE_DIR),
+    ]
+    for x in path_of_dir:
+        fix_file(x)
