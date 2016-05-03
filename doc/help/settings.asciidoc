@@ -1328,7 +1328,7 @@ Valid values:
  * +true+
  * +false+
 
-Default: +pass:[true]+
+Default: +pass:[false]+
 
 [[content-css-regions]]
 === css-regions
