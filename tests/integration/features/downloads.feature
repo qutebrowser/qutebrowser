@@ -44,6 +44,14 @@ Feature: Downloading things from a website.
         And I run :leave-mode
         Then no crash should happen
 
+    Scenario: Downloading with SSL errors (issue 1413)
+        When I run :debug-clear-ssl-errors
+        And I set network -> ssl-strict to ask
+        And I download a SSL page
+        And I wait for "Entering mode KeyMode.* (reason: question asked)" in the log
+        And I run :prompt-accept
+        Then the error "Download error: SSL handshake failed" should be shown
+
     Scenario: Retrying a failed download
         When I run :download http://localhost:(port)/does-not-exist
         And I wait for the error "Download error: * - server replied: NOT FOUND"
@@ -162,7 +170,7 @@ Feature: Downloading things from a website.
         When I run :download http://localhost:(port)/drip?numbytes=128&duration=5
         And I run :download-open with count 1
         Then the error "Download 1 is not done!" should be shown
-        
+
     ## completion -> download-path-suggestion
 
     Scenario: completion -> download-path-suggestion = path
