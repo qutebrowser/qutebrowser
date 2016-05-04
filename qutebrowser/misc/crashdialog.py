@@ -80,18 +80,19 @@ def get_fatal_crash_dialog(debug, data):
         data: The crash log data.
     """
     errtype, frame = parse_fatal_stacktrace(data)
-    if (qtutils.version_check('5.4') or errtype != 'Segmentation fault' or
-            frame != 'qt_mainloop'):
-        return FatalCrashDialog(debug, data)
-    else:
+
+    if errtype == 'Segmentation fault' and frame == 'qt_mainloop':
         title = "qutebrowser was restarted after a fatal crash!"
         text = ("<b>qutebrowser was restarted after a fatal crash!</b><br/>"
                 "Unfortunately, this crash occurred in Qt (the library "
-                "qutebrowser uses), and your version ({}) is outdated - "
-                "Qt 5.4 or later is recommended. Unfortunately Debian and "
-                "Ubuntu don't ship a newer version (yet?)...".format(
-                    qVersion()))
+                "qutebrowser uses), and QtWebKit (the current backend) is not "
+                "maintained anymore.<br/><br/>Since I can't do much about "
+                "those crashes I disabled the crash reporter for this case, "
+                "but this will likely be resolved in the future with the new "
+                "QtWebEngine backend.")
         return QMessageBox(QMessageBox.Critical, title, text, QMessageBox.Ok)
+    else:
+        return FatalCrashDialog(debug, data)
 
 
 def _get_environment_vars():
