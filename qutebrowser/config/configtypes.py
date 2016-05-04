@@ -745,10 +745,10 @@ class QssColor(CssColor):
     num = r'[0-9]{1,3}%?'
 
     color_func_regexes = [
-        r'rgb\({},\s*{},\s*{}\)'.format(num, num, num),
-        r'rgba\({},\s*{},\s*{},\s*{}\)'.format(num, num, num, num),
-        r'hsv\({},\s*{},\s*{}\)'.format(num, num, num),
-        r'hsva\({},\s*{},\s*{},\s*{}\)'.format(num, num, num, num),
+        r'rgb\({num},\s*{num},\s*{num}\)'.format(num=num),
+        r'rgba\({num},\s*{num},\s*{num},\s*{num}\)'.format(num=num),
+        r'hsv\({num},\s*{num},\s*{num}\)'.format(num=num),
+        r'hsva\({num},\s*{num},\s*{num},\s*{num}\)'.format(num=num),
         r'qlineargradient\(.*\)',
         r'qradialgradient\(.*\)',
         r'qconicalgradient\(.*\)',
