@@ -777,7 +777,7 @@ Feature: Tab management
         And I open data/caret.html in a new window
         And I open data/paste_primary.html in a new tab
         And I run :buffer "Scrolling"
-        And I wait for "Current tab changed, *" in the log
+        And I wait for "Focus object changed: <qutebrowser.browser.webview.WebView tab_id=* url='http://localhost:*/data/scroll.html'>" in the log
         Then the session should look like:
             windows:
             - active: true
