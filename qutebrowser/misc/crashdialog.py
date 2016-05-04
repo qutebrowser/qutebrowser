@@ -29,13 +29,13 @@ import traceback
 import datetime
 
 import pkg_resources
-from PyQt5.QtCore import pyqtSlot, Qt, QSize, qVersion
+from PyQt5.QtCore import pyqtSlot, Qt, QSize
 from PyQt5.QtWidgets import (QDialog, QLabel, QTextEdit, QPushButton,
                              QVBoxLayout, QHBoxLayout, QCheckBox,
                              QDialogButtonBox, QMessageBox, QApplication)
 
 import qutebrowser
-from qutebrowser.utils import version, log, utils, objreg, qtutils
+from qutebrowser.utils import version, log, utils, objreg
 from qutebrowser.misc import miscwidgets, autoupdate, msgbox, httpclient
 from qutebrowser.browser.network import pastebin
 from qutebrowser.config import config
