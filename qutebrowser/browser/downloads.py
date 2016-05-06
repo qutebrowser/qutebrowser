@@ -412,6 +412,8 @@ class DownloadItem(QObject):
         self.reply = None
         self.done = True
         self.data_changed.emit()
+        if self.fileobj is not None:
+            self.fileobj.close()
 
     def init_reply(self, reply):
         """Set a new reply and connect its signals.

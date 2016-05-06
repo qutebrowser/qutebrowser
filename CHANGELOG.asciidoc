@@ -45,6 +45,12 @@ Changed
   versions those already all are disabled, but with older versions they might
   not be.
 
+Fixed
+-----
+
+- Fixed crash when downloading from an URL with SSL errors
+- Close file handles correctly when a download failed
+
 v0.6.2
 ------
 
