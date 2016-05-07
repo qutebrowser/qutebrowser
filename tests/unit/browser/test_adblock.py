@@ -258,6 +258,9 @@ def test_without_datadir(config_stub, tmpdir, monkeypatch, win_registry):
     for str_url in URLS_TO_CHECK:
         assert not host_blocker.is_blocked(QUrl(str_url))
 
+    # To test on_config_changed
+    config_stub.set('content', 'host-block-lists', None)
+
 
 def test_disabled_blocking_update(basedir, config_stub, download_stub,
                                   data_tmpdir, tmpdir, win_registry):

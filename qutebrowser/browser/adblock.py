@@ -116,7 +116,7 @@ class HostBlocker:
             self._local_hosts_file = None
         else:
             self._local_hosts_file = os.path.join(data_dir, 'blocked-hosts')
-            self.on_config_changed()
+        self.on_config_changed()
 
         config_dir = standarddir.config()
         if config_dir is None:
@@ -274,7 +274,7 @@ class HostBlocker:
     def on_config_changed(self):
         """Update files when the config changed."""
         urls = config.get('content', 'host-block-lists')
-        if urls is None:
+        if urls is None and self._local_hosts_file is not None:
             try:
                 os.remove(self._local_hosts_file)
             except FileNotFoundError:
