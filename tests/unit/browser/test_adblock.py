@@ -249,8 +249,11 @@ def test_without_datadir(config_stub, tmpdir, monkeypatch, win_registry):
     }
     monkeypatch.setattr('qutebrowser.utils.standarddir.data', lambda: None)
     host_blocker = adblock.HostBlocker()
-    with pytest.raises(cmdexc.CommandError):
+
+    with pytest.raises(cmdexc.CommandError) as excinfo:
         host_blocker.adblock_update(0)
+    assert str(excinfo.value) == "No data storage is configured!"
+
     host_blocker.read_hosts()
     for str_url in URLS_TO_CHECK:
         assert not host_blocker.is_blocked(QUrl(str_url))
