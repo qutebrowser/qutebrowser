@@ -44,6 +44,7 @@ Changed
 - Various SSL ciphers are now disabled by default. With recent Qt/OpenSSL
   versions those already all are disabled, but with older versions they might
   not be.
+- Show favicons as window icon with `tabs-are-windows` set.
 
 Fixed
 -----
