@@ -276,8 +276,10 @@ class HostBlocker:
         if urls is None:
             try:
                 os.remove(self._local_hosts_file)
-            except OSError:
-                log.misc.exception("Failed to delete hosts file.")
+            except FileNotFoundError:
+                pass
+            except OSError as e:
+                log.misc.exception("Failed to delete hosts file: {}".format(e))
 
     def on_download_finished(self, download):
         """Check if all downloads are finished and if so, trigger reading.
