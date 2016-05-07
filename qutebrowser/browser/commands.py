@@ -350,6 +350,8 @@ class CommandDispatcher:
         new_tabbed_browser.set_page_title(idx, cur_title)
         if config.get('tabs', 'show-favicons'):
             new_tabbed_browser.setTabIcon(idx, curtab.icon())
+            if config.get('tabs', 'tabs-are-windows'):
+                new_tabbed_browser.window().setWindowIcon(curtab.icon())
         newtab.keep_icon = True
         newtab.setZoomFactor(curtab.zoomFactor())
         history = qtutils.serialize(curtab.history())

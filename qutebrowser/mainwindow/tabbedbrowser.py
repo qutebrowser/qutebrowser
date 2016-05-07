@@ -119,6 +119,7 @@ class TabbedBrowser(tabwidget.TabWidget):
         self.search_flags = 0
         self._local_marks = {}
         self._global_marks = {}
+        self.default_window_icon = self.window().windowIcon()
         objreg.get('config').changed.connect(self.update_favicons)
         objreg.get('config').changed.connect(self.update_window_title)
         objreg.get('config').changed.connect(self.update_tab_titles)
@@ -453,11 +454,16 @@ class TabbedBrowser(tabwidget.TabWidget):
     def update_favicons(self):
         """Update favicons when config was changed."""
         show = config.get('tabs', 'show-favicons')
+        tabs_are_wins = config.get('tabs', 'tabs-are-windows')
         for i, tab in enumerate(self.widgets()):
             if show:
                 self.setTabIcon(i, tab.icon())
+                if tabs_are_wins:
+                    self.window().setWindowIcon(tab.icon())
             else:
                 self.setTabIcon(i, QIcon())
+                if tabs_are_wins:
+                    self.window().setWindowIcon(self.default_window_icon)
 
     @pyqtSlot()
     def on_load_started(self, tab):
@@ -476,6 +482,9 @@ class TabbedBrowser(tabwidget.TabWidget):
             tab.keep_icon = False
         else:
             self.setTabIcon(idx, QIcon())
+            if (config.get('tabs', 'tabs-are-windows') and
+                    config.get('tabs', 'show-favicons')):
+                self.window().setWindowIcon(self.default_window_icon)
         if idx == self.currentIndex():
             self.update_window_title()
 
@@ -544,6 +553,8 @@ class TabbedBrowser(tabwidget.TabWidget):
             # We can get signals for tabs we already deleted...
             return
         self.setTabIcon(idx, tab.icon())
+        if config.get('tabs', 'tabs-are-windows'):
+            self.window().setWindowIcon(tab.icon())
 
     @pyqtSlot(usertypes.KeyMode)
     def on_mode_left(self, mode):
