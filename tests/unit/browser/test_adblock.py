@@ -32,6 +32,8 @@ from qutebrowser.browser import adblock
 from qutebrowser.utils import objreg
 from qutebrowser.commands import cmdexc
 
+pytestmark = pytest.mark.usefixtures('qapp')
+
 # TODO See ../utils/test_standarddirutils for OSEError and caplog assertion
 
 WHITELISTED_HOSTS = ('qutebrowser.org', 'mediumhost.io')
