@@ -241,9 +241,12 @@ def test_without_datadir(config_stub, tmpdir, monkeypatch, win_registry):
 
     Ensure CommandError is raised and no URL is blocked.
     """
-    config_stub.data = {'content':
-                        {'host-block-lists': generic_blocklists(tmpdir),
-                         'host-blocking-enabled': True}}
+    config_stub.data = {
+        'content': {
+            'host-block-lists': generic_blocklists(tmpdir),
+            'host-blocking-enabled': True
+        }
+    }
     monkeypatch.setattr('qutebrowser.utils.standarddir.data', lambda: None)
     host_blocker = adblock.HostBlocker()
     with pytest.raises(cmdexc.CommandError):
@@ -256,9 +259,12 @@ def test_without_datadir(config_stub, tmpdir, monkeypatch, win_registry):
 def test_disabled_blocking_update(basedir, config_stub, download_stub,
                                   data_tmpdir, tmpdir, win_registry):
     """Ensure no Url is blocked when host blocking is disabled."""
-    config_stub.data = {'content':
-                        {'host-block-lists': generic_blocklists(tmpdir),
-                         'host-blocking-enabled': False}}
+    config_stub.data = {
+        'content': {
+            'host-block-lists': generic_blocklists(tmpdir),
+            'host-blocking-enabled': False
+        }
+    }
     host_blocker = adblock.HostBlocker()
     host_blocker.adblock_update(0)
     while host_blocker._in_progress:
@@ -272,9 +278,12 @@ def test_disabled_blocking_update(basedir, config_stub, download_stub,
 def test_no_blocklist_update(config_stub, download_stub,
                              data_tmpdir, basedir, tmpdir, win_registry):
     """Ensure no URL is blocked when no block list exists."""
-    config_stub.data = {'content':
-                        {'host-block-lists': None,
-                         'host-blocking-enabled': True}}
+    config_stub.data = {
+        'content': {
+            'host-block-lists': None,
+            'host-blocking-enabled': True
+        }
+    }
     host_blocker = adblock.HostBlocker()
     host_blocker.adblock_update(0)
     host_blocker.read_hosts()
@@ -285,10 +294,13 @@ def test_no_blocklist_update(config_stub, download_stub,
 def test_successful_update(config_stub, basedir, download_stub,
                            data_tmpdir, tmpdir, win_registry):
     """Ensure hosts from host-block-lists are blocked after an update."""
-    config_stub.data = {'content':
-                        {'host-block-lists': generic_blocklists(tmpdir),
-                         'host-blocking-enabled': True,
-                         'host-blocking-whitelist': None}}
+    config_stub.data = {
+        'content': {
+            'host-block-lists': generic_blocklists(tmpdir),
+            'host-blocking-enabled': True,
+            'host-blocking-whitelist': None
+        }
+    }
     host_blocker = adblock.HostBlocker()
     host_blocker.adblock_update(0)
     # Simulate download is finished
@@ -310,10 +322,13 @@ def test_failed_dl_update(config_stub, basedir, download_stub,
                                               name='download_will_fail',
                                               line_format='one_per_line'))
     hosts_to_block = generic_blocklists(tmpdir) + [dl_fail_blocklist]
-    config_stub.data = {'content':
-                        {'host-block-lists': hosts_to_block,
-                         'host-blocking-enabled': True,
-                         'host-blocking-whitelist': None}}
+    config_stub.data = {
+        'content': {
+            'host-block-lists': hosts_to_block,
+            'host-blocking-enabled': True,
+            'host-blocking-whitelist': None
+        }
+    }
     host_blocker = adblock.HostBlocker()
     host_blocker.adblock_update(0)
     while host_blocker._in_progress:
@@ -337,10 +352,13 @@ def test_blocking_with_whitelist(config_stub, basedir, download_stub,
                                  blocked_hosts=filtered_blocked_hosts,
                                  name='blocked-hosts',
                                  line_format='one_per_line')
-    config_stub.data = {'content':
-                        {'host-block-lists': [blocklist],
-                         'host-blocking-enabled': True,
-                         'host-blocking-whitelist': WHITELISTED_HOSTS}}
+    config_stub.data = {
+        'content': {
+            'host-block-lists': [blocklist],
+            'host-blocking-enabled': True,
+            'host-blocking-whitelist': WHITELISTED_HOSTS
+        }
+    }
     host_blocker = adblock.HostBlocker()
     host_blocker.read_hosts()
     assert_urls(host_blocker)
@@ -371,10 +389,13 @@ def test_config_change(config_stub, basedir, download_stub,
                                       blocked_hosts=filtered_blocked_hosts,
                                       name='blocked-hosts',
                                       line_format='one_per_line'))
-    config_stub.data = {'content':
-                        {'host-block-lists': [blocklist],
-                         'host-blocking-enabled': True,
-                         'host-blocking-whitelist': None}}
+    config_stub.data = {
+        'content': {
+            'host-block-lists': [blocklist],
+            'host-blocking-enabled': True,
+            'host-blocking-whitelist': None
+        }
+    }
     host_blocker = adblock.HostBlocker()
     host_blocker.read_hosts()
     config_stub.set('content', 'host-block-lists', None)
