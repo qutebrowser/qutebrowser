@@ -179,6 +179,7 @@ Contributors, sorted by the number of commits in descending order:
 * Halfwit
 * rikn00
 * kanikaa1234
+* haitaka
 * Michael Ilsaas
 * Martin Zimmermann
 * Brian Jackson
