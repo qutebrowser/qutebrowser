@@ -261,7 +261,7 @@ def test_without_datadir(config_stub, tmpdir, monkeypatch, win_registry):
 
 def test_disabled_blocking_update(basedir, config_stub, download_stub,
                                   data_tmpdir, tmpdir, win_registry):
-    """Ensure no Url is blocked when host blocking is disabled."""
+    """Ensure no URL is blocked when host blocking is disabled."""
     config_stub.data = {
         'content': {
             'host-block-lists': generic_blocklists(tmpdir),
