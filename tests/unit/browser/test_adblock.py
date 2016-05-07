@@ -34,7 +34,7 @@ from qutebrowser.commands import cmdexc
 
 pytestmark = pytest.mark.usefixtures('qapp')
 
-# TODO See ../utils/test_standarddirutils for OSEError and caplog assertion
+# TODO See ../utils/test_standarddirutils for OSError and caplog assertion
 
 WHITELISTED_HOSTS = ('qutebrowser.org', 'mediumhost.io')
 
