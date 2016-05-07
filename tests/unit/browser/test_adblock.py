@@ -98,8 +98,9 @@ class FakeDownloadManager:
     """Mock browser.downloads.DownloadManager."""
 
     def get(self, url, fileobj, **kwargs):
-        """Return a FakeDownloadItem instance with a fileobj
-           whose content is copied from the file the given url links to.
+        """Return a FakeDownloadItem instance with a fileobj.
+
+        The content is copied from the file the given url links to.
         """
         download_item = FakeDownloadItem(fileobj, name=url.path())
         with open(url.path(), 'rb') as fake_url_file:
@@ -118,12 +119,12 @@ def download_stub(win_registry):
 
 
 def create_zipfile(directory, files, zipname='test'):
-    """Return a path to a newly created zip file
+    """Return a path to a newly created zip file.
 
-       Args :
-       - directory : path object where to create the zip file
-       - files : list of paths to each file to add in the zipfile
-       - zipname : name to give to the zip file.
+    Args:
+        directory: path object where to create the zip file
+        files: list of paths to each file to add in the zipfile
+        zipname: name to give to the zip file.
     """
     zipfile_path = directory / zipname + '.zip'
     with zipfile.ZipFile(str(zipfile_path), 'w') as new_zipfile:
@@ -139,12 +140,12 @@ def create_blocklist(directory, blocked_hosts=BLOCKLIST_HOSTS,
     """Return a path to a blocklist file.
 
        Args:
-         - directory : path object where to create the blocklist file
-         - blocked_hosts : an iterable of string hosts to add to the blocklist
-         - name : name to give to the blocklist file
-         - line_format : 'etc_hosts'  -->  /etc/hosts format
-                         'one_per_line'  -->  one host per line format
-                         'not_correct'  -->  Not a correct hosts file format.
+           directory: path object where to create the blocklist file
+           blocked_hosts: an iterable of string hosts to add to the blocklist
+           name: name to give to the blocklist file
+           line_format: 'etc_hosts'  -->  /etc/hosts format
+                        'one_per_line'  -->  one host per line format
+                        'not_correct'  -->  Not a correct hosts file format.
     """
     blocklist_file = directory / name
     with open(str(blocklist_file), 'w', encoding='UTF-8') as blocklist:
@@ -166,9 +167,11 @@ def create_blocklist(directory, blocked_hosts=BLOCKLIST_HOSTS,
 
 def assert_urls(host_blocker, blocked=BLOCKLIST_HOSTS,
                 whitelisted=WHITELISTED_HOSTS, urls_to_check=URLS_TO_CHECK):
-    """Test if Urls to check are blocked or not by HostBlocker
-       Ensure Urls in blocked and not in whitelisted are blocked
-       All other Urls must not be blocked."""
+    """Test if Urls to check are blocked or not by HostBlocker.
+
+    Ensure URLs in 'blocked' and not in 'whitelisted' are blocked.
+    All other URLs must not be blocked.
+    """
     whitelisted = list(whitelisted) + list(host_blocker.WHITELISTED)
     for str_url in urls_to_check:
         url = QUrl(str_url)
@@ -181,13 +184,15 @@ def assert_urls(host_blocker, blocked=BLOCKLIST_HOSTS,
 
 def generic_blocklists(directory):
     """Return a generic list of files to be used in hosts-block-lists option.
-       This list contains :
-       - a remote zip file with 1 hosts file and 2 useless files
-       - a remote zip file with only useless files
-           (Should raise a FileNotFoundError)
-       - a remote zip file with only one valid hosts file
-       - a local text file with valid hosts
-       - a remote text file without valid hosts format."""
+
+    This list contains :
+    - a remote zip file with 1 hosts file and 2 useless files
+    - a remote zip file with only useless files
+        (Should raise a FileNotFoundError)
+    - a remote zip file with only one valid hosts file
+    - a local text file with valid hosts
+    - a remote text file without valid hosts format.
+    """
 
     # remote zip file with 1 hosts file and 2 useless files
     file1 = create_blocklist(directory, blocked_hosts=CLEAN_HOSTS,
@@ -233,7 +238,9 @@ def generic_blocklists(directory):
 
 def test_without_datadir(config_stub, tmpdir, monkeypatch, win_registry):
     """No directory for data configured so no hosts file exists.
-       Ensure CommandError is raised and no Url is blocked."""
+
+    Ensure CommandError is raised and no URL is blocked.
+    """
     config_stub.data = {'content':
                         {'host-block-lists': generic_blocklists(tmpdir),
                          'host-blocking-enabled': True}}
@@ -264,7 +271,7 @@ def test_disabled_blocking_update(basedir, config_stub, download_stub,
 
 def test_no_blocklist_update(config_stub, download_stub,
                              data_tmpdir, basedir, tmpdir, win_registry):
-    """Ensure no Url is blocked when no block list exists."""
+    """Ensure no URL is blocked when no block list exists."""
     config_stub.data = {'content':
                         {'host-block-lists': None,
                          'host-blocking-enabled': True}}
@@ -294,8 +301,10 @@ def test_successful_update(config_stub, basedir, download_stub,
 
 def test_failed_dl_update(config_stub, basedir, download_stub,
                           data_tmpdir, tmpdir, win_registry):
-    """ One blocklist fails to download.
-        Ensure hosts from this list are not blocked."""
+    """One blocklist fails to download.
+
+    Ensure hosts from this list are not blocked.
+    """
     dl_fail_blocklist = QUrl(create_blocklist(tmpdir,
                                               blocked_hosts=CLEAN_HOSTS,
                                               name='download_will_fail',
