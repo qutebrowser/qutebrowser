@@ -367,22 +367,28 @@ def test_blocking_with_whitelist(config_stub, basedir, download_stub,
     assert_urls(host_blocker)
 
 
-# XXX Intended behavior ?
-# User runs qutebrowser with host-blocking enabled
-# A blocklist is present in host-block-lists and blocked_hosts is populated
-#
-# User quits qutebrowser, empties host-block-lists from his config
-# User restarts qutebrowser, does adblock-update (which will return None)
-# read_hosts still returns hosts from unchanged blocked_hosts file
-#
-# Is this intended behavior or shouldn't on_config_changed be also called
-# during HostBlocker instance init to avoid this ?
-#
-# As a comparison,
-# host-block-lists is emptied with qutebrowser running
-# on_config_changed slot is activated
-# blocked_hosts is emptied
-# read_hosts doesn't return any host, as expected
+def test_config_change_initial(config_stub, basedir, download_stub,
+                               data_tmpdir, tmpdir):
+    """Test the following scenario:
+
+    - A blocklist is present in host-block-lists and blocked_hosts is populated
+    - User quits qutebrowser, empties host-block-lists from his config
+    - User restarts qutebrowser, does adblock-update
+    """
+    create_blocklist(tmpdir, blocked_hosts=BLOCKLIST_HOSTS,
+                     name='blocked-hosts', line_format='one_per_line')
+    config_stub.data = {
+        'content': {
+            'host-block-lists': None,
+            'host-blocking-enabled': True,
+            'host-blocking-whitelist': None,
+        }
+    }
+    host_blocker = adblock.HostBlocker()
+    host_blocker.read_hosts()
+    for str_url in URLS_TO_CHECK:
+        assert not host_blocker.is_blocked(QUrl(str_url))
+
 
 def test_config_change(config_stub, basedir, download_stub,
                        data_tmpdir, tmpdir):

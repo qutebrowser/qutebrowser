@@ -116,6 +116,7 @@ class HostBlocker:
             self._local_hosts_file = None
         else:
             self._local_hosts_file = os.path.join(data_dir, 'blocked-hosts')
+            self.on_config_changed()
 
         config_dir = standarddir.config()
         if config_dir is None:
