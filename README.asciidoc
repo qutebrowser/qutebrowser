@@ -153,6 +153,7 @@ Contributors, sorted by the number of commits in descending order:
 * Ryan Roden-Corrent
 * Patric Schmitz
 * Claude
+* Corentin Julé
 * meles5
 * Tarcisio Fedrizzi
 * Artur Shaik
@@ -198,7 +199,6 @@ Contributors, sorted by the number of commits in descending order:
 * Jan Verbeek
 * Fritz V155 Reichwald
 * Franz Fellner
-* Corentin Jule
 * zwarag
 * xd1le
 * issue
