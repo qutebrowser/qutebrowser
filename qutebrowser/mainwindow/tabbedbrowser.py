@@ -67,6 +67,7 @@ class TabbedBrowser(tabwidget.TabWidget):
         shutting_down: Whether we're currently shutting down.
         _local_marks: Jump markers local to each page
         _global_marks: Jump markers used across all pages
+        default_window_icon: The qutebrowser window icon
 
     Signals:
         cur_progress: Progress of the current tab changed (loadProgress).
