@@ -244,7 +244,7 @@ def test_without_datadir(config_stub, tmpdir, monkeypatch, win_registry):
     config_stub.data = {
         'content': {
             'host-block-lists': generic_blocklists(tmpdir),
-            'host-blocking-enabled': True
+            'host-blocking-enabled': True,
         }
     }
     monkeypatch.setattr('qutebrowser.utils.standarddir.data', lambda: None)
@@ -265,7 +265,7 @@ def test_disabled_blocking_update(basedir, config_stub, download_stub,
     config_stub.data = {
         'content': {
             'host-block-lists': generic_blocklists(tmpdir),
-            'host-blocking-enabled': False
+            'host-blocking-enabled': False,
         }
     }
     host_blocker = adblock.HostBlocker()
@@ -284,7 +284,7 @@ def test_no_blocklist_update(config_stub, download_stub,
     config_stub.data = {
         'content': {
             'host-block-lists': None,
-            'host-blocking-enabled': True
+            'host-blocking-enabled': True,
         }
     }
     host_blocker = adblock.HostBlocker()
@@ -301,7 +301,7 @@ def test_successful_update(config_stub, basedir, download_stub,
         'content': {
             'host-block-lists': generic_blocklists(tmpdir),
             'host-blocking-enabled': True,
-            'host-blocking-whitelist': None
+            'host-blocking-whitelist': None,
         }
     }
     host_blocker = adblock.HostBlocker()
@@ -329,7 +329,7 @@ def test_failed_dl_update(config_stub, basedir, download_stub,
         'content': {
             'host-block-lists': hosts_to_block,
             'host-blocking-enabled': True,
-            'host-blocking-whitelist': None
+            'host-blocking-whitelist': None,
         }
     }
     host_blocker = adblock.HostBlocker()
@@ -359,7 +359,7 @@ def test_blocking_with_whitelist(config_stub, basedir, download_stub,
         'content': {
             'host-block-lists': [blocklist],
             'host-blocking-enabled': True,
-            'host-blocking-whitelist': WHITELISTED_HOSTS
+            'host-blocking-whitelist': WHITELISTED_HOSTS,
         }
     }
     host_blocker = adblock.HostBlocker()
@@ -396,7 +396,7 @@ def test_config_change(config_stub, basedir, download_stub,
         'content': {
             'host-block-lists': [blocklist],
             'host-blocking-enabled': True,
-            'host-blocking-whitelist': None
+            'host-blocking-whitelist': None,
         }
     }
     host_blocker = adblock.HostBlocker()
