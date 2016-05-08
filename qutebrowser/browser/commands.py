@@ -1400,7 +1400,7 @@ class CommandDispatcher:
         try:
             sel = utils.get_clipboard(selection=True)
         except utils.SelectionUnsupportedError:
-            return
+            sel = utils.get_clipboard()
 
         log.misc.debug("Pasting primary selection into element {}".format(
             elem.debug_text()))

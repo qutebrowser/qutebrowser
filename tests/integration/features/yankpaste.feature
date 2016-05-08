@@ -276,3 +276,14 @@ Feature: Yanking and pasting.
         And I run :enter-mode insert
         And I run :paste-primary
         Then the error "Focused element is not editable!" should be shown
+
+    Scenario: :paste-primary without primary selection supported
+        When selection is not supported
+        And I open data/paste_primary.html
+        And I put "Hello world" into the clipboard
+        # Click the text field
+        And I run :hint all
+        And I run :follow-hint a
+        And I run :paste-primary
+        # Compare
+        Then the text field should contain "Hello world"

@@ -202,6 +202,13 @@ def selection_supported(qapp):
         pytest.skip("OS doesn't support primary selection!")
 
 
+@bdd.when("selection is not supported")
+def selection_not_supported(qapp):
+    """Skip the test if selection is supported."""
+    if qapp.clipboard().supportsSelection():
+        pytest.skip("OS supports primary selection!")
+
+
 @bdd.when(bdd.parsers.re(r'I put "(?P<content>.*)" into the '
                          r'(?P<what>primary selection|clipboard)'))
 def fill_clipboard(quteproc, httpbin, what, content):
