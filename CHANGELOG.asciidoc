@@ -51,6 +51,8 @@ Fixed
 
 - Fixed crash when downloading from an URL with SSL errors
 - Close file handles correctly when a download failed
+- Fixed crash when using `;Y` (`:hint links yank-primary`) on a system without
+  primary selection
 
 v0.6.2
 ------

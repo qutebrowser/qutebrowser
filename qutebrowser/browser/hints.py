@@ -28,6 +28,7 @@ import string
 from PyQt5.QtCore import (pyqtSignal, pyqtSlot, QObject, QEvent, Qt, QUrl,
                           QTimer)
 from PyQt5.QtGui import QMouseEvent
+from PyQt5.QtWidgets import QApplication
 from PyQt5.QtWebKit import QWebElement
 from PyQt5.QtWebKitWidgets import QWebPage
 
@@ -490,7 +491,12 @@ class HintManager(QObject):
             url: The URL to open as a QUrl.
             context: The HintContext to use.
         """
-        sel = context.target == Target.yank_primary
+        if (context.target == Target.yank_primary and
+                QApplication.clipboard().supportsSelection()):
+            sel = True
+        else:
+            sel = False
+
         urlstr = url.toString(QUrl.FullyEncoded | QUrl.RemovePassword)
         utils.set_clipboard(urlstr, selection=sel)
 

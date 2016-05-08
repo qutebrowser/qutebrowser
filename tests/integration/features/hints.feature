@@ -57,3 +57,11 @@ Feature: Using hints
         And I run :hint all spawn -v echo
         And I run :follow-hint a
         Then the message "Command exited successfully" should be shown
+
+    Scenario: Yanking to primary selection without it being supported (#1336)
+        When selection is not supported
+        And I run :debug-set-fake-clipboard
+        And I open data/hints/link.html
+        And I run :hint links yank-primary
+        And I run :follow-hint a
+        Then the clipboard should contain "http://localhost:(port)/data/hello.txt"

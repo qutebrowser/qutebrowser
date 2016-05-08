@@ -418,8 +418,8 @@ def clipboard_contains(quteproc, httpbin, what, content):
 
 
 @bdd.then(bdd.parsers.parse('the clipboard should contain:\n{content}'))
-def clipboard_contains_multiline(quteproc, content):
-    expected = textwrap.dedent(content)
+def clipboard_contains_multiline(quteproc, httpbin, content):
+    expected = textwrap.dedent(content).replace('(port)', httpbin.port)
     quteproc.wait_for(message='Setting fake clipboard: {}'.format(
         json.dumps(expected)))
 
