@@ -490,11 +490,8 @@ class HintManager(QObject):
             url: The URL to open as a QUrl.
             context: The HintContext to use.
         """
-        if (context.target == Target.yank_primary and
-                utils.supports_selection()):
-            sel = True
-        else:
-            sel = False
+        sel = (context.target == Target.yank_primary and
+               utils.supports_selection())
 
         urlstr = url.toString(QUrl.FullyEncoded | QUrl.RemovePassword)
         utils.set_clipboard(urlstr, selection=sel)
