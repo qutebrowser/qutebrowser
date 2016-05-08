@@ -983,4 +983,4 @@ class TestGetSetClipboard:
     @pytest.mark.parametrize('selection', [True, False])
     def test_supports_selection(self, clipboard_mock, selection):
         clipboard_mock.supportsSelection.return_value = selection
-        assert utils.supports_selection == selection
+        assert utils.supports_selection() == selection
