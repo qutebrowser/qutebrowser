@@ -36,24 +36,24 @@ pytestmark = pytest.mark.usefixtures('qapp')
 
 # TODO See ../utils/test_standarddirutils for OSError and caplog assertion
 
-WHITELISTED_HOSTS = ['qutebrowser.org', 'mediumhost.io']
+WHITELISTED_HOSTS = ('qutebrowser.org', 'mediumhost.io')
 
-BLOCKLIST_HOSTS = ['localhost',
+BLOCKLIST_HOSTS = ('localhost',
                    'mediumhost.io',
                    'malware.badhost.org',
                    '4-verybadhost.com',
-                   'ads.worsthostever.net']
+                   'ads.worsthostever.net')
 
-CLEAN_HOSTS = ['goodhost.gov', 'verygoodhost.com']
+CLEAN_HOSTS = ('goodhost.gov', 'verygoodhost.com')
 
-URLS_TO_CHECK = ['http://localhost',
+URLS_TO_CHECK = ('http://localhost',
                  'http://mediumhost.io',
                  'ftp://malware.badhost.org',
                  'http://4-verybadhost.com',
                  'http://ads.worsthostever.net',
                  'http://goodhost.gov',
                  'ftp://verygoodhost.com',
-                 'http://qutebrowser.org']
+                 'http://qutebrowser.org')
 
 
 @pytest.fixture
