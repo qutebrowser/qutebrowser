@@ -979,3 +979,8 @@ class TestGetSetClipboard:
         utils.fake_clipboard = 'fake clipboard text'
         utils.get_clipboard(selection=selection)
         assert utils.fake_clipboard is None
+
+    @pytest.mark.parametrize('selection', [True, False])
+    def test_supports_selection(self, clipboard_mock, selection):
+        clipboard_mock.supportsSelection.return_value = selection
+        assert utils.supports_selection == selection

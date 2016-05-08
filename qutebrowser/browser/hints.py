@@ -28,7 +28,6 @@ import string
 from PyQt5.QtCore import (pyqtSignal, pyqtSlot, QObject, QEvent, Qt, QUrl,
                           QTimer)
 from PyQt5.QtGui import QMouseEvent
-from PyQt5.QtWidgets import QApplication
 from PyQt5.QtWebKit import QWebElement
 from PyQt5.QtWebKitWidgets import QWebPage
 
@@ -492,7 +491,7 @@ class HintManager(QObject):
             context: The HintContext to use.
         """
         if (context.target == Target.yank_primary and
-                QApplication.clipboard().supportsSelection()):
+                utils.supports_selection()):
             sel = True
         else:
             sel = False

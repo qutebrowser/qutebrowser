@@ -688,7 +688,7 @@ class CommandDispatcher:
             s = self._current_url().toString(flags)
             what = 'URL'
 
-        if sel and QApplication.clipboard().supportsSelection():
+        if sel and utils.supports_selection():
             target = "primary selection"
         else:
             sel = False
@@ -833,7 +833,7 @@ class CommandDispatcher:
             bg: Open in a background tab.
             window: Open in new window.
         """
-        if sel and QApplication.clipboard().supportsSelection():
+        if sel and utils.supports_selection():
             target = "Primary selection"
         else:
             sel = False
@@ -1756,7 +1756,7 @@ class CommandDispatcher:
             message.info(self._win_id, "Nothing to yank")
             return
 
-        if sel and QApplication.clipboard().supportsSelection():
+        if sel and utils.supports_selection():
             target = "primary selection"
         else:
             sel = False
