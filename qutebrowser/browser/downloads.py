@@ -1245,4 +1245,4 @@ class DownloadManager(QAbstractListModel):
         Return:
             The number of unfinished downloads.
         """
-        return len([1 for download in self.downloads if not download.done])
+        return sum(1 for download in self.downloads if not download.done)
