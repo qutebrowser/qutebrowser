@@ -1238,3 +1238,11 @@ class DownloadManager(QAbstractListModel):
             # We don't have children
             return 0
         return len(self.downloads)
+
+    def running_downloads(self):
+        """Return the amount of still running downloads.
+
+        Return:
+            The number of unfinished downloads.
+        """
+        return len([1 for download in self.downloads if not download.done])
