@@ -44,7 +44,5 @@ def test_filter_accepts_row(pattern, data, expected):
     idx = filter_model.index(0, 0)
     assert idx.isValid()
 
-    if expected:
-        assert filter_model.rowCount(idx) == 1
-    else:
-        assert filter_model.rowCount(idx) == 0
+    row_count = filter_model.rowCount(idx)
+    assert row_count == (1 if expected else 0)
