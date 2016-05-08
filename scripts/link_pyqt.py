@@ -191,7 +191,7 @@ def get_tox_syspython(tox_path):
     path = os.path.join(tox_path, '.tox-config1')
     with open(path, encoding='ascii') as f:
         line = f.readline()
-    _md5, sys_python = line.rstrip().split(' ')
+    _md5, sys_python = line.rstrip().split(' ', 1)
     return sys_python
 
 
