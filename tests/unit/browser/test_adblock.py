@@ -58,7 +58,7 @@ URLS_TO_CHECK = ('http://localhost',
 
 @pytest.fixture
 def data_tmpdir(monkeypatch, tmpdir):
-    """Set tmpdir as datadir"""
+    """Set tmpdir as datadir."""
     tmpdir = str(tmpdir)
     monkeypatch.setattr('qutebrowser.utils.standarddir.data', lambda: tmpdir)
 
@@ -139,13 +139,13 @@ def create_blocklist(directory, blocked_hosts=BLOCKLIST_HOSTS,
                      name='hosts', line_format='one_per_line'):
     """Return a path to a blocklist file.
 
-       Args:
-           directory: path object where to create the blocklist file
-           blocked_hosts: an iterable of string hosts to add to the blocklist
-           name: name to give to the blocklist file
-           line_format: 'etc_hosts'  -->  /etc/hosts format
-                        'one_per_line'  -->  one host per line format
-                        'not_correct'  -->  Not a correct hosts file format.
+    Args:
+        directory: path object where to create the blocklist file
+        blocked_hosts: an iterable of string hosts to add to the blocklist
+        name: name to give to the blocklist file
+        line_format: 'etc_hosts'  -->  /etc/hosts format
+                    'one_per_line'  -->  one host per line format
+                    'not_correct'  -->  Not a correct hosts file format.
     """
     blocklist_file = directory / name
     with open(str(blocklist_file), 'w', encoding='UTF-8') as blocklist:
@@ -193,7 +193,6 @@ def generic_blocklists(directory):
     - a local text file with valid hosts
     - a remote text file without valid hosts format.
     """
-
     # remote zip file with 1 hosts file and 2 useless files
     file1 = create_blocklist(directory, blocked_hosts=CLEAN_HOSTS,
                              name='README', line_format='not_correct')
@@ -372,7 +371,7 @@ def test_blocking_with_whitelist(config_stub, basedir, download_stub,
 
 def test_config_change_initial(config_stub, basedir, download_stub,
                                data_tmpdir, tmpdir):
-    """Test the following scenario:
+    """Test emptying host-block-lists on restart with existing blocked_hosts.
 
     - A blocklist is present in host-block-lists and blocked_hosts is populated
     - User quits qutebrowser, empties host-block-lists from his config
