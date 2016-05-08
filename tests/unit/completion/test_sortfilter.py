@@ -24,48 +24,16 @@ import pytest
 from qutebrowser.completion.models import base, sortfilter
 
 
-@pytest.mark.parametrize('match_type, pattern, data, expected', [
-    ('contain', 'foo', 'barfoobar', True),
-    ('contain', 'foo', 'barFOObar', True),
-    ('contain', 'Foo', 'barfOObar', True),
-    ('contain', 'ab', 'aonebtwo', False),
-    ('contain', '33', 'l33t', True),
-    ('contain', 'x', 'blah', False),
-    ('contain', '4', 'blah', False),
-
-    ('fuzzy', 'foo', 'barfoobar', True),
-    ('fuzzy', 'foo', 'barFoObar', True),
-    ('fuzzy', 'fOO', 'barFoobar', True),
-    ('fuzzy', 'ab', 'aonebtwo', True),
-    ('fuzzy', 'abb', 'aonebtwo', True),
-    ('fuzzy', 'abb', 'aonebtwob', True),
-    ('fuzzy', 'abeb', 'aonebtwo', False),
-    ('fuzzy', 'dore', 'download-remove', True),
-    ('fuzzy', 'dorn', 'download-remove', False),
-    ('fuzzy', 'x', 'blah', False),
-    ('fuzzy', '14', 'bar1234Foobar', True),
-    ('fuzzy', '14', 'bar3Foobar', False),
-    ('fuzzy', 'ab', 'boneatwo', False),
-    ('fuzzy', '/?', 'http://00hta.com', False),
-
-    ('start', 'foo', 'foobar', True),
-    ('start', '1oo', '1oobar', True),
-    ('start', '1oo', '2arfoobar', False),
-    ('start', 'foo', 'Foobar', True),
-    ('start', 'Foo', 'foobar', True),
-    ('start', 'foo', 'barfoobar', False),
-    ('start', 'foo', 'barfoo', False),
-    ('start', 'ab', 'aonebtwo', False),
-    ('start', 'x', 'blah', False),
-    ('start', 'ht', 'http://a.com', False),
-    ('start', 'ht', 'http://aht.com', False),
-    ('start', '11', 'http://aht.com', False),
-    ('start', 'ht', 'http://hta.com', True),
-    ('start', '00', 'http://00hta.com', True),
+@pytest.mark.parametrize('pattern, data, expected', [
+    ('foo', 'barfoobar', True),
+    ('foo', 'barFOObar', True),
+    ('Foo', 'barfOObar', True),
+    ('ab', 'aonebtwo', False),
+    ('33', 'l33t', True),
+    ('x', 'blah', False),
+    ('4', 'blah', False),
 ])
-def test_filter_accepts_row(config_stub, match_type, pattern, data, expected):
-    config_stub.data = {'completion': {'match-type': match_type}}
-
+def test_filter_accepts_row(pattern, data, expected):
     source_model = base.BaseCompletionModel()
     cat = source_model.new_category('test')
     source_model.new_item(cat, data)
