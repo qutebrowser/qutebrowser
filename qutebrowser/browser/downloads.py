@@ -897,8 +897,8 @@ class DownloadManager(QAbstractListModel):
         download.redirected.connect(
             functools.partial(self.on_redirect, download))
         download.basename = suggested_filename
-        idx = len(self.downloads) + 1
-        download.index = idx
+        idx = len(self.downloads)
+        download.index = idx + 1  # "Human readable" index
         self.beginInsertRows(QModelIndex(), idx, idx)
         self.downloads.append(download)
         self.endInsertRows()
