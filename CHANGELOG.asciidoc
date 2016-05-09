@@ -53,6 +53,7 @@ Fixed
 - Close file handles correctly when a download failed
 - Fixed crash when using `;Y` (`:hint links yank-primary`) on a system without
   primary selection
+- Don't display quit confirmation with finished downloads
 
 v0.6.2
 ------

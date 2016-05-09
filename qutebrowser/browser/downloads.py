@@ -897,8 +897,8 @@ class DownloadManager(QAbstractListModel):
         download.redirected.connect(
             functools.partial(self.on_redirect, download))
         download.basename = suggested_filename
-        idx = len(self.downloads) + 1
-        download.index = idx
+        idx = len(self.downloads)
+        download.index = idx + 1  # "Human readable" index
         self.beginInsertRows(QModelIndex(), idx, idx)
         self.downloads.append(download)
         self.endInsertRows()
@@ -1238,3 +1238,11 @@ class DownloadManager(QAbstractListModel):
             # We don't have children
             return 0
         return len(self.downloads)
+
+    def running_downloads(self):
+        """Return the amount of still running downloads.
+
+        Return:
+            The number of unfinished downloads.
+        """
+        return sum(1 for download in self.downloads if not download.done)

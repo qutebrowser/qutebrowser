@@ -413,7 +413,7 @@ class MainWindow(QWidget):
         tab_count = self.tabbed_browser.count()
         download_manager = objreg.get('download-manager', scope='window',
                                       window=self.win_id)
-        download_count = download_manager.rowCount()
+        download_count = download_manager.running_downloads()
         quit_texts = []
         # Ask if multiple-tabs are open
         if 'multiple-tabs' in confirm_quit and tab_count > 1:
