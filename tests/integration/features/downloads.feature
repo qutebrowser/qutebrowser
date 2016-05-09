@@ -200,3 +200,14 @@ Feature: Downloading things from a website.
         And I run :close
         And I wait 0.5s
         Then no crash should happen
+
+    ## https://github.com/The-Compiler/qutebrowser/issues/846
+
+    Scenario: Quitting with finished downloads and confirm-quit=downloads
+        Given I have a fresh instance
+        When I set storage -> prompt-download-directory to false
+        And I set ui -> confirm-quit to downloads
+        And I open data/downloads/download.bin
+        And I wait until the download is finished
+        And I run :close
+        Then qutebrowser should quit
