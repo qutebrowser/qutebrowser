@@ -184,8 +184,9 @@ class SaveManager(QObject):
                 message.error('current', "Failed to auto-save {}: "
                               "{}".format(key, e))
 
-    @cmdutils.register(instance='save-manager', name='save', win_id='win_id')
-    def save_command(self, win_id, *what: {'nargs': '*'}):
+    @cmdutils.register(instance='save-manager', name='save', win_id='win_id',
+                       star_args_optional=True)
+    def save_command(self, win_id, *what):
         """Save configs and state.
 
         Args:

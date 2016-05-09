@@ -441,8 +441,6 @@ then automatically checked. Possible values:
       e.g. `('foo', 'bar')` or `(int, 'foo')`.
 * `flag`: The flag to be used, as 1-char string (default: First char of the
 long name).
-* `nargs`: Gets passed to argparse, see
-https://docs.python.org/dev/library/argparse.html#nargs[its documentation].
 
 The name of an argument will always be the parameter name, with any trailing
 underscores stripped.

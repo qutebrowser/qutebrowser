@@ -65,15 +65,15 @@ class Command:
         AnnotationInfo: Named tuple for info from an annotation.
     """
 
-    AnnotationInfo = collections.namedtuple('AnnotationInfo',
-                                            ['kwargs', 'type', 'flag', 'hide',
-                                             'metavar'])
+    AnnotationInfo = collections.namedtuple(
+        'AnnotationInfo', ['type', 'flag', 'hide', 'metavar'])
 
     def __init__(self, *, handler, name, instance=None, maxsplit=None,
                  hide=False, completion=None, modes=None, not_modes=None,
                  needs_js=False, debug=False, ignore_args=False,
-                 deprecated=False, no_cmd_split=False, scope='global',
-                 count=None, win_id=None):
+                 deprecated=False, no_cmd_split=False,
+                 star_args_optional=False, scope='global', count=None,
+                 win_id=None):
         # I really don't know how to solve this in a better way, I tried.
         # pylint: disable=too-many-locals
         if modes is not None and not_modes is not None:
@@ -99,6 +99,7 @@ class Command:
         self._not_modes = not_modes
         self._scope = scope
         self._needs_js = needs_js
+        self._star_args_optional = star_args_optional
         self.debug = debug
         self.ignore_args = ignore_args
         self.handler = handler
@@ -276,13 +277,12 @@ class Command:
             kwargs['type'] = typ
 
         if param.kind == inspect.Parameter.VAR_POSITIONAL:
-            kwargs['nargs'] = '+'
+            kwargs['nargs'] = '*' if self._star_args_optional else '+'
         elif param.kind == inspect.Parameter.KEYWORD_ONLY:
             kwargs['default'] = param.default
         elif typ is not bool and param.default is not inspect.Parameter.empty:
             kwargs['default'] = param.default
             kwargs['nargs'] = '?'
-        kwargs.update(annotation_info.kwargs)
         return kwargs
 
     def _param_to_argparse_args(self, param, annotation_info):
@@ -324,22 +324,17 @@ class Command:
 
         Return:
             An AnnotationInfo namedtuple.
-                kwargs: A dict of keyword args to add to the
-                        argparse.ArgumentParser.add_argument call.
                 typ: The type to use for this argument.
                 flag: The short name/flag if overridden.
                 name: The long name if overridden.
         """
-        info = {'kwargs': {}, 'type': None, 'flag': None, 'hide': False,
-                'metavar': None}
+        info = {'type': None, 'flag': None, 'hide': False, 'metavar': None}
         if param.annotation is not inspect.Parameter.empty:
             log.commands.vdebug("Parsing annotation {}".format(
                 param.annotation))
             for field in ('type', 'flag', 'name', 'hide', 'metavar'):
                 if field in param.annotation:
                     info[field] = param.annotation[field]
-            if 'nargs' in param.annotation:
-                info['kwargs'] = {'nargs': param.annotation['nargs']}
         return self.AnnotationInfo(**info)
 
     def _get_type(self, param, annotation_info):
