@@ -79,8 +79,8 @@ def test_auto_leave_insert_mode(quteproc):
     quteproc.send_cmd(':enter-mode caret')
     quteproc.send_cmd(':paste-primary')
 
-    expected_message = 'paste-primary: This command is only allowed in '\
-                       'insert mode.'
+    expected_message = ('paste-primary: This command is only allowed in '
+                        'insert mode.')
     quteproc.mark_expected(category='message',
                            loglevel=logging.ERROR,
                            message=expected_message)
