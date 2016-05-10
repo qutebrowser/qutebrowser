@@ -439,8 +439,6 @@ then automatically checked. Possible values:
     - A python enum type: All members of the enum are possible values.
     - A tuple of multiple types above: Any of these types are valid values,
       e.g. `('foo', 'bar')` or `(int, 'foo')`.
-* `flag`: The flag to be used, as 1-char string (default: First char of the
-long name).
 
 The name of an argument will always be the parameter name, with any trailing
 underscores stripped.
