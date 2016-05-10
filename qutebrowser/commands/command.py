@@ -39,23 +39,27 @@ class ArgInfo:
 
     """Information about an argument."""
 
-    def __init__(self, win_id=False, count=False, flag=None, hide=False):
+    def __init__(self, win_id=False, count=False, flag=None, hide=False,
+                 metavar=None):
         if win_id and count:
             raise TypeError("Argument marked as both count/win_id!")
         self.win_id = win_id
         self.count = count
         self.flag = flag
         self.hide = hide
+        self.metavar = metavar
 
     def __eq__(self, other):
         return (self.win_id == other.win_id and
                 self.count == other.count and
                 self.flag == other.flag and
-                self.hide == other.hide)
+                self.hide == other.hide and
+                self.metavar == other.metavar)
 
     def __repr__(self):
         return utils.get_repr(self, win_id=self.win_id, count=self.count,
-                              flag=self.flag, hide=self.hide, constructor=True)
+                              flag=self.flag, hide=self.hide,
+                              metavar=self.metavar, constructor=True)
 
 
 class Command:
@@ -89,7 +93,7 @@ class Command:
     """
 
     AnnotationInfo = collections.namedtuple(
-        'AnnotationInfo', ['type', 'metavar'])
+        'AnnotationInfo', ['type'])
 
     def __init__(self, *, handler, name, instance=None, maxsplit=None,
                  hide=False, completion=None, modes=None, not_modes=None,
@@ -289,11 +293,13 @@ class Command:
 
         kwargs['dest'] = param.name
 
+        arg_info = self.get_arg_info(param)
+
         if isinstance(typ, tuple):
-            kwargs['metavar'] = annotation_info.metavar or param.name
+            kwargs['metavar'] = arg_info.metavar or param.name
         elif utils.is_enum(typ):
             kwargs['choices'] = [arg_name(e.name) for e in typ]
-            kwargs['metavar'] = annotation_info.metavar or param.name
+            kwargs['metavar'] = arg_info.metavar or param.name
         elif typ is bool:
             kwargs['action'] = 'store_true'
         elif typ is not None:
@@ -356,11 +362,11 @@ class Command:
                 typ: The type to use for this argument.
                 name: The long name if overridden.
         """
-        info = {'type': None, 'metavar': None}
+        info = {'type': None}
         if param.annotation is not inspect.Parameter.empty:
             log.commands.vdebug("Parsing annotation {}".format(
                 param.annotation))
-            for field in ('type', 'name', 'metavar'):
+            for field in ('type', 'name'):
                 if field in param.annotation:
                     info[field] = param.annotation[field]
         return self.AnnotationInfo(**info)

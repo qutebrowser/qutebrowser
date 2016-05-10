@@ -620,11 +620,11 @@ class CommandDispatcher:
     @cmdutils.register(instance='command-dispatcher', hide=True,
                        scope='window')
     @cmdutils.argument('count', count=True)
+    @cmdutils.argument('top_navigate', metavar='ACTION')
+    @cmdutils.argument('bottom_navigate', metavar='ACTION')
     def scroll_page(self, x: {'type': float}, y: {'type': float}, *,
-                    top_navigate: {'type': ('prev', 'decrement'),
-                                   'metavar': 'ACTION'}=None,
-                    bottom_navigate: {'type': ('next', 'increment'),
-                                      'metavar': 'ACTION'}=None,
+                    top_navigate: {'type': ('prev', 'decrement')}=None,
+                    bottom_navigate: {'type': ('next', 'increment')}=None,
                     count=1):
         """Scroll the frame page-wise.
 
