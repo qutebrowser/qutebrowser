@@ -446,10 +446,16 @@ flag an argument should get:
 [source,python]
 ----
 @cmdutils.register(...)
-@cmdutils.arg('bar', flag='c')
+@cmdutils.argument('bar', flag='c')
 def foo(bar):
     ...
 ----
+
+The following arguments are supported for `@cmdutils.argument`:
+
+- `flag`: Customize the short flag (`-x`) the argument will get.
+- `win_id=True`: Mark the argument as special window ID argument
+- `count=True`: Mark the argument as special count argument
 
 The name of an argument will always be the parameter name, with any trailing
 underscores stripped.
