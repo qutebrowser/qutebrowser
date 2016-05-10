@@ -87,13 +87,7 @@ class Command:
         _count: The count set for the command.
         _instance: The object to bind 'self' to.
         _scope: The scope to get _instance for in the object registry.
-
-    Class attributes:
-        AnnotationInfo: Named tuple for info from an annotation.
     """
-
-    AnnotationInfo = collections.namedtuple(
-        'AnnotationInfo', ['type'])
 
     def __init__(self, *, handler, name, instance=None, maxsplit=None,
                  hide=False, completion=None, modes=None, not_modes=None,
@@ -256,14 +250,13 @@ class Command:
 
         if not self.ignore_args:
             for param in signature.parameters.values():
-                annotation_info = self._parse_annotation(param)
                 if param.name == 'self':
                     continue
                 if self._inspect_special_param(param):
                     continue
-                typ = self._get_type(param, annotation_info)
-                kwargs = self._param_to_argparse_kwargs(param, annotation_info)
-                args = self._param_to_argparse_args(param, annotation_info)
+                typ = self._get_type(param)
+                kwargs = self._param_to_argparse_kwargs(param, typ)
+                args = self._param_to_argparse_args(param, typ)
                 self._type_conv.update(self._get_typeconv(param, typ))
                 callsig = debug_utils.format_call(
                     self.parser.add_argument, args, kwargs,
@@ -273,18 +266,17 @@ class Command:
                 self.parser.add_argument(*args, **kwargs)
         return signature.parameters.keys()
 
-    def _param_to_argparse_kwargs(self, param, annotation_info):
+    def _param_to_argparse_kwargs(self, param, typ):
         """Get argparse keyword arguments for a parameter.
 
         Args:
             param: The inspect.Parameter object to get the args for.
-            annotation_info: An AnnotationInfo tuple for the parameter.
+            typ: The type of the parameter
 
         Return:
             A kwargs dict.
         """
         kwargs = {}
-        typ = self._get_type(param, annotation_info)
 
         try:
             kwargs['help'] = self.docparser.arg_descs[param.name]
@@ -314,12 +306,12 @@ class Command:
             kwargs['nargs'] = '?'
         return kwargs
 
-    def _param_to_argparse_args(self, param, annotation_info):
+    def _param_to_argparse_args(self, param, typ):
         """Get argparse positional arguments for a parameter.
 
         Args:
             param: The inspect.Parameter object to get the args for.
-            annotation_info: An AnnotationInfo tuple for the parameter.
+            typ: The type of the parameter
 
         Return:
             A list of args.
@@ -337,7 +329,6 @@ class Command:
             raise ValueError("Flag '{}' of parameter {} (command {}) must be "
                              "exactly 1 char!".format(shortname, name,
                                                       self.name))
-        typ = self._get_type(param, annotation_info)
         if typ is bool or param.kind == inspect.Parameter.KEYWORD_ONLY:
             long_flag = '--{}'.format(name)
             short_flag = '-{}'.format(shortname)
@@ -351,33 +342,14 @@ class Command:
                 self.pos_args.append((param.name, name))
         return args
 
-    def _parse_annotation(self, param):
-        """Get argparse arguments and type from a parameter annotation.
-
-        Args:
-            param: A inspect.Parameter instance.
-
-        Return:
-            An AnnotationInfo namedtuple.
-                typ: The type to use for this argument.
-                name: The long name if overridden.
-        """
-        info = {'type': None}
-        if param.annotation is not inspect.Parameter.empty:
-            log.commands.vdebug("Parsing annotation {}".format(
-                param.annotation))
-            info['type'] = param.annotation['type']
-        return self.AnnotationInfo(**info)
-
-    def _get_type(self, param, annotation_info):
+    def _get_type(self, param):
         """Get the type of an argument from its default value or annotation.
 
         Args:
             param: The inspect.Parameter to look at.
-            annotation_info: An AnnotationInfo tuple which overrides the type.
         """
-        if annotation_info.type is not None:
-            return annotation_info.type
+        if param.annotation is not inspect.Parameter.empty:
+            return param.annotation
         elif param.default is None or param.default is inspect.Parameter.empty:
             return None
         else:

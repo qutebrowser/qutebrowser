@@ -41,7 +41,7 @@ from PyQt5.QtWidgets import QApplication  # pylint: disable=unused-import
 
 @cmdutils.register(maxsplit=1, no_cmd_split=True)
 @cmdutils.argument('win_id', win_id=True)
-def later(ms: {'type': int}, command, win_id):
+def later(ms: int, command, win_id):
     """Execute a command after some time.
 
     Args:
@@ -71,7 +71,7 @@ def later(ms: {'type': int}, command, win_id):
 
 @cmdutils.register(maxsplit=1, no_cmd_split=True)
 @cmdutils.argument('win_id', win_id=True)
-def repeat(times: {'type': int}, command, win_id):
+def repeat(times: int, command, win_id):
     """Repeat a given command.
 
     Args:
@@ -119,7 +119,7 @@ def message_warning(win_id, text):
 
 
 @cmdutils.register(debug=True)
-def debug_crash(typ: {'type': ('exception', 'segfault')}='exception'):
+def debug_crash(typ: ('exception', 'segfault')='exception'):
     """Crash for debugging purposes.
 
     Args:

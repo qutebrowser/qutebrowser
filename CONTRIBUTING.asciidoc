@@ -416,21 +416,17 @@ The types of the function arguments are inferred based on their default values,
 e.g. an argument `foo=True` will be converted to a flag `-f`/`--foo` in
 qutebrowser's commandline.
 
-This behavior can be overridden using Python's
-http://legacy.python.org/dev/peps/pep-3107/[function annotations]. The
-annotation should always be a `dict`, like this:
+The type can be overridden using Python's
+http://legacy.python.org/dev/peps/pep-3107/[function annotations]:
 
 [source,python]
 ----
 @cmdutils.register(...)
-def foo(bar: {'type': int}, baz=True):
+def foo(bar: int, baz=True):
     ...
 ----
 
-The following keys are supported in the dict:
-
-* `type`: The type this value should have. The value entered by the user is
-then automatically checked. Possible values:
+Possible values:
     - A callable (`int`, `float`, etc.): Gets called to validate/convert the
       value.
     - A string: The value must match exactly (mainly useful with tuples to get

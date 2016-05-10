@@ -455,8 +455,7 @@ class CommandDispatcher:
         self._open(url, tab, background, window)
 
     @cmdutils.register(instance='command-dispatcher', scope='window')
-    def navigate(self, where: {'type': ('prev', 'next', 'up', 'increment',
-                                        'decrement')},
+    def navigate(self, where: ('prev', 'next', 'up', 'increment', 'decrement'),
                  tab=False, bg=False, window=False):
         """Open typical prev/next links or navigate using the URL path.
 
@@ -505,7 +504,7 @@ class CommandDispatcher:
     @cmdutils.register(instance='command-dispatcher', hide=True,
                        scope='window')
     @cmdutils.argument('count', count=True)
-    def scroll_px(self, dx: {'type': int}, dy: {'type': int}, count=1):
+    def scroll_px(self, dx: int, dy: int, count=1):
         """Scroll the current tab by 'count * dx/dy' pixels.
 
         Args:
@@ -522,7 +521,7 @@ class CommandDispatcher:
     @cmdutils.register(instance='command-dispatcher', hide=True,
                        scope='window')
     @cmdutils.argument('count', count=True)
-    def scroll(self, direction: {'type': (str, int)}, count=1):
+    def scroll(self, direction: (str, int), count=1):
         """Scroll the current tab in the given direction.
 
         Args:
@@ -583,8 +582,7 @@ class CommandDispatcher:
                        scope='window')
     @cmdutils.argument('count', count=True)
     @cmdutils.argument('horizontal', flag='x')
-    def scroll_perc(self, perc: {'type': float}=None, horizontal=False,
-                    count=None):
+    def scroll_perc(self, perc: float=None, horizontal=False, count=None):
         """Scroll to a specific percentage of the page.
 
         The percentage can be given either as argument or as count.
@@ -622,9 +620,9 @@ class CommandDispatcher:
     @cmdutils.argument('count', count=True)
     @cmdutils.argument('top_navigate', metavar='ACTION')
     @cmdutils.argument('bottom_navigate', metavar='ACTION')
-    def scroll_page(self, x: {'type': float}, y: {'type': float}, *,
-                    top_navigate: {'type': ('prev', 'decrement')}=None,
-                    bottom_navigate: {'type': ('next', 'increment')}=None,
+    def scroll_page(self, x: float, y: float, *,
+                    top_navigate: ('prev', 'decrement')=None,
+                    bottom_navigate: ('next', 'increment')=None,
                     count=1):
         """Scroll the frame page-wise.
 
@@ -738,7 +736,7 @@ class CommandDispatcher:
 
     @cmdutils.register(instance='command-dispatcher', scope='window')
     @cmdutils.argument('count', count=True)
-    def zoom(self, zoom: {'type': int}=None, count=None):
+    def zoom(self, zoom: int=None, count=None):
         """Set the zoom level for the current tab.
 
         The zoom can be given as argument or as [count]. If neither of both is
@@ -921,7 +919,7 @@ class CommandDispatcher:
 
     @cmdutils.register(instance='command-dispatcher', scope='window')
     @cmdutils.argument('count', count=True)
-    def tab_focus(self, index: {'type': (int, 'last')}=None, count=None):
+    def tab_focus(self, index: (int, 'last')=None, count=None):
         """Select the tab given as argument/[count].
 
         If neither count nor index are given, it behaves like tab-next.
@@ -954,7 +952,7 @@ class CommandDispatcher:
 
     @cmdutils.register(instance='command-dispatcher', scope='window')
     @cmdutils.argument('count', count=True)
-    def tab_move(self, direction: {'type': ('+', '-')}=None, count=None):
+    def tab_move(self, direction: ('+', '-')=None, count=None):
         """Move the current tab.
 
         Args:
