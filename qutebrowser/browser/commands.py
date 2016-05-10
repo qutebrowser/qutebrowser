@@ -226,8 +226,8 @@ class CommandDispatcher:
             tabbar.setSelectionBehaviorOnRemove(old_selection_behavior)
 
     @cmdutils.register(instance='command-dispatcher', name='open',
-                       maxsplit=0, scope='window',
-                       completion=[usertypes.Completion.url])
+                       maxsplit=0, scope='window')
+    @cmdutils.argument('url', completion=usertypes.Completion.url)
     @cmdutils.argument('count', count=True)
     def openurl(self, url=None, bg=False, tab=False, window=False, count=None):
         """Open a URL in the current/[count]th tab.
@@ -863,8 +863,8 @@ class CommandDispatcher:
                 raise cmdexc.CommandError(e)
             self._open(url, tab, bg, window)
 
-    @cmdutils.register(instance='command-dispatcher', scope='window',
-                       completion=[usertypes.Completion.tab])
+    @cmdutils.register(instance='command-dispatcher', scope='window')
+    @cmdutils.argument('index', completion=usertypes.Completion.tab)
     def buffer(self, index):
         """Select tab by index or url/title best match.
 
@@ -1087,8 +1087,8 @@ class CommandDispatcher:
         quickmark_manager.prompt_save(self._win_id, self._current_url())
 
     @cmdutils.register(instance='command-dispatcher', scope='window',
-                       maxsplit=0,
-                       completion=[usertypes.Completion.quickmark_by_name])
+                       maxsplit=0)
+    @cmdutils.argument('name', completion=usertypes.Completion.quickmark_by_name)
     def quickmark_load(self, name, tab=False, bg=False, window=False):
         """Load a quickmark.
 
@@ -1118,8 +1118,8 @@ class CommandDispatcher:
                          "Bookmarked {}!".format(url.toDisplayString()))
 
     @cmdutils.register(instance='command-dispatcher', scope='window',
-                       maxsplit=0,
-                       completion=[usertypes.Completion.bookmark_by_url])
+                       maxsplit=0)
+    @cmdutils.argument('url', completion=usertypes.Completion.bookmark_by_url)
     def bookmark_load(self, url, tab=False, bg=False, window=False):
         """Load a bookmark.
 
@@ -1303,8 +1303,8 @@ class CommandDispatcher:
             message.info(self._win_id, "Dumped page to {}.".format(dest))
 
     @cmdutils.register(instance='command-dispatcher', name='help',
-                       completion=[usertypes.Completion.helptopic],
                        scope='window')
+    @cmdutils.argument('topic', completion=usertypes.Completion.helptopic)
     def show_help(self, tab=False, bg=False, window=False, topic=None):
         r"""Show help about a command or setting.
 

@@ -174,13 +174,6 @@ class TestRegister:
             pass
         assert cmdutils.cmd_dict['fun'].hide
 
-    def test_wrong_completion_count(self):
-        with pytest.raises(ValueError):
-            @cmdutils.register(completion=['one', 'two'])
-            def fun(arg):
-                """Blah."""
-                pass
-
     def test_star_args(self):
         """Check handling of *args."""
         @cmdutils.register()

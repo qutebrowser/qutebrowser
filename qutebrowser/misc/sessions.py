@@ -356,8 +356,8 @@ class SessionManager(QObject):
                 sessions.append(base)
         return sessions
 
-    @cmdutils.register(completion=[usertypes.Completion.sessions],
-                       instance='session-manager')
+    @cmdutils.register(instance='session-manager')
+    @cmdutils.argument('name', completion=usertypes.Completion.sessions)
     def session_load(self, name, clear=False, temp=False, force=False):
         """Load a session.
 
@@ -384,10 +384,9 @@ class SessionManager(QObject):
                 for win in old_windows:
                     win.close()
 
-    @cmdutils.register(name=['session-save', 'w'],
-                       completion=[usertypes.Completion.sessions],
-                       instance='session-manager')
+    @cmdutils.register(name=['session-save', 'w'], instance='session-manager')
     @cmdutils.argument('win_id', win_id=True)
+    @cmdutils.argument('name', completion=usertypes.Completion.sessions)
     def session_save(self, win_id, name: str=default, current=False,
                      quiet=False, force=False):
         """Save a session.
@@ -420,8 +419,8 @@ class SessionManager(QObject):
                 message.info(win_id, "Saved session {}.".format(name),
                              immediately=True)
 
-    @cmdutils.register(completion=[usertypes.Completion.sessions],
-                       instance='session-manager')
+    @cmdutils.register(instance='session-manager')
+    @cmdutils.argument('name', completion=usertypes.Completion.sessions)
     def session_delete(self, name, force=False):
         """Delete a session.
 

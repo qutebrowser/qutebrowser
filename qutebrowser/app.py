@@ -722,8 +722,8 @@ class Quitter:
         # segfaults.
         QTimer.singleShot(0, functools.partial(qApp.exit, status))
 
-    @cmdutils.register(instance='quitter', name='wq',
-                       completion=[usertypes.Completion.sessions])
+    @cmdutils.register(instance='quitter', name='wq')
+    @cmdutils.argument('name', completion=usertypes.Completion.sessions)
     def save_and_quit(self, name=sessions.default):
         """Save open pages and quit.
 

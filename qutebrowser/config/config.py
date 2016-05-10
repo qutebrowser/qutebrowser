@@ -686,9 +686,10 @@ class ConfigManager(QObject):
             raise cmdexc.CommandError("set: {} - {}".format(
                 e.__class__.__name__, e))
 
-    @cmdutils.register(name='set', instance='config',
-                       completion=[Completion.section, Completion.option,
-                                   Completion.value])
+    @cmdutils.register(name='set', instance='config')
+    @cmdutils.argument('section_', completion=Completion.section)
+    @cmdutils.argument('option', completion=Completion.option)
+    @cmdutils.argument('value', completion=Completion.value)
     @cmdutils.argument('win_id', win_id=True)
     def set_command(self, win_id, section_=None, option=None, value=None,
                     temp=False, print_=False):

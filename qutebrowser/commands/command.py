@@ -40,7 +40,7 @@ class ArgInfo:
     """Information about an argument."""
 
     def __init__(self, win_id=False, count=False, flag=None, hide=False,
-                 metavar=None):
+                 metavar=None, completion=None):
         if win_id and count:
             raise TypeError("Argument marked as both count/win_id!")
         self.win_id = win_id
@@ -48,18 +48,21 @@ class ArgInfo:
         self.flag = flag
         self.hide = hide
         self.metavar = metavar
+        self.completion = completion
 
     def __eq__(self, other):
         return (self.win_id == other.win_id and
                 self.count == other.count and
                 self.flag == other.flag and
                 self.hide == other.hide and
-                self.metavar == other.metavar)
+                self.metavar == other.metavar and
+                self.completion == other.completion)
 
     def __repr__(self):
         return utils.get_repr(self, win_id=self.win_id, count=self.count,
                               flag=self.flag, hide=self.hide,
-                              metavar=self.metavar, constructor=True)
+                              metavar=self.metavar, completion=self.completion,
+                              constructor=True)
 
 
 class Command:
@@ -90,10 +93,9 @@ class Command:
     """
 
     def __init__(self, *, handler, name, instance=None, maxsplit=None,
-                 hide=False, completion=None, modes=None, not_modes=None,
-                 needs_js=False, debug=False, ignore_args=False,
-                 deprecated=False, no_cmd_split=False,
-                 star_args_optional=False, scope='global'):
+                 hide=False, modes=None, not_modes=None, needs_js=False,
+                 debug=False, ignore_args=False, deprecated=False,
+                 no_cmd_split=False, star_args_optional=False, scope='global'):
         # I really don't know how to solve this in a better way, I tried.
         # pylint: disable=too-many-locals
         if modes is not None and not_modes is not None:
@@ -115,7 +117,6 @@ class Command:
         self.hide = hide
         self.deprecated = deprecated
         self._instance = instance
-        self.completion = completion
         self._modes = modes
         self._not_modes = not_modes
         self._scope = scope
@@ -148,10 +149,11 @@ class Command:
 
         args = self._inspect_func()
 
-        if self.completion is not None and len(self.completion) > len(args):
-            raise ValueError("Got {} completions, but only {} "
-                             "arguments!".format(len(self.completion),
-                                                 len(args)))
+        self.completion = []
+        for arg in args:
+            arg_completion = self.get_arg_info(arg).completion
+            if arg_completion is not None:
+                self.completion.append(arg_completion)
 
     def _check_prerequisites(self, win_id):
         """Check if the command is permitted to run currently.
@@ -264,7 +266,7 @@ class Command:
                 log.commands.vdebug('Adding arg {} of type {} -> {}'.format(
                     param.name, typ, callsig))
                 self.parser.add_argument(*args, **kwargs)
-        return signature.parameters.keys()
+        return signature.parameters.values()
 
     def _param_to_argparse_kwargs(self, param, typ):
         """Get argparse keyword arguments for a parameter.

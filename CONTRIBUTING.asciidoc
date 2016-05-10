@@ -453,6 +453,7 @@ The following arguments are supported for `@cmdutils.argument`:
 - `win_id=True`: Mark the argument as special window ID argument
 - `count=True`: Mark the argument as special count argument
 - `hide=True`: Hide the argument from the documentation
+- `completion`: A `usertypes.Completion` member to use as completion.
 
 The name of an argument will always be the parameter name, with any trailing
 underscores stripped.
