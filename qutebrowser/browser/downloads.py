@@ -946,8 +946,8 @@ class DownloadManager(QAbstractListModel):
             raise cmdexc.CommandError("There's no download!")
         raise cmdexc.CommandError("There's no download {}!".format(count))
 
-    @cmdutils.register(instance='download-manager', scope='window',
-                       count='count')
+    @cmdutils.register(instance='download-manager', scope='window')
+    @cmdutils.argument('count', count=True)
     def download_cancel(self, all_=False, count=0):
         """Cancel the last/[count]th download.
 
@@ -973,8 +973,8 @@ class DownloadManager(QAbstractListModel):
                                         .format(count))
             download.cancel()
 
-    @cmdutils.register(instance='download-manager', scope='window',
-                       count='count')
+    @cmdutils.register(instance='download-manager', scope='window')
+    @cmdutils.argument('count', count=True)
     def download_delete(self, count=0):
         """Delete the last/[count]th download from disk.
 
@@ -993,8 +993,8 @@ class DownloadManager(QAbstractListModel):
         self.remove_item(download)
         log.downloads.debug("deleted download {}".format(download))
 
-    @cmdutils.register(instance='download-manager', scope='window',
-                       count='count')
+    @cmdutils.register(instance='download-manager', scope='window')
+    @cmdutils.argument('count', count=True)
     def download_open(self, count=0):
         """Open the last/[count]th download.
 
@@ -1011,8 +1011,8 @@ class DownloadManager(QAbstractListModel):
             raise cmdexc.CommandError("Download {} is not done!".format(count))
         download.open_file()
 
-    @cmdutils.register(instance='download-manager', scope='window',
-                       count='count')
+    @cmdutils.register(instance='download-manager', scope='window')
+    @cmdutils.argument('count', count=True)
     def download_retry(self, count=0):
         """Retry the first failed/[count]th download.
 
@@ -1097,8 +1097,8 @@ class DownloadManager(QAbstractListModel):
         finished_items = [d for d in self.downloads if d.done]
         self.remove_items(finished_items)
 
-    @cmdutils.register(instance='download-manager', scope='window',
-                       count='count')
+    @cmdutils.register(instance='download-manager', scope='window')
+    @cmdutils.argument('count', count=True)
     def download_remove(self, all_=False, count=0):
         """Remove the last/[count]th download from the list.
 

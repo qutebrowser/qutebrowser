@@ -69,8 +69,6 @@ class Command:
         completion: Completions to use for arguments, as a list of strings.
         debug: Whether this is a debugging command (only shown with --debug).
         parser: The ArgumentParser to use to parse this command.
-        count_arg: The name of the count parameter, or None.
-        win_id_arg: The name of the win_id parameter, or None.
         flags_with_args: A list of flags which take an argument.
         no_cmd_split: If true, ';;' to split sub-commands is ignored.
         _qute_args: The saved data from @cmdutils.argument
@@ -93,8 +91,7 @@ class Command:
                  hide=False, completion=None, modes=None, not_modes=None,
                  needs_js=False, debug=False, ignore_args=False,
                  deprecated=False, no_cmd_split=False,
-                 star_args_optional=False, scope='global', count=None,
-                 win_id=None):
+                 star_args_optional=False, scope='global'):
         # I really don't know how to solve this in a better way, I tried.
         # pylint: disable=too-many-locals
         if modes is not None and not_modes is not None:
@@ -110,6 +107,7 @@ class Command:
         if scope != 'global' and instance is None:
             raise ValueError("Setting scope without setting instance makes "
                              "no sense!")
+
         self.name = name
         self.maxsplit = maxsplit
         self.hide = hide
@@ -125,8 +123,6 @@ class Command:
         self.ignore_args = ignore_args
         self.handler = handler
         self.no_cmd_split = no_cmd_split
-        self.count_arg = count
-        self.win_id_arg = win_id
         self.docparser = docutils.DocstringParser(handler)
         self.parser = argparser.ArgumentParser(
             name, description=self.docparser.short_desc,
@@ -225,13 +221,13 @@ class Command:
         Return:
             True if the parameter is special, False otherwise.
         """
-        if param.name == self.count_arg:
         arg_info = self._get_arg_info(param)
+        if arg_info.count:
             if param.default is inspect.Parameter.empty:
                 raise TypeError("{}: handler has count parameter "
                                 "without default!".format(self.name))
             return True
-        elif param.name == self.win_id_arg:
+        elif arg_info.win_id:
             return True
 
     def _inspect_func(self):
@@ -250,15 +246,6 @@ class Command:
         else:
             self.desc = ""
 
-        if (self.count_arg is not None and
-                self.count_arg not in signature.parameters):
-            raise ValueError("count parameter {} does not exist!".format(
-                self.count_arg))
-        if (self.win_id_arg is not None and
-                self.win_id_arg not in signature.parameters):
-            raise ValueError("win_id parameter {} does not exist!".format(
-                self.win_id_arg))
-
         if not self.ignore_args:
             for param in signature.parameters.values():
                 annotation_info = self._parse_annotation(param)
@@ -268,8 +255,7 @@ class Command:
                     continue
                 typ = self._get_type(param, annotation_info)
                 kwargs = self._param_to_argparse_kwargs(param, annotation_info)
-                args = self._param_to_argparse_args(param, annotation_info,
-                                                    arg_info)
+                args = self._param_to_argparse_args(param, annotation_info)
                 self._type_conv.update(self._get_typeconv(param, typ))
                 callsig = debug_utils.format_call(
                     self.parser.add_argument, args, kwargs,
@@ -484,11 +470,11 @@ class Command:
                 # Special case for 'self'.
                 self._get_self_arg(win_id, param, args)
                 continue
-            elif param.name == self.count_arg:
+            elif arg_info.count:
                 # Special case for count parameter.
                 self._get_count_arg(param, args, kwargs)
                 continue
-            elif param.name == self.win_id_arg:
+            elif arg_info.win_id:
                 # Special case for win_id parameter.
                 self._get_win_id_arg(win_id, param, args, kwargs)
                 continue

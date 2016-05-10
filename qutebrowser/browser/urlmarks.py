@@ -173,7 +173,8 @@ class QuickmarkManager(UrlMarkManager):
             win_id, "Add quickmark:", usertypes.PromptMode.text,
             functools.partial(self.quickmark_add, win_id, urlstr))
 
-    @cmdutils.register(instance='quickmark-manager', win_id='win_id')
+    @cmdutils.register(instance='quickmark-manager')
+    @cmdutils.argument('win_id', win_id=True)
     def quickmark_add(self, win_id, url, name):
         """Add a new quickmark.
 

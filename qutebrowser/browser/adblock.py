@@ -177,7 +177,8 @@ class HostBlocker:
                 message.info('current',
                              "Run :adblock-update to get adblock lists.")
 
-    @cmdutils.register(instance='host-blocker', win_id='win_id')
+    @cmdutils.register(instance='host-blocker')
+    @cmdutils.argument('win_id', win_id=True)
     def adblock_update(self, win_id):
         """Update the adblock block lists.
 

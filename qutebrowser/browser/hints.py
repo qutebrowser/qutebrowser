@@ -737,7 +737,8 @@ class HintManager(QObject):
             webview.openurl(url)
 
     @cmdutils.register(instance='hintmanager', scope='tab', name='hint',
-                       win_id='win_id', star_args_optional=True)
+                       star_args_optional=True)
+    @cmdutils.argument('win_id', win_id=True)
     def start(self, rapid=False, group=webelem.Group.all, target=Target.normal,
               *args, win_id):
         """Start hinting.

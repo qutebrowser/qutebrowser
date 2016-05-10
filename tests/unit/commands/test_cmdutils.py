@@ -227,6 +227,33 @@ class TestRegister:
             """Blah."""
             pass
 
+    def test_win_id(self):
+        @cmdutils.register()
+        @cmdutils.argument('win_id', win_id=True)
+        def fun(win_id):
+            """Blah."""
+            pass
+        assert cmdutils.cmd_dict['fun']._get_call_args(42) == ([42], {})
+
+    def test_count(self):
+        @cmdutils.register()
+        @cmdutils.argument('count', count=True)
+        def fun(count=0):
+            """Blah."""
+            pass
+        assert cmdutils.cmd_dict['fun']._get_call_args(42) == ([0], {})
+
+    def test_count_without_default(self):
+        with pytest.raises(TypeError) as excinfo:
+            @cmdutils.register()
+            @cmdutils.argument('count', count=True)
+            def fun(count):
+                """Blah."""
+                pass
+
+        expected = "fun: handler has count parameter without default!"
+        assert str(excinfo.value) == expected
+
 
 class TestArgument:
 
