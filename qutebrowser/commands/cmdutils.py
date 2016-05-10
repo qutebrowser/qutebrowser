@@ -185,8 +185,10 @@ class argument:  # pylint: disable=invalid-name
         self._kwargs = kwargs
 
     def __call__(self, func):
+        funcname = func.__name__
+
         if self._argname not in inspect.signature(func).parameters:
-            raise ValueError("{} has no argument {}!".format(func.__name__,
+            raise ValueError("{} has no argument {}!".format(funcname,
                                                              self._argname))
 
         # Fill up args which weren't passed
@@ -196,6 +198,10 @@ class argument:  # pylint: disable=invalid-name
 
         if not hasattr(func, 'qute_args'):
             func.qute_args = {}
+        elif func.qute_args is None:
+            raise ValueError("@cmdutils.argument got called above (after) "
+                             "@cmdutils.register for {}!".format(funcname))
+
         func.qute_args[self._argname] = command.ArgInfo(**self._kwargs)
 
         return func

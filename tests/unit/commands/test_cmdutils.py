@@ -260,3 +260,17 @@ class TestArgument:
             'bar': self._arginfo(flag='y')
         }
         assert fun.qute_args == expected
+
+    def test_wrong_order(self):
+        """When @cmdutils.argument is used above (after) @register, fail."""
+        with pytest.raises(ValueError) as excinfo:
+            @cmdutils.argument('bar', flag='y')
+            @cmdutils.register()
+            def fun(bar):
+                """Blah."""
+                pass
+
+        text = ("@cmdutils.argument got called above (after) "
+                "@cmdutils.register for fun!")
+
+        assert str(excinfo.value) == text

@@ -128,6 +128,10 @@ class Command:
 
         args = self._inspect_func()
 
+        # This is checked by future @cmdutils.argument calls so they fail
+        # (as they'd be silently ignored otherwise)
+        self.handler.qute_args = None
+
         if self.completion is not None and len(self.completion) > len(args):
             raise ValueError("Got {} completions, but only {} "
                              "arguments!".format(len(self.completion),
