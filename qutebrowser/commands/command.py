@@ -35,6 +35,9 @@ def arg_name(name):
     return name.rstrip('_').replace('_', '-')
 
 
+ArgInfo = collections.namedtuple('ArgInfo', ['flag'])
+
+
 class Command:
 
     """Base skeleton for a command.
@@ -54,7 +57,6 @@ class Command:
         win_id_arg: The name of the win_id parameter, or None.
         flags_with_args: A list of flags which take an argument.
         no_cmd_split: If true, ';;' to split sub-commands is ignored.
-        _flags: A mapping of argument names to alternative flags
         _type_conv: A mapping of conversion functions for arguments.
         _needs_js: Whether the command needs javascript enabled
         _modes: The modes the command can be executed in.
@@ -73,7 +75,7 @@ class Command:
     def __init__(self, *, handler, name, instance=None, maxsplit=None,
                  hide=False, completion=None, modes=None, not_modes=None,
                  needs_js=False, debug=False, ignore_args=False,
-                 deprecated=False, no_cmd_split=False, flags=None,
+                 deprecated=False, no_cmd_split=False,
                  star_args_optional=False, scope='global', count=None,
                  win_id=None):
         # I really don't know how to solve this in a better way, I tried.
@@ -102,7 +104,6 @@ class Command:
         self._scope = scope
         self._needs_js = needs_js
         self._star_args_optional = star_args_optional
-        self._flags = flags or {}
         self.debug = debug
         self.ignore_args = ignore_args
         self.handler = handler
@@ -131,11 +132,6 @@ class Command:
             raise ValueError("Got {} completions, but only {} "
                              "arguments!".format(len(self.completion),
                                                  len(args)))
-        for argname in self._flags:
-            if argname not in args:
-                raise ValueError("Got argument {} in flags param, but no such "
-                                 "argument exists for {}".format(
-                                     argname, self.name))
 
     def _check_prerequisites(self, win_id):
         """Check if the command is permitted to run currently.
@@ -239,13 +235,21 @@ class Command:
         if not self.ignore_args:
             for param in signature.parameters.values():
                 annotation_info = self._parse_annotation(param)
+
+                try:
+                    arg_info = self.handler.qute_args[param.name]
+                except (KeyError, AttributeError):
+                    arg_info = ArgInfo(**{name: None
+                                          for name in ArgInfo._fields})
+
                 if param.name == 'self':
                     continue
                 if self._inspect_special_param(param):
                     continue
                 typ = self._get_type(param, annotation_info)
                 kwargs = self._param_to_argparse_kwargs(param, annotation_info)
-                args = self._param_to_argparse_args(param, annotation_info)
+                args = self._param_to_argparse_args(param, annotation_info,
+                                                    arg_info)
                 self._type_conv.update(self._get_typeconv(param, typ))
                 callsig = debug_utils.format_call(
                     self.parser.add_argument, args, kwargs,
@@ -294,19 +298,25 @@ class Command:
             kwargs['nargs'] = '?'
         return kwargs
 
-    def _param_to_argparse_args(self, param, annotation_info):
+    def _param_to_argparse_args(self, param, annotation_info, arg_info):
         """Get argparse positional arguments for a parameter.
 
         Args:
             param: The inspect.Parameter object to get the args for.
             annotation_info: An AnnotationInfo tuple for the parameter.
+            arg_info: An ArgInfo tuple for the parameter or None
 
         Return:
             A list of args.
         """
         args = []
         name = arg_name(param.name)
-        shortname = self._flags.get(param.name, name[0])
+
+        if arg_info.flag is not None:
+            shortname = arg_info.flag
+        else:
+            shortname = name[0]
+
         if len(shortname) != 1:
             raise ValueError("Flag '{}' of parameter {} (command {}) must be "
                              "exactly 1 char!".format(shortname, name,

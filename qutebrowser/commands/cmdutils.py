@@ -24,6 +24,8 @@ Module attributes:
     aliases: A list of all aliases, needed for doc generation.
 """
 
+import inspect
+
 from qutebrowser.utils import qtutils, log
 from qutebrowser.commands import command, cmdexc
 
@@ -163,4 +165,37 @@ class register:  # pylint: disable=invalid-name
         for name in names:
             cmd_dict[name] = cmd
         aliases += names[1:]
+        return func
+
+
+class argument:  # pylint: disable=invalid-name
+
+    """Decorator to customize an argument for @cmdutils.register.
+
+    This could also be a function, but as a class (with a "wrong" name) it's
+    much cleaner to implement.
+
+    Attributes:
+        _argname: The name of the argument to handle.
+        _kwargs: Keyword arguments, valid ArgInfo members
+    """
+
+    def __init__(self, argname, **kwargs):
+        self._argname = argname
+        self._kwargs = kwargs
+
+    def __call__(self, func):
+        if self._argname not in inspect.signature(func).parameters:
+            raise ValueError("{} has no argument {}!".format(func.__name__,
+                                                             self._argname))
+
+        # Fill up args which weren't passed
+        for arg in command.ArgInfo._fields:
+            if arg not in self._kwargs:
+                self._kwargs[arg] = None
+
+        if not hasattr(func, 'qute_args'):
+            func.qute_args = {}
+        func.qute_args[self._argname] = command.ArgInfo(**self._kwargs)
+
         return func

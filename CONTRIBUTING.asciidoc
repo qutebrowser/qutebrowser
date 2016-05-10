@@ -439,6 +439,18 @@ then automatically checked. Possible values:
     - A tuple of multiple types above: Any of these types are valid values,
       e.g. `('foo', 'bar')` or `(int, 'foo')`.
 
+You can customize how an argument is handled using the `@cmdutils.argument`
+decorator *after* `@cmdutils.register`. This can e.g. be used to customize the
+flag an argument should get:
+
+[source,python]
+----
+@cmdutils.register(...)
+@cmdutils.arg('bar', flag='c')
+def foo(bar):
+    ...
+----
+
 The name of an argument will always be the parameter name, with any trailing
 underscores stripped.
 

@@ -21,7 +21,7 @@
 
 import pytest
 
-from qutebrowser.commands import cmdutils, cmdexc, argparser
+from qutebrowser.commands import cmdutils, cmdexc, argparser, command
 
 
 class TestCheckOverflow:
@@ -208,7 +208,8 @@ class TestRegister:
         assert not parser.parse_args([]).arg
 
     def test_flag_argument(self):
-        @cmdutils.register(flags={'arg': 'b'})
+        @cmdutils.register()
+        @cmdutils.argument('arg', flag='b')
         def fun(arg=False):
             """Blah."""
             pass
@@ -218,9 +219,44 @@ class TestRegister:
         with pytest.raises(argparser.ArgumentParserError):
             parser.parse_args(['-a'])
 
-    def test_unknown_argument_in_flags(self):
-        with pytest.raises(ValueError):
-            @cmdutils.register(flags={'foobar': 'f'})
-            def fun():
+    def test_partial_arg(self):
+        """Test with only some arguments decorated with @cmdutils.argument."""
+        @cmdutils.register()
+        @cmdutils.argument('arg1', flag='b')
+        def fun(arg1=False, arg2=False):
+            """Blah."""
+            pass
+
+
+class TestArgument:
+
+    """Test the @cmdutils.argument decorator."""
+
+    # pylint: disable=unused-variable
+
+    def _arginfo(self, **kwargs):
+        """Helper method to get an ArgInfo tuple."""
+        for arg in command.ArgInfo._fields:
+            if arg not in kwargs:
+                kwargs[arg] = None
+        return command.ArgInfo(**kwargs)
+
+    def test_invalid_argument(self):
+        with pytest.raises(ValueError) as excinfo:
+            @cmdutils.argument('foo')
+            def fun(bar):
                 """Blah."""
                 pass
+        assert str(excinfo.value) == "fun has no argument foo!"
+
+    def test_storage(self):
+        @cmdutils.argument('foo', flag='x')
+        @cmdutils.argument('bar', flag='y')
+        def fun(foo, bar):
+            """Blah."""
+            pass
+        expected = {
+            'foo': self._arginfo(flag='x'),
+            'bar': self._arginfo(flag='y')
+        }
+        assert fun.qute_args == expected

@@ -575,8 +575,8 @@ class CommandDispatcher:
             widget.keyReleaseEvent(release_evt)
 
     @cmdutils.register(instance='command-dispatcher', hide=True,
-                       scope='window', count='count',
-                       flags={'horizontal': 'x'})
+                       scope='window', count='count')
+    @cmdutils.argument('horizontal', flag='x')
     def scroll_perc(self, perc: {'type': float}=None, horizontal=False,
                     count=None):
         """Scroll to a specific percentage of the page.
