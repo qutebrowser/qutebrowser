@@ -190,12 +190,6 @@ class argument:  # pylint: disable=invalid-name
         if self._argname not in inspect.signature(func).parameters:
             raise ValueError("{} has no argument {}!".format(funcname,
                                                              self._argname))
-
-        # Fill up args which weren't passed
-        for arg in command.ArgInfo._fields:
-            if arg not in self._kwargs:
-                self._kwargs[arg] = None
-
         if not hasattr(func, 'qute_args'):
             func.qute_args = {}
         elif func.qute_args is None:
@@ -203,5 +197,4 @@ class argument:  # pylint: disable=invalid-name
                              "@cmdutils.register for {}!".format(funcname))
 
         func.qute_args[self._argname] = command.ArgInfo(**self._kwargs)
-
         return func

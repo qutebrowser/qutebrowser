@@ -35,7 +35,23 @@ def arg_name(name):
     return name.rstrip('_').replace('_', '-')
 
 
-ArgInfo = collections.namedtuple('ArgInfo', ['flag'])
+class ArgInfo:
+
+    """Information about an argument."""
+
+    def __init__(self, win_id=False, count=False, flag=None):
+        self.win_id = win_id
+        self.count = count
+        self.flag = flag
+
+    def __eq__(self, other):
+        return (self.win_id == other.win_id and
+                self.count == other.count and
+                self.flag == other.flag)
+
+    def __repr__(self):
+        return utils.get_repr(self, win_id=self.win_id, count=self.count,
+                              flag=self.flag, constructor=True)
 
 
 class Command:
@@ -57,6 +73,7 @@ class Command:
         win_id_arg: The name of the win_id parameter, or None.
         flags_with_args: A list of flags which take an argument.
         no_cmd_split: If true, ';;' to split sub-commands is ignored.
+        _qute_args: The saved data from @cmdutils.argument
         _type_conv: A mapping of conversion functions for arguments.
         _needs_js: Whether the command needs javascript enabled
         _modes: The modes the command can be executed in.
@@ -126,11 +143,12 @@ class Command:
         self.flags_with_args = []
         self._type_conv = {}
 
-        args = self._inspect_func()
-
         # This is checked by future @cmdutils.argument calls so they fail
         # (as they'd be silently ignored otherwise)
+        self._qute_args = getattr(self.handler, 'qute_args', {})
         self.handler.qute_args = None
+
+        args = self._inspect_func()
 
         if self.completion is not None and len(self.completion) > len(args):
             raise ValueError("Got {} completions, but only {} "
@@ -178,6 +196,10 @@ class Command:
             raise TypeError("{}: functions with varkw arguments are not "
                             "supported!".format(self.name[0]))
 
+    def _get_arg_info(self, param):
+        """Get an ArgInfo tuple for the given inspect.Parameter."""
+        return self._qute_args.get(param.name, ArgInfo())
+
     def _get_typeconv(self, param, typ):
         """Get a dict with a type conversion for the parameter.
 
@@ -204,6 +226,7 @@ class Command:
             True if the parameter is special, False otherwise.
         """
         if param.name == self.count_arg:
+        arg_info = self._get_arg_info(param)
             if param.default is inspect.Parameter.empty:
                 raise TypeError("{}: handler has count parameter "
                                 "without default!".format(self.name))
@@ -239,13 +262,6 @@ class Command:
         if not self.ignore_args:
             for param in signature.parameters.values():
                 annotation_info = self._parse_annotation(param)
-
-                try:
-                    arg_info = self.handler.qute_args[param.name]
-                except (KeyError, AttributeError):
-                    arg_info = ArgInfo(**{name: None
-                                          for name in ArgInfo._fields})
-
                 if param.name == 'self':
                     continue
                 if self._inspect_special_param(param):
@@ -302,19 +318,19 @@ class Command:
             kwargs['nargs'] = '?'
         return kwargs
 
-    def _param_to_argparse_args(self, param, annotation_info, arg_info):
+    def _param_to_argparse_args(self, param, annotation_info):
         """Get argparse positional arguments for a parameter.
 
         Args:
             param: The inspect.Parameter object to get the args for.
             annotation_info: An AnnotationInfo tuple for the parameter.
-            arg_info: An ArgInfo tuple for the parameter or None
 
         Return:
             A list of args.
         """
         args = []
         name = arg_name(param.name)
+        arg_info = self._get_arg_info(param)
 
         if arg_info.flag is not None:
             shortname = arg_info.flag
@@ -463,6 +479,7 @@ class Command:
             return args, kwargs
 
         for i, param in enumerate(signature.parameters.values()):
+            arg_info = self._get_arg_info(param)
             if i == 0 and self._instance is not None:
                 # Special case for 'self'.
                 self._get_self_arg(win_id, param, args)

@@ -234,13 +234,6 @@ class TestArgument:
 
     # pylint: disable=unused-variable
 
-    def _arginfo(self, **kwargs):
-        """Helper method to get an ArgInfo tuple."""
-        for arg in command.ArgInfo._fields:
-            if arg not in kwargs:
-                kwargs[arg] = None
-        return command.ArgInfo(**kwargs)
-
     def test_invalid_argument(self):
         with pytest.raises(ValueError) as excinfo:
             @cmdutils.argument('foo')
@@ -256,8 +249,8 @@ class TestArgument:
             """Blah."""
             pass
         expected = {
-            'foo': self._arginfo(flag='x'),
-            'bar': self._arginfo(flag='y')
+            'foo': command.ArgInfo(flag='x'),
+            'bar': command.ArgInfo(flag='y')
         }
         assert fun.qute_args == expected
 
