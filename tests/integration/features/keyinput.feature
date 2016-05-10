@@ -33,7 +33,7 @@ Feature: Keyboard input
 
     Scenario: Printing an unbound key
         When I run :bind test06
-        Then the message "test06 is not bound in normal mode" should be shown
+        Then the message "test06 is unbound in normal mode" should be shown
 
     Scenario: Printing a bound key
         When I run :bind test07 message-info foo
