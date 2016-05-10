@@ -31,6 +31,20 @@ Feature: Keyboard input
         And I press the keys "test5"
         Then the message "test5-2" should be shown
 
+    Scenario: Printing an unbound key
+        When I run :bind test6
+        Then the message "test6 is not bound in normal mode" should be shown
+
+    Scenario: Printing a bound key
+        When I run :bind test6 message-info foo
+        And I run :bind test6
+        Then the message "test6 is bound to 'message-info foo' in normal mode" should be shown
+
+    Scenario: Printing a bound key in a given mode
+        When I run :bind --mode=caret test6 message-info bar
+        And I run :bind --mode=caret test6
+        Then the message "test6 is bound to 'message-info bar' in caret mode" should be shown
+
     # :unbind
 
     Scenario: Binding and unbinding a keychain
