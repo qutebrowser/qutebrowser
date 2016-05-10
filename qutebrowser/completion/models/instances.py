@@ -26,12 +26,15 @@ Module attributes:
 """
 
 import functools
+from collections import defaultdict
 
 from PyQt5.QtCore import pyqtSlot
 
-from qutebrowser.completion.models import miscmodels, urlmodel, configmodel
+from qutebrowser.completion.models import (miscmodels, urlmodel, configmodel,
+                                           base)
 from qutebrowser.utils import objreg, usertypes, log, debug
 from qutebrowser.config import configdata
+from qutebrowser.commands import cmdutils
 
 
 _instances = {}
@@ -119,6 +122,40 @@ def init_session_completion():
     _instances[usertypes.Completion.sessions] = model
 
 
+def _init_keybinding_completions():
+    """Initialize keybinding completion models."""
+    log.completion.debug("Initializing binding completion.")
+    keyconfparser = objreg.get('key-config')
+
+    # look up all possible commands to suggest as completions
+    assert cmdutils.cmd_dict
+    debug_ok = objreg.get('args').debug
+    cmdlist = [cmd for cmd in set(cmdutils.cmd_dict.values())
+               if (not cmd.debug or debug_ok) and not cmd.deprecated]
+
+    cmdlist = sorted(cmdlist, key=lambda x: x.name)
+
+    # bindings[mode][key] -> completer
+    bindings = {}
+    default = miscmodels.KeybindingCompletionModel(cmdlist)
+    for modename, mode in usertypes.KeyMode.__members__.items():
+        bindings[modename] = defaultdict(lambda: default)
+        modecmds = [cmd for cmd in cmdlist if cmd.supports_mode(mode)]
+
+        for (key, cmd) in keyconfparser.get_bindings_for(modename).items():
+            model = miscmodels.KeybindingCompletionModel(modecmds, cmd)
+            bindings[modename][key] = model
+
+    _instances[usertypes.Completion.keybinding] = bindings
+
+
+def _init_empty_completion():
+    """Initialize empty completion model."""
+    log.completion.debug("Initializing empty completion.")
+    if usertypes.Completion.empty not in _instances:
+        _instances[usertypes.Completion.empty] = base.BaseCompletionModel()
+
+
 INITIALIZERS = {
     usertypes.Completion.command: _init_command_completion,
     usertypes.Completion.helptopic: _init_helptopic_completion,
@@ -130,6 +167,8 @@ INITIALIZERS = {
     usertypes.Completion.quickmark_by_name: init_quickmark_completions,
     usertypes.Completion.bookmark_by_url: init_bookmark_completions,
     usertypes.Completion.sessions: init_session_completion,
+    usertypes.Completion.keybinding: _init_keybinding_completions,
+    usertypes.Completion.empty: _init_empty_completion,
 }
 
 
@@ -177,3 +216,7 @@ def init():
     history = objreg.get('web-history')
     history.async_read_done.connect(
         functools.partial(update, [usertypes.Completion.url]))
+
+    keyconf = objreg.get('key-config')
+    keyconf.changed.connect(
+        functools.partial(update, [usertypes.Completion.keybinding]))

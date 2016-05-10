@@ -254,3 +254,27 @@ class TabCompletionModel(base.BaseCompletionModel):
         tabbed_browser = objreg.get('tabbed-browser', scope='window',
                                     window=int(win_id))
         tabbed_browser.on_tab_close_requested(int(tab_index) - 1)
+
+
+class KeybindingCompletionModel(base.BaseCompletionModel):
+
+    """A CompletionModel that shows the existing command bound to a key."""
+
+    # https://github.com/The-Compiler/qutebrowser/issues/545
+    # pylint: disable=abstract-method
+
+    def __init__(self, cmdlist, cmd=None, parent=None):
+        """Set up binding completions for a particular key across all modes.
+
+        Args:
+            cmd: The name of the command bound to this key, None if no binding.
+            cmdlist: A list all possible commands.
+        """
+        super().__init__(parent)
+        if cmd is not None:
+            cat = self.new_category("Current", sort=0)
+            self.new_item(cat, cmd)
+
+        cat = self.new_category("Commands", sort=1)
+        for cmd in cmdlist:
+            self.new_item(cat, cmd.name, cmd.desc)

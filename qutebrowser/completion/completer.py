@@ -151,6 +151,19 @@ class Completer(QObject):
             except KeyError:
                 # No completion model for this section/option.
                 model = None
+        elif completion == usertypes.Completion.keybinding:
+            # look for --mode to provide mode-specific binding completions
+            # since flags are ignored by most completers, we need to re-parse
+            parts, cursor_part = self._filter_cmdline_parts(self.split(),
+                                                            cursor_part,
+                                                            ignore_flags=False)
+            if parts[cursor_part - 1].startswith("--mode="):
+                mode = parts[cursor_part - 1][7:]  # strip --mode=
+                key = parts[cursor_part]
+            else:
+                mode = 'normal'
+                key = parts[cursor_part - 1]
+            model = instances.get(completion)[mode][key]
         else:
             model = instances.get(completion)
 
@@ -159,7 +172,7 @@ class Completer(QObject):
         else:
             return sortfilter.CompletionFilterModel(source=model, parent=self)
 
-    def _filter_cmdline_parts(self, parts, cursor_part):
+    def _filter_cmdline_parts(self, parts, cursor_part, ignore_flags=True):
         """Filter a list of commandline parts to exclude flags.
 
         Args:
@@ -176,7 +189,7 @@ class Completer(QObject):
         for i, part in enumerate(parts):
             if part == '--':
                 break
-            elif part.startswith('-'):
+            elif part.startswith('-') and ignore_flags:
                 if cursor_part >= i:
                     cursor_part -= 1
             else:
