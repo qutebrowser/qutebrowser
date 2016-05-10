@@ -189,3 +189,24 @@ class TestRegister:
             """Blah."""
             pass
         cmdutils.cmd_dict['fun'].parser.parse_args([])
+
+    def test_flag(self):
+        @cmdutils.register()
+        def fun(arg=False):
+            """Blah."""
+            pass
+        parser = cmdutils.cmd_dict['fun'].parser
+        assert parser.parse_args(['--arg']).arg
+        assert parser.parse_args(['-a']).arg
+        assert not parser.parse_args([]).arg
+
+    def test_flag_annotation(self):
+        @cmdutils.register()
+        def fun(arg: {'flag': 'b'}=False):
+            """Blah."""
+            pass
+        parser = cmdutils.cmd_dict['fun'].parser
+
+        assert parser.parse_args(['-b']).arg
+        with pytest.raises(argparser.ArgumentParserError):
+            parser.parse_args(['-a'])
