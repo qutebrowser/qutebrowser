@@ -94,13 +94,14 @@ How many pages to go back.
 
 [[bind]]
 === bind
-Syntax: +:bind [*--mode* 'MODE'] [*--force*] 'key' 'command'+
+Syntax: +:bind [*--mode* 'MODE'] [*--force*] 'key' ['command']+
 
 Bind a key to a command.
 
 ==== positional arguments
 * +'key'+: The keychain or special key (inside `<...>`) to bind.
-* +'command'+: The command to execute, with optional args.
+* +'command'+: The command to execute, with optional args, or not given to print the current binding.
+
 
 ==== optional arguments
 * +*-m*+, +*--mode*+: A comma-separated list of modes to bind the key in (default: `normal`).
