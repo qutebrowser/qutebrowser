@@ -366,9 +366,7 @@ class Command:
         if param.annotation is not inspect.Parameter.empty:
             log.commands.vdebug("Parsing annotation {}".format(
                 param.annotation))
-            for field in ('type', 'name'):
-                if field in param.annotation:
-                    info[field] = param.annotation[field]
+            info['type'] = param.annotation['type']
         return self.AnnotationInfo(**info)
 
     def _get_type(self, param, annotation_info):
