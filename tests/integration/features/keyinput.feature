@@ -6,60 +6,60 @@ Feature: Keyboard input
     # :bind
 
     Scenario: Binding a keychain
-        When I run :bind test1 message-info test1
-        And I press the keys "test1"
-        Then the message "test1" should be shown
+        When I run :bind test01 message-info test01
+        And I press the keys "test01"
+        Then the message "test01" should be shown
 
     Scenario: Binding an invalid command
-        When I run :bind test2 abcd
+        When I run :bind test02 abcd
         Then the error "Invalid command 'abcd'!" should be shown
 
     Scenario: Binding with invalid mode.
-        When I run :bind --mode abcd test3 message-info test3
+        When I run :bind --mode abcd test03 message-info test03
         Then the error "Invalid mode abcd!" should be shown
 
     Scenario: Double-binding a key
-        When I run :bind test4 message-info test4
-        And I run :bind test4 message-info test4-2
-        And I press the keys "test4"
-        Then the error "Duplicate keychain test4 - use --force to override!" should be shown
-        And the message "test4" should be shown
+        When I run :bind test04 message-info test04
+        And I run :bind test04 message-info test04-2
+        And I press the keys "test04"
+        Then the error "Duplicate keychain test04 - use --force to override!" should be shown
+        And the message "test04" should be shown
 
     Scenario: Double-binding with --force
-        When I run :bind test5 message-info test5
-        And I run :bind --force test5 message-info test5-2
-        And I press the keys "test5"
-        Then the message "test5-2" should be shown
+        When I run :bind test05 message-info test05
+        And I run :bind --force test05 message-info test05-2
+        And I press the keys "test05"
+        Then the message "test05-2" should be shown
 
     Scenario: Printing an unbound key
-        When I run :bind test6
-        Then the message "test6 is not bound in normal mode" should be shown
+        When I run :bind test06
+        Then the message "test06 is not bound in normal mode" should be shown
 
     Scenario: Printing a bound key
-        When I run :bind test6 message-info foo
-        And I run :bind test6
-        Then the message "test6 is bound to 'message-info foo' in normal mode" should be shown
+        When I run :bind test07 message-info foo
+        And I run :bind test07
+        Then the message "test07 is bound to 'message-info foo' in normal mode" should be shown
 
     Scenario: Printing a bound key in a given mode
-        When I run :bind --mode=caret test6 message-info bar
-        And I run :bind --mode=caret test6
-        Then the message "test6 is bound to 'message-info bar' in caret mode" should be shown
+        When I run :bind --mode=caret test08 message-info bar
+        And I run :bind --mode=caret test08
+        Then the message "test08 is bound to 'message-info bar' in caret mode" should be shown
 
     # :unbind
 
     Scenario: Binding and unbinding a keychain
-        When I run :bind test6 message-error test6
-        And I run :unbind test6
-        And I press the keys "test6"
-        Then "test6" should not be logged
+        When I run :bind test09 message-error test09
+        And I run :unbind test09
+        And I press the keys "test09"
+        Then "test09" should not be logged
 
     Scenario: Unbinding with invalid mode.
-        When I run :unbind test7 abcd
+        When I run :unbind test10 abcd
         Then the error "Invalid mode abcd!" should be shown
 
     Scenario: Unbinding with invalid keychain.
-        When I run :unbind test8
-        Then the error "Can't find binding 'test8' in section 'normal'!" should be shown
+        When I run :unbind test11
+        Then the error "Can't find binding 'test11' in section 'normal'!" should be shown
 
     Scenario: Unbinding a built-in binding
         When I run :unbind o
@@ -70,12 +70,12 @@ Feature: Keyboard input
     # :clear-keychain
 
     Scenario: Clearing the keychain
-        When I run :bind foo message-error test9
-        And I run :bind bar message-info test9-2
+        When I run :bind foo message-error test12
+        And I run :bind bar message-info test12-2
         And I press the keys "fo"
         And I run :clear-keychain
         And I press the keys "bar"
-        Then the message "test9-2" should be shown
+        Then the message "test12-2" should be shown
 
     # input -> forward-unbound-keys
 
