@@ -254,6 +254,20 @@ class TestRegister:
         expected = "fun: handler has count parameter without default!"
         assert str(excinfo.value) == expected
 
+    @pytest.mark.parametrize('hide', [True, False])
+    def test_pos_args(self, hide):
+        @cmdutils.register()
+        @cmdutils.argument('arg', hide=hide)
+        def fun(arg):
+            """Blah."""
+            pass
+
+        pos_args = cmdutils.cmd_dict['fun'].pos_args
+        if hide:
+            assert pos_args == []
+        else:
+            assert pos_args == [('arg', 'arg')]
+
 
 class TestArgument:
 

@@ -456,6 +456,7 @@ The following arguments are supported for `@cmdutils.argument`:
 - `flag`: Customize the short flag (`-x`) the argument will get.
 - `win_id=True`: Mark the argument as special window ID argument
 - `count=True`: Mark the argument as special count argument
+- `hide=True`: Hide the argument from the documentation
 
 The name of an argument will always be the parameter name, with any trailing
 underscores stripped.

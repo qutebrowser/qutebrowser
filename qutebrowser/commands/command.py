@@ -39,21 +39,23 @@ class ArgInfo:
 
     """Information about an argument."""
 
-    def __init__(self, win_id=False, count=False, flag=None):
+    def __init__(self, win_id=False, count=False, flag=None, hide=False):
         if win_id and count:
             raise TypeError("Argument marked as both count/win_id!")
         self.win_id = win_id
         self.count = count
         self.flag = flag
+        self.hide = hide
 
     def __eq__(self, other):
         return (self.win_id == other.win_id and
                 self.count == other.count and
-                self.flag == other.flag)
+                self.flag == other.flag and
+                self.hide == other.hide)
 
     def __repr__(self):
         return utils.get_repr(self, win_id=self.win_id, count=self.count,
-                              flag=self.flag, constructor=True)
+                              flag=self.flag, hide=self.hide, constructor=True)
 
 
 class Command:
@@ -87,7 +89,7 @@ class Command:
     """
 
     AnnotationInfo = collections.namedtuple(
-        'AnnotationInfo', ['type', 'hide', 'metavar'])
+        'AnnotationInfo', ['type', 'metavar'])
 
     def __init__(self, *, handler, name, instance=None, maxsplit=None,
                  hide=False, completion=None, modes=None, not_modes=None,
@@ -339,7 +341,7 @@ class Command:
             if typ is not bool:
                 self.flags_with_args += [short_flag, long_flag]
         else:
-            if not annotation_info.hide:
+            if not arg_info.hide:
                 self.pos_args.append((param.name, name))
         return args
 
@@ -354,11 +356,11 @@ class Command:
                 typ: The type to use for this argument.
                 name: The long name if overridden.
         """
-        info = {'type': None, 'hide': False, 'metavar': None}
+        info = {'type': None, 'metavar': None}
         if param.annotation is not inspect.Parameter.empty:
             log.commands.vdebug("Parsing annotation {}".format(
                 param.annotation))
-            for field in ('type', 'name', 'hide', 'metavar'):
+            for field in ('type', 'name', 'metavar'):
                 if field in param.annotation:
                     info[field] = param.annotation[field]
         return self.AnnotationInfo(**info)
