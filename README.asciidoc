@@ -149,8 +149,8 @@ Contributors, sorted by the number of commits in descending order:
 * Felix Van der Jeugt
 * Martin Tournoij
 * Raphael Pierzina
-* Joel Torstensson
 * Ryan Roden-Corrent
+* Joel Torstensson
 * Patric Schmitz
 * Claude
 * Corentin Julé
