@@ -218,14 +218,15 @@ def _get_command_doc_count(cmd, parser):
     Yield:
         Strings which should be added to the docs.
     """
-    if cmd.count_arg is not None:
-        yield ""
-        yield "==== count"
-        try:
-            yield parser.arg_descs[cmd.count_arg]
-        except KeyError as e:
-            raise KeyError("No description for count arg {!r} of command "
-                           "{!r}!".format(cmd.count_arg, cmd.name)) from e
+    for param in inspect.signature(cmd.handler).parameters.values():
+        if cmd.get_arg_info(param).count:
+            yield ""
+            yield "==== count"
+            try:
+                yield parser.arg_descs[param.name]
+            except KeyError as e:
+                raise KeyError("No description for count arg {!r} of command "
+                              "{!r}!".format(param.name, cmd.name)) from e
 
 
 def _get_command_doc_notes(cmd):

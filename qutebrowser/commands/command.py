@@ -194,7 +194,7 @@ class Command:
             raise TypeError("{}: functions with varkw arguments are not "
                             "supported!".format(self.name[0]))
 
-    def _get_arg_info(self, param):
+    def get_arg_info(self, param):
         """Get an ArgInfo tuple for the given inspect.Parameter."""
         return self._qute_args.get(param.name, ArgInfo())
 
@@ -223,7 +223,7 @@ class Command:
         Return:
             True if the parameter is special, False otherwise.
         """
-        arg_info = self._get_arg_info(param)
+        arg_info = self.get_arg_info(param)
         if arg_info.count:
             if param.default is inspect.Parameter.empty:
                 raise TypeError("{}: handler has count parameter "
@@ -318,7 +318,7 @@ class Command:
         """
         args = []
         name = arg_name(param.name)
-        arg_info = self._get_arg_info(param)
+        arg_info = self.get_arg_info(param)
 
         if arg_info.flag is not None:
             shortname = arg_info.flag
@@ -467,7 +467,7 @@ class Command:
             return args, kwargs
 
         for i, param in enumerate(signature.parameters.values()):
-            arg_info = self._get_arg_info(param)
+            arg_info = self.get_arg_info(param)
             if i == 0 and self._instance is not None:
                 # Special case for 'self'.
                 self._get_self_arg(win_id, param, args)
