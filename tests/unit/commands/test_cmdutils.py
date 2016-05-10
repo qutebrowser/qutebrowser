@@ -21,7 +21,7 @@
 
 import pytest
 
-from qutebrowser.commands import cmdutils, cmdexc
+from qutebrowser.commands import cmdutils, cmdexc, argparser
 
 
 class TestCheckOverflow:
@@ -172,3 +172,20 @@ class TestRegister:
             """Blah."""
             pass
         assert cmdutils.cmd_dict['fun'].hide
+
+    def test_star_args(self):
+        """Check handling of *args"""
+        @cmdutils.register()
+        def fun(*args):
+            """Blah."""
+            pass
+        with pytest.raises(argparser.ArgumentParserError):
+            cmdutils.cmd_dict['fun'].parser.parse_args([])
+
+    def test_star_args_optional(self):
+        """Check handling of *args withstar_args_optional"""
+        @cmdutils.register(star_args_optional=True)
+        def fun(*args):
+            """Blah."""
+            pass
+        cmdutils.cmd_dict['fun'].parser.parse_args([])
