@@ -1088,7 +1088,8 @@ class CommandDispatcher:
 
     @cmdutils.register(instance='command-dispatcher', scope='window',
                        maxsplit=0)
-    @cmdutils.argument('name', completion=usertypes.Completion.quickmark_by_name)
+    @cmdutils.argument('name',
+                       completion=usertypes.Completion.quickmark_by_name)
     def quickmark_load(self, name, tab=False, bg=False, window=False):
         """Load a quickmark.
 

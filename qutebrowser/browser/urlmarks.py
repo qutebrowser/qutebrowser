@@ -205,7 +205,8 @@ class QuickmarkManager(UrlMarkManager):
             set_mark()
 
     @cmdutils.register(instance='quickmark-manager', maxsplit=0)
-    @cmdutils.argument('name', completion=usertypes.Completion.quickmark_by_name)
+    @cmdutils.argument('name',
+                       completion=usertypes.Completion.quickmark_by_name)
     def quickmark_del(self, name):
         """Delete a quickmark.
 
