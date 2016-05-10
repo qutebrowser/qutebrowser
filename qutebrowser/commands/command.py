@@ -454,6 +454,7 @@ class Command:
                 # Special case for count parameter.
                 self._get_count_arg(param, args, kwargs)
                 continue
+            # elif arg_info.win_id:
             elif arg_info.win_id:
                 # Special case for win_id parameter.
                 self._get_win_id_arg(win_id, param, args, kwargs)

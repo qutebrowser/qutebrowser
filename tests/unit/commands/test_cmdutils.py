@@ -24,6 +24,13 @@ import pytest
 from qutebrowser.commands import cmdutils, cmdexc, argparser, command
 
 
+@pytest.fixture(autouse=True)
+def clear_globals(monkeypatch):
+    """Clear the cmdutils globals between each test."""
+    monkeypatch.setattr(cmdutils, 'cmd_dict', {})
+    monkeypatch.setattr(cmdutils, 'aliases', [])
+
+
 class TestCheckOverflow:
 
     def test_good(self):
@@ -80,12 +87,6 @@ class TestCheckExclusive:
 class TestRegister:
 
     # pylint: disable=unused-variable
-
-    @pytest.fixture(autouse=True)
-    def clear_globals(self, monkeypatch):
-        """Clear the cmdutils globals between each test."""
-        monkeypatch.setattr(cmdutils, 'cmd_dict', {})
-        monkeypatch.setattr(cmdutils, 'aliases', [])
 
     def test_simple(self):
         @cmdutils.register()
