@@ -294,3 +294,12 @@ class TestArgument:
                 "@cmdutils.register for fun!")
 
         assert str(excinfo.value) == text
+
+    def test_count_and_win_id_same_arg(self):
+        with pytest.raises(TypeError) as excinfo:
+            @cmdutils.argument('arg', count=True, win_id=True)
+            def fun(arg=0):
+                """Blah."""
+                pass
+
+        assert str(excinfo.value) == "Argument marked as both count/win_id!"

@@ -40,6 +40,8 @@ class ArgInfo:
     """Information about an argument."""
 
     def __init__(self, win_id=False, count=False, flag=None):
+        if win_id and count:
+            raise TypeError("Argument marked as both count/win_id!")
         self.win_id = win_id
         self.count = count
         self.flag = flag
