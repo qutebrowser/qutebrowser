@@ -1,7 +1,6 @@
 sudo: required
 dist: trusty
-# Not really, but this is here so we can do stuff by hand.
-language: c
+language: python
 
 matrix:
   include:
@@ -48,7 +47,7 @@ before_install:
   - 'export PATH="/usr/bin:$PATH"'
 
 install:
-  - python scripts/dev/ci/install.py
+  - bash scripts/dev/ci/travis_install.sh
 
 script:
   - bash scripts/dev/ci/travis_run.sh

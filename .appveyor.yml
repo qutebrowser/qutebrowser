@@ -11,7 +11,7 @@ environment:
     - TESTENV: pylint
 
 install:
-  - C:\Python27\python -u scripts\dev\ci\install.py
+  - C:\Python27\python -u scripts\dev\ci\appveyor_install.py
 
 test_script:
   - C:\Python34\Scripts\tox -e %TESTENV%
