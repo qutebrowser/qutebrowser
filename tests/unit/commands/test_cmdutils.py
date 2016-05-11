@@ -22,7 +22,7 @@
 import pytest
 
 from qutebrowser.commands import cmdutils, cmdexc, argparser, command
-from qutebrowser.utils import usertypes
+from qutebrowser.utils import usertypes, typing
 
 
 @pytest.fixture(autouse=True)
@@ -265,35 +265,35 @@ class TestRegister:
 
     Enum = usertypes.enum('Test', ['x', 'y'])
 
-    @pytest.mark.parametrize('typ, inp, expected', [
-        (int, '42', 42),
-        (int, 'x', argparser.ArgumentParserError),
-        (str, 'foo', 'foo'),
+    @pytest.mark.parametrize('typ, inp, choices, expected', [
+        (int, '42', None, 42),
+        (int, 'x', None, cmdexc.ArgumentTypeError),
+        (str, 'foo', None, 'foo'),
 
-        ((str, int), 'foo', 'foo'),
-        ((str, int), '42', 42),
+        (typing.Union[str, int], 'foo', None, 'foo'),
+        (typing.Union[str, int], '42', None, 42),
 
-        (('foo', int), 'foo', 'foo'),
-        (('foo', int), '42', 42),
-        (('foo', int), 'bar', cmdexc.ArgumentTypeError),
+        # Choices
+        (str, 'foo', ['foo'], 'foo'),
+        (str, 'bar', ['foo'], cmdexc.ArgumentTypeError),
 
-        (Enum, 'x', Enum.x),
-        (Enum, 'z', argparser.ArgumentParserError),
+        # Choices with Union: only checked when it's a str
+        (typing.Union[str, int], 'foo', ['foo'], 'foo'),
+        (typing.Union[str, int], 'bar', ['foo'], cmdexc.ArgumentTypeError),
+        (typing.Union[str, int], '42', ['foo'], 42),
+
+        (Enum, 'x', None, Enum.x),
+        (Enum, 'z', None, cmdexc.ArgumentTypeError),
     ])
-    def test_typed_args(self, typ, inp, expected):
+    def test_typed_args(self, typ, inp, choices, expected):
         @cmdutils.register()
+        @cmdutils.argument('arg', choices=choices)
         def fun(arg: typ):
             """Blah."""
             pass
 
         cmd = cmdutils.cmd_dict['fun']
-
-        if expected is argparser.ArgumentParserError:
-            with pytest.raises(argparser.ArgumentParserError):
-                cmd.parser.parse_args([inp])
-            return
-        else:
-            cmd.namespace = cmd.parser.parse_args([inp])
+        cmd.namespace = cmd.parser.parse_args([inp])
 
         if expected is cmdexc.ArgumentTypeError:
             with pytest.raises(cmdexc.ArgumentTypeError):

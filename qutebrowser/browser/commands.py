@@ -42,7 +42,7 @@ from qutebrowser.config import config, configexc
 from qutebrowser.browser import webelem, inspector, urlmarks, downloads, mhtml
 from qutebrowser.keyinput import modeman
 from qutebrowser.utils import (message, usertypes, log, qtutils, urlutils,
-                               objreg, utils)
+                               objreg, utils, typing)
 from qutebrowser.utils.usertypes import KeyMode
 from qutebrowser.misc import editor, guiprocess
 from qutebrowser.completion.models import instances, sortfilter
@@ -455,8 +455,9 @@ class CommandDispatcher:
         self._open(url, tab, background, window)
 
     @cmdutils.register(instance='command-dispatcher', scope='window')
-    def navigate(self, where: ('prev', 'next', 'up', 'increment', 'decrement'),
-                 tab=False, bg=False, window=False):
+    @cmdutils.argument('where', choices=['prev', 'next', 'up', 'increment',
+                                         'decrement'])
+    def navigate(self, where: str, tab=False, bg=False, window=False):
         """Open typical prev/next links or navigate using the URL path.
 
         This tries to automatically click on typical _Previous Page_ or
@@ -521,7 +522,7 @@ class CommandDispatcher:
     @cmdutils.register(instance='command-dispatcher', hide=True,
                        scope='window')
     @cmdutils.argument('count', count=True)
-    def scroll(self, direction: (str, int), count=1):
+    def scroll(self, direction: typing.Union[str, int], count=1):
         """Scroll the current tab in the given direction.
 
         Args:
@@ -618,11 +619,12 @@ class CommandDispatcher:
     @cmdutils.register(instance='command-dispatcher', hide=True,
                        scope='window')
     @cmdutils.argument('count', count=True)
-    @cmdutils.argument('top_navigate', metavar='ACTION')
-    @cmdutils.argument('bottom_navigate', metavar='ACTION')
+    @cmdutils.argument('top_navigate', metavar='ACTION',
+                       choices=('prev', 'decrement'))
+    @cmdutils.argument('bottom_navigate', metavar='ACTION',
+                       choices=('next', 'increment'))
     def scroll_page(self, x: float, y: float, *,
-                    top_navigate: ('prev', 'decrement')=None,
-                    bottom_navigate: ('next', 'increment')=None,
+                    top_navigate: str=None, bottom_navigate: str=None,
                     count=1):
         """Scroll the frame page-wise.
 
@@ -918,8 +920,9 @@ class CommandDispatcher:
         tabbed_browser.setCurrentIndex(idx-1)
 
     @cmdutils.register(instance='command-dispatcher', scope='window')
+    @cmdutils.argument('index', choices=['last'])
     @cmdutils.argument('count', count=True)
-    def tab_focus(self, index: (int, 'last')=None, count=None):
+    def tab_focus(self, index: typing.Union[str, int]=None, count=None):
         """Select the tab given as argument/[count].
 
         If neither count nor index are given, it behaves like tab-next.
@@ -951,8 +954,9 @@ class CommandDispatcher:
                 idx))
 
     @cmdutils.register(instance='command-dispatcher', scope='window')
+    @cmdutils.argument('direction', choices=['+', '-'])
     @cmdutils.argument('count', count=True)
-    def tab_move(self, direction: ('+', '-')=None, count=None):
+    def tab_move(self, direction: str=None, count=None):
         """Move the current tab.
 
         Args:

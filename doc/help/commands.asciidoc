@@ -95,7 +95,7 @@ How many pages to go back.
 
 [[bind]]
 === bind
-Syntax: +:bind [*--mode* 'MODE'] [*--force*] 'key' ['command']+
+Syntax: +:bind [*--mode* 'mode'] [*--force*] 'key' ['command']+
 
 Bind a key to a command.
 
@@ -166,7 +166,7 @@ Close the current window.
 
 [[download]]
 === download
-Syntax: +:download [*--mhtml*] [*--dest* 'DEST'] ['url'] ['dest-old']+
+Syntax: +:download [*--mhtml*] [*--dest* 'dest'] ['url'] ['dest-old']+
 
 Download a given URL, or current page if no URL given.
 

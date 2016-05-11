@@ -38,7 +38,7 @@ sys.path.insert(0, os.path.join(os.path.dirname(__file__), os.pardir,
 import qutebrowser.app
 from scripts import asciidoc2html, utils
 from qutebrowser import qutebrowser
-from qutebrowser.commands import cmdutils, command
+from qutebrowser.commands import cmdutils, argparser
 from qutebrowser.config import configdata
 from qutebrowser.utils import docutils
 
@@ -57,11 +57,11 @@ class UsageFormatter(argparse.HelpFormatter):
 
     def _get_default_metavar_for_optional(self, action):
         """Do name transforming when getting metavar."""
-        return command.arg_name(action.dest.upper())
+        return argparser.arg_name(action.dest.upper())
 
     def _get_default_metavar_for_positional(self, action):
         """Do name transforming when getting metavar."""
-        return command.arg_name(action.dest)
+        return argparser.arg_name(action.dest)
 
     def _metavar_formatter(self, action, default_metavar):
         """Override _metavar_formatter to add asciidoc markup to metavars.

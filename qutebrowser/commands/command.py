@@ -26,13 +26,9 @@ import traceback
 from PyQt5.QtWebKit import QWebSettings
 
 from qutebrowser.commands import cmdexc, argparser
-from qutebrowser.utils import log, utils, message, docutils, objreg, usertypes
+from qutebrowser.utils import (log, utils, message, docutils, objreg,
+                               usertypes, typing)
 from qutebrowser.utils import debug as debug_utils
-
-
-def arg_name(name):
-    """Get the name an argument should have based on its Python name."""
-    return name.rstrip('_').replace('_', '-')
 
 
 class ArgInfo:
@@ -40,7 +36,7 @@ class ArgInfo:
     """Information about an argument."""
 
     def __init__(self, win_id=False, count=False, flag=None, hide=False,
-                 metavar=None, completion=None):
+                 metavar=None, completion=None, choices=None):
         if win_id and count:
             raise TypeError("Argument marked as both count/win_id!")
         self.win_id = win_id
@@ -49,6 +45,7 @@ class ArgInfo:
         self.hide = hide
         self.metavar = metavar
         self.completion = completion
+        self.choices = choices
 
     def __eq__(self, other):
         return (self.win_id == other.win_id and
@@ -56,13 +53,14 @@ class ArgInfo:
                 self.flag == other.flag and
                 self.hide == other.hide and
                 self.metavar == other.metavar and
-                self.completion == other.completion)
+                self.completion == other.completion and
+                self.choices == other.choices)
 
     def __repr__(self):
         return utils.get_repr(self, win_id=self.win_id, count=self.count,
                               flag=self.flag, hide=self.hide,
                               metavar=self.metavar, completion=self.completion,
-                              constructor=True)
+                              choices=self.choices, constructor=True)
 
 
 class Command:
@@ -208,12 +206,25 @@ class Command:
             typ: The type of the parameter.
         """
         type_conv = {}
-        if utils.is_enum(typ):
-            type_conv[param.name] = argparser.enum_getter(typ)
-        elif isinstance(typ, tuple):
+        if isinstance(typ, tuple):
+            raise TypeError("{}: Legacy tuple type annotation!".format(
+                self.name))
+        elif issubclass(typ, typing.Union):
+            # this is... slightly evil, I know
+            types = list(typ.__union_params__)
             if param.default is not inspect.Parameter.empty:
-                typ = typ + (type(param.default),)
-            type_conv[param.name] = argparser.multitype_conv(typ)
+                types.append(type(param.default))
+            choices = self.get_arg_info(param).choices
+            type_conv[param.name] = argparser.multitype_conv(
+                param, types, str_choices=choices)
+        elif typ is str:
+            choices = self.get_arg_info(param).choices
+            type_conv[param.name] = argparser.type_conv(param, typ,
+                                                        str_choices=choices)
+        elif typ is None:
+            pass
+        else:
+            type_conv[param.name] = argparser.type_conv(param, typ)
         return type_conv
 
     def _inspect_special_param(self, param):
@@ -289,15 +300,13 @@ class Command:
 
         arg_info = self.get_arg_info(param)
 
-        if isinstance(typ, tuple):
-            kwargs['metavar'] = arg_info.metavar or param.name
-        elif utils.is_enum(typ):
-            kwargs['choices'] = [arg_name(e.name) for e in typ]
-            kwargs['metavar'] = arg_info.metavar or param.name
-        elif typ is bool:
+        if typ is bool:
             kwargs['action'] = 'store_true'
-        elif typ is not None:
-            kwargs['type'] = typ
+        else:
+            if arg_info.metavar is not None:
+                kwargs['metavar'] = arg_info.metavar
+            else:
+                kwargs['metavar'] = argparser.arg_name(param.name)
 
         if param.kind == inspect.Parameter.VAR_POSITIONAL:
             kwargs['nargs'] = '*' if self._star_args_optional else '+'
@@ -319,7 +328,7 @@ class Command:
             A list of args.
         """
         args = []
-        name = arg_name(param.name)
+        name = argparser.arg_name(param.name)
         arg_info = self.get_arg_info(param)
 
         if arg_info.flag is not None:

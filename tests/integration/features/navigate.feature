@@ -2,7 +2,7 @@ Feature: Using :navigate
 
     Scenario: :navigate with invalid argument
         When I run :navigate foo
-        Then the error "Invalid value foo." should be shown
+        Then the error "where: Invalid value foo - expected one of: prev, next, up, increment, decrement" should be shown
 
     # up
 

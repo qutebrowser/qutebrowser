@@ -119,7 +119,8 @@ def message_warning(win_id, text):
 
 
 @cmdutils.register(debug=True)
-def debug_crash(typ: ('exception', 'segfault')='exception'):
+@cmdutils.argument('typ', choices=['exception', 'segfault'])
+def debug_crash(typ='exception'):
     """Crash for debugging purposes.
 
     Args:
