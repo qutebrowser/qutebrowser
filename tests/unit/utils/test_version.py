@@ -325,6 +325,7 @@ class ImportFake:
             'pygments': True,
             'yaml': True,
             'cssutils': True,
+            'typing': True,
         }
         self.version_attribute = '__version__'
         self.version = '1.2.3'
@@ -384,12 +385,13 @@ class TestModuleVersions:
         """Test with all modules present in version 1.2.3."""
         expected = ['sip: yes', 'colorama: 1.2.3', 'pypeg2: 1.2.3',
                     'jinja2: 1.2.3', 'pygments: 1.2.3', 'yaml: 1.2.3',
-                    'cssutils: 1.2.3']
+                    'cssutils: 1.2.3', 'typing: yes']
         assert version._module_versions() == expected
 
     @pytest.mark.parametrize('module, idx, expected', [
         ('colorama', 1, 'colorama: no'),
         ('cssutils', 6, 'cssutils: no'),
+        ('typing', 7, 'typing: no'),
     ])
     def test_missing_module(self, module, idx, expected, import_fake):
         """Test with a module missing.
@@ -405,12 +407,12 @@ class TestModuleVersions:
     @pytest.mark.parametrize('value, expected', [
         ('VERSION', ['sip: yes', 'colorama: 1.2.3', 'pypeg2: yes',
                      'jinja2: yes', 'pygments: yes', 'yaml: yes',
-                     'cssutils: yes']),
+                     'cssutils: yes', 'typing: yes']),
         ('SIP_VERSION_STR', ['sip: 1.2.3', 'colorama: yes', 'pypeg2: yes',
                              'jinja2: yes', 'pygments: yes', 'yaml: yes',
-                             'cssutils: yes']),
+                             'cssutils: yes', 'typing: yes']),
         (None, ['sip: yes', 'colorama: yes', 'pypeg2: yes', 'jinja2: yes',
-                'pygments: yes', 'yaml: yes', 'cssutils: yes']),
+                'pygments: yes', 'yaml: yes', 'cssutils: yes', 'typing: yes']),
     ])
     def test_version_attribute(self, value, expected, import_fake):
         """Test with a different version attribute.

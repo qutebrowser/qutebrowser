@@ -135,6 +135,7 @@ def _module_versions():
         ('pygments', ['__version__']),
         ('yaml', ['__version__']),
         ('cssutils', ['__version__']),
+        ('typing', []),
     ])
     for name, attributes in modules.items():
         try:
