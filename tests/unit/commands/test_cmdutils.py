@@ -22,6 +22,7 @@
 import pytest
 
 from qutebrowser.commands import cmdutils, cmdexc, argparser, command
+from qutebrowser.utils import usertypes
 
 
 @pytest.fixture(autouse=True)
@@ -261,6 +262,44 @@ class TestRegister:
             assert pos_args == []
         else:
             assert pos_args == [('arg', 'arg')]
+
+    Enum = usertypes.enum('Test', ['x', 'y'])
+
+    @pytest.mark.parametrize('typ, inp, expected', [
+        (int, '42', 42),
+        (int, 'x', argparser.ArgumentParserError),
+        (str, 'foo', 'foo'),
+
+        ((str, int), 'foo', 'foo'),
+        ((str, int), '42', 42),
+
+        (('foo', int), 'foo', 'foo'),
+        (('foo', int), '42', 42),
+        (('foo', int), 'bar', cmdexc.ArgumentTypeError),
+
+        (Enum, 'x', Enum.x),
+        (Enum, 'z', argparser.ArgumentParserError),
+    ])
+    def test_typed_args(self, typ, inp, expected):
+        @cmdutils.register()
+        def fun(arg: typ):
+            """Blah."""
+            pass
+
+        cmd = cmdutils.cmd_dict['fun']
+
+        if expected is argparser.ArgumentParserError:
+            with pytest.raises(argparser.ArgumentParserError):
+                cmd.parser.parse_args([inp])
+            return
+        else:
+            cmd.namespace = cmd.parser.parse_args([inp])
+
+        if expected is cmdexc.ArgumentTypeError:
+            with pytest.raises(cmdexc.ArgumentTypeError):
+                cmd._get_call_args(win_id=0)
+        else:
+            assert cmd._get_call_args(win_id=0) == ([expected], {})
 
 
 class TestArgument:
