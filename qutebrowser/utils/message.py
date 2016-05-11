@@ -21,6 +21,7 @@
 
 import datetime
 import collections
+import traceback
 
 from PyQt5.QtCore import pyqtSignal, pyqtSlot, QObject
 from PyQt5.QtWidgets import QApplication
@@ -45,6 +46,7 @@ def _wrapper(win_id, method_name, text, *args, **kwargs):
         text: The text do display.
         *args/**kwargs: Arguments to pass to the method.
     """
+    kwargs['log_stack'] = False
     msg = QueuedMsg(time=datetime.datetime.now(), win_id=win_id,
                     method_name=method_name, text=text, args=args,
                     kwargs=kwargs)
@@ -118,6 +120,8 @@ def error(win_id, message, immediately=False):
         win_id: The ID of the window which is calling this function.
         others: See MessageBridge.error.
     """
+    stack = ''.join(traceback.format_stack())
+    log.message.debug("Error message stack:\n{}".format(stack))
     _wrapper(win_id, 'error', message, immediately)
 
 
@@ -128,6 +132,8 @@ def warning(win_id, message, immediately=False):
         win_id: The ID of the window which is calling this function.
         others: See MessageBridge.warning.
     """
+    stack = ''.join(traceback.format_stack())
+    log.message.debug("Warning message stack:\n{}".format(stack))
     _wrapper(win_id, 'warning', message, immediately)
 
 
@@ -262,7 +268,7 @@ class MessageBridge(QObject):
     def __repr__(self):
         return utils.get_repr(self)
 
-    def error(self, msg, immediately=False):
+    def error(self, msg, immediately=False, *, log_stack=True):
         """Display an error in the statusbar.
 
         Args:
@@ -272,12 +278,16 @@ class MessageBridge(QObject):
                          displayed (False). Messages resulting from direct user
                          input should be displayed immediately, all other
                          messages should be queued.
+            log_stack: Log the stacktrace of the error.
         """
         msg = str(msg)
         log.message.error(msg)
+        if log_stack:
+            stack = ''.join(traceback.format_stack())
+            log.message.debug("Error message stack:\n{}".format(stack))
         self.s_error.emit(msg, immediately)
 
-    def warning(self, msg, immediately=False):
+    def warning(self, msg, immediately=False, *, log_stack=True):
         """Display an warning in the statusbar.
 
         Args:
@@ -287,51 +297,60 @@ class MessageBridge(QObject):
                          displayed (False). Messages resulting from direct user
                          input should be displayed immediately, all other
                          messages should be queued.
+            log_stack: Log the stacktrace of the warning.
         """
         msg = str(msg)
         log.message.warning(msg)
+        if log_stack:
+            stack = ''.join(traceback.format_stack())
+            log.message.debug("Warning message stack:\n{}", sinfo=stack)
         self.s_warning.emit(msg, immediately)
 
-    def info(self, msg, immediately=True):
+    def info(self, msg, immediately=True, *, log_stack=False):
         """Display an info text in the statusbar.
 
         Args:
             See error(). Note immediately is True by default, because messages
             do rarely happen without user interaction.
+
+            log_stack is ignored.
         """
         msg = str(msg)
         log.message.info(msg)
         self.s_info.emit(msg, immediately)
 
-    def set_cmd_text(self, text):
+    def set_cmd_text(self, text, *, log_stack=False):
         """Set the command text of the statusbar.
 
         Args:
             text: The text to set.
+            log_stack: ignored
         """
         text = str(text)
         log.message.debug(text)
         self.s_set_cmd_text.emit(text)
 
-    def set_text(self, text):
+    def set_text(self, text, *, log_stack=False):
         """Set the normal text of the statusbar.
 
         Args:
             text: The text to set.
+            log_stack: ignored
         """
         text = str(text)
         log.message.debug(text)
         self.s_set_text.emit(text)
 
-    def maybe_reset_text(self, text):
+    def maybe_reset_text(self, text, *, log_stack=False):
         """Reset the text in the statusbar if it matches an expected text.
 
         Args:
             text: The expected text.
+            log_stack: ignored
         """
         self.s_maybe_reset_text.emit(str(text))
 
-    def ask(self, question, blocking):
+    def ask(self, question, blocking, *, log_stack=False):
         """Ask a question to the user.
 
         Note this method doesn't return the answer, it only blocks. The caller
@@ -341,5 +360,6 @@ class MessageBridge(QObject):
             question: A Question object.
             blocking: Whether to return immediately or wait until the
                       question is answered.
+            log_stack: ignored
         """
         self.s_question.emit(question, blocking)
