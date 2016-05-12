@@ -1,6 +1,6 @@
 sudo: required
 dist: trusty
-language: python
+language: generic
 
 matrix:
   include:
