@@ -54,7 +54,7 @@ brew_install() {
 
 pip_install() {
     # this uses python2
-    travis_retry sudo -H python -m pip install -r scripts/dev/ci/requirements-travis.txt
+    travis_retry sudo -H python -m pip install -r scripts/dev/ci/requirements-$1.txt
 }
 
 npm_install() {
@@ -84,17 +84,20 @@ elif [[ $TRAVIS_OS_NAME == osx ]]; then
     # Disable App Nap
     defaults write NSGlobalDomain NSAppSleepDisabled -bool YES
     brew_install python3 pyqt5
-    pip_install
+    pip_install pip
+    pip_install tox
     check_pyqt
     exit 0
 fi
 
 pyqt_pkgs="python3-pyqt5 python3-pyqt5.qtwebkit"
 
-pip_install
+pip_install pip
+pip_install tox
 
 case $TESTENV in
     py34-cov)
+        pip_install codecov
         apt_install xvfb $pyqt_pkgs libpython3.4-dev
         check_pyqt
         ;;
