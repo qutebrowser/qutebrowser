@@ -95,23 +95,26 @@ pip_install
 
 case $TESTENV in
     py34-cov)
-        apt_install xvfb $pyqt_pkgs
+        apt_install xvfb $pyqt_pkgs libpython3.4-dev
         check_pyqt
         ;;
     pylint|vulture)
-        apt_install $pyqt_pkgs
+        apt_install $pyqt_pkgs libpython3.4-dev
         check_pyqt
         ;;
     flake8)
         # We need an up-to-date Python because of:
         # https://github.com/google/yapf/issues/46
-        apt_install -t trusty-updates python3.4
+        apt_install -t trusty-updates python3.4 libpython3.4-dev
         ;;
     docs)
-        apt_install $pyqt_pkgs asciidoc
+        apt_install $pyqt_pkgs asciidoc libpython3.4-dev
         check_pyqt
         ;;
-    misc|pyroma|check-manifest)
+    misc)
+        apt_install libpython3.4-dev
+        ;;
+    pyroma|check-manifest)
         ;;
     eslint)
         apt_install npm nodejs nodejs-legacy
