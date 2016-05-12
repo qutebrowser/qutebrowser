@@ -45,6 +45,9 @@ cache:
 before_install:
   # We need to do this so we pick up the system-wide python properly
   - 'export PATH="/usr/bin:$PATH"'
+  # And this to stop virtualenv from upgrading pip, see
+  # https://github.com/The-Compiler/qutebrowser/issues/1486
+  - 'export VIRTUALENV_DOWNLOAD=no'
 
 install:
   - bash scripts/dev/ci/travis_install.sh
