@@ -17,6 +17,9 @@
 # You should have received a copy of the GNU General Public License
 # along with qutebrowser.  If not, see <http://www.gnu.org/licenses/>.
 
+# Because every method needs to have a log_stack argument
+# pylint: disable=unused-variable
+
 """Message singleton so we don't have to define unneeded signals."""
 
 import datetime
