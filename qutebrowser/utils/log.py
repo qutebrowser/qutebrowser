@@ -429,13 +429,15 @@ class RAMHandler(logging.Handler):
             # We don't log VDEBUG to RAM.
             self._data.append(record)
 
-    def dump_log(self, html=False):
+    def dump_log(self, html=False, level='vdebug'):
         """Dump the complete formatted log data as as string.
 
         FIXME: We should do all the HTML formatter via jinja2.
         (probably obsolete when moving to a widget for logging,
         https://github.com/The-Compiler/qutebrowser/issues/34
         """
+        # pylint: disable=protected-access
+        minlevel = logging._nameToLevel.get(level.upper(), VDEBUG_LEVEL)
         lines = []
         fmt = self.html_formatter.format if html else self.format
         self.acquire()
@@ -444,7 +446,8 @@ class RAMHandler(logging.Handler):
         finally:
             self.release()
         for record in records:
-            lines.append(fmt(record))
+            if record.levelno >= minlevel:
+                lines.append(fmt(record))
         return '\n'.join(lines)
 
 
