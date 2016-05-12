@@ -368,7 +368,7 @@ def check_contents_plain(quteproc, text):
 
 @bdd.then(bdd.parsers.parse('the page should not contain the plaintext '
                             '"{text}"'))
-def check_contents_plain(quteproc, text):
+def check_not_contents_plain(quteproc, text):
     """Check the current page's content based on a substring."""
     content = quteproc.get_content().strip()
     assert text not in content

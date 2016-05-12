@@ -64,12 +64,20 @@ LOG_COLORS = {
     'CRITICAL': 'red',
 }
 
-
 # We first monkey-patch logging to support our VDEBUG level before getting the
 # loggers.  Based on http://stackoverflow.com/a/13638084
 VDEBUG_LEVEL = 9
 logging.addLevelName(VDEBUG_LEVEL, 'VDEBUG')
 logging.VDEBUG = VDEBUG_LEVEL
+
+LOG_LEVELS = {
+    'VDEBUG': logging.VDEBUG,
+    'DEBUG': logging.DEBUG,
+    'INFO': logging.INFO,
+    'WARNING': logging.WARNING,
+    'ERROR': logging.ERROR,
+    'CRITICAL': logging.CRITICAL,
+}
 
 
 def vdebug(self, msg, *args, **kwargs):
@@ -436,8 +444,7 @@ class RAMHandler(logging.Handler):
         (probably obsolete when moving to a widget for logging,
         https://github.com/The-Compiler/qutebrowser/issues/34
         """
-        # pylint: disable=protected-access
-        minlevel = logging._nameToLevel.get(level.upper(), VDEBUG_LEVEL)
+        minlevel = LOG_LEVELS.get(level.upper(), VDEBUG_LEVEL)
         lines = []
         fmt = self.html_formatter.format if html else self.format
         self.acquire()

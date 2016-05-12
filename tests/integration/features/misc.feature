@@ -378,6 +378,8 @@ Feature: Various utility commands.
         Then the error "the-error-message" should be shown
         And the warning "the-warning-message" should be shown
         And the page should contain the plaintext "the-error-message"
+        And the page should not contain the plaintext "the-warning-message"
+        And the page should not contain the plaintext "the-info-message"
 
     Scenario: Showing messages of type 'warning' or greater
         When I run :message-error the-error-message
@@ -388,6 +390,7 @@ Feature: Various utility commands.
         And the warning "the-warning-message" should be shown
         And the page should contain the plaintext "the-error-message"
         And the page should contain the plaintext "the-warning-message"
+        And the page should not contain the plaintext "the-info-message"
 
     Scenario: Showing messages of type 'info' or greater
         When I run :message-error the-error-message
@@ -399,3 +402,7 @@ Feature: Various utility commands.
         And the page should contain the plaintext "the-error-message"
         And the page should contain the plaintext "the-warning-message"
         And the page should contain the plaintext "the-info-message"
+
+    Scenario: Showing messages of an invalid level
+        When I run :messages cataclysmic
+        Then the error "Invalid log level cataclysmic!" should be shown
