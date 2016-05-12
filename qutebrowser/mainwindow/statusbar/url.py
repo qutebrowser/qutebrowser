@@ -19,7 +19,7 @@
 
 """URL displayed in the statusbar."""
 
-from PyQt5.QtCore import pyqtSlot, pyqtProperty, Qt
+from PyQt5.QtCore import pyqtSlot, pyqtProperty, Qt, QUrl
 
 from qutebrowser.browser import webview
 from qutebrowser.mainwindow.statusbar import textbase
@@ -153,7 +153,7 @@ class UrlText(textbase.TextBase):
             _text: The text of the hovered link (string)
         """
         if link:
-            self._hover_url = link
+            self._hover_url = QUrl(link).toString()
         else:
             self._hover_url = None
         self._update_url()
