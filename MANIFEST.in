@@ -38,5 +38,6 @@ exclude .travis.yml
 exclude codecov.yml
 exclude .pydocstylerc
 exclude misc/appveyor_install.py
+exclude .flake8
 
 global-exclude __pycache__ *.pyc *.pyo
