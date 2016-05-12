@@ -53,7 +53,8 @@ brew_install() {
 }
 
 pip_install() {
-    travis_retry sudo -H python3 -m pip install -r scripts/dev/ci/requirements-travis.txt
+    # this uses python2
+    travis_retry sudo -H python -m pip install -r scripts/dev/ci/requirements-travis.txt
 }
 
 npm_install() {
@@ -90,28 +91,30 @@ fi
 
 pyqt_pkgs="python3-pyqt5 python3-pyqt5.qtwebkit"
 
+pip_install
+
 case $TESTENV in
     py34-cov)
-        apt_install python3-pip xvfb $pyqt_pkgs
+        apt_install xvfb $pyqt_pkgs
         check_pyqt
         ;;
     pylint|vulture)
-        apt_install python3-pip $pyqt_pkgs
+        apt_install $pyqt_pkgs
         check_pyqt
         ;;
     flake8)
         # We need an up-to-date Python because of:
         # https://github.com/google/yapf/issues/46
-        apt_install -t trusty-updates python3.4 python3-pip
+        apt_install -t trusty-updates python3.4
         ;;
     docs)
-        apt_install python3-pip $pyqt_pkgs asciidoc
+        apt_install $pyqt_pkgs asciidoc
         check_pyqt
         ;;
     misc|pyroma|check-manifest)
         ;;
     eslint)
-        apt_install python3-pip npm nodejs nodejs-legacy
+        apt_install npm nodejs nodejs-legacy
         npm_install eslint
         ;;
     *)
@@ -119,5 +122,3 @@ case $TESTENV in
         exit 1
         ;;
 esac
-
-pip_install
