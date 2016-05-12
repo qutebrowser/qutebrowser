@@ -103,9 +103,7 @@ case $TESTENV in
         check_pyqt
         ;;
     flake8)
-        # We need an up-to-date Python because of:
-        # https://github.com/google/yapf/issues/46
-        apt_install -t trusty-updates python3.4 libpython3.4-dev
+        apt_install libpython3.4-dev
         ;;
     docs)
         apt_install $pyqt_pkgs asciidoc libpython3.4-dev
