@@ -212,7 +212,6 @@ Documentation of used Python libraries:
 * http://pythonhosted.org/setuptools/[setuptools]
 * http://cx-freeze.readthedocs.org/en/latest/overview.html[cx_Freeze]
 * https://pypi.python.org/pypi/colorama[colorama]
-* https://pypi.python.org/pypi/colorlog[colorlog]
 
 Related RFCs and standards:
 

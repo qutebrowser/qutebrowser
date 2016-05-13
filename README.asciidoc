@@ -109,11 +109,8 @@ The following libraries are optional and provide a better user experience:
 To generate the documentation for the `:help` command, when using the git
 repository (rather than a release), http://asciidoc.org/[asciidoc] is needed.
 
-The following libraries are optional and provide colored logging in the
-console:
-
-* https://pypi.python.org/pypi/colorlog/[colorlog]
-* On Windows: https://pypi.python.org/pypi/colorama/[colorama]
+On Windows, https://pypi.python.org/pypi/colorama/[colorama] is needed to
+display colored log output.
 
 See link:INSTALL.asciidoc[INSTALL] for directions on how to install qutebrowser
 and its dependencies.

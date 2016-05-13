@@ -46,6 +46,8 @@ Changed
   not be.
 - Show favicons as window icon with `tabs-are-windows` set.
 - `:bind <key>` without a command now shows the existing binding
+- The optional `colorlog` dependency got removed, as qutebrowser now displays
+  colored logs without it.
 
 Fixed
 -----

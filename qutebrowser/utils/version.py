@@ -129,7 +129,6 @@ def _module_versions():
     lines = []
     modules = collections.OrderedDict([
         ('sip', ['SIP_VERSION_STR']),
-        ('colorlog', []),
         ('colorama', ['VERSION', '__version__']),
         ('pypeg2', ['__version__']),
         ('jinja2', ['__version__']),
