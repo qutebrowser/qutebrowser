@@ -150,10 +150,10 @@ class KeyConfigParser(QObject):
             data = str(self)
             f.write(data)
 
-    @cmdutils.register(instance='key-config', maxsplit=1, no_cmd_split=True,
-                       win_id='win_id',
-                       completion=[usertypes.Completion.empty,
-                                   usertypes.Completion.command])
+    @cmdutils.register(instance='key-config', maxsplit=1, no_cmd_split=True)
+    @cmdutils.argument('win_id', win_id=True)
+    @cmdutils.argument('key', completion=usertypes.Completion.empty)
+    @cmdutils.argument('command', completion=usertypes.Completion.command)
     def bind(self, key, win_id, command=None, *, mode=None, force=False):
         """Bind a key to a command.
 
