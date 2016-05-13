@@ -85,7 +85,7 @@ def update_pdfjs(target_version=None):
 
 
 def update_dmg_makefile():
-    """Update fancy-dmg Makefile
+    """Update fancy-dmg Makefile.
 
     See https://el-tramo.be/blog/fancy-dmg/
     """
