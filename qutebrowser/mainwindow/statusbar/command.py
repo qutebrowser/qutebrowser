@@ -24,7 +24,7 @@ from PyQt5.QtWidgets import QSizePolicy
 
 from qutebrowser.keyinput import modeman, modeparsers
 from qutebrowser.commands import cmdexc, cmdutils, runners
-from qutebrowser.misc import cmdhistory
+from qutebrowser.misc import cmdhistory, split
 from qutebrowser.misc import miscwidgets as misc
 from qutebrowser.utils import usertypes, log, objreg
 
@@ -105,7 +105,7 @@ class Command(misc.MinimalLineEditMixin, misc.CommandLineEdit):
             space: If given, a space is added to the end.
             append: If given, the text is appended to the current text.
         """
-        args = text.split()
+        args = split.split(text, keep=True)
         args = runners.replace_variables(self._win_id, args)
         text = ' '.join(args)
 
