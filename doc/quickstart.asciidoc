@@ -5,8 +5,8 @@ The Compiler <mail@qutebrowser.org>
 NOTE: This page will only appear on the first start. To view it at a later
 time, use the `:help` command.
 
-Basic commands to get you started
----------------------------------
+Basic keybindings to get you started
+------------------------------------
 
 * Use the arrow keys or `hjkl` to move around a webpage (vim-like syntax is used in quite a few places)
 * To go to a new webpage, press `o`, then type a url, then press Enter (Use `O` to open the url in a new tab). If what you've typed isn't a url, then a search engine will be used instead (DuckDuckGo, by default)
