@@ -21,6 +21,7 @@
 
 import inspect
 import collections
+import traceback
 
 from PyQt5.QtWebKit import QWebSettings
 
@@ -493,7 +494,8 @@ class Command:
         try:
             self.namespace = self.parser.parse_args(args)
         except argparser.ArgumentParserError as e:
-            message.error(win_id, '{}: {}'.format(self.name, e))
+            message.error(win_id, '{}: {}'.format(self.name, e),
+                          stack=traceback.format_exc())
             return
         except argparser.ArgumentParserExit as e:
             log.commands.debug("argparser exited with status {}: {}".format(

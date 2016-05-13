@@ -116,14 +116,16 @@ def on_focus_changed():
         getattr(bridge, msg.method_name)(text, *msg.args, **msg.kwargs)
 
 
-def error(win_id, message, immediately=False):
+def error(win_id, message, immediately=False, *, stack=None):
     """Convenience function to display an error message in the statusbar.
 
     Args:
         win_id: The ID of the window which is calling this function.
         others: See MessageBridge.error.
+        stack: The stack trace to show.
     """
-    stack = ''.join(traceback.format_stack())
+    if stack is None:
+        stack = ''.join(traceback.format_stack())
     log.message.debug("Error message stack:\n{}".format(stack))
     _wrapper(win_id, 'error', message, immediately)
 
