@@ -37,6 +37,23 @@ QueuedMsg = collections.namedtuple(
     'QueuedMsg', ['time', 'win_id', 'method_name', 'text', 'args', 'kwargs'])
 
 
+def _log_stack(typ, stack):
+    """Log the given message stacktrace.
+
+    Args:
+        typ: The type of the message (str)
+        stack: The stack as an iterable of strings or a single string
+    """
+    try:
+        # traceback.format_exc() produces a list of strings, while
+        # traceback.format_stack() produces a single string...
+        stack = stack.splitlines()
+    except AttributeError:
+        pass
+    indented = '\n'.join('  ' + line.rstrip() for line in stack)
+    log.message.debug("Stack for {} message:\n{}".format(typ, indented))
+
+
 def _wrapper(win_id, method_name, text, *args, **kwargs):
     """A wrapper which executes the action if possible, and queues it if not.
 
@@ -125,8 +142,11 @@ def error(win_id, message, immediately=False, *, stack=None):
         stack: The stack trace to show.
     """
     if stack is None:
-        stack = ''.join(traceback.format_stack())
-    log.message.debug("Error message stack:\n{}".format(stack))
+        stack = traceback.format_stack()
+        typ = 'error'
+    else:
+        typ = 'error (from exception)'
+    _log_stack(typ, stack)
     _wrapper(win_id, 'error', message, immediately)
 
 
@@ -137,8 +157,7 @@ def warning(win_id, message, immediately=False):
         win_id: The ID of the window which is calling this function.
         others: See MessageBridge.warning.
     """
-    stack = ''.join(traceback.format_stack())
-    log.message.debug("Warning message stack:\n{}".format(stack))
+    _log_stack('warning', traceback.format_stack())
     _wrapper(win_id, 'warning', message, immediately)
 
 
@@ -288,8 +307,7 @@ class MessageBridge(QObject):
         msg = str(msg)
         log.message.error(msg)
         if log_stack:
-            stack = ''.join(traceback.format_stack())
-            log.message.debug("Error message stack:\n{}".format(stack))
+            _log_stack('error (delayed)', traceback.format_stack())
         self.s_error.emit(msg, immediately)
 
     def warning(self, msg, immediately=False, *, log_stack=True):
@@ -307,8 +325,7 @@ class MessageBridge(QObject):
         msg = str(msg)
         log.message.warning(msg)
         if log_stack:
-            stack = ''.join(traceback.format_stack())
-            log.message.debug("Warning message stack:\n{}", sinfo=stack)
+            _log_stack('warning (delayed)', traceback.format_stack())
         self.s_warning.emit(msg, immediately)
 
     def info(self, msg, immediately=True, *, log_stack=False):
