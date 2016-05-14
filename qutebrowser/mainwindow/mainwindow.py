@@ -294,11 +294,14 @@ class MainWindow(QWidget):
         # commands
         keyparsers[usertypes.KeyMode.normal].keystring_updated.connect(
             status.keystring.setText)
-        keyparsers[usertypes.KeyMode.normal].keystring_updated.connect(
-            self._keyhint.update_keyhint)
         cmd.got_cmd.connect(self._commandrunner.run_safely)
         cmd.returnPressed.connect(tabs.on_cmd_return_pressed)
         tabs.got_cmd.connect(self._commandrunner.run_safely)
+
+        # key hint popup
+        for mode, parser in keyparsers.items():
+            parser.keystring_updated.connect(functools.partial(
+                self._keyhint.update_keyhint, mode.name))
 
         # config
         for obj in keyparsers.values():

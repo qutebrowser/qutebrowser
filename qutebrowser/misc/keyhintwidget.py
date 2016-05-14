@@ -80,7 +80,7 @@ class KeyHintView(QLabel):
         super().showEvent(e)
 
     @pyqtSlot(str)
-    def update_keyhint(self, prefix):
+    def update_keyhint(self, modename, prefix):
         """Show hints for the given prefix (or hide if prefix is empty).
 
         Args:
@@ -95,7 +95,7 @@ class KeyHintView(QLabel):
         text = ''
         keyconf = objreg.get('key-config')
         # this is only fired in normal mode
-        for key, cmd in keyconf.get_bindings_for('normal').items():
+        for key, cmd in keyconf.get_bindings_for(modename).items():
             if key.startswith(prefix):
                 suffix = "<font color={}>{}</font>".format(self._suffix_color,
                                                            key[len(prefix):])
