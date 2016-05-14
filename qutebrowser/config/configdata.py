@@ -477,7 +477,7 @@ def data(readonly=False):
              "Timeout for ambiguous key bindings."),
 
             ('partial-timeout',
-             SettingValue(typ.Int(minval=0, maxval=MAXVALS['int']), '1000'),
+             SettingValue(typ.Int(minval=0, maxval=MAXVALS['int']), '2500'),
              "Timeout for partially typed key bindings."),
 
             ('insert-mode-on-plugins',
