@@ -355,6 +355,10 @@ def data(readonly=False):
              "Hide the window decoration when using wayland "
              "(requires restart)"),
 
+            ('show-keyhints',
+             SettingValue(typ.Bool(), 'true'),
+             "Show possible keychains based on the current keystring"),
+
             readonly=readonly
         )),
 
@@ -1196,6 +1200,18 @@ def data(readonly=False):
              "Background color for webpages if unset (or empty to use the "
              "theme's color)"),
 
+            ('keyhint.fg',
+             SettingValue(typ.QssColor(), '#FFFFFF'),
+             "Text color for the keyhint widget."),
+
+            ('keyhint.fg.suffix',
+             SettingValue(typ.QssColor(), '#FFFF00'),
+             "Highlight color for keys to complete the current keychain"),
+
+            ('keyhint.bg',
+             SettingValue(typ.QssColor(), 'rgba(0, 0, 0, 80%)'),
+             "Background color of the keyhint widget."),
+
             readonly=readonly
         )),
 
@@ -1276,6 +1292,10 @@ def data(readonly=False):
              SettingValue(
                  typ.Int(none_ok=True, minval=1, maxval=MAXVALS['int']), ''),
              "The default font size for fixed-pitch text."),
+
+            ('keyhint',
+             SettingValue(typ.Font(), DEFAULT_FONT_SIZE + ' ${_monospace}'),
+             "Font used in the keyhint widget."),
 
             readonly=readonly
         )),
