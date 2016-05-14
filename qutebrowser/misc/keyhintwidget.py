@@ -24,6 +24,8 @@ with each possible completion of that keystring and the corresponding command.
 It is intended to help discoverability of keybindings.
 """
 
+import html
+
 from PyQt5.QtWidgets import QLabel, QSizePolicy
 from PyQt5.QtCore import pyqtSlot, pyqtSignal
 
@@ -49,6 +51,9 @@ class KeyHintView(QLabel):
             font: {{ font['keyhint'] }};
             color: {{ color['keyhint.fg'] }};
             background-color: {{ color['keyhint.bg'] }};
+            padding: 6px;
+            padding-bottom: -4px;
+            border-radius: 6px;
         }
     """
 
@@ -58,21 +63,21 @@ class KeyHintView(QLabel):
         super().__init__(parent)
         self._win_id = win_id
         self.set_enabled()
-        config = objreg.get('config')
-        config.changed.connect(self.set_enabled)
-        self._suffix_color = config.get('colors', 'keyhint.fg.suffix')
+        cfg = objreg.get('config')
+        cfg.changed.connect(self.set_enabled)
         style.set_register_stylesheet(self)
         self.setSizePolicy(QSizePolicy.Fixed, QSizePolicy.Minimum)
-        self.setVisible(False)
+        self.hide()
 
     def __repr__(self):
-        return utils.get_repr(self)
+        return utils.get_repr(self, win_id=self._win_id)
 
     @config.change_filter('ui', 'show-keyhints')
     def set_enabled(self):
         """Update self._enabled when the config changed."""
         self._enabled = config.get('ui', 'show-keyhints')
-        if not self._enabled: self.setVisible(False)
+        if not self._enabled:
+            self.hide()
 
     def showEvent(self, e):
         """Adjust the keyhint size when it's freshly shown."""
@@ -86,20 +91,24 @@ class KeyHintView(QLabel):
         Args:
             prefix: The current partial keystring.
         """
-        if len(prefix) == 0 or not self._enabled:
-            self.setVisible(False)
+        if not prefix or not self._enabled:
+            self.hide()
             return
 
-        self.setVisible(True)
+        self.show()
+        suffix_color = html.escape(config.get('colors', 'keyhint.fg.suffix'))
 
         text = ''
         keyconf = objreg.get('key-config')
         # this is only fired in normal mode
         for key, cmd in keyconf.get_bindings_for(modename).items():
             if key.startswith(prefix):
-                suffix = "<font color={}>{}</font>".format(self._suffix_color,
-                                                           key[len(prefix):])
-                text += '{}{}\t<b>{}</b><br>'.format(prefix, suffix, cmd)
+                suffix = "<font color='{}'>{}</font>".format(suffix_color,
+                    html.escape(key[len(prefix):]))
+
+                text += '{}{}\t<b>{}</b><br>'.format(html.escape(prefix),
+                                                     suffix,
+                                                     html.escape(cmd))
 
         self.setText(text)
         self.adjustSize()

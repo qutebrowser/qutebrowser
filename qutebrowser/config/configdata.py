@@ -1205,7 +1205,7 @@ def data(readonly=False):
              "Text color for the keyhint widget."),
 
             ('keyhint.fg.suffix',
-             SettingValue(typ.QssColor(), '#FFFF00'),
+             SettingValue(typ.CssColor(), '#FFFF00'),
              "Highlight color for keys to complete the current keychain"),
 
             ('keyhint.bg',
