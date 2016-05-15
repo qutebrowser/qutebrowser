@@ -40,7 +40,6 @@ class KeyHintView(QLabel):
     Attributes:
         _win_id: Window ID of parent.
         _enabled: If False, do not show the window at all
-        _suffix_color: Highlight for completions to the current keychain.
 
     Signals:
         reposition_keyhint: Emitted when this widget should be resized.
@@ -53,7 +52,7 @@ class KeyHintView(QLabel):
             background-color: {{ color['keyhint.bg'] }};
             padding: 6px;
             padding-bottom: -4px;
-            border-radius: 6px;
+            border-top-right-radius: 6px;
         }
     """
 
@@ -102,7 +101,9 @@ class KeyHintView(QLabel):
         keyconf = objreg.get('key-config')
         # this is only fired in normal mode
         for key, cmd in keyconf.get_bindings_for(modename).items():
-            if key.startswith(prefix):
+            # for now, special keys can't be part of keychains, so ignore them
+            is_special_binding = key.startswith('<') and key.endswith('>')
+            if key.startswith(prefix) and not is_special_binding:
                 suffix = "<font color='{}'>{}</font>".format(suffix_color,
                     html.escape(key[len(prefix):]))
 
