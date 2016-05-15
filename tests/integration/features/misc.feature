@@ -15,9 +15,21 @@ Feature: Various utility commands.
 
     Scenario: :set-cmd-text with URL replacement
         When I open data/hello.txt
-        When I run :set-cmd-text :message-info >{url}<
+        And I run :set-cmd-text :message-info {url}
         And I run :command-accept
-        Then the message ">http://localhost:*/hello.txt<" should be shown
+        Then the message "http://localhost:*/hello.txt" should be shown
+
+    Scenario: :set-cmd-text with URL replacement with encoded spaces
+        When I open data/title with spaces.html
+        And I run :set-cmd-text :message-info {url}
+        And I run :command-accept
+        Then the message "http://localhost:*/title%20with%20spaces.html" should be shown
+
+    Scenario: :set-cmd-text with URL replacement with decoded spaces
+        When I open data/title with spaces.html
+        And I run :set-cmd-text :message-info "> {url:pretty} <"
+        And I run :command-accept
+        Then the message "> http://localhost:*/title with spaces.html <" should be shown
 
     Scenario: :set-cmd-text with -s and -a
         When I run :set-cmd-text -s :message-info "foo
@@ -342,7 +354,7 @@ Feature: Various utility commands.
     Scenario: Running :pyeval with --quiet
         When I run :debug-pyeval --quiet 1+1
         Then "pyeval output: 2" should be logged
-        
+
     ## https://github.com/The-Compiler/qutebrowser/issues/504
 
     Scenario: Focusing download widget via Tab

@@ -650,6 +650,8 @@ Syntax: +:set-cmd-text [*--space*] [*--append*] 'text'+
 
 Preset the statusbar to some text.
 
+You can use the `{url}` and `{url:pretty}` variables here which will get replaced by the encoded/decoded URL.
+
 ==== positional arguments
 * +'text'+: The commandline to set.
 
