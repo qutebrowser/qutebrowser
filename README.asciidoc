@@ -157,9 +157,9 @@ Contributors, sorted by the number of commits in descending order:
 * Artur Shaik
 * Nathan Isom
 * Thorsten Wißmann
+* Panagiotis Ktistakis
 * Kevin Velghe
 * Austin Anderson
-* Panagiotis Ktistakis
 * Jimmy
 * Alexey "Averrin" Nabrodov
 * avk
