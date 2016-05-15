@@ -207,7 +207,8 @@ def _init_formatters(level, color, force_color):
         use_colorama: Whether to use colorama.
     """
     console_fmt = EXTENDED_FMT if level <= logging.DEBUG else SIMPLE_FMT
-    ram_formatter = logging.Formatter(EXTENDED_FMT, DATEFMT, '{')
+    ram_formatter = ColoredFormatter(EXTENDED_FMT, DATEFMT, '{',
+                                     use_colors=False)
     html_formatter = HTMLFormatter(EXTENDED_FMT_HTML, DATEFMT,
                                    log_colors=LOG_COLORS)
     if sys.stderr is None:
