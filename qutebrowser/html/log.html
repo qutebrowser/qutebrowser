@@ -37,6 +37,8 @@ th, td {
 <table>
 {{ content | safe() }}
 </table>
+{% elif content is not none %}
+<p>No messages to show.</p>
 {% else %}
 <p>Log output was disabled.</p>
 {% endif %}

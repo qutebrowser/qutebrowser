@@ -426,3 +426,8 @@ Feature: Various utility commands.
     Scenario: Using qute:plainlog directly
         When I open qute:plainlog
         Then no crash should happen
+
+    Scenario: Using :messages without messages
+        Given I have a fresh instance
+        When I run :messages
+        Then the page should contain the plaintext "No messages to show."
