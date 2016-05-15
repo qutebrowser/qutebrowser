@@ -379,3 +379,55 @@ Feature: Various utility commands.
         When I set network -> custom-headers to {"X-Qute-Test": "testvalue"}
         And I open headers
         Then the header X-Qute-Test should be set to testvalue
+
+    ## :messages
+
+    Scenario: Showing error messages
+        When I run :message-error the-error-message
+        And I run :message-warning the-warning-message
+        And I run :message-info the-info-message
+        And I run :messages
+        Then the error "the-error-message" should be shown
+        And the warning "the-warning-message" should be shown
+        And the page should contain the plaintext "the-error-message"
+        And the page should not contain the plaintext "the-warning-message"
+        And the page should not contain the plaintext "the-info-message"
+
+    Scenario: Showing messages of type 'warning' or greater
+        When I run :message-error the-error-message
+        And I run :message-warning the-warning-message
+        And I run :message-info the-info-message
+        And I run :messages warning
+        Then the error "the-error-message" should be shown
+        And the warning "the-warning-message" should be shown
+        And the page should contain the plaintext "the-error-message"
+        And the page should contain the plaintext "the-warning-message"
+        And the page should not contain the plaintext "the-info-message"
+
+    Scenario: Showing messages of type 'info' or greater
+        When I run :message-error the-error-message
+        And I run :message-warning the-warning-message
+        And I run :message-info the-info-message
+        And I run :messages info
+        Then the error "the-error-message" should be shown
+        And the warning "the-warning-message" should be shown
+        And the page should contain the plaintext "the-error-message"
+        And the page should contain the plaintext "the-warning-message"
+        And the page should contain the plaintext "the-info-message"
+
+    Scenario: Showing messages of an invalid level
+        When I run :messages cataclysmic
+        Then the error "Invalid log level cataclysmic!" should be shown
+
+    Scenario: Using qute:log directly
+        When I open qute:log
+        Then no crash should happen
+
+    Scenario: Using qute:plainlog directly
+        When I open qute:plainlog
+        Then no crash should happen
+
+    Scenario: Using :messages without messages
+        Given I have a fresh instance
+        When I run :messages
+        Then the page should contain the plaintext "No messages to show."

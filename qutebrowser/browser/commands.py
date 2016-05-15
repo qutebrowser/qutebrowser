@@ -1339,6 +1339,27 @@ class CommandDispatcher:
         url = QUrl('qute://help/{}'.format(path))
         self._open(url, tab, bg, window)
 
+    @cmdutils.register(instance='command-dispatcher', scope='window')
+    def messages(self, level='error', plain=False, tab=False, bg=False,
+                 window=False):
+        """Show a log of past messages.
+
+        Args:
+            level: Include messages with `level` or higher severity.
+                   Valid values: vdebug, debug, info, warning, error, critical.
+            plain: Whether to show plaintext (as opposed to html).
+            tab: Open in a new tab.
+            bg: Open in a background tab.
+            window: Open in a new window.
+        """
+        if level.upper() not in log.LOG_LEVELS:
+            raise cmdexc.CommandError("Invalid log level {}!".format(level))
+        if plain:
+            url = QUrl('qute://plainlog?level={}'.format(level))
+        else:
+            url = QUrl('qute://log?level={}'.format(level))
+        self._open(url, tab, bg, window)
+
     @cmdutils.register(instance='command-dispatcher',
                        modes=[KeyMode.insert], hide=True, scope='window')
     def open_editor(self):

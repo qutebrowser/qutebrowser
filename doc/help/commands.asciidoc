@@ -31,6 +31,7 @@
 |<<jseval,jseval>>|Evaluate a JavaScript string.
 |<<jump-mark,jump-mark>>|Jump to the mark named by `key`.
 |<<later,later>>|Execute a command after some time.
+|<<messages,messages>>|Show a log of past messages.
 |<<navigate,navigate>>|Open typical prev/next links or navigate using the URL path.
 |<<open,open>>|Open a URL in the current/[count]th tab.
 |<<paste,paste>>|Open a page from the clipboard.
@@ -402,6 +403,22 @@ Execute a command after some time.
 ==== note
 * This command does not split arguments after the last argument and handles quotes literally.
 * With this command, +;;+ is interpreted literally instead of splitting off a second command.
+
+[[messages]]
+=== messages
+Syntax: +:messages [*--plain*] [*--tab*] [*--bg*] [*--window*] ['level']+
+
+Show a log of past messages.
+
+==== positional arguments
+* +'level'+: Include messages with `level` or higher severity. Valid values: vdebug, debug, info, warning, error, critical.
+
+
+==== optional arguments
+* +*-p*+, +*--plain*+: Whether to show plaintext (as opposed to html).
+* +*-t*+, +*--tab*+: Open in a new tab.
+* +*-b*+, +*--bg*+: Open in a background tab.
+* +*-w*+, +*--window*+: Open in a new window.
 
 [[navigate]]
 === navigate

@@ -29,6 +29,7 @@ Added
     - The `'` mark gets set when moving away (hinting link with anchor, searching, etc.) so you can move back with `''`
 - New `--force-color` argument to force colored logging even if stdout is not a
   terminal
+- New `:messages` command to show error messages
 
 Changed
 ~~~~~~~

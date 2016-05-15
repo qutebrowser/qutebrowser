@@ -85,3 +85,12 @@ def test_ascii_locale(httpbin, tmpdir, quteproc_new):
 
     assert len(tmpdir.listdir()) == 1
     assert (tmpdir / '?-issue908.bin').exists()
+
+
+def test_no_loglines(quteproc_new):
+    """Test qute:log with --loglines=0."""
+    quteproc_new.start(args=['--debug', '--no-err-windows', '--temp-basedir',
+                             '--loglines=0', 'about:blank'])
+    quteproc_new.open_path('qute:log')
+    quteproc_new.wait_for_load_finished('qute:log')
+    assert quteproc_new.get_content() == 'Log output was disabled.'
