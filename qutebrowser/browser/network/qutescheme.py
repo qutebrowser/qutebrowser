@@ -169,7 +169,10 @@ def qute_plainlog(_win_id, request):
     if log.ram_handler is None:
         text = "Log output was disabled."
     else:
-        level = urllib.parse.parse_qs(request.url().query()).get('level')[0]
+        try:
+            level = urllib.parse.parse_qs(request.url().query())['level'][0]
+        except KeyError:
+            level = 'vdebug'
         text = log.ram_handler.dump_log(html=False, level=level)
     html = jinja.render('pre.html', title='log', content=text)
     return html.encode('UTF-8', errors='xmlcharrefreplace')
@@ -186,7 +189,10 @@ def qute_log(_win_id, request):
     if log.ram_handler is None:
         html_log = None
     else:
-        level = urllib.parse.parse_qs(request.url().query()).get('level')[0]
+        try:
+            level = urllib.parse.parse_qs(request.url().query())['level'][0]
+        except KeyError:
+            level = 'vdebug'
         html_log = log.ram_handler.dump_log(html=True, level=level)
 
     html = jinja.render('log.html', title='log', content=html_log)

@@ -418,3 +418,11 @@ Feature: Various utility commands.
     Scenario: Showing messages of an invalid level
         When I run :messages cataclysmic
         Then the error "Invalid log level cataclysmic!" should be shown
+
+    Scenario: Using qute:log directly
+        When I open qute:log
+        Then no crash should happen
+
+    Scenario: Using qute:plainlog directly
+        When I open qute:plainlog
+        Then no crash should happen
