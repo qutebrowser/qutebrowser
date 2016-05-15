@@ -95,8 +95,8 @@ class Command(misc.MinimalLineEditMixin, misc.CommandLineEdit):
     def set_cmd_text_command(self, text, space=False, append=False):
         """Preset the statusbar to some text.
 
-        You can use the `{url}` and `{url:pretty}` variables here which will get
-        replaced by the encoded/decoded URL.
+        You can use the `{url}` and `{url:pretty}` variables here which will
+        get replaced by the encoded/decoded URL.
 
         //
 
