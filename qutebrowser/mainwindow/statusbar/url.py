@@ -153,7 +153,7 @@ class UrlText(textbase.TextBase):
             _text: The text of the hovered link (string)
         """
         if link:
-            self._hover_url = QUrl(link).toString()
+            self._hover_url = QUrl(link).toDisplayString()
         else:
             self._hover_url = None
         self._update_url()
