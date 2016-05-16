@@ -20,77 +20,93 @@
 """Test the keyhint widget."""
 
 from collections import OrderedDict
-from unittest import mock
-from PyQt5.QtCore import Qt
-from PyQt5.QtWidgets import QApplication
 import pytest
 
 from qutebrowser.misc.keyhintwidget import KeyHintView
 
 
-class TestKeyHintView:
-    """Tests for KeyHintView widget."""
+def expected_text(*args):
+    """Helper to format text we expect the KeyHintView to generate.
 
-    @pytest.fixture
-    def keyhint(self, qtbot, config_stub, key_config_stub):
-        """Fixture to initialize a KeyHintView."""
-        config_stub.data = {
-            'colors': {
-                'keyhint.fg': 'white',
-                'keyhint.fg.suffix': 'yellow',
-                'keyhint.bg': 'black'
-            },
-            'fonts': {'keyhint': 'Comic Sans'},
-            'ui': {'show-keyhints': True},
-        }
-        keyhint = KeyHintView(0, None)
-        #qtbot.add_widget(keyhint)
-        assert keyhint.text() == ''
-        return keyhint
+    Args:
+        args: One tuple for each row in the expected output.
+              Tuples are of the form: (prefix, color, suffix, command).
+    """
+    text = '<table>'
+    for group in args:
+        print("group = {}".format(group))
+        text += ("<tr>"
+                 "<td>{}</td>"
+                 "<td style='color: {}'>{}</td>"
+                 "<td style='padding-left: 2ex'>{}</td>"
+                 "</tr>").format(*group)
 
-    def test_suggestions(self, qtbot, keyhint, key_config_stub):
-        """Test cursor position based on the prompt."""
-        # we want the dict to return sorted items() for reliable testing
-        key_config_stub.set_bindings_for('normal', OrderedDict([
-            ('aa', 'cmd-aa'),
-            ('ab', 'cmd-ab'),
-            ('aba', 'cmd-aba'),
-            ('abb', 'cmd-abb'),
-            ('xd', 'cmd-xd'),
-            ('xe', 'cmd-xe')]))
+    return text + '</table>'
 
-        keyhint.update_keyhint('normal', 'a')
-        line = "a<font color='{}'>{}</font> {}<br>"
-        assert keyhint.text() == (line.format('yellow', 'a', 'cmd-aa') +
-                                  line.format('yellow', 'b', 'cmd-ab') +
-                                  line.format('yellow', 'ba', 'cmd-aba') +
-                                  line.format('yellow', 'bb', 'cmd-abb'))
 
-    def test_special_bindings(self, qtbot, keyhint, key_config_stub):
-        """Ensure the a prefix of '<' doesn't suggest special keys"""
-        # we want the dict to return sorted items() for reliable testing
-        key_config_stub.set_bindings_for('normal', OrderedDict([
-            ('<a', 'cmd-aa'),
-            ('<b', 'cmd-ab'),
-            ('<ctrl-a>', 'cmd-aba')]))
+@pytest.fixture
+def keyhint(qtbot, config_stub, key_config_stub):
+    """Fixture to initialize a KeyHintView."""
+    config_stub.data = {
+        'colors': {
+            'keyhint.fg': 'white',
+            'keyhint.fg.suffix': 'yellow',
+            'keyhint.bg': 'black'
+        },
+        'fonts': {'keyhint': 'Comic Sans'},
+        'ui': {'show-keyhints': True},
+    }
+    keyhint = KeyHintView(0, None)
+    qtbot.add_widget(keyhint)
+    assert keyhint.text() == ''
+    return keyhint
 
-        keyhint.update_keyhint('normal', '<')
-        line = "&lt;<font color='{}'>{}</font> {}<br>"
-        assert keyhint.text() == (line.format('yellow', 'a', 'cmd-aa') +
-                                  line.format('yellow', 'b', 'cmd-ab'))
 
-    def test_disable(self, qtbot, keyhint, config_stub):
-        """Ensure the widget isn't visible if disabled."""
-        config_stub.set('ui', 'show-keyhints', False)
-        keyhint.update_keyhint('normal', 'a')
-        assert not keyhint.text()
-        assert not keyhint.isVisible()
+def test_suggestions(keyhint, key_config_stub):
+    """Test cursor position based on the prompt."""
+    # we want the dict to return sorted items() for reliable testing
+    key_config_stub.set_bindings_for('normal', OrderedDict([
+        ('aa', 'cmd-aa'),
+        ('ab', 'cmd-ab'),
+        ('aba', 'cmd-aba'),
+        ('abb', 'cmd-abb'),
+        ('xd', 'cmd-xd'),
+        ('xe', 'cmd-xe')]))
 
-    def test_color_switch(self, qtbot, keyhint, config_stub, key_config_stub):
-        """Ensure the the keyhint suffix color can be updated at runtime."""
-        config_stub.set('colors', 'keyhint.fg.suffix', '#ABCDEF')
-        key_config_stub.set_bindings_for('normal', OrderedDict([
-            ('aa', 'cmd-aa')]))
-        keyhint.update_keyhint('normal', 'a')
-        expected = "a<font color='#ABCDEF'>a</font> cmd-aa<br>"
-        assert keyhint.text() == expected
+    keyhint.update_keyhint('normal', 'a')
+    assert keyhint.text() == expected_text(
+        ('a', 'yellow', 'a', 'cmd-aa'),
+        ('a', 'yellow', 'b', 'cmd-ab'),
+        ('a', 'yellow', 'ba', 'cmd-aba'),
+        ('a', 'yellow', 'bb', 'cmd-abb'))
+
+
+def test_special_bindings(keyhint, key_config_stub):
+    """Ensure the a prefix of '<' doesn't suggest special keys."""
+    # we want the dict to return sorted items() for reliable testing
+    key_config_stub.set_bindings_for('normal', OrderedDict([
+        ('<a', 'cmd-<a'),
+        ('<b', 'cmd-<b'),
+        ('<ctrl-a>', 'cmd-ctrla')]))
+
+    keyhint.update_keyhint('normal', '<')
+    assert keyhint.text() == expected_text(
+        ('&lt;', 'yellow', 'a', 'cmd-&lt;a'),
+        ('&lt;', 'yellow', 'b', 'cmd-&lt;b'))
+
+
+def test_disable(keyhint, config_stub):
+    """Ensure the widget isn't visible if disabled."""
+    config_stub.set('ui', 'show-keyhints', False)
+    keyhint.update_keyhint('normal', 'a')
+    assert not keyhint.text()
+    assert not keyhint.isVisible()
+
+
+def test_color_switch(keyhint, config_stub, key_config_stub):
+    """Ensure the the keyhint suffix color can be updated at runtime."""
+    config_stub.set('colors', 'keyhint.fg.suffix', '#ABCDEF')
+    key_config_stub.set_bindings_for('normal', OrderedDict([
+        ('aa', 'cmd-aa')]))
+    keyhint.update_keyhint('normal', 'a')
+    assert keyhint.text() == expected_text(('a', '#ABCDEF', 'a', 'cmd-aa'))

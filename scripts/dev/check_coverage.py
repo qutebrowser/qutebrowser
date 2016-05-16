@@ -136,6 +136,8 @@ PERFECT_FILES = [
         'qutebrowser/utils/jinja.py'),
     ('tests/unit/utils/test_error.py',
         'qutebrowser/utils/error.py'),
+    ('tests/unit/utils/test_keyhints.py',
+        'qutebrowser/misc/keyhintwidget.py'),
 ]
 
 
