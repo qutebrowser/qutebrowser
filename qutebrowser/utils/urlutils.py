@@ -168,7 +168,7 @@ def fuzzy_url(urlstr, cwd=None, relative=False, do_search=True,
         relative: Whether to resolve relative files.
         do_search: Whether to perform a search on non-URLs.
         force_search: Whether to force a search even if the content can be
-                      interpreted as an URL.
+                      interpreted as an URL or a path.
 
     Return:
         A target QUrl to a search page or the original URL.
@@ -177,7 +177,7 @@ def fuzzy_url(urlstr, cwd=None, relative=False, do_search=True,
     path = get_path_if_valid(urlstr, cwd=cwd, relative=relative,
                              check_exists=True)
 
-    if path is not None:
+    if not force_search and path is not None:
         url = QUrl.fromLocalFile(path)
     elif force_search or (do_search and not is_url(urlstr)):
         # probably a search term
