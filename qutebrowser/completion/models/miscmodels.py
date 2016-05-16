@@ -19,6 +19,7 @@
 
 """Misc. CompletionModels."""
 
+from collections import defaultdict
 from PyQt5.QtCore import Qt, QTimer, pyqtSlot
 
 from qutebrowser.browser import webview
@@ -31,6 +32,8 @@ from qutebrowser.completion.models import base
 class CommandCompletionModel(base.BaseCompletionModel):
 
     """A CompletionModel filled with all commands and descriptions."""
+
+    COLUMN_WIDTHS = (20, 60, 20)
 
     # https://github.com/The-Compiler/qutebrowser/issues/545
     # pylint: disable=abstract-method
@@ -48,8 +51,14 @@ class CommandCompletionModel(base.BaseCompletionModel):
         for name, cmd in config.section('aliases').items():
             cmdlist.append((name, "Alias for '{}'".format(cmd)))
         cat = self.new_category("Commands")
+
+        # map each command to its bound keys and show these in the misc column
+        keyconf = objreg.get('key-config')
+        cmd_to_keys = defaultdict(lambda: [])
+        for key, cmd in keyconf.get_bindings_for('normal').items():
+            cmd_to_keys[cmd].append(key)
         for (name, desc) in sorted(cmdlist):
-            self.new_item(cat, name, desc)
+            self.new_item(cat, name, desc, str.join(',', cmd_to_keys[name]))
 
 
 class HelpCompletionModel(base.BaseCompletionModel):
