@@ -104,12 +104,19 @@ class KeyHintView(QLabel):
             # for now, special keys can't be part of keychains, so ignore them
             is_special_binding = key.startswith('<') and key.endswith('>')
             if key.startswith(prefix) and not is_special_binding:
-                suffix = "<font color='{}'>{}</font>".format(suffix_color,
-                    html.escape(key[len(prefix):]))
-
-                text += '{}{} {}<br>'.format(html.escape(prefix),
-                                             suffix,
-                                             html.escape(cmd))
+                text += (
+                    "<tr>"
+                    "<td>{}</td>"
+                    "<td style='color: {}'>{}</td>"
+                    "<td style='padding-left: 2ex'>{}</td>"
+                    "</tr>"
+                ).format(
+                    html.escape(prefix),
+                    suffix_color,
+                    html.escape(key[len(prefix):]),
+                    html.escape(cmd)
+                )
+        text = '<table>{}</table>'.format(text)
 
         self.setText(text)
         self.adjustSize()
