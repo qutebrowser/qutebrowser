@@ -385,8 +385,14 @@ class KeyConfigStub:
 
     """Stub for the key-config object."""
 
-    def get_bindings_for(self, _section):
-        return {}
+    def __init__(self):
+        self.bindings = {}
+
+    def get_bindings_for(self, section):
+        return self.bindings.get(section)
+
+    def set_bindings_for(self, section, bindings):
+        self.bindings[section] = bindings
 
 
 class HostBlockerStub:
