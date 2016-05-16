@@ -238,6 +238,19 @@ class TestFuzzyUrl:
         with pytest.raises(urlutils.InvalidUrlError):
             urlutils.fuzzy_url(url, do_search=True)
 
+    @pytest.mark.parametrize('urlstring', [
+        'http://www.qutebrowser.org/',
+        '/foo',
+        'test'
+    ])
+    def test_force_search(self, urlstring, get_search_url_mock):
+        """Test the force search option"""
+        get_search_url_mock.return_value = QUrl('search_url')
+
+        url = urlutils.fuzzy_url(urlstring, force_search = True)
+
+        assert url == QUrl('search_url')
+
     @pytest.mark.parametrize('path, check_exists', [
         ('/foo', False),
         ('/bar', True),
