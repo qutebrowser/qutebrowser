@@ -107,9 +107,9 @@ class KeyHintView(QLabel):
                 suffix = "<font color='{}'>{}</font>".format(suffix_color,
                     html.escape(key[len(prefix):]))
 
-                text += '{}{}\t<b>{}</b><br>'.format(html.escape(prefix),
-                                                     suffix,
-                                                     html.escape(cmd))
+                text += '{}{} {}<br>'.format(html.escape(prefix),
+                                             suffix,
+                                             html.escape(cmd))
 
         self.setText(text)
         self.adjustSize()

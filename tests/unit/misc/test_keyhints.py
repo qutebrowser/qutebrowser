@@ -60,7 +60,7 @@ class TestKeyHintView:
             ('xe', 'cmd-xe')]))
 
         keyhint.update_keyhint('normal', 'a')
-        line = "a<font color='{}'>{}</font>\t<b>{}</b><br>"
+        line = "a<font color='{}'>{}</font> {}<br>"
         assert keyhint.text() == (line.format('yellow', 'a', 'cmd-aa') +
                                   line.format('yellow', 'b', 'cmd-ab') +
                                   line.format('yellow', 'ba', 'cmd-aba') +
@@ -75,12 +75,12 @@ class TestKeyHintView:
             ('<ctrl-a>', 'cmd-aba')]))
 
         keyhint.update_keyhint('normal', '<')
-        line = "&lt;<font color='{}'>{}</font>\t<b>{}</b><br>"
+        line = "&lt;<font color='{}'>{}</font> {}<br>"
         assert keyhint.text() == (line.format('yellow', 'a', 'cmd-aa') +
                                   line.format('yellow', 'b', 'cmd-ab'))
 
     def test_disable(self, qtbot, keyhint, config_stub):
-        """Ensure the a prefix of '<' doesn't suggest special keys"""
+        """Ensure the widget isn't visible if disabled."""
         config_stub.set('ui', 'show-keyhints', False)
         keyhint.update_keyhint('normal', 'a')
         assert not keyhint.text()
@@ -92,5 +92,5 @@ class TestKeyHintView:
         key_config_stub.set_bindings_for('normal', OrderedDict([
             ('aa', 'cmd-aa')]))
         keyhint.update_keyhint('normal', 'a')
-        expected = "a<font color='#ABCDEF'>a</font>\t<b>cmd-aa</b><br>"
+        expected = "a<font color='#ABCDEF'>a</font> cmd-aa<br>"
         assert keyhint.text() == expected
