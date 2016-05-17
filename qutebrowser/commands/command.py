@@ -237,8 +237,9 @@ class Command:
                 if self._inspect_special_param(param):
                     continue
                 typ = self._get_type(param)
-                kwargs = self._param_to_argparse_kwargs(param, typ)
-                args = self._param_to_argparse_args(param, typ)
+                is_bool = typ is bool
+                kwargs = self._param_to_argparse_kwargs(param, is_bool)
+                args = self._param_to_argparse_args(param, is_bool)
                 callsig = debug_utils.format_call(
                     self.parser.add_argument, args, kwargs,
                     full=False)
@@ -247,12 +248,12 @@ class Command:
                 self.parser.add_argument(*args, **kwargs)
         return signature.parameters.values()
 
-    def _param_to_argparse_kwargs(self, param, typ):
+    def _param_to_argparse_kwargs(self, param, is_bool):
         """Get argparse keyword arguments for a parameter.
 
         Args:
             param: The inspect.Parameter object to get the args for.
-            typ: The type of the parameter
+            is_bool: Whether the parameter is a boolean.
 
         Return:
             A kwargs dict.
@@ -268,7 +269,7 @@ class Command:
 
         arg_info = self.get_arg_info(param)
 
-        if typ is bool:
+        if is_bool:
             kwargs['action'] = 'store_true'
         else:
             if arg_info.metavar is not None:
@@ -280,17 +281,17 @@ class Command:
             kwargs['nargs'] = '*' if self._star_args_optional else '+'
         elif param.kind == inspect.Parameter.KEYWORD_ONLY:
             kwargs['default'] = param.default
-        elif typ is not bool and param.default is not inspect.Parameter.empty:
+        elif not is_bool and param.default is not inspect.Parameter.empty:
             kwargs['default'] = param.default
             kwargs['nargs'] = '?'
         return kwargs
 
-    def _param_to_argparse_args(self, param, typ):
+    def _param_to_argparse_args(self, param, is_bool):
         """Get argparse positional arguments for a parameter.
 
         Args:
             param: The inspect.Parameter object to get the args for.
-            typ: The type of the parameter
+            is_bool: Whether the parameter is a boolean.
 
         Return:
             A list of args.
@@ -308,13 +309,13 @@ class Command:
             raise ValueError("Flag '{}' of parameter {} (command {}) must be "
                              "exactly 1 char!".format(shortname, name,
                                                       self.name))
-        if typ is bool or param.kind == inspect.Parameter.KEYWORD_ONLY:
+        if is_bool or param.kind == inspect.Parameter.KEYWORD_ONLY:
             long_flag = '--{}'.format(name)
             short_flag = '-{}'.format(shortname)
             args.append(long_flag)
             args.append(short_flag)
             self.opt_args[param.name] = long_flag, short_flag
-            if typ is not bool:
+            if not is_bool:
                 self.flags_with_args += [short_flag, long_flag]
         else:
             if not arg_info.hide:
