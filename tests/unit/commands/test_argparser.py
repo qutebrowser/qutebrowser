@@ -80,53 +80,55 @@ class TestArgumentParser:
 
 
 @pytest.mark.parametrize('types, value, expected', [
-    # expected: None to say it's an invalid value
     ([Enum], Enum.foo, Enum.foo),
     ([Enum], 'foo', Enum.foo),
     ([Enum], 'foo-bar', Enum.foo_bar),
-    ([Enum], 'blubb', None),
-    ([Enum], 'foo_bar', None),
 
     ([int], 2, 2),
     ([int], '2', 2),
-    ([int], '2.5', None),
-    ([int], 'foo', None),
     ([int, str], 'foo', 'foo'),
-    ([str, int], '23', 23),
 ])
 @pytest.mark.parametrize('multi', [True, False])
-def test_type_conv(types, value, expected, multi):
+def test_type_conv_valid(types, value, expected, multi):
     param = inspect.Parameter('foo', inspect.Parameter.POSITIONAL_ONLY)
 
     if multi:
-        converter = argparser.multitype_conv(param, types)
+        assert argparser.multitype_conv(param, types, value) == expected
     elif len(types) == 1:
-        converter = argparser.type_conv(param, types[0])
-    else:
-        return
+        assert argparser.type_conv(param, types[0], value) == expected
 
-    if expected is not None:
-        assert converter(value) == expected
-    else:
-        with pytest.raises(cmdexc.ArgumentTypeError) as excinfo:
-            converter(value)
 
+@pytest.mark.parametrize('typ, value', [
+    (Enum, 'blubb'),
+    (Enum, 'foo_bar'),
+    (int, '2.5'),
+    (int, 'foo'),
+])
+@pytest.mark.parametrize('multi', [True, False])
+def test_type_conv_invalid(typ, value, multi):
+    param = inspect.Parameter('foo', inspect.Parameter.POSITIONAL_ONLY)
+
+    with pytest.raises(cmdexc.ArgumentTypeError) as excinfo:
         if multi:
-            msg = 'foo: Invalid value {}'.format(value)
-        elif types[0] is Enum:
-            msg = ('foo: Invalid value {} - expected one of: foo, '
-                   'foo-bar'.format(value))
+            argparser.multitype_conv(param, [typ], value)
         else:
-            msg = 'foo: Invalid {} value {}'.format(types[0].__name__, value)
-        assert str(excinfo.value) == msg
+            argparser.type_conv(param, typ, value)
+
+    if multi:
+        msg = 'foo: Invalid value {}'.format(value)
+    elif typ is Enum:
+        msg = ('foo: Invalid value {} - expected one of: foo, '
+               'foo-bar'.format(value))
+    else:
+        msg = 'foo: Invalid {} value {}'.format(typ.__name__, value)
+    assert str(excinfo.value) == msg
 
 
 def test_multitype_conv_invalid_type():
     """Test using an invalid type with a multitype converter."""
     param = inspect.Parameter('foo', inspect.Parameter.POSITIONAL_ONLY)
-    converter = argparser.multitype_conv(param, [None])
     with pytest.raises(ValueError) as excinfo:
-        converter('')
+        argparser.multitype_conv(param, [None], '')
     assert str(excinfo.value) == "foo: Unknown type None!"
 
 
@@ -135,8 +137,7 @@ def test_conv_default_param():
     def func(foo=None):
         pass
     param = inspect.signature(func).parameters['foo']
-    converter = argparser.type_conv(param, str, str_choices=['val'])
-    assert converter(None) is None
+    assert argparser.type_conv(param, str, None, str_choices=['val']) is None
 
 
 def test_conv_str_type():
@@ -147,22 +148,22 @@ def test_conv_str_type():
     """
     param = inspect.Parameter('foo', inspect.Parameter.POSITIONAL_ONLY)
     with pytest.raises(TypeError) as excinfo:
-        argparser.type_conv(param, 'val')
+        argparser.type_conv(param, 'val', None)
     assert str(excinfo.value) == 'foo: Legacy string type!'
 
 
 def test_conv_str_choices_valid():
     """Calling str type with str_choices and valid value."""
     param = inspect.Parameter('foo', inspect.Parameter.POSITIONAL_ONLY)
-    converter = argparser.type_conv(param, str, str_choices=['val1', 'val2'])
-    assert converter('val1') == 'val1'
+    converted = argparser.type_conv(param, str, 'val1',
+                                    str_choices=['val1', 'val2'])
+    assert converted == 'val1'
 
 
 def test_conv_str_choices_invalid():
     """Calling str type with str_choices and invalid value."""
     param = inspect.Parameter('foo', inspect.Parameter.POSITIONAL_ONLY)
-    converter = argparser.type_conv(param, str, str_choices=['val1', 'val2'])
     with pytest.raises(cmdexc.ArgumentTypeError) as excinfo:
-        converter('val3')
+        argparser.type_conv(param, str, 'val3', str_choices=['val1', 'val2'])
     msg = 'foo: Invalid value val3 - expected one of: val1, val2'
     assert str(excinfo.value) == msg

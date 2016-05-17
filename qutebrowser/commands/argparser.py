@@ -88,19 +88,6 @@ def arg_name(name):
     return name.rstrip('_').replace('_', '-')
 
 
-def _enum_getter(enum):
-    """Function factory to get an enum getter."""
-    def _get_enum_item(key):
-        """Helper function to get an enum item.
-
-        Passes through existing items unmodified.
-        """
-        assert not isinstance(key, enum)
-        return enum[key.replace('-', '_')]
-
-    return _get_enum_item
-
-
 def _check_choices(param, value, choices):
     if value not in choices:
         expected_values = ', '.join(arg_name(val) for val in choices)
@@ -109,57 +96,61 @@ def _check_choices(param, value, choices):
                                            param.name, value, expected_values))
 
 
-def type_conv(param, typ, str_choices=None):
-    """Function factory to get a type converter for a single type.
+def type_conv(param, typ, value, *, str_choices=None):
+    """Convert a value based on a type.
 
     Args:
         param: The argparse.Parameter we're checking
         types: The allowed type
+        value: The value to convert
         str_choices: The allowed choices if the type ends up being a string
+
+    Return:
+        The converted value
     """
     if isinstance(typ, str):
         raise TypeError("{}: Legacy string type!".format(param.name))
 
-    def _convert(value):
-        if value is param.default:
+    if value is param.default:
+        return value
+
+    if utils.is_enum(typ):
+        if isinstance(value, typ):
             return value
-
-        if utils.is_enum(typ):
-            if isinstance(value, typ):
-                return value
-            assert isinstance(value, str)
-            _check_choices(param, value, [arg_name(e.name) for e in typ])
-            getter = _enum_getter(typ)
-            return getter(value)
-        elif typ is str:
-            assert isinstance(value, str)
-            if str_choices is not None:
-                _check_choices(param, value, str_choices)
+        assert isinstance(value, str)
+        _check_choices(param, value, [arg_name(e.name) for e in typ])
+        return typ[value.replace('-', '_')]
+    elif typ is str:
+        assert isinstance(value, str)
+        if str_choices is not None:
+            _check_choices(param, value, str_choices)
+        return value
+    elif callable(typ):
+        # int, float, etc.
+        if isinstance(value, typ):
             return value
-        elif callable(typ):
-            # int, float, etc.
-            if isinstance(value, typ):
-                return value
-            assert isinstance(value, str)
-            try:
-                return typ(value)
-            except (TypeError, ValueError):
-                msg = '{}: Invalid {} value {}'.format(
-                    param.name, typ.__name__, value)
-                raise cmdexc.ArgumentTypeError(msg)
-        else:
-            raise ValueError("{}: Unknown type {!r}!".format(
-                param.name, typ))
-    return _convert
+        assert isinstance(value, str)
+        try:
+            return typ(value)
+        except (TypeError, ValueError):
+            msg = '{}: Invalid {} value {}'.format(
+                param.name, typ.__name__, value)
+            raise cmdexc.ArgumentTypeError(msg)
+    else:
+        raise ValueError("{}: Unknown type {!r}!".format(param.name, typ))
 
 
-def multitype_conv(param, types, str_choices=None):
-    """Function factory to get a type converter for a choice of types.
+def multitype_conv(param, types, value, *, str_choices=None):
+    """Convert a value based on a choice of types.
 
     Args:
         param: The inspect.Parameter we're checking
         types: The allowed types ("overloads")
+        value: The value to convert
         str_choices: The allowed choices if the type ends up being a string
+
+    Return:
+        The converted value
     """
     types = list(set(types))
     if str in types:
@@ -168,15 +159,10 @@ def multitype_conv(param, types, str_choices=None):
         types.remove(str)
         types.append(str)
 
-    def _convert(value):
-        """Convert a value according to an iterable of possible arg types."""
-        for typ in types:
-            try:
-                converter = type_conv(param, typ, str_choices)
-                return converter(value)
-            except cmdexc.ArgumentTypeError:
-                pass
-        raise cmdexc.ArgumentTypeError('{}: Invalid value {}'.format(
-            param.name, value))
-
-    return _convert
+    for typ in types:
+        try:
+            return type_conv(param, typ, value, str_choices=str_choices)
+        except cmdexc.ArgumentTypeError:
+            pass
+    raise cmdexc.ArgumentTypeError('{}: Invalid value {}'.format(
+        param.name, value))

@@ -81,7 +81,6 @@ class Command:
         flags_with_args: A list of flags which take an argument.
         no_cmd_split: If true, ';;' to split sub-commands is ignored.
         _qute_args: The saved data from @cmdutils.argument
-        _type_conv: A mapping of conversion functions for arguments.
         _needs_js: Whether the command needs javascript enabled
         _modes: The modes the command can be executed in.
         _not_modes: The modes the command can not be executed in.
@@ -138,7 +137,6 @@ class Command:
         self.pos_args = []
         self.desc = None
         self.flags_with_args = []
-        self._type_conv = {}
 
         # This is checked by future @cmdutils.argument calls so they fail
         # (as they'd be silently ignored otherwise)
@@ -198,35 +196,6 @@ class Command:
         """Get an ArgInfo tuple for the given inspect.Parameter."""
         return self._qute_args.get(param.name, ArgInfo())
 
-    def _get_typeconv(self, param, typ):
-        """Get a dict with a type conversion for the parameter.
-
-        Args:
-            param: The inspect.Parameter to handle.
-            typ: The type of the parameter.
-        """
-        type_conv = {}
-        if isinstance(typ, tuple):
-            raise TypeError("{}: Legacy tuple type annotation!".format(
-                self.name))
-        elif issubclass(typ, typing.Union):
-            # this is... slightly evil, I know
-            types = list(typ.__union_params__)
-            if param.default is not inspect.Parameter.empty:
-                types.append(type(param.default))
-            choices = self.get_arg_info(param).choices
-            type_conv[param.name] = argparser.multitype_conv(
-                param, types, str_choices=choices)
-        elif typ is str:
-            choices = self.get_arg_info(param).choices
-            type_conv[param.name] = argparser.type_conv(param, typ,
-                                                        str_choices=choices)
-        elif typ is None:
-            pass
-        else:
-            type_conv[param.name] = argparser.type_conv(param, typ)
-        return type_conv
-
     def _inspect_special_param(self, param):
         """Check if the given parameter is a special one.
 
@@ -270,7 +239,6 @@ class Command:
                 typ = self._get_type(param)
                 kwargs = self._param_to_argparse_kwargs(param, typ)
                 args = self._param_to_argparse_args(param, typ)
-                self._type_conv.update(self._get_typeconv(param, typ))
                 callsig = debug_utils.format_call(
                     self.parser.add_argument, args, kwargs,
                     full=False)
@@ -428,12 +396,27 @@ class Command:
     def _get_param_value(self, param):
         """Get the converted value for an inspect.Parameter."""
         value = getattr(self.namespace, param.name)
-        if param.name in self._type_conv:
-            # We convert enum types after getting the values from
-            # argparse, because argparse's choices argument is
-            # processed after type conversation, which is not what we
-            # want.
-            value = self._type_conv[param.name](value)
+        typ = self._get_type(param)
+
+        if isinstance(typ, tuple):
+            raise TypeError("{}: Legacy tuple type annotation!".format(
+                self.name))
+        elif issubclass(typ, typing.Union):
+            # this is... slightly evil, I know
+            types = list(typ.__union_params__)
+            if param.default is not inspect.Parameter.empty:
+                types.append(type(param.default))
+            choices = self.get_arg_info(param).choices
+            value = argparser.multitype_conv(param, types, value,
+                                             str_choices=choices)
+        elif typ is str:
+            choices = self.get_arg_info(param).choices
+            value = argparser.type_conv(param, typ, value, str_choices=choices)
+        elif typ is None:
+            pass
+        else:
+            value = argparser.type_conv(param, typ, value)
+
         return value
 
     def _get_call_args(self, win_id):
