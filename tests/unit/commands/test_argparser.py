@@ -92,6 +92,7 @@ class TestArgumentParser:
     ([int], '2.5', None),
     ([int], 'foo', None),
     ([int, str], 'foo', 'foo'),
+    ([str, int], '23', 23),
 ])
 @pytest.mark.parametrize('multi', [True, False])
 def test_type_conv(types, value, expected, multi):

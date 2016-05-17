@@ -161,9 +161,16 @@ def multitype_conv(param, types, str_choices=None):
         types: The allowed types ("overloads")
         str_choices: The allowed choices if the type ends up being a string
     """
+    types = list(set(types))
+    if str in types:
+        # Make sure str is always the last type in the list, so e.g. '23' gets
+        # returned as 23 if we have typing.Union[str, int]
+        types.remove(str)
+        types.append(str)
+
     def _convert(value):
         """Convert a value according to an iterable of possible arg types."""
-        for typ in set(types):
+        for typ in types:
             try:
                 converter = type_conv(param, typ, str_choices)
                 return converter(value)
