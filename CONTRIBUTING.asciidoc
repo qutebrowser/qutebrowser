@@ -429,11 +429,9 @@ def foo(bar: int, baz=True):
 Possible values:
     - A callable (`int`, `float`, etc.): Gets called to validate/convert the
       value.
-    - A string: The value must match exactly (mainly useful with tuples to get
-      a choice of values, see below).
     - A python enum type: All members of the enum are possible values.
-    - A tuple of multiple types above: Any of these types are valid values,
-      e.g. `('foo', 'bar')` or `(int, 'foo')`.
+    - A `typing.Union` of multiple types above: Any of these types are valid
+      values, e.g. `typing.Union[str, int]`
 
 You can customize how an argument is handled using the `@cmdutils.argument`
 decorator *after* `@cmdutils.register`. This can e.g. be used to customize the
@@ -447,6 +445,19 @@ def foo(bar):
     ...
 ----
 
+For a `str` argument, you can restrict the allowed strings using `choices`:
+
+[source,python]
+----
+@cmdutils.register(...)
+@cmdutils.argument('bar', choices=['val1', 'val2'])
+def foo(bar: str):
+    ...
+----
+
+For `typing.Union` types, the given `choices` are only checked if other types
+(like `int`) don't match.
+
 The following arguments are supported for `@cmdutils.argument`:
 
 - `flag`: Customize the short flag (`-x`) the argument will get.
@@ -454,9 +465,10 @@ The following arguments are supported for `@cmdutils.argument`:
 - `count=True`: Mark the argument as special count argument
 - `hide=True`: Hide the argument from the documentation
 - `completion`: A `usertypes.Completion` member to use as completion.
+- `choices`: The allowed string choices for the argument.
 
 The name of an argument will always be the parameter name, with any trailing
-underscores stripped.
+underscores stripped and underscores replaced by dashes.
 
 [[handling-urls]]
 Handling URLs
