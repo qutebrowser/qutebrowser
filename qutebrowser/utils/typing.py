@@ -67,5 +67,5 @@ class FakeUnion(metaclass=FakeUnionMeta):
 
 try:
     from typing import Union
-except ImportError:
+except ImportError:  # pragma: no cover
     Union = FakeUnion
