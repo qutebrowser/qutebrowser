@@ -51,8 +51,8 @@ SELECTORS = {
     Group.prevnext: 'a, area, button, link, [role=button]',
     Group.focus: '*:focus',
     Group.inputs: ('input[type=text], input[type=email], input[type=url], '
-                'input[type=tel], input[type=number], input[type=password], '
-                'input[type=search], textarea'),
+                   'input[type=tel], input[type=number], input[type=password], '
+                   'input[type=search], textarea'),
 }
 
 
