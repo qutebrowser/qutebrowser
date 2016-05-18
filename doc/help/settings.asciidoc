@@ -49,6 +49,7 @@
 |<<ui-hide-mouse-cursor,hide-mouse-cursor>>|Whether to hide the mouse cursor.
 |<<ui-modal-js-dialog,modal-js-dialog>>|Use standard JavaScript modal dialog for alert() and confirm()
 |<<ui-hide-wayland-decoration,hide-wayland-decoration>>|Hide the window decoration when using wayland (requires restart)
+|<<ui-show-keyhints,show-keyhints>>|Show possible keychains based on the current keystring
 |==============
 
 .Quick reference for section ``network''
@@ -253,6 +254,9 @@
 |<<colors-downloads.fg.error,downloads.fg.error>>|Foreground color for downloads with errors.
 |<<colors-downloads.bg.error,downloads.bg.error>>|Background color for downloads with errors.
 |<<colors-webpage.bg,webpage.bg>>|Background color for webpages if unset (or empty to use the theme's color)
+|<<colors-keyhint.fg,keyhint.fg>>|Text color for the keyhint widget.
+|<<colors-keyhint.fg.suffix,keyhint.fg.suffix>>|Highlight color for keys to complete the current keychain
+|<<colors-keyhint.bg,keyhint.bg>>|Background color of the keyhint widget.
 |==============
 
 .Quick reference for section ``fonts''
@@ -276,6 +280,7 @@
 |<<fonts-web-size-minimum-logical,web-size-minimum-logical>>|The minimum logical font size that is applied when zooming out.
 |<<fonts-web-size-default,web-size-default>>|The default font size for regular text.
 |<<fonts-web-size-default-fixed,web-size-default-fixed>>|The default font size for fixed-pitch text.
+|<<fonts-keyhint,keyhint>>|Font used in the keyhint widget.
 |==============
 
 == general
@@ -666,6 +671,17 @@ Valid values:
 
 Default: +pass:[false]+
 
+[[ui-show-keyhints]]
+=== show-keyhints
+Show possible keychains based on the current keystring
+
+Valid values:
+
+ * +true+
+ * +false+
+
+Default: +pass:[true]+
+
 == network
 Settings related to the network.
 
@@ -873,7 +889,7 @@ Timeout for partially typed key bindings.
 
 If the current input forms only partial matches, the keystring will be cleared after this time.
 
-Default: +pass:[1000]+
+Default: +pass:[5000]+
 
 [[input-insert-mode-on-plugins]]
 === insert-mode-on-plugins
@@ -2041,6 +2057,24 @@ Background color for webpages if unset (or empty to use the theme's color)
 
 Default: +pass:[white]+
 
+[[colors-keyhint.fg]]
+=== keyhint.fg
+Text color for the keyhint widget.
+
+Default: +pass:[#FFFFFF]+
+
+[[colors-keyhint.fg.suffix]]
+=== keyhint.fg.suffix
+Highlight color for keys to complete the current keychain
+
+Default: +pass:[#FFFF00]+
+
+[[colors-keyhint.bg]]
+=== keyhint.bg
+Background color of the keyhint widget.
+
+Default: +pass:[rgba(0, 0, 0, 80%)]+
+
 == fonts
 Fonts used for the UI, with optional style/weight/size.
 
@@ -2149,3 +2183,9 @@ Default: empty
 The default font size for fixed-pitch text.
 
 Default: empty
+
+[[fonts-keyhint]]
+=== keyhint
+Font used in the keyhint widget.
+
+Default: +pass:[8pt ${_monospace}]+

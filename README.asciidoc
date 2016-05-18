@@ -142,10 +142,10 @@ Contributors, sorted by the number of commits in descending order:
 * Antoni Boucher
 * Lamar Pavel
 * Bruno Oliveira
+* Ryan Roden-Corrent
 * Alexander Cogneau
 * Felix Van der Jeugt
 * Martin Tournoij
-* Ryan Roden-Corrent
 * Raphael Pierzina
 * Joel Torstensson
 * Patric Schmitz
