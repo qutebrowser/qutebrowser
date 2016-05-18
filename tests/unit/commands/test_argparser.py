@@ -80,11 +80,9 @@ class TestArgumentParser:
 
 
 @pytest.mark.parametrize('types, value, expected', [
-    ([Enum], Enum.foo, Enum.foo),
     ([Enum], 'foo', Enum.foo),
     ([Enum], 'foo-bar', Enum.foo_bar),
 
-    ([int], 2, 2),
     ([int], '2', 2),
     ([int, str], 'foo', 'foo'),
 ])
@@ -132,12 +130,13 @@ def test_multitype_conv_invalid_type():
     assert str(excinfo.value) == "foo: Unknown type None!"
 
 
-def test_conv_default_param():
+@pytest.mark.parametrize('value, typ', [(None, None), (42, int)])
+def test_conv_default_param(value, typ):
     """The default value should always be a valid choice."""
-    def func(foo=None):
+    def func(foo=value):
         pass
     param = inspect.signature(func).parameters['foo']
-    assert argparser.type_conv(param, str, None, str_choices=['val']) is None
+    assert argparser.type_conv(param, typ, value, str_choices=['val']) == value
 
 
 def test_conv_str_type():

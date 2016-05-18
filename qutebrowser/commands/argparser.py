@@ -114,22 +114,17 @@ def type_conv(param, typ, value, *, str_choices=None):
     if value is param.default:
         return value
 
+    assert isinstance(value, str), repr(value)
+
     if utils.is_enum(typ):
-        if isinstance(value, typ):
-            return value
-        assert isinstance(value, str)
         _check_choices(param, value, [arg_name(e.name) for e in typ])
         return typ[value.replace('-', '_')]
     elif typ is str:
-        assert isinstance(value, str)
         if str_choices is not None:
             _check_choices(param, value, str_choices)
         return value
     elif callable(typ):
         # int, float, etc.
-        if isinstance(value, typ):
-            return value
-        assert isinstance(value, str)
         try:
             return typ(value)
         except (TypeError, ValueError):

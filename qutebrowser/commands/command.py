@@ -415,6 +415,8 @@ class Command:
             value = argparser.type_conv(param, typ, value, str_choices=choices)
         elif typ is None:
             pass
+        elif typ is bool:  # no type conversion for flags
+            assert isinstance(value, bool)
         else:
             value = argparser.type_conv(param, typ, value)
 
