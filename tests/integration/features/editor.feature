@@ -46,7 +46,7 @@ Feature: Opening external editors
                 history:
                 - active: true
                   url: http://localhost:*/data/numbers/2.txt
-                  
+
     Scenario: Editing an URL with count
         Given I have a fresh instance
         When I open data/numbers/1.txt
