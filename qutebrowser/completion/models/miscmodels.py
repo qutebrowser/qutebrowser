@@ -62,7 +62,7 @@ class CommandCompletionModel(base.BaseCompletionModel):
             else:
                 cmd_to_keys[cmd].insert(0, key)
         for (name, desc) in sorted(cmdlist):
-            self.new_item(cat, name, desc, str.join(', ', cmd_to_keys[name]))
+            self.new_item(cat, name, desc, ', '.join(cmd_to_keys[name]))
 
 
 class HelpCompletionModel(base.BaseCompletionModel):
