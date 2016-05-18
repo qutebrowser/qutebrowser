@@ -94,7 +94,8 @@ def test_set_hover_url(url_widget, url_text, title, text):
     ('http://test.ru/%D0%B0%D0%B1%D0%B2%D0%B3.txt', 'http://test.ru/абвг.txt'),
     ('http://test.com/s%20p%20a%20c%20e.txt', 'http://test.com/s p a c e.txt'),
     ('http://test.com/%22quotes%22.html', 'http://test.com/%22quotes%22.html'),
-    ('http://username:secret%20password@test.com', 'http://username@test.com')
+    ('http://username:secret%20password@test.com', 'http://username@test.com'),
+    ('http://example.com%5b/', 'http://example.com%5b/'),  # invalid url
 ])
 def test_set_hover_url_encoded(url_widget, url_text, expected):
     """Test text when hovering over a percent encoded link."""
