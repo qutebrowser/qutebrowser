@@ -171,6 +171,7 @@ Contributors, sorted by the number of commits in descending order:
 * Oliver Caldwell
 * Jonas Schürmann
 * error800
+* Liam BEGUIN
 * Jakub Klinkovský
 * skinnay
 * Zach-Button
