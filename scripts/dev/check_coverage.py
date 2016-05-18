@@ -138,6 +138,8 @@ PERFECT_FILES = [
         'qutebrowser/utils/error.py'),
     ('tests/unit/utils/test_typing.py',
         'qutebrowser/utils/typing.py'),
+    ('tests/unit/utils/test_keyhints.py',
+        'qutebrowser/misc/keyhintwidget.py'),
 ]
 
 
