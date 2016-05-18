@@ -91,6 +91,8 @@ PERFECT_FILES = [
         'qutebrowser/misc/cmdhistory.py'),
     ('tests/unit/misc/test_ipc.py',
         'qutebrowser/misc/ipc.py'),
+    ('tests/unit/misc/test_keyhints.py',
+        'qutebrowser/misc/keyhintwidget.py'),
 
     (None,
         'qutebrowser/mainwindow/statusbar/keystring.py'),
