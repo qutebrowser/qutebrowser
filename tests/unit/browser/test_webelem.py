@@ -128,11 +128,19 @@ class SelectionAndFilterTests:
         ('<link href="javascript://foo" />', [webelem.Group.all,
                                               webelem.Group.url]),
 
-        ('<textarea />', [webelem.Group.all]),
+        ('<textarea />', [webelem.Group.all, webelem.Group.inputs]),
         ('<select />', [webelem.Group.all]),
 
         ('<input />', [webelem.Group.all]),
         ('<input type="hidden" />', []),
+        ('<input type="text" />', [webelem.Group.inputs, webelem.Group.all]),
+        ('<input type="email" />', [webelem.Group.inputs, webelem.Group.all]),
+        ('<input type="url" />', [webelem.Group.inputs, webelem.Group.all]),
+        ('<input type="tel" />', [webelem.Group.inputs, webelem.Group.all]),
+        ('<input type="number" />', [webelem.Group.inputs, webelem.Group.all]),
+        ('<input type="password" />', [webelem.Group.inputs,
+                                       webelem.Group.all]),
+        ('<input type="search" />', [webelem.Group.inputs, webelem.Group.all]),
 
         ('<button />', [webelem.Group.all]),
         ('<button href="foo" />', [webelem.Group.all, webelem.Group.prevnext,
