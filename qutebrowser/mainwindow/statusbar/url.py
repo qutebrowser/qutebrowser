@@ -153,12 +153,11 @@ class UrlText(textbase.TextBase):
             _text: The text of the hovered link (string)
         """
         if link:
-            # We assume that `link` is always be given in a form that generates
-            # a valid QUrl. If this proves to be wrong, we should probably
-            # check and fall back to the text version otherwise.
             qurl = QUrl(link)
-            assert qurl.isValid(), link
-            self._hover_url = qurl.toDisplayString()
+            if qurl.isValid():
+                self._hover_url = qurl.toDisplayString()
+            else:
+                self._hover_url = link
         else:
             self._hover_url = None
         self._update_url()
