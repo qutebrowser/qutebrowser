@@ -27,7 +27,7 @@ It is intended to help discoverability of keybindings.
 import html
 
 from PyQt5.QtWidgets import QLabel, QSizePolicy
-from PyQt5.QtCore import pyqtSlot, pyqtSignal
+from PyQt5.QtCore import pyqtSlot, pyqtSignal, Qt
 
 from qutebrowser.config import config, style
 from qutebrowser.utils import objreg, utils
@@ -59,6 +59,7 @@ class KeyHintView(QLabel):
 
     def __init__(self, win_id, parent=None):
         super().__init__(parent)
+        self.setTextFormat(Qt.RichText)
         self._win_id = win_id
         self.set_enabled()
         cfg = objreg.get('config')
