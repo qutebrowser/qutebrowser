@@ -863,11 +863,15 @@ Options related to input modes.
 === timeout
 Timeout for ambiguous key bindings.
 
+If the current input forms both a complete match and a partial match, the complete match will be executed after this time.
+
 Default: +pass:[500]+
 
 [[input-partial-timeout]]
 === partial-timeout
 Timeout for partially typed key bindings.
+
+If the current input forms only partial matches, the keystring will be cleared after this time.
 
 Default: +pass:[1000]+
 
