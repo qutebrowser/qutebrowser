@@ -33,10 +33,10 @@ class CommandCompletionModel(base.BaseCompletionModel):
 
     """A CompletionModel filled with all commands and descriptions."""
 
-    COLUMN_WIDTHS = (20, 60, 20)
-
     # https://github.com/The-Compiler/qutebrowser/issues/545
     # pylint: disable=abstract-method
+
+    COLUMN_WIDTHS = (20, 60, 20)
 
     def __init__(self, parent=None):
         super().__init__(parent)
@@ -54,11 +54,11 @@ class CommandCompletionModel(base.BaseCompletionModel):
 
         # map each command to its bound keys and show these in the misc column
         keyconf = objreg.get('key-config')
-        cmd_to_keys = defaultdict(lambda: [])
+        cmd_to_keys = defaultdict(list)
         for key, cmd in keyconf.get_bindings_for('normal').items():
             cmd_to_keys[cmd].append(key)
         for (name, desc) in sorted(cmdlist):
-            self.new_item(cat, name, desc, str.join(',', cmd_to_keys[name]))
+            self.new_item(cat, name, desc, str.join(', ', cmd_to_keys[name]))
 
 
 class HelpCompletionModel(base.BaseCompletionModel):
