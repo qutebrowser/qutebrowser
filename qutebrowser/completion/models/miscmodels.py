@@ -56,7 +56,11 @@ class CommandCompletionModel(base.BaseCompletionModel):
         keyconf = objreg.get('key-config')
         cmd_to_keys = defaultdict(list)
         for key, cmd in keyconf.get_bindings_for('normal').items():
-            cmd_to_keys[cmd].append(key)
+            # put special bindings last
+            if key.startswith('<') and key.endswith('>'):
+                cmd_to_keys[cmd].append(key)
+            else:
+                cmd_to_keys[cmd].insert(0, key)
         for (name, desc) in sorted(cmdlist):
             self.new_item(cat, name, desc, str.join(', ', cmd_to_keys[name]))
 
