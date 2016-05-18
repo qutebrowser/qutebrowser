@@ -52,6 +52,7 @@ Changed
 - The optional `colorlog` dependency got removed, as qutebrowser now displays
   colored logs without it.
 - URLs are now shown decoded when hovering.
+- Keybindings are now shown in the command completion
 
 Fixed
 -----
