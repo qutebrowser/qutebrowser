@@ -30,6 +30,8 @@ Added
 - New `--force-color` argument to force colored logging even if stdout is not a
   terminal
 - New `:messages` command to show error messages
+- New pop-up showing possible keybinding when the first key of a keychain is
+  pressed. This can be turned off using `:set ui show-keyhints false`.
 
 Changed
 ~~~~~~~
