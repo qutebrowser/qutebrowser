@@ -154,10 +154,10 @@ Contributors, sorted by the number of commits in descending order:
 * meles5
 * Tarcisio Fedrizzi
 * Philipp Hansch
+* Panagiotis Ktistakis
 * Artur Shaik
 * Nathan Isom
 * Thorsten Wißmann
-* Panagiotis Ktistakis
 * Kevin Velghe
 * Austin Anderson
 * Jimmy
