@@ -51,7 +51,6 @@ class KeyHintView(QLabel):
             color: {{ color['keyhint.fg'] }};
             background-color: {{ color['keyhint.bg'] }};
             padding: 6px;
-            padding-bottom: -4px;
             border-top-right-radius: 6px;
         }
     """
