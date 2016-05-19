@@ -95,10 +95,9 @@ class KeyHintView(QLabel):
             return
 
         keyconf = objreg.get('key-config')
-        is_special = lambda k: k.startswith('<') and k.endswith('>')
-        bindings = [(key, cmd) for (key, cmd)
+        bindings = [(k, v) for (k, v)
                     in keyconf.get_bindings_for(modename).items()
-                    if key.startswith(prefix) and not is_special(key)]
+                    if k.startswith(prefix) and not utils.is_special_key(k)]
 
         if not bindings:
             return

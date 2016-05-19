@@ -440,9 +440,14 @@ class KeyParseError(Exception):
         super().__init__("Could not parse {!r}: {}".format(keystr, error))
 
 
+def is_special_key(keystr):
+    """True if keystr is a 'special' keystring (e.g. <ctrl-x> or <space>)."""
+    return keystr.startswith('<') and keystr.endswith('>')
+
+
 def _parse_single_key(keystr):
     """Convert a single key string to a (Qt.Key, Qt.Modifiers, text) tuple."""
-    if keystr.startswith('<') and keystr.endswith('>'):
+    if is_special_key(keystr):
         # Special key
         keystr = keystr[1:-1]
     elif len(keystr) == 1:
@@ -489,7 +494,7 @@ def _parse_single_key(keystr):
 
 def parse_keystring(keystr):
     """Parse a keystring like <Ctrl-x> or xyz and return a KeyInfo list."""
-    if keystr.startswith('<') and keystr.endswith('>'):
+    if is_special_key(keystr):
         return [_parse_single_key(keystr)]
     else:
         return [_parse_single_key(char) for char in keystr]

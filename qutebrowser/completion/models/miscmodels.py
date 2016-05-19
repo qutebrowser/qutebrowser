@@ -24,7 +24,7 @@ from PyQt5.QtCore import Qt, QTimer, pyqtSlot
 
 from qutebrowser.browser import webview
 from qutebrowser.config import config, configdata
-from qutebrowser.utils import objreg, log, qtutils
+from qutebrowser.utils import objreg, log, qtutils, utils
 from qutebrowser.commands import cmdutils
 from qutebrowser.completion.models import base
 
@@ -57,7 +57,7 @@ class CommandCompletionModel(base.BaseCompletionModel):
         cmd_to_keys = defaultdict(list)
         for key, cmd in keyconf.get_bindings_for('normal').items():
             # put special bindings last
-            if key.startswith('<') and key.endswith('>'):
+            if utils.is_special_key(key):
                 cmd_to_keys[cmd].append(key)
             else:
                 cmd_to_keys[cmd].insert(0, key)
