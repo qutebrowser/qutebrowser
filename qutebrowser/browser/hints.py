@@ -888,7 +888,9 @@ class HintManager(QObject):
         if not visible:
             # Whoops, filtered all hints
             modeman.leave(self._win_id, usertypes.KeyMode.hint, 'all filtered')
-        elif len(visible) == 1 and config.get('hints', 'auto-follow'):
+        elif (len(visible) == 1 and
+              config.get('hints', 'auto-follow') and
+              filterstr is not None):
             # unpacking gets us the first (and only) key in the dict.
             self.fire(*visible)
 
