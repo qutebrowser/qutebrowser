@@ -330,7 +330,7 @@ def no_crash():
 
     This is actually a NOP as a crash is already checked in the log.
     """
-    pass
+    time.sleep(0.5)
 
 
 @bdd.then(bdd.parsers.parse("the header {header} should be set to {value}"))
