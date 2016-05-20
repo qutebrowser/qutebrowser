@@ -57,6 +57,7 @@ Changed
 Fixed
 -----
 
+- Various fixes for hinting corner-cases where following a link didn't work
 - Fixed crash when downloading from an URL with SSL errors
 - Close file handles correctly when a download failed
 - Fixed crash when using `;Y` (`:hint links yank-primary`) on a system without
