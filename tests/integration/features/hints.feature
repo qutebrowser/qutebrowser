@@ -39,7 +39,7 @@ Feature: Using hints
             - data/hello.txt (active)
 
     Scenario: Entering and leaving hinting mode (issue 1464)
-      When I open data/hints/link.html
+      When I open data/hints/html/simple.html
       And I run :hint
       And I run :fake-key -g <Esc>
       Then no crash should happen
@@ -54,7 +54,7 @@ Feature: Using hints
     Scenario: Yanking to primary selection without it being supported (#1336)
         When selection is not supported
         And I run :debug-set-fake-clipboard
-        And I open data/hints/link.html
+        And I open data/hints/html/simple.html
         And I run :hint links yank-primary
         And I run :follow-hint a
         Then the clipboard should contain "http://localhost:(port)/data/hello.txt"
