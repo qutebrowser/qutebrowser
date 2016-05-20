@@ -152,6 +152,7 @@ Contributors, sorted by the number of commits in descending order:
 * Claude
 * Corentin Julé
 * meles5
+* Jakub Klinkovský
 * Tarcisio Fedrizzi
 * Philipp Hansch
 * Panagiotis Ktistakis
@@ -172,7 +173,6 @@ Contributors, sorted by the number of commits in descending order:
 * Jonas Schürmann
 * error800
 * Liam BEGUIN
-* Jakub Klinkovský
 * skinnay
 * Zach-Button
 * Halfwit
