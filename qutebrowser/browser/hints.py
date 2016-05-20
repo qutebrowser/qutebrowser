@@ -36,7 +36,6 @@ from qutebrowser.keyinput import modeman, modeparsers
 from qutebrowser.browser import webelem
 from qutebrowser.commands import userscripts, cmdexc, cmdutils, runners
 from qutebrowser.utils import usertypes, log, qtutils, message, objreg, utils
-from qutebrowser.misc import guiprocess
 
 
 ElemTuple = collections.namedtuple('ElemTuple', ['elem', 'label'])
@@ -625,9 +624,8 @@ class HintManager(QObject):
         """
         urlstr = url.toString(QUrl.FullyEncoded | QUrl.RemovePassword)
         args = context.get_args(urlstr)
-        cmd, *args = args
-        proc = guiprocess.GUIProcess(self._win_id, what='command', parent=self)
-        proc.start(cmd, args)
+        commandrunner = runners.CommandRunner(self._win_id)
+        commandrunner.run_safely('spawn ' + ' '.join(args))
 
     def _resolve_url(self, elem, baseurl):
         """Resolve a URL and check if we want to keep it.
