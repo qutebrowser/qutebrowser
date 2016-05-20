@@ -154,8 +154,7 @@ class QuickmarkManager(UrlMarkManager):
         try:
             key, url = line.rsplit(maxsplit=1)
         except ValueError:
-            message.error('current', "Invalid quickmark '{}'".format(
-                line))
+            message.error('current', "Invalid quickmark '{}'".format(line))
         else:
             self.marks[key] = url
 
@@ -174,7 +173,8 @@ class QuickmarkManager(UrlMarkManager):
             win_id, "Add quickmark:", usertypes.PromptMode.text,
             functools.partial(self.quickmark_add, win_id, urlstr))
 
-    @cmdutils.register(instance='quickmark-manager', win_id='win_id')
+    @cmdutils.register(instance='quickmark-manager')
+    @cmdutils.argument('win_id', win_id=True)
     def quickmark_add(self, win_id, url, name):
         """Add a new quickmark.
 
@@ -204,8 +204,9 @@ class QuickmarkManager(UrlMarkManager):
         else:
             set_mark()
 
-    @cmdutils.register(instance='quickmark-manager', maxsplit=0,
-                       completion=[usertypes.Completion.quickmark_by_name])
+    @cmdutils.register(instance='quickmark-manager', maxsplit=0)
+    @cmdutils.argument('name',
+                       completion=usertypes.Completion.quickmark_by_name)
     def quickmark_del(self, name):
         """Delete a quickmark.
 
@@ -284,8 +285,8 @@ class BookmarkManager(UrlMarkManager):
             self.changed.emit()
             self.added.emit(title, urlstr)
 
-    @cmdutils.register(instance='bookmark-manager', maxsplit=0,
-                       completion=[usertypes.Completion.bookmark_by_url])
+    @cmdutils.register(instance='bookmark-manager', maxsplit=0)
+    @cmdutils.argument('url', completion=usertypes.Completion.bookmark_by_url)
     def bookmark_del(self, url):
         """Delete a bookmark.
 

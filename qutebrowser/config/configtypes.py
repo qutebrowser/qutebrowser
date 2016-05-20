@@ -20,6 +20,7 @@
 """Setting options used for qutebrowser."""
 
 import re
+import json
 import shlex
 import base64
 import codecs
@@ -172,8 +173,8 @@ class BaseType:
         if self.valid_values is not None:
             if value not in self.valid_values:
                 raise configexc.ValidationError(
-                    value, "valid values: {}".format(', '.join(
-                        self.valid_values)))
+                    value,
+                    "valid values: {}".format(', '.join(self.valid_values)))
         else:
             raise NotImplementedError("{} does not implement validate.".format(
                 self.__class__.__name__))
@@ -262,8 +263,8 @@ class String(BaseType):
         if self.valid_values is not None:
             if value not in self.valid_values:
                 raise configexc.ValidationError(
-                    value, "valid values: {}".format(', '.join(
-                        self.valid_values)))
+                    value,
+                    "valid values: {}".format(', '.join(self.valid_values)))
 
         if self.forbidden is not None and any(c in value
                                               for c in self.forbidden):
@@ -741,11 +742,13 @@ class QssColor(CssColor):
         color_func_regexes: Valid function regexes.
     """
 
+    num = r'[0-9]{1,3}%?'
+
     color_func_regexes = [
-        r'rgb\([0-9]{1,3}%?, [0-9]{1,3}%?, [0-9]{1,3}%?\)',
-        r'rgba\([0-9]{1,3}%?, [0-9]{1,3}%?, [0-9]{1,3}%?, [0-9]{1,3}%?\)',
-        r'hsv\([0-9]{1,3}%?, [0-9]{1,3}%?, [0-9]{1,3}%?\)',
-        r'hsva\([0-9]{1,3}%?, [0-9]{1,3}%?, [0-9]{1,3}%?, [0-9]{1,3}%?\)',
+        r'rgb\({num},\s*{num},\s*{num}\)'.format(num=num),
+        r'rgba\({num},\s*{num},\s*{num},\s*{num}\)'.format(num=num),
+        r'hsv\({num},\s*{num},\s*{num}\)'.format(num=num),
+        r'hsva\({num},\s*{num},\s*{num},\s*{num}\)'.format(num=num),
         r'qlineargradient\(.*\)',
         r'qradialgradient\(.*\)',
         r'qconicalgradient\(.*\)',
@@ -1146,8 +1149,8 @@ class Proxy(BaseType):
             return
         url = QUrl(value)
         if not url.isValid():
-            raise configexc.ValidationError(value, "invalid url, {}".format(
-                url.errorString()))
+            raise configexc.ValidationError(
+                value, "invalid url, {}".format(url.errorString()))
         elif url.scheme() not in self.PROXY_TYPES:
             raise configexc.ValidationError(value, "must be a proxy URL "
                                             "(http://... or socks://...) or "
@@ -1210,8 +1213,8 @@ class SearchEngineUrl(BaseType):
 
         url = QUrl(value.replace('{}', 'foobar'))
         if not url.isValid():
-            raise configexc.ValidationError(value, "invalid url, {}".format(
-                url.errorString()))
+            raise configexc.ValidationError(
+                value, "invalid url, {}".format(url.errorString()))
 
 
 class FuzzyUrl(BaseType):
@@ -1421,6 +1424,61 @@ class UrlList(List):
             elif not val.isValid():
                 raise configexc.ValidationError(value, "invalid URL - "
                                                 "{}".format(val.errorString()))
+
+
+class HeaderDict(BaseType):
+
+    """A JSON-like dictionary for custom HTTP headers."""
+
+    def _validate_str(self, value, what):
+        """Check if the given thing is an ascii-only string.
+
+        Raises ValidationError if not.
+
+        Args:
+            value: The value to check.
+            what: Either 'key' or 'value'.
+        """
+        if not isinstance(value, str):
+            msg = "Expected string for {} {!r} but got {}".format(
+                what, value, type(value))
+            raise configexc.ValidationError(value, msg)
+
+        try:
+            value.encode('ascii')
+        except UnicodeEncodeError as e:
+            msg = "{} {!r} contains non-ascii characters: {}".format(
+                what.capitalize(), value, e)
+            raise configexc.ValidationError(value, msg)
+
+    def validate(self, value):
+        self._basic_validation(value)
+        if not value:
+            return
+
+        try:
+            json_val = json.loads(value)
+        except ValueError as e:
+            raise configexc.ValidationError(value, str(e))
+
+        if not isinstance(json_val, dict):
+            raise configexc.ValidationError(value, "Expected json dict, but "
+                                            "got {}".format(type(json_val)))
+        if not json_val:
+            if self.none_ok:
+                return
+            else:
+                raise configexc.ValidationError(value, "may not be empty!")
+
+        for key, val in json_val.items():
+            self._validate_str(key, 'key')
+            self._validate_str(val, 'value')
+
+    def transform(self, value):
+        if not value:
+            return None
+        val = json.loads(value)
+        return val or None
 
 
 class SessionName(BaseType):

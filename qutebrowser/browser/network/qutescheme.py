@@ -26,6 +26,7 @@ Module attributes:
 import functools
 import configparser
 import mimetypes
+import urllib.parse
 
 from PyQt5.QtCore import pyqtSlot, QObject
 from PyQt5.QtNetwork import QNetworkReply
@@ -109,13 +110,13 @@ class QuteSchemeHandler(schemehandler.SchemeHandler):
                 request, str(e), QNetworkReply.ContentNotFoundError,
                 self.parent())
         except QuteSchemeError as e:
-            return networkreply.ErrorNetworkReply(
-                request, e.errorstring, e.error, self.parent())
+            return networkreply.ErrorNetworkReply(request, e.errorstring,
+                                                  e.error, self.parent())
         mimetype, _encoding = mimetypes.guess_type(request.url().fileName())
         if mimetype is None:
             mimetype = 'text/html'
-        return networkreply.FixedDataNetworkReply(
-            request, data, mimetype, self.parent())
+        return networkreply.FixedDataNetworkReply(request, data, mimetype,
+                                                  self.parent())
 
 
 class JSBridge(QObject):
@@ -158,23 +159,42 @@ def qute_version(_win_id, _request):
 
 
 @add_handler('plainlog')
-def qute_plainlog(_win_id, _request):
-    """Handler for qute:plainlog. Return HTML content as bytes."""
+def qute_plainlog(_win_id, request):
+    """Handler for qute:plainlog. Return HTML content as bytes.
+
+    An optional query parameter specifies the minimum log level to print.
+    For example, qute://log?level=warning prints warnings and errors.
+    Level can be one of: vdebug, debug, info, warning, error, critical.
+    """
     if log.ram_handler is None:
         text = "Log output was disabled."
     else:
-        text = log.ram_handler.dump_log()
+        try:
+            level = urllib.parse.parse_qs(request.url().query())['level'][0]
+        except KeyError:
+            level = 'vdebug'
+        text = log.ram_handler.dump_log(html=False, level=level)
     html = jinja.render('pre.html', title='log', content=text)
     return html.encode('UTF-8', errors='xmlcharrefreplace')
 
 
 @add_handler('log')
-def qute_log(_win_id, _request):
-    """Handler for qute:log. Return HTML content as bytes."""
+def qute_log(_win_id, request):
+    """Handler for qute:log. Return HTML content as bytes.
+
+    An optional query parameter specifies the minimum log level to print.
+    For example, qute://log?level=warning prints warnings and errors.
+    Level can be one of: vdebug, debug, info, warning, error, critical.
+    """
     if log.ram_handler is None:
         html_log = None
     else:
-        html_log = log.ram_handler.dump_log(html=True)
+        try:
+            level = urllib.parse.parse_qs(request.url().query())['level'][0]
+        except KeyError:
+            level = 'vdebug'
+        html_log = log.ram_handler.dump_log(html=True, level=level)
+
     html = jinja.render('log.html', title='log', content=html_log)
     return html.encode('UTF-8', errors='xmlcharrefreplace')
 
@@ -240,4 +260,4 @@ def qute_pdfjs(_win_id, request):
         log.misc.warning(
             "pdfjs resource requested but not found: {}".format(e.path))
         raise QuteSchemeError("Can't find pdfjs resource '{}'".format(e.path),
-                QNetworkReply.ContentNotFoundError)
+                              QNetworkReply.ContentNotFoundError)

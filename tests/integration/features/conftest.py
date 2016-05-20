@@ -28,7 +28,6 @@ import collections
 import textwrap
 
 import pytest
-import yaml
 import pytest_bdd as bdd
 
 from helpers import utils
@@ -180,6 +179,7 @@ def wait_in_log(quteproc, is_regex, pattern, do_skip):
                          r'"(?P<message>.*)"'))
 def wait_for_message(quteproc, httpbin, category, message):
     """Wait for a given statusbar message/error/warning."""
+    quteproc.log_summary('Waiting for {} "{}"'.format(category, message))
     expect_message(quteproc, httpbin, category, message)
 
 
@@ -200,6 +200,13 @@ def selection_supported(qapp):
     """Skip the test if selection isn't supported."""
     if not qapp.clipboard().supportsSelection():
         pytest.skip("OS doesn't support primary selection!")
+
+
+@bdd.when("selection is not supported")
+def selection_not_supported(qapp):
+    """Skip the test if selection is supported."""
+    if qapp.clipboard().supportsSelection():
+        pytest.skip("OS supports primary selection!")
 
 
 @bdd.when(bdd.parsers.re(r'I put "(?P<content>.*)" into the '
@@ -275,10 +282,12 @@ def expect_message(quteproc, httpbin, category, message):
 
 @bdd.then(bdd.parsers.re(r'(?P<is_regex>regex )?"(?P<pattern>[^"]+)" should '
                          r'be logged'))
-def should_be_logged(quteproc, is_regex, pattern):
+def should_be_logged(quteproc, httpbin, is_regex, pattern):
     """Expect the given pattern on regex in the log."""
     if is_regex:
         pattern = re.compile(pattern)
+    else:
+        pattern = pattern.replace('(port)', str(httpbin.port))
     line = quteproc.wait_for(message=pattern)
     line.expected = True
 
@@ -312,14 +321,7 @@ def compare_session(quteproc, expected):
     partial_compare is used, which means only the keys/values listed will be
     compared.
     """
-    # Translate ... to ellipsis in YAML.
-    loader = yaml.SafeLoader(expected)
-    loader.add_constructor('!ellipsis', lambda loader, node: ...)
-    loader.add_implicit_resolver('!ellipsis', re.compile(r'\.\.\.'), None)
-
-    data = quteproc.get_session()
-    expected = loader.get_data()
-    assert utils.partial_compare(data, expected)
+    quteproc.compare_session(expected)
 
 
 @bdd.then("no crash should happen")
@@ -328,7 +330,7 @@ def no_crash():
 
     This is actually a NOP as a crash is already checked in the log.
     """
-    pass
+    time.sleep(0.5)
 
 
 @bdd.then(bdd.parsers.parse("the header {header} should be set to {value}"))
@@ -362,6 +364,14 @@ def check_contents_plain(quteproc, text):
     """Check the current page's content based on a substring."""
     content = quteproc.get_content().strip()
     assert text in content
+
+
+@bdd.then(bdd.parsers.parse('the page should not contain the plaintext '
+                            '"{text}"'))
+def check_not_contents_plain(quteproc, text):
+    """Check the current page's content based on a substring."""
+    content = quteproc.get_content().strip()
+    assert text not in content
 
 
 @bdd.then(bdd.parsers.parse('the json on the page should be:\n{text}'))
@@ -416,8 +426,8 @@ def clipboard_contains(quteproc, httpbin, what, content):
 
 
 @bdd.then(bdd.parsers.parse('the clipboard should contain:\n{content}'))
-def clipboard_contains_multiline(quteproc, content):
-    expected = textwrap.dedent(content)
+def clipboard_contains_multiline(quteproc, httpbin, content):
+    expected = textwrap.dedent(content).replace('(port)', str(httpbin.port))
     quteproc.wait_for(message='Setting fake clipboard: {}'.format(
         json.dumps(expected)))
 

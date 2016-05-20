@@ -20,6 +20,7 @@
 """Module containing command managers (SearchRunner and CommandRunner)."""
 
 import collections
+import traceback
 
 from PyQt5.QtCore import pyqtSlot, QUrl, QObject
 
@@ -33,24 +34,33 @@ ParseResult = collections.namedtuple('ParseResult', ['cmd', 'args', 'cmdline',
                                                      'count'])
 
 
+def _current_url(tabbed_browser):
+    """Convenience method to get the current url."""
+    try:
+        return tabbed_browser.current_url()
+    except qtutils.QtValueError as e:
+        msg = "Current URL is invalid"
+        if e.reason:
+            msg += " ({})".format(e.reason)
+        msg += "!"
+        raise cmdexc.CommandError(msg)
+
+
 def replace_variables(win_id, arglist):
     """Utility function to replace variables like {url} in a list of args."""
     args = []
     tabbed_browser = objreg.get('tabbed-browser', scope='window',
                                 window=win_id)
     if '{url}' in arglist:
-        try:
-            url = tabbed_browser.current_url().toString(QUrl.FullyEncoded |
-                                                        QUrl.RemovePassword)
-        except qtutils.QtValueError as e:
-            msg = "Current URL is invalid"
-            if e.reason:
-                msg += " ({})".format(e.reason)
-            msg += "!"
-            raise cmdexc.CommandError(msg)
+        url = _current_url(tabbed_browser).toString(QUrl.FullyEncoded |
+                                                    QUrl.RemovePassword)
+    if '{url:pretty}' in arglist:
+        pretty_url = _current_url(tabbed_browser).toString(QUrl.RemovePassword)
     for arg in arglist:
         if arg == '{url}':
             args.append(url)
+        elif arg == '{url:pretty}':
+            args.append(pretty_url)
         else:
             args.append(arg)
     return args
@@ -249,12 +259,14 @@ class CommandRunner(QObject):
                 result.cmd.run(self._win_id, args)
 
     @pyqtSlot(str, int)
+    @pyqtSlot(str)
     def run_safely(self, text, count=None):
         """Run a command and display exceptions in the statusbar."""
         try:
             self.run(text, count)
         except (cmdexc.CommandMetaError, cmdexc.CommandError) as e:
-            message.error(self._win_id, e, immediately=True)
+            message.error(self._win_id, e, immediately=True,
+                          stack=traceback.format_exc())
 
     @pyqtSlot(str, int)
     def run_safely_init(self, text, count=None):
@@ -266,4 +278,4 @@ class CommandRunner(QObject):
         try:
             self.run(text, count)
         except (cmdexc.CommandMetaError, cmdexc.CommandError) as e:
-            message.error(self._win_id, e)
+            message.error(self._win_id, e, stack=traceback.format_exc())

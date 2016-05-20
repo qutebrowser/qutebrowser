@@ -35,33 +35,16 @@ try:
     import colorama
 except ImportError:
     colorama = None
-try:
-    import colorlog
-except ImportError:
-    colorlog = None
-else:
-    # WORKAROUND
-    # colorlog calls colorama.init() which we don't want, also it breaks our
-    # sys.stdout/sys.stderr if they are None. Bugreports:
-    # https://code.google.com/p/colorama/issues/detail?id=61
-    # https://github.com/borntyping/python-colorlog/issues/13
-    # This should be (partially) fixed in colorama 0.3.2.
-    # (stream only gets wrapped if it's not None)
-    if colorama is not None:
-        colorama.deinit()
+
+COLORS = ['black', 'red', 'green', 'yellow', 'blue', 'purple', 'cyan', 'white']
 
 # Log formats to use.
-SIMPLE_FMT = '{asctime:8} {levelname}: {message}'
-EXTENDED_FMT = ('{asctime:8} {levelname:8} {name:10} {module}:{funcName}:'
-                '{lineno} {message}')
-SIMPLE_FMT_COLORED = ('%(green)s%(asctime)-8s%(reset)s '
-                      '%(log_color)s%(levelname)s%(reset)s: %(message)s')
-EXTENDED_FMT_COLORED = (
-    '%(green)s%(asctime)-8s%(reset)s '
-    '%(log_color)s%(levelname)-8s%(reset)s '
-    '%(cyan)s%(name)-10s %(module)s:%(funcName)s:%(lineno)s%(reset)s '
-    '%(log_color)s%(message)s%(reset)s'
-)
+SIMPLE_FMT = ('{green}{asctime:8}{reset} {log_color}{levelname}{reset}: '
+              '{message}')
+EXTENDED_FMT = ('{green}{asctime:8}{reset} '
+                '{log_color}{levelname:8}{reset} '
+                '{cyan}{name:10} {module}:{funcName}:{lineno}{reset} '
+                '{log_color}{message}{reset}')
 EXTENDED_FMT_HTML = (
     '<tr>'
     '<td><pre>%(green)s%(asctime)-8s%(reset)s</pre></td>'
@@ -81,12 +64,20 @@ LOG_COLORS = {
     'CRITICAL': 'red',
 }
 
-
 # We first monkey-patch logging to support our VDEBUG level before getting the
 # loggers.  Based on http://stackoverflow.com/a/13638084
 VDEBUG_LEVEL = 9
 logging.addLevelName(VDEBUG_LEVEL, 'VDEBUG')
 logging.VDEBUG = VDEBUG_LEVEL
+
+LOG_LEVELS = {
+    'VDEBUG': logging.VDEBUG,
+    'DEBUG': logging.DEBUG,
+    'INFO': logging.INFO,
+    'WARNING': logging.WARNING,
+    'ERROR': logging.ERROR,
+    'CRITICAL': logging.CRITICAL,
+}
 
 
 def vdebug(self, msg, *args, **kwargs):
@@ -150,7 +141,8 @@ def init_log(args):
     if numeric_level > logging.DEBUG and args.debug:
         numeric_level = logging.DEBUG
 
-    console, ram = _init_handlers(numeric_level, args.color, args.loglines)
+    console, ram = _init_handlers(numeric_level, args.color, args.force_color,
+                                  args.loglines)
     root = logging.getLogger()
     if console is not None:
         if args.logfilter is not None:
@@ -174,22 +166,24 @@ def disable_qt_msghandler():
         QtCore.qInstallMessageHandler(old_handler)
 
 
-def _init_handlers(level, color, ram_capacity):
+def _init_handlers(level, color, force_color, ram_capacity):
     """Init log handlers.
 
     Args:
         level: The numeric logging level.
         color: Whether to use color if available.
+        force_color: Force colored output.
     """
     global ram_handler
     console_fmt, ram_fmt, html_fmt, use_colorama = _init_formatters(
-        level, color)
+        level, color, force_color)
 
     if sys.stderr is None:
         console_handler = None
     else:
+        strip = False if force_color else None
         if use_colorama:
-            stream = colorama.AnsiToWin32(sys.stderr)
+            stream = colorama.AnsiToWin32(sys.stderr, strip=strip)
         else:
             stream = sys.stderr
         console_handler = logging.StreamHandler(stream)
@@ -207,38 +201,39 @@ def _init_handlers(level, color, ram_capacity):
     return console_handler, ram_handler
 
 
-def _init_formatters(level, color):
+def _init_formatters(level, color, force_color):
     """Init log formatters.
 
     Args:
         level: The numeric logging level.
         color: Whether to use color if available.
+        force_color: Force colored output.
 
     Return:
         A (console_formatter, ram_formatter, use_colorama) tuple.
         console_formatter/ram_formatter: logging.Formatter instances.
         use_colorama: Whether to use colorama.
     """
-    if level <= logging.DEBUG:
-        console_fmt = EXTENDED_FMT
-        console_fmt_colored = EXTENDED_FMT_COLORED
-    else:
-        console_fmt = SIMPLE_FMT
-        console_fmt_colored = SIMPLE_FMT_COLORED
-    ram_formatter = logging.Formatter(EXTENDED_FMT, DATEFMT, '{')
+    console_fmt = EXTENDED_FMT if level <= logging.DEBUG else SIMPLE_FMT
+    ram_formatter = ColoredFormatter(EXTENDED_FMT, DATEFMT, '{',
+                                     use_colors=False)
     html_formatter = HTMLFormatter(EXTENDED_FMT_HTML, DATEFMT,
                                    log_colors=LOG_COLORS)
     if sys.stderr is None:
         return None, ram_formatter, html_formatter, False
+
     use_colorama = False
-    if (colorlog is not None and (os.name == 'posix' or colorama) and
-            sys.stderr.isatty() and color):
-        console_formatter = colorlog.ColoredFormatter(
-            console_fmt_colored, DATEFMT, log_colors=LOG_COLORS)
-        if colorama:
+    color_supported = os.name == 'posix' or colorama
+
+    if color_supported and (sys.stderr.isatty() or force_color) and color:
+        use_colors = True
+        if colorama and os.name != 'posix':
             use_colorama = True
     else:
-        console_formatter = logging.Formatter(console_fmt, DATEFMT, '{')
+        use_colors = False
+
+    console_formatter = ColoredFormatter(console_fmt, DATEFMT, '{',
+                                         use_colors=use_colors)
     return console_formatter, ram_formatter, html_formatter, use_colorama
 
 
@@ -443,13 +438,14 @@ class RAMHandler(logging.Handler):
             # We don't log VDEBUG to RAM.
             self._data.append(record)
 
-    def dump_log(self, html=False):
+    def dump_log(self, html=False, level='vdebug'):
         """Dump the complete formatted log data as as string.
 
         FIXME: We should do all the HTML formatter via jinja2.
         (probably obsolete when moving to a widget for logging,
         https://github.com/The-Compiler/qutebrowser/issues/34
         """
+        minlevel = LOG_LEVELS.get(level.upper(), VDEBUG_LEVEL)
         lines = []
         fmt = self.html_formatter.format if html else self.format
         self.acquire()
@@ -458,13 +454,48 @@ class RAMHandler(logging.Handler):
         finally:
             self.release()
         for record in records:
-            lines.append(fmt(record))
+            if record.levelno >= minlevel:
+                lines.append(fmt(record))
         return '\n'.join(lines)
+
+
+class ColoredFormatter(logging.Formatter):
+
+    """Logging formatter to output colored logs.
+
+    Attributes:
+        use_colors: Whether to do colored logging or not.
+
+    Class attributes:
+        COLOR_ESCAPES: A dict mapping color names to escape sequences
+        RESET_ESCAPE: The escape sequence using for resetting colors
+    """
+
+    COLOR_ESCAPES = {color: '\033[{}m'.format(i)
+                     for i, color in enumerate(COLORS, start=30)}
+    RESET_ESCAPE = '\033[0m'
+
+    def __init__(self, fmt, datefmt, style, *, use_colors):
+        super().__init__(fmt, datefmt, style)
+        self._use_colors = use_colors
+
+    def format(self, record):
+        if self._use_colors:
+            color_dict = dict(self.COLOR_ESCAPES)
+            color_dict['reset'] = self.RESET_ESCAPE
+            log_color = LOG_COLORS[record.levelname]
+            color_dict['log_color'] = self.COLOR_ESCAPES[log_color]
+        else:
+            color_dict = {color: '' for color in self.COLOR_ESCAPES}
+            color_dict['reset'] = ''
+            color_dict['log_color'] = ''
+        record.__dict__.update(color_dict)
+        return super().format(record)
 
 
 class HTMLFormatter(logging.Formatter):
 
-    """Formatter for HTML-colored log messages, similar to colorlog.
+    """Formatter for HTML-colored log messages.
 
     Attributes:
         _log_colors: The colors to use for logging levels.
@@ -484,8 +515,7 @@ class HTMLFormatter(logging.Formatter):
         self._colordict = {}
         # We could solve this nicer by using CSS, but for this simple case this
         # works.
-        for color in ['black', 'red', 'green', 'yellow', 'blue', 'purple',
-                      'cyan', 'white']:
+        for color in COLORS:
             self._colordict[color] = '<font color="{}">'.format(color)
         self._colordict['reset'] = '</font>'
 

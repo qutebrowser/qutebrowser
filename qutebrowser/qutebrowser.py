@@ -88,6 +88,8 @@ def get_argparser():
                        action='store_true')
     debug.add_argument('--nocolor', help="Turn off colored logging.",
                        action='store_false', dest='color')
+    debug.add_argument('--force-color', help="Force colored logging",
+                       action='store_true')
     debug.add_argument('--harfbuzz', choices=['old', 'new', 'system', 'auto'],
                        default='auto', help="HarfBuzz engine version to use. "
                        "Default: auto.")

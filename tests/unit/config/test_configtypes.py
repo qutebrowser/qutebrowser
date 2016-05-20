@@ -913,12 +913,15 @@ class ColorTests:
         ('foo(1, 2, 3)', []),
 
         ('rgb(0, 0, 0)', [configtypes.QssColor]),
+        ('rgb(0,0,0)', [configtypes.QssColor]),
         ('-foobar(42)', [configtypes.CssColor]),
 
         ('rgba(255, 255, 255, 255)', [configtypes.QssColor]),
+        ('rgba(255,255,255,255)', [configtypes.QssColor]),
         ('hsv(359, 255, 255)', [configtypes.QssColor]),
         ('hsva(359, 255, 255, 255)', [configtypes.QssColor]),
         ('hsv(10%, 10%, 10%)', [configtypes.QssColor]),
+        ('hsv(10%,10%,10%)', [configtypes.QssColor]),
         ('qlineargradient(x1:0, y1:0, x2:1, y2:1, stop:0 white, '
          'stop: 0.4 gray, stop:1 green)', [configtypes.QssColor]),
         ('qconicalgradient(cx:0.5, cy:0.5, angle:30, stop:0 white, '
@@ -1713,6 +1716,42 @@ class TestSearchEngineName:
                                                ('foobar', 'foobar')])
     def test_transform(self, klass, val, expected):
         assert klass().transform(val) == expected
+
+
+class TestHeaderDict:
+
+    @pytest.fixture
+    def klass(self):
+        return configtypes.HeaderDict
+
+    @pytest.mark.parametrize('val', [
+        '{"foo": "bar"}',
+        '{"foo": "bar", "baz": "fish"}',
+        '',  # empty value with none_ok=true
+        '{}',  # ditto
+    ])
+    def test_validate_valid(self, klass, val):
+        klass(none_ok=True).validate(val)
+
+    @pytest.mark.parametrize('val', [
+        '["foo"]',  # valid json but not a dict
+        '{"hello": 23}',  # non-string as value
+        '{"hällo": "world"}',  # non-ascii data in key
+        '{"hello": "wörld"}',  # non-ascii data in value
+        '',  # empty value with none_ok=False
+        '{}',  # ditto
+    ])
+    def test_validate_invalid(self, klass, val):
+        with pytest.raises(configexc.ValidationError):
+            klass().validate(val)
+
+    @pytest.mark.parametrize('val, expected', [
+        ('{"foo": "bar"}', {"foo": "bar"}),
+        ('{}', None),
+        ('', None),
+    ])
+    def test_transform(self, klass, val, expected):
+        assert klass(none_ok=True).transform(val) == expected
 
 
 class TestSearchEngineUrl:

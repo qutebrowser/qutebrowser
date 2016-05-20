@@ -39,8 +39,9 @@ from PyQt5.QtCore import QUrl
 from PyQt5.QtWidgets import QApplication  # pylint: disable=unused-import
 
 
-@cmdutils.register(maxsplit=1, no_cmd_split=True, win_id='win_id')
-def later(ms: {'type': int}, command, win_id):
+@cmdutils.register(maxsplit=1, no_cmd_split=True)
+@cmdutils.argument('win_id', win_id=True)
+def later(ms: int, command, win_id):
     """Execute a command after some time.
 
     Args:
@@ -68,8 +69,9 @@ def later(ms: {'type': int}, command, win_id):
         raise
 
 
-@cmdutils.register(maxsplit=1, no_cmd_split=True, win_id='win_id')
-def repeat(times: {'type': int}, command, win_id):
+@cmdutils.register(maxsplit=1, no_cmd_split=True)
+@cmdutils.argument('win_id', win_id=True)
+def repeat(times: int, command, win_id):
     """Repeat a given command.
 
     Args:
@@ -83,7 +85,8 @@ def repeat(times: {'type': int}, command, win_id):
         commandrunner.run_safely(command)
 
 
-@cmdutils.register(hide=True, win_id='win_id')
+@cmdutils.register(hide=True)
+@cmdutils.argument('win_id', win_id=True)
 def message_error(win_id, text):
     """Show an error message in the statusbar.
 
@@ -93,7 +96,8 @@ def message_error(win_id, text):
     message.error(win_id, text)
 
 
-@cmdutils.register(hide=True, win_id='win_id')
+@cmdutils.register(hide=True)
+@cmdutils.argument('win_id', win_id=True)
 def message_info(win_id, text):
     """Show an info message in the statusbar.
 
@@ -103,7 +107,8 @@ def message_info(win_id, text):
     message.info(win_id, text)
 
 
-@cmdutils.register(hide=True, win_id='win_id')
+@cmdutils.register(hide=True)
+@cmdutils.argument('win_id', win_id=True)
 def message_warning(win_id, text):
     """Show a warning message in the statusbar.
 
@@ -114,7 +119,8 @@ def message_warning(win_id, text):
 
 
 @cmdutils.register(debug=True)
-def debug_crash(typ: {'type': ('exception', 'segfault')}='exception'):
+@cmdutils.argument('typ', choices=['exception', 'segfault'])
+def debug_crash(typ='exception'):
     """Crash for debugging purposes.
 
     Args:

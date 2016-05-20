@@ -33,7 +33,7 @@ import pytest
 import httpbin
 
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), os.pardir,
-                os.pardir))
+                                os.pardir))
 from scripts import setupcommon
 from scripts.dev import freeze
 

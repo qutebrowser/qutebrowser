@@ -1,4 +1,5 @@
 __pycache__
+*.py~
 *.pyc
 *.swp
 /build
@@ -30,6 +31,7 @@ __pycache__
 /.testmondata
 /.hypothesis
 /prof
+/venv
 TODO
 /scripts/testbrowser_cpp/Makefile
 /scripts/testbrowser_cpp/main.o

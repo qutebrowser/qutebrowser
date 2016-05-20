@@ -183,6 +183,8 @@ class CompletionItemDelegate(QStyledItemDelegate):
         text_option.setAlignment(QStyle.visualAlignment(
             self._opt.direction, self._opt.displayAlignment))
 
+        if self._doc is not None:
+            self._doc.deleteLater()
         self._doc = QTextDocument(self)
         self._doc.setDefaultFont(self._opt.font)
         self._doc.setDefaultTextOption(text_option)

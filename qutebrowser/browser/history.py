@@ -129,7 +129,7 @@ class WebHistory(QWebHistoryInterface):
                     continue
                 atime, url = data
                 if atime.startswith('\0'):
-                    log.init.warning(
+                    log.init.debug(
                         "Removing NUL bytes from entry {!r} - see "
                         "https://github.com/The-Compiler/qutebrowser/issues/"
                         "670".format(data))

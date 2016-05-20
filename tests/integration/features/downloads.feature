@@ -44,6 +44,14 @@ Feature: Downloading things from a website.
         And I run :leave-mode
         Then no crash should happen
 
+    Scenario: Downloading with SSL errors (issue 1413)
+        When I run :debug-clear-ssl-errors
+        And I set network -> ssl-strict to ask
+        And I download a SSL page
+        And I wait for "Entering mode KeyMode.* (reason: question asked)" in the log
+        And I run :prompt-accept
+        Then the error "Download error: SSL handshake failed" should be shown
+
     Scenario: Retrying a failed download
         When I run :download http://localhost:(port)/does-not-exist
         And I wait for the error "Download error: * - server replied: NOT FOUND"
@@ -124,6 +132,7 @@ Feature: Downloading things from a website.
         When I open data/downloads/download.bin
         And I wait until the download is finished
         And I run :download-delete
+        And I wait for "deleted download *" in the log
         Then the downloaded file download.bin should not exist
 
     Scenario: Deleting a download which does not exist
@@ -161,7 +170,7 @@ Feature: Downloading things from a website.
         When I run :download http://localhost:(port)/drip?numbytes=128&duration=5
         And I run :download-open with count 1
         Then the error "Download 1 is not done!" should be shown
-        
+
     ## completion -> download-path-suggestion
 
     Scenario: completion -> download-path-suggestion = path
@@ -191,3 +200,14 @@ Feature: Downloading things from a website.
         And I run :close
         And I wait 0.5s
         Then no crash should happen
+
+    ## https://github.com/The-Compiler/qutebrowser/issues/846
+
+    Scenario: Quitting with finished downloads and confirm-quit=downloads
+        Given I have a fresh instance
+        When I set storage -> prompt-download-directory to false
+        And I set ui -> confirm-quit to downloads
+        And I open data/downloads/download.bin
+        And I wait until the download is finished
+        And I run :close
+        Then qutebrowser should quit

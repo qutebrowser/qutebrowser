@@ -49,10 +49,7 @@ ModelRole = usertypes.enum('ModelRole', ['item'], start=Qt.UserRole,
 
 RetryInfo = collections.namedtuple('RetryInfo', ['request', 'manager'])
 
-
-DownloadPath = collections.namedtuple('DownloadPath', ['filename',
-                                                       'question'])
-
+DownloadPath = collections.namedtuple('DownloadPath', ['filename', 'question'])
 
 # Remember the last used directory
 last_used_directory = None
@@ -148,8 +145,7 @@ def ask_for_filename(suggested_filename, win_id, *, parent=None,
         return DownloadPath(filename=download_dir(), question=None)
 
     encoding = sys.getfilesystemencoding()
-    suggested_filename = utils.force_encoding(suggested_filename,
-                                              encoding)
+    suggested_filename = utils.force_encoding(suggested_filename, encoding)
 
     q = usertypes.Question(parent)
     q.text = "Save file to:"
@@ -231,7 +227,7 @@ class DownloadItemStats(QObject):
         else:
             return remaining_bytes / avg
 
-    @pyqtSlot(int, int)
+    @pyqtSlot('qint64', 'qint64')
     def on_download_progress(self, bytes_done, bytes_total):
         """Update local variables when the download progress changed.
 
@@ -416,6 +412,8 @@ class DownloadItem(QObject):
         self.reply = None
         self.done = True
         self.data_changed.emit()
+        if self.fileobj is not None:
+            self.fileobj.close()
 
     def init_reply(self, reply):
         """Set a new reply and connect its signals.
@@ -461,8 +459,8 @@ class DownloadItem(QObject):
         elif self.stats.percentage() is None:
             return start
         else:
-            return utils.interpolate_color(
-                start, stop, self.stats.percentage(), system)
+            return utils.interpolate_color(start, stop,
+                                           self.stats.percentage(), system)
 
     @pyqtSlot()
     def cancel(self, remove_data=True):
@@ -562,8 +560,8 @@ class DownloadItem(QObject):
             txt = self._filename + " already exists. Overwrite?"
             self._ask_confirm_question(txt)
         # FIFO, device node, etc. Make sure we want to do this
-        elif (os.path.exists(self._filename) and not
-                os.path.isdir(self._filename)):
+        elif (os.path.exists(self._filename) and
+              not os.path.isdir(self._filename)):
             txt = (self._filename + " already exists and is a special file. "
                    "Write to this?")
             self._ask_confirm_question(txt)
@@ -650,7 +648,7 @@ class DownloadItem(QObject):
         except OSError as e:
             self._die(e.strerror)
 
-    @pyqtSlot(int)
+    @pyqtSlot('QNetworkReply::NetworkError')
     def on_reply_error(self, code):
         """Handle QNetworkReply errors."""
         if code == QNetworkReply.OperationCanceledError:
@@ -899,8 +897,8 @@ class DownloadManager(QAbstractListModel):
         download.redirected.connect(
             functools.partial(self.on_redirect, download))
         download.basename = suggested_filename
-        idx = len(self.downloads) + 1
-        download.index = idx
+        idx = len(self.downloads)
+        download.index = idx + 1  # "Human readable" index
         self.beginInsertRows(QModelIndex(), idx, idx)
         self.downloads.append(download)
         self.endInsertRows()
@@ -948,8 +946,8 @@ class DownloadManager(QAbstractListModel):
             raise cmdexc.CommandError("There's no download!")
         raise cmdexc.CommandError("There's no download {}!".format(count))
 
-    @cmdutils.register(instance='download-manager', scope='window',
-                       count='count')
+    @cmdutils.register(instance='download-manager', scope='window')
+    @cmdutils.argument('count', count=True)
     def download_cancel(self, all_=False, count=0):
         """Cancel the last/[count]th download.
 
@@ -975,8 +973,8 @@ class DownloadManager(QAbstractListModel):
                                         .format(count))
             download.cancel()
 
-    @cmdutils.register(instance='download-manager', scope='window',
-                       count='count')
+    @cmdutils.register(instance='download-manager', scope='window')
+    @cmdutils.argument('count', count=True)
     def download_delete(self, count=0):
         """Delete the last/[count]th download from disk.
 
@@ -993,9 +991,10 @@ class DownloadManager(QAbstractListModel):
             raise cmdexc.CommandError("Download {} is not done!".format(count))
         download.delete()
         self.remove_item(download)
+        log.downloads.debug("deleted download {}".format(download))
 
-    @cmdutils.register(instance='download-manager', scope='window',
-                       count='count')
+    @cmdutils.register(instance='download-manager', scope='window')
+    @cmdutils.argument('count', count=True)
     def download_open(self, count=0):
         """Open the last/[count]th download.
 
@@ -1012,8 +1011,8 @@ class DownloadManager(QAbstractListModel):
             raise cmdexc.CommandError("Download {} is not done!".format(count))
         download.open_file()
 
-    @cmdutils.register(instance='download-manager', scope='window',
-                       count='count')
+    @cmdutils.register(instance='download-manager', scope='window')
+    @cmdutils.argument('count', count=True)
     def download_retry(self, count=0):
         """Retry the first failed/[count]th download.
 
@@ -1098,8 +1097,8 @@ class DownloadManager(QAbstractListModel):
         finished_items = [d for d in self.downloads if d.done]
         self.remove_items(finished_items)
 
-    @cmdutils.register(instance='download-manager', scope='window',
-                       count='count')
+    @cmdutils.register(instance='download-manager', scope='window')
+    @cmdutils.argument('count', count=True)
     def download_remove(self, all_=False, count=0):
         """Remove the last/[count]th download from the list.
 
@@ -1239,3 +1238,11 @@ class DownloadManager(QAbstractListModel):
             # We don't have children
             return 0
         return len(self.downloads)
+
+    def running_downloads(self):
+        """Return the amount of still running downloads.
+
+        Return:
+            The number of unfinished downloads.
+        """
+        return sum(1 for download in self.downloads if not download.done)

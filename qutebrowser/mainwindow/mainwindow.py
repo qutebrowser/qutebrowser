@@ -35,7 +35,7 @@ from qutebrowser.mainwindow.statusbar import bar
 from qutebrowser.completion import completionwidget
 from qutebrowser.keyinput import modeman
 from qutebrowser.browser import hints, downloads, downloadview, commands
-from qutebrowser.misc import crashsignal
+from qutebrowser.misc import crashsignal, keyhintwidget
 
 
 win_id_gen = itertools.count(0)
@@ -160,6 +160,8 @@ class MainWindow(QWidget):
 
         self._commandrunner = runners.CommandRunner(self.win_id)
 
+        self._keyhint = keyhintwidget.KeyHintView(self.win_id, self)
+
         log.init.debug("Initializing modes...")
         modeman.init(self.win_id, self)
 
@@ -178,14 +180,11 @@ class MainWindow(QWidget):
         # resizing will fail. Therefore, we use singleShot QTimers to make sure
         # we defer this until everything else is initialized.
         QTimer.singleShot(0, self._connect_resize_completion)
+        QTimer.singleShot(0, self._connect_resize_keyhint)
         objreg.get('config').changed.connect(self.on_config_changed)
 
         if config.get('ui', 'hide-mouse-cursor'):
             self.setCursor(Qt.BlankCursor)
-
-        #self.retranslateUi(MainWindow)
-        #self.tabWidget.setCurrentIndex(0)
-        #QtCore.QMetaObject.connectSlotsByName(MainWindow)
 
         objreg.get("app").new_window.emit(self)
 
@@ -256,6 +255,11 @@ class MainWindow(QWidget):
         self._completion.resize_completion.connect(self.resize_completion)
         self.resize_completion()
 
+    def _connect_resize_keyhint(self):
+        """Connect the reposition_keyhint signal and resize it once."""
+        self._keyhint.reposition_keyhint.connect(self.reposition_keyhint)
+        self.reposition_keyhint()
+
     def _set_default_geometry(self):
         """Set some sensible default geometry."""
         self.setGeometry(QRect(50, 50, 800, 600))
@@ -293,6 +297,11 @@ class MainWindow(QWidget):
         cmd.got_cmd.connect(self._commandrunner.run_safely)
         cmd.returnPressed.connect(tabs.on_cmd_return_pressed)
         tabs.got_cmd.connect(self._commandrunner.run_safely)
+
+        # key hint popup
+        for mode, parser in keyparsers.items():
+            parser.keystring_updated.connect(functools.partial(
+                self._keyhint.update_keyhint, mode.name))
 
         # config
         for obj in keyparsers.values():
@@ -371,6 +380,24 @@ class MainWindow(QWidget):
         if rect.isValid():
             self._completion.setGeometry(rect)
 
+    @pyqtSlot()
+    def reposition_keyhint(self):
+        """Adjust keyhint according to config."""
+        if not self._keyhint.isVisible():
+            return
+        # Shrink the window to the shown text and place it at the bottom left
+        width = self._keyhint.width()
+        height = self._keyhint.height()
+        topleft_y = self.height() - self.status.height() - height
+        topleft_y = qtutils.check_overflow(topleft_y, 'int', fatal=False)
+        topleft = QPoint(0, topleft_y)
+        bottomright = (self.status.geometry().topLeft() +
+                       QPoint(width, 0))
+        rect = QRect(topleft, bottomright)
+        log.misc.debug('keyhint rect: {}'.format(rect))
+        if rect.isValid():
+            self._keyhint.setGeometry(rect)
+
     @cmdutils.register(instance='main-window', scope='window')
     @pyqtSlot()
     def close(self):
@@ -398,6 +425,7 @@ class MainWindow(QWidget):
         """
         super().resizeEvent(e)
         self.resize_completion()
+        self.reposition_keyhint()
         self._downloadview.updateGeometry()
         self.tabbed_browser.tabBar().refresh()
 
@@ -417,7 +445,7 @@ class MainWindow(QWidget):
         tab_count = self.tabbed_browser.count()
         download_manager = objreg.get('download-manager', scope='window',
                                       window=self.win_id)
-        download_count = download_manager.rowCount()
+        download_count = download_manager.running_downloads()
         quit_texts = []
         # Ask if multiple-tabs are open
         if 'multiple-tabs' in confirm_quit and tab_count > 1:

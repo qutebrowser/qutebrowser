@@ -105,8 +105,7 @@ def whitelist_generator():
     yield 'scripts.dev.pylint_checkers.modeline.process_module'
 
     for attr in ('_get_default_metavar_for_optional',
-                 '_get_default_metavar_for_positional',
-                 '_metavar_formatter'):
+                 '_get_default_metavar_for_positional', '_metavar_formatter'):
         yield 'scripts.dev.src2asciidoc.UsageFormatter.' + attr
 
 
@@ -169,8 +168,7 @@ def run(files):
 
 def main():
     parser = argparse.ArgumentParser()
-    parser.add_argument('files', nargs='*',
-                        default=['qutebrowser', 'scripts'])
+    parser.add_argument('files', nargs='*', default=['qutebrowser', 'scripts'])
     args = parser.parse_args()
     out = run(args.files)
     for line in out:

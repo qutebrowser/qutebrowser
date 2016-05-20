@@ -82,7 +82,7 @@ class ShellLexer:
                         self.token += nextchar
                     self.state = 'a'
                 elif (nextchar in self.escape and
-                        self.state in self.escapedquotes):
+                      self.state in self.escapedquotes):
                     if self.keep:
                         self.token += nextchar
                     self.escapedstate = self.state

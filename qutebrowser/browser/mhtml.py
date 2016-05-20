@@ -343,12 +343,9 @@ class _Downloader:
         item = download_manager.get(url, fileobj=_NoCloseBytesIO(),
                                     auto_remove=True)
         self.pending_downloads.add((url, item))
-        item.finished.connect(
-            functools.partial(self._finished, url, item))
-        item.error.connect(
-            functools.partial(self._error, url, item))
-        item.cancelled.connect(
-            functools.partial(self._error, url, item))
+        item.finished.connect(functools.partial(self._finished, url, item))
+        item.error.connect(functools.partial(self._error, url, item))
+        item.cancelled.connect(functools.partial(self._error, url, item))
 
     def _finished(self, url, item):
         """Callback when a single asset is downloaded.

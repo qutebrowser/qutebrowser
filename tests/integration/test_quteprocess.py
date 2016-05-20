@@ -146,8 +146,16 @@ def test_quteprocess_quitting(qtbot, quteproc_process):
         '00:00:00 DEBUG    foo       foo:foo:0 [2s ago] test',
         {'prefix': '2s ago', 'message': 'test'}
     ),
+    (
+        # ResourceWarning
+        "00:00:00 WARNING  py.warnings app:qt_mainloop:121 "
+        ".../app.py:121: ResourceWarning: unclosed file <_io.TextIOWrapper "
+        "name=18 mode='r' encoding='UTF-8'>",
+        {'category': 'py.warnings'}
+    ),
 ], ids=['normal', 'vdebug', 'unknown module', 'expected message',
-        'weird Qt location', 'QXcbXSettings', '2s ago marker'])
+        'weird Qt location', 'QXcbXSettings', '2s ago marker',
+        'resourcewarning'])
 def test_log_line_parse(data, attrs):
     line = quteprocess.LogLine(data)
     for name, expected in attrs.items():

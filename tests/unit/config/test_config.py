@@ -112,12 +112,10 @@ class TestConfigParser:
 
     def test_interpolation_cross_section(self, objects):
         """Test setting an interpolated value from another section."""
-        objects.cp.read_dict(
-            {
-                'general': {'ignore-case': '${network:do-not-track}'},
-                'network': {'do-not-track': 'false'},
-            }
-        )
+        objects.cp.read_dict({
+            'general': {'ignore-case': '${network:do-not-track}'},
+            'network': {'do-not-track': 'false'},
+        })
         objects.cfg._from_cp(objects.cp)
         assert not objects.cfg.get('general', 'ignore-case')
         assert not objects.cfg.get('network', 'do-not-track')
@@ -321,7 +319,7 @@ class TestDefaultConfig:
         If it did change, place a new qutebrowser-vx.y.z.conf in old_configs
         and then increment the version.
         """
-        assert qutebrowser.__version__ == '0.6.1'
+        assert qutebrowser.__version__ == '0.6.2'
 
     @pytest.mark.parametrize('filename',
         os.listdir(os.path.join(os.path.dirname(__file__), 'old_configs')),

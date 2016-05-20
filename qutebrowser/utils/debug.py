@@ -252,8 +252,8 @@ class log_time:  # pylint: disable=invalid-name
         assert self._started is not None
         finished = datetime.datetime.now()
         delta = (finished - self._started).total_seconds()
-        self._logger.debug(
-            "{} took {} seconds.".format(self._action.capitalize(), delta))
+        self._logger.debug("{} took {} seconds.".format(
+            self._action.capitalize(), delta))
 
     def __call__(self, func):
         @functools.wraps(func)
@@ -293,8 +293,7 @@ def get_all_objects(start_obj=None):
     pyqt_lines = []
     _get_pyqt_objects(pyqt_lines, start_obj)
     pyqt_lines = ['    ' + e for e in pyqt_lines]
-    pyqt_lines.insert(0, 'Qt objects - {} objects:'.format(
-        len(pyqt_lines)))
+    pyqt_lines.insert(0, 'Qt objects - {} objects:'.format(len(pyqt_lines)))
 
     output += ['']
     output += pyqt_lines

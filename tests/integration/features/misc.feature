@@ -15,9 +15,21 @@ Feature: Various utility commands.
 
     Scenario: :set-cmd-text with URL replacement
         When I open data/hello.txt
-        When I run :set-cmd-text :message-info >{url}<
+        And I run :set-cmd-text :message-info {url}
         And I run :command-accept
-        Then the message ">http://localhost:*/hello.txt<" should be shown
+        Then the message "http://localhost:*/hello.txt" should be shown
+
+    Scenario: :set-cmd-text with URL replacement with encoded spaces
+        When I open data/title with spaces.html
+        And I run :set-cmd-text :message-info {url}
+        And I run :command-accept
+        Then the message "http://localhost:*/title%20with%20spaces.html" should be shown
+
+    Scenario: :set-cmd-text with URL replacement with decoded spaces
+        When I open data/title with spaces.html
+        And I run :set-cmd-text :message-info "> {url:pretty} <"
+        And I run :command-accept
+        Then the message "> http://localhost:*/title with spaces.html <" should be shown
 
     Scenario: :set-cmd-text with -s and -a
         When I run :set-cmd-text -s :message-info "foo
@@ -135,8 +147,6 @@ Feature: Various utility commands.
 
     # :stop/:reload
 
-    # WORKAROUND for https://bitbucket.org/cherrypy/cherrypy/pull-requests/117/
-    @not_osx
     Scenario: :stop
         Given I have a fresh instance
         # We can't use "When I open" because we don't want to wait for load
@@ -344,7 +354,7 @@ Feature: Various utility commands.
     Scenario: Running :pyeval with --quiet
         When I run :debug-pyeval --quiet 1+1
         Then "pyeval output: 2" should be logged
-        
+
     ## https://github.com/The-Compiler/qutebrowser/issues/504
 
     Scenario: Focusing download widget via Tab
@@ -362,3 +372,62 @@ Feature: Various utility commands.
         And I press the key "<Tab>"
         And I press the key "<Ctrl-C>"
         Then no crash should happen
+
+    ## Custom headers
+
+    Scenario: Setting a custom header
+        When I set network -> custom-headers to {"X-Qute-Test": "testvalue"}
+        And I open headers
+        Then the header X-Qute-Test should be set to testvalue
+
+    ## :messages
+
+    Scenario: Showing error messages
+        When I run :message-error the-error-message
+        And I run :message-warning the-warning-message
+        And I run :message-info the-info-message
+        And I run :messages
+        Then the error "the-error-message" should be shown
+        And the warning "the-warning-message" should be shown
+        And the page should contain the plaintext "the-error-message"
+        And the page should not contain the plaintext "the-warning-message"
+        And the page should not contain the plaintext "the-info-message"
+
+    Scenario: Showing messages of type 'warning' or greater
+        When I run :message-error the-error-message
+        And I run :message-warning the-warning-message
+        And I run :message-info the-info-message
+        And I run :messages warning
+        Then the error "the-error-message" should be shown
+        And the warning "the-warning-message" should be shown
+        And the page should contain the plaintext "the-error-message"
+        And the page should contain the plaintext "the-warning-message"
+        And the page should not contain the plaintext "the-info-message"
+
+    Scenario: Showing messages of type 'info' or greater
+        When I run :message-error the-error-message
+        And I run :message-warning the-warning-message
+        And I run :message-info the-info-message
+        And I run :messages info
+        Then the error "the-error-message" should be shown
+        And the warning "the-warning-message" should be shown
+        And the page should contain the plaintext "the-error-message"
+        And the page should contain the plaintext "the-warning-message"
+        And the page should contain the plaintext "the-info-message"
+
+    Scenario: Showing messages of an invalid level
+        When I run :messages cataclysmic
+        Then the error "Invalid log level cataclysmic!" should be shown
+
+    Scenario: Using qute:log directly
+        When I open qute:log
+        Then no crash should happen
+
+    Scenario: Using qute:plainlog directly
+        When I open qute:plainlog
+        Then no crash should happen
+
+    Scenario: Using :messages without messages
+        Given I have a fresh instance
+        When I run :messages
+        Then the page should contain the plaintext "No messages to show."

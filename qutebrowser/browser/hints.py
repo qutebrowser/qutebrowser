@@ -26,7 +26,7 @@ import re
 from string import ascii_lowercase
 
 from PyQt5.QtCore import (pyqtSignal, pyqtSlot, QObject, QEvent, Qt, QUrl,
-                          QTimer)
+                          QTimer, QRect)
 from PyQt5.QtGui import QMouseEvent
 from PyQt5.QtWebKit import QWebElement
 from PyQt5.QtWebKitWidgets import QWebPage
@@ -427,6 +427,46 @@ class HintManager(QObject):
         message.error(self._win_id, "No suitable link found for this element.",
                       immediately=True)
 
+    def _get_first_rectangle(self, elem):
+        """Return the element's first client rectangle with positive size.
+
+        Uses the getClientRects() JavaScript method to obtain the collection of
+        rectangles containing the element and returns the first rectangle which
+        is large enough (larger than 1px times 1px). If all rectangles returned
+        by getClientRects() are too small, falls back to elem.rect_on_view().
+
+        Skipping of small rectangles is due to <a> elements containing other
+        elements with "display:block" style, see
+        https://github.com/The-Compiler/qutebrowser/issues/1298
+
+        Args:
+            elem: The QWebElement of interest.
+        """
+        rects = elem.evaluateJavaScript("this.getClientRects()")
+        log.hints.debug("Client rectangles of element '{}': {}"
+                .format(elem.debug_text(), rects))
+        for i in range(int(rects.get("length", 0))):
+            rect = rects[str(i)]
+            width = rect.get("width", 0)
+            height = rect.get("height", 0)
+            if width > 1 and height > 1:
+                # fix coordinates according to zoom level
+                zoom = elem.webFrame().zoomFactor()
+                if not config.get('ui', 'zoom-text-only'):
+                    rect["left"] *= zoom
+                    rect["top"] *= zoom
+                    width *= zoom
+                    height *= zoom
+                rect = QRect(rect["left"], rect["top"], width, height)
+                frame = elem.webFrame()
+                while frame is not None:
+                    # Translate to parent frames' position
+                    # (scroll position is taken care of inside getClientRects)
+                    rect.translate(frame.geometry().topLeft())
+                    frame = frame.parentFrame()
+                return rect
+        return elem.rect_on_view()
+
     def _click(self, elem, context):
         """Click an element.
 
@@ -446,14 +486,18 @@ class HintManager(QObject):
             target_mapping[Target.tab] = usertypes.ClickTarget.tab_bg
         else:
             target_mapping[Target.tab] = usertypes.ClickTarget.tab
+
         # FIXME Instead of clicking the center, we could have nicer heuristics.
         # e.g. parse (-webkit-)border-radius correctly and click text fields at
         # the bottom right, and everything else on the top left or so.
         # https://github.com/The-Compiler/qutebrowser/issues/70
-        pos = elem.rect_on_view().center()
+        rect = self._get_first_rectangle(elem)
+        pos = rect.center()
+
         action = "Hovering" if context.target == Target.hover else "Clicking"
-        log.hints.debug("{} on '{}' at {}/{}".format(
-            action, elem, pos.x(), pos.y()))
+        log.hints.debug("{} on '{}' at position {}".format(
+            action, elem.debug_text(), pos))
+
         self.start_hinting.emit(target_mapping[context.target])
         if context.target in [Target.tab, Target.tab_fg, Target.tab_bg,
                               Target.window]:
@@ -471,6 +515,13 @@ class HintManager(QObject):
                 QMouseEvent(QEvent.MouseButtonRelease, pos, Qt.LeftButton,
                             Qt.NoButton, modifiers),
             ]
+
+        if context.target in [Target.normal, Target.current]:
+            # Set the pre-jump mark ', so we can jump back here after following
+            tabbed_browser = objreg.get('tabbed-browser', scope='window',
+                                        window=self._win_id)
+            tabbed_browser.set_mark("'")
+
         if context.target == Target.current:
             elem.remove_blank_target()
         for evt in events:
@@ -488,7 +539,9 @@ class HintManager(QObject):
             url: The URL to open as a QUrl.
             context: The HintContext to use.
         """
-        sel = context.target == Target.yank_primary
+        sel = (context.target == Target.yank_primary and
+               utils.supports_selection())
+
         urlstr = url.toString(QUrl.FullyEncoded | QUrl.RemovePassword)
         utils.set_clipboard(urlstr, selection=sel)
 
@@ -609,8 +662,7 @@ class HintManager(QObject):
     def _find_prevnext(self, frame, prev=False):
         """Find a prev/next element in frame."""
         # First check for <link rel="prev(ious)|next">
-        elems = frame.findAllElements(
-            webelem.SELECTORS[webelem.Group.links])
+        elems = frame.findAllElements(webelem.SELECTORS[webelem.Group.links])
         rel_values = ('prev', 'previous') if prev else ('next')
         for e in elems:
             e = webelem.WebElementWrapper(e)
@@ -762,9 +814,10 @@ class HintManager(QObject):
             webview.openurl(url)
 
     @cmdutils.register(instance='hintmanager', scope='tab', name='hint',
-                       win_id='win_id')
+                       star_args_optional=True)
+    @cmdutils.argument('win_id', win_id=True)
     def start(self, rapid=False, group=webelem.Group.all, target=Target.normal,
-              *args: {'nargs': '*'}, win_id):
+              *args, win_id):
         """Start hinting.
 
         Args:
@@ -940,7 +993,9 @@ class HintManager(QObject):
                               'all filtered')
                 return
 
-        if len(visible) == 1 and config.get('hints', 'auto-follow'):
+        if (len(visible) == 1 and
+                config.get('hints', 'auto-follow') and
+                filterstr is not None):
             # apply auto-follow-timeout
             timeout = config.get('hints', 'auto-follow-timeout')
             man_inst = modeman.instance(self._win_id)
@@ -984,19 +1039,20 @@ class HintManager(QObject):
         }
         elem = self._context.elems[keystr].elem
         if elem.webFrame() is None:
-            message.error(self._win_id, "This element has no webframe.",
+            message.error(self._win_id,
+                          "This element has no webframe.",
                           immediately=True)
             return
         if self._context.target in elem_handlers:
-            handler = functools.partial(
-                elem_handlers[self._context.target], elem, self._context)
+            handler = functools.partial(elem_handlers[self._context.target],
+                                        elem, self._context)
         elif self._context.target in url_handlers:
             url = self._resolve_url(elem, self._context.baseurl)
             if url is None:
                 self._show_url_error()
                 return
-            handler = functools.partial(
-                url_handlers[self._context.target], url, self._context)
+            handler = functools.partial(url_handlers[self._context.target],
+                                        url, self._context)
         else:
             raise ValueError("No suitable handler found!")
         if not self._context.rapid:
@@ -1064,11 +1120,14 @@ class WordHinter:
     def __init__(self):
         # will be initialized on first use.
         self.words = set()
+        self.dictionary = None
 
     def ensure_initialized(self):
         """Generate the used words if yet uninialized."""
-        if not self.words:
-            dictionary = config.get("hints", "dictionary")
+        dictionary = config.get("hints", "dictionary")
+        if not self.words or self.dictionary != dictionary:
+            self.words.clear()
+            self.dictionary = dictionary
             try:
                 with open(dictionary, encoding="UTF-8") as wordfile:
                     alphabet = set(ascii_lowercase)
@@ -1101,13 +1160,11 @@ class WordHinter:
             "text": str,
         }
 
-        extractable_attrs = collections.defaultdict(
-            list, {
-                "IMG": ["alt", "title", "src"],
-                "A": ["title", "href", "text"],
-                "INPUT": ["name"]
-            }
-        )
+        extractable_attrs = collections.defaultdict(list, {
+            "IMG": ["alt", "title", "src"],
+            "A": ["title", "href", "text"],
+            "INPUT": ["name"]
+        })
 
         return (attr_extractors[attr](elem)
                 for attr in extractable_attrs[elem.tagName()]
@@ -1125,15 +1182,19 @@ class WordHinter:
                 yield candidate[match.start():match.end()].lower()
 
     def any_prefix(self, hint, existing):
-        return any(hint.startswith(e) or e.startswith(hint)
-                   for e in existing)
+        return any(hint.startswith(e) or e.startswith(hint) for e in existing)
 
-    def new_hint_for(self, elem, existing):
+    def filter_prefixes(self, hints, existing):
+        return (h for h in hints if not self.any_prefix(h, existing))
+
+    def new_hint_for(self, elem, existing, fallback):
         """Return a hint for elem, not conflicting with the existing."""
         new = self.tag_words_to_hints(self.extract_tag_words(elem))
-        no_prefixes = (h for h in new if not self.any_prefix(h, existing))
+        new_no_prefixes = self.filter_prefixes(new, existing)
+        fallback_no_prefixes = self.filter_prefixes(fallback, existing)
         # either the first good, or None
-        return next(no_prefixes, None)
+        return (next(new_no_prefixes, None) or
+                next(fallback_no_prefixes, None))
 
     def hint(self, elems):
         """Produce hint labels based on the html tags.
@@ -1153,7 +1214,9 @@ class WordHinter:
         used_hints = set()
         words = iter(self.words)
         for elem in elems:
-            hint = self.new_hint_for(elem, used_hints) or next(words)
+            hint = self.new_hint_for(elem, used_hints, words)
+            if not hint:
+                raise WordHintingError("Not enough words in the dictionary.")
             used_hints.add(hint)
             hints.append(hint)
         return hints

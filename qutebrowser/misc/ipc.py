@@ -221,7 +221,7 @@ class IPCServer(QObject):
             # This means we only use setSocketOption on Windows...
             os.chmod(self._server.fullServerName(), 0o700)
 
-    @pyqtSlot(int)
+    @pyqtSlot('QLocalSocket::LocalSocketError')
     def on_error(self, err):
         """Raise SocketError on fatal errors."""
         if self._socket is None:
@@ -288,6 +288,54 @@ class IPCServer(QObject):
         self._socket.error.connect(self.on_error)
         self._socket.disconnectFromServer()
 
+    def _handle_data(self, data):
+        """Handle data (as bytes) we got from on_ready_ready_read."""
+        try:
+            decoded = data.decode('utf-8')
+        except UnicodeDecodeError:
+            log.ipc.error("invalid utf-8: {}".format(binascii.hexlify(data)))
+            self._handle_invalid_data()
+            return
+
+        log.ipc.debug("Processing: {}".format(decoded))
+        try:
+            json_data = json.loads(decoded)
+        except ValueError:
+            log.ipc.error("invalid json: {}".format(decoded.strip()))
+            self._handle_invalid_data()
+            return
+
+        for name in ('args', 'target_arg'):
+            if name not in json_data:
+                log.ipc.error("Missing {}: {}".format(name, decoded.strip()))
+                self._handle_invalid_data()
+                return
+
+        try:
+            protocol_version = int(json_data['protocol_version'])
+        except (KeyError, ValueError):
+            log.ipc.error("invalid version: {}".format(decoded.strip()))
+            self._handle_invalid_data()
+            return
+
+        if protocol_version != PROTOCOL_VERSION:
+            log.ipc.error("incompatible version: expected {}, got {}".format(
+                PROTOCOL_VERSION, protocol_version))
+            self._handle_invalid_data()
+            return
+
+        args = json_data['args']
+
+        target_arg = json_data['target_arg']
+        if target_arg is None:
+            # https://www.riverbankcomputing.com/pipermail/pyqt/2016-April/037375.html
+            target_arg = ''
+
+        cwd = json_data.get('cwd', '')
+        assert cwd is not None
+
+        self.got_args.emit(args, target_arg, cwd)
+
     @pyqtSlot()
     def on_ready_read(self):
         """Read json data from the client."""
@@ -302,46 +350,7 @@ class IPCServer(QObject):
             self.got_raw.emit(data)
             log.ipc.debug("Read from socket 0x{:x}: {}".format(
                 id(self._socket), data))
-
-            try:
-                decoded = data.decode('utf-8')
-            except UnicodeDecodeError:
-                log.ipc.error("invalid utf-8: {}".format(
-                    binascii.hexlify(data)))
-                self._handle_invalid_data()
-                return
-
-            log.ipc.debug("Processing: {}".format(decoded))
-            try:
-                json_data = json.loads(decoded)
-            except ValueError:
-                log.ipc.error("invalid json: {}".format(decoded.strip()))
-                self._handle_invalid_data()
-                return
-
-            for name in ('args', 'target_arg'):
-                if name not in json_data:
-                    log.ipc.error("Missing {}: {}".format(name,
-                                                          decoded.strip()))
-                    self._handle_invalid_data()
-                    return
-
-            try:
-                protocol_version = int(json_data['protocol_version'])
-            except (KeyError, ValueError):
-                log.ipc.error("invalid version: {}".format(decoded.strip()))
-                self._handle_invalid_data()
-                return
-
-            if protocol_version != PROTOCOL_VERSION:
-                log.ipc.error("incompatible version: expected {}, "
-                              "got {}".format(
-                                  PROTOCOL_VERSION, protocol_version))
-                self._handle_invalid_data()
-                return
-
-            cwd = json_data.get('cwd', None)
-            self.got_args.emit(json_data['args'], json_data['target_arg'], cwd)
+            self._handle_data(data)
         self._timer.start()
 
     @pyqtSlot()
@@ -445,8 +454,7 @@ def send_to_running_instance(socketname, command, target_arg, *,
     if socket is None:
         socket = QLocalSocket()
 
-    if (legacy_name is not None and
-            _has_legacy_server(legacy_name)):
+    if legacy_name is not None and _has_legacy_server(legacy_name):
         name_to_use = legacy_name
     else:
         name_to_use = socketname

@@ -635,6 +635,16 @@ Feature: Tab management
         Then the following tabs should be open:
             - data/hello.txt (active)
 
+    Scenario: Double-undo with single tab on last-close default page
+        Given I have a fresh instance
+        When I open about:blank
+        And I set tabs -> last-close to default-page
+        And I set general -> default-page to about:blank
+        And I run :undo
+        And I run :undo
+        Then the error "Nothing to undo!" should be shown
+        And the error "Nothing to undo!" should be shown
+
     # last-close
 
     Scenario: last-close = blank
@@ -677,95 +687,97 @@ Feature: Tab management
 
     Scenario: opening links with tabs->background-tabs true
         When I set tabs -> background-tabs to true
-        And I open data/hints/link.html
+        And I open data/hints/html/simple.html
         And I run :hint all tab
         And I run :follow-hint a
         And I wait until data/hello.txt is loaded
         Then the following tabs should be open:
-            - data/hints/link.html (active)
+            - data/hints/html/simple.html (active)
             - data/hello.txt
 
     Scenario: opening tab with tabs->new-tab-position left
         When I set tabs -> new-tab-position to left
         And I set tabs -> background-tabs to false
         And I open about:blank
-        And I open data/hints/link.html in a new tab
+        And I open data/hints/html/simple.html in a new tab
         And I run :hint all tab
         And I run :follow-hint a
         And I wait until data/hello.txt is loaded
         Then the following tabs should be open:
             - about:blank
             - data/hello.txt (active)
-            - data/hints/link.html
+            - data/hints/html/simple.html
 
     Scenario: opening tab with tabs->new-tab-position right
         When I set tabs -> new-tab-position to right
         And I set tabs -> background-tabs to false
         And I open about:blank
-        And I open data/hints/link.html in a new tab
+        And I open data/hints/html/simple.html in a new tab
         And I run :hint all tab
         And I run :follow-hint a
         And I wait until data/hello.txt is loaded
         Then the following tabs should be open:
             - about:blank
-            - data/hints/link.html
+            - data/hints/html/simple.html
             - data/hello.txt (active)
 
     Scenario: opening tab with tabs->new-tab-position first
         When I set tabs -> new-tab-position to first
         And I set tabs -> background-tabs to false
         And I open about:blank
-        And I open data/hints/link.html in a new tab
+        And I open data/hints/html/simple.html in a new tab
         And I run :hint all tab
         And I run :follow-hint a
         And I wait until data/hello.txt is loaded
         Then the following tabs should be open:
             - data/hello.txt (active)
             - about:blank
-            - data/hints/link.html
+            - data/hints/html/simple.html
 
     Scenario: opening tab with tabs->new-tab-position last
         When I set tabs -> new-tab-position to last
         And I set tabs -> background-tabs to false
-        And I open data/hints/link.html
+        And I open data/hints/html/simple.html
         And I open about:blank in a new tab
         And I run :tab-focus last
         And I run :hint all tab
         And I run :follow-hint a
         And I wait until data/hello.txt is loaded
         Then the following tabs should be open:
-            - data/hints/link.html
+            - data/hints/html/simple.html
             - about:blank
             - data/hello.txt (active)
 
     # :buffer
 
-    Scenario: buffer without args
+    Scenario: :buffer without args
         Given I have a fresh instance
         When I run :buffer
         Then the error "buffer: The following arguments are required: index" should be shown
 
-    Scenario: buffer one window title present
+    Scenario: :buffer with a matching title
         When I open data/title.html
         And I open data/search.html in a new tab
         And I open data/scroll.html in a new tab
         And I run :buffer "Searching text"
+        And I wait for "Current tab changed, *" in the log
         Then the following tabs should be open:
             - data/title.html
             - data/search.html (active)
             - data/scroll.html
 
-    Scenario: buffer one window title not present
+    Scenario: :buffer with no matching title
         When I run :buffer "invalid title"
         Then the error "No matching tab for: invalid title" should be shown
 
-    Scenario: buffer two window title present
+    Scenario: :buffer with matching title and two windows
         When I open data/title.html
         And I open data/search.html in a new tab
         And I open data/scroll.html in a new tab
         And I open data/caret.html in a new window
         And I open data/paste_primary.html in a new tab
         And I run :buffer "Scrolling"
+        And I wait for "Focus object changed: <qutebrowser.browser.webview.WebView tab_id=* url='http://localhost:*/data/scroll.html'>" in the log
         Then the session should look like:
             windows:
             - active: true
@@ -785,17 +797,17 @@ Feature: Tab management
                 history:
                 - url: http://localhost:*/data/paste_primary.html
 
-    Scenario: buffer one window index not present
+    Scenario: :buffer with no matching index
         When I open data/title.html
         And I run :buffer "666"
         Then the error "There's no tab with index 666!" should be shown
 
-    Scenario: buffer one window win not present
+    Scenario: :buffer with no matching window index
         When I open data/title.html
         And I run :buffer "2/1"
         Then the error "There's no window with id 2!" should be shown
 
-    Scenario: buffer two window index present
+    Scenario: :buffer with matching window index
         Given I have a fresh instance
         When I open data/title.html
         And I open data/search.html in a new tab
@@ -804,6 +816,7 @@ Feature: Tab management
         And I open data/paste_primary.html in a new tab
         And I wait until data/caret.html is loaded
         And I run :buffer "0/2"
+        And I wait for "Current tab changed, *" in the log
         Then the session should look like:
             windows:
             - active: true
@@ -823,30 +836,44 @@ Feature: Tab management
                 history:
                 - url: http://localhost:*/data/paste_primary.html
 
-    Scenario: buffer troubling args 01
+    Scenario: :buffer with wrong argument (-1)
         Given I have a fresh instance
         When I open data/title.html
         And I run :buffer "-1"
         Then the error "There's no tab with index -1!" should be shown
 
-    Scenario: buffer troubling args 02
+    Scenario: :buffer with wrong argument (/)
         When I open data/title.html
         And I run :buffer "/"
         Then the following tabs should be open:
             - data/title.html (active)
 
-    Scenario: buffer troubling args 03
+    Scenario: :buffer with wrong argument (//)
         When I open data/title.html
         And I run :buffer "//"
         Then the following tabs should be open:
             - data/title.html (active)
 
-    Scenario: buffer troubling args 04
+    Scenario: :buffer with wrong argument (0/x)
         When I open data/title.html
         And I run :buffer "0/x"
         Then the error "No matching tab for: 0/x" should be shown
 
-    Scenario: buffer troubling args 05
+    Scenario: :buffer with wrong argument (1/2/3)
         When I open data/title.html
         And I run :buffer "1/2/3"
         Then the error "No matching tab for: 1/2/3" should be shown
+
+    Scenario: Using :tab-next after closing last tab (#1448)
+        When I set tabs -> last-close to close
+        And I run :tab-only
+        And I run :tab-close ;; :tab-next
+        Then qutebrowser should quit
+        And no crash should happen
+
+    Scenario: Using :tab-prev after closing last tab (#1448)
+        When I set tabs -> last-close to close
+        And I run :tab-only
+        And I run :tab-close ;; :tab-prev
+        Then qutebrowser should quit
+        And no crash should happen

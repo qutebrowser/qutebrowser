@@ -266,3 +266,55 @@ class CaretKeyParser(keyparser.CommandKeyParser):
         super().__init__(win_id, parent, supports_count=True,
                          supports_chains=True)
         self.read_config('caret')
+
+
+class MarkKeyParser(keyparser.BaseKeyParser):
+
+    """KeyParser for set_mark and jump_mark mode.
+
+    Attributes:
+        _mode: Either KeyMode.set_mark or KeyMode.jump_mark.
+    """
+
+    def __init__(self, win_id, mode, parent=None):
+        super().__init__(win_id, parent, supports_count=False,
+                         supports_chains=False)
+        self._mode = mode
+
+    def handle(self, e):
+        """Override handle to always match the next key and create a mark.
+
+        Args:
+            e: the KeyPressEvent from Qt.
+
+        Return:
+            True if event has been handled, False otherwise.
+        """
+        if utils.keyevent_to_string(e) is None:
+            # this is a modifier key, let it pass and keep going
+            return False
+
+        key = e.text()
+
+        tabbed_browser = objreg.get('tabbed-browser', scope='window',
+                                    window=self._win_id)
+
+        if self._mode == usertypes.KeyMode.set_mark:
+            tabbed_browser.set_mark(key)
+        elif self._mode == usertypes.KeyMode.jump_mark:
+            tabbed_browser.jump_mark(key)
+        else:
+            raise ValueError("{} is not a valid mark mode".format(self._mode))
+
+        self.request_leave.emit(self._mode, "valid mark key")
+
+        return True
+
+    @pyqtSlot(str)
+    def on_keyconfig_changed(self, mode):
+        """MarkKeyParser has no config section (no bindable keys)."""
+        pass
+
+    def execute(self, cmdstr, _keytype, count=None):
+        """Should never be called on MarkKeyParser."""
+        assert False

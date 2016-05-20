@@ -129,13 +129,13 @@ def _module_versions():
     lines = []
     modules = collections.OrderedDict([
         ('sip', ['SIP_VERSION_STR']),
-        ('colorlog', []),
         ('colorama', ['VERSION', '__version__']),
         ('pypeg2', ['__version__']),
         ('jinja2', ['__version__']),
         ('pygments', ['__version__']),
         ('yaml', ['__version__']),
         ('cssutils', ['__version__']),
+        ('typing', []),
     ])
     for name, attributes in modules.items():
         try:

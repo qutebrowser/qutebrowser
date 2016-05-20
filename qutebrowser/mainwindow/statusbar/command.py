@@ -19,14 +19,14 @@
 
 """The commandline in the statusbar."""
 
-from PyQt5.QtCore import pyqtSignal, pyqtSlot, Qt, QUrl, QSize
+from PyQt5.QtCore import pyqtSignal, pyqtSlot, Qt, QSize
 from PyQt5.QtWidgets import QSizePolicy
 
 from qutebrowser.keyinput import modeman, modeparsers
-from qutebrowser.commands import cmdexc, cmdutils
-from qutebrowser.misc import cmdhistory
+from qutebrowser.commands import cmdexc, cmdutils, runners
+from qutebrowser.misc import cmdhistory, split
 from qutebrowser.misc import miscwidgets as misc
-from qutebrowser.utils import usertypes, log, objreg, qtutils
+from qutebrowser.utils import usertypes, log, objreg
 
 
 class Command(misc.MinimalLineEditMixin, misc.CommandLineEdit):
@@ -95,6 +95,9 @@ class Command(misc.MinimalLineEditMixin, misc.CommandLineEdit):
     def set_cmd_text_command(self, text, space=False, append=False):
         """Preset the statusbar to some text.
 
+        You can use the `{url}` and `{url:pretty}` variables here which will
+        get replaced by the encoded/decoded URL.
+
         //
 
         Wrapper for set_cmd_text to check the arguments and allow multiple
@@ -105,24 +108,9 @@ class Command(misc.MinimalLineEditMixin, misc.CommandLineEdit):
             space: If given, a space is added to the end.
             append: If given, the text is appended to the current text.
         """
-        tabbed_browser = objreg.get('tabbed-browser', scope='window',
-                                    window=self._win_id)
-        if '{url}' in text:
-            try:
-                url = tabbed_browser.current_url().toString(
-                    QUrl.FullyEncoded | QUrl.RemovePassword)
-            except qtutils.QtValueError as e:
-                msg = "Current URL is invalid"
-                if e.reason:
-                    msg += " ({})".format(e.reason)
-                msg += "!"
-                raise cmdexc.CommandError(msg)
-            # FIXME we currently replace the URL in any place in the arguments,
-            # rather than just replacing it if it is a dedicated argument. We
-            # could split the args, but then trailing spaces would be lost, so
-            # I'm not sure what's the best thing to do here
-            # https://github.com/The-Compiler/qutebrowser/issues/123
-            text = text.replace('{url}', url)
+        args = split.simple_split(text)
+        args = runners.replace_variables(self._win_id, args)
+        text = ' '.join(args)
 
         if space:
             text += ' '

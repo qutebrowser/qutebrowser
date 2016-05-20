@@ -19,7 +19,6 @@
 
 """argparse.ArgumentParser subclass to parse qutebrowser commands."""
 
-
 import argparse
 
 from PyQt5.QtCore import QUrl
@@ -84,43 +83,81 @@ class ArgumentParser(argparse.ArgumentParser):
         raise ArgumentParserError(msg.capitalize())
 
 
-def enum_getter(enum):
-    """Function factory to get an enum getter."""
-    def _get_enum_item(key):
-        """Helper function to get an enum item.
+def arg_name(name):
+    """Get the name an argument should have based on its Python name."""
+    return name.rstrip('_').replace('_', '-')
 
-        Passes through existing items unmodified.
-        """
-        if isinstance(key, enum):
-            return key
+
+def _check_choices(param, value, choices):
+    if value not in choices:
+        expected_values = ', '.join(arg_name(val) for val in choices)
+        raise cmdexc.ArgumentTypeError("{}: Invalid value {} - expected "
+                                       "one of: {}".format(
+                                           param.name, value, expected_values))
+
+
+def type_conv(param, typ, value, *, str_choices=None):
+    """Convert a value based on a type.
+
+    Args:
+        param: The argparse.Parameter we're checking
+        types: The allowed type
+        value: The value to convert
+        str_choices: The allowed choices if the type ends up being a string
+
+    Return:
+        The converted value
+    """
+    if isinstance(typ, str):
+        raise TypeError("{}: Legacy string type!".format(param.name))
+
+    if value is param.default:
+        return value
+
+    assert isinstance(value, str), repr(value)
+
+    if utils.is_enum(typ):
+        _check_choices(param, value, [arg_name(e.name) for e in typ])
+        return typ[value.replace('-', '_')]
+    elif typ is str:
+        if str_choices is not None:
+            _check_choices(param, value, str_choices)
+        return value
+    elif callable(typ):
+        # int, float, etc.
         try:
-            return enum[key.replace('-', '_')]
-        except KeyError:
-            raise cmdexc.ArgumentTypeError("Invalid value {}.".format(key))
+            return typ(value)
+        except (TypeError, ValueError):
+            msg = '{}: Invalid {} value {}'.format(
+                param.name, typ.__name__, value)
+            raise cmdexc.ArgumentTypeError(msg)
+    else:
+        raise ValueError("{}: Unknown type {!r}!".format(param.name, typ))
 
-    return _get_enum_item
 
+def multitype_conv(param, types, value, *, str_choices=None):
+    """Convert a value based on a choice of types.
 
-def multitype_conv(types):
-    """Function factory to get a type converter for a choice of types."""
-    def _convert(value):
-        """Convert a value according to an iterable of possible arg types."""
-        for typ in set(types):
-            if isinstance(typ, str):
-                if value == typ:
-                    return value
-            elif utils.is_enum(typ):
-                return enum_getter(typ)(value)
-            elif callable(typ):
-                # int, float, etc.
-                if isinstance(value, typ):
-                    return value
-                try:
-                    return typ(value)
-                except (TypeError, ValueError):
-                    pass
-            else:
-                raise ValueError("Unknown type {!r}!".format(typ))
-        raise cmdexc.ArgumentTypeError('Invalid value {}.'.format(value))
+    Args:
+        param: The inspect.Parameter we're checking
+        types: The allowed types ("overloads")
+        value: The value to convert
+        str_choices: The allowed choices if the type ends up being a string
 
-    return _convert
+    Return:
+        The converted value
+    """
+    types = list(set(types))
+    if str in types:
+        # Make sure str is always the last type in the list, so e.g. '23' gets
+        # returned as 23 if we have typing.Union[str, int]
+        types.remove(str)
+        types.append(str)
+
+    for typ in types:
+        try:
+            return type_conv(param, typ, value, str_choices=str_choices)
+        except cmdexc.ArgumentTypeError:
+            pass
+    raise cmdexc.ArgumentTypeError('{}: Invalid value {}'.format(
+        param.name, value))

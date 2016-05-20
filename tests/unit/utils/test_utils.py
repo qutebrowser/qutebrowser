@@ -150,8 +150,8 @@ class Patcher:
 
     def patch_version(self, version='5.2.0'):
         """Patch Qt version."""
-        self.monkeypatch.setattr(
-            'qutebrowser.utils.utils.qtutils.qVersion', lambda: version)
+        self.monkeypatch.setattr('qutebrowser.utils.utils.qtutils.qVersion',
+                                 lambda: version)
 
     def patch_file(self, data):
         """Patch open() to return the given data."""
@@ -979,3 +979,24 @@ class TestGetSetClipboard:
         utils.fake_clipboard = 'fake clipboard text'
         utils.get_clipboard(selection=selection)
         assert utils.fake_clipboard is None
+
+    @pytest.mark.parametrize('selection', [True, False])
+    def test_supports_selection(self, clipboard_mock, selection):
+        clipboard_mock.supportsSelection.return_value = selection
+        assert utils.supports_selection() == selection
+
+
+@pytest.mark.parametrize('keystr, expected', [
+    ('<Control-x>', True),
+    ('<Meta-x>', True),
+    ('<Ctrl-Alt-y>', True),
+    ('x', False),
+    ('X', False),
+    ('<Escape>', True),
+    ('foobar', False),
+    ('foo>', False),
+    ('<foo', False),
+    ('<<', False),
+])
+def test_is_special_key(keystr, expected):
+    assert utils.is_special_key(keystr) == expected

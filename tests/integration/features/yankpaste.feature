@@ -33,6 +33,18 @@ Feature: Yanking and pasting.
         Then the message "Yanked domain to clipboard: http://localhost:(port)" should be shown
         And the clipboard should contain "http://localhost:(port)"
 
+    Scenario: Yanking fully encoded URL
+        When I open data/title with spaces.html
+        And I run :yank
+        Then the message "Yanked URL to clipboard: http://localhost:(port)/data/title%20with%20spaces.html" should be shown
+        And the clipboard should contain "http://localhost:(port)/data/title%20with%20spaces.html"
+
+    Scenario: Yanking pretty decoded URL
+        When I open data/title with spaces.html
+        And I run :yank --pretty
+        Then the message "Yanked URL to clipboard: http://localhost:(port)/data/title with spaces.html" should be shown
+        And the clipboard should contain "http://localhost:(port)/data/title with spaces.html"
+
     #### :paste
 
     Scenario: Pasting an URL
@@ -264,3 +276,14 @@ Feature: Yanking and pasting.
         And I run :enter-mode insert
         And I run :paste-primary
         Then the error "Focused element is not editable!" should be shown
+
+    Scenario: :paste-primary without primary selection supported
+        When selection is not supported
+        And I open data/paste_primary.html
+        And I put "Hello world" into the clipboard
+        # Click the text field
+        And I run :hint all
+        And I run :follow-hint a
+        And I run :paste-primary
+        # Compare
+        Then the text field should contain "Hello world"

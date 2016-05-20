@@ -67,9 +67,13 @@ class BaseKeyParser(QObject):
     Signals:
         keystring_updated: Emitted when the keystring is updated.
                            arg: New keystring.
+        request_leave: Emitted to request leaving a mode.
+                       arg 0: Mode to leave.
+                       arg 1: Reason for leaving.
     """
 
     keystring_updated = pyqtSignal(str)
+    request_leave = pyqtSignal(usertypes.KeyMode, str)
     do_log = True
     passthrough = False
 
@@ -331,16 +335,15 @@ class BaseKeyParser(QObject):
 
     def _parse_key_command(self, modename, key, cmd):
         """Parse the keys and their command and store them in the object."""
-        if key.startswith('<') and key.endswith('>'):
+        if utils.is_special_key(key):
             keystr = utils.normalize_keystr(key[1:-1])
             self.special_bindings[keystr] = cmd
         elif self._supports_chains:
             self.bindings[key] = cmd
         elif self._warn_on_keychains:
-            log.keyboard.warning(
-                "Ignoring keychain '{}' in mode '{}' because "
-                "keychains are not supported there."
-                .format(key, modename))
+            log.keyboard.warning("Ignoring keychain '{}' in mode '{}' because "
+                                 "keychains are not supported there."
+                                 .format(key, modename))
 
     def execute(self, cmdstr, keytype, count=None):
         """Handle a completed keychain.

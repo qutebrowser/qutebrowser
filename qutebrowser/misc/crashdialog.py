@@ -29,13 +29,13 @@ import traceback
 import datetime
 
 import pkg_resources
-from PyQt5.QtCore import pyqtSlot, Qt, QSize, qVersion
+from PyQt5.QtCore import pyqtSlot, Qt, QSize
 from PyQt5.QtWidgets import (QDialog, QLabel, QTextEdit, QPushButton,
                              QVBoxLayout, QHBoxLayout, QCheckBox,
                              QDialogButtonBox, QMessageBox, QApplication)
 
 import qutebrowser
-from qutebrowser.utils import version, log, utils, objreg, qtutils
+from qutebrowser.utils import version, log, utils, objreg
 from qutebrowser.misc import miscwidgets, autoupdate, msgbox, httpclient
 from qutebrowser.browser.network import pastebin
 from qutebrowser.config import config
@@ -79,19 +79,21 @@ def get_fatal_crash_dialog(debug, data):
         debug: Whether the debug flag (--debug) was given.
         data: The crash log data.
     """
+    ignored_frames = ['qt_mainloop', 'paintEvent']
     errtype, frame = parse_fatal_stacktrace(data)
-    if (qtutils.version_check('5.4') or errtype != 'Segmentation fault' or
-            frame != 'qt_mainloop'):
-        return FatalCrashDialog(debug, data)
-    else:
+
+    if errtype == 'Segmentation fault' and frame in ignored_frames:
         title = "qutebrowser was restarted after a fatal crash!"
         text = ("<b>qutebrowser was restarted after a fatal crash!</b><br/>"
                 "Unfortunately, this crash occurred in Qt (the library "
-                "qutebrowser uses), and your version ({}) is outdated - "
-                "Qt 5.4 or later is recommended. Unfortunately Debian and "
-                "Ubuntu don't ship a newer version (yet?)...".format(
-                    qVersion()))
+                "qutebrowser uses), and QtWebKit (the current backend) is not "
+                "maintained anymore.<br/><br/>Since I can't do much about "
+                "those crashes I disabled the crash reporter for this case, "
+                "but this will likely be resolved in the future with the new "
+                "QtWebEngine backend.")
         return QMessageBox(QMessageBox.Critical, title, text, QMessageBox.Ok)
+    else:
+        return FatalCrashDialog(debug, data)
 
 
 def _get_environment_vars():
@@ -255,8 +257,7 @@ class _CrashDialog(QDialog):
         except Exception:
             self._crash_info.append(("Config", traceback.format_exc()))
         try:
-            self._crash_info.append(
-                ("Environment", _get_environment_vars()))
+            self._crash_info.append(("Environment", _get_environment_vars()))
         except Exception:
             self._crash_info.append(("Environment", traceback.format_exc()))
 
@@ -283,8 +284,8 @@ class _CrashDialog(QDialog):
     def _get_paste_title(self):
         """Get a title for the paste."""
         desc = self._get_paste_title_desc()
-        title = "qute {} {}".format(
-            qutebrowser.__version__, self._get_error_type())
+        title = "qute {} {}".format(qutebrowser.__version__,
+                                    self._get_error_type())
         if desc:
             title += ' {}'.format(desc)
         return title
@@ -466,8 +467,7 @@ class ExceptionCrashDialog(_CrashDialog):
                 self._crash_info.append(
                     ("Debug log", log.ram_handler.dump_log()))
             except Exception:
-                self._crash_info.append(
-                    ("Debug log", traceback.format_exc()))
+                self._crash_info.append(("Debug log", traceback.format_exc()))
 
     @pyqtSlot()
     def finish(self):
@@ -510,23 +510,11 @@ class FatalCrashDialog(_CrashDialog):
     def _init_text(self):
         super()._init_text()
         text = ("<b>qutebrowser was restarted after a fatal crash.</b><br/>"
-                "QTWEBENGINE_NOTE"
-                "<br/>Crash reports for fatal crashes sometimes don't "
+                "<br/>Note: Crash reports for fatal crashes sometimes don't "
                 "contain the information necessary to fix an issue. Please "
                 "follow the steps in <a href='https://github.com/The-Compiler/"
                 "qutebrowser/blob/master/doc/stacktrace.asciidoc'>"
                 "stacktrace.asciidoc</a> to submit a stacktrace.<br/>")
-
-        if datetime.datetime.now() < datetime.datetime(2016, 4, 23):
-            note = ("<br/>Fatal crashes like this are often caused by the "
-                    "current QtWebKit backend.<br/><b>I'm currently running a "
-                    "crowdfunding for the new QtWebEngine backend, based on "
-                    "Chromium:</b> <a href='http://igg.me/at/qutebrowser'>"
-                    "igg.me/at/qutebrowser</a><br/>")
-            text = text.replace('QTWEBENGINE_NOTE', note)
-        else:
-            text = text.replace('QTWEBENGINE_NOTE', '')
-
         self._lbl.setText(text)
 
     def _init_checkboxes(self):

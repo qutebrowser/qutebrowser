@@ -30,7 +30,8 @@ from qutebrowser.config import config
 from qutebrowser.keyinput import modeman
 from qutebrowser.mainwindow import tabwidget
 from qutebrowser.browser import signalfilter, webview
-from qutebrowser.utils import log, usertypes, utils, qtutils, objreg, urlutils
+from qutebrowser.utils import (log, usertypes, utils, qtutils, objreg,
+                               urlutils, message)
 
 
 UndoEntry = collections.namedtuple('UndoEntry', ['url', 'history'])
@@ -64,6 +65,9 @@ class TabbedBrowser(tabwidget.TabWidget):
         _tab_insert_idx_right: Same as above, for 'right'.
         _undo_stack: List of UndoEntry namedtuples of closed tabs.
         shutting_down: Whether we're currently shutting down.
+        _local_marks: Jump markers local to each page
+        _global_marks: Jump markers used across all pages
+        default_window_icon: The qutebrowser window icon
 
     Signals:
         cur_progress: Progress of the current tab changed (loadProgress).
@@ -114,6 +118,9 @@ class TabbedBrowser(tabwidget.TabWidget):
         self._now_focused = None
         self.search_text = None
         self.search_flags = 0
+        self._local_marks = {}
+        self._global_marks = {}
+        self.default_window_icon = self.window().windowIcon()
         objreg.get('config').changed.connect(self.update_favicons)
         objreg.get('config').changed.connect(self.update_window_title)
         objreg.get('config').changed.connect(self.update_tab_titles)
@@ -305,6 +312,7 @@ class TabbedBrowser(tabwidget.TabWidget):
         """Undo removing of a tab."""
         # Remove unused tab which may be created after the last tab is closed
         last_close = config.get('tabs', 'last-close')
+        use_current_tab = False
         if last_close in ['blank', 'startpage', 'default-page']:
             only_one_tab_open = self.count() == 1
             no_history = self.widget(0).history().count() == 1
@@ -317,12 +325,17 @@ class TabbedBrowser(tabwidget.TabWidget):
             last_close_urlstr = urls[last_close].toString().rstrip('/')
             first_tab_urlstr = first_tab_url.toString().rstrip('/')
             last_close_url_used = first_tab_urlstr == last_close_urlstr
-
-            if only_one_tab_open and no_history and last_close_url_used:
-                self.removeTab(0)
+            use_current_tab = (only_one_tab_open and no_history and
+                               last_close_url_used)
 
         url, history_data = self._undo_stack.pop()
-        newtab = self.tabopen(url, background=False)
+
+        if use_current_tab:
+            self.openurl(url, newtab=False)
+            newtab = self.widget(0)
+        else:
+            newtab = self.tabopen(url, background=False)
+
         qtutils.deserialize(history_data, newtab.history())
 
     @pyqtSlot('QUrl', bool)
@@ -442,11 +455,16 @@ class TabbedBrowser(tabwidget.TabWidget):
     def update_favicons(self):
         """Update favicons when config was changed."""
         show = config.get('tabs', 'show-favicons')
+        tabs_are_wins = config.get('tabs', 'tabs-are-windows')
         for i, tab in enumerate(self.widgets()):
             if show:
                 self.setTabIcon(i, tab.icon())
+                if tabs_are_wins:
+                    self.window().setWindowIcon(tab.icon())
             else:
                 self.setTabIcon(i, QIcon())
+                if tabs_are_wins:
+                    self.window().setWindowIcon(self.default_window_icon)
 
     @pyqtSlot()
     def on_load_started(self, tab):
@@ -465,6 +483,9 @@ class TabbedBrowser(tabwidget.TabWidget):
             tab.keep_icon = False
         else:
             self.setTabIcon(idx, QIcon())
+            if (config.get('tabs', 'tabs-are-windows') and
+                    config.get('tabs', 'show-favicons')):
+                self.window().setWindowIcon(self.default_window_icon)
         if idx == self.currentIndex():
             self.update_window_title()
 
@@ -533,6 +554,8 @@ class TabbedBrowser(tabwidget.TabWidget):
             # We can get signals for tabs we already deleted...
             return
         self.setTabIcon(idx, tab.icon())
+        if config.get('tabs', 'tabs-are-windows'):
+            self.window().setWindowIcon(tab.icon())
 
     @pyqtSlot(usertypes.KeyMode)
     def on_mode_left(self, mode):
@@ -637,3 +660,59 @@ class TabbedBrowser(tabwidget.TabWidget):
             self._now_focused.wheelEvent(e)
         else:
             e.ignore()
+
+    def set_mark(self, key):
+        """Set a mark at the current scroll position in the current tab.
+
+        Args:
+            key: mark identifier; capital indicates a global mark
+        """
+        # strip the fragment as it may interfere with scrolling
+        try:
+            url = self.current_url().adjusted(QUrl.RemoveFragment)
+        except qtutils.QtValueError:
+            # show an error only if the mark is not automatically set
+            if key != "'":
+                message.error(self._win_id, "Failed to set mark: url invalid")
+            return
+        point = self.currentWidget().page().currentFrame().scrollPosition()
+
+        if key.isupper():
+            self._global_marks[key] = point, url
+        else:
+            if url not in self._local_marks:
+                self._local_marks[url] = {}
+            self._local_marks[url][key] = point
+
+    def jump_mark(self, key):
+        """Jump to the mark named by `key`.
+
+        Args:
+            key: mark identifier; capital indicates a global mark
+        """
+        # consider urls that differ only in fragment to be identical
+        urlkey = self.current_url().adjusted(QUrl.RemoveFragment)
+        frame = self.currentWidget().page().currentFrame()
+
+        if key.isupper() and key in self._global_marks:
+            point, url = self._global_marks[key]
+
+            @pyqtSlot(bool)
+            def callback(ok):
+                if ok:
+                    self.cur_load_finished.disconnect(callback)
+                    frame.setScrollPosition(point)
+
+            self.openurl(url, newtab=False)
+            self.cur_load_finished.connect(callback)
+        elif urlkey in self._local_marks and key in self._local_marks[urlkey]:
+            point = self._local_marks[urlkey][key]
+
+            # save the pre-jump position in the special ' mark
+            # this has to happen after we read the mark, otherwise jump_mark
+            # "'" would just jump to the current position every time
+            self.set_mark("'")
+
+            frame.setScrollPosition(point)
+        else:
+            message.error(self._win_id, "Mark {} is not set".format(key))

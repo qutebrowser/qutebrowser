@@ -86,9 +86,8 @@ def needs_update(source, dest):
         diffs = filecmp.dircmp(source, dest)
         ignored = get_ignored_files(source, diffs.left_only)
         has_new_files = set(ignored) != set(diffs.left_only)
-        return (has_new_files or diffs.right_only or
-                diffs.common_funny or diffs.diff_files or
-                diffs.funny_files)
+        return (has_new_files or diffs.right_only or diffs.common_funny or
+                diffs.diff_files or diffs.funny_files)
     else:
         return not filecmp.cmp(source, dest)
 
@@ -192,7 +191,7 @@ def get_tox_syspython(tox_path):
     path = os.path.join(tox_path, '.tox-config1')
     with open(path, encoding='ascii') as f:
         line = f.readline()
-    _md5, sys_python = line.rstrip().split(' ')
+    _md5, sys_python = line.rstrip().split(' ', 1)
     return sys_python
 
 

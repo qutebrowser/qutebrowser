@@ -76,7 +76,6 @@ def test_set_url(url_widget, url_text):
 @pytest.mark.parametrize('url_text, title, text', [
     ('http://abc123.com/this/awesome/url.html', 'Awesome site', 'click me!'),
     ('https://supersecret.gov/nsa/files.txt', 'Secret area', None),
-    ('Th1$ i$ n0t @ n0rm@L uRL! P@n1c! <-->', 'Probably spam', 'definitely'),
     (None, None, 'did I break?!')
 ])
 def test_set_hover_url(url_widget, url_text, title, text):
@@ -88,6 +87,21 @@ def test_set_hover_url(url_widget, url_text, title, text):
     else:
         assert url_widget.text() == ''
         assert url_widget._urltype == url.UrlType.normal
+
+
+@pytest.mark.parametrize('url_text, expected', [
+    ('http://test.gr/%CE%B1%CE%B2%CE%B3%CE%B4.txt', 'http://test.gr/αβγδ.txt'),
+    ('http://test.ru/%D0%B0%D0%B1%D0%B2%D0%B3.txt', 'http://test.ru/абвг.txt'),
+    ('http://test.com/s%20p%20a%20c%20e.txt', 'http://test.com/s p a c e.txt'),
+    ('http://test.com/%22quotes%22.html', 'http://test.com/%22quotes%22.html'),
+    ('http://username:secret%20password@test.com', 'http://username@test.com'),
+    ('http://example.com%5b/', 'http://example.com%5b/'),  # invalid url
+])
+def test_set_hover_url_encoded(url_widget, url_text, expected):
+    """Test text when hovering over a percent encoded link."""
+    url_widget.set_hover_url(url_text, 'title', 'text')
+    assert url_widget.text() == expected
+    assert url_widget._urltype == url.UrlType.hover
 
 
 @pytest.mark.parametrize('status, expected', [

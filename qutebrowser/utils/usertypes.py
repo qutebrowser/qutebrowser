@@ -231,13 +231,15 @@ ClickTarget = enum('ClickTarget', ['normal', 'tab', 'tab_bg', 'window'])
 
 # Key input modes
 KeyMode = enum('KeyMode', ['normal', 'hint', 'command', 'yesno', 'prompt',
-                           'insert', 'passthrough', 'caret'])
+                           'insert', 'passthrough', 'caret', 'set_mark',
+                           'jump_mark'])
 
 
 # Available command completions
 Completion = enum('Completion', ['command', 'section', 'option', 'value',
                                  'helptopic', 'quickmark_by_name',
-                                 'bookmark_by_url', 'url', 'tab', 'sessions'])
+                                 'bookmark_by_url', 'url', 'tab', 'sessions',
+                                 'empty'])
 
 
 # Exit statuses for errors. Needs to be an int for sys.exit.

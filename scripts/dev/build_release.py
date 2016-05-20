@@ -31,7 +31,7 @@ import tarfile
 import collections
 
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), os.pardir,
-                os.pardir))
+                                os.pardir))
 
 import qutebrowser
 from scripts import utils
@@ -50,17 +50,18 @@ def call_script(name, *args, python=sys.executable):
     subprocess.check_call([python, path] + list(args))
 
 
-def call_freeze(*args, python=sys.executable):
-    """Call freeze.py via tox.
+def call_tox(toxenv, *args, python=sys.executable):
+    """Call tox.
 
     Args:
+        toxenv: Which tox environment to use
         *args: The arguments to pass.
         python: The python interpreter to use.
     """
     env = os.environ.copy()
     env['PYTHON'] = python
     subprocess.check_call(
-        [sys.executable, '-m', 'tox', '-e', 'cxfreeze-windows'] + list(args),
+        [sys.executable, '-m', 'tox', '-e', toxenv] + list(args),
         env=env)
 
 
@@ -85,7 +86,22 @@ def _maybe_remove(path):
 def smoke_test(executable):
     """Try starting the given qutebrowser executable."""
     subprocess.check_call([executable, '--no-err-windows', '--nowindow',
-                          '--temp-basedir', 'about:blank', ':later 500 quit'])
+                           '--temp-basedir', 'about:blank', ':later 500 quit'])
+
+
+def build_osx():
+    """Build OS X .dmg/.app."""
+    utils.print_title("Updating 3rdparty content")
+    update_3rdparty.update_pdfjs()
+    utils.print_title("Building .app via pyinstaller")
+    call_tox('pyinstaller')
+    utils.print_title("Building .dmg")
+    subprocess.check_call(['make', '-f', 'scripts/dev/Makefile-dmg'])
+    utils.print_title("Cleaning up...")
+    for f in ['wc.dmg', 'template.dmg']:
+        os.remove(f)
+    for d in ['dist', 'build']:
+        shutil.rmtree(d)
 
 
 def build_windows():
@@ -101,13 +117,13 @@ def build_windows():
     python_x64 = r'C:\Python{}'.format(ver)
 
     utils.print_title("Running 32bit freeze.py build_exe")
-    call_freeze('build_exe', python=python_x86)
+    call_tox('cxfreeze-windows', 'build_exe', python=python_x86)
     utils.print_title("Running 32bit freeze.py bdist_msi")
-    call_freeze('bdist_msi', python=python_x86)
+    call_tox('cxfreeze-windows', 'bdist_msi', python=python_x86)
     utils.print_title("Running 64bit freeze.py build_exe")
-    call_freeze('build_exe', python=python_x64)
+    call_tox('cxfreeze-windows', 'build_exe', python=python_x64)
     utils.print_title("Running 64bit freeze.py bdist_msi")
-    call_freeze('bdist_msi', python=python_x64)
+    call_tox('cxfreeze-windows', 'bdist_msi', python=python_x64)
 
     utils.print_title("Running 32bit smoke test")
     smoke_test('build/exe.win32-{}/qutebrowser.exe'.format(dotver))
@@ -201,6 +217,9 @@ def main():
             sys.exit(1)
         run_asciidoc2html(args)
         build_windows()
+    elif sys.platform == 'darwin':
+        run_asciidoc2html(args)
+        build_osx()
     else:
         build_sdist()
 

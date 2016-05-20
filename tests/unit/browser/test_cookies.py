@@ -130,8 +130,7 @@ def test_purge_old_cookies(config_stub, fake_save_manager):
 
 def test_save(config_stub, fake_save_manager, monkeypatch, qapp):
     """Test that expired and session cookies are not saved."""
-    monkeypatch.setattr(lineparser,
-                        'LineParser', LineparserSaveStub)
+    monkeypatch.setattr(lineparser, 'LineParser', LineparserSaveStub)
 
     jar = cookies.CookieJar()
     jar._lineparser.data = [COOKIE1, COOKIE2, SESSION_COOKIE, EXPIRED_COOKIE]
@@ -147,24 +146,19 @@ def test_cookies_changed_emit(config_stub, fake_save_manager,
                               monkeypatch, qtbot):
     """Test that self.changed is emitted."""
     config_stub.data = CONFIG_COOKIES_ENABLED
-    monkeypatch.setattr(lineparser,
-                        'LineParser', LineparserSaveStub)
+    monkeypatch.setattr(lineparser, 'LineParser', LineparserSaveStub)
     jar = cookies.CookieJar()
 
     with qtbot.waitSignal(jar.changed):
         config_stub.set('content', 'cookies-store', False)
 
 
-@pytest.mark.parametrize('store_cookies,empty', [
-    (True, False),
-    (False, True)
-])
-def test_cookies_changed(config_stub, fake_save_manager, monkeypatch,
-                         qtbot, store_cookies, empty):
+@pytest.mark.parametrize('store_cookies,empty', [(True, False), (False, True)])
+def test_cookies_changed(config_stub, fake_save_manager, monkeypatch, qtbot,
+                         store_cookies, empty):
     """Test that cookies are saved correctly."""
     config_stub.data = CONFIG_COOKIES_ENABLED
-    monkeypatch.setattr(lineparser,
-                        'LineParser', LineparserSaveStub)
+    monkeypatch.setattr(lineparser, 'LineParser', LineparserSaveStub)
     jar = cookies.CookieJar()
     jar._lineparser.data = [COOKIE1, COOKIE2]
     jar.parse_cookies()

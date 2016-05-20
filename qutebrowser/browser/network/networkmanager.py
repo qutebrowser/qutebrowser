@@ -41,14 +41,74 @@ ProxyId = collections.namedtuple('ProxyId', 'type, hostname, port')
 _proxy_auth_cache = {}
 
 
+def _is_secure_cipher(cipher):
+    """Check if a given SSL cipher (hopefully) isn't broken yet."""
+    # pylint: disable=too-many-return-statements
+    tokens = [e.upper() for e in cipher.name().split('-')]
+    if cipher.usedBits() < 128:
+        # https://codereview.qt-project.org/#/c/75943/
+        return False
+    # OpenSSL should already protect against this in a better way
+    elif cipher.keyExchangeMethod() == 'DH' and os.name == 'nt':
+        # https://weakdh.org/
+        return False
+    elif cipher.encryptionMethod().upper().startswith('RC4'):
+        # http://en.wikipedia.org/wiki/RC4#Security
+        # https://codereview.qt-project.org/#/c/148906/
+        return False
+    elif cipher.encryptionMethod().upper().startswith('DES'):
+        # http://en.wikipedia.org/wiki/Data_Encryption_Standard#Security_and_cryptanalysis
+        return False
+    elif 'MD5' in tokens:
+        # http://www.win.tue.nl/hashclash/rogue-ca/
+        return False
+    # OpenSSL should already protect against this in a better way
+    # elif (('CBC3' in tokens or 'CBC' in tokens) and (cipher.protocol() not in
+    #         [QSsl.TlsV1_0, QSsl.TlsV1_1, QSsl.TlsV1_2])):
+    #     # http://en.wikipedia.org/wiki/POODLE
+    #     return False
+    ### These things should never happen as those are already filtered out by
+    ### either the SSL libraries or Qt - but let's be sure.
+    elif cipher.authenticationMethod() in ['aNULL', 'NULL']:
+        # Ciphers without authentication.
+        return False
+    elif cipher.encryptionMethod() in ['eNULL', 'NULL']:
+        # Ciphers without encryption.
+        return False
+    elif 'EXP' in tokens or 'EXPORT' in tokens:
+        # Weak export-grade ciphers
+        return False
+    elif 'ADH' in tokens:
+        # No MITM protection
+        return False
+    ### This *should* happen ;)
+    else:
+        return True
+
+
 def init():
     """Disable insecure SSL ciphers on old Qt versions."""
-    if not qtutils.version_check('5.3.0'):
-        # Disable weak SSL ciphers.
-        # See https://codereview.qt-project.org/#/c/75943/
-        good_ciphers = [c for c in QSslSocket.supportedCiphers()
-                        if c.usedBits() >= 128]
-        QSslSocket.setDefaultCiphers(good_ciphers)
+    if qtutils.version_check('5.3.0'):
+        default_ciphers = QSslSocket.defaultCiphers()
+        log.init.debug("Default Qt ciphers: {}".format(
+            ', '.join(c.name() for c in default_ciphers)))
+    else:
+        # https://codereview.qt-project.org/#/c/75943/
+        default_ciphers = QSslSocket.supportedCiphers()
+        log.init.debug("Supported Qt ciphers: {}".format(
+            ', '.join(c.name() for c in default_ciphers)))
+
+    good_ciphers = []
+    bad_ciphers = []
+    for cipher in default_ciphers:
+        if _is_secure_cipher(cipher):
+            good_ciphers.append(cipher)
+        else:
+            bad_ciphers.append(cipher)
+
+    log.init.debug("Disabling bad ciphers: {}".format(
+        ', '.join(c.name() for c in bad_ciphers)))
+    QSslSocket.setDefaultCiphers(good_ciphers)
 
 
 class SslError(QSslError):
@@ -166,9 +226,13 @@ class NetworkManager(QNetworkAccessManager):
         self.shutting_down.connect(q.abort)
         if owner is not None:
             owner.destroyed.connect(q.abort)
-        webview = objreg.get('webview', scope='tab', window=self._win_id,
-                             tab=self._tab_id)
-        webview.loadStarted.connect(q.abort)
+
+        # This might be a generic network manager, e.g. one belonging to a
+        # DownloadManager. In this case, just skip the webview thing.
+        if self._tab_id is not None:
+            webview = objreg.get('webview', scope='tab', window=self._win_id,
+                                 tab=self._tab_id)
+            webview.loadStarted.connect(q.abort)
         bridge = objreg.get('message-bridge', scope='window',
                             window=self._win_id)
         bridge.ask(q, blocking=True)
@@ -253,7 +317,7 @@ class NetworkManager(QNetworkAccessManager):
         except KeyError:
             pass
 
-    @pyqtSlot('QNetworkReply', 'QAuthenticator')
+    @pyqtSlot('QNetworkReply*', 'QAuthenticator*')
     def on_authentication_required(self, reply, authenticator):
         """Called when a website needs authentication."""
         user, password = None, None
@@ -276,17 +340,16 @@ class NetworkManager(QNetworkAccessManager):
 
         if user is None:
             # netrc check failed
-            answer = self._ask(
-                "Username ({}):".format(authenticator.realm()),
-                mode=usertypes.PromptMode.user_pwd,
-                owner=reply)
+            answer = self._ask("Username ({}):".format(authenticator.realm()),
+                               mode=usertypes.PromptMode.user_pwd,
+                               owner=reply)
             if answer is not None:
                 user, password = answer.user, answer.password
         if user is not None:
             authenticator.setUser(user)
             authenticator.setPassword(password)
 
-    @pyqtSlot('QNetworkProxy', 'QAuthenticator')
+    @pyqtSlot('QNetworkProxy', 'QAuthenticator*')
     def on_proxy_authentication_required(self, proxy, authenticator):
         """Called when a proxy needs authentication."""
         proxy_id = ProxyId(proxy.type(), proxy.hostName(), proxy.port())
@@ -295,8 +358,9 @@ class NetworkManager(QNetworkAccessManager):
             authenticator.setUser(user)
             authenticator.setPassword(password)
         else:
-            answer = self._ask("Proxy username ({}):".format(
-                authenticator.realm()), mode=usertypes.PromptMode.user_pwd)
+            answer = self._ask(
+                "Proxy username ({}):".format(authenticator.realm()),
+                mode=usertypes.PromptMode.user_pwd)
             if answer is not None:
                 authenticator.setUser(answer.user)
                 authenticator.setPassword(answer.password)
@@ -345,7 +409,7 @@ class NetworkManager(QNetworkAccessManager):
                 # instead of no header at all
                 req.setRawHeader('Referer'.encode('ascii'), QByteArray())
             elif (referer_header_conf == 'same-domain' and
-                    not urlutils.same_domain(req.url(), current_url)):
+                  not urlutils.same_domain(req.url(), current_url)):
                 req.setRawHeader('Referer'.encode('ascii'), QByteArray())
             # If refer_header_conf is set to 'always', we leave the header
             # alone as QtWebKit did set it.
@@ -397,6 +461,13 @@ class NetworkManager(QNetworkAccessManager):
             dnt = '0'.encode('ascii')
         req.setRawHeader('DNT'.encode('ascii'), dnt)
         req.setRawHeader('X-Do-Not-Track'.encode('ascii'), dnt)
+
+        # Load custom headers
+        custom_headers = config.get('network', 'custom-headers')
+
+        if custom_headers is not None:
+            for header, value in custom_headers.items():
+                req.setRawHeader(header.encode('ascii'), value.encode('ascii'))
 
         # There are some scenarios where we can't figure out current_url:
         # - There's a generic NetworkManager, e.g. for downloads

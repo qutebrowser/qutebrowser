@@ -36,10 +36,10 @@ TEXT = (r"At least Python 3.4 is required to run qutebrowser, but "
 def test_python2():
     """Run checkpyver with python 2."""
     try:
-        proc = subprocess.Popen(['python2', checkpyver.__file__,
-                                 '--no-err-windows'],
-                                stdout=subprocess.PIPE,
-                                stderr=subprocess.PIPE)
+        proc = subprocess.Popen(
+            ['python2', checkpyver.__file__, '--no-err-windows'],
+            stdout=subprocess.PIPE,
+            stderr=subprocess.PIPE)
         stdout, stderr = proc.communicate()
     except FileNotFoundError:
         pytest.skip("python2 not found")

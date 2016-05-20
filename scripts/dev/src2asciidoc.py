@@ -32,13 +32,13 @@ import tempfile
 import argparse
 
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), os.pardir,
-                os.pardir))
+                                os.pardir))
 
 # We import qutebrowser.app so all @cmdutils-register decorators are run.
 import qutebrowser.app
 from scripts import asciidoc2html, utils
 from qutebrowser import qutebrowser
-from qutebrowser.commands import cmdutils, command
+from qutebrowser.commands import cmdutils, argparser
 from qutebrowser.config import configdata
 from qutebrowser.utils import docutils
 
@@ -57,11 +57,11 @@ class UsageFormatter(argparse.HelpFormatter):
 
     def _get_default_metavar_for_optional(self, action):
         """Do name transforming when getting metavar."""
-        return command.arg_name(action.dest.upper())
+        return argparser.arg_name(action.dest.upper())
 
     def _get_default_metavar_for_positional(self, action):
         """Do name transforming when getting metavar."""
-        return command.arg_name(action.dest)
+        return argparser.arg_name(action.dest)
 
     def _metavar_formatter(self, action, default_metavar):
         """Override _metavar_formatter to add asciidoc markup to metavars.
@@ -218,14 +218,15 @@ def _get_command_doc_count(cmd, parser):
     Yield:
         Strings which should be added to the docs.
     """
-    if cmd.count_arg is not None:
-        yield ""
-        yield "==== count"
-        try:
-            yield parser.arg_descs[cmd.count_arg]
-        except KeyError as e:
-            raise KeyError("No description for count arg {!r} of command "
-                           "{!r}!".format(cmd.count_arg, cmd.name)) from e
+    for param in inspect.signature(cmd.handler).parameters.values():
+        if cmd.get_arg_info(param).count:
+            yield ""
+            yield "==== count"
+            try:
+                yield parser.arg_descs[param.name]
+            except KeyError as e:
+                raise KeyError("No description for count arg {!r} of command "
+                              "{!r}!".format(param.name, cmd.name)) from e
 
 
 def _get_command_doc_notes(cmd):
@@ -399,6 +400,8 @@ def _get_authors():
         'Error 800': 'error800',
         'larryhynes': 'Larry Hynes',
         'Daniel': 'Daniel Schadt',
+        'Alexey Glushko': 'haitaka',
+        'Corentin Jule': 'Corentin Julé',
     }
     commits = subprocess.check_output(['git', 'log', '--format=%aN'])
     authors = [corrections.get(author, author)

@@ -69,7 +69,7 @@ class LogLine(testprocess.Line):
     LOG_RE = re.compile(r"""
         (?P<timestamp>\d\d:\d\d:\d\d)
         \ (?P<loglevel>VDEBUG|DEBUG|INFO|WARNING|ERROR)
-        \ +(?P<category>\w+)
+        \ +(?P<category>[\w.]+)
         \ +(?P<module>(\w+|Unknown\ module)):
            (?P<function>[^"][^:]*|"[^"]+"):
            (?P<line>\d+)
@@ -169,6 +169,11 @@ class QuteProc(testprocess.Process):
             self.ready.emit()
 
     def _parse_line(self, line):
+        # http://stackoverflow.com/a/14693789/2085149
+        colored_line = line
+        ansi_escape = re.compile(r'\x1b[^m]*m')
+        line = ansi_escape.sub('', line)
+
         try:
             log_line = LogLine(line)
         except testprocess.InvalidLine:
@@ -182,7 +187,7 @@ class QuteProc(testprocess.Process):
             else:
                 raise
 
-        self._log(line)
+        self._log(colored_line)
 
         start_okay_message_load = (
             "load status for <qutebrowser.browser.webview.WebView tab_id=0 "
@@ -195,15 +200,15 @@ class QuteProc(testprocess.Process):
                 log_line.message.startswith("Listening as ")):
             self._ipc_socket = log_line.message.split(' ', maxsplit=2)[2]
         elif (log_line.category == 'webview' and
-                log_line.message == start_okay_message_load):
+              log_line.message == start_okay_message_load):
             self._is_ready('load')
         elif (log_line.category == 'misc' and
-                log_line.message == start_okay_message_focus):
+              log_line.message == start_okay_message_focus):
             self._is_ready('focus')
         elif (log_line.category == 'init' and
-                log_line.module == 'standarddir' and
-                log_line.function == 'init' and
-                log_line.message.startswith('Base directory:')):
+              log_line.module == 'standarddir' and
+              log_line.function == 'init' and
+              log_line.message.startswith('Base directory:')):
             self.basedir = log_line.message.split(':', maxsplit=1)[1].strip()
         elif self._is_error_logline(log_line):
             self.got_error.emit()
@@ -237,7 +242,8 @@ class QuteProc(testprocess.Process):
         return executable, args
 
     def _default_args(self):
-        return ['--debug', '--no-err-windows', '--temp-basedir', 'about:blank']
+        return ['--debug', '--no-err-windows', '--temp-basedir',
+                '--force-color', 'about:blank']
 
     def path_to_url(self, path, *, port=None, https=False):
         """Get a URL based on a filename for the localhost webserver.
@@ -320,6 +326,11 @@ class QuteProc(testprocess.Process):
 
     def send_cmd(self, command, count=None):
         """Send a command to the running qutebrowser instance."""
+        summary = command
+        if count is not None:
+            summary += ' (count {})'.format(count)
+        self.log_summary(summary)
+
         assert self._ipc_socket is not None
 
         time.sleep(self._delay / 1000)
@@ -380,6 +391,8 @@ class QuteProc(testprocess.Process):
     def wait_for_load_finished(self, path, *, port=None, https=False,
                                timeout=None, load_status='success'):
         """Wait until any tab has finished loading."""
+        __tracebackhide__ = True
+
         if timeout is None:
             if 'CI' in os.environ:
                 timeout = 15000
@@ -395,7 +408,12 @@ class QuteProc(testprocess.Process):
             r"tab_id=\d+ url='{url}/?'>: LoadStatus\.{load_status}|fetch: "
             r"PyQt5\.QtCore\.QUrl\('{url}'\) -> .*)".format(
                 load_status=re.escape(load_status), url=re.escape(url)))
-        self.wait_for(message=pattern, timeout=timeout)
+
+        try:
+            self.wait_for(message=pattern, timeout=timeout)
+        except testprocess.WaitForTimeout:
+            raise testprocess.WaitForTimeout("Timed out while waiting for {} "
+                                             "to be loaded".format(url))
 
     def get_session(self):
         """Save the session and get the parsed session data."""
@@ -407,7 +425,7 @@ class QuteProc(testprocess.Process):
             with open(session, encoding='utf-8') as f:
                 data = f.read()
 
-        self._log(data)
+        self._log('\nCurrent session data:\n' + data)
         return yaml.load(data)
 
     def get_content(self, plain=True):
@@ -451,6 +469,26 @@ class QuteProc(testprocess.Process):
         elif not message.endswith('qute:okay'):
             raise ValueError('Invalid response from qutebrowser: {}'
                              .format(message))
+
+    def compare_session(self, expected):
+        """Compare the current sessions against the given template.
+
+        partial_compare is used, which means only the keys/values listed will
+        be compared.
+        """
+        __tracebackhide__ = True
+        # Translate ... to ellipsis in YAML.
+        loader = yaml.SafeLoader(expected)
+        loader.add_constructor('!ellipsis', lambda loader, node: ...)
+        loader.add_implicit_resolver('!ellipsis', re.compile(r'\.\.\.'), None)
+
+        data = self.get_session()
+        expected = loader.get_data()
+        outcome = testutils.partial_compare(data, expected)
+        if not outcome:
+            msg = "Session comparison failed: {}".format(outcome.error)
+            msg += '\nsee stdout for details'
+            pytest.fail(msg)
 
 
 def _xpath_escape(text):

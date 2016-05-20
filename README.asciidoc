@@ -22,12 +22,6 @@ on Python, PyQt5 and QtWebKit and free software, licensed under the GPL.
 
 It was inspired by other browsers/addons like dwb and Vimperator/Pentadactyl.
 
-// QUTE_WEB_HIDE
-**qutebrowser is currently running a crowdfunding campaign to add support for
-the QtWebEngine backend, which fixes many issues. Please
-link:http://igg.me/at/qutebrowser[check it out]!**
-// QUTE_WEB_HIDE_END
-
 Screenshots
 -----------
 
@@ -115,11 +109,8 @@ The following libraries are optional and provide a better user experience:
 To generate the documentation for the `:help` command, when using the git
 repository (rather than a release), http://asciidoc.org/[asciidoc] is needed.
 
-The following libraries are optional and provide colored logging in the
-console:
-
-* https://pypi.python.org/pypi/colorlog/[colorlog]
-* On Windows: https://pypi.python.org/pypi/colorama/[colorama]
+On Windows, https://pypi.python.org/pypi/colorama/[colorama] is needed to
+display colored log output.
 
 See link:INSTALL.asciidoc[INSTALL] for directions on how to install qutebrowser
 and its dependencies.
@@ -151,39 +142,43 @@ Contributors, sorted by the number of commits in descending order:
 * Antoni Boucher
 * Lamar Pavel
 * Bruno Oliveira
+* Ryan Roden-Corrent
 * Alexander Cogneau
-* Martin Tournoij
 * Felix Van der Jeugt
+* Martin Tournoij
 * Raphael Pierzina
 * Joel Torstensson
 * Patric Schmitz
 * Claude
+* Corentin Julé
 * meles5
+* Jakub Klinkovský
 * Tarcisio Fedrizzi
+* Philipp Hansch
+* Panagiotis Ktistakis
 * Artur Shaik
 * Nathan Isom
 * Thorsten Wißmann
-* Philipp Hansch
 * Kevin Velghe
 * Austin Anderson
+* Jimmy
 * Alexey "Averrin" Nabrodov
 * avk
 * ZDarian
 * Milan Svoboda
 * John ShaggyTwoDope Jenkins
-* Jimmy
 * Peter Vilim
 * Clayton Craft
 * Oliver Caldwell
 * Jonas Schürmann
-* Panagiotis Ktistakis
-* Jakub Klinkovský
-* skinnay
 * error800
+* Liam BEGUIN
+* skinnay
 * Zach-Button
 * Halfwit
 * rikn00
-* Ryan Roden-Corrent
+* kanikaa1234
+* haitaka
 * Michael Ilsaas
 * Martin Zimmermann
 * Brian Jackson
@@ -191,17 +186,19 @@ Contributors, sorted by the number of commits in descending order:
 * neeasade
 * jnphilipp
 * Tobias Patzl
+* Stefan Tatschner
 * Peter Michely
 * Link
 * Larry Hynes
 * Johannes Altmanninger
+* Ismail
 * Samir Benmendil
 * Regina Hug
 * Mathias Fussenegger
 * Marcelo Santos
+* Jan Verbeek
 * Fritz V155 Reichwald
 * Franz Fellner
-* Corentin Jule
 * zwarag
 * xd1le
 * issue
@@ -214,7 +211,6 @@ Contributors, sorted by the number of commits in descending order:
 * Tobias Werth
 * Tim Harder
 * Thiago Barroso Perrotta
-* Stefan Tatschner
 * Sorokin Alexei
 * Samuel Loury
 * Matthias Lisin
@@ -222,7 +218,6 @@ Contributors, sorted by the number of commits in descending order:
 * Johannes Martinsson
 * Jean-Christophe Petkovich
 * Jay Kamat
-* Jan Verbeek
 * Helen Sherwood-Taylor
 * HalosGhost
 * Gregor Pohl
@@ -235,7 +230,7 @@ Contributors, sorted by the number of commits in descending order:
 
 The following people have contributed graphics:
 
-* Jad/http://yelostudio.com[yelo] (new icon)
+* Jad/link:http://yelostudio.com[yelo] (new icon)
 * WOFall (original icon)
 * regines (key binding cheatsheet)
 

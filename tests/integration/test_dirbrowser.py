@@ -135,8 +135,7 @@ def parse(quteproc):
             list_.append(Item(path=item_path, link=li.a['href'],
                               text=str(li.a.string)))
 
-    return Parsed(path=path, parent=parent, folders=folders,
-                  files=files)
+    return Parsed(path=path, parent=parent, folders=folders, files=files)
 
 
 @pytest.fixture(scope='module')

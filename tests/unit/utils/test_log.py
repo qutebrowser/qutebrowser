@@ -218,7 +218,7 @@ class TestInitLog:
     def args(self):
         """Fixture providing an argparse namespace for init_log."""
         return argparse.Namespace(debug=True, loglevel='debug', color=True,
-                                  loglines=10, logfilter="")
+                                  loglines=10, logfilter="", force_color=False)
 
     def test_stderr_none(self, args):
         """Test init_log with sys.stderr = None."""

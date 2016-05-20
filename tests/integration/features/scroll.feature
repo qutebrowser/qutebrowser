@@ -49,7 +49,7 @@ Feature: Scrolling
     Scenario: :scroll-px with floats
         # This used to be allowed, but doesn't make much sense.
         When I run :scroll-px 2.5 2.5
-        Then the error "scroll-px: Argument dx: invalid int value: '2.5'" should be shown
+        Then the error "dx: Invalid int value 2.5" should be shown
         And the page should not be scrolled
 
     ## :scroll

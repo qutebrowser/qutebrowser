@@ -57,6 +57,9 @@ dummy-variables-rgx=_.*
 [DESIGN]
 max-args=10
 
+[CLASSES]
+valid-metaclass-classmethod-first-arg=cls
+
 [TYPECHECK]
 # MsgType added as WORKAROUND for
 # https://bitbucket.org/logilab/pylint/issues/690/

@@ -212,7 +212,6 @@ Documentation of used Python libraries:
 * http://pythonhosted.org/setuptools/[setuptools]
 * http://cx-freeze.readthedocs.org/en/latest/overview.html[cx_Freeze]
 * https://pypi.python.org/pypi/colorama[colorama]
-* https://pypi.python.org/pypi/colorlog[colorlog]
 
 Related RFCs and standards:
 
@@ -417,35 +416,59 @@ The types of the function arguments are inferred based on their default values,
 e.g. an argument `foo=True` will be converted to a flag `-f`/`--foo` in
 qutebrowser's commandline.
 
-This behavior can be overridden using Python's
-http://legacy.python.org/dev/peps/pep-3107/[function annotations]. The
-annotation should always be a `dict`, like this:
+The type can be overridden using Python's
+http://legacy.python.org/dev/peps/pep-3107/[function annotations]:
 
 [source,python]
 ----
 @cmdutils.register(...)
-def foo(bar: {'type': int}, baz=True):
+def foo(bar: int, baz=True):
     ...
 ----
 
-The following keys are supported in the dict:
-
-* `type`: The type this value should have. The value entered by the user is
-then automatically checked. Possible values:
+Possible values:
     - A callable (`int`, `float`, etc.): Gets called to validate/convert the
       value.
-    - A string: The value must match exactly (mainly useful with tuples to get
-      a choice of values, see below).
     - A python enum type: All members of the enum are possible values.
-    - A tuple of multiple types above: Any of these types are valid values,
-      e.g. `('foo', 'bar')` or `(int, 'foo')`.
-* `flag`: The flag to be used, as 1-char string (default: First char of the
-long name).
-* `nargs`: Gets passed to argparse, see
-https://docs.python.org/dev/library/argparse.html#nargs[its documentation].
+    - A `typing.Union` of multiple types above: Any of these types are valid
+      values, e.g. `typing.Union[str, int]`
+
+You can customize how an argument is handled using the `@cmdutils.argument`
+decorator *after* `@cmdutils.register`. This can e.g. be used to customize the
+flag an argument should get:
+
+[source,python]
+----
+@cmdutils.register(...)
+@cmdutils.argument('bar', flag='c')
+def foo(bar):
+    ...
+----
+
+For a `str` argument, you can restrict the allowed strings using `choices`:
+
+[source,python]
+----
+@cmdutils.register(...)
+@cmdutils.argument('bar', choices=['val1', 'val2'])
+def foo(bar: str):
+    ...
+----
+
+For `typing.Union` types, the given `choices` are only checked if other types
+(like `int`) don't match.
+
+The following arguments are supported for `@cmdutils.argument`:
+
+- `flag`: Customize the short flag (`-x`) the argument will get.
+- `win_id=True`: Mark the argument as special window ID argument
+- `count=True`: Mark the argument as special count argument
+- `hide=True`: Hide the argument from the documentation
+- `completion`: A `usertypes.Completion` member to use as completion.
+- `choices`: The allowed string choices for the argument.
 
 The name of an argument will always be the parameter name, with any trailing
-underscores stripped.
+underscores stripped and underscores replaced by dashes.
 
 [[handling-urls]]
 Handling URLs
@@ -636,5 +659,5 @@ as closed.
     - Upload windows release:
            - `scp bb-win8:proj/qutebrowser/qutebrowser-0.X.Y-windows.zip .`
            - `aunpack qutebrowser-0.X.Y-windows.zip`
-           - `sudo mv qutebrowser-0.X.Y-windows/* /srv/http/qutebrowser/releases/v0.6.0/windows`
+           - `sudo mv qutebrowser-0.X.Y-windows/* /srv/http/qutebrowser/releases/v0.X.Y/windows`
 * Announce to qutebrowser mailinglist
