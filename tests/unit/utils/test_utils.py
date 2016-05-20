@@ -984,3 +984,19 @@ class TestGetSetClipboard:
     def test_supports_selection(self, clipboard_mock, selection):
         clipboard_mock.supportsSelection.return_value = selection
         assert utils.supports_selection() == selection
+
+
+@pytest.mark.parametrize('keystr, expected', [
+    ('<Control-x>', True),
+    ('<Meta-x>', True),
+    ('<Ctrl-Alt-y>', True),
+    ('x', False),
+    ('X', False),
+    ('<Escape>', True),
+    ('foobar', False),
+    ('foo>', False),
+    ('<foo', False),
+    ('<<', False),
+])
+def test_is_special_key(keystr, expected):
+    assert utils.is_special_key(keystr) == expected

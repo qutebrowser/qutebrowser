@@ -110,3 +110,12 @@ def test_color_switch(keyhint, config_stub, key_config_stub):
         ('aa', 'cmd-aa')]))
     keyhint.update_keyhint('normal', 'a')
     assert keyhint.text() == expected_text(('a', '#ABCDEF', 'a', 'cmd-aa'))
+
+
+def test_no_matches(keyhint, key_config_stub):
+    """Ensure the widget isn't visible if there are no keystrings to show."""
+    key_config_stub.set_bindings_for('normal', OrderedDict([
+        ('aa', 'cmd-aa'),
+        ('ab', 'cmd-ab')]))
+    keyhint.update_keyhint('normal', 'z')
+    assert not keyhint.isVisible()

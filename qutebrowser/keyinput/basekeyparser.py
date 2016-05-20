@@ -335,7 +335,7 @@ class BaseKeyParser(QObject):
 
     def _parse_key_command(self, modename, key, cmd):
         """Parse the keys and their command and store them in the object."""
-        if key.startswith('<') and key.endswith('>'):
+        if utils.is_special_key(key):
             keystr = utils.normalize_keystr(key[1:-1])
             self.special_bindings[keystr] = cmd
         elif self._supports_chains:

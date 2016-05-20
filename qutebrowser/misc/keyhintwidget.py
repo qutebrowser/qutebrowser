@@ -94,28 +94,31 @@ class KeyHintView(QLabel):
             self.hide()
             return
 
+        keyconf = objreg.get('key-config')
+        bindings = [(k, v) for (k, v)
+                    in keyconf.get_bindings_for(modename).items()
+                    if k.startswith(prefix) and not utils.is_special_key(k)]
+
+        if not bindings:
+            return
+
         self.show()
         suffix_color = html.escape(config.get('colors', 'keyhint.fg.suffix'))
 
         text = ''
-        keyconf = objreg.get('key-config')
-        # this is only fired in normal mode
-        for key, cmd in keyconf.get_bindings_for(modename).items():
-            # for now, special keys can't be part of keychains, so ignore them
-            is_special_binding = key.startswith('<') and key.endswith('>')
-            if key.startswith(prefix) and not is_special_binding:
-                text += (
-                    "<tr>"
-                    "<td>{}</td>"
-                    "<td style='color: {}'>{}</td>"
-                    "<td style='padding-left: 2ex'>{}</td>"
-                    "</tr>"
-                ).format(
-                    html.escape(prefix),
-                    suffix_color,
-                    html.escape(key[len(prefix):]),
-                    html.escape(cmd)
-                )
+        for key, cmd in bindings:
+            text += (
+                "<tr>"
+                "<td>{}</td>"
+                "<td style='color: {}'>{}</td>"
+                "<td style='padding-left: 2ex'>{}</td>"
+                "</tr>"
+            ).format(
+                html.escape(prefix),
+                suffix_color,
+                html.escape(key[len(prefix):]),
+                html.escape(cmd)
+            )
         text = '<table>{}</table>'.format(text)
 
         self.setText(text)
