@@ -50,12 +50,11 @@ Feature: Using hints
         And I run :follow-hint a
         Then the message "Command exited successfully." should be shown
 
-    @xfail
     Scenario: Using :hint spawn with flags (issue 797)
         When I open data/hints/html/simple.html
         And I run :hint all spawn -v echo
         And I run :follow-hint a
-        Then the message "Command exited successfully" should be shown
+        Then the message "Command exited successfully." should be shown
 
     Scenario: Yanking to primary selection without it being supported (#1336)
         When selection is not supported
