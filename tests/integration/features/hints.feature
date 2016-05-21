@@ -45,7 +45,7 @@ Feature: Using hints
       Then no crash should happen
 
     Scenario: Using :hint spawn with flags and -- (issue 797)
-        When I open data/hints/link.html
+        When I open data/hints/simple.html
         And I run :hint -- all spawn -v echo
         And I run :follow-hint a
         Then the message "Command exited successfully." should be shown
