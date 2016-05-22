@@ -63,8 +63,6 @@ Feature: Using hints
 
     Scenario: Using :follow-hint inside an iframe
         When I open data/hints/iframe.html
-        And I run :hint all normal
-        And I run :follow-hint a
         And I run :hint links normal
         And I run :follow-hint a
         Then "acceptNavigationRequest, url http://localhost:*/data/hello.txt, type NavigationTypeLinkClicked, *" should be logged
