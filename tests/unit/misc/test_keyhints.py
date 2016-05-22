@@ -118,4 +118,5 @@ def test_no_matches(keyhint, key_config_stub):
         ('aa', 'cmd-aa'),
         ('ab', 'cmd-ab')]))
     keyhint.update_keyhint('normal', 'z')
+    assert not keyhint.text()
     assert not keyhint.isVisible()

@@ -30,7 +30,7 @@ from PyQt5.QtWidgets import QLabel, QSizePolicy
 from PyQt5.QtCore import pyqtSlot, pyqtSignal, Qt
 
 from qutebrowser.config import config, style
-from qutebrowser.utils import objreg, utils
+from qutebrowser.utils import objreg, utils, usertypes
 
 
 class KeyHintView(QLabel):
@@ -67,6 +67,9 @@ class KeyHintView(QLabel):
         style.set_register_stylesheet(self)
         self.setSizePolicy(QSizePolicy.Fixed, QSizePolicy.Minimum)
         self.hide()
+        self._show_timer = usertypes.Timer(self, 'keyhint_show')
+        self._show_timer.setInterval(500)
+        self._show_timer.timeout.connect(self.show)
 
     def __repr__(self):
         return utils.get_repr(self, win_id=self._win_id)
@@ -91,6 +94,7 @@ class KeyHintView(QLabel):
             prefix: The current partial keystring.
         """
         if not prefix or not self._enabled:
+            self._show_timer.stop()
             self.hide()
             return
 
@@ -100,9 +104,11 @@ class KeyHintView(QLabel):
                     if k.startswith(prefix) and not utils.is_special_key(k)]
 
         if not bindings:
+            self._show_timer.stop()
             return
 
-        self.show()
+        # delay so a quickly typed keychain doesn't display hints
+        self._show_timer.start()
         suffix_color = html.escape(config.get('colors', 'keyhint.fg.suffix'))
 
         text = ''
