@@ -357,7 +357,8 @@ class WebView(QWebView):
         """Add the javascript bridge for qute:... pages."""
         frame = self.sender()
         if not isinstance(frame, QWebFrame):
-            log.webview.error("Got non-QWebFrame in add_js_bridge")
+            log.webview.error("Got non-QWebFrame {!r} in "
+                              "add_js_bridge!".format(frame))
             return
 
         if frame.url().scheme() == 'qute':
