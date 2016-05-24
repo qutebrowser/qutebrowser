@@ -23,6 +23,7 @@ from PyQt5.QtCore import QBuffer
 
 from qutebrowser import app
 
+
 def test_on_focus_changed_issue1484(monkeypatch, qapp, caplog):
     """Check what happens when on_focus_changed is called with wrong args.
 
