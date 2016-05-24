@@ -132,7 +132,7 @@ def actute_warning():
     try:
         with open('/usr/share/X11/locale/en_US.UTF-8/Compose', 'r',
                   encoding='utf-8') as f:
-            for line in f:  # pragma: no branch
+            for line in f:
                 if '<dead_actute>' in line:
                     if sys.stdout is not None:
                         sys.stdout.flush()
@@ -140,7 +140,7 @@ def actute_warning():
                           "that is not a bug in qutebrowser! See "
                           "https://bugs.freedesktop.org/show_bug.cgi?id=69476 "
                           "for details.")
-                    break  # pragma: no branch
+                    break
     except OSError:
         log.init.exception("Failed to read Compose file")
 

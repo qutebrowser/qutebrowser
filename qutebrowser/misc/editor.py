@@ -83,7 +83,7 @@ class ExternalEditor(QObject):
             encoding = config.get('general', 'editor-encoding')
             try:
                 with open(self._filename, 'r', encoding=encoding) as f:
-                    text = f.read()  # pragma: no branch
+                    text = f.read()
             except OSError as e:
                 # NOTE: Do not replace this with "raise CommandError" as it's
                 # executed async.
@@ -114,7 +114,7 @@ class ExternalEditor(QObject):
             if text:
                 encoding = config.get('general', 'editor-encoding')
                 with open(self._filename, 'w', encoding=encoding) as f:
-                    f.write(text)  # pragma: no branch
+                    f.write(text)
         except OSError as e:
             message.error(self._win_id, "Failed to create initial file: "
                                         "{}".format(e))
