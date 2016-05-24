@@ -170,7 +170,7 @@ class IPCServer(QObject):
         self._timer.setInterval(READ_TIMEOUT)
         self._timer.timeout.connect(self.on_timeout)
 
-        if os.name == 'nt':  # pragma: no coverage
+        if os.name == 'nt':  # pragma: no cover
             self._atime_timer = None
         else:
             self._atime_timer = usertypes.Timer(self, 'ipc-atime')
