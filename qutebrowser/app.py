@@ -343,18 +343,14 @@ def _save_version():
 @pyqtSlot('QWidget*', 'QWidget*')
 def on_focus_changed(_old, new):
     """Register currently focused main window in the object registry."""
-    if new is None:
-        window = None
-    else:
-        window = new.window()
-    if window is None or not isinstance(window, mainwindow.MainWindow):
+    if new is None or not isinstance(new, mainwindow.MainWindow):
         try:
             objreg.delete('last-focused-main-window')
         except KeyError:
             pass
         qApp.restoreOverrideCursor()
     else:
-        objreg.register('last-focused-main-window', window, update=True)
+        objreg.register('last-focused-main-window', new.window(), update=True)
         _maybe_hide_mouse_cursor()
 
 
