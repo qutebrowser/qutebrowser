@@ -85,6 +85,7 @@ def test_quteprocess_quitting(qtbot, quteproc_process):
         quteproc_process.after_test(did_fail=False)
 
 
+@pytest.mark.skip
 @pytest.mark.parametrize('data, attrs', [
     (
         # Normal message

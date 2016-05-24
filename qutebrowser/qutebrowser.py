@@ -86,6 +86,8 @@ def get_argparser():
                        default=2000, type=int)
     debug.add_argument('--debug', help="Turn on debugging options.",
                        action='store_true')
+    debug.add_argument('--json-logging', action='store_true', help="Output log"
+                       " lines in JSON format (one object per line).")
     debug.add_argument('--nocolor', help="Turn off colored logging.",
                        action='store_false', dest='color')
     debug.add_argument('--force-color', help="Force colored logging",

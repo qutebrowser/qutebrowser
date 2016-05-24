@@ -29,6 +29,7 @@ import logging
 import tempfile
 import contextlib
 import itertools
+import json
 
 import yaml
 import pytest
@@ -61,61 +62,52 @@ class LogLine(testprocess.Line):
     """A parsed line from the qutebrowser log output.
 
     Attributes:
-        timestamp/loglevel/category/module/function/line/message:
+        timestamp/loglevel/category/module/function/line/message/levelname:
             Parsed from the log output.
         expected: Whether the message was expected or not.
     """
 
-    LOG_RE = re.compile(r"""
-        (?P<timestamp>\d\d:\d\d:\d\d)
-        \ (?P<loglevel>VDEBUG|DEBUG|INFO|WARNING|ERROR)
-        \ +(?P<category>[\w.]+)
-        \ +(?P<module>(\w+|Unknown\ module)):
-           (?P<function>[^"][^:]*|"[^"]+"):
-           (?P<line>\d+)
-        \ (?P<message>.+)
-    """, re.VERBOSE)
-
     def __init__(self, data):
         super().__init__(data)
-        match = self.LOG_RE.match(data)
-        if match is None:
+        try:
+            line = json.loads(data)
+        except json.decoder.JSONDecodeError:
             raise testprocess.InvalidLine(data)
 
-        self.timestamp = datetime.datetime.strptime(match.group('timestamp'),
-                                                    '%H:%M:%S')
-        loglevel = match.group('loglevel')
-        if loglevel == 'VDEBUG':
-            self.loglevel = log.VDEBUG_LEVEL
-        else:
-            self.loglevel = getattr(logging, loglevel)
+        self.timestamp = datetime.datetime.fromtimestamp(line['created'])
+        self.loglevel = line['levelno']
+        self.levelname = line['levelname']
+        self.category = line['name']
+        self.module = line['module']
+        self.function = line['funcName']
+        self.line = line['lineno']
 
-        self.category = match.group('category')
-
-        module = match.group('module')
-        if module == 'Unknown module':
-            self.module = None
-        else:
-            self.module = module
-
-        function = match.group('function')
-        if function == 'none':
-            self.function = None
-        else:
-            self.function = function.strip('"')
-
-        line = int(match.group('line'))
-        if self.function is None and line == 0:
-            self.line = None
-        else:
-            self.line = line
-
+        self.full_message = line['message']
         msg_match = re.match(r'^(\[(?P<prefix>\d+s ago)\] )?(?P<message>.*)',
-                             match.group('message'))
+                             self.full_message)
         self.prefix = msg_match.group('prefix')
         self.message = msg_match.group('message')
 
         self.expected = is_ignored_qt_message(self.message)
+
+    def formatted_str(self):
+        """Return a formatted colorized line.strip()
+
+        This returns a line like qute without --json-logging would produce.
+        """
+        format_dict = {
+            'asctime': self.timestamp.strftime(log.DATEFMT),
+            'log_color': log.LOG_COLORS[self.levelname],
+            'levelname': self.levelname,
+            'reset': log.ColoredFormatter.RESET_ESCAPE,
+            'name': self.category,
+            'module': self.module,
+            'funcName': self.function,
+            'lineno': self.line,
+            'message': self.full_message,
+        }
+        format_dict.update(log.ColoredFormatter.COLOR_ESCAPES)
+        return log.EXTENDED_FMT.format_map(format_dict)
 
 
 class QuteProc(testprocess.Process):
@@ -169,11 +161,6 @@ class QuteProc(testprocess.Process):
             self.ready.emit()
 
     def _parse_line(self, line):
-        # http://stackoverflow.com/a/14693789/2085149
-        colored_line = line
-        ansi_escape = re.compile(r'\x1b[^m]*m')
-        line = ansi_escape.sub('', line)
-
         try:
             log_line = LogLine(line)
         except testprocess.InvalidLine:
@@ -187,6 +174,7 @@ class QuteProc(testprocess.Process):
             else:
                 raise
 
+        colored_line = log_line.formatted_str()
         self._log(colored_line)
 
         start_okay_message_load = (
@@ -243,7 +231,7 @@ class QuteProc(testprocess.Process):
 
     def _default_args(self):
         return ['--debug', '--no-err-windows', '--temp-basedir',
-                '--force-color', 'about:blank']
+                '--json-logging', 'about:blank']
 
     def path_to_url(self, path, *, port=None, https=False):
         """Get a URL based on a filename for the localhost webserver.
