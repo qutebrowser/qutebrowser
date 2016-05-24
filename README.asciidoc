@@ -213,6 +213,7 @@ Contributors, sorted by the number of commits in descending order:
 * Thiago Barroso Perrotta
 * Sorokin Alexei
 * Samuel Loury
+* Noah Huesser
 * Matthias Lisin
 * Marcel Schilling
 * Johannes Martinsson
