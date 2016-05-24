@@ -60,7 +60,9 @@ Feature: Using hints
         Then the clipboard should contain "http://localhost:(port)/data/hello.txt"
 
     ### iframes
+    ### FIXME currenly skipped, see https://github.com/The-Compiler/qutebrowser/issues/1525
 
+    @xfail_norun
     Scenario: Using :follow-hint inside an iframe
         When I open data/hints/iframe.html
         And I run :hint all normal
@@ -69,6 +71,7 @@ Feature: Using hints
         And I run :follow-hint a
         Then "acceptNavigationRequest, url http://localhost:*/data/hello.txt, type NavigationTypeLinkClicked, *" should be logged
 
+    @xfail_norun
     Scenario: Using :follow-hint inside a scrolled iframe
         When I open data/hints/iframe_scroll.html
         And I run :hint all normal
@@ -78,12 +81,14 @@ Feature: Using hints
         And I run :follow-hint a
         Then "acceptNavigationRequest, url http://localhost:*/data/hello2.txt, type NavigationTypeLinkClicked, *" should be logged
 
+    @xfail_norun
     Scenario: Opening a link inside a specific iframe
         When I open data/hints/iframe_target.html
         And I run :hint links normal
         And I run :follow-hint a
         Then "acceptNavigationRequest, url http://localhost:*/data/hello.txt, type NavigationTypeLinkClicked, *" should be logged
 
+    @xfail_norun
     Scenario: Opening a link with specific target frame in a new tab
         When I open data/hints/iframe_target.html
         And I run :hint links tab
