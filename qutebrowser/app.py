@@ -31,7 +31,7 @@ import atexit
 import datetime
 import tokenize
 
-from PyQt5.QtWidgets import QApplication
+from PyQt5.QtWidgets import QApplication, QWidget
 from PyQt5.QtWebKit import QWebSettings
 from PyQt5.QtGui import QDesktopServices, QPixmap, QIcon, QCursor, QWindow
 from PyQt5.QtCore import (pyqtSlot, qInstallMessageHandler, QTimer, QUrl,
@@ -343,6 +343,10 @@ def _save_version():
 @pyqtSlot('QWidget*', 'QWidget*')
 def on_focus_changed(_old, new):
     """Register currently focused main window in the object registry."""
+    if not isinstance(new, QWidget):
+        log.misc.debug("on_focus_changed called with non-QWidget {!r}".format(
+            new))
+
     if new is None or not isinstance(new, mainwindow.MainWindow):
         try:
             objreg.delete('last-focused-main-window')
