@@ -34,7 +34,6 @@ def expected_text(*args):
     """
     text = '<table>'
     for group in args:
-        print("group = {}".format(group))
         text += ("<tr>"
                  "<td>{}</td>"
                  "<td style='color: {}'>{}</td>"
@@ -54,7 +53,7 @@ def keyhint(qtbot, config_stub, key_config_stub):
             'keyhint.bg': 'black'
         },
         'fonts': {'keyhint': 'Comic Sans'},
-        'ui': {'show-keyhints': True},
+        'ui': {'keyhint-blacklist': ''},
     }
     keyhint = KeyHintView(0, None)
     qtbot.add_widget(keyhint)
@@ -63,7 +62,7 @@ def keyhint(qtbot, config_stub, key_config_stub):
 
 
 def test_suggestions(keyhint, key_config_stub):
-    """Test cursor position based on the prompt."""
+    """Test that keyhints are shown based on a prefix."""
     # we want the dict to return sorted items() for reliable testing
     key_config_stub.set_bindings_for('normal', OrderedDict([
         ('aa', 'cmd-aa'),
@@ -95,14 +94,6 @@ def test_special_bindings(keyhint, key_config_stub):
         ('&lt;', 'yellow', 'b', 'cmd-&lt;b'))
 
 
-def test_disable(keyhint, config_stub):
-    """Ensure the widget isn't visible if disabled."""
-    config_stub.set('ui', 'show-keyhints', False)
-    keyhint.update_keyhint('normal', 'a')
-    assert not keyhint.text()
-    assert not keyhint.isVisible()
-
-
 def test_color_switch(keyhint, config_stub, key_config_stub):
     """Ensure the the keyhint suffix color can be updated at runtime."""
     config_stub.set('colors', 'keyhint.fg.suffix', '#ABCDEF')
@@ -118,4 +109,37 @@ def test_no_matches(keyhint, key_config_stub):
         ('aa', 'cmd-aa'),
         ('ab', 'cmd-ab')]))
     keyhint.update_keyhint('normal', 'z')
+    assert not keyhint.text()
     assert not keyhint.isVisible()
+
+
+def test_blacklist(keyhint, config_stub, key_config_stub):
+    """Test that blacklisted keychaints aren't hinted."""
+    config_stub.set('ui', 'keyhint-blacklist', ['ab*'])
+    # we want the dict to return sorted items() for reliable testing
+    key_config_stub.set_bindings_for('normal', OrderedDict([
+        ('aa', 'cmd-aa'),
+        ('ab', 'cmd-ab'),
+        ('aba', 'cmd-aba'),
+        ('abb', 'cmd-abb'),
+        ('xd', 'cmd-xd'),
+        ('xe', 'cmd-xe')]))
+
+    keyhint.update_keyhint('normal', 'a')
+    assert keyhint.text() == expected_text(('a', 'yellow', 'a', 'cmd-aa'))
+
+
+def test_blacklist_all(keyhint, config_stub, key_config_stub):
+    """Test that setting the blacklist to * disables keyhints."""
+    config_stub.set('ui', 'keyhint-blacklist', ['*'])
+    # we want the dict to return sorted items() for reliable testing
+    key_config_stub.set_bindings_for('normal', OrderedDict([
+        ('aa', 'cmd-aa'),
+        ('ab', 'cmd-ab'),
+        ('aba', 'cmd-aba'),
+        ('abb', 'cmd-abb'),
+        ('xd', 'cmd-xd'),
+        ('xe', 'cmd-xe')]))
+
+    keyhint.update_keyhint('normal', 'a')
+    assert not keyhint.text()

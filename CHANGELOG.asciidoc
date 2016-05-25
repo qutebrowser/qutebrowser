@@ -31,7 +31,7 @@ Added
   terminal
 - New `:messages` command to show error messages
 - New pop-up showing possible keybinding when the first key of a keychain is
-  pressed. This can be turned off using `:set ui show-keyhints false`.
+  pressed. This can be turned off using `:set ui keyhint-blacklist *`.
 
 Changed
 ~~~~~~~
