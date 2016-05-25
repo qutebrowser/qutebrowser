@@ -274,6 +274,9 @@ class NetworkManager(QNetworkAccessManager):
             is_rejected = set(errors).issubset(
                 self._rejected_ssl_errors[host_tpl])
 
+        log.webview.debug("Already accepted: {} / "
+                          "rejected {}".format(is_accepted, is_rejected))
+
         if (ssl_strict and ssl_strict != 'ask') or is_rejected:
             return
         elif is_accepted:
@@ -284,6 +287,7 @@ class NetworkManager(QNetworkAccessManager):
             err_string = '\n'.join('- ' + err.errorString() for err in errors)
             answer = self._ask('SSL errors - continue?\n{}'.format(err_string),
                                mode=usertypes.PromptMode.yesno, owner=reply)
+            log.webview.debug("Asked for SSL errors, answer {}".format(answer))
             if answer:
                 reply.ignoreSslErrors()
                 err_dict = self._accepted_ssl_errors
@@ -292,6 +296,7 @@ class NetworkManager(QNetworkAccessManager):
             if host_tpl is not None:
                 err_dict[host_tpl] += errors
         else:
+            log.webview.debug("ssl-strict is False, only warning about errors")
             for err in errors:
                 # FIXME we might want to use warn here (non-fatal error)
                 # https://github.com/The-Compiler/qutebrowser/issues/114
