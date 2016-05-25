@@ -90,24 +90,37 @@ class LogLine(testprocess.Line):
 
         self.expected = is_ignored_qt_message(self.message)
 
-    def formatted_str(self):
-        """Return a formatted colorized line.
+    def __str__(self):
+        return self.formatted_str(colorized=False)
+
+    def formatted_str(self, colorized=True):
+        """Return a formatted colorized line.strip()
 
         This returns a line like qute without --json-logging would produce.
+
+        Args:
+            colorized: If True, ANSI color codes will be embedded.
         """
-        log_color = log.LOG_COLORS[self.levelname]
         format_dict = {
             'asctime': self.timestamp.strftime(log.DATEFMT),
-            'log_color': log.ColoredFormatter.COLOR_ESCAPES[log_color],
             'levelname': self.levelname,
-            'reset': log.ColoredFormatter.RESET_ESCAPE,
             'name': self.category,
             'module': self.module,
             'funcName': self.function,
             'lineno': self.line,
             'message': self.full_message,
         }
-        format_dict.update(log.ColoredFormatter.COLOR_ESCAPES)
+        if colorized:
+            log_color_name = log.LOG_COLORS[self.levelname]
+            log_color = log.ColoredFormatter.COLOR_ESCAPES[log_color_name]
+            format_dict['log_color'] = log_color
+            format_dict['reset'] = log.ColoredFormatter.RESET_ESCAPE
+            format_dict.update(log.ColoredFormatter.COLOR_ESCAPES)
+        else:
+            color_names = log.ColoredFormatter.COLOR_ESCAPES.keys()
+            format_dict['log_color'] = ''
+            format_dict['reset'] = ''
+            format_dict.update({color: '' for color in color_names})
         return log.EXTENDED_FMT.format_map(format_dict)
 
 
