@@ -75,6 +75,13 @@ Feature: Using hints
         And I press the key "<Enter>"
         Then the message "http://localhost:(port)/data/hello.txt" should be shown
 
+    @posix
+    Scenario: Using :hint userscript
+        When I open data/hints/html/simple.html
+        And I run :hint all userscript (testdata)/userscripts/echo_hint_text
+        And I run :follow-hint a
+        Then the message "Follow me!" should be shown
+
     Scenario: Yanking to primary selection without it being supported (#1336)
         When selection is not supported
         And I run :debug-set-fake-clipboard
