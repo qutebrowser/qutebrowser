@@ -177,12 +177,6 @@ def test_log_line_parse(data, attrs):
         assert actual == expected, name
 
 
-COLORS = ['black', 'red', 'green', 'yellow', 'blue', 'purple', 'cyan', 'white']
-EXTENDED_FMT = ('{green}{asctime:8}{reset} '
-                '{log_color}{levelname:8}{reset} '
-                '{cyan}{name:10} {module}:{funcName}:{lineno}{reset} '
-                '{log_color}{message}{reset}')
-
 @pytest.mark.parametrize('data, colorized, expected', [
     (
         {'created': 0, 'levelname': 'DEBUG', 'name': 'foo', 'module': 'bar',
