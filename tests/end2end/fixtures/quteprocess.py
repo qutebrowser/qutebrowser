@@ -81,6 +81,7 @@ class LogLine(testprocess.Line):
         self.module = line['module']
         self.function = line['funcName']
         self.line = line['lineno']
+        self.traceback = line.get('traceback')
 
         self.full_message = line['message']
         msg_match = re.match(r'^(\[(?P<prefix>\d+s ago)\] )?(?P<message>.*)',
@@ -121,7 +122,10 @@ class LogLine(testprocess.Line):
             format_dict['log_color'] = ''
             format_dict['reset'] = ''
             format_dict.update({color: '' for color in color_names})
-        return log.EXTENDED_FMT.format_map(format_dict)
+        result = log.EXTENDED_FMT.format_map(format_dict)
+        if self.traceback is not None:
+            result += '\n' + self.traceback
+        return result
 
 
 class QuteProc(testprocess.Process):

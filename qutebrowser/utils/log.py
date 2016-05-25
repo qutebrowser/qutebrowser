@@ -557,4 +557,6 @@ class JSONFormatter(logging.Formatter):
                       'lineno', 'levelno']:
             obj[field] = getattr(record, field)
         obj['message'] = record.getMessage()
+        if record.exc_info is not None:
+            obj['traceback'] = super().formatException(record.exc_info)
         return json.dumps(obj)
