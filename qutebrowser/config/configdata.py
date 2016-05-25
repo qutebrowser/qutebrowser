@@ -355,9 +355,11 @@ def data(readonly=False):
              "Hide the window decoration when using wayland "
              "(requires restart)"),
 
-            ('show-keyhints',
-             SettingValue(typ.Bool(), 'true'),
-             "Show possible keychains based on the current keystring"),
+            ('keyhint-blacklist',
+             SettingValue(typ.List(none_ok=True), ''),
+             "Keychains that shouldn't be shown in the keyhint dialog\n\n"
+             "Globs are supported, so ';*' will blacklist all keychains"
+             "starting with ';'. Use '*' to disable keyhints"),
 
             readonly=readonly
         )),

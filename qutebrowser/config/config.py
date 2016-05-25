@@ -341,6 +341,7 @@ class ConfigManager(QObject):
         ('colors', 'tab.indicator.system'): 'tabs.indicator.system',
         ('completion', 'history-length'): 'cmd-history-max-items',
         ('colors', 'downloads.fg'): 'downloads.fg.start',
+        ('ui', 'show-keyhints'): 'keyhint-blacklist',
     }
     DELETED_OPTIONS = [
         ('colors', 'tab.separator'),
@@ -360,6 +361,8 @@ class ConfigManager(QObject):
             _get_value_transformer({'false': '-1', 'true': '1000'}),
         ('general', 'log-javascript-console'):
             _get_value_transformer({'false': 'none', 'true': 'debug'}),
+        ('ui', 'keyhint-blacklist'):
+            _get_value_transformer({'false': '*', 'true': ''}),
     }
 
     changed = pyqtSignal(str, str)
