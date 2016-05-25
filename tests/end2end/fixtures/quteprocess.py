@@ -71,7 +71,7 @@ class LogLine(testprocess.Line):
         super().__init__(data)
         try:
             line = json.loads(data)
-        except json.decoder.JSONDecodeError:
+        except ValueError:
             raise testprocess.InvalidLine(data)
 
         self.timestamp = datetime.datetime.fromtimestamp(line['created'])
