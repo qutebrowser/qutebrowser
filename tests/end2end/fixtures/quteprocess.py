@@ -104,27 +104,19 @@ class LogLine(testprocess.Line):
         Args:
             colorized: If True, ANSI color codes will be embedded.
         """
-        format_dict = {
-            'asctime': self.timestamp.strftime(log.DATEFMT),
-            'levelname': self.levelname,
-            'name': self.category,
-            'module': self.module,
-            'funcName': self.function,
-            'lineno': self.line,
-            'message': self.full_message,
-        }
-        if colorized:
-            log_color_name = log.LOG_COLORS[self.levelname]
-            log_color = log.ColoredFormatter.COLOR_ESCAPES[log_color_name]
-            format_dict['log_color'] = log_color
-            format_dict['reset'] = log.ColoredFormatter.RESET_ESCAPE
-            format_dict.update(log.ColoredFormatter.COLOR_ESCAPES)
-        else:
-            color_names = log.ColoredFormatter.COLOR_ESCAPES.keys()
-            format_dict['log_color'] = ''
-            format_dict['reset'] = ''
-            format_dict.update({color: '' for color in color_names})
-        result = log.EXTENDED_FMT.format_map(format_dict)
+        r = logging.LogRecord(self.category, self.loglevel, '', self.line,
+                              self.message, (), None)
+        # Patch some attributes of the LogRecord
+        if self.line is None:
+            r.line = 0
+        r.created = self.timestamp.timestamp()
+        r.module = self.module
+        r.funcName = self.function
+
+        formatter = log.ColoredFormatter(log.EXTENDED_FMT, log.DATEFMT, '{',
+                                         use_colors=colorized)
+        result = formatter.format(r)
+        # Manually append the stringified traceback if one is present
         if self.traceback is not None:
             result += '\n' + self.traceback
         return result
