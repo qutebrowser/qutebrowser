@@ -410,7 +410,9 @@ class TabbedBrowser(tabwidget.TabWidget):
             tab.openurl(url)
         if background is None:
             background = config.get('tabs', 'background-tabs')
-        if not background:
+        if background:
+            self.tab_index_changed.emit(self.currentIndex(), self.count())
+        else:
             self.setCurrentWidget(tab)
         tab.show()
         self.new_tab.emit(tab, idx)

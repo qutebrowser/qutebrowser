@@ -63,6 +63,7 @@ Fixed
 - Fixed crash when using `;Y` (`:hint links yank-primary`) on a system without
   primary selection
 - Don't display quit confirmation with finished downloads
+- Fixed updating the tab index in the statusbar when opening a background tab
 
 v0.6.2
 ------
