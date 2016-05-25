@@ -81,6 +81,8 @@ class LogLine(testprocess.Line):
         self.module = line['module']
         self.function = line['funcName']
         self.line = line['lineno']
+        if self.function is None and self.line == 0:
+            self.line = None
         self.traceback = line.get('traceback')
 
         self.full_message = line['message']
