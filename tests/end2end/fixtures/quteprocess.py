@@ -95,9 +95,10 @@ class LogLine(testprocess.Line):
 
         This returns a line like qute without --json-logging would produce.
         """
+        log_color = log.LOG_COLORS[self.levelname]
         format_dict = {
             'asctime': self.timestamp.strftime(log.DATEFMT),
-            'log_color': log.LOG_COLORS[self.levelname],
+            'log_color': log.ColoredFormatter.COLOR_ESCAPES[log_color],
             'levelname': self.levelname,
             'reset': log.ColoredFormatter.RESET_ESCAPE,
             'name': self.category,
