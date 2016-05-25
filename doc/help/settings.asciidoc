@@ -49,7 +49,7 @@
 |<<ui-hide-mouse-cursor,hide-mouse-cursor>>|Whether to hide the mouse cursor.
 |<<ui-modal-js-dialog,modal-js-dialog>>|Use standard JavaScript modal dialog for alert() and confirm()
 |<<ui-hide-wayland-decoration,hide-wayland-decoration>>|Hide the window decoration when using wayland (requires restart)
-|<<ui-show-keyhints,show-keyhints>>|Show possible keychains based on the current keystring
+|<<ui-keyhint-blacklist,keyhint-blacklist>>|Keychains that shouldn't be shown in the keyhint dialog
 |==============
 
 .Quick reference for section ``network''
@@ -671,16 +671,13 @@ Valid values:
 
 Default: +pass:[false]+
 
-[[ui-show-keyhints]]
-=== show-keyhints
-Show possible keychains based on the current keystring
+[[ui-keyhint-blacklist]]
+=== keyhint-blacklist
+Keychains that shouldn't be shown in the keyhint dialog
 
-Valid values:
+Globs are supported, so ';*' will blacklist all keychainsstarting with ';'. Use '*' to disable keyhints
 
- * +true+
- * +false+
-
-Default: +pass:[true]+
+Default: empty
 
 == network
 Settings related to the network.
