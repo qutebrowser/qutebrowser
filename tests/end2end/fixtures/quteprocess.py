@@ -176,10 +176,7 @@ class QuteProc(testprocess.Process):
         try:
             log_line = LogLine(line)
         except testprocess.InvalidLine:
-            if line.startswith('  '):
-                # Multiple lines in some log output...
-                return None
-            elif not line.strip():
+            if not line.strip():
                 return None
             elif is_ignored_qt_message(line):
                 return None
