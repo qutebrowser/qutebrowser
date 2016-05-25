@@ -21,6 +21,7 @@
 
 import logging
 import datetime
+import json
 
 import pytest
 
@@ -85,14 +86,15 @@ def test_quteprocess_quitting(qtbot, quteproc_process):
         quteproc_process.after_test(did_fail=False)
 
 
-@pytest.mark.skip
 @pytest.mark.parametrize('data, attrs', [
     (
         # Normal message
-        '01:02:03 DEBUG    init       earlyinit:init_log:280 Log initialized.',
+        '{"created": 0, "levelname": "DEBUG", "name": "init", "module": '
+        '"earlyinit", "funcName": "init_log", "lineno": 280, "levelno": 10, '
+        '"message": "Log initialized."}',
         {
-            'timestamp': datetime.datetime(year=1900, month=1, day=1,
-                                           hour=1, minute=2, second=3),
+            'timestamp': datetime.datetime(year=1970, month=1, day=1,
+                                           hour=1, minute=0, second=0),
             'loglevel': logging.DEBUG,
             'category': 'init',
             'module': 'earlyinit',
@@ -104,25 +106,32 @@ def test_quteprocess_quitting(qtbot, quteproc_process):
     ),
     (
         # VDEBUG
-        '00:00:00 VDEBUG    foo       foo:foo:0 test',
+        '{"created": 0, "levelname": "VDEBUG", "name": "foo", "module": '
+        '"foo", "funcName": "foo", "lineno": 0, "levelno": 9, "message": ""}',
         {'loglevel': log.VDEBUG_LEVEL}
     ),
     (
         # Unknown module
-        '00:00:00 WARNING  qt         Unknown module:none:0 test',
+        '{"created": 0, "levelname": "DEBUG", "name": "qt", "module": '
+        'null, "funcName": null, "lineno": 0, "levelno": 10, "message": '
+        '"test"}',
         {'module': None, 'function': None, 'line': None},
     ),
     (
         # Expected message
-        '00:00:00 VDEBUG    foo       foo:foo:0 SpellCheck: test',
+        '{"created": 0, "levelname": "VDEBUG", "name": "foo", "module": '
+        '"foo", "funcName": "foo", "lineno": 0, "levelno": 9, "message": '
+        '"SpellCheck: test"}',
         {'expected': True},
     ),
     (
         # Weird Qt location
-        '00:00:00 DEBUG    qt         qnetworkreplyhttpimpl:"void '
-        'QNetworkReplyHttpImplPrivate::error(QNetworkReply::NetworkError, '
-        'const QString&)":1929 QNetworkReplyImplPrivate::error: Internal '
-        'problem, this method must only be called once.',
+        '{"created": 0, "levelname": "DEBUG", "name": "qt", "module": '
+        '"qnetworkreplyhttpimpl", "funcName": '
+        '"void QNetworkReplyHttpImplPrivate::error('
+        'QNetworkReply::NetworkError, const QString&)", "lineno": 1929, '
+        '"levelno": 10, "message": "QNetworkReplyImplPrivate::error: '
+        'Internal problem, this method must only be called once."}',
         {
             'module': 'qnetworkreplyhttpimpl',
             'function': 'void QNetworkReplyHttpImplPrivate::error('
@@ -131,10 +140,11 @@ def test_quteprocess_quitting(qtbot, quteproc_process):
         }
     ),
     (
-        '00:00:00 WARNING  qt         qxcbxsettings:"QXcbXSettings::'
-        'QXcbXSettings(QXcbScreen*)":233 '
-        'QXcbXSettings::QXcbXSettings(QXcbScreen*) Failed to get selection '
-        'owner for XSETTINGS_S atom ',
+        '{"created": 0, "levelname": "DEBUG", "name": "qt", "module": '
+        '"qxcbxsettings", "funcName": "QXcbXSettings::QXcbXSettings('
+        'QXcbScreen*)", "lineno": 233, "levelno": 10, "message": '
+        '"QXcbXSettings::QXcbXSettings(QXcbScreen*) Failed to get selection '
+        'owner for XSETTINGS_S atom"}',
         {
             'module': 'qxcbxsettings',
             'function': 'QXcbXSettings::QXcbXSettings(QXcbScreen*)',
@@ -143,14 +153,18 @@ def test_quteprocess_quitting(qtbot, quteproc_process):
     ),
     (
         # With [2s ago] marker
-        '00:00:00 DEBUG    foo       foo:foo:0 [2s ago] test',
+        '{"created": 0, "levelname": "DEBUG", "name": "foo", "module": '
+        '"foo", "funcName": "foo", "lineno": 0, "levelno": 10, "message": '
+        '"[2s ago] test"}',
         {'prefix': '2s ago', 'message': 'test'}
     ),
     (
         # ResourceWarning
-        "00:00:00 WARNING  py.warnings app:qt_mainloop:121 "
-        ".../app.py:121: ResourceWarning: unclosed file <_io.TextIOWrapper "
-        "name=18 mode='r' encoding='UTF-8'>",
+        '{"created": 0, "levelname": "WARNING", "name": "py.warnings", '
+        '"module": "app", "funcName": "qt_mainloop", "lineno": 121, "levelno":'
+        ' 30, "message": '
+        '".../app.py:121: ResourceWarning: unclosed file <_io.TextIOWrapper '
+        'name=18 mode=\'r\' encoding=\'UTF-8\'>"}',
         {'category': 'py.warnings'}
     ),
 ], ids=['normal', 'vdebug', 'unknown module', 'expected message',
@@ -161,6 +175,45 @@ def test_log_line_parse(data, attrs):
     for name, expected in attrs.items():
         actual = getattr(line, name)
         assert actual == expected, name
+
+
+COLORS = ['black', 'red', 'green', 'yellow', 'blue', 'purple', 'cyan', 'white']
+EXTENDED_FMT = ('{green}{asctime:8}{reset} '
+                '{log_color}{levelname:8}{reset} '
+                '{cyan}{name:10} {module}:{funcName}:{lineno}{reset} '
+                '{log_color}{message}{reset}')
+
+@pytest.mark.parametrize('data, colorized, expected', [
+    (
+        {'created': 0, 'levelname': 'DEBUG', 'name': 'foo', 'module': 'bar',
+         'funcName': 'qux', 'lineno': 10, 'levelno': 10, 'message': 'quux'},
+        False,
+        '01:00:00 DEBUG    foo        bar:qux:10 quux',
+    ),
+    # Traceback attached
+    (
+        {'created': 0, 'levelname': 'DEBUG', 'name': 'foo', 'module': 'bar',
+         'funcName': 'qux', 'lineno': 10, 'levelno': 10, 'message': 'quux',
+         'traceback': 'Traceback (most recent call last):\n    here be '
+         'dragons'},
+        False,
+        '01:00:00 DEBUG    foo        bar:qux:10 quux\n'
+        'Traceback (most recent call last):\n'
+        '    here be dragons',
+    ),
+    # Colorized
+    (
+        {'created': 0, 'levelname': 'DEBUG', 'name': 'foo', 'module': 'bar',
+         'funcName': 'qux', 'lineno': 10, 'levelno': 10, 'message': 'quux'},
+        True,
+        '\033[32m01:00:00\033[0m \033[37mDEBUG   \033[0m \033[36mfoo        '
+        'bar:qux:10\033[0m \033[37mquux\033[0m',
+    ),
+], ids=['normal', 'traceback', 'colored'])
+def test_log_line_formatted(data, colorized, expected):
+    line = json.dumps(data)
+    record = quteprocess.LogLine(line)
+    assert record.formatted_str(colorized=colorized) == expected
 
 
 def test_log_line_no_match():
