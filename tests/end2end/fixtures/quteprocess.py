@@ -91,7 +91,7 @@ class LogLine(testprocess.Line):
         self.expected = is_ignored_qt_message(self.message)
 
     def formatted_str(self):
-        """Return a formatted colorized line.strip()
+        """Return a formatted colorized line.
 
         This returns a line like qute without --json-logging would produce.
         """
