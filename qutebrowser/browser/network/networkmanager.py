@@ -43,7 +43,6 @@ _proxy_auth_cache = {}
 
 def _is_secure_cipher(cipher):
     """Check if a given SSL cipher (hopefully) isn't broken yet."""
-    # pylint: disable=too-many-return-statements
     tokens = [e.upper() for e in cipher.name().split('-')]
     if cipher.usedBits() < 128:
         # https://codereview.qt-project.org/#/c/75943/

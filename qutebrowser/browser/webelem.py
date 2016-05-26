@@ -256,7 +256,6 @@ class WebElementWrapper(collections.abc.MutableMapping):
         Return:
             True if we should switch to insert mode, False otherwise.
         """
-        # pylint: disable=too-many-return-statements
         self._check_vanished()
         roles = ('combobox', 'textbox')
         log.misc.debug("Checking if element is editable: {}".format(
