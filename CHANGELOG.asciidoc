@@ -64,6 +64,7 @@ Fixed
   primary selection
 - Don't display quit confirmation with finished downloads
 - Fixed updating the tab index in the statusbar when opening a background tab
+- Fixed a crash when entering `:-- ` in the commandline
 
 v0.6.2
 ------
