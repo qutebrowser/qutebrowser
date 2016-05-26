@@ -199,8 +199,8 @@ def test_log_line_parse(data, attrs):
         {'created': 0, 'levelname': 'DEBUG', 'name': 'foo', 'module': 'bar',
          'funcName': 'qux', 'lineno': 10, 'levelno': 10, 'message': 'quux'},
         True,
-        '\033[32m{timestamp}\033[0m \033[37mDEBUG   \033[0m \033[36mfoo        '
-        'bar:qux:10\033[0m \033[37mquux\033[0m',
+        '\033[32m{timestamp}\033[0m \033[37mDEBUG   \033[0m \033[36mfoo     '
+        '   bar:qux:10\033[0m \033[37mquux\033[0m',
     ),
 ], ids=['normal', 'traceback', 'colored'])
 def test_log_line_formatted(data, colorized, expected):

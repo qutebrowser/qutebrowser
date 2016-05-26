@@ -97,7 +97,7 @@ class LogLine(testprocess.Line):
         return self.formatted_str(colorized=False)
 
     def formatted_str(self, colorized=True):
-        """Return a formatted colorized line.strip()
+        """Return a formatted colorized line.
 
         This returns a line like qute without --json-logging would produce.
 
