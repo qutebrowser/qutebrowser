@@ -40,11 +40,11 @@ def test_insert_mode(file_name, source, input_text, auto_insert, quteproc):
     quteproc.set_setting('input', 'auto-insert-mode', auto_insert)
     quteproc.send_cmd(':hint all')
     quteproc.send_cmd(':follow-hint a')
+    quteproc.send_cmd(':debug-set-fake-clipboard')
 
     if source == 'keypress':
         quteproc.press_keys(input_text)
     elif source == 'clipboard':
-        quteproc.send_cmd(':debug-set-fake-clipboard')
         quteproc.send_cmd(':debug-set-fake-clipboard "{}"'.format(input_text))
         quteproc.send_cmd(':paste-primary')
 
