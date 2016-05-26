@@ -87,7 +87,7 @@ class LogLine(testprocess.Line):
 
         self.full_message = line['message']
         msg_match = re.match(r'^(\[(?P<prefix>\d+s ago)\] )?(?P<message>.*)',
-                             self.full_message)
+                             self.full_message, re.DOTALL)
         self.prefix = msg_match.group('prefix')
         self.message = msg_match.group('message')
 
