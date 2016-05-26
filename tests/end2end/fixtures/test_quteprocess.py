@@ -93,8 +93,7 @@ def test_quteprocess_quitting(qtbot, quteproc_process):
         '"earlyinit", "funcName": "init_log", "lineno": 280, "levelno": 10, '
         '"message": "Log initialized."}',
         {
-            'timestamp': datetime.datetime(year=1970, month=1, day=1,
-                                           hour=1, minute=0, second=0),
+            'timestamp': datetime.datetime.fromtimestamp(0),
             'loglevel': logging.DEBUG,
             'category': 'init',
             'module': 'earlyinit',
@@ -182,7 +181,7 @@ def test_log_line_parse(data, attrs):
         {'created': 0, 'levelname': 'DEBUG', 'name': 'foo', 'module': 'bar',
          'funcName': 'qux', 'lineno': 10, 'levelno': 10, 'message': 'quux'},
         False,
-        '01:00:00 DEBUG    foo        bar:qux:10 quux',
+        '{timestamp} DEBUG    foo        bar:qux:10 quux',
     ),
     # Traceback attached
     (
@@ -191,7 +190,7 @@ def test_log_line_parse(data, attrs):
          'traceback': 'Traceback (most recent call last):\n    here be '
          'dragons'},
         False,
-        '01:00:00 DEBUG    foo        bar:qux:10 quux\n'
+        '{timestamp} DEBUG    foo        bar:qux:10 quux\n'
         'Traceback (most recent call last):\n'
         '    here be dragons',
     ),
@@ -200,13 +199,15 @@ def test_log_line_parse(data, attrs):
         {'created': 0, 'levelname': 'DEBUG', 'name': 'foo', 'module': 'bar',
          'funcName': 'qux', 'lineno': 10, 'levelno': 10, 'message': 'quux'},
         True,
-        '\033[32m01:00:00\033[0m \033[37mDEBUG   \033[0m \033[36mfoo        '
+        '\033[32m{timestamp}\033[0m \033[37mDEBUG   \033[0m \033[36mfoo        '
         'bar:qux:10\033[0m \033[37mquux\033[0m',
     ),
 ], ids=['normal', 'traceback', 'colored'])
 def test_log_line_formatted(data, colorized, expected):
     line = json.dumps(data)
     record = quteprocess.LogLine(line)
+    ts = datetime.datetime.fromtimestamp(data['created']).strftime('%H:%M:%S')
+    expected = expected.format(timestamp=ts)
     assert record.formatted_str(colorized=colorized) == expected
 
 
