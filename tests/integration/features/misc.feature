@@ -431,3 +431,9 @@ Feature: Various utility commands.
         Given I have a fresh instance
         When I run :messages
         Then the page should contain the plaintext "No messages to show."
+
+    ## https://github.com/The-Compiler/qutebrowser/issues/1523
+
+    Scenario: Completing a single option argument
+        When I run :set-cmd-text -s :-- 
+        Then no crash should happen
