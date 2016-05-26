@@ -204,6 +204,8 @@ class Completer(QObject):
         parts, cursor_part = self._filter_cmdline_parts(parts, cursor_part)
         log.completion.debug("After filtering flags: parts {}, cursor_part "
                              "{}".format(parts, cursor_part))
+        if not parts:
+            return None
         if cursor_part == 0:
             # '|' or 'set|'
             model = instances.get(usertypes.Completion.command)

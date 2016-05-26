@@ -179,6 +179,7 @@ Contributors, sorted by the number of commits in descending order:
 * rikn00
 * kanikaa1234
 * haitaka
+* Nick Ginther
 * Michael Ilsaas
 * Martin Zimmermann
 * Brian Jackson
@@ -194,7 +195,6 @@ Contributors, sorted by the number of commits in descending order:
 * Ismail
 * Samir Benmendil
 * Regina Hug
-* Nick Ginther
 * Mathias Fussenegger
 * Marcelo Santos
 * Jan Verbeek
