@@ -65,6 +65,7 @@ Fixed
 - Don't display quit confirmation with finished downloads
 - Fixed updating the tab index in the statusbar when opening a background tab
 - Fixed a crash when entering `:-- ` in the commandline
+- Fixed `:debug-console` with PyQt 5.6
 
 v0.6.2
 ------

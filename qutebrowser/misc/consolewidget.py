@@ -56,7 +56,7 @@ class ConsoleLineEdit(miscwidgets.CommandLineEdit):
         self._history = cmdhistory.History(parent=self)
         self.returnPressed.connect(self.on_return_pressed)
 
-    @pyqtSlot(str)
+    @pyqtSlot()
     def on_return_pressed(self):
         """Execute the line of code which was entered."""
         self._history.stop()
