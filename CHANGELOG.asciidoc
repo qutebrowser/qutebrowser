@@ -66,6 +66,7 @@ Fixed
 - Fixed updating the tab index in the statusbar when opening a background tab
 - Fixed a crash when entering `:-- ` in the commandline
 - Fixed `:debug-console` with PyQt 5.6
+- Fixed qutebrowser not starting when `sys.stderr` is `None`
 
 v0.6.2
 ------
