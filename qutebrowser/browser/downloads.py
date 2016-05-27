@@ -534,7 +534,7 @@ class DownloadItem(QObject):
             self._filename = create_full_filename(
                 self.basename, os.path.join(download_dir(), filename))
 
-        # At this point, we have a misconfigured XDG_DOWNLOAd_DIR, as
+        # At this point, we have a misconfigured XDG_DOWNLOAD_DIR, as
         # download_dir() + filename is still no absolute path.
         # The config value is checked for "absoluteness", but
         # ~/.config/user-dirs.dirs may be misconfigured and a non-absolute path

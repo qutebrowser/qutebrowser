@@ -81,7 +81,7 @@ def test_suggestions(keyhint, key_config_stub):
 
 
 def test_special_bindings(keyhint, key_config_stub):
-    """Ensure the a prefix of '<' doesn't suggest special keys."""
+    """Ensure a prefix of '<' doesn't suggest special keys."""
     # we want the dict to return sorted items() for reliable testing
     key_config_stub.set_bindings_for('normal', OrderedDict([
         ('<a', 'cmd-<a'),
@@ -95,7 +95,7 @@ def test_special_bindings(keyhint, key_config_stub):
 
 
 def test_color_switch(keyhint, config_stub, key_config_stub):
-    """Ensure the the keyhint suffix color can be updated at runtime."""
+    """Ensure the keyhint suffix color can be updated at runtime."""
     config_stub.set('colors', 'keyhint.fg.suffix', '#ABCDEF')
     key_config_stub.set_bindings_for('normal', OrderedDict([
         ('aa', 'cmd-aa')]))
@@ -114,7 +114,7 @@ def test_no_matches(keyhint, key_config_stub):
 
 
 def test_blacklist(keyhint, config_stub, key_config_stub):
-    """Test that blacklisted keychaints aren't hinted."""
+    """Test that blacklisted keychains aren't hinted."""
     config_stub.set('ui', 'keyhint-blacklist', ['ab*'])
     # we want the dict to return sorted items() for reliable testing
     key_config_stub.set_bindings_for('normal', OrderedDict([

@@ -33,7 +33,7 @@ class HeaderChecker:
 
     """Helper class with some convenience methods to check filenames.
 
-    Attrs:
+    Attributes:
         caplog: fixture from pytest-capturelog
         stubs: fixture that provides testing stubs
     """

@@ -370,7 +370,7 @@ The following logging levels are available for every logger:
 
 [width="75%",cols="25%,75%"]
 |=======================================================================
-|criticial |Critical issue, qutebrowser can't continue to run.
+|critical  |Critical issue, qutebrowser can't continue to run.
 |error     |There was an issue and some kind of operation was abandoned.
 |warning   |There was an issue but the operation can continue running.
 |info      |General informational messages.

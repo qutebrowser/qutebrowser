@@ -439,7 +439,7 @@ class RAMHandler(logging.Handler):
             self._data.append(record)
 
     def dump_log(self, html=False, level='vdebug'):
-        """Dump the complete formatted log data as as string.
+        """Dump the complete formatted log data as string.
 
         FIXME: We should do all the HTML formatter via jinja2.
         (probably obsolete when moving to a widget for logging,

@@ -161,7 +161,7 @@ def create_blocklist(directory, blocked_hosts=BLOCKLIST_HOSTS,
             for host in blocked_hosts:
                 blocklist.write(host + ' This is not a correct hosts file\n')
         else:
-            raise ValueError('Uncorrect line_format argument')
+            raise ValueError('Incorrect line_format argument')
     return str(blocklist_file)
 
 

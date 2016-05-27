@@ -37,7 +37,7 @@ class Checker:
 
     """A helper to check mhtml output.
 
-    Attrs:
+    Attributes:
         fp: A BytesIO object for passing to MHTMLWriter.write_to.
     """
 

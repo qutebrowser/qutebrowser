@@ -1056,7 +1056,7 @@ class WordHinter:
         self.dictionary = None
 
     def ensure_initialized(self):
-        """Generate the used words if yet uninialized."""
+        """Generate the used words if yet uninitialized."""
         dictionary = config.get("hints", "dictionary")
         if not self.words or self.dictionary != dictionary:
             self.words.clear()

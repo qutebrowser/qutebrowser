@@ -209,7 +209,7 @@ def test_exit_unsuccessful_output(qtbot, proc, caplog, py_proc, stream):
 
 @pytest.mark.parametrize('stream', ['stdout', 'stderr'])
 def test_exit_successful_output(qtbot, proc, py_proc, stream):
-    """When a process suceeds, no output should be logged.
+    """When a process succeeds, no output should be logged.
 
     The test doesn't actually check the log as it'd fail because of the error
     logging.

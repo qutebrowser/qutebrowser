@@ -217,7 +217,7 @@ class _POSIXUserscriptRunner(_BaseUserscriptRunner):
         self._cleanup()
 
     def _cleanup(self):
-        """Clean up reader and temorary files."""
+        """Clean up reader and temporary files."""
         if self._cleaned_up:
             return
         log.procs.debug("Cleaning up")

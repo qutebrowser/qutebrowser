@@ -93,7 +93,7 @@ class StatusBar(QWidget):
                  widget can adjust its size to it.
                  arg: The new size.
         moved: Emitted when the statusbar has moved, so the completion widget
-               can move the the right position.
+               can move to the right position.
                arg: The new position.
     """
 

@@ -401,7 +401,7 @@ class _Downloader:
         """Callback when a download error occurred.
 
         Args:
-            url: The orignal url of the asset as QUrl.
+            url: The original url of the asset as QUrl.
             item: The DownloadItem given by the DownloadManager.
         """
         try:

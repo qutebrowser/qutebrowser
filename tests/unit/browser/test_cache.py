@@ -99,7 +99,7 @@ def test_cache_size_leq_max_cache_size(config_stub, tmpdir):
     preload_cache(disk_cache, 'http://foo.xxx')
     preload_cache(disk_cache, 'http://bar.net')
     assert disk_cache.expire() < limit
-    # Add a threshold to the limit due to unforseeable Qt internals
+    # Add a threshold to the limit due to unforeseeable Qt internals
     assert disk_cache.cacheSize() < limit + 100
 
 
