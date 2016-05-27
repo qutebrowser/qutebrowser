@@ -1207,15 +1207,15 @@ def data(readonly=False):
              "theme's color)"),
 
             ('keyhint.fg',
-             SettingValue(typ.QssColor(), '#FFFFFF'),
+             SettingValue(typ.QssColor(), '${completion.fg}'),
              "Text color for the keyhint widget."),
 
             ('keyhint.fg.suffix',
-             SettingValue(typ.CssColor(), '#FFFF00'),
+             SettingValue(typ.CssColor(), '${completion.match.fg}'),
              "Highlight color for keys to complete the current keychain"),
 
             ('keyhint.bg',
-             SettingValue(typ.QssColor(), 'rgba(0, 0, 0, 80%)'),
+             SettingValue(typ.QssColor(), '${completion.bg}'),
              "Background color of the keyhint widget."),
 
             readonly=readonly
