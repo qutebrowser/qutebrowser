@@ -70,4 +70,5 @@ coll = COLLECT(exe,
 app = BUNDLE(coll,
              name='qutebrowser.app',
              icon=icon,
+             info_plist={'NSHighResolutionCapable': 'True'},
              bundle_identifier=None)
