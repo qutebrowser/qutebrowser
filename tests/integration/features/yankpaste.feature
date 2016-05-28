@@ -151,6 +151,20 @@ Feature: Yanking and pasting.
             - about:blank
             - data/hello.txt?q=this%20url%3A%0Ahttp%3A//qutebrowser.org%0Ashould%20not%20open (active)
 
+    Scenario: Pasting multiline whose first line looks like an URI
+        Given I open about:blank
+        When I run :tab-only
+        When I set searchengines -> DEFAULT to http://localhost:(port)/data/hello.txt?q={}
+        And I put the following lines into the clipboard:
+            text:
+            should open
+            as search
+        And I run :paste -t
+        And I wait until data/hello.txt?q=text%3A%0Ashould%20open%0Aas%20search is loaded
+        Then the following tabs should be open:
+            - about:blank
+            - data/hello.txt?q=text%3A%0Ashould%20open%0Aas%20search (active)
+
     Scenario: Pasting multiple urls in a background tab
         Given I open about:blank
         When I run :tab-only

@@ -158,7 +158,8 @@ def _is_url_dns(urlstr):
     return not info.error()
 
 
-def fuzzy_url(urlstr, cwd=None, relative=False, do_search=True):
+def fuzzy_url(urlstr, cwd=None, relative=False, do_search=True,
+              force_search=False):
     """Get a QUrl based on a user input which is URL or search term.
 
     Args:
@@ -166,6 +167,8 @@ def fuzzy_url(urlstr, cwd=None, relative=False, do_search=True):
         cwd: The current working directory, or None.
         relative: Whether to resolve relative files.
         do_search: Whether to perform a search on non-URLs.
+        force_search: Whether to force a search even if the content can be
+                      interpreted as an URL or a path.
 
     Return:
         A target QUrl to a search page or the original URL.
@@ -174,18 +177,18 @@ def fuzzy_url(urlstr, cwd=None, relative=False, do_search=True):
     path = get_path_if_valid(urlstr, cwd=cwd, relative=relative,
                              check_exists=True)
 
-    if path is not None:
+    if not force_search and path is not None:
         url = QUrl.fromLocalFile(path)
-    elif (not do_search) or is_url(urlstr):
-        # probably an address
-        log.url.debug("URL is a fuzzy address")
-        url = qurl_from_user_input(urlstr)
-    else:  # probably a search term
+    elif force_search or (do_search and not is_url(urlstr)):
+        # probably a search term
         log.url.debug("URL is a fuzzy search term")
         try:
             url = _get_search_url(urlstr)
         except ValueError:  # invalid search engine
             url = qurl_from_user_input(urlstr)
+    else:  # probably an address
+        log.url.debug("URL is a fuzzy address")
+        url = qurl_from_user_input(urlstr)
     log.url.debug("Converting fuzzy term {!r} to URL -> {}".format(
                   urlstr, url.toDisplayString()))
     if do_search and config.get('general', 'auto-search') and urlstr:
@@ -207,6 +210,7 @@ def _has_explicit_scheme(url):
     # using this and want to support e.g. searching for scoped C++
     # symbols, we treat this as not an URI anyways.
     return (url.isValid() and url.scheme() and
+            (url.host() or url.path()) and
             not url.path().startswith(' ') and
             not url.path().startswith(':'))
 
