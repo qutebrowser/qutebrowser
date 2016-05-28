@@ -65,7 +65,7 @@ class NeighborList(collections.abc.Sequence):
         _mode: The current mode.
     """
 
-    Modes = enum('Modes', ['block', 'wrap', 'exception'])
+    Modes = enum('Modes', ['block', 'wrap', 'exception', 'edge'])
 
     def __init__(self, items=None, default=_UNSET, mode=Modes.exception):
         """Constructor.
@@ -76,7 +76,8 @@ class NeighborList(collections.abc.Sequence):
             _mode: Behavior when the first/last item is reached.
                    Modes.block: Stay on the selected item
                    Modes.wrap: Wrap around to the other end
-                   Modes.exception: Raise an IndexError.
+                   Modes.exception: Raise an IndexError
+                   Modes.edge: Go to the first/last item
         """
         if not isinstance(mode, self.Modes):
             raise TypeError("Mode {} is not a Modes member!".format(mode))
@@ -113,18 +114,41 @@ class NeighborList(collections.abc.Sequence):
             True if the value snapped in (changed),
             False when the value already was in the list.
         """
-        op = operator.le if offset < 0 else operator.ge
-        items = [(idx, e) for (idx, e) in enumerate(self._items)
-                 if op(e, self.fuzzyval)]
-        if items:
-            item = min(items, key=lambda tpl: abs(self.fuzzyval - tpl[1]))
+        optype = operator.le if offset < 0 else operator.ge
+        currentval = None
+        items = None
+
+        if self.fuzzyval is None \
+                and self.is_int(self.items[self._idx]):
+            currentval = self.items[self._idx]
+        elif self.fuzzyval is not None:
+            currentval = self.fuzzyval
         else:
-            sorted_items = sorted([(idx, e) for (idx, e) in
-                                   enumerate(self.items)], key=lambda e: e[1])
+            # Don't attempt to snap if no numeric value is determined
+            return False
+
+        items = [(idx, e) for (idx, e) in enumerate(self._items)
+                 if optype(e, currentval)]
+
+        if items:
+            item = min(items, key=lambda tpl: abs(currentval - tpl[1]))
+        else:
+            enum_items = enumerate(self.items)
+            sorted_items = sorted([(idx, e) for (idx, e)
+                                   in enum_items], key=lambda e: e[1])
             idx = 0 if offset < 0 else -1
             item = sorted_items[idx]
         self._idx = item[0]
-        return self.fuzzyval not in self._items
+
+        is_fuzzy_value = self.fuzzyval is not None
+        fuzzy_value_is_not_standard = self.fuzzyval not in self._items
+        did_snap_to_value = is_fuzzy_value and fuzzy_value_is_not_standard
+
+        return did_snap_to_value
+
+    def is_int(self, text):
+        return isinstance(text, int) \
+            or text.lstrip("-+").isdigit()
 
     def _get_new_item(self, offset):
         """Logic for getitem to get the item at offset.
@@ -147,8 +171,15 @@ class NeighborList(collections.abc.Sequence):
                 self._idx += offset
                 self._idx %= len(self.items)
                 new = self.curitem()
-            elif self._mode == self.Modes.exception:  # pragma: no branch
+            elif self._mode == self.Modes.exception:
                 raise
+            elif self._mode == self.Modes.edge:  # pragma: no branch
+                new_idx = self._idx + offset
+                right_edge = len(self._items) - 1
+                left_edge = 0
+
+                self._idx = max(min(new_idx, right_edge), left_edge)
+                new = self._items[self._idx]
         else:
             self._idx += offset
         return new
@@ -171,16 +202,18 @@ class NeighborList(collections.abc.Sequence):
             len(self._items), self._idx, offset))
         if not self._items:
             raise IndexError("No items found!")
-        if self.fuzzyval is not None:
+
+        did_snap_to_value = self._snap_in(offset)
+
+        if did_snap_to_value:
             # Value has been set to something not in the list, so we snap in to
             # the closest value in the right direction and count this as one
             # step towards offset.
-            snapped = self._snap_in(offset)
-            if snapped and offset > 0:
-                offset -= 1
-            elif snapped:
-                offset += 1
-            self.fuzzyval = None
+            offset_from_snapping = 1 if offset > 0 else -1
+            offset -= offset_from_snapping
+
+        self.fuzzyval = None
+
         return self._get_new_item(offset)
 
     def curitem(self):
