@@ -37,7 +37,7 @@ else:
     icon = None
 
 
-a = Analysis(['../qutebrowser.py'],
+a = Analysis(['../qutebrowser/__main__.py'],
              pathex=['misc'],
              binaries=None,
              datas=get_data_files(),
