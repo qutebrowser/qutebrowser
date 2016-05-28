@@ -244,7 +244,7 @@ class TestFuzzyUrl:
         'test'
     ])
     def test_force_search(self, urlstring, get_search_url_mock):
-        """Test the force search option"""
+        """Test the force search option."""
         get_search_url_mock.return_value = QUrl('search_url')
 
         url = urlutils.fuzzy_url(urlstring, force_search=True)
