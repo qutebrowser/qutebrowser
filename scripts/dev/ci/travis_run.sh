@@ -12,9 +12,4 @@ else
     [[ $TESTENV == docs ]] && args=('--no-authors')
 
     tox -e $TESTENV -- "${args[@]}"
-
-    tox_exit=$?
-    if ((tox_exit != 0)); then
-        echo "tox exit status: $tox_exit"
-    fi
 fi
