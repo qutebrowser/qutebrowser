@@ -383,7 +383,7 @@ class QuteProc(testprocess.Process):
             self.send_cmd(':open ' + url)
 
         if wait:
-            self._wait_for_load_finished_url(url)
+            self.wait_for_load_finished_url(url)
 
     def mark_expected(self, category=None, loglevel=None, message=None):
         """Mark a given logging message as expected."""
@@ -391,8 +391,8 @@ class QuteProc(testprocess.Process):
                              message=message)
         line.expected = True
 
-    def _wait_for_load_finished_url(self, url, *, timeout=None,
-                                    load_status='success'):
+    def wait_for_load_finished_url(self, url, *, timeout=None,
+                                   load_status='success'):
         """Wait until a URL has finished loading."""
         __tracebackhide__ = True
 
@@ -422,8 +422,8 @@ class QuteProc(testprocess.Process):
         """Wait until a path has finished loading."""
         __tracebackhide__ = True
         url = self.path_to_url(path, port=port, https=https)
-        self._wait_for_load_finished_url(url, timeout=timeout,
-                                         load_status=load_status)
+        self.wait_for_load_finished_url(url, timeout=timeout,
+                                        load_status=load_status)
 
     def get_session(self):
         """Save the session and get the parsed session data."""
