@@ -43,6 +43,11 @@ def check_setup(executable):
     subprocess.check_call([executable, '--version'])
 
 
+def pip_install(pkg):
+    subprocess.check_call([r'C:\Python34\python', '-m', 'pip', 'install', '-U',
+                           pkg])
+
+
 print("Getting PyQt5...")
 qt_version = '5.5.1'
 pyqt_version = '5.5.1'
@@ -61,9 +66,8 @@ print("Installing PyQt5...")
 subprocess.check_call([r'C:\install-PyQt5.exe', '/S'])
 
 print("Installing pip/tox")
-subprocess.check_call([r'C:\Python34\python', '-m', 'pip', 'install', '-U',
-                       'pip'])
-subprocess.check_call([r'C:\Python34\Scripts\pip', 'install', '-U', 'tox'])
+pip_install(r'scripts\dev\ci\requirements-pip.txt')
+pip_install(r'scripts\dev\ci\requirements-tox.txt')
 
 print("Linking Python...")
 with open(r'C:\Windows\system32\python3.bat', 'w') as f:
