@@ -18,6 +18,8 @@ RUN apt-get -y update && \
             language-pack-en \
             libjs-pdf
 
+RUN dbus-uuidgen --ensure
+
 RUN useradd user && mkdir /home/user && chown -R user:users /home/user
 USER user
 WORKDIR /home/user
