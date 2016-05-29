@@ -1,7 +1,0 @@
-These files are copied from Qt's source tree in
-src/plugins/platforms/cocoa/qt_menu.nib at revision
-b8246f08e49eb672974fd3d3d972a5ff13c1524d.
-
-http://code.qt.io/cgit/qt/qtbase.git/tree/src/plugins/platforms/cocoa/qt_menu.nib
-
-They are needed for cx_Freeze and don't seem to be bundled with Qt anymore.
