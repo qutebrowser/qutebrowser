@@ -41,7 +41,7 @@ Feature: Searching on a page
         And I run :yank-selected
         Then the clipboard should contain "/slash"
 
-    # This doesn't work because this is QtWebKit behaviour.
+    # This doesn't work because this is QtWebKit behavior.
     @xfail_norun
     Scenario: Searching text with umlauts
         When I run :search blub

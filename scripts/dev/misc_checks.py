@@ -49,7 +49,7 @@ def _get_files(only_py=False):
         if only_py:
             endings = {'.py'}
         else:
-            endings = {'.py', '.asciidoc', '.js'}
+            endings = {'.py', '.asciidoc', '.js', '.feature'}
         files = (e for e in filenames if os.path.splitext(e)[1] in endings)
         for name in files:
             yield os.path.join(dirpath, name)

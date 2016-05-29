@@ -119,7 +119,7 @@ Feature: Tab management
         And I run :tab-close --opposite
         Then the error "-o is not supported with 'tabs->select-on-remove' set to 'previous'!" should be shown
 
-    Scenario: :tab-close should restore selection behaviour
+    Scenario: :tab-close should restore selection behavior
         When I set tabs -> select-on-remove to right
         And I open data/numbers/1.txt
         And I open data/numbers/2.txt in a new tab

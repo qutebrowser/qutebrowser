@@ -1,6 +1,6 @@
 #!/bin/bash -e
 #
-# Behaviour:
+# Behavior:
 #   Userscript for qutebrowser which views the current web page in mpv using
 #   sensible mpv-flags. While viewing the page in MPV, all <video>, <embed>,
 #   and <object> tags in the original page are temporarily removed. Clicking on

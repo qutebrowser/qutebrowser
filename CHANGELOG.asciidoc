@@ -53,7 +53,7 @@ Changed
   colored logs without it.
 - URLs are now shown decoded when hovering.
 - Keybindings are now shown in the command completion
-- Improved behaviour when pasting multiple lines
+- Improved behavior when pasting multiple lines
 
 Fixed
 -----
