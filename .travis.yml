@@ -33,9 +33,6 @@ matrix:
       env: TESTENV=check-manifest
     - os: linux
       env: TESTENV=eslint
-  allow_failures:
-    - os: osx
-      env: TESTENV=py35
 
 cache:
   directories:
