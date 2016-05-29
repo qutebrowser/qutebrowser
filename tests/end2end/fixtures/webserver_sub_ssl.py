@@ -19,7 +19,7 @@
 
 """Minimal flask webserver serving a Hello World via SSL.
 
-This script gets called as a QProcess from integration/conftest.py.
+This script gets called as a QProcess from end2end/conftest.py.
 """
 
 import ssl
@@ -53,7 +53,7 @@ def turn_off_logging():
 
 def main():
     ssl_dir = os.path.join(os.path.abspath(os.path.dirname(__file__)),
-                           'data', 'ssl')
+                           '..', 'data', 'ssl')
     # WORKAROUND for https://github.com/PyCQA/pylint/issues/399
     # pylint: disable=no-member, useless-suppression
     context = ssl.SSLContext(ssl.PROTOCOL_TLSv1_2)

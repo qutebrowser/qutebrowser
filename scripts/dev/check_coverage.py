@@ -143,7 +143,7 @@ PERFECT_FILES = [
 ]
 
 
-# 100% coverage because of integration tests, but no perfect unit tests yet.
+# 100% coverage because of end2end tests, but no perfect unit tests yet.
 WHITELISTED_FILES = []
 
 

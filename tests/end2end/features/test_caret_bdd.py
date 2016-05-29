@@ -1,6 +1,6 @@
 # vim: ft=python fileencoding=utf-8 sts=4 sw=4 et:
 
-# Copyright 2016 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
+# Copyright 2015-2016 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
 #
 # This file is part of qutebrowser.
 #
@@ -20,7 +20,7 @@
 import pytest_bdd as bdd
 
 # pylint: disable=unused-import
-from test_yankpaste import init_fake_clipboard
+from end2end.features.test_yankpaste_bdd import init_fake_clipboard
 
 
-bdd.scenarios('search.feature')
+bdd.scenarios('caret.feature')

@@ -27,7 +27,7 @@ import datetime
 import pytest
 from PyQt5.QtCore import QProcess
 
-import testprocess
+from end2end.fixtures import testprocess
 
 pytestmark = [pytest.mark.not_frozen]
 

@@ -19,15 +19,15 @@
 
 # pylint: disable=unused-import
 
-"""Things needed for integration testing."""
+"""Things needed for end2end testing."""
 
 import os
 import shutil
 import pstats
 
-from webserver import httpbin, httpbin_after_test, ssl_server
-from quteprocess import quteproc_process, quteproc, quteproc_new
-from testprocess import pytest_runtest_makereport
+from end2end.fixtures.webserver import httpbin, httpbin_after_test, ssl_server
+from end2end.fixtures.quteprocess import quteproc_process, quteproc, quteproc_new
+from end2end.fixtures.testprocess import pytest_runtest_makereport
 
 
 def pytest_configure(config):

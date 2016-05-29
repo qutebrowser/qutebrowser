@@ -130,7 +130,7 @@ def run_command(quteproc, httpbin, command):
 
 @bdd.when(bdd.parsers.parse("I execute the userscript {userscript}"))
 def run_userscript(quteproc, userscript):
-    """Run a userscript located in tests/integration/data/userscripts.
+    """Run a userscript located in tests/end2end/data/userscripts.
 
     Wrapper around :spawn --userscript {userscript} that uses an absolute
     path.
@@ -345,7 +345,7 @@ def check_header(quteproc, header, value):
 def check_contents(quteproc, filename):
     """Check the current page's content.
 
-    The filename is interpreted relative to tests/integration/data.
+    The filename is interpreted relative to tests/end2end/data.
     """
     content = quteproc.get_content(plain=False)
     path = os.path.join(utils.abs_datapath(),

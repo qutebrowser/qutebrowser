@@ -29,7 +29,7 @@ import http.client
 import pytest
 from PyQt5.QtCore import pyqtSignal, QUrl
 
-import testprocess
+from end2end.fixtures import testprocess
 
 
 class Request(testprocess.Line):

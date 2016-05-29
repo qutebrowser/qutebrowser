@@ -17,9 +17,9 @@
 # You should have received a copy of the GNU General Public License
 # along with qutebrowser.  If not, see <http://www.gnu.org/licenses/>.
 
-"""httpbin web server for integration tests.
+"""httpbin web server for end2end tests.
 
-This script gets called as a QProcess from integration/conftest.py.
+This script gets called as a QProcess from end2end/conftest.py.
 """
 
 import sys
@@ -46,9 +46,9 @@ def send_data(path):
     """
     if hasattr(sys, 'frozen'):
         basedir = os.path.realpath(os.path.dirname(sys.executable))
-        data_dir = os.path.join(basedir, 'integration', 'data')
+        data_dir = os.path.join(basedir, 'end2end', 'data')
     else:
-        basedir = os.path.realpath(os.path.dirname(__file__))
+        basedir = os.path.join(os.path.realpath(os.path.dirname(__file__)), '..')
         data_dir = os.path.join(basedir, 'data')
     print(basedir)
     if os.path.isdir(os.path.join(data_dir, path)):
@@ -129,7 +129,7 @@ class WSGIServer(cherrypy.wsgiserver.CherryPyWSGIServer):
 def main():
     if hasattr(sys, 'frozen'):
         basedir = os.path.realpath(os.path.dirname(sys.executable))
-        app.template_folder = os.path.join(basedir, 'integration', 'templates')
+        app.template_folder = os.path.join(basedir, 'end2end', 'templates')
     port = int(sys.argv[1])
     server = WSGIServer(('127.0.0.1', port), app)
 

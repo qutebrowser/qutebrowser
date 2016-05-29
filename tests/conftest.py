@@ -107,8 +107,8 @@ def pytest_collection_modifyitems(items):
                 os.path.commonprefix([__file__, item.module.__file__]))
 
             module_root_dir = os.path.split(module_path)[0]
-            if module_root_dir == 'integration':
-                item.add_marker(pytest.mark.integration)
+            if module_root_dir == 'end2end':
+                item.add_marker(pytest.mark.end2end)
 
         _apply_platform_markers(item)
         if item.get_marker('xfail_norun'):
@@ -118,7 +118,7 @@ def pytest_collection_modifyitems(items):
 def pytest_ignore_collect(path):
     """Ignore BDD tests during collection if frozen."""
     rel_path = path.relto(os.path.dirname(__file__))
-    return (rel_path == os.path.join('integration', 'features') and
+    return (rel_path == os.path.join('end2end', 'features') and
             hasattr(sys, 'frozen'))
 
 

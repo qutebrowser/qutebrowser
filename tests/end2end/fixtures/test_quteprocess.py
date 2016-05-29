@@ -24,8 +24,7 @@ import datetime
 
 import pytest
 
-import quteprocess
-import testprocess
+from end2end.fixtures import quteprocess, testprocess
 from qutebrowser.utils import log
 
 

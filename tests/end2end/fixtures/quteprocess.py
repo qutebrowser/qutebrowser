@@ -34,11 +34,11 @@ import yaml
 import pytest
 from PyQt5.QtCore import pyqtSignal, QUrl
 
-import testprocess
 from qutebrowser.misc import ipc
 from qutebrowser.utils import log, utils
 from qutebrowser.browser import webelem
 from helpers import utils as testutils
+from end2end.fixtures import testprocess
 
 
 instance_counter = itertools.count()

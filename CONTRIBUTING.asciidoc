@@ -158,11 +158,11 @@ Examples:
 # run only pytest tests which failed in last run:
 tox -e py35 -- --lf
 
-# run only the integration feature tests:
-tox -e py35 -- tests/integration/features
+# run only the end2end feature tests:
+tox -e py35 -- tests/end2end/features
 
 # run everything with undo in the generated name, based on the scenario text
-tox -e py35 -- tests/integration/features/test_tabs.py -k undo
+tox -e py35 -- tests/end2end/features/test_tabs_bdd.py -k undo
 
 # run coverage test for specific file (updates htmlcov/index.html)
 tox -e py35-cov -- tests/unit/browser/test_webelem.py

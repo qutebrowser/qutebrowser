@@ -60,8 +60,8 @@ def get_build_exe_options():
 
     httpbin_dir = os.path.dirname(httpbin.__file__)
     opts['include_files'] += [
-        ('tests/integration/data', 'integration/data'),
-        (os.path.join(httpbin_dir, 'templates'), 'integration/templates'),
+        ('tests/end2end/data', 'end2end/data'),
+        (os.path.join(httpbin_dir, 'templates'), 'end2end/templates'),
     ]
 
     opts['packages'].append('qutebrowser')
@@ -72,11 +72,13 @@ def main():
     base = 'Win32GUI' if sys.platform.startswith('win') else None
     with temp_git_commit_file():
         cx.setup(
-            executables=[cx.Executable('scripts/dev/run_frozen_tests.py',
-                                       targetName='run-frozen-tests'),
-                         cx.Executable('tests/integration/webserver_sub.py',
-                                       targetName='webserver_sub'),
-                         freeze.get_exe(base, target_name='qutebrowser')],
+            executables=[
+                cx.Executable('scripts/dev/run_frozen_tests.py',
+                              targetName='run-frozen-tests'),
+                cx.Executable('tests/end2end/fixtures/webserver_sub.py',
+                              targetName='webserver_sub'),
+                freeze.get_exe(base, target_name='qutebrowser')
+            ],
             options={'build_exe': get_build_exe_options()},
             **setupcommon.setupdata
         )
