@@ -26,7 +26,7 @@ import traceback
 import jinja2
 import jinja2.exceptions
 
-from qutebrowser.utils import urlutils, log
+from qutebrowser.utils import utils, urlutils, log
 
 from PyQt5.QtCore import QUrl
 
