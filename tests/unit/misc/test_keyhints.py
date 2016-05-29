@@ -38,7 +38,7 @@ def expected_text(*args):
                  "<td>{}</td>"
                  "<td style='color: {}'>{}</td>"
                  "<td style='padding-left: 2ex'>{}</td>"
-                 "</tr>").format(group[0], group[1], group[2], group[3])
+                 "</tr>").format(*group)
 
     return text + '</table>'
 
