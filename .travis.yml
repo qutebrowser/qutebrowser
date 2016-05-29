@@ -15,6 +15,9 @@ matrix:
     - os: linux
       env: DOCKER=ubuntu-wily
       services: docker
+    - os: linux
+      env: DOCKER=ubuntu-xenial
+      services: docker
     - os: osx
       env: TESTENV=py35
     - os: linux
