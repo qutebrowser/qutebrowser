@@ -387,7 +387,8 @@ Feature: Various utility commands.
         And I run :message-warning the-warning-message
         And I run :message-info the-info-message
         And I run :messages
-        Then the error "the-error-message" should be shown
+        Then qute://log?level=error should be loaded
+        And the error "the-error-message" should be shown
         And the warning "the-warning-message" should be shown
         And the page should contain the plaintext "the-error-message"
         And the page should not contain the plaintext "the-warning-message"
@@ -398,7 +399,8 @@ Feature: Various utility commands.
         And I run :message-warning the-warning-message
         And I run :message-info the-info-message
         And I run :messages warning
-        Then the error "the-error-message" should be shown
+        Then qute://log?level=warning should be loaded
+        And the error "the-error-message" should be shown
         And the warning "the-warning-message" should be shown
         And the page should contain the plaintext "the-error-message"
         And the page should contain the plaintext "the-warning-message"
@@ -409,7 +411,8 @@ Feature: Various utility commands.
         And I run :message-warning the-warning-message
         And I run :message-info the-info-message
         And I run :messages info
-        Then the error "the-error-message" should be shown
+        Then qute://log?level=info should be loaded
+        And the error "the-error-message" should be shown
         And the warning "the-warning-message" should be shown
         And the page should contain the plaintext "the-error-message"
         And the page should contain the plaintext "the-warning-message"
@@ -430,7 +433,8 @@ Feature: Various utility commands.
     Scenario: Using :messages without messages
         Given I have a fresh instance
         When I run :messages
-        Then the page should contain the plaintext "No messages to show."
+        Then qute://log?level=error should be loaded
+        And the page should contain the plaintext "No messages to show."
 
     ## https://github.com/The-Compiler/qutebrowser/issues/1523
 
