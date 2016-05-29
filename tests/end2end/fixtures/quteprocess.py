@@ -297,6 +297,15 @@ class QuteProc(testprocess.Process):
         if skip_texts:
             pytest.skip(', '.join(skip_texts))
 
+    def _after_start(self):
+        """Adjust some qutebrowser settings after starting."""
+        settings = [
+            ('ui', 'message-timeout', '0'),
+            ('network', 'ssl-strict', 'false'),
+        ]
+        for sect, opt, value in settings:
+            self.set_setting(sect, opt, value)
+
     def after_test(self, did_fail):
         """Handle unexpected/skip logging and clean up after each test.
 

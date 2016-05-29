@@ -239,6 +239,7 @@ class Process(QObject):
                 raise ProcessExited()
 
             if blocker.signal_triggered:
+                self._after_start()
                 return
 
         raise WaitForTimeout("Timed out while waiting for process start.")
@@ -267,6 +268,10 @@ class Process(QObject):
         ok = self.proc.waitForStarted()
         assert ok
         assert self.is_running()
+
+    def _after_start(self):
+        """Do things which should be done immediately after starting."""
+        pass
 
     def before_test(self):
         """Restart process before a test if it exited before."""
