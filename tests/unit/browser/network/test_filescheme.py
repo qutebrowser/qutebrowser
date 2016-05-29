@@ -28,7 +28,7 @@ from PyQt5.QtCore import QUrl
 from PyQt5.QtNetwork import QNetworkRequest
 
 from qutebrowser.browser.network import filescheme
-from qutebrowser.utils import jinja
+from qutebrowser.utils import urlutils
 
 
 @pytest.mark.parametrize('create_file, create_dir, filterfunc, expected', [
@@ -106,7 +106,7 @@ def _file_url(path):
     Arguments:
         path: The filepath as LocalPath (as handled by py.path)
     """
-    return jinja.file_url(str(path))
+    return urlutils.file_url(str(path))
 
 
 class TestDirbrowserHtml:

@@ -570,3 +570,12 @@ def incdec_number(url, incdec, segments=None):
         return url
 
     raise IncDecError("No number found in URL!", url)
+
+
+def file_url(path):
+    """Return a file:// url (as string) to the given local path.
+
+    Arguments:
+        path: The absolute path to the local file
+    """
+    return QUrl.fromLocalFile(path).toString(QUrl.FullyEncoded)

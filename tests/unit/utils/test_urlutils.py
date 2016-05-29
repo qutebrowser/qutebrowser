@@ -694,3 +694,7 @@ class TestIncDecNumber:
 
         assert excinfo.value.url == url
         assert str(excinfo.value) == expected_str
+
+
+def test_file_url():
+    assert urlutils.file_url('/foo/bar') == 'file:///foo/bar'

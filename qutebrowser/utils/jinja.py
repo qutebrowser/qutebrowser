@@ -26,7 +26,7 @@ import traceback
 import jinja2
 import jinja2.exceptions
 
-from qutebrowser.utils import utils, log
+from qutebrowser.utils import urlutils, log
 
 from PyQt5.QtCore import QUrl
 
@@ -74,15 +74,6 @@ def resource_url(path):
     return QUrl.fromLocalFile(image).toString(QUrl.FullyEncoded)
 
 
-def file_url(path):
-    """Return a file:// url (as string) to the given local path.
-
-    Arguments:
-        path: The absolute path to the local file
-    """
-    return QUrl.fromLocalFile(path).toString(QUrl.FullyEncoded)
-
-
 def render(template, **kwargs):
     """Render the given template and pass the given arguments to it."""
     try:
@@ -97,4 +88,4 @@ def render(template, **kwargs):
 
 _env = jinja2.Environment(loader=Loader('html'), autoescape=_guess_autoescape)
 _env.globals['resource_url'] = resource_url
-_env.globals['file_url'] = file_url
+_env.globals['file_url'] = urlutils.file_url

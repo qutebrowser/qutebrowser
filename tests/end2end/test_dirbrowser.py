@@ -26,7 +26,7 @@ import collections
 import pytest
 
 from PyQt5.QtCore import QUrl
-from qutebrowser.utils import jinja
+from qutebrowser.utils import urlutils
 
 
 class DirLayout:
@@ -86,7 +86,7 @@ class DirLayout:
 
     def file_url(self):
         """Return a file:// link to the directory."""
-        return jinja.file_url(str(self.layout))
+        return urlutils.file_url(str(self.layout))
 
     def path(self, *parts):
         """Return the path to the given file inside the layout folder."""
