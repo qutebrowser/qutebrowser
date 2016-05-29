@@ -297,7 +297,7 @@ class QuteProc(testprocess.Process):
         if skip_texts:
             pytest.skip(', '.join(skip_texts))
 
-    def after_test(self, did_fail):  # pylint: disable=arguments-differ
+    def after_test(self, did_fail):
         """Handle unexpected/skip logging and clean up after each test.
 
         Args:

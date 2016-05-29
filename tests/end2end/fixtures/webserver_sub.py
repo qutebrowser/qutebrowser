@@ -48,7 +48,8 @@ def send_data(path):
         basedir = os.path.realpath(os.path.dirname(sys.executable))
         data_dir = os.path.join(basedir, 'end2end', 'data')
     else:
-        basedir = os.path.join(os.path.realpath(os.path.dirname(__file__)), '..')
+        basedir = os.path.join(os.path.realpath(os.path.dirname(__file__)),
+                               '..')
         data_dir = os.path.join(basedir, 'data')
     print(basedir)
     if os.path.isdir(os.path.join(data_dir, path)):
