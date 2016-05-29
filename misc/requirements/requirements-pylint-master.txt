@@ -1,4 +1,9 @@
 git+https://github.com/PyCQA/astroid.git
 git+https://github.com/PyCQA/pylint.git
+isort==4.2.5
+lazy-object-proxy==1.2.2
+mccabe==0.4.0
+six==1.10.0
+wrapt==1.10.8
 requests==2.10.0
 ./scripts/dev/pylint_checkers
