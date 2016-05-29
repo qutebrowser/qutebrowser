@@ -404,7 +404,13 @@ class QuteProc(testprocess.Process):
 
         # We really need the same representation that the webview uses in its
         # __repr__
-        url = utils.elide(QUrl(url).toDisplayString(QUrl.EncodeUnicode), 100)
+        qurl = QUrl(url)
+        if not qurl.isValid():
+            raise ValueError("Invalid URL {}: {}".format(url,
+                                                         qurl.errorString()))
+        url = utils.elide(qurl.toDisplayString(QUrl.EncodeUnicode), 100)
+        assert url
+
         pattern = re.compile(
             r"(load status for <qutebrowser\.browser\.webview\.WebView "
             r"tab_id=\d+ url='{url}/?'>: LoadStatus\.{load_status}|fetch: "
