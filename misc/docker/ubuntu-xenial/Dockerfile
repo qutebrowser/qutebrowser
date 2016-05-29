@@ -34,4 +34,4 @@ CMD Xvfb -screen 0 800x600x24 :0 & \
     herbstluftwm & \
     git clone /outside qutebrowser.git && \
     cd qutebrowser.git && \
-    tox -e py34
+    tox -e py35
