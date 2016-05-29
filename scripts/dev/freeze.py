@@ -115,16 +115,6 @@ def main():
         'add_to_path': False,
     }
 
-    bdist_dmg_options = {
-        'applications_shortcut': True,
-    }
-
-    bdist_mac_options = {
-        'qt_menu_nib': os.path.join(BASEDIR, 'misc', 'qt_menu.nib'),
-        'iconfile': os.path.join(BASEDIR, 'icons', 'qutebrowser.icns'),
-        'bundle_name': 'qutebrowser',
-    }
-
     try:
         setupcommon.write_git_file()
         cx.setup(
@@ -132,8 +122,6 @@ def main():
             options={
                 'build_exe': get_build_exe_options(),
                 'bdist_msi': bdist_msi_options,
-                'bdist_mac': bdist_mac_options,
-                'bdist_dmg': bdist_dmg_options,
             },
             **setupcommon.setupdata
         )
