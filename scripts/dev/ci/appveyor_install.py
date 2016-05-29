@@ -66,8 +66,8 @@ print("Installing PyQt5...")
 subprocess.check_call([r'C:\install-PyQt5.exe', '/S'])
 
 print("Installing pip/tox")
-pip_install(r'-rscripts\dev\ci\requirements-pip.txt')
-pip_install(r'-rscripts\dev\ci\requirements-tox.txt')
+pip_install(r'-rmisc\requirements\requirements-pip.txt')
+pip_install(r'-rmisc\requirements\requirements-tox.txt')
 
 print("Linking Python...")
 with open(r'C:\Windows\system32\python3.bat', 'w') as f:

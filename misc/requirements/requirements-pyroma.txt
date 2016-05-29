@@ -1,0 +1,2 @@
+pyroma==2.0.2
+docutils==0.12

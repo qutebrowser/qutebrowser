@@ -1,0 +1,4 @@
+astroid==1.4.5
+pylint==1.5.5
+requests==2.10.0
+./scripts/dev/pylint_checkers
