@@ -5,6 +5,7 @@ cache:
 build: off
 environment:
     PYTHONUNBUFFERED: 1
+    VIRTUALENV_DOWNLOAD: no
     matrix:
     - TESTENV: py34
     - TESTENV: unittests-frozen
