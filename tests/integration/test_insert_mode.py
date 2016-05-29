@@ -35,7 +35,6 @@ import pytest
 def test_insert_mode(file_name, source, input_text, auto_insert, quteproc):
     url_path = 'data/insert_mode_settings/html/{}'.format(file_name)
     quteproc.open_path(url_path)
-    quteproc.wait_for_load_finished(url_path)
 
     quteproc.set_setting('input', 'auto-insert-mode', auto_insert)
     quteproc.send_cmd(':hint all')
@@ -66,7 +65,6 @@ def test_insert_mode(file_name, source, input_text, auto_insert, quteproc):
 def test_auto_leave_insert_mode(quteproc):
     url_path = 'data/insert_mode_settings/html/autofocus.html'
     quteproc.open_path(url_path)
-    quteproc.wait_for_load_finished(url_path)
 
     quteproc.set_setting('input', 'auto-leave-insert-mode', 'true')
 

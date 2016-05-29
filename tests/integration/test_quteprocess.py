@@ -173,7 +173,6 @@ class TestClickElement:
     @pytest.fixture(autouse=True)
     def open_page(self, quteproc):
         quteproc.open_path('data/click_element.html')
-        quteproc.wait_for_load_finished('data/click_element.html')
 
     def test_click_element(self, quteproc):
         quteproc.click_element('Test Element')

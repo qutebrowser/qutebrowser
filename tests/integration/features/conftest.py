@@ -55,7 +55,6 @@ def open_path_given(quteproc, path):
     It always opens a new tab, unlike "When I open ..."
     """
     quteproc.open_path(path, new_tab=True)
-    quteproc.wait_for_load_finished(path)
 
 
 @bdd.given(bdd.parsers.parse("I run {command}"))
@@ -86,7 +85,7 @@ def open_path(quteproc, path):
     """
     new_tab = False
     new_window = False
-    wait_for_load_finished = True
+    wait = True
 
     new_tab_suffix = ' in a new tab'
     new_window_suffix = ' in a new window'
@@ -101,12 +100,9 @@ def open_path(quteproc, path):
 
     if path.endswith(do_not_wait_suffix):
         path = path[:-len(do_not_wait_suffix)]
-        wait_for_load_finished = False
+        wait = False
 
-    quteproc.open_path(path, new_tab=new_tab, new_window=new_window)
-
-    if wait_for_load_finished:
-        quteproc.wait_for_load_finished(path)
+    quteproc.open_path(path, new_tab=new_tab, new_window=new_window, wait=wait)
 
 
 @bdd.when(bdd.parsers.parse("I set {sect} -> {opt} to {value}"))

@@ -43,7 +43,6 @@ def test_hints(test_name, zoom_text_only, zoom_level, quteproc):
                              'data', 'hints', 'html', test_name)
     url_path = 'data/hints/html/{}'.format(test_name)
     quteproc.open_path(url_path)
-    quteproc.wait_for_load_finished(url_path)
 
     with open(file_path, 'r', encoding='utf-8') as html:
         soup = bs4.BeautifulSoup(html, 'html.parser')
@@ -91,7 +90,6 @@ def test_word_hints_issue1393(quteproc, tmpdir):
 
     for hint, target in targets:
         quteproc.open_path('data/hints/issue1393.html')
-        quteproc.wait_for_load_finished('data/hints/issue1393.html')
         quteproc.send_cmd(':hint')
         quteproc.wait_for(message='hints: *', category='hints')
         quteproc.send_cmd(':follow-hint {}'.format(hint))

@@ -365,12 +365,12 @@ class QuteProc(testprocess.Process):
         self.set_setting(sect, opt, old_value)
 
     def open_path(self, path, *, new_tab=False, new_window=False, port=None,
-                  https=False):
+                  https=False, wait=True):
         """Open the given path on the local webserver in qutebrowser."""
         url = self.path_to_url(path, port=port, https=https)
-        self.open_url(url, new_tab=new_tab, new_window=new_window)
+        self.open_url(url, new_tab=new_tab, new_window=new_window, wait=wait)
 
-    def open_url(self, url, *, new_tab=False, new_window=False):
+    def open_url(self, url, *, new_tab=False, new_window=False, wait=True):
         """Open the given url in qutebrowser."""
         if new_tab and new_window:
             raise ValueError("new_tab and new_window given!")
@@ -382,15 +382,18 @@ class QuteProc(testprocess.Process):
         else:
             self.send_cmd(':open ' + url)
 
+        if wait:
+            self._wait_for_load_finished_url(url)
+
     def mark_expected(self, category=None, loglevel=None, message=None):
         """Mark a given logging message as expected."""
         line = self.wait_for(category=category, loglevel=loglevel,
                              message=message)
         line.expected = True
 
-    def wait_for_load_finished(self, path, *, port=None, https=False,
-                               timeout=None, load_status='success'):
-        """Wait until any tab has finished loading."""
+    def _wait_for_load_finished_url(self, url, *, timeout=None,
+                                    load_status='success'):
+        """Wait until a URL has finished loading."""
         __tracebackhide__ = True
 
         if timeout is None:
@@ -399,7 +402,6 @@ class QuteProc(testprocess.Process):
             else:
                 timeout = 5000
 
-        url = self.path_to_url(path, port=port, https=https)
         # We really need the same representation that the webview uses in its
         # __repr__
         url = utils.elide(QUrl(url).toDisplayString(QUrl.EncodeUnicode), 100)
@@ -414,6 +416,14 @@ class QuteProc(testprocess.Process):
         except testprocess.WaitForTimeout:
             raise testprocess.WaitForTimeout("Timed out while waiting for {} "
                                              "to be loaded".format(url))
+
+    def wait_for_load_finished(self, path, *, port=None, https=False,
+                               timeout=None, load_status='success'):
+        """Wait until a path has finished loading."""
+        __tracebackhide__ = True
+        url = self.path_to_url(path, port=port, https=https)
+        self._wait_for_load_finished_url(url, timeout=timeout,
+                                         load_status=load_status)
 
     def get_session(self):
         """Save the session and get the parsed session data."""

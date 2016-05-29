@@ -23,8 +23,8 @@ bdd.scenarios('prompts.feature')
 
 @bdd.when("I load a SSL page")
 def load_ssl_page(quteproc, ssl_server):
-    quteproc.open_path('/', port=ssl_server.port, https=True)
-    # We don't call wait_for_load_finished here as we can get an SSL question.
+    # We don't wait here as we can get an SSL question.
+    quteproc.open_path('/', port=ssl_server.port, https=True, wait=False)
 
 
 @bdd.when("I wait until the SSL page finished loading")
