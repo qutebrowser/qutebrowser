@@ -170,7 +170,14 @@ def pytest_sessionfinish(exitstatus):
     """Create a file to tell run_pytest.py how pytest exited."""
     outcome = yield
     outcome.get_result()
-    status_file = os.path.join(os.path.abspath(os.path.dirname(__file__)),
-                               '..', '.cache', 'pytest_status')
+
+    cache_dir = os.path.join(os.path.abspath(os.path.dirname(__file__)),
+                             '..', '.cache')
+    try:
+        os.mkdir(cache_dir)
+    except FileExistsError:
+        pass
+
+    status_file = os.path.join(cache_dir, 'pytest_status')
     with open(status_file, 'w', encoding='ascii') as f:
         f.write(str(exitstatus))
