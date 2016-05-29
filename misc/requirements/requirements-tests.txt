@@ -2,7 +2,7 @@ beautifulsoup4==4.4.1
 CherryPy==5.4.0
 coverage==4.1
 decorator==4.0.9
-Flask==0.10.1
+Flask==0.10.1  # rq.filter: != 0.11.0
 glob2==0.4.1
 httpbin==0.4.1
 hypothesis==3.4.0
