@@ -30,7 +30,7 @@ Feature: :spawn
         And I run :spawn echo {url:pretty}
         Then "Executing echo with args ['http://localhost:(port)/data/title with spaces.html'], userscript=False" should be logged
 
-    @posix
+    @linux
     Scenario: Running :spawn with userscript
         When I open about:blank
         And I execute the userscript open_current_url
