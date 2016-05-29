@@ -178,6 +178,7 @@ def test_enter_folder_smoke(dir_layout, quteproc):
 def test_enter_folder(dir_layout, quteproc, folder):
     quteproc.open_url(dir_layout.file_url())
     quteproc.click_element(text=folder)
+    quteproc.wait_for_load_finished_url('file://' + dir_layout.path(folder))
     page = parse(quteproc)
     assert page.path == dir_layout.path(folder)
     assert page.parent == dir_layout.path()
