@@ -11,11 +11,6 @@ Feature: Using :navigate
         And I run :navigate up
         Then data/navigate should be loaded
 
-    Scenario: Navigating up with root directory
-        When I open /
-        And I run :navigate up
-        Then the error "Can't go up!" should be shown
-
     # prev/next
 
     Scenario: Navigating to previous page
