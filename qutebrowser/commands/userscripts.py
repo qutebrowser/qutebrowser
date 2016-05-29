@@ -71,6 +71,8 @@ class _QtFIFOReader(QObject):
     def cleanup(self):
         """Clean up so the FIFO can be closed."""
         self._notifier.setEnabled(False)
+        for line in self._fifo:
+            self.got_line.emit(line.rstrip('\r\n'))
         self._fifo.close()
 
 
