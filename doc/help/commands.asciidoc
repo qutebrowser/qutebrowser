@@ -128,7 +128,6 @@ Delete a bookmark.
 
 ==== note
 * This command does not split arguments after the last argument and handles quotes literally.
-* With this command, +;;+ is interpreted literally instead of splitting off a second command.
 
 [[bookmark-load]]
 === bookmark-load
@@ -146,7 +145,6 @@ Load a bookmark.
 
 ==== note
 * This command does not split arguments after the last argument and handles quotes literally.
-* With this command, +;;+ is interpreted literally instead of splitting off a second command.
 
 [[buffer]]
 === buffer
@@ -357,7 +355,6 @@ Start hinting.
 
 ==== note
 * This command does not split arguments after the last argument and handles quotes literally.
-* With this command, +;;+ is interpreted literally instead of splitting off a second command.
 
 [[home]]
 === home
@@ -468,7 +465,6 @@ The tab index to open the URL in.
 
 ==== note
 * This command does not split arguments after the last argument and handles quotes literally.
-* With this command, +;;+ is interpreted literally instead of splitting off a second command.
 
 [[paste]]
 === paste
@@ -517,7 +513,6 @@ Delete a quickmark.
 
 ==== note
 * This command does not split arguments after the last argument and handles quotes literally.
-* With this command, +;;+ is interpreted literally instead of splitting off a second command.
 
 [[quickmark-load]]
 === quickmark-load
@@ -535,7 +530,6 @@ Load a quickmark.
 
 ==== note
 * This command does not split arguments after the last argument and handles quotes literally.
-* With this command, +;;+ is interpreted literally instead of splitting off a second command.
 
 [[quickmark-save]]
 === quickmark-save
@@ -603,7 +597,6 @@ Search for a text on the current page. With no text, clear results.
 
 ==== note
 * This command does not split arguments after the last argument and handles quotes literally.
-* With this command, +;;+ is interpreted literally instead of splitting off a second command.
 
 [[session-delete]]
 === session-delete
@@ -682,7 +675,6 @@ You can use the `{url}` and `{url:pretty}` variables here which will get replace
 
 ==== note
 * This command does not split arguments after the last argument and handles quotes literally.
-* With this command, +;;+ is interpreted literally instead of splitting off a second command.
 
 [[set-mark]]
 === set-mark
@@ -716,7 +708,6 @@ Note the `{url}` and `{url:pretty}` variables might be useful here. `{url}` gets
 
 ==== note
 * This command does not split arguments after the last argument and handles quotes literally.
-* With this command, +;;+ is interpreted literally instead of splitting off a second command.
 
 [[stop]]
 === stop

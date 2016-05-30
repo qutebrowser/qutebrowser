@@ -245,7 +245,7 @@ def _get_command_doc_notes(cmd):
         if cmd.maxsplit is not None:
             yield ("* This command does not split arguments after the last "
                    "argument and handles quotes literally.")
-        if cmd.no_cmd_split is not None:
+        if cmd.no_cmd_split:
             yield ("* With this command, +;;+ is interpreted literally "
                    "instead of splitting off a second command.")
 
