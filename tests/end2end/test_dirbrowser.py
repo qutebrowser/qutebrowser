@@ -170,6 +170,8 @@ def test_enter_folder_smoke(dir_layout, quteproc):
     quteproc.send_cmd(':hint all normal')
     # a is the parent link, s is the first listed folder/file
     quteproc.send_cmd(':follow-hint s')
+    expected_url = urlutils.file_url(dir_layout.path('folder0'))
+    quteproc.wait_for_load_finished_url(expected_url)
     page = parse(quteproc)
     assert page.path == dir_layout.path('folder0')
 

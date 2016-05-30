@@ -39,6 +39,7 @@ def test_insert_mode(file_name, source, input_text, auto_insert, quteproc):
     quteproc.set_setting('input', 'auto-insert-mode', auto_insert)
     quteproc.send_cmd(':hint all')
     quteproc.send_cmd(':follow-hint a')
+    quteproc.wait_for(message='Clicked editable element!')
     quteproc.send_cmd(':debug-set-fake-clipboard')
 
     if source == 'keypress':
@@ -49,6 +50,7 @@ def test_insert_mode(file_name, source, input_text, auto_insert, quteproc):
 
     quteproc.send_cmd(':hint all')
     quteproc.send_cmd(':follow-hint a')
+    quteproc.wait_for(message='Clicked editable element!')
     quteproc.send_cmd(':enter-mode caret')
     quteproc.send_cmd(':toggle-selection')
     quteproc.send_cmd(':move-to-prev-word')
@@ -74,6 +76,7 @@ def test_auto_leave_insert_mode(quteproc):
 
     # Select the disabled input box to leave insert mode
     quteproc.send_cmd(':follow-hint s')
+    quteproc.wait_for(message='Clicked non-editable element!')
     quteproc.send_cmd(':enter-mode caret')
     quteproc.send_cmd(':paste-primary')
 

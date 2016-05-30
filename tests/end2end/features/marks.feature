@@ -67,6 +67,7 @@ Feature: Setting positional marks
     Scenario: Jumping back after following a link
         When I run :hint links normal
         And I run :follow-hint s
+        And I wait until data/marks.html#bottom is loaded
         And I run :jump-mark "'"
         Then the page should be scrolled to 0 0
 

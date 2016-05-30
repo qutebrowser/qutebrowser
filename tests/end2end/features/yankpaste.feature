@@ -236,6 +236,7 @@ Feature: Yanking and pasting.
         # Click the text field
         And I run :hint all
         And I run :follow-hint a
+        And I wait for "Clicked editable element!" in the log
         And I run :paste-primary
         # Compare
         Then the text field should contain "Hello world"
@@ -248,6 +249,7 @@ Feature: Yanking and pasting.
         # Click the text field
         And I run :hint all
         And I run :follow-hint a
+        And I wait for "Clicked editable element!" in the log
         # Move to the beginning and two words to the right
         And I press the keys "<Home>"
         And I press the key "<Ctrl+Right>"
@@ -262,6 +264,7 @@ Feature: Yanking and pasting.
         # Click the text field
         And I run :hint all
         And I run :follow-hint a
+        And I wait for "Clicked editable element!" in the log
         # Paste and undo
         And I put "This text should be undone" into the primary selection
         And I run :paste-primary
@@ -286,6 +289,7 @@ Feature: Yanking and pasting.
         # Click the text field
         And I run :hint all
         And I run :follow-hint s
+        And I wait for "Clicked non-editable element!" in the log
         And I put "test" into the primary selection
         And I run :enter-mode insert
         And I run :paste-primary
@@ -298,6 +302,7 @@ Feature: Yanking and pasting.
         # Click the text field
         And I run :hint all
         And I run :follow-hint a
+        And I wait for "Clicked editable element!" in the log
         And I run :paste-primary
         # Compare
         Then the text field should contain "Hello world"
