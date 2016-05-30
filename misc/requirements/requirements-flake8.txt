@@ -4,7 +4,7 @@ flake8-copyright==0.1
 flake8-debugger==1.4.0
 flake8-deprecated==1.0
 flake8-docstrings==0.2.6
-flake8-future-import==0.3.2
+flake8-future-import==0.4.0
 flake8-mock==0.2
 flake8-pep3101==0.3
 flake8-putty==0.3.2
