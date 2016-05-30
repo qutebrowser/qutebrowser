@@ -129,20 +129,6 @@ def run_command(quteproc, httpbin, command):
     quteproc.send_cmd(command, count=count)
 
 
-@bdd.when(bdd.parsers.parse("I execute the userscript {userscript}"))
-def run_userscript(quteproc, userscript):
-    """Run a userscript located in tests/end2end/data/userscripts.
-
-    Wrapper around :spawn --userscript {userscript} that uses an absolute
-    path.
-    """
-    abs_userscript_path = os.path.join(utils.abs_datapath(),
-                                       'userscripts', userscript)
-
-    cmd = ':spawn --userscript {abs_userscript_path}'
-    quteproc.send_cmd(cmd.format(abs_userscript_path=abs_userscript_path))
-
-
 @bdd.when(bdd.parsers.parse("I reload"))
 def reload(qtbot, httpbin, quteproc, command):
     """Reload and wait until a new request is received."""

@@ -33,7 +33,7 @@ Feature: :spawn
     @posix
     Scenario: Running :spawn with userscript
         When I open about:blank
-        And I execute the userscript open_current_url
+        And I run :spawn -u (testdata)/userscripts/open_current_url
         And I wait until about:blank is loaded
         Then the following tabs should be open:
             - about:blank
