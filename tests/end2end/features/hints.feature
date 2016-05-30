@@ -44,12 +44,43 @@ Feature: Using hints
       And I run :fake-key -g <Esc>
       Then no crash should happen
 
-    @xfail
+    Scenario: Using :hint spawn with flags and -- (issue 797)
+        When I open data/hints/html/simple.html
+        And I run :hint -- all spawn -v echo
+        And I run :follow-hint a
+        Then the message "Command exited successfully." should be shown
+
     Scenario: Using :hint spawn with flags (issue 797)
         When I open data/hints/html/simple.html
         And I run :hint all spawn -v echo
         And I run :follow-hint a
-        Then the message "Command exited successfully" should be shown
+        Then the message "Command exited successfully." should be shown
+
+    Scenario: Using :hint spawn with flags and --rapid (issue 797)
+        When I open data/hints/html/simple.html
+        And I run :hint --rapid all spawn -v echo
+        And I run :follow-hint a
+        Then the message "Command exited successfully." should be shown
+
+    Scenario: Using :hint run
+        When I open data/hints/html/simple.html
+        And I run :hint all run message-info {hint-url}
+        And I run :follow-hint a
+        Then the message "http://localhost:(port)/data/hello.txt" should be shown
+
+    Scenario: Using :hint fill
+        When I open data/hints/html/simple.html
+        And I run :hint all fill :message-info {hint-url}
+        And I run :follow-hint a
+        And I press the key "<Enter>"
+        Then the message "http://localhost:(port)/data/hello.txt" should be shown
+
+    @posix
+    Scenario: Using :hint userscript
+        When I open data/hints/html/simple.html
+        And I run :hint all userscript (testdata)/userscripts/echo_hint_text
+        And I run :follow-hint a
+        Then the message "Follow me!" should be shown
 
     Scenario: Yanking to primary selection without it being supported (#1336)
         When selection is not supported
