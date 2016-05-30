@@ -355,6 +355,10 @@ Start hinting.
  `window`, `run`, `hover`, `userscript` and `spawn`.
 
 
+==== note
+* This command does not split arguments after the last argument and handles quotes literally.
+* With this command, +;;+ is interpreted literally instead of splitting off a second command.
+
 [[home]]
 === home
 Open main startpage in current tab.

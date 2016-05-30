@@ -124,6 +124,7 @@ def run_command(quteproc, httpbin, command):
     else:
         count = None
     command = command.replace('(port)', str(httpbin.port))
+    command = command.replace('(testdata)', utils.abs_datapath())
 
     quteproc.send_cmd(command, count=count)
 
