@@ -62,6 +62,13 @@ Feature: Using hints
         And I run :follow-hint a
         Then the message "Command exited successfully." should be shown
 
+    @posix
+    Scenario: Using :hint spawn with flags passed to the command (issue 797)
+        When I open data/hints/html/simple.html
+        And I run :hint --rapid all spawn -v echo -e foo
+        And I run :follow-hint a
+        Then the message "Command exited successfully." should be shown
+
     Scenario: Using :hint run
         When I open data/hints/html/simple.html
         And I run :hint all run message-info {hint-url}
