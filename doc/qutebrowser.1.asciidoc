@@ -78,6 +78,9 @@ show it.
 *--debug*::
     Turn on debugging options.
 
+*--json-logging*::
+    Output log lines in JSON format (one object per line).
+
 *--nocolor*::
     Turn off colored logging.
 
