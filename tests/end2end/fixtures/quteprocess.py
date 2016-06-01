@@ -29,6 +29,7 @@ import logging
 import tempfile
 import contextlib
 import itertools
+import json
 
 import yaml
 import pytest
@@ -61,61 +62,64 @@ class LogLine(testprocess.Line):
     """A parsed line from the qutebrowser log output.
 
     Attributes:
-        timestamp/loglevel/category/module/function/line/message:
+        timestamp/loglevel/category/module/function/line/message/levelname:
             Parsed from the log output.
         expected: Whether the message was expected or not.
     """
 
-    LOG_RE = re.compile(r"""
-        (?P<timestamp>\d\d:\d\d:\d\d)
-        \ (?P<loglevel>VDEBUG|DEBUG|INFO|WARNING|ERROR)
-        \ +(?P<category>[\w.]+)
-        \ +(?P<module>(\w+|Unknown\ module)):
-           (?P<function>[^"][^:]*|"[^"]+"):
-           (?P<line>\d+)
-        \ (?P<message>.+)
-    """, re.VERBOSE)
-
     def __init__(self, data):
         super().__init__(data)
-        match = self.LOG_RE.match(data)
-        if match is None:
+        try:
+            line = json.loads(data)
+        except ValueError:
             raise testprocess.InvalidLine(data)
 
-        self.timestamp = datetime.datetime.strptime(match.group('timestamp'),
-                                                    '%H:%M:%S')
-        loglevel = match.group('loglevel')
-        if loglevel == 'VDEBUG':
-            self.loglevel = log.VDEBUG_LEVEL
-        else:
-            self.loglevel = getattr(logging, loglevel)
-
-        self.category = match.group('category')
-
-        module = match.group('module')
-        if module == 'Unknown module':
-            self.module = None
-        else:
-            self.module = module
-
-        function = match.group('function')
-        if function == 'none':
-            self.function = None
-        else:
-            self.function = function.strip('"')
-
-        line = int(match.group('line'))
-        if self.function is None and line == 0:
+        self.timestamp = datetime.datetime.fromtimestamp(line['created'])
+        self.loglevel = line['levelno']
+        self.levelname = line['levelname']
+        self.category = line['name']
+        self.module = line['module']
+        self.function = line['funcName']
+        self.line = line['lineno']
+        if self.function is None and self.line == 0:
             self.line = None
-        else:
-            self.line = line
+        self.traceback = line.get('traceback')
 
+        self.full_message = line['message']
         msg_match = re.match(r'^(\[(?P<prefix>\d+s ago)\] )?(?P<message>.*)',
-                             match.group('message'))
+                             self.full_message, re.DOTALL)
         self.prefix = msg_match.group('prefix')
         self.message = msg_match.group('message')
 
         self.expected = is_ignored_qt_message(self.message)
+
+    def __str__(self):
+        return self.formatted_str(colorized=False)
+
+    def formatted_str(self, colorized=True):
+        """Return a formatted colorized line.
+
+        This returns a line like qute without --json-logging would produce.
+
+        Args:
+            colorized: If True, ANSI color codes will be embedded.
+        """
+        r = logging.LogRecord(self.category, self.loglevel, '', self.line,
+                              self.message, (), None)
+        # Patch some attributes of the LogRecord
+        if self.line is None:
+            r.line = 0
+        r.created = self.timestamp.timestamp()
+        r.module = self.module
+        r.funcName = self.function
+
+        formatter = log.ColoredFormatter(log.EXTENDED_FMT, log.DATEFMT, '{',
+                                         use_colors=colorized)
+        result = formatter.format(r)
+        # Manually append the stringified traceback if one is present
+        if self.traceback is not None:
+            result += '\n' + self.traceback
+        return result
 
 
 class QuteProc(testprocess.Process):
@@ -169,24 +173,17 @@ class QuteProc(testprocess.Process):
             self.ready.emit()
 
     def _parse_line(self, line):
-        # http://stackoverflow.com/a/14693789/2085149
-        colored_line = line
-        ansi_escape = re.compile(r'\x1b[^m]*m')
-        line = ansi_escape.sub('', line)
-
         try:
             log_line = LogLine(line)
         except testprocess.InvalidLine:
-            if line.startswith('  '):
-                # Multiple lines in some log output...
-                return None
-            elif not line.strip():
+            if not line.strip():
                 return None
             elif is_ignored_qt_message(line):
                 return None
             else:
                 raise
 
+        colored_line = log_line.formatted_str()
         self._log(colored_line)
 
         start_okay_message_load = (
@@ -243,7 +240,7 @@ class QuteProc(testprocess.Process):
 
     def _default_args(self):
         return ['--debug', '--no-err-windows', '--temp-basedir',
-                '--force-color', 'about:blank']
+                '--json-logging', 'about:blank']
 
     def path_to_url(self, path, *, port=None, https=False):
         """Get a URL based on a filename for the localhost webserver.

@@ -21,6 +21,8 @@
 
 import pytest
 
+BASE_ARGS = ['--debug', '--json-logging', '--no-err-windows', 'about:blank']
+
 
 @pytest.fixture
 def temp_basedir_env(tmpdir):
@@ -52,7 +54,7 @@ def temp_basedir_env(tmpdir):
 @pytest.mark.linux
 def test_no_config(temp_basedir_env, quteproc_new):
     """Test starting with -c ""."""
-    args = ['--debug', '--no-err-windows', '-c', '', 'about:blank']
+    args = ['-c', ''] + BASE_ARGS
     quteproc_new.start(args, env=temp_basedir_env)
     quteproc_new.send_cmd(':quit')
     quteproc_new.wait_for_quit()
@@ -61,7 +63,7 @@ def test_no_config(temp_basedir_env, quteproc_new):
 @pytest.mark.linux
 def test_no_cache(temp_basedir_env, quteproc_new):
     """Test starting with --cachedir=""."""
-    args = ['--debug', '--no-err-windows', '--cachedir=', 'about:blank']
+    args = ['--cachedir='] + BASE_ARGS
     quteproc_new.start(args, env=temp_basedir_env)
     quteproc_new.send_cmd(':quit')
     quteproc_new.wait_for_quit()
@@ -73,7 +75,7 @@ def test_ascii_locale(httpbin, tmpdir, quteproc_new):
 
     https://github.com/The-Compiler/qutebrowser/issues/908
     """
-    args = ['--debug', '--no-err-windows', '--temp-basedir', 'about:blank']
+    args = ['--temp-basedir'] + BASE_ARGS
     quteproc_new.start(args, env={'LC_ALL': 'C'})
     quteproc_new.set_setting('storage', 'download-directory', str(tmpdir))
     quteproc_new.set_setting('storage', 'prompt-download-directory', 'false')
@@ -89,7 +91,6 @@ def test_ascii_locale(httpbin, tmpdir, quteproc_new):
 
 def test_no_loglines(quteproc_new):
     """Test qute:log with --loglines=0."""
-    quteproc_new.start(args=['--debug', '--no-err-windows', '--temp-basedir',
-                             '--loglines=0', 'about:blank'])
+    quteproc_new.start(args=['--temp-basedir', '--loglines=0'] + BASE_ARGS)
     quteproc_new.open_path('qute:log')
     assert quteproc_new.get_content() == 'Log output was disabled.'
