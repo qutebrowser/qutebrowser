@@ -57,7 +57,7 @@ def get_build_exe_options():
     opts['includes'] += ['unittest.mock', 'PyQt5.QtTest', 'hypothesis', 'bs4',
                          'httpbin', 'jinja2.ext', 'cherrypy.wsgiserver',
                          'cherrypy.wsgiserver.wsgiserver3', 'pstats',
-                         'pytest-rerunfailures']
+                         'pytest_rerunfailures']
 
     httpbin_dir = os.path.dirname(httpbin.__file__)
     opts['include_files'] += [
