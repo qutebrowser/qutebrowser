@@ -56,7 +56,8 @@ def get_build_exe_options():
     opts['includes'] += pytest.freeze_includes()  # pylint: disable=no-member
     opts['includes'] += ['unittest.mock', 'PyQt5.QtTest', 'hypothesis', 'bs4',
                          'httpbin', 'jinja2.ext', 'cherrypy.wsgiserver',
-                         'cherrypy.wsgiserver.wsgiserver3', 'pstats']
+                         'cherrypy.wsgiserver.wsgiserver3', 'pstats',
+                         'pytest-rerunfailures']
 
     httpbin_dir = os.path.dirname(httpbin.__file__)
     opts['include_files'] += [
