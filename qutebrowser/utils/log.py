@@ -28,6 +28,7 @@ import collections
 import faulthandler
 import traceback
 import warnings
+import json
 
 from PyQt5 import QtCore
 # Optional imports
@@ -142,7 +143,7 @@ def init_log(args):
         numeric_level = logging.DEBUG
 
     console, ram = _init_handlers(numeric_level, args.color, args.force_color,
-                                  args.loglines)
+                                  args.json_logging, args.loglines)
     root = logging.getLogger()
     if console is not None:
         if args.logfilter is not None:
@@ -166,17 +167,18 @@ def disable_qt_msghandler():
         QtCore.qInstallMessageHandler(old_handler)
 
 
-def _init_handlers(level, color, force_color, ram_capacity):
+def _init_handlers(level, color, force_color, json_logging, ram_capacity):
     """Init log handlers.
 
     Args:
         level: The numeric logging level.
         color: Whether to use color if available.
         force_color: Force colored output.
+        json_logging: Output log lines in JSON (this disables all colors).
     """
     global ram_handler
     console_fmt, ram_fmt, html_fmt, use_colorama = _init_formatters(
-        level, color, force_color)
+        level, color, force_color, json_logging)
 
     if sys.stderr is None:
         console_handler = None
@@ -201,13 +203,14 @@ def _init_handlers(level, color, force_color, ram_capacity):
     return console_handler, ram_handler
 
 
-def _init_formatters(level, color, force_color):
+def _init_formatters(level, color, force_color, json_logging):
     """Init log formatters.
 
     Args:
         level: The numeric logging level.
         color: Whether to use color if available.
         force_color: Force colored output.
+        json_logging: Format lines as JSON (disables all color).
 
     Return:
         A (console_formatter, ram_formatter, use_colorama) tuple.
@@ -221,6 +224,10 @@ def _init_formatters(level, color, force_color):
                                    log_colors=LOG_COLORS)
     if sys.stderr is None:
         return None, ram_formatter, html_formatter, False
+
+    if json_logging:
+        console_formatter = JSONFormatter()
+        return console_formatter, ram_formatter, html_formatter, False
 
     use_colorama = False
     color_supported = os.name == 'posix' or colorama
@@ -538,3 +545,18 @@ class HTMLFormatter(logging.Formatter):
     def formatTime(self, record, datefmt=None):
         out = super().formatTime(record, datefmt)
         return pyhtml.escape(out)
+
+
+class JSONFormatter(logging.Formatter):
+
+    """Formatter for JSON-encoded log messages."""
+
+    def format(self, record):
+        obj = {}
+        for field in ['created', 'levelname', 'name', 'module', 'funcName',
+                      'lineno', 'levelno']:
+            obj[field] = getattr(record, field)
+        obj['message'] = record.getMessage()
+        if record.exc_info is not None:
+            obj['traceback'] = super().formatException(record.exc_info)
+        return json.dumps(obj)

@@ -50,8 +50,8 @@ def _log_stack(typ, stack):
         stack = stack.splitlines()
     except AttributeError:
         pass
-    indented = '\n'.join('  ' + line.rstrip() for line in stack)
-    log.message.debug("Stack for {} message:\n{}".format(typ, indented))
+    stack_text = '\n'.join(line.rstrip() for line in stack)
+    log.message.debug("Stack for {} message:\n{}".format(typ, stack_text))
 
 
 def _wrapper(win_id, method_name, text, *args, **kwargs):
