@@ -23,5 +23,5 @@ pydocstyle==1.0.0
 pyflakes==1.2.3
 pyparsing==2.1.4
 six==1.10.0
-sortedcontainers==1.5.2
+sortedcontainers==1.5.3
 venusian==1.0
