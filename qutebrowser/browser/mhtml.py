@@ -427,7 +427,7 @@ class _Downloader:
         """
         # This callback is called before _finished, so there's no need to
         # remove the item or close the fileobject.
-        log.downloads.debug("MHTML download cancelled by used: {}".format(url))
+        log.downloads.debug("MHTML download cancelled by user: {}".format(url))
         # Write an empty file instead
         item.fileobj.seek(0)
         item.fileobj.truncate()
