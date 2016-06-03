@@ -130,7 +130,6 @@ Feature: Downloading things from a website.
     Scenario: Cancelling a MHTML download (issue 1535)
         When I open data/downloads/issue1535.html
         And I run :download --mhtml
-        And I wait 1s
         And I run :download-cancel
         Then no crash should happen
 
