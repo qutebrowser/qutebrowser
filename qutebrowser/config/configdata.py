@@ -620,6 +620,11 @@ def data(readonly=False):
              SettingValue(typ.Int(minval=0), '3'),
              "Width of the progress indicator (0 to disable)."),
 
+            ('undo-across-windows',
+             SettingValue(typ.Bool(), 'false'),
+             "Whether the undo command should reopen the last closed tab from "
+             "any open window, rather than just the current one."),
+
             ('tabs-are-windows',
              SettingValue(typ.Bool(), 'false'),
              "Whether to open windows instead of tabs."),
