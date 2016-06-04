@@ -154,7 +154,7 @@ class KeyConfigParser(QObject):
     @cmdutils.argument('win_id', win_id=True)
     @cmdutils.argument('key', completion=usertypes.Completion.empty)
     @cmdutils.argument('command', completion=usertypes.Completion.command)
-    def bind(self, key, win_id, command=None, *, mode=None, force=False):
+    def bind(self, key, win_id, command=None, *, mode='normal', force=False):
         """Bind a key to a command.
 
         Args:
@@ -168,9 +168,6 @@ class KeyConfigParser(QObject):
         if utils.is_special_key(key):
             # <Ctrl-t>, <ctrl-T>, and <ctrl-t> should be considered equivalent
             key = key.lower()
-
-        if mode is None:
-            mode = 'normal'
 
         if command is None:
             cmd = self.get_bindings_for(mode).get(key, None)
@@ -202,7 +199,7 @@ class KeyConfigParser(QObject):
             self._mark_config_dirty()
 
     @cmdutils.register(instance='key-config')
-    def unbind(self, key, mode=None):
+    def unbind(self, key, mode='normal'):
         """Unbind a keychain.
 
         Args:
@@ -214,8 +211,6 @@ class KeyConfigParser(QObject):
             # <Ctrl-t>, <ctrl-T>, and <ctrl-t> should be considered equivalent
             key = key.lower()
 
-        if mode is None:
-            mode = 'normal'
         mode = self._normalize_sectname(mode)
         for m in mode.split(','):
             if m not in configdata.KEY_DATA:
