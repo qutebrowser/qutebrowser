@@ -48,9 +48,24 @@ def test_hints(test_name, zoom_text_only, zoom_level, quteproc):
         soup = bs4.BeautifulSoup(html, 'html.parser')
 
     comment = soup.find(text=lambda text: isinstance(text, bs4.Comment))
-    parsed = yaml.load(comment)
 
-    assert set(parsed.keys()) == {'target'}
+    if comment is None:
+        pytest.fail("No comment found in {}, please read "
+                    "tests/end2end/data/hints/html/README.md".format(
+                        test_name))
+
+    parsed = yaml.load(comment)
+    if not isinstance(parsed, dict):
+        pytest.fail("Invalid comment found in {}, please read "
+                    "tests/end2end/data/hints/html/README.md - "
+                    "expected yaml dict but got {}".format(
+                        test_name, type(parsed).__name__))
+
+    if set(parsed.keys()) != {'target'}:
+        pytest.fail("Invalid comment found in {}, please read "
+                    "tests/end2end/data/hints/html/README.md - "
+                    "expected key 'target' but found {}".format(
+                        test_name, ', '.join(set(parsed.keys()))))
 
     # setup
     quteproc.send_cmd(':set ui zoom-text-only {}'.format(zoom_text_only))
