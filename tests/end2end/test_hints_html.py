@@ -31,7 +31,7 @@ import textwrap
 def collect_tests():
     basedir = os.path.dirname(__file__)
     datadir = os.path.join(basedir, 'data', 'hints', 'html')
-    files = os.listdir(datadir)
+    files = [f for f in os.listdir(datadir) if f != 'README.md']
     return files
 
 
