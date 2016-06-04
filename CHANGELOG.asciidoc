@@ -74,6 +74,7 @@ Fixed
 - Fixed `:debug-console` with PyQt 5.6
 - Fixed qutebrowser not starting when `sys.stderr` is `None`
 - Fixed crash when cancelling a download which belongs to a MHTML download
+- Fixed rebinding of keybindings being case-sensitive
 
 v0.6.2
 ------
