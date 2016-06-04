@@ -345,7 +345,7 @@ class _Downloader:
         self.pending_downloads.add((url, item))
         item.finished.connect(functools.partial(self._finished, url, item))
         item.error.connect(functools.partial(self._error, url, item))
-        item.cancelled.connect(functools.partial(self._error, url, item))
+        item.cancelled.connect(functools.partial(self._cancelled, url, item))
 
     def _finished(self, url, item):
         """Callback when a single asset is downloaded.
@@ -417,6 +417,20 @@ class _Downloader:
         if self.pending_downloads:
             return
         self._finish_file()
+
+    def _cancelled(self, url, item):
+        """Callback when a download is cancelled by the user.
+
+        Args:
+            url: The original url of the asset as QUrl.
+            item: The DownloadItem given by the DownloadManager.
+        """
+        # This callback is called before _finished, so there's no need to
+        # remove the item or close the fileobject.
+        log.downloads.debug("MHTML download cancelled by user: {}".format(url))
+        # Write an empty file instead
+        item.fileobj.seek(0)
+        item.fileobj.truncate()
 
     def _finish_file(self):
         """Save the file to the filename given in __init__."""
