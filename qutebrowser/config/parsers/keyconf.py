@@ -154,7 +154,7 @@ class KeyConfigParser(QObject):
     @cmdutils.argument('win_id', win_id=True)
     @cmdutils.argument('key', completion=usertypes.Completion.empty)
     @cmdutils.argument('command', completion=usertypes.Completion.command)
-    def bind(self, key, win_id, command=None, *, mode=None, force=False):
+    def bind(self, key, win_id, command=None, *, mode='normal', force=False):
         """Bind a key to a command.
 
         Args:
@@ -165,8 +165,9 @@ class KeyConfigParser(QObject):
                   (default: `normal`).
             force: Rebind the key if it is already bound.
         """
-        if mode is None:
-            mode = 'normal'
+        if utils.is_special_key(key):
+            # <Ctrl-t>, <ctrl-T>, and <ctrl-t> should be considered equivalent
+            key = key.lower()
 
         if command is None:
             cmd = self.get_bindings_for(mode).get(key, None)
@@ -198,7 +199,7 @@ class KeyConfigParser(QObject):
             self._mark_config_dirty()
 
     @cmdutils.register(instance='key-config')
-    def unbind(self, key, mode=None):
+    def unbind(self, key, mode='normal'):
         """Unbind a keychain.
 
         Args:
@@ -206,8 +207,10 @@ class KeyConfigParser(QObject):
             mode: A comma-separated list of modes to unbind the key in
                   (default: `normal`).
         """
-        if mode is None:
-            mode = 'normal'
+        if utils.is_special_key(key):
+            # <Ctrl-t>, <ctrl-T>, and <ctrl-t> should be considered equivalent
+            key = key.lower()
+
         mode = self._normalize_sectname(mode)
         for m in mode.split(','):
             if m not in configdata.KEY_DATA:
@@ -377,6 +380,9 @@ class KeyConfigParser(QObject):
 
     def _add_binding(self, sectname, keychain, command, *, force=False):
         """Add a new binding from keychain to command in section sectname."""
+        if utils.is_special_key(keychain):
+            # <Ctrl-t>, <ctrl-T>, and <ctrl-t> should be considered equivalent
+            keychain = keychain.lower()
         log.keyboard.vdebug("Adding binding {} -> {} in mode {}.".format(
             keychain, command, sectname))
         if sectname not in self.keybindings:
