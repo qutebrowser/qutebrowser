@@ -165,6 +165,10 @@ class KeyConfigParser(QObject):
                   (default: `normal`).
             force: Rebind the key if it is already bound.
         """
+        if utils.is_special_key(key):
+            # <Ctrl-t>, <ctrl-T>, and <ctrl-t> should be considered equivalent
+            key = key.lower()
+
         if mode is None:
             mode = 'normal'
 
@@ -206,6 +210,10 @@ class KeyConfigParser(QObject):
             mode: A comma-separated list of modes to unbind the key in
                   (default: `normal`).
         """
+        if utils.is_special_key(key):
+            # <Ctrl-t>, <ctrl-T>, and <ctrl-t> should be considered equivalent
+            key = key.lower()
+
         if mode is None:
             mode = 'normal'
         mode = self._normalize_sectname(mode)
@@ -377,6 +385,9 @@ class KeyConfigParser(QObject):
 
     def _add_binding(self, sectname, keychain, command, *, force=False):
         """Add a new binding from keychain to command in section sectname."""
+        if utils.is_special_key(keychain):
+            # <Ctrl-t>, <ctrl-T>, and <ctrl-t> should be considered equivalent
+            keychain = keychain.lower()
         log.keyboard.vdebug("Adding binding {} -> {} in mode {}.".format(
             keychain, command, sectname))
         if sectname not in self.keybindings:
