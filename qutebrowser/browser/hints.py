@@ -846,7 +846,7 @@ class HintManager(QObject):
         if rapid:
             if target in [Target.tab_bg, Target.window, Target.run,
                           Target.hover, Target.userscript, Target.spawn,
-                          Target.download]:
+                          Target.download, Target.normal, Target.current]:
                 pass
             elif (target == Target.tab and
                   config.get('tabs', 'background-tabs')):
