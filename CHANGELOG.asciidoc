@@ -54,6 +54,9 @@ Changed
 - URLs are now shown decoded when hovering.
 - Keybindings are now shown in the command completion
 - Improved behavior when pasting multiple lines
+- Rapid hints can now also be used for the `normal` hint target, which can be
+  useful with javascript click handlers or checkboxes which don't actually open
+  a new page.
 
 Fixed
 -----
