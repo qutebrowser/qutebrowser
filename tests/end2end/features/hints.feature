@@ -97,6 +97,16 @@ Feature: Using hints
         And I run :follow-hint a
         Then the clipboard should contain "http://localhost:(port)/data/hello.txt"
 
+    Scenario: Using hint --rapid to hit multiple buttons
+        When I open data/hints/buttons.html
+        And I run :hint --rapid
+        And I run :follow-hint s
+        And I run :follow-hint d
+        And I run :follow-hint f
+        Then the javascript message "beep!" should be logged
+        And the javascript message "bop!" should be logged
+        And the javascript message "boop!" should be logged
+
     ### iframes
     ### FIXME currenly skipped, see https://github.com/The-Compiler/qutebrowser/issues/1525
 
