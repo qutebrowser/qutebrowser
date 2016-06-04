@@ -45,6 +45,22 @@ Feature: Keyboard input
         And I run :bind --mode=caret test08
         Then the message "test08 is bound to 'message-info bar' in caret mode" should be shown
 
+    Scenario: Binding special keys with differing case (issue 1544)
+        When I run :bind <ctrl-test21> message-info test01
+        And I run :bind <Ctrl-Test21> message-info test01
+        Then the error "Duplicate keychain <ctrl-test21> - use --force to override!" should be shown
+
+    Scenario: Print a special binding with differing case (issue 1544)
+        When I run :bind <Ctrl-Test22> message-info foo
+        And I run :bind <ctrl-test22>
+        Then the message "<ctrl-test22> is bound to 'message-info foo' in normal mode" should be shown
+
+    Scenario: Overriding a special binding with differing case (issue 816)
+        When I run :bind <ctrl-test23> message-info foo
+        And I run :bind --force <Ctrl-Test23> message-info bar
+        And I run :bind <ctrl-test23>
+        Then the message "<ctrl-test23> is bound to 'message-info bar' in normal mode" should be shown
+
     # :unbind
 
     Scenario: Binding and unbinding a keychain
@@ -66,6 +82,12 @@ Feature: Keyboard input
         And I press the key "o"
         Then "No binding found for o." should be logged
         # maybe check it's unbound in the config?
+
+    Scenario: Binding and unbinding a special keychain with differing case (issue 1544)
+        When I run :bind <ctrl-test24> message-error test09
+        And I run :unbind <Ctrl-Test24>
+        When I run :bind <ctrl-test24>
+        Then the message "<ctrl-test24> is unbound in normal mode" should be shown
 
     # :clear-keychain
 
