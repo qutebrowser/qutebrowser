@@ -15,6 +15,8 @@ image:https://requires.io/github/The-Compiler/qutebrowser/requirements.svg?branc
 image:https://travis-ci.org/The-Compiler/qutebrowser.svg?branch=master["Build Status", link="https://travis-ci.org/The-Compiler/qutebrowser"]
 image:https://ci.appveyor.com/api/projects/status/9gmnuip6i1oq7046?svg=true["AppVeyor build status", link="https://ci.appveyor.com/project/The-Compiler/qutebrowser"]
 image:https://codecov.io/github/The-Compiler/qutebrowser/coverage.svg?branch=master["coverage badge",link="https://codecov.io/github/The-Compiler/qutebrowser?branch=master"]
+
+link:http://www.qutebrowser.org[website] | link:http://blog.qutebrowser.org[blog] | link:https://github.com/The-Compiler/qutebrowser/releases[releases]
 // QUTE_WEB_HIDE_END
 
 qutebrowser is a keyboard-focused browser with a minimal GUI. It's based
