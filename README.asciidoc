@@ -202,6 +202,7 @@ Contributors, sorted by the number of commits in descending order:
 * Franz Fellner
 * zwarag
 * xd1le
+* oniondreams
 * issue
 * haxwithaxe
 * evan
