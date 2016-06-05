@@ -121,6 +121,13 @@ Make sure you have `python3_4` in your `PYTHON_TARGETS`
 (`/etc/portage/make.conf`) and rebuild your system (`emerge -uDNav @world`) if
 necessary.
 
+If video or sound don't seem to work, try installing the gstreamer plugins:
+
+----
+# emerge -av gst-plugins-{base,good,bad,ugly,libav}
+----
+
+
 On Void Linux
 -------------
 
