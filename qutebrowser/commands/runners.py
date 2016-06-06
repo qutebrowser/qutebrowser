@@ -72,10 +72,12 @@ class CommandRunner(QObject):
 
     Attributes:
         _win_id: The window this CommandRunner is associated with.
+        _partial_match: Whether to allow partial command matches.
     """
 
-    def __init__(self, win_id, parent=None):
+    def __init__(self, win_id, partial_match=False, parent=None):
         super().__init__(parent)
+        self._partial_match = partial_match
         self._win_id = win_id
 
     def _get_alias(self, text):
@@ -173,7 +175,8 @@ class CommandRunner(QObject):
                 return self.parse(new_cmd, aliases=False, fallback=fallback,
                                   keep=keep)
 
-        cmdstr = self._completion_match(cmdstr)
+        if self._partial_match:
+            cmdstr = self._completion_match(cmdstr)
 
         try:
             cmd = cmdutils.cmd_dict[cmdstr]

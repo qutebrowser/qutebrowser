@@ -158,7 +158,8 @@ class MainWindow(QWidget):
 
         self._completion = completionwidget.CompletionView(self.win_id, self)
 
-        self._commandrunner = runners.CommandRunner(self.win_id)
+        self._commandrunner = runners.CommandRunner(self.win_id,
+                                                    partial_match=True)
 
         self._keyhint = keyhintwidget.KeyHintView(self.win_id, self)
 
