@@ -136,6 +136,7 @@ class QuteProc(testprocess.Process):
         _profile: If True, do profiling of the subprocesses.
         _instance_id: An unique ID for this QuteProc instance
         _run_counter: A counter to get an unique ID for each run.
+        _config: The pytest config object
 
     Signals:
         got_error: Emitted when there was an error log line.
@@ -146,7 +147,8 @@ class QuteProc(testprocess.Process):
     KEYS = ['timestamp', 'loglevel', 'category', 'module', 'function', 'line',
             'message']
 
-    def __init__(self, httpbin, delay, *, profile=False, parent=None):
+    def __init__(self, httpbin, delay, *, profile=False, config=None,
+                 parent=None):
         super().__init__(parent)
         self._profile = profile
         self._delay = delay
@@ -157,6 +159,7 @@ class QuteProc(testprocess.Process):
         self._load_ready = False
         self._instance_id = next(instance_counter)
         self._run_counter = itertools.count()
+        self._config = config
 
     def _is_ready(self, what):
         """Called by _parse_line if loading/focusing is done.
@@ -183,8 +186,11 @@ class QuteProc(testprocess.Process):
             else:
                 raise
 
-        colored_line = log_line.formatted_str()
-        self._log(colored_line)
+        if self._config.getoption('--color') != 'no':
+            line_to_log = log_line.formatted_str()
+        else:
+            line_to_log = log_line.formatted_str(colorized=False)
+        self._log(line_to_log)
 
         start_okay_message_load = (
             "load status for <qutebrowser.browser.webview.WebView tab_id=0 "
@@ -554,7 +560,7 @@ def quteproc_process(qapp, httpbin, request):
     """Fixture for qutebrowser process which is started once per file."""
     delay = request.config.getoption('--qute-delay')
     profile = request.config.getoption('--qute-profile-subprocs')
-    proc = QuteProc(httpbin, delay, profile=profile)
+    proc = QuteProc(httpbin, delay, profile=profile, config=request.config)
     proc.start()
     yield proc
     proc.terminate()
@@ -574,7 +580,7 @@ def quteproc_new(qapp, httpbin, request):
     """Per-test qutebrowser process to test invocations."""
     delay = request.config.getoption('--qute-delay')
     profile = request.config.getoption('--qute-profile-subprocs')
-    proc = QuteProc(httpbin, delay, profile=profile)
+    proc = QuteProc(httpbin, delay, profile=profile, config=request.config)
     request.node._quteproc_log = proc.captured_log
     # Not calling before_test here as that would start the process
     yield proc
