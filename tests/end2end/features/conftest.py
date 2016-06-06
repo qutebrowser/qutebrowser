@@ -46,9 +46,13 @@ def pytest_runtest_makereport(item, call):
     if report.passed:
         return
 
-    if not hasattr(report.longrepr, 'addsection'):
+    if (not hasattr(report.longrepr, 'addsection') or
+            not hasattr(report, 'scenario')):
         # In some conditions (on OS X and Windows it seems), report.longrepr is
         # actually a tuple. This is handled similarily in pytest-qt too.
+        #
+        # Since this hook is invoked for any test, we also need to skip it for
+        # non-BDD ones.
         return
 
     if sys.stdout.isatty() and item.config.getoption('--color') != 'no':
