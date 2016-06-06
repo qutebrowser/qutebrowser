@@ -429,7 +429,7 @@ def rect_on_view(elem, *, elem_geometry=None, adjust_zoom=True):
     else:
         geometry = elem_geometry
     frame = elem.webFrame()
-    rect = QRect(elem_geometry)
+    rect = QRect(geometry)
     while frame is not None:
         rect.translate(frame.geometry().topLeft())
         rect.translate(frame.scrollPosition() * -1)
