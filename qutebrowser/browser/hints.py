@@ -376,7 +376,7 @@ class HintManager(QObject):
             elem: The QWebElement to set the style attributes for.
             label: The label QWebElement.
         """
-        rect = self._get_first_rectangle(elem)
+        rect = self._get_first_rectangle(elem, adjust_zoom=False)
         left = rect.x()
         top = rect.y()
         log.hints.vdebug("Drawing label '{!r}' at {}/{} for element '{!r}'"
@@ -417,7 +417,7 @@ class HintManager(QObject):
         message.error(self._win_id, "No suitable link found for this element.",
                       immediately=True)
 
-    def _get_first_rectangle(self, elem):
+    def _get_first_rectangle(self, elem, *, adjust_zoom=True):
         """Return the element's first client rectangle with positive size.
 
         Uses the getClientRects() JavaScript method to obtain the collection of
@@ -431,6 +431,8 @@ class HintManager(QObject):
 
         Args:
             elem: The QWebElement of interest.
+            adjust_zoom: Whether to adjust the element position based on the
+                         current zoom level.
         """
         rects = elem.evaluateJavaScript("this.getClientRects()")
         log.hints.vdebug("Client rectangles of element '{}': {}"
@@ -442,7 +444,7 @@ class HintManager(QObject):
             if width > 1 and height > 1:
                 # fix coordinates according to zoom level
                 zoom = elem.webFrame().zoomFactor()
-                if not config.get('ui', 'zoom-text-only'):
+                if not config.get('ui', 'zoom-text-only') and adjust_zoom:
                     rect["left"] *= zoom
                     rect["top"] *= zoom
                     width *= zoom
@@ -455,7 +457,14 @@ class HintManager(QObject):
                     rect.translate(frame.geometry().topLeft())
                     frame = frame.parentFrame()
                 return rect
-        return elem.rect_on_view()
+
+        # No suitable rects found via JS, try via the QWebElement API
+        rect = elem.rect_on_view()
+        zoom = elem.webFrame().zoomFactor()
+        if not config.get('ui', 'zoom-text-only'):
+            rect.setLeft(rect.left() / zoom)
+            rect.setTop(rect.top() / zoom)
+        return rect
 
     def _click(self, elem, context):
         """Click an element.
