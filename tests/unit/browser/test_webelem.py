@@ -49,6 +49,7 @@ def get_webelem(geometry=None, frame=None, null=False, style=None,
         tagname: The tag name.
         classes: HTML classes to be added.
     """
+    # pylint: disable=too-many-locals
     elem = mock.Mock()
     elem.isNull.return_value = null
     elem.geometry.return_value = geometry
@@ -57,6 +58,25 @@ def get_webelem(geometry=None, frame=None, null=False, style=None,
     elem.toOuterXml.return_value = '<fakeelem/>'
     elem.toPlainText.return_value = 'text'
     elem.parent.return_value = parent
+
+    if geometry is not None:
+        if frame is None:
+            scroll_x = 0
+            scroll_y = 0
+        else:
+            scroll_x = frame.scrollPosition().x()
+            scroll_y = frame.scrollPosition().y()
+        elem.evaluateJavaScript.return_value = {
+            "length": 1,
+            "0": {
+                "left": geometry.left() - scroll_x,
+                "top": geometry.top() - scroll_y,
+                "right": geometry.right() - scroll_x,
+                "bottom": geometry.bottom() - scroll_y,
+                "width": geometry.width(),
+                "height": geometry.height(),
+            }
+        }
 
     attribute_dict = {}
     if attributes is None:
@@ -92,6 +112,17 @@ def get_webelem(geometry=None, frame=None, null=False, style=None,
     elem.styleProperty.side_effect = _style_property
     wrapped = webelem.WebElementWrapper(elem)
     return wrapped
+
+
+@pytest.fixture(autouse=True)
+def stubbed_config(config_stub, monkeypatch):
+    """Add a zoom-text-only fake config value.
+
+    This is needed for all the tests calling rect_on_view or is_visible.
+    """
+    config_stub.data = {'ui': {'zoom-text-only': 'true'}}
+    monkeypatch.setattr('qutebrowser.browser.webelem.config', config_stub)
+    return config_stub
 
 
 class SelectionAndFilterTests:
@@ -618,9 +649,10 @@ class TestRectOnView:
 
     def test_passed_geometry(self, stubs):
         """Make sure geometry isn't called when a geometry is passed."""
-        raw_elem = get_webelem()._elem
+        frame = stubs.FakeWebFrame(QRect(0, 0, 200, 200))
+        raw_elem = get_webelem(frame=frame)._elem
         rect = QRect(10, 20, 30, 40)
-        assert webelem.rect_on_view(raw_elem, rect) == rect
+        assert webelem.rect_on_view(raw_elem, elem_geometry=rect) == rect
         assert not raw_elem.geometry.called
 
 

@@ -26,7 +26,7 @@ import re
 import string
 
 from PyQt5.QtCore import (pyqtSignal, pyqtSlot, QObject, QEvent, Qt, QUrl,
-                          QTimer, QRect)
+                          QTimer)
 from PyQt5.QtGui import QMouseEvent
 from PyQt5.QtWebKit import QWebElement
 from PyQt5.QtWebKitWidgets import QWebPage
@@ -376,7 +376,7 @@ class HintManager(QObject):
             elem: The QWebElement to set the style attributes for.
             label: The label QWebElement.
         """
-        rect = self._get_first_rectangle(elem, adjust_zoom=False)
+        rect = elem.rect_on_view(adjust_zoom=False)
         left = rect.x()
         top = rect.y()
         log.hints.vdebug("Drawing label '{!r}' at {}/{} for element '{!r}'"
@@ -417,55 +417,6 @@ class HintManager(QObject):
         message.error(self._win_id, "No suitable link found for this element.",
                       immediately=True)
 
-    def _get_first_rectangle(self, elem, *, adjust_zoom=True):
-        """Return the element's first client rectangle with positive size.
-
-        Uses the getClientRects() JavaScript method to obtain the collection of
-        rectangles containing the element and returns the first rectangle which
-        is large enough (larger than 1px times 1px). If all rectangles returned
-        by getClientRects() are too small, falls back to elem.rect_on_view().
-
-        Skipping of small rectangles is due to <a> elements containing other
-        elements with "display:block" style, see
-        https://github.com/The-Compiler/qutebrowser/issues/1298
-
-        Args:
-            elem: The QWebElement of interest.
-            adjust_zoom: Whether to adjust the element position based on the
-                         current zoom level.
-        """
-        rects = elem.evaluateJavaScript("this.getClientRects()")
-        log.hints.vdebug("Client rectangles of element '{}': {}"
-                .format(elem.debug_text(), rects))
-        for i in range(int(rects.get("length", 0))):
-            rect = rects[str(i)]
-            width = rect.get("width", 0)
-            height = rect.get("height", 0)
-            if width > 1 and height > 1:
-                # fix coordinates according to zoom level
-                zoom = elem.webFrame().zoomFactor()
-                if not config.get('ui', 'zoom-text-only') and adjust_zoom:
-                    rect["left"] *= zoom
-                    rect["top"] *= zoom
-                    width *= zoom
-                    height *= zoom
-                rect = QRect(rect["left"], rect["top"], width, height)
-                frame = elem.webFrame()
-                while frame is not None:
-                    # Translate to parent frames' position
-                    # (scroll position is taken care of inside getClientRects)
-                    rect.translate(frame.geometry().topLeft())
-                    frame = frame.parentFrame()
-                return rect
-
-        # No suitable rects found via JS, try via the QWebElement API
-        rect = elem.rect_on_view()
-        zoom = elem.webFrame().zoomFactor()
-        if not config.get('ui', 'zoom-text-only'):
-            rect.setLeft(rect.left() / zoom)
-            rect.setTop(rect.top() / zoom)
-        return rect
-
     def _click(self, elem, context):
         """Click an element.
 
@@ -490,7 +441,7 @@ class HintManager(QObject):
         # corner of the rectangle, this will help if part of the <a> element
         # is hidden behind other elements
         # https://github.com/The-Compiler/qutebrowser/issues/1005
-        rect = self._get_first_rectangle(elem)
+        rect = elem.rect_on_view()
         if rect.width() > rect.height():
             rect.setWidth(rect.height())
         else:
