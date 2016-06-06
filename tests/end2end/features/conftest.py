@@ -123,10 +123,18 @@ def run_command(quteproc, httpbin, command):
         count = int(count)
     else:
         count = None
+
+    invalid_tag = ' (invalid command)'
+    if command.endswith(invalid_tag):
+        command = command[:-len(invalid_tag)]
+        invalid = True
+    else:
+        invalid = False
+
     command = command.replace('(port)', str(httpbin.port))
     command = command.replace('(testdata)', utils.abs_datapath())
 
-    quteproc.send_cmd(command, count=count)
+    quteproc.send_cmd(command, count=count, invalid=invalid)
 
 
 @bdd.when(bdd.parsers.parse("I reload"))
