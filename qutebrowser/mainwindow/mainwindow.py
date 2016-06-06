@@ -296,7 +296,6 @@ class MainWindow(QWidget):
             status.keystring.setText)
         cmd.got_cmd.connect(self._commandrunner.run_safely)
         cmd.returnPressed.connect(tabs.on_cmd_return_pressed)
-        tabs.got_cmd.connect(self._commandrunner.run_safely)
 
         # key hint popup
         for mode, parser in keyparsers.items():
