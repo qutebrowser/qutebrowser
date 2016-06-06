@@ -70,3 +70,15 @@ Feature: Opening external editors
         And I set up a fake editor replacing "http://localhost:(port)/data/hello.txt" by "foo!"
         And I run :edit-url
         Then the error "Invalid URL" should be shown
+
+    Scenario: Spawning an editor successfully
+        When I set up a fake editor returning "foobar"
+        And I open data/editor.html
+        And I run :hint all
+        And I run :follow-hint a
+        And I wait for "Clicked editable element!" in the log
+        And I run :open-editor
+        And I wait for "Read back: foobar" in the log
+        And I run :hint all
+        And I run :follow-hint s
+        Then the javascript message "text: foobar" should be logged

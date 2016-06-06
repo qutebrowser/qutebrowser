@@ -1,0 +1,17 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <meta charset="utf-8">
+        <title>Textarea</title>
+        <script type="text/javascript">
+            function log_text() {
+                elem = document.getElementById("qute-textarea");
+                console.log("text: " + elem.value);
+            }
+        </script>
+    </head>
+    <body>
+        <textarea id="qute-textarea"></textarea>
+        <input type="button" onclick="log_text()" value="Log text">
+    </body>
+</html>
