@@ -367,7 +367,7 @@ def run(cmd, *args, win_id, env, verbose=False):
     """
     tabbed_browser = objreg.get('tabbed-browser', scope='window',
                                 window=win_id)
-    commandrunner = runners.CommandRunner(win_id, tabbed_browser)
+    commandrunner = runners.CommandRunner(win_id, parent=tabbed_browser)
     runner = UserscriptRunner(win_id, tabbed_browser)
     runner.got_cmd.connect(
         lambda cmd:
