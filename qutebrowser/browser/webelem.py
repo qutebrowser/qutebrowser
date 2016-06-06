@@ -438,8 +438,9 @@ def rect_on_view(elem, *, elem_geometry=None, adjust_zoom=True):
     if elem_geometry is None:
         zoom = elem.webFrame().zoomFactor()
         if not config.get('ui', 'zoom-text-only'):
-            rect.setLeft(rect.left() / zoom)
-            rect.setTop(rect.top() / zoom)
+            rect.moveTo(rect.left() / zoom, rect.top() / zoom)
+            rect.setWidth(rect.width() / zoom)
+            rect.setHeight(rect.height() / zoom)
     return rect
 
 
