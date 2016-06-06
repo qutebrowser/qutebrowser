@@ -425,7 +425,9 @@ def rect_on_view(elem, *, elem_geometry=None, adjust_zoom=True):
 
     # No suitable rects found via JS, try via the QWebElement API
     if elem_geometry is None:
-        elem_geometry = elem.geometry()
+        geometry = elem.geometry()
+    else:
+        geometry = elem_geometry
     frame = elem.webFrame()
     rect = QRect(elem_geometry)
     while frame is not None:
@@ -433,10 +435,11 @@ def rect_on_view(elem, *, elem_geometry=None, adjust_zoom=True):
         rect.translate(frame.scrollPosition() * -1)
         frame = frame.parentFrame()
     # We deliberately always adjust the zoom here, even with adjust_zoom=False
-    zoom = elem.webFrame().zoomFactor()
-    if not config.get('ui', 'zoom-text-only'):
-        rect.setLeft(rect.left() / zoom)
-        rect.setTop(rect.top() / zoom)
+    if elem_geometry is None:
+        zoom = elem.webFrame().zoomFactor()
+        if not config.get('ui', 'zoom-text-only'):
+            rect.setLeft(rect.left() / zoom)
+            rect.setTop(rect.top() / zoom)
     return rect
 
 
