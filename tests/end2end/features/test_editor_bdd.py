@@ -46,7 +46,7 @@ def set_up_editor_replacement(quteproc, httpbin, tmpdir, text, replacement):
 
 
 @bdd.when(bdd.parsers.parse('I set up a fake editor returning "{text}"'))
-def set_up_editor_replacement(quteproc, httpbin, tmpdir, text):
+def set_up_editor(quteproc, httpbin, tmpdir, text):
     """Set up general->editor to a small python script inserting a text."""
     script = tmpdir / 'script.py'
     script.write(textwrap.dedent("""
