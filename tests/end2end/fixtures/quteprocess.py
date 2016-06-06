@@ -335,7 +335,8 @@ class QuteProc(testprocess.Process):
 
         Args:
             count: The count to pass to the command.
-            invalid: If True, we don't wait for "command called: ..." in the log
+            invalid: If True, we don't wait for "command called: ..." in the
+                     log
         """
         summary = command
         if count is not None:
