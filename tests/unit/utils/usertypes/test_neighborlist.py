@@ -172,14 +172,6 @@ class TestSingleItem:
     def neighborlist(self):
         return usertypes.NeighborList([1], default=1)
 
-    def test_first_wrap(self, neighborlist):
-        """Test out of bounds previtem() with mode=wrap."""
-        neighborlist._mode = usertypes.NeighborList.Modes.wrap
-        neighborlist.firstitem()
-        assert neighborlist._idx == 0
-        assert neighborlist.previtem() == 1
-        assert neighborlist._idx == 0
-
     def test_first_block(self, neighborlist):
         """Test out of bounds previtem() with mode=block."""
         neighborlist._mode = usertypes.NeighborList.Modes.block
@@ -195,14 +187,6 @@ class TestSingleItem:
         assert neighborlist._idx == 0
         with pytest.raises(IndexError):
             neighborlist.previtem()
-        assert neighborlist._idx == 0
-
-    def test_last_wrap(self, neighborlist):
-        """Test out of bounds nextitem() with mode=wrap."""
-        neighborlist._mode = usertypes.NeighborList.Modes.wrap
-        neighborlist.lastitem()
-        assert neighborlist._idx == 0
-        assert neighborlist.nextitem() == 1
         assert neighborlist._idx == 0
 
     def test_last_block(self, neighborlist):
@@ -246,30 +230,6 @@ class TestBlockMode:
         assert neighborlist._idx == 4
         assert neighborlist.nextitem() == 5
         assert neighborlist._idx == 4
-
-
-class TestWrapMode:
-
-    """Tests with mode=wrap."""
-
-    @pytest.fixture
-    def neighborlist(self):
-        return usertypes.NeighborList(
-            [1, 2, 3, 4, 5], default=3, mode=usertypes.NeighborList.Modes.wrap)
-
-    def test_first(self, neighborlist):
-        """Test out of bounds previtem()."""
-        neighborlist.firstitem()
-        assert neighborlist._idx == 0
-        assert neighborlist.previtem() == 5
-        assert neighborlist._idx == 4
-
-    def test_last(self, neighborlist):
-        """Test out of bounds nextitem()."""
-        neighborlist.lastitem()
-        assert neighborlist._idx == 4
-        assert neighborlist.nextitem() == 1
-        assert neighborlist._idx == 0
 
 
 class TestExceptionMode:
