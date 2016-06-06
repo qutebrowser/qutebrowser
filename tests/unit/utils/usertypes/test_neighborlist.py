@@ -172,9 +172,9 @@ class TestSingleItem:
     def neighborlist(self):
         return usertypes.NeighborList([1], default=1)
 
-    def test_first_block(self, neighborlist):
-        """Test out of bounds previtem() with mode=block."""
-        neighborlist._mode = usertypes.NeighborList.Modes.block
+    def test_first_edge(self, neighborlist):
+        """Test out of bounds previtem() with mode=edge."""
+        neighborlist._mode = usertypes.NeighborList.Modes.edge
         neighborlist.firstitem()
         assert neighborlist._idx == 0
         assert neighborlist.previtem() == 1
@@ -189,9 +189,9 @@ class TestSingleItem:
             neighborlist.previtem()
         assert neighborlist._idx == 0
 
-    def test_last_block(self, neighborlist):
-        """Test out of bounds nextitem() with mode=block."""
-        neighborlist._mode = usertypes.NeighborList.Modes.block
+    def test_last_edge(self, neighborlist):
+        """Test out of bounds nextitem() with mode=edge."""
+        neighborlist._mode = usertypes.NeighborList.Modes.edge
         neighborlist.lastitem()
         assert neighborlist._idx == 0
         assert neighborlist.nextitem() == 1
@@ -207,15 +207,15 @@ class TestSingleItem:
         assert neighborlist._idx == 0
 
 
-class TestBlockMode:
+class TestEdgeMode:
 
-    """Tests with mode=block."""
+    """Tests with mode=edge."""
 
     @pytest.fixture
     def neighborlist(self):
         return usertypes.NeighborList(
             [1, 2, 3, 4, 5], default=3,
-            mode=usertypes.NeighborList.Modes.block)
+            mode=usertypes.NeighborList.Modes.edge)
 
     def test_first(self, neighborlist):
         """Test out of bounds previtem()."""

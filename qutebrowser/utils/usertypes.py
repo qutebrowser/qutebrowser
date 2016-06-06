@@ -65,7 +65,7 @@ class NeighborList(collections.abc.Sequence):
         _mode: The current mode.
     """
 
-    Modes = enum('Modes', ['block', 'exception'])
+    Modes = enum('Modes', ['edge', 'exception'])
 
     def __init__(self, items=None, default=_UNSET, mode=Modes.exception):
         """Constructor.
@@ -74,7 +74,7 @@ class NeighborList(collections.abc.Sequence):
             items: The list of items to iterate in.
             _default: The initially selected value.
             _mode: Behavior when the first/last item is reached.
-                   Modes.block: Stay on the selected item
+                   Modes.edge: Go to the first/last item
                    Modes.exception: Raise an IndexError.
         """
         if not isinstance(mode, self.Modes):
@@ -140,8 +140,13 @@ class NeighborList(collections.abc.Sequence):
             else:
                 raise IndexError
         except IndexError:
-            if self._mode == self.Modes.block:
-                new = self.curitem()
+            if self._mode == self.Modes.edge:
+                if offset == 0:
+                    new = self.curitem()
+                elif offset > 0:
+                    new = self.lastitem()
+                else:
+                    new = self.firstitem()
             elif self._mode == self.Modes.exception:  # pragma: no branch
                 raise
         else:

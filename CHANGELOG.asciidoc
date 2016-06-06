@@ -57,6 +57,8 @@ Changed
 - Rapid hints can now also be used for the `normal` hint target, which can be
   useful with javascript click handlers or checkboxes which don't actually open
   a new page.
+- `:zoom-in` or `:zoom-out` (`+`/`-`) with a too large count now zooms to the
+  smallest/largest zoom instead of doing nothing.
 
 Fixed
 -----
