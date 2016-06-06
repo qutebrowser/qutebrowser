@@ -154,6 +154,7 @@ def init_log(args):
     root.setLevel(logging.NOTSET)
     logging.captureWarnings(True)
     warnings.simplefilter('default')
+    warnings.filterwarnings('ignore', module='pdb', category=ResourceWarning)
     QtCore.qInstallMessageHandler(qt_message_handler)
 
 
