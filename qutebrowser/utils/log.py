@@ -38,6 +38,10 @@ except ImportError:
     colorama = None
 
 COLORS = ['black', 'red', 'green', 'yellow', 'blue', 'purple', 'cyan', 'white']
+COLOR_ESCAPES = {color: '\033[{}m'.format(i)
+                 for i, color in enumerate(COLORS, start=30)}
+RESET_ESCAPE = '\033[0m'
+
 
 # Log formats to use.
 SIMPLE_FMT = ('{green}{asctime:8}{reset} {log_color}{levelname}{reset}: '
@@ -473,15 +477,7 @@ class ColoredFormatter(logging.Formatter):
 
     Attributes:
         use_colors: Whether to do colored logging or not.
-
-    Class attributes:
-        COLOR_ESCAPES: A dict mapping color names to escape sequences
-        RESET_ESCAPE: The escape sequence using for resetting colors
     """
-
-    COLOR_ESCAPES = {color: '\033[{}m'.format(i)
-                     for i, color in enumerate(COLORS, start=30)}
-    RESET_ESCAPE = '\033[0m'
 
     def __init__(self, fmt, datefmt, style, *, use_colors):
         super().__init__(fmt, datefmt, style)
@@ -489,12 +485,12 @@ class ColoredFormatter(logging.Formatter):
 
     def format(self, record):
         if self._use_colors:
-            color_dict = dict(self.COLOR_ESCAPES)
-            color_dict['reset'] = self.RESET_ESCAPE
+            color_dict = dict(COLOR_ESCAPES)
+            color_dict['reset'] = RESET_ESCAPE
             log_color = LOG_COLORS[record.levelname]
-            color_dict['log_color'] = self.COLOR_ESCAPES[log_color]
+            color_dict['log_color'] = COLOR_ESCAPES[log_color]
         else:
-            color_dict = {color: '' for color in self.COLOR_ESCAPES}
+            color_dict = {color: '' for color in COLOR_ESCAPES}
             color_dict['reset'] = ''
             color_dict['log_color'] = ''
         record.__dict__.update(color_dict)

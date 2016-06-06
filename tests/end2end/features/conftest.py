@@ -20,6 +20,7 @@
 """Steps for bdd-like tests."""
 
 import re
+import sys
 import time
 import json
 import os.path
@@ -30,7 +31,67 @@ import textwrap
 import pytest
 import pytest_bdd as bdd
 
+from qutebrowser.utils import log
 from helpers import utils
+
+
+@pytest.hookimpl(hookwrapper=True)
+def pytest_runtest_makereport(item, call):
+    """Add a BDD section to the test output."""
+    outcome = yield
+    if call.when not in ['call', 'teardown']:
+        return
+    report = outcome.get_result()
+
+    if report.passed:
+        return
+
+    if not hasattr(report.longrepr, 'addsection'):
+        # In some conditions (on OS X and Windows it seems), report.longrepr is
+        # actually a tuple. This is handled similarily in pytest-qt too.
+        return
+
+    if sys.stdout.isatty() and item.config.getoption('--color') != 'no':
+        colors = {
+            'failed': log.COLOR_ESCAPES['red'],
+            'passed': log.COLOR_ESCAPES['green'],
+            'keyword': log.COLOR_ESCAPES['cyan'],
+            'reset': log.RESET_ESCAPE,
+        }
+    else:
+        colors = {
+            'failed': '',
+            'passed': '',
+            'keyword': '',
+            'reset': '',
+        }
+
+    output = []
+    output.append("{kw_color}Feature:{reset} {name}".format(
+        kw_color=colors['keyword'],
+        name=report.scenario['feature']['name'],
+        reset=colors['reset'],
+    ))
+    output.append("  {kw_color}Scenario:{reset} {name} "
+                  "({filename}:{line})".format(
+        kw_color=colors['keyword'],
+        name=report.scenario['name'],
+        filename=report.scenario['feature']['rel_filename'],
+        line=report.scenario['line_number'],
+        reset=colors['reset'],
+    ))
+    for step in report.scenario['steps']:
+        output.append("    {kw_color}{keyword}{reset} {color}{name}{reset} "
+                      "({duration:.2f}s)".format(
+            kw_color=colors['keyword'],
+            color=colors['failed'] if step['failed'] else colors['passed'],
+            keyword=step['keyword'],
+            name=step['name'],
+            duration=step['duration'],
+            reset=colors['reset'],
+        ))
+
+    report.longrepr.addsection("BDD scenario", '\n'.join(output))
 
 
 ## Given
