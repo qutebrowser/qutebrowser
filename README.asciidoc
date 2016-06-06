@@ -152,10 +152,10 @@ Contributors, sorted by the number of commits in descending order:
 * Joel Torstensson
 * Tarcisio Fedrizzi
 * Patric Schmitz
+* Jakub Klinkovský
 * Claude
 * Corentin Julé
 * meles5
-* Jakub Klinkovský
 * Philipp Hansch
 * Panagiotis Ktistakis
 * Artur Shaik

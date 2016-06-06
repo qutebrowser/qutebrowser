@@ -63,7 +63,8 @@ Fixed
 
 - Fixed using `:hint links spawn` with flags - you can now use things like the
   `-v` argument for `:spawn` or pass flags to the spawned commands.
-- Various fixes for hinting corner-cases where following a link didn't work
+- Various fixes for hinting corner-cases where following a link didn't work or
+  the hint was drawn at the wrong position.
 - Fixed crash when downloading from an URL with SSL errors
 - Close file handles correctly when a download failed
 - Fixed crash when using `;Y` (`:hint links yank-primary`) on a system without
