@@ -136,6 +136,7 @@ Feature: Using hints
         When I open data/hints/iframe_target.html
         And I run :hint links tab
         And I run :follow-hint a
+        And I wait until data/hello.txt is loaded
         Then the following tabs should be open:
             - data/hints/iframe_target.html
             - data/hello.txt (active)
