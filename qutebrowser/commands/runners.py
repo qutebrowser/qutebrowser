@@ -150,6 +150,15 @@ class CommandRunner(QObject):
             count = None
         return (count, cmdstr)
 
+    def _parse_fallback(self, text, count, keep):
+        """Parse the given commandline without a valid command."""
+        if keep:
+            cmdstr, sep, argstr = text.partition(' ')
+            cmdline = [cmdstr, sep] + argstr.split()
+        else:
+            cmdline = text.split()
+        return ParseResult(cmd=None, args=None, cmdline=cmdline, count=count)
+
     def parse(self, text, *, aliases=True, fallback=False, keep=False):
         """Split the commandline text into command and arguments.
 
@@ -168,6 +177,7 @@ class CommandRunner(QObject):
 
         if not cmdstr and not fallback:
             raise cmdexc.NoSuchCommandError("No command given")
+
         if aliases:
             new_cmd = self._get_alias(text)
             if new_cmd is not None:
@@ -181,25 +191,19 @@ class CommandRunner(QObject):
         try:
             cmd = cmdutils.cmd_dict[cmdstr]
         except KeyError:
-            if fallback:
-                cmd = None
-                args = None
-                if keep:
-                    cmdstr, sep, argstr = text.partition(' ')
-                    cmdline = [cmdstr, sep] + argstr.split()
-                else:
-                    cmdline = text.split()
-            else:
-                raise cmdexc.NoSuchCommandError('{}: no such command'.format(
-                    cmdstr))
+            if not fallback:
+                raise cmdexc.NoSuchCommandError(
+                    '{}: no such command'.format(cmdstr))
+            return self._parse_fallback(text, count, keep)
+
+        args = self._split_args(cmd, argstr, keep)
+        if keep and args:
+            cmdline = [cmdstr, sep + args[0]] + args[1:]
+        elif keep:
+            cmdline = [cmdstr, sep]
         else:
-            args = self._split_args(cmd, argstr, keep)
-            if keep and args:
-                cmdline = [cmdstr, sep + args[0]] + args[1:]
-            elif keep:
-                cmdline = [cmdstr, sep]
-            else:
-                cmdline = [cmdstr] + args[:]
+            cmdline = [cmdstr] + args[:]
+
         return ParseResult(cmd=cmd, args=args, cmdline=cmdline, count=count)
 
     def _completion_match(self, cmdstr):
