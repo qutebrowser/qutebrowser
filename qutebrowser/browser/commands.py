@@ -995,9 +995,12 @@ class CommandDispatcher:
         cmdutils.check_overflow(new_idx, 'int')
         self._tabbed_browser.setUpdatesEnabled(False)
         try:
+            color = self._tabbed_browser.tabBar().tab_data(
+                cur_idx, 'indicator-color')
             self._tabbed_browser.removeTab(cur_idx)
             self._tabbed_browser.insertTab(new_idx, tab, icon, label)
             self._set_current_index(new_idx)
+            self._tabbed_browser.set_tab_indicator_color(new_idx, color)
         finally:
             self._tabbed_browser.setUpdatesEnabled(True)
 

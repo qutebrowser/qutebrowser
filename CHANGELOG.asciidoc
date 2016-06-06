@@ -79,6 +79,7 @@ Fixed
 - Fixed qutebrowser not starting when `sys.stderr` is `None`
 - Fixed crash when cancelling a download which belongs to a MHTML download
 - Fixed rebinding of keybindings being case-sensitive
+- Fix for tab indicators getting lost when moving tabs
 
 v0.6.2
 ------
