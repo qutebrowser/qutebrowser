@@ -141,9 +141,8 @@ class NeighborList(collections.abc.Sequence):
                 raise IndexError
         except IndexError:
             if self._mode == self.Modes.edge:
-                if offset == 0:
-                    new = self.curitem()
-                elif offset > 0:
+                assert offset != 0
+                if offset > 0:
                     new = self.lastitem()
                 else:
                     new = self.firstitem()
