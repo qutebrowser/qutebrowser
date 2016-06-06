@@ -26,7 +26,7 @@ import re
 import string
 
 from PyQt5.QtCore import (pyqtSignal, pyqtSlot, QObject, QEvent, Qt, QUrl,
-                          QTimer, QRect)
+                          QTimer)
 from PyQt5.QtGui import QMouseEvent
 from PyQt5.QtWebKit import QWebElement
 from PyQt5.QtWebKitWidgets import QWebPage
@@ -350,7 +350,7 @@ class HintManager(QObject):
             ('display', 'inline !important'),
             ('z-index', '{} !important'.format(int(2 ** 32 / 2 - 1))),
             ('pointer-events', 'none !important'),
-            ('position', 'absolute !important'),
+            ('position', 'fixed !important'),
             ('color', config.get('colors', 'hints.fg') + ' !important'),
             ('background', config.get('colors', 'hints.bg') + ' !important'),
             ('font', config.get('fonts', 'hints') + ' !important'),
@@ -376,15 +376,11 @@ class HintManager(QObject):
             elem: The QWebElement to set the style attributes for.
             label: The label QWebElement.
         """
-        rect = elem.geometry()
+        rect = elem.rect_on_view(adjust_zoom=False)
         left = rect.x()
         top = rect.y()
-        zoom = elem.webFrame().zoomFactor()
-        if not config.get('ui', 'zoom-text-only'):
-            left /= zoom
-            top /= zoom
-        log.hints.vdebug("Drawing label '{!r}' at {}/{} for element '{!r}', "
-                         "zoom level {}".format(label, left, top, elem, zoom))
+        log.hints.vdebug("Drawing label '{!r}' at {}/{} for element '{!r}'"
+                         .format(label, left, top, elem))
         label.setStyleProperty('left', '{}px !important'.format(left))
         label.setStyleProperty('top', '{}px !important'.format(top))
 
@@ -421,46 +417,6 @@ class HintManager(QObject):
         message.error(self._win_id, "No suitable link found for this element.",
                       immediately=True)
 
-    def _get_first_rectangle(self, elem):
-        """Return the element's first client rectangle with positive size.
-
-        Uses the getClientRects() JavaScript method to obtain the collection of
-        rectangles containing the element and returns the first rectangle which
-        is large enough (larger than 1px times 1px). If all rectangles returned
-        by getClientRects() are too small, falls back to elem.rect_on_view().
-
-        Skipping of small rectangles is due to <a> elements containing other
-        elements with "display:block" style, see
-        https://github.com/The-Compiler/qutebrowser/issues/1298
-
-        Args:
-            elem: The QWebElement of interest.
-        """
-        rects = elem.evaluateJavaScript("this.getClientRects()")
-        log.hints.debug("Client rectangles of element '{}': {}"
-                .format(elem.debug_text(), rects))
-        for i in range(int(rects.get("length", 0))):
-            rect = rects[str(i)]
-            width = rect.get("width", 0)
-            height = rect.get("height", 0)
-            if width > 1 and height > 1:
-                # fix coordinates according to zoom level
-                zoom = elem.webFrame().zoomFactor()
-                if not config.get('ui', 'zoom-text-only'):
-                    rect["left"] *= zoom
-                    rect["top"] *= zoom
-                    width *= zoom
-                    height *= zoom
-                rect = QRect(rect["left"], rect["top"], width, height)
-                frame = elem.webFrame()
-                while frame is not None:
-                    # Translate to parent frames' position
-                    # (scroll position is taken care of inside getClientRects)
-                    rect.translate(frame.geometry().topLeft())
-                    frame = frame.parentFrame()
-                return rect
-        return elem.rect_on_view()
-
     def _click(self, elem, context):
         """Click an element.
 
@@ -481,11 +437,15 @@ class HintManager(QObject):
         else:
             target_mapping[Target.tab] = usertypes.ClickTarget.tab
 
-        # FIXME Instead of clicking the center, we could have nicer heuristics.
-        # e.g. parse (-webkit-)border-radius correctly and click text fields at
-        # the bottom right, and everything else on the top left or so.
-        # https://github.com/The-Compiler/qutebrowser/issues/70
-        rect = self._get_first_rectangle(elem)
+        # Click the center of the largest square fitting into the top/left
+        # corner of the rectangle, this will help if part of the <a> element
+        # is hidden behind other elements
+        # https://github.com/The-Compiler/qutebrowser/issues/1005
+        rect = elem.rect_on_view()
+        if rect.width() > rect.height():
+            rect.setWidth(rect.height())
+        else:
+            rect.setHeight(rect.width())
         pos = rect.center()
 
         action = "Hovering" if context.target == Target.hover else "Clicking"
