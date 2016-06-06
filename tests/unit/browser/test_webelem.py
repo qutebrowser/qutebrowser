@@ -35,9 +35,9 @@ import pytest
 from qutebrowser.browser import webelem
 
 
-def get_webelem(geometry=None, frame=None, null=False, style=None,
-                display='', attributes=None, tagname=None, classes=None,
-                parent=None):
+def get_webelem(geometry=None, frame=None, *, null=False, style=None,
+                attributes=None, tagname=None, classes=None,
+                parent=None, js_rect_return=None, zoom_text_only=False):
     """Factory for WebElementWrapper objects based on a mock.
 
     Args:
@@ -48,8 +48,12 @@ def get_webelem(geometry=None, frame=None, null=False, style=None,
         attributes: Boolean HTML attributes to be added.
         tagname: The tag name.
         classes: HTML classes to be added.
+        js_rect_return: If None, what evaluateJavaScript returns is based on
+                        geometry. If set, the return value of
+                        evaluateJavaScript.
+        zoom_text_only: Whether zoom-text-only is set in the config
     """
-    # pylint: disable=too-many-locals
+    # pylint: disable=too-many-locals,too-many-branches
     elem = mock.Mock()
     elem.isNull.return_value = null
     elem.geometry.return_value = geometry
@@ -66,17 +70,24 @@ def get_webelem(geometry=None, frame=None, null=False, style=None,
         else:
             scroll_x = frame.scrollPosition().x()
             scroll_y = frame.scrollPosition().y()
-        elem.evaluateJavaScript.return_value = {
-            "length": 1,
-            "0": {
-                "left": geometry.left() - scroll_x,
-                "top": geometry.top() - scroll_y,
-                "right": geometry.right() - scroll_x,
-                "bottom": geometry.bottom() - scroll_y,
-                "width": geometry.width(),
-                "height": geometry.height(),
+        if js_rect_return is None:
+            if frame is None or zoom_text_only:
+                zoom = 1.0
+            else:
+                zoom = frame.zoomFactor()
+            elem.evaluateJavaScript.return_value = {
+                "length": 1,
+                "0": {
+                    "left": (geometry.left() - scroll_x) / zoom,
+                    "top": (geometry.top() - scroll_y) / zoom,
+                    "right": (geometry.right() - scroll_x) / zoom,
+                    "bottom": (geometry.bottom() - scroll_y) / zoom,
+                    "width": geometry.width() / zoom,
+                    "height": geometry.height() / zoom,
+                }
             }
-        }
+        else:
+            elem.evaluateJavaScript.return_value = js_rect_return
 
     attribute_dict = {}
     if attributes is None:
@@ -112,17 +123,6 @@ def get_webelem(geometry=None, frame=None, null=False, style=None,
     elem.styleProperty.side_effect = _style_property
     wrapped = webelem.WebElementWrapper(elem)
     return wrapped
-
-
-@pytest.fixture(autouse=True)
-def stubbed_config(config_stub, monkeypatch):
-    """Add a zoom-text-only fake config value.
-
-    This is needed for all the tests calling rect_on_view or is_visible.
-    """
-    config_stub.data = {'ui': {'zoom-text-only': 'true'}}
-    monkeypatch.setattr('qutebrowser.browser.webelem.config', config_stub)
-    return config_stub
 
 
 class SelectionAndFilterTests:
@@ -612,20 +612,38 @@ def test_focus_element(stubs):
 
 class TestRectOnView:
 
-    def test_simple(self, stubs):
+    @pytest.fixture(autouse=True)
+    def stubbed_config(self, config_stub, monkeypatch):
+        """Add a zoom-text-only fake config value.
+
+        This is needed for all the tests calling rect_on_view or is_visible.
+        """
+        config_stub.data = {'ui': {'zoom-text-only': 'true'}}
+        monkeypatch.setattr('qutebrowser.browser.webelem.config', config_stub)
+        return config_stub
+
+    @pytest.mark.parametrize('js_rect', [
+        None,  # real geometry via getElementRects
+        {},  # no geometry at all via getElementRects
+        # unusable geometry via getElementRects
+        {'length': '1', '0': {'width': 0, 'height': 0, 'x': 0, 'y': 0}},
+    ])
+    def test_simple(self, stubs, js_rect):
         geometry = QRect(5, 5, 4, 4)
         frame = stubs.FakeWebFrame(QRect(0, 0, 100, 100))
-        elem = get_webelem(geometry, frame)
+        elem = get_webelem(geometry, frame, js_rect_return=js_rect)
         assert elem.rect_on_view() == QRect(5, 5, 4, 4)
 
-    def test_scrolled(self, stubs):
+    @pytest.mark.parametrize('js_rect', [None, {}])
+    def test_scrolled(self, stubs, js_rect):
         geometry = QRect(20, 20, 4, 4)
         frame = stubs.FakeWebFrame(QRect(0, 0, 100, 100),
                                    scroll=QPoint(10, 10))
-        elem = get_webelem(geometry, frame)
+        elem = get_webelem(geometry, frame, js_rect_return=js_rect)
         assert elem.rect_on_view() == QRect(20 - 10, 20 - 10, 4, 4)
 
-    def test_iframe(self, stubs):
+    @pytest.mark.parametrize('js_rect', [None, {}])
+    def test_iframe(self, stubs, js_rect):
         """Test an element in an iframe.
 
              0, 0                         200, 0
@@ -644,16 +662,35 @@ class TestRectOnView:
         frame = stubs.FakeWebFrame(QRect(0, 0, 200, 200))
         iframe = stubs.FakeWebFrame(QRect(0, 10, 100, 100), parent=frame)
         assert frame.geometry().contains(iframe.geometry())
-        elem = get_webelem(QRect(20, 90, 10, 10), iframe)
+        elem = get_webelem(QRect(20, 90, 10, 10), iframe,
+                           js_rect_return=js_rect)
         assert elem.rect_on_view() == QRect(20, 10 + 90, 10, 10)
 
-    def test_passed_geometry(self, stubs):
+    @pytest.mark.parametrize('js_rect', [None, {}])
+    def test_passed_geometry(self, stubs, js_rect):
         """Make sure geometry isn't called when a geometry is passed."""
         frame = stubs.FakeWebFrame(QRect(0, 0, 200, 200))
-        raw_elem = get_webelem(frame=frame)._elem
+        raw_elem = get_webelem(frame=frame, js_rect_return=js_rect)._elem
         rect = QRect(10, 20, 30, 40)
         assert webelem.rect_on_view(raw_elem, elem_geometry=rect) == rect
         assert not raw_elem.geometry.called
+
+    @pytest.mark.parametrize('js_rect', [None, {}])
+    @pytest.mark.parametrize('zoom_text_only', [True, False])
+    @pytest.mark.parametrize('adjust_zoom', [True, False])
+    def test_zoomed(self, stubs, config_stub, js_rect, zoom_text_only,
+                    adjust_zoom):
+        """Make sure the coordinates are adjusted when zoomed."""
+        config_stub.data = {'ui': {'zoom-text-only': zoom_text_only}}
+        geometry = QRect(10, 10, 4, 4)
+        frame = stubs.FakeWebFrame(QRect(0, 0, 100, 100), zoom=0.5)
+        elem = get_webelem(geometry, frame, js_rect_return=js_rect,
+                           zoom_text_only=zoom_text_only)
+        rect = elem.rect_on_view(adjust_zoom=adjust_zoom)
+        if zoom_text_only or (js_rect is None and adjust_zoom):
+            assert rect == QRect(10, 10, 4, 4)
+        else:
+            assert rect == QRect(20, 20, 8, 8)
 
 
 class TestJavascriptEscape:
