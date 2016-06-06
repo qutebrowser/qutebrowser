@@ -59,6 +59,7 @@ Changed
   a new page.
 - `:zoom-in` or `:zoom-out` (`+`/`-`) with a too large count now zooms to the
   smallest/largest zoom instead of doing nothing.
+- The commandline now accepts partially typed commands if they're unique.
 
 Fixed
 -----
