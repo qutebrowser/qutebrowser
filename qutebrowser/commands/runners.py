@@ -72,10 +72,12 @@ class CommandRunner(QObject):
 
     Attributes:
         _win_id: The window this CommandRunner is associated with.
+        _partial_match: Whether to allow partial command matches.
     """
 
-    def __init__(self, win_id, parent=None):
+    def __init__(self, win_id, partial_match=False, parent=None):
         super().__init__(parent)
+        self._partial_match = partial_match
         self._win_id = win_id
 
     def _get_alias(self, text):
@@ -172,6 +174,10 @@ class CommandRunner(QObject):
                 log.commands.debug("Re-parsing with '{}'.".format(new_cmd))
                 return self.parse(new_cmd, aliases=False, fallback=fallback,
                                   keep=keep)
+
+        if self._partial_match:
+            cmdstr = self._completion_match(cmdstr)
+
         try:
             cmd = cmdutils.cmd_dict[cmdstr]
         except KeyError:
@@ -195,6 +201,23 @@ class CommandRunner(QObject):
             else:
                 cmdline = [cmdstr] + args[:]
         return ParseResult(cmd=cmd, args=args, cmdline=cmdline, count=count)
+
+    def _completion_match(self, cmdstr):
+        """Replace cmdstr with a matching completion if there's only one match.
+
+        Args:
+            cmdstr: The string representing the entered command so far
+
+        Return:
+            cmdstr modified to the matching completion or unmodified
+        """
+        matches = []
+        for valid_command in cmdutils.cmd_dict.keys():
+            if valid_command.find(cmdstr) == 0:
+                matches.append(valid_command)
+        if len(matches) == 1:
+            cmdstr = matches[0]
+        return cmdstr
 
     def _split_args(self, cmd, argstr, keep):
         """Split the arguments from an arg string.

@@ -51,3 +51,12 @@ class TestCommandRunner:
         assert result.count == 20
         assert result.args == ['down']
         assert result.cmdline == ['scroll', 'down']
+
+    def test_partial_parsing(self):
+        """Test partial parsing with a runner where it's enabled.
+
+        The same with it being disabled is tested by test_parse_all.
+        """
+        cr = runners.CommandRunner(0, partial_match=True)
+        result = cr.parse('message-i', aliases=False)
+        assert result.cmd.name == 'message-info'

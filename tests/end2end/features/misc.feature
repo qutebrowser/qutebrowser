@@ -441,3 +441,17 @@ Feature: Various utility commands.
     Scenario: Completing a single option argument
         When I run :set-cmd-text -s :-- 
         Then no crash should happen
+
+    ## https://github.com/The-Compiler/qutebrowser/issues/1386
+
+    Scenario: Partial commandline matching with startup command
+        When I run :message-i "Hello World" (invalid command)
+        Then the error "message-i: no such command" should be shown
+
+    # We can't run :message-i as startup command, so we use
+    # :set-cmd-text
+
+    Scenario: Partial commandline matching
+        When I run :set-cmd-text :message-i "Hello World"
+        And I run :command-accept
+        Then the message "Hello World" should be shown

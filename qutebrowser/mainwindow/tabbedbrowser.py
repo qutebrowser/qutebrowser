@@ -99,7 +99,6 @@ class TabbedBrowser(tabwidget.TabWidget):
     cur_load_status_changed = pyqtSignal(str)
     close_window = pyqtSignal()
     resized = pyqtSignal('QRect')
-    got_cmd = pyqtSignal(str)
     current_tab_changed = pyqtSignal(webview.WebView)
     new_tab = pyqtSignal(webview.WebView, int)
 

@@ -146,6 +146,8 @@ def _generate_cmdline_tests():
     # Command with no_cmd_split combined with an "invalid" command -> valid
     for item in itertools.product(['bind x open'], separators, invalid):
         yield TestCase(''.join(item), True)
+    # Partial command
+    yield TestCase('message-i', False)
 
 
 @pytest.fixture(params=_generate_cmdline_tests(), ids=lambda e: e.cmd)

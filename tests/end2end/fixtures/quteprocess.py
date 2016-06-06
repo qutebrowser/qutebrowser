@@ -330,8 +330,13 @@ class QuteProc(testprocess.Process):
         finally:
             super().after_test()
 
-    def send_cmd(self, command, count=None):
-        """Send a command to the running qutebrowser instance."""
+    def send_cmd(self, command, count=None, invalid=False):
+        """Send a command to the running qutebrowser instance.
+
+        Args:
+            count: The count to pass to the command.
+            invalid: If True, we don't wait for "command called: ..." in the log
+        """
         summary = command
         if count is not None:
             summary += ' (count {})'.format(count)
@@ -346,8 +351,9 @@ class QuteProc(testprocess.Process):
 
         ipc.send_to_running_instance(self._ipc_socket, [command],
                                      target_arg='')
-        self.wait_for(category='commands', module='command', function='run',
-                      message='command called: *')
+        if not invalid:
+            self.wait_for(category='commands', module='command',
+                          function='run', message='command called: *')
 
     def get_setting(self, sect, opt):
         """Get the value of a qutebrowser setting."""
