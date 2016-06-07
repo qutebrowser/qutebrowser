@@ -32,6 +32,8 @@ Added
 - New `:messages` command to show error messages
 - New pop-up showing possible keybinding when the first key of a keychain is
   pressed. This can be turned off using `:set ui keyhint-blacklist *`.
+- New `hints -> auto-follow-timeout` setting to ignore keypresses after
+  following a hint when filtering in number mode.
 
 Changed
 ~~~~~~~
