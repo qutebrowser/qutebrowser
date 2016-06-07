@@ -76,24 +76,25 @@ def pytest_runtest_makereport(item, call):
         name=report.scenario['feature']['name'],
         reset=colors['reset'],
     ))
-    output.append("  {kw_color}Scenario:{reset} {name} "
-                  "({filename}:{line})".format(
-        kw_color=colors['keyword'],
-        name=report.scenario['name'],
-        filename=report.scenario['feature']['rel_filename'],
-        line=report.scenario['line_number'],
-        reset=colors['reset'],
-    ))
-    for step in report.scenario['steps']:
-        output.append("    {kw_color}{keyword}{reset} {color}{name}{reset} "
-                      "({duration:.2f}s)".format(
+    output.append(
+        "  {kw_color}Scenario:{reset} {name} ({filename}:{line})".format(
             kw_color=colors['keyword'],
-            color=colors['failed'] if step['failed'] else colors['passed'],
-            keyword=step['keyword'],
-            name=step['name'],
-            duration=step['duration'],
-            reset=colors['reset'],
-        ))
+            name=report.scenario['name'],
+            filename=report.scenario['feature']['rel_filename'],
+            line=report.scenario['line_number'],
+            reset=colors['reset'])
+    )
+    for step in report.scenario['steps']:
+        output.append(
+            "    {kw_color}{keyword}{reset} {color}{name}{reset} "
+            "({duration:.2f}s)".format(
+                kw_color=colors['keyword'],
+                color=colors['failed'] if step['failed'] else colors['passed'],
+                keyword=step['keyword'],
+                name=step['name'],
+                duration=step['duration'],
+                reset=colors['reset'])
+        )
 
     report.longrepr.addsection("BDD scenario", '\n'.join(output))
 
