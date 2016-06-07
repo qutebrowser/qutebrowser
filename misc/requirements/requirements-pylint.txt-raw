@@ -1,2 +1,5 @@
 pylint
 ./scripts/dev/pylint_checkers
+
+# fix qute-pylint location
+#@ replace: qute-pylint==.* ./scripts/dev/pylint_checkers
