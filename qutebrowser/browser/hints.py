@@ -708,22 +708,6 @@ class HintManager(QObject):
         keyparser = keyparsers[usertypes.KeyMode.hint]
         keyparser.update_bindings(strings)
 
-    def _update_strings(self, elems):
-        """Update the `self._context.elems` mapping based on filtered elements.
-
-        Args:
-            elems: List of ElemTuple objects.
-        """
-        strings = self._hint_strings(elems)
-        self._context.elems = {}
-        for elem, string in zip(elems, strings):
-            elem.label.setInnerXml(string)
-            self._context.elems[string] = elem
-        keyparsers = objreg.get('keyparsers', scope='window',
-                                window=self._win_id)
-        keyparser = keyparsers[usertypes.KeyMode.hint]
-        keyparser.update_bindings(strings, preserve_filter=True)
-
     def _filter_matches(self, filterstr, elemstr):
         """Return True if `filterstr` matches `elemstr`."""
         # Empty string and None always match
@@ -895,6 +879,57 @@ class HintManager(QObject):
             except webelem.IsNullError:
                 pass
 
+    def _filter_number_hints(self):
+        """Apply filters for numbered hints and renumber them.
+
+        Return:
+            Elements which are still visible
+        """
+        # renumber filtered hints
+        elems = []
+        for e in self._context.all_elems:
+            try:
+                if not self._is_hidden(e.label):
+                    elems.append(e)
+            except webelem.IsNullError:
+                pass
+        if not elems:
+            # Whoops, filtered all hints
+            modeman.leave(self._win_id, usertypes.KeyMode.hint,
+                          'all filtered')
+            return
+
+        strings = self._hint_strings(elems)
+        self._context.elems = {}
+        for elem, string in zip(elems, strings):
+            elem.label.setInnerXml(string)
+            self._context.elems[string] = elem
+        keyparsers = objreg.get('keyparsers', scope='window',
+                                window=self._win_id)
+        keyparser = keyparsers[usertypes.KeyMode.hint]
+        keyparser.update_bindings(strings, preserve_filter=True)
+
+        return self._context.elems
+
+    def _filter_non_number_hints(self):
+        """Apply filters for letter/word hints.
+
+        Return:
+            Elements which are still visible
+        """
+        visible = {}
+        for string, elem in self._context.elems.items():
+            try:
+                if not self._is_hidden(elem.label):
+                    visible[string] = elem
+            except webelem.IsNullError:
+                pass
+        if not visible:
+            # Whoops, filtered all hints
+            modeman.leave(self._win_id, usertypes.KeyMode.hint,
+                          'all filtered')
+        return visible
+
     def filter_hints(self, filterstr):
         """Filter displayed hints according to a text.
 
@@ -922,34 +957,9 @@ class HintManager(QObject):
                 pass
 
         if config.get('hints', 'mode') == 'number':
-            # renumber filtered hints
-            elems = []
-            for e in self._context.all_elems:
-                try:
-                    if not self._is_hidden(e.label):
-                        elems.append(e)
-                except webelem.IsNullError:
-                    pass
-            if not elems:
-                # Whoops, filtered all hints
-                modeman.leave(self._win_id, usertypes.KeyMode.hint,
-                              'all filtered')
-                return
-            self._update_strings(elems)
-            visible = self._context.elems
+            visible = self._filter_number_hints()
         else:
-            visible = {}
-            for string, elem in self._context.elems.items():
-                try:
-                    if not self._is_hidden(elem.label):
-                        visible[string] = elem
-                except webelem.IsNullError:
-                    pass
-            if not visible:
-                # Whoops, filtered all hints
-                modeman.leave(self._win_id, usertypes.KeyMode.hint,
-                              'all filtered')
-                return
+            visible = self._filter_non_number_hints()
 
         if (len(visible) == 1 and
                 config.get('hints', 'auto-follow') and
