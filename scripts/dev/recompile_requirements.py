@@ -32,9 +32,9 @@ sys.path.insert(0, os.path.join(os.path.dirname(__file__), os.pardir,
 
 from scripts import utils
 
-REQ_DIR = os.path.join(os.path.dirname(os.path.abspath(__file__)),
-                       '..', '..',  # /scripts/dev -> /scripts -> /
-                       'misc', 'requirements')
+REPO_DIR = os.path.join(os.path.dirname(os.path.abspath(__file__)),
+                       '..', '..')  # /scripts/dev -> /scripts -> /
+REQ_DIR = os.path.join(REPO_DIR, 'misc', 'requirements')
 
 
 def convert_line(line, comments):
@@ -98,7 +98,10 @@ def main():
         utils.print_title(name)
         filename = os.path.join(REQ_DIR,
                                 'requirements-{}.txt-raw'.format(name))
-        outfile = os.path.join(REQ_DIR, 'requirements-{}.txt'.format(name))
+        if name == 'qutebrowser':
+            outfile = os.path.join(REPO_DIR, 'requirements.txt')
+        else:
+            outfile = os.path.join(REQ_DIR, 'requirements-{}.txt'.format(name))
 
         with tempfile.TemporaryDirectory() as tmpdir:
             pip_bin = os.path.join(tmpdir, 'bin', 'pip')
