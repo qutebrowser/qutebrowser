@@ -219,7 +219,13 @@ class IPCServer(QObject):
             # https://bugreports.qt.io/browse/QTBUG-48635
             #
             # This means we only use setSocketOption on Windows...
-            os.chmod(self._server.fullServerName(), 0o700)
+            try:
+                os.chmod(self._server.fullServerName(), 0o700)
+            except FileNotFoundError:
+                # https://github.com/The-Compiler/qutebrowser/issues/1530
+                # The server doesn't actually exist even if ok was reported as
+                # True, so report this as an error.
+                raise ListenError(self._server)
 
     @pyqtSlot('QLocalSocket::LocalSocketError')
     def on_error(self, err):

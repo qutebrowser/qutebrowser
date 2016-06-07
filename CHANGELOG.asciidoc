@@ -87,6 +87,7 @@ Fixed
 - Fixed rebinding of keybindings being case-sensitive
 - Fix for tab indicators getting lost when moving tabs
 - Fixed handling of backspace in number hinting mode
+- Fixed `FileNotFoundError` when starting in some cases on old Qt versions
 
 v0.6.2
 ------
