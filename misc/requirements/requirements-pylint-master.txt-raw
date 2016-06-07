@@ -4,3 +4,9 @@
 
 # https://github.com/PyCQA/pylint/issues/932
 mccabe==0.5.0
+
+# remove @commit-id for scm installs
+#@ replace: @.*# #
+
+# fix qute-pylint location
+#@ replace: qute-pylint==.* ./scripts/dev/pylint_checkers

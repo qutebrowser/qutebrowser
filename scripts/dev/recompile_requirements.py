@@ -38,11 +38,7 @@ REQ_DIR = os.path.join(os.path.dirname(os.path.abspath(__file__)),
 
 
 def convert_line(line, comments):
-    replacements = {
-        (r'@.*#', '#'),  # remove @commit-id for scm installs
-        (r'qute-pylint==.*', './scripts/dev/pylint_checkers'),
-    }
-    for pattern, repl in replacements:
+    for pattern, repl in comments['replace'].items():
         line = re.sub(pattern, repl, line)
 
     pkgname = line.split('=')[0]
@@ -68,6 +64,7 @@ def read_comments(fobj):
         'filter': {},
         'comment': {},
         'ignore': [],
+        'replace': {},
     }
     for line in fobj:
         if line.startswith('#@'):
@@ -82,6 +79,9 @@ def read_comments(fobj):
                 comments['comment'][pkg] = comment
             elif command == 'ignore':
                 comments['ignore'] += args.split(', ')
+            elif command == 'replace':
+                pattern, replacement = args.split(' ', maxsplit=1)
+                comments['replace'][pattern] = replacement
     return comments
 
 
