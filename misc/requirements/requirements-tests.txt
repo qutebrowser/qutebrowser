@@ -1,7 +1,7 @@
 beautifulsoup4==4.4.1
 CherryPy==6.0.1
 coverage==4.1
-decorator==4.0.9
+decorator==4.0.10
 Flask==0.10.1  # rq.filter: != 0.11.0
 glob2==0.4.1
 httpbin==0.4.1
