@@ -188,3 +188,15 @@ Feature: Using hints
         And I run :follow-hint 1
         Then data/numbers/2.txt should be loaded
         And data/numbers/3.txt should be loaded
+
+    # https://github.com/The-Compiler/qutebrowser/issues/1186
+    Scenario: Keeping hints filter when using backspace
+        When I open data/hints/issue1186.html
+        And I set hints -> mode to number
+        And I set hints -> scatter to false
+        And I run :hint all
+        And I press the key "x"
+        And I press the key "0"
+        And I press the key "<Backspace>"
+        And I run :follow-hint 11
+        Then the error "No hint 11!" should be shown
