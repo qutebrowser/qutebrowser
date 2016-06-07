@@ -66,7 +66,7 @@ class NormalKeyParser(keyparser.CommandKeyParser):
             A self.Match member.
         """
         txt = e.text().strip()
-        if self._inhibited is True:
+        if self._inhibited:
             self._debug_log("Ignoring key '{}', because the normal mode is "
                 "currently inhibited.".format(txt))
             return self.Match.none
@@ -245,7 +245,7 @@ class HintKeyParser(keyparser.CommandKeyParser):
                              `self._filtertext`.
         """
         self.bindings = {s: s for s in strings}
-        if preserve_filter is False:
+        if not preserve_filter:
             self._filtertext = ''
 
     @pyqtSlot(str)
