@@ -6,5 +6,6 @@ lazy-object-proxy==1.2.2
 mccabe==0.5.0
 -e git+https://github.com/PyCQA/pylint.git#egg=pylint
 ./scripts/dev/pylint_checkers
+requests==2.10.0
 six==1.10.0
 wrapt==1.10.8
