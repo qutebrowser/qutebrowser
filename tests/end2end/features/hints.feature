@@ -140,3 +140,29 @@ Feature: Using hints
         Then the following tabs should be open:
             - data/hints/iframe_target.html
             - data/hello.txt (active)
+
+    ### hints -> auto-follow-timeout
+
+    Scenario: Ignoring key presses after auto-following hints
+        When I set hints -> auto-follow-timeout to 200
+        And I set hints -> mode to number
+        And I run :bind --force , message-error "This should not happen"
+        And I open data/hints/html/simple.html
+        And I run :hint all
+        And I press the key "f"
+        And I wait until data/hello.txt is loaded
+        And I press the key ","
+        # Waiting here so we don't affect the next test
+        And I wait for "Releasing inhibition state of normal mode." in the log
+        Then "Ignoring key ',', because the normal mode is currently inhibited." should be logged
+
+    Scenario: Turning off auto-follow-timeout
+        When I set hints -> auto-follow-timeout to 0
+        And I set hints -> mode to number
+        And I run :bind --force , message-info "Keypress worked!"
+        And I open data/hints/html/simple.html
+        And I run :hint all
+        And I press the key "f"
+        And I wait until data/hello.txt is loaded
+        And I press the key ","
+        Then the message "Keypress worked!" should be shown
