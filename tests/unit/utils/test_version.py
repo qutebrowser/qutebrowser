@@ -543,24 +543,37 @@ class TestPDFJSVersion:
             lambda path: (b'foobar', None))
         assert version._pdfjs_version() == 'unknown (bundled)'
 
-    def test_known(self, monkeypatch):
+    @pytest.mark.parametrize('varname', [
+        'PDFJS.version',  # older versions
+        'var pdfjsVersion',  # newer versions
+    ])
+    def test_known(self, monkeypatch, varname):
         pdfjs_code = textwrap.dedent("""
             // Initializing PDFJS global object (if still undefined)
             if (typeof PDFJS === 'undefined') {
               (typeof window !== 'undefined' ? window : this).PDFJS = {};
             }
 
-            PDFJS.version = '1.2.109';
+            VARNAME = '1.2.109';
             PDFJS.build = '875588d';
 
             (function pdfjsWrapper() {
               // Use strict in our context only - users might not want it
               'use strict';
-        """).strip().encode('utf-8')
+        """.replace('VARNAME', varname)).strip().encode('utf-8')
         monkeypatch.setattr(
             'qutebrowser.utils.version.pdfjs.get_pdfjs_res_and_path',
             lambda path: (pdfjs_code, '/foo/bar/pdf.js'))
         assert version._pdfjs_version() == '1.2.109 (/foo/bar/pdf.js)'
+
+    def test_real_file(self):
+        """Test against the real file if pdfjs was found."""
+        try:
+            pdfjs.get_pdfjs_res_and_path('build/pdf.js')
+        except pdfjs.PDFJSNotFound:
+            pytest.skip("No pdfjs found")
+        ver = version._pdfjs_version()
+        assert ver.split()[0] not in ['no', 'unknown'], ver
 
 
 class FakeQSslSocket:
