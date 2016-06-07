@@ -243,18 +243,23 @@ class BookmarkManager(UrlMarkManager):
           second argument.
         - removed gets emitted with the URL as argument.
     """
+    @property
+    def _bookmarks_directory(self):
+        return os.environ.get(
+            "QUTE_BOOKMARK_DIRECTORY",
+            os.path.join(standarddir.config(), 'bookmarks')
+        )
 
     def _init_lineparser(self):
-        bookmarks_directory = os.path.join(standarddir.config(), 'bookmarks')
+        bookmarks_directory = self._bookmarks_directory
         if not os.path.isdir(bookmarks_directory):
             os.makedirs(bookmarks_directory)
 
-        bookmarks_subdir = os.path.join('bookmarks', 'urls')
         self._lineparser = lineparser.LineParser(
-            standarddir.config(), bookmarks_subdir, parent=self)
+            bookmarks_directory, "urls", parent=self)
 
     def _init_savemanager(self, save_manager):
-        filename = os.path.join(standarddir.config(), 'bookmarks', 'urls')
+        filename = os.path.join(self._bookmarks_directory, "urls")
         save_manager.add_saveable('bookmark-manager', self.save, self.changed,
                                   filename=filename)
 
