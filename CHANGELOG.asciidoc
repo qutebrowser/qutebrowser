@@ -82,6 +82,7 @@ Fixed
 - Fixed crash when cancelling a download which belongs to a MHTML download
 - Fixed rebinding of keybindings being case-sensitive
 - Fix for tab indicators getting lost when moving tabs
+- Fixed handling of backspace in number hinting mode
 
 v0.6.2
 ------
