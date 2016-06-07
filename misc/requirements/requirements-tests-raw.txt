@@ -19,4 +19,4 @@ pytest-xvfb
 vulture
 
 #! filter: Flask != 0.11.0
-#! ignore: Jinja2
+#! ignore: Jinja2, MarkupSafe
