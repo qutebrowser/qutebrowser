@@ -70,7 +70,7 @@ def read_comments(fobj):
         'ignore': [],
     }
     for line in fobj:
-        if line.startswith('#!'):
+        if line.startswith('#@'):
             command, args = line[2:].split(':', maxsplit=1)
             command = command.strip()
             args = args.strip()

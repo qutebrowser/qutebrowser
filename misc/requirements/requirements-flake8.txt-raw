@@ -18,4 +18,4 @@ pyflakes
 
 mccabe==0.5.0
 
-#! comment: pep257 still needed by flake8-docstrings but ignored
+#@ comment: pep257 still needed by flake8-docstrings but ignored
