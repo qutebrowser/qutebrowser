@@ -86,7 +86,7 @@ def read_comments(fobj):
 
 
 def get_all_names():
-    for filename in glob.glob(os.path.join(REQ_DIR, 'requirements-*-raw.txt')):
+    for filename in glob.glob(os.path.join(REQ_DIR, 'requirements-*.txt-raw')):
         basename = os.path.basename(filename)
         yield basename[len('requirements-'):-len('.txt-raw')]
 
