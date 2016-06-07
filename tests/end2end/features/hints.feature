@@ -200,3 +200,13 @@ Feature: Using hints
         And I press the key "<Backspace>"
         And I run :follow-hint 11
         Then the error "No hint 11!" should be shown
+
+    # https://github.com/The-Compiler/qutebrowser/issues/674#issuecomment-165096744
+    Scenario: Multi-word matching
+        When I open data/hints/number.html
+        And I set hints -> mode to number
+        And I set hints -> auto-follow to true
+        And I set hints -> auto-follow-timeout to 0
+        And I run :hint all
+        And I press the keys "ten pos"
+        Then data/numbers/11.txt should be loaded
