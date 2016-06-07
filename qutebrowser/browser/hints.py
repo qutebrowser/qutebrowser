@@ -897,7 +897,7 @@ class HintManager(QObject):
             # Whoops, filtered all hints
             modeman.leave(self._win_id, usertypes.KeyMode.hint,
                           'all filtered')
-            return
+            return {}
 
         strings = self._hint_strings(elems)
         self._context.elems = {}
