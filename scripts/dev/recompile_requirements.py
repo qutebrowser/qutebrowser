@@ -38,6 +38,7 @@ REQ_DIR = os.path.join(REPO_DIR, 'misc', 'requirements')
 
 
 def convert_line(line, comments):
+    """Convert the given requirement line to place into the output."""
     for pattern, repl in comments['replace'].items():
         line = re.sub(pattern, repl, line)
 
@@ -60,6 +61,14 @@ def convert_line(line, comments):
 
 
 def read_comments(fobj):
+    """Find special comments in the config.
+
+    Args:
+        fobj: A file object for the config.
+
+    Return:
+        A dict with the parsed comment data.
+    """
     comments = {
         'filter': {},
         'comment': {},
@@ -86,12 +95,15 @@ def read_comments(fobj):
 
 
 def get_all_names():
+    """Get all requirement names based on filenames."""
     for filename in glob.glob(os.path.join(REQ_DIR, 'requirements-*.txt-raw')):
         basename = os.path.basename(filename)
         yield basename[len('requirements-'):-len('.txt-raw')]
 
 
 def main():
+    """Re-compile the given (or all) requirement files."""
+
     names = sys.argv[1:] if len(sys.argv) > 1 else get_all_names()
 
     for name in names:
