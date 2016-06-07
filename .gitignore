@@ -36,3 +36,4 @@ TODO
 /scripts/testbrowser_cpp/Makefile
 /scripts/testbrowser_cpp/main.o
 /scripts/testbrowser_cpp/testbrowser
+/scripts/dev/pylint_checkers/qute_pylint.egg-info

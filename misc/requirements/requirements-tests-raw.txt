@@ -1,0 +1,22 @@
+beautifulsoup4
+CherryPy
+coverage
+Flask==0.10.1
+httpbin
+hypothesis
+pytest
+pytest-bdd
+pytest-catchlog
+pytest-cov
+pytest-faulthandler
+pytest-instafail
+pytest-mock
+pytest-qt
+pytest-repeat
+pytest-rerunfailures
+pytest-travis-fold
+pytest-xvfb
+vulture
+
+# Flask: rq.filter: != 0.11.0
+# ignore: Jinja2

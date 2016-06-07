@@ -1,0 +1,6 @@
+-e git+https://github.com/PyCQA/astroid.git#egg=astroid
+-e git+https://github.com/PyCQA/pylint.git#egg=pylint
+./scripts/dev/pylint_checkers
+
+# https://github.com/PyCQA/pylint/issues/932
+mccabe==0.5.0

@@ -1,0 +1,2 @@
+-e git+https://github.com/PyCQA/astroid.git@master#egg=astroid
+-e git+https://github.com/PyCQA/pylint.git@master#egg=pylint

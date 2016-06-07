@@ -1,0 +1,21 @@
+ebb-lint
+flake8
+flake8-copyright
+flake8-debugger
+flake8-deprecated
+flake8-docstrings
+flake8-future-import
+flake8-mock
+flake8-pep3101
+flake8-putty
+flake8-string-format
+flake8-tidy-imports
+flake8-tuple
+hacking
+pep8-naming
+pydocstyle
+pyflakes
+
+mccabe==0.5.0
+
+# pep257: still needed by flake8-docstrings but ignored

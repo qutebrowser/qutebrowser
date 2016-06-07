@@ -1,0 +1,2 @@
+pylint
+./scripts/dev/pylint_checkers
