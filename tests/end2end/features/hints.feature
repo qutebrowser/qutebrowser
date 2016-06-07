@@ -166,3 +166,14 @@ Feature: Using hints
         And I wait until data/hello.txt is loaded
         And I press the key ","
         Then the message "Keypress worked!" should be shown
+
+    ### Number hint mode
+
+    # https://github.com/The-Compiler/qutebrowser/issues/308
+    Scenario: Renumbering hints when filtering
+        When I open data/hints/number.html
+        And I set hints -> mode to number
+        And I run :hint all
+        And I press the key "s"
+        And I run :follow-hint 1
+        Then data/numbers/7.txt should be loaded
