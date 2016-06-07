@@ -88,7 +88,7 @@ def read_comments(fobj):
 def get_all_names():
     for filename in glob.glob(os.path.join(REQ_DIR, 'requirements-*-raw.txt')):
         basename = os.path.basename(filename)
-        yield basename[len('requirements-'):-len('-raw.txt')]
+        yield basename[len('requirements-'):-len('.txt-raw')]
 
 
 def main():
@@ -97,7 +97,7 @@ def main():
     for name in names:
         utils.print_title(name)
         filename = os.path.join(REQ_DIR,
-                                'requirements-{}-raw.txt'.format(name))
+                                'requirements-{}.txt-raw'.format(name))
         outfile = os.path.join(REQ_DIR, 'requirements-{}.txt'.format(name))
 
         with tempfile.TemporaryDirectory() as tmpdir:
