@@ -64,6 +64,7 @@ Changed
 - The commandline now accepts partially typed commands if they're unique.
 - Number hints are now kept filtered after following a hint in rapid mode.
 - Number hints are now renumbered after filtering
+- Number hints can now be filtered with multiple space-separated search terms
 
 Fixed
 -----
