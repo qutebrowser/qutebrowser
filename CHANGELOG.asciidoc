@@ -32,6 +32,8 @@ Added
 - New `:messages` command to show error messages
 - New pop-up showing possible keybinding when the first key of a keychain is
   pressed. This can be turned off using `:set ui keyhint-blacklist *`.
+- New `hints -> auto-follow-timeout` setting to ignore keypresses after
+  following a hint when filtering in number mode.
 
 Changed
 ~~~~~~~
@@ -60,6 +62,10 @@ Changed
 - `:zoom-in` or `:zoom-out` (`+`/`-`) with a too large count now zooms to the
   smallest/largest zoom instead of doing nothing.
 - The commandline now accepts partially typed commands if they're unique.
+- Number hints are now kept filtered after following a hint in rapid mode.
+- Number hints are now renumbered after filtering
+- Number hints can now be filtered with multiple space-separated search terms
+- `hints -> scatter` is now ignored for number hints
 
 Fixed
 -----
@@ -80,6 +86,7 @@ Fixed
 - Fixed crash when cancelling a download which belongs to a MHTML download
 - Fixed rebinding of keybindings being case-sensitive
 - Fix for tab indicators getting lost when moving tabs
+- Fixed handling of backspace in number hinting mode
 
 v0.6.2
 ------

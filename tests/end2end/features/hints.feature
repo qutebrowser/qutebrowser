@@ -140,3 +140,80 @@ Feature: Using hints
         Then the following tabs should be open:
             - data/hints/iframe_target.html
             - data/hello.txt (active)
+
+    ### hints -> auto-follow-timeout
+
+    Scenario: Ignoring key presses after auto-following hints
+        When I set hints -> auto-follow-timeout to 200
+        And I set hints -> mode to number
+        And I run :bind --force , message-error "This should not happen"
+        And I open data/hints/html/simple.html
+        And I run :hint all
+        And I press the key "f"
+        And I wait until data/hello.txt is loaded
+        And I press the key ","
+        # Waiting here so we don't affect the next test
+        And I wait for "Releasing inhibition state of normal mode." in the log
+        Then "Ignoring key ',', because the normal mode is currently inhibited." should be logged
+
+    Scenario: Turning off auto-follow-timeout
+        When I set hints -> auto-follow-timeout to 0
+        And I set hints -> mode to number
+        And I run :bind --force , message-info "Keypress worked!"
+        And I open data/hints/html/simple.html
+        And I run :hint all
+        And I press the key "f"
+        And I wait until data/hello.txt is loaded
+        And I press the key ","
+        Then the message "Keypress worked!" should be shown
+
+    ### Number hint mode
+
+    # https://github.com/The-Compiler/qutebrowser/issues/308
+    Scenario: Renumbering hints when filtering
+        When I open data/hints/number.html
+        And I set hints -> mode to number
+        And I run :hint all
+        And I press the key "s"
+        And I run :follow-hint 1
+        Then data/numbers/7.txt should be loaded
+
+    # https://github.com/The-Compiler/qutebrowser/issues/576
+    Scenario: Keeping hint filter in rapid mode
+        When I open data/hints/number.html
+        And I set hints -> mode to number
+        And I run :hint all tab-bg --rapid
+        And I press the key "t"
+        And I run :follow-hint 0
+        And I run :follow-hint 1
+        Then data/numbers/2.txt should be loaded
+        And data/numbers/3.txt should be loaded
+
+    # https://github.com/The-Compiler/qutebrowser/issues/1186
+    Scenario: Keeping hints filter when using backspace
+        When I open data/hints/issue1186.html
+        And I set hints -> mode to number
+        And I run :hint all
+        And I press the key "x"
+        And I press the key "0"
+        And I press the key "<Backspace>"
+        And I run :follow-hint 11
+        Then the error "No hint 11!" should be shown
+
+    # https://github.com/The-Compiler/qutebrowser/issues/674#issuecomment-165096744
+    Scenario: Multi-word matching
+        When I open data/hints/number.html
+        And I set hints -> mode to number
+        And I set hints -> auto-follow to true
+        And I set hints -> auto-follow-timeout to 0
+        And I run :hint all
+        And I press the keys "ten pos"
+        Then data/numbers/11.txt should be loaded
+
+    Scenario: Scattering is ignored with number hints
+        When I open data/hints/number.html
+        And I set hints -> mode to number
+        And I set hints -> scatter to true
+        And I run :hint all
+        And I run :follow-hint 00
+        Then data/numbers/1.txt should be loaded
