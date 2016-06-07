@@ -179,10 +179,11 @@
 |<<hints-mode,mode>>|Mode to use for hints.
 |<<hints-chars,chars>>|Chars used for hint strings.
 |<<hints-min-chars,min-chars>>|Minimum number of chars used for hint strings.
-|<<hints-scatter,scatter>>|Whether to scatter hint key chains (like Vimium) or not (like dwb).
+|<<hints-scatter,scatter>>|Whether to scatter hint key chains (like Vimium) or not (like dwb). Ignored for number hints.
 |<<hints-uppercase,uppercase>>|Make chars in hint strings uppercase.
 |<<hints-dictionary,dictionary>>|The dictionary file to be used by the word hints.
 |<<hints-auto-follow,auto-follow>>|Follow a hint immediately when the hint text is completely matched.
+|<<hints-auto-follow-timeout,auto-follow-timeout>>|A timeout to inhibit normal-mode key bindings after a successfulauto-follow.
 |<<hints-next-regexes,next-regexes>>|A comma-separated list of regexes to use for 'next' links.
 |<<hints-prev-regexes,prev-regexes>>|A comma-separated list of regexes to use for 'prev' links.
 |==============
@@ -1581,7 +1582,7 @@ Default: +pass:[1]+
 
 [[hints-scatter]]
 === scatter
-Whether to scatter hint key chains (like Vimium) or not (like dwb).
+Whether to scatter hint key chains (like Vimium) or not (like dwb). Ignored for number hints.
 
 Valid values:
 
@@ -1617,6 +1618,12 @@ Valid values:
  * +false+
 
 Default: +pass:[true]+
+
+[[hints-auto-follow-timeout]]
+=== auto-follow-timeout
+A timeout to inhibit normal-mode key bindings after a successfulauto-follow.
+
+Default: +pass:[0]+
 
 [[hints-next-regexes]]
 === next-regexes
