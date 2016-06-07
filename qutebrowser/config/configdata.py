@@ -898,7 +898,7 @@ def data(readonly=False):
             ('scatter',
              SettingValue(typ.Bool(), 'true'),
              "Whether to scatter hint key chains (like Vimium) or not (like "
-             "dwb)."),
+             "dwb). Ignored for number hints."),
 
             ('uppercase',
              SettingValue(typ.Bool(), 'false'),

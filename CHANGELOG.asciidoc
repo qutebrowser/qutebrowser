@@ -65,6 +65,7 @@ Changed
 - Number hints are now kept filtered after following a hint in rapid mode.
 - Number hints are now renumbered after filtering
 - Number hints can now be filtered with multiple space-separated search terms
+- `hints -> scatter` is now ignored for number hints
 
 Fixed
 -----

@@ -193,7 +193,6 @@ Feature: Using hints
     Scenario: Keeping hints filter when using backspace
         When I open data/hints/issue1186.html
         And I set hints -> mode to number
-        And I set hints -> scatter to false
         And I run :hint all
         And I press the key "x"
         And I press the key "0"
@@ -210,3 +209,11 @@ Feature: Using hints
         And I run :hint all
         And I press the keys "ten pos"
         Then data/numbers/11.txt should be loaded
+
+    Scenario: Scattering is ignored with number hints
+        When I open data/hints/number.html
+        And I set hints -> mode to number
+        And I set hints -> scatter to true
+        And I run :hint all
+        And I run :follow-hint 00
+        Then data/numbers/1.txt should be loaded

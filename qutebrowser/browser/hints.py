@@ -223,7 +223,7 @@ class HintManager(QObject):
         else:
             chars = config.get('hints', 'chars')
         min_chars = config.get('hints', 'min-chars')
-        if config.get('hints', 'scatter'):
+        if config.get('hints', 'scatter') and hint_mode != 'number':
             return self._hint_scattered(min_chars, chars, elems)
         else:
             return self._hint_linear(min_chars, chars, elems)
