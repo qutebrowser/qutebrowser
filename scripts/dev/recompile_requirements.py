@@ -46,25 +46,42 @@ def convert_line(line, comments):
         line = re.sub(pattern, repl, line)
 
     pkgname = line.split('=')[0]
-    ignored = comments.get('ignore', '').split(',')
 
-    if pkgname in ignored:
+    if pkgname in comments['ignore']:
         line = '# ' + line
 
-    if pkgname in comments:
-        line += '  # ' + comments[pkgname]
+    try:
+        line += '  # ' + comments['comment'][pkgname]
+    except KeyError:
+        pass
+
+    try:
+        line += '  # rq.filter: {}'.format(comments['filter'][pkgname])
+    except KeyError:
+        pass
 
     return line
 
 
 def read_comments(fobj):
-    comments = {}
+    comments = {
+        'filter': {},
+        'comment': {},
+        'ignore': [],
+    }
     for line in fobj:
-        if line.startswith('#') and ':' in line:
-            pkg, comment = line.split(':', maxsplit=1)
-            pkg = pkg.lstrip('# ')
-            comment = comment.strip()
-            comments[pkg] = comment
+        if line.startswith('#!'):
+            command, args = line[2:].split(':', maxsplit=1)
+            command = command.strip()
+            args = args.strip()
+            if command == 'filter':
+                pkg, filt = args.split(' ', maxsplit=1)
+                comments['filter'][pkg] = filt
+            elif command == 'comment':
+                pkg, comment = args.split(' ', maxsplit=1)
+                comments['comment'][pkg] = comment
+            elif command == 'ignore':
+                comments['ignore'] += args.split(', ')
     return comments
 
 
