@@ -191,7 +191,7 @@ class AppendLineParser(BaseLineParser):
         do_save = self._prepare_save()
         if not do_save:
             return
-        with self._open('w') as f:
+        with self._open('w'):
             pass
         self.new_data = []
         self._after_save()
@@ -253,6 +253,7 @@ class LineParser(BaseLineParser):
     def clear(self):
         self.data = []
         self.save()
+
 
 class LimitLineParser(LineParser):
 
