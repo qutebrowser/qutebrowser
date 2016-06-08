@@ -29,7 +29,12 @@ from qutebrowser.misc import lineparser as lineparsermod
 
 class LineParserMixin:
 
-    """A wrapper over lineparser.BaseLineParser to make it testable."""
+    """A wrapper over lineparser.BaseLineParser to make it testable.
+
+    Attributes:
+        _data: The data we got from the BytesIO/StringIO
+        _test_save_prepared: Whether _prepare_save was called.
+    """
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
