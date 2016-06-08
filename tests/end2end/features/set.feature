@@ -26,7 +26,7 @@ Feature: Setting settings.
     Scenario: Toggling an option
         When I run :set general auto-save-config false
         And I run :set general auto-save-config!
-        Then general -> auto-save-config should be True
+        Then general -> auto-save-config should be true
 
     Scenario: Toggling a non-bool option
         When I run :set colors statusbar.bg!
@@ -44,7 +44,7 @@ Feature: Setting settings.
     Scenario: Using ! and -p
         When I run :set general auto-save-config false
         And I run :set -p general auto-save-config!
-        Then the message "general auto-save-config = True" should be shown
+        Then the message "general auto-save-config = true" should be shown
 
     Scenario: Setting an invalid value
         When I run :set general auto-save-config blah
