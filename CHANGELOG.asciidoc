@@ -91,6 +91,7 @@ Fixed
 - Fixed handling of backspace in number hinting mode
 - Fixed `FileNotFoundError` when starting in some cases on old Qt versions
 - Fixed sharing of cookies between tabs when `private-browsing` is enabled
+- Toggling values with `:set` now uses lower-case values
 
 v0.6.2
 ------
