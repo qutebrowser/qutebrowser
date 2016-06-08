@@ -179,7 +179,12 @@ class WebHistory(QWebHistoryInterface):
 
     @cmdutils.register(name='history-clear', instance='web-history')
     def clear(self):
-        """Clear all history entries."""
+        """Clear all browsing history.
+
+        Note this only clears the global history
+        (e.g. `~/.local/share/qutebrowser/history` on Linux) but not cookies,
+        the back/forward history of a tab, cache or other persistent data.
+        """
         self._lineparser.clear()
         self._history_dict.clear()
         self._temp_history.clear()
