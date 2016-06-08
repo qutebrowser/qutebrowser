@@ -70,6 +70,7 @@ class Request(testprocess.Line):
                 [http.client.UNAUTHORIZED, http.client.OK],
             '/redirect-to': [http.client.FOUND],
             '/status/404': [http.client.NOT_FOUND],
+            '/cookies/set': [http.client.FOUND],
         }
 
         sanitized = QUrl('http://localhost' + self.path).path()  # Remove ?foo

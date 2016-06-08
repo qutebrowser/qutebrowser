@@ -18,6 +18,7 @@
 # along with qutebrowser.  If not, see <http://www.gnu.org/licenses/>.
 
 import sys
+import json
 import os.path
 import subprocess
 
@@ -60,3 +61,15 @@ def update_documentation():
 def pdfjs_available():
     if not pdfjs.is_available():
         pytest.skip("No pdfjs installation found.")
+
+
+@bdd.then(bdd.parsers.parse('the cookie {name} should be set to {value}'))
+def check_cookie(quteproc, name, value):
+    """Check if a given cookie is set correctly.
+
+    This assumes we're on the httpbin cookies page.
+    """
+    content = quteproc.get_content()
+    data = json.loads(content)
+    print(data)
+    assert data['cookies'][name] == value

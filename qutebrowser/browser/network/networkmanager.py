@@ -31,7 +31,6 @@ from PyQt5.QtNetwork import (QNetworkAccessManager, QNetworkReply, QSslError,
 from qutebrowser.config import config
 from qutebrowser.utils import (message, log, usertypes, utils, objreg, qtutils,
                                urlutils, debug)
-from qutebrowser.browser import cookies
 from qutebrowser.browser.network import qutescheme, networkreply
 from qutebrowser.browser.network import filescheme
 
@@ -184,15 +183,15 @@ class NetworkManager(QNetworkAccessManager):
             private: Whether we're currently in private browsing mode.
         """
         if private:
-            cookie_jar = cookies.RAMCookieJar(self)
-            self.setCookieJar(cookie_jar)
+            cookie_jar = objreg.get('ram-cookie-jar')
         else:
-            # We have a shared cookie jar - we restore its parent so we don't
-            # take ownership of it.
-            app = QCoreApplication.instance()
             cookie_jar = objreg.get('cookie-jar')
-            self.setCookieJar(cookie_jar)
-            cookie_jar.setParent(app)
+
+        # We have a shared cookie jar - we restore its parent so we don't
+        # take ownership of it.
+        self.setCookieJar(cookie_jar)
+        app = QCoreApplication.instance()
+        cookie_jar.setParent(app)
 
     def _set_cache(self):
         """Set the cache of the NetworkManager correctly.

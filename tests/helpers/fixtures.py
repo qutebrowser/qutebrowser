@@ -34,6 +34,7 @@ import pytest
 import helpers.stubs as stubsmod
 from qutebrowser.config import config
 from qutebrowser.utils import objreg
+from qutebrowser.browser import cookies
 
 from PyQt5.QtCore import QEvent, QSize, Qt
 from PyQt5.QtWidgets import QWidget, QHBoxLayout, QVBoxLayout
@@ -281,11 +282,14 @@ def fake_keyevent_factory():
 def cookiejar_and_cache(stubs):
     """Fixture providing a fake cookie jar and cache."""
     jar = QNetworkCookieJar()
+    ram_jar = cookies.RAMCookieJar()
     cache = stubs.FakeNetworkCache()
     objreg.register('cookie-jar', jar)
+    objreg.register('ram-cookie-jar', ram_jar)
     objreg.register('cache', cache)
     yield
     objreg.delete('cookie-jar')
+    objreg.delete('ram-cookie-jar')
     objreg.delete('cache')
 
 

@@ -455,3 +455,12 @@ Feature: Various utility commands.
         When I run :set-cmd-text :message-i "Hello World"
         And I run :command-accept
         Then the message "Hello World" should be shown
+
+    ## https://github.com/The-Compiler/qutebrowser/issues/1219
+
+    Scenario: Sharing cookies with private browsing
+        When I set general -> private-browsing to true
+        And I open cookies/set?qute-test=42 without waiting
+        And I wait until cookies is loaded
+        And I open cookies in a new tab
+        Then the cookie qute-test should be set to 42
