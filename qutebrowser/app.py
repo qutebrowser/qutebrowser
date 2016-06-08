@@ -497,7 +497,7 @@ class Quitter:
 
         for dirpath, _dirnames, filenames in os.walk(path):
             for fn in filenames:
-                if os.path.splitext(fn)[1] == '.py':
+                if os.path.splitext(fn)[1] == '.py' and os.path.isfile(fn):
                     with tokenize.open(os.path.join(dirpath, fn)) as f:
                         compile(f.read(), fn, 'exec')
 
