@@ -54,6 +54,7 @@ class HistoryEntry:
     def __str__(self):
         return '{} {} {}'.format(int(self.atime), self.url_string, self.title)
 
+
 class WebHistory(QWebHistoryInterface):
 
     """A QWebHistoryInterface which supports being written to disk.
