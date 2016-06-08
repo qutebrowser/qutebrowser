@@ -25,6 +25,7 @@ import collections
 from PyQt5.QtCore import pyqtSignal, QUrl
 from PyQt5.QtWebKit import QWebHistoryInterface
 
+from qutebrowser.commands import cmdutils
 from qutebrowser.utils import utils, objreg, standarddir, log
 from qutebrowser.config import config
 from qutebrowser.misc import lineparser
@@ -72,10 +73,12 @@ class WebHistory(QWebHistoryInterface):
                              arg: The new HistoryEntry.
         item_added: Emitted after a new HistoryEntry is added.
                     arg: The new HistoryEntry.
+        cleared: Emitted after the history is cleared.
     """
 
     add_completion_item = pyqtSignal(HistoryEntry)
     item_added = pyqtSignal(HistoryEntry)
+    cleared = pyqtSignal()
     async_read_done = pyqtSignal()
 
     def __init__(self, parent=None):
@@ -168,6 +171,16 @@ class WebHistory(QWebHistoryInterface):
         self._lineparser.new_data = new
         self._lineparser.save()
         self._saved_count = len(self._new_history)
+
+    @cmdutils.register(name='history-clear', instance='web-history')
+    def clear(self):
+        """Clear all history entries."""
+        self._lineparser.clear()
+        self._history_dict.clear()
+        self._temp_history.clear()
+        self._new_history.clear()
+        self._saved_count = 0
+        self.cleared.emit()
 
     def addHistoryEntry(self, url_string):
         """Called by WebKit when an URL should be added to the history.
