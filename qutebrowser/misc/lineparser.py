@@ -114,6 +114,8 @@ class BaseLineParser(QObject):
             fp: A file object to write the data to.
             data: The data to write.
         """
+        if not data:
+            return
         if self._binary:
             fp.write(b'\n'.join(data))
             fp.write(b'\n')
