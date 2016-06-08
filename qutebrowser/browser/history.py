@@ -187,7 +187,7 @@ class WebHistory(QWebHistoryInterface):
         self.cleared.emit()
 
     def addHistoryEntry(self, url_string):
-        """Required for a QWebHistoryInterface impl, obseleted by add_url."""
+        """Required for a QWebHistoryInterface impl, obsoleted by add_url."""
         pass
 
     def add_url(self, url_string, title=""):
