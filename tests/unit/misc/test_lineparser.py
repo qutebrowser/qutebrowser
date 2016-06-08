@@ -19,84 +19,9 @@
 
 """Tests for qutebrowser.misc.lineparser."""
 
-import io
-import os
-
 import pytest
 
 from qutebrowser.misc import lineparser as lineparsermod
-
-
-class LineParserMixin:
-
-    """A wrapper over lineparser.BaseLineParser to make it testable.
-
-    Attributes:
-        _data: The data we got from the BytesIO/StringIO
-        _test_save_prepared: Whether _prepare_save was called.
-    """
-
-    def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
-        self._data = None
-        self._test_save_prepared = False
-
-    def _open(self, mode):
-        """Override _open to use StringIO/BytesIO instead of a real file."""
-        if mode not in 'rwa':
-            raise ValueError("Unknown mode {!r}!".format(mode))
-        if self._test_save_prepared:
-            self._test_save_prepared = False
-        elif mode != 'r':
-            raise ValueError("Doing unprepared save!")
-
-        if mode in 'ar' and self._data is not None:
-            prev_val = self._data
-        else:
-            prev_val = None
-            self._data = ''
-
-        if self._binary:
-            fobj = io.BytesIO(prev_val)
-        else:
-            fobj = io.StringIO(prev_val)
-
-        if mode == 'a':
-            fobj.seek(0, os.SEEK_END)
-        return fobj
-
-    def _write(self, fp, data):
-        """Extend _write to get the data after writing it."""
-        super()._write(fp, data)
-        self._data = fp.getvalue()
-
-    def _prepare_save(self):
-        """Keep track if _prepare_save has been called."""
-        self._test_save_prepared = True
-        return True
-
-
-class AppendLineParserTestable(LineParserMixin,
-                               lineparsermod.AppendLineParser):
-
-    """Wrapper over AppendLineParser to make it testable."""
-
-    pass
-
-
-class LineParserTestable(LineParserMixin, lineparsermod.LineParser):
-
-    """Wrapper over LineParser to make it testable."""
-
-    pass
-
-
-class LimitLineParserTestable(LineParserMixin,
-                              lineparsermod.LimitLineParser):
-
-    """Wrapper over LimitLineParser to make it testable."""
-
-    pass
 
 
 class TestBaseLineParser:
@@ -135,9 +60,9 @@ class TestAppendLineParser:
     BASE_DATA = ['old data 1', 'old data 2']
 
     @pytest.fixture
-    def lineparser(self):
+    def lineparser(self, tmpdir):
         """Fixture to get an AppendLineParser for tests."""
-        lp = AppendLineParserTestable('this really', 'does not matter')
+        lp = lineparsermod.AppendLineParser(str(tmpdir), 'file')
         lp.new_data = self.BASE_DATA
         lp.save()
         return lp
@@ -146,18 +71,18 @@ class TestAppendLineParser:
         """Get the expected data with newlines."""
         return '\n'.join(self.BASE_DATA + new_data) + '\n'
 
-    def test_save(self, lineparser):
+    def test_save(self, tmpdir, lineparser):
         """Test save()."""
         new_data = ['new data 1', 'new data 2']
         lineparser.new_data = new_data
         lineparser.save()
-        assert lineparser._data == self._get_expected(new_data)
+        assert (tmpdir / 'file').read() == self._get_expected(new_data)
 
-    def test_clear(self, lineparser):
+    def test_clear(self, tmpdir, lineparser):
         lineparser.new_data = ['this', 'should', 'be', 'cleared']
         lineparser.clear()
         lineparser.save()
-        assert lineparser._data == ""
+        assert (tmpdir / 'file').read() == ""
 
     def test_iter_without_open(self, lineparser):
         """Test __iter__ without having called open()."""
@@ -182,9 +107,10 @@ class TestAppendLineParser:
         with linep.open():
             assert list(linep) == new_data
 
-    def test_get_recent_none(self):
+    def test_get_recent_none(self, tmpdir):
         """Test get_recent with no data."""
-        linep = AppendLineParserTestable('this really', 'does not matter')
+        (tmpdir / 'file2').ensure()
+        linep = lineparsermod.AppendLineParser(str(tmpdir), 'file2')
         assert linep.get_recent() == []
 
     def test_get_recent_little(self, lineparser):
