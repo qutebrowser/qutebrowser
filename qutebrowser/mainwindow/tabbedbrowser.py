@@ -34,13 +34,7 @@ from qutebrowser.utils import (log, usertypes, utils, qtutils, objreg,
                                urlutils, message)
 
 
-class UndoEntry:
-    """TODO document UndoEntry"""
-    def __init__(self, url, history, last_of_window, window_id):
-        self.url = url
-        self.history = history
-        self.last_of_window = last_of_window
-        self.window_id = window_id
+UndoEntry = collections.namedtuple('UndoEntry', ['url', 'history'])
 
 
 class TabDeletedError(Exception):
@@ -297,13 +291,8 @@ class TabbedBrowser(tabwidget.TabWidget):
                           window=self._win_id)
         if tab.cur_url.isValid():
             history_data = qtutils.serialize(tab.history())
-            last_of_window = self.count() == 1
-            entry = UndoEntry(tab.cur_url, history_data, last_of_window,
-                    self._win_id)
-            if config.get('tabs', 'undo-across-windows'):
-                objreg.get('undo-stack').append(entry)
-            else:
-                self._undo_stack.append(entry)
+            entry = UndoEntry(tab.cur_url, history_data)
+            self._undo_stack.append(entry)
         elif tab.cur_url.isEmpty():
             # There are some good reasons why an URL could be empty
             # (target="_blank" with a download, see [1]), so we silently ignore
@@ -339,34 +328,15 @@ class TabbedBrowser(tabwidget.TabWidget):
             use_current_tab = (only_one_tab_open and no_history and
                                last_close_url_used)
 
-        if config.get('tabs', 'undo-across-windows'):
-            undo_entry = objreg.get('undo-stack').pop()
-        else:
-            undo_entry = self._undo_stack.pop()
+        url, history_data = self._undo_stack.pop()
 
         if use_current_tab:
-            self.openurl(undo_entry.url, newtab=False)
+            self.openurl(url, newtab=False)
             newtab = self.widget(0)
-        elif undo_entry.last_of_window:
-            from qutebrowser.mainwindow import mainwindow
-            window = mainwindow.MainWindow()
-            window.show()
-            tabbed_browser = objreg.get('tabbed-browser', scope='window',
-                                        window=window.win_id)
-            for entry in objreg.get('undo-stack'):
-                if entry.window_id == undo_entry.window_id:
-                    print("Updating entry")
-                    entry.window_id = window.win_id
-            newtab = tabbed_browser.tabopen(undo_entry.url, background=False)
         else:
-            if config.get('tabs', 'undo-across-windows'):
-                tabbed_browser = objreg.get('tabbed-browser', scope='window',
-                                            window=undo_entry.window_id)
-                newtab = tabbed_browser.tabopen(undo_entry.url, background=False)
-            else:
-                newtab = self.tabopen(undo_entry.url, background=False)
+            newtab = self.tabopen(url, background=False)
 
-        qtutils.deserialize(undo_entry.history, newtab.history())
+        qtutils.deserialize(history_data, newtab.history())
 
     @pyqtSlot('QUrl', bool)
     def openurl(self, url, newtab):

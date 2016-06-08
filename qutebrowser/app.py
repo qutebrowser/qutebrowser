@@ -422,9 +422,6 @@ def _init_modules(args, crash_handler):
     log.init.debug("Initializing bookmarks...")
     bookmark_manager = urlmarks.BookmarkManager(qApp)
     objreg.register('bookmark-manager', bookmark_manager)
-    log.init.debug("Initializing undo stack...")
-    undo_stack = []
-    objreg.register('undo-stack', undo_stack)
     log.init.debug("Initializing proxy...")
     proxy.init()
     log.init.debug("Initializing cookies...")
