@@ -305,6 +305,7 @@ class QuteProc(testprocess.Process):
         settings = [
             ('ui', 'message-timeout', '0'),
             ('network', 'ssl-strict', 'false'),
+            ('general', 'auto-save-interval', '0'),
         ]
         for sect, opt, value in settings:
             self.set_setting(sect, opt, value)
