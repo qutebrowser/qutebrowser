@@ -147,6 +147,12 @@ class TestAppendLineParser:
         lineparser.save()
         assert lineparser._data == self._get_expected(new_data)
 
+    def test_clear(self, lineparser):
+        lineparser.new_data = ['this', 'should', 'be', 'cleared']
+        lineparser.clear()
+        lineparser.save()
+        assert lineparser._data == ""
+
     def test_iter_without_open(self, lineparser):
         """Test __iter__ without having called open()."""
         with pytest.raises(ValueError):
