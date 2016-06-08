@@ -177,6 +177,7 @@ Contributors, sorted by the number of commits in descending order:
 * Liam BEGUIN
 * skinnay
 * Zach-Button
+* Tomasz Kramkowski
 * Halfwit
 * rikn00
 * kanikaa1234
@@ -188,7 +189,6 @@ Contributors, sorted by the number of commits in descending order:
 * sbinix
 * neeasade
 * jnphilipp
-* Tomasz Kramkowski
 * Tobias Patzl
 * Stefan Tatschner
 * Peter Michely

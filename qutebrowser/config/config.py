@@ -734,7 +734,7 @@ class ConfigManager(QObject):
                     val = self.get(section_, option)
                     layer = 'temp' if temp else 'conf'
                     if isinstance(val, bool):
-                        self.set(layer, section_, option, str(not val))
+                        self.set(layer, section_, option, str(not val).lower())
                     else:
                         raise cmdexc.CommandError(
                             "set: Attempted inversion of non-boolean value.")
