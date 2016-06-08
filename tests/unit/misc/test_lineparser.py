@@ -54,6 +54,7 @@ class LineParserMixin:
             prev_val = self._data
         else:
             prev_val = None
+            self._data = ''
 
         if self._binary:
             fobj = io.BytesIO(prev_val)
