@@ -156,7 +156,7 @@ class WebView(QWebView):
             # originally clicked, save them both.
             url = self._orig_url.toString(QUrl.FullyEncoded |
                                           QUrl.RemovePassword)
-            history.add_url(url, self.title())
+            history.add_url(url, self.title(), hidden=True)
         url = self.cur_url.toString(QUrl.FullyEncoded | QUrl.RemovePassword)
 
         history.add_url(url, self.title())

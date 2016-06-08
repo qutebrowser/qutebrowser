@@ -39,17 +39,20 @@ class HistoryEntry:
         atime: The time the page was accessed.
         url: The URL which was accessed as QUrl.
         url_string: The URL which was accessed as string.
+        hidden: If True, don't save this entry to disk
     """
 
-    def __init__(self, atime, url, title):
+    def __init__(self, atime, url, title, hidden=False):
         self.atime = float(atime)
         self.url = QUrl(url)
         self.url_string = url
         self.title = title
+        self.hidden = hidden
 
     def __repr__(self):
         return utils.get_repr(self, constructor=True, atime=self.atime,
-                              url=self.url.toDisplayString(), title=self.title)
+                              url=self.url.toDisplayString(), title=self.title,
+                              hidden=self.hidden)
 
     def __str__(self):
         return '{} {} {}'.format(int(self.atime), self.url_string, self.title)
@@ -154,9 +157,10 @@ class WebHistory(QWebHistoryInterface):
         self.async_read_done.emit()
 
         for url, entry in self._temp_history.items():
-            self._new_history.append(entry)
             self._add_entry(entry)
-            self.add_completion_item.emit(entry)
+            if not entry.hidden:
+                self._new_history.append(entry)
+                self.add_completion_item.emit(entry)
 
     def _add_entry(self, entry, target=None):
         """Add an entry to self._history_dict or another given OrderedDict."""
@@ -196,22 +200,24 @@ class WebHistory(QWebHistoryInterface):
         """Required for a QWebHistoryInterface impl, obsoleted by add_url."""
         pass
 
-    def add_url(self, url_string, title=""):
+    def add_url(self, url_string, title="", hidden=False):
         """Called by WebKit when an URL should be added to the history.
 
         Args:
             url_string: An url as string to add to the history.
+            hidden: Whether to hide the entry from the on-disk history
         """
         if not url_string:
             return
         if config.get('general', 'private-browsing'):
             return
-        entry = HistoryEntry(time.time(), url_string, title)
+        entry = HistoryEntry(time.time(), url_string, title, hidden=hidden)
         if self._initial_read_done:
-            self.add_completion_item.emit(entry)
-            self._new_history.append(entry)
             self._add_entry(entry)
-            self.item_added.emit(entry)
+            if not entry.hidden:
+                self.add_completion_item.emit(entry)
+                self._new_history.append(entry)
+                self.item_added.emit(entry)
         else:
             self._add_entry(entry, target=self._temp_history)
 
