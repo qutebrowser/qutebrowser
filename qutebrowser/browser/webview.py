@@ -154,8 +154,12 @@ class WebView(QWebView):
                                       QUrl.UrlFormattingOption(0)):
             # If the url of the page is different than the url of the link
             # originally clicked, save them both.
-            history.add_url(self._orig_url.toDisplayString(), self.title())
-        history.add_url(self.cur_url.toDisplayString(), self.title())
+            url = self._orig_url.toString(QUrl.FullyEncoded |
+                                          QUrl.RemovePassword)
+            history.add_url(url, self.title())
+        url = self.cur_url.toString(QUrl.FullyEncoded | QUrl.RemovePassword)
+
+        history.add_url(url, self.title())
 
     def _init_page(self):
         """Initialize the QWebPage used by this view."""
