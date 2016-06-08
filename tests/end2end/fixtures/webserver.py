@@ -68,6 +68,8 @@ class Request(testprocess.Line):
             '/custom/redirect-later': [http.client.FOUND],
             '/basic-auth/user/password':
                 [http.client.UNAUTHORIZED, http.client.OK],
+            '/redirect-to': [http.client.FOUND],
+            '/status/404': [http.client.NOT_FOUND],
         }
 
         sanitized = QUrl('http://localhost' + self.path).path()  # Remove ?foo

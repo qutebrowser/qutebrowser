@@ -119,6 +119,7 @@ class WebView(QWebView):
         self.destroyed.connect(functools.partial(
             cfg.changed.disconnect, self.init_neighborlist))
         self.cur_url = QUrl()
+        self._orig_url = QUrl()
         self.progress = 0
         self.registry = objreg.ObjectRegistry()
         self.tab_id = next(tab_id_gen)
@@ -145,6 +146,21 @@ class WebView(QWebView):
         self.loadProgress.connect(lambda p: setattr(self, 'progress', p))
         objreg.get('config').changed.connect(self.on_config_changed)
 
+    @pyqtSlot()
+    def on_initial_layout_completed(self):
+        """Add url to history now that we have displayed something."""
+        history = objreg.get('web-history')
+        if not self._orig_url.matches(self.cur_url,
+                                      QUrl.UrlFormattingOption(0)):
+            # If the url of the page is different than the url of the link
+            # originally clicked, save them both.
+            url = self._orig_url.toString(QUrl.FullyEncoded |
+                                          QUrl.RemovePassword)
+            history.add_url(url, self.title())
+        url = self.cur_url.toString(QUrl.FullyEncoded | QUrl.RemovePassword)
+
+        history.add_url(url, self.title())
+
     def _init_page(self):
         """Initialize the QWebPage used by this view."""
         page = webpage.BrowserPage(self.win_id, self.tab_id, self)
@@ -152,6 +168,8 @@ class WebView(QWebView):
         page.linkHovered.connect(self.linkHovered)
         page.mainFrame().loadStarted.connect(self.on_load_started)
         page.mainFrame().loadFinished.connect(self.on_load_finished)
+        page.mainFrame().initialLayoutCompleted.connect(
+            self.on_initial_layout_completed)
         page.statusBarMessage.connect(
             lambda msg: setattr(self, 'statusbar_message', msg))
         page.networkAccessManager().sslErrors.connect(
@@ -182,6 +200,8 @@ class WebView(QWebView):
         log.webview.debug("load status for {}: {}".format(repr(self), val))
         self.load_status = val
         self.load_status_changed.emit(val.name)
+        if val == LoadStatus.loading:
+            self._orig_url = self.cur_url
 
     def _set_bg_color(self):
         """Set the webpage background color as configured."""

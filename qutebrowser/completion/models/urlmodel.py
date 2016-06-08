@@ -100,7 +100,8 @@ class UrlCompletionModel(base.BaseCompletionModel):
 
     def _add_history_entry(self, entry):
         """Add a new history entry to the completion."""
-        self.new_item(self._history_cat, entry.url.toDisplayString(), "",
+        self.new_item(self._history_cat, entry.url.toDisplayString(),
+                      entry.title,
                       self._fmt_atime(entry.atime), sort=int(entry.atime),
                       userdata=entry.url)
 
@@ -123,9 +124,11 @@ class UrlCompletionModel(base.BaseCompletionModel):
         for i in range(self._history_cat.rowCount()):
             url_item = self._history_cat.child(i, self.URL_COLUMN)
             atime_item = self._history_cat.child(i, self.TIME_COLUMN)
+            title_item = self._history_cat.child(i, self.TEXT_COLUMN)
             url = url_item.data(base.Role.userdata)
             if url == entry.url:
                 atime_item.setText(self._fmt_atime(entry.atime))
+                title_item.setText(entry.title)
                 url_item.setData(int(entry.atime), base.Role.sort)
                 break
         else:
