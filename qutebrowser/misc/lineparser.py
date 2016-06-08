@@ -305,7 +305,3 @@ class LimitLineParser(LineParser):
         with qtutils.savefile_open(self._configfile, self._binary) as f:
             self._write(f, self.data[-limit:])
         self._after_save()
-
-    def clear(self):
-        self.data = []
-        self.save()
