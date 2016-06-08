@@ -34,6 +34,7 @@ Added
   pressed. This can be turned off using `:set ui keyhint-blacklist *`.
 - New `hints -> auto-follow-timeout` setting to ignore keypresses after
   following a hint when filtering in number mode.
+- New `:history-clear` command to clear the entire history
 
 Changed
 ~~~~~~~

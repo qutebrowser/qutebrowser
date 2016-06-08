@@ -57,6 +57,9 @@ class LineparserSaveStub(lineparser.BaseLineParser):
     def save(self):
         self.saved = self.data
 
+    def clear(self):
+        pass
+
     def __iter__(self):
         return iter(self.data)
 

@@ -114,6 +114,8 @@ class BaseLineParser(QObject):
             fp: A file object to write the data to.
             data: The data to write.
         """
+        if not data:
+            return
         if self._binary:
             fp.write(b'\n'.join(data))
             fp.write(b'\n')
@@ -123,6 +125,10 @@ class BaseLineParser(QObject):
 
     def save(self):
         """Save the history to disk."""
+        raise NotImplementedError
+
+    def clear(self):
+        """Clear the contents of the file."""
         raise NotImplementedError
 
 
@@ -183,6 +189,15 @@ class AppendLineParser(BaseLineParser):
         self.new_data = []
         self._after_save()
 
+    def clear(self):
+        do_save = self._prepare_save()
+        if not do_save:
+            return
+        with self._open('w'):
+            pass
+        self.new_data = []
+        self._after_save()
+
 
 class LineParser(BaseLineParser):
 
@@ -236,6 +251,10 @@ class LineParser(BaseLineParser):
         finally:
             self._opened = False
         self._after_save()
+
+    def clear(self):
+        self.data = []
+        self.save()
 
 
 class LimitLineParser(LineParser):

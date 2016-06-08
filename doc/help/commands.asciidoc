@@ -26,6 +26,7 @@
 |<<fullscreen,fullscreen>>|Toggle fullscreen mode.
 |<<help,help>>|Show help about a command or setting.
 |<<hint,hint>>|Start hinting.
+|<<history-clear,history-clear>>|Clear all history entries.
 |<<home,home>>|Open main startpage in current tab.
 |<<inspector,inspector>>|Toggle the web inspector.
 |<<jseval,jseval>>|Evaluate a JavaScript string.
@@ -355,6 +356,10 @@ Start hinting.
 
 ==== note
 * This command does not split arguments after the last argument and handles quotes literally.
+
+[[history-clear]]
+=== history-clear
+Clear all history entries.
 
 [[home]]
 === home

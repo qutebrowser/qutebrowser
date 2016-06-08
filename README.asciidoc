@@ -188,6 +188,7 @@ Contributors, sorted by the number of commits in descending order:
 * sbinix
 * neeasade
 * jnphilipp
+* Tomasz Kramkowski
 * Tobias Patzl
 * Stefan Tatschner
 * Peter Michely
@@ -211,7 +212,6 @@ Contributors, sorted by the number of commits in descending order:
 * evan
 * dylan araps
 * Xitian9
-* Tomasz Kramkowski
 * Tomas Orsava
 * Tobias Werth
 * Tim Harder
