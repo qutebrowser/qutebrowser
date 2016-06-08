@@ -210,3 +210,4 @@ class SaveManager(QObject):
                 except OSError as e:
                     message.error(win_id, "Could not save {}: "
                                   "{}".format(key, e))
+        log.save.debug(":save saved {}".format(', '.join(what)))

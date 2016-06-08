@@ -27,7 +27,7 @@ bdd.scenarios('history.feature')
 def check_history(quteproc, httpbin, expected):
     history_file = os.path.join(quteproc.basedir, 'data', 'history')
     quteproc.send_cmd(':save history')
-    quteproc.wait_for(message='Saved to *history')
+    quteproc.wait_for(message=':save saved history')
 
     expected = expected.replace('(port)', str(httpbin.port)).splitlines()
 
