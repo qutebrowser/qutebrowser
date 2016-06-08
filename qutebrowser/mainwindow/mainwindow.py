@@ -431,7 +431,12 @@ class MainWindow(QWidget):
 
     def _do_close(self):
         """Helper function for closeEvent."""
-        objreg.get('session-manager').save_last_window_session()
+        session_manager = objreg.get('session-manager')
+        session_manager.save_last_window_session()
+        session_manager.session_save(self.win_id,
+                name="_undo-{}".format(self.win_id),
+                force=True, only_window=True)
+        session_manager._window_id_stack.append(self.win_id)
         self._save_geometry()
         log.destroy.debug("Closing window {}".format(self.win_id))
         self.tabbed_browser.shutdown()

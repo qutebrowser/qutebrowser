@@ -781,10 +781,17 @@ class CommandDispatcher:
                 self._tabbed_browser.close_tab(tab)
 
     @cmdutils.register(instance='command-dispatcher', scope='window')
-    def undo(self):
-        """Re-open a closed tab (optionally skipping [count] closed tabs)."""
+    def undo(self, window=False):
+        """Re-open a closed tab (optionally skipping [count] closed tabs).
+
+        Args:
+            window: Undo the last window closed rather than the last tab.
+        """
         try:
-            self._tabbed_browser.undo()
+            if window or config.get('tabs', 'tabs-are-windows'):
+                self._tabbed_browser.undo_window()
+            else:
+                self._tabbed_browser.undo()
         except IndexError:
             raise cmdexc.CommandError("Nothing to undo!")
 

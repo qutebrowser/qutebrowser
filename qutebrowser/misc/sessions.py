@@ -81,6 +81,7 @@ class SessionManager(QObject):
         _last_window_session: The session data of the last window which was
                               closed.
         _current: The name of the currently loaded session, or None.
+        _window_id_stack: A fifo of closed window ids.
         did_load: Set when a session was loaded.
 
     Signals:
@@ -95,6 +96,7 @@ class SessionManager(QObject):
         self._current = None
         self._base_path = base_path
         self._last_window_session = None
+        self._window_id_stack = []
         self.did_load = False
 
     def _get_session_path(self, name, check_exists=False):
@@ -183,26 +185,31 @@ class SessionManager(QObject):
         """Get a dict with data for all windows/tabs."""
         data = {'windows': []}
         for win_id in objreg.window_registry:
-            tabbed_browser = objreg.get('tabbed-browser', scope='window',
-                                        window=win_id)
-            main_window = objreg.get('main-window', scope='window',
-                                     window=win_id)
-
-            # We could be in the middle of destroying a window here
-            if sip.isdeleted(main_window):
-                continue
-
-            win_data = {}
-            active_window = QApplication.instance().activeWindow()
-            if getattr(active_window, 'win_id', None) == win_id:
-                win_data['active'] = True
-            win_data['geometry'] = bytes(main_window.saveGeometry())
-            win_data['tabs'] = []
-            for i, tab in enumerate(tabbed_browser.widgets()):
-                active = i == tabbed_browser.currentIndex()
-                win_data['tabs'].append(self._save_tab(tab, active))
-            data['windows'].append(win_data)
+            win_data = self._save_win(win_id)
+            if win_data:
+                data['windows'].append(win_data)
         return data
+
+    def _save_win(self, win_id):
+        tabbed_browser = objreg.get('tabbed-browser', scope='window',
+                                    window=win_id)
+        main_window = objreg.get('main-window', scope='window',
+                                 window=win_id)
+
+        # We could be in the middle of destroying a window here
+        if sip.isdeleted(main_window):
+            return
+
+        win_data = {}
+        active_window = QApplication.instance().activeWindow()
+        if getattr(active_window, 'win_id', None) == win_id:
+            win_data['active'] = True
+        win_data['geometry'] = bytes(main_window.saveGeometry())
+        win_data['tabs'] = []
+        for i, tab in enumerate(tabbed_browser.widgets()):
+            active = i == tabbed_browser.currentIndex()
+            win_data['tabs'].append(self._save_tab(tab, active))
+        return win_data
 
     def _get_session_name(self, name):
         """Helper for save to get the name to save the session to.
@@ -220,7 +227,8 @@ class SessionManager(QObject):
                     name = 'default'
         return name
 
-    def save(self, name, last_window=False, load_next_time=False):
+    def save(self, name, last_window=False, load_next_time=False,
+             only_win_id=-1):
         """Save a named session.
 
         Args:
@@ -229,6 +237,8 @@ class SessionManager(QObject):
             last_window: If set, saves the saved self._last_window_session
                          instead of the currently open state.
             load_next_time: If set, prepares this session to be load next time.
+            only_win_id: Limit the session to the given window. If -1, ignore
+                         this option.
 
         Return:
             The name of the saved session.
@@ -245,7 +255,11 @@ class SessionManager(QObject):
                 log.sessions.error("last_window_session is None while saving!")
                 return
         else:
-            data = self._save_all()
+            if only_win_id != -1:
+                data = {'windows': []}
+                data['windows'].append(self._save_win(only_win_id))
+            else:
+                data = self._save_all()
         log.sessions.vdebug("Saving data: {}".format(data))
         try:
             with qtutils.savefile_open(path) as f:
@@ -388,7 +402,7 @@ class SessionManager(QObject):
     @cmdutils.argument('win_id', win_id=True)
     @cmdutils.argument('name', completion=usertypes.Completion.sessions)
     def session_save(self, win_id, name: str=default, current=False,
-                     quiet=False, force=False):
+                     quiet=False, force=False, only_window=False):
         """Save a session.
 
         Args:
@@ -398,6 +412,7 @@ class SessionManager(QObject):
             current: Save the current session instead of the default.
             quiet: Don't show confirmation message.
             force: Force saving internal sessions (starting with an underline).
+            only_window: Limit the session to the current window.
         """
         if (name is not default and
                 name.startswith('_') and  # pylint: disable=no-member
@@ -410,7 +425,10 @@ class SessionManager(QObject):
             name = self._current
             assert not name.startswith('_')
         try:
-            name = self.save(name)
+            if only_window:
+                name = self.save(name, only_win_id=win_id)
+            else:
+                name = self.save(name)
         except SessionError as e:
             raise cmdexc.CommandError("Error while saving session: {}"
                                       .format(e))

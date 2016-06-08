@@ -338,6 +338,13 @@ class TabbedBrowser(tabwidget.TabWidget):
 
         qtutils.deserialize(history_data, newtab.history())
 
+    def undo_window(self):
+        """Undo removing of a window."""
+        session_manager = objreg.get('session-manager')
+        win_id = session_manager._window_id_stack.pop()
+        restore_session_name = "_undo-{}".format(win_id)
+        session_manager.session_load(restore_session_name, force=True)
+
     @pyqtSlot('QUrl', bool)
     def openurl(self, url, newtab):
         """Open a URL, used as a slot.
