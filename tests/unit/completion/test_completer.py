@@ -27,6 +27,7 @@ from PyQt5.QtGui import QStandardItemModel
 
 from qutebrowser.completion import completer
 from qutebrowser.utils import usertypes
+from qutebrowser.commands import command, cmdutils
 
 
 class FakeCompletionModel(QStandardItemModel):
@@ -91,24 +92,49 @@ def instances(monkeypatch):
 @pytest.fixture(autouse=True)
 def cmdutils_patch(monkeypatch, stubs):
     """Patch the cmdutils module to provide fake commands."""
+    @cmdutils.argument('section_', completion=usertypes.Completion.section)
+    @cmdutils.argument('option', completion=usertypes.Completion.option)
+    @cmdutils.argument('value', completion=usertypes.Completion.value)
+    def set_command(section_=None, option=None, value=None):
+        """docstring!"""
+        pass
+
+    @cmdutils.argument('topic', completion=usertypes.Completion.helptopic)
+    def show_help(tab=False, bg=False, window=False, topic=None):
+        """docstring!"""
+        pass
+
+    @cmdutils.argument('url', completion=usertypes.Completion.url)
+    @cmdutils.argument('count', count=True)
+    def openurl(url=None, implicit=False, bg=False, tab=False, window=False,
+                count=None):
+        """docstring!"""
+        pass
+
+    @cmdutils.argument('win_id', win_id=True)
+    @cmdutils.argument('key', completion=usertypes.Completion.empty)
+    @cmdutils.argument('command', completion=usertypes.Completion.command)
+    def bind(key, win_id, command=None, *, mode='normal', force=False):
+        """docstring!"""
+        # pylint: disable=unused-variable
+        pass
+
+    def tab_detach():
+        """docstring!"""
+        pass
+
     cmds = {
-        'set': [usertypes.Completion.section, usertypes.Completion.option,
-                usertypes.Completion.value],
-        'help': [usertypes.Completion.helptopic],
-        'quickmark-load': [usertypes.Completion.quickmark_by_name],
-        'bookmark-load': [usertypes.Completion.bookmark_by_url],
-        'open': [usertypes.Completion.url],
-        'buffer': [usertypes.Completion.tab],
-        'session-load': [usertypes.Completion.sessions],
-        'bind': [usertypes.Completion.empty, usertypes.Completion.command],
-        'tab-detach': None,
+        'set': set_command,
+        'help': show_help,
+        'open': openurl,
+        'bind': bind,
+        'tab-detach': tab_detach,
     }
     cmd_utils = stubs.FakeCmdUtils({
-        name: stubs.FakeCommand(completion=compl)
-        for name, compl in cmds.items()
+        name: command.Command(name=name, handler=fn)
+        for name, fn in cmds.items()
     })
-    monkeypatch.setattr('qutebrowser.completion.completer.cmdutils',
-                        cmd_utils)
+    monkeypatch.setattr('qutebrowser.completion.completer.cmdutils', cmd_utils)
 
 
 def _set_cmd_prompt(cmd, txt):
@@ -143,11 +169,8 @@ def _validate_cmd_prompt(cmd, txt):
     (':set general ignore-case |', usertypes.Completion.value),
     (':set general huh |', None),
     (':help |', usertypes.Completion.helptopic),
-    (':quickmark-load |', usertypes.Completion.quickmark_by_name),
-    (':bookmark-load |', usertypes.Completion.bookmark_by_url),
+    (':help     |', usertypes.Completion.helptopic),
     (':open |', usertypes.Completion.url),
-    (':buffer |', usertypes.Completion.tab),
-    (':session-load |', usertypes.Completion.sessions),
     (':bind |', usertypes.Completion.empty),
     (':bind <c-x> |', usertypes.Completion.command),
     (':bind <c-x> foo|', usertypes.Completion.command),
@@ -157,7 +180,6 @@ def _validate_cmd_prompt(cmd, txt):
     (':set gene|ral ignore-case', usertypes.Completion.section),
     (':|', usertypes.Completion.command),
     (':   |', usertypes.Completion.command),
-    (':bookmark-load      |', usertypes.Completion.bookmark_by_url),
     ('/|', None),
     (':open -t|', None),
     (':open --tab|', None),
