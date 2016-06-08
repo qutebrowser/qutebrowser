@@ -53,6 +53,24 @@ class TestBaseLineParser:
         os_mock.makedirs.assert_called_with(self.CONFDIR, 0o755)
 
 
+class TestLineParser:
+
+    @pytest.fixture
+    def lineparser(self, tmpdir):
+        """Fixture to get a LineParser for tests."""
+        lp = lineparsermod.LineParser(str(tmpdir), 'file')
+        lp.save()
+        return lp
+
+    def test_clear(self, tmpdir, lineparser):
+        lineparser.data = ['one', 'two']
+        lineparser.save()
+        assert (tmpdir / 'file').read() == 'one\ntwo\n'
+        lineparser.clear()
+        assert not lineparser.data
+        assert (tmpdir / 'file').read() == ''
+
+
 class TestAppendLineParser:
 
     """Tests for AppendLineParser."""
@@ -79,9 +97,14 @@ class TestAppendLineParser:
         assert (tmpdir / 'file').read() == self._get_expected(new_data)
 
     def test_clear(self, tmpdir, lineparser):
-        lineparser.new_data = ['this', 'should', 'be', 'cleared']
+        lineparser.new_data = ['one', 'two']
+        lineparser.save()
+        assert (tmpdir / 'file').read() == "old data 1\nold data 2\none\ntwo\n"
+
+        lineparser.new_data = ['one', 'two']
         lineparser.clear()
         lineparser.save()
+        assert not lineparser.new_data
         assert (tmpdir / 'file').read() == ""
 
     def test_iter_without_open(self, lineparser):
