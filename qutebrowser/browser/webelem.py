@@ -173,14 +173,9 @@ class WebElementWrapper(collections.abc.MutableMapping):
         """
         return is_visible(self._elem, mainframe)
 
-    def rect_on_view(self, *, adjust_zoom=True):
-        """Get the geometry of the element relative to the webview.
-
-        Args:
-            adjust_zoom: Whether to adjust the element position based on the
-                         current zoom level.
-        """
-        return rect_on_view(self._elem, adjust_zoom=adjust_zoom)
+    def rect_on_view(self, **kwargs):
+        """Get the geometry of the element relative to the webview."""
+        return rect_on_view(self._elem, **kwargs)
 
     def is_writable(self):
         """Check whether an element is writable."""
@@ -368,7 +363,7 @@ def focus_elem(frame):
     return WebElementWrapper(elem)
 
 
-def rect_on_view(elem, *, elem_geometry=None, adjust_zoom=True):
+def rect_on_view(elem, *, elem_geometry=None, adjust_zoom=True, no_js=False):
     """Get the geometry of the element relative to the webview.
 
     We need this as a standalone function (as opposed to a WebElementWrapper
@@ -391,13 +386,14 @@ def rect_on_view(elem, *, elem_geometry=None, adjust_zoom=True):
                        want to avoid doing it twice.
         adjust_zoom: Whether to adjust the element position based on the
                      current zoom level.
+        no_js: Fall back to the Python implementation
     """
     if elem.isNull():
         raise IsNullError("Got called on a null element!")
 
     # First try getting the element rect via JS, as that's usually more
     # accurate
-    if elem_geometry is None:
+    if elem_geometry is None and not no_js:
         rects = elem.evaluateJavaScript("this.getClientRects()")
         text = utils.compact_text(elem.toOuterXml(), 500)
         log.hints.vdebug("Client rectangles of element '{}': {}".format(text,

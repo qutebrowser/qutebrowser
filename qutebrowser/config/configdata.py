@@ -930,6 +930,14 @@ def data(readonly=False):
                           r'\b(<<|«)\b'),
              "A comma-separated list of regexes to use for 'prev' links."),
 
+            ('find-implementation',
+             SettingValue(typ.String(
+                 valid_values=typ.ValidValues(
+                    ('javascript', "Better but slower"),
+                    ('python', "Slightly worse but faster"),
+                 )), 'javascript'),
+             "Which implementation to use to find elements to hint."),
+
             readonly=readonly
         )),
 

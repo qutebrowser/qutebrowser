@@ -35,6 +35,9 @@ Added
 - New `hints -> auto-follow-timeout` setting to ignore keypresses after
   following a hint when filtering in number mode.
 - New `:history-clear` command to clear the entire history
+- New `hints -> find-implementation` to select which implementation (JS/Python)
+  should be used to find hints on a page. The `javascript` implementation is
+  better, but slower.
 
 Changed
 ~~~~~~~

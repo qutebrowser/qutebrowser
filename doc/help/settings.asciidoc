@@ -186,6 +186,7 @@
 |<<hints-auto-follow-timeout,auto-follow-timeout>>|A timeout to inhibit normal-mode key bindings after a successfulauto-follow.
 |<<hints-next-regexes,next-regexes>>|A comma-separated list of regexes to use for 'next' links.
 |<<hints-prev-regexes,prev-regexes>>|A comma-separated list of regexes to use for 'prev' links.
+|<<hints-find-implementation,find-implementation>>|Which implementation to use to find elements to hint.
 |==============
 
 .Quick reference for section ``colors''
@@ -1636,6 +1637,17 @@ Default: +pass:[\bnext\b,\bmore\b,\bnewer\b,\b[&gt;→≫]\b,\b(&gt;&gt;|»)\b,\
 A comma-separated list of regexes to use for 'prev' links.
 
 Default: +pass:[\bprev(ious)?\b,\bback\b,\bolder\b,\b[&lt;←≪]\b,\b(&lt;&lt;|«)\b]+
+
+[[hints-find-implementation]]
+=== find-implementation
+Which implementation to use to find elements to hint.
+
+Valid values:
+
+ * +javascript+: Better but slower
+ * +python+: Slightly worse but faster
+
+Default: +pass:[javascript]+
 
 == searchengines
 Definitions of search engines which can be used via the address bar.

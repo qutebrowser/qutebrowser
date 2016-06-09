@@ -381,11 +381,12 @@ class HintManager(QObject):
             elem: The QWebElement to set the style attributes for.
             label: The label QWebElement.
         """
-        rect = elem.rect_on_view(adjust_zoom=False)
+        no_js = config.get('hints', 'find-implementation') != 'javascript'
+        rect = elem.rect_on_view(adjust_zoom=False, no_js=no_js)
         left = rect.x()
         top = rect.y()
-        log.hints.vdebug("Drawing label '{!r}' at {}/{} for element '{!r}'"
-                         .format(label, left, top, elem))
+        log.hints.vdebug("Drawing label '{!r}' at {}/{} for element '{!r}' "
+                         "(no_js: {})".format(label, left, top, elem, no_js))
         label.setStyleProperty('left', '{}px !important'.format(left))
         label.setStyleProperty('top', '{}px !important'.format(top))
 

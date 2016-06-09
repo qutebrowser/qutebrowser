@@ -232,4 +232,3 @@ Feature: Using hints
       And I press the key "2"
       And I wait for "Leaving mode KeyMode.hint (reason: all filtered)" in the log
       Then no crash should happen
-
