@@ -147,6 +147,6 @@ class TestAppendLineParser:
         new_data = ['new data {}'.format(i) for i in range(size)]
         lineparser.new_data = new_data
         lineparser.save()
-        data = '\n'.join(self.BASE_DATA + new_data)
-        data = [e + '\n' for e in data[-(size - 1):].splitlines()]
+        data = os.linesep.join(self.BASE_DATA + new_data) + os.linesep
+        data = [e + '\n' for e in data[-size:].splitlines()]
         assert lineparser.get_recent(size) == data
