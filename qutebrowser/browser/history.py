@@ -22,7 +22,7 @@
 import time
 import collections
 
-from PyQt5.QtCore import pyqtSignal, QUrl
+from PyQt5.QtCore import pyqtSignal, QUrl, QObject
 from PyQt5.QtWebKit import QWebHistoryInterface
 
 from qutebrowser.commands import cmdutils
@@ -58,13 +58,41 @@ class HistoryEntry:
         return '{} {} {}'.format(int(self.atime), self.url_string, self.title)
 
 
-class WebHistory(QWebHistoryInterface):
+class WebHistoryInterface(QWebHistoryInterface):
 
-    """A QWebHistoryInterface which supports being written to disk.
+    """Glue code between WebHistory and Qt's QWebHistoryInterface.
 
     Attributes:
+        _history: The WebHistory object.
+    """
+
+    def __init__(self, webhistory, parent):
+        super().__init__(parent)
+        self._history = webhistory
+
+    def addHistoryEntry(self, url_string):
+        """Required for a QWebHistoryInterface impl, obsoleted by add_url."""
+        pass
+
+    def historyContains(self, url_string):
+        """Called by WebKit to determine if an URL is contained in the history.
+
+        Args:
+            url_string: The URL (as string) to check for.
+
+        Return:
+            True if the url is in the history, False otherwise.
+        """
+        return url_string in self._history.history_dict
+
+
+class WebHistory(QObject):
+
+    """The global history of visited pages.
+
+    Attributes:
+        history_dict: An OrderedDict of URLs read from the on-disk history.
         _lineparser: The AppendLineParser used to save the history.
-        _history_dict: An OrderedDict of URLs read from the on-disk history.
         _new_history: A list of HistoryEntry items of the current session.
         _saved_count: How many HistoryEntries have been written to disk.
         _initial_read_started: Whether async_read was called.
@@ -91,7 +119,7 @@ class WebHistory(QWebHistoryInterface):
         self._initial_read_done = False
         self._lineparser = lineparser.AppendLineParser(
             standarddir.data(), 'history', parent=self)
-        self._history_dict = collections.OrderedDict()
+        self.history_dict = collections.OrderedDict()
         self._temp_history = collections.OrderedDict()
         self._new_history = []
         self._saved_count = 0
@@ -105,10 +133,10 @@ class WebHistory(QWebHistoryInterface):
         return self._new_history[key]
 
     def __iter__(self):
-        return iter(self._history_dict.values())
+        return iter(self.history_dict.values())
 
     def __len__(self):
-        return len(self._history_dict)
+        return len(self.history_dict)
 
     def async_read(self):
         """Read the initial history."""
@@ -163,9 +191,9 @@ class WebHistory(QWebHistoryInterface):
                 self.add_completion_item.emit(entry)
 
     def _add_entry(self, entry, target=None):
-        """Add an entry to self._history_dict or another given OrderedDict."""
+        """Add an entry to self.history_dict or another given OrderedDict."""
         if target is None:
-            target = self._history_dict
+            target = self.history_dict
         target[entry.url_string] = entry
         target.move_to_end(entry.url_string)
 
@@ -190,15 +218,11 @@ class WebHistory(QWebHistoryInterface):
         the back/forward history of a tab, cache or other persistent data.
         """
         self._lineparser.clear()
-        self._history_dict.clear()
+        self.history_dict.clear()
         self._temp_history.clear()
         self._new_history.clear()
         self._saved_count = 0
         self.cleared.emit()
-
-    def addHistoryEntry(self, url_string):
-        """Required for a QWebHistoryInterface impl, obsoleted by add_url."""
-        pass
 
     def add_url(self, url_string, title="", hidden=False):
         """Called by WebKit when an URL should be added to the history.
@@ -221,16 +245,6 @@ class WebHistory(QWebHistoryInterface):
         else:
             self._add_entry(entry, target=self._temp_history)
 
-    def historyContains(self, url_string):
-        """Called by WebKit to determine if an URL is contained in the history.
-
-        Args:
-            url_string: The URL (as string) to check for.
-
-        Return:
-            True if the url is in the history, False otherwise.
-        """
-        return url_string in self._history_dict
 
 
 def init(parent=None):
@@ -241,4 +255,6 @@ def init(parent=None):
     """
     history = WebHistory(parent)
     objreg.register('web-history', history)
-    QWebHistoryInterface.setDefaultInterface(history)
+
+    interface = WebHistoryInterface(history, parent=history)
+    QWebHistoryInterface.setDefaultInterface(interface)
