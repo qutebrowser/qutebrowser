@@ -31,7 +31,7 @@ from qutebrowser.config import config
 from qutebrowser.misc import lineparser
 
 
-class HistoryEntry:
+class Entry:
 
     """A single entry in the web history.
 
@@ -56,6 +56,30 @@ class HistoryEntry:
 
     def __str__(self):
         return '{} {} {}'.format(int(self.atime), self.url_string, self.title)
+
+    def __eq__(self, other):
+        return (self.atime == other.atime and
+                self.title == other.title and
+                self.url_string == other.url_string and
+                self.hidden == other.hidden)
+
+    @classmethod
+    def from_str(cls, line):
+        data = line.split(maxsplit=2)
+        if len(data) == 2:
+            atime, url = data
+            title = ""
+        elif len(data) == 3:
+            atime, url, title = data
+        else:
+            raise ValueError("2 or 3 fields expected")
+        if atime.startswith('\0'):
+            log.init.debug(
+                "Removing NUL bytes from entry {!r} - see "
+                "https://github.com/The-Compiler/qutebrowser/issues/"
+                "670".format(data))
+            atime = atime.lstrip('\0')
+        return cls(atime, url, title)
 
 
 class WebHistoryInterface(QWebHistoryInterface):
@@ -92,8 +116,9 @@ class WebHistory(QObject):
 
     Attributes:
         history_dict: An OrderedDict of URLs read from the on-disk history.
+        _hist_dir: The directory to store the history in
         _lineparser: The AppendLineParser used to save the history.
-        _new_history: A list of HistoryEntry items of the current session.
+        _new_history: A list of Entry items of the current session.
         _saved_count: How many HistoryEntries have been written to disk.
         _initial_read_started: Whether async_read was called.
         _initial_read_done: Whether async_read has completed.
@@ -101,24 +126,25 @@ class WebHistory(QObject):
                        async_read was called.
 
     Signals:
-        add_completion_item: Emitted before a new HistoryEntry is added.
-                             arg: The new HistoryEntry.
-        item_added: Emitted after a new HistoryEntry is added.
-                    arg: The new HistoryEntry.
+        add_completion_item: Emitted before a new Entry is added.
+                             arg: The new Entry.
+        item_added: Emitted after a new Entry is added.
+                    arg: The new Entry.
         cleared: Emitted after the history is cleared.
     """
 
-    add_completion_item = pyqtSignal(HistoryEntry)
-    item_added = pyqtSignal(HistoryEntry)
+    add_completion_item = pyqtSignal(Entry)
+    item_added = pyqtSignal(Entry)
     cleared = pyqtSignal()
     async_read_done = pyqtSignal()
 
-    def __init__(self, parent=None):
+    def __init__(self, hist_dir, hist_name, parent=None):
         super().__init__(parent)
         self._initial_read_started = False
         self._initial_read_done = False
-        self._lineparser = lineparser.AppendLineParser(
-            standarddir.data(), 'history', parent=self)
+        self._hist_dir = hist_dir
+        self._lineparser = lineparser.AppendLineParser(hist_dir, hist_name,
+                                                       parent=self)
         self.history_dict = collections.OrderedDict()
         self._temp_history = collections.OrderedDict()
         self._new_history = []
@@ -145,7 +171,7 @@ class WebHistory(QObject):
             return
         self._initial_read_started = True
 
-        if standarddir.data() is None:
+        if self._hist_dir is None:
             self._initial_read_done = True
             self.async_read_done.emit()
             assert not self._temp_history
@@ -154,32 +180,23 @@ class WebHistory(QObject):
         with self._lineparser.open():
             for line in self._lineparser:
                 yield
-                data = line.rstrip().split(maxsplit=2)
-                if not data:
-                    # empty line
+
+                line = line.rstrip()
+                if not line:
                     continue
-                elif len(data) == 2:
-                    atime, url = data
-                    title = ""
-                elif len(data) == 3:
-                    atime, url, title = data
-                else:
-                    # other malformed line
-                    log.init.warning("Invalid history entry {!r}!".format(
-                        line))
+
+                try:
+                    entry = Entry.from_str(line)
+                except ValueError as e:
+                    log.init.warning("Invalid history entry {!r}: {}!".format(
+                        line, e))
                     continue
-                if atime.startswith('\0'):
-                    log.init.debug(
-                        "Removing NUL bytes from entry {!r} - see "
-                        "https://github.com/The-Compiler/qutebrowser/issues/"
-                        "670".format(data))
-                    atime = atime.lstrip('\0')
+
                 # This de-duplicates history entries; only the latest
                 # entry for each URL is kept. If you want to keep
                 # information about previous hits change the items in
-                # old_urls to be lists or change HistoryEntry to have a
+                # old_urls to be lists or change Entry to have a
                 # list of atimes.
-                entry = HistoryEntry(atime, url, title)
                 self._add_entry(entry)
 
         self._initial_read_done = True
@@ -190,6 +207,7 @@ class WebHistory(QObject):
             if not entry.hidden:
                 self._new_history.append(entry)
                 self.add_completion_item.emit(entry)
+        self._temp_history.clear()
 
     def _add_entry(self, entry, target=None):
         """Add an entry to self.history_dict or another given OrderedDict."""
@@ -236,7 +254,7 @@ class WebHistory(QObject):
             return
         if config.get('general', 'private-browsing'):
             return
-        entry = HistoryEntry(time.time(), url_string, title, hidden=hidden)
+        entry = Entry(time.time(), url_string, title, hidden=hidden)
         if self._initial_read_done:
             self._add_entry(entry)
             if not entry.hidden:
@@ -254,7 +272,8 @@ def init(parent=None):
     Args:
         parent: The parent to use for WebHistory.
     """
-    history = WebHistory(parent)
+    history = WebHistory(hist_dir=standarddir.data(), hist_name='history',
+                         parent=parent)
     objreg.register('web-history', history)
 
     interface = WebHistoryInterface(history, parent=history)
