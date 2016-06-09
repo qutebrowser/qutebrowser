@@ -150,8 +150,9 @@ class WebView(QWebView):
     def on_initial_layout_completed(self):
         """Add url to history now that we have displayed something."""
         history = objreg.get('web-history')
-        if not self._orig_url.matches(self.cur_url,
-                                      QUrl.UrlFormattingOption(0)):
+        no_formatting = QUrl.UrlFormattingOption(0)
+        if (self._orig_url.isValid() and
+                not self._orig_url.matches(self.cur_url, no_formatting)):
             # If the url of the page is different than the url of the link
             # originally clicked, save them both.
             history.add_url(self._orig_url, self.title(), hidden=True)
