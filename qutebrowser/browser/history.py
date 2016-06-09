@@ -164,9 +164,6 @@ class WebHistory(QObject):
     def __repr__(self):
         return utils.get_repr(self, length=len(self))
 
-    def __getitem__(self, key):
-        return self._new_history[key]
-
     def __iter__(self):
         return iter(self.history_dict.values())
 
