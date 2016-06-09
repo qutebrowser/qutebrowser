@@ -96,6 +96,7 @@ Fixed
 - Fixed sharing of cookies between tabs when `private-browsing` is enabled
 - Toggling values with `:set` now uses lower-case values
 - Hints now work with (non-standard) links with spaces around the URL
+- Strip off trailing spaces for history entries with no title
 
 v0.6.2
 ------

@@ -54,7 +54,10 @@ class Entry:
                               hidden=self.hidden)
 
     def __str__(self):
-        return '{} {} {}'.format(int(self.atime), self.url_str(), self.title)
+        elems = [str(int(self.atime)), self.url_str()]
+        if self.title:
+            elems.append(self.title)
+        return ' '.join(elems)
 
     def __eq__(self, other):
         return (self.atime == other.atime and
