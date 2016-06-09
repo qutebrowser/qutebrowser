@@ -148,6 +148,7 @@ class WebHistory(QObject):
         if standarddir.data() is None:
             self._initial_read_done = True
             self.async_read_done.emit()
+            assert not self._temp_history
             return
 
         with self._lineparser.open():
