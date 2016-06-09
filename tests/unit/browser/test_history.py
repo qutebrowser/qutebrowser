@@ -20,7 +20,8 @@
 """Tests for the global page history."""
 
 import pytest
-
+import hypothesis
+from hypothesis import strategies
 from PyQt5.QtCore import QUrl
 
 from qutebrowser.browser import history
@@ -111,3 +112,12 @@ def test_entry_parse_valid(line, expected):
 def test_entry_parse_invalid(line):
     with pytest.raises(ValueError):
         history.Entry.from_str(line)
+
+
+@hypothesis.given(strategies.text())
+def test_entry_parse_hypothesis(text):
+    """Make sure parsing works or gives us ValueError"""
+    try:
+        history.Entry.from_str(text)
+    except ValueError:
+        pass
