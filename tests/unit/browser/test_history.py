@@ -20,7 +20,6 @@
 """Tests for the global page history."""
 
 import base64
-import logging
 
 import pytest
 import hypothesis
@@ -71,10 +70,10 @@ def test_async_read_twice(monkeypatch, qtbot, filled_hist, caplog):
 
 
 def test_async_read_no_datadir(qtbot, config_stub, fake_save_manager):
-     config_stub.data = {'general': {'private-browsing': False}}
-     hist = history.WebHistory(hist_dir=None, hist_name='history')
-     with qtbot.waitSignal(hist.async_read_done):
-         list(hist.async_read())
+    config_stub.data = {'general': {'private-browsing': False}}
+    hist = history.WebHistory(hist_dir=None, hist_name='history')
+    with qtbot.waitSignal(hist.async_read_done):
+        list(hist.async_read())
 
 
 def test_adding_item_during_async_read(qtbot, hist):
@@ -161,7 +160,7 @@ def test_entry_parse_invalid(line):
 
 @hypothesis.given(strategies.text())
 def test_entry_parse_hypothesis(text):
-    """Make sure parsing works or gives us ValueError"""
+    """Make sure parsing works or gives us ValueError."""
     try:
         history.Entry.from_str(text)
     except ValueError:
