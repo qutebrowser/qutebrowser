@@ -33,6 +33,7 @@ Feature: Page history
         Then the history file should contain:
             http://localhost:(port)/data/%C3%A4%C3%B6%C3%BC.html Chäschüechli
             
+    @flaky_once
     Scenario: History with an error
         When I run :open file:///does/not/exist
         And I wait for "Error while loading file:///does/not/exist: Error opening /does/not/exist: *" in the log

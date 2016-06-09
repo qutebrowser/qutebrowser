@@ -113,6 +113,8 @@ def pytest_collection_modifyitems(items):
         _apply_platform_markers(item)
         if item.get_marker('xfail_norun'):
             item.add_marker(pytest.mark.xfail(run=False))
+        if item.get_marker('flaky_once'):
+            item.add_marker(pytest.mark.flaky(reruns=1))
 
 
 def pytest_ignore_collect(path):
