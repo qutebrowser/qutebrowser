@@ -933,8 +933,8 @@ def data(readonly=False):
             ('find-implementation',
              SettingValue(typ.String(
                  valid_values=typ.ValidValues(
-                    ('javascript', "Better but slower"),
-                    ('python', "Slightly worse but faster"),
+                     ('javascript', "Better but slower"),
+                     ('python', "Slightly worse but faster"),
                  )), 'javascript'),
              "Which implementation to use to find elements to hint."),
 

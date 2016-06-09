@@ -226,9 +226,9 @@ Feature: Using hints
 
     # https://github.com/The-Compiler/qutebrowser/issues/1559
     Scenario: Filtering all hints in number mode
-      When I open data/hints/number.html
-      And I set hints -> mode to number
-      And I run :hint all
-      And I press the key "2"
-      And I wait for "Leaving mode KeyMode.hint (reason: all filtered)" in the log
-      Then no crash should happen
+        When I open data/hints/number.html
+        And I set hints -> mode to number
+        And I run :hint all
+        And I press the key "2"
+        And I wait for "Leaving mode KeyMode.hint (reason: all filtered)" in the log
+        Then no crash should happen
