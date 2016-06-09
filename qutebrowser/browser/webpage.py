@@ -33,7 +33,7 @@ from qutebrowser.config import config
 from qutebrowser.browser import http, tabhistory, pdfjs
 from qutebrowser.browser.network import networkmanager
 from qutebrowser.utils import (message, usertypes, log, jinja, qtutils, utils,
-                               objreg, debug)
+                               objreg, debug, urlutils)
 
 
 class BrowserPage(QWebPage):
@@ -570,9 +570,8 @@ class BrowserPage(QWebPage):
         if typ != QWebPage.NavigationTypeLinkClicked:
             return True
         if not url.isValid():
-            message.error(self._win_id, "Invalid link {} clicked!".format(
-                urlstr))
-            log.webview.debug(url.errorString())
+            msg = urlutils.get_errstring(url, "Invalid link clicked")
+            message.error(self._win_id, msg)
             self.open_target = usertypes.ClickTarget.normal
             return False
         tabbed_browser = objreg.get('tabbed-browser', scope='window',

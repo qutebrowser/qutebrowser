@@ -113,6 +113,12 @@ Feature: Using hints
         And I run :follow-hint a
         Then the message "http://localhost:(port)/data/hello.txt" should be shown
 
+    Scenario: Clicking an invalid link
+        When I open data/invalid_link.html
+        And I run :hint all
+        And I run :follow-hint a
+        Then the error "Invalid link clicked - *" should be shown
+
     ### iframes
 
     Scenario: Using :follow-hint inside an iframe
