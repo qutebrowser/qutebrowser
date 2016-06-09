@@ -191,6 +191,7 @@ Contributors, sorted by the number of commits in descending order:
 * jnphilipp
 * Tobias Patzl
 * Stefan Tatschner
+* Samuel Loury
 * Peter Michely
 * Link
 * Larry Hynes
@@ -217,7 +218,6 @@ Contributors, sorted by the number of commits in descending order:
 * Tim Harder
 * Thiago Barroso Perrotta
 * Sorokin Alexei
-* Samuel Loury
 * Noah Huesser
 * Matthias Lisin
 * Marcel Schilling

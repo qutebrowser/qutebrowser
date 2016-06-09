@@ -92,6 +92,7 @@ Fixed
 - Fixed `FileNotFoundError` when starting in some cases on old Qt versions
 - Fixed sharing of cookies between tabs when `private-browsing` is enabled
 - Toggling values with `:set` now uses lower-case values
+- Hints now work with (non-standard) links with spaces around the URL
 
 v0.6.2
 ------
