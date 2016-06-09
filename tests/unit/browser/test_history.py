@@ -19,12 +19,24 @@
 
 """Tests for the global page history."""
 
+import base64
+import logging
+
 import pytest
 import hypothesis
 from hypothesis import strategies
 from PyQt5.QtCore import QUrl
+from PyQt5.QtWebKit import QWebHistoryInterface
 
 from qutebrowser.browser import history
+
+
+class FakeWebHistory:
+
+    """A fake WebHistory object."""
+
+    def __init__(self, history_dict):
+        self.history_dict = history_dict
 
 
 @pytest.fixture()
@@ -33,8 +45,36 @@ def hist(tmpdir, fake_save_manager, config_stub):
     return history.WebHistory(hist_dir=str(tmpdir), hist_name='history')
 
 
+@pytest.fixture()
+def filled_hist(tmpdir, fake_save_manager, config_stub):
+    """Get a WebHistory with some data."""
+    (tmpdir / 'filled-history').write('\n'.join([
+        '12345 http://example.com/ title',
+        '67890 http://example.com/ ',
+        '12345 http://qutebrowser.org/ blah',
+    ]))
+    config_stub.data = {'general': {'private-browsing': False}}
+    return history.WebHistory(hist_dir=str(tmpdir), hist_name='filled-history')
+
+
 def test_init(hist, fake_save_manager):
     assert fake_save_manager.add_saveable.called
+
+
+def test_async_read_twice(monkeypatch, qtbot, filled_hist, caplog):
+    next(filled_hist.async_read())
+    with pytest.raises(StopIteration):
+        next(filled_hist.async_read())
+    expected = "Ignoring async_read() because reading is started."
+    assert len(caplog.records) == 1
+    assert caplog.records[0].msg == expected
+
+
+def test_async_read_no_datadir(qtbot, config_stub, fake_save_manager):
+     config_stub.data = {'general': {'private-browsing': False}}
+     hist = history.WebHistory(hist_dir=None, hist_name='history')
+     with qtbot.waitSignal(hist.async_read_done):
+         list(hist.async_read())
 
 
 def test_adding_item_during_async_read(qtbot, hist):
@@ -88,6 +128,11 @@ def test_private_browsing(qtbot, tmpdir, fake_save_manager, config_stub):
         history.Entry(atime=12345, url=QUrl('http://example.com/'), title='',)
     ),
     (
+        # trailing space without title
+        '12345 http://example.com/ ',
+        history.Entry(atime=12345, url=QUrl('http://example.com/'), title='',)
+    ),
+    (
         # new format with title
         '12345 http://example.com/ this is a title',
         history.Entry(atime=12345, url=QUrl('http://example.com/'),
@@ -121,3 +166,44 @@ def test_entry_parse_hypothesis(text):
         history.Entry.from_str(text)
     except ValueError:
         pass
+
+
+@pytest.mark.parametrize('entry, expected', [
+    # simple
+    (
+        history.Entry(12345, QUrl('http://example.com/'), "the title"),
+        "12345 http://example.com/ the title",
+    ),
+    # timestamp as float
+    (
+        history.Entry(12345.678, QUrl('http://example.com/'), "the title"),
+        "12345 http://example.com/ the title",
+    ),
+    # no title
+    (
+        history.Entry(12345.678, QUrl('http://example.com/'), ""),
+        "12345 http://example.com/",
+    ),
+])
+def test_entry_str(entry, expected):
+    assert str(entry) == expected
+
+
+@pytest.yield_fixture
+def hist_interface():
+    entry = history.Entry(atime=0, url=QUrl('http://www.example.com/'),
+                          title='example')
+    history_dict = {'http://www.example.com/': entry}
+    fake_hist = FakeWebHistory(history_dict)
+    interface = history.WebHistoryInterface(fake_hist)
+    QWebHistoryInterface.setDefaultInterface(interface)
+    yield
+    QWebHistoryInterface.setDefaultInterface(None)
+
+
+def test_history_interface(qtbot, webview, hist_interface):
+    html = "<a href='about:blank'>foo</a>"
+    data = base64.b64encode(html.encode('utf-8')).decode('ascii')
+    url = QUrl("data:text/html;charset=utf-8;base64,{}".format(data))
+    with qtbot.waitSignal(webview.loadFinished):
+        webview.load(url)
