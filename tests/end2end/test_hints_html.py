@@ -70,7 +70,7 @@ def test_hints(test_name, zoom_text_only, zoom_level, find_implementation,
                         test_name, ', '.join(set(parsed.keys()))))
 
     # setup
-    quteproc.send_cmd(':set ui zoom-text-only {}'.format(zoom_text_only))
+    quteproc.set_setting('ui', 'zoom-text-only', str(zoom_text_only))
     quteproc.set_setting('hints', 'find-implementation', find_implementation)
     quteproc.send_cmd(':zoom {}'.format(zoom_level))
     # follow hint
@@ -80,7 +80,7 @@ def test_hints(test_name, zoom_text_only, zoom_level, find_implementation,
     quteproc.wait_for_load_finished('data/' + parsed['target'])
     # reset
     quteproc.send_cmd(':zoom 100')
-    quteproc.send_cmd(':set ui zoom-text-only false')
+    quteproc.set_setting('ui', 'zoom-text-only', 'false')
 
 
 def test_word_hints_issue1393(quteproc, tmpdir):
