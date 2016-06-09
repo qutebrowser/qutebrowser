@@ -81,6 +81,7 @@ def test_hints(test_name, zoom_text_only, zoom_level, find_implementation,
     # reset
     quteproc.send_cmd(':zoom 100')
     quteproc.set_setting('ui', 'zoom-text-only', 'false')
+    quteproc.set_setting('hints', 'find-implementation', 'javascript')
 
 
 def test_word_hints_issue1393(quteproc, tmpdir):
