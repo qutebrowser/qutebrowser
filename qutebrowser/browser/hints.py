@@ -604,7 +604,7 @@ class HintManager(QObject):
         """
         for attr in ('href', 'src'):
             if attr in elem:
-                text = elem[attr]
+                text = elem[attr].strip()
                 break
         else:
             return None
