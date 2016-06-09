@@ -27,7 +27,7 @@ import pytest
 
 from qutebrowser.browser import cookies
 from qutebrowser.utils import objreg
-from qutebrowser.misc import lineparser, savemanager
+from qutebrowser.misc import lineparser
 
 CONFIG_ALL_COOKIES = {'content': {'cookies-accept': 'all'}}
 CONFIG_NEVER_COOKIES = {'content': {'cookies-accept': 'never'}}
@@ -65,15 +65,6 @@ class LineparserSaveStub(lineparser.BaseLineParser):
 
     def __getitem__(self, key):
         return self.data[key]
-
-
-@pytest.yield_fixture
-def fake_save_manager():
-    """Create a mock of save-manager and register it into objreg."""
-    fake_save_manager = mock.Mock(spec=savemanager.SaveManager)
-    objreg.register('save-manager', fake_save_manager)
-    yield
-    objreg.delete('save-manager')
 
 
 def test_set_cookies_accept(config_stub, qtbot, monkeypatch):

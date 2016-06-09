@@ -36,6 +36,7 @@ import helpers.stubs as stubsmod
 from qutebrowser.config import config
 from qutebrowser.utils import objreg
 from qutebrowser.browser import cookies
+from qutebrowser.misc import savemanager
 
 from PyQt5.QtCore import QEvent, QSize, Qt
 from PyQt5.QtGui import QKeyEvent
@@ -303,3 +304,12 @@ def py_proc():
         return (sys.executable, ['-c', textwrap.dedent(code.strip('\n'))])
 
     return func
+
+
+@pytest.yield_fixture
+def fake_save_manager():
+    """Create a mock of save-manager and register it into objreg."""
+    fake_save_manager = unittest.mock.Mock(spec=savemanager.SaveManager)
+    objreg.register('save-manager', fake_save_manager)
+    yield
+    objreg.delete('save-manager')
