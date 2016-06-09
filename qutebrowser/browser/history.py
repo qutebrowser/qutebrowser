@@ -123,6 +123,21 @@ class WebHistory(QObject):
 
     """The global history of visited pages.
 
+    This is a little more complex as you'd expect so the history can be read
+    from disk async while new history is already arriving.
+
+    self.history_dict is the main place where the history is stored, in an
+    OrderedDict (sorted by time) of URL strings mapped to Entry objects.
+
+    While reading from disk is still ongoing, the history is saved in
+    self._temp_history instead, and then appended to self.history_dict once
+    that's fully populated.
+
+    All history which is new in this session (rather than read from disk from a
+    previous browsing session) is also stored in self._new_history.
+    self._saved_count tracks how many of those entries were already written to
+    disk, so we can always append to the existing data.
+
     Attributes:
         history_dict: An OrderedDict of URLs read from the on-disk history.
         _hist_dir: The directory to store the history in
@@ -136,8 +151,10 @@ class WebHistory(QObject):
 
     Signals:
         add_completion_item: Emitted before a new Entry is added.
+                             Used to sync with the completion.
                              arg: The new Entry.
         item_added: Emitted after a new Entry is added.
+                    Used to tell the savemanager that the history is dirty.
                     arg: The new Entry.
         cleared: Emitted after the history is cleared.
     """
