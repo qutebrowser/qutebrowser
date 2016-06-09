@@ -38,7 +38,6 @@ def test_init(hist, fake_save_manager):
 
 def test_adding_item_during_async_read(qtbot, hist):
     """Check what happens when adding URL while reading the history."""
-
     with qtbot.assertNotEmitted(hist.add_completion_item), \
             qtbot.assertNotEmitted(hist.item_added):
         hist.add_url(QUrl('http://www.example.com/'))
@@ -56,7 +55,8 @@ def test_adding_item_during_async_read(qtbot, hist):
 def test_private_browsing(qtbot, tmpdir, fake_save_manager, config_stub):
     """Make sure no data is saved at all with private browsing."""
     config_stub.data = {'general': {'private-browsing': True}}
-    private_hist = history.WebHistory(hist_dir=str(tmpdir), hist_name='history')
+    private_hist = history.WebHistory(hist_dir=str(tmpdir),
+                                      hist_name='history')
 
     # Before initial read
     with qtbot.assertNotEmitted(private_hist.add_completion_item), \

@@ -266,7 +266,6 @@ def webframe(webpage):
 @pytest.fixture
 def fake_keyevent_factory():
     """Fixture that when called will return a mock instance of a QKeyEvent."""
-
     def fake_keyevent(key, modifiers=0, text='', typ=QEvent.KeyPress):
         """Generate a new fake QKeyPressEvent."""
         evtmock = unittest.mock.create_autospec(QKeyEvent, instance=True)

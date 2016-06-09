@@ -19,14 +19,11 @@
 
 """Tests for qutebrowser.browser.cookies."""
 
-from unittest import mock
-
 from PyQt5.QtNetwork import QNetworkCookie
 from PyQt5.QtCore import QUrl
 import pytest
 
 from qutebrowser.browser import cookies
-from qutebrowser.utils import objreg
 from qutebrowser.misc import lineparser
 
 CONFIG_ALL_COOKIES = {'content': {'cookies-accept': 'all'}}

@@ -68,6 +68,7 @@ class Entry:
 
     @classmethod
     def from_str(cls, line):
+        """Parse a history line like '12345 http://example.com title'."""
         data = line.split(maxsplit=2)
         if len(data) == 2:
             atime, url = data
@@ -210,7 +211,7 @@ class WebHistory(QObject):
         self._initial_read_done = True
         self.async_read_done.emit()
 
-        for url, entry in self._temp_history.items():
+        for entry in self._temp_history.values():
             self._add_entry(entry)
             if not entry.hidden:
                 self._new_history.append(entry)
@@ -270,7 +271,6 @@ class WebHistory(QObject):
                 self.item_added.emit(entry)
         else:
             self._add_entry(entry, target=self._temp_history)
-
 
 
 def init(parent=None):
