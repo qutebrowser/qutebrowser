@@ -102,7 +102,7 @@ class WebHistoryInterface(QWebHistoryInterface):
         _history: The WebHistory object.
     """
 
-    def __init__(self, webhistory, parent):
+    def __init__(self, webhistory, parent=None):
         super().__init__(parent)
         self._history = webhistory
 
