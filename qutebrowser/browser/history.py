@@ -26,7 +26,7 @@ from PyQt5.QtCore import pyqtSignal, QUrl, QObject
 from PyQt5.QtWebKit import QWebHistoryInterface
 
 from qutebrowser.commands import cmdutils
-from qutebrowser.utils import utils, objreg, standarddir, log
+from qutebrowser.utils import utils, objreg, standarddir, log, qtutils
 from qutebrowser.config import config
 from qutebrowser.misc import lineparser
 
@@ -38,30 +38,33 @@ class Entry:
     Attributes:
         atime: The time the page was accessed.
         url: The URL which was accessed as QUrl.
-        url_string: The URL which was accessed as string.
         hidden: If True, don't save this entry to disk
     """
 
     def __init__(self, atime, url, title, hidden=False):
         self.atime = float(atime)
-        self.url = QUrl(url)
-        self.url_string = url
+        self.url = url
         self.title = title
         self.hidden = hidden
+        qtutils.ensure_valid(url)
 
     def __repr__(self):
         return utils.get_repr(self, constructor=True, atime=self.atime,
-                              url=self.url.toDisplayString(), title=self.title,
+                              url=self.url_str(), title=self.title,
                               hidden=self.hidden)
 
     def __str__(self):
-        return '{} {} {}'.format(int(self.atime), self.url_string, self.title)
+        return '{} {} {}'.format(int(self.atime), self.url_str(), self.title)
 
     def __eq__(self, other):
         return (self.atime == other.atime and
                 self.title == other.title and
-                self.url_string == other.url_string and
+                self.url == other.url and
                 self.hidden == other.hidden)
+
+    def url_str(self):
+        """Get the URL as a lossless string."""
+        return self.url.toString(QUrl.FullyEncoded | QUrl.RemovePassword)
 
     @classmethod
     def from_str(cls, line):
@@ -73,6 +76,11 @@ class Entry:
             atime, url, title = data
         else:
             raise ValueError("2 or 3 fields expected")
+
+        url = QUrl(url)
+        if not url.isValid():
+            raise ValueError("Invalid URL: {}".format(url.errorString()))
+
         if atime.startswith('\0'):
             log.init.debug(
                 "Removing NUL bytes from entry {!r} - see "
@@ -213,8 +221,9 @@ class WebHistory(QObject):
         """Add an entry to self.history_dict or another given OrderedDict."""
         if target is None:
             target = self.history_dict
-        target[entry.url_string] = entry
-        target.move_to_end(entry.url_string)
+        url_str = entry.url_str()
+        target[url_str] = entry
+        target.move_to_end(url_str)
 
     def get_recent(self):
         """Get the most recent history entries."""
@@ -243,18 +252,16 @@ class WebHistory(QObject):
         self._saved_count = 0
         self.cleared.emit()
 
-    def add_url(self, url_string, title="", hidden=False):
+    def add_url(self, url, title="", hidden=False):
         """Called by WebKit when an URL should be added to the history.
 
         Args:
-            url_string: An url as string to add to the history.
+            url: An url (as QUrl) to add to the history.
             hidden: Whether to hide the entry from the on-disk history
         """
-        if not url_string:
-            return
         if config.get('general', 'private-browsing'):
             return
-        entry = Entry(time.time(), url_string, title, hidden=hidden)
+        entry = Entry(time.time(), url, title, hidden=hidden)
         if self._initial_read_done:
             self._add_entry(entry)
             if not entry.hidden:

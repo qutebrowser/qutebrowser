@@ -41,7 +41,7 @@ def test_adding_item_during_async_read(qtbot, hist):
 
     with qtbot.assertNotEmitted(hist.add_completion_item), \
             qtbot.assertNotEmitted(hist.item_added):
-        hist.add_url('http://www.example.com/')
+        hist.add_url(QUrl('http://www.example.com/'))
 
     with qtbot.waitSignals([hist.add_completion_item,
                             hist.async_read_done]):
@@ -61,7 +61,7 @@ def test_private_browsing(qtbot, tmpdir, fake_save_manager, config_stub):
     # Before initial read
     with qtbot.assertNotEmitted(private_hist.add_completion_item), \
             qtbot.assertNotEmitted(private_hist.item_added):
-        private_hist.add_url('http://www.example.com/')
+        private_hist.add_url(QUrl('http://www.example.com/'))
     assert not private_hist._temp_history
 
     # read
@@ -73,7 +73,7 @@ def test_private_browsing(qtbot, tmpdir, fake_save_manager, config_stub):
     # after read
     with qtbot.assertNotEmitted(private_hist.add_completion_item), \
             qtbot.assertNotEmitted(private_hist.item_added):
-        private_hist.add_url('http://www.example.com/')
+        private_hist.add_url(QUrl('http://www.example.com/'))
 
     assert not private_hist._temp_history
     assert not private_hist._new_history
@@ -84,18 +84,18 @@ def test_private_browsing(qtbot, tmpdir, fake_save_manager, config_stub):
     (
         # old format without title
         '12345 http://example.com/',
-        history.Entry(atime=12345, url='http://example.com/', title='',)
+        history.Entry(atime=12345, url=QUrl('http://example.com/'), title='',)
     ),
     (
         # new format with title
         '12345 http://example.com/ this is a title',
-        history.Entry(atime=12345, url='http://example.com/',
+        history.Entry(atime=12345, url=QUrl('http://example.com/'),
                       title='this is a title')
     ),
     (
         # weird NUL bytes
         '\x0012345 http://example.com/',
-        history.Entry(atime=12345, url='http://example.com/', title=''),
+        history.Entry(atime=12345, url=QUrl('http://example.com/'), title=''),
     ),
 ])
 def test_entry_parse_valid(line, expected):
@@ -105,7 +105,7 @@ def test_entry_parse_valid(line, expected):
 
 @pytest.mark.parametrize('line', [
     '12345',  # one field
-    '12345 onlyscheme:',  # invalid URL
+    '12345 ::',  # invalid URL
     'xyz http://www.example.com/',  # invalid timestamp
 ])
 def test_entry_parse_invalid(line):
