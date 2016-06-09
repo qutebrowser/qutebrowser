@@ -107,6 +107,12 @@ Feature: Using hints
         And the javascript message "bop!" should be logged
         And the javascript message "boop!" should be logged
 
+    Scenario: Using :hint run with an URL containing spaces
+        When I open data/hints/html/with_spaces.html
+        And I run :hint all run message-info {hint-url}
+        And I run :follow-hint a
+        Then the message "http://localhost:(port)/data/hello.txt" should be shown
+
     ### iframes
 
     Scenario: Using :follow-hint inside an iframe
