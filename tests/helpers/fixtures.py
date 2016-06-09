@@ -311,5 +311,5 @@ def fake_save_manager():
     """Create a mock of save-manager and register it into objreg."""
     fake_save_manager = unittest.mock.Mock(spec=savemanager.SaveManager)
     objreg.register('save-manager', fake_save_manager)
-    yield
+    yield fake_save_manager
     objreg.delete('save-manager')

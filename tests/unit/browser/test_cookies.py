@@ -100,7 +100,7 @@ def test_cookie_jar_init(config_stub, fake_save_manager):
     """Test the CookieJar constructor."""
     line_parser_stub = [COOKIE1, COOKIE2]
     jar = cookies.CookieJar(line_parser=line_parser_stub)
-    assert objreg.get('save-manager').add_saveable.called
+    assert fake_save_manager.add_saveable.called
 
     # Test that cookies are added to the jar
     assert len(jar.allCookies()) == 2
