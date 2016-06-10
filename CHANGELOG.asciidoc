@@ -70,7 +70,9 @@ Changed
 - Number hints are now renumbered after filtering
 - Number hints can now be filtered with multiple space-separated search terms
 - `hints -> scatter` is now ignored for number hints
-- Better history implementation which also stores titles
+- Better history implementation which also stores titles.
+  As a consequence, URLs which redirect to another URL are now added to the
+  history too, marked with a `-r` suffix to the timestamp field.
 
 Fixed
 -----
