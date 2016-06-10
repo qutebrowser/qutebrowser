@@ -23,7 +23,7 @@ import os
 import sip
 import os.path
 
-from PyQt5.QtCore import pyqtSignal, QUrl, QObject, QPoint, QTimer
+from PyQt5.QtCore import pyqtSignal, QUrl, QObject, QPoint, QTimer, QByteArray
 from PyQt5.QtWidgets import QApplication
 import yaml
 try:
@@ -36,6 +36,7 @@ from qutebrowser.utils import (standarddir, objreg, qtutils, log, usertypes,
                                message)
 from qutebrowser.commands import cmdexc, cmdutils
 from qutebrowser.mainwindow import mainwindow
+from qutebrowser.mainwindow.tabbedbrowser import UndoEntry
 from qutebrowser.config import config
 
 
@@ -193,6 +194,7 @@ class SessionManager(QObject):
         return data
 
     def _save_win(self, win_id):
+        """Get a dict with data for a single window."""
         tabbed_browser = objreg.get('tabbed-browser', scope='window',
                                     window=win_id)
         main_window = objreg.get('main-window', scope='window',
@@ -208,10 +210,24 @@ class SessionManager(QObject):
             win_data['active'] = True
         win_data['geometry'] = bytes(main_window.saveGeometry())
         win_data['tabs'] = []
+        win_data['undo_stack'] = \
+            self._save_undo(main_window.tabbed_browser._undo_stack)
+        print(win_data)
+
         for i, tab in enumerate(tabbed_browser.widgets()):
             active = i == tabbed_browser.currentIndex()
             win_data['tabs'].append(self._save_tab(tab, active))
         return win_data
+
+    def _save_undo(self, undo_stack):
+        """Get a dict with data for a window's undo stack."""
+        data = []
+        for entry in undo_stack:
+            entry_data = {}
+            entry_data['url'] = bytes(entry.url.toEncoded()).decode('ascii')
+            entry_data['history'] = bytes(entry.history)
+            data.append(entry_data)
+        return data
 
     def _get_session_name(self, name):
         """Helper for save to get the name to save the session to.
@@ -352,6 +368,12 @@ class SessionManager(QObject):
             window.show()
             tabbed_browser = objreg.get('tabbed-browser', scope='window',
                                         window=window.win_id)
+            undo_stack = []
+            for entry in win['undo_stack']:
+                undo_url = QUrl.fromEncoded(entry['url'].encode('ascii'))
+                undo_history = QByteArray(entry['history'])
+                undo_stack.append(UndoEntry(undo_url, undo_history))
+            tabbed_browser._undo_stack = undo_stack
             tab_to_focus = None
             for i, tab in enumerate(win['tabs']):
                 new_tab = tabbed_browser.tabopen()
