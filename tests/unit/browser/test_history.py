@@ -51,10 +51,6 @@ def hist(tmpdir):
     return history.WebHistory(hist_dir=str(tmpdir), hist_name='history')
 
 
-def test_init(hist, fake_save_manager):
-    assert fake_save_manager.add_saveable.called
-
-
 def test_async_read_twice(monkeypatch, qtbot, tmpdir, caplog):
     (tmpdir / 'filled-history').write('\n'.join([
         '12345 http://example.com/ title',
@@ -91,7 +87,8 @@ def test_adding_item_during_async_read(qtbot, hist, hidden):
             with qtbot.waitSignal(hist.async_read_done):
                 list(hist.async_read())
     else:
-        with qtbot.waitSignals([hist.add_completion_item, hist.async_read_done]):
+        with qtbot.waitSignals([hist.add_completion_item,
+                                hist.async_read_done]):
             list(hist.async_read())
 
     assert not hist._temp_history
@@ -356,9 +353,10 @@ def test_history_interface(qtbot, webview, hist_interface):
         webview.load(url)
 
 
-def test_init(qapp, tmpdir, monkeypatch):
+def test_init(qapp, tmpdir, monkeypatch, fake_save_manager):
     monkeypatch.setattr(history.standarddir, 'data', lambda: str(tmpdir))
     history.init(qapp)
     hist = objreg.get('web-history')
     assert hist.parent() is qapp
     assert QWebHistoryInterface.defaultInterface()._history is hist
+    assert fake_save_manager.add_saveable.called
