@@ -666,8 +666,8 @@ Feature: Tab management
 
     Scenario: Undo closing a window with tabs-are-windows
         Given I have a fresh instance
-        And I set tabs -> tabs-are-windows to true
         When I open data/numbers/1.txt
+        And I set tabs -> tabs-are-windows to true
         And I open data/numbers/2.txt in a new window
         And I run :close
         And I run :undo
