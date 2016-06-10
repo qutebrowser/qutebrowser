@@ -119,7 +119,6 @@ class WebView(QWebView):
         self.destroyed.connect(functools.partial(
             cfg.changed.disconnect, self.init_neighborlist))
         self.cur_url = QUrl()
-        self._orig_url = QUrl()
         self.progress = 0
         self.registry = objreg.ObjectRegistry()
         self.tab_id = next(tab_id_gen)
@@ -151,11 +150,12 @@ class WebView(QWebView):
         """Add url to history now that we have displayed something."""
         history = objreg.get('web-history')
         no_formatting = QUrl.UrlFormattingOption(0)
-        if (self._orig_url.isValid() and
-                not self._orig_url.matches(self.cur_url, no_formatting)):
+        orig_url = self.page().mainFrame().requestedUrl()
+        if (orig_url.isValid() and
+                not orig_url.matches(self.cur_url, no_formatting)):
             # If the url of the page is different than the url of the link
             # originally clicked, save them both.
-            history.add_url(self._orig_url, self.title(), redirect=True)
+            history.add_url(orig_url, self.title(), redirect=True)
         history.add_url(self.cur_url, self.title())
 
     def _init_page(self):
@@ -197,8 +197,6 @@ class WebView(QWebView):
         log.webview.debug("load status for {}: {}".format(repr(self), val))
         self.load_status = val
         self.load_status_changed.emit(val.name)
-        if val == LoadStatus.loading:
-            self._orig_url = self.cur_url
 
     def _set_bg_color(self):
         """Set the webpage background color as configured."""
