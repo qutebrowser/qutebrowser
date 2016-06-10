@@ -182,6 +182,11 @@ class TabbedBrowser(tabwidget.TabWidget):
             scroll_pos = '{:2}%'.format(y)
 
         fields['scroll_pos'] = scroll_pos
+        try:
+            fields['host'] = self.current_url().host()
+        except qtutils.QtValueError:
+            fields['host'] = ''
+
         fmt = config.get('ui', 'window-title-format')
         self.window().setWindowTitle(fmt.format(**fields))
 
@@ -231,14 +236,8 @@ class TabbedBrowser(tabwidget.TabWidget):
         Return:
             The current URL as QUrl.
         """
-        widget = self.currentWidget()
-        if widget is None:
-            url = QUrl()
-        else:
-            url = widget.cur_url
-        # It's possible for url to be invalid, but the caller will handle that.
-        qtutils.ensure_valid(url)
-        return url
+        idx = self.currentIndex()
+        return super().tab_url(idx)
 
     def shutdown(self):
         """Try to shut down all tabs cleanly."""

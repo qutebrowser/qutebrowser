@@ -134,10 +134,12 @@ class FakeQApplication:
 
 class FakeUrl:
 
-    """QUrl stub which provides .path()."""
+    """QUrl stub which provides .path(), isValid() and host()."""
 
-    def __init__(self, path=None):
+    def __init__(self, path=None, valid=True, host=None):
         self.path = mock.Mock(return_value=path)
+        self.isValid = mock.Mock(returl_value=valid)
+        self.host = mock.Mock(returl_value=host)
 
 
 class FakeNetworkReply:
@@ -222,6 +224,7 @@ class FakeWebView(QWidget):
         self.scroll_pos = (-1, -1)
         self.load_status = webview.LoadStatus.none
         self.tab_id = 0
+        self.cur_url = FakeUrl()
 
 
 class FakeSignal:

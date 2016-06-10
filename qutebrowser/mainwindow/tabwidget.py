@@ -22,7 +22,7 @@
 import collections
 import functools
 
-from PyQt5.QtCore import pyqtSignal, pyqtSlot, Qt, QSize, QRect, QTimer
+from PyQt5.QtCore import pyqtSignal, pyqtSlot, Qt, QSize, QRect, QTimer, QUrl
 from PyQt5.QtWidgets import (QTabWidget, QTabBar, QSizePolicy, QCommonStyle,
                              QStyle, QStylePainter, QStyleOptionTab)
 from PyQt5.QtGui import QIcon, QPalette, QColor
@@ -121,6 +121,10 @@ class TabWidget(QTabWidget):
             scroll_pos = '{:2}%'.format(y)
 
         fields['scroll_pos'] = scroll_pos
+        try:
+            fields['host'] = self.tab_url(idx).host()
+        except qtutils.QtValueError:
+            fields['host'] = ''
 
         fmt = config.get('tabs', 'title-format')
         self.tabBar().setTabText(idx, fmt.format(**fields))
@@ -204,6 +208,21 @@ class TabWidget(QTabWidget):
         """Emit the tab_index_changed signal if the current tab changed."""
         self.tabBar().on_change()
         self.tab_index_changed.emit(index, self.count())
+
+    def tab_url(self, idx):
+        """Get the URL of the tab at the given index.
+
+        Return:
+            The tab URL as QUrl.
+        """
+        widget = self.widget(idx)
+        if widget is None:
+            url = QUrl()
+        else:
+            url = widget.cur_url
+        # It's possible for url to be invalid, but the caller will handle that.
+        qtutils.ensure_valid(url)
+        return url
 
 
 class TabBar(QTabBar):
