@@ -619,9 +619,9 @@ https://github.com/The-Compiler/qutebrowser/issues?q=is%3Aopen+is%3Aissue+label%
 bugs] and check if they're fixed.
 * As soon as Homebrew updated, update the custom OS X bottle:
   - Update https://github.com/The-Compiler/homebrew-qt5-webkit/blob/master/Formula/qt5.rb[qt5.rb]
-  - `brew install --build-from-source --verbose qt5.rb`
-  - `brew bottle qt5`
-  - `brew install --build-from-source --verbose pyqt5`
+  - `brew install --build-from-source --build-bottle --verbose qt5.rb`
+  - `brew bottle qt5.rb`
+  - `brew install --build-from-source --build-bottle --verbose pyqt5`
   - `brew bottle pyqt5`
   - Upload bottles to github
   - Adjust `scripts/dev/ci/travis_install.sh`
@@ -669,5 +669,5 @@ as closed.
            - `scp bb-win8:proj/qutebrowser/qutebrowser-0.X.Y-windows.zip .`
            - `aunpack qutebrowser-0.X.Y-windows.zip`
            - `sudo mv qutebrowser-0.X.Y-windows/* /srv/http/qutebrowser/releases/v0.X.Y/windows`
-* Update `qutebrowser-git` PKGBUILD
+* Update `qutebrowser-git` PKGBUILD if dependencies/install changed
 * Announce to qutebrowser mailinglist
