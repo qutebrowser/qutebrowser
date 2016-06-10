@@ -435,7 +435,7 @@ class MainWindow(QWidget):
         session_manager.save_last_window_session()
         session_manager.session_save(self.win_id,
                 name="_undo-{}".format(self.win_id),
-                force=True, only_window=True)
+                force=True, only_window=True, in_memory=True)
         session_manager._window_id_stack.append(self.win_id)
         self._save_geometry()
         log.destroy.debug("Closing window {}".format(self.win_id))

@@ -667,6 +667,7 @@ Feature: Tab management
     # last-close
 
     Scenario: last-close = blank
+        Given I have a fresh instance
         When I open data/hello.txt
         And I set tabs -> last-close to blank
         And I run :tab-only

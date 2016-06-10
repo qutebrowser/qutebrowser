@@ -343,7 +343,8 @@ class TabbedBrowser(tabwidget.TabWidget):
         session_manager = objreg.get('session-manager')
         win_id = session_manager._window_id_stack.pop()
         restore_session_name = "_undo-{}".format(win_id)
-        session_manager.session_load(restore_session_name, force=True)
+        session_manager.session_load(restore_session_name, force=True,
+                in_memory=True)
 
     @pyqtSlot('QUrl', bool)
     def openurl(self, url, newtab):
