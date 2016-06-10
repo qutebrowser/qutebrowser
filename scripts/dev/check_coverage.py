@@ -51,6 +51,8 @@ PERFECT_FILES = [
         'qutebrowser/browser/cache.py'),
     ('tests/unit/browser/test_cookies.py',
         'qutebrowser/browser/cookies.py'),
+    ('tests/unit/browser/test_history.py',
+        'qutebrowser/browser/history.py'),
     ('tests/unit/browser/test_tabhistory.py',
         'qutebrowser/browser/tabhistory.py'),
     ('tests/unit/browser/http/test_http.py',

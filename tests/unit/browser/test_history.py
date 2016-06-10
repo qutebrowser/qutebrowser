@@ -20,6 +20,7 @@
 """Tests for the global page history."""
 
 import base64
+import logging
 
 import pytest
 import hypothesis
@@ -28,6 +29,7 @@ from PyQt5.QtCore import QUrl
 from PyQt5.QtWebKit import QWebHistoryInterface
 
 from qutebrowser.browser import history
+from qutebrowser.utils import objreg
 
 
 class FakeWebHistory:
@@ -38,32 +40,31 @@ class FakeWebHistory:
         self.history_dict = history_dict
 
 
-@pytest.fixture()
-def hist(tmpdir, fake_save_manager, config_stub):
+@pytest.fixture(autouse=True)
+def prerequisites(config_stub, fake_save_manager):
+    """Make sure everything is ready to initialize a WebHistory."""
     config_stub.data = {'general': {'private-browsing': False}}
+
+
+@pytest.fixture()
+def hist(tmpdir):
     return history.WebHistory(hist_dir=str(tmpdir), hist_name='history')
-
-
-@pytest.fixture()
-def filled_hist(tmpdir, fake_save_manager, config_stub):
-    """Get a WebHistory with some data."""
-    (tmpdir / 'filled-history').write('\n'.join([
-        '12345 http://example.com/ title',
-        '67890 http://example.com/ ',
-        '12345 http://qutebrowser.org/ blah',
-    ]))
-    config_stub.data = {'general': {'private-browsing': False}}
-    return history.WebHistory(hist_dir=str(tmpdir), hist_name='filled-history')
 
 
 def test_init(hist, fake_save_manager):
     assert fake_save_manager.add_saveable.called
 
 
-def test_async_read_twice(monkeypatch, qtbot, filled_hist, caplog):
-    next(filled_hist.async_read())
+def test_async_read_twice(monkeypatch, qtbot, tmpdir, caplog):
+    (tmpdir / 'filled-history').write('\n'.join([
+        '12345 http://example.com/ title',
+        '67890 http://example.com/',
+        '12345 http://qutebrowser.org/ blah',
+    ]))
+    hist = history.WebHistory(hist_dir=str(tmpdir), hist_name='filled-history')
+    next(hist.async_read())
     with pytest.raises(StopIteration):
-        next(filled_hist.async_read())
+        next(hist.async_read())
     expected = "Ignoring async_read() because reading is started."
     assert len(caplog.records) == 1
     assert caplog.records[0].msg == expected
@@ -76,15 +77,20 @@ def test_async_read_no_datadir(qtbot, config_stub, fake_save_manager):
         list(hist.async_read())
 
 
-def test_adding_item_during_async_read(qtbot, hist):
+@pytest.mark.parametrize('hidden', [True, False])
+def test_adding_item_during_async_read(qtbot, hist, hidden):
     """Check what happens when adding URL while reading the history."""
     with qtbot.assertNotEmitted(hist.add_completion_item), \
             qtbot.assertNotEmitted(hist.item_added):
-        hist.add_url(QUrl('http://www.example.com/'))
+        hist.add_url(QUrl('http://www.example.com/'), hidden=hidden)
 
-    with qtbot.waitSignals([hist.add_completion_item,
-                            hist.async_read_done]):
-        list(hist.async_read())
+    if hidden:
+        with qtbot.assertNotEmitted(hist.add_completion_item):
+            with qtbot.waitSignal(hist.async_read_done):
+                list(hist.async_read())
+    else:
+        with qtbot.waitSignals([hist.add_completion_item, hist.async_read_done]):
+            list(hist.async_read())
 
     assert not hist._temp_history
 
@@ -118,6 +124,137 @@ def test_private_browsing(qtbot, tmpdir, fake_save_manager, config_stub):
     assert not private_hist._temp_history
     assert not private_hist._new_history
     assert not private_hist.history_dict
+
+
+def test_iter(hist):
+    list(hist.async_read())
+    url = QUrl('http://www.example.com/')
+    hist.add_url(url)
+    entries = list(hist)
+    assert len(entries) == 1
+    assert entries[0].url == url
+
+
+def test_len(hist):
+    assert len(hist) == 0
+    list(hist.async_read())
+    url = QUrl('http://www.example.com/')
+    hist.add_url(url)
+    assert len(hist) == 1
+
+
+@pytest.mark.parametrize('line', [
+    '12345 http://example.com/ title',  # with title
+    '67890 http://example.com/',  # no title
+    '12345 http://qutebrowser.org/ ',  # trailing space
+    ' ',
+    '',
+])
+def test_read(hist, tmpdir, line):
+    (tmpdir / 'filled-history').write(line + '\n')
+    hist = history.WebHistory(hist_dir=str(tmpdir), hist_name='filled-history')
+    list(hist.async_read())
+
+
+def test_updated_entries(hist, tmpdir):
+    (tmpdir / 'filled-history').write('12345 http://example.com/\n'
+                                      '67890 http://example.com/\n')
+    hist = history.WebHistory(hist_dir=str(tmpdir), hist_name='filled-history')
+    list(hist.async_read())
+
+    assert hist.history_dict['http://example.com/'].atime == 67890
+    hist.add_url(QUrl('http://example.com/'))
+    assert hist.history_dict['http://example.com/'].atime != 67890
+
+
+def test_invalid_read(hist, tmpdir, caplog):
+    (tmpdir / 'filled-history').write('foobar\n12345 http://example.com/')
+    hist = history.WebHistory(hist_dir=str(tmpdir), hist_name='filled-history')
+    with caplog.at_level(logging.WARNING):
+        list(hist.async_read())
+
+    entries = list(hist.history_dict.values())
+
+    assert len(entries) == 1
+    assert len(caplog.records) == 1
+    msg = "Invalid history entry 'foobar': 2 or 3 fields expected!"
+    assert caplog.records[0].msg == msg
+
+
+def test_get_recent(hist, tmpdir):
+    (tmpdir / 'filled-history').write('12345 http://example.com/')
+    hist = history.WebHistory(hist_dir=str(tmpdir), hist_name='filled-history')
+    list(hist.async_read())
+    hist.add_url(QUrl('http://www.qutebrowser.org/'))
+    lines = hist.get_recent()
+    assert lines[0]  == '12345 http://example.com/'
+    assert lines[1].split()[1] == 'http://www.qutebrowser.org/'
+
+
+def test_save(hist, tmpdir):
+    hist_file = tmpdir / 'filled-history'
+    hist_file.write('12345 http://example.com/\n')
+
+    hist = history.WebHistory(hist_dir=str(tmpdir), hist_name='filled-history')
+    list(hist.async_read())
+
+    hist.add_url(QUrl('http://www.qutebrowser.org/'))
+    hist.save()
+
+    lines = hist_file.read().splitlines()
+    assert len(lines) == 2
+    assert lines[0] == '12345 http://example.com/'
+    assert lines[1].split()[1] == 'http://www.qutebrowser.org/'
+
+    hist.add_url(QUrl('http://www.the-compiler.org/'))
+    hist.save()
+
+    lines = hist_file.read().splitlines()
+    assert len(lines) == 3
+    assert lines[0] == '12345 http://example.com/'
+    assert lines[1].split()[1] == 'http://www.qutebrowser.org/'
+    assert lines[2].split()[1] == 'http://www.the-compiler.org/'
+
+
+def test_clear(qtbot, hist, tmpdir):
+    hist_file = tmpdir / 'filled-history'
+    hist_file.write('12345 http://example.com/\n')
+
+    hist = history.WebHistory(hist_dir=str(tmpdir), hist_name='filled-history')
+    list(hist.async_read())
+
+    hist.add_url(QUrl('http://www.qutebrowser.org/'))
+
+    with qtbot.waitSignal(hist.cleared):
+        hist.clear()
+
+    assert not hist_file.read()
+    assert not hist.history_dict
+    assert not hist._new_history
+
+    hist.add_url(QUrl('http://www.the-compiler.org/'))
+    hist.save()
+
+    lines = hist_file.read().splitlines()
+    assert len(lines) == 1
+    assert lines[0].split()[1] == 'http://www.the-compiler.org/'
+
+
+def test_add_item(qtbot, hist):
+    list(hist.async_read())
+    url = 'http://www.example.com/'
+    with qtbot.waitSignals([hist.add_completion_item, hist.item_added]):
+        hist.add_url(QUrl(url))
+    assert url in hist.history_dict
+
+
+def test_add_item_hidden(qtbot, hist):
+    list(hist.async_read())
+    url = 'http://www.example.com/'
+    with qtbot.assertNotEmitted(hist.add_completion_item), \
+            qtbot.assertNotEmitted(hist.item_added):
+        hist.add_url(QUrl(url), hidden=True)
+    assert url in hist.history_dict
 
 
 @pytest.mark.parametrize('line, expected', [
@@ -206,3 +343,11 @@ def test_history_interface(qtbot, webview, hist_interface):
     url = QUrl("data:text/html;charset=utf-8;base64,{}".format(data))
     with qtbot.waitSignal(webview.loadFinished):
         webview.load(url)
+
+
+def test_init(qapp, tmpdir, monkeypatch):
+    monkeypatch.setattr(history.standarddir, 'data', lambda: str(tmpdir))
+    history.init(qapp)
+    hist = objreg.get('web-history')
+    assert hist.parent() is qapp
+    assert QWebHistoryInterface.defaultInterface()._history is hist
