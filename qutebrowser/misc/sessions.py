@@ -208,6 +208,7 @@ class SessionManager(QObject):
             win_data['active'] = True
         win_data['geometry'] = bytes(main_window.saveGeometry())
         win_data['tabs'] = []
+        win_data['undo_stack'] = main_window.tabbed_browser._undo_stack
         for i, tab in enumerate(tabbed_browser.widgets()):
             active = i == tabbed_browser.currentIndex()
             win_data['tabs'].append(self._save_tab(tab, active))
@@ -352,12 +353,14 @@ class SessionManager(QObject):
             window.show()
             tabbed_browser = objreg.get('tabbed-browser', scope='window',
                                         window=window.win_id)
+            tabbed_browser._undo_stack = win['undo_stack']
             tab_to_focus = None
             for i, tab in enumerate(win['tabs']):
                 new_tab = tabbed_browser.tabopen()
                 self._load_tab(new_tab, tab)
                 if tab.get('active', False):
                     tab_to_focus = i
+                tabbed_browser._undo_stack.pop()
             if tab_to_focus is not None:
                 tabbed_browser.setCurrentIndex(tab_to_focus)
             if win.get('active', False):
