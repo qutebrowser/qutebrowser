@@ -161,31 +161,8 @@ class TabbedBrowser(tabwidget.TabWidget):
             # (e.g. last tab removed)
             log.webview.debug("Not updating window title because index is -1")
             return
-        tabtitle = self.page_title(idx)
-        widget = self.widget(idx)
-
-        fields = {}
-        if widget.load_status == webview.LoadStatus.loading:
-            fields['perc'] = '[{}%] '.format(widget.progress)
-        else:
-            fields['perc'] = ''
-        fields['perc_raw'] = widget.progress
-        fields['title'] = tabtitle
-        fields['title_sep'] = ' - ' if tabtitle else ''
+        fields = self.get_tab_fields(idx)
         fields['id'] = self._win_id
-        y = widget.scroll_pos[1]
-        if y <= 0:
-            scroll_pos = 'top'
-        elif y >= 100:
-            scroll_pos = 'bot'
-        else:
-            scroll_pos = '{:2}%'.format(y)
-
-        fields['scroll_pos'] = scroll_pos
-        try:
-            fields['host'] = self.current_url().host()
-        except qtutils.QtValueError:
-            fields['host'] = ''
 
         fmt = config.get('ui', 'window-title-format')
         self.window().setWindowTitle(fmt.format(**fields))
