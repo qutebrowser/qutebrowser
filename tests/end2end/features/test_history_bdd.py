@@ -42,3 +42,8 @@ def check_history(quteproc, httpbin, expected):
             lines.append(line)
 
     assert lines == expected
+
+
+@bdd.then("the history file should be empty")
+def check_history_empty(quteproc, httpbin):
+    check_history(quteproc, httpbin, '')

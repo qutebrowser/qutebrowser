@@ -45,3 +45,8 @@ Feature: Page history
         And I wait for "Error while loading http://localhost:*/status/404: NOT FOUND" in the log
         Then the history file should contain:
             http://localhost:(port)/status/404 Error loading page: http://localhost:(port)/status/404
+
+    Scenario: Clearing history
+        When I open data/title.html
+        And I run :history-clear
+        Then the history file should be empty
