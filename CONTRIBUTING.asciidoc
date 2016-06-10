@@ -174,10 +174,14 @@ Profiling
 In the _scripts/_ subfolder there's a `run_profile.py` which profiles the code
 and shows a graphical representation of what takes how much time.
 
-It needs https://pypi.python.org/pypi/pyprof2calltree/[pyprof2calltree] and
-http://kcachegrind.sourceforge.net/html/Home.html[KCacheGrind]. It uses the
-built-in Python https://docs.python.org/3.4/library/profile.html[cProfile]
-module.
+It uses the built-in Python
+https://docs.python.org/3.4/library/profile.html[cProfile] module and can show
+the output in four different ways:
+
+* Raw profile file (`--profile-tool=none`)
+* https://pypi.python.org/pypi/pyprof2calltree/[pyprof2calltree] and http://kcachegrind.sourceforge.net/html/Home.html[KCacheGrind] (`--profile-tool=kcachegrind`)
+* https://jiffyclub.github.io/snakeviz/[SnakeViz] (`--profile-tool=snakeviz`)
+* https://github.com/jrfonseca/gprof2dot[gprof2dot] (needs `dot` from http://graphviz.org/[Graphviz] and http://feh.finalrewind.org/[feh])
 
 Debugging
 ~~~~~~~~~
@@ -591,10 +595,7 @@ Return:
 * The layout of a class should be like this:
   - docstring
   - `__magic__` methods
-  - properties
-  - _private methods
-  - public methods
-  - `on_*` methods
+  - other methods
   - overrides of Qt methods
 
 Checklists
@@ -616,6 +617,14 @@ workaround.
 * Check relevant
 https://github.com/The-Compiler/qutebrowser/issues?q=is%3Aopen+is%3Aissue+label%3Aqt[qutebrowser
 bugs] and check if they're fixed.
+* As soon as Homebrew updated, update the custom OS X bottle:
+  - Update https://github.com/The-Compiler/homebrew-qt5-webkit/blob/master/Formula/qt5.rb[qt5.rb]
+  - `brew install --build-from-source --verbose qt5.rb`
+  - `brew bottle qt5`
+  - `brew install --build-from-source --verbose pyqt5`
+  - `brew bottle pyqt5`
+  - Upload bottles to github
+  - Adjust `scripts/dev/ci/travis_install.sh`
 
 New PyQt release
 ~~~~~~~~~~~~~~~~
@@ -660,4 +669,5 @@ as closed.
            - `scp bb-win8:proj/qutebrowser/qutebrowser-0.X.Y-windows.zip .`
            - `aunpack qutebrowser-0.X.Y-windows.zip`
            - `sudo mv qutebrowser-0.X.Y-windows/* /srv/http/qutebrowser/releases/v0.X.Y/windows`
+* Update `qutebrowser-git` PKGBUILD
 * Announce to qutebrowser mailinglist
