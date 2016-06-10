@@ -212,7 +212,6 @@ class SessionManager(QObject):
         win_data['tabs'] = []
         win_data['undo_stack'] = \
             self._save_undo(main_window.tabbed_browser._undo_stack)
-        print(win_data)
 
         for i, tab in enumerate(tabbed_browser.widgets()):
             active = i == tabbed_browser.currentIndex()

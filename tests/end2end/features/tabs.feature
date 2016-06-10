@@ -664,6 +664,23 @@ Feature: Tab management
               - history:
                 - url: http://localhost:*/data/numbers/3.txt
 
+    Scenario: Undo closing a window with tabs-are-windows
+        Given I have a fresh instance
+        And I set tabs -> tabs-are-windows to true
+        When I open data/numbers/1.txt
+        And I open data/numbers/2.txt in a new window
+        And I run :close
+        And I run :undo
+        Then the session should look like:
+            windows:
+            - tabs:
+              - history:
+                - url: about:blank
+                - url: http://localhost:*/data/numbers/1.txt
+            - tabs:
+              - history:
+                - url: http://localhost:*/data/numbers/2.txt
+
     # last-close
 
     Scenario: last-close = blank
