@@ -270,16 +270,19 @@ class WebHistory(QObject):
         self._saved_count = 0
         self.cleared.emit()
 
-    def add_url(self, url, title="", hidden=False):
+    def add_url(self, url, title="", *, hidden=False, atime=None):
         """Called by WebKit when an URL should be added to the history.
 
         Args:
             url: An url (as QUrl) to add to the history.
             hidden: Whether to hide the entry from the on-disk history
+            atime: Override the atime used to add the entry
         """
         if config.get('general', 'private-browsing'):
             return
-        entry = Entry(time.time(), url, title, hidden=hidden)
+        if atime is None:
+            atime = time.time()
+        entry = Entry(atime, url, title, hidden=hidden)
         if self._initial_read_done:
             self._add_entry(entry)
             if not entry.hidden:

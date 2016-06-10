@@ -80,9 +80,11 @@ def test_async_read_no_datadir(qtbot, config_stub, fake_save_manager):
 @pytest.mark.parametrize('hidden', [True, False])
 def test_adding_item_during_async_read(qtbot, hist, hidden):
     """Check what happens when adding URL while reading the history."""
+    url = QUrl('http://www.example.com/')
+
     with qtbot.assertNotEmitted(hist.add_completion_item), \
             qtbot.assertNotEmitted(hist.item_added):
-        hist.add_url(QUrl('http://www.example.com/'), hidden=hidden)
+        hist.add_url(url, hidden=hidden, atime=12345)
 
     if hidden:
         with qtbot.assertNotEmitted(hist.add_completion_item):
@@ -94,8 +96,8 @@ def test_adding_item_during_async_read(qtbot, hist, hidden):
 
     assert not hist._temp_history
 
-    urls = [item.url for item in hist.history_dict.values()]
-    assert urls == [QUrl('http://www.example.com/')]
+    expected = history.Entry(url=url, atime=12345, hidden=hidden, title="")
+    assert list(hist.history_dict.values()) == [expected]
 
 
 def test_private_browsing(qtbot, tmpdir, fake_save_manager, config_stub):
@@ -128,18 +130,21 @@ def test_private_browsing(qtbot, tmpdir, fake_save_manager, config_stub):
 
 def test_iter(hist):
     list(hist.async_read())
+
     url = QUrl('http://www.example.com/')
-    hist.add_url(url)
-    entries = list(hist)
-    assert len(entries) == 1
-    assert entries[0].url == url
+    hist.add_url(url, atime=12345)
+
+    entry = history.Entry(url=url, atime=12345, hidden=False, title="")
+    assert list(hist) == [entry]
 
 
 def test_len(hist):
     assert len(hist) == 0
     list(hist.async_read())
+
     url = QUrl('http://www.example.com/')
     hist.add_url(url)
+
     assert len(hist) == 1
 
 
@@ -163,8 +168,8 @@ def test_updated_entries(hist, tmpdir):
     list(hist.async_read())
 
     assert hist.history_dict['http://example.com/'].atime == 67890
-    hist.add_url(QUrl('http://example.com/'))
-    assert hist.history_dict['http://example.com/'].atime != 67890
+    hist.add_url(QUrl('http://example.com/'), atime=99999)
+    assert hist.history_dict['http://example.com/'].atime == 99999
 
 
 def test_invalid_read(hist, tmpdir, caplog):
@@ -185,10 +190,13 @@ def test_get_recent(hist, tmpdir):
     (tmpdir / 'filled-history').write('12345 http://example.com/')
     hist = history.WebHistory(hist_dir=str(tmpdir), hist_name='filled-history')
     list(hist.async_read())
-    hist.add_url(QUrl('http://www.qutebrowser.org/'))
+
+    hist.add_url(QUrl('http://www.qutebrowser.org/'), atime=67890)
     lines = hist.get_recent()
-    assert lines[0]  == '12345 http://example.com/'
-    assert lines[1].split()[1] == 'http://www.qutebrowser.org/'
+
+    expected = ['12345 http://example.com/',
+                '67890 http://www.qutebrowser.org/']
+    assert lines == expected
 
 
 def test_save(hist, tmpdir):
@@ -198,22 +206,20 @@ def test_save(hist, tmpdir):
     hist = history.WebHistory(hist_dir=str(tmpdir), hist_name='filled-history')
     list(hist.async_read())
 
-    hist.add_url(QUrl('http://www.qutebrowser.org/'))
+    hist.add_url(QUrl('http://www.qutebrowser.org/'), atime=67890)
     hist.save()
 
     lines = hist_file.read().splitlines()
-    assert len(lines) == 2
-    assert lines[0] == '12345 http://example.com/'
-    assert lines[1].split()[1] == 'http://www.qutebrowser.org/'
+    expected = ['12345 http://example.com/',
+                '67890 http://www.qutebrowser.org/']
+    assert lines == expected
 
-    hist.add_url(QUrl('http://www.the-compiler.org/'))
+    hist.add_url(QUrl('http://www.the-compiler.org/'), atime=99999)
     hist.save()
+    expected.append('99999 http://www.the-compiler.org/')
 
     lines = hist_file.read().splitlines()
-    assert len(lines) == 3
-    assert lines[0] == '12345 http://example.com/'
-    assert lines[1].split()[1] == 'http://www.qutebrowser.org/'
-    assert lines[2].split()[1] == 'http://www.the-compiler.org/'
+    assert lines == expected
 
 
 def test_clear(qtbot, hist, tmpdir):
@@ -232,20 +238,23 @@ def test_clear(qtbot, hist, tmpdir):
     assert not hist.history_dict
     assert not hist._new_history
 
-    hist.add_url(QUrl('http://www.the-compiler.org/'))
+    hist.add_url(QUrl('http://www.the-compiler.org/'), atime=67890)
     hist.save()
 
     lines = hist_file.read().splitlines()
-    assert len(lines) == 1
-    assert lines[0].split()[1] == 'http://www.the-compiler.org/'
+    assert lines == ['67890 http://www.the-compiler.org/']
 
 
 def test_add_item(qtbot, hist):
     list(hist.async_read())
     url = 'http://www.example.com/'
+
     with qtbot.waitSignals([hist.add_completion_item, hist.item_added]):
-        hist.add_url(QUrl(url))
-    assert url in hist.history_dict
+        hist.add_url(QUrl(url), atime=12345, title="the title")
+
+    entry = history.Entry(url=QUrl(url), hidden=False, atime=12345,
+                          title="the title")
+    assert hist.history_dict[url] == entry
 
 
 def test_add_item_hidden(qtbot, hist):
@@ -253,8 +262,10 @@ def test_add_item_hidden(qtbot, hist):
     url = 'http://www.example.com/'
     with qtbot.assertNotEmitted(hist.add_completion_item), \
             qtbot.assertNotEmitted(hist.item_added):
-        hist.add_url(QUrl(url), hidden=True)
-    assert url in hist.history_dict
+        hist.add_url(QUrl(url), hidden=True, atime=12345)
+
+    entry = history.Entry(url=QUrl(url), hidden=True, atime=12345, title="")
+    assert hist.history_dict[url] == entry
 
 
 @pytest.mark.parametrize('line, expected', [
