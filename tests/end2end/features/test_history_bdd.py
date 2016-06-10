@@ -37,8 +37,11 @@ def check_history(quteproc, httpbin, expected):
             if not line.strip():
                 continue
             print('history line: ' + line)
-            line = line.split(' ', maxsplit=1)[1]  # Strip off timestamp
+            atime, line = line.split(' ', maxsplit=1)
             line = line.rstrip()
+            if '-' in atime:
+                flags = atime.split('-')[1]
+                line = '{} {}'.format(flags, line)
             lines.append(line)
 
     assert lines == expected

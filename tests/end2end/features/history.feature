@@ -21,6 +21,7 @@ Feature: Page history
         When I open redirect-to?url=data/title.html without waiting
         And I wait until data/title.html is loaded
         Then the history file should contain:
+            r http://localhost:(port)/redirect-to?url=data/title.html Test title
             http://localhost:(port)/data/title.html Test title
             
     Scenario: History item with spaces in URL

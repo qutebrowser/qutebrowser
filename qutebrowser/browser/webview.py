@@ -155,7 +155,7 @@ class WebView(QWebView):
                 not self._orig_url.matches(self.cur_url, no_formatting)):
             # If the url of the page is different than the url of the link
             # originally clicked, save them both.
-            history.add_url(self._orig_url, self.title(), hidden=True)
+            history.add_url(self._orig_url, self.title(), redirect=True)
         history.add_url(self.cur_url, self.title())
 
     def _init_page(self):

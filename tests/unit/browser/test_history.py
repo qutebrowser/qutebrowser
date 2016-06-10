@@ -73,16 +73,16 @@ def test_async_read_no_datadir(qtbot, config_stub, fake_save_manager):
         list(hist.async_read())
 
 
-@pytest.mark.parametrize('hidden', [True, False])
-def test_adding_item_during_async_read(qtbot, hist, hidden):
+@pytest.mark.parametrize('redirect', [True, False])
+def test_adding_item_during_async_read(qtbot, hist, redirect):
     """Check what happens when adding URL while reading the history."""
     url = QUrl('http://www.example.com/')
 
     with qtbot.assertNotEmitted(hist.add_completion_item), \
             qtbot.assertNotEmitted(hist.item_added):
-        hist.add_url(url, hidden=hidden, atime=12345)
+        hist.add_url(url, redirect=redirect, atime=12345)
 
-    if hidden:
+    if redirect:
         with qtbot.assertNotEmitted(hist.add_completion_item):
             with qtbot.waitSignal(hist.async_read_done):
                 list(hist.async_read())
@@ -93,7 +93,7 @@ def test_adding_item_during_async_read(qtbot, hist, hidden):
 
     assert not hist._temp_history
 
-    expected = history.Entry(url=url, atime=12345, hidden=hidden, title="")
+    expected = history.Entry(url=url, atime=12345, redirect=redirect, title="")
     assert list(hist.history_dict.values()) == [expected]
 
 
@@ -131,7 +131,7 @@ def test_iter(hist):
     url = QUrl('http://www.example.com/')
     hist.add_url(url, atime=12345)
 
-    entry = history.Entry(url=url, atime=12345, hidden=False, title="")
+    entry = history.Entry(url=url, atime=12345, redirect=False, title="")
     assert list(hist) == [entry]
 
 
@@ -249,19 +249,36 @@ def test_add_item(qtbot, hist):
     with qtbot.waitSignals([hist.add_completion_item, hist.item_added]):
         hist.add_url(QUrl(url), atime=12345, title="the title")
 
-    entry = history.Entry(url=QUrl(url), hidden=False, atime=12345,
+    entry = history.Entry(url=QUrl(url), redirect=False, atime=12345,
                           title="the title")
     assert hist.history_dict[url] == entry
 
 
-def test_add_item_hidden(qtbot, hist):
+def test_add_item_redirect(qtbot, hist):
     list(hist.async_read())
     url = 'http://www.example.com/'
-    with qtbot.assertNotEmitted(hist.add_completion_item), \
-            qtbot.assertNotEmitted(hist.item_added):
-        hist.add_url(QUrl(url), hidden=True, atime=12345)
+    with qtbot.assertNotEmitted(hist.add_completion_item):
+        with qtbot.waitSignal(hist.item_added):
+            hist.add_url(QUrl(url), redirect=True, atime=12345)
 
-    entry = history.Entry(url=QUrl(url), hidden=True, atime=12345, title="")
+    entry = history.Entry(url=QUrl(url), redirect=True, atime=12345, title="")
+    assert hist.history_dict[url] == entry
+
+
+def test_add_item_redirect_update(qtbot, tmpdir):
+    """A redirect update added should override a non-redirect one."""
+    url = 'http://www.example.com/'
+
+    hist_file = tmpdir / 'filled-history'
+    hist_file.write('12345 {}\n'.format(url))
+    hist = history.WebHistory(hist_dir=str(tmpdir), hist_name='filled-history')
+    list(hist.async_read())
+
+    with qtbot.assertNotEmitted(hist.add_completion_item):
+        with qtbot.waitSignal(hist.item_added):
+            hist.add_url(QUrl(url), redirect=True, atime=67890)
+
+    entry = history.Entry(url=QUrl(url), redirect=True, atime=67890, title="")
     assert hist.history_dict[url] == entry
 
 
@@ -287,6 +304,12 @@ def test_add_item_hidden(qtbot, hist):
         '\x0012345 http://example.com/',
         history.Entry(atime=12345, url=QUrl('http://example.com/'), title=''),
     ),
+    (
+        # redirect flag
+        '12345-r http://example.com/ this is a title',
+        history.Entry(atime=12345, url=QUrl('http://example.com/'),
+                      title='this is a title', redirect=True)
+    ),
 ])
 def test_entry_parse_valid(line, expected):
     entry = history.Entry.from_str(line)
@@ -297,6 +320,8 @@ def test_entry_parse_valid(line, expected):
     '12345',  # one field
     '12345 ::',  # invalid URL
     'xyz http://www.example.com/',  # invalid timestamp
+    '12345-x http://www.example.com/',  # invalid flags
+    '12345-r-r http://www.example.com/',  # double flags
 ])
 def test_entry_parse_invalid(line):
     with pytest.raises(ValueError):
@@ -327,6 +352,12 @@ def test_entry_parse_hypothesis(text):
     (
         history.Entry(12345.678, QUrl('http://example.com/'), ""),
         "12345 http://example.com/",
+    ),
+    # redirect flag
+    (
+        history.Entry(12345.678, QUrl('http://example.com/'), "",
+                      redirect=True),
+        "12345-r http://example.com/",
     ),
 ])
 def test_entry_str(entry, expected):

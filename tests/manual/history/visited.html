@@ -5,8 +5,10 @@
         <title>Visited/Unvisited links</title>
     </head>
     <body>
-        <p>After visiting a link, it should turn purple.</p>
-        <p>When closing/reopening qutebrowser, the link still should be purple.</p>
+      <ul>
+        <li>After visiting a link, it should turn purple.</li>
+        <li>When closing/reopening qutebrowser, the link still should be purple.</li>
+        <li>The httpbin.org link (before redirect) should not be in the completion.</li>
         <ul>
           <li><a href="http://www.example.com/">normal link</a></li>
           <li><a href="http://httpbin.org/redirect-to?url=http://www.example.com/">link with redirect</a></li>

@@ -74,7 +74,8 @@ class UrlCompletionModel(base.BaseCompletionModel):
         self._max_history = config.get('completion', 'web-history-max-items')
         history = utils.newest_slice(self._history, self._max_history)
         for entry in history:
-            self._add_history_entry(entry)
+            if not entry.redirect:
+                self._add_history_entry(entry)
         self._history.add_completion_item.connect(self.on_history_item_added)
         self._history.cleared.connect(self.on_history_cleared)
 

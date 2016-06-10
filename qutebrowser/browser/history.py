@@ -38,23 +38,26 @@ class Entry:
     Attributes:
         atime: The time the page was accessed.
         url: The URL which was accessed as QUrl.
-        hidden: If True, don't save this entry to disk
+        redirect: If True, don't save this entry to disk
     """
 
-    def __init__(self, atime, url, title, hidden=False):
+    def __init__(self, atime, url, title, redirect=False):
         self.atime = float(atime)
         self.url = url
         self.title = title
-        self.hidden = hidden
+        self.redirect = redirect
         qtutils.ensure_valid(url)
 
     def __repr__(self):
         return utils.get_repr(self, constructor=True, atime=self.atime,
                               url=self.url_str(), title=self.title,
-                              hidden=self.hidden)
+                              redirect=self.redirect)
 
     def __str__(self):
-        elems = [str(int(self.atime)), self.url_str()]
+        atime = str(int(self.atime))
+        if self.redirect:
+            atime += '-r'  # redirect flag
+        elems = [atime, self.url_str()]
         if self.title:
             elems.append(self.title)
         return ' '.join(elems)
@@ -63,7 +66,7 @@ class Entry:
         return (self.atime == other.atime and
                 self.title == other.title and
                 self.url == other.url and
-                self.hidden == other.hidden)
+                self.redirect == other.redirect)
 
     def url_str(self):
         """Get the URL as a lossless string."""
@@ -91,7 +94,18 @@ class Entry:
                 "https://github.com/The-Compiler/qutebrowser/issues/"
                 "670".format(data))
             atime = atime.lstrip('\0')
-        return cls(atime, url, title)
+
+        if '-' in atime:
+            atime, flags = atime.split('-')
+        else:
+            flags = ''
+
+        if not set(flags).issubset('r'):
+            raise ValueError("Invalid flags {!r}".format(flags))
+
+        redirect = 'r' in flags
+
+        return cls(atime, url, title, redirect=redirect)
 
 
 class WebHistoryInterface(QWebHistoryInterface):
@@ -230,8 +244,8 @@ class WebHistory(QObject):
 
         for entry in self._temp_history.values():
             self._add_entry(entry)
-            if not entry.hidden:
-                self._new_history.append(entry)
+            self._new_history.append(entry)
+            if not entry.redirect:
                 self.add_completion_item.emit(entry)
         self._temp_history.clear()
 
@@ -270,25 +284,26 @@ class WebHistory(QObject):
         self._saved_count = 0
         self.cleared.emit()
 
-    def add_url(self, url, title="", *, hidden=False, atime=None):
+    def add_url(self, url, title="", *, redirect=False, atime=None):
         """Called by WebKit when an URL should be added to the history.
 
         Args:
             url: An url (as QUrl) to add to the history.
-            hidden: Whether to hide the entry from the on-disk history
+            redirect: Whether the entry was redirected to another URL
+                      (hidden in completion)
             atime: Override the atime used to add the entry
         """
         if config.get('general', 'private-browsing'):
             return
         if atime is None:
             atime = time.time()
-        entry = Entry(atime, url, title, hidden=hidden)
+        entry = Entry(atime, url, title, redirect=redirect)
         if self._initial_read_done:
             self._add_entry(entry)
-            if not entry.hidden:
+            self._new_history.append(entry)
+            self.item_added.emit(entry)
+            if not entry.redirect:
                 self.add_completion_item.emit(entry)
-                self._new_history.append(entry)
-                self.item_added.emit(entry)
         else:
             self._add_entry(entry, target=self._temp_history)
 
