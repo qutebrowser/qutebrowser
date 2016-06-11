@@ -23,7 +23,7 @@ import sys
 import itertools
 import functools
 
-from PyQt5.QtCore import pyqtSignal, pyqtSlot, Qt, QTimer, QUrl
+from PyQt5.QtCore import pyqtSignal, pyqtSlot, Qt, QTimer, QUrl, QPoint
 from PyQt5.QtGui import QPalette
 from PyQt5.QtWidgets import QApplication, QStyleFactory
 from PyQt5.QtWebKit import QWebSettings
@@ -32,7 +32,7 @@ from PyQt5.QtWebKitWidgets import QWebView, QWebPage, QWebFrame
 from qutebrowser.config import config
 from qutebrowser.keyinput import modeman
 from qutebrowser.utils import message, log, usertypes, utils, qtutils, objreg
-from qutebrowser.browser import webpage, hints, webelem
+from qutebrowser.browser import webpage, hints, webelem, tabhistory
 
 
 LoadStatus = usertypes.enum('LoadStatus', ['none', 'success', 'success_https',
@@ -72,6 +72,9 @@ class WebView(QWebView):
         _default_zoom_changed: Whether the zoom was changed from the default.
         _ignore_wheel_event: Ignore the next wheel event.
                              See https://github.com/The-Compiler/qutebrowser/issues/395
+        _loaded: True if the page has been loaded.
+        _delayed: Stores things which have been delayed because the tab is not
+                  loaded yet.
 
     Signals:
         scroll_pos_changed: Scroll percentage of current tab changed.
@@ -89,7 +92,7 @@ class WebView(QWebView):
     url_text_changed = pyqtSignal(str)
     shutting_down = pyqtSignal()
 
-    def __init__(self, win_id, parent=None):
+    def __init__(self, win_id, parent=None, force_load=False):
         super().__init__(parent)
         if sys.platform == 'darwin' and qtutils.version_check('5.4'):
             # WORKAROUND for https://bugreports.qt.io/browse/QTBUG-42948
@@ -109,6 +112,11 @@ class WebView(QWebView):
         self.search_text = None
         self.search_flags = 0
         self.selection_enabled = False
+        if not force_load and config.get('tabs', 'delay-load'):
+            self._loaded = False
+        else:
+            self._loaded = True
+        self._delayed = {'histents': None, 'url': None}
         self.init_neighborlist()
         self._set_bg_color()
         cfg = objreg.get('config')
@@ -206,6 +214,16 @@ class WebView(QWebView):
             col = self.style().standardPalette().color(QPalette.Base)
         palette.setColor(QPalette.Base, col)
         self.setPalette(palette)
+
+    def _tabload(self):
+        """Load the tab if it is not loaded."""
+        if self._loaded:
+            return
+        self._loaded = True
+        if self._delayed['histents'] is not None:
+            self.load_history(self._delayed['histents'])
+        if self._delayed['url'] is not None:
+            self.load(self._delayed['url'])
 
     @pyqtSlot(str, str)
     def on_config_changed(self, section, option):
@@ -407,6 +425,26 @@ class WebView(QWebView):
         self.zoom_perc(level, fuzzyval=False)
         return level
 
+    def load_history(self, entries):
+        """Load the history from a list of TabHistoryItem objects."""
+        if not self._loaded:
+            self._delayed['histents'] = entries
+            return
+        stream, _data, user_data = tabhistory.serialize(entries)
+        history = self.history()
+        qtutils.deserialize_stream(stream, history)
+        for i, data in enumerate(user_data):
+            history.itemAt(i).setUserData(data)
+        cur_data = history.currentItem().userData()
+        if cur_data is not None:
+            frame = self.page().mainFrame()
+            if 'zoom' in cur_data:
+                frame.page().view().zoom_perc(cur_data['zoom'] * 100)
+            if ('scroll-pos' in cur_data and
+                    frame.scrollPosition() == QPoint(0, 0)):
+                QTimer.singleShot(0, functools.partial(
+                    frame.setScrollPosition, cur_data['scroll-pos']))
+
     @pyqtSlot('QUrl')
     def on_url_changed(self, url):
         """Update cur_url when URL has changed.
@@ -591,6 +629,24 @@ class WebView(QWebView):
                                     window=self.win_id)
         return tabbed_browser.tabopen(background=False)
 
+    def load(self, url):
+        """Extend load wait until the tab is loaded before loading a url.
+
+        Args:
+            url: The QUrl
+        """
+        if self._loaded:
+            super().load(url)
+        else:
+            self._delayed['url'] = url
+
+    def history(self):
+        """Extend history to force the tab to load."""
+        # TODO: Replace this dirty hack.
+        if not self._loaded:
+            self._tabload()
+        return super().history()
+
     def paintEvent(self, e):
         """Extend paintEvent to emit a signal if the scroll position changed.
 
@@ -682,3 +738,12 @@ class WebView(QWebView):
             self._default_zoom_changed = True
         else:
             super().wheelEvent(e)
+
+    def focusInEvent(self, e):
+        """Load if not already loaded on focus in
+
+        Args:
+            e: The QFocusEvent
+        """
+        self._tabload()
+        super().focusInEvent(e)

@@ -140,7 +140,7 @@ class SessionManager(QObject):
         data = {'history': []}
         if active:
             data['active'] = True
-        history = tab.page().history()
+        history = tab.history()
         for idx, item in enumerate(history.items()):
             qtutils.ensure_valid(item)
 
@@ -302,7 +302,7 @@ class SessionManager(QObject):
             if active:
                 new_tab.titleChanged.emit(histentry['title'])
         try:
-            new_tab.page().load_history(entries)
+            new_tab.load_history(entries)
         except ValueError as e:
             raise SessionError(e)
 
