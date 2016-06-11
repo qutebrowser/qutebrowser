@@ -283,8 +283,13 @@ class FakeCommand:
 
     """A simple command stub which has a description."""
 
-    def __init__(self, desc):
+    def __init__(self, name='', desc='', hide=False, debug=False,
+                 deprecated=False):
         self.desc = desc
+        self.name = name
+        self.hide = hide
+        self.debug = debug
+        self.deprecated = deprecated
 
 
 class FakeTimer(QObject):
