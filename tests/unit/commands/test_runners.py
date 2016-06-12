@@ -43,6 +43,21 @@ class TestCommandRunner:
             with pytest.raises(cmdexc.NoSuchCommandError):
                 list(cr.parse_all(cmdline_test.cmd, aliases=False))
 
+    def test_parse_all_with_alias(self, cmdline_test, monkeypatch):
+        alias_dict = dict(alias_name = cmdline_test.cmd)
+
+        def mock_get(section, *args, **kwargs):
+            assert section == "aliases"
+            return alias_dict.get(*args, **kwargs)
+        monkeypatch.setattr("qutebrowser.config.config.get", mock_get)
+
+        cr = runners.CommandRunner(0)
+        if cmdline_test.valid:
+            assert len(list(cr.parse_all("alias_name"))) > 0
+        else:
+            with pytest.raises(cmdexc.NoSuchCommandError):
+                list(cr.parse_all("alias_name"))
+
     def test_parse_with_count(self):
         """Test parsing of commands with a count."""
         cr = runners.CommandRunner(0)
