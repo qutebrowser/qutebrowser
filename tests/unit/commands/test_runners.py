@@ -46,7 +46,7 @@ class TestCommandRunner:
     def test_parse_with_count(self):
         """Test parsing of commands with a count."""
         cr = runners.CommandRunner(0)
-        result = cr.parse('20:scroll down', aliases=False)
+        result = cr.parse('20:scroll down')
         assert result.cmd.name == 'scroll'
         assert result.count == 20
         assert result.args == ['down']
@@ -58,5 +58,5 @@ class TestCommandRunner:
         The same with it being disabled is tested by test_parse_all.
         """
         cr = runners.CommandRunner(0, partial_match=True)
-        result = cr.parse('message-i', aliases=False)
+        result = cr.parse('message-i')
         assert result.cmd.name == 'message-info'

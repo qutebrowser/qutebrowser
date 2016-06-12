@@ -354,7 +354,7 @@ class Completer(QObject):
         if completion.enabled:
             completion.show()
 
-    def split(self, keep=False, aliases=False):
+    def split(self, keep=False):
         """Get the text split up in parts.
 
         Args:
@@ -371,7 +371,7 @@ class Completer(QObject):
             # the whitespace.
             return [text]
         runner = runners.CommandRunner(self._win_id)
-        result = runner.parse(text, fallback=True, aliases=aliases, keep=keep)
+        result = runner.parse(text, fallback=True, keep=keep)
         parts = result.cmdline
         if self._empty_item_idx is not None:
             log.completion.debug("Empty element queued at {}, "
