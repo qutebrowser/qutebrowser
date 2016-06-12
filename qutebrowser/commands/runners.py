@@ -26,7 +26,7 @@ from PyQt5.QtCore import pyqtSlot, QUrl, QObject
 
 from qutebrowser.config import config, configexc
 from qutebrowser.commands import cmdexc, cmdutils
-from qutebrowser.utils import message, log, objreg, qtutils
+from qutebrowser.utils import message, objreg, qtutils
 from qutebrowser.misc import split
 
 
@@ -80,7 +80,7 @@ class CommandRunner(QObject):
         self._partial_match = partial_match
         self._win_id = win_id
 
-    def _get_alias(self, text, default = None):
+    def _get_alias(self, text, default=None):
         """Get an alias from the config.
 
         Args:
@@ -105,7 +105,7 @@ class CommandRunner(QObject):
             new_cmd += ' '
         return new_cmd
 
-    def parse_all(self, text, aliases = True, *args, **kwargs):
+    def parse_all(self, text, aliases=True, *args, **kwargs):
         """Split a command on ;; and parse all parts.
 
         If the first command in the commandline is a non-split one, it only
@@ -119,7 +119,6 @@ class CommandRunner(QObject):
         Yields:
             ParseResult tuples.
         """
-
         if aliases:
             text = self._get_alias(text, text)
 

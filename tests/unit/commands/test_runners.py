@@ -44,7 +44,7 @@ class TestCommandRunner:
                 list(cr.parse_all(cmdline_test.cmd, aliases=False))
 
     def test_parse_all_with_alias(self, cmdline_test, monkeypatch):
-        alias_dict = dict(alias_name = cmdline_test.cmd)
+        alias_dict = dict(alias_name=cmdline_test.cmd)
 
         def mock_get(section, *args, **kwargs):
             assert section == "aliases"
