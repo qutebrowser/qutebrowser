@@ -21,7 +21,7 @@
 
 from PyQt5.QtCore import pyqtSlot, pyqtProperty, Qt, QUrl
 
-from qutebrowser.browser import webview
+from qutebrowser.browser.webkit import webview
 from qutebrowser.mainwindow.statusbar import textbase
 from qutebrowser.config import style
 from qutebrowser.utils import usertypes

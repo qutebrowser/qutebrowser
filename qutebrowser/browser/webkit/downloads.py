@@ -39,8 +39,8 @@ from qutebrowser.config import config
 from qutebrowser.commands import cmdexc, cmdutils
 from qutebrowser.utils import (message, usertypes, log, utils, urlutils,
                                objreg, standarddir, qtutils)
-from qutebrowser.browser import http
-from qutebrowser.browser.network import networkmanager
+from qutebrowser.browser.webkit import http
+from qutebrowser.browser.webkit.network import networkmanager
 
 
 ModelRole = usertypes.enum('ModelRole', ['item'], start=Qt.UserRole,

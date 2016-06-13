@@ -17,8 +17,6 @@
 # You should have received a copy of the GNU General Public License
 # along with qutebrowser.  If not, see <http://www.gnu.org/licenses/>.
 
-"""Tests for qutebrowser.browser.network.qutescheme."""
-
 import pytest
 import logging
 
@@ -26,7 +24,7 @@ from PyQt5.QtCore import QUrl
 from PyQt5.QtNetwork import QNetworkRequest, QNetworkReply
 
 from qutebrowser.browser import pdfjs
-from qutebrowser.browser.network import qutescheme
+from qutebrowser.browser.webkit.network import qutescheme
 
 
 @pytest.fixture

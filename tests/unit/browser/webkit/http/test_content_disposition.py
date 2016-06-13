@@ -17,13 +17,11 @@
 # You should have received a copy of the GNU General Public License
 # along with qutebrowser.  If not, see <http://www.gnu.org/licenses/>.
 
-"""Tests for qutebrowser.browser.http.parse_content_disposition."""
-
 import logging
 
 import pytest
 
-from qutebrowser.browser import http
+from qutebrowser.browser.webkit import http
 
 
 DEFAULT_NAME = 'qutebrowser-download'

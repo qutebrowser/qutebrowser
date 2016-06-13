@@ -35,7 +35,7 @@ import pytest
 import helpers.stubs as stubsmod
 from qutebrowser.config import config
 from qutebrowser.utils import objreg
-from qutebrowser.browser import cookies
+from qutebrowser.browser.webkit import cookies
 from qutebrowser.misc import savemanager
 
 from PyQt5.QtCore import QEvent, QSize, Qt

@@ -17,15 +17,13 @@
 # You should have received a copy of the GNU General Public License
 # along with qutebrowser.  If not, see <http://www.gnu.org/licenses/>.
 
-"""Hypothesis tests for qutebrowser.browser.http."""
-
 import logging
 
 import pytest
 import hypothesis
 from hypothesis import strategies
 
-from qutebrowser.browser import http, rfc6266
+from qutebrowser.browser.webkit import http, rfc6266
 
 
 @pytest.mark.parametrize('template', [

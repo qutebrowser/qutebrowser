@@ -28,7 +28,7 @@ try:
 except ImportError:
     hunter = None
 
-from qutebrowser.browser.network import qutescheme
+from qutebrowser.browser.webkit.network import qutescheme
 from qutebrowser.utils import log, objreg, usertypes, message, debug, utils
 from qutebrowser.commands import cmdutils, runners, cmdexc
 from qutebrowser.config import style

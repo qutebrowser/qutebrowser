@@ -24,7 +24,7 @@ from PyQt5.QtCore import pyqtSlot
 from qutebrowser.config import config
 from qutebrowser.mainwindow.statusbar import textbase
 from qutebrowser.utils import usertypes, log, objreg
-from qutebrowser.browser import webview
+from qutebrowser.browser.webkit import webview
 
 
 class Text(textbase.TextBase):

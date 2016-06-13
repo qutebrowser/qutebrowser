@@ -31,8 +31,8 @@ from PyQt5.QtNetwork import (QNetworkAccessManager, QNetworkReply, QSslError,
 from qutebrowser.config import config
 from qutebrowser.utils import (message, log, usertypes, utils, objreg, qtutils,
                                urlutils, debug)
-from qutebrowser.browser.network import qutescheme, networkreply
-from qutebrowser.browser.network import filescheme
+from qutebrowser.browser.webkit.network import qutescheme, networkreply
+from qutebrowser.browser.webkit.network import filescheme
 
 
 HOSTBLOCK_ERROR_STRING = '%HOSTBLOCK%'

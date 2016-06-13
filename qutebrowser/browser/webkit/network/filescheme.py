@@ -25,7 +25,7 @@
 
 import os
 
-from qutebrowser.browser.network import schemehandler, networkreply
+from qutebrowser.browser.webkit.network import schemehandler, networkreply
 from qutebrowser.utils import jinja
 
 

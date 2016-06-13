@@ -34,7 +34,7 @@ import email.message
 
 from PyQt5.QtCore import QUrl
 
-from qutebrowser.browser import webelem, downloads
+from qutebrowser.browser.webkit import webelem, downloads
 from qutebrowser.utils import log, objreg, message, usertypes, utils, urlutils
 
 try:

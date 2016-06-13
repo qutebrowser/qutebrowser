@@ -23,7 +23,7 @@
 import pytest
 import collections
 
-from qutebrowser.browser import webview
+from qutebrowser.browser.webkit import webview
 from qutebrowser.mainwindow.statusbar import url
 
 

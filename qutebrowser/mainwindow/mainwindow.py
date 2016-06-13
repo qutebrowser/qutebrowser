@@ -34,7 +34,8 @@ from qutebrowser.mainwindow import tabbedbrowser
 from qutebrowser.mainwindow.statusbar import bar
 from qutebrowser.completion import completionwidget
 from qutebrowser.keyinput import modeman
-from qutebrowser.browser import hints, downloads, downloadview, commands
+from qutebrowser.browser import commands, downloadview, hints
+from qutebrowser.browser.webkit import downloads
 from qutebrowser.misc import crashsignal, keyhintwidget
 
 

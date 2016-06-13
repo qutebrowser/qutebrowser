@@ -32,7 +32,7 @@ from PyQt5.QtCore import PYQT_VERSION, QRect, QPoint
 from PyQt5.QtWebKit import QWebElement
 import pytest
 
-from qutebrowser.browser import webelem
+from qutebrowser.browser.webkit import webelem
 
 
 def get_webelem(geometry=None, frame=None, *, null=False, style=None,
@@ -274,9 +274,9 @@ class TestWebElementWrapper:
         assert str(elem) == 'text'
 
     @pytest.mark.parametrize('is_null, expected', [
-        (False, "<qutebrowser.browser.webelem.WebElementWrapper "
+        (False, "<qutebrowser.browser.webkit.webelem.WebElementWrapper "
                 "html='<fakeelem/>'>"),
-        (True, '<qutebrowser.browser.webelem.WebElementWrapper html=None>'),
+        (True, '<qutebrowser.browser.webkit.webelem.WebElementWrapper html=None>'),
     ])
     def test_repr(self, elem, is_null, expected):
         elem._elem.isNull.return_value = is_null
@@ -619,7 +619,8 @@ class TestRectOnView:
         This is needed for all the tests calling rect_on_view or is_visible.
         """
         config_stub.data = {'ui': {'zoom-text-only': 'true'}}
-        monkeypatch.setattr('qutebrowser.browser.webelem.config', config_stub)
+        monkeypatch.setattr('qutebrowser.browser.webkit.webelem.config',
+                            config_stub)
         return config_stub
 
     @pytest.mark.parametrize('js_rect', [
@@ -846,7 +847,8 @@ class TestIsEditable:
     def stubbed_config(self, config_stub, monkeypatch):
         """Fixture to create a config stub with an input section."""
         config_stub.data = {'input': {}}
-        monkeypatch.setattr('qutebrowser.browser.webelem.config', config_stub)
+        monkeypatch.setattr('qutebrowser.browser.webkit.webelem.config',
+                            config_stub)
         return config_stub
 
     @pytest.mark.parametrize('tagname, attributes, editable', [

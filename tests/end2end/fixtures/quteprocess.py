@@ -37,7 +37,7 @@ from PyQt5.QtCore import pyqtSignal, QUrl
 
 from qutebrowser.misc import ipc
 from qutebrowser.utils import log, utils
-from qutebrowser.browser import webelem
+from qutebrowser.browser.webkit import webelem
 from helpers import utils as testutils
 from end2end.fixtures import testprocess
 
@@ -193,10 +193,11 @@ class QuteProc(testprocess.Process):
         self._log(line_to_log)
 
         start_okay_message_load = (
-            "load status for <qutebrowser.browser.webview.WebView tab_id=0 "
-            "url='about:blank'>: LoadStatus.success")
+            "load status for <qutebrowser.browser.webkit.webview.WebView "
+            "tab_id=0 url='about:blank'>: LoadStatus.success")
         start_okay_message_focus = (
-            "Focus object changed: <qutebrowser.browser.webview.WebView "
+            "Focus object changed: "
+            "<qutebrowser.browser.webkit.webview.WebView "
             "tab_id=0 url='about:blank'>")
 
         if (log_line.category == 'ipc' and
@@ -432,7 +433,8 @@ class QuteProc(testprocess.Process):
         assert url
 
         pattern = re.compile(
-            r"(load status for <qutebrowser\.browser\.webview\.WebView "
+            r"(load status for "
+            r"<qutebrowser\.browser\.webkit\.webview\.WebView "
             r"tab_id=\d+ url='{url}/?'>: LoadStatus\.{load_status}|fetch: "
             r"PyQt5\.QtCore\.QUrl\('{url}'\) -> .*)".format(
                 load_status=re.escape(load_status), url=re.escape(url)))

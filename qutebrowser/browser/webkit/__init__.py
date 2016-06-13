@@ -1,6 +1,6 @@
 # vim: ft=python fileencoding=utf-8 sts=4 sw=4 et:
 
-# Copyright 2015-2016 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
+# Copyright 2014-2016 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
 #
 # This file is part of qutebrowser.
 #
@@ -17,19 +17,4 @@
 # You should have received a copy of the GNU General Public License
 # along with qutebrowser.  If not, see <http://www.gnu.org/licenses/>.
 
-"""Tests for browser.network.schemehandler."""
-
-import pytest
-
-from qutebrowser.browser.network import schemehandler
-
-
-def test_init():
-    handler = schemehandler.SchemeHandler(0)
-    assert handler._win_id == 0
-
-
-def test_create_request():
-    handler = schemehandler.SchemeHandler(0)
-    with pytest.raises(NotImplementedError):
-        handler.createRequest(None, None, None)
+"""Classes related to the browser widgets for QtWebKit."""

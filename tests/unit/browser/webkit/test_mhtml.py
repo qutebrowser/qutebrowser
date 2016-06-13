@@ -17,15 +17,13 @@
 # You should have received a copy of the GNU General Public License
 # along with qutebrowser.  If not, see <http://www.gnu.org/licenses/>.
 
-"""Tests for qutebrowser.browser.mhtml."""
-
 import io
 import textwrap
 import re
 
 import pytest
 
-from qutebrowser.browser import mhtml
+from qutebrowser.browser.webkit import mhtml
 
 
 @pytest.fixture(autouse=True)
@@ -269,7 +267,7 @@ def test_empty_content_type(checker):
 def test_css_url_scanner(monkeypatch, has_cssutils, inline, style,
                          expected_urls):
     if not has_cssutils:
-        monkeypatch.setattr('qutebrowser.browser.mhtml.cssutils', None)
+        monkeypatch.setattr('qutebrowser.browser.webkit.mhtml.cssutils', None)
     expected_urls.sort()
     urls = mhtml._get_css_imports(style, inline=inline)
     urls.sort()

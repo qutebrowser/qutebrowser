@@ -33,7 +33,7 @@ from PyQt5.QtNetwork import QNetworkReply
 
 import qutebrowser
 from qutebrowser.browser import pdfjs
-from qutebrowser.browser.network import schemehandler, networkreply
+from qutebrowser.browser.webkit.network import schemehandler, networkreply
 from qutebrowser.utils import (version, utils, jinja, log, message, docutils,
                                objreg)
 from qutebrowser.config import configexc, configdata

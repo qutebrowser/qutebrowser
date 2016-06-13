@@ -30,8 +30,9 @@ from PyQt5.QtPrintSupport import QPrintDialog
 from PyQt5.QtWebKitWidgets import QWebPage
 
 from qutebrowser.config import config
-from qutebrowser.browser import http, tabhistory, pdfjs
-from qutebrowser.browser.network import networkmanager
+from qutebrowser.browser import pdfjs
+from qutebrowser.browser.webkit import http, tabhistory
+from qutebrowser.browser.webkit.network import networkmanager
 from qutebrowser.utils import (message, usertypes, log, jinja, qtutils, utils,
                                objreg, debug, urlutils)
 

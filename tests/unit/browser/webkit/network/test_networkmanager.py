@@ -17,12 +17,10 @@
 # You should have received a copy of the GNU General Public License
 # along with qutebrowser.  If not, see <http://www.gnu.org/licenses/>.
 
-"""Tests for qutebrowser.browser.networkmanager."""
-
 import pytest
 
-from qutebrowser.browser.network import networkmanager
-from qutebrowser.browser import cookies
+from qutebrowser.browser.webkit.network import networkmanager
+from qutebrowser.browser.webkit import cookies
 
 pytestmark = pytest.mark.usefixtures('cookiejar_and_cache')
 

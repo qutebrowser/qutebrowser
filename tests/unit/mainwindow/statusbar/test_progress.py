@@ -24,7 +24,7 @@ from collections import namedtuple
 
 import pytest
 
-from qutebrowser.browser import webview
+from qutebrowser.browser.webkit import webview
 from qutebrowser.mainwindow.statusbar.progress import Progress
 
 

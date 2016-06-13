@@ -30,8 +30,8 @@ from PyQt5.QtWebKitWidgets import QWebView
 
 from qutebrowser.misc import sessions
 from qutebrowser.utils import objreg, qtutils
-from qutebrowser.browser import tabhistory
-from qutebrowser.browser.tabhistory import TabHistoryItem as Item
+from qutebrowser.browser.webkit import tabhistory
+from qutebrowser.browser.webkit.tabhistory import TabHistoryItem as Item
 from qutebrowser.commands import cmdexc
 
 

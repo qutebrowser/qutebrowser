@@ -22,7 +22,7 @@
 from PyQt5.QtCore import pyqtSlot
 
 from qutebrowser.mainwindow.statusbar import textbase
-from qutebrowser.browser import webview
+from qutebrowser.browser.webkit import webview
 
 
 class Percentage(textbase.TextBase):

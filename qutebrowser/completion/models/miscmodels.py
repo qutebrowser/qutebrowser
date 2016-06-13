@@ -22,7 +22,7 @@
 from collections import defaultdict
 from PyQt5.QtCore import Qt, QTimer, pyqtSlot
 
-from qutebrowser.browser import webview
+from qutebrowser.browser.webkit import webview
 from qutebrowser.config import config, configdata
 from qutebrowser.utils import objreg, log, qtutils, utils
 from qutebrowser.commands import cmdutils

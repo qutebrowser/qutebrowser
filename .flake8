@@ -51,7 +51,7 @@ putty-ignore =
     /# pylint: disable=wildcard-import/ : +F403
     /# pragma: no mccabe/ : +C901
     tests/*/test_*.py : +D100,D101,D401
-    tests/unit/browser/http/test_content_disposition.py : +D400
+    tests/unit/browser/webkit/http/test_content_disposition.py : +D400
     scripts/dev/ci/appveyor_install.py : +FI53
 copyright-check = True
 copyright-regexp = # Copyright [\d-]+ .*

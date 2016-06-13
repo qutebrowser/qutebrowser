@@ -66,5 +66,5 @@ valid-metaclass-classmethod-first-arg=cls
 # https://bitbucket.org/logilab/pylint/issues/690/
 # UnsetObject because pylint infers any objreg.get(...) as UnsetObject.
 ignored-classes=qutebrowser.utils.objreg.UnsetObject,
-                qutebrowser.browser.webelem.WebElementWrapper,
+                qutebrowser.browser.webkit.webelem.WebElementWrapper,
                 scripts.dev.check_coverage.MsgType

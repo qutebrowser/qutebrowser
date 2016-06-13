@@ -157,7 +157,7 @@ Feature: Keyboard input
         And I wait for "Focus object changed: <PyQt5.QtWebKitWidgets.QWebView object at *>" in the log
         And I run :fake-key x
         And I run :inspector
-        And I wait for "Focus object changed: <qutebrowser.browser.webview.WebView *>" in the log
+        And I wait for "Focus object changed: <qutebrowser.browser.webkit.webview.WebView *>" in the log
         Then the error "No focused webview!" should be shown
 
     Scenario: :fake-key sending special key to the website

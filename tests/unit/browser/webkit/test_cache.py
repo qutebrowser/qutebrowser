@@ -17,12 +17,10 @@
 # You should have received a copy of the GNU General Public License
 # along with qutebrowser.  If not, see <http://www.gnu.org/licenses/>.
 
-"""Tests for qutebrowser.browser.cache."""
-
 from PyQt5.QtCore import QUrl, QDateTime
 from PyQt5.QtNetwork import QNetworkDiskCache, QNetworkCacheMetaData
 
-from qutebrowser.browser import cache
+from qutebrowser.browser.webkit import cache
 
 
 def preload_cache(cache, url='http://www.example.com/', content=b'foobar'):

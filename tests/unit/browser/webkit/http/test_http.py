@@ -17,7 +17,7 @@
 # You should have received a copy of the GNU General Public License
 # along with qutebrowser.  If not, see <http://www.gnu.org/licenses/>.
 
-"""Tests for qutebrowser.browser.http.
+"""Tests for qutebrowser.browser.webkit.http.
 
 Note that tests for parse_content_disposition are in their own
 test_content_disposition.py file.
@@ -26,7 +26,7 @@ test_content_disposition.py file.
 import pytest
 from PyQt5.QtCore import QUrl
 
-from qutebrowser.browser import http
+from qutebrowser.browser.webkit import http
 
 
 class TestNoContentDisposition:

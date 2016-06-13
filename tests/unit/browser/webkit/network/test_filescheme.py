@@ -17,8 +17,6 @@
 # You should have received a copy of the GNU General Public License
 # along with qutebrowser.  If not, see <http://www.gnu.org/licenses/>.
 
-"""Tests for qutebrowser.browser.network.filescheme."""
-
 import os
 import collections
 
@@ -27,7 +25,7 @@ import bs4
 from PyQt5.QtCore import QUrl
 from PyQt5.QtNetwork import QNetworkRequest
 
-from qutebrowser.browser.network import filescheme
+from qutebrowser.browser.webkit.network import filescheme
 from qutebrowser.utils import urlutils
 
 
@@ -228,7 +226,8 @@ class TestDirbrowserHtml:
         assert not parsed.parent
 
     def test_oserror(self, mocker):
-        m = mocker.patch('qutebrowser.browser.network.filescheme.os.listdir')
+        m = mocker.patch('qutebrowser.browser.webkit.network.filescheme.'
+                         'os.listdir')
         m.side_effect = OSError('Error message')
         html = filescheme.dirbrowser_html('')
         soup = bs4.BeautifulSoup(html, 'html.parser')

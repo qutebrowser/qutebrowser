@@ -25,7 +25,7 @@ import sip
 from PyQt5.QtCore import pyqtSlot, QSize, Qt, QTimer
 from PyQt5.QtWidgets import QListView, QSizePolicy, QMenu
 
-from qutebrowser.browser import downloads
+from qutebrowser.browser.webkit import downloads
 from qutebrowser.config import style
 from qutebrowser.utils import qtutils, utils, objreg
 

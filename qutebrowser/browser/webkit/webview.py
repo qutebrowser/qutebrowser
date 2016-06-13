@@ -32,7 +32,8 @@ from PyQt5.QtWebKitWidgets import QWebView, QWebPage, QWebFrame
 from qutebrowser.config import config
 from qutebrowser.keyinput import modeman
 from qutebrowser.utils import message, log, usertypes, utils, qtutils, objreg
-from qutebrowser.browser import webpage, hints, webelem
+from qutebrowser.browser import hints
+from qutebrowser.browser.webkit import webpage, webelem
 
 
 LoadStatus = usertypes.enum('LoadStatus', ['none', 'success', 'success_https',

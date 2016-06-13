@@ -28,7 +28,7 @@ from hypothesis import strategies
 from PyQt5.QtCore import QUrl
 from PyQt5.QtWebKit import QWebHistoryInterface
 
-from qutebrowser.browser import history
+from qutebrowser.browser.webkit import history
 from qutebrowser.utils import objreg
 
 
