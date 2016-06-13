@@ -22,7 +22,7 @@
 import collections
 import functools
 
-from PyQt5.QtCore import pyqtSignal, pyqtSlot, Qt, QSize, QRect, QTimer
+from PyQt5.QtCore import pyqtSignal, pyqtSlot, Qt, QSize, QRect, QTimer, QUrl
 from PyQt5.QtWidgets import (QTabWidget, QTabBar, QSizePolicy, QCommonStyle,
                              QStyle, QStylePainter, QStyleOptionTab)
 from PyQt5.QtGui import QIcon, QPalette, QColor
@@ -99,19 +99,34 @@ class TabWidget(QTabWidget):
 
     def update_tab_title(self, idx):
         """Update the tab text for the given tab."""
+        fields = self.get_tab_fields(idx)
+        fields['title'] = fields['title'].replace('&', '&&')
+        fields['index'] = idx + 1
+
+        fmt = config.get('tabs', 'title-format')
+        self.tabBar().setTabText(idx, fmt.format(**fields))
+
+    def get_tab_fields(self, idx):
+        """Get the tab field data."""
         widget = self.widget(idx)
-        page_title = self.page_title(idx).replace('&', '&&')
+        page_title = self.page_title(idx)
 
         fields = {}
+        fields['id'] = widget.tab_id
+        fields['title'] = page_title
+        fields['title_sep'] = ' - ' if page_title else ''
+        fields['perc_raw'] = widget.progress
+
         if widget.load_status == webview.LoadStatus.loading:
             fields['perc'] = '[{}%] '.format(widget.progress)
         else:
             fields['perc'] = ''
-        fields['perc_raw'] = widget.progress
-        fields['title'] = page_title
-        fields['index'] = idx + 1
-        fields['id'] = widget.tab_id
-        fields['title_sep'] = ' - ' if page_title else ''
+
+        try:
+            fields['host'] = self.tab_url(idx).host()
+        except qtutils.QtValueError:
+            fields['host'] = ''
+
         y = widget.scroll_pos[1]
         if y <= 0:
             scroll_pos = 'top'
@@ -121,9 +136,7 @@ class TabWidget(QTabWidget):
             scroll_pos = '{:2}%'.format(y)
 
         fields['scroll_pos'] = scroll_pos
-
-        fmt = config.get('tabs', 'title-format')
-        self.tabBar().setTabText(idx, fmt.format(**fields))
+        return fields
 
     @config.change_filter('tabs', 'title-format')
     def update_tab_titles(self):
@@ -204,6 +217,21 @@ class TabWidget(QTabWidget):
         """Emit the tab_index_changed signal if the current tab changed."""
         self.tabBar().on_change()
         self.tab_index_changed.emit(index, self.count())
+
+    def tab_url(self, idx):
+        """Get the URL of the tab at the given index.
+
+        Return:
+            The tab URL as QUrl.
+        """
+        widget = self.widget(idx)
+        if widget is None:
+            url = QUrl()
+        else:
+            url = widget.cur_url
+        # It's possible for url to be invalid, but the caller will handle that.
+        qtutils.ensure_valid(url)
+        return url
 
 
 class TabBar(QTabBar):

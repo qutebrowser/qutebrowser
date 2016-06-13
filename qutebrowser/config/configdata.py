@@ -330,7 +330,7 @@ def data(readonly=False):
             ('window-title-format',
              SettingValue(typ.FormatString(fields=['perc', 'perc_raw', 'title',
                                                    'title_sep', 'id',
-                                                   'scroll_pos']),
+                                                   'scroll_pos', 'host']),
                           '{perc}{title}{title_sep}qutebrowser'),
              "The format to use for the window title. The following "
              "placeholders are defined:\n\n"
@@ -340,7 +340,8 @@ def data(readonly=False):
              "* `{title_sep}`: The string ` - ` if a title is set, empty "
              "otherwise.\n"
              "* `{id}`: The internal window ID of this window.\n"
-             "* `{scroll_pos}`: The page scroll position."),
+             "* `{scroll_pos}`: The page scroll position.\n"
+             "* `{host}`: The host of the current web page."),
 
             ('hide-mouse-cursor',
              SettingValue(typ.Bool(), 'false'),
@@ -627,7 +628,7 @@ def data(readonly=False):
             ('title-format',
              SettingValue(typ.FormatString(
                  fields=['perc', 'perc_raw', 'title', 'title_sep', 'index',
-                         'id', 'scroll_pos']), '{index}: {title}'),
+                         'id', 'scroll_pos', 'host']), '{index}: {title}'),
              "The format to use for the tab title. The following placeholders "
              "are defined:\n\n"
              "* `{perc}`: The percentage as a string like `[10%]`.\n"
@@ -637,7 +638,8 @@ def data(readonly=False):
              "otherwise.\n"
              "* `{index}`: The index of this tab.\n"
              "* `{id}`: The internal tab ID of this tab.\n"
-             "* `{scroll_pos}`: The page scroll position."),
+             "* `{scroll_pos}`: The page scroll position.\n"
+             "* `{host}`: The host of the current web page."),
 
             ('title-alignment',
              SettingValue(typ.TextAlignment(), 'left'),

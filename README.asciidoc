@@ -206,6 +206,7 @@ Contributors, sorted by the number of commits in descending order:
 * Jan Verbeek
 * Fritz V155 Reichwald
 * Franz Fellner
+* Daryl Finlay
 * zwarag
 * xd1le
 * oniondreams
