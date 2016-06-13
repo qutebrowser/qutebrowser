@@ -117,7 +117,7 @@ class TabWidget(QTabWidget):
         fields['title_sep'] = ' - ' if page_title else ''
         fields['perc_raw'] = widget.progress
 
-        if widget.load_status == webview.LoadStatus.loading:
+        if widget.load_status == usertypes.LoadStatus.loading:
             fields['perc'] = '[{}%] '.format(widget.progress)
         else:
             fields['perc'] = ''

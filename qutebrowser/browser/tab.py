@@ -43,7 +43,8 @@ class WrapperLayout(QLayout):
         return self._widget.sizeHint()
 
     def itemAt(self, i):
-        raise AssertionError("Should never be called!")
+        # FIXME why does this get called?
+        return None
 
     def takeAt(self, i):
         raise AssertionError("Should never be called!")

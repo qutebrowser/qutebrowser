@@ -119,11 +119,11 @@ class UrlText(textbase.TextBase):
         Args:
             status_str: The LoadStatus as string.
         """
-        status = webview.LoadStatus[status_str]
-        if status in (webview.LoadStatus.success,
-                      webview.LoadStatus.success_https,
-                      webview.LoadStatus.error,
-                      webview.LoadStatus.warn):
+        status = usertypes.LoadStatus[status_str]
+        if status in (usertypes.LoadStatus.success,
+                      usertypes.LoadStatus.success_https,
+                      usertypes.LoadStatus.error,
+                      usertypes.LoadStatus.warn):
             self._normal_url_type = UrlType[status_str]
         else:
             self._normal_url_type = UrlType.normal

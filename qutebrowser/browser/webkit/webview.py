@@ -36,10 +36,6 @@ from qutebrowser.browser import hints
 from qutebrowser.browser.webkit import webpage, webelem
 
 
-LoadStatus = usertypes.enum('LoadStatus', ['none', 'success', 'success_https',
-                                           'error', 'warn', 'loading'])
-
-
 class WebView(QWebView):
 
     """One browser tab in TabbedBrowser.
@@ -92,7 +88,7 @@ class WebView(QWebView):
             # See https://github.com/The-Compiler/qutebrowser/issues/462
             self.setStyle(QStyleFactory.create('Fusion'))
         self.win_id = win_id
-        self.load_status = LoadStatus.none
+        self.load_status = usertypes.LoadStatus.none
         self._check_insertmode = False
         self.inspector = None
         self.scroll_pos = (-1, -1)
@@ -189,7 +185,7 @@ class WebView(QWebView):
 
     def _set_load_status(self, val):
         """Setter for load_status."""
-        if not isinstance(val, LoadStatus):
+        if not isinstance(val, usertypes.LoadStatus):
             raise TypeError("Type {} is no LoadStatus member!".format(val))
         log.webview.debug("load status for {}: {}".format(repr(self), val))
         self.load_status = val
@@ -429,7 +425,7 @@ class WebView(QWebView):
         self.progress = 0
         self.viewing_source = False
         self._has_ssl_errors = False
-        self._set_load_status(LoadStatus.loading)
+        self._set_load_status(usertypes.LoadStatus.loading)
 
     @pyqtSlot()
     def on_load_finished(self):
@@ -442,14 +438,14 @@ class WebView(QWebView):
         ok = not self.page().error_occurred
         if ok and not self._has_ssl_errors:
             if self.cur_url.scheme() == 'https':
-                self._set_load_status(LoadStatus.success_https)
+                self._set_load_status(usertypes.LoadStatus.success_https)
             else:
-                self._set_load_status(LoadStatus.success)
+                self._set_load_status(usertypes.LoadStatus.success)
 
         elif ok:
-            self._set_load_status(LoadStatus.warn)
+            self._set_load_status(usertypes.LoadStatus.warn)
         else:
-            self._set_load_status(LoadStatus.error)
+            self._set_load_status(usertypes.LoadStatus.error)
         if not self.title():
             self.titleChanged.emit(self.url().toDisplayString())
         self._handle_auto_insert_mode(ok)

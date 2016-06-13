@@ -24,7 +24,7 @@ from PyQt5.QtWidgets import QProgressBar, QSizePolicy
 
 from qutebrowser.browser.webkit import webview
 from qutebrowser.config import style
-from qutebrowser.utils import utils
+from qutebrowser.utils import utils, usertypes
 
 
 class Progress(QProgressBar):
@@ -67,7 +67,7 @@ class Progress(QProgressBar):
             # sometimes.
             return  # pragma: no cover
         self.setValue(tab.progress)
-        if tab.load_status == webview.LoadStatus.loading:
+        if tab.load_status == usertypes.LoadStatus.loading:
             self.show()
         else:
             self.hide()

@@ -31,6 +31,7 @@ from PyQt5.QtWidgets import QCommonStyle, QWidget, QLineEdit
 
 from qutebrowser.browser.webkit import webview, history
 from qutebrowser.config import configexc
+from qutebrowser.utils import usertypes
 from qutebrowser.mainwindow import mainwindow
 
 
@@ -234,7 +235,7 @@ class FakeWebView(QWidget):
         super().__init__()
         self.progress = 0
         self.scroll_pos = (-1, -1)
-        self.load_status = webview.LoadStatus.none
+        self.load_status = usertypes.LoadStatus.none
         self.tab_id = tab_id
         self.cur_url = url
         self.title = title
