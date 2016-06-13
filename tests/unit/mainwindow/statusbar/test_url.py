@@ -23,7 +23,7 @@
 import pytest
 import collections
 
-from qutebrowser.browser.webkit import webview
+from qutebrowser.utils import usertypes
 from qutebrowser.mainwindow.statusbar import url
 
 
@@ -105,12 +105,12 @@ def test_set_hover_url_encoded(url_widget, url_text, expected):
 
 
 @pytest.mark.parametrize('status, expected', [
-    (webview.LoadStatus.success, url.UrlType.success),
-    (webview.LoadStatus.success_https, url.UrlType.success_https),
-    (webview.LoadStatus.error, url.UrlType.error),
-    (webview.LoadStatus.warn, url.UrlType.warn),
-    (webview.LoadStatus.loading, url.UrlType.normal),
-    (webview.LoadStatus.none, url.UrlType.normal)
+    (usertypes.LoadStatus.success, url.UrlType.success),
+    (usertypes.LoadStatus.success_https, url.UrlType.success_https),
+    (usertypes.LoadStatus.error, url.UrlType.error),
+    (usertypes.LoadStatus.warn, url.UrlType.warn),
+    (usertypes.LoadStatus.loading, url.UrlType.normal),
+    (usertypes.LoadStatus.none, url.UrlType.normal)
 ])
 def test_on_load_status_changed(url_widget, status, expected):
     """Test text when status is changed."""
@@ -141,15 +141,15 @@ def test_on_tab_changed(url_widget, tab_widget, load_status, url_text):
 
 
 @pytest.mark.parametrize('url_text, load_status, expected_status', [
-    ('http://abc123.com/this/awesome/url.html', webview.LoadStatus.success,
+    ('http://abc123.com/this/awesome/url.html', usertypes.LoadStatus.success,
         url.UrlType.success),
-    ('https://supersecret.gov/nsa/files.txt', webview.LoadStatus.success_https,
+    ('https://supersecret.gov/nsa/files.txt', usertypes.LoadStatus.success_https,
         url.UrlType.success_https),
-    ('Th1$ i$ n0t @ n0rm@L uRL! P@n1c! <-->', webview.LoadStatus.error,
+    ('Th1$ i$ n0t @ n0rm@L uRL! P@n1c! <-->', usertypes.LoadStatus.error,
         url.UrlType.error),
-    ('http://www.qutebrowser.org/CONTRIBUTING.html', webview.LoadStatus.loading,
+    ('http://www.qutebrowser.org/CONTRIBUTING.html', usertypes.LoadStatus.loading,
         url.UrlType.normal),
-    ('www.whatisthisurl.com', webview.LoadStatus.warn, url.UrlType.warn)
+    ('www.whatisthisurl.com', usertypes.LoadStatus.warn, url.UrlType.warn)
 ])
 def test_normal_url(url_widget, url_text, load_status, expected_status):
     url_widget.set_url(url_text)

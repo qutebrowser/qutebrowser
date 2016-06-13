@@ -21,9 +21,11 @@
 
 import itertools
 
-from PyQt5.QtCore import pyqtSignal
+from PyQt5.QtCore import pyqtSignal, QUrl
 from PyQt5.QtGui import QIcon
 from PyQt5.QtWidgets import QWidget, QLayout
+
+from qutebrowser.utils import utils
 
 
 tab_id_gen = itertools.count(0)
@@ -111,3 +113,8 @@ class AbstractTab(QWidget):
 
     def openurl(self, url):
         raise NotImplementedError
+
+    def __repr__(self):
+        url = utils.elide(self.cur_url.toDisplayString(QUrl.EncodeUnicode),
+                          100)
+        return utils.get_repr(self, tab_id=self.tab_id, url=url)

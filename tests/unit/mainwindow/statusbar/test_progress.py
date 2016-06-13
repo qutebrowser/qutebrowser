@@ -24,8 +24,8 @@ from collections import namedtuple
 
 import pytest
 
-from qutebrowser.browser.webkit import webview
 from qutebrowser.mainwindow.statusbar.progress import Progress
+from qutebrowser.utils import usertypes
 
 
 @pytest.fixture
@@ -60,11 +60,11 @@ Tab = namedtuple('Tab', 'progress load_status')
 
 
 @pytest.mark.parametrize('tab, expected_visible', [
-    (Tab(15, webview.LoadStatus.loading), True),
-    (Tab(100, webview.LoadStatus.success), False),
-    (Tab(100, webview.LoadStatus.error), False),
-    (Tab(100, webview.LoadStatus.warn), False),
-    (Tab(100, webview.LoadStatus.none), False),
+    (Tab(15, usertypes.LoadStatus.loading), True),
+    (Tab(100, usertypes.LoadStatus.success), False),
+    (Tab(100, usertypes.LoadStatus.error), False),
+    (Tab(100, usertypes.LoadStatus.warn), False),
+    (Tab(100, usertypes.LoadStatus.none), False),
 ])
 def test_tab_changed(progress_widget, tab, expected_visible):
     """Test that progress widget value and visibility state match expectations.
