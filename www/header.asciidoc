@@ -1,17 +1,17 @@
 +++
 <div id="headline">
-	<img class="qutebrowser-logo" src="icons/qutebrowser.svg" alt="qutebrowser" />
+	<img class="qutebrowser-logo" src="/icons/qutebrowser.svg" alt="qutebrowser" />
 	<div class="text">
 		<h1>qutebrowser</h1>
 		A keyboard-driven browser.
 	</div>
 </div>
 <div id="menu">
-	<a href="index.html">Home</a>
-	<a href="FAQ.html">FAQ</a>
-	<a href="INSTALL.html">Install</a>
-	<a href="CHANGELOG.html">Changelog</a>
-	<a href="CONTRIBUTING.html">Contributing</a>
+	<a href="/index.html">Home</a>
+	<a href="/FAQ.html">FAQ</a>
+	<a href="/INSTALL.html">Install</a>
+	<a href="/CHANGELOG.html">Changelog</a>
+	<a href="/CONTRIBUTING.html">Contributing</a>
 	<a href="https://www.github.com/The-Compiler/qutebrowser">GitHub</a>
 	<a href="https://github.com/The-Compiler/qutebrowser/releases">Releases</a>
 	<a href="http://blog.qutebrowser.org/">Blog</a>
