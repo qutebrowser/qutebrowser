@@ -198,6 +198,7 @@ Contributors, sorted by the number of commits in descending order:
 * Larry Hynes
 * Johannes Altmanninger
 * Ismail
+* Daryl Finlay
 * adam
 * Samir Benmendil
 * Regina Hug

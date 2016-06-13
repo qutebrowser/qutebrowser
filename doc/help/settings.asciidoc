@@ -637,6 +637,7 @@ The format to use for the window title. The following placeholders are defined:
 * `{title_sep}`: The string ` - ` if a title is set, empty otherwise.
 * `{id}`: The internal window ID of this window.
 * `{scroll_pos}`: The page scroll position.
+* `{host}`: The host of the current web page.
 
 Default: +pass:[{perc}{title}{title_sep}qutebrowser]+
 
@@ -1153,6 +1154,7 @@ The format to use for the tab title. The following placeholders are defined:
 * `{index}`: The index of this tab.
 * `{id}`: The internal tab ID of this tab.
 * `{scroll_pos}`: The page scroll position.
+* `{host}`: The host of the current web page.
 
 Default: +pass:[{index}: {title}]+
 
