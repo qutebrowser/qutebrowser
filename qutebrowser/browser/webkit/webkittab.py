@@ -28,9 +28,29 @@ from qutebrowser.browser.webkit.webview import WebView
 class WebViewTab(AbstractTab):
 
     def __init__(self, win_id, parent=None):
-        widget = WebView(win_id)
-        super().__init__(widget)
+        super().__init__()
+        widget = WebView(win_id, self.tab_id)
+        self._set_widget(widget)
         self._connect_signals()
+
+    def openurl(self, url):
+        self._widget.openurl(url)
+
+    @property
+    def cur_url(self):
+        return self._widget.cur_url
+
+    @property
+    def progress(self):
+        return self._widget.progress
+
+    @property
+    def load_status(self):
+        return self._widget.load_status
+
+    @property
+    def scroll_pos(self):
+        return self._widget.scroll_pos
 
     def _connect_signals(self):
         view = self._widget
@@ -50,8 +70,8 @@ class WebViewTab(AbstractTab):
         # when using error pages...
         # See https://github.com/The-Compiler/qutebrowser/issues/84
         frame.loadFinished.connect(lambda:
-                                  self.load_finished.emit(
-                                      not self._widget.page().error_occured))
+                                   self.load_finished.emit(
+                                       not self._widget.page().error_occurred))
 
         # Emit iconChanged with a QIcon like QWebEngineView does.
         view.iconChanged.connect(lambda:

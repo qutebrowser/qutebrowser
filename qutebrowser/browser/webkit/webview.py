@@ -40,9 +40,6 @@ LoadStatus = usertypes.enum('LoadStatus', ['none', 'success', 'success_https',
                                            'error', 'warn', 'loading'])
 
 
-tab_id_gen = itertools.count(0)
-
-
 class WebView(QWebView):
 
     """One browser tab in TabbedBrowser.
@@ -58,13 +55,11 @@ class WebView(QWebView):
         load_status: loading status of this page (index into LoadStatus)
         viewing_source: Whether the webview is currently displaying source
                         code.
-        keep_icon: Whether the (e.g. cloned) icon should not be cleared on page
-                   load.
         registry: The ObjectRegistry associated with this tab.
-        tab_id: The tab ID of the view.
         win_id: The window ID of the view.
         search_text: The text of the last search.
         search_flags: The search flags of the last search.
+        _tab_id: The tab ID of the view.
         _has_ssl_errors: Whether SSL errors occurred during loading.
         _zoom: A NeighborList with the zoom levels.
         _old_scroll_pos: The old scroll position.
@@ -90,7 +85,7 @@ class WebView(QWebView):
     url_text_changed = pyqtSignal(str)
     shutting_down = pyqtSignal()
 
-    def __init__(self, win_id, parent=None):
+    def __init__(self, win_id, tab_id, parent=None):
         super().__init__(parent)
         if sys.platform == 'darwin' and qtutils.version_check('5.4'):
             # WORKAROUND for https://bugreports.qt.io/browse/QTBUG-42948
@@ -122,13 +117,14 @@ class WebView(QWebView):
         self.cur_url = QUrl()
         self.progress = 0
         self.registry = objreg.ObjectRegistry()
-        self.tab_id = next(tab_id_gen)
+        self._tab_id = tab_id
+        # FIXME:refactor stop registering it here
         tab_registry = objreg.get('tab-registry', scope='window',
                                   window=win_id)
-        tab_registry[self.tab_id] = self
+        tab_registry[self._tab_id] = self
         objreg.register('webview', self, registry=self.registry)
         page = self._init_page()
-        hintmanager = hints.HintManager(win_id, self.tab_id, self)
+        hintmanager = hints.HintManager(win_id, self._tab_id, self)
         hintmanager.mouse_event.connect(self.on_mouse_event)
         hintmanager.start_hinting.connect(page.on_start_hinting)
         hintmanager.stop_hinting.connect(page.on_stop_hinting)
@@ -161,7 +157,7 @@ class WebView(QWebView):
 
     def _init_page(self):
         """Initialize the QWebPage used by this view."""
-        page = webpage.BrowserPage(self.win_id, self.tab_id, self)
+        page = webpage.BrowserPage(self.win_id, self._tab_id, self)
         self.setPage(page)
         page.linkHovered.connect(self.linkHovered)
         page.mainFrame().loadStarted.connect(self.on_load_started)
@@ -176,7 +172,7 @@ class WebView(QWebView):
 
     def __repr__(self):
         url = utils.elide(self.url().toDisplayString(QUrl.EncodeUnicode), 100)
-        return utils.get_repr(self, tab_id=self.tab_id, url=url)
+        return utils.get_repr(self, tab_id=self._tab_id, url=url)
 
     def __del__(self):
         # Explicitly releasing the page here seems to prevent some segfaults

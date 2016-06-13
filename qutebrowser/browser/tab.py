@@ -19,9 +19,15 @@
 
 """Base class for a wrapper over QWebView/QWebEngineView."""
 
+import itertools
+
 from PyQt5.QtCore import pyqtSignal
 from PyQt5.QtGui import QIcon
 from PyQt5.QtWidgets import QWidget, QLayout
+
+
+tab_id_gen = itertools.count(0)
+
 
 
 class WrapperLayout(QLayout):
@@ -52,6 +58,12 @@ class AbstractTab(QWidget):
 
     We use this to unify QWebView and QWebEngineView.
 
+    Attributes:
+        keep_icon: Whether the (e.g. cloned) icon should not be cleared on page
+                   load.
+
+        for properties, see WebView/WebEngineView docs.
+
     Signals:
         See related Qt signals.
     """
@@ -63,12 +75,19 @@ class AbstractTab(QWidget):
     load_finished = pyqtSignal(bool)
     scroll_pos_changed = pyqtSignal(int, int)
     icon_changed = pyqtSignal(QIcon)
-    url_text_changed = pyqtSignal(str)  # FIXME get rid of this altogether?
+    # FIXME:refactor get rid of this altogether?
+    url_text_changed = pyqtSignal(str)
     title_changed = pyqtSignal(str)
     load_status_changed = pyqtSignal(str)
 
-    def __init__(self, widget, parent=None):
+    def __init__(self, parent=None):
+        self.tab_id = next(tab_id_gen)
         super().__init__(parent)
+        self._layout = None
+        self._widget = None
+        self.keep_icon = False  # FIXME:refactor get rid of this?
+
+    def _set_widget(self, widget):
         self._layout = WrapperLayout(widget, self)
         self._widget = widget
         widget.setParent(self)
@@ -87,4 +106,7 @@ class AbstractTab(QWidget):
 
     @property
     def scroll_pos(self):
+        raise NotImplementedError
+
+    def openurl(self, url):
         raise NotImplementedError
