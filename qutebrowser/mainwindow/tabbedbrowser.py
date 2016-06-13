@@ -30,7 +30,7 @@ from qutebrowser.config import config
 from qutebrowser.keyinput import modeman
 from qutebrowser.mainwindow import tabwidget
 from qutebrowser.browser import signalfilter
-from qutebrowser.browser.webkit import webview
+from qutebrowser.browser.webkit import webview, webkittab
 from qutebrowser.utils import (log, usertypes, utils, qtutils, objreg,
                                urlutils, message)
 
@@ -71,13 +71,13 @@ class TabbedBrowser(tabwidget.TabWidget):
         default_window_icon: The qutebrowser window icon
 
     Signals:
-        cur_progress: Progress of the current tab changed (loadProgress).
-        cur_load_started: Current tab started loading (loadStarted)
-        cur_load_finished: Current tab finished loading (loadFinished)
+        cur_progress: Progress of the current tab changed (load_progress).
+        cur_load_started: Current tab started loading (load_started)
+        cur_load_finished: Current tab finished loading (load_finished)
         cur_statusbar_message: Current tab got a statusbar message
                                (statusBarMessage)
         cur_url_text_changed: Current URL text changed.
-        cur_link_hovered: Link hovered in current tab (linkHovered)
+        cur_link_hovered: Link hovered in current tab (link_hovered)
         cur_scroll_perc_changed: Scroll percentage of current tab changed.
                                  arg 1: x-position in %.
                                  arg 2: y-position in %.
@@ -95,7 +95,7 @@ class TabbedBrowser(tabwidget.TabWidget):
     cur_load_finished = pyqtSignal(bool)
     cur_statusbar_message = pyqtSignal(str)
     cur_url_text_changed = pyqtSignal(str)
-    cur_link_hovered = pyqtSignal(str, str, str)
+    cur_link_hovered = pyqtSignal(str)
     cur_scroll_perc_changed = pyqtSignal(int, int)
     cur_load_status_changed = pyqtSignal(str)
     close_window = pyqtSignal()
@@ -170,19 +170,18 @@ class TabbedBrowser(tabwidget.TabWidget):
 
     def _connect_tab_signals(self, tab):
         """Set up the needed signals for tab."""
-        page = tab.page()
-        frame = page.mainFrame()
         # filtered signals
-        tab.linkHovered.connect(
+        tab.link_hovered.connect(
             self._filter.create(self.cur_link_hovered, tab))
-        tab.loadProgress.connect(
+        tab.load_progress.connect(
             self._filter.create(self.cur_progress, tab))
-        frame.loadFinished.connect(
+        tab.load_finished.connect(
             self._filter.create(self.cur_load_finished, tab))
-        frame.loadStarted.connect(
+        tab.load_started.connect(
             self._filter.create(self.cur_load_started, tab))
-        tab.statusBarMessage.connect(
-            self._filter.create(self.cur_statusbar_message, tab))
+        # https://github.com/The-Compiler/qutebrowser/issues/1579
+        # tab.statusBarMessage.connect(
+        #     self._filter.create(self.cur_statusbar_message, tab))
         tab.scroll_pos_changed.connect(
             self._filter.create(self.cur_scroll_perc_changed, tab))
         tab.scroll_pos_changed.connect(self.on_scroll_pos_changed)
@@ -193,17 +192,17 @@ class TabbedBrowser(tabwidget.TabWidget):
         tab.url_text_changed.connect(
             functools.partial(self.on_url_text_changed, tab))
         # misc
-        tab.titleChanged.connect(
+        tab.title_changed.connect(
             functools.partial(self.on_title_changed, tab))
-        tab.iconChanged.connect(
+        tab.icon_changed.connect(
             functools.partial(self.on_icon_changed, tab))
-        tab.loadProgress.connect(
+        tab.load_progress.connect(
             functools.partial(self.on_load_progress, tab))
-        frame.loadFinished.connect(
+        tab.load_finished.connect(
             functools.partial(self.on_load_finished, tab))
-        frame.loadStarted.connect(
+        tab.load_started.connect(
             functools.partial(self.on_load_started, tab))
-        page.windowCloseRequested.connect(
+        tab.window_close_requested.connect(
             functools.partial(self.on_window_close_requested, tab))
 
     def current_url(self):
@@ -378,7 +377,7 @@ class TabbedBrowser(tabwidget.TabWidget):
             tabbed_browser = objreg.get('tabbed-browser', scope='window',
                                         window=window.win_id)
             return tabbed_browser.tabopen(url, background, explicit)
-        tab = webview.WebView(self._win_id, self)
+        tab = webkittab.WebViewTab(self._win_id, self)
         self._connect_tab_signals(tab)
         idx = self._get_new_tab_idx(explicit)
         self.insertTab(idx, tab, "")
@@ -479,7 +478,7 @@ class TabbedBrowser(tabwidget.TabWidget):
     def on_title_changed(self, tab, text):
         """Set the title of a tab.
 
-        Slot for the titleChanged signal of any tab.
+        Slot for the title_changed signal of any tab.
 
         Args:
             tab: The WebView where the title was changed.
@@ -515,14 +514,15 @@ class TabbedBrowser(tabwidget.TabWidget):
         if not self.page_title(idx):
             self.set_page_title(idx, url)
 
-    @pyqtSlot(webview.WebView)
-    def on_icon_changed(self, tab):
+    @pyqtSlot(webview.WebView, QIcon)
+    def on_icon_changed(self, tab, icon):
         """Set the icon of a tab.
 
         Slot for the iconChanged signal of any tab.
 
         Args:
             tab: The WebView where the title was changed.
+            icon: The new icon
         """
         if not config.get('tabs', 'show-favicons'):
             return
@@ -531,9 +531,9 @@ class TabbedBrowser(tabwidget.TabWidget):
         except TabDeletedError:
             # We can get signals for tabs we already deleted...
             return
-        self.setTabIcon(idx, tab.icon())
+        self.setTabIcon(idx, icon)
         if config.get('tabs', 'tabs-are-windows'):
-            self.window().setWindowIcon(tab.icon())
+            self.window().setWindowIcon(icon)
 
     @pyqtSlot(usertypes.KeyMode)
     def on_mode_left(self, mode):
@@ -589,25 +589,20 @@ class TabbedBrowser(tabwidget.TabWidget):
         if idx == self.currentIndex():
             self.update_window_title()
 
-    def on_load_finished(self, tab):
-        """Adjust tab indicator when loading finished.
-
-        We don't take loadFinished's ok argument here as it always seems to be
-        true when the QWebPage has an ErrorPageExtension implemented.
-        See https://github.com/The-Compiler/qutebrowser/issues/84
-        """
+    def on_load_finished(self, tab, ok):
+        """Adjust tab indicator when loading finished."""
         try:
             idx = self._tab_index(tab)
         except TabDeletedError:
             # We can get signals for tabs we already deleted...
             return
-        if tab.page().error_occurred:
-            color = config.get('colors', 'tabs.indicator.error')
-        else:
+        if ok:
             start = config.get('colors', 'tabs.indicator.start')
             stop = config.get('colors', 'tabs.indicator.stop')
             system = config.get('colors', 'tabs.indicator.system')
             color = utils.interpolate_color(start, stop, 100, system)
+        else:
+            color = config.get('colors', 'tabs.indicator.error')
         self.set_tab_indicator_color(idx, color)
         self.update_tab_title(idx)
         if idx == self.currentIndex():

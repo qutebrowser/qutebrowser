@@ -140,8 +140,8 @@ class UrlText(textbase.TextBase):
         self._normal_url_type = UrlType.normal
         self._update_url()
 
-    @pyqtSlot(str, str, str)
-    def set_hover_url(self, link, _title, _text):
+    @pyqtSlot(str)
+    def set_hover_url(self, link):
         """Setter to be used as a Qt slot.
 
         Saves old shown URL in self._old_url and restores it later if a link is
@@ -149,8 +149,6 @@ class UrlText(textbase.TextBase):
 
         Args:
             link: The link which was hovered (string)
-            _title: The title of the hovered link (string)
-            _text: The text of the hovered link (string)
         """
         if link:
             qurl = QUrl(link)
