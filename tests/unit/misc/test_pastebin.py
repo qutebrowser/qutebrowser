@@ -20,8 +20,7 @@
 import pytest
 from PyQt5.QtCore import pyqtSignal, QUrl, QObject
 
-from qutebrowser.browser.network import pastebin
-from qutebrowser.misc import httpclient
+from qutebrowser.misc import httpclient, pastebin
 
 
 class HTTPPostStub(QObject):

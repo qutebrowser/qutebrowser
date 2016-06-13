@@ -36,8 +36,8 @@ from PyQt5.QtWidgets import (QDialog, QLabel, QTextEdit, QPushButton,
 
 import qutebrowser
 from qutebrowser.utils import version, log, utils, objreg
-from qutebrowser.misc import miscwidgets, autoupdate, msgbox, httpclient
-from qutebrowser.browser.network import pastebin
+from qutebrowser.misc import (miscwidgets, autoupdate, msgbox, httpclient,
+                              pastebin)
 from qutebrowser.config import config
 
 
