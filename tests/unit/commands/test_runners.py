@@ -43,13 +43,8 @@ class TestCommandRunner:
             with pytest.raises(cmdexc.NoSuchCommandError):
                 list(cr.parse_all(cmdline_test.cmd, aliases=False))
 
-    def test_parse_all_with_alias(self, cmdline_test, monkeypatch):
-        alias_dict = dict(alias_name=cmdline_test.cmd)
-
-        def mock_get(section, *args, **kwargs):
-            assert section == "aliases"
-            return alias_dict.get(*args, **kwargs)
-        monkeypatch.setattr("qutebrowser.config.config.get", mock_get)
+    def test_parse_all_with_alias(self, cmdline_test, config_stub):
+        config_stub.data = {'aliases': {'alias_name': cmdline_test.cmd}}
 
         cr = runners.CommandRunner(0)
         if cmdline_test.valid:
