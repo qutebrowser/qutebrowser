@@ -46,7 +46,8 @@ def whitelist_generator():
     for name, member in inspect.getmembers(rfc6266, inspect.isclass):
         for attr in ('grammar', 'regex'):
             if hasattr(member, attr):
-                yield 'qutebrowser.browser.webkit.rfc6266.{}.{}'.format(name, attr)
+                yield 'qutebrowser.browser.webkit.rfc6266.{}.{}'.format(name,
+                                                                        attr)
 
     # PyQt properties
     for attr in ('prompt_active', 'command_active', 'insert_active',

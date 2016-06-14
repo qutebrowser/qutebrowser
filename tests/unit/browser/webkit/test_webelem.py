@@ -276,7 +276,8 @@ class TestWebElementWrapper:
     @pytest.mark.parametrize('is_null, expected', [
         (False, "<qutebrowser.browser.webkit.webelem.WebElementWrapper "
                 "html='<fakeelem/>'>"),
-        (True, '<qutebrowser.browser.webkit.webelem.WebElementWrapper html=None>'),
+        (True, '<qutebrowser.browser.webkit.webelem.WebElementWrapper '
+               'html=None>'),
     ])
     def test_repr(self, elem, is_null, expected):
         elem._elem.isNull.return_value = is_null
