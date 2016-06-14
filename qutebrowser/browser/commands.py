@@ -355,7 +355,7 @@ class CommandDispatcher:
                 new_tabbed_browser.window().setWindowIcon(curtab.icon())
         newtab.keep_icon = True
         newtab.set_zoom_factor(curtab.zoom_factor())
-        newtab.history.deserialize(history = curtab.history.serialize())
+        newtab.history.deserialize(curtab.history.serialize())
 
     @cmdutils.register(instance='command-dispatcher', scope='window')
     def tab_detach(self):
