@@ -17,13 +17,26 @@
 # You should have received a copy of the GNU General Public License
 # along with qutebrowser.  If not, see <http://www.gnu.org/licenses/>.
 
+import pytest
+
 from qutebrowser.browser import tab
 
-from PyQt5.QtWidgets import QWidget
+try:
+    from PyQt5.QtWebKitWidgets import QWebView
+except ImportError:
+    QWebView = None
+
+try:
+    from PyQt5.QtWebEngineWidgets import QWebEngineView
+except ImportError:
+    QWebEngineView = None
 
 
-def test_tab(qtbot):
-    w = QWidget()
+@pytest.mark.parametrize('view', [QWebView, QWebEngineView])
+def test_tab(qtbot, view):
+    if view is None:
+        pytest.skip("View not available")
+    w = view()
     qtbot.add_widget(w)
     tab_w = tab.AbstractTab()
     tab_w.show()
