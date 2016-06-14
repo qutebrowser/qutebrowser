@@ -51,7 +51,7 @@ class WebViewHistory(tab.AbstractHistory):
         return qtutils.serialize(self.history)
 
     def deserialize(self, data):
-        return qtutils.deserialize(self.history)
+        return qtutils.deserialize(data, self.history)
 
     def load_items(self, items):
         stream, _data, user_data = tabhistory.serialize(items)
