@@ -20,7 +20,11 @@
 """Wrapper over a QWebEngineView."""
 
 from PyQt5.QtCore import pyqtSlot
-from PyQt5.QtWebEngineWidgets import QWebEngineView
+
+try:
+    from PyQt5.QtWebEngineWidgets import QWebEngineView
+except ImportError:
+    QWebEngineView = None
 
 from qutebrowser.browser.tab import AbstractTab
 from qutebrowser.browser.webkit.webview import WebView
