@@ -83,7 +83,7 @@ class WebEngineViewTab(tab.AbstractTab):
         widget = QWebEngineView()
         self.history = WebEngineHistory(self)
         self.scroll = WebEngineScroller()
-        self.caret = WebEngineCaret(win_id=win_id, tab=self)
+        self.caret = WebEngineCaret(win_id=win_id, tab=self, parent=self)
         self._set_widget(widget)
         self._connect_signals()
 

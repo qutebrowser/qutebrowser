@@ -352,7 +352,7 @@ class WebViewTab(tab.AbstractTab):
         widget = webview.WebView(win_id, self.tab_id)
         self.history = WebViewHistory(self)
         self.scroll = WebViewScroller(parent=self)
-        self.caret = WebViewCaret(win_id=win_id, tab=self)
+        self.caret = WebViewCaret(win_id=win_id, tab=self, parent=self)
         self._set_widget(widget)
         self._connect_signals()
 

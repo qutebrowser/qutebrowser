@@ -55,11 +55,12 @@ class WrapperLayout(QLayout):
         self._widget.setGeometry(r)
 
 
-class AbstractCaret:
+class AbstractCaret(QObject):
 
     """Attribute of AbstractTab for caret browsing."""
 
-    def __init__(self, win_id, tab):
+    def __init__(self, win_id, tab, parent=None):
+        super().__init__(parent)
         self._tab = tab
         self._win_id = win_id
         self.widget = None
@@ -258,9 +259,9 @@ class AbstractTab(QWidget):
         self.win_id = win_id
         self.tab_id = next(tab_id_gen)
         super().__init__(parent)
-        self.history = AbstractHistory(self)
-        self.scroll = AbstractScroller(parent=self)
-        self.caret = AbstractCaret(win_id=win_id, tab=self)
+        # self.history = AbstractHistory(self)
+        # self.scroll = AbstractScroller(parent=self)
+        # self.caret = AbstractCaret(win_id=win_id, tab=self, parent=self)
         self._layout = None
         self._widget = None
         self.keep_icon = False  # FIXME:refactor get rid of this?
