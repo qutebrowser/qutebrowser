@@ -116,6 +116,7 @@ class AbstractTab(QWidget):
     url_text_changed = pyqtSignal(str)
     title_changed = pyqtSignal(str)
     load_status_changed = pyqtSignal(str)
+    shutting_down = pyqtSignal()
 
     def __init__(self, parent=None):
         self.tab_id = next(tab_id_gen)
@@ -156,6 +157,9 @@ class AbstractTab(QWidget):
         The given callback will be called with the result when dumping is
         complete.
         """
+        raise NotImplementedError
+
+    def shutdown(self):
         raise NotImplementedError
 
     def __repr__(self):

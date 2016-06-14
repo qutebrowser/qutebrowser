@@ -89,6 +89,10 @@ class WebEngineViewTab(tab.AbstractTab):
         else:
             self._widget.page().toHtml(callback)
 
+    def shutdown(self):
+        # TODO
+        pass
+
     def _connect_signals(self):
         view = self._widget
         page = view.page()

@@ -96,6 +96,9 @@ class WebViewTab(tab.AbstractTab):
         else:
             callback(frame.toHtml())
 
+    def shutdown(self):
+        self._widget.shutdown()
+
     def _connect_signals(self):
         view = self._widget
         page = view.page()
@@ -108,6 +111,7 @@ class WebViewTab(tab.AbstractTab):
         view.titleChanged.connect(self.title_changed)
         view.url_text_changed.connect(self.url_text_changed)
         view.load_status_changed.connect(self.load_status_changed)
+        view.shutting_down.connect(self.shutting_down)
 
         # Make sure we emit an appropriate status when loading finished.
         # While Qt has a bool "ok" attribute for loadFinished, it always is True
