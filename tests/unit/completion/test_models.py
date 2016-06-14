@@ -19,6 +19,8 @@
 
 """Tests for completion models."""
 
+import collections
+
 from qutebrowser.completion.models import miscmodels
 
 
@@ -43,6 +45,37 @@ def test_command_completion(monkeypatch, stubs, config_stub, key_config_stub):
             ('rock', "Alias for 'roll'", ''),
             ('roll', 'never gonna give you up', 'rr'),
             ('stop', 'stop qutebrowser', 's')
+        ])
+    ]
+
+
+def test_help_completion(monkeypatch, stubs):
+    """Test the results of command completion.
+
+    Validates that:
+        - only non-hidden and non-deprecated commands are included
+        - commands are sorted by name
+        - the command description is shown in the desc column
+        - the binding (if any) is shown in the misc column
+        - aliases are included
+        - only the first line of a multiline description is shown
+    """
+    module = 'qutebrowser.completion.models.miscmodels'
+    _patch_cmdutils(monkeypatch, stubs, module + '.cmdutils')
+    _patch_configdata(monkeypatch, stubs, module + '.configdata.DATA')
+    actual = _get_completions(miscmodels.HelpCompletionModel())
+    assert actual == [
+        ("Commands", [
+            (':drop', 'drop all user data', ''),
+            (':roll', 'never gonna give you up', ''),
+            (':stop', 'stop qutebrowser', '')
+        ]),
+        ("Settings", [
+            ('general->time', 'Is an illusion.', ''),
+            ('general->volume', 'Goes to 11', ''),
+            ('ui->gesture', 'Waggle your hands to control qutebrowser', ''),
+            ('ui->mind', 'Enable mind-control ui (experimental)', ''),
+            ('ui->voice', 'Whether to respond to voice commands', ''),
         ])
     ]
 
@@ -80,3 +113,17 @@ def _patch_cmdutils(monkeypatch, stubs, symbol):
         'depr': stubs.FakeCommand(name='depr', deprecated=True),
     })
     monkeypatch.setattr(symbol, cmd_utils)
+
+
+def _patch_configdata(monkeypatch, stubs, symbol):
+    """Patch the configdata module to provide fake data."""
+    data = collections.OrderedDict([
+        ('general', stubs.FakeConfigSection(
+            ('time', 'Is an illusion.\n\nLunchtime doubly so.'),
+            ('volume', 'Goes to 11'))),
+        ('ui', stubs.FakeConfigSection(
+            ('gesture', 'Waggle your hands to control qutebrowser'),
+            ('mind', 'Enable mind-control ui (experimental)'),
+            ('voice', 'Whether to respond to voice commands'))),
+    ])
+    monkeypatch.setattr(symbol, data)

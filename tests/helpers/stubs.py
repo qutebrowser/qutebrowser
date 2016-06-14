@@ -340,6 +340,22 @@ class FakeTimer(QObject):
         return self._started
 
 
+class FakeConfigSection:
+
+    """A stub for a KeyValue entry in configdata.DATA."""
+
+    def __init__(self, *entries):
+        self.values = []
+        self.descriptions = {}
+        for name, desc in entries:
+            self.values.append(name)
+            self.descriptions[name] = desc
+
+    def __iter__(self):
+        """Iterate over all set values."""
+        return self.values.__iter__()
+
+
 class ConfigStub(QObject):
 
     """Stub for the config module.
