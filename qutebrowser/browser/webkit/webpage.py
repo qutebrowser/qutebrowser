@@ -243,23 +243,6 @@ class BrowserPage(QWebPage):
         else:
             nam.shutdown()
 
-    def load_history(self, entries):
-        """Load the history from a list of TabHistoryItem objects."""
-        stream, _data, user_data = tabhistory.serialize(entries)
-        history = self.history()
-        qtutils.deserialize_stream(stream, history)
-        for i, data in enumerate(user_data):
-            history.itemAt(i).setUserData(data)
-        cur_data = history.currentItem().userData()
-        if cur_data is not None:
-            frame = self.mainFrame()
-            if 'zoom' in cur_data:
-                frame.page().view().zoom_perc(cur_data['zoom'] * 100)
-            if ('scroll-pos' in cur_data and
-                    frame.scrollPosition() == QPoint(0, 0)):
-                QTimer.singleShot(0, functools.partial(
-                    frame.setScrollPosition, cur_data['scroll-pos']))
-
     def display_content(self, reply, mimetype):
         """Display a QNetworkReply with an explicitly set mimetype."""
         self.mainFrame().setContent(reply.readAll(), mimetype, reply.url())

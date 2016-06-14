@@ -55,6 +55,39 @@ class WrapperLayout(QLayout):
         self._widget.setGeometry(r)
 
 
+class AbstractHistory:
+
+    """The history attribute of a AbstractTab."""
+
+    def __init__(self, tab):
+        self.tab = tab
+        self.widget = None
+
+    def back(self):
+        raise NotImplementedError
+
+    def forward(self):
+        raise NotImplementedError
+
+    def can_go_back(self):
+        raise NotImplementedError
+
+    def can_go_forward(self):
+        raise NotImplementedError
+
+    def serialize(self):
+        """Serialize into an opaque format understood by self.deserialize."""
+        raise NotImplementedError
+
+    def deserialize(self, data):
+        """Serialize from a format produced by self.serialize."""
+        raise NotImplementedError
+
+    def load_items(self, items):
+        """Deserialize from a list of WebHistoryItems."""
+        raise NotImplementedError
+
+
 class AbstractTab(QWidget):
 
     """A wrapper over the given widget to hide its API and expose another one.
@@ -64,6 +97,7 @@ class AbstractTab(QWidget):
     Attributes:
         keep_icon: Whether the (e.g. cloned) icon should not be cleared on page
                    load.
+        history: The AbstractHistory for the current tab.
 
         for properties, see WebView/WebEngineView docs.
 
@@ -86,6 +120,7 @@ class AbstractTab(QWidget):
     def __init__(self, parent=None):
         self.tab_id = next(tab_id_gen)
         super().__init__(parent)
+        self.history = AbstractHistory(self)
         self._layout = None
         self._widget = None
         self.keep_icon = False  # FIXME:refactor get rid of this?
@@ -93,6 +128,7 @@ class AbstractTab(QWidget):
     def _set_widget(self, widget):
         self._layout = WrapperLayout(widget, self)
         self._widget = widget
+        self.history.history = widget.history()
         widget.setParent(self)
 
     @property

@@ -30,4 +30,6 @@ def test_tab(qtbot):
     assert tab_w._widget is None
     tab_w._set_widget(w)
     assert tab_w._widget is w
+    assert tab_w.history.tab is tab_w
+    assert tab_w.history.history is w.history()
     assert w.parent() is tab_w

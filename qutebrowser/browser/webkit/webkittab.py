@@ -21,15 +21,52 @@
 
 from PyQt5.QtCore import pyqtSlot
 
-from qutebrowser.browser.tab import AbstractTab
-from qutebrowser.browser.webkit.webview import WebView
+from qutebrowser.browser import tab
+from qutebrowser.browser.webkit import webview
+from qutebrowser.utils import qtutils
 
 
-class WebViewTab(AbstractTab):
+class WebViewHistory(tab.AbstractHistory):
+
+    def back(self):
+        self.history.back()
+
+    def forward(self):
+        self.history.forward()
+
+    def can_go_back(self):
+        return self.history.canGoBack()
+
+    def can_go_forward(self):
+        return self.history.canGoForward()
+
+    def serialize(self):
+        return qtutils.serialize(self.history)
+
+    def deserialize(self, data):
+        return qtutils.deserialize(self.history)
+
+    def load_items(self, items):
+        stream, _data, user_data = tabhistory.serialize(items)
+        qtutils.deserialize_stream(stream, self.history)
+        for i, data in enumerate(user_data):
+            self.history.itemAt(i).setUserData(data)
+        cur_data = self.history.currentItem().userData()
+        if cur_data is not None:
+            if 'zoom' in cur_data:
+                self.tab.zoom_perc(cur_data['zoom'] * 100)
+            if ('scroll-pos' in cur_data and
+                    self.tab.scroll_position() == QPoint(0, 0)):
+                QTimer.singleShot(0, functools.partial(
+                    self.tab.scroll, cur_data['scroll-pos']))
+
+
+class WebViewTab(tab.AbstractTab):
 
     def __init__(self, win_id, parent=None):
         super().__init__()
-        widget = WebView(win_id, self.tab_id)
+        widget = webview.WebView(win_id, self.tab_id)
+        self.history = WebViewHistory(self)
         self._set_widget(widget)
         self._connect_signals()
 

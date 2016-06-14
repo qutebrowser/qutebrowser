@@ -266,7 +266,7 @@ class TabbedBrowser(tabwidget.TabWidget):
             objreg.delete('last-focused-tab', scope='window',
                           window=self._win_id)
         if tab.cur_url.isValid():
-            history_data = qtutils.serialize(tab.history())
+            history_data = tab.history.serialize()
             entry = UndoEntry(tab.cur_url, history_data)
             self._undo_stack.append(entry)
         elif tab.cur_url.isEmpty():
@@ -312,7 +312,7 @@ class TabbedBrowser(tabwidget.TabWidget):
         else:
             newtab = self.tabopen(url, background=False)
 
-        qtutils.deserialize(history_data, newtab.history())
+        newtab.history.deserialize(history_data)
 
     @pyqtSlot('QUrl', bool)
     def openurl(self, url, newtab):

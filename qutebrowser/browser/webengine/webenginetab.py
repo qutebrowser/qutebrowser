@@ -26,16 +26,41 @@ try:
 except ImportError:
     QWebEngineView = None
 
-from qutebrowser.browser.tab import AbstractTab
-from qutebrowser.browser.webkit.webview import WebView
-from qutebrowser.utils import usertypes
+from qutebrowser.browser import tab
+from qutebrowser.utils import usertypes, qtutils
 
 
-class WebEngineViewTab(AbstractTab):
+class WebEngineHistory(tab.AbstractHistory):
+
+    def back(self):
+        self.history.back()
+
+    def forward(self):
+        self.history.forward()
+
+    def can_go_back(self):
+        return self.history.canGoBack()
+
+    def can_go_forward(self):
+        return self.history.canGoForward()
+
+    def serialize(self):
+        return qtutils.serialize(self.history)
+
+    def deserialize(self, data):
+        return qtutils.deserialize(self.history)
+
+    def load_items(self, items):
+        # TODO
+        raise NotImplementedError
+
+
+class WebEngineViewTab(tab.AbstractTab):
 
     def __init__(self, win_id, parent=None):
         super().__init__()
         widget = QWebEngineView()
+        self.history = WebEngineHistory(self)
         self._set_widget(widget)
         self._connect_signals()
 
