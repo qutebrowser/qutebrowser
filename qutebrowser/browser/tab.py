@@ -21,7 +21,7 @@
 
 import itertools
 
-from PyQt5.QtCore import pyqtSignal, QUrl
+from PyQt5.QtCore import pyqtSignal, QUrl, QObject
 from PyQt5.QtGui import QIcon
 from PyQt5.QtWidgets import QWidget, QLayout
 
@@ -53,6 +53,65 @@ class WrapperLayout(QLayout):
 
     def setGeometry(self, r):
         self._widget.setGeometry(r)
+
+
+class AbstractScroller(QObject):
+
+    """Attribute of AbstractTab to manage scroll position."""
+
+    perc_changed = pyqtSignal(int, int)
+
+    def __init__(self, parent=None):
+        super().__init__(parent)
+        self.widget = None
+
+    def pos_px(self):
+        raise NotImplementedError
+
+    def pos_perc(self):
+        raise NotImplementedError
+
+    def to_perc(self, x=None, y=None):
+        raise NotImplementedError
+
+    def to_point(self, point):
+        raise NotImplementedError
+
+    def delta(self, x=0, y=0):
+        raise NotImplementedError
+
+    def delta_page(self, x=0, y=0):
+        raise NotImplementedError
+
+    def up(self, count=1):
+        raise NotImplementedError
+
+    def down(self, count=1):
+        raise NotImplementedError
+
+    def left(self, count=1):
+        raise NotImplementedError
+
+    def right(self, count=1):
+        raise NotImplementedError
+
+    def top(self):
+        raise NotImplementedError
+
+    def bottom(self):
+        raise NotImplementedError
+
+    def page_up(self, count=1):
+        raise NotImplementedError
+
+    def page_down(self, count=1):
+        raise NotImplementedError
+
+    def at_top(self):
+        raise NotImplementedError
+
+    def at_bottom(self):
+        raise NotImplementedError
 
 
 class AbstractHistory:
@@ -116,7 +175,6 @@ class AbstractTab(QWidget):
     load_started = pyqtSignal()
     load_progress = pyqtSignal(int)
     load_finished = pyqtSignal(bool)
-    scroll_pos_changed = pyqtSignal(int, int)
     icon_changed = pyqtSignal(QIcon)
     # FIXME:refactor get rid of this altogether?
     url_text_changed = pyqtSignal(str)
@@ -129,6 +187,7 @@ class AbstractTab(QWidget):
         self.tab_id = next(tab_id_gen)
         super().__init__(parent)
         self.history = AbstractHistory(self)
+        self.scroll = AbstractScroller(parent=self)
         self._layout = None
         self._widget = None
         self.keep_icon = False  # FIXME:refactor get rid of this?
@@ -137,6 +196,7 @@ class AbstractTab(QWidget):
         self._layout = WrapperLayout(widget, self)
         self._widget = widget
         self.history.history = widget.history()
+        self.scroll.widget = widget
         widget.setParent(self)
 
     @property
@@ -149,12 +209,6 @@ class AbstractTab(QWidget):
 
     @property
     def load_status(self):
-        raise NotImplementedError
-
-    def scroll_pos_perc(self):
-        raise NotImplementedError
-
-    def scroll_pos_px(self):
         raise NotImplementedError
 
     def openurl(self, url):

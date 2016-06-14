@@ -127,7 +127,7 @@ class TabWidget(QTabWidget):
         except qtutils.QtValueError:
             fields['host'] = ''
 
-        y = widget.scroll_pos_perc()[1]
+        y = widget.scroll.pos_perc()[1]
         if y <= 0:
             scroll_pos = 'top'
         elif y >= 100:

@@ -513,7 +513,7 @@ class CommandDispatcher:
         dy *= count
         cmdutils.check_overflow(dx, 'int')
         cmdutils.check_overflow(dy, 'int')
-        self._current_widget().page().currentFrame().scroll(dx, dy)
+        self._current_widget().scroll.delta(dx, dy)
 
     @cmdutils.register(instance='command-dispatcher', hide=True,
                        scope='window')
@@ -526,54 +526,29 @@ class CommandDispatcher:
                        (up/down/left/right/top/bottom).
             count: multiplier
         """
-        fake_keys = {
-            'up': Qt.Key_Up,
-            'down': Qt.Key_Down,
-            'left': Qt.Key_Left,
-            'right': Qt.Key_Right,
-            'top': Qt.Key_Home,
-            'bottom': Qt.Key_End,
-            'page-up': Qt.Key_PageUp,
-            'page-down': Qt.Key_PageDown,
+        tab = self._current_widget()
+        funcs = {
+            'up': tab.scroll.up,
+            'down': tab.scroll.down,
+            'left': tab.scroll.left,
+            'right': tab.scroll.right,
+            'top': tab.scroll.top,
+            'bottom': tab.scroll.bottom,
+            'page-up': tab.scroll.page_up,
+            'page-down': tab.scroll.page_down,
         }
         try:
-            key = fake_keys[direction]
+            func = funcs[direction]
         except KeyError:
-            expected_values = ', '.join(sorted(fake_keys))
+            expected_values = ', '.join(sorted(funcs))
             raise cmdexc.CommandError("Invalid value {!r} for direction - "
                                       "expected one of: {}".format(
                                           direction, expected_values))
-        widget = self._current_widget()
-        frame = widget.page().currentFrame()
 
-        press_evt = QKeyEvent(QEvent.KeyPress, key, Qt.NoModifier, 0, 0, 0)
-        release_evt = QKeyEvent(QEvent.KeyRelease, key, Qt.NoModifier, 0, 0, 0)
-
-        # Count doesn't make sense with top/bottom
         if direction in ('top', 'bottom'):
-            count = 1
-
-        max_min = {
-            'up': [Qt.Vertical, frame.scrollBarMinimum],
-            'down': [Qt.Vertical, frame.scrollBarMaximum],
-            'left': [Qt.Horizontal, frame.scrollBarMinimum],
-            'right': [Qt.Horizontal, frame.scrollBarMaximum],
-            'page-up': [Qt.Vertical, frame.scrollBarMinimum],
-            'page-down': [Qt.Vertical, frame.scrollBarMaximum],
-        }
-
-        for _ in range(count):
-            # Abort scrolling if the minimum/maximum was reached.
-            try:
-                qt_dir, getter = max_min[direction]
-            except KeyError:
-                pass
-            else:
-                if frame.scrollBarValue(qt_dir) == getter(qt_dir):
-                    return
-
-            widget.keyPressEvent(press_evt)
-            widget.keyReleaseEvent(release_evt)
+            func()
+        else:
+            func(count=count)
 
     @cmdutils.register(instance='command-dispatcher', hide=True,
                        scope='window')
@@ -598,19 +573,14 @@ class CommandDispatcher:
         elif count is not None:
             perc = count
 
-        orientation = Qt.Horizontal if horizontal else Qt.Vertical
-
-        if perc == 0 and orientation == Qt.Vertical:
-            self.scroll('top')
-        elif perc == 100 and orientation == Qt.Vertical:
-            self.scroll('bottom')
+        if horizontal:
+            x = perc
+            y = None
         else:
-            perc = qtutils.check_overflow(perc, 'int', fatal=False)
-            frame = self._current_widget().page().currentFrame()
-            m = frame.scrollBarMaximum(orientation)
-            if m == 0:
-                return
-            frame.setScrollBarValue(orientation, int(m * perc / 100))
+            x = None
+            y = perc
+
+        self._current_widget().scroll.to_perc(x, y)
 
     @cmdutils.register(instance='command-dispatcher', hide=True,
                        scope='window')
@@ -633,38 +603,19 @@ class CommandDispatcher:
                           scrolling up at the top of the page.
             count: multiplier
         """
-        frame = self._current_widget().page().currentFrame()
-        if not frame.url().isValid():
+        tab = self._current_widget()
+        if not tab.cur_url.isValid():
             # See https://github.com/The-Compiler/qutebrowser/issues/701
             return
 
-        if (bottom_navigate is not None and
-                frame.scrollPosition().y() >=
-                frame.scrollBarMaximum(Qt.Vertical)):
+        if bottom_navigate is not None and tab.scroll.at_bottom():
             self.navigate(bottom_navigate)
             return
-        elif top_navigate is not None and frame.scrollPosition().y() == 0:
+        elif top_navigate is not None and tab.scroll.at_top():
             self.navigate(top_navigate)
             return
 
-        mult_x = count * x
-        mult_y = count * y
-        if mult_y.is_integer():
-            if mult_y == 0:
-                pass
-            elif mult_y < 0:
-                self.scroll('page-up', count=-int(mult_y))
-            elif mult_y > 0:  # pragma: no branch
-                self.scroll('page-down', count=int(mult_y))
-            mult_y = 0
-        if mult_x == 0 and mult_y == 0:
-            return
-        size = frame.geometry()
-        dx = mult_x * size.width()
-        dy = mult_y * size.height()
-        cmdutils.check_overflow(dx, 'int')
-        cmdutils.check_overflow(dy, 'int')
-        frame.scroll(dx, dy)
+        tab.scroll.delta_page(count * x, count * y)
 
     @cmdutils.register(instance='command-dispatcher', scope='window')
     def yank(self, title=False, sel=False, domain=False, pretty=False):

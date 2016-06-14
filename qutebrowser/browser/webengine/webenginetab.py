@@ -31,6 +31,13 @@ from qutebrowser.browser import tab
 from qutebrowser.utils import usertypes, qtutils
 
 
+class WebEngineScroller(tab.AbstractScroller):
+
+    ## TODO
+
+    pass
+
+
 class WebEngineHistory(tab.AbstractHistory):
 
     def __iter__(self):
@@ -68,6 +75,7 @@ class WebEngineViewTab(tab.AbstractTab):
         super().__init__(win_id)
         widget = QWebEngineView()
         self.history = WebEngineHistory(self)
+        self.scroll = WebEngineScroller(parent=self)
         self._set_widget(widget)
         self._connect_signals()
 
@@ -85,12 +93,6 @@ class WebEngineViewTab(tab.AbstractTab):
     @property
     def load_status(self):
         return usertypes.LoadStatus.success
-
-    def scroll_pos_perc(self):
-        return (0, 0)  # FIXME
-
-    def scroll_pos_px(self):
-        return self._widget.page().scrollPosition()
 
     def set_zoom_factor(self, factor):
         self._widget.setZoomFactor(factor)
@@ -135,6 +137,6 @@ class WebEngineViewTab(tab.AbstractTab):
         page.loadFinished.connect(self.load_finished)
         # FIXME:refactor
         # view.iconChanged.connect(self.icon_changed)
-        # view.scroll_pos_changed.connect(self.scroll_pos_changed)
+        # view.scroll.pos_changed.connect(self.scroll.perc_changed)
         # view.url_text_changed.connect(self.url_text_changed)
         # view.load_status_changed.connect(self.load_status_changed)
