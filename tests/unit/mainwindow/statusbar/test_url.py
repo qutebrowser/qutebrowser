@@ -73,14 +73,14 @@ def test_set_url(url_widget, url_text):
         assert url_widget.text() == ""
 
 
-@pytest.mark.parametrize('url_text, title, text', [
-    ('http://abc123.com/this/awesome/url.html', 'Awesome site', 'click me!'),
-    ('https://supersecret.gov/nsa/files.txt', 'Secret area', None),
-    (None, None, 'did I break?!')
+@pytest.mark.parametrize('url_text', [
+    'http://abc123.com/this/awesome/url.html',
+    'https://supersecret.gov/nsa/files.txt',
+    None,
 ])
-def test_set_hover_url(url_widget, url_text, title, text):
+def test_set_hover_url(url_widget, url_text):
     """Test text when hovering over a link."""
-    url_widget.set_hover_url(url_text, title, text)
+    url_widget.set_hover_url(url_text)
     if url_text is not None:
         assert url_widget.text() == url_text
         assert url_widget._urltype == url.UrlType.hover
@@ -99,7 +99,7 @@ def test_set_hover_url(url_widget, url_text, title, text):
 ])
 def test_set_hover_url_encoded(url_widget, url_text, expected):
     """Test text when hovering over a percent encoded link."""
-    url_widget.set_hover_url(url_text, 'title', 'text')
+    url_widget.set_hover_url(url_text)
     assert url_widget.text() == expected
     assert url_widget._urltype == url.UrlType.hover
 
@@ -154,7 +154,7 @@ def test_on_tab_changed(url_widget, tab_widget, load_status, url_text):
 def test_normal_url(url_widget, url_text, load_status, expected_status):
     url_widget.set_url(url_text)
     url_widget.on_load_status_changed(load_status.name)
-    url_widget.set_hover_url(url_text, "", "")
-    url_widget.set_hover_url("", "", "")
+    url_widget.set_hover_url(url_text)
+    url_widget.set_hover_url("")
     assert url_widget.text() == url_text
     assert url_widget._urltype == expected_status
