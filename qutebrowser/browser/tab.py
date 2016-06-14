@@ -150,6 +150,14 @@ class AbstractTab(QWidget):
     def openurl(self, url):
         raise NotImplementedError
 
+    def dump_async(self, callback=None, *, plain=False):
+        """Dump the current page to a file ascync.
+
+        The given callback will be called with the result when dumping is
+        complete.
+        """
+        raise NotImplementedError
+
     def __repr__(self):
         url = utils.elide(self.cur_url.toDisplayString(QUrl.EncodeUnicode),
                           100)

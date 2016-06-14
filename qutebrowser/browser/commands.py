@@ -1294,22 +1294,20 @@ class CommandDispatcher:
             dest: Where to write the file to.
             plain: Write plain text instead of HTML.
         """
-        web_view = self._current_widget()
-        mainframe = web_view.page().mainFrame()
-        if plain:
-            data = mainframe.toPlainText()
-        else:
-            data = mainframe.toHtml()
-
+        tab = self._current_widget()
         dest = os.path.expanduser(dest)
 
-        try:
-            with open(dest, 'w', encoding='utf-8') as f:
-                f.write(data)
-        except OSError as e:
-            raise cmdexc.CommandError('Could not write page: {}'.format(e))
-        else:
-            message.info(self._win_id, "Dumped page to {}.".format(dest))
+        def callback(data):
+            try:
+                with open(dest, 'w', encoding='utf-8') as f:
+                    f.write(data)
+            except OSError as e:
+                message.error(self._win_id, 'Could not write page: {}'.format(e))
+            else:
+                message.info(self._win_id, "Dumped page to {}.".format(dest))
+
+        tab.dump_async(callback, plain=plain)
+
 
     @cmdutils.register(instance='command-dispatcher', name='help',
                        scope='window')

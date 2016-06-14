@@ -83,6 +83,12 @@ class WebEngineViewTab(tab.AbstractTab):
     def scroll_pos(self):
         return (0, 0)
 
+    def dump_async(self, callback=None, *, plain=False):
+        if plain:
+            self._widget.page().toPlainText(callback)
+        else:
+            self._widget.page().toHtml(callback)
+
     def _connect_signals(self):
         view = self._widget
         page = view.page()

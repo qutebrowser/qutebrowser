@@ -89,6 +89,13 @@ class WebViewTab(tab.AbstractTab):
     def scroll_pos(self):
         return self._widget.scroll_pos
 
+    def dump_async(self, callback=None, *, plain=False):
+        frame = self._widget.page().mainFrame()
+        if plain:
+            callback(frame.toPlainText())
+        else:
+            callback(frame.toHtml())
+
     def _connect_signals(self):
         view = self._widget
         page = view.page()
