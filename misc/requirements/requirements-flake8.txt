@@ -23,7 +23,7 @@ pep8==1.7.0
 pep8-naming==0.3.3
 pydocstyle==1.0.0
 pyflakes==1.2.3
-pyparsing==2.1.4
+pyparsing==2.1.5
 six==1.10.0
 sortedcontainers==1.5.3
 venusian==1.0
