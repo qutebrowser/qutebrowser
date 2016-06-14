@@ -105,6 +105,9 @@ class WebViewTab(tab.AbstractTab):
         else:
             callback(frame.toHtml())
 
+    def icon(self):
+        return self._widget.icon()
+
     def shutdown(self):
         self._widget.shutdown()
 

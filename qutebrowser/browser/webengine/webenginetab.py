@@ -121,6 +121,9 @@ class WebEngineViewTab(tab.AbstractTab):
     def title(self):
         return self._widget.title()
 
+    def icon(self):
+        return self._widget.icon()
+
     def _connect_signals(self):
         view = self._widget
         page = view.page()

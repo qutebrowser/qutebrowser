@@ -186,6 +186,9 @@ class AbstractTab(QWidget):
     def zoom_factor(self):
         raise NotImplementedError
 
+    def icon(self):
+        raise NotImplementedError
+
     def __repr__(self):
         url = utils.elide(self.cur_url.toDisplayString(QUrl.EncodeUnicode),
                           100)
