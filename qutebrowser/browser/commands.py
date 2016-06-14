@@ -354,7 +354,7 @@ class CommandDispatcher:
             if config.get('tabs', 'tabs-are-windows'):
                 new_tabbed_browser.window().setWindowIcon(curtab.icon())
         newtab.keep_icon = True
-        newtab.setZoomFactor(curtab.zoomFactor())
+        newtab.set_zoom_factor(curtab.zoom_factor())
         newtab.history.deserialize(history = curtab.history.serialize())
 
     @cmdutils.register(instance='command-dispatcher', scope='window')
