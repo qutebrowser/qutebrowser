@@ -29,6 +29,12 @@ from qutebrowser.utils import qtutils
 
 class WebViewHistory(tab.AbstractHistory):
 
+    def __iter__(self):
+        return iter(self.history.items())
+
+    def current_idx(self):
+        return self.history.currentItemIndex()
+
     def back(self):
         self.history.back()
 
@@ -109,6 +115,15 @@ class WebViewTab(tab.AbstractTab):
 
     def stop(self):
         self._widget.stop()
+
+    def title(self):
+        return self._widget.title()
+
+    def set_zoom_factor(self, factor):
+        self._widget.setZoomFactor(factor)
+
+    def zoom_factor(self):
+        return self._widget.zoomFactor()
 
     def _connect_signals(self):
         view = self._widget

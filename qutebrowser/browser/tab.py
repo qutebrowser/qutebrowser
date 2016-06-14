@@ -63,6 +63,12 @@ class AbstractHistory:
         self.tab = tab
         self.widget = None
 
+    def __iter__(self):
+        raise NotImplementedError
+
+    def current_idx(self):
+        raise NotImplementedError
+
     def back(self):
         raise NotImplementedError
 
@@ -166,6 +172,15 @@ class AbstractTab(QWidget):
         raise NotImplementedError
 
     def shutdown(self):
+        raise NotImplementedError
+
+    def title(self):
+        raise NotImplementedError
+
+    def set_zoom_factor(self, factor):
+        raise NotImplementedError
+
+    def zoom_factor(self):
         raise NotImplementedError
 
     def __repr__(self):

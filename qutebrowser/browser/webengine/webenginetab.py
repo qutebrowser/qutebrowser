@@ -33,6 +33,12 @@ from qutebrowser.utils import usertypes, qtutils
 
 class WebEngineHistory(tab.AbstractHistory):
 
+    def __iter__(self):
+        return iter(self.history.items())
+
+    def current_idx(self):
+        return self.history.currentItemIndex()
+
     def back(self):
         self.history.back()
 
@@ -84,6 +90,12 @@ class WebEngineViewTab(tab.AbstractTab):
     def scroll_pos(self):
         return (0, 0)
 
+    def set_zoom_factor(self, factor):
+        self._widget.setZoomFactor(factor)
+
+    def zoom_factor(self):
+        return self._widget.zoomFactor()
+
     def dump_async(self, callback=None, *, plain=False):
         if plain:
             self._widget.page().toPlainText(callback)
@@ -103,6 +115,9 @@ class WebEngineViewTab(tab.AbstractTab):
 
     def stop(self):
         self._widget.stop()
+
+    def title(self):
+        return self._widget.title()
 
     def _connect_signals(self):
         view = self._widget

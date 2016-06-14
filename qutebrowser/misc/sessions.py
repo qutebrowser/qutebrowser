@@ -140,8 +140,7 @@ class SessionManager(QObject):
         data = {'history': []}
         if active:
             data['active'] = True
-        history = tab.page().history()
-        for idx, item in enumerate(history.items()):
+        for idx, item in enumerate(tab.history):
             qtutils.ensure_valid(item)
 
             item_data = {
@@ -152,8 +151,8 @@ class SessionManager(QObject):
                 item_data['title'] = item.title()
             else:
                 # https://github.com/The-Compiler/qutebrowser/issues/879
-                if history.currentItemIndex() == idx:
-                    item_data['title'] = tab.page().mainFrame().title()
+                if tab.history.current_idx() == idx:
+                    item_data['title'] = tab.title()
                 else:
                     item_data['title'] = item_data['url']
 
@@ -161,20 +160,20 @@ class SessionManager(QObject):
                 encoded = item.originalUrl().toEncoded()
                 item_data['original-url'] = bytes(encoded).decode('ascii')
 
-            if history.currentItemIndex() == idx:
+            if tab.history.current_idx() == idx:
                 item_data['active'] = True
 
             user_data = item.userData()
-            if history.currentItemIndex() == idx:
-                pos = tab.page().mainFrame().scrollPosition()
-                item_data['zoom'] = tab.zoomFactor()
-                item_data['scroll-pos'] = {'x': pos.x(), 'y': pos.y()}
+            if tab.history.current_idx() == idx:
+                pos = tab.scroll_pos
+                item_data['zoom'] = tab.zoom_factor()
+                item_data['scroll-pos'] = {'x': pos[0], 'y': pos[1]}
             elif user_data is not None:
                 if 'zoom' in user_data:
                     item_data['zoom'] = user_data['zoom']
                 if 'scroll-pos' in user_data:
                     pos = user_data['scroll-pos']
-                    item_data['scroll-pos'] = {'x': pos.x(), 'y': pos.y()}
+                    item_data['scroll-pos'] = {'x': pos[0], 'y': pos[1]}
 
             data['history'].append(item_data)
         return data
