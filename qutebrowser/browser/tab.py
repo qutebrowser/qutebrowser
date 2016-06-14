@@ -150,8 +150,10 @@ class AbstractTab(QWidget):
     def load_status(self):
         raise NotImplementedError
 
-    @property
-    def scroll_pos(self):
+    def scroll_pos_perc(self):
+        raise NotImplementedError
+
+    def scroll_pos_px(self):
         raise NotImplementedError
 
     def openurl(self, url):

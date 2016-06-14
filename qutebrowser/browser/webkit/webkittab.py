@@ -63,7 +63,7 @@ class WebViewHistory(tab.AbstractHistory):
             if 'zoom' in cur_data:
                 self.tab.zoom_perc(cur_data['zoom'] * 100)
             if ('scroll-pos' in cur_data and
-                    self.tab.scroll_position() == QPoint(0, 0)):
+                    self.tab.scroll_pos_px() == QPoint(0, 0)):
                 QTimer.singleShot(0, functools.partial(
                     self.tab.scroll, cur_data['scroll-pos']))
 
@@ -92,9 +92,11 @@ class WebViewTab(tab.AbstractTab):
     def load_status(self):
         return self._widget.load_status
 
-    @property
-    def scroll_pos(self):
+    def scroll_pos_perc(self):
         return self._widget.scroll_pos
+
+    def scroll_pos_px(self):
+        return self._widget.page().mainFrame().scrollPosition()
 
     def dump_async(self, callback=None, *, plain=False):
         frame = self._widget.page().mainFrame()

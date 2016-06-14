@@ -86,9 +86,11 @@ class WebEngineViewTab(tab.AbstractTab):
     def load_status(self):
         return usertypes.LoadStatus.success
 
-    @property
-    def scroll_pos(self):
-        return (0, 0)
+    def scroll_pos_perc(self):
+        return (0, 0)  # FIXME
+
+    def scroll_pos_px(self):
+        return self._widget.page().scrollPosition()
 
     def set_zoom_factor(self, factor):
         self._widget.setZoomFactor(factor)
