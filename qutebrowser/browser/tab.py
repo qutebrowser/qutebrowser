@@ -124,7 +124,8 @@ class AbstractTab(QWidget):
     load_status_changed = pyqtSignal(str)
     shutting_down = pyqtSignal()
 
-    def __init__(self, parent=None):
+    def __init__(self, win_id, parent=None):
+        self.win_id = win_id
         self.tab_id = next(tab_id_gen)
         super().__init__(parent)
         self.history = AbstractHistory(self)

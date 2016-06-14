@@ -38,8 +38,9 @@ def test_tab(qtbot, view):
         pytest.skip("View not available")
     w = view()
     qtbot.add_widget(w)
-    tab_w = tab.AbstractTab()
+    tab_w = tab.AbstractTab(win_id=0)
     tab_w.show()
+    assert tab_w.win_id == 0
     assert tab_w._widget is None
     tab_w._set_widget(w)
     assert tab_w._widget is w

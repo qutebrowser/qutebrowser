@@ -65,7 +65,7 @@ class WebEngineHistory(tab.AbstractHistory):
 class WebEngineViewTab(tab.AbstractTab):
 
     def __init__(self, win_id, parent=None):
-        super().__init__()
+        super().__init__(win_id)
         widget = QWebEngineView()
         self.history = WebEngineHistory(self)
         self._set_widget(widget)

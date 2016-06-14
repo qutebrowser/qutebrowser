@@ -71,7 +71,7 @@ class WebViewHistory(tab.AbstractHistory):
 class WebViewTab(tab.AbstractTab):
 
     def __init__(self, win_id, parent=None):
-        super().__init__()
+        super().__init__(win_id)
         widget = webview.WebView(win_id, self.tab_id)
         self.history = WebViewHistory(self)
         self._set_widget(widget)
