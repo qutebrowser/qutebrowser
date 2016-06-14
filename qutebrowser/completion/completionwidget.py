@@ -30,7 +30,7 @@ from PyQt5.QtCore import (pyqtSlot, pyqtSignal, Qt, QItemSelectionModel,
 from qutebrowser.config import config, style
 from qutebrowser.completion import completiondelegate
 from qutebrowser.completion.models import base
-from qutebrowser.utils import utils, usertypes
+from qutebrowser.utils import utils, usertypes, log
 from qutebrowser.commands import cmdexc, cmdutils
 
 
@@ -142,10 +142,44 @@ class CompletionView(QTreeView):
     def _resize_columns(self):
         """Resize the completion columns based on column_widths."""
         width = self.size().width()
-        pixel_widths = [(width * perc // 100) for perc in self._column_widths]
         if self.verticalScrollBar().isVisible():
-            pixel_widths[-1] -= self.style().pixelMetric(
-                QStyle.PM_ScrollBarExtent) + 5
+            width -= self.style().pixelMetric(QStyle.PM_ScrollBarExtent) + 5
+        log.completion.debug("available width = {}".format(width))
+
+        widths_max = [width * perc / 100 for perc in self._column_widths]
+        widths_hints = [self.sizeHintForColumn(i)
+                for i in range(len(self._column_widths))]
+        pixel_widths = [0] * len(self._column_widths)
+        log.completion.debug("widths_hints = {}".format(widths_hints))
+        log.completion.debug("widths_max = {}".format(widths_max))
+
+        # enumerate all columns, starting with narrow ones
+        remaining_indexes = set(range(len(self._column_widths)))
+        partial_width = width
+        diffs = [widths_hints[i] - widths_max[i]
+                for i in range(len(self._column_widths))]
+        for _, i in sorted(zip(diffs, range(len(self._column_widths)))):
+            w = widths_hints[i]
+            remaining_indexes.remove(i)
+            if w <= widths_max[i]:
+                # let other columns reclaim the freed space
+                for j in remaining_indexes:
+                    widths_max[j] += widths_max[j] / (partial_width - widths_max[i]) * (widths_max[i] - w)
+            else:
+                w = widths_max[i]
+            pixel_widths[i] = w
+            partial_width -= w
+
+        # distribute remaining free space among all columns according to the
+        # prescribed percentage
+        available_width = width - sum(pixel_widths)
+        if available_width > 5:
+            for i, perc in enumerate(self._column_widths):
+                pixel_widths[i] += available_width * perc / 100
+
+        log.completion.debug("pixel_widths = {}".format(pixel_widths))
+        log.completion.debug("occupied width = {}".format(sum(pixel_widths)))
+
         for i, w in enumerate(pixel_widths):
             self.setColumnWidth(i, w)
 
