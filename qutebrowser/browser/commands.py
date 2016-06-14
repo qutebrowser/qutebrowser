@@ -1021,8 +1021,8 @@ class CommandDispatcher:
             mainframe = None
         else:
             if webview.hasSelection():
-                env['QUTE_SELECTED_TEXT'] = webview.selectedText()
-                env['QUTE_SELECTED_HTML'] = webview.selectedHtml()
+                env['QUTE_SELECTED_TEXT'] = webview.selection()
+                env['QUTE_SELECTED_HTML'] = webview.selection(html=True)
             mainframe = webview.page().mainFrame()
 
         try:
@@ -1101,8 +1101,7 @@ class CommandDispatcher:
             tab: Load the selected link in a new tab.
         """
         widget = self._current_widget()
-        page = widget.page()
-        if not page.hasSelection():
+        if not widget.has_selection():
             return
         if QWebSettings.globalSettings().testAttribute(
                 QWebSettings.JavascriptEnabled):
@@ -1113,7 +1112,7 @@ class CommandDispatcher:
         else:
             try:
                 selected_element = xml.etree.ElementTree.fromstring(
-                    '<html>' + widget.selectedHtml() + '</html>').find('a')
+                    '<html>' + widget.selection(html=True) + '</html>').find('a')
             except xml.etree.ElementTree.ParseError:
                 raise cmdexc.CommandError('Could not parse selected element!')
 
@@ -1640,8 +1639,9 @@ class CommandDispatcher:
             sel: Use the primary selection instead of the clipboard.
             keep: If given, stay in visual mode after yanking.
         """
-        s = self._current_widget().selectedText()
-        if not self._current_widget().hasSelection() or len(s) == 0:
+        tab = self._current_widget()
+        s = tab.selection()
+        if not tab.has_selection() or len(s) == 0:
             message.info(self._win_id, "Nothing to yank")
             return
 

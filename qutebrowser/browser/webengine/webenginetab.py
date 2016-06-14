@@ -83,7 +83,7 @@ class WebEngineViewTab(tab.AbstractTab):
         widget = QWebEngineView()
         self.history = WebEngineHistory(self)
         self.scroll = WebEngineScroller()
-        self.caret = WebEngineCaret(win_id=win_id)
+        self.caret = WebEngineCaret(win_id=win_id, tab=self)
         self._set_widget(widget)
         self._connect_signals()
 
@@ -133,6 +133,14 @@ class WebEngineViewTab(tab.AbstractTab):
 
     def icon(self):
         return self._widget.icon()
+
+    def has_selection(self):
+        return self._widget.hasSelection()
+
+    def selection(self, html=False):
+        if html:
+            raise NotImplementedError
+        return self._widget.selectedText()
 
     def _connect_signals(self):
         view = self._widget

@@ -59,7 +59,8 @@ class AbstractCaret:
 
     """Attribute of AbstractTab for caret browsing."""
 
-    def __init__(self, win_id):
+    def __init__(self, win_id, tab):
+        self._tab = tab
         self._win_id = win_id
         self.widget = None
         self.selection_enabled = False
@@ -259,7 +260,7 @@ class AbstractTab(QWidget):
         super().__init__(parent)
         self.history = AbstractHistory(self)
         self.scroll = AbstractScroller(parent=self)
-        self.caret = AbstractCaret(win_id=win_id)
+        self.caret = AbstractCaret(win_id=win_id, tab=self)
         self._layout = None
         self._widget = None
         self.keep_icon = False  # FIXME:refactor get rid of this?
@@ -314,6 +315,12 @@ class AbstractTab(QWidget):
         raise NotImplementedError
 
     def icon(self):
+        raise NotImplementedError
+
+    def has_selection(self):
+        raise NotImplementedError
+
+    def selection(self, html=False):
         raise NotImplementedError
 
     def __repr__(self):
