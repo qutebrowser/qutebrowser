@@ -141,8 +141,8 @@ Contributors, sorted by the number of commits in descending order:
 // QUTE_AUTHORS_START
 * Florian Bruhin
 * Daniel Schadt
-* Antoni Boucher
 * Ryan Roden-Corrent
+* Antoni Boucher
 * Lamar Pavel
 * Bruno Oliveira
 * Alexander Cogneau
