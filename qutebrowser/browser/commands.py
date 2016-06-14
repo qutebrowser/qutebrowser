@@ -370,11 +370,11 @@ class CommandDispatcher:
 
     def _back_forward(self, tab, bg, window, count, forward):
         """Helper function for :back/:forward."""
+        history = self._current_widget().history
         # Catch common cases before e.g. cloning tab
-        history = self._current_widget().page().history()
-        if not forward and not history.canGoBack():
+        if not forward and not history.can_go_back():
             raise cmdexc.CommandError("At beginning of history.")
-        elif forward and not history.canGoForward():
+        elif forward and not history.can_go_forward():
             raise cmdexc.CommandError("At end of history.")
 
         if tab or bg or window:
@@ -382,16 +382,15 @@ class CommandDispatcher:
         else:
             widget = self._current_widget()
 
-        history = widget.page().history()
         for _ in range(count):
             if forward:
-                if not history.canGoForward():
+                if not history.can_go_forward():
                     raise cmdexc.CommandError("At end of history.")
-                widget.forward()
+                history.forward()
             else:
-                if not history.canGoBack():
+                if not history.can_go_back():
                     raise cmdexc.CommandError("At beginning of history.")
-                widget.back()
+                history.back()
 
     @cmdutils.register(instance='command-dispatcher', scope='window')
     @cmdutils.argument('count', count=True)
