@@ -25,6 +25,9 @@ from PyQt5.QtWidgets import QWidget
 def test_tab(qtbot):
     w = QWidget()
     qtbot.add_widget(w)
-    tab_w = tab.AbstractTab(w)
+    tab_w = tab.AbstractTab()
     tab_w.show()
+    assert tab_w._widget is None
+    tab_w._set_widget(w)
     assert tab_w._widget is w
+    assert w.parent() is tab_w
