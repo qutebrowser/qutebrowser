@@ -295,7 +295,7 @@ class AbstractTab(QWidget):
     def stop(self):
         raise NotImplementedError
 
-    def dump_async(self, callback=None, *, plain=False):
+    def dump_async(self, callback, *, plain=False):
         """Dump the current page to a file ascync.
 
         The given callback will be called with the result when dumping is

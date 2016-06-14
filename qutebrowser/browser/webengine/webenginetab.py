@@ -108,7 +108,7 @@ class WebEngineViewTab(tab.AbstractTab):
     def zoom_factor(self):
         return self._widget.zoomFactor()
 
-    def dump_async(self, callback=None, *, plain=False):
+    def dump_async(self, callback, *, plain=False):
         if plain:
             self._widget.page().toPlainText(callback)
         else:

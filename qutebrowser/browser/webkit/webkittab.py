@@ -371,7 +371,7 @@ class WebViewTab(tab.AbstractTab):
     def load_status(self):
         return self._widget.load_status
 
-    def dump_async(self, callback=None, *, plain=False):
+    def dump_async(self, callback, *, plain=False):
         frame = self._widget.page().mainFrame()
         if plain:
             callback(frame.toPlainText())
