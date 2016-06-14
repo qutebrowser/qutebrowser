@@ -356,6 +356,7 @@ class CommandDispatcher:
         newtab.keep_icon = True
         newtab.set_zoom_factor(curtab.zoom_factor())
         newtab.history.deserialize(curtab.history.serialize())
+        return newtab
 
     @cmdutils.register(instance='command-dispatcher', scope='window')
     def tab_detach(self):
@@ -381,13 +382,13 @@ class CommandDispatcher:
 
         for _ in range(count):
             if forward:
-                if not history.can_go_forward():
+                if not widget.history.can_go_forward():
                     raise cmdexc.CommandError("At end of history.")
-                history.forward()
+                widget.history.forward()
             else:
-                if not history.can_go_back():
+                if not widget.history.can_go_back():
                     raise cmdexc.CommandError("At beginning of history.")
-                history.back()
+                widget.history.back()
 
     @cmdutils.register(instance='command-dispatcher', scope='window')
     @cmdutils.argument('count', count=True)
