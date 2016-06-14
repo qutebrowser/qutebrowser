@@ -303,6 +303,14 @@ class AbstractTab(QWidget):
         """
         raise NotImplementedError
 
+    def run_js_async(self, code, callback=None):
+        """Run javascript async.
+
+        The given callback will be called with the result when running JS is
+        complete.
+        """
+        raise NotImplementedError
+
     def shutdown(self):
         raise NotImplementedError
 

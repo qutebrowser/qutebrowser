@@ -1107,7 +1107,7 @@ class CommandDispatcher:
                 QWebSettings.JavascriptEnabled):
             if tab:
                 page.open_target = usertypes.ClickTarget.tab
-            page.currentFrame().evaluateJavaScript(
+            widget.run_js_async(
                 'window.getSelection().anchorNode.parentNode.click()')
         else:
             try:
@@ -1698,26 +1698,29 @@ class CommandDispatcher:
             js_code: The string to evaluate.
             quiet: Don't show resulting JS object.
         """
-        frame = self._current_widget().page().mainFrame()
-        out = frame.evaluateJavaScript(js_code)
-
         if quiet:
-            return
-
-        if out is None:
-            # Getting the actual error (if any) seems to be difficult. The
-            # error does end up in BrowserPage.javaScriptConsoleMessage(), but
-            # distinguishing between :jseval errors and errors from the webpage
-            # is not trivial...
-            message.info(self._win_id, 'No output or error')
+            jseval_cb = None
         else:
-            # The output can be a string, number, dict, array, etc. But *don't*
-            # output too much data, as this will make qutebrowser hang
-            out = str(out)
-            if len(out) > 5000:
-                message.info(self._win_id, out[:5000] + ' [...trimmed...]')
-            else:
-                message.info(self._win_id, out)
+            def jseval_cb(out):
+                if out is None:
+                    # Getting the actual error (if any) seems to be difficult.
+                    # The error does end up in
+                    # BrowserPage.javaScriptConsoleMessage(), but distinguishing
+                    # between :jseval errors and errors from the webpage is not
+                    # trivial...
+                    message.info(self._win_id, 'No output or error')
+                else:
+                    # The output can be a string, number, dict, array, etc. But
+                    # *don't* output too much data, as this will make
+                    # qutebrowser hang
+                    out = str(out)
+                    if len(out) > 5000:
+                        message.info(self._win_id, out[:5000] + ' [...trimmed...]')
+                    else:
+                        message.info(self._win_id, out)
+
+        self._current_widget().run_js_async(js_code, callback=jseval_cb)
+
 
     @cmdutils.register(instance='command-dispatcher', scope='window')
     def fake_key(self, keystring, global_=False):

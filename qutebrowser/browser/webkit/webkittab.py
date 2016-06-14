@@ -378,6 +378,11 @@ class WebViewTab(tab.AbstractTab):
         else:
             callback(frame.toHtml())
 
+    def run_js_async(self, code, callback=None):
+        result = self._widget.page().mainFrame().evaluateJavaScript(code)
+        if callback is not None:
+            callback(result)
+
     def icon(self):
         return self._widget.icon()
 

@@ -114,6 +114,12 @@ class WebEngineViewTab(tab.AbstractTab):
         else:
             self._widget.page().toHtml(callback)
 
+    def run_js_async(self, code, callback=None):
+        if callback is None:
+            self._widget.page().runJavaScript(code)
+        else:
+            self._widget.page().runJavaScript(code, callback)
+
     def shutdown(self):
         # TODO
         pass
