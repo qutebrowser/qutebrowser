@@ -281,10 +281,7 @@ class CommandDispatcher:
         """
         tab = self._cntwidget(count)
         if tab is not None:
-            if force:
-                tab.page().triggerAction(QWebPage.ReloadAndBypassCache)
-            else:
-                tab.reload()
+            tab.reload(force=force)
 
     @cmdutils.register(instance='command-dispatcher', scope='window')
     @cmdutils.argument('count', count=True)

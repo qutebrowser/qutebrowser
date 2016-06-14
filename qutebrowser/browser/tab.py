@@ -151,6 +151,12 @@ class AbstractTab(QWidget):
     def openurl(self, url):
         raise NotImplementedError
 
+    def reload(self, *, force=False):
+        raise NotImplementedError
+
+    def stop(self):
+        raise NotImplementedError
+
     def dump_async(self, callback=None, *, plain=False):
         """Dump the current page to a file ascync.
 

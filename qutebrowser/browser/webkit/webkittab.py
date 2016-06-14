@@ -20,6 +20,7 @@
 """Wrapper over our (QtWebKit) WebView."""
 
 from PyQt5.QtCore import pyqtSlot
+from PyQt5.QtWebKitWidgets import QWebPage
 
 from qutebrowser.browser import tab
 from qutebrowser.browser.webkit import webview
@@ -98,6 +99,16 @@ class WebViewTab(tab.AbstractTab):
 
     def shutdown(self):
         self._widget.shutdown()
+
+    def reload(self, *, force=False):
+        if force:
+            action = QWebPage.ReloadAndBypassCache
+        else:
+            action = QWebPage.Reload
+        self._widget.triggerPageAction(action)
+
+    def stop(self):
+        self._widget.stop()
 
     def _connect_signals(self):
         view = self._widget

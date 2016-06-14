@@ -22,9 +22,10 @@
 from PyQt5.QtCore import pyqtSlot
 
 try:
-    from PyQt5.QtWebEngineWidgets import QWebEngineView
+    from PyQt5.QtWebEngineWidgets import QWebEngineView, QWebEnginePage
 except ImportError:
     QWebEngineView = None
+    QWebEnginePage = None
 
 from qutebrowser.browser import tab
 from qutebrowser.utils import usertypes, qtutils
@@ -92,6 +93,16 @@ class WebEngineViewTab(tab.AbstractTab):
     def shutdown(self):
         # TODO
         pass
+
+    def reload(self, *, force=False):
+        if force:
+            action = QWebEnginePage.ReloadAndBypassCache
+        else:
+            action = QWebEnginePage.Reload
+        self._widget.triggerPageAction(action)
+
+    def stop(self):
+        self._widget.stop()
 
     def _connect_signals(self):
         view = self._widget
