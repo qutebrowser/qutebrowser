@@ -25,7 +25,7 @@ from PyQt5.QtCore import pyqtSignal, QUrl, QObject
 from PyQt5.QtGui import QIcon
 from PyQt5.QtWidgets import QWidget, QLayout
 
-from qutebrowser.utils import utils
+from qutebrowser.utils import utils, objreg
 
 
 tab_id_gen = itertools.count(0)
@@ -53,6 +53,77 @@ class WrapperLayout(QLayout):
 
     def setGeometry(self, r):
         self._widget.setGeometry(r)
+
+
+class AbstractCaret:
+
+    """Attribute of AbstractTab for caret browsing."""
+
+    def __init__(self, win_id):
+        self._win_id = win_id
+        self.widget = None
+        self.selection_enabled = False
+        mode_manager = objreg.get('mode-manager', scope='window',
+                                  window=win_id)
+        mode_manager.entered.connect(self.on_mode_entered)
+        mode_manager.left.connect(self.on_mode_left)
+
+    def on_mode_entered(self):
+        raise NotImplementedError
+
+    def on_mode_left(self):
+        raise NotImplementedError
+
+    def move_to_next_line(self, count=1):
+        raise NotImplementedError
+
+    def move_to_prev_line(self, count=1):
+        raise NotImplementedError
+
+    def move_to_next_char(self, count=1):
+        raise NotImplementedError
+
+    def move_to_prev_char(self, count=1):
+        raise NotImplementedError
+
+    def move_to_end_of_word(self, count=1):
+        raise NotImplementedError
+
+    def move_to_next_word(self, count=1):
+        raise NotImplementedError
+
+    def move_to_prev_word(self, count=1):
+        raise NotImplementedError
+
+    def move_to_start_of_line(self):
+        raise NotImplementedError
+
+    def move_to_end_of_line(self):
+        raise NotImplementedError
+
+    def move_to_start_of_next_block(self, count=1):
+        raise NotImplementedError
+
+    def move_to_start_of_prev_block(self, count=1):
+        raise NotImplementedError
+
+    def move_to_end_of_next_block(self, count=1):
+        raise NotImplementedError
+
+    def move_to_end_of_prev_block(self, count=1):
+        raise NotImplementedError
+
+    def move_to_start_of_document(self):
+        raise NotImplementedError
+
+    def move_to_end_of_document(self):
+        raise NotImplementedError
+
+    def toggle_selection(self):
+        raise NotImplementedError
+
+    def drop_selection(self):
+        raise NotImplementedError
 
 
 class AbstractScroller(QObject):
@@ -188,6 +259,7 @@ class AbstractTab(QWidget):
         super().__init__(parent)
         self.history = AbstractHistory(self)
         self.scroll = AbstractScroller(parent=self)
+        self.caret = AbstractCaret(win_id=win_id)
         self._layout = None
         self._widget = None
         self.keep_icon = False  # FIXME:refactor get rid of this?
@@ -197,6 +269,7 @@ class AbstractTab(QWidget):
         self._widget = widget
         self.history.history = widget.history()
         self.scroll.widget = widget
+        self.caret.widget = widget
         widget.setParent(self)
 
     @property

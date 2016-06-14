@@ -1496,13 +1496,7 @@ class CommandDispatcher:
         Args:
             count: How many lines to move.
         """
-        webview = self._current_widget()
-        if not webview.selection_enabled:
-            act = QWebPage.MoveToNextLine
-        else:
-            act = QWebPage.SelectNextLine
-        for _ in range(count):
-            webview.triggerPageAction(act)
+        self._current_widget().caret.move_to_next_line(count)
 
     @cmdutils.register(instance='command-dispatcher', hide=True,
                        modes=[KeyMode.caret], scope='window')
@@ -1513,13 +1507,7 @@ class CommandDispatcher:
         Args:
             count: How many lines to move.
         """
-        webview = self._current_widget()
-        if not webview.selection_enabled:
-            act = QWebPage.MoveToPreviousLine
-        else:
-            act = QWebPage.SelectPreviousLine
-        for _ in range(count):
-            webview.triggerPageAction(act)
+        self._current_widget().caret.move_to_prev_line(count)
 
     @cmdutils.register(instance='command-dispatcher', hide=True,
                        modes=[KeyMode.caret], scope='window')
@@ -1530,13 +1518,7 @@ class CommandDispatcher:
         Args:
             count: How many lines to move.
         """
-        webview = self._current_widget()
-        if not webview.selection_enabled:
-            act = QWebPage.MoveToNextChar
-        else:
-            act = QWebPage.SelectNextChar
-        for _ in range(count):
-            webview.triggerPageAction(act)
+        self._current_widget().caret.move_to_next_char(count)
 
     @cmdutils.register(instance='command-dispatcher', hide=True,
                        modes=[KeyMode.caret], scope='window')
@@ -1547,13 +1529,7 @@ class CommandDispatcher:
         Args:
             count: How many chars to move.
         """
-        webview = self._current_widget()
-        if not webview.selection_enabled:
-            act = QWebPage.MoveToPreviousChar
-        else:
-            act = QWebPage.SelectPreviousChar
-        for _ in range(count):
-            webview.triggerPageAction(act)
+        self._current_widget().caret.move_to_prev_char(count)
 
     @cmdutils.register(instance='command-dispatcher', hide=True,
                        modes=[KeyMode.caret], scope='window')
@@ -1564,18 +1540,7 @@ class CommandDispatcher:
         Args:
             count: How many words to move.
         """
-        webview = self._current_widget()
-        if not webview.selection_enabled:
-            act = [QWebPage.MoveToNextWord]
-            if sys.platform == 'win32':  # pragma: no cover
-                act.append(QWebPage.MoveToPreviousChar)
-        else:
-            act = [QWebPage.SelectNextWord]
-            if sys.platform == 'win32':  # pragma: no cover
-                act.append(QWebPage.SelectPreviousChar)
-        for _ in range(count):
-            for a in act:
-                webview.triggerPageAction(a)
+        self._current_widget().caret.move_to_end_of_word(count)
 
     @cmdutils.register(instance='command-dispatcher', hide=True,
                        modes=[KeyMode.caret], scope='window')
@@ -1586,18 +1551,7 @@ class CommandDispatcher:
         Args:
             count: How many words to move.
         """
-        webview = self._current_widget()
-        if not webview.selection_enabled:
-            act = [QWebPage.MoveToNextWord]
-            if sys.platform != 'win32':  # pragma: no branch
-                act.append(QWebPage.MoveToNextChar)
-        else:
-            act = [QWebPage.SelectNextWord]
-            if sys.platform != 'win32':  # pragma: no branch
-                act.append(QWebPage.SelectNextChar)
-        for _ in range(count):
-            for a in act:
-                webview.triggerPageAction(a)
+        self._current_widget().caret.move_to_next_word(count)
 
     @cmdutils.register(instance='command-dispatcher', hide=True,
                        modes=[KeyMode.caret], scope='window')
@@ -1608,35 +1562,19 @@ class CommandDispatcher:
         Args:
             count: How many words to move.
         """
-        webview = self._current_widget()
-        if not webview.selection_enabled:
-            act = QWebPage.MoveToPreviousWord
-        else:
-            act = QWebPage.SelectPreviousWord
-        for _ in range(count):
-            webview.triggerPageAction(act)
+        self._current_widget().caret.move_to_prev_word(count)
 
     @cmdutils.register(instance='command-dispatcher', hide=True,
                        modes=[KeyMode.caret], scope='window')
     def move_to_start_of_line(self):
         """Move the cursor or selection to the start of the line."""
-        webview = self._current_widget()
-        if not webview.selection_enabled:
-            act = QWebPage.MoveToStartOfLine
-        else:
-            act = QWebPage.SelectStartOfLine
-        webview.triggerPageAction(act)
+        self._current_widget().caret.move_to_start_of_line()
 
     @cmdutils.register(instance='command-dispatcher', hide=True,
                        modes=[KeyMode.caret], scope='window')
     def move_to_end_of_line(self):
         """Move the cursor or selection to the end of line."""
-        webview = self._current_widget()
-        if not webview.selection_enabled:
-            act = QWebPage.MoveToEndOfLine
-        else:
-            act = QWebPage.SelectEndOfLine
-        webview.triggerPageAction(act)
+        self._current_widget().caret.move_to_end_of_line()
 
     @cmdutils.register(instance='command-dispatcher', hide=True,
                        modes=[KeyMode.caret], scope='window')
@@ -1647,16 +1585,7 @@ class CommandDispatcher:
         Args:
             count: How many blocks to move.
         """
-        webview = self._current_widget()
-        if not webview.selection_enabled:
-            act = [QWebPage.MoveToNextLine,
-                   QWebPage.MoveToStartOfBlock]
-        else:
-            act = [QWebPage.SelectNextLine,
-                   QWebPage.SelectStartOfBlock]
-        for _ in range(count):
-            for a in act:
-                webview.triggerPageAction(a)
+        self._current_widget().caret.move_to_start_of_next_block(count)
 
     @cmdutils.register(instance='command-dispatcher', hide=True,
                        modes=[KeyMode.caret], scope='window')
@@ -1667,16 +1596,7 @@ class CommandDispatcher:
         Args:
             count: How many blocks to move.
         """
-        webview = self._current_widget()
-        if not webview.selection_enabled:
-            act = [QWebPage.MoveToPreviousLine,
-                   QWebPage.MoveToStartOfBlock]
-        else:
-            act = [QWebPage.SelectPreviousLine,
-                   QWebPage.SelectStartOfBlock]
-        for _ in range(count):
-            for a in act:
-                webview.triggerPageAction(a)
+        self._current_widget().caret.move_to_start_of_prev_block(count)
 
     @cmdutils.register(instance='command-dispatcher', hide=True,
                        modes=[KeyMode.caret], scope='window')
@@ -1687,16 +1607,7 @@ class CommandDispatcher:
         Args:
             count: How many blocks to move.
         """
-        webview = self._current_widget()
-        if not webview.selection_enabled:
-            act = [QWebPage.MoveToNextLine,
-                   QWebPage.MoveToEndOfBlock]
-        else:
-            act = [QWebPage.SelectNextLine,
-                   QWebPage.SelectEndOfBlock]
-        for _ in range(count):
-            for a in act:
-                webview.triggerPageAction(a)
+        self._current_widget().caret.move_to_end_of_next_block(count)
 
     @cmdutils.register(instance='command-dispatcher', hide=True,
                        modes=[KeyMode.caret], scope='window')
@@ -1707,36 +1618,19 @@ class CommandDispatcher:
         Args:
             count: How many blocks to move.
         """
-        webview = self._current_widget()
-        if not webview.selection_enabled:
-            act = [QWebPage.MoveToPreviousLine, QWebPage.MoveToEndOfBlock]
-        else:
-            act = [QWebPage.SelectPreviousLine, QWebPage.SelectEndOfBlock]
-        for _ in range(count):
-            for a in act:
-                webview.triggerPageAction(a)
+        self._current_widget().caret.move_to_end_of_prev_block(count)
 
     @cmdutils.register(instance='command-dispatcher', hide=True,
                        modes=[KeyMode.caret], scope='window')
     def move_to_start_of_document(self):
         """Move the cursor or selection to the start of the document."""
-        webview = self._current_widget()
-        if not webview.selection_enabled:
-            act = QWebPage.MoveToStartOfDocument
-        else:
-            act = QWebPage.SelectStartOfDocument
-        webview.triggerPageAction(act)
+        self._current_widget().caret.move_to_start_of_document()
 
     @cmdutils.register(instance='command-dispatcher', hide=True,
                        modes=[KeyMode.caret], scope='window')
     def move_to_end_of_document(self):
         """Move the cursor or selection to the end of the document."""
-        webview = self._current_widget()
-        if not webview.selection_enabled:
-            act = QWebPage.MoveToEndOfDocument
-        else:
-            act = QWebPage.SelectEndOfDocument
-        webview.triggerPageAction(act)
+        self._current_widget().caret.move_to_end_of_document()
 
     @cmdutils.register(instance='command-dispatcher', scope='window')
     def yank_selected(self, sel=False, keep=False):
@@ -1766,17 +1660,13 @@ class CommandDispatcher:
                        modes=[KeyMode.caret], scope='window')
     def toggle_selection(self):
         """Toggle caret selection mode."""
-        widget = self._current_widget()
-        widget.selection_enabled = not widget.selection_enabled
-        mainwindow = objreg.get('main-window', scope='window',
-                                window=self._win_id)
-        mainwindow.status.set_mode_active(usertypes.KeyMode.caret, True)
+        self._current_widget().caret.toggle_selection()
 
     @cmdutils.register(instance='command-dispatcher', hide=True,
                        modes=[KeyMode.caret], scope='window')
     def drop_selection(self):
         """Drop selection and keep selection mode enabled."""
-        self._current_widget().triggerPageAction(QWebPage.MoveToNextChar)
+        self._current_widget().caret.drop_selection()
 
     @cmdutils.register(instance='command-dispatcher', scope='window',
                        debug=True)

@@ -31,6 +31,13 @@ from qutebrowser.browser import tab
 from qutebrowser.utils import usertypes, qtutils
 
 
+class WebEngineCaret(tab.AbstractCaret):
+
+    ## TODO
+
+    pass
+
+
 class WebEngineScroller(tab.AbstractScroller):
 
     ## TODO
@@ -75,7 +82,8 @@ class WebEngineViewTab(tab.AbstractTab):
         super().__init__(win_id)
         widget = QWebEngineView()
         self.history = WebEngineHistory(self)
-        self.scroll = WebEngineScroller(parent=self)
+        self.scroll = WebEngineScroller()
+        self.caret = WebEngineCaret(win_id=win_id)
         self._set_widget(widget)
         self._connect_signals()
 

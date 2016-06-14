@@ -100,7 +100,6 @@ class WebView(QWebView):
         self.keep_icon = False
         self.search_text = None
         self.search_flags = 0
-        self.selection_enabled = False
         self.init_neighborlist()
         self._set_bg_color()
         cfg = objreg.get('config')
@@ -478,25 +477,6 @@ class WebView(QWebView):
             log.webview.debug("Ignoring focus because mode {} was "
                               "entered.".format(mode))
             self.setFocusPolicy(Qt.NoFocus)
-        elif mode == usertypes.KeyMode.caret:
-            settings = self.settings()
-            settings.setAttribute(QWebSettings.CaretBrowsingEnabled, True)
-            self.selection_enabled = bool(self.page().selectedText())
-
-            if self.isVisible():
-                # Sometimes the caret isn't immediately visible, but unfocusing
-                # and refocusing it fixes that.
-                self.clearFocus()
-                self.setFocus(Qt.OtherFocusReason)
-
-                # Move the caret to the first element in the viewport if there
-                # isn't any text which is already selected.
-                #
-                # Note: We can't use hasSelection() here, as that's always
-                # true in caret mode.
-                if not self.page().selectedText():
-                    self.page().currentFrame().evaluateJavaScript(
-                        utils.read_file('javascript/position_caret.js'))
 
     @pyqtSlot(usertypes.KeyMode)
     def on_mode_left(self, mode):
@@ -505,15 +485,6 @@ class WebView(QWebView):
                     usertypes.KeyMode.yesno):
             log.webview.debug("Restoring focus policy because mode {} was "
                               "left.".format(mode))
-        elif mode == usertypes.KeyMode.caret:
-            settings = self.settings()
-            if settings.testAttribute(QWebSettings.CaretBrowsingEnabled):
-                if self.selection_enabled and self.hasSelection():
-                    # Remove selection if it exists
-                    self.triggerPageAction(QWebPage.MoveToNextChar)
-                settings.setAttribute(QWebSettings.CaretBrowsingEnabled, False)
-                self.selection_enabled = False
-
         self.setFocusPolicy(Qt.WheelFocus)
 
     def search(self, text, flags):

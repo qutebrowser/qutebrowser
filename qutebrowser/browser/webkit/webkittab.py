@@ -19,13 +19,199 @@
 
 """Wrapper over our (QtWebKit) WebView."""
 
+import sys
+
 from PyQt5.QtCore import pyqtSlot, Qt, QEvent
 from PyQt5.QtGui import QKeyEvent
 from PyQt5.QtWebKitWidgets import QWebPage
+from PyQt5.QtWebKit import QWebSettings
 
 from qutebrowser.browser import tab
 from qutebrowser.browser.webkit import webview
-from qutebrowser.utils import qtutils
+from qutebrowser.utils import qtutils, objreg, usertypes, utils
+
+
+class WebViewCaret(tab.AbstractCaret):
+
+    @pyqtSlot(usertypes.KeyMode)
+    def on_mode_entered(self, mode):
+        if mode != usertypes.KeyMode.caret:
+            return
+
+        settings = self.widget.settings()
+        settings.setAttribute(QWebSettings.CaretBrowsingEnabled, True)
+        self.selection_enabled = bool(self.widget.page().selectedText())
+
+        if self.widget.isVisible():
+            # Sometimes the caret isn't immediately visible, but unfocusing
+            # and refocusing it fixes that.
+            self.widget.clearFocus()
+            self.widget.setFocus(Qt.OtherFocusReason)
+
+            # Move the caret to the first element in the viewport if there
+            # isn't any text which is already selected.
+            #
+            # Note: We can't use hasSelection() here, as that's always
+            # true in caret mode.
+            if not self.widget.page().selectedText():
+                # FIXME use self.tab here
+                self.widget.page().currentFrame().evaluateJavaScript(
+                    utils.read_file('javascript/position_caret.js'))
+
+    @pyqtSlot(usertypes.KeyMode)
+    def on_mode_left(self, mode):
+        settings = self.widget.settings()
+        if settings.testAttribute(QWebSettings.CaretBrowsingEnabled):
+            if self.selection_enabled and self.widget.hasSelection():
+                # Remove selection if it exists
+                self.widget.triggerPageAction(QWebPage.MoveToNextChar)
+            settings.setAttribute(QWebSettings.CaretBrowsingEnabled, False)
+            self.selection_enabled = False
+
+    def move_to_next_line(self, count=1):
+        if not self.selection_enabled:
+            act = QWebPage.MoveToNextLine
+        else:
+            act = QWebPage.SelectNextLine
+        for _ in range(count):
+            self.widget.triggerPageAction(act)
+
+    def move_to_prev_line(self, count=1):
+        if not self.selection_enabled:
+            act = QWebPage.MoveToPreviousLine
+        else:
+            act = QWebPage.SelectPreviousLine
+        for _ in range(count):
+            self.widget.triggerPageAction(act)
+
+    def move_to_next_char(self, count=1):
+        if not self.selection_enabled:
+            act = QWebPage.MoveToNextChar
+        else:
+            act = QWebPage.SelectNextChar
+        for _ in range(count):
+            self.widget.triggerPageAction(act)
+
+    def move_to_prev_char(self, count=1):
+        if not self.selection_enabled:
+            act = QWebPage.MoveToPreviousChar
+        else:
+            act = QWebPage.SelectPreviousChar
+        for _ in range(count):
+            self.widget.triggerPageAction(act)
+
+    def move_to_end_of_word(self, count=1):
+        if not self.selection_enabled:
+            act = [QWebPage.MoveToNextWord]
+            if sys.platform == 'win32':  # pragma: no cover
+                act.append(QWebPage.MoveToPreviousChar)
+        else:
+            act = [QWebPage.SelectNextWord]
+            if sys.platform == 'win32':  # pragma: no cover
+                act.append(QWebPage.SelectPreviousChar)
+        for _ in range(count):
+            for a in act:
+                self.widget.triggerPageAction(a)
+
+    def move_to_next_word(self, count=1):
+        if not self.selection_enabled:
+            act = [QWebPage.MoveToNextWord]
+            if sys.platform != 'win32':  # pragma: no branch
+                act.append(QWebPage.MoveToNextChar)
+        else:
+            act = [QWebPage.SelectNextWord]
+            if sys.platform != 'win32':  # pragma: no branch
+                act.append(QWebPage.SelectNextChar)
+        for _ in range(count):
+            for a in act:
+                self.widget.triggerPageAction(a)
+
+    def move_to_prev_word(self, count=1):
+        if not self.selection_enabled:
+            act = QWebPage.MoveToPreviousWord
+        else:
+            act = QWebPage.SelectPreviousWord
+        for _ in range(count):
+            self.widget.triggerPageAction(act)
+
+    def move_to_start_of_line(self):
+        if not self.selection_enabled:
+            act = QWebPage.MoveToStartOfLine
+        else:
+            act = QWebPage.SelectStartOfLine
+        self.widget.triggerPageAction(act)
+
+    def move_to_end_of_line(self):
+        if not self.selection_enabled:
+            act = QWebPage.MoveToEndOfLine
+        else:
+            act = QWebPage.SelectEndOfLine
+        self.widget.triggerPageAction(act)
+
+    def move_to_start_of_next_block(self, count=1):
+        if not self.selection_enabled:
+            act = [QWebPage.MoveToNextLine,
+                   QWebPage.MoveToStartOfBlock]
+        else:
+            act = [QWebPage.SelectNextLine,
+                   QWebPage.SelectStartOfBlock]
+        for _ in range(count):
+            for a in act:
+                self.widget.triggerPageAction(a)
+
+    def move_to_start_of_prev_block(self, count=1):
+        if not self.selection_enabled:
+            act = [QWebPage.MoveToPreviousLine,
+                   QWebPage.MoveToStartOfBlock]
+        else:
+            act = [QWebPage.SelectPreviousLine,
+                   QWebPage.SelectStartOfBlock]
+        for _ in range(count):
+            for a in act:
+                self.widget.triggerPageAction(a)
+
+    def move_to_end_of_next_block(self, count=1):
+        if not self.selection_enabled:
+            act = [QWebPage.MoveToNextLine,
+                   QWebPage.MoveToEndOfBlock]
+        else:
+            act = [QWebPage.SelectNextLine,
+                   QWebPage.SelectEndOfBlock]
+        for _ in range(count):
+            for a in act:
+                self.widget.triggerPageAction(a)
+
+    def move_to_end_of_prev_block(self, count=1):
+        if not self.selection_enabled:
+            act = [QWebPage.MoveToPreviousLine, QWebPage.MoveToEndOfBlock]
+        else:
+            act = [QWebPage.SelectPreviousLine, QWebPage.SelectEndOfBlock]
+        for _ in range(count):
+            for a in act:
+                self.widget.triggerPageAction(a)
+
+    def move_to_start_of_document(self):
+        if not self.selection_enabled:
+            act = QWebPage.MoveToStartOfDocument
+        else:
+            act = QWebPage.SelectStartOfDocument
+        self.widget.triggerPageAction(act)
+
+    def move_to_end_of_document(self):
+        if not self.selection_enabled:
+            act = QWebPage.MoveToEndOfDocument
+        else:
+            act = QWebPage.SelectEndOfDocument
+        self.widget.triggerPageAction(act)
+
+    def toggle_selection(self):
+        self.selection_enabled = not self.selection_enabled
+        mainwindow = objreg.get('main-window', scope='window',
+                                window=self._win_id)
+        mainwindow.status.set_mode_active(usertypes.KeyMode.caret, True)
+
+    def drop_selection(self):
+        self.widget.triggerPageAction(QWebPage.MoveToNextChar)
 
 
 class WebViewScroller(tab.AbstractScroller):
@@ -167,6 +353,7 @@ class WebViewTab(tab.AbstractTab):
         widget = webview.WebView(win_id, self.tab_id)
         self.history = WebViewHistory(self)
         self.scroll = WebViewScroller(parent=self)
+        self.caret = WebViewCaret(win_id=win_id)
         self._set_widget(widget)
         self._connect_signals()
 
