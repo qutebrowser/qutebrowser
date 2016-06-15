@@ -233,7 +233,7 @@ class WebViewScroller(tab.AbstractScroller):
     def to_point(self, point):
         self.widget.page().mainFrame().setScrollPosition(point)
 
-    def delta(x=0, y=0):
+    def delta(self, x=0, y=0):
         qtutils.check_overflow(x, 'int')
         qtutils.check_overflow(y, 'int')
         self.widget.page().mainFrame().scroll(x, y)
@@ -244,13 +244,13 @@ class WebViewScroller(tab.AbstractScroller):
             if y == 0:
                 pass
             elif y < 0:
-                self.page_up(count=y)
+                self.page_up(count=-y)
             elif y > 0:
                 self.page_down(count=y)
             y = 0
         if x == 0 and y == 0:
             return
-        size = frame.geometry()
+        size = self.widget.page().mainFrame().geometry()
         self.delta(x * size.width(), y * size.height())
 
     def to_perc(self, x=None, y=None):
@@ -260,12 +260,13 @@ class WebViewScroller(tab.AbstractScroller):
             self.bottom()
         else:
             for val, orientation in [(x, Qt.Horizontal), (y, Qt.Vertical)]:
-                perc = qtutils.check_overflow(val, 'int', fatal=False)
-                frame = self.widget.page().mainFrame()
-                m = frame.scrollBarMaximum(orientation)
-                if m == 0:
-                    continue
-                frame.setScrollBarValue(orientation, int(m * val / 100))
+                if val is not None:
+                    perc = qtutils.check_overflow(val, 'int', fatal=False)
+                    frame = self.widget.page().mainFrame()
+                    m = frame.scrollBarMaximum(orientation)
+                    if m == 0:
+                        continue
+                    frame.setScrollBarValue(orientation, int(m * val / 100))
 
     def _key_press(self, key, count=1, getter_name=None, direction=None):
         frame = self.widget.page().mainFrame()
@@ -273,9 +274,13 @@ class WebViewScroller(tab.AbstractScroller):
         release_evt = QKeyEvent(QEvent.KeyRelease, key, Qt.NoModifier, 0, 0, 0)
         getter = None if getter_name is None else getattr(frame, getter_name)
 
+        # FIXME needed?
+        # self.widget.setFocus()
+
         for _ in range(count):
             # Abort scrolling if the minimum/maximum was reached.
-            if frame.scrollBarValue(direction) == getter(direction):
+            if (getter is not None and
+                    frame.scrollBarValue(direction) == getter(direction)):
                 return
             self.widget.keyPressEvent(press_evt)
             self.widget.keyReleaseEvent(release_evt)
