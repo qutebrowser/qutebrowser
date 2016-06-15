@@ -23,7 +23,7 @@ import sys
 import itertools
 import functools
 
-from PyQt5.QtCore import pyqtSignal, pyqtSlot, Qt, QTimer, QUrl
+from PyQt5.QtCore import pyqtSignal, pyqtSlot, Qt, QTimer, QUrl, QPoint
 from PyQt5.QtGui import QPalette
 from PyQt5.QtWidgets import QApplication, QStyleFactory
 from PyQt5.QtWebKit import QWebSettings
@@ -43,6 +43,7 @@ class WebView(QWebView):
     Our own subclass of a QWebView with some added bells and whistles.
 
     Attributes:
+        tab: The WebKitTab object for this WebView
         hintmanager: The HintManager instance for this view.
         progress: loading progress of this page.
         scroll_pos: The current scroll position as (x%, y%) tuple.
@@ -57,11 +58,9 @@ class WebView(QWebView):
         search_flags: The search flags of the last search.
         _tab_id: The tab ID of the view.
         _has_ssl_errors: Whether SSL errors occurred during loading.
-        _zoom: A NeighborList with the zoom levels.
         _old_scroll_pos: The old scroll position.
         _check_insertmode: If True, in mouseReleaseEvent we should check if we
                            need to enter/leave insert mode.
-        _default_zoom_changed: Whether the zoom was changed from the default.
         _ignore_wheel_event: Ignore the next wheel event.
                              See https://github.com/The-Compiler/qutebrowser/issues/395
 
@@ -72,6 +71,9 @@ class WebView(QWebView):
         linkHovered: QWebPages linkHovered signal exposed.
         load_status_changed: The loading status changed
         url_text_changed: Current URL string changed.
+        mouse_wheel_zoom: Emitted when the page should be zoomed because the
+                          mousewheel was used with ctrl.
+                          arg 1: The angle delta of the wheel event (QPoint)
         shutting_down: Emitted when the view is shutting down.
     """
 
@@ -80,13 +82,15 @@ class WebView(QWebView):
     load_status_changed = pyqtSignal(str)
     url_text_changed = pyqtSignal(str)
     shutting_down = pyqtSignal()
+    mouse_wheel_zoom = pyqtSignal(QPoint)
 
-    def __init__(self, win_id, tab_id, parent=None):
+    def __init__(self, win_id, tab_id, tab, parent=None):
         super().__init__(parent)
         if sys.platform == 'darwin' and qtutils.version_check('5.4'):
             # WORKAROUND for https://bugreports.qt.io/browse/QTBUG-42948
             # See https://github.com/The-Compiler/qutebrowser/issues/462
             self.setStyle(QStyleFactory.create('Fusion'))
+        self.tab = tab
         self.win_id = win_id
         self.load_status = usertypes.LoadStatus.none
         self._check_insertmode = False
@@ -94,21 +98,12 @@ class WebView(QWebView):
         self.scroll_pos = (-1, -1)
         self.statusbar_message = ''
         self._old_scroll_pos = (-1, -1)
-        self._zoom = None
         self._has_ssl_errors = False
         self._ignore_wheel_event = False
         self.keep_icon = False
         self.search_text = None
         self.search_flags = 0
-        self.init_neighborlist()
         self._set_bg_color()
-        cfg = objreg.get('config')
-        cfg.changed.connect(self.init_neighborlist)
-        # For some reason, this signal doesn't get disconnected automatically
-        # when the WebView is destroyed on older PyQt versions.
-        # See https://github.com/The-Compiler/qutebrowser/issues/390
-        self.destroyed.connect(functools.partial(
-            cfg.changed.disconnect, self.init_neighborlist))
         self.cur_url = QUrl()
         self.progress = 0
         self.registry = objreg.ObjectRegistry()
@@ -129,8 +124,6 @@ class WebView(QWebView):
         mode_manager.entered.connect(self.on_mode_entered)
         mode_manager.left.connect(self.on_mode_left)
         self.viewing_source = False
-        self.setZoomFactor(float(config.get('ui', 'default-zoom')) / 100)
-        self._default_zoom_changed = False
         if config.get('input', 'rocker-gestures'):
             self.setContextMenuPolicy(Qt.PreventContextMenu)
         self.urlChanged.connect(self.on_url_changed)
@@ -201,27 +194,14 @@ class WebView(QWebView):
 
     @pyqtSlot(str, str)
     def on_config_changed(self, section, option):
-        """Reinitialize the zoom neighborlist if related config changed."""
-        if section == 'ui' and option in ('zoom-levels', 'default-zoom'):
-            if not self._default_zoom_changed:
-                self.setZoomFactor(float(config.get('ui', 'default-zoom')) /
-                                   100)
-            self._default_zoom_changed = False
-            self.init_neighborlist()
-        elif section == 'input' and option == 'rocker-gestures':
+        """Update rocker gestures/background color."""
+        if section == 'input' and option == 'rocker-gestures':
             if config.get('input', 'rocker-gestures'):
                 self.setContextMenuPolicy(Qt.PreventContextMenu)
             else:
                 self.setContextMenuPolicy(Qt.DefaultContextMenu)
         elif section == 'colors' and option == 'webpage.bg':
             self._set_bg_color()
-
-    def init_neighborlist(self):
-        """Initialize the _zoom neighborlist."""
-        levels = config.get('ui', 'zoom-levels')
-        self._zoom = usertypes.NeighborList(
-            levels, mode=usertypes.NeighborList.Modes.edge)
-        self._zoom.fuzzyval = config.get('ui', 'default-zoom')
 
     def _mousepress_backforward(self, e):
         """Handle back/forward mouse button presses.
@@ -371,33 +351,6 @@ class WebView(QWebView):
         if frame.url().scheme() == 'qute':
             bridge = objreg.get('js-bridge')
             frame.addToJavaScriptWindowObject('qute', bridge)
-
-    def zoom_perc(self, perc, fuzzyval=True):
-        """Zoom to a given zoom percentage.
-
-        Args:
-            perc: The zoom percentage as int.
-            fuzzyval: Whether to set the NeighborLists fuzzyval.
-        """
-        if fuzzyval:
-            self._zoom.fuzzyval = int(perc)
-        if perc < 0:
-            raise ValueError("Can't zoom {}%!".format(perc))
-        self.setZoomFactor(float(perc) / 100)
-        self._default_zoom_changed = True
-
-    def zoom(self, offset):
-        """Increase/Decrease the zoom level.
-
-        Args:
-            offset: The offset in the zoom level list.
-
-        Return:
-            The new zoom percentage.
-        """
-        level = self._zoom.getitem(offset)
-        self.zoom_perc(level, fuzzyval=False)
-        return level
 
     @pyqtSlot('QUrl')
     def on_url_changed(self, url):
@@ -635,14 +588,6 @@ class WebView(QWebView):
             return
         if e.modifiers() & Qt.ControlModifier:
             e.accept()
-            divider = config.get('input', 'mouse-zoom-divider')
-            factor = self.zoomFactor() + e.angleDelta().y() / divider
-            if factor < 0:
-                return
-            perc = int(100 * factor)
-            message.info(self.win_id, "Zoom level: {}%".format(perc))
-            self._zoom.fuzzyval = perc
-            self.setZoomFactor(factor)
-            self._default_zoom_changed = True
+            self.mouse_wheel_zoom.emit(e.angleDelta())
         else:
             super().wheelEvent(e)

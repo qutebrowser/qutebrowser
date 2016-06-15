@@ -419,7 +419,7 @@ class BrowserPage(QWebPage):
         if data is None:
             return
         if 'zoom' in data:
-            frame.page().view().zoom_perc(data['zoom'] * 100)
+            frame.page().view().tab.zoom.set_factor(data['zoom'])
         if 'scroll-pos' in data and frame.scrollPosition() == QPoint(0, 0):
             frame.setScrollPosition(data['scroll-pos'])
 

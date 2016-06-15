@@ -213,6 +213,15 @@ class WebViewCaret(tab.AbstractCaret):
         self.widget.triggerPageAction(QWebPage.MoveToNextChar)
 
 
+class WebViewZoom(tab.AbstractZoom):
+
+    def _set_factor_internal(self, factor):
+        self.widget.setZoomFactor(factor)
+
+    def factor(self):
+        return self.widget.zoomFactor()
+
+
 class WebViewScroller(tab.AbstractScroller):
 
     def pos_px(self):
@@ -338,7 +347,7 @@ class WebViewHistory(tab.AbstractHistory):
         cur_data = self.history.currentItem().userData()
         if cur_data is not None:
             if 'zoom' in cur_data:
-                self.tab.zoom_perc(cur_data['zoom'] * 100)
+                self.tab.zoom.set_factor(cur_data['zoom'])
             if ('scroll-pos' in cur_data and
                     self.tab.scroll.pos_px() == QPoint(0, 0)):
                 QTimer.singleShot(0, functools.partial(
@@ -349,12 +358,14 @@ class WebViewTab(tab.AbstractTab):
 
     def __init__(self, win_id, parent=None):
         super().__init__(win_id)
-        widget = webview.WebView(win_id, self.tab_id)
+        widget = webview.WebView(win_id, self.tab_id, tab=self)
         self.history = WebViewHistory(self)
         self.scroll = WebViewScroller(parent=self)
         self.caret = WebViewCaret(win_id=win_id, tab=self, parent=self)
+        self.zoom = WebViewZoom(win_id=win_id, parent=self)
         self._set_widget(widget)
         self._connect_signals()
+        self.zoom._set_default_zoom()
 
     def openurl(self, url):
         self._widget.openurl(url)
@@ -401,12 +412,6 @@ class WebViewTab(tab.AbstractTab):
 
     def title(self):
         return self._widget.title()
-
-    def set_zoom_factor(self, factor):
-        self._widget.setZoomFactor(factor)
-
-    def zoom_factor(self):
-        return self._widget.zoomFactor()
 
     def has_selection(self):
         return self._widget.hasSelection()

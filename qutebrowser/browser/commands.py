@@ -354,7 +354,7 @@ class CommandDispatcher:
             if config.get('tabs', 'tabs-are-windows'):
                 new_tabbed_browser.window().setWindowIcon(curtab.icon())
         newtab.keep_icon = True
-        newtab.set_zoom_factor(curtab.zoom_factor())
+        newtab.zoom.set_factor(curtab.zoom.factor())
         newtab.history.deserialize(curtab.history.serialize())
         return newtab
 
@@ -663,7 +663,7 @@ class CommandDispatcher:
         """
         tab = self._current_widget()
         try:
-            perc = tab.zoom(count)
+            perc = tab.zoom.offset(count)
         except ValueError as e:
             raise cmdexc.CommandError(e)
         message.info(self._win_id, "Zoom level: {}%".format(perc))
@@ -678,7 +678,7 @@ class CommandDispatcher:
         """
         tab = self._current_widget()
         try:
-            perc = tab.zoom(-count)
+            perc = tab.zoom.offset(-count)
         except ValueError as e:
             raise cmdexc.CommandError(e)
         message.info(self._win_id, "Zoom level: {}%".format(perc))
@@ -703,9 +703,9 @@ class CommandDispatcher:
         tab = self._current_widget()
 
         try:
-            tab.zoom_perc(level)
-        except ValueError as e:
-            raise cmdexc.CommandError(e)
+            tab.zoom.set_factor(float(level) / 100)
+        except ValueError:
+            raise cmdexc.CommandError("Can't zoom {}%!".format(level))
         message.info(self._win_id, "Zoom level: {}%".format(level))
 
     @cmdutils.register(instance='command-dispatcher', scope='window')

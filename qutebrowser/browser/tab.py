@@ -21,11 +21,12 @@
 
 import itertools
 
-from PyQt5.QtCore import pyqtSignal, QUrl, QObject
+from PyQt5.QtCore import pyqtSignal, pyqtSlot, QUrl, QObject, QPoint
 from PyQt5.QtGui import QIcon
 from PyQt5.QtWidgets import QWidget, QLayout
 
-from qutebrowser.utils import utils, objreg
+from qutebrowser.config import config
+from qutebrowser.utils import utils, objreg, usertypes
 
 
 tab_id_gen = itertools.count(0)
@@ -53,6 +54,94 @@ class WrapperLayout(QLayout):
 
     def setGeometry(self, r):
         self._widget.setGeometry(r)
+
+
+class AbstractZoom(QObject):
+
+    """Attribute of AbstractTab for controlling zoom.
+
+    Attributes:
+        _neighborlist: A NeighborList with the zoom levels.
+        _default_zoom_changed: Whether the zoom was changed from the default.
+    """
+
+    def __init__(self, win_id, parent=None):
+        super().__init__(parent)
+        self.widget = None
+        self._win_id = win_id
+        self._default_zoom_changed = False
+        self._init_neighborlist()
+        objreg.get('config').changed.connect(self.on_config_changed)
+
+        # # FIXME is this needed?
+        # # For some reason, this signal doesn't get disconnected automatically
+        # # when the WebView is destroyed on older PyQt versions.
+        # # See https://github.com/The-Compiler/qutebrowser/issues/390
+        # self.destroyed.connect(functools.partial(
+        #     cfg.changed.disconnect, self.init_neighborlist))
+
+    def _set_default_zoom(self):
+        default_zoom = config.get('ui', 'default-zoom')
+        self._set_factor_internal(float(default_zoom) / 100)
+
+    @pyqtSlot(str, str)
+    def on_config_changed(self, section, option):
+        if section == 'ui' and option in ('zoom-levels', 'default-zoom'):
+            if not self._default_zoom_changed:
+                factor = float(config.get('ui', 'default-zoom')) / 100
+                self._set_factor_internal(factor)
+            self._default_zoom_changed = False
+            self._init_neighborlist()
+
+    def _init_neighborlist(self):
+        """Initialize self._neighborlist."""
+        levels = config.get('ui', 'zoom-levels')
+        self._neighborlist = usertypes.NeighborList(
+            levels, mode=usertypes.NeighborList.Modes.edge)
+        self._neighborlist.fuzzyval = config.get('ui', 'default-zoom')
+
+    def offset(self, offset):
+        """Increase/Decrease the zoom level by the given offset.
+
+        Args:
+            offset: The offset in the zoom level list.
+
+        Return:
+            The new zoom percentage.
+        """
+        level = self._neighborlist.getitem(offset)
+        self.set_factor(float(level) / 100, fuzzyval=False)
+        return level
+
+    def set_factor(self, factor, *, fuzzyval=True):
+        """Zoom to a given zoom factor.
+
+        Args:
+            factor: The zoom factor as float.
+            fuzzyval: Whether to set the NeighborLists fuzzyval.
+        """
+        if fuzzyval:
+            self._neighborlist.fuzzyval = int(factor * 100)
+        if factor < 0:
+            raise ValueError("Can't zoom to factor {}!".format(factor))
+        self._default_zoom_changed = True
+        self._set_factor_internal(factor)
+
+    def factor(self):
+        raise NotImplementedError
+
+    @pyqtSlot(QPoint)
+    def on_mouse_wheel_zoom(self, delta):
+        """Handle zooming via mousewheel requested by the web view."""
+        divider = config.get('input', 'mouse-zoom-divider')
+        factor = self.zoomFactor() + delta.y() / divider
+        if factor < 0:
+            return
+        perc = int(100 * factor)
+        message.info(self.win_id, "Zoom level: {}%".format(perc))
+        self._neighborlist.fuzzyval = perc
+        self._set_factor_internal(factor)
+        self._default_zoom_changed = True
 
 
 class AbstractCaret(QObject):
@@ -262,6 +351,7 @@ class AbstractTab(QWidget):
         # self.history = AbstractHistory(self)
         # self.scroll = AbstractScroller(parent=self)
         # self.caret = AbstractCaret(win_id=win_id, tab=self, parent=self)
+        # self.zoom = AbstractZoom(win_id=win_id)
         self._layout = None
         self._widget = None
         self.keep_icon = False  # FIXME:refactor get rid of this?
@@ -272,6 +362,8 @@ class AbstractTab(QWidget):
         self.history.history = widget.history()
         self.scroll.widget = widget
         self.caret.widget = widget
+        self.zoom.widget = widget
+        widget.mouse_wheel_zoom.connect(self.zoom.on_mouse_wheel_zoom)
         widget.setParent(self)
 
     @property
@@ -315,12 +407,6 @@ class AbstractTab(QWidget):
         raise NotImplementedError
 
     def title(self):
-        raise NotImplementedError
-
-    def set_zoom_factor(self, factor):
-        raise NotImplementedError
-
-    def zoom_factor(self):
         raise NotImplementedError
 
     def icon(self):

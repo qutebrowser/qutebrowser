@@ -76,6 +76,15 @@ class WebEngineHistory(tab.AbstractHistory):
         raise NotImplementedError
 
 
+class WebEngineZoom(tab.AbstractZoom):
+
+    def _set_factor_internal(self, factor):
+        self.widget.setZoomFactor(factor)
+
+    def factor(self):
+        return self.widget.zoomFactor()
+
+
 class WebEngineViewTab(tab.AbstractTab):
 
     def __init__(self, win_id, parent=None):
@@ -84,6 +93,7 @@ class WebEngineViewTab(tab.AbstractTab):
         self.history = WebEngineHistory(self)
         self.scroll = WebEngineScroller()
         self.caret = WebEngineCaret(win_id=win_id, tab=self, parent=self)
+        self.zoom = WebEngineZoom(win_id=win_id, parent=self)
         self._set_widget(widget)
         self._connect_signals()
 
@@ -101,12 +111,6 @@ class WebEngineViewTab(tab.AbstractTab):
     @property
     def load_status(self):
         return usertypes.LoadStatus.success
-
-    def set_zoom_factor(self, factor):
-        self._widget.setZoomFactor(factor)
-
-    def zoom_factor(self):
-        return self._widget.zoomFactor()
 
     def dump_async(self, callback, *, plain=False):
         if plain:
