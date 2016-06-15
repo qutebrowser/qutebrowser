@@ -281,8 +281,8 @@ class AbstractHistory:
     """The history attribute of a AbstractTab."""
 
     def __init__(self, tab):
-        self.tab = tab
-        self.widget = None
+        self._tab = tab
+        self.history = None
 
     def __iter__(self):
         raise NotImplementedError

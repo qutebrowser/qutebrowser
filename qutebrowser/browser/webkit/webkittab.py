@@ -352,11 +352,11 @@ class WebViewHistory(tab.AbstractHistory):
         cur_data = self.history.currentItem().userData()
         if cur_data is not None:
             if 'zoom' in cur_data:
-                self.tab.zoom.set_factor(cur_data['zoom'])
+                self._tab.zoom.set_factor(cur_data['zoom'])
             if ('scroll-pos' in cur_data and
-                    self.tab.scroll.pos_px() == QPoint(0, 0)):
+                    self._tab.scroll.pos_px() == QPoint(0, 0)):
                 QTimer.singleShot(0, functools.partial(
-                    self.tab.scroll, cur_data['scroll-pos']))
+                    self._tab.scroll, cur_data['scroll-pos']))
 
 
 class WebViewTab(tab.AbstractTab):
