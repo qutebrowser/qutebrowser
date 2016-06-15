@@ -811,10 +811,10 @@ class HintManager(QObject):
         """
         tabbed_browser = objreg.get('tabbed-browser', scope='window',
                                     window=self._win_id)
-        widget = tabbed_browser.currentWidget()
-        if widget is None:
+        tab = tabbed_browser.currentWidget()
+        if tab is None:
             raise cmdexc.CommandError("No WebView available yet!")
-        mainframe = widget.page().mainFrame()
+        mainframe = tab._widget.page().mainFrame()  # FIXME
         if mainframe is None:
             raise cmdexc.CommandError("No frame focused!")
         mode_manager = objreg.get('mode-manager', scope='window',

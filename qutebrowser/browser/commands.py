@@ -479,15 +479,22 @@ class CommandDispatcher:
 
         cmdutils.check_exclusive((tab, bg, window), 'tbw')
         widget = self._current_widget()
-        frame = widget.page().currentFrame()
         url = self._current_url().adjusted(QUrl.RemoveFragment)
-        if frame is None:
-            raise cmdexc.CommandError("No frame focused!")
+
+        if where in ['prev', 'next']:
+            frame = widget._widget.page().currentFrame()  # FIXME
+            if frame is None:
+                raise cmdexc.CommandError("No frame focused!")
+        else:
+            frame = None
+
         hintmanager = objreg.get('hintmanager', scope='tab', tab='current')
         if where == 'prev':
+            assert frame is not None
             hintmanager.follow_prevnext(frame, url, prev=True, tab=tab,
                                         background=bg, window=window)
         elif where == 'next':
+            assert frame is not None
             hintmanager.follow_prevnext(frame, url, prev=False, tab=tab,
                                         background=bg, window=window)
         elif where == 'up':
