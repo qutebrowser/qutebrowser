@@ -72,3 +72,15 @@ Feature: Zooming in and out
     Scenario: Setting zoom with argument and count
         When I run :zoom 50 with count 60
         Then the error "Both count and argument given!" should be shown
+
+    # Fixed in QtWebEngine branch
+    @xfail
+    Scenario: Zooming in with cloned tab
+        When I set ui -> default-zoom to 100%
+        And I run :zoom-in
+        And I wait for "Zoom level: 110%" in the log
+        And I run :tab-clone
+        And I wait until data/hello.txt is loaded
+        And I run :zoom-in
+        Then the message "Zoom level: 120%" should be shown
+        And the zoom should be 120%
