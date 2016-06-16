@@ -20,8 +20,51 @@
 """Tests for completion models."""
 
 import collections
+from datetime import datetime
 
-from qutebrowser.completion.models import miscmodels
+import pytest
+from PyQt5.QtCore import QUrl
+
+from qutebrowser.completion.models import miscmodels, urlmodel
+
+
+@pytest.fixture
+def quickmarks(quickmark_manager_stub):
+    """Pre-populate the quickmark-manager stub with some quickmarks."""
+    quickmark_manager_stub.marks = collections.OrderedDict([
+        ('aw', 'https://wiki.archlinux.org'),
+        ('ddg', 'https://duckduckgo.com'),
+        ('wiki', 'https://wikipedia.org'),
+    ])
+    return quickmark_manager_stub
+
+
+@pytest.fixture
+def bookmarks(bookmark_manager_stub):
+    """Pre-populate the bookmark-manager stub with some quickmarks."""
+    bookmark_manager_stub.marks = collections.OrderedDict([
+        ('https://github.com', 'GitHub'),
+        ('https://python.org', 'Welcome to Python.org'),
+        ('http://qutebrowser.org', 'qutebrowser | qutebrowser'),
+    ])
+    return bookmark_manager_stub
+
+
+@pytest.fixture
+def web_history(stubs, web_history_stub):
+    """Pre-populate the web-history stub with some history entries."""
+    web_history_stub.history_dict = collections.OrderedDict([
+        ('http://qutebrowser.org', stubs.FakeHistoryEntry(
+            datetime(2015, 9, 5).timestamp(),
+            QUrl('http://qutebrowser.org'), 'qutebrowser | qutebrowser')),
+        ('https://python.org', stubs.FakeHistoryEntry(
+            datetime(2016, 3, 8).timestamp(),
+            QUrl('https://python.org'), 'Welcome to Python.org')),
+        ('https://github.com', stubs.FakeHistoryEntry(
+            datetime(2016, 5, 1).timestamp(),
+            QUrl('https://github.com'), 'GitHub')),
+    ])
+    return web_history_stub
 
 
 def test_command_completion(monkeypatch, stubs, config_stub, key_config_stub):
@@ -77,6 +120,59 @@ def test_help_completion(monkeypatch, stubs):
             ('ui->mind', 'Enable mind-control ui (experimental)', ''),
             ('ui->voice', 'Whether to respond to voice commands', ''),
         ])
+    ]
+
+
+def test_quickmark_completion(quickmarks):
+    """Test the results of quickmark completion."""
+    actual = _get_completions(miscmodels.QuickmarkCompletionModel())
+    assert actual == [
+        ("Quickmarks", [
+            ('aw', 'https://wiki.archlinux.org', ''),
+            ('ddg', 'https://duckduckgo.com', ''),
+            ('wiki', 'https://wikipedia.org', ''),
+        ])
+    ]
+
+
+def test_bookmark_completion(bookmarks):
+    """Test the results of bookmark completion."""
+    actual = _get_completions(miscmodels.BookmarkCompletionModel())
+    assert actual == [
+        ("Bookmarks", [
+            ('https://github.com', 'GitHub', ''),
+            ('https://python.org', 'Welcome to Python.org', ''),
+            ('http://qutebrowser.org', 'qutebrowser | qutebrowser', ''),
+        ])
+    ]
+
+
+def test_url_completion(config_stub, web_history, quickmarks, bookmarks):
+    """Test the results of url completion.
+
+    Verify that:
+        - quickmarks, bookmarks, and urls are included
+        - no more than 'web-history-max-items' history entries are included
+        - the most recent entries are included
+    """
+    config_stub.data['completion'] = {'timestamp-format': '%Y-%m-%d',
+                                      'web-history-max-items': 2}
+    actual = _get_completions(urlmodel.UrlCompletionModel())
+    assert actual == [
+        ("Quickmarks", [
+            ('https://wiki.archlinux.org', 'aw', ''),
+            ('https://duckduckgo.com', 'ddg', ''),
+            ('https://wikipedia.org', 'wiki', ''),
+        ]),
+        ("Bookmarks", [
+            ('https://github.com', 'GitHub', ''),
+            ('https://python.org', 'Welcome to Python.org', ''),
+            ('http://qutebrowser.org', 'qutebrowser | qutebrowser', ''),
+        ]),
+        ("History", [
+            ('https://python.org', 'Welcome to Python.org', '2016-03-08'),
+            ('https://github.com', 'GitHub', '2016-05-01'),
+        ]),
     ]
 
 

@@ -198,6 +198,33 @@ def host_blocker_stub(stubs):
     objreg.delete('host-blocker')
 
 
+@pytest.yield_fixture
+def quickmark_manager_stub(stubs):
+    """Fixture which provides a fake quickmark manager object."""
+    stub = stubs.UrlMarkManagerStub()
+    objreg.register('quickmark-manager', stub)
+    yield stub
+    objreg.delete('quickmark-manager')
+
+
+@pytest.yield_fixture
+def bookmark_manager_stub(stubs):
+    """Fixture which provides a fake bookmark manager object."""
+    stub = stubs.UrlMarkManagerStub()
+    objreg.register('bookmark-manager', stub)
+    yield stub
+    objreg.delete('bookmark-manager')
+
+
+@pytest.yield_fixture
+def web_history_stub(stubs):
+    """Fixture which provides a fake web-history object."""
+    stub = stubs.WebHistoryStub()
+    objreg.register('web-history', stub)
+    yield stub
+    objreg.delete('web-history')
+
+
 @pytest.fixture(scope='session')
 def stubs():
     """Provide access to stub objects useful for testing."""

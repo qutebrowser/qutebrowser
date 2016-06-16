@@ -21,6 +21,7 @@
 
 """Fake objects/stubs."""
 
+import collections
 from unittest import mock
 
 from PyQt5.QtCore import pyqtSignal, QPoint, QProcess, QObject
@@ -419,6 +420,47 @@ class KeyConfigStub:
 
     def set_bindings_for(self, section, bindings):
         self.bindings[section] = bindings
+
+
+class FakeHistoryEntry:
+
+    """Mock for webkit.history.Entry."""
+
+    def __init__(self, atime, url, title, redirect=False):
+        self.atime = float(atime)
+        self.url = url
+        self.title = title
+        self.redirect = redirect
+
+
+class UrlMarkManagerStub(QObject):
+
+    """Stub for the quickmark-manager or bookmark-manager object."""
+
+    added = pyqtSignal(str, str)
+    removed = pyqtSignal(str)
+
+    def __init__(self, parent=None):
+        super().__init__(parent)
+        self.marks = {}
+
+
+class WebHistoryStub(QObject):
+
+    """Stub for the web-history object."""
+
+    add_completion_item = pyqtSignal(FakeHistoryEntry)
+    cleared = pyqtSignal()
+
+    def __init__(self, parent=None):
+        super().__init__(parent)
+        self.history_dict = collections.OrderedDict()
+
+    def __iter__(self):
+        return iter(self.history_dict.values())
+
+    def __len__(self):
+        return len(self.history_dict)
 
 
 class HostBlockerStub:
