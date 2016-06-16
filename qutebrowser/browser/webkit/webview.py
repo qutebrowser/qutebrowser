@@ -138,9 +138,9 @@ class WebView(QWebView):
         mode_manager.entered.connect(self.on_mode_entered)
         mode_manager.left.connect(self.on_mode_left)
         self.viewing_source = False
-        # scale zoom depending on screen dpi
-        self.zoom_scale = ((self.logicalDpiY() + self.logicalDpiX()) / 2) / 96
-        self.setZoomFactor((float(config.get('ui', 'default-zoom')) / 100) * self.zoom_scale)
+        # scaling factor based on screen dpi
+        self._zoom_scale = ((self.logicalDpiY() + self.logicalDpiX()) / 2) / 96
+        self.setZoomFactor((float(config.get('ui', 'default-zoom')) / 100) * self._zoom_scale)
         self._default_zoom_changed = False
         if config.get('input', 'rocker-gestures'):
             self.setContextMenuPolicy(Qt.PreventContextMenu)
@@ -215,7 +215,7 @@ class WebView(QWebView):
         """Reinitialize the zoom neighborlist if related config changed."""
         if section == 'ui' and option in ('zoom-levels', 'default-zoom'):
             if not self._default_zoom_changed:
-                self.setZoomFactor((float(config.get('ui', 'default-zoom')) / 100) * self.zoom_scale)
+                self.setZoomFactor((float(config.get('ui', 'default-zoom')) / 100) * self._zoom_scale)
             self._default_zoom_changed = False
             self.init_neighborlist()
         elif section == 'input' and option == 'rocker-gestures':
@@ -393,7 +393,7 @@ class WebView(QWebView):
             self._zoom.fuzzyval = int(perc)
         if perc < 0:
             raise ValueError("Can't zoom {}%!".format(perc))
-        self.setZoomFactor((float(perc) / 100) * self.zoom_scale)
+        self.setZoomFactor((float(perc) / 100) * self._zoom_scale)
         self._default_zoom_changed = True
 
     def zoom(self, offset):
@@ -680,7 +680,7 @@ class WebView(QWebView):
             perc = int(100 * factor)
             message.info(self.win_id, "Zoom level: {}%".format(perc))
             self._zoom.fuzzyval = perc
-            self.setZoomFactor(factor * self.zoom_scale)
+            self.setZoomFactor(factor * self._zoom_scale)
             self._default_zoom_changed = True
         else:
             super().wheelEvent(e)
