@@ -31,6 +31,7 @@ from PyQt5.QtWidgets import QCommonStyle, QWidget
 
 from qutebrowser.browser.webkit import webview
 from qutebrowser.config import configexc
+from qutebrowser.mainwindow import mainwindow
 
 
 class FakeNetworkCache(QAbstractNetworkCache):
@@ -219,13 +220,20 @@ class FakeWebView(QWidget):
 
     """Fake WebView which can be added to a tab."""
 
-    def __init__(self):
+    url_text_changed = pyqtSignal(str)
+    shutting_down = pyqtSignal()
+
+    def __init__(self, url=FakeUrl(), title='', tab_id=0):
         super().__init__()
         self.progress = 0
         self.scroll_pos = (-1, -1)
         self.load_status = webview.LoadStatus.none
-        self.tab_id = 0
-        self.cur_url = FakeUrl()
+        self.tab_id = tab_id
+        self.cur_url = url
+        self.title = title
+
+    def url(self):
+        return self.cur_url
 
 
 class FakeSignal:
@@ -480,3 +488,34 @@ class SessionManagerStub:
 
     def list_sessions(self):
         return self.sessions
+
+
+class TabbedBrowserStub(QObject):
+
+    """Stub for the tabbed-browser object."""
+
+    new_tab = pyqtSignal(webview.WebView, int)
+
+    def __init__(self, parent=None):
+        super().__init__(parent)
+        self.tabs = []
+        self.shutting_down = False
+
+    def count(self):
+        return len(self.tabs)
+
+    def widget(self, i):
+        return self.tabs[i]
+
+    def page_title(self, i):
+        return self.tabs[i].title
+
+
+class ApplicationStub(QObject):
+
+    """Stub to insert as the app object in objreg."""
+
+    new_window = pyqtSignal(mainwindow.MainWindow)
+
+    def __init__(self):
+        super().__init__()

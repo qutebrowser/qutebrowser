@@ -234,6 +234,24 @@ def session_manager_stub(stubs):
     objreg.delete('session-manager')
 
 
+@pytest.yield_fixture
+def tabbed_browser_stub(stubs):
+    """Fixture which provides a fake tabbed-browser object."""
+    stub = stubs.TabbedBrowserStub()
+    objreg.register('tabbed-browser', stub, scope='window', window=0)
+    yield stub
+    objreg.delete('tabbed-browser', scope='window', window=0)
+
+
+@pytest.yield_fixture
+def app_stub(stubs):
+    """Fixture which provides a fake app object."""
+    stub = stubs.ApplicationStub()
+    objreg.register('app', stub)
+    yield stub
+    objreg.delete('app')
+
+
 @pytest.fixture(scope='session')
 def stubs():
     """Provide access to stub objects useful for testing."""

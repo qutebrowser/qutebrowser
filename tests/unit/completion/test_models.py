@@ -184,6 +184,23 @@ def test_session_completion(session_manager_stub):
     ]
 
 
+def test_tab_completion(stubs, qtbot, app_stub, win_registry,
+                        tabbed_browser_stub):
+    tabbed_browser_stub.tabs = [
+        stubs.FakeWebView(QUrl('https://github.com'), 'GitHub', 0),
+        stubs.FakeWebView(QUrl('https://wikipedia.org'), 'Wikipedia', 1),
+        stubs.FakeWebView(QUrl('https://duckduckgo.com'), 'DuckDuckGo', 2)
+    ]
+    actual = _get_completions(miscmodels.TabCompletionModel())
+    assert actual == [
+        ('0', [
+            ('0/1', 'https://github.com', 'GitHub'),
+            ('0/2', 'https://wikipedia.org', 'Wikipedia'),
+            ('0/3', 'https://duckduckgo.com', 'DuckDuckGo')
+        ])
+    ]
+
+
 def _get_completions(model):
     """Collect all the completion entries of a model, organized by category.
 
