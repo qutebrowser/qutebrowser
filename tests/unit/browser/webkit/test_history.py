@@ -391,3 +391,4 @@ def test_init(qapp, tmpdir, monkeypatch, fake_save_manager):
     assert hist.parent() is qapp
     assert QWebHistoryInterface.defaultInterface()._history is hist
     assert fake_save_manager.add_saveable.called
+    objreg.delete('web-history')
