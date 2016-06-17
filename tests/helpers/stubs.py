@@ -469,3 +469,14 @@ class HostBlockerStub:
 
     def __init__(self):
         self.blocked_hosts = set()
+
+
+class SessionManagerStub:
+
+    """Stub for the session-manager object."""
+
+    def __init__(self):
+        self.sessions = []
+
+    def list_sessions(self):
+        return self.sessions

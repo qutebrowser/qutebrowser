@@ -176,6 +176,14 @@ def test_url_completion(config_stub, web_history, quickmarks, bookmarks):
     ]
 
 
+def test_session_completion(session_manager_stub):
+    session_manager_stub.sessions = ['default', '1', '2']
+    actual = _get_completions(miscmodels.SessionCompletionModel())
+    assert actual == [
+        ("Sessions", [('default', '', ''), ('1', '', ''), ('2', '', '')])
+    ]
+
+
 def _get_completions(model):
     """Collect all the completion entries of a model, organized by category.
 

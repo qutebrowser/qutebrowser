@@ -225,6 +225,15 @@ def web_history_stub(stubs):
     objreg.delete('web-history')
 
 
+@pytest.yield_fixture
+def session_manager_stub(stubs):
+    """Fixture which provides a fake web-history object."""
+    stub = stubs.SessionManagerStub()
+    objreg.register('session-manager', stub)
+    yield stub
+    objreg.delete('session-manager')
+
+
 @pytest.fixture(scope='session')
 def stubs():
     """Provide access to stub objects useful for testing."""
