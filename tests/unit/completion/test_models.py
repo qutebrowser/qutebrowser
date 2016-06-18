@@ -25,7 +25,7 @@ from datetime import datetime
 import pytest
 from PyQt5.QtCore import QUrl
 
-from qutebrowser.completion.models import miscmodels, urlmodel
+from qutebrowser.completion.models import miscmodels, urlmodel, configmodel
 
 
 @pytest.fixture
@@ -201,6 +201,20 @@ def test_tab_completion(stubs, qtbot, app_stub, win_registry,
     ]
 
 
+def test_setting_section_completion(monkeypatch, stubs):
+    module = 'qutebrowser.completion.models.configmodel'
+    _patch_configdata(monkeypatch, stubs, module + '.configdata.DATA')
+    _patch_config_section_desc(monkeypatch, stubs,
+                               module + '.configdata.SECTION_DESC')
+    actual = _get_completions(configmodel.SettingSectionCompletionModel())
+    assert actual == [
+        ("Sections", [
+            ('general', 'General/miscellaneous options.', ''),
+            ('ui', 'General options related to the user interface.', ''),
+        ])
+    ]
+
+
 def _get_completions(model):
     """Collect all the completion entries of a model, organized by category.
 
@@ -248,3 +262,11 @@ def _patch_configdata(monkeypatch, stubs, symbol):
             ('voice', 'Whether to respond to voice commands'))),
     ])
     monkeypatch.setattr(symbol, data)
+
+def _patch_config_section_desc(monkeypatch, stubs, symbol):
+    """Patch the configdata module to provide fake SECTION_DESC."""
+    section_desc = {
+        'general': 'General/miscellaneous options.',
+        'ui': 'General options related to the user interface.',
+    }
+    monkeypatch.setattr(symbol, section_desc)
