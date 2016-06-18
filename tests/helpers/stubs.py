@@ -398,7 +398,7 @@ class ConfigStub(QObject):
         """
         return self.data[name]
 
-    def get(self, sect, opt):
+    def get(self, sect, opt, raw=True):
         """Get a value from the config."""
         data = self.data[sect]
         try:

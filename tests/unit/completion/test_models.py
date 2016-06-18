@@ -215,6 +215,22 @@ def test_setting_section_completion(monkeypatch, stubs):
     ]
 
 
+def test_setting_option_completion(monkeypatch, stubs, config_stub):
+    module = 'qutebrowser.completion.models.configmodel'
+    _patch_configdata(monkeypatch, stubs, module + '.configdata.DATA')
+    config_stub.data = {'ui': {'gesture': 'off',
+                                'mind': 'on',
+                                'voice': 'sometimes'}}
+    actual = _get_completions(configmodel.SettingOptionCompletionModel('ui'))
+    assert actual == [
+        ("ui", [
+            ('gesture', 'Waggle your hands to control qutebrowser', 'off'),
+            ('mind', 'Enable mind-control ui (experimental)', 'on'),
+            ('voice', 'Whether to respond to voice commands', 'sometimes'),
+        ])
+    ]
+
+
 def _get_completions(model):
     """Collect all the completion entries of a model, organized by category.
 
