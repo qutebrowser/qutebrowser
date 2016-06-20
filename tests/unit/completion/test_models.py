@@ -231,6 +231,24 @@ def test_setting_option_completion(monkeypatch, stubs, config_stub):
     ]
 
 
+def test_setting_value_completion(monkeypatch, stubs, config_stub):
+    module = 'qutebrowser.completion.models.configmodel'
+    _patch_configdata(monkeypatch, stubs, module + '.configdata.DATA')
+    config_stub.data = {'general': { 'volume': '0' }}
+    model = configmodel.SettingValueCompletionModel('general', 'volume')
+    actual = _get_completions(model)
+    assert actual == [
+        ("Current/Default", [
+            ('0', 'Current value', ''),
+            ('11', 'Default value', ''),
+        ]),
+        ("Completions", [
+            ('0', '', ''),
+            ('11', '', ''),
+        ])
+    ]
+
+
 def _get_completions(model):
     """Collect all the completion entries of a model, organized by category.
 
@@ -270,12 +288,22 @@ def _patch_configdata(monkeypatch, stubs, symbol):
     """Patch the configdata module to provide fake data."""
     data = collections.OrderedDict([
         ('general', stubs.FakeConfigSection(
-            ('time', 'Is an illusion.\n\nLunchtime doubly so.'),
-            ('volume', 'Goes to 11'))),
+            ('time',
+                stubs.FakeSettingValue(('fast', 'slow'), 'slow'),
+                'Is an illusion.\n\nLunchtime doubly so.'),
+            ('volume',
+                stubs.FakeSettingValue(('0', '11'), '11'),
+                'Goes to 11'))),
         ('ui', stubs.FakeConfigSection(
-            ('gesture', 'Waggle your hands to control qutebrowser'),
-            ('mind', 'Enable mind-control ui (experimental)'),
-            ('voice', 'Whether to respond to voice commands'))),
+            ('gesture',
+                stubs.FakeSettingValue(('on', 'off'), 'off'),
+                'Waggle your hands to control qutebrowser'),
+            ('mind',
+                stubs.FakeSettingValue(('on', 'off'), 'off'),
+                'Enable mind-control ui (experimental)'),
+            ('voice',
+                stubs.FakeSettingValue(('on', 'off'), 'off'),
+                'Whether to respond to voice commands'))),
     ])
     monkeypatch.setattr(symbol, data)
 
