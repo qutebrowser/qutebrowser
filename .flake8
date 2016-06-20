@@ -30,6 +30,8 @@ exclude = .venv,.hypothesis,.git,__pycache__,resources.py
 # D211: No blank lines allowed before class docstring
 #       (PEP257 got changed, but let's stick to the old standard)
 # D402: First line should not be function's signature (false-positives)
+# D403: First word of the first line should be properly capitalized
+#       (false-positives)
 # H101: Use TODO(NAME)
 # H201: bare except
 # H238: Use new-stule classes
@@ -41,7 +43,7 @@ ignore =
     N802,
     L101,L102,L103,L201,L202,L203,L204,L207,L302,
     P101,P102,P103,
-    D102,D103,D104,D105,D209,D211,D402,
+    D102,D103,D104,D105,D209,D211,D402,D403,
     H101,H201,H238,H301,H306
 min-version = 3.4.0
 max-complexity = 12
