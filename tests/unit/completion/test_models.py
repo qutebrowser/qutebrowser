@@ -21,6 +21,7 @@
 
 import collections
 from datetime import datetime
+from unittest.mock import Mock
 
 import pytest
 from PyQt5.QtCore import QUrl
@@ -199,6 +200,29 @@ def test_tab_completion(stubs, qtbot, app_stub, win_registry,
             ('0/3', 'https://duckduckgo.com', 'DuckDuckGo')
         ])
     ]
+
+
+def test_tab_completion_delete(stubs, qtbot, app_stub, win_registry,
+                               tabbed_browser_stub):
+    """Verify closing a tab by deleting it from the completion widget."""
+    tabbed_browser_stub.tabs = [
+        stubs.FakeWebView(QUrl('https://github.com'), 'GitHub', 0),
+        stubs.FakeWebView(QUrl('https://wikipedia.org'), 'Wikipedia', 1),
+        stubs.FakeWebView(QUrl('https://duckduckgo.com'), 'DuckDuckGo', 2)
+    ]
+    model = miscmodels.TabCompletionModel()
+    index = Mock()
+    cat = Mock()
+    completion_widget = Mock()
+    index.isValid = Mock(return_value=True)
+    index.parent = Mock(return_value=cat)
+    index.data = Mock(return_value='0/2')
+    cat.child = Mock(return_value=index)
+    completion_widget.currentIndex = Mock(return_value=index)
+    model.delete_cur_item(completion_widget)
+    actual = [tab.url() for tab in tabbed_browser_stub.tabs]
+    assert actual == [QUrl('https://github.com'),
+                      QUrl('https://duckduckgo.com')]
 
 
 def test_setting_section_completion(monkeypatch, stubs):

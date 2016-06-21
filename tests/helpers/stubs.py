@@ -532,6 +532,9 @@ class TabbedBrowserStub(QObject):
     def page_title(self, i):
         return self.tabs[i].title
 
+    def on_tab_close_requested(self, idx):
+        del self.tabs[idx]
+
 
 class ApplicationStub(QObject):
 
