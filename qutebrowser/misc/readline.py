@@ -166,12 +166,12 @@ class ReadlineBridge:
         is_word_boundary = True
         while is_word_boundary and target_position > 0:
             is_word_boundary = text[target_position - 1] == " "
-            target_position-=1
+            target_position -= 1
 
         is_word_boundary = False
         while not is_word_boundary and target_position > 0:
             is_word_boundary = text[target_position - 1] == " "
-            target_position-=1
+            target_position -= 1
 
         moveby = cursor_position - target_position - 1
         widget.cursorBackward(True, moveby)
@@ -227,4 +227,3 @@ class ReadlineBridge:
         if widget is None:
             return
         widget.backspace()
-
