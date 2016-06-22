@@ -474,6 +474,19 @@ class UrlMarkManagerStub(QObject):
         super().__init__(parent)
         self.marks = {}
 
+    def delete(self, key):
+        del self.marks[key]
+        self.removed.emit(key)
+
+
+class BookmarkManagerStub(UrlMarkManagerStub):
+    pass
+
+
+class QuickmarkManagerStub(UrlMarkManagerStub):
+    def quickmark_del(self, key):
+        self.delete(key)
+
 
 class WebHistoryStub(QObject):
 

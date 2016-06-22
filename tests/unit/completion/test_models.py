@@ -177,6 +177,51 @@ def test_url_completion(config_stub, web_history, quickmarks, bookmarks):
     ]
 
 
+def test_url_completion_delete_bookmark(config_stub, web_history, quickmarks,
+                                        bookmarks):
+    """Test deleting a bookmark from the url completion model."""
+    config_stub.data['completion'] = {'timestamp-format': '%Y-%m-%d',
+                                      'web-history-max-items': 2}
+    model = urlmodel.UrlCompletionModel()
+    index = Mock()
+    cat = Mock()
+    completion_widget = Mock()
+    index.isValid = Mock(return_value=True)
+    index.parent = Mock(return_value=cat)
+    index.data = Mock(return_value='https://github.com')
+    cat.child = Mock(return_value=index)
+    cat.data = Mock(return_value='Bookmarks')
+    completion_widget.currentIndex = Mock(return_value=index)
+    model.delete_cur_item(completion_widget)
+    assert 'https://github.com' not in bookmarks.marks
+    assert 'https://python.org' in bookmarks.marks
+    assert 'http://qutebrowser.org' in bookmarks.marks
+
+
+def test_url_completion_delete_quickmark(config_stub, web_history, quickmarks,
+                                        bookmarks):
+    """Test deleting a bookmark from the url completion model."""
+    config_stub.data['completion'] = {'timestamp-format': '%Y-%m-%d',
+                                      'web-history-max-items': 2}
+    model = urlmodel.UrlCompletionModel()
+    index = Mock()
+    sibling = Mock()
+    cat = Mock()
+    completion_widget = Mock()
+    index.isValid = Mock(return_value=True)
+    index.parent = Mock(return_value=cat)
+    index.sibling = Mock(return_value=sibling)
+    sibling.isValid = Mock(return_value=True)
+    sibling.data = Mock(return_value='ddg')
+    cat.child = Mock(return_value=index)
+    cat.data = Mock(return_value='Quickmarks')
+    completion_widget.currentIndex = Mock(return_value=index)
+    model.delete_cur_item(completion_widget)
+    assert 'aw' in quickmarks.marks
+    assert 'ddg' not in quickmarks.marks
+    assert 'wiki' in quickmarks.marks
+
+
 def test_session_completion(session_manager_stub):
     session_manager_stub.sessions = ['default', '1', '2']
     actual = _get_completions(miscmodels.SessionCompletionModel())

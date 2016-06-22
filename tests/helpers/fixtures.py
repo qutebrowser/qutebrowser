@@ -201,7 +201,7 @@ def host_blocker_stub(stubs):
 @pytest.yield_fixture
 def quickmark_manager_stub(stubs):
     """Fixture which provides a fake quickmark manager object."""
-    stub = stubs.UrlMarkManagerStub()
+    stub = stubs.QuickmarkManagerStub()
     objreg.register('quickmark-manager', stub)
     yield stub
     objreg.delete('quickmark-manager')
@@ -210,7 +210,7 @@ def quickmark_manager_stub(stubs):
 @pytest.yield_fixture
 def bookmark_manager_stub(stubs):
     """Fixture which provides a fake bookmark manager object."""
-    stub = stubs.UrlMarkManagerStub()
+    stub = stubs.BookmarkManagerStub()
     objreg.register('bookmark-manager', stub)
     yield stub
     objreg.delete('bookmark-manager')
