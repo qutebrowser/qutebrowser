@@ -21,10 +21,10 @@
 
 import collections
 from datetime import datetime
-from unittest.mock import Mock
 
 import pytest
 from PyQt5.QtCore import QUrl
+from PyQt5.QtWidgets import QTreeView
 
 from qutebrowser.completion.models import miscmodels, urlmodel, configmodel
 
@@ -178,45 +178,28 @@ def test_url_completion(config_stub, web_history, quickmarks, bookmarks):
 
 
 def test_url_completion_delete_bookmark(config_stub, web_history, quickmarks,
-                                        bookmarks):
+                                        bookmarks, qtbot):
     """Test deleting a bookmark from the url completion model."""
     config_stub.data['completion'] = {'timestamp-format': '%Y-%m-%d',
                                       'web-history-max-items': 2}
     model = urlmodel.UrlCompletionModel()
-    index = Mock()
-    cat = Mock()
-    completion_widget = Mock()
-    index.isValid = Mock(return_value=True)
-    index.parent = Mock(return_value=cat)
-    index.data = Mock(return_value='https://github.com')
-    cat.child = Mock(return_value=index)
-    cat.data = Mock(return_value='Bookmarks')
-    completion_widget.currentIndex = Mock(return_value=index)
-    model.delete_cur_item(completion_widget)
+    # delete item (1, 0) -> (bookmarks, 'https://github.com' )
+    view = _mock_view_index(model, 1, 0)
+    model.delete_cur_item(view)
     assert 'https://github.com' not in bookmarks.marks
     assert 'https://python.org' in bookmarks.marks
     assert 'http://qutebrowser.org' in bookmarks.marks
 
 
 def test_url_completion_delete_quickmark(config_stub, web_history, quickmarks,
-                                        bookmarks):
+                                        bookmarks, qtbot):
     """Test deleting a bookmark from the url completion model."""
     config_stub.data['completion'] = {'timestamp-format': '%Y-%m-%d',
                                       'web-history-max-items': 2}
     model = urlmodel.UrlCompletionModel()
-    index = Mock()
-    sibling = Mock()
-    cat = Mock()
-    completion_widget = Mock()
-    index.isValid = Mock(return_value=True)
-    index.parent = Mock(return_value=cat)
-    index.sibling = Mock(return_value=sibling)
-    sibling.isValid = Mock(return_value=True)
-    sibling.data = Mock(return_value='ddg')
-    cat.child = Mock(return_value=index)
-    cat.data = Mock(return_value='Quickmarks')
-    completion_widget.currentIndex = Mock(return_value=index)
-    model.delete_cur_item(completion_widget)
+    # delete item (0, 1) -> (quickmarks, 'ddg' )
+    view = _mock_view_index(model, 0, 1)
+    model.delete_cur_item(view)
     assert 'aw' in quickmarks.marks
     assert 'ddg' not in quickmarks.marks
     assert 'wiki' in quickmarks.marks
@@ -265,15 +248,8 @@ def test_tab_completion_delete(stubs, qtbot, app_stub, win_registry,
         stubs.FakeWebView(QUrl('https://wiki.archlinux.org'), 'ArchWiki', 0),
     ]
     model = miscmodels.TabCompletionModel()
-    index = Mock()
-    cat = Mock()
-    completion_widget = Mock()
-    index.isValid = Mock(return_value=True)
-    index.parent = Mock(return_value=cat)
-    index.data = Mock(return_value='0/2')
-    cat.child = Mock(return_value=index)
-    completion_widget.currentIndex = Mock(return_value=index)
-    model.delete_cur_item(completion_widget)
+    view = _mock_view_index(model, 0, 1)
+    model.delete_cur_item(view)
     actual = [tab.url() for tab in tabbed_browser_stubs[0].tabs]
     assert actual == [QUrl('https://github.com'),
                       QUrl('https://duckduckgo.com')]
@@ -297,8 +273,8 @@ def test_setting_option_completion(monkeypatch, stubs, config_stub):
     module = 'qutebrowser.completion.models.configmodel'
     _patch_configdata(monkeypatch, stubs, module + '.configdata.DATA')
     config_stub.data = {'ui': {'gesture': 'off',
-                                'mind': 'on',
-                                'voice': 'sometimes'}}
+                               'mind': 'on',
+                               'voice': 'sometimes'}}
     actual = _get_completions(configmodel.SettingOptionCompletionModel('ui'))
     assert actual == [
         ("ui", [
@@ -312,7 +288,7 @@ def test_setting_option_completion(monkeypatch, stubs, config_stub):
 def test_setting_value_completion(monkeypatch, stubs, config_stub):
     module = 'qutebrowser.completion.models.configmodel'
     _patch_configdata(monkeypatch, stubs, module + '.configdata.DATA')
-    config_stub.data = {'general': { 'volume': '0' }}
+    config_stub.data = {'general': {'volume': '0'}}
     model = configmodel.SettingValueCompletionModel('general', 'volume')
     actual = _get_completions(model)
     assert actual == [
@@ -385,6 +361,7 @@ def _patch_configdata(monkeypatch, stubs, symbol):
     ])
     monkeypatch.setattr(symbol, data)
 
+
 def _patch_config_section_desc(monkeypatch, stubs, symbol):
     """Patch the configdata module to provide fake SECTION_DESC."""
     section_desc = {
@@ -392,3 +369,18 @@ def _patch_config_section_desc(monkeypatch, stubs, symbol):
         'ui': 'General options related to the user interface.',
     }
     monkeypatch.setattr(symbol, section_desc)
+
+
+def _mock_view_index(model, category_idx, child_idx):
+    """Create a tree view from a model and set the current index.
+
+    Args:
+        model: model to create a fake view for.
+        category_idx: index of the category to select.
+        child_idx: index of the child item under that category to select.
+    """
+    view = QTreeView()
+    view.setModel(model)
+    idx = model.indexFromItem(model.item(category_idx).child(child_idx))
+    view.setCurrentIndex(idx)
+    return view

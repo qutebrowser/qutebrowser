@@ -480,10 +480,16 @@ class UrlMarkManagerStub(QObject):
 
 
 class BookmarkManagerStub(UrlMarkManagerStub):
+
+    """Stub for the bookmark-manager object."""
+
     pass
 
 
 class QuickmarkManagerStub(UrlMarkManagerStub):
+
+    """Stub for the quickmark-manager object."""
+
     def quickmark_del(self, key):
         self.delete(key)
 
