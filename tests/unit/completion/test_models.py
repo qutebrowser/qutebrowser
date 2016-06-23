@@ -231,11 +231,14 @@ def test_session_completion(session_manager_stub):
 
 
 def test_tab_completion(stubs, qtbot, app_stub, win_registry,
-                        tabbed_browser_stub):
-    tabbed_browser_stub.tabs = [
+                        tabbed_browser_stubs):
+    tabbed_browser_stubs[0].tabs = [
         stubs.FakeWebView(QUrl('https://github.com'), 'GitHub', 0),
         stubs.FakeWebView(QUrl('https://wikipedia.org'), 'Wikipedia', 1),
         stubs.FakeWebView(QUrl('https://duckduckgo.com'), 'DuckDuckGo', 2)
+    ]
+    tabbed_browser_stubs[1].tabs = [
+        stubs.FakeWebView(QUrl('https://wiki.archlinux.org'), 'ArchWiki', 0),
     ]
     actual = _get_completions(miscmodels.TabCompletionModel())
     assert actual == [
@@ -243,17 +246,23 @@ def test_tab_completion(stubs, qtbot, app_stub, win_registry,
             ('0/1', 'https://github.com', 'GitHub'),
             ('0/2', 'https://wikipedia.org', 'Wikipedia'),
             ('0/3', 'https://duckduckgo.com', 'DuckDuckGo')
+        ]),
+        ('1', [
+            ('1/1', 'https://wiki.archlinux.org', 'ArchWiki'),
         ])
     ]
 
 
 def test_tab_completion_delete(stubs, qtbot, app_stub, win_registry,
-                               tabbed_browser_stub):
+                               tabbed_browser_stubs):
     """Verify closing a tab by deleting it from the completion widget."""
-    tabbed_browser_stub.tabs = [
+    tabbed_browser_stubs[0].tabs = [
         stubs.FakeWebView(QUrl('https://github.com'), 'GitHub', 0),
         stubs.FakeWebView(QUrl('https://wikipedia.org'), 'Wikipedia', 1),
         stubs.FakeWebView(QUrl('https://duckduckgo.com'), 'DuckDuckGo', 2)
+    ]
+    tabbed_browser_stubs[1].tabs = [
+        stubs.FakeWebView(QUrl('https://wiki.archlinux.org'), 'ArchWiki', 0),
     ]
     model = miscmodels.TabCompletionModel()
     index = Mock()
@@ -265,7 +274,7 @@ def test_tab_completion_delete(stubs, qtbot, app_stub, win_registry,
     cat.child = Mock(return_value=index)
     completion_widget.currentIndex = Mock(return_value=index)
     model.delete_cur_item(completion_widget)
-    actual = [tab.url() for tab in tabbed_browser_stub.tabs]
+    actual = [tab.url() for tab in tabbed_browser_stubs[0].tabs]
     assert actual == [QUrl('https://github.com'),
                       QUrl('https://duckduckgo.com')]
 

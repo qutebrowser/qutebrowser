@@ -235,12 +235,15 @@ def session_manager_stub(stubs):
 
 
 @pytest.yield_fixture
-def tabbed_browser_stub(stubs):
-    """Fixture which provides a fake tabbed-browser object."""
-    stub = stubs.TabbedBrowserStub()
-    objreg.register('tabbed-browser', stub, scope='window', window=0)
-    yield stub
+def tabbed_browser_stubs(stubs, win_registry):
+    """Fixture providing a fake tabbed-browser object on win_id 0 and 1."""
+    win_registry.add_window(1)
+    stubs = [stubs.TabbedBrowserStub(), stubs.TabbedBrowserStub()]
+    objreg.register('tabbed-browser', stubs[0], scope='window', window=0)
+    objreg.register('tabbed-browser', stubs[1], scope='window', window=1)
+    yield stubs
     objreg.delete('tabbed-browser', scope='window', window=0)
+    objreg.delete('tabbed-browser', scope='window', window=1)
 
 
 @pytest.yield_fixture
