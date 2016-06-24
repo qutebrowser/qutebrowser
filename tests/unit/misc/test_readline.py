@@ -234,6 +234,8 @@ def test_rl_kill_line(lineedit, bridge, text, deleted, rest):
 @pytest.mark.parametrize('text, deleted, rest', [
     ('test delete|foobar', 'delete', 'test |foobar'),
     ('test delete |foobar', 'delete ', 'test |foobar'),
+    ('open -t github.com/foo/bar  |', 'github.com/foo/bar  ', 'open -t |'),
+    ('open -t |github.com/foo/bar', '-t ', 'open |github.com/foo/bar'),
     fixme(('test del<ete>foobar', 'delete', 'test |foobar')),
     ('test del<ete >foobar', 'del', 'test |ete foobar'),  # wrong
 ])
