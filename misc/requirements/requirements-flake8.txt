@@ -20,7 +20,7 @@ packaging==16.7
 pbr==1.10.0
 pep257==0.7.0  # still needed by flake8-docstrings but ignored
 pep8==1.7.0
-pep8-naming==0.3.3
+pep8-naming==0.4.1
 pycodestyle==2.0.0
 pydocstyle==1.0.0
 pyflakes==1.2.3
