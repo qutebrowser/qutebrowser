@@ -207,12 +207,11 @@ def savefile_open(filename, binary=False, encoding='utf-8'):
         else:
             new_f = io.TextIOWrapper(PyQIODevice(f), encoding=encoding)
         yield new_f
+        new_f.flush()
     except:
         f.cancelWriting()
         cancelled = True
         raise
-    else:
-        new_f.flush()
     finally:
         commit_ok = f.commit()
         if not commit_ok and not cancelled:
