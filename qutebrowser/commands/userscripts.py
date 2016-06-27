@@ -376,6 +376,7 @@ def run(cmd, *args, win_id, env, verbose=False):
     user_agent = config.get('network', 'user-agent')
     if user_agent is not None:
         env['QUTE_USER_AGENT'] = user_agent
+    env['QUTE_CONFIG_DIR'] = standarddir.config()
     cmd_path = os.path.expanduser(cmd)
 
     # if cmd is not given as an absolute path, look it up
