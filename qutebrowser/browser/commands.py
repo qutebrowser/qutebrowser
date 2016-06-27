@@ -1981,8 +1981,8 @@ class CommandDispatcher:
         Args:
             count: Which numeric argument to give the command.
         """
-        if runners._last_command is None:
+        if runners.last_command is None:
             raise cmdexc.CommandError("You didn't do anything yet.")
         runners.CommandRunner(self._win_id).run(
-            runners._last_command[0],
-            count if count is not None else runners._last_command[1])
+            runners.last_command[0],
+            count if count is not None else runners.last_command[1])
