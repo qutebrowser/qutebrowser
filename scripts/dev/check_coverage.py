@@ -143,6 +143,9 @@ PERFECT_FILES = [
         'qutebrowser/utils/error.py'),
     ('tests/unit/utils/test_typing.py',
         'qutebrowser/utils/typing.py'),
+    ('tests/unit/completion/test_models.py',
+        'qutebrowser/completion/models/base.py'),
+
 ]
 
 
