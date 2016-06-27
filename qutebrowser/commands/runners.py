@@ -287,9 +287,9 @@ class CommandRunner(QObject):
                 result.cmd.run(self._win_id, args)
 
             if (result.cmdline[0] != 'repeat-command' and
-                (result.cmd._modes == None or
+                (result.cmd._modes is None or
                  usertypes.KeyMode.normal in result.cmd._modes) and
-                (result.cmd._not_modes == None or
+                (result.cmd._not_modes is None or
                  usertypes.KeyMode.normal not in result.cmd._not_modes)):
                 global _last_command
                 _last_command = (text, count)
