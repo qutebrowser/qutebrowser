@@ -388,7 +388,6 @@ class TestSavefileOpen:
     def test_mock_open_error(self, qsavefile_mock):
         """Test with a mock and a failing open()."""
         qsavefile_mock.open.return_value = False
-        qsavefile_mock.errorString.return_value = "Hello World"
 
         with pytest.raises(OSError) as excinfo:
             with qtutils.savefile_open('filename'):
@@ -396,7 +395,7 @@ class TestSavefileOpen:
 
         qsavefile_mock.open.assert_called_once_with(QIODevice.WriteOnly)
         qsavefile_mock.cancelWriting.assert_called_once_with()
-        assert str(excinfo.value) == "Hello World"
+        assert str(excinfo.value) == "Open failed!"
 
     def test_mock_exception(self, qsavefile_mock):
         """Test with a mock and an exception in the block."""
@@ -477,8 +476,20 @@ class TestSavefileOpen:
             with qtutils.savefile_open(str(filename)):
                 pass
         errors = ["Filename refers to a directory",  # Qt >= 5.4
+                  "Open failed!",
                   "Commit failed!"]  # older Qt versions
         assert str(excinfo.value) in errors
+        assert tmpdir.listdir() == [filename]
+
+    def test_failing_flush(self, tmpdir):
+        """Test with the file being closed before flushing."""
+        filename = tmpdir / 'foo'
+        with pytest.raises(OSError) as excinfo:
+            with qtutils.savefile_open(str(filename), binary=True) as f:
+                f.write(b'Hello')
+                f.dev.commit()  # provoke failing flush
+
+        assert str(excinfo.value) == "Flush failed!"
         assert tmpdir.listdir() == [filename]
 
     def test_failing_commit(self, tmpdir):
@@ -487,10 +498,10 @@ class TestSavefileOpen:
         with pytest.raises(OSError) as excinfo:
             with qtutils.savefile_open(str(filename), binary=True) as f:
                 f.write(b'Hello')
-                f.dev.commit()  # provoke failing "real" commit
+                f.dev.cancelWriting()  # provoke failing commit
 
         assert str(excinfo.value) == "Commit failed!"
-        assert tmpdir.listdir() == [filename]
+        assert tmpdir.listdir() == []
 
     def test_line_endings(self, tmpdir):
         """Make sure line endings are translated correctly.
