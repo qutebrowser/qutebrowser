@@ -477,6 +477,20 @@ class ExceptionCrashDialog(_CrashDialog):
         else:
             self.reject()
 
+    @pyqtSlot()
+    def on_report_clicked(self):
+        """Ignore reports on QtWebEngine branch.
+
+        FIXME: Remove this when we're done!
+        """
+        title = "Crash reports disabled with QtWebEngine!"
+        text = ("You're using the qtwebengine branch which is not intended "
+                "for general usage yet. Crash reports on that branch have "
+                "been disabled.")
+        box = msgbox.msgbox(parent=self, title=title, text=text,
+                            icon=QMessageBox.Critical)
+        box.finished.connect(self.finish)
+
 
 class FatalCrashDialog(_CrashDialog):
 
