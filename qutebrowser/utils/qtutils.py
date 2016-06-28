@@ -197,8 +197,6 @@ def deserialize_stream(stream, obj):
 def savefile_open(filename, binary=False, encoding='utf-8'):
     """Context manager to easily use a QSaveFile."""
     f = QSaveFile(filename)
-    open_ok = False
-    caller_finished = False
     cancelled = False
     try:
         open_ok = f.open(QIODevice.WriteOnly)
@@ -209,17 +207,11 @@ def savefile_open(filename, binary=False, encoding='utf-8'):
         else:
             new_f = io.TextIOWrapper(PyQIODevice(f), encoding=encoding)
         yield new_f
-        caller_finished = True
         new_f.flush()
     except:
         f.cancelWriting()
         cancelled = True
-        if not open_ok:
-            raise QtOSError(f, msg="Open failed!")
-        elif not caller_finished:
-            raise
-        else:
-            raise QtOSError(f, msg="Flush failed!")
+        raise
     finally:
         commit_ok = f.commit()
         if not commit_ok and not cancelled:
