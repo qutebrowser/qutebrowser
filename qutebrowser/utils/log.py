@@ -316,6 +316,10 @@ def qt_message_handler(msg_type, context, msg):
             'QNetworkSession::State) to '
             'QNetworkReplyHttpImpl::_q_networkSessionStateChanged('
             'QNetworkSession::State)',
+        # https://bugreports.qt.io/browse/QTBUG-53989
+        "Image of format '' blocked because it is not considered safe. If you "
+            "are sure it is safe to do so, you can white-list the format by "
+            "setting the environment variable QTWEBKIT_IMAGEFORMAT_WHITELIST=",
     ]
     if sys.platform == 'darwin':
         suppressed_msgs += [
