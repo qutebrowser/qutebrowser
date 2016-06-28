@@ -35,9 +35,9 @@ def _check_marks(quteproc, quickmarks, expected, contains):
         contains: True if the line should be there, False otherwise.
     """
     if quickmarks:
-        mark_file = os.path.join(quteproc.basedir, 'config', 'quickmarks')
+        mark_file = os.path.join(quteproc.basedir, 'data', 'quickmarks')
     else:
-        mark_file = os.path.join(quteproc.basedir, 'config', 'bookmarks',
+        mark_file = os.path.join(quteproc.basedir, 'data', 'bookmarks',
                                  'urls')
 
     quteproc.clear_data()  # So we don't match old messages
