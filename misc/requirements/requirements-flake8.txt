@@ -2,7 +2,7 @@
 
 ebb-lint==0.4.4
 flake8==2.6.2
-flake8-copyright==0.1.1
+flake8-copyright==0.2.0
 flake8-debugger==1.4.0
 flake8-deprecated==1.0
 flake8-docstrings==0.2.8
