@@ -190,6 +190,10 @@ Feature: Scrolling
         And I run :scroll-perc 20
         Then no crash should happen
 
+    Scenario: :scroll-perc with count and argument
+        When I run :scroll-perc 0 with count 50
+        Then the page should be scrolled vertically
+
     ## :scroll-page
 
     Scenario: Scrolling down with :scroll-page
