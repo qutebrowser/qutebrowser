@@ -292,7 +292,8 @@ class CommandRunner(QObject):
                 (result.cmd._not_modes is None or
                  usertypes.KeyMode.normal not in result.cmd._not_modes)):
                 global last_command
-                last_command = (text, count)
+                last_command = (self._parse_count(text)[1],
+                                count if count is not None else result.count)
 
     @pyqtSlot(str, int)
     @pyqtSlot(str)
