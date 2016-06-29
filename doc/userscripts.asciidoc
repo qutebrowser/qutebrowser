@@ -33,6 +33,7 @@ The following environment variables will be set when a userscript is launched:
 - `QUTE_FIFO`: The FIFO or file to write commands to.
 - `QUTE_HTML`: Path of a file containing the HTML source of the current page.
 - `QUTE_TEXT`: Path of a file containing the plaintext of the current page.
+- `QUTE_CONFIG_DIR`: Path of the directory containing qutebrowser's configuration.
 
 In `command` mode:
 
