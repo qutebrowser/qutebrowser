@@ -293,12 +293,13 @@ class FakeCommand:
     """A simple command stub which has a description."""
 
     def __init__(self, name='', desc='', hide=False, debug=False,
-                 deprecated=False):
+                 deprecated=False, completion=None):
         self.desc = desc
         self.name = name
         self.hide = hide
         self.debug = debug
         self.deprecated = deprecated
+        self.completion = completion
 
 
 class FakeTimer(QObject):
@@ -357,6 +358,34 @@ class FakeConfigType:
         # normally valid_values would be a ValidValues, but for simplicity of
         # testing this can be a simple list: [(val, desc), (val, desc), ...]
         self.complete = lambda: [(val, '') for val in valid_values]
+
+
+class FakeStatusbarCommand(QObject):
+
+    """Stub for the statusbar command prompt."""
+
+    got_cmd = pyqtSignal(str)
+    clear_completion_selection = pyqtSignal()
+    hide_completion = pyqtSignal()
+    update_completion = pyqtSignal()
+    show_cmd = pyqtSignal()
+    hide_cmd = pyqtSignal()
+    textChanged = pyqtSignal()
+
+    def __init__(self, parent=None, name=None):
+        super().__init__(parent)
+        self._cursor_pos = 0
+        self._text = ""
+        self.cursorPosition = lambda: self._cursor_pos
+        self.text = lambda: self._text
+        self.prefix = lambda: self._text[0]
+        self.setFocus = lambda: None
+
+    def setText(self, x):
+        self._text = x
+
+    def setCursorPosition(self, x):
+        self._cursor_pos = x
 
 
 class ConfigStub(QObject):
