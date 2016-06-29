@@ -28,5 +28,5 @@ pytest-rerunfailures==2.0.0
 pytest-travis-fold==1.2.0
 pytest-xvfb==0.2.0
 six==1.10.0
-vulture==0.8.1
+vulture==0.9
 Werkzeug==0.11.10

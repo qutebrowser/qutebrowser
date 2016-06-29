@@ -138,26 +138,3 @@ def test_unused_method_camelcase(vultdir):
         Foo()
     """)
     assert not vultdir.run()
-
-
-@pytest.mark.xfail(
-    True, reason="https://bitbucket.org/jendrikseipp/vulture/issues/10/")
-def test_globals_bug(vultdir):
-    """Vulture has a bug where it detects globals as unused.
-
-    When this test starts XPASSing, we know it's been fixed.
-    """
-    vultdir.makepyfile(foo="""
-        import bar
-
-        bar.attr = True
-        bar.blub()
-    """)
-    vultdir.makepyfile(bar="""
-        attr = False
-
-        def blub():
-            if attr:
-                print("Hey!")
-    """)
-    assert not vultdir.run()
