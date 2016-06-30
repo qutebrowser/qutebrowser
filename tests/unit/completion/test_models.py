@@ -30,6 +30,89 @@ from qutebrowser.completion.models import miscmodels, urlmodel, configmodel
 from qutebrowser.browser.webkit import history
 
 
+def _get_completions(model):
+    """Collect all the completion entries of a model, organized by category.
+
+    The result is a list of form:
+    [
+        (CategoryName: [(name, desc, misc), ...]),
+        (CategoryName: [(name, desc, misc), ...]),
+        ...
+    ]
+    """
+    completions = []
+    for i in range(0, model.rowCount()):
+        category = model.item(i)
+        entries = []
+        for j in range(0, category.rowCount()):
+            name = category.child(j, 0)
+            desc = category.child(j, 1)
+            misc = category.child(j, 2)
+            entries.append((name.text(), desc.text(), misc.text()))
+        completions.append((category.text(), entries))
+    return completions
+
+
+def _patch_cmdutils(monkeypatch, stubs, symbol):
+    """Patch the cmdutils module to provide fake commands."""
+    cmd_utils = stubs.FakeCmdUtils({
+        'stop': stubs.FakeCommand(name='stop', desc='stop qutebrowser'),
+        'drop': stubs.FakeCommand(name='drop', desc='drop all user data'),
+        'roll': stubs.FakeCommand(name='roll', desc='never gonna give you up'),
+        'hide': stubs.FakeCommand(name='hide', hide=True),
+        'depr': stubs.FakeCommand(name='depr', deprecated=True),
+    })
+    monkeypatch.setattr(symbol, cmd_utils)
+
+
+def _patch_configdata(monkeypatch, stubs, symbol):
+    """Patch the configdata module to provide fake data."""
+    data = collections.OrderedDict([
+        ('general', stubs.FakeConfigSection(
+            ('time',
+                stubs.FakeSettingValue(('fast', 'slow'), 'slow'),
+                'Is an illusion.\n\nLunchtime doubly so.'),
+            ('volume',
+                stubs.FakeSettingValue(('0', '11'), '11'),
+                'Goes to 11'))),
+        ('ui', stubs.FakeConfigSection(
+            ('gesture',
+                stubs.FakeSettingValue(('on', 'off'), 'off'),
+                'Waggle your hands to control qutebrowser'),
+            ('mind',
+                stubs.FakeSettingValue(('on', 'off'), 'off'),
+                'Enable mind-control ui (experimental)'),
+            ('voice',
+                stubs.FakeSettingValue(('on', 'off'), 'off'),
+                'Whether to respond to voice commands'))),
+    ])
+    monkeypatch.setattr(symbol, data)
+
+
+def _patch_config_section_desc(monkeypatch, stubs, symbol):
+    """Patch the configdata module to provide fake SECTION_DESC."""
+    section_desc = {
+        'general': 'General/miscellaneous options.',
+        'ui': 'General options related to the user interface.',
+    }
+    monkeypatch.setattr(symbol, section_desc)
+
+
+def _mock_view_index(model, category_idx, child_idx):
+    """Create a tree view from a model and set the current index.
+
+    Args:
+        model: model to create a fake view for.
+        category_idx: index of the category to select.
+        child_idx: index of the child item under that category to select.
+    """
+    view = QTreeView()
+    view.setModel(model)
+    idx = model.indexFromItem(model.item(category_idx).child(child_idx))
+    view.setCurrentIndex(idx)
+    return view
+
+
 @pytest.fixture
 def quickmarks(quickmark_manager_stub):
     """Pre-populate the quickmark-manager stub with some quickmarks."""
@@ -303,86 +386,3 @@ def test_setting_value_completion(monkeypatch, stubs, config_stub):
             ('11', '', ''),
         ])
     ]
-
-
-def _get_completions(model):
-    """Collect all the completion entries of a model, organized by category.
-
-    The result is a list of form:
-    [
-        (CategoryName: [(name, desc, misc), ...]),
-        (CategoryName: [(name, desc, misc), ...]),
-        ...
-    ]
-    """
-    completions = []
-    for i in range(0, model.rowCount()):
-        category = model.item(i)
-        entries = []
-        for j in range(0, category.rowCount()):
-            name = category.child(j, 0)
-            desc = category.child(j, 1)
-            misc = category.child(j, 2)
-            entries.append((name.text(), desc.text(), misc.text()))
-        completions.append((category.text(), entries))
-    return completions
-
-
-def _patch_cmdutils(monkeypatch, stubs, symbol):
-    """Patch the cmdutils module to provide fake commands."""
-    cmd_utils = stubs.FakeCmdUtils({
-        'stop': stubs.FakeCommand(name='stop', desc='stop qutebrowser'),
-        'drop': stubs.FakeCommand(name='drop', desc='drop all user data'),
-        'roll': stubs.FakeCommand(name='roll', desc='never gonna give you up'),
-        'hide': stubs.FakeCommand(name='hide', hide=True),
-        'depr': stubs.FakeCommand(name='depr', deprecated=True),
-    })
-    monkeypatch.setattr(symbol, cmd_utils)
-
-
-def _patch_configdata(monkeypatch, stubs, symbol):
-    """Patch the configdata module to provide fake data."""
-    data = collections.OrderedDict([
-        ('general', stubs.FakeConfigSection(
-            ('time',
-                stubs.FakeSettingValue(('fast', 'slow'), 'slow'),
-                'Is an illusion.\n\nLunchtime doubly so.'),
-            ('volume',
-                stubs.FakeSettingValue(('0', '11'), '11'),
-                'Goes to 11'))),
-        ('ui', stubs.FakeConfigSection(
-            ('gesture',
-                stubs.FakeSettingValue(('on', 'off'), 'off'),
-                'Waggle your hands to control qutebrowser'),
-            ('mind',
-                stubs.FakeSettingValue(('on', 'off'), 'off'),
-                'Enable mind-control ui (experimental)'),
-            ('voice',
-                stubs.FakeSettingValue(('on', 'off'), 'off'),
-                'Whether to respond to voice commands'))),
-    ])
-    monkeypatch.setattr(symbol, data)
-
-
-def _patch_config_section_desc(monkeypatch, stubs, symbol):
-    """Patch the configdata module to provide fake SECTION_DESC."""
-    section_desc = {
-        'general': 'General/miscellaneous options.',
-        'ui': 'General options related to the user interface.',
-    }
-    monkeypatch.setattr(symbol, section_desc)
-
-
-def _mock_view_index(model, category_idx, child_idx):
-    """Create a tree view from a model and set the current index.
-
-    Args:
-        model: model to create a fake view for.
-        category_idx: index of the category to select.
-        child_idx: index of the child item under that category to select.
-    """
-    view = QTreeView()
-    view.setModel(model)
-    idx = model.indexFromItem(model.item(category_idx).child(child_idx))
-    view.setCurrentIndex(idx)
-    return view
