@@ -220,8 +220,8 @@ def pytest_bdd_apply_tag(tag, function):
         hex_version = (major << 16) | (minor << 8) | patch
         mark = pytest.mark.skipif(not op(PYQT_VERSION, hex_version),
                                   reason='Needs ' + tag)
-    # else:
-        raise ValueError("Invalid package {}".format(package))
+    else:
+        raise ValueError("Invalid package {!r}".format(package))
 
     mark(function)
     return True
