@@ -1972,17 +1972,3 @@ class CommandDispatcher:
             key: mark identifier; capital indicates a global mark
         """
         self._tabbed_browser.jump_mark(key)
-
-    @cmdutils.register(instance='command-dispatcher', scope='window')
-    @cmdutils.argument('count', count=True)
-    def repeat_command(self, count=None):
-        """Repeat the last executed command, like '.' in vi.
-
-        Args:
-            count: Which numeric argument to give the command.
-        """
-        if runners.last_command is None:
-            raise cmdexc.CommandError("You didn't do anything yet.")
-        runners.CommandRunner(self._win_id).run(
-            runners.last_command[0],
-            count if count is not None else runners.last_command[1])

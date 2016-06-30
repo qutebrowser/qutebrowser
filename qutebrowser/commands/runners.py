@@ -32,7 +32,7 @@ from qutebrowser.misc import split
 
 ParseResult = collections.namedtuple('ParseResult', ['cmd', 'args', 'cmdline',
                                                      'count'])
-last_command = None
+last_command = {}
 
 
 def _current_url(tabbed_browser):
@@ -286,11 +286,14 @@ class CommandRunner(QObject):
             else:
                 result.cmd.run(self._win_id, args)
 
+            mode_manager = objreg.get('mode-manager', scope='window',
+                                      window=self._win_id)
             if (result.cmdline[0] != 'repeat-command' and
-                    result.cmd.mode_allowed(usertypes.KeyMode.normal)):
+                    result.cmd.mode_allowed(mode_manager.mode)):
                 global last_command
-                last_command = (self._parse_count(text)[1],
-                                count if count is not None else result.count)
+                last_command[mode_manager.mode] = (
+                    self._parse_count(text)[1],
+                    count if count is not None else result.count)
 
     @pyqtSlot(str, int)
     @pyqtSlot(str)
