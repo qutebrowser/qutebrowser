@@ -21,6 +21,7 @@ Added
 ~~~~~
 
 - New `{host}` replacement for tab- and window titles which evaluates to the current host.
+- Add new default binding `;t` for `:hint input`.
 
 Changed
 ~~~~~~~
@@ -53,6 +54,7 @@ Added
 - New `hints -> find-implementation` to select which implementation (JS/Python)
   should be used to find hints on a page. The `javascript` implementation is
   better, but slower.
+- New `inputs` group for `:hint` to hint text input fields.
 
 Changed
 ~~~~~~~

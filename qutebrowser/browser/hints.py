@@ -772,6 +772,7 @@ class HintManager(QObject):
                 - `all`: All clickable elements.
                 - `links`: Only links.
                 - `images`: Only images.
+                - `inputs`: Only input fields.
 
             target: What to do with the selected element.
 

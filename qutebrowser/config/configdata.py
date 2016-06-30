@@ -1472,6 +1472,7 @@ KEY_DATA = collections.OrderedDict([
         ('hint --rapid links tab-bg', [';r']),
         ('hint --rapid links window', [';R']),
         ('hint links download', [';d']),
+        ('hint inputs', [';t']),
         ('scroll left', ['h']),
         ('scroll down', ['j']),
         ('scroll up', ['k']),

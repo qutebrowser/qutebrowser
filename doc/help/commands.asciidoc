@@ -308,6 +308,7 @@ Start hinting.
  - `all`: All clickable elements.
  - `links`: Only links.
  - `images`: Only images.
+ - `inputs`: Only input fields.
  
 
 
