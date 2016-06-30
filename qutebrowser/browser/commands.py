@@ -600,7 +600,7 @@ class CommandDispatcher:
 
         if perc is None and count is None:
             perc = 100
-        elif perc is None:
+        elif count is not None:
             perc = count
 
         orientation = Qt.Horizontal if horizontal else Qt.Vertical
