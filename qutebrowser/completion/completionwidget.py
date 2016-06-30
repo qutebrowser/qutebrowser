@@ -164,7 +164,8 @@ class CompletionView(QTreeView):
             if w <= widths_max[i]:
                 # let other columns reclaim the freed space
                 for j in remaining_indexes:
-                    widths_max[j] += widths_max[j] / (partial_width - widths_max[i]) * (widths_max[i] - w)
+                    if partial_width > widths_max[i]:
+                        widths_max[j] += widths_max[j] / (partial_width - widths_max[i]) * (widths_max[i] - w)
             else:
                 w = widths_max[i]
             pixel_widths[i] = w
