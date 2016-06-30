@@ -668,21 +668,30 @@ class TabbedBrowser(tabwidget.TabWidget):
         Args:
             key: mark identifier; capital indicates a global mark
         """
-        # consider urls that differ only in fragment to be identical
-        urlkey = self.current_url().adjusted(QUrl.RemoveFragment)
+        try:
+            # consider urls that differ only in fragment to be identical
+            urlkey = self.current_url().adjusted(QUrl.RemoveFragment)
+        except qtutils.QtValueError:
+            urlkey = None
+
         frame = self.currentWidget().page().currentFrame()
 
-        if key.isupper() and key in self._global_marks:
-            point, url = self._global_marks[key]
+        if key.isupper():
+            if key in self._global_marks:
+                point, url = self._global_marks[key]
 
-            @pyqtSlot(bool)
-            def callback(ok):
-                if ok:
-                    self.cur_load_finished.disconnect(callback)
-                    frame.setScrollPosition(point)
+                @pyqtSlot(bool)
+                def callback(ok):
+                    if ok:
+                        self.cur_load_finished.disconnect(callback)
+                        frame.setScrollPosition(point)
 
-            self.openurl(url, newtab=False)
-            self.cur_load_finished.connect(callback)
+                self.openurl(url, newtab=False)
+                self.cur_load_finished.connect(callback)
+            else:
+                message.error(self._win_id, "Mark {} is not set".format(key))
+        elif urlkey is None:
+            message.error(self._win_id, "Current URL is invalid!")
         elif urlkey in self._local_marks and key in self._local_marks[urlkey]:
             point = self._local_marks[urlkey][key]
 

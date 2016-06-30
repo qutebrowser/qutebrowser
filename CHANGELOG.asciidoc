@@ -30,6 +30,12 @@ Changed
   `gg` can be used with a count.
 - Aliases can now use `;;` to have an alias which executed multiple commands.
 
+Fixed
+-----
+
+- Using `:jump-mark` (e.g. `''`) when the current URL is invalid doesn't crash
+  anymore.
+
 v0.7.0
 ------
 
