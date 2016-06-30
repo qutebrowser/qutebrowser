@@ -26,7 +26,7 @@ from PyQt5.QtCore import pyqtSlot, QUrl, QObject
 
 from qutebrowser.config import config, configexc
 from qutebrowser.commands import cmdexc, cmdutils
-from qutebrowser.utils import message, log, objreg, qtutils, usertypes
+from qutebrowser.utils import message, log, objreg, qtutils
 from qutebrowser.misc import split
 
 
@@ -290,7 +290,6 @@ class CommandRunner(QObject):
                                       window=self._win_id)
             if (result.cmdline[0] != 'repeat-command' and
                     result.cmd.mode_allowed(mode_manager.mode)):
-                global last_command
                 last_command[mode_manager.mode] = (
                     self._parse_count(text)[1],
                     count if count is not None else result.count)
