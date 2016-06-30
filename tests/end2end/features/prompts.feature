@@ -40,7 +40,7 @@ Feature: Prompts
         And I run :leave-mode
         Then the javascript message "confirm reply: false" should be logged
 
-    @pyqt531_or_newer
+    @pyqt>=5.3.1
     Scenario: Javascript prompt
         When I open data/prompt/jsprompt.html
         And I click the button
@@ -49,7 +49,7 @@ Feature: Prompts
         And I run :prompt-accept
         Then the javascript message "Prompt reply: prompt test" should be logged
 
-    @pyqt531_or_newer
+    @pyqt>=5.3.1
     Scenario: Rejected javascript prompt
         When I open data/prompt/jsprompt.html
         And I click the button
@@ -61,7 +61,7 @@ Feature: Prompts
 
     # Shift-Insert with prompt (issue 1299)
 
-    @pyqt531_or_newer
+    @pyqt>=5.3.1
     Scenario: Pasting via shift-insert in prompt mode
         When selection is supported
         And I put "insert test" into the primary selection
@@ -72,7 +72,7 @@ Feature: Prompts
         And I run :prompt-accept
         Then the javascript message "Prompt reply: insert test" should be logged
 
-    @pyqt531_or_newer
+    @pyqt>=5.3.1
     Scenario: Using content -> ignore-javascript-prompt
         When I set content -> ignore-javascript-prompt to true
         And I open data/prompt/jsprompt.html

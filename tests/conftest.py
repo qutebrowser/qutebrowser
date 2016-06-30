@@ -21,9 +21,11 @@
 
 """The qutebrowser test suite conftest file."""
 
+import re
 import os
 import sys
 import warnings
+import operator
 
 import pytest
 import hypothesis
@@ -34,6 +36,8 @@ from helpers.messagemock import message_mock
 from helpers.fixtures import *  # pylint: disable=wildcard-import
 
 from PyQt5.QtCore import PYQT_VERSION
+
+from qutebrowser.utils import qtutils
 
 
 # Set hypothesis settings
@@ -54,8 +58,6 @@ def _apply_platform_markers(item):
             "Can't be run when frozen"),
         ('frozen', not getattr(sys, 'frozen', False),
             "Can only run when frozen"),
-        ('pyqt531_or_newer', PYQT_VERSION < 0x050301,
-            "Needs PyQt 5.3.1 or newer"),
         ('ci', 'CI' not in os.environ, "Only runs on CI."),
     ]
 
@@ -183,3 +185,43 @@ def pytest_sessionfinish(exitstatus):
     status_file = os.path.join(cache_dir, 'pytest_status')
     with open(status_file, 'w', encoding='ascii') as f:
         f.write(str(exitstatus))
+
+
+def pytest_bdd_apply_tag(tag, function):
+    version_re = re.compile("""
+        (?P<package>qt|pyqt)
+        (?P<operator>==|>|>=|<|<=|!=)
+        (?P<version>\d+\.\d+\.\d+)
+    """, re.VERBOSE)
+
+    match = version_re.match(tag)
+    if not match:
+        # Use normal tag mapping
+        return None
+
+    operators = {
+        '==': operator.eq,
+        '>': operator.gt,
+        '<': operator.lt,
+        '>=': operator.ge,
+        '<=': operator.le,
+        '!=': operator.ne,
+    }
+
+    package = match.group('package')
+    op = operators[match.group('operator')]
+    version = match.group('version')
+
+    if package == 'qt':
+        mark = pytest.mark.skipif(qtutils.version_check(version, op),
+                                  reason='Needs ' + tag)
+    elif package == 'pyqt':
+        major, minor, patch = [int(e) for e in version.split('.')]
+        hex_version = (major << 16) | (minor << 8) | patch
+        mark = pytest.mark.skipif(not op(PYQT_VERSION, hex_version),
+                                  reason='Needs ' + tag)
+    # else:
+        raise ValueError("Invalid package {}".format(package))
+
+    mark(function)
+    return True
