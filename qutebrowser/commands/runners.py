@@ -85,8 +85,7 @@ class CommandRunner(QObject):
 
         Args:
             text: The text to parse.
-            default : Default value to return when alias was not found. By
-                      default it is set to None.
+            default : Default value to return when alias was not found.
 
         Return:
             The new command string if an alias was found. Default value
