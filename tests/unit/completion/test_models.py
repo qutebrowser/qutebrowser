@@ -27,6 +27,7 @@ from PyQt5.QtCore import QUrl
 from PyQt5.QtWidgets import QTreeView
 
 from qutebrowser.completion.models import miscmodels, urlmodel, configmodel
+from qutebrowser.browser.webkit import history
 
 
 @pytest.fixture
@@ -55,13 +56,13 @@ def bookmarks(bookmark_manager_stub):
 def web_history(stubs, web_history_stub):
     """Pre-populate the web-history stub with some history entries."""
     web_history_stub.history_dict = collections.OrderedDict([
-        ('http://qutebrowser.org', stubs.FakeHistoryEntry(
+        ('http://qutebrowser.org', history.Entry(
             datetime(2015, 9, 5).timestamp(),
             QUrl('http://qutebrowser.org'), 'qutebrowser | qutebrowser')),
-        ('https://python.org', stubs.FakeHistoryEntry(
+        ('https://python.org', history.Entry(
             datetime(2016, 3, 8).timestamp(),
             QUrl('https://python.org'), 'Welcome to Python.org')),
-        ('https://github.com', stubs.FakeHistoryEntry(
+        ('https://github.com', history.Entry(
             datetime(2016, 5, 1).timestamp(),
             QUrl('https://github.com'), 'GitHub')),
     ])

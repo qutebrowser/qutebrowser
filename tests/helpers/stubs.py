@@ -29,7 +29,7 @@ from PyQt5.QtNetwork import (QNetworkRequest, QAbstractNetworkCache,
                              QNetworkCacheMetaData)
 from PyQt5.QtWidgets import QCommonStyle, QWidget
 
-from qutebrowser.browser.webkit import webview
+from qutebrowser.browser.webkit import webview, history
 from qutebrowser.config import configexc
 from qutebrowser.mainwindow import mainwindow
 
@@ -452,17 +452,6 @@ class KeyConfigStub:
         self.bindings[section] = bindings
 
 
-class FakeHistoryEntry:
-
-    """Mock for webkit.history.Entry."""
-
-    def __init__(self, atime, url, title, redirect=False):
-        self.atime = float(atime)
-        self.url = url
-        self.title = title
-        self.redirect = redirect
-
-
 class UrlMarkManagerStub(QObject):
 
     """Stub for the quickmark-manager or bookmark-manager object."""
@@ -498,7 +487,7 @@ class WebHistoryStub(QObject):
 
     """Stub for the web-history object."""
 
-    add_completion_item = pyqtSignal(FakeHistoryEntry)
+    add_completion_item = pyqtSignal(history.Entry)
     cleared = pyqtSignal()
 
     def __init__(self, parent=None):
