@@ -189,6 +189,13 @@ def pytest_sessionfinish(exitstatus):
 
 if not getattr(sys, 'frozen', False):
     def pytest_bdd_apply_tag(tag, function):
+        """Handle tags like pyqt>=5.3.1 for BDD tests.
+
+        This transforms e.g. pyqt>=5.3.1 into an appropriate @pytest.mark.skip
+        marker, and falls back to pytest-bdd's implementation for all other
+        casesinto an appropriate @pytest.mark.skip marker, and falls back to
+        pytest-bdd's implementation for all other cases
+        """
         version_re = re.compile(r"""
             (?P<package>qt|pyqt)
             (?P<operator>==|>|>=|<|<=|!=)
