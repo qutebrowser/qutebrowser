@@ -22,6 +22,12 @@ Added
 
 - New `{host}` replacement for tab- and window titles which evaluates to the current host.
 
+Changed
+~~~~~~~
+
+- `:scroll-perc` now prefers a count over the argument given to it, which means
+  `gg` can be used with a count.
+
 v0.7.0
 ------
 
