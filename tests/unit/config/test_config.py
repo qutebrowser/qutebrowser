@@ -306,7 +306,7 @@ class TestDefaultConfig:
         runner = runners.CommandRunner(win_id=0)
         for sectname in configdata.KEY_DATA:
             for cmd in conf.get_bindings_for(sectname).values():
-                runner.parse(cmd, aliases=False)
+                runner.parse(cmd)
 
     def test_upgrade_version(self):
         """Fail when the qutebrowser version changed.

@@ -43,10 +43,20 @@ class TestCommandRunner:
             with pytest.raises(cmdexc.NoSuchCommandError):
                 list(cr.parse_all(cmdline_test.cmd, aliases=False))
 
+    def test_parse_all_with_alias(self, cmdline_test, config_stub):
+        config_stub.data = {'aliases': {'alias_name': cmdline_test.cmd}}
+
+        cr = runners.CommandRunner(0)
+        if cmdline_test.valid:
+            assert len(list(cr.parse_all("alias_name"))) > 0
+        else:
+            with pytest.raises(cmdexc.NoSuchCommandError):
+                list(cr.parse_all("alias_name"))
+
     def test_parse_with_count(self):
         """Test parsing of commands with a count."""
         cr = runners.CommandRunner(0)
-        result = cr.parse('20:scroll down', aliases=False)
+        result = cr.parse('20:scroll down')
         assert result.cmd.name == 'scroll'
         assert result.count == 20
         assert result.args == ['down']
@@ -58,5 +68,5 @@ class TestCommandRunner:
         The same with it being disabled is tested by test_parse_all.
         """
         cr = runners.CommandRunner(0, partial_match=True)
-        result = cr.parse('message-i', aliases=False)
+        result = cr.parse('message-i')
         assert result.cmd.name == 'message-info'

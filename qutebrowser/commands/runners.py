@@ -26,7 +26,7 @@ from PyQt5.QtCore import pyqtSlot, QUrl, QObject
 
 from qutebrowser.config import config, configexc
 from qutebrowser.commands import cmdexc, cmdutils
-from qutebrowser.utils import message, log, objreg, qtutils
+from qutebrowser.utils import message, objreg, qtutils
 from qutebrowser.misc import split
 
 
@@ -80,21 +80,23 @@ class CommandRunner(QObject):
         self._partial_match = partial_match
         self._win_id = win_id
 
-    def _get_alias(self, text):
+    def _get_alias(self, text, default=None):
         """Get an alias from the config.
 
         Args:
             text: The text to parse.
+            default : Default value to return when alias was not found. By
+                      default it is set to None.
 
         Return:
-            None if no alias was found.
-            The new command string if an alias was found.
+            The new command string if an alias was found. Default value
+            otherwise.
         """
         parts = text.strip().split(maxsplit=1)
         try:
             alias = config.get('aliases', parts[0])
         except (configexc.NoOptionError, configexc.NoSectionError):
-            return None
+            return default
         try:
             new_cmd = '{} {}'.format(alias, parts[1])
         except IndexError:
@@ -103,7 +105,7 @@ class CommandRunner(QObject):
             new_cmd += ' '
         return new_cmd
 
-    def parse_all(self, text, *args, **kwargs):
+    def parse_all(self, text, aliases=True, *args, **kwargs):
         """Split a command on ;; and parse all parts.
 
         If the first command in the commandline is a non-split one, it only
@@ -111,11 +113,15 @@ class CommandRunner(QObject):
 
         Args:
             text: Text to parse.
+            aliases: Whether to handle aliases.
             *args/**kwargs: Passed to parse().
 
         Yields:
             ParseResult tuples.
         """
+        if aliases:
+            text = self._get_alias(text, text)
+
         if ';;' in text:
             # Get the first command and check if it doesn't want to have ;;
             # split.
@@ -159,12 +165,11 @@ class CommandRunner(QObject):
             cmdline = text.split()
         return ParseResult(cmd=None, args=None, cmdline=cmdline, count=count)
 
-    def parse(self, text, *, aliases=True, fallback=False, keep=False):
+    def parse(self, text, *, fallback=False, keep=False):
         """Split the commandline text into command and arguments.
 
         Args:
             text: Text to parse.
-            aliases: Whether to handle aliases.
             fallback: Whether to do a fallback splitting when the command was
                       unknown.
             keep: Whether to keep special chars and whitespace
@@ -177,13 +182,6 @@ class CommandRunner(QObject):
 
         if not cmdstr and not fallback:
             raise cmdexc.NoSuchCommandError("No command given")
-
-        if aliases:
-            new_cmd = self._get_alias(text)
-            if new_cmd is not None:
-                log.commands.debug("Re-parsing with '{}'.".format(new_cmd))
-                return self.parse(new_cmd, aliases=False, fallback=fallback,
-                                  keep=keep)
 
         if self._partial_match:
             cmdstr = self._completion_match(cmdstr)
