@@ -181,7 +181,7 @@ class CompletionView(QTreeView):
         log.completion.debug("occupied width = {}".format(sum(pixel_widths)))
 
         for i, w in enumerate(pixel_widths):
-            self.setColumnWidth(i, w)
+            self.setColumnWidth(i, int(w))
 
     def _next_idx(self, upwards):
         """Get the previous/next QModelIndex displayed in the view.
