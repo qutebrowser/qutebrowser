@@ -188,7 +188,7 @@ def pytest_sessionfinish(exitstatus):
 
 
 def pytest_bdd_apply_tag(tag, function):
-    version_re = re.compile("""
+    version_re = re.compile(r"""
         (?P<package>qt|pyqt)
         (?P<operator>==|>|>=|<|<=|!=)
         (?P<version>\d+\.\d+\.\d+)
