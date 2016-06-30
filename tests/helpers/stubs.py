@@ -362,7 +362,7 @@ class FakeConfigSection:
 
     def __iter__(self):
         """Iterate over all set values."""
-        return self.values.__iter__()
+        return iter(self.values)
 
     def __getitem__(self, key):
         return self.values[key]
