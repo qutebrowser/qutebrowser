@@ -141,31 +141,30 @@ class CompletionView(QTreeView):
 
     def _resize_columns(self):
         """Resize the completion columns based on column_widths."""
+        columns = len(self._column_widths)
         width = self.size().width()
         if self.verticalScrollBar().isVisible():
             width -= self.style().pixelMetric(QStyle.PM_ScrollBarExtent) + 5
         log.completion.debug("available width = {}".format(width))
 
         widths_max = [width * perc / 100 for perc in self._column_widths]
-        widths_hints = [self.sizeHintForColumn(i)
-                for i in range(len(self._column_widths))]
-        pixel_widths = [0] * len(self._column_widths)
+        widths_hints = [self.sizeHintForColumn(i) for i in range(columns)]
+        pixel_widths = [0] * columns
         log.completion.debug("widths_hints = {}".format(widths_hints))
         log.completion.debug("widths_max = {}".format(widths_max))
 
         # enumerate all columns, starting with narrow ones
-        remaining_indexes = set(range(len(self._column_widths)))
+        remaining_indexes = set(range(columns))
         partial_width = width
-        diffs = [widths_hints[i] - widths_max[i]
-                for i in range(len(self._column_widths))]
-        for _, i in sorted(zip(diffs, range(len(self._column_widths)))):
+        diffs = [widths_hints[i] - widths_max[i] for i in range(columns)]
+        for _, i in sorted(zip(diffs, range(columns))):
             w = widths_hints[i]
             remaining_indexes.remove(i)
             if w <= widths_max[i]:
                 # let other columns reclaim the freed space
-                for j in remaining_indexes:
+                for k in remaining_indexes:
                     if partial_width > widths_max[i]:
-                        widths_max[j] += widths_max[j] / (partial_width - widths_max[i]) * (widths_max[i] - w)
+                        widths_max[k] += widths_max[k] / (partial_width - widths_max[i]) * (widths_max[i] - w)
             else:
                 w = widths_max[i]
             pixel_widths[i] = w
