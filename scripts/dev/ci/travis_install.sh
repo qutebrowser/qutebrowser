@@ -84,7 +84,7 @@ elif [[ $TRAVIS_OS_NAME == osx ]]; then
     # Disable App Nap
     defaults write NSGlobalDomain NSAppSleepDisabled -bool YES
     curl -LO https://github.com/The-Compiler/homebrew-qt5-webkit/releases/download/v5.6.0-1/pyqt5-5.6.el_capitan.bottle.1.tar.gz
-    curl -LO https://github.com/The-Compiler/homebrew-qt5-webkit/releases/download/v5.6.1-1/qt5-5.6.1.el_capitan.bottle.1.tar.gz
+    curl -LO https://github.com/The-Compiler/homebrew-qt5-webkit/releases/download/v5.6.1_1-1/qt5-5.6.1-1.yosemite.bottle.1.tar.gz
     brew_install python3 {qt5,pyqt5}-*.bottle.1.tar.gz
     pip_install pip
     pip_install tox
