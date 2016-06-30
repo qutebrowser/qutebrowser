@@ -185,6 +185,7 @@ Contributors, sorted by the number of commits in descending order:
 * Nick Ginther
 * Michael Ilsaas
 * Martin Zimmermann
+* Jan Verbeek
 * Fritz Reichwald
 * Brian Jackson
 * sbinix
@@ -204,7 +205,6 @@ Contributors, sorted by the number of commits in descending order:
 * Regina Hug
 * Mathias Fussenegger
 * Marcelo Santos
-* Jan Verbeek
 * Fritz V155 Reichwald
 * Franz Fellner
 * zwarag
