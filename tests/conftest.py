@@ -187,41 +187,42 @@ def pytest_sessionfinish(exitstatus):
         f.write(str(exitstatus))
 
 
-def pytest_bdd_apply_tag(tag, function):
-    version_re = re.compile(r"""
-        (?P<package>qt|pyqt)
-        (?P<operator>==|>|>=|<|<=|!=)
-        (?P<version>\d+\.\d+\.\d+)
-    """, re.VERBOSE)
+if not getattr(sys, 'frozen', False):
+    def pytest_bdd_apply_tag(tag, function):
+        version_re = re.compile(r"""
+            (?P<package>qt|pyqt)
+            (?P<operator>==|>|>=|<|<=|!=)
+            (?P<version>\d+\.\d+\.\d+)
+        """, re.VERBOSE)
 
-    match = version_re.match(tag)
-    if not match:
-        # Use normal tag mapping
-        return None
+        match = version_re.match(tag)
+        if not match:
+            # Use normal tag mapping
+            return None
 
-    operators = {
-        '==': operator.eq,
-        '>': operator.gt,
-        '<': operator.lt,
-        '>=': operator.ge,
-        '<=': operator.le,
-        '!=': operator.ne,
-    }
+        operators = {
+            '==': operator.eq,
+            '>': operator.gt,
+            '<': operator.lt,
+            '>=': operator.ge,
+            '<=': operator.le,
+            '!=': operator.ne,
+        }
 
-    package = match.group('package')
-    op = operators[match.group('operator')]
-    version = match.group('version')
+        package = match.group('package')
+        op = operators[match.group('operator')]
+        version = match.group('version')
 
-    if package == 'qt':
-        mark = pytest.mark.skipif(qtutils.version_check(version, op),
-                                  reason='Needs ' + tag)
-    elif package == 'pyqt':
-        major, minor, patch = [int(e) for e in version.split('.')]
-        hex_version = (major << 16) | (minor << 8) | patch
-        mark = pytest.mark.skipif(not op(PYQT_VERSION, hex_version),
-                                  reason='Needs ' + tag)
-    else:
-        raise ValueError("Invalid package {!r}".format(package))
+        if package == 'qt':
+            mark = pytest.mark.skipif(qtutils.version_check(version, op),
+                                      reason='Needs ' + tag)
+        elif package == 'pyqt':
+            major, minor, patch = [int(e) for e in version.split('.')]
+            hex_version = (major << 16) | (minor << 8) | patch
+            mark = pytest.mark.skipif(not op(PYQT_VERSION, hex_version),
+                                      reason='Needs ' + tag)
+        else:
+            raise ValueError("Invalid package {!r}".format(package))
 
-    mark(function)
-    return True
+        mark(function)
+        return True
