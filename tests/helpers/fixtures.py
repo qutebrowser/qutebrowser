@@ -198,6 +198,63 @@ def host_blocker_stub(stubs):
     objreg.delete('host-blocker')
 
 
+@pytest.yield_fixture
+def quickmark_manager_stub(stubs):
+    """Fixture which provides a fake quickmark manager object."""
+    stub = stubs.QuickmarkManagerStub()
+    objreg.register('quickmark-manager', stub)
+    yield stub
+    objreg.delete('quickmark-manager')
+
+
+@pytest.yield_fixture
+def bookmark_manager_stub(stubs):
+    """Fixture which provides a fake bookmark manager object."""
+    stub = stubs.BookmarkManagerStub()
+    objreg.register('bookmark-manager', stub)
+    yield stub
+    objreg.delete('bookmark-manager')
+
+
+@pytest.yield_fixture
+def web_history_stub(stubs):
+    """Fixture which provides a fake web-history object."""
+    stub = stubs.WebHistoryStub()
+    objreg.register('web-history', stub)
+    yield stub
+    objreg.delete('web-history')
+
+
+@pytest.yield_fixture
+def session_manager_stub(stubs):
+    """Fixture which provides a fake web-history object."""
+    stub = stubs.SessionManagerStub()
+    objreg.register('session-manager', stub)
+    yield stub
+    objreg.delete('session-manager')
+
+
+@pytest.yield_fixture
+def tabbed_browser_stubs(stubs, win_registry):
+    """Fixture providing a fake tabbed-browser object on win_id 0 and 1."""
+    win_registry.add_window(1)
+    stubs = [stubs.TabbedBrowserStub(), stubs.TabbedBrowserStub()]
+    objreg.register('tabbed-browser', stubs[0], scope='window', window=0)
+    objreg.register('tabbed-browser', stubs[1], scope='window', window=1)
+    yield stubs
+    objreg.delete('tabbed-browser', scope='window', window=0)
+    objreg.delete('tabbed-browser', scope='window', window=1)
+
+
+@pytest.yield_fixture
+def app_stub(stubs):
+    """Fixture which provides a fake app object."""
+    stub = stubs.ApplicationStub()
+    objreg.register('app', stub)
+    yield stub
+    objreg.delete('app')
+
+
 @pytest.fixture(scope='session')
 def stubs():
     """Provide access to stub objects useful for testing."""
