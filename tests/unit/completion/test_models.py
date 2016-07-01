@@ -28,6 +28,7 @@ from PyQt5.QtWidgets import QTreeView
 
 from qutebrowser.completion.models import miscmodels, urlmodel, configmodel
 from qutebrowser.browser.webkit import history
+from qutebrowser.config import sections, value
 
 
 def _get_completions(model):
@@ -68,22 +69,27 @@ def _patch_cmdutils(monkeypatch, stubs, symbol):
 def _patch_configdata(monkeypatch, stubs, symbol):
     """Patch the configdata module to provide fake data."""
     data = collections.OrderedDict([
-        ('general', stubs.FakeConfigSection(
+        ('general', sections.KeyValue(
             ('time',
-                stubs.FakeSettingValue(('fast', 'slow'), 'slow'),
+                value.SettingValue(stubs.FakeConfigType('fast', 'slow'),
+                                   default='slow'),
                 'Is an illusion.\n\nLunchtime doubly so.'),
             ('volume',
-                stubs.FakeSettingValue(('0', '11'), '11'),
+                value.SettingValue(stubs.FakeConfigType('0', '11'),
+                                   default='11'),
                 'Goes to 11'))),
-        ('ui', stubs.FakeConfigSection(
+        ('ui', sections.KeyValue(
             ('gesture',
-                stubs.FakeSettingValue(('on', 'off'), 'off'),
+                value.SettingValue(stubs.FakeConfigType(('on', 'off')),
+                                   default='off'),
                 'Waggle your hands to control qutebrowser'),
             ('mind',
-                stubs.FakeSettingValue(('on', 'off'), 'off'),
+                value.SettingValue(stubs.FakeConfigType(('on', 'off')),
+                                   default='off'),
                 'Enable mind-control ui (experimental)'),
             ('voice',
-                stubs.FakeSettingValue(('on', 'off'), 'off'),
+                value.SettingValue(stubs.FakeConfigType(('on', 'off')),
+                                                        default='off'),
                 'Whether to respond to voice commands'))),
     ])
     monkeypatch.setattr(symbol, data)

@@ -349,39 +349,11 @@ class FakeTimer(QObject):
         return self._started
 
 
-class FakeConfigSection:
-
-    """A stub for a KeyValue entry in configdata.DATA."""
-
-    def __init__(self, *entries):
-        self.values = collections.OrderedDict()
-        self.descriptions = {}
-        for name, value, desc in entries:
-            self.values[name] = value
-            self.descriptions[name] = desc
-
-    def __iter__(self):
-        """Iterate over all set values."""
-        return iter(self.values)
-
-    def __getitem__(self, key):
-        return self.values[key]
-
-
-class FakeSettingValue:
-
-    """A stub for a SettingValue entry in configdata.DATA[section]."""
-
-    def __init__(self, valid_values, default=None):
-        self.typ = FakeConfigType(valid_values)
-        self.default = lambda: default
-
-
 class FakeConfigType:
 
-    """A stub for the typ attribute of a FakeSettingValue."""
+    """A stub to provide valid_values for typ attribute of a SettingValue."""
 
-    def __init__(self, valid_values):
+    def __init__(self, *valid_values):
         # normally valid_values would be a ValidValues, but for simplicity of
         # testing this can be a simple list: [(val, desc), (val, desc), ...]
         self.complete = lambda: [(val, '') for val in valid_values]
