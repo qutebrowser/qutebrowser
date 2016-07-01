@@ -34,7 +34,7 @@ Changed
 Removed
 ------
 
-- `:edit-url` now doesn't accept a count anymore as its behaviour was confusing
+- `:edit-url` now doesn't accept a count anymore as its behavior was confusing
   and it doesn't make much sense to add a count.
 
 Fixed
