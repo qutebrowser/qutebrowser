@@ -4,7 +4,7 @@ flake8-copyright
 flake8-debugger
 flake8-deprecated
 flake8-docstrings
-flake8-future-import
+flake8-future-import!=0.4.2
 flake8-mock
 flake8-pep3101
 flake8-putty
@@ -19,3 +19,4 @@ pyflakes
 pep8==1.7.0
 
 #@ comment: pep257 still needed by flake8-docstrings but ignored
+#@ filter: flake8-future-import != 0.4.2
