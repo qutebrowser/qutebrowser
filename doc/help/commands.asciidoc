@@ -243,9 +243,6 @@ The editor which should be launched can be configured via the `general -> editor
 * +*-t*+, +*--tab*+: Open in a new tab.
 * +*-w*+, +*--window*+: Open in a new window.
 
-==== count
-The tab index to open the URL in.
-
 [[fake-key]]
 === fake-key
 Syntax: +:fake-key [*--global*] 'keystring'+

@@ -29,6 +29,13 @@ Changed
 - `:scroll-perc` now prefers a count over the argument given to it, which means
   `gg` can be used with a count.
 - Aliases can now use `;;` to have an alias which executed multiple commands.
+- `:edit-url` now does nothing if the URL isn't changed in the spawned editor.
+
+Removed
+------
+
+- `:edit-url` now doesn't accept a count anymore as its behaviour was confusing
+  and it doesn't make much sense to add a count.
 
 Fixed
 -----

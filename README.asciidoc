@@ -175,6 +175,7 @@ Contributors, sorted by the number of commits in descending order:
 * Jonas Schürmann
 * error800
 * Liam BEGUIN
+* Jan Verbeek
 * skinnay
 * Zach-Button
 * Tomasz Kramkowski
@@ -186,7 +187,6 @@ Contributors, sorted by the number of commits in descending order:
 * Michał Góral
 * Michael Ilsaas
 * Martin Zimmermann
-* Jan Verbeek
 * Fritz Reichwald
 * Brian Jackson
 * sbinix
