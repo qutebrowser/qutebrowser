@@ -21,6 +21,7 @@
 
 """Fake objects/stubs."""
 
+import collections
 from unittest import mock
 
 from PyQt5.QtCore import pyqtSignal, QPoint, QProcess, QObject
@@ -28,8 +29,9 @@ from PyQt5.QtNetwork import (QNetworkRequest, QAbstractNetworkCache,
                              QNetworkCacheMetaData)
 from PyQt5.QtWidgets import QCommonStyle, QWidget
 
-from qutebrowser.browser.webkit import webview
+from qutebrowser.browser.webkit import webview, history
 from qutebrowser.config import configexc
+from qutebrowser.mainwindow import mainwindow
 
 
 class FakeNetworkCache(QAbstractNetworkCache):
@@ -218,13 +220,20 @@ class FakeWebView(QWidget):
 
     """Fake WebView which can be added to a tab."""
 
-    def __init__(self):
+    url_text_changed = pyqtSignal(str)
+    shutting_down = pyqtSignal()
+
+    def __init__(self, url=FakeUrl(), title='', tab_id=0):
         super().__init__()
         self.progress = 0
         self.scroll_pos = (-1, -1)
         self.load_status = webview.LoadStatus.none
-        self.tab_id = 0
-        self.cur_url = FakeUrl()
+        self.tab_id = tab_id
+        self.cur_url = url
+        self.title = title
+
+    def url(self):
+        return self.cur_url
 
 
 class FakeSignal:
@@ -283,8 +292,13 @@ class FakeCommand:
 
     """A simple command stub which has a description."""
 
-    def __init__(self, desc):
+    def __init__(self, name='', desc='', hide=False, debug=False,
+                 deprecated=False):
         self.desc = desc
+        self.name = name
+        self.hide = hide
+        self.debug = debug
+        self.deprecated = deprecated
 
 
 class FakeTimer(QObject):
@@ -335,6 +349,16 @@ class FakeTimer(QObject):
         return self._started
 
 
+class FakeConfigType:
+
+    """A stub to provide valid_values for typ attribute of a SettingValue."""
+
+    def __init__(self, *valid_values):
+        # normally valid_values would be a ValidValues, but for simplicity of
+        # testing this can be a simple list: [(val, desc), (val, desc), ...]
+        self.complete = lambda: [(val, '') for val in valid_values]
+
+
 class ConfigStub(QObject):
 
     """Stub for the config module.
@@ -368,7 +392,7 @@ class ConfigStub(QObject):
         """
         return self.data[name]
 
-    def get(self, sect, opt):
+    def get(self, sect, opt, raw=True):
         """Get a value from the config."""
         data = self.data[sect]
         try:
@@ -400,9 +424,103 @@ class KeyConfigStub:
         self.bindings[section] = bindings
 
 
+class UrlMarkManagerStub(QObject):
+
+    """Stub for the quickmark-manager or bookmark-manager object."""
+
+    added = pyqtSignal(str, str)
+    removed = pyqtSignal(str)
+
+    def __init__(self, parent=None):
+        super().__init__(parent)
+        self.marks = {}
+
+    def delete(self, key):
+        del self.marks[key]
+        self.removed.emit(key)
+
+
+class BookmarkManagerStub(UrlMarkManagerStub):
+
+    """Stub for the bookmark-manager object."""
+
+    pass
+
+
+class QuickmarkManagerStub(UrlMarkManagerStub):
+
+    """Stub for the quickmark-manager object."""
+
+    def quickmark_del(self, key):
+        self.delete(key)
+
+
+class WebHistoryStub(QObject):
+
+    """Stub for the web-history object."""
+
+    add_completion_item = pyqtSignal(history.Entry)
+    cleared = pyqtSignal()
+
+    def __init__(self, parent=None):
+        super().__init__(parent)
+        self.history_dict = collections.OrderedDict()
+
+    def __iter__(self):
+        return iter(self.history_dict.values())
+
+    def __len__(self):
+        return len(self.history_dict)
+
+
 class HostBlockerStub:
 
     """Stub for the host-blocker object."""
 
     def __init__(self):
         self.blocked_hosts = set()
+
+
+class SessionManagerStub:
+
+    """Stub for the session-manager object."""
+
+    def __init__(self):
+        self.sessions = []
+
+    def list_sessions(self):
+        return self.sessions
+
+
+class TabbedBrowserStub(QObject):
+
+    """Stub for the tabbed-browser object."""
+
+    new_tab = pyqtSignal(webview.WebView, int)
+
+    def __init__(self, parent=None):
+        super().__init__(parent)
+        self.tabs = []
+        self.shutting_down = False
+
+    def count(self):
+        return len(self.tabs)
+
+    def widget(self, i):
+        return self.tabs[i]
+
+    def page_title(self, i):
+        return self.tabs[i].title
+
+    def on_tab_close_requested(self, idx):
+        del self.tabs[idx]
+
+
+class ApplicationStub(QObject):
+
+    """Stub to insert as the app object in objreg."""
+
+    new_window = pyqtSignal(mainwindow.MainWindow)
+
+    def __init__(self):
+        super().__init__()

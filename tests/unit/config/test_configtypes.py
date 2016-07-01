@@ -823,8 +823,9 @@ class TestCommand:
     @pytest.fixture(autouse=True)
     def patch(self, monkeypatch, stubs):
         """Patch the cmdutils module to provide fake commands."""
-        cmd_utils = stubs.FakeCmdUtils({'cmd1': stubs.FakeCommand("desc 1"),
-                                        'cmd2': stubs.FakeCommand("desc 2")})
+        cmd_utils = stubs.FakeCmdUtils({
+            'cmd1': stubs.FakeCommand(desc="desc 1"),
+            'cmd2': stubs.FakeCommand(desc="desc 2")})
         monkeypatch.setattr('qutebrowser.config.configtypes.cmdutils',
                             cmd_utils)
 

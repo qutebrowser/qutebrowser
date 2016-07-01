@@ -54,7 +54,7 @@ class Section:
 
     def __iter__(self):
         """Iterate over all set values."""
-        return self.values.__iter__()
+        return iter(self.values)
 
     def __bool__(self):
         """Get boolean state of section."""
