@@ -29,8 +29,6 @@ import qutebrowser
 from qutebrowser.utils import docutils
 from qutebrowser.browser import pdfjs
 
-from end2end.features.test_scroll_bdd import check_scrolled, check_not_scrolled
-
 bdd.scenarios('misc.feature')
 
 
