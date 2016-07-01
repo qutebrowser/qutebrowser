@@ -98,7 +98,7 @@ def _patch_config_section_desc(monkeypatch, stubs, symbol):
     monkeypatch.setattr(symbol, section_desc)
 
 
-def _mock_view_index(model, category_idx, child_idx):
+def _mock_view_index(model, category_idx, child_idx, qtbot):
     """Create a tree view from a model and set the current index.
 
     Args:
@@ -107,6 +107,7 @@ def _mock_view_index(model, category_idx, child_idx):
         child_idx: index of the child item under that category to select.
     """
     view = QTreeView()
+    qtbot.add_widget(view)
     view.setModel(model)
     idx = model.indexFromItem(model.item(category_idx).child(child_idx))
     view.setCurrentIndex(idx)
@@ -268,7 +269,7 @@ def test_url_completion_delete_bookmark(config_stub, web_history, quickmarks,
                                       'web-history-max-items': 2}
     model = urlmodel.UrlCompletionModel()
     # delete item (1, 0) -> (bookmarks, 'https://github.com' )
-    view = _mock_view_index(model, 1, 0)
+    view = _mock_view_index(model, 1, 0, qtbot)
     model.delete_cur_item(view)
     assert 'https://github.com' not in bookmarks.marks
     assert 'https://python.org' in bookmarks.marks
@@ -282,7 +283,7 @@ def test_url_completion_delete_quickmark(config_stub, web_history, quickmarks,
                                       'web-history-max-items': 2}
     model = urlmodel.UrlCompletionModel()
     # delete item (0, 1) -> (quickmarks, 'ddg' )
-    view = _mock_view_index(model, 0, 1)
+    view = _mock_view_index(model, 0, 1, qtbot)
     model.delete_cur_item(view)
     assert 'aw' in quickmarks.marks
     assert 'ddg' not in quickmarks.marks
@@ -321,7 +322,7 @@ def test_tab_completion(stubs, qtbot, app_stub, win_registry,
 
 
 def test_tab_completion_delete(stubs, qtbot, app_stub, win_registry,
-                               tabbed_browser_stubs, qtbot):
+                               tabbed_browser_stubs):
     """Verify closing a tab by deleting it from the completion widget."""
     tabbed_browser_stubs[0].tabs = [
         stubs.FakeWebView(QUrl('https://github.com'), 'GitHub', 0),
@@ -332,7 +333,7 @@ def test_tab_completion_delete(stubs, qtbot, app_stub, win_registry,
         stubs.FakeWebView(QUrl('https://wiki.archlinux.org'), 'ArchWiki', 0),
     ]
     model = miscmodels.TabCompletionModel()
-    view = _mock_view_index(model, 0, 1)
+    view = _mock_view_index(model, 0, 1, qtbot)
     qtbot.add_widget(view)
     model.delete_cur_item(view)
     actual = [tab.url() for tab in tabbed_browser_stubs[0].tabs]
