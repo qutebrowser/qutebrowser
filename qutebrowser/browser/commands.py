@@ -1984,6 +1984,5 @@ class CommandDispatcher:
             tab: Open in a new tab.
             window: Open in a new window.
         """
-        url = url.rstrip('\n')
         if bg or tab or window or url != old_url:
             self.openurl(url=url, bg=bg, tab=tab, window=window)
