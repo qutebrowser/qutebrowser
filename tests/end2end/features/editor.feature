@@ -47,19 +47,6 @@ Feature: Opening external editors
                 - active: true
                   url: http://localhost:*/data/numbers/2.txt
 
-    Scenario: Editing an URL with count
-        Given I have a fresh instance
-        When I open data/numbers/1.txt
-        And I run :tab-only
-        And I open about:blank in a new tab
-        And I run :tab-focus 1
-        And I set up a fake editor replacing "1.txt" by "2.txt"
-        And I run :edit-url with count 2
-        Then data/numbers/2.txt should be loaded
-        And the following tabs should be open:
-            - data/numbers/1.txt (active)
-            - data/numbers/2.txt
-
     Scenario: Editing an URL with -t and -b
         When I run :edit-url -t -b
         Then the error "Only one of -t/-b/-w can be given!" should be shown
