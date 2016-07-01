@@ -226,10 +226,9 @@ def repeat_command(win_id, count=None):
     """Repeat the last executed command, like '.' in vi.
 
     Args:
-        count: Which numeric argument to give the command.
+        count: Which count to pass the command.
     """
-    mode_manager = objreg.get('mode-manager', scope='window',
-                              window=win_id)
+    mode_manager = objreg.get('mode-manager', scope='window', window=win_id)
     if mode_manager.mode not in runners.last_command:
         raise cmdexc.CommandError("You didn't do anything yet.")
     cmd = runners.last_command[mode_manager.mode]
