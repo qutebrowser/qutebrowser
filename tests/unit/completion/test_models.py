@@ -89,7 +89,7 @@ def _patch_configdata(monkeypatch, stubs, symbol):
                 'Enable mind-control ui (experimental)'),
             ('voice',
                 value.SettingValue(stubs.FakeConfigType(('on', 'off')),
-                                                        default='off'),
+                                   default='off'),
                 'Whether to respond to voice commands'))),
     ])
     monkeypatch.setattr(symbol, data)
