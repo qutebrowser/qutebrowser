@@ -39,10 +39,9 @@
 
 [ -z "$QUTE_URL" ] && QUTE_URL='http://google.com'
 
-url=$(echo "$QUTE_URL" | cat - ~/.config/qutebrowser/quickmarks ~/.local/share/qutebrowser/history | dmenu -l 15 -p qutebrowser)
-url=$(echo $url | sed -E 's/[^ ]+ +//g' | egrep "https?:" || echo $url)
+url=$(echo "$QUTE_URL" | cat - "$QUTE_CONFIG_DIR/quickmarks" "$QUTE_DATA_DIR/history" | dmenu -l 15 -p qutebrowser)
+url=$(echo "$url" | sed -E 's/[^ ]+ +//g' | egrep "https?:" || echo "$url")
 
 [ -z "${url// }" ] && exit
 
 echo "open $url" >> "$QUTE_FIFO" || qutebrowser "$url"
-

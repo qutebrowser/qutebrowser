@@ -19,6 +19,7 @@
 # Any feedback is welcome!
 
 # open a file from the download directory using rofi
+DOWNLOAD_DIR=${DOWNLOAD_DIR:-$QUTE_DOWNLOAD_DIR}
 DOWNLOAD_DIR=${DOWNLOAD_DIR:-$HOME/Downloads}
 # the name of the rofi command
 ROFI_CMD=${ROFI_CMD:-rofi}
@@ -49,7 +50,7 @@ die() {
 if ! [ -d "$DOWNLOAD_DIR" ] ; then
     die "Download directory »$DOWNLOAD_DIR« not found!"
 fi
-if ! $(which "${ROFI_CMD}" > /dev/null ) ; then
+if ! which "${ROFI_CMD}" > /dev/null ; then
     die "Rofi command »${ROFI_CMD}« not found in PATH!"
 fi
 
@@ -109,5 +110,3 @@ fi
 msg info "Opening »$file« (of type $filetype) with ${application%.desktop}"
 
 xdg-open "$path" &
-
-
