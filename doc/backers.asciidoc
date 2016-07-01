@@ -1,0 +1,170 @@
+Crowdfunding backers
+====================
+
+Mid-2016, qutebrowser did run a http://igg.me/at/qutebrowser[crowdfunding] for
+QtWebEngine support in qutebrowser.
+
+Thanks a lot to the following people who contributed to it:
+
+Gold sponsors
+-------------
+
+- Chris Salzberg
+- Clayton Craft
+- Jean-Louis Fuchs
+- Matthias Lisin
+- 1 Anonymous
+
+Day sponsors
+------------
+
+- Agent 42
+- Iggy Jackson
+- James B
+- Rudi Seitz
+- Tim „Das MooL“ Wegener
+- amd1212
+- gavtroy
+- 4 Anonymous
+
+Other sponsors
+--------------
+
+- AP M
+- Alessandro Balzano
+- Allan Nordhøy
+- Andor Uhlar
+- Andreas Leppert
+- Andreas Saga Romsdal
+- André Glüpker
+- Arian Sanusi
+- Arin Lares
+- Assaf Lavie
+- Baptiste Wicht
+- Benjamin Richter
+- Benjamin Schnitzler
+- Bernardo Kuri
+- Boris Kourtoukov
+- Brian Buccola
+- Bruno Oliveira
+- Bryan Gilbert
+- Cassandra Rebecca Ruppen
+- Charles Saternos
+- Chris H
+- Christian Karl
+- Christian Lange
+- Christian Strasser
+- Colin O'Brien
+- Corsin Pfister
+- Cosmin Popescu
+- Daniel Andersson
+- David Wilson
+- Demure Demeanor
+- Doug Stone-Weaver
+- Eero Kari
+- Enric Morales
+- Eric Krohn
+- Eskild Hustvedt
+- Federico Panico
+- Felix Van der Jeugt
+- Francis Tseng
+- George Voronin
+- German Correa
+- Grady Martin
+- Gregor Böhl
+- Guilherme Stein
+- Hannes Doyle
+- Hasan Soydabas
+- Ian Scott
+- Jacob Boldman
+- Jacob Wikmark
+- Jan Verbeek
+- Jarrod Seccombe
+- Joel Bradshaw
+- Johannes Martinsson
+- Jonas Schürmann
+- Josh Medeiros
+- José Alberto Orejuela García
+- Julie Engel
+- Jörg Behrmann
+- Jørgen Skancke
+- Kevin Velghe
+- Konstantin Shmelkov
+- Kyle Frazer
+- Lukas Gierth
+- Mar v Leeuwaarde
+- Marek Roszman
+- Marius Betz
+- Marius Krämer
+- Markus Schmidinger
+- Martin Gabelmann
+- Martin Zimmermann
+- Mathias Fußenegger
+- Maxime Wack
+- Michał Góral
+- Nathan Isom
+- Nathanael Philipp
+- Nils Stål
+- Oliver Hope
+- Oskar Nyberg
+- Pablo Navarro
+- Panashe M. Fundira
+- Patric Schmitz
+- Pete M
+- Peter Smith
+- Phil Collins
+- Philipp Hansch
+- Philipp Kuhnz
+- Raphael Khaiat
+- Raphael Pierzina
+- Renan Guilherme
+- Rick Losie
+- Robert Cross
+- Roy Van Ginneken
+- Rupus Reinefjord
+- Ryan Roden-Corrent
+- Samir Benmendil
+- Simon Giotta
+- Stephen England
+- Sverrir H Steindorsson
+- Tarcisio Fedrizzi
+- Thorsten Wißmann
+- Timon Stampfli
+- Tjelvar Olsson
+- Tomasz Kramkowski
+- Tsukiko Tsutsukakushi
+- Vasilij Schneidermann
+- Vinney Cavallo
+- Wesly Grefrath
+- Will Ware
+- Yousaf Khurshid
+- Zach Schultz
+- averrin
+- ben hengst
+- colin
+- craigtski47
+- dag.robole
+- daniel.m.kao
+- diepfann3
+- eamonn oneil
+- esakaforever
+- francois47
+- glspisso
+- gmccoy4242
+- gtcee3
+- jonathf
+- lapinski.maciej
+- lauri.hakko
+- ljanzen
+- mutilx9
+- nussgipfel
+- oed
+- p p
+- r.c.bruno.andre
+- robert.perce
+- sghctoma
+- targy
+- freelancer
+- pupu
+- regines
+- 37 Anonymous
