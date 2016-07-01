@@ -286,7 +286,7 @@ problems and helpful hints:
 
 Also, thanks to:
 
-* Everyone contributing to the link:crowdfunding.asciidoc[crowdfunding].
+* Everyone contributing to the link:doc/backers.asciidoc[crowdfunding].
 * Everyone who had the patience to test qutebrowser before v0.1.
 * Everyone triaging/fixing my bugs in the
 https://bugreports.qt.io/secure/Dashboard.jspa[Qt bugtracker]
