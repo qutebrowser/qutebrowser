@@ -207,7 +207,7 @@ def test_log_line_parse(data, attrs):
         {'created': 0, 'levelname': 'ERROR', 'name': 'foo', 'module': 'bar',
          'funcName': 'qux', 'lineno': 10, 'levelno': 40, 'message': 'quux'},
         False, True,
-        '{timestamp} ERROR (Expected) foo        bar:qux:10 quux',
+        '{timestamp} ERROR (expected) foo        bar:qux:10 quux',
     ),
     # Expected other message (i.e. should make no difference)
     (
@@ -221,7 +221,7 @@ def test_log_line_parse(data, attrs):
         {'created': 0, 'levelname': 'ERROR', 'name': 'foo', 'module': 'bar',
          'funcName': 'qux', 'lineno': 10, 'levelno': 40, 'message': 'quux'},
         True, True,
-        '\033[32m{timestamp}\033[0m \033[37mERROR (Expected)\033[0m '
+        '\033[32m{timestamp}\033[0m \033[37mERROR (expected)\033[0m '
         '\033[36mfoo        bar:qux:10\033[0m \033[37mquux\033[0m',
     ),
 ], ids=['normal', 'traceback', 'colored', 'expected error', 'expected other',

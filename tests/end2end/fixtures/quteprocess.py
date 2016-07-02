@@ -115,15 +115,15 @@ class LogLine(testprocess.Line):
         r.funcName = self.function
 
         format_str = log.EXTENDED_FMT
-        # Mark expected errors with (Expected) so it's less confusing for tests
+        # Mark expected errors with (expected) so it's less confusing for tests
         # which expect errors but fail due to other errors.
         if self.expected and self.loglevel > logging.INFO:
             new_color = '{' + log.LOG_COLORS['DEBUG'] + '}'
             format_str = format_str.replace('{log_color}', new_color)
             format_str = re.sub(r'{levelname:(\d*)}',
-                                # Leave away the padding because (Expected) is
+                                # Leave away the padding because (expected) is
                                 # longer anyway.
-                                r'{levelname} (Expected)', format_str)
+                                r'{levelname} (expected)', format_str)
 
         formatter = log.ColoredFormatter(format_str, log.DATEFMT, '{',
                                          use_colors=colorized)
