@@ -92,9 +92,10 @@ class LogLine(testprocess.Line):
         self.message = msg_match.group('message')
 
         self.expected = is_ignored_qt_message(self.message)
+        self.use_color = False
 
     def __str__(self):
-        return self.formatted_str(colorized=False)
+        return self.formatted_str(colorized=self.use_color)
 
     def formatted_str(self, colorized=True):
         """Return a formatted colorized line.
@@ -113,7 +114,18 @@ class LogLine(testprocess.Line):
         r.module = self.module
         r.funcName = self.function
 
-        formatter = log.ColoredFormatter(log.EXTENDED_FMT, log.DATEFMT, '{',
+        format_str = log.EXTENDED_FMT
+        # Mark expected errors with (Expected) so it's less confusing for tests
+        # which expect errors but fail due to other errors.
+        if self.expected and self.loglevel >= log.LOG_LEVELS['ERROR']:
+            new_color = '{' + log.LOG_COLORS['DEBUG'] + '}'
+            format_str = format_str.replace('{log_color}', new_color)
+            format_str = re.sub(r'{levelname:(\d*)}',
+                                # Leave away the padding because (Expected) is
+                                # longer anyway.
+                                r'{levelname} (Expected)', format_str)
+
+        formatter = log.ColoredFormatter(format_str, log.DATEFMT, '{',
                                          use_colors=colorized)
         result = formatter.format(r)
         # Manually append the stringified traceback if one is present
@@ -186,11 +198,8 @@ class QuteProc(testprocess.Process):
             else:
                 raise
 
-        if self._config.getoption('--color') != 'no':
-            line_to_log = log_line.formatted_str()
-        else:
-            line_to_log = log_line.formatted_str(colorized=False)
-        self._log(line_to_log)
+        log_line.use_color = self._config.getoption('--color') != 'no'
+        self._log(log_line)
 
         start_okay_message_load = (
             "load status for <qutebrowser.browser.webview.WebView tab_id=0 "
