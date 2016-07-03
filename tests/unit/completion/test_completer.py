@@ -19,20 +19,18 @@
 
 """Tests for the Completer Object."""
 
-from unittest.mock import Mock
-
 import pytest
 from PyQt5.QtGui import QStandardItemModel
 
-from qutebrowser.completion.completer import Completer
-from qutebrowser.utils.usertypes import Completion
+from qutebrowser.completion import completer
+from qutebrowser.utils import usertypes
 
 
 class FakeCompletionModel(QStandardItemModel):
 
     """Stub for a completion model."""
 
-    DUMB_SORT = Mock()
+    DUMB_SORT = None
 
     def __init__(self, kind, parent=None):
         super().__init__(parent)
@@ -46,43 +44,44 @@ def cmd(stubs):
 
 
 @pytest.fixture
-def completer(qtbot, cmd, config_stub):
+def completer_obj(qtbot, cmd, config_stub):
     """Create the completer used for testing."""
     config_stub.data = {'completion': {'auto-open': False}}
-    return Completer(cmd, 0)
+    return completer.Completer(cmd, 0)
 
 
-@pytest.fixture
+@pytest.fixture(autouse=True)
 def instances(monkeypatch):
     """Mock the instances module so get returns a fake completion model."""
     # populate a model for each completion type, with a nested structure for
     # option and value completion
-    instances = {kind: FakeCompletionModel(kind) for kind in Completion}
-    instances[Completion.option] = {
-        'general': FakeCompletionModel(Completion.option),
+    instances = {kind: FakeCompletionModel(kind)
+                 for kind in usertypes.Completion}
+    instances[usertypes.Completion.option] = {
+        'general': FakeCompletionModel(usertypes.Completion.option),
     }
-    instances[Completion.value] = {
+    instances[usertypes.Completion.value] = {
         'general': {
-            'ignore-case': FakeCompletionModel(Completion.value),
+            'ignore-case': FakeCompletionModel(usertypes.Completion.value),
         }
     }
     monkeypatch.setattr('qutebrowser.completion.completer.instances',
                         instances)
-    return instances
 
 
-@pytest.fixture
+@pytest.fixture(autouse=True)
 def cmdutils_patch(monkeypatch, stubs):
     """Patch the cmdutils module to provide fake commands."""
     cmds = {
-        'set': [Completion.section, Completion.option, Completion.value],
-        'help': [Completion.helptopic],
-        'quickmark-load': [Completion.quickmark_by_name],
-        'bookmark-load': [Completion.bookmark_by_url],
-        'open': [Completion.url],
-        'buffer': [Completion.tab],
-        'session-load': [Completion.sessions],
-        'bind': [Completion.empty, Completion.command],
+        'set': [usertypes.Completion.section, usertypes.Completion.option,
+                usertypes.Completion.value],
+        'help': [usertypes.Completion.helptopic],
+        'quickmark-load': [usertypes.Completion.quickmark_by_name],
+        'bookmark-load': [usertypes.Completion.bookmark_by_url],
+        'open': [usertypes.Completion.url],
+        'buffer': [usertypes.Completion.tab],
+        'session-load': [usertypes.Completion.sessions],
+        'bind': [usertypes.Completion.empty, usertypes.Completion.command],
     }
     cmd_utils = stubs.FakeCmdUtils({
         name: stubs.FakeCommand(completion=compl)
@@ -90,43 +89,42 @@ def cmdutils_patch(monkeypatch, stubs):
     })
     monkeypatch.setattr('qutebrowser.completion.completer.cmdutils',
                         cmd_utils)
-    return cmd_utils
 
 
 @pytest.mark.parametrize('txt, expected', [
-    (':nope|', Completion.command),
+    (':nope|', usertypes.Completion.command),
     (':nope |', None),
-    (':set |', Completion.section),
-    (':set gen|', Completion.section),
-    (':set general |', Completion.option),
+    (':set |', usertypes.Completion.section),
+    (':set gen|', usertypes.Completion.section),
+    (':set general |', usertypes.Completion.option),
     (':set what |', None),
-    (':set general ignore-case |', Completion.value),
+    (':set general ignore-case |', usertypes.Completion.value),
     (':set general huh |', None),
-    (':help |', Completion.helptopic),
-    (':quickmark-load |', Completion.quickmark_by_name),
-    (':bookmark-load |', Completion.bookmark_by_url),
-    (':open |', Completion.url),
-    (':buffer |', Completion.tab),
-    (':session-load |', Completion.sessions),
-    (':bind |', Completion.empty),
-    (':bind <c-x> |', Completion.command),
-    (':bind <c-x> foo|', Completion.command),
-    (':bind <c-x>| foo', Completion.empty),
-    (':set| general ', Completion.command),
-    (':|set general ', Completion.command),
-    (':set gene|ral ignore-case', Completion.section),
-    (':|', Completion.command),
-    (':   |', Completion.command),
-    (':bookmark-load      |', Completion.bookmark_by_url),
+    (':help |', usertypes.Completion.helptopic),
+    (':quickmark-load |', usertypes.Completion.quickmark_by_name),
+    (':bookmark-load |', usertypes.Completion.bookmark_by_url),
+    (':open |', usertypes.Completion.url),
+    (':buffer |', usertypes.Completion.tab),
+    (':session-load |', usertypes.Completion.sessions),
+    (':bind |', usertypes.Completion.empty),
+    (':bind <c-x> |', usertypes.Completion.command),
+    (':bind <c-x> foo|', usertypes.Completion.command),
+    (':bind <c-x>| foo', usertypes.Completion.empty),
+    (':set| general ', usertypes.Completion.command),
+    (':|set general ', usertypes.Completion.command),
+    (':set gene|ral ignore-case', usertypes.Completion.section),
+    (':|', usertypes.Completion.command),
+    (':   |', usertypes.Completion.command),
+    (':bookmark-load      |', usertypes.Completion.bookmark_by_url),
 ])
-def test_update_completion(txt, expected, cmd, completer, instances,
-                           cmdutils_patch, completion_widget_stub):
+def test_update_completion(txt, expected, cmd, completer_obj,
+                           completion_widget_stub):
     """Test setting the completion widget's model based on command text."""
     # this test uses | as a placeholder for the current cursor position
     cursor_pos = txt.index('|')
     cmd.setText(txt.replace('|', ''))
     cmd.setCursorPosition(cursor_pos)
-    completer.update_completion()
+    completer_obj.update_completion()
     if expected is None:
         assert not completion_widget_stub.set_model.called
     else:

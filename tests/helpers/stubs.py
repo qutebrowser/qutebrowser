@@ -376,10 +376,18 @@ class FakeStatusbarCommand(QObject):
         super().__init__(parent)
         self._cursor_pos = 0
         self._text = ""
-        self.cursorPosition = lambda: self._cursor_pos
-        self.text = lambda: self._text
-        self.prefix = lambda: self._text[0]
-        self.setFocus = lambda: None
+
+    def cursorPosition(self):
+        return self._cursor_pos
+
+    def text(self):
+        return self._text
+
+    def prefix(self):
+        return self._text[0]
+
+    def setFocus(self):
+        return None
 
     def setText(self, x):
         self._text = x
