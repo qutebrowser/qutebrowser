@@ -12,6 +12,8 @@ Feature: :spawn
         When I run :spawn -u this_does_not_exist
         Then the error "Error while spawning userscript: The process failed to start." should be shown
 
+    # https://github.com/The-Compiler/qutebrowser/issues/1614
+    @posix
     Scenario: Running :spawn with invalid quoting
         When I run :spawn ""'""
         Then the error "Error while splitting command: No closing quotation" should be shown
