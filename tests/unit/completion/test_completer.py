@@ -82,6 +82,7 @@ def cmdutils_patch(monkeypatch, stubs):
         'buffer': [usertypes.Completion.tab],
         'session-load': [usertypes.Completion.sessions],
         'bind': [usertypes.Completion.empty, usertypes.Completion.command],
+        'tab-detach': None,
     }
     cmd_utils = stubs.FakeCmdUtils({
         name: stubs.FakeCommand(completion=compl)
@@ -116,6 +117,18 @@ def cmdutils_patch(monkeypatch, stubs):
     (':|', usertypes.Completion.command),
     (':   |', usertypes.Completion.command),
     (':bookmark-load      |', usertypes.Completion.bookmark_by_url),
+    ('/|', None),
+    (':open -t|', None),
+    (':open --tab|', None),
+    (':open -t |', usertypes.Completion.url),
+    (':open --tab |', usertypes.Completion.url),
+    (':open | -t', usertypes.Completion.url),
+    (':--foo --bar |', None),
+    (':tab-detach |', None),
+    (':bind --mode=caret <c-x> |', usertypes.Completion.command),
+    #(':bind --mode caret <c-x> |', usertypes.Completion.command), KNOWN BUG
+    (':set -t -p |', usertypes.Completion.section),
+    (':open -- |', None),
 ])
 def test_update_completion(txt, expected, cmd, completer_obj,
                            completion_widget_stub):
