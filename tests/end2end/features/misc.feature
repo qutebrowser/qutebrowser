@@ -464,3 +464,29 @@ Feature: Various utility commands.
         And I wait until cookies is loaded
         And I open cookies in a new tab
         Then the cookie qute-test should be set to 42
+
+    Scenario: :repeat-command
+        Given I open data/scroll.html
+        And I run :tab-only
+        When I run :scroll down
+        And I run :repeat-command
+        And I run :scroll up
+        Then the page should be scrolled vertically
+
+    Scenario: :repeat-command with count
+        Given I open data/scroll.html
+        And I run :tab-only
+        When I run :scroll down with count 3
+        And I run :scroll up
+        And I run :repeat-command with count 2
+        Then the page should not be scrolled
+
+    Scenario: :repeat-command with not-normal command inbetween
+        Given I open data/scroll.html
+        And I run :tab-only
+        When I run :scroll down with count 3
+        And I run :scroll up
+        And I run :prompt-accept
+        And I run :repeat-command with count 2
+        Then the page should not be scrolled
+        And the error "prompt-accept: This command is only allowed in prompt/yesno mode." should be shown
