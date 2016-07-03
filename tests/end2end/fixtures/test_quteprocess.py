@@ -176,11 +176,11 @@ def test_log_line_parse(data, attrs):
         assert actual == expected, name
 
 
-@pytest.mark.parametrize('data, colorized, expected', [
+@pytest.mark.parametrize('data, colorized, expect_error, expected', [
     (
         {'created': 0, 'levelname': 'DEBUG', 'name': 'foo', 'module': 'bar',
          'funcName': 'qux', 'lineno': 10, 'levelno': 10, 'message': 'quux'},
-        False,
+        False, False,
         '{timestamp} DEBUG    foo        bar:qux:10 quux',
     ),
     # Traceback attached
@@ -189,7 +189,7 @@ def test_log_line_parse(data, attrs):
          'funcName': 'qux', 'lineno': 10, 'levelno': 10, 'message': 'quux',
          'traceback': 'Traceback (most recent call last):\n    here be '
          'dragons'},
-        False,
+        False, False,
         '{timestamp} DEBUG    foo        bar:qux:10 quux\n'
         'Traceback (most recent call last):\n'
         '    here be dragons',
@@ -198,14 +198,38 @@ def test_log_line_parse(data, attrs):
     (
         {'created': 0, 'levelname': 'DEBUG', 'name': 'foo', 'module': 'bar',
          'funcName': 'qux', 'lineno': 10, 'levelno': 10, 'message': 'quux'},
-        True,
+        True, False,
         '\033[32m{timestamp}\033[0m \033[37mDEBUG   \033[0m \033[36mfoo     '
         '   bar:qux:10\033[0m \033[37mquux\033[0m',
     ),
-], ids=['normal', 'traceback', 'colored'])
-def test_log_line_formatted(data, colorized, expected):
+    # Expected error
+    (
+        {'created': 0, 'levelname': 'ERROR', 'name': 'foo', 'module': 'bar',
+         'funcName': 'qux', 'lineno': 10, 'levelno': 40, 'message': 'quux'},
+        False, True,
+        '{timestamp} ERROR (expected) foo        bar:qux:10 quux',
+    ),
+    # Expected other message (i.e. should make no difference)
+    (
+        {'created': 0, 'levelname': 'DEBUG', 'name': 'foo', 'module': 'bar',
+         'funcName': 'qux', 'lineno': 10, 'levelno': 10, 'message': 'quux'},
+        False, True,
+        '{timestamp} DEBUG    foo        bar:qux:10 quux',
+    ),
+    # Expected error colorized (shouldn't be red)
+    (
+        {'created': 0, 'levelname': 'ERROR', 'name': 'foo', 'module': 'bar',
+         'funcName': 'qux', 'lineno': 10, 'levelno': 40, 'message': 'quux'},
+        True, True,
+        '\033[32m{timestamp}\033[0m \033[37mERROR (expected)\033[0m '
+        '\033[36mfoo        bar:qux:10\033[0m \033[37mquux\033[0m',
+    ),
+], ids=['normal', 'traceback', 'colored', 'expected error', 'expected other',
+        'expected error colorized'])
+def test_log_line_formatted(data, colorized, expect_error, expected):
     line = json.dumps(data)
     record = quteprocess.LogLine(line)
+    record.expected = expect_error
     ts = datetime.datetime.fromtimestamp(data['created']).strftime('%H:%M:%S')
     expected = expected.format(timestamp=ts)
     assert record.formatted_str(colorized=colorized) == expected
