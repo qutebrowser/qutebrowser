@@ -427,6 +427,7 @@ class AbstractTab(QWidget):
         self.search._widget = widget
         widget.mouse_wheel_zoom.connect(self.zoom.on_mouse_wheel_zoom)
         widget.setParent(self)
+        self.setFocusProxy(widget)
 
     @property
     def cur_url(self):
