@@ -386,6 +386,9 @@ class AbstractTab(QWidget):
 
     Signals:
         See related Qt signals.
+
+        new_tab_requested: Emitted when a new tab should be opened with the
+                           given URL.
     """
 
     window_close_requested = pyqtSignal()
@@ -398,6 +401,7 @@ class AbstractTab(QWidget):
     url_text_changed = pyqtSignal(str)
     title_changed = pyqtSignal(str)
     load_status_changed = pyqtSignal(str)
+    new_tab_requested = pyqtSignal(QUrl)
     shutting_down = pyqtSignal()
 
     def __init__(self, win_id, parent=None):

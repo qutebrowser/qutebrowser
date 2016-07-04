@@ -284,8 +284,10 @@ class WebViewCaret(tab.AbstractCaret):
                 except KeyError:
                     raise tab.WebTabError('Anchor element without href!')
                 url = self._tab.cur_url.resolved(QUrl(url))
-                # FIXME(refactoring) does this open in a new tab?
-                self._tab.openurl(url)
+                if tab:
+                    self._tab.new_tab_requested.emit(url)
+                else:
+                    self._tab.openurl(url)
 
 
 class WebViewZoom(tab.AbstractZoom):

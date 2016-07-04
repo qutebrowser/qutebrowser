@@ -205,6 +205,7 @@ class TabbedBrowser(tabwidget.TabWidget):
             functools.partial(self.on_load_started, tab))
         tab.window_close_requested.connect(
             functools.partial(self.on_window_close_requested, tab))
+        tab.new_tab_requested.connect(self.tabopen)
 
     def current_url(self):
         """Get the URL of the current tab.
@@ -347,6 +348,7 @@ class TabbedBrowser(tabwidget.TabWidget):
             log.webview.debug("Requested to close {!r} which does not "
                               "exist!".format(widget))
 
+    @pyqtSlot('QUrl')
     @pyqtSlot('QUrl', bool)
     def tabopen(self, url=None, background=None, explicit=False):
         """Open a new tab with a given URL.
