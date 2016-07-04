@@ -19,7 +19,9 @@
 
 """Wrapper over a QWebEngineView."""
 
-from PyQt5.QtCore import pyqtSlot
+from PyQt5.QtCore import pyqtSlot, Qt, QEvent
+from PyQt5.QtGui import QKeyEvent
+from PyQt5.QtWidgets import QApplication
 
 try:
     from PyQt5.QtWebEngineWidgets import QWebEngineView, QWebEnginePage
@@ -54,6 +56,16 @@ class WebEngineCaret(tab.AbstractCaret):
 
 class WebEngineScroller(tab.AbstractScroller):
 
+    def _key_press(self, key, count=1, getter_name=None, direction=None):
+        # FIXME for some reason this does not work? :-/
+        # FIXME Abort scrolling if the minimum/maximum was reached.
+        press_evt = QKeyEvent(QEvent.KeyPress, key, Qt.NoModifier, 0, 0, 0)
+        release_evt = QKeyEvent(QEvent.KeyRelease, key, Qt.NoModifier, 0, 0, 0)
+        self._widget.setFocus()
+        for _ in range(count):
+            QApplication.postEvent(self._widget, press_evt)
+            QApplication.postEvent(self._widget, release_evt)
+
     def pos_perc(self):
         page = self._widget.page()
         try:
@@ -67,6 +79,31 @@ class WebEngineScroller(tab.AbstractScroller):
             perc_x = 100 / size.width() * pos.x()
             perc_y = 100 / size.height() * pos.y()
             return (perc_x, perc_y)
+
+    def up(self, count=1):
+        self._key_press(Qt.Key_Up, count, 'scrollBarMinimum', Qt.Vertical)
+
+    def down(self, count=1):
+        self._key_press(Qt.Key_Down, count, 'scrollBarMaximum', Qt.Vertical)
+
+    def left(self, count=1):
+        self._key_press(Qt.Key_Left, count, 'scrollBarMinimum', Qt.Horizontal)
+
+    def right(self, count=1):
+        self._key_press(Qt.Key_Right, count, 'scrollBarMaximum', Qt.Horizontal)
+
+    def top(self):
+        self._key_press(Qt.Key_Home)
+
+    def bottom(self):
+        self._key_press(Qt.Key_End)
+
+    def page_up(self, count=1):
+        self._key_press(Qt.Key_PageUp, count, 'scrollBarMinimum', Qt.Vertical)
+
+    def page_down(self, count=1):
+        self._key_press(Qt.Key_PageDown, count, 'scrollBarMaximum',
+                        Qt.Vertical)
 
     ## TODO
 
