@@ -156,6 +156,9 @@ class WebEngineViewTab(tab.AbstractTab):
     def icon(self):
         return self._widget.icon()
 
+    def run_webaction(self, action):
+        self._widget.triggerPageAction(action)
+
     def _connect_signals(self):
         view = self._widget
         page = view.page()

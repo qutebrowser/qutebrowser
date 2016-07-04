@@ -32,6 +32,10 @@ from PyQt5.QtCore import Qt, QUrl, QEvent
 from PyQt5.QtGui import QKeyEvent
 from PyQt5.QtPrintSupport import QPrintDialog, QPrintPreviewDialog
 from PyQt5.QtWebKitWidgets import QWebPage
+try:
+    from PyQt5.QtWebEngineWidgets import QWebEnginePage
+except ImportError:
+    QWebEnginePage = None
 import pygments
 import pygments.lexers
 import pygments.formatters
@@ -1644,13 +1648,23 @@ class CommandDispatcher:
             action: The action to execute, e.g. MoveToNextChar.
             count: How many times to repeat the action.
         """
-        member = getattr(QWebPage, action, None)
-        if not isinstance(member, QWebPage.WebAction):
+        tab = self._current_widget()
+
+        if tab.backend == tabmod.Backend.QtWebKit:
+            assert QWebPage is not None
+            member = getattr(QWebPage, action, None)
+            base = QWebPage.WebAction
+        elif tab.backend == tabmod.Backend.QtWebEngine:
+            assert QWebEnginePage is not None
+            member = getattr(QWebEnginePage, action, None)
+            base = QWebEnginePage.WebAction
+
+        if not isinstance(member, base):
             raise cmdexc.CommandError("{} is not a valid web action!".format(
                 action))
-        view = self._current_widget()
+
         for _ in range(count):
-            view.triggerPageAction(member)
+            tab.run_webaction(member)
 
     @cmdutils.register(instance='command-dispatcher', scope='window',
                        maxsplit=0, no_cmd_split=True)

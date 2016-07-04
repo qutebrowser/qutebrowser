@@ -487,7 +487,7 @@ class WebViewTab(tab.AbstractTab):
             action = QWebPage.ReloadAndBypassCache
         else:
             action = QWebPage.Reload
-        self._widget.triggerPageAction(action)
+        self.run_webaction(action)
 
     def stop(self):
         self._widget.stop()
@@ -498,6 +498,9 @@ class WebViewTab(tab.AbstractTab):
     def clear_ssl_errors(self):
         nam = self._widget.page().networkAccessManager()
         nam.clear_all_ssl_errors()
+
+    def run_webaction(self, action):
+        self._widget.triggerPageAction(action)
 
     def _connect_signals(self):
         view = self._widget
