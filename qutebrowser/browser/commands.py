@@ -357,7 +357,7 @@ class CommandDispatcher:
             new_tabbed_browser.setTabIcon(idx, curtab.icon())
             if config.get('tabs', 'tabs-are-windows'):
                 new_tabbed_browser.window().setWindowIcon(curtab.icon())
-        newtab.keep_icon = True
+        newtab.data.keep_icon = True
         newtab.zoom.set_factor(curtab.zoom.factor())
         newtab.history.deserialize(curtab.history.serialize())
         return newtab

@@ -47,3 +47,19 @@ def test_tab(qtbot, view):
     assert tab_w.history.tab is tab_w
     assert tab_w.history.history is w.history()
     assert w.parent() is tab_w
+
+
+class TestTabData:
+
+    def test_known_attr(self):
+        data = tab.TabData()
+        assert data.keep_icon == False
+        data.keep_icon = True
+        assert data.keep_icon == True
+
+    def test_unknown_attr(self):
+        data = tab.TabData()
+        with pytest.raises(AttributeError):
+            data.bar = 42
+        with pytest.raises(AttributeError):
+            data.bar

@@ -63,6 +63,34 @@ class WrapperLayout(QLayout):
         self._widget.setGeometry(r)
 
 
+class TabData(QObject):
+
+    """A simple namespace with a fixed set of attributes.
+
+    Attributes:
+        keep_icon: Whether the (e.g. cloned) icon should not be cleared on page
+                   load.
+    """
+
+    def __init__(self):
+        self._data = {'keep_icon': False}
+
+    def __getattr__(self, attr):
+        if attr.startswith('_'):
+            return super().__getattr__(attr)
+        try:
+            return self._data[attr]
+        except KeyError:
+            raise AttributeError(attr)
+
+    def __setattr__(self, attr, value):
+        if attr.startswith('_'):
+            return super().__setattr__(attr, value)
+        if attr not in self._data:
+            raise AttributeError("Can't set unknown attribute {!r}".format(attr))
+        self._data[attr] = value
+
+
 class AbstractSearch(QObject):
 
     """Attribute of AbstractTab for doing searches.
@@ -381,8 +409,6 @@ class AbstractTab(QWidget):
     We use this to unify QWebView and QWebEngineView.
 
     Attributes:
-        keep_icon: Whether the (e.g. cloned) icon should not be cleared on page
-                   load.
         history: The AbstractHistory for the current tab.
 
         for properties, see WebView/WebEngineView docs.
@@ -416,9 +442,9 @@ class AbstractTab(QWidget):
         # self.caret = AbstractCaret(win_id=win_id, tab=self, parent=self)
         # self.zoom = AbstractZoom(win_id=win_id)
         # self.search = AbstractSearch(parent=self)
+        self.data = TabData()
         self._layout = None
         self._widget = None
-        self.keep_icon = False  # FIXME:refactor get rid of this?
         self.backend = None
 
     def _set_widget(self, widget):

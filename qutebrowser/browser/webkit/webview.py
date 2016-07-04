@@ -98,7 +98,6 @@ class WebView(QWebView):
         self._old_scroll_pos = (-1, -1)
         self._has_ssl_errors = False
         self._ignore_wheel_event = False
-        self.keep_icon = False
         self._set_bg_color()
         self.cur_url = QUrl()
         self.progress = 0
