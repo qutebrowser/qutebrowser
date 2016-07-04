@@ -447,6 +447,7 @@ class WebViewTab(tab.AbstractTab):
         self._set_widget(widget)
         self._connect_signals()
         self.zoom._set_default_zoom()
+        self.backend = tab.Backend.QtWebKit
 
     def openurl(self, url):
         self._widget.openurl(url)

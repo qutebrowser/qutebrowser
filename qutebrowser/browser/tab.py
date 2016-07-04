@@ -32,6 +32,9 @@ from qutebrowser.utils import utils, objreg, usertypes
 tab_id_gen = itertools.count(0)
 
 
+Backend = usertypes.enum('Backend', ['QtWebKit', 'QtWebEngine'])
+
+
 class WebTabError(Exception):
 
     """Base class for various errors."""
@@ -416,6 +419,7 @@ class AbstractTab(QWidget):
         self._layout = None
         self._widget = None
         self.keep_icon = False  # FIXME:refactor get rid of this?
+        self.backend = None
 
     def _set_widget(self, widget):
         self._layout = WrapperLayout(widget, self)

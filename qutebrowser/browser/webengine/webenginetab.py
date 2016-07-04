@@ -107,6 +107,7 @@ class WebEngineViewTab(tab.AbstractTab):
         self.search = WebEngineSearch(parent=self)
         self._set_widget(widget)
         self._connect_signals()
+        self.backend = tab.Backend.QtWebEngine
 
     def openurl(self, url):
         self._widget.load(url)
