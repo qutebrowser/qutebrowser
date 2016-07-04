@@ -687,7 +687,6 @@ class TabbedBrowser(tabwidget.TabWidget):
                 def callback(ok):
                     if ok:
                         self.cur_load_finished.disconnect(callback)
-                        frame.setScrollPosition(point)
                         tab.scroll.to_point(point)
 
                 self.openurl(url, newtab=False)
