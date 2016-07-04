@@ -298,7 +298,7 @@ class TabbedBrowser(tabwidget.TabWidget):
                 'startpage': QUrl(config.get('general', 'startpage')[0]),
                 'default-page': config.get('general', 'default-page'),
             }
-            first_tab_url = self.widget(0).page().mainFrame().requestedUrl()
+            first_tab_url = self.widget(0).cur_url
             last_close_urlstr = urls[last_close].toString().rstrip('/')
             first_tab_urlstr = first_tab_url.toString().rstrip('/')
             last_close_url_used = first_tab_urlstr == last_close_urlstr
