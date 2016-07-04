@@ -148,9 +148,8 @@ class AbstractCaret(QObject):
 
     """Attribute of AbstractTab for caret browsing."""
 
-    def __init__(self, win_id, tab, parent=None):
+    def __init__(self, win_id, parent=None):
         super().__init__(parent)
-        self._tab = tab
         self._win_id = win_id
         self.widget = None
         self.selection_enabled = False
@@ -214,6 +213,12 @@ class AbstractCaret(QObject):
         raise NotImplementedError
 
     def drop_selection(self):
+        raise NotImplementedError
+
+    def has_selection(self):
+        raise NotImplementedError
+
+    def selection(self, html=False):
         raise NotImplementedError
 
 
@@ -350,7 +355,7 @@ class AbstractTab(QWidget):
         super().__init__(parent)
         # self.history = AbstractHistory(self)
         # self.scroll = AbstractScroller(parent=self)
-        # self.caret = AbstractCaret(win_id=win_id, tab=self, parent=self)
+        # self.caret = AbstractCaret(win_id=win_id, parent=self)
         # self.zoom = AbstractZoom(win_id=win_id)
         self._layout = None
         self._widget = None
@@ -410,12 +415,6 @@ class AbstractTab(QWidget):
         raise NotImplementedError
 
     def icon(self):
-        raise NotImplementedError
-
-    def has_selection(self):
-        raise NotImplementedError
-
-    def selection(self, html=False):
         raise NotImplementedError
 
     def __repr__(self):

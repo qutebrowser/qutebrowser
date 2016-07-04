@@ -40,7 +40,7 @@ class WebViewCaret(tab.AbstractCaret):
 
         settings = self.widget.settings()
         settings.setAttribute(QWebSettings.CaretBrowsingEnabled, True)
-        self.selection_enabled = bool(self._tab.selection())
+        self.selection_enabled = bool(self.selection())
 
         if self.widget.isVisible():
             # Sometimes the caret isn't immediately visible, but unfocusing
@@ -53,7 +53,7 @@ class WebViewCaret(tab.AbstractCaret):
             #
             # Note: We can't use hasSelection() here, as that's always
             # true in caret mode.
-            if not self._tab.selection():
+            if not self.selection():
                 self.widget.page().currentFrame().evaluateJavaScript(
                     utils.read_file('javascript/position_caret.js'))
 
@@ -212,6 +212,14 @@ class WebViewCaret(tab.AbstractCaret):
     def drop_selection(self):
         self.widget.triggerPageAction(QWebPage.MoveToNextChar)
 
+    def has_selection(self):
+        return self.widget.hasSelection()
+
+    def selection(self, html=False):
+        if html:
+            return self.widget.selectedHtml()
+        return self.widget.selectedText()
+
 
 class WebViewZoom(tab.AbstractZoom):
 
@@ -366,7 +374,7 @@ class WebViewTab(tab.AbstractTab):
         widget = webview.WebView(win_id, self.tab_id, tab=self)
         self.history = WebViewHistory(self)
         self.scroll = WebViewScroller(parent=self)
-        self.caret = WebViewCaret(win_id=win_id, tab=self, parent=self)
+        self.caret = WebViewCaret(win_id=win_id, parent=self)
         self.zoom = WebViewZoom(win_id=win_id, parent=self)
         self._set_widget(widget)
         self._connect_signals()
@@ -417,14 +425,6 @@ class WebViewTab(tab.AbstractTab):
 
     def title(self):
         return self._widget.title()
-
-    def has_selection(self):
-        return self._widget.hasSelection()
-
-    def selection(self, html=False):
-        if html:
-            return self._widget.selectedHtml()
-        return self._widget.selectedText()
 
     def _connect_signals(self):
         view = self._widget

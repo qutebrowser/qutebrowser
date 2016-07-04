@@ -1027,9 +1027,9 @@ class CommandDispatcher:
         if webview is None:
             mainframe = None
         else:
-            if webview.hasSelection():
-                env['QUTE_SELECTED_TEXT'] = webview.selection()
-                env['QUTE_SELECTED_HTML'] = webview.selection(html=True)
+            if webview.caret.has_selection():
+                env['QUTE_SELECTED_TEXT'] = webview.caret.selection()
+                env['QUTE_SELECTED_HTML'] = webview.caret.selection(html=True)
             mainframe = webview.page().mainFrame()
 
         try:
@@ -1108,7 +1108,7 @@ class CommandDispatcher:
             tab: Load the selected link in a new tab.
         """
         widget = self._current_widget()
-        if not widget.has_selection():
+        if not widget.caret.has_selection():
             return
         if QWebSettings.globalSettings().testAttribute(
                 QWebSettings.JavascriptEnabled):
@@ -1117,9 +1117,10 @@ class CommandDispatcher:
             widget.run_js_async(
                 'window.getSelection().anchorNode.parentNode.click()')
         else:
+            selection = widget.caret.selection(html=True)
             try:
                 selected_element = xml.etree.ElementTree.fromstring(
-                    '<html>' + widget.selection(html=True) + '</html>').find('a')
+                    '<html>{}</html>'.format(selection)).find('a')
             except xml.etree.ElementTree.ParseError:
                 raise cmdexc.CommandError('Could not parse selected element!')
 
@@ -1646,9 +1647,9 @@ class CommandDispatcher:
             sel: Use the primary selection instead of the clipboard.
             keep: If given, stay in visual mode after yanking.
         """
-        tab = self._current_widget()
-        s = tab.selection()
-        if not tab.has_selection() or len(s) == 0:
+        caret = self._current_widget().caret
+        s = caret.selection()
+        if not caret.has_selection() or len(s) == 0:
             message.info(self._win_id, "Nothing to yank")
             return
 
