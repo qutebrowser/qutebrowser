@@ -330,7 +330,7 @@ class AbstractHistory:
         self.history = None
 
     def __iter__(self):
-        raise NotImplementedError
+        return iter(self.history.items())
 
     def current_idx(self):
         raise NotImplementedError

@@ -368,9 +368,6 @@ class WebViewScroller(tab.AbstractScroller):
 
 class WebViewHistory(tab.AbstractHistory):
 
-    def __iter__(self):
-        return iter(self.history.items())
-
     def current_idx(self):
         return self.history.currentItemIndex()
 
