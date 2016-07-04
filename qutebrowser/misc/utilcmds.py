@@ -223,7 +223,7 @@ def debug_set_fake_clipboard(s=None):
 @cmdutils.argument('win_id', win_id=True)
 @cmdutils.argument('count', count=True)
 def repeat_command(win_id, count=None):
-    """Repeat the last executed command, like '.' in vi.
+    """Repeat the last executed command.
 
     Args:
         count: Which count to pass the command.
