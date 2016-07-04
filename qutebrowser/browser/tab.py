@@ -462,6 +462,10 @@ class AbstractTab(QWidget):
     def icon(self):
         raise NotImplementedError
 
+    def set_open_target(self, target):
+        """Select where the next navigation request should open."""
+        raise NotImplementedError
+
     def __repr__(self):
         url = utils.elide(self.cur_url.toDisplayString(QUrl.EncodeUnicode),
                           100)

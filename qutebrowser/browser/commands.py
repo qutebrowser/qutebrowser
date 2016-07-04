@@ -1113,7 +1113,7 @@ class CommandDispatcher:
         if QWebSettings.globalSettings().testAttribute(
                 QWebSettings.JavascriptEnabled):
             if tab:
-                page.open_target = usertypes.ClickTarget.tab
+                widget.set_open_target(usertypes.ClickTarget.tab)
             widget.run_js_async(
                 'window.getSelection().anchorNode.parentNode.click()')
         else:

@@ -464,6 +464,9 @@ class WebViewTab(tab.AbstractTab):
     def title(self):
         return self._widget.title()
 
+    def set_open_target(self, target):
+        self._widget.page().open_target = target
+
     def _connect_signals(self):
         view = self._widget
         page = view.page()

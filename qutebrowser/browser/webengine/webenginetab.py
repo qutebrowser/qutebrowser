@@ -155,6 +155,9 @@ class WebEngineViewTab(tab.AbstractTab):
     def icon(self):
         return self._widget.icon()
 
+    def set_open_target(self, target):
+        raise NotImplementedError
+
     def _connect_signals(self):
         view = self._widget
         page = view.page()
