@@ -32,6 +32,10 @@ from qutebrowser.utils import utils, objreg, usertypes
 tab_id_gen = itertools.count(0)
 
 
+class WebTabError(Exception):
+
+    """Base class for various errors."""
+
 
 class WrapperLayout(QLayout):
 
@@ -188,8 +192,9 @@ class AbstractCaret(QObject):
 
     """Attribute of AbstractTab for caret browsing."""
 
-    def __init__(self, win_id, parent=None):
+    def __init__(self, win_id, tab, parent=None):
         super().__init__(parent)
+        self._tab = tab
         self._win_id = win_id
         self._widget = None
         self.selection_enabled = False
@@ -259,6 +264,9 @@ class AbstractCaret(QObject):
         raise NotImplementedError
 
     def selection(self, html=False):
+        raise NotImplementedError
+
+    def follow_selected(self, tab=False):
         raise NotImplementedError
 
 
@@ -398,7 +406,7 @@ class AbstractTab(QWidget):
         super().__init__(parent)
         # self.history = AbstractHistory(self)
         # self.scroll = AbstractScroller(parent=self)
-        # self.caret = AbstractCaret(win_id=win_id, parent=self)
+        # self.caret = AbstractCaret(win_id=win_id, tab=self, parent=self)
         # self.zoom = AbstractZoom(win_id=win_id)
         # self.search = AbstractSearch(parent=self)
         self._layout = None
@@ -460,10 +468,6 @@ class AbstractTab(QWidget):
         raise NotImplementedError
 
     def icon(self):
-        raise NotImplementedError
-
-    def set_open_target(self, target):
-        """Select where the next navigation request should open."""
         raise NotImplementedError
 
     def __repr__(self):

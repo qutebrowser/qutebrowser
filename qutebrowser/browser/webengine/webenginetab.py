@@ -102,7 +102,7 @@ class WebEngineViewTab(tab.AbstractTab):
         widget = QWebEngineView()
         self.history = WebEngineHistory(self)
         self.scroll = WebEngineScroller()
-        self.caret = WebEngineCaret(win_id=win_id, parent=self)
+        self.caret = WebEngineCaret(win_id=win_id, tab=self, parent=self)
         self.zoom = WebEngineZoom(win_id=win_id, parent=self)
         self.search = WebEngineSearch(parent=self)
         self._set_widget(widget)
@@ -154,9 +154,6 @@ class WebEngineViewTab(tab.AbstractTab):
 
     def icon(self):
         return self._widget.icon()
-
-    def set_open_target(self, target):
-        raise NotImplementedError
 
     def _connect_signals(self):
         view = self._widget

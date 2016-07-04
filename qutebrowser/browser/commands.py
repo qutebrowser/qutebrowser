@@ -25,7 +25,6 @@ import sys
 import shlex
 import posixpath
 import functools
-import xml.etree.ElementTree
 
 from PyQt5.QtWebKit import QWebSettings
 from PyQt5.QtWidgets import QApplication, QTabBar
@@ -40,6 +39,7 @@ import pygments.formatters
 from qutebrowser.commands import userscripts, cmdexc, cmdutils, runners
 from qutebrowser.config import config, configexc
 from qutebrowser.browser import urlmarks
+from qutebrowser.browser import tab as tabmod
 from qutebrowser.browser.webkit import webelem, inspector, downloads, mhtml
 from qutebrowser.keyinput import modeman
 from qutebrowser.utils import (message, usertypes, log, qtutils, urlutils,
@@ -1107,30 +1107,10 @@ class CommandDispatcher:
         Args:
             tab: Load the selected link in a new tab.
         """
-        widget = self._current_widget()
-        if not widget.caret.has_selection():
-            return
-        if QWebSettings.globalSettings().testAttribute(
-                QWebSettings.JavascriptEnabled):
-            if tab:
-                widget.set_open_target(usertypes.ClickTarget.tab)
-            widget.run_js_async(
-                'window.getSelection().anchorNode.parentNode.click()')
-        else:
-            selection = widget.caret.selection(html=True)
-            try:
-                selected_element = xml.etree.ElementTree.fromstring(
-                    '<html>{}</html>'.format(selection)).find('a')
-            except xml.etree.ElementTree.ParseError:
-                raise cmdexc.CommandError('Could not parse selected element!')
-
-            if selected_element is not None:
-                try:
-                    url = selected_element.attrib['href']
-                except KeyError:
-                    raise cmdexc.CommandError('Anchor element without href!')
-                url = self._current_url().resolved(QUrl(url))
-                self._open(url, tab)
+        try:
+            self._current_widget().caret.follow_selected(tab=tab)
+        except tabmod.WebTabError as e:
+            raise cmdexc.CommandError(str(e))
 
     @cmdutils.register(instance='command-dispatcher', name='inspector',
                        scope='window')

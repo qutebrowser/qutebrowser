@@ -20,8 +20,9 @@
 """Wrapper over our (QtWebKit) WebView."""
 
 import sys
+import xml.etree.ElementTree
 
-from PyQt5.QtCore import pyqtSlot, Qt, QEvent
+from PyQt5.QtCore import pyqtSlot, Qt, QEvent, QUrl
 from PyQt5.QtGui import QKeyEvent
 from PyQt5.QtWebKitWidgets import QWebPage
 from PyQt5.QtWebKit import QWebSettings
@@ -260,6 +261,32 @@ class WebViewCaret(tab.AbstractCaret):
             return self._widget.selectedHtml()
         return self._widget.selectedText()
 
+    def follow_selected(self, *, tab=False):
+        if not self.has_selection():
+            return
+        if QWebSettings.globalSettings().testAttribute(
+                QWebSettings.JavascriptEnabled):
+            if tab:
+                self._widget.page().open_target = usertypes.ClickTarget.tab
+            self._tab.run_js_async(
+                'window.getSelection().anchorNode.parentNode.click()')
+        else:
+            selection = self.selection(html=True)
+            try:
+                selected_element = xml.etree.ElementTree.fromstring(
+                    '<html>{}</html>'.format(selection)).find('a')
+            except xml.etree.ElementTree.ParseError:
+                raise tab.WebTabError('Could not parse selected element!')
+
+            if selected_element is not None:
+                try:
+                    url = selected_element.attrib['href']
+                except KeyError:
+                    raise tab.WebTabError('Anchor element without href!')
+                url = self._tab.cur_url.resolved(QUrl(url))
+                # FIXME(refactoring) does this open in a new tab?
+                self._tab.openurl(url)
+
 
 class WebViewZoom(tab.AbstractZoom):
 
@@ -411,7 +438,7 @@ class WebViewTab(tab.AbstractTab):
         widget = webview.WebView(win_id, self.tab_id, tab=self)
         self.history = WebViewHistory(self)
         self.scroll = WebViewScroller(parent=self)
-        self.caret = WebViewCaret(win_id=win_id, parent=self)
+        self.caret = WebViewCaret(win_id=win_id, tab=self, parent=self)
         self.zoom = WebViewZoom(win_id=win_id, parent=self)
         self.search = WebViewSearch(parent=self)
         self._set_widget(widget)
@@ -463,9 +490,6 @@ class WebViewTab(tab.AbstractTab):
 
     def title(self):
         return self._widget.title()
-
-    def set_open_target(self, target):
-        self._widget.page().open_target = target
 
     def _connect_signals(self):
         view = self._widget
