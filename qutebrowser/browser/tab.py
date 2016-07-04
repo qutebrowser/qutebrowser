@@ -329,6 +329,9 @@ class AbstractHistory:
         self._tab = tab
         self.history = None
 
+    def __len__(self):
+        return len(self.history)
+
     def __iter__(self):
         return iter(self.history.items())
 

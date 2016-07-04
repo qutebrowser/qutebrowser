@@ -291,7 +291,7 @@ class TabbedBrowser(tabwidget.TabWidget):
         use_current_tab = False
         if last_close in ['blank', 'startpage', 'default-page']:
             only_one_tab_open = self.count() == 1
-            no_history = self.widget(0).history().count() == 1
+            no_history = len(self.widget(0).history) == 1
             urls = {
                 'blank': QUrl('about:blank'),
                 'startpage': QUrl(config.get('general', 'startpage')[0]),
