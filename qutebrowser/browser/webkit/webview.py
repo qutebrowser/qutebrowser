@@ -48,7 +48,6 @@ class WebView(QWebView):
         progress: loading progress of this page.
         scroll_pos: The current scroll position as (x%, y%) tuple.
         statusbar_message: The current javascript statusbar message.
-        inspector: The QWebInspector used for this webview.
         load_status: loading status of this page (index into LoadStatus)
         registry: The ObjectRegistry associated with this tab.
         win_id: The window ID of the view.
@@ -90,7 +89,6 @@ class WebView(QWebView):
         self.win_id = win_id
         self.load_status = usertypes.LoadStatus.none
         self._check_insertmode = False
-        self.inspector = None
         self.scroll_pos = (-1, -1)
         self.statusbar_message = ''
         self._old_scroll_pos = (-1, -1)

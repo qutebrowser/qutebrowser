@@ -1124,24 +1124,24 @@ class CommandDispatcher:
         Note: Due a bug in Qt, the inspector will show incorrect request
         headers in the network tab.
         """
-        cur = self._current_widget()
-        if cur.inspector is None:
+        tab = self._current_widget()
+        if tab.data.inspector is None:
             if not config.get('general', 'developer-extras'):
                 raise cmdexc.CommandError(
                     "Please enable developer-extras before using the "
                     "webinspector!")
-            cur.inspector = inspector.WebInspector()
-            cur.inspector.setPage(cur.page())
-            cur.inspector.show()
-        elif cur.inspector.isVisible():
-            cur.inspector.hide()
+            tab.data.inspector = inspector.WebInspector()
+            tab.data.inspector.setPage(tab._widget.page())
+            tab.data.inspector.show()
+        elif tab.data.inspector.isVisible():
+            tab.data.inspector.hide()
         else:
             if not config.get('general', 'developer-extras'):
                 raise cmdexc.CommandError(
                     "Please enable developer-extras before using the "
                     "webinspector!")
             else:
-                cur.inspector.show()
+                tab.data.inspector.show()
 
     @cmdutils.register(instance='command-dispatcher', scope='window')
     @cmdutils.argument('dest_old', hide=True)

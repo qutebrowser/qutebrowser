@@ -70,12 +70,14 @@ class TabData(QObject):
     Attributes:
         keep_icon: Whether the (e.g. cloned) icon should not be cleared on page
                    load.
+        inspector: The QWebInspector used for this webview.
     """
 
     def __init__(self):
         self._data = {
             'keep_icon': False,
             'viewing_source': False,
+            'inspector': None,
         }
 
     def __getattr__(self, attr):
