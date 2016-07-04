@@ -96,6 +96,28 @@ def cmdutils_patch(monkeypatch, stubs):
                         cmd_utils)
 
 
+def _set_cmd_prompt(cmd, txt):
+    """Set the command prompt's text and cursor position.
+
+    Args:
+        cmd: The command prompt object.
+        txt: The prompt text, using | as a placeholder for the cursor position.
+    """
+    cmd.setText(txt.replace('|', ''))
+    cmd.setCursorPosition(txt.index('|'))
+
+
+def _validate_cmd_prompt(cmd, txt):
+    """Interpret fake command prompt text using | as the cursor placeholder.
+
+    Args:
+        cmd: The command prompt object.
+        txt: The prompt text, using | as a placeholder for the cursor position.
+    """
+    assert cmd.cursorPosition() == txt.index('|')
+    assert cmd.text() == txt.replace('|', '')
+
+
 @pytest.mark.parametrize('txt, expected', [
     (':nope|', usertypes.Completion.command),
     (':nope |', None),
@@ -139,9 +161,7 @@ def test_update_completion(txt, expected, cmd, completer_obj,
                            completion_widget_stub):
     """Test setting the completion widget's model based on command text."""
     # this test uses | as a placeholder for the current cursor position
-    cursor_pos = txt.index('|')
-    cmd.setText(txt.replace('|', ''))
-    cmd.setCursorPosition(cursor_pos)
+    _set_cmd_prompt(cmd, txt)
     completer_obj.update_completion()
     if expected is None:
         assert not completion_widget_stub.set_model.called
@@ -193,14 +213,8 @@ def test_selection_changed(before, newtxt, count, quick_complete, after,
     selection = unittest.mock.Mock()
     selection.indexes = unittest.mock.Mock(return_value=indexes)
     completion_widget_stub.model = unittest.mock.Mock(return_value=model)
-    before_pos = before.index('|')
-    after_pos = after.index('|')
-    before_txt = before.replace('|', '')
-    after_txt = after.replace('|', '')
-    cmd.setText(before_txt)
-    cmd.setCursorPosition(before_pos)
+    _set_cmd_prompt(cmd, before)
     completer_obj.update_cursor_part()
     completer_obj.selection_changed(selection, None)
     model.data.assert_called_with(indexes[0])
-    assert cmd.text() == after_txt
-    assert cmd.cursorPosition() == after_pos
+    _validate_cmd_prompt(cmd, after)
