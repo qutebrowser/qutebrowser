@@ -376,6 +376,7 @@ class FakeStatusbarCommand(QObject):
         super().__init__(parent)
         self._cursor_pos = 0
         self._text = ""
+        self._focus = False
 
     def cursorPosition(self):
         return self._cursor_pos
@@ -386,8 +387,11 @@ class FakeStatusbarCommand(QObject):
     def prefix(self):
         return self._text[0]
 
+    def focus(self):
+        return self._focus
+
     def setFocus(self):
-        return None
+        self._focus = True
 
     def setText(self, x):
         self._text = x

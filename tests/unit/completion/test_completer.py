@@ -19,6 +19,8 @@
 
 """Tests for the Completer Object."""
 
+import unittest.mock
+
 import pytest
 from PyQt5.QtGui import QStandardItemModel
 
@@ -145,3 +147,42 @@ def test_update_completion(txt, expected, cmd, completer_obj,
         arg = completion_widget_stub.set_model.call_args[0][0]
         # the outer model is just for sorting; srcmodel is the completion model
         assert arg.srcmodel.kind == expected
+
+def test_completion_item_prev(completer_obj, cmd, completion_widget_stub,
+                              config_stub):
+    """Test that completion_item_prev emits next_prev_item."""
+    cmd.setText(':')
+    slot = unittest.mock.Mock()
+    completer_obj.next_prev_item.connect(slot)
+    completer_obj.completion_item_prev()
+    slot.assert_called_with(True)
+
+def test_completion_item_next(completer_obj, cmd, completion_widget_stub,
+                              config_stub):
+    """Test that completion_item_next emits next_prev_item."""
+    cmd.setText(':')
+    slot = unittest.mock.Mock()
+    completer_obj.next_prev_item.connect(slot)
+    completer_obj.completion_item_next()
+    slot.assert_called_with(False)
+
+@pytest.mark.parametrize('before, newtxt, immediate, after', [
+    (':foo |', 'bar', False, ':foo bar|'),
+    (':foo |', 'bar', True, ':foo bar |'),
+    (':foo | bar', 'baz', False, ':foo baz| bar'),
+    (':foo | bar', 'baz', True, ':foo baz |bar'),
+])
+def test_change_completed_part(before, newtxt, after, immediate, completer_obj,
+                               cmd, completion_widget_stub, config_stub):
+    """Test that change_completed_part modifies the cmd text properly."""
+    before_pos = before.index('|')
+    after_pos = after.index('|')
+    before_txt = before.replace('|', '')
+    after_txt = after.replace('|', '')
+    cmd.setText(before_txt)
+    cmd.setCursorPosition(before_pos)
+    completer_obj.update_cursor_part()
+    completer_obj.change_completed_part(newtxt, immediate)
+    assert cmd.focus()
+    assert cmd.text() == after_txt
+    assert cmd.cursorPosition() == after_pos
