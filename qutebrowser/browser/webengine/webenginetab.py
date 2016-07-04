@@ -172,7 +172,7 @@ class WebEngineViewTab(tab.AbstractTab):
         page.windowCloseRequested.connect(self.window_close_requested)
         page.linkHovered.connect(self.link_hovered)
         page.loadProgress.connect(self.load_progress)
-        page.loadStarted.connect(self.load_started)
+        page.loadStarted.connect(self._on_load_started)
         view.titleChanged.connect(self.title_changed)
         page.loadFinished.connect(self.load_finished)
         # FIXME:refactor

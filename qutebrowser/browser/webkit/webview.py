@@ -50,8 +50,6 @@ class WebView(QWebView):
         statusbar_message: The current javascript statusbar message.
         inspector: The QWebInspector used for this webview.
         load_status: loading status of this page (index into LoadStatus)
-        viewing_source: Whether the webview is currently displaying source
-                        code.
         registry: The ObjectRegistry associated with this tab.
         win_id: The window ID of the view.
         _tab_id: The tab ID of the view.
@@ -118,7 +116,6 @@ class WebView(QWebView):
                                   window=win_id)
         mode_manager.entered.connect(self.on_mode_entered)
         mode_manager.left.connect(self.on_mode_left)
-        self.viewing_source = False
         if config.get('input', 'rocker-gestures'):
             self.setContextMenuPolicy(Qt.PreventContextMenu)
         self.urlChanged.connect(self.on_url_changed)
@@ -370,7 +367,6 @@ class WebView(QWebView):
     def on_load_started(self):
         """Leave insert/hint mode and set vars when a new page is loading."""
         self.progress = 0
-        self.viewing_source = False
         self._has_ssl_errors = False
         self._set_load_status(usertypes.LoadStatus.loading)
 

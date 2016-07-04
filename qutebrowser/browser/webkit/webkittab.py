@@ -512,7 +512,7 @@ class WebViewTab(tab.AbstractTab):
         page.windowCloseRequested.connect(self.window_close_requested)
         page.linkHovered.connect(self.link_hovered)
         page.loadProgress.connect(self.load_progress)
-        frame.loadStarted.connect(self.load_started)
+        frame.loadStarted.connect(self._on_load_started)
         view.scroll_pos_changed.connect(self.scroll.perc_changed)
         view.titleChanged.connect(self.title_changed)
         view.url_text_changed.connect(self.url_text_changed)

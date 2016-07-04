@@ -1210,19 +1210,21 @@ class CommandDispatcher:
         """Show the source of the current page."""
         # pylint: disable=no-member
         # WORKAROUND for https://bitbucket.org/logilab/pylint/issue/491/
-        widget = self._current_widget()
-        if widget.viewing_source:
+        tab = self._current_widget()
+        if tab.data.viewing_source:
             raise cmdexc.CommandError("Already viewing source!")
-        frame = widget.page().currentFrame()
-        html = frame.toHtml()
-        lexer = pygments.lexers.HtmlLexer()
-        formatter = pygments.formatters.HtmlFormatter(full=True,
-                                                      linenos='table')
-        highlighted = pygments.highlight(html, lexer, formatter)
-        current_url = self._current_url()
-        tab = self._tabbed_browser.tabopen(explicit=True)
-        tab.setHtml(highlighted, current_url)
-        tab.viewing_source = True
+
+        def show_source_cb(source):
+            lexer = pygments.lexers.HtmlLexer()
+            formatter = pygments.formatters.HtmlFormatter(full=True,
+                                                          linenos='table')
+            highlighted = pygments.highlight(source, lexer, formatter)
+            current_url = self._current_url()
+            new_tab = self._tabbed_browser.tabopen(explicit=True)
+            new_tab.set_html(highlighted, current_url)
+            new_tab.data.viewing_source = True
+
+        tab.dump_async(show_source_cb)
 
     @cmdutils.register(instance='command-dispatcher', scope='window',
                        debug=True)

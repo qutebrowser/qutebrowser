@@ -73,7 +73,10 @@ class TabData(QObject):
     """
 
     def __init__(self):
-        self._data = {'keep_icon': False}
+        self._data = {
+            'keep_icon': False,
+            'viewing_source': False,
+        }
 
     def __getattr__(self, attr):
         if attr.startswith('_'):
@@ -458,6 +461,11 @@ class AbstractTab(QWidget):
         widget.mouse_wheel_zoom.connect(self.zoom.on_mouse_wheel_zoom)
         widget.setParent(self)
         self.setFocusProxy(widget)
+
+    @pyqtSlot()
+    def _on_load_started(self):
+        self.data.viewing_source = False
+        self.load_started.emit()
 
     @property
     def cur_url(self):
