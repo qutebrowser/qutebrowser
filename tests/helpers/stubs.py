@@ -27,7 +27,7 @@ from unittest import mock
 from PyQt5.QtCore import pyqtSignal, QPoint, QProcess, QObject
 from PyQt5.QtNetwork import (QNetworkRequest, QAbstractNetworkCache,
                              QNetworkCacheMetaData)
-from PyQt5.QtWidgets import QCommonStyle, QWidget
+from PyQt5.QtWidgets import QCommonStyle, QWidget, QLineEdit
 
 from qutebrowser.browser.webkit import webview, history
 from qutebrowser.config import configexc
@@ -360,7 +360,7 @@ class FakeConfigType:
         self.complete = lambda: [(val, '') for val in valid_values]
 
 
-class FakeStatusbarCommand(QObject):
+class FakeStatusbarCommand(QLineEdit):
 
     """Stub for the statusbar command prompt."""
 
@@ -370,34 +370,12 @@ class FakeStatusbarCommand(QObject):
     update_completion = pyqtSignal()
     show_cmd = pyqtSignal()
     hide_cmd = pyqtSignal()
-    textChanged = pyqtSignal()
 
-    def __init__(self, parent=None, name=None):
+    def __init__(self, parent=None):
         super().__init__(parent)
-        self._cursor_pos = 0
-        self._text = ""
-        self._focus = False
-
-    def cursorPosition(self):
-        return self._cursor_pos
-
-    def text(self):
-        return self._text
 
     def prefix(self):
-        return self._text[0]
-
-    def focus(self):
-        return self._focus
-
-    def setFocus(self):
-        self._focus = True
-
-    def setText(self, x):
-        self._text = x
-
-    def setCursorPosition(self, x):
-        self._cursor_pos = x
+        return self.text()[0]
 
 
 class ConfigStub(QObject):

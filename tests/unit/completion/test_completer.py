@@ -40,9 +40,11 @@ class FakeCompletionModel(QStandardItemModel):
 
 
 @pytest.fixture
-def cmd(stubs):
+def cmd(stubs, qtbot):
     """Create the statusbar command prompt the completer uses."""
-    return stubs.FakeStatusbarCommand()
+    cmd = stubs.FakeStatusbarCommand()
+    qtbot.addWidget(cmd)
+    return cmd
 
 
 @pytest.fixture
@@ -183,6 +185,5 @@ def test_change_completed_part(before, newtxt, after, immediate, completer_obj,
     cmd.setCursorPosition(before_pos)
     completer_obj.update_cursor_part()
     completer_obj.change_completed_part(newtxt, immediate)
-    assert cmd.focus()
     assert cmd.text() == after_txt
     assert cmd.cursorPosition() == after_pos
