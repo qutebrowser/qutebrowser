@@ -61,25 +61,25 @@ class WebEngineScroller(tab.AbstractScroller):
 class WebEngineHistory(tab.AbstractHistory):
 
     def current_idx(self):
-        return self.history.currentItemIndex()
+        return self._history.currentItemIndex()
 
     def back(self):
-        self.history.back()
+        self._history.back()
 
     def forward(self):
-        self.history.forward()
+        self._history.forward()
 
     def can_go_back(self):
-        return self.history.canGoBack()
+        return self._history.canGoBack()
 
     def can_go_forward(self):
-        return self.history.canGoForward()
+        return self._history.canGoForward()
 
     def serialize(self):
-        return qtutils.serialize(self.history)
+        return qtutils.serialize(self._history)
 
     def deserialize(self, data):
-        return qtutils.deserialize(data, self.history)
+        return qtutils.deserialize(data, self._history)
 
     def load_items(self, items):
         # TODO

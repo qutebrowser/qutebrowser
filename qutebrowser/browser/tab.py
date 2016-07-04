@@ -327,13 +327,13 @@ class AbstractHistory:
 
     def __init__(self, tab):
         self._tab = tab
-        self.history = None
+        self._history = None
 
     def __len__(self):
-        return len(self.history)
+        return len(self._history)
 
     def __iter__(self):
-        return iter(self.history.items())
+        return iter(self._history.items())
 
     def current_idx(self):
         raise NotImplementedError
@@ -408,7 +408,7 @@ class AbstractTab(QWidget):
     def _set_widget(self, widget):
         self._layout = WrapperLayout(widget, self)
         self._widget = widget
-        self.history.history = widget.history()
+        self.history._history = widget.history()
         self.scroll._widget = widget
         self.caret._widget = widget
         self.zoom._widget = widget

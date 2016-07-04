@@ -369,32 +369,32 @@ class WebViewScroller(tab.AbstractScroller):
 class WebViewHistory(tab.AbstractHistory):
 
     def current_idx(self):
-        return self.history.currentItemIndex()
+        return self._history.currentItemIndex()
 
     def back(self):
-        self.history.back()
+        self._history.back()
 
     def forward(self):
-        self.history.forward()
+        self._history.forward()
 
     def can_go_back(self):
-        return self.history.canGoBack()
+        return self._history.canGoBack()
 
     def can_go_forward(self):
-        return self.history.canGoForward()
+        return self._history.canGoForward()
 
     def serialize(self):
-        return qtutils.serialize(self.history)
+        return qtutils.serialize(self._history)
 
     def deserialize(self, data):
-        return qtutils.deserialize(data, self.history)
+        return qtutils.deserialize(data, self._history)
 
     def load_items(self, items):
         stream, _data, user_data = tabhistory.serialize(items)
-        qtutils.deserialize_stream(stream, self.history)
+        qtutils.deserialize_stream(stream, self._history)
         for i, data in enumerate(user_data):
-            self.history.itemAt(i).setUserData(data)
-        cur_data = self.history.currentItem().userData()
+            self._history.itemAt(i).setUserData(data)
+        cur_data = self._history.currentItem().userData()
         if cur_data is not None:
             if 'zoom' in cur_data:
                 self._tab.zoom.set_factor(cur_data['zoom'])
