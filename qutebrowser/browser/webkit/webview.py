@@ -502,7 +502,7 @@ class WebView(QWebView):
                                 "support that!")
         tabbed_browser = objreg.get('tabbed-browser', scope='window',
                                     window=self.win_id)
-        return tabbed_browser.tabopen(background=False)
+        return tabbed_browser.tabopen(background=False)._widget
 
     def paintEvent(self, e):
         """Extend paintEvent to emit a signal if the scroll position changed.
