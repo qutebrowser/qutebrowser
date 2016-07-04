@@ -130,7 +130,8 @@ def cmdutils_patch(monkeypatch, stubs):
     (':--foo --bar |', None),
     (':tab-detach |', None),
     (':bind --mode=caret <c-x> |', usertypes.Completion.command),
-    #(':bind --mode caret <c-x> |', usertypes.Completion.command), KNOWN BUG
+    pytest.mark.xfail(reason='issue #74')((':bind --mode caret <c-x> |',
+                                           usertypes.Completion.command)),
     (':set -t -p |', usertypes.Completion.section),
     (':open -- |', None),
 ])
@@ -150,23 +151,24 @@ def test_update_completion(txt, expected, cmd, completer_obj,
         # the outer model is just for sorting; srcmodel is the completion model
         assert arg.srcmodel.kind == expected
 
+
 def test_completion_item_prev(completer_obj, cmd, completion_widget_stub,
-                              config_stub):
+                              config_stub, qtbot):
     """Test that completion_item_prev emits next_prev_item."""
     cmd.setText(':')
-    slot = unittest.mock.Mock()
-    completer_obj.next_prev_item.connect(slot)
-    completer_obj.completion_item_prev()
-    slot.assert_called_with(True)
+    with qtbot.waitSignal(completer_obj.next_prev_item) as blocker:
+        completer_obj.completion_item_prev()
+    assert blocker.args == [True]
+
 
 def test_completion_item_next(completer_obj, cmd, completion_widget_stub,
-                              config_stub):
+                              config_stub, qtbot):
     """Test that completion_item_next emits next_prev_item."""
     cmd.setText(':')
-    slot = unittest.mock.Mock()
-    completer_obj.next_prev_item.connect(slot)
-    completer_obj.completion_item_next()
-    slot.assert_called_with(False)
+    with qtbot.waitSignal(completer_obj.next_prev_item) as blocker:
+        completer_obj.completion_item_next()
+    assert blocker.args == [False]
+
 
 @pytest.mark.parametrize('before, newtxt, immediate, after', [
     (':foo |', 'bar', False, ':foo bar|'),
