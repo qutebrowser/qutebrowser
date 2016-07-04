@@ -170,15 +170,29 @@ def test_completion_item_next(completer_obj, cmd, completion_widget_stub,
     assert blocker.args == [False]
 
 
-@pytest.mark.parametrize('before, newtxt, immediate, after', [
-    (':foo |', 'bar', False, ':foo bar|'),
-    (':foo |', 'bar', True, ':foo bar |'),
-    (':foo | bar', 'baz', False, ':foo baz| bar'),
-    (':foo | bar', 'baz', True, ':foo baz |bar'),
+@pytest.mark.parametrize('before, newtxt, quick_complete, count, after', [
+    (':foo |', 'bar', False, 1, ':foo bar|'),
+    (':foo |', 'bar', True, 2, ':foo bar|'),
+    (':foo |', 'bar', True, 1, ':foo bar |'),
+    (':foo | bar', 'baz', False, 1, ':foo baz| bar'),
 ])
-def test_change_completed_part(before, newtxt, after, immediate, completer_obj,
-                               cmd, completion_widget_stub, config_stub):
-    """Test that change_completed_part modifies the cmd text properly."""
+def test_selection_changed(before, newtxt, count, quick_complete, after,
+                           completer_obj, cmd, completion_widget_stub,
+                           config_stub):
+    """Test that change_completed_part modifies the cmd text properly.
+
+    The | represents the current cursor position in the cmd prompt.
+    If quick-complete is True and there is only 1 completion (count == 1),
+    then we expect a space to be appended after the current word.
+    """
+    config_stub.data['completion']['quick-complete'] = quick_complete
+    model = unittest.mock.Mock()
+    model.data = unittest.mock.Mock(return_value=newtxt)
+    model.count = unittest.mock.Mock(return_value=count)
+    indexes = [unittest.mock.Mock()]
+    selection = unittest.mock.Mock()
+    selection.indexes = unittest.mock.Mock(return_value=indexes)
+    completion_widget_stub.model = unittest.mock.Mock(return_value=model)
     before_pos = before.index('|')
     after_pos = after.index('|')
     before_txt = before.replace('|', '')
@@ -186,6 +200,7 @@ def test_change_completed_part(before, newtxt, after, immediate, completer_obj,
     cmd.setText(before_txt)
     cmd.setCursorPosition(before_pos)
     completer_obj.update_cursor_part()
-    completer_obj.change_completed_part(newtxt, immediate)
+    completer_obj.selection_changed(selection, None)
+    model.data.assert_called_with(indexes[0])
     assert cmd.text() == after_txt
     assert cmd.cursorPosition() == after_pos
