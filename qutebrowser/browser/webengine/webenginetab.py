@@ -28,6 +28,7 @@ except ImportError:
     QWebEnginePage = None
 
 from qutebrowser.browser import tab
+from qutebrowser.browser.webengine import webview
 from qutebrowser.utils import usertypes, qtutils
 
 
@@ -99,7 +100,7 @@ class WebEngineViewTab(tab.AbstractTab):
 
     def __init__(self, win_id, parent=None):
         super().__init__(win_id)
-        widget = QWebEngineView()
+        widget = webview.WebEngineView()
         self.history = WebEngineHistory(self)
         self.scroll = WebEngineScroller()
         self.caret = WebEngineCaret(win_id=win_id, tab=self, parent=self)
