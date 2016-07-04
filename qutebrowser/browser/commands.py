@@ -1726,8 +1726,7 @@ class CommandDispatcher:
                        debug=True)
     def debug_clear_ssl_errors(self):
         """Clear remembered SSL error answers."""
-        nam = self._current_widget().page().networkAccessManager()
-        nam.clear_all_ssl_errors()
+        self._current_widget().clear_ssl_errors()
 
     @cmdutils.register(instance='command-dispatcher', scope='window')
     def edit_url(self, url=None, bg=False, tab=False, window=False):

@@ -493,6 +493,10 @@ class WebViewTab(tab.AbstractTab):
     def title(self):
         return self._widget.title()
 
+    def clear_ssl_errors(self):
+        nam = self._widget.page().networkAccessManager()
+        nam.clear_all_ssl_errors()
+
     def _connect_signals(self):
         view = self._widget
         page = view.page()

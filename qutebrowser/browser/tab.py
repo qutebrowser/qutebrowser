@@ -449,6 +449,9 @@ class AbstractTab(QWidget):
     def stop(self):
         raise NotImplementedError
 
+    def clear_ssl_errors(self):
+        raise NotImplementedError
+
     def dump_async(self, callback, *, plain=False):
         """Dump the current page to a file ascync.
 
