@@ -20,15 +20,16 @@
 """Wrapper over our (QtWebKit) WebView."""
 
 import sys
+import functools
 import xml.etree.ElementTree
 
-from PyQt5.QtCore import pyqtSlot, Qt, QEvent, QUrl
+from PyQt5.QtCore import pyqtSlot, Qt, QEvent, QUrl, QPoint, QTimer
 from PyQt5.QtGui import QKeyEvent
 from PyQt5.QtWebKitWidgets import QWebPage
 from PyQt5.QtWebKit import QWebSettings
 
 from qutebrowser.browser import tab
-from qutebrowser.browser.webkit import webview
+from qutebrowser.browser.webkit import webview, tabhistory
 from qutebrowser.utils import qtutils, objreg, usertypes, utils
 
 
@@ -430,7 +431,7 @@ class WebViewHistory(tab.AbstractHistory):
             if ('scroll-pos' in cur_data and
                     self._tab.scroll.pos_px() == QPoint(0, 0)):
                 QTimer.singleShot(0, functools.partial(
-                    self._tab.scroll, cur_data['scroll-pos']))
+                    self._tab.scroll.to_point, cur_data['scroll-pos']))
 
 
 class WebViewTab(tab.AbstractTab):

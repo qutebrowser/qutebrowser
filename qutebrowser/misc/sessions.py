@@ -299,9 +299,9 @@ class SessionManager(QObject):
                 active=active, user_data=user_data)
             entries.append(entry)
             if active:
-                new_tab.titleChanged.emit(histentry['title'])
+                new_tab.title_changed.emit(histentry['title'])
         try:
-            new_tab.page().load_history(entries)
+            new_tab.history.load_items(entries)
         except ValueError as e:
             raise SessionError(e)
 
