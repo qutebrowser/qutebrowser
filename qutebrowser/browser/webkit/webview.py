@@ -54,8 +54,6 @@ class WebView(QWebView):
                         code.
         registry: The ObjectRegistry associated with this tab.
         win_id: The window ID of the view.
-        search_text: The text of the last search.
-        search_flags: The search flags of the last search.
         _tab_id: The tab ID of the view.
         _has_ssl_errors: Whether SSL errors occurred during loading.
         _old_scroll_pos: The old scroll position.
@@ -101,8 +99,6 @@ class WebView(QWebView):
         self._has_ssl_errors = False
         self._ignore_wheel_event = False
         self.keep_icon = False
-        self.search_text = None
-        self.search_flags = 0
         self._set_bg_color()
         self.cur_url = QUrl()
         self.progress = 0

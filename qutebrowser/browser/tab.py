@@ -56,6 +56,46 @@ class WrapperLayout(QLayout):
         self._widget.setGeometry(r)
 
 
+class AbstractSearch(QObject):
+
+    """Attribute of AbstractTab for doing searches.
+
+    Attributes:
+        widget: The underlying WebView widget.
+        text: The last thing this view was searched for.
+        _flags: The flags of the last search.
+    """
+
+    def __init__(self, parent=None):
+        super().__init__(parent)
+        self.widget = None
+        self.text = None
+        self._flags = 0
+
+    def search(self, text, *, ignore_case=False, wrap=False):
+        """Find the given text on the page.
+
+        Args:
+            text: The text to search for.
+            ignore_case: Search case-insensitively. (True/False/'smart')
+            wrap: Wrap around to the top when arriving at the bottom.
+            reverse: Reverse search direction.
+        """
+        raise NotImplementedError
+
+    def clear(self):
+        """Clear the current search."""
+        raise NotImplementedError
+
+    def prev_result(self):
+        """Go to the previous result of the current search."""
+        raise NotImplementedError
+
+    def next_result(self):
+        """Go to the next result of the current search."""
+        raise NotImplementedError
+
+
 class AbstractZoom(QObject):
 
     """Attribute of AbstractTab for controlling zoom.
@@ -357,6 +397,7 @@ class AbstractTab(QWidget):
         # self.scroll = AbstractScroller(parent=self)
         # self.caret = AbstractCaret(win_id=win_id, parent=self)
         # self.zoom = AbstractZoom(win_id=win_id)
+        # self.search = AbstractSearch(parent=self)
         self._layout = None
         self._widget = None
         self.keep_icon = False  # FIXME:refactor get rid of this?
@@ -368,6 +409,7 @@ class AbstractTab(QWidget):
         self.scroll.widget = widget
         self.caret.widget = widget
         self.zoom.widget = widget
+        self.search.widget = widget
         widget.mouse_wheel_zoom.connect(self.zoom.on_mouse_wheel_zoom)
         widget.setParent(self)
 

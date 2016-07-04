@@ -1400,17 +1400,6 @@ class CommandDispatcher:
             this.dispatchEvent(event);
         """.format(webelem.javascript_escape(sel)))
 
-    def _clear_search(self, view, text):
-        """Clear search string/highlights for the given view.
-
-        This does nothing if the view's search text is the same as the given
-        text.
-        """
-        if view.search_text is not None and view.search_text != text:
-            # We first clear the marked text, then the highlights
-            view.search('', 0)
-            view.search('', QWebPage.HighlightAllOccurrences)
-
     @cmdutils.register(instance='command-dispatcher', scope='window',
                        maxsplit=0)
     def search(self, text="", reverse=False):
@@ -1421,27 +1410,18 @@ class CommandDispatcher:
             reverse: Reverse search direction.
         """
         self.set_mark("'")
-        view = self._current_widget()
-        self._clear_search(view, text)
-        flags = 0
-        ignore_case = config.get('general', 'ignore-case')
-        if ignore_case == 'smart':
-            if not text.islower():
-                flags |= QWebPage.FindCaseSensitively
-        elif not ignore_case:
-            flags |= QWebPage.FindCaseSensitively
-        if config.get('general', 'wrap-search'):
-            flags |= QWebPage.FindWrapsAroundDocument
-        if reverse:
-            flags |= QWebPage.FindBackward
-        # We actually search *twice* - once to highlight everything, then again
-        # to get a mark so we can navigate.
-        view.search(text, flags)
-        view.search(text, flags | QWebPage.HighlightAllOccurrences)
-        view.search_text = text
-        view.search_flags = flags
+        tab = self._current_widget()
+        tab.search.clear()
+
+        options = {
+            'ignore_case': config.get('general', 'ignore-case'),
+            'wrap': config.get('general', 'wrap-search'),
+            'reverse': reverse,
+        }
+        tab.search.search(text, **options)
+
         self._tabbed_browser.search_text = text
-        self._tabbed_browser.search_flags = flags
+        self._tabbed_browser.search_options = options
 
     @cmdutils.register(instance='command-dispatcher', hide=True,
                        scope='window')
@@ -1452,18 +1432,19 @@ class CommandDispatcher:
         Args:
             count: How many elements to ignore.
         """
+        tab = self._current_widget()
+        window_text = self._tabbed_browser.search_text
+        window_options = self._tabbed_browser.search_options
+
         self.set_mark("'")
-        view = self._current_widget()
 
-        self._clear_search(view, self._tabbed_browser.search_text)
+        if window_text is not None and window_text != tab.search.text:
+            tab.search.clear()
+            tab.search.search(window_text, **window_options)
+            count -= 1
 
-        if self._tabbed_browser.search_text is not None:
-            view.search_text = self._tabbed_browser.search_text
-            view.search_flags = self._tabbed_browser.search_flags
-            view.search(view.search_text,
-                        view.search_flags | QWebPage.HighlightAllOccurrences)
-            for _ in range(count):
-                view.search(view.search_text, view.search_flags)
+        for _ in range(count):
+            tab.search.next_result()
 
     @cmdutils.register(instance='command-dispatcher', hide=True,
                        scope='window')
@@ -1474,25 +1455,19 @@ class CommandDispatcher:
         Args:
             count: How many elements to ignore.
         """
-        self.set_mark("'")
-        view = self._current_widget()
-        self._clear_search(view, self._tabbed_browser.search_text)
+        tab = self._current_widget()
+        window_text = self._tabbed_browser.search_text
+        window_options = self._tabbed_browser.search_options
 
-        if self._tabbed_browser.search_text is not None:
-            view.search_text = self._tabbed_browser.search_text
-            view.search_flags = self._tabbed_browser.search_flags
-            view.search(view.search_text,
-                        view.search_flags | QWebPage.HighlightAllOccurrences)
-        # The int() here serves as a QFlags constructor to create a copy of the
-        # QFlags instance rather as a reference. I don't know why it works this
-        # way, but it does.
-        flags = int(view.search_flags)
-        if flags & QWebPage.FindBackward:
-            flags &= ~QWebPage.FindBackward
-        else:
-            flags |= QWebPage.FindBackward
+        self.set_mark("'")
+
+        if window_text is not None and window_text != tab.search.text:
+            tab.search.clear()
+            tab.search.search(window_text, **window_options)
+            count -= 1
+
         for _ in range(count):
-            view.search(view.search_text, flags)
+            tab.search.prev_result()
 
     @cmdutils.register(instance='command-dispatcher', hide=True,
                        modes=[KeyMode.caret], scope='window')

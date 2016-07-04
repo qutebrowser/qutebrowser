@@ -31,6 +31,46 @@ from qutebrowser.browser.webkit import webview
 from qutebrowser.utils import qtutils, objreg, usertypes, utils
 
 
+class WebViewSearch(tab.AbstractSearch):
+
+    def clear(self):
+        # We first clear the marked text, then the highlights
+        self.widget.search('', 0)
+        self.widget.search('', QWebPage.HighlightAllOccurrences)
+
+    def search(self, text, *, ignore_case=False, wrap=False, reverse=False):
+        flags = 0
+        if ignore_case == 'smart':
+            if not text.islower():
+                flags |= QWebPage.FindCaseSensitively
+        elif not ignore_case:
+            flags |= QWebPage.FindCaseSensitively
+        if wrap:
+            flags |= QWebPage.FindWrapsAroundDocument
+        if reverse:
+            flags |= QWebPage.FindBackward
+        # We actually search *twice* - once to highlight everything, then again
+        # to get a mark so we can navigate.
+        self.widget.search(text, flags)
+        self.widget.search(text, flags | QWebPage.HighlightAllOccurrences)
+        self.text = text
+        self._flags = flags
+
+    def next_result(self):
+        self.widget.search(self.text, self._flags)
+
+    def prev_result(self):
+        # The int() here serves as a QFlags constructor to create a copy of the
+        # QFlags instance rather as a reference. I don't know why it works this
+        # way, but it does.
+        flags = int(self._flags)
+        if flags & QWebPage.FindBackward:
+            flags &= ~QWebPage.FindBackward
+        else:
+            flags |= QWebPage.FindBackward
+        self.widget.search(self.text, flags)
+
+
 class WebViewCaret(tab.AbstractCaret):
 
     @pyqtSlot(usertypes.KeyMode)
@@ -376,6 +416,7 @@ class WebViewTab(tab.AbstractTab):
         self.scroll = WebViewScroller(parent=self)
         self.caret = WebViewCaret(win_id=win_id, parent=self)
         self.zoom = WebViewZoom(win_id=win_id, parent=self)
+        self.search = WebViewSearch(parent=self)
         self._set_widget(widget)
         self._connect_signals()
         self.zoom._set_default_zoom()

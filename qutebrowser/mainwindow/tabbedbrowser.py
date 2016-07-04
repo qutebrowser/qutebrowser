@@ -57,8 +57,8 @@ class TabbedBrowser(tabwidget.TabWidget):
          emitted if the signal occurred in the current tab.
 
     Attributes:
-        search_text/search_flags: Search parameters which are shared between
-                                  all tabs.
+        search_text/search_options: Search parameters which are shared between
+                                    all tabs.
         _win_id: The window ID this tabbedbrowser is associated with.
         _filter: A SignalFilter instance.
         _now_focused: The tab which is focused now.
@@ -118,7 +118,7 @@ class TabbedBrowser(tabwidget.TabWidget):
         self._filter = signalfilter.SignalFilter(win_id, self)
         self._now_focused = None
         self.search_text = None
-        self.search_flags = 0
+        self.search_options = {}
         self._local_marks = {}
         self._global_marks = {}
         self.default_window_icon = self.window().windowIcon()

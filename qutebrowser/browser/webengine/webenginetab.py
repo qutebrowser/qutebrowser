@@ -31,6 +31,13 @@ from qutebrowser.browser import tab
 from qutebrowser.utils import usertypes, qtutils
 
 
+class WebEngineSearch(tab.AbstractSearch):
+
+    ## TODO
+
+    pass
+
+
 class WebEngineCaret(tab.AbstractCaret):
 
     ## TODO
@@ -100,6 +107,7 @@ class WebEngineViewTab(tab.AbstractTab):
         self.scroll = WebEngineScroller()
         self.caret = WebEngineCaret(win_id=win_id, parent=self)
         self.zoom = WebEngineZoom(win_id=win_id, parent=self)
+        self.search = WebEngineSearch(parent=self)
         self._set_widget(widget)
         self._connect_signals()
 
