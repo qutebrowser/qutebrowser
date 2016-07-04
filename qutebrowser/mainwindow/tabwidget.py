@@ -128,7 +128,9 @@ class TabWidget(QTabWidget):
             fields['host'] = ''
 
         y = widget.scroll.pos_perc()[1]
-        if y <= 0:
+        if y is None:
+            scroll_pos = '???'
+        elif y <= 0:
             scroll_pos = 'top'
         elif y >= 100:
             scroll_pos = 'bot'

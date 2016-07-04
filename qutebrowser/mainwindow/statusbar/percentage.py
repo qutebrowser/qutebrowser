@@ -46,6 +46,8 @@ class Percentage(textbase.TextBase):
             self.setText('[top]')
         elif y == 100:
             self.setText('[bot]')
+        elif y is None:
+            self.setText('[???]')
         else:
             self.setText('[{:2}%]'.format(y))
 

@@ -54,9 +54,21 @@ class WebEngineCaret(tab.AbstractCaret):
 
 class WebEngineScroller(tab.AbstractScroller):
 
-    ## TODO
+    def pos_perc(self):
+        page = self._widget.page()
+        try:
+            size = page.contentsSize()
+            pos = page.scrollPosition()
+        except AttributeError:
+            # Added in Qt 5.7
+            return (None, None)
+        else:
+            # FIXME is this correct?
+            perc_x = 100 / size.width() * pos.x()
+            perc_y = 100 / size.height() * pos.y()
+            return (perc_x, perc_y)
 
-    pass
+    ## TODO
 
 
 class WebEngineHistory(tab.AbstractHistory):
