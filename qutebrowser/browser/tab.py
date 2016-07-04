@@ -68,7 +68,7 @@ class AbstractSearch(QObject):
 
     def __init__(self, parent=None):
         super().__init__(parent)
-        self.widget = None
+        self._widget = None
         self.text = None
         self._flags = 0
 
@@ -107,7 +107,7 @@ class AbstractZoom(QObject):
 
     def __init__(self, win_id, parent=None):
         super().__init__(parent)
-        self.widget = None
+        self._widget = None
         self._win_id = win_id
         self._default_zoom_changed = False
         self._init_neighborlist()
@@ -191,7 +191,7 @@ class AbstractCaret(QObject):
     def __init__(self, win_id, parent=None):
         super().__init__(parent)
         self._win_id = win_id
-        self.widget = None
+        self._widget = None
         self.selection_enabled = False
         mode_manager = objreg.get('mode-manager', scope='window',
                                   window=win_id)
@@ -270,7 +270,7 @@ class AbstractScroller(QObject):
 
     def __init__(self, parent=None):
         super().__init__(parent)
-        self.widget = None
+        self._widget = None
 
     def pos_px(self):
         raise NotImplementedError
@@ -406,10 +406,10 @@ class AbstractTab(QWidget):
         self._layout = WrapperLayout(widget, self)
         self._widget = widget
         self.history.history = widget.history()
-        self.scroll.widget = widget
-        self.caret.widget = widget
-        self.zoom.widget = widget
-        self.search.widget = widget
+        self.scroll._widget = widget
+        self.caret._widget = widget
+        self.zoom._widget = widget
+        self.search._widget = widget
         widget.mouse_wheel_zoom.connect(self.zoom.on_mouse_wheel_zoom)
         widget.setParent(self)
 

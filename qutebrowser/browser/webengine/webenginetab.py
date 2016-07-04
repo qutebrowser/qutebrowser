@@ -43,12 +43,12 @@ class WebEngineCaret(tab.AbstractCaret):
     ## TODO
 
     def has_selection(self):
-        return self.widget.hasSelection()
+        return self._widget.hasSelection()
 
     def selection(self, html=False):
         if html:
             raise NotImplementedError
-        return self.widget.selectedText()
+        return self._widget.selectedText()
 
 
 class WebEngineScroller(tab.AbstractScroller):
@@ -92,10 +92,10 @@ class WebEngineHistory(tab.AbstractHistory):
 class WebEngineZoom(tab.AbstractZoom):
 
     def _set_factor_internal(self, factor):
-        self.widget.setZoomFactor(factor)
+        self._widget.setZoomFactor(factor)
 
     def factor(self):
-        return self.widget.zoomFactor()
+        return self._widget.zoomFactor()
 
 
 class WebEngineViewTab(tab.AbstractTab):

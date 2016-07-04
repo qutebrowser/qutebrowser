@@ -35,8 +35,8 @@ class WebViewSearch(tab.AbstractSearch):
 
     def clear(self):
         # We first clear the marked text, then the highlights
-        self.widget.search('', 0)
-        self.widget.search('', QWebPage.HighlightAllOccurrences)
+        self._widget.search('', 0)
+        self._widget.search('', QWebPage.HighlightAllOccurrences)
 
     def search(self, text, *, ignore_case=False, wrap=False, reverse=False):
         flags = 0
@@ -51,13 +51,13 @@ class WebViewSearch(tab.AbstractSearch):
             flags |= QWebPage.FindBackward
         # We actually search *twice* - once to highlight everything, then again
         # to get a mark so we can navigate.
-        self.widget.search(text, flags)
-        self.widget.search(text, flags | QWebPage.HighlightAllOccurrences)
+        self._widget.search(text, flags)
+        self._widget.search(text, flags | QWebPage.HighlightAllOccurrences)
         self.text = text
         self._flags = flags
 
     def next_result(self):
-        self.widget.search(self.text, self._flags)
+        self._widget.search(self.text, self._flags)
 
     def prev_result(self):
         # The int() here serves as a QFlags constructor to create a copy of the
@@ -68,7 +68,7 @@ class WebViewSearch(tab.AbstractSearch):
             flags &= ~QWebPage.FindBackward
         else:
             flags |= QWebPage.FindBackward
-        self.widget.search(self.text, flags)
+        self._widget.search(self.text, flags)
 
 
 class WebViewCaret(tab.AbstractCaret):
@@ -78,15 +78,15 @@ class WebViewCaret(tab.AbstractCaret):
         if mode != usertypes.KeyMode.caret:
             return
 
-        settings = self.widget.settings()
+        settings = self._widget.settings()
         settings.setAttribute(QWebSettings.CaretBrowsingEnabled, True)
         self.selection_enabled = bool(self.selection())
 
-        if self.widget.isVisible():
+        if self._widget.isVisible():
             # Sometimes the caret isn't immediately visible, but unfocusing
             # and refocusing it fixes that.
-            self.widget.clearFocus()
-            self.widget.setFocus(Qt.OtherFocusReason)
+            self._widget.clearFocus()
+            self._widget.setFocus(Qt.OtherFocusReason)
 
             # Move the caret to the first element in the viewport if there
             # isn't any text which is already selected.
@@ -94,16 +94,16 @@ class WebViewCaret(tab.AbstractCaret):
             # Note: We can't use hasSelection() here, as that's always
             # true in caret mode.
             if not self.selection():
-                self.widget.page().currentFrame().evaluateJavaScript(
+                self._widget.page().currentFrame().evaluateJavaScript(
                     utils.read_file('javascript/position_caret.js'))
 
     @pyqtSlot(usertypes.KeyMode)
     def on_mode_left(self, mode):
-        settings = self.widget.settings()
+        settings = self._widget.settings()
         if settings.testAttribute(QWebSettings.CaretBrowsingEnabled):
-            if self.selection_enabled and self.widget.hasSelection():
+            if self.selection_enabled and self._widget.hasSelection():
                 # Remove selection if it exists
-                self.widget.triggerPageAction(QWebPage.MoveToNextChar)
+                self._widget.triggerPageAction(QWebPage.MoveToNextChar)
             settings.setAttribute(QWebSettings.CaretBrowsingEnabled, False)
             self.selection_enabled = False
 
@@ -113,7 +113,7 @@ class WebViewCaret(tab.AbstractCaret):
         else:
             act = QWebPage.SelectNextLine
         for _ in range(count):
-            self.widget.triggerPageAction(act)
+            self._widget.triggerPageAction(act)
 
     def move_to_prev_line(self, count=1):
         if not self.selection_enabled:
@@ -121,7 +121,7 @@ class WebViewCaret(tab.AbstractCaret):
         else:
             act = QWebPage.SelectPreviousLine
         for _ in range(count):
-            self.widget.triggerPageAction(act)
+            self._widget.triggerPageAction(act)
 
     def move_to_next_char(self, count=1):
         if not self.selection_enabled:
@@ -129,7 +129,7 @@ class WebViewCaret(tab.AbstractCaret):
         else:
             act = QWebPage.SelectNextChar
         for _ in range(count):
-            self.widget.triggerPageAction(act)
+            self._widget.triggerPageAction(act)
 
     def move_to_prev_char(self, count=1):
         if not self.selection_enabled:
@@ -137,7 +137,7 @@ class WebViewCaret(tab.AbstractCaret):
         else:
             act = QWebPage.SelectPreviousChar
         for _ in range(count):
-            self.widget.triggerPageAction(act)
+            self._widget.triggerPageAction(act)
 
     def move_to_end_of_word(self, count=1):
         if not self.selection_enabled:
@@ -150,7 +150,7 @@ class WebViewCaret(tab.AbstractCaret):
                 act.append(QWebPage.SelectPreviousChar)
         for _ in range(count):
             for a in act:
-                self.widget.triggerPageAction(a)
+                self._widget.triggerPageAction(a)
 
     def move_to_next_word(self, count=1):
         if not self.selection_enabled:
@@ -163,7 +163,7 @@ class WebViewCaret(tab.AbstractCaret):
                 act.append(QWebPage.SelectNextChar)
         for _ in range(count):
             for a in act:
-                self.widget.triggerPageAction(a)
+                self._widget.triggerPageAction(a)
 
     def move_to_prev_word(self, count=1):
         if not self.selection_enabled:
@@ -171,21 +171,21 @@ class WebViewCaret(tab.AbstractCaret):
         else:
             act = QWebPage.SelectPreviousWord
         for _ in range(count):
-            self.widget.triggerPageAction(act)
+            self._widget.triggerPageAction(act)
 
     def move_to_start_of_line(self):
         if not self.selection_enabled:
             act = QWebPage.MoveToStartOfLine
         else:
             act = QWebPage.SelectStartOfLine
-        self.widget.triggerPageAction(act)
+        self._widget.triggerPageAction(act)
 
     def move_to_end_of_line(self):
         if not self.selection_enabled:
             act = QWebPage.MoveToEndOfLine
         else:
             act = QWebPage.SelectEndOfLine
-        self.widget.triggerPageAction(act)
+        self._widget.triggerPageAction(act)
 
     def move_to_start_of_next_block(self, count=1):
         if not self.selection_enabled:
@@ -196,7 +196,7 @@ class WebViewCaret(tab.AbstractCaret):
                    QWebPage.SelectStartOfBlock]
         for _ in range(count):
             for a in act:
-                self.widget.triggerPageAction(a)
+                self._widget.triggerPageAction(a)
 
     def move_to_start_of_prev_block(self, count=1):
         if not self.selection_enabled:
@@ -207,7 +207,7 @@ class WebViewCaret(tab.AbstractCaret):
                    QWebPage.SelectStartOfBlock]
         for _ in range(count):
             for a in act:
-                self.widget.triggerPageAction(a)
+                self._widget.triggerPageAction(a)
 
     def move_to_end_of_next_block(self, count=1):
         if not self.selection_enabled:
@@ -218,7 +218,7 @@ class WebViewCaret(tab.AbstractCaret):
                    QWebPage.SelectEndOfBlock]
         for _ in range(count):
             for a in act:
-                self.widget.triggerPageAction(a)
+                self._widget.triggerPageAction(a)
 
     def move_to_end_of_prev_block(self, count=1):
         if not self.selection_enabled:
@@ -227,21 +227,21 @@ class WebViewCaret(tab.AbstractCaret):
             act = [QWebPage.SelectPreviousLine, QWebPage.SelectEndOfBlock]
         for _ in range(count):
             for a in act:
-                self.widget.triggerPageAction(a)
+                self._widget.triggerPageAction(a)
 
     def move_to_start_of_document(self):
         if not self.selection_enabled:
             act = QWebPage.MoveToStartOfDocument
         else:
             act = QWebPage.SelectStartOfDocument
-        self.widget.triggerPageAction(act)
+        self._widget.triggerPageAction(act)
 
     def move_to_end_of_document(self):
         if not self.selection_enabled:
             act = QWebPage.MoveToEndOfDocument
         else:
             act = QWebPage.SelectEndOfDocument
-        self.widget.triggerPageAction(act)
+        self._widget.triggerPageAction(act)
 
     def toggle_selection(self):
         self.selection_enabled = not self.selection_enabled
@@ -250,41 +250,41 @@ class WebViewCaret(tab.AbstractCaret):
         mainwindow.status.set_mode_active(usertypes.KeyMode.caret, True)
 
     def drop_selection(self):
-        self.widget.triggerPageAction(QWebPage.MoveToNextChar)
+        self._widget.triggerPageAction(QWebPage.MoveToNextChar)
 
     def has_selection(self):
-        return self.widget.hasSelection()
+        return self._widget.hasSelection()
 
     def selection(self, html=False):
         if html:
-            return self.widget.selectedHtml()
-        return self.widget.selectedText()
+            return self._widget.selectedHtml()
+        return self._widget.selectedText()
 
 
 class WebViewZoom(tab.AbstractZoom):
 
     def _set_factor_internal(self, factor):
-        self.widget.setZoomFactor(factor)
+        self._widget.setZoomFactor(factor)
 
     def factor(self):
-        return self.widget.zoomFactor()
+        return self._widget.zoomFactor()
 
 
 class WebViewScroller(tab.AbstractScroller):
 
     def pos_px(self):
-        return self.widget.page().mainFrame().scrollPosition()
+        return self._widget.page().mainFrame().scrollPosition()
 
     def pos_perc(self):
-        return self.widget.scroll_pos
+        return self._widget.scroll_pos
 
     def to_point(self, point):
-        self.widget.page().mainFrame().setScrollPosition(point)
+        self._widget.page().mainFrame().setScrollPosition(point)
 
     def delta(self, x=0, y=0):
         qtutils.check_overflow(x, 'int')
         qtutils.check_overflow(y, 'int')
-        self.widget.page().mainFrame().scroll(x, y)
+        self._widget.page().mainFrame().scroll(x, y)
 
     def delta_page(self, x=0, y=0):
         if y.is_integer():
@@ -298,7 +298,7 @@ class WebViewScroller(tab.AbstractScroller):
             y = 0
         if x == 0 and y == 0:
             return
-        size = self.widget.page().mainFrame().geometry()
+        size = self._widget.page().mainFrame().geometry()
         self.delta(x * size.width(), y * size.height())
 
     def to_perc(self, x=None, y=None):
@@ -310,28 +310,28 @@ class WebViewScroller(tab.AbstractScroller):
             for val, orientation in [(x, Qt.Horizontal), (y, Qt.Vertical)]:
                 if val is not None:
                     perc = qtutils.check_overflow(val, 'int', fatal=False)
-                    frame = self.widget.page().mainFrame()
+                    frame = self._widget.page().mainFrame()
                     m = frame.scrollBarMaximum(orientation)
                     if m == 0:
                         continue
                     frame.setScrollBarValue(orientation, int(m * val / 100))
 
     def _key_press(self, key, count=1, getter_name=None, direction=None):
-        frame = self.widget.page().mainFrame()
+        frame = self._widget.page().mainFrame()
         press_evt = QKeyEvent(QEvent.KeyPress, key, Qt.NoModifier, 0, 0, 0)
         release_evt = QKeyEvent(QEvent.KeyRelease, key, Qt.NoModifier, 0, 0, 0)
         getter = None if getter_name is None else getattr(frame, getter_name)
 
         # FIXME needed?
-        # self.widget.setFocus()
+        # self._widget.setFocus()
 
         for _ in range(count):
             # Abort scrolling if the minimum/maximum was reached.
             if (getter is not None and
                     frame.scrollBarValue(direction) == getter(direction)):
                 return
-            self.widget.keyPressEvent(press_evt)
-            self.widget.keyReleaseEvent(release_evt)
+            self._widget.keyPressEvent(press_evt)
+            self._widget.keyReleaseEvent(release_evt)
 
     def up(self, count=1):
         self._key_press(Qt.Key_Up, count, 'scrollBarMinimum', Qt.Vertical)
@@ -362,7 +362,7 @@ class WebViewScroller(tab.AbstractScroller):
         return self.pos_px().y() == 0
 
     def at_bottom(self):
-        frame = self.widget.page().currentFrame()
+        frame = self._widget.page().currentFrame()
         return self.pos_px().y() >= frame.scrollBarMaximum(Qt.Vertical)
 
 
