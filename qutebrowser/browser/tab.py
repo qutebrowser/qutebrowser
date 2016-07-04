@@ -511,6 +511,9 @@ class AbstractTab(QWidget):
     def run_webaction(self, action):
         raise NotImplementedError
 
+    def set_html(self, html, base_url):
+        raise NotImplementedError
+
     def __repr__(self):
         url = utils.elide(self.cur_url.toDisplayString(QUrl.EncodeUnicode),
                           100)

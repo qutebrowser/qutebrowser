@@ -159,6 +159,13 @@ class WebEngineViewTab(tab.AbstractTab):
     def run_webaction(self, action):
         self._widget.triggerPageAction(action)
 
+    def set_html(self, html, base_url):
+        # FIXME check this and raise an exception if too big:
+        # Warning: The content will be percent encoded before being sent to the
+        # renderer via IPC. This may increase its size. The maximum size of the
+        # percent encoded content is 2 megabytes minus 30 bytes.
+        self._widget.setHtml(html, base_url)
+
     def _connect_signals(self):
         view = self._widget
         page = view.page()

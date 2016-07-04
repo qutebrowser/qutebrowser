@@ -502,6 +502,9 @@ class WebViewTab(tab.AbstractTab):
     def run_webaction(self, action):
         self._widget.triggerPageAction(action)
 
+    def set_html(self, html, base_url):
+        self._widget.setHtml(html, base_url)
+
     def _connect_signals(self):
         view = self._widget
         page = view.page()
