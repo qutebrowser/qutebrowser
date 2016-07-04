@@ -45,6 +45,16 @@ class WebEngineCaret(tab.AbstractCaret):
 
     ## TODO
 
+    @pyqtSlot(usertypes.KeyMode)
+    def on_mode_entered(self, mode):
+        ## TODO
+        pass
+
+    @pyqtSlot(usertypes.KeyMode)
+    def on_mode_left(self, mode):
+        ## TODO
+        pass
+
     def has_selection(self):
         return self._widget.hasSelection()
 
