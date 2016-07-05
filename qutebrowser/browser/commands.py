@@ -1374,7 +1374,8 @@ class CommandDispatcher:
                        needs_js=True)
     def paste_primary(self):
         """Paste the primary selection at cursor position."""
-        frame = self._current_widget().page().currentFrame()
+        # FIXME:refactor have a proper API for this
+        frame = self._current_widget()._widget.page().currentFrame()
         try:
             elem = webelem.focus_elem(frame)
         except webelem.IsNullError:
