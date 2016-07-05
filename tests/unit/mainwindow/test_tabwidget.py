@@ -69,7 +69,7 @@ class TestTabWidget:
         # Size taken from issue report
         pixmap = QPixmap(72, 1)
         icon = QIcon(pixmap)
-        page = stubs.FakeWebView()
-        widget.addTab(page, icon, 'foobar')
+        tab = stubs.FakeWebTab()
+        widget.addTab(tab, icon, 'foobar')
         widget.show()
         qtbot.waitForWindowShown(widget)

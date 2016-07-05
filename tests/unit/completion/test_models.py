@@ -307,12 +307,12 @@ def test_session_completion(session_manager_stub):
 def test_tab_completion(stubs, qtbot, app_stub, win_registry,
                         tabbed_browser_stubs):
     tabbed_browser_stubs[0].tabs = [
-        stubs.FakeWebView(QUrl('https://github.com'), 'GitHub', 0),
-        stubs.FakeWebView(QUrl('https://wikipedia.org'), 'Wikipedia', 1),
-        stubs.FakeWebView(QUrl('https://duckduckgo.com'), 'DuckDuckGo', 2)
+        stubs.FakeWebTab(QUrl('https://github.com'), 'GitHub', 0),
+        stubs.FakeWebTab(QUrl('https://wikipedia.org'), 'Wikipedia', 1),
+        stubs.FakeWebTab(QUrl('https://duckduckgo.com'), 'DuckDuckGo', 2)
     ]
     tabbed_browser_stubs[1].tabs = [
-        stubs.FakeWebView(QUrl('https://wiki.archlinux.org'), 'ArchWiki', 0),
+        stubs.FakeWebTab(QUrl('https://wiki.archlinux.org'), 'ArchWiki', 0),
     ]
     actual = _get_completions(miscmodels.TabCompletionModel())
     assert actual == [
@@ -331,18 +331,18 @@ def test_tab_completion_delete(stubs, qtbot, app_stub, win_registry,
                                tabbed_browser_stubs):
     """Verify closing a tab by deleting it from the completion widget."""
     tabbed_browser_stubs[0].tabs = [
-        stubs.FakeWebView(QUrl('https://github.com'), 'GitHub', 0),
-        stubs.FakeWebView(QUrl('https://wikipedia.org'), 'Wikipedia', 1),
-        stubs.FakeWebView(QUrl('https://duckduckgo.com'), 'DuckDuckGo', 2)
+        stubs.FakeWebTab(QUrl('https://github.com'), 'GitHub', 0),
+        stubs.FakeWebTab(QUrl('https://wikipedia.org'), 'Wikipedia', 1),
+        stubs.FakeWebTab(QUrl('https://duckduckgo.com'), 'DuckDuckGo', 2)
     ]
     tabbed_browser_stubs[1].tabs = [
-        stubs.FakeWebView(QUrl('https://wiki.archlinux.org'), 'ArchWiki', 0),
+        stubs.FakeWebTab(QUrl('https://wiki.archlinux.org'), 'ArchWiki', 0),
     ]
     model = miscmodels.TabCompletionModel()
     view = _mock_view_index(model, 0, 1, qtbot)
     qtbot.add_widget(view)
     model.delete_cur_item(view)
-    actual = [tab.url() for tab in tabbed_browser_stubs[0].tabs]
+    actual = [tab.cur_url for tab in tabbed_browser_stubs[0].tabs]
     assert actual == [QUrl('https://github.com'),
                       QUrl('https://duckduckgo.com')]
 

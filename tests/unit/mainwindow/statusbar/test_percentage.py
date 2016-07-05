@@ -20,14 +20,9 @@
 
 """Test Percentage widget."""
 
-import collections
-
 import pytest
 
 from qutebrowser.mainwindow.statusbar.percentage import Percentage
-
-
-FakeTab = collections.namedtuple('FakeTab', 'scroll_pos')
 
 
 @pytest.fixture
@@ -57,9 +52,9 @@ def test_percentage_text(percentage, y, expected):
     assert percentage.text() == expected
 
 
-def test_tab_change(percentage):
+def test_tab_change(percentage, stubs):
     """Make sure the percentage gets changed correctly when switching tabs."""
     percentage.set_perc(x=None, y=10)
-    tab = FakeTab([0, 20])
+    tab = stubs.FakeWebTab(scroll_pos_perc=(0, 20))
     percentage.on_tab_changed(tab)
     assert percentage.text() == '[20%]'
