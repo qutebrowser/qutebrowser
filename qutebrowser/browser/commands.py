@@ -486,7 +486,8 @@ class CommandDispatcher:
         url = self._current_url().adjusted(QUrl.RemoveFragment)
 
         if where in ['prev', 'next']:
-            frame = widget._widget.page().currentFrame()  # FIXME
+            # FIXME:refactor have a proper API for this
+            frame = widget._widget.page().currentFrame()
             if frame is None:
                 raise cmdexc.CommandError("No frame focused!")
         else:
@@ -1136,6 +1137,7 @@ class CommandDispatcher:
                     "Please enable developer-extras before using the "
                     "webinspector!")
             tab.data.inspector = inspector.WebInspector()
+            # FIXME:refactor have a proper API for this
             tab.data.inspector.setPage(tab._widget.page())
             tab.data.inspector.show()
         elif tab.data.inspector.isVisible():
@@ -1184,7 +1186,8 @@ class CommandDispatcher:
             if mhtml_:
                 self._download_mhtml(dest)
             else:
-                page = self._current_widget().page()
+                # FIXME:refactor have a proper API for this
+                page = self._current_widget()._widget.page()
                 download_manager.get(self._current_url(), page=page,
                                      filename=dest)
 
@@ -1326,7 +1329,8 @@ class CommandDispatcher:
         The editor which should be launched can be configured via the
         `general -> editor` config option.
         """
-        frame = self._current_widget().page().currentFrame()
+        # FIXME:refactor have a proper API for this
+        frame = self._current_widget()._widget.page().currentFrame()
         try:
             elem = webelem.focus_elem(frame)
         except webelem.IsNullError:
