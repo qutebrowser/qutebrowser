@@ -12,7 +12,7 @@ flake8-pep3101==0.4
 flake8-putty==0.3.2
 flake8-string-format==0.2.2
 flake8-tidy-imports==1.0.2
-flake8-tuple==0.2.10
+flake8-tuple==0.2.11
 hacking==0.11.0
 intervaltree==2.1.0
 mccabe==0.5.0
