@@ -237,7 +237,7 @@ class _Downloader:
         self.web_view = web_view
         self.dest = dest
         self.writer = None
-        self.loaded_urls = {web_view.url()}
+        self.loaded_urls = {web_view.cur_url}
         self.pending_downloads = set()
         self._finished_file = False
         self._used = False
@@ -252,8 +252,10 @@ class _Downloader:
         if self._used:
             raise ValueError("Downloader already used")
         self._used = True
-        web_url = self.web_view.url()
-        web_frame = self.web_view.page().mainFrame()
+        web_url = self.web_view.cur_url
+
+        # FIXME:refactor have a proper API for this
+        web_frame = self.web_view._widget.page().mainFrame()
 
         self.writer = MHTMLWriter(
             web_frame.toHtml().encode('utf-8'),
