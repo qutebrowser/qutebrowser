@@ -1048,8 +1048,11 @@ class CommandDispatcher:
         else:
             env['QUTE_URL'] = url.toString(QUrl.FullyEncoded)
 
-        userscripts.run_async(tab, cmd, *args, win_id=self._win_id, env=env,
-                              verbose=verbose)
+        try:
+            userscripts.run_async(tab, cmd, *args, win_id=self._win_id,
+                                  env=env, verbose=verbose)
+        except userscripts.UnsupportedError as e:
+            raise cmdexc.CommandError(e)
 
     @cmdutils.register(instance='command-dispatcher', scope='window')
     def quickmark_save(self):

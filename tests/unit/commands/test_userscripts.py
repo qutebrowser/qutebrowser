@@ -231,8 +231,9 @@ def test_temporary_files_failed_cleanup(caplog, qtbot, py_proc, runner):
     assert caplog.records[0].message.startswith(expected)
 
 
-def test_dummy_runner(qtbot):
-    runner = userscripts._DummyUserscriptRunner(0)
-    with pytest.raises(cmdexc.CommandError):
-        with qtbot.waitSignal(runner.finished):
-            runner.prepare_run('cmd', 'arg')
+def test_unsupported(monkeypatch, tabbed_browser_stubs):
+    monkeypatch.setattr(userscripts.os, 'name', 'toaster')
+    with pytest.raises(userscripts.UnsupportedError) as excinfo:
+        userscripts.run_async(tab=None, cmd=None, win_id=0, env=None)
+    expected ="Userscripts are not supported on this platform!"
+    assert str(excinfo.value) == expected

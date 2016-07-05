@@ -330,43 +330,20 @@ class _WindowsUserscriptRunner(_BaseUserscriptRunner):
             return
 
 
-class _DummyUserscriptRunner(QObject):
+class UnsupportedError(Exception):
 
-    """Simple dummy runner which displays an error when using userscripts.
+    """Raised when userscripts aren't supported on this platform."""
 
-    Used on unknown systems since we don't know what (or if any) approach will
-    work there.
-
-    Signals:
-        finished: Always emitted.
-    """
-
-    finished = pyqtSignal()
-
-    def __init__(self, win_id, parent=None):
-        # pylint: disable=unused-argument
-        super().__init__(parent)
-
-    def prepare_run(self, *args, **kwargs):
-        """Print an error as userscripts are not supported."""
-        # pylint: disable=unused-argument,unused-variable
-        self.finished.emit()
-        raise cmdexc.CommandError(
-            "Userscripts are not supported on this platform!")
-
-
-# Here we basically just assign a generic UserscriptRunner class which does the
-# right thing depending on the platform.
-if os.name == 'posix':
-    UserscriptRunner = _POSIXUserscriptRunner
-elif os.name == 'nt':  # pragma: no cover
-    UserscriptRunner = _WindowsUserscriptRunner
-else:  # pragma: no cover
-    UserscriptRunner = _DummyUserscriptRunner
+    def __str__(self):
+        return "Userscripts are not supported on this platform!"
 
 
 def run_async(tab, cmd, *args, win_id, env, verbose=False):
-    """Convenience method to run a userscript.
+    """Run an userscript after dumping page html/source.
+
+    Raises:
+        UnsupportedError if userscripts are not supported on the current
+        platform.
 
     Args:
         tab: The WebKitTab/WebEngineTab to get the source from.
@@ -379,7 +356,14 @@ def run_async(tab, cmd, *args, win_id, env, verbose=False):
     tabbed_browser = objreg.get('tabbed-browser', scope='window',
                                 window=win_id)
     commandrunner = runners.CommandRunner(win_id, parent=tabbed_browser)
-    runner = UserscriptRunner(win_id, tabbed_browser)
+
+    if os.name == 'posix':
+        runner = _POSIXUserscriptRunner(win_id, tabbed_browser)
+    elif os.name == 'nt':  # pragma: no cover
+        runner = _WindowsUserscriptRunner(win_id, tabbed_browser)
+    else:  # pragma: no cover
+        raise UnsupportedError
+
     runner.got_cmd.connect(
         lambda cmd:
         log.commands.debug("Got userscript command: {}".format(cmd)))

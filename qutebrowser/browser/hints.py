@@ -580,8 +580,11 @@ class HintManager(QObject):
         if url is not None:
             env['QUTE_URL'] = url.toString(QUrl.FullyEncoded)
 
-        userscripts.run_async(context.tab, cmd, *args, win_id=self._win_id,
-                              env=env)
+        try:
+            userscripts.run_async(context.tab, cmd, *args, win_id=self._win_id,
+                                  env=env)
+        except userscripts.UnsupportedError as e:
+            message.error(self._win_id, str(e), immediately=True)
 
     def _spawn(self, url, context):
         """Spawn a simple command from a hint.
