@@ -381,10 +381,14 @@ class TabbedBrowser(tabwidget.TabWidget):
                                         window=window.win_id)
             return tabbed_browser.tabopen(url, background, explicit)
 
+
         if objreg.get('args').backend == 'webengine':
-            tab = webenginetab.WebEngineViewTab(self._win_id, self)
+            tab_class = webenginetab.WebEngineViewTab
         else:
-            tab = webkittab.WebViewTab(self._win_id, self)
+            tab_class = webkittab.WebViewTab
+
+        tab = tab_class(self._win_id, modeman.instance(self._win_id),
+                        parent=self)
 
         self._connect_tab_signals(tab)
         idx = self._get_new_tab_idx(explicit)

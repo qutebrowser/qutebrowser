@@ -436,12 +436,13 @@ class WebViewHistory(tab.AbstractHistory):
 
 class WebViewTab(tab.AbstractTab):
 
-    def __init__(self, win_id, parent=None):
+    def __init__(self, win_id, modeman, parent=None):
         super().__init__(win_id)
         widget = webview.WebView(win_id, self.tab_id, tab=self)
         self.history = WebViewHistory(self)
         self.scroll = WebViewScroller(parent=self)
-        self.caret = WebViewCaret(win_id=win_id, tab=self, parent=self)
+        self.caret = WebViewCaret(win_id=win_id, modeman=modeman, tab=self,
+                                  parent=self)
         self.zoom = WebViewZoom(win_id=win_id, parent=self)
         self.search = WebViewSearch(parent=self)
         self._set_widget(widget)

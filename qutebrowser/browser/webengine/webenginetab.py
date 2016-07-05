@@ -157,12 +157,13 @@ class WebEngineZoom(tab.AbstractZoom):
 
 class WebEngineViewTab(tab.AbstractTab):
 
-    def __init__(self, win_id, parent=None):
+    def __init__(self, win_id, modeman, parent=None):
         super().__init__(win_id)
         widget = webview.WebEngineView()
         self.history = WebEngineHistory(self)
         self.scroll = WebEngineScroller()
-        self.caret = WebEngineCaret(win_id=win_id, tab=self, parent=self)
+        self.caret = WebEngineCaret(win_id=win_id, modeman=modeman, tab=self,
+                                    parent=self)
         self.zoom = WebEngineZoom(win_id=win_id, parent=self)
         self.search = WebEngineSearch(parent=self)
         self._set_widget(widget)
