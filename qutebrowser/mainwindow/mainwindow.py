@@ -452,6 +452,7 @@ class MainWindow(QWidget):
         self._save_geometry()
         log.destroy.debug("Closing window {}".format(self.win_id))
         self.tabbed_browser.shutdown()
+        self._get_object('download-manager').cleanup()
 
     def closeEvent(self, e):
         """Override closeEvent to display a confirmation if needed."""

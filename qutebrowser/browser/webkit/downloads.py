@@ -25,6 +25,7 @@ import sys
 import os.path
 import shutil
 import functools
+import tempfile
 import collections
 
 import sip
@@ -513,7 +514,13 @@ class DownloadItem(QObject):
     def open_file(self):
         """Open the downloaded file."""
         assert self.successful
-        url = QUrl.fromLocalFile(self._filename)
+        filename = self._filename
+        if filename is None:
+            filename = getattr(self.fileobj, 'name', None)
+        if filename is None:
+            log.downloads.error("No filename to open the download!")
+            return
+        url = QUrl.fromLocalFile(filename)
         QDesktopServices.openUrl(url)
 
     def set_filename(self, filename):
@@ -731,6 +738,20 @@ class DownloadManager(QAbstractListModel):
         self._update_timer = usertypes.Timer(self, 'download-update')
         self._update_timer.timeout.connect(self.update_gui)
         self._update_timer.setInterval(REFRESH_INTERVAL)
+        self._tmpdir_obj = None
+
+    def cleanup(self):
+        """Clean up any temporary files from this manager."""
+        if self._tmpdir_obj is not None:
+            self._tmpdir_obj.cleanup()
+
+    @property
+    def tmpdir(self):
+        """Lazily create a temporary directory if one is needed."""
+        if self._tmpdir_obj is None:
+            self._tmpdir_obj = tempfile.TemporaryDirectory(
+                prefix='qutebrowser-downloads-')
+        return self._tmpdir_obj
 
     def __repr__(self):
         return utils.get_repr(self, downloads=len(self.downloads))
@@ -738,6 +759,9 @@ class DownloadManager(QAbstractListModel):
     def _postprocess_question(self, q):
         """Postprocess a Question object that is asked."""
         q.destroyed.connect(functools.partial(self.questions.remove, q))
+        # We set the mode here so that other code that uses ask_for_filename
+        # doesn't need to handle the special download mode.
+        q.mode = usertypes.PromptMode.download
         self.questions.append(q)
 
     @pyqtSlot()
@@ -816,27 +840,11 @@ class DownloadManager(QAbstractListModel):
         if suggested_fn is None:
             suggested_fn = 'qutebrowser-download'
 
-        # We won't need a question if a filename or fileobj is already given
-        if fileobj is None and filename is None:
-            filename, q = ask_for_filename(
-                suggested_fn, self._win_id, parent=self,
-                prompt_download_directory=prompt_download_directory
-            )
-
-        if fileobj is not None or filename is not None:
-            return self.fetch_request(request,
-                                      fileobj=fileobj,
-                                      filename=filename,
-                                      suggested_filename=suggested_fn,
-                                      **kwargs)
-        q.answered.connect(
-            lambda fn: self.fetch_request(request,
-                                          filename=fn,
-                                          suggested_filename=suggested_fn,
-                                          **kwargs))
-        self._postprocess_question(q)
-        q.ask()
-        return None
+        return self.fetch_request(request,
+                                  fileobj=fileobj,
+                                  filename=filename,
+                                  suggested_filename=suggested_fn,
+                                  **kwargs)
 
     def fetch_request(self, request, *, page=None, **kwargs):
         """Download a QNetworkRequest to disk.
@@ -874,7 +882,8 @@ class DownloadManager(QAbstractListModel):
         if fileobj is not None and filename is not None:  # pragma: no cover
             raise TypeError("Only one of fileobj/filename may be given!")
         if not suggested_filename:
-            if filename is not None:
+            if (filename is not None and
+                    filename is not usertypes.OPEN_DOWNLOAD):
                 suggested_filename = os.path.basename(filename)
             elif fileobj is not None and getattr(fileobj, 'name', None):
                 suggested_filename = fileobj.name
@@ -915,7 +924,8 @@ class DownloadManager(QAbstractListModel):
             return download
 
         if filename is not None:
-            download.set_filename(filename)
+            self.set_filename_for_download(download, suggested_filename,
+                                           filename)
             return download
 
         # Neither filename nor fileobj were given, prepare a question
@@ -926,18 +936,50 @@ class DownloadManager(QAbstractListModel):
 
         # User doesn't want to be asked, so just use the download_dir
         if filename is not None:
-            download.set_filename(filename)
+            self.set_filename_for_download(download, suggested_filename,
+                                           filename)
             return download
 
         # Ask the user for a filename
         self._postprocess_question(q)
-        q.answered.connect(download.set_filename)
+        q.answered.connect(
+            functools.partial(self.set_filename_for_download, download,
+                              suggested_filename))
         q.cancelled.connect(download.cancel)
         download.cancelled.connect(q.abort)
         download.error.connect(q.abort)
         q.ask()
 
         return download
+
+    def set_filename_for_download(self, download, suggested_filename,
+                                  filename):
+        """Set the filename for a given download.
+
+        This correctly handles the case where filename = OPEN_DOWNLOAD.
+
+        Args:
+            download: The download to set the filename for.
+            suggested_filename: The suggested filename.
+            filename: The filename as string or usertypes.OPEN_DOWNLOAD.
+        """
+        if filename is not usertypes.OPEN_DOWNLOAD:
+            download.set_filename(filename)
+            return
+        # Find the next free filename without causing a race condition
+        index = 0
+        while True:
+            basename = '{}-{}'.format(index, suggested_filename)
+            path = os.path.join(self.tmpdir.name, basename)
+            try:
+                fobj = open(path, 'xb')
+            except FileExistsError:
+                index += 1
+            else:
+                break
+        download.finished.connect(download.open_file)
+        download.autoclose = True
+        download.set_fileobj(fobj)
 
     def raise_no_download(self, count):
         """Raise an exception that the download doesn't exist.

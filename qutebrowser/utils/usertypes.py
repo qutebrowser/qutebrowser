@@ -33,6 +33,7 @@ from qutebrowser.utils import log, qtutils, utils
 
 
 _UNSET = object()
+OPEN_DOWNLOAD = object()
 
 
 def enum(name, items, start=1, is_int=False):
@@ -221,7 +222,8 @@ class NeighborList(collections.abc.Sequence):
 
 
 # The mode of a Question.
-PromptMode = enum('PromptMode', ['yesno', 'text', 'user_pwd', 'alert'])
+PromptMode = enum('PromptMode', ['yesno', 'text', 'user_pwd', 'alert',
+                                 'download'])
 
 
 # Where to open a clicked link.
