@@ -1033,14 +1033,13 @@ class CommandDispatcher:
         if idx != -1:
             env['QUTE_TITLE'] = self._tabbed_browser.page_title(idx)
 
-        webview = self._tabbed_browser.currentWidget()
-        if webview is None:
+        tab = self._tabbed_browser.currentWidget()
+        if tab is None:
             mainframe = None
         else:
-            if webview.caret.has_selection():
-                env['QUTE_SELECTED_TEXT'] = webview.caret.selection()
-                env['QUTE_SELECTED_HTML'] = webview.caret.selection(html=True)
-            mainframe = webview.page().mainFrame()
+            if tab.caret.has_selection():
+                env['QUTE_SELECTED_TEXT'] = tab.caret.selection()
+                env['QUTE_SELECTED_HTML'] = tab.caret.selection(html=True)
 
         try:
             url = self._tabbed_browser.current_url()
@@ -1049,9 +1048,8 @@ class CommandDispatcher:
         else:
             env['QUTE_URL'] = url.toString(QUrl.FullyEncoded)
 
-        env.update(userscripts.store_source(mainframe))
-        userscripts.run(cmd, *args, win_id=self._win_id, env=env,
-                        verbose=verbose)
+        userscripts.run_async(tab, cmd, *args, win_id=self._win_id, env=env,
+                              verbose=verbose)
 
     @cmdutils.register(instance='command-dispatcher', scope='window')
     def quickmark_save(self):

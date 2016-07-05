@@ -86,6 +86,10 @@ class _BaseUserscriptRunner(QObject):
         _proc: The GUIProcess which is being executed.
         _win_id: The window ID this runner is associated with.
         _cleaned_up: Whether temporary files were cleaned up.
+        _text_stored: Set when the page text was stored async.
+        _html_stored: Set when the page html was stored async.
+        _args: Arguments to pass to _run_process.
+        _kwargs: Keyword arguments to pass to _run_process.
 
     Signals:
         got_cmd: Emitted when a new command arrived and should be executed.
@@ -101,9 +105,41 @@ class _BaseUserscriptRunner(QObject):
         self._win_id = win_id
         self._filepath = None
         self._proc = None
-        self._env = None
+        self._env = {}
+        self._text_stored = False
+        self._html_stored = False
+        self._args = None
+        self._kwargs = None
 
-    def _run_process(self, cmd, *args, env, verbose):
+    def store_text(self, text):
+        """Called as callback when the text is ready from the web backend."""
+        with tempfile.NamedTemporaryFile(mode='w', encoding='utf-8',
+                                         suffix='.txt',
+                                         delete=False) as txt_file:
+            txt_file.write(text)
+            self._env['QUTE_TEXT'] = txt_file.name
+
+        self._text_stored = True
+        log.procs.debug("Text stored from webview")
+        if self._text_stored and self._html_stored:
+            log.procs.debug("Both text/HTML stored, kicking off userscript!")
+            self._run_process(*self._args, **self._kwargs)
+
+    def store_html(self, html):
+        """Called as callback when the html is ready from the web backend."""
+        with tempfile.NamedTemporaryFile(mode='w', encoding='utf-8',
+                                         suffix='.html',
+                                         delete=False) as html_file:
+            html_file.write(html)
+            self._env['QUTE_HTML'] = html_file.name
+
+        self._html_stored = True
+        log.procs.debug("HTML stored from webview")
+        if self._text_stored and self._html_stored:
+            log.procs.debug("Both text/HTML stored, kicking off userscript!")
+            self._run_process(*self._args, **self._kwargs)
+
+    def _run_process(self, cmd, *args, env=None, verbose=False):
         """Start the given command.
 
         Args:
@@ -112,7 +148,7 @@ class _BaseUserscriptRunner(QObject):
             env: A dictionary of environment variables to add.
             verbose: Show notifications when the command started/exited.
         """
-        self._env = {'QUTE_FIFO': self._filepath}
+        self._env['QUTE_FIFO'] = self._filepath
         if env is not None:
             self._env.update(env)
         self._proc = guiprocess.GUIProcess(self._win_id, 'userscript',
@@ -144,18 +180,19 @@ class _BaseUserscriptRunner(QObject):
                         fn, e))
         self._filepath = None
         self._proc = None
-        self._env = None
+        self._env = {}
+        self._text_stored = False
+        self._html_stored = False
 
-    def run(self, cmd, *args, env=None, verbose=False):
-        """Run the userscript given.
+    def prepare_run(self, *args, **kwargs):
+        """Prepare ruinning the userscript given.
 
         Needs to be overridden by subclasses.
+        The script will actually run after store_text and store_html have been
+        called.
 
         Args:
-            cmd: The command to be started.
-            *args: The arguments to hand to the command
-            env: A dictionary of environment variables to add.
-            verbose: Show notifications when the command started/exited.
+            Passed to _run_process.
         """
         raise NotImplementedError
 
@@ -190,7 +227,10 @@ class _POSIXUserscriptRunner(_BaseUserscriptRunner):
         super().__init__(win_id, parent)
         self._reader = None
 
-    def run(self, cmd, *args, env=None, verbose=False):
+    def prepare_run(self, *args, **kwargs):
+        self._args = args
+        self._kwargs = kwargs
+
         try:
             # tempfile.mktemp is deprecated and discouraged, but we use it here
             # to create a FIFO since the only other alternative would be to
@@ -208,8 +248,6 @@ class _POSIXUserscriptRunner(_BaseUserscriptRunner):
 
         self._reader = _QtFIFOReader(self._filepath)
         self._reader.got_line.connect(self.got_cmd)
-
-        self._run_process(cmd, *args, env=env, verbose=verbose)
 
     @pyqtSlot()
     def on_proc_finished(self):
@@ -280,14 +318,16 @@ class _WindowsUserscriptRunner(_BaseUserscriptRunner):
         """Read back the commands when the process finished."""
         self._cleanup()
 
-    def run(self, cmd, *args, env=None, verbose=False):
+    def prepare_run(self, *args, **kwargs):
+        self._args = args
+        self._kwargs = kwargs
+
         try:
             self._oshandle, self._filepath = tempfile.mkstemp(text=True)
         except OSError as e:
             message.error(self._win_id, "Error while creating tempfile: "
                                         "{}".format(e))
             return
-        self._run_process(cmd, *args, env=env, verbose=verbose)
 
 
 class _DummyUserscriptRunner(QObject):
@@ -307,7 +347,7 @@ class _DummyUserscriptRunner(QObject):
         # pylint: disable=unused-argument
         super().__init__(parent)
 
-    def run(self, cmd, *args, env=None, verbose=False):
+    def prepare_run(self, *args, **kwargs):
         """Print an error as userscripts are not supported."""
         # pylint: disable=unused-argument,unused-variable
         self.finished.emit()
@@ -325,41 +365,11 @@ else:  # pragma: no cover
     UserscriptRunner = _DummyUserscriptRunner
 
 
-def store_source(frame):
-    """Store HTML/plaintext in files.
-
-    This writes files containing the HTML/plaintext source of the page, and
-    returns a dict with the paths as QUTE_HTML/QUTE_TEXT.
-
-    Args:
-        frame: The QWebFrame to get the info from, or None to do nothing.
-
-    Return:
-        A dictionary with the needed environment variables.
-
-    Warning:
-        The caller is responsible to delete the files after using them!
-    """
-    if frame is None:
-        return {}
-    env = {}
-    with tempfile.NamedTemporaryFile(mode='w', encoding='utf-8',
-                                     suffix='.html',
-                                     delete=False) as html_file:
-        html_file.write(frame.toHtml())
-        env['QUTE_HTML'] = html_file.name
-    with tempfile.NamedTemporaryFile(mode='w', encoding='utf-8',
-                                     suffix='.txt',
-                                     delete=False) as txt_file:
-        txt_file.write(frame.toPlainText())
-        env['QUTE_TEXT'] = txt_file.name
-    return env
-
-
-def run(cmd, *args, win_id, env, verbose=False):
+def run_async(tab, cmd, *args, win_id, env, verbose=False):
     """Convenience method to run a userscript.
 
     Args:
+        tab: The WebKitTab/WebEngineTab to get the source from.
         cmd: The userscript binary to run.
         *args: The arguments to pass to the userscript.
         win_id: The window id the userscript is executed in.
@@ -398,6 +408,9 @@ def run(cmd, *args, win_id, env, verbose=False):
                                     "userscripts", cmd)
     log.misc.debug("Userscript to run: {}".format(cmd_path))
 
-    runner.run(cmd_path, *args, env=env, verbose=verbose)
     runner.finished.connect(commandrunner.deleteLater)
     runner.finished.connect(runner.deleteLater)
+
+    runner.prepare_run(cmd_path, *args, env=env, verbose=verbose)
+    tab.dump_async(runner.store_html)
+    tab.dump_async(runner.store_text, plain=True)

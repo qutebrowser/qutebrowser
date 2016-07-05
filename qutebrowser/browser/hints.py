@@ -84,6 +84,7 @@ class HintContext:
         args: Custom arguments for userscript/spawn
         rapid: Whether to do rapid hinting.
         mainframe: The main QWebFrame where we started hinting in.
+        tab: The WebTab object we started hinting in.
         group: The group of web elements to hint.
     """
 
@@ -98,6 +99,7 @@ class HintContext:
         self.destroyed_frames = []
         self.args = []
         self.mainframe = None
+        self.tab = None
         self.group = None
 
     def get_args(self, urlstr):
@@ -569,7 +571,6 @@ class HintManager(QObject):
         """
         cmd = context.args[0]
         args = context.args[1:]
-        frame = context.mainframe
         env = {
             'QUTE_MODE': 'hints',
             'QUTE_SELECTED_TEXT': str(elem),
@@ -578,8 +579,9 @@ class HintManager(QObject):
         url = self._resolve_url(elem, context.baseurl)
         if url is not None:
             env['QUTE_URL'] = url.toString(QUrl.FullyEncoded)
-        env.update(userscripts.store_source(frame))
-        userscripts.run(cmd, *args, win_id=self._win_id, env=env)
+
+        userscripts.run_async(context.tab, cmd, *args, win_id=self._win_id,
+                              env=env)
 
     def _spawn(self, url, context):
         """Spawn a simple command from a hint.
@@ -837,6 +839,7 @@ class HintManager(QObject):
 
         self._check_args(target, *args)
         self._context = HintContext()
+        self._context.tab = tab
         self._context.target = target
         self._context.rapid = rapid
         try:
