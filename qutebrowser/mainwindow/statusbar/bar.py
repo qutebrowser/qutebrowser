@@ -330,7 +330,7 @@ class StatusBar(QWidget):
             self._command_active = val
         elif mode == usertypes.KeyMode.caret:
             tab = objreg.get('tabbed-browser', scope='window',
-                                 window=self._win_id).currentWidget()
+                             window=self._win_id).currentWidget()
             log.statusbar.debug("Setting caret_mode - val {}, selection "
                                 "{}".format(val, tab.caret.selection_enabled))
             if val:

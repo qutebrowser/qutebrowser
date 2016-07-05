@@ -381,7 +381,6 @@ class TabbedBrowser(tabwidget.TabWidget):
                                         window=window.win_id)
             return tabbed_browser.tabopen(url, background, explicit)
 
-
         if objreg.get('args').backend == 'webengine':
             tab_class = webenginetab.WebEngineViewTab
         else:

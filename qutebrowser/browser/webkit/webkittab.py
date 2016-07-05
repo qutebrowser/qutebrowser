@@ -28,12 +28,12 @@ from PyQt5.QtGui import QKeyEvent
 from PyQt5.QtWebKitWidgets import QWebPage
 from PyQt5.QtWebKit import QWebSettings
 
-from qutebrowser.browser import tab
+from qutebrowser.browser import tab as tabmod
 from qutebrowser.browser.webkit import webview, tabhistory
 from qutebrowser.utils import qtutils, objreg, usertypes, utils
 
 
-class WebViewSearch(tab.AbstractSearch):
+class WebViewSearch(tabmod.AbstractSearch):
 
     def clear(self):
         # We first clear the marked text, then the highlights
@@ -73,7 +73,7 @@ class WebViewSearch(tab.AbstractSearch):
         self._widget.search(self.text, flags)
 
 
-class WebViewCaret(tab.AbstractCaret):
+class WebViewCaret(tabmod.AbstractCaret):
 
     @pyqtSlot(usertypes.KeyMode)
     def on_mode_entered(self, mode):
@@ -99,8 +99,8 @@ class WebViewCaret(tab.AbstractCaret):
                 self._widget.page().currentFrame().evaluateJavaScript(
                     utils.read_file('javascript/position_caret.js'))
 
-    @pyqtSlot(usertypes.KeyMode)
-    def on_mode_left(self, mode):
+    @pyqtSlot()
+    def on_mode_left(self):
         settings = self._widget.settings()
         if settings.testAttribute(QWebSettings.CaretBrowsingEnabled):
             if self.selection_enabled and self._widget.hasSelection():
@@ -277,13 +277,13 @@ class WebViewCaret(tab.AbstractCaret):
                 selected_element = xml.etree.ElementTree.fromstring(
                     '<html>{}</html>'.format(selection)).find('a')
             except xml.etree.ElementTree.ParseError:
-                raise tab.WebTabError('Could not parse selected element!')
+                raise tabmod.WebTabError('Could not parse selected element!')
 
             if selected_element is not None:
                 try:
                     url = selected_element.attrib['href']
                 except KeyError:
-                    raise tab.WebTabError('Anchor element without href!')
+                    raise tabmod.WebTabError('Anchor element without href!')
                 url = self._tab.cur_url.resolved(QUrl(url))
                 if tab:
                     self._tab.new_tab_requested.emit(url)
@@ -291,7 +291,7 @@ class WebViewCaret(tab.AbstractCaret):
                     self._tab.openurl(url)
 
 
-class WebViewZoom(tab.AbstractZoom):
+class WebViewZoom(tabmod.AbstractZoom):
 
     def _set_factor_internal(self, factor):
         self._widget.setZoomFactor(factor)
@@ -300,7 +300,7 @@ class WebViewZoom(tab.AbstractZoom):
         return self._widget.zoomFactor()
 
 
-class WebViewScroller(tab.AbstractScroller):
+class WebViewScroller(tabmod.AbstractScroller):
 
     def pos_px(self):
         return self._widget.page().mainFrame().scrollPosition()
@@ -316,7 +316,7 @@ class WebViewScroller(tab.AbstractScroller):
         qtutils.check_overflow(y, 'int')
         self._widget.page().mainFrame().scroll(x, y)
 
-    def delta_page(self, x=0, y=0):
+    def delta_page(self, x=0.0, y=0.0):
         if y.is_integer():
             y = int(y)
             if y == 0:
@@ -339,7 +339,7 @@ class WebViewScroller(tab.AbstractScroller):
         else:
             for val, orientation in [(x, Qt.Horizontal), (y, Qt.Vertical)]:
                 if val is not None:
-                    perc = qtutils.check_overflow(val, 'int', fatal=False)
+                    val = qtutils.check_overflow(val, 'int', fatal=False)
                     frame = self._widget.page().mainFrame()
                     m = frame.scrollBarMaximum(orientation)
                     if m == 0:
@@ -396,7 +396,7 @@ class WebViewScroller(tab.AbstractScroller):
         return self.pos_px().y() >= frame.scrollBarMaximum(Qt.Vertical)
 
 
-class WebViewHistory(tab.AbstractHistory):
+class WebViewHistory(tabmod.AbstractHistory):
 
     def current_idx(self):
         return self._history.currentItemIndex()
@@ -434,7 +434,7 @@ class WebViewHistory(tab.AbstractHistory):
                     self._tab.scroll.to_point, cur_data['scroll-pos']))
 
 
-class WebViewTab(tab.AbstractTab):
+class WebViewTab(tabmod.AbstractTab):
 
     def __init__(self, win_id, modeman, parent=None):
         super().__init__(win_id)
@@ -447,8 +447,8 @@ class WebViewTab(tab.AbstractTab):
         self.search = WebViewSearch(parent=self)
         self._set_widget(widget)
         self._connect_signals()
-        self.zoom._set_default_zoom()
-        self.backend = tab.Backend.QtWebKit
+        self.zoom._set_default_zoom()  # pylint: disable=protected-access
+        self.backend = tabmod.Backend.QtWebKit
 
     def openurl(self, url):
         self._widget.openurl(url)
@@ -520,9 +520,9 @@ class WebViewTab(tab.AbstractTab):
         view.load_status_changed.connect(self.load_status_changed)
         view.shutting_down.connect(self.shutting_down)
 
-        # Make sure we emit an appropriate status when loading finished.
-        # While Qt has a bool "ok" attribute for loadFinished, it always is True
-        # when using error pages...
+        # Make sure we emit an appropriate status when loading finished. While
+        # Qt has a bool "ok" attribute for loadFinished, it always is True when
+        # using error pages...
         # See https://github.com/The-Compiler/qutebrowser/issues/84
         frame.loadFinished.connect(lambda:
                                    self.load_finished.emit(

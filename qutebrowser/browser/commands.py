@@ -21,12 +21,10 @@
 
 import os
 import os.path
-import sys
 import shlex
 import posixpath
 import functools
 
-from PyQt5.QtWebKit import QWebSettings
 from PyQt5.QtWidgets import QApplication, QTabBar
 from PyQt5.QtCore import Qt, QUrl, QEvent
 from PyQt5.QtGui import QKeyEvent
@@ -487,7 +485,8 @@ class CommandDispatcher:
 
         if where in ['prev', 'next']:
             # FIXME:refactor have a proper API for this
-            frame = widget._widget.page().currentFrame()
+            page = widget._widget.page()  # pylint: disable=protected-access
+            frame = page.currentFrame()
             if frame is None:
                 raise cmdexc.CommandError("No frame focused!")
         else:
@@ -1034,12 +1033,11 @@ class CommandDispatcher:
             env['QUTE_TITLE'] = self._tabbed_browser.page_title(idx)
 
         tab = self._tabbed_browser.currentWidget()
-        if tab is None:
-            mainframe = None
-        else:
-            if tab.caret.has_selection():
-                env['QUTE_SELECTED_TEXT'] = tab.caret.selection()
-                env['QUTE_SELECTED_HTML'] = tab.caret.selection(html=True)
+        if tab is not None and tab.caret.has_selection():
+            env['QUTE_SELECTED_TEXT'] = tab.caret.selection()
+            env['QUTE_SELECTED_HTML'] = tab.caret.selection(html=True)
+
+        # FIXME:refactor: If tab is None, run_async will fail!
 
         try:
             url = self._tabbed_browser.current_url()
@@ -1112,7 +1110,7 @@ class CommandDispatcher:
 
     @cmdutils.register(instance='command-dispatcher', hide=True,
                        scope='window')
-    def follow_selected(self, tab=False):
+    def follow_selected(self, *, tab=False):
         """Follow the selected text.
 
         Args:
@@ -1139,7 +1137,8 @@ class CommandDispatcher:
                     "webinspector!")
             tab.data.inspector = inspector.WebInspector()
             # FIXME:refactor have a proper API for this
-            tab.data.inspector.setPage(tab._widget.page())
+            page = tab._widget.page()  # pylint: disable=protected-access
+            tab.data.inspector.setPage(page)
             tab.data.inspector.show()
         elif tab.data.inspector.isVisible():
             tab.data.inspector.hide()
@@ -1188,6 +1187,7 @@ class CommandDispatcher:
                 self._download_mhtml(dest)
             else:
                 # FIXME:refactor have a proper API for this
+                # pylint: disable=protected-access
                 page = self._current_widget()._widget.page()
                 download_manager.get(self._current_url(), page=page,
                                      filename=dest)
@@ -1224,6 +1224,7 @@ class CommandDispatcher:
             raise cmdexc.CommandError("Already viewing source!")
 
         def show_source_cb(source):
+            """Show source as soon as it's ready."""
             lexer = pygments.lexers.HtmlLexer()
             formatter = pygments.formatters.HtmlFormatter(full=True,
                                                           linenos='table')
@@ -1252,12 +1253,12 @@ class CommandDispatcher:
                 with open(dest, 'w', encoding='utf-8') as f:
                     f.write(data)
             except OSError as e:
-                message.error(self._win_id, 'Could not write page: {}'.format(e))
+                message.error(self._win_id,
+                              'Could not write page: {}'.format(e))
             else:
                 message.info(self._win_id, "Dumped page to {}.".format(dest))
 
         tab.dump_async(callback, plain=plain)
-
 
     @cmdutils.register(instance='command-dispatcher', name='help',
                        scope='window')
@@ -1331,9 +1332,10 @@ class CommandDispatcher:
         `general -> editor` config option.
         """
         # FIXME:refactor have a proper API for this
-        frame = self._current_widget()._widget.page().currentFrame()
+        tab = self._current_widget()
+        page = tab._widget.page()  # pylint: disable=protected-access
         try:
-            elem = webelem.focus_elem(frame)
+            elem = webelem.focus_elem(page.currentFrame())
         except webelem.IsNullError:
             raise cmdexc.CommandError("No element focused!")
         if not elem.is_editable(strict=True):
@@ -1375,9 +1377,10 @@ class CommandDispatcher:
     def paste_primary(self):
         """Paste the primary selection at cursor position."""
         # FIXME:refactor have a proper API for this
-        frame = self._current_widget()._widget.page().currentFrame()
+        tab = self._current_widget()
+        page = tab._widget.page()  # pylint: disable=protected-access
         try:
-            elem = webelem.focus_elem(frame)
+            elem = webelem.focus_elem(page.currentFrame())
         except webelem.IsNullError:
             raise cmdexc.CommandError("No element focused!")
         if not elem.is_editable(strict=True):
@@ -1695,9 +1698,9 @@ class CommandDispatcher:
                 if out is None:
                     # Getting the actual error (if any) seems to be difficult.
                     # The error does end up in
-                    # BrowserPage.javaScriptConsoleMessage(), but distinguishing
-                    # between :jseval errors and errors from the webpage is not
-                    # trivial...
+                    # BrowserPage.javaScriptConsoleMessage(), but
+                    # distinguishing between :jseval errors and errors from the
+                    # webpage is not trivial...
                     message.info(self._win_id, 'No output or error')
                 else:
                     # The output can be a string, number, dict, array, etc. But
@@ -1705,12 +1708,10 @@ class CommandDispatcher:
                     # qutebrowser hang
                     out = str(out)
                     if len(out) > 5000:
-                        message.info(self._win_id, out[:5000] + ' [...trimmed...]')
-                    else:
-                        message.info(self._win_id, out)
+                        out = out[:5000] + ' [...trimmed...]'
+                    message.info(self._win_id, out)
 
         self._current_widget().run_js_async(js_code, callback=jseval_cb)
-
 
     @cmdutils.register(instance='command-dispatcher', scope='window')
     def fake_key(self, keystring, global_=False):

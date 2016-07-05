@@ -20,8 +20,6 @@
 """The main browser widgets."""
 
 import sys
-import itertools
-import functools
 
 from PyQt5.QtCore import pyqtSignal, pyqtSlot, Qt, QTimer, QUrl, QPoint
 from PyQt5.QtGui import QPalette
@@ -38,9 +36,7 @@ from qutebrowser.browser.webkit import webpage, webelem
 
 class WebView(QWebView):
 
-    """One browser tab in TabbedBrowser.
-
-    Our own subclass of a QWebView with some added bells and whistles.
+    """Custom QWebView subclass with qutebrowser-specific features.
 
     Attributes:
         tab: The WebKitTab object for this WebView
@@ -495,6 +491,7 @@ class WebView(QWebView):
                                 "support that!")
         tabbed_browser = objreg.get('tabbed-browser', scope='window',
                                     window=self.win_id)
+        # pylint: disable=protected-access
         return tabbed_browser.tabopen(background=False)._widget
 
     def paintEvent(self, e):

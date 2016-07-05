@@ -255,7 +255,8 @@ class _Downloader:
         web_url = self.web_view.cur_url
 
         # FIXME:refactor have a proper API for this
-        web_frame = self.web_view._widget.page().mainFrame()
+        page = self.web_view._widget.page()  # pylint: disable=protected-access
+        web_frame = page.mainFrame()
 
         self.writer = MHTMLWriter(
             web_frame.toHtml().encode('utf-8'),

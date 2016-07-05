@@ -86,13 +86,13 @@ class TestTabData:
 
     def test_known_attr(self):
         data = tab.TabData()
-        assert data.keep_icon == False
+        assert not data.keep_icon
         data.keep_icon = True
-        assert data.keep_icon == True
+        assert data.keep_icon
 
     def test_unknown_attr(self):
         data = tab.TabData()
         with pytest.raises(AttributeError):
             data.bar = 42
         with pytest.raises(AttributeError):
-            data.bar
+            data.bar  # pylint: disable=pointless-statement

@@ -42,28 +42,34 @@ class WebTabError(Exception):
 
 class WrapperLayout(QLayout):
 
+    """A Qt layout which simply wraps a single widget.
+
+    This is used so the widget is hidden behind a AbstractTab API and can't
+    easily be accidentally accessed.
+    """
+
     def __init__(self, widget, parent=None):
         super().__init__(parent)
         self._widget = widget
 
-    def addItem(self, w):
+    def addItem(self, _widget):
         raise AssertionError("Should never be called!")
 
     def sizeHint(self):
         return self._widget.sizeHint()
 
-    def itemAt(self, i):
+    def itemAt(self, _index):
         # FIXME why does this get called?
         return None
 
-    def takeAt(self, i):
+    def takeAt(self, _index):
         raise AssertionError("Should never be called!")
 
-    def setGeometry(self, r):
-        self._widget.setGeometry(r)
+    def setGeometry(self, rect):
+        self._widget.setGeometry(rect)
 
 
-class TabData(QObject):
+class TabData:
 
     """A simple namespace with a fixed set of attributes.
 
@@ -82,7 +88,8 @@ class TabData(QObject):
 
     def __getattr__(self, attr):
         if attr.startswith('_'):
-            return super().__getattr__(attr)
+            # WORKAROUND for https://github.com/PyCQA/pylint/issues/979
+            return super().__getattr__(attr)  # pylint: disable=no-member
         try:
             return self._data[attr]
         except KeyError:
@@ -92,7 +99,8 @@ class TabData(QObject):
         if attr.startswith('_'):
             return super().__setattr__(attr, value)
         if attr not in self._data:
-            raise AttributeError("Can't set unknown attribute {!r}".format(attr))
+            msg = "Can't set unknown attribute {!r}".format(attr)
+            raise AttributeError(msg)
         self._data[attr] = value
 
 
@@ -218,6 +226,7 @@ class AbstractZoom(QObject):
         if factor < 0:
             return
         perc = int(100 * factor)
+        # FIXME move this somewhere else?
         message.info(self.win_id, "Zoom level: {}%".format(perc))
         self._neighborlist.fuzzyval = perc
         self._set_factor_internal(factor)
@@ -300,7 +309,7 @@ class AbstractCaret(QObject):
     def selection(self, html=False):
         raise NotImplementedError
 
-    def follow_selected(self, tab=False):
+    def follow_selected(self, *, tab=False):
         raise NotImplementedError
 
 
@@ -452,6 +461,7 @@ class AbstractTab(QWidget):
         self.backend = None
 
     def _set_widget(self, widget):
+        # pylint: disable=protected-access
         self._layout = WrapperLayout(widget, self)
         self._widget = widget
         self.history._history = widget.history()

@@ -26,7 +26,7 @@ import signal
 import pytest
 from PyQt5.QtCore import QFileSystemWatcher
 
-from qutebrowser.commands import userscripts, cmdexc
+from qutebrowser.commands import userscripts
 
 
 @pytest.fixture(autouse=True)
@@ -235,5 +235,5 @@ def test_unsupported(monkeypatch, tabbed_browser_stubs):
     monkeypatch.setattr(userscripts.os, 'name', 'toaster')
     with pytest.raises(userscripts.UnsupportedError) as excinfo:
         userscripts.run_async(tab=None, cmd=None, win_id=0, env=None)
-    expected ="Userscripts are not supported on this platform!"
+    expected = "Userscripts are not supported on this platform!"
     assert str(excinfo.value) == expected

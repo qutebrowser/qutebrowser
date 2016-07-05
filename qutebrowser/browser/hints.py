@@ -819,7 +819,9 @@ class HintManager(QObject):
         tab = tabbed_browser.currentWidget()
         if tab is None:
             raise cmdexc.CommandError("No WebView available yet!")
-        mainframe = tab._widget.page().mainFrame()  # FIXME
+        # FIXME:refactor have a proper API for this
+        page = tab._widget.page()  # pylint: disable=protected-access
+        mainframe = page.mainFrame()
         if mainframe is None:
             raise cmdexc.CommandError("No frame focused!")
         mode_manager = objreg.get('mode-manager', scope='window',

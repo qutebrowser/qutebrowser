@@ -251,8 +251,6 @@ LoadStatus = enum('LoadStatus', ['none', 'success', 'success_https', 'error',
                                  'warn', 'loading'])
 
 
-
-
 class Question(QObject):
 
     """A question asked to the user, e.g. via the status bar.

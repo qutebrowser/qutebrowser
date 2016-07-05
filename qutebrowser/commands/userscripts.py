@@ -26,7 +26,7 @@ import tempfile
 from PyQt5.QtCore import pyqtSignal, pyqtSlot, QObject, QSocketNotifier
 
 from qutebrowser.utils import message, log, objreg, standarddir
-from qutebrowser.commands import runners, cmdexc
+from qutebrowser.commands import runners
 from qutebrowser.config import config
 from qutebrowser.misc import guiprocess
 from qutebrowser.browser.webkit import downloads

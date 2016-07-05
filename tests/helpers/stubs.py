@@ -17,7 +17,7 @@
 # You should have received a copy of the GNU General Public License
 # along with qutebrowser.  If not, see <http://www.gnu.org/licenses/>.
 
-# pylint: disable=invalid-name
+# pylint: disable=invalid-name,abstract-method
 
 """Fake objects/stubs."""
 
@@ -27,7 +27,7 @@ from unittest import mock
 from PyQt5.QtCore import pyqtSignal, QPoint, QProcess, QObject
 from PyQt5.QtNetwork import (QNetworkRequest, QAbstractNetworkCache,
                              QNetworkCacheMetaData)
-from PyQt5.QtWidgets import QCommonStyle, QWidget, QLineEdit
+from PyQt5.QtWidgets import QCommonStyle, QLineEdit
 
 from qutebrowser.browser import tab
 from qutebrowser.browser.webkit import webview, history
@@ -226,6 +226,8 @@ def fake_qprocess():
 
 
 class FakeWebTabScroller(tab.AbstractScroller):
+
+    """Fake AbstractScroller to use in tests."""
 
     def __init__(self, pos_perc):
         super().__init__()

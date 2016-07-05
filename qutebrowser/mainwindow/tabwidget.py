@@ -29,7 +29,6 @@ from PyQt5.QtGui import QIcon, QPalette, QColor
 
 from qutebrowser.utils import qtutils, objreg, utils, usertypes
 from qutebrowser.config import config
-from qutebrowser.browser.webkit import webview
 
 
 PixelMetrics = usertypes.enum('PixelMetrics', ['icon_padding'],

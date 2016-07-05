@@ -26,6 +26,8 @@ from PyQt5.QtWebEngineWidgets import QWebEngineView
 
 class WebEngineView(QWebEngineView):
 
+    """Custom QWebEngineView subclass with qutebrowser-specific features."""
+
     mouse_wheel_zoom = pyqtSignal(QPoint)
 
     def wheelEvent(self, e):

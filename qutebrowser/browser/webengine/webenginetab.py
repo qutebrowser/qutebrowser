@@ -24,14 +24,17 @@ from PyQt5.QtGui import QKeyEvent
 from PyQt5.QtWidgets import QApplication
 
 try:
-    from PyQt5.QtWebEngineWidgets import QWebEngineView, QWebEnginePage
+    from PyQt5.QtWebEngineWidgets import QWebEnginePage
 except ImportError:
     QWebEngineView = None
-    QWebEnginePage = None
 
 from qutebrowser.browser import tab
 from qutebrowser.browser.webengine import webview
 from qutebrowser.utils import usertypes, qtutils
+
+
+## FIXME:refactor add stubs for abstract things which aren't implemented yet.
+## pylint: disable=abstract-method
 
 
 class WebEngineSearch(tab.AbstractSearch):
@@ -66,7 +69,7 @@ class WebEngineCaret(tab.AbstractCaret):
 
 class WebEngineScroller(tab.AbstractScroller):
 
-    def _key_press(self, key, count=1, getter_name=None, direction=None):
+    def _key_press(self, key, count=1):
         # FIXME for some reason this does not work? :-/
         # FIXME Abort scrolling if the minimum/maximum was reached.
         press_evt = QKeyEvent(QEvent.KeyPress, key, Qt.NoModifier, 0, 0, 0)
@@ -91,16 +94,16 @@ class WebEngineScroller(tab.AbstractScroller):
             return (perc_x, perc_y)
 
     def up(self, count=1):
-        self._key_press(Qt.Key_Up, count, 'scrollBarMinimum', Qt.Vertical)
+        self._key_press(Qt.Key_Up, count)
 
     def down(self, count=1):
-        self._key_press(Qt.Key_Down, count, 'scrollBarMaximum', Qt.Vertical)
+        self._key_press(Qt.Key_Down, count)
 
     def left(self, count=1):
-        self._key_press(Qt.Key_Left, count, 'scrollBarMinimum', Qt.Horizontal)
+        self._key_press(Qt.Key_Left, count)
 
     def right(self, count=1):
-        self._key_press(Qt.Key_Right, count, 'scrollBarMaximum', Qt.Horizontal)
+        self._key_press(Qt.Key_Right, count)
 
     def top(self):
         self._key_press(Qt.Key_Home)
@@ -109,11 +112,10 @@ class WebEngineScroller(tab.AbstractScroller):
         self._key_press(Qt.Key_End)
 
     def page_up(self, count=1):
-        self._key_press(Qt.Key_PageUp, count, 'scrollBarMinimum', Qt.Vertical)
+        self._key_press(Qt.Key_PageUp, count)
 
     def page_down(self, count=1):
-        self._key_press(Qt.Key_PageDown, count, 'scrollBarMaximum',
-                        Qt.Vertical)
+        self._key_press(Qt.Key_PageDown, count)
 
     ## TODO
 
