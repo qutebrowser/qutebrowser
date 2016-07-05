@@ -71,7 +71,7 @@ class ReadlineBridge:
         cursor_position = widget.cursorPosition()
         target_position = cursor_position
 
-        while text[target_position - 1] != " " and target_position > 0:
+        while target_position > 0 and text[target_position - 1] != " ":
             target_position -= 1
 
         moveby = cursor_position - target_position
