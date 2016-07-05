@@ -19,33 +19,66 @@
 
 import pytest
 
+from PyQt5.QtCore import pyqtSignal, QPoint
+
 from qutebrowser.browser import tab
+from qutebrowser.keyinput import modeman
 
 try:
     from PyQt5.QtWebKitWidgets import QWebView
+
+    class WebView(QWebView):
+        mouse_wheel_zoom = pyqtSignal(QPoint)
 except ImportError:
-    QWebView = None
+    WebView = None
 
 try:
     from PyQt5.QtWebEngineWidgets import QWebEngineView
+
+    class WebEngineView(QWebEngineView):
+        mouse_wheel_zoom = pyqtSignal(QPoint)
 except ImportError:
-    QWebEngineView = None
+    WebEngineView = None
 
 
-@pytest.mark.parametrize('view', [QWebView, QWebEngineView])
-def test_tab(qtbot, view):
+@pytest.mark.parametrize('view', [WebView, WebEngineView])
+def test_tab(qtbot, view, config_stub):
+    config_stub.data = {
+        'input': {
+            'forward-unbound-keys': 'auto'
+        },
+        'ui': {
+            'zoom-levels': [100],
+            'default-zoom': 100,
+        }
+    }
+
     if view is None:
         pytest.skip("View not available")
+
     w = view()
     qtbot.add_widget(w)
+
     tab_w = tab.AbstractTab(win_id=0)
+    qtbot.add_widget(tab_w)
     tab_w.show()
+
     assert tab_w.win_id == 0
     assert tab_w._widget is None
+
+    mode_man = modeman.ModeManager(0)
+
+    tab_w.history = tab.AbstractHistory(tab_w)
+    tab_w.scroll = tab.AbstractScroller(parent=tab_w)
+    tab_w.caret = tab.AbstractCaret(win_id=tab_w.win_id, modeman=mode_man,
+                                    tab=tab_w, parent=tab_w)
+    tab_w.zoom = tab.AbstractZoom(win_id=tab_w.win_id)
+    tab_w.search = tab.AbstractSearch(parent=tab_w)
+
     tab_w._set_widget(w)
     assert tab_w._widget is w
-    assert tab_w.history.tab is tab_w
-    assert tab_w.history.history is w.history()
+    assert tab_w.history._tab is tab_w
+    assert tab_w.history._history is w.history()
     assert w.parent() is tab_w
 
 
