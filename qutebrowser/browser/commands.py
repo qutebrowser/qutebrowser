@@ -626,7 +626,12 @@ class CommandDispatcher:
             self.navigate(top_navigate)
             return
 
-        tab.scroll.delta_page(count * x, count * y)
+        try:
+            tab.scroll.delta_page(count * x, count * y)
+        except OverflowError:
+            raise cmdexc.CommandError(
+                "Numeric argument is too large for internal int "
+                "representation.")
 
     @cmdutils.register(instance='command-dispatcher', scope='window')
     def yank(self, title=False, sel=False, domain=False, pretty=False):
