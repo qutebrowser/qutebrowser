@@ -17,3 +17,5 @@ pydocstyle
 pyflakes
 
 pep8==1.7.0
+
+#@ comment: pep257 still needed by flake8-docstrings but ignored
