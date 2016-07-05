@@ -332,7 +332,7 @@ def test_get_search_url_invalid(urlutils_config_stub, url):
     (False, True, False, 'localhost test'),  # no DNS because of space
     (False, True, False, 'another . test'),  # no DNS because of space
     (False, True, True, 'foo'),
-    (False, True, False, 'this is: not an URL'),  # no DNS because of space
+    (False, True, False, 'this is: not a URL'),  # no DNS because of space
     (False, True, False, '23.42'),  # no DNS because bogus-IP
     (False, True, False, '1337'),  # no DNS because bogus-IP
     (False, True, True, 'deadbeef'),
@@ -344,15 +344,15 @@ def test_get_search_url_invalid(urlutils_config_stub, url):
     # Valid search term with autosearch
     (False, False, False, 'test foo'),
     # autosearch = False
-    (False, True, False, 'This is an URL without autosearch'),
+    (False, True, False, 'This is a URL without autosearch'),
 ])
 def test_is_url(urlutils_config_stub, fake_dns, is_url, is_url_no_autosearch,
                 uses_dns, url):
     """Test is_url().
 
     Args:
-        is_url: Whether the given string is an URL with auto-search dns/naive.
-        is_url_no_autosearch: Whether the given string is an URL with
+        is_url: Whether the given string is a URL with auto-search dns/naive.
+        is_url_no_autosearch: Whether the given string is a URL with
                               auto-search false.
         uses_dns: Whether the given string should fire a DNS request for the
                   given URL.

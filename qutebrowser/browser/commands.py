@@ -1247,7 +1247,7 @@ class CommandDispatcher:
                                      filename=dest)
 
     def _download_mhtml(self, dest=None):
-        """Download the current page as a MHTML file, including all assets.
+        """Download the current page as an MHTML file, including all assets.
 
         Args:
             dest: The file path to write the download to.

@@ -34,7 +34,7 @@ class TestInit:
         assert nl.items == []
 
     def test_items(self):
-        """Test constructing an NeighborList with items."""
+        """Test constructing a NeighborList with items."""
         nl = usertypes.NeighborList([1, 2, 3])
         assert nl.items == [1, 2, 3]
 

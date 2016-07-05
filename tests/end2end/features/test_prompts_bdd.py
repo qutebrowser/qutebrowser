@@ -21,7 +21,7 @@ import pytest_bdd as bdd
 bdd.scenarios('prompts.feature')
 
 
-@bdd.when("I load a SSL page")
+@bdd.when("I load an SSL page")
 def load_ssl_page(quteproc, ssl_server):
     # We don't wait here as we can get an SSL question.
     quteproc.open_path('/', port=ssl_server.port, https=True, wait=False)

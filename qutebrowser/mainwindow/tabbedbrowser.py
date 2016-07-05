@@ -270,7 +270,7 @@ class TabbedBrowser(tabwidget.TabWidget):
             entry = UndoEntry(tab.cur_url, history_data)
             self._undo_stack.append(entry)
         elif tab.cur_url.isEmpty():
-            # There are some good reasons why an URL could be empty
+            # There are some good reasons why a URL could be empty
             # (target="_blank" with a download, see [1]), so we silently ignore
             # this.
             # [1] https://github.com/The-Compiler/qutebrowser/issues/163

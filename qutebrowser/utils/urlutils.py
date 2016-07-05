@@ -168,7 +168,7 @@ def fuzzy_url(urlstr, cwd=None, relative=False, do_search=True,
         relative: Whether to resolve relative files.
         do_search: Whether to perform a search on non-URLs.
         force_search: Whether to force a search even if the content can be
-                      interpreted as an URL or a path.
+                      interpreted as a URL or a path.
 
     Return:
         A target QUrl to a search page or the original URL.
@@ -200,7 +200,7 @@ def fuzzy_url(urlstr, cwd=None, relative=False, do_search=True,
 
 
 def _has_explicit_scheme(url):
-    """Check if an url has an explicit scheme given.
+    """Check if a url has an explicit scheme given.
 
     Args:
         url: The URL as QUrl.
@@ -208,7 +208,7 @@ def _has_explicit_scheme(url):
     # Note that generic URI syntax actually would allow a second colon
     # after the scheme delimiter. Since we don't know of any URIs
     # using this and want to support e.g. searching for scoped C++
-    # symbols, we treat this as not an URI anyways.
+    # symbols, we treat this as not a URI anyways.
     return (url.isValid() and url.scheme() and
             (url.host() or url.path()) and
             not url.path().startswith(' ') and
@@ -268,7 +268,7 @@ def is_url(urlstr):
         url = True
     elif is_special_url(qurl):
         # Special URLs are always URLs, even with autosearch=False
-        log.url.debug("Is an special URL.")
+        log.url.debug("Is a special URL.")
         url = True
     elif autosearch == 'dns':
         log.url.debug("Checking via DNS check")
@@ -321,7 +321,7 @@ def qurl_from_user_input(urlstr):
 
 
 def invalid_url_error(win_id, url, action):
-    """Display an error message for an URL.
+    """Display an error message for a URL.
 
     Args:
         win_id: The window ID to show the error message in.
@@ -380,7 +380,7 @@ def get_path_if_valid(pathstr, cwd=None, relative=False, check_exists=False):
 
 
 def filename_from_url(url):
-    """Get a suitable filename from an URL.
+    """Get a suitable filename from a URL.
 
     Args:
         url: The URL to parse, as a QUrl.
@@ -426,7 +426,7 @@ def host_tuple(url):
 
 
 def get_errstring(url, base="Invalid URL"):
-    """Get an error string for an URL.
+    """Get an error string for a URL.
 
     Args:
         url: The URL as a QUrl.
@@ -500,7 +500,7 @@ class IncDecError(Exception):
 
 
 def _get_incdec_value(match, incdec, url):
-    """Get a incremented/decremented URL based on a URL match."""
+    """Get an incremented/decremented URL based on a URL match."""
     pre, zeroes, number, post = match.groups()
     # This should always succeed because we match \d+
     val = int(number)

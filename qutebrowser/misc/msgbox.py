@@ -26,7 +26,7 @@ from PyQt5.QtWidgets import QMessageBox
 
 def msgbox(parent, title, text, *, icon, buttons=QMessageBox.Ok,
            on_finished=None, plain_text=None):
-    """Display an QMessageBox with the given icon.
+    """Display a QMessageBox with the given icon.
 
     Args:
         parent: The parent to set for the message box.

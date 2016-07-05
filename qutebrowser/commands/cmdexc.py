@@ -25,7 +25,7 @@ Defined here to avoid circular dependency hell.
 
 class CommandError(Exception):
 
-    """Raised when a command encounters a error while running."""
+    """Raised when a command encounters an error while running."""
 
     pass
 

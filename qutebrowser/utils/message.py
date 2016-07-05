@@ -311,7 +311,7 @@ class MessageBridge(QObject):
         self.s_error.emit(msg, immediately)
 
     def warning(self, msg, immediately=False, *, log_stack=True):
-        """Display an warning in the statusbar.
+        """Display a warning in the statusbar.
 
         Args:
             msg: The message to show.

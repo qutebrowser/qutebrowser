@@ -678,7 +678,7 @@ class DownloadItem(QObject):
             self.raw_headers[bytes(key)] = bytes(value)
 
     def _handle_redirect(self):
-        """Handle a HTTP redirect.
+        """Handle an HTTP redirect.
 
         Return:
             True if the download was redirected, False otherwise.
@@ -1041,7 +1041,7 @@ class DownloadManager(QAbstractListModel):
 
     @pyqtSlot(QNetworkRequest, QNetworkReply)
     def on_redirect(self, download, request, reply):
-        """Handle a HTTP redirect of a download.
+        """Handle an HTTP redirect of a download.
 
         Args:
             download: The old DownloadItem.

@@ -47,14 +47,14 @@ Feature: Yanking and pasting.
 
     #### :paste
 
-    Scenario: Pasting an URL
+    Scenario: Pasting a URL
         When I put "http://localhost:(port)/data/hello.txt" into the clipboard
         And I run :paste
         And I wait until data/hello.txt is loaded
         Then the requests should be:
             data/hello.txt
 
-    Scenario: Pasting an URL from primary selection
+    Scenario: Pasting a URL from primary selection
         When selection is supported
         And I put "http://localhost:(port)/data/hello2.txt" into the primary selection
         And I run :paste --sel
@@ -151,7 +151,7 @@ Feature: Yanking and pasting.
             - about:blank
             - data/hello.txt?q=this%20url%3A%0Ahttp%3A//qutebrowser.org%0Ashould%20not%20open (active)
 
-    Scenario: Pasting multiline whose first line looks like an URI
+    Scenario: Pasting multiline whose first line looks like a URI
         Given I open about:blank
         When I run :tab-only
         When I set searchengines -> DEFAULT to http://localhost:(port)/data/hello.txt?q={}

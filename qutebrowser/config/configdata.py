@@ -94,7 +94,7 @@ SECTION_DESC = {
         "Colors used in the UI.\n"
         "A value can be in one of the following format:\n\n"
         " * `#RGB`/`#RRGGBB`/`#RRRGGGBBB`/`#RRRRGGGGBBBB`\n"
-        " * A SVG color name as specified in http://www.w3.org/TR/SVG/"
+        " * An SVG color name as specified in http://www.w3.org/TR/SVG/"
         "types.html#ColorKeywords[the W3C specification].\n"
         " * transparent (no color)\n"
         " * `rgb(r, g, b)` / `rgba(r, g, b, a)` (values 0-255 or "

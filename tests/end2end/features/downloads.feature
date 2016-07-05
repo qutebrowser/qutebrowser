@@ -47,7 +47,7 @@ Feature: Downloading things from a website.
     Scenario: Downloading with SSL errors (issue 1413)
         When I run :debug-clear-ssl-errors
         And I set network -> ssl-strict to ask
-        And I download a SSL page
+        And I download an SSL page
         And I wait for "Entering mode KeyMode.* (reason: question asked)" in the log
         And I run :prompt-accept
         Then the error "Download error: SSL handshake failed" should be shown
@@ -80,7 +80,7 @@ Feature: Downloading things from a website.
         Then the warning ":download [url] [dest] is deprecated - use download --dest [dest] [url]" should be shown
         And the error "Can't give two destinations for the download." should be shown
 
-    Scenario: :download --mhtml with an URL given
+    Scenario: :download --mhtml with a URL given
         When I run :download --mhtml http://foobar/
         Then the error "Can only download the current page as mhtml." should be shown
 
@@ -127,7 +127,7 @@ Feature: Downloading things from a website.
         And "cancelled" should be logged
 
     # https://github.com/The-Compiler/qutebrowser/issues/1535
-    Scenario: Cancelling a MHTML download (issue 1535)
+    Scenario: Cancelling an MHTML download (issue 1535)
         When I open data/downloads/issue1535.html
         And I run :download --mhtml
         And I wait for "fetch: PyQt5.QtCore.QUrl('http://localhost:*/drip?numbytes=128&duration=2') -> drip" in the log

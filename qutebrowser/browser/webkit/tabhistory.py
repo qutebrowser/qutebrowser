@@ -59,7 +59,7 @@ class TabHistoryItem:
 
 
 def _encode_url(url):
-    """Encode an QUrl suitable to pass to QWebHistory."""
+    """Encode a QUrl suitable to pass to QWebHistory."""
     data = bytes(QUrl.toPercentEncoding(url.toString(), b':/#?&+=@%*'))
     return data.decode('ascii')
 

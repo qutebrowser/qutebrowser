@@ -69,7 +69,7 @@ def _generate_pdfjs_script(url):
 
 
 def fix_urls(asset):
-    """Take a html page and replace each relative URL with an absolute.
+    """Take an html page and replace each relative URL with an absolute.
 
     This is specialized for pdf.js files and not a general purpose function.
 

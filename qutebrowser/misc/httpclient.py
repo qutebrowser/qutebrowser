@@ -17,7 +17,7 @@
 # You should have received a copy of the GNU General Public License
 # along with qutebrowser.  If not, see <http://www.gnu.org/licenses/>.
 
-"""A HTTP client based on QNetworkAccessManager."""
+"""An HTTP client based on QNetworkAccessManager."""
 
 import functools
 import urllib.request
@@ -30,7 +30,7 @@ from PyQt5.QtNetwork import (QNetworkAccessManager, QNetworkRequest,
 
 class HTTPClient(QObject):
 
-    """A HTTP client based on QNetworkAccessManager.
+    """An HTTP client based on QNetworkAccessManager.
 
     Intended for APIs, automatically decodes data.
 

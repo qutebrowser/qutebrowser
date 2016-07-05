@@ -310,7 +310,7 @@ class ConfigManager(QObject):
         sections: The configuration data as an OrderedDict.
         _fname: The filename to be opened.
         _configdir: The dictionary to read the config from and save it in.
-        _interpolation: An configparser.Interpolation object
+        _interpolation: A configparser.Interpolation object
         _proxies: configparser.SectionProxy objects for sections.
         _initialized: Whether the ConfigManager is fully initialized yet.
 

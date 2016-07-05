@@ -116,7 +116,7 @@ Fixed
   `-v` argument for `:spawn` or pass flags to the spawned commands.
 - Various fixes for hinting corner-cases where following a link didn't work or
   the hint was drawn at the wrong position.
-- Fixed crash when downloading from an URL with SSL errors
+- Fixed crash when downloading from a URL with SSL errors
 - Close file handles correctly when a download failed
 - Fixed crash when using `;Y` (`:hint links yank-primary`) on a system without
   primary selection
@@ -125,7 +125,7 @@ Fixed
 - Fixed a crash when entering `:-- ` in the commandline
 - Fixed `:debug-console` with PyQt 5.6
 - Fixed qutebrowser not starting when `sys.stderr` is `None`
-- Fixed crash when cancelling a download which belongs to a MHTML download
+- Fixed crash when cancelling a download which belongs to an MHTML download
 - Fixed rebinding of keybindings being case-sensitive
 - Fix for tab indicators getting lost when moving tabs
 - Fixed handling of backspace in number hinting mode
@@ -527,7 +527,7 @@ Fixed
 ~~~~~
 
 - Scrolling should now work more reliably on some pages where arrow keys worked but `hjkl` didn't.
-- Small improvements when checking if an input is an URL or not.
+- Small improvements when checking if an input is a URL or not.
 - Fixed wrong cursor position when completing the first item in the completion.
 - Fixed exception when using search engines with {foo} in their name.
 - Fixed a bug where the same title was shown for all tabs on some systems.
@@ -539,7 +539,7 @@ Fixed
 - Various fixes for deprecated key bindings and auto-migrations.
 - Workaround for qutebrowser not starting when there are NUL-bytes in the history (because of a currently unknown bug).
 - Fixed handling of keybindings containing Ctrl/Meta on OS X.
-- Fixed crash when downloading an URL without filename (e.g. magnet links) via "Save as...".
+- Fixed crash when downloading a URL without filename (e.g. magnet links) via "Save as...".
 - Fixed exception when starting qutebrowser with `:set` as argument.
 - Fixed horrible completion performance when the `shrink` option was set.
 - Sessions now store zoom/scroll-position correctly.
@@ -690,7 +690,7 @@ Fixed
 - Scroll completion to top when showing it.
 - Handle unencodable file paths in config types correctly.
 - Fix for crash when executing a delayed command (because of a shadowed keybinding) and then unfocusing the window.
-- Fix for crash when hinting on a page which doesn't have an URL yet.
+- Fix for crash when hinting on a page which doesn't have a URL yet.
 - Fix exception when using `:set-cmd-text` with an empty argument.
 - Add a timeout to pastebin HTTP replies.
 - Various other fixes for small/rare bugs.

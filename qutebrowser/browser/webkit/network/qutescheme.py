@@ -89,7 +89,7 @@ class QuteSchemeHandler(schemehandler.SchemeHandler):
         """
         path = request.url().path()
         host = request.url().host()
-        # An url like "qute:foo" is split as "scheme:path", not "scheme:host".
+        # A url like "qute:foo" is split as "scheme:path", not "scheme:host".
         log.misc.debug("url: {}, path: {}, host {}".format(
             request.url().toDisplayString(), path, host))
         try:

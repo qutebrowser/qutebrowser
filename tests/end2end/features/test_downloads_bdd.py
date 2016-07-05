@@ -41,7 +41,7 @@ def wait_for_download_finished(quteproc):
     quteproc.wait_for(category='downloads', message='Download finished')
 
 
-@bdd.when("I download a SSL page")
+@bdd.when("I download an SSL page")
 def download_ssl_page(quteproc, ssl_server):
     quteproc.send_cmd(':download https://localhost:{}/'
                       .format(ssl_server.port))

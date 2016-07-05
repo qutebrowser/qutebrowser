@@ -20,7 +20,7 @@
 """Global instances of the completion models.
 
 Module attributes:
-    _instances: An dict of available completions.
+    _instances: A dict of available completions.
     INITIALIZERS: A {usertypes.Completion: callable} dict of functions to
                   initialize completions.
 """

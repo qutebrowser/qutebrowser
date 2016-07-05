@@ -129,7 +129,7 @@ class SelectionAndFilterTests:
 
     """Generator for tests for TestSelectionsAndFilters."""
 
-    # A mapping of a HTML element to a list of groups where the selectors
+    # A mapping of an HTML element to a list of groups where the selectors
     # (after filtering) should match.
     #
     # Based on this, test cases are generated to make sure it matches those
@@ -741,7 +741,7 @@ class TestJavascriptEscape:
         """Test conversion by hexlifying in javascript.
 
         Since the conversion of QStrings to Python strings is broken in some
-        older PyQt versions in some corner cases, we load a HTML file which
+        older PyQt versions in some corner cases, we load an HTML file which
         generates an MD5 of the escaped text and use that for comparisons.
         """
         escaped = webelem.javascript_escape(text)

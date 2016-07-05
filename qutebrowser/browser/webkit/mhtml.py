@@ -17,7 +17,7 @@
 # You should have received a copy of the GNU General Public License
 # along with qutebrowser.  If not, see <http://www.gnu.org/licenses/>.
 
-"""Utils for writing a MHTML file."""
+"""Utils for writing an MHTML file."""
 
 import functools
 import io
@@ -83,7 +83,7 @@ def _get_css_imports_cssutils(data, inline=False):
 
     Args:
         data: The content of the stylesheet to scan as string.
-        inline: True if the argument is a inline HTML style attribute.
+        inline: True if the argument is an inline HTML style attribute.
     """
     # We don't care about invalid CSS data, this will only litter the log
     # output with CSS errors
@@ -112,7 +112,7 @@ def _get_css_imports(data, inline=False):
 
     Args:
         data: The content of the stylesheet to scan as string.
-        inline: True if the argument is a inline HTML style attribute.
+        inline: True if the argument is an inline HTML style attribute.
     """
     if cssutils is None:
         return _get_css_imports_regex(data)
@@ -149,7 +149,7 @@ E_QUOPRI = email.encoders.encode_quopri
 
 class MHTMLWriter:
 
-    """A class for outputting multiple files to a MHTML document.
+    """A class for outputting multiple files to an MHTML document.
 
     Attributes:
         root_content: The root content as bytes.
@@ -480,7 +480,7 @@ class _NoCloseBytesIO(io.BytesIO):
 
 
 def _start_download(dest, web_view):
-    """Start downloading the current page and all assets to a MHTML file.
+    """Start downloading the current page and all assets to an MHTML file.
 
     This will overwrite dest if it already exists.
 

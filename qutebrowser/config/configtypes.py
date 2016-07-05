@@ -481,7 +481,7 @@ class IntList(List):
 
 class Float(BaseType):
 
-    """Base class for an float setting.
+    """Base class for a float setting.
 
     Attributes:
         minval: Minimum value (inclusive).
@@ -1644,7 +1644,7 @@ class UserAgent(BaseType):
 
 class TimestampTemplate(BaseType):
 
-    """A strftime-like template for timestamps.
+    """An strftime-like template for timestamps.
 
     See
     https://docs.python.org/3/library/datetime.html#strftime-strptime-behavior

@@ -175,7 +175,7 @@ class WebserverProcess(testprocess.Process):
 
 @pytest.yield_fixture(scope='session', autouse=True)
 def httpbin(qapp):
-    """Fixture for a httpbin object which ensures clean setup/teardown."""
+    """Fixture for an httpbin object which ensures clean setup/teardown."""
     httpbin = WebserverProcess('webserver_sub')
     httpbin.start()
     yield httpbin

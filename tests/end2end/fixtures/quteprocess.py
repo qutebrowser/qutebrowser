@@ -146,8 +146,8 @@ class QuteProc(testprocess.Process):
         _focus_ready: Whether the main window got focused.
         _load_ready: Whether the about:blank page got loaded.
         _profile: If True, do profiling of the subprocesses.
-        _instance_id: An unique ID for this QuteProc instance
-        _run_counter: A counter to get an unique ID for each run.
+        _instance_id: A unique ID for this QuteProc instance
+        _run_counter: A counter to get a unique ID for each run.
         _config: The pytest config object
 
     Signals:

@@ -125,7 +125,7 @@ class WebHistoryInterface(QWebHistoryInterface):
         pass
 
     def historyContains(self, url_string):
-        """Called by WebKit to determine if an URL is contained in the history.
+        """Called by WebKit to determine if a URL is contained in the history.
 
         Args:
             url_string: The URL (as string) to check for.
@@ -285,10 +285,10 @@ class WebHistory(QObject):
         self.cleared.emit()
 
     def add_url(self, url, title="", *, redirect=False, atime=None):
-        """Called by WebKit when an URL should be added to the history.
+        """Called by WebKit when a URL should be added to the history.
 
         Args:
-            url: An url (as QUrl) to add to the history.
+            url: A url (as QUrl) to add to the history.
             redirect: Whether the entry was redirected to another URL
                       (hidden in completion)
             atime: Override the atime used to add the entry

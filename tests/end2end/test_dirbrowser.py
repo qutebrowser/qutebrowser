@@ -150,7 +150,7 @@ def test_parent_folder(dir_layout, quteproc):
 
 
 def test_parent_with_slash(dir_layout, quteproc):
-    """Test the parent link with an URL that has a trailing slash."""
+    """Test the parent link with a URL that has a trailing slash."""
     quteproc.open_url(dir_layout.file_url() + '/')
     page = parse(quteproc)
     assert page.parent == dir_layout.base_path()
