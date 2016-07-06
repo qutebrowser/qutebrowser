@@ -7,7 +7,6 @@
 # If you would like to set a custom colorscheme/font use these dirs.
 # https://github.com/halfwit/dotfiles/blob/master/.config/dmenu/bemenucolors
 readonly confdir=${XDG_CONFIG_HOME:-$HOME/.config}
-readonly datadir=${XDG_DATA_HOME:-$HOME/.local/share}
 
 readonly optsfile=$confdir/dmenu/bemenucolors
 
@@ -15,17 +14,17 @@ create_menu() {
     # Check quickmarks
     while read -r url; do
         printf -- '%s\n' "$url"
-    done < "$confdir"/qutebrowser/quickmarks
+    done < "$QUTE_CONFIG_DIR"/quickmarks
 
     # Next bookmarks
     while read -r url _; do
         printf -- '%s\n' "$url"
-    done < "$confdir"/qutebrowser/bookmarks/urls
+    done < "$QUTE_CONFIG_DIR"/bookmarks/urls
 
     # Finally history
     while read -r _ url; do
         printf -- '%s\n' "$url"
-    done < "$datadir"/qutebrowser/history
+    done < "$QUTE_DATA_DIR"/history
     }
 
 get_selection() {

@@ -29,6 +29,7 @@ from qutebrowser.utils import message, log, objreg, standarddir
 from qutebrowser.commands import runners, cmdexc
 from qutebrowser.config import config
 from qutebrowser.misc import guiprocess
+from qutebrowser.browser.webkit import downloads
 
 
 class _QtFIFOReader(QObject):
@@ -376,6 +377,15 @@ def run(cmd, *args, win_id, env, verbose=False):
     user_agent = config.get('network', 'user-agent')
     if user_agent is not None:
         env['QUTE_USER_AGENT'] = user_agent
+    config_dir = standarddir.config()
+    if config_dir is not None:
+        env['QUTE_CONFIG_DIR'] = config_dir
+    data_dir = standarddir.data()
+    if data_dir is not None:
+        env['QUTE_DATA_DIR'] = data_dir
+    download_dir = downloads.download_dir()
+    if download_dir is not None:
+        env['QUTE_DOWNLOAD_DIR'] = download_dir
     cmd_path = os.path.expanduser(cmd)
 
     # if cmd is not given as an absolute path, look it up
