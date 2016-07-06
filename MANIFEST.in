@@ -21,6 +21,7 @@ include misc/cheatsheet.svg
 prune www
 prune scripts/dev
 prune scripts/testbrowser_cpp
+prune .github
 exclude scripts/asciidoc2html.py
 exclude doc/notes
 recursive-exclude doc *.asciidoc
