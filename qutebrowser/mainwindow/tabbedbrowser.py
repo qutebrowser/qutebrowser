@@ -31,7 +31,6 @@ from qutebrowser.keyinput import modeman
 from qutebrowser.mainwindow import tabwidget
 from qutebrowser.browser import signalfilter
 from qutebrowser.browser.webkit import webview, webkittab
-from qutebrowser.browser.webengine import webenginetab
 from qutebrowser.utils import (log, usertypes, utils, qtutils, objreg,
                                urlutils, message)
 
@@ -382,6 +381,9 @@ class TabbedBrowser(tabwidget.TabWidget):
             return tabbed_browser.tabopen(url, background, explicit)
 
         if objreg.get('args').backend == 'webengine':
+            # Importing this here so we don't depend on QtWebEngine without the
+            # argument.
+            from qutebrowser.browser.webengine import webenginetab
             tab_class = webenginetab.WebEngineViewTab
         else:
             tab_class = webkittab.WebViewTab

@@ -22,11 +22,7 @@
 from PyQt5.QtCore import pyqtSlot, Qt, QEvent
 from PyQt5.QtGui import QKeyEvent
 from PyQt5.QtWidgets import QApplication
-
-try:
-    from PyQt5.QtWebEngineWidgets import QWebEnginePage
-except ImportError:
-    QWebEngineView = None
+from PyQt5.QtWebEngineWidgets import QWebEnginePage
 
 from qutebrowser.browser import tab
 from qutebrowser.browser.webengine import webview
