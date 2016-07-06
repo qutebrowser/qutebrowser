@@ -202,22 +202,35 @@ class MainWindow(QWidget):
             self.resize_completion()
         elif section == 'ui' and option == 'downloads-position':
             self._add_widgets()
+        elif section == 'ui' and option == 'status-position':
+            self._add_widgets()
+            self.resize_completion()
 
     def _add_widgets(self):
         """Add or readd all widgets to the VBox."""
         self._vbox.removeWidget(self.tabbed_browser)
         self._vbox.removeWidget(self._downloadview)
         self._vbox.removeWidget(self.status)
-        position = config.get('ui', 'downloads-position')
-        if position == 'top':
-            self._vbox.addWidget(self._downloadview)
-            self._vbox.addWidget(self.tabbed_browser)
-        elif position == 'bottom':
-            self._vbox.addWidget(self.tabbed_browser)
-            self._vbox.addWidget(self._downloadview)
+        downloads_position = config.get('ui', 'downloads-position')
+        status_position = config.get('ui', 'status-position')
+        widgets = [self.tabbed_browser]
+
+        if status_position == 'top':
+            widgets.insert(0, self.status)
+        elif status_position == 'bottom':
+            widgets.append(self.status)
         else:
-            raise ValueError("Invalid position {}!".format(position))
-        self._vbox.addWidget(self.status)
+            raise ValueError("Invalid position {}!".format(status_position))
+
+        if downloads_position == 'top':
+            widgets.insert(0, self._downloadview)
+        elif downloads_position == 'bottom':
+            widgets.append(self._downloadview)
+        else:
+            raise ValueError("Invalid position {}!".format(downloads_position))
+
+        for widget in widgets:
+            self._vbox.addWidget(widget)
 
     def _load_state_geometry(self):
         """Load the geometry from the state file."""
@@ -370,12 +383,19 @@ class MainWindow(QWidget):
                 height = contents_height
         else:
             contents_height = -1
-        # hpoint now would be the bottom-left edge of the widget if it was on
-        # the top of the main window.
-        topleft_y = self.height() - self.status.height() - height
-        topleft_y = qtutils.check_overflow(topleft_y, 'int', fatal=False)
-        topleft = QPoint(0, topleft_y)
-        bottomright = self.status.geometry().topRight()
+        status_position = config.get('ui', 'status-position')
+        if status_position == 'bottom':
+            top = self.height() - self.status.height() - height
+            top = qtutils.check_overflow(top, 'int', fatal=False)
+            topleft = QPoint(0, top)
+            bottomright = self.status.geometry().topRight()
+        elif status_position == 'top':
+            topleft = self.status.geometry().bottomLeft()
+            bottom = self.status.height() + height
+            bottom = qtutils.check_overflow(bottom, 'int', fatal=False)
+            bottomright = QPoint(self.width(), bottom)
+        else:
+            raise ValueError("Invalid position {}!".format(status_position))
         rect = QRect(topleft, bottomright)
         log.misc.debug('completion rect: {}'.format(rect))
         if rect.isValid():
