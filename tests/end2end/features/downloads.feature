@@ -30,7 +30,7 @@ Feature: Downloading things from a website.
         And I open data/downloads/issue1243.html
         And I run :hint links download
         And I run :follow-hint a
-        And I wait for "Asking question <qutebrowser.utils.usertypes.Question default='qutebrowser-download' mode=<PromptMode.text: 2> text='Save file to:'>, *" in the log
+        And I wait for "Asking question <qutebrowser.utils.usertypes.Question default='qutebrowser-download' mode=<PromptMode.download: 5> text='Save file to:'>, *" in the log
         And I run :leave-mode
         Then no crash should happen
 
@@ -40,7 +40,7 @@ Feature: Downloading things from a website.
         And I open data/downloads/issue1214.html
         And I run :hint links download
         And I run :follow-hint a
-        And I wait for "Asking question <qutebrowser.utils.usertypes.Question default='binary blob' mode=<PromptMode.text: 2> text='Save file to:'>, *" in the log
+        And I wait for "Asking question <qutebrowser.utils.usertypes.Question default='binary blob' mode=<PromptMode.download: 5> text='Save file to:'>, *" in the log
         And I run :leave-mode
         Then no crash should happen
 
