@@ -22,6 +22,8 @@ Added
 
 - New `{host}` replacement for tab- and window titles which evaluates to the current host.
 - Add new default binding `;t` for `:hint input`.
+- New variables `$QUTE_CONFIG_DIR`, `$QUTE_DATA_DIR` and
+  `$QUTE_DOWNLOAD_DIR` available for userscripts.
 
 Changed
 ~~~~~~~
