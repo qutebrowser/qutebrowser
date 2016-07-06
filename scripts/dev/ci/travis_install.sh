@@ -63,6 +63,11 @@ npm_install() {
     travis_retry sudo npm install -g "$@"
 }
 
+install_node() {
+    curl -sL https://deb.nodesource.com/setup_4.x | sudo -E bash -
+    apt_install nodejs
+}
+
 check_pyqt() {
     python3 <<EOF
 import sys
@@ -120,7 +125,7 @@ case $TESTENV in
     pyroma|check-manifest)
         ;;
     eslint)
-        apt_install npm nodejs nodejs-legacy
+        install_node
         npm_install eslint
         ;;
     *)
