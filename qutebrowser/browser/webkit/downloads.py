@@ -738,20 +738,6 @@ class DownloadManager(QAbstractListModel):
         self._update_timer = usertypes.Timer(self, 'download-update')
         self._update_timer.timeout.connect(self.update_gui)
         self._update_timer.setInterval(REFRESH_INTERVAL)
-        self._tmpdir_obj = None
-
-    def cleanup(self):
-        """Clean up any temporary files from this manager."""
-        if self._tmpdir_obj is not None:
-            self._tmpdir_obj.cleanup()
-
-    @property
-    def tmpdir(self):
-        """Lazily create a temporary directory if one is needed."""
-        if self._tmpdir_obj is None:
-            self._tmpdir_obj = tempfile.TemporaryDirectory(
-                prefix='qutebrowser-downloads-')
-        return self._tmpdir_obj
 
     def __repr__(self):
         return utils.get_repr(self, downloads=len(self.downloads))
@@ -966,17 +952,8 @@ class DownloadManager(QAbstractListModel):
         if filename is not usertypes.OPEN_DOWNLOAD:
             download.set_filename(filename)
             return
-        # Find the next free filename without causing a race condition
-        index = 0
-        while True:
-            basename = '{}-{}'.format(index, suggested_filename)
-            path = os.path.join(self.tmpdir.name, basename)
-            try:
-                fobj = open(path, 'xb')
-            except FileExistsError:
-                index += 1
-            else:
-                break
+        tmp_manager = objreg.get('temporary-downloads')
+        fobj = tmp_manager.get_tmpfile(suggested_filename)
         download.finished.connect(download.open_file)
         download.autoclose = True
         download.set_fileobj(fobj)
@@ -1291,3 +1268,59 @@ class DownloadManager(QAbstractListModel):
             The number of unfinished downloads.
         """
         return sum(1 for download in self.downloads if not download.done)
+
+
+class TempDownloadManager(QObject):
+
+    """Manager to handle temporary download files.
+
+    The downloads are downloaded to a temporary location and then openened with
+    the system standard application. The temporary files are deleted when
+    qutebrowser is shutdown.
+
+    Attributes:
+        files: A list of NamedTemporaryFiles of downloaded items.
+    """
+
+    def __init__(self, parent=None):
+        super().__init__(parent)
+        self.files = []
+        self._tmpdir = None
+
+    def cleanup(self):
+        """Clean up any temporary files."""
+        if self._tmpdir is not None:
+            self._tmpdir.cleanup()
+            self._tmpdir = None
+
+    def get_tmpdir(self):
+        """Return the temporary directory that is used for downloads.
+
+        The directory is created lazily on first access.
+
+        Return:
+            The tempfile.TemporaryDirectory that is used.
+        """
+        if self._tmpdir is None:
+            self._tmpdir = tempfile.TemporaryDirectory(
+                prefix='qutebrowser-downloads-')
+        return self._tmpdir
+
+    def get_tmpfile(self, suggested_name):
+        """Return a temporary file in the temporary downloads directory.
+
+        The files are kept as long as qutebrowser is running and automatically
+        cleaned up at program exit.
+
+        Args:
+            suggested_name: str of the "suggested"/original filename. Used as a
+                            suffix, so any file extenions are preserved.
+
+        Return:
+            A tempfile.NamedTemporaryFile that should be used to save the file.
+        """
+        tmpdir = self.get_tmpdir()
+        fobj = tempfile.NamedTemporaryFile(dir=tmpdir.name, delete=False,
+                                           suffix=suggested_name)
+        self.files.append(fobj)
+        return fobj
