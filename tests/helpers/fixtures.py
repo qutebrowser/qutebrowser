@@ -255,6 +255,14 @@ def app_stub(stubs):
     objreg.delete('app')
 
 
+@pytest.yield_fixture
+def completion_widget_stub(win_registry):
+    stub = unittest.mock.Mock()
+    objreg.register('completion', stub, scope='window', window=0)
+    yield stub
+    objreg.delete('completion', scope='window', window=0)
+
+
 @pytest.fixture(scope='session')
 def stubs():
     """Provide access to stub objects useful for testing."""

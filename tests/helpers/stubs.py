@@ -27,7 +27,7 @@ from unittest import mock
 from PyQt5.QtCore import pyqtSignal, QPoint, QProcess, QObject
 from PyQt5.QtNetwork import (QNetworkRequest, QAbstractNetworkCache,
                              QNetworkCacheMetaData)
-from PyQt5.QtWidgets import QCommonStyle, QWidget
+from PyQt5.QtWidgets import QCommonStyle, QWidget, QLineEdit
 
 from qutebrowser.browser.webkit import webview, history
 from qutebrowser.config import configexc
@@ -293,12 +293,13 @@ class FakeCommand:
     """A simple command stub which has a description."""
 
     def __init__(self, name='', desc='', hide=False, debug=False,
-                 deprecated=False):
+                 deprecated=False, completion=None):
         self.desc = desc
         self.name = name
         self.hide = hide
         self.debug = debug
         self.deprecated = deprecated
+        self.completion = completion
 
 
 class FakeTimer(QObject):
@@ -357,6 +358,24 @@ class FakeConfigType:
         # normally valid_values would be a ValidValues, but for simplicity of
         # testing this can be a simple list: [(val, desc), (val, desc), ...]
         self.complete = lambda: [(val, '') for val in valid_values]
+
+
+class FakeStatusbarCommand(QLineEdit):
+
+    """Stub for the statusbar command prompt."""
+
+    got_cmd = pyqtSignal(str)
+    clear_completion_selection = pyqtSignal()
+    hide_completion = pyqtSignal()
+    update_completion = pyqtSignal()
+    show_cmd = pyqtSignal()
+    hide_cmd = pyqtSignal()
+
+    def __init__(self, parent=None):
+        super().__init__(parent)
+
+    def prefix(self):
+        return self.text()[0]
 
 
 class ConfigStub(QObject):
