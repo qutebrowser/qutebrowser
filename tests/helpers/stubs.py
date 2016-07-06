@@ -30,7 +30,7 @@ from PyQt5.QtNetwork import (QNetworkRequest, QAbstractNetworkCache,
 from PyQt5.QtWidgets import QCommonStyle, QLineEdit
 
 from qutebrowser.browser import tab
-from qutebrowser.browser.webkit import webview, history
+from qutebrowser.browser.webkit import history
 from qutebrowser.config import configexc
 from qutebrowser.utils import usertypes
 from qutebrowser.mainwindow import mainwindow
@@ -542,7 +542,7 @@ class TabbedBrowserStub(QObject):
 
     """Stub for the tabbed-browser object."""
 
-    new_tab = pyqtSignal(webview.WebView, int)
+    new_tab = pyqtSignal(tab.AbstractTab, int)
 
     def __init__(self, parent=None):
         super().__init__(parent)

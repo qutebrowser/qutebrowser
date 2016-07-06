@@ -21,8 +21,8 @@
 
 from PyQt5.QtCore import pyqtSlot
 
+from qutebrowser.browser import tab as tabmod
 from qutebrowser.mainwindow.statusbar import textbase
-from qutebrowser.browser.webkit import webview
 
 
 class Percentage(textbase.TextBase):
@@ -51,7 +51,7 @@ class Percentage(textbase.TextBase):
         else:
             self.setText('[{:2}%]'.format(y))
 
-    @pyqtSlot(webview.WebView)
+    @pyqtSlot(tabmod.AbstractTab)
     def on_tab_changed(self, tab):
         """Update scroll position when tab changed."""
         self.set_perc(*tab.scroll.pos_perc())

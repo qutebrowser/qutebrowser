@@ -30,7 +30,8 @@ from qutebrowser.config import config
 from qutebrowser.keyinput import modeman
 from qutebrowser.mainwindow import tabwidget
 from qutebrowser.browser import signalfilter
-from qutebrowser.browser.webkit import webview, webkittab
+from qutebrowser.browser import tab as tabmod
+from qutebrowser.browser.webkit import webkittab
 from qutebrowser.utils import (log, usertypes, utils, qtutils, objreg,
                                urlutils, message)
 
@@ -86,7 +87,7 @@ class TabbedBrowser(tabwidget.TabWidget):
         resized: Emitted when the browser window has resized, so the completion
                  widget can adjust its size to it.
                  arg: The new size.
-        current_tab_changed: The current tab changed to the emitted WebView.
+        current_tab_changed: The current tab changed to the emitted tab.
         new_tab: Emits the new WebView and its index when a new tab is opened.
     """
 
@@ -100,8 +101,8 @@ class TabbedBrowser(tabwidget.TabWidget):
     cur_load_status_changed = pyqtSignal(str)
     close_window = pyqtSignal()
     resized = pyqtSignal('QRect')
-    current_tab_changed = pyqtSignal(webview.WebView)
-    new_tab = pyqtSignal(webview.WebView, int)
+    current_tab_changed = pyqtSignal(tabmod.AbstractTab)
+    new_tab = pyqtSignal(tabmod.AbstractTab, int)
 
     def __init__(self, win_id, parent=None):
         super().__init__(win_id, parent)
@@ -338,7 +339,7 @@ class TabbedBrowser(tabwidget.TabWidget):
             return
         self.close_tab(tab)
 
-    @pyqtSlot(webview.WebView)
+    @pyqtSlot(tabmod.AbstractTab)
     def on_window_close_requested(self, widget):
         """Close a tab with a widget given."""
         try:
@@ -487,7 +488,7 @@ class TabbedBrowser(tabwidget.TabWidget):
         modeman.maybe_leave(self._win_id, usertypes.KeyMode.hint,
                             'load started')
 
-    @pyqtSlot(webview.WebView, str)
+    @pyqtSlot(tabmod.AbstractTab, str)
     def on_title_changed(self, tab, text):
         """Set the title of a tab.
 
@@ -511,7 +512,7 @@ class TabbedBrowser(tabwidget.TabWidget):
         if idx == self.currentIndex():
             self.update_window_title()
 
-    @pyqtSlot(webview.WebView, str)
+    @pyqtSlot(tabmod.AbstractTab, str)
     def on_url_text_changed(self, tab, url):
         """Set the new URL as title if there's no title yet.
 
@@ -527,7 +528,7 @@ class TabbedBrowser(tabwidget.TabWidget):
         if not self.page_title(idx):
             self.set_page_title(idx, url)
 
-    @pyqtSlot(webview.WebView, QIcon)
+    @pyqtSlot(tabmod.AbstractTab, QIcon)
     def on_icon_changed(self, tab, icon):
         """Set the icon of a tab.
 
