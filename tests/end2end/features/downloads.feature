@@ -31,8 +31,7 @@ Feature: Downloading things from a website.
         And I run :hint links download
         And I run :follow-hint a
         And I wait for "Asking question <qutebrowser.utils.usertypes.Question default='qutebrowser-download' mode=<PromptMode.download: 5> text='Save file to:'>, *" in the log
-        And I run :leave-mode
-        Then no crash should happen
+        Then the error "Download error: No handler found for qute://!" should be shown
 
     Scenario: Downloading a data: link (issue 1214)
         When I set completion -> download-path-suggestion to filename

@@ -281,6 +281,7 @@ class DownloadItem(QObject):
         _read_timer: A Timer which reads the QNetworkReply into self._buffer
                      periodically.
         _win_id: The window ID the DownloadItem runs in.
+        _dead: Whether the Download has _die()'d.
 
     Signals:
         data_changed: The downloads metadata changed.
@@ -329,6 +330,7 @@ class DownloadItem(QObject):
         self.init_reply(reply)
         self._win_id = win_id
         self.raw_headers = {}
+        self._dead = False
 
     def __repr__(self):
         return utils.get_repr(self, basename=self.basename)
@@ -396,6 +398,21 @@ class DownloadItem(QObject):
     def _die(self, msg):
         """Abort the download and emit an error."""
         assert not self.successful
+        # Prevent actions if calling _die() twice. This might happen if the
+        # error handler correctly connects, and the error occurs in init_reply
+        # between reply.error.connect and the reply.error() check. In this
+        # case, the connected error handlers will be called twice, once via the
+        # direct error.emit() and once here in _die(). The stacks look like
+        # this then:
+        #   <networkmanager error.emit> -> on_reply_error -> _die ->
+        #   self.error.emit()
+        # and
+        #   [init_reply -> <single shot timer> ->] <lambda in init_reply> ->
+        #   self.error.emit()
+        # which may lead to duplicate error messages (and failing tests)
+        if self._dead:
+            return
+        self._dead = True
         self._read_timer.stop()
         self.reply.downloadProgress.disconnect()
         self.reply.finished.disconnect()
@@ -442,7 +459,7 @@ class DownloadItem(QObject):
         # Here no signals are connected to the DownloadItem yet, so we use a
         # singleShot QTimer to emit them after they are connected.
         if reply.error() != QNetworkReply.NoError:
-            QTimer.singleShot(0, lambda: self.error.emit(reply.errorString()))
+            QTimer.singleShot(0, lambda: self._die(reply.errorString()))
 
     def get_status_color(self, position):
         """Choose an appropriate color for presenting the download's status.
