@@ -24,6 +24,8 @@ Added
 - Add new default binding `;t` for `:hint input`.
 - New variables `$QUTE_CONFIG_DIR`, `$QUTE_DATA_DIR` and
   `$QUTE_DOWNLOAD_DIR` available for userscripts.
+- New option `ui` -> `status-position` to configure the position of the
+  status bar (top/bottom).
 
 Changed
 ~~~~~~~
