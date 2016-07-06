@@ -124,8 +124,15 @@ class FakeQApplication:
 
     """Stub to insert as QApplication module."""
 
-    def __init__(self, style=None, all_widgets=None, active_window=None):
-        self.instance = mock.Mock(return_value=self)
+    UNSET = object()
+
+    def __init__(self, style=None, all_widgets=None, active_window=None,
+                 instance=UNSET):
+
+        if instance is self.UNSET:
+            self.instance = mock.Mock(return_value=self)
+        else:
+            self.instance = mock.Mock(return_value=instance)
 
         self.style = mock.Mock(spec=QCommonStyle)
         self.style().metaObject().className.return_value = style

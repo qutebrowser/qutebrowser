@@ -110,11 +110,19 @@ def _release_info():
     Return:
         list of (filename, content) tuples.
     """
+    blacklisted = ['ANSI_COLOR=', 'HOME_URL=', 'SUPPORT_URL=',
+                   'BUG_REPORT_URL=']
     data = []
     for fn in glob.glob("/etc/*-release"):
+        lines = []
         try:
             with open(fn, 'r', encoding='utf-8') as f:
-                data.append((fn, f.read()))
+                for line in f.read().strip().splitlines():
+                    if not any(line.startswith(bl) for bl in blacklisted):
+                        lines.append(line)
+
+                if lines:
+                    data.append((fn, '\n'.join(lines)))
         except OSError:
             log.misc.exception("Error while reading {}.".format(fn))
     return data
@@ -136,6 +144,7 @@ def _module_versions():
         ('yaml', ['__version__']),
         ('cssutils', ['__version__']),
         ('typing', []),
+        ('PyQt5.QtWebEngineWidgets', []),
     ])
     for name, attributes in modules.items():
         try:
@@ -210,42 +219,50 @@ def _pdfjs_version():
         return '{} ({})'.format(pdfjs_version, file_path)
 
 
-def version(short=False):
-    """Return a string with various version informations.
-
-    Args:
-        short: Return a shortened output.
-    """
+def version():
+    """Return a string with various version informations."""
     lines = ["qutebrowser v{}".format(qutebrowser.__version__)]
     gitver = _git_str()
     if gitver is not None:
         lines.append("Git commit: {}".format(gitver))
+
+    if qVersion() != QT_VERSION_STR:
+        qt_version = 'Qt: {} (compiled {})'.format(qVersion(), QT_VERSION_STR)
+    else:
+        qt_version = 'Qt: {}'.format(qVersion())
+
     lines += [
         '',
         '{}: {}'.format(platform.python_implementation(),
                         platform.python_version()),
-        'Qt: {}, runtime: {}'.format(QT_VERSION_STR, qVersion()),
+        qt_version,
         'PyQt: {}'.format(PYQT_VERSION_STR),
+        '',
     ]
 
-    if not short:
-        style = QApplication.instance().style()
-        lines += [
-            'Style: {}'.format(style.metaObject().className()),
-            'Desktop: {}'.format(os.environ.get('DESKTOP_SESSION')),
-        ]
+    lines += _module_versions()
 
-        lines += _module_versions()
+    lines += [
+        'pdf.js: {}'.format(_pdfjs_version()),
+        'Webkit: {}'.format(qWebKitVersion()),
+        'Harfbuzz: {}'.format(os.environ.get('QT_HARFBUZZ', 'system')),
+        'SSL: {}'.format(QSslSocket.sslLibraryVersionString()),
+        '',
+    ]
 
-        lines += [
-            'pdf.js: {}'.format(_pdfjs_version()),
-            'Webkit: {}'.format(qWebKitVersion()),
-            'Harfbuzz: {}'.format(os.environ.get('QT_HARFBUZZ', 'system')),
-            'SSL: {}'.format(QSslSocket.sslLibraryVersionString()),
-            '',
-            'Frozen: {}'.format(hasattr(sys, 'frozen')),
-            'Platform: {}, {}'.format(platform.platform(),
-                                      platform.architecture()[0]),
-        ]
-        lines += _os_info()
+    qapp = QApplication.instance()
+    if qapp:
+        style = qapp.style()
+        lines.append('Style: {}'.format(style.metaObject().className()))
+
+    importpath = os.path.dirname(os.path.abspath(qutebrowser.__file__))
+
+    lines += [
+        'Platform: {}, {}'.format(platform.platform(),
+                                  platform.architecture()[0]),
+        'Desktop: {}'.format(os.environ.get('DESKTOP_SESSION')),
+        'Frozen: {}'.format(hasattr(sys, 'frozen')),
+        "Imported from {}".format(importpath),
+    ]
+    lines += _os_info()
     return '\n'.join(lines)

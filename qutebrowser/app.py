@@ -64,12 +64,7 @@ qApp = None
 def run(args):
     """Initialize everything and run the application."""
     if args.version:
-        print(version.version(short=True))
-        print()
-        print()
-        print(qutebrowser.__copyright__)
-        print()
-        print(version.GPL_BOILERPLATE.strip())
+        print(version.version())
         sys.exit(usertypes.Exit.ok)
 
     if args.temp_basedir:
