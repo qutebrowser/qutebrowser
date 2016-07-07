@@ -625,8 +625,9 @@ class FakeQSslSocket:
 def test_version_output(git_commit, harfbuzz, frozen, style, equal_qt,
                         stubs, monkeypatch):
     """Test version.version()."""
+    import_path = os.path.abspath('/IMPORTPATH')
     patches = {
-        'qutebrowser.__file__': '/IMPORTPATH/__init__.py',
+        'qutebrowser.__file__': os.path.join(import_path, '__init__.py'),
         'qutebrowser.__version__': 'VERSION',
         '_git_str': lambda: ('GIT COMMIT' if git_commit else None),
         'platform.python_implementation': lambda: 'PYTHON IMPLEMENTATION',
@@ -678,7 +679,7 @@ def test_version_output(git_commit, harfbuzz, frozen, style, equal_qt,
         Platform: PLATFORM, ARCHITECTURE
         Desktop: DESKTOP
         Frozen: {frozen}
-        Imported from /IMPORTPATH
+        Imported from {import_path}
         OS INFO 1
         OS INFO 2
     """.lstrip('\n'))
@@ -689,7 +690,8 @@ def test_version_output(git_commit, harfbuzz, frozen, style, equal_qt,
         'qt': ('QT VERSION' if equal_qt else
                'QT RUNTIME VERSION (compiled QT VERSION)'),
         'harfbuzz': 'HARFBUZZ' if harfbuzz else 'system',
-        'frozen': str(frozen)
+        'frozen': str(frozen),
+        'import_path': import_path,
     }
 
     expected = template.rstrip('\n').format(**substitutions)
