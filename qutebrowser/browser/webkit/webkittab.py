@@ -25,7 +25,6 @@ import xml.etree.ElementTree
 
 from PyQt5.QtCore import pyqtSlot, Qt, QEvent, QUrl, QPoint, QTimer
 from PyQt5.QtGui import QKeyEvent
-from PyQt5.QtWidgets import QApplication
 from PyQt5.QtWebKitWidgets import QWebPage
 from PyQt5.QtWebKit import QWebSettings
 
@@ -361,13 +360,16 @@ class WebViewScroller(tabmod.AbstractScroller):
         release_evt = QKeyEvent(QEvent.KeyRelease, key, Qt.NoModifier, 0, 0, 0)
         getter = None if getter_name is None else getattr(frame, getter_name)
 
+        # FIXME needed?
+        # self._widget.setFocus()
+
         for _ in range(count):
             # Abort scrolling if the minimum/maximum was reached.
             if (getter is not None and
                     frame.scrollBarValue(direction) == getter(direction)):
                 return
-            QApplication.postEvent(self._widget, press_evt)
-            QApplication.postEvent(self._widget, release_evt)
+            self._widget.keyPressEvent(press_evt)
+            self._widget.keyReleaseEvent(release_evt)
 
     def up(self, count=1):
         self._key_press(Qt.Key_Up, count, 'scrollBarMinimum', Qt.Vertical)
