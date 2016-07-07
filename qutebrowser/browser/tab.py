@@ -152,7 +152,7 @@ class AbstractZoom(QObject):
         self._win_id = win_id
         self._default_zoom_changed = False
         self._init_neighborlist()
-        objreg.get('config').changed.connect(self.on_config_changed)
+        objreg.get('config').changed.connect(self._on_config_changed)
 
         # # FIXME:refactor is this needed?
         # # For some reason, this signal doesn't get disconnected automatically
@@ -162,7 +162,7 @@ class AbstractZoom(QObject):
         #     cfg.changed.disconnect, self.init_neighborlist))
 
     @pyqtSlot(str, str)
-    def on_config_changed(self, section, option):
+    def _on_config_changed(self, section, option):
         if section == 'ui' and option in ('zoom-levels', 'default-zoom'):
             if not self._default_zoom_changed:
                 factor = float(config.get('ui', 'default-zoom')) / 100
@@ -212,7 +212,7 @@ class AbstractZoom(QObject):
         self._set_factor_internal(float(default_zoom) / 100)
 
     @pyqtSlot(QPoint)
-    def on_mouse_wheel_zoom(self, delta):
+    def _on_mouse_wheel_zoom(self, delta):
         """Handle zooming via mousewheel requested by the web view."""
         divider = config.get('input', 'mouse-zoom-divider')
         factor = self.factor() + delta.y() / divider
@@ -235,13 +235,14 @@ class AbstractCaret(QObject):
         self._win_id = win_id
         self._widget = None
         self.selection_enabled = False
-        modeman.entered.connect(self.on_mode_entered)
-        modeman.left.connect(self.on_mode_left)
+        # pylint: disable=protected-access
+        modeman.entered.connect(self._on_mode_entered)
+        modeman.left.connect(self._on_mode_left)
 
-    def on_mode_entered(self, mode):
+    def _on_mode_entered(self, mode):
         raise NotImplementedError
 
-    def on_mode_left(self):
+    def _on_mode_left(self):
         raise NotImplementedError
 
     def move_to_next_line(self, count=1):
@@ -461,7 +462,7 @@ class AbstractTab(QWidget):
         self.caret._widget = widget
         self.zoom._widget = widget
         self.search._widget = widget
-        widget.mouse_wheel_zoom.connect(self.zoom.on_mouse_wheel_zoom)
+        widget.mouse_wheel_zoom.connect(self.zoom._on_mouse_wheel_zoom)
         widget.setParent(self)
         self.setFocusProxy(widget)
 

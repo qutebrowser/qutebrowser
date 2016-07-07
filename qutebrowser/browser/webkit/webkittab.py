@@ -80,7 +80,7 @@ class WebViewCaret(tabmod.AbstractCaret):
     """QtWebKit implementations related to moving the cursor/selection."""
 
     @pyqtSlot(usertypes.KeyMode)
-    def on_mode_entered(self, mode):
+    def _on_mode_entered(self, mode):
         if mode != usertypes.KeyMode.caret:
             return
 
@@ -104,7 +104,7 @@ class WebViewCaret(tabmod.AbstractCaret):
                     utils.read_file('javascript/position_caret.js'))
 
     @pyqtSlot()
-    def on_mode_left(self):
+    def _on_mode_left(self):
         settings = self._widget.settings()
         if settings.testAttribute(QWebSettings.CaretBrowsingEnabled):
             if self.selection_enabled and self._widget.hasSelection():

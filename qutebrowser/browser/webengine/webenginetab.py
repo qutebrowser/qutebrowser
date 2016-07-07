@@ -51,12 +51,12 @@ class WebEngineCaret(tab.AbstractCaret):
     ## TODO
 
     @pyqtSlot(usertypes.KeyMode)
-    def on_mode_entered(self, mode):
+    def _on_mode_entered(self, mode):
         ## TODO
         pass
 
     @pyqtSlot(usertypes.KeyMode)
-    def on_mode_left(self):
+    def _on_mode_left(self):
         ## TODO
         pass
 
