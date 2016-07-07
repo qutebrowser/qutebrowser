@@ -339,7 +339,7 @@ class UnsupportedError(Exception):
 
 
 def run_async(tab, cmd, *args, win_id, env, verbose=False):
-    """Run an userscript after dumping page html/source.
+    """Run a userscript after dumping page html/source.
 
     Raises:
         UnsupportedError if userscripts are not supported on the current
