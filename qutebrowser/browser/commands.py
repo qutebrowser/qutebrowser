@@ -1116,12 +1116,23 @@ class CommandDispatcher:
         self._open(url, tab, bg, window)
 
     @cmdutils.register(instance='command-dispatcher', scope='window')
-    def bookmark_add(self):
-        """Save the current page as a bookmark."""
+    def bookmark_add(self, url=None, title=None):
+        """Save the current page as a bookmark, or a specific url."""
+        if url and not title:
+            raise cmdexc.CommandError('Title must be provided if url has '
+                                    'been provided')
         bookmark_manager = objreg.get('bookmark-manager')
-        url = self._current_url()
+        if isinstance(url, str):
+            try:
+                url = urlutils.fuzzy_url(url)
+            except urlutils.InvalidUrlError as e:
+                raise cmdexc.CommandError(e)
+        elif not url:
+            url = self._current_url()
+        if not title:
+            title = self._current_title()
         try:
-            bookmark_manager.add(url, self._current_title())
+            bookmark_manager.add(url, title)
         except urlmarks.Error as e:
             raise cmdexc.CommandError(str(e))
         else:
