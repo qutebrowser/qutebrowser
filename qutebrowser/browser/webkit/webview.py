@@ -95,7 +95,7 @@ class WebView(QWebView):
         self.progress = 0
         self.registry = objreg.ObjectRegistry()
         self._tab_id = tab_id
-        # FIXME:refactor stop registering it here
+        # FIXME:qtwebengine stop registering it here
         tab_registry = objreg.get('tab-registry', scope='window',
                                   window=win_id)
         tab_registry[self._tab_id] = self

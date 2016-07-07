@@ -254,7 +254,7 @@ class _Downloader:
         self._used = True
         web_url = self.web_view.cur_url
 
-        # FIXME:refactor have a proper API for this
+        # FIXME:qtwebengine have a proper API for this
         page = self.web_view._widget.page()  # pylint: disable=protected-access
         web_frame = page.mainFrame()
 

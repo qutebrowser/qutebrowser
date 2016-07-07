@@ -31,7 +31,7 @@ from qutebrowser.browser.webengine import webview
 from qutebrowser.utils import usertypes, qtutils
 
 
-## FIXME:refactor add stubs for abstract things which aren't implemented yet.
+## FIXME:qtwebengine add stubs for abstract things which aren't implemented yet.
 ## pylint: disable=abstract-method
 
 
@@ -74,11 +74,12 @@ class WebEngineScroller(tab.AbstractScroller):
     """QtWebEngine implementations related to scrolling."""
 
     def _key_press(self, key, count=1):
-        # FIXME Abort scrolling if the minimum/maximum was reached.
+        # FIXME:qtwebengine Abort scrolling if the minimum/maximum was reached.
         press_evt = QKeyEvent(QEvent.KeyPress, key, Qt.NoModifier, 0, 0, 0)
         release_evt = QKeyEvent(QEvent.KeyRelease, key, Qt.NoModifier, 0, 0, 0)
         recipient = self._widget.focusProxy()
         for _ in range(count):
+            # If we get a segfault here, we might want to try sendEvent instead.
             QApplication.postEvent(recipient, press_evt)
             QApplication.postEvent(recipient, release_evt)
 
@@ -91,7 +92,7 @@ class WebEngineScroller(tab.AbstractScroller):
             # Added in Qt 5.7
             return (None, None)
         else:
-            # FIXME is this correct?
+            # FIXME:qtwebengine is this correct?
             perc_x = 100 / size.width() * pos.x()
             perc_y = 100 / size.height() * pos.y()
             return (perc_x, perc_y)
@@ -190,7 +191,7 @@ class WebEngineViewTab(tab.AbstractTab):
 
     @property
     def progress(self):
-        return 0  # FIXME:refactor
+        return 0  # FIXME:qtwebengine
 
     @property
     def load_status(self):
@@ -232,7 +233,8 @@ class WebEngineViewTab(tab.AbstractTab):
         self._widget.triggerPageAction(action)
 
     def set_html(self, html, base_url):
-        # FIXME check this and raise an exception if too big:
+        # FIXME:qtwebengine
+        # check this and raise an exception if too big:
         # Warning: The content will be percent encoded before being sent to the
         # renderer via IPC. This may increase its size. The maximum size of the
         # percent encoded content is 2 megabytes minus 30 bytes.
@@ -247,7 +249,7 @@ class WebEngineViewTab(tab.AbstractTab):
         page.loadStarted.connect(self._on_load_started)
         view.titleChanged.connect(self.title_changed)
         page.loadFinished.connect(self.load_finished)
-        # FIXME:refactor
+        # FIXME:qtwebengine stub this?
         # view.iconChanged.connect(self.icon_changed)
         # view.scroll.pos_changed.connect(self.scroll.perc_changed)
         # view.url_text_changed.connect(self.url_text_changed)

@@ -154,7 +154,7 @@ class AbstractZoom(QObject):
         self._init_neighborlist()
         objreg.get('config').changed.connect(self._on_config_changed)
 
-        # # FIXME:refactor is this needed?
+        # # FIXME:qtwebengine is this needed?
         # # For some reason, this signal doesn't get disconnected automatically
         # # when the WebView is destroyed on older PyQt versions.
         # # See https://github.com/The-Compiler/qutebrowser/issues/390
@@ -431,7 +431,7 @@ class AbstractTab(QWidget):
     load_progress = pyqtSignal(int)
     load_finished = pyqtSignal(bool)
     icon_changed = pyqtSignal(QIcon)
-    # FIXME:refactor get rid of this altogether?
+    # FIXME:qtwebengine get rid of this altogether?
     url_text_changed = pyqtSignal(str)
     title_changed = pyqtSignal(str)
     load_status_changed = pyqtSignal(str)

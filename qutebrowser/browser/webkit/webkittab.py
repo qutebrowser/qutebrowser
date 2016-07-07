@@ -310,6 +310,8 @@ class WebViewScroller(tabmod.AbstractScroller):
 
     """QtWebKit implementations related to scrolling."""
 
+    # FIXME:qtwebengine When to use the main frame, when the current one?
+
     def pos_px(self):
         return self._widget.page().mainFrame().scrollPosition()
 
@@ -360,7 +362,7 @@ class WebViewScroller(tabmod.AbstractScroller):
         release_evt = QKeyEvent(QEvent.KeyRelease, key, Qt.NoModifier, 0, 0, 0)
         getter = None if getter_name is None else getattr(frame, getter_name)
 
-        # FIXME needed?
+        # FIXME:qtwebengine needed?
         # self._widget.setFocus()
 
         for _ in range(count):

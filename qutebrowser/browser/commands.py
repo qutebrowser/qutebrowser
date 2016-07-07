@@ -484,7 +484,7 @@ class CommandDispatcher:
         url = self._current_url().adjusted(QUrl.RemoveFragment)
 
         if where in ['prev', 'next']:
-            # FIXME:refactor have a proper API for this
+            # FIXME:qtwebengine have a proper API for this
             page = widget._widget.page()  # pylint: disable=protected-access
             frame = page.currentFrame()
             if frame is None:
@@ -1037,7 +1037,7 @@ class CommandDispatcher:
             env['QUTE_SELECTED_TEXT'] = tab.caret.selection()
             env['QUTE_SELECTED_HTML'] = tab.caret.selection(html=True)
 
-        # FIXME:refactor: If tab is None, run_async will fail!
+        # FIXME:qtwebengine: If tab is None, run_async will fail!
 
         try:
             url = self._tabbed_browser.current_url()
@@ -1136,7 +1136,7 @@ class CommandDispatcher:
                     "Please enable developer-extras before using the "
                     "webinspector!")
             tab.data.inspector = inspector.WebInspector()
-            # FIXME:refactor have a proper API for this
+            # FIXME:qtwebengine have a proper API for this
             page = tab._widget.page()  # pylint: disable=protected-access
             tab.data.inspector.setPage(page)
             tab.data.inspector.show()
@@ -1185,7 +1185,7 @@ class CommandDispatcher:
         elif mhtml_:
             self._download_mhtml(dest)
         else:
-            # FIXME:refactor have a proper API for this
+            # FIXME:qtwebengine have a proper API for this
             tab = self._current_widget()
             page = tab._widget.page()  # pylint: disable=protected-access
             download_manager.get(self._current_url(), page=page,
@@ -1330,7 +1330,7 @@ class CommandDispatcher:
         The editor which should be launched can be configured via the
         `general -> editor` config option.
         """
-        # FIXME:refactor have a proper API for this
+        # FIXME:qtwebengine have a proper API for this
         tab = self._current_widget()
         page = tab._widget.page()  # pylint: disable=protected-access
         try:
@@ -1375,7 +1375,7 @@ class CommandDispatcher:
                        needs_js=True)
     def paste_primary(self):
         """Paste the primary selection at cursor position."""
-        # FIXME:refactor have a proper API for this
+        # FIXME:qtwebengine have a proper API for this
         tab = self._current_widget()
         page = tab._widget.page()  # pylint: disable=protected-access
         try:

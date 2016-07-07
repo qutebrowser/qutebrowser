@@ -819,7 +819,7 @@ class HintManager(QObject):
         tab = tabbed_browser.currentWidget()
         if tab is None:
             raise cmdexc.CommandError("No WebView available yet!")
-        # FIXME:refactor have a proper API for this
+        # FIXME:qtwebengine have a proper API for this
         page = tab._widget.page()  # pylint: disable=protected-access
         mainframe = page.mainFrame()
         if mainframe is None:
