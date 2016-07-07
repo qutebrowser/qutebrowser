@@ -1182,15 +1182,14 @@ class CommandDispatcher:
             url = urlutils.qurl_from_user_input(url)
             urlutils.raise_cmdexc_if_invalid(url)
             download_manager.get(url, filename=dest)
+        elif mhtml_:
+            self._download_mhtml(dest)
         else:
-            if mhtml_:
-                self._download_mhtml(dest)
-            else:
-                # FIXME:refactor have a proper API for this
-                # pylint: disable=protected-access
-                page = self._current_widget()._widget.page()
-                download_manager.get(self._current_url(), page=page,
-                                     filename=dest)
+            # FIXME:refactor have a proper API for this
+            tab = self._current_widget()
+            page = tab._widget.page()  # pylint: disable=protected-access
+            download_manager.get(self._current_url(), page=page,
+                                 filename=dest)
 
     def _download_mhtml(self, dest=None):
         """Download the current page as an MHTML file, including all assets.
