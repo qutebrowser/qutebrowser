@@ -66,14 +66,13 @@ class WebEngineCaret(tab.AbstractCaret):
 class WebEngineScroller(tab.AbstractScroller):
 
     def _key_press(self, key, count=1):
-        # FIXME for some reason this does not work? :-/
         # FIXME Abort scrolling if the minimum/maximum was reached.
         press_evt = QKeyEvent(QEvent.KeyPress, key, Qt.NoModifier, 0, 0, 0)
         release_evt = QKeyEvent(QEvent.KeyRelease, key, Qt.NoModifier, 0, 0, 0)
-        self._widget.setFocus()
+        recipient = self._widget.focusProxy()
         for _ in range(count):
-            QApplication.postEvent(self._widget, press_evt)
-            QApplication.postEvent(self._widget, release_evt)
+            QApplication.postEvent(recipient, press_evt)
+            QApplication.postEvent(recipient, release_evt)
 
     def pos_perc(self):
         page = self._widget.page()
