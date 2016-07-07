@@ -87,9 +87,6 @@ class TabData:
         }
 
     def __getattr__(self, attr):
-        if attr.startswith('_'):
-            # WORKAROUND for https://github.com/PyCQA/pylint/issues/979
-            return super().__getattr__(attr)  # pylint: disable=no-member
         try:
             return self._data[attr]
         except KeyError:
