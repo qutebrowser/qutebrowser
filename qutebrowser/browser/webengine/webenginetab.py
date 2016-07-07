@@ -31,7 +31,8 @@ from qutebrowser.browser.webengine import webview
 from qutebrowser.utils import usertypes, qtutils
 
 
-## FIXME:qtwebengine add stubs for abstract things which aren't implemented yet.
+## FIXME:qtwebengine add stubs for abstract things which aren't implemented
+##                   yet.
 ## pylint: disable=abstract-method
 
 
@@ -79,7 +80,8 @@ class WebEngineScroller(tab.AbstractScroller):
         release_evt = QKeyEvent(QEvent.KeyRelease, key, Qt.NoModifier, 0, 0, 0)
         recipient = self._widget.focusProxy()
         for _ in range(count):
-            # If we get a segfault here, we might want to try sendEvent instead.
+            # If we get a segfault here, we might want to try sendEvent
+            # instead.
             QApplication.postEvent(recipient, press_evt)
             QApplication.postEvent(recipient, release_evt)
 

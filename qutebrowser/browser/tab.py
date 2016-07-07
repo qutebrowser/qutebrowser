@@ -226,7 +226,6 @@ class AbstractCaret(QObject):
         self._win_id = win_id
         self._widget = None
         self.selection_enabled = False
-        # pylint: disable=protected-access
         modeman.entered.connect(self._on_mode_entered)
         modeman.left.connect(self._on_mode_left)
 

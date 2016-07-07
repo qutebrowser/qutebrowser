@@ -93,6 +93,6 @@ class TestTabData:
     def test_unknown_attr(self):
         data = tab.TabData()
         with pytest.raises(AttributeError):
-            data.bar = 42
+            data.bar = 42  # pylint: disable=assigning-non-slot
         with pytest.raises(AttributeError):
             data.bar  # pylint: disable=pointless-statement
