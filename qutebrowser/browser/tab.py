@@ -527,6 +527,9 @@ class AbstractTab(QWidget):
         raise NotImplementedError
 
     def __repr__(self):
-        url = utils.elide(self.cur_url.toDisplayString(QUrl.EncodeUnicode),
-                          100)
+        try:
+            url = utils.elide(self.cur_url.toDisplayString(QUrl.EncodeUnicode),
+                              100)
+        except AttributeError:
+            url = '<AttributeError>'
         return utils.get_repr(self, tab_id=self.tab_id, url=url)
