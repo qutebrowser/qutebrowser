@@ -795,8 +795,7 @@ class DownloadManager(QAbstractListModel):
         req = QNetworkRequest(url)
         return self.get_request(req, **kwargs)
 
-    def get_request(self, request, *, fileobj=None, filename=None,
-                    prompt_download_directory=None, **kwargs):
+    def get_request(self, request, *, fileobj=None, filename=None, **kwargs):
         """Start a download with a QNetworkRequest.
 
         Args:
