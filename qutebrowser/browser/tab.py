@@ -26,7 +26,7 @@ from PyQt5.QtGui import QIcon
 from PyQt5.QtWidgets import QWidget, QLayout
 
 from qutebrowser.config import config
-from qutebrowser.utils import utils, objreg, usertypes
+from qutebrowser.utils import utils, objreg, usertypes, message
 
 
 tab_id_gen = itertools.count(0)
@@ -215,12 +215,11 @@ class AbstractZoom(QObject):
     def on_mouse_wheel_zoom(self, delta):
         """Handle zooming via mousewheel requested by the web view."""
         divider = config.get('input', 'mouse-zoom-divider')
-        factor = self.zoomFactor() + delta.y() / divider
+        factor = self.factor() + delta.y() / divider
         if factor < 0:
             return
         perc = int(100 * factor)
-        # FIXME move this somewhere else?
-        message.info(self.win_id, "Zoom level: {}%".format(perc))
+        message.info(self._win_id, "Zoom level: {}%".format(perc))
         self._neighborlist.fuzzyval = perc
         self._set_factor_internal(factor)
         self._default_zoom_changed = True
