@@ -632,6 +632,9 @@ def test_version_output(git_commit, harfbuzz, frozen, style, equal_qt,
         'platform.python_implementation': lambda: 'PYTHON IMPLEMENTATION',
         'platform.python_version': lambda: 'PYTHON VERSION',
         'PYQT_VERSION_STR': 'PYQT VERSION',
+        'QT_VERSION_STR': 'QT VERSION',
+        'qVersion': (lambda:
+                     'QT VERSION' if equal_qt else 'QT RUNTIME VERSION'),
         '_module_versions': lambda: ['MODULE VERSION 1', 'MODULE VERSION 2'],
         '_pdfjs_version': lambda: 'PDFJS VERSION',
         'qWebKitVersion': lambda: 'WEBKIT VERSION',
@@ -639,19 +642,9 @@ def test_version_output(git_commit, harfbuzz, frozen, style, equal_qt,
         'platform.platform': lambda: 'PLATFORM',
         'platform.architecture': lambda: ('ARCHITECTURE', ''),
         '_os_info': lambda: ['OS INFO 1', 'OS INFO 2'],
+        'QApplication': (stubs.FakeQApplication(style='STYLE') if style else
+                         stubs.FakeQApplication(instance=None)),
     }
-
-    if equal_qt:
-        patches['QT_VERSION_STR'] = 'QT VERSION'
-        patches['qVersion'] = lambda: 'QT VERSION'
-    else:
-        patches['QT_VERSION_STR'] = 'QT VERSION'
-        patches['qVersion'] = lambda: 'QT RUNTIME VERSION'
-
-    if style:
-        patches['QApplication'] = stubs.FakeQApplication(style='STYLE')
-    else:
-        patches['QApplication'] = stubs.FakeQApplication(instance=None)
 
     for attr, val in patches.items():
         monkeypatch.setattr('qutebrowser.utils.version.' + attr, val)
@@ -690,23 +683,14 @@ def test_version_output(git_commit, harfbuzz, frozen, style, equal_qt,
         OS INFO 2
     """.lstrip('\n'))
 
-    if git_commit:
-        substitutions = {'git_commit': 'Git commit: GIT COMMIT\n'}
-    else:
-        substitutions = {'git_commit': ''}
-
-    if style:
-        substitutions['style'] = '\nStyle: STYLE'
-    else:
-        substitutions['style'] = ''
-
-    if equal_qt:
-        substitutions['qt'] = 'QT VERSION'
-    else:
-        substitutions['qt'] = 'QT RUNTIME VERSION (compiled QT VERSION)'
-
-    substitutions['harfbuzz'] = 'HARFBUZZ' if harfbuzz else 'system'
-    substitutions['frozen'] = str(frozen)
+    substitutions = {
+        'git_commit': 'Git commit: GIT COMMIT\n' if git_commit else '',
+        'style': '\nStyle: STYLE' if style else '',
+        'qt': ('QT VERSION' if equal_qt else
+               'QT RUNTIME VERSION (compiled QT VERSION)'),
+        'harfbuzz': 'HARFBUZZ' if harfbuzz else 'system',
+        'frozen': str(frozen)
+    }
 
     expected = template.rstrip('\n').format(**substitutions)
     assert version.version() == expected
