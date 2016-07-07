@@ -65,9 +65,6 @@ show it.
 *--target* '{auto,tab,tab-bg,tab-silent,tab-bg-silent,window}'::
     How URLs should be opened if there is already a qutebrowser instance running.
 
-*--backend* '{webkit,webengine}'::
-    Which backend to use.
-
 === debug arguments
 *-l* '{critical,error,warning,info,debug,vdebug}', *--loglevel* '{critical,error,warning,info,debug,vdebug}'::
     Set loglevel
