@@ -21,7 +21,9 @@
 
 
 from PyQt5.QtCore import pyqtSignal, Qt, QPoint
+# pylint: disable=no-name-in-module,import-error,useless-suppression
 from PyQt5.QtWebEngineWidgets import QWebEngineView
+# pylint: enable=no-name-in-module,import-error,useless-suppression
 
 
 class WebEngineView(QWebEngineView):

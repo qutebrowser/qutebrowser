@@ -22,7 +22,9 @@
 from PyQt5.QtCore import pyqtSlot, Qt, QEvent
 from PyQt5.QtGui import QKeyEvent
 from PyQt5.QtWidgets import QApplication
+# pylint: disable=no-name-in-module,import-error,useless-suppression
 from PyQt5.QtWebEngineWidgets import QWebEnginePage
+# pylint: enable=no-name-in-module,import-error,useless-suppression
 
 from qutebrowser.browser import tab
 from qutebrowser.browser.webengine import webview
