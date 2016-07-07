@@ -161,10 +161,6 @@ class AbstractZoom(QObject):
         # self.destroyed.connect(functools.partial(
         #     cfg.changed.disconnect, self.init_neighborlist))
 
-    def _set_default_zoom(self):
-        default_zoom = config.get('ui', 'default-zoom')
-        self._set_factor_internal(float(default_zoom) / 100)
-
     @pyqtSlot(str, str)
     def on_config_changed(self, section, option):
         if section == 'ui' and option in ('zoom-levels', 'default-zoom'):
@@ -210,6 +206,10 @@ class AbstractZoom(QObject):
 
     def factor(self):
         raise NotImplementedError
+
+    def set_default(self):
+        default_zoom = config.get('ui', 'default-zoom')
+        self._set_factor_internal(float(default_zoom) / 100)
 
     @pyqtSlot(QPoint)
     def on_mouse_wheel_zoom(self, delta):

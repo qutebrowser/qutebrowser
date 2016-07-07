@@ -459,7 +459,7 @@ class WebViewTab(tabmod.AbstractTab):
         self.search = WebViewSearch(parent=self)
         self._set_widget(widget)
         self._connect_signals()
-        self.zoom._set_default_zoom()  # pylint: disable=protected-access
+        self.zoom.set_default()
         self.backend = tabmod.Backend.QtWebKit
 
     def openurl(self, url):
