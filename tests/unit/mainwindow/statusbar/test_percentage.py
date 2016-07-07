@@ -39,6 +39,7 @@ def percentage(qtbot):
     (75, '[75%]'),
     (25, '[25%]'),
     (5, '[ 5%]'),
+    (None, '[???]'),
 ])
 def test_percentage_text(percentage, y, expected):
     """Test text displayed by the widget based on the y position of a page.
