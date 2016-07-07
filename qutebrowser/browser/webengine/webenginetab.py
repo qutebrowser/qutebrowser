@@ -35,12 +35,16 @@ from qutebrowser.utils import usertypes, qtutils
 
 class WebEngineSearch(tab.AbstractSearch):
 
+    """QtWebEngine implementations related to searching on the page."""
+
     ## TODO
 
     pass
 
 
 class WebEngineCaret(tab.AbstractCaret):
+
+    """QtWebEngine implementations related to moving the cursor/selection."""
 
     ## TODO
 
@@ -64,6 +68,8 @@ class WebEngineCaret(tab.AbstractCaret):
 
 
 class WebEngineScroller(tab.AbstractScroller):
+
+    """QtWebEngine implementations related to scrolling."""
 
     def _key_press(self, key, count=1):
         # FIXME Abort scrolling if the minimum/maximum was reached.
@@ -117,6 +123,8 @@ class WebEngineScroller(tab.AbstractScroller):
 
 class WebEngineHistory(tab.AbstractHistory):
 
+    """QtWebEngine implementations related to page history."""
+
     def current_idx(self):
         return self._history.currentItemIndex()
 
@@ -145,6 +153,8 @@ class WebEngineHistory(tab.AbstractHistory):
 
 class WebEngineZoom(tab.AbstractZoom):
 
+    """QtWebEngine implementations related to zooming."""
+
     def _set_factor_internal(self, factor):
         self._widget.setZoomFactor(factor)
 
@@ -153,6 +163,8 @@ class WebEngineZoom(tab.AbstractZoom):
 
 
 class WebEngineViewTab(tab.AbstractTab):
+
+    """A QtWebEngine tab in the browser."""
 
     def __init__(self, win_id, modeman, parent=None):
         super().__init__(win_id)

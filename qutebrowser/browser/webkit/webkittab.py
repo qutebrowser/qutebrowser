@@ -36,6 +36,8 @@ from qutebrowser.utils import qtutils, objreg, usertypes, utils
 
 class WebViewSearch(tabmod.AbstractSearch):
 
+    """QtWebKit implementations related to searching on the page."""
+
     def clear(self):
         # We first clear the marked text, then the highlights
         self._widget.search('', 0)
@@ -75,6 +77,8 @@ class WebViewSearch(tabmod.AbstractSearch):
 
 
 class WebViewCaret(tabmod.AbstractCaret):
+
+    """QtWebKit implementations related to moving the cursor/selection."""
 
     @pyqtSlot(usertypes.KeyMode)
     def on_mode_entered(self, mode):
@@ -294,6 +298,8 @@ class WebViewCaret(tabmod.AbstractCaret):
 
 class WebViewZoom(tabmod.AbstractZoom):
 
+    """QtWebKit implementations related to zooming."""
+
     def _set_factor_internal(self, factor):
         self._widget.setZoomFactor(factor)
 
@@ -302,6 +308,8 @@ class WebViewZoom(tabmod.AbstractZoom):
 
 
 class WebViewScroller(tabmod.AbstractScroller):
+
+    """QtWebKit implementations related to scrolling."""
 
     def pos_px(self):
         return self._widget.page().mainFrame().scrollPosition()
@@ -396,6 +404,8 @@ class WebViewScroller(tabmod.AbstractScroller):
 
 class WebViewHistory(tabmod.AbstractHistory):
 
+    """QtWebKit implementations related to page history."""
+
     def current_idx(self):
         return self._history.currentItemIndex()
 
@@ -433,6 +443,8 @@ class WebViewHistory(tabmod.AbstractHistory):
 
 
 class WebViewTab(tabmod.AbstractTab):
+
+    """A QtWebKit tab in the browser."""
 
     def __init__(self, win_id, modeman, parent=None):
         super().__init__(win_id)
