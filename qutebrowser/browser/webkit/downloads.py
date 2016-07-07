@@ -802,9 +802,6 @@ class DownloadManager(QAbstractListModel):
             request: The QNetworkRequest to download.
             fileobj: The file object to write the answer to.
             filename: A path to write the data to.
-            prompt_download_directory: Whether to prompt for the download dir
-                                       or automatically download. If None, the
-                                       config is used.
             **kwargs: Passed to fetch_request.
 
         Return:
