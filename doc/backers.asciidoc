@@ -69,6 +69,7 @@ Other sponsors
 - Federico Panico
 - Felix Van der Jeugt
 - Francis Tseng
+- Geir Isene
 - George Voronin
 - German Correa
 - Grady Martin
