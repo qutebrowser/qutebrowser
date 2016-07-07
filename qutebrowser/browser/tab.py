@@ -58,8 +58,8 @@ class WrapperLayout(QLayout):
     def sizeHint(self):
         return self._widget.sizeHint()
 
-    def itemAt(self, _index):
-        # FIXME why does this get called?
+    def itemAt(self, _index):  # pragma: no cover
+        # For some reason this sometimes gets called by Qt.
         return None
 
     def takeAt(self, _index):
@@ -113,7 +113,7 @@ class AbstractSearch(QObject):
         self.text = None
         self._flags = 0
 
-    def search(self, text, *, ignore_case=False, wrap=False):
+    def search(self, text, *, ignore_case=False, wrap=False, reverse=False):
         """Find the given text on the page.
 
         Args:
@@ -154,7 +154,7 @@ class AbstractZoom(QObject):
         self._init_neighborlist()
         objreg.get('config').changed.connect(self.on_config_changed)
 
-        # # FIXME is this needed?
+        # # FIXME:refactor is this needed?
         # # For some reason, this signal doesn't get disconnected automatically
         # # when the WebView is destroyed on older PyQt versions.
         # # See https://github.com/The-Compiler/qutebrowser/issues/390
