@@ -479,13 +479,22 @@ class ExceptionCrashDialog(_CrashDialog):
 
     @pyqtSlot()
     def on_report_clicked(self):
-        """Ignore reports on QtWebEngine branch.
+        """Ignore reports with the  QtWebEngine backend.
 
-        FIXME: Remove this when we're done!
+        FIXME:qtwebengine Remove this when QtWebEngine is working better!
         """
+        try:
+            backend = objreg.get('args').backend
+        except Exception:
+            backend = 'webkit'
+
+        if backend == 'webkit':
+            super().on_report_clicked()
+            return
+
         title = "Crash reports disabled with QtWebEngine!"
-        text = ("You're using the qtwebengine branch which is not intended "
-                "for general usage yet. Crash reports on that branch have "
+        text = ("You're using the QtWebEngine backend which is not intended "
+                "for general usage yet. Crash reports with that backend have "
                 "been disabled.")
         box = msgbox.msgbox(parent=self, title=title, text=text,
                             icon=QMessageBox.Critical)
