@@ -74,31 +74,27 @@ class TabData:
     """A simple namespace with a fixed set of attributes.
 
     Attributes:
+        _initializing: Set when we're currently in __init__.
         keep_icon: Whether the (e.g. cloned) icon should not be cleared on page
                    load.
         inspector: The QWebInspector used for this webview.
+        viewing_source: Set if we're currently showing a source view.
     """
 
     def __init__(self):
-        self._data = {
-            'keep_icon': False,
-            'viewing_source': False,
-            'inspector': None,
-        }
-
-    def __getattr__(self, attr):
-        try:
-            return self._data[attr]
-        except KeyError:
-            raise AttributeError(attr)
+        self._initializing = True
+        self.keep_icon = False
+        self.viewing_source = False
+        self.inspector = None
+        self._initializing = False
 
     def __setattr__(self, attr, value):
-        if attr.startswith('_'):
+        if (attr == '_initializing' or
+                getattr(self, '_initializing', False) or
+                hasattr(self, attr)):
             return super().__setattr__(attr, value)
-        if attr not in self._data:
-            msg = "Can't set unknown attribute {!r}".format(attr)
-            raise AttributeError(msg)
-        self._data[attr] = value
+        msg = "Can't set unknown attribute {!r}".format(attr)
+        raise AttributeError(msg)
 
 
 class AbstractSearch(QObject):
