@@ -248,7 +248,8 @@ class Prompter(QObject):
             self._question.done()
         elif self._question.mode == usertypes.PromptMode.download:
             # User just entered a path for a download.
-            self._question.answer = prompt.lineedit.text()
+            target = usertypes.DownloadTarget.File(prompt.lineedit.text())
+            self._question.answer = target
             modeman.maybe_leave(self._win_id, usertypes.KeyMode.prompt,
                                 'prompt accept')
             self._question.done()
@@ -298,7 +299,7 @@ class Prompter(QObject):
         if self._question.mode != usertypes.PromptMode.download:
             # We just ignore this if we don't have a download question.
             return
-        self._question.answer = usertypes.OPEN_DOWNLOAD
+        self._question.answer = usertypes.DownloadTarget.OpenDownload()
         modeman.maybe_leave(self._win_id, usertypes.KeyMode.prompt,
                             'download open')
         self._question.done()

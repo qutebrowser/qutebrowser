@@ -27,7 +27,7 @@ import zipfile
 import fnmatch
 
 from qutebrowser.config import config
-from qutebrowser.utils import objreg, standarddir, log, message
+from qutebrowser.utils import objreg, standarddir, log, message, usertypes
 from qutebrowser.commands import cmdutils, cmdexc
 
 
@@ -210,7 +210,8 @@ class HostBlocker:
             else:
                 fobj = io.BytesIO()
                 fobj.name = 'adblock: ' + url.host()
-                download = download_manager.get(url, fileobj=fobj,
+                target = usertypes.DownloadTarget.FileObj(fobj)
+                download = download_manager.get(url, target=target,
                                                 auto_remove=True)
                 self._in_progress.append(download)
                 download.finished.connect(
