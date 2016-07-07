@@ -81,14 +81,14 @@ def check_spelling():
     """Check commonly misspelled words."""
     # Words which I often misspell
     words = {'[Bb]ehaviour', '[Qq]uitted', 'Ll]ikelyhood', '[Ss]ucessfully',
-             '[Oo]ccur[^r .]', '[Ss]eperator', '[Ee]xplicitely', '[Rr]esetted',
+             '[Oo]ccur[^rs .]', '[Ss]eperator', '[Ee]xplicitely',
              '[Aa]uxillary', '[Aa]ccidentaly', '[Aa]mbigious', '[Ll]oosly',
              '[Ii]nitialis', '[Cc]onvienence', '[Ss]imiliar', '[Uu]ncommited',
              '[Rr]eproducable', '[Aa]n [Uu]ser', '[Cc]onvienience',
              '[Ww]ether', '[Pp]rogramatically', '[Ss]plitted', '[Ee]xitted',
              '[Mm]ininum', '[Rr]esett?ed', '[Rr]ecieved', '[Rr]egularily',
              '[Uu]nderlaying', '[Ii]nexistant', '[Ee]lipsis', 'commiting',
-             'existant'}
+             'existant', '[Rr]esetted'}
 
     # Words which look better when splitted, but might need some fine tuning.
     words |= {'[Ww]ebelements', '[Mm]ouseevent', '[Kk]eysequence',
