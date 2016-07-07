@@ -238,7 +238,7 @@ class AbstractCaret(QObject):
         modeman.entered.connect(self.on_mode_entered)
         modeman.left.connect(self.on_mode_left)
 
-    def on_mode_entered(self):
+    def on_mode_entered(self, mode):
         raise NotImplementedError
 
     def on_mode_left(self):

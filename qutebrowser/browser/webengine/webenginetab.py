@@ -54,7 +54,7 @@ class WebEngineCaret(tab.AbstractCaret):
         pass
 
     @pyqtSlot(usertypes.KeyMode)
-    def on_mode_left(self, mode):
+    def on_mode_left(self):
         ## TODO
         pass
 
