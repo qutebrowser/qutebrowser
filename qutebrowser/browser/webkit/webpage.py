@@ -19,6 +19,7 @@
 
 """The main browser widgets."""
 
+import io
 import functools
 
 from PyQt5.QtCore import (pyqtSlot, pyqtSignal, PYQT_VERSION, Qt, QUrl, QPoint,
@@ -27,7 +28,7 @@ from PyQt5.QtGui import QDesktopServices
 from PyQt5.QtNetwork import QNetworkReply, QNetworkRequest
 from PyQt5.QtWidgets import QFileDialog
 from PyQt5.QtPrintSupport import QPrintDialog
-from PyQt5.QtWebKitWidgets import QWebPage
+from PyQt5.QtWebKitWidgets import QWebPage, QWebFrame
 
 from qutebrowser.config import config
 from qutebrowser.browser import pdfjs
@@ -70,6 +71,7 @@ class BrowserPage(QWebPage):
             QWebPage.ChooseMultipleFilesExtension: self._handle_multiple_files,
         }
         self._ignore_load_started = False
+        self._is_pdfjs = False
         self.error_occurred = False
         self.open_target = usertypes.ClickTarget.normal
         self._hint_target = None
@@ -222,14 +224,66 @@ class BrowserPage(QWebPage):
 
     def _show_pdfjs(self, reply):
         """Show the reply with pdfjs."""
+        # Fail fast so we don't have to wait until the file is downloaded
+        if not pdfjs.is_available():
+            log.pdfjs.debug("pdfjs requested but no installation found")
+            page = jinja.render('no_pdfjs.html',
+                                url=reply.url().toDisplayString())
+            self.mainFrame().setContent(page.encode('utf-8'), 'text/html',
+                                        reply.url())
+            return
+
+        log.pdfjs.debug("pdfjs requested, downloading: {}"
+                        .format(reply.url()))
+        download_manager = objreg.get('download-manager', scope='window',
+                                      window=self._win_id)
+        fobj = io.BytesIO()
+        download = download_manager.fetch(reply, fileobj=fobj,
+                                          auto_remove=True)
+        download.finished.connect(functools.partial(self._pdfjs_callback,
+                                                    reply, fobj))
+        page = jinja.render('pdf_loading.html',
+                            url=reply.url().toDisplayString())
+        self.mainFrame().setContent(page.encode('utf-8'),
+                                    'text/html', reply.url())
+
+    def _pdfjs_callback(self, reply, fileobj):
+        """Callback which is called when the pdf download is complete."""
+        data = bytes(fileobj.getbuffer())
+        log.pdfjs.debug("pdf download finished, fetched pdf bytes: {}"
+                        .format(len(data)))
+        # .setContent() will trigger a loadStarted event, we need to ignore
+        # this, otherwise the js bridge will be disabled immediately.
+        self._ignore_load_started = True
         try:
-            page = pdfjs.generate_pdfjs_page(reply.url())
+            page = pdfjs.generate_pdfjs_page(reply.url(), data)
         except pdfjs.PDFJSNotFound:
             page = jinja.render('no_pdfjs.html',
                                 url=reply.url().toDisplayString())
-        self.mainFrame().setContent(page.encode('utf-8'), 'text/html',
-                                    reply.url())
-        reply.deleteLater()
+        frame = self.mainFrame()
+        self._enable_js_bridge()
+        frame.setContent(page.encode('utf-8'), 'text/html', reply.url())
+
+    def _enable_js_bridge(self):
+        """Enable the js bridge for pdfjs"""
+        frame = self.mainFrame()
+        self._add_js_bridge()
+        frame.javaScriptWindowObjectCleared.connect(self._add_js_bridge)
+
+    @pyqtSlot()
+    def _add_js_bridge(self):
+        """Callback to add the js bridge."""
+        log.pdfjs.debug("Adding js-bridge")
+        bridge = objreg.get('js-bridge')
+        self.mainFrame().addToJavaScriptWindowObject('qute', bridge)
+
+    def _disable_js_bridge(self):
+        """Disable the js bridge."""
+        frame = self.mainFrame()
+        try:
+            frame.javaScriptWindowObjectCleared.disconnect(self._add_js_bridge)
+        except TypeError:
+            pass
 
     def shutdown(self):
         """Prepare the web page for being deleted."""
@@ -334,6 +388,7 @@ class BrowserPage(QWebPage):
             self._ignore_load_started = False
         else:
             self.error_occurred = False
+            self._disable_js_bridge()
 
     @pyqtSlot('QWebFrame*', 'QWebPage::Feature')
     def on_feature_permission_requested(self, frame, feature):
