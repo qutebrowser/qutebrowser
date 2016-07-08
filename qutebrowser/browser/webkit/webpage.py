@@ -71,7 +71,7 @@ class BrowserPage(QWebPage):
             QWebPage.ChooseMultipleFilesExtension: self._handle_multiple_files,
         }
         self._ignore_load_started = False
-        self._is_pdfjs = False
+        self._pdf_download = None
         self.error_occurred = False
         self.open_target = usertypes.ClickTarget.normal
         self._hint_target = None
@@ -241,14 +241,20 @@ class BrowserPage(QWebPage):
         download = download_manager.fetch(reply, fileobj=fobj,
                                           auto_remove=True)
         download.finished.connect(functools.partial(self._pdfjs_callback,
-                                                    reply, fobj))
+                                                    reply))
+        self._pdf_download = download
         page = jinja.render('pdf_loading.html',
                             url=reply.url().toDisplayString())
+        self._ignore_load_started = True
         self.mainFrame().setContent(page.encode('utf-8'),
                                     'text/html', reply.url())
 
-    def _pdfjs_callback(self, reply, fileobj):
+    def _pdfjs_callback(self, reply):
         """Callback which is called when the pdf download is complete."""
+        if self._pdf_download is None or not self._pdf_download.successful:
+            return
+        fileobj = self._pdf_download.fileobj
+        self._pdf_download = None
         data = bytes(fileobj.getbuffer())
         log.pdfjs.debug("pdf download finished, fetched pdf bytes: {}"
                         .format(len(data)))
@@ -284,6 +290,14 @@ class BrowserPage(QWebPage):
             frame.javaScriptWindowObjectCleared.disconnect(self._add_js_bridge)
         except TypeError:
             pass
+
+    def _kill_pdf_download(self):
+        """Abort the current pdf download if any is running."""
+        if self._pdf_download is None:
+            return
+        log.pdfjs.debug("killing pdf download, loading another page")
+        self._pdf_download.cancel()
+        self._pdf_download = None
 
     def shutdown(self):
         """Prepare the web page for being deleted."""
@@ -389,6 +403,7 @@ class BrowserPage(QWebPage):
         else:
             self.error_occurred = False
             self._disable_js_bridge()
+            self._kill_pdf_download()
 
     @pyqtSlot('QWebFrame*', 'QWebPage::Feature')
     def on_feature_permission_requested(self, frame, feature):
