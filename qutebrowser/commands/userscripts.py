@@ -185,7 +185,7 @@ class _BaseUserscriptRunner(QObject):
         self._html_stored = False
 
     def prepare_run(self, *args, **kwargs):
-        """Prepare ruinning the userscript given.
+        """Prepare running the userscript given.
 
         Needs to be overridden by subclasses.
         The script will actually run after store_text and store_html have been
