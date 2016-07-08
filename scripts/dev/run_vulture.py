@@ -85,6 +85,10 @@ def whitelist_generator():
     yield 'qutebrowser.utils.log.QtWarningFilter.filter'
     yield 'logging.LogRecord.log_color'
     yield 'qutebrowser.browser.pdfjs.is_available'
+    # Used via javascript
+    yield 'qutebrowser.browser.webkit.network.qutescheme.JSBridge.get_pdf'
+    # Used in tests
+    yield 'qutebrowser.browser.webkit.network.qutescheme.JSBridge.peek_pdfs'
     # vulture doesn't notice the hasattr() and thus thinks netrc_used is unused
     # in NetworkManager.on_authentication_required
     yield 'PyQt5.QtNetwork.QNetworkReply.netrc_used'

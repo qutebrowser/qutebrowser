@@ -21,8 +21,6 @@
 
 import os
 
-from PyQt5.QtCore import QUrl
-
 from qutebrowser.browser.webkit import webelem
 from qutebrowser.utils import utils, objreg
 

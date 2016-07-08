@@ -274,7 +274,7 @@ class BrowserPage(QWebPage):
         frame.setContent(page.encode('utf-8'), 'text/html', reply.url())
 
     def _enable_js_bridge(self):
-        """Enable the js bridge for pdfjs"""
+        """Enable the js bridge for pdfjs."""
         frame = self.mainFrame()
         self._add_js_bridge()
         frame.javaScriptWindowObjectCleared.connect(self._add_js_bridge)
