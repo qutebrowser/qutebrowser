@@ -222,7 +222,7 @@ class _Downloader:
     """A class to download whole websites.
 
     Attributes:
-        web_view: The QWebView which contains the website that will be saved.
+        tab: The AbstractTab which contains the website that will be saved.
         dest: Destination filename.
         writer: The MHTMLWriter object which is used to save the page.
         loaded_urls: A set of QUrls of finished asset downloads.
@@ -233,15 +233,15 @@ class _Downloader:
         _win_id: The window this downloader belongs to.
     """
 
-    def __init__(self, web_view, dest):
-        self.web_view = web_view
+    def __init__(self, tab, dest):
+        self.tab = tab
         self.dest = dest
         self.writer = None
-        self.loaded_urls = {web_view.cur_url}
+        self.loaded_urls = {tab.url()}
         self.pending_downloads = set()
         self._finished_file = False
         self._used = False
-        self._win_id = web_view.win_id
+        self._win_id = tab.win_id
 
     def run(self):
         """Download and save the page.
@@ -252,10 +252,10 @@ class _Downloader:
         if self._used:
             raise ValueError("Downloader already used")
         self._used = True
-        web_url = self.web_view.cur_url
+        web_url = self.tab.url()
 
         # FIXME:qtwebengine have a proper API for this
-        page = self.web_view._widget.page()  # pylint: disable=protected-access
+        page = self.tab._widget.page()  # pylint: disable=protected-access
         web_frame = page.mainFrame()
 
         self.writer = MHTMLWriter(
@@ -482,28 +482,28 @@ class _NoCloseBytesIO(io.BytesIO):
         super().close()
 
 
-def _start_download(dest, web_view):
+def _start_download(dest, tab):
     """Start downloading the current page and all assets to an MHTML file.
 
     This will overwrite dest if it already exists.
 
     Args:
         dest: The filename where the resulting file should be saved.
-        web_view: Specify the webview whose page should be loaded.
+        tab: Specify the tab whose page should be loaded.
     """
-    loader = _Downloader(web_view, dest)
+    loader = _Downloader(tab, dest)
     loader.run()
 
 
-def start_download_checked(dest, web_view):
+def start_download_checked(dest, tab):
     """First check if dest is already a file, then start the download.
 
     Args:
         dest: The filename where the resulting file should be saved.
-        web_view: Specify the webview whose page should be loaded.
+        tab: Specify the tab whose page should be loaded.
     """
     # The default name is 'page title.mht'
-    title = web_view.title()
+    title = tab.title()
     default_name = utils.sanitize_filename(title + '.mht')
 
     # Remove characters which cannot be expressed in the file system encoding
@@ -527,12 +527,12 @@ def start_download_checked(dest, web_view):
     # saving the file anyway.
     if not os.path.isdir(os.path.dirname(path)):
         folder = os.path.dirname(path)
-        message.error(web_view.win_id,
+        message.error(tab.win_id,
                       "Directory {} does not exist.".format(folder))
         return
 
     if not os.path.isfile(path):
-        _start_download(path, web_view=web_view)
+        _start_download(path, tab=tab)
         return
 
     q = usertypes.Question()
@@ -540,7 +540,7 @@ def start_download_checked(dest, web_view):
     q.text = "{} exists. Overwrite?".format(path)
     q.completed.connect(q.deleteLater)
     q.answered_yes.connect(functools.partial(
-        _start_download, path, web_view=web_view))
+        _start_download, path, tab=tab))
     message_bridge = objreg.get('message-bridge', scope='window',
-                                window=web_view.win_id)
+                                window=tab.win_id)
     message_bridge.ask(q, blocking=False)
