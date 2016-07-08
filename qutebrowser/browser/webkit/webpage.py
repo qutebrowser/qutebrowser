@@ -265,7 +265,7 @@ class BrowserPage(QWebPage):
         # this, otherwise the js bridge will be disabled immediately.
         self._ignore_load_started = True
         try:
-            page = pdfjs.generate_pdfjs_page(reply.url(), data)
+            page = pdfjs.generate_pdfjs_page(data)
         except pdfjs.PDFJSNotFound:
             page = jinja.render('no_pdfjs.html',
                                 url=reply.url().toDisplayString())
