@@ -19,7 +19,6 @@
 """Tests for qutebrowser.utils.error."""
 
 import sys
-import collections
 import logging
 
 import pytest
@@ -29,9 +28,6 @@ from qutebrowser.misc import ipc
 
 from PyQt5.QtCore import pyqtSlot, QTimer
 from PyQt5.QtWidgets import QMessageBox
-
-
-Args = collections.namedtuple('Args', 'no_err_windows')
 
 
 class Error(Exception):
@@ -47,14 +43,15 @@ class Error(Exception):
     (ipc.Error, 'misc.ipc.Error', 'none'),
     (Error, 'test_error.Error', 'none'),
 ])
-def test_no_err_windows(caplog, exc, name, exc_text):
+def test_no_err_windows(caplog, exc, name, exc_text, fake_args):
     """Test handle_fatal_exc with no_err_windows = True."""
+    fake_args.no_err_windows = True
     try:
         raise exc
     except Exception as e:
         with caplog.at_level(logging.ERROR):
-            error.handle_fatal_exc(e, Args(no_err_windows=True), 'title',
-                                   pre_text='pre', post_text='post')
+            error.handle_fatal_exc(e, fake_args, 'title', pre_text='pre',
+                                   post_text='post')
 
     assert len(caplog.records) == 1
 
@@ -82,7 +79,7 @@ def test_no_err_windows(caplog, exc, name, exc_text):
     ('foo', 'bar', 'foo: exception\n\nbar'),
     ('', 'bar', 'exception\n\nbar'),
 ], ids=repr)
-def test_err_windows(qtbot, qapp, pre_text, post_text, expected):
+def test_err_windows(qtbot, qapp, fake_args, pre_text, post_text, expected):
 
     @pyqtSlot()
     def err_window_check():
@@ -97,6 +94,7 @@ def test_err_windows(qtbot, qapp, pre_text, post_text, expected):
         finally:
             w.close()
 
+    fake_args.no_err_windows = False
     QTimer.singleShot(0, err_window_check)
-    error.handle_fatal_exc(ValueError("exception"), Args(no_err_windows=False),
-                           'title', pre_text=pre_text, post_text=post_text)
+    error.handle_fatal_exc(ValueError("exception"), fake_args, 'title',
+                           pre_text=pre_text, post_text=post_text)

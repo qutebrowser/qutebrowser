@@ -42,9 +42,6 @@ from qutebrowser.utils import objreg, qtutils
 from helpers import stubs
 
 
-Args = collections.namedtuple('Args', 'basedir')
-
-
 pytestmark = pytest.mark.usefixtures('qapp')
 
 

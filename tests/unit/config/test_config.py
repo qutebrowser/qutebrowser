@@ -21,7 +21,6 @@
 import os
 import os.path
 import configparser
-import types
 import argparse
 import collections
 import shutil
@@ -339,14 +338,18 @@ class TestConfigInit:
     """Test initializing of the config."""
 
     @pytest.yield_fixture(autouse=True)
-    def patch(self):
+    def patch(self, fake_args):
         objreg.register('app', QObject())
         objreg.register('save-manager', mock.MagicMock())
-        args = argparse.Namespace(relaxed_config=False)
-        objreg.register('args', args)
+        fake_args.relaxed_config = False
         old_standarddir_args = standarddir._args
         yield
-        objreg.global_registry.clear()
+        objreg.delete('app')
+        objreg.delete('save-manager')
+        # registered by config.init()
+        objreg.delete('config')
+        objreg.delete('key-config')
+        objreg.delete('state-config')
         standarddir._args = old_standarddir_args
 
     @pytest.fixture
@@ -361,12 +364,14 @@ class TestConfigInit:
         }
         return env
 
-    def test_config_none(self, monkeypatch, env):
+    def test_config_none(self, monkeypatch, env, fake_args):
         """Test initializing with config path set to None."""
-        args = types.SimpleNamespace(confdir='', datadir='', cachedir='',
-                                     basedir=None)
+        fake_args.confdir = ''
+        fake_args.datadir = ''
+        fake_args.cachedir = ''
+        fake_args.basedir = None
         for k, v in env.items():
             monkeypatch.setenv(k, v)
-        standarddir.init(args)
+        standarddir.init(fake_args)
         config.init()
         assert not os.listdir(env['XDG_CONFIG_HOME'])

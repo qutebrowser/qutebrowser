@@ -22,7 +22,8 @@
 import pytest
 
 from qutebrowser.commands import cmdutils, cmdexc, argparser, command
-from qutebrowser.utils import usertypes, typing
+from qutebrowser.utils import usertypes, typing, objreg
+from qutebrowser.browser import tab as tabmod
 
 
 @pytest.fixture(autouse=True)

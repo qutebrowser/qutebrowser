@@ -29,6 +29,7 @@ import collections
 import itertools
 import textwrap
 import unittest.mock
+import types
 
 import pytest
 
@@ -383,3 +384,11 @@ def fake_save_manager():
     objreg.register('save-manager', fake_save_manager)
     yield fake_save_manager
     objreg.delete('save-manager')
+
+
+@pytest.yield_fixture
+def fake_args():
+    ns = types.SimpleNamespace()
+    objreg.register('args', ns)
+    yield ns
+    objreg.delete('args')
