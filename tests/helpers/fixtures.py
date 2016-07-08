@@ -38,6 +38,7 @@ from qutebrowser.config import config
 from qutebrowser.utils import objreg
 from qutebrowser.browser.webkit import cookies
 from qutebrowser.misc import savemanager
+from qutebrowser.keyinput import modeman
 
 from PyQt5.QtCore import QEvent, QSize, Qt
 from PyQt5.QtGui import QKeyEvent
@@ -392,3 +393,12 @@ def fake_args():
     objreg.register('args', ns)
     yield ns
     objreg.delete('args')
+
+
+@pytest.yield_fixture
+def mode_manager(win_registry, config_stub, qapp):
+    config_stub.data = {'input': {'forward-unbound-keys': 'auto'}}
+    mm = modeman.ModeManager(0)
+    objreg.register('mode-manager', mm, scope='window', window=0)
+    yield mm
+    objreg.delete('mode-manager', scope='window', window=0)
