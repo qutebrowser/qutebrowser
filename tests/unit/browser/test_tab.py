@@ -42,7 +42,7 @@ except ImportError:
 
 
 @pytest.mark.parametrize('view', [WebView, WebEngineView])
-def test_tab(qtbot, view, config_stub):
+def test_tab(qtbot, view, config_stub, tab_registry):
     config_stub.data = {
         'input': {
             'forward-unbound-keys': 'auto'
