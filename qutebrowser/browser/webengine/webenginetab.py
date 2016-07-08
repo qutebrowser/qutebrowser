@@ -126,7 +126,6 @@ class WebEngineCaret(tabmod.AbstractCaret):
         log.stub()
 
 
-
 class WebEngineScroller(tabmod.AbstractScroller):
 
     """QtWebEngine implementations related to scrolling."""
