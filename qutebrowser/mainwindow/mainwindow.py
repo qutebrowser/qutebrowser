@@ -215,19 +215,19 @@ class MainWindow(QWidget):
         status_position = config.get('ui', 'status-position')
         widgets = [self.tabbed_browser]
 
-        if status_position == 'top':
-            widgets.insert(0, self.status)
-        elif status_position == 'bottom':
-            widgets.append(self.status)
-        else:
-            raise ValueError("Invalid position {}!".format(status_position))
-
         if downloads_position == 'top':
             widgets.insert(0, self._downloadview)
         elif downloads_position == 'bottom':
             widgets.append(self._downloadview)
         else:
             raise ValueError("Invalid position {}!".format(downloads_position))
+
+        if status_position == 'top':
+            widgets.insert(0, self.status)
+        elif status_position == 'bottom':
+            widgets.append(self.status)
+        else:
+            raise ValueError("Invalid position {}!".format(status_position))
 
         for widget in widgets:
             self._vbox.addWidget(widget)
