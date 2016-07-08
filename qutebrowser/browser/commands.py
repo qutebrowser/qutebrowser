@@ -452,7 +452,8 @@ class CommandDispatcher:
         url.setPath(new_path)
         self._open(url, tab, background, window)
 
-    @cmdutils.register(instance='command-dispatcher', scope='window')
+    @cmdutils.register(instance='command-dispatcher', scope='window',
+                       backend=tabmod.Backend.QtWebKit)
     @cmdutils.argument('where', choices=['prev', 'next', 'up', 'increment',
                                          'decrement'])
     def navigate(self, where: str, tab=False, bg=False, window=False):
@@ -485,6 +486,9 @@ class CommandDispatcher:
 
         if where in ['prev', 'next']:
             # FIXME:qtwebengine have a proper API for this
+            if widget.backend == tabmod.Backend.QtWebEngine:
+                raise cmdexc.CommandError(":navigate prev/next is not "
+                                          "supported yet with QtWebEngine")
             page = widget._widget.page()  # pylint: disable=protected-access
             frame = page.currentFrame()
             if frame is None:
@@ -1122,7 +1126,7 @@ class CommandDispatcher:
             raise cmdexc.CommandError(str(e))
 
     @cmdutils.register(instance='command-dispatcher', name='inspector',
-                       scope='window')
+                       scope='window', backend=tabmod.Backend.QtWebKit)
     def toggle_inspector(self):
         """Toggle the web inspector.
 
@@ -1150,7 +1154,8 @@ class CommandDispatcher:
             else:
                 tab.data.inspector.show()
 
-    @cmdutils.register(instance='command-dispatcher', scope='window')
+    @cmdutils.register(instance='command-dispatcher', scope='window',
+                       backend=tabmod.Backend.QtWebKit)
     @cmdutils.argument('dest_old', hide=True)
     def download(self, url=None, dest_old=None, *, mhtml_=False, dest=None):
         """Download a given URL, or current page if no URL given.
@@ -1323,7 +1328,8 @@ class CommandDispatcher:
         self._open(url, tab, bg, window)
 
     @cmdutils.register(instance='command-dispatcher',
-                       modes=[KeyMode.insert], hide=True, scope='window')
+                       modes=[KeyMode.insert], hide=True, scope='window',
+                       backend=tabmod.Backend.QtWebKit)
     def open_editor(self):
         """Open an external editor with the currently selected form field.
 
@@ -1372,7 +1378,7 @@ class CommandDispatcher:
 
     @cmdutils.register(instance='command-dispatcher',
                        modes=[KeyMode.insert], hide=True, scope='window',
-                       needs_js=True)
+                       needs_js=True, backend=tabmod.Backend.QtWebKit)
     def paste_primary(self):
         """Paste the primary selection at cursor position."""
         # FIXME:qtwebengine have a proper API for this
