@@ -41,28 +41,26 @@ class PDFJSNotFound(Exception):
         super().__init__(message)
 
 
-def generate_pdfjs_page(url, data):
+def generate_pdfjs_page(data):
     """Return the html content of a page that displays url with pdfjs.
 
     Returns a string.
 
     Args:
-        url: The url of the pdf as QUrl.
-        data: Initial data of the pdf file as bytes.
+        data: Data of the pdf file as bytes.
     """
     viewer = get_pdfjs_res('web/viewer.html').decode('utf-8')
-    script = _generate_pdfjs_script(url, data)
+    script = _generate_pdfjs_script(data)
     html_page = viewer.replace('</body>',
                                '</body><script>\n{}\n</script>'.format(script))
     return html_page
 
 
-def _generate_pdfjs_script(url, data):
+def _generate_pdfjs_script(data):
     """Generate the script that shows the pdf with pdf.js.
 
     Args:
-        url: The url of the pdf page as QUrl.
-        data: Initial data of the pdf file as bytes.
+        data: Data of the pdf file as bytes.
     """
     init_ident = objreg.get('js-bridge').insert_pdf(data)
     return (

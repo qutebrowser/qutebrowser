@@ -54,7 +54,7 @@ class TestPDFJSHandler:
     def test_nonexisting_resource(self, handler, caplog):
         """Test with a resource that does not exist."""
         req = QNetworkRequest(QUrl('qute://pdfjs/no/file'))
-        with caplog.at_level(logging.WARNING, 'misc'):
+        with caplog.at_level(logging.WARNING, 'pdfjs'):
             reply = handler.createRequest(None, req, None)
         assert reply.error() == QNetworkReply.ContentNotFoundError
         assert len(caplog.records) == 1
