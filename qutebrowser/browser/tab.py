@@ -93,9 +93,9 @@ class AbstractSearch(QObject):
     """Attribute of AbstractTab for doing searches.
 
     Attributes:
-        widget: The underlying WebView widget.
         text: The last thing this view was searched for.
         _flags: The flags of the last search.
+        _widget: The underlying WebView widget.
     """
 
     def __init__(self, parent=None):
