@@ -26,13 +26,7 @@ import collections
 from qutebrowser.utils import usertypes
 from qutebrowser.mainwindow.statusbar import url
 
-
-@pytest.fixture
-def tab_widget():
-    """Fixture providing a fake tab widget."""
-    tab = collections.namedtuple('Tab', 'cur_url load_status')
-    tab.cur_url = collections.namedtuple('cur_url', 'toDisplayString')
-    return tab
+from PyQt5.QtCore import QUrl
 
 
 @pytest.fixture
@@ -128,9 +122,8 @@ def test_on_load_status_changed(url_widget, status, expected):
     (url.UrlType.error, 'Th1$ i$ n0t @ n0rm@L uRL! P@n1c! <-->'),
     (url.UrlType.error, None)
 ])
-def test_on_tab_changed(url_widget, tab_widget, load_status, url_text):
-    tab_widget.load_status = load_status
-    tab_widget.cur_url.toDisplayString = lambda: url_text
+def test_on_tab_changed(url_widget, stubs, qapp, load_status, url_text):
+    tab_widget = stubs.FakeWebTab(load_status=load_status, url=QUrl(url_text))
     url_widget.on_tab_changed(tab_widget)
     if url_text is not None:
         assert url_widget._urltype == load_status

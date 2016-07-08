@@ -53,7 +53,7 @@ def test_percentage_text(percentage, y, expected):
     assert percentage.text() == expected
 
 
-def test_tab_change(percentage, stubs):
+def test_tab_change(percentage, stubs, qapp):
     """Make sure the percentage gets changed correctly when switching tabs."""
     percentage.set_perc(x=None, y=10)
     tab = stubs.FakeWebTab(scroll_pos_perc=(0, 20))

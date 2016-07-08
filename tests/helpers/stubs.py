@@ -242,25 +242,27 @@ class FakeWebTab(tab.AbstractTab):
     """Fake AbstractTab to use in tests."""
 
     def __init__(self, url=FakeUrl(), title='', tab_id=0, *,
-                 scroll_pos_perc=(0, 0)):
+                 scroll_pos_perc=(0, 0),
+                 load_status=usertypes.LoadStatus.success,
+                 progress=0):
         super().__init__(win_id=0)
+        self._load_status = load_status
         self._title = title
         self._url = url
+        self._progress = progress
         self.scroll = FakeWebTabScroller(scroll_pos_perc)
 
-    @property
-    def cur_url(self):
+    def url(self):
         return self._url
 
     def title(self):
         return self._title
 
     def progress(self):
-        return 0
+        return self._progress
 
-    @property
     def load_status(self):
-        return usertypes.LoadStatus.success
+        return self._load_status
 
 
 class FakeSignal:
