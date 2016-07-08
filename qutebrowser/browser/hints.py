@@ -757,9 +757,9 @@ class HintManager(QObject):
                                         window=self._win_id)
             tabbed_browser.tabopen(url, background=background)
         else:
-            webview = objreg.get('webview', scope='tab', window=self._win_id,
-                                 tab=self._tab_id)
-            webview.openurl(url)
+            tab = objreg.get('tab', scope='tab', window=self._win_id,
+                             tab=self._tab_id)
+            tab.openurl(url)
 
     @cmdutils.register(instance='hintmanager', scope='tab', name='hint',
                        star_args_optional=True, maxsplit=2)

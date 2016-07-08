@@ -1744,10 +1744,12 @@ class CommandDispatcher:
                     raise cmdexc.CommandError("No focused window!")
             else:
                 try:
-                    receiver = objreg.get('webview', scope='tab',
-                                          tab='current')
+                    tab = objreg.get('tab', scope='tab', tab='current')
                 except objreg.RegistryUnavailableError:
                     raise cmdexc.CommandError("No focused webview!")
+                # pylint: disable=protected-access
+                receiver = tab._widget
+                # pylint: enable=protected-access
 
             QApplication.postEvent(receiver, press_event)
             QApplication.postEvent(receiver, release_event)

@@ -458,6 +458,7 @@ class AbstractTab(QWidget):
         tab_registry = objreg.get('tab-registry', scope='window',
                                   window=win_id)
         tab_registry[self.tab_id] = self
+        objreg.register('tab', self, registry=self.registry)
 
         # self.history = AbstractHistory(self)
         # self.scroll = AbstractScroller(parent=self)

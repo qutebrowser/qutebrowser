@@ -94,8 +94,6 @@ class WebView(QWebView):
         self.progress = 0
         self._tab_id = tab_id
 
-        objreg.register('webview', self, scope='tab', window=win_id,
-                        tab=tab_id)
         page = self._init_page()
         hintmanager = hints.HintManager(win_id, self._tab_id, self)
         hintmanager.mouse_event.connect(self.on_mouse_event)
