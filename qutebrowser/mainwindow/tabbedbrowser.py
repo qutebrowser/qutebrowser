@@ -381,20 +381,12 @@ class TabbedBrowser(tabwidget.TabWidget):
                                         window=window.win_id)
             return tabbed_browser.tabopen(url, background, explicit)
 
-        if objreg.get('args').backend == 'webengine':
-            # Importing this here so we don't depend on QtWebEngine without the
-            # argument.
-            from qutebrowser.browser.webengine import webenginetab
-            tab_class = webenginetab.WebEngineViewTab
-        else:
-            tab_class = webkittab.WebViewTab
-
-        tab = tab_class(self._win_id, modeman.instance(self._win_id),
-                        parent=self)
-
+        tab = tabmod.create(win_id=self._win_id, parent=self)
         self._connect_tab_signals(tab)
+
         idx = self._get_new_tab_idx(explicit)
         self.insertTab(idx, tab, "")
+
         if url is not None:
             tab.openurl(url)
         if background is None:

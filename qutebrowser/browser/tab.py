@@ -25,6 +25,7 @@ from PyQt5.QtCore import pyqtSignal, pyqtSlot, QUrl, QObject, QPoint
 from PyQt5.QtGui import QIcon
 from PyQt5.QtWidgets import QWidget, QLayout
 
+from qutebrowser.keyinput import modeman
 from qutebrowser.config import config
 from qutebrowser.utils import utils, objreg, usertypes, message
 
@@ -33,6 +34,25 @@ tab_id_gen = itertools.count(0)
 
 
 Backend = usertypes.enum('Backend', ['QtWebKit', 'QtWebEngine'])
+
+
+def create(win_id, parent=None):
+    """Get a QtWebKit/QtWebEngine tab object.
+
+    Args:
+        win_id: The window ID where the tab will be shown.
+        parent: The Qt parent to set.
+    """
+    # Importing modules here so we don't depend on QtWebEngine without the
+    # argument and to avoid circular imports.
+    mode_manager = modeman.instance(win_id)
+    if objreg.get('args').backend == 'webengine':
+        from qutebrowser.browser.webengine import webenginetab
+        tab_class = webenginetab.WebEngineViewTab
+    else:
+        from qutebrowser.browser.webkit import webkittab
+        tab_class = webkittab.WebViewTab
+    return tab_class(win_id=win_id, mode_manager=mode_manager, parent=parent)
 
 
 class WebTabError(Exception):
