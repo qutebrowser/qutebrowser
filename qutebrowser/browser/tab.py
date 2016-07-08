@@ -527,9 +527,6 @@ class AbstractTab(QWidget):
     def icon(self):
         raise NotImplementedError
 
-    def run_webaction(self, action):
-        raise NotImplementedError
-
     def set_html(self, html, base_url):
         raise NotImplementedError
 

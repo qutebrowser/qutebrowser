@@ -228,9 +228,6 @@ class WebEngineViewTab(tab.AbstractTab):
     def icon(self):
         return self._widget.icon()
 
-    def run_webaction(self, action):
-        self._widget.triggerPageAction(action)
-
     def set_html(self, html, base_url):
         # FIXME:qtwebengine
         # check this and raise an exception if too big:

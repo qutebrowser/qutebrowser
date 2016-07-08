@@ -1679,7 +1679,10 @@ class CommandDispatcher:
                 action))
 
         for _ in range(count):
-            tab.run_webaction(member)
+            # This whole command is backend-specific anyways, so it makes no
+            # sense to introduce some API for this.
+            # pylint: disable=protected-access
+            tab._widget.triggerPageAction(member)
 
     @cmdutils.register(instance='command-dispatcher', scope='window',
                        maxsplit=0, no_cmd_split=True)
