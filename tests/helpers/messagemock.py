@@ -53,7 +53,7 @@ class MessageMock:
         self._caplog = caplog
         self.messages = []
 
-    def _handle(self, level, win_id, text, immediately=False):
+    def _handle(self, level, win_id, text, immediately=False, *, stack=None):
         log_levels = {
             Level.error: logging.ERROR,
             Level.info: logging.INFO,
