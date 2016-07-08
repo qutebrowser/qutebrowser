@@ -242,6 +242,8 @@ class BrowserPage(QWebPage):
                                           auto_remove=True)
         download.finished.connect(functools.partial(self._pdfjs_callback,
                                                     reply))
+        download.cancelled.connect(
+            functools.partial(self._pdfjs_download_cancelled, reply.url()))
         self._pdf_download = download
         page = jinja.render('pdf_loading.html',
                             url=reply.url().toDisplayString())
@@ -296,8 +298,18 @@ class BrowserPage(QWebPage):
         if self._pdf_download is None:
             return
         log.pdfjs.debug("killing pdf download, loading another page")
-        self._pdf_download.cancel()
+        # Prevent infinite recursion by first setting it to None and then
+        # cancelling it
+        download = self._pdf_download
         self._pdf_download = None
+        download.cancel()
+
+    @pyqtSlot(QUrl)
+    def _pdfjs_download_cancelled(self, url):
+        """Show an error saying that the download has been cancelled."""
+        page = jinja.render('pdf_cancelled.html',
+                            url=url.toString(QUrl.FullyEncoded))
+        self.mainFrame().setContent(page.encode('utf-8'), 'text/html', url)
 
     def shutdown(self):
         """Prepare the web page for being deleted."""
