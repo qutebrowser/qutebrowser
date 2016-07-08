@@ -33,7 +33,8 @@ disable=no-self-use,
         ungrouped-imports,
         redefined-variable-type,
         suppressed-message,
-        too-many-return-statements
+        too-many-return-statements,
+        duplicate-code
 
 [BASIC]
 function-rgx=[a-z_][a-z0-9_]{2,50}$
