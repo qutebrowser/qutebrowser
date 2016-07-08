@@ -23,6 +23,33 @@ import pytest
 from PyQt5.QtCore import QUrl
 
 from qutebrowser.browser import pdfjs
+from qutebrowser.browser.webkit.network import qutescheme
+from qutebrowser.utils import objreg
+
+
+@pytest.yield_fixture
+def js_bridge():
+    bridge = qutescheme.JSBridge()
+    objreg.register('js-bridge', bridge)
+    yield bridge
+    objreg.delete('js-bridge')
+
+
+def test_generate_pdfjs_script(js_bridge):
+    test_data = b'foobar'
+    script = pdfjs._generate_pdfjs_script(test_data).strip()
+    assert len(js_bridge.peek_pdfs()) == 1
+    data_ident = js_bridge.peek_pdfs()[0][0]
+    expected = textwrap.dedent("""
+        PDFJS.verbosity = PDFJS.VERBOSITY_LEVELS.info;
+        var _init_params = {
+            data: new Uint8Array(window.qute.get_pdf("$init")),
+        };
+        PDFJS.getDocument(_init_params).then(
+            function (doc) { PDFView.load(doc); }
+        );
+    """).strip().replace('$init', data_ident)
+    assert script == expected
 
 
 def test_fix_urls():

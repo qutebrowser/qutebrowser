@@ -143,6 +143,14 @@ class JSBridge(QObject):
                         .format(len(data), identifier, len(self._pdfs)))
         return identifier
 
+    def peek_pdfs(self):
+        """Return a list of saved pdfs without deleting them.
+
+        Return:
+            A list of (identifier, data) tuples, representing the pdfs.
+        """
+        return list(self._pdfs.items())
+
     @pyqtSlot(int, str, str, str)
     def set(self, win_id, sectname, optname, value):
         """Slot to set a setting from qute:settings."""
