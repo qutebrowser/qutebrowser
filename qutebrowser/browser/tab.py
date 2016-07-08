@@ -220,14 +220,14 @@ class AbstractCaret(QObject):
 
     """Attribute of AbstractTab for caret browsing."""
 
-    def __init__(self, win_id, tab, modeman, parent=None):
+    def __init__(self, win_id, tab, mode_manager, parent=None):
         super().__init__(parent)
         self._tab = tab
         self._win_id = win_id
         self._widget = None
         self.selection_enabled = False
-        modeman.entered.connect(self._on_mode_entered)
-        modeman.left.connect(self._on_mode_left)
+        mode_manager.entered.connect(self._on_mode_entered)
+        mode_manager.left.connect(self._on_mode_left)
 
     def _on_mode_entered(self, mode):
         raise NotImplementedError
@@ -434,7 +434,7 @@ class AbstractTab(QWidget):
         super().__init__(parent)
         # self.history = AbstractHistory(self)
         # self.scroll = AbstractScroller(parent=self)
-        # self.caret = AbstractCaret(win_id=win_id, tab=self, modeman=...,
+        # self.caret = AbstractCaret(win_id=win_id, tab=self, mode_manager=...,
         #                            parent=self)
         # self.zoom = AbstractZoom(win_id=win_id)
         # self.search = AbstractSearch(parent=self)

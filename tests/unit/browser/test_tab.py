@@ -66,12 +66,13 @@ def test_tab(qtbot, view, config_stub):
     assert tab_w.win_id == 0
     assert tab_w._widget is None
 
-    mode_man = modeman.ModeManager(0)
+    mode_manager = modeman.ModeManager(0)
 
     tab_w.history = tab.AbstractHistory(tab_w)
     tab_w.scroll = tab.AbstractScroller(parent=tab_w)
-    tab_w.caret = tab.AbstractCaret(win_id=tab_w.win_id, modeman=mode_man,
-                                    tab=tab_w, parent=tab_w)
+    tab_w.caret = tab.AbstractCaret(win_id=tab_w.win_id,
+                                    mode_manager=mode_manager, tab=tab_w,
+                                    parent=tab_w)
     tab_w.zoom = tab.AbstractZoom(win_id=tab_w.win_id)
     tab_w.search = tab.AbstractSearch(parent=tab_w)
 
