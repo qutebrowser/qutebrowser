@@ -518,7 +518,6 @@ class Command:
                 e.status, e))
             return
         self._count = count
-        # FIXME add tests for the _check_prerequisites move!
         self._check_prerequisites(win_id)
         posargs, kwargs = self._get_call_args(win_id)
         log.commands.debug('Calling {}'.format(

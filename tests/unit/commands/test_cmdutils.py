@@ -393,3 +393,22 @@ class TestRun:
     def test_no_args(self):
         cmd = _get_cmd()
         cmd.run(win_id=0)
+
+    def test_instance_unavailable_with_backend(self, fake_args):
+        """Test what happens when a backend doesn't have an objreg object.
+
+        For example, QtWebEngine doesn't have 'hintmanager' registered. We make
+        sure the backend checking happens before resolving the instance, so we
+        display an error instead of crashing.
+        """
+        @cmdutils.register(instance='doesnotexist',
+                           backend=tabmod.Backend.QtWebEngine)
+        def fun(self):
+            """Blah."""
+            pass
+
+        fake_args.backend = 'webkit'
+        cmd = cmdutils.cmd_dict['fun']
+        with pytest.raises(cmdexc.PrerequisitesError) as excinfo:
+            cmd.run(win_id=0)
+        assert str(excinfo.value).endswith(' backend.')
