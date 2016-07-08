@@ -501,6 +501,9 @@ class Command:
         dbgout = ["command called:", self.name]
         if args:
             dbgout.append(str(args))
+        elif args is None:
+            args = []
+
         if count is not None:
             dbgout.append("(count={})".format(count))
         log.commands.debug(' '.join(dbgout))
