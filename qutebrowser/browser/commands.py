@@ -1117,7 +1117,16 @@ class CommandDispatcher:
 
     @cmdutils.register(instance='command-dispatcher', scope='window')
     def bookmark_add(self, url=None, title=None):
-        """Save the current page as a bookmark, or a specific url."""
+        """Save the current page as a bookmark, or a specific url.
+
+        If no url and title are provided, then save the current page as a
+        bookmark.
+        If a url and title have been provided, then save the given url as
+        a bookmark with the provided title.
+
+        Args:
+            url: url to save as a bookmark. If None, use url of current page.
+            title: title of the new bookmark."""
         if url and not title:
             raise cmdexc.CommandError('Title must be provided if url has '
                                       'been provided')
