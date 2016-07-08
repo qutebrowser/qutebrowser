@@ -1126,7 +1126,8 @@ class CommandDispatcher:
 
         Args:
             url: url to save as a bookmark. If None, use url of current page.
-            title: title of the new bookmark."""
+            title: title of the new bookmark.
+        """
         if url and not title:
             raise cmdexc.CommandError('Title must be provided if url has '
                                       'been provided')
