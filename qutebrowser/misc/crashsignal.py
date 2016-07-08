@@ -116,7 +116,7 @@ class CrashHandler(QObject):
                                         window=win_id)
             for tab in tabbed_browser.widgets():
                 try:
-                    urlstr = tab.cur_url.toString(
+                    urlstr = tab.url().toString(
                         QUrl.RemovePassword | QUrl.FullyEncoded)
                     if urlstr:
                         win_pages.append(urlstr)

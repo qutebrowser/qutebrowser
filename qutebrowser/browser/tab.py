@@ -461,15 +461,12 @@ class AbstractTab(QWidget):
         self.data.viewing_source = False
         self.load_started.emit()
 
-    @property
-    def cur_url(self):
+    def url(self):
         raise NotImplementedError
 
-    @property
     def progress(self):
         raise NotImplementedError
 
-    @property
     def load_status(self):
         raise NotImplementedError
 
@@ -518,7 +515,7 @@ class AbstractTab(QWidget):
 
     def __repr__(self):
         try:
-            url = utils.elide(self.cur_url.toDisplayString(QUrl.EncodeUnicode),
+            url = utils.elide(self.url().toDisplayString(QUrl.EncodeUnicode),
                               100)
         except AttributeError:
             url = '<AttributeError>'

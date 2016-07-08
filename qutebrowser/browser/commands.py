@@ -615,7 +615,7 @@ class CommandDispatcher:
             count: multiplier
         """
         tab = self._current_widget()
-        if not tab.cur_url.isValid():
+        if not tab.url().isValid():
             # See https://github.com/The-Compiler/qutebrowser/issues/701
             return
 

@@ -288,7 +288,7 @@ class WebViewCaret(tabmod.AbstractCaret):
                     url = selected_element.attrib['href']
                 except KeyError:
                     raise tabmod.WebTabError('Anchor element without href!')
-                url = self._tab.cur_url.resolved(QUrl(url))
+                url = self._tab.url().resolved(QUrl(url))
                 if tab:
                     self._tab.new_tab_requested.emit(url)
                 else:
@@ -467,15 +467,12 @@ class WebViewTab(tabmod.AbstractTab):
     def openurl(self, url):
         self._widget.openurl(url)
 
-    @property
-    def cur_url(self):
+    def url(self):
         return self._widget.cur_url
 
-    @property
     def progress(self):
         return self._widget.progress
 
-    @property
     def load_status(self):
         return self._widget.load_status
 

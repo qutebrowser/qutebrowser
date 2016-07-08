@@ -66,8 +66,8 @@ class Progress(QProgressBar):
             # This should never happen, but for some weird reason it does
             # sometimes.
             return  # pragma: no cover
-        self.setValue(tab.progress)
-        if tab.load_status == usertypes.LoadStatus.loading:
+        self.setValue(tab.progress())
+        if tab.load_status() == usertypes.LoadStatus.loading:
             self.show()
         else:
             self.hide()

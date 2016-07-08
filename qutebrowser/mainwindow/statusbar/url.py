@@ -164,6 +164,6 @@ class UrlText(textbase.TextBase):
     def on_tab_changed(self, tab):
         """Update URL if the tab changed."""
         self._hover_url = None
-        self._normal_url = tab.cur_url.toDisplayString()
-        self.on_load_status_changed(tab.load_status.name)
+        self._normal_url = tab.url().toDisplayString()
+        self.on_load_status_changed(tab.load_status().name)
         self._update_url()

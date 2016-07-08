@@ -266,11 +266,11 @@ class TabbedBrowser(tabwidget.TabWidget):
                              window=self._win_id):
             objreg.delete('last-focused-tab', scope='window',
                           window=self._win_id)
-        if tab.cur_url.isValid():
+        if tab.url().isValid():
             history_data = tab.history.serialize()
-            entry = UndoEntry(tab.cur_url, history_data)
+            entry = UndoEntry(tab.url(), history_data)
             self._undo_stack.append(entry)
-        elif tab.cur_url.isEmpty():
+        elif tab.url().isEmpty():
             # There are some good reasons why a URL could be empty
             # (target="_blank" with a download, see [1]), so we silently ignore
             # this.
@@ -280,7 +280,7 @@ class TabbedBrowser(tabwidget.TabWidget):
             # We display a warnings for URLs which are not empty but invalid -
             # but we don't return here because we want the tab to close either
             # way.
-            urlutils.invalid_url_error(self._win_id, tab.cur_url, "saving tab")
+            urlutils.invalid_url_error(self._win_id, tab.url(), "saving tab")
         tab.shutdown()
         self.removeTab(idx)
         tab.deleteLater()
@@ -298,7 +298,7 @@ class TabbedBrowser(tabwidget.TabWidget):
                 'startpage': QUrl(config.get('general', 'startpage')[0]),
                 'default-page': config.get('general', 'default-page'),
             }
-            first_tab_url = self.widget(0).cur_url
+            first_tab_url = self.widget(0).url()
             last_close_urlstr = urls[last_close].toString().rstrip('/')
             first_tab_urlstr = first_tab_url.toString().rstrip('/')
             last_close_url_used = first_tab_urlstr == last_close_urlstr

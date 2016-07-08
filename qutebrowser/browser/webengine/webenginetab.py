@@ -187,15 +187,12 @@ class WebEngineViewTab(tab.AbstractTab):
     def openurl(self, url):
         self._widget.load(url)
 
-    @property
-    def cur_url(self):
+    def url(self):
         return self._widget.url()
 
-    @property
     def progress(self):
         return 0  # FIXME:qtwebengine
 
-    @property
     def load_status(self):
         return usertypes.LoadStatus.success
 

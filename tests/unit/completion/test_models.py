@@ -342,7 +342,7 @@ def test_tab_completion_delete(stubs, qtbot, app_stub, win_registry,
     view = _mock_view_index(model, 0, 1, qtbot)
     qtbot.add_widget(view)
     model.delete_cur_item(view)
-    actual = [tab.cur_url for tab in tabbed_browser_stubs[0].tabs]
+    actual = [tab.url() for tab in tabbed_browser_stubs[0].tabs]
     assert actual == [QUrl('https://github.com'),
                       QUrl('https://duckduckgo.com')]
 
