@@ -28,7 +28,7 @@ from PyQt5.QtGui import QDesktopServices
 from PyQt5.QtNetwork import QNetworkReply, QNetworkRequest
 from PyQt5.QtWidgets import QFileDialog
 from PyQt5.QtPrintSupport import QPrintDialog
-from PyQt5.QtWebKitWidgets import QWebPage, QWebFrame
+from PyQt5.QtWebKitWidgets import QWebPage
 
 from qutebrowser.config import config
 from qutebrowser.browser import pdfjs
@@ -52,6 +52,7 @@ class BrowserPage(QWebPage):
         _win_id: The window ID this BrowserPage is associated with.
         _ignore_load_started: Whether to ignore the next loadStarted signal.
         _is_shutting_down: Whether the page is currently shutting down.
+        _pdf_download: The currently running pdf download.
 
     Signals:
         shutting_down: Emitted when the page is currently shutting down.
