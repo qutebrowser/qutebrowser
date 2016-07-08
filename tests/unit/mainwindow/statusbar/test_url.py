@@ -113,24 +113,19 @@ def test_on_load_status_changed(url_widget, status, expected):
     assert url_widget._urltype == expected
 
 
-@pytest.mark.parametrize('load_status, url_text', [
-    (url.UrlType.success, 'http://abc123.com/this/awesome/url.html'),
-    (url.UrlType.success, 'http://reddit.com/r/linux'),
-    (url.UrlType.success_https, 'www.google.com'),
-    (url.UrlType.success_https, 'https://supersecret.gov/nsa/files.txt'),
-    (url.UrlType.warn, 'www.shadysite.org/some/path/to/file/with/issues.htm'),
-    (url.UrlType.error, 'Th1$ i$ n0t @ n0rm@L uRL! P@n1c! <-->'),
-    (url.UrlType.error, None)
+@pytest.mark.parametrize('load_status, qurl', [
+    (url.UrlType.success, QUrl('http://abc123.com/this/awesome/url.html')),
+    (url.UrlType.success, QUrl('http://reddit.com/r/linux')),
+    (url.UrlType.success_https, QUrl('www.google.com')),
+    (url.UrlType.success_https, QUrl('https://supersecret.gov/nsa/files.txt')),
+    (url.UrlType.warn, QUrl('www.shadysite.org/some/path/to/file/with/issues.htm')),
+    (url.UrlType.error, QUrl('invalid::/url')),
 ])
-def test_on_tab_changed(url_widget, stubs, qapp, load_status, url_text):
-    tab_widget = stubs.FakeWebTab(load_status=load_status, url=QUrl(url_text))
+def test_on_tab_changed(url_widget, stubs, qapp, load_status, qurl):
+    tab_widget = stubs.FakeWebTab(load_status=load_status, url=qurl)
     url_widget.on_tab_changed(tab_widget)
-    if url_text is not None:
-        assert url_widget._urltype == load_status
-        assert url_widget.text() == url_text
-    else:
-        assert url_widget._urltype == url.UrlType.normal
-        assert url_widget.text() == ''
+    assert url_widget._urltype == load_status
+    assert url_widget.text() == qurl.toDisplayString()
 
 
 @pytest.mark.parametrize('url_text, load_status, expected_status', [
