@@ -425,6 +425,7 @@ class AbstractTab(QWidget):
 
     Attributes:
         history: The AbstractHistory for the current tab.
+        registry: The ObjectRegistry associated with this tab.
 
         for properties, see WebView/WebEngineView docs.
 
@@ -452,6 +453,12 @@ class AbstractTab(QWidget):
         self.win_id = win_id
         self.tab_id = next(tab_id_gen)
         super().__init__(parent)
+
+        self.registry = objreg.ObjectRegistry()
+        tab_registry = objreg.get('tab-registry', scope='window',
+                                  window=win_id)
+        tab_registry[self.tab_id] = self
+
         # self.history = AbstractHistory(self)
         # self.scroll = AbstractScroller(parent=self)
         # self.caret = AbstractCaret(win_id=win_id, tab=self, mode_manager=...,

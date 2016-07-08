@@ -45,7 +45,6 @@ class WebView(QWebView):
         scroll_pos: The current scroll position as (x%, y%) tuple.
         statusbar_message: The current javascript statusbar message.
         load_status: loading status of this page (index into LoadStatus)
-        registry: The ObjectRegistry associated with this tab.
         win_id: The window ID of the view.
         _tab_id: The tab ID of the view.
         _has_ssl_errors: Whether SSL errors occurred during loading.
@@ -93,19 +92,17 @@ class WebView(QWebView):
         self._set_bg_color()
         self.cur_url = QUrl()
         self.progress = 0
-        self.registry = objreg.ObjectRegistry()
         self._tab_id = tab_id
-        # FIXME:qtwebengine stop registering it here
-        tab_registry = objreg.get('tab-registry', scope='window',
-                                  window=win_id)
-        tab_registry[self._tab_id] = self
-        objreg.register('webview', self, registry=self.registry)
+
+        objreg.register('webview', self, scope='tab', window=win_id,
+                        tab=tab_id)
         page = self._init_page()
         hintmanager = hints.HintManager(win_id, self._tab_id, self)
         hintmanager.mouse_event.connect(self.on_mouse_event)
         hintmanager.start_hinting.connect(page.on_start_hinting)
         hintmanager.stop_hinting.connect(page.on_stop_hinting)
-        objreg.register('hintmanager', hintmanager, registry=self.registry)
+        objreg.register('hintmanager', hintmanager, scope='tab', window=win_id,
+                        tab=tab_id)
         mode_manager = objreg.get('mode-manager', scope='window',
                                   window=win_id)
         mode_manager.entered.connect(self.on_mode_entered)
