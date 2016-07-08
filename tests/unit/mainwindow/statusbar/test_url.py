@@ -21,7 +21,6 @@
 """Test Statusbar url."""
 
 import pytest
-import collections
 
 from qutebrowser.utils import usertypes
 from qutebrowser.mainwindow.statusbar import url
@@ -118,7 +117,7 @@ def test_on_load_status_changed(url_widget, status, expected):
     (url.UrlType.success, QUrl('http://reddit.com/r/linux')),
     (url.UrlType.success_https, QUrl('www.google.com')),
     (url.UrlType.success_https, QUrl('https://supersecret.gov/nsa/files.txt')),
-    (url.UrlType.warn, QUrl('www.shadysite.org/some/path/to/file/with/issues.htm')),
+    (url.UrlType.warn, QUrl('www.shadysite.org/some/file/with/issues.htm')),
     (url.UrlType.error, QUrl('invalid::/url')),
 ])
 def test_on_tab_changed(url_widget, stubs, qapp, load_status, qurl):

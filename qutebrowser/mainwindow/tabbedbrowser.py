@@ -31,7 +31,6 @@ from qutebrowser.keyinput import modeman
 from qutebrowser.mainwindow import tabwidget
 from qutebrowser.browser import signalfilter
 from qutebrowser.browser import tab as tabmod
-from qutebrowser.browser.webkit import webkittab
 from qutebrowser.utils import (log, usertypes, utils, qtutils, objreg,
                                urlutils, message)
 

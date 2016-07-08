@@ -20,14 +20,10 @@
 
 """Test Progress widget."""
 
-from collections import namedtuple
-
 import pytest
 
 from qutebrowser.mainwindow.statusbar.progress import Progress
 from qutebrowser.utils import usertypes
-
-from tests.helpers import stubs
 
 
 @pytest.fixture
