@@ -17,49 +17,102 @@
 # You should have received a copy of the GNU General Public License
 # along with qutebrowser.  If not, see <http://www.gnu.org/licenses/>.
 
+# FIXME:qtwebengine remove this once the stubs are gone
+# pylint: disable=unused-variable
+
 """Wrapper over a QWebEngineView."""
 
-from PyQt5.QtCore import pyqtSlot, Qt, QEvent
+from PyQt5.QtCore import pyqtSlot, Qt, QEvent, QPoint
 from PyQt5.QtGui import QKeyEvent
 from PyQt5.QtWidgets import QApplication
 # pylint: disable=no-name-in-module,import-error,useless-suppression
 from PyQt5.QtWebEngineWidgets import QWebEnginePage
 # pylint: enable=no-name-in-module,import-error,useless-suppression
 
-from qutebrowser.browser import tab
+from qutebrowser.browser import tab as tabmod
 from qutebrowser.browser.webengine import webview
-from qutebrowser.utils import usertypes, qtutils
+from qutebrowser.utils import usertypes, qtutils, log
 
 
-## FIXME:qtwebengine add stubs for abstract things which aren't implemented
-##                   yet.
-## pylint: disable=abstract-method
-
-
-class WebEngineSearch(tab.AbstractSearch):
+class WebEngineSearch(tabmod.AbstractSearch):
 
     """QtWebEngine implementations related to searching on the page."""
 
-    ## TODO
+    def search(self, text, *, ignore_case=False, wrap=False, reverse=False):
+        log.stub()
 
-    pass
+    def clear(self):
+        log.stub()
+
+    def prev_result(self):
+        log.stub()
+
+    def next_result(self):
+        log.stub()
 
 
-class WebEngineCaret(tab.AbstractCaret):
+class WebEngineCaret(tabmod.AbstractCaret):
 
     """QtWebEngine implementations related to moving the cursor/selection."""
 
-    ## TODO
-
     @pyqtSlot(usertypes.KeyMode)
     def _on_mode_entered(self, mode):
-        ## TODO
-        pass
+        log.stub()
 
     @pyqtSlot(usertypes.KeyMode)
     def _on_mode_left(self):
-        ## TODO
-        pass
+        log.stub()
+
+    def move_to_next_line(self, count=1):
+        log.stub()
+
+    def move_to_prev_line(self, count=1):
+        log.stub()
+
+    def move_to_next_char(self, count=1):
+        log.stub()
+
+    def move_to_prev_char(self, count=1):
+        log.stub()
+
+    def move_to_end_of_word(self, count=1):
+        log.stub()
+
+    def move_to_next_word(self, count=1):
+        log.stub()
+
+    def move_to_prev_word(self, count=1):
+        log.stub()
+
+    def move_to_start_of_line(self):
+        log.stub()
+
+    def move_to_end_of_line(self):
+        log.stub()
+
+    def move_to_start_of_next_block(self, count=1):
+        log.stub()
+
+    def move_to_start_of_prev_block(self, count=1):
+        log.stub()
+
+    def move_to_end_of_next_block(self, count=1):
+        log.stub()
+
+    def move_to_end_of_prev_block(self, count=1):
+        log.stub()
+
+    def move_to_start_of_document(self):
+        log.stub()
+
+    def move_to_end_of_document(self):
+        log.stub()
+
+    def toggle_selection(self):
+        log.stub()
+
+    def drop_selection(self):
+        log.stub()
 
     def has_selection(self):
         return self._widget.hasSelection()
@@ -69,8 +122,12 @@ class WebEngineCaret(tab.AbstractCaret):
             raise NotImplementedError
         return self._widget.selectedText()
 
+    def follow_selected(self, *, tab=False):
+        log.stub()
 
-class WebEngineScroller(tab.AbstractScroller):
+
+
+class WebEngineScroller(tabmod.AbstractScroller):
 
     """QtWebEngine implementations related to scrolling."""
 
@@ -85,6 +142,10 @@ class WebEngineScroller(tab.AbstractScroller):
             QApplication.postEvent(recipient, press_evt)
             QApplication.postEvent(recipient, release_evt)
 
+    def pos_px(self):
+        log.stub()
+        return QPoint(0, 0)
+
     def pos_perc(self):
         page = self._widget.page()
         try:
@@ -92,12 +153,25 @@ class WebEngineScroller(tab.AbstractScroller):
             pos = page.scrollPosition()
         except AttributeError:
             # Added in Qt 5.7
+            log.stub('on Qt < 5.7')
             return (None, None)
         else:
             # FIXME:qtwebengine is this correct?
             perc_x = 100 / size.width() * pos.x()
             perc_y = 100 / size.height() * pos.y()
             return (perc_x, perc_y)
+
+    def to_perc(self, x=None, y=None):
+        log.stub()
+
+    def to_point(self, point):
+        log.stub()
+
+    def delta(self, x=0, y=0):
+        log.stub()
+
+    def delta_page(self, x=0, y=0):
+        log.stub()
 
     def up(self, count=1):
         self._key_press(Qt.Key_Up, count)
@@ -123,10 +197,14 @@ class WebEngineScroller(tab.AbstractScroller):
     def page_down(self, count=1):
         self._key_press(Qt.Key_PageDown, count)
 
-    ## TODO
+    def at_top(self):
+        log.stub()
+
+    def at_bottom(self):
+        log.stub()
 
 
-class WebEngineHistory(tab.AbstractHistory):
+class WebEngineHistory(tabmod.AbstractHistory):
 
     """QtWebEngine implementations related to page history."""
 
@@ -152,11 +230,10 @@ class WebEngineHistory(tab.AbstractHistory):
         return qtutils.deserialize(data, self._history)
 
     def load_items(self, items):
-        # TODO
-        raise NotImplementedError
+        log.stub()
 
 
-class WebEngineZoom(tab.AbstractZoom):
+class WebEngineZoom(tabmod.AbstractZoom):
 
     """QtWebEngine implementations related to zooming."""
 
@@ -167,7 +244,7 @@ class WebEngineZoom(tab.AbstractZoom):
         return self._widget.zoomFactor()
 
 
-class WebEngineViewTab(tab.AbstractTab):
+class WebEngineViewTab(tabmod.AbstractTab):
 
     """A QtWebEngine tab in the browser."""
 
@@ -182,7 +259,7 @@ class WebEngineViewTab(tab.AbstractTab):
         self.search = WebEngineSearch(parent=self)
         self._set_widget(widget)
         self._connect_signals()
-        self.backend = tab.Backend.QtWebEngine
+        self.backend = tabmod.Backend.QtWebEngine
 
     def openurl(self, url):
         self._widget.load(url)
@@ -191,9 +268,11 @@ class WebEngineViewTab(tab.AbstractTab):
         return self._widget.url()
 
     def progress(self):
-        return 0  # FIXME:qtwebengine
+        log.stub()
+        return 0
 
     def load_status(self):
+        log.stub()
         return usertypes.LoadStatus.success
 
     def dump_async(self, callback, *, plain=False):
@@ -209,8 +288,7 @@ class WebEngineViewTab(tab.AbstractTab):
             self._widget.page().runJavaScript(code, callback)
 
     def shutdown(self):
-        # TODO
-        pass
+        log.stub()
 
     def reload(self, *, force=False):
         if force:
@@ -235,6 +313,9 @@ class WebEngineViewTab(tab.AbstractTab):
         # renderer via IPC. This may increase its size. The maximum size of the
         # percent encoded content is 2 megabytes minus 30 bytes.
         self._widget.setHtml(html, base_url)
+
+    def clear_ssl_errors(self):
+        log.stub()
 
     def _connect_signals(self):
         view = self._widget

@@ -29,6 +29,7 @@ import faulthandler
 import traceback
 import warnings
 import json
+import inspect
 
 from PyQt5 import QtCore
 # Optional imports
@@ -128,6 +129,15 @@ sessions = logging.getLogger('sessions')
 
 
 ram_handler = None
+
+
+def stub(suffix=''):
+    """Show a STUB: message for the calling function."""
+    function = inspect.stack()[1][3]
+    text = "STUB: {}".format(function)
+    if suffix:
+        text = '{} ({})'.format(text, suffix)
+    misc.warning(text)
 
 
 class CriticalQtWarning(Exception):
