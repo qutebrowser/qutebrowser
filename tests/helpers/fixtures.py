@@ -122,6 +122,12 @@ def tab_registry(win_registry):
     objreg.delete('tab-registry', scope='window', window=0)
 
 
+@pytest.fixture
+def fake_web_tab(stubs, tab_registry, qapp):
+    """Fixture providing the FakeWebTab *class*."""
+    return stubs.FakeWebTab
+
+
 def _generate_cmdline_tests():
     """Generate testcases for test_split_binding."""
     # pylint: disable=invalid-name

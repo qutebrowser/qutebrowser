@@ -120,8 +120,8 @@ def test_on_load_status_changed(url_widget, status, expected):
     (url.UrlType.warn, QUrl('www.shadysite.org/some/file/with/issues.htm')),
     (url.UrlType.error, QUrl('invalid::/url')),
 ])
-def test_on_tab_changed(url_widget, stubs, qapp, load_status, qurl):
-    tab_widget = stubs.FakeWebTab(load_status=load_status, url=qurl)
+def test_on_tab_changed(url_widget, fake_web_tab, load_status, qurl):
+    tab_widget = fake_web_tab(load_status=load_status, url=qurl)
     url_widget.on_tab_changed(tab_widget)
     assert url_widget._urltype == load_status
     assert url_widget.text() == qurl.toDisplayString()

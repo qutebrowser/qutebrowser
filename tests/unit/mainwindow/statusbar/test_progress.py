@@ -60,14 +60,14 @@ def test_load_started(progress_widget):
     (100, usertypes.LoadStatus.warn, False),
     (100, usertypes.LoadStatus.none, False),
 ])
-def test_tab_changed(qapp, stubs, progress_widget, progress, load_status,
+def test_tab_changed(fake_web_tab, progress_widget, progress, load_status,
                      expected_visible):
     """Test that progress widget value and visibility state match expectations.
 
     Args:
         progress_widget: Progress widget that will be tested.
     """
-    tab = stubs.FakeWebTab(progress=progress, load_status=load_status)
+    tab = fake_web_tab(progress=progress, load_status=load_status)
     progress_widget.on_tab_changed(tab)
     actual = progress_widget.value(), progress_widget.isVisible()
     expected = tab.progress(), expected_visible
