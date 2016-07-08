@@ -1120,15 +1120,15 @@ class CommandDispatcher:
         """Save the current page as a bookmark, or a specific url."""
         if url and not title:
             raise cmdexc.CommandError('Title must be provided if url has '
-                                    'been provided')
+                                      'been provided')
         bookmark_manager = objreg.get('bookmark-manager')
-        if isinstance(url, str):
+        if url is None:
+            url = self._current_url()
+        else:
             try:
                 url = urlutils.fuzzy_url(url)
             except urlutils.InvalidUrlError as e:
                 raise cmdexc.CommandError(e)
-        elif not url:
-            url = self._current_url()
         if not title:
             title = self._current_title()
         try:
