@@ -195,8 +195,10 @@ class TestArguments:
         standarddir.init(args)
         assert standarddir.data() == testcase.expected
 
-    def test_confdir_none(self):
+    def test_confdir_none(self, mocker):
         """Test --confdir with None given."""
+        # patch makedirs to a noop so we don't really create a directory
+        mocker.patch('qutebrowser.utils.standarddir.os.makedirs')
         args = types.SimpleNamespace(confdir=None, cachedir=None, datadir=None,
                                      basedir=None)
         standarddir.init(args)
@@ -326,12 +328,16 @@ class TestSystemData:
         assert standarddir.system_data() == "/usr/share/qutebrowser"
 
     @pytest.mark.linux
-    def test_system_datadir_not_exist_linux(self, monkeypatch):
+    def test_system_datadir_not_exist_linux(self, monkeypatch, tmpdir):
         """Test that system-wide path isn't used on linux if path not exist."""
+        args = types.SimpleNamespace(basedir=str(tmpdir))
+        standarddir.init(args)
         monkeypatch.setattr(os.path, 'exists', lambda path: False)
         assert standarddir.system_data() == standarddir.data()
 
-    def test_system_datadir_unsupportedos(self, monkeypatch):
+    def test_system_datadir_unsupportedos(self, monkeypatch, tmpdir):
         """Test that system-wide path is not used on non-Linux OS."""
+        args = types.SimpleNamespace(basedir=str(tmpdir))
+        standarddir.init(args)
         monkeypatch.setattr('sys.platform', "potato")
         assert standarddir.system_data() == standarddir.data()
