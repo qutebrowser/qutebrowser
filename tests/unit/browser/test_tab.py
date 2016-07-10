@@ -19,7 +19,7 @@
 
 import pytest
 
-from PyQt5.QtCore import pyqtSignal, QPoint
+from PyQt5.QtCore import PYQT_VERSION, pyqtSignal, QPoint
 
 from qutebrowser.browser import browsertab
 from qutebrowser.keyinput import modeman
@@ -41,6 +41,8 @@ except ImportError:
     WebEngineView = None
 
 
+@pytest.mark.skipif(PYQT_VERSION < 0x050600,
+                    reason='Causes segfaults, see #1638')
 @pytest.mark.parametrize('view', [WebView, WebEngineView])
 def test_tab(qtbot, view, config_stub, tab_registry):
     config_stub.data = {
