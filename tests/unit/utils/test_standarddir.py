@@ -52,15 +52,15 @@ def no_cachedir_tag(monkeypatch):
                         lambda: None)
 
 
-@pytest.yield_fixture(autouse=True)
-@pytest.mark.usefixtures('no_cachedir_tag')
-def reset_standarddir():
+@pytest.yield_fixture
+def reset_standarddir(no_cachedir_tag):
     """Clean up standarddir arguments before and after each test."""
     standarddir.init(None)
     yield
     standarddir.init(None)
 
 
+@pytest.mark.usefixtures('reset_standarddir')
 @pytest.mark.parametrize('data_subdir, config_subdir, expected', [
     ('foo', 'foo', 'foo/data'),
     ('foo', 'bar', 'foo'),
@@ -80,6 +80,7 @@ def test_get_fake_windows_equal_dir(data_subdir, config_subdir, expected,
     assert standarddir.data() == expected
 
 
+@pytest.mark.usefixtures('reset_standarddir')
 class TestWritableLocation:
 
     """Tests for _writable_location."""
@@ -100,7 +101,7 @@ class TestWritableLocation:
         assert '\\' in loc
 
 
-@pytest.mark.usefixtures('no_cachedir_tag')
+@pytest.mark.usefixtures('reset_standarddir')
 class TestStandardDir:
 
     """Tests for standarddir."""
@@ -159,7 +160,7 @@ class TestStandardDir:
 DirArgTest = collections.namedtuple('DirArgTest', 'arg, expected')
 
 
-@pytest.mark.usefixtures('no_cachedir_tag')
+@pytest.mark.usefixtures('reset_standarddir')
 class TestArguments:
 
     """Tests with confdir/cachedir/datadir arguments."""
@@ -274,6 +275,7 @@ class TestInitCacheDirTag:
         assert not tmpdir.listdir()
 
 
+@pytest.mark.usefixtures('reset_standarddir')
 class TestCreatingDir:
 
     """Make sure inexistent directories are created properly."""
@@ -317,6 +319,7 @@ class TestCreatingDir:
         func()
 
 
+@pytest.mark.usefixtures('reset_standarddir')
 class TestSystemData:
 
     """Test system data path."""
