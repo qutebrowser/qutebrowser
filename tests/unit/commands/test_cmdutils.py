@@ -17,12 +17,14 @@
 # You should have received a copy of the GNU General Public License
 # along with qutebrowser.  If not, see <http://www.gnu.org/licenses/>.
 
+# pylint: disable=unused-variable
+
 """Tests for qutebrowser.commands.cmdutils."""
 
 import pytest
 
 from qutebrowser.commands import cmdutils, cmdexc, argparser, command
-from qutebrowser.utils import usertypes, typing, objreg
+from qutebrowser.utils import usertypes, typing
 
 
 @pytest.fixture(autouse=True)
@@ -99,8 +101,6 @@ class TestCheckExclusive:
 
 
 class TestRegister:
-
-    # pylint: disable=unused-variable
 
     def test_simple(self):
         @cmdutils.register()
@@ -318,8 +318,6 @@ class TestRegister:
 class TestArgument:
 
     """Test the @cmdutils.argument decorator."""
-
-    # pylint: disable=unused-variable
 
     def test_invalid_argument(self):
         with pytest.raises(ValueError) as excinfo:

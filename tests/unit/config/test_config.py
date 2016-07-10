@@ -21,7 +21,6 @@
 import os
 import os.path
 import configparser
-import argparse
 import collections
 import shutil
 from unittest import mock
