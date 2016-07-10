@@ -29,7 +29,6 @@ from qutebrowser.commands import cmdexc, argparser
 from qutebrowser.utils import (log, utils, message, docutils, objreg,
                                usertypes, typing)
 from qutebrowser.utils import debug as debug_utils
-from qutebrowser.browser import tab as tabmod
 
 
 class ArgInfo:
@@ -183,8 +182,8 @@ class Command:
                 "{}: This command needs javascript enabled.".format(self.name))
 
         backend_mapping = {
-            'webkit': tabmod.Backend.QtWebKit,
-            'webengine': tabmod.Backend.QtWebEngine,
+            'webkit': usertypes.Backend.QtWebKit,
+            'webengine': usertypes.Backend.QtWebEngine,
         }
         used_backend = backend_mapping[objreg.get('args').backend]
         if self.backend is not None and used_backend != self.backend:

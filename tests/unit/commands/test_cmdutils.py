@@ -23,7 +23,6 @@ import pytest
 
 from qutebrowser.commands import cmdutils, cmdexc, argparser, command
 from qutebrowser.utils import usertypes, typing, objreg
-from qutebrowser.browser import tab as tabmod
 
 
 @pytest.fixture(autouse=True)
@@ -373,10 +372,10 @@ class TestRun:
         fake_args.backend = 'webkit'
 
     @pytest.mark.parametrize('backend, used, ok', [
-        (tabmod.Backend.QtWebEngine, 'webengine', True),
-        (tabmod.Backend.QtWebEngine, 'webkit', False),
-        (tabmod.Backend.QtWebKit, 'webengine', False),
-        (tabmod.Backend.QtWebKit, 'webkit', True),
+        (usertypes.Backend.QtWebEngine, 'webengine', True),
+        (usertypes.Backend.QtWebEngine, 'webkit', False),
+        (usertypes.Backend.QtWebKit, 'webengine', False),
+        (usertypes.Backend.QtWebKit, 'webkit', True),
         (None, 'webengine', True),
         (None, 'webkit', True),
     ])
@@ -402,7 +401,7 @@ class TestRun:
         display an error instead of crashing.
         """
         @cmdutils.register(instance='doesnotexist',
-                           backend=tabmod.Backend.QtWebEngine)
+                           backend=usertypes.Backend.QtWebEngine)
         def fun(self):
             """Blah."""
             pass

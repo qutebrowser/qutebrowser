@@ -31,7 +31,6 @@ from PyQt5.QtGui import QMouseEvent
 from PyQt5.QtWebKit import QWebElement
 from PyQt5.QtWebKitWidgets import QWebPage
 
-from qutebrowser.browser import tab as tabmod
 from qutebrowser.config import config
 from qutebrowser.keyinput import modeman, modeparsers
 from qutebrowser.browser.webkit import webelem
@@ -764,7 +763,7 @@ class HintManager(QObject):
 
     @cmdutils.register(instance='hintmanager', scope='tab', name='hint',
                        star_args_optional=True, maxsplit=2,
-                       backend=tabmod.Backend.QtWebKit)
+                       backend=usertypes.Backend.QtWebKit)
     @cmdutils.argument('win_id', win_id=True)
     def start(self, rapid=False, group=webelem.Group.all, target=Target.normal,
               *args, win_id):

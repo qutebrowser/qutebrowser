@@ -33,9 +33,6 @@ from qutebrowser.utils import utils, objreg, usertypes, message
 tab_id_gen = itertools.count(0)
 
 
-Backend = usertypes.enum('Backend', ['QtWebKit', 'QtWebEngine'])
-
-
 def create(win_id, parent=None):
     """Get a QtWebKit/QtWebEngine tab object.
 

@@ -251,6 +251,10 @@ LoadStatus = enum('LoadStatus', ['none', 'success', 'success_https', 'error',
                                  'warn', 'loading'])
 
 
+# Backend of a tab
+Backend = enum('Backend', ['QtWebKit', 'QtWebEngine'])
+
+
 class Question(QObject):
 
     """A question asked to the user, e.g. via the status bar.

@@ -462,7 +462,7 @@ class WebViewTab(tabmod.AbstractTab):
         self._set_widget(widget)
         self._connect_signals()
         self.zoom.set_default()
-        self.backend = tabmod.Backend.QtWebKit
+        self.backend = usertypes.Backend.QtWebKit
 
     def openurl(self, url):
         self._widget.openurl(url)
