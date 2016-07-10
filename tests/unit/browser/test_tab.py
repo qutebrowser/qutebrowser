@@ -21,7 +21,7 @@ import pytest
 
 from PyQt5.QtCore import pyqtSignal, QPoint
 
-from qutebrowser.browser import tab
+from qutebrowser.browser import browsertab
 from qutebrowser.keyinput import modeman
 
 try:
@@ -59,7 +59,7 @@ def test_tab(qtbot, view, config_stub, tab_registry):
     w = view()
     qtbot.add_widget(w)
 
-    tab_w = tab.AbstractTab(win_id=0)
+    tab_w = browsertab.AbstractTab(win_id=0)
     qtbot.add_widget(tab_w)
     tab_w.show()
 
@@ -68,13 +68,13 @@ def test_tab(qtbot, view, config_stub, tab_registry):
 
     mode_manager = modeman.ModeManager(0)
 
-    tab_w.history = tab.AbstractHistory(tab_w)
-    tab_w.scroll = tab.AbstractScroller(parent=tab_w)
-    tab_w.caret = tab.AbstractCaret(win_id=tab_w.win_id,
-                                    mode_manager=mode_manager, tab=tab_w,
-                                    parent=tab_w)
-    tab_w.zoom = tab.AbstractZoom(win_id=tab_w.win_id)
-    tab_w.search = tab.AbstractSearch(parent=tab_w)
+    tab_w.history = browsertab.AbstractHistory(tab_w)
+    tab_w.scroll = browsertab.AbstractScroller(parent=tab_w)
+    tab_w.caret = browsertab.AbstractCaret(win_id=tab_w.win_id,
+                                           mode_manager=mode_manager,
+                                           tab=tab_w, parent=tab_w)
+    tab_w.zoom = browsertab.AbstractZoom(win_id=tab_w.win_id)
+    tab_w.search = browsertab.AbstractSearch(parent=tab_w)
 
     tab_w._set_widget(w)
     assert tab_w._widget is w
@@ -86,13 +86,13 @@ def test_tab(qtbot, view, config_stub, tab_registry):
 class TestTabData:
 
     def test_known_attr(self):
-        data = tab.TabData()
+        data = browsertab.TabData()
         assert not data.keep_icon
         data.keep_icon = True
         assert data.keep_icon
 
     def test_unknown_attr(self):
-        data = tab.TabData()
+        data = browsertab.TabData()
         with pytest.raises(AttributeError):
             data.bar = 42  # pylint: disable=assigning-non-slot
         with pytest.raises(AttributeError):

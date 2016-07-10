@@ -29,12 +29,12 @@ from PyQt5.QtWidgets import QApplication
 from PyQt5.QtWebEngineWidgets import QWebEnginePage
 # pylint: enable=no-name-in-module,import-error,useless-suppression
 
-from qutebrowser.browser import tab as tabmod
+from qutebrowser.browser import browsertab
 from qutebrowser.browser.webengine import webview
 from qutebrowser.utils import usertypes, qtutils, log
 
 
-class WebEngineSearch(tabmod.AbstractSearch):
+class WebEngineSearch(browsertab.AbstractSearch):
 
     """QtWebEngine implementations related to searching on the page."""
 
@@ -51,7 +51,7 @@ class WebEngineSearch(tabmod.AbstractSearch):
         log.stub()
 
 
-class WebEngineCaret(tabmod.AbstractCaret):
+class WebEngineCaret(browsertab.AbstractCaret):
 
     """QtWebEngine implementations related to moving the cursor/selection."""
 
@@ -126,7 +126,7 @@ class WebEngineCaret(tabmod.AbstractCaret):
         log.stub()
 
 
-class WebEngineScroller(tabmod.AbstractScroller):
+class WebEngineScroller(browsertab.AbstractScroller):
 
     """QtWebEngine implementations related to scrolling."""
 
@@ -203,7 +203,7 @@ class WebEngineScroller(tabmod.AbstractScroller):
         log.stub()
 
 
-class WebEngineHistory(tabmod.AbstractHistory):
+class WebEngineHistory(browsertab.AbstractHistory):
 
     """QtWebEngine implementations related to page history."""
 
@@ -232,7 +232,7 @@ class WebEngineHistory(tabmod.AbstractHistory):
         log.stub()
 
 
-class WebEngineZoom(tabmod.AbstractZoom):
+class WebEngineZoom(browsertab.AbstractZoom):
 
     """QtWebEngine implementations related to zooming."""
 
@@ -243,7 +243,7 @@ class WebEngineZoom(tabmod.AbstractZoom):
         return self._widget.zoomFactor()
 
 
-class WebEngineViewTab(tabmod.AbstractTab):
+class WebEngineTab(browsertab.AbstractTab):
 
     """A QtWebEngine tab in the browser."""
 

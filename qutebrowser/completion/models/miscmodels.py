@@ -22,7 +22,7 @@
 from collections import defaultdict
 from PyQt5.QtCore import Qt, QTimer, pyqtSlot
 
-from qutebrowser.browser import tab as tabmod
+from qutebrowser.browser import browsertab
 from qutebrowser.config import config, configdata
 from qutebrowser.utils import objreg, log, qtutils, utils
 from qutebrowser.commands import cmdutils
@@ -193,7 +193,7 @@ class TabCompletionModel(base.BaseCompletionModel):
         """Add hooks to new windows."""
         window.tabbed_browser.new_tab.connect(self.on_new_tab)
 
-    @pyqtSlot(tabmod.AbstractTab)
+    @pyqtSlot(browsertab.AbstractTab)
     def on_new_tab(self, tab):
         """Add hooks to new tabs."""
         tab.url_text_changed.connect(self.rebuild)

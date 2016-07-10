@@ -28,12 +28,12 @@ from PyQt5.QtGui import QKeyEvent
 from PyQt5.QtWebKitWidgets import QWebPage
 from PyQt5.QtWebKit import QWebSettings
 
-from qutebrowser.browser import tab as tabmod
+from qutebrowser.browser import browsertab
 from qutebrowser.browser.webkit import webview, tabhistory
 from qutebrowser.utils import qtutils, objreg, usertypes, utils
 
 
-class WebViewSearch(tabmod.AbstractSearch):
+class WebKitSearch(browsertab.AbstractSearch):
 
     """QtWebKit implementations related to searching on the page."""
 
@@ -75,7 +75,7 @@ class WebViewSearch(tabmod.AbstractSearch):
         self._widget.search(self.text, flags)
 
 
-class WebViewCaret(tabmod.AbstractCaret):
+class WebKitCaret(browsertab.AbstractCaret):
 
     """QtWebKit implementations related to moving the cursor/selection."""
 
@@ -281,13 +281,13 @@ class WebViewCaret(tabmod.AbstractCaret):
                 selected_element = xml.etree.ElementTree.fromstring(
                     '<html>{}</html>'.format(selection)).find('a')
             except xml.etree.ElementTree.ParseError:
-                raise tabmod.WebTabError('Could not parse selected element!')
+                raise browsertab.WebTabError('Could not parse selected element!')
 
             if selected_element is not None:
                 try:
                     url = selected_element.attrib['href']
                 except KeyError:
-                    raise tabmod.WebTabError('Anchor element without href!')
+                    raise browsertab.WebTabError('Anchor element without href!')
                 url = self._tab.url().resolved(QUrl(url))
                 if tab:
                     self._tab.new_tab_requested.emit(url)
@@ -295,7 +295,7 @@ class WebViewCaret(tabmod.AbstractCaret):
                     self._tab.openurl(url)
 
 
-class WebViewZoom(tabmod.AbstractZoom):
+class WebKitZoom(browsertab.AbstractZoom):
 
     """QtWebKit implementations related to zooming."""
 
@@ -306,7 +306,7 @@ class WebViewZoom(tabmod.AbstractZoom):
         return self._widget.zoomFactor()
 
 
-class WebViewScroller(tabmod.AbstractScroller):
+class WebKitScroller(browsertab.AbstractScroller):
 
     """QtWebKit implementations related to scrolling."""
 
@@ -406,7 +406,7 @@ class WebViewScroller(tabmod.AbstractScroller):
         return self.pos_px().y() >= frame.scrollBarMaximum(Qt.Vertical)
 
 
-class WebViewHistory(tabmod.AbstractHistory):
+class WebKitHistory(browsertab.AbstractHistory):
 
     """QtWebKit implementations related to page history."""
 
@@ -446,19 +446,19 @@ class WebViewHistory(tabmod.AbstractHistory):
                     self._tab.scroll.to_point, cur_data['scroll-pos']))
 
 
-class WebViewTab(tabmod.AbstractTab):
+class WebKitTab(browsertab.AbstractTab):
 
     """A QtWebKit tab in the browser."""
 
     def __init__(self, win_id, mode_manager, parent=None):
         super().__init__(win_id)
         widget = webview.WebView(win_id, self.tab_id, tab=self)
-        self.history = WebViewHistory(self)
-        self.scroll = WebViewScroller(parent=self)
-        self.caret = WebViewCaret(win_id=win_id, mode_manager=mode_manager,
-                                  tab=self, parent=self)
-        self.zoom = WebViewZoom(win_id=win_id, parent=self)
-        self.search = WebViewSearch(parent=self)
+        self.history = WebKitHistory(self)
+        self.scroll = WebKitScroller(parent=self)
+        self.caret = WebKitCaret(win_id=win_id, mode_manager=mode_manager,
+                                 tab=self, parent=self)
+        self.zoom = WebKitZoom(win_id=win_id, parent=self)
+        self.search = WebKitSearch(parent=self)
         self._set_widget(widget)
         self._connect_signals()
         self.zoom.set_default()

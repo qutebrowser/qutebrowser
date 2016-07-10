@@ -40,8 +40,7 @@ import pygments.formatters
 
 from qutebrowser.commands import userscripts, cmdexc, cmdutils, runners
 from qutebrowser.config import config, configexc
-from qutebrowser.browser import urlmarks
-from qutebrowser.browser import tab as tabmod
+from qutebrowser.browser import urlmarks, browsertab
 from qutebrowser.browser.webkit import webelem, inspector, downloads, mhtml
 from qutebrowser.keyinput import modeman
 from qutebrowser.utils import (message, usertypes, log, qtutils, urlutils,
@@ -1122,7 +1121,7 @@ class CommandDispatcher:
         """
         try:
             self._current_widget().caret.follow_selected(tab=tab)
-        except tabmod.WebTabError as e:
+        except browsertab.WebTabError as e:
             raise cmdexc.CommandError(str(e))
 
     @cmdutils.register(instance='command-dispatcher', name='inspector',

@@ -45,10 +45,10 @@ def create(win_id, parent=None):
     mode_manager = modeman.instance(win_id)
     if objreg.get('args').backend == 'webengine':
         from qutebrowser.browser.webengine import webenginetab
-        tab_class = webenginetab.WebEngineViewTab
+        tab_class = webenginetab.WebEngineTab
     else:
         from qutebrowser.browser.webkit import webkittab
-        tab_class = webkittab.WebViewTab
+        tab_class = webkittab.WebKitTab
     return tab_class(win_id=win_id, mode_manager=mode_manager, parent=parent)
 
 

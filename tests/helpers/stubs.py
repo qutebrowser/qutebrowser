@@ -29,7 +29,7 @@ from PyQt5.QtNetwork import (QNetworkRequest, QAbstractNetworkCache,
                              QNetworkCacheMetaData)
 from PyQt5.QtWidgets import QCommonStyle, QLineEdit
 
-from qutebrowser.browser import tab
+from qutebrowser.browser import browsertab
 from qutebrowser.browser.webkit import history
 from qutebrowser.config import configexc
 from qutebrowser.utils import usertypes
@@ -225,7 +225,7 @@ def fake_qprocess():
     return m
 
 
-class FakeWebTabScroller(tab.AbstractScroller):
+class FakeWebTabScroller(browsertab.AbstractScroller):
 
     """Fake AbstractScroller to use in tests."""
 
@@ -237,7 +237,7 @@ class FakeWebTabScroller(tab.AbstractScroller):
         return self._pos_perc
 
 
-class FakeWebTab(tab.AbstractTab):
+class FakeWebTab(browsertab.AbstractTab):
 
     """Fake AbstractTab to use in tests."""
 
@@ -544,7 +544,7 @@ class TabbedBrowserStub(QObject):
 
     """Stub for the tabbed-browser object."""
 
-    new_tab = pyqtSignal(tab.AbstractTab, int)
+    new_tab = pyqtSignal(browsertab.AbstractTab, int)
 
     def __init__(self, parent=None):
         super().__init__(parent)

@@ -21,7 +21,7 @@
 
 from PyQt5.QtCore import pyqtSlot, pyqtProperty, Qt, QUrl
 
-from qutebrowser.browser import tab as tabmod
+from qutebrowser.browser import browsertab
 from qutebrowser.mainwindow.statusbar import textbase
 from qutebrowser.config import style
 from qutebrowser.utils import usertypes
@@ -160,7 +160,7 @@ class UrlText(textbase.TextBase):
             self._hover_url = None
         self._update_url()
 
-    @pyqtSlot(tabmod.AbstractTab)
+    @pyqtSlot(browsertab.AbstractTab)
     def on_tab_changed(self, tab):
         """Update URL if the tab changed."""
         self._hover_url = None
