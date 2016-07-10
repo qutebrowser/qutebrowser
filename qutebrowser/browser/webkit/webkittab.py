@@ -281,13 +281,15 @@ class WebKitCaret(browsertab.AbstractCaret):
                 selected_element = xml.etree.ElementTree.fromstring(
                     '<html>{}</html>'.format(selection)).find('a')
             except xml.etree.ElementTree.ParseError:
-                raise browsertab.WebTabError('Could not parse selected element!')
+                raise browsertab.WebTabError('Could not parse selected '
+                                             'element!')
 
             if selected_element is not None:
                 try:
                     url = selected_element.attrib['href']
                 except KeyError:
-                    raise browsertab.WebTabError('Anchor element without href!')
+                    raise browsertab.WebTabError('Anchor element without '
+                                                 'href!')
                 url = self._tab.url().resolved(QUrl(url))
                 if tab:
                     self._tab.new_tab_requested.emit(url)
