@@ -17,7 +17,7 @@
 # You should have received a copy of the GNU General Public License
 # along with qutebrowser.  If not, see <http://www.gnu.org/licenses/>.
 
-# pylint: disable=unused-import,wrong-import-position,bad-mcs-method-argument
+# pylint: disable=unused-import,bad-mcs-method-argument
 
 """Wrapper for Python 3.5's typing module.
 
