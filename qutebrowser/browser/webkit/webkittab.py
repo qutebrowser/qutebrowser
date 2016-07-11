@@ -472,9 +472,6 @@ class WebKitTab(browsertab.AbstractTab):
     def url(self):
         return self._widget.cur_url
 
-    def progress(self):
-        return self._widget.progress
-
     def load_status(self):
         return self._widget.load_status
 
@@ -522,7 +519,7 @@ class WebKitTab(browsertab.AbstractTab):
         frame = page.mainFrame()
         page.windowCloseRequested.connect(self.window_close_requested)
         page.linkHovered.connect(self.link_hovered)
-        page.loadProgress.connect(self.load_progress)
+        page.loadProgress.connect(self._on_load_progress)
         frame.loadStarted.connect(self._on_load_started)
         view.scroll_pos_changed.connect(self.scroll.perc_changed)
         view.titleChanged.connect(self.title_changed)

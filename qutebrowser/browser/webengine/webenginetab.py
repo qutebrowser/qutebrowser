@@ -266,10 +266,6 @@ class WebEngineTab(browsertab.AbstractTab):
     def url(self):
         return self._widget.url()
 
-    def progress(self):
-        log.stub()
-        return 0
-
     def load_status(self):
         log.stub()
         return usertypes.LoadStatus.success
@@ -321,7 +317,7 @@ class WebEngineTab(browsertab.AbstractTab):
         page = view.page()
         page.windowCloseRequested.connect(self.window_close_requested)
         page.linkHovered.connect(self.link_hovered)
-        page.loadProgress.connect(self.load_progress)
+        page.loadProgress.connect(self._on_load_progress)
         page.loadStarted.connect(self._on_load_started)
         view.titleChanged.connect(self.title_changed)
         page.loadFinished.connect(self.load_finished)

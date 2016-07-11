@@ -41,7 +41,6 @@ class WebView(QWebView):
     Attributes:
         tab: The WebKitTab object for this WebView
         hintmanager: The HintManager instance for this view.
-        progress: loading progress of this page.
         scroll_pos: The current scroll position as (x%, y%) tuple.
         statusbar_message: The current javascript statusbar message.
         load_status: loading status of this page (index into LoadStatus)
@@ -91,7 +90,6 @@ class WebView(QWebView):
         self._ignore_wheel_event = False
         self._set_bg_color()
         self.cur_url = QUrl()
-        self.progress = 0
         self._tab_id = tab_id
 
         page = self._init_page()
@@ -108,7 +106,6 @@ class WebView(QWebView):
         if config.get('input', 'rocker-gestures'):
             self.setContextMenuPolicy(Qt.PreventContextMenu)
         self.urlChanged.connect(self.on_url_changed)
-        self.loadProgress.connect(lambda p: setattr(self, 'progress', p))
         objreg.get('config').changed.connect(self.on_config_changed)
 
     @pyqtSlot()
@@ -355,7 +352,6 @@ class WebView(QWebView):
     @pyqtSlot()
     def on_load_started(self):
         """Leave insert/hint mode and set vars when a new page is loading."""
-        self.progress = 0
         self._has_ssl_errors = False
         self._set_load_status(usertypes.LoadStatus.loading)
 

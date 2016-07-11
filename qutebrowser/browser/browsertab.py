@@ -466,6 +466,7 @@ class AbstractTab(QWidget):
         self.data = TabData()
         self._layout = None
         self._widget = None
+        self._progress = 0
         self.backend = None
 
     def _set_widget(self, widget):
@@ -483,14 +484,20 @@ class AbstractTab(QWidget):
 
     @pyqtSlot()
     def _on_load_started(self):
+        self._progress = 0
         self.data.viewing_source = False
         self.load_started.emit()
+
+    @pyqtSlot(int)
+    def _on_load_progress(self, perc):
+        self._progress = perc
+        self.load_progress.emit(perc)
 
     def url(self):
         raise NotImplementedError
 
     def progress(self):
-        raise NotImplementedError
+        return self._progress
 
     def load_status(self):
         raise NotImplementedError
