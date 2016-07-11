@@ -8,7 +8,7 @@
 |<<adblock-update,adblock-update>>|Update the adblock block lists.
 |<<back,back>>|Go back in the history of the current tab.
 |<<bind,bind>>|Bind a key to a command.
-|<<bookmark-add,bookmark-add>>|Save the current page as a bookmark.
+|<<bookmark-add,bookmark-add>>|Save the current page as a bookmark, or a specific url.
 |<<bookmark-del,bookmark-del>>|Delete a bookmark.
 |<<bookmark-load,bookmark-load>>|Load a bookmark.
 |<<buffer,buffer>>|Select tab by index or url/title best match.
@@ -116,7 +116,15 @@ Bind a key to a command.
 
 [[bookmark-add]]
 === bookmark-add
-Save the current page as a bookmark.
+Syntax: +:bookmark-add ['url'] ['title']+
+
+Save the current page as a bookmark, or a specific url.
+
+If no url and title are provided, then save the current page as a bookmark. If a url and title have been provided, then save the given url as a bookmark with the provided title.
+
+==== positional arguments
+* +'url'+: url to save as a bookmark. If None, use url of current page.
+* +'title'+: title of the new bookmark.
 
 [[bookmark-del]]
 === bookmark-del

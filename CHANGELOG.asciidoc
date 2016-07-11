@@ -34,6 +34,8 @@ Changed
   `gg` can be used with a count.
 - Aliases can now use `;;` to have an alias which executed multiple commands.
 - `:edit-url` now does nothing if the URL isn't changed in the spawned editor.
+- `:bookmark-add` can now be passed a URL and title to add that as a bookmark
+  rather than the current page.
 
 Removed
 -------
