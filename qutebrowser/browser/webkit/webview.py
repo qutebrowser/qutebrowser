@@ -96,7 +96,6 @@ class WebView(QWebView):
         mode_manager.left.connect(self.on_mode_left)
         if config.get('input', 'rocker-gestures'):
             self.setContextMenuPolicy(Qt.PreventContextMenu)
-        self.urlChanged.connect(self.on_url_changed)
         objreg.get('config').changed.connect(self.on_config_changed)
 
     @pyqtSlot()
@@ -287,9 +286,6 @@ class WebView(QWebView):
             url: The URL to load as QUrl
         """
         qtutils.ensure_valid(url)
-        urlstr = url.toDisplayString()
-        log.webview.debug("New title: {}".format(urlstr))
-        self.titleChanged.emit(urlstr)
         self.load(url)
         if url.scheme() == 'qute':
             frame = self.page().mainFrame()
@@ -308,16 +304,6 @@ class WebView(QWebView):
             bridge = objreg.get('js-bridge')
             frame.addToJavaScriptWindowObject('qute', bridge)
 
-    @pyqtSlot('QUrl')
-    def on_url_changed(self, url):
-        """Update title when URL has changed.
-
-        If the URL is invalid, we just ignore it here.
-        """
-        if url.isValid():
-            if not self.title():
-                self.titleChanged.emit(self.url().toDisplayString())
-
     @pyqtSlot('QMouseEvent')
     def on_mouse_event(self, evt):
         """Post a new mouse event from a hintmanager."""
@@ -334,8 +320,6 @@ class WebView(QWebView):
         See https://github.com/The-Compiler/qutebrowser/issues/84
         """
         ok = not self.page().error_occurred
-        if not self.title():
-            self.titleChanged.emit(self.url().toDisplayString())
         self._handle_auto_insert_mode(ok)
 
     def _handle_auto_insert_mode(self, ok):

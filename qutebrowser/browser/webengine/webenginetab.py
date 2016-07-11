@@ -261,6 +261,7 @@ class WebEngineTab(browsertab.AbstractTab):
         self.backend = usertypes.Backend.QtWebEngine
 
     def openurl(self, url):
+        self.title_changed.emit(url.toDisplayString())
         self._widget.load(url)
 
     def url(self):

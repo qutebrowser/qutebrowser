@@ -497,6 +497,12 @@ class AbstractTab(QWidget):
         self._load_status = val
         self.load_status_changed.emit(val.name)
 
+    @pyqtSlot(QUrl)
+    def _on_url_changed(self, url):
+        """Update title when URL has changed and no title is available."""
+        if url.isValid() and not self.title():
+            self.title_changed.emit(url().toDisplayString())
+
     @pyqtSlot()
     def _on_load_started(self):
         self._progress = 0
@@ -518,6 +524,8 @@ class AbstractTab(QWidget):
         else:
             self._set_load_status(usertypes.LoadStatus.error)
         self.load_finished.emit(ok)
+        if not self.title():
+            self.title_changed.emit(self.url().toDisplayString())
 
     @pyqtSlot(int)
     def _on_load_progress(self, perc):
