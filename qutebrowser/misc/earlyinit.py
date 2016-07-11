@@ -184,7 +184,7 @@ def fix_harfbuzz(args):
 def check_pyqt_core():
     """Check if PyQt core is installed."""
     try:
-        import PyQt5.QtCore
+        import PyQt5.QtCore  # pylint: disable=unused-variable
     except ImportError as e:
         text = _missing_str('PyQt5',
                             windows="Use the installer by Riverbank computing "
@@ -270,7 +270,7 @@ def maybe_import_webengine():
     See https://github.com/The-Compiler/qutebrowser/pull/1629#issuecomment-231613099
     """
     try:
-        from PyQt5 import QtWebEngineWidgets
+        from PyQt5 import QtWebEngineWidgets  # pylint: disable=unused-variable
     except ImportError:
         pass
 

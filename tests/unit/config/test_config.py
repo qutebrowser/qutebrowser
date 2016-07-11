@@ -299,7 +299,7 @@ class TestDefaultConfig:
     def test_default_key_config(self):
         """Test validating of the default key config."""
         # We import qutebrowser.app so the cmdutils.register decorators run.
-        import qutebrowser.app
+        import qutebrowser.app  # pylint: disable=unused-variable
         conf = keyconf.KeyConfigParser(None, None)
         runner = runners.CommandRunner(win_id=0)
         for sectname in configdata.KEY_DATA:
