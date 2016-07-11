@@ -264,6 +264,17 @@ def check_libraries():
             _die(text, e)
 
 
+def maybe_import_webengine():
+    """Import QtWebEngineWidgets before QApplication is created.
+
+    See https://github.com/The-Compiler/qutebrowser/pull/1629#issuecomment-231613099
+    """
+    try:
+        from PyQt5 import QtWebEngineWidgets
+    except ImportError:
+        pass
+
+
 def remove_inputhook():
     """Remove the PyQt input hook.
 
@@ -309,4 +320,5 @@ def earlyinit(args):
     check_ssl_support()
     remove_inputhook()
     check_libraries()
+    maybe_import_webengine()
     init_log(args)
