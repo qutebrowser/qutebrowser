@@ -51,6 +51,8 @@ class WebEngineView(QWebEngineView):
 
 class WebEnginePage(QWebEnginePage):
 
+    """Custom QWebEnginePage subclass with qutebrowser-specific features."""
+
     certificate_error = pyqtSignal()
 
     def certificateError(self, error):
