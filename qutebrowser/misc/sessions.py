@@ -130,6 +130,55 @@ class SessionManager(QObject):
         else:
             return True
 
+    def _save_tab_item(self, tab, idx, item):
+        """Save a single history item in a tab.
+
+        Args:
+            tab: The tab to save.
+            idx: The index of the current history item.
+            item: The history item.
+
+        Return:
+            A dict with the saved data for this item.
+        """
+        data = {
+            'url': bytes(item.url().toEncoded()).decode('ascii'),
+        }
+
+        if item.title():
+            data['title'] = item.title()
+        else:
+            # https://github.com/The-Compiler/qutebrowser/issues/879
+            if tab.history.current_idx() == idx:
+                data['title'] = tab.title()
+            else:
+                data['title'] = data['url']
+
+        if item.originalUrl() != item.url():
+            encoded = item.originalUrl().toEncoded()
+            data['original-url'] = bytes(encoded).decode('ascii')
+
+        if tab.history.current_idx() == idx:
+            data['active'] = True
+
+        try:
+            user_data = item.userData()
+        except AttributeError:
+            # QtWebEngine
+            user_data = None
+
+        if tab.history.current_idx() == idx:
+            pos = tab.scroll.pos_px()
+            data['zoom'] = tab.zoom.factor()
+            data['scroll-pos'] = {'x': pos.x(), 'y': pos.y()}
+        elif user_data is not None:
+            if 'zoom' in user_data:
+                data['zoom'] = user_data['zoom']
+            if 'scroll-pos' in user_data:
+                pos = user_data['scroll-pos']
+                data['scroll-pos'] = {'x': pos.x(), 'y': pos.y()}
+        return data
+
     def _save_tab(self, tab, active):
         """Get a dict with data for a single tab.
 
@@ -140,42 +189,9 @@ class SessionManager(QObject):
         data = {'history': []}
         if active:
             data['active'] = True
-        history = tab.page().history()
-        for idx, item in enumerate(history.items()):
+        for idx, item in enumerate(tab.history):
             qtutils.ensure_valid(item)
-
-            item_data = {
-                'url': bytes(item.url().toEncoded()).decode('ascii'),
-            }
-
-            if item.title():
-                item_data['title'] = item.title()
-            else:
-                # https://github.com/The-Compiler/qutebrowser/issues/879
-                if history.currentItemIndex() == idx:
-                    item_data['title'] = tab.page().mainFrame().title()
-                else:
-                    item_data['title'] = item_data['url']
-
-            if item.originalUrl() != item.url():
-                encoded = item.originalUrl().toEncoded()
-                item_data['original-url'] = bytes(encoded).decode('ascii')
-
-            if history.currentItemIndex() == idx:
-                item_data['active'] = True
-
-            user_data = item.userData()
-            if history.currentItemIndex() == idx:
-                pos = tab.page().mainFrame().scrollPosition()
-                item_data['zoom'] = tab.zoomFactor()
-                item_data['scroll-pos'] = {'x': pos.x(), 'y': pos.y()}
-            elif user_data is not None:
-                if 'zoom' in user_data:
-                    item_data['zoom'] = user_data['zoom']
-                if 'scroll-pos' in user_data:
-                    pos = user_data['scroll-pos']
-                    item_data['scroll-pos'] = {'x': pos.x(), 'y': pos.y()}
-
+            item_data = self._save_tab_item(tab, idx, item)
             data['history'].append(item_data)
         return data
 
@@ -300,9 +316,9 @@ class SessionManager(QObject):
                 active=active, user_data=user_data)
             entries.append(entry)
             if active:
-                new_tab.titleChanged.emit(histentry['title'])
+                new_tab.title_changed.emit(histentry['title'])
         try:
-            new_tab.page().load_history(entries)
+            new_tab.history.load_items(entries)
         except ValueError as e:
             raise SessionError(e)
 

@@ -80,6 +80,8 @@ class Command:
         parser: The ArgumentParser to use to parse this command.
         flags_with_args: A list of flags which take an argument.
         no_cmd_split: If true, ';;' to split sub-commands is ignored.
+        backend: Which backend the command works with (or None if it works with
+                 both)
         _qute_args: The saved data from @cmdutils.argument
         _needs_js: Whether the command needs javascript enabled
         _modes: The modes the command can be executed in.
@@ -92,7 +94,8 @@ class Command:
     def __init__(self, *, handler, name, instance=None, maxsplit=None,
                  hide=False, modes=None, not_modes=None, needs_js=False,
                  debug=False, ignore_args=False, deprecated=False,
-                 no_cmd_split=False, star_args_optional=False, scope='global'):
+                 no_cmd_split=False, star_args_optional=False, scope='global',
+                 backend=None):
         # I really don't know how to solve this in a better way, I tried.
         # pylint: disable=too-many-locals
         if modes is not None and not_modes is not None:
@@ -123,6 +126,8 @@ class Command:
         self.ignore_args = ignore_args
         self.handler = handler
         self.no_cmd_split = no_cmd_split
+        self.backend = backend
+
         self.docparser = docutils.DocstringParser(handler)
         self.parser = argparser.ArgumentParser(
             name, description=self.docparser.short_desc,
@@ -170,10 +175,22 @@ class Command:
             raise cmdexc.PrerequisitesError(
                 "{}: This command is not allowed in {} mode.".format(
                     self.name, mode_names))
+
         if self._needs_js and not QWebSettings.globalSettings().testAttribute(
                 QWebSettings.JavascriptEnabled):
             raise cmdexc.PrerequisitesError(
                 "{}: This command needs javascript enabled.".format(self.name))
+
+        backend_mapping = {
+            'webkit': usertypes.Backend.QtWebKit,
+            'webengine': usertypes.Backend.QtWebEngine,
+        }
+        used_backend = backend_mapping[objreg.get('args').backend]
+        if self.backend is not None and used_backend != self.backend:
+            raise cmdexc.PrerequisitesError(
+                "{}: Only available with {} "
+                "backend.".format(self.name, self.backend.name))
+
         if self.deprecated:
             message.warning(win_id, '{} is deprecated - {}'.format(
                 self.name, self.deprecated))
@@ -483,6 +500,9 @@ class Command:
         dbgout = ["command called:", self.name]
         if args:
             dbgout.append(str(args))
+        elif args is None:
+            args = []
+
         if count is not None:
             dbgout.append("(count={})".format(count))
         log.commands.debug(' '.join(dbgout))
@@ -497,8 +517,8 @@ class Command:
                 e.status, e))
             return
         self._count = count
-        posargs, kwargs = self._get_call_args(win_id)
         self._check_prerequisites(win_id)
+        posargs, kwargs = self._get_call_args(win_id)
         log.commands.debug('Calling {}'.format(
             debug_utils.format_call(self.handler, posargs, kwargs)))
         self.handler(*posargs, **kwargs)

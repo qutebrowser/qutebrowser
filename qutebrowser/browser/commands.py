@@ -21,25 +21,26 @@
 
 import os
 import os.path
-import sys
 import shlex
 import posixpath
 import functools
-import xml.etree.ElementTree
 
-from PyQt5.QtWebKit import QWebSettings
 from PyQt5.QtWidgets import QApplication, QTabBar
 from PyQt5.QtCore import Qt, QUrl, QEvent
 from PyQt5.QtGui import QKeyEvent
 from PyQt5.QtPrintSupport import QPrintDialog, QPrintPreviewDialog
 from PyQt5.QtWebKitWidgets import QWebPage
+try:
+    from PyQt5.QtWebEngineWidgets import QWebEnginePage
+except ImportError:
+    QWebEnginePage = None
 import pygments
 import pygments.lexers
 import pygments.formatters
 
 from qutebrowser.commands import userscripts, cmdexc, cmdutils, runners
 from qutebrowser.config import config, configexc
-from qutebrowser.browser import urlmarks
+from qutebrowser.browser import urlmarks, browsertab
 from qutebrowser.browser.webkit import webelem, inspector, downloads, mhtml
 from qutebrowser.keyinput import modeman
 from qutebrowser.utils import (message, usertypes, log, qtutils, urlutils,
@@ -281,10 +282,7 @@ class CommandDispatcher:
         """
         tab = self._cntwidget(count)
         if tab is not None:
-            if force:
-                tab.page().triggerAction(QWebPage.ReloadAndBypassCache)
-            else:
-                tab.reload()
+            tab.reload(force=force)
 
     @cmdutils.register(instance='command-dispatcher', scope='window')
     @cmdutils.argument('count', count=True)
@@ -356,10 +354,9 @@ class CommandDispatcher:
             new_tabbed_browser.setTabIcon(idx, curtab.icon())
             if config.get('tabs', 'tabs-are-windows'):
                 new_tabbed_browser.window().setWindowIcon(curtab.icon())
-        newtab.keep_icon = True
-        newtab.setZoomFactor(curtab.zoomFactor())
-        history = qtutils.serialize(curtab.history())
-        qtutils.deserialize(history, newtab.history())
+        newtab.data.keep_icon = True
+        newtab.zoom.set_factor(curtab.zoom.factor())
+        newtab.history.deserialize(curtab.history.serialize())
         return newtab
 
     @cmdutils.register(instance='command-dispatcher', scope='window')
@@ -372,11 +369,11 @@ class CommandDispatcher:
 
     def _back_forward(self, tab, bg, window, count, forward):
         """Helper function for :back/:forward."""
+        history = self._current_widget().history
         # Catch common cases before e.g. cloning tab
-        history = self._current_widget().page().history()
-        if not forward and not history.canGoBack():
+        if not forward and not history.can_go_back():
             raise cmdexc.CommandError("At beginning of history.")
-        elif forward and not history.canGoForward():
+        elif forward and not history.can_go_forward():
             raise cmdexc.CommandError("At end of history.")
 
         if tab or bg or window:
@@ -384,16 +381,15 @@ class CommandDispatcher:
         else:
             widget = self._current_widget()
 
-        history = widget.page().history()
         for _ in range(count):
             if forward:
-                if not history.canGoForward():
+                if not widget.history.can_go_forward():
                     raise cmdexc.CommandError("At end of history.")
-                widget.forward()
+                widget.history.forward()
             else:
-                if not history.canGoBack():
+                if not widget.history.can_go_back():
                     raise cmdexc.CommandError("At beginning of history.")
-                widget.back()
+                widget.history.back()
 
     @cmdutils.register(instance='command-dispatcher', scope='window')
     @cmdutils.argument('count', count=True)
@@ -455,7 +451,8 @@ class CommandDispatcher:
         url.setPath(new_path)
         self._open(url, tab, background, window)
 
-    @cmdutils.register(instance='command-dispatcher', scope='window')
+    @cmdutils.register(instance='command-dispatcher', scope='window',
+                       backend=usertypes.Backend.QtWebKit)
     @cmdutils.argument('where', choices=['prev', 'next', 'up', 'increment',
                                          'decrement'])
     def navigate(self, where: str, tab=False, bg=False, window=False):
@@ -484,15 +481,27 @@ class CommandDispatcher:
 
         cmdutils.check_exclusive((tab, bg, window), 'tbw')
         widget = self._current_widget()
-        frame = widget.page().currentFrame()
         url = self._current_url().adjusted(QUrl.RemoveFragment)
-        if frame is None:
-            raise cmdexc.CommandError("No frame focused!")
+
+        if where in ['prev', 'next']:
+            # FIXME:qtwebengine have a proper API for this
+            if widget.backend == usertypes.Backend.QtWebEngine:
+                raise cmdexc.CommandError(":navigate prev/next is not "
+                                          "supported yet with QtWebEngine")
+            page = widget._widget.page()  # pylint: disable=protected-access
+            frame = page.currentFrame()
+            if frame is None:
+                raise cmdexc.CommandError("No frame focused!")
+        else:
+            frame = None
+
         hintmanager = objreg.get('hintmanager', scope='tab', tab='current')
         if where == 'prev':
+            assert frame is not None
             hintmanager.follow_prevnext(frame, url, prev=True, tab=tab,
                                         background=bg, window=window)
         elif where == 'next':
+            assert frame is not None
             hintmanager.follow_prevnext(frame, url, prev=False, tab=tab,
                                         background=bg, window=window)
         elif where == 'up':
@@ -518,7 +527,7 @@ class CommandDispatcher:
         dy *= count
         cmdutils.check_overflow(dx, 'int')
         cmdutils.check_overflow(dy, 'int')
-        self._current_widget().page().currentFrame().scroll(dx, dy)
+        self._current_widget().scroll.delta(dx, dy)
 
     @cmdutils.register(instance='command-dispatcher', hide=True,
                        scope='window')
@@ -531,54 +540,29 @@ class CommandDispatcher:
                        (up/down/left/right/top/bottom).
             count: multiplier
         """
-        fake_keys = {
-            'up': Qt.Key_Up,
-            'down': Qt.Key_Down,
-            'left': Qt.Key_Left,
-            'right': Qt.Key_Right,
-            'top': Qt.Key_Home,
-            'bottom': Qt.Key_End,
-            'page-up': Qt.Key_PageUp,
-            'page-down': Qt.Key_PageDown,
+        tab = self._current_widget()
+        funcs = {
+            'up': tab.scroll.up,
+            'down': tab.scroll.down,
+            'left': tab.scroll.left,
+            'right': tab.scroll.right,
+            'top': tab.scroll.top,
+            'bottom': tab.scroll.bottom,
+            'page-up': tab.scroll.page_up,
+            'page-down': tab.scroll.page_down,
         }
         try:
-            key = fake_keys[direction]
+            func = funcs[direction]
         except KeyError:
-            expected_values = ', '.join(sorted(fake_keys))
+            expected_values = ', '.join(sorted(funcs))
             raise cmdexc.CommandError("Invalid value {!r} for direction - "
                                       "expected one of: {}".format(
                                           direction, expected_values))
-        widget = self._current_widget()
-        frame = widget.page().currentFrame()
 
-        press_evt = QKeyEvent(QEvent.KeyPress, key, Qt.NoModifier, 0, 0, 0)
-        release_evt = QKeyEvent(QEvent.KeyRelease, key, Qt.NoModifier, 0, 0, 0)
-
-        # Count doesn't make sense with top/bottom
         if direction in ('top', 'bottom'):
-            count = 1
-
-        max_min = {
-            'up': [Qt.Vertical, frame.scrollBarMinimum],
-            'down': [Qt.Vertical, frame.scrollBarMaximum],
-            'left': [Qt.Horizontal, frame.scrollBarMinimum],
-            'right': [Qt.Horizontal, frame.scrollBarMaximum],
-            'page-up': [Qt.Vertical, frame.scrollBarMinimum],
-            'page-down': [Qt.Vertical, frame.scrollBarMaximum],
-        }
-
-        for _ in range(count):
-            # Abort scrolling if the minimum/maximum was reached.
-            try:
-                qt_dir, getter = max_min[direction]
-            except KeyError:
-                pass
-            else:
-                if frame.scrollBarValue(qt_dir) == getter(qt_dir):
-                    return
-
-            widget.keyPressEvent(press_evt)
-            widget.keyReleaseEvent(release_evt)
+            func()
+        else:
+            func(count=count)
 
     @cmdutils.register(instance='command-dispatcher', hide=True,
                        scope='window')
@@ -603,19 +587,14 @@ class CommandDispatcher:
         elif count is not None:
             perc = count
 
-        orientation = Qt.Horizontal if horizontal else Qt.Vertical
-
-        if perc == 0 and orientation == Qt.Vertical:
-            self.scroll('top')
-        elif perc == 100 and orientation == Qt.Vertical:
-            self.scroll('bottom')
+        if horizontal:
+            x = perc
+            y = None
         else:
-            perc = qtutils.check_overflow(perc, 'int', fatal=False)
-            frame = self._current_widget().page().currentFrame()
-            m = frame.scrollBarMaximum(orientation)
-            if m == 0:
-                return
-            frame.setScrollBarValue(orientation, int(m * perc / 100))
+            x = None
+            y = perc
+
+        self._current_widget().scroll.to_perc(x, y)
 
     @cmdutils.register(instance='command-dispatcher', hide=True,
                        scope='window')
@@ -638,38 +617,24 @@ class CommandDispatcher:
                           scrolling up at the top of the page.
             count: multiplier
         """
-        frame = self._current_widget().page().currentFrame()
-        if not frame.url().isValid():
+        tab = self._current_widget()
+        if not tab.url().isValid():
             # See https://github.com/The-Compiler/qutebrowser/issues/701
             return
 
-        if (bottom_navigate is not None and
-                frame.scrollPosition().y() >=
-                frame.scrollBarMaximum(Qt.Vertical)):
+        if bottom_navigate is not None and tab.scroll.at_bottom():
             self.navigate(bottom_navigate)
             return
-        elif top_navigate is not None and frame.scrollPosition().y() == 0:
+        elif top_navigate is not None and tab.scroll.at_top():
             self.navigate(top_navigate)
             return
 
-        mult_x = count * x
-        mult_y = count * y
-        if mult_y.is_integer():
-            if mult_y == 0:
-                pass
-            elif mult_y < 0:
-                self.scroll('page-up', count=-int(mult_y))
-            elif mult_y > 0:  # pragma: no branch
-                self.scroll('page-down', count=int(mult_y))
-            mult_y = 0
-        if mult_x == 0 and mult_y == 0:
-            return
-        size = frame.geometry()
-        dx = mult_x * size.width()
-        dy = mult_y * size.height()
-        cmdutils.check_overflow(dx, 'int')
-        cmdutils.check_overflow(dy, 'int')
-        frame.scroll(dx, dy)
+        try:
+            tab.scroll.delta_page(count * x, count * y)
+        except OverflowError:
+            raise cmdexc.CommandError(
+                "Numeric argument is too large for internal int "
+                "representation.")
 
     @cmdutils.register(instance='command-dispatcher', scope='window')
     def yank(self, title=False, sel=False, domain=False, pretty=False):
@@ -717,7 +682,7 @@ class CommandDispatcher:
         """
         tab = self._current_widget()
         try:
-            perc = tab.zoom(count)
+            perc = tab.zoom.offset(count)
         except ValueError as e:
             raise cmdexc.CommandError(e)
         message.info(self._win_id, "Zoom level: {}%".format(perc))
@@ -732,7 +697,7 @@ class CommandDispatcher:
         """
         tab = self._current_widget()
         try:
-            perc = tab.zoom(-count)
+            perc = tab.zoom.offset(-count)
         except ValueError as e:
             raise cmdexc.CommandError(e)
         message.info(self._win_id, "Zoom level: {}%".format(perc))
@@ -757,9 +722,9 @@ class CommandDispatcher:
         tab = self._current_widget()
 
         try:
-            tab.zoom_perc(level)
-        except ValueError as e:
-            raise cmdexc.CommandError(e)
+            tab.zoom.set_factor(float(level) / 100)
+        except ValueError:
+            raise cmdexc.CommandError("Can't zoom {}%!".format(level))
         message.info(self._win_id, "Zoom level: {}%".format(level))
 
     @cmdutils.register(instance='command-dispatcher', scope='window')
@@ -1070,14 +1035,12 @@ class CommandDispatcher:
         if idx != -1:
             env['QUTE_TITLE'] = self._tabbed_browser.page_title(idx)
 
-        webview = self._tabbed_browser.currentWidget()
-        if webview is None:
-            mainframe = None
-        else:
-            if webview.hasSelection():
-                env['QUTE_SELECTED_TEXT'] = webview.selectedText()
-                env['QUTE_SELECTED_HTML'] = webview.selectedHtml()
-            mainframe = webview.page().mainFrame()
+        tab = self._tabbed_browser.currentWidget()
+        if tab is not None and tab.caret.has_selection():
+            env['QUTE_SELECTED_TEXT'] = tab.caret.selection()
+            env['QUTE_SELECTED_HTML'] = tab.caret.selection(html=True)
+
+        # FIXME:qtwebengine: If tab is None, run_async will fail!
 
         try:
             url = self._tabbed_browser.current_url()
@@ -1086,9 +1049,11 @@ class CommandDispatcher:
         else:
             env['QUTE_URL'] = url.toString(QUrl.FullyEncoded)
 
-        env.update(userscripts.store_source(mainframe))
-        userscripts.run(cmd, *args, win_id=self._win_id, env=env,
-                        verbose=verbose)
+        try:
+            userscripts.run_async(tab, cmd, *args, win_id=self._win_id,
+                                  env=env, verbose=verbose)
+        except userscripts.UnsupportedError as e:
+            raise cmdexc.CommandError(e)
 
     @cmdutils.register(instance='command-dispatcher', scope='window')
     def quickmark_save(self):
@@ -1148,65 +1113,48 @@ class CommandDispatcher:
 
     @cmdutils.register(instance='command-dispatcher', hide=True,
                        scope='window')
-    def follow_selected(self, tab=False):
+    def follow_selected(self, *, tab=False):
         """Follow the selected text.
 
         Args:
             tab: Load the selected link in a new tab.
         """
-        widget = self._current_widget()
-        page = widget.page()
-        if not page.hasSelection():
-            return
-        if QWebSettings.globalSettings().testAttribute(
-                QWebSettings.JavascriptEnabled):
-            if tab:
-                page.open_target = usertypes.ClickTarget.tab
-            page.currentFrame().evaluateJavaScript(
-                'window.getSelection().anchorNode.parentNode.click()')
-        else:
-            try:
-                selected_element = xml.etree.ElementTree.fromstring(
-                    '<html>' + widget.selectedHtml() + '</html>').find('a')
-            except xml.etree.ElementTree.ParseError:
-                raise cmdexc.CommandError('Could not parse selected element!')
-
-            if selected_element is not None:
-                try:
-                    url = selected_element.attrib['href']
-                except KeyError:
-                    raise cmdexc.CommandError('Anchor element without href!')
-                url = self._current_url().resolved(QUrl(url))
-                self._open(url, tab)
+        try:
+            self._current_widget().caret.follow_selected(tab=tab)
+        except browsertab.WebTabError as e:
+            raise cmdexc.CommandError(str(e))
 
     @cmdutils.register(instance='command-dispatcher', name='inspector',
-                       scope='window')
+                       scope='window', backend=usertypes.Backend.QtWebKit)
     def toggle_inspector(self):
         """Toggle the web inspector.
 
         Note: Due a bug in Qt, the inspector will show incorrect request
         headers in the network tab.
         """
-        cur = self._current_widget()
-        if cur.inspector is None:
+        tab = self._current_widget()
+        if tab.data.inspector is None:
             if not config.get('general', 'developer-extras'):
                 raise cmdexc.CommandError(
                     "Please enable developer-extras before using the "
                     "webinspector!")
-            cur.inspector = inspector.WebInspector()
-            cur.inspector.setPage(cur.page())
-            cur.inspector.show()
-        elif cur.inspector.isVisible():
-            cur.inspector.hide()
+            tab.data.inspector = inspector.WebInspector()
+            # FIXME:qtwebengine have a proper API for this
+            page = tab._widget.page()  # pylint: disable=protected-access
+            tab.data.inspector.setPage(page)
+            tab.data.inspector.show()
+        elif tab.data.inspector.isVisible():
+            tab.data.inspector.hide()
         else:
             if not config.get('general', 'developer-extras'):
                 raise cmdexc.CommandError(
                     "Please enable developer-extras before using the "
                     "webinspector!")
             else:
-                cur.inspector.show()
+                tab.data.inspector.show()
 
-    @cmdutils.register(instance='command-dispatcher', scope='window')
+    @cmdutils.register(instance='command-dispatcher', scope='window',
+                       backend=usertypes.Backend.QtWebKit)
     @cmdutils.argument('dest_old', hide=True)
     def download(self, url=None, dest_old=None, *, mhtml_=False, dest=None):
         """Download a given URL, or current page if no URL given.
@@ -1238,13 +1186,14 @@ class CommandDispatcher:
             url = urlutils.qurl_from_user_input(url)
             urlutils.raise_cmdexc_if_invalid(url)
             download_manager.get(url, filename=dest)
+        elif mhtml_:
+            self._download_mhtml(dest)
         else:
-            if mhtml_:
-                self._download_mhtml(dest)
-            else:
-                page = self._current_widget().page()
-                download_manager.get(self._current_url(), page=page,
-                                     filename=dest)
+            # FIXME:qtwebengine have a proper API for this
+            tab = self._current_widget()
+            page = tab._widget.page()  # pylint: disable=protected-access
+            download_manager.get(self._current_url(), page=page,
+                                 filename=dest)
 
     def _download_mhtml(self, dest=None):
         """Download the current page as an MHTML file, including all assets.
@@ -1252,40 +1201,43 @@ class CommandDispatcher:
         Args:
             dest: The file path to write the download to.
         """
-        web_view = self._current_widget()
+        tab = self._current_widget()
         if dest is None:
             suggested_fn = self._current_title() + ".mht"
             suggested_fn = utils.sanitize_filename(suggested_fn)
             filename, q = downloads.ask_for_filename(
-                suggested_fn, self._win_id, parent=web_view,
+                suggested_fn, self._win_id, parent=tab,
             )
             if filename is not None:
-                mhtml.start_download_checked(filename, web_view=web_view)
+                mhtml.start_download_checked(filename, tab=tab)
             else:
                 q.answered.connect(functools.partial(
-                    mhtml.start_download_checked, web_view=web_view))
+                    mhtml.start_download_checked, tab=tab))
                 q.ask()
         else:
-            mhtml.start_download_checked(dest, web_view=web_view)
+            mhtml.start_download_checked(dest, tab=tab)
 
     @cmdutils.register(instance='command-dispatcher', scope='window')
     def view_source(self):
         """Show the source of the current page."""
         # pylint: disable=no-member
         # WORKAROUND for https://bitbucket.org/logilab/pylint/issue/491/
-        widget = self._current_widget()
-        if widget.viewing_source:
+        tab = self._current_widget()
+        if tab.data.viewing_source:
             raise cmdexc.CommandError("Already viewing source!")
-        frame = widget.page().currentFrame()
-        html = frame.toHtml()
-        lexer = pygments.lexers.HtmlLexer()
-        formatter = pygments.formatters.HtmlFormatter(full=True,
-                                                      linenos='table')
-        highlighted = pygments.highlight(html, lexer, formatter)
-        current_url = self._current_url()
-        tab = self._tabbed_browser.tabopen(explicit=True)
-        tab.setHtml(highlighted, current_url)
-        tab.viewing_source = True
+
+        def show_source_cb(source):
+            """Show source as soon as it's ready."""
+            lexer = pygments.lexers.HtmlLexer()
+            formatter = pygments.formatters.HtmlFormatter(full=True,
+                                                          linenos='table')
+            highlighted = pygments.highlight(source, lexer, formatter)
+            current_url = self._current_url()
+            new_tab = self._tabbed_browser.tabopen(explicit=True)
+            new_tab.set_html(highlighted, current_url)
+            new_tab.data.viewing_source = True
+
+        tab.dump_async(show_source_cb)
 
     @cmdutils.register(instance='command-dispatcher', scope='window',
                        debug=True)
@@ -1296,22 +1248,20 @@ class CommandDispatcher:
             dest: Where to write the file to.
             plain: Write plain text instead of HTML.
         """
-        web_view = self._current_widget()
-        mainframe = web_view.page().mainFrame()
-        if plain:
-            data = mainframe.toPlainText()
-        else:
-            data = mainframe.toHtml()
-
+        tab = self._current_widget()
         dest = os.path.expanduser(dest)
 
-        try:
-            with open(dest, 'w', encoding='utf-8') as f:
-                f.write(data)
-        except OSError as e:
-            raise cmdexc.CommandError('Could not write page: {}'.format(e))
-        else:
-            message.info(self._win_id, "Dumped page to {}.".format(dest))
+        def callback(data):
+            try:
+                with open(dest, 'w', encoding='utf-8') as f:
+                    f.write(data)
+            except OSError as e:
+                message.error(self._win_id,
+                              'Could not write page: {}'.format(e))
+            else:
+                message.info(self._win_id, "Dumped page to {}.".format(dest))
+
+        tab.dump_async(callback, plain=plain)
 
     @cmdutils.register(instance='command-dispatcher', name='help',
                        scope='window')
@@ -1377,16 +1327,19 @@ class CommandDispatcher:
         self._open(url, tab, bg, window)
 
     @cmdutils.register(instance='command-dispatcher',
-                       modes=[KeyMode.insert], hide=True, scope='window')
+                       modes=[KeyMode.insert], hide=True, scope='window',
+                       backend=usertypes.Backend.QtWebKit)
     def open_editor(self):
         """Open an external editor with the currently selected form field.
 
         The editor which should be launched can be configured via the
         `general -> editor` config option.
         """
-        frame = self._current_widget().page().currentFrame()
+        # FIXME:qtwebengine have a proper API for this
+        tab = self._current_widget()
+        page = tab._widget.page()  # pylint: disable=protected-access
         try:
-            elem = webelem.focus_elem(frame)
+            elem = webelem.focus_elem(page.currentFrame())
         except webelem.IsNullError:
             raise cmdexc.CommandError("No element focused!")
         if not elem.is_editable(strict=True):
@@ -1424,12 +1377,14 @@ class CommandDispatcher:
 
     @cmdutils.register(instance='command-dispatcher',
                        modes=[KeyMode.insert], hide=True, scope='window',
-                       needs_js=True)
+                       needs_js=True, backend=usertypes.Backend.QtWebKit)
     def paste_primary(self):
         """Paste the primary selection at cursor position."""
-        frame = self._current_widget().page().currentFrame()
+        # FIXME:qtwebengine have a proper API for this
+        tab = self._current_widget()
+        page = tab._widget.page()  # pylint: disable=protected-access
         try:
-            elem = webelem.focus_elem(frame)
+            elem = webelem.focus_elem(page.currentFrame())
         except webelem.IsNullError:
             raise cmdexc.CommandError("No element focused!")
         if not elem.is_editable(strict=True):
@@ -1449,17 +1404,6 @@ class CommandDispatcher:
             this.dispatchEvent(event);
         """.format(webelem.javascript_escape(sel)))
 
-    def _clear_search(self, view, text):
-        """Clear search string/highlights for the given view.
-
-        This does nothing if the view's search text is the same as the given
-        text.
-        """
-        if view.search_text is not None and view.search_text != text:
-            # We first clear the marked text, then the highlights
-            view.search('', 0)
-            view.search('', QWebPage.HighlightAllOccurrences)
-
     @cmdutils.register(instance='command-dispatcher', scope='window',
                        maxsplit=0)
     def search(self, text="", reverse=False):
@@ -1470,27 +1414,18 @@ class CommandDispatcher:
             reverse: Reverse search direction.
         """
         self.set_mark("'")
-        view = self._current_widget()
-        self._clear_search(view, text)
-        flags = 0
-        ignore_case = config.get('general', 'ignore-case')
-        if ignore_case == 'smart':
-            if not text.islower():
-                flags |= QWebPage.FindCaseSensitively
-        elif not ignore_case:
-            flags |= QWebPage.FindCaseSensitively
-        if config.get('general', 'wrap-search'):
-            flags |= QWebPage.FindWrapsAroundDocument
-        if reverse:
-            flags |= QWebPage.FindBackward
-        # We actually search *twice* - once to highlight everything, then again
-        # to get a mark so we can navigate.
-        view.search(text, flags)
-        view.search(text, flags | QWebPage.HighlightAllOccurrences)
-        view.search_text = text
-        view.search_flags = flags
+        tab = self._current_widget()
+        tab.search.clear()
+
+        options = {
+            'ignore_case': config.get('general', 'ignore-case'),
+            'wrap': config.get('general', 'wrap-search'),
+            'reverse': reverse,
+        }
+        tab.search.search(text, **options)
+
         self._tabbed_browser.search_text = text
-        self._tabbed_browser.search_flags = flags
+        self._tabbed_browser.search_options = options
 
     @cmdutils.register(instance='command-dispatcher', hide=True,
                        scope='window')
@@ -1501,18 +1436,19 @@ class CommandDispatcher:
         Args:
             count: How many elements to ignore.
         """
+        tab = self._current_widget()
+        window_text = self._tabbed_browser.search_text
+        window_options = self._tabbed_browser.search_options
+
         self.set_mark("'")
-        view = self._current_widget()
 
-        self._clear_search(view, self._tabbed_browser.search_text)
+        if window_text is not None and window_text != tab.search.text:
+            tab.search.clear()
+            tab.search.search(window_text, **window_options)
+            count -= 1
 
-        if self._tabbed_browser.search_text is not None:
-            view.search_text = self._tabbed_browser.search_text
-            view.search_flags = self._tabbed_browser.search_flags
-            view.search(view.search_text,
-                        view.search_flags | QWebPage.HighlightAllOccurrences)
-            for _ in range(count):
-                view.search(view.search_text, view.search_flags)
+        for _ in range(count):
+            tab.search.next_result()
 
     @cmdutils.register(instance='command-dispatcher', hide=True,
                        scope='window')
@@ -1523,25 +1459,19 @@ class CommandDispatcher:
         Args:
             count: How many elements to ignore.
         """
-        self.set_mark("'")
-        view = self._current_widget()
-        self._clear_search(view, self._tabbed_browser.search_text)
+        tab = self._current_widget()
+        window_text = self._tabbed_browser.search_text
+        window_options = self._tabbed_browser.search_options
 
-        if self._tabbed_browser.search_text is not None:
-            view.search_text = self._tabbed_browser.search_text
-            view.search_flags = self._tabbed_browser.search_flags
-            view.search(view.search_text,
-                        view.search_flags | QWebPage.HighlightAllOccurrences)
-        # The int() here serves as a QFlags constructor to create a copy of the
-        # QFlags instance rather as a reference. I don't know why it works this
-        # way, but it does.
-        flags = int(view.search_flags)
-        if flags & QWebPage.FindBackward:
-            flags &= ~QWebPage.FindBackward
-        else:
-            flags |= QWebPage.FindBackward
+        self.set_mark("'")
+
+        if window_text is not None and window_text != tab.search.text:
+            tab.search.clear()
+            tab.search.search(window_text, **window_options)
+            count -= 1
+
         for _ in range(count):
-            view.search(view.search_text, flags)
+            tab.search.prev_result()
 
     @cmdutils.register(instance='command-dispatcher', hide=True,
                        modes=[KeyMode.caret], scope='window')
@@ -1552,13 +1482,7 @@ class CommandDispatcher:
         Args:
             count: How many lines to move.
         """
-        webview = self._current_widget()
-        if not webview.selection_enabled:
-            act = QWebPage.MoveToNextLine
-        else:
-            act = QWebPage.SelectNextLine
-        for _ in range(count):
-            webview.triggerPageAction(act)
+        self._current_widget().caret.move_to_next_line(count)
 
     @cmdutils.register(instance='command-dispatcher', hide=True,
                        modes=[KeyMode.caret], scope='window')
@@ -1569,13 +1493,7 @@ class CommandDispatcher:
         Args:
             count: How many lines to move.
         """
-        webview = self._current_widget()
-        if not webview.selection_enabled:
-            act = QWebPage.MoveToPreviousLine
-        else:
-            act = QWebPage.SelectPreviousLine
-        for _ in range(count):
-            webview.triggerPageAction(act)
+        self._current_widget().caret.move_to_prev_line(count)
 
     @cmdutils.register(instance='command-dispatcher', hide=True,
                        modes=[KeyMode.caret], scope='window')
@@ -1586,13 +1504,7 @@ class CommandDispatcher:
         Args:
             count: How many lines to move.
         """
-        webview = self._current_widget()
-        if not webview.selection_enabled:
-            act = QWebPage.MoveToNextChar
-        else:
-            act = QWebPage.SelectNextChar
-        for _ in range(count):
-            webview.triggerPageAction(act)
+        self._current_widget().caret.move_to_next_char(count)
 
     @cmdutils.register(instance='command-dispatcher', hide=True,
                        modes=[KeyMode.caret], scope='window')
@@ -1603,13 +1515,7 @@ class CommandDispatcher:
         Args:
             count: How many chars to move.
         """
-        webview = self._current_widget()
-        if not webview.selection_enabled:
-            act = QWebPage.MoveToPreviousChar
-        else:
-            act = QWebPage.SelectPreviousChar
-        for _ in range(count):
-            webview.triggerPageAction(act)
+        self._current_widget().caret.move_to_prev_char(count)
 
     @cmdutils.register(instance='command-dispatcher', hide=True,
                        modes=[KeyMode.caret], scope='window')
@@ -1620,18 +1526,7 @@ class CommandDispatcher:
         Args:
             count: How many words to move.
         """
-        webview = self._current_widget()
-        if not webview.selection_enabled:
-            act = [QWebPage.MoveToNextWord]
-            if sys.platform == 'win32':  # pragma: no cover
-                act.append(QWebPage.MoveToPreviousChar)
-        else:
-            act = [QWebPage.SelectNextWord]
-            if sys.platform == 'win32':  # pragma: no cover
-                act.append(QWebPage.SelectPreviousChar)
-        for _ in range(count):
-            for a in act:
-                webview.triggerPageAction(a)
+        self._current_widget().caret.move_to_end_of_word(count)
 
     @cmdutils.register(instance='command-dispatcher', hide=True,
                        modes=[KeyMode.caret], scope='window')
@@ -1642,18 +1537,7 @@ class CommandDispatcher:
         Args:
             count: How many words to move.
         """
-        webview = self._current_widget()
-        if not webview.selection_enabled:
-            act = [QWebPage.MoveToNextWord]
-            if sys.platform != 'win32':  # pragma: no branch
-                act.append(QWebPage.MoveToNextChar)
-        else:
-            act = [QWebPage.SelectNextWord]
-            if sys.platform != 'win32':  # pragma: no branch
-                act.append(QWebPage.SelectNextChar)
-        for _ in range(count):
-            for a in act:
-                webview.triggerPageAction(a)
+        self._current_widget().caret.move_to_next_word(count)
 
     @cmdutils.register(instance='command-dispatcher', hide=True,
                        modes=[KeyMode.caret], scope='window')
@@ -1664,35 +1548,19 @@ class CommandDispatcher:
         Args:
             count: How many words to move.
         """
-        webview = self._current_widget()
-        if not webview.selection_enabled:
-            act = QWebPage.MoveToPreviousWord
-        else:
-            act = QWebPage.SelectPreviousWord
-        for _ in range(count):
-            webview.triggerPageAction(act)
+        self._current_widget().caret.move_to_prev_word(count)
 
     @cmdutils.register(instance='command-dispatcher', hide=True,
                        modes=[KeyMode.caret], scope='window')
     def move_to_start_of_line(self):
         """Move the cursor or selection to the start of the line."""
-        webview = self._current_widget()
-        if not webview.selection_enabled:
-            act = QWebPage.MoveToStartOfLine
-        else:
-            act = QWebPage.SelectStartOfLine
-        webview.triggerPageAction(act)
+        self._current_widget().caret.move_to_start_of_line()
 
     @cmdutils.register(instance='command-dispatcher', hide=True,
                        modes=[KeyMode.caret], scope='window')
     def move_to_end_of_line(self):
         """Move the cursor or selection to the end of line."""
-        webview = self._current_widget()
-        if not webview.selection_enabled:
-            act = QWebPage.MoveToEndOfLine
-        else:
-            act = QWebPage.SelectEndOfLine
-        webview.triggerPageAction(act)
+        self._current_widget().caret.move_to_end_of_line()
 
     @cmdutils.register(instance='command-dispatcher', hide=True,
                        modes=[KeyMode.caret], scope='window')
@@ -1703,16 +1571,7 @@ class CommandDispatcher:
         Args:
             count: How many blocks to move.
         """
-        webview = self._current_widget()
-        if not webview.selection_enabled:
-            act = [QWebPage.MoveToNextLine,
-                   QWebPage.MoveToStartOfBlock]
-        else:
-            act = [QWebPage.SelectNextLine,
-                   QWebPage.SelectStartOfBlock]
-        for _ in range(count):
-            for a in act:
-                webview.triggerPageAction(a)
+        self._current_widget().caret.move_to_start_of_next_block(count)
 
     @cmdutils.register(instance='command-dispatcher', hide=True,
                        modes=[KeyMode.caret], scope='window')
@@ -1723,16 +1582,7 @@ class CommandDispatcher:
         Args:
             count: How many blocks to move.
         """
-        webview = self._current_widget()
-        if not webview.selection_enabled:
-            act = [QWebPage.MoveToPreviousLine,
-                   QWebPage.MoveToStartOfBlock]
-        else:
-            act = [QWebPage.SelectPreviousLine,
-                   QWebPage.SelectStartOfBlock]
-        for _ in range(count):
-            for a in act:
-                webview.triggerPageAction(a)
+        self._current_widget().caret.move_to_start_of_prev_block(count)
 
     @cmdutils.register(instance='command-dispatcher', hide=True,
                        modes=[KeyMode.caret], scope='window')
@@ -1743,16 +1593,7 @@ class CommandDispatcher:
         Args:
             count: How many blocks to move.
         """
-        webview = self._current_widget()
-        if not webview.selection_enabled:
-            act = [QWebPage.MoveToNextLine,
-                   QWebPage.MoveToEndOfBlock]
-        else:
-            act = [QWebPage.SelectNextLine,
-                   QWebPage.SelectEndOfBlock]
-        for _ in range(count):
-            for a in act:
-                webview.triggerPageAction(a)
+        self._current_widget().caret.move_to_end_of_next_block(count)
 
     @cmdutils.register(instance='command-dispatcher', hide=True,
                        modes=[KeyMode.caret], scope='window')
@@ -1763,36 +1604,19 @@ class CommandDispatcher:
         Args:
             count: How many blocks to move.
         """
-        webview = self._current_widget()
-        if not webview.selection_enabled:
-            act = [QWebPage.MoveToPreviousLine, QWebPage.MoveToEndOfBlock]
-        else:
-            act = [QWebPage.SelectPreviousLine, QWebPage.SelectEndOfBlock]
-        for _ in range(count):
-            for a in act:
-                webview.triggerPageAction(a)
+        self._current_widget().caret.move_to_end_of_prev_block(count)
 
     @cmdutils.register(instance='command-dispatcher', hide=True,
                        modes=[KeyMode.caret], scope='window')
     def move_to_start_of_document(self):
         """Move the cursor or selection to the start of the document."""
-        webview = self._current_widget()
-        if not webview.selection_enabled:
-            act = QWebPage.MoveToStartOfDocument
-        else:
-            act = QWebPage.SelectStartOfDocument
-        webview.triggerPageAction(act)
+        self._current_widget().caret.move_to_start_of_document()
 
     @cmdutils.register(instance='command-dispatcher', hide=True,
                        modes=[KeyMode.caret], scope='window')
     def move_to_end_of_document(self):
         """Move the cursor or selection to the end of the document."""
-        webview = self._current_widget()
-        if not webview.selection_enabled:
-            act = QWebPage.MoveToEndOfDocument
-        else:
-            act = QWebPage.SelectEndOfDocument
-        webview.triggerPageAction(act)
+        self._current_widget().caret.move_to_end_of_document()
 
     @cmdutils.register(instance='command-dispatcher', scope='window')
     def yank_selected(self, sel=False, keep=False):
@@ -1802,8 +1626,9 @@ class CommandDispatcher:
             sel: Use the primary selection instead of the clipboard.
             keep: If given, stay in visual mode after yanking.
         """
-        s = self._current_widget().selectedText()
-        if not self._current_widget().hasSelection() or len(s) == 0:
+        caret = self._current_widget().caret
+        s = caret.selection()
+        if not caret.has_selection() or len(s) == 0:
             message.info(self._win_id, "Nothing to yank")
             return
 
@@ -1822,17 +1647,13 @@ class CommandDispatcher:
                        modes=[KeyMode.caret], scope='window')
     def toggle_selection(self):
         """Toggle caret selection mode."""
-        widget = self._current_widget()
-        widget.selection_enabled = not widget.selection_enabled
-        mainwindow = objreg.get('main-window', scope='window',
-                                window=self._win_id)
-        mainwindow.status.set_mode_active(usertypes.KeyMode.caret, True)
+        self._current_widget().caret.toggle_selection()
 
     @cmdutils.register(instance='command-dispatcher', hide=True,
                        modes=[KeyMode.caret], scope='window')
     def drop_selection(self):
         """Drop selection and keep selection mode enabled."""
-        self._current_widget().triggerPageAction(QWebPage.MoveToNextChar)
+        self._current_widget().caret.drop_selection()
 
     @cmdutils.register(instance='command-dispatcher', scope='window',
                        debug=True)
@@ -1847,13 +1668,26 @@ class CommandDispatcher:
             action: The action to execute, e.g. MoveToNextChar.
             count: How many times to repeat the action.
         """
-        member = getattr(QWebPage, action, None)
-        if not isinstance(member, QWebPage.WebAction):
+        tab = self._current_widget()
+
+        if tab.backend == usertypes.Backend.QtWebKit:
+            assert QWebPage is not None
+            member = getattr(QWebPage, action, None)
+            base = QWebPage.WebAction
+        elif tab.backend == usertypes.Backend.QtWebEngine:
+            assert QWebEnginePage is not None
+            member = getattr(QWebEnginePage, action, None)
+            base = QWebEnginePage.WebAction
+
+        if not isinstance(member, base):
             raise cmdexc.CommandError("{} is not a valid web action!".format(
                 action))
-        view = self._current_widget()
+
         for _ in range(count):
-            view.triggerPageAction(member)
+            # This whole command is backend-specific anyways, so it makes no
+            # sense to introduce some API for this.
+            # pylint: disable=protected-access
+            tab._widget.triggerPageAction(member)
 
     @cmdutils.register(instance='command-dispatcher', scope='window',
                        maxsplit=0, no_cmd_split=True)
@@ -1864,26 +1698,27 @@ class CommandDispatcher:
             js_code: The string to evaluate.
             quiet: Don't show resulting JS object.
         """
-        frame = self._current_widget().page().mainFrame()
-        out = frame.evaluateJavaScript(js_code)
-
         if quiet:
-            return
-
-        if out is None:
-            # Getting the actual error (if any) seems to be difficult. The
-            # error does end up in BrowserPage.javaScriptConsoleMessage(), but
-            # distinguishing between :jseval errors and errors from the webpage
-            # is not trivial...
-            message.info(self._win_id, 'No output or error')
+            jseval_cb = None
         else:
-            # The output can be a string, number, dict, array, etc. But *don't*
-            # output too much data, as this will make qutebrowser hang
-            out = str(out)
-            if len(out) > 5000:
-                message.info(self._win_id, out[:5000] + ' [...trimmed...]')
-            else:
-                message.info(self._win_id, out)
+            def jseval_cb(out):
+                if out is None:
+                    # Getting the actual error (if any) seems to be difficult.
+                    # The error does end up in
+                    # BrowserPage.javaScriptConsoleMessage(), but
+                    # distinguishing between :jseval errors and errors from the
+                    # webpage is not trivial...
+                    message.info(self._win_id, 'No output or error')
+                else:
+                    # The output can be a string, number, dict, array, etc. But
+                    # *don't* output too much data, as this will make
+                    # qutebrowser hang
+                    out = str(out)
+                    if len(out) > 5000:
+                        out = out[:5000] + ' [...trimmed...]'
+                    message.info(self._win_id, out)
+
+        self._current_widget().run_js_async(js_code, callback=jseval_cb)
 
     @cmdutils.register(instance='command-dispatcher', scope='window')
     def fake_key(self, keystring, global_=False):
@@ -1914,10 +1749,12 @@ class CommandDispatcher:
                     raise cmdexc.CommandError("No focused window!")
             else:
                 try:
-                    receiver = objreg.get('webview', scope='tab',
-                                          tab='current')
+                    tab = objreg.get('tab', scope='tab', tab='current')
                 except objreg.RegistryUnavailableError:
                     raise cmdexc.CommandError("No focused webview!")
+                # pylint: disable=protected-access
+                receiver = tab._widget
+                # pylint: enable=protected-access
 
             QApplication.postEvent(receiver, press_event)
             QApplication.postEvent(receiver, release_event)
@@ -1926,8 +1763,7 @@ class CommandDispatcher:
                        debug=True)
     def debug_clear_ssl_errors(self):
         """Clear remembered SSL error answers."""
-        nam = self._current_widget().page().networkAccessManager()
-        nam.clear_all_ssl_errors()
+        self._current_widget().clear_ssl_errors()
 
     @cmdutils.register(instance='command-dispatcher', scope='window')
     def edit_url(self, url=None, bg=False, tab=False, window=False):

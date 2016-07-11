@@ -61,7 +61,7 @@ class TestTabWidget:
         qtbot.addWidget(w)
         return w
 
-    def test_small_icon_doesnt_crash(self, widget, qtbot, stubs):
+    def test_small_icon_doesnt_crash(self, widget, qtbot, fake_web_tab):
         """Test that setting a small icon doesn't produce a crash.
 
         Regression test for #1015.
@@ -69,7 +69,7 @@ class TestTabWidget:
         # Size taken from issue report
         pixmap = QPixmap(72, 1)
         icon = QIcon(pixmap)
-        page = stubs.FakeWebView()
-        widget.addTab(page, icon, 'foobar')
+        tab = fake_web_tab()
+        widget.addTab(tab, icon, 'foobar')
         widget.show()
         qtbot.waitForWindowShown(widget)

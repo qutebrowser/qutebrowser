@@ -17,7 +17,7 @@
 # You should have received a copy of the GNU General Public License
 # along with qutebrowser.  If not, see <http://www.gnu.org/licenses/>.
 
-# pylint: disable=invalid-name
+# pylint: disable=invalid-name,abstract-method
 
 """Fake objects/stubs."""
 
@@ -27,10 +27,12 @@ from unittest import mock
 from PyQt5.QtCore import pyqtSignal, QPoint, QProcess, QObject
 from PyQt5.QtNetwork import (QNetworkRequest, QAbstractNetworkCache,
                              QNetworkCacheMetaData)
-from PyQt5.QtWidgets import QCommonStyle, QWidget, QLineEdit
+from PyQt5.QtWidgets import QCommonStyle, QLineEdit
 
-from qutebrowser.browser.webkit import webview, history
+from qutebrowser.browser import browsertab
+from qutebrowser.browser.webkit import history
 from qutebrowser.config import configexc
+from qutebrowser.utils import usertypes
 from qutebrowser.mainwindow import mainwindow
 
 
@@ -223,24 +225,44 @@ def fake_qprocess():
     return m
 
 
-class FakeWebView(QWidget):
+class FakeWebTabScroller(browsertab.AbstractScroller):
 
-    """Fake WebView which can be added to a tab."""
+    """Fake AbstractScroller to use in tests."""
 
-    url_text_changed = pyqtSignal(str)
-    shutting_down = pyqtSignal()
-
-    def __init__(self, url=FakeUrl(), title='', tab_id=0):
+    def __init__(self, pos_perc):
         super().__init__()
-        self.progress = 0
-        self.scroll_pos = (-1, -1)
-        self.load_status = webview.LoadStatus.none
-        self.tab_id = tab_id
-        self.cur_url = url
-        self.title = title
+        self._pos_perc = pos_perc
+
+    def pos_perc(self):
+        return self._pos_perc
+
+
+class FakeWebTab(browsertab.AbstractTab):
+
+    """Fake AbstractTab to use in tests."""
+
+    def __init__(self, url=FakeUrl(), title='', tab_id=0, *,
+                 scroll_pos_perc=(0, 0),
+                 load_status=usertypes.LoadStatus.success,
+                 progress=0):
+        super().__init__(win_id=0)
+        self._load_status = load_status
+        self._title = title
+        self._url = url
+        self._progress = progress
+        self.scroll = FakeWebTabScroller(scroll_pos_perc)
 
     def url(self):
-        return self.cur_url
+        return self._url
+
+    def title(self):
+        return self._title
+
+    def progress(self):
+        return self._progress
+
+    def load_status(self):
+        return self._load_status
 
 
 class FakeSignal:
@@ -522,7 +544,7 @@ class TabbedBrowserStub(QObject):
 
     """Stub for the tabbed-browser object."""
 
-    new_tab = pyqtSignal(webview.WebView, int)
+    new_tab = pyqtSignal(browsertab.AbstractTab, int)
 
     def __init__(self, parent=None):
         super().__init__(parent)
@@ -536,7 +558,7 @@ class TabbedBrowserStub(QObject):
         return self.tabs[i]
 
     def page_title(self, i):
-        return self.tabs[i].title
+        return self.tabs[i].title()
 
     def on_tab_close_requested(self, idx):
         del self.tabs[idx]

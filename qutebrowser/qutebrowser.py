@@ -69,6 +69,10 @@ def get_argparser():
                         'tab-silent', 'tab-bg-silent', 'window'],
                         help="How URLs should be opened if there is already a "
                              "qutebrowser instance running.")
+    parser.add_argument('--backend', choices=['webkit', 'webengine'],
+                        # help="Which backend to use.",
+                        help=argparse.SUPPRESS, default='webkit')
+
     parser.add_argument('--json-args', help=argparse.SUPPRESS)
     parser.add_argument('--temp-basedir-restarted', help=argparse.SUPPRESS)
 

@@ -267,3 +267,14 @@ class TestHideQtWarning:
             with caplog.at_level(logging.WARNING, 'qt-tests'):
                 logger.warning("  Hello World  ")
         assert not caplog.records
+
+
+@pytest.mark.parametrize('suffix, expected', [
+    ('', 'STUB: test_stub'),
+    ('foo', 'STUB: test_stub (foo)'),
+])
+def test_stub(caplog, suffix, expected):
+    with caplog.at_level(logging.WARNING, 'misc'):
+        log.stub(suffix)
+    assert len(caplog.records) == 1
+    assert caplog.records[0].message == expected

@@ -29,7 +29,6 @@ from PyQt5.QtGui import QIcon, QPalette, QColor
 
 from qutebrowser.utils import qtutils, objreg, utils, usertypes
 from qutebrowser.config import config
-from qutebrowser.browser.webkit import webview
 
 
 PixelMetrics = usertypes.enum('PixelMetrics', ['icon_padding'],
@@ -108,17 +107,17 @@ class TabWidget(QTabWidget):
 
     def get_tab_fields(self, idx):
         """Get the tab field data."""
-        widget = self.widget(idx)
+        tab = self.widget(idx)
         page_title = self.page_title(idx)
 
         fields = {}
-        fields['id'] = widget.tab_id
+        fields['id'] = tab.tab_id
         fields['title'] = page_title
         fields['title_sep'] = ' - ' if page_title else ''
-        fields['perc_raw'] = widget.progress
+        fields['perc_raw'] = tab.progress()
 
-        if widget.load_status == webview.LoadStatus.loading:
-            fields['perc'] = '[{}%] '.format(widget.progress)
+        if tab.load_status() == usertypes.LoadStatus.loading:
+            fields['perc'] = '[{}%] '.format(tab.progress())
         else:
             fields['perc'] = ''
 
@@ -127,8 +126,10 @@ class TabWidget(QTabWidget):
         except qtutils.QtValueError:
             fields['host'] = ''
 
-        y = widget.scroll_pos[1]
-        if y <= 0:
+        y = tab.scroll.pos_perc()[1]
+        if y is None:
+            scroll_pos = '???'
+        elif y <= 0:
             scroll_pos = 'top'
         elif y >= 100:
             scroll_pos = 'bot'
@@ -224,11 +225,11 @@ class TabWidget(QTabWidget):
         Return:
             The tab URL as QUrl.
         """
-        widget = self.widget(idx)
-        if widget is None:
+        tab = self.widget(idx)
+        if tab is None:
             url = QUrl()
         else:
-            url = widget.cur_url
+            url = tab.url()
         # It's possible for url to be invalid, but the caller will handle that.
         qtutils.ensure_valid(url)
         return url

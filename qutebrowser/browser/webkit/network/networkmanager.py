@@ -228,9 +228,9 @@ class NetworkManager(QNetworkAccessManager):
         # This might be a generic network manager, e.g. one belonging to a
         # DownloadManager. In this case, just skip the webview thing.
         if self._tab_id is not None:
-            webview = objreg.get('webview', scope='tab', window=self._win_id,
-                                 tab=self._tab_id)
-            webview.loadStarted.connect(q.abort)
+            tab = objreg.get('tab', scope='tab', window=self._win_id,
+                             tab=self._tab_id)
+            tab.load_started.connect(q.abort)
         bridge = objreg.get('message-bridge', scope='window',
                             window=self._win_id)
         bridge.ask(q, blocking=True)
@@ -479,9 +479,9 @@ class NetworkManager(QNetworkAccessManager):
 
         if self._tab_id is not None:
             try:
-                webview = objreg.get('webview', scope='tab',
-                                     window=self._win_id, tab=self._tab_id)
-                current_url = webview.url()
+                tab = objreg.get('tab', scope='tab', window=self._win_id,
+                                 tab=self._tab_id)
+                current_url = tab.url()
             except (KeyError, RuntimeError, TypeError):
                 # https://github.com/The-Compiler/qutebrowser/issues/889
                 # Catching RuntimeError and TypeError because we could be in

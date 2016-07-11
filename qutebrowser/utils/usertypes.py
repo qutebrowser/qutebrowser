@@ -246,6 +246,15 @@ Exit = enum('Exit', ['ok', 'reserved', 'exception', 'err_ipc', 'err_init',
                      'err_config', 'err_key_config'], is_int=True, start=0)
 
 
+# Load status of a tab
+LoadStatus = enum('LoadStatus', ['none', 'success', 'success_https', 'error',
+                                 'warn', 'loading'])
+
+
+# Backend of a tab
+Backend = enum('Backend', ['QtWebKit', 'QtWebEngine'])
+
+
 class Question(QObject):
 
     """A question asked to the user, e.g. via the status bar.

@@ -14,6 +14,7 @@ disable=no-self-use,
         fixme,
         global-statement,
         locally-disabled,
+        locally-enabled,
         too-many-ancestors,
         too-few-public-methods,
         too-many-public-methods,
@@ -32,12 +33,13 @@ disable=no-self-use,
         ungrouped-imports,
         redefined-variable-type,
         suppressed-message,
-        too-many-return-statements
+        too-many-return-statements,
+        duplicate-code
 
 [BASIC]
 function-rgx=[a-z_][a-z0-9_]{2,50}$
 const-rgx=[A-Za-z_][A-Za-z0-9_]{0,30}$
-method-rgx=[a-z_][A-Za-z0-9_]{2,50}$
+method-rgx=[a-z_][A-Za-z0-9_]{1,50}$
 attr-rgx=[a-z_][a-z0-9_]{0,30}$
 argument-rgx=[a-z_][a-z0-9_]{0,30}$
 variable-rgx=[a-z_][a-z0-9_]{0,30}$

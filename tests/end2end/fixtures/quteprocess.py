@@ -202,21 +202,22 @@ class QuteProc(testprocess.Process):
         self._log(log_line)
 
         start_okay_message_load = (
-            "load status for <qutebrowser.browser.webkit.webview.WebView "
-            "tab_id=0 url='about:blank'>: LoadStatus.success")
+            "load status for <qutebrowser.browser.* tab_id=0 "
+            "url='about:blank'>: LoadStatus.success")
         start_okay_message_focus = (
             "Focus object changed: "
-            "<qutebrowser.browser.webkit.webview.WebView "
-            "tab_id=0 url='about:blank'>")
+            "<qutebrowser.browser.* tab_id=0 url='about:blank'>")
 
         if (log_line.category == 'ipc' and
                 log_line.message.startswith("Listening as ")):
             self._ipc_socket = log_line.message.split(' ', maxsplit=2)[2]
         elif (log_line.category == 'webview' and
-              log_line.message == start_okay_message_load):
+              testutils.pattern_match(pattern=start_okay_message_load,
+                                      value=log_line.message)):
             self._is_ready('load')
         elif (log_line.category == 'misc' and
-              log_line.message == start_okay_message_focus):
+              testutils.pattern_match(pattern=start_okay_message_focus,
+                                      value=log_line.message)):
             self._is_ready('focus')
         elif (log_line.category == 'init' and
               log_line.module == 'standarddir' and
@@ -291,8 +292,7 @@ class QuteProc(testprocess.Process):
         # Try to complain about the most common mistake when accidentally
         # loading external resources.
         is_ddg_load = testutils.pattern_match(
-            pattern="load status for <qutebrowser.browser.webview.WebView "
-            "tab_id=* url='*duckduckgo*'>: *",
+            pattern="load status for <* tab_id=* url='*duckduckgo*'>: *",
             value=msg.message)
         return msg.loglevel > logging.INFO or is_js_error or is_ddg_load
 
@@ -442,8 +442,7 @@ class QuteProc(testprocess.Process):
         assert url
 
         pattern = re.compile(
-            r"(load status for "
-            r"<qutebrowser\.browser\.webkit\.webview\.WebView "
+            r"(load status for <qutebrowser\.browser\..* "
             r"tab_id=\d+ url='{url}/?'>: LoadStatus\.{load_status}|fetch: "
             r"PyQt5\.QtCore\.QUrl\('{url}'\) -> .*)".format(
                 load_status=re.escape(load_status), url=re.escape(url)))

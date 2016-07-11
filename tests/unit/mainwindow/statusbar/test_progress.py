@@ -20,12 +20,10 @@
 
 """Test Progress widget."""
 
-from collections import namedtuple
-
 import pytest
 
-from qutebrowser.browser.webkit import webview
 from qutebrowser.mainwindow.statusbar.progress import Progress
+from qutebrowser.utils import usertypes
 
 
 @pytest.fixture
@@ -55,28 +53,24 @@ def test_load_started(progress_widget):
     assert progress_widget.isVisible()
 
 
-# mock tab object
-Tab = namedtuple('Tab', 'progress load_status')
-
-
-@pytest.mark.parametrize('tab, expected_visible', [
-    (Tab(15, webview.LoadStatus.loading), True),
-    (Tab(100, webview.LoadStatus.success), False),
-    (Tab(100, webview.LoadStatus.error), False),
-    (Tab(100, webview.LoadStatus.warn), False),
-    (Tab(100, webview.LoadStatus.none), False),
+@pytest.mark.parametrize('progress, load_status, expected_visible', [
+    (15, usertypes.LoadStatus.loading, True),
+    (100, usertypes.LoadStatus.success, False),
+    (100, usertypes.LoadStatus.error, False),
+    (100, usertypes.LoadStatus.warn, False),
+    (100, usertypes.LoadStatus.none, False),
 ])
-def test_tab_changed(progress_widget, tab, expected_visible):
+def test_tab_changed(fake_web_tab, progress_widget, progress, load_status,
+                     expected_visible):
     """Test that progress widget value and visibility state match expectations.
-
-    This uses a dummy Tab object.
 
     Args:
         progress_widget: Progress widget that will be tested.
     """
+    tab = fake_web_tab(progress=progress, load_status=load_status)
     progress_widget.on_tab_changed(tab)
     actual = progress_widget.value(), progress_widget.isVisible()
-    expected = tab.progress, expected_visible
+    expected = tab.progress(), expected_visible
     assert actual == expected
 
 

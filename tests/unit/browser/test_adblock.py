@@ -69,13 +69,10 @@ class BaseDirStub:
         self.basedir = None
 
 
-@pytest.yield_fixture
-def basedir():
+@pytest.fixture
+def basedir(fake_args):
     """Register a Fake basedir."""
-    args = BaseDirStub()
-    objreg.register('args', args)
-    yield
-    objreg.delete('args')
+    fake_args.basedir = None
 
 
 class FakeDownloadItem(QObject):

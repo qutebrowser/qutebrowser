@@ -153,6 +153,8 @@ def _get_tab_registry(win_id, tab_id):
         win_id = window.win_id
     elif win_id is not None:
         window = window_registry[win_id]
+    else:
+        raise TypeError("window is None with scope tab!")
 
     if tab_id == 'current':
         tabbed_browser = get('tabbed-browser', scope='window', window=win_id)

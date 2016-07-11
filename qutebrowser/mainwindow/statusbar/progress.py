@@ -22,9 +22,9 @@
 from PyQt5.QtCore import pyqtSlot, QSize
 from PyQt5.QtWidgets import QProgressBar, QSizePolicy
 
-from qutebrowser.browser.webkit import webview
+from qutebrowser.browser import browsertab
 from qutebrowser.config import style
-from qutebrowser.utils import utils
+from qutebrowser.utils import utils, usertypes
 
 
 class Progress(QProgressBar):
@@ -59,15 +59,15 @@ class Progress(QProgressBar):
         self.setValue(0)
         self.show()
 
-    @pyqtSlot(webview.WebView)
+    @pyqtSlot(browsertab.AbstractTab)
     def on_tab_changed(self, tab):
         """Set the correct value when the current tab changed."""
         if self is None:  # pragma: no branch
             # This should never happen, but for some weird reason it does
             # sometimes.
             return  # pragma: no cover
-        self.setValue(tab.progress)
-        if tab.load_status == webview.LoadStatus.loading:
+        self.setValue(tab.progress())
+        if tab.load_status() == usertypes.LoadStatus.loading:
             self.show()
         else:
             self.hide()

@@ -84,6 +84,7 @@ class HintContext:
         args: Custom arguments for userscript/spawn
         rapid: Whether to do rapid hinting.
         mainframe: The main QWebFrame where we started hinting in.
+        tab: The WebTab object we started hinting in.
         group: The group of web elements to hint.
     """
 
@@ -98,6 +99,7 @@ class HintContext:
         self.destroyed_frames = []
         self.args = []
         self.mainframe = None
+        self.tab = None
         self.group = None
 
     def get_args(self, urlstr):
@@ -569,7 +571,6 @@ class HintManager(QObject):
         """
         cmd = context.args[0]
         args = context.args[1:]
-        frame = context.mainframe
         env = {
             'QUTE_MODE': 'hints',
             'QUTE_SELECTED_TEXT': str(elem),
@@ -578,8 +579,12 @@ class HintManager(QObject):
         url = self._resolve_url(elem, context.baseurl)
         if url is not None:
             env['QUTE_URL'] = url.toString(QUrl.FullyEncoded)
-        env.update(userscripts.store_source(frame))
-        userscripts.run(cmd, *args, win_id=self._win_id, env=env)
+
+        try:
+            userscripts.run_async(context.tab, cmd, *args, win_id=self._win_id,
+                                  env=env)
+        except userscripts.UnsupportedError as e:
+            message.error(self._win_id, str(e), immediately=True)
 
     def _spawn(self, url, context):
         """Spawn a simple command from a hint.
@@ -752,12 +757,13 @@ class HintManager(QObject):
                                         window=self._win_id)
             tabbed_browser.tabopen(url, background=background)
         else:
-            webview = objreg.get('webview', scope='tab', window=self._win_id,
-                                 tab=self._tab_id)
-            webview.openurl(url)
+            tab = objreg.get('tab', scope='tab', window=self._win_id,
+                             tab=self._tab_id)
+            tab.openurl(url)
 
     @cmdutils.register(instance='hintmanager', scope='tab', name='hint',
-                       star_args_optional=True, maxsplit=2)
+                       star_args_optional=True, maxsplit=2,
+                       backend=usertypes.Backend.QtWebKit)
     @cmdutils.argument('win_id', win_id=True)
     def start(self, rapid=False, group=webelem.Group.all, target=Target.normal,
               *args, win_id):
@@ -811,10 +817,12 @@ class HintManager(QObject):
         """
         tabbed_browser = objreg.get('tabbed-browser', scope='window',
                                     window=self._win_id)
-        widget = tabbed_browser.currentWidget()
-        if widget is None:
+        tab = tabbed_browser.currentWidget()
+        if tab is None:
             raise cmdexc.CommandError("No WebView available yet!")
-        mainframe = widget.page().mainFrame()
+        # FIXME:qtwebengine have a proper API for this
+        page = tab._widget.page()  # pylint: disable=protected-access
+        mainframe = page.mainFrame()
         if mainframe is None:
             raise cmdexc.CommandError("No frame focused!")
         mode_manager = objreg.get('mode-manager', scope='window',
@@ -837,6 +845,7 @@ class HintManager(QObject):
 
         self._check_args(target, *args)
         self._context = HintContext()
+        self._context.tab = tab
         self._context.target = target
         self._context.rapid = rapid
         try:

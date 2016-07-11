@@ -760,7 +760,7 @@ Feature: Tab management
         And I open data/search.html in a new tab
         And I open data/scroll.html in a new tab
         And I run :buffer "Searching text"
-        And I wait for "Current tab changed, focusing <qutebrowser.browser.webkit.webview.WebView tab_id=* url='http://localhost:*/data/search.html'>" in the log
+        And I wait for "Current tab changed, focusing <qutebrowser.browser.* tab_id=* url='http://localhost:*/data/search.html'>" in the log
         Then the following tabs should be open:
             - data/title.html
             - data/search.html (active)
@@ -777,7 +777,7 @@ Feature: Tab management
         And I open data/caret.html in a new window
         And I open data/paste_primary.html in a new tab
         And I run :buffer "Scrolling"
-        And I wait for "Focus object changed: <qutebrowser.browser.webkit.webview.WebView tab_id=* url='http://localhost:*/data/scroll.html'>" in the log
+        And I wait for "Focus object changed: <qutebrowser.browser.* tab_id=* url='http://localhost:*/data/scroll.html'>" in the log
         Then the session should look like:
             windows:
             - active: true
@@ -816,7 +816,7 @@ Feature: Tab management
         And I open data/paste_primary.html in a new tab
         And I wait until data/caret.html is loaded
         And I run :buffer "0/2"
-        And I wait for "Focus object changed: <qutebrowser.browser.webkit.webview.WebView tab_id=* url='http://localhost:*/data/search.html'>" in the log
+        And I wait for "Focus object changed: <qutebrowser.browser.* tab_id=* url='http://localhost:*/data/search.html'>" in the log
         Then the session should look like:
             windows:
             - active: true

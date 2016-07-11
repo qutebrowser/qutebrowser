@@ -17,6 +17,8 @@
 # You should have received a copy of the GNU General Public License
 # along with qutebrowser.  If not, see <http://www.gnu.org/licenses/>.
 
+# pylint: disable=unused-variable
+
 """Tests for qutebrowser.commands.cmdutils."""
 
 import pytest
@@ -30,6 +32,19 @@ def clear_globals(monkeypatch):
     """Clear the cmdutils globals between each test."""
     monkeypatch.setattr(cmdutils, 'cmd_dict', {})
     monkeypatch.setattr(cmdutils, 'aliases', [])
+
+
+def _get_cmd(*args, **kwargs):
+    """Get a command object created via @cmdutils.register.
+
+    Args:
+        Passed to @cmdutils.register decorator
+    """
+    @cmdutils.register(*args, **kwargs)
+    def fun():
+        """Blah."""
+        pass
+    return cmdutils.cmd_dict['fun']
 
 
 class TestCheckOverflow:
@@ -86,8 +101,6 @@ class TestCheckExclusive:
 
 
 class TestRegister:
-
-    # pylint: disable=unused-variable
 
     def test_simple(self):
         @cmdutils.register()
@@ -306,8 +319,6 @@ class TestArgument:
 
     """Test the @cmdutils.argument decorator."""
 
-    # pylint: disable=unused-variable
-
     def test_invalid_argument(self):
         with pytest.raises(ValueError) as excinfo:
             @cmdutils.argument('foo')
@@ -350,3 +361,51 @@ class TestArgument:
                 pass
 
         assert str(excinfo.value) == "Argument marked as both count/win_id!"
+
+
+class TestRun:
+
+    @pytest.fixture(autouse=True)
+    def patching(self, mode_manager, fake_args):
+        fake_args.backend = 'webkit'
+
+    @pytest.mark.parametrize('backend, used, ok', [
+        (usertypes.Backend.QtWebEngine, 'webengine', True),
+        (usertypes.Backend.QtWebEngine, 'webkit', False),
+        (usertypes.Backend.QtWebKit, 'webengine', False),
+        (usertypes.Backend.QtWebKit, 'webkit', True),
+        (None, 'webengine', True),
+        (None, 'webkit', True),
+    ])
+    def test_backend(self, fake_args, backend, used, ok):
+        fake_args.backend = used
+        cmd = _get_cmd(backend=backend)
+        if ok:
+            cmd.run(win_id=0)
+        else:
+            with pytest.raises(cmdexc.PrerequisitesError) as excinfo:
+                cmd.run(win_id=0)
+            assert str(excinfo.value).endswith(' backend.')
+
+    def test_no_args(self):
+        cmd = _get_cmd()
+        cmd.run(win_id=0)
+
+    def test_instance_unavailable_with_backend(self, fake_args):
+        """Test what happens when a backend doesn't have an objreg object.
+
+        For example, QtWebEngine doesn't have 'hintmanager' registered. We make
+        sure the backend checking happens before resolving the instance, so we
+        display an error instead of crashing.
+        """
+        @cmdutils.register(instance='doesnotexist',
+                           backend=usertypes.Backend.QtWebEngine)
+        def fun(self):
+            """Blah."""
+            pass
+
+        fake_args.backend = 'webkit'
+        cmd = cmdutils.cmd_dict['fun']
+        with pytest.raises(cmdexc.PrerequisitesError) as excinfo:
+            cmd.run(win_id=0)
+        assert str(excinfo.value).endswith(' backend.')

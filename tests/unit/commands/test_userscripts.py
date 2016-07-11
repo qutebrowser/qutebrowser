@@ -26,7 +26,7 @@ import signal
 import pytest
 from PyQt5.QtCore import QFileSystemWatcher
 
-from qutebrowser.commands import userscripts, cmdexc
+from qutebrowser.commands import userscripts
 
 
 @pytest.fixture(autouse=True)
@@ -80,7 +80,9 @@ def test_command(qtbot, py_proc, runner):
             f.write('foo\n')
     """)
     with qtbot.waitSignal(runner.got_cmd, timeout=10000) as blocker:
-        runner.run(cmd, *args)
+        runner.prepare_run(cmd, *args)
+        runner.store_html('')
+        runner.store_text('')
     assert blocker.args == ['foo']
 
 
@@ -100,7 +102,9 @@ def test_custom_env(qtbot, monkeypatch, py_proc, runner):
     """)
 
     with qtbot.waitSignal(runner.got_cmd, timeout=10000) as blocker:
-        runner.run(cmd, *args, env=env)
+        runner.prepare_run(cmd, *args, env=env)
+        runner.store_html('')
+        runner.store_text('')
 
     data = blocker.args[0]
     ret_env = json.loads(data)
@@ -108,20 +112,16 @@ def test_custom_env(qtbot, monkeypatch, py_proc, runner):
     assert 'QUTEBROWSER_TEST_2' in ret_env
 
 
-def test_temporary_files(qtbot, tmpdir, py_proc, runner):
-    """Make sure temporary files are passed and cleaned up correctly."""
-    text_file = tmpdir / 'text'
-    text_file.write('This is text')
-    html_file = tmpdir / 'html'
-    html_file.write('This is HTML')
-
-    env = {'QUTE_TEXT': str(text_file), 'QUTE_HTML': str(html_file)}
-
+def test_source(qtbot, py_proc, runner):
+    """Make sure the page source is read and cleaned up correctly."""
     cmd, args = py_proc(r"""
         import os
         import json
 
-        data = {'html': None, 'text': None}
+        data = {
+            'html_file': os.environ['QUTE_HTML'],
+            'text_file': os.environ['QUTE_TEXT'],
+        }
 
         with open(os.environ['QUTE_HTML'], 'r') as f:
             data['html'] = f.read()
@@ -136,76 +136,85 @@ def test_temporary_files(qtbot, tmpdir, py_proc, runner):
 
     with qtbot.waitSignal(runner.finished, timeout=10000):
         with qtbot.waitSignal(runner.got_cmd, timeout=10000) as blocker:
-            runner.run(cmd, *args, env=env)
+            runner.prepare_run(cmd, *args)
+            runner.store_html('This is HTML')
+            runner.store_text('This is text')
 
     data = blocker.args[0]
     parsed = json.loads(data)
     assert parsed['text'] == 'This is text'
     assert parsed['html'] == 'This is HTML'
 
-    assert not text_file.exists()
-    assert not html_file.exists()
+    assert not os.path.exists(parsed['text_file'])
+    assert not os.path.exists(parsed['html_file'])
 
 
-def test_command_with_error(qtbot, tmpdir, py_proc, runner):
-    text_file = tmpdir / 'text'
-    text_file.write('This is text')
-
-    env = {'QUTE_TEXT': str(text_file)}
+def test_command_with_error(qtbot, py_proc, runner):
     cmd, args = py_proc(r"""
-        import sys
+        import sys, os, json
+
+        with open(os.environ['QUTE_FIFO'], 'w') as f:
+            json.dump(os.environ['QUTE_TEXT'], f)
+            f.write('\n')
+
         sys.exit(1)
     """)
 
     with qtbot.waitSignal(runner.finished, timeout=10000):
-        runner.run(cmd, *args, env=env)
+        with qtbot.waitSignal(runner.got_cmd, timeout=10000) as blocker:
+            runner.prepare_run(cmd, *args)
+            runner.store_text('Hello World')
+            runner.store_html('')
 
-    assert not text_file.exists()
+    data = json.loads(blocker.args[0])
+    assert not os.path.exists(data)
 
 
 def test_killed_command(qtbot, tmpdir, py_proc, runner):
-    text_file = tmpdir / 'text'
-    text_file.write('This is text')
-
-    pidfile = tmpdir / 'pid'
+    data_file = tmpdir / 'data'
     watcher = QFileSystemWatcher()
     watcher.addPath(str(tmpdir))
 
-    env = {'QUTE_TEXT': str(text_file)}
     cmd, args = py_proc(r"""
         import os
         import time
         import sys
+        import json
+
+        data = {
+            'pid': os.getpid(),
+            'text_file': os.environ['QUTE_TEXT'],
+        }
 
         # We can't use QUTE_FIFO to transmit the PID because that wouldn't work
         # on Windows, where QUTE_FIFO is only monitored after the script has
         # exited.
 
         with open(sys.argv[1], 'w') as f:
-            f.write(str(os.getpid()))
+            json.dump(data, f)
 
         time.sleep(30)
     """)
-    args.append(str(pidfile))
+    args.append(str(data_file))
 
     with qtbot.waitSignal(watcher.directoryChanged, timeout=10000):
-        runner.run(cmd, *args, env=env)
+        runner.prepare_run(cmd, *args)
+        runner.store_text('Hello World')
+        runner.store_html('')
 
     # Make sure the PID was written to the file, not just the file created
     time.sleep(0.5)
 
+    data = json.load(data_file)
+
     with qtbot.waitSignal(runner.finished):
-        os.kill(int(pidfile.read()), signal.SIGTERM)
+        os.kill(int(data['pid']), signal.SIGTERM)
 
-    assert not text_file.exists()
+    assert not os.path.exists(data['text_file'])
 
 
-def test_temporary_files_failed_cleanup(caplog, qtbot, tmpdir, py_proc,
-                                        runner):
+def test_temporary_files_failed_cleanup(caplog, qtbot, py_proc, runner):
     """Delete a temporary file from the script so cleanup fails."""
-    test_file = tmpdir / 'test'
-    test_file.write('foo')
-
     cmd, args = py_proc(r"""
         import os
         os.remove(os.environ['QUTE_HTML'])
@@ -213,41 +222,18 @@ def test_temporary_files_failed_cleanup(caplog, qtbot, tmpdir, py_proc,
 
     with caplog.at_level(logging.ERROR):
         with qtbot.waitSignal(runner.finished, timeout=10000):
-            runner.run(cmd, *args, env={'QUTE_HTML': str(test_file)})
+            runner.prepare_run(cmd, *args)
+            runner.store_text('')
+            runner.store_html('')
 
     assert len(caplog.records) == 1
-    expected = "Failed to delete tempfile {} (".format(test_file)
+    expected = "Failed to delete tempfile"
     assert caplog.records[0].message.startswith(expected)
 
 
-def test_dummy_runner(qtbot):
-    runner = userscripts._DummyUserscriptRunner(0)
-    with pytest.raises(cmdexc.CommandError):
-        with qtbot.waitSignal(runner.finished):
-            runner.run('cmd', 'arg')
-
-
-def test_store_source_none():
-    assert userscripts.store_source(None) == {}
-
-
-def test_store_source(stubs):
-    expected_text = 'This is text'
-    expected_html = 'This is HTML'
-
-    frame = stubs.FakeWebFrame(plaintext=expected_text, html=expected_html)
-    env = userscripts.store_source(frame)
-
-    with open(env['QUTE_TEXT'], 'r', encoding='utf-8') as f:
-        text = f.read()
-    with open(env['QUTE_HTML'], 'r', encoding='utf-8') as f:
-        html = f.read()
-
-    os.remove(env['QUTE_TEXT'])
-    os.remove(env['QUTE_HTML'])
-
-    assert set(env.keys()) == {'QUTE_TEXT', 'QUTE_HTML'}
-    assert text == expected_text
-    assert html == expected_html
-    assert env['QUTE_TEXT'].endswith('.txt')
-    assert env['QUTE_HTML'].endswith('.html')
+def test_unsupported(monkeypatch, tabbed_browser_stubs):
+    monkeypatch.setattr(userscripts.os, 'name', 'toaster')
+    with pytest.raises(userscripts.UnsupportedError) as excinfo:
+        userscripts.run_async(tab=None, cmd=None, win_id=0, env=None)
+    expected = "Userscripts are not supported on this platform!"
+    assert str(excinfo.value) == expected
