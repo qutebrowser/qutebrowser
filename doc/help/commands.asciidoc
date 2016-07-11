@@ -487,12 +487,13 @@ If the pasted text contains newlines, each line gets opened in its own tab.
 
 [[print]]
 === print
-Syntax: +:print [*--preview*]+
+Syntax: +:print [*--preview*] [*--pdf* 'file']+
 
 Print the current/[count]th tab.
 
 ==== optional arguments
 * +*-p*+, +*--preview*+: Show preview instead of printing.
+* +*-f*+, +*--pdf*+: The file path to write the PDF to.
 
 ==== count
 The tab index to print.

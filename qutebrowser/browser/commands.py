@@ -31,7 +31,7 @@ from PyQt5.QtWebKit import QWebSettings
 from PyQt5.QtWidgets import QApplication, QTabBar
 from PyQt5.QtCore import Qt, QUrl, QEvent
 from PyQt5.QtGui import QKeyEvent
-from PyQt5.QtPrintSupport import QPrintDialog, QPrintPreviewDialog
+from PyQt5.QtPrintSupport import QPrintDialog, QPrinter, QPrintPreviewDialog
 from PyQt5.QtWebKitWidgets import QWebPage
 import pygments
 import pygments.lexers
@@ -301,12 +301,14 @@ class CommandDispatcher:
     @cmdutils.register(instance='command-dispatcher', name='print',
                        scope='window')
     @cmdutils.argument('count', count=True)
-    def printpage(self, preview=False, count=None):
+    @cmdutils.argument('pdf', flag='f')
+    def printpage(self, preview=False, count=None, *, pdf=None):
         """Print the current/[count]th tab.
 
         Args:
             preview: Show preview instead of printing.
             count: The tab index to print, or None.
+            pdf: The file path to write the PDF to.
         """
         if not qtutils.check_print_compat():
             # WORKAROUND (remove this when we bump the requirements to 5.3.0)
@@ -322,6 +324,14 @@ class CommandDispatcher:
                                     Qt.WindowMinimizeButtonHint)
                 diag.paintRequested.connect(tab.print)
                 diag.exec_()
+            elif pdf:
+                pdf = os.path.expanduser(pdf)
+                directory = os.path.dirname(pdf)
+                if directory and not os.path.exists(directory):
+                    os.mkdir(directory)
+                printer = QPrinter()
+                printer.setOutputFileName(pdf)
+                tab.print(printer)
             else:
                 diag = QPrintDialog()
                 diag.setAttribute(Qt.WA_DeleteOnClose)
