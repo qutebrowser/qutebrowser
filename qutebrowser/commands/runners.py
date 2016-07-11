@@ -213,7 +213,7 @@ class CommandRunner(QObject):
             cmdstr modified to the matching completion or unmodified
         """
         matches = []
-        for valid_command in cmdutils.cmd_dict.keys():
+        for valid_command in cmdutils.cmd_dict:
             if valid_command.find(cmdstr) == 0:
                 matches.append(valid_command)
         if len(matches) == 1:
