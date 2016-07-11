@@ -36,6 +36,8 @@ Changed
 - `:edit-url` now does nothing if the URL isn't changed in the spawned editor.
 - `:bookmark-add` can now be passed a URL and title to add that as a bookmark
   rather than the current page.
+- New `taskadd` userscript to add a taskwarrior task annotated with the
+  current URL.
 
 Removed
 -------
