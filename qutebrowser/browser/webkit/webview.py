@@ -83,7 +83,6 @@ class WebView(QWebView):
         self._old_scroll_pos = (-1, -1)
         self._ignore_wheel_event = False
         self._set_bg_color()
-        self.cur_url = QUrl()
         self._tab_id = tab_id
 
         page = self._init_page()
@@ -109,11 +108,11 @@ class WebView(QWebView):
         no_formatting = QUrl.UrlFormattingOption(0)
         orig_url = self.page().mainFrame().requestedUrl()
         if (orig_url.isValid() and
-                not orig_url.matches(self.cur_url, no_formatting)):
+                not orig_url.matches(self.url(), no_formatting)):
             # If the url of the page is different than the url of the link
             # originally clicked, save them both.
             history.add_url(orig_url, self.title(), redirect=True)
-        history.add_url(self.cur_url, self.title())
+        history.add_url(self.url(), self.title())
 
     def _init_page(self):
         """Initialize the QWebPage used by this view."""
@@ -293,7 +292,6 @@ class WebView(QWebView):
         urlstr = url.toDisplayString()
         log.webview.debug("New title: {}".format(urlstr))
         self.titleChanged.emit(urlstr)
-        self.cur_url = url
         self.url_text_changed.emit(url.toDisplayString())
         self.load(url)
         if url.scheme() == 'qute':
@@ -315,12 +313,11 @@ class WebView(QWebView):
 
     @pyqtSlot('QUrl')
     def on_url_changed(self, url):
-        """Update cur_url when URL has changed.
+        """Update title when URL has changed.
 
         If the URL is invalid, we just ignore it here.
         """
         if url.isValid():
-            self.cur_url = url
             self.url_text_changed.emit(url.toDisplayString())
             if not self.title():
                 self.titleChanged.emit(self.url().toDisplayString())
