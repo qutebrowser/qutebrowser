@@ -56,7 +56,6 @@ class WebView(QWebView):
                             arg 1: x-position in %.
                             arg 2: y-position in %.
         linkHovered: QWebPages linkHovered signal exposed.
-        url_text_changed: Current URL string changed.
         mouse_wheel_zoom: Emitted when the page should be zoomed because the
                           mousewheel was used with ctrl.
                           arg 1: The angle delta of the wheel event (QPoint)
@@ -65,7 +64,6 @@ class WebView(QWebView):
 
     scroll_pos_changed = pyqtSignal(int, int)
     linkHovered = pyqtSignal(str, str, str)
-    url_text_changed = pyqtSignal(str)
     shutting_down = pyqtSignal()
     mouse_wheel_zoom = pyqtSignal(QPoint)
 
@@ -292,7 +290,6 @@ class WebView(QWebView):
         urlstr = url.toDisplayString()
         log.webview.debug("New title: {}".format(urlstr))
         self.titleChanged.emit(urlstr)
-        self.url_text_changed.emit(url.toDisplayString())
         self.load(url)
         if url.scheme() == 'qute':
             frame = self.page().mainFrame()
@@ -318,7 +315,6 @@ class WebView(QWebView):
         If the URL is invalid, we just ignore it here.
         """
         if url.isValid():
-            self.url_text_changed.emit(url.toDisplayString())
             if not self.title():
                 self.titleChanged.emit(self.url().toDisplayString())
 

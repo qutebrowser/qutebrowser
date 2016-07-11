@@ -349,7 +349,7 @@ class MainWindow(QWidget):
         tabs.cur_load_started.connect(status.txt.on_load_started)
 
         tabs.current_tab_changed.connect(status.url.on_tab_changed)
-        tabs.cur_url_text_changed.connect(status.url.set_url)
+        tabs.cur_url_changed.connect(status.url.set_url)
         tabs.cur_link_hovered.connect(status.url.set_hover_url)
         tabs.cur_load_status_changed.connect(status.url.on_load_status_changed)
 

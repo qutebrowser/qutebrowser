@@ -129,14 +129,14 @@ class UrlText(textbase.TextBase):
             self._normal_url_type = UrlType.normal
         self._update_url()
 
-    @pyqtSlot(str)
-    def set_url(self, s):
+    @pyqtSlot(QUrl)
+    def set_url(self, url):
         """Setter to be used as a Qt slot.
 
         Args:
-            s: The URL to set as string.
+            url: The URL to set as QUrl.
         """
-        self._normal_url = s
+        self._normal_url = url.toDisplayString()
         self._normal_url_type = UrlType.normal
         self._update_url()
 

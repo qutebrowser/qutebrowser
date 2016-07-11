@@ -75,7 +75,7 @@ class TabbedBrowser(tabwidget.TabWidget):
         cur_load_finished: Current tab finished loading (load_finished)
         cur_statusbar_message: Current tab got a statusbar message
                                (statusBarMessage)
-        cur_url_text_changed: Current URL text changed.
+        cur_url_changed: Current URL changed.
         cur_link_hovered: Link hovered in current tab (link_hovered)
         cur_scroll_perc_changed: Scroll percentage of current tab changed.
                                  arg 1: x-position in %.
@@ -93,7 +93,7 @@ class TabbedBrowser(tabwidget.TabWidget):
     cur_load_started = pyqtSignal()
     cur_load_finished = pyqtSignal(bool)
     cur_statusbar_message = pyqtSignal(str)
-    cur_url_text_changed = pyqtSignal(str)
+    cur_url_changed = pyqtSignal(QUrl)
     cur_link_hovered = pyqtSignal(str)
     cur_scroll_perc_changed = pyqtSignal(int, int)
     cur_load_status_changed = pyqtSignal(str)
@@ -184,12 +184,12 @@ class TabbedBrowser(tabwidget.TabWidget):
         tab.scroll.perc_changed.connect(
             self._filter.create(self.cur_scroll_perc_changed, tab))
         tab.scroll.perc_changed.connect(self.on_scroll_pos_changed)
-        tab.url_text_changed.connect(
-            self._filter.create(self.cur_url_text_changed, tab))
+        tab.url_changed.connect(
+            self._filter.create(self.cur_url_changed, tab))
         tab.load_status_changed.connect(
             self._filter.create(self.cur_load_status_changed, tab))
-        tab.url_text_changed.connect(
-            functools.partial(self.on_url_text_changed, tab))
+        tab.url_changed.connect(
+            functools.partial(self.on_url_changed, tab))
         # misc
         tab.title_changed.connect(
             functools.partial(self.on_title_changed, tab))
@@ -502,8 +502,8 @@ class TabbedBrowser(tabwidget.TabWidget):
         if idx == self.currentIndex():
             self.update_window_title()
 
-    @pyqtSlot(browsertab.AbstractTab, str)
-    def on_url_text_changed(self, tab, url):
+    @pyqtSlot(browsertab.AbstractTab, QUrl)
+    def on_url_changed(self, tab, url):
         """Set the new URL as title if there's no title yet.
 
         Args:
@@ -516,7 +516,7 @@ class TabbedBrowser(tabwidget.TabWidget):
             # We can get signals for tabs we already deleted...
             return
         if not self.page_title(idx):
-            self.set_page_title(idx, url)
+            self.set_page_title(idx, url.toDisplayString())
 
     @pyqtSlot(browsertab.AbstractTab, QIcon)
     def on_icon_changed(self, tab, icon):

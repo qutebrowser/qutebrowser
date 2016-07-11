@@ -445,11 +445,10 @@ class AbstractTab(QWidget):
     load_progress = pyqtSignal(int)
     load_finished = pyqtSignal(bool)
     icon_changed = pyqtSignal(QIcon)
-    # FIXME:qtwebengine get rid of this altogether?
-    url_text_changed = pyqtSignal(str)
     title_changed = pyqtSignal(str)
     load_status_changed = pyqtSignal(str)
     new_tab_requested = pyqtSignal(QUrl)
+    url_changed = pyqtSignal(QUrl)
     shutting_down = pyqtSignal()
 
     def __init__(self, win_id, parent=None):

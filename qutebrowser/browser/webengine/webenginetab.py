@@ -316,9 +316,9 @@ class WebEngineTab(browsertab.AbstractTab):
         page.loadProgress.connect(self._on_load_progress)
         page.loadStarted.connect(self._on_load_started)
         view.titleChanged.connect(self.title_changed)
+        view.urlChanged.connect(self.url_changed)
         page.loadFinished.connect(self._on_load_finished)
         page.certificate_error.connect(self._on_ssl_errors)
         # FIXME:qtwebengine stub this?
         # view.iconChanged.connect(self.icon_changed)
         # view.scroll.pos_changed.connect(self.scroll.perc_changed)
-        # view.url_text_changed.connect(self.url_text_changed)

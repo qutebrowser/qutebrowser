@@ -127,19 +127,30 @@ def test_on_tab_changed(url_widget, fake_web_tab, load_status, qurl):
     assert url_widget.text() == qurl.toDisplayString()
 
 
-@pytest.mark.parametrize('url_text, load_status, expected_status', [
-    ('http://abc123.com/this/awesome/url.html', usertypes.LoadStatus.success,
-        url.UrlType.success),
-    ('https://supersecret.gov/nsa/files.txt', usertypes.LoadStatus.success_https,
-        url.UrlType.success_https),
-    ('Th1$ i$ n0t @ n0rm@L uRL! P@n1c! <-->', usertypes.LoadStatus.error,
-        url.UrlType.error),
-    ('http://www.qutebrowser.org/CONTRIBUTING.html', usertypes.LoadStatus.loading,
-        url.UrlType.normal),
-    ('www.whatisthisurl.com', usertypes.LoadStatus.warn, url.UrlType.warn)
+@pytest.mark.parametrize('qurl, load_status, expected_status', [
+    (
+        QUrl('http://abc123.com/this/awesome/url.html'),
+        usertypes.LoadStatus.success,
+        url.UrlType.success
+    ),
+    (
+        QUrl('https://supersecret.gov/nsa/files.txt'),
+        usertypes.LoadStatus.success_https,
+        url.UrlType.success_https
+    ),
+    (
+        QUrl('http://www.qutebrowser.org/CONTRIBUTING.html'),
+        usertypes.LoadStatus.loading,
+        url.UrlType.normal
+    ),
+    (
+        QUrl('www.whatisthisurl.com'),
+        usertypes.LoadStatus.warn,
+        url.UrlType.warn
+    ),
 ])
-def test_normal_url(url_widget, url_text, load_status, expected_status):
-    url_widget.set_url(url_text)
+def test_normal_url(url_widget, qurl, load_status, expected_status):
+    url_widget.set_url(qurl)
     url_widget.on_load_status_changed(load_status.name)
     url_widget.set_hover_url(url_text)
     url_widget.set_hover_url("")

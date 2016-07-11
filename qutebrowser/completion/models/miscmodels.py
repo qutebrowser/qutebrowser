@@ -183,7 +183,7 @@ class TabCompletionModel(base.BaseCompletionModel):
                                         window=win_id)
             for i in range(tabbed_browser.count()):
                 tab = tabbed_browser.widget(i)
-                tab.url_text_changed.connect(self.rebuild)
+                tab.url_changed.connect(self.rebuild)
                 tab.shutting_down.connect(self.delayed_rebuild)
             tabbed_browser.new_tab.connect(self.on_new_tab)
         objreg.get("app").new_window.connect(self.on_new_window)
