@@ -55,7 +55,6 @@ class WebView(QWebView):
         scroll_pos_changed: Scroll percentage of current tab changed.
                             arg 1: x-position in %.
                             arg 2: y-position in %.
-        linkHovered: QWebPages linkHovered signal exposed.
         mouse_wheel_zoom: Emitted when the page should be zoomed because the
                           mousewheel was used with ctrl.
                           arg 1: The angle delta of the wheel event (QPoint)
@@ -63,7 +62,6 @@ class WebView(QWebView):
     """
 
     scroll_pos_changed = pyqtSignal(int, int)
-    linkHovered = pyqtSignal(str, str, str)
     shutting_down = pyqtSignal()
     mouse_wheel_zoom = pyqtSignal(QPoint)
 
@@ -115,7 +113,6 @@ class WebView(QWebView):
         """Initialize the QWebPage used by this view."""
         page = webpage.BrowserPage(self.win_id, self._tab_id, self)
         self.setPage(page)
-        page.linkHovered.connect(self.linkHovered)
         page.mainFrame().loadFinished.connect(self.on_load_finished)
         page.mainFrame().initialLayoutCompleted.connect(
             self.on_initial_layout_completed)
