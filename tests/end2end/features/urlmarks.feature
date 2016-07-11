@@ -8,6 +8,20 @@ Feature: quickmarks and bookmarks
         Then the message "Bookmarked http://localhost:*/data/title.html!" should be shown
         And the bookmark file should contain "http://localhost:*/data/title.html Test title"
 
+    Scenario: Saving a bookmark with a provided url and title
+        When I run :bookmark-add http://example.com "some example title"
+        Then the message "Bookmarked http://example.com!" should be shown
+        And the bookmark file should contain "http://example.com some example title"
+
+    Scenario: Saving a bookmark with a url but no title
+        When I run :bookmark-add http://example.com
+        Then the error "Title must be provided if url has been provided" should be shown
+
+    Scenario: Saving a bookmark with an invalid url
+        When I set general -> auto-search to false
+        And I run :bookmark-add foo! "some example title"
+        Then the error "Invalid URL" should be shown
+
     Scenario: Saving a duplicate bookmark
         Given I have a fresh instance
         When I open data/title.html
