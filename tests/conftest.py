@@ -145,6 +145,8 @@ def pytest_addoption(parser):
                      help="Delay between qutebrowser commands.")
     parser.addoption('--qute-profile-subprocs', action='store_true',
                      default=False, help="Run cProfile for subprocesses.")
+    parser.addoption('--qute-bdd-webengine', action='store_true',
+                     help='Use QtWebEngine for BDD tests')
 
 
 @pytest.fixture(scope='session', autouse=True)

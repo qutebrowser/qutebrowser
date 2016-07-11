@@ -142,6 +142,7 @@ class QuteProc(testprocess.Process):
         _delay: Delay to wait between commands.
         _ipc_socket: The IPC socket of the started instance.
         _httpbin: The HTTPBin webserver.
+        _webengine: Whether to use QtWebEngine
         basedir: The base directory for this instance.
         _focus_ready: Whether the main window got focused.
         _load_ready: Whether the about:blank page got loaded.
@@ -159,9 +160,10 @@ class QuteProc(testprocess.Process):
     KEYS = ['timestamp', 'loglevel', 'category', 'module', 'function', 'line',
             'message']
 
-    def __init__(self, httpbin, delay, *, profile=False, config=None,
-                 parent=None):
+    def __init__(self, httpbin, delay, *, webengine=False, profile=False,
+                 config=None, parent=None):
         super().__init__(parent)
+        self._webengine = webengine
         self._profile = profile
         self._delay = delay
         self._httpbin = httpbin
@@ -207,6 +209,10 @@ class QuteProc(testprocess.Process):
         start_okay_message_focus = (
             "Focus object changed: "
             "<qutebrowser.browser.* tab_id=0 url='about:blank'>")
+        # With QtWebEngine the QOpenGLWidget has the actual focus
+        start_okay_message_focus_qtwe = (
+            "Focus object changed: <PyQt5.QtWidgets.QOpenGLWidget object at *>"
+        )
 
         if (log_line.category == 'ipc' and
                 log_line.message.startswith("Listening as ")):
@@ -217,6 +223,10 @@ class QuteProc(testprocess.Process):
             self._is_ready('load')
         elif (log_line.category == 'misc' and
               testutils.pattern_match(pattern=start_okay_message_focus,
+                                      value=log_line.message)):
+            self._is_ready('focus')
+        elif (log_line.category == 'misc' and
+              testutils.pattern_match(pattern=start_okay_message_focus_qtwe,
                                       value=log_line.message)):
             self._is_ready('focus')
         elif (log_line.category == 'init' and
@@ -256,8 +266,9 @@ class QuteProc(testprocess.Process):
         return executable, args
 
     def _default_args(self):
+        backend = 'webengine' if self._webengine else 'webkit'
         return ['--debug', '--no-err-windows', '--temp-basedir',
-                '--json-logging', 'about:blank']
+                '--json-logging', '--backend', backend, 'about:blank']
 
     def path_to_url(self, path, *, port=None, https=False):
         """Get a URL based on a filename for the localhost webserver.
@@ -571,7 +582,9 @@ def quteproc_process(qapp, httpbin, request):
     """Fixture for qutebrowser process which is started once per file."""
     delay = request.config.getoption('--qute-delay')
     profile = request.config.getoption('--qute-profile-subprocs')
-    proc = QuteProc(httpbin, delay, profile=profile, config=request.config)
+    webengine = request.config.getoption('--qute-bdd-webengine')
+    proc = QuteProc(httpbin, delay, webengine=webengine, profile=profile,
+                    config=request.config)
     proc.start()
     yield proc
     proc.terminate()
@@ -591,7 +604,9 @@ def quteproc_new(qapp, httpbin, request):
     """Per-test qutebrowser process to test invocations."""
     delay = request.config.getoption('--qute-delay')
     profile = request.config.getoption('--qute-profile-subprocs')
-    proc = QuteProc(httpbin, delay, profile=profile, config=request.config)
+    webengine = request.config.getoption('--qute-bdd-webengine')
+    proc = QuteProc(httpbin, delay, webengine=webengine, profile=profile,
+                    config=request.config)
     request.node._quteproc_log = proc.captured_log
     # Not calling before_test here as that would start the process
     yield proc
