@@ -17,8 +17,7 @@
 # You should have received a copy of the GNU General Public License
 # along with qutebrowser.  If not, see <http://www.gnu.org/licenses/>.
 
-"""
-Provides test data for overflow checking.
+"""Provides test data for overflow checking.
 
 Module attributes:
     INT32_MIN: Minimum valid value for a signed int32.
