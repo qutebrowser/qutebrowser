@@ -44,21 +44,27 @@ except ImportError:
 # initialization needs to take place before that!
 
 
-def _missing_str(name, *, windows=None, pip=None):
+def _missing_str(name, *, windows=None, pip=None, webengine=False):
     """Get an error string for missing packages.
 
     Args:
         name: The name of the package.
         windows: String to be displayed for Windows.
         pip: pypi package name.
+        webengine: Whether this is checking the QtWebEngine package
     """
     blocks = ["Fatal error: <b>{}</b> is required to run qutebrowser but "
               "could not be imported! Maybe it's not installed?".format(name)]
     lines = ['Please search for the python3 version of {} in your '
              'distributions packages, or install it via pip.'.format(name)]
     blocks.append('<br />'.join(lines))
-    lines = ['<b>If you installed a qutebrowser package for your '
-             'distribution, please report this as a bug.</b>']
+    if webengine:
+        lines = ['Note QtWebEngine is not available for some distributions '
+                 '(like Debian/Ubuntu), so you need to start without '
+                 '--backend webengine there.']
+    else:
+        lines = ['<b>If you installed a qutebrowser package for your '
+                 'distribution, please report this as a bug.</b>']
     blocks.append('<br />'.join(lines))
     if windows is not None:
         lines = ["<b>On Windows:</b>"]
@@ -230,7 +236,7 @@ def check_ssl_support():
         _die(text)
 
 
-def check_libraries():
+def check_libraries(args):
     """Check if all needed Python libraries are installed."""
     modules = {
         'PyQt5.QtWebKit': _missing_str("PyQt5.QtWebKit"),
@@ -257,27 +263,14 @@ def check_libraries():
                                  "or Install via pip.",
                          pip="PyYAML"),
     }
+    if args.backend == 'webengine':
+        modules['PyQt5.QtWebEngineWidgets'] = _missing_str("QtWebEngine",
+                                                           webengine=True)
     for name, text in modules.items():
         try:
             importlib.import_module(name)
         except ImportError as e:
             _die(text, e)
-
-
-def maybe_import_webengine():
-    """Import QtWebEngineWidgets before QApplication is created.
-
-    See https://github.com/The-Compiler/qutebrowser/pull/1629#issuecomment-231613099
-    """
-    try:
-        from PyQt5 import QtWebEngineWidgets  # pylint: disable=unused-variable
-    except ImportError as e:
-        from qutebrowser.utils import log
-        from PyQt5.QtCore import QCoreApplication
-        log.init.debug("Failed to import QtWebEngineWidgets: {}".format(e))
-        if 'QCoreApplication' in str(e):
-            log.init.debug("QApplication instance: {}".format(
-                QCoreApplication.instance()))
 
 
 def remove_inputhook():
@@ -324,6 +317,5 @@ def earlyinit(args):
     check_qt_version()
     check_ssl_support()
     remove_inputhook()
-    check_libraries()
+    check_libraries(args)
     init_log(args)
-    maybe_import_webengine()
