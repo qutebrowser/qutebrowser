@@ -521,7 +521,7 @@ class WebKitTab(browsertab.AbstractTab):
         frame.loadStarted.connect(self._on_load_started)
         view.scroll_pos_changed.connect(self.scroll.perc_changed)
         view.titleChanged.connect(self.title_changed)
-        view.urlChanged.connect(self.url_changed)
+        view.urlChanged.connect(self._on_url_changed)
         view.shutting_down.connect(self.shutting_down)
         page.networkAccessManager().sslErrors.connect(self._on_ssl_errors)
 
