@@ -40,8 +40,7 @@ class SignalFilter(QObject):
         BLACKLIST: List of signal names which should not be logged.
     """
 
-    BLACKLIST = ['cur_scroll_perc_changed', 'cur_progress',
-                 'cur_statusbar_message', 'cur_link_hovered']
+    BLACKLIST = ['cur_scroll_perc_changed', 'cur_progress', 'cur_link_hovered']
 
     def __init__(self, win_id, parent=None):
         super().__init__(parent)

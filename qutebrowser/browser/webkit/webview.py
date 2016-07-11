@@ -42,7 +42,6 @@ class WebView(QWebView):
         tab: The WebKitTab object for this WebView
         hintmanager: The HintManager instance for this view.
         scroll_pos: The current scroll position as (x%, y%) tuple.
-        statusbar_message: The current javascript statusbar message.
         win_id: The window ID of the view.
         _tab_id: The tab ID of the view.
         _old_scroll_pos: The old scroll position.
@@ -75,7 +74,6 @@ class WebView(QWebView):
         self.win_id = win_id
         self._check_insertmode = False
         self.scroll_pos = (-1, -1)
-        self.statusbar_message = ''
         self._old_scroll_pos = (-1, -1)
         self._ignore_wheel_event = False
         self._set_bg_color()
@@ -116,8 +114,6 @@ class WebView(QWebView):
         page.mainFrame().loadFinished.connect(self.on_load_finished)
         page.mainFrame().initialLayoutCompleted.connect(
             self.on_initial_layout_completed)
-        page.statusBarMessage.connect(
-            lambda msg: setattr(self, 'statusbar_message', msg))
         return page
 
     def __repr__(self):

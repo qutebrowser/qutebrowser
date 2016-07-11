@@ -37,7 +37,6 @@
 |<<ui-message-timeout,message-timeout>>|Time (in ms) to show messages in the statusbar for.
 |<<ui-message-unfocused,message-unfocused>>|Whether to show messages in unfocused windows.
 |<<ui-confirm-quit,confirm-quit>>|Whether to confirm quitting the application.
-|<<ui-display-statusbar-messages,display-statusbar-messages>>|Whether to display javascript statusbar messages.
 |<<ui-zoom-text-only,zoom-text-only>>|Whether the zoom factor on a frame applies only to the text or to all content.
 |<<ui-frame-flattening,frame-flattening>>|Whether to  expand each subframe to its contents.
 |<<ui-user-stylesheet,user-stylesheet>>|User stylesheet to use (absolute filename, filename relative to the config directory or CSS string). Will expand environment variables.
@@ -557,17 +556,6 @@ Valid values:
  * +never+: Never show a confirmation.
 
 Default: +pass:[never]+
-
-[[ui-display-statusbar-messages]]
-=== display-statusbar-messages
-Whether to display javascript statusbar messages.
-
-Valid values:
-
- * +true+
- * +false+
-
-Default: +pass:[false]+
 
 [[ui-zoom-text-only]]
 === zoom-text-only

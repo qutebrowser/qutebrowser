@@ -351,6 +351,7 @@ class ConfigManager(QObject):
         ('tabs', 'hide-auto'),
         ('tabs', 'auto-hide'),
         ('tabs', 'hide-always'),
+        ('ui', 'display-statusbar-messages'),
     ]
     CHANGED_OPTIONS = {
         ('content', 'cookies-accept'):

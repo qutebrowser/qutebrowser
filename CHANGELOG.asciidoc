@@ -35,6 +35,12 @@ Changed
 - Aliases can now use `;;` to have an alias which executed multiple commands.
 - `:edit-url` now does nothing if the URL isn't changed in the spawned editor.
 
+Removed
+-------
+
+- The ability to display status messages from webpages, as well as the related
+  `ui ->  display-statusbar-messages` setting.
+
 Fixed
 -----
 

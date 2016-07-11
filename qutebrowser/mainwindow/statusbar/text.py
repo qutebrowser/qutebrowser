@@ -34,20 +34,17 @@ class Text(textbase.TextBase):
     Attributes:
         _normaltext: The "permanent" text. Never automatically cleared.
         _temptext: The temporary text to display.
-        _jstext: The text javascript wants to display.
 
         The temptext is shown from StatusBar when a temporary text or error is
         available. If not, the permanent text is shown.
     """
 
-    Text = usertypes.enum('Text', ['normal', 'temp', 'js'])
+    Text = usertypes.enum('Text', ['normal', 'temp'])
 
     def __init__(self, parent=None):
         super().__init__(parent)
         self._normaltext = ''
         self._temptext = ''
-        self._jstext = ''
-        objreg.get('config').changed.connect(self.update_text)
 
     def set_text(self, which, text):
         """Set a text.
@@ -62,8 +59,6 @@ class Text(textbase.TextBase):
             self._normaltext = text
         elif which is self.Text.temp:
             self._temptext = text
-        elif which is self.Text.js:
-            self._jstext = text
         else:
             raise ValueError("Invalid value {} for which!".format(which))
         self.update_text()
@@ -77,29 +72,11 @@ class Text(textbase.TextBase):
         else:
             log.statusbar.debug("Ignoring reset: '{}'".format(text))
 
-    @config.change_filter('ui', 'display-statusbar-messages')
     def update_text(self):
         """Update QLabel text when needed."""
         if self._temptext:
             self.setText(self._temptext)
-        elif self._jstext and config.get('ui', 'display-statusbar-messages'):
-            self.setText(self._jstext)
         elif self._normaltext:
             self.setText(self._normaltext)
         else:
             self.setText('')
-
-    @pyqtSlot(str)
-    def on_statusbar_message(self, val):
-        """Called when javascript tries to set a statusbar message."""
-        self._jstext = val
-
-    @pyqtSlot()
-    def on_load_started(self):
-        """Clear jstext when page loading started."""
-        self._jstext = ''
-
-    @pyqtSlot(browsertab.AbstractTab)
-    def on_tab_changed(self, tab):
-        """Set the correct jstext when the current tab changed."""
-        self._jstext = tab.statusbar_message

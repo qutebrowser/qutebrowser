@@ -288,10 +288,6 @@ def data(readonly=False):
              SettingValue(typ.ConfirmQuit(), 'never'),
              "Whether to confirm quitting the application."),
 
-            ('display-statusbar-messages',
-             SettingValue(typ.Bool(), 'false'),
-             "Whether to display javascript statusbar messages."),
-
             ('zoom-text-only',
              SettingValue(typ.Bool(), 'false'),
              "Whether the zoom factor on a frame applies only to the text or "

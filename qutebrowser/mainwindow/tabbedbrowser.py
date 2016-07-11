@@ -73,8 +73,6 @@ class TabbedBrowser(tabwidget.TabWidget):
         cur_progress: Progress of the current tab changed (load_progress).
         cur_load_started: Current tab started loading (load_started)
         cur_load_finished: Current tab finished loading (load_finished)
-        cur_statusbar_message: Current tab got a statusbar message
-                               (statusBarMessage)
         cur_url_changed: Current URL changed.
         cur_link_hovered: Link hovered in current tab (link_hovered)
         cur_scroll_perc_changed: Scroll percentage of current tab changed.
@@ -92,7 +90,6 @@ class TabbedBrowser(tabwidget.TabWidget):
     cur_progress = pyqtSignal(int)
     cur_load_started = pyqtSignal()
     cur_load_finished = pyqtSignal(bool)
-    cur_statusbar_message = pyqtSignal(str)
     cur_url_changed = pyqtSignal(QUrl)
     cur_link_hovered = pyqtSignal(str)
     cur_scroll_perc_changed = pyqtSignal(int, int)
@@ -178,9 +175,6 @@ class TabbedBrowser(tabwidget.TabWidget):
             self._filter.create(self.cur_load_finished, tab))
         tab.load_started.connect(
             self._filter.create(self.cur_load_started, tab))
-        # https://github.com/The-Compiler/qutebrowser/issues/1579
-        # tab.statusBarMessage.connect(
-        #     self._filter.create(self.cur_statusbar_message, tab))
         tab.scroll.perc_changed.connect(
             self._filter.create(self.cur_scroll_perc_changed, tab))
         tab.scroll.perc_changed.connect(self.on_scroll_pos_changed)
