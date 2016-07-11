@@ -27,7 +27,7 @@ from PyQt5.QtWidgets import QWidget, QLayout
 
 from qutebrowser.keyinput import modeman
 from qutebrowser.config import config
-from qutebrowser.utils import utils, objreg, usertypes, message, log
+from qutebrowser.utils import utils, objreg, usertypes, message, log, qtutils
 
 
 tab_id_gen = itertools.count(0)
@@ -545,6 +545,10 @@ class AbstractTab(QWidget):
 
     def load_status(self):
         return self._load_status
+
+    def _openurl_prepare(self, url):
+        qtutils.ensure_valid(url)
+        self.title_changed.emit(url.toDisplayString())
 
     def openurl(self, url):
         raise NotImplementedError

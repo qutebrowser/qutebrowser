@@ -278,7 +278,6 @@ class WebView(QWebView):
         Args:
             url: The URL to load as QUrl
         """
-        qtutils.ensure_valid(url)
         self.load(url)
         if url.scheme() == 'qute':
             frame = self.page().mainFrame()

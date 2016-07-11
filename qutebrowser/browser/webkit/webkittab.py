@@ -467,7 +467,7 @@ class WebKitTab(browsertab.AbstractTab):
         self.backend = usertypes.Backend.QtWebKit
 
     def openurl(self, url):
-        self.title_changed.emit(url.toDisplayString())
+        self._openurl_prepare(url)
         self._widget.openurl(url)
 
     def url(self):
