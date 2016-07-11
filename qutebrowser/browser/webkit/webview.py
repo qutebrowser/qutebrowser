@@ -43,10 +43,8 @@ class WebView(QWebView):
         hintmanager: The HintManager instance for this view.
         scroll_pos: The current scroll position as (x%, y%) tuple.
         statusbar_message: The current javascript statusbar message.
-        load_status: loading status of this page (index into LoadStatus)
         win_id: The window ID of the view.
         _tab_id: The tab ID of the view.
-        _has_ssl_errors: Whether SSL errors occurred during loading.
         _old_scroll_pos: The old scroll position.
         _check_insertmode: If True, in mouseReleaseEvent we should check if we
                            need to enter/leave insert mode.
@@ -58,7 +56,6 @@ class WebView(QWebView):
                             arg 1: x-position in %.
                             arg 2: y-position in %.
         linkHovered: QWebPages linkHovered signal exposed.
-        load_status_changed: The loading status changed
         url_text_changed: Current URL string changed.
         mouse_wheel_zoom: Emitted when the page should be zoomed because the
                           mousewheel was used with ctrl.
@@ -68,7 +65,6 @@ class WebView(QWebView):
 
     scroll_pos_changed = pyqtSignal(int, int)
     linkHovered = pyqtSignal(str, str, str)
-    load_status_changed = pyqtSignal(str)
     url_text_changed = pyqtSignal(str)
     shutting_down = pyqtSignal()
     mouse_wheel_zoom = pyqtSignal(QPoint)
@@ -81,12 +77,10 @@ class WebView(QWebView):
             self.setStyle(QStyleFactory.create('Fusion'))
         self.tab = tab
         self.win_id = win_id
-        self.load_status = usertypes.LoadStatus.none
         self._check_insertmode = False
         self.scroll_pos = (-1, -1)
         self.statusbar_message = ''
         self._old_scroll_pos = (-1, -1)
-        self._has_ssl_errors = False
         self._ignore_wheel_event = False
         self._set_bg_color()
         self.cur_url = QUrl()
@@ -126,14 +120,11 @@ class WebView(QWebView):
         page = webpage.BrowserPage(self.win_id, self._tab_id, self)
         self.setPage(page)
         page.linkHovered.connect(self.linkHovered)
-        page.mainFrame().loadStarted.connect(self.on_load_started)
         page.mainFrame().loadFinished.connect(self.on_load_finished)
         page.mainFrame().initialLayoutCompleted.connect(
             self.on_initial_layout_completed)
         page.statusBarMessage.connect(
             lambda msg: setattr(self, 'statusbar_message', msg))
-        page.networkAccessManager().sslErrors.connect(
-            lambda *args: setattr(self, '_has_ssl_errors', True))
         return page
 
     def __repr__(self):
@@ -152,14 +143,6 @@ class WebView(QWebView):
             # get: RuntimeError: wrapped C/C++ object of type WebView has been
             # deleted
             pass
-
-    def _set_load_status(self, val):
-        """Setter for load_status."""
-        if not isinstance(val, usertypes.LoadStatus):
-            raise TypeError("Type {} is no LoadStatus member!".format(val))
-        log.webview.debug("load status for {}: {}".format(repr(self), val))
-        self.load_status = val
-        self.load_status_changed.emit(val.name)
 
     def _set_bg_color(self):
         """Set the webpage background color as configured."""
@@ -350,12 +333,6 @@ class WebView(QWebView):
         QApplication.postEvent(self, evt)
 
     @pyqtSlot()
-    def on_load_started(self):
-        """Leave insert/hint mode and set vars when a new page is loading."""
-        self._has_ssl_errors = False
-        self._set_load_status(usertypes.LoadStatus.loading)
-
-    @pyqtSlot()
     def on_load_finished(self):
         """Handle a finished page load.
 
@@ -364,16 +341,6 @@ class WebView(QWebView):
         See https://github.com/The-Compiler/qutebrowser/issues/84
         """
         ok = not self.page().error_occurred
-        if ok and not self._has_ssl_errors:
-            if self.cur_url.scheme() == 'https':
-                self._set_load_status(usertypes.LoadStatus.success_https)
-            else:
-                self._set_load_status(usertypes.LoadStatus.success)
-
-        elif ok:
-            self._set_load_status(usertypes.LoadStatus.warn)
-        else:
-            self._set_load_status(usertypes.LoadStatus.error)
         if not self.title():
             self.titleChanged.emit(self.url().toDisplayString())
         self._handle_auto_insert_mode(ok)

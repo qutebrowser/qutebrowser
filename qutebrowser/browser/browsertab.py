@@ -27,7 +27,7 @@ from PyQt5.QtWidgets import QWidget, QLayout
 
 from qutebrowser.keyinput import modeman
 from qutebrowser.config import config
-from qutebrowser.utils import utils, objreg, usertypes, message
+from qutebrowser.utils import utils, objreg, usertypes, message, log
 
 
 tab_id_gen = itertools.count(0)
@@ -424,6 +424,11 @@ class AbstractTab(QWidget):
         history: The AbstractHistory for the current tab.
         registry: The ObjectRegistry associated with this tab.
 
+        _load_status: loading status of this page
+                      Accessible via load_status() method.
+        _has_ssl_errors: Whether SSL errors happened.
+                         Needs to be set by subclasses.
+
         for properties, see WebView/WebEngineView docs.
 
     Signals:
@@ -431,6 +436,7 @@ class AbstractTab(QWidget):
 
         new_tab_requested: Emitted when a new tab should be opened with the
                            given URL.
+        load_status_changed: The loading status changed
     """
 
     window_close_requested = pyqtSignal()
@@ -467,6 +473,8 @@ class AbstractTab(QWidget):
         self._layout = None
         self._widget = None
         self._progress = 0
+        self._has_ssl_errors = False
+        self._load_status = usertypes.LoadStatus.none
         self.backend = None
 
     def _set_widget(self, widget):
@@ -482,16 +490,44 @@ class AbstractTab(QWidget):
         widget.setParent(self)
         self.setFocusProxy(widget)
 
+    def _set_load_status(self, val):
+        """Setter for load_status."""
+        if not isinstance(val, usertypes.LoadStatus):
+            raise TypeError("Type {} is no LoadStatus member!".format(val))
+        log.webview.debug("load status for {}: {}".format(repr(self), val))
+        self._load_status = val
+        self.load_status_changed.emit(val.name)
+
     @pyqtSlot()
     def _on_load_started(self):
         self._progress = 0
+        self._has_ssl_errors = False
         self.data.viewing_source = False
+        self._set_load_status(usertypes.LoadStatus.loading)
         self.load_started.emit()
+
+    @pyqtSlot(bool)
+    def _on_load_finished(self, ok):
+        if ok and not self._has_ssl_errors:
+            if self.url().scheme() == 'https':
+                self._set_load_status(usertypes.LoadStatus.success_https)
+            else:
+                self._set_load_status(usertypes.LoadStatus.success)
+
+        elif ok:
+            self._set_load_status(usertypes.LoadStatus.warn)
+        else:
+            self._set_load_status(usertypes.LoadStatus.error)
+        self.load_finished.emit(ok)
 
     @pyqtSlot(int)
     def _on_load_progress(self, perc):
         self._progress = perc
         self.load_progress.emit(perc)
+
+    @pyqtSlot()
+    def _on_ssl_errors(self):
+        self._has_ssl_errors = True
 
     def url(self):
         raise NotImplementedError
@@ -500,7 +536,7 @@ class AbstractTab(QWidget):
         return self._progress
 
     def load_status(self):
-        raise NotImplementedError
+        return self._load_status
 
     def openurl(self, url):
         raise NotImplementedError

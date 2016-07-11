@@ -266,10 +266,6 @@ class WebEngineTab(browsertab.AbstractTab):
     def url(self):
         return self._widget.url()
 
-    def load_status(self):
-        log.stub()
-        return usertypes.LoadStatus.success
-
     def dump_async(self, callback, *, plain=False):
         if plain:
             self._widget.page().toPlainText(callback)
@@ -320,9 +316,9 @@ class WebEngineTab(browsertab.AbstractTab):
         page.loadProgress.connect(self._on_load_progress)
         page.loadStarted.connect(self._on_load_started)
         view.titleChanged.connect(self.title_changed)
-        page.loadFinished.connect(self.load_finished)
+        page.loadFinished.connect(self._on_load_finished)
+        page.certificate_error.connect(self._on_ssl_errors)
         # FIXME:qtwebengine stub this?
         # view.iconChanged.connect(self.icon_changed)
         # view.scroll.pos_changed.connect(self.scroll.perc_changed)
         # view.url_text_changed.connect(self.url_text_changed)
-        # view.load_status_changed.connect(self.load_status_changed)

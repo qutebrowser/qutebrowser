@@ -472,9 +472,6 @@ class WebKitTab(browsertab.AbstractTab):
     def url(self):
         return self._widget.cur_url
 
-    def load_status(self):
-        return self._widget.load_status
-
     def dump_async(self, callback, *, plain=False):
         frame = self._widget.page().mainFrame()
         if plain:
@@ -524,15 +521,15 @@ class WebKitTab(browsertab.AbstractTab):
         view.scroll_pos_changed.connect(self.scroll.perc_changed)
         view.titleChanged.connect(self.title_changed)
         view.url_text_changed.connect(self.url_text_changed)
-        view.load_status_changed.connect(self.load_status_changed)
         view.shutting_down.connect(self.shutting_down)
+        page.networkAccessManager().sslErrors.connect(self._on_ssl_errors)
 
         # Make sure we emit an appropriate status when loading finished. While
         # Qt has a bool "ok" attribute for loadFinished, it always is True when
         # using error pages...
         # See https://github.com/The-Compiler/qutebrowser/issues/84
         frame.loadFinished.connect(lambda:
-                                   self.load_finished.emit(
+                                   self._on_load_finished(
                                        not self._widget.page().error_occurred))
 
         # Emit iconChanged with a QIcon like QWebEngineView does.

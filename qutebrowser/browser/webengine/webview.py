@@ -22,7 +22,7 @@
 
 from PyQt5.QtCore import pyqtSignal, Qt, QPoint
 # pylint: disable=no-name-in-module,import-error,useless-suppression
-from PyQt5.QtWebEngineWidgets import QWebEngineView
+from PyQt5.QtWebEngineWidgets import QWebEngineView, QWebEnginePage
 # pylint: enable=no-name-in-module,import-error,useless-suppression
 
 
@@ -31,6 +31,10 @@ class WebEngineView(QWebEngineView):
     """Custom QWebEngineView subclass with qutebrowser-specific features."""
 
     mouse_wheel_zoom = pyqtSignal(QPoint)
+
+    def __init__(self, parent=None):
+        super().__init__(parent)
+        self.setPage(WebEnginePage(self))
 
     def wheelEvent(self, e):
         """Zoom on Ctrl-Mousewheel.
@@ -43,3 +47,12 @@ class WebEngineView(QWebEngineView):
             self.mouse_wheel_zoom.emit(e.angleDelta())
         else:
             super().wheelEvent(e)
+
+
+class WebEnginePage(QWebEnginePage):
+
+    certificate_error = pyqtSignal()
+
+    def certificateError(self, error):
+        self.certificate_error.emit()
+        return super().certificateError(error)
