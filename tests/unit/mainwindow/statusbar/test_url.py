@@ -51,17 +51,16 @@ def url_widget(qtbot, monkeypatch, config_stub):
     return widget
 
 
-@pytest.mark.parametrize('url_text', [
-    'http://abc123.com/this/awesome/url.html',
-    'https://supersecret.gov/nsa/files.txt',
-    'Th1$ i$ n0t @ n0rm@L uRL! P@n1c! <-->',
+@pytest.mark.parametrize('qurl', [
+    QUrl('http://abc123.com/this/awesome/url.html'),
+    QUrl('https://supersecret.gov/nsa/files.txt'),
     None
 ])
-def test_set_url(url_widget, url_text):
+def test_set_url(url_widget, qurl):
     """Test text displayed by the widget."""
-    url_widget.set_url(url_text)
-    if url_text is not None:
-        assert url_widget.text() == url_text
+    url_widget.set_url(qurl)
+    if qurl is not None:
+        assert url_widget.text() == qurl.toDisplayString()
     else:
         assert url_widget.text() == ""
 
@@ -107,7 +106,7 @@ def test_set_hover_url_encoded(url_widget, url_text, expected):
 ])
 def test_on_load_status_changed(url_widget, status, expected):
     """Test text when status is changed."""
-    url_widget.set_url('www.example.com')
+    url_widget.set_url(QUrl('www.example.com'))
     url_widget.on_load_status_changed(status.name)
     assert url_widget._urltype == expected
 
@@ -154,5 +153,5 @@ def test_normal_url(url_widget, qurl, load_status, expected_status):
     url_widget.on_load_status_changed(load_status.name)
     url_widget.set_hover_url(qurl.toDisplayString())
     url_widget.set_hover_url("")
-    assert url_widget.text() == url_text
+    assert url_widget.text() == qurl.toDisplayString()
     assert url_widget._urltype == expected_status

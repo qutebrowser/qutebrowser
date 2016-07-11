@@ -134,9 +134,12 @@ class UrlText(textbase.TextBase):
         """Setter to be used as a Qt slot.
 
         Args:
-            url: The URL to set as QUrl.
+            url: The URL to set as QUrl, or None.
         """
-        self._normal_url = url.toDisplayString()
+        if url is None:
+            self._normal_url = None
+        else:
+            self._normal_url = url.toDisplayString()
         self._normal_url_type = UrlType.normal
         self._update_url()
 
