@@ -275,7 +275,6 @@ class TestInitCacheDirTag:
         assert not tmpdir.listdir()
 
 
-@pytest.mark.usefixtures('reset_standarddir')
 class TestCreatingDir:
 
     """Make sure inexistent directories are created properly."""
@@ -288,6 +287,7 @@ class TestCreatingDir:
         basedir = tmpdir / 'basedir'
         assert not basedir.exists()
         args = types.SimpleNamespace(basedir=str(basedir))
+        standarddir.init(None)
         standarddir.init(args)
 
         func = getattr(standarddir, typ)
@@ -298,6 +298,7 @@ class TestCreatingDir:
         if os.name == 'posix':
             assert basedir.stat().mode & 0o777 == 0o700
 
+    @pytest.mark.usefixtures('reset_standarddir')
     @pytest.mark.parametrize('typ', DIR_TYPES)
     def test_exists_race_condition(self, mocker, tmpdir, typ):
         """Make sure there can't be a TOCTOU issue when creating the file.
