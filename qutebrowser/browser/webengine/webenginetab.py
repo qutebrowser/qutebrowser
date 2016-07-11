@@ -23,7 +23,7 @@
 """Wrapper over a QWebEngineView."""
 
 from PyQt5.QtCore import pyqtSlot, Qt, QEvent, QPoint
-from PyQt5.QtGui import QKeyEvent
+from PyQt5.QtGui import QKeyEvent, QIcon
 from PyQt5.QtWidgets import QApplication
 # pylint: disable=no-name-in-module,import-error,useless-suppression
 from PyQt5.QtWebEngineWidgets import QWebEnginePage
@@ -296,7 +296,11 @@ class WebEngineTab(browsertab.AbstractTab):
         return self._widget.title()
 
     def icon(self):
-        return self._widget.icon()
+        try:
+            return self._widget.icon()
+        except AttributeError:
+            log.stub('on Qt < 5.7')
+            return QIcon()
 
     def set_html(self, html, base_url):
         # FIXME:qtwebengine
@@ -320,6 +324,9 @@ class WebEngineTab(browsertab.AbstractTab):
         view.urlChanged.connect(self._on_url_changed)
         page.loadFinished.connect(self._on_load_finished)
         page.certificate_error.connect(self._on_ssl_errors)
+        try:
+            view.iconChanged.connect(self.icon_changed)
+        except AttributeError:
+            log.stub('iconChanged, on Qt < 5.7')
         # FIXME:qtwebengine stub this?
-        # view.iconChanged.connect(self.icon_changed)
         # view.scroll.pos_changed.connect(self.scroll.perc_changed)
