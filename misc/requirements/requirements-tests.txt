@@ -7,7 +7,7 @@ decorator==4.0.10
 Flask==0.10.1  # rq.filter: < 0.11.0
 glob2==0.4.1
 httpbin==0.4.1
-hypothesis==3.4.0
+hypothesis==3.4.1
 itsdangerous==0.24
 # Jinja2==2.8
 Mako==1.0.4
