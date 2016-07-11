@@ -196,7 +196,7 @@ class TabCompletionModel(base.BaseCompletionModel):
     @pyqtSlot(browsertab.AbstractTab)
     def on_new_tab(self, tab):
         """Add hooks to new tabs."""
-        tab.url_text_changed.connect(self.rebuild)
+        tab.url_changed.connect(self.rebuild)
         tab.shutting_down.connect(self.delayed_rebuild)
         self.rebuild()
 

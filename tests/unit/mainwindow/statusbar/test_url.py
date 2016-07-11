@@ -152,7 +152,7 @@ def test_on_tab_changed(url_widget, fake_web_tab, load_status, qurl):
 def test_normal_url(url_widget, qurl, load_status, expected_status):
     url_widget.set_url(qurl)
     url_widget.on_load_status_changed(load_status.name)
-    url_widget.set_hover_url(url_text)
+    url_widget.set_hover_url(qurl.toDisplayString())
     url_widget.set_hover_url("")
     assert url_widget.text() == url_text
     assert url_widget._urltype == expected_status
