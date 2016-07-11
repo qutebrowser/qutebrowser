@@ -271,8 +271,13 @@ def maybe_import_webengine():
     """
     try:
         from PyQt5 import QtWebEngineWidgets  # pylint: disable=unused-variable
-    except ImportError:
-        pass
+    except ImportError as e:
+        from qutebrowser.utils import log
+        from PyQt5.QtCore import QCoreApplication
+        log.init.debug("Failed to import QtWebEngineWidgets: {}".format(e))
+        if 'QCoreApplication' in str(e):
+            log.init.debug("QApplication instance: {}".format(
+                QCoreApplication.instance()))
 
 
 def remove_inputhook():
@@ -320,5 +325,5 @@ def earlyinit(args):
     check_ssl_support()
     remove_inputhook()
     check_libraries()
-    maybe_import_webengine()
     init_log(args)
+    maybe_import_webengine()
