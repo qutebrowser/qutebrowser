@@ -219,7 +219,7 @@ def debug_set_fake_clipboard(s=None):
         utils.fake_clipboard = s
 
 
-@cmdutils.register()
+@cmdutils.register(hide=True)
 @cmdutils.argument('win_id', win_id=True)
 @cmdutils.argument('count', count=True)
 def repeat_command(win_id, count=None):
