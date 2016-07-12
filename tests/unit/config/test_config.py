@@ -94,19 +94,19 @@ class TestConfigParser:
 
     def test_invalid_value_interpolated(self, objects):
         """Test setting an invalid interpolated value."""
-        objects.cp.read_dict({'general': {'ignore-case': 'smart',
-                                          'wrap-search': '${ignore-case}'}})
+        objects.cp.read_dict({'general': {
+            'ignore-case': 'smart', 'private-browsing': '${ignore-case}'}})
         objects.cfg._from_cp(objects.cp)
         with pytest.raises(configexc.ValidationError):
             objects.cfg._validate_all()
 
     def test_interpolation(self, objects):
         """Test setting an interpolated value."""
-        objects.cp.read_dict({'general': {'ignore-case': 'false',
-                                          'wrap-search': '${ignore-case}'}})
+        objects.cp.read_dict({'general': {
+            'ignore-case': 'false', 'private-browsing': '${ignore-case}'}})
         objects.cfg._from_cp(objects.cp)
         assert not objects.cfg.get('general', 'ignore-case')
-        assert not objects.cfg.get('general', 'wrap-search')
+        assert not objects.cfg.get('general', 'private-browsing')
 
     def test_interpolation_cross_section(self, objects):
         """Test setting an interpolated value from another section."""
