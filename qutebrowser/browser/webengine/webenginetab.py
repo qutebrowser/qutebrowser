@@ -80,8 +80,6 @@ class WebEngineSearch(browsertab.AbstractSearch):
                 flags |= QWebEnginePage.FindCaseSensitively
         elif not ignore_case:
             flags |= QWebEnginePage.FindCaseSensitively
-        if not wrap:
-            log.stub('With wrap=False (ignoring)')
         if reverse:
             flags |= QWebEnginePage.FindBackward
 
