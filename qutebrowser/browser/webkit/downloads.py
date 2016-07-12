@@ -874,9 +874,9 @@ class DownloadManager(QAbstractListModel):
             The created DownloadItem.
         """
         if not suggested_filename:
-            if isinstance(target, usertypes.DownloadTarget.File):
+            if isinstance(target, usertypes.FileDownloadTarget):
                 suggested_filename = os.path.basename(target.filename)
-            elif (isinstance(target, usertypes.DownloadTarget.FileObj) and
+            elif (isinstance(target, usertypes.FileObjDownloadTarget) and
                   getattr(target.fileobj, 'name', None)):
                 suggested_filename = target.fileobj.name
             else:
@@ -922,7 +922,7 @@ class DownloadManager(QAbstractListModel):
 
         # User doesn't want to be asked, so just use the download_dir
         if filename is not None:
-            target = usertypes.DownloadTarget.File(filename)
+            target = usertypes.FileDownloadTarget(filename)
             self._set_download_target(download, suggested_filename, target)
             return download
 
@@ -946,12 +946,12 @@ class DownloadManager(QAbstractListModel):
             suggested_filename: The suggested filename.
             target: The usertypes.DownloadTarget for this download.
         """
-        if isinstance(target, usertypes.DownloadTarget.FileObj):
+        if isinstance(target, usertypes.FileObjDownloadTarget):
             download.set_fileobj(target.fileobj)
             download.autoclose = False
-        elif isinstance(target, usertypes.DownloadTarget.File):
+        elif isinstance(target, usertypes.FileDownloadTarget):
             download.set_filename(target.filename)
-        elif isinstance(target, usertypes.DownloadTarget.OpenDownload):
+        elif isinstance(target, usertypes.OpenFileDownloadTarget):
             tmp_manager = objreg.get('temporary-downloads')
             fobj = tmp_manager.get_tmpfile(suggested_filename)
             download.finished.connect(download.open_file)

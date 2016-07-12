@@ -343,7 +343,7 @@ class _Downloader:
 
         download_manager = objreg.get('download-manager', scope='window',
                                       window=self._win_id)
-        target = usertypes.DownloadTarget.FileObj(_NoCloseBytesIO())
+        target = usertypes.FileObjDownloadTarget(_NoCloseBytesIO())
         item = download_manager.get(url, target=target,
                                     auto_remove=True)
         self.pending_downloads.add((url, item))

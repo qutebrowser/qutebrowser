@@ -259,46 +259,41 @@ Backend = enum('Backend', ['QtWebKit', 'QtWebEngine'])
 # Where a download should be saved
 class DownloadTarget:
 
-    """Augmented enum that directs how a download should be saved.
-
-    Objects of this class cannot be instantiated directly, use the "subclasses"
-    instead.
-    """
+    """Abstract base class for different download targets."""
 
     def __init__(self):
         raise NotImplementedError
 
-    # Due to technical limitations, these can't be actual subclasses without a
-    # workaround. But they should still be part of DownloadTarget to get the
-    # enum-like access (usertypes.DownloadTarget.File, like
-    # usertypes.PromptMode.download).
 
-    class File:
+class FileDownloadTarget(DownloadTarget):
 
-        """Save the download to the given file.
+    """Save the download to the given file.
 
-        Attributes:
-            filename: Filename where the download should be saved.
-        """
+    Attributes:
+        filename: Filename where the download should be saved.
+    """
 
-        def __init__(self, filename):
-            self.filename = filename
+    def __init__(self, filename):
+        self.filename = filename
 
-    class FileObj:
 
-        """Save the download to the given file-like object.
+class FileObjDownloadTarget(DownloadTarget):
 
-        Attributes:
-            fileobj: File-like object where the download should be written to.
-        """
+    """Save the download to the given file-like object.
 
-        def __init__(self, fileobj):
-            self.fileobj = fileobj
+    Attributes:
+        fileobj: File-like object where the download should be written to.
+    """
 
-    class OpenDownload:
+    def __init__(self, fileobj):
+        self.fileobj = fileobj
 
-        """Save the download in a temp dir and directly open it."""
 
+class OpenFileDownloadTarget(DownloadTarget):
+
+    """Save the download in a temp dir and directly open it."""
+
+    def __init__(self):
         pass
 
 
