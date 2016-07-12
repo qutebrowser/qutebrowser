@@ -40,20 +40,12 @@ class FakeCompletionModel(QStandardItemModel):
 
 
 @pytest.fixture
-def cmd(stubs, qtbot):
-    """Create the statusbar command prompt the completer uses."""
-    cmd = stubs.FakeStatusbarCommand()
-    qtbot.addWidget(cmd)
-    return cmd
-
-
-@pytest.fixture
-def completer_obj(qtbot, cmd, config_stub, monkeypatch, stubs):
+def completer_obj(qtbot, status_command_stub, config_stub, monkeypatch, stubs):
     """Create the completer used for testing."""
     monkeypatch.setattr('qutebrowser.completion.completer.QTimer',
         stubs.InstaTimer)
     config_stub.data = {'completion': {'auto-open': False}}
-    return completer.Completer(cmd, 0)
+    return completer.Completer(status_command_stub, 0)
 
 
 @pytest.fixture(autouse=True)
@@ -159,11 +151,11 @@ def _validate_cmd_prompt(cmd, txt):
     (':set -t -p |', usertypes.Completion.section),
     (':open -- |', None),
 ])
-def test_update_completion(txt, expected, cmd, completer_obj,
+def test_update_completion(txt, expected, status_command_stub, completer_obj,
                            completion_widget_stub):
     """Test setting the completion widget's model based on command text."""
     # this test uses | as a placeholder for the current cursor position
-    _set_cmd_prompt(cmd, txt)
+    _set_cmd_prompt(status_command_stub, txt)
     completer_obj.schedule_completion_update()
     if expected is None:
         assert not completion_widget_stub.set_model.called
@@ -174,19 +166,19 @@ def test_update_completion(txt, expected, cmd, completer_obj,
         assert arg.srcmodel.kind == expected
 
 
-def test_completion_item_prev(completer_obj, cmd, completion_widget_stub,
-                              config_stub, qtbot):
+def test_completion_item_prev(completer_obj, status_command_stub,
+                              completion_widget_stub, config_stub, qtbot):
     """Test that completion_item_prev emits next_prev_item."""
-    cmd.setText(':')
+    status_command_stub.setText(':')
     with qtbot.waitSignal(completer_obj.next_prev_item) as blocker:
         completer_obj.completion_item_prev()
     assert blocker.args == [True]
 
 
-def test_completion_item_next(completer_obj, cmd, completion_widget_stub,
-                              config_stub, qtbot):
+def test_completion_item_next(completer_obj, status_command_stub,
+                              completion_widget_stub, config_stub, qtbot):
     """Test that completion_item_next emits next_prev_item."""
-    cmd.setText(':')
+    status_command_stub.setText(':')
     with qtbot.waitSignal(completer_obj.next_prev_item) as blocker:
         completer_obj.completion_item_next()
     assert blocker.args == [False]
@@ -202,8 +194,8 @@ def test_completion_item_next(completer_obj, cmd, completion_widget_stub,
     (':foo |', None, True, 1, ":foo |"),
 ])
 def test_selection_changed(before, newtxt, count, quick_complete, after,
-                           completer_obj, cmd, completion_widget_stub,
-                           config_stub):
+                           completer_obj, status_command_stub,
+                           completion_widget_stub, config_stub):
     """Test that change_completed_part modifies the cmd text properly.
 
     The | represents the current cursor position in the cmd prompt.
@@ -218,9 +210,9 @@ def test_selection_changed(before, newtxt, count, quick_complete, after,
     selection = unittest.mock.Mock()
     selection.indexes = unittest.mock.Mock(return_value=indexes)
     completion_widget_stub.model = unittest.mock.Mock(return_value=model)
-    _set_cmd_prompt(cmd, before)
+    _set_cmd_prompt(status_command_stub, before)
     # schedule_completion_update is needed to pick up the cursor position
     completer_obj.schedule_completion_update()
     completer_obj.selection_changed(selection, None)
     model.data.assert_called_with(indexes[0])
-    _validate_cmd_prompt(cmd, after)
+    _validate_cmd_prompt(status_command_stub, after)

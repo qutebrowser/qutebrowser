@@ -275,6 +275,16 @@ def completion_widget_stub(win_registry):
     objreg.delete('completion', scope='window', window=0)
 
 
+@pytest.yield_fixture
+def status_command_stub(stubs, qtbot, win_registry):
+    """Fixture which provides a fake status-command object."""
+    cmd = stubs.StatusBarCommandStub()
+    objreg.register('status-command', cmd, scope='window', window=0)
+    qtbot.addWidget(cmd)
+    yield cmd
+    objreg.delete('status-command', scope='window', window=0)
+
+
 @pytest.fixture(scope='session')
 def stubs():
     """Provide access to stub objects useful for testing."""

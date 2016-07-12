@@ -413,7 +413,7 @@ class FakeConfigType:
         self.complete = lambda: [(val, '') for val in valid_values]
 
 
-class FakeStatusbarCommand(QLineEdit):
+class StatusBarCommandStub(QLineEdit):
 
     """Stub for the statusbar command prompt."""
 
