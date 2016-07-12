@@ -73,3 +73,14 @@ def check_cookie(quteproc, name, value):
     data = json.loads(content)
     print(data)
     assert data['cookies'][name] == value
+
+
+@bdd.given(bdd.parsers.parse('a new tmpdir'))
+def tmpdir(tmpdir_factory):
+    return tmpdir_factory.mktemp('tmpdir')
+
+
+@bdd.then(bdd.parsers.parse('the file {filename} should exist in the tmpdir'))
+def file_exists(quteproc, tmpdir, filename):
+    path = tmpdir / filename
+    assert os.path.exists(str(path))
