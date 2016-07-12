@@ -179,7 +179,7 @@ def set_setting(quteproc, httpbin, sect, opt, value):
 
 
 @bdd.when(bdd.parsers.parse("I run {command}"))
-def run_command(quteproc, httpbin, command):
+def run_command(quteproc, httpbin, tmpdir, command):
     """Run a qutebrowser command.
 
     The suffix "with count ..." can be used to pass a count to the command.
@@ -199,6 +199,7 @@ def run_command(quteproc, httpbin, command):
 
     command = command.replace('(port)', str(httpbin.port))
     command = command.replace('(testdata)', utils.abs_datapath())
+    command = command.replace('(tmpdir)', str(tmpdir))
 
     quteproc.send_cmd(command, count=count, invalid=invalid)
 

@@ -332,6 +332,7 @@ class CommandDispatcher:
                 printer = QPrinter()
                 printer.setOutputFileName(pdf)
                 tab.print(printer)
+                log.misc.debug("Print to file: {}".format(pdf))
             else:
                 diag = QPrintDialog()
                 diag.setAttribute(Qt.WA_DeleteOnClose)
