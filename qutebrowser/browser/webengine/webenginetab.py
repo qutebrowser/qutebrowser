@@ -72,7 +72,7 @@ class WebEngineSearch(browsertab.AbstractSearch):
         else:
             self._widget.findText(text, flags, cb)
 
-    def search(self, text, *, ignore_case=False, wrap=False, reverse=False,
+    def search(self, text, *, ignore_case=False, reverse=False,
                result_cb=None):
         flags = QWebEnginePage.FindFlags(0)
         if ignore_case == 'smart':

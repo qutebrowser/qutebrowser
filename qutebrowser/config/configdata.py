@@ -134,11 +134,6 @@ def data(readonly=False):
              SettingValue(typ.IgnoreCase(), 'smart'),
              "Whether to find text on a page case-insensitively."),
 
-            ('wrap-search',
-             SettingValue(typ.Bool(), 'true'),
-             "Whether to wrap finding text to the top when arriving at the "
-             "end."),
-
             ('startpage',
              SettingValue(typ.List(), 'https://duckduckgo.com'),
              "The default page(s) to open at the start, separated by commas."),

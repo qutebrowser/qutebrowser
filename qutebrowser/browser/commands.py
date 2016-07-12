@@ -1466,20 +1466,8 @@ class CommandDispatcher:
                 message.info(self._win_id, "Search hit TOP, continuing at "
                              "BOTTOM", immediately=True)
         else:
-            # User disabled wrapping; but findText() just returns False. If we
-            # have a selection, we know there's a match *somewhere* on the page
-            if not options['wrap'] and tab.caret.has_selection():
-                if going_up:
-                    message.warning(self._win_id, "Search hit TOP without "
-                                    "match for: {}".format(text),
-                                    immediately=True)
-                else:
-                    message.warning(self._win_id, "Search hit BOTTOM without "
-                                    "match for: {}".format(text),
-                                    immediately=True)
-            else:
-                message.warning(self._win_id, "Text '{}' not found on "
-                                "page!".format(text), immediately=True)
+            message.warning(self._win_id, "Text '{}' not found on "
+                            "page!".format(text), immediately=True)
 
     @cmdutils.register(instance='command-dispatcher', scope='window',
                        maxsplit=0)
@@ -1496,7 +1484,6 @@ class CommandDispatcher:
 
         options = {
             'ignore_case': config.get('general', 'ignore-case'),
-            'wrap': config.get('general', 'wrap-search'),
             'reverse': reverse,
         }
         self._tabbed_browser.search_text = text

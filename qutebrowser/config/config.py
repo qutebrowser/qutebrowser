@@ -352,6 +352,7 @@ class ConfigManager(QObject):
         ('tabs', 'auto-hide'),
         ('tabs', 'hide-always'),
         ('ui', 'display-statusbar-messages'),
+        ('general', 'wrap-search'),
     ]
     CHANGED_OPTIONS = {
         ('content', 'cookies-accept'):

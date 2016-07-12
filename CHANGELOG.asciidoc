@@ -46,6 +46,10 @@ Removed
 
 - The ability to display status messages from webpages, as well as the related
   `ui ->  display-statusbar-messages` setting.
+- The `general -> wrap-search` setting as searches now always wrap.
+  According to a quick straw poll and prior crash logs, almost nobody is using
+  `wrap-search = false`, and turning off wrapping is not possible with
+  QtWebEngine.
 
 Fixed
 -----

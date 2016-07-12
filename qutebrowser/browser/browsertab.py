@@ -142,14 +142,13 @@ class AbstractSearch(QObject):
         self._widget = None
         self.text = None
 
-    def search(self, text, *, ignore_case=False, wrap=False, reverse=False,
+    def search(self, text, *, ignore_case=False, reverse=False,
                result_cb=None):
         """Find the given text on the page.
 
         Args:
             text: The text to search for.
             ignore_case: Search case-insensitively. (True/False/'smart')
-            wrap: Wrap around to the top when arriving at the bottom.
             reverse: Reverse search direction.
             result_cb: Called with a bool indicating whether a match was found.
         """

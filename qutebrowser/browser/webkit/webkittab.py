@@ -85,7 +85,7 @@ class WebKitSearch(browsertab.AbstractSearch):
         self._widget.findText('')
         self._widget.findText('', QWebPage.HighlightAllOccurrences)
 
-    def search(self, text, *, ignore_case=False, wrap=False, reverse=False,
+    def search(self, text, *, ignore_case=False, reverse=False,
                result_cb=None):
         flags = QWebPage.FindFlags(0)
         if ignore_case == 'smart':
@@ -93,8 +93,6 @@ class WebKitSearch(browsertab.AbstractSearch):
                 flags |= QWebPage.FindCaseSensitively
         elif not ignore_case:
             flags |= QWebPage.FindCaseSensitively
-        if wrap:
-            flags |= QWebPage.FindWrapsAroundDocument
         if reverse:
             flags |= QWebPage.FindBackward
         # We actually search *twice* - once to highlight everything, then again
