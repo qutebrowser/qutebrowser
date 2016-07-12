@@ -219,7 +219,8 @@ def test_selection_changed(before, newtxt, count, quick_complete, after,
     selection.indexes = unittest.mock.Mock(return_value=indexes)
     completion_widget_stub.model = unittest.mock.Mock(return_value=model)
     _set_cmd_prompt(cmd, before)
-    completer_obj.update_cursor_part()
+    # schedule_completion_update is needed to pick up the cursor position
+    completer_obj.schedule_completion_update()
     completer_obj.selection_changed(selection, None)
     model.data.assert_called_with(indexes[0])
     _validate_cmd_prompt(cmd, after)
