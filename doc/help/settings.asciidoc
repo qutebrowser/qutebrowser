@@ -5,7 +5,6 @@
 |==============
 |Setting|Description
 |<<general-ignore-case,ignore-case>>|Whether to find text on a page case-insensitively.
-|<<general-wrap-search,wrap-search>>|Whether to wrap finding text to the top when arriving at the end.
 |<<general-startpage,startpage>>|The default page(s) to open at the start, separated by commas.
 |<<general-default-page,default-page>>|The page to open if :open -t/-b/-w is used without URL. Use `about:blank` for a blank page.
 |<<general-auto-search,auto-search>>|Whether to start a search when something else than a URL is entered.
@@ -299,17 +298,6 @@ Valid values:
  * +smart+: Search case-sensitively if there are capital chars
 
 Default: +pass:[smart]+
-
-[[general-wrap-search]]
-=== wrap-search
-Whether to wrap finding text to the top when arriving at the end.
-
-Valid values:
-
- * +true+
- * +false+
-
-Default: +pass:[true]+
 
 [[general-startpage]]
 === startpage
