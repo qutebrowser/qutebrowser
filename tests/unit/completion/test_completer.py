@@ -48,8 +48,10 @@ def cmd(stubs, qtbot):
 
 
 @pytest.fixture
-def completer_obj(qtbot, cmd, config_stub):
+def completer_obj(qtbot, cmd, config_stub, monkeypatch, stubs):
     """Create the completer used for testing."""
+    monkeypatch.setattr('qutebrowser.completion.completer.QTimer',
+        stubs.InstaTimer)
     config_stub.data = {'completion': {'auto-open': False}}
     return completer.Completer(cmd, 0)
 
@@ -162,7 +164,7 @@ def test_update_completion(txt, expected, cmd, completer_obj,
     """Test setting the completion widget's model based on command text."""
     # this test uses | as a placeholder for the current cursor position
     _set_cmd_prompt(cmd, txt)
-    completer_obj.update_completion()
+    completer_obj.schedule_completion_update()
     if expected is None:
         assert not completion_widget_stub.set_model.called
     else:
