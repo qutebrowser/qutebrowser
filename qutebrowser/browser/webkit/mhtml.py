@@ -319,7 +319,7 @@ class _Downloader:
         Args:
             url: The file to download as QUrl.
         """
-        if url.scheme() not in {'http', 'https'}:
+        if url.scheme() not in ['http', 'https']:
             return
         # Prevent loading an asset twice
         if url in self.loaded_urls:
