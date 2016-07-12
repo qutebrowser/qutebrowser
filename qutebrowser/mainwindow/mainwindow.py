@@ -77,7 +77,7 @@ def get_window(via_ipc, force_window=False, force_tab=False,
             win_id = window.win_id
             window_to_raise = window
         win_id = window.win_id
-        if open_target not in ('tab-silent', 'tab-bg-silent'):
+        if open_target not in ['tab-silent', 'tab-bg-silent']:
             window_to_raise = window
     if window_to_raise is not None:
         window_to_raise.setWindowState(
@@ -196,7 +196,7 @@ class MainWindow(QWidget):
     @pyqtSlot(str, str)
     def on_config_changed(self, section, option):
         """Resize the completion if related config options changed."""
-        if section == 'completion' and option in ('height', 'shrink'):
+        if section == 'completion' and option in ['height', 'shrink']:
             self.resize_completion()
         elif section == 'ui' and option == 'statusbar-padding':
             self.resize_completion()

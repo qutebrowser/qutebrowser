@@ -163,7 +163,7 @@ def _init_icon():
     """Initialize the icon of qutebrowser."""
     icon = QIcon()
     fallback_icon = QIcon()
-    for size in (16, 24, 32, 48, 64, 96, 128, 256, 512):
+    for size in [16, 24, 32, 48, 64, 96, 128, 256, 512]:
         filename = ':/icons/qutebrowser-{}x{}.png'.format(size, size)
         pixmap = QPixmap(filename)
         qtutils.ensure_not_null(pixmap)
@@ -275,7 +275,7 @@ def process_pos_args(args, via_ipc=False, cwd=None, target_arg=None):
                 message.error('current', "Error in startup argument '{}': "
                               "{}".format(cmd, e))
             else:
-                background = open_target in ('tab-bg', 'tab-bg-silent')
+                background = open_target in ['tab-bg', 'tab-bg-silent']
                 tabbed_browser.tabopen(url, background=background,
                                        explicit=True)
 

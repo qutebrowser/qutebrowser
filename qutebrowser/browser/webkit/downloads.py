@@ -345,7 +345,7 @@ class DownloadItem(QObject):
             errmsg = ""
         else:
             errmsg = " - {}".format(self.error_msg)
-        if all(e is None for e in (perc, remaining, self.stats.total)):
+        if all(e is None for e in [perc, remaining, self.stats.total]):
             return ('{index}: {name} [{speed:>10}|{down}]{errmsg}'.format(
                 index=self.index, name=self.basename, speed=speed,
                 down=down, errmsg=errmsg))
@@ -451,7 +451,7 @@ class DownloadItem(QObject):
         """
         # pylint: disable=bad-config-call
         # WORKAROUND for https://bitbucket.org/logilab/astroid/issue/104/
-        assert position in ("fg", "bg")
+        assert position in ["fg", "bg"]
         start = config.get('colors', 'downloads.{}.start'.format(position))
         stop = config.get('colors', 'downloads.{}.stop'.format(position))
         system = config.get('colors', 'downloads.{}.system'.format(position))

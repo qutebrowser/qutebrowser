@@ -536,8 +536,8 @@ class TabbedBrowser(tabwidget.TabWidget):
     @pyqtSlot(usertypes.KeyMode)
     def on_mode_left(self, mode):
         """Give focus to current tab if command mode was left."""
-        if mode in (usertypes.KeyMode.command, usertypes.KeyMode.prompt,
-                    usertypes.KeyMode.yesno):
+        if mode in [usertypes.KeyMode.command, usertypes.KeyMode.prompt,
+                    usertypes.KeyMode.yesno]:
             widget = self.currentWidget()
             log.modes.debug("Left status-input mode, focusing {!r}".format(
                 widget))
@@ -554,8 +554,8 @@ class TabbedBrowser(tabwidget.TabWidget):
         tab = self.widget(idx)
         log.modes.debug("Current tab changed, focusing {!r}".format(tab))
         tab.setFocus()
-        for mode in (usertypes.KeyMode.hint, usertypes.KeyMode.insert,
-                     usertypes.KeyMode.caret, usertypes.KeyMode.passthrough):
+        for mode in [usertypes.KeyMode.hint, usertypes.KeyMode.insert,
+                     usertypes.KeyMode.caret, usertypes.KeyMode.passthrough]:
             modeman.maybe_leave(self._win_id, mode, 'tab changed')
         if self._now_focused is not None:
             objreg.register('last-focused-tab', self._now_focused, update=True,

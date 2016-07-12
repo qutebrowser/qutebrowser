@@ -72,7 +72,7 @@ class TabWidget(QTabWidget):
         position = config.get('tabs', 'position')
         selection_behavior = config.get('tabs', 'select-on-remove')
         self.setTabPosition(position)
-        tabbar.vertical = position in (QTabWidget.West, QTabWidget.East)
+        tabbar.vertical = position in [QTabWidget.West, QTabWidget.East]
         tabbar.setSelectionBehaviorOnRemove(selection_behavior)
         tabbar.refresh()
 
@@ -542,11 +542,11 @@ class TabBarStyle(QCommonStyle):
             style: The base/"parent" style.
         """
         self._style = style
-        for method in ('drawComplexControl', 'drawItemPixmap',
+        for method in ['drawComplexControl', 'drawItemPixmap',
                        'generatedIconPixmap', 'hitTestComplexControl',
                        'itemPixmapRect', 'itemTextRect', 'polish', 'styleHint',
                        'subControlRect', 'unpolish', 'drawItemText',
-                       'sizeFromContents', 'drawPrimitive'):
+                       'sizeFromContents', 'drawPrimitive']:
             target = getattr(self._style, method)
             setattr(self, method, functools.partial(target))
         super().__init__()

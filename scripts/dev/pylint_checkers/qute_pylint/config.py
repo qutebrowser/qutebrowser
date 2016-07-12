@@ -53,7 +53,7 @@ class ConfigChecker(checkers.BaseChecker):
         if hasattr(node, 'func'):
             infer = utils.safe_infer(node.func)
             if infer and infer.root().name == 'qutebrowser.config.config':
-                if getattr(node.func, 'attrname', None) in ('get', 'set'):
+                if getattr(node.func, 'attrname', None) in ['get', 'set']:
                     self._check_config(node)
 
     def _check_config(self, node):

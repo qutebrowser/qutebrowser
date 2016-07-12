@@ -608,7 +608,7 @@ class HintManager(QObject):
         Return:
             A QUrl with the absolute URL, or None.
         """
-        for attr in ('href', 'src'):
+        for attr in ['href', 'src']:
             if attr in elem:
                 text = elem[attr].strip()
                 break
@@ -677,8 +677,8 @@ class HintManager(QObject):
         """
         if not isinstance(target, Target):
             raise TypeError("Target {} is no Target member!".format(target))
-        if target in (Target.userscript, Target.spawn, Target.run,
-                      Target.fill):
+        if target in [Target.userscript, Target.spawn, Target.run,
+                      Target.fill]:
             if not args:
                 raise cmdexc.CommandError(
                     "'args' is required with target userscript/spawn/run/"

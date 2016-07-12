@@ -263,7 +263,7 @@ def is_url(urlstr):
         # URLs with explicit schemes are always URLs
         log.url.debug("Contains explicit scheme")
         url = True
-    elif qurl_userinput.host() in ('localhost', '127.0.0.1', '::1'):
+    elif qurl_userinput.host() in ['localhost', '127.0.0.1', '::1']:
         log.url.debug("Is localhost.")
         url = True
     elif is_special_url(qurl):

@@ -211,7 +211,7 @@ def _init_misc():
     """Initialize misc. config-related files."""
     save_manager = objreg.get('save-manager')
     state_config = ini.ReadWriteConfigParser(standarddir.data(), 'state')
-    for sect in ('general', 'geometry'):
+    for sect in ['general', 'geometry']:
         try:
             state_config.add_section(sect)
         except configparser.DuplicateSectionError:
@@ -242,7 +242,7 @@ def _init_misc():
         path = os.devnull
     else:
         path = os.path.join(standarddir.config(), 'qsettings')
-    for fmt in (QSettings.NativeFormat, QSettings.IniFormat):
+    for fmt in [QSettings.NativeFormat, QSettings.IniFormat]:
         QSettings.setPath(fmt, QSettings.UserScope, path)
 
 
@@ -551,7 +551,7 @@ class ConfigManager(QObject):
         """Notify other objects the config has changed."""
         log.config.debug("Config option changed: {} -> {}".format(
             sectname, optname))
-        if sectname in ('colors', 'fonts'):
+        if sectname in ['colors', 'fonts']:
             self.style_changed.emit(sectname, optname)
         self.changed.emit(sectname, optname)
 
