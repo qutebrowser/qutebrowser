@@ -340,7 +340,6 @@ Feature: Various utility commands.
         Then no crash should happen
 
     Scenario: print pdf
-        Given a new tmpdir
         When I open data/hello.txt
         And I run :print --pdf (tmpdir)/hello.pdf
         And I wait for "Print to file: *" in the log or skip the test
