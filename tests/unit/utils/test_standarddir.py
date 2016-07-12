@@ -332,16 +332,18 @@ class TestSystemData:
         assert standarddir.system_data() == "/usr/share/qutebrowser"
 
     @pytest.mark.linux
-    def test_system_datadir_not_exist_linux(self, monkeypatch, tmpdir):
+    def test_system_datadir_not_exist_linux(self, monkeypatch, tmpdir,
+                                            fake_args):
         """Test that system-wide path isn't used on linux if path not exist."""
-        args = types.SimpleNamespace(basedir=str(tmpdir))
-        standarddir.init(args)
+        fake_args.basedir = str(tmpdir)
+        standarddir.init(fake_args)
         monkeypatch.setattr(os.path, 'exists', lambda path: False)
         assert standarddir.system_data() == standarddir.data()
 
-    def test_system_datadir_unsupportedos(self, monkeypatch, tmpdir):
+    def test_system_datadir_unsupportedos(self, monkeypatch, tmpdir,
+                                          fake_args):
         """Test that system-wide path is not used on non-Linux OS."""
-        args = types.SimpleNamespace(basedir=str(tmpdir))
-        standarddir.init(args)
+        fake_args.basedir = str(tmpdir)
+        standarddir.init(fake_args)
         monkeypatch.setattr('sys.platform', "potato")
         assert standarddir.system_data() == standarddir.data()
