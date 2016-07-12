@@ -343,7 +343,7 @@ Feature: Various utility commands.
         When I open data/hello.txt
         And I run :print --pdf (tmpdir)/hello.pdf
         And I wait for "Print to file: *" in the log or skip the test
-        Then the file hello.pdf should exist in the tmpdir
+        Then the PDF hello.pdf should exist in the tmpdir
 
     # :pyeval
 

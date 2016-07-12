@@ -75,7 +75,8 @@ def check_cookie(quteproc, name, value):
     assert data['cookies'][name] == value
 
 
-@bdd.then(bdd.parsers.parse('the file {filename} should exist in the tmpdir'))
-def file_exists(quteproc, tmpdir, filename):
+@bdd.then(bdd.parsers.parse('the PDF {filename} should exist in the tmpdir'))
+def pdf_exists(quteproc, tmpdir, filename):
     path = tmpdir / filename
-    assert os.path.exists(str(path))
+    data = path.read_binary()
+    assert data.startswith(b'%PDF')
