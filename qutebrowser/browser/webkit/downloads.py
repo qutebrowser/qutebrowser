@@ -1295,7 +1295,7 @@ class TempDownloadManager(QObject):
             self._tmpdir.cleanup()
             self._tmpdir = None
 
-    def get_tmpdir(self):
+    def _get_tmpdir(self):
         """Return the temporary directory that is used for downloads.
 
         The directory is created lazily on first access.
@@ -1321,7 +1321,7 @@ class TempDownloadManager(QObject):
         Return:
             A tempfile.NamedTemporaryFile that should be used to save the file.
         """
-        tmpdir = self.get_tmpdir()
+        tmpdir = self._get_tmpdir()
         fobj = tempfile.NamedTemporaryFile(dir=tmpdir.name, delete=False,
                                            suffix=suggested_name)
         self.files.append(fobj)
