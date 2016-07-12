@@ -274,6 +274,7 @@ class FileDownloadTarget(DownloadTarget):
     """
 
     def __init__(self, filename):
+        # pylint: disable=super-init-not-called
         self.filename = filename
 
 
@@ -286,6 +287,7 @@ class FileObjDownloadTarget(DownloadTarget):
     """
 
     def __init__(self, fileobj):
+        # pylint: disable=super-init-not-called
         self.fileobj = fileobj
 
 
@@ -294,6 +296,7 @@ class OpenFileDownloadTarget(DownloadTarget):
     """Save the download in a temp dir and directly open it."""
 
     def __init__(self):
+        # pylint: disable=super-init-not-called
         pass
 
 
