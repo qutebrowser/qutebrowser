@@ -287,7 +287,6 @@ class TestCreatingDir:
         basedir = tmpdir / 'basedir'
         assert not basedir.exists()
         args = types.SimpleNamespace(basedir=str(basedir))
-        standarddir.init(None)
         standarddir.init(args)
 
         func = getattr(standarddir, typ)
