@@ -288,8 +288,8 @@ class CommandRunner(QObject):
 
             mode_manager = objreg.get('mode-manager', scope='window',
                                       window=self._win_id)
-            if (result.cmdline[0] != 'repeat-command' and
-                    result.cmdline[0] != 'prompt-accept'):
+            if result.cmdline[0] not in ['leave-mode', 'prompt-accept',
+                                         'repeat-command']:
                 last_command[mode_manager.mode] = (
                     self._parse_count(text)[1],
                     count if count is not None else result.count)
