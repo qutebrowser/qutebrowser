@@ -339,6 +339,12 @@ Feature: Various utility commands.
         And I run :debug-pyeval QApplication.instance().activeModalWidget().close()
         Then no crash should happen
 
+    Scenario: print --pdf
+        When I open data/hello.txt
+        And I run :print --pdf (tmpdir)/hello.pdf
+        And I wait for "Print to file: *" in the log or skip the test
+        Then the PDF hello.pdf should exist in the tmpdir
+
     # :pyeval
 
     Scenario: Running :pyeval

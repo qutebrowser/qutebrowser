@@ -24,6 +24,7 @@ import itertools
 from PyQt5.QtCore import pyqtSignal, pyqtSlot, QUrl, QObject, QPoint
 from PyQt5.QtGui import QIcon
 from PyQt5.QtWidgets import QWidget, QLayout
+from PyQt5.QtPrintSupport import QPrinter
 
 from qutebrowser.keyinput import modeman
 from qutebrowser.config import config
@@ -103,6 +104,27 @@ class TabData:
         self.keep_icon = False
         self.viewing_source = False
         self.inspector = None
+
+
+class AbstractPrinting:
+
+    """Attribute of AbstractTab for printing the page."""
+
+    def __init__(self):
+        self._widget = None
+
+    def check_pdf_support(self):
+        raise NotImplementedError
+
+    def check_printer_support(self):
+        raise NotImplementedError
+
+    def to_pdf(self, filename):
+        raise NotImplementedError
+
+    @pyqtSlot(QPrinter)
+    def to_printer(self, printer):
+        raise NotImplementedError
 
 
 class AbstractSearch(QObject):
@@ -468,6 +490,7 @@ class AbstractTab(QWidget):
         #                            parent=self)
         # self.zoom = AbstractZoom(win_id=win_id)
         # self.search = AbstractSearch(parent=self)
+        # self.printing = AbstractPrinting()
         self.data = TabData()
         self._layout = None
         self._widget = None
@@ -485,6 +508,7 @@ class AbstractTab(QWidget):
         self.caret._widget = widget
         self.zoom._widget = widget
         self.search._widget = widget
+        self.printing._widget = widget
         widget.mouse_wheel_zoom.connect(self.zoom._on_mouse_wheel_zoom)
         widget.setParent(self)
         self.setFocusProxy(widget)

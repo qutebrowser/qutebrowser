@@ -299,31 +299,46 @@ class CommandDispatcher:
     @cmdutils.register(instance='command-dispatcher', name='print',
                        scope='window')
     @cmdutils.argument('count', count=True)
-    def printpage(self, preview=False, count=None):
+    @cmdutils.argument('pdf', flag='f', metavar='file')
+    def printpage(self, preview=False, count=None, *, pdf=None):
         """Print the current/[count]th tab.
 
         Args:
             preview: Show preview instead of printing.
             count: The tab index to print, or None.
+            pdf: The file path to write the PDF to.
         """
-        if not qtutils.check_print_compat():
-            # WORKAROUND (remove this when we bump the requirements to 5.3.0)
-            raise cmdexc.CommandError(
-                "Printing on Qt < 5.3.0 on Windows is broken, please upgrade!")
         tab = self._cntwidget(count)
-        if tab is not None:
-            if preview:
-                diag = QPrintPreviewDialog()
-                diag.setAttribute(Qt.WA_DeleteOnClose)
-                diag.setWindowFlags(diag.windowFlags() |
-                                    Qt.WindowMaximizeButtonHint |
-                                    Qt.WindowMinimizeButtonHint)
-                diag.paintRequested.connect(tab.print)
-                diag.exec_()
+        if tab is None:
+            return
+
+        try:
+            if pdf:
+                tab.printing.check_pdf_support()
             else:
-                diag = QPrintDialog()
-                diag.setAttribute(Qt.WA_DeleteOnClose)
-                diag.open(lambda: tab.print(diag.printer()))
+                tab.printing.check_printer_support()
+        except browsertab.WebTabError as e:
+            raise cmdexc.CommandError(e)
+
+        if preview:
+            diag = QPrintPreviewDialog()
+            diag.setAttribute(Qt.WA_DeleteOnClose)
+            diag.setWindowFlags(diag.windowFlags() |
+                                Qt.WindowMaximizeButtonHint |
+                                Qt.WindowMinimizeButtonHint)
+            diag.paintRequested.connect(tab.printing.to_printer)
+            diag.exec_()
+        elif pdf:
+            pdf = os.path.expanduser(pdf)
+            directory = os.path.dirname(pdf)
+            if directory and not os.path.exists(directory):
+                os.mkdir(directory)
+            tab.printing.to_pdf(pdf)
+            log.misc.debug("Print to file: {}".format(pdf))
+        else:
+            diag = QPrintDialog()
+            diag.setAttribute(Qt.WA_DeleteOnClose)
+            diag.open(lambda: tab.printing.to_printer(diag.printer()))
 
     @cmdutils.register(instance='command-dispatcher', scope='window')
     def tab_clone(self, bg=False, window=False):
