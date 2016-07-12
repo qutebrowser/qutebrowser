@@ -301,7 +301,7 @@ class CommandDispatcher:
     @cmdutils.register(instance='command-dispatcher', name='print',
                        scope='window')
     @cmdutils.argument('count', count=True)
-    @cmdutils.argument('pdf', flag='f')
+    @cmdutils.argument('pdf', flag='f', metavar='file')
     def printpage(self, preview=False, count=None, *, pdf=None):
         """Print the current/[count]th tab.
 
