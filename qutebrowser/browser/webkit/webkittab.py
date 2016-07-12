@@ -87,7 +87,7 @@ class WebKitSearch(browsertab.AbstractSearch):
 
     def search(self, text, *, ignore_case=False, reverse=False,
                result_cb=None):
-        flags = QWebPage.FindFlags(0)
+        flags = QWebPage.FindWrapsAroundDocument
         if ignore_case == 'smart':
             if not text.islower():
                 flags |= QWebPage.FindCaseSensitively
