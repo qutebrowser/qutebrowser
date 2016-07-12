@@ -100,7 +100,7 @@ Feature: Searching on a page
         # Make sure there was no search in the same window before
         When I open data/search.html in a new window
         And I run :search-next
-        Then no crash should happen
+        Then the error "No search done yet." should be shown
 
     Scenario: Repeating search in a second tab (issue #940)
         When I open data/search.html in a new tab
@@ -141,7 +141,7 @@ Feature: Searching on a page
         # Make sure there was no search in the same window before
         When I open data/search.html in a new window
         And I run :search-prev
-        Then no crash should happen
+        Then the error "No search done yet." should be shown
 
     ## wrapping
 

@@ -64,13 +64,30 @@ class WebKitSearch(browsertab.AbstractSearch):
 
     """QtWebKit implementations related to searching on the page."""
 
+    def __init__(self, parent=None):
+        super().__init__(parent)
+        self._flags = QWebPage.FindFlags(0)
+
+    def _call_cb(self, callback, found):
+        """Call the given callback if it's non-None.
+
+        Delays the call via a QTimer so the website is re-rendered in between.
+
+        Args:
+            callback: What to call
+            found: If the text was found
+        """
+        if callback is not None:
+            QTimer.singleShot(0, functools.partial(callback, found))
+
     def clear(self):
         # We first clear the marked text, then the highlights
-        self._widget.search('', 0)
-        self._widget.search('', QWebPage.HighlightAllOccurrences)
+        self._widget.findText('')
+        self._widget.findText('', QWebPage.HighlightAllOccurrences)
 
-    def search(self, text, *, ignore_case=False, wrap=False, reverse=False):
-        flags = 0
+    def search(self, text, *, ignore_case=False, wrap=False, reverse=False,
+               result_cb=None):
+        flags = QWebPage.FindFlags(0)
         if ignore_case == 'smart':
             if not text.islower():
                 flags |= QWebPage.FindCaseSensitively
@@ -82,24 +99,25 @@ class WebKitSearch(browsertab.AbstractSearch):
             flags |= QWebPage.FindBackward
         # We actually search *twice* - once to highlight everything, then again
         # to get a mark so we can navigate.
-        self._widget.search(text, flags)
-        self._widget.search(text, flags | QWebPage.HighlightAllOccurrences)
+        found = self._widget.findText(text, flags)
+        self._widget.findText(text, flags | QWebPage.HighlightAllOccurrences)
         self.text = text
         self._flags = flags
+        self._call_cb(result_cb, found)
 
-    def next_result(self):
-        self._widget.search(self.text, self._flags)
+    def next_result(self, *, result_cb=None):
+        found = self._widget.findText(self.text, self._flags)
+        self._call_cb(result_cb, found)
 
-    def prev_result(self):
-        # The int() here serves as a QFlags constructor to create a copy of the
-        # QFlags instance rather as a reference. I don't know why it works this
-        # way, but it does.
-        flags = int(self._flags)
+    def prev_result(self, *, result_cb=None):
+        # The int() here makes sure we get a copy of the flags.
+        flags = QWebPage.FindFlags(int(self._flags))
         if flags & QWebPage.FindBackward:
             flags &= ~QWebPage.FindBackward
         else:
             flags |= QWebPage.FindBackward
-        self._widget.search(self.text, flags)
+        found = self._widget.findText(self.text, flags)
+        self._call_cb(result_cb, found)
 
 
 class WebKitCaret(browsertab.AbstractCaret):

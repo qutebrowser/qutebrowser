@@ -61,17 +61,48 @@ class WebEngineSearch(browsertab.AbstractSearch):
 
     """QtWebEngine implementations related to searching on the page."""
 
-    def search(self, text, *, ignore_case=False, wrap=False, reverse=False):
-        log.stub()
+    def __init__(self, parent=None):
+        super().__init__(parent)
+        self._flags = QWebEnginePage.FindFlags(0)
+
+    def _find(self, text, flags, cb=None):
+        """Call findText on the widget with optional callback."""
+        if cb is None:
+            self._widget.findText(text, flags)
+        else:
+            self._widget.findText(text, flags, cb)
+
+    def search(self, text, *, ignore_case=False, wrap=False, reverse=False,
+               result_cb=None):
+        flags = QWebEnginePage.FindFlags(0)
+        if ignore_case == 'smart':
+            if not text.islower():
+                flags |= QWebEnginePage.FindCaseSensitively
+        elif not ignore_case:
+            flags |= QWebEnginePage.FindCaseSensitively
+        if not wrap:
+            log.stub('With wrap=False (ignoring)')
+        if reverse:
+            flags |= QWebEnginePage.FindBackward
+
+        self.text = text
+        self._flags = flags
+        self._find(text, flags, result_cb)
 
     def clear(self):
-        log.stub()
+        self._widget.findText('')
 
-    def prev_result(self):
-        log.stub()
+    def prev_result(self, *, result_cb=None):
+        # The int() here makes sure we get a copy of the flags.
+        flags = QWebEnginePage.FindFlags(int(self._flags))
+        if flags & QWebEnginePage.FindBackward:
+            flags &= ~QWebEnginePage.FindBackward
+        else:
+            flags |= QWebEnginePage.FindBackward
+        self._find(self.text, self._flags, result_cb)
 
-    def next_result(self):
-        log.stub()
+    def next_result(self, *, result_cb=None):
+        self._find(self.text, self._flags, result_cb)
 
 
 class WebEngineCaret(browsertab.AbstractCaret):

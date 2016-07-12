@@ -1440,6 +1440,47 @@ class CommandDispatcher:
             this.dispatchEvent(event);
         """.format(webelem.javascript_escape(sel)))
 
+    def _search_cb(self, found, *, tab, old_scroll_pos, options, text, prev):
+        """Callback called from search/search_next/search_prev.
+
+        Args:
+            found: Whether the text was found.
+            tab: The AbstractTab in which the search was made.
+            old_scroll_pos: The scroll position (QPoint) before the search.
+            options: The options (dict) the search was made with.
+            text: The text searched for.
+            prev: Whether we're searching backwards (i.e. :search-prev)
+        """
+        # :search/:search-next without reverse -> down
+        # :search/:search-next    with reverse -> up
+        # :search-prev         without reverse -> up
+        # :search-prev            with reverse -> down
+        going_up = options['reverse'] ^ prev
+
+        if found:
+            # Check if the scroll position got smaller and show info.
+            if not going_up and tab.scroll.pos_px().y() < old_scroll_pos.y():
+                message.info(self._win_id, "Search hit BOTTOM, continuing "
+                             "at TOP", immediately=True)
+            elif going_up and tab.scroll.pos_px().y() > old_scroll_pos.y():
+                message.info(self._win_id, "Search hit TOP, continuing at "
+                             "BOTTOM", immediately=True)
+        else:
+            # User disabled wrapping; but findText() just returns False. If we
+            # have a selection, we know there's a match *somewhere* on the page
+            if not options['wrap'] and tab.caret.has_selection():
+                if going_up:
+                    message.warning(self._win_id, "Search hit TOP without "
+                                    "match for: {}".format(text),
+                                    immediately=True)
+                else:
+                    message.warning(self._win_id, "Search hit BOTTOM without "
+                                    "match for: {}".format(text),
+                                    immediately=True)
+            else:
+                message.warning(self._win_id, "Text '{}' not found on "
+                                "page!".format(text), immediately=True)
+
     @cmdutils.register(instance='command-dispatcher', scope='window',
                        maxsplit=0)
     def search(self, text="", reverse=False):
@@ -1458,10 +1499,18 @@ class CommandDispatcher:
             'wrap': config.get('general', 'wrap-search'),
             'reverse': reverse,
         }
-        tab.search.search(text, **options)
-
         self._tabbed_browser.search_text = text
-        self._tabbed_browser.search_options = options
+        self._tabbed_browser.search_options = dict(options)
+
+        if text:
+            cb = functools.partial(self._search_cb, tab=tab,
+                                   old_scroll_pos=tab.scroll.pos_px(),
+                                   options=options, text=text, prev=False)
+        else:
+            cb = None
+
+        options['result_cb'] = cb
+        tab.search.search(text, **options)
 
     @cmdutils.register(instance='command-dispatcher', hide=True,
                        scope='window')
@@ -1476,6 +1525,9 @@ class CommandDispatcher:
         window_text = self._tabbed_browser.search_text
         window_options = self._tabbed_browser.search_options
 
+        if window_text is None:
+            raise cmdexc.CommandError("No search done yet.")
+
         self.set_mark("'")
 
         if window_text is not None and window_text != tab.search.text:
@@ -1483,8 +1535,17 @@ class CommandDispatcher:
             tab.search.search(window_text, **window_options)
             count -= 1
 
-        for _ in range(count):
+        if count == 0:
+            return
+
+        cb = functools.partial(self._search_cb, tab=tab,
+                               old_scroll_pos=tab.scroll.pos_px(),
+                               options=window_options, text=window_text,
+                               prev=False)
+
+        for _ in range(count - 1):
             tab.search.next_result()
+        tab.search.next_result(result_cb=cb)
 
     @cmdutils.register(instance='command-dispatcher', hide=True,
                        scope='window')
@@ -1499,6 +1560,9 @@ class CommandDispatcher:
         window_text = self._tabbed_browser.search_text
         window_options = self._tabbed_browser.search_options
 
+        if window_text is None:
+            raise cmdexc.CommandError("No search done yet.")
+
         self.set_mark("'")
 
         if window_text is not None and window_text != tab.search.text:
@@ -1506,8 +1570,17 @@ class CommandDispatcher:
             tab.search.search(window_text, **window_options)
             count -= 1
 
-        for _ in range(count):
+        if count == 0:
+            return
+
+        cb = functools.partial(self._search_cb, tab=tab,
+                               old_scroll_pos=tab.scroll.pos_px(),
+                               options=window_options, text=window_text,
+                               prev=True)
+
+        for _ in range(count - 1):
             tab.search.prev_result()
+        tab.search.prev_result(result_cb=cb)
 
     @cmdutils.register(instance='command-dispatcher', hide=True,
                        modes=[KeyMode.caret], scope='window')

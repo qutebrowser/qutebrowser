@@ -352,48 +352,6 @@ class WebView(QWebView):
                               "left.".format(mode))
         self.setFocusPolicy(Qt.WheelFocus)
 
-    def search(self, text, flags):
-        """Search for text in the current page.
-
-        Args:
-            text: The text to search for.
-            flags: The QWebPage::FindFlags.
-        """
-        log.webview.debug("Searching with text '{}' and flags "
-                          "0x{:04x}.".format(text, int(flags)))
-        old_scroll_pos = self.scroll_pos
-        flags = QWebPage.FindFlags(flags)
-        found = self.findText(text, flags)
-        backward = flags & QWebPage.FindBackward
-
-        if not found and not flags & QWebPage.HighlightAllOccurrences and text:
-            # User disabled wrapping; but findText() just returns False. If we
-            # have a selection, we know there's a match *somewhere* on the page
-            if (not flags & QWebPage.FindWrapsAroundDocument and
-                    self.hasSelection()):
-                if not backward:
-                    message.warning(self.win_id, "Search hit BOTTOM without "
-                                    "match for: {}".format(text),
-                                    immediately=True)
-                else:
-                    message.warning(self.win_id, "Search hit TOP without "
-                                    "match for: {}".format(text),
-                                    immediately=True)
-            else:
-                message.warning(self.win_id, "Text '{}' not found on "
-                                "page!".format(text), immediately=True)
-        else:
-            def check_scroll_pos():
-                """Check if the scroll position got smaller and show info."""
-                if not backward and self.scroll_pos < old_scroll_pos:
-                    message.info(self.win_id, "Search hit BOTTOM, continuing "
-                                 "at TOP", immediately=True)
-                elif backward and self.scroll_pos > old_scroll_pos:
-                    message.info(self.win_id, "Search hit TOP, continuing at "
-                                 "BOTTOM", immediately=True)
-            # We first want QWebPage to refresh.
-            QTimer.singleShot(0, check_scroll_pos)
-
     def createWindow(self, wintype):
         """Called by Qt when a page wants to create a new window.
 

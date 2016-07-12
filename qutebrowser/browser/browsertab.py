@@ -133,7 +133,7 @@ class AbstractSearch(QObject):
 
     Attributes:
         text: The last thing this view was searched for.
-        _flags: The flags of the last search.
+        _flags: The flags of the last search (needs to be set by subclasses).
         _widget: The underlying WebView widget.
     """
 
@@ -141,9 +141,9 @@ class AbstractSearch(QObject):
         super().__init__(parent)
         self._widget = None
         self.text = None
-        self._flags = 0
 
-    def search(self, text, *, ignore_case=False, wrap=False, reverse=False):
+    def search(self, text, *, ignore_case=False, wrap=False, reverse=False,
+               result_cb=None):
         """Find the given text on the page.
 
         Args:
@@ -151,6 +151,7 @@ class AbstractSearch(QObject):
             ignore_case: Search case-insensitively. (True/False/'smart')
             wrap: Wrap around to the top when arriving at the bottom.
             reverse: Reverse search direction.
+            result_cb: Called with a bool indicating whether a match was found.
         """
         raise NotImplementedError
 
@@ -158,12 +159,20 @@ class AbstractSearch(QObject):
         """Clear the current search."""
         raise NotImplementedError
 
-    def prev_result(self):
-        """Go to the previous result of the current search."""
+    def prev_result(self, *, result_cb=None):
+        """Go to the previous result of the current search.
+
+        Args:
+            result_cb: Called with a bool indicating whether a match was found.
+        """
         raise NotImplementedError
 
-    def next_result(self):
-        """Go to the next result of the current search."""
+    def next_result(self, *, result_cb=None):
+        """Go to the next result of the current search.
+
+        Args:
+            result_cb: Called with a bool indicating whether a match was found.
+        """
         raise NotImplementedError
 
 
