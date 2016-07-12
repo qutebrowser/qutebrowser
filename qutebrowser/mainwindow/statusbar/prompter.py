@@ -165,9 +165,9 @@ class Prompter(QObject):
                 suffix = " (no)"
             prompt.txt.setText(self._question.text + suffix)
             prompt.lineedit.hide()
-        elif self._question.mode in {usertypes.PromptMode.text,
+        elif self._question.mode in [usertypes.PromptMode.text,
                                      usertypes.PromptMode.user_pwd,
-                                     usertypes.PromptMode.download}:
+                                     usertypes.PromptMode.download]:
             prompt.txt.setText(self._question.text)
             if self._question.default:
                 prompt.lineedit.setText(self._question.default)
