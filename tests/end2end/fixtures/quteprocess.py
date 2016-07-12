@@ -358,13 +358,14 @@ class QuteProc(testprocess.Process):
         finally:
             super().after_test()
 
-    def send_cmd(self, command, count=None, invalid=False):
+    def send_cmd(self, command, count=None, invalid=False, *, escape=True):
         """Send a command to the running qutebrowser instance.
 
         Args:
             count: The count to pass to the command.
             invalid: If True, we don't wait for "command called: ..." in the
                      log
+            escape: Escape backslashes in the command
         """
         summary = command
         if count is not None:
@@ -374,6 +375,9 @@ class QuteProc(testprocess.Process):
         assert self._ipc_socket is not None
 
         time.sleep(self._delay / 1000)
+
+        if escape:
+            command = command.replace('\\', r'\\')
 
         if count is not None:
             command = ':{}:{}'.format(count, command.lstrip(':'))
@@ -392,9 +396,11 @@ class QuteProc(testprocess.Process):
         return msg.message.split(' = ')[1]
 
     def set_setting(self, sect, opt, value):
-        # " in a value should be treated literally, so escape it
+        # \ and " in a value should be treated literally, so escape them
+        value = value.replace('\\', r'\\')
         value = value.replace('"', '\\"')
-        self.send_cmd(':set "{}" "{}" "{}"'.format(sect, opt, value))
+        self.send_cmd(':set "{}" "{}" "{}"'.format(sect, opt, value),
+                      escape=False)
         self.wait_for(category='config', message='Config option changed: *')
 
     @contextlib.contextmanager
@@ -517,7 +523,7 @@ class QuteProc(testprocess.Process):
             'elems") }} '
             'else {{ console.log("qute:okay"); _es.snapshotItem(0).click() }}'
         ).format(text=webelem.javascript_escape(_xpath_escape(text)))
-        self.send_cmd(':jseval ' + script)
+        self.send_cmd(':jseval ' + script, escape=False)
         message = self.wait_for_js('qute:*').message
         if message.endswith('qute:no elems'):
             raise ValueError('No element with {!r} found'.format(text))
