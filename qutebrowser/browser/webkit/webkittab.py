@@ -27,10 +27,37 @@ from PyQt5.QtCore import pyqtSlot, Qt, QEvent, QUrl, QPoint, QTimer
 from PyQt5.QtGui import QKeyEvent
 from PyQt5.QtWebKitWidgets import QWebPage
 from PyQt5.QtWebKit import QWebSettings
+from PyQt5.QtPrintSupport import QPrinter
 
 from qutebrowser.browser import browsertab
 from qutebrowser.browser.webkit import webview, tabhistory
 from qutebrowser.utils import qtutils, objreg, usertypes, utils
+
+
+class WebKitPrinting(browsertab.AbstractPrinting):
+
+    """QtWebKit implementations related to printing."""
+
+    def _do_check(self):
+        if not qtutils.check_print_compat():
+            # WORKAROUND (remove this when we bump the requirements to 5.3.0)
+            raise browsertab.WebTabError(
+                "Printing on Qt < 5.3.0 on Windows is broken, please upgrade!")
+
+    def check_pdf_support(self):
+        self._do_check()
+
+    def check_printer_support(self):
+        self._do_check()
+
+    def to_pdf(self, filename):
+        printer = QPrinter()
+        printer.setOutputFileName(filename)
+        self.to_printer(printer)
+
+    @pyqtSlot(QPrinter)
+    def to_printer(self, printer):
+        self._widget.print(printer)
 
 
 class WebKitSearch(browsertab.AbstractSearch):
@@ -461,6 +488,7 @@ class WebKitTab(browsertab.AbstractTab):
                                  tab=self, parent=self)
         self.zoom = WebKitZoom(win_id=win_id, parent=self)
         self.search = WebKitSearch(parent=self)
+        self.printing = WebKitPrinting()
         self._set_widget(widget)
         self._connect_signals()
         self.zoom.set_default()

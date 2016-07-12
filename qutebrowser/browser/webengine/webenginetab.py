@@ -25,6 +25,7 @@
 from PyQt5.QtCore import pyqtSlot, Qt, QEvent, QPoint
 from PyQt5.QtGui import QKeyEvent, QIcon
 from PyQt5.QtWidgets import QApplication
+from PyQt5.QtPrintSupport import QPrinter
 # pylint: disable=no-name-in-module,import-error,useless-suppression
 from PyQt5.QtWebEngineWidgets import QWebEnginePage
 # pylint: enable=no-name-in-module,import-error,useless-suppression
@@ -32,6 +33,28 @@ from PyQt5.QtWebEngineWidgets import QWebEnginePage
 from qutebrowser.browser import browsertab
 from qutebrowser.browser.webengine import webview
 from qutebrowser.utils import usertypes, qtutils, log
+
+
+class WebEnginePrinting(browsertab.AbstractPrinting):
+
+    """QtWebEngine implementations related to printing."""
+
+    def check_pdf_support(self):
+        if not hasattr(self._widget.page(), 'printToPdf'):
+            raise browsertab.WebTabError(
+                "Printing to PDF is unsupported with QtWebEngine on Qt > 5.7")
+
+    def check_printer_support(self):
+        raise browsertab.WebTabError(
+            "Printing is unsupported with QtWebEngine")
+
+    def to_pdf(self, filename):
+        self._widget.page().printToPdf(filename)
+
+    @pyqtSlot(QPrinter)
+    def to_printer(self, printer):
+        # Should never be called
+        assert False
 
 
 class WebEngineSearch(browsertab.AbstractSearch):
@@ -256,6 +279,7 @@ class WebEngineTab(browsertab.AbstractTab):
                                     tab=self, parent=self)
         self.zoom = WebEngineZoom(win_id=win_id, parent=self)
         self.search = WebEngineSearch(parent=self)
+        self.printing = WebEnginePrinting()
         self._set_widget(widget)
         self._connect_signals()
         self.backend = usertypes.Backend.QtWebEngine

@@ -77,6 +77,7 @@ def test_tab(qtbot, view, config_stub, tab_registry):
                                            tab=tab_w, parent=tab_w)
     tab_w.zoom = browsertab.AbstractZoom(win_id=tab_w.win_id)
     tab_w.search = browsertab.AbstractSearch(parent=tab_w)
+    tab_w.printing = browsertab.AbstractPrinting()
 
     tab_w._set_widget(w)
     assert tab_w._widget is w
