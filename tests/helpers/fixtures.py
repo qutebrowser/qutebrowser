@@ -184,7 +184,8 @@ def config_stub(stubs):
 @pytest.yield_fixture
 def default_config():
     """Fixture that provides and registers an empty default config object."""
-    config_obj = config.ConfigManager(configdir=None, fname=None, relaxed=True)
+    config_obj = config.ConfigManager()
+    config_obj.read(configdir=None, fname=None, relaxed=True)
     objreg.register('config', config_obj)
     yield config_obj
     objreg.delete('config')
