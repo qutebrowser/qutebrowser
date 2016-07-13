@@ -25,6 +25,9 @@ from PyQt5.QtCore import pyqtSignal, Qt, QPoint
 from PyQt5.QtWebEngineWidgets import QWebEngineView, QWebEnginePage
 # pylint: enable=no-name-in-module,import-error,useless-suppression
 
+from qutebrowser.config import config
+from qutebrowser.utils import log
+
 
 class WebEngineView(QWebEngineView):
 
@@ -58,3 +61,19 @@ class WebEnginePage(QWebEnginePage):
     def certificateError(self, error):
         self.certificate_error.emit()
         return super().certificateError(error)
+
+    def javaScriptConsoleMessage(self, level, msg, line, source):
+        """Log javascript messages to qutebrowser's log."""
+        # FIXME:qtwebengine maybe unify this in the tab api somehow?
+        setting = config.get('general', 'log-javascript-console')
+        if setting == 'none':
+            return
+
+        level_to_logger = {
+            QWebEnginePage.InfoMessageLevel: log.js.info,
+            QWebEnginePage.WarningMessageLevel: log.js.warning,
+            QWebEnginePage.ErrorMessageLevel: log.js.error,
+        }
+        logstring = "[{}:{}] {}".format(source, line, msg)
+        logger = level_to_logger[level]
+        logger(logstring)

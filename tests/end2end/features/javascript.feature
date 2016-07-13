@@ -2,6 +2,11 @@ Feature: Javascript stuff
 
     Integration with javascript.
 
+    Scenario: Using console.log
+        When I set general -> log-javascript-console to debug
+        And I open data/javascript/consolelog.html
+        Then the javascript message "console.log works!" should be logged
+
     # https://github.com/The-Compiler/qutebrowser/issues/906
 
     Scenario: Closing a JS window twice (issue 906)
