@@ -20,9 +20,11 @@
 import pytest
 
 from PyQt5.QtCore import PYQT_VERSION, pyqtSignal, QPoint
+from PyQt5.QtGui import QColor
 
 from qutebrowser.browser import browsertab
 from qutebrowser.keyinput import modeman
+from qutebrowser.utils import objreg
 
 try:
     from PyQt5.QtWebKitWidgets import QWebView
@@ -41,10 +43,8 @@ except ImportError:
     WebEngineView = None
 
 
-@pytest.mark.skipif(PYQT_VERSION < 0x050600,
-                    reason='Causes segfaults, see #1638')
-@pytest.mark.parametrize('view', [WebView, WebEngineView])
-def test_tab(qtbot, view, config_stub, tab_registry):
+@pytest.fixture(params=[WebView, WebEngineView])
+def view(qtbot, config_stub, request):
     config_stub.data = {
         'input': {
             'forward-unbound-keys': 'auto'
@@ -55,12 +55,16 @@ def test_tab(qtbot, view, config_stub, tab_registry):
         }
     }
 
-    if view is None:
+    if request.param is None:
         pytest.skip("View not available")
 
-    w = view()
-    qtbot.add_widget(w)
+    v = request.param()
+    qtbot.add_widget(v)
+    return v
 
+@pytest.mark.skipif(PYQT_VERSION < 0x050600,
+                    reason='Causes segfaults, see #1638')
+def test_tab(qtbot, view, config_stub, tab_registry):
     tab_w = browsertab.AbstractTab(win_id=0)
     qtbot.add_widget(tab_w)
     tab_w.show()
@@ -79,11 +83,11 @@ def test_tab(qtbot, view, config_stub, tab_registry):
     tab_w.search = browsertab.AbstractSearch(parent=tab_w)
     tab_w.printing = browsertab.AbstractPrinting()
 
-    tab_w._set_widget(w)
-    assert tab_w._widget is w
+    tab_w._set_widget(view)
+    assert tab_w._widget is view
     assert tab_w.history._tab is tab_w
-    assert tab_w.history._history is w.history()
-    assert w.parent() is tab_w
+    assert tab_w.history._history is view.history()
+    assert view.parent() is tab_w
 
 
 class TestTabData:
