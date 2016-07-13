@@ -490,3 +490,15 @@ Feature: Various utility commands.
         And I run :repeat-command with count 2
         Then the page should not be scrolled
         And the error "prompt-accept: This command is only allowed in prompt/yesno mode." should be shown
+
+    Scenario: :repeat-command with mode-switching command
+        Given I open data/hints/link_blank.html
+        And I run :tab-only
+        When I run :hint
+        And I run :leave-mode
+        And I run :repeat-command
+        And I run :follow-hint a
+        And I wait until data/hello.txt is loaded
+        Then the following tabs should be open:
+            - data/hints/link_blank.html
+            - data/hello.txt (active)
