@@ -611,6 +611,14 @@ class AbstractTab(QWidget):
         """
         raise NotImplementedError
 
+    def run_js_blocking(self, code):
+        """Run javascript and block.
+
+        This returns the result to the caller. Its use should be avoided when
+        possible as it runs a local event loop for QtWebEngine.
+        """
+        raise NotImplementedError
+
     def shutdown(self):
         raise NotImplementedError
 

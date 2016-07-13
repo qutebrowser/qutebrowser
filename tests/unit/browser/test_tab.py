@@ -121,6 +121,12 @@ def test_tab(qtbot, view, config_stub, tab_registry):
     assert view.parent() is tab_w
 
 
+class TestJs:
+
+    def test_blocking(self, tab):
+        assert tab.run_js_blocking('1 + 1') == 2
+
+
 class TestTabData:
 
     def test_known_attr(self):

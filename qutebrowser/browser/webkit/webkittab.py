@@ -525,9 +525,12 @@ class WebKitTab(browsertab.AbstractTab):
             callback(frame.toHtml())
 
     def run_js_async(self, code, callback=None):
-        result = self._widget.page().mainFrame().evaluateJavaScript(code)
+        result = self.run_js_blocking(code)
         if callback is not None:
             callback(result)
+
+    def run_js_blocking(self, code):
+        return self._widget.page().mainFrame().evaluateJavaScript(code)
 
     def icon(self):
         return self._widget.icon()
