@@ -222,10 +222,11 @@ class WebEngineScroller(browsertab.AbstractScroller):
         self._tab.run_js_async(js_code)
 
     def to_point(self, point):
-        log.stub()
+        self._tab.run_js_async("window.scroll({x}, {y});".format(
+            x=point.x(), y=point.y()))
 
     def delta(self, x=0, y=0):
-        log.stub()
+        self._tab.run_js_async("window.scrollBy({x}, {y});".format(x=x, y=y))
 
     def delta_page(self, x=0, y=0):
         log.stub()
