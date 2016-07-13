@@ -8,17 +8,6 @@ exclude = .venv,.hypothesis,.git,__pycache__,resources.py
 # E266: too many leading '#' for block comment
 # F401: Unused import
 # N802: function name should be lowercase
-# L101: The __init__ method of classes must not have a docstring
-# L102: A docstring was incorrectly formatted.
-# L103: A test docstring must not start with any form of the words "test", ...
-# L201: Container literals must have a trailing comma
-# L202: print is not allowed except for debugging.
-# L203: pdb and compatible modules are not allowed except for debugging.
-# L204: Implicit string literal concatenation is only allowed if every string
-#       being concatenated is parenthesize
-# L207: pass is only necessary in non-optional suites containing no other
-#       statements.
-# L302: The line was too long.
 # P101: format string does contain unindexed parameters
 # P102: docstring does contain unindexed parameters
 # P103: other string does contain unindexed parameters
@@ -41,7 +30,6 @@ ignore =
     E128,E226,E265,E501,E402,E266,
     F401,
     N802,
-    L101,L102,L103,L201,L202,L203,L204,L207,L302,
     P101,P102,P103,
     D102,D103,D104,D105,D209,D211,D402,D403,
     H101,H201,H238,H301,H306
