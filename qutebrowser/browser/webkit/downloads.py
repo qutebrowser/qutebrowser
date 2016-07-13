@@ -784,10 +784,7 @@ class DownloadManager(QAbstractListModel):
             **kwargs: passed to get_request().
 
         Return:
-            If the download could start immediately, (target given),
-            the created DownloadItem.
-
-            If not, None.
+            The created DownloadItem.
         """
         if not url.isValid():
             urlutils.invalid_url_error(self._win_id, url, "start download")
@@ -804,10 +801,7 @@ class DownloadManager(QAbstractListModel):
             **kwargs: Passed to fetch_request.
 
         Return:
-            If the download could start immediately, (target given),
-            the created DownloadItem.
-
-            If not, None.
+            The created DownloadItem.
         """
         # WORKAROUND for Qt corrupting data loaded from cache:
         # https://bugreports.qt.io/browse/QTBUG-42757
