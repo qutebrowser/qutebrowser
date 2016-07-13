@@ -229,7 +229,11 @@ class WebEngineScroller(browsertab.AbstractScroller):
         self._tab.run_js_async("window.scrollBy({x}, {y});".format(x=x, y=y))
 
     def delta_page(self, x=0, y=0):
-        log.stub()
+        js_code = """
+            {scroll_js}
+            scroll_delta_page({x}, {y});
+        """.format(scroll_js=utils.read_file('javascript/scroll.js'), x=x, y=y)
+        self._tab.run_js_async(js_code)
 
     def up(self, count=1):
         self._key_press(Qt.Key_Up, count)

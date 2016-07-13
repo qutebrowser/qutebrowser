@@ -32,3 +32,9 @@ function scroll_to_perc(x, y) {
 
     window.scroll(x_px, y_px);
 }
+
+function scroll_delta_page(x, y) {
+    var dx = document.documentElement.clientWidth * x;
+    var dy = document.documentElement.clientHeight * y;
+    window.scrollBy(dx, dy);
+}
