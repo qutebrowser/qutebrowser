@@ -167,7 +167,7 @@ def _os_info():
             versioninfo = ''
         else:
             versioninfo = '.'.join(versioninfo)
-        osver = ', '.join([e for e in (release, versioninfo, machine) if e])
+        osver = ', '.join([e for e in [release, versioninfo, machine] if e])
     else:
         osver = '?'
     lines.append('OS Version: {}'.format(osver))

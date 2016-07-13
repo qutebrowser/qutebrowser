@@ -175,7 +175,7 @@ def fix_harfbuzz(args):
         else:
             log.init.debug("Using old harfbuzz engine (auto)")
             os.environ['QT_HARFBUZZ'] = 'old'
-    elif args.harfbuzz in ('old', 'new'):
+    elif args.harfbuzz in ['old', 'new']:
         # forced harfbuzz variant
         # FIXME looking at the Qt code, 'new' isn't a valid value, but leaving
         # it empty and using new yields different behavior...

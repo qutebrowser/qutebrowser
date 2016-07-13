@@ -44,14 +44,14 @@ def whitelist_generator():
 
     # pyPEG2 classes
     for name, member in inspect.getmembers(rfc6266, inspect.isclass):
-        for attr in ('grammar', 'regex'):
+        for attr in ['grammar', 'regex']:
             if hasattr(member, attr):
                 yield 'qutebrowser.browser.webkit.rfc6266.{}.{}'.format(name,
                                                                         attr)
 
     # PyQt properties
-    for attr in ('prompt_active', 'command_active', 'insert_active',
-                 'caret_mode'):
+    for attr in ['prompt_active', 'command_active', 'insert_active',
+                 'caret_mode']:
         yield 'qutebrowser.mainwindow.statusbar.bar.StatusBar.' + attr
     yield 'qutebrowser.mainwindow.statusbar.url.UrlText.urltype'
 
@@ -89,16 +89,16 @@ def whitelist_generator():
     # in NetworkManager.on_authentication_required
     yield 'PyQt5.QtNetwork.QNetworkReply.netrc_used'
 
-    for attr in ('fileno', 'truncate', 'closed', 'readable'):
+    for attr in ['fileno', 'truncate', 'closed', 'readable']:
         yield 'qutebrowser.utils.qtutils.PyQIODevice.' + attr
 
-    for attr in ('priority', 'visit_call'):
+    for attr in ['priority', 'visit_call']:
         yield 'scripts.dev.pylint_checkers.config.' + attr
 
     yield 'scripts.dev.pylint_checkers.modeline.process_module'
 
-    for attr in ('_get_default_metavar_for_optional',
-                 '_get_default_metavar_for_positional', '_metavar_formatter'):
+    for attr in ['_get_default_metavar_for_optional',
+                 '_get_default_metavar_for_positional', '_metavar_formatter']:
         yield 'scripts.dev.src2asciidoc.UsageFormatter.' + attr
 
 

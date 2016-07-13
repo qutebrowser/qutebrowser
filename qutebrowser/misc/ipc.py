@@ -263,8 +263,8 @@ class IPCServer(QObject):
             log.ipc.debug("We can read a line immediately.")
             self.on_ready_read()
         socket.error.connect(self.on_error)
-        if socket.error() not in (QLocalSocket.UnknownSocketError,
-                                  QLocalSocket.PeerClosedError):
+        if socket.error() not in [QLocalSocket.UnknownSocketError,
+                                  QLocalSocket.PeerClosedError]:
             log.ipc.debug("We got an error immediately.")
             self.on_error(socket.error())
         socket.disconnected.connect(self.on_disconnected)
@@ -311,7 +311,7 @@ class IPCServer(QObject):
             self._handle_invalid_data()
             return
 
-        for name in ('args', 'target_arg'):
+        for name in ['args', 'target_arg']:
             if name not in json_data:
                 log.ipc.error("Missing {}: {}".format(name, decoded.strip()))
                 self._handle_invalid_data()
@@ -493,8 +493,8 @@ def send_to_running_instance(socketname, command, target_arg, *,
                 socket.waitForDisconnected(CONNECT_TIMEOUT)
             return True
     else:
-        if socket.error() not in (QLocalSocket.ConnectionRefusedError,
-                                  QLocalSocket.ServerNotFoundError):
+        if socket.error() not in [QLocalSocket.ConnectionRefusedError,
+                                  QLocalSocket.ServerNotFoundError]:
             raise SocketError("connecting to running instance", socket)
         else:
             log.ipc.debug("No existing instance present (error {})".format(

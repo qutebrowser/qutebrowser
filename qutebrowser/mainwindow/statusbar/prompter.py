@@ -207,7 +207,7 @@ class Prompter(QObject):
     def on_mode_left(self, mode):
         """Clear and reset input when the mode was left."""
         prompt = objreg.get('prompt', scope='window', window=self._win_id)
-        if mode in (usertypes.KeyMode.prompt, usertypes.KeyMode.yesno):
+        if mode in [usertypes.KeyMode.prompt, usertypes.KeyMode.yesno]:
             prompt.txt.setText('')
             prompt.lineedit.clear()
             prompt.lineedit.setEchoMode(QLineEdit.Normal)

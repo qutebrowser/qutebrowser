@@ -83,7 +83,7 @@ class WebElementWrapper(collections.abc.MutableMapping):
         if elem.isNull():
             raise IsNullError('{} is a null element!'.format(elem))
         self._elem = elem
-        for name in ('addClass', 'appendInside', 'appendOutside',
+        for name in ['addClass', 'appendInside', 'appendOutside',
                      'attributeNS', 'classes', 'clone', 'document',
                      'encloseContentsWith', 'encloseWith',
                      'evaluateJavaScript', 'findAll', 'findFirst',
@@ -97,7 +97,7 @@ class WebElementWrapper(collections.abc.MutableMapping):
                      'setInnerXml', 'setOuterXml', 'setPlainText',
                      'setStyleProperty', 'styleProperty', 'tagName',
                      'takeFromDocument', 'toInnerXml', 'toOuterXml',
-                     'toggleClass', 'webFrame', '__eq__', '__ne__'):
+                     'toggleClass', 'webFrame', '__eq__', '__ne__']:
             # We don't wrap some methods for which we have better alternatives:
             #   - Mapping access for attributeNames/hasAttribute/setAttribute/
             #     attribute/removeAttribute.
@@ -194,7 +194,7 @@ class WebElementWrapper(collections.abc.MutableMapping):
         """
         self._check_vanished()
         try:
-            return self['contenteditable'].lower() not in ('false', 'inherit')
+            return self['contenteditable'].lower() not in ['false', 'inherit']
         except KeyError:
             return False
 
@@ -269,7 +269,7 @@ class WebElementWrapper(collections.abc.MutableMapping):
             return self._is_editable_input()
         elif tag == 'textarea':
             return self.is_writable()
-        elif tag in ('embed', 'applet'):
+        elif tag in ['embed', 'applet']:
             # Flash/Java/...
             return config.get('input', 'insert-mode-on-plugins') and not strict
         elif tag == 'object':
@@ -284,7 +284,7 @@ class WebElementWrapper(collections.abc.MutableMapping):
         self._check_vanished()
         roles = ('combobox', 'textbox')
         tag = self._elem.tagName().lower()
-        return self.get('role', None) in roles or tag in ('input', 'textarea')
+        return self.get('role', None) in roles or tag in ['input', 'textarea']
 
     def remove_blank_target(self):
         """Remove target from link."""

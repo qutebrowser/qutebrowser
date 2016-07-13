@@ -194,7 +194,7 @@ def _get_window_registry(window):
 
 def _get_registry(scope, window=None, tab=None):
     """Get the correct registry for a given scope."""
-    if window is not None and scope not in ('window', 'tab'):
+    if window is not None and scope not in ['window', 'tab']:
         raise TypeError("window is set with scope {}".format(scope))
     if tab is not None and scope != 'tab':
         raise TypeError("tab is set with scope {}".format(scope))

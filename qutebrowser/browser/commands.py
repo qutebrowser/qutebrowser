@@ -521,7 +521,7 @@ class CommandDispatcher:
                                         background=bg, window=window)
         elif where == 'up':
             self._navigate_up(url, tab, bg, window)
-        elif where in ('decrement', 'increment'):
+        elif where in ['decrement', 'increment']:
             self._navigate_incdec(url, where, tab, bg, window)
         else:  # pragma: no cover
             raise ValueError("Got called with invalid value {} for "
@@ -574,7 +574,7 @@ class CommandDispatcher:
                                       "expected one of: {}".format(
                                           direction, expected_values))
 
-        if direction in ('top', 'bottom'):
+        if direction in ['top', 'bottom']:
             func()
         else:
             func(count=count)

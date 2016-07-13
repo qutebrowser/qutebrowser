@@ -170,7 +170,7 @@ class ModeManager(QObject):
         handled = parser.handle(event)
 
         is_non_alnum = (
-            event.modifiers() not in (Qt.NoModifier, Qt.ShiftModifier) or
+            event.modifiers() not in [Qt.NoModifier, Qt.ShiftModifier] or
             not event.text().strip())
 
         if handled:
