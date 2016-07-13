@@ -305,7 +305,10 @@ class QuteProc(testprocess.Process):
         is_ddg_load = testutils.pattern_match(
             pattern="load status for <* tab_id=* url='*duckduckgo*'>: *",
             value=msg.message)
-        return msg.loglevel > logging.INFO or is_js_error or is_ddg_load
+
+        is_log_error = (msg.loglevel > logging.INFO and
+                        not msg.message.startswith('STUB:'))
+        return is_log_error or is_js_error or is_ddg_load
 
     def _maybe_skip(self):
         """Skip the test if [SKIP] lines were logged."""
