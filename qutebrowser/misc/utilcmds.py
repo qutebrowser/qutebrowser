@@ -217,3 +217,20 @@ def debug_set_fake_clipboard(s=None):
         utils.log_clipboard = True
     else:
         utils.fake_clipboard = s
+
+
+@cmdutils.register(hide=True)
+@cmdutils.argument('win_id', win_id=True)
+@cmdutils.argument('count', count=True)
+def repeat_command(win_id, count=None):
+    """Repeat the last executed command.
+
+    Args:
+        count: Which count to pass the command.
+    """
+    mode_manager = objreg.get('mode-manager', scope='window', window=win_id)
+    if mode_manager.mode not in runners.last_command:
+        raise cmdexc.CommandError("You didn't do anything yet.")
+    cmd = runners.last_command[mode_manager.mode]
+    commandrunner = runners.CommandRunner(win_id)
+    commandrunner.run(cmd[0], count if count is not None else cmd[1])

@@ -29,7 +29,6 @@ import qutebrowser
 from qutebrowser.utils import docutils
 from qutebrowser.browser import pdfjs
 
-
 bdd.scenarios('misc.feature')
 
 
