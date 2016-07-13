@@ -20,7 +20,6 @@
 import pytest
 
 from PyQt5.QtCore import PYQT_VERSION, pyqtSignal, QPoint
-from PyQt5.QtGui import QColor
 
 from qutebrowser.browser import browsertab
 from qutebrowser.keyinput import modeman

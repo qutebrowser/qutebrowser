@@ -348,6 +348,7 @@ class WebEngineTab(browsertab.AbstractTab):
         js_ret = None
 
         def js_cb(val):
+            """Handle return value from JS and stop blocking."""
             nonlocal js_ret
             js_ret = val
             loop.quit()
