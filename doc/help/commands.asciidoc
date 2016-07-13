@@ -932,6 +932,7 @@ How many steps to zoom out.
 |<<prompt-accept,prompt-accept>>|Accept the current prompt.
 |<<prompt-no,prompt-no>>|Answer no to a yes/no prompt.
 |<<prompt-yes,prompt-yes>>|Answer yes to a yes/no prompt.
+|<<repeat-command,repeat-command>>|Repeat the last executed command.
 |<<rl-backward-char,rl-backward-char>>|Move back a character.
 |<<rl-backward-delete-char,rl-backward-delete-char>>|Delete the character before the cursor.
 |<<rl-backward-word,rl-backward-word>>|Move back to the start of the current or previous word.
@@ -1157,6 +1158,13 @@ Answer no to a yes/no prompt.
 [[prompt-yes]]
 === prompt-yes
 Answer yes to a yes/no prompt.
+
+[[repeat-command]]
+=== repeat-command
+Repeat the last executed command.
+
+==== count
+Which count to pass the command.
 
 [[rl-backward-char]]
 === rl-backward-char

@@ -151,6 +151,7 @@ Contributors, sorted by the number of commits in descending order:
 * Jakub Klinkovský
 * Raphael Pierzina
 * Joel Torstensson
+* Jan Verbeek
 * Tarcisio Fedrizzi
 * Patric Schmitz
 * Claude
@@ -164,7 +165,6 @@ Contributors, sorted by the number of commits in descending order:
 * Kevin Velghe
 * Austin Anderson
 * Jimmy
-* Jan Verbeek
 * Alexey "Averrin" Nabrodov
 * avk
 * ZDarian
