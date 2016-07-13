@@ -122,7 +122,8 @@ def test_tab(qtbot, view, config_stub, tab_registry):
 
 class TestJs:
 
-    @pytest.mark.parametrize('inp, expected', [('1+1', 2), ('undefined', None)])
+    @pytest.mark.parametrize('inp, expected', [('1+1', 2),
+                                               ('undefined', None)])
     def test_blocking(self, tab, inp, expected):
         assert tab.run_js_blocking(inp) == expected
 
