@@ -349,8 +349,9 @@ class AbstractScroller(QObject):
 
     perc_changed = pyqtSignal(int, int)
 
-    def __init__(self, parent=None):
+    def __init__(self, tab, parent=None):
         super().__init__(parent)
+        self._tab = tab
         self._widget = None
 
     def pos_px(self):
@@ -493,7 +494,7 @@ class AbstractTab(QWidget):
         objreg.register('tab', self, registry=self.registry)
 
         # self.history = AbstractHistory(self)
-        # self.scroll = AbstractScroller(parent=self)
+        # self.scroll = AbstractScroller(self, parent=self)
         # self.caret = AbstractCaret(win_id=win_id, tab=self, mode_manager=...,
         #                            parent=self)
         # self.zoom = AbstractZoom(win_id=win_id)

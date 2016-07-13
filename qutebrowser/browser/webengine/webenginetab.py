@@ -32,7 +32,7 @@ from PyQt5.QtWebEngineWidgets import QWebEnginePage
 
 from qutebrowser.browser import browsertab
 from qutebrowser.browser.webengine import webview
-from qutebrowser.utils import usertypes, qtutils, log
+from qutebrowser.utils import usertypes, qtutils, log, utils
 
 
 class WebEnginePrinting(browsertab.AbstractPrinting):
@@ -213,7 +213,13 @@ class WebEngineScroller(browsertab.AbstractScroller):
             return (perc_x, perc_y)
 
     def to_perc(self, x=None, y=None):
-        log.stub()
+        js_code = """
+            {scroll_js}
+            scroll_to_perc({x}, {y});
+        """.format(scroll_js=utils.read_file('javascript/scroll.js'),
+                   x='undefined' if x is None else x,
+                   y='undefined' if y is None else y)
+        self._tab.run_js_async(js_code)
 
     def to_point(self, point):
         log.stub()
@@ -303,7 +309,7 @@ class WebEngineTab(browsertab.AbstractTab):
         super().__init__(win_id)
         widget = webview.WebEngineView()
         self.history = WebEngineHistory(self)
-        self.scroll = WebEngineScroller()
+        self.scroll = WebEngineScroller(self, parent=self)
         self.caret = WebEngineCaret(win_id=win_id, mode_manager=mode_manager,
                                     tab=self, parent=self)
         self.zoom = WebEngineZoom(win_id=win_id, parent=self)

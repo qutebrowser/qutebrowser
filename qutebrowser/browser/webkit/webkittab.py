@@ -499,7 +499,7 @@ class WebKitTab(browsertab.AbstractTab):
         super().__init__(win_id)
         widget = webview.WebView(win_id, self.tab_id, tab=self)
         self.history = WebKitHistory(self)
-        self.scroll = WebKitScroller(parent=self)
+        self.scroll = WebKitScroller(self, parent=self)
         self.caret = WebKitCaret(win_id=win_id, mode_manager=mode_manager,
                                  tab=self, parent=self)
         self.zoom = WebKitZoom(win_id=win_id, parent=self)
