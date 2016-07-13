@@ -42,7 +42,7 @@ class OpenEncodingChecker(checkers.BaseChecker):
         if hasattr(node, 'func'):
             infer = utils.safe_infer(node.func)
             if infer and infer.root().name == '_io':
-                if getattr(node.func, 'name', None) in ('open', 'file'):
+                if getattr(node.func, 'name', None) in ['open', 'file']:
                     self._check_open_encoding(node)
 
     def _check_open_encoding(self, node):

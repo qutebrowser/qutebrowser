@@ -1342,7 +1342,7 @@ class AutoSearch(BaseType):
         self._basic_validation(value)
         if not value:
             return
-        elif value.lower() in ('naive', 'dns'):
+        elif value.lower() in ['naive', 'dns']:
             pass
         else:
             self.booltype.validate(value)
@@ -1350,7 +1350,7 @@ class AutoSearch(BaseType):
     def transform(self, value):
         if not value:
             return None
-        elif value.lower() in ('naive', 'dns'):
+        elif value.lower() in ['naive', 'dns']:
             return value.lower()
         elif self.booltype.transform(value):
             # boolean true is an alias for naive matching

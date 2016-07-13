@@ -120,10 +120,10 @@ class UrlText(textbase.TextBase):
             status_str: The LoadStatus as string.
         """
         status = usertypes.LoadStatus[status_str]
-        if status in (usertypes.LoadStatus.success,
+        if status in [usertypes.LoadStatus.success,
                       usertypes.LoadStatus.success_https,
                       usertypes.LoadStatus.error,
-                      usertypes.LoadStatus.warn):
+                      usertypes.LoadStatus.warn]:
             self._normal_url_type = UrlType[status_str]
         else:
             self._normal_url_type = UrlType.normal

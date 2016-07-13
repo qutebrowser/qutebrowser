@@ -159,14 +159,14 @@ class WebView(QWebView):
         Args:
             e: The QMouseEvent.
         """
-        if e.button() in (Qt.XButton1, Qt.LeftButton):
+        if e.button() in [Qt.XButton1, Qt.LeftButton]:
             # Back button on mice which have it, or rocker gesture
             if self.page().history().canGoBack():
                 self.back()
             else:
                 message.error(self.win_id, "At beginning of history.",
                               immediately=True)
-        elif e.button() in (Qt.XButton2, Qt.RightButton):
+        elif e.button() in [Qt.XButton2, Qt.RightButton]:
             # Forward button on mice which have it, or rocker gesture
             if self.page().history().canGoForward():
                 self.forward()
@@ -337,8 +337,8 @@ class WebView(QWebView):
     @pyqtSlot(usertypes.KeyMode)
     def on_mode_entered(self, mode):
         """Ignore attempts to focus the widget if in any status-input mode."""
-        if mode in (usertypes.KeyMode.command, usertypes.KeyMode.prompt,
-                    usertypes.KeyMode.yesno):
+        if mode in [usertypes.KeyMode.command, usertypes.KeyMode.prompt,
+                    usertypes.KeyMode.yesno]:
             log.webview.debug("Ignoring focus because mode {} was "
                               "entered.".format(mode))
             self.setFocusPolicy(Qt.NoFocus)
@@ -346,8 +346,8 @@ class WebView(QWebView):
     @pyqtSlot(usertypes.KeyMode)
     def on_mode_left(self, mode):
         """Restore focus policy if status-input modes were left."""
-        if mode in (usertypes.KeyMode.command, usertypes.KeyMode.prompt,
-                    usertypes.KeyMode.yesno):
+        if mode in [usertypes.KeyMode.command, usertypes.KeyMode.prompt,
+                    usertypes.KeyMode.yesno]:
             log.webview.debug("Restoring focus policy because mode {} was "
                               "left.".format(mode))
         self.setFocusPolicy(Qt.WheelFocus)
@@ -424,7 +424,7 @@ class WebView(QWebView):
         is_rocker_gesture = (config.get('input', 'rocker-gestures') and
                              e.buttons() == Qt.LeftButton | Qt.RightButton)
 
-        if e.button() in (Qt.XButton1, Qt.XButton2) or is_rocker_gesture:
+        if e.button() in [Qt.XButton1, Qt.XButton2] or is_rocker_gesture:
             self._mousepress_backforward(e)
             super().mousePressEvent(e)
             return

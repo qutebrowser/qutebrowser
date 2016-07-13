@@ -86,7 +86,7 @@ def _wrapper(win_id, method_name, text, *args, **kwargs):
                           win in objreg.window_registry.values() and
                           win.win_id == win_id)
         if (config.get('ui', 'message-unfocused') or
-                method_name not in ('error', 'warning', 'info') or
+                method_name not in ['error', 'warning', 'info'] or
                 window_focused):
             getattr(bridge, method_name)(text, *args, **kwargs)
         else:

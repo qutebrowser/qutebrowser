@@ -300,7 +300,7 @@ class BrowserPage(QWebPage):
             else:
                 reply.finished.connect(functools.partial(
                     self.display_content, reply, 'image/jpeg'))
-        elif (mimetype in {'application/pdf', 'application/x-pdf'} and
+        elif (mimetype in ['application/pdf', 'application/x-pdf'] and
               config.get('content', 'enable-pdfjs')):
             # Use pdf.js to display the page
             self._show_pdfjs(reply)

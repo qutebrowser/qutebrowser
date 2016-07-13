@@ -131,7 +131,7 @@ class TestStandardDir:
     def test_linux_normal(self, monkeypatch, tmpdir, func, subdirs):
         """Test dirs with XDG_*_HOME not set."""
         monkeypatch.setenv('HOME', str(tmpdir))
-        for var in ('DATA', 'CONFIG', 'CACHE'):
+        for var in ['DATA', 'CONFIG', 'CACHE']:
             monkeypatch.delenv('XDG_{}_HOME'.format(var), raising=False)
         assert func() == str(tmpdir.join(*subdirs))
 

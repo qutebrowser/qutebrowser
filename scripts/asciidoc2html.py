@@ -197,7 +197,7 @@ class AsciiDoc:
             for filename in files:
                 basename, ext = os.path.splitext(filename)
                 if (ext != '.asciidoc' or
-                        basename in ('header', 'OpenSans-License')):
+                        basename in ['header', 'OpenSans-License']):
                     continue
                 self._build_website_file(root, filename)
 

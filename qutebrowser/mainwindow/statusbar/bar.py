@@ -519,9 +519,9 @@ class StatusBar(QWidget):
                                 window=self._win_id)
         if keyparsers[mode].passthrough:
             self._set_mode_text(mode.name)
-        if mode in (usertypes.KeyMode.insert,
+        if mode in [usertypes.KeyMode.insert,
                     usertypes.KeyMode.command,
-                    usertypes.KeyMode.caret):
+                    usertypes.KeyMode.caret]:
             self.set_mode_active(mode, True)
 
     @pyqtSlot(usertypes.KeyMode, usertypes.KeyMode)
@@ -534,9 +534,9 @@ class StatusBar(QWidget):
                 self._set_mode_text(new_mode.name)
             else:
                 self.txt.set_text(self.txt.Text.normal, '')
-        if old_mode in (usertypes.KeyMode.insert,
+        if old_mode in [usertypes.KeyMode.insert,
                         usertypes.KeyMode.command,
-                        usertypes.KeyMode.caret):
+                        usertypes.KeyMode.caret]:
             self.set_mode_active(old_mode, False)
 
     @config.change_filter('ui', 'message-timeout')
