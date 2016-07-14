@@ -34,7 +34,8 @@ class FakeTypingMeta(type):
 
     """Fake typing metaclass like typing.TypingMeta."""
 
-    def __init__(self, *args, **kwds):  # pylint: disable=super-init-not-called
+    def __init__(self, *args,  # pylint: disable=super-init-not-called
+                 **_kwds):
         pass
 
     def __subclasscheck__(self, cls):
