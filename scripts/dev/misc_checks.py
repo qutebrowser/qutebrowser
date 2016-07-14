@@ -112,7 +112,9 @@ def check_spelling():
                     continue
                 for line in f:
                     for w in words:
-                        if re.search(w, line) and fn not in seen[w]:
+                        if (re.search(w, line) and
+                                fn not in seen[w] and
+                                '# pragma: no spellcheck' not in line):
                             print('Found "{}" in {}!'.format(w, fn))
                             seen[w].append(fn)
                             ok = False

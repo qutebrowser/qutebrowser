@@ -346,8 +346,8 @@ class ConfigManager(QObject):
     DELETED_OPTIONS = [
         ('colors', 'tab.separator'),
         ('colors', 'tabs.separator'),
-        ('colors', 'tab.seperator'),
-        ('colors', 'tabs.seperator'),
+        ('colors', 'tab.seperator'),  # pragma: no spellcheck
+        ('colors', 'tabs.seperator'),  # pragma: no spellcheck
         ('colors', 'completion.item.bg'),
         ('tabs', 'indicator-space'),
         ('tabs', 'hide-auto'),
