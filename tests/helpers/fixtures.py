@@ -30,6 +30,7 @@ import itertools
 import textwrap
 import unittest.mock
 import types
+import os
 
 import pytest
 
@@ -405,3 +406,29 @@ def mode_manager(win_registry, config_stub, qapp):
     objreg.register('mode-manager', mm, scope='window', window=0)
     yield mm
     objreg.delete('mode-manager', scope='window', window=0)
+
+
+@pytest.fixture
+def config_tmpdir(monkeypatch, tmpdir):
+    """Set tmpdir/config as the configdir.
+
+    Use this to avoid creating a 'real' config dir (~/.config/qute_test).
+    """
+    tmpdir = tmpdir / 'config'
+    path = str(tmpdir)
+    os.mkdir(path)
+    monkeypatch.setattr('qutebrowser.utils.standarddir.config', lambda: path)
+    return tmpdir
+
+
+@pytest.fixture
+def data_tmpdir(monkeypatch, tmpdir):
+    """Set tmpdir/data as the datadir.
+
+    Use this to avoid creating a 'real' data dir (~/.local/share/qute_test).
+    """
+    tmpdir = tmpdir / 'data'
+    path = str(tmpdir)
+    os.mkdir(path)
+    monkeypatch.setattr('qutebrowser.utils.standarddir.data', lambda: path)
+    return tmpdir
