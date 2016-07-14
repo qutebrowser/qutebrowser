@@ -44,6 +44,12 @@ Changed
 - New `taskadd` userscript to add a taskwarrior task annotated with the
   current URL.
 
+Fixed
+-----
+
+- Fixed some configuration values being lost when a config option gets removed
+  from qutebrowser's code.
+
 Removed
 -------
 

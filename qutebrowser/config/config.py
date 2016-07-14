@@ -518,7 +518,7 @@ class ConfigManager(QObject):
                 k = k[1:]
 
             if (sectname, k) in self.DELETED_OPTIONS:
-                return
+                continue
             if (sectname, k) in self.RENAMED_OPTIONS:
                 k = self.RENAMED_OPTIONS[sectname, k]
             if (sectname, k) in self.CHANGED_OPTIONS:

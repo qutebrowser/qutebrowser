@@ -198,6 +198,17 @@ class TestConfigParser:
         """Make sure renamed options don't exist anymore."""
         assert option not in configdata.DATA[section]
 
+    def test_config_reading_with_deleted_options(self, objects):
+        """Test an invalid option with relaxed=True."""
+        objects.cp.read_dict({
+            'general': collections.OrderedDict(
+                [('wrap-search', 'true'), ('save-session', 'true')])
+        })
+        objects.cfg._from_cp(objects.cp)
+        with pytest.raises(configexc.NoOptionError):
+            objects.cfg.get('general', 'wrap-search')
+        assert objects.cfg.get('general', 'save-session')
+
 
 class TestKeyConfigParser:
 
