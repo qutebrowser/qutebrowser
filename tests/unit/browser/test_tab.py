@@ -67,9 +67,6 @@ def tab(request, default_config, qtbot, tab_registry, cookiejar_and_cache):
     if PYQT_VERSION < 0x050600:
         pytest.skip('Causes segfaults, see #1638')
 
-    if PYQT_VERSION < 0x050600:
-        pytest.skip('Causes segfaults, see #1638')
-
     if request.param == 'webkit':
         webkittab = pytest.importorskip('qutebrowser.browser.webkit.webkittab')
         tab_class = webkittab.WebKitTab
