@@ -270,7 +270,7 @@ class WebEngineScroller(browsertab.AbstractScroller):
         self._key_press(Qt.Key_PageDown, count)
 
     def at_top(self):
-        log.stub()
+        return self.pos_px().y() == 0
 
     def at_bottom(self):
         log.stub()
