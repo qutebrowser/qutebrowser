@@ -27,7 +27,6 @@ from PyQt5.QtCore import QSortFilterProxyModel, QModelIndex, Qt
 
 from qutebrowser.utils import log, qtutils, debug
 from qutebrowser.completion.models import base as completion
-import re
 
 
 class CompletionFilterModel(QSortFilterProxyModel):
@@ -47,7 +46,6 @@ class CompletionFilterModel(QSortFilterProxyModel):
         super().setSourceModel(source)
         self.srcmodel = source
         self.pattern = ''
-        self.pattern_re = None
 
         dumb_sort = self.srcmodel.DUMB_SORT
         if dumb_sort is None:
@@ -72,12 +70,6 @@ class CompletionFilterModel(QSortFilterProxyModel):
             if not val:
                 self.srcmodel.filtered_out_cache = {}
             self.pattern = val
-            val = re.sub(r' +', r' ', val)  # See #1919
-            val = re.escape(val)
-            # use positive lookahead to match the terms in any order
-            # (see https://github.com/The-Compiler/qutebrowser/issues/1651)
-            val = "".join("(?=.*{})".format(v) for v in val.split(r'\ '))
-            self.pattern_re = re.compile(val, re.IGNORECASE)
             self.invalidate()
             sortcol = 0
             self.sort(sortcol)
@@ -159,8 +151,9 @@ class CompletionFilterModel(QSortFilterProxyModel):
         # column if they match as a whole.
         # See https://github.com/The-Compiler/qutebrowser/issues/1649
         if data_to_filter:
-            data = " ".join(data_to_filter)
-            if self.pattern_re.search(data):
+            data = " ".join(data_to_filter).lower()
+            terms = self.pattern.lower().split()
+            if all(term in data for term in terms):
                 return True
 
         self.srcmodel.filtered_out_cache[row] = self.pattern
