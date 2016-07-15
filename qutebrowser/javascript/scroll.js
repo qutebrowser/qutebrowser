@@ -38,3 +38,28 @@ function scroll_delta_page(x, y) {
     var dy = document.documentElement.clientHeight * y;
     window.scrollBy(dx, dy);
 }
+
+function scroll_pos_perc() {
+    var elem = document.documentElement;
+    var dx = (elem.scrollWidth - elem.clientWidth);
+    var dy = (elem.scrollHeight - elem.clientHeight);
+
+    var perc_x, perc_y;
+
+    if (dx === 0) {
+        perc_x = 0;
+    } else {
+        perc_x = 100 / dx * window.scrollX;
+    }
+
+    if (dy === 0) {
+        perc_y = 0;
+    } else {
+        perc_y = 100 / dy * window.scrollY;
+    }
+
+    // console.log(perc_x);
+    // console.log(perc_y);
+
+    return [perc_x, perc_y];
+}

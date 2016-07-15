@@ -354,6 +354,9 @@ class AbstractScroller(QObject):
         self._tab = tab
         self._widget = None
 
+    def _init_widget(self, widget):
+        self._widget = widget
+
     def pos_px(self):
         raise NotImplementedError
 
@@ -513,7 +516,7 @@ class AbstractTab(QWidget):
         self._layout = WrapperLayout(widget, self)
         self._widget = widget
         self.history._history = widget.history()
-        self.scroll._widget = widget
+        self.scroll._init_widget(widget)
         self.caret._widget = widget
         self.zoom._widget = widget
         self.search._widget = widget

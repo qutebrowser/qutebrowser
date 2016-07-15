@@ -182,6 +182,14 @@ class WebEngineScroller(browsertab.AbstractScroller):
 
     """QtWebEngine implementations related to scrolling."""
 
+    def __init__(self, tab, parent=None):
+        super().__init__(tab, parent)
+        self._pos_perc = (None, None)
+
+    def _init_widget(self, widget):
+        super()._init_widget(widget)
+        self._on_scroll_pos_changed()
+
     def _key_press(self, key, count=1):
         # FIXME:qtwebengine Abort scrolling if the minimum/maximum was reached.
         press_evt = QKeyEvent(QEvent.KeyPress, key, Qt.NoModifier, 0, 0, 0)
@@ -193,24 +201,25 @@ class WebEngineScroller(browsertab.AbstractScroller):
             QApplication.postEvent(recipient, press_evt)
             QApplication.postEvent(recipient, release_evt)
 
+    @pyqtSlot()
+    def _on_scroll_pos_changed(self):
+        def update_scroll_pos_perc(jsret):
+            assert len(jsret) == 2, jsret
+            self._pos_perc = jsret
+            self.perc_changed.emit(*jsret)
+
+        js_code = """
+            {scroll_js}
+            scroll_pos_perc();
+        """.format(scroll_js=utils.read_file('javascript/scroll.js'))
+        self._tab.run_js_async(js_code, update_scroll_pos_perc)
+
     def pos_px(self):
         log.stub()
         return QPoint(0, 0)
 
     def pos_perc(self):
-        page = self._widget.page()
-        try:
-            size = page.contentsSize()
-            pos = page.scrollPosition()
-        except AttributeError:
-            # Added in Qt 5.7
-            log.stub('on Qt < 5.7')
-            return (None, None)
-        else:
-            # FIXME:qtwebengine is this correct?
-            perc_x = 100 / size.width() * pos.x()
-            perc_y = 100 / size.height() * pos.y()
-            return (perc_x, perc_y)
+        return self._pos_perc
 
     def to_perc(self, x=None, y=None):
         js_code = """
@@ -409,5 +418,8 @@ class WebEngineTab(browsertab.AbstractTab):
             view.iconChanged.connect(self.icon_changed)
         except AttributeError:
             log.stub('iconChanged, on Qt < 5.7')
-        # FIXME:qtwebengine stub this?
-        # view.scroll.pos_changed.connect(self.scroll.perc_changed)
+        try:
+            page.scrollPositionChanged.connect(
+                self.scroll._on_scroll_pos_changed)
+        except AttributeError:
+            log.stub('scrollPositionChanged, on Qt < 5.7')
