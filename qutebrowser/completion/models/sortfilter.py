@@ -140,20 +140,17 @@ class CompletionFilterModel(QSortFilterProxyModel):
         if parent == QModelIndex() or not self.pattern:
             return True
 
-        try:
-            return self.srcmodel.custom_filter(self.pattern, row, parent)
-        except NotImplementedError:
-            for col in self.srcmodel.columns_to_filter:
-                idx = self.srcmodel.index(row, col, parent)
-                if not idx.isValid():
-                    # No entries in parent model
-                    continue
-                data = self.srcmodel.data(idx)
-                if not data:
-                    continue
-                elif self.pattern_re.search(data):
-                    return True
-            return False
+        for col in self.srcmodel.columns_to_filter:
+            idx = self.srcmodel.index(row, col, parent)
+            if not idx.isValid():
+                # No entries in parent model
+                continue
+            data = self.srcmodel.data(idx)
+            if not data:
+                continue
+            elif self.pattern_re.search(data):
+                return True
+        return False
 
     def intelligentLessThan(self, lindex, rindex):
         """Custom sorting implementation.

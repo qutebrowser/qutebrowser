@@ -133,13 +133,3 @@ class BaseCompletionModel(QStandardItemModel):
         Override QAbstractItemModel::sort.
         """
         raise NotImplementedError
-
-    def custom_filter(self, pattern, row, parent):
-        """Custom filter.
-
-        Args:
-            pattern: The current filter pattern.
-            row: The row to accept or reject in the filter.
-            parent: The parent item QModelIndex.
-        """
-        raise NotImplementedError
