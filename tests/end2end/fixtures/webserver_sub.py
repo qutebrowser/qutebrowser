@@ -106,9 +106,6 @@ class WSGIServer(cherrypy.wsgiserver.CherryPyWSGIServer):
         _printed_ready: Whether the initial ready message was printed.
     """
 
-    # pylint: disable=no-member
-    # WORKAROUND for https://bitbucket.org/logilab/pylint/issues/702
-
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self._ready = False
