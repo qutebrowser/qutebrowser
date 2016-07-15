@@ -67,6 +67,10 @@ class CompletionFilterModel(QSortFilterProxyModel):
             val: The value to set.
         """
         with debug.log_time(log.completion, 'Setting filter pattern'):
+            # empty value clears cache (not necessary for correctness, but
+            # helps with keeping memory requirements relatively low)
+            if not val:
+                self.srcmodel.filtered_out_cache = {}
             self.pattern = val
             val = re.sub(r' +', r' ', val)  # See #1919
             val = re.escape(val)
@@ -136,6 +140,11 @@ class CompletionFilterModel(QSortFilterProxyModel):
         if parent == QModelIndex() or not self.pattern:
             return True
 
+        # first check the cache
+        if row in self.srcmodel.filtered_out_cache and self.srcmodel.filtered_out_cache[row] <= self.pattern:
+            log.completion.debug("According to the cache, row {} has been filtered out.".format(row))
+            return False
+
         data_to_filter = []
         for col in self.srcmodel.columns_to_filter:
             idx = self.srcmodel.index(row, col, parent)
@@ -145,6 +154,7 @@ class CompletionFilterModel(QSortFilterProxyModel):
             data = self.srcmodel.data(idx)
             if data:
                 data_to_filter.append(data)
+
         # Run the filter on all columns to accept partial matches on each
         # column if they match as a whole.
         # See https://github.com/The-Compiler/qutebrowser/issues/1649
@@ -152,6 +162,8 @@ class CompletionFilterModel(QSortFilterProxyModel):
             data = " ".join(data_to_filter)
             if self.pattern_re.search(data):
                 return True
+
+        self.srcmodel.filtered_out_cache[row] = self.pattern
         return False
 
     def intelligentLessThan(self, lindex, rindex):

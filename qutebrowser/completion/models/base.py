@@ -44,6 +44,17 @@ class BaseCompletionModel(QStandardItemModel):
         COLUMN_WIDTHS: The width percentages of the columns used in the
                         completion view.
         DUMB_SORT: the dumb sorting used by the model
+
+    Attributes:
+        filtered_out_cache:
+            A dictionary representing the filter cache used by the
+            `sortfilter.CompletionFilterModel` class. Rows that are dropped by
+            the filter are added here, so that we know that it is useless to do
+            the filtering again with an even more restrictive pattern. The
+            structure of the cache is:
+                keys: the row index number
+                values: the first (least restrictive) pattern that did not
+                match the given row
     """
 
     COLUMN_WIDTHS = (30, 70, 0)
@@ -53,6 +64,7 @@ class BaseCompletionModel(QStandardItemModel):
         super().__init__(parent)
         self.setColumnCount(3)
         self.columns_to_filter = [0]
+        self.filtered_out_cache = {}
 
     def new_category(self, name, sort=None):
         """Add a new category to the model.
