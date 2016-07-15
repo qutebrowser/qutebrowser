@@ -70,7 +70,9 @@ class CompletionFilterModel(QSortFilterProxyModel):
             self.pattern = val
             val = re.sub(r' +', r' ', val)  # See #1919
             val = re.escape(val)
-            val = val.replace(r'\ ', '.*')
+            # use positive lookahead to match the terms in any order
+            # (see https://github.com/The-Compiler/qutebrowser/issues/1651)
+            val = "".join("(?=.*{})".format(v) for v in val.split(r'\ '))
             self.pattern_re = re.compile(val, re.IGNORECASE)
             self.invalidate()
             sortcol = 0
