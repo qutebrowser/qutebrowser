@@ -24,6 +24,8 @@ import pytest
 from qutebrowser.browser.webkit import cookies
 from qutebrowser.misc import lineparser
 
+pytestmark = pytest.mark.usefixtures('data_tmpdir')
+
 CONFIG_ALL_COOKIES = {'content': {'cookies-accept': 'all'}}
 CONFIG_NEVER_COOKIES = {'content': {'cookies-accept': 'never'}}
 CONFIG_COOKIES_ENABLED = {'content': {'cookies-store': True}}

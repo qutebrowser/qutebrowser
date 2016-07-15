@@ -33,6 +33,8 @@ from PyQt5.QtNetwork import QNetworkProxy
 from qutebrowser.config import configtypes, configexc
 from qutebrowser.utils import debug, utils
 
+pytestmark = pytest.mark.usefixtures('config_tmpdir')
+
 
 class Font(QFont):
 
