@@ -136,15 +136,21 @@ class CompletionFilterModel(QSortFilterProxyModel):
         if parent == QModelIndex() or not self.pattern:
             return True
 
+        data_to_filter = []
         for col in self.srcmodel.columns_to_filter:
             idx = self.srcmodel.index(row, col, parent)
             if not idx.isValid():  # pragma: no cover
                 # this is a sanity check not hit by any test case
                 continue
             data = self.srcmodel.data(idx)
-            if not data:
-                continue
-            elif self.pattern_re.search(data):
+            if data:
+                data_to_filter.append(data)
+        # Run the filter on all columns to accept partial matches on each
+        # column if they match as a whole.
+        # See https://github.com/The-Compiler/qutebrowser/issues/1649
+        if data_to_filter:
+            data = " ".join(data_to_filter)
+            if self.pattern_re.search(data):
                 return True
         return False
 
