@@ -39,7 +39,7 @@ function scroll_delta_page(x, y) {
     window.scrollBy(dx, dy);
 }
 
-function scroll_pos_perc() {
+function scroll_pos() {
     var elem = document.documentElement;
     var dx = (elem.scrollWidth - elem.clientWidth);
     var dy = (elem.scrollHeight - elem.clientHeight);
@@ -58,8 +58,10 @@ function scroll_pos_perc() {
         perc_y = 100 / dy * window.scrollY;
     }
 
-    // console.log(perc_x);
-    // console.log(perc_y);
+    var pos_perc = {'x': perc_x, 'y': perc_y};
+    var pos_px = {'x': window.scrollX, 'y': window.scrollY};
+    var pos = {'perc': pos_perc, 'px': pos_px};
 
-    return [perc_x, perc_y];
+    // console.log(JSON.stringify(pos));
+    return pos;
 }

@@ -185,6 +185,7 @@ class WebEngineScroller(browsertab.AbstractScroller):
     def __init__(self, tab, parent=None):
         super().__init__(tab, parent)
         self._pos_perc = (None, None)
+        self._pos_px = QPoint()
 
     def _init_widget(self, widget):
         super()._init_widget(widget)
@@ -203,20 +204,20 @@ class WebEngineScroller(browsertab.AbstractScroller):
 
     @pyqtSlot()
     def _on_scroll_pos_changed(self):
-        def update_scroll_pos_perc(jsret):
-            assert len(jsret) == 2, jsret
-            self._pos_perc = jsret
-            self.perc_changed.emit(*jsret)
+        def update_scroll_pos(jsret):
+            assert isinstance(jsret, dict)
+            self._pos_perc = (jsret['perc']['x'], jsret['perc']['y'])
+            self._pos_px = QPoint(jsret['px']['x'], jsret['px']['y'])
+            self.perc_changed.emit(*self._pos_perc)
 
         js_code = """
             {scroll_js}
-            scroll_pos_perc();
+            scroll_pos();
         """.format(scroll_js=utils.read_file('javascript/scroll.js'))
-        self._tab.run_js_async(js_code, update_scroll_pos_perc)
+        self._tab.run_js_async(js_code, update_scroll_pos)
 
     def pos_px(self):
-        log.stub()
-        return QPoint(0, 0)
+        return self._pos_px
 
     def pos_perc(self):
         return self._pos_perc
