@@ -189,6 +189,12 @@ class WebEngineScroller(browsertab.AbstractScroller):
 
     def _init_widget(self, widget):
         super()._init_widget(widget)
+        page = widget.page()
+        try:
+            page.scrollPositionChanged.connect(
+                self._on_scroll_pos_changed)
+        except AttributeError:
+            log.stub('scrollPositionChanged, on Qt < 5.7')
         self._on_scroll_pos_changed()
 
     def _key_press(self, key, count=1):
@@ -204,7 +210,9 @@ class WebEngineScroller(browsertab.AbstractScroller):
 
     @pyqtSlot()
     def _on_scroll_pos_changed(self):
+        """Update the scroll position attributes when it changed."""
         def update_scroll_pos(jsret):
+            """Callback after getting scroll position via JS."""
             assert isinstance(jsret, dict)
             self._pos_perc = (jsret['perc']['x'], jsret['perc']['y'])
             self._pos_px = QPoint(jsret['px']['x'], jsret['px']['y'])
@@ -419,8 +427,3 @@ class WebEngineTab(browsertab.AbstractTab):
             view.iconChanged.connect(self.icon_changed)
         except AttributeError:
             log.stub('iconChanged, on Qt < 5.7')
-        try:
-            page.scrollPositionChanged.connect(
-                self.scroll._on_scroll_pos_changed)
-        except AttributeError:
-            log.stub('scrollPositionChanged, on Qt < 5.7')
