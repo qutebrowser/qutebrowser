@@ -35,8 +35,6 @@ from qutebrowser.config.parsers import keyconf
 from qutebrowser.commands import runners
 from qutebrowser.utils import objreg, standarddir
 
-pytestmark = pytest.mark.usefixtures('config_tmpdir')
-
 
 class TestConfigParser:
 
@@ -297,6 +295,7 @@ class TestKeyConfigParser:
         assert new == new_expected
 
 
+@pytest.mark.usefixtures('config_tmpdir')
 @pytest.mark.integration
 class TestDefaultConfig:
 
