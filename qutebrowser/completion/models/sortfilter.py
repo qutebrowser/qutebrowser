@@ -133,8 +133,8 @@ class CompletionFilterModel(QSortFilterProxyModel):
             return True
 
         # first check the cache
-        if row in self.srcmodel.filtered_out_cache and self.srcmodel.filtered_out_cache[row] <= self.pattern:
-            log.completion.debug("According to the cache, row {} has been filtered out.".format(row))
+        if (parent.row(), row) in self.srcmodel.filtered_out_cache and self.srcmodel.filtered_out_cache[parent.row(), row] <= self.pattern:
+            log.completion.debug("According to the cache, row {} in {} has been filtered out.".format(row, parent.data()))
             return False
 
         data_to_filter = []
@@ -156,7 +156,7 @@ class CompletionFilterModel(QSortFilterProxyModel):
             if all(term in data for term in terms):
                 return True
 
-        self.srcmodel.filtered_out_cache[row] = self.pattern
+        self.srcmodel.filtered_out_cache[parent.row(), row] = self.pattern
         return False
 
     def intelligentLessThan(self, lindex, rindex):

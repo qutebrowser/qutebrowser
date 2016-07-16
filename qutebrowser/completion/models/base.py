@@ -52,7 +52,7 @@ class BaseCompletionModel(QStandardItemModel):
             the filter are added here, so that we know that it is useless to do
             the filtering again with an even more restrictive pattern. The
             structure of the cache is:
-                keys: the row index number
+                keys: tuple of `(parent.row, row)` index numbers
                 values: the first (least restrictive) pattern that did not
                 match the given row
     """
