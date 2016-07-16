@@ -21,7 +21,6 @@
 
 
 import pytest
-import os
 
 from PyQt5.QtCore import QObject, pyqtSignal
 from PyQt5.QtWebKit import QWebSettings
@@ -65,18 +64,14 @@ def test_element_js_webkit(webview, js_enabled, expected):
     assert result == expected
 
 
+@pytest.mark.usefixtures('redirect_xdg_data')
 @pytest.mark.parametrize('js_enabled, expected', [(True, 2.0), (False, 2.0)])
-def test_simple_js_webengine(qtbot, webengineview, js_enabled, expected,
-                             data_tmpdir):
+def test_simple_js_webengine(qtbot, webengineview, js_enabled, expected):
     """With QtWebEngine, runJavaScript works even when JS is off."""
     # pylint: disable=no-name-in-module,useless-suppression
     # If we get there (because of the webengineview fixture) we can be certain
     # QtWebEngine is available
     from PyQt5.QtWebEngineWidgets import QWebEngineSettings
-    # runJavaScript will write to the data directory. As the path is determined
-    # by Qt and bypasses standarddir.data(), the data_tmpdir fixture is not
-    # enough -- we need to set XDG_DATA_HOME as well
-    os.putenv('XDG_DATA_HOME', str(data_tmpdir))
     webengineview.settings().setAttribute(QWebEngineSettings.JavascriptEnabled,
                                           js_enabled)
 
