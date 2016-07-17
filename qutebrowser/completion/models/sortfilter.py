@@ -63,9 +63,6 @@ class CompletionFilterModel(QSortFilterProxyModel):
 
         Invalidates the filter and re-sorts the model.
 
-        If the current completion model overrides sort(), it is used.
-        If not, the default implementation in QCompletionFilterModel is called.
-
         Args:
             val: The value to set.
         """
@@ -76,10 +73,7 @@ class CompletionFilterModel(QSortFilterProxyModel):
             self.pattern_re = re.compile(val, re.IGNORECASE)
             self.invalidateFilter()
             sortcol = 0
-            try:
-                self.srcmodel.sort(sortcol)
-            except NotImplementedError:
-                self.sort(sortcol)
+            self.sort(sortcol)
             self.invalidate()
 
     def count(self):

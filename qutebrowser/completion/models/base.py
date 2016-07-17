@@ -126,10 +126,3 @@ class BaseCompletionModel(QStandardItemModel):
         else:
             # category
             return Qt.NoItemFlags
-
-    def sort(self, column, order=Qt.AscendingOrder):
-        """Sort the data in column according to order.
-
-        Override QAbstractItemModel::sort.
-        """
-        raise NotImplementedError
