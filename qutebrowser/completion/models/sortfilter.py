@@ -133,7 +133,7 @@ class CompletionFilterModel(QSortFilterProxyModel):
             return True
 
         # first check the cache
-        if (parent.row(), row) in self.srcmodel.filtered_out_cache and self.srcmodel.filtered_out_cache[parent.row(), row] <= self.pattern:
+        if (parent.row(), row) in self.srcmodel.filtered_out_cache and self.pattern.startswith(self.srcmodel.filtered_out_cache[parent.row(), row]):
             log.completion.debug("According to the cache, row {} in {} has been filtered out.".format(row, parent.data()))
             return False
 
