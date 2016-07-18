@@ -238,3 +238,13 @@ Feature: Using hints
         And I press the key "2"
         And I wait for "Leaving mode KeyMode.hint (reason: all filtered)" in the log
         Then no crash should happen
+
+    # https://github.com/The-Compiler/qutebrowser/issues/1657
+    Scenario: Using rapid number hinting twice
+        When I open data/hints/number.html
+        And I set hints -> mode to number
+        And I run :hint --rapid
+        And I run :leave-mode
+        And I run :hint --rapid
+        And I run :follow-hint 00
+        Then data/numbers/1.txt should be loaded
