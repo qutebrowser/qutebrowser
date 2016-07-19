@@ -33,8 +33,6 @@ from PyQt5.QtNetwork import QNetworkProxy
 from qutebrowser.config import configtypes, configexc
 from qutebrowser.utils import debug, utils
 
-pytestmark = pytest.mark.usefixtures('config_tmpdir')
-
 
 class Font(QFont):
 
@@ -1284,6 +1282,7 @@ def unrequired_class(**kwargs):
 
 
 @pytest.mark.usefixtures('qapp')
+@pytest.mark.usefixtures('config_tmpdir')
 class TestFileAndUserStyleSheet:
 
     """Test File/UserStyleSheet."""
