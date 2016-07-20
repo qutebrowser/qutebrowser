@@ -46,6 +46,9 @@ class LogFailHandler(logging.Handler):
         logger = logging.getLogger(record.name)
         root_logger = logging.getLogger()
 
+        if logger.name == 'messagemock':
+            return
+
         for h in root_logger.handlers:
             if isinstance(h, catchlog_mod.LogCaptureHandler):
                 catchlog_handler = h
