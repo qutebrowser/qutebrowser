@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/env bash
 #
 # Behavior:
 #   Userscript for qutebrowser which adds a task to taskwarrior.
