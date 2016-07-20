@@ -295,6 +295,7 @@ class TestKeyConfigParser:
         assert new == new_expected
 
 
+@pytest.mark.usefixtures('config_tmpdir')
 @pytest.mark.integration
 class TestDefaultConfig:
 
