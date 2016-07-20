@@ -414,11 +414,11 @@ def config_tmpdir(monkeypatch, tmpdir):
 
     Use this to avoid creating a 'real' config dir (~/.config/qute_test).
     """
-    tmpdir = tmpdir / 'config'
-    path = str(tmpdir)
+    confdir = tmpdir / 'config'
+    path = str(confdir)
     os.mkdir(path)
     monkeypatch.setattr('qutebrowser.utils.standarddir.config', lambda: path)
-    return tmpdir
+    return confdir
 
 
 @pytest.fixture
@@ -427,11 +427,11 @@ def data_tmpdir(monkeypatch, tmpdir):
 
     Use this to avoid creating a 'real' data dir (~/.local/share/qute_test).
     """
-    tmpdir = tmpdir / 'data'
-    path = str(tmpdir)
+    datadir = tmpdir / 'data'
+    path = str(datadir)
     os.mkdir(path)
     monkeypatch.setattr('qutebrowser.utils.standarddir.data', lambda: path)
-    return tmpdir
+    return datadir
 
 
 @pytest.fixture
