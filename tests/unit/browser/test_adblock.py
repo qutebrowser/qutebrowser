@@ -30,7 +30,7 @@ from qutebrowser.browser import adblock
 from qutebrowser.utils import objreg
 from qutebrowser.commands import cmdexc
 
-pytestmark = pytest.mark.usefixtures('qapp')
+pytestmark = pytest.mark.usefixtures('qapp', 'config_tmpdir')
 
 # TODO See ../utils/test_standarddirutils for OSError and caplog assertion
 
@@ -52,13 +52,6 @@ URLS_TO_CHECK = ('http://localhost',
                  'http://goodhost.gov',
                  'ftp://verygoodhost.com',
                  'http://qutebrowser.org')
-
-
-@pytest.fixture
-def data_tmpdir(monkeypatch, tmpdir):
-    """Set tmpdir as datadir."""
-    tmpdir = str(tmpdir)
-    monkeypatch.setattr('qutebrowser.utils.standarddir.data', lambda: tmpdir)
 
 
 class BaseDirStub:
@@ -348,7 +341,7 @@ def test_blocking_with_whitelist(config_stub, basedir, download_stub,
     # by creating a file named blocked-hosts,
     # Exclude localhost from it, since localhost is in HostBlocker.WHITELISTED
     filtered_blocked_hosts = BLOCKLIST_HOSTS[1:]
-    blocklist = create_blocklist(tmpdir,
+    blocklist = create_blocklist(data_tmpdir,
                                  blocked_hosts=filtered_blocked_hosts,
                                  name='blocked-hosts',
                                  line_format='one_per_line')

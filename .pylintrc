@@ -9,6 +9,7 @@ load-plugins=qute_pylint.config,
              qute_pylint.settrace,
              pylint.extensions.bad_builtin,
              pylint.extensions.docstyle
+persistent=n
 
 [MESSAGES CONTROL]
 enable=all
