@@ -476,7 +476,6 @@ class Quitter:
         self._shutting_down = False
         self._args = args
 
-    @pyqtSlot()
     def on_last_window_closed(self):
         """Slot which gets invoked when the last window was closed."""
         self.shutdown(last_window=True)
