@@ -1,5 +1,5 @@
 [flake8]
-exclude = .venv,.hypothesis,.git,__pycache__,resources.py
+exclude = .*,__pycache__,resources.py
 # E128: continuation line under-indented for visual indent
 # E226: missing whitespace around arithmetic operator
 # E265: Block comment should start with '#'
