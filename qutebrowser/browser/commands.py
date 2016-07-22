@@ -1095,6 +1095,29 @@ class CommandDispatcher:
             raise cmdexc.CommandError(str(e))
         self._open(url, tab, bg, window)
 
+    @cmdutils.register(instance='command-dispatcher', scope='window',
+                       maxsplit=0)
+    @cmdutils.argument('name',
+                       completion=usertypes.Completion.quickmark_by_name)
+    def quickmark_del(self, name=None):
+        """Delete a quickmark.
+
+        Args:
+            name: The name of the quickmark to delete. If none, delete the
+                  quickmark for the current page (choosing one arbitrarily
+                  if there are more than one).
+        """
+        quickmark_manager = objreg.get('quickmark-manager')
+        if name is None:
+            url = self._current_url()
+            try:
+                name = quickmark_manager.get_by_qurl(url)
+            except ValueError:
+                urlutils.invalid_url_error(self._win_id, url,
+                                           "delete quickmark")
+                return
+        quickmark_manager.quickmark_del(name)
+
     @cmdutils.register(instance='command-dispatcher', scope='window')
     def bookmark_add(self, url=None, title=None):
         """Save the current page as a bookmark, or a specific url.

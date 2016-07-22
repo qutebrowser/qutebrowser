@@ -204,9 +204,6 @@ class QuickmarkManager(UrlMarkManager):
         else:
             set_mark()
 
-    @cmdutils.register(instance='quickmark-manager', maxsplit=0)
-    @cmdutils.argument('name',
-                       completion=usertypes.Completion.quickmark_by_name)
     def quickmark_del(self, name):
         """Delete a quickmark.
 
@@ -217,6 +214,24 @@ class QuickmarkManager(UrlMarkManager):
             self.delete(name)
         except KeyError:
             raise cmdexc.CommandError("Quickmark '{}' not found!".format(name))
+
+    def get_by_qurl(self, url):
+        """Look up a quickmark by QUrl, returning its name.
+
+        Takes O(n) time, where n is the number of quickmarks.
+        Use a name instead where possible.
+        """
+        if not url.isValid():
+            raise ValueError("Invalid URL: {}".format(url.errorString()))
+        urlstr = url.toString(QUrl.RemovePassword | QUrl.FullyEncoded)
+
+        try:
+            index = list(self.marks.values()).index(urlstr)
+            key = list(self.marks.keys())[index]
+        except ValueError:
+            raise cmdexc.CommandError(
+                "Quickmark for '{}' not found!".format(urlstr))
+        return key
 
     def get(self, name):
         """Get the URL of the quickmark named name as a QUrl."""
