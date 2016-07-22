@@ -86,6 +86,17 @@ Feature: quickmarks and bookmarks
         And I run :bookmark-del http://localhost:(port)/data/numbers/5.txt
         Then the bookmark file should not contain "http://localhost:*/data/numbers/5.txt "
 
+    Scenario: Deleting the current page's bookmark if it doesn't exist
+        When I open about:blank
+        And I run :bookmark-del
+        Then the error "Bookmark 'about:blank' not found!" should be shown
+
+    Scenario: Deleting the current page's bookmark
+        When I open data/numbers/5.txt
+        And I run :bookmark-add
+        And I run :bookmark-del
+        Then the bookmark file should not contain "http://localhost:*/data/numbers/5.txt "
+
     ## quickmarks
 
     Scenario: Saving a quickmark (:quickmark-add)
@@ -186,3 +197,17 @@ Feature: quickmarks and bookmarks
         When I run :quickmark-add http://localhost:(port)/data/numbers/15.txt fifteen
         And I run :quickmark-del fifteen
         Then the quickmark file should not contain "fourteen http://localhost:*/data/numbers/15.txt "
+
+    Scenario: Deleting the current page's quickmark if it has none
+        When I open about:blank
+        And I run :quickmark-del
+        Then the error "Quickmark for 'about:blank' not found!" should be shown
+
+    Scenario: Deleting the current page's quickmark
+        When I open data/numbers/7.txt
+        And I run :quickmark-save
+        And I wait for "Entering mode KeyMode.prompt (reason: question asked)" in the log
+        And I press the keys "seven"
+        And I press the keys "<Enter>"
+        And I run :quickmark-del
+        Then the quickmark file should not contain "seven http://localhost:*/data/numbers/7.txt"
