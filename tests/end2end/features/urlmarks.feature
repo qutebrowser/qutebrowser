@@ -196,7 +196,7 @@ Feature: quickmarks and bookmarks
     Scenario: Deleting a quickmark
         When I run :quickmark-add http://localhost:(port)/data/numbers/15.txt fifteen
         And I run :quickmark-del fifteen
-        Then the quickmark file should not contain "fourteen http://localhost:*/data/numbers/15.txt "
+        Then the quickmark file should not contain "fifteen http://localhost:*/data/numbers/15.txt "
 
     Scenario: Deleting the current page's quickmark if it has none
         When I open about:blank
