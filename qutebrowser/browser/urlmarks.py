@@ -285,8 +285,6 @@ class BookmarkManager(UrlMarkManager):
             self.changed.emit()
             self.added.emit(title, urlstr)
 
-    @cmdutils.register(instance='bookmark-manager', maxsplit=0)
-    @cmdutils.argument('url', completion=usertypes.Completion.bookmark_by_url)
     def bookmark_del(self, url):
         """Delete a bookmark.
 

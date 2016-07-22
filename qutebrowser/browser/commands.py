@@ -1147,6 +1147,21 @@ class CommandDispatcher:
             raise cmdexc.CommandError(e)
         self._open(url, tab, bg, window)
 
+    @cmdutils.register(instance='command-dispatcher', scope='window',
+                       maxsplit=0)
+    @cmdutils.argument('url', completion=usertypes.Completion.bookmark_by_url)
+    def bookmark_del(self, url=None):
+        """Delete a bookmark.
+
+        Args:
+            url: The url of the bookmark to delete. If None, use the
+                 current page's url.
+        """
+        if url is None:
+            url = self._current_url().toString(QUrl.RemovePassword
+                                             | QUrl.FullyEncoded)
+        objreg.get('bookmark-manager').bookmark_del(url)
+
     @cmdutils.register(instance='command-dispatcher', hide=True,
                        scope='window')
     def follow_selected(self, *, tab=False):
