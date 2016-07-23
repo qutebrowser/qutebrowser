@@ -1,0 +1,34 @@
+{% extends "base.html" %}
+
+{% block style %}
+table { border: 1px solid grey; border-collapse: collapse; width: 100%;}
+th, td { border: 1px solid grey; padding: 0px 5px; }
+th { background: lightgrey; }
+{% endblock %}
+
+{% block content %}
+
+<table>
+    <tr>
+        <th><h3>Bookmark</h3></th>
+        <th><h3>URL</h3></th>
+    </tr>
+    {% for url, title in bookmarks %}
+    <tr>
+        <td><a href="{{url}}">{{title}}</a></td>
+        <td>{{url}}</td>
+    </tr>
+    {% endfor %}
+    <tr>
+        <th><h3>Quickmark</h3></th>
+        <th><h3>URL</h3></th>
+    </tr>
+    {% for name, url in quickmarks %}
+    <tr>
+        <td><a href="{{url}}">{{name}}</a></td>
+        <td>{{url}}</td>
+    </tr>
+    {% endfor %}
+</table>
+
+{% endblock %}

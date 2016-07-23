@@ -178,6 +178,9 @@ class QuickmarkManager(UrlMarkManager):
     def quickmark_add(self, win_id, url, name):
         """Add a new quickmark.
 
+        You can view all saved quickmarks on the
+        link:qute://bookmarks[bookmarks page].
+
         Args:
             win_id: The window ID to display the errors in.
             url: The url to add as quickmark.
