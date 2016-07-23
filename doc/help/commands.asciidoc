@@ -122,8 +122,6 @@ Save the current page as a bookmark, or a specific url.
 
 If no url and title are provided, then save the current page as a bookmark. If a url and title have been provided, then save the given url as a bookmark with the provided title.
 
-You can view all saved bookmarks on the link:qute://bookmarks[bookmarks page].
-
 ==== positional arguments
 * +'url'+: url to save as a bookmark. If None, use url of current page.
 * +'title'+: title of the new bookmark.
@@ -513,8 +511,6 @@ The tab index to print.
 Syntax: +:quickmark-add 'url' 'name'+
 
 Add a new quickmark.
-
-You can view all saved quickmarks on the link:qute://bookmarks[bookmarks page].
 
 ==== positional arguments
 * +'url'+: The url to add as quickmark.

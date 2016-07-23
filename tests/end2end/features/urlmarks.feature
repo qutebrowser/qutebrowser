@@ -189,10 +189,10 @@ Feature: quickmarks and bookmarks
 
     Scenario: Listing quickmarks
         When I run :quickmark-add http://localhost:(port)/data/numbers/15.txt fifteen
-        And  I run :quickmark-add http://localhost:(port)/data/numbers/14.txt fourteen
+        And I run :quickmark-add http://localhost:(port)/data/numbers/14.txt fourteen
         And I open qute:bookmarks
         Then the page should contain the plaintext "fifteen"
-        And  the page should contain the plaintext "fourteen"
+        And the page should contain the plaintext "fourteen"
 
     Scenario: Listing bookmarks
         When I open data/title.html
