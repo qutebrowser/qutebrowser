@@ -337,7 +337,6 @@ def _save_version():
     state_config['general']['version'] = qutebrowser.__version__
 
 
-@pyqtSlot('QWidget*', 'QWidget*')
 def on_focus_changed(_old, new):
     """Register currently focused main window in the object registry."""
     if not isinstance(new, QWidget):
@@ -355,7 +354,6 @@ def on_focus_changed(_old, new):
         _maybe_hide_mouse_cursor()
 
 
-@pyqtSlot(QUrl)
 def open_desktopservices_url(url):
     """Handler to open a URL via QDesktopServices."""
     win_id = mainwindow.get_window(via_ipc=True, force_window=False)

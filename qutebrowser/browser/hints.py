@@ -52,7 +52,6 @@ class WordHintingError(Exception):
     """Exception raised on errors during word hinting."""
 
 
-@pyqtSlot(usertypes.KeyMode)
 def on_mode_entered(mode, win_id):
     """Stop hinting when insert mode was entered."""
     if mode == usertypes.KeyMode.insert:

@@ -24,7 +24,7 @@ import pytest
 
 from qutebrowser.misc import msgbox
 
-from PyQt5.QtCore import pyqtSlot, Qt
+from PyQt5.QtCore import Qt
 from PyQt5.QtWidgets import QMessageBox, QWidget
 
 
@@ -64,7 +64,6 @@ def test_finished_signal(qtbot):
     """Make sure we can pass a slot to be called when the dialog finished."""
     signal_triggered = False
 
-    @pyqtSlot()
     def on_finished():
         nonlocal signal_triggered
         signal_triggered = True

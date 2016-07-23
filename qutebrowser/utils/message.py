@@ -26,7 +26,7 @@ import datetime
 import collections
 import traceback
 
-from PyQt5.QtCore import pyqtSignal, pyqtSlot, QObject
+from PyQt5.QtCore import pyqtSignal, QObject
 from PyQt5.QtWidgets import QApplication
 
 from qutebrowser.utils import usertypes, log, objreg, utils
@@ -108,7 +108,6 @@ def _get_bridge(win_id):
     return objreg.get('message-bridge', scope='window', window=win_id)
 
 
-@pyqtSlot()
 def on_focus_changed():
     """Show queued messages when a new window has been focused.
 

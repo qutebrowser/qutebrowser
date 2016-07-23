@@ -55,7 +55,6 @@ class WebKitPrinting(browsertab.AbstractPrinting):
         printer.setOutputFileName(filename)
         self.to_printer(printer)
 
-    @pyqtSlot(QPrinter)
     def to_printer(self, printer):
         self._widget.print(printer)
 

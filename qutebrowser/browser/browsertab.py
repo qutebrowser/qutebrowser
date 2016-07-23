@@ -24,7 +24,6 @@ import itertools
 from PyQt5.QtCore import pyqtSignal, pyqtSlot, QUrl, QObject, QPoint
 from PyQt5.QtGui import QIcon
 from PyQt5.QtWidgets import QWidget, QLayout
-from PyQt5.QtPrintSupport import QPrinter
 
 from qutebrowser.keyinput import modeman
 from qutebrowser.config import config
@@ -122,7 +121,6 @@ class AbstractPrinting:
     def to_pdf(self, filename):
         raise NotImplementedError
 
-    @pyqtSlot(QPrinter)
     def to_printer(self, printer):
         raise NotImplementedError
 

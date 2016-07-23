@@ -25,7 +25,6 @@
 from PyQt5.QtCore import pyqtSlot, Qt, QEvent, QPoint
 from PyQt5.QtGui import QKeyEvent, QIcon
 from PyQt5.QtWidgets import QApplication
-from PyQt5.QtPrintSupport import QPrinter
 # pylint: disable=no-name-in-module,import-error,useless-suppression
 from PyQt5.QtWebEngineWidgets import QWebEnginePage
 # pylint: enable=no-name-in-module,import-error,useless-suppression
@@ -51,7 +50,6 @@ class WebEnginePrinting(browsertab.AbstractPrinting):
     def to_pdf(self, filename):
         self._widget.page().printToPdf(filename)
 
-    @pyqtSlot(QPrinter)
     def to_printer(self, printer):
         # Should never be called
         assert False

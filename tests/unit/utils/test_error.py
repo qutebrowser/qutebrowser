@@ -26,7 +26,7 @@ import pytest
 from qutebrowser.utils import error
 from qutebrowser.misc import ipc
 
-from PyQt5.QtCore import pyqtSlot, QTimer
+from PyQt5.QtCore import QTimer
 from PyQt5.QtWidgets import QMessageBox
 
 
@@ -81,7 +81,6 @@ def test_no_err_windows(caplog, exc, name, exc_text, fake_args):
 ], ids=repr)
 def test_err_windows(qtbot, qapp, fake_args, pre_text, post_text, expected):
 
-    @pyqtSlot()
     def err_window_check():
         w = qapp.activeModalWidget()
         try:

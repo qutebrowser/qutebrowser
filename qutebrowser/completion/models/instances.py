@@ -27,8 +27,6 @@ Module attributes:
 
 import functools
 
-from PyQt5.QtCore import pyqtSlot
-
 from qutebrowser.completion.models import (miscmodels, urlmodel, configmodel,
                                            base)
 from qutebrowser.utils import objreg, usertypes, log, debug
@@ -84,7 +82,6 @@ def _init_setting_completions():
             _instances[usertypes.Completion.value][sectname][opt] = val_model
 
 
-@pyqtSlot()
 def init_quickmark_completions():
     """Initialize quickmark completion models."""
     log.completion.debug("Initializing quickmark completion.")
@@ -96,7 +93,6 @@ def init_quickmark_completions():
     _instances[usertypes.Completion.quickmark_by_name] = model
 
 
-@pyqtSlot()
 def init_bookmark_completions():
     """Initialize bookmark completion models."""
     log.completion.debug("Initializing bookmark completion.")
@@ -108,7 +104,6 @@ def init_bookmark_completions():
     _instances[usertypes.Completion.bookmark_by_url] = model
 
 
-@pyqtSlot()
 def init_session_completion():
     """Initialize session completion model."""
     log.completion.debug("Initializing session completion.")
