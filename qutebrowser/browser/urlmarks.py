@@ -32,7 +32,8 @@ import collections
 
 from PyQt5.QtCore import pyqtSignal, QUrl, QObject
 
-from qutebrowser.utils import message, usertypes, urlutils, standarddir, objreg
+from qutebrowser.utils import (message, usertypes, qtutils, urlutils,
+                               standarddir, objreg)
 from qutebrowser.commands import cmdexc, cmdutils
 from qutebrowser.misc import lineparser
 
@@ -210,8 +211,7 @@ class QuickmarkManager(UrlMarkManager):
         Takes O(n) time, where n is the number of quickmarks.
         Use a name instead where possible.
         """
-        if not url.isValid():
-            raise ValueError("Invalid URL: {}".format(url.errorString()))
+        qtutils.ensure_valid(url)
         urlstr = url.toString(QUrl.RemovePassword | QUrl.FullyEncoded)
 
         try:
