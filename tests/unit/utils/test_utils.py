@@ -19,14 +19,16 @@
 
 """Tests for qutebrowser.utils.utils."""
 
+import io
 import sys
 import enum
 import datetime
 import os.path
-import io
 import logging
 import functools
+import hypothesis
 import collections
+import hypothesis.strategies as st
 
 from PyQt5.QtCore import Qt
 from PyQt5.QtGui import QColor, QClipboard
@@ -1000,3 +1002,76 @@ class TestGetSetClipboard:
 ])
 def test_is_special_key(keystr, expected):
     assert utils.is_special_key(keystr) == expected
+
+
+def test_tokenize_x11_geometry_string_manual():
+    """Test if some strings have the excepted tokens as result"""
+    # pylint: disable=invalid-name
+    Token = utils.X11GeometryStringParser.Token
+    parser = utils.X11GeometryStringParser()
+    res = list(parser.tokenize("80x24+30+200"))
+    assert res == [
+        Token(typ='NUMBER', value='80', column=0),
+        Token(typ='MUL', value='x', column=2),
+        Token(typ='NUMBER', value='24', column=3),
+        Token(typ='NUMBER', value='+30', column=5),
+        Token(typ='NUMBER', value='+200', column=8)
+    ]
+    res = list(parser.tokenize("80x24-30--200"))
+    assert res == [
+        Token(typ='NUMBER', value='80', column=0),
+        Token(typ='MUL', value='x', column=2),
+        Token(typ='NUMBER', value='24', column=3),
+        Token(typ='NUMBER', value='-30', column=5),
+        Token(typ='INVOFF', value='-', column=8),
+        Token(typ='NUMBER', value='-200', column=9),
+    ]
+
+
+@hypothesis.given(
+    st.lists(
+        st.tuples(
+            st.sampled_from(["NUMBER", "MUL", "INVOFF"]),
+            st.integers()
+        )
+    )
+)
+def test_tokenize_x11_geometry_string_generated(tuples):
+    """Test if some strings have the excepted tokens as result"""
+    # pylint: disable=invalid-name
+    Token = utils.X11GeometryStringParser.Token
+    parser = utils.X11GeometryStringParser()
+
+    def tuples_to_tokens(result, tuple_):
+        col, list_ = result
+        typ = tuple_[0]
+        value = tuple_[1]
+        if typ == 'MUL':
+            value = 'x'
+        elif typ == 'INVOFF':
+            value = '-'
+        else:
+            tmpl = "+%s" if value >= 0 else "%s"
+            value = tmpl % value
+        list_.append(Token(
+            typ=typ,
+            value=value,
+            column=col,
+        ))
+        return (col + len(value), list_)
+
+    length, tokens = functools.reduce(
+        tuples_to_tokens, tuples, (0, [])
+    )
+    string = "".join([token.value for token in tokens])
+    assert length == len(string)
+    assert tokens == list(parser.tokenize(string))
+
+@hypothesis.given(st.text())
+def test_tokenize_x11_geometry_string_fuzzing(string):
+    """Test if no unknown exceptions are thrown when fuzzing the tokenizer"""
+    parser = utils.X11GeometryStringParser()
+    try:
+        parser.tokenize(string)
+    except ValueError as e:
+        assert e.message.startswith(parser.TOKENIZE_ERROR)

@@ -20,14 +20,15 @@
 """Other utilities which don't fit anywhere else."""
 
 import io
+import re
 import sys
 import enum
 import json
 import os.path
-import collections
 import functools
-import contextlib
 import itertools
+import contextlib
+import collections
 
 from PyQt5.QtCore import Qt
 from PyQt5.QtGui import QKeySequence, QColor, QClipboard
@@ -793,7 +794,7 @@ def supports_selection():
     return QApplication.clipboard().supportsSelection()
 
 
-def parse_x11_geometry_string(string):
+class X11GeometryStringParser(object):
     """Parse a standard X11 geometry string.
 
     Most X programs accept a command line argument of the form −−geometry
@@ -805,4 +806,32 @@ def parse_x11_geometry_string(string):
 
     https://www.x.org/releases/X11R7.7/doc/man/man7/X.7.xhtml#heading7
     """
-    pass
+    TOKENIZE_ERROR = "Geometry string contains an invalid character"
+    Token = collections.namedtuple(
+        'Token', ['typ', 'value', 'column']
+    )
+
+
+    def tokenize(self, string):
+        """Tokenize a geometry string."""
+        token_specification = [
+            ('MUL', r'x'),     # Integer or decimal number
+            ('NUMBER', r'[+-]?\d+(\.\d*)?'),  # Integer or decimal number
+            ('INVOFF', r'-'),  # Indicate a inverse offset
+                               #    left hand -> right hand
+                               #    top -> buttom
+            ('INVALID', r'.'), # Match the rest, which is invalid
+        ]
+        tok_regex = '|'.join(
+            '(?P<%s>%s)' % pair for pair in token_specification
+        )
+        line_start = 0
+        for mo in re.finditer(tok_regex, string):
+            kind = mo.lastgroup
+            value = mo.group(kind)
+            column = mo.start() - line_start
+            if kind == 'INVALID':
+                raise ValueError("%s '%s' at column %d" % (
+                    self.TOKENIZE_ERROR, value, column + 1
+                ))
+            yield self.Token(kind, value, column)
