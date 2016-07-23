@@ -420,9 +420,6 @@ class ExceptionCrashDialog(_CrashDialog):
         text = "<b>Argh! qutebrowser crashed unexpectedly.</b>"
         self._lbl.setText(text)
 
-    def _init_buttons(self):
-        super()._init_buttons()
-
     def _init_checkboxes(self):
         """Add checkboxes to the dialog."""
         super()._init_checkboxes()

@@ -531,14 +531,6 @@ class FakeIOStream(io.TextIOBase):
         super().__init__()
         self.write = write_func
 
-    def flush(self):
-        """Override flush() to satisfy pylint."""
-        return super().flush()
-
-    def isatty(self):
-        """Override isatty() to satisfy pylint."""
-        return super().isatty()
-
 
 @contextlib.contextmanager
 def fake_io(write_func):

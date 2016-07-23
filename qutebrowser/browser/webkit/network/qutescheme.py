@@ -123,9 +123,6 @@ class JSBridge(QObject):
 
     """Javascript-bridge for special qute:... pages."""
 
-    def __init__(self, parent=None):
-        super().__init__(parent)
-
     @pyqtSlot(int, str, str, str)
     def set(self, win_id, sectname, optname, value):
         """Slot to set a setting from qute:settings."""
