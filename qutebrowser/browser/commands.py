@@ -1110,12 +1110,7 @@ class CommandDispatcher:
         quickmark_manager = objreg.get('quickmark-manager')
         if name is None:
             url = self._current_url()
-            try:
-                name = quickmark_manager.get_by_qurl(url)
-            except ValueError:
-                urlutils.invalid_url_error(self._win_id, url,
-                                           "delete quickmark")
-                return
+            name = quickmark_manager.get_by_qurl(url)
         try:
             quickmark_manager.delete(name)
         except KeyError:
