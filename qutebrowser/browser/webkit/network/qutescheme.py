@@ -27,6 +27,7 @@ import functools
 import configparser
 import mimetypes
 import urllib.parse
+import uuid
 
 from PyQt5.QtCore import pyqtSlot, QObject
 from PyQt5.QtNetwork import QNetworkReply
@@ -125,6 +126,30 @@ class JSBridge(QObject):
 
     def __init__(self, parent=None):
         super().__init__(parent)
+        self._pdfs = {}
+
+    def insert_pdf(self, data):
+        """Insert pdf data for later access via pdf.js.
+
+        Args:
+            data: The pdf data to store as bytes.
+
+        Return:
+            An identifier which should be passed to pdf.js.
+        """
+        identifier = str(uuid.uuid4())
+        self._pdfs[identifier] = data
+        log.pdfjs.debug("inserted {} PDF bytes as {}, {} files stored"
+                        .format(len(data), identifier, len(self._pdfs)))
+        return identifier
+
+    def peek_pdfs(self):
+        """Return a list of saved pdfs without deleting them.
+
+        Return:
+            A list of (identifier, data) tuples, representing the pdfs.
+        """
+        return list(self._pdfs.items())
 
     @pyqtSlot(int, str, str, str)
     def set(self, win_id, sectname, optname, value):
@@ -139,6 +164,18 @@ class JSBridge(QObject):
             objreg.get('config').set('conf', sectname, optname, value)
         except (configexc.Error, configparser.Error) as e:
             message.error(win_id, e)
+
+    @pyqtSlot(str, result='QByteArray')
+    def get_pdf(self, identifier):
+        """Retrieve the pdf data by the given identifier.
+
+        This can only be done once, as the data will be removed after the first
+        access.
+        """
+        data = self._pdfs.pop(identifier)
+        log.pdfjs.debug("retrieved pdf data for {}, {} remaining items"
+                        .format(identifier, len(self._pdfs)))
+        return data
 
 
 @add_handler('pyeval')
@@ -257,7 +294,7 @@ def qute_pdfjs(_win_id, request):
         # Logging as the error might get lost otherwise since we're not showing
         # the error page if a single asset is missing. This way we don't lose
         # information, as the failed pdfjs requests are still in the log.
-        log.misc.warning(
+        log.pdfjs.warning(
             "pdfjs resource requested but not found: {}".format(e.path))
         raise QuteSchemeError("Can't find pdfjs resource '{}'".format(e.path),
                               QNetworkReply.ContentNotFoundError)

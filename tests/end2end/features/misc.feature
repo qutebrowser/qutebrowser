@@ -294,6 +294,7 @@ Feature: Various utility commands.
         And I open data/misc/test.pdf
         Then the javascript message "PDF * [*] (PDF.js: *)" should be logged
 
+    # FIXME:pdfjs better way to detect that pdfjs is really not used
     Scenario: pdfjs is not used when disabled
         When I set content -> enable-pdfjs to false
         And I set storage -> prompt-download-directory to false

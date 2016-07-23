@@ -1,0 +1,97 @@
+{% extends "base.html" %}
+
+{% block style %}
+{{ super() }}
+body {
+    font-family: "Helvetica Neue", Helvetica, Arial, sans-serif;
+    -webkit-text-size-adjust: none;
+    color: #333333;
+    background-color: #EEEEEE;
+    font-size: 1.2em;
+}
+
+#content-container {
+  margin-left: 20px;
+  margin-right: 20px;
+  margin-top: 20px;
+  border: 1px solid #CCCCCC;
+  box-shadow: 0px 0px 6px rgba(0, 0, 0, 0.20);
+  border-radius: 5px;
+  background-color: #FFFFFF;
+  padding: 20px 20px;
+}
+
+p.url {
+    color: #111111;
+    text-align: center;
+}
+
+p#thanks {
+    color: #666666;
+    font-size: 0.8em;
+    text-align: right;
+    font-style: italic;
+}
+
+.spinner {
+    margin: 50px auto 0;
+    width: 88px;
+    text-align: center;
+}
+
+.spinner > div {
+    width: 18px;
+    height: 18px;
+    background-color: #333;
+
+    border-radius: 100%;
+    display: inline-block;
+    -webkit-animation: bouncedelay 1.4s infinite ease-in-out both;
+    animation: bouncedelay 1.4s infinite ease-in-out both;
+}
+
+.spinner .bounce1 {
+    -webkit-animation-delay: -0.48s;
+    animation-delay: -0.48s;
+}
+
+.spinner .bounce2 {
+    -webkit-animation-delay: -0.32s;
+    animation-delay: -0.32s;
+}
+
+.spinner .bounce3 {
+    -webkit-animation-delay: -0.16s;
+    animation-delay: -0.16s;
+}
+
+@-webkit-keyframes bouncedelay {
+    0%, 80%, 100% { -webkit-transform: scale(0) }
+    40% { -webkit-transform: scale(1.0) }
+}
+
+@keyframes bouncedelay {
+    0%, 80%, 100% { 
+        -webkit-transform: scale(0);
+        transform: scale(0);
+    } 40% { 
+        -webkit-transform: scale(1.0);
+        transform: scale(1.0);
+    }
+}
+{% endblock %}
+
+{% block content %}
+<div id="content-container">
+    <div class="spinner">
+        <div class="bounce1"></div>
+        <div class="bounce2"></div>
+        <div class="bounce3"></div>
+        <div class="bounce4"></div>
+    </div>
+    <p>The requested document</p>
+    <p class="url">{{ url }}</p>
+    <p>is being loaded. It will be displayed as soon as it is ready.</p>
+    <p id="thanks">Thank you for flying with qutebrowser!</p>
+</div>
+{% endblock %}

@@ -20,27 +20,35 @@
 import textwrap
 
 import pytest
-from PyQt5.QtCore import QUrl
 
 from qutebrowser.browser import pdfjs
+from qutebrowser.browser.webkit.network import qutescheme
+from qutebrowser.utils import objreg
 
 
-# Note that we got double protection, once because we use QUrl.FullyEncoded and
-# because we use qutebrowser.browser.webelem.javascript_escape.  Characters
-# like " are already replaced by QUrl.
-@pytest.mark.parametrize('url, expected', [
-    ('http://foo.bar', "http://foo.bar"),
-    ('http://"', ''),
-    ('\0', '%00'),
-    ('http://foobar/");alert("attack!");',
-     'http://foobar/%22);alert(%22attack!%22);'),
-])
-def test_generate_pdfjs_script(url, expected):
-    expected_code = ('PDFJS.verbosity = PDFJS.VERBOSITY_LEVELS.info;\n'
-                     'PDFView.open("{}");\n'.format(expected))
-    url = QUrl(url)
-    actual = pdfjs._generate_pdfjs_script(url)
-    assert actual == expected_code
+@pytest.yield_fixture
+def js_bridge():
+    bridge = qutescheme.JSBridge()
+    objreg.register('js-bridge', bridge)
+    yield bridge
+    objreg.delete('js-bridge')
+
+
+def test_generate_pdfjs_script(js_bridge):
+    test_data = b'foobar'
+    script = pdfjs._generate_pdfjs_script(test_data).strip()
+    assert len(js_bridge.peek_pdfs()) == 1
+    data_ident = js_bridge.peek_pdfs()[0][0]
+    expected = textwrap.dedent("""
+        PDFJS.verbosity = PDFJS.VERBOSITY_LEVELS.info;
+        var _init_params = {
+            data: new Uint8Array(window.qute.get_pdf("$init")),
+        };
+        PDFJS.getDocument(_init_params).then(
+            function (doc) { PDFView.load(doc); }
+        );
+    """).strip().replace('$init', data_ident)
+    assert script == expected
 
 
 def test_fix_urls():
