@@ -27,6 +27,7 @@ from PyQt5.QtCore import pyqtSignal, pyqtSlot, QObject, QProcess
 from qutebrowser.config import config
 from qutebrowser.utils import message, log
 from qutebrowser.misc import guiprocess
+import itertools
 
 
 class ExternalEditor(QObject):
@@ -83,15 +84,16 @@ class ExternalEditor(QObject):
             encoding = config.get('general', 'editor-encoding')
             try:
                 with open(self._filename, 'r', encoding=encoding) as f:
-                    text = f.read()
+                    self._text = f.read()
             except OSError as e:
                 # NOTE: Do not replace this with "raise CommandError" as it's
                 # executed async.
                 message.error(self._win_id, "Failed to read back edited file: "
                                             "{}".format(e))
                 return
-            log.procs.debug("Read back: {}".format(text))
-            self.editing_finished.emit(text)
+            log.procs.debug("Read back: {}".format(self._text))
+            self.editing_finished.emit(self._text)
+
         finally:
             self._cleanup()
 
@@ -128,3 +130,30 @@ class ExternalEditor(QObject):
         args = [arg.replace('{}', self._filename) for arg in editor[1:]]
         log.procs.debug("Calling \"{}\" with args {}".format(executable, args))
         self._proc.start(executable, args)
+
+    def emergency_save(self):
+        """Save the current text to a (permanent) temp file.
+
+        This can be used to make a backup if the result of editing cannot be
+        used as intended. Outputs an error message telling the user where to
+        find this backup file.
+        """
+        output_file = self._mk_emergency_filename()
+
+        encoding = config.get('general', 'editor-encoding')
+        with open(output_file, 'w', encoding=encoding) as f:
+            f.write(self._text)
+
+        msg = ("Failed to set externally edited "
+               "text. Backup saved to %s" % output_file)
+        message.error(self._win_id, msg)
+
+    def _mk_emergency_filename(self):
+        for file_id in itertools.count():
+            emergency_filename = os.path.join(
+                tempfile.gettempdir(),
+                'qutebrowser-editor-backup-%d.txt' % file_id
+            )
+
+            if not os.path.exists(emergency_filename):
+                return emergency_filename
