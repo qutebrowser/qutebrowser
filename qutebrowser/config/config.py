@@ -494,7 +494,7 @@ class ConfigManager(QObject):
         for sectname in cp:
             if sectname in self.RENAMED_SECTIONS:
                 sectname = self.RENAMED_SECTIONS[sectname]
-            if sectname is not 'DEFAULT' and sectname not in self.sections:
+            if sectname != 'DEFAULT' and sectname not in self.sections:
                 if not relaxed:
                     raise configexc.NoSectionError(sectname)
         for sectname in self.sections:
