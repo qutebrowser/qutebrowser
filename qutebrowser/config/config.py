@@ -33,7 +33,7 @@ import contextlib
 import collections
 import collections.abc
 
-from PyQt5.QtCore import pyqtSignal, pyqtSlot, QObject, QUrl, QSettings
+from PyQt5.QtCore import pyqtSignal, QObject, QUrl, QSettings
 
 from qutebrowser.config import configdata, configexc, textwrapper
 from qutebrowser.config.parsers import ini, keyconf
@@ -94,8 +94,6 @@ class change_filter:  # pylint: disable=invalid-name
             The decorated function.
         """
         if self._function:
-            @pyqtSlot(str, str)
-            @pyqtSlot()
             @functools.wraps(func)
             def wrapper(sectname=None, optname=None):
                 if sectname is None and optname is None:
@@ -108,8 +106,6 @@ class change_filter:  # pylint: disable=invalid-name
                 else:
                     return func()
         else:
-            @pyqtSlot(str, str)
-            @pyqtSlot()
             @functools.wraps(func)
             def wrapper(wrapper_self, sectname=None, optname=None):
                 if sectname is None and optname is None:
@@ -346,8 +342,8 @@ class ConfigManager(QObject):
     DELETED_OPTIONS = [
         ('colors', 'tab.separator'),
         ('colors', 'tabs.separator'),
-        ('colors', 'tab.seperator'),
-        ('colors', 'tabs.seperator'),
+        ('colors', 'tab.seperator'),  # pragma: no spellcheck
+        ('colors', 'tabs.seperator'),  # pragma: no spellcheck
         ('colors', 'completion.item.bg'),
         ('tabs', 'indicator-space'),
         ('tabs', 'hide-auto'),

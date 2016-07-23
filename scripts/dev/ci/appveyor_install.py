@@ -31,11 +31,6 @@ from __future__ import print_function
 import subprocess
 import urllib
 
-try:
-    import _winreg as winreg
-except ImportError:
-    winreg = None
-
 
 def check_setup(executable):
     subprocess.check_call([executable, '-c', 'import PyQt5'])
@@ -55,12 +50,6 @@ pyqt_url = ('http://www.qutebrowser.org/pyqt/'
             'PyQt5-{}-gpl-Py3.4-Qt{}-x32.exe'.format(
                 pyqt_version, qt_version))
 urllib.urlretrieve(pyqt_url, r'C:\install-PyQt5.exe')
-
-print("Fixing registry...")
-with winreg.OpenKey(winreg.HKEY_CURRENT_USER,
-                    r'Software\Python\PythonCore\3.4', 0,
-                    winreg.KEY_WRITE) as key:
-    winreg.SetValue(key, 'InstallPath', winreg.REG_SZ, r'C:\Python34')
 
 print("Installing PyQt5...")
 subprocess.check_call([r'C:\install-PyQt5.exe', '/S'])

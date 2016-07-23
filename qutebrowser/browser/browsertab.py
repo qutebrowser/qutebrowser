@@ -24,7 +24,6 @@ import itertools
 from PyQt5.QtCore import pyqtSignal, pyqtSlot, QUrl, QObject, QPoint
 from PyQt5.QtGui import QIcon
 from PyQt5.QtWidgets import QWidget, QLayout
-from PyQt5.QtPrintSupport import QPrinter
 
 from qutebrowser.keyinput import modeman
 from qutebrowser.config import config
@@ -122,7 +121,6 @@ class AbstractPrinting:
     def to_pdf(self, filename):
         raise NotImplementedError
 
-    @pyqtSlot(QPrinter)
     def to_printer(self, printer):
         raise NotImplementedError
 
@@ -354,6 +352,9 @@ class AbstractScroller(QObject):
         self._tab = tab
         self._widget = None
 
+    def _init_widget(self, widget):
+        self._widget = widget
+
     def pos_px(self):
         raise NotImplementedError
 
@@ -513,7 +514,7 @@ class AbstractTab(QWidget):
         self._layout = WrapperLayout(widget, self)
         self._widget = widget
         self.history._history = widget.history()
-        self.scroll._widget = widget
+        self.scroll._init_widget(widget)
         self.caret._widget = widget
         self.zoom._widget = widget
         self.search._widget = widget

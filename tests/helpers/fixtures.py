@@ -30,6 +30,7 @@ import itertools
 import textwrap
 import unittest.mock
 import types
+import os
 
 import pytest
 
@@ -405,3 +406,40 @@ def mode_manager(win_registry, config_stub, qapp):
     objreg.register('mode-manager', mm, scope='window', window=0)
     yield mm
     objreg.delete('mode-manager', scope='window', window=0)
+
+
+@pytest.fixture
+def config_tmpdir(monkeypatch, tmpdir):
+    """Set tmpdir/config as the configdir.
+
+    Use this to avoid creating a 'real' config dir (~/.config/qute_test).
+    """
+    confdir = tmpdir / 'config'
+    path = str(confdir)
+    os.mkdir(path)
+    monkeypatch.setattr('qutebrowser.utils.standarddir.config', lambda: path)
+    return confdir
+
+
+@pytest.fixture
+def data_tmpdir(monkeypatch, tmpdir):
+    """Set tmpdir/data as the datadir.
+
+    Use this to avoid creating a 'real' data dir (~/.local/share/qute_test).
+    """
+    datadir = tmpdir / 'data'
+    path = str(datadir)
+    os.mkdir(path)
+    monkeypatch.setattr('qutebrowser.utils.standarddir.data', lambda: path)
+    return datadir
+
+
+@pytest.fixture
+def redirect_xdg_data(data_tmpdir, monkeypatch):
+    """Set XDG_DATA_HOME to a temp location.
+
+    While data_tmpdir covers most cases by redirecting standarddir.data(), this
+    is not enough for places Qt references the data dir internally. For these,
+    we need to set the environment variable to redirect data access.
+    """
+    monkeypatch.setenv('XDG_DATA_HOME', str(data_tmpdir))

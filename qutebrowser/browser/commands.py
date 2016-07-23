@@ -1128,6 +1128,9 @@ class CommandDispatcher:
         If a url and title have been provided, then save the given url as
         a bookmark with the provided title.
 
+        You can view all saved bookmarks on the
+        link:qute://bookmarks[bookmarks page].
+
         Args:
             url: url to save as a bookmark. If None, use url of current page.
             title: title of the new bookmark.

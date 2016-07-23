@@ -64,6 +64,7 @@ def test_element_js_webkit(webview, js_enabled, expected):
     assert result == expected
 
 
+@pytest.mark.usefixtures('redirect_xdg_data')
 @pytest.mark.parametrize('js_enabled, expected', [(True, 2.0), (False, 2.0)])
 def test_simple_js_webengine(qtbot, webengineview, js_enabled, expected):
     """With QtWebEngine, runJavaScript works even when JS is off."""

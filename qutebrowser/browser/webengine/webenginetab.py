@@ -25,7 +25,6 @@
 from PyQt5.QtCore import pyqtSlot, Qt, QEvent, QPoint
 from PyQt5.QtGui import QKeyEvent, QIcon
 from PyQt5.QtWidgets import QApplication
-from PyQt5.QtPrintSupport import QPrinter
 # pylint: disable=no-name-in-module,import-error,useless-suppression
 from PyQt5.QtWebEngineWidgets import QWebEnginePage
 # pylint: enable=no-name-in-module,import-error,useless-suppression
@@ -51,7 +50,6 @@ class WebEnginePrinting(browsertab.AbstractPrinting):
     def to_pdf(self, filename):
         self._widget.page().printToPdf(filename)
 
-    @pyqtSlot(QPrinter)
     def to_printer(self, printer):
         # Should never be called
         assert False
@@ -182,6 +180,21 @@ class WebEngineScroller(browsertab.AbstractScroller):
 
     """QtWebEngine implementations related to scrolling."""
 
+    def __init__(self, tab, parent=None):
+        super().__init__(tab, parent)
+        self._pos_perc = (None, None)
+        self._pos_px = QPoint()
+
+    def _init_widget(self, widget):
+        super()._init_widget(widget)
+        page = widget.page()
+        try:
+            page.scrollPositionChanged.connect(
+                self._on_scroll_pos_changed)
+        except AttributeError:
+            log.stub('scrollPositionChanged, on Qt < 5.7')
+        self._on_scroll_pos_changed()
+
     def _key_press(self, key, count=1):
         # FIXME:qtwebengine Abort scrolling if the minimum/maximum was reached.
         press_evt = QKeyEvent(QEvent.KeyPress, key, Qt.NoModifier, 0, 0, 0)
@@ -193,24 +206,27 @@ class WebEngineScroller(browsertab.AbstractScroller):
             QApplication.postEvent(recipient, press_evt)
             QApplication.postEvent(recipient, release_evt)
 
+    @pyqtSlot()
+    def _on_scroll_pos_changed(self):
+        """Update the scroll position attributes when it changed."""
+        def update_scroll_pos(jsret):
+            """Callback after getting scroll position via JS."""
+            assert isinstance(jsret, dict)
+            self._pos_perc = (jsret['perc']['x'], jsret['perc']['y'])
+            self._pos_px = QPoint(jsret['px']['x'], jsret['px']['y'])
+            self.perc_changed.emit(*self._pos_perc)
+
+        js_code = """
+            {scroll_js}
+            scroll_pos();
+        """.format(scroll_js=utils.read_file('javascript/scroll.js'))
+        self._tab.run_js_async(js_code, update_scroll_pos)
+
     def pos_px(self):
-        log.stub()
-        return QPoint(0, 0)
+        return self._pos_px
 
     def pos_perc(self):
-        page = self._widget.page()
-        try:
-            size = page.contentsSize()
-            pos = page.scrollPosition()
-        except AttributeError:
-            # Added in Qt 5.7
-            log.stub('on Qt < 5.7')
-            return (None, None)
-        else:
-            # FIXME:qtwebengine is this correct?
-            perc_x = 100 / size.width() * pos.x()
-            perc_y = 100 / size.height() * pos.y()
-            return (perc_x, perc_y)
+        return self._pos_perc
 
     def to_perc(self, x=None, y=None):
         js_code = """
@@ -260,7 +276,7 @@ class WebEngineScroller(browsertab.AbstractScroller):
         self._key_press(Qt.Key_PageDown, count)
 
     def at_top(self):
-        log.stub()
+        return self.pos_px().y() == 0
 
     def at_bottom(self):
         log.stub()
@@ -409,5 +425,3 @@ class WebEngineTab(browsertab.AbstractTab):
             view.iconChanged.connect(self.icon_changed)
         except AttributeError:
             log.stub('iconChanged, on Qt < 5.7')
-        # FIXME:qtwebengine stub this?
-        # view.scroll.pos_changed.connect(self.scroll.perc_changed)

@@ -208,3 +208,16 @@ Feature: quickmarks and bookmarks
         And I run :quickmark-add http://localhost:(port)/data/numbers/1.txt seventeen
         And I run :quickmark-del
         Then the quickmark file should not contain "seventeen http://localhost:*/data/numbers/1.txt"
+
+    Scenario: Listing quickmarks
+        When I run :quickmark-add http://localhost:(port)/data/numbers/15.txt fifteen
+        And I run :quickmark-add http://localhost:(port)/data/numbers/14.txt fourteen
+        And I open qute:bookmarks
+        Then the page should contain the plaintext "fifteen"
+        And the page should contain the plaintext "fourteen"
+
+    Scenario: Listing bookmarks
+        When I open data/title.html
+        And I run :bookmark-add
+        And I open qute:bookmarks
+        Then the page should contain the plaintext "Test title"

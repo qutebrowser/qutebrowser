@@ -31,6 +31,7 @@ Added
 - New `:repeat-command` command (mapped to `.`) to repeat the last command.
   Note that two former default bundings conflict with that binding, unbinding
   them via `:unbind .i` and `:unbind .o` is recommended.
+- New `qute:bookmarks` page which displays all bookmarks and quickmarks.
 
 Changed
 ~~~~~~~
@@ -47,6 +48,7 @@ Changed
 Fixed
 -----
 
+- Copmpatibility with PyQt 5.7
 - Fixed some configuration values being lost when a config option gets removed
   from qutebrowser's code.
 

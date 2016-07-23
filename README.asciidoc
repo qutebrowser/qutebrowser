@@ -181,6 +181,7 @@ Contributors, sorted by the number of commits in descending order:
 * Tomasz Kramkowski
 * Ismail S
 * Halfwit
+* David Vogt
 * rikn00
 * kanikaa1234
 * haitaka
@@ -210,6 +211,7 @@ Contributors, sorted by the number of commits in descending order:
 * Regina Hug
 * Mathias Fussenegger
 * Marcelo Santos
+* Jean-Louis Fuchs
 * Fritz V155 Reichwald
 * Franz Fellner
 * zwarag

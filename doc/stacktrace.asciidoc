@@ -50,7 +50,7 @@ $ git checkout symbols
 $ export DEBUG_CFLAGS='-ggdb3 -fvar-tracking-assignments -Og'
 $ export DEBUG_CXXFLAGS='-ggdb3 -fvar-tracking-assignments -Og'
 $ cd qt5
-$ makepkg -si --pkg qt5-base-debug,qt5-webkit-debug
+$ makepkg -si --pkg qt5-base-debug,qt5-webkit-debug,qt5-webengine-debug
 $ cd ../pyqt5
 $ makepkg -si --pkg pyqt5-common-debug,python-pyqt5-debug
 ----
@@ -76,7 +76,7 @@ Server = http://qutebrowser.org/qt-debug/$arch
 Then install the packages:
 
 ----
-# pacman -Suy pyqt5-common-debug python-pyqt5-debug qt5-base-debug qt5-webkit-debug
+# pacman -Suy pyqt5-common-debug python-pyqt5-debug qt5-base-debug qt5-webkit-debug,qt5-webengine-debug
 ----
 
 The `-debug` packages conflict with the non-debug variants - it's safe to

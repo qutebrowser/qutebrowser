@@ -1282,6 +1282,7 @@ def unrequired_class(**kwargs):
 
 
 @pytest.mark.usefixtures('qapp')
+@pytest.mark.usefixtures('config_tmpdir')
 class TestFileAndUserStyleSheet:
 
     """Test File/UserStyleSheet."""

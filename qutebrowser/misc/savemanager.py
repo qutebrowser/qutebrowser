@@ -67,7 +67,6 @@ class Saveable:
                               save_on_exit=self._save_on_exit,
                               filename=self._filename)
 
-    @pyqtSlot()
     def mark_dirty(self):
         """Mark this saveable as dirty (having changes)."""
         log.save.debug("Marking {} as dirty.".format(self._name))

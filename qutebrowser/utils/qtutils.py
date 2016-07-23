@@ -33,10 +33,20 @@ import sys
 import operator
 import contextlib
 
-import pkg_resources
 from PyQt5.QtCore import (qVersion, QEventLoop, QDataStream, QByteArray,
                           QIODevice, QSaveFile)
 from PyQt5.QtWidgets import QApplication
+
+from qutebrowser.utils import log
+
+with log.ignore_py_warnings(category=PendingDeprecationWarning, module='imp'):
+    with log.ignore_py_warnings(category=ImportWarning):
+        # This imports 'imp' and gives us a PendingDeprecationWarning on
+        # Debian Jessie.
+        #
+        # On Archlinux, we get ImportWarning from
+        # importlib/_bootstrap_external.py for modules with missing __init__.
+        import pkg_resources
 
 
 MAXVALS = {
