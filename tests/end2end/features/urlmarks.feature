@@ -103,6 +103,11 @@ Feature: quickmarks and bookmarks
         And I run :bookmark-add --toggle
         Then the bookmark file should not contain "http://localhost:*/data/numbers/7.txt "
 
+    Scenario: Loading a bookmark with --delete
+        When I run :bookmark-add http://localhost:(port)/data/numbers/8.txt "eight"
+        And I run :bookmark-load -d http://localhost:(port)/data/numbers/8.txt
+        Then the bookmark file should not contain "http://localhost:*/data/numbers/8.txt "
+
     ## quickmarks
 
     Scenario: Saving a quickmark (:quickmark-add)
