@@ -1110,7 +1110,10 @@ class CommandDispatcher:
         quickmark_manager = objreg.get('quickmark-manager')
         if name is None:
             url = self._current_url()
-            name = quickmark_manager.get_by_qurl(url)
+            try:
+                name = quickmark_manager.get_by_qurl(url)
+            except urlmarks.DoesNotExistError as e:
+                raise cmdexc.CommandError(str(e))
         try:
             quickmark_manager.delete(name)
         except KeyError:

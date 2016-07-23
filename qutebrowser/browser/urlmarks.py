@@ -34,7 +34,7 @@ from PyQt5.QtCore import pyqtSignal, QUrl, QObject
 
 from qutebrowser.utils import (message, usertypes, qtutils, urlutils,
                                standarddir, objreg)
-from qutebrowser.commands import cmdexc, cmdutils
+from qutebrowser.commands import cmdutils
 from qutebrowser.misc import lineparser
 
 
@@ -218,7 +218,7 @@ class QuickmarkManager(UrlMarkManager):
             index = list(self.marks.values()).index(urlstr)
             key = list(self.marks.keys())[index]
         except ValueError:
-            raise cmdexc.CommandError(
+            raise DoesNotExistError(
                 "Quickmark for '{}' not found!".format(urlstr))
         return key
 
