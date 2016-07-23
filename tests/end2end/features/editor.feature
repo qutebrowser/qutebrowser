@@ -69,3 +69,14 @@ Feature: Opening external editors
         And I run :hint all
         And I run :follow-hint s
         Then the javascript message "text: foobar" should be logged
+
+    Scenario: Taking away the text input while external editor is active
+        When I set up a fake editor returning "foobar" after 2 seconds
+        And I open data/editor.html
+        And I run :hint all
+        And I run :follow-hint a
+        And I wait for "Clicked editable element!" in the log
+        And I run :open-editor
+        And I run :reload
+        And I wait for "Read back: foobar" in the log
+        Then the error "Failed to set externally edited text*" should be shown

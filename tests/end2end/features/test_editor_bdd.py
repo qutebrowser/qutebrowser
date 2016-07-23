@@ -57,3 +57,21 @@ def set_up_editor(quteproc, httpbin, tmpdir, text):
     """.format(text=text)))
     editor = '"{}" "{}" {{}}'.format(sys.executable, script)
     quteproc.set_setting('general', 'editor', editor)
+
+
+@bdd.when(bdd.parsers.parse('I set up a fake editor returning "{text}" after'
+                            '{secs} seconds'))
+def set_up_editor_slow(quteproc, httpbin, tmpdir, text, secs):
+    """Set up general->editor to a small python script inserting a text."""
+    script = tmpdir / 'script.py'
+    script.write(textwrap.dedent("""
+        import sys
+        import time
+
+        time.sleep({secs})
+
+        with open(sys.argv[1], 'w', encoding='utf-8') as f:
+            f.write({text!r})
+    """.format(text=text, secs=secs)))
+    editor = '"{}" "{}" {{}}'.format(sys.executable, script)
+    quteproc.set_setting('general', 'editor', editor)
