@@ -40,9 +40,13 @@ from PyQt5.QtWidgets import QApplication
 from qutebrowser.utils import log
 
 with log.ignore_py_warnings(category=PendingDeprecationWarning, module='imp'):
-    # This imports 'imp' and gives us a PendingDeprecationWarning on
-    # Debian Jessie.
-    import pkg_resources
+    with log.ignore_py_warnings(category=ImportWarning):
+        # This imports 'imp' and gives us a PendingDeprecationWarning on
+        # Debian Jessie.
+        #
+        # On Archlinux, we get ImportWarning from
+        # importlib/_bootstrap_external.py for modules with missing __init__.
+        import pkg_resources
 
 
 MAXVALS = {
