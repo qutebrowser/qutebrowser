@@ -205,9 +205,6 @@ Feature: quickmarks and bookmarks
 
     Scenario: Deleting the current page's quickmark
         When I open data/numbers/7.txt
-        And I run :quickmark-save
-        And I wait for "Entering mode KeyMode.prompt (reason: question asked)" in the log
-        And I press the keys "seven"
-        And I press the keys "<Enter>"
+        And I run :quickmark-add http://localhost:(port)/data/numbers/7.txt seven
         And I run :quickmark-del
         Then the quickmark file should not contain "seven http://localhost:*/data/numbers/7.txt"
