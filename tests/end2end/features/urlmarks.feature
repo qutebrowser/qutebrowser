@@ -97,6 +97,12 @@ Feature: quickmarks and bookmarks
         And I run :bookmark-del
         Then the bookmark file should not contain "http://localhost:*/data/numbers/6.txt "
 
+    Scenario: Toggling a bookmark
+        When I open data/numbers/7.txt
+        And I run :bookmark-add
+        And I run :bookmark-add --toggle
+        Then the bookmark file should not contain "http://localhost:*/data/numbers/7.txt "
+
     ## quickmarks
 
     Scenario: Saving a quickmark (:quickmark-add)
