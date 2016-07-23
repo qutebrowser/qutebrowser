@@ -167,9 +167,14 @@ def init_log(args):
         root.addHandler(ram)
     root.setLevel(logging.NOTSET)
     logging.captureWarnings(True)
+    _init_py_warnings()
+    QtCore.qInstallMessageHandler(qt_message_handler)
+
+
+def _init_py_warnings():
+    """Initialize Python warning handling."""
     warnings.simplefilter('default')
     warnings.filterwarnings('ignore', module='pdb', category=ResourceWarning)
-    QtCore.qInstallMessageHandler(qt_message_handler)
 
 
 @contextlib.contextmanager
@@ -180,6 +185,14 @@ def disable_qt_msghandler():
         yield
     finally:
         QtCore.qInstallMessageHandler(old_handler)
+
+
+@contextlib.contextmanager
+def ignore_py_warnings(**kwargs):
+    """Contextmanager to temporarily hke certain Python warnings."""
+    warnings.filterwarnings('ignore', **kwargs)
+    yield
+    _init_py_warnings()
 
 
 def _init_handlers(level, color, force_color, json_logging, ram_capacity):
