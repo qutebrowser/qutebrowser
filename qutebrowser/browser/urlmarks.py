@@ -204,17 +204,6 @@ class QuickmarkManager(UrlMarkManager):
         else:
             set_mark()
 
-    def quickmark_del(self, name):
-        """Delete a quickmark.
-
-        Args:
-            name: The name of the quickmark to delete.
-        """
-        try:
-            self.delete(name)
-        except KeyError:
-            raise cmdexc.CommandError("Quickmark '{}' not found!".format(name))
-
     def get_by_qurl(self, url):
         """Look up a quickmark by QUrl, returning its name.
 
@@ -299,14 +288,3 @@ class BookmarkManager(UrlMarkManager):
             self.marks[urlstr] = title
             self.changed.emit()
             self.added.emit(title, urlstr)
-
-    def bookmark_del(self, url):
-        """Delete a bookmark.
-
-        Args:
-            url: The URL of the bookmark to delete.
-        """
-        try:
-            self.delete(url)
-        except KeyError:
-            raise cmdexc.CommandError("Bookmark '{}' not found!".format(url))

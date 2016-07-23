@@ -1116,7 +1116,10 @@ class CommandDispatcher:
                 urlutils.invalid_url_error(self._win_id, url,
                                            "delete quickmark")
                 return
-        quickmark_manager.quickmark_del(name)
+        try:
+            quickmark_manager.delete(name)
+        except KeyError:
+            raise cmdexc.CommandError("Quickmark '{}' not found!".format(name))
 
     @cmdutils.register(instance='command-dispatcher', scope='window')
     def bookmark_add(self, url=None, title=None):
@@ -1183,7 +1186,11 @@ class CommandDispatcher:
         if url is None:
             url = self._current_url().toString(QUrl.RemovePassword
                                              | QUrl.FullyEncoded)
-        objreg.get('bookmark-manager').bookmark_del(url)
+        try:
+            objreg.get('bookmark-manager').delete(url)
+        except KeyError:
+            raise cmdexc.CommandError("Bookmark '{}' not found!".format(url))
+
 
     @cmdutils.register(instance='command-dispatcher', hide=True,
                        scope='window')
