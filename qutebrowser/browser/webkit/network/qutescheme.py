@@ -261,3 +261,17 @@ def qute_pdfjs(_win_id, request):
             "pdfjs resource requested but not found: {}".format(e.path))
         raise QuteSchemeError("Can't find pdfjs resource '{}'".format(e.path),
                               QNetworkReply.ContentNotFoundError)
+
+
+@add_handler('bookmarks')
+def qute_bookmarks(_win_id, request):
+    """Handler for qute:bookmarks. Show a list of all quickmarks / bookmarks"""
+
+    bookmarks  = objreg.get('bookmark-manager').marks.items()
+    quickmarks = objreg.get('quickmark-manager').marks.items()
+
+    html = jinja.render('bookmarks.html',
+                        title='Bookmarks',
+                        bookmarks=bookmarks,
+                        quickmarks=quickmarks)
+    return html.encode('UTF-8', errors='xmlcharrefreplace')
