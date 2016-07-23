@@ -19,6 +19,7 @@
 """Checker for vim modelines in files."""
 
 import os.path
+import contextlib
 
 from pylint import interfaces, checkers
 
@@ -41,19 +42,20 @@ class ModelineChecker(checkers.BaseChecker):
         if os.path.basename(os.path.splitext(node.file)[0]) == '__init__':
             return
         max_lineno = 1
-        for (lineno, line) in enumerate(node.file_stream):
-            if lineno == 1 and line.startswith(b'#!'):
-                max_lineno += 1
-                continue
-            elif line.startswith(b'# vim:'):
-                if lineno > max_lineno:
-                    self.add_message('modeline-position', line=lineno)
-                if (line.rstrip() !=
-                        b'# vim: ft=python fileencoding=utf-8 sts=4 sw=4 et:'):
-                    self.add_message('invalid-modeline', line=lineno)
-                break
-        else:
-            self.add_message('modeline-missing', line=1)
+        with contextlib.closing(node.stream()) as stream:
+            for (lineno, line) in enumerate(stream):
+                if lineno == 1 and line.startswith(b'#!'):
+                    max_lineno += 1
+                    continue
+                elif line.startswith(b'# vim:'):
+                    if lineno > max_lineno:
+                        self.add_message('modeline-position', line=lineno)
+                    if (line.rstrip() != b'# vim: ft=python '
+                                         b'fileencoding=utf-8 sts=4 sw=4 et:'):
+                        self.add_message('invalid-modeline', line=lineno)
+                    break
+            else:
+                self.add_message('modeline-missing', line=1)
 
 
 def register(linter):
