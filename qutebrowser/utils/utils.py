@@ -791,3 +791,18 @@ def get_clipboard(selection=False):
 def supports_selection():
     """Check if the OS supports primary selection."""
     return QApplication.clipboard().supportsSelection()
+
+
+def parse_x11_geometry_string(string):
+    """Parse a standard X11 geometry string.
+
+    Most X programs accept a command line argument of the form −−geometry
+    WIDTHxHEIGHT+XOFF+YOFF (where WIDTH, HEIGHT, XOFF, and YOFF are numbers)
+    for specifying a preferred size and location for this application’’s main
+    window
+
+    The full specification
+
+    https://www.x.org/releases/X11R7.7/doc/man/man7/X.7.xhtml#heading7
+    """
+    pass
