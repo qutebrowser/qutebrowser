@@ -38,6 +38,8 @@ try:
 except ImportError:
     colorama = None
 
+_log_inited = False
+
 COLORS = ['black', 'red', 'green', 'yellow', 'blue', 'purple', 'cyan', 'white']
 COLOR_ESCAPES = {color: '\033[{}m'.format(i)
                  for i, color in enumerate(COLORS, start=30)}
@@ -169,6 +171,8 @@ def init_log(args):
     logging.captureWarnings(True)
     _init_py_warnings()
     QtCore.qInstallMessageHandler(qt_message_handler)
+    global _log_inited
+    _log_inited = True
 
 
 def _init_py_warnings():
@@ -189,10 +193,11 @@ def disable_qt_msghandler():
 
 @contextlib.contextmanager
 def ignore_py_warnings(**kwargs):
-    """Contextmanager to temporarily hke certain Python warnings."""
+    """Contextmanager to temporarily disable certain Python warnings."""
     warnings.filterwarnings('ignore', **kwargs)
     yield
-    _init_py_warnings()
+    if _log_inited:
+        _init_py_warnings()
 
 
 def _init_handlers(level, color, force_color, json_logging, ram_capacity):
