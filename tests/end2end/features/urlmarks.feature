@@ -204,10 +204,10 @@ Feature: quickmarks and bookmarks
         Then the error "Quickmark for 'about:blank' not found!" should be shown
 
     Scenario: Deleting the current page's quickmark
-        When I open data/numbers/1.txt
-        And I run :quickmark-add http://localhost:(port)/data/numbers/1.txt seventeen
+        When I open data/numbers/17.txt
+        And I run :quickmark-add http://localhost:(port)/data/numbers/17.txt seventeen
         And I run :quickmark-del
-        Then the quickmark file should not contain "seventeen http://localhost:*/data/numbers/1.txt"
+        Then the quickmark file should not contain "seventeen http://localhost:*/data/numbers/17.txt"
 
     Scenario: Listing quickmarks
         When I run :quickmark-add http://localhost:(port)/data/numbers/15.txt fifteen
