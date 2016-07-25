@@ -355,7 +355,7 @@ class Completer(QObject):
             completion.show()
 
     def _split(self, keep=False):
-        """Get the text _split up in parts.
+        """Get the text split up in parts.
 
         Args:
             keep: Whether to keep special chars and whitespace.

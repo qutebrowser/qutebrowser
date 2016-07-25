@@ -31,7 +31,7 @@ from qutebrowser.utils import objreg
 
 @pytest.yield_fixture
 def completionview(qtbot, status_command_stub, config_stub, win_registry,
-                   monkeypatch):
+                   mocker):
     """Create the CompletionView used for testing."""
     config_stub.data = {
         'completion': {
@@ -62,8 +62,7 @@ def completionview(qtbot, status_command_stub, config_stub, win_registry,
         }
     }
     # mock the Completer that the widget creates in its constructor
-    monkeypatch.setattr('qutebrowser.completion.completer.Completer',
-        lambda *args: unittest.mock.Mock())
+    mocker.patch('qutebrowser.completion.completer.Completer', autospec=True)
     view = completionwidget.CompletionView(win_id=0)
     qtbot.addWidget(view)
     yield view
@@ -79,7 +78,7 @@ def test_set_model(completionview):
     for i in range(3):
         model.appendRow(QStandardItem(str(i)))
     completionview.set_model(filtermodel)
-    assert completionview.model() == filtermodel
+    assert completionview.model() is filtermodel
     for i in range(model.rowCount()):
         assert completionview.isExpanded(filtermodel.index(i, 0))
 
@@ -130,8 +129,8 @@ def test_on_next_prev_item(tree, count, expected, completionview,
     """Test that on_next_prev_item moves the selection properly.
 
     Args:
-        tree: Each entry array represents a completion category, with each
-              string being an item under that category.
+        tree: Each list represents a completion category, with each string
+              being an item under that category.
         count: Number of times to go forward (or back if negative).
         expected: item data that should be selected after going back/forward.
     """
@@ -141,12 +140,13 @@ def test_on_next_prev_item(tree, count, expected, completionview,
         model.appendRow(cat)
         for name in catdata:
             cat.appendRow(QStandardItem(name))
-    filtermodel = sortfilter.CompletionFilterModel(model)
+    filtermodel = sortfilter.CompletionFilterModel(model,
+                                                   parent=completionview)
     completionview.set_model(filtermodel)
     # actually calling show() will pop a window during the test, so just fool
     # the completionview into thinking it is visible instead
     monkeypatch.setattr(completionview, 'isVisible', lambda: True)
-    for i in range(abs(count)):
+    for _ in range(abs(count)):
         completionview.on_next_prev_item(count < 0)
     idx = completionview.selectionModel().currentIndex()
     assert filtermodel.data(idx) == expected
