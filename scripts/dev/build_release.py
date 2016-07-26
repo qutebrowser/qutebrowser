@@ -51,7 +51,7 @@ def call_script(name, *args, python=sys.executable):
     subprocess.check_call([python, path] + list(args))
 
 
-def call_tox(toxenv, *args, python=sys.executable):
+def call_tox(toxenv, *args, python=os.path.dirname(sys.executable)):
     """Call tox.
 
     Args:
