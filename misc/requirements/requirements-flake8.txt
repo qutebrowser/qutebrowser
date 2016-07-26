@@ -4,7 +4,7 @@ flake8==2.6.2  # rq.filter: < 3.0.0
 flake8-copyright==0.2.0
 flake8-debugger==1.4.0
 flake8-deprecated==1.0
-flake8-docstrings==0.2.8
+flake8-docstrings==1.0.1
 flake8-future-import==0.4.3
 flake8-mock==0.2
 flake8-pep3101==0.4
@@ -16,7 +16,6 @@ hacking==0.11.0
 mccabe==0.5.0
 packaging==16.7
 pbr==1.10.0
-pep257==0.7.0  # still needed by flake8-docstrings but ignored
 pep8==1.7.0
 pep8-naming==0.4.1
 pycodestyle==2.0.0
