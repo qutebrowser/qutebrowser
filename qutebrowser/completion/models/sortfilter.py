@@ -152,8 +152,10 @@ class CompletionFilterModel(QSortFilterProxyModel):
         # See https://github.com/The-Compiler/qutebrowser/issues/1649
         if data_to_filter:
             data = " ".join(data_to_filter).lower()
-            terms = self.pattern.lower().split()
-            if all(term in data for term in terms):
+            # We know from the cache that if we got here, the row contains all
+            # previous terms, so we only need to check the last.
+            term = self.pattern.split()[-1].lower()
+            if term in data:
                 return True
 
         self.srcmodel.filtered_out_cache[parent.row(), row] = self.pattern
