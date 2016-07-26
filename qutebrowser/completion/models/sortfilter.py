@@ -71,10 +71,9 @@ class CompletionFilterModel(QSortFilterProxyModel):
             val = re.escape(val)
             val = val.replace(r'\ ', r'.*')
             self.pattern_re = re.compile(val, re.IGNORECASE)
-            self.invalidateFilter()
+            self.invalidate()
             sortcol = 0
             self.sort(sortcol)
-            self.invalidate()
 
     def count(self):
         """Get the count of non-toplevel items currently visible.
