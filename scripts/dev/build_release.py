@@ -129,7 +129,7 @@ def build_windows():
     python_x64 = r'C:\Python{}'.format(ver)
 
     utils.print_title("Rebuilding tox environment")
-    regen_tox('cxfreeze-windows', '-r', '--notest')
+    call_tox('cxfreeze-windows', '-r', '--notest')
     utils.print_title("Running 32bit freeze.py build_exe")
     call_tox('cxfreeze-windows', 'build_exe', python=python_x86)
     utils.print_title("Running 32bit freeze.py bdist_msi")
