@@ -106,14 +106,14 @@ def build_osx():
 
     utils.print_title("Running smoke test")
     with tempfile.TemporaryDirectory() as tmpdir:
-        subprocess.check_call(['hdiutil', 'attach', 'qutebrowser.dmg',
-                               '-mountpoint', tmpdir])
+        subprocess.check_call(['hdiutil', 'attach', '-quiet',
+                               'qutebrowser.dmg', '-mountpoint', tmpdir])
         try:
             binary = os.path.join(tmpdir, 'qutebrowser.app', 'Contents',
                                   'MacOS', 'qutebrowser')
             subprocess.check_call([binary])
         finally:
-            subprocess.check_call(['hdiutil', 'detach', tmpdir])
+            subprocess.check_call(['hdiutil', 'detach', '-quiet', tmpdir])
 
 
 def build_windows():
