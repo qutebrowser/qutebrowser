@@ -1095,6 +1095,30 @@ class CommandDispatcher:
             raise cmdexc.CommandError(str(e))
         self._open(url, tab, bg, window)
 
+    @cmdutils.register(instance='command-dispatcher', scope='window',
+                       maxsplit=0)
+    @cmdutils.argument('name',
+                       completion=usertypes.Completion.quickmark_by_name)
+    def quickmark_del(self, name=None):
+        """Delete a quickmark.
+
+        Args:
+            name: The name of the quickmark to delete. If none, delete the
+                  quickmark for the current page (choosing one arbitrarily
+                  if there are more than one).
+        """
+        quickmark_manager = objreg.get('quickmark-manager')
+        if name is None:
+            url = self._current_url()
+            try:
+                name = quickmark_manager.get_by_qurl(url)
+            except urlmarks.DoesNotExistError as e:
+                raise cmdexc.CommandError(str(e))
+        try:
+            quickmark_manager.delete(name)
+        except KeyError:
+            raise cmdexc.CommandError("Quickmark '{}' not found!".format(name))
+
     @cmdutils.register(instance='command-dispatcher', scope='window')
     def bookmark_add(self, url=None, title=None):
         """Save the current page as a bookmark, or a specific url.
@@ -1149,6 +1173,25 @@ class CommandDispatcher:
         except urlutils.InvalidUrlError as e:
             raise cmdexc.CommandError(e)
         self._open(url, tab, bg, window)
+
+    @cmdutils.register(instance='command-dispatcher', scope='window',
+                       maxsplit=0)
+    @cmdutils.argument('url', completion=usertypes.Completion.bookmark_by_url)
+    def bookmark_del(self, url=None):
+        """Delete a bookmark.
+
+        Args:
+            url: The url of the bookmark to delete. If None, use the
+                 current page's url.
+        """
+        if url is None:
+            url = self._current_url().toString(QUrl.RemovePassword
+                                             | QUrl.FullyEncoded)
+        try:
+            objreg.get('bookmark-manager').delete(url)
+        except KeyError:
+            raise cmdexc.CommandError("Bookmark '{}' not found!".format(url))
+
 
     @cmdutils.register(instance='command-dispatcher', hide=True,
                        scope='window')
