@@ -95,7 +95,7 @@ def build_osx():
     utils.print_title("Updating 3rdparty content")
     update_3rdparty.update_pdfjs()
     utils.print_title("Building .app via pyinstaller")
-    call_tox('pyinstaller')
+    call_tox('pyinstaller', '-r')
     utils.print_title("Building .dmg")
     subprocess.check_call(['make', '-f', 'scripts/dev/Makefile-dmg'])
     utils.print_title("Cleaning up...")
@@ -128,6 +128,8 @@ def build_windows():
     python_x86 = r'C:\Python{}_x32'.format(ver)
     python_x64 = r'C:\Python{}'.format(ver)
 
+    utils.print_title("Rebuilding tox environment")
+    regen_tox('cxfreeze-windows', '-r', '--notest')
     utils.print_title("Running 32bit freeze.py build_exe")
     call_tox('cxfreeze-windows', 'build_exe', python=python_x86)
     utils.print_title("Running 32bit freeze.py bdist_msi")
