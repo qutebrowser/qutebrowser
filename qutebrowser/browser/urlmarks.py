@@ -272,17 +272,18 @@ class BookmarkManager(UrlMarkManager):
         elif len(parts) == 1:
             self.marks[parts[0]] = ''
 
-    def add(self, url, title, toggle=False):
+    def add(self, url, title, *, toggle=False):
         """Add a new bookmark.
-
-        Return True if the bookmark was added, and False if it was
-        removed (which only happens if toggle is True).
 
         Args:
             url: The url to add as bookmark.
             title: The title for the new bookmark.
             toggle: remove the bookmark instead of raising an error if it
                     already exists.
+
+        Return:
+            True if the bookmark was added, and False if it was
+            removed (only possible if toggle is True).
         """
         if not url.isValid():
             errstr = urlutils.get_errstring(url)
