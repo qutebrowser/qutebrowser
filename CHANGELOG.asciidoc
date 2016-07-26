@@ -20,20 +20,21 @@ v0.8.0
 Added
 ~~~~~
 
-- New `{host}` replacement for tab- and window titles which evaluates to the current host.
-- Add new default binding `;t` for `:hint input`.
-- New variables `$QUTE_CONFIG_DIR`, `$QUTE_DATA_DIR` and
-  `$QUTE_DOWNLOAD_DIR` available for userscripts.
-- New option `ui` -> `status-position` to configure the position of the
-  status bar (top/bottom).
-- New `--pdf <filename>` argument for `:print` which can be used to generate a
-  PDF without a dialog.
 - New `:repeat-command` command (mapped to `.`) to repeat the last command.
   Note that two former default bundings conflict with that binding, unbinding
   them via `:unbind .i` and `:unbind .o` is recommended.
 - New `qute:bookmarks` page which displays all bookmarks and quickmarks.
 - New `:prompt-open-download` (bound to `Ctrl-X`) which can be used to open a
   download directly when getting the filename prompt.
+- New `{host}` replacement for tab- and window titles which evaluates
+  to the current host.
+- New default binding `;t` for `:hint input`.
+- New variables `$QUTE_CONFIG_DIR`, `$QUTE_DATA_DIR` and
+  `$QUTE_DOWNLOAD_DIR` available for userscripts.
+- New option `ui` -> `status-position` to configure the position of the
+  status bar (top/bottom).
+- New `--pdf <filename>` argument for `:print` which can be used to generate a
+  PDF without a dialog.
 
 Changed
 ~~~~~~~
@@ -52,9 +53,12 @@ Changed
 Fixed
 -----
 
-- Copmpatibility with PyQt 5.7
+- Compatibility with PyQt 5.7
 - Fixed some configuration values being lost when a config option gets removed
   from qutebrowser's code.
+- Fix crash when downloading with a full disk
+- Using `:jump-mark` (e.g. `''`) when the current URL is invalid doesn't crash
+  anymore.
 
 Removed
 -------
@@ -65,23 +69,8 @@ Removed
   According to a quick straw poll and prior crash logs, almost nobody is using
   `wrap-search = false`, and turning off wrapping is not possible with
   QtWebEngine.
-
-Fixed
------
-
-- Fix crash when downloading with a full disk
-
-Removed
-------
-
 - `:edit-url` now doesn't accept a count anymore as its behavior was confusing
   and it doesn't make much sense to add a count.
-
-Fixed
------
-
-- Using `:jump-mark` (e.g. `''`) when the current URL is invalid doesn't crash
-  anymore.
 
 v0.7.0
 ------
