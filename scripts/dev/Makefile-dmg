@@ -24,7 +24,7 @@ SOURCE_DIR ?= .
 SOURCE_FILES ?= dist/qutebrowser.app COPYING
 
 TEMPLATE_DMG ?= template.dmg
-TEMPLATE_SIZE ?= 120m
+TEMPLATE_SIZE ?= 300m
 
 ################################################################################
 # DMG building. No editing should be needed beyond this point.
