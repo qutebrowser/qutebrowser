@@ -32,7 +32,7 @@ from PyQt5.QtWidgets import QCommonStyle, QLineEdit
 from qutebrowser.browser import browsertab
 from qutebrowser.browser.webkit import history
 from qutebrowser.config import configexc
-from qutebrowser.utils import usertypes
+from qutebrowser.utils import usertypes, utils
 from qutebrowser.mainwindow import mainwindow
 
 
@@ -470,6 +470,17 @@ class KeyConfigStub:
 
     def set_bindings_for(self, section, bindings):
         self.bindings[section] = bindings
+
+    def get_reverse_bindings_for(self, section):
+        """Get a dict of commands to a list of bindings for the section."""
+        cmd_to_keys = collections.defaultdict(list)
+        for key, cmd in self.bindings[section].items():
+            # put special bindings last
+            if utils.is_special_key(key):
+                cmd_to_keys[cmd].append(key)
+            else:
+                cmd_to_keys[cmd].insert(0, key)
+        return cmd_to_keys
 
 
 class UrlMarkManagerStub(QObject):
