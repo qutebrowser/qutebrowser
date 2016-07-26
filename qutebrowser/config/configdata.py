@@ -1574,6 +1574,7 @@ KEY_DATA = collections.OrderedDict([
         ('prompt-accept', RETURN_KEYS),
         ('prompt-yes', ['y']),
         ('prompt-no', ['n']),
+        ('prompt-open-download', ['<Ctrl-X>']),
     ])),
 
     ('command,prompt', collections.OrderedDict([

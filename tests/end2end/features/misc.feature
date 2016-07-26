@@ -312,7 +312,7 @@ Feature: Various utility commands.
         And I open data/misc/test.pdf
         And I wait for "[qute://pdfjs/*] PDF * (PDF.js: *)" in the log
         And I run :jseval document.getElementById("download").click()
-        And I wait for "Asking question <qutebrowser.utils.usertypes.Question default='test.pdf' mode=<PromptMode.text: 2> text='Save file to:'>, *" in the log
+        And I wait for "Asking question <qutebrowser.utils.usertypes.Question default='test.pdf' mode=<PromptMode.download: 5> text='Save file to:'>, *" in the log
         And I run :leave-mode
         Then no crash should happen
 

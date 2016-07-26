@@ -47,7 +47,7 @@ from qutebrowser.completion.models import instances as completionmodels
 from qutebrowser.commands import cmdutils, runners, cmdexc
 from qutebrowser.config import style, config, websettings, configexc
 from qutebrowser.browser import urlmarks, adblock
-from qutebrowser.browser.webkit import cookies, cache, history
+from qutebrowser.browser.webkit import cookies, cache, history, downloads
 from qutebrowser.browser.webkit.network import (qutescheme, proxy,
                                                 networkmanager)
 from qutebrowser.mainwindow import mainwindow
@@ -436,6 +436,8 @@ def _init_modules(args, crash_handler):
         os.environ.pop('QT_WAYLAND_DISABLE_WINDOWDECORATION', None)
     _maybe_hide_mouse_cursor()
     objreg.get('config').changed.connect(_maybe_hide_mouse_cursor)
+    temp_downloads = downloads.TempDownloadManager(qApp)
+    objreg.register('temporary-downloads', temp_downloads)
 
 
 def _init_late_modules(args):
@@ -708,6 +710,8 @@ class Quitter:
                 not restart):
             atexit.register(shutil.rmtree, self._args.basedir,
                             ignore_errors=True)
+        # Delete temp download dir
+        objreg.get('temporary-downloads').cleanup()
         # If we don't kill our custom handler here we might get segfaults
         log.destroy.debug("Deactivating message handler...")
         qInstallMessageHandler(None)

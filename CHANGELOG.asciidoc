@@ -32,6 +32,8 @@ Added
   Note that two former default bundings conflict with that binding, unbinding
   them via `:unbind .i` and `:unbind .o` is recommended.
 - New `qute:bookmarks` page which displays all bookmarks and quickmarks.
+- New `:prompt-open-download` (bound to `Ctrl-X`) which can be used to open a
+  download directly when getting the filename prompt.
 
 Changed
 ~~~~~~~

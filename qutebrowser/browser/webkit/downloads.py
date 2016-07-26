@@ -25,6 +25,7 @@ import sys
 import os.path
 import shutil
 import functools
+import tempfile
 import collections
 
 import sip
@@ -280,6 +281,7 @@ class DownloadItem(QObject):
         _read_timer: A Timer which reads the QNetworkReply into self._buffer
                      periodically.
         _win_id: The window ID the DownloadItem runs in.
+        _dead: Whether the Download has _die()'d.
 
     Signals:
         data_changed: The downloads metadata changed.
@@ -328,6 +330,7 @@ class DownloadItem(QObject):
         self.init_reply(reply)
         self._win_id = win_id
         self.raw_headers = {}
+        self._dead = False
 
     def __repr__(self):
         return utils.get_repr(self, basename=self.basename)
@@ -395,6 +398,21 @@ class DownloadItem(QObject):
     def _die(self, msg):
         """Abort the download and emit an error."""
         assert not self.successful
+        # Prevent actions if calling _die() twice. This might happen if the
+        # error handler correctly connects, and the error occurs in init_reply
+        # between reply.error.connect and the reply.error() check. In this
+        # case, the connected error handlers will be called twice, once via the
+        # direct error.emit() and once here in _die(). The stacks look like
+        # this then:
+        #   <networkmanager error.emit> -> on_reply_error -> _die ->
+        #   self.error.emit()
+        # and
+        #   [init_reply -> <single shot timer> ->] <lambda in init_reply> ->
+        #   self.error.emit()
+        # which may lead to duplicate error messages (and failing tests)
+        if self._dead:
+            return
+        self._dead = True
         self._read_timer.stop()
         self.reply.downloadProgress.disconnect()
         self.reply.finished.disconnect()
@@ -441,7 +459,7 @@ class DownloadItem(QObject):
         # Here no signals are connected to the DownloadItem yet, so we use a
         # singleShot QTimer to emit them after they are connected.
         if reply.error() != QNetworkReply.NoError:
-            QTimer.singleShot(0, lambda: self.error.emit(reply.errorString()))
+            QTimer.singleShot(0, lambda: self._die(reply.errorString()))
 
     def get_status_color(self, position):
         """Choose an appropriate color for presenting the download's status.
@@ -513,7 +531,13 @@ class DownloadItem(QObject):
     def open_file(self):
         """Open the downloaded file."""
         assert self.successful
-        url = QUrl.fromLocalFile(self._filename)
+        filename = self._filename
+        if filename is None:
+            filename = getattr(self.fileobj, 'name', None)
+        if filename is None:
+            log.downloads.error("No filename to open the download!")
+            return
+        url = QUrl.fromLocalFile(filename)
         QDesktopServices.openUrl(url)
 
     def set_filename(self, filename):
@@ -738,6 +762,9 @@ class DownloadManager(QAbstractListModel):
     def _postprocess_question(self, q):
         """Postprocess a Question object that is asked."""
         q.destroyed.connect(functools.partial(self.questions.remove, q))
+        # We set the mode here so that other code that uses ask_for_filename
+        # doesn't need to handle the special download mode.
+        q.mode = usertypes.PromptMode.download
         self.questions.append(q)
 
     @pyqtSlot()
@@ -757,10 +784,7 @@ class DownloadManager(QAbstractListModel):
             **kwargs: passed to get_request().
 
         Return:
-            If the download could start immediately, (fileobj/filename given),
-            the created DownloadItem.
-
-            If not, None.
+            The created DownloadItem.
         """
         if not url.isValid():
             urlutils.invalid_url_error(self._win_id, url, "start download")
@@ -768,27 +792,17 @@ class DownloadManager(QAbstractListModel):
         req = QNetworkRequest(url)
         return self.get_request(req, **kwargs)
 
-    def get_request(self, request, *, fileobj=None, filename=None,
-                    prompt_download_directory=None, **kwargs):
+    def get_request(self, request, *, target=None, **kwargs):
         """Start a download with a QNetworkRequest.
 
         Args:
             request: The QNetworkRequest to download.
-            fileobj: The file object to write the answer to.
-            filename: A path to write the data to.
-            prompt_download_directory: Whether to prompt for the download dir
-                                       or automatically download. If None, the
-                                       config is used.
+            target: Where to save the download as usertypes.DownloadTarget.
             **kwargs: Passed to fetch_request.
 
         Return:
-            If the download could start immediately, (fileobj/filename given),
-            the created DownloadItem.
-
-            If not, None.
+            The created DownloadItem.
         """
-        if fileobj is not None and filename is not None:  # pragma: no cover
-            raise TypeError("Only one of fileobj/filename may be given!")
         # WORKAROUND for Qt corrupting data loaded from cache:
         # https://bugreports.qt.io/browse/QTBUG-42757
         request.setAttribute(QNetworkRequest.CacheLoadControlAttribute,
@@ -816,27 +830,10 @@ class DownloadManager(QAbstractListModel):
         if suggested_fn is None:
             suggested_fn = 'qutebrowser-download'
 
-        # We won't need a question if a filename or fileobj is already given
-        if fileobj is None and filename is None:
-            filename, q = ask_for_filename(
-                suggested_fn, self._win_id, parent=self,
-                prompt_download_directory=prompt_download_directory
-            )
-
-        if fileobj is not None or filename is not None:
-            return self.fetch_request(request,
-                                      fileobj=fileobj,
-                                      filename=filename,
-                                      suggested_filename=suggested_fn,
-                                      **kwargs)
-        q.answered.connect(
-            lambda fn: self.fetch_request(request,
-                                          filename=fn,
-                                          suggested_filename=suggested_fn,
-                                          **kwargs))
-        self._postprocess_question(q)
-        q.ask()
-        return None
+        return self.fetch_request(request,
+                                  target=target,
+                                  suggested_filename=suggested_fn,
+                                  **kwargs)
 
     def fetch_request(self, request, *, page=None, **kwargs):
         """Download a QNetworkRequest to disk.
@@ -857,27 +854,25 @@ class DownloadManager(QAbstractListModel):
         return self.fetch(reply, **kwargs)
 
     @pyqtSlot('QNetworkReply')
-    def fetch(self, reply, *, fileobj=None, filename=None, auto_remove=False,
+    def fetch(self, reply, *, target=None, auto_remove=False,
               suggested_filename=None, prompt_download_directory=None):
         """Download a QNetworkReply to disk.
 
         Args:
             reply: The QNetworkReply to download.
-            fileobj: The file object to write the answer to.
-            filename: A path to write the data to.
+            target: Where to save the download as usertypes.DownloadTarget.
             auto_remove: Whether to remove the download even if
                          ui -> remove-finished-downloads is set to -1.
 
         Return:
             The created DownloadItem.
         """
-        if fileobj is not None and filename is not None:  # pragma: no cover
-            raise TypeError("Only one of fileobj/filename may be given!")
         if not suggested_filename:
-            if filename is not None:
-                suggested_filename = os.path.basename(filename)
-            elif fileobj is not None and getattr(fileobj, 'name', None):
-                suggested_filename = fileobj.name
+            if isinstance(target, usertypes.FileDownloadTarget):
+                suggested_filename = os.path.basename(target.filename)
+            elif (isinstance(target, usertypes.FileObjDownloadTarget) and
+                  getattr(target.fileobj, 'name', None)):
+                suggested_filename = target.fileobj.name
             else:
                 _, suggested_filename = http.parse_content_disposition(reply)
         log.downloads.debug("fetch: {} -> {}".format(reply.url(),
@@ -909,13 +904,8 @@ class DownloadManager(QAbstractListModel):
         if not self._update_timer.isActive():
             self._update_timer.start()
 
-        if fileobj is not None:
-            download.set_fileobj(fileobj)
-            download.autoclose = False
-            return download
-
-        if filename is not None:
-            download.set_filename(filename)
+        if target is not None:
+            self._set_download_target(download, suggested_filename, target)
             return download
 
         # Neither filename nor fileobj were given, prepare a question
@@ -926,18 +916,43 @@ class DownloadManager(QAbstractListModel):
 
         # User doesn't want to be asked, so just use the download_dir
         if filename is not None:
-            download.set_filename(filename)
+            target = usertypes.FileDownloadTarget(filename)
+            self._set_download_target(download, suggested_filename, target)
             return download
 
         # Ask the user for a filename
         self._postprocess_question(q)
-        q.answered.connect(download.set_filename)
+        q.answered.connect(
+            functools.partial(self._set_download_target, download,
+                              suggested_filename))
         q.cancelled.connect(download.cancel)
         download.cancelled.connect(q.abort)
         download.error.connect(q.abort)
         q.ask()
 
         return download
+
+    def _set_download_target(self, download, suggested_filename, target):
+        """Set the target for a given download.
+
+        Args:
+            download: The download to set the filename for.
+            suggested_filename: The suggested filename.
+            target: The usertypes.DownloadTarget for this download.
+        """
+        if isinstance(target, usertypes.FileObjDownloadTarget):
+            download.set_fileobj(target.fileobj)
+            download.autoclose = False
+        elif isinstance(target, usertypes.FileDownloadTarget):
+            download.set_filename(target.filename)
+        elif isinstance(target, usertypes.OpenFileDownloadTarget):
+            tmp_manager = objreg.get('temporary-downloads')
+            fobj = tmp_manager.get_tmpfile(suggested_filename)
+            download.finished.connect(download.open_file)
+            download.autoclose = True
+            download.set_fileobj(fobj)
+        else:
+            log.downloads.error("Unknown download target: {}".format(target))
 
     def raise_no_download(self, count):
         """Raise an exception that the download doesn't exist.
@@ -1249,3 +1264,59 @@ class DownloadManager(QAbstractListModel):
             The number of unfinished downloads.
         """
         return sum(1 for download in self.downloads if not download.done)
+
+
+class TempDownloadManager(QObject):
+
+    """Manager to handle temporary download files.
+
+    The downloads are downloaded to a temporary location and then openened with
+    the system standard application. The temporary files are deleted when
+    qutebrowser is shutdown.
+
+    Attributes:
+        files: A list of NamedTemporaryFiles of downloaded items.
+    """
+
+    def __init__(self, parent=None):
+        super().__init__(parent)
+        self.files = []
+        self._tmpdir = None
+
+    def cleanup(self):
+        """Clean up any temporary files."""
+        if self._tmpdir is not None:
+            self._tmpdir.cleanup()
+            self._tmpdir = None
+
+    def _get_tmpdir(self):
+        """Return the temporary directory that is used for downloads.
+
+        The directory is created lazily on first access.
+
+        Return:
+            The tempfile.TemporaryDirectory that is used.
+        """
+        if self._tmpdir is None:
+            self._tmpdir = tempfile.TemporaryDirectory(
+                prefix='qutebrowser-downloads-')
+        return self._tmpdir
+
+    def get_tmpfile(self, suggested_name):
+        """Return a temporary file in the temporary downloads directory.
+
+        The files are kept as long as qutebrowser is running and automatically
+        cleaned up at program exit.
+
+        Args:
+            suggested_name: str of the "suggested"/original filename. Used as a
+                            suffix, so any file extenions are preserved.
+
+        Return:
+            A tempfile.NamedTemporaryFile that should be used to save the file.
+        """
+        tmpdir = self._get_tmpdir()
+        fobj = tempfile.NamedTemporaryFile(dir=tmpdir.name, delete=False,
+                                           suffix=suggested_name)
+        self.files.append(fobj)
+        return fobj

@@ -80,6 +80,7 @@ class Prompter(QObject):
         usertypes.PromptMode.text: usertypes.KeyMode.prompt,
         usertypes.PromptMode.user_pwd: usertypes.KeyMode.prompt,
         usertypes.PromptMode.alert: usertypes.KeyMode.prompt,
+        usertypes.PromptMode.download: usertypes.KeyMode.prompt,
     }
 
     show_prompt = pyqtSignal()
@@ -164,12 +165,9 @@ class Prompter(QObject):
                 suffix = " (no)"
             prompt.txt.setText(self._question.text + suffix)
             prompt.lineedit.hide()
-        elif self._question.mode == usertypes.PromptMode.text:
-            prompt.txt.setText(self._question.text)
-            if self._question.default:
-                prompt.lineedit.setText(self._question.default)
-            prompt.lineedit.show()
-        elif self._question.mode == usertypes.PromptMode.user_pwd:
+        elif self._question.mode in [usertypes.PromptMode.text,
+                                     usertypes.PromptMode.user_pwd,
+                                     usertypes.PromptMode.download]:
             prompt.txt.setText(self._question.text)
             if self._question.default:
                 prompt.lineedit.setText(self._question.default)
@@ -248,6 +246,13 @@ class Prompter(QObject):
             modeman.maybe_leave(self._win_id, usertypes.KeyMode.prompt,
                                 'prompt accept')
             self._question.done()
+        elif self._question.mode == usertypes.PromptMode.download:
+            # User just entered a path for a download.
+            target = usertypes.FileDownloadTarget(prompt.lineedit.text())
+            self._question.answer = target
+            modeman.maybe_leave(self._win_id, usertypes.KeyMode.prompt,
+                                'prompt accept')
+            self._question.done()
         elif self._question.mode == usertypes.PromptMode.yesno:
             # User wants to accept the default of a yes/no question.
             self._question.answer = self._question.default
@@ -285,6 +290,18 @@ class Prompter(QObject):
         self._question.answer = False
         modeman.maybe_leave(self._win_id, usertypes.KeyMode.yesno,
                             'prompt accept')
+        self._question.done()
+
+    @cmdutils.register(instance='prompter', hide=True, scope='window',
+                       modes=[usertypes.KeyMode.prompt])
+    def prompt_open_download(self):
+        """Immediately open a download."""
+        if self._question.mode != usertypes.PromptMode.download:
+            # We just ignore this if we don't have a download question.
+            return
+        self._question.answer = usertypes.OpenFileDownloadTarget()
+        modeman.maybe_leave(self._win_id, usertypes.KeyMode.prompt,
+                            'download open')
         self._question.done()
 
     @pyqtSlot(usertypes.Question, bool)
