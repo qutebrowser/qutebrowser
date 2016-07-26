@@ -28,6 +28,7 @@ import shutil
 import subprocess
 import argparse
 import tarfile
+import tempfile
 import collections
 
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), os.pardir,
@@ -102,6 +103,17 @@ def build_osx():
         os.remove(f)
     for d in ['dist', 'build']:
         shutil.rmtree(d)
+
+    utils.print_title("Running smoke test")
+    with tempfile.TemporaryDirectory() as tmpdir:
+        subprocess.check_call(['hdiutil', 'attach', 'qutebrowser.dmg',
+                               '-mountpoint', tmpdir])
+        try:
+            binary = os.path.join(tmpdir, 'qutebrowser.app', 'Contents',
+                                  'MacOS', 'qutebrowser')
+            subprocess.check_call([binary])
+        finally:
+            subprocess.check_call(['hdiutil', 'detach', tmpdir])
 
 
 def build_windows():
