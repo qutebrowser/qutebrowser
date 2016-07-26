@@ -22,6 +22,8 @@ Changed
 
 - `:bookmark-add` now has a `--toggle` flag which deletes the bookmark if it
   already exists.
+- `:bookmark-load` now has a `--delete` flag which deletes the bookmark after
+  loading it.
 
 v0.8.0
 ------

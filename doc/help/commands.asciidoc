@@ -145,7 +145,7 @@ Delete a bookmark.
 
 [[bookmark-load]]
 === bookmark-load
-Syntax: +:bookmark-load [*--tab*] [*--bg*] [*--window*] 'url'+
+Syntax: +:bookmark-load [*--tab*] [*--bg*] [*--window*] [*--delete*] 'url'+
 
 Load a bookmark.
 
@@ -156,6 +156,7 @@ Load a bookmark.
 * +*-t*+, +*--tab*+: Load the bookmark in a new tab.
 * +*-b*+, +*--bg*+: Load the bookmark in a new background tab.
 * +*-w*+, +*--window*+: Load the bookmark in a new window.
+* +*-d*+, +*--delete*+: Whether to delete the bookmark afterwards.
 
 ==== note
 * This command does not split arguments after the last argument and handles quotes literally.
