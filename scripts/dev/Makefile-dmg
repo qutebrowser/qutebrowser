@@ -37,17 +37,12 @@ WC_DIR=wc
 .PHONY: all
 all: $(MASTER_DMG)
 
-$(TEMPLATE_DMG): $(TEMPLATE_DMG).bz2
-	bunzip2 -k $<
-
-$(TEMPLATE_DMG).bz2: 
+$(TEMPLATE_DMG):
 	@echo
 	@echo --------------------- Generating empty template --------------------
 	mkdir template
 	hdiutil create -fs HFSX -layout SPUD -size $(TEMPLATE_SIZE) "$(TEMPLATE_DMG)" -srcfolder template -format UDRW -volname "$(NAME)" -quiet
 	rmdir template
-	bzip2 "$(TEMPLATE_DMG)"
-	@echo
 
 $(WC_DMG): $(TEMPLATE_DMG)
 	cp $< $@
