@@ -111,7 +111,7 @@ def build_osx():
         try:
             binary = os.path.join(tmpdir, 'qutebrowser.app', 'Contents',
                                   'MacOS', 'qutebrowser')
-            subprocess.check_call([binary])
+            smoke_test(binary)
         finally:
             subprocess.check_call(['hdiutil', 'detach', tmpdir])
 
