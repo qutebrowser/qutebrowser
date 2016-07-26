@@ -26,18 +26,20 @@ import signal
 
 import pytest
 
-
-def test_smoke():
+@pytest.mark.parametrize('cmd', [':quit', ':later 500 quit'])
+def test_smoke(cmd, capfd):
     if hasattr(sys, 'frozen'):
         argv = [os.path.join(os.path.dirname(sys.executable), 'qutebrowser')]
     else:
         argv = [sys.executable, '-m', 'qutebrowser']
-    argv += ['--debug', '--no-err-windows', '--nowindow', '--temp-basedir',
-             'about:blank', ':later 500 quit']
+    argv += ['--debug', '--no-err-windows', '--temp-basedir', 'about:blank',
+             cmd]
     try:
         subprocess.check_call(argv)
     except subprocess.CalledProcessError as e:
         if e.returncode == -signal.SIGSEGV:
+            _out, err = capfd.readouterr()
+            assert 'Uncaught exception' not in err
             # pylint: disable=no-member
             # https://github.com/The-Compiler/qutebrowser/issues/1387
             pytest.xfail("Ignoring segfault on exit...")
