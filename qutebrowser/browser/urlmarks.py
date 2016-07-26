@@ -32,8 +32,9 @@ import collections
 
 from PyQt5.QtCore import pyqtSignal, QUrl, QObject
 
-from qutebrowser.utils import message, usertypes, urlutils, standarddir, objreg
-from qutebrowser.commands import cmdexc, cmdutils
+from qutebrowser.utils import (message, usertypes, qtutils, urlutils,
+                               standarddir, objreg)
+from qutebrowser.commands import cmdutils
 from qutebrowser.misc import lineparser
 
 
@@ -207,19 +208,22 @@ class QuickmarkManager(UrlMarkManager):
         else:
             set_mark()
 
-    @cmdutils.register(instance='quickmark-manager', maxsplit=0)
-    @cmdutils.argument('name',
-                       completion=usertypes.Completion.quickmark_by_name)
-    def quickmark_del(self, name):
-        """Delete a quickmark.
+    def get_by_qurl(self, url):
+        """Look up a quickmark by QUrl, returning its name.
 
-        Args:
-            name: The name of the quickmark to delete.
+        Takes O(n) time, where n is the number of quickmarks.
+        Use a name instead where possible.
         """
+        qtutils.ensure_valid(url)
+        urlstr = url.toString(QUrl.RemovePassword | QUrl.FullyEncoded)
+
         try:
-            self.delete(name)
-        except KeyError:
-            raise cmdexc.CommandError("Quickmark '{}' not found!".format(name))
+            index = list(self.marks.values()).index(urlstr)
+            key = list(self.marks.keys())[index]
+        except ValueError:
+            raise DoesNotExistError(
+                "Quickmark for '{}' not found!".format(urlstr))
+        return key
 
     def get(self, name):
         """Get the URL of the quickmark named name as a QUrl."""
@@ -287,16 +291,3 @@ class BookmarkManager(UrlMarkManager):
             self.marks[urlstr] = title
             self.changed.emit()
             self.added.emit(title, urlstr)
-
-    @cmdutils.register(instance='bookmark-manager', maxsplit=0)
-    @cmdutils.argument('url', completion=usertypes.Completion.bookmark_by_url)
-    def bookmark_del(self, url):
-        """Delete a bookmark.
-
-        Args:
-            url: The URL of the bookmark to delete.
-        """
-        try:
-            self.delete(url)
-        except KeyError:
-            raise cmdexc.CommandError("Bookmark '{}' not found!".format(url))
