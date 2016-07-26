@@ -339,7 +339,7 @@ def _save_version():
 
 def on_focus_changed(_old, new):
     """Register currently focused main window in the object registry."""
-    if not isinstance(new, QWidget):
+    if not isinstance(new, QWidget) and new is not None:
         log.misc.debug("on_focus_changed called with non-QWidget {!r}".format(
             new))
 
