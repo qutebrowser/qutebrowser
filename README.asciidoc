@@ -164,8 +164,8 @@ Contributors, sorted by the number of commits in descending order:
 * Thorsten Wißmann
 * Kevin Velghe
 * Austin Anderson
-* Jimmy
 * Marshall Lochbaum
+* Jimmy
 * Alexey "Averrin" Nabrodov
 * avk
 * ZDarian
