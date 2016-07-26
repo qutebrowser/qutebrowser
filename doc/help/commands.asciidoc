@@ -116,7 +116,7 @@ Bind a key to a command.
 
 [[bookmark-add]]
 === bookmark-add
-Syntax: +:bookmark-add ['url'] ['title']+
+Syntax: +:bookmark-add [*--toggle*] ['url'] ['title']+
 
 Save the current page as a bookmark, or a specific url.
 
@@ -125,6 +125,10 @@ If no url and title are provided, then save the current page as a bookmark. If a
 ==== positional arguments
 * +'url'+: url to save as a bookmark. If None, use url of current page.
 * +'title'+: title of the new bookmark.
+
+==== optional arguments
+* +*-t*+, +*--toggle*+: remove the bookmark instead of raising an error if it already exists.
+
 
 [[bookmark-del]]
 === bookmark-del

@@ -272,12 +272,18 @@ class BookmarkManager(UrlMarkManager):
         elif len(parts) == 1:
             self.marks[parts[0]] = ''
 
-    def add(self, url, title):
+    def add(self, url, title, *, toggle=False):
         """Add a new bookmark.
 
         Args:
             url: The url to add as bookmark.
             title: The title for the new bookmark.
+            toggle: remove the bookmark instead of raising an error if it
+                    already exists.
+
+        Return:
+            True if the bookmark was added, and False if it was
+            removed (only possible if toggle is True).
         """
         if not url.isValid():
             errstr = urlutils.get_errstring(url)
@@ -286,8 +292,13 @@ class BookmarkManager(UrlMarkManager):
         urlstr = url.toString(QUrl.RemovePassword | QUrl.FullyEncoded)
 
         if urlstr in self.marks:
-            raise AlreadyExistsError("Bookmark already exists!")
+            if toggle:
+                del self.marks[urlstr]
+                return False
+            else:
+                raise AlreadyExistsError("Bookmark already exists!")
         else:
             self.marks[urlstr] = title
             self.changed.emit()
             self.added.emit(title, urlstr)
+            return True

@@ -1120,7 +1120,7 @@ class CommandDispatcher:
             raise cmdexc.CommandError("Quickmark '{}' not found!".format(name))
 
     @cmdutils.register(instance='command-dispatcher', scope='window')
-    def bookmark_add(self, url=None, title=None):
+    def bookmark_add(self, url=None, title=None, toggle=False):
         """Save the current page as a bookmark, or a specific url.
 
         If no url and title are provided, then save the current page as a
@@ -1134,6 +1134,8 @@ class CommandDispatcher:
         Args:
             url: url to save as a bookmark. If None, use url of current page.
             title: title of the new bookmark.
+            toggle: remove the bookmark instead of raising an error if it
+                    already exists.
         """
         if url and not title:
             raise cmdexc.CommandError('Title must be provided if url has '
@@ -1149,12 +1151,13 @@ class CommandDispatcher:
         if not title:
             title = self._current_title()
         try:
-            bookmark_manager.add(url, title)
+            was_added = bookmark_manager.add(url, title, toggle=toggle)
         except urlmarks.Error as e:
             raise cmdexc.CommandError(str(e))
         else:
+            msg = "Bookmarked {}!" if was_added else "Removed bookmark {}!"
             message.info(self._win_id,
-                         "Bookmarked {}!".format(url.toDisplayString()))
+                         msg.format(url.toDisplayString()))
 
     @cmdutils.register(instance='command-dispatcher', scope='window',
                        maxsplit=0)
