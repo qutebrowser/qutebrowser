@@ -542,7 +542,7 @@ class CommandDispatcher:
         dy *= count
         cmdutils.check_overflow(dx, 'int')
         cmdutils.check_overflow(dy, 'int')
-        self._current_widget().scroll.delta(dx, dy)
+        self._current_widget().scroller.delta(dx, dy)
 
     @cmdutils.register(instance='command-dispatcher', hide=True,
                        scope='window')
@@ -557,14 +557,14 @@ class CommandDispatcher:
         """
         tab = self._current_widget()
         funcs = {
-            'up': tab.scroll.up,
-            'down': tab.scroll.down,
-            'left': tab.scroll.left,
-            'right': tab.scroll.right,
-            'top': tab.scroll.top,
-            'bottom': tab.scroll.bottom,
-            'page-up': tab.scroll.page_up,
-            'page-down': tab.scroll.page_down,
+            'up': tab.scroller.up,
+            'down': tab.scroller.down,
+            'left': tab.scroller.left,
+            'right': tab.scroller.right,
+            'top': tab.scroller.top,
+            'bottom': tab.scroller.bottom,
+            'page-up': tab.scroller.page_up,
+            'page-down': tab.scroller.page_down,
         }
         try:
             func = funcs[direction]
@@ -609,7 +609,7 @@ class CommandDispatcher:
             x = None
             y = perc
 
-        self._current_widget().scroll.to_perc(x, y)
+        self._current_widget().scroller.to_perc(x, y)
 
     @cmdutils.register(instance='command-dispatcher', hide=True,
                        scope='window')
@@ -637,15 +637,15 @@ class CommandDispatcher:
             # See https://github.com/The-Compiler/qutebrowser/issues/701
             return
 
-        if bottom_navigate is not None and tab.scroll.at_bottom():
+        if bottom_navigate is not None and tab.scroller.at_bottom():
             self.navigate(bottom_navigate)
             return
-        elif top_navigate is not None and tab.scroll.at_top():
+        elif top_navigate is not None and tab.scroller.at_top():
             self.navigate(top_navigate)
             return
 
         try:
-            tab.scroll.delta_page(count * x, count * y)
+            tab.scroller.delta_page(count * x, count * y)
         except OverflowError:
             raise cmdexc.CommandError(
                 "Numeric argument is too large for internal int "
@@ -1513,10 +1513,10 @@ class CommandDispatcher:
 
         if found:
             # Check if the scroll position got smaller and show info.
-            if not going_up and tab.scroll.pos_px().y() < old_scroll_pos.y():
+            if not going_up and tab.scroller.pos_px().y() < old_scroll_pos.y():
                 message.info(self._win_id, "Search hit BOTTOM, continuing "
                              "at TOP", immediately=True)
-            elif going_up and tab.scroll.pos_px().y() > old_scroll_pos.y():
+            elif going_up and tab.scroller.pos_px().y() > old_scroll_pos.y():
                 message.info(self._win_id, "Search hit TOP, continuing at "
                              "BOTTOM", immediately=True)
         else:
@@ -1545,7 +1545,7 @@ class CommandDispatcher:
 
         if text:
             cb = functools.partial(self._search_cb, tab=tab,
-                                   old_scroll_pos=tab.scroll.pos_px(),
+                                   old_scroll_pos=tab.scroller.pos_px(),
                                    options=options, text=text, prev=False)
         else:
             cb = None
@@ -1580,7 +1580,7 @@ class CommandDispatcher:
             return
 
         cb = functools.partial(self._search_cb, tab=tab,
-                               old_scroll_pos=tab.scroll.pos_px(),
+                               old_scroll_pos=tab.scroller.pos_px(),
                                options=window_options, text=window_text,
                                prev=False)
 
@@ -1615,7 +1615,7 @@ class CommandDispatcher:
             return
 
         cb = functools.partial(self._search_cb, tab=tab,
-                               old_scroll_pos=tab.scroll.pos_px(),
+                               old_scroll_pos=tab.scroller.pos_px(),
                                options=window_options, text=window_text,
                                prev=True)
 

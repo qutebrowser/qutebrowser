@@ -175,9 +175,9 @@ class TabbedBrowser(tabwidget.TabWidget):
             self._filter.create(self.cur_load_finished, tab))
         tab.load_started.connect(
             self._filter.create(self.cur_load_started, tab))
-        tab.scroll.perc_changed.connect(
+        tab.scroller.perc_changed.connect(
             self._filter.create(self.cur_scroll_perc_changed, tab))
-        tab.scroll.perc_changed.connect(self.on_scroll_pos_changed)
+        tab.scroller.perc_changed.connect(self.on_scroll_pos_changed)
         tab.url_changed.connect(
             self._filter.create(self.cur_url_changed, tab))
         tab.load_status_changed.connect(
@@ -646,7 +646,7 @@ class TabbedBrowser(tabwidget.TabWidget):
             if key != "'":
                 message.error(self._win_id, "Failed to set mark: url invalid")
             return
-        point = self.currentWidget().scroll.pos_px()
+        point = self.currentWidget().scroller.pos_px()
 
         if key.isupper():
             self._global_marks[key] = point, url
@@ -676,7 +676,7 @@ class TabbedBrowser(tabwidget.TabWidget):
                 def callback(ok):
                     if ok:
                         self.cur_load_finished.disconnect(callback)
-                        tab.scroll.to_point(point)
+                        tab.scroller.to_point(point)
 
                 self.openurl(url, newtab=False)
                 self.cur_load_finished.connect(callback)
@@ -692,6 +692,6 @@ class TabbedBrowser(tabwidget.TabWidget):
             # "'" would just jump to the current position every time
             self.set_mark("'")
 
-            tab.scroll.to_point(point)
+            tab.scroller.to_point(point)
         else:
             message.error(self._win_id, "Mark {} is not set".format(key))

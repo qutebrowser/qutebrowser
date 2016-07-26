@@ -104,7 +104,7 @@ def test_tab(qtbot, view, config_stub, tab_registry):
     mode_manager = modeman.ModeManager(0)
 
     tab_w.history = browsertab.AbstractHistory(tab_w)
-    tab_w.scroll = browsertab.AbstractScroller(tab_w, parent=tab_w)
+    tab_w.scroller = browsertab.AbstractScroller(tab_w, parent=tab_w)
     tab_w.caret = browsertab.AbstractCaret(win_id=tab_w.win_id,
                                            mode_manager=mode_manager,
                                            tab=tab_w, parent=tab_w)

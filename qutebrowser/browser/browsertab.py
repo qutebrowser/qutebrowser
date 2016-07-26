@@ -495,7 +495,7 @@ class AbstractTab(QWidget):
         objreg.register('tab', self, registry=self.registry)
 
         # self.history = AbstractHistory(self)
-        # self.scroll = AbstractScroller(self, parent=self)
+        # self.scroller = AbstractScroller(self, parent=self)
         # self.caret = AbstractCaret(win_id=win_id, tab=self, mode_manager=...,
         #                            parent=self)
         # self.zoom = AbstractZoom(win_id=win_id)
@@ -514,7 +514,7 @@ class AbstractTab(QWidget):
         self._layout = WrapperLayout(widget, self)
         self._widget = widget
         self.history._history = widget.history()
-        self.scroll._init_widget(widget)
+        self.scroller._init_widget(widget)
         self.caret._widget = widget
         self.zoom._widget = widget
         self.search._widget = widget

@@ -126,7 +126,7 @@ class TabWidget(QTabWidget):
         except qtutils.QtValueError:
             fields['host'] = ''
 
-        y = tab.scroll.pos_perc()[1]
+        y = tab.scroller.pos_perc()[1]
         if y is None:
             scroll_pos = '???'
         elif y <= 0:

@@ -168,7 +168,7 @@ class SessionManager(QObject):
             user_data = None
 
         if tab.history.current_idx() == idx:
-            pos = tab.scroll.pos_px()
+            pos = tab.scroller.pos_px()
             data['zoom'] = tab.zoom.factor()
             data['scroll-pos'] = {'x': pos.x(), 'y': pos.y()}
         elif user_data is not None:

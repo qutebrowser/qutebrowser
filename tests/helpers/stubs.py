@@ -250,7 +250,7 @@ class FakeWebTab(browsertab.AbstractTab):
         self._title = title
         self._url = url
         self._progress = progress
-        self.scroll = FakeWebTabScroller(self, scroll_pos_perc)
+        self.scroller = FakeWebTabScroller(self, scroll_pos_perc)
 
     def url(self):
         return self._url
