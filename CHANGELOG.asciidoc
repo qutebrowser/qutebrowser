@@ -44,6 +44,8 @@ Changed
   rather than the current page.
 - New `taskadd` userscript to add a taskwarrior task annotated with the
   current URL.
+- `:bookmark-del` and `:quickmark-del` now delete the current page's URL if none
+  is given.
 
 Fixed
 -----

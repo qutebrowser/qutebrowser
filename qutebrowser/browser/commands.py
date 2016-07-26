@@ -1103,7 +1103,7 @@ class CommandDispatcher:
         """Delete a quickmark.
 
         Args:
-            name: The name of the quickmark to delete. If none, delete the
+            name: The name of the quickmark to delete. If not given, delete the
                   quickmark for the current page (choosing one arbitrarily
                   if there are more than one).
         """
@@ -1181,7 +1181,7 @@ class CommandDispatcher:
         """Delete a bookmark.
 
         Args:
-            url: The url of the bookmark to delete. If None, use the
+            url: The url of the bookmark to delete. If not given, use the
                  current page's url.
         """
         if url is None:

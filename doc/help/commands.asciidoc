@@ -128,12 +128,13 @@ If no url and title are provided, then save the current page as a bookmark. If a
 
 [[bookmark-del]]
 === bookmark-del
-Syntax: +:bookmark-del 'url'+
+Syntax: +:bookmark-del ['url']+
 
 Delete a bookmark.
 
 ==== positional arguments
-* +'url'+: The URL of the bookmark to delete.
+* +'url'+: The url of the bookmark to delete. If not given, use the current page's url.
+
 
 ==== note
 * This command does not split arguments after the last argument and handles quotes literally.
@@ -520,12 +521,14 @@ You can view all saved quickmarks on the link:qute://bookmarks[bookmarks page].
 
 [[quickmark-del]]
 === quickmark-del
-Syntax: +:quickmark-del 'name'+
+Syntax: +:quickmark-del ['name']+
 
 Delete a quickmark.
 
 ==== positional arguments
-* +'name'+: The name of the quickmark to delete.
+* +'name'+: The name of the quickmark to delete. If not given, delete the quickmark for the current page (choosing one arbitrarily
+ if there are more than one).
+
 
 ==== note
 * This command does not split arguments after the last argument and handles quotes literally.
