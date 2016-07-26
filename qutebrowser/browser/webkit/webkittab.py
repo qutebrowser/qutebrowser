@@ -557,6 +557,21 @@ class WebKitTab(browsertab.AbstractTab):
     def set_html(self, html, base_url):
         self._widget.setHtml(html, base_url)
 
+    @pyqtSlot()
+    def _on_frame_load_finished(self):
+        """Make sure we emit an appropriate status when loading finished.
+
+        While Qt has a bool "ok" attribute for loadFinished, it always is True
+        when using error pages... See
+        https://github.com/The-Compiler/qutebrowser/issues/84
+        """
+        self._on_load_finished(not self._widget.page().error_occurred)
+
+    @pyqtSlot()
+    def _on_webkit_icon_changed(self):
+        """Emit iconChanged with a QIcon like QWebEngineView does."""
+        self.icon_changed.emit(self._widget.icon())
+
     def _connect_signals(self):
         view = self._widget
         page = view.page()
@@ -570,15 +585,5 @@ class WebKitTab(browsertab.AbstractTab):
         view.urlChanged.connect(self._on_url_changed)
         view.shutting_down.connect(self.shutting_down)
         page.networkAccessManager().sslErrors.connect(self._on_ssl_errors)
-
-        # Make sure we emit an appropriate status when loading finished. While
-        # Qt has a bool "ok" attribute for loadFinished, it always is True when
-        # using error pages...
-        # See https://github.com/The-Compiler/qutebrowser/issues/84
-        frame.loadFinished.connect(lambda:
-                                   self._on_load_finished(
-                                       not self._widget.page().error_occurred))
-
-        # Emit iconChanged with a QIcon like QWebEngineView does.
-        view.iconChanged.connect(lambda:
-                                 self.icon_changed.emit(self._widget.icon()))
+        frame.loadFinished.connect(self._on_frame_load_finished)
+        view.iconChanged.connect(self._on_webkit_icon_changed)
