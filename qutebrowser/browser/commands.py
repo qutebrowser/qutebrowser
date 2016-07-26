@@ -1162,7 +1162,8 @@ class CommandDispatcher:
     @cmdutils.register(instance='command-dispatcher', scope='window',
                        maxsplit=0)
     @cmdutils.argument('url', completion=usertypes.Completion.bookmark_by_url)
-    def bookmark_load(self, url, tab=False, bg=False, window=False):
+    def bookmark_load(self, url, tab=False, bg=False, window=False,
+                      delete=False):
         """Load a bookmark.
 
         Args:
@@ -1170,12 +1171,15 @@ class CommandDispatcher:
             tab: Load the bookmark in a new tab.
             bg: Load the bookmark in a new background tab.
             window: Load the bookmark in a new window.
+            delete: Whether to delete the bookmark afterwards.
         """
         try:
-            url = urlutils.fuzzy_url(url)
+            qurl = urlutils.fuzzy_url(url)
         except urlutils.InvalidUrlError as e:
             raise cmdexc.CommandError(e)
-        self._open(url, tab, bg, window)
+        self._open(qurl, tab, bg, window)
+        if delete:
+            self.bookmark_del(url)
 
     @cmdutils.register(instance='command-dispatcher', scope='window',
                        maxsplit=0)
