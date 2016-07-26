@@ -97,33 +97,39 @@ Feature: quickmarks and bookmarks
         And I run :bookmark-del
         Then the bookmark file should not contain "http://localhost:*/data/numbers/6.txt "
 
+    Scenario: Toggling a bookmark
+        When I open data/numbers/7.txt
+        And I run :bookmark-add
+        And I run :bookmark-add --toggle
+        Then the bookmark file should not contain "http://localhost:*/data/numbers/7.txt "
+
     ## quickmarks
 
     Scenario: Saving a quickmark (:quickmark-add)
-        When I run :quickmark-add http://localhost:(port)/data/numbers/7.txt seven
-        Then the quickmark file should contain "seven http://localhost:*/data/numbers/7.txt"
-
-    Scenario: Saving a quickmark (:quickmark-save)
-        When I open data/numbers/8.txt
-        And I run :quickmark-save
-        And I wait for "Entering mode KeyMode.prompt (reason: question asked)" in the log
-        And I press the keys "eight"
-        And I press the keys "<Enter>"
+        When I run :quickmark-add http://localhost:(port)/data/numbers/8.txt eight
         Then the quickmark file should contain "eight http://localhost:*/data/numbers/8.txt"
 
-    Scenario: Saving a duplicate quickmark (without override)
-        When I run :quickmark-add http://localhost:(port)/data/numbers/9.txt nine
-        And I run :quickmark-add http://localhost:(port)/data/numbers/9_2.txt nine
-        And I wait for "Entering mode KeyMode.yesno (reason: question asked)" in the log
-        And I run :prompt-no
+    Scenario: Saving a quickmark (:quickmark-save)
+        When I open data/numbers/9.txt
+        And I run :quickmark-save
+        And I wait for "Entering mode KeyMode.prompt (reason: question asked)" in the log
+        And I press the keys "nine"
+        And I press the keys "<Enter>"
         Then the quickmark file should contain "nine http://localhost:*/data/numbers/9.txt"
 
-    Scenario: Saving a duplicate quickmark (with override)
+    Scenario: Saving a duplicate quickmark (without override)
         When I run :quickmark-add http://localhost:(port)/data/numbers/10.txt ten
         And I run :quickmark-add http://localhost:(port)/data/numbers/10_2.txt ten
         And I wait for "Entering mode KeyMode.yesno (reason: question asked)" in the log
+        And I run :prompt-no
+        Then the quickmark file should contain "ten http://localhost:*/data/numbers/10.txt"
+
+    Scenario: Saving a duplicate quickmark (with override)
+        When I run :quickmark-add http://localhost:(port)/data/numbers/11.txt eleven
+        And I run :quickmark-add http://localhost:(port)/data/numbers/11_2.txt eleven
+        And I wait for "Entering mode KeyMode.yesno (reason: question asked)" in the log
         And I run :prompt-yes
-        Then the quickmark file should contain "ten http://localhost:*/data/numbers/10_2.txt"
+        Then the quickmark file should contain "eleven http://localhost:*/data/numbers/11_2.txt"
 
     Scenario: Adding a quickmark with an empty name
         When I run :quickmark-add about:blank ""
@@ -135,38 +141,38 @@ Feature: quickmarks and bookmarks
 
     Scenario: Loading a quickmark
         Given I have a fresh instance
-        When I run :quickmark-add http://localhost:(port)/data/numbers/11.txt eleven
-        And I run :quickmark-load eleven
-        Then data/numbers/11.txt should be loaded
+        When I run :quickmark-add http://localhost:(port)/data/numbers/12.txt twelve
+        And I run :quickmark-load twelve
+        Then data/numbers/12.txt should be loaded
         And the following tabs should be open:
-            - data/numbers/11.txt (active)
+            - data/numbers/12.txt (active)
 
     Scenario: Loading a quickmark in a new tab
         Given I open about:blank
         When I run :tab-only
-        And I run :quickmark-add http://localhost:(port)/data/numbers/12.txt twelve
-        And I run :quickmark-load -t twelve
-        Then data/numbers/12.txt should be loaded
+        And I run :quickmark-add http://localhost:(port)/data/numbers/13.txt thirteen
+        And I run :quickmark-load -t thirteen
+        Then data/numbers/13.txt should be loaded
         And the following tabs should be open:
             - about:blank
-            - data/numbers/12.txt (active)
+            - data/numbers/13.txt (active)
 
     Scenario: Loading a quickmark in a background tab
         Given I open about:blank
         When I run :tab-only
-        And I run :quickmark-add http://localhost:(port)/data/numbers/13.txt thirteen
-        And I run :quickmark-load -b thirteen
-        Then data/numbers/13.txt should be loaded
+        And I run :quickmark-add http://localhost:(port)/data/numbers/14.txt fourteen
+        And I run :quickmark-load -b fourteen
+        Then data/numbers/14.txt should be loaded
         And the following tabs should be open:
             - about:blank (active)
-            - data/numbers/13.txt
+            - data/numbers/14.txt
 
     Scenario: Loading a quickmark in a new window
         Given I open about:blank
         When I run :tab-only
-        And I run :quickmark-add http://localhost:(port)/data/numbers/14.txt fourteen
-        And I run :quickmark-load -w fourteen
-        And I wait until data/numbers/14.txt is loaded
+        And I run :quickmark-add http://localhost:(port)/data/numbers/15.txt fifteen
+        And I run :quickmark-load -w fifteen
+        And I wait until data/numbers/15.txt is loaded
         Then the session should look like:
             windows:
             - tabs:
@@ -178,15 +184,15 @@ Feature: quickmarks and bookmarks
               - active: true
                 history:
                 - active: true
-                  url: http://localhost:*/data/numbers/14.txt
+                  url: http://localhost:*/data/numbers/15.txt
 
     Scenario: Loading a quickmark which does not exist
         When I run :quickmark-load -b doesnotexist
         Then the error "Quickmark 'doesnotexist' does not exist!" should be shown
 
     Scenario: Loading a quickmark with -t and -b
-        When I run :quickmark-add http://localhost:(port)/data/numbers/15.txt fifteen
-        When I run :quickmark-load -t -b fifteen
+        When I run :quickmark-add http://localhost:(port)/data/numbers/16.txt sixteen
+        When I run :quickmark-load -t -b sixteen
         Then the error "Only one of -t/-b/-w can be given!" should be shown
 
     Scenario: Deleting a quickmark which does not exist
@@ -194,9 +200,9 @@ Feature: quickmarks and bookmarks
         Then the error "Quickmark 'doesnotexist' not found!" should be shown
 
     Scenario: Deleting a quickmark
-        When I run :quickmark-add http://localhost:(port)/data/numbers/16.txt sixteen
-        And I run :quickmark-del sixteen
-        Then the quickmark file should not contain "sixteen http://localhost:*/data/numbers/16.txt "
+        When I run :quickmark-add http://localhost:(port)/data/numbers/17.txt seventeen
+        And I run :quickmark-del seventeen
+        Then the quickmark file should not contain "seventeen http://localhost:*/data/numbers/17.txt "
 
     Scenario: Deleting the current page's quickmark if it has none
         When I open about:blank
@@ -204,10 +210,10 @@ Feature: quickmarks and bookmarks
         Then the error "Quickmark for 'about:blank' not found!" should be shown
 
     Scenario: Deleting the current page's quickmark
-        When I open data/numbers/17.txt
-        And I run :quickmark-add http://localhost:(port)/data/numbers/17.txt seventeen
+        When I open data/numbers/18.txt
+        And I run :quickmark-add http://localhost:(port)/data/numbers/18.txt eighteen
         And I run :quickmark-del
-        Then the quickmark file should not contain "seventeen http://localhost:*/data/numbers/17.txt"
+        Then the quickmark file should not contain "eighteen http://localhost:*/data/numbers/18.txt"
 
     Scenario: Listing quickmarks
         When I run :quickmark-add http://localhost:(port)/data/numbers/15.txt fifteen
