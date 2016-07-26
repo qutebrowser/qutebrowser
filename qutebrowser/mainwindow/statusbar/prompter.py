@@ -153,30 +153,49 @@ class Prompter(QObject):
         modeman.enter(self._win_id, mode, 'question asked')
         return True
 
+    def _display_question_yesno(self, prompt):
+        """Display a yes/no question."""
+        if self._question.default is None:
+            suffix = ""
+        elif self._question.default:
+            suffix = " (yes)"
+        else:
+            suffix = " (no)"
+        prompt.txt.setText(self._question.text + suffix)
+        prompt.lineedit.hide()
+
+    def _display_question_input(self, prompt):
+        """Display a question with an input."""
+        text = self._question.text
+        if self._question.mode == usertypes.PromptMode.download:
+            key_mode = self.KEY_MODES[self._question.mode]
+            key_config = objreg.get('key-config')
+            all_bindings = key_config.get_reverse_bindings_for(key_mode.name)
+            bindings = all_bindings.get('prompt-open-download', [])
+            if bindings:
+                text += ' ({} to open)'.format(bindings[0])
+        prompt.txt.setText(text)
+        if self._question.default:
+            prompt.lineedit.setText(self._question.default)
+        prompt.lineedit.show()
+
+    def _display_question_alert(self, prompt):
+        """Display a JS alert 'question'."""
+        prompt.txt.setText(self._question.text + ' (ok)')
+        prompt.lineedit.hide()
+
     def _display_question(self):
         """Display the question saved in self._question."""
         prompt = objreg.get('prompt', scope='window', window=self._win_id)
-        if self._question.mode == usertypes.PromptMode.yesno:
-            if self._question.default is None:
-                suffix = ""
-            elif self._question.default:
-                suffix = " (yes)"
-            else:
-                suffix = " (no)"
-            prompt.txt.setText(self._question.text + suffix)
-            prompt.lineedit.hide()
-        elif self._question.mode in [usertypes.PromptMode.text,
-                                     usertypes.PromptMode.user_pwd,
-                                     usertypes.PromptMode.download]:
-            prompt.txt.setText(self._question.text)
-            if self._question.default:
-                prompt.lineedit.setText(self._question.default)
-            prompt.lineedit.show()
-        elif self._question.mode == usertypes.PromptMode.alert:
-            prompt.txt.setText(self._question.text + ' (ok)')
-            prompt.lineedit.hide()
-        else:
-            raise ValueError("Invalid prompt mode!")
+        handlers = {
+            usertypes.PromptMode.yesno: self._display_question_yesno,
+            usertypes.PromptMode.text: self._display_question_input,
+            usertypes.PromptMode.user_pwd: self._display_question_input,
+            usertypes.PromptMode.download: self._display_question_input,
+            usertypes.PromptMode.alert: self._display_question_alert,
+        }
+        handler = handlers[self._question.mode]
+        handler(prompt)
         log.modes.debug("Question asked, focusing {!r}".format(
             prompt.lineedit))
         prompt.lineedit.setFocus()
