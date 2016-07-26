@@ -19,11 +19,11 @@
 
 """Misc. CompletionModels."""
 
-from collections import defaultdict
 from PyQt5.QtCore import Qt, QTimer, pyqtSlot
 
 from qutebrowser.browser import browsertab
 from qutebrowser.config import config, configdata
+from qutebrowser.config.parsers import keyconf
 from qutebrowser.utils import objreg, log, qtutils, utils
 from qutebrowser.commands import cmdutils
 from qutebrowser.completion.models import base
@@ -53,14 +53,8 @@ class CommandCompletionModel(base.BaseCompletionModel):
         cat = self.new_category("Commands")
 
         # map each command to its bound keys and show these in the misc column
-        keyconf = objreg.get('key-config')
-        cmd_to_keys = defaultdict(list)
-        for key, cmd in keyconf.get_bindings_for('normal').items():
-            # put special bindings last
-            if utils.is_special_key(key):
-                cmd_to_keys[cmd].append(key)
-            else:
-                cmd_to_keys[cmd].insert(0, key)
+        key_config = objreg.get('key-config')
+        cmd_to_keys = key_config.get_reverse_bindings_for('normal')
         for (name, desc) in sorted(cmdlist):
             self.new_item(cat, name, desc, ', '.join(cmd_to_keys[name]))
 
