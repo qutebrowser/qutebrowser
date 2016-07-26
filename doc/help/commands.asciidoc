@@ -936,6 +936,7 @@ How many steps to zoom out.
 |<<paste-primary,paste-primary>>|Paste the primary selection at cursor position.
 |<<prompt-accept,prompt-accept>>|Accept the current prompt.
 |<<prompt-no,prompt-no>>|Answer no to a yes/no prompt.
+|<<prompt-open-download,prompt-open-download>>|Immediately open a download.
 |<<prompt-yes,prompt-yes>>|Answer yes to a yes/no prompt.
 |<<repeat-command,repeat-command>>|Repeat the last executed command.
 |<<rl-backward-char,rl-backward-char>>|Move back a character.
@@ -1159,6 +1160,10 @@ Accept the current prompt.
 [[prompt-no]]
 === prompt-no
 Answer no to a yes/no prompt.
+
+[[prompt-open-download]]
+=== prompt-open-download
+Immediately open a download.
 
 [[prompt-yes]]
 === prompt-yes
