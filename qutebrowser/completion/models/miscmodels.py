@@ -23,8 +23,7 @@ from PyQt5.QtCore import Qt, QTimer, pyqtSlot
 
 from qutebrowser.browser import browsertab
 from qutebrowser.config import config, configdata
-from qutebrowser.config.parsers import keyconf
-from qutebrowser.utils import objreg, log, qtutils, utils
+from qutebrowser.utils import objreg, log, qtutils
 from qutebrowser.commands import cmdutils
 from qutebrowser.completion.models import base
 
