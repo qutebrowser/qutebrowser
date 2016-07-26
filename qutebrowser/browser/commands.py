@@ -1267,15 +1267,23 @@ class CommandDispatcher:
                                           " as mhtml.")
             url = urlutils.qurl_from_user_input(url)
             urlutils.raise_cmdexc_if_invalid(url)
-            download_manager.get(url, filename=dest)
+            if dest is None:
+                target = None
+            else:
+                target = usertypes.FileDownloadTarget(dest)
+            download_manager.get(url, target=target)
         elif mhtml_:
             self._download_mhtml(dest)
         else:
             # FIXME:qtwebengine have a proper API for this
             tab = self._current_widget()
             page = tab._widget.page()  # pylint: disable=protected-access
+            if dest is None:
+                target = None
+            else:
+                target = usertypes.FileDownloadTarget(dest)
             download_manager.get(self._current_url(), page=page,
-                                 filename=dest)
+                                 target=target)
 
     def _download_mhtml(self, dest=None):
         """Download the current page as an MHTML file, including all assets.

@@ -85,12 +85,12 @@ class FakeDownloadManager:
 
     """Mock browser.downloads.DownloadManager."""
 
-    def get(self, url, fileobj, **kwargs):
+    def get(self, url, target, **kwargs):
         """Return a FakeDownloadItem instance with a fileobj.
 
         The content is copied from the file the given url links to.
         """
-        download_item = FakeDownloadItem(fileobj, name=url.path())
+        download_item = FakeDownloadItem(target.fileobj, name=url.path())
         with open(url.path(), 'rb') as fake_url_file:
             shutil.copyfileobj(fake_url_file, download_item.fileobj)
         return download_item
