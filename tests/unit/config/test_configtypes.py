@@ -398,7 +398,9 @@ class FlagListSubclass(configtypes.FlagList):
 
     def __init__(self, none_ok=False):
         super().__init__(none_ok)
-        self.valid_values = configtypes.ValidValues('foo', 'bar', 'baz')
+        self.inner_type.valid_values = configtypes.ValidValues('foo',
+                                                               'bar', 'baz')
+        self.inner_type.none_ok = none_ok
 
 
 class TestFlagList:
