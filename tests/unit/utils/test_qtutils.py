@@ -481,16 +481,27 @@ class TestSavefileOpen:
         assert str(excinfo.value) in errors
         assert tmpdir.listdir() == [filename]
 
+    def test_failing_flush(self, tmpdir):
+        """Test with the file being closed before flushing."""
+        filename = tmpdir / 'foo'
+        with pytest.raises(ValueError) as excinfo:
+            with qtutils.savefile_open(str(filename), binary=True) as f:
+                f.write(b'Hello')
+                f.dev.commit()  # provoke failing flush
+
+        assert str(excinfo.value) == "IO operation on closed device!"
+        assert tmpdir.listdir() == [filename]
+
     def test_failing_commit(self, tmpdir):
         """Test with the file being closed before committing."""
         filename = tmpdir / 'foo'
         with pytest.raises(OSError) as excinfo:
             with qtutils.savefile_open(str(filename), binary=True) as f:
                 f.write(b'Hello')
-                f.dev.commit()  # provoke failing "real" commit
+                f.dev.cancelWriting()  # provoke failing commit
 
         assert str(excinfo.value) == "Commit failed!"
-        assert tmpdir.listdir() == [filename]
+        assert tmpdir.listdir() == []
 
     def test_line_endings(self, tmpdir):
         """Make sure line endings are translated correctly.
