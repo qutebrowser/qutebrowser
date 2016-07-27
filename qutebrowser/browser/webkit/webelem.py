@@ -339,6 +339,11 @@ class WebElementWrapper(collections.abc.MutableMapping):
         self._check_vanished()
         return utils.compact_text(self._elem.toOuterXml(), 500)
 
+    def outer_xml(self):
+        """Get the full HTML representation of this element."""
+        self._check_vanished()
+        return self._elem.toOuterXml()
+
     def tag_name(self):
         """Get the tag name for the current element."""
         self._check_vanished()

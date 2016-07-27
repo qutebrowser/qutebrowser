@@ -547,7 +547,7 @@ class HintManager(QObject):
         env = {
             'QUTE_MODE': 'hints',
             'QUTE_SELECTED_TEXT': str(elem),
-            'QUTE_SELECTED_HTML': elem.toOuterXml(),
+            'QUTE_SELECTED_HTML': elem.outer_xml(),
         }
         url = self._resolve_url(elem, context.baseurl)
         if url is not None:
