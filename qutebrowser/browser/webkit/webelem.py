@@ -168,6 +168,18 @@ class WebElementWrapper(collections.abc.MutableMapping):
         self._check_vanished()
         return self._elem.styleProperty(name, strategy)
 
+    def text(self, *, use_js=False):
+        """Get the plain text content for this element.
+
+        Args:
+            use_js: Whether to use javascript if the element isn't content-editable.
+        """
+        self._check_vanished()
+        if self._elem.is_content_editable() or not use_js:
+            return self._elem.toPlainText()
+        else:
+            return self._elem.evaluateJavaScript('this.value')
+
     def set_text(self, text, *, use_js=False):
         """Set the given plain text.
 
@@ -331,6 +343,13 @@ class WebElementWrapper(collections.abc.MutableMapping):
         """Get the tag name for the current element."""
         self._check_vanished()
         return self._elem.tagName()
+
+    def run_js_async(self, code, callback=None):
+        """Run the given JS snippet async on the element."""
+        self._check_vanished()
+        result = self._elem.evaluateJavaScript(code)
+        if callback is not None:
+            callback(result)
 
     def rect_on_view(self, *, elem_geometry=None, adjust_zoom=True, no_js=False):
         """Get the geometry of the element relative to the webview.

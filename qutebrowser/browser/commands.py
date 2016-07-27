@@ -1433,10 +1433,7 @@ class CommandDispatcher:
             raise cmdexc.CommandError("No element focused!")
         if not elem.is_editable(strict=True):
             raise cmdexc.CommandError("Focused element is not editable!")
-        if elem.is_content_editable():
-            text = str(elem)
-        else:
-            text = elem.evaluateJavaScript('this.value')
+        text = elem.text(use_js=True)
         ed = editor.ExternalEditor(self._win_id, self._tabbed_browser)
         ed.editing_finished.connect(functools.partial(
             self.on_editing_finished, elem))
@@ -1478,7 +1475,7 @@ class CommandDispatcher:
 
         log.misc.debug("Pasting primary selection into element {}".format(
             elem.debug_text()))
-        elem.evaluateJavaScript("""
+        elem.run_js_async("""
             var sel = '{}';
             var event = document.createEvent('TextEvent');
             event.initTextEvent('textInput', true, true, null, sel);
