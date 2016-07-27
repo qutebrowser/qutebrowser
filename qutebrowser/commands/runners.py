@@ -119,6 +119,9 @@ class CommandRunner(QObject):
         Yields:
             ParseResult tuples.
         """
+        if not text:
+            raise cmdexc.NoSuchCommandError("No command given")
+
         if aliases:
             text = self._get_alias(text, text)
 
