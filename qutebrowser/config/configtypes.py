@@ -303,9 +303,10 @@ class List(BaseType):
 
     """Base class for a (string-)list setting."""
 
-    def __init__(self, inner_type, none_ok=False):
+    def __init__(self, inner_type, none_ok=False, length=None):
         super().__init__(none_ok)
         self.inner_type = inner_type
+        self.length = length
 
     def transform(self, value):
         if not value:
@@ -318,7 +319,11 @@ class List(BaseType):
         self._basic_validation(value)
         if not value:
             return
-        for val in value.split(','):
+        vals = value.split(',')
+        if self.length is not None and len(vals) != self.length:
+            raise configexc.ValidationError(value, "Exactly {} values need to "
+                                            "be set!".format(self.length))
+        for val in vals:
             self.inner_type.validate(val.strip())
 
 
@@ -335,23 +340,6 @@ class BaseList(List):
             super().validate(value)
         else:
             self._basic_validation(value)
-
-
-class LengthList(List):
-
-    """Base class for a list with length checking."""
-
-    def __init__(self, inner_type, length=None, none_ok=False):
-        super().__init__(inner_type, none_ok)
-        self.length = length
-
-    def validate(self, value):
-        super().validate(value)
-        if not value:
-            return
-        if self.length is not None and value.count(',')+1 != self.length:
-            raise configexc.ValidationError(value, "Exactly {} values need to "
-                                            "be set!".format(self.length))
 
 
 class FlagList(BaseList):
@@ -1135,7 +1123,7 @@ PaddingValues = collections.namedtuple('PaddingValues', ['top', 'bottom',
                                                          'left', 'right'])
 
 
-class Padding(LengthList):
+class Padding(List):
 
     """Setting for paddings around elements."""
 

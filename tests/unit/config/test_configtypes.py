@@ -361,8 +361,9 @@ class ListSubclass(configtypes.List):
     Valid values are 'foo', 'bar' and 'baz'.
     """
 
-    def __init__(self, none_ok_inner=False, none_ok_outer=False):
-        super().__init__(configtypes.BaseType(none_ok_inner), none_ok_outer)
+    def __init__(self, none_ok_inner=False, none_ok_outer=False, length=None):
+        super().__init__(configtypes.BaseType(none_ok_inner),
+                         none_ok=none_ok_outer, length=length)
         self.inner_type.valid_values = configtypes.ValidValues('foo',
                                                                'bar', 'baz')
 
@@ -375,8 +376,7 @@ class TestList:
     def klass(self):
         return ListSubclass
 
-    @pytest.mark.parametrize('val',
-        ['', 'foo', 'foo,bar', 'foo, bar'])
+    @pytest.mark.parametrize('val', ['', 'foo', 'foo,bar', 'foo, bar'])
     def test_validate_valid(self, klass, val):
         klass(none_ok_outer=True).validate(val)
 
@@ -388,7 +388,17 @@ class TestList:
     def test_invalid_empty_value_none_ok(self, klass):
         with pytest.raises(configexc.ValidationError):
             klass(none_ok_outer=True).validate('foo,,bar')
+        with pytest.raises(configexc.ValidationError):
             klass(none_ok_inner=True).validate('')
+
+    @pytest.mark.parametrize('val', ['', 'foo,bar', 'foo, bar'])
+    def test_validate_length(self, klass, val):
+        klass(none_ok_outer=True, length=2).validate(val)
+
+    @pytest.mark.parametrize('val', ['bar', 'foo,bar', 'foo,bar,foo,bar'])
+    def test_wrong_length(self, klass, val):
+        with pytest.raises(configexc.ValidationError):
+            klass(length=3).validate(val)
 
     @pytest.mark.parametrize('val, expected', [
         ('foo', ['foo']),
@@ -398,47 +408,6 @@ class TestList:
     ])
     def test_transform(self, klass, val, expected):
         assert klass().transform(val) == expected
-
-
-class LengthListSubclass(configtypes.LengthList):
-
-    """A subclass of LengthList which we use in tests."""
-
-    def __init__(self, length=None, none_ok_inner=False, none_ok_outer=False):
-        super().__init__(configtypes.Int(none_ok=none_ok_inner),
-                         length=length, none_ok=none_ok_outer)
-
-
-class TestLengthList:
-
-    """Test List with length."""
-
-    @pytest.fixture
-    def klass(self):
-        return LengthListSubclass
-
-    @pytest.mark.parametrize('val', ['', '0,1,2', '-5,4,2'])
-    def test_validate_valid(self, klass, val):
-        klass(none_ok_outer=True, length=3).validate(val)
-
-    @pytest.mark.parametrize('val', ['', '1,,4'])
-    def test_validate_invalid(self, klass, val):
-        with pytest.raises(configexc.ValidationError):
-            klass().validate(val)
-
-    def test_invalid_empty_value_none_ok(self, klass):
-        with pytest.raises(configexc.ValidationError):
-            klass(none_ok_outer=True).validate('1,,4')
-            klass(none_ok_inner=True).validate('')
-
-    @pytest.mark.parametrize('val', ['-8', '0,-1', '1,2,3,4,5'])
-    def test_no_length_given(self, klass, val):
-        klass().validate(val)
-
-    @pytest.mark.parametrize('val', ['-8', '0,-1', '1,2,3,4,5'])
-    def test_wrong_length(self, klass, val):
-        with pytest.raises(configexc.ValidationError):
-            klass(length=3).validate(val)
 
 
 class FlagListSubclass(configtypes.FlagList):
