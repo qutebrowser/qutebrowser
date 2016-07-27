@@ -1452,7 +1452,7 @@ class CommandDispatcher:
             text: The new text to insert.
         """
         try:
-            elem.set_text(text)
+            elem.set_text(text, use_js=True)
         except webelem.IsNullError:
             raise cmdexc.CommandError("Element vanished while editing!")
 

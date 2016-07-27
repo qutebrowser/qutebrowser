@@ -168,10 +168,14 @@ class WebElementWrapper(collections.abc.MutableMapping):
         self._check_vanished()
         return self._elem.styleProperty(name, strategy)
 
-    def set_text(self, text):
-        """Set the given plain text."""
+    def set_text(self, text, *, use_js=False):
+        """Set the given plain text.
+
+        Args:
+            use_js: Whether to use javascript if the element isn't content-editable.
+        """
         self._check_vanished()
-        if self.is_content_editable():
+        if self.is_content_editable() or not use_js:
             log.misc.debug("Filling element {} via set_text.".format(
                 self.debug_text()))
             self._elem.setPlainText(text)
