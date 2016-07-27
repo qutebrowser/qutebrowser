@@ -170,8 +170,11 @@ def fix_harfbuzz(args):
     from qutebrowser.utils import log
     from PyQt5.QtCore import qVersion
     if 'PyQt5.QtWidgets' in sys.modules:
-        log.init.warning("Harfbuzz fix attempted but QtWidgets is already "
-                         "imported!")
+        msg = "Harfbuzz fix attempted but QtWidgets is already imported!"
+        if getattr(sys, 'frozen', False):
+            log.init.debug(msg)
+        else:
+            log.init.warning(msg)
     if sys.platform.startswith('linux') and args.harfbuzz == 'auto':
         if qVersion() == '5.3.0':
             log.init.debug("Using new harfbuzz engine (auto)")
