@@ -175,7 +175,7 @@ class WebElementWrapper(collections.abc.MutableMapping):
             use_js: Whether to use javascript if the element isn't content-editable.
         """
         self._check_vanished()
-        if self._elem.is_content_editable() or not use_js:
+        if self.is_content_editable() or not use_js:
             return self._elem.toPlainText()
         else:
             return self._elem.evaluateJavaScript('this.value')
