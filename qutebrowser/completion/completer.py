@@ -19,7 +19,7 @@
 
 """Completer attached to a CompletionView."""
 
-from PyQt5.QtCore import pyqtSignal, pyqtSlot, QObject, QTimer
+from PyQt5.QtCore import pyqtSignal, pyqtSlot, QObject, QTimer, QItemSelection
 
 from qutebrowser.config import config
 from qutebrowser.commands import cmdutils, runners
@@ -249,7 +249,8 @@ class Completer(QObject):
         else:
             return s
 
-    def selection_changed(self, selected, _deselected):
+    @pyqtSlot(QItemSelection, QItemSelection)
+    def on_selection_changed(self, selected, _deselected):
         """Change the completed part if a new item was selected.
 
         Called from the views selectionChanged method.

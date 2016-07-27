@@ -24,7 +24,8 @@ subclasses to provide completions.
 """
 
 from PyQt5.QtWidgets import QStyle, QTreeView, QSizePolicy
-from PyQt5.QtCore import pyqtSlot, pyqtSignal, Qt, QItemSelectionModel
+from PyQt5.QtCore import (pyqtSlot, pyqtSignal, Qt, QItemSelectionModel,
+                          QItemSelection)
 
 from qutebrowser.config import config, style
 from qutebrowser.completion import completiondelegate, completer
@@ -50,6 +51,7 @@ class CompletionView(QTreeView):
 
     Signals:
         resize_completion: Emitted when the completion should be resized.
+        selection_changed: Emitted when the completion item selection changes.
     """
 
     # Drawing the item foreground will be done by CompletionItemDelegate, so we
@@ -102,16 +104,11 @@ class CompletionView(QTreeView):
     """
 
     resize_completion = pyqtSignal()
+    selection_changed = pyqtSignal(QItemSelection, QItemSelection)
 
     def __init__(self, win_id, parent=None):
         super().__init__(parent)
         self._win_id = win_id
-        objreg.register('completion', self, scope='window', window=win_id)
-        cmd = objreg.get('status-command', scope='window', window=win_id)
-        completer_obj = completer.Completer(cmd, win_id, self)
-        completer_obj.next_prev_item.connect(self.on_next_prev_item)
-        objreg.register('completer', completer_obj, scope='window',
-                        window=win_id)
         self.enabled = config.get('completion', 'show')
         objreg.get('config').changed.connect(self.set_enabled)
         # FIXME handle new aliases.
@@ -262,9 +259,7 @@ class CompletionView(QTreeView):
     def selectionChanged(self, selected, deselected):
         """Extend selectionChanged to call completers selection_changed."""
         super().selectionChanged(selected, deselected)
-        completer_obj = objreg.get('completer', scope='window',
-                                   window=self._win_id)
-        completer_obj.selection_changed(selected, deselected)
+        self.selection_changed.emit(selected, deselected)
 
     def resizeEvent(self, e):
         """Extend resizeEvent to adjust column size."""

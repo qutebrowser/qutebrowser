@@ -29,7 +29,7 @@ from qutebrowser.completion.models import base, sortfilter
 from qutebrowser.utils import objreg
 
 
-@pytest.yield_fixture
+@pytest.fixture
 def completionview(qtbot, status_command_stub, config_stub, win_registry,
                    mocker):
     """Create the CompletionView used for testing."""
@@ -65,10 +65,7 @@ def completionview(qtbot, status_command_stub, config_stub, win_registry,
     mocker.patch('qutebrowser.completion.completer.Completer', autospec=True)
     view = completionwidget.CompletionView(win_id=0)
     qtbot.addWidget(view)
-    yield view
-    # the constructor registers both 'completion' (itself) and 'completer'
-    objreg.delete('completion', scope='window', window=0)
-    objreg.delete('completer', scope='window', window=0)
+    return view
 
 
 def test_set_model(completionview):

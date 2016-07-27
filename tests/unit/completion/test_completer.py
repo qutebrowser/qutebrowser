@@ -193,10 +193,10 @@ def test_completion_item_next(completer_obj, status_command_stub,
     (':foo |', '', True, 1, ":foo '' |"),
     (':foo |', None, True, 1, ":foo |"),
 ])
-def test_selection_changed(before, newtxt, count, quick_complete, after,
+def test_on_selection_changed(before, newtxt, count, quick_complete, after,
                            completer_obj, status_command_stub,
                            completion_widget_stub, config_stub):
-    """Test that change_completed_part modifies the cmd text properly.
+    """Test that on_selection_changed modifies the cmd text properly.
 
     The | represents the current cursor position in the cmd prompt.
     If quick-complete is True and there is only 1 completion (count == 1),
@@ -213,6 +213,6 @@ def test_selection_changed(before, newtxt, count, quick_complete, after,
     _set_cmd_prompt(status_command_stub, before)
     # schedule_completion_update is needed to pick up the cursor position
     completer_obj.schedule_completion_update()
-    completer_obj.selection_changed(selection, None)
+    completer_obj.on_selection_changed(selection, None)
     model.data.assert_called_with(indexes[0])
     _validate_cmd_prompt(status_command_stub, after)
