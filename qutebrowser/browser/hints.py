@@ -64,8 +64,6 @@ class HintContext:
 
     Attributes:
         frames: The QWebFrames to use.
-        destroyed_frames: id()'s of QWebFrames which have been destroyed.
-                          (Workaround for https://github.com/The-Compiler/qutebrowser/issues/152)
         all_elems: A list of all (elem, label) namedtuples ever created.
         elems: A mapping from key strings to (elem, label) namedtuples.
                May contain less elements than `all_elems` due to filtering.
@@ -95,7 +93,6 @@ class HintContext:
         self.to_follow = None
         self.rapid = False
         self.frames = []
-        self.destroyed_frames = []
         self.args = []
         self.mainframe = None
         self.tab = None
@@ -179,22 +176,6 @@ class HintManager(QObject):
                 elem.label.removeFromDocument()
             except webelem.IsNullError:
                 pass
-        for f in self._context.frames:
-            log.hints.debug("Disconnecting frame {}".format(f))
-            if id(f) in self._context.destroyed_frames:
-                # WORKAROUND for
-                # https://github.com/The-Compiler/qutebrowser/issues/152
-                log.hints.debug("Frame has been destroyed, ignoring.")
-                continue
-            try:
-                f.contentsSizeChanged.disconnect(self.on_contents_size_changed)
-            except TypeError:
-                # It seems we can get this here:
-                #   TypeError: disconnect() failed between
-                #   'contentsSizeChanged' and 'on_contents_size_changed'
-                # See # https://github.com/The-Compiler/qutebrowser/issues/263
-                pass
-            log.hints.debug("Disconnected.")
         text = self._get_text()
         message_bridge = objreg.get('message-bridge', scope='window',
                                     window=self._win_id)
@@ -656,12 +637,6 @@ class HintManager(QObject):
                     log.hints.vdebug("No match on '{}'!".format(text))
         return None
 
-    def _connect_frame_signals(self):
-        """Connect the contentsSizeChanged signals to all frames."""
-        for f in self._context.frames:
-            log.hints.debug("Connecting frame {}".format(f))
-            f.contentsSizeChanged.connect(self.on_contents_size_changed)
-
     def _check_args(self, target, *args):
         """Check the arguments passed to start() and raise if they're wrong.
 
@@ -847,11 +822,6 @@ class HintManager(QObject):
         except qtutils.QtValueError:
             raise cmdexc.CommandError("No URL set for this page yet!")
         self._context.frames = webelem.get_child_frames(mainframe)
-        for frame in self._context.frames:
-            # WORKAROUND for
-            # https://github.com/The-Compiler/qutebrowser/issues/152
-            frame.destroyed.connect(functools.partial(
-                self._context.destroyed_frames.append, id(frame)))
         self._context.args = args
         self._context.mainframe = mainframe
         self._context.group = group

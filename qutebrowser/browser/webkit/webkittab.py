@@ -25,7 +25,7 @@ import xml.etree.ElementTree
 
 from PyQt5.QtCore import pyqtSlot, Qt, QEvent, QUrl, QPoint, QTimer
 from PyQt5.QtGui import QKeyEvent
-from PyQt5.QtWebKitWidgets import QWebPage
+from PyQt5.QtWebKitWidgets import QWebPage, QWebFrame
 from PyQt5.QtWebKit import QWebSettings
 from PyQt5.QtPrintSupport import QPrinter
 
@@ -571,6 +571,14 @@ class WebKitTab(browsertab.AbstractTab):
     def _on_webkit_icon_changed(self):
         """Emit iconChanged with a QIcon like QWebEngineView does."""
         self.icon_changed.emit(self._widget.icon())
+
+    @pyqtSlot(QWebFrame)
+    def _on_frame_created(self, frame):
+        """Connect the contentsSizeChanged signal of each frame."""
+        # FIXME:qtwebengine those could theoretically regress:
+        # https://github.com/The-Compiler/qutebrowser/issues/152
+        # https://github.com/The-Compiler/qutebrowser/issues/263
+        frame.contentsSizeChanged.connect(self.contents_size_changed)
 
     def _connect_signals(self):
         view = self._widget

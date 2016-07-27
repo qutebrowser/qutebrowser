@@ -21,7 +21,7 @@
 
 import itertools
 
-from PyQt5.QtCore import pyqtSignal, pyqtSlot, QUrl, QObject, QPoint
+from PyQt5.QtCore import pyqtSignal, pyqtSlot, QUrl, QObject, QPoint, QSizeF
 from PyQt5.QtGui import QIcon
 from PyQt5.QtWidgets import QWidget, QLayout
 
@@ -482,6 +482,7 @@ class AbstractTab(QWidget):
     new_tab_requested = pyqtSignal(QUrl)
     url_changed = pyqtSignal(QUrl)
     shutting_down = pyqtSignal()
+    contents_size_changed = pyqtSignal(QSizeF)
 
     def __init__(self, win_id, parent=None):
         self.win_id = win_id
