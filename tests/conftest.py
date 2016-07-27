@@ -133,13 +133,6 @@ def qapp(qapp):
     return qapp
 
 
-@pytest.yield_fixture(autouse=True)
-def fail_tests_on_warnings():
-    warnings.simplefilter('error')
-    yield
-    warnings.resetwarnings()
-
-
 def pytest_addoption(parser):
     parser.addoption('--qute-delay', action='store', default=0, type=int,
                      help="Delay between qutebrowser commands.")
