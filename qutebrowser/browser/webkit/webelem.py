@@ -327,6 +327,11 @@ class WebElementWrapper(collections.abc.MutableMapping):
         self._check_vanished()
         return utils.compact_text(self._elem.toOuterXml(), 500)
 
+    def tag_name(self):
+        """Get the tag name for the current element."""
+        self._check_vanished()
+        return self._elem.tagName()
+
     def rect_on_view(self, *, elem_geometry=None, adjust_zoom=True, no_js=False):
         """Get the geometry of the element relative to the webview.
 
