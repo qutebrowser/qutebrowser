@@ -268,14 +268,6 @@ def app_stub(stubs):
 
 
 @pytest.yield_fixture
-def completion_widget_stub(win_registry):
-    stub = unittest.mock.Mock()
-    objreg.register('completion', stub, scope='window', window=0)
-    yield stub
-    objreg.delete('completion', scope='window', window=0)
-
-
-@pytest.yield_fixture
 def status_command_stub(stubs, qtbot, win_registry):
     """Fixture which provides a fake status-command object."""
     cmd = stubs.StatusBarCommandStub()

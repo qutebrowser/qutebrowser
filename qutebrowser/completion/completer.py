@@ -125,8 +125,7 @@ class Completer(QObject):
 
     def _model(self):
         """Convenience method to get the current completion model."""
-        completion = objreg.get('completion', scope='window',
-                                window=self._win_id)
+        completion = self.parent()
         return completion.model()
 
     def _get_completion_model(self, completion, parts, cursor_part):
@@ -315,8 +314,7 @@ class Completer(QObject):
             self._ignore_change = False
             return
 
-        completion = objreg.get('completion', scope='window',
-                                window=self._win_id)
+        completion = self.parent()
 
         if self._cmd.prefix() != ':':
             # This is a search or gibberish, so we don't need to complete

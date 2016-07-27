@@ -22,6 +22,7 @@
 import unittest.mock
 
 import pytest
+from PyQt5.QtCore import QObject
 from PyQt5.QtGui import QStandardItemModel
 
 from qutebrowser.completion import completer
@@ -39,13 +40,33 @@ class FakeCompletionModel(QStandardItemModel):
         self.kind = kind
 
 
+class CompletionWidgetStub(QObject):
+
+    """Stub for the CompletionView."""
+
+    def __init__(self, parent=None):
+        super().__init__(parent)
+        self.hide = unittest.mock.Mock()
+        self.show = unittest.mock.Mock()
+        self.set_pattern = unittest.mock.Mock()
+        self.model = unittest.mock.Mock()
+        self.set_model = unittest.mock.Mock()
+        self.enabled = unittest.mock.Mock()
+
+
 @pytest.fixture
-def completer_obj(qtbot, status_command_stub, config_stub, monkeypatch, stubs):
+def completion_widget_stub():
+    return CompletionWidgetStub()
+
+
+@pytest.fixture
+def completer_obj(qtbot, status_command_stub, config_stub, monkeypatch, stubs,
+                  completion_widget_stub):
     """Create the completer used for testing."""
     monkeypatch.setattr('qutebrowser.completion.completer.QTimer',
         stubs.InstaTimer)
     config_stub.data = {'completion': {'auto-open': False}}
-    return completer.Completer(status_command_stub, 0)
+    return completer.Completer(status_command_stub, 0, completion_widget_stub)
 
 
 @pytest.fixture(autouse=True)
@@ -166,8 +187,8 @@ def test_update_completion(txt, expected, status_command_stub, completer_obj,
         assert arg.srcmodel.kind == expected
 
 
-def test_completion_item_prev(completer_obj, status_command_stub,
-                              completion_widget_stub, config_stub, qtbot):
+def test_completion_item_prev(completer_obj, status_command_stub, config_stub,
+                              qtbot):
     """Test that completion_item_prev emits next_prev_item."""
     status_command_stub.setText(':')
     with qtbot.waitSignal(completer_obj.next_prev_item) as blocker:
@@ -175,8 +196,8 @@ def test_completion_item_prev(completer_obj, status_command_stub,
     assert blocker.args == [True]
 
 
-def test_completion_item_next(completer_obj, status_command_stub,
-                              completion_widget_stub, config_stub, qtbot):
+def test_completion_item_next(completer_obj, status_command_stub, config_stub,
+                              qtbot):
     """Test that completion_item_next emits next_prev_item."""
     status_command_stub.setText(':')
     with qtbot.waitSignal(completer_obj.next_prev_item) as blocker:
@@ -209,7 +230,7 @@ def test_on_selection_changed(before, newtxt, count, quick_complete, after,
     indexes = [unittest.mock.Mock()]
     selection = unittest.mock.Mock()
     selection.indexes = unittest.mock.Mock(return_value=indexes)
-    completion_widget_stub.model = unittest.mock.Mock(return_value=model)
+    completion_widget_stub.model.return_value = model
     _set_cmd_prompt(status_command_stub, before)
     # schedule_completion_update is needed to pick up the cursor position
     completer_obj.schedule_completion_update()
