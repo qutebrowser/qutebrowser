@@ -299,7 +299,7 @@ class UniqueCharString(String):
                 value, "String contains duplicate values!")
 
 
-class GenList(BaseType):
+class List(BaseType):
 
     """Base class for a (string-)list setting."""
 
@@ -311,19 +311,20 @@ class GenList(BaseType):
         if not value:
             return None
         else:
-            return [self.inner_type.transform(v) for v in value.split(',')]
+            return [self.inner_type.transform(v.strip())
+                    for v in value.split(',')]
 
     def validate(self, value):
         self._basic_validation(value)
         if not value:
             return
         for val in value.split(','):
-            self.inner_type.validate(val)
+            self.inner_type.validate(val.strip())
 
 
-class List(GenList):
+class BaseList(List):
 
-    """Base class for a (string-)list setting."""
+    """Base class for a list using BaseType."""
 
     def __init__(self, none_ok=False, valid_values=None):
         super().__init__(BaseType(), none_ok)
@@ -334,13 +335,9 @@ class List(GenList):
             super().validate(value)
         else:
             self._basic_validation(value)
-        if value:
-            vals = super().transform(value)
-            if None in vals:
-                raise configexc.ValidationError(value, "may not be empty!")
 
 
-class FlagList(GenList):
+class FlagList(BaseList):
 
     """Base class for a list setting that contains one or more flags.
 
@@ -348,17 +345,10 @@ class FlagList(GenList):
     self.valid_values (if not empty).
     """
 
-    def __init__(self, none_ok=False, valid_values=None):
-        super().__init__(BaseType(), none_ok)
-        self.inner_type.valid_values = valid_values
-
     combinable_values = None
 
     def validate(self, value):
-        if self.inner_type.valid_values is not None:
-            super().validate(value)
-        else:
-            self._basic_validation(value)
+        super().validate(value)
         if not value:
             return
         vals = super().transform(value)
@@ -471,7 +461,7 @@ class Int(BaseType):
                                             "smaller!".format(self.maxval))
 
 
-class IntList(GenList):
+class IntList(List):
 
     """Base class for an int-list setting."""
 
@@ -560,7 +550,7 @@ class Perc(BaseType):
                                             "less!".format(self.maxval))
 
 
-class PercList(GenList):
+class PercList(List):
 
     """Base class for a list of percentages.
 
@@ -855,7 +845,7 @@ class Regex(BaseType):
             return re.compile(value, self.flags)
 
 
-class RegexList(GenList):
+class RegexList(List):
 
     """A list of regexes."""
 
@@ -1009,7 +999,7 @@ class WebKitBytes(BaseType):
         return int(val) * multiplicator
 
 
-class WebKitBytesList(GenList):
+class WebKitBytesList(List):
 
     """A size with an optional suffix.
 
@@ -1361,7 +1351,7 @@ class Url(BaseType):
                                             "{}".format(val.errorString()))
 
 
-class UrlList(GenList):
+class UrlList(List):
 
     """A list of URLs."""
 

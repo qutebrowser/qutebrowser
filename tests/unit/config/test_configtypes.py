@@ -354,18 +354,31 @@ class TestString:
         assert klass(valid_values=valid_values).complete() == expected
 
 
+class ListSubclass(configtypes.List):
+
+    """A subclass of List which we use in tests. Similar to FlagList.
+
+    Valid values are 'foo', 'bar' and 'baz'.
+    """
+
+    def __init__(self, none_ok_inner=False, none_ok_outer=False):
+        super().__init__(configtypes.BaseType(none_ok_inner), none_ok_outer)
+        self.inner_type.valid_values = configtypes.ValidValues('foo',
+                                                               'bar', 'baz')
+
+
 class TestList:
 
     """Test List."""
 
     @pytest.fixture
     def klass(self):
-        return configtypes.List
+        return ListSubclass
 
     @pytest.mark.parametrize('val',
         ['', 'foo', 'foo,bar', 'foo, bar'])
     def test_validate_valid(self, klass, val):
-        klass(none_ok=True).validate(val)
+        klass(none_ok_outer=True).validate(val)
 
     @pytest.mark.parametrize('val', ['', 'foo,,bar'])
     def test_validate_invalid(self, klass, val):
@@ -374,14 +387,14 @@ class TestList:
 
     def test_invalid_empty_value_none_ok(self, klass):
         with pytest.raises(configexc.ValidationError):
-            klass(none_ok=True).validate('foo,,bar')
+            klass(none_ok_outer=True).validate('foo,,bar')
+            klass(none_ok_inner=True).validate('')
 
     @pytest.mark.parametrize('val, expected', [
         ('foo', ['foo']),
         ('foo,bar,baz', ['foo', 'bar', 'baz']),
         ('', None),
-        # Not implemented yet
-        pytest.mark.xfail(('foo, bar', ['foo', 'bar'])),
+        ('foo, bar', ['foo', 'bar'])
     ])
     def test_transform(self, klass, val, expected):
         assert klass().transform(val) == expected
