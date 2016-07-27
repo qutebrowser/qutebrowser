@@ -152,8 +152,8 @@ Contributors, sorted by the number of commits in descending order:
 * Raphael Pierzina
 * Joel Torstensson
 * Jan Verbeek
-* Tarcisio Fedrizzi
 * Patric Schmitz
+* Tarcisio Fedrizzi
 * Claude
 * Corentin Julé
 * meles5
