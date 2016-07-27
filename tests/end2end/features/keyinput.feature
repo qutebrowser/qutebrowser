@@ -80,7 +80,7 @@ Feature: Keyboard input
     Scenario: Unbinding a built-in binding
         When I run :unbind o
         And I press the key "o"
-        Then "No binding found for o." should be logged
+        Then "Giving up with 'o', no matches" should be logged
         # maybe check it's unbound in the config?
 
     Scenario: Binding and unbinding a special keychain with differing case (issue 1544)

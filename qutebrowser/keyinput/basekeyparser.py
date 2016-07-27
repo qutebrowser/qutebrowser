@@ -129,7 +129,7 @@ class BaseKeyParser(QObject):
         try:
             cmdstr = self.special_bindings[binding]
         except KeyError:
-            self._debug_log("No binding found for {}.".format(binding))
+            self._debug_log("No special binding found for {}.".format(binding))
             return False
         self.execute(cmdstr, self.Type.special)
         return True
