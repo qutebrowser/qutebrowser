@@ -1813,6 +1813,34 @@ class TestEncoding:
         assert klass().transform(val) == expected
 
 
+class TestUrl:
+
+    """Test Url."""
+
+    TESTS = {
+        'http://qutebrowser.org/': QUrl('http://qutebrowser.org/'),
+        'http://heise.de/': QUrl('http://heise.de/'),
+        '': None,
+    }
+
+    @pytest.fixture
+    def klass(self):
+        return configtypes.Url
+
+    @pytest.mark.parametrize('val', sorted(TESTS))
+    def test_validate_valid(self, klass, val):
+        klass(none_ok=True).validate(val)
+
+    @pytest.mark.parametrize('val', ['', '+'])
+    def test_validate_invalid(self, klass, val):
+        with pytest.raises(configexc.ValidationError):
+            klass().validate(val)
+
+    @pytest.mark.parametrize('val, expected', sorted(TESTS.items()))
+    def test_transform_single(self, klass, val, expected):
+        assert klass().transform(val) == expected
+
+
 class TestSessionName:
 
     """Test SessionName."""

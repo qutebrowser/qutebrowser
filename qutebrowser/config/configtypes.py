@@ -1285,9 +1285,7 @@ class Url(BaseType):
         if not value:
             return
         val = self.transform(value)
-        if val is None:
-            raise configexc.ValidationError(value, "URL may not be empty!")
-        elif not val.isValid():
+        if not val.isValid():
             raise configexc.ValidationError(value, "invalid URL - "
                                             "{}".format(val.errorString()))
 
