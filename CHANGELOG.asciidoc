@@ -14,6 +14,17 @@ This project adheres to http://semver.org/[Semantic Versioning].
 // `Fixed` for any bug fixes.
 // `Security` to invite users to upgrade in case of vulnerabilities.
 
+v0.8.1
+------
+
+Fixed
+~~~~~
+
+- Fix crash when pressing enter without a command
+- Adjust error message to point out QtWebEngine is unsupported with the OS
+  X .app currently.
+- Hide Harfbuzz warning with the OS X .app
+
 v0.8.0
 ------
 
