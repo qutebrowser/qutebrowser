@@ -254,7 +254,7 @@ def data(readonly=False):
 
         ('ui', sect.KeyValue(
             ('zoom-levels',
-             SettingValue(typ.PercList(minval=0),
+             SettingValue(typ.List(typ.Perc(minval=0)),
                           '25%,33%,50%,67%,75%,90%,100%,110%,125%,150%,175%,'
                           '200%,250%,300%,400%,500%'),
              "The available zoom levels, separated by commas."),
@@ -826,7 +826,7 @@ def data(readonly=False):
 
             ('host-block-lists',
              SettingValue(
-                 typ.UrlList(none_ok=True),
+                 typ.List(typ.Url(), none_ok=True),
                  'http://www.malwaredomainlist.com/hostslist/hosts.txt,'
                  'http://someonewhocares.org/hosts/hosts,'
                  'http://winhelp2002.mvps.org/hosts.zip,'
@@ -916,13 +916,13 @@ def data(readonly=False):
              "auto-follow."),
 
             ('next-regexes',
-             SettingValue(typ.RegexList(flags=re.IGNORECASE),
+             SettingValue(typ.List(typ.Regex(flags=re.IGNORECASE)),
                           r'\bnext\b,\bmore\b,\bnewer\b,\b[>→≫]\b,\b(>>|»)\b,'
                           r'\bcontinue\b'),
              "A comma-separated list of regexes to use for 'next' links."),
 
             ('prev-regexes',
-             SettingValue(typ.RegexList(flags=re.IGNORECASE),
+             SettingValue(typ.List(typ.Regex(flags=re.IGNORECASE)),
                           r'\bprev(ious)?\b,\bback\b,\bolder\b,\b[<←≪]\b,'
                           r'\b(<<|«)\b'),
              "A comma-separated list of regexes to use for 'prev' links."),

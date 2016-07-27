@@ -595,37 +595,6 @@ class TestInt:
         assert klass(none_ok=True).transform(val) == expected
 
 
-class TestIntList:
-
-    """Test IntList."""
-
-    @pytest.fixture
-    def klass(self):
-        return configtypes.IntList
-
-    @pytest.mark.parametrize('val', ['', '1,2', '1', '23,1337'])
-    def test_validate_valid(self, klass, val):
-        klass(none_ok=True).validate(val)
-
-    @pytest.mark.parametrize('val', ['', '1,,2', '23,foo,1337'])
-    def test_validate_invalid(self, klass, val):
-        with pytest.raises(configexc.ValidationError):
-            klass().validate(val)
-
-    def test_invalid_empty_value_none_ok(self, klass):
-        klass(none_ok=True).validate('1,,2')
-
-    @pytest.mark.parametrize('val, expected', [
-        ('1', [1]),
-        ('23,42', [23, 42]),
-        ('', None),
-        ('1,,2', [1, None, 2]),
-        ('23, 42', [23, 42]),
-    ])
-    def test_transform(self, klass, val, expected):
-        assert klass().transform(val) == expected
-
-
 class TestFloat:
 
     """Test Float."""
@@ -713,52 +682,6 @@ class TestPerc:
     @pytest.mark.parametrize('val, expected', [
         ('', None),
         ('1337%', 1337),
-    ])
-    def test_transform(self, klass, val, expected):
-        assert klass().transform(val) == expected
-
-
-class TestPercList:
-
-    """Test PercList."""
-
-    @pytest.fixture
-    def klass(self):
-        return configtypes.PercList
-
-    def test_minval_gt_maxval(self, klass):
-        with pytest.raises(ValueError):
-            klass(minval=2, maxval=1)
-
-    @pytest.mark.parametrize('kwargs, val', [
-        ({}, '23%,42%,1337%'),
-        ({'minval': 2}, '2%,3%'),
-        ({'maxval': 2}, '1%,2%'),
-        ({'minval': 2, 'maxval': 3}, '2%,3%'),
-        ({'none_ok': True}, '42%,,23%'),
-        ({'none_ok': True}, ''),
-    ])
-    def test_validate_valid(self, klass, kwargs, val):
-        klass(**kwargs).validate(val)
-
-    @pytest.mark.parametrize('kwargs, val', [
-        ({}, '23%,42,1337%'),
-        ({'minval': 2}, '1%,2%'),
-        ({'maxval': 2}, '2%,3%'),
-        ({'minval': 2, 'maxval': 3}, '1%,2%'),
-        ({'minval': 2, 'maxval': 3}, '3%,4%'),
-        ({}, '42%,,23%'),
-        ({}, ''),
-    ])
-    def test_validate_invalid(self, klass, kwargs, val):
-        with pytest.raises(configexc.ValidationError):
-            klass(**kwargs).validate(val)
-
-    @pytest.mark.parametrize('val, expected', [
-        ('', None),
-        ('1337%', [1337]),
-        ('23%,42%,1337%', [23, 42, 1337]),
-        ('23%,,42%', [23, None, 42]),
     ])
     def test_transform(self, klass, val, expected):
         assert klass().transform(val) == expected
@@ -1237,59 +1160,6 @@ class TestRegex:
         m.error = re.error
         with pytest.raises(configexc.ValidationError):
             klass().validate('foo')
-
-
-class TestRegexList:
-
-    """Test RegexList."""
-
-    @pytest.fixture
-    def klass(self):
-        return configtypes.RegexList
-
-    @pytest.mark.parametrize('val', [
-        r'(foo|bar),[abcd]?,1337{42}',
-        r'(foo|bar),,1337{42}',
-        r'',
-    ])
-    def test_validate_valid(self, klass, val):
-        klass(none_ok=True).validate(val)
-
-    @pytest.mark.parametrize('val', [
-        r'(foo|bar),,1337{42}',
-        r'',
-        r'(foo|bar),((),1337{42}',
-        r'(' * 500,
-    ], ids=['empty value', 'empty', 'unmatched parens', 'too many parens'])
-    def test_validate_invalid(self, klass, val):
-        with pytest.raises(configexc.ValidationError):
-            klass().validate(val)
-
-    @pytest.mark.parametrize('val', [
-        r'foo\Xbar',
-        r'foo\Cbar',
-    ])
-    def test_validate_maybe_valid(self, klass, val):
-        """Those values are valid on some Python versions (and systems?).
-
-        On others, they raise a DeprecationWarning because of an invalid
-        escape. This tests makes sure this gets translated to a
-        ValidationError.
-        """
-        try:
-            klass().validate(val)
-        except configexc.ValidationError:
-            pass
-
-    @pytest.mark.parametrize('val, expected', [
-        ('foo', [RegexEq('foo')]),
-        ('foo,bar,baz', [RegexEq('foo'), RegexEq('bar'),
-                         RegexEq('baz')]),
-        ('foo,,bar', [RegexEq('foo'), None, RegexEq('bar')]),
-        ('', None),
-    ])
-    def test_transform(self, klass, val, expected):
-        assert klass().transform(val) == expected
 
 
 def unrequired_class(**kwargs):
@@ -1973,44 +1843,6 @@ class TestEncoding:
 
     @pytest.mark.parametrize('val, expected', [('utf-8', 'utf-8'), ('', None)])
     def test_transform(self, klass, val, expected):
-        assert klass().transform(val) == expected
-
-
-class TestUrlList:
-
-    """Test UrlList."""
-
-    TESTS = {
-        'http://qutebrowser.org/': [QUrl('http://qutebrowser.org/')],
-        'http://qutebrowser.org/,http://heise.de/':
-            [QUrl('http://qutebrowser.org/'), QUrl('http://heise.de/')],
-        '': None,
-    }
-
-    @pytest.fixture
-    def klass(self):
-        return configtypes.UrlList
-
-    @pytest.mark.parametrize('val', sorted(TESTS))
-    def test_validate_valid(self, klass, val):
-        klass(none_ok=True).validate(val)
-
-    @pytest.mark.parametrize('val', [
-        '',
-        'foo,,bar',
-        '+',  # invalid URL with QUrl.fromUserInput
-    ])
-    def test_validate_invalid(self, klass, val):
-        with pytest.raises(configexc.ValidationError):
-            klass().validate(val)
-
-    def test_validate_empty_item(self, klass):
-        """Test validate with empty item and none_ok = False."""
-        with pytest.raises(configexc.ValidationError):
-            klass().validate('foo,,bar')
-
-    @pytest.mark.parametrize('val, expected', sorted(TESTS.items()))
-    def test_transform_single(self, klass, val, expected):
         assert klass().transform(val) == expected
 
 

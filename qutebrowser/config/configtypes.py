@@ -461,15 +461,6 @@ class Int(BaseType):
                                             "smaller!".format(self.maxval))
 
 
-class IntList(List):
-
-    """Base class for an int-list setting."""
-
-    def __init__(self, none_ok=False, valid_values=None):
-        super().__init__(Int(none_ok=none_ok), none_ok=none_ok)
-        self.inner_type.valid_values = valid_values
-
-
 class Float(BaseType):
 
     """Base class for a float setting.
@@ -548,19 +539,6 @@ class Perc(BaseType):
         if self.maxval is not None and intval > self.maxval:
             raise configexc.ValidationError(value, "must be {}% or "
                                             "less!".format(self.maxval))
-
-
-class PercList(List):
-
-    """Base class for a list of percentages.
-
-    Attributes:
-        minval: Minimum value (inclusive).
-        maxval: Maximum value (inclusive).
-    """
-
-    def __init__(self, minval=None, maxval=None, none_ok=False):
-        super().__init__(Perc(minval, maxval, none_ok), none_ok=none_ok)
 
 
 class PercOrInt(BaseType):
@@ -843,14 +821,6 @@ class Regex(BaseType):
             return None
         else:
             return re.compile(value, self.flags)
-
-
-class RegexList(List):
-
-    """A list of regexes."""
-
-    def __init__(self, flags=0, none_ok=False):
-        super().__init__(Regex(flags, none_ok), none_ok=none_ok)
 
 
 class File(BaseType):
@@ -1171,9 +1141,13 @@ PaddingValues = collections.namedtuple('PaddingValues', ['top', 'bottom',
                                                          'left', 'right'])
 
 
-class Padding(IntList):
+class Padding(List):
 
     """Setting for paddings around elements."""
+
+    def __init__(self, none_ok=False, valid_values=None):
+        super().__init__(Int(none_ok=none_ok), none_ok=none_ok)
+        self.inner_type.valid_values = valid_values
 
     def validate(self, value):
         self._basic_validation(value)
@@ -1349,15 +1323,6 @@ class Url(BaseType):
         elif not val.isValid():
             raise configexc.ValidationError(value, "invalid URL - "
                                             "{}".format(val.errorString()))
-
-
-class UrlList(List):
-
-    """A list of URLs."""
-
-    def __init__(self, none_ok=False, valid_values=None):
-        super().__init__(Url(), none_ok)
-
 
 
 class HeaderDict(BaseType):
