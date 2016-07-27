@@ -192,4 +192,4 @@ class UrlCompletionModel(base.BaseCompletionModel):
             sibling = index.sibling(index.row(), self.TEXT_COLUMN)
             qtutils.ensure_valid(sibling)
             name = sibling.data()
-            quickmark_manager.quickmark_del(name)
+            quickmark_manager.delete(name)
