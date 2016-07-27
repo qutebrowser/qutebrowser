@@ -184,9 +184,9 @@ class WebElementWrapper(collections.abc.MutableMapping):
     def set_inner_xml(self, xml):
         """Set the given inner XML."""
         self._check_vanished()
-        self._elem.setInnerXml(text)
+        self._elem.setInnerXml(xml)
 
-    def remove(self):
+    def remove_from_document(self):
         """Remove the node from the document."""
         self._check_vanished()
         self._elem.removeFromDocument()
@@ -196,16 +196,13 @@ class WebElementWrapper(collections.abc.MutableMapping):
         self._check_vanished()
         return self._elem.setStyleProperty(name, value)
 
-    def is_visible(self, mainframe):
+    def is_visible(self):
         """Check whether the element is currently visible on the screen.
-
-        Args:
-            mainframe: The main QWebFrame.
 
         Return:
             True if the element is visible, False otherwise.
         """
-        return is_visible(self._elem, mainframe)
+        return is_visible(self._elem)
 
     def rect_on_view(self, **kwargs):
         """Get the geometry of the element relative to the webview."""
@@ -438,14 +435,14 @@ def rect_on_view(elem, *, elem_geometry=None, adjust_zoom=True, no_js=False):
             height = rect.get("height", 0)
             if width > 1 and height > 1:
                 # fix coordinates according to zoom level
-                zoom = elem.frame().zoomFactor()
+                zoom = elem.webFrame().zoomFactor()
                 if not config.get('ui', 'zoom-text-only') and adjust_zoom:
                     rect["left"] *= zoom
                     rect["top"] *= zoom
                     width *= zoom
                     height *= zoom
                 rect = QRect(rect["left"], rect["top"], width, height)
-                frame = elem.frame()
+                frame = elem.webFrame()
                 while frame is not None:
                     # Translate to parent frames' position
                     # (scroll position is taken care of inside getClientRects)
@@ -458,7 +455,7 @@ def rect_on_view(elem, *, elem_geometry=None, adjust_zoom=True, no_js=False):
         geometry = elem.geometry()
     else:
         geometry = elem_geometry
-    frame = elem.frame()
+    frame = elem.webFrame()
     rect = QRect(geometry)
     while frame is not None:
         rect.translate(frame.geometry().topLeft())
@@ -466,7 +463,7 @@ def rect_on_view(elem, *, elem_geometry=None, adjust_zoom=True, no_js=False):
         frame = frame.parentFrame()
     # We deliberately always adjust the zoom here, even with adjust_zoom=False
     if elem_geometry is None:
-        zoom = elem.frame().zoomFactor()
+        zoom = elem.webFrame().zoomFactor()
         if not config.get('ui', 'zoom-text-only'):
             rect.moveTo(rect.left() / zoom, rect.top() / zoom)
             rect.setWidth(rect.width() / zoom)
@@ -474,7 +471,7 @@ def rect_on_view(elem, *, elem_geometry=None, adjust_zoom=True, no_js=False):
     return rect
 
 
-def is_visible(elem, mainframe):
+def is_visible(elem):
     """Check if the given element is visible in the frame.
 
     We need this as a standalone function (as opposed to a WebElementWrapper
@@ -483,10 +480,10 @@ def is_visible(elem, mainframe):
 
     Args:
         elem: The QWebElement to check.
-        mainframe: The QWebFrame in which the element should be visible.
     """
     if elem.isNull():
         raise IsNullError("Got called on a null element!")
+    mainframe = elem.webFrame()
     # CSS attributes which hide an element
     hidden_attributes = {
         'visibility': 'hidden',
@@ -510,7 +507,7 @@ def is_visible(elem, mainframe):
         visible_on_screen = mainframe_geometry.contains(elem_rect.topLeft())
     # Then check if it's visible in its frame if it's not in the main
     # frame.
-    elem_frame = elem.frame()
+    elem_frame = elem.webFrame()
     framegeom = QRect(elem_frame.geometry())
     if not framegeom.isValid():
         visible_in_frame = False

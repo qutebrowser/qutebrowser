@@ -633,6 +633,10 @@ class AbstractTab(QWidget):
     def set_html(self, html, base_url):
         raise NotImplementedError
 
+    def find_all_elements(self, selector):
+        """Find all HTML elements matching a given selector."""
+        raise NotImplementedError
+
     def __repr__(self):
         try:
             url = utils.elide(self.url().toDisplayString(QUrl.EncodeUnicode),

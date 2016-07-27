@@ -80,7 +80,6 @@ class HintContext:
         to_follow: The link to follow when enter is pressed.
         args: Custom arguments for userscript/spawn
         rapid: Whether to do rapid hinting.
-        mainframe: The main QWebFrame where we started hinting in.
         tab: The WebTab object we started hinting in.
         group: The group of web elements to hint.
     """
@@ -94,7 +93,6 @@ class HintContext:
         self.rapid = False
         self.frames = []
         self.args = []
-        self.mainframe = None
         self.tab = None
         self.group = None
 
@@ -173,7 +171,7 @@ class HintManager(QObject):
         """Clean up after hinting."""
         for elem in self._context.all_elems:
             try:
-                elem.label.removeFromDocument()
+                elem.label.remove_from_document()
             except webelem.IsNullError:
                 pass
         text = self._get_text()
@@ -384,7 +382,7 @@ class HintManager(QObject):
             The newly created label element
         """
         doc = elem.document_element()
-        body = doc.findFirst('body')
+        body = doc.find_first('body')
         if body is None:
             parent = doc
         else:
@@ -598,13 +596,12 @@ class HintManager(QObject):
         qtutils.ensure_valid(url)
         return url
 
-    def _find_prevnext(self, frame, prev=False):
+    def _find_prevnext(self, tab, prev=False):
         """Find a prev/next element in frame."""
         # First check for <link rel="prev(ious)|next">
-        elems = frame.findAllElements(webelem.SELECTORS[webelem.Group.links])
+        elems = tab.find_all_elements(webelem.SELECTORS[webelem.Group.links])
         rel_values = ('prev', 'previous') if prev else ('next')
         for e in elems:
-            e = webelem.WebElementWrapper(e)
             try:
                 rel_attr = e['rel']
             except KeyError:
@@ -614,9 +611,8 @@ class HintManager(QObject):
                     e.debug_text(), rel_attr))
                 return e
         # Then check for regular links/buttons.
-        elems = frame.findAllElements(
+        elems = tab.find_all_elements(
             webelem.SELECTORS[webelem.Group.prevnext])
-        elems = [webelem.WebElementWrapper(e) for e in elems]
         filterfunc = webelem.FILTERS[webelem.Group.prevnext]
         elems = [e for e in elems if filterfunc(e)]
 
@@ -659,14 +655,9 @@ class HintManager(QObject):
 
     def _init_elements(self):
         """Initialize the elements and labels based on the context set."""
-        elems = []
-        for f in self._context.frames:
-            elems += f.findAllElements(webelem.SELECTORS[self._context.group])
-        elems = [e for e in elems
-                 if webelem.is_visible(e, self._context.mainframe)]
-        # We wrap the elements late for performance reasons, as wrapping 1000s
-        # of elements (with ~50 methods each) just takes too much time...
-        elems = [webelem.WebElementWrapper(e) for e in elems]
+        selector = webelem.SELECTORS[self._context.group]
+        elems = self._context.tab.find_all_elements(selector)
+        elems = [e for e in elems if e.is_visible()]
         filterfunc = webelem.FILTERS.get(self._context.group, lambda e: True)
         elems = [e for e in elems if filterfunc(e)]
         if not elems:
@@ -693,12 +684,12 @@ class HintManager(QObject):
         # Do multi-word matching
         return all(word in elemstr for word in filterstr.split())
 
-    def follow_prevnext(self, frame, baseurl, prev=False, tab=False,
+    def follow_prevnext(self, browsertab, baseurl, prev=False, tab=False,
                         background=False, window=False):
         """Click a "previous"/"next" element on the page.
 
         Args:
-            frame: The frame where the element is in.
+            browsertab: The WebKitTab/WebEngineTab of the page.
             baseurl: The base URL of the current tab.
             prev: True to open a "previous" link, False to open a "next" link.
             tab: True to open in a new tab, False for the current tab.
@@ -706,7 +697,7 @@ class HintManager(QObject):
             window: True to open in a new window, False for the current one.
         """
         from qutebrowser.mainwindow import mainwindow
-        elem = self._find_prevnext(frame, prev)
+        elem = self._find_prevnext(browsertab, prev)
         if elem is None:
             raise cmdexc.CommandError("No {} links found!".format(
                 "prev" if prev else "forward"))
@@ -789,11 +780,6 @@ class HintManager(QObject):
         tab = tabbed_browser.currentWidget()
         if tab is None:
             raise cmdexc.CommandError("No WebView available yet!")
-        # FIXME:qtwebengine have a proper API for this
-        page = tab._widget.page()  # pylint: disable=protected-access
-        mainframe = page.mainFrame()
-        if mainframe is None:
-            raise cmdexc.CommandError("No frame focused!")
         mode_manager = objreg.get('mode-manager', scope='window',
                                   window=self._win_id)
         if mode_manager.mode == usertypes.KeyMode.hint:
@@ -821,15 +807,13 @@ class HintManager(QObject):
             self._context.baseurl = tabbed_browser.current_url()
         except qtutils.QtValueError:
             raise cmdexc.CommandError("No URL set for this page yet!")
-        self._context.frames = webelem.get_child_frames(mainframe)
+        self._context.tab = tab
         self._context.args = args
-        self._context.mainframe = mainframe
         self._context.group = group
         self._init_elements()
         message_bridge = objreg.get('message-bridge', scope='window',
                                     window=self._win_id)
         message_bridge.set_text(self._get_text())
-        self._connect_frame_signals()
         modeman.enter(self._win_id, usertypes.KeyMode.hint,
                       'HintManager.start')
 
@@ -1034,7 +1018,7 @@ class HintManager(QObject):
             try:
                 if e.elem.frame() is None:
                     # This sometimes happens for some reason...
-                    e.label.removeFromDocument()
+                    e.label.remove_from_document()
                     continue
                 self._set_style_position(e.elem, e.label)
             except webelem.IsNullError:

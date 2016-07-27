@@ -503,21 +503,13 @@ class CommandDispatcher:
             if widget.backend == usertypes.Backend.QtWebEngine:
                 raise cmdexc.CommandError(":navigate prev/next is not "
                                           "supported yet with QtWebEngine")
-            page = widget._widget.page()  # pylint: disable=protected-access
-            frame = page.currentFrame()
-            if frame is None:
-                raise cmdexc.CommandError("No frame focused!")
-        else:
-            frame = None
 
         hintmanager = objreg.get('hintmanager', scope='tab', tab='current')
         if where == 'prev':
-            assert frame is not None
-            hintmanager.follow_prevnext(frame, url, prev=True, tab=tab,
+            hintmanager.follow_prevnext(widget, url, prev=True, tab=tab,
                                         background=bg, window=window)
         elif where == 'next':
-            assert frame is not None
-            hintmanager.follow_prevnext(frame, url, prev=False, tab=tab,
+            hintmanager.follow_prevnext(widget, url, prev=False, tab=tab,
                                         background=bg, window=window)
         elif where == 'up':
             self._navigate_up(url, tab, bg, window)

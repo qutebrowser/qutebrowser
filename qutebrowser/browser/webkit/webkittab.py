@@ -30,7 +30,7 @@ from PyQt5.QtWebKit import QWebSettings
 from PyQt5.QtPrintSupport import QPrinter
 
 from qutebrowser.browser import browsertab
-from qutebrowser.browser.webkit import webview, tabhistory
+from qutebrowser.browser.webkit import webview, tabhistory, webelem
 from qutebrowser.utils import qtutils, objreg, usertypes, utils
 
 
@@ -556,6 +556,18 @@ class WebKitTab(browsertab.AbstractTab):
 
     def set_html(self, html, base_url):
         self._widget.setHtml(html, base_url)
+
+    def find_all_elements(self, selector):
+        mainframe = self._widget.page().mainFrame()
+        if mainframe is None:
+            raise WebTabError("No frame focused!")
+
+        elems = []
+        frames = webelem.get_child_frames(mainframe)
+        for f in frames:
+            for elem in f.findAllElements(selector):
+                elems.append(webelem.WebElementWrapper(elem))
+        return elems
 
     @pyqtSlot()
     def _on_frame_load_finished(self):
