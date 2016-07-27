@@ -28,7 +28,6 @@ Module attributes:
 """
 
 import collections.abc
-import functools
 
 from PyQt5.QtCore import QRect, QUrl
 from PyQt5.QtWebKit import QWebElement
@@ -83,40 +82,6 @@ class WebElementWrapper(collections.abc.MutableMapping):
         if elem.isNull():
             raise IsNullError('{} is a null element!'.format(elem))
         self._elem = elem
-        for name in ['addClass', 'appendInside', 'appendOutside',
-                     'attributeNS', 'classes', 'clone', 'document',
-                     'encloseContentsWith', 'encloseWith',
-                     'evaluateJavaScript', 'findAll', 'findFirst',
-                     'firstChild', 'geometry', 'hasAttributeNS',
-                     'hasAttributes', 'hasClass', 'hasFocus', 'lastChild',
-                     'localName', 'namespaceUri', 'nextSibling', 'parent',
-                     'prefix', 'prependInside', 'prependOutside',
-                     'previousSibling', 'removeAllChildren',
-                     'removeAttributeNS', 'removeClass', 'removeFromDocument',
-                     'render', 'replace', 'setAttributeNS', 'setFocus',
-                     'setInnerXml', 'setOuterXml', 'setPlainText',
-                     'setStyleProperty', 'styleProperty', 'tagName',
-                     'takeFromDocument', 'toInnerXml', 'toOuterXml',
-                     'toggleClass', 'webFrame', '__eq__', '__ne__']:
-            # We don't wrap some methods for which we have better alternatives:
-            #   - Mapping access for attributeNames/hasAttribute/setAttribute/
-            #     attribute/removeAttribute.
-            #   - isNull is checked automagically.
-            #   - str(...) instead of toPlainText
-            # For the rest, we create a wrapper which checks if the element is
-            # null.
-
-            method = getattr(self._elem, name)
-
-            def _wrapper(meth, *args, **kwargs):
-                self._check_vanished()
-                return meth(*args, **kwargs)
-
-            wrapper = functools.partial(_wrapper, method)
-            # We used to do functools.update_wrapper here, but for some reason
-            # when using hints with many links, this accounted for nearly 50%
-            # of the time when profiling, which is unacceptable.
-            setattr(self, name, wrapper)
 
     def __str__(self):
         self._check_vanished()
@@ -161,6 +126,75 @@ class WebElementWrapper(collections.abc.MutableMapping):
         """Raise an exception if the element vanished (is null)."""
         if self._elem.isNull():
             raise IsNullError('Element {} vanished!'.format(self._elem))
+
+    def frame(self):
+        """Get the main frame of this element."""
+        # FIXME:qtwebengine how to get rid of this?
+        self._check_vanished()
+        return self._elem.webFrame()
+
+    def geometry(self):
+        """Get the geometry for this element."""
+        self._check_vanished()
+        return self._elem.geometry()
+
+    def document_element(self):
+        """Get the document element of this element."""
+        self._check_vanished()
+        elem = self._elem.webFrame().documentElement()
+        return WebElementWrapper(elem)
+
+    def create_inside(self, tagname):
+        """Append the given element inside the current one."""
+        # It seems impossible to create an empty QWebElement for which isNull()
+        # is false so we can work with it.
+        # As a workaround, we use appendInside() with markup as argument, and
+        # then use lastChild() to get a reference to it.
+        # See: http://stackoverflow.com/q/7364852/2085149
+        self._check_vanished()
+        self._elem.appendInside('<{}></{}>'.format(tagname, tagname))
+        return WebElementWrapper(self._elem.lastChild())
+
+    def find_first(self, selector):
+        """Find the first child based on the given CSS selector."""
+        self._check_vanished()
+        elem = self._elem.findFirst(selector)
+        if elem.isNull():
+            return None
+        return WebElementWrapper(elem)
+
+    def style_property(self, name, strategy):
+        """Get the element style resolved with the given strategy."""
+        self._check_vanished()
+        return self._elem.styleProperty(name, strategy)
+
+    def set_text(self, text):
+        """Set the given plain text."""
+        self._check_vanished()
+        if self.is_content_editable():
+            log.misc.debug("Filling element {} via set_text.".format(
+                self.debug_text()))
+            self._elem.setPlainText(text)
+        else:
+            log.misc.debug("Filling element {} via javascript.".format(
+                self.debug_text()))
+            text = javascript_escape(text)
+            self._elem.evaluateJavaScript("this.value='{}'".format(text))
+
+    def set_inner_xml(self, xml):
+        """Set the given inner XML."""
+        self._check_vanished()
+        self._elem.setInnerXml(text)
+
+    def remove(self):
+        """Remove the node from the document."""
+        self._check_vanished()
+        self._elem.removeFromDocument()
+
+    def set_style_property(self, name, value):
+        """Set the element style."""
+        self._check_vanished()
+        return self._elem.setStyleProperty(name, value)
 
     def is_visible(self, mainframe):
         """Check whether the element is currently visible on the screen.
@@ -404,14 +438,14 @@ def rect_on_view(elem, *, elem_geometry=None, adjust_zoom=True, no_js=False):
             height = rect.get("height", 0)
             if width > 1 and height > 1:
                 # fix coordinates according to zoom level
-                zoom = elem.webFrame().zoomFactor()
+                zoom = elem.frame().zoomFactor()
                 if not config.get('ui', 'zoom-text-only') and adjust_zoom:
                     rect["left"] *= zoom
                     rect["top"] *= zoom
                     width *= zoom
                     height *= zoom
                 rect = QRect(rect["left"], rect["top"], width, height)
-                frame = elem.webFrame()
+                frame = elem.frame()
                 while frame is not None:
                     # Translate to parent frames' position
                     # (scroll position is taken care of inside getClientRects)
@@ -424,7 +458,7 @@ def rect_on_view(elem, *, elem_geometry=None, adjust_zoom=True, no_js=False):
         geometry = elem.geometry()
     else:
         geometry = elem_geometry
-    frame = elem.webFrame()
+    frame = elem.frame()
     rect = QRect(geometry)
     while frame is not None:
         rect.translate(frame.geometry().topLeft())
@@ -432,7 +466,7 @@ def rect_on_view(elem, *, elem_geometry=None, adjust_zoom=True, no_js=False):
         frame = frame.parentFrame()
     # We deliberately always adjust the zoom here, even with adjust_zoom=False
     if elem_geometry is None:
-        zoom = elem.webFrame().zoomFactor()
+        zoom = elem.frame().zoomFactor()
         if not config.get('ui', 'zoom-text-only'):
             rect.moveTo(rect.left() / zoom, rect.top() / zoom)
             rect.setWidth(rect.width() / zoom)
@@ -476,7 +510,7 @@ def is_visible(elem, mainframe):
         visible_on_screen = mainframe_geometry.contains(elem_rect.topLeft())
     # Then check if it's visible in its frame if it's not in the main
     # frame.
-    elem_frame = elem.webFrame()
+    elem_frame = elem.frame()
     framegeom = QRect(elem_frame.geometry())
     if not framegeom.isValid():
         visible_in_frame = False

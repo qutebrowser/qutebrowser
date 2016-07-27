@@ -335,16 +335,16 @@ class HintManager(QObject):
 
     def _is_hidden(self, elem):
         """Check if the element is hidden via display=none."""
-        display = elem.styleProperty('display', QWebElement.InlineStyle)
+        display = elem.style_property('display', QWebElement.InlineStyle)
         return display == 'none'
 
     def _show_elem(self, elem):
         """Show a given element."""
-        elem.setStyleProperty('display', 'inline !important')
+        elem.set_style_property('display', 'inline !important')
 
     def _hide_elem(self, elem):
         """Hide a given element."""
-        elem.setStyleProperty('display', 'none !important')
+        elem.set_style_property('display', 'none !important')
 
     def _set_style_properties(self, elem, label):
         """Set the hint CSS on the element given.
@@ -373,7 +373,7 @@ class HintManager(QObject):
             attrs.append(('text-transform', 'none !important'))
 
         for k, v in attrs:
-            label.setStyleProperty(k, v)
+            label.set_style_property(k, v)
         self._set_style_position(elem, label)
 
     def _set_style_position(self, elem, label):
@@ -389,8 +389,8 @@ class HintManager(QObject):
         top = rect.y()
         log.hints.vdebug("Drawing label '{!r}' at {}/{} for element '{!r}' "
                          "(no_js: {})".format(label, left, top, elem, no_js))
-        label.setStyleProperty('left', '{}px !important'.format(left))
-        label.setStyleProperty('top', '{}px !important'.format(top))
+        label.set_style_property('left', '{}px !important'.format(left))
+        label.set_style_property('top', '{}px !important'.format(top))
 
     def _draw_label(self, elem, string):
         """Draw a hint label over an element.
@@ -402,22 +402,16 @@ class HintManager(QObject):
         Return:
             The newly created label element
         """
-        doc = elem.webFrame().documentElement()
-        # It seems impossible to create an empty QWebElement for which isNull()
-        # is false so we can work with it.
-        # As a workaround, we use appendInside() with markup as argument, and
-        # then use lastChild() to get a reference to it.
-        # See: http://stackoverflow.com/q/7364852/2085149
+        doc = elem.document_element()
         body = doc.findFirst('body')
-        if not body.isNull():
-            parent = body
-        else:
+        if body is None:
             parent = doc
-        parent.appendInside('<span></span>')
-        label = webelem.WebElementWrapper(parent.lastChild())
+        else:
+            parent = body
+        label = parent.create_inside('span')
         label['class'] = 'qutehint'
         self._set_style_properties(elem, label)
-        label.setPlainText(string)
+        label.set_text(string)
         return label
 
     def _show_url_error(self):
@@ -490,7 +484,7 @@ class HintManager(QObject):
             self.mouse_event.emit(evt)
         if elem.is_text_input() and elem.is_editable():
             QTimer.singleShot(0, functools.partial(
-                elem.webFrame().page().triggerAction,
+                elem.frame().page().triggerAction,
                 QWebPage.MoveToEndOfDocument))
         QTimer.singleShot(0, self.stop_hinting.emit)
 
@@ -559,7 +553,7 @@ class HintManager(QObject):
 
         download_manager = objreg.get('download-manager', scope='window',
                                       window=self._win_id)
-        download_manager.get(url, page=elem.webFrame().page(),
+        download_manager.get(url, page=elem.frame().page(),
                              prompt_download_directory=prompt)
 
     def _call_userscript(self, elem, context):
@@ -878,7 +872,7 @@ class HintManager(QObject):
                     matched = string[:len(keystr)]
                     rest = string[len(keystr):]
                     match_color = config.get('colors', 'hints.fg.match')
-                    elem.label.setInnerXml(
+                    elem.label.set_inner_xml(
                         '<font color="{}">{}</font>{}'.format(
                             match_color, matched, rest))
                     if self._is_hidden(elem.label):
@@ -913,7 +907,7 @@ class HintManager(QObject):
         strings = self._hint_strings(elems)
         self._context.elems = {}
         for elem, string in zip(elems, strings):
-            elem.label.setInnerXml(string)
+            elem.label.set_inner_xml(string)
             self._context.elems[string] = elem
         keyparsers = objreg.get('keyparsers', scope='window',
                                 window=self._win_id)
@@ -1017,7 +1011,7 @@ class HintManager(QObject):
             Target.spawn: self._spawn,
         }
         elem = self._context.elems[keystr].elem
-        if elem.webFrame() is None:
+        if elem.frame() is None:
             message.error(self._win_id,
                           "This element has no webframe.",
                           immediately=True)
@@ -1042,7 +1036,7 @@ class HintManager(QObject):
             self.filter_hints(None)
             # Undo keystring highlighting
             for string, elem in self._context.elems.items():
-                elem.label.setInnerXml(string)
+                elem.label.set_inner_xml(string)
         handler()
 
     @cmdutils.register(instance='hintmanager', scope='tab', hide=True,
@@ -1068,7 +1062,7 @@ class HintManager(QObject):
         log.hints.debug("Contents size changed...!")
         for e in self._context.all_elems:
             try:
-                if e.elem.webFrame() is None:
+                if e.elem.frame() is None:
                     # This sometimes happens for some reason...
                     e.label.removeFromDocument()
                     continue

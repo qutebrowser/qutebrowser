@@ -1460,15 +1460,7 @@ class CommandDispatcher:
             text: The new text to insert.
         """
         try:
-            if elem.is_content_editable():
-                log.misc.debug("Filling element {} via setPlainText.".format(
-                    elem.debug_text()))
-                elem.setPlainText(text)
-            else:
-                log.misc.debug("Filling element {} via javascript.".format(
-                    elem.debug_text()))
-                text = webelem.javascript_escape(text)
-                elem.evaluateJavaScript("this.value='{}'".format(text))
+            elem.set_text(text)
         except webelem.IsNullError:
             raise cmdexc.CommandError("Element vanished while editing!")
 
