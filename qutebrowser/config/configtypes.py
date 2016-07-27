@@ -327,9 +327,15 @@ class List(BaseType):
             self.inner_type.validate(val.strip())
 
 
-class BaseList(List):
+class FlagList(List):
 
-    """Base class for a list using BaseType."""
+    """Base class for a list setting that contains one or more flags.
+
+    Lists with duplicate flags are invalid and each item is checked against
+    self.valid_values (if not empty).
+    """
+
+    combinable_values = None
 
     def __init__(self, none_ok=False, valid_values=None):
         super().__init__(BaseType(), none_ok)
@@ -340,20 +346,6 @@ class BaseList(List):
             super().validate(value)
         else:
             self._basic_validation(value)
-
-
-class FlagList(BaseList):
-
-    """Base class for a list setting that contains one or more flags.
-
-    Lists with duplicate flags are invalid and each item is checked against
-    self.valid_values (if not empty).
-    """
-
-    combinable_values = None
-
-    def validate(self, value):
-        super().validate(value)
         if not value:
             return
         vals = super().transform(value)

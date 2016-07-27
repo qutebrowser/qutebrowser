@@ -135,7 +135,8 @@ def data(readonly=False):
              "Whether to find text on a page case-insensitively."),
 
             ('startpage',
-             SettingValue(typ.BaseList(), 'https://duckduckgo.com'),
+             SettingValue(typ.List(typ.Url(), none_ok=True),
+                          'https://duckduckgo.com'),
              "The default page(s) to open at the start, separated by commas."),
 
             ('default-page',
@@ -352,7 +353,7 @@ def data(readonly=False):
              "(requires restart)"),
 
             ('keyhint-blacklist',
-             SettingValue(typ.BaseList(none_ok=True), ''),
+             SettingValue(typ.List(typ.String(), none_ok=True), ''),
              "Keychains that shouldn't be shown in the keyhint dialog\n\n"
              "Globs are supported, so ';*' will blacklist all keychains"
              "starting with ';'. Use '*' to disable keyhints"),
@@ -845,7 +846,7 @@ def data(readonly=False):
              "Whether host blocking is enabled."),
 
             ('host-blocking-whitelist',
-             SettingValue(typ.BaseList(none_ok=True), 'piwik.org'),
+             SettingValue(typ.List(typ.String(), none_ok=True), 'piwik.org'),
              "List of domains that should always be loaded, despite being "
              "ad-blocked.\n\n"
              "Domains may contain * and ? wildcards and are otherwise "
