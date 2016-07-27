@@ -337,6 +337,23 @@ class BaseList(List):
             self._basic_validation(value)
 
 
+class LengthList(List):
+
+    """Base class for a list with length checking."""
+
+    def __init__(self, inner_type, length=None, none_ok=False):
+        super().__init__(inner_type, none_ok)
+        self.length = length
+
+    def validate(self, value):
+        super().validate(value)
+        if not value:
+            return
+        if self.length is not None and value.count(',')+1 != self.length:
+            raise configexc.ValidationError(value, "Exactly {} values need to "
+                                            "be set!".format(self.length))
+
+
 class FlagList(BaseList):
 
     """Base class for a list setting that contains one or more flags.
@@ -969,29 +986,6 @@ class WebKitBytes(BaseType):
         return int(val) * multiplicator
 
 
-class WebKitBytesList(List):
-
-    """A size with an optional suffix.
-
-    Attributes:
-        length: The length of the list.
-        bytestype: The webkit bytes type.
-    """
-
-    def __init__(self, maxsize=None, length=None, none_ok=False):
-        super().__init__(WebKitBytes(maxsize, none_ok), none_ok=none_ok)
-        self.length = length
-
-    def validate(self, value):
-        super().validate(value)
-        if not value:
-            return
-        vals = super().transform(value)
-        if self.length is not None and len(vals) != self.length:
-            raise configexc.ValidationError(value, "exactly {} values need to "
-                                            "be set!".format(self.length))
-
-
 class ShellCommand(BaseType):
 
     """A shellcommand which is split via shlex.
@@ -1141,29 +1135,14 @@ PaddingValues = collections.namedtuple('PaddingValues', ['top', 'bottom',
                                                          'left', 'right'])
 
 
-class Padding(List):
+class Padding(LengthList):
 
     """Setting for paddings around elements."""
 
     def __init__(self, none_ok=False, valid_values=None):
-        super().__init__(Int(none_ok=none_ok), none_ok=none_ok)
+        super().__init__(Int(minval=0, none_ok=none_ok),
+                         none_ok=none_ok, length=4)
         self.inner_type.valid_values = valid_values
-
-    def validate(self, value):
-        self._basic_validation(value)
-        if not value:
-            return
-        try:
-            vals = self.transform(value)
-        except (ValueError, TypeError):
-            raise configexc.ValidationError(value, "must be a list of 4 "
-                                            "integers!")
-        if None in vals and not self.none_ok:
-            raise configexc.ValidationError(value, "items may not be empty!")
-        elems = self.transform(value)
-        if any(e is not None and e < 0 for e in elems):
-            raise configexc.ValidationError(value, "Values need to be "
-                                            "positive!")
 
     def transform(self, value):
         elems = super().transform(value)

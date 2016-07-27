@@ -400,6 +400,47 @@ class TestList:
         assert klass().transform(val) == expected
 
 
+class LengthListSubclass(configtypes.LengthList):
+
+    """A subclass of LengthList which we use in tests."""
+
+    def __init__(self, length=None, none_ok_inner=False, none_ok_outer=False):
+        super().__init__(configtypes.Int(none_ok=none_ok_inner),
+                         length=length, none_ok=none_ok_outer)
+
+
+class TestLengthList:
+
+    """Test List with length."""
+
+    @pytest.fixture
+    def klass(self):
+        return LengthListSubclass
+
+    @pytest.mark.parametrize('val', ['', '0,1,2', '-5,4,2'])
+    def test_validate_valid(self, klass, val):
+        klass(none_ok_outer=True, length=3).validate(val)
+
+    @pytest.mark.parametrize('val', ['', '1,,4'])
+    def test_validate_invalid(self, klass, val):
+        with pytest.raises(configexc.ValidationError):
+            klass().validate(val)
+
+    def test_invalid_empty_value_none_ok(self, klass):
+        with pytest.raises(configexc.ValidationError):
+            klass(none_ok_outer=True).validate('1,,4')
+            klass(none_ok_inner=True).validate('')
+
+    @pytest.mark.parametrize('val', ['-8', '0,-1', '1,2,3,4,5'])
+    def test_no_length_given(self, klass, val):
+        klass().validate(val)
+
+    @pytest.mark.parametrize('val', ['-8', '0,-1', '1,2,3,4,5'])
+    def test_wrong_length(self, klass, val):
+        with pytest.raises(configexc.ValidationError):
+            klass(length=3).validate(val)
+
+
 class FlagListSubclass(configtypes.FlagList):
 
     """A subclass of FlagList which we use in tests.
@@ -1434,49 +1475,6 @@ class TestWebKitByte:
         ('1t', 1024 ** 4),
     ])
     def test_transform(self, klass, val, expected):
-        assert klass().transform(val) == expected
-
-
-class TestWebKitBytesList:
-
-    """Test WebKitBytesList."""
-
-    @pytest.fixture
-    def klass(self):
-        return configtypes.WebKitBytesList
-
-    @pytest.mark.parametrize('kwargs, val', [
-        ({}, '23,56k,1337'),
-        ({'maxsize': 2}, '2'),
-        ({'maxsize': 2048}, '2k'),
-        ({'length': 3}, '1,2,3'),
-        ({'none_ok': True}, '23,,42'),
-        ({'none_ok': True}, ''),
-    ])
-    def test_validate_valid(self, klass, kwargs, val):
-        klass(**kwargs).validate(val)
-
-    @pytest.mark.parametrize('kwargs, val', [
-        ({}, '23,56kk,1337'),
-        ({'maxsize': 2}, '3'),
-        ({'maxsize': 2}, '3k'),
-        ({}, '23,,42'),
-        ({'length': 3}, '1,2'),
-        ({'length': 3}, '1,2,3,4'),
-        ({}, '23,,42'),
-        ({}, ''),
-    ])
-    def test_validate_invalid(self, klass, kwargs, val):
-        with pytest.raises(configexc.ValidationError):
-            klass(**kwargs).validate(val)
-
-    @pytest.mark.parametrize('val, expected', [
-        ('1k', [1024]),
-        ('23,2k,1337', [23, 2048, 1337]),
-        ('23,,42', [23, None, 42]),
-        ('', None),
-    ])
-    def test_transform_single(self, klass, val, expected):
         assert klass().transform(val) == expected
 
 

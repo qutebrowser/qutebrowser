@@ -36,7 +36,7 @@ def gen_classes():
             pass
         elif member is configtypes.MappingType:
             pass
-        elif member is configtypes.List:
+        elif member in [configtypes.List, configtypes.LengthList]:
             pass
         elif member is configtypes.FormatString:
             yield functools.partial(member, fields=['a', 'b'])

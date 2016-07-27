@@ -684,8 +684,8 @@ def data(readonly=False):
 
             ('object-cache-capacities',
              SettingValue(
-                 typ.WebKitBytesList(length=3, maxsize=MAXVALS['int'],
-                                     none_ok=True), ''),
+                 typ.LengthList(typ.WebKitBytes(maxsize=MAXVALS['int'],
+                                none_ok=True), none_ok=True, length=3), ''),
              "The capacities for the global memory cache for dead objects "
              "such as stylesheets or scripts. Syntax: cacheMinDeadCapacity, "
              "cacheMaxDead, totalCapacity.\n\n"
