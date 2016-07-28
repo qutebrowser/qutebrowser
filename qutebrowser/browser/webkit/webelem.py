@@ -84,7 +84,9 @@ class WebElementWrapper(collections.abc.MutableMapping):
         self._elem = elem
 
     def __eq__(self, other):
-        return self._elem == other._elem
+        if not isinstance(other, WebElementWrapper):
+            return NotImplemented
+        return self._elem == other._elem  # pylint: disable=protected-access
 
     def __str__(self):
         self._check_vanished()
