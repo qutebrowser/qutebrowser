@@ -1447,10 +1447,10 @@ class CommandDispatcher:
             text = elem.evaluateJavaScript('this.value')
         ed = editor.ExternalEditor(self._win_id, self._tabbed_browser)
         ed.editing_finished.connect(functools.partial(
-            self.on_editing_finished, elem))
+            self.on_editing_finished, ed, page, elem))
         ed.edit(text)
 
-    def on_editing_finished(self, elem, text):
+    def on_editing_finished(self, ed, page, elem, text):
         """Write the editor text into the form field and clean up tempfile.
 
         Callback for GUIProcess when the editor was closed.
@@ -1467,9 +1467,14 @@ class CommandDispatcher:
             else:
                 log.misc.debug("Filling element {} via javascript.".format(
                     elem.debug_text()))
-                text = webelem.javascript_escape(text)
-                elem.evaluateJavaScript("this.value='{}'".format(text))
-        except webelem.IsNullError:
+                text_for_js = webelem.javascript_escape(text)
+                elem.evaluateJavaScript("this.value='{}'".format(text_for_js))
+
+            if elem.webFrame() != page.currentFrame():
+                ed.emergency_save()
+
+        except (webelem.IsNullError):
+            ed.emergency_save()
             raise cmdexc.CommandError("Element vanished while editing!")
 
     @cmdutils.register(instance='command-dispatcher',
