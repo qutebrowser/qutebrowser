@@ -453,15 +453,39 @@ class TestWebElementWrapper:
         elem._elem.findFirst.return_value = nullelem._elem
         assert elem.find_first('foo') is None
 
-    def test_text(self, elem):
-        raise Exception
+    @pytest.mark.parametrize('use_js, editable, expected', [
+        (True, 'false', 'js'),
+        (True, 'true', 'nojs'),
+        (False, 'false', 'nojs'),
+        (False, 'true', 'nojs'),
+    ])
+    def test_text(self, use_js, editable, expected):
+        elem = get_webelem(attributes={'contenteditable': editable})
+        elem._elem.toPlainText.return_value = 'nojs'
+        elem._elem.evaluateJavaScript.return_value = 'js'
+        assert elem.text(use_js=use_js) == expected
 
-    def test_set_text(self, elem):
-        raise Exception
+    @pytest.mark.parametrize('use_js, editable, text, uses_js, arg', [
+        (True, 'false', 'foo', True, "this.value='foo'"),
+        (True, 'false', "foo'bar", True, r"this.value='foo\'bar'"),
+        (True, 'true', 'foo', False, 'foo'),
+        (False, 'false', 'foo', False, 'foo'),
+        (False, 'true', 'foo', False, 'foo'),
+    ])
+    def test_set_text(self, use_js, editable, text, uses_js, arg):
+        elem = get_webelem(attributes={'contenteditable': editable})
+        elem.set_text(text, use_js=use_js)
+        attr = 'evaluateJavaScript' if uses_js else 'setPlainText'
+        called_mock = getattr(elem._elem, attr)
+        called_mock.assert_called_with(arg)
 
-    def test_run_js_async(self, elem):
-        raise Exception
-
+    @pytest.mark.parametrize('with_cb', [True, False])
+    def test_run_js_async(self, elem, with_cb):
+        cb = mock.Mock(spec={}) if with_cb else None
+        elem._elem.evaluateJavaScript.return_value = 42
+        elem.run_js_async('the_answer();', cb)
+        if with_cb:
+            cb.assert_called_with(42)
 
 
 class TestRemoveBlankTarget:
