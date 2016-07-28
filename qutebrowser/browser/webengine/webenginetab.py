@@ -410,6 +410,10 @@ class WebEngineTab(browsertab.AbstractTab):
     def clear_ssl_errors(self):
         log.stub()
 
+    def find_all_elements(self, selector, *, only_visible=False):
+        log.stub()
+        return []
+
     def _connect_signals(self):
         view = self._widget
         page = view.page()
