@@ -402,7 +402,7 @@ class TestRemoveBlankTarget:
         elem = [None] * depth
         elem[0] = get_webelem(tagname='div')
         for i in range(1, depth):
-            elem[i] = get_webelem(tagname='div', parent=elem[i-1])
+            elem[i] = get_webelem(tagname='div', parent=elem[i-1]._elem)
             elem[i]._elem.encloseWith(elem[i-1]._elem)
         elem[-1].remove_blank_target()
         for i in range(depth):
