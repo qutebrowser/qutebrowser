@@ -109,7 +109,7 @@ def get_webelem(geometry=None, frame=None, *, null=False, style=None,
     else:
         elem.classes.return_value = []
 
-    style_dict = {'visibility': '', 'display': ''}
+    style_dict = {'visibility': '', 'display': '', 'foo': 'bar'}
     if style is not None:
         style_dict.update(style)
 
@@ -261,7 +261,7 @@ class TestWebElementWrapper:
         lambda e: e.document_element(),
         lambda e: e.create_inside('span'),
         lambda e: e.find_first('span'),
-        lambda e: e.style_property('visibility', QWebElement.InlineStyle),
+        lambda e: e.style_property('visibility', QWebElement.ComputedStyle),
         lambda e: e.text(),
         lambda e: e.set_text('foo'),
         lambda e: e.set_inner_xml(''),
@@ -331,6 +331,16 @@ class TestWebElementWrapper:
         assert 'foo' in elem
         assert 'bar' not in elem
 
+    def test_not_eq(self):
+        one = get_webelem()
+        two = get_webelem()
+        assert one != two
+
+    def test_eq(self):
+        one = get_webelem()
+        two = webelem.WebElementWrapper(one._elem)
+        assert one == two
+
     @pytest.mark.parametrize('attributes, expected', [
         ({'one': '1', 'two': '2'}, {'one', 'two'}),
         ({}, set()),
@@ -388,6 +398,70 @@ class TestWebElementWrapper:
     def test_debug_text(self, elem, xml, expected):
         elem._elem.toOuterXml.return_value = xml
         assert elem.debug_text() == expected
+
+    @pytest.mark.parametrize('attribute, code', [
+        ('webFrame', lambda e: e.frame()),
+        ('geometry', lambda e: e.geometry()),
+        ('toOuterXml', lambda e: e.outer_xml()),
+        ('tagName', lambda e: e.tag_name()),
+    ])
+    def test_simple_getters(self, elem, attribute, code):
+        sentinel = object()
+        mock = getattr(elem._elem, attribute)
+        setattr(mock, 'return_value', sentinel)
+        assert code(elem) is sentinel
+
+    @pytest.mark.parametrize('code, method, args', [
+        (lambda e: e.set_inner_xml('foo'), 'setInnerXml', ['foo']),
+        (lambda e: e.set_style_property('foo', 'bar'), 'setStyleProperty',
+         ['foo', 'bar']),
+        (lambda e: e.remove_from_document(), 'removeFromDocument', []),
+    ])
+    def test_simple_setters(self, elem, code, method, args):
+        code(elem)
+        mock = getattr(elem._elem, method)
+        mock.assert_called_with(*args)
+
+    def test_style_property(self, elem):
+        assert elem.style_property('foo', QWebElement.ComputedStyle) == 'bar'
+
+    def test_document_element(self, stubs):
+        doc_elem = get_webelem()
+        frame = stubs.FakeWebFrame(document_element=doc_elem._elem)
+        elem = get_webelem(frame=frame)
+
+        doc_elem_ret = elem.document_element()
+        assert isinstance(doc_elem_ret, webelem.WebElementWrapper)
+        assert doc_elem_ret == doc_elem
+
+    def test_find_first(self, elem):
+        result = get_webelem()
+        elem._elem.findFirst.return_value = result._elem
+        find_result = elem.find_first('')
+        assert isinstance(find_result, webelem.WebElementWrapper)
+        assert find_result == result
+
+    def test_create_inside(self, elem):
+        child = get_webelem()
+        elem._elem.lastChild.return_value = child._elem
+        assert elem.create_inside('span')._elem is child._elem
+        elem._elem.appendInside.assert_called_with('<span></span>')
+
+    def test_find_first_null(self, elem):
+        nullelem = get_webelem()
+        nullelem._elem.isNull.return_value = True
+        elem._elem.findFirst.return_value = nullelem._elem
+        assert elem.find_first('foo') is None
+
+    def test_text(self, elem):
+        raise Exception
+
+    def test_set_text(self, elem):
+        raise Exception
+
+    def test_run_js_async(self, elem):
+        raise Exception
+
 
 
 class TestRemoveBlankTarget:

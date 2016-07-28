@@ -83,6 +83,9 @@ class WebElementWrapper(collections.abc.MutableMapping):
             raise IsNullError('{} is a null element!'.format(elem))
         self._elem = elem
 
+    def __eq__(self, other):
+        return self._elem == other._elem
+
     def __str__(self):
         self._check_vanished()
         return self._elem.toPlainText()
