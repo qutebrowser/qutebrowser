@@ -325,6 +325,7 @@ class WebElementWrapper(collections.abc.MutableMapping):
 
     def remove_blank_target(self):
         """Remove target from link."""
+        self._check_vanished()
         elem = self._elem
         for _ in range(5):
             if elem is None:
