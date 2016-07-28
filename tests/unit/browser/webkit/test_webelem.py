@@ -675,7 +675,7 @@ class TestRectOnView:
         elem = get_webelem(frame=frame, js_rect_return=js_rect)
         rect = QRect(10, 20, 30, 40)
         assert elem.rect_on_view(elem_geometry=rect) == rect
-        assert not raw_elem.geometry.called
+        assert not elem._elem.geometry.called
 
     @pytest.mark.parametrize('js_rect', [None, {}])
     @pytest.mark.parametrize('zoom_text_only', [True, False])
