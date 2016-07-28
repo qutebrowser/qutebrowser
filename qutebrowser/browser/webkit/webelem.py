@@ -364,6 +364,58 @@ class WebElementWrapper(collections.abc.MutableMapping):
         if callback is not None:
             callback(result)
 
+    def _rect_on_view_js(self, adjust_zoom):
+        """Javascript implementation for rect_on_view."""
+        rects = self._elem.evaluateJavaScript("this.getClientRects()")
+        text = utils.compact_text(self._elem.toOuterXml(), 500)
+        log.hints.vdebug("Client rectangles of element '{}': {}".format(
+            text, rects))
+
+        for i in range(int(rects.get("length", 0))):
+            rect = rects[str(i)]
+            width = rect.get("width", 0)
+            height = rect.get("height", 0)
+            if width > 1 and height > 1:
+                # fix coordinates according to zoom level
+                zoom = self._elem.webFrame().zoomFactor()
+                if not config.get('ui', 'zoom-text-only') and adjust_zoom:
+                    rect["left"] *= zoom
+                    rect["top"] *= zoom
+                    width *= zoom
+                    height *= zoom
+                rect = QRect(rect["left"], rect["top"], width, height)
+                frame = self._elem.webFrame()
+                while frame is not None:
+                    # Translate to parent frames' position (scroll position
+                    # is taken care of inside getClientRects)
+                    rect.translate(frame.geometry().topLeft())
+                    frame = frame.parentFrame()
+                return rect
+
+        return None
+
+    def _rect_on_view_python(self, elem_geometry):
+        """Python implementation for rect_on_view."""
+        if elem_geometry is None:
+            geometry = self._elem.geometry()
+        else:
+            geometry = elem_geometry
+        frame = self._elem.webFrame()
+        rect = QRect(geometry)
+        while frame is not None:
+            rect.translate(frame.geometry().topLeft())
+            rect.translate(frame.scrollPosition() * -1)
+            frame = frame.parentFrame()
+        # We deliberately always adjust the zoom here, even with
+        # adjust_zoom=False
+        if elem_geometry is None:
+            zoom = self._elem.webFrame().zoomFactor()
+            if not config.get('ui', 'zoom-text-only'):
+                rect.moveTo(rect.left() / zoom, rect.top() / zoom)
+                rect.setWidth(rect.width() / zoom)
+                rect.setHeight(rect.height() / zoom)
+        return rect
+
     def rect_on_view(self, *, elem_geometry=None, adjust_zoom=True,
                      no_js=False):
         """Get the geometry of the element relative to the webview.
@@ -390,51 +442,12 @@ class WebElementWrapper(collections.abc.MutableMapping):
         # First try getting the element rect via JS, as that's usually more
         # accurate
         if elem_geometry is None and not no_js:
-            rects = self._elem.evaluateJavaScript("this.getClientRects()")
-            text = utils.compact_text(self._elem.toOuterXml(), 500)
-            log.hints.vdebug("Client rectangles of element '{}': {}".format(
-                text, rects))
-            for i in range(int(rects.get("length", 0))):
-                rect = rects[str(i)]
-                width = rect.get("width", 0)
-                height = rect.get("height", 0)
-                if width > 1 and height > 1:
-                    # fix coordinates according to zoom level
-                    zoom = self._elem.webFrame().zoomFactor()
-                    if not config.get('ui', 'zoom-text-only') and adjust_zoom:
-                        rect["left"] *= zoom
-                        rect["top"] *= zoom
-                        width *= zoom
-                        height *= zoom
-                    rect = QRect(rect["left"], rect["top"], width, height)
-                    frame = self._elem.webFrame()
-                    while frame is not None:
-                        # Translate to parent frames' position (scroll position
-                        # is taken care of inside getClientRects)
-                        rect.translate(frame.geometry().topLeft())
-                        frame = frame.parentFrame()
-                    return rect
+            rect = self._rect_on_view_js(adjust_zoom)
+            if rect is not None:
+                return rect
 
         # No suitable rects found via JS, try via the QWebElement API
-        if elem_geometry is None:
-            geometry = self._elem.geometry()
-        else:
-            geometry = elem_geometry
-        frame = self._elem.webFrame()
-        rect = QRect(geometry)
-        while frame is not None:
-            rect.translate(frame.geometry().topLeft())
-            rect.translate(frame.scrollPosition() * -1)
-            frame = frame.parentFrame()
-        # We deliberately always adjust the zoom here, even with
-        # adjust_zoom=False
-        if elem_geometry is None:
-            zoom = self._elem.webFrame().zoomFactor()
-            if not config.get('ui', 'zoom-text-only'):
-                rect.moveTo(rect.left() / zoom, rect.top() / zoom)
-                rect.setWidth(rect.width() / zoom)
-                rect.setHeight(rect.height() / zoom)
-        return rect
+        return self._rect_on_view_python(elem_geometry)
 
     def is_visible(self, mainframe):
         """Check if the given element is visible in the given frame."""
