@@ -116,7 +116,7 @@ class TestDirbrowserHtml:
     def parser(self):
         """Provide a function to get a parsed dirbrowser document."""
         def parse(path):
-            html = filescheme.dirbrowser_html(path)
+            html = filescheme.dirbrowser_html(path).decode('utf-8')
             soup = bs4.BeautifulSoup(html, 'html.parser')
             print(soup.prettify())
             container = soup('div', id='dirbrowserContainer')[0]
@@ -143,7 +143,7 @@ class TestDirbrowserHtml:
         return parse
 
     def test_basic(self):
-        html = filescheme.dirbrowser_html(os.getcwd())
+        html = filescheme.dirbrowser_html(os.getcwd()).decode('utf-8')
         soup = bs4.BeautifulSoup(html, 'html.parser')
         print(soup.prettify())
         container = soup.div
@@ -157,7 +157,7 @@ class TestDirbrowserHtml:
         monkeypatch.setattr('qutebrowser.utils.jinja.utils.resource_filename',
                             lambda name: '/test path/foo.svg')
 
-        html = filescheme.dirbrowser_html(os.getcwd())
+        html = filescheme.dirbrowser_html(os.getcwd()).decode('utf-8')
         soup = bs4.BeautifulSoup(html, 'html.parser')
         print(soup.prettify())
 
@@ -229,7 +229,7 @@ class TestDirbrowserHtml:
         m = mocker.patch('qutebrowser.browser.webkit.network.filescheme.'
                          'os.listdir')
         m.side_effect = OSError('Error message')
-        html = filescheme.dirbrowser_html('')
+        html = filescheme.dirbrowser_html('').decode('utf-8')
         soup = bs4.BeautifulSoup(html, 'html.parser')
         print(soup.prettify())
         error_msg = soup('p', id='error-message-text')[0].string
