@@ -160,11 +160,8 @@ class MainWindow(QWidget):
         self._completion = completionwidget.CompletionView(self.win_id, self)
         cmd = objreg.get('status-command', scope='window', window=self.win_id)
         completer_obj = completer.Completer(cmd, self.win_id, self._completion)
-        completer_obj.next_prev_item.connect(self._completion.on_next_prev_item)
         self._completion.selection_changed.connect(
             completer_obj.on_selection_changed)
-        objreg.register('completer', completer_obj, scope='window',
-                        window=self.win_id)
         objreg.register('completion', self._completion, scope='window',
                         window=self.win_id)
 

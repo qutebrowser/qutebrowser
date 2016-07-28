@@ -42,14 +42,7 @@ class Completer(QObject):
         _last_text: The old command text so we avoid double completion updates.
         _signals_connected: Whether the signals are connected to update the
                             completion when the command widget requests that.
-
-    Signals:
-        next_prev_item: Emitted to select the next/previous item in the
-                        completion.
-                        arg0: True for the previous item, False for the next.
     """
-
-    next_prev_item = pyqtSignal(bool)
 
     def __init__(self, cmd, win_id, parent=None):
         super().__init__(parent)
@@ -258,6 +251,7 @@ class Completer(QObject):
             selected: New selection.
             _deselected: Previous selection.
         """
+        self._open_completion_if_needed()
         indexes = selected.indexes()
         if not indexes:
             return
@@ -470,17 +464,3 @@ class Completer(QObject):
         # We also want to update the cursor part and emit _update_completion
         # here, but that's already done for us by cursorPositionChanged
         # anyways, so we don't need to do it twice.
-
-    @cmdutils.register(instance='completer', hide=True,
-                       modes=[usertypes.KeyMode.command], scope='window')
-    def completion_item_prev(self):
-        """Select the previous completion item."""
-        self._open_completion_if_needed()
-        self.next_prev_item.emit(True)
-
-    @cmdutils.register(instance='completer', hide=True,
-                       modes=[usertypes.KeyMode.command], scope='window')
-    def completion_item_next(self):
-        """Select the next completion item."""
-        self._open_completion_if_needed()
-        self.next_prev_item.emit(False)

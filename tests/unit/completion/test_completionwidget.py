@@ -120,9 +120,7 @@ def test_maybe_resize_completion(completionview, config_stub, qtbot):
     ([['Aa'], [], []], 1, 'Aa'),
     ([['Aa'], [], []], -1, 'Aa'),
 ])
-def test_on_next_prev_item(tree, count, expected, completionview,
-                           config_stub, qtbot, monkeypatch,
-                           status_command_stub):
+def test_completion_item_next_prev(tree, count, expected, completionview):
     """Test that on_next_prev_item moves the selection properly.
 
     Args:
@@ -140,10 +138,11 @@ def test_on_next_prev_item(tree, count, expected, completionview,
     filtermodel = sortfilter.CompletionFilterModel(model,
                                                    parent=completionview)
     completionview.set_model(filtermodel)
-    # actually calling show() will pop a window during the test, so just fool
-    # the completionview into thinking it is visible instead
-    monkeypatch.setattr(completionview, 'isVisible', lambda: True)
-    for _ in range(abs(count)):
-        completionview.on_next_prev_item(count < 0)
+    if count < 0:
+        for _ in range(-count):
+            completionview.completion_item_prev()
+    else:
+        for _ in range(count):
+            completionview.completion_item_next()
     idx = completionview.selectionModel().currentIndex()
     assert filtermodel.data(idx) == expected

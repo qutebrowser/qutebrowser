@@ -187,24 +187,6 @@ def test_update_completion(txt, expected, status_command_stub, completer_obj,
         assert arg.srcmodel.kind == expected
 
 
-def test_completion_item_prev(completer_obj, status_command_stub, config_stub,
-                              qtbot):
-    """Test that completion_item_prev emits next_prev_item."""
-    status_command_stub.setText(':')
-    with qtbot.waitSignal(completer_obj.next_prev_item) as blocker:
-        completer_obj.completion_item_prev()
-    assert blocker.args == [True]
-
-
-def test_completion_item_next(completer_obj, status_command_stub, config_stub,
-                              qtbot):
-    """Test that completion_item_next emits next_prev_item."""
-    status_command_stub.setText(':')
-    with qtbot.waitSignal(completer_obj.next_prev_item) as blocker:
-        completer_obj.completion_item_next()
-    assert blocker.args == [False]
-
-
 @pytest.mark.parametrize('before, newtxt, quick_complete, count, after', [
     (':foo |', 'bar', False, 1, ':foo bar|'),
     (':foo |', 'bar', True, 2, ':foo bar|'),

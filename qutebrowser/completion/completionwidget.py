@@ -181,8 +181,7 @@ class CompletionView(QTreeView):
                 # Item is a real item, not a category header -> success
                 return idx
 
-    @pyqtSlot(bool)
-    def on_next_prev_item(self, prev):
+    def _next_prev_item(self, prev):
         """Handle a tab press for the CompletionView.
 
         Select the previous/next item and write the new text to the
@@ -193,9 +192,6 @@ class CompletionView(QTreeView):
         Args:
             prev: True for prev item, False for next one.
         """
-        if not self.isVisible():
-            # No completion running at the moment, ignore keypress
-            return
         idx = self._next_idx(prev)
         qtutils.ensure_valid(idx)
         self.selectionModel().setCurrentIndex(
@@ -273,6 +269,18 @@ class CompletionView(QTreeView):
         if scrollbar is not None:
             scrollbar.setValue(scrollbar.minimum())
         super().showEvent(e)
+
+    @cmdutils.register(instance='completion', hide=True,
+                       modes=[usertypes.KeyMode.command], scope='window')
+    def completion_item_prev(self):
+        """Select the previous completion item."""
+        self._next_prev_item(True)
+
+    @cmdutils.register(instance='completion', hide=True,
+                       modes=[usertypes.KeyMode.command], scope='window')
+    def completion_item_next(self):
+        """Select the next completion item."""
+        self._next_prev_item(False)
 
     @cmdutils.register(instance='completion', hide=True,
                        modes=[usertypes.KeyMode.command], scope='window')
