@@ -26,7 +26,6 @@ from PyQt5.QtGui import QStandardItem, QColor
 
 from qutebrowser.completion import completionwidget
 from qutebrowser.completion.models import base, sortfilter
-from qutebrowser.utils import objreg
 
 
 @pytest.fixture

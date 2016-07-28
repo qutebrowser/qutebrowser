@@ -28,7 +28,7 @@ from PyQt5.QtCore import (pyqtSlot, pyqtSignal, Qt, QItemSelectionModel,
                           QItemSelection)
 
 from qutebrowser.config import config, style
-from qutebrowser.completion import completiondelegate, completer
+from qutebrowser.completion import completiondelegate
 from qutebrowser.completion.models import base
 from qutebrowser.utils import qtutils, objreg, utils, usertypes
 from qutebrowser.commands import cmdexc, cmdutils
@@ -187,7 +187,7 @@ class CompletionView(QTreeView):
         Select the previous/next item and write the new text to the
         statusbar.
 
-        Called from the Completer's next_prev_item signal.
+        Helper for completion_item_next and completion_item_prev.
 
         Args:
             prev: True for prev item, False for next one.
