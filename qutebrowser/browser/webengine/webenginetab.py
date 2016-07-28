@@ -410,6 +410,10 @@ class WebEngineTab(browsertab.AbstractTab):
     def clear_ssl_errors(self):
         log.stub()
 
+    def find_all_elements(self, selector, *, only_visible=False):
+        log.stub()
+        return []
+
     def _connect_signals(self):
         view = self._widget
         page = view.page()
@@ -425,3 +429,7 @@ class WebEngineTab(browsertab.AbstractTab):
             view.iconChanged.connect(self.icon_changed)
         except AttributeError:
             log.stub('iconChanged, on Qt < 5.7')
+        try:
+            page.contentsSizeChanged.connect(self.contents_size_changed)
+        except AttributeError:
+            log.stub('contentsSizeChanged, on Qt < 5.7')

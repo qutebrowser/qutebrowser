@@ -503,21 +503,13 @@ class CommandDispatcher:
             if widget.backend == usertypes.Backend.QtWebEngine:
                 raise cmdexc.CommandError(":navigate prev/next is not "
                                           "supported yet with QtWebEngine")
-            page = widget._widget.page()  # pylint: disable=protected-access
-            frame = page.currentFrame()
-            if frame is None:
-                raise cmdexc.CommandError("No frame focused!")
-        else:
-            frame = None
 
         hintmanager = objreg.get('hintmanager', scope='tab', tab='current')
         if where == 'prev':
-            assert frame is not None
-            hintmanager.follow_prevnext(frame, url, prev=True, tab=tab,
+            hintmanager.follow_prevnext(widget, url, prev=True, tab=tab,
                                         background=bg, window=window)
         elif where == 'next':
-            assert frame is not None
-            hintmanager.follow_prevnext(frame, url, prev=False, tab=tab,
+            hintmanager.follow_prevnext(widget, url, prev=False, tab=tab,
                                         background=bg, window=window)
         elif where == 'up':
             self._navigate_up(url, tab, bg, window)
@@ -1441,10 +1433,7 @@ class CommandDispatcher:
             raise cmdexc.CommandError("No element focused!")
         if not elem.is_editable(strict=True):
             raise cmdexc.CommandError("Focused element is not editable!")
-        if elem.is_content_editable():
-            text = str(elem)
-        else:
-            text = elem.evaluateJavaScript('this.value')
+        text = elem.text(use_js=True)
         ed = editor.ExternalEditor(self._win_id, self._tabbed_browser)
         ed.editing_finished.connect(functools.partial(
             self.on_editing_finished, elem))
@@ -1460,15 +1449,7 @@ class CommandDispatcher:
             text: The new text to insert.
         """
         try:
-            if elem.is_content_editable():
-                log.misc.debug("Filling element {} via setPlainText.".format(
-                    elem.debug_text()))
-                elem.setPlainText(text)
-            else:
-                log.misc.debug("Filling element {} via javascript.".format(
-                    elem.debug_text()))
-                text = webelem.javascript_escape(text)
-                elem.evaluateJavaScript("this.value='{}'".format(text))
+            elem.set_text(text, use_js=True)
         except webelem.IsNullError:
             raise cmdexc.CommandError("Element vanished while editing!")
 
@@ -1494,7 +1475,7 @@ class CommandDispatcher:
 
         log.misc.debug("Pasting primary selection into element {}".format(
             elem.debug_text()))
-        elem.evaluateJavaScript("""
+        elem.run_js_async("""
             var sel = '{}';
             var event = document.createEvent('TextEvent');
             event.initTextEvent('textInput', true, true, null, sel);

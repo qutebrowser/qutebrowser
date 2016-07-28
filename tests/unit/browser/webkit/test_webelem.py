@@ -402,7 +402,7 @@ class TestRemoveBlankTarget:
         elem = [None] * depth
         elem[0] = get_webelem(tagname='div')
         for i in range(1, depth):
-            elem[i] = get_webelem(tagname='div', parent=elem[i-1])
+            elem[i] = get_webelem(tagname='div', parent=elem[i-1]._elem)
             elem[i]._elem.encloseWith(elem[i-1]._elem)
         elem[-1].remove_blank_target()
         for i in range(depth):
@@ -672,10 +672,10 @@ class TestRectOnView:
     def test_passed_geometry(self, stubs, js_rect):
         """Make sure geometry isn't called when a geometry is passed."""
         frame = stubs.FakeWebFrame(QRect(0, 0, 200, 200))
-        raw_elem = get_webelem(frame=frame, js_rect_return=js_rect)._elem
+        elem = get_webelem(frame=frame, js_rect_return=js_rect)
         rect = QRect(10, 20, 30, 40)
-        assert webelem.rect_on_view(raw_elem, elem_geometry=rect) == rect
-        assert not raw_elem.geometry.called
+        assert elem.rect_on_view(elem_geometry=rect) == rect
+        assert not elem._elem.geometry.called
 
     @pytest.mark.parametrize('js_rect', [None, {}])
     @pytest.mark.parametrize('zoom_text_only', [True, False])

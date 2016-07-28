@@ -64,8 +64,6 @@ class HintContext:
 
     Attributes:
         frames: The QWebFrames to use.
-        destroyed_frames: id()'s of QWebFrames which have been destroyed.
-                          (Workaround for https://github.com/The-Compiler/qutebrowser/issues/152)
         all_elems: A list of all (elem, label) namedtuples ever created.
         elems: A mapping from key strings to (elem, label) namedtuples.
                May contain less elements than `all_elems` due to filtering.
@@ -82,7 +80,6 @@ class HintContext:
         to_follow: The link to follow when enter is pressed.
         args: Custom arguments for userscript/spawn
         rapid: Whether to do rapid hinting.
-        mainframe: The main QWebFrame where we started hinting in.
         tab: The WebTab object we started hinting in.
         group: The group of web elements to hint.
     """
@@ -95,9 +92,7 @@ class HintContext:
         self.to_follow = None
         self.rapid = False
         self.frames = []
-        self.destroyed_frames = []
         self.args = []
-        self.mainframe = None
         self.tab = None
         self.group = None
 
@@ -176,25 +171,9 @@ class HintManager(QObject):
         """Clean up after hinting."""
         for elem in self._context.all_elems:
             try:
-                elem.label.removeFromDocument()
+                elem.label.remove_from_document()
             except webelem.IsNullError:
                 pass
-        for f in self._context.frames:
-            log.hints.debug("Disconnecting frame {}".format(f))
-            if id(f) in self._context.destroyed_frames:
-                # WORKAROUND for
-                # https://github.com/The-Compiler/qutebrowser/issues/152
-                log.hints.debug("Frame has been destroyed, ignoring.")
-                continue
-            try:
-                f.contentsSizeChanged.disconnect(self.on_contents_size_changed)
-            except TypeError:
-                # It seems we can get this here:
-                #   TypeError: disconnect() failed between
-                #   'contentsSizeChanged' and 'on_contents_size_changed'
-                # See # https://github.com/The-Compiler/qutebrowser/issues/263
-                pass
-            log.hints.debug("Disconnected.")
         text = self._get_text()
         message_bridge = objreg.get('message-bridge', scope='window',
                                     window=self._win_id)
@@ -335,16 +314,16 @@ class HintManager(QObject):
 
     def _is_hidden(self, elem):
         """Check if the element is hidden via display=none."""
-        display = elem.styleProperty('display', QWebElement.InlineStyle)
+        display = elem.style_property('display', QWebElement.InlineStyle)
         return display == 'none'
 
     def _show_elem(self, elem):
         """Show a given element."""
-        elem.setStyleProperty('display', 'inline !important')
+        elem.set_style_property('display', 'inline !important')
 
     def _hide_elem(self, elem):
         """Hide a given element."""
-        elem.setStyleProperty('display', 'none !important')
+        elem.set_style_property('display', 'none !important')
 
     def _set_style_properties(self, elem, label):
         """Set the hint CSS on the element given.
@@ -373,7 +352,7 @@ class HintManager(QObject):
             attrs.append(('text-transform', 'none !important'))
 
         for k, v in attrs:
-            label.setStyleProperty(k, v)
+            label.set_style_property(k, v)
         self._set_style_position(elem, label)
 
     def _set_style_position(self, elem, label):
@@ -389,8 +368,8 @@ class HintManager(QObject):
         top = rect.y()
         log.hints.vdebug("Drawing label '{!r}' at {}/{} for element '{!r}' "
                          "(no_js: {})".format(label, left, top, elem, no_js))
-        label.setStyleProperty('left', '{}px !important'.format(left))
-        label.setStyleProperty('top', '{}px !important'.format(top))
+        label.set_style_property('left', '{}px !important'.format(left))
+        label.set_style_property('top', '{}px !important'.format(top))
 
     def _draw_label(self, elem, string):
         """Draw a hint label over an element.
@@ -402,22 +381,16 @@ class HintManager(QObject):
         Return:
             The newly created label element
         """
-        doc = elem.webFrame().documentElement()
-        # It seems impossible to create an empty QWebElement for which isNull()
-        # is false so we can work with it.
-        # As a workaround, we use appendInside() with markup as argument, and
-        # then use lastChild() to get a reference to it.
-        # See: http://stackoverflow.com/q/7364852/2085149
-        body = doc.findFirst('body')
-        if not body.isNull():
-            parent = body
-        else:
+        doc = elem.document_element()
+        body = doc.find_first('body')
+        if body is None:
             parent = doc
-        parent.appendInside('<span></span>')
-        label = webelem.WebElementWrapper(parent.lastChild())
+        else:
+            parent = body
+        label = parent.create_inside('span')
         label['class'] = 'qutehint'
         self._set_style_properties(elem, label)
-        label.setPlainText(string)
+        label.set_text(string)
         return label
 
     def _show_url_error(self):
@@ -490,7 +463,7 @@ class HintManager(QObject):
             self.mouse_event.emit(evt)
         if elem.is_text_input() and elem.is_editable():
             QTimer.singleShot(0, functools.partial(
-                elem.webFrame().page().triggerAction,
+                elem.frame().page().triggerAction,
                 QWebPage.MoveToEndOfDocument))
         QTimer.singleShot(0, self.stop_hinting.emit)
 
@@ -559,7 +532,7 @@ class HintManager(QObject):
 
         download_manager = objreg.get('download-manager', scope='window',
                                       window=self._win_id)
-        download_manager.get(url, page=elem.webFrame().page(),
+        download_manager.get(url, page=elem.frame().page(),
                              prompt_download_directory=prompt)
 
     def _call_userscript(self, elem, context):
@@ -574,7 +547,7 @@ class HintManager(QObject):
         env = {
             'QUTE_MODE': 'hints',
             'QUTE_SELECTED_TEXT': str(elem),
-            'QUTE_SELECTED_HTML': elem.toOuterXml(),
+            'QUTE_SELECTED_HTML': elem.outer_xml(),
         }
         url = self._resolve_url(elem, context.baseurl)
         if url is not None:
@@ -623,13 +596,12 @@ class HintManager(QObject):
         qtutils.ensure_valid(url)
         return url
 
-    def _find_prevnext(self, frame, prev=False):
+    def _find_prevnext(self, tab, prev=False):
         """Find a prev/next element in frame."""
         # First check for <link rel="prev(ious)|next">
-        elems = frame.findAllElements(webelem.SELECTORS[webelem.Group.links])
+        elems = tab.find_all_elements(webelem.SELECTORS[webelem.Group.links])
         rel_values = ('prev', 'previous') if prev else ('next')
         for e in elems:
-            e = webelem.WebElementWrapper(e)
             try:
                 rel_attr = e['rel']
             except KeyError:
@@ -639,9 +611,8 @@ class HintManager(QObject):
                     e.debug_text(), rel_attr))
                 return e
         # Then check for regular links/buttons.
-        elems = frame.findAllElements(
+        elems = tab.find_all_elements(
             webelem.SELECTORS[webelem.Group.prevnext])
-        elems = [webelem.WebElementWrapper(e) for e in elems]
         filterfunc = webelem.FILTERS[webelem.Group.prevnext]
         elems = [e for e in elems if filterfunc(e)]
 
@@ -661,12 +632,6 @@ class HintManager(QObject):
                 else:
                     log.hints.vdebug("No match on '{}'!".format(text))
         return None
-
-    def _connect_frame_signals(self):
-        """Connect the contentsSizeChanged signals to all frames."""
-        for f in self._context.frames:
-            log.hints.debug("Connecting frame {}".format(f))
-            f.contentsSizeChanged.connect(self.on_contents_size_changed)
 
     def _check_args(self, target, *args):
         """Check the arguments passed to start() and raise if they're wrong.
@@ -690,14 +655,9 @@ class HintManager(QObject):
 
     def _init_elements(self):
         """Initialize the elements and labels based on the context set."""
-        elems = []
-        for f in self._context.frames:
-            elems += f.findAllElements(webelem.SELECTORS[self._context.group])
-        elems = [e for e in elems
-                 if webelem.is_visible(e, self._context.mainframe)]
-        # We wrap the elements late for performance reasons, as wrapping 1000s
-        # of elements (with ~50 methods each) just takes too much time...
-        elems = [webelem.WebElementWrapper(e) for e in elems]
+        selector = webelem.SELECTORS[self._context.group]
+        elems = self._context.tab.find_all_elements(selector,
+                                                    only_visible=True)
         filterfunc = webelem.FILTERS.get(self._context.group, lambda e: True)
         elems = [e for e in elems if filterfunc(e)]
         if not elems:
@@ -724,12 +684,12 @@ class HintManager(QObject):
         # Do multi-word matching
         return all(word in elemstr for word in filterstr.split())
 
-    def follow_prevnext(self, frame, baseurl, prev=False, tab=False,
+    def follow_prevnext(self, browsertab, baseurl, prev=False, tab=False,
                         background=False, window=False):
         """Click a "previous"/"next" element on the page.
 
         Args:
-            frame: The frame where the element is in.
+            browsertab: The WebKitTab/WebEngineTab of the page.
             baseurl: The base URL of the current tab.
             prev: True to open a "previous" link, False to open a "next" link.
             tab: True to open in a new tab, False for the current tab.
@@ -737,7 +697,7 @@ class HintManager(QObject):
             window: True to open in a new window, False for the current one.
         """
         from qutebrowser.mainwindow import mainwindow
-        elem = self._find_prevnext(frame, prev)
+        elem = self._find_prevnext(browsertab, prev)
         if elem is None:
             raise cmdexc.CommandError("No {} links found!".format(
                 "prev" if prev else "forward"))
@@ -820,11 +780,6 @@ class HintManager(QObject):
         tab = tabbed_browser.currentWidget()
         if tab is None:
             raise cmdexc.CommandError("No WebView available yet!")
-        # FIXME:qtwebengine have a proper API for this
-        page = tab._widget.page()  # pylint: disable=protected-access
-        mainframe = page.mainFrame()
-        if mainframe is None:
-            raise cmdexc.CommandError("No frame focused!")
         mode_manager = objreg.get('mode-manager', scope='window',
                                   window=self._win_id)
         if mode_manager.mode == usertypes.KeyMode.hint:
@@ -852,20 +807,13 @@ class HintManager(QObject):
             self._context.baseurl = tabbed_browser.current_url()
         except qtutils.QtValueError:
             raise cmdexc.CommandError("No URL set for this page yet!")
-        self._context.frames = webelem.get_child_frames(mainframe)
-        for frame in self._context.frames:
-            # WORKAROUND for
-            # https://github.com/The-Compiler/qutebrowser/issues/152
-            frame.destroyed.connect(functools.partial(
-                self._context.destroyed_frames.append, id(frame)))
+        self._context.tab = tab
         self._context.args = args
-        self._context.mainframe = mainframe
         self._context.group = group
         self._init_elements()
         message_bridge = objreg.get('message-bridge', scope='window',
                                     window=self._win_id)
         message_bridge.set_text(self._get_text())
-        self._connect_frame_signals()
         modeman.enter(self._win_id, usertypes.KeyMode.hint,
                       'HintManager.start')
 
@@ -878,7 +826,7 @@ class HintManager(QObject):
                     matched = string[:len(keystr)]
                     rest = string[len(keystr):]
                     match_color = config.get('colors', 'hints.fg.match')
-                    elem.label.setInnerXml(
+                    elem.label.set_inner_xml(
                         '<font color="{}">{}</font>{}'.format(
                             match_color, matched, rest))
                     if self._is_hidden(elem.label):
@@ -913,7 +861,7 @@ class HintManager(QObject):
         strings = self._hint_strings(elems)
         self._context.elems = {}
         for elem, string in zip(elems, strings):
-            elem.label.setInnerXml(string)
+            elem.label.set_inner_xml(string)
             self._context.elems[string] = elem
         keyparsers = objreg.get('keyparsers', scope='window',
                                 window=self._win_id)
@@ -1017,7 +965,7 @@ class HintManager(QObject):
             Target.spawn: self._spawn,
         }
         elem = self._context.elems[keystr].elem
-        if elem.webFrame() is None:
+        if elem.frame() is None:
             message.error(self._win_id,
                           "This element has no webframe.",
                           immediately=True)
@@ -1042,7 +990,7 @@ class HintManager(QObject):
             self.filter_hints(None)
             # Undo keystring highlighting
             for string, elem in self._context.elems.items():
-                elem.label.setInnerXml(string)
+                elem.label.set_inner_xml(string)
         handler()
 
     @cmdutils.register(instance='hintmanager', scope='tab', hide=True,
@@ -1068,9 +1016,9 @@ class HintManager(QObject):
         log.hints.debug("Contents size changed...!")
         for e in self._context.all_elems:
             try:
-                if e.elem.webFrame() is None:
+                if e.elem.frame() is None:
                     # This sometimes happens for some reason...
-                    e.label.removeFromDocument()
+                    e.label.remove_from_document()
                     continue
                 self._set_style_position(e.elem, e.label)
             except webelem.IsNullError:
@@ -1146,7 +1094,7 @@ class WordHinter:
         })
 
         return (attr_extractors[attr](elem)
-                for attr in extractable_attrs[elem.tagName()]
+                for attr in extractable_attrs[elem.tag_name()]
                 if attr in elem or attr == "text")
 
     def tag_words_to_hints(self, words):
