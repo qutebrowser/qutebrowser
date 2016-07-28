@@ -262,7 +262,7 @@ class QuteProc(testprocess.Process):
                         '--profile-tool', 'none',
                         '--profile-file', profile_file]
             else:
-                args = ['-m', 'qutebrowser']
+                args = ['-bb', '-m', 'qutebrowser']
         return executable, args
 
     def _default_args(self):
