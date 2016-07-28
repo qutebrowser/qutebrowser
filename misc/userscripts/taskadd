@@ -31,5 +31,6 @@ if [[ $? == 0 ]]; then
     # annotate the new task with the url, send the output back to the browser
     task +LATEST annotate "$QUTE_URL"
     echo "message-info '$msg'" >> "$QUTE_FIFO"
-else echo "message-error '$msg'" >> "$QUTE_FIFO"
+else
+    echo "message-error '$msg'" >> "$QUTE_FIFO"
 fi
