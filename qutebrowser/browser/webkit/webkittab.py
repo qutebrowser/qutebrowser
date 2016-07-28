@@ -595,7 +595,7 @@ class WebKitTab(browsertab.AbstractTab):
         # FIXME:qtwebengine those could theoretically regress:
         # https://github.com/The-Compiler/qutebrowser/issues/152
         # https://github.com/The-Compiler/qutebrowser/issues/263
-        frame.contentsSizeChanged.connect(self.contents_size_changed)
+        frame.contentsSizeChanged.connect(self._on_contents_size_changed)
 
     @pyqtSlot(QSize)
     def _on_contents_size_changed(self, size):
