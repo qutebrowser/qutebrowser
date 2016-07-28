@@ -560,7 +560,7 @@ class WebKitTab(browsertab.AbstractTab):
     def find_all_elements(self, selector, *, only_visible=False):
         mainframe = self._widget.page().mainFrame()
         if mainframe is None:
-            raise WebTabError("No frame focused!")
+            raise browsertab.WebTabError("No frame focused!")
 
         elems = []
         frames = webelem.get_child_frames(mainframe)

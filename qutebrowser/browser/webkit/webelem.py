@@ -533,5 +533,3 @@ def focus_elem(frame):
     """
     elem = frame.findFirstElement(SELECTORS[Group.focus])
     return WebElementWrapper(elem)
-
-
