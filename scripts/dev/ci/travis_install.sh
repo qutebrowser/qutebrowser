@@ -1,3 +1,4 @@
+#/usr/bin/env bash
 # vim: ft=sh fileencoding=utf-8 sts=4 sw=4 et:
 
 # Copyright 2016 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
@@ -26,17 +27,17 @@ travis_retry() {
     local count=1
     while (( count < 3 )); do
         if (( result != 0 )); then
-            echo -e "\n${ANSI_RED}The command \"$@\" failed. Retrying, $count of 3.${ANSI_RESET}\n" >&2
+            echo -e "\n${ANSI_RED}The command \"$*\" failed. Retrying, $count of 3.${ANSI_RESET}\n" >&2
         fi
         "$@"
         result=$?
         (( result == 0 )) && break
-        count=$(($count + 1))
+        count=$(( count + 1 ))
         sleep 1
     done
 
     if (( count > 3 )); then
-        echo -e "\n${ANSI_RED}The command \"$@\" failed 3 times.${ANSI_RESET}\n" >&2
+        echo -e "\n${ANSI_RED}The command \"$*\" failed 3 times.${ANSI_RESET}\n" >&2
     fi
 
     return $result
@@ -54,7 +55,7 @@ brew_install() {
 
 pip_install() {
     # this uses python2
-    travis_retry sudo -H python -m pip install -r misc/requirements/requirements-$1.txt
+    travis_retry sudo -H python -m pip install -r "misc/requirements/requirements-$1.txt"
 }
 
 npm_install() {
@@ -111,18 +112,18 @@ tox --version
 case $TESTENV in
     py34-cov)
         pip_install codecov
-        apt_install xvfb $pyqt_pkgs libpython3.4-dev
+        apt_install xvfb "$pyqt_pkgs" libpython3.4-dev
         check_pyqt
         ;;
     pylint|vulture)
-        apt_install $pyqt_pkgs libpython3.4-dev
+        apt_install "$pyqt_pkgs" libpython3.4-dev
         check_pyqt
         ;;
     flake8)
         apt_install libpython3.4-dev
         ;;
     docs)
-        apt_install $pyqt_pkgs asciidoc libpython3.4-dev
+        apt_install "$pyqt_pkgs" asciidoc libpython3.4-dev
         asciidoc --version
         check_pyqt
         ;;
