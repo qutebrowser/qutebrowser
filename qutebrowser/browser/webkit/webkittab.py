@@ -23,7 +23,8 @@ import sys
 import functools
 import xml.etree.ElementTree
 
-from PyQt5.QtCore import pyqtSlot, Qt, QEvent, QUrl, QPoint, QTimer
+from PyQt5.QtCore import (pyqtSlot, Qt, QEvent, QUrl, QPoint, QTimer, QSizeF,
+                          QSize)
 from PyQt5.QtGui import QKeyEvent
 from PyQt5.QtWebKitWidgets import QWebPage, QWebFrame
 from PyQt5.QtWebKit import QWebSettings
@@ -596,6 +597,10 @@ class WebKitTab(browsertab.AbstractTab):
         # https://github.com/The-Compiler/qutebrowser/issues/263
         frame.contentsSizeChanged.connect(self.contents_size_changed)
 
+    @pyqtSlot(QSize)
+    def _on_contents_size_changed(self, size):
+        self.contents_size_changed.emit(QSizeF(size))
+
     def _connect_signals(self):
         view = self._widget
         page = view.page()
@@ -611,3 +616,5 @@ class WebKitTab(browsertab.AbstractTab):
         page.networkAccessManager().sslErrors.connect(self._on_ssl_errors)
         frame.loadFinished.connect(self._on_frame_load_finished)
         view.iconChanged.connect(self._on_webkit_icon_changed)
+        page.frameCreated.connect(self._on_frame_created)
+        frame.contentsSizeChanged.connect(self._on_contents_size_changed)

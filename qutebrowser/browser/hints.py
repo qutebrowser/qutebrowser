@@ -811,6 +811,7 @@ class HintManager(QObject):
         self._context.args = args
         self._context.group = group
         self._init_elements()
+        tab.contents_size_changed.connect(self.on_contents_size_changed)
         message_bridge = objreg.get('message-bridge', scope='window',
                                     window=self._win_id)
         message_bridge.set_text(self._get_text())
@@ -1010,8 +1011,8 @@ class HintManager(QObject):
             raise cmdexc.CommandError("No hint {}!".format(keystring))
         self.fire(keystring, force=True)
 
-    @pyqtSlot('QSize')
-    def on_contents_size_changed(self, _size):
+    @pyqtSlot()
+    def on_contents_size_changed(self):
         """Reposition hints if contents size changed."""
         log.hints.debug("Contents size changed...!")
         for e in self._context.all_elems:
