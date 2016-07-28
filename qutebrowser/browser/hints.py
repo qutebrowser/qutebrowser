@@ -169,6 +169,8 @@ class HintManager(QObject):
 
     def _cleanup(self):
         """Clean up after hinting."""
+        self._context.tab.contents_size_changed.disconnect(
+            self.on_contents_size_changed)
         for elem in self._context.all_elems:
             try:
                 elem.label.remove_from_document()
