@@ -13,7 +13,7 @@ flake8-string-format==0.2.3
 flake8-tidy-imports==1.0.2
 flake8-tuple==0.2.12
 hacking==0.11.0
-mccabe==0.5.0
+mccabe==0.5.1
 packaging==16.7
 pbr==1.10.0
 pep8==1.7.0
