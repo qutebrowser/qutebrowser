@@ -172,7 +172,8 @@ class WebElementWrapper(collections.abc.MutableMapping):
         """Get the plain text content for this element.
 
         Args:
-            use_js: Whether to use javascript if the element isn't content-editable.
+            use_js: Whether to use javascript if the element isn't
+                    content-editable.
         """
         self._check_vanished()
         if self.is_content_editable() or not use_js:
@@ -184,7 +185,8 @@ class WebElementWrapper(collections.abc.MutableMapping):
         """Set the given plain text.
 
         Args:
-            use_js: Whether to use javascript if the element isn't content-editable.
+            use_js: Whether to use javascript if the element isn't
+                    content-editable.
         """
         self._check_vanished()
         if self.is_content_editable() or not use_js:
@@ -356,13 +358,14 @@ class WebElementWrapper(collections.abc.MutableMapping):
         if callback is not None:
             callback(result)
 
-    def rect_on_view(self, *, elem_geometry=None, adjust_zoom=True, no_js=False):
+    def rect_on_view(self, *, elem_geometry=None, adjust_zoom=True,
+                     no_js=False):
         """Get the geometry of the element relative to the webview.
 
         Uses the getClientRects() JavaScript method to obtain the collection of
-        rectangles containing the element and returns the first rectangle which is
-        large enough (larger than 1px times 1px). If all rectangles returned by
-        getClientRects() are too small, falls back to elem.rect_on_view().
+        rectangles containing the element and returns the first rectangle which
+        is large enough (larger than 1px times 1px). If all rectangles returned
+        by getClientRects() are too small, falls back to elem.rect_on_view().
 
         Skipping of small rectangles is due to <a> elements containing other
         elements with "display:block" style, see
@@ -370,10 +373,10 @@ class WebElementWrapper(collections.abc.MutableMapping):
 
         Args:
             elem_geometry: The geometry of the element, or None.
-                          Calling QWebElement::geometry is rather expensive so we
-                          want to avoid doing it twice.
+                           Calling QWebElement::geometry is rather expensive so
+                           we want to avoid doing it twice.
             adjust_zoom: Whether to adjust the element position based on the
-                        current zoom level.
+                         current zoom level.
             no_js: Fall back to the Python implementation
         """
         self._check_vanished()
@@ -383,8 +386,8 @@ class WebElementWrapper(collections.abc.MutableMapping):
         if elem_geometry is None and not no_js:
             rects = self._elem.evaluateJavaScript("this.getClientRects()")
             text = utils.compact_text(self._elem.toOuterXml(), 500)
-            log.hints.vdebug("Client rectangles of element '{}': {}".format(text,
-                                                                            rects))
+            log.hints.vdebug("Client rectangles of element '{}': {}".format(
+                text, rects))
             for i in range(int(rects.get("length", 0))):
                 rect = rects[str(i)]
                 width = rect.get("width", 0)
@@ -400,8 +403,8 @@ class WebElementWrapper(collections.abc.MutableMapping):
                     rect = QRect(rect["left"], rect["top"], width, height)
                     frame = self._elem.webFrame()
                     while frame is not None:
-                        # Translate to parent frames' position
-                        # (scroll position is taken care of inside getClientRects)
+                        # Translate to parent frames' position (scroll position
+                        # is taken care of inside getClientRects)
                         rect.translate(frame.geometry().topLeft())
                         frame = frame.parentFrame()
                     return rect
@@ -417,7 +420,8 @@ class WebElementWrapper(collections.abc.MutableMapping):
             rect.translate(frame.geometry().topLeft())
             rect.translate(frame.scrollPosition() * -1)
             frame = frame.parentFrame()
-        # We deliberately always adjust the zoom here, even with adjust_zoom=False
+        # We deliberately always adjust the zoom here, even with
+        # adjust_zoom=False
         if elem_geometry is None:
             zoom = self._elem.webFrame().zoomFactor()
             if not config.get('ui', 'zoom-text-only'):
@@ -449,7 +453,8 @@ class WebElementWrapper(collections.abc.MutableMapping):
         else:
             # We got an invalid rectangle (width/height 0/0 probably), but this
             # can still be a valid link.
-            visible_on_screen = mainframe_geometry.contains(elem_rect.topLeft())
+            visible_on_screen = mainframe_geometry.contains(
+                elem_rect.topLeft())
         # Then check if it's visible in its frame if it's not in the main
         # frame.
         elem_frame = self._elem.webFrame()
