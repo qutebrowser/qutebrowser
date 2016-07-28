@@ -37,7 +37,8 @@ if __name__ == '__main__':
         pass
 
     try:
-        subprocess.check_call([sys.executable, '-m', 'pytest'] + sys.argv[1:])
+        subprocess.check_call([sys.executable, '-bb', '-m', 'pytest'] +
+                              sys.argv[1:])
     except subprocess.CalledProcessError as exc:
         is_segfault = exc.returncode in [128 + signal.SIGSEGV, -signal.SIGSEGV]
         if is_segfault and os.path.exists(pytest_status_file):
