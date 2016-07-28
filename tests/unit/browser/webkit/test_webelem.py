@@ -254,19 +254,41 @@ class TestWebElementWrapper:
         lambda e: operator.setitem(e, None, None),
         lambda e: operator.delitem(e, None),
         lambda e: None in e,
+        list,  # __iter__
         len,
-        lambda e: e.is_visible(None),
-        lambda e: e.rect_on_view(),
+        lambda e: e.frame(),
+        lambda e: e.geometry(),
+        lambda e: e.document_element(),
+        lambda e: e.create_inside('span'),
+        lambda e: e.find_first('span'),
+        lambda e: e.style_property('visibility', QWebElement.InlineStyle),
+        lambda e: e.text(),
+        lambda e: e.set_text('foo'),
+        lambda e: e.set_inner_xml(''),
+        lambda e: e.remove_from_document(),
+        lambda e: e.set_style_property('visibility', 'hidden'),
         lambda e: e.is_writable(),
         lambda e: e.is_content_editable(),
         lambda e: e.is_editable(),
         lambda e: e.is_text_input(),
+        lambda e: e.remove_blank_target(),
         lambda e: e.debug_text(),
-        list,  # __iter__
-    ])
+        lambda e: e.outer_xml(),
+        lambda e: e.tag_name(),
+        lambda e: e.run_js_async(''),
+        lambda e: e.rect_on_view(),
+        lambda e: e.is_visible(None),
+    ], ids=['str', 'getitem', 'setitem', 'delitem', 'contains', 'iter', 'len',
+            'frame', 'geometry', 'document_element', 'create_inside',
+            'find_first', 'style_property', 'text', 'set_text',
+            'set_inner_xml', 'remove_from_document', 'set_style_property',
+            'is_writable', 'is_content_editable', 'is_editable',
+            'is_text_input', 'remove_blank_target', 'debug_text', 'outer_xml',
+            'tag_name', 'run_js_async', 'rect_on_view', 'is_visible'])
     def test_vanished(self, elem, code):
         """Make sure methods check if the element is vanished."""
         elem._elem.isNull.return_value = True
+        elem._elem.tagName.return_value = 'span'
         with pytest.raises(webelem.IsNullError):
             code(elem)
 
