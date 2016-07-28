@@ -672,9 +672,9 @@ class TestRectOnView:
     def test_passed_geometry(self, stubs, js_rect):
         """Make sure geometry isn't called when a geometry is passed."""
         frame = stubs.FakeWebFrame(QRect(0, 0, 200, 200))
-        raw_elem = get_webelem(frame=frame, js_rect_return=js_rect)._elem
+        elem = get_webelem(frame=frame, js_rect_return=js_rect)
         rect = QRect(10, 20, 30, 40)
-        assert webelem.rect_on_view(raw_elem, elem_geometry=rect) == rect
+        assert elem.rect_on_view(elem_geometry=rect) == rect
         assert not raw_elem.geometry.called
 
     @pytest.mark.parametrize('js_rect', [None, {}])

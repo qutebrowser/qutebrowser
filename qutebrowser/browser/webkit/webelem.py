@@ -426,10 +426,9 @@ class WebElementWrapper(collections.abc.MutableMapping):
                 rect.setHeight(rect.height() / zoom)
         return rect
 
-    def is_visible(self):
-        """Check if the given element is visible in the frame."""
+    def is_visible(self, mainframe):
+        """Check if the given element is visible in the given frame."""
         self._check_vanished()
-        mainframe = self._elem.webFrame()
         # CSS attributes which hide an element
         hidden_attributes = {
             'visibility': 'hidden',

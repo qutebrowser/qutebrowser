@@ -633,8 +633,13 @@ class AbstractTab(QWidget):
     def set_html(self, html, base_url):
         raise NotImplementedError
 
-    def find_all_elements(self, selector):
-        """Find all HTML elements matching a given selector."""
+    def find_all_elements(self, selector, *, only_visible=False):
+        """Find all HTML elements matching a given selector.
+
+        Args:
+            selector: The CSS selector to search for.
+            only_visible: Only show elements which are visible on screen.
+        """
         raise NotImplementedError
 
     def __repr__(self):

@@ -656,8 +656,8 @@ class HintManager(QObject):
     def _init_elements(self):
         """Initialize the elements and labels based on the context set."""
         selector = webelem.SELECTORS[self._context.group]
-        elems = self._context.tab.find_all_elements(selector)
-        elems = [e for e in elems if e.is_visible()]
+        elems = self._context.tab.find_all_elements(selector,
+                                                    only_visible=True)
         filterfunc = webelem.FILTERS.get(self._context.group, lambda e: True)
         elems = [e for e in elems if filterfunc(e)]
         if not elems:
