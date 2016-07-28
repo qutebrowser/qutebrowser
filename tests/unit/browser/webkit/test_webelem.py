@@ -341,6 +341,9 @@ class TestWebElementWrapper:
         two = webelem.WebElementWrapper(one._elem)
         assert one == two
 
+    def test_eq_other_type(self):
+        assert get_webelem() != object()
+
     @pytest.mark.parametrize('attributes, expected', [
         ({'one': '1', 'two': '2'}, {'one', 'two'}),
         ({}, set()),
