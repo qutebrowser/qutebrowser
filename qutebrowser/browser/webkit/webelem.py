@@ -367,6 +367,12 @@ class WebElementWrapper(collections.abc.MutableMapping):
     def _rect_on_view_js(self, adjust_zoom):
         """Javascript implementation for rect_on_view."""
         rects = self._elem.evaluateJavaScript("this.getClientRects()")
+        if rects is None:
+            # Depending on unknown circumstances, this might not work with JS
+            # disabled in QWebSettings:
+            # https://github.com/The-Compiler/qutebrowser/issues/1641
+            return None
+
         text = utils.compact_text(self._elem.toOuterXml(), 500)
         log.hints.vdebug("Client rectangles of element '{}': {}".format(
             text, rects))

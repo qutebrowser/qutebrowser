@@ -25,6 +25,11 @@ Changed
 - `:bookmark-load` now has a `--delete` flag which deletes the bookmark after
   loading it.
 
+Fixed
+-----
+
+- Fixed crash when using hints with JS disabled in some rare circumstances.
+
 v0.8.1
 ------
 
