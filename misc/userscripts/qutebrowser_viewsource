@@ -34,6 +34,5 @@ unset _command
 [[ $EDITOR =~ emacs|gedit|leafpad|atom ]] && _command="$EDITOR $path"
 [ -z "$_command" ] && _command="$TERMINAL -e \"vim $path\""
 
-# debug: this would be eval not echo.
-echo "$_command"
+eval "$_command"
 rm "$path"

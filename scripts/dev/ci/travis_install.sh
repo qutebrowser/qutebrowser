@@ -1,4 +1,4 @@
-#/usr/bin/env bash
+#!/usr/bin/env bash
 # vim: ft=sh fileencoding=utf-8 sts=4 sw=4 et:
 
 # Copyright 2016 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
@@ -112,18 +112,21 @@ tox --version
 case $TESTENV in
     py34-cov)
         pip_install codecov
-        apt_install xvfb "$pyqt_pkgs" libpython3.4-dev
+        # shellcheck disable=SC2086
+        apt_install xvfb $pyqt_pkgs libpython3.4-dev
         check_pyqt
         ;;
     pylint|vulture)
-        apt_install "$pyqt_pkgs" libpython3.4-dev
+        # shellcheck disable=SC2086
+        apt_install $pyqt_pkgs libpython3.4-dev
         check_pyqt
         ;;
     flake8)
         apt_install libpython3.4-dev
         ;;
     docs)
-        apt_install "$pyqt_pkgs" asciidoc libpython3.4-dev
+        # shellcheck disable=SC2086
+        apt_install $pyqt_pkgs asciidoc libpython3.4-dev
         asciidoc --version
         check_pyqt
         ;;
