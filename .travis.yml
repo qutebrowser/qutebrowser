@@ -13,9 +13,6 @@ matrix:
       env: DOCKER=archlinux
       services: docker
     - os: linux
-      env: DOCKER=ubuntu-wily
-      services: docker
-    - os: linux
       env: DOCKER=ubuntu-xenial
       services: docker
     - os: osx
