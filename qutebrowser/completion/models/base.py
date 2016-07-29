@@ -26,7 +26,7 @@ Module attributes:
 from PyQt5.QtCore import Qt
 from PyQt5.QtGui import QStandardItemModel, QStandardItem
 
-from qutebrowser.utils import usertypes, qtutils
+from qutebrowser.utils import usertypes
 
 
 Role = usertypes.enum('Role', ['sort', 'userdata'], start=Qt.UserRole,
@@ -118,7 +118,9 @@ class BaseCompletionModel(QStandardItemModel):
         Return:
             The item flags, or Qt.NoItemFlags on error.
         """
-        qtutils.ensure_valid(index)
+        if not index.isValid():
+            return
+
         if index.parent().isValid():
             # item
             return (Qt.ItemIsEnabled | Qt.ItemIsSelectable |

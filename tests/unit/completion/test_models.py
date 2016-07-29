@@ -159,7 +159,8 @@ def web_history(stubs, web_history_stub):
     return web_history_stub
 
 
-def test_command_completion(monkeypatch, stubs, config_stub, key_config_stub):
+def test_command_completion(qtmodeltester, monkeypatch, stubs, config_stub,
+                            key_config_stub):
     """Test the results of command completion.
 
     Validates that:
@@ -173,7 +174,11 @@ def test_command_completion(monkeypatch, stubs, config_stub, key_config_stub):
                     'qutebrowser.completion.models.miscmodels.cmdutils')
     config_stub.data['aliases'] = {'rock': 'roll'}
     key_config_stub.set_bindings_for('normal', {'s': 'stop', 'rr': 'roll'})
-    actual = _get_completions(miscmodels.CommandCompletionModel())
+    model = miscmodels.CommandCompletionModel()
+    qtmodeltester.data_display_may_return_none = True
+    qtmodeltester.check(model)
+
+    actual = _get_completions(model)
     assert actual == [
         ("Commands", [
             ('drop', 'drop all user data', ''),
@@ -184,7 +189,7 @@ def test_command_completion(monkeypatch, stubs, config_stub, key_config_stub):
     ]
 
 
-def test_help_completion(monkeypatch, stubs):
+def test_help_completion(qtmodeltester, monkeypatch, stubs):
     """Test the results of command completion.
 
     Validates that:
@@ -198,7 +203,11 @@ def test_help_completion(monkeypatch, stubs):
     module = 'qutebrowser.completion.models.miscmodels'
     _patch_cmdutils(monkeypatch, stubs, module + '.cmdutils')
     _patch_configdata(monkeypatch, stubs, module + '.configdata.DATA')
-    actual = _get_completions(miscmodels.HelpCompletionModel())
+    model = miscmodels.HelpCompletionModel()
+    qtmodeltester.data_display_may_return_none = True
+    qtmodeltester.check(model)
+
+    actual = _get_completions(model)
     assert actual == [
         ("Commands", [
             (':drop', 'drop all user data', ''),
@@ -215,9 +224,13 @@ def test_help_completion(monkeypatch, stubs):
     ]
 
 
-def test_quickmark_completion(quickmarks):
+def test_quickmark_completion(qtmodeltester, quickmarks):
     """Test the results of quickmark completion."""
-    actual = _get_completions(miscmodels.QuickmarkCompletionModel())
+    model = miscmodels.QuickmarkCompletionModel()
+    qtmodeltester.data_display_may_return_none = True
+    qtmodeltester.check(model)
+
+    actual = _get_completions(model)
     assert actual == [
         ("Quickmarks", [
             ('aw', 'https://wiki.archlinux.org', ''),
@@ -227,9 +240,13 @@ def test_quickmark_completion(quickmarks):
     ]
 
 
-def test_bookmark_completion(bookmarks):
+def test_bookmark_completion(qtmodeltester, bookmarks):
     """Test the results of bookmark completion."""
-    actual = _get_completions(miscmodels.BookmarkCompletionModel())
+    model = miscmodels.BookmarkCompletionModel()
+    qtmodeltester.data_display_may_return_none = True
+    qtmodeltester.check(model)
+
+    actual = _get_completions(model)
     assert actual == [
         ("Bookmarks", [
             ('https://github.com', 'GitHub', ''),
@@ -239,7 +256,8 @@ def test_bookmark_completion(bookmarks):
     ]
 
 
-def test_url_completion(config_stub, web_history, quickmarks, bookmarks):
+def test_url_completion(qtmodeltester, config_stub, web_history, quickmarks,
+                        bookmarks):
     """Test the results of url completion.
 
     Verify that:
@@ -249,7 +267,11 @@ def test_url_completion(config_stub, web_history, quickmarks, bookmarks):
     """
     config_stub.data['completion'] = {'timestamp-format': '%Y-%m-%d',
                                       'web-history-max-items': 2}
-    actual = _get_completions(urlmodel.UrlCompletionModel())
+    model = urlmodel.UrlCompletionModel()
+    qtmodeltester.data_display_may_return_none = True
+    qtmodeltester.check(model)
+
+    actual = _get_completions(model)
     assert actual == [
         ("Quickmarks", [
             ('https://wiki.archlinux.org', 'aw', ''),
@@ -268,12 +290,15 @@ def test_url_completion(config_stub, web_history, quickmarks, bookmarks):
     ]
 
 
-def test_url_completion_delete_bookmark(config_stub, web_history, quickmarks,
-                                        bookmarks, qtbot):
+def test_url_completion_delete_bookmark(qtmodeltester, config_stub, web_history,
+                                        quickmarks, bookmarks, qtbot):
     """Test deleting a bookmark from the url completion model."""
     config_stub.data['completion'] = {'timestamp-format': '%Y-%m-%d',
                                       'web-history-max-items': 2}
     model = urlmodel.UrlCompletionModel()
+    qtmodeltester.data_display_may_return_none = True
+    qtmodeltester.check(model)
+
     # delete item (1, 0) -> (bookmarks, 'https://github.com' )
     view = _mock_view_index(model, 1, 0, qtbot)
     model.delete_cur_item(view)
@@ -282,12 +307,16 @@ def test_url_completion_delete_bookmark(config_stub, web_history, quickmarks,
     assert 'http://qutebrowser.org' in bookmarks.marks
 
 
-def test_url_completion_delete_quickmark(config_stub, web_history, quickmarks,
-                                        bookmarks, qtbot):
+def test_url_completion_delete_quickmark(qtmodeltester, config_stub,
+                                         web_history, quickmarks, bookmarks,
+                                         qtbot):
     """Test deleting a bookmark from the url completion model."""
     config_stub.data['completion'] = {'timestamp-format': '%Y-%m-%d',
                                       'web-history-max-items': 2}
     model = urlmodel.UrlCompletionModel()
+    qtmodeltester.data_display_may_return_none = True
+    qtmodeltester.check(model)
+
     # delete item (0, 1) -> (quickmarks, 'ddg' )
     view = _mock_view_index(model, 0, 1, qtbot)
     model.delete_cur_item(view)
@@ -296,15 +325,19 @@ def test_url_completion_delete_quickmark(config_stub, web_history, quickmarks,
     assert 'wiki' in quickmarks.marks
 
 
-def test_session_completion(session_manager_stub):
+def test_session_completion(qtmodeltester, session_manager_stub):
     session_manager_stub.sessions = ['default', '1', '2']
-    actual = _get_completions(miscmodels.SessionCompletionModel())
+    model = miscmodels.SessionCompletionModel()
+    qtmodeltester.data_display_may_return_none = True
+    qtmodeltester.check(model)
+
+    actual = _get_completions(model)
     assert actual == [
         ("Sessions", [('default', '', ''), ('1', '', ''), ('2', '', '')])
     ]
 
 
-def test_tab_completion(fake_web_tab, app_stub, win_registry,
+def test_tab_completion(qtmodeltester, fake_web_tab, app_stub, win_registry,
                         tabbed_browser_stubs):
     tabbed_browser_stubs[0].tabs = [
         fake_web_tab(QUrl('https://github.com'), 'GitHub', 0),
@@ -314,7 +347,11 @@ def test_tab_completion(fake_web_tab, app_stub, win_registry,
     tabbed_browser_stubs[1].tabs = [
         fake_web_tab(QUrl('https://wiki.archlinux.org'), 'ArchWiki', 0),
     ]
-    actual = _get_completions(miscmodels.TabCompletionModel())
+    model = miscmodels.TabCompletionModel()
+    qtmodeltester.data_display_may_return_none = True
+    qtmodeltester.check(model)
+
+    actual = _get_completions(model)
     assert actual == [
         ('0', [
             ('0/1', 'https://github.com', 'GitHub'),
@@ -327,8 +364,8 @@ def test_tab_completion(fake_web_tab, app_stub, win_registry,
     ]
 
 
-def test_tab_completion_delete(fake_web_tab, qtbot, app_stub, win_registry,
-                               tabbed_browser_stubs):
+def test_tab_completion_delete(qtmodeltester, fake_web_tab, qtbot, app_stub,
+                               win_registry, tabbed_browser_stubs):
     """Verify closing a tab by deleting it from the completion widget."""
     tabbed_browser_stubs[0].tabs = [
         fake_web_tab(QUrl('https://github.com'), 'GitHub', 0),
@@ -339,6 +376,9 @@ def test_tab_completion_delete(fake_web_tab, qtbot, app_stub, win_registry,
         fake_web_tab(QUrl('https://wiki.archlinux.org'), 'ArchWiki', 0),
     ]
     model = miscmodels.TabCompletionModel()
+    qtmodeltester.data_display_may_return_none = True
+    qtmodeltester.check(model)
+
     view = _mock_view_index(model, 0, 1, qtbot)
     qtbot.add_widget(view)
     model.delete_cur_item(view)
@@ -347,12 +387,16 @@ def test_tab_completion_delete(fake_web_tab, qtbot, app_stub, win_registry,
                       QUrl('https://duckduckgo.com')]
 
 
-def test_setting_section_completion(monkeypatch, stubs):
+def test_setting_section_completion(qtmodeltester, monkeypatch, stubs):
     module = 'qutebrowser.completion.models.configmodel'
     _patch_configdata(monkeypatch, stubs, module + '.configdata.DATA')
     _patch_config_section_desc(monkeypatch, stubs,
                                module + '.configdata.SECTION_DESC')
-    actual = _get_completions(configmodel.SettingSectionCompletionModel())
+    model = configmodel.SettingSectionCompletionModel()
+    qtmodeltester.data_display_may_return_none = True
+    qtmodeltester.check(model)
+
+    actual = _get_completions(model)
     assert actual == [
         ("Sections", [
             ('general', 'General/miscellaneous options.', ''),
@@ -361,13 +405,18 @@ def test_setting_section_completion(monkeypatch, stubs):
     ]
 
 
-def test_setting_option_completion(monkeypatch, stubs, config_stub):
+def test_setting_option_completion(qtmodeltester, monkeypatch, stubs,
+                                   config_stub):
     module = 'qutebrowser.completion.models.configmodel'
     _patch_configdata(monkeypatch, stubs, module + '.configdata.DATA')
     config_stub.data = {'ui': {'gesture': 'off',
                                'mind': 'on',
                                'voice': 'sometimes'}}
-    actual = _get_completions(configmodel.SettingOptionCompletionModel('ui'))
+    model = configmodel.SettingOptionCompletionModel('ui')
+    qtmodeltester.data_display_may_return_none = True
+    qtmodeltester.check(model)
+
+    actual = _get_completions(model)
     assert actual == [
         ("ui", [
             ('gesture', 'Waggle your hands to control qutebrowser', 'off'),
@@ -377,11 +426,15 @@ def test_setting_option_completion(monkeypatch, stubs, config_stub):
     ]
 
 
-def test_setting_value_completion(monkeypatch, stubs, config_stub):
+def test_setting_value_completion(qtmodeltester, monkeypatch, stubs,
+                                  config_stub):
     module = 'qutebrowser.completion.models.configmodel'
     _patch_configdata(monkeypatch, stubs, module + '.configdata.DATA')
     config_stub.data = {'general': {'volume': '0'}}
     model = configmodel.SettingValueCompletionModel('general', 'volume')
+    qtmodeltester.data_display_may_return_none = True
+    qtmodeltester.check(model)
+
     actual = _get_completions(model)
     assert actual == [
         ("Current/Default", [
