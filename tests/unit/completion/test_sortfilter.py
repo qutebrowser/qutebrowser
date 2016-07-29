@@ -77,3 +77,19 @@ def test_first_last_item(tree, first, last):
     filter_model = sortfilter.CompletionFilterModel(model)
     assert filter_model.data(filter_model.first_item()) == first
     assert filter_model.data(filter_model.last_item()) == last
+
+
+def test_set_source_model():
+    """Ensure setSourceModel sets source_model and clears the pattern."""
+    model1 = base.BaseCompletionModel()
+    model2 = base.BaseCompletionModel()
+    filter_model = sortfilter.CompletionFilterModel(model1)
+    filter_model.set_pattern('foo')
+    # sourceModel() is cached as srcmodel, so make sure both match
+    assert filter_model.srcmodel is model1
+    assert filter_model.sourceModel() is model1
+    assert filter_model.pattern == 'foo'
+    filter_model.setSourceModel(model2)
+    assert filter_model.srcmodel is model2
+    assert filter_model.sourceModel() is model2
+    assert not filter_model.pattern
