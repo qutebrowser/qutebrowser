@@ -77,3 +77,8 @@ class WebEnginePage(QWebEnginePage):
         logstring = "[{}:{}] {}".format(source, line, msg)
         logger = level_to_logger[level]
         logger(logstring)
+
+    def createWindow(self, _typ):
+        """Handle new windows via JS."""
+        log.stub()
+        return None
