@@ -124,6 +124,14 @@ class BaseType:
         self.none_ok = none_ok
         self.valid_values = None
 
+    def get_name(self):
+        """Get a name for the type for documentation"""
+        return self.__class__.__name__
+
+    def get_valid_values(self):
+        """Get the type's valid values for documentation"""
+        return self.valid_values
+
     def _basic_validation(self, value):
         """Do some basic validation for the value (empty, non-printable chars).
 
@@ -308,6 +316,17 @@ class List(BaseType):
         self.inner_type = inner_type
         self.length = length
 
+    _show_inner_type = True
+
+    def get_name(self):
+        name = super().get_name()
+        if self._show_inner_type:
+            name += " of " + self.inner_type.get_name()
+        return name
+
+    def get_valid_values(self):
+        return self.inner_type.get_valid_values()
+
     def transform(self, value):
         if not value:
             return None
@@ -340,6 +359,8 @@ class FlagList(List):
     def __init__(self, none_ok=False, valid_values=None):
         super().__init__(BaseType(), none_ok)
         self.inner_type.valid_values = valid_values
+
+    _show_inner_type = False
 
     def validate(self, value):
         if self.inner_type.valid_values is not None:
@@ -1123,6 +1144,8 @@ class Padding(List):
         super().__init__(Int(minval=0, none_ok=none_ok),
                          none_ok=none_ok, length=4)
         self.inner_type.valid_values = valid_values
+
+    _show_inner_type = False
 
     def transform(self, value):
         elems = super().transform(value)
