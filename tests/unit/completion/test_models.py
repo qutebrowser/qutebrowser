@@ -290,8 +290,9 @@ def test_url_completion(qtmodeltester, config_stub, web_history, quickmarks,
     ]
 
 
-def test_url_completion_delete_bookmark(qtmodeltester, config_stub, web_history,
-                                        quickmarks, bookmarks, qtbot):
+def test_url_completion_delete_bookmark(qtmodeltester, config_stub,
+                                        web_history, quickmarks, bookmarks,
+                                        qtbot):
     """Test deleting a bookmark from the url completion model."""
     config_stub.data['completion'] = {'timestamp-format': '%Y-%m-%d',
                                       'web-history-max-items': 2}
