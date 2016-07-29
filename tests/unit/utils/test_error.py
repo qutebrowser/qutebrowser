@@ -71,8 +71,7 @@ def test_no_err_windows(caplog, exc, name, exc_text, fake_args):
 @pytest.mark.qt_log_ignore(r'^QXcbConnection: XCB error: 8 \(BadMatch\), '
                            r'sequence: \d+, resource id: \d+, major code: 42 '
                            r'\(SetInputFocus\), minor code: 0$',
-                           r'^QIODevice::write: device not open',
-                           extend=True)
+                           r'^QIODevice::write: device not open')
 @pytest.mark.parametrize('pre_text, post_text, expected', [
     ('', '', 'exception'),
     ('foo', '', 'foo: exception'),

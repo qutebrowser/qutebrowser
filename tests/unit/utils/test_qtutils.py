@@ -339,8 +339,7 @@ class TestSerializeStream:
 
         assert src_obj == dest_obj
 
-    @pytest.mark.qt_log_ignore('^QIODevice::write.*: ReadOnly device',
-                               extend=True)
+    @pytest.mark.qt_log_ignore('^QIODevice::write.*: ReadOnly device')
     def test_serialize_readonly_stream(self):
         """Test serialize_stream with a read-only stream."""
         data = QByteArray()
@@ -350,8 +349,7 @@ class TestSerializeStream:
         assert str(excinfo.value) == ("The data stream cannot write to the "
                                       "underlying device.")
 
-    @pytest.mark.qt_log_ignore('QIODevice::read.*: WriteOnly device',
-                               extend=True)
+    @pytest.mark.qt_log_ignore('QIODevice::read.*: WriteOnly device')
     def test_deserialize_writeonly_stream(self):
         """Test deserialize_stream with a write-only stream."""
         data = QByteArray()
@@ -724,7 +722,7 @@ class TestPyQIODevice:
         with pytest.raises(io.UnsupportedOperation):
             pyqiodev.fileno()
 
-    @pytest.mark.qt_log_ignore('^QBuffer::seek: Invalid pos:', extend=True)
+    @pytest.mark.qt_log_ignore('^QBuffer::seek: Invalid pos:')
     @pytest.mark.parametrize('offset, whence, pos, data, raising', [
         (0, io.SEEK_SET, 0, b'1234567890', False),
         (42, io.SEEK_SET, 0, b'1234567890', True),

@@ -35,8 +35,7 @@ from qutebrowser.browser.webkit.tabhistory import TabHistoryItem as Item
 from qutebrowser.commands import cmdexc
 
 
-pytestmark = pytest.mark.qt_log_ignore('QIODevice::read.*: device not open',
-                                       extend=True)
+pytestmark = pytest.mark.qt_log_ignore('QIODevice::read.*: device not open')
 
 webengine_refactoring_xfail = pytest.mark.xfail(
     True, reason='Broke during QtWebEngine refactoring, will be fixed after '
