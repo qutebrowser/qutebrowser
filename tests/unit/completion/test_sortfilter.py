@@ -47,6 +47,7 @@ def test_filter_accepts_row(pattern, data, expected):
     row_count = filter_model.rowCount(idx)
     assert row_count == (1 if expected else 0)
 
+
 @pytest.mark.parametrize('tree, first, last', [
     ([['Aa']], 'Aa', 'Aa'),
     ([['Aa'], ['Ba']], 'Aa', 'Ba'),
@@ -94,6 +95,7 @@ def test_set_source_model():
     assert filter_model.sourceModel() is model2
     assert not filter_model.pattern
 
+
 @pytest.mark.parametrize('tree, expected', [
     ([['Aa']], 1),
     ([['Aa'], ['Ba']], 2),
@@ -114,3 +116,66 @@ def test_count(tree, expected):
             model.new_item(cat, name, '')
     filter_model = sortfilter.CompletionFilterModel(model)
     assert filter_model.count() == expected
+
+
+@pytest.mark.parametrize('pattern, dumb_sort, filter_cols, before, after', [
+    ('foo', None, [0],
+     [[('foo', '', ''), ('bar', '', '')]],
+     [[('foo', '', '')]]),
+
+    ('foo', None, [0],
+     [[('foob', '', ''), ('fooc', '', ''), ('fooa', '', '')]],
+     [[('fooa', '', ''), ('foob', '', ''), ('fooc', '', '')]]),
+
+    ('foo', None, [0],
+     [[('foo', '', '')], [('bar', '', '')]],
+     [[('foo', '', '')], []]),
+
+    # prefer foobar as it starts with the pattern
+    ('foo', None, [0],
+     [[('barfoo', '', ''), ('foobar', '', '')]],
+     [[('foobar', '', ''), ('barfoo', '', '')]]),
+
+    # however, don't rearrange categories
+    ('foo', None, [0],
+     [[('barfoo', '', '')], [('foobar', '', '')]],
+     [[('barfoo', '', '')], [('foobar', '', '')]]),
+
+    ('foo', None, [1],
+     [[('foo', 'bar', ''), ('bar', 'foo', '')]],
+     [[('bar', 'foo', '')]]),
+
+    ('foo', None, [0, 1],
+     [[('foo', 'bar', ''), ('bar', 'foo', ''), ('bar', 'bar', '')]],
+     [[('foo', 'bar', ''), ('bar', 'foo', '')]]),
+
+    ('foo', None, [0, 1, 2],
+     [[('foo', '', ''), ('bar', '')]],
+     [[('foo', '', '')]]),
+
+    # TODO
+    #('foo', Qt.DescendingOrder,
+    # [['foob', 'fooc', 'fooa']],
+    # [['fooc', 'foob', 'fooa']]),
+])
+def test_set_pattern(pattern, dumb_sort, filter_cols, before, after):
+    """Validate the filtering and sorting results of set_pattern."""
+    model = base.BaseCompletionModel()
+    model.DUMB_SORT = dumb_sort
+    model.columns_to_filter = filter_cols
+    for catdata in before:
+        cat = model.new_category('')
+        for data in catdata:
+            model.new_item(cat, *data)
+    filter_model = sortfilter.CompletionFilterModel(model)
+    filter_model.set_pattern(pattern)
+    actual = []
+    for i in range(0, filter_model.rowCount()):
+        cat_idx = filter_model.index(i, 0)
+        entries = []
+        for j in range(0, filter_model.rowCount(cat_idx)):
+            entries.append((filter_model.data(cat_idx.child(j, 0)),
+                            filter_model.data(cat_idx.child(j, 1)),
+                            filter_model.data(cat_idx.child(j, 2))))
+        actual.append(entries)
+    assert actual == after
