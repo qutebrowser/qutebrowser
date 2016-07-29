@@ -103,3 +103,8 @@ Feature: Opening pages
                 history:
                 - active: true
                   url: http://localhost:*/data/numbers/7.txt
+
+    Scenario: Opening a quickmark
+        When I run :quickmark-add http://localhost:(port)/data/numbers/8.txt quickmarktest
+        And I run :open quickmarktest
+        Then data/numbers/8.txt should be loaded
