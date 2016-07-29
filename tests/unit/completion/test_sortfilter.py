@@ -46,3 +46,34 @@ def test_filter_accepts_row(pattern, data, expected):
 
     row_count = filter_model.rowCount(idx)
     assert row_count == (1 if expected else 0)
+
+@pytest.mark.parametrize('tree, first, last', [
+    ([['Aa']], 'Aa', 'Aa'),
+    ([['Aa'], ['Ba']], 'Aa', 'Ba'),
+    ([['Aa', 'Ab', 'Ac'], ['Ba', 'Bb'], ['Ca']], 'Aa', 'Ca'),
+    ([[], ['Ba']], 'Ba', 'Ba'),
+    ([[], [], ['Ca']], 'Ca', 'Ca'),
+    ([[], [], ['Ca', 'Cb']], 'Ca', 'Cb'),
+    ([['Aa'], []], 'Aa', 'Aa'),
+    ([['Aa'], []], 'Aa', 'Aa'),
+    ([['Aa'], [], []], 'Aa', 'Aa'),
+    ([['Aa'], [], ['Ca']], 'Aa', 'Ca'),
+    ([[], []], None, None),
+])
+def test_first_last_item(tree, first, last):
+    """Test that first() and last() return indexes to the first and last items.
+
+    Args:
+        tree: Each list represents a completion category, with each string
+              being an item under that category.
+        first: text of the first item
+        last: text of the last item
+    """
+    model = base.BaseCompletionModel()
+    for catdata in tree:
+        cat = model.new_category('')
+        for name in catdata:
+            model.new_item(cat, name, '')
+    filter_model = sortfilter.CompletionFilterModel(model)
+    assert filter_model.data(filter_model.first_item()) == first
+    assert filter_model.data(filter_model.last_item()) == last
