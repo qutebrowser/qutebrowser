@@ -17,121 +17,118 @@
 # You should have received a copy of the GNU General Public License
 # along with qutebrowser.  If not, see <http://www.gnu.org/licenses/>.
 
-"""Bridge from QWebSettings to our own settings.
-
-Module attributes:
-    ATTRIBUTES: A mapping from internal setting names to QWebSetting enum
-                constants.
-"""
-
-import os.path
-
-from PyQt5.QtWebKit import QWebSettings
+"""Bridge from QWeb(Engine)Settings to our own settings."""
 
 from qutebrowser.config import config
-from qutebrowser.utils import standarddir, objreg, log, utils, debug
+from qutebrowser.utils import log, utils, debug, objreg
 
 UNSET = object()
 
 
 class Base:
 
-    """Base class for QWebSetting wrappers.
+    """Base class for QWeb(Engine)Settings wrappers.
 
     Attributes:
         _default: The default value of this setting.
     """
 
+    # Needs to be overridden by subclasses in
+    # webkitsettings.py/webenginesettings.py
+    GLOBAL_SETTINGS = None
+
     def __init__(self):
         self._default = UNSET
 
-    def _get_qws(self, qws):
-        """Get the QWebSettings object to use.
+    def _get_settings(self, settings):
+        """Get the QWeb(Engine)Settings object to use.
 
         Args:
-            qws: The QWebSettings instance to use, or None to use the global
-                 instance.
+            settings: The QWeb(Engine)Settings instance to use, or None to use
+                      the global instance.
         """
-        if qws is None:
-            return QWebSettings.globalSettings()
+        if settings is None:
+            return self.GLOBAL_SETTINGS
         else:
-            return qws
+            return settings
 
-    def save_default(self, qws=None):
+    def save_default(self, settings=None):
         """Save the default value based on the currently set one.
 
         This does nothing if no getter is configured for this setting.
 
         Args:
-            qws: The QWebSettings instance to use, or None to use the global
-                 instance.
+            settings: The QWeb(Engine)Settings instance to use, or None to use
+                      the global instance.
 
         Return:
             The saved default value.
         """
         try:
-            self._default = self.get(qws)
+            self._default = self.get(settings)
             return self._default
         except AttributeError:
             return None
 
-    def restore_default(self, qws=None):
+    def restore_default(self, settings=None):
         """Restore the default value from the saved one.
 
         This does nothing if the default has never been set.
 
         Args:
-            qws: The QWebSettings instance to use, or None to use the global
-                 instance.
+            settings: The QWeb(Engine)Settings instance to use, or None to use
+                      the global instance.
         """
         if self._default is not UNSET:
             log.config.vdebug("Restoring default {!r}.".format(self._default))
-            self._set(self._default, qws=qws)
+            self._set(self._default, settings=settings)
 
-    def get(self, qws=None):
+    def get(self, settings=None):
         """Get the value of this setting.
 
         Must be overridden by subclasses.
 
         Args:
-            qws: The QWebSettings instance to use, or None to use the global
-                 instance.
+            settings: The QWeb(Engine)Settings instance to use, or None to use
+                      the global instance.
         """
         raise NotImplementedError
 
-    def set(self, value, qws=None):
+    def set(self, value, settings=None):
         """Set the value of this setting.
 
         Args:
             value: The value to set.
-            qws: The QWebSettings instance to use, or None to use the global
-                 instance.
+            settings: The QWeb(Engine)Settings instance to use, or None to use
+                      the global instance.
         """
         if value is None:
-            self.restore_default(qws)
+            self.restore_default(settings)
         else:
-            self._set(value, qws=qws)
+            self._set(value, settings=settings)
 
-    def _set(self, value, qws):
+    def _set(self, value, settings):
         """Inner function to set the value of this setting.
 
         Must be overridden by subclasses.
 
         Args:
             value: The value to set.
-            qws: The QWebSettings instance to use, or None to use the global
-                 instance.
+            settings: The QWeb(Engine)Settings instance to use, or None to use
+                      the global instance.
         """
         raise NotImplementedError
 
 
 class Attribute(Base):
 
-    """A setting set via QWebSettings::setAttribute.
+    """A setting set via QWeb(Engine)Settings::setAttribute.
 
     Attributes:
-        self._attribute: A QWebSettings::WebAttribute instance.
+        self._attribute: A QWeb(Engine)Settings::WebAttribute instance.
     """
+
+    ENUM_BASE = None
 
     def __init__(self, attribute):
         super().__init__()
@@ -139,26 +136,27 @@ class Attribute(Base):
 
     def __repr__(self):
         return utils.get_repr(
-            self, attribute=debug.qenum_key(QWebSettings, self._attribute),
+            self, attribute=debug.qenum_key(self.ENUM_BASE, self._attribute),
             constructor=True)
 
-    def get(self, qws=None):
-        return self._get_qws(qws).attribute(self._attribute)
+    def get(self, settings=None):
+        return self._get_settings(settings).attribute(self._attribute)
 
-    def _set(self, value, qws=None):
-        self._get_qws(qws).setAttribute(self._attribute, value)
+    def _set(self, value, settings=None):
+        self._get_settings(settings).setAttribute(self._attribute, value)
 
 
 class Setter(Base):
 
-    """A setting set via QWebSettings getter/setter methods.
+    """A setting set via QWeb(Engine)Settings getter/setter methods.
 
-    This will pass the QWebSettings instance ("self") as first argument to the
-    methods, so self._getter/self._setter are the *unbound* methods.
+    This will pass the QWeb(Engine)Settings instance ("self") as first argument
+    to the methods, so self._getter/self._setter are the *unbound* methods.
 
     Attributes:
-        _getter: The unbound QWebSettings method to get this value, or None.
-        _setter: The unbound QWebSettings method to set this value.
+        _getter: The unbound QWeb(Engine)Settings method to get this value, or
+                 None.
+        _setter: The unbound QWeb(Engine)Settings method to set this value.
         _args: An iterable of the arguments to pass to the setter/getter
                (before the value, for the setter).
         _unpack: Whether to unpack args (True) or pass them directly (False).
@@ -176,13 +174,13 @@ class Setter(Base):
                               args=self._args, unpack=self._unpack,
                               constructor=True)
 
-    def get(self, qws=None):
+    def get(self, settings=None):
         if self._getter is None:
             raise AttributeError("No getter set!")
-        return self._getter(self._get_qws(qws), *self._args)
+        return self._getter(self._get_settings(settings), *self._args)
 
-    def _set(self, value, qws=None):
-        args = [self._get_qws(qws)]
+    def _set(self, value, settings=None):
+        args = [self._get_settings(settings)]
         args.extend(self._args)
         if self._unpack:
             args.extend(value)
@@ -201,35 +199,35 @@ class NullStringSetter(Setter):
     (a null QString) instead of an empty string.
     """
 
-    def save_default(self, qws=None):
+    def save_default(self, settings=None):
         try:
-            val = self.get(qws)
+            val = self.get(settings)
         except AttributeError:
             return None
         if val == '':
-            self._set(None, qws=qws)
+            self._set(None, settings=settings)
         else:
-            self._set(val, qws=qws)
+            self._set(val, settings=settings)
         return val
 
 
-class GlobalSetter(Setter):
+class StaticSetter(Setter):
 
-    """A setting set via static QWebSettings getter/setter methods.
+    """A setting set via static QWeb(Engine)Settings getter/setter methods.
 
     self._getter/self._setter are the *bound* methods.
     """
 
-    def get(self, qws=None):
-        if qws is not None:
-            raise ValueError("qws may not be set with GlobalSetters!")
+    def get(self, settings=None):
+        if settings is not None:
+            raise ValueError("'settings' may not be set with GlobalSetters!")
         if self._getter is None:
             raise AttributeError("No getter set!")
         return self._getter(*self._args)
 
-    def _set(self, value, qws=None):
-        if qws is not None:
-            raise ValueError("qws may not be set with GlobalSetters!")
+    def _set(self, value, settings=None):
+        if settings is not None:
+            raise ValueError("'settings' may not be set with GlobalSetters!")
         args = list(self._args)
         if self._unpack:
             args.extend(value)
@@ -238,182 +236,9 @@ class GlobalSetter(Setter):
         self._setter(*args)
 
 
-class CookiePolicy(Base):
-
-    """The ThirdPartyCookiePolicy setting is different from other settings."""
-
-    MAPPING = {
-        'all': QWebSettings.AlwaysAllowThirdPartyCookies,
-        'no-3rdparty': QWebSettings.AlwaysBlockThirdPartyCookies,
-        'never': QWebSettings.AlwaysBlockThirdPartyCookies,
-        'no-unknown-3rdparty': QWebSettings.AllowThirdPartyWithExistingCookies,
-    }
-
-    def get(self, qws=None):
-        return config.get('content', 'cookies-accept')
-
-    def _set(self, value, qws=None):
-        QWebSettings.globalSettings().setThirdPartyCookiePolicy(
-            self.MAPPING[value])
-
-
-MAPPINGS = {
-    'content': {
-        'allow-images':
-            Attribute(QWebSettings.AutoLoadImages),
-        'allow-javascript':
-            Attribute(QWebSettings.JavascriptEnabled),
-        'javascript-can-open-windows':
-            Attribute(QWebSettings.JavascriptCanOpenWindows),
-        'javascript-can-close-windows':
-            Attribute(QWebSettings.JavascriptCanCloseWindows),
-        'javascript-can-access-clipboard':
-            Attribute(QWebSettings.JavascriptCanAccessClipboard),
-        #'allow-java':
-        #   Attribute(QWebSettings.JavaEnabled),
-        'allow-plugins':
-            Attribute(QWebSettings.PluginsEnabled),
-        'webgl':
-            Attribute(QWebSettings.WebGLEnabled),
-        'css-regions':
-            Attribute(QWebSettings.CSSRegionsEnabled),
-        'hyperlink-auditing':
-            Attribute(QWebSettings.HyperlinkAuditingEnabled),
-        'local-content-can-access-remote-urls':
-            Attribute(QWebSettings.LocalContentCanAccessRemoteUrls),
-        'local-content-can-access-file-urls':
-            Attribute(QWebSettings.LocalContentCanAccessFileUrls),
-        'cookies-accept':
-            CookiePolicy(),
-    },
-    'network': {
-        'dns-prefetch':
-            Attribute(QWebSettings.DnsPrefetchEnabled),
-    },
-    'input': {
-        'spatial-navigation':
-            Attribute(QWebSettings.SpatialNavigationEnabled),
-        'links-included-in-focus-chain':
-            Attribute(QWebSettings.LinksIncludedInFocusChain),
-    },
-    'fonts': {
-        'web-family-standard':
-            Setter(getter=QWebSettings.fontFamily,
-                   setter=QWebSettings.setFontFamily,
-                   args=[QWebSettings.StandardFont]),
-        'web-family-fixed':
-            Setter(getter=QWebSettings.fontFamily,
-                   setter=QWebSettings.setFontFamily,
-                   args=[QWebSettings.FixedFont]),
-        'web-family-serif':
-            Setter(getter=QWebSettings.fontFamily,
-                   setter=QWebSettings.setFontFamily,
-                   args=[QWebSettings.SerifFont]),
-        'web-family-sans-serif':
-            Setter(getter=QWebSettings.fontFamily,
-                   setter=QWebSettings.setFontFamily,
-                   args=[QWebSettings.SansSerifFont]),
-        'web-family-cursive':
-            Setter(getter=QWebSettings.fontFamily,
-                   setter=QWebSettings.setFontFamily,
-                   args=[QWebSettings.CursiveFont]),
-        'web-family-fantasy':
-            Setter(getter=QWebSettings.fontFamily,
-                   setter=QWebSettings.setFontFamily,
-                   args=[QWebSettings.FantasyFont]),
-        'web-size-minimum':
-            Setter(getter=QWebSettings.fontSize,
-                   setter=QWebSettings.setFontSize,
-                   args=[QWebSettings.MinimumFontSize]),
-        'web-size-minimum-logical':
-            Setter(getter=QWebSettings.fontSize,
-                   setter=QWebSettings.setFontSize,
-                   args=[QWebSettings.MinimumLogicalFontSize]),
-        'web-size-default':
-            Setter(getter=QWebSettings.fontSize,
-                   setter=QWebSettings.setFontSize,
-                   args=[QWebSettings.DefaultFontSize]),
-        'web-size-default-fixed':
-            Setter(getter=QWebSettings.fontSize,
-                   setter=QWebSettings.setFontSize,
-                   args=[QWebSettings.DefaultFixedFontSize]),
-    },
-    'ui': {
-        'zoom-text-only':
-            Attribute(QWebSettings.ZoomTextOnly),
-        'frame-flattening':
-            Attribute(QWebSettings.FrameFlatteningEnabled),
-        'user-stylesheet':
-            Setter(getter=QWebSettings.userStyleSheetUrl,
-                   setter=QWebSettings.setUserStyleSheetUrl),
-        'css-media-type':
-            NullStringSetter(getter=QWebSettings.cssMediaType,
-                             setter=QWebSettings.setCSSMediaType),
-        'smooth-scrolling':
-            Attribute(QWebSettings.ScrollAnimatorEnabled),
-        #'accelerated-compositing':
-        #   Attribute(QWebSettings.AcceleratedCompositingEnabled),
-        #'tiled-backing-store':
-        #   Attribute(QWebSettings.TiledBackingStoreEnabled),
-    },
-    'storage': {
-        'offline-storage-database':
-            Attribute(QWebSettings.OfflineStorageDatabaseEnabled),
-        'offline-web-application-storage':
-            Attribute(QWebSettings.OfflineWebApplicationCacheEnabled),
-        'local-storage':
-            Attribute(QWebSettings.LocalStorageEnabled),
-        'maximum-pages-in-cache':
-            GlobalSetter(getter=QWebSettings.maximumPagesInCache,
-                         setter=QWebSettings.setMaximumPagesInCache),
-        'object-cache-capacities':
-            GlobalSetter(getter=None,
-                         setter=QWebSettings.setObjectCacheCapacities,
-                         unpack=True),
-        'offline-storage-default-quota':
-            GlobalSetter(getter=QWebSettings.offlineStorageDefaultQuota,
-                         setter=QWebSettings.setOfflineStorageDefaultQuota),
-        'offline-web-application-cache-quota':
-            GlobalSetter(
-                getter=QWebSettings.offlineWebApplicationCacheQuota,
-                setter=QWebSettings.setOfflineWebApplicationCacheQuota),
-    },
-    'general': {
-        'private-browsing':
-            Attribute(QWebSettings.PrivateBrowsingEnabled),
-        'developer-extras':
-            Attribute(QWebSettings.DeveloperExtrasEnabled),
-        'print-element-backgrounds':
-            Attribute(QWebSettings.PrintElementBackgrounds),
-        'xss-auditing':
-            Attribute(QWebSettings.XSSAuditingEnabled),
-        'site-specific-quirks':
-            Attribute(QWebSettings.SiteSpecificQuirksEnabled),
-        'default-encoding':
-            Setter(getter=QWebSettings.defaultTextEncoding,
-                   setter=QWebSettings.setDefaultTextEncoding),
-    }
-}
-
-
-def init():
-    """Initialize the global QWebSettings."""
-    cache_path = standarddir.cache()
-    data_path = standarddir.data()
-    if config.get('general', 'private-browsing') or cache_path is None:
-        QWebSettings.setIconDatabasePath('')
-    else:
-        QWebSettings.setIconDatabasePath(cache_path)
-    if cache_path is not None:
-        QWebSettings.setOfflineWebApplicationCachePath(
-            os.path.join(cache_path, 'application-cache'))
-    if data_path is not None:
-        QWebSettings.globalSettings().setLocalStoragePath(
-            os.path.join(data_path, 'local-storage'))
-        QWebSettings.setOfflineStoragePath(
-            os.path.join(data_path, 'offline-storage'))
-
-    for sectname, section in MAPPINGS.items():
+def init_mappings(mappings):
+    """Initialize all settings based on a settings mapping."""
+    for sectname, section in mappings.items():
         for optname, mapping in section.items():
             default = mapping.save_default()
             log.config.vdebug("Saved default for {} -> {}: {!r}".format(
@@ -422,21 +247,24 @@ def init():
             log.config.vdebug("Setting {} -> {} to {!r}".format(
                 sectname, optname, value))
             mapping.set(value)
-    objreg.get('config').changed.connect(update_settings)
 
 
-def update_settings(section, option):
-    """Update global settings when qwebsettings changed."""
-    cache_path = standarddir.cache()
-    if (section, option) == ('general', 'private-browsing'):
-        if config.get('general', 'private-browsing') or cache_path is None:
-            QWebSettings.setIconDatabasePath('')
-        else:
-            QWebSettings.setIconDatabasePath(cache_path)
+def update_mappings(mappings, section, option):
+    """Update global settings when QWeb(Engine)Settings changed."""
+    try:
+        mapping = mappings[section][option]
+    except KeyError:
+        return
+    value = config.get(section, option)
+    mapping.set(value)
+
+
+def init():
+    """Initialize all QWeb(Engine)Settings."""
+    if objreg.get('args').backend == 'webengine':
+        # from qutebrowser.browser.webengine import webenginesettings
+        # webenginesettings.init()
+        log.stub('with QtWebEngine')
     else:
-        try:
-            mapping = MAPPINGS[section][option]
-        except KeyError:
-            return
-        value = config.get(section, option)
-        mapping.set(value)
+        from qutebrowser.browser.webkit import webkitsettings
+        webkitsettings.init()
