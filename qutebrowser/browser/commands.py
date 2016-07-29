@@ -249,12 +249,15 @@ class CommandDispatcher:
                                           "set!")
         else:
             try:
-                url = urlutils.fuzzy_url(url)
-            except urlutils.InvalidUrlError as e:
-                # We don't use cmdexc.CommandError here as this can be called
-                # async from edit_url
-                message.error(self._win_id, str(e))
-                return
+                url = objreg.get('quickmark-manager').get(url)
+            except urlmarks.Error:
+                try:
+                    url = urlutils.fuzzy_url(url)
+                except urlutils.InvalidUrlError as e:
+                    # We don't use cmdexc.CommandError here as this can be
+                    # called async from edit_url
+                    message.error(self._win_id, str(e))
+                    return
         if tab or bg or window:
             self._open(url, tab, bg, window)
         else:
