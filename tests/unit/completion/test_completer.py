@@ -216,6 +216,6 @@ def test_on_selection_changed(before, newtxt, count, quick_complete, after,
     _set_cmd_prompt(status_command_stub, before)
     # schedule_completion_update is needed to pick up the cursor position
     completer_obj.schedule_completion_update()
-    completer_obj.on_selection_changed(selection, None)
+    completer_obj.on_selection_changed(selection)
     model.data.assert_called_with(indexes[0])
     _validate_cmd_prompt(status_command_stub, after)

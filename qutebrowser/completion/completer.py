@@ -241,8 +241,8 @@ class Completer(QObject):
         else:
             return s
 
-    @pyqtSlot(QItemSelection, QItemSelection)
-    def on_selection_changed(self, selected, _deselected):
+    @pyqtSlot(QItemSelection)
+    def on_selection_changed(self, selected):
         """Change the completed part if a new item was selected.
 
         Called from the views selectionChanged method.
