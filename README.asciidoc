@@ -207,6 +207,7 @@ Contributors, sorted by the number of commits in descending order:
 * Ismail
 * Edgar Hipp
 * Daryl Finlay
+* Claire Cavanaugh
 * adam
 * Samir Benmendil
 * Regina Hug

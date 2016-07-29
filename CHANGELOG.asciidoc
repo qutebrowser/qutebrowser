@@ -24,6 +24,7 @@ Changed
   already exists.
 - `:bookmark-load` now has a `--delete` flag which deletes the bookmark after
   loading it.
+- `:open` now also accepts quickmark names instead of URLs
 
 Fixed
 -----
