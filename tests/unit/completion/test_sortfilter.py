@@ -93,3 +93,24 @@ def test_set_source_model():
     assert filter_model.srcmodel is model2
     assert filter_model.sourceModel() is model2
     assert not filter_model.pattern
+
+@pytest.mark.parametrize('tree, expected', [
+    ([['Aa']], 1),
+    ([['Aa'], ['Ba']], 2),
+    ([['Aa', 'Ab', 'Ac'], ['Ba', 'Bb'], ['Ca']], 6),
+    ([[], ['Ba']], 1),
+    ([[], [], ['Ca']], 1),
+    ([[], [], ['Ca', 'Cb']], 2),
+    ([['Aa'], []], 1),
+    ([['Aa'], []], 1),
+    ([['Aa'], [], []], 1),
+    ([['Aa'], [], ['Ca']], 2),
+])
+def test_count(tree, expected):
+    model = base.BaseCompletionModel()
+    for catdata in tree:
+        cat = model.new_category('')
+        for name in catdata:
+            model.new_item(cat, name, '')
+    filter_model = sortfilter.CompletionFilterModel(model)
+    assert filter_model.count() == expected
