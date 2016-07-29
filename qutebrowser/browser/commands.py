@@ -254,7 +254,7 @@ class CommandDispatcher:
                 try:
                     url = urlutils.fuzzy_url(url)
                 except urlutils.InvalidUrlError as e:
-                    # We don't use cmdexc.CommandError here as this can be 
+                    # We don't use cmdexc.CommandError here as this can be
                     # called async from edit_url
                     message.error(self._win_id, str(e))
                     return
