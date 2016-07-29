@@ -494,7 +494,7 @@ def test_invalid_data(qtbot, ipc_server, connected_socket, caplog, data, msg):
     signals = [ipc_server.got_invalid_data, connected_socket.disconnected]
     with caplog.at_level(logging.ERROR):
         with qtbot.assertNotEmitted(ipc_server.got_args):
-            with qtbot.waitSignals(signals):
+            with qtbot.waitSignals(signals, order='strict'):
                 connected_socket.write(data)
 
     messages = [r.message for r in caplog.records]
@@ -512,7 +512,8 @@ def test_multiline(qtbot, ipc_server, connected_socket):
                 version=ipc.PROTOCOL_VERSION))
 
     with qtbot.assertNotEmitted(ipc_server.got_invalid_data):
-        with qtbot.waitSignals([ipc_server.got_args, ipc_server.got_args]):
+        with qtbot.waitSignals([ipc_server.got_args, ipc_server.got_args],
+                               order='strict'):
             connected_socket.write(data.encode('utf-8'))
 
     assert len(spy) == 2

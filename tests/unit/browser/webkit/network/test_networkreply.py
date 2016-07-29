@@ -53,7 +53,7 @@ class TestFixedDataNetworkReply:
     def test_data(self, qtbot, req, data):
         reply = networkreply.FixedDataNetworkReply(req, data, 'test/foo')
         with qtbot.waitSignals([reply.metaDataChanged, reply.readyRead,
-                                reply.finished]):
+                                reply.finished], order='strict'):
             pass
 
         assert reply.bytesAvailable() == len(data)
@@ -78,7 +78,7 @@ def test_error_network_reply(qtbot, req):
     reply = networkreply.ErrorNetworkReply(
         req, "This is an error", QNetworkReply.UnknownNetworkError)
 
-    with qtbot.waitSignals([reply.error, reply.finished]):
+    with qtbot.waitSignals([reply.error, reply.finished], order='strict'):
         pass
 
     reply.abort()  # shouldn't do anything

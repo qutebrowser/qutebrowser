@@ -88,7 +88,7 @@ def test_adding_item_during_async_read(qtbot, hist, redirect):
                 list(hist.async_read())
     else:
         with qtbot.waitSignals([hist.add_completion_item,
-                                hist.async_read_done]):
+                                hist.async_read_done], order='strict'):
             list(hist.async_read())
 
     assert not hist._temp_history
@@ -112,7 +112,7 @@ def test_private_browsing(qtbot, tmpdir, fake_save_manager, config_stub):
     # read
     with qtbot.assertNotEmitted(private_hist.add_completion_item), \
             qtbot.assertNotEmitted(private_hist.item_added):
-        with qtbot.waitSignals([private_hist.async_read_done]):
+        with qtbot.waitSignals([private_hist.async_read_done], order='strict'):
             list(private_hist.async_read())
 
     # after read
@@ -246,7 +246,8 @@ def test_add_item(qtbot, hist):
     list(hist.async_read())
     url = 'http://www.example.com/'
 
-    with qtbot.waitSignals([hist.add_completion_item, hist.item_added]):
+    with qtbot.waitSignals([hist.add_completion_item, hist.item_added],
+                           order='strict'):
         hist.add_url(QUrl(url), atime=12345, title="the title")
 
     entry = history.Entry(url=QUrl(url), redirect=False, atime=12345,
