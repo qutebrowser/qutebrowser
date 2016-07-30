@@ -269,6 +269,25 @@ def test_rl_kill_word(lineedit, bridge, text, deleted, rest):
     assert lineedit.aug_text() == deleted + '|'
 
 
+@pytest.mark.parametrize('text, deleted, rest', [
+    ('test delete|foobar', 'delete', 'test |foobar'),
+    ('test delete |foobar', 'delete ', 'test |foobar'),
+    ('open -t github.com/foo/bar  |', 'bar  ', 'open -t github.com/foo/|'),
+    ('open -t |github.com/foo/bar', 't ', 'open -|github.com/foo/bar'),
+    fixme(('test del<ete>foobar', 'delete', 'test |foobar')),
+    ('test del<ete >foobar', 'del', 'test |ete foobar'),  # wrong
+])
+def test_rl_backward_kill_word(lineedit, bridge, text, deleted, rest):
+    """Delete to word beginning and see if it comes back with yank."""
+    lineedit.set_aug_text(text)
+    bridge.rl_backward_kill_word()
+    assert bridge._deleted[lineedit] == deleted
+    assert lineedit.aug_text() == rest
+    lineedit.clear()
+    bridge.rl_yank()
+    assert lineedit.aug_text() == deleted + '|'
+
+
 def test_rl_yank_no_text(lineedit, bridge):
     """Test yank without having deleted anything."""
     lineedit.clear()

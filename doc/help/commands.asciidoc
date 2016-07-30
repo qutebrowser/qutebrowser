@@ -946,6 +946,7 @@ How many steps to zoom out.
 |<<repeat-command,repeat-command>>|Repeat the last executed command.
 |<<rl-backward-char,rl-backward-char>>|Move back a character.
 |<<rl-backward-delete-char,rl-backward-delete-char>>|Delete the character before the cursor.
+|<<rl-backward-kill-word,rl-backward-kill-word>>|Remove chars from the cursor to the beginning of the word.
 |<<rl-backward-word,rl-backward-word>>|Move back to the start of the current or previous word.
 |<<rl-beginning-of-line,rl-beginning-of-line>>|Move to the start of the line.
 |<<rl-delete-char,rl-delete-char>>|Delete the character after the cursor.
@@ -1193,6 +1194,12 @@ Delete the character before the cursor.
 
 This acts like readline's backward-delete-char.
 
+[[rl-backward-kill-word]]
+=== rl-backward-kill-word
+Remove chars from the cursor to the beginning of the word.
+
+This acts like readline's backward-kill-word. Any non-alphanumeric character is considered a word delimiter.
+
 [[rl-backward-word]]
 === rl-backward-word
 Move back to the start of the current or previous word.
@@ -1251,7 +1258,7 @@ This acts like readline's unix-line-discard.
 === rl-unix-word-rubout
 Remove chars from the cursor to the beginning of the word.
 
-This acts like readline's unix-word-rubout.
+This acts like readline's unix-word-rubout. Whitespace is used as a word delimiter.
 
 [[rl-yank]]
 === rl-yank
