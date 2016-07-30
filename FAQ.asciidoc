@@ -112,7 +112,7 @@ How do I use qutebrowser with mutt?::
     text/html; mv %s %s.html && qutebrowser %s.html >/dev/null 2>/dev/null; needsterminal;
 ----
 
-How to set qutebrowser as deffault browser?::
+How to set qutebrowser as default browser?::
     You can use that command to make it:
 +
 ----
