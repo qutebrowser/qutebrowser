@@ -118,7 +118,7 @@ How to set qutebrowser as deffault browser?::
 xdg-settings set default-web-browser qutebrowser.desktop
 ----
    It should work after reboot.
-
++
 == Troubleshooting
 
 Configuration not saved after modifying config.::
