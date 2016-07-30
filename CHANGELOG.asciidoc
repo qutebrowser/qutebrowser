@@ -17,6 +17,12 @@ This project adheres to http://semver.org/[Semantic Versioning].
 v0.9.0 (unreleased)
 -------------------
 
+Added
+~~~~~
+
+- New `:rl-backward-kill-word` command which does what `:rl-unix-word-rubout`
+  did before v0.8.0.
+
 Changed
 ~~~~~~~
 

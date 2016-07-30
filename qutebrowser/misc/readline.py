@@ -153,7 +153,8 @@ class ReadlineBridge:
     def rl_unix_word_rubout(self):
         """Remove chars from the cursor to the beginning of the word.
 
-        This acts like readline's unix-word-rubout.
+        This acts like readline's unix-word-rubout. Whitespace is used as a
+        word delimiter.
         """
         widget = self._widget()
         if widget is None:
@@ -175,6 +176,21 @@ class ReadlineBridge:
 
         moveby = cursor_position - target_position - 1
         widget.cursorBackward(True, moveby)
+        self._deleted[widget] = widget.selectedText()
+        widget.del_()
+
+    @cmdutils.register(instance='readline-bridge', hide=True,
+                       modes=[typ.KeyMode.command, typ.KeyMode.prompt])
+    def rl_backward_kill_word(self):
+        """Remove chars from the cursor to the beginning of the word.
+
+        This acts like readline's backward-kill-word. Any non-alphanumeric
+        character is considered a word delimiter.
+        """
+        widget = self._widget()
+        if widget is None:
+            return
+        widget.cursorWordBackward(True)
         self._deleted[widget] = widget.selectedText()
         widget.del_()
 
