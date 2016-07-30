@@ -112,6 +112,13 @@ How do I use qutebrowser with mutt?::
     text/html; mv %s %s.html && qutebrowser %s.html >/dev/null 2>/dev/null; needsterminal;
 ----
 
+How to set qutebrowser as deffault browser?::
+    You can use that command to make it:
+----
+xdg-settings set default-web-browser qutebrowser.desktop
+----
+   It should work after reboot.
+
 == Troubleshooting
 
 Configuration not saved after modifying config.::
