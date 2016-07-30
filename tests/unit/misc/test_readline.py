@@ -251,6 +251,24 @@ def test_rl_unix_word_rubout(lineedit, bridge, text, deleted, rest):
 
 
 @pytest.mark.parametrize('text, deleted, rest', [
+    ('test delete|foobar', 'delete', 'test |foobar'),
+    ('test delete |foobar', 'delete ', 'test |foobar'),
+    ('open -t github.com/foo/bar  |', 'bar  ', 'open -t github.com/foo/|'),
+    ('open -t |github.com/foo/bar', '-t ', 'open |github.com/foo/bar'),
+    ('open foo/bar.baz|', 'bar.baz', 'open foo/|'),
+])
+def test_rl_unix_filename_rubout(lineedit, bridge, text, deleted, rest):
+    """Delete filename segment and see if it comes back with yank."""
+    lineedit.set_aug_text(text)
+    bridge.rl_unix_filename_rubout()
+    assert bridge._deleted[lineedit] == deleted
+    assert lineedit.aug_text() == rest
+    lineedit.clear()
+    bridge.rl_yank()
+    assert lineedit.aug_text() == deleted + '|'
+
+
+@pytest.mark.parametrize('text, deleted, rest', [
     fixme(('test foobar| delete', ' delete', 'test foobar|')),
     ('test foobar| delete', ' ', 'test foobar|delete'),  # wrong
     fixme(('test foo|delete bar', 'delete', 'test foo| bar')),
@@ -276,6 +294,7 @@ def test_rl_kill_word(lineedit, bridge, text, deleted, rest):
     ('open -t |github.com/foo/bar', 't ', 'open -|github.com/foo/bar'),
     fixme(('test del<ete>foobar', 'delete', 'test |foobar')),
     ('test del<ete >foobar', 'del', 'test |ete foobar'),  # wrong
+    ('open foo/bar.baz|', 'baz', 'open foo/bar.|'),
 ])
 def test_rl_backward_kill_word(lineedit, bridge, text, deleted, rest):
     """Delete to word beginning and see if it comes back with yank."""

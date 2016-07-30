@@ -148,14 +148,8 @@ class ReadlineBridge:
         self._deleted[widget] = widget.selectedText()
         widget.del_()
 
-    @cmdutils.register(instance='readline-bridge', hide=True,
-                       modes=[typ.KeyMode.command, typ.KeyMode.prompt])
-    def rl_unix_word_rubout(self):
-        """Remove chars from the cursor to the beginning of the word.
-
-        This acts like readline's unix-word-rubout. Whitespace is used as a
-        word delimiter.
-        """
+    def _rubout(self, delim):
+        """Delete backwards using the characters in delim as boundaries."""
         widget = self._widget()
         if widget is None:
             return
@@ -164,20 +158,39 @@ class ReadlineBridge:
 
         target_position = cursor_position
 
-        is_word_boundary = True
-        while is_word_boundary and target_position > 0:
-            is_word_boundary = text[target_position - 1] == " "
+        is_boundary = True
+        while is_boundary and target_position > 0:
+            is_boundary = text[target_position - 1] in delim
             target_position -= 1
 
-        is_word_boundary = False
-        while not is_word_boundary and target_position > 0:
-            is_word_boundary = text[target_position - 1] == " "
+        is_boundary = False
+        while not is_boundary and target_position > 0:
+            is_boundary = text[target_position - 1] in delim
             target_position -= 1
 
         moveby = cursor_position - target_position - 1
         widget.cursorBackward(True, moveby)
         self._deleted[widget] = widget.selectedText()
         widget.del_()
+
+    @cmdutils.register(instance='readline-bridge', hide=True,
+                       modes=[typ.KeyMode.command, typ.KeyMode.prompt])
+    def rl_unix_word_rubout(self):
+        """Remove chars from the cursor to the beginning of the word.
+
+        This acts like readline's unix-word-rubout. Whitespace is used as a
+        word delimiter.
+        """
+        self._rubout([' '])
+
+    @cmdutils.register(instance='readline-bridge', hide=True,
+                       modes=[typ.KeyMode.command, typ.KeyMode.prompt])
+    def rl_unix_filename_rubout(self):
+        """Remove chars from the cursor to the previous path separator.
+
+        This acts like readline's unix-filename-rubout.
+        """
+        self._rubout([' ', '/'])
 
     @cmdutils.register(instance='readline-bridge', hide=True,
                        modes=[typ.KeyMode.command, typ.KeyMode.prompt])
