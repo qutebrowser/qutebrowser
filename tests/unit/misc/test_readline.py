@@ -96,6 +96,26 @@ class LineEdit(QLineEdit):
         return ''.join(chars)
 
 
+def _validate_deletion(lineedit, bridge, method, text, deleted, rest):
+    """Run and validate a text deletion method on the ReadLine bridge.
+
+    Args:
+        lineedit: The LineEdit instance.
+        bridge: The ReadlineBridge instance.
+        method: Reference to the method on the bridge to test.
+        text: The starting 'augmented' text (see LineEdit.set_aug_text)
+        deleted: The text that should be deleted when the method is invoked.
+        rest: The augmented text that should remain after method is invoked.
+    """
+    lineedit.set_aug_text(text)
+    method()
+    assert bridge._deleted[lineedit] == deleted
+    assert lineedit.aug_text() == rest
+    lineedit.clear()
+    bridge.rl_yank()
+    assert lineedit.aug_text() == deleted + '|'
+
+
 @pytest.fixture
 def lineedit(qtbot, monkeypatch):
     """Fixture providing a LineEdit."""
@@ -206,13 +226,8 @@ def test_rl_backward_delete_char(text, expected, lineedit, bridge):
 ])
 def test_rl_unix_line_discard(lineedit, bridge, text, deleted, rest):
     """Delete from the cursor to the beginning of the line and yank back."""
-    lineedit.set_aug_text(text)
-    bridge.rl_unix_line_discard()
-    assert bridge._deleted[lineedit] == deleted
-    assert lineedit.aug_text() == rest
-    lineedit.clear()
-    bridge.rl_yank()
-    assert lineedit.aug_text() == deleted + '|'
+    _validate_deletion(lineedit, bridge, bridge.rl_unix_line_discard, text,
+                       deleted, rest)
 
 
 @pytest.mark.parametrize('text, deleted, rest', [
@@ -222,13 +237,8 @@ def test_rl_unix_line_discard(lineedit, bridge, text, deleted, rest):
 ])
 def test_rl_kill_line(lineedit, bridge, text, deleted, rest):
     """Delete from the cursor to the end of line and yank back."""
-    lineedit.set_aug_text(text)
-    bridge.rl_kill_line()
-    assert bridge._deleted[lineedit] == deleted
-    assert lineedit.aug_text() == rest
-    lineedit.clear()
-    bridge.rl_yank()
-    assert lineedit.aug_text() == deleted + '|'
+    _validate_deletion(lineedit, bridge, bridge.rl_kill_line, text, deleted,
+                       rest)
 
 
 @pytest.mark.parametrize('text, deleted, rest', [
@@ -241,13 +251,8 @@ def test_rl_kill_line(lineedit, bridge, text, deleted, rest):
 ])
 def test_rl_unix_word_rubout(lineedit, bridge, text, deleted, rest):
     """Delete to word beginning and see if it comes back with yank."""
-    lineedit.set_aug_text(text)
-    bridge.rl_unix_word_rubout()
-    assert bridge._deleted[lineedit] == deleted
-    assert lineedit.aug_text() == rest
-    lineedit.clear()
-    bridge.rl_yank()
-    assert lineedit.aug_text() == deleted + '|'
+    _validate_deletion(lineedit, bridge, bridge.rl_unix_word_rubout, text,
+                       deleted, rest)
 
 
 @pytest.mark.parametrize('text, deleted, rest', [
@@ -259,13 +264,8 @@ def test_rl_unix_word_rubout(lineedit, bridge, text, deleted, rest):
 ])
 def test_rl_unix_filename_rubout(lineedit, bridge, text, deleted, rest):
     """Delete filename segment and see if it comes back with yank."""
-    lineedit.set_aug_text(text)
-    bridge.rl_unix_filename_rubout()
-    assert bridge._deleted[lineedit] == deleted
-    assert lineedit.aug_text() == rest
-    lineedit.clear()
-    bridge.rl_yank()
-    assert lineedit.aug_text() == deleted + '|'
+    _validate_deletion(lineedit, bridge, bridge.rl_unix_filename_rubout, text,
+                       deleted, rest)
 
 
 @pytest.mark.parametrize('text, deleted, rest', [
@@ -278,13 +278,8 @@ def test_rl_unix_filename_rubout(lineedit, bridge, text, deleted, rest):
 ])
 def test_rl_kill_word(lineedit, bridge, text, deleted, rest):
     """Delete to word end and see if it comes back with yank."""
-    lineedit.set_aug_text(text)
-    bridge.rl_kill_word()
-    assert bridge._deleted[lineedit] == deleted
-    assert lineedit.aug_text() == rest
-    lineedit.clear()
-    bridge.rl_yank()
-    assert lineedit.aug_text() == deleted + '|'
+    _validate_deletion(lineedit, bridge, bridge.rl_kill_word, text, deleted,
+                       rest)
 
 
 @pytest.mark.parametrize('text, deleted, rest', [
@@ -298,13 +293,8 @@ def test_rl_kill_word(lineedit, bridge, text, deleted, rest):
 ])
 def test_rl_backward_kill_word(lineedit, bridge, text, deleted, rest):
     """Delete to word beginning and see if it comes back with yank."""
-    lineedit.set_aug_text(text)
-    bridge.rl_backward_kill_word()
-    assert bridge._deleted[lineedit] == deleted
-    assert lineedit.aug_text() == rest
-    lineedit.clear()
-    bridge.rl_yank()
-    assert lineedit.aug_text() == deleted + '|'
+    _validate_deletion(lineedit, bridge, bridge.rl_backward_kill_word, text,
+                       deleted, rest)
 
 
 def test_rl_yank_no_text(lineedit, bridge):
