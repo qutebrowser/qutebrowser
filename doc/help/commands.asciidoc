@@ -58,7 +58,7 @@
 |<<tab-close,tab-close>>|Close the current/[count]th tab.
 |<<tab-detach,tab-detach>>|Detach the current tab to its own window.
 |<<tab-focus,tab-focus>>|Select the tab given as argument/[count].
-|<<tab-move,tab-move>>|Move the current tab.
+|<<tab-move,tab-move>>|Move the current tab according to the argument and [count].
 |<<tab-next,tab-next>>|Switch to the next tab, or switch [count] tabs forward.
 |<<tab-only,tab-only>>|Close all tabs except for the current one.
 |<<tab-prev,tab-prev>>|Switch to the previous tab, or switch [count] tabs back.
@@ -767,16 +767,20 @@ The tab index to focus, starting with 1.
 
 [[tab-move]]
 === tab-move
-Syntax: +:tab-move ['direction']+
+Syntax: +:tab-move ['index']+
 
-Move the current tab.
+Move the current tab according to the argument and [count].
+
+If neither is given, move it to the first position.
 
 ==== positional arguments
-* +'direction'+: `+` or `-` for relative moving, not given for absolute moving.
+* +'index'+: `+` or `-` to move relative to the current tab by count, or a default of 1 space.
+ A tab index to move to that index.
 
 
 ==== count
-If moving absolutely: New position (default: 0) If moving relatively: Offset.
+If moving relatively: Offset. If moving absolutely: New position (default: 0). This
+ overrides the index argument, if given.
 
 
 [[tab-next]]
