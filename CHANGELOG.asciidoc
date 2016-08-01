@@ -22,6 +22,8 @@ Added
 
 - New `:rl-backward-kill-word` command which does what `:rl-unix-word-rubout`
   did before v0.8.0.
+- New `:rl-unix-filename-rubout` command which is similar to readline's
+  `unix-filename-rubout`.
 
 Changed
 ~~~~~~~

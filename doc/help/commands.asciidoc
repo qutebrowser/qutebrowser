@@ -955,6 +955,7 @@ How many steps to zoom out.
 |<<rl-forward-word,rl-forward-word>>|Move forward to the end of the next word.
 |<<rl-kill-line,rl-kill-line>>|Remove chars from the cursor to the end of the line.
 |<<rl-kill-word,rl-kill-word>>|Remove chars from the cursor to the end of the current word.
+|<<rl-unix-filename-rubout,rl-unix-filename-rubout>>|Remove chars from the cursor to the previous path separator.
 |<<rl-unix-line-discard,rl-unix-line-discard>>|Remove chars backward from the cursor to the beginning of the line.
 |<<rl-unix-word-rubout,rl-unix-word-rubout>>|Remove chars from the cursor to the beginning of the word.
 |<<rl-yank,rl-yank>>|Paste the most recently deleted text.
@@ -1247,6 +1248,12 @@ This acts like readline's kill-line.
 Remove chars from the cursor to the end of the current word.
 
 This acts like readline's kill-word.
+
+[[rl-unix-filename-rubout]]
+=== rl-unix-filename-rubout
+Remove chars from the cursor to the previous path separator.
+
+This acts like readline's unix-filename-rubout.
 
 [[rl-unix-line-discard]]
 === rl-unix-line-discard
