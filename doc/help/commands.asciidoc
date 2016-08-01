@@ -30,7 +30,6 @@
 |<<home,home>>|Open main startpage in current tab.
 |<<inspector,inspector>>|Toggle the web inspector.
 |<<jseval,jseval>>|Evaluate a JavaScript string.
-|<<jump-mark,jump-mark>>|Jump to the mark named by `key`.
 |<<later,later>>|Execute a command after some time.
 |<<messages,messages>>|Show a log of past messages.
 |<<navigate,navigate>>|Open typical prev/next links or navigate using the URL path.
@@ -53,7 +52,6 @@
 |<<session-save,session-save>>|Save a session.
 |<<set,set>>|Set an option.
 |<<set-cmd-text,set-cmd-text>>|Preset the statusbar to some text.
-|<<set-mark,set-mark>>|Set a mark at the current scroll position in the current tab.
 |<<spawn,spawn>>|Spawn a command in a shell.
 |<<stop,stop>>|Stop loading in the current/[count]th tab.
 |<<tab-clone,tab-clone>>|Duplicate the current tab.
@@ -401,15 +399,6 @@ Evaluate a JavaScript string.
 * This command does not split arguments after the last argument and handles quotes literally.
 * With this command, +;;+ is interpreted literally instead of splitting off a second command.
 
-[[jump-mark]]
-=== jump-mark
-Syntax: +:jump-mark 'key'+
-
-Jump to the mark named by `key`.
-
-==== positional arguments
-* +'key'+: mark identifier; capital indicates a global mark
-
 [[later]]
 === later
 Syntax: +:later 'ms' 'command'+
@@ -700,15 +689,6 @@ You can use the `{url}` and `{url:pretty}` variables here which will get replace
 ==== note
 * This command does not split arguments after the last argument and handles quotes literally.
 
-[[set-mark]]
-=== set-mark
-Syntax: +:set-mark 'key'+
-
-Set a mark at the current scroll position in the current tab.
-
-==== positional arguments
-* +'key'+: mark identifier; capital indicates a global mark
-
 [[spawn]]
 === spawn
 Syntax: +:spawn [*--userscript*] [*--verbose*] [*--detach*] 'cmdline'+
@@ -918,6 +898,7 @@ How many steps to zoom out.
 |<<enter-mode,enter-mode>>|Enter a key mode.
 |<<follow-hint,follow-hint>>|Follow a hint.
 |<<follow-selected,follow-selected>>|Follow the selected text.
+|<<jump-mark,jump-mark>>|Jump to the mark named by `key`.
 |<<leave-mode,leave-mode>>|Leave the mode we're currently in.
 |<<message-error,message-error>>|Show an error message in the statusbar.
 |<<message-info,message-info>>|Show an info message in the statusbar.
@@ -965,6 +946,7 @@ How many steps to zoom out.
 |<<scroll-px,scroll-px>>|Scroll the current tab by 'count * dx/dy' pixels.
 |<<search-next,search-next>>|Continue the search to the ([count]th) next term.
 |<<search-prev,search-prev>>|Continue the search to the ([count]th) previous term.
+|<<set-mark,set-mark>>|Set a mark at the current scroll position in the current tab.
 |<<toggle-selection,toggle-selection>>|Toggle caret selection mode.
 |==============
 [[clear-keychain]]
@@ -1025,6 +1007,15 @@ Follow the selected text.
 
 ==== optional arguments
 * +*-t*+, +*--tab*+: Load the selected link in a new tab.
+
+[[jump-mark]]
+=== jump-mark
+Syntax: +:jump-mark 'key'+
+
+Jump to the mark named by `key`.
+
+==== positional arguments
+* +'key'+: mark identifier; capital indicates a global mark
 
 [[leave-mode]]
 === leave-mode
@@ -1348,6 +1339,15 @@ Continue the search to the ([count]th) previous term.
 
 ==== count
 How many elements to ignore.
+
+[[set-mark]]
+=== set-mark
+Syntax: +:set-mark 'key'+
+
+Set a mark at the current scroll position in the current tab.
+
+==== positional arguments
+* +'key'+: mark identifier; capital indicates a global mark
 
 [[toggle-selection]]
 === toggle-selection
