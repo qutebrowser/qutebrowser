@@ -1243,6 +1243,10 @@ def data(readonly=False):
             ('completion',
              SettingValue(typ.Font(), DEFAULT_FONT_SIZE + ' ${_monospace}'),
              "Font used in the completion widget."),
+            
+            ('completion.category',
+              SettingValue(typ.Font(), 'bold ${completion}'),
+             "Font used in the completion categories."),
 
             ('tabbar',
              SettingValue(typ.QtFont(), DEFAULT_FONT_SIZE + ' ${_monospace}'),
