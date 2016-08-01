@@ -135,7 +135,7 @@ def data(readonly=False):
              "Whether to find text on a page case-insensitively."),
 
             ('startpage',
-             SettingValue(typ.List(), 'https://duckduckgo.com'),
+             SettingValue(typ.List(typ.String()), 'https://duckduckgo.com'),
              "The default page(s) to open at the start, separated by commas."),
 
             ('default-page',
@@ -254,7 +254,7 @@ def data(readonly=False):
 
         ('ui', sect.KeyValue(
             ('zoom-levels',
-             SettingValue(typ.PercList(minval=0),
+             SettingValue(typ.List(typ.Perc(minval=0)),
                           '25%,33%,50%,67%,75%,90%,100%,110%,125%,150%,175%,'
                           '200%,250%,300%,400%,500%'),
              "The available zoom levels, separated by commas."),
@@ -352,7 +352,7 @@ def data(readonly=False):
              "(requires restart)"),
 
             ('keyhint-blacklist',
-             SettingValue(typ.List(none_ok=True), ''),
+             SettingValue(typ.List(typ.String(), none_ok=True), ''),
              "Keychains that shouldn't be shown in the keyhint dialog\n\n"
              "Globs are supported, so ';*' will blacklist all keychains"
              "starting with ';'. Use '*' to disable keyhints"),
@@ -684,8 +684,8 @@ def data(readonly=False):
 
             ('object-cache-capacities',
              SettingValue(
-                 typ.WebKitBytesList(length=3, maxsize=MAXVALS['int'],
-                                     none_ok=True), ''),
+                 typ.List(typ.WebKitBytes(maxsize=MAXVALS['int'],
+                          none_ok=True), none_ok=True, length=3), ''),
              "The capacities for the global memory cache for dead objects "
              "such as stylesheets or scripts. Syntax: cacheMinDeadCapacity, "
              "cacheMaxDead, totalCapacity.\n\n"
@@ -826,7 +826,7 @@ def data(readonly=False):
 
             ('host-block-lists',
              SettingValue(
-                 typ.UrlList(none_ok=True),
+                 typ.List(typ.Url(), none_ok=True),
                  'http://www.malwaredomainlist.com/hostslist/hosts.txt,'
                  'http://someonewhocares.org/hosts/hosts,'
                  'http://winhelp2002.mvps.org/hosts.zip,'
@@ -845,7 +845,7 @@ def data(readonly=False):
              "Whether host blocking is enabled."),
 
             ('host-blocking-whitelist',
-             SettingValue(typ.List(none_ok=True), 'piwik.org'),
+             SettingValue(typ.List(typ.String(), none_ok=True), 'piwik.org'),
              "List of domains that should always be loaded, despite being "
              "ad-blocked.\n\n"
              "Domains may contain * and ? wildcards and are otherwise "
@@ -916,13 +916,13 @@ def data(readonly=False):
              "auto-follow."),
 
             ('next-regexes',
-             SettingValue(typ.RegexList(flags=re.IGNORECASE),
+             SettingValue(typ.List(typ.Regex(flags=re.IGNORECASE)),
                           r'\bnext\b,\bmore\b,\bnewer\b,\b[>→≫]\b,\b(>>|»)\b,'
                           r'\bcontinue\b'),
              "A comma-separated list of regexes to use for 'next' links."),
 
             ('prev-regexes',
-             SettingValue(typ.RegexList(flags=re.IGNORECASE),
+             SettingValue(typ.List(typ.Regex(flags=re.IGNORECASE)),
                           r'\bprev(ious)?\b,\bback\b,\bolder\b,\b[<←≪]\b,'
                           r'\b(<<|«)\b'),
              "A comma-separated list of regexes to use for 'prev' links."),

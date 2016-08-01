@@ -124,6 +124,14 @@ class BaseType:
         self.none_ok = none_ok
         self.valid_values = None
 
+    def get_name(self):
+        """Get a name for the type for documentation"""
+        return self.__class__.__name__
+
+    def get_valid_values(self):
+        """Get the type's valid values for documentation"""
+        return self.valid_values
+
     def _basic_validation(self, value):
         """Do some basic validation for the value (empty, non-printable chars).
 
@@ -303,23 +311,39 @@ class List(BaseType):
 
     """Base class for a (string-)list setting."""
 
-    def __init__(self, none_ok=False, valid_values=None):
+    _show_inner_type = True
+
+    def __init__(self, inner_type, none_ok=False, length=None):
         super().__init__(none_ok)
-        self.valid_values = valid_values
+        self.inner_type = inner_type
+        self.length = length
+
+    def get_name(self):
+        name = super().get_name()
+        if self._show_inner_type:
+            name += " of " + self.inner_type.get_name()
+        return name
+
+    def get_valid_values(self):
+        return self.inner_type.get_valid_values()
 
     def transform(self, value):
         if not value:
             return None
         else:
-            return [v if v else None for v in value.split(',')]
+            return [self.inner_type.transform(v.strip())
+                    for v in value.split(',')]
 
     def validate(self, value):
         self._basic_validation(value)
         if not value:
             return
-        vals = self.transform(value)
-        if None in vals:
-            raise configexc.ValidationError(value, "items may not be empty!")
+        vals = value.split(',')
+        if self.length is not None and len(vals) != self.length:
+            raise configexc.ValidationError(value, "Exactly {} values need to "
+                                            "be set!".format(self.length))
+        for val in vals:
+            self.inner_type.validate(val.strip())
 
 
 class FlagList(List):
@@ -332,41 +356,40 @@ class FlagList(List):
 
     combinable_values = None
 
+    _show_inner_type = False
+
+    def __init__(self, none_ok=False, valid_values=None):
+        super().__init__(BaseType(), none_ok)
+        self.inner_type.valid_values = valid_values
+
     def validate(self, value):
-        self._basic_validation(value)
+        if self.inner_type.valid_values is not None:
+            super().validate(value)
+        else:
+            self._basic_validation(value)
         if not value:
             return
-
-        vals = self.transform(value)
-        if None in vals and not self.none_ok:
-            raise configexc.ValidationError(
-                value, "May not contain empty values!")
+        vals = super().transform(value)
 
         # Check for duplicate values
         if len(set(vals)) != len(vals):
             raise configexc.ValidationError(
                 value, "List contains duplicate values!")
 
-        # Check if each value is valid, ignores None values
-        set_vals = set(val for val in vals if val)
-        if (self.valid_values is not None and
-                not set_vals.issubset(set(self.valid_values))):
-            raise configexc.ValidationError(
-                value, "List contains invalid values!")
-
     def complete(self):
-        if self.valid_values is None:
+        valid_values = self.inner_type.valid_values
+        if valid_values is None:
             return None
 
         out = []
         # Single value completions
-        for value in self.valid_values:
-            desc = self.valid_values.descriptions.get(value, "")
+        for value in valid_values:
+            desc = valid_values.descriptions.get(value, "")
             out.append((value, desc))
 
         combinables = self.combinable_values
         if combinables is None:
-            combinables = list(self.valid_values)
+            combinables = list(valid_values)
         # Generate combinations of each possible value combination
         for size in range(2, len(combinables) + 1):
             for combination in itertools.combinations(combinables, size):
@@ -456,29 +479,6 @@ class Int(BaseType):
                                             "smaller!".format(self.maxval))
 
 
-class IntList(List):
-
-    """Base class for an int-list setting."""
-
-    def transform(self, value):
-        if not value:
-            return None
-        vals = super().transform(value)
-        return [int(v) if v is not None else None for v in vals]
-
-    def validate(self, value):
-        self._basic_validation(value)
-        if not value:
-            return
-        try:
-            vals = self.transform(value)
-        except ValueError:
-            raise configexc.ValidationError(value, "must be a list of "
-                                            "integers!")
-        if None in vals and not self.none_ok:
-            raise configexc.ValidationError(value, "items may not be empty!")
-
-
 class Float(BaseType):
 
     """Base class for a float setting.
@@ -557,50 +557,6 @@ class Perc(BaseType):
         if self.maxval is not None and intval > self.maxval:
             raise configexc.ValidationError(value, "must be {}% or "
                                             "less!".format(self.maxval))
-
-
-class PercList(List):
-
-    """Base class for a list of percentages.
-
-    Attributes:
-        minval: Minimum value (inclusive).
-        maxval: Maximum value (inclusive).
-    """
-
-    def __init__(self, minval=None, maxval=None, none_ok=False):
-        super().__init__(none_ok)
-        if maxval is not None and minval is not None and maxval < minval:
-            raise ValueError("minval ({}) needs to be <= maxval ({})!".format(
-                minval, maxval))
-        self.minval = minval
-        self.maxval = maxval
-
-    def transform(self, value):
-        if not value:
-            return None
-        vals = super().transform(value)
-        return [int(v[:-1]) if v is not None else None for v in vals]
-
-    def validate(self, value):
-        self._basic_validation(value)
-        if not value:
-            return
-        vals = super().transform(value)
-        perctype = Perc(minval=self.minval, maxval=self.maxval)
-        try:
-            for val in vals:
-                if val is None:
-                    if self.none_ok:
-                        continue
-                    else:
-                        raise configexc.ValidationError(value, "items may not "
-                                                        "be empty!")
-                else:
-                    perctype.validate(val)
-        except configexc.ValidationError:
-            raise configexc.ValidationError(value, "must be a list of "
-                                            "percentages!")
 
 
 class PercOrInt(BaseType):
@@ -885,36 +841,6 @@ class Regex(BaseType):
             return re.compile(value, self.flags)
 
 
-class RegexList(List):
-
-    """A list of regexes."""
-
-    def __init__(self, flags=0, none_ok=False):
-        super().__init__(none_ok)
-        self.flags = flags
-
-    def transform(self, value):
-        if not value:
-            return None
-        vals = super().transform(value)
-        return [re.compile(v, self.flags) if v is not None else None
-                for v in vals]
-
-    def validate(self, value):
-        self._basic_validation(value)
-        if not value:
-            return
-        vals = super().transform(value)
-
-        for val in vals:
-            if val is None:
-                if not self.none_ok:
-                    raise configexc.ValidationError(
-                        value, "items may not be empty!")
-            else:
-                _validate_regex(val, self.flags)
-
-
 class File(BaseType):
 
     """A file on the local filesystem."""
@@ -1059,39 +985,6 @@ class WebKitBytes(BaseType):
             val = value
             multiplicator = 1
         return int(val) * multiplicator
-
-
-class WebKitBytesList(List):
-
-    """A size with an optional suffix.
-
-    Attributes:
-        length: The length of the list.
-        bytestype: The webkit bytes type.
-    """
-
-    def __init__(self, maxsize=None, length=None, none_ok=False):
-        super().__init__(none_ok)
-        self.length = length
-        self.bytestype = WebKitBytes(maxsize, none_ok=none_ok)
-
-    def transform(self, value):
-        if value == '':
-            return None
-        else:
-            vals = super().transform(value)
-            return [self.bytestype.transform(val) for val in vals]
-
-    def validate(self, value):
-        self._basic_validation(value)
-        if not value:
-            return
-        vals = super().transform(value)
-        for val in vals:
-            self.bytestype.validate(val)
-        if self.length is not None and len(vals) != self.length:
-            raise configexc.ValidationError(value, "exactly {} values need to "
-                                            "be set!".format(self.length))
 
 
 class ShellCommand(BaseType):
@@ -1243,25 +1136,16 @@ PaddingValues = collections.namedtuple('PaddingValues', ['top', 'bottom',
                                                          'left', 'right'])
 
 
-class Padding(IntList):
+class Padding(List):
 
     """Setting for paddings around elements."""
 
-    def validate(self, value):
-        self._basic_validation(value)
-        if not value:
-            return
-        try:
-            vals = self.transform(value)
-        except (ValueError, TypeError):
-            raise configexc.ValidationError(value, "must be a list of 4 "
-                                            "integers!")
-        if None in vals and not self.none_ok:
-            raise configexc.ValidationError(value, "items may not be empty!")
-        elems = self.transform(value)
-        if any(e is not None and e < 0 for e in elems):
-            raise configexc.ValidationError(value, "Values need to be "
-                                            "positive!")
+    _show_inner_type = False
+
+    def __init__(self, none_ok=False, valid_values=None):
+        super().__init__(Int(minval=0, none_ok=none_ok),
+                         none_ok=none_ok, length=4)
+        self.inner_type.valid_values = valid_values
 
     def transform(self, value):
         elems = super().transform(value)
@@ -1401,29 +1285,24 @@ class VerticalPosition(BaseType):
         self.valid_values = ValidValues('top', 'bottom')
 
 
-class UrlList(List):
+class Url(BaseType):
 
-    """A list of URLs."""
+    """A URL."""
 
     def transform(self, value):
         if not value:
             return None
         else:
-            return [QUrl.fromUserInput(v) if v else None
-                    for v in value.split(',')]
+            return QUrl.fromUserInput(value)
 
     def validate(self, value):
         self._basic_validation(value)
         if not value:
             return
-        vals = self.transform(value)
-        for val in vals:
-            if val is None:
-                raise configexc.ValidationError(value, "values may not be "
-                                                "empty!")
-            elif not val.isValid():
-                raise configexc.ValidationError(value, "invalid URL - "
-                                                "{}".format(val.errorString()))
+        val = self.transform(value)
+        if not val.isValid():
+            raise configexc.ValidationError(value, "invalid URL - "
+                                            "{}".format(val.errorString()))
 
 
 class HeaderDict(BaseType):
@@ -1519,7 +1398,8 @@ class ConfirmQuit(FlagList):
 
     def __init__(self, none_ok=False):
         super().__init__(none_ok)
-        self.valid_values = ValidValues(
+        self.inner_type.none_ok = none_ok
+        self.inner_type.valid_values = ValidValues(
             ('always', "Always show a confirmation."),
             ('multiple-tabs', "Show a confirmation if "
              "multiple tabs are opened."),

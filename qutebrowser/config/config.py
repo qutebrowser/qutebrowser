@@ -419,7 +419,7 @@ class ConfigManager(QObject):
         for optname, option in sect.items():
 
             lines.append('#')
-            typestr = ' ({})'.format(option.typ.__class__.__name__)
+            typestr = ' ({})'.format(option.typ.get_name())
             lines.append("# {}{}:".format(optname, typestr))
 
             try:
@@ -430,7 +430,7 @@ class ConfigManager(QObject):
                 continue
             for descline in desc.splitlines():
                 lines += wrapper.wrap(descline)
-            valid_values = option.typ.valid_values
+            valid_values = option.typ.get_valid_values()
             if valid_values is not None:
                 if valid_values.descriptions:
                     for val in valid_values:
