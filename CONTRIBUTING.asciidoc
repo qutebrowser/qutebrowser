@@ -277,9 +277,9 @@ Python and Qt objects
 ~~~~~~~~~~~~~~~~~~~~~
 
 For many tasks, there are solutions available in both Qt and the Python
-standard library available.
+standard library.
 
-In qutebrowser, the policy is usually using the Python libraries, as they
+In qutebrowser, the policy is usually to use the Python libraries, as they
 provide exceptions and other benefits.
 
 There are some exceptions to that:
