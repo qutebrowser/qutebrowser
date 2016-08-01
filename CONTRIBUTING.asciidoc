@@ -11,9 +11,9 @@ This document contains guidelines for contributing to qutebrowser, as well as
 useful hints when doing so.
 
 If anything mentioned here would prevent you from contributing, please let me
-know, and contribute anyways! The guidelines are only meant to make life easier
-for me, but if you don't follow anything in here, I won't be mad at you. I will
-probably change it for you then, though.
+know, and contribute anyways! The guidelines are meant to make life easier for
+me, but if you don't follow everything in here, I won't be mad at you. In
+fact, I will probably change it for you.
 
 If you have any problems, I'm more than happy to help! You can get help in
 several ways:
@@ -44,7 +44,7 @@ require little/no coding]
 
 There are also some things to do if you don't want to write code:
 
-* Help the community, e.g. on the mailinglist and the IRC channel.
+* Help the community, e.g., on the mailinglist and the IRC channel.
 * Improve the documentation.
 * Help on the website and graphics (logo, etc.).
 
@@ -60,7 +60,7 @@ git clone https://github.com/The-Compiler/qutebrowser.git
 
 If you don't know git, a http://git-scm.com/[git cheatsheet] might come in
 handy. Of course, if using git is the issue which prevents you from
-contributing, feel free to send normal patches instead, e.g. generated via
+contributing, feel free to send normal patches instead, e.g., generated via
 `diff -Nur`.
 
 Getting patches
@@ -77,7 +77,7 @@ based on your changes like this:
 ----
 git format-patch origin/master <1>
 ----
-<1> Replace `master` by the branch your work was based on, e.g.
+<1> Replace `master` by the branch your work was based on, e.g.,
 `origin/develop`.
 
 Useful utilities
@@ -89,7 +89,7 @@ Checkers
 qutebrowser uses http://tox.readthedocs.org/en/latest/[tox] to run its
 unittests and several linters/checkers.
 
-Currently, following tox environments are available:
+Currently, the following tox environments are available:
 
 * Tests using https://www.pytest.org[pytest]:
   - `py34`: Run pytest for python-3.4.
@@ -117,18 +117,18 @@ Currently, following tox environments are available:
     - VCS conflict markers
     - common spelling mistakes
 
-The default test suite is run with `tox`, the list of default
-environments is obtained with `tox -l` .
+The default test suite is run with `tox`; the list of default
+environments is obtained with `tox -l`.
 
 Please make sure the checks run without any warnings on your new contributions.
 
-There's of course the possibility of false-positives, and the following
+There's always the possibility of false positives; the following
 techniques are useful to handle these:
 
 * Use `_foo` for unused parameters, with `foo` being a descriptive name. Using
 `_` is discouraged.
-* If you think you have a good reason to suppress a message, add the following
-comment:
+* If you think you have a good reason to suppress a message, then add the 
+following comment:
 +
 ----
 # pylint: disable=message-name
@@ -186,10 +186,10 @@ the output in four different ways:
 Debugging
 ~~~~~~~~~
 
-In the `qutebrowser.utils.debug` module there are some useful functions for
-debugging.
+There are some useful functions for debugging in the `qutebrowser.utils.debug`
+module.
 
-When starting qutebrowser with the `--debug` flag you also get useful debug
+When starting qutebrowser with the `--debug` flag, you also get useful debug
 logs. You can add +--logfilter _category[,category,...]_+ to restrict logging
 to the given categories.
 
@@ -276,10 +276,10 @@ Hints
 Python and Qt objects
 ~~~~~~~~~~~~~~~~~~~~~
 
-For many tasks, there are solutions in both Qt and the Python standard library
-available.
+For many tasks, there are solutions available in both Qt and the Python
+standard library.
 
-In qutebrowser, the policy is usually using the Python libraries, as they
+In qutebrowser, the policy is usually to use the Python libraries, as they
 provide exceptions and other benefits.
 
 There are some exceptions to that:
@@ -292,7 +292,7 @@ slots.
 
 When using Qt objects, two issues must be taken care of:
 
-* Methods of Qt objects report their status by using their return values,
+* Methods of Qt objects report their status with their return values,
 instead of using exceptions.
 +
 If a function gets or returns a Qt object which has an `.isValid()`
@@ -304,13 +304,12 @@ on all such objects. It will raise
 If a function returns something else on error, the return value should
 carefully be checked.
 
-* Methods of Qt objects have certain maximum values, based on their
+* Methods of Qt objects have certain maximum values based on their
 underlying C++ types.
 +
-When passing a numeric parameter to a Qt function, all numbers should
-be range-checked using `qutebrowser.qtutils.check_overflow`, or
-passing a value which is too large should be avoided by other means
-(e.g. by setting a maximum value for a config object).
+To avoid passing too large of a numeric parameter to a Qt function, all 
+numbers should be range-checked using `qutebrowser.qtutils.check_overflow`,
+or by other means (e.g. by setting a maximum value for a config object).
 
 [[object-registry]]
 The object registry
@@ -339,8 +338,8 @@ window=_win-id_, tab=_tab-id_])+. The default scope is `global`.
 All objects can be printed by starting with the `--debug` flag and using the
 `:debug-all-objects` command.
 
-The registry is mainly used for <<commands,command handlers>> but also can be
-useful in places where using Qt's
+The registry is mainly used for <<commands,command handlers>>, but it can
+also be useful in places where using Qt's
 http://doc.qt.io/qt-5/signalsandslots.html[signals and slots] mechanism would
 be difficult.
 
@@ -350,7 +349,7 @@ Logging
 Logging is used at various places throughout the qutebrowser code. If you add a
 new feature, you should also add some strategic debug logging.
 
-Unless other Python projects, qutebrowser doesn't use a logger per file,
+Unlike other Python projects, qutebrowser doesn't use a logger per file,
 instead it uses custom-named loggers.
 
 The existing loggers are defined in `qutebrowser.utils.log`. If your feature
@@ -413,11 +412,11 @@ selects which object registry (global, per-tab, etc.) to use.  See the
 <<object-registry,object registry>> section for details.
 
 There are also other arguments to customize the way the command is
-registered, see the class documentation for `register` in
+registered; see the class documentation for `register` in
 `qutebrowser.commands.cmdutils` for details.
 
 The types of the function arguments are inferred based on their default values,
-e.g. an argument `foo=True` will be converted to a flag `-f`/`--foo` in
+e.g., an argument `foo=True` will be converted to a flag `-f`/`--foo` in
 qutebrowser's commandline.
 
 The type can be overridden using Python's
@@ -435,11 +434,11 @@ Possible values:
       value.
     - A python enum type: All members of the enum are possible values.
     - A `typing.Union` of multiple types above: Any of these types are valid
-      values, e.g. `typing.Union[str, int]`
+      values, e.g., `typing.Union[str, int]`
 
 You can customize how an argument is handled using the `@cmdutils.argument`
-decorator *after* `@cmdutils.register`. This can e.g. be used to customize the
-flag an argument should get:
+decorator *after* `@cmdutils.register`. This can, for example, be used to 
+customize the flag an argument should get:
 
 [source,python]
 ----
@@ -482,13 +481,13 @@ qutebrowser handles two different types of URLs: URLs as a string, and URLs as
 the Qt `QUrl` type. As this can get confusing quickly, please follow the
 following guidelines:
 
-* Convert a string to a QUrl object as early as possible, i.e. directly after
+* Convert a string to a QUrl object as early as possible, i.e., directly after
 the user did enter it.
     - Use `utils.urlutils.fuzzy_url` if the URL is entered by the user
       somewhere.
     - Be sure you handle `utils.urlutils.FuzzyError` and display an error
       message to the user.
-* Convert a `QUrl` object to a string as late as possible, e.g. before
+* Convert a `QUrl` object to a string as late as possible, i.e., before
 displaying it to the user.
     - If you want to display the URL to the user, use `url.toDisplayString()`
       so password information is removed.
@@ -514,8 +513,8 @@ This is needed so valgrind handles self-modifying code correctly:
 [quote]
 ____
 This option controls Valgrind's detection of self-modifying code. If no
-checking is done, if a program executes some code, then overwrites it with new
-code, and executes the new code, Valgrind will continue to execute the
+checking is done and a program executes some code, overwrites it with new
+code, and then executes the new code, Valgrind will continue to execute the
 translations it made for the old code. This will likely lead to incorrect
 behavior and/or crashes.
 
