@@ -954,11 +954,20 @@ class DownloadManager(QAbstractListModel):
                 message.error(self._win_id, msg)
                 download.cancel()
                 return
-            download.finished.connect(download.open_file)
+            download.finished.connect(
+                functools.partial(self._open_download, download))
             download.autoclose = True
             download.set_fileobj(fobj)
         else:
             log.downloads.error("Unknown download target: {}".format(target))
+
+    def _open_download(self, download):
+        """Open the given download but only if it was successful."""
+        if download.successful:
+            download.open_file()
+        else:
+            log.downloads.debug("{} finished but not successful, not opening!"
+                                .format(download))
 
     def raise_no_download(self, count):
         """Raise an exception that the download doesn't exist.
