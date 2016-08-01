@@ -193,7 +193,7 @@ def test_help_completion(qtmodeltester, monkeypatch, stubs):
     """Test the results of command completion.
 
     Validates that:
-        - only non-hidden and non-deprecated commands are included
+        - only non-deprecated commands are included
         - commands are sorted by name
         - the command description is shown in the desc column
         - the binding (if any) is shown in the misc column
@@ -211,8 +211,9 @@ def test_help_completion(qtmodeltester, monkeypatch, stubs):
     assert actual == [
         ("Commands", [
             (':drop', 'drop all user data', ''),
+            (':hide', '', ''),
             (':roll', 'never gonna give you up', ''),
-            (':stop', 'stop qutebrowser', '')
+            (':stop', 'stop qutebrowser', ''),
         ]),
         ("Settings", [
             ('general->time', 'Is an illusion.', ''),
