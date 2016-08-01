@@ -311,12 +311,12 @@ class List(BaseType):
 
     """Base class for a (string-)list setting."""
 
+    _show_inner_type = True
+
     def __init__(self, inner_type, none_ok=False, length=None):
         super().__init__(none_ok)
         self.inner_type = inner_type
         self.length = length
-
-    _show_inner_type = True
 
     def get_name(self):
         name = super().get_name()
@@ -356,11 +356,11 @@ class FlagList(List):
 
     combinable_values = None
 
+    _show_inner_type = False
+
     def __init__(self, none_ok=False, valid_values=None):
         super().__init__(BaseType(), none_ok)
         self.inner_type.valid_values = valid_values
-
-    _show_inner_type = False
 
     def validate(self, value):
         if self.inner_type.valid_values is not None:
@@ -1140,12 +1140,12 @@ class Padding(List):
 
     """Setting for paddings around elements."""
 
+    _show_inner_type = False
+
     def __init__(self, none_ok=False, valid_values=None):
         super().__init__(Int(minval=0, none_ok=none_ok),
                          none_ok=none_ok, length=4)
         self.inner_type.valid_values = valid_values
-
-    _show_inner_type = False
 
     def transform(self, value):
         elems = super().transform(value)
