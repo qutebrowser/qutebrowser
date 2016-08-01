@@ -120,6 +120,7 @@ SECTION_DESC = {
 
 
 DEFAULT_FONT_SIZE = '10pt' if sys.platform == 'darwin' else '8pt'
+orientation = 'bold'
 
 
 def data(readonly=False):
@@ -414,7 +415,7 @@ def data(readonly=False):
             ('auto-open',
              SettingValue(typ.Bool(), 'true'),
              "Automatically open completion when typing."),
-
+            
             ('download-path-suggestion',
              SettingValue(
                  typ.String(valid_values=typ.ValidValues(
@@ -465,18 +466,6 @@ def data(readonly=False):
             ('scrollbar-padding',
              SettingValue(typ.Int(minval=0), '2'),
              "Padding of scrollbar handle in completion window (in px)."),
-
-            ('_monospace',
-             SettingValue(typ.Font(), 'Terminus, Monospace, '
-                          '"DejaVu Sans Mono", Monaco, '
-                          '"Bitstream Vera Sans Mono", "Andale Mono", '
-                          '"Courier New", Courier, "Liberation Mono", '
-                          'monospace, Fixed, Consolas, Terminal'),
-             "Default monospace fonts."),
-
-             ('bold',
-             SettingValue(typ.Font(), 'bold' + DEFAULT_FONT_SIZE + ' ${_monospace}'  ),
-             "Font used in the completion fonts."),
 
             readonly=readonly
         )),
@@ -1253,9 +1242,12 @@ def data(readonly=False):
              "Default monospace fonts."),
 
             ('completion',
-             SettingValue(typ.Font(), DEFAULT_FONT_SIZE + ' ${_monospace}'),
+             SettingValue(typ.Font(),  DEFAULT_FONT_SIZE + ' ${_monospace}'),
              "Font used in the completion widget."),
 
+             ('completion.category',
+              SettingValue(typ.Font(),  'bold' + '${completion}'),
+             "Font used in the completion fonts."),
 
             ('tabbar',
              SettingValue(typ.QtFont(), DEFAULT_FONT_SIZE + ' ${_monospace}'),
