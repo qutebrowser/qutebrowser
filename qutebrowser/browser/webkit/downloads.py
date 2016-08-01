@@ -947,7 +947,13 @@ class DownloadManager(QAbstractListModel):
             download.set_filename(target.filename)
         elif isinstance(target, usertypes.OpenFileDownloadTarget):
             tmp_manager = objreg.get('temporary-downloads')
-            fobj = tmp_manager.get_tmpfile(suggested_filename)
+            try:
+                fobj = tmp_manager.get_tmpfile(suggested_filename)
+            except OSError as exc:
+                msg = "Download error: {}".format(exc)
+                message.error(self._win_id, msg)
+                download.cancel()
+                return
             download.finished.connect(download.open_file)
             download.autoclose = True
             download.set_fileobj(fobj)
