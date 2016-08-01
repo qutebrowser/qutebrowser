@@ -151,6 +151,7 @@ Contributors, sorted by the number of commits in descending order:
 * Martin Tournoij
 * Raphael Pierzina
 * Joel Torstensson
+* Marshall Lochbaum
 * Jan Verbeek
 * Patric Schmitz
 * Tarcisio Fedrizzi
@@ -163,7 +164,6 @@ Contributors, sorted by the number of commits in descending order:
 * Artur Shaik
 * Nathan Isom
 * Thorsten Wißmann
-* Marshall Lochbaum
 * Austin Anderson
 * Jimmy
 * Alexey "Averrin" Nabrodov
