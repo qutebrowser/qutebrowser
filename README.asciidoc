@@ -151,8 +151,8 @@ Contributors, sorted by the number of commits in descending order:
 * Martin Tournoij
 * Raphael Pierzina
 * Joel Torstensson
-* Marshall Lochbaum
 * Jan Verbeek
+* Marshall Lochbaum
 * Patric Schmitz
 * Tarcisio Fedrizzi
 * Claude
