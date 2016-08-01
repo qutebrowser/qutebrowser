@@ -189,7 +189,7 @@ def test_command_completion(qtmodeltester, monkeypatch, stubs, config_stub,
     ]
 
 
-def test_help_completion(qtmodeltester, monkeypatch, stubs):
+def test_help_completion(qtmodeltester, monkeypatch, stubs, key_config_stub):
     """Test the results of command completion.
 
     Validates that:
@@ -201,6 +201,7 @@ def test_help_completion(qtmodeltester, monkeypatch, stubs):
         - only the first line of a multiline description is shown
     """
     module = 'qutebrowser.completion.models.miscmodels'
+    key_config_stub.set_bindings_for('normal', {'s': 'stop', 'rr': 'roll'})
     _patch_cmdutils(monkeypatch, stubs, module + '.cmdutils')
     _patch_configdata(monkeypatch, stubs, module + '.configdata.DATA')
     model = miscmodels.HelpCompletionModel()
@@ -212,8 +213,8 @@ def test_help_completion(qtmodeltester, monkeypatch, stubs):
         ("Commands", [
             (':drop', 'drop all user data', ''),
             (':hide', '', ''),
-            (':roll', 'never gonna give you up', ''),
-            (':stop', 'stop qutebrowser', ''),
+            (':roll', 'never gonna give you up', 'rr'),
+            (':stop', 'stop qutebrowser', 's'),
         ]),
         ("Settings", [
             ('general->time', 'Is an illusion.', ''),
