@@ -122,7 +122,6 @@ SECTION_DESC = {
 DEFAULT_FONT_SIZE = '10pt' if sys.platform == 'darwin' else '8pt'
 
 
-
 def data(readonly=False):
     """Get the default config data.
 
@@ -1242,10 +1241,10 @@ def data(readonly=False):
              "Default monospace fonts."),
 
             ('completion',
-             SettingValue(typ.Font(),  DEFAULT_FONT_SIZE + ' ${_monospace}'),
+             SettingValue(typ.Font(), DEFAULT_FONT_SIZE + ' ${_monospace}'),
              "Font used in the completion widget."),
-
-             ('completion.category',
+            
+            ('completion.category',
               SettingValue(typ.Font(), 'bold ${completion}'),
              "Font used in the completion categories."),
 
@@ -1592,7 +1591,8 @@ KEY_DATA = collections.OrderedDict([
         ('rl-unix-line-discard', ['<Ctrl-U>']),
         ('rl-kill-line', ['<Ctrl-K>']),
         ('rl-kill-word', ['<Alt-D>']),
-        ('rl-unix-word-rubout', ['<Ctrl-W>', '<Alt-Backspace>']),
+        ('rl-unix-word-rubout', ['<Ctrl-W>']),
+        ('rl-backward-kill-word', ['<Alt-Backspace>']),
         ('rl-yank', ['<Ctrl-Y>']),
         ('rl-delete-char', ['<Ctrl-?>']),
         ('rl-backward-delete-char', ['<Ctrl-H>']),
