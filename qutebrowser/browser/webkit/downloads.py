@@ -1322,6 +1322,9 @@ class TempDownloadManager(QObject):
             A tempfile.NamedTemporaryFile that should be used to save the file.
         """
         tmpdir = self._get_tmpdir()
+        # Make sure that the filename is not too long
+        if len(suggested_name) > 20:
+            suggested_name = suggested_name[:10] + '...' + suggested_name[-10:]
         fobj = tempfile.NamedTemporaryFile(dir=tmpdir.name, delete=False,
                                            suffix=suggested_name)
         self.files.append(fobj)
