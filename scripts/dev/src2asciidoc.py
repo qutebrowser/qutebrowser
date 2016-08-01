@@ -357,7 +357,7 @@ def _generate_setting_section(f, sectname, sect):
         f.write("=== {}".format(optname) + "\n")
         f.write(sect.descriptions[optname] + "\n")
         f.write("\n")
-        valid_values = option.typ.valid_values
+        valid_values = option.typ.get_valid_values()
         if valid_values is not None:
             f.write("Valid values:\n")
             f.write("\n")
