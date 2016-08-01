@@ -57,7 +57,8 @@ def completionview(qtbot, status_command_stub, config_stub, win_registry,
             'completion.scrollbar.bg': QColor(),
         },
         'fonts': {
-            'completion': 'Comic Sans Monospace'
+            'completion': 'Comic Sans Monospace',
+            'completion.category': 'Comic Sans Monospace bold',
         }
     }
     # mock the Completer that the widget creates in its constructor
