@@ -266,6 +266,7 @@
 |Setting|Description
 |<<fonts-_monospace,_monospace>>|Default monospace fonts.
 |<<fonts-completion,completion>>|Font used in the completion widget.
+|<<fonts-completion.category,completion.category>>|Font used in the completion categories.
 |<<fonts-tabbar,tabbar>>|Font used in the tab bar.
 |<<fonts-statusbar,statusbar>>|Font used in the statusbar.
 |<<fonts-downloads,downloads>>|Font used for the downloadbar.
@@ -2099,6 +2100,12 @@ Default: +pass:[Terminus, Monospace, &quot;DejaVu Sans Mono&quot;, Monaco, &quot
 Font used in the completion widget.
 
 Default: +pass:[8pt ${_monospace}]+
+
+[[fonts-completion.category]]
+=== completion.category
+Font used in the completion categories.
+
+Default: +pass:[bold ${completion}]+
 
 [[fonts-tabbar]]
 === tabbar

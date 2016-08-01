@@ -24,6 +24,8 @@ Added
   did before v0.8.0.
 - New `:rl-unix-filename-rubout` command which is similar to readline's
   `unix-filename-rubout`.
+- New `fonts -> completion.category` setting to customize the font used for
+  completion category headers.
 
 Changed
 ~~~~~~~
