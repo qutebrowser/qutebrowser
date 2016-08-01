@@ -120,7 +120,7 @@ SECTION_DESC = {
 
 
 DEFAULT_FONT_SIZE = '10pt' if sys.platform == 'darwin' else '8pt'
-orientation = 'bold'
+
 
 
 def data(readonly=False):
@@ -415,7 +415,6 @@ def data(readonly=False):
             ('auto-open',
              SettingValue(typ.Bool(), 'true'),
              "Automatically open completion when typing."),
-            
             ('download-path-suggestion',
              SettingValue(
                  typ.String(valid_values=typ.ValidValues(
