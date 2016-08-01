@@ -156,9 +156,6 @@ class TabCompletionModel(base.BaseCompletionModel):
     Used for switching the buffer command.
     """
 
-    # https://github.com/The-Compiler/qutebrowser/issues/545
-    # pylint: disable=abstract-method
-
     IDX_COLUMN = 0
     URL_COLUMN = 1
     TEXT_COLUMN = 2

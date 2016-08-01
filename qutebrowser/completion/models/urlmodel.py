@@ -35,9 +35,6 @@ class UrlCompletionModel(base.BaseCompletionModel):
     Used for the `open` command.
     """
 
-    # https://github.com/The-Compiler/qutebrowser/issues/545
-    # pylint: disable=abstract-method
-
     URL_COLUMN = 0
     TEXT_COLUMN = 1
     TIME_COLUMN = 2
