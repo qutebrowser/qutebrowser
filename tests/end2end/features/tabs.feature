@@ -380,6 +380,58 @@ Feature: Tab management
             - data/numbers/2.txt
             - data/numbers/3.txt (active)
 
+    Scenario: :tab-move with index.
+        When I open data/numbers/1.txt
+        And I open data/numbers/2.txt in a new tab
+        And I open data/numbers/3.txt in a new tab
+        And I run :tab-move 2
+        Then the following tabs should be open:
+            - data/numbers/1.txt
+            - data/numbers/3.txt (active)
+            - data/numbers/2.txt
+
+    Scenario: :tab-move with negative index.
+        When I open data/numbers/1.txt
+        And I open data/numbers/2.txt in a new tab
+        And I open data/numbers/3.txt in a new tab
+        And I run :tab-move -3
+        Then the following tabs should be open:
+            - data/numbers/3.txt (active)
+            - data/numbers/1.txt
+            - data/numbers/2.txt
+
+    Scenario: :tab-move with invalid index.
+        When I open data/numbers/1.txt
+        And I open data/numbers/2.txt in a new tab
+        And I open data/numbers/3.txt in a new tab
+        And I run :tab-move -5
+        Then the error "Can't move tab to position -1!" should be shown.
+        And the following tabs should be open:
+            - data/numbers/1.txt
+            - data/numbers/2.txt
+            - data/numbers/3.txt (active)
+
+    Scenario: :tab-move with index and count.
+        When I open data/numbers/1.txt
+        And I open data/numbers/2.txt in a new tab
+        And I open data/numbers/3.txt in a new tab
+        And I run :tab-move 1 with count 2
+        Then the following tabs should be open:
+            - data/numbers/1.txt
+            - data/numbers/3.txt (active)
+            - data/numbers/2.txt
+
+    Scenario: :tab-move with index and invalid count.
+        When I open data/numbers/1.txt
+        And I open data/numbers/2.txt in a new tab
+        And I open data/numbers/3.txt in a new tab
+        And I run :tab-move -2 with count 4
+        Then the error "Can't move tab to position 4!" should be shown.
+        And the following tabs should be open:
+            - data/numbers/1.txt
+            - data/numbers/2.txt
+            - data/numbers/3.txt (active)
+
     Scenario: :tab-move with relative position (negative).
         When I open data/numbers/1.txt
         And I open data/numbers/2.txt in a new tab
