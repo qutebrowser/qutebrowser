@@ -466,6 +466,18 @@ def data(readonly=False):
              SettingValue(typ.Int(minval=0), '2'),
              "Padding of scrollbar handle in completion window (in px)."),
 
+            ('_monospace',
+             SettingValue(typ.Font(), 'Terminus, Monospace, '
+                          '"DejaVu Sans Mono", Monaco, '
+                          '"Bitstream Vera Sans Mono", "Andale Mono", '
+                          '"Courier New", Courier, "Liberation Mono", '
+                          'monospace, Fixed, Consolas, Terminal'),
+             "Default monospace fonts."),
+
+             ('bold',
+             SettingValue(typ.Font(), 'bold' + DEFAULT_FONT_SIZE + ' ${_monospace}'  ),
+             "Font used in the completion fonts."),
+
             readonly=readonly
         )),
 
@@ -1243,6 +1255,7 @@ def data(readonly=False):
             ('completion',
              SettingValue(typ.Font(), DEFAULT_FONT_SIZE + ' ${_monospace}'),
              "Font used in the completion widget."),
+
 
             ('tabbar',
              SettingValue(typ.QtFont(), DEFAULT_FONT_SIZE + ' ${_monospace}'),

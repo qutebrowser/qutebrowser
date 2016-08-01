@@ -206,7 +206,7 @@ class CompletionItemDelegate(QStyledItemDelegate):
             else:
                 self._doc.setPlainText(self._opt.text)
         else:
-            self._doc.setHtml('<b>{}</b>'.format(html.escape(self._opt.text)))
+            self._doc.setHtml('{}'.format(html.escape(self._opt.text)))
 
     def _draw_focus_rect(self):
         """Draw the focus rectangle of an ItemViewItem."""

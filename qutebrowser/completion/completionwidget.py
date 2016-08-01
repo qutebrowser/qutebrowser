@@ -69,6 +69,8 @@ class CompletionView(QTreeView):
                 {{ color['completion.category.border.top'] }};
             border-bottom: 1px solid
                 {{ color['completion.category.border.bottom'] }};
+            font: {{  config.get('completion', 'bold') }};
+
         }
 
         QTreeView::item:selected, QTreeView::item:selected:hover {
