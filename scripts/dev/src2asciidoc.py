@@ -402,6 +402,7 @@ def _get_authors():
         'Daniel': 'Daniel Schadt',
         'Alexey Glushko': 'haitaka',
         'Corentin Jule': 'Corentin Julé',
+        'Claire C.C': 'Claire Cavanaugh',
     }
     commits = subprocess.check_output(['git', 'log', '--format=%aN'])
     authors = [corrections.get(author, author)
