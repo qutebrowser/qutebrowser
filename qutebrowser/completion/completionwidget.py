@@ -193,7 +193,10 @@ class CompletionView(QTreeView):
             prev: True for prev item, False for next one.
         """
         idx = self._next_idx(prev)
-        qtutils.ensure_valid(idx)
+        try:
+            qtutils.ensure_valid(idx)
+        except qtutils.QtValueError:
+            return
         self.selectionModel().setCurrentIndex(
             idx, QItemSelectionModel.ClearAndSelect | QItemSelectionModel.Rows)
 
