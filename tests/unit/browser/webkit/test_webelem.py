@@ -162,7 +162,7 @@ class SelectionAndFilterTests:
         ('<textarea />', [webelem.Group.all, webelem.Group.inputs]),
         ('<select />', [webelem.Group.all]),
 
-        ('<input />', [webelem.Group.all]),
+        ('<input />', [webelem.Group.all, webelem.Group.inputs]),
         ('<input type="hidden" />', []),
         ('<input type="text" />', [webelem.Group.inputs, webelem.Group.all]),
         ('<input type="email" />', [webelem.Group.inputs, webelem.Group.all]),
