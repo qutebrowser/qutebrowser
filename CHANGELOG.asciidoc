@@ -42,6 +42,7 @@ Fixed
 
 - Fixed crash when using hints with JS disabled in some rare circumstances.
 - When hinting input fields (`:t`), also consider input elements without a type.
+- Fixed crash when opening an invalid URL with a percent-encoded and a real @ in it
 
 v0.8.1
 ------
