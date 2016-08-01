@@ -448,3 +448,34 @@ def test_setting_value_completion(qtmodeltester, monkeypatch, stubs,
             ('11', '', ''),
         ])
     ]
+
+
+def test_bind_completion(qtmodeltester, monkeypatch, stubs, config_stub,
+                         key_config_stub):
+    """Test the results of command completion.
+
+    Validates that:
+        - only non-hidden and non-deprecated commands are included
+        - commands are sorted by name
+        - the command description is shown in the desc column
+        - the binding (if any) is shown in the misc column
+        - aliases are included
+    """
+    _patch_cmdutils(monkeypatch, stubs,
+                    'qutebrowser.completion.models.miscmodels.cmdutils')
+    config_stub.data['aliases'] = {'rock': 'roll'}
+    key_config_stub.set_bindings_for('normal', {'s': 'stop', 'rr': 'roll'})
+    model = miscmodels.BindCompletionModel()
+    qtmodeltester.data_display_may_return_none = True
+    qtmodeltester.check(model)
+
+    actual = _get_completions(model)
+    assert actual == [
+        ("Commands", [
+            ('drop', 'drop all user data', ''),
+            ('hide', '', ''),
+            ('rock', "Alias for 'roll'", ''),
+            ('roll', 'never gonna give you up', 'rr'),
+            ('stop', 'stop qutebrowser', 's')
+        ])
+    ]

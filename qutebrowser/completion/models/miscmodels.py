@@ -30,7 +30,7 @@ from qutebrowser.completion.models import base
 
 class CommandCompletionModel(base.BaseCompletionModel):
 
-    """A CompletionModel filled with all commands and descriptions."""
+    """A CompletionModel filled with non-hidden commands and descriptions."""
 
     # https://github.com/The-Compiler/qutebrowser/issues/545
     # pylint: disable=abstract-method
@@ -259,3 +259,33 @@ class TabCompletionModel(base.BaseCompletionModel):
         tabbed_browser = objreg.get('tabbed-browser', scope='window',
                                     window=int(win_id))
         tabbed_browser.on_tab_close_requested(int(tab_index) - 1)
+
+
+class BindCompletionModel(base.BaseCompletionModel):
+
+    """A CompletionModel filled with all bindable commands and descriptions."""
+
+    # https://github.com/The-Compiler/qutebrowser/issues/545
+    # pylint: disable=abstract-method
+
+    COLUMN_WIDTHS = (20, 60, 20)
+
+    def __init__(self, parent=None):
+        super().__init__(parent)
+        assert cmdutils.cmd_dict
+        cmdlist = []
+        for obj in set(cmdutils.cmd_dict.values()):
+            if ((obj.debug and not objreg.get('args').debug) or
+                obj.deprecated):
+                pass
+            else:
+                cmdlist.append((obj.name, obj.desc))
+        for name, cmd in config.section('aliases').items():
+            cmdlist.append((name, "Alias for '{}'".format(cmd)))
+        cat = self.new_category("Commands")
+
+        # map each command to its bound keys and show these in the misc column
+        key_config = objreg.get('key-config')
+        cmd_to_keys = key_config.get_reverse_bindings_for('normal')
+        for (name, desc) in sorted(cmdlist):
+            self.new_item(cat, name, desc, ', '.join(cmd_to_keys[name]))

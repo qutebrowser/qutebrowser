@@ -153,7 +153,7 @@ class KeyConfigParser(QObject):
     @cmdutils.register(instance='key-config', maxsplit=1, no_cmd_split=True,
                        no_replace_variables=True)
     @cmdutils.argument('win_id', win_id=True)
-    @cmdutils.argument('command', completion=usertypes.Completion.command)
+    @cmdutils.argument('command', completion=usertypes.Completion.bind)
     def bind(self, key, win_id, command=None, *, mode='normal', force=False):
         """Bind a key to a command.
 
