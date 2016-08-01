@@ -183,6 +183,7 @@ Contributors, sorted by the number of commits in descending order:
 * Ismail S
 * Halfwit
 * David Vogt
+* Claire Cavanaugh
 * rikn00
 * kanikaa1234
 * haitaka
@@ -207,7 +208,6 @@ Contributors, sorted by the number of commits in descending order:
 * Ismail
 * Edgar Hipp
 * Daryl Finlay
-* Claire Cavanaugh
 * adam
 * Samir Benmendil
 * Regina Hug
