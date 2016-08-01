@@ -415,6 +415,7 @@ def data(readonly=False):
             ('auto-open',
              SettingValue(typ.Bool(), 'true'),
              "Automatically open completion when typing."),
+
             ('download-path-suggestion',
              SettingValue(
                  typ.String(valid_values=typ.ValidValues(
@@ -1245,8 +1246,8 @@ def data(readonly=False):
              "Font used in the completion widget."),
 
              ('completion.category',
-              SettingValue(typ.Font(),  'bold' + '${completion}'),
-             "Font used in the completion fonts."),
+              SettingValue(typ.Font(), 'bold ${completion}'),
+             "Font used in the completion categories."),
 
             ('tabbar',
              SettingValue(typ.QtFont(), DEFAULT_FONT_SIZE + ' ${_monospace}'),
