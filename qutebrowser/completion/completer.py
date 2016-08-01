@@ -19,7 +19,7 @@
 
 """Completer attached to a CompletionView."""
 
-from PyQt5.QtCore import pyqtSignal, pyqtSlot, QObject, QTimer
+from PyQt5.QtCore import pyqtSlot, QObject, QTimer, QItemSelection
 
 from qutebrowser.config import config
 from qutebrowser.commands import cmdutils, runners
@@ -42,14 +42,7 @@ class Completer(QObject):
         _last_text: The old command text so we avoid double completion updates.
         _signals_connected: Whether the signals are connected to update the
                             completion when the command widget requests that.
-
-    Signals:
-        next_prev_item: Emitted to select the next/previous item in the
-                        completion.
-                        arg0: True for the previous item, False for the next.
     """
-
-    next_prev_item = pyqtSignal(bool)
 
     def __init__(self, cmd, win_id, parent=None):
         super().__init__(parent)
@@ -61,25 +54,25 @@ class Completer(QObject):
         self._timer = QTimer()
         self._timer.setSingleShot(True)
         self._timer.setInterval(0)
-        self._timer.timeout.connect(self.update_completion)
+        self._timer.timeout.connect(self._update_completion)
         self._cursor_part = None
         self._last_cursor_pos = None
         self._last_text = None
 
-        objreg.get('config').changed.connect(self.on_auto_open_changed)
-        self.handle_signal_connections()
+        objreg.get('config').changed.connect(self._on_auto_open_changed)
+        self._handle_signal_connections()
         self._cmd.clear_completion_selection.connect(
-            self.handle_signal_connections)
+            self._handle_signal_connections)
 
     def __repr__(self):
         return utils.get_repr(self)
 
     @config.change_filter('completion', 'auto-open')
-    def on_auto_open_changed(self):
-        self.handle_signal_connections()
+    def _on_auto_open_changed(self):
+        self._handle_signal_connections()
 
     @pyqtSlot()
-    def handle_signal_connections(self):
+    def _handle_signal_connections(self):
         self._connect_signals(config.get('completion', 'auto-open'))
 
     def _connect_signals(self, connect=True):
@@ -95,7 +88,7 @@ class Completer(QObject):
         """
         connections = [
             (self._cmd.update_completion, self.schedule_completion_update),
-            (self._cmd.textChanged, self.on_text_edited),
+            (self._cmd.textChanged, self._on_text_edited),
         ]
 
         if connect and not self._signals_connected:
@@ -121,12 +114,11 @@ class Completer(QObject):
         if not config.get('completion', 'auto-open'):
             connected = self._connect_signals(True)
             if connected:
-                self.update_completion()
+                self._update_completion()
 
     def _model(self):
         """Convenience method to get the current completion model."""
-        completion = objreg.get('completion', scope='window',
-                                window=self._win_id)
+        completion = self.parent()
         return completion.model()
 
     def _get_completion_model(self, completion, parts, cursor_part):
@@ -249,7 +241,8 @@ class Completer(QObject):
         else:
             return s
 
-    def selection_changed(self, selected, _deselected):
+    @pyqtSlot(QItemSelection)
+    def on_selection_changed(self, selected):
         """Change the completed part if a new item was selected.
 
         Called from the views selectionChanged method.
@@ -258,6 +251,7 @@ class Completer(QObject):
             selected: New selection.
             _deselected: Previous selection.
         """
+        self._open_completion_if_needed()
         indexes = selected.indexes()
         if not indexes:
             return
@@ -265,7 +259,7 @@ class Completer(QObject):
         data = model.data(indexes[0])
         if data is None:
             return
-        parts = self.split()
+        parts = self._split()
         try:
             needs_quoting = cmdutils.cmd_dict[parts[0]].maxsplit is None
         except KeyError:
@@ -275,11 +269,11 @@ class Completer(QObject):
         if model.count() == 1 and config.get('completion', 'quick-complete'):
             # If we only have one item, we want to apply it immediately
             # and go on to the next part.
-            self.change_completed_part(data, immediate=True)
+            self._change_completed_part(data, immediate=True)
         else:
             log.completion.debug("Will ignore next completion update.")
             self._ignore_change = True
-            self.change_completed_part(data)
+            self._change_completed_part(data)
 
     @pyqtSlot()
     def schedule_completion_update(self):
@@ -299,10 +293,10 @@ class Completer(QObject):
         self._last_text = self._cmd.text()
 
     @pyqtSlot()
-    def update_completion(self):
+    def _update_completion(self):
         """Check if completions are available and activate them."""
-        self.update_cursor_part()
-        parts = self.split()
+        self._update_cursor_part()
+        parts = self._split()
 
         log.completion.debug(
             "Updating completion - prefix {}, parts {}, cursor_part {}".format(
@@ -314,8 +308,7 @@ class Completer(QObject):
             self._ignore_change = False
             return
 
-        completion = objreg.get('completion', scope='window',
-                                window=self._win_id)
+        completion = self.parent()
 
         if self._cmd.prefix() != ':':
             # This is a search or gibberish, so we don't need to complete
@@ -354,7 +347,7 @@ class Completer(QObject):
         if completion.enabled:
             completion.show()
 
-    def split(self, keep=False):
+    def _split(self, keep=False):
         """Get the text split up in parts.
 
         Args:
@@ -381,13 +374,13 @@ class Completer(QObject):
         return parts
 
     @pyqtSlot()
-    def update_cursor_part(self):
+    def _update_cursor_part(self):
         """Get the part index of the commandline where the cursor is over."""
         cursor_pos = self._cmd.cursorPosition()
         snippet = slice(cursor_pos - 1, cursor_pos + 1)
         spaces = self._cmd.text()[snippet] == '  '
         cursor_pos -= len(self._cmd.prefix())
-        parts = self.split(keep=True)
+        parts = self._split(keep=True)
         log.completion.vdebug(
             "text: {}, parts: {}, cursor_pos after removing prefix '{}': "
             "{}".format(self._cmd.text(), parts, self._cmd.prefix(),
@@ -429,7 +422,7 @@ class Completer(QObject):
             self._cursor_part, spaces))
         return
 
-    def change_completed_part(self, newtext, immediate=False):
+    def _change_completed_part(self, newtext, immediate=False):
         """Change the part we're currently completing in the commandline.
 
         Args:
@@ -438,7 +431,7 @@ class Completer(QObject):
                        including a trailing space and we shouldn't continue
                        completing the current item.
         """
-        parts = self.split()
+        parts = self._split()
         log.completion.debug("changing part {} to '{}'".format(
             self._cursor_part, newtext))
         try:
@@ -465,23 +458,9 @@ class Completer(QObject):
         self._cmd.show_cmd.emit()
 
     @pyqtSlot()
-    def on_text_edited(self):
+    def _on_text_edited(self):
         """Reset _empty_item_idx if text was edited."""
         self._empty_item_idx = None
-        # We also want to update the cursor part and emit update_completion
+        # We also want to update the cursor part and emit _update_completion
         # here, but that's already done for us by cursorPositionChanged
         # anyways, so we don't need to do it twice.
-
-    @cmdutils.register(instance='completer', hide=True,
-                       modes=[usertypes.KeyMode.command], scope='window')
-    def completion_item_prev(self):
-        """Select the previous completion item."""
-        self._open_completion_if_needed()
-        self.next_prev_item.emit(True)
-
-    @cmdutils.register(instance='completer', hide=True,
-                       modes=[usertypes.KeyMode.command], scope='window')
-    def completion_item_next(self):
-        """Select the next completion item."""
-        self._open_completion_if_needed()
-        self.next_prev_item.emit(False)

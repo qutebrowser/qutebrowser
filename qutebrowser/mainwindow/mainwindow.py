@@ -32,7 +32,7 @@ from qutebrowser.config import config
 from qutebrowser.utils import message, log, usertypes, qtutils, objreg, utils
 from qutebrowser.mainwindow import tabbedbrowser
 from qutebrowser.mainwindow.statusbar import bar
-from qutebrowser.completion import completionwidget
+from qutebrowser.completion import completionwidget, completer
 from qutebrowser.keyinput import modeman
 from qutebrowser.browser import commands, downloadview, hints
 from qutebrowser.browser.webkit import downloads
@@ -131,23 +131,13 @@ class MainWindow(QWidget):
         self._vbox.setContentsMargins(0, 0, 0, 0)
         self._vbox.setSpacing(0)
 
-        log.init.debug("Initializing downloads...")
-        download_manager = downloads.DownloadManager(self.win_id, self)
-        objreg.register('download-manager', download_manager, scope='window',
-                        window=self.win_id)
-
+        self._init_downloadmanager()
         self._downloadview = downloadview.DownloadView(self.win_id)
 
         self.tabbed_browser = tabbedbrowser.TabbedBrowser(self.win_id)
         objreg.register('tabbed-browser', self.tabbed_browser, scope='window',
                         window=self.win_id)
-        dispatcher = commands.CommandDispatcher(self.win_id,
-                                                self.tabbed_browser)
-        objreg.register('command-dispatcher', dispatcher, scope='window',
-                        window=self.win_id)
-        self.tabbed_browser.destroyed.connect(
-            functools.partial(objreg.delete, 'command-dispatcher',
-                              scope='window', window=self.win_id))
+        self._init_command_dispatcher()
 
         # We need to set an explicit parent for StatusBar because it does some
         # show/hide magic immediately which would mean it'd show up as a
@@ -157,7 +147,7 @@ class MainWindow(QWidget):
         self._add_widgets()
         self._downloadview.show()
 
-        self._completion = completionwidget.CompletionView(self.win_id, self)
+        self._init_completion()
 
         self._commandrunner = runners.CommandRunner(self.win_id,
                                                     partial_match=True)
@@ -189,6 +179,30 @@ class MainWindow(QWidget):
             self.setCursor(Qt.BlankCursor)
 
         objreg.get("app").new_window.emit(self)
+
+    def _init_downloadmanager(self):
+        log.init.debug("Initializing downloads...")
+        download_manager = downloads.DownloadManager(self.win_id, self)
+        objreg.register('download-manager', download_manager, scope='window',
+                        window=self.win_id)
+
+    def _init_completion(self):
+        self._completion = completionwidget.CompletionView(self.win_id, self)
+        cmd = objreg.get('status-command', scope='window', window=self.win_id)
+        completer_obj = completer.Completer(cmd, self.win_id, self._completion)
+        self._completion.selection_changed.connect(
+            completer_obj.on_selection_changed)
+        objreg.register('completion', self._completion, scope='window',
+                        window=self.win_id)
+
+    def _init_command_dispatcher(self):
+        dispatcher = commands.CommandDispatcher(self.win_id,
+                                                self.tabbed_browser)
+        objreg.register('command-dispatcher', dispatcher, scope='window',
+                        window=self.win_id)
+        self.tabbed_browser.destroyed.connect(
+            functools.partial(objreg.delete, 'command-dispatcher',
+                              scope='window', window=self.win_id))
 
     def __repr__(self):
         return utils.get_repr(self)

@@ -381,6 +381,28 @@ class FakeTimer(QObject):
         return self._started
 
 
+class InstaTimer(QObject):
+
+    """Stub for a QTimer that fires instantly on start().
+
+    Useful to test a time-based event without inserting an artificial delay.
+    """
+
+    timeout = pyqtSignal()
+
+    def __init__(self, parent=None):
+        super().__init__(parent)
+
+    def start(self):
+        self.timeout.emit()
+
+    def setSingleShot(self, yes):
+        pass
+
+    def setInterval(self, interval):
+        pass
+
+
 class FakeConfigType:
 
     """A stub to provide valid_values for typ attribute of a SettingValue."""
@@ -391,7 +413,7 @@ class FakeConfigType:
         self.complete = lambda: [(val, '') for val in valid_values]
 
 
-class FakeStatusbarCommand(QLineEdit):
+class StatusBarCommandStub(QLineEdit):
 
     """Stub for the statusbar command prompt."""
 

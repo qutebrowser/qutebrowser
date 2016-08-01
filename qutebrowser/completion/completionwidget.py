@@ -24,10 +24,11 @@ subclasses to provide completions.
 """
 
 from PyQt5.QtWidgets import QStyle, QTreeView, QSizePolicy
-from PyQt5.QtCore import pyqtSlot, pyqtSignal, Qt, QItemSelectionModel
+from PyQt5.QtCore import (pyqtSlot, pyqtSignal, Qt, QItemSelectionModel,
+                          QItemSelection)
 
 from qutebrowser.config import config, style
-from qutebrowser.completion import completiondelegate, completer
+from qutebrowser.completion import completiondelegate
 from qutebrowser.completion.models import base
 from qutebrowser.utils import qtutils, objreg, utils, usertypes
 from qutebrowser.commands import cmdexc, cmdutils
@@ -50,6 +51,7 @@ class CompletionView(QTreeView):
 
     Signals:
         resize_completion: Emitted when the completion should be resized.
+        selection_changed: Emitted when the completion item selection changes.
     """
 
     # Drawing the item foreground will be done by CompletionItemDelegate, so we
@@ -102,16 +104,11 @@ class CompletionView(QTreeView):
     """
 
     resize_completion = pyqtSignal()
+    selection_changed = pyqtSignal(QItemSelection)
 
     def __init__(self, win_id, parent=None):
         super().__init__(parent)
         self._win_id = win_id
-        objreg.register('completion', self, scope='window', window=win_id)
-        cmd = objreg.get('status-command', scope='window', window=win_id)
-        completer_obj = completer.Completer(cmd, win_id, self)
-        completer_obj.next_prev_item.connect(self.on_next_prev_item)
-        objreg.register('completer', completer_obj, scope='window',
-                        window=win_id)
         self.enabled = config.get('completion', 'show')
         objreg.get('config').changed.connect(self.set_enabled)
         # FIXME handle new aliases.
@@ -184,21 +181,17 @@ class CompletionView(QTreeView):
                 # Item is a real item, not a category header -> success
                 return idx
 
-    @pyqtSlot(bool)
-    def on_next_prev_item(self, prev):
+    def _next_prev_item(self, prev):
         """Handle a tab press for the CompletionView.
 
         Select the previous/next item and write the new text to the
         statusbar.
 
-        Called from the Completer's next_prev_item signal.
+        Helper for completion_item_next and completion_item_prev.
 
         Args:
             prev: True for prev item, False for next one.
         """
-        if not self.isVisible():
-            # No completion running at the moment, ignore keypress
-            return
         idx = self._next_idx(prev)
         qtutils.ensure_valid(idx)
         self.selectionModel().setCurrentIndex(
@@ -262,9 +255,7 @@ class CompletionView(QTreeView):
     def selectionChanged(self, selected, deselected):
         """Extend selectionChanged to call completers selection_changed."""
         super().selectionChanged(selected, deselected)
-        completer_obj = objreg.get('completer', scope='window',
-                                   window=self._win_id)
-        completer_obj.selection_changed(selected, deselected)
+        self.selection_changed.emit(selected)
 
     def resizeEvent(self, e):
         """Extend resizeEvent to adjust column size."""
@@ -278,6 +269,18 @@ class CompletionView(QTreeView):
         if scrollbar is not None:
             scrollbar.setValue(scrollbar.minimum())
         super().showEvent(e)
+
+    @cmdutils.register(instance='completion', hide=True,
+                       modes=[usertypes.KeyMode.command], scope='window')
+    def completion_item_prev(self):
+        """Select the previous completion item."""
+        self._next_prev_item(True)
+
+    @cmdutils.register(instance='completion', hide=True,
+                       modes=[usertypes.KeyMode.command], scope='window')
+    def completion_item_next(self):
+        """Select the next completion item."""
+        self._next_prev_item(False)
 
     @cmdutils.register(instance='completion', hide=True,
                        modes=[usertypes.KeyMode.command], scope='window')

@@ -22,6 +22,7 @@
 import unittest.mock
 
 import pytest
+from PyQt5.QtCore import QObject
 from PyQt5.QtGui import QStandardItemModel
 
 from qutebrowser.completion import completer
@@ -39,19 +40,33 @@ class FakeCompletionModel(QStandardItemModel):
         self.kind = kind
 
 
-@pytest.fixture
-def cmd(stubs, qtbot):
-    """Create the statusbar command prompt the completer uses."""
-    cmd = stubs.FakeStatusbarCommand()
-    qtbot.addWidget(cmd)
-    return cmd
+class CompletionWidgetStub(QObject):
+
+    """Stub for the CompletionView."""
+
+    def __init__(self, parent=None):
+        super().__init__(parent)
+        self.hide = unittest.mock.Mock()
+        self.show = unittest.mock.Mock()
+        self.set_pattern = unittest.mock.Mock()
+        self.model = unittest.mock.Mock()
+        self.set_model = unittest.mock.Mock()
+        self.enabled = unittest.mock.Mock()
 
 
 @pytest.fixture
-def completer_obj(qtbot, cmd, config_stub):
+def completion_widget_stub():
+    return CompletionWidgetStub()
+
+
+@pytest.fixture
+def completer_obj(qtbot, status_command_stub, config_stub, monkeypatch, stubs,
+                  completion_widget_stub):
     """Create the completer used for testing."""
+    monkeypatch.setattr('qutebrowser.completion.completer.QTimer',
+        stubs.InstaTimer)
     config_stub.data = {'completion': {'auto-open': False}}
-    return completer.Completer(cmd, 0)
+    return completer.Completer(status_command_stub, 0, completion_widget_stub)
 
 
 @pytest.fixture(autouse=True)
@@ -157,12 +172,12 @@ def _validate_cmd_prompt(cmd, txt):
     (':set -t -p |', usertypes.Completion.section),
     (':open -- |', None),
 ])
-def test_update_completion(txt, expected, cmd, completer_obj,
+def test_update_completion(txt, expected, status_command_stub, completer_obj,
                            completion_widget_stub):
     """Test setting the completion widget's model based on command text."""
     # this test uses | as a placeholder for the current cursor position
-    _set_cmd_prompt(cmd, txt)
-    completer_obj.update_completion()
+    _set_cmd_prompt(status_command_stub, txt)
+    completer_obj.schedule_completion_update()
     if expected is None:
         assert not completion_widget_stub.set_model.called
     else:
@@ -170,24 +185,6 @@ def test_update_completion(txt, expected, cmd, completer_obj,
         arg = completion_widget_stub.set_model.call_args[0][0]
         # the outer model is just for sorting; srcmodel is the completion model
         assert arg.srcmodel.kind == expected
-
-
-def test_completion_item_prev(completer_obj, cmd, completion_widget_stub,
-                              config_stub, qtbot):
-    """Test that completion_item_prev emits next_prev_item."""
-    cmd.setText(':')
-    with qtbot.waitSignal(completer_obj.next_prev_item) as blocker:
-        completer_obj.completion_item_prev()
-    assert blocker.args == [True]
-
-
-def test_completion_item_next(completer_obj, cmd, completion_widget_stub,
-                              config_stub, qtbot):
-    """Test that completion_item_next emits next_prev_item."""
-    cmd.setText(':')
-    with qtbot.waitSignal(completer_obj.next_prev_item) as blocker:
-        completer_obj.completion_item_next()
-    assert blocker.args == [False]
 
 
 @pytest.mark.parametrize('before, newtxt, quick_complete, count, after', [
@@ -199,10 +196,10 @@ def test_completion_item_next(completer_obj, cmd, completion_widget_stub,
     (':foo |', '', True, 1, ":foo '' |"),
     (':foo |', None, True, 1, ":foo |"),
 ])
-def test_selection_changed(before, newtxt, count, quick_complete, after,
-                           completer_obj, cmd, completion_widget_stub,
-                           config_stub):
-    """Test that change_completed_part modifies the cmd text properly.
+def test_on_selection_changed(before, newtxt, count, quick_complete, after,
+                           completer_obj, status_command_stub,
+                           completion_widget_stub, config_stub):
+    """Test that on_selection_changed modifies the cmd text properly.
 
     The | represents the current cursor position in the cmd prompt.
     If quick-complete is True and there is only 1 completion (count == 1),
@@ -215,9 +212,10 @@ def test_selection_changed(before, newtxt, count, quick_complete, after,
     indexes = [unittest.mock.Mock()]
     selection = unittest.mock.Mock()
     selection.indexes = unittest.mock.Mock(return_value=indexes)
-    completion_widget_stub.model = unittest.mock.Mock(return_value=model)
-    _set_cmd_prompt(cmd, before)
-    completer_obj.update_cursor_part()
-    completer_obj.selection_changed(selection, None)
+    completion_widget_stub.model.return_value = model
+    _set_cmd_prompt(status_command_stub, before)
+    # schedule_completion_update is needed to pick up the cursor position
+    completer_obj.schedule_completion_update()
+    completer_obj.on_selection_changed(selection)
     model.data.assert_called_with(indexes[0])
-    _validate_cmd_prompt(cmd, after)
+    _validate_cmd_prompt(status_command_stub, after)
