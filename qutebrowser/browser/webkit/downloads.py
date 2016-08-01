@@ -1322,6 +1322,8 @@ class TempDownloadManager(QObject):
             A tempfile.NamedTemporaryFile that should be used to save the file.
         """
         tmpdir = self._get_tmpdir()
+        encoding = sys.getfilesystemencoding()
+        suggested_name = utils.force_encoding(suggested_name, encoding)
         # Make sure that the filename is not too long
         if len(suggested_name) > 20:
             suggested_name = suggested_name[:10] + '...' + suggested_name[-10:]
