@@ -119,6 +119,15 @@ Feature: Using hints
         And I run :follow-hint a
         Then the error "Invalid link clicked - *" should be shown
 
+    Scenario: Hinting inputs without type
+        When I open data/hints/input.html
+        And I run :hint inputs
+        And I run :follow-hint a
+        And I wait for "Entering mode KeyMode.insert (reason: click)" in the log
+        And I run :leave-mode
+        # The actual check is already done above
+        Then no crash should happen
+
     ### iframes
 
     Scenario: Using :follow-hint inside an iframe
