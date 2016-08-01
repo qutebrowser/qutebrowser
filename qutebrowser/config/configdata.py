@@ -1462,8 +1462,8 @@ KEY_DATA = collections.OrderedDict([
         ('hint all hover', [';h']),
         ('hint images', [';i']),
         ('hint images tab', [';I']),
-        ('hint links fill ":open {hint-url}"', [';o']),
-        ('hint links fill ":open -t {hint-url}"', [';O']),
+        ('hint links fill :open {hint-url}', [';o']),
+        ('hint links fill :open -t {hint-url}', [';O']),
         ('hint links yank', [';y']),
         ('hint links yank-primary', [';Y']),
         ('hint --rapid links tab-bg', [';r']),
@@ -1654,4 +1654,6 @@ CHANGED_KEY_COMMANDS = [
     (re.compile(r'^leave-mode$'), r'clear-keychain ;; leave-mode'),
 
     (re.compile(r'^download-remove --all$'), r'download-clear'),
+
+    (re.compile(r'^hint links fill "([^"]*)"$'), r'hint links fill \1'),
 ]

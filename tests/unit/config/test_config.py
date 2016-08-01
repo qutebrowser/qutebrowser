@@ -281,6 +281,11 @@ class TestKeyConfigParser:
             ('leave-mode ;; foo', None),
 
             ('download-remove --all', 'download-clear'),
+
+            ('hint links fill ":open {hint-url}"',
+                 'hint links fill :open {hint-url}'),
+            ('hint links fill ":open -t {hint-url}"',
+                'hint links fill :open -t {hint-url}'),
         ]
     )
     def test_migrations(self, old, new_expected):
