@@ -1932,7 +1932,8 @@ class CommandDispatcher:
 
         ed.edit(url or old_url)
 
-    @cmdutils.register(instance='command-dispatcher', scope='window', hide=True)
+    @cmdutils.register(instance='command-dispatcher', scope='window',
+                       hide=True)
     def set_mark(self, key):
         """Set a mark at the current scroll position in the current tab.
 
@@ -1941,7 +1942,8 @@ class CommandDispatcher:
         """
         self._tabbed_browser.set_mark(key)
 
-    @cmdutils.register(instance='command-dispatcher', scope='window', hide=True)
+    @cmdutils.register(instance='command-dispatcher', scope='window',
+                       hide=True)
     def jump_mark(self, key):
         """Jump to the mark named by `key`.
 
