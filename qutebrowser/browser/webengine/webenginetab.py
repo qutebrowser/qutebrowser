@@ -211,6 +211,10 @@ class WebEngineScroller(browsertab.AbstractScroller):
         """Update the scroll position attributes when it changed."""
         def update_scroll_pos(jsret):
             """Callback after getting scroll position via JS."""
+            if jsret is None:
+                # This can happen when the callback would get called after
+                # shutting down a tab
+                return
             assert isinstance(jsret, dict), jsret
             self._pos_perc = (jsret['perc']['x'], jsret['perc']['y'])
             self._pos_px = QPoint(jsret['px']['x'], jsret['px']['y'])
