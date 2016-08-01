@@ -295,6 +295,10 @@ class WebHistory(QObject):
         """
         if config.get('general', 'private-browsing'):
             return
+        if not url.isValid():
+            log.misc.warning("Ignoring invalid URL being added to history")
+            return
+
         if atime is None:
             atime = time.time()
         entry = Entry(atime, url, title, redirect=redirect)

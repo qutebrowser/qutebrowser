@@ -51,3 +51,12 @@ Feature: Page history
         When I open data/title.html
         And I run :history-clear
         Then the history file should be empty
+
+    ## Bugs
+
+    Scenario: Opening a valid URL which turns out invalid
+        When I set general -> auto-search to true
+        And I run :open http://foo%40bar@baz
+        Then "QFSFileEngine::open: No file name specified" should be logged
+        And "Error while loading : Host  not found" should be logged
+        And "Ignoring invalid URL being added to history" should be logged
