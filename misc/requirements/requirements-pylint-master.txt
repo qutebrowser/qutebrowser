@@ -3,7 +3,7 @@
 -e git+https://github.com/PyCQA/astroid.git#egg=astroid
 isort==4.2.5
 lazy-object-proxy==1.2.2
-mccabe==0.5.1
+mccabe==0.5.2
 -e git+https://github.com/PyCQA/pylint.git#egg=pylint
 ./scripts/dev/pylint_checkers
 requests==2.10.0
