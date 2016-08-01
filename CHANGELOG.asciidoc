@@ -40,6 +40,7 @@ Fixed
 -----
 
 - Fixed crash when using hints with JS disabled in some rare circumstances.
+- When hinting input fields (`:t`), also consider input elements without a type.
 
 v0.8.1
 ------
