@@ -119,6 +119,8 @@ def test_maybe_resize_completion(completionview, config_stub, qtbot):
     ([['Aa'], []], -1, 'Aa'),
     ([['Aa'], [], []], 1, 'Aa'),
     ([['Aa'], [], []], -1, 'Aa'),
+    ([[]], 1, None),
+    ([[]], -1, None),
 ])
 def test_completion_item_next_prev(tree, count, expected, completionview):
     """Test that on_next_prev_item moves the selection properly.
@@ -146,3 +148,13 @@ def test_completion_item_next_prev(tree, count, expected, completionview):
             completionview.completion_item_next()
     idx = completionview.selectionModel().currentIndex()
     assert filtermodel.data(idx) == expected
+
+
+def test_completion_item_next_prev_no_model(completionview):
+    """Test that next/prev won't crash with no model set.
+
+    This can happen if completion.show and completion.auto-open are False.
+    Regression test for issue #1722.
+    """
+    completionview.completion_item_prev()
+    completionview.completion_item_next()
