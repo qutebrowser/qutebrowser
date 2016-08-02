@@ -52,6 +52,7 @@ Fixed
 - Fixed local storage not working (and possible other bugs) when using a
   relative path with `--basedir`.
 - Fixed crash when deleting a quickmark with Ctrl-D
+- Fixed HTML5 video playback on Windows
 
 v0.8.1
 ------
