@@ -947,12 +947,27 @@ class DownloadManager(QAbstractListModel):
             download.set_filename(target.filename)
         elif isinstance(target, usertypes.OpenFileDownloadTarget):
             tmp_manager = objreg.get('temporary-downloads')
-            fobj = tmp_manager.get_tmpfile(suggested_filename)
-            download.finished.connect(download.open_file)
+            try:
+                fobj = tmp_manager.get_tmpfile(suggested_filename)
+            except OSError as exc:
+                msg = "Download error: {}".format(exc)
+                message.error(self._win_id, msg)
+                download.cancel()
+                return
+            download.finished.connect(
+                functools.partial(self._open_download, download))
             download.autoclose = True
             download.set_fileobj(fobj)
         else:
             log.downloads.error("Unknown download target: {}".format(target))
+
+    def _open_download(self, download):
+        """Open the given download but only if it was successful."""
+        if download.successful:
+            download.open_file()
+        else:
+            log.downloads.debug("{} finished but not successful, not opening!"
+                                .format(download))
 
     def raise_no_download(self, count):
         """Raise an exception that the download doesn't exist.
@@ -1316,6 +1331,11 @@ class TempDownloadManager(QObject):
             A tempfile.NamedTemporaryFile that should be used to save the file.
         """
         tmpdir = self._get_tmpdir()
+        encoding = sys.getfilesystemencoding()
+        suggested_name = utils.force_encoding(suggested_name, encoding)
+        # Make sure that the filename is not too long
+        if len(suggested_name) > 50:
+            suggested_name = suggested_name[:25] + '...' + suggested_name[-25:]
         fobj = tempfile.NamedTemporaryFile(dir=tmpdir.name, delete=False,
                                            suffix=suggested_name)
         self.files.append(fobj)
