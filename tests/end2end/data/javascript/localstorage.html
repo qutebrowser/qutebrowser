@@ -3,16 +3,17 @@
   <head>
       <script type="text/javascript">
           function check_storage() {
+              var elem = document.getElementById("status");
               try {
                   localStorage.qute_test = "foo";
-                  console.log("localstorage works!");
+                  elem.innerHTML = "working";
               } catch (e) {
-                  console.log("localstorage does not work!");
+                  elem.innerHTML = "not working";
               }
           }
       </script>
   </head>
   <body onload="check_storage()">
-    <p>This page checks local storage on load and logs via console.log</p>
+    <p>Local storage status: <span id="status">checking...</span></p>
   </body>
 </html>

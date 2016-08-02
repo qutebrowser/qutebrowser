@@ -476,7 +476,7 @@ Feature: Various utility commands.
     Scenario: Private browsing is activated in QtWebKit without restart
         When I set general -> private-browsing to true
         And I open data/javascript/localstorage.html
-        Then "localstorage does not work!" should be logged via javascript
+        Then the page should contain the plaintext "Local storage status: not working"
 
     Scenario: :repeat-command
         Given I open data/scroll.html
