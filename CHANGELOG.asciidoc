@@ -37,9 +37,14 @@ Changed
 - `:open` now also accepts quickmark names instead of URLs
 - `:tab-move` now optionally takes an index for absolute moving.
 
-Fixed
------
+v0.8.2 (unreleased)
+-------------------
 
+Fixed
+~~~~~
+
+- Fixed `general -> private-browsing` not being set correctly until a restart
+  (which caused e.g. local storage to be enabled).
 - Fixed crash when using hints with JS disabled in some rare circumstances.
 - When hinting input fields (`:t`), also consider input elements without a type.
 - Fixed crash when opening an invalid URL with a percent-encoded and a real @ in it
