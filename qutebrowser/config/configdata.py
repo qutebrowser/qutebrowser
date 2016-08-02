@@ -1656,9 +1656,4 @@ CHANGED_KEY_COMMANDS = [
     (re.compile(r'^download-remove --all$'), r'download-clear'),
 
     (re.compile(r'^hint links fill "([^"]*)"$'), r'hint links fill \1'),
-
-    (re.compile(r'^set-cmd-text :open -([tb]) {url:pretty}$'),
-                 r'set-cmd-text :open -\1 -i {url:pretty}'),
-    (re.compile(r'^hint links fill :open -t {hint-url}$'),
-                 r'hint links fill :open -t -i {hint-url}'),
 ]
