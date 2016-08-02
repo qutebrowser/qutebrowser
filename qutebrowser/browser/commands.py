@@ -903,11 +903,13 @@ class CommandDispatcher:
         """Select the tab given as argument/[count].
 
         If neither count nor index are given, it behaves like tab-next.
+        If both are given, use count.
 
         Args:
             index: The tab index to focus, starting with 1. The special value
-                   `last` focuses the last focused tab. Negative indexes
-                   counts from the end, such that -1 is the last tab.
+                   `last` focuses the last focused tab (regardless of count).
+                   Negative indices count from the end, such that -1 is the
+                   last tab.
             count: The tab index to focus, starting with 1.
         """
         if index == 'last':
