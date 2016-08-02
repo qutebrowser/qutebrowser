@@ -108,3 +108,37 @@ Feature: Opening pages
         When I run :quickmark-add http://localhost:(port)/data/numbers/8.txt quickmarktest
         And I run :open quickmarktest
         Then data/numbers/8.txt should be loaded
+
+    Scenario: :open with URL (explicit)
+        Given I open about:blank
+        When I set tabs -> new-tab-position-explicit to right
+        And I set tabs -> new-tab-position to left
+        And I run :tab-only
+        And I run :open -t http://localhost:(port)/data/numbers/9.txt
+        And I wait until data/numbers/9.txt is loaded
+        Then the session should look like:
+            windows:
+            - tabs:
+              - history:
+                - url: about:blank
+              - active: true
+                history:
+                - active: true
+                  url: http://localhost:*/data/numbers/9.txt
+
+    Scenario: :open with URL (implicit)
+        Given I open about:blank
+        When I set tabs -> new-tab-position-explicit to right
+        And I set tabs -> new-tab-position to left
+        And I run :tab-only
+        And I run :open -t -i http://localhost:(port)/data/numbers/10.txt
+        And I wait until data/numbers/10.txt is loaded
+        Then the session should look like:
+            windows:
+            - tabs:
+              - active: true
+                history:
+                - active: true
+                  url: http://localhost:*/data/numbers/10.txt
+              - history:
+                - url: about:blank
