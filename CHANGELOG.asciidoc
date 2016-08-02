@@ -44,6 +44,8 @@ Fixed
 - When hinting input fields (`:t`), also consider input elements without a type.
 - Fixed crash when opening an invalid URL with a percent-encoded and a real @ in it
 - Fixed default `;o` and `;O` bindings
+- Fixed local storage not working (and possible other bugs) when using a
+  relative path with `--basedir`.
 
 v0.8.1
 ------

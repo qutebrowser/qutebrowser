@@ -168,7 +168,7 @@ def _from_args(typ, args):
             suffix = basedir_suffix[typ]
         except KeyError:  # pragma: no cover
             return (False, None)
-        return (True, os.path.join(basedir, suffix))
+        return (True, os.path.abspath(os.path.join(basedir, suffix)))
 
     try:
         argname = typ_to_argparse_arg[typ]

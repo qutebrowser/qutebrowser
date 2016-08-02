@@ -225,6 +225,15 @@ class TestArguments:
         func = getattr(standarddir, typ)
         assert func() == expected
 
+    def test_basedir_relative(self, tmpdir):
+        """Test --basedir with a relative path."""
+        basedir = (tmpdir / 'basedir')
+        basedir.ensure(dir=True)
+        with tmpdir.as_cwd():
+            args = types.SimpleNamespace(basedir='basedir')
+            standarddir.init(args)
+            assert standarddir.config() == str(basedir / 'config')
+
 
 class TestInitCacheDirTag:
 
@@ -311,6 +320,7 @@ class TestCreatingDir:
         m.sep = os.sep
         m.path.join = os.path.join
         m.path.exists.return_value = False
+        m.path.abspath = lambda x: x
 
         args = types.SimpleNamespace(basedir=str(tmpdir))
         standarddir.init(args)
