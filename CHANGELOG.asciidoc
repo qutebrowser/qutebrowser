@@ -14,6 +14,50 @@ This project adheres to http://semver.org/[Semantic Versioning].
 // `Fixed` for any bug fixes.
 // `Security` to invite users to upgrade in case of vulnerabilities.
 
+v0.9.0 (unreleased)
+-------------------
+
+Added
+~~~~~
+
+- New `:rl-backward-kill-word` command which does what `:rl-unix-word-rubout`
+  did before v0.8.0.
+- New `:rl-unix-filename-rubout` command which is similar to readline's
+  `unix-filename-rubout`.
+- New `fonts -> completion.category` setting to customize the font used for
+  completion category headers.
+
+Changed
+~~~~~~~
+
+- `:bookmark-add` now has a `--toggle` flag which deletes the bookmark if it
+  already exists.
+- `:bookmark-load` now has a `--delete` flag which deletes the bookmark after
+  loading it.
+- `:open` now also accepts quickmark names instead of URLs
+- `:tab-move` now optionally takes an index for absolute moving.
+
+Fixed
+-----
+
+- Fixed crash when using hints with JS disabled in some rare circumstances.
+- When hinting input fields (`:t`), also consider input elements without a type.
+- Fixed crash when opening an invalid URL with a percent-encoded and a real @ in it
+- Fixed default `;o` and `;O` bindings
+- Fixed local storage not working (and possible other bugs) when using a
+  relative path with `--basedir`.
+
+v0.8.1
+------
+
+Fixed
+~~~~~
+
+- Fix crash when pressing enter without a command
+- Adjust error message to point out QtWebEngine is unsupported with the OS
+  X .app currently.
+- Hide Harfbuzz warning with the OS X .app
+
 v0.8.1
 ------
 
