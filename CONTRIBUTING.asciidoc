@@ -636,6 +636,7 @@ qutebrowser release
 ~~~~~~~~~~~~~~~~~~~
 
 * Make sure there are no unstaged changes and the tests are green.
+* Run `x=... y=...` to set the respective shell variables
 
 * Add newest config to `tests/unit/config/old_configs` and update `test_upgrade_version`
     - `python -m qutebrowser --basedir conf :quit`
@@ -643,30 +644,20 @@ qutebrowser release
     - `rm -r conf`
     - commit
 * Adjust `__version_info__` in `qutebrowser/__init__.py`.
-* Remove *(unreleased)* from changelog.
+* Update changelog (remove *(unreleased)*)
 * Run tests again
-* Run `asciidoc2html.py`.
 * Commit
 
-* Create annotated git tag (`git tag -s "v0.X.Y" -m "Release v0.X.Y"`)
+* Create annotated git tag (`git tag -s "v0.$x.$y" -m "Release v0.$x.$y"`)
+* `git push origin`; `git push origin v0.$x.$y`
 * If committing on minor branch, cherry-pick release commit to master.
-* `git push origin`; `git push origin v0.X.Y`
 * Create release on github
 * Mark the milestone at https://github.com/The-Compiler/qutebrowser/milestones
 as closed.
 
-* Run `scripts/dev/build_release.py` on Linux to build an sdist
-* Upload to PyPI: `twine upload dist/foo{,.asc}`
-* Create Windows packages via `C:\Python34_x32\python scripts\dev\build_release.py --asciidoc C:\Python27\python C:\asciidoc-8.6.9\asciidoc.py`
-* Upload to github
-
-* Upload to qutebrowser.org with checksum/GPG
-    - On server: `sudo mkdir -p /srv/http/qutebrowser/releases/v0.X.Y/windows`
-    - `rsync -avPh dist/ tonks:`
-    - On server: `sudo mv qutebrowser-0.X.Y.tar.gz* /srv/http/qutebrowser/releases/v0.X.Y`
-    - Upload windows release:
-           - `scp bb-win8:proj/qutebrowser/qutebrowser-0.X.Y-windows.zip .`
-           - `aunpack qutebrowser-0.X.Y-windows.zip`
-           - `sudo mv qutebrowser-0.X.Y-windows/* /srv/http/qutebrowser/releases/v0.X.Y/windows`
+* Linux: Run `python3 scripts/dev/build_release.py --upload v0.$x.$y`
+* Windows: Run `C:\Python34_x32\python scripts\dev\build_release.py --asciidoc C:\Python27\python C:\asciidoc-8.6.9\asciidoc.py --upload v0.X.Y` (replace X/Y by hand)
+* OS X: Run `python3 scripts/dev/build_release.py --upload v0.X.Y` (replace X/Y by hand)
+* On server: Run `python3 scripts/dev/download_release.py v0.X.Y` (replace X/Y by hand)
 * Update `qutebrowser-git` PKGBUILD if dependencies/install changed
 * Announce to qutebrowser mailinglist
