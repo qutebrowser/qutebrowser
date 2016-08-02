@@ -1334,8 +1334,7 @@ class TempDownloadManager(QObject):
         encoding = sys.getfilesystemencoding()
         suggested_name = utils.force_encoding(suggested_name, encoding)
         # Make sure that the filename is not too long
-        if len(suggested_name) > 50:
-            suggested_name = suggested_name[:25] + '...' + suggested_name[-25:]
+        suggested_name = utils.elide_filename(suggested_name, 50)
         fobj = tempfile.NamedTemporaryFile(dir=tmpdir.name, delete=False,
                                            suffix=suggested_name)
         self.files.append(fobj)
