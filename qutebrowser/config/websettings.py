@@ -433,10 +433,10 @@ def update_settings(section, option):
             QWebSettings.setIconDatabasePath('')
         else:
             QWebSettings.setIconDatabasePath(cache_path)
-    else:
-        try:
-            mapping = MAPPINGS[section][option]
-        except KeyError:
-            return
-        value = config.get(section, option)
-        mapping.set(value)
+
+    try:
+        mapping = MAPPINGS[section][option]
+    except KeyError:
+        return
+    value = config.get(section, option)
+    mapping.set(value)

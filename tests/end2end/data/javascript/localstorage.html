@@ -1,0 +1,18 @@
+<!DOCTYPE html>
+<html>
+  <head>
+      <script type="text/javascript">
+          function check_storage() {
+              try {
+                  localStorage.qute_test = "foo";
+                  console.log("localstorage works!");
+              } catch (e) {
+                  console.log("localstorage does not work!");
+              }
+          }
+      </script>
+  </head>
+  <body onload="check_storage()">
+    <p>This page checks local storage on load and logs via console.log</p>
+  </body>
+</html>
