@@ -51,6 +51,7 @@ Fixed
 - Fixed default `;o` and `;O` bindings
 - Fixed local storage not working (and possible other bugs) when using a
   relative path with `--basedir`.
+- Fixed crash when deleting a quickmark with Ctrl-D
 
 v0.8.1
 ------
@@ -62,18 +63,6 @@ Fixed
 - Adjust error message to point out QtWebEngine is unsupported with the OS
   X .app currently.
 - Hide Harfbuzz warning with the OS X .app
-
-v0.8.1
-------
-
-Fixed
-~~~~~
-
-- Fix crash when pressing enter without a command
-- Adjust error message to point out QtWebEngine is unsupported with the OS
-  X .app currently.
-- Hide Harfbuzz warning with the OS X .app
->>>>>>> 95d1721... Release v0.8.1
 
 v0.8.0
 ------
