@@ -1168,7 +1168,14 @@ Answer no to a yes/no prompt.
 
 [[prompt-open-download]]
 === prompt-open-download
+Syntax: +:prompt-open-download ['cmdline']+
+
 Immediately open a download.
+
+==== positional arguments
+* +'cmdline'+: The command line string to execute. The default will use the system's application to open the file, depending on
+ the filetype.
+
 
 [[prompt-yes]]
 === prompt-yes

@@ -312,13 +312,20 @@ class Prompter(QObject):
         self._question.done()
 
     @cmdutils.register(instance='prompter', hide=True, scope='window',
-                       modes=[usertypes.KeyMode.prompt])
-    def prompt_open_download(self):
-        """Immediately open a download."""
+                       modes=[usertypes.KeyMode.prompt], maxsplit=0)
+    def prompt_open_download(self, cmdline: str=None):
+        """Immediately open a download.
+
+        Args:
+            cmdline: The command line string to execute. The default will use
+                     the system's application to open the file, depending on
+                     the filetype. A `{}` is expanded to the temporary file
+                     name.
+        """
         if self._question.mode != usertypes.PromptMode.download:
             # We just ignore this if we don't have a download question.
             return
-        self._question.answer = usertypes.OpenFileDownloadTarget()
+        self._question.answer = usertypes.OpenFileDownloadTarget(cmdline)
         modeman.maybe_leave(self._win_id, usertypes.KeyMode.prompt,
                             'download open')
         self._question.done()

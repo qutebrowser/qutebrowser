@@ -22,6 +22,7 @@
 import io
 import os
 import sys
+import shlex
 import os.path
 import shutil
 import functools
@@ -40,6 +41,7 @@ from qutebrowser.config import config
 from qutebrowser.commands import cmdexc, cmdutils
 from qutebrowser.utils import (message, usertypes, log, utils, urlutils,
                                objreg, standarddir, qtutils)
+from qutebrowser.misc import guiprocess
 from qutebrowser.browser.webkit import http
 from qutebrowser.browser.webkit.network import networkmanager
 
@@ -955,19 +957,39 @@ class DownloadManager(QAbstractListModel):
                 download.cancel()
                 return
             download.finished.connect(
-                functools.partial(self._open_download, download))
+                functools.partial(self._open_download, download,
+                                  target.cmdline))
             download.autoclose = True
             download.set_fileobj(fobj)
         else:
             log.downloads.error("Unknown download target: {}".format(target))
 
-    def _open_download(self, download):
-        """Open the given download but only if it was successful."""
-        if download.successful:
-            download.open_file()
-        else:
+    def _open_download(self, download, cmdline):
+        """Open the given download but only if it was successful.
+
+        Args:
+            download: The DownloadItem to use.
+            cmdline: The command to use, or None for the system's default
+                     program.
+        """
+        if not download.successful:
             log.downloads.debug("{} finished but not successful, not opening!"
                                 .format(download))
+        if cmdline is None:
+            download.open_file()
+            return
+
+        cmd, *args = shlex.split(cmdline)
+        filename = download._filename
+        if filename is None:
+            filename = getattr(download.fileobj, 'name', None)
+        if filename is None:
+            raise ValueError("Download has no filename to open")
+        args = [filename if arg == '{}' else arg for arg in args]
+
+        proc = guiprocess.GUIProcess(self._win_id, what='process')
+        proc.start_detached(cmd, args)
+
 
     def raise_no_download(self, count):
         """Raise an exception that the download doesn't exist.
