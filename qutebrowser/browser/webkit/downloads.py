@@ -530,8 +530,13 @@ class DownloadItem(QObject):
         self.cancel()
 
     @pyqtSlot()
-    def open_file(self):
-        """Open the downloaded file."""
+    def open_file(self, cmdline=None):
+        """Open the downloaded file.
+
+        Args:
+            cmdline: The command to use, or None for the system's default
+                     program.
+        """
         assert self.successful
         filename = self._filename
         if filename is None:
@@ -539,8 +544,20 @@ class DownloadItem(QObject):
         if filename is None:
             log.downloads.error("No filename to open the download!")
             return
-        url = QUrl.fromLocalFile(filename)
-        QDesktopServices.openUrl(url)
+
+        if cmdline is None:
+            log.downloads.debug("Opening {} with the system application"
+                                .format(filename))
+            url = QUrl.fromLocalFile(filename)
+            QDesktopServices.openUrl(url)
+            return
+
+        cmd, *args = shlex.split(cmdline)
+        args = [filename if arg == '{}' else arg for arg in args]
+        log.downloads.debug("Opening {} with {}"
+                            .format(filename, [cmd] + args))
+        proc = guiprocess.GUIProcess(self._win_id, what='download')
+        proc.start_detached(cmd, args)
 
     def set_filename(self, filename):
         """Set the filename to save the download to.
@@ -975,20 +992,8 @@ class DownloadManager(QAbstractListModel):
         if not download.successful:
             log.downloads.debug("{} finished but not successful, not opening!"
                                 .format(download))
-        if cmdline is None:
-            download.open_file()
             return
-
-        cmd, *args = shlex.split(cmdline)
-        filename = download._filename
-        if filename is None:
-            filename = getattr(download.fileobj, 'name', None)
-        if filename is None:
-            raise ValueError("Download has no filename to open")
-        args = [filename if arg == '{}' else arg for arg in args]
-
-        proc = guiprocess.GUIProcess(self._win_id, what='process')
-        proc.start_detached(cmd, args)
+        download.open_file(cmdline)
 
 
     def raise_no_download(self, count):
@@ -1048,12 +1053,14 @@ class DownloadManager(QAbstractListModel):
         self.remove_item(download)
         log.downloads.debug("deleted download {}".format(download))
 
-    @cmdutils.register(instance='download-manager', scope='window')
+    @cmdutils.register(instance='download-manager', scope='window', maxsplit=0)
     @cmdutils.argument('count', count=True)
-    def download_open(self, count=0):
+    def download_open(self, cmdline: str=None, count=0):
         """Open the last/[count]th download.
 
         Args:
+            cmdline: The command which should be used to open the file. A {} as
+                     argument will be replaced by the download's filename.
             count: The index of the download to open.
         """
         try:
@@ -1064,7 +1071,7 @@ class DownloadManager(QAbstractListModel):
             if not count:
                 count = len(self.downloads)
             raise cmdexc.CommandError("Download {} is not done!".format(count))
-        download.open_file()
+        download.open_file(cmdline)
 
     @cmdutils.register(instance='download-manager', scope='window')
     @cmdutils.argument('count', count=True)
