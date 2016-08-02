@@ -192,10 +192,13 @@ class CompletionView(QTreeView):
         Args:
             prev: True for prev item, False for next one.
         """
-        idx = self._next_idx(prev)
-        qtutils.ensure_valid(idx)
-        self.selectionModel().setCurrentIndex(
-            idx, QItemSelectionModel.ClearAndSelect | QItemSelectionModel.Rows)
+        # selmodel can be None if 'show' and 'auto-open' are set to False
+        # https://github.com/The-Compiler/qutebrowser/issues/1731
+        selmodel = self.selectionModel()
+        if (selmodel is not None):
+            idx = self._next_idx(prev)
+            selmodel.setCurrentIndex(idx,
+                QItemSelectionModel.ClearAndSelect | QItemSelectionModel.Rows)
 
     def set_model(self, model):
         """Switch completion to a new model.
