@@ -533,32 +533,33 @@ class TestSendToRunningInstance:
     @pytest.mark.linux(reason="Causes random trouble on Windows and OS X")
     def test_normal(self, qtbot, tmpdir, ipc_server, mocker, has_cwd):
         ipc_server.listen()
-        raw_spy = QSignalSpy(ipc_server.got_raw)
 
         with qtbot.assertNotEmitted(ipc_server.got_invalid_data):
             with qtbot.waitSignal(ipc_server.got_args,
                                   timeout=5000) as blocker:
-                with tmpdir.as_cwd():
-                    if not has_cwd:
-                        m = mocker.patch('qutebrowser.misc.ipc.os')
-                        m.getcwd.side_effect = OSError
-                    sent = ipc.send_to_running_instance('qute-test', ['foo'],
-                                                        None)
+                with qtbot.waitSignal(ipc_server.got_raw,
+                                      timeout=5000) as raw_blocker:
+                    with tmpdir.as_cwd():
+                        if not has_cwd:
+                            m = mocker.patch('qutebrowser.misc.ipc.os')
+                            m.getcwd.side_effect = OSError
+                        sent = ipc.send_to_running_instance(
+                            'qute-test', ['foo'], None)
 
-            assert sent
+        assert sent
 
         expected_cwd = str(tmpdir) if has_cwd else ''
 
         assert blocker.args == [['foo'], '', expected_cwd]
 
-        assert len(raw_spy) == 1
-        assert len(raw_spy[0]) == 1
         raw_expected = {'args': ['foo'], 'target_arg': None,
                         'version': qutebrowser.__version__,
                         'protocol_version': ipc.PROTOCOL_VERSION}
         if has_cwd:
             raw_expected['cwd'] = str(tmpdir)
-        parsed = json.loads(raw_spy[0][0].decode('utf-8'))
+
+        assert len(raw_blocker.args) == 1
+        parsed = json.loads(raw_blocker.args[0].decode('utf-8'))
         assert parsed == raw_expected
 
     def test_socket_error(self):
