@@ -114,8 +114,8 @@ class CommandDispatcher:
             raise cmdexc.CommandError("No WebView available yet!")
         return widget
 
-    def _open(self, url, explicit=True,
-              tab=False, background=False, window=False):
+    def _open(self, url, tab=False, background=False, window=False,
+              explicit=True):
         """Helper function to open a page.
 
         Args:
@@ -263,7 +263,7 @@ class CommandDispatcher:
                     message.error(self._win_id, str(e))
                     return
         if tab or bg or window:
-            self._open(url, not implicit, tab, bg, window)
+            self._open(url, tab, bg, window, not implicit)
         else:
             curtab = self._cntwidget(count)
             if curtab is None:
