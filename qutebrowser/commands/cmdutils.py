@@ -48,36 +48,6 @@ def check_overflow(arg, ctype):
             "representation.".format(ctype))
 
 
-def arg_or_count(arg, count, default=None, countzero=None):
-    """Get a value based on an argument and count given to a command.
-
-    If both arg and count are set, ValueError is raised.
-    If only arg/count is set, it is used.
-    If none is set, a default is returned or ValueError is raised.
-
-    Args:
-        arg: The argument given to a command.
-        count: The count given to a command.
-        countzero: Special value if count is 0.
-
-    Return:
-        The value to use.
-    """
-    if count is not None and arg is not None:
-        raise ValueError("Both count and argument given!")
-    elif arg is not None:
-        return arg
-    elif count is not None:
-        if countzero is not None and count == 0:
-            return countzero
-        else:
-            return count
-    elif default is not None:
-        return default
-    else:
-        raise ValueError("Either count or argument have to be set!")
-
-
 def check_exclusive(flags, names):
     """Check if only one flag is set with exclusive flags.
 

@@ -717,18 +717,17 @@ class CommandDispatcher:
     def zoom(self, zoom: int=None, count=None):
         """Set the zoom level for the current tab.
 
-        The zoom can be given as argument or as [count]. If neither of both is
-        given, the zoom is set to the default zoom.
+        The zoom can be given as argument or as [count]. If neither is
+        given, the zoom is set to the default zoom. If both are given,
+        use [count].
 
         Args:
             zoom: The zoom percentage to set.
             count: The zoom percentage to set.
         """
-        try:
-            default = config.get('ui', 'default-zoom')
-            level = cmdutils.arg_or_count(zoom, count, default=default)
-        except ValueError as e:
-            raise cmdexc.CommandError(e)
+        level = count if count is not None else zoom
+        if level is None:
+            level = config.get('ui', 'default-zoom')
         tab = self._current_widget()
 
         try:
@@ -914,22 +913,18 @@ class CommandDispatcher:
         if index == 'last':
             self._tab_focus_last()
             return
-        if index is None and count is None:
+        index = count if count is not None else index
+        if index is None:
             self.tab_next()
             return
-        if index is not None and index < 0:
+        if index < 0:
             index = self._count() + index + 1
-        try:
-            idx = cmdutils.arg_or_count(index, count, default=1,
-                                        countzero=self._count())
-        except ValueError as e:
-            raise cmdexc.CommandError(e)
-        cmdutils.check_overflow(idx + 1, 'int')
-        if 1 <= idx <= self._count():
-            self._set_current_index(idx - 1)
+
+        if 1 <= index <= self._count():
+            self._set_current_index(index - 1)
         else:
             raise cmdexc.CommandError("There's no tab with index {}!".format(
-                idx))
+                index))
 
     @cmdutils.register(instance='command-dispatcher', scope='window')
     @cmdutils.argument('index', choices=['+', '-'])
