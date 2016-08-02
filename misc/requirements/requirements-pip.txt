@@ -1,3 +1,2 @@
 pip==8.1.2
-# https://github.com/pypa/setuptools/issues/702
-setuptools==25.1.0  # rq.filter: != 25.1.1
+setuptools==25.1.2
