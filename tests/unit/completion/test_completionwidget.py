@@ -119,6 +119,8 @@ def test_maybe_resize_completion(completionview, config_stub, qtbot):
     ([['Aa'], []], -1, 'Aa'),
     ([['Aa'], [], []], 1, 'Aa'),
     ([['Aa'], [], []], -1, 'Aa'),
+    ([[]], 1, None),
+    ([[]], -1, None),
 ])
 def test_completion_item_next_prev(tree, count, expected, completionview):
     """Test that on_next_prev_item moves the selection properly.

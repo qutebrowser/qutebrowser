@@ -193,9 +193,8 @@ class CompletionView(QTreeView):
             prev: True for prev item, False for next one.
         """
         idx = self._next_idx(prev)
-        qtutils.ensure_valid(idx)
-        self.selectionModel().setCurrentIndex(
-            idx, QItemSelectionModel.ClearAndSelect | QItemSelectionModel.Rows)
+        self.selectionModel().setCurrentIndex(idx,
+            QItemSelectionModel.ClearAndSelect | QItemSelectionModel.Rows)
 
     def set_model(self, model):
         """Switch completion to a new model.
