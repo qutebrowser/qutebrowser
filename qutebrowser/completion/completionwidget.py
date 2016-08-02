@@ -199,6 +199,9 @@ class CompletionView(QTreeView):
             return
 
         idx = self._next_idx(prev)
+        if not idx.isValid():
+            return
+
         selmodel.setCurrentIndex(
             idx, QItemSelectionModel.ClearAndSelect | QItemSelectionModel.Rows)
 
