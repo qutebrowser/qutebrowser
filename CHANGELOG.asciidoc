@@ -14,49 +14,29 @@ This project adheres to http://semver.org/[Semantic Versioning].
 // `Fixed` for any bug fixes.
 // `Security` to invite users to upgrade in case of vulnerabilities.
 
-v0.9.0 (unreleased)
--------------------
-
-Added
-~~~~~
-
-- New `:rl-backward-kill-word` command which does what `:rl-unix-word-rubout`
-  did before v0.8.0.
-- New `:rl-unix-filename-rubout` command which is similar to readline's
-  `unix-filename-rubout`.
-- New `fonts -> completion.category` setting to customize the font used for
-  completion category headers.
-
-Changed
-~~~~~~~
-
-- `:bookmark-add` now has a `--toggle` flag which deletes the bookmark if it
-  already exists.
-- `:bookmark-load` now has a `--delete` flag which deletes the bookmark after
-  loading it.
-- `:open` now also accepts quickmark names instead of URLs
-- `:tab-move` now optionally takes an index for absolute moving.
+v0.8.2
+------
 
 Fixed
------
+~~~~~
 
+- Fixed `general -> private-browsing` not being set correctly until a restart
+  (which caused e.g. local storage to be enabled).
 - Fixed crash when using hints with JS disabled in some rare circumstances.
 - When hinting input fields (`:t`), also consider input elements without a type.
 - Fixed crash when opening an invalid URL with a percent-encoded and a real @ in it
 - Fixed default `;o` and `;O` bindings
 - Fixed local storage not working (and possible other bugs) when using a
   relative path with `--basedir`.
-
-v0.8.1
-------
-
-Fixed
-~~~~~
-
-- Fix crash when pressing enter without a command
-- Adjust error message to point out QtWebEngine is unsupported with the OS
-  X .app currently.
-- Hide Harfbuzz warning with the OS X .app
+- Fixed crash when deleting a quickmark with Ctrl-D
+- Fixed HTML5 video playback on Windows
+- Fixed crash when using `:prompt-open-download` with a file with chars not
+  encodable with the OS' filesystem encoding (e.g. with `LC_ALL=C`)
+- Fixed `:prompt-open-download` with a too long filename (< 255 bytes)
+- Fixed crash when cancelling a download after doing `:prompt-open-download`
+- Fixed crash when writing a download to disk fails with
+  `:prompt-open-download`.
+- Fixed HTML5 video playback on Windows
 
 v0.8.1
 ------
@@ -88,7 +68,7 @@ Added
   `$QUTE_DOWNLOAD_DIR` available for userscripts.
 - New option `ui` -> `status-position` to configure the position of the
   status bar (top/bottom).
-- New `--pdf <filename>` argument for `:print` which can be used to generate a
+- New `--pdf <filename>` argument for `:print` WHICH can be used to generate a
   PDF without a dialog.
 
 Changed
