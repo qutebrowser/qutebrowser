@@ -231,13 +231,28 @@ Then <<tox,install qutebrowser via tox>>.
 On OS X
 -------
 
+Prebuilt binary
+~~~~~~~~~~~~~~~
+
 The easiest way to install qutebrowser on OS X is to use the prebuilt `.app`
 files from the
 https://github.com/The-Compiler/qutebrowser/releases[release page].
 
+This binary is also available through the
+https://caskroom.github.io/[Homebrew Cask] package manager:
+
+----
+$ brew cask install qutebrowser
+----
+
+Manual Install
+~~~~~~~~~~~~~~
+
 Alternatively, you can install the dependencies via a package manager (like
 http://brew.sh/[Homebrew] or https://www.macports.org/[MacPorts]) and run
 qutebrowser from source.
+
+==== Homebrew
 
 For Homebrew, a few extra steps are necessary since Homebrew dropped QtWebKit
 from Qt 5.6 - however, some users reported this didn't work for them, so using
@@ -254,6 +269,8 @@ $ ln -s /usr/local/opt/qt55 /usr/local/opt/qt5
 
 $ pip3.5 install qutebrowser
 ----
+
+==== MacPorts
 
 For MacPorts, run:
 
