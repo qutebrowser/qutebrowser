@@ -53,7 +53,7 @@ pyqt_url = ('http://www.qutebrowser.org/pyqt/'
 
 try:
     urllib.urlretrieve(pyqt_url, r'C:\install-PyQt5.exe')
-except OSError:
+except (OSError, IOError):
     print("Downloading PyQt failed, trying again in 10 seconds...")
     time.sleep(10)
     urllib.urlretrieve(pyqt_url, r'C:\install-PyQt5.exe')
