@@ -80,8 +80,7 @@ def update_settings(section, option):
             QWebSettings.setIconDatabasePath('')
         else:
             QWebSettings.setIconDatabasePath(cache_path)
-    else:
-        websettings.update_mappings(MAPPINGS, section, option)
+    websettings.update_mappings(MAPPINGS, section, option)
 
 
 def init():
