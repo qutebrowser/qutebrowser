@@ -20,7 +20,7 @@ __pycache__
 /FAQ.html
 /INSTALL.html
 /qutebrowser/html/doc/
-/.venv
+/.venv*
 /.coverage
 /htmlcov
 /coverage.xml
