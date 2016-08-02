@@ -30,7 +30,7 @@ from PyQt5.QtCore import (pyqtSlot, pyqtSignal, Qt, QItemSelectionModel,
 from qutebrowser.config import config, style
 from qutebrowser.completion import completiondelegate
 from qutebrowser.completion.models import base
-from qutebrowser.utils import qtutils, objreg, utils, usertypes
+from qutebrowser.utils import objreg, utils, usertypes
 from qutebrowser.commands import cmdexc, cmdutils
 
 
@@ -195,10 +195,12 @@ class CompletionView(QTreeView):
         # selmodel can be None if 'show' and 'auto-open' are set to False
         # https://github.com/The-Compiler/qutebrowser/issues/1731
         selmodel = self.selectionModel()
-        if (selmodel is not None):
-            idx = self._next_idx(prev)
-            selmodel.setCurrentIndex(idx,
-                QItemSelectionModel.ClearAndSelect | QItemSelectionModel.Rows)
+        if selmodel is None:
+            return
+
+        idx = self._next_idx(prev)
+        selmodel.setCurrentIndex(
+            idx, QItemSelectionModel.ClearAndSelect | QItemSelectionModel.Rows)
 
     def set_model(self, model):
         """Switch completion to a new model.
