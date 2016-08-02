@@ -226,6 +226,7 @@ Contributors, sorted by the number of commits in descending order:
 * dylan araps
 * Xitian9
 * Tomas Orsava
+* Tom Janson
 * Tobias Werth
 * Tim Harder
 * Thiago Barroso Perrotta
