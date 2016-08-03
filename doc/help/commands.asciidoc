@@ -755,11 +755,12 @@ Syntax: +:tab-focus ['index']+
 
 Select the tab given as argument/[count].
 
-If neither count nor index are given, it behaves like tab-next.
+If neither count nor index are given, it behaves like tab-next. If both are given, use count.
 
 ==== positional arguments
-* +'index'+: The tab index to focus, starting with 1. The special value `last` focuses the last focused tab. Negative indexes
- counts from the end, such that -1 is the last tab.
+* +'index'+: The tab index to focus, starting with 1. The special value `last` focuses the last focused tab (regardless of count).
+ Negative indices count from the end, such that -1 is the
+ last tab.
 
 
 ==== count
@@ -863,7 +864,7 @@ Syntax: +:zoom ['zoom']+
 
 Set the zoom level for the current tab.
 
-The zoom can be given as argument or as [count]. If neither of both is given, the zoom is set to the default zoom.
+The zoom can be given as argument or as [count]. If neither is given, the zoom is set to the default zoom. If both are given, use [count].
 
 ==== positional arguments
 * +'zoom'+: The zoom percentage to set.
