@@ -27,6 +27,7 @@ import io
 import logging
 import functools
 import collections
+import socket
 
 from PyQt5.QtCore import Qt
 from PyQt5.QtGui import QColor, QClipboard
@@ -1000,3 +1001,10 @@ class TestGetSetClipboard:
 ])
 def test_is_special_key(keystr, expected):
     assert utils.is_special_key(keystr) == expected
+
+
+def test_random_port():
+    port = utils.random_port()
+    sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+    sock.bind(('localhost', port))
+    sock.close()
