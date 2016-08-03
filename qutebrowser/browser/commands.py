@@ -115,7 +115,8 @@ class CommandDispatcher:
             raise cmdexc.CommandError("No WebView available yet!")
         return widget
 
-    def _open(self, url, tab=False, background=False, window=False):
+    def _open(self, url, tab=False, background=False, window=False,
+              explicit=True):
         """Helper function to open a page.
 
         Args:
@@ -131,9 +132,9 @@ class CommandDispatcher:
             tabbed_browser = self._new_tabbed_browser()
             tabbed_browser.tabopen(url)
         elif tab:
-            tabbed_browser.tabopen(url, background=False, explicit=True)
+            tabbed_browser.tabopen(url, background=False, explicit=explicit)
         elif background:
-            tabbed_browser.tabopen(url, background=True, explicit=True)
+            tabbed_browser.tabopen(url, background=True, explicit=explicit)
         else:
             widget = self._current_widget()
             widget.openurl(url)
@@ -232,7 +233,8 @@ class CommandDispatcher:
                        maxsplit=0, scope='window')
     @cmdutils.argument('url', completion=usertypes.Completion.url)
     @cmdutils.argument('count', count=True)
-    def openurl(self, url=None, bg=False, tab=False, window=False, count=None):
+    def openurl(self, url=None, implicit=False,
+                bg=False, tab=False, window=False, count=None):
         """Open a URL in the current/[count]th tab.
 
         Args:
@@ -240,6 +242,8 @@ class CommandDispatcher:
             bg: Open in a new background tab.
             tab: Open in a new tab.
             window: Open in a new window.
+            implicit: If opening a new tab, treat the tab as implicit (like
+                      clicking on a link).
             count: The tab index to open the URL in, or None.
         """
         if url is None:
@@ -260,7 +264,7 @@ class CommandDispatcher:
                     message.error(self._win_id, str(e))
                     return
         if tab or bg or window:
-            self._open(url, tab, bg, window)
+            self._open(url, tab, bg, window, not implicit)
         else:
             curtab = self._cntwidget(count)
             if curtab is None:
