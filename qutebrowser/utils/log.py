@@ -507,7 +507,7 @@ class RAMHandler(logging.Handler):
         return '\n'.join(lines)
         
     def change_log_capacity(self, capacity):      
-        console,ram = _init_handlers(0, '', '','', capacity)        
+        console,ram = _init_handlers(0,'','','',capacity)        
         root = logging.getLogger()
         if ram is not None:
             root.addHandler(ram)
@@ -516,9 +516,7 @@ class RAMHandler(logging.Handler):
         _init_py_warnings()
         QtCore.qInstallMessageHandler(qt_message_handler)
         global _log_inited
-        _log_inited = True
-      
-
+        _log_inited = True   
 
 class ColoredFormatter(logging.Formatter):
 
