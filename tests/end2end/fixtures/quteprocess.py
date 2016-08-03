@@ -73,6 +73,8 @@ class LogLine(testprocess.Line):
             line = json.loads(data)
         except ValueError:
             raise testprocess.InvalidLine(data)
+        if not isinstance(line, dict):
+            raise testprocess.InvalidLine(data)
 
         self.timestamp = datetime.datetime.fromtimestamp(line['created'])
         self.loglevel = line['levelno']
