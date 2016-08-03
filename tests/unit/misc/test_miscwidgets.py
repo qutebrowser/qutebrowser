@@ -20,11 +20,11 @@
 """Test widgets in miscwidgets module."""
 
 from unittest import mock
-from PyQt5.QtCore import Qt
-from PyQt5.QtWidgets import QApplication
+from PyQt5.QtCore import Qt, QSize
+from PyQt5.QtWidgets import QApplication, QWidget
 import pytest
 
-from qutebrowser.misc.miscwidgets import CommandLineEdit
+from qutebrowser.misc import miscwidgets
 
 
 class TestCommandLineEdit:
@@ -34,7 +34,7 @@ class TestCommandLineEdit:
     @pytest.yield_fixture
     def cmd_edit(self, qtbot):
         """Fixture to initialize a CommandLineEdit."""
-        cmd_edit = CommandLineEdit(None)
+        cmd_edit = miscwidgets.CommandLineEdit(None)
         cmd_edit.set_prompt(':')
         qtbot.add_widget(cmd_edit)
         assert cmd_edit.text() == ''
@@ -73,3 +73,24 @@ class TestCommandLineEdit:
         """Test preventing of an invalid prompt being entered."""
         qtbot.keyClicks(cmd_edit, '$hello')
         assert cmd_edit.text() == ''
+
+
+class WrappedWidget(QWidget):
+
+    def sizeHint(self):
+        return QSize(23, 42)
+
+
+class TestWrapperLayout:
+
+    @pytest.fixture
+    def container(self, qtbot):
+        wrapped = WrappedWidget()
+        parent = QWidget()
+        qtbot.add_widget(wrapped)
+        qtbot.add_widget(parent)
+        miscwidgets.WrapperLayout(wrapped, parent)
+        return parent
+
+    def test_size_hint(self, container):
+        assert container.sizeHint() == QSize(23, 42)

@@ -21,7 +21,7 @@
 
 from PyQt5.QtCore import pyqtSlot, pyqtSignal, Qt, QSize
 from PyQt5.QtWidgets import (QLineEdit, QWidget, QHBoxLayout, QLabel,
-                             QStyleOption, QStyle)
+                             QStyleOption, QStyle, QLayout)
 from PyQt5.QtGui import QValidator, QPainter
 
 from qutebrowser.utils import utils
@@ -225,3 +225,32 @@ class _FoldArrow(QWidget):
     def minimumSizeHint(self):
         """Return a sensible size."""
         return QSize(8, 8)
+
+
+class WrapperLayout(QLayout):
+
+    """A Qt layout which simply wraps a single widget.
+
+    This is used so the widget is hidden behind a defined API and can't
+    easily be accidentally accessed.
+    """
+
+    def __init__(self, widget, parent=None):
+        super().__init__(parent)
+        self._widget = widget
+
+    def addItem(self, _widget):
+        raise AssertionError("Should never be called!")
+
+    def sizeHint(self):
+        return self._widget.sizeHint()
+
+    def itemAt(self, _index):  # pragma: no cover
+        # For some reason this sometimes gets called by Qt.
+        return None
+
+    def takeAt(self, _index):
+        raise AssertionError("Should never be called!")
+
+    def setGeometry(self, rect):
+        self._widget.setGeometry(rect)
