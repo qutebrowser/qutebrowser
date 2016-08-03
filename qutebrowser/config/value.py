@@ -35,17 +35,20 @@ class SettingValue:
                 most significant layer first.
     """
 
-    def __init__(self, typ, default=None):
+    def __init__(self, typ, default=None, *, backends=None):
         """Constructor.
 
         Args:
             typ: The BaseType to use.
             default: Raw value to set.
+            backend: A list of usertypes.Backend enum members to mark this
+                     setting as unsupported with other backends.
         """
         self.typ = typ
         self.values = collections.OrderedDict.fromkeys(
             ['temp', 'conf', 'default'])
         self.values['default'] = default
+        self.backends = backends
 
     def __str__(self):
         """Get raw string value."""

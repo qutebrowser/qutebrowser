@@ -367,6 +367,8 @@ Valid values:
 
 Default: +pass:[false]+
 
+This setting is only available with the QtWebKit backend.
+
 [[general-developer-extras]]
 === developer-extras
 Enable extra tools for Web developers.
@@ -380,6 +382,8 @@ Valid values:
 
 Default: +pass:[false]+
 
+This setting is only available with the QtWebKit backend.
+
 [[general-print-element-backgrounds]]
 === print-element-backgrounds
 Whether the background color and images are also drawn when the page is printed.
@@ -390,6 +394,8 @@ Valid values:
  * +false+
 
 Default: +pass:[true]+
+
+This setting is only available with the QtWebKit backend.
 
 [[general-xss-auditing]]
 === xss-auditing
@@ -414,6 +420,8 @@ Valid values:
  * +false+
 
 Default: +pass:[true]+
+
+This setting is only available with the QtWebKit backend.
 
 [[general-default-encoding]]
 === default-encoding
@@ -448,6 +456,8 @@ Valid values:
  * +info+: Log messages with info level.
 
 Default: +pass:[debug]+
+
+This setting is only available with the QtWebKit backend.
 
 [[general-save-session]]
 === save-session
@@ -557,6 +567,8 @@ Valid values:
 
 Default: +pass:[false]+
 
+This setting is only available with the QtWebKit backend.
+
 [[ui-frame-flattening]]
 === frame-flattening
 Whether to  expand each subframe to its contents.
@@ -570,17 +582,23 @@ Valid values:
 
 Default: +pass:[false]+
 
+This setting is only available with the QtWebKit backend.
+
 [[ui-user-stylesheet]]
 === user-stylesheet
 User stylesheet to use (absolute filename, filename relative to the config directory or CSS string). Will expand environment variables.
 
 Default: +pass:[::-webkit-scrollbar { width: 0px; height: 0px; }]+
 
+This setting is only available with the QtWebKit backend.
+
 [[ui-css-media-type]]
 === css-media-type
 Set the CSS media type.
 
 Default: empty
+
+This setting is only available with the QtWebKit backend.
 
 [[ui-smooth-scrolling]]
 === smooth-scrolling
@@ -685,11 +703,15 @@ Valid values:
 
 Default: +pass:[true]+
 
+This setting is only available with the QtWebKit backend.
+
 [[network-accept-language]]
 === accept-language
 Value to send in the `accept-language` header.
 
 Default: +pass:[en-US,en]+
+
+This setting is only available with the QtWebKit backend.
 
 [[network-referer-header]]
 === referer-header
@@ -703,11 +725,15 @@ Valid values:
 
 Default: +pass:[same-domain]+
 
+This setting is only available with the QtWebKit backend.
+
 [[network-user-agent]]
 === user-agent
 User agent to send. Empty to send the default.
 
 Default: empty
+
+This setting is only available with the QtWebKit backend.
 
 [[network-proxy]]
 === proxy
@@ -722,6 +748,8 @@ Valid values:
 
 Default: +pass:[system]+
 
+This setting is only available with the QtWebKit backend.
+
 [[network-proxy-dns-requests]]
 === proxy-dns-requests
 Whether to send DNS requests over the configured proxy.
@@ -732,6 +760,8 @@ Valid values:
  * +false+
 
 Default: +pass:[true]+
+
+This setting is only available with the QtWebKit backend.
 
 [[network-ssl-strict]]
 === ssl-strict
@@ -745,6 +775,8 @@ Valid values:
 
 Default: +pass:[ask]+
 
+This setting is only available with the QtWebKit backend.
+
 [[network-dns-prefetch]]
 === dns-prefetch
 Whether to try to pre-fetch DNS entries to speed up browsing.
@@ -756,11 +788,15 @@ Valid values:
 
 Default: +pass:[true]+
 
+This setting is only available with the QtWebKit backend.
+
 [[network-custom-headers]]
 === custom-headers
 Set custom headers for qutebrowser HTTP requests.
 
 Default: empty
+
+This setting is only available with the QtWebKit backend.
 
 == completion
 Options related to completion and command history.
@@ -1224,6 +1260,8 @@ For more information about the feature, please refer to: http://webkit.org/blog/
 
 Default: empty
 
+This setting is only available with the QtWebKit backend.
+
 [[storage-object-cache-capacities]]
 === object-cache-capacities
 The capacities for the global memory cache for dead objects such as stylesheets or scripts. Syntax: cacheMinDeadCapacity, cacheMaxDead, totalCapacity.
@@ -1236,17 +1274,23 @@ _totalCapacity_ specifies the maximum number of bytes that the cache should cons
 
 Default: empty
 
+This setting is only available with the QtWebKit backend.
+
 [[storage-offline-storage-default-quota]]
 === offline-storage-default-quota
 Default quota for new offline storage databases.
 
 Default: empty
 
+This setting is only available with the QtWebKit backend.
+
 [[storage-offline-web-application-cache-quota]]
 === offline-web-application-cache-quota
 Quota for the offline web application cache.
 
 Default: empty
+
+This setting is only available with the QtWebKit backend.
 
 [[storage-offline-storage-database]]
 === offline-storage-database
@@ -1258,6 +1302,8 @@ Valid values:
  * +false+
 
 Default: +pass:[true]+
+
+This setting is only available with the QtWebKit backend.
 
 [[storage-offline-web-application-storage]]
 === offline-web-application-storage
@@ -1273,6 +1319,8 @@ Valid values:
  * +false+
 
 Default: +pass:[true]+
+
+This setting is only available with the QtWebKit backend.
 
 [[storage-local-storage]]
 === local-storage
@@ -1351,6 +1399,8 @@ Valid values:
 
 Default: +pass:[true]+
 
+This setting is only available with the QtWebKit backend.
+
 [[content-hyperlink-auditing]]
 === hyperlink-auditing
 Enable or disable hyperlink auditing (<a ping>).
@@ -1407,6 +1457,8 @@ Valid values:
  * +false+
 
 Default: +pass:[false]+
+
+This setting is only available with the QtWebKit backend.
 
 [[content-javascript-can-access-clipboard]]
 === javascript-can-access-clipboard
@@ -1476,6 +1528,8 @@ Valid values:
 
 Default: +pass:[no-3rdparty]+
 
+This setting is only available with the QtWebKit backend.
+
 [[content-cookies-store]]
 === cookies-store
 Whether to store cookies.
@@ -1486,6 +1540,8 @@ Valid values:
  * +false+
 
 Default: +pass:[true]+
+
+This setting is only available with the QtWebKit backend.
 
 [[content-host-block-lists]]
 === host-block-lists
@@ -1638,7 +1694,7 @@ Valid values:
  * +javascript+: Better but slower
  * +python+: Slightly worse but faster
 
-Default: +pass:[javascript]+
+Default: +pass:[python]+
 
 == searchengines
 Definitions of search engines which can be used via the address bar.

@@ -27,6 +27,15 @@ class Error(Exception):
     pass
 
 
+class BackendError(Error):
+
+    """Raised when this setting is unavailable with the current backend."""
+
+    def __init__(self, backend):
+        super().__init__("This setting is not available with the {} "
+                         "backend!".format(backend.name))
+
+
 class ValidationError(Error):
 
     """Raised when a value for a config type was invalid.

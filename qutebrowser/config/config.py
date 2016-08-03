@@ -771,11 +771,18 @@ class ConfigManager(QObject):
         except KeyError:
             raise configexc.NoSectionError(sectname)
         mapping = {key: val.value() for key, val in sect.values.items()}
+
         if validate:
             interpolated = self._interpolation.before_get(
                 self, sectname, optname, value, mapping)
+            allowed_backends = sect.values[optname].backends
+            used_backend = usertypes.arg2backend[objreg.get('args').backend]
+            if (allowed_backends is not None and
+                    used_backend not in allowed_backends):
+                raise configexc.BackendError(used_backend)
         else:
             interpolated = None
+
         try:
             sect.setv(layer, optname, value, interpolated)
         except KeyError:

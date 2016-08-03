@@ -262,9 +262,8 @@ def update_mappings(mappings, section, option):
 def init():
     """Initialize all QWeb(Engine)Settings."""
     if objreg.get('args').backend == 'webengine':
-        # from qutebrowser.browser.webengine import webenginesettings
-        # webenginesettings.init()
-        log.stub('with QtWebEngine')
+        from qutebrowser.browser.webengine import webenginesettings
+        webenginesettings.init()
     else:
         from qutebrowser.browser.webkit import webkitsettings
         webkitsettings.init()

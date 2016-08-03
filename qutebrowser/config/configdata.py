@@ -35,6 +35,7 @@ from qutebrowser.config import configtypes as typ
 from qutebrowser.config import sections as sect
 from qutebrowser.config.value import SettingValue
 from qutebrowser.utils.qtutils import MAXVALS
+from qutebrowser.utils import usertypes
 
 
 FIRST_COMMENT = r"""
@@ -169,18 +170,21 @@ def data(readonly=False):
              "Encoding to use for editor."),
 
             ('private-browsing',
-             SettingValue(typ.Bool(), 'false'),
+             SettingValue(typ.Bool(), 'false',
+                          backends=[usertypes.Backend.QtWebKit]),
              "Do not record visited pages in the history or store web page "
              "icons."),
 
             ('developer-extras',
-             SettingValue(typ.Bool(), 'false'),
+             SettingValue(typ.Bool(), 'false',
+                          backends=[usertypes.Backend.QtWebKit]),
              "Enable extra tools for Web developers.\n\n"
              "This needs to be enabled for `:inspector` to work and also adds "
              "an _Inspect_ entry to the context menu."),
 
             ('print-element-backgrounds',
-             SettingValue(typ.Bool(), 'true'),
+             SettingValue(typ.Bool(), 'true',
+                          backends=[usertypes.Backend.QtWebKit]),
              "Whether the background color and images are also drawn when the "
              "page is printed."),
 
@@ -193,7 +197,8 @@ def data(readonly=False):
              "have an impact on performance."),
 
             ('site-specific-quirks',
-             SettingValue(typ.Bool(), 'true'),
+             SettingValue(typ.Bool(), 'true',
+                          backends=[usertypes.Backend.QtWebKit]),
              "Enable workarounds for broken sites."),
 
             ('default-encoding',
@@ -229,7 +234,7 @@ def data(readonly=False):
                      ('none', "Don't log messages."),
                      ('debug', "Log messages with debug level."),
                      ('info', "Log messages with info level.")
-                 )), 'debug'),
+                 )), 'debug', backends=[usertypes.Backend.QtWebKit]),
              "How to log javascript console messages."),
 
             ('save-session',
@@ -284,25 +289,29 @@ def data(readonly=False):
              "Whether to confirm quitting the application."),
 
             ('zoom-text-only',
-             SettingValue(typ.Bool(), 'false'),
+             SettingValue(typ.Bool(), 'false',
+                          backends=[usertypes.Backend.QtWebKit]),
              "Whether the zoom factor on a frame applies only to the text or "
              "to all content."),
 
             ('frame-flattening',
-             SettingValue(typ.Bool(), 'false'),
+             SettingValue(typ.Bool(), 'false',
+                          backends=[usertypes.Backend.QtWebKit]),
              "Whether to  expand each subframe to its contents.\n\n"
              "This will flatten all the frames to become one scrollable "
              "page."),
 
             ('user-stylesheet',
              SettingValue(typ.UserStyleSheet(none_ok=True),
-                          '::-webkit-scrollbar { width: 0px; height: 0px; }'),
+                          '::-webkit-scrollbar { width: 0px; height: 0px; }',
+                          backends=[usertypes.Backend.QtWebKit]),
              "User stylesheet to use (absolute filename, filename relative to "
              "the config directory or CSS string). Will expand environment "
              "variables."),
 
             ('css-media-type',
-             SettingValue(typ.String(none_ok=True), ''),
+             SettingValue(typ.String(none_ok=True), '',
+                          backends=[usertypes.Backend.QtWebKit]),
              "Set the CSS media type."),
 
             ('smooth-scrolling',
@@ -362,11 +371,13 @@ def data(readonly=False):
 
         ('network', sect.KeyValue(
             ('do-not-track',
-             SettingValue(typ.Bool(), 'true'),
+             SettingValue(typ.Bool(), 'true',
+                          backends=[usertypes.Backend.QtWebKit]),
              "Value to send in the `DNT` header."),
 
             ('accept-language',
-             SettingValue(typ.String(none_ok=True), 'en-US,en'),
+             SettingValue(typ.String(none_ok=True), 'en-US,en',
+                          backends=[usertypes.Backend.QtWebKit]),
              "Value to send in the `accept-language` header."),
 
             ('referer-header',
@@ -378,33 +389,39 @@ def data(readonly=False):
                      ('same-domain', "Only send for the same domain."
                       " This will still protect your privacy, but"
                       " shouldn't break any sites.")
-                 )), 'same-domain'),
+                 )), 'same-domain', backends=[usertypes.Backend.QtWebKit]),
              "Send the Referer header"),
 
             ('user-agent',
-             SettingValue(typ.UserAgent(none_ok=True), ''),
+             SettingValue(typ.UserAgent(none_ok=True), '',
+                          backends=[usertypes.Backend.QtWebKit]),
              "User agent to send. Empty to send the default."),
 
             ('proxy',
-             SettingValue(typ.Proxy(), 'system'),
+             SettingValue(typ.Proxy(), 'system',
+                          backends=[usertypes.Backend.QtWebKit]),
              "The proxy to use.\n\n"
              "In addition to the listed values, you can use a `socks://...` "
              "or `http://...` URL."),
 
             ('proxy-dns-requests',
-             SettingValue(typ.Bool(), 'true'),
+             SettingValue(typ.Bool(), 'true',
+                          backends=[usertypes.Backend.QtWebKit]),
              "Whether to send DNS requests over the configured proxy."),
 
             ('ssl-strict',
-             SettingValue(typ.BoolAsk(), 'ask'),
+             SettingValue(typ.BoolAsk(), 'ask',
+                          backends=[usertypes.Backend.QtWebKit]),
              "Whether to validate SSL handshakes."),
 
             ('dns-prefetch',
-             SettingValue(typ.Bool(), 'true'),
+             SettingValue(typ.Bool(), 'true',
+                          backends=[usertypes.Backend.QtWebKit]),
              "Whether to try to pre-fetch DNS entries to speed up browsing."),
 
             ('custom-headers',
-             SettingValue(typ.HeaderDict(none_ok=True), ''),
+             SettingValue(typ.HeaderDict(none_ok=True), '',
+                          backends=[usertypes.Backend.QtWebKit]),
              "Set custom headers for qutebrowser HTTP requests."),
 
             readonly=readonly
@@ -673,7 +690,8 @@ def data(readonly=False):
 
             ('maximum-pages-in-cache',
              SettingValue(
-                 typ.Int(none_ok=True, minval=0, maxval=MAXVALS['int']), ''),
+                 typ.Int(none_ok=True, minval=0, maxval=MAXVALS['int']), '',
+                 backends=[usertypes.Backend.QtWebKit]),
              "The maximum number of pages to hold in the global memory page "
              "cache.\n\n"
              "The Page Cache allows for a nicer user experience when "
@@ -685,7 +703,8 @@ def data(readonly=False):
             ('object-cache-capacities',
              SettingValue(
                  typ.List(typ.WebKitBytes(maxsize=MAXVALS['int'],
-                          none_ok=True), none_ok=True, length=3), ''),
+                          none_ok=True), none_ok=True, length=3), '',
+                 backends=[usertypes.Backend.QtWebKit]),
              "The capacities for the global memory cache for dead objects "
              "such as stylesheets or scripts. Syntax: cacheMinDeadCapacity, "
              "cacheMaxDead, totalCapacity.\n\n"
@@ -699,21 +718,25 @@ def data(readonly=False):
 
             ('offline-storage-default-quota',
              SettingValue(typ.WebKitBytes(maxsize=MAXVALS['int64'],
-                                          none_ok=True), ''),
+                                          none_ok=True), '',
+                          backends=[usertypes.Backend.QtWebKit]),
              "Default quota for new offline storage databases."),
 
             ('offline-web-application-cache-quota',
              SettingValue(typ.WebKitBytes(maxsize=MAXVALS['int64'],
-                                          none_ok=True), ''),
+                                          none_ok=True), '',
+                          backends=[usertypes.Backend.QtWebKit]),
              "Quota for the offline web application cache."),
 
             ('offline-storage-database',
-             SettingValue(typ.Bool(), 'true'),
+             SettingValue(typ.Bool(), 'true',
+                          backends=[usertypes.Backend.QtWebKit]),
              "Whether support for the HTML 5 offline storage feature is "
              "enabled."),
 
             ('offline-web-application-storage',
-             SettingValue(typ.Bool(), 'true'),
+             SettingValue(typ.Bool(), 'true',
+                          backends=[usertypes.Backend.QtWebKit]),
              "Whether support for the HTML 5 web application cache feature is "
              "enabled.\n\n"
              "An application cache acts like an HTTP cache in some sense. For "
@@ -756,7 +779,8 @@ def data(readonly=False):
              "Enables or disables WebGL."),
 
             ('css-regions',
-             SettingValue(typ.Bool(), 'true'),
+             SettingValue(typ.Bool(), 'true',
+                          backends=[usertypes.Backend.QtWebKit]),
              "Enable or disable support for CSS regions."),
 
             ('hyperlink-auditing',
@@ -771,17 +795,13 @@ def data(readonly=False):
              SettingValue(typ.BoolAsk(), 'ask'),
              "Allow websites to show notifications."),
 
-            #('allow-java',
-            # SettingValue(typ.Bool(), 'true'),
-            # "Enables or disables Java applets. Currently Java applets are "
-            # "not supported"),
-
             ('javascript-can-open-windows',
              SettingValue(typ.Bool(), 'false'),
              "Whether JavaScript programs can open new windows."),
 
             ('javascript-can-close-windows',
-             SettingValue(typ.Bool(), 'false'),
+             SettingValue(typ.Bool(), 'false',
+                          backends=[usertypes.Backend.QtWebKit]),
              "Whether JavaScript programs can close windows."),
 
             ('javascript-can-access-clipboard',
@@ -817,11 +837,12 @@ def data(readonly=False):
                       "the same origin only, unless a cookie is "
                       "already set for the domain."),
                      ('never', "Don't accept cookies at all.")
-                 )), 'no-3rdparty'),
+                 )), 'no-3rdparty', backends=[usertypes.Backend.QtWebKit]),
              "Control which cookies to accept."),
 
             ('cookies-store',
-             SettingValue(typ.Bool(), 'true'),
+             SettingValue(typ.Bool(), 'true',
+                          backends=[usertypes.Backend.QtWebKit]),
              "Whether to store cookies."),
 
             ('host-block-lists',

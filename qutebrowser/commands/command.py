@@ -180,12 +180,7 @@ class Command:
                 QWebSettings.JavascriptEnabled):
             raise cmdexc.PrerequisitesError(
                 "{}: This command needs javascript enabled.".format(self.name))
-
-        backend_mapping = {
-            'webkit': usertypes.Backend.QtWebKit,
-            'webengine': usertypes.Backend.QtWebEngine,
-        }
-        used_backend = backend_mapping[objreg.get('args').backend]
+        used_backend = usertypes.arg2backend[objreg.get('args').backend]
         if self.backend is not None and used_backend != self.backend:
             raise cmdexc.PrerequisitesError(
                 "{}: Only available with {} "
