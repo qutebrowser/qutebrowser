@@ -45,6 +45,8 @@ class WebInspector(QWidget):
 
     """A web inspector for QtWebEngine which stores its geometry."""
 
+    # FIXME:qtwebengine unify this with the WebKit inspector as far as possible
+
     def __init__(self, parent=None):
         super().__init__(parent)
         self.port = None
@@ -52,6 +54,7 @@ class WebInspector(QWidget):
         self._layout = miscwidgets.WrapperLayout(self._view, self)
         self.setFocusProxy(self._view)
         self._view.setParent(self)
+        self._load_state_geometry()
 
     def load(self):
         envvar = 'QTWEBENGINE_REMOTE_DEBUGGING'
@@ -63,29 +66,27 @@ class WebInspector(QWidget):
         url = QUrl('http://localhost:{}/'.format(port))
         self._view.load(url)
 
-    #    self._load_state_geometry()
+    def closeEvent(self, e):
+        """Save the geometry when closed."""
+        state_config = objreg.get('state-config')
+        data = bytes(self.saveGeometry())
+        geom = base64.b64encode(data).decode('ASCII')
+        state_config['geometry']['inspector'] = geom
+        super().closeEvent(e)
 
-    # def closeEvent(self, e):
-    #     """Save the geometry when closed."""
-    #     state_config = objreg.get('state-config')
-    #     data = bytes(self.saveGeometry())
-    #     geom = base64.b64encode(data).decode('ASCII')
-    #     state_config['geometry']['inspector'] = geom
-    #     super().closeEvent(e)
-
-    # def _load_state_geometry(self):
-    #     """Load the geometry from the state file."""
-    #     state_config = objreg.get('state-config')
-    #     try:
-    #         data = state_config['geometry']['inspector']
-    #         geom = base64.b64decode(data, validate=True)
-    #     except KeyError:
-    #         # First start
-    #         pass
-    #     except binascii.Error:
-    #         log.misc.exception("Error while reading geometry")
-    #     else:
-    #         log.init.debug("Loading geometry from {}".format(geom))
-    #         ok = self.restoreGeometry(geom)
-    #         if not ok:
-    #             log.init.warning("Error while loading geometry.")
+    def _load_state_geometry(self):
+        """Load the geometry from the state file."""
+        state_config = objreg.get('state-config')
+        try:
+            data = state_config['geometry']['inspector']
+            geom = base64.b64decode(data, validate=True)
+        except KeyError:
+            # First start
+            pass
+        except binascii.Error:
+            log.misc.exception("Error while reading geometry")
+        else:
+            log.init.debug("Loading geometry from {}".format(geom))
+            ok = self.restoreGeometry(geom)
+            if not ok:
+                log.init.warning("Error while loading geometry.")
