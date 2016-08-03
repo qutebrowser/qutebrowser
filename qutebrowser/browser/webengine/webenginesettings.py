@@ -24,7 +24,9 @@ Module attributes:
                 constants.
 """
 
+# pylint: disable=no-name-in-module,import-error,useless-suppression
 from PyQt5.QtWebEngineWidgets import QWebEngineSettings
+# pylint: enable=no-name-in-module,import-error,useless-suppression
 
 from qutebrowser.config import websettings
 from qutebrowser.utils import objreg
