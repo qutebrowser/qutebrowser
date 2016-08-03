@@ -19,6 +19,8 @@
 
 """Test starting qutebrowser with special arguments/environments."""
 
+import sys
+
 import pytest
 
 BASE_ARGS = ['--debug', '--json-logging', '--no-err-windows', 'about:blank']
@@ -74,14 +76,28 @@ def test_ascii_locale(httpbin, tmpdir, quteproc_new):
     """Test downloads with LC_ALL=C set.
 
     https://github.com/The-Compiler/qutebrowser/issues/908
+    https://github.com/The-Compiler/qutebrowser/issues/1726
     """
     args = ['--temp-basedir'] + BASE_ARGS
     quteproc_new.start(args, env={'LC_ALL': 'C'})
     quteproc_new.set_setting('storage', 'download-directory', str(tmpdir))
+
+    # Test a normal download
     quteproc_new.set_setting('storage', 'prompt-download-directory', 'false')
     url = 'http://localhost:{port}/data/downloads/ä-issue908.bin'.format(
         port=httpbin.port)
     quteproc_new.send_cmd(':download {}'.format(url))
+    quteproc_new.wait_for(category='downloads', message='Download finished')
+
+    # Test :prompt-open-download
+    quteproc_new.set_setting('storage', 'prompt-download-directory', 'true')
+    quteproc_new.send_cmd(':download {}'.format(url))
+    quteproc_new.send_cmd(':prompt-open-download "{}" -c pass'
+                          .format(sys.executable))
+    quteproc_new.wait_for(category='downloads', message='Download finished')
+    quteproc_new.wait_for(category='downloads',
+                          message='Opening * with [*python*]')
+
     quteproc_new.send_cmd(':quit')
     quteproc_new.wait_for_quit()
 
