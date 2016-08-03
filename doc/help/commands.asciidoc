@@ -456,7 +456,7 @@ This tries to automatically click on typical _Previous Page_ or _Next Page_ link
 
 [[open]]
 === open
-Syntax: +:open [*--bg*] [*--tab*] [*--window*] ['url']+
+Syntax: +:open [*--implicit*] [*--bg*] [*--tab*] [*--window*] ['url']+
 
 Open a URL in the current/[count]th tab.
 
@@ -464,6 +464,8 @@ Open a URL in the current/[count]th tab.
 * +'url'+: The URL to open.
 
 ==== optional arguments
+* +*-i*+, +*--implicit*+: If opening a new tab, treat the tab as implicit (like clicking on a link).
+
 * +*-b*+, +*--bg*+: Open in a new background tab.
 * +*-t*+, +*--tab*+: Open in a new tab.
 * +*-w*+, +*--window*+: Open in a new window.
