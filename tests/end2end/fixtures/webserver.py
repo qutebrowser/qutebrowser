@@ -22,7 +22,6 @@
 import re
 import sys
 import json
-import socket
 import os.path
 import http.client
 

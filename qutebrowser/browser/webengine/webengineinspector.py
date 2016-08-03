@@ -57,6 +57,7 @@ class WebInspector(QWidget):
         self._load_state_geometry()
 
     def load(self):
+        """Set up the inspector."""
         envvar = 'QTWEBENGINE_REMOTE_DEBUGGING'
         if envvar not in os.environ:
             raise WebInspectorError(
