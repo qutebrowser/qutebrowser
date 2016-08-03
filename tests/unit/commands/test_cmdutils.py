@@ -64,29 +64,6 @@ class TestCheckOverflow:
         assert str(excinfo.value) == expected_str
 
 
-class TestArgOrCount:
-
-    @pytest.mark.parametrize('arg, count', [(None, None), (1, 1)])
-    def test_exceptions(self, arg, count):
-        with pytest.raises(ValueError):
-            cmdutils.arg_or_count(arg, count)
-
-    @pytest.mark.parametrize('arg, count', [(1, None), (None, 1)])
-    def test_normal(self, arg, count):
-        assert cmdutils.arg_or_count(arg, count) == 1
-
-    @pytest.mark.parametrize('arg, count, countzero, expected', [
-        (0, None, 2, 0),
-        (None, 0, 2, 2),
-    ])
-    def test_countzero(self, arg, count, countzero, expected):
-        ret = cmdutils.arg_or_count(arg, count, countzero=countzero)
-        assert ret == expected
-
-    def test_default(self):
-        assert cmdutils.arg_or_count(None, None, default=2) == 2
-
-
 class TestCheckExclusive:
 
     @pytest.mark.parametrize('flags', [[], [False, True], [False, False]])

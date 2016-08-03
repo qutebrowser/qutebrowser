@@ -200,7 +200,7 @@ Feature: Tab management
 
     Scenario: :tab-focus with very big index
         When I run :tab-focus 99999999999999
-        Then the error "Numeric argument is too large for internal int representation." should be shown
+        Then the error "There's no tab with index 99999999999999!" should be shown
 
     Scenario: :tab-focus with count
         When I open data/numbers/1.txt
@@ -213,8 +213,14 @@ Feature: Tab management
             - data/numbers/3.txt
 
     Scenario: :tab-focus with count and index
-        When I run :tab-focus 2 with count 2
-        Then the error "Both count and argument given!" should be shown
+        When I open data/numbers/1.txt
+        And I open data/numbers/2.txt in a new tab
+        And I open data/numbers/3.txt in a new tab
+        And I run :tab-focus 4 with count 2
+        Then the following tabs should be open:
+            - data/numbers/1.txt
+            - data/numbers/2.txt (active)
+            - data/numbers/3.txt
 
     Scenario: :tab-focus last
         When I open data/numbers/1.txt
