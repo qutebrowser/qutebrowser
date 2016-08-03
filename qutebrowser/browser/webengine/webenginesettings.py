@@ -24,12 +24,10 @@ Module attributes:
                 constants.
 """
 
-import os.path
-
 from PyQt5.QtWebEngineWidgets import QWebEngineSettings
 
-from qutebrowser.config import config, websettings
-from qutebrowser.utils import standarddir, objreg
+from qutebrowser.config import websettings
+from qutebrowser.utils import objreg
 
 
 class Attribute(websettings.Attribute):
