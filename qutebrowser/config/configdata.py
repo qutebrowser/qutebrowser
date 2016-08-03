@@ -932,7 +932,7 @@ def data(readonly=False):
                  valid_values=typ.ValidValues(
                      ('javascript', "Better but slower"),
                      ('python', "Slightly worse but faster"),
-                 )), 'javascript'),
+                 )), 'python'),
              "Which implementation to use to find elements to hint."),
 
             readonly=readonly
