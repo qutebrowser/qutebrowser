@@ -775,11 +775,16 @@ class ConfigManager(QObject):
         if validate:
             interpolated = self._interpolation.before_get(
                 self, sectname, optname, value, mapping)
-            allowed_backends = sect.values[optname].backends
-            used_backend = usertypes.arg2backend[objreg.get('args').backend]
-            if (allowed_backends is not None and
-                    used_backend not in allowed_backends):
-                raise configexc.BackendError(used_backend)
+            try:
+                allowed_backends = sect.values[optname].backends
+            except KeyError:
+                # Will be handled later in .setv()
+                pass
+            else:
+                backend = usertypes.arg2backend[objreg.get('args').backend]
+                if (allowed_backends is not None and
+                        backend not in allowed_backends):
+                    raise configexc.BackendError(backend)
         else:
             interpolated = None
 
