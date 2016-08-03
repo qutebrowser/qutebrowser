@@ -234,3 +234,17 @@ def repeat_command(win_id, count=None):
     cmd = runners.last_command[mode_manager.mode]
     commandrunner = runners.CommandRunner(win_id)
     commandrunner.run(cmd[0], count if count is not None else cmd[1])
+
+@cmdutils.register(maxsplit=1, no_cmd_split=True, name='debug-log-capacity')
+def log_capacity(capacity: int):
+    """Choose number of lines for your log.
+
+    Args:
+       capacity: Number of lines for the log.       
+    """
+    if capacity < 0:
+        raise cmdexc.CommandError("Please choose log capacity above 0.")
+    else:  
+        log.ram_handler = log.RAMHandler(capacity=capacity)
+        log.ram_handler.change_log_capacity(capacity)
+
