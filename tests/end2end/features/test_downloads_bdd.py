@@ -19,6 +19,7 @@
 
 import os
 import sys
+import shlex
 
 import pytest_bdd as bdd
 bdd.scenarios('downloads.feature')
@@ -73,10 +74,10 @@ def download_prompt(tmpdir, quteproc, path):
 
 @bdd.when("I open the download")
 def download_open(quteproc):
-    cmd = '"{}" -c pass'.format(sys.executable)
+    cmd = '{} -c pass'.format(shlex.quote(sys.executable))
     quteproc.send_cmd(':download-open {}'.format(cmd))
 
 @bdd.when("I directly open the download")
 def download_open(quteproc):
-    cmd = '"{}" -c pass'.format(sys.executable)
+    cmd = '{} -c pass'.format(shlex.quote(sys.executable))
     quteproc.send_cmd(':prompt-open-download {}'.format(cmd))
