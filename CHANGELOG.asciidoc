@@ -36,6 +36,8 @@ Changed
   loading it.
 - `:open` now also accepts quickmark names instead of URLs
 - `:tab-move` now optionally takes an index for absolute moving.
+- Commands taking either an argument or a count (like `:zoom` or `:tab-focus`)
+  now prefer the count instead of showing an error message.
 
 v0.8.2
 ------

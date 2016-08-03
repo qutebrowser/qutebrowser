@@ -71,7 +71,8 @@ Feature: Zooming in and out
 
     Scenario: Setting zoom with argument and count
         When I run :zoom 50 with count 60
-        Then the error "Both count and argument given!" should be shown
+        Then the message "Zoom level: 60%" should be shown
+        And the zoom should be 60%
 
     # Fixed in QtWebEngine branch
     @xfail
