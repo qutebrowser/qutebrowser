@@ -25,7 +25,9 @@ import binascii
 
 from PyQt5.QtCore import QUrl
 from PyQt5.QtWidgets import QWidget
+# pylint: disable=no-name-in-module,import-error,useless-suppression
 from PyQt5.QtWebEngineWidgets import QWebEngineView
+# pylint: enable=no-name-in-module,import-error,useless-suppression
 
 from qutebrowser.utils import log, objreg
 from qutebrowser.misc import miscwidgets
