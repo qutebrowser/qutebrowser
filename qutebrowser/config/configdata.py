@@ -176,8 +176,7 @@ def data(readonly=False):
              "icons."),
 
             ('developer-extras',
-             SettingValue(typ.Bool(), 'false',
-                          backends=[usertypes.Backend.QtWebKit]),
+             SettingValue(typ.Bool(), 'false'),
              "Enable extra tools for Web developers.\n\n"
              "This needs to be enabled for `:inspector` to work and also adds "
              "an _Inspect_ entry to the context menu."),

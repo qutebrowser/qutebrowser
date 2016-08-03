@@ -24,12 +24,14 @@ Module attributes:
                 constants.
 """
 
+import os
+
 # pylint: disable=no-name-in-module,import-error,useless-suppression
 from PyQt5.QtWebEngineWidgets import QWebEngineSettings
 # pylint: enable=no-name-in-module,import-error,useless-suppression
 
-from qutebrowser.config import websettings
-from qutebrowser.utils import objreg
+from qutebrowser.config import websettings, config
+from qutebrowser.utils import objreg, utils
 
 
 class Attribute(websettings.Attribute):
@@ -61,6 +63,11 @@ def update_settings(section, option):
 def init():
     """Initialize the global QWebSettings."""
     # FIXME:qtwebengine set paths in profile
+
+    if config.get('general', 'developer-extras'):
+        # FIXME:qtwebengine Make sure we call globalSettings *after* this...
+        os.environ['QTWEBENGINE_REMOTE_DEBUGGING'] = str(utils.random_port())
+
     websettings.init_mappings(MAPPINGS)
     objreg.get('config').changed.connect(update_settings)
 

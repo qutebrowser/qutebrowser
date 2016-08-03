@@ -41,7 +41,8 @@ import pygments.formatters
 from qutebrowser.commands import userscripts, cmdexc, cmdutils, runners
 from qutebrowser.config import config, configexc
 from qutebrowser.browser import urlmarks, browsertab
-from qutebrowser.browser.webkit import webelem, inspector, downloads, mhtml
+from qutebrowser.browser.webkit import (webelem, webkitinspector, downloads,
+                                        mhtml)
 from qutebrowser.keyinput import modeman
 from qutebrowser.utils import (message, usertypes, log, qtutils, urlutils,
                                objreg, utils, typing)
@@ -1219,7 +1220,7 @@ class CommandDispatcher:
             raise cmdexc.CommandError(str(e))
 
     @cmdutils.register(instance='command-dispatcher', name='inspector',
-                       scope='window', backend=usertypes.Backend.QtWebKit)
+                       scope='window')
     def toggle_inspector(self):
         """Toggle the web inspector.
 
@@ -1232,11 +1233,21 @@ class CommandDispatcher:
                 raise cmdexc.CommandError(
                     "Please enable developer-extras before using the "
                     "webinspector!")
-            tab.data.inspector = inspector.WebInspector()
+
             # FIXME:qtwebengine have a proper API for this
-            page = tab._widget.page()  # pylint: disable=protected-access
-            tab.data.inspector.setPage(page)
-            tab.data.inspector.show()
+            if tab.backend == usertypes.Backend.QtWebKit:
+                tab.data.inspector = webkitinspector.WebInspector()
+                page = tab._widget.page()  # pylint: disable=protected-access
+                tab.data.inspector.setPage(page)
+                tab.data.inspector.show()
+            elif tab.backend == usertypes.Backend.QtWebEngine:
+                from qutebrowser.browser.webengine import webengineinspector
+                tab.data.inspector = webengineinspector.WebInspector()
+                try:
+                    tab.data.inspector.load()
+                except webengineinspector.WebInspectorError as e:
+                    raise cmdexc.CommandError(e)
+                tab.data.inspector.show()
         elif tab.data.inspector.isVisible():
             tab.data.inspector.hide()
         else:
