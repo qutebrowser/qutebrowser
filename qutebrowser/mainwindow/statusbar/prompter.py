@@ -316,11 +316,12 @@ class Prompter(QObject):
     def prompt_open_download(self, cmdline: str=None):
         """Immediately open a download.
 
+        If no specific command is given, this will use the system's default
+        application to open the file.
+
         Args:
-            cmdline: The command line string to execute. The default will use
-                     the system's application to open the file, depending on
-                     the filetype. A `{}` is expanded to the temporary file
-                     name.
+            cmdline: The command which should be used to open the file. A `{}`
+                     is expanded to the temporary file name.
         """
         if self._question.mode != usertypes.PromptMode.download:
             # We just ignore this if we don't have a download question.

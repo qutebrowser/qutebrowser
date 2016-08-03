@@ -1058,9 +1058,12 @@ class DownloadManager(QAbstractListModel):
     def download_open(self, cmdline: str=None, count=0):
         """Open the last/[count]th download.
 
+        If no specific command is given, this will use the system's default
+        application to open the file.
+
         Args:
-            cmdline: The command which should be used to open the file. A {} as
-                     argument will be replaced by the download's filename.
+            cmdline: The command which should be used to open the file. A `{}`
+                     is expanded to the temporary file name.
             count: The index of the download to open.
         """
         try:
