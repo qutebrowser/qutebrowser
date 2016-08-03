@@ -19,6 +19,7 @@
 """Tests for qutebrowser.config.configexc."""
 
 from qutebrowser.config import configexc
+from qutebrowser.utils import usertypes
 
 
 def test_validation_error():
@@ -46,3 +47,8 @@ def test_interpolation_syntax_error():
     assert e.section == 'sect'
     assert e.option == 'opt'
     assert str(e) == 'msg'
+
+
+def test_backend_error():
+    e = configexc.BackendError(usertypes.Backend.QtWebKit)
+    assert str(e) == "This setting is not available with the QtWebKit backend!"
