@@ -34,23 +34,23 @@ from qutebrowser.utils import standarddir, objreg
 
 class Attribute(websettings.Attribute):
 
-    GLOBAL_SETTINGS = QWebSettings.globalSettings()
+    GLOBAL_SETTINGS = QWebSettings.globalSettings
     ENUM_BASE = QWebSettings
 
 
 class Setter(websettings.Setter):
 
-    GLOBAL_SETTINGS = QWebSettings.globalSettings()
+    GLOBAL_SETTINGS = QWebSettings.globalSettings
 
 
 class NullStringSetter(websettings.NullStringSetter):
 
-    GLOBAL_SETTINGS = QWebSettings.globalSettings()
+    GLOBAL_SETTINGS = QWebSettings.globalSettings
 
 
 class StaticSetter(websettings.StaticSetter):
 
-    GLOBAL_SETTINGS = QWebSettings.globalSettings()
+    GLOBAL_SETTINGS = QWebSettings.globalSettings
 
 
 class CookiePolicy(websettings.Base):

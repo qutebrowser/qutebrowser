@@ -36,23 +36,23 @@ from qutebrowser.utils import objreg, utils
 
 class Attribute(websettings.Attribute):
 
-    GLOBAL_SETTINGS = QWebEngineSettings.globalSettings()
+    GLOBAL_SETTINGS = QWebEngineSettings.globalSettings
     ENUM_BASE = QWebEngineSettings
 
 
 class Setter(websettings.Setter):
 
-    GLOBAL_SETTINGS = QWebEngineSettings.globalSettings()
+    GLOBAL_SETTINGS = QWebEngineSettings.globalSettings
 
 
 class NullStringSetter(websettings.NullStringSetter):
 
-    GLOBAL_SETTINGS = QWebEngineSettings.globalSettings()
+    GLOBAL_SETTINGS = QWebEngineSettings.globalSettings
 
 
 class StaticSetter(websettings.StaticSetter):
 
-    GLOBAL_SETTINGS = QWebEngineSettings.globalSettings()
+    GLOBAL_SETTINGS = QWebEngineSettings.globalSettings
 
 
 def update_settings(section, option):

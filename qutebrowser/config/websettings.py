@@ -48,7 +48,7 @@ class Base:
                       the global instance.
         """
         if settings is None:
-            return self.GLOBAL_SETTINGS
+            return self.GLOBAL_SETTINGS()
         else:
             return settings
 
