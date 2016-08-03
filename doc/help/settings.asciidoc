@@ -382,8 +382,6 @@ Valid values:
 
 Default: +pass:[false]+
 
-This setting is only available with the QtWebKit backend.
-
 [[general-print-element-backgrounds]]
 === print-element-backgrounds
 Whether the background color and images are also drawn when the page is printed.
