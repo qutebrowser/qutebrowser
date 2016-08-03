@@ -1,0 +1,13 @@
+<html>
+    <head>
+        <title>test case for issue 1725</title>
+    </head>
+    <body>
+        <p>Using <code>:prompt-open-download</code> with a file that has a loooooong filename</p>
+        <p>
+            <a href="/response-headers?Content-Disposition=download;%20filename%2A%3DUTF-8%27%27Lookie%2520here%252C%2520your%2520compiler%2520does%2520some%2520absolutely%2520insane%2520things%2520with%2520the%2520spilling%252C%2520including%2520spilling%2520a%2520%252Aconstant%252A.%2520For%2520chrissake%252C%2520that%2520compiler%2520shouldn%2527t%2520have%2520been%2520allowed%2520to%2520graduate%2520from%2520kindergarten.%2520We%2527re%2520talking%2520%2522sloth%2520that%2520was%2520dropped%2520on%2520the%2520head%2520as%2520a%2520baby%2522%2520level%2520retardation%2520levels%2520here.txt">
+            Download me!
+            </a>
+        </p>
+    </body>
+</html>

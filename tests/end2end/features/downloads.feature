@@ -196,6 +196,17 @@ Feature: Downloading things from a website.
         And I run :download-cancel
         Then "* finished but not successful, not opening!" should be logged
 
+    ## https://github.com/The-Compiler/qutebrowser/issues/1725
+
+    Scenario: Directly open a download with a very long filename
+        When I set storage -> prompt-download-directory to true
+        And I open data/downloads/issue1725.html
+        And I run :hint
+        And I run :follow-hint a
+        And I directly open the download
+        And I wait until the download is finished
+        Then "Opening * with [*python*]" should be logged
+
     ## completion -> download-path-suggestion
 
     Scenario: completion -> download-path-suggestion = path
