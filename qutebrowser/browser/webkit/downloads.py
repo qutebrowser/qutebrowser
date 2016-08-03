@@ -995,7 +995,6 @@ class DownloadManager(QAbstractListModel):
             return
         download.open_file(cmdline)
 
-
     def raise_no_download(self, count):
         """Raise an exception that the download doesn't exist.
 

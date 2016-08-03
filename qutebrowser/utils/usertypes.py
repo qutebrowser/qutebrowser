@@ -300,7 +300,7 @@ class OpenFileDownloadTarget(DownloadTarget):
     """Save the download in a temp dir and directly open it.
 
     Attributes:
-        cmdline: The command to use as string. A {} is expanded to th
+        cmdline: The command to use as string. A {} is expanded to the
                  filename. None means use the system's default.
     """
 
