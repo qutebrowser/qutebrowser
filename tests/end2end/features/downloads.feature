@@ -201,7 +201,7 @@ Feature: Downloading things from a website.
     Scenario: Directly open a download with a very long filename
         When I set storage -> prompt-download-directory to true
         And I open data/downloads/issue1725.html
-        And I run :hint
+        And I run :hint all download
         And I run :follow-hint a
         And I directly open the download
         And I wait until the download is finished
