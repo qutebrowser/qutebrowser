@@ -38,6 +38,8 @@ Changed
 - `:tab-move` now optionally takes an index for absolute moving.
 - Commands taking either an argument or a count (like `:zoom` or `:tab-focus`)
   now prefer the count instead of showing an error message.
+- `:open` now has an `--implicit` argument to treat the opened tab as implicit
+  (i.e. to open it at the position it would be opened if it was a clicked link)
 
 v0.8.2
 ------
