@@ -41,8 +41,13 @@ def test_fileobj():
 
 
 def test_openfile():
-    # Just make sure no error is raised, that should be enough.
-    usertypes.OpenFileDownloadTarget()
+    target = usertypes.OpenFileDownloadTarget()
+    assert target.cmdline is None
+
+
+def test_openfile_custom_command():
+    target = usertypes.OpenFileDownloadTarget('echo')
+    assert target.cmdline == 'echo'
 
 
 @pytest.mark.parametrize('obj', [
