@@ -55,11 +55,10 @@ Fixed
 - Fixed HTML5 video playback on Windows
 - Fixed crash when using `:prompt-open-download` with a file with chars not
   encodable with the OS' filesystem encoding (e.g. with `LC_ALL=C`)
-- Fixed `:prompt-open-download` with a too long filename (< 255 bytes)
+- Fixed `:prompt-open-download` with a too long filename (> 255 bytes)
 - Fixed crash when cancelling a download after doing `:prompt-open-download`
 - Fixed crash when writing a download to disk fails with
   `:prompt-open-download`.
-- Fixed HTML5 video playback on Windows
 
 v0.8.1
 ------
