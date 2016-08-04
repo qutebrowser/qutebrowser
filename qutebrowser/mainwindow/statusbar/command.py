@@ -108,9 +108,6 @@ class Command(misc.MinimalLineEditMixin, misc.CommandLineEdit):
             space: If given, a space is added to the end.
             append: If given, the text is appended to the current text.
         """
-        args = split.simple_split(text)
-        text = ' '.join(args)
-
         if space:
             text += ' '
         if append:

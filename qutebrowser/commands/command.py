@@ -82,7 +82,7 @@ class Command:
         no_cmd_split: If true, ';;' to split sub-commands is ignored.
         backend: Which backend the command works with (or None if it works with
                  both)
-        no_replace_variables: Whether or not to replace variables like {url}
+        no_replace_variables: Don't replace variables like {url}
         _qute_args: The saved data from @cmdutils.argument
         _needs_js: Whether the command needs javascript enabled
         _modes: The modes the command can be executed in.
