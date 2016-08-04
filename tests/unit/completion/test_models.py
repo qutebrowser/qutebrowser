@@ -453,7 +453,7 @@ def test_setting_value_completion(qtmodeltester, monkeypatch, stubs,
 
 def test_bind_completion(qtmodeltester, monkeypatch, stubs, config_stub,
                          key_config_stub):
-    """Test the results of command completion.
+    """Test the results of keybinding command completion.
 
     Validates that:
         - only non-hidden and non-deprecated commands are included

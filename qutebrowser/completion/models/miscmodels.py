@@ -43,7 +43,7 @@ class CommandCompletionModel(base.BaseCompletionModel):
                                        include_hidden=False)
         cat = self.new_category("Commands")
         for (name, desc, misc) in cmdlist:
-            self.new_item(cat, name, desc, misc, )
+            self.new_item(cat, name, desc, misc)
 
 
 class HelpCompletionModel(base.BaseCompletionModel):
@@ -275,9 +275,9 @@ def _get_cmd_completions(include_hidden, include_aliases, prefix=''):
     cmdlist = []
     cmd_to_keys = objreg.get('key-config').get_reverse_bindings_for('normal')
     for obj in set(cmdutils.cmd_dict.values()):
-        if ((not obj.debug or objreg.get('args').debug) and
-             not obj.deprecated and
-             (include_hidden or not obj.hide)):
+        hide_debug = obj.debug and not objreg.get('args').debug
+        hide_hidden = obj.hide and not include_hidden
+        if not (hide_debug or hide_hidden or obj.deprecated):
             bindings = ', '.join(cmd_to_keys[obj.name])
             cmdlist.append((prefix + obj.name, obj.desc, bindings))
 
