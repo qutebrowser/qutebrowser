@@ -235,7 +235,7 @@ def repeat_command(win_id, count=None):
     commandrunner = runners.CommandRunner(win_id)
     commandrunner.run(cmd[0], count if count is not None else cmd[1])
 
-@cmdutils.register(debug=True,name='debug-log-capacity')
+@cmdutils.register(debug=True, name='debug-log-capacity')
 def log_capacity(capacity: int):
     """Choose number of lines for your log.
 
