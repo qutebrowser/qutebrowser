@@ -40,9 +40,8 @@ import pygments.formatters
 
 from qutebrowser.commands import userscripts, cmdexc, cmdutils, runners
 from qutebrowser.config import config, configexc
-from qutebrowser.browser import urlmarks, browsertab
-from qutebrowser.browser.webkit import (webelem, webkitinspector, downloads,
-                                        mhtml)
+from qutebrowser.browser import urlmarks, browsertab, inspector
+from qutebrowser.browser.webkit import webelem, downloads, mhtml
 from qutebrowser.keyinput import modeman
 from qutebrowser.utils import (message, usertypes, log, qtutils, urlutils,
                                objreg, utils, typing)
@@ -1228,35 +1227,17 @@ class CommandDispatcher:
         headers in the network tab.
         """
         tab = self._current_widget()
-        if tab.data.inspector is None:
-            if not config.get('general', 'developer-extras'):
-                raise cmdexc.CommandError(
-                    "Please enable developer-extras before using the "
-                    "webinspector!")
+        # FIXME:qtwebengine have a proper API for this
+        page = tab._widget.page()  # pylint: disable=protected-access
 
-            # FIXME:qtwebengine have a proper API for this
-            if tab.backend == usertypes.Backend.QtWebKit:
-                tab.data.inspector = webkitinspector.WebInspector()
-                page = tab._widget.page()  # pylint: disable=protected-access
-                tab.data.inspector.setPage(page)
-                tab.data.inspector.show()
-            elif tab.backend == usertypes.Backend.QtWebEngine:
-                from qutebrowser.browser.webengine import webengineinspector
-                tab.data.inspector = webengineinspector.WebInspector()
-                try:
-                    tab.data.inspector.load()
-                except webengineinspector.WebInspectorError as e:
-                    raise cmdexc.CommandError(e)
-                tab.data.inspector.show()
-        elif tab.data.inspector.isVisible():
-            tab.data.inspector.hide()
-        else:
-            if not config.get('general', 'developer-extras'):
-                raise cmdexc.CommandError(
-                    "Please enable developer-extras before using the "
-                    "webinspector!")
+        try:
+            if tab.data.inspector is None:
+                tab.data.inspector = inspector.create()
+                tab.data.inspector.inspect(page)
             else:
-                tab.data.inspector.show()
+                tab.data.inspector.toggle(page)
+        except inspector.WebInspectorError as e:
+            raise cmdexc.CommandError(e)
 
     @cmdutils.register(instance='command-dispatcher', scope='window',
                        backend=usertypes.Backend.QtWebKit)

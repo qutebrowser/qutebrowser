@@ -17,45 +17,24 @@
 # You should have received a copy of the GNU General Public License
 # along with qutebrowser.  If not, see <http://www.gnu.org/licenses/>.
 
-"""Customized QWebInspector."""
+"""Customized QWebInspector for QtWebKit."""
 
-import base64
-import binascii
 
 from PyQt5.QtWebKitWidgets import QWebInspector
 
-from qutebrowser.utils import log, objreg
+from qutebrowser.browser import inspector
 
 
-class WebInspector(QWebInspector):
+class WebKitInspector(inspector.AbstractWebInspector):
 
-    """A customized WebInspector which stores its geometry."""
+    """A web inspector for QtWebKit."""
 
     def __init__(self, parent=None):
         super().__init__(parent)
-        self._load_state_geometry()
+        qwebinspector = QWebInspector()
+        self._set_widget(qwebinspector)
 
-    def closeEvent(self, e):
-        """Save the geometry when closed."""
-        state_config = objreg.get('state-config')
-        data = bytes(self.saveGeometry())
-        geom = base64.b64encode(data).decode('ASCII')
-        state_config['geometry']['inspector'] = geom
-        super().closeEvent(e)
-
-    def _load_state_geometry(self):
-        """Load the geometry from the state file."""
-        state_config = objreg.get('state-config')
-        try:
-            data = state_config['geometry']['inspector']
-            geom = base64.b64decode(data, validate=True)
-        except KeyError:
-            # First start
-            pass
-        except binascii.Error:
-            log.misc.exception("Error while reading geometry")
-        else:
-            log.init.debug("Loading geometry from {}".format(geom))
-            ok = self.restoreGeometry(geom)
-            if not ok:
-                log.init.warning("Error while loading geometry.")
+    def inspect(self, page):
+        self._check_developer_extras()
+        self._widget.setPage(page)
+        self.show()
