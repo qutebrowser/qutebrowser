@@ -246,5 +246,3 @@ def log_capacity(capacity: int):
         raise cmdexc.CommandError("Can't set a negative log capacity!)
     else:        
         log.ram_handler.change_log_capacity(capacity)
-
-
