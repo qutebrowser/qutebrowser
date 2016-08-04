@@ -300,8 +300,9 @@ class OpenFileDownloadTarget(DownloadTarget):
     """Save the download in a temp dir and directly open it.
 
     Attributes:
-        cmdline: The command to use as string. A {} is expanded to the
-                 filename. None means use the system's default.
+        cmdline: The command to use as string. A `{}` is expanded to the
+                 filename. None means to use the system's default application.
+                 If no `{}` is found, the filename is appended to the cmdline.
     """
 
     def __init__(self, cmdline=None):

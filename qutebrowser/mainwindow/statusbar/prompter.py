@@ -321,7 +321,9 @@ class Prompter(QObject):
 
         Args:
             cmdline: The command which should be used to open the file. A `{}`
-                     is expanded to the temporary file name.
+                     is expanded to the temporary file name. If no `{}` is
+                     present, the filename is automatically appended to the
+                     cmdline.
         """
         if self._question.mode != usertypes.PromptMode.download:
             # We just ignore this if we don't have a download question.

@@ -534,8 +534,10 @@ class DownloadItem(QObject):
         """Open the downloaded file.
 
         Args:
-            cmdline: The command to use, or None for the system's default
-                     program.
+            cmdline: The command to use as string. A `{}` is expanded to the
+                     filename. None means to use the system's default
+                     application. If no `{}` is found, the filename is appended
+                     to the cmdline.
         """
         assert self.successful
         filename = self._filename
@@ -988,8 +990,7 @@ class DownloadManager(QAbstractListModel):
 
         Args:
             download: The DownloadItem to use.
-            cmdline: The command to use, or None for the system's default
-                     program.
+            cmdline: Passed to DownloadItem.open_file().
         """
         if not download.successful:
             log.downloads.debug("{} finished but not successful, not opening!"
@@ -1064,7 +1065,9 @@ class DownloadManager(QAbstractListModel):
 
         Args:
             cmdline: The command which should be used to open the file. A `{}`
-                     is expanded to the temporary file name.
+                     is expanded to the temporary file name. If no `{}` is
+                     present, the filename is automatically appended to the
+                     cmdline.
             count: The index of the download to open.
         """
         try:
