@@ -278,7 +278,7 @@ def _get_cmd_completions(include_hidden, include_aliases, prefix=''):
         hide_debug = obj.debug and not objreg.get('args').debug
         hide_hidden = obj.hide and not include_hidden
         if not (hide_debug or hide_hidden or obj.deprecated):
-            bindings = ', '.join(cmd_to_keys[obj.name])
+            bindings = ', '.join(cmd_to_keys.get(obj.name, []))
             cmdlist.append((prefix + obj.name, obj.desc, bindings))
 
     if include_aliases:

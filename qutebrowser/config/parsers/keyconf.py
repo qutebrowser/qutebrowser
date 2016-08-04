@@ -424,8 +424,9 @@ class KeyConfigParser(QObject):
 
     def get_reverse_bindings_for(self, section):
         """Get a dict of commands to a list of bindings for the section."""
-        cmd_to_keys = collections.defaultdict(list)
+        cmd_to_keys = {}
         for key, cmd in self.get_bindings_for(section).items():
+            cmd_to_keys.setdefault(cmd, [])
             # put special bindings last
             if utils.is_special_key(key):
                 cmd_to_keys[cmd].append(key)
