@@ -149,7 +149,7 @@
 |<<content-allow-images,allow-images>>|Whether images are automatically loaded in web pages.
 |<<content-allow-javascript,allow-javascript>>|Enables or disables the running of JavaScript programs.
 |<<content-allow-plugins,allow-plugins>>|Enables or disables plugins in Web pages.
-|<<content-webgl,webgl>>|Enables or disables WebGL.
+|<<content-webgl,webgl>>|Enables or disables WebGL. For QtWebEngine, Qt/PyQt >= 5.7 is required for this setting.
 |<<content-css-regions,css-regions>>|Enable or disable support for CSS regions.
 |<<content-hyperlink-auditing,hyperlink-auditing>>|Enable or disable hyperlink auditing (<a ping>).
 |<<content-geolocation,geolocation>>|Allow websites to request geolocations.
@@ -1377,7 +1377,7 @@ Default: +pass:[false]+
 
 [[content-webgl]]
 === webgl
-Enables or disables WebGL.
+Enables or disables WebGL. For QtWebEngine, Qt/PyQt >= 5.7 is required for this setting.
 
 Valid values:
 

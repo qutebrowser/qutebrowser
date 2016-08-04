@@ -110,8 +110,6 @@ MAPPINGS = {
             Attribute(QWebEngineSettings.JavascriptCanAccessClipboard),
         'allow-plugins':
             Attribute(QWebEngineSettings.PluginsEnabled),
-        'webgl':
-            Attribute(QWebEngineSettings.WebGLEnabled),
         'hyperlink-auditing':
             Attribute(QWebEngineSettings.HyperlinkAuditingEnabled),
         'local-content-can-access-remote-urls':
@@ -183,3 +181,9 @@ MAPPINGS = {
                    setter=QWebEngineSettings.setDefaultTextEncoding),
     }
 }
+
+try:
+    MAPPINGS['content']['webgl'] = Attribute(QWebEngineSettings.WebGLEnabled)
+except AttributeError:
+    # Added in Qt 5.7
+    pass

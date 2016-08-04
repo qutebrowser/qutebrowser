@@ -348,10 +348,17 @@ class WebEngineTab(browsertab.AbstractTab):
 
     def run_js_async(self, code, callback=None):
         world = QWebEngineScript.ApplicationWorld
-        if callback is None:
-            self._widget.page().runJavaScript(code, world)
-        else:
-            self._widget.page().runJavaScript(code, world, callback)
+        try:
+            if callback is None:
+                self._widget.page().runJavaScript(code, world)
+            else:
+                self._widget.page().runJavaScript(code, world, callback)
+        except TypeError:
+            # Qt < 5.7
+            if callback is None:
+                self._widget.page().runJavaScript(code)
+            else:
+                self._widget.page().runJavaScript(code, callback)
 
     def run_js_blocking(self, code):
         unset = object()
