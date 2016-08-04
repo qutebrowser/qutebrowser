@@ -235,14 +235,15 @@ def repeat_command(win_id, count=None):
     commandrunner = runners.CommandRunner(win_id)
     commandrunner.run(cmd[0], count if count is not None else cmd[1])
 
+
 @cmdutils.register(debug=True, name='debug-log-capacity')
 def log_capacity(capacity: int):
     """Change the number of log lines to be stored in RAM.
 
     Args:
-       capacity: Number of lines for the log.       
+       capacity: Number of lines for the log.
     """
     if capacity < 0:
         raise cmdexc.CommandError("Can't set a negative log capacity!")
-    else:        
+    else:
         log.ram_handler.change_log_capacity(capacity)
