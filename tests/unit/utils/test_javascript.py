@@ -139,6 +139,6 @@ def test_convert_js_arg(arg, expected):
 
 def test_assemble(monkeypatch):
     monkeypatch.setattr(javascript.utils, 'read_file',
-                        lambda name: '<code from {}>'.format(name))
+                        '<code from {}>'.format)
     expected = '<code from javascript/foo.js>\nfunc(23);'
     assert javascript.assemble('foo', 'func', 23) == expected
