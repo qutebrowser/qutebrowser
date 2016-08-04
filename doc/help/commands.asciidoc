@@ -215,10 +215,23 @@ The index of the download to delete.
 
 [[download-open]]
 === download-open
+Syntax: +:download-open ['cmdline']+
+
 Open the last/[count]th download.
+
+If no specific command is given, this will use the system's default application to open the file.
+
+==== positional arguments
+* +'cmdline'+: The command which should be used to open the file. A `{}` is expanded to the temporary file name. If no `{}` is
+ present, the filename is automatically appended to the
+ cmdline.
+
 
 ==== count
 The index of the download to open.
+
+==== note
+* This command does not split arguments after the last argument and handles quotes literally.
 
 [[download-remove]]
 === download-remove
@@ -1168,7 +1181,20 @@ Answer no to a yes/no prompt.
 
 [[prompt-open-download]]
 === prompt-open-download
+Syntax: +:prompt-open-download ['cmdline']+
+
 Immediately open a download.
+
+If no specific command is given, this will use the system's default application to open the file.
+
+==== positional arguments
+* +'cmdline'+: The command which should be used to open the file. A `{}` is expanded to the temporary file name. If no `{}` is
+ present, the filename is automatically appended to the
+ cmdline.
+
+
+==== note
+* This command does not split arguments after the last argument and handles quotes literally.
 
 [[prompt-yes]]
 === prompt-yes
