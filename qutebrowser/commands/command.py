@@ -82,6 +82,7 @@ class Command:
         no_cmd_split: If true, ';;' to split sub-commands is ignored.
         backend: Which backend the command works with (or None if it works with
                  both)
+        no_replace_variables: Whether or not to replace variables like {url}
         _qute_args: The saved data from @cmdutils.argument
         _needs_js: Whether the command needs javascript enabled
         _modes: The modes the command can be executed in.
@@ -95,7 +96,7 @@ class Command:
                  hide=False, modes=None, not_modes=None, needs_js=False,
                  debug=False, ignore_args=False, deprecated=False,
                  no_cmd_split=False, star_args_optional=False, scope='global',
-                 backend=None):
+                 backend=None, no_replace_variables=False):
         # I really don't know how to solve this in a better way, I tried.
         # pylint: disable=too-many-locals
         if modes is not None and not_modes is not None:
@@ -127,6 +128,7 @@ class Command:
         self.handler = handler
         self.no_cmd_split = no_cmd_split
         self.backend = backend
+        self.no_replace_variables = no_replace_variables
 
         self.docparser = docutils.DocstringParser(handler)
         self.parser = argparser.ArgumentParser(

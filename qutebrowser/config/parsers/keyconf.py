@@ -150,7 +150,8 @@ class KeyConfigParser(QObject):
             data = str(self)
             f.write(data)
 
-    @cmdutils.register(instance='key-config', maxsplit=1, no_cmd_split=True)
+    @cmdutils.register(instance='key-config', maxsplit=1, no_cmd_split=True,
+                       no_replace_variables=True)
     @cmdutils.argument('win_id', win_id=True)
     @cmdutils.argument('key', completion=usertypes.Completion.empty)
     @cmdutils.argument('command', completion=usertypes.Completion.command)

@@ -52,16 +52,16 @@ def replace_variables(win_id, arglist):
     args = []
     tabbed_browser = objreg.get('tabbed-browser', scope='window',
                                 window=win_id)
-    if '{url}' in arglist:
+    if any('{url}' in arg for arg in arglist):
         url = _current_url(tabbed_browser).toString(QUrl.FullyEncoded |
                                                     QUrl.RemovePassword)
-    if '{url:pretty}' in arglist:
+    if any('{url:pretty}' in arg for arg in arglist):
         pretty_url = _current_url(tabbed_browser).toString(QUrl.RemovePassword)
     for arg in arglist:
-        if arg == '{url}':
-            args.append(url)
-        elif arg == '{url:pretty}':
-            args.append(pretty_url)
+        if '{url}' in arg:
+            args.append(arg.replace('{url}', url))
+        elif '{url:pretty}' in arg:
+            args.append(arg.replace('{url:pretty}', pretty_url))
         else:
             args.append(arg)
     return args
@@ -279,7 +279,10 @@ class CommandRunner(QObject):
                                       window=self._win_id)
             cur_mode = mode_manager.mode
 
-            args = replace_variables(self._win_id, result.args)
+            if result.cmd.no_replace_variables:
+                args = result.args
+            else:
+                args = replace_variables(self._win_id, result.args)
             if count is not None:
                 if result.count is not None:
                     raise cmdexc.CommandMetaError("Got count via command and "
