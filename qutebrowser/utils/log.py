@@ -509,8 +509,7 @@ class RAMHandler(logging.Handler):
     def change_log_capacity(self, capacity):
         """
         change log capacity according to user specifcation
-        """ 
-        ram_handler = RAMHandler(capacity=capacity)           
+        """
         self._data = collections.deque(self._data, maxlen=capacity)
 
 class ColoredFormatter(logging.Formatter):
