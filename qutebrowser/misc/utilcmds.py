@@ -243,7 +243,7 @@ def log_capacity(capacity: int):
        capacity: Number of lines for the log.       
     """
     if capacity < 0:
-        raise cmdexc.CommandError("Please choose log capacity above 0.")
+        raise cmdexc.CommandError("Can't set a negative log capacity!)
     else:        
         log.ram_handler.change_log_capacity(capacity)
 
