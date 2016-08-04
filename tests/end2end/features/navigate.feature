@@ -65,8 +65,8 @@ Feature: Using :navigate
         And I open data/numbers/1.txt
         And I run :navigate increment
         Then the error "No number found in URL!" should be shown
-        
-    Scenario: navigate matching for multiline links
-        when I open /data/navigate/multilinelinks.html
-        And I run ]]
-        Then /data/numbers/5.txt should be loaded
+
+    Scenario: Navigating multiline links
+        When I open data/navigate/multilinelinks.html
+        And I run :navigate next
+        Then data/numbers/5.txt should be loaded
