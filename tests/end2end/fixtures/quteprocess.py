@@ -36,8 +36,7 @@ import pytest
 from PyQt5.QtCore import pyqtSignal, QUrl
 
 from qutebrowser.misc import ipc
-from qutebrowser.utils import log, utils
-from qutebrowser.browser.webkit import webelem
+from qutebrowser.utils import log, utils, javascript
 from helpers import utils as testutils
 from end2end.fixtures import testprocess
 
@@ -527,7 +526,7 @@ class QuteProc(testprocess.Process):
             'else if (_es.snapshotLength > 1) {{ console.log("qute:ambiguous '
             'elems") }} '
             'else {{ console.log("qute:okay"); _es.snapshotItem(0).click() }}'
-        ).format(text=webelem.javascript_escape(_xpath_escape(text)))
+        ).format(text=javascript.string_escape(_xpath_escape(text)))
         self.send_cmd(':jseval ' + script, escape=False)
         message = self.wait_for_js('qute:*').message
         if message.endswith('qute:no elems'):
@@ -562,8 +561,8 @@ class QuteProc(testprocess.Process):
 def _xpath_escape(text):
     """Escape a string to be used in an XPath expression.
 
-    The resulting string should still be escaped with javascript_escape, to
-    prevent javascript from interpreting the quotes.
+    The resulting string should still be escaped with javascript.string_escape,
+    to prevent javascript from interpreting the quotes.
 
     This function is needed because XPath does not provide any character
     escaping mechanisms, so to get the string

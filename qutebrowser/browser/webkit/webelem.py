@@ -33,7 +33,7 @@ from PyQt5.QtCore import QRect, QUrl
 from PyQt5.QtWebKit import QWebElement
 
 from qutebrowser.config import config
-from qutebrowser.utils import log, usertypes, utils
+from qutebrowser.utils import log, usertypes, utils, javascript
 
 
 Group = usertypes.enum('Group', ['all', 'links', 'images', 'url', 'prevnext',
@@ -202,7 +202,7 @@ class WebElementWrapper(collections.abc.MutableMapping):
         else:
             log.misc.debug("Filling element {} via javascript.".format(
                 self.debug_text()))
-            text = javascript_escape(text)
+            text = javascript.string_escape(text)
             self._elem.evaluateJavaScript("this.value='{}'".format(text))
 
     def set_inner_xml(self, xml):
@@ -499,34 +499,6 @@ class WebElementWrapper(collections.abc.MutableMapping):
         else:
             visible_in_frame = visible_on_screen
         return all([visible_on_screen, visible_in_frame])
-
-
-
-
-def javascript_escape(text):
-    """Escape values special to javascript in strings.
-
-    With this we should be able to use something like:
-      elem.evaluateJavaScript("this.value='{}'".format(javascript_escape(...)))
-    And all values should work.
-    """
-    # This is a list of tuples because order matters, and using OrderedDict
-    # makes no sense because we don't actually need dict-like properties.
-    replacements = (
-        ('\\', r'\\'),  # First escape all literal \ signs as \\.
-        ("'", r"\'"),   # Then escape ' and " as \' and \".
-        ('"', r'\"'),   # (note it won't hurt when we escape the wrong one).
-        ('\n', r'\n'),  # We also need to escape newlines for some reason.
-        ('\r', r'\r'),
-        ('\x00', r'\x00'),
-        ('\ufeff', r'\ufeff'),
-        # http://stackoverflow.com/questions/2965293/
-        ('\u2028', r'\u2028'),
-        ('\u2029', r'\u2029'),
-    )
-    for orig, repl in replacements:
-        text = text.replace(orig, repl)
-    return text
 
 
 def get_child_frames(startframe):

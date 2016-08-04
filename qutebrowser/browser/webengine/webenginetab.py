@@ -31,7 +31,7 @@ from PyQt5.QtWebEngineWidgets import QWebEnginePage
 
 from qutebrowser.browser import browsertab
 from qutebrowser.browser.webengine import webview
-from qutebrowser.utils import usertypes, qtutils, log, utils
+from qutebrowser.utils import usertypes, qtutils, log, javascript
 
 
 class WebEnginePrinting(browsertab.AbstractPrinting):
@@ -220,10 +220,7 @@ class WebEngineScroller(browsertab.AbstractScroller):
             self._pos_px = QPoint(jsret['px']['x'], jsret['px']['y'])
             self.perc_changed.emit(*self._pos_perc)
 
-        js_code = """
-            {scroll_js}
-            scroll_pos();
-        """.format(scroll_js=utils.read_file('javascript/scroll.js'))
+        js_code = javascript.assemble('scroll', 'scroll_pos')
         self._tab.run_js_async(js_code, update_scroll_pos)
 
     def pos_px(self):
@@ -233,12 +230,7 @@ class WebEngineScroller(browsertab.AbstractScroller):
         return self._pos_perc
 
     def to_perc(self, x=None, y=None):
-        js_code = """
-            {scroll_js}
-            scroll_to_perc({x}, {y});
-        """.format(scroll_js=utils.read_file('javascript/scroll.js'),
-                   x='undefined' if x is None else x,
-                   y='undefined' if y is None else y)
+        js_code = javascript.assemble('scroll', 'scroll_to_perc', x, y)
         self._tab.run_js_async(js_code)
 
     def to_point(self, point):
@@ -249,10 +241,7 @@ class WebEngineScroller(browsertab.AbstractScroller):
         self._tab.run_js_async("window.scrollBy({x}, {y});".format(x=x, y=y))
 
     def delta_page(self, x=0, y=0):
-        js_code = """
-            {scroll_js}
-            scroll_delta_page({x}, {y});
-        """.format(scroll_js=utils.read_file('javascript/scroll.js'), x=x, y=y)
+        js_code = javascript.assemble('scroll', 'scroll_delta_page', x, y)
         self._tab.run_js_async(js_code)
 
     def up(self, count=1):

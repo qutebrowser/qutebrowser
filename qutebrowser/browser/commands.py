@@ -44,7 +44,7 @@ from qutebrowser.browser import urlmarks, browsertab, inspector
 from qutebrowser.browser.webkit import webelem, downloads, mhtml
 from qutebrowser.keyinput import modeman
 from qutebrowser.utils import (message, usertypes, log, qtutils, urlutils,
-                               objreg, utils, typing)
+                               objreg, utils, typing, javascript)
 from qutebrowser.utils.usertypes import KeyMode
 from qutebrowser.misc import editor, guiprocess
 from qutebrowser.completion.models import instances, sortfilter
@@ -1485,7 +1485,7 @@ class CommandDispatcher:
             var event = document.createEvent('TextEvent');
             event.initTextEvent('textInput', true, true, null, sel);
             this.dispatchEvent(event);
-        """.format(webelem.javascript_escape(sel)))
+        """.format(javascript.string_escape(sel)))
 
     def _search_cb(self, found, *, tab, old_scroll_pos, options, text, prev):
         """Callback called from search/search_next/search_prev.
