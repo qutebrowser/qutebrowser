@@ -59,14 +59,12 @@ class AbstractWebInspector(QWebInspector):
     def __init__(self, parent=None):
         super().__init__(parent)
         self._widget = None
-        self._layout = None
+        self._layout = miscwidgets.WrapperLayout(self)
         self._load_state_geometry()
 
     def _set_widget(self, widget):
         self._widget = widget
-        self._layout = miscwidgets.WrapperLayout(self._widget, self)
-        self.setFocusProxy(self._widget)
-        self._widget.setParent(self)
+        self._layout.wrap(self, widget)
 
     def _load_state_geometry(self):
         """Load the geometry from the state file."""

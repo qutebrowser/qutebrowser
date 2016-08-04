@@ -96,7 +96,6 @@ def tab(request, default_config, qtbot, tab_registry, cookiejar_and_cache):
 def test_tab(qtbot, view, config_stub, tab_registry):
     tab_w = browsertab.AbstractTab(win_id=0)
     qtbot.add_widget(tab_w)
-    tab_w.show()
 
     assert tab_w.win_id == 0
     assert tab_w._widget is None
@@ -117,6 +116,9 @@ def test_tab(qtbot, view, config_stub, tab_registry):
     assert tab_w.history._tab is tab_w
     assert tab_w.history._history is view.history()
     assert view.parent() is tab_w
+
+    tab_w.show()
+    qtbot.waitForWindowShown(tab_w)
 
 
 class TestJs:

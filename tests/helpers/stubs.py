@@ -27,7 +27,7 @@ from unittest import mock
 from PyQt5.QtCore import pyqtSignal, QPoint, QProcess, QObject
 from PyQt5.QtNetwork import (QNetworkRequest, QAbstractNetworkCache,
                              QNetworkCacheMetaData)
-from PyQt5.QtWidgets import QCommonStyle, QLineEdit
+from PyQt5.QtWidgets import QCommonStyle, QLineEdit, QWidget
 
 from qutebrowser.browser import browsertab
 from qutebrowser.browser.webkit import history
@@ -253,6 +253,8 @@ class FakeWebTab(browsertab.AbstractTab):
         self._url = url
         self._progress = progress
         self.scroller = FakeWebTabScroller(self, scroll_pos_perc)
+        wrapped = QWidget()
+        self._layout.wrap(self, wrapped)
 
     def url(self):
         return self._url

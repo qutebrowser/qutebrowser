@@ -475,7 +475,7 @@ class AbstractTab(QWidget):
         # self.search = AbstractSearch(parent=self)
         # self.printing = AbstractPrinting()
         self.data = TabData()
-        self._layout = None
+        self._layout = miscwidgets.WrapperLayout(self)
         self._widget = None
         self._progress = 0
         self._has_ssl_errors = False
@@ -484,8 +484,8 @@ class AbstractTab(QWidget):
 
     def _set_widget(self, widget):
         # pylint: disable=protected-access
-        self._layout = miscwidgets.WrapperLayout(widget, self)
         self._widget = widget
+        self._layout.wrap(self, widget)
         self.history._history = widget.history()
         self.scroller._init_widget(widget)
         self.caret._widget = widget
@@ -493,8 +493,6 @@ class AbstractTab(QWidget):
         self.search._widget = widget
         self.printing._widget = widget
         widget.mouse_wheel_zoom.connect(self.zoom._on_mouse_wheel_zoom)
-        widget.setParent(self)
-        self.setFocusProxy(widget)
 
     def _set_load_status(self, val):
         """Setter for load_status."""

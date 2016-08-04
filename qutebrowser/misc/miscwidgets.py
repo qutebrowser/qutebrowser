@@ -235,9 +235,9 @@ class WrapperLayout(QLayout):
     easily be accidentally accessed.
     """
 
-    def __init__(self, widget, parent=None):
+    def __init__(self, parent=None):
         super().__init__(parent)
-        self._widget = widget
+        self._widget = None
 
     def addItem(self, _widget):
         raise AssertionError("Should never be called!")
@@ -254,3 +254,9 @@ class WrapperLayout(QLayout):
 
     def setGeometry(self, rect):
         self._widget.setGeometry(rect)
+
+    def wrap(self, container, widget):
+        """Wrap the given widget in the given container."""
+        self._widget = widget
+        container.setFocusProxy(widget)
+        widget.setParent(container)

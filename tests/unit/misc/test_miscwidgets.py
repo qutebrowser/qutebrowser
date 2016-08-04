@@ -89,8 +89,14 @@ class TestWrapperLayout:
         parent = QWidget()
         qtbot.add_widget(wrapped)
         qtbot.add_widget(parent)
-        miscwidgets.WrapperLayout(wrapped, parent)
+        layout = miscwidgets.WrapperLayout(parent)
+        layout.wrap(parent, wrapped)
+        parent.wrapped = wrapped
         return parent
 
     def test_size_hint(self, container):
         assert container.sizeHint() == QSize(23, 42)
+
+    def test_wrapped(self, container):
+        assert container.wrapped.parent() is container
+        assert container.focusProxy() is container.wrapped
