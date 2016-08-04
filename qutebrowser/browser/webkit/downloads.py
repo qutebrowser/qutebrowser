@@ -554,6 +554,8 @@ class DownloadItem(QObject):
 
         cmd, *args = shlex.split(cmdline)
         args = [arg.replace('{}', filename) for arg in args]
+        if '{}' not in cmdline:
+            args.append(filename)
         log.downloads.debug("Opening {} with {}"
                             .format(filename, [cmd] + args))
         proc = guiprocess.GUIProcess(self._win_id, what='download')
