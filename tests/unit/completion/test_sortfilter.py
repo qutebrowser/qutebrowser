@@ -21,6 +21,8 @@
 
 import pytest
 
+from PyQt5.QtCore import Qt
+
 from qutebrowser.completion.models import base, sortfilter
 
 
@@ -153,10 +155,18 @@ def test_count(tree, expected):
      [[('foo', '', ''), ('bar', '')]],
      [[('foo', '', '')]]),
 
-    # TODO
-    #('foo', Qt.DescendingOrder,
-    # [['foob', 'fooc', 'fooa']],
-    # [['fooc', 'foob', 'fooa']]),
+    # the fourth column is the sort role, which overrides data-based sorting
+    ('', None, [0],
+     [[('two', '', '', 2), ('one', '', '', 1), ('three', '', '', 3)]],
+     [[('one', '', ''), ('two', '', ''), ('three', '', '')]]),
+
+    ('', Qt.AscendingOrder, [0],
+     [[('two', '', '', 2), ('one', '', '', 1), ('three', '', '', 3)]],
+     [[('one', '', ''), ('two', '', ''), ('three', '', '')]]),
+
+    ('', Qt.DescendingOrder, [0],
+     [[('two', '', '', 2), ('one', '', '', 1), ('three', '', '', 3)]],
+     [[('three', '', ''), ('two', '', ''), ('one', '', '')]]),
 ])
 def test_set_pattern(pattern, dumb_sort, filter_cols, before, after):
     """Validate the filtering and sorting results of set_pattern."""
@@ -179,3 +189,41 @@ def test_set_pattern(pattern, dumb_sort, filter_cols, before, after):
                             filter_model.data(cat_idx.child(j, 2))))
         actual.append(entries)
     assert actual == after
+
+
+def test_sort():
+    """Ensure that a sort argument passed to sort overrides DUMB_SORT.
+
+    While test_set_pattern above covers most of the sorting logic, this
+    particular case is easier to test separately.
+    """
+    source_model = base.BaseCompletionModel()
+    cat = source_model.new_category('test')
+    source_model.new_item(cat, 'B', '', '', sort = 1)
+    source_model.new_item(cat, 'C', '', '', sort = 2)
+    source_model.new_item(cat, 'A', '', '', sort = 0)
+    filter_model = sortfilter.CompletionFilterModel(source_model)
+
+    filter_model.sort(0, Qt.AscendingOrder)
+    actual = []
+    for i in range(0, filter_model.rowCount()):
+        cat_idx = filter_model.index(i, 0)
+        entries = []
+        for j in range(0, filter_model.rowCount(cat_idx)):
+            entries.append((filter_model.data(cat_idx.child(j, 0)),
+                            filter_model.data(cat_idx.child(j, 1)),
+                            filter_model.data(cat_idx.child(j, 2))))
+        actual.append(entries)
+    assert actual == [[('A', '', ''), ('B', '', ''), ('C', '', '')]]
+
+    filter_model.sort(0, Qt.DescendingOrder)
+    actual = []
+    for i in range(0, filter_model.rowCount()):
+        cat_idx = filter_model.index(i, 0)
+        entries = []
+        for j in range(0, filter_model.rowCount(cat_idx)):
+            entries.append((filter_model.data(cat_idx.child(j, 0)),
+                            filter_model.data(cat_idx.child(j, 1)),
+                            filter_model.data(cat_idx.child(j, 2))))
+        actual.append(entries)
+    assert actual == [[('C', '', ''), ('B', '', ''), ('A', '', '')]]
