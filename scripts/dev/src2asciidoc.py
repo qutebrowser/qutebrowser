@@ -239,7 +239,8 @@ def _get_command_doc_notes(cmd):
     Yield:
         Strings which should be added to the docs.
     """
-    if cmd.maxsplit is not None or cmd.no_cmd_split or cmd.no_replace_variables:
+    if (cmd.maxsplit is not None or cmd.no_cmd_split or
+            cmd.no_replace_variables):
         yield ""
         yield "==== note"
         if cmd.maxsplit is not None:
