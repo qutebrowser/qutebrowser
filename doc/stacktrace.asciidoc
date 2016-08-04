@@ -169,7 +169,7 @@ When you see the _qutebrowser.exe has stopped working_ window, do not click
 file displayed there.
 
 Now install
-http://www.microsoft.com/en-us/download/details.aspx?id=42933[DebugDiag] from
+https://www.microsoft.com/en-us/download/details.aspx?id=49924[DebugDiag] from
 Microsoft, then run the *DebugDiag 2 Analysis* tool. There, check
 *CrashHangAnalysis* and add your crash dump via *Add Data files*. Then click
 *Start analysis*.
