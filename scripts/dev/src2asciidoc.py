@@ -249,7 +249,7 @@ def _get_command_doc_notes(cmd):
             yield ("* With this command, +;;+ is interpreted literally "
                    "instead of splitting off a second command.")
         if cmd.no_replace_variables:
-            yield "* This command does not replace variables like +\{url\}+."
+            yield r"* This command does not replace variables like +\{url\}+."
 
 
 def _get_action_metavar(action, nargs=1):
