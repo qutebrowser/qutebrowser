@@ -506,17 +506,12 @@ class RAMHandler(logging.Handler):
                 lines.append(fmt(record))
         return '\n'.join(lines)
         
-    def change_log_capacity(self, capacity):      
-        console,ram = _init_handlers(0,'','','',capacity)        
-        root = logging.getLogger()
-        if ram is not None:
-            root.addHandler(ram)
-        root.setLevel(logging.NOTSET)
-        logging.captureWarnings(True)
-        _init_py_warnings()
-        QtCore.qInstallMessageHandler(qt_message_handler)
-        global _log_inited
-        _log_inited = True   
+    def change_log_capacity(self, capacity):
+        """
+        change log capacity according to user specifcation
+        """ 
+        ram_handler = RAMHandler(capacity=capacity)           
+        self._data = collections.deque(self._data, maxlen=capacity)
 
 class ColoredFormatter(logging.Formatter):
 
