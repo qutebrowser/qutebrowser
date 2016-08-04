@@ -352,6 +352,9 @@ def qt_message_handler(msg_type, context, msg):
         # may not be available on the system
         "QSslSocket: cannot resolve SSLv3_client_method",
         "QSslSocket: cannot resolve SSLv3_server_method",
+        # When enabling debugging with QtWebEngine
+        "Remote debugging server started successfully. Try pointing a "
+            "Chromium-based browser to ",
     ]
     if sys.platform == 'darwin':
         suppressed_msgs += [
@@ -508,6 +511,7 @@ class RAMHandler(logging.Handler):
         
     def change_log_capacity(self, capacity):
         self._data = collections.deque(self._data, maxlen=capacity)
+
 
 class ColoredFormatter(logging.Formatter):
 
