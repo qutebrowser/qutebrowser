@@ -54,7 +54,7 @@ def _convert_js_arg(arg):
     if arg is None:
         return 'undefined'
     elif isinstance(arg, str):
-        return string_escape(arg)
+        return '"{}"'.format(string_escape(arg))
     elif isinstance(arg, int):
         return str(arg)
     else:

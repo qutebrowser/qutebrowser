@@ -123,8 +123,8 @@ class TestStringEscape:
 
 
 @pytest.mark.parametrize('arg, expected', [
-    ('foobar', 'foobar'),
-    ('foo\\bar', r'foo\\bar'),
+    ('foobar', '"foobar"'),
+    ('foo\\bar', r'"foo\\bar"'),
     (42, '42'),
     (None, 'undefined'),
     (object(), TypeError),
