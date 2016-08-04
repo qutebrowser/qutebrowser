@@ -26,7 +26,7 @@ from PyQt5.QtCore import pyqtSlot, Qt, QEvent, QPoint
 from PyQt5.QtGui import QKeyEvent, QIcon
 from PyQt5.QtWidgets import QApplication
 # pylint: disable=no-name-in-module,import-error,useless-suppression
-from PyQt5.QtWebEngineWidgets import QWebEnginePage
+from PyQt5.QtWebEngineWidgets import QWebEnginePage, QWebEngineScript
 # pylint: enable=no-name-in-module,import-error,useless-suppression
 
 from qutebrowser.browser import browsertab
@@ -347,10 +347,11 @@ class WebEngineTab(browsertab.AbstractTab):
             self._widget.page().toHtml(callback)
 
     def run_js_async(self, code, callback=None):
+        world = QWebEngineScript.ApplicationWorld
         if callback is None:
-            self._widget.page().runJavaScript(code)
+            self._widget.page().runJavaScript(code, world)
         else:
-            self._widget.page().runJavaScript(code, callback)
+            self._widget.page().runJavaScript(code, world, callback)
 
     def run_js_blocking(self, code):
         unset = object()
