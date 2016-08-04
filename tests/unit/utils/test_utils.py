@@ -94,6 +94,24 @@ class TestEliding:
         assert utils.elide(text, length) == expected
 
 
+class TestElidingFilenames:
+
+    """Test elide_filename."""
+
+    def test_too_small(self):
+        """Test eliding to less than 3 characters which should fail."""
+        with pytest.raises(ValueError):
+            utils.elide_filename('foo', 1)
+
+    @pytest.mark.parametrize('filename, length, expected', [
+        ('foobar', 3, '...'),
+        ('foobar.txt', 50, 'foobar.txt'),
+        ('foobarbazqux.py', 10, 'foo...x.py'),
+    ])
+    def test_elided(self, filename, length, expected):
+        assert utils.elide_filename(filename, length) == expected
+
+
 @pytest.fixture(params=[True, False])
 def freezer(request, monkeypatch):
     if request.param and not getattr(sys, 'frozen', False):

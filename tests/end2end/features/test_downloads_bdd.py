@@ -18,6 +18,8 @@
 # along with qutebrowser.  If not, see <http://www.gnu.org/licenses/>.
 
 import os
+import sys
+import shlex
 
 import pytest_bdd as bdd
 bdd.scenarios('downloads.feature')
@@ -68,3 +70,14 @@ def download_prompt(tmpdir, quteproc, path):
            "text='Save file to:'>, *".format(full_path=full_path))
     quteproc.wait_for(message=msg)
     quteproc.send_cmd(':leave-mode')
+
+
+@bdd.when("I open the download")
+def download_open(quteproc):
+    cmd = '{} -c pass'.format(shlex.quote(sys.executable))
+    quteproc.send_cmd(':download-open {}'.format(cmd))
+
+@bdd.when("I directly open the download")
+def download_open_with_prompt(quteproc):
+    cmd = '{} -c pass'.format(shlex.quote(sys.executable))
+    quteproc.send_cmd(':prompt-open-download {}'.format(cmd))

@@ -22,6 +22,7 @@
 import io
 import os
 import sys
+import shlex
 import os.path
 import shutil
 import functools
@@ -40,6 +41,7 @@ from qutebrowser.config import config
 from qutebrowser.commands import cmdexc, cmdutils
 from qutebrowser.utils import (message, usertypes, log, utils, urlutils,
                                objreg, standarddir, qtutils)
+from qutebrowser.misc import guiprocess
 from qutebrowser.browser.webkit import http
 from qutebrowser.browser.webkit.network import networkmanager
 
@@ -528,8 +530,15 @@ class DownloadItem(QObject):
         self.cancel()
 
     @pyqtSlot()
-    def open_file(self):
-        """Open the downloaded file."""
+    def open_file(self, cmdline=None):
+        """Open the downloaded file.
+
+        Args:
+            cmdline: The command to use as string. A `{}` is expanded to the
+                     filename. None means to use the system's default
+                     application. If no `{}` is found, the filename is appended
+                     to the cmdline.
+        """
         assert self.successful
         filename = self._filename
         if filename is None:
@@ -537,8 +546,22 @@ class DownloadItem(QObject):
         if filename is None:
             log.downloads.error("No filename to open the download!")
             return
-        url = QUrl.fromLocalFile(filename)
-        QDesktopServices.openUrl(url)
+
+        if cmdline is None:
+            log.downloads.debug("Opening {} with the system application"
+                                .format(filename))
+            url = QUrl.fromLocalFile(filename)
+            QDesktopServices.openUrl(url)
+            return
+
+        cmd, *args = shlex.split(cmdline)
+        args = [arg.replace('{}', filename) for arg in args]
+        if '{}' not in cmdline:
+            args.append(filename)
+        log.downloads.debug("Opening {} with {}"
+                            .format(filename, [cmd] + args))
+        proc = guiprocess.GUIProcess(self._win_id, what='download')
+        proc.start_detached(cmd, args)
 
     def set_filename(self, filename):
         """Set the filename to save the download to.
@@ -955,19 +978,25 @@ class DownloadManager(QAbstractListModel):
                 download.cancel()
                 return
             download.finished.connect(
-                functools.partial(self._open_download, download))
+                functools.partial(self._open_download, download,
+                                  target.cmdline))
             download.autoclose = True
             download.set_fileobj(fobj)
         else:
             log.downloads.error("Unknown download target: {}".format(target))
 
-    def _open_download(self, download):
-        """Open the given download but only if it was successful."""
-        if download.successful:
-            download.open_file()
-        else:
+    def _open_download(self, download, cmdline):
+        """Open the given download but only if it was successful.
+
+        Args:
+            download: The DownloadItem to use.
+            cmdline: Passed to DownloadItem.open_file().
+        """
+        if not download.successful:
             log.downloads.debug("{} finished but not successful, not opening!"
                                 .format(download))
+            return
+        download.open_file(cmdline)
 
     def raise_no_download(self, count):
         """Raise an exception that the download doesn't exist.
@@ -1026,12 +1055,19 @@ class DownloadManager(QAbstractListModel):
         self.remove_item(download)
         log.downloads.debug("deleted download {}".format(download))
 
-    @cmdutils.register(instance='download-manager', scope='window')
+    @cmdutils.register(instance='download-manager', scope='window', maxsplit=0)
     @cmdutils.argument('count', count=True)
-    def download_open(self, count=0):
+    def download_open(self, cmdline: str=None, count=0):
         """Open the last/[count]th download.
 
+        If no specific command is given, this will use the system's default
+        application to open the file.
+
         Args:
+            cmdline: The command which should be used to open the file. A `{}`
+                     is expanded to the temporary file name. If no `{}` is
+                     present, the filename is automatically appended to the
+                     cmdline.
             count: The index of the download to open.
         """
         try:
@@ -1042,7 +1078,7 @@ class DownloadManager(QAbstractListModel):
             if not count:
                 count = len(self.downloads)
             raise cmdexc.CommandError("Download {} is not done!".format(count))
-        download.open_file()
+        download.open_file(cmdline)
 
     @cmdutils.register(instance='download-manager', scope='window')
     @cmdutils.argument('count', count=True)
@@ -1334,8 +1370,7 @@ class TempDownloadManager(QObject):
         encoding = sys.getfilesystemencoding()
         suggested_name = utils.force_encoding(suggested_name, encoding)
         # Make sure that the filename is not too long
-        if len(suggested_name) > 50:
-            suggested_name = suggested_name[:25] + '...' + suggested_name[-25:]
+        suggested_name = utils.elide_filename(suggested_name, 50)
         fobj = tempfile.NamedTemporaryFile(dir=tmpdir.name, delete=False,
                                            suffix=suggested_name)
         self.files.append(fobj)

@@ -297,11 +297,17 @@ class FileObjDownloadTarget(DownloadTarget):
 
 class OpenFileDownloadTarget(DownloadTarget):
 
-    """Save the download in a temp dir and directly open it."""
+    """Save the download in a temp dir and directly open it.
 
-    def __init__(self):
+    Attributes:
+        cmdline: The command to use as string. A `{}` is expanded to the
+                 filename. None means to use the system's default application.
+                 If no `{}` is found, the filename is appended to the cmdline.
+    """
+
+    def __init__(self, cmdline=None):
         # pylint: disable=super-init-not-called
-        pass
+        self.cmdline = cmdline
 
 
 class Question(QObject):

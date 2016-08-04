@@ -158,11 +158,11 @@ Feature: Downloading things from a website.
 
     ## :download-open
 
-    # Scenario: Opening a download
-    #     When I open data/downloads/download.bin
-    #     And I wait until the download is finished
-    #     And I run :download-open
-    #     Then ...
+    Scenario: Opening a download
+        When I open data/downloads/download.bin
+        And I wait until the download is finished
+        And I open the download
+        Then "Opening *download.bin* with [*python*]" should be logged
 
     Scenario: Opening a download which does not exist
         When I run :download-open with count 42
@@ -177,6 +177,36 @@ Feature: Downloading things from a website.
         When I run :download http://localhost:(port)/drip?numbytes=128&duration=5
         And I run :download-open with count 1
         Then the error "Download 1 is not done!" should be shown
+
+    ## opening a file directly (prompt-open-download)
+
+    Scenario: Opening a download directly
+        When I set storage -> prompt-download-directory to true
+        And I open data/downloads/download.bin
+        And I directly open the download
+        And I wait until the download is finished
+        Then "Opening *download.bin* with [*python*]" should be logged
+
+    ## https://github.com/The-Compiler/qutebrowser/issues/1728
+
+    Scenario: Cancelling a download that should be opened
+        When I set storage -> prompt-download-directory to true
+        And I run :download http://localhost:(port)/drip?numbytes=128&duration=5
+        And I directly open the download
+        And I run :download-cancel
+        Then "* finished but not successful, not opening!" should be logged
+
+    ## https://github.com/The-Compiler/qutebrowser/issues/1725
+
+    Scenario: Directly open a download with a very long filename
+        When I set storage -> prompt-download-directory to true
+        And I open data/downloads/issue1725.html
+        And I run :hint
+        And I run :follow-hint a
+        And I wait for "Asking question <qutebrowser.utils.usertypes.Question default=* mode=<PromptMode.download: 5> text='Save file to:'>, *" in the log
+        And I directly open the download
+        And I wait until the download is finished
+        Then "Opening * with [*python*]" should be logged
 
     ## completion -> download-path-suggestion
 
