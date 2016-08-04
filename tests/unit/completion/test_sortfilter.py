@@ -26,6 +26,39 @@ from PyQt5.QtCore import Qt
 from qutebrowser.completion.models import base, sortfilter
 
 
+def _create_model(data):
+    """Create a completion model populated with the given data.
+
+    data: A list of lists, where each sub-list represents a category, each
+          tuple in the sub-list represents an item, and each value in the
+          tuple represents the item data for that column
+    """
+    model = base.BaseCompletionModel()
+    for catdata in data:
+        cat = model.new_category('')
+        for itemdata in catdata:
+            model.new_item(cat, *itemdata)
+    return model
+
+
+def _extract_model_data(model):
+    """Express a model's data as a list for easier comparison.
+
+    Return: A list of lists, where each sub-list represents a category, each
+            tuple in the sub-list represents an item, and each value in the
+            tuple represents the item data for that column
+    """
+    data = []
+    for i in range(0, model.rowCount()):
+        cat_idx = model.index(i, 0)
+        row = []
+        for j in range(0, model.rowCount(cat_idx)):
+            row.append((model.data(cat_idx.child(j, 0)),
+                        model.data(cat_idx.child(j, 1)),
+                        model.data(cat_idx.child(j, 2))))
+        data.append(row)
+    return data
+
 @pytest.mark.parametrize('pattern, data, expected', [
     ('foo', 'barfoobar', True),
     ('foo', 'barFOObar', True),
@@ -51,16 +84,17 @@ def test_filter_accepts_row(pattern, data, expected):
 
 
 @pytest.mark.parametrize('tree, first, last', [
-    ([['Aa']], 'Aa', 'Aa'),
-    ([['Aa'], ['Ba']], 'Aa', 'Ba'),
-    ([['Aa', 'Ab', 'Ac'], ['Ba', 'Bb'], ['Ca']], 'Aa', 'Ca'),
-    ([[], ['Ba']], 'Ba', 'Ba'),
-    ([[], [], ['Ca']], 'Ca', 'Ca'),
-    ([[], [], ['Ca', 'Cb']], 'Ca', 'Cb'),
-    ([['Aa'], []], 'Aa', 'Aa'),
-    ([['Aa'], []], 'Aa', 'Aa'),
-    ([['Aa'], [], []], 'Aa', 'Aa'),
-    ([['Aa'], [], ['Ca']], 'Aa', 'Ca'),
+    ([[('Aa',)]], 'Aa', 'Aa'),
+    ([[('Aa',)], [('Ba',)]], 'Aa', 'Ba'),
+    ([[('Aa',), ('Ab',), ('Ac',)], [('Ba',), ('Bb',)], [('Ca',)]],
+     'Aa', 'Ca'),
+    ([[], [('Ba',)]], 'Ba', 'Ba'),
+    ([[], [], [('Ca',)]], 'Ca', 'Ca'),
+    ([[], [], [('Ca',), ('Cb',)]], 'Ca', 'Cb'),
+    ([[('Aa',)], []], 'Aa', 'Aa'),
+    ([[('Aa',)], []], 'Aa', 'Aa'),
+    ([[('Aa',)], [], []], 'Aa', 'Aa'),
+    ([[('Aa',)], [], [('Ca',)]], 'Aa', 'Ca'),
     ([[], []], None, None),
 ])
 def test_first_last_item(tree, first, last):
@@ -72,11 +106,7 @@ def test_first_last_item(tree, first, last):
         first: text of the first item
         last: text of the last item
     """
-    model = base.BaseCompletionModel()
-    for catdata in tree:
-        cat = model.new_category('')
-        for name in catdata:
-            model.new_item(cat, name, '')
+    model = _create_model(tree)
     filter_model = sortfilter.CompletionFilterModel(model)
     assert filter_model.data(filter_model.first_item()) == first
     assert filter_model.data(filter_model.last_item()) == last
@@ -99,23 +129,19 @@ def test_set_source_model():
 
 
 @pytest.mark.parametrize('tree, expected', [
-    ([['Aa']], 1),
-    ([['Aa'], ['Ba']], 2),
-    ([['Aa', 'Ab', 'Ac'], ['Ba', 'Bb'], ['Ca']], 6),
-    ([[], ['Ba']], 1),
-    ([[], [], ['Ca']], 1),
-    ([[], [], ['Ca', 'Cb']], 2),
-    ([['Aa'], []], 1),
-    ([['Aa'], []], 1),
-    ([['Aa'], [], []], 1),
-    ([['Aa'], [], ['Ca']], 2),
+    ([[('Aa',)]], 1),
+    ([[('Aa',)], [('Ba',)]], 2),
+    ([[('Aa',), ('Ab',), ('Ac',)], [('Ba',), ('Bb',)], [('Ca',)]], 6),
+    ([[], [('Ba',)]], 1),
+    ([[], [], [('Ca',)]], 1),
+    ([[], [], [('Ca',), ('Cb',)]], 2),
+    ([[('Aa',)], []], 1),
+    ([[('Aa',)], []], 1),
+    ([[('Aa',)], [], []], 1),
+    ([[('Aa',)], [], [('Ca',)]], 2),
 ])
 def test_count(tree, expected):
-    model = base.BaseCompletionModel()
-    for catdata in tree:
-        cat = model.new_category('')
-        for name in catdata:
-            model.new_item(cat, name, '')
+    model = _create_model(tree)
     filter_model = sortfilter.CompletionFilterModel(model)
     assert filter_model.count() == expected
 
@@ -170,24 +196,12 @@ def test_count(tree, expected):
 ])
 def test_set_pattern(pattern, dumb_sort, filter_cols, before, after):
     """Validate the filtering and sorting results of set_pattern."""
-    model = base.BaseCompletionModel()
+    model = _create_model(before)
     model.DUMB_SORT = dumb_sort
     model.columns_to_filter = filter_cols
-    for catdata in before:
-        cat = model.new_category('')
-        for data in catdata:
-            model.new_item(cat, *data)
     filter_model = sortfilter.CompletionFilterModel(model)
     filter_model.set_pattern(pattern)
-    actual = []
-    for i in range(0, filter_model.rowCount()):
-        cat_idx = filter_model.index(i, 0)
-        entries = []
-        for j in range(0, filter_model.rowCount(cat_idx)):
-            entries.append((filter_model.data(cat_idx.child(j, 0)),
-                            filter_model.data(cat_idx.child(j, 1)),
-                            filter_model.data(cat_idx.child(j, 2))))
-        actual.append(entries)
+    actual = _extract_model_data(filter_model)
     assert actual == after
 
 
@@ -197,33 +211,15 @@ def test_sort():
     While test_set_pattern above covers most of the sorting logic, this
     particular case is easier to test separately.
     """
-    source_model = base.BaseCompletionModel()
-    cat = source_model.new_category('test')
-    source_model.new_item(cat, 'B', '', '', sort = 1)
-    source_model.new_item(cat, 'C', '', '', sort = 2)
-    source_model.new_item(cat, 'A', '', '', sort = 0)
-    filter_model = sortfilter.CompletionFilterModel(source_model)
+    model = _create_model([[('B', '', '', 1),
+                            ('C', '', '', 2),
+                            ('A', '', '', 0)]])
+    filter_model = sortfilter.CompletionFilterModel(model)
 
     filter_model.sort(0, Qt.AscendingOrder)
-    actual = []
-    for i in range(0, filter_model.rowCount()):
-        cat_idx = filter_model.index(i, 0)
-        entries = []
-        for j in range(0, filter_model.rowCount(cat_idx)):
-            entries.append((filter_model.data(cat_idx.child(j, 0)),
-                            filter_model.data(cat_idx.child(j, 1)),
-                            filter_model.data(cat_idx.child(j, 2))))
-        actual.append(entries)
+    actual = _extract_model_data(filter_model)
     assert actual == [[('A', '', ''), ('B', '', ''), ('C', '', '')]]
 
     filter_model.sort(0, Qt.DescendingOrder)
-    actual = []
-    for i in range(0, filter_model.rowCount()):
-        cat_idx = filter_model.index(i, 0)
-        entries = []
-        for j in range(0, filter_model.rowCount(cat_idx)):
-            entries.append((filter_model.data(cat_idx.child(j, 0)),
-                            filter_model.data(cat_idx.child(j, 1)),
-                            filter_model.data(cat_idx.child(j, 2))))
-        actual.append(entries)
+    actual = _extract_model_data(filter_model)
     assert actual == [[('C', '', ''), ('B', '', ''), ('A', '', '')]]
