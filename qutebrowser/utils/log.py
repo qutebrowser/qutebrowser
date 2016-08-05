@@ -355,6 +355,8 @@ def qt_message_handler(msg_type, context, msg):
         # When enabling debugging with QtWebEngine
         "Remote debugging server started successfully. Try pointing a "
             "Chromium-based browser to ",
+        # https://github.com/The-Compiler/qutebrowser/issues/1287
+        "QXcbClipboard: SelectionRequest too old",
     ]
     if sys.platform == 'darwin':
         suppressed_msgs += [
