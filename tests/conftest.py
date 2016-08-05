@@ -120,10 +120,11 @@ def pytest_collection_modifyitems(items):
 
 
 def pytest_ignore_collect(path):
-    """Ignore BDD tests during collection if frozen."""
+    """Ignore BDD tests if we're unable to run them."""
+    skip_bdd = (hasattr(sys, 'frozen') or
+                int(pytest.__version__.split('.')[0]) == 3)
     rel_path = path.relto(os.path.dirname(__file__))
-    return (rel_path == os.path.join('end2end', 'features') and
-            hasattr(sys, 'frozen'))
+    return rel_path == os.path.join('end2end', 'features') and skip_bdd
 
 
 @pytest.fixture(scope='session')
