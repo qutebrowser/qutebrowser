@@ -958,3 +958,9 @@ def test_resolve_url(attributes, expected):
     elem = get_webelem(attributes=attributes)
     baseurl = QUrl('http://www.example.com/')
     assert elem.resolve_url(baseurl) == expected
+
+
+def test_resolve_url_relative_base():
+    elem = get_webelem(attributes={'href': 'foo'})
+    with pytest.raises(ValueError):
+        elem.resolve_url(QUrl('base'))

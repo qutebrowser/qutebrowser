@@ -509,6 +509,9 @@ class WebElementWrapper(collections.abc.MutableMapping):
         Return:
             A QUrl with the absolute URL, or None.
         """
+        if baseurl.isRelative():
+            raise ValueError("Need an absolute base URL!")
+
         for attr in ['href', 'src']:
             if attr in self:
                 text = self[attr].strip()
