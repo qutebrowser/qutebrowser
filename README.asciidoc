@@ -220,6 +220,7 @@ Contributors, sorted by the number of commits in descending order:
 * zwarag
 * xd1le
 * oniondreams
+* knaggita
 * issue
 * haxwithaxe
 * evan
