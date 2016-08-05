@@ -26,6 +26,8 @@ Added
   `unix-filename-rubout`.
 - New `fonts -> completion.category` setting to customize the font used for
   completion category headers.
+- New `:debug-log-capacity` command to adjust how many lines are logged into RAM
+  (to report bugs which are difficult to reproduce).
 
 Changed
 ~~~~~~~

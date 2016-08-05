@@ -1400,6 +1400,7 @@ These commands are mainly intended for debugging. They are hidden if qutebrowser
 |<<debug-console,debug-console>>|Show the debugging console.
 |<<debug-crash,debug-crash>>|Crash for debugging purposes.
 |<<debug-dump-page,debug-dump-page>>|Dump the current page's content to a file.
+|<<debug-log-capacity,debug-log-capacity>>|Change the number of log lines to be stored in RAM.
 |<<debug-pyeval,debug-pyeval>>|Evaluate a python string and display the results as a web page.
 |<<debug-set-fake-clipboard,debug-set-fake-clipboard>>|Put data into the fake clipboard and enable logging, used for tests.
 |<<debug-trace,debug-trace>>|Trace executed code via hunter.
@@ -1441,6 +1442,15 @@ Dump the current page's content to a file.
 
 ==== optional arguments
 * +*-p*+, +*--plain*+: Write plain text instead of HTML.
+
+[[debug-log-capacity]]
+=== debug-log-capacity
+Syntax: +:debug-log-capacity 'capacity'+
+
+Change the number of log lines to be stored in RAM.
+
+==== positional arguments
+* +'capacity'+: Number of lines for the log.
 
 [[debug-pyeval]]
 === debug-pyeval

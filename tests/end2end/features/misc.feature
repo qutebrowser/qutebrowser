@@ -442,6 +442,15 @@ Feature: Various utility commands.
         Then qute://log?level=error should be loaded
         And the page should contain the plaintext "No messages to show."
 
+    Scenario: Using :debug-log-capacity
+        When I run :debug-log-capacity 100
+        And I run :message-info oldstuff
+        And I run :repeat 10 :message-info otherstuff
+        And I run :message-info newstuff
+        And I open qute:log
+        Then the page should contain the plaintext "newstuff"
+        And the page should not contain the plaintext "oldstuff"
+
     ## https://github.com/The-Compiler/qutebrowser/issues/1523
 
     Scenario: Completing a single option argument
