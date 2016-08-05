@@ -1,0 +1,146 @@
+# vim: ft=python fileencoding=utf-8 sts=4 sw=4 et:
+
+# Copyright 2016 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
+#
+# This file is part of qutebrowser.
+#
+# qutebrowser is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
+#
+# qutebrowser is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with qutebrowser.  If not, see <http://www.gnu.org/licenses/>.
+
+"""Implementation of :navigate"""
+
+import posixpath
+
+from qutebrowser.browser.webkit import webelem
+from qutebrowser.config import config
+from qutebrowser.utils import (usertypes, objreg, urlutils, log, message,
+                               qtutils)
+
+
+class Error(Exception):
+
+    """Raised when the navigation can't be done."""
+
+
+def incdec(url, inc_or_dec):
+    """Helper method for :navigate when `where' is increment/decrement.
+
+    Args:
+        url: The current url.
+        inc_or_dec: Either 'increment' or 'decrement'.
+        tab: Whether to open the link in a new tab.
+        background: Open the link in a new background tab.
+        window: Open the link in a new window.
+    """
+    segments = set(config.get('general', 'url-incdec-segments'))
+    try:
+        new_url = urlutils.incdec_number(url, inc_or_dec, segments=segments)
+    except urlutils.IncDecError as error:
+        raise Error(error.msg)
+    return new_url
+
+
+def path_up(url):
+    """Helper method for :navigate when `where' is up.
+
+    Args:
+        url: The current url.
+    """
+    path = url.path()
+    if not path or path == '/':
+        raise Error("Can't go up!")
+    new_path = posixpath.join(path, posixpath.pardir)
+    url.setPath(new_path)
+    return url
+
+
+def _find_prevnext(prev, elems):
+    """Find a prev/next element in the given list of elements."""
+    # First check for <link rel="prev(ious)|next">
+    rel_values = ('prev', 'previous') if prev else ('next')
+    for e in elems:
+        if e.tag_name() != 'link' or 'rel' not in e:
+            continue
+        if e['rel'] in rel_values:
+            log.hints.debug("Found '{}' with rel={}".format(
+                e.debug_text(), e['rel']))
+            return e
+
+    # Then check for regular links/buttons.
+    filterfunc = webelem.FILTERS[webelem.Group.prevnext]
+    elems = [e for e in elems if e.tag_name() != 'link' and filterfunc(e)]
+    option = 'prev-regexes' if prev else 'next-regexes'
+    if not elems:
+        return None
+    for regex in config.get('hints', option):
+        log.hints.vdebug("== Checking regex '{}'.".format(regex.pattern))
+        for e in elems:
+            text = str(e)
+            if not text:
+                continue
+            if regex.search(text):
+                log.hints.debug("Regex '{}' matched on '{}'.".format(
+                    regex.pattern, text))
+                return e
+            else:
+                log.hints.vdebug("No match on '{}'!".format(text))
+    return None
+
+
+def prevnext(*, browsertab, win_id, baseurl, prev=False,
+             tab=False, background=False, window=False):
+    """Click a "previous"/"next" element on the page.
+
+    Args:
+        browsertab: The WebKitTab/WebEngineTab of the page.
+        baseurl: The base URL of the current tab.
+        prev: True to open a "previous" link, False to open a "next" link.
+        tab: True to open in a new tab, False for the current tab.
+        background: True to open in a background tab.
+        window: True to open in a new window, False for the current one.
+    """
+    # FIXME:qtwebengine have a proper API for this
+    if browsertab.backend == usertypes.Backend.QtWebEngine:
+        raise Error(":navigate prev/next is not supported yet with "
+                    "QtWebEngine")
+
+    def _prevnext_cb(elems):
+        elem = _find_prevnext(prev, elems)
+        word = 'prev' if prev else 'forward'
+
+        if elem is None:
+            message.error(win_id, "No {} links found!".format(word))
+            return
+        url = elem.resolve_url(baseurl)
+        if url is None:
+            message.error(win_id, "No {} links found!".format(word))
+            return
+        qtutils.ensure_valid(url)
+
+        if window:
+            from qutebrowser.mainwindow import mainwindow
+            new_window = mainwindow.MainWindow()
+            new_window.show()
+            tabbed_browser = objreg.get('tabbed-browser', scope='window',
+                                        window=new_window.win_id)
+            tabbed_browser.tabopen(url, background=False)
+        elif tab:
+            tabbed_browser = objreg.get('tabbed-browser', scope='window',
+                                        window=win_id)
+            tabbed_browser.tabopen(url, background=background)
+        else:
+            browsertab.openurl(url)
+
+    selector = ', '.join([webelem.SELECTORS[webelem.Group.links],
+                          webelem.SELECTORS[webelem.Group.prevnext]])
+    browsertab.find_all_elements(selector, _prevnext_cb)

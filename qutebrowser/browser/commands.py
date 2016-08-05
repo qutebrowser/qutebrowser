@@ -22,7 +22,6 @@
 import os
 import os.path
 import shlex
-import posixpath
 import functools
 
 from PyQt5.QtWidgets import QApplication, QTabBar
@@ -40,7 +39,7 @@ import pygments.formatters
 
 from qutebrowser.commands import userscripts, cmdexc, cmdutils, runners
 from qutebrowser.config import config, configexc
-from qutebrowser.browser import urlmarks, browsertab, inspector
+from qutebrowser.browser import urlmarks, browsertab, inspector, navigate
 from qutebrowser.browser.webkit import webelem, downloads, mhtml
 from qutebrowser.keyinput import modeman
 from qutebrowser.utils import (message, usertypes, log, qtutils, urlutils,
@@ -440,40 +439,6 @@ class CommandDispatcher:
         """
         self._back_forward(tab, bg, window, count, forward=True)
 
-    def _navigate_incdec(self, url, incdec, tab, background, window):
-        """Helper method for :navigate when `where' is increment/decrement.
-
-        Args:
-            url: The current url.
-            incdec: Either 'increment' or 'decrement'.
-            tab: Whether to open the link in a new tab.
-            background: Open the link in a new background tab.
-            window: Open the link in a new window.
-        """
-        segments = set(config.get('general', 'url-incdec-segments'))
-        try:
-            new_url = urlutils.incdec_number(url, incdec, segments=segments)
-        except urlutils.IncDecError as error:
-            raise cmdexc.CommandError(error.msg)
-
-        self._open(new_url, tab, background, window)
-
-    def _navigate_up(self, url, tab, background, window):
-        """Helper method for :navigate when `where' is up.
-
-        Args:
-            url: The current url.
-            tab: Whether to open the link in a new tab.
-            background: Open the link in a new background tab.
-            window: Open the link in a new window.
-        """
-        path = url.path()
-        if not path or path == '/':
-            raise cmdexc.CommandError("Can't go up!")
-        new_path = posixpath.join(path, posixpath.pardir)
-        url.setPath(new_path)
-        self._open(url, tab, background, window)
-
     @cmdutils.register(instance='command-dispatcher', scope='window',
                        backend=usertypes.Backend.QtWebKit)
     @cmdutils.argument('where', choices=['prev', 'next', 'up', 'increment',
@@ -506,26 +471,29 @@ class CommandDispatcher:
         widget = self._current_widget()
         url = self._current_url().adjusted(QUrl.RemoveFragment)
 
-        if where in ['prev', 'next']:
-            # FIXME:qtwebengine have a proper API for this
-            if widget.backend == usertypes.Backend.QtWebEngine:
-                raise cmdexc.CommandError(":navigate prev/next is not "
-                                          "supported yet with QtWebEngine")
+        handlers = {
+            'prev': functools.partial(navigate.prevnext, prev=True),
+            'next': functools.partial(navigate.prevnext, prev=False),
+            'up': navigate.path_up,
+            'decrement': functools.partial(navigate.incdec,
+                                           inc_or_dec='decrement'),
+            'increment': functools.partial(navigate.incdec,
+                                           inc_or_dec='increment'),
+        }
 
-        hintmanager = objreg.get('hintmanager', scope='tab', tab='current')
-        if where == 'prev':
-            hintmanager.follow_prevnext(widget, url, prev=True, tab=tab,
-                                        background=bg, window=window)
-        elif where == 'next':
-            hintmanager.follow_prevnext(widget, url, prev=False, tab=tab,
-                                        background=bg, window=window)
-        elif where == 'up':
-            self._navigate_up(url, tab, bg, window)
-        elif where in ['decrement', 'increment']:
-            self._navigate_incdec(url, where, tab, bg, window)
-        else:  # pragma: no cover
-            raise ValueError("Got called with invalid value {} for "
-                             "`where'.".format(where))
+        try:
+            if where in ['prev', 'next']:
+                handler = handlers[where]
+                handler(browsertab=widget, win_id=self._win_id, baseurl=url,
+                        tab=tab, background=bg, window=window)
+            elif where in ['up', 'increment', 'decrement']:
+                new_url = handlers[where](url)
+                self._open(new_url, tab, bg, window)
+            else:  # pragma: no cover
+                raise ValueError("Got called with invalid value {} for "
+                                "`where'.".format(where))
+        except navigate.Error as e:
+            raise cmdexc.CommandError(e)
 
     @cmdutils.register(instance='command-dispatcher', hide=True,
                        scope='window')
