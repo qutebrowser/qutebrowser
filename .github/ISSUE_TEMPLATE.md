@@ -1,4 +1,2 @@
-Please remember to mention your version info (qutebrowser, Qt, PyQt,
-OS/distribution) from the `qute:version` page or `qutebrowser --version`
-
----
+<!-- If this is a bug report, please remember to mention your version info from
+the `qute:version` page or `qutebrowser --version` -->
