@@ -558,7 +558,7 @@ class WebKitTab(browsertab.AbstractTab):
     def set_html(self, html, base_url):
         self._widget.setHtml(html, base_url)
 
-    def find_all_elements(self, selector, *, only_visible=False):
+    def find_all_elements(self, selector, callback, *, only_visible=False):
         mainframe = self._widget.page().mainFrame()
         if mainframe is None:
             raise browsertab.WebTabError("No frame focused!")
@@ -572,7 +572,7 @@ class WebKitTab(browsertab.AbstractTab):
         if only_visible:
             elems = [e for e in elems if e.is_visible(mainframe)]
 
-        return elems
+        callback(elems)
 
     @pyqtSlot()
     def _on_frame_load_finished(self):

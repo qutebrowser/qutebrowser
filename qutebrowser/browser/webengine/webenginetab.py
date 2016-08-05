@@ -411,9 +411,9 @@ class WebEngineTab(browsertab.AbstractTab):
     def clear_ssl_errors(self):
         log.stub()
 
-    def find_all_elements(self, selector, *, only_visible=False):
+    def find_all_elements(self, selector, callback, *, only_visible=False):
         log.stub()
-        return []
+        callback([])
 
     def _connect_signals(self):
         view = self._widget

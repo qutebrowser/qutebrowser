@@ -603,43 +603,6 @@ class HintManager(QObject):
         qtutils.ensure_valid(url)
         return url
 
-    def _find_prevnext(self, tab, prev=False):
-        """Find a prev/next element in frame."""
-        # First check for <link rel="prev(ious)|next">
-        elems = tab.find_all_elements(webelem.SELECTORS[webelem.Group.links])
-        rel_values = ('prev', 'previous') if prev else ('next')
-        for e in elems:
-            try:
-                rel_attr = e['rel']
-            except KeyError:
-                continue
-            if rel_attr in rel_values:
-                log.hints.debug("Found '{}' with rel={}".format(
-                    e.debug_text(), rel_attr))
-                return e
-        # Then check for regular links/buttons.
-        elems = tab.find_all_elements(
-            webelem.SELECTORS[webelem.Group.prevnext])
-        filterfunc = webelem.FILTERS[webelem.Group.prevnext]
-        elems = [e for e in elems if filterfunc(e)]
-
-        option = 'prev-regexes' if prev else 'next-regexes'
-        if not elems:
-            return None
-        for regex in config.get('hints', option):
-            log.hints.vdebug("== Checking regex '{}'.".format(regex.pattern))
-            for e in elems:
-                text = str(e)
-                if not text:
-                    continue
-                if regex.search(text):
-                    log.hints.debug("Regex '{}' matched on '{}'.".format(
-                        regex.pattern, text))
-                    return e
-                else:
-                    log.hints.vdebug("No match on '{}'!".format(text))
-        return None
-
     def _check_args(self, target, *args):
         """Check the arguments passed to start() and raise if they're wrong.
 
@@ -660,11 +623,95 @@ class HintManager(QObject):
                 raise cmdexc.CommandError(
                     "'args' is only allowed with target userscript/spawn.")
 
-    def _init_elements(self):
+    def _filter_matches(self, filterstr, elemstr):
+        """Return True if `filterstr` matches `elemstr`."""
+        # Empty string and None always match
+        if not filterstr:
+            return True
+        filterstr = filterstr.casefold()
+        elemstr = elemstr.casefold()
+        # Do multi-word matching
+        return all(word in elemstr for word in filterstr.split())
+
+    def _find_prevnext(self, prev, elems):
+        """Find a prev/next element in the given list of elements."""
+        # First check for <link rel="prev(ious)|next">
+        rel_values = ('prev', 'previous') if prev else ('next')
+        for e in elems:
+            if e.tag_name() != 'link' or 'rel' not in e:
+                continue
+            if e['rel'] in rel_values:
+                log.hints.debug("Found '{}' with rel={}".format(
+                    e.debug_text(), e['rel']))
+                return e
+
+        # Then check for regular links/buttons.
+        filterfunc = webelem.FILTERS[webelem.Group.prevnext]
+        elems = [e for e in elems if e.tag_name() != 'link' and filterfunc(e)]
+        option = 'prev-regexes' if prev else 'next-regexes'
+        if not elems:
+            return None
+        for regex in config.get('hints', option):
+            log.hints.vdebug("== Checking regex '{}'.".format(regex.pattern))
+            for e in elems:
+                text = str(e)
+                if not text:
+                    continue
+                if regex.search(text):
+                    log.hints.debug("Regex '{}' matched on '{}'.".format(
+                        regex.pattern, text))
+                    return e
+                else:
+                    log.hints.vdebug("No match on '{}'!".format(text))
+        return None
+
+    def follow_prevnext(self, browsertab, baseurl, prev=False, tab=False,
+                        background=False, window=False):
+        """Click a "previous"/"next" element on the page.
+
+        Args:
+            browsertab: The WebKitTab/WebEngineTab of the page.
+            baseurl: The base URL of the current tab.
+            prev: True to open a "previous" link, False to open a "next" link.
+            tab: True to open in a new tab, False for the current tab.
+            background: True to open in a background tab.
+            window: True to open in a new window, False for the current one.
+        """
+        def _follow_prevnext_cb(elems):
+            elem = self._find_prevnext(prev, elems)
+            word = 'prev' if prev else 'forward'
+
+            if elem is None:
+                message.error(self._win_id, "No {} links found!".format(word))
+                return
+            url = self._resolve_url(elem, baseurl)
+            if url is None:
+                message.error(self._win_id, "No {} links found!".format(word))
+                return
+            qtutils.ensure_valid(url)
+
+            if window:
+                from qutebrowser.mainwindow import mainwindow
+                new_window = mainwindow.MainWindow()
+                new_window.show()
+                tabbed_browser = objreg.get('tabbed-browser', scope='window',
+                                            window=new_window.win_id)
+                tabbed_browser.tabopen(url, background=False)
+            elif tab:
+                tabbed_browser = objreg.get('tabbed-browser', scope='window',
+                                            window=self._win_id)
+                tabbed_browser.tabopen(url, background=background)
+            else:
+                browsertab = objreg.get('tab', scope='tab',
+                                        window=self._win_id, tab=self._tab_id)
+                browsertab.openurl(url)
+
+        selector = ', '.join([webelem.SELECTORS[webelem.Group.links],
+                              webelem.SELECTORS[webelem.Group.prevnext]])
+        browsertab.find_all_elements(selector, _follow_prevnext_cb)
+
+    def _start_cb(self, elems):
         """Initialize the elements and labels based on the context set."""
-        selector = webelem.SELECTORS[self._context.group]
-        elems = self._context.tab.find_all_elements(selector,
-                                                    only_visible=True)
         filterfunc = webelem.FILTERS.get(self._context.group, lambda e: True)
         elems = [e for e in elems if filterfunc(e)]
         if not elems:
@@ -681,52 +728,13 @@ class HintManager(QObject):
         keyparser = keyparsers[usertypes.KeyMode.hint]
         keyparser.update_bindings(strings)
 
-    def _filter_matches(self, filterstr, elemstr):
-        """Return True if `filterstr` matches `elemstr`."""
-        # Empty string and None always match
-        if not filterstr:
-            return True
-        filterstr = filterstr.casefold()
-        elemstr = elemstr.casefold()
-        # Do multi-word matching
-        return all(word in elemstr for word in filterstr.split())
-
-    def follow_prevnext(self, browsertab, baseurl, prev=False, tab=False,
-                        background=False, window=False):
-        """Click a "previous"/"next" element on the page.
-
-        Args:
-            browsertab: The WebKitTab/WebEngineTab of the page.
-            baseurl: The base URL of the current tab.
-            prev: True to open a "previous" link, False to open a "next" link.
-            tab: True to open in a new tab, False for the current tab.
-            background: True to open in a background tab.
-            window: True to open in a new window, False for the current one.
-        """
-        from qutebrowser.mainwindow import mainwindow
-        elem = self._find_prevnext(browsertab, prev)
-        if elem is None:
-            raise cmdexc.CommandError("No {} links found!".format(
-                "prev" if prev else "forward"))
-        url = self._resolve_url(elem, baseurl)
-        if url is None:
-            raise cmdexc.CommandError("No {} links found!".format(
-                "prev" if prev else "forward"))
-        qtutils.ensure_valid(url)
-        if window:
-            new_window = mainwindow.MainWindow()
-            new_window.show()
-            tabbed_browser = objreg.get('tabbed-browser', scope='window',
-                                        window=new_window.win_id)
-            tabbed_browser.tabopen(url, background=False)
-        elif tab:
-            tabbed_browser = objreg.get('tabbed-browser', scope='window',
-                                        window=self._win_id)
-            tabbed_browser.tabopen(url, background=background)
-        else:
-            tab = objreg.get('tab', scope='tab', window=self._win_id,
-                             tab=self._tab_id)
-            tab.openurl(url)
+        self._context.tab.contents_size_changed.connect(
+            self.on_contents_size_changed)
+        message_bridge = objreg.get('message-bridge', scope='window',
+                                    window=self._win_id)
+        message_bridge.set_text(self._get_text())
+        modeman.enter(self._win_id, usertypes.KeyMode.hint,
+                      'HintManager.start')
 
     @cmdutils.register(instance='hintmanager', scope='tab', name='hint',
                        star_args_optional=True, maxsplit=2,
@@ -817,13 +825,9 @@ class HintManager(QObject):
         self._context.tab = tab
         self._context.args = args
         self._context.group = group
-        self._init_elements()
-        tab.contents_size_changed.connect(self.on_contents_size_changed)
-        message_bridge = objreg.get('message-bridge', scope='window',
-                                    window=self._win_id)
-        message_bridge.set_text(self._get_text())
-        modeman.enter(self._win_id, usertypes.KeyMode.hint,
-                      'HintManager.start')
+        selector = webelem.SELECTORS[self._context.group]
+        self._context.tab.find_all_elements(selector, self._start_cb,
+                                            only_visible=True)
 
     def handle_partial_key(self, keystr):
         """Handle a new partial keypress."""
