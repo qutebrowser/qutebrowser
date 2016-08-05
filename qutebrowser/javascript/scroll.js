@@ -17,7 +17,7 @@
  * along with qutebrowser.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-function scroll_to_perc(x, y) {
+function _qutebrowser_scroll_to_perc(x, y) {
     var elem = document.documentElement;
     var x_px = window.scrollX;
     var y_px = window.scrollY;
@@ -33,13 +33,13 @@ function scroll_to_perc(x, y) {
     window.scroll(x_px, y_px);
 }
 
-function scroll_delta_page(x, y) {
+function _qutebrowser_scroll_delta_page(x, y) {
     var dx = document.documentElement.clientWidth * x;
     var dy = document.documentElement.clientHeight * y;
     window.scrollBy(dx, dy);
 }
 
-function scroll_pos() {
+function _qutebrowser_scroll_pos() {
     var elem = document.documentElement;
     var dx = (elem.scrollWidth - elem.clientWidth);
     var dy = (elem.scrollHeight - elem.clientHeight);

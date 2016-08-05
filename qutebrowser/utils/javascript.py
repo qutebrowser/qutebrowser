@@ -64,7 +64,7 @@ def _convert_js_arg(arg):
 
 def assemble(name, function, *args):
     """Assemble a javascript file and a function call."""
-    code = "{code}\n{function}({args});".format(
+    code = "{code}\n_qutebrowser_{function}({args});".format(
         code=utils.read_file('javascript/{}.js'.format(name)),
         function=function,
         args=', '.join(_convert_js_arg(arg) for arg in args),
