@@ -240,7 +240,7 @@ def _get_command_doc_notes(cmd):
         Strings which should be added to the docs.
     """
     if (cmd.maxsplit is not None or cmd.no_cmd_split or
-            cmd.no_replace_variables):
+            cmd.no_replace_variables and cmd.name != "spawn"):
         yield ""
         yield "==== note"
         if cmd.maxsplit is not None:
@@ -249,7 +249,7 @@ def _get_command_doc_notes(cmd):
         if cmd.no_cmd_split:
             yield ("* With this command, +;;+ is interpreted literally "
                    "instead of splitting off a second command.")
-        if cmd.no_replace_variables:
+        if cmd.no_replace_variables and cmd.name != "spawn":
             yield r"* This command does not replace variables like +\{url\}+."
 
 

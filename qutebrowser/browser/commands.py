@@ -991,8 +991,9 @@ class CommandDispatcher:
         finally:
             self._tabbed_browser.setUpdatesEnabled(True)
 
-    @cmdutils.register(instance='command-dispatcher', scope='window')
-    def spawn(self, *cmdline, userscript=False, verbose=False, detach=False):
+    @cmdutils.register(instance='command-dispatcher', scope='window',
+                       maxsplit=0, no_replace_variables=True)
+    def spawn(self, cmdline, userscript=False, verbose=False, detach=False):
         """Spawn a command in a shell.
 
         Note the `{url}` and `{url:pretty}` variables might be useful here.
@@ -1011,7 +1012,14 @@ class CommandDispatcher:
             detach: Whether the command should be detached from qutebrowser.
             cmdline: The commandline to execute.
         """
-        cmd, *args = cmdline
+        try:
+            cmd, *args = shlex.split(cmdline)
+        except ValueError as e:
+            raise cmdexc.CommandError("Error while splitting command: "
+                                      "{}".format(e))
+
+        args = runners.replace_variables(self._win_id, args)
+
         log.procs.debug("Executing {} with args {}, userscript={}".format(
             cmd, args, userscript))
         if userscript:
