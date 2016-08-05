@@ -696,7 +696,7 @@ You can use the `{url}` and `{url:pretty}` variables here which will get replace
 
 [[spawn]]
 === spawn
-Syntax: +:spawn [*--userscript*] [*--verbose*] [*--detach*] 'cmdline'+
+Syntax: +:spawn [*--userscript*] [*--verbose*] [*--detach*] 'cmdline' ['cmdline' ...]+
 
 Spawn a command in a shell.
 
@@ -714,10 +714,6 @@ Note the `{url}` and `{url:pretty}` variables might be useful here. `{url}` gets
 
 * +*-v*+, +*--verbose*+: Show notifications when the command started/exited.
 * +*-d*+, +*--detach*+: Whether the command should be detached from qutebrowser.
-
-==== note
-* This command does not split arguments after the last argument and handles quotes literally.
-* This command does not replace variables like +\{url\}+.
 
 [[stop]]
 === stop
