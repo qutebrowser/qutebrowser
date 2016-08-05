@@ -53,14 +53,16 @@ class TestCommandRunner:
             with pytest.raises(cmdexc.NoSuchCommandError):
                 list(cr.parse_all("alias_name"))
 
-    def test_parse_empty_with_alias(self):
+    @pytest.mark.parametrize('command', ['', ' '])
+    def test_parse_empty_with_alias(self, command):
         """An empty command should not crash.
 
         See https://github.com/The-Compiler/qutebrowser/issues/1690
+        and https://github.com/The-Compiler/qutebrowser/issues/1773
         """
         cr = runners.CommandRunner(0)
         with pytest.raises(cmdexc.NoSuchCommandError):
-            list(cr.parse_all(''))
+            list(cr.parse_all(command))
 
     def test_parse_with_count(self):
         """Test parsing of commands with a count."""

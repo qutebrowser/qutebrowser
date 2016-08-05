@@ -119,7 +119,7 @@ class CommandRunner(QObject):
         Yields:
             ParseResult tuples.
         """
-        if not text:
+        if not text.strip():
             raise cmdexc.NoSuchCommandError("No command given")
 
         if aliases:
