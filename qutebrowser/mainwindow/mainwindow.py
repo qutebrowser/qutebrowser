@@ -346,9 +346,6 @@ class MainWindow(QWidget):
                                           Qt.DirectConnection)
 
         # statusbar
-        # FIXME some of these probably only should be triggered on mainframe
-        # loadStarted.
-        # https://github.com/The-Compiler/qutebrowser/issues/112
         tabs.current_tab_changed.connect(status.prog.on_tab_changed)
         tabs.cur_progress.connect(status.prog.setValue)
         tabs.cur_load_finished.connect(status.prog.hide)
