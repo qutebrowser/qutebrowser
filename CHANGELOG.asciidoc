@@ -45,6 +45,14 @@ Changed
 - `:download-open` and `:prompt-open-download` now have an optional `cmdline`
   argument to pass a commandline to open the download with.
 
+v0.8.3 (unreleased)
+-------------------
+
+Fixed
+~~~~~
+
+- Fixed crash when doing `:<space><enter>`, another corner-case introduced in v0.8.0
+
 v0.8.2
 ------
 
