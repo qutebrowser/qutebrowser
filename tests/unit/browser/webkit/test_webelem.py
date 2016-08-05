@@ -24,7 +24,7 @@ import collections.abc
 import operator
 import itertools
 
-from PyQt5.QtCore import QRect, QPoint
+from PyQt5.QtCore import QRect, QPoint, QUrl
 from PyQt5.QtWebKit import QWebElement
 import pytest
 
@@ -942,3 +942,19 @@ class TestIsEditable:
         stubbed_config.data['input']['insert-mode-on-plugins'] = setting
         elem = get_webelem(tagname=tagname, attributes=attributes)
         assert elem.is_editable() == editable
+
+
+@pytest.mark.parametrize('attributes, expected', [
+    # No attributes
+    ({}, None),
+    ({'href': 'foo'}, QUrl('http://www.example.com/foo')),
+    ({'src': 'foo'}, QUrl('http://www.example.com/foo')),
+    ({'href': 'foo', 'src': 'bar'}, QUrl('http://www.example.com/foo')),
+    ({'href': '::garbage::'}, None),
+    ({'href': 'http://www.example.org/'}, QUrl('http://www.example.org/')),
+    ({'href': '  foo  '}, QUrl('http://www.example.com/foo')),
+])
+def test_resolve_url(attributes, expected):
+    elem = get_webelem(attributes=attributes)
+    baseurl = QUrl('http://www.example.com/')
+    assert elem.resolve_url(baseurl) == expected

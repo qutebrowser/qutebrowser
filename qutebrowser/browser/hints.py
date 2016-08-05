@@ -58,32 +58,6 @@ def on_mode_entered(mode, win_id):
         modeman.maybe_leave(win_id, usertypes.KeyMode.hint, 'insert mode')
 
 
-def _resolve_url(elem, baseurl):
-    """Resolve a URL and check if we want to keep it.
-
-    Args:
-        elem: The QWebElement to get the URL of.
-        baseurl: The baseurl of the current tab.
-
-    Return:
-        A QUrl with the absolute URL, or None.
-    """
-    for attr in ['href', 'src']:
-        if attr in elem:
-            text = elem[attr].strip()
-            break
-    else:
-        return None
-
-    url = QUrl(text)
-    if not url.isValid():
-        return None
-    if url.isRelative():
-        url = baseurl.resolved(url)
-    qtutils.ensure_valid(url)
-    return url
-
-
 class HintContext:
 
     """Context namespace used for hinting.
@@ -274,7 +248,7 @@ class HintActions(QObject):
             elem: The QWebElement to download.
             _context: The HintContext to use.
         """
-        url = _resolve_url(elem, context.baseurl)
+        url = elem.resolve_url(context.baseurl)
         if url is None:
             raise HintingError
         if context.rapid:
@@ -301,7 +275,7 @@ class HintActions(QObject):
             'QUTE_SELECTED_TEXT': str(elem),
             'QUTE_SELECTED_HTML': elem.outer_xml(),
         }
-        url = _resolve_url(elem, context.baseurl)
+        url = elem.resolve_url(context.baseurl)
         if url is not None:
             env['QUTE_URL'] = url.toString(QUrl.FullyEncoded)
 
@@ -1012,7 +986,7 @@ class HintManager(QObject):
             handler = functools.partial(elem_handlers[self._context.target],
                                         elem, self._context)
         elif self._context.target in url_handlers:
-            url = _resolve_url(elem, self._context.baseurl)
+            url = elem.resolve_url(self._context.baseurl)
             if url is None:
                 self._show_url_error()
                 return

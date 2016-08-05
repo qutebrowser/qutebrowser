@@ -33,7 +33,7 @@ from PyQt5.QtCore import QRect, QUrl
 from PyQt5.QtWebKit import QWebElement
 
 from qutebrowser.config import config
-from qutebrowser.utils import log, usertypes, utils, javascript
+from qutebrowser.utils import log, usertypes, utils, javascript, qtutils
 
 
 Group = usertypes.enum('Group', ['all', 'links', 'images', 'url', 'prevnext',
@@ -499,6 +499,30 @@ class WebElementWrapper(collections.abc.MutableMapping):
         else:
             visible_in_frame = visible_on_screen
         return all([visible_on_screen, visible_in_frame])
+
+    def resolve_url(self, baseurl):
+        """Resolve the URL in the element's src/href attribute.
+
+        Args:
+            baseurl: The URL to base relative URLs on as QUrl.
+
+        Return:
+            A QUrl with the absolute URL, or None.
+        """
+        for attr in ['href', 'src']:
+            if attr in self:
+                text = self[attr].strip()
+                break
+        else:
+            return None
+
+        url = QUrl(text)
+        if not url.isValid():
+            return None
+        if url.isRelative():
+            url = baseurl.resolved(url)
+        qtutils.ensure_valid(url)
+        return url
 
 
 def get_child_frames(startframe):
