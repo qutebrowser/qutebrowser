@@ -57,7 +57,7 @@ class ExternalEditor(QObject):
             return
         try:
             if self._proc.exit_status() != QProcess.CrashExit:
-                os.unlink(self._file.name)
+                os.remove(self._file.name)
         except OSError as e:
             # NOTE: Do not replace this with "raise CommandError" as it's
             # executed async.
