@@ -818,7 +818,10 @@ class CommandDispatcher:
         force_search = False
         if not utils.supports_selection():
             sel = False
-        text = utils.get_clipboard(selection=sel)
+        try:
+            text = utils.get_clipboard(selection=sel)
+        except utils.ClipboardEmptyError as e:
+            raise cmdexc.CommandError(e)
         text_urls = [u for u in text.split('\n') if u.strip()]
         if (len(text_urls) > 1 and not urlutils.is_url(text_urls[0]) and
             urlutils.get_path_if_valid(
@@ -1462,9 +1465,12 @@ class CommandDispatcher:
             raise cmdexc.CommandError("Focused element is not editable!")
 
         try:
-            sel = utils.get_clipboard(selection=True)
-        except utils.SelectionUnsupportedError:
-            sel = utils.get_clipboard()
+            try:
+                sel = utils.get_clipboard(selection=True)
+            except utils.SelectionUnsupportedError:
+                sel = utils.get_clipboard()
+        except utils.ClipboardEmptyError:
+            return
 
         log.misc.debug("Pasting primary selection into element {}".format(
             elem.debug_text()))

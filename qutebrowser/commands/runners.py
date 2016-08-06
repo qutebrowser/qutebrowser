@@ -57,10 +57,13 @@ def replace_variables(win_id, arglist):
                                                     QUrl.RemovePassword)
     if '{url:pretty}' in arglist:
         pretty_url = _current_url(tabbed_browser).toString(QUrl.RemovePassword)
-    if '{clipboard}' in arglist:
-        clipboard = utils.get_clipboard()
-    if '{primary}' in arglist:
-        primary = utils.get_clipboard(selection=True)
+    try:
+        if '{clipboard}' in arglist:
+            clipboard = utils.get_clipboard()
+        if '{primary}' in arglist:
+            primary = utils.get_clipboard(selection=True)
+    except utils.ClipboardEmptyError as e:
+        raise cmdexc.CommandError(e)
     for arg in arglist:
         if arg == '{url}':
             args.append(url)

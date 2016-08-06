@@ -37,7 +37,6 @@ import pkg_resources
 
 import qutebrowser
 from qutebrowser.utils import qtutils, log
-from qutebrowser.commands import cmdexc
 
 
 fake_clipboard = None
@@ -47,6 +46,11 @@ log_clipboard = False
 class SelectionUnsupportedError(Exception):
 
     """Raised if [gs]et_clipboard is used and selection=True is unsupported."""
+
+
+class ClipboardEmptyError(Exception):
+
+    """Raised if get_clipboard is used and the clipboard is empty."""
 
 
 def elide(text, length):
@@ -813,7 +817,7 @@ def get_clipboard(selection=False):
 
     target = "Primary selection" if selection else "Clipboard"
     if not data.strip():
-        raise cmdexc.CommandError("{} is empty.".format(target))
+        raise ClipboardEmptyError("{} is empty.".format(target))
     log.misc.debug("{} contained: {!r}".format(target, data))
 
     return data

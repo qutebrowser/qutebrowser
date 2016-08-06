@@ -286,6 +286,10 @@ class TestKeyConfigParser:
                  'hint links fill :open {hint-url}'),
             ('hint links fill ":open -t {hint-url}"',
                 'hint links fill :open -t {hint-url}'),
+
+            ('paste', 'open {clipboard}'),
+            ('paste -t', 'open -t {clipboard}'),
+            ('paste -ws', 'open -w {primary}'),
         ]
     )
     def test_migrations(self, old, new_expected):

@@ -47,7 +47,8 @@ class MinimalLineEditMixin:
         if e.key() == Qt.Key_Insert and e.modifiers() == Qt.ShiftModifier:
             try:
                 text = utils.get_clipboard(selection=True)
-            except utils.SelectionUnsupportedError:
+            except (utils.SelectionUnsupportedError,
+                    utils.ClipboardEmptyError):
                 pass
             else:
                 e.accept()

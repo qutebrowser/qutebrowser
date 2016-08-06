@@ -1677,4 +1677,9 @@ CHANGED_KEY_COMMANDS = [
     (re.compile(r'^download-remove --all$'), r'download-clear'),
 
     (re.compile(r'^hint links fill "([^"]*)"$'), r'hint links fill \1'),
+
+    (re.compile(r'^paste$'), r'open {clipboard}'),
+    (re.compile(r'^paste -([twb])$'), r'open -\1 {clipboard}'),
+    (re.compile(r'^paste -([twb])s$'), r'open -\1 {primary}'),
+    (re.compile(r'^paste -s([twb])$'), r'open -\1 {primary}'),
 ]
