@@ -9,19 +9,19 @@ Feature: Searching on a page
 
     Scenario: Searching text
         When I run :search foo
-        And I run :yank-selected
+        And I run :yank selection
         Then the clipboard should contain "foo"
 
     Scenario: Searching twice
         When I run :search foo
         And I run :search bar
-        And I run :yank-selected
+        And I run :yank selection
         Then the clipboard should contain "Bar"
 
     Scenario: Searching with --reverse
         When I set general -> ignore-case to true
         And I run :search -r foo
-        And I run :yank-selected
+        And I run :yank selection
         Then the clipboard should contain "Foo"
 
     Scenario: Searching without matches
@@ -32,13 +32,13 @@ Feature: Searching on a page
     Scenario: Searching with / and spaces at the end (issue 874)
         When I run :set-cmd-text -s /space
         And I run :command-accept
-        And I run :yank-selected
+        And I run :yank selection
         Then the clipboard should contain "space "
 
     Scenario: Searching with / and slash in search term (issue 507)
         When I run :set-cmd-text -s //slash
         And I run :command-accept
-        And I run :yank-selected
+        And I run :yank selection
         Then the clipboard should contain "/slash"
 
     # This doesn't work because this is QtWebKit behavior.
@@ -52,25 +52,25 @@ Feature: Searching on a page
     Scenario: Searching text with ignore-case = true
         When I set general -> ignore-case to true
         And I run :search bar
-        And I run :yank-selected
+        And I run :yank selection
         Then the clipboard should contain "Bar"
 
     Scenario: Searching text with ignore-case = false
         When I set general -> ignore-case to false
         And I run :search bar
-        And I run :yank-selected
+        And I run :yank selection
         Then the clipboard should contain "bar"
 
     Scenario: Searching text with ignore-case = smart (lower-case)
         When I set general -> ignore-case to smart
         And I run :search bar
-        And I run :yank-selected
+        And I run :yank selection
         Then the clipboard should contain "Bar"
 
     Scenario: Searching text with ignore-case = smart (upper-case)
         When I set general -> ignore-case to smart
         And I run :search Foo
-        And I run :yank-selected
+        And I run :yank selection
         Then the clipboard should contain "Foo"  # even though foo was first
 
     ## :search-next
@@ -79,21 +79,21 @@ Feature: Searching on a page
         When I set general -> ignore-case to true
         And I run :search foo
         And I run :search-next
-        And I run :yank-selected
+        And I run :yank selection
         Then the clipboard should contain "Foo"
 
     Scenario: Jumping to next match with count
         When I set general -> ignore-case to true
         And I run :search baz
         And I run :search-next with count 2
-        And I run :yank-selected
+        And I run :yank selection
         Then the clipboard should contain "BAZ"
 
     Scenario: Jumping to next match with --reverse
         When I set general -> ignore-case to true
         And I run :search --reverse foo
         And I run :search-next
-        And I run :yank-selected
+        And I run :yank selection
         Then the clipboard should contain "foo"
 
     Scenario: Jumping to next match without search
@@ -107,7 +107,7 @@ Feature: Searching on a page
         And I run :search foo
         And I run :tab-prev
         And I run :search-next
-        And I run :yank-selected
+        And I run :yank selection
         Then the clipboard should contain "foo"
 
     ## :search-prev
@@ -117,7 +117,7 @@ Feature: Searching on a page
         And I run :search foo
         And I run :search-next
         And I run :search-prev
-        And I run :yank-selected
+        And I run :yank selection
         Then the clipboard should contain "foo"
 
     Scenario: Jumping to previous match with count
@@ -126,7 +126,7 @@ Feature: Searching on a page
         And I run :search-next
         And I run :search-next
         And I run :search-prev with count 2
-        And I run :yank-selected
+        And I run :yank selection
         Then the clipboard should contain "baz"
 
     Scenario: Jumping to previous match with --reverse
@@ -134,7 +134,7 @@ Feature: Searching on a page
         And I run :search --reverse foo
         And I run :search-next
         And I run :search-prev
-        And I run :yank-selected
+        And I run :yank selection
         Then the clipboard should contain "Foo"
 
     Scenario: Jumping to previous match without search
@@ -149,14 +149,14 @@ Feature: Searching on a page
         When I run :search foo
         And I run :search-next
         And I run :search-next
-        And I run :yank-selected
+        And I run :yank selection
         Then the clipboard should contain "foo"
 
     Scenario: Wrapping around page with --reverse
         When I run :search --reverse foo
         And I run :search-next
         And I run :search-next
-        And I run :yank-selected
+        And I run :yank selection
         Then the clipboard should contain "Foo"
 
     # TODO: wrapping message with scrolling
