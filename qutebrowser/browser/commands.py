@@ -816,11 +816,8 @@ class CommandDispatcher:
             window: Open in new window.
         """
         force_search = False
-        if sel and utils.supports_selection():
-            target = "Primary selection"
-        else:
+        if not utils.supports_selection():
             sel = False
-            target = "Clipboard"
         text = utils.get_clipboard(selection=sel)
         text_urls = [u for u in text.split('\n') if u.strip()]
         if (len(text_urls) > 1 and not urlutils.is_url(text_urls[0]) and
