@@ -112,7 +112,6 @@ def cmdutils_patch(monkeypatch, stubs):
         pass
 
     @cmdutils.argument('win_id', win_id=True)
-    @cmdutils.argument('key', completion=usertypes.Completion.empty)
     @cmdutils.argument('command', completion=usertypes.Completion.command)
     def bind(key, win_id, command=None, *, mode='normal', force=False):
         """docstring!"""
@@ -171,10 +170,10 @@ def _validate_cmd_prompt(cmd, txt):
     (':help |', usertypes.Completion.helptopic),
     (':help     |', usertypes.Completion.helptopic),
     (':open |', usertypes.Completion.url),
-    (':bind |', usertypes.Completion.empty),
+    (':bind |', None),
     (':bind <c-x> |', usertypes.Completion.command),
     (':bind <c-x> foo|', usertypes.Completion.command),
-    (':bind <c-x>| foo', usertypes.Completion.empty),
+    (':bind <c-x>| foo', None),
     (':set| general ', usertypes.Completion.command),
     (':|set general ', usertypes.Completion.command),
     (':set gene|ral ignore-case', usertypes.Completion.section),
