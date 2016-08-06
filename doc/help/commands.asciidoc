@@ -34,7 +34,6 @@
 |<<messages,messages>>|Show a log of past messages.
 |<<navigate,navigate>>|Open typical prev/next links or navigate using the URL path.
 |<<open,open>>|Open a URL in the current/[count]th tab.
-|<<paste,paste>>|Open a page from the clipboard.
 |<<print,print>>|Print the current/[count]th tab.
 |<<quickmark-add,quickmark-add>>|Add a new quickmark.
 |<<quickmark-del,quickmark-del>>|Delete a quickmark.
@@ -473,6 +472,8 @@ Syntax: +:open [*--implicit*] [*--bg*] [*--tab*] [*--window*] ['url']+
 
 Open a URL in the current/[count]th tab.
 
+If the URL contains newlines, each line gets opened in its own tab.
+
 ==== positional arguments
 * +'url'+: The URL to open.
 
@@ -488,20 +489,6 @@ The tab index to open the URL in.
 
 ==== note
 * This command does not split arguments after the last argument and handles quotes literally.
-
-[[paste]]
-=== paste
-Syntax: +:paste [*--sel*] [*--tab*] [*--bg*] [*--window*]+
-
-Open a page from the clipboard.
-
-If the pasted text contains newlines, each line gets opened in its own tab.
-
-==== optional arguments
-* +*-s*+, +*--sel*+: Use the primary selection instead of the clipboard.
-* +*-t*+, +*--tab*+: Open in a new tab.
-* +*-b*+, +*--bg*+: Open in a background tab.
-* +*-w*+, +*--window*+: Open in new window.
 
 [[print]]
 === print

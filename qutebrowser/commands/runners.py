@@ -26,7 +26,7 @@ from PyQt5.QtCore import pyqtSlot, QUrl, QObject
 
 from qutebrowser.config import config, configexc
 from qutebrowser.commands import cmdexc, cmdutils
-from qutebrowser.utils import message, objreg, qtutils
+from qutebrowser.utils import message, objreg, qtutils, utils
 from qutebrowser.misc import split
 
 
@@ -57,11 +57,19 @@ def replace_variables(win_id, arglist):
                                                     QUrl.RemovePassword)
     if '{url:pretty}' in arglist:
         pretty_url = _current_url(tabbed_browser).toString(QUrl.RemovePassword)
+    if '{clipboard}' in arglist:
+        clipboard = utils.get_clipboard()
+    if '{primary}' in arglist:
+        primary = utils.get_clipboard(selection=True)
     for arg in arglist:
         if arg == '{url}':
             args.append(url)
         elif arg == '{url:pretty}':
             args.append(pretty_url)
+        elif arg == '{clipboard}':
+            args.append(clipboard)
+        elif arg == '{primary}':
+            args.append(primary)
         else:
             args.append(arg)
     return args

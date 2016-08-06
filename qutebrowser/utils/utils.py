@@ -37,6 +37,7 @@ import pkg_resources
 
 import qutebrowser
 from qutebrowser.utils import qtutils, log
+from qutebrowser.commands import cmdexc
 
 
 fake_clipboard = None
@@ -809,6 +810,11 @@ def get_clipboard(selection=False):
     else:
         mode = QClipboard.Selection if selection else QClipboard.Clipboard
         data = QApplication.clipboard().text(mode=mode)
+
+    target = "Primary selection" if selection else "Clipboard"
+    if not data.strip():
+        raise cmdexc.CommandError("{} is empty.".format(target))
+    log.misc.debug("{} contained: {!r}".format(target, data))
 
     return data
 

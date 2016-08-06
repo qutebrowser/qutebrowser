@@ -236,6 +236,8 @@ class CommandDispatcher:
                 bg=False, tab=False, window=False, count=None):
         """Open a URL in the current/[count]th tab.
 
+        If the URL contains newlines, each line gets opened in its own tab.
+
         Args:
             url: The URL to open.
             bg: Open in a new background tab.
@@ -245,37 +247,60 @@ class CommandDispatcher:
                       clicking on a link).
             count: The tab index to open the URL in, or None.
         """
+        force_search = False
         if url is None:
             if tab or bg or window:
-                url = config.get('general', 'default-page')
+                urls = [config.get('general', 'default-page')]
             else:
                 raise cmdexc.CommandError("No URL given, but -t/-b/-w is not "
                                           "set!")
         else:
-            try:
-                url = objreg.get('quickmark-manager').get(url)
-            except urlmarks.Error:
-                try:
-                    url = urlutils.fuzzy_url(url)
-                except urlutils.InvalidUrlError as e:
-                    # We don't use cmdexc.CommandError here as this can be
-                    # called async from edit_url
-                    message.error(self._win_id, str(e))
-                    return
-        if tab or bg or window:
-            self._open(url, tab, bg, window, not implicit)
-        else:
-            curtab = self._cntwidget(count)
-            if curtab is None:
-                if count is None:
-                    # We want to open a URL in the current tab, but none exists
-                    # yet.
-                    self._tabbed_browser.tabopen(url)
-                else:
-                    # Explicit count with a tab that doesn't exist.
-                    return
+            urllist = [u for u in url.split('\n') if u.strip()]
+            if (len(urllist) > 1 and
+                    any(not urlutils.is_url(u) and
+                        urlutils.get_path_if_valid(u, check_exists=True)
+                        is None for u in urllist)):
+                urllist = [url]
+                force_search = True
+            urls = [x for x in [self._parse_url(u, force_search=force_search)
+                                for u in urllist] if x is not None]
+        for i, cur_url in enumerate(urls):
+            if not window and i > 0:
+                tab = False
+                bg = True
+            if tab or bg or window:
+                self._open(cur_url, tab, bg, window, not implicit)
             else:
-                curtab.openurl(url)
+                curtab = self._cntwidget(count)
+                if curtab is None:
+                    if count is None:
+                        # We want to open a URL in the current tab, but none
+                        # exists yet.
+                        self._tabbed_browser.tabopen(cur_url)
+                else:
+                    curtab.openurl(cur_url)
+
+    def _parse_url(self, url, force_search=False):
+        """Parse a URL or quickmark or search query.
+
+        Args:
+            url: The URL to parse.
+            force_search: Whether to force a search even if the content can be
+                          interpreted as a URL or a path.
+
+        Return:
+            A URL that can be opened."""
+        try:
+            return objreg.get('quickmark-manager').get(url)
+        except urlmarks.Error:
+            try:
+                return urlutils.fuzzy_url(url, force_search=force_search)
+            except urlutils.InvalidUrlError as e:
+                # We don't use cmdexc.CommandError here as this can be
+                # called async from edit_url
+                message.error(self._win_id, str(e))
+                return
+
 
     @cmdutils.register(instance='command-dispatcher', name='reload',
                        scope='window')
@@ -776,7 +801,8 @@ class CommandDispatcher:
         else:
             raise cmdexc.CommandError("Last tab")
 
-    @cmdutils.register(instance='command-dispatcher', scope='window')
+    @cmdutils.register(instance='command-dispatcher', scope='window',
+                       deprecated="Use :open {clipboard}")
     def paste(self, sel=False, tab=False, bg=False, window=False):
         """Open a page from the clipboard.
 
@@ -796,9 +822,6 @@ class CommandDispatcher:
             sel = False
             target = "Clipboard"
         text = utils.get_clipboard(selection=sel)
-        if not text.strip():
-            raise cmdexc.CommandError("{} is empty.".format(target))
-        log.misc.debug("{} contained: {!r}".format(target, text))
         text_urls = [u for u in text.split('\n') if u.strip()]
         if (len(text_urls) > 1 and not urlutils.is_url(text_urls[0]) and
             urlutils.get_path_if_valid(
