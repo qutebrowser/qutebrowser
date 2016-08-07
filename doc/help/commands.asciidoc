@@ -110,6 +110,7 @@ Bind a key to a command.
 ==== note
 * This command does not split arguments after the last argument and handles quotes literally.
 * With this command, +;;+ is interpreted literally instead of splitting off a second command.
+* This command does not replace variables like +\{url\}+.
 
 [[bookmark-add]]
 === bookmark-add
@@ -424,6 +425,7 @@ Execute a command after some time.
 ==== note
 * This command does not split arguments after the last argument and handles quotes literally.
 * With this command, +;;+ is interpreted literally instead of splitting off a second command.
+* This command does not replace variables like +\{url\}+.
 
 [[messages]]
 === messages
@@ -591,6 +593,7 @@ Repeat a given command.
 ==== note
 * This command does not split arguments after the last argument and handles quotes literally.
 * With this command, +;;+ is interpreted literally instead of splitting off a second command.
+* This command does not replace variables like +\{url\}+.
 
 [[report]]
 === report

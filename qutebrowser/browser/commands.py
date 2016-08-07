@@ -980,7 +980,7 @@ class CommandDispatcher:
             self._tabbed_browser.setUpdatesEnabled(True)
 
     @cmdutils.register(instance='command-dispatcher', scope='window',
-                       maxsplit=0)
+                       maxsplit=0, no_replace_variables=True)
     def spawn(self, cmdline, userscript=False, verbose=False, detach=False):
         """Spawn a command in a shell.
 
