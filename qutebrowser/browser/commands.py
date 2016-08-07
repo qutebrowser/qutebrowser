@@ -1431,6 +1431,19 @@ class CommandDispatcher:
                        needs_js=True, backend=usertypes.Backend.QtWebKit)
     def paste_primary(self):
         """Paste the primary selection at cursor position."""
+        try:
+            self.insert_text(utils.get_clipboard(selection=True))
+        except utils.SelectionUnsupportedError:
+            self.insert_text(utils.get_clipboard())
+
+    @cmdutils.register(instance='command-dispatcher', maxsplit=0,
+                       modes=[KeyMode.insert], hide=True, scope='window',
+                       needs_js=True, backend=usertypes.Backend.QtWebKit)
+    def insert_text(self, text):
+        """Insert text at cursor position.
+
+        Args:
+            text: The text to insert."""
         # FIXME:qtwebengine have a proper API for this
         tab = self._current_widget()
         page = tab._widget.page()  # pylint: disable=protected-access
@@ -1440,20 +1453,14 @@ class CommandDispatcher:
             raise cmdexc.CommandError("No element focused!")
         if not elem.is_editable(strict=True):
             raise cmdexc.CommandError("Focused element is not editable!")
-
-        try:
-            sel = utils.get_clipboard(selection=True)
-        except utils.SelectionUnsupportedError:
-            sel = utils.get_clipboard()
-
-        log.misc.debug("Pasting primary selection into element {}".format(
+        log.misc.debug("Inserting text into element {}".format(
             elem.debug_text()))
         elem.run_js_async("""
-            var sel = '{}';
+            var text = '{}';
             var event = document.createEvent('TextEvent');
-            event.initTextEvent('textInput', true, true, null, sel);
+            event.initTextEvent('textInput', true, true, null, text);
             this.dispatchEvent(event);
-        """.format(javascript.string_escape(sel)))
+        """.format(javascript.string_escape(text)))
 
     def _search_cb(self, found, *, tab, old_scroll_pos, options, text, prev):
         """Callback called from search/search_next/search_prev.
