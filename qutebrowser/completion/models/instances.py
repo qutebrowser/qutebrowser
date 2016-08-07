@@ -27,8 +27,7 @@ Module attributes:
 
 import functools
 
-from qutebrowser.completion.models import (miscmodels, urlmodel, configmodel,
-                                           base)
+from qutebrowser.completion.models import miscmodels, urlmodel, configmodel
 from qutebrowser.utils import objreg, usertypes, log, debug
 from qutebrowser.config import configdata
 
@@ -115,13 +114,6 @@ def init_session_completion():
     _instances[usertypes.Completion.sessions] = model
 
 
-def _init_empty_completion():
-    """Initialize empty completion model."""
-    log.completion.debug("Initializing empty completion.")
-    if usertypes.Completion.empty not in _instances:
-        _instances[usertypes.Completion.empty] = base.BaseCompletionModel()
-
-
 INITIALIZERS = {
     usertypes.Completion.command: _init_command_completion,
     usertypes.Completion.helptopic: _init_helptopic_completion,
@@ -133,7 +125,6 @@ INITIALIZERS = {
     usertypes.Completion.quickmark_by_name: init_quickmark_completions,
     usertypes.Completion.bookmark_by_url: init_bookmark_completions,
     usertypes.Completion.sessions: init_session_completion,
-    usertypes.Completion.empty: _init_empty_completion,
 }
 
 
