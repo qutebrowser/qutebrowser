@@ -1437,8 +1437,8 @@ class CommandDispatcher:
             self.insert_text(utils.get_clipboard())
 
     @cmdutils.register(instance='command-dispatcher', maxsplit=0,
-                       modes=[KeyMode.insert], hide=True, scope='window',
-                       needs_js=True, backend=usertypes.Backend.QtWebKit)
+                       scope='window', needs_js=True,
+                       backend=usertypes.Backend.QtWebKit)
     def insert_text(self, text):
         """Insert text at cursor position.
 
