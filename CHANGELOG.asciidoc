@@ -44,6 +44,14 @@ Changed
   (i.e. to open it at the position it would be opened if it was a clicked link)
 - `:download-open` and `:prompt-open-download` now have an optional `cmdline`
   argument to pass a commandline to open the download with.
+- `:yank` now has a position argument to select what to yank instead of using
+  flags.
+
+Removed
+~~~~~~~
+
+- The `:yank-selected` command got merged into `:yank` as `:yank selection`
+  and thus removed.
 
 v0.8.3 (unreleased)
 -------------------
