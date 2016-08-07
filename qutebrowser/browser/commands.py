@@ -653,9 +653,11 @@ class CommandDispatcher:
         elif what == 'selection':
             caret = self._current_widget().caret
             s = caret.selection()
-            if not caret.has_selection() or len(s) == 0:
+            if not caret.has_selection() or not s:
                 message.info(self._win_id, "Nothing to yank")
                 return
+        else:  # pragma: no cover
+            raise ValueError("Invalid value {!r} for `what'.".format(what))
 
         if sel and utils.supports_selection():
             target = "primary selection"
