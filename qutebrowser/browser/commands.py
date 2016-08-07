@@ -627,8 +627,15 @@ class CommandDispatcher:
 
         Args:
             what: What to yank.
+
+                - `url`: The current URL.
+                - `pretty-url`: The URL in pretty decoded form.
+                - `title`: The current page's title.
+                - `domain`: The current scheme, domain, and port number.
+                - `selection`: The selection under the cursor.
+
             sel: Use the primary selection instead of the clipboard.
-            keep: If given, stay in visual mode after yanking.
+            keep: Stay in visual mode after yanking the selection.
         """
         if what == 'title':
             s = self._tabbed_browser.page_title(self._current_index())
@@ -639,10 +646,10 @@ class CommandDispatcher:
                                    ':' + str(port) if port > -1 else '')
         elif what in ['url', 'pretty-url']:
             flags = QUrl.RemovePassword
-            if what == 'url': # Not pretty
+            if what == 'url':  # Not pretty
                 flags |= QUrl.FullyEncoded
             s = self._current_url().toString(flags)
-            what = 'URL' # For printing
+            what = 'URL'  # For printing
         elif what == 'selection':
             caret = self._current_widget().caret
             s = caret.selection()
