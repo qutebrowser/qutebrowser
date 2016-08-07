@@ -1678,6 +1678,12 @@ CHANGED_KEY_COMMANDS = [
 
     (re.compile(r'^hint links fill "([^"]*)"$'), r'hint links fill \1'),
 
+    (re.compile(r'^yank -t(\S+)'), r'yank title -\1'),
+    (re.compile(r'^yank -t'), r'yank title'),
+    (re.compile(r'^yank -d(\S+)'), r'yank domain -\1'),
+    (re.compile(r'^yank -d'), r'yank domain'),
+    (re.compile(r'^yank -p(\S+)'), r'yank pretty-url -\1'),
+    (re.compile(r'^yank -p'), r'yank pretty-url'),
     (re.compile(r'^yank-selected -p'), r'yank selection -s'),
     (re.compile(r'^yank-selected'), r'yank selection'),
 ]
