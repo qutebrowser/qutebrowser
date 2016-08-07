@@ -646,7 +646,7 @@ class CommandDispatcher:
                                    ':' + str(port) if port > -1 else '')
         elif what in ['url', 'pretty-url']:
             flags = QUrl.RemovePassword
-            if what != 'url-pretty':
+            if what != 'pretty-url':
                 flags |= QUrl.FullyEncoded
             s = self._current_url().toString(flags)
             what = 'URL'  # For printing
