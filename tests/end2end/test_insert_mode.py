@@ -54,7 +54,7 @@ def test_insert_mode(file_name, source, input_text, auto_insert, quteproc):
     quteproc.send_cmd(':enter-mode caret')
     quteproc.send_cmd(':toggle-selection')
     quteproc.send_cmd(':move-to-prev-word')
-    quteproc.send_cmd(':yank-selected')
+    quteproc.send_cmd(':yank selection')
 
     expected_message = '{} chars yanked to clipboard'.format(len(input_text))
     quteproc.mark_expected(category='message',

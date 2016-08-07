@@ -620,30 +620,44 @@ class CommandDispatcher:
                 "representation.")
 
     @cmdutils.register(instance='command-dispatcher', scope='window')
-    def yank(self, title=False, sel=False, domain=False, pretty=False):
-        """Yank the current URL/title to the clipboard or primary selection.
+    @cmdutils.argument('what', choices=['selection', 'url', 'pretty-url',
+                                        'title', 'domain'])
+    def yank(self, what='url', sel=False, keep=False):
+        """Yank something to the clipboard or primary selection.
 
         Args:
+            what: What to yank.
+
+                - `url`: The current URL.
+                - `pretty-url`: The URL in pretty decoded form.
+                - `title`: The current page's title.
+                - `domain`: The current scheme, domain, and port number.
+                - `selection`: The selection under the cursor.
+
             sel: Use the primary selection instead of the clipboard.
-            title: Yank the title instead of the URL.
-            domain: Yank only the scheme, domain, and port number.
-            pretty: Yank the URL in pretty decoded form.
+            keep: Stay in visual mode after yanking the selection.
         """
-        if title:
+        if what == 'title':
             s = self._tabbed_browser.page_title(self._current_index())
-            what = 'title'
-        elif domain:
+        elif what == 'domain':
             port = self._current_url().port()
             s = '{}://{}{}'.format(self._current_url().scheme(),
                                    self._current_url().host(),
                                    ':' + str(port) if port > -1 else '')
-            what = 'domain'
-        else:
+        elif what in ['url', 'pretty-url']:
             flags = QUrl.RemovePassword
-            if not pretty:
+            if what == 'url':  # Not pretty
                 flags |= QUrl.FullyEncoded
             s = self._current_url().toString(flags)
-            what = 'URL'
+            what = 'URL'  # For printing
+        elif what == 'selection':
+            caret = self._current_widget().caret
+            s = caret.selection()
+            if not caret.has_selection() or not s:
+                message.info(self._win_id, "Nothing to yank")
+                return
+        else:  # pragma: no cover
+            raise ValueError("Invalid value {!r} for `what'.".format(what))
 
         if sel and utils.supports_selection():
             target = "primary selection"
@@ -652,8 +666,15 @@ class CommandDispatcher:
             target = "clipboard"
 
         utils.set_clipboard(s, selection=sel)
-        message.info(self._win_id, "Yanked {} to {}: {}".format(
-                     what, target, s))
+        if what != 'selection':
+            message.info(self._win_id, "Yanked {} to {}: {}".format(
+                         what, target, s))
+        else:
+            message.info(self._win_id, "{} {} yanked to {}".format(
+                len(s), "char" if len(s) == 1 else "chars", target))
+            if not keep:
+                modeman.maybe_leave(self._win_id, KeyMode.caret,
+                                    "yank selected")
 
     @cmdutils.register(instance='command-dispatcher', scope='window')
     @cmdutils.argument('count', count=True)
@@ -1728,31 +1749,6 @@ class CommandDispatcher:
     def move_to_end_of_document(self):
         """Move the cursor or selection to the end of the document."""
         self._current_widget().caret.move_to_end_of_document()
-
-    @cmdutils.register(instance='command-dispatcher', scope='window')
-    def yank_selected(self, sel=False, keep=False):
-        """Yank the selected text to the clipboard or primary selection.
-
-        Args:
-            sel: Use the primary selection instead of the clipboard.
-            keep: If given, stay in visual mode after yanking.
-        """
-        caret = self._current_widget().caret
-        s = caret.selection()
-        if not caret.has_selection() or len(s) == 0:
-            message.info(self._win_id, "Nothing to yank")
-            return
-
-        if sel and utils.supports_selection():
-            target = "primary selection"
-        else:
-            sel = False
-            target = "clipboard"
-        utils.set_clipboard(s, sel)
-        message.info(self._win_id, "{} {} yanked to {}".format(
-            len(s), "char" if len(s) == 1 else "chars", target))
-        if not keep:
-            modeman.maybe_leave(self._win_id, KeyMode.caret, "yank selected")
 
     @cmdutils.register(instance='command-dispatcher', hide=True,
                        modes=[KeyMode.caret], scope='window')
