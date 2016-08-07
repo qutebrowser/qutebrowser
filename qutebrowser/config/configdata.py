@@ -1638,7 +1638,7 @@ KEY_DATA = collections.OrderedDict([
         ('move-to-end-of-line', ['$']),
         ('move-to-start-of-document', ['gg']),
         ('move-to-end-of-document', ['G']),
-        ('yank selection -p', ['Y']),
+        ('yank selection -s', ['Y']),
         ('yank selection', ['y'] + RETURN_KEYS),
         ('scroll left', ['H']),
         ('scroll down', ['J']),
@@ -1678,5 +1678,6 @@ CHANGED_KEY_COMMANDS = [
 
     (re.compile(r'^hint links fill "([^"]*)"$'), r'hint links fill \1'),
 
+    (re.compile(r'^yank-selected -p'), r'yank selection -s'),
     (re.compile(r'^yank-selected'), r'yank selection'),
 ]
