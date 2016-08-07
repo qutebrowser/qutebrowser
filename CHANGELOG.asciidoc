@@ -60,6 +60,7 @@ Fixed
 ~~~~~
 
 - Fixed crash when doing `:<space><enter>`, another corner-case introduced in v0.8.0
+- Fixed `:open-editor` (`<Ctrl-e>`) on Windows
 
 v0.8.2
 ------
