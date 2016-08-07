@@ -150,6 +150,8 @@ PERFECT_FILES = [
 
     ('tests/unit/completion/test_models.py',
         'qutebrowser/completion/models/base.py'),
+    ('tests/unit/completion/test_sortfilter.py',
+        'qutebrowser/completion/models/sortfilter.py'),
 
 ]
 
