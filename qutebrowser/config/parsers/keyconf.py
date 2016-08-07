@@ -150,9 +150,9 @@ class KeyConfigParser(QObject):
             data = str(self)
             f.write(data)
 
-    @cmdutils.register(instance='key-config', maxsplit=1, no_cmd_split=True)
+    @cmdutils.register(instance='key-config', maxsplit=1, no_cmd_split=True,
+                       no_replace_variables=True)
     @cmdutils.argument('win_id', win_id=True)
-    @cmdutils.argument('key', completion=usertypes.Completion.empty)
     @cmdutils.argument('command', completion=usertypes.Completion.command)
     def bind(self, key, win_id, command=None, *, mode='normal', force=False):
         """Bind a key to a command.
@@ -361,12 +361,12 @@ class KeyConfigParser(QObject):
             raise KeyConfigError("Got command '{}' without getting a "
                                  "section!".format(line))
         else:
-            self._validate_command(line)
             for rgx, repl in configdata.CHANGED_KEY_COMMANDS:
                 if rgx.match(line):
                     line = rgx.sub(repl, line)
                     self._mark_config_dirty()
                     break
+            self._validate_command(line)
             self._cur_command = line
 
     def _read_keybinding(self, line):

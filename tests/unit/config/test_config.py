@@ -287,6 +287,17 @@ class TestKeyConfigParser:
             ('hint links fill ":open -t {hint-url}"',
                 'hint links fill :open -t {hint-url}'),
 
+            ('yank-selected', 'yank selection'),
+            ('yank-selected --sel', 'yank selection --sel'),
+            ('yank-selected -p', 'yank selection -s'),
+
+            ('yank -t', 'yank title'),
+            ('yank -ts', 'yank title -s'),
+            ('yank -d', 'yank domain'),
+            ('yank -ds', 'yank domain -s'),
+            ('yank -p', 'yank pretty-url'),
+            ('yank -ps', 'yank pretty-url -s'),
+
             ('paste', 'open {clipboard}'),
             ('paste -t', 'open -t {clipboard}'),
             ('paste -ws', 'open -w {primary}'),

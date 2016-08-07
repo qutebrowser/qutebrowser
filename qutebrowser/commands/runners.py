@@ -52,29 +52,28 @@ def replace_variables(win_id, arglist):
     args = []
     tabbed_browser = objreg.get('tabbed-browser', scope='window',
                                 window=win_id)
-    if '{url}' in arglist:
+    if any('{url}' in arg for arg in arglist):
         url = _current_url(tabbed_browser).toString(QUrl.FullyEncoded |
                                                     QUrl.RemovePassword)
-    if '{url:pretty}' in arglist:
+    if any('{url:pretty}' in arg for arg in arglist):
         pretty_url = _current_url(tabbed_browser).toString(QUrl.RemovePassword)
     try:
-        if '{clipboard}' in arglist:
+        if any('{clipboard}' in arg for arg in arglist):
             clipboard = utils.get_clipboard()
-        if '{primary}' in arglist:
+        if any('{primary}' in arg for arg in arglist):
             primary = utils.get_clipboard(selection=True)
     except utils.ClipboardEmptyError as e:
         raise cmdexc.CommandError(e)
     for arg in arglist:
-        if arg == '{url}':
-            args.append(url)
-        elif arg == '{url:pretty}':
-            args.append(pretty_url)
-        elif arg == '{clipboard}':
-            args.append(clipboard)
-        elif arg == '{primary}':
-            args.append(primary)
-        else:
-            args.append(arg)
+        if '{url}' in arg:
+            arg = arg.replace('{url}', url)
+        if '{url:pretty}' in arg:
+            arg = arg.replace('{url:pretty}', pretty_url)
+        if '{clipboard}' in arg:
+            arg = arg.replace('{clipboard}', clipboard)
+        if '{primary}' in arg:
+            arg = arg.replace('{primary}', primary)
+        args.append(arg)
     return args
 
 
@@ -290,7 +289,10 @@ class CommandRunner(QObject):
                                       window=self._win_id)
             cur_mode = mode_manager.mode
 
-            args = replace_variables(self._win_id, result.args)
+            if result.cmd.no_replace_variables:
+                args = result.args
+            else:
+                args = replace_variables(self._win_id, result.args)
             if count is not None:
                 if result.count is not None:
                     raise cmdexc.CommandMetaError("Got count via command and "

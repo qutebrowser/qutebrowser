@@ -23,13 +23,13 @@ Feature: Yanking and pasting.
     Scenario: Yanking title to clipboard
         When I open data/title.html
         And I wait for regex "Changing title for idx \d to 'Test title'" in the log
-        And I run :yank --title
+        And I run :yank title
         Then the message "Yanked title to clipboard: Test title" should be shown
         And the clipboard should contain "Test title"
 
     Scenario: Yanking domain to clipboard
         When I open data/title.html
-        And I run :yank --domain
+        And I run :yank domain
         Then the message "Yanked domain to clipboard: http://localhost:(port)" should be shown
         And the clipboard should contain "http://localhost:(port)"
 
@@ -41,7 +41,7 @@ Feature: Yanking and pasting.
 
     Scenario: Yanking pretty decoded URL
         When I open data/title with spaces.html
-        And I run :yank --pretty
+        And I run :yank pretty-url
         Then the message "Yanked URL to clipboard: http://localhost:(port)/data/title with spaces.html" should be shown
         And the clipboard should contain "http://localhost:(port)/data/title with spaces.html"
 

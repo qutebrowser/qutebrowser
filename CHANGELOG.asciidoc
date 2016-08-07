@@ -44,6 +44,17 @@ Changed
   (i.e. to open it at the position it would be opened if it was a clicked link)
 - `:download-open` and `:prompt-open-download` now have an optional `cmdline`
   argument to pass a commandline to open the download with.
+- `:yank` now has a position argument to select what to yank instead of using
+  flags.
+- Replacements like `{url}` can now also be used in the middle of an argument.
+  Consequently, commands taking another command (`:later`, `:repeat` and
+  `:bind`) now don't immediately evaluate variables.
+
+Removed
+~~~~~~~
+
+- The `:yank-selected` command got merged into `:yank` as `:yank selection`
+  and thus removed.
 
 v0.8.3 (unreleased)
 -------------------
@@ -52,6 +63,7 @@ Fixed
 ~~~~~
 
 - Fixed crash when doing `:<space><enter>`, another corner-case introduced in v0.8.0
+- Fixed `:open-editor` (`<Ctrl-e>`) on Windows
 
 v0.8.2
 ------

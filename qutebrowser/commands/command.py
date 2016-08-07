@@ -75,13 +75,13 @@ class Command:
         deprecated: False, or a string to describe why a command is deprecated.
         desc: The description of the command.
         handler: The handler function to call.
-        completion: Completions to use for arguments, as a list of strings.
         debug: Whether this is a debugging command (only shown with --debug).
         parser: The ArgumentParser to use to parse this command.
         flags_with_args: A list of flags which take an argument.
         no_cmd_split: If true, ';;' to split sub-commands is ignored.
         backend: Which backend the command works with (or None if it works with
                  both)
+        no_replace_variables: Don't replace variables like {url}
         _qute_args: The saved data from @cmdutils.argument
         _needs_js: Whether the command needs javascript enabled
         _modes: The modes the command can be executed in.
@@ -95,7 +95,7 @@ class Command:
                  hide=False, modes=None, not_modes=None, needs_js=False,
                  debug=False, ignore_args=False, deprecated=False,
                  no_cmd_split=False, star_args_optional=False, scope='global',
-                 backend=None):
+                 backend=None, no_replace_variables=False):
         # I really don't know how to solve this in a better way, I tried.
         # pylint: disable=too-many-locals
         if modes is not None and not_modes is not None:
@@ -127,6 +127,7 @@ class Command:
         self.handler = handler
         self.no_cmd_split = no_cmd_split
         self.backend = backend
+        self.no_replace_variables = no_replace_variables
 
         self.docparser = docutils.DocstringParser(handler)
         self.parser = argparser.ArgumentParser(
@@ -148,13 +149,7 @@ class Command:
         self._qute_args = getattr(self.handler, 'qute_args', {})
         self.handler.qute_args = None
 
-        args = self._inspect_func()
-
-        self.completion = []
-        for arg in args:
-            arg_completion = self.get_arg_info(arg).completion
-            if arg_completion is not None:
-                self.completion.append(arg_completion)
+        self._inspect_func()
 
     def _check_prerequisites(self, win_id):
         """Check if the command is permitted to run currently.
@@ -207,6 +202,11 @@ class Command:
     def get_arg_info(self, param):
         """Get an ArgInfo tuple for the given inspect.Parameter."""
         return self._qute_args.get(param.name, ArgInfo())
+
+    def get_pos_arg_info(self, pos):
+        """Get an ArgInfo tuple for the given positional parameter."""
+        name = self.pos_args[pos][0]
+        return self._qute_args.get(name, ArgInfo())
 
     def _inspect_special_param(self, param):
         """Check if the given parameter is a special one.

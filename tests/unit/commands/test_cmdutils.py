@@ -291,6 +291,21 @@ class TestRegister:
         else:
             assert cmd._get_call_args(win_id=0) == ([expected], {})
 
+    def test_pos_arg_info(self):
+        @cmdutils.register()
+        @cmdutils.argument('foo', choices=('a', 'b'))
+        @cmdutils.argument('bar', choices=('x', 'y'))
+        @cmdutils.argument('opt')
+        def fun(foo, bar, opt=False):
+            """Blah."""
+            pass
+
+        cmd = cmdutils.cmd_dict['fun']
+        assert cmd.get_pos_arg_info(0) == command.ArgInfo(choices=('a', 'b'))
+        assert cmd.get_pos_arg_info(1) == command.ArgInfo(choices=('x', 'y'))
+        with pytest.raises(IndexError):
+            cmd.get_pos_arg_info(2)
+
 
 class TestArgument:
 

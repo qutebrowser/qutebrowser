@@ -150,12 +150,14 @@ PERFECT_FILES = [
 
     ('tests/unit/completion/test_models.py',
         'qutebrowser/completion/models/base.py'),
+    ('tests/unit/completion/test_sortfilter.py',
+        'qutebrowser/completion/models/sortfilter.py'),
 
 ]
 
 
 # 100% coverage because of end2end tests, but no perfect unit tests yet.
-WHITELISTED_FILES = []
+WHITELISTED_FILES = ['qutebrowser/browser/webkit/webkitinspector.py']
 
 
 class Skipped(Exception):
