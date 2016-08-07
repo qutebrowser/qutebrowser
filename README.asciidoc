@@ -146,10 +146,10 @@ Contributors, sorted by the number of commits in descending order:
 * Lamar Pavel
 * Bruno Oliveira
 * Alexander Cogneau
+* Marshall Lochbaum
 * Felix Van der Jeugt
 * Jakub Klinkovský
 * Martin Tournoij
-* Marshall Lochbaum
 * Raphael Pierzina
 * Joel Torstensson
 * Jan Verbeek

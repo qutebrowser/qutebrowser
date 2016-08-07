@@ -66,8 +66,7 @@
 |<<undo,undo>>|Re-open a closed tab (optionally skipping [count] closed tabs).
 |<<view-source,view-source>>|Show the source of the current page.
 |<<wq,wq>>|Save open pages and quit.
-|<<yank,yank>>|Yank the current URL/title to the clipboard or primary selection.
-|<<yank-selected,yank-selected>>|Yank the selected text to the clipboard or primary selection.
+|<<yank,yank>>|Yank something to the clipboard or primary selection.
 |<<zoom,zoom>>|Set the zoom level for the current tab.
 |<<zoom-in,zoom-in>>|Increase the zoom level for the current tab.
 |<<zoom-out,zoom-out>>|Decrease the zoom level for the current tab.
@@ -853,25 +852,25 @@ Save open pages and quit.
 
 [[yank]]
 === yank
-Syntax: +:yank [*--title*] [*--sel*] [*--domain*] [*--pretty*]+
+Syntax: +:yank [*--sel*] [*--keep*] ['what']+
 
-Yank the current URL/title to the clipboard or primary selection.
+Yank something to the clipboard or primary selection.
+
+==== positional arguments
+* +'what'+: What to yank. 
+
+ - `url`: The current URL.
+ - `pretty-url`: The URL in pretty decoded form.
+ - `title`: The current page's title.
+ - `domain`: The current scheme, domain, and port number.
+ - `selection`: The selection under the cursor.
+ 
+
+
 
 ==== optional arguments
-* +*-t*+, +*--title*+: Yank the title instead of the URL.
 * +*-s*+, +*--sel*+: Use the primary selection instead of the clipboard.
-* +*-d*+, +*--domain*+: Yank only the scheme, domain, and port number.
-* +*-p*+, +*--pretty*+: Yank the URL in pretty decoded form.
-
-[[yank-selected]]
-=== yank-selected
-Syntax: +:yank-selected [*--sel*] [*--keep*]+
-
-Yank the selected text to the clipboard or primary selection.
-
-==== optional arguments
-* +*-s*+, +*--sel*+: Use the primary selection instead of the clipboard.
-* +*-k*+, +*--keep*+: If given, stay in visual mode after yanking.
+* +*-k*+, +*--keep*+: Stay in visual mode after yanking the selection.
 
 [[zoom]]
 === zoom
