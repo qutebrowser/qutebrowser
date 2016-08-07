@@ -361,12 +361,12 @@ class KeyConfigParser(QObject):
             raise KeyConfigError("Got command '{}' without getting a "
                                  "section!".format(line))
         else:
-            self._validate_command(line)
             for rgx, repl in configdata.CHANGED_KEY_COMMANDS:
                 if rgx.match(line):
                     line = rgx.sub(repl, line)
                     self._mark_config_dirty()
                     break
+            self._validate_command(line)
             self._cur_command = line
 
     def _read_keybinding(self, line):
