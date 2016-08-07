@@ -75,7 +75,6 @@ class Command:
         deprecated: False, or a string to describe why a command is deprecated.
         desc: The description of the command.
         handler: The handler function to call.
-        completion: Completions to use for arguments, as a list of strings.
         debug: Whether this is a debugging command (only shown with --debug).
         parser: The ArgumentParser to use to parse this command.
         flags_with_args: A list of flags which take an argument.
@@ -148,13 +147,7 @@ class Command:
         self._qute_args = getattr(self.handler, 'qute_args', {})
         self.handler.qute_args = None
 
-        args = self._inspect_func()
-
-        self.completion = []
-        for arg in args:
-            arg_completion = self.get_arg_info(arg).completion
-            if arg_completion is not None:
-                self.completion.append(arg_completion)
+        self._inspect_func()
 
     def _check_prerequisites(self, win_id):
         """Check if the command is permitted to run currently.
@@ -207,6 +200,11 @@ class Command:
     def get_arg_info(self, param):
         """Get an ArgInfo tuple for the given inspect.Parameter."""
         return self._qute_args.get(param.name, ArgInfo())
+
+    def get_pos_arg_info(self, pos):
+        """Get an ArgInfo tuple for the given positional parameter."""
+        name = self.pos_args[pos][0]
+        return self._qute_args.get(name, ArgInfo())
 
     def _inspect_special_param(self, param):
         """Check if the given parameter is a special one.
