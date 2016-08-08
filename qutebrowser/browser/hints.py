@@ -1027,9 +1027,9 @@ class WordHinter:
         }
 
         extractable_attrs = collections.defaultdict(list, {
-            "IMG": ["alt", "title", "src"],
-            "A": ["title", "href", "text"],
-            "INPUT": ["name"]
+            "img": ["alt", "title", "src"],
+            "a": ["title", "href", "text"],
+            "input": ["name"]
         })
 
         return (attr_extractors[attr](elem)
