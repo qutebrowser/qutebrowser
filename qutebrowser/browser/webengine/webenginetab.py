@@ -95,7 +95,7 @@ class WebEngineSearch(browsertab.AbstractSearch):
             flags &= ~QWebEnginePage.FindBackward
         else:
             flags |= QWebEnginePage.FindBackward
-        self._find(self.text, self._flags, result_cb)
+        self._find(self.text, flags, result_cb)
 
     def next_result(self, *, result_cb=None):
         self._find(self.text, self._flags, result_cb)
