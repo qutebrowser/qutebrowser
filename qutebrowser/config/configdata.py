@@ -488,13 +488,13 @@ def data(readonly=False):
         ('input', sect.KeyValue(
             ('timeout',
              SettingValue(typ.Int(minval=0, maxval=MAXVALS['int']), '500'),
-             "Timeout for ambiguous key bindings.\n\n"
+             "Timeout (in milliseconds) for ambiguous key bindings.\n\n"
              "If the current input forms both a complete match and a partial "
              "match, the complete match will be executed after this time."),
 
             ('partial-timeout',
              SettingValue(typ.Int(minval=0, maxval=MAXVALS['int']), '5000'),
-             "Timeout for partially typed key bindings.\n\n"
+             "Timeout (in milliseconds) for partially typed key bindings.\n\n"
              "If the current input forms only partial matches, the keystring "
              "will be cleared after this time."),
 
@@ -933,8 +933,8 @@ def data(readonly=False):
 
             ('auto-follow-timeout',
              SettingValue(typ.Int(), '0'),
-             "A timeout to inhibit normal-mode key bindings after a successful"
-             "auto-follow."),
+             "A timeout (in milliseconds) to inhibit normal-mode key bindings "
+             "after a successful auto-follow."),
 
             ('next-regexes',
              SettingValue(typ.List(typ.Regex(flags=re.IGNORECASE)),
