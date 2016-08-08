@@ -49,6 +49,8 @@ Changed
 - Replacements like `{url}` can now also be used in the middle of an argument.
   Consequently, commands taking another command (`:later`, `:repeat` and
   `:bind`) now don't immediately evaluate variables.
+- Tab titles in the `:buffer` completion now update correctly when a page's
+  title is changed via javascript.
 
 Removed
 ~~~~~~~

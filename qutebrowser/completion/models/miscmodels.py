@@ -174,6 +174,7 @@ class TabCompletionModel(base.BaseCompletionModel):
             for i in range(tabbed_browser.count()):
                 tab = tabbed_browser.widget(i)
                 tab.url_changed.connect(self.rebuild)
+                tab.title_changed.connect(self.rebuild)
                 tab.shutting_down.connect(self.delayed_rebuild)
             tabbed_browser.new_tab.connect(self.on_new_tab)
         objreg.get("app").new_window.connect(self.on_new_window)
@@ -187,6 +188,7 @@ class TabCompletionModel(base.BaseCompletionModel):
     def on_new_tab(self, tab):
         """Add hooks to new tabs."""
         tab.url_changed.connect(self.rebuild)
+        tab.title_changed.connect(self.rebuild)
         tab.shutting_down.connect(self.delayed_rebuild)
         self.rebuild()
 
