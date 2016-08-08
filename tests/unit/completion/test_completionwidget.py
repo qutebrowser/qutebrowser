@@ -34,8 +34,7 @@ def completionview(qtbot, status_command_stub, config_stub, win_registry,
     """Create the CompletionView used for testing."""
     config_stub.data = {
         'completion': {
-            'show': True,
-            'auto-open': True,
+            'show': 'always',
             'scrollbar-width': 12,
             'scrollbar-padding': 2,
             'shrink': False,

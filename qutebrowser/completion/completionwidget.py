@@ -200,7 +200,7 @@ class CompletionView(QTreeView):
         selmodel.setCurrentIndex(
             idx, QItemSelectionModel.ClearAndSelect | QItemSelectionModel.Rows)
 
-        if config.get('completion', 'show'):
+        if config.get('completion', 'show') == 'auto':
             self.show()
 
     def set_model(self, model):
@@ -227,8 +227,7 @@ class CompletionView(QTreeView):
         if old_model is not None:
             old_model.deleteLater()
 
-        if (config.get('completion', 'auto-open') and
-                config.get('completion', 'show')):
+        if config.get('completion', 'show') == 'always':
             self.show()
         else:
             self.hide()

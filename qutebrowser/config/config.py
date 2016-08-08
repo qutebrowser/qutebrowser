@@ -351,6 +351,7 @@ class ConfigManager(QObject):
         ('tabs', 'hide-always'),
         ('ui', 'display-statusbar-messages'),
         ('general', 'wrap-search'),
+        ('completion', 'auto-open'),
     ]
     CHANGED_OPTIONS = {
         ('content', 'cookies-accept'):
@@ -363,6 +364,8 @@ class ConfigManager(QObject):
             _get_value_transformer({'false': 'none', 'true': 'debug'}),
         ('ui', 'keyhint-blacklist'):
             _get_value_transformer({'false': '*', 'true': ''}),
+        ('completion', 'show'):
+            _get_value_transformer({'false': 'never', 'true': 'always'}),
     }
 
     changed = pyqtSignal(str, str)
