@@ -28,12 +28,11 @@ from string import ascii_lowercase
 from PyQt5.QtCore import (pyqtSignal, pyqtSlot, QObject, QEvent, Qt, QUrl,
                           QTimer)
 from PyQt5.QtGui import QMouseEvent
-from PyQt5.QtWebKit import QWebElement
 from PyQt5.QtWebKitWidgets import QWebPage
 
 from qutebrowser.config import config
 from qutebrowser.keyinput import modeman, modeparsers
-from qutebrowser.browser.webkit import webelem
+from qutebrowser.browser import webelem
 from qutebrowser.commands import userscripts, cmdexc, cmdutils, runners
 from qutebrowser.utils import usertypes, log, qtutils, message, objreg, utils
 
@@ -374,7 +373,7 @@ class HintManager(QObject):
         for elem in self._context.all_elems:
             try:
                 elem.label.remove_from_document()
-            except webelem.IsNullError:
+            except webelem.Error:
                 pass
         text = self._get_text()
         message_bridge = objreg.get('message-bridge', scope='window',
@@ -516,7 +515,7 @@ class HintManager(QObject):
 
     def _is_hidden(self, elem):
         """Check if the element is hidden via display=none."""
-        display = elem.style_property('display', QWebElement.InlineStyle)
+        display = elem.style_property('display', strategy='inline')
         return display == 'none'
 
     def _show_elem(self, elem):
@@ -767,7 +766,7 @@ class HintManager(QObject):
                 else:
                     # element doesn't match anymore -> hide it
                     self._hide_elem(elem.label)
-            except webelem.IsNullError:
+            except webelem.Error:
                 pass
 
     def _filter_number_hints(self):
@@ -782,7 +781,7 @@ class HintManager(QObject):
             try:
                 if not self._is_hidden(e.label):
                     elems.append(e)
-            except webelem.IsNullError:
+            except webelem.Error:
                 pass
         if not elems:
             # Whoops, filtered all hints
@@ -813,7 +812,7 @@ class HintManager(QObject):
             try:
                 if not self._is_hidden(elem.label):
                     visible[string] = elem
-            except webelem.IsNullError:
+            except webelem.Error:
                 pass
         if not visible:
             # Whoops, filtered all hints
@@ -844,7 +843,7 @@ class HintManager(QObject):
                 else:
                     # element doesn't match anymore -> hide it
                     self._hide_elem(elem.label)
-            except webelem.IsNullError:
+            except webelem.Error:
                 pass
 
         if config.get('hints', 'mode') == 'number':
@@ -961,7 +960,7 @@ class HintManager(QObject):
                     e.label.remove_from_document()
                     continue
                 self._set_style_position(e.elem, e.label)
-            except webelem.IsNullError:
+            except webelem.Error:
                 pass
 
     @pyqtSlot(usertypes.KeyMode)

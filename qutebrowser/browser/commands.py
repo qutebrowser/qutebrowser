@@ -40,7 +40,7 @@ import pygments.formatters
 from qutebrowser.commands import userscripts, cmdexc, cmdutils, runners
 from qutebrowser.config import config, configexc
 from qutebrowser.browser import urlmarks, browsertab, inspector, navigate
-from qutebrowser.browser.webkit import webelem, downloads, mhtml
+from qutebrowser.browser.webkit import webkitelem, downloads, mhtml
 from qutebrowser.keyinput import modeman
 from qutebrowser.utils import (message, usertypes, log, qtutils, urlutils,
                                objreg, utils, typing, javascript)
@@ -1422,8 +1422,8 @@ class CommandDispatcher:
         tab = self._current_widget()
         page = tab._widget.page()  # pylint: disable=protected-access
         try:
-            elem = webelem.focus_elem(page.currentFrame())
-        except webelem.IsNullError:
+            elem = webkitelem.focus_elem(page.currentFrame())
+        except webkitelem.IsNullError:
             raise cmdexc.CommandError("No element focused!")
         if not elem.is_editable(strict=True):
             raise cmdexc.CommandError("Focused element is not editable!")
@@ -1444,7 +1444,7 @@ class CommandDispatcher:
         """
         try:
             elem.set_text(text, use_js=True)
-        except webelem.IsNullError:
+        except webkitelem.IsNullError:
             raise cmdexc.CommandError("Element vanished while editing!")
 
     @cmdutils.register(instance='command-dispatcher',
@@ -1456,8 +1456,8 @@ class CommandDispatcher:
         tab = self._current_widget()
         page = tab._widget.page()  # pylint: disable=protected-access
         try:
-            elem = webelem.focus_elem(page.currentFrame())
-        except webelem.IsNullError:
+            elem = webkitelem.focus_elem(page.currentFrame())
+        except webkitelem.IsNullError:
             raise cmdexc.CommandError("No element focused!")
         if not elem.is_editable(strict=True):
             raise cmdexc.CommandError("Focused element is not editable!")

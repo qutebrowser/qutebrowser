@@ -21,7 +21,7 @@
 
 import posixpath
 
-from qutebrowser.browser.webkit import webelem
+from qutebrowser.browser import webelem
 from qutebrowser.config import config
 from qutebrowser.utils import (usertypes, objreg, urlutils, log, message,
                                qtutils)
