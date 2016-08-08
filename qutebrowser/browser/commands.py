@@ -439,8 +439,7 @@ class CommandDispatcher:
         """
         self._back_forward(tab, bg, window, count, forward=True)
 
-    @cmdutils.register(instance='command-dispatcher', scope='window',
-                       backend=usertypes.Backend.QtWebKit)
+    @cmdutils.register(instance='command-dispatcher', scope='window')
     @cmdutils.argument('where', choices=['prev', 'next', 'up', 'increment',
                                          'decrement'])
     def navigate(self, where: str, tab=False, bg=False, window=False):
