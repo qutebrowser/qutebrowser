@@ -50,10 +50,6 @@ class WebKitElement(webelem.AbstractWebElement):
             return NotImplemented
         return self._elem == other._elem  # pylint: disable=protected-access
 
-    def __str__(self):
-        self._check_vanished()
-        return self._elem.toPlainText()
-
     def __getitem__(self, key):
         self._check_vanished()
         if key not in self:

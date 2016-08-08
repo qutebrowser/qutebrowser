@@ -79,7 +79,7 @@ class AbstractWebElement(collections.abc.MutableMapping):
         raise NotImplementedError
 
     def __str__(self):
-        raise NotImplementedError
+        return self.text()
 
     def __getitem__(self, key):
         raise NotImplementedError
@@ -88,9 +88,6 @@ class AbstractWebElement(collections.abc.MutableMapping):
         raise NotImplementedError
 
     def __delitem__(self, key):
-        raise NotImplementedError
-
-    def __contains__(self, key):
         raise NotImplementedError
 
     def __iter__(self):
