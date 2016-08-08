@@ -1415,8 +1415,7 @@ KEY_SECTION_DESC = {
         "Useful hidden commands to map in this section:\n\n"
         " * `command-history-prev`: Switch to previous command in history.\n"
         " * `command-history-next`: Switch to next command in history.\n"
-        " * `completion-item-prev`: Select previous item in completion.\n"
-        " * `completion-item-next`: Select next item in completion.\n"
+        " * `completion-item-focus`: Select another item in completion.\n"
         " * `command-accept`: Execute the command currently in the "
         "commandline."),
     'prompt': (
@@ -1589,8 +1588,8 @@ KEY_DATA = collections.OrderedDict([
     ('command', collections.OrderedDict([
         ('command-history-prev', ['<Ctrl-P>']),
         ('command-history-next', ['<Ctrl-N>']),
-        ('completion-item-prev', ['<Shift-Tab>', '<Up>']),
-        ('completion-item-next', ['<Tab>', '<Down>']),
+        ('completion-item-focus prev', ['<Shift-Tab>', '<Up>']),
+        ('completion-item-focus next', ['<Tab>', '<Down>']),
         ('completion-item-del', ['<Ctrl-D>']),
         ('command-accept', RETURN_KEYS),
     ])),
@@ -1686,4 +1685,7 @@ CHANGED_KEY_COMMANDS = [
     (re.compile(r'^yank -p'), r'yank pretty-url'),
     (re.compile(r'^yank-selected -p'), r'yank selection -s'),
     (re.compile(r'^yank-selected'), r'yank selection'),
+
+    (re.compile(r'^completion-item-next'), r'completion-item-focus next'),
+    (re.compile(r'^completion-item-prev'), r'completion-item-focus prev'),
 ]
