@@ -188,7 +188,7 @@ class SelectionAndFilterTests:
                                            webelem.Group.url]),
     ]
 
-    GROUPS = [e for e in webelem.Group if e != webelem.Group.focus]
+    GROUPS = list(webelem.Group)
 
     COMBINATIONS = list(itertools.product(TESTS, GROUPS))
 

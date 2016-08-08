@@ -353,5 +353,5 @@ def focus_elem(frame):
     Args:
         frame: The QWebFrame to search in.
     """
-    elem = frame.findFirstElement(webelem.SELECTORS[webelem.Group.focus])
+    elem = frame.findFirstElement('*:focus')
     return WebKitElement(elem)

@@ -36,7 +36,7 @@ from qutebrowser.utils import log, usertypes, utils, qtutils
 
 
 Group = usertypes.enum('Group', ['all', 'links', 'images', 'url', 'prevnext',
-                                 'focus', 'inputs'])
+                                 'inputs'])
 
 
 SELECTORS = {
@@ -47,7 +47,6 @@ SELECTORS = {
     Group.images: 'img',
     Group.url: '[src], [href]',
     Group.prevnext: 'a, area, button, link, [role=button]',
-    Group.focus: '*:focus',
     Group.inputs: ('input[type=text], input[type=email], input[type=url], '
                    'input[type=tel], input[type=number], '
                    'input[type=password], input[type=search], '

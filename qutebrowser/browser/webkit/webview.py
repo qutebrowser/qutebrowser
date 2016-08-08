@@ -325,7 +325,7 @@ class WebView(QWebView):
             return
         frame = self.page().currentFrame()
         try:
-            elem = webkitelem.WebKitElement(frame.findFirstElement(':focus'))
+            elem = webkitelem.focus_elem(frame)
         except webkitelem.IsNullError:
             log.webview.debug("Focused element is null!")
             return
