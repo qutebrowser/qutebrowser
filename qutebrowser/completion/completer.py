@@ -46,7 +46,6 @@ class Completer(QObject):
         super().__init__(parent)
         self._win_id = win_id
         self._cmd = cmd
-        self._signals_connected = False
         self._ignore_change = False
         self._empty_item_idx = None
         self._timer = QTimer()
