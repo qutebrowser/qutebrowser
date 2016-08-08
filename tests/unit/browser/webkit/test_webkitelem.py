@@ -402,7 +402,6 @@ class TestWebKitElement:
         ('webFrame', lambda e: e.frame()),
         ('geometry', lambda e: e.geometry()),
         ('toOuterXml', lambda e: e.outer_xml()),
-        ('tagName', lambda e: e.tag_name()),
     ])
     def test_simple_getters(self, elem, attribute, code):
         sentinel = object()
@@ -420,6 +419,10 @@ class TestWebKitElement:
         code(elem)
         mock = getattr(elem._elem, method)
         mock.assert_called_with(*args)
+
+    def test_tag_name(self, elem):
+        elem._elem.tagName.return_value = 'SPAN'
+        assert elem.tag_name() == 'span'
 
     def test_style_property(self, elem):
         assert elem.style_property('foo', strategy='computed') == 'bar'
