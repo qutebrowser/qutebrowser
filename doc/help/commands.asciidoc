@@ -997,7 +997,7 @@ Syntax: +:completion-item-focus 'which'+
 Shift the focus of the completion menu to another item.
 
 ==== positional arguments
-* +'which'+: 'next' or 'previous'
+* +'which'+: 'next' or 'prev'
 
 [[drop-selection]]
 === drop-selection
