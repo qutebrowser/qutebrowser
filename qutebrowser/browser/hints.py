@@ -1021,6 +1021,7 @@ class WordHinter:
             "alt": lambda elem: elem["alt"],
             "name": lambda elem: elem["name"],
             "title": lambda elem: elem["title"],
+            "placeholder": lambda elem: elem["placeholder"],
             "src": lambda elem: elem["src"].split('/')[-1],
             "href": lambda elem: elem["href"].split('/')[-1],
             "text": str,
@@ -1029,7 +1030,7 @@ class WordHinter:
         extractable_attrs = collections.defaultdict(list, {
             "img": ["alt", "title", "src"],
             "a": ["title", "href", "text"],
-            "input": ["name"]
+            "input": ["name", "placeholder"]
         })
 
         return (attr_extractors[attr](elem)
