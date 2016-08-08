@@ -60,7 +60,7 @@ PERFECT_FILES = [
     ('tests/unit/browser/webkit/http/test_content_disposition.py',
         'qutebrowser/browser/webkit/rfc6266.py'),
     ('tests/unit/browser/webkit/test_webelem.py',
-        'qutebrowser/browser/webkit/webkitwebelem.py'),
+        'qutebrowser/browser/webkit/webkitelem.py'),
     ('tests/unit/browser/webkit/test_webelem.py',
         'qutebrowser/browser/webelem.py'),
     ('tests/unit/browser/webkit/network/test_schemehandler.py',
