@@ -914,8 +914,7 @@ How many steps to zoom out.
 |<<command-history-next,command-history-next>>|Go forward in the commandline history.
 |<<command-history-prev,command-history-prev>>|Go back in the commandline history.
 |<<completion-item-del,completion-item-del>>|Delete the current completion item.
-|<<completion-item-next,completion-item-next>>|Select the next completion item.
-|<<completion-item-prev,completion-item-prev>>|Select the previous completion item.
+|<<completion-item-focus,completion-item-focus>>|Shift the focus of the completion menu to another item.
 |<<drop-selection,drop-selection>>|Drop selection and keep selection mode enabled.
 |<<enter-mode,enter-mode>>|Enter a key mode.
 |<<follow-hint,follow-hint>>|Follow a hint.
@@ -991,13 +990,14 @@ Go back in the commandline history.
 === completion-item-del
 Delete the current completion item.
 
-[[completion-item-next]]
-=== completion-item-next
-Select the next completion item.
+[[completion-item-focus]]
+=== completion-item-focus
+Syntax: +:completion-item-focus 'which'+
 
-[[completion-item-prev]]
-=== completion-item-prev
-Select the previous completion item.
+Shift the focus of the completion menu to another item.
+
+==== positional arguments
+* +'which'+: 'next' or 'prev'
 
 [[drop-selection]]
 === drop-selection

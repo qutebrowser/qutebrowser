@@ -57,6 +57,8 @@ Removed
 
 - The `:yank-selected` command got merged into `:yank` as `:yank selection`
   and thus removed.
+- The `:completion-item-prev` and `:completion-item-next` commands got merged
+  into a new `:completion-focus {prev,next}` command and thus removed.
 
 v0.8.3 (unreleased)
 -------------------
