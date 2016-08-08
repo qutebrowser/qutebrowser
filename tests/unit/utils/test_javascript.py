@@ -126,6 +126,7 @@ class TestStringEscape:
     ('foobar', '"foobar"'),
     ('foo\\bar', r'"foo\\bar"'),
     (42, '42'),
+    (23.42, '23.42'),
     (None, 'undefined'),
     (object(), TypeError),
 ])

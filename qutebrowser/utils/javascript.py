@@ -55,7 +55,7 @@ def _convert_js_arg(arg):
         return 'undefined'
     elif isinstance(arg, str):
         return '"{}"'.format(string_escape(arg))
-    elif isinstance(arg, int):
+    elif isinstance(arg, (int, float)):
         return str(arg)
     else:
         raise TypeError("Don't know how to handle {!r} of type {}!".format(
