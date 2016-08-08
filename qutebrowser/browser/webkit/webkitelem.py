@@ -134,7 +134,7 @@ class WebKitElement(webelem.AbstractWebElement):
     def tag_name(self):
         """Get the tag name for the current element."""
         self._check_vanished()
-        return self._elem.tagName()
+        return self._elem.tagName().lower()
 
     def outer_xml(self):
         """Get the full HTML representation of this element."""

@@ -139,7 +139,10 @@ class AbstractWebElement(collections.abc.MutableMapping):
         raise NotImplementedError
 
     def tag_name(self):
-        """Get the tag name of this element."""
+        """Get the tag name of this element.
+
+        The returned name will always be lower-case.
+        """
         raise NotImplementedError
 
     def outer_xml(self):
@@ -299,7 +302,7 @@ class AbstractWebElement(collections.abc.MutableMapping):
         roles = ('combobox', 'textbox')
         log.misc.debug("Checking if element is editable: {}".format(
             repr(self)))
-        tag = self.tag_name().lower()
+        tag = self.tag_name()
         if self.is_content_editable() and self.is_writable():
             return True
         elif self.get('role', None) in roles and self.is_writable():
@@ -321,7 +324,7 @@ class AbstractWebElement(collections.abc.MutableMapping):
     def is_text_input(self):
         """Check if this element is some kind of text box."""
         roles = ('combobox', 'textbox')
-        tag = self.tag_name().lower()
+        tag = self.tag_name()
         return self.get('role', None) in roles or tag in ['input', 'textarea']
 
     def remove_blank_target(self):
@@ -330,7 +333,7 @@ class AbstractWebElement(collections.abc.MutableMapping):
         for _ in range(5):
             if elem is None:
                 break
-            tag = elem.tag_name().lower()
+            tag = elem.tag_name()
             if tag == 'a' or tag == 'area':
                 if elem.get('target', None) == '_blank':
                     elem['target'] = '_top'
