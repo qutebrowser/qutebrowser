@@ -154,7 +154,7 @@ def data(readonly=False):
              "Whether to save the config automatically on quit."),
 
             ('auto-save-interval',
-             SettingValue(typ.Int(minval=0), '15000'),
+             SettingValue(typ.Int(minval=0, maxval=MAXVALS['int']), '15000'),
              "How often (in milliseconds) to auto-save config/cookies/etc."),
 
             ('editor',
