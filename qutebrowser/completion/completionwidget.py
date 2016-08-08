@@ -181,16 +181,14 @@ class CompletionView(QTreeView):
                 # Item is a real item, not a category header -> success
                 return idx
 
-    def _next_prev_item(self, prev):
-        """Handle a tab press for the CompletionView.
-
-        Select the previous/next item and write the new text to the
-        statusbar.
-
-        Helper for completion_item_next and completion_item_prev.
+    @cmdutils.register(instance='completion', hide=True,
+                       modes=[usertypes.KeyMode.command], scope='window')
+    @cmdutils.argument('which', choices=['next', 'prev'])
+    def completion_item_focus(self, which):
+        """Shift the focus of the completion menu to another item.
 
         Args:
-            prev: True for prev item, False for next one.
+            which: 'next' or 'prev'
         """
         # selmodel can be None if 'show' and 'auto-open' are set to False
         # https://github.com/The-Compiler/qutebrowser/issues/1731
@@ -198,7 +196,7 @@ class CompletionView(QTreeView):
         if selmodel is None:
             return
 
-        idx = self._next_idx(prev)
+        idx = self._next_idx(which == 'prev')
         if not idx.isValid():
             return
 
@@ -277,18 +275,6 @@ class CompletionView(QTreeView):
         if scrollbar is not None:
             scrollbar.setValue(scrollbar.minimum())
         super().showEvent(e)
-
-    @cmdutils.register(instance='completion', hide=True,
-                       modes=[usertypes.KeyMode.command], scope='window')
-    def completion_item_prev(self):
-        """Select the previous completion item."""
-        self._next_prev_item(True)
-
-    @cmdutils.register(instance='completion', hide=True,
-                       modes=[usertypes.KeyMode.command], scope='window')
-    def completion_item_next(self):
-        """Select the next completion item."""
-        self._next_prev_item(False)
 
     @cmdutils.register(instance='completion', hide=True,
                        modes=[usertypes.KeyMode.command], scope='window')
