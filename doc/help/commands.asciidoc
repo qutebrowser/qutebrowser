@@ -320,12 +320,12 @@ Show help about a command or setting.
 
 [[hint]]
 === hint
-Syntax: +:hint [*--rapid*] ['group'] ['target'] ['args' ['args' ...]]+
+Syntax: +:hint [*--rapid*] [*--mode* 'mode'] ['group'] ['target'] ['args' ['args' ...]]+
 
 Start hinting.
 
 ==== positional arguments
-* +'group'+: The hinting mode to use. 
+* +'group'+: The element types to hint. 
 
  - `all`: All clickable elements.
  - `links`: Only links.
@@ -375,6 +375,15 @@ Start hinting.
 ==== optional arguments
 * +*-r*+, +*--rapid*+: Whether to do rapid hinting. This is only possible with targets `tab` (with background-tabs=true), `tab-bg`,
  `window`, `run`, `hover`, `userscript` and `spawn`.
+
+* +*-m*+, +*--mode*+: The hinting mode to use. 
+
+ - `number`: Use numeric hints.
+ - `letter`: Use the chars in the hints->chars settings.
+ - `word`: Use hint words based on the html elements and the
+ extra words.
+ 
+
 
 
 ==== note
