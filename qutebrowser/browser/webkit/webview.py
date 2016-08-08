@@ -223,6 +223,7 @@ class WebView(QWebView):
 
     def mouserelease_insertmode(self):
         """If we have an insertmode check scheduled, handle it."""
+        # FIXME:qtwebengine Use tab.find_focus_element here
         if not self._check_insertmode:
             return
         self._check_insertmode = False

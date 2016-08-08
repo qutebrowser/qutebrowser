@@ -22,7 +22,12 @@ document._qutebrowser_elements = [];
 
 
 function _qutebrowser_serialize_elem(elem, id) {
-    var out = {};
+    var out = {
+        "id": id,
+        "text": elem.text,
+        "tag_name": elem.tagName,
+        "outer_xml": elem.outerHTML
+    };
 
     var attributes = {};
     for (var i = 0; i < elem.attributes.length; ++i) {
@@ -30,11 +35,6 @@ function _qutebrowser_serialize_elem(elem, id) {
         attributes[attr.name] = attr.value;
     }
     out["attributes"] = attributes;
-
-    out["text"] = elem.text;
-    out["tag_name"] = elem.tagName;
-    out["outer_xml"] = elem.outerHTML;
-    out["id"] = id;
 
     // console.log(JSON.stringify(out));
 
@@ -55,6 +55,19 @@ function _qutebrowser_find_all_elements(selector) {
     }
 
     return out;
+}
+
+
+function _qutebrowser_focus_element() {
+    var elem = document.activeElement;
+    if (!elem || elem === document.body) {
+        // "When there is no selection, the active element is the page's <body>
+        // or null."
+        return null;
+    }
+
+    var id = document._qutebrowser_elements.length;
+    return _qutebrowser_serialize_elem(elem, id);
 }
 
 

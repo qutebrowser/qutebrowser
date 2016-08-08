@@ -431,6 +431,25 @@ class WebEngineTab(browsertab.AbstractTab):
         js_cb = functools.partial(self._find_all_elements_js_cb, callback)
         self.run_js_async(js_code, js_cb)
 
+    def _find_focus_element_js_cb(self, callback, js_elem):
+        """Handle a found focus elem coming from JS and call the real callback.
+
+        Args:
+            callback: The callback originally passed to find_focus_element.
+                      Called with a WebEngineElement or None.
+            js_elem: The element serialized from javascript.
+        """
+        log.webview.debug("Got focus element from JS: {!r}".format(js_elem))
+        if js_elem is None:
+            callback(None)
+        else:
+            callback(webengineelem.WebEngineElement(js_elem))
+
+    def find_focus_element(self, callback):
+        js_code = javascript.assemble('webelem', 'focus_element')
+        js_cb = functools.partial(self._find_focus_element_js_cb, callback)
+        self.run_js_async(js_code, js_cb)
+
     def _connect_signals(self):
         view = self._widget
         page = view.page()

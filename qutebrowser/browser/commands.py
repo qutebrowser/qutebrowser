@@ -1408,6 +1408,21 @@ class CommandDispatcher:
             url = QUrl('qute://log?level={}'.format(level))
         self._open(url, tab, bg, window)
 
+    def _open_editor_cb(self, elem):
+        """Open editor after the focus elem was found in open_editor."""
+        if elem is None:
+            message.error(self._win_id, "No element focused!")
+            return
+        if not elem.is_editable(strict=True):
+            message.error(self._win_id, "Focused element is not editable!")
+            return
+
+        text = elem.text(use_js=True)
+        ed = editor.ExternalEditor(self._win_id, self._tabbed_browser)
+        ed.editing_finished.connect(functools.partial(
+            self.on_editing_finished, elem))
+        ed.edit(text)
+
     @cmdutils.register(instance='command-dispatcher',
                        modes=[KeyMode.insert], hide=True, scope='window',
                        backend=usertypes.Backend.QtWebKit)
@@ -1417,20 +1432,8 @@ class CommandDispatcher:
         The editor which should be launched can be configured via the
         `general -> editor` config option.
         """
-        # FIXME:qtwebengine have a proper API for this
         tab = self._current_widget()
-        page = tab._widget.page()  # pylint: disable=protected-access
-        try:
-            elem = webkitelem.focus_elem(page.currentFrame())
-        except webkitelem.IsNullError:
-            raise cmdexc.CommandError("No element focused!")
-        if not elem.is_editable(strict=True):
-            raise cmdexc.CommandError("Focused element is not editable!")
-        text = elem.text(use_js=True)
-        ed = editor.ExternalEditor(self._win_id, self._tabbed_browser)
-        ed.editing_finished.connect(functools.partial(
-            self.on_editing_finished, elem))
-        ed.edit(text)
+        tab.find_focus_element(self._open_editor_cb)
 
     def on_editing_finished(self, elem, text):
         """Write the editor text into the form field and clean up tempfile.
