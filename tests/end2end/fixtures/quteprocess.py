@@ -329,9 +329,11 @@ class QuteProc(testprocess.Process):
         """Adjust some qutebrowser settings after starting."""
         settings = [
             ('ui', 'message-timeout', '0'),
-            ('network', 'ssl-strict', 'false'),
             ('general', 'auto-save-interval', '0'),
         ]
+        if not self._webengine:
+            settings.append(('network', 'ssl-strict', 'false'))
+
         for sect, opt, value in settings:
             self.set_setting(sect, opt, value)
 
