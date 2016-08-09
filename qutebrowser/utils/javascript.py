@@ -19,8 +19,6 @@
 
 """Utilities related to javascript interaction."""
 
-from qutebrowser.utils import utils
-
 
 def string_escape(text):
     """Escape values special to javascript in strings.
