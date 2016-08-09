@@ -283,6 +283,7 @@ def _get_cmd_completions(include_hidden, include_aliases, prefix=''):
 
     if include_aliases:
         for name, cmd in config.section('aliases').items():
-            cmdlist.append((name, "Alias for '{}'".format(cmd), ''))
+            bindings = ', '.join(cmd_to_keys.get(name, []))
+            cmdlist.append((name, "Alias for '{}'".format(cmd), bindings))
 
     return sorted(cmdlist)

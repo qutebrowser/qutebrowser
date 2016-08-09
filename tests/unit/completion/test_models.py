@@ -173,7 +173,9 @@ def test_command_completion(qtmodeltester, monkeypatch, stubs, config_stub,
     _patch_cmdutils(monkeypatch, stubs,
                     'qutebrowser.completion.models.miscmodels.cmdutils')
     config_stub.data['aliases'] = {'rock': 'roll'}
-    key_config_stub.set_bindings_for('normal', {'s': 'stop', 'rr': 'roll'})
+    key_config_stub.set_bindings_for('normal', {'s': 'stop',
+                                                'rr': 'roll',
+                                                'ro': 'rock'})
     model = miscmodels.CommandCompletionModel()
     qtmodeltester.data_display_may_return_none = True
     qtmodeltester.check(model)
@@ -182,7 +184,7 @@ def test_command_completion(qtmodeltester, monkeypatch, stubs, config_stub,
     assert actual == [
         ("Commands", [
             ('drop', 'drop all user data', ''),
-            ('rock', "Alias for 'roll'", ''),
+            ('rock', "Alias for 'roll'", 'ro'),
             ('roll', 'never gonna give you up', 'rr'),
             ('stop', 'stop qutebrowser', 's')
         ])
@@ -465,7 +467,9 @@ def test_bind_completion(qtmodeltester, monkeypatch, stubs, config_stub,
     _patch_cmdutils(monkeypatch, stubs,
                     'qutebrowser.completion.models.miscmodels.cmdutils')
     config_stub.data['aliases'] = {'rock': 'roll'}
-    key_config_stub.set_bindings_for('normal', {'s': 'stop', 'rr': 'roll'})
+    key_config_stub.set_bindings_for('normal', {'s': 'stop',
+                                                'rr': 'roll',
+                                                'ro': 'rock'})
     model = miscmodels.BindCompletionModel()
     qtmodeltester.data_display_may_return_none = True
     qtmodeltester.check(model)
@@ -475,7 +479,7 @@ def test_bind_completion(qtmodeltester, monkeypatch, stubs, config_stub,
         ("Commands", [
             ('drop', 'drop all user data', ''),
             ('hide', '', ''),
-            ('rock', "Alias for 'roll'", ''),
+            ('rock', "Alias for 'roll'", 'ro'),
             ('roll', 'never gonna give you up', 'rr'),
             ('stop', 'stop qutebrowser', 's')
         ])
