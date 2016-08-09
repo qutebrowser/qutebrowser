@@ -394,6 +394,8 @@ class HintManager(QObject):
         Return:
             A list of hint strings, in the same order as the elements.
         """
+        if not elems:
+            return []
         hint_mode = self._context.hint_mode
         if hint_mode == 'word':
             try:
