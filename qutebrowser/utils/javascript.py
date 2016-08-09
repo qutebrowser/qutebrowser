@@ -19,8 +19,6 @@
 
 """Utilities related to javascript interaction."""
 
-import textwrap
-
 from qutebrowser.utils import utils
 
 
@@ -65,12 +63,7 @@ def _convert_js_arg(arg):
 
 def assemble(module, function, *args):
     """Assemble a javascript file and a function call."""
-    code = textwrap.dedent("""
-        "use strict";
-        window._qutebrowser.{module}.{function}({args});
-    """).format(
-        module=module,
-        function=function,
-        args=', '.join(_convert_js_arg(arg) for arg in args),
-    )
+    js_args = ', '.join(_convert_js_arg(arg) for arg in args)
+    code = '"use strict";\nwindow._qutebrowser.{}.{}({});'.format(
+        module, function, js_args)
     return code
