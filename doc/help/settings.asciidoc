@@ -190,6 +190,7 @@
 |<<hints-next-regexes,next-regexes>>|A comma-separated list of regexes to use for 'next' links.
 |<<hints-prev-regexes,prev-regexes>>|A comma-separated list of regexes to use for 'prev' links.
 |<<hints-find-implementation,find-implementation>>|Which implementation to use to find elements to hint.
+|<<hints-hide-unmatched-rapid-hints,hide-unmatched-rapid-hints>>|Controls hiding unmatched hints in rapid mode.
 |==============
 
 .Quick reference for section ``colors''
@@ -1697,6 +1698,17 @@ Valid values:
  * +python+: Slightly worse but faster
 
 Default: +pass:[python]+
+
+[[hints-hide-unmatched-rapid-hints]]
+=== hide-unmatched-rapid-hints
+Controls hiding unmatched hints in rapid mode.
+
+Valid values:
+
+ * +true+
+ * +false+
+
+Default: +pass:[true]+
 
 == searchengines
 Definitions of search engines which can be used via the address bar.
