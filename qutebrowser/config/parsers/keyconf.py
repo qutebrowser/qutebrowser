@@ -25,7 +25,7 @@ import itertools
 
 from PyQt5.QtCore import pyqtSignal, QObject
 
-from qutebrowser.config import configdata, textwrapper
+from qutebrowser.config import configdata, textwrapper, config
 from qutebrowser.commands import cmdutils, cmdexc
 from qutebrowser.utils import log, utils, qtutils, message, usertypes
 
@@ -352,7 +352,8 @@ class KeyConfigParser(QObject):
                     line))
         commands = [c.split(maxsplit=1)[0].strip() for c in commands]
         for cmd in commands:
-            if cmd not in cmdutils.cmd_dict:
+            aliases = config.section('aliases')
+            if cmd not in cmdutils.cmd_dict and cmd not in aliases:
                 raise KeyConfigError("Invalid command '{}'!".format(cmd))
 
     def _read_command(self, line):
