@@ -765,8 +765,9 @@ class HintManager(QObject):
                         self._show_elem(elem.label)
                 else:
                     # element doesn't match anymore -> hide it, unless in rapid
-                    # hinting mode (see #1799)
-                    if not self._context.rapid:
+                    # mode and hide-unmatched-rapid-hints is false (see #1799)
+                    if (not self._context.rapid or
+                            config.get('hints', 'hide-unmatched-rapid-hints')):
                         self._hide_elem(elem.label)
             except webelem.Error:
                 pass

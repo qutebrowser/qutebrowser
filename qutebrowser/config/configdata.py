@@ -956,6 +956,10 @@ def data(readonly=False):
                  )), 'python'),
              "Which implementation to use to find elements to hint."),
 
+            ('hide-unmatched-rapid-hints',
+             SettingValue(typ.Bool(), 'true'),
+             "Controls hiding unmatched hints in rapid mode."),
+
             readonly=readonly
         )),
 
