@@ -202,6 +202,7 @@ Contributors, sorted by the number of commits in descending order:
 * Samuel Loury
 * Peter Michely
 * Panashe M. Fundira
+* Niklas Haas
 * Link
 * Larry Hynes
 * Johannes Altmanninger
@@ -212,7 +213,6 @@ Contributors, sorted by the number of commits in descending order:
 * adam
 * Samir Benmendil
 * Regina Hug
-* Niklas Haas
 * Mathias Fussenegger
 * Marcelo Santos
 * Jean-Louis Fuchs
@@ -235,7 +235,6 @@ Contributors, sorted by the number of commits in descending order:
 * Thiago Barroso Perrotta
 * Sorokin Alexei
 * Noah Huesser
-* Niklas Haas
 * Matthias Lisin
 * Marcel Schilling
 * Julie Engel
