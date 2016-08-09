@@ -29,7 +29,7 @@ import functools
 
 from qutebrowser.completion.models import miscmodels, urlmodel, configmodel
 from qutebrowser.utils import objreg, usertypes, log, debug
-from qutebrowser.config import configdata
+from qutebrowser.config import configdata, config
 
 
 _instances = {}
@@ -155,6 +155,12 @@ def update(completions):
                 did_run.append(func)
 
 
+@config.change_filter('aliases', function=True)
+def _update_aliases():
+    """Update completions that include command aliases."""
+    update([usertypes.Completion.command])
+
+
 def init():
     """Initialize completions. Note this only connects signals."""
     quickmark_manager = objreg.get('quickmark-manager')
@@ -176,3 +182,5 @@ def init():
     keyconf = objreg.get('key-config')
     keyconf.changed.connect(
         functools.partial(update, [usertypes.Completion.command]))
+
+    objreg.get('config').changed.connect(_update_aliases)
