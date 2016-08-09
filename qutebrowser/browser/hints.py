@@ -783,6 +783,22 @@ class HintManager(QObject):
                           'all filtered')
         return visible
 
+    def _handle_auto_follow(self, visible=None):
+        """Handle the auto-follow option.
+        """
+        if visible is None:
+            visible = self._get_visible_hints()
+
+        if len(visible) == 1 and config.get('hints', 'auto-follow'):
+            # apply auto-follow-timeout
+            timeout = config.get('hints', 'auto-follow-timeout')
+            keyparsers = objreg.get('keyparsers', scope='window',
+                                    window=self._win_id)
+            normal_parser = keyparsers[usertypes.KeyMode.normal]
+            normal_parser.set_inhibited_timeout(timeout)
+            # unpacking gets us the first (and only) key in the dict.
+            self.fire(*visible)
+
     def handle_partial_key(self, keystr):
         """Handle a new partial keypress."""
         log.hints.debug("Handling new keystring: '{}'".format(keystr))
@@ -847,19 +863,11 @@ class HintManager(QObject):
             keyparser = keyparsers[usertypes.KeyMode.hint]
             keyparser.update_bindings(strings, preserve_filter=True)
 
-        if (len(visible) == 1 and
-                config.get('hints', 'auto-follow') and
-                filterstr is not None):
-            # apply auto-follow-timeout
-            timeout = config.get('hints', 'auto-follow-timeout')
-            keyparsers = objreg.get('keyparsers', scope='window',
-                                    window=self._win_id)
-            normal_parser = keyparsers[usertypes.KeyMode.normal]
-            normal_parser.set_inhibited_timeout(timeout)
-            # change visible to dict
-            visible = self._get_visible_hints()
-            # unpacking gets us the first (and only) key in the dict.
-            self.fire(*visible)
+            # Note: filter_hints can be called with non-None filterstr only
+            # when number mode is active
+            if filterstr is not None:
+                # pass self._context.elems as the dict of visible hints
+                self._handle_auto_follow(self._context.elems)
 
     def fire(self, keystr, force=False):
         """Fire a completed hint.
