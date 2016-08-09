@@ -768,8 +768,7 @@ class HintManager(QObject):
         return self._context.hint_mode
 
     def _get_visible_hints(self):
-        """Get elements which are currently visible.
-        """
+        """Get elements which are currently visible."""
         visible = {}
         for string, elem in self._context.elems.items():
             try:
@@ -784,8 +783,7 @@ class HintManager(QObject):
         return visible
 
     def _handle_auto_follow(self, visible=None):
-        """Handle the auto-follow option.
-        """
+        """Handle the auto-follow option."""
         if visible is None:
             visible = self._get_visible_hints()
 
