@@ -91,7 +91,7 @@ class WebEngineElement(webelem.AbstractWebElement):
 
         The returned name will always be lower-case.
         """
-        return self._js_dict['tag_name']
+        return self._js_dict['tag_name'].lower()
 
     def outer_xml(self):
         """Get the full HTML representation of this element."""
