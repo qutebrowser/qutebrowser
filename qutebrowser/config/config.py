@@ -350,6 +350,7 @@ class ConfigManager(QObject):
         ('tabs', 'auto-hide'),
         ('tabs', 'hide-always'),
         ('ui', 'display-statusbar-messages'),
+        ('ui', 'hide-mouse-cursor'),
         ('general', 'wrap-search'),
     ]
     CHANGED_OPTIONS = {

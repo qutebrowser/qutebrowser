@@ -346,10 +346,6 @@ def data(readonly=False):
              "* `{scroll_pos}`: The page scroll position.\n"
              "* `{host}`: The host of the current web page."),
 
-            ('hide-mouse-cursor',
-             SettingValue(typ.Bool(), 'false'),
-             "Whether to hide the mouse cursor."),
-
             ('modal-js-dialog',
              SettingValue(typ.Bool(), 'false'),
              "Use standard JavaScript modal dialog for alert() and confirm()"),
