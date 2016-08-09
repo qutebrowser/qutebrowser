@@ -31,7 +31,7 @@ from qutebrowser.config import config
 from qutebrowser.keyinput import modeman
 from qutebrowser.utils import message, log, usertypes, utils, qtutils, objreg
 from qutebrowser.browser import hints
-from qutebrowser.browser.webkit import webpage, webelem
+from qutebrowser.browser.webkit import webpage, webkitelem
 
 
 class WebView(QWebView):
@@ -196,13 +196,13 @@ class WebView(QWebView):
         if hitresult.isNull():
             # For some reason, the whole hit result can be null sometimes (e.g.
             # on doodle menu links). If this is the case, we schedule a check
-            # later (in mouseReleaseEvent) which uses webelem.focus_elem.
+            # later (in mouseReleaseEvent) which uses webkitelem.focus_elem.
             log.mouse.debug("Hitresult is null!")
             self._check_insertmode = True
             return
         try:
-            elem = webelem.WebElementWrapper(hitresult.element())
-        except webelem.IsNullError:
+            elem = webkitelem.WebKitElement(hitresult.element())
+        except webkitelem.IsNullError:
             # For some reason, the hit result element can be a null element
             # sometimes (e.g. when clicking the timetable fields on
             # http://www.sbb.ch/ ). If this is the case, we schedule a check
@@ -223,12 +223,13 @@ class WebView(QWebView):
 
     def mouserelease_insertmode(self):
         """If we have an insertmode check scheduled, handle it."""
+        # FIXME:qtwebengine Use tab.find_focus_element here
         if not self._check_insertmode:
             return
         self._check_insertmode = False
         try:
-            elem = webelem.focus_elem(self.page().currentFrame())
-        except (webelem.IsNullError, RuntimeError):
+            elem = webkitelem.focus_elem(self.page().currentFrame())
+        except (webkitelem.IsNullError, RuntimeError):
             log.mouse.debug("Element/page vanished!")
             return
         if elem.is_editable():
@@ -325,8 +326,8 @@ class WebView(QWebView):
             return
         frame = self.page().currentFrame()
         try:
-            elem = webelem.WebElementWrapper(frame.findFirstElement(':focus'))
-        except webelem.IsNullError:
+            elem = webkitelem.focus_elem(frame)
+        except webkitelem.IsNullError:
             log.webview.debug("Focused element is null!")
             return
         log.modes.debug("focus element: {}".format(repr(elem)))

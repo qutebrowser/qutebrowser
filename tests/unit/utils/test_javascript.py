@@ -126,6 +126,7 @@ class TestStringEscape:
     ('foobar', '"foobar"'),
     ('foo\\bar', r'"foo\\bar"'),
     (42, '42'),
+    (23.42, '23.42'),
     (None, 'undefined'),
     (object(), TypeError),
 ])
@@ -137,8 +138,6 @@ def test_convert_js_arg(arg, expected):
         assert javascript._convert_js_arg(arg) == expected
 
 
-def test_assemble(monkeypatch):
-    monkeypatch.setattr(javascript.utils, 'read_file',
-                        '<code from {}>'.format)
-    expected = '<code from javascript/foo.js>\n_qutebrowser_func(23);'
+def test_assemble():
+    expected = '"use strict";\nwindow._qutebrowser.foo.func(23);'
     assert javascript.assemble('foo', 'func', 23) == expected

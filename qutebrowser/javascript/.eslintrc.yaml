@@ -1,0 +1,35 @@
+env:
+    browser: true
+
+parserOptions:
+    ecmaVersion: 3
+
+extends:
+    "eslint:all"
+
+rules:
+     strict: ["error", "global"]
+     one-var: "off"
+     padded-blocks: ["error", "never"]
+     space-before-function-paren: ["error", "never"]
+     no-underscore-dangle: "off"
+     no-var: "off"
+     vars-on-top: "off"
+     newline-after-var: "off"
+     camelcase: "off"
+     require-jsdoc: "off"
+     func-style: ["error", "declaration"]
+     newline-before-return: "off"
+     init-declarations: "off"
+     no-plusplus: "off"
+     no-extra-parens: off
+     id-length: ["error", {"exceptions": ["i", "x", "y"]}]
+     object-shorthand: "off"
+     max-statements: ["error", {"max": 30}]
+     quotes: ["error", "double", {"avoidEscape": true}]
+     object-property-newline: ["error", {"allowMultiplePropertiesPerLine": true}]
+     comma-dangle: ["error", "always-multiline"]
+     no-magic-numbers: "off"
+     no-undefined: "off"
+     wrap-iife: ["error", "inside"]
+     func-names: "off"

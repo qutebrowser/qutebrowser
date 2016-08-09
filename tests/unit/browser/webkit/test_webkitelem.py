@@ -28,13 +28,14 @@ from PyQt5.QtCore import QRect, QPoint, QUrl
 from PyQt5.QtWebKit import QWebElement
 import pytest
 
-from qutebrowser.browser.webkit import webelem
+from qutebrowser.browser import webelem
+from qutebrowser.browser.webkit import webkitelem
 
 
 def get_webelem(geometry=None, frame=None, *, null=False, style=None,
                 attributes=None, tagname=None, classes=None,
                 parent=None, js_rect_return=None, zoom_text_only=False):
-    """Factory for WebElementWrapper objects based on a mock.
+    """Factory for WebKitElement objects based on a mock.
 
     Args:
         geometry: The geometry of the QWebElement as QRect.
@@ -117,7 +118,7 @@ def get_webelem(geometry=None, frame=None, *, null=False, style=None,
         return style_dict[name]
 
     elem.styleProperty.side_effect = _style_property
-    wrapped = webelem.WebElementWrapper(elem)
+    wrapped = webkitelem.WebKitElement(elem)
     return wrapped
 
 
@@ -187,7 +188,7 @@ class SelectionAndFilterTests:
                                            webelem.Group.url]),
     ]
 
-    GROUPS = [e for e in webelem.Group if e != webelem.Group.focus]
+    GROUPS = list(webelem.Group)
 
     COMBINATIONS = list(itertools.product(TESTS, GROUPS))
 
@@ -215,15 +216,14 @@ class TestSelectorsAndFilters:
         # Make sure setting HTML succeeded and there's a new element
         assert len(webframe.findAllElements('*')) == 3
         elems = webframe.findAllElements(webelem.SELECTORS[group])
-        elems = [webelem.WebElementWrapper(e) for e in elems]
+        elems = [webkitelem.WebKitElement(e) for e in elems]
         filterfunc = webelem.FILTERS.get(group, lambda e: True)
         elems = [e for e in elems if filterfunc(e)]
         assert bool(elems) == matching
 
+class TestWebKitElement:
 
-class TestWebElementWrapper:
-
-    """Generic tests for WebElementWrapper.
+    """Generic tests for WebKitElement.
 
     Note: For some methods, there's a dedicated test class with more involved
     tests.
@@ -235,13 +235,13 @@ class TestWebElementWrapper:
 
     def test_nullelem(self):
         """Test __init__ with a null element."""
-        with pytest.raises(webelem.IsNullError):
+        with pytest.raises(webkitelem.IsNullError):
             get_webelem(null=True)
 
     def test_double_wrap(self, elem):
-        """Test wrapping a WebElementWrapper."""
+        """Test wrapping a WebKitElement."""
         with pytest.raises(TypeError) as excinfo:
-            webelem.WebElementWrapper(elem)
+            webkitelem.WebKitElement(elem)
         assert str(excinfo.value) == "Trying to wrap a wrapper!"
 
     @pytest.mark.parametrize('code', [
@@ -257,7 +257,7 @@ class TestWebElementWrapper:
         lambda e: e.document_element(),
         lambda e: e.create_inside('span'),
         lambda e: e.find_first('span'),
-        lambda e: e.style_property('visibility', QWebElement.ComputedStyle),
+        lambda e: e.style_property('visibility', strategy='computed'),
         lambda e: e.text(),
         lambda e: e.set_text('foo'),
         lambda e: e.set_inner_xml(''),
@@ -285,16 +285,16 @@ class TestWebElementWrapper:
         """Make sure methods check if the element is vanished."""
         elem._elem.isNull.return_value = True
         elem._elem.tagName.return_value = 'span'
-        with pytest.raises(webelem.IsNullError):
+        with pytest.raises(webkitelem.IsNullError):
             code(elem)
 
     def test_str(self, elem):
         assert str(elem) == 'text'
 
     @pytest.mark.parametrize('is_null, expected', [
-        (False, "<qutebrowser.browser.webkit.webelem.WebElementWrapper "
+        (False, "<qutebrowser.browser.webkit.webkitelem.WebKitElement "
                 "html='<fakeelem/>'>"),
-        (True, '<qutebrowser.browser.webkit.webelem.WebElementWrapper '
+        (True, '<qutebrowser.browser.webkit.webkitelem.WebKitElement '
                'html=None>'),
     ])
     def test_repr(self, elem, is_null, expected):
@@ -334,7 +334,7 @@ class TestWebElementWrapper:
 
     def test_eq(self):
         one = get_webelem()
-        two = webelem.WebElementWrapper(one._elem)
+        two = webkitelem.WebKitElement(one._elem)
         assert one == two
 
     def test_eq_other_type(self):
@@ -402,7 +402,6 @@ class TestWebElementWrapper:
         ('webFrame', lambda e: e.frame()),
         ('geometry', lambda e: e.geometry()),
         ('toOuterXml', lambda e: e.outer_xml()),
-        ('tagName', lambda e: e.tag_name()),
     ])
     def test_simple_getters(self, elem, attribute, code):
         sentinel = object()
@@ -421,8 +420,12 @@ class TestWebElementWrapper:
         mock = getattr(elem._elem, method)
         mock.assert_called_with(*args)
 
+    def test_tag_name(self, elem):
+        elem._elem.tagName.return_value = 'SPAN'
+        assert elem.tag_name() == 'span'
+
     def test_style_property(self, elem):
-        assert elem.style_property('foo', QWebElement.ComputedStyle) == 'bar'
+        assert elem.style_property('foo', strategy='computed') == 'bar'
 
     def test_document_element(self, stubs):
         doc_elem = get_webelem()
@@ -430,14 +433,14 @@ class TestWebElementWrapper:
         elem = get_webelem(frame=frame)
 
         doc_elem_ret = elem.document_element()
-        assert isinstance(doc_elem_ret, webelem.WebElementWrapper)
+        assert isinstance(doc_elem_ret, webkitelem.WebKitElement)
         assert doc_elem_ret == doc_elem
 
     def test_find_first(self, elem):
         result = get_webelem()
         elem._elem.findFirst.return_value = result._elem
         find_result = elem.find_first('')
-        assert isinstance(find_result, webelem.WebElementWrapper)
+        assert isinstance(find_result, webkitelem.WebKitElement)
         assert find_result == result
 
     def test_create_inside(self, elem):
@@ -727,7 +730,7 @@ def test_focus_element(stubs):
     frame = stubs.FakeWebFrame(QRect(0, 0, 100, 100))
     elem = get_webelem()
     frame.focus_elem = elem._elem
-    assert webelem.focus_elem(frame)._elem is elem._elem
+    assert webkitelem.focus_elem(frame)._elem is elem._elem
 
 
 class TestRectOnView:
@@ -739,7 +742,7 @@ class TestRectOnView:
         This is needed for all the tests calling rect_on_view or is_visible.
         """
         config_stub.data = {'ui': {'zoom-text-only': 'true'}}
-        monkeypatch.setattr('qutebrowser.browser.webkit.webelem.config',
+        monkeypatch.setattr('qutebrowser.browser.webkit.webkitelem.config',
                             config_stub)
         return config_stub
 
@@ -821,7 +824,7 @@ class TestGetChildFrames:
     def test_single_frame(self, stubs):
         """Test get_child_frames with a single frame without children."""
         frame = stubs.FakeChildrenFrame()
-        children = webelem.get_child_frames(frame)
+        children = webkitelem.get_child_frames(frame)
         assert len(children) == 1
         assert children[0] is frame
         frame.childFrames.assert_called_once_with()
@@ -836,7 +839,7 @@ class TestGetChildFrames:
         child1 = stubs.FakeChildrenFrame()
         child2 = stubs.FakeChildrenFrame()
         parent = stubs.FakeChildrenFrame([child1, child2])
-        children = webelem.get_child_frames(parent)
+        children = webkitelem.get_child_frames(parent)
         assert len(children) == 3
         assert children[0] is parent
         assert children[1] is child1
@@ -858,7 +861,7 @@ class TestGetChildFrames:
         first = [stubs.FakeChildrenFrame(second[0:2]),
                  stubs.FakeChildrenFrame(second[2:4])]
         root = stubs.FakeChildrenFrame(first)
-        children = webelem.get_child_frames(root)
+        children = webkitelem.get_child_frames(root)
         assert len(children) == 7
         assert children[0] is root
         for frame in [root] + first + second:
@@ -873,7 +876,7 @@ class TestIsEditable:
     def stubbed_config(self, config_stub, monkeypatch):
         """Fixture to create a config stub with an input section."""
         config_stub.data = {'input': {}}
-        monkeypatch.setattr('qutebrowser.browser.webkit.webelem.config',
+        monkeypatch.setattr('qutebrowser.browser.webkit.webkitelem.config',
                             config_stub)
         return config_stub
 

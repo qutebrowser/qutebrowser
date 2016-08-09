@@ -613,6 +613,15 @@ class AbstractTab(QWidget):
         """
         raise NotImplementedError
 
+    def find_focus_element(self, callback):
+        """Find the focused element on the page async.
+
+        Args:
+            callback: The callback to be called when the search finished.
+                      Called with a WebEngineElement or None.
+        """
+        raise NotImplementedError
+
     def __repr__(self):
         try:
             url = utils.elide(self.url().toDisplayString(QUrl.EncodeUnicode),

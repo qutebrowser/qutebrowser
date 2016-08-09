@@ -154,7 +154,7 @@ def data(readonly=False):
              "Whether to save the config automatically on quit."),
 
             ('auto-save-interval',
-             SettingValue(typ.Int(minval=0), '15000'),
+             SettingValue(typ.Int(minval=0, maxval=MAXVALS['int']), '15000'),
              "How often (in milliseconds) to auto-save config/cookies/etc."),
 
             ('editor',
@@ -488,13 +488,13 @@ def data(readonly=False):
         ('input', sect.KeyValue(
             ('timeout',
              SettingValue(typ.Int(minval=0, maxval=MAXVALS['int']), '500'),
-             "Timeout for ambiguous key bindings.\n\n"
+             "Timeout (in milliseconds) for ambiguous key bindings.\n\n"
              "If the current input forms both a complete match and a partial "
              "match, the complete match will be executed after this time."),
 
             ('partial-timeout',
              SettingValue(typ.Int(minval=0, maxval=MAXVALS['int']), '5000'),
-             "Timeout for partially typed key bindings.\n\n"
+             "Timeout (in milliseconds) for partially typed key bindings.\n\n"
              "If the current input forms only partial matches, the keystring "
              "will be cleared after this time."),
 
@@ -933,8 +933,8 @@ def data(readonly=False):
 
             ('auto-follow-timeout',
              SettingValue(typ.Int(), '0'),
-             "A timeout to inhibit normal-mode key bindings after a successful"
-             "auto-follow."),
+             "A timeout (in milliseconds) to inhibit normal-mode key bindings "
+             "after a successful auto-follow."),
 
             ('next-regexes',
              SettingValue(typ.List(typ.Regex(flags=re.IGNORECASE)),
@@ -1415,8 +1415,7 @@ KEY_SECTION_DESC = {
         "Useful hidden commands to map in this section:\n\n"
         " * `command-history-prev`: Switch to previous command in history.\n"
         " * `command-history-next`: Switch to next command in history.\n"
-        " * `completion-item-prev`: Select previous item in completion.\n"
-        " * `completion-item-next`: Select next item in completion.\n"
+        " * `completion-item-focus`: Select another item in completion.\n"
         " * `command-accept`: Execute the command currently in the "
         "commandline."),
     'prompt': (
@@ -1589,8 +1588,8 @@ KEY_DATA = collections.OrderedDict([
     ('command', collections.OrderedDict([
         ('command-history-prev', ['<Ctrl-P>']),
         ('command-history-next', ['<Ctrl-N>']),
-        ('completion-item-prev', ['<Shift-Tab>', '<Up>']),
-        ('completion-item-next', ['<Tab>', '<Down>']),
+        ('completion-item-focus prev', ['<Shift-Tab>', '<Up>']),
+        ('completion-item-focus next', ['<Tab>', '<Down>']),
         ('completion-item-del', ['<Ctrl-D>']),
         ('command-accept', RETURN_KEYS),
     ])),
@@ -1691,4 +1690,7 @@ CHANGED_KEY_COMMANDS = [
     (re.compile(r'^paste -([twb])$'), r'open -\1 {clipboard}'),
     (re.compile(r'^paste -([twb])s$'), r'open -\1 {primary}'),
     (re.compile(r'^paste -s([twb])$'), r'open -\1 {primary}'),
+
+    (re.compile(r'^completion-item-next'), r'completion-item-focus next'),
+    (re.compile(r'^completion-item-prev'), r'completion-item-focus prev'),
 ]

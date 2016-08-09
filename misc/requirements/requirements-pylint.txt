@@ -7,7 +7,7 @@ lazy-object-proxy==1.2.2
 mccabe==0.5.2
 pylint==1.6.4
 ./scripts/dev/pylint_checkers
-requests==2.10.0
+requests==2.11.0
 six==1.10.0
 uritemplate.py==0.3.0
 wrapt==1.10.8

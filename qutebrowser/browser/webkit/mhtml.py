@@ -34,7 +34,7 @@ import email.message
 
 from PyQt5.QtCore import QUrl
 
-from qutebrowser.browser.webkit import webelem, downloads
+from qutebrowser.browser.webkit import webkitelem, downloads
 from qutebrowser.utils import log, objreg, message, usertypes, utils, urlutils
 
 try:
@@ -271,7 +271,7 @@ class _Downloader:
         elements = web_frame.findAllElements('link, script, img')
 
         for element in elements:
-            element = webelem.WebElementWrapper(element)
+            element = webkitelem.WebKitElement(element)
             # Websites are free to set whatever rel=... attribute they want.
             # We just care about stylesheets and icons.
             if not _check_rel(element):
@@ -288,7 +288,7 @@ class _Downloader:
 
         styles = web_frame.findAllElements('style')
         for style in styles:
-            style = webelem.WebElementWrapper(style)
+            style = webkitelem.WebKitElement(style)
             # The Mozilla Developer Network says:
             # type: This attribute defines the styling language as a MIME type
             # (charset should not be specified). This attribute is optional and
@@ -301,7 +301,7 @@ class _Downloader:
 
         # Search for references in inline styles
         for element in web_frame.findAllElements('[style]'):
-            element = webelem.WebElementWrapper(element)
+            element = webkitelem.WebKitElement(element)
             style = element['style']
             for element_url in _get_css_imports(style, inline=True):
                 self._fetch_url(web_url.resolved(QUrl(element_url)))
