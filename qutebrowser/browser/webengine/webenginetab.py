@@ -184,7 +184,7 @@ class WebEngineScroller(browsertab.AbstractScroller):
 
     def __init__(self, tab, parent=None):
         super().__init__(tab, parent)
-        self._pos_perc = (None, None)
+        self._pos_perc = (0, 0)
         self._pos_px = QPoint()
 
     def _init_widget(self, widget):
@@ -194,6 +194,7 @@ class WebEngineScroller(browsertab.AbstractScroller):
             page.scrollPositionChanged.connect(self._update_pos)
         except AttributeError:
             log.stub('scrollPositionChanged, on Qt < 5.7')
+            self._pos_perc = (None, None)
 
     def _key_press(self, key, count=1):
         # FIXME:qtwebengine Abort scrolling if the minimum/maximum was reached.
