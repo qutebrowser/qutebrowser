@@ -51,6 +51,8 @@ Changed
   `:bind`) now don't immediately evaluate variables.
 - Tab titles in the `:buffer` completion now update correctly when a page's
   title is changed via javascript.
+- `:hint` now has a `--mode <mode>` flag to override the hint mode configured
+  using the `hints -> mode` setting.
 
 Removed
 ~~~~~~~

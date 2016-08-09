@@ -94,6 +94,7 @@ class HintContext:
         self.args = []
         self.tab = None
         self.group = None
+        self.hint_mode = None
 
     def get_args(self, urlstr):
         """Get the arguments, with {hint-url} replaced by the given URL."""
@@ -393,7 +394,7 @@ class HintManager(QObject):
         Return:
             A list of hint strings, in the same order as the elements.
         """
-        hint_mode = config.get('hints', 'mode')
+        hint_mode = self._context.hint_mode
         if hint_mode == 'word':
             try:
                 return self._word_hinter.hint(elems)
@@ -547,7 +548,7 @@ class HintManager(QObject):
 
         # Make text uppercase if set in config
         if (config.get('hints', 'uppercase') and
-                config.get('hints', 'mode') == 'letter'):
+                self._context.hint_mode == 'letter'):
             attrs.append(('text-transform', 'uppercase !important'))
         else:
             attrs.append(('text-transform', 'none !important'))
@@ -660,14 +661,14 @@ class HintManager(QObject):
                        backend=usertypes.Backend.QtWebKit)
     @cmdutils.argument('win_id', win_id=True)
     def start(self, rapid=False, group=webelem.Group.all, target=Target.normal,
-              *args, win_id):
+              *args, win_id, mode=None):
         """Start hinting.
 
         Args:
             rapid: Whether to do rapid hinting. This is only possible with
                    targets `tab` (with background-tabs=true), `tab-bg`,
                    `window`, `run`, `hover`, `userscript` and `spawn`.
-            group: The hinting mode to use.
+            group: The element types to hint.
 
                 - `all`: All clickable elements.
                 - `links`: Only links.
@@ -693,6 +694,13 @@ class HintManager(QObject):
                 - `userscript`: Call a userscript with `$QUTE_URL` set to the
                                 link.
                 - `spawn`: Spawn a command.
+
+            mode: The hinting mode to use.
+
+                - `number`: Use numeric hints.
+                - `letter`: Use the chars in the hints->chars settings.
+                - `word`: Use hint words based on the html elements and the
+                          extra words.
 
             *args: Arguments for spawn/userscript/run/fill.
 
@@ -732,11 +740,15 @@ class HintManager(QObject):
                 raise cmdexc.CommandError("Rapid hinting makes no sense with "
                                           "target {}!".format(name))
 
+        if mode is None:
+            mode = config.get('hints', 'mode')
+
         self._check_args(target, *args)
         self._context = HintContext()
         self._context.tab = tab
         self._context.target = target
         self._context.rapid = rapid
+        self._context.hint_mode = mode
         try:
             self._context.baseurl = tabbed_browser.current_url()
         except qtutils.QtValueError:
@@ -747,6 +759,13 @@ class HintManager(QObject):
         selector = webelem.SELECTORS[self._context.group]
         self._context.tab.find_all_elements(selector, self._start_cb,
                                             only_visible=True)
+
+    def current_mode(self):
+        """Returns the currently active hinting mode (or None otherwise)."""
+        if self._context is None:
+            return None
+
+        return self._context.hint_mode
 
     def handle_partial_key(self, keystr):
         """Handle a new partial keypress."""
@@ -846,7 +865,7 @@ class HintManager(QObject):
             except webelem.Error:
                 pass
 
-        if config.get('hints', 'mode') == 'number':
+        if self._context.hint_mode == 'number':
             visible = self._filter_number_hints()
         else:
             visible = self._filter_non_number_hints()
