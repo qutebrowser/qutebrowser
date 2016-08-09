@@ -822,6 +822,7 @@ class HintManager(QObject):
                         self._hide_elem(elem.label)
             except webelem.Error:
                 pass
+        self._handle_auto_follow()
 
     def filter_hints(self, filterstr):
         """Filter displayed hints according to a text.

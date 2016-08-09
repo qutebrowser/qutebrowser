@@ -928,8 +928,9 @@ def data(readonly=False):
 
             ('auto-follow',
              SettingValue(typ.Bool(), 'true'),
-             "Follow a hint immediately when the hint text is completely "
-             "matched."),
+             "Follow a hint immediately when there is a unique match on the "
+             "hint text (in letter and word modes) or in the hint filter "
+             "(in number mode)."),
 
             ('auto-follow-timeout',
              SettingValue(typ.Int(), '0'),
