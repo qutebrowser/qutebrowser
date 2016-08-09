@@ -27,15 +27,15 @@ function _qutebrowser_serialize_elem(elem, id) {
         "id": id,
         "text": elem.text,
         "tag_name": elem.tagName,
-        "outer_xml": elem.outerHTML
+        "outer_xml": elem.outerHTML,
     };
 
     var attributes = {};
     for (var i = 0; i < elem.attributes.length; ++i) {
-        attr = elem.attributes[i];
+        var attr = elem.attributes[i];
         attributes[attr.name] = attr.value;
     }
-    out["attributes"] = attributes;
+    out.attributes = attributes;
 
     // console.log(JSON.stringify(out));
 
@@ -61,6 +61,7 @@ function _qutebrowser_find_all_elements(selector) {
 
 function _qutebrowser_focus_element() {
     var elem = document.activeElement;
+
     if (!elem || elem === document.body) {
         // "When there is no selection, the active element is the page's <body>
         // or null."

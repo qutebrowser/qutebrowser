@@ -29,7 +29,7 @@ function _qutebrowser_scroll_to_perc(x, y) {
     }
 
     if (y !== undefined) {
-        y_px  = (elem.scrollHeight - elem.clientHeight) / 100 * y;
+        y_px = (elem.scrollHeight - elem.clientHeight) / 100 * y;
     }
 
     window.scroll(x_px, y_px);
@@ -43,9 +43,8 @@ function _qutebrowser_scroll_delta_page(x, y) {
 
 function _qutebrowser_scroll_pos() {
     var elem = document.documentElement;
-    var dx = (elem.scrollWidth - elem.clientWidth);
-    var dy = (elem.scrollHeight - elem.clientHeight);
-
+    var dx = elem.scrollWidth - elem.clientWidth;
+    var dy = elem.scrollHeight - elem.clientHeight;
     var perc_x, perc_y;
 
     if (dx === 0) {
@@ -60,9 +59,10 @@ function _qutebrowser_scroll_pos() {
         perc_y = 100 / dy * window.scrollY;
     }
 
-    var pos_perc = {'x': perc_x, 'y': perc_y};
-    var pos_px = {'x': window.scrollX, 'y': window.scrollY};
-    var pos = {'perc': pos_perc, 'px': pos_px};
+    var pos = {
+        "perc": {"x": perc_x, "y": perc_y},
+        "px": {"x": window.scrollX, "y": window.scrollY},
+    };
 
     // console.log(JSON.stringify(pos));
     return pos;

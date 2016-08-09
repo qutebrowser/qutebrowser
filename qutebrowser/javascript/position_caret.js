@@ -32,10 +32,11 @@
 
 "use strict";
 
-function isElementInViewport(node) {
+function isElementInViewport(node) {  // eslint-disable-line complexity
     var i;
     var boundingRect = (node.getClientRects()[0] ||
-            node.getBoundingClientRect());
+                        node.getBoundingClientRect());
+
     if (boundingRect.width <= 1 && boundingRect.height <= 1) {
         var rects = node.getClientRects();
         for (i = 0; i < rects.length; i++) {
@@ -54,8 +55,7 @@ function isElementInViewport(node) {
     if (boundingRect.width <= 1 || boundingRect.height <= 1) {
         var children = node.children;
         var visibleChildNode = false;
-        var l = children.length;
-        for (i = 0; i < l; ++i) {
+        for (i = 0; i < children.length; ++i) {
             boundingRect = (children[i].getClientRects()[0] ||
                             children[i].getBoundingClientRect());
             if (boundingRect.width > 1 && boundingRect.height > 1) {
@@ -72,9 +72,9 @@ function isElementInViewport(node) {
         return null;
     }
     var computedStyle = window.getComputedStyle(node, null);
-    if (computedStyle.visibility !== 'visible' ||
-            computedStyle.display === 'none' ||
-            node.hasAttribute('disabled') ||
+    if (computedStyle.visibility !== "visible" ||
+            computedStyle.display === "none" ||
+            node.hasAttribute("disabled") ||
             parseInt(computedStyle.width, 10) === 0 ||
             parseInt(computedStyle.height, 10) === 0) {
         return null;
@@ -88,7 +88,7 @@ function isElementInViewport(node) {
     var textNodes = [];
     var el;
     while ((node = walker.nextNode())) {
-        if (node.nodeType === 3 && node.data.trim() !== '') {
+        if (node.nodeType === 3 && node.data.trim() !== "") {
             textNodes.push(node);
         }
     }
