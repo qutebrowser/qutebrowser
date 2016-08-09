@@ -33,7 +33,3 @@ rules:
      no-undefined: "off"
      wrap-iife: ["error", "inside"]
      func-names: "off"
-
-     # FIXME turn these on again after using a _qutebrowser object
-     no-unused-vars: "off"
-     no-implicit-globals: "off"

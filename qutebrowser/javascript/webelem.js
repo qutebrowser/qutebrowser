@@ -19,60 +19,62 @@
 
 "use strict";
 
-document._qutebrowser_elements = [];
+window._qutebrowser.webelem = (function() {
+    var funcs = {};
+    var elements = [];
 
+    function serialize_elem(elem, id) {
+        var out = {
+            "id": id,
+            "text": elem.text,
+            "tag_name": elem.tagName,
+            "outer_xml": elem.outerHTML,
+        };
 
-function _qutebrowser_serialize_elem(elem, id) {
-    var out = {
-        "id": id,
-        "text": elem.text,
-        "tag_name": elem.tagName,
-        "outer_xml": elem.outerHTML,
+        var attributes = {};
+        for (var i = 0; i < elem.attributes.length; ++i) {
+            var attr = elem.attributes[i];
+            attributes[attr.name] = attr.value;
+        }
+        out.attributes = attributes;
+
+        // console.log(JSON.stringify(out));
+
+        return out;
+    }
+
+    funcs.find_all = function(selector) {
+        var elems = document.querySelectorAll(selector);
+        var out = [];
+        var id = elements.length;
+
+        for (var i = 0; i < elems.length; ++i) {
+            var elem = elems[i];
+            out.push(serialize_elem(elem, id));
+            elements[id] = elem;
+            id++;
+        }
+
+        return out;
     };
 
-    var attributes = {};
-    for (var i = 0; i < elem.attributes.length; ++i) {
-        var attr = elem.attributes[i];
-        attributes[attr.name] = attr.value;
-    }
-    out.attributes = attributes;
+    funcs.focus_element = function() {
+        var elem = document.activeElement;
 
-    // console.log(JSON.stringify(out));
+        if (!elem || elem === document.body) {
+            // "When there is no selection, the active element is the page's
+            // <body> or null."
+            return null;
+        }
 
-    return out;
-}
-
-
-function _qutebrowser_find_all_elements(selector) {
-    var elems = document.querySelectorAll(selector);
-    var out = [];
-    var id = document._qutebrowser_elements.length;
-
-    for (var i = 0; i < elems.length; ++i) {
-        var elem = elems[i];
-        out.push(_qutebrowser_serialize_elem(elem, id));
-        document._qutebrowser_elements[id] = elem;
-        id++;
-    }
-
-    return out;
-}
+        var id = elements.length;
+        return serialize_elem(elem, id);
+    };
 
 
-function _qutebrowser_focus_element() {
-    var elem = document.activeElement;
+    funcs.get_element = function(id) {
+        return elements[id];
+    };
 
-    if (!elem || elem === document.body) {
-        // "When there is no selection, the active element is the page's <body>
-        // or null."
-        return null;
-    }
-
-    var id = document._qutebrowser_elements.length;
-    return _qutebrowser_serialize_elem(elem, id);
-}
-
-
-function _qutebrowser_get_element(id) {
-    return document._qutebrowser_elements[id];
-}
+    return funcs;
+})();

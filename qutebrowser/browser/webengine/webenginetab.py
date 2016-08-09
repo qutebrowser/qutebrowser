@@ -33,7 +33,7 @@ from PyQt5.QtWebEngineWidgets import QWebEnginePage, QWebEngineScript
 
 from qutebrowser.browser import browsertab
 from qutebrowser.browser.webengine import webview, webengineelem
-from qutebrowser.utils import usertypes, qtutils, log, javascript
+from qutebrowser.utils import usertypes, qtutils, log, javascript, utils
 
 
 class WebEnginePrinting(browsertab.AbstractPrinting):
@@ -191,11 +191,9 @@ class WebEngineScroller(browsertab.AbstractScroller):
         super()._init_widget(widget)
         page = widget.page()
         try:
-            page.scrollPositionChanged.connect(
-                self._on_scroll_pos_changed)
+            page.scrollPositionChanged.connect(self._update_pos)
         except AttributeError:
             log.stub('scrollPositionChanged, on Qt < 5.7')
-        self._on_scroll_pos_changed()
 
     def _key_press(self, key, count=1):
         # FIXME:qtwebengine Abort scrolling if the minimum/maximum was reached.
@@ -209,9 +207,9 @@ class WebEngineScroller(browsertab.AbstractScroller):
             QApplication.postEvent(recipient, release_evt)
 
     @pyqtSlot()
-    def _on_scroll_pos_changed(self):
+    def _update_pos(self):
         """Update the scroll position attributes when it changed."""
-        def update_scroll_pos(jsret):
+        def update_pos_cb(jsret):
             """Callback after getting scroll position via JS."""
             if jsret is None:
                 # This can happen when the callback would get called after
@@ -222,8 +220,8 @@ class WebEngineScroller(browsertab.AbstractScroller):
             self._pos_px = QPoint(jsret['px']['x'], jsret['px']['y'])
             self.perc_changed.emit(*self._pos_perc)
 
-        js_code = javascript.assemble('scroll', 'scroll_pos')
-        self._tab.run_js_async(js_code, update_scroll_pos)
+        js_code = javascript.assemble('scroll', 'pos')
+        self._tab.run_js_async(js_code, update_pos_cb)
 
     def pos_px(self):
         return self._pos_px
@@ -232,7 +230,7 @@ class WebEngineScroller(browsertab.AbstractScroller):
         return self._pos_perc
 
     def to_perc(self, x=None, y=None):
-        js_code = javascript.assemble('scroll', 'scroll_to_perc', x, y)
+        js_code = javascript.assemble('scroll', 'to_perc', x, y)
         self._tab.run_js_async(js_code)
 
     def to_point(self, point):
@@ -243,7 +241,7 @@ class WebEngineScroller(browsertab.AbstractScroller):
         self._tab.run_js_async("window.scrollBy({x}, {y});".format(x=x, y=y))
 
     def delta_page(self, x=0, y=0):
-        js_code = javascript.assemble('scroll', 'scroll_delta_page', x, y)
+        js_code = javascript.assemble('scroll', 'delta_page', x, y)
         self._tab.run_js_async(js_code)
 
     def up(self, count=1):
@@ -334,6 +332,31 @@ class WebEngineTab(browsertab.AbstractTab):
         self._set_widget(widget)
         self._connect_signals()
         self.backend = usertypes.Backend.QtWebEngine
+        # init js stuff
+        self._init_js()
+
+    def _init_js(self):
+        js_code = '\n'.join([
+            '"use strict";',
+            'window._qutebrowser = {};',
+            utils.read_file('javascript/scroll.js'),
+            utils.read_file('javascript/webelem.js'),
+        ])
+        script = QWebEngineScript()
+        script.setInjectionPoint(QWebEngineScript.DocumentCreation)
+        page = self._widget.page()
+        script.setSourceCode(js_code)
+
+        try:
+            page.runJavaScript("", QWebEngineScript.ApplicationWorld)
+        except TypeError:
+            # We're unable to pass a world to runJavaScript
+            script.setWorldId(QWebEngineScript.MainWorld)
+        else:
+            script.setWorldId(QWebEngineScript.ApplicationWorld)
+
+        # FIXME:qtwebengine  what about runsOnSubFrames?
+        page.scripts().insert(script)
 
     def openurl(self, url):
         self._openurl_prepare(url)
@@ -427,7 +450,7 @@ class WebEngineTab(browsertab.AbstractTab):
         callback(elems)
 
     def find_all_elements(self, selector, callback, *, only_visible=False):
-        js_code = javascript.assemble('webelem', 'find_all_elements', selector)
+        js_code = javascript.assemble('webelem', 'find_all', selector)
         js_cb = functools.partial(self._find_all_elements_js_cb, callback)
         self.run_js_async(js_code, js_cb)
 
