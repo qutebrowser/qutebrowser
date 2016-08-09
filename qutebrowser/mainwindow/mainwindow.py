@@ -69,7 +69,11 @@ def get_window(via_ipc, force_window=False, force_tab=False,
         window_to_raise = window
     else:
         try:
-            window = objreg.last_window()
+            win_mode = config.get('general', 'new-instance-open-target.window')
+            if win_mode == 'last-focused':
+                window = objreg.last_focused_window()
+            elif win_mode == 'last-opened':
+                window = objreg.last_window()
         except objreg.NoWindow:
             # There is no window left, so we open a new one
             window = MainWindow()

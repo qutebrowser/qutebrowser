@@ -330,6 +330,7 @@ class QuteProc(testprocess.Process):
         settings = [
             ('ui', 'message-timeout', '0'),
             ('general', 'auto-save-interval', '0'),
+            ('general', 'new-instance-open-target.window', 'last-opened')
         ]
         if not self._webengine:
             settings.append(('network', 'ssl-strict', 'false'))

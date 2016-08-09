@@ -178,10 +178,7 @@ def _get_window_registry(window):
             app = get('app')
             win = app.activeWindow()
         elif window == 'last-focused':
-            try:
-                win = get('last-focused-main-window')
-            except KeyError:
-                win = last_window()
+            win = last_focused_window()
         else:
             win = window_registry[window]
     except (KeyError, NoWindow):
@@ -274,6 +271,14 @@ def dump_objects():
         for line in data:
             lines.append("    {}".format(line))
     return lines
+
+
+def last_focused_window():
+    """Get the last focused window, or the last window if none."""
+    try:
+        return get('last-focused-main-window')
+    except KeyError:
+        return last_window()
 
 
 def last_window():

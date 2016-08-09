@@ -227,6 +227,16 @@ def data(readonly=False):
              "How to open links in an existing instance if a new one is "
              "launched."),
 
+            ('new-instance-open-target.window',
+             SettingValue(typ.String(
+                 valid_values=typ.ValidValues(
+                     ('last-opened', "Open new tabs in the last"
+                     "opened window."),
+                     ('last-focused', "Open new tabs in the most"
+                     "recently focused window.")
+                 )), 'last-focused'),
+             "Which window to choose when opening links as new tabs."),
+
             ('log-javascript-console',
              SettingValue(typ.String(
                  valid_values=typ.ValidValues(
