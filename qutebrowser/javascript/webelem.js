@@ -72,9 +72,6 @@ window._qutebrowser.webelem = (function() {
         return serialize_elem(elem, id);
     };
 
-
-    funcs.get_element = function(id) {
-        return elements[id];
     };
 
     return funcs;
