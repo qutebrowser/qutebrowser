@@ -47,6 +47,7 @@ class CompletionView(QTreeView):
         _height_perc: Either None or a percentage if height should be relative.
         _delegate: The item delegate used.
         _column_widths: A list of column widths, in percent.
+        _active: Whether a selection is active.
 
     Signals:
         resize_completion: Emitted when the completion should be resized.
@@ -112,6 +113,7 @@ class CompletionView(QTreeView):
         # objreg.get('config').changed.connect(self.init_command_completion)
 
         self._column_widths = base.BaseCompletionModel.COLUMN_WIDTHS
+        self._active = False
 
         self._delegate = completiondelegate.CompletionItemDelegate(self)
         self.setItemDelegate(self._delegate)
@@ -187,6 +189,8 @@ class CompletionView(QTreeView):
         Args:
             which: 'next' or 'prev'
         """
+        if not self._active:
+            return
         selmodel = self.selectionModel()
 
         idx = self._next_idx(which == 'prev')
@@ -207,21 +211,27 @@ class CompletionView(QTreeView):
         Args:
             model: The model to use.
         """
-        if (config.get('completion', 'auto-open') and
-            config.get('completion', 'show')):
-            self.show()
-        else:
+        if model is None:
+            self._active = False
             self.hide()
+            return
 
         old_model = self.model()
         sel_model = self.selectionModel()
 
         self.setModel(model)
+        self._active = True
 
         if sel_model is not None:
             sel_model.deleteLater()
         if old_model is not None:
             old_model.deleteLater()
+
+        if (config.get('completion', 'auto-open') and
+                config.get('completion', 'show')):
+            self.show()
+        else:
+            self.hide()
 
         for i in range(model.rowCount()):
             self.expand(model.index(i, 0))
@@ -258,6 +268,8 @@ class CompletionView(QTreeView):
 
     def selectionChanged(self, selected, deselected):
         """Extend selectionChanged to call completers selection_changed."""
+        if not self._active:
+            return
         super().selectionChanged(selected, deselected)
         self.selection_changed.emit(selected)
 

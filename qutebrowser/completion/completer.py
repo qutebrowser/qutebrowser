@@ -252,16 +252,13 @@ class Completer(QObject):
             # anything (yet)
             # FIXME complete searches
             # https://github.com/The-Compiler/qutebrowser/issues/32
-            completion.hide()
+            completion.set_model(None)
             return
 
         model = self._get_new_completion(parts, self._cursor_part)
 
         if model != self._model():
-            if model is None:
-                completion.hide()
-            else:
-                completion.set_model(model)
+            completion.set_model(model)
 
         if model is None:
             log.completion.debug("No completion model for {}.".format(parts))
