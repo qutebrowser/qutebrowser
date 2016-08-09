@@ -1270,7 +1270,7 @@ def data(readonly=False):
              "Font used in the completion widget."),
 
             ('completion.category',
-              SettingValue(typ.Font(), 'bold ${completion}'),
+             SettingValue(typ.Font(), 'bold ${completion}'),
              "Font used in the completion categories."),
 
             ('tabbar',

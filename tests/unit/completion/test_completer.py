@@ -96,30 +96,30 @@ def cmdutils_patch(monkeypatch, stubs):
     @cmdutils.argument('option', completion=usertypes.Completion.option)
     @cmdutils.argument('value', completion=usertypes.Completion.value)
     def set_command(section_=None, option=None, value=None):
-        """docstring!"""
+        """docstring."""
         pass
 
     @cmdutils.argument('topic', completion=usertypes.Completion.helptopic)
     def show_help(tab=False, bg=False, window=False, topic=None):
-        """docstring!"""
+        """docstring."""
         pass
 
     @cmdutils.argument('url', completion=usertypes.Completion.url)
     @cmdutils.argument('count', count=True)
     def openurl(url=None, implicit=False, bg=False, tab=False, window=False,
                 count=None):
-        """docstring!"""
+        """docstring."""
         pass
 
     @cmdutils.argument('win_id', win_id=True)
     @cmdutils.argument('command', completion=usertypes.Completion.command)
     def bind(key, win_id, command=None, *, mode='normal', force=False):
-        """docstring!"""
+        """docstring."""
         # pylint: disable=unused-variable
         pass
 
     def tab_detach():
-        """docstring!"""
+        """docstring."""
         pass
 
     cmds = {

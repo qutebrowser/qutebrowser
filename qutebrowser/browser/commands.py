@@ -1185,13 +1185,12 @@ class CommandDispatcher:
                  current page's url.
         """
         if url is None:
-            url = self._current_url().toString(QUrl.RemovePassword
-                                             | QUrl.FullyEncoded)
+            url = self._current_url().toString(QUrl.RemovePassword |
+                                               QUrl.FullyEncoded)
         try:
             objreg.get('bookmark-manager').delete(url)
         except KeyError:
             raise cmdexc.CommandError("Bookmark '{}' not found!".format(url))
-
 
     @cmdutils.register(instance='command-dispatcher', hide=True,
                        scope='window')

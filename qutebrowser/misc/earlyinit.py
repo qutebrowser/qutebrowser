@@ -60,11 +60,11 @@ def _missing_str(name, *, windows=None, pip=None, webengine=False):
     blocks.append('<br />'.join(lines))
     if webengine:
         lines = [
-            'Note QtWebEngine is not available for some distributions '
+            ('Note QtWebEngine is not available for some distributions '
                 '(like Debian/Ubuntu), so you need to start without '
-                '--backend webengine there.',
-            'QtWebEngine is currently unsupported with the OS X .app, see '
-                'https://github.com/The-Compiler/qutebrowser/issues/1692',
+                '--backend webengine there.'),
+            ('QtWebEngine is currently unsupported with the OS X .app, see '
+                'https://github.com/The-Compiler/qutebrowser/issues/1692'),
         ]
     else:
         lines = ['<b>If you installed a qutebrowser package for your '

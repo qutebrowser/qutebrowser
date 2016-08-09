@@ -761,7 +761,7 @@ class HintManager(QObject):
                                             only_visible=True)
 
     def current_mode(self):
-        """Returns the currently active hinting mode (or None otherwise)."""
+        """Return the currently active hinting mode (or None otherwise)."""
         if self._context is None:
             return None
 

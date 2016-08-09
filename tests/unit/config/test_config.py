@@ -283,7 +283,7 @@ class TestKeyConfigParser:
             ('download-remove --all', 'download-clear'),
 
             ('hint links fill ":open {hint-url}"',
-                 'hint links fill :open {hint-url}'),
+                'hint links fill :open {hint-url}'),
             ('hint links fill ":open -t {hint-url}"',
                 'hint links fill :open -t {hint-url}'),
 

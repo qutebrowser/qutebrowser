@@ -125,11 +125,11 @@ class BaseType:
         self.valid_values = None
 
     def get_name(self):
-        """Get a name for the type for documentation"""
+        """Get a name for the type for documentation."""
         return self.__class__.__name__
 
     def get_valid_values(self):
-        """Get the type's valid values for documentation"""
+        """Get the type's valid values for documentation."""
         return self.valid_values
 
     def _basic_validation(self, value):

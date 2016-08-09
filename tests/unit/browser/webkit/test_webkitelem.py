@@ -221,6 +221,7 @@ class TestSelectorsAndFilters:
         elems = [e for e in elems if filterfunc(e)]
         assert bool(elems) == matching
 
+
 class TestWebKitElement:
 
     """Generic tests for WebKitElement.
