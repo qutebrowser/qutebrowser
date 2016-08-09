@@ -767,6 +767,22 @@ class HintManager(QObject):
 
         return self._context.hint_mode
 
+    def _get_visible_hints(self):
+        """Get elements which are currently visible.
+        """
+        visible = {}
+        for string, elem in self._context.elems.items():
+            try:
+                if not self._is_hidden(elem.label):
+                    visible[string] = elem
+            except webelem.Error:
+                pass
+        if not visible:
+            # Whoops, filtered all hints
+            modeman.leave(self._win_id, usertypes.KeyMode.hint,
+                          'all filtered')
+        return visible
+
     def handle_partial_key(self, keystr):
         """Handle a new partial keypress."""
         log.hints.debug("Handling new keystring: '{}'".format(keystr))
@@ -791,57 +807,6 @@ class HintManager(QObject):
             except webelem.Error:
                 pass
 
-    def _filter_number_hints(self):
-        """Apply filters for numbered hints and renumber them.
-
-        Return:
-            Elements which are still visible
-        """
-        # renumber filtered hints
-        elems = []
-        for e in self._context.all_elems:
-            try:
-                if not self._is_hidden(e.label):
-                    elems.append(e)
-            except webelem.Error:
-                pass
-        if not elems:
-            # Whoops, filtered all hints
-            modeman.leave(self._win_id, usertypes.KeyMode.hint,
-                          'all filtered')
-            return {}
-
-        strings = self._hint_strings(elems)
-        self._context.elems = {}
-        for elem, string in zip(elems, strings):
-            elem.label.set_inner_xml(string)
-            self._context.elems[string] = elem
-        keyparsers = objreg.get('keyparsers', scope='window',
-                                window=self._win_id)
-        keyparser = keyparsers[usertypes.KeyMode.hint]
-        keyparser.update_bindings(strings, preserve_filter=True)
-
-        return self._context.elems
-
-    def _filter_non_number_hints(self):
-        """Apply filters for letter/word hints.
-
-        Return:
-            Elements which are still visible
-        """
-        visible = {}
-        for string, elem in self._context.elems.items():
-            try:
-                if not self._is_hidden(elem.label):
-                    visible[string] = elem
-            except webelem.Error:
-                pass
-        if not visible:
-            # Whoops, filtered all hints
-            modeman.leave(self._win_id, usertypes.KeyMode.hint,
-                          'all filtered')
-        return visible
-
     def filter_hints(self, filterstr):
         """Filter displayed hints according to a text.
 
@@ -856,9 +821,11 @@ class HintManager(QObject):
         else:
             self._filterstr = filterstr
 
+        visible = []
         for elem in self._context.all_elems:
             try:
                 if self._filter_matches(filterstr, str(elem.elem)):
+                    visible.append(elem)
                     if self._is_hidden(elem.label):
                         # hidden element which matches again -> show it
                         self._show_elem(elem.label)
@@ -869,9 +836,16 @@ class HintManager(QObject):
                 pass
 
         if self._context.hint_mode == 'number':
-            visible = self._filter_number_hints()
-        else:
-            visible = self._filter_non_number_hints()
+            # renumber filtered hints
+            strings = self._hint_strings(visible)
+            self._context.elems = {}
+            for elem, string in zip(visible, strings):
+                elem.label.set_inner_xml(string)
+                self._context.elems[string] = elem
+            keyparsers = objreg.get('keyparsers', scope='window',
+                                    window=self._win_id)
+            keyparser = keyparsers[usertypes.KeyMode.hint]
+            keyparser.update_bindings(strings, preserve_filter=True)
 
         if (len(visible) == 1 and
                 config.get('hints', 'auto-follow') and
@@ -882,6 +856,8 @@ class HintManager(QObject):
                                     window=self._win_id)
             normal_parser = keyparsers[usertypes.KeyMode.normal]
             normal_parser.set_inhibited_timeout(timeout)
+            # change visible to dict
+            visible = self._get_visible_hints()
             # unpacking gets us the first (and only) key in the dict.
             self.fire(*visible)
 
