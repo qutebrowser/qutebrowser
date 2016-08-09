@@ -247,7 +247,6 @@ class CommandDispatcher:
                       clicking on a link).
             count: The tab index to open the URL in, or None.
         """
-        force_search = False
         if url is None:
             if tab or bg or window:
                 urls = [config.get('general', 'default-page')]
@@ -255,15 +254,7 @@ class CommandDispatcher:
                 raise cmdexc.CommandError("No URL given, but -t/-b/-w is not "
                                           "set!")
         else:
-            urllist = [u for u in url.split('\n') if u.strip()]
-            if (len(urllist) > 1 and
-                    any(not urlutils.is_url(u) and
-                        urlutils.get_path_if_valid(u, check_exists=True)
-                        is None for u in urllist)):
-                urllist = [url]
-                force_search = True
-            urls = [x for x in [self._parse_url(u, force_search=force_search)
-                                for u in urllist] if x is not None]
+            urls = self._parse_url_input(url)
         for i, cur_url in enumerate(urls):
             if not window and i > 0:
                 tab = False
@@ -277,10 +268,13 @@ class CommandDispatcher:
                         # We want to open a URL in the current tab, but none
                         # exists yet.
                         self._tabbed_browser.tabopen(cur_url)
+                    else:
+                        # Explicit count with a tab that doesn't exist.
+                        return
                 else:
                     curtab.openurl(cur_url)
 
-    def _parse_url(self, url, force_search=False):
+    def _parse_url(self, url, *, force_search=False):
         """Parse a URL or quickmark or search query.
 
         Args:
@@ -299,8 +293,27 @@ class CommandDispatcher:
                 # We don't use cmdexc.CommandError here as this can be
                 # called async from edit_url
                 message.error(self._win_id, str(e))
-                return
+                return None
 
+    def _parse_url_input(self, url):
+        """Parse a URL or newline-separated list of URLs.
+
+        Args:
+            url: The URL or list to parse.
+
+        Return:
+            A list of URLs that can be opened."""
+        force_search = False
+        urllist = [u for u in url.split('\n') if u.strip()]
+        if (len(urllist) > 1 and not urlutils.is_url(urllist[0]) and
+                urlutils.get_path_if_valid(urllist[0], check_exists=True)
+                is None):
+            urllist = [url]
+            force_search = True
+        for cur_url in urllist:
+            parsed = self._parse_url(cur_url, force_search=force_search)
+            if parsed is not None:
+                yield parsed
 
     @cmdutils.register(instance='command-dispatcher', name='reload',
                        scope='window')

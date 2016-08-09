@@ -49,31 +49,29 @@ def _current_url(tabbed_browser):
 
 def replace_variables(win_id, arglist):
     """Utility function to replace variables like {url} in a list of args."""
+    variables = {
+        '{url}': lambda: _current_url(tabbed_browser).toString(
+            QUrl.FullyEncoded | QUrl.RemovePassword),
+        '{url:pretty}': lambda: _current_url(tabbed_browser).toString(
+            QUrl.RemovePassword),
+        '{clipboard}': utils.get_clipboard,
+        '{primary}': lambda: utils.get_clipboard(selection=True),
+    }
+    values = {}
     args = []
     tabbed_browser = objreg.get('tabbed-browser', scope='window',
                                 window=win_id)
-    if any('{url}' in arg for arg in arglist):
-        url = _current_url(tabbed_browser).toString(QUrl.FullyEncoded |
-                                                    QUrl.RemovePassword)
-    if any('{url:pretty}' in arg for arg in arglist):
-        pretty_url = _current_url(tabbed_browser).toString(QUrl.RemovePassword)
+
     try:
-        if any('{clipboard}' in arg for arg in arglist):
-            clipboard = utils.get_clipboard()
-        if any('{primary}' in arg for arg in arglist):
-            primary = utils.get_clipboard(selection=True)
+        for arg in arglist:
+            for var, func in variables.items():
+                if var in arg:
+                    if var not in values:
+                        values[var] = func()
+                    arg = arg.replace(var, values[var])
+            args.append(arg)
     except utils.ClipboardEmptyError as e:
         raise cmdexc.CommandError(e)
-    for arg in arglist:
-        if '{url}' in arg:
-            arg = arg.replace('{url}', url)
-        if '{url:pretty}' in arg:
-            arg = arg.replace('{url:pretty}', pretty_url)
-        if '{clipboard}' in arg:
-            arg = arg.replace('{clipboard}', clipboard)
-        if '{primary}' in arg:
-            arg = arg.replace('{primary}', primary)
-        args.append(arg)
     return args
 
 
