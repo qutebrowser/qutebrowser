@@ -283,7 +283,8 @@ class CommandDispatcher:
                           interpreted as a URL or a path.
 
         Return:
-            A URL that can be opened."""
+            A URL that can be opened.
+        """
         try:
             return objreg.get('quickmark-manager').get(url)
         except urlmarks.Error:
@@ -302,7 +303,8 @@ class CommandDispatcher:
             url: The URL or list to parse.
 
         Return:
-            A list of URLs that can be opened."""
+            A list of URLs that can be opened.
+        """
         force_search = False
         urllist = [u for u in url.split('\n') if u.strip()]
         if (len(urllist) > 1 and not urlutils.is_url(urllist[0]) and
