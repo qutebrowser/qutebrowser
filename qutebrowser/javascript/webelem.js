@@ -72,6 +72,8 @@ window._qutebrowser.webelem = (function() {
         return serialize_elem(elem, id);
     };
 
+    funcs.set_text = function(id, text) {
+        elements[id].value = text;
     };
 
     return funcs;

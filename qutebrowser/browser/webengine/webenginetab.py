@@ -446,7 +446,7 @@ class WebEngineTab(browsertab.AbstractTab):
         """
         elems = []
         for js_elem in js_elems:
-            elem = webengineelem.WebEngineElement(js_elem)
+            elem = webengineelem.WebEngineElement(js_elem, self.run_js_async)
             elems.append(elem)
         callback(elems)
 
@@ -467,7 +467,8 @@ class WebEngineTab(browsertab.AbstractTab):
         if js_elem is None:
             callback(None)
         else:
-            callback(webengineelem.WebEngineElement(js_elem))
+            elem = webengineelem.WebEngineElement(js_elem, self.run_js_async)
+            callback(elem)
 
     def find_focus_element(self, callback):
         js_code = javascript.assemble('webelem', 'focus_element')
