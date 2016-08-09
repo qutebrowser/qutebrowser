@@ -149,6 +149,7 @@ class CriticalQtWarning(Exception):
 
 def init_log(args):
     """Init loggers based on the argparse namespace passed."""
+    global console
     level = args.loglevel.upper()
     try:
         numeric_level = getattr(logging, level)
@@ -173,6 +174,10 @@ def init_log(args):
     QtCore.qInstallMessageHandler(qt_message_handler)
     global _log_inited
     _log_inited = True
+
+
+def change(filters):
+    console.addFilter(LogFilter(filters.split(',')))
 
 
 def _init_py_warnings():
@@ -210,6 +215,7 @@ def _init_handlers(level, color, force_color, json_logging, ram_capacity):
         json_logging: Output log lines in JSON (this disables all colors).
     """
     global ram_handler
+    global console_handler
     console_fmt, ram_fmt, html_fmt, use_colorama = _init_formatters(
         level, color, force_color, json_logging)
 
@@ -234,6 +240,11 @@ def _init_handlers(level, color, force_color, json_logging, ram_capacity):
         ram_handler.html_formatter = html_fmt
 
     return console_handler, ram_handler
+
+
+def change_loglevel(level):
+    value = LOG_LEVELS[level.upper()]
+    console_handler.setLevel(value)
 
 
 def _init_formatters(level, color, force_color, json_logging):

@@ -247,3 +247,33 @@ def log_capacity(capacity: int):
         raise cmdexc.CommandError("Can't set a negative log capacity!")
     else:
         log.ram_handler.change_log_capacity(capacity)
+
+
+@cmdutils.register(debug=True, name='debug-loglevel')
+def log_level(level=""):
+    """Change the log level for console logging.
+
+    Args:
+       level: log level for console log.
+    """
+    acceptable_levels=['critical','error','info','debug','warning','vdebug']
+    if level in acceptable_levels:
+        log.change_loglevel(level)
+    else:
+        raise cmdexc.CommandError("Invalid argument, choose from ('critical', 'error', 'warning', 'info', 'debug' or 'vdebug')!")
+
+
+@cmdutils.register(debug=True, name='debug-logfilter')
+def log_filter(filter_names):
+    """Change the log filter for console logging.
+
+    Args:
+       filter_names: Filter names  for the console log.
+    """
+    acceptable_filters=['statusbar','completion','destroy','modes','webview','mouse','misc','url','procs','commands','init','signals','hints','keyboard','downloads','js','qt','rfc6266','ipc','shlexer','save','message','config','sessions']
+    for name in filter_names.split(','):
+        if name in acceptable_filters:
+            pass
+        else:
+            raise cmdexc.CommandError("Invalid argument, choose from ('statusbar','completion','destroy','modes','webview','mouse','misc','url','procs','commands','init','signals','hints','keyboard','downloads','js','qt','rfc6266','ipc','shlexer','save','message','config','sessions')!")
+    log.change(filter_names)
