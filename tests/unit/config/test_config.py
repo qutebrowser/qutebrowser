@@ -214,7 +214,7 @@ class TestKeyConfigParser:
 
     """Test config.parsers.keyconf.KeyConfigParser."""
 
-    def test_cmd_binding(self, cmdline_test):
+    def test_cmd_binding(self, cmdline_test, config_stub):
         """Test various command bindings.
 
         See https://github.com/The-Compiler/qutebrowser/issues/615
@@ -222,6 +222,7 @@ class TestKeyConfigParser:
         Args:
             cmdline_test: A pytest fixture which provides testcases.
         """
+        config_stub.data = {'aliases': []}
         kcp = keyconf.KeyConfigParser(None, None)
         kcp._cur_section = 'normal'
         if cmdline_test.valid:
