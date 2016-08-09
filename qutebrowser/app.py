@@ -342,16 +342,13 @@ def on_focus_changed(_old, new):
     if not isinstance(new, QWidget) and new is not None:
         log.misc.debug("on_focus_changed called with non-QWidget {!r}".format(
             new))
+        return
 
-    if new is None or not isinstance(new, mainwindow.MainWindow):
-        try:
-            objreg.delete('last-focused-main-window')
-        except KeyError:
-            pass
-        qApp.restoreOverrideCursor()
-    else:
-        objreg.register('last-focused-main-window', new.window(), update=True)
+    if new is not None:
         _maybe_hide_mouse_cursor()
+        objreg.register('last-focused-main-window', new.window(), update=True)
+    else:
+        qApp.restoreOverrideCursor()
 
 
 def open_desktopservices_url(url):
