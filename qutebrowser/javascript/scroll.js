@@ -17,6 +17,8 @@
  * along with qutebrowser.  If not, see <http://www.gnu.org/licenses/>.
  */
 
+"use strict";
+
 function _qutebrowser_scroll_to_perc(x, y) {
     var elem = document.documentElement;
     var x_px = window.scrollX;

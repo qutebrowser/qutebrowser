@@ -45,5 +45,5 @@ rules:
     max-statements: [2, 30]
     no-bitwise: 2
     quote-props: [2, "always"]
-    global-strict: 0
+    strict: ["error", "global"]
     quotes: 0

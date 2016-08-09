@@ -17,6 +17,7 @@
  * along with qutebrowser.  If not, see <http://www.gnu.org/licenses/>.
  */
 
+"use strict";
 
 document._qutebrowser_elements = [];
 
