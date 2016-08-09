@@ -68,6 +68,7 @@ window._qutebrowser.webelem = (function() {
         }
 
         var id = elements.length;
+        elements[id] = elem;
         return serialize_elem(elem, id);
     };
 
