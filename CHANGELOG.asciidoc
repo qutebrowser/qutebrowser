@@ -28,6 +28,8 @@ Added
   completion category headers.
 - New `:debug-log-capacity` command to adjust how many lines are logged into RAM
   (to report bugs which are difficult to reproduce).
+- New `hide-unmatched-rapid-hints` option to not hide hint unmatched hint labels
+  in rapid mode.
 
 Changed
 ~~~~~~~
