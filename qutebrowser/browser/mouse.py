@@ -21,7 +21,7 @@
 
 
 from qutebrowser.config import config
-from qutebrowser.utils import message, debug, log
+from qutebrowser.utils import message, log
 
 
 from PyQt5.QtCore import QObject, QEvent, Qt
@@ -44,6 +44,7 @@ class ChildEventFilter(QObject):
         self._widget = widget
 
     def eventFilter(self, obj, event):
+        """Act on ChildAdded events."""
         if event.type() == QEvent.ChildAdded:
             child = event.child()
             log.mouse.debug("{} got new child {}, installing filter".format(
