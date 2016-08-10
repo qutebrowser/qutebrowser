@@ -70,7 +70,7 @@ def replace_variables(win_id, arglist):
                         values[var] = func()
                     arg = arg.replace(var, values[var])
             args.append(arg)
-    except utils.ClipboardEmptyError as e:
+    except utils.ClipboardError as e:
         raise cmdexc.CommandError(e)
     return args
 

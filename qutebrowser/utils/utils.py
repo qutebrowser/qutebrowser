@@ -43,12 +43,17 @@ fake_clipboard = None
 log_clipboard = False
 
 
-class SelectionUnsupportedError(Exception):
+class ClipboardError(Exception):
+
+    """Raised if the clipboard contents are unavailable for some reason."""
+
+
+class SelectionUnsupportedError(ClipboardError):
 
     """Raised if [gs]et_clipboard is used and selection=True is unsupported."""
 
 
-class ClipboardEmptyError(Exception):
+class ClipboardEmptyError(ClipboardError):
 
     """Raised if get_clipboard is used and the clipboard is empty."""
 

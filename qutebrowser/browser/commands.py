@@ -855,7 +855,7 @@ class CommandDispatcher:
             sel = False
         try:
             text = utils.get_clipboard(selection=sel)
-        except utils.ClipboardEmptyError as e:
+        except utils.ClipboardError as e:
             raise cmdexc.CommandError(e)
         text_urls = [u for u in text.split('\n') if u.strip()]
         if (len(text_urls) > 1 and not urlutils.is_url(text_urls[0]) and
