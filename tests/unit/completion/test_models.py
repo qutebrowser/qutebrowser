@@ -31,17 +31,18 @@ from qutebrowser.browser.webkit import history
 from qutebrowser.config import sections, value
 
 
-def _get_completions(model):
-    """Collect all the completion entries of a model, organized by category.
+def _check_completions(model, expected):
+    """Check that a model contains the expected items in any order.
 
-    The result is a list of form:
-    [
-        (CategoryName: [(name, desc, misc), ...]),
-        (CategoryName: [(name, desc, misc), ...]),
-        ...
-    ]
+    Args:
+        expected: A dict of form
+            {
+                CategoryName: [(name, desc, misc), ...],
+                CategoryName: [(name, desc, misc), ...],
+                ...
+            }
     """
-    completions = []
+    actual = {}
     for i in range(0, model.rowCount()):
         category = model.item(i)
         entries = []
@@ -50,8 +51,12 @@ def _get_completions(model):
             desc = category.child(j, 1)
             misc = category.child(j, 2)
             entries.append((name.text(), desc.text(), misc.text()))
-        completions.append((category.text(), entries))
-    return completions
+        actual[category.text()] = entries
+    for cat_name, expected_entries in expected.items():
+        assert cat_name in actual
+        actual_items = actual[cat_name]
+        for expected_item in expected_entries:
+            assert expected_item in actual_items
 
 
 def _patch_cmdutils(monkeypatch, stubs, symbol):
@@ -165,7 +170,6 @@ def test_command_completion(qtmodeltester, monkeypatch, stubs, config_stub,
 
     Validates that:
         - only non-hidden and non-deprecated commands are included
-        - commands are sorted by name
         - the command description is shown in the desc column
         - the binding (if any) is shown in the misc column
         - aliases are included
@@ -180,15 +184,14 @@ def test_command_completion(qtmodeltester, monkeypatch, stubs, config_stub,
     qtmodeltester.data_display_may_return_none = True
     qtmodeltester.check(model)
 
-    actual = _get_completions(model)
-    assert actual == [
-        ("Commands", [
+    _check_completions(model, {
+        "Commands": [
+            ('stop', 'stop qutebrowser', 's'),
             ('drop', 'drop all user data', ''),
-            ('rock', "Alias for 'roll'", 'ro'),
             ('roll', 'never gonna give you up', 'rr'),
-            ('stop', 'stop qutebrowser', 's')
-        ])
-    ]
+            ('rock', "Alias for 'roll'", 'ro'),
+        ]
+    })
 
 
 def test_help_completion(qtmodeltester, monkeypatch, stubs, key_config_stub):
@@ -196,7 +199,6 @@ def test_help_completion(qtmodeltester, monkeypatch, stubs, key_config_stub):
 
     Validates that:
         - only non-deprecated commands are included
-        - commands are sorted by name
         - the command description is shown in the desc column
         - the binding (if any) is shown in the misc column
         - aliases are included
@@ -210,22 +212,21 @@ def test_help_completion(qtmodeltester, monkeypatch, stubs, key_config_stub):
     qtmodeltester.data_display_may_return_none = True
     qtmodeltester.check(model)
 
-    actual = _get_completions(model)
-    assert actual == [
-        ("Commands", [
-            (':drop', 'drop all user data', ''),
-            (':hide', '', ''),
-            (':roll', 'never gonna give you up', 'rr'),
+    _check_completions(model, {
+        "Commands": [
             (':stop', 'stop qutebrowser', 's'),
-        ]),
-        ("Settings", [
+            (':drop', 'drop all user data', ''),
+            (':roll', 'never gonna give you up', 'rr'),
+            (':hide', '', ''),
+        ],
+        "Settings": [
             ('general->time', 'Is an illusion.', ''),
             ('general->volume', 'Goes to 11', ''),
             ('ui->gesture', 'Waggle your hands to control qutebrowser', ''),
             ('ui->mind', 'Enable mind-control ui (experimental)', ''),
             ('ui->voice', 'Whether to respond to voice commands', ''),
-        ])
-    ]
+        ]
+    })
 
 
 def test_quickmark_completion(qtmodeltester, quickmarks):
@@ -234,14 +235,13 @@ def test_quickmark_completion(qtmodeltester, quickmarks):
     qtmodeltester.data_display_may_return_none = True
     qtmodeltester.check(model)
 
-    actual = _get_completions(model)
-    assert actual == [
-        ("Quickmarks", [
+    _check_completions(model, {
+        "Quickmarks": [
             ('aw', 'https://wiki.archlinux.org', ''),
             ('ddg', 'https://duckduckgo.com', ''),
             ('wiki', 'https://wikipedia.org', ''),
-        ])
-    ]
+        ]
+    })
 
 
 def test_bookmark_completion(qtmodeltester, bookmarks):
@@ -250,14 +250,13 @@ def test_bookmark_completion(qtmodeltester, bookmarks):
     qtmodeltester.data_display_may_return_none = True
     qtmodeltester.check(model)
 
-    actual = _get_completions(model)
-    assert actual == [
-        ("Bookmarks", [
+    _check_completions(model, {
+        "Bookmarks": [
             ('https://github.com', 'GitHub', ''),
             ('https://python.org', 'Welcome to Python.org', ''),
             ('http://qutebrowser.org', 'qutebrowser | qutebrowser', ''),
-        ])
-    ]
+        ]
+    })
 
 
 def test_url_completion(qtmodeltester, config_stub, web_history, quickmarks,
@@ -275,23 +274,22 @@ def test_url_completion(qtmodeltester, config_stub, web_history, quickmarks,
     qtmodeltester.data_display_may_return_none = True
     qtmodeltester.check(model)
 
-    actual = _get_completions(model)
-    assert actual == [
-        ("Quickmarks", [
+    _check_completions(model, {
+        "Quickmarks": [
             ('https://wiki.archlinux.org', 'aw', ''),
             ('https://duckduckgo.com', 'ddg', ''),
             ('https://wikipedia.org', 'wiki', ''),
-        ]),
-        ("Bookmarks", [
+        ],
+        "Bookmarks": [
             ('https://github.com', 'GitHub', ''),
             ('https://python.org', 'Welcome to Python.org', ''),
             ('http://qutebrowser.org', 'qutebrowser | qutebrowser', ''),
-        ]),
-        ("History", [
+        ],
+        "History": [
             ('https://python.org', 'Welcome to Python.org', '2016-03-08'),
             ('https://github.com', 'GitHub', '2016-05-01'),
-        ]),
-    ]
+        ],
+    })
 
 
 def test_url_completion_delete_bookmark(qtmodeltester, config_stub,
@@ -336,10 +334,9 @@ def test_session_completion(qtmodeltester, session_manager_stub):
     qtmodeltester.data_display_may_return_none = True
     qtmodeltester.check(model)
 
-    actual = _get_completions(model)
-    assert actual == [
-        ("Sessions", [('default', '', ''), ('1', '', ''), ('2', '', '')])
-    ]
+    _check_completions(model, {
+        "Sessions": [('default', '', ''), ('1', '', ''), ('2', '', '')]
+    })
 
 
 def test_tab_completion(qtmodeltester, fake_web_tab, app_stub, win_registry,
@@ -356,17 +353,16 @@ def test_tab_completion(qtmodeltester, fake_web_tab, app_stub, win_registry,
     qtmodeltester.data_display_may_return_none = True
     qtmodeltester.check(model)
 
-    actual = _get_completions(model)
-    assert actual == [
-        ('0', [
+    _check_completions(model, {
+        '0': [
             ('0/1', 'https://github.com', 'GitHub'),
             ('0/2', 'https://wikipedia.org', 'Wikipedia'),
             ('0/3', 'https://duckduckgo.com', 'DuckDuckGo')
-        ]),
-        ('1', [
+        ],
+        '1': [
             ('1/1', 'https://wiki.archlinux.org', 'ArchWiki'),
-        ])
-    ]
+        ]
+    })
 
 
 def test_tab_completion_delete(qtmodeltester, fake_web_tab, qtbot, app_stub,
@@ -401,13 +397,12 @@ def test_setting_section_completion(qtmodeltester, monkeypatch, stubs):
     qtmodeltester.data_display_may_return_none = True
     qtmodeltester.check(model)
 
-    actual = _get_completions(model)
-    assert actual == [
-        ("Sections", [
+    _check_completions(model, {
+        "Sections": [
             ('general', 'General/miscellaneous options.', ''),
             ('ui', 'General options related to the user interface.', ''),
-        ])
-    ]
+        ]
+    })
 
 
 def test_setting_option_completion(qtmodeltester, monkeypatch, stubs,
@@ -421,14 +416,13 @@ def test_setting_option_completion(qtmodeltester, monkeypatch, stubs,
     qtmodeltester.data_display_may_return_none = True
     qtmodeltester.check(model)
 
-    actual = _get_completions(model)
-    assert actual == [
-        ("ui", [
+    _check_completions(model, {
+        "ui": [
             ('gesture', 'Waggle your hands to control qutebrowser', 'off'),
             ('mind', 'Enable mind-control ui (experimental)', 'on'),
             ('voice', 'Whether to respond to voice commands', 'sometimes'),
-        ])
-    ]
+        ]
+    })
 
 
 def test_setting_value_completion(qtmodeltester, monkeypatch, stubs,
@@ -440,17 +434,16 @@ def test_setting_value_completion(qtmodeltester, monkeypatch, stubs,
     qtmodeltester.data_display_may_return_none = True
     qtmodeltester.check(model)
 
-    actual = _get_completions(model)
-    assert actual == [
-        ("Current/Default", [
+    _check_completions(model, {
+        "Current/Default": [
             ('0', 'Current value', ''),
             ('11', 'Default value', ''),
-        ]),
-        ("Completions", [
+        ],
+        "Completions": [
             ('0', '', ''),
             ('11', '', ''),
-        ])
-    ]
+        ]
+    })
 
 
 def test_bind_completion(qtmodeltester, monkeypatch, stubs, config_stub,
@@ -459,7 +452,6 @@ def test_bind_completion(qtmodeltester, monkeypatch, stubs, config_stub,
 
     Validates that:
         - only non-hidden and non-deprecated commands are included
-        - commands are sorted by name
         - the command description is shown in the desc column
         - the binding (if any) is shown in the misc column
         - aliases are included
@@ -474,13 +466,11 @@ def test_bind_completion(qtmodeltester, monkeypatch, stubs, config_stub,
     qtmodeltester.data_display_may_return_none = True
     qtmodeltester.check(model)
 
-    actual = _get_completions(model)
-    assert actual == [
-        ("Commands", [
+    _check_completions(model, {
+        "Commands": [
+            ('stop', 'stop qutebrowser', 's'),
             ('drop', 'drop all user data', ''),
             ('hide', '', ''),
             ('rock', "Alias for 'roll'", 'ro'),
-            ('roll', 'never gonna give you up', 'rr'),
-            ('stop', 'stop qutebrowser', 's')
-        ])
-    ]
+        ]
+    })

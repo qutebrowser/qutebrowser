@@ -286,4 +286,4 @@ def _get_cmd_completions(include_hidden, include_aliases, prefix=''):
             bindings = ', '.join(cmd_to_keys.get(name, []))
             cmdlist.append((name, "Alias for '{}'".format(cmd), bindings))
 
-    return sorted(cmdlist)
+    return cmdlist
