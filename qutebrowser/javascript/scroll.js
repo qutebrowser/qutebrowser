@@ -35,6 +35,21 @@ window._qutebrowser.scroll = (function() {
             y_px = (elem.scrollHeight - elem.clientHeight) / 100 * y;
         }
 
+        /*
+        console.log(JSON.stringify({
+            "x": x,
+            "window.scrollX": window.scrollX,
+            "elem.clientWidth": elem.clientWidth,
+            "elem.scrollWidth": elem.scrollWidth,
+            "x_px": x_px,
+            "y": y,
+            "window.scrollY": window.scrollY,
+            "elem.clientHeight": elem.clientHeight,
+            "elem.scrollHeight": elem.scrollHeight,
+            "y_px": y_px,
+        }));
+        */
+
         window.scroll(x_px, y_px);
     };
 
