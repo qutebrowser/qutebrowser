@@ -485,9 +485,6 @@ class AbstractTab(QWidget):
         self._mouse_event_filter = mouse.MouseEventFilter(self, parent=self)
         self.backend = None
 
-    def _event_filter_target(self):
-        raise NotImplementedError
-
     def _set_widget(self, widget):
         # pylint: disable=protected-access
         self._widget = widget
@@ -499,8 +496,10 @@ class AbstractTab(QWidget):
         self.search._widget = widget
         self.printing._widget = widget
         widget.mouse_wheel_zoom.connect(self.zoom._on_mouse_wheel_zoom)
-        event_filter_target = self._event_filter_target()
-        event_filter_target.installEventFilter(self._mouse_event_filter)
+        self._install_event_filter()
+
+    def _install_event_filter(self):
+        raise NotImplementedError
 
     def _set_load_status(self, val):
         """Setter for load_status."""
