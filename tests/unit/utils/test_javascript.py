@@ -138,6 +138,10 @@ def test_convert_js_arg(arg, expected):
         assert javascript._convert_js_arg(arg) == expected
 
 
-def test_assemble():
-    expected = '"use strict";\nwindow._qutebrowser.foo.func(23);'
-    assert javascript.assemble('foo', 'func', 23) == expected
+@pytest.mark.parametrize('base, expected_base', [
+    ('window', 'window'),
+    ('foo', 'window._qutebrowser.foo'),
+])
+def test_assemble(base, expected_base):
+    expected = '"use strict";\n{}.func(23);'.format(expected_base)
+    assert javascript.assemble(base, 'func', 23) == expected
