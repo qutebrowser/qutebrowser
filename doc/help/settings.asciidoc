@@ -471,8 +471,6 @@ Valid values:
 
 Default: +pass:[debug]+
 
-This setting is only available with the QtWebKit backend.
-
 [[general-save-session]]
 === save-session
 Whether to always save the open pages.
