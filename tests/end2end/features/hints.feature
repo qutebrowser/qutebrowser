@@ -321,16 +321,8 @@ Feature: Using hints
         And I set hints -> mode to number
         And I set hints -> auto-follow to full-match
         And I run :hint
-        And I press the key "f"
-        And I press the key "o"
-        And I press the key "l"
-        And I press the key "l"
-        And I press the key "o"
-        And I press the key "w"
-        And I press the key " "
-        And I press the key "m"
-        And I press the key "e"
-        And I press the key "!"
+        # this actually presses the keys one by one
+        And I press the key "follow me!"
         Then data/hello.txt should be loaded
 
     Scenario: Using hints -> auto-follow == 'never' in number mode
@@ -338,16 +330,8 @@ Feature: Using hints
         And I set hints -> mode to number
         And I set hints -> auto-follow to full-match
         And I run :hint
-        And I press the key "f"
-        And I press the key "o"
-        And I press the key "l"
-        And I press the key "l"
-        And I press the key "o"
-        And I press the key "w"
-        And I press the key " "
-        And I press the key "m"
-        And I press the key "e"
-        And I press the key "!"
+        # this actually presses the keys one by one
+        And I press the key "follow me!"
         And I press the key "<Enter>"
         Then data/hello.txt should be loaded
 
