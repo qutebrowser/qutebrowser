@@ -27,7 +27,7 @@ from PyQt5.QtCore import QUrl
 from PyQt5.QtWidgets import QTreeView
 
 from qutebrowser.completion.models import miscmodels, urlmodel, configmodel
-from qutebrowser.browser.webkit import history
+from qutebrowser.browser import history
 from qutebrowser.config import sections, value
 
 
