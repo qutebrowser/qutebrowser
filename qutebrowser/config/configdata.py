@@ -1505,6 +1505,7 @@ KEY_DATA = collections.OrderedDict([
         ('scroll up', ['k']),
         ('scroll right', ['l']),
         ('undo', ['u', '<Ctrl-Shift-T>']),
+        ('undo -w', ['wu', 'U']),
         ('scroll-perc 0', ['gg']),
         ('scroll-perc', ['G']),
         ('search-next', ['n']),

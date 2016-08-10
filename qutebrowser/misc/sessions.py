@@ -23,7 +23,7 @@ import os
 import sip
 import os.path
 
-from PyQt5.QtCore import pyqtSignal, QUrl, QObject, QPoint, QTimer
+from PyQt5.QtCore import pyqtSignal, QUrl, QObject, QPoint, QTimer, QByteArray
 from PyQt5.QtWidgets import QApplication
 import yaml
 try:
@@ -36,6 +36,7 @@ from qutebrowser.utils import (standarddir, objreg, qtutils, log, usertypes,
                                message)
 from qutebrowser.commands import cmdexc, cmdutils
 from qutebrowser.mainwindow import mainwindow
+from qutebrowser.mainwindow.tabbedbrowser import UndoEntry
 from qutebrowser.config import config
 
 
@@ -81,6 +82,8 @@ class SessionManager(QObject):
         _last_window_session: The session data of the last window which was
                               closed.
         _current: The name of the currently loaded session, or None.
+        _window_id_stack: A fifo of closed window ids.
+        _ram_sessions: Dict of (in memory) session names to session data.
         did_load: Set when a session was loaded.
 
     Signals:
@@ -95,7 +98,9 @@ class SessionManager(QObject):
         self._current = None
         self._base_path = base_path
         self._last_window_session = None
+        self._window_id_stack = []
         self.did_load = False
+        self._ram_sessions = {}
 
     def _get_session_path(self, name, check_exists=False):
         """Get the session path based on a session name or absolute path.
@@ -199,25 +204,44 @@ class SessionManager(QObject):
         """Get a dict with data for all windows/tabs."""
         data = {'windows': []}
         for win_id in objreg.window_registry:
-            tabbed_browser = objreg.get('tabbed-browser', scope='window',
-                                        window=win_id)
-            main_window = objreg.get('main-window', scope='window',
-                                     window=win_id)
+            win_data = self._save_win(win_id)
+            if win_data:
+                data['windows'].append(win_data)
+        return data
 
-            # We could be in the middle of destroying a window here
-            if sip.isdeleted(main_window):
-                continue
+    def _save_win(self, win_id):
+        """Get a dict with data for a single window."""
+        tabbed_browser = objreg.get('tabbed-browser', scope='window',
+                                    window=win_id)
+        main_window = objreg.get('main-window', scope='window',
+                                 window=win_id)
 
-            win_data = {}
-            active_window = QApplication.instance().activeWindow()
-            if getattr(active_window, 'win_id', None) == win_id:
-                win_data['active'] = True
-            win_data['geometry'] = bytes(main_window.saveGeometry())
-            win_data['tabs'] = []
-            for i, tab in enumerate(tabbed_browser.widgets()):
-                active = i == tabbed_browser.currentIndex()
-                win_data['tabs'].append(self._save_tab(tab, active))
-            data['windows'].append(win_data)
+        # We could be in the middle of destroying a window here
+        if sip.isdeleted(main_window):
+            return
+
+        win_data = {}
+        active_window = QApplication.instance().activeWindow()
+        if getattr(active_window, 'win_id', None) == win_id:
+            win_data['active'] = True
+        win_data['geometry'] = bytes(main_window.saveGeometry())
+        win_data['tabs'] = []
+        win_data['undo_stack'] = \
+            self._save_undo(main_window.tabbed_browser._undo_stack)
+
+        for i, tab in enumerate(tabbed_browser.widgets()):
+            active = i == tabbed_browser.currentIndex()
+            win_data['tabs'].append(self._save_tab(tab, active))
+        return win_data
+
+    def _save_undo(self, undo_stack):
+        """Get a dict with data for a window's undo stack."""
+        data = []
+        for entry in undo_stack:
+            entry_data = {}
+            entry_data['url'] = bytes(entry.url.toEncoded()).decode('ascii')
+            entry_data['history'] = bytes(entry.history)
+            data.append(entry_data)
         return data
 
     def _get_session_name(self, name):
@@ -236,7 +260,8 @@ class SessionManager(QObject):
                     name = 'default'
         return name
 
-    def save(self, name, last_window=False, load_next_time=False):
+    def save(self, name, last_window=False, load_next_time=False,
+             only_win_id=-1, in_memory=False):
         """Save a named session.
 
         Args:
@@ -245,32 +270,44 @@ class SessionManager(QObject):
             last_window: If set, saves the saved self._last_window_session
                          instead of the currently open state.
             load_next_time: If set, prepares this session to be load next time.
+            only_win_id: Limit the session to the given window. If -1, ignore
+                         this option.
+            in_memory: Save the session to memory rather than disk.
 
         Return:
             The name of the saved session.
         """
         name = self._get_session_name(name)
-        path = self._get_session_path(name)
-        if path is None:
-            raise SessionError("No data storage configured.")
-
-        log.sessions.debug("Saving session {} to {}...".format(name, path))
         if last_window:
             data = self._last_window_session
             if data is None:
                 log.sessions.error("last_window_session is None while saving!")
                 return
         else:
-            data = self._save_all()
+            if only_win_id != -1:
+                data = {'windows': []}
+                data['windows'].append(self._save_win(only_win_id))
+            else:
+                data = self._save_all()
         log.sessions.vdebug("Saving data: {}".format(data))
-        try:
-            with qtutils.savefile_open(path) as f:
-                yaml.dump(data, f, Dumper=YamlDumper, default_flow_style=False,
-                          encoding='utf-8', allow_unicode=True)
-        except (OSError, UnicodeEncodeError, yaml.YAMLError) as e:
-            raise SessionError(e)
-        else:
+        if in_memory:
+            log.sessions.debug("Saving session {} to memory...".format(name))
+            self._ram_sessions[name] = data
             self.update_completion.emit()
+        else:
+            path = self._get_session_path(name)
+            if path is None:
+                raise SessionError("No data storage configured.")
+
+            log.sessions.debug("Saving session {} to {}...".format(name, path))
+            try:
+                with qtutils.savefile_open(path) as f:
+                    yaml.dump(data, f, Dumper=YamlDumper, default_flow_style=False,
+                              encoding='utf-8', allow_unicode=True)
+            except (OSError, UnicodeEncodeError, yaml.YAMLError) as e:
+                raise SessionError(e)
+            else:
+                self.update_completion.emit()
         if load_next_time:
             state_config = objreg.get('state-config')
             state_config['general']['session'] = name
@@ -322,25 +359,36 @@ class SessionManager(QObject):
         except ValueError as e:
             raise SessionError(e)
 
-    def load(self, name, temp=False):
+    def load(self, name, temp=False, in_memory=False):
         """Load a named session.
 
         Args:
             name: The name of the session to load.
             temp: If given, don't set the current session.
+            in_memory: Load the session from memory rather than disk.
         """
-        path = self._get_session_path(name, check_exists=True)
-        try:
-            with open(path, encoding='utf-8') as f:
-                data = yaml.load(f, Loader=YamlLoader)
-        except (OSError, UnicodeDecodeError, yaml.YAMLError) as e:
-            raise SessionError(e)
-        log.sessions.debug("Loading session {} from {}...".format(name, path))
+        if in_memory:
+            data = self._ram_sessions[name]
+            log.sessions.debug("Loading session {} from memory...".format(name))
+        else:
+            path = self._get_session_path(name, check_exists=True)
+            try:
+                with open(path, encoding='utf-8') as f:
+                    data = yaml.load(f, Loader=YamlLoader)
+            except (OSError, UnicodeDecodeError, yaml.YAMLError) as e:
+                raise SessionError(e)
+            log.sessions.debug("Loading session {} from {}...".format(name, path))
         for win in data['windows']:
             window = mainwindow.MainWindow(geometry=win['geometry'])
             window.show()
             tabbed_browser = objreg.get('tabbed-browser', scope='window',
                                         window=window.win_id)
+            undo_stack = []
+            for entry in win['undo_stack']:
+                undo_url = QUrl.fromEncoded(entry['url'].encode('ascii'))
+                undo_history = QByteArray(entry['history'])
+                undo_stack.append(UndoEntry(undo_url, undo_history))
+            tabbed_browser._undo_stack = undo_stack
             tab_to_focus = None
             for i, tab in enumerate(win['tabs']):
                 new_tab = tabbed_browser.tabopen()
@@ -374,7 +422,8 @@ class SessionManager(QObject):
 
     @cmdutils.register(instance='session-manager')
     @cmdutils.argument('name', completion=usertypes.Completion.sessions)
-    def session_load(self, name, clear=False, temp=False, force=False):
+    def session_load(self, name, clear=False, temp=False, force=False,
+            in_memory=False):
         """Load a session.
 
         Args:
@@ -383,13 +432,14 @@ class SessionManager(QObject):
             temp: Don't set the current session for :session-save.
             force: Force loading internal sessions (starting with an
                    underline).
+            in_memory: Load the session from memory rather than disk.
         """
         if name.startswith('_') and not force:
             raise cmdexc.CommandError("{} is an internal session, use --force "
                                       "to load anyways.".format(name))
         old_windows = list(objreg.window_registry.values())
         try:
-            self.load(name, temp=temp)
+            self.load(name, temp=temp, in_memory=in_memory)
         except SessionNotFoundError:
             raise cmdexc.CommandError("Session {} not found!".format(name))
         except SessionError as e:
@@ -404,7 +454,8 @@ class SessionManager(QObject):
     @cmdutils.argument('win_id', win_id=True)
     @cmdutils.argument('name', completion=usertypes.Completion.sessions)
     def session_save(self, win_id, name: str=default, current=False,
-                     quiet=False, force=False):
+                     quiet=False, force=False, only_window=False,
+                     in_memory=False):
         """Save a session.
 
         Args:
@@ -414,6 +465,8 @@ class SessionManager(QObject):
             current: Save the current session instead of the default.
             quiet: Don't show confirmation message.
             force: Force saving internal sessions (starting with an underline).
+            only_window: Limit the session to the current window.
+            in_memory: Save the session to memory rather than disk.
         """
         if (name is not default and
                 name.startswith('_') and  # pylint: disable=no-member
@@ -426,7 +479,10 @@ class SessionManager(QObject):
             name = self._current
             assert not name.startswith('_')
         try:
-            name = self.save(name)
+            if only_window:
+                name = self.save(name, only_win_id=win_id, in_memory=in_memory)
+            else:
+                name = self.save(name, in_memory=in_memory)
         except SessionError as e:
             raise cmdexc.CommandError("Error while saving session: {}"
                                       .format(e))

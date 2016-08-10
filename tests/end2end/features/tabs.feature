@@ -703,9 +703,46 @@ Feature: Tab management
         Then the error "Nothing to undo!" should be shown
         And the error "Nothing to undo!" should be shown
 
+    Scenario: Undo closing a window
+        Given I have a fresh instance
+        When I open data/numbers/1.txt
+        And I open data/numbers/2.txt in a new window
+        And I open data/numbers/3.txt in a new tab
+        And I run :close
+        And I run :undo -w
+        Then the session should look like:
+            windows:
+            - tabs:
+              - history:
+                - url: about:blank
+                - url: http://localhost:*/data/numbers/1.txt
+            - tabs:
+              - history:
+                - url: http://localhost:*/data/numbers/2.txt
+              - history:
+                - url: http://localhost:*/data/numbers/3.txt
+
+    Scenario: Undo closing a window with tabs-are-windows
+        Given I have a fresh instance
+        When I open data/numbers/1.txt
+        And I set tabs -> tabs-are-windows to true
+        And I open data/numbers/2.txt in a new window
+        And I run :close
+        And I run :undo
+        Then the session should look like:
+            windows:
+            - tabs:
+              - history:
+                - url: about:blank
+                - url: http://localhost:*/data/numbers/1.txt
+            - tabs:
+              - history:
+                - url: http://localhost:*/data/numbers/2.txt
+
     # last-close
 
     Scenario: last-close = blank
+        Given I have a fresh instance
         When I open data/hello.txt
         And I set tabs -> last-close to blank
         And I run :tab-only

@@ -229,12 +229,14 @@ class TabbedBrowser(tabwidget.TabWidget):
         if last_close == 'ignore' and count == 1:
             return
 
+        if last_close == 'close' and count == 1:
+            self.close_window.emit()
+            return
+
         self._remove_tab(tab)
 
         if count == 1:  # We just closed the last tab above.
-            if last_close == 'close':
-                self.close_window.emit()
-            elif last_close == 'blank':
+            if last_close == 'blank':
                 self.openurl(QUrl('about:blank'), newtab=True)
             elif last_close == 'startpage':
                 url = QUrl(config.get('general', 'startpage')[0])
@@ -307,6 +309,14 @@ class TabbedBrowser(tabwidget.TabWidget):
             newtab = self.tabopen(url, background=False)
 
         newtab.history.deserialize(history_data)
+
+    def undo_window(self):
+        """Undo removing of a window."""
+        session_manager = objreg.get('session-manager')
+        win_id = session_manager._window_id_stack.pop()
+        restore_session_name = "_undo-{}".format(win_id)
+        session_manager.session_load(restore_session_name, force=True,
+                in_memory=True)
 
     @pyqtSlot('QUrl', bool)
     def openurl(self, url, newtab):
