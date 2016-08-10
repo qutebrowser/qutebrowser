@@ -285,6 +285,14 @@ def dump_objects():
     return lines
 
 
+def last_visible_window():
+    """Get the last visible window, or the last focused window if none."""
+    try:
+        return get('last-visible-main-window')
+    except KeyError:
+        return last_focused_window()
+
+
 def last_focused_window():
     """Get the last focused window, or the last window if none."""
     try:
