@@ -327,11 +327,13 @@ def generate_commands(filename):
         for name, cmd in cmdutils.cmd_dict.items():
             if name in cmdutils.aliases:
                 continue
+            if cmd.deprecated:
+                continue
             if cmd.hide:
                 hidden_cmds.append((name, cmd))
             elif cmd.debug:
                 debug_cmds.append((name, cmd))
-            elif not cmd.deprecated:
+            else:
                 normal_cmds.append((name, cmd))
         normal_cmds.sort()
         hidden_cmds.sort()
