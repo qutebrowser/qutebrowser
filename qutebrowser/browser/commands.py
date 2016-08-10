@@ -1503,7 +1503,8 @@ class CommandDispatcher:
         """Insert text at cursor position.
 
         Args:
-            text: The text to insert."""
+            text: The text to insert.
+        """
         # FIXME:qtwebengine have a proper API for this
         tab = self._current_widget()
         page = tab._widget.page()  # pylint: disable=protected-access
