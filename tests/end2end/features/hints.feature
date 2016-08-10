@@ -39,10 +39,10 @@ Feature: Using hints
             - data/hello.txt (active)
 
     Scenario: Entering and leaving hinting mode (issue 1464)
-      When I open data/hints/html/simple.html
-      And I run :hint
-      And I run :fake-key -g <Esc>
-      Then no crash should happen
+        When I open data/hints/html/simple.html
+        And I run :hint
+        And I run :fake-key -g <Esc>
+        Then no crash should happen
 
     Scenario: Using :hint spawn with flags and -- (issue 797)
         When I open data/hints/html/simple.html
@@ -225,7 +225,7 @@ Feature: Using hints
     Scenario: Multi-word matching
         When I open data/hints/number.html
         And I set hints -> mode to number
-        And I set hints -> auto-follow to true
+        And I set hints -> auto-follow to unique-match
         And I set hints -> auto-follow-timeout to 0
         And I run :hint all
         And I press the keys "ten pos"
@@ -265,3 +265,92 @@ Feature: Using hints
         And I press the key "s"
         And I run :follow-hint 1
         Then data/numbers/7.txt should be loaded
+
+    ### auto-follow option
+
+    Scenario: Using hints -> auto-follow == 'always' in letter mode
+        When I open data/hints/html/simple.html
+        And I set hints -> mode to letter
+        And I set hints -> auto-follow to always
+        And I run :hint
+        Then data/hello.txt should be loaded
+
+    # unique-match is actually the same as full-match in letter mode
+    Scenario: Using hints -> auto-follow == 'unique-match' in letter mode
+        When I open data/hints/html/simple.html
+        And I set hints -> mode to letter
+        And I set hints -> auto-follow to unique-match
+        And I run :hint
+        And I press the key "a"
+        Then data/hello.txt should be loaded
+
+    Scenario: Using hints -> auto-follow == 'full-match' in letter mode
+        When I open data/hints/html/simple.html
+        And I set hints -> mode to letter
+        And I set hints -> auto-follow to full-match
+        And I run :hint
+        And I press the key "a"
+        Then data/hello.txt should be loaded
+
+    # FIXME: not sure where I broke this...
+    @xfail_norun
+    Scenario: Using hints -> auto-follow == 'never' in letter mode
+        When I open data/hints/html/simple.html
+        And I set hints -> mode to letter
+        And I set hints -> auto-follow to never
+        And I run :hint
+        And I press the key "a"
+        And I press the key "Enter"
+        Then data/hello.txt should be loaded
+
+    Scenario: Using hints -> auto-follow == 'always' in number mode
+        When I open data/hints/html/simple.html
+        And I set hints -> mode to number
+        And I set hints -> auto-follow to always
+        And I run :hint
+        Then data/hello.txt should be loaded
+
+    Scenario: Using hints -> auto-follow == 'unique-match' in number mode
+        When I open data/hints/html/simple.html
+        And I set hints -> mode to number
+        And I set hints -> auto-follow to unique-match
+        And I run :hint
+        And I press the key "f"
+        Then data/hello.txt should be loaded
+
+    Scenario: Using hints -> auto-follow == 'full-match' in number mode
+        When I open data/hints/html/simple.html
+        And I set hints -> mode to number
+        And I set hints -> auto-follow to full-match
+        And I run :hint
+        And I press the key "f"
+        And I press the key "o"
+        And I press the key "l"
+        And I press the key "l"
+        And I press the key "o"
+        And I press the key "w"
+        And I press the key " "
+        And I press the key "m"
+        And I press the key "e"
+        And I press the key "!"
+        Then data/hello.txt should be loaded
+
+    Scenario: Using hints -> auto-follow == 'never' in number mode
+        When I open data/hints/html/simple.html
+        And I set hints -> mode to number
+        And I set hints -> auto-follow to full-match
+        And I run :hint
+        And I press the key "f"
+        And I press the key "o"
+        And I press the key "l"
+        And I press the key "l"
+        And I press the key "o"
+        And I press the key "w"
+        And I press the key " "
+        And I press the key "m"
+        And I press the key "e"
+        And I press the key "!"
+        And I press the key "Enter"
+        Then data/hello.txt should be loaded
+
+    # TODO: tests for word mode - it tries to access /usr/share/dict/words on the system

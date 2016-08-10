@@ -632,6 +632,15 @@ class HintManager(QObject):
         # Do multi-word matching
         return all(word in elemstr for word in filterstr.split())
 
+    def _filter_matches_exactly(self, filterstr, elemstr):
+        """Return True if `filterstr` exactly matches `elemstr`."""
+        # Empty string and None never match
+        if not filterstr:
+            return False
+        filterstr = filterstr.casefold()
+        elemstr = elemstr.casefold()
+        return filterstr == elemstr
+
     def _start_cb(self, elems):
         """Initialize the elements and labels based on the context set."""
         filterfunc = webelem.FILTERS.get(self._context.group, lambda e: True)
@@ -657,6 +666,9 @@ class HintManager(QObject):
         message_bridge.set_text(self._get_text())
         modeman.enter(self._win_id, usertypes.KeyMode.hint,
                       'HintManager.start')
+
+        # to make auto-follow == 'always' work
+        self._handle_auto_follow()
 
     @cmdutils.register(instance='hintmanager', scope='tab', name='hint',
                        star_args_optional=True, maxsplit=2,
@@ -780,12 +792,28 @@ class HintManager(QObject):
                 pass
         return visible
 
-    def _handle_auto_follow(self, visible=None):
+    def _handle_auto_follow(self, keystr="", filterstr="", visible=None):
         """Handle the auto-follow option."""
         if visible is None:
             visible = self._get_visible_hints()
 
-        if len(visible) == 1 and config.get('hints', 'auto-follow'):
+        if len(visible) != 1:
+            return
+
+        auto_follow = config.get('hints', 'auto-follow')
+
+        if auto_follow == "always":
+            follow = True
+        elif auto_follow == "unique-match":
+            follow = (keystr or filterstr)
+        elif auto_follow == "full-match":
+            elemstr = str(list(visible.values())[0].elem)
+            filter_match = self._filter_matches_exactly(filterstr, elemstr)
+            follow = keystr in visible or filter_match
+        else:
+            follow = False
+
+        if follow:
             # apply auto-follow-timeout
             timeout = config.get('hints', 'auto-follow-timeout')
             keyparsers = objreg.get('keyparsers', scope='window',
@@ -818,7 +846,7 @@ class HintManager(QObject):
                         self._hide_elem(elem.label)
             except webelem.Error:
                 pass
-        self._handle_auto_follow()
+        self._handle_auto_follow(keystr=keystr)
 
     def filter_hints(self, filterstr):
         """Filter displayed hints according to a text.
@@ -870,16 +898,17 @@ class HintManager(QObject):
             # when number mode is active
             if filterstr is not None:
                 # pass self._context.elems as the dict of visible hints
-                self._handle_auto_follow(self._context.elems)
+                self._handle_auto_follow(filterstr=filterstr,
+                                         visible=self._context.elems)
 
     def fire(self, keystr, force=False):
         """Fire a completed hint.
 
         Args:
             keystr: The keychain string to follow.
-            force: When True, follow even when auto-follow is false.
+            force: When True, follow even when auto-follow is not 'never'.
         """
-        if not (force or config.get('hints', 'auto-follow')):
+        if not (force or config.get('hints', 'auto-follow') != 'never'):
             self.handle_partial_key(keystr)
             self._context.to_follow = keystr
             return
