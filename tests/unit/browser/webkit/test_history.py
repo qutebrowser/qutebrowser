@@ -28,7 +28,8 @@ from hypothesis import strategies
 from PyQt5.QtCore import QUrl
 from PyQt5.QtWebKit import QWebHistoryInterface
 
-from qutebrowser.browser.webkit import history
+from qutebrowser.browser import history
+from qutebrowser.browser.webkit import webkithistory
 from qutebrowser.utils import objreg
 
 
@@ -371,7 +372,7 @@ def hist_interface():
                           title='example')
     history_dict = {'http://www.example.com/': entry}
     fake_hist = FakeWebHistory(history_dict)
-    interface = history.WebHistoryInterface(fake_hist)
+    interface = webkithistory.WebHistoryInterface(fake_hist)
     QWebHistoryInterface.setDefaultInterface(interface)
     yield
     QWebHistoryInterface.setDefaultInterface(None)
@@ -385,11 +386,23 @@ def test_history_interface(qtbot, webview, hist_interface):
         webview.load(url)
 
 
-def test_init(qapp, tmpdir, monkeypatch, fake_save_manager):
+@pytest.mark.parametrize('backend', ['webengine', 'webkit'])
+def test_init(backend, qapp, tmpdir, monkeypatch, fake_save_manager,
+              fake_args):
+    fake_args.backend = backend
     monkeypatch.setattr(history.standarddir, 'data', lambda: str(tmpdir))
     history.init(qapp)
     hist = objreg.get('web-history')
     assert hist.parent() is qapp
-    assert QWebHistoryInterface.defaultInterface()._history is hist
+    default_interface = QWebHistoryInterface.defaultInterface()
+
+    if backend == 'webkit':
+        assert default_interface._history is hist
+    else:
+        assert backend == 'webengine'
+        # For this to work, nothing can ever have called setDefaultInterface
+        # before (so we need to test webengine before webkit)
+        assert default_interface is None
+
     assert fake_save_manager.add_saveable.called
     objreg.delete('web-history')

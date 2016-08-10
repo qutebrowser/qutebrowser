@@ -28,12 +28,11 @@ from string import ascii_lowercase
 from PyQt5.QtCore import (pyqtSignal, pyqtSlot, QObject, QEvent, Qt, QUrl,
                           QTimer)
 from PyQt5.QtGui import QMouseEvent
-from PyQt5.QtWebKit import QWebElement
 from PyQt5.QtWebKitWidgets import QWebPage
 
 from qutebrowser.config import config
 from qutebrowser.keyinput import modeman, modeparsers
-from qutebrowser.browser.webkit import webelem
+from qutebrowser.browser import webelem
 from qutebrowser.commands import userscripts, cmdexc, cmdutils, runners
 from qutebrowser.utils import usertypes, log, qtutils, message, objreg, utils
 
@@ -95,6 +94,7 @@ class HintContext:
         self.args = []
         self.tab = None
         self.group = None
+        self.hint_mode = None
 
     def get_args(self, urlstr):
         """Get the arguments, with {hint-url} replaced by the given URL."""
@@ -374,7 +374,7 @@ class HintManager(QObject):
         for elem in self._context.all_elems:
             try:
                 elem.label.remove_from_document()
-            except webelem.IsNullError:
+            except webelem.Error:
                 pass
         text = self._get_text()
         message_bridge = objreg.get('message-bridge', scope='window',
@@ -394,7 +394,7 @@ class HintManager(QObject):
         Return:
             A list of hint strings, in the same order as the elements.
         """
-        hint_mode = config.get('hints', 'mode')
+        hint_mode = self._context.hint_mode
         if hint_mode == 'word':
             try:
                 return self._word_hinter.hint(elems)
@@ -516,7 +516,7 @@ class HintManager(QObject):
 
     def _is_hidden(self, elem):
         """Check if the element is hidden via display=none."""
-        display = elem.style_property('display', QWebElement.InlineStyle)
+        display = elem.style_property('display', strategy='inline')
         return display == 'none'
 
     def _show_elem(self, elem):
@@ -548,7 +548,7 @@ class HintManager(QObject):
 
         # Make text uppercase if set in config
         if (config.get('hints', 'uppercase') and
-                config.get('hints', 'mode') == 'letter'):
+                self._context.hint_mode == 'letter'):
             attrs.append(('text-transform', 'uppercase !important'))
         else:
             attrs.append(('text-transform', 'none !important'))
@@ -661,14 +661,14 @@ class HintManager(QObject):
                        backend=usertypes.Backend.QtWebKit)
     @cmdutils.argument('win_id', win_id=True)
     def start(self, rapid=False, group=webelem.Group.all, target=Target.normal,
-              *args, win_id):
+              *args, win_id, mode=None):
         """Start hinting.
 
         Args:
             rapid: Whether to do rapid hinting. This is only possible with
                    targets `tab` (with background-tabs=true), `tab-bg`,
                    `window`, `run`, `hover`, `userscript` and `spawn`.
-            group: The hinting mode to use.
+            group: The element types to hint.
 
                 - `all`: All clickable elements.
                 - `links`: Only links.
@@ -694,6 +694,13 @@ class HintManager(QObject):
                 - `userscript`: Call a userscript with `$QUTE_URL` set to the
                                 link.
                 - `spawn`: Spawn a command.
+
+            mode: The hinting mode to use.
+
+                - `number`: Use numeric hints.
+                - `letter`: Use the chars in the hints->chars settings.
+                - `word`: Use hint words based on the html elements and the
+                          extra words.
 
             *args: Arguments for spawn/userscript/run/fill.
 
@@ -733,11 +740,15 @@ class HintManager(QObject):
                 raise cmdexc.CommandError("Rapid hinting makes no sense with "
                                           "target {}!".format(name))
 
+        if mode is None:
+            mode = config.get('hints', 'mode')
+
         self._check_args(target, *args)
         self._context = HintContext()
         self._context.tab = tab
         self._context.target = target
         self._context.rapid = rapid
+        self._context.hint_mode = mode
         try:
             self._context.baseurl = tabbed_browser.current_url()
         except qtutils.QtValueError:
@@ -748,6 +759,13 @@ class HintManager(QObject):
         selector = webelem.SELECTORS[self._context.group]
         self._context.tab.find_all_elements(selector, self._start_cb,
                                             only_visible=True)
+
+    def current_mode(self):
+        """Return the currently active hinting mode (or None otherwise)."""
+        if self._context is None:
+            return None
+
+        return self._context.hint_mode
 
     def handle_partial_key(self, keystr):
         """Handle a new partial keypress."""
@@ -765,9 +783,12 @@ class HintManager(QObject):
                         # hidden element which matches again -> show it
                         self._show_elem(elem.label)
                 else:
-                    # element doesn't match anymore -> hide it
-                    self._hide_elem(elem.label)
-            except webelem.IsNullError:
+                    # element doesn't match anymore -> hide it, unless in rapid
+                    # mode and hide-unmatched-rapid-hints is false (see #1799)
+                    if (not self._context.rapid or
+                            config.get('hints', 'hide-unmatched-rapid-hints')):
+                        self._hide_elem(elem.label)
+            except webelem.Error:
                 pass
 
     def _filter_number_hints(self):
@@ -782,7 +803,7 @@ class HintManager(QObject):
             try:
                 if not self._is_hidden(e.label):
                     elems.append(e)
-            except webelem.IsNullError:
+            except webelem.Error:
                 pass
         if not elems:
             # Whoops, filtered all hints
@@ -813,7 +834,7 @@ class HintManager(QObject):
             try:
                 if not self._is_hidden(elem.label):
                     visible[string] = elem
-            except webelem.IsNullError:
+            except webelem.Error:
                 pass
         if not visible:
             # Whoops, filtered all hints
@@ -844,10 +865,10 @@ class HintManager(QObject):
                 else:
                     # element doesn't match anymore -> hide it
                     self._hide_elem(elem.label)
-            except webelem.IsNullError:
+            except webelem.Error:
                 pass
 
-        if config.get('hints', 'mode') == 'number':
+        if self._context.hint_mode == 'number':
             visible = self._filter_number_hints()
         else:
             visible = self._filter_non_number_hints()
@@ -961,7 +982,7 @@ class HintManager(QObject):
                     e.label.remove_from_document()
                     continue
                 self._set_style_position(e.elem, e.label)
-            except webelem.IsNullError:
+            except webelem.Error:
                 pass
 
     @pyqtSlot(usertypes.KeyMode)
@@ -1022,15 +1043,18 @@ class WordHinter:
             "alt": lambda elem: elem["alt"],
             "name": lambda elem: elem["name"],
             "title": lambda elem: elem["title"],
+            "placeholder": lambda elem: elem["placeholder"],
             "src": lambda elem: elem["src"].split('/')[-1],
             "href": lambda elem: elem["href"].split('/')[-1],
             "text": str,
         }
 
         extractable_attrs = collections.defaultdict(list, {
-            "IMG": ["alt", "title", "src"],
-            "A": ["title", "href", "text"],
-            "INPUT": ["name"]
+            "img": ["alt", "title", "src"],
+            "a": ["title", "href", "text"],
+            "input": ["name", "placeholder"],
+            "textarea": ["name", "placeholder"],
+            "button": ["text"]
         })
 
         return (attr_extractors[attr](elem)

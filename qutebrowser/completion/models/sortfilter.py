@@ -135,8 +135,8 @@ class CompletionFilterModel(QSortFilterProxyModel):
 
         for col in self.srcmodel.columns_to_filter:
             idx = self.srcmodel.index(row, col, parent)
-            if not idx.isValid():
-                # No entries in parent model
+            if not idx.isValid():  # pragma: no cover
+                # this is a sanity check not hit by any test case
                 continue
             data = self.srcmodel.data(idx)
             if not data:

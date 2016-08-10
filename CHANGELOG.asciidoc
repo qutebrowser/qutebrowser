@@ -28,6 +28,10 @@ Added
   completion category headers.
 - New `:debug-log-capacity` command to adjust how many lines are logged into RAM
   (to report bugs which are difficult to reproduce).
+- New `hide-unmatched-rapid-hints` option to not hide hint unmatched hint labels
+  in rapid mode.
+- New `{clipboard}` and `{primary}` replacements for the commandline which
+  replace the `:paste` command.
 
 Changed
 ~~~~~~~
@@ -44,6 +48,47 @@ Changed
   (i.e. to open it at the position it would be opened if it was a clicked link)
 - `:download-open` and `:prompt-open-download` now have an optional `cmdline`
   argument to pass a commandline to open the download with.
+- `:yank` now has a position argument to select what to yank instead of using
+  flags.
+- Replacements like `{url}` can now also be used in the middle of an argument.
+  Consequently, commands taking another command (`:later`, `:repeat` and
+  `:bind`) now don't immediately evaluate variables.
+- Tab titles in the `:buffer` completion now update correctly when a page's
+  title is changed via javascript.
+- `:hint` now has a `--mode <mode>` flag to override the hint mode configured
+  using the `hints -> mode` setting.
+- With `new-instance-open-target` set to a tab option, the tab is now opened in
+  the most recently focused (instead of the last opened) window. This can be
+  configured with the new `new-instance-open-target.window` setting.
+  It can also be set to `last-visible` to show the pages in the most recently
+  visible window.
+- Word hints now are more clever about getting the element text from some elements.
+- Completions for `:help` and `:bind` now also show hidden commands
+- The `:buffer` completion now also filters using the first column (id).
+- `:undo` has been improved to reopen tabs at the position they were closed.
+
+Deprecated
+~~~~~~~~~~
+
+- The `:paste` command got deprecated as `:open` with `{clipboard}` and
+  `{primary}` can be used instead.
+
+Removed
+~~~~~~~
+
+- The `:yank-selected` command got merged into `:yank` as `:yank selection`
+  and thus removed.
+- The `:completion-item-prev` and `:completion-item-next` commands got merged
+  into a new `:completion-focus {prev,next}` command and thus removed.
+- The `ui -> hide-mouse-cursor` setting since it was completely broken and
+  nobody seemed to care.
+
+Fixed
+~~~~~
+
+- `:bind` can now be used to bind to an alias (binding by editing `keys.conf`
+  already worked before)
+- The command completion now updates correctly when changing aliases
 
 v0.8.3 (unreleased)
 -------------------
@@ -52,6 +97,8 @@ Fixed
 ~~~~~
 
 - Fixed crash when doing `:<space><enter>`, another corner-case introduced in v0.8.0
+- Fixed `:open-editor` (`<Ctrl-e>`) on Windows
+- Fixed crash when setting `general -> auto-save-interval` to a too big value.
 
 v0.8.2
 ------

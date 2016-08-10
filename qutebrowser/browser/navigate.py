@@ -17,14 +17,13 @@
 # You should have received a copy of the GNU General Public License
 # along with qutebrowser.  If not, see <http://www.gnu.org/licenses/>.
 
-"""Implementation of :navigate"""
+"""Implementation of :navigate."""
 
 import posixpath
 
-from qutebrowser.browser.webkit import webelem
+from qutebrowser.browser import webelem
 from qutebrowser.config import config
-from qutebrowser.utils import (usertypes, objreg, urlutils, log, message,
-                               qtutils)
+from qutebrowser.utils import objreg, urlutils, log, message, qtutils
 
 
 class Error(Exception):
@@ -109,11 +108,6 @@ def prevnext(*, browsertab, win_id, baseurl, prev=False,
         background: True to open in a background tab.
         window: True to open in a new window, False for the current one.
     """
-    # FIXME:qtwebengine have a proper API for this
-    if browsertab.backend == usertypes.Backend.QtWebEngine:
-        raise Error(":navigate prev/next is not supported yet with "
-                    "QtWebEngine")
-
     def _prevnext_cb(elems):
         elem = _find_prevnext(prev, elems)
         word = 'prev' if prev else 'forward'

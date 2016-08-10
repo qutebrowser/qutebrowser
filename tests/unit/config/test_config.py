@@ -214,7 +214,7 @@ class TestKeyConfigParser:
 
     """Test config.parsers.keyconf.KeyConfigParser."""
 
-    def test_cmd_binding(self, cmdline_test):
+    def test_cmd_binding(self, cmdline_test, config_stub):
         """Test various command bindings.
 
         See https://github.com/The-Compiler/qutebrowser/issues/615
@@ -222,6 +222,7 @@ class TestKeyConfigParser:
         Args:
             cmdline_test: A pytest fixture which provides testcases.
         """
+        config_stub.data = {'aliases': []}
         kcp = keyconf.KeyConfigParser(None, None)
         kcp._cur_section = 'normal'
         if cmdline_test.valid:
@@ -283,9 +284,24 @@ class TestKeyConfigParser:
             ('download-remove --all', 'download-clear'),
 
             ('hint links fill ":open {hint-url}"',
-                 'hint links fill :open {hint-url}'),
+                'hint links fill :open {hint-url}'),
             ('hint links fill ":open -t {hint-url}"',
                 'hint links fill :open -t {hint-url}'),
+
+            ('yank-selected', 'yank selection'),
+            ('yank-selected --sel', 'yank selection --sel'),
+            ('yank-selected -p', 'yank selection -s'),
+
+            ('yank -t', 'yank title'),
+            ('yank -ts', 'yank title -s'),
+            ('yank -d', 'yank domain'),
+            ('yank -ds', 'yank domain -s'),
+            ('yank -p', 'yank pretty-url'),
+            ('yank -ps', 'yank pretty-url -s'),
+
+            ('paste', 'open {clipboard}'),
+            ('paste -t', 'open -t {clipboard}'),
+            ('paste -ws', 'open -w {primary}'),
         ]
     )
     def test_migrations(self, old, new_expected):

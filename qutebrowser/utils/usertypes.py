@@ -239,7 +239,7 @@ KeyMode = enum('KeyMode', ['normal', 'hint', 'command', 'yesno', 'prompt',
 Completion = enum('Completion', ['command', 'section', 'option', 'value',
                                  'helptopic', 'quickmark_by_name',
                                  'bookmark_by_url', 'url', 'tab', 'sessions',
-                                 'empty'])
+                                 'bind'])
 
 
 # Exit statuses for errors. Needs to be an int for sys.exit.

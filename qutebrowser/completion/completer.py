@@ -204,25 +204,18 @@ class Completer(QObject):
             return sortfilter.CompletionFilterModel(source=model, parent=self)
         # delegate completion to command
         try:
-            completions = cmdutils.cmd_dict[parts[0]].completion
+            cmd = cmdutils.cmd_dict[parts[0]]
         except KeyError:
             # entering an unknown command
             return None
-        if completions is None:
-            # command without any available completions
-            return None
-        dbg_completions = [c.name for c in completions]
         try:
             idx = cursor_part - 1
-            completion = completions[idx]
+            completion = cmd.get_pos_arg_info(idx).completion
         except IndexError:
-            # More arguments than completions
-            log.completion.debug("completions: {}".format(
-                ', '.join(dbg_completions)))
+            # user provided more positional arguments than the command takes
             return None
-        dbg_completions[idx] = '*' + dbg_completions[idx] + '*'
-        log.completion.debug("completions: {}".format(
-            ', '.join(dbg_completions)))
+        if completion is None:
+            return None
         model = self._get_completion_model(completion, parts, cursor_part)
         return model
 

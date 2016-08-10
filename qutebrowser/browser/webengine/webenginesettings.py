@@ -36,21 +36,29 @@ from qutebrowser.utils import objreg, utils
 
 class Attribute(websettings.Attribute):
 
+    """A setting set via QWebEngineSettings::setAttribute."""
+
     GLOBAL_SETTINGS = QWebEngineSettings.globalSettings
     ENUM_BASE = QWebEngineSettings
 
 
 class Setter(websettings.Setter):
 
+    """A setting set via QWebEngineSettings getter/setter methods."""
+
     GLOBAL_SETTINGS = QWebEngineSettings.globalSettings
 
 
 class NullStringSetter(websettings.NullStringSetter):
 
+    """A setter for settings requiring a null QString as default."""
+
     GLOBAL_SETTINGS = QWebEngineSettings.globalSettings
 
 
 class StaticSetter(websettings.StaticSetter):
+
+    """A setting set via static QWebEngineSettings getter/setter methods."""
 
     GLOBAL_SETTINGS = QWebEngineSettings.globalSettings
 

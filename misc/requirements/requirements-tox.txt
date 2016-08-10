@@ -3,4 +3,4 @@
 pluggy==0.3.1
 py==1.4.31
 tox==2.3.1
-virtualenv==15.0.2
+virtualenv==15.0.3

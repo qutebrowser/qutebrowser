@@ -22,11 +22,11 @@
 import time
 import collections
 
-from PyQt5.QtCore import pyqtSignal, QUrl, QObject
-from PyQt5.QtWebKit import QWebHistoryInterface
+from PyQt5.QtCore import pyqtSignal, pyqtSlot, QUrl, QObject
 
 from qutebrowser.commands import cmdutils
-from qutebrowser.utils import utils, objreg, standarddir, log, qtutils
+from qutebrowser.utils import (utils, objreg, standarddir, log, qtutils,
+                               usertypes)
 from qutebrowser.config import config
 from qutebrowser.misc import lineparser
 
@@ -106,34 +106,6 @@ class Entry:
         redirect = 'r' in flags
 
         return cls(atime, url, title, redirect=redirect)
-
-
-class WebHistoryInterface(QWebHistoryInterface):
-
-    """Glue code between WebHistory and Qt's QWebHistoryInterface.
-
-    Attributes:
-        _history: The WebHistory object.
-    """
-
-    def __init__(self, webhistory, parent=None):
-        super().__init__(parent)
-        self._history = webhistory
-
-    def addHistoryEntry(self, url_string):
-        """Required for a QWebHistoryInterface impl, obsoleted by add_url."""
-        pass
-
-    def historyContains(self, url_string):
-        """Called by WebKit to determine if a URL is contained in the history.
-
-        Args:
-            url_string: The URL (as string) to check for.
-
-        Return:
-            True if the url is in the history, False otherwise.
-        """
-        return url_string in self._history.history_dict
 
 
 class WebHistory(QObject):
@@ -284,8 +256,19 @@ class WebHistory(QObject):
         self._saved_count = 0
         self.cleared.emit()
 
+    @pyqtSlot(QUrl, QUrl, str)
+    def add_from_tab(self, url, requested_url, title):
+        """Add a new history entry as slot, called from a BrowserTab."""
+        no_formatting = QUrl.UrlFormattingOption(0)
+        if (requested_url.isValid() and
+                not requested_url.matches(url, no_formatting)):
+            # If the url of the page is different than the url of the link
+            # originally clicked, save them both.
+            self.add_url(requested_url, title, redirect=True)
+        self.add_url(url, title)
+
     def add_url(self, url, title="", *, redirect=False, atime=None):
-        """Called by WebKit when a URL should be added to the history.
+        """Called via add_from_tab when a URL should be added to the history.
 
         Args:
             url: A url (as QUrl) to add to the history.
@@ -322,5 +305,7 @@ def init(parent=None):
                          parent=parent)
     objreg.register('web-history', history)
 
-    interface = WebHistoryInterface(history, parent=history)
-    QWebHistoryInterface.setDefaultInterface(interface)
+    used_backend = usertypes.arg2backend[objreg.get('args').backend]
+    if used_backend == usertypes.Backend.QtWebKit:
+        from qutebrowser.browser.webkit import webkithistory
+        webkithistory.init(history)

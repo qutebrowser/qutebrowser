@@ -154,7 +154,7 @@ def data(readonly=False):
              "Whether to save the config automatically on quit."),
 
             ('auto-save-interval',
-             SettingValue(typ.Int(minval=0), '15000'),
+             SettingValue(typ.Int(minval=0, maxval=MAXVALS['int']), '15000'),
              "How often (in milliseconds) to auto-save config/cookies/etc."),
 
             ('editor',
@@ -227,13 +227,25 @@ def data(readonly=False):
              "How to open links in an existing instance if a new one is "
              "launched."),
 
+            ('new-instance-open-target.window',
+             SettingValue(typ.String(
+                 valid_values=typ.ValidValues(
+                     ('last-opened', "Open new tabs in the last opened "
+                                     "window."),
+                     ('last-focused', "Open new tabs in the most recently "
+                                      "focused window."),
+                     ('last-visible', "Open new tabs in the most recently "
+                                      "visible window.")
+                 )), 'last-focused'),
+             "Which window to choose when opening links as new tabs."),
+
             ('log-javascript-console',
              SettingValue(typ.String(
                  valid_values=typ.ValidValues(
                      ('none', "Don't log messages."),
                      ('debug', "Log messages with debug level."),
                      ('info', "Log messages with info level.")
-                 )), 'debug', backends=[usertypes.Backend.QtWebKit]),
+                 )), 'debug'),
              "How to log javascript console messages."),
 
             ('save-session',
@@ -345,10 +357,6 @@ def data(readonly=False):
              "* `{id}`: The internal window ID of this window.\n"
              "* `{scroll_pos}`: The page scroll position.\n"
              "* `{host}`: The host of the current web page."),
-
-            ('hide-mouse-cursor',
-             SettingValue(typ.Bool(), 'false'),
-             "Whether to hide the mouse cursor."),
 
             ('modal-js-dialog',
              SettingValue(typ.Bool(), 'false'),
@@ -488,13 +496,13 @@ def data(readonly=False):
         ('input', sect.KeyValue(
             ('timeout',
              SettingValue(typ.Int(minval=0, maxval=MAXVALS['int']), '500'),
-             "Timeout for ambiguous key bindings.\n\n"
+             "Timeout (in milliseconds) for ambiguous key bindings.\n\n"
              "If the current input forms both a complete match and a partial "
              "match, the complete match will be executed after this time."),
 
             ('partial-timeout',
              SettingValue(typ.Int(minval=0, maxval=MAXVALS['int']), '5000'),
-             "Timeout for partially typed key bindings.\n\n"
+             "Timeout (in milliseconds) for partially typed key bindings.\n\n"
              "If the current input forms only partial matches, the keystring "
              "will be cleared after this time."),
 
@@ -933,8 +941,8 @@ def data(readonly=False):
 
             ('auto-follow-timeout',
              SettingValue(typ.Int(), '0'),
-             "A timeout to inhibit normal-mode key bindings after a successful"
-             "auto-follow."),
+             "A timeout (in milliseconds) to inhibit normal-mode key bindings "
+             "after a successful auto-follow."),
 
             ('next-regexes',
              SettingValue(typ.List(typ.Regex(flags=re.IGNORECASE)),
@@ -955,6 +963,10 @@ def data(readonly=False):
                      ('python', "Slightly worse but faster"),
                  )), 'python'),
              "Which implementation to use to find elements to hint."),
+
+            ('hide-unmatched-rapid-hints',
+             SettingValue(typ.Bool(), 'true'),
+             "Controls hiding unmatched hints in rapid mode."),
 
             readonly=readonly
         )),
@@ -1266,7 +1278,7 @@ def data(readonly=False):
              "Font used in the completion widget."),
 
             ('completion.category',
-              SettingValue(typ.Font(), 'bold ${completion}'),
+             SettingValue(typ.Font(), 'bold ${completion}'),
              "Font used in the completion categories."),
 
             ('tabbar',
@@ -1415,8 +1427,7 @@ KEY_SECTION_DESC = {
         "Useful hidden commands to map in this section:\n\n"
         " * `command-history-prev`: Switch to previous command in history.\n"
         " * `command-history-next`: Switch to next command in history.\n"
-        " * `completion-item-prev`: Select previous item in completion.\n"
-        " * `completion-item-next`: Select next item in completion.\n"
+        " * `completion-item-focus`: Select another item in completion.\n"
         " * `command-accept`: Execute the command currently in the "
         "commandline."),
     'prompt': (
@@ -1506,18 +1517,18 @@ KEY_DATA = collections.OrderedDict([
         ('enter-mode jump_mark', ["'"]),
         ('yank', ['yy']),
         ('yank -s', ['yY']),
-        ('yank -t', ['yt']),
-        ('yank -ts', ['yT']),
-        ('yank -d', ['yd']),
-        ('yank -ds', ['yD']),
-        ('yank -p', ['yp']),
-        ('yank -ps', ['yP']),
-        ('paste', ['pp']),
-        ('paste -s', ['pP']),
-        ('paste -t', ['Pp']),
-        ('paste -ts', ['PP']),
-        ('paste -w', ['wp']),
-        ('paste -ws', ['wP']),
+        ('yank title', ['yt']),
+        ('yank title -s', ['yT']),
+        ('yank domain', ['yd']),
+        ('yank domain -s', ['yD']),
+        ('yank pretty-url', ['yp']),
+        ('yank pretty-url -s', ['yP']),
+        ('open {clipboard}', ['pp']),
+        ('open {primary}', ['pP']),
+        ('open -t {clipboard}', ['Pp']),
+        ('open -t {primary}', ['PP']),
+        ('open -w {clipboard}', ['wp']),
+        ('open -w {primary}', ['wP']),
         ('quickmark-save', ['m']),
         ('set-cmd-text -s :quickmark-load', ['b']),
         ('set-cmd-text -s :quickmark-load -t', ['B']),
@@ -1589,8 +1600,8 @@ KEY_DATA = collections.OrderedDict([
     ('command', collections.OrderedDict([
         ('command-history-prev', ['<Ctrl-P>']),
         ('command-history-next', ['<Ctrl-N>']),
-        ('completion-item-prev', ['<Shift-Tab>', '<Up>']),
-        ('completion-item-next', ['<Tab>', '<Down>']),
+        ('completion-item-focus prev', ['<Shift-Tab>', '<Up>']),
+        ('completion-item-focus next', ['<Tab>', '<Down>']),
         ('completion-item-del', ['<Ctrl-D>']),
         ('command-accept', RETURN_KEYS),
     ])),
@@ -1638,8 +1649,8 @@ KEY_DATA = collections.OrderedDict([
         ('move-to-end-of-line', ['$']),
         ('move-to-start-of-document', ['gg']),
         ('move-to-end-of-document', ['G']),
-        ('yank-selected -p', ['Y']),
-        ('yank-selected', ['y'] + RETURN_KEYS),
+        ('yank selection -s', ['Y']),
+        ('yank selection', ['y'] + RETURN_KEYS),
         ('scroll left', ['H']),
         ('scroll down', ['J']),
         ('scroll up', ['K']),
@@ -1677,4 +1688,21 @@ CHANGED_KEY_COMMANDS = [
     (re.compile(r'^download-remove --all$'), r'download-clear'),
 
     (re.compile(r'^hint links fill "([^"]*)"$'), r'hint links fill \1'),
+
+    (re.compile(r'^yank -t(\S+)'), r'yank title -\1'),
+    (re.compile(r'^yank -t'), r'yank title'),
+    (re.compile(r'^yank -d(\S+)'), r'yank domain -\1'),
+    (re.compile(r'^yank -d'), r'yank domain'),
+    (re.compile(r'^yank -p(\S+)'), r'yank pretty-url -\1'),
+    (re.compile(r'^yank -p'), r'yank pretty-url'),
+    (re.compile(r'^yank-selected -p'), r'yank selection -s'),
+    (re.compile(r'^yank-selected'), r'yank selection'),
+
+    (re.compile(r'^paste$'), r'open {clipboard}'),
+    (re.compile(r'^paste -([twb])$'), r'open -\1 {clipboard}'),
+    (re.compile(r'^paste -([twb])s$'), r'open -\1 {primary}'),
+    (re.compile(r'^paste -s([twb])$'), r'open -\1 {primary}'),
+
+    (re.compile(r'^completion-item-next'), r'completion-item-focus next'),
+    (re.compile(r'^completion-item-prev'), r'completion-item-focus prev'),
 ]

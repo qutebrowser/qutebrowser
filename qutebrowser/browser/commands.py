@@ -40,7 +40,7 @@ import pygments.formatters
 from qutebrowser.commands import userscripts, cmdexc, cmdutils, runners
 from qutebrowser.config import config, configexc
 from qutebrowser.browser import urlmarks, browsertab, inspector, navigate
-from qutebrowser.browser.webkit import webelem, downloads, mhtml
+from qutebrowser.browser.webkit import webkitelem, downloads, mhtml
 from qutebrowser.keyinput import modeman
 from qutebrowser.utils import (message, usertypes, log, qtutils, urlutils,
                                objreg, utils, typing, javascript)
@@ -236,6 +236,8 @@ class CommandDispatcher:
                 bg=False, tab=False, window=False, count=None):
         """Open a URL in the current/[count]th tab.
 
+        If the URL contains newlines, each line gets opened in its own tab.
+
         Args:
             url: The URL to open.
             bg: Open in a new background tab.
@@ -247,35 +249,73 @@ class CommandDispatcher:
         """
         if url is None:
             if tab or bg or window:
-                url = config.get('general', 'default-page')
+                urls = [config.get('general', 'default-page')]
             else:
                 raise cmdexc.CommandError("No URL given, but -t/-b/-w is not "
                                           "set!")
         else:
-            try:
-                url = objreg.get('quickmark-manager').get(url)
-            except urlmarks.Error:
-                try:
-                    url = urlutils.fuzzy_url(url)
-                except urlutils.InvalidUrlError as e:
-                    # We don't use cmdexc.CommandError here as this can be
-                    # called async from edit_url
-                    message.error(self._win_id, str(e))
-                    return
-        if tab or bg or window:
-            self._open(url, tab, bg, window, not implicit)
-        else:
-            curtab = self._cntwidget(count)
-            if curtab is None:
-                if count is None:
-                    # We want to open a URL in the current tab, but none exists
-                    # yet.
-                    self._tabbed_browser.tabopen(url)
-                else:
-                    # Explicit count with a tab that doesn't exist.
-                    return
+            urls = self._parse_url_input(url)
+        for i, cur_url in enumerate(urls):
+            if not window and i > 0:
+                tab = False
+                bg = True
+            if tab or bg or window:
+                self._open(cur_url, tab, bg, window, not implicit)
             else:
-                curtab.openurl(url)
+                curtab = self._cntwidget(count)
+                if curtab is None:
+                    if count is None:
+                        # We want to open a URL in the current tab, but none
+                        # exists yet.
+                        self._tabbed_browser.tabopen(cur_url)
+                    else:
+                        # Explicit count with a tab that doesn't exist.
+                        return
+                else:
+                    curtab.openurl(cur_url)
+
+    def _parse_url(self, url, *, force_search=False):
+        """Parse a URL or quickmark or search query.
+
+        Args:
+            url: The URL to parse.
+            force_search: Whether to force a search even if the content can be
+                          interpreted as a URL or a path.
+
+        Return:
+            A URL that can be opened.
+        """
+        try:
+            return objreg.get('quickmark-manager').get(url)
+        except urlmarks.Error:
+            try:
+                return urlutils.fuzzy_url(url, force_search=force_search)
+            except urlutils.InvalidUrlError as e:
+                # We don't use cmdexc.CommandError here as this can be
+                # called async from edit_url
+                message.error(self._win_id, str(e))
+                return None
+
+    def _parse_url_input(self, url):
+        """Parse a URL or newline-separated list of URLs.
+
+        Args:
+            url: The URL or list to parse.
+
+        Return:
+            A list of URLs that can be opened.
+        """
+        force_search = False
+        urllist = [u for u in url.split('\n') if u.strip()]
+        if (len(urllist) > 1 and not urlutils.is_url(urllist[0]) and
+                urlutils.get_path_if_valid(urllist[0], check_exists=True)
+                is None):
+            urllist = [url]
+            force_search = True
+        for cur_url in urllist:
+            parsed = self._parse_url(cur_url, force_search=force_search)
+            if parsed is not None:
+                yield parsed
 
     @cmdutils.register(instance='command-dispatcher', name='reload',
                        scope='window')
@@ -439,8 +479,7 @@ class CommandDispatcher:
         """
         self._back_forward(tab, bg, window, count, forward=True)
 
-    @cmdutils.register(instance='command-dispatcher', scope='window',
-                       backend=usertypes.Backend.QtWebKit)
+    @cmdutils.register(instance='command-dispatcher', scope='window')
     @cmdutils.argument('where', choices=['prev', 'next', 'up', 'increment',
                                          'decrement'])
     def navigate(self, where: str, tab=False, bg=False, window=False):
@@ -620,30 +659,44 @@ class CommandDispatcher:
                 "representation.")
 
     @cmdutils.register(instance='command-dispatcher', scope='window')
-    def yank(self, title=False, sel=False, domain=False, pretty=False):
-        """Yank the current URL/title to the clipboard or primary selection.
+    @cmdutils.argument('what', choices=['selection', 'url', 'pretty-url',
+                                        'title', 'domain'])
+    def yank(self, what='url', sel=False, keep=False):
+        """Yank something to the clipboard or primary selection.
 
         Args:
+            what: What to yank.
+
+                - `url`: The current URL.
+                - `pretty-url`: The URL in pretty decoded form.
+                - `title`: The current page's title.
+                - `domain`: The current scheme, domain, and port number.
+                - `selection`: The selection under the cursor.
+
             sel: Use the primary selection instead of the clipboard.
-            title: Yank the title instead of the URL.
-            domain: Yank only the scheme, domain, and port number.
-            pretty: Yank the URL in pretty decoded form.
+            keep: Stay in visual mode after yanking the selection.
         """
-        if title:
+        if what == 'title':
             s = self._tabbed_browser.page_title(self._current_index())
-            what = 'title'
-        elif domain:
+        elif what == 'domain':
             port = self._current_url().port()
             s = '{}://{}{}'.format(self._current_url().scheme(),
                                    self._current_url().host(),
                                    ':' + str(port) if port > -1 else '')
-            what = 'domain'
-        else:
+        elif what in ['url', 'pretty-url']:
             flags = QUrl.RemovePassword
-            if not pretty:
+            if what != 'pretty-url':
                 flags |= QUrl.FullyEncoded
             s = self._current_url().toString(flags)
-            what = 'URL'
+            what = 'URL'  # For printing
+        elif what == 'selection':
+            caret = self._current_widget().caret
+            s = caret.selection()
+            if not caret.has_selection() or not s:
+                message.info(self._win_id, "Nothing to yank")
+                return
+        else:  # pragma: no cover
+            raise ValueError("Invalid value {!r} for `what'.".format(what))
 
         if sel and utils.supports_selection():
             target = "primary selection"
@@ -652,8 +705,15 @@ class CommandDispatcher:
             target = "clipboard"
 
         utils.set_clipboard(s, selection=sel)
-        message.info(self._win_id, "Yanked {} to {}: {}".format(
-                     what, target, s))
+        if what != 'selection':
+            message.info(self._win_id, "Yanked {} to {}: {}".format(
+                         what, target, s))
+        else:
+            message.info(self._win_id, "{} {} yanked to {}".format(
+                len(s), "char" if len(s) == 1 else "chars", target))
+            if not keep:
+                modeman.maybe_leave(self._win_id, KeyMode.caret,
+                                    "yank selected")
 
     @cmdutils.register(instance='command-dispatcher', scope='window')
     @cmdutils.argument('count', count=True)
@@ -776,7 +836,8 @@ class CommandDispatcher:
         else:
             raise cmdexc.CommandError("Last tab")
 
-    @cmdutils.register(instance='command-dispatcher', scope='window')
+    @cmdutils.register(instance='command-dispatcher', scope='window',
+                       deprecated="Use :open {clipboard}")
     def paste(self, sel=False, tab=False, bg=False, window=False):
         """Open a page from the clipboard.
 
@@ -790,15 +851,12 @@ class CommandDispatcher:
             window: Open in new window.
         """
         force_search = False
-        if sel and utils.supports_selection():
-            target = "Primary selection"
-        else:
+        if not utils.supports_selection():
             sel = False
-            target = "Clipboard"
-        text = utils.get_clipboard(selection=sel)
-        if not text.strip():
-            raise cmdexc.CommandError("{} is empty.".format(target))
-        log.misc.debug("{} contained: {!r}".format(target, text))
+        try:
+            text = utils.get_clipboard(selection=sel)
+        except utils.ClipboardError as e:
+            raise cmdexc.CommandError(e)
         text_urls = [u for u in text.split('\n') if u.strip()]
         if (len(text_urls) > 1 and not urlutils.is_url(text_urls[0]) and
             urlutils.get_path_if_valid(
@@ -959,7 +1017,7 @@ class CommandDispatcher:
             self._tabbed_browser.setUpdatesEnabled(True)
 
     @cmdutils.register(instance='command-dispatcher', scope='window',
-                       maxsplit=0)
+                       maxsplit=0, no_replace_variables=True)
     def spawn(self, cmdline, userscript=False, verbose=False, detach=False):
         """Spawn a command in a shell.
 
@@ -1165,13 +1223,12 @@ class CommandDispatcher:
                  current page's url.
         """
         if url is None:
-            url = self._current_url().toString(QUrl.RemovePassword
-                                             | QUrl.FullyEncoded)
+            url = self._current_url().toString(QUrl.RemovePassword |
+                                               QUrl.FullyEncoded)
         try:
             objreg.get('bookmark-manager').delete(url)
         except KeyError:
             raise cmdexc.CommandError("Bookmark '{}' not found!".format(url))
-
 
     @cmdutils.register(instance='command-dispatcher', hide=True,
                        scope='window')
@@ -1388,29 +1445,31 @@ class CommandDispatcher:
             url = QUrl('qute://log?level={}'.format(level))
         self._open(url, tab, bg, window)
 
+    def _open_editor_cb(self, elem):
+        """Open editor after the focus elem was found in open_editor."""
+        if elem is None:
+            message.error(self._win_id, "No element focused!")
+            return
+        if not elem.is_editable(strict=True):
+            message.error(self._win_id, "Focused element is not editable!")
+            return
+
+        text = elem.text(use_js=True)
+        ed = editor.ExternalEditor(self._win_id, self._tabbed_browser)
+        ed.editing_finished.connect(functools.partial(
+            self.on_editing_finished, elem))
+        ed.edit(text)
+
     @cmdutils.register(instance='command-dispatcher',
-                       modes=[KeyMode.insert], hide=True, scope='window',
-                       backend=usertypes.Backend.QtWebKit)
+                       modes=[KeyMode.insert], hide=True, scope='window')
     def open_editor(self):
         """Open an external editor with the currently selected form field.
 
         The editor which should be launched can be configured via the
         `general -> editor` config option.
         """
-        # FIXME:qtwebengine have a proper API for this
         tab = self._current_widget()
-        page = tab._widget.page()  # pylint: disable=protected-access
-        try:
-            elem = webelem.focus_elem(page.currentFrame())
-        except webelem.IsNullError:
-            raise cmdexc.CommandError("No element focused!")
-        if not elem.is_editable(strict=True):
-            raise cmdexc.CommandError("Focused element is not editable!")
-        text = elem.text(use_js=True)
-        ed = editor.ExternalEditor(self._win_id, self._tabbed_browser)
-        ed.editing_finished.connect(functools.partial(
-            self.on_editing_finished, elem))
-        ed.edit(text)
+        tab.find_focus_element(self._open_editor_cb)
 
     def on_editing_finished(self, elem, text):
         """Write the editor text into the form field and clean up tempfile.
@@ -1423,7 +1482,7 @@ class CommandDispatcher:
         """
         try:
             elem.set_text(text, use_js=True)
-        except webelem.IsNullError:
+        except webkitelem.IsNullError:
             raise cmdexc.CommandError("Element vanished while editing!")
 
     @cmdutils.register(instance='command-dispatcher',
@@ -1448,8 +1507,8 @@ class CommandDispatcher:
         tab = self._current_widget()
         page = tab._widget.page()  # pylint: disable=protected-access
         try:
-            elem = webelem.focus_elem(page.currentFrame())
-        except webelem.IsNullError:
+            elem = webkitelem.focus_elem(page.currentFrame())
+        except webkitelem.IsNullError:
             raise cmdexc.CommandError("No element focused!")
         if not elem.is_editable(strict=True):
             raise cmdexc.CommandError("Focused element is not editable!")
@@ -1735,31 +1794,6 @@ class CommandDispatcher:
     def move_to_end_of_document(self):
         """Move the cursor or selection to the end of the document."""
         self._current_widget().caret.move_to_end_of_document()
-
-    @cmdutils.register(instance='command-dispatcher', scope='window')
-    def yank_selected(self, sel=False, keep=False):
-        """Yank the selected text to the clipboard or primary selection.
-
-        Args:
-            sel: Use the primary selection instead of the clipboard.
-            keep: If given, stay in visual mode after yanking.
-        """
-        caret = self._current_widget().caret
-        s = caret.selection()
-        if not caret.has_selection() or len(s) == 0:
-            message.info(self._win_id, "Nothing to yank")
-            return
-
-        if sel and utils.supports_selection():
-            target = "primary selection"
-        else:
-            sel = False
-            target = "clipboard"
-        utils.set_clipboard(s, sel)
-        message.info(self._win_id, "{} {} yanked to {}".format(
-            len(s), "char" if len(s) == 1 else "chars", target))
-        if not keep:
-            modeman.maybe_leave(self._win_id, KeyMode.caret, "yank selected")
 
     @cmdutils.register(instance='command-dispatcher', hide=True,
                        modes=[KeyMode.caret], scope='window')

@@ -159,12 +159,12 @@ def test_custom_environment(pyproc):
 
 
 @pytest.mark.posix
-def test_custom_environment_no_system(monkeypatch, pyproc):
-    """When env=... is given, no system environment should be present."""
-    monkeypatch.setenv('QUTE_TEST_ENV', 'blah')
-    pyproc.code = 'import os; print(os.environ.get("QUTE_TEST_ENV", "None"))'
+def test_custom_environment_system_env(monkeypatch, pyproc):
+    """When env=... is given, the system environment should be present."""
+    monkeypatch.setenv('QUTE_TEST_ENV', 'blubb')
+    pyproc.code = 'import os; print(os.environ["QUTE_TEST_ENV"])'
     pyproc.start(env={})
-    pyproc.wait_for(data='None')
+    pyproc.wait_for(data='blubb')
 
 
 class TestWaitFor:

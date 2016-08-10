@@ -69,7 +69,13 @@ def get_window(via_ipc, force_window=False, force_tab=False,
         window_to_raise = window
     else:
         try:
-            window = objreg.last_window()
+            win_mode = config.get('general', 'new-instance-open-target.window')
+            if win_mode == 'last-focused':
+                window = objreg.last_focused_window()
+            elif win_mode == 'last-opened':
+                window = objreg.last_window()
+            elif win_mode == 'last-visible':
+                window = objreg.last_visible_window()
         except objreg.NoWindow:
             # There is no window left, so we open a new one
             window = MainWindow()
@@ -174,9 +180,6 @@ class MainWindow(QWidget):
         QTimer.singleShot(0, self._connect_resize_completion)
         QTimer.singleShot(0, self._connect_resize_keyhint)
         objreg.get('config').changed.connect(self.on_config_changed)
-
-        if config.get('ui', 'hide-mouse-cursor'):
-            self.setCursor(Qt.BlankCursor)
 
         objreg.get("app").new_window.emit(self)
 
@@ -457,8 +460,23 @@ class MainWindow(QWidget):
         self._downloadview.updateGeometry()
         self.tabbed_browser.tabBar().refresh()
 
+    def showEvent(self, e):
+        """Extend showEvent to register us as the last-visible-main-window.
+
+        Args:
+            e: The QShowEvent
+        """
+        super().showEvent(e)
+        objreg.register('last-visible-main-window', self, update=True)
+
     def _do_close(self):
         """Helper function for closeEvent."""
+        last_visible = objreg.get('last-visible-main-window')
+        if self is last_visible:
+            try:
+                objreg.delete('last-visible-main-window')
+            except KeyError:
+                pass
         objreg.get('session-manager').save_last_window_session()
         self._save_geometry()
         log.destroy.debug("Closing window {}".format(self.win_id))

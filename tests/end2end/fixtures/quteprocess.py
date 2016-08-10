@@ -329,9 +329,12 @@ class QuteProc(testprocess.Process):
         """Adjust some qutebrowser settings after starting."""
         settings = [
             ('ui', 'message-timeout', '0'),
-            ('network', 'ssl-strict', 'false'),
             ('general', 'auto-save-interval', '0'),
+            ('general', 'new-instance-open-target.window', 'last-opened')
         ]
+        if not self._webengine:
+            settings.append(('network', 'ssl-strict', 'false'))
+
         for sect, opt, value in settings:
             self.set_setting(sect, opt, value)
 
@@ -621,3 +624,4 @@ def quteproc_new(qapp, httpbin, request):
     # Not calling before_test here as that would start the process
     yield proc
     proc.after_test(did_fail=request.node.rep_call.failed)
+    proc.terminate()

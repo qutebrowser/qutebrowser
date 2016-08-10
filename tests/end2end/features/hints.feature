@@ -257,3 +257,11 @@ Feature: Using hints
         And I run :hint --rapid
         And I run :follow-hint 00
         Then data/numbers/1.txt should be loaded
+
+    Scenario: Using a specific hints mode
+        When I open data/hints/number.html
+        And I set hints -> mode to letter
+        And I run :hint --mode number all
+        And I press the key "s"
+        And I run :follow-hint 1
+        Then data/numbers/7.txt should be loaded

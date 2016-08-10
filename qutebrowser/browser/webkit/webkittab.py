@@ -31,7 +31,7 @@ from PyQt5.QtWebKit import QWebSettings
 from PyQt5.QtPrintSupport import QPrinter
 
 from qutebrowser.browser import browsertab
-from qutebrowser.browser.webkit import webview, tabhistory, webelem
+from qutebrowser.browser.webkit import webview, tabhistory, webkitelem
 from qutebrowser.utils import qtutils, objreg, usertypes, utils
 
 
@@ -510,12 +510,19 @@ class WebKitTab(browsertab.AbstractTab):
         self.zoom.set_default()
         self.backend = usertypes.Backend.QtWebKit
 
+    def _install_event_filter(self):
+        self._widget.installEventFilter(self._mouse_event_filter)
+
     def openurl(self, url):
         self._openurl_prepare(url)
         self._widget.openurl(url)
 
-    def url(self):
-        return self._widget.url()
+    def url(self, requested=False):
+        frame = self._widget.page().mainFrame()
+        if requested:
+            return frame.requestedUrl()
+        else:
+            return frame.url()
 
     def dump_async(self, callback, *, plain=False):
         frame = self._widget.page().mainFrame()
@@ -564,15 +571,27 @@ class WebKitTab(browsertab.AbstractTab):
             raise browsertab.WebTabError("No frame focused!")
 
         elems = []
-        frames = webelem.get_child_frames(mainframe)
+        frames = webkitelem.get_child_frames(mainframe)
         for f in frames:
             for elem in f.findAllElements(selector):
-                elems.append(webelem.WebElementWrapper(elem))
+                elems.append(webkitelem.WebKitElement(elem))
 
         if only_visible:
             elems = [e for e in elems if e.is_visible(mainframe)]
 
         callback(elems)
+
+    def find_focus_element(self, callback):
+        frame = self._widget.page().currentFrame()
+        if frame is None:
+            callback(None)
+            return
+
+        elem = frame.findFirstElement('*:focus')
+        if elem.isNull():
+            callback(None)
+        else:
+            callback(webkitelem.WebKitElement(elem))
 
     @pyqtSlot()
     def _on_frame_load_finished(self):
@@ -618,3 +637,4 @@ class WebKitTab(browsertab.AbstractTab):
         view.iconChanged.connect(self._on_webkit_icon_changed)
         page.frameCreated.connect(self._on_frame_created)
         frame.contentsSizeChanged.connect(self._on_contents_size_changed)
+        frame.initialLayoutCompleted.connect(self._on_history_trigger)

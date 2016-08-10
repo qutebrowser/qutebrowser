@@ -189,7 +189,7 @@ class HintKeyParser(keyparser.CommandKeyParser):
                 return True
             else:
                 return super()._handle_special_key(e)
-        elif config.get('hints', 'mode') != 'number':
+        elif hintmanager.current_mode() != 'number':
             return super()._handle_special_key(e)
         elif not e.text():
             return super()._handle_special_key(e)

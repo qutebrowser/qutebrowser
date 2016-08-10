@@ -94,8 +94,15 @@ class ObjectRegistry(collections.UserDict):
 
     def _disconnect_destroyed(self, name):
         """Disconnect the destroyed slot if it was connected."""
-        if name in self._partial_objs:
-            func = self._partial_objs[name]
+        try:
+            partial_objs = self._partial_objs
+        except AttributeError:
+            # This sometimes seems to happen on Travis during
+            # test_history.test_adding_item_during_async_read
+            # and I have no idea why...
+            return
+        if name in partial_objs:
+            func = partial_objs[name]
             try:
                 self[name].destroyed.disconnect(func)
             except (RuntimeError, TypeError):
@@ -106,7 +113,7 @@ class ObjectRegistry(collections.UserDict):
                 # pyqtSignal must be bound to a QObject" instead:
                 # https://github.com/The-Compiler/qutebrowser/issues/257
                 pass
-            del self._partial_objs[name]
+            del partial_objs[name]
 
     def on_destroyed(self, name):
         """Schedule removing of a destroyed QObject.
@@ -121,6 +128,11 @@ class ObjectRegistry(collections.UserDict):
     def _on_destroyed(self, name):
         """Remove a destroyed QObject."""
         log.destroy.debug("removed: {}".format(name))
+        if not hasattr(self, 'data'):
+            # This sometimes seems to happen on Travis during
+            # test_history.test_adding_item_during_async_read
+            # and I have no idea why...
+            return
         try:
             del self[name]
             del self._partial_objs[name]
@@ -178,10 +190,7 @@ def _get_window_registry(window):
             app = get('app')
             win = app.activeWindow()
         elif window == 'last-focused':
-            try:
-                win = get('last-focused-main-window')
-            except KeyError:
-                win = last_window()
+            win = last_focused_window()
         else:
             win = window_registry[window]
     except (KeyError, NoWindow):
@@ -274,6 +283,22 @@ def dump_objects():
         for line in data:
             lines.append("    {}".format(line))
     return lines
+
+
+def last_visible_window():
+    """Get the last visible window, or the last focused window if none."""
+    try:
+        return get('last-visible-main-window')
+    except KeyError:
+        return last_focused_window()
+
+
+def last_focused_window():
+    """Get the last focused window, or the last window if none."""
+    try:
+        return get('last-focused-main-window')
+    except KeyError:
+        return last_window()
 
 
 def last_window():
