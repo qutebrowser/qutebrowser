@@ -79,6 +79,7 @@ class HintContext:
         to_follow: The link to follow when enter is pressed.
         args: Custom arguments for userscript/spawn
         rapid: Whether to do rapid hinting.
+        filterstr: Used to save the filter string for restoring in rapid mode.
         tab: The WebTab object we started hinting in.
         group: The group of web elements to hint.
     """
@@ -90,6 +91,7 @@ class HintContext:
         self.baseurl = None
         self.to_follow = None
         self.rapid = False
+        self.filterstr = None
         self.frames = []
         self.args = []
         self.tab = None
@@ -309,7 +311,6 @@ class HintManager(QObject):
         _context: The HintContext for the current invocation.
         _win_id: The window ID this HintManager is associated with.
         _tab_id: The tab ID this HintManager is associated with.
-        _filterstr: Used to save the filter string for restoring in rapid mode.
 
     Signals:
         See HintActions
@@ -342,7 +343,6 @@ class HintManager(QObject):
         self._win_id = win_id
         self._tab_id = tab_id
         self._context = None
-        self._filterstr = None
         self._word_hinter = WordHinter()
 
         self._actions = HintActions(win_id)
@@ -381,7 +381,6 @@ class HintManager(QObject):
                                     window=self._win_id)
         message_bridge.maybe_reset_text(text)
         self._context = None
-        self._filterstr = None
 
     def _hint_strings(self, elems):
         """Calculate the hint strings for elems.
@@ -861,9 +860,9 @@ class HintManager(QObject):
                        and `self._filterstr` are None, all hints are shown.
         """
         if filterstr is None:
-            filterstr = self._filterstr
+            filterstr = self._context.filterstr
         else:
-            self._filterstr = filterstr
+            self._context.filterstr = filterstr
 
         visible = []
         for elem in self._context.all_elems:
