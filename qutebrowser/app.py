@@ -33,9 +33,9 @@ import tokenize
 
 from PyQt5.QtWidgets import QApplication, QWidget
 from PyQt5.QtWebKit import QWebSettings
-from PyQt5.QtGui import QDesktopServices, QPixmap, QIcon, QCursor, QWindow
+from PyQt5.QtGui import QDesktopServices, QPixmap, QIcon, QWindow
 from PyQt5.QtCore import (pyqtSlot, qInstallMessageHandler, QTimer, QUrl,
-                          QObject, Qt, QEvent, pyqtSignal)
+                          QObject, QEvent, pyqtSignal)
 try:
     import hunter
 except ImportError:
@@ -339,19 +339,17 @@ def _save_version():
 
 def on_focus_changed(_old, new):
     """Register currently focused main window in the object registry."""
-    if not isinstance(new, QWidget) and new is not None:
+    if new is None:
+        return
+
+    if not isinstance(new, QWidget):
         log.misc.debug("on_focus_changed called with non-QWidget {!r}".format(
             new))
+        return
 
-    if new is None or not isinstance(new, mainwindow.MainWindow):
-        try:
-            objreg.delete('last-focused-main-window')
-        except KeyError:
-            pass
-        qApp.restoreOverrideCursor()
-    else:
-        objreg.register('last-focused-main-window', new.window(), update=True)
-        _maybe_hide_mouse_cursor()
+    window = new.window()
+    if isinstance(window, mainwindow.MainWindow):
+        objreg.register('last-focused-main-window', window, update=True)
 
 
 def open_desktopservices_url(url):
@@ -360,17 +358,6 @@ def open_desktopservices_url(url):
     tabbed_browser = objreg.get('tabbed-browser', scope='window',
                                 window=win_id)
     tabbed_browser.tabopen(url)
-
-
-@config.change_filter('ui', 'hide-mouse-cursor', function=True)
-def _maybe_hide_mouse_cursor():
-    """Hide the mouse cursor if it isn't yet and it's configured."""
-    if config.get('ui', 'hide-mouse-cursor'):
-        if qApp.overrideCursor() is not None:
-            return
-        qApp.setOverrideCursor(QCursor(Qt.BlankCursor))
-    else:
-        qApp.restoreOverrideCursor()
 
 
 def _init_modules(args, crash_handler):
@@ -434,8 +421,6 @@ def _init_modules(args, crash_handler):
         os.environ['QT_WAYLAND_DISABLE_WINDOWDECORATION'] = '1'
     else:
         os.environ.pop('QT_WAYLAND_DISABLE_WINDOWDECORATION', None)
-    _maybe_hide_mouse_cursor()
-    objreg.get('config').changed.connect(_maybe_hide_mouse_cursor)
     temp_downloads = downloads.TempDownloadManager(qApp)
     objreg.register('temporary-downloads', temp_downloads)
 

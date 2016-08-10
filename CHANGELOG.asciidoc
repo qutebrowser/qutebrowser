@@ -63,6 +63,8 @@ Removed
   and thus removed.
 - The `:completion-item-prev` and `:completion-item-next` commands got merged
   into a new `:completion-focus {prev,next}` command and thus removed.
+- The `ui -> hide-mouse-cursor` setting since it was completely broken and
+  nobody seemed to care.
 
 v0.8.3 (unreleased)
 -------------------
