@@ -128,6 +128,11 @@ class ObjectRegistry(collections.UserDict):
     def _on_destroyed(self, name):
         """Remove a destroyed QObject."""
         log.destroy.debug("removed: {}".format(name))
+        if not hasattr(self, 'data'):
+            # This sometimes seems to happen on Travis during
+            # test_history.test_adding_item_during_async_read
+            # and I have no idea why...
+            return
         try:
             del self[name]
             del self._partial_objs[name]
