@@ -55,6 +55,9 @@ Changed
   title is changed via javascript.
 - `:hint` now has a `--mode <mode>` flag to override the hint mode configured
   using the `hints -> mode` setting.
+- With `new-instance-open-target` set to a tab option, the tab is now opened in
+  the most recently focused (instead of the last opened) window. This can be
+  configured with the new `new-instance-open-target.window` setting.
 
 Removed
 ~~~~~~~
