@@ -258,7 +258,9 @@ class Process(QObject):
             for k, v in env.items():
                 procenv.insert(k, v)
 
-            passthrough_vars = ['DISPLAY', 'HOME']  # so --no-xvfb works
+            # so --no-xvfb and Qt on Windows works
+            passthrough_vars = ['DISPLAY', 'HOME',
+                                'QT_QPA_PLATFORM_PLUGIN_PATH']
             for var in passthrough_vars:
                 if var in os.environ:
                     procenv.insert(var, os.environ[var])
