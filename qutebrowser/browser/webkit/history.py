@@ -22,7 +22,7 @@
 import time
 import collections
 
-from PyQt5.QtCore import pyqtSignal, QUrl, QObject
+from PyQt5.QtCore import pyqtSignal, pyqtSlot, QUrl, QObject
 from PyQt5.QtWebKit import QWebHistoryInterface
 
 from qutebrowser.commands import cmdutils
@@ -283,6 +283,17 @@ class WebHistory(QObject):
         self._new_history.clear()
         self._saved_count = 0
         self.cleared.emit()
+
+    @pyqtSlot(QUrl, QUrl, str)
+    def add_from_tab(self, url, requested_url, title):
+        """Add a new history entry as slot, called from a BrowserTab."""
+        no_formatting = QUrl.UrlFormattingOption(0)
+        if (requested_url.isValid() and
+                not requested_url.matches(url, no_formatting)):
+            # If the url of the page is different than the url of the link
+            # originally clicked, save them both.
+            self.add_url(requested_url, title, redirect=True)
+        self.add_url(url, title)
 
     def add_url(self, url, title="", *, redirect=False, atime=None):
         """Called by WebKit when a URL should be added to the history.

@@ -455,6 +455,7 @@ class AbstractTab(QWidget):
     url_changed = pyqtSignal(QUrl)
     shutting_down = pyqtSignal()
     contents_size_changed = pyqtSignal(QSizeF)
+    add_history_item = pyqtSignal(QUrl, QUrl, str)  # url, requested url, title
 
     def __init__(self, win_id, parent=None):
         self.win_id = win_id
@@ -532,6 +533,13 @@ class AbstractTab(QWidget):
         self.load_finished.emit(ok)
         if not self.title():
             self.title_changed.emit(self.url().toDisplayString())
+
+    @pyqtSlot()
+    def _on_history_trigger(self):
+        """Emit add_history_item when triggered by backend-specific signal."""
+        url = self.url()
+        requested_url = self.url(requested=True)
+        self.add_history_item.emit(url, requested_url, self.title())
 
     @pyqtSlot(int)
     def _on_load_progress(self, perc):

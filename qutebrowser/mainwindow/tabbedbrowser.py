@@ -198,6 +198,7 @@ class TabbedBrowser(tabwidget.TabWidget):
         tab.window_close_requested.connect(
             functools.partial(self.on_window_close_requested, tab))
         tab.new_tab_requested.connect(self.tabopen)
+        tab.add_history_item.connect(objreg.get('web-history').add_from_tab)
 
     def current_url(self):
         """Get the URL of the current tab.

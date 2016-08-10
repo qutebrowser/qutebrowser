@@ -94,26 +94,11 @@ class WebView(QWebView):
             self.setContextMenuPolicy(Qt.PreventContextMenu)
         objreg.get('config').changed.connect(self.on_config_changed)
 
-    @pyqtSlot()
-    def on_initial_layout_completed(self):
-        """Add url to history now that we have displayed something."""
-        history = objreg.get('web-history')
-        no_formatting = QUrl.UrlFormattingOption(0)
-        orig_url = self.page().mainFrame().requestedUrl()
-        if (orig_url.isValid() and
-                not orig_url.matches(self.url(), no_formatting)):
-            # If the url of the page is different than the url of the link
-            # originally clicked, save them both.
-            history.add_url(orig_url, self.title(), redirect=True)
-        history.add_url(self.url(), self.title())
-
     def _init_page(self):
         """Initialize the QWebPage used by this view."""
         page = webpage.BrowserPage(self.win_id, self._tab_id, self)
         self.setPage(page)
         page.mainFrame().loadFinished.connect(self.on_load_finished)
-        page.mainFrame().initialLayoutCompleted.connect(
-            self.on_initial_layout_completed)
         return page
 
     def __repr__(self):

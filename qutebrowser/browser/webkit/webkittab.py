@@ -634,3 +634,4 @@ class WebKitTab(browsertab.AbstractTab):
         view.iconChanged.connect(self._on_webkit_icon_changed)
         page.frameCreated.connect(self._on_frame_created)
         frame.contentsSizeChanged.connect(self._on_contents_size_changed)
+        frame.initialLayoutCompleted.connect(self._on_history_trigger)
