@@ -58,6 +58,7 @@ Changed
 - With `new-instance-open-target` set to a tab option, the tab is now opened in
   the most recently focused (instead of the last opened) window. This can be
   configured with the new `new-instance-open-target.window` setting.
+- Word hints now are more clever about getting the element text from some elements.
 
 Removed
 ~~~~~~~
