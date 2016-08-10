@@ -107,6 +107,9 @@ class Tab(browsertab.AbstractTab):
         self.search = browsertab.AbstractSearch(parent=self)
         self.printing = browsertab.AbstractPrinting()
 
+    def _install_event_filter(self):
+        pass
+
 
 @pytest.mark.skipif(PYQT_VERSION < 0x050600,
                     reason='Causes segfaults, see #1638')
