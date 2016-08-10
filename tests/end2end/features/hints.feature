@@ -292,15 +292,13 @@ Feature: Using hints
         And I press the key "a"
         Then data/hello.txt should be loaded
 
-    # FIXME: not sure where I broke this...
-    @xfail_norun
     Scenario: Using hints -> auto-follow == 'never' in letter mode
         When I open data/hints/html/simple.html
         And I set hints -> mode to letter
         And I set hints -> auto-follow to never
         And I run :hint
         And I press the key "a"
-        And I press the key "Enter"
+        And I press the key "<Enter>"
         Then data/hello.txt should be loaded
 
     Scenario: Using hints -> auto-follow == 'always' in number mode
@@ -350,7 +348,7 @@ Feature: Using hints
         And I press the key "m"
         And I press the key "e"
         And I press the key "!"
-        And I press the key "Enter"
+        And I press the key "<Enter>"
         Then data/hello.txt should be loaded
 
     # TODO: tests for word mode - it tries to access /usr/share/dict/words on the system
