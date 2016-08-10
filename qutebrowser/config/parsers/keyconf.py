@@ -335,6 +335,7 @@ class KeyConfigParser(QObject):
 
     def _validate_command(self, line):
         """Check if a given command is valid."""
+        from qutebrowser.config import config
         if line == self.UNBOUND_COMMAND:
             return
         commands = line.split(';;')
@@ -352,7 +353,8 @@ class KeyConfigParser(QObject):
                     line))
         commands = [c.split(maxsplit=1)[0].strip() for c in commands]
         for cmd in commands:
-            if cmd not in cmdutils.cmd_dict:
+            aliases = config.section('aliases')
+            if cmd not in cmdutils.cmd_dict and cmd not in aliases:
                 raise KeyConfigError("Invalid command '{}'!".format(cmd))
 
     def _read_command(self, line):
