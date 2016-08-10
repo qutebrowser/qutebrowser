@@ -148,7 +148,8 @@ class TabCompletionModel(base.BaseCompletionModel):
     def __init__(self, parent=None):
         super().__init__(parent)
 
-        self.columns_to_filter = [self.URL_COLUMN, self.TEXT_COLUMN]
+        self.columns_to_filter = [self.IDX_COLUMN, self.URL_COLUMN,
+                                  self.TEXT_COLUMN]
 
         for win_id in objreg.window_registry:
             tabbed_browser = objreg.get('tabbed-browser', scope='window',

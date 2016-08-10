@@ -60,6 +60,7 @@ Changed
   configured with the new `new-instance-open-target.window` setting.
 - Word hints now are more clever about getting the element text from some elements.
 - Completions for `:help` and `:bind` now also show hidden commands
+- The `:buffer` completion now also filters using the first column (id).
 
 Removed
 ~~~~~~~
