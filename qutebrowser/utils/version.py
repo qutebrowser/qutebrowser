@@ -34,7 +34,7 @@ from PyQt5.QtWidgets import QApplication
 
 try:
     from PyQt5.QtWebKit import qWebKitVersion
-except ImportError:
+except ImportError:  # pragma: no cover
     qWebKitVersion = None
 
 import qutebrowser
