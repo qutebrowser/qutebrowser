@@ -359,6 +359,9 @@ class WebEngineTab(browsertab.AbstractTab):
         # FIXME:qtwebengine  what about runsOnSubFrames?
         page.scripts().insert(script)
 
+    def _event_filter_target(self):
+        return self._widget.focusProxy()
+
     def openurl(self, url):
         self._openurl_prepare(url)
         self._widget.load(url)

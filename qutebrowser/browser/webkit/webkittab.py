@@ -510,6 +510,9 @@ class WebKitTab(browsertab.AbstractTab):
         self.zoom.set_default()
         self.backend = usertypes.Backend.QtWebKit
 
+    def _event_filter_target(self):
+        return self._widget
+
     def openurl(self, url):
         self._openurl_prepare(url)
         self._widget.openurl(url)

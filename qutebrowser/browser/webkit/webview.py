@@ -29,7 +29,7 @@ from PyQt5.QtWebKitWidgets import QWebView, QWebPage, QWebFrame
 
 from qutebrowser.config import config
 from qutebrowser.keyinput import modeman
-from qutebrowser.utils import message, log, usertypes, utils, qtutils, objreg
+from qutebrowser.utils import log, usertypes, utils, qtutils, objreg
 from qutebrowser.browser import hints
 from qutebrowser.browser.webkit import webpage, webkitelem
 
@@ -137,27 +137,6 @@ class WebView(QWebView):
                 self.setContextMenuPolicy(Qt.DefaultContextMenu)
         elif section == 'colors' and option == 'webpage.bg':
             self._set_bg_color()
-
-    def _mousepress_backforward(self, e):
-        """Handle back/forward mouse button presses.
-
-        Args:
-            e: The QMouseEvent.
-        """
-        if e.button() in [Qt.XButton1, Qt.LeftButton]:
-            # Back button on mice which have it, or rocker gesture
-            if self.page().history().canGoBack():
-                self.back()
-            else:
-                message.error(self.win_id, "At beginning of history.",
-                              immediately=True)
-        elif e.button() in [Qt.XButton2, Qt.RightButton]:
-            # Forward button on mice which have it, or rocker gesture
-            if self.page().history().canGoForward():
-                self.forward()
-            else:
-                message.error(self.win_id, "At end of history.",
-                              immediately=True)
 
     def _mousepress_insertmode(self, e):
         """Switch to insert mode when an editable element was clicked.
@@ -407,13 +386,6 @@ class WebView(QWebView):
         Return:
             The superclass return value.
         """
-        is_rocker_gesture = (config.get('input', 'rocker-gestures') and
-                             e.buttons() == Qt.LeftButton | Qt.RightButton)
-
-        if e.button() in [Qt.XButton1, Qt.XButton2] or is_rocker_gesture:
-            self._mousepress_backforward(e)
-            super().mousePressEvent(e)
-            return
         self._mousepress_insertmode(e)
         self._mousepress_opentarget(e)
         self._ignore_wheel_event = True

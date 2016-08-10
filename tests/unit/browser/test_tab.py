@@ -91,25 +91,34 @@ def tab(request, default_config, qtbot, tab_registry, cookiejar_and_cache):
     objreg.delete('mode-manager', scope='window', window=0)
 
 
+class Tab(browsertab.AbstractTab):
+
+    # pylint: disable=abstract-method
+
+    def __init__(self, win_id, parent=None):
+        super().__init__(win_id, parent)
+        mode_manager = modeman.ModeManager(0)
+        self.history = browsertab.AbstractHistory(self)
+        self.scroller = browsertab.AbstractScroller(self, parent=self)
+        self.caret = browsertab.AbstractCaret(win_id=self.win_id,
+                                              mode_manager=mode_manager,
+                                              tab=self, parent=self)
+        self.zoom = browsertab.AbstractZoom(win_id=self.win_id)
+        self.search = browsertab.AbstractSearch(parent=self)
+        self.printing = browsertab.AbstractPrinting()
+
+    def _event_filter_target(self):
+        return self._widget
+
+
 @pytest.mark.skipif(PYQT_VERSION < 0x050600,
                     reason='Causes segfaults, see #1638')
 def test_tab(qtbot, view, config_stub, tab_registry):
-    tab_w = browsertab.AbstractTab(win_id=0)
+    tab_w = Tab(win_id=0)
     qtbot.add_widget(tab_w)
 
     assert tab_w.win_id == 0
     assert tab_w._widget is None
-
-    mode_manager = modeman.ModeManager(0)
-
-    tab_w.history = browsertab.AbstractHistory(tab_w)
-    tab_w.scroller = browsertab.AbstractScroller(tab_w, parent=tab_w)
-    tab_w.caret = browsertab.AbstractCaret(win_id=tab_w.win_id,
-                                           mode_manager=mode_manager,
-                                           tab=tab_w, parent=tab_w)
-    tab_w.zoom = browsertab.AbstractZoom(win_id=tab_w.win_id)
-    tab_w.search = browsertab.AbstractSearch(parent=tab_w)
-    tab_w.printing = browsertab.AbstractPrinting()
 
     tab_w._set_widget(view)
     assert tab_w._widget is view

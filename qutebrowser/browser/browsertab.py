@@ -29,6 +29,7 @@ from qutebrowser.keyinput import modeman
 from qutebrowser.config import config
 from qutebrowser.utils import utils, objreg, usertypes, message, log, qtutils
 from qutebrowser.misc import miscwidgets
+from qutebrowser.browser import mouse
 
 
 tab_id_gen = itertools.count(0)
@@ -481,7 +482,11 @@ class AbstractTab(QWidget):
         self._progress = 0
         self._has_ssl_errors = False
         self._load_status = usertypes.LoadStatus.none
+        self._mouse_event_filter = mouse.MouseEventFilter(self, parent=self)
         self.backend = None
+
+    def _event_filter_target(self):
+        raise NotImplementedError
 
     def _set_widget(self, widget):
         # pylint: disable=protected-access
@@ -494,6 +499,8 @@ class AbstractTab(QWidget):
         self.search._widget = widget
         self.printing._widget = widget
         widget.mouse_wheel_zoom.connect(self.zoom._on_mouse_wheel_zoom)
+        event_filter_target = self._event_filter_target()
+        event_filter_target.installEventFilter(self._mouse_event_filter)
 
     def _set_load_status(self, val):
         """Setter for load_status."""
