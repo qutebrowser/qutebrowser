@@ -542,7 +542,7 @@ class AbstractTab(QWidget):
     def _on_ssl_errors(self):
         self._has_ssl_errors = True
 
-    def url(self):
+    def url(self, requested=False):
         raise NotImplementedError
 
     def progress(self):

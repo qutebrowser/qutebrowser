@@ -514,8 +514,12 @@ class WebKitTab(browsertab.AbstractTab):
         self._openurl_prepare(url)
         self._widget.openurl(url)
 
-    def url(self):
-        return self._widget.url()
+    def url(self, requested=False):
+        frame = self._widget.page().mainFrame()
+        if requested:
+            return frame.requestedUrl()
+        else:
+            return frame.url()
 
     def dump_async(self, callback, *, plain=False):
         frame = self._widget.page().mainFrame()

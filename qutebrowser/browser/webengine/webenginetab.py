@@ -363,8 +363,12 @@ class WebEngineTab(browsertab.AbstractTab):
         self._openurl_prepare(url)
         self._widget.load(url)
 
-    def url(self):
-        return self._widget.url()
+    def url(self, requested=False):
+        page = self._widget.page()
+        if requested:
+            return page.requestedUrl()
+        else:
+            return page.url()
 
     def dump_async(self, callback, *, plain=False):
         if plain:
