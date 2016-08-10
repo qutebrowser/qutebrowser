@@ -371,6 +371,7 @@ class TestArgument:
     def test_no_docstring_with_optimize(self, monkeypatch):
         """With -OO we'd get a warning on start, but no warning afterwards."""
         monkeypatch.setattr(sys, 'flags', types.SimpleNamespace(optimize=2))
+
         @cmdutils.register()
         def fun():
             # no docstring
