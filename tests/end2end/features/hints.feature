@@ -292,6 +292,14 @@ Feature: Using hints
         And I press the key "a"
         Then data/hello.txt should be loaded
 
+    Scenario: Using hints -> auto-follow == 'never' without Enter in letter mode
+        When I open data/hints/html/simple.html
+        And I set hints -> mode to letter
+        And I set hints -> auto-follow to never
+        And I run :hint
+        And I press the key "a"
+        Then "Leaving mode KeyMode.hint (reason: followed)" should not be logged
+
     Scenario: Using hints -> auto-follow == 'never' in letter mode
         When I open data/hints/html/simple.html
         And I set hints -> mode to letter
@@ -325,10 +333,19 @@ Feature: Using hints
         And I press the key "follow me!"
         Then data/hello.txt should be loaded
 
+    Scenario: Using hints -> auto-follow == 'never' without Enter in number mode
+        When I open data/hints/html/simple.html
+        And I set hints -> mode to number
+        And I set hints -> auto-follow to never
+        And I run :hint
+        # this actually presses the keys one by one
+        And I press the key "follow me!"
+        Then "Leaving mode KeyMode.hint (reason: followed)" should not be logged
+
     Scenario: Using hints -> auto-follow == 'never' in number mode
         When I open data/hints/html/simple.html
         And I set hints -> mode to number
-        And I set hints -> auto-follow to full-match
+        And I set hints -> auto-follow to never
         And I run :hint
         # this actually presses the keys one by one
         And I press the key "follow me!"
