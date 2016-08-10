@@ -177,6 +177,7 @@ Contributors, sorted by the number of commits in descending order:
 * Oliver Caldwell
 * Jonas Schürmann
 * error800
+* Niklas Haas
 * Liam BEGUIN
 * skinnay
 * Zach-Button
@@ -202,7 +203,6 @@ Contributors, sorted by the number of commits in descending order:
 * Samuel Loury
 * Peter Michely
 * Panashe M. Fundira
-* Niklas Haas
 * Link
 * Larry Hynes
 * Johannes Altmanninger

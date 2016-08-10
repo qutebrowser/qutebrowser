@@ -23,6 +23,7 @@
 |<<general-site-specific-quirks,site-specific-quirks>>|Enable workarounds for broken sites.
 |<<general-default-encoding,default-encoding>>|Default encoding to use for websites.
 |<<general-new-instance-open-target,new-instance-open-target>>|How to open links in an existing instance if a new one is launched.
+|<<general-new-instance-open-target.window,new-instance-open-target.window>>|Which window to choose when opening links as new tabs.
 |<<general-log-javascript-console,log-javascript-console>>|How to log javascript console messages.
 |<<general-save-session,save-session>>|Whether to always save the open pages.
 |<<general-session-default-name,session-default-name>>|The name of the session to save by default, or empty for the last loaded session.
@@ -49,7 +50,6 @@
 |<<ui-hide-statusbar,hide-statusbar>>|Whether to hide the statusbar unless a message is shown.
 |<<ui-statusbar-padding,statusbar-padding>>|Padding for statusbar (top, bottom, left, right).
 |<<ui-window-title-format,window-title-format>>|The format to use for the window title. The following placeholders are defined:
-|<<ui-hide-mouse-cursor,hide-mouse-cursor>>|Whether to hide the mouse cursor.
 |<<ui-modal-js-dialog,modal-js-dialog>>|Use standard JavaScript modal dialog for alert() and confirm()
 |<<ui-hide-wayland-decoration,hide-wayland-decoration>>|Hide the window decoration when using wayland (requires restart)
 |<<ui-keyhint-blacklist,keyhint-blacklist>>|Keychains that shouldn't be shown in the keyhint dialog
@@ -448,6 +448,17 @@ Valid values:
 
 Default: +pass:[tab]+
 
+[[general-new-instance-open-target.window]]
+=== new-instance-open-target.window
+Which window to choose when opening links as new tabs.
+
+Valid values:
+
+ * +last-opened+: Open new tabs in the last opened window.
+ * +last-focused+: Open new tabs in the most recently focused window.
+
+Default: +pass:[last-focused]+
+
 [[general-log-javascript-console]]
 === log-javascript-console
 How to log javascript console messages.
@@ -650,17 +661,6 @@ The format to use for the window title. The following placeholders are defined:
 * `{host}`: The host of the current web page.
 
 Default: +pass:[{perc}{title}{title_sep}qutebrowser]+
-
-[[ui-hide-mouse-cursor]]
-=== hide-mouse-cursor
-Whether to hide the mouse cursor.
-
-Valid values:
-
- * +true+
- * +false+
-
-Default: +pass:[false]+
 
 [[ui-modal-js-dialog]]
 === modal-js-dialog

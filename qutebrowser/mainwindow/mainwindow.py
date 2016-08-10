@@ -69,7 +69,11 @@ def get_window(via_ipc, force_window=False, force_tab=False,
         window_to_raise = window
     else:
         try:
-            window = objreg.last_window()
+            win_mode = config.get('general', 'new-instance-open-target.window')
+            if win_mode == 'last-focused':
+                window = objreg.last_focused_window()
+            elif win_mode == 'last-opened':
+                window = objreg.last_window()
         except objreg.NoWindow:
             # There is no window left, so we open a new one
             window = MainWindow()
@@ -174,9 +178,6 @@ class MainWindow(QWidget):
         QTimer.singleShot(0, self._connect_resize_completion)
         QTimer.singleShot(0, self._connect_resize_keyhint)
         objreg.get('config').changed.connect(self.on_config_changed)
-
-        if config.get('ui', 'hide-mouse-cursor'):
-            self.setCursor(Qt.BlankCursor)
 
         objreg.get("app").new_window.emit(self)
 
