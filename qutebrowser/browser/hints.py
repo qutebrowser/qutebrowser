@@ -1053,6 +1053,7 @@ class WordHinter:
             "img": ["alt", "title", "src"],
             "a": ["title", "href", "text"],
             "input": ["name", "placeholder"],
+            "textarea": ["name", "placeholder"],
             "button": ["text"]
         })
 
