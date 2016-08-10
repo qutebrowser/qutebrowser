@@ -25,7 +25,7 @@ import itertools
 
 from PyQt5.QtCore import pyqtSignal, QObject
 
-from qutebrowser.config import configdata, textwrapper, config
+from qutebrowser.config import configdata, textwrapper
 from qutebrowser.commands import cmdutils, cmdexc
 from qutebrowser.utils import log, utils, qtutils, message, usertypes
 
@@ -335,6 +335,7 @@ class KeyConfigParser(QObject):
 
     def _validate_command(self, line):
         """Check if a given command is valid."""
+        from qutebrowser.config import config
         if line == self.UNBOUND_COMMAND:
             return
         commands = line.split(';;')

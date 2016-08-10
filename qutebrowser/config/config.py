@@ -36,6 +36,7 @@ import collections.abc
 from PyQt5.QtCore import pyqtSignal, QObject, QUrl, QSettings
 
 from qutebrowser.config import configdata, configexc, textwrapper
+from qutebrowser.config.parsers import keyconf
 from qutebrowser.config.parsers import ini
 from qutebrowser.commands import cmdexc, cmdutils
 from qutebrowser.utils import (message, objreg, utils, standarddir, log,
@@ -178,7 +179,6 @@ def _init_key_config(parent):
     Args:
         parent: The parent to use for the KeyConfigParser.
     """
-    from qutebrowser.config.parsers import keyconf
     args = objreg.get('args')
     try:
         key_config = keyconf.KeyConfigParser(standarddir.config(), 'keys.conf',
