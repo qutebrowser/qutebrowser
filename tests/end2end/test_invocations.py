@@ -110,3 +110,16 @@ def test_no_loglines(quteproc_new):
     quteproc_new.start(args=['--temp-basedir', '--loglines=0'] + BASE_ARGS)
     quteproc_new.open_path('qute:log')
     assert quteproc_new.get_content() == 'Log output was disabled.'
+
+
+@pytest.mark.parametrize('level', ['1', '2'])
+def test_optimize(quteproc_new, capfd, level):
+    quteproc_new.start(args=['--temp-basedir'] + BASE_ARGS,
+                       env={'PYTHONOPTIMIZE': level})
+    if level == '2':
+        msg = ("Running on optimize level higher than 1, unexpected behavior "
+               "may occur.")
+        line = quteproc_new.wait_for(message=msg)
+        line.expected = True
+    quteproc_new.send_cmd(':quit')
+    quteproc_new.wait_for_quit()
