@@ -778,10 +778,6 @@ class HintManager(QObject):
                     visible[string] = elem
             except webelem.Error:
                 pass
-        if not visible:
-            # Whoops, filtered all hints
-            modeman.leave(self._win_id, usertypes.KeyMode.hint,
-                          'all filtered')
         return visible
 
     def _handle_auto_follow(self, visible=None):
@@ -851,6 +847,12 @@ class HintManager(QObject):
                     self._hide_elem(elem.label)
             except webelem.Error:
                 pass
+
+        if not visible:
+            # Whoops, filtered all hints
+            modeman.leave(self._win_id, usertypes.KeyMode.hint,
+                          'all filtered')
+            return
 
         if self._context.hint_mode == 'number':
             # renumber filtered hints
