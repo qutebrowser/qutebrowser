@@ -26,7 +26,7 @@ from PyQt5.QtCore import pyqtSlot, QUrl, QObject
 
 from qutebrowser.config import config, configexc
 from qutebrowser.commands import cmdexc, cmdutils
-from qutebrowser.utils import message, objreg, qtutils
+from qutebrowser.utils import message, objreg, qtutils, utils
 from qutebrowser.misc import split
 
 
@@ -49,21 +49,29 @@ def _current_url(tabbed_browser):
 
 def replace_variables(win_id, arglist):
     """Utility function to replace variables like {url} in a list of args."""
+    variables = {
+        '{url}': lambda: _current_url(tabbed_browser).toString(
+            QUrl.FullyEncoded | QUrl.RemovePassword),
+        '{url:pretty}': lambda: _current_url(tabbed_browser).toString(
+            QUrl.RemovePassword),
+        '{clipboard}': utils.get_clipboard,
+        '{primary}': lambda: utils.get_clipboard(selection=True),
+    }
+    values = {}
     args = []
     tabbed_browser = objreg.get('tabbed-browser', scope='window',
                                 window=win_id)
-    if any('{url}' in arg for arg in arglist):
-        url = _current_url(tabbed_browser).toString(QUrl.FullyEncoded |
-                                                    QUrl.RemovePassword)
-    if any('{url:pretty}' in arg for arg in arglist):
-        pretty_url = _current_url(tabbed_browser).toString(QUrl.RemovePassword)
-    for arg in arglist:
-        if '{url}' in arg:
-            args.append(arg.replace('{url}', url))
-        elif '{url:pretty}' in arg:
-            args.append(arg.replace('{url:pretty}', pretty_url))
-        else:
+
+    try:
+        for arg in arglist:
+            for var, func in variables.items():
+                if var in arg:
+                    if var not in values:
+                        values[var] = func()
+                    arg = arg.replace(var, values[var])
             args.append(arg)
+    except utils.ClipboardError as e:
+        raise cmdexc.CommandError(e)
     return args
 
 
