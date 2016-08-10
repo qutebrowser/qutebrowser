@@ -61,6 +61,7 @@ Changed
 - Word hints now are more clever about getting the element text from some elements.
 - Completions for `:help` and `:bind` now also show hidden commands
 - The `:buffer` completion now also filters using the first column (id).
+- `:undo` has been improved to reopen tabs at the position they were closed.
 
 Removed
 ~~~~~~~

@@ -34,7 +34,7 @@ from qutebrowser.utils import (log, usertypes, utils, qtutils, objreg,
                                urlutils, message)
 
 
-UndoEntry = collections.namedtuple('UndoEntry', ['url', 'history'])
+UndoEntry = collections.namedtuple('UndoEntry', ['url', 'history', 'index'])
 
 
 class TabDeletedError(Exception):
@@ -261,7 +261,7 @@ class TabbedBrowser(tabwidget.TabWidget):
                           window=self._win_id)
         if tab.url().isValid():
             history_data = tab.history.serialize()
-            entry = UndoEntry(tab.url(), history_data)
+            entry = UndoEntry(tab.url(), history_data, idx)
             self._undo_stack.append(entry)
         elif tab.url().isEmpty():
             # There are some good reasons why a URL could be empty
@@ -298,13 +298,13 @@ class TabbedBrowser(tabwidget.TabWidget):
             use_current_tab = (only_one_tab_open and no_history and
                                last_close_url_used)
 
-        url, history_data = self._undo_stack.pop()
+        url, history_data, idx = self._undo_stack.pop()
 
         if use_current_tab:
             self.openurl(url, newtab=False)
             newtab = self.widget(0)
         else:
-            newtab = self.tabopen(url, background=False)
+            newtab = self.tabopen(url, background=False, idx=idx)
 
         newtab.history.deserialize(history_data)
 
@@ -343,7 +343,7 @@ class TabbedBrowser(tabwidget.TabWidget):
 
     @pyqtSlot('QUrl')
     @pyqtSlot('QUrl', bool)
-    def tabopen(self, url=None, background=None, explicit=False):
+    def tabopen(self, url=None, background=None, explicit=False, idx=None):
         """Open a new tab with a given URL.
 
         Inner logic for open-tab and open-tab-bg.
@@ -359,6 +359,7 @@ class TabbedBrowser(tabwidget.TabWidget):
                           - Tabs from clicked links etc. are to the right of
                             the current.
                           - Explicitly opened tabs are at the very right.
+            idx: The index where the new tab should be opened.
 
         Return:
             The opened WebView instance.
@@ -377,7 +378,8 @@ class TabbedBrowser(tabwidget.TabWidget):
         tab = browsertab.create(win_id=self._win_id, parent=self)
         self._connect_tab_signals(tab)
 
-        idx = self._get_new_tab_idx(explicit)
+        if idx is None:
+            idx = self._get_new_tab_idx(explicit)
         self.insertTab(idx, tab, "")
 
         if url is not None:
