@@ -109,6 +109,7 @@ def test_no_loglines(quteproc_new):
     assert quteproc_new.get_content() == 'Log output was disabled.'
 
 
+@pytest.mark.not_frozen
 @pytest.mark.parametrize('level', ['1', '2'])
 def test_optimize(quteproc_new, capfd, level):
     quteproc_new.start(args=['--temp-basedir'] + BASE_ARGS,
