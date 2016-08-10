@@ -175,9 +175,9 @@ Contributors, sorted by the number of commits in descending order:
 * Clayton Craft
 * nanjekyejoannah
 * Oliver Caldwell
+* Niklas Haas
 * Jonas Schürmann
 * error800
-* Niklas Haas
 * Liam BEGUIN
 * skinnay
 * Zach-Button
