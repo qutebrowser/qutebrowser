@@ -243,7 +243,7 @@ def data(readonly=False):
                      ('none', "Don't log messages."),
                      ('debug', "Log messages with debug level."),
                      ('info', "Log messages with info level.")
-                 )), 'debug', backends=[usertypes.Backend.QtWebKit]),
+                 )), 'debug'),
              "How to log javascript console messages."),
 
             ('save-session',
