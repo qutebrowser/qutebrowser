@@ -805,11 +805,11 @@ class HintManager(QObject):
         if auto_follow == "always":
             follow = True
         elif auto_follow == "unique-match":
-            follow = (keystr or filterstr)
+            follow = keystr or filterstr
         elif auto_follow == "full-match":
             elemstr = str(list(visible.values())[0].elem)
             filter_match = self._filter_matches_exactly(filterstr, elemstr)
-            follow = keystr in visible or filter_match
+            follow = (keystr in visible) or filter_match
         else:
             follow = False
 
