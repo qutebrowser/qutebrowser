@@ -62,7 +62,6 @@ class HintContext:
     """Context namespace used for hinting.
 
     Attributes:
-        frames: The QWebFrames to use.
         all_elems: A list of all (elem, label) namedtuples ever created.
         elems: A mapping from key strings to (elem, label) namedtuples.
                May contain less elements than `all_elems` due to filtering.
@@ -92,7 +91,6 @@ class HintContext:
         self.to_follow = None
         self.rapid = False
         self.filterstr = None
-        self.frames = []
         self.args = []
         self.tab = None
         self.group = None
@@ -766,7 +764,6 @@ class HintManager(QObject):
             self._context.baseurl = tabbed_browser.current_url()
         except qtutils.QtValueError:
             raise cmdexc.CommandError("No URL set for this page yet!")
-        self._context.tab = tab
         self._context.args = args
         self._context.group = group
         selector = webelem.SELECTORS[self._context.group]
