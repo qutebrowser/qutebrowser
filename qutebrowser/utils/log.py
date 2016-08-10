@@ -87,9 +87,15 @@ LOG_LEVELS = {
     'CRITICAL': logging.CRITICAL,
 }
 
-LOGGER_NAMES = ['statusbar','completion','destroy','modes','webview','mouse','misc',
-               'url','procs','commands','init','signals','hints','keyboard','downloads',
-               'js','qt','rfc6266','ipc','shlexer','save','message','config','sessions']
+LOGGER_NAMES = [
+    'statusbar', 'completion', 'destroy',
+    'modes', 'webview', 'mouse', 'misc',
+    'url', 'procs', 'commands', 'init',
+    'signals', 'hints', 'keyboard',
+    'downloads', 'js', 'qt', 'rfc6266',
+    'ipc', 'shlexer', 'save', 'message',
+    'config', 'sessions'
+]
 
 
 def vdebug(self, msg, *args, **kwargs):
@@ -136,7 +142,7 @@ sessions = logging.getLogger('sessions')
 
 ram_handler = None
 console_handler = None
-console_filter=None
+console_filter = None
 
 
 def stub(suffix=''):
@@ -170,7 +176,7 @@ def init_log(args):
     global console_filter
     if console is not None:
         if args.logfilter is not None:
-            console_filter=LogFilter(args.logfilter.split(','))
+            console_filter = LogFilter(args.logfilter.split(','))
             console.addFilter(console_filter)
         root.addHandler(console)
     if ram is not None:

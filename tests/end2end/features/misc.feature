@@ -454,7 +454,7 @@ Feature: Various utility commands.
     ## https://github.com/The-Compiler/qutebrowser/issues/1523
 
     Scenario: Completing a single option argument
-        When I run :set-cmd-text -s :-- 
+        When I run :set-cmd-text -s :--
         Then no crash should happen
 
     ## https://github.com/The-Compiler/qutebrowser/issues/1386
