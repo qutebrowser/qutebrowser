@@ -233,7 +233,9 @@ def data(readonly=False):
                      ('last-opened', "Open new tabs in the last opened "
                                      "window."),
                      ('last-focused', "Open new tabs in the most recently "
-                                      "focused window.")
+                                      "focused window."),
+                     ('last-visible', "Open new tabs in the most recently "
+                                      "visible window.")
                  )), 'last-focused'),
              "Which window to choose when opening links as new tabs."),
 
