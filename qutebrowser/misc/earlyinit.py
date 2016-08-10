@@ -300,6 +300,11 @@ def init_log(args):
     log.init_log(args)
     log.init.debug("Log initialized.")
 
+def check_optimize_flag():
+    from qutebrowser.utils import log
+    if sys.flags.optimize >= 2:
+        log.init.warning("Running on optimize level higher than 1, "
+                         "unexpected behavior may occur.")
 
 def earlyinit(args):
     """Do all needed early initialization.
@@ -327,3 +332,4 @@ def earlyinit(args):
     remove_inputhook()
     check_libraries(args)
     check_ssl_support()
+    check_optimize_flag()

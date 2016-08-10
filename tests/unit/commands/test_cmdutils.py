@@ -21,6 +21,10 @@
 
 """Tests for qutebrowser.commands.cmdutils."""
 
+import sys
+import logging
+import types
+
 import pytest
 
 from qutebrowser.commands import cmdutils, cmdexc, argparser, command
@@ -353,6 +357,24 @@ class TestArgument:
                 pass
 
         assert str(excinfo.value) == "Argument marked as both count/win_id!"
+
+    def test_no_docstring(self, caplog):
+        with caplog.at_level(logging.WARNING):
+            @cmdutils.register()
+            def fun():
+                # no docstring
+                pass
+        assert len(caplog.records) == 1
+        msg = caplog.records[0].message
+        assert msg.endswith('test_cmdutils.py has no docstring')
+
+    def test_no_docstring_with_optimize(self, monkeypatch):
+        """With -OO we'd get a warning on start, but no warning afterwards."""
+        monkeypatch.setattr(sys, 'flags', types.SimpleNamespace(optimize=2))
+        @cmdutils.register()
+        def fun():
+            # no docstring
+            pass
 
 
 class TestRun:
