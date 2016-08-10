@@ -247,3 +247,36 @@ def log_capacity(capacity: int):
         raise cmdexc.CommandError("Can't set a negative log capacity!")
     else:
         log.ram_handler.change_log_capacity(capacity)
+
+
+@cmdutils.register(debug=True, name='debug-log-level')
+@cmdutils.argument('level', choices=[level.lower() for level in log.LOG_LEVELS])
+def debug_log_level(level:str):
+    """Change the log level for console logging.
+
+    Args:
+       level: log level for console log.
+    """
+    try:
+        if level in [level.lower() for level in log.LOG_LEVELS.keys()]:
+            log.console_handler.setLevel(log.LOG_LEVELS[level.upper()])
+        else:
+            raise ValueError("Invalid argument, {}".format(level))
+    except debug_log_level.Error as e:
+        raise cmdexc.CommandError(e)
+
+
+@cmdutils.register(debug=True, name='debug-log-filter')
+def debug_log_filter(filter_names:str):
+    """Change the log filter for console logging.
+
+    Args:
+       filter_names: log filters for console log.
+    """
+    if set(filter_names.split(',')).issubset(set(log.LOGGER_NAMES))==True:
+        log.console_handler.removeFilter(log.console_filter)
+        log.console_filter=log.LogFilter(filter_names.split(','))
+        log.console_handler.addFilter(log.console_filter)
+    else:
+        raise cmdexc.CommandError("Invalid argument, "+filter_names+
+                                " choose from "+str(log.LOGGER_NAMES)+ ".")

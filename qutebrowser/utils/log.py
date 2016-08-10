@@ -87,6 +87,10 @@ LOG_LEVELS = {
     'CRITICAL': logging.CRITICAL,
 }
 
+LOGGER_NAMES = ['statusbar','completion','destroy','modes','webview','mouse','misc',
+               'url','procs','commands','init','signals','hints','keyboard','downloads',
+               'js','qt','rfc6266','ipc','shlexer','save','message','config','sessions']
+
 
 def vdebug(self, msg, *args, **kwargs):
     """Log with a VDEBUG level.
@@ -131,6 +135,8 @@ sessions = logging.getLogger('sessions')
 
 
 ram_handler = None
+console_handler = None
+console_filter=None
 
 
 def stub(suffix=''):
@@ -161,9 +167,11 @@ def init_log(args):
     console, ram = _init_handlers(numeric_level, args.color, args.force_color,
                                   args.json_logging, args.loglines)
     root = logging.getLogger()
+    global console_filter
     if console is not None:
         if args.logfilter is not None:
-            console.addFilter(LogFilter(args.logfilter.split(',')))
+            console_filter=LogFilter(args.logfilter.split(','))
+            console.addFilter(console_filter)
         root.addHandler(console)
     if ram is not None:
         root.addHandler(ram)
@@ -210,6 +218,7 @@ def _init_handlers(level, color, force_color, json_logging, ram_capacity):
         json_logging: Output log lines in JSON (this disables all colors).
     """
     global ram_handler
+    global console_handler
     console_fmt, ram_fmt, html_fmt, use_colorama = _init_formatters(
         level, color, force_color, json_logging)
 
