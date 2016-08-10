@@ -624,3 +624,4 @@ def quteproc_new(qapp, httpbin, request):
     # Not calling before_test here as that would start the process
     yield proc
     proc.after_test(did_fail=request.node.rep_call.failed)
+    proc.terminate()

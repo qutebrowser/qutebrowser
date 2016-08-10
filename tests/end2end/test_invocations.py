@@ -98,9 +98,6 @@ def test_ascii_locale(httpbin, tmpdir, quteproc_new):
     quteproc_new.wait_for(category='downloads',
                           message='Opening * with [*python*]')
 
-    quteproc_new.send_cmd(':quit')
-    quteproc_new.wait_for_quit()
-
     assert len(tmpdir.listdir()) == 1
     assert (tmpdir / '?-issue908.bin').exists()
 
@@ -121,5 +118,7 @@ def test_optimize(quteproc_new, capfd, level):
                "may occur.")
         line = quteproc_new.wait_for(message=msg)
         line.expected = True
+
+    # Waiting for quit to make sure no other warning is emitted
     quteproc_new.send_cmd(':quit')
     quteproc_new.wait_for_quit()
