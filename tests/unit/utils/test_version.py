@@ -614,16 +614,18 @@ class FakeQSslSocket:
         return self._version
 
 
-@pytest.mark.parametrize('git_commit, harfbuzz, frozen, style, equal_qt', [
-    (True, True, False, True, True),  # normal
-    (False, True, False, True, True),  # no git commit
-    (True, False, False, True, True),  # HARFBUZZ unset
-    (True, True, True, True, True),  # frozen
-    (True, True, True, False, True),  # no style
-    (True, True, False, True, False),  # different Qt
+@pytest.mark.parametrize(['git_commit', 'harfbuzz', 'frozen', 'style',
+                          'equal_qt', 'with_webkit'], [
+    (True, True, False, True, True, True),  # normal
+    (False, True, False, True, True, True),  # no git commit
+    (True, False, False, True, True, True),  # HARFBUZZ unset
+    (True, True, True, True, True, True),  # frozen
+    (True, True, True, False, True, True),  # no style
+    (True, True, False, True, False, True),  # different Qt
+    (True, True, False, True, True, False),  # no webkit
 ])
 def test_version_output(git_commit, harfbuzz, frozen, style, equal_qt,
-                        stubs, monkeypatch):
+                        with_webkit, stubs, monkeypatch):
     """Test version.version()."""
     import_path = os.path.abspath('/IMPORTPATH')
     patches = {
@@ -638,7 +640,7 @@ def test_version_output(git_commit, harfbuzz, frozen, style, equal_qt,
                      'QT VERSION' if equal_qt else 'QT RUNTIME VERSION'),
         '_module_versions': lambda: ['MODULE VERSION 1', 'MODULE VERSION 2'],
         '_pdfjs_version': lambda: 'PDFJS VERSION',
-        'qWebKitVersion': lambda: 'WEBKIT VERSION',
+        'qWebKitVersion': (lambda: 'WEBKIT VERSION') if with_webkit else None,
         'QSslSocket': FakeQSslSocket('SSL VERSION'),
         'platform.platform': lambda: 'PLATFORM',
         'platform.architecture': lambda: ('ARCHITECTURE', ''),
@@ -672,7 +674,7 @@ def test_version_output(git_commit, harfbuzz, frozen, style, equal_qt,
         MODULE VERSION 1
         MODULE VERSION 2
         pdf.js: PDFJS VERSION
-        Webkit: WEBKIT VERSION
+        Webkit: {webkit}
         Harfbuzz: {harfbuzz}
         SSL: SSL VERSION
         {style}
@@ -692,6 +694,7 @@ def test_version_output(git_commit, harfbuzz, frozen, style, equal_qt,
         'harfbuzz': 'HARFBUZZ' if harfbuzz else 'system',
         'frozen': str(frozen),
         'import_path': import_path,
+        'webkit': 'WEBKIT VERSION' if with_webkit else 'no'
     }
 
     expected = template.rstrip('\n').format(**substitutions)
