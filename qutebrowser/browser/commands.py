@@ -427,7 +427,7 @@ class CommandDispatcher:
         url = self._current_url()
         self._open(url, window=True)
         cur_widget = self._current_widget()
-        self._tabbed_browser.close_tab(cur_widget)
+        self._tabbed_browser.close_tab(cur_widget, add_undo=False)
 
     def _back_forward(self, tab, bg, window, count, forward):
         """Helper function for :back/:forward."""

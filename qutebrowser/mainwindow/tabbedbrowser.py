@@ -217,11 +217,12 @@ class TabbedBrowser(tabwidget.TabWidget):
         for tab in self.widgets():
             self._remove_tab(tab)
 
-    def close_tab(self, tab):
+    def close_tab(self, tab, add_undo=True):
         """Close a tab.
 
         Args:
             tab: The QWebView to be closed.
+            add_undo: Whether the tab close can be undone.
         """
         last_close = config.get('tabs', 'last-close')
         count = self.count()
@@ -229,7 +230,7 @@ class TabbedBrowser(tabwidget.TabWidget):
         if last_close == 'ignore' and count == 1:
             return
 
-        self._remove_tab(tab)
+        self._remove_tab(tab, add_undo=add_undo)
 
         if count == 1:  # We just closed the last tab above.
             if last_close == 'close':
@@ -243,11 +244,12 @@ class TabbedBrowser(tabwidget.TabWidget):
                 url = config.get('general', 'default-page')
                 self.openurl(url, newtab=True)
 
-    def _remove_tab(self, tab):
+    def _remove_tab(self, tab, add_undo=True):
         """Remove a tab from the tab list and delete it properly.
 
         Args:
             tab: The QWebView to be closed.
+            add_undo: Whether the tab close can be undone.
         """
         idx = self.indexOf(tab)
         if idx == -1:
@@ -261,8 +263,9 @@ class TabbedBrowser(tabwidget.TabWidget):
                           window=self._win_id)
         if tab.url().isValid():
             history_data = tab.history.serialize()
-            entry = UndoEntry(tab.url(), history_data, idx)
-            self._undo_stack.append(entry)
+            if add_undo:
+                entry = UndoEntry(tab.url(), history_data, idx)
+                self._undo_stack.append(entry)
         elif tab.url().isEmpty():
             # There are some good reasons why a URL could be empty
             # (target="_blank" with a download, see [1]), so we silently ignore
