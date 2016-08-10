@@ -812,6 +812,9 @@ class HintManager(QObject):
             follow = (keystr in visible) or filter_match
         else:
             follow = False
+            # save the keystr of the only one visible hint to be picked up
+            # later by self.follow_hint
+            self._context.to_follow = list(visible.keys())[0]
 
         if follow:
             # apply auto-follow-timeout
@@ -901,18 +904,12 @@ class HintManager(QObject):
                 self._handle_auto_follow(filterstr=filterstr,
                                          visible=self._context.elems)
 
-    def fire(self, keystr, force=False):
+    def fire(self, keystr):
         """Fire a completed hint.
 
         Args:
             keystr: The keychain string to follow.
-            force: When True, follow even when auto-follow is not 'never'.
         """
-        if not (force or config.get('hints', 'auto-follow') != 'never'):
-            self.handle_partial_key(keystr)
-            self._context.to_follow = keystr
-            return
-
         # Handlers which take a QWebElement
         elem_handlers = {
             Target.normal: self._actions.click,
@@ -985,7 +982,7 @@ class HintManager(QObject):
                 keystring = self._context.to_follow
         elif keystring not in self._context.elems:
             raise cmdexc.CommandError("No hint {}!".format(keystring))
-        self.fire(keystring, force=True)
+        self.fire(keystring)
 
     @pyqtSlot()
     def on_contents_size_changed(self):
