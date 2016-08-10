@@ -824,7 +824,7 @@ class HintManager(QObject):
             normal_parser = keyparsers[usertypes.KeyMode.normal]
             normal_parser.set_inhibited_timeout(timeout)
             # unpacking gets us the first (and only) key in the dict.
-            self.fire(*visible)
+            self._fire(*visible)
 
     def handle_partial_key(self, keystr):
         """Handle a new partial keypress."""
@@ -904,7 +904,7 @@ class HintManager(QObject):
                 self._handle_auto_follow(filterstr=filterstr,
                                          visible=self._context.elems)
 
-    def fire(self, keystr):
+    def _fire(self, keystr):
         """Fire a completed hint.
 
         Args:
@@ -982,7 +982,7 @@ class HintManager(QObject):
                 keystring = self._context.to_follow
         elif keystring not in self._context.elems:
             raise cmdexc.CommandError("No hint {}!".format(keystring))
-        self.fire(keystring)
+        self._fire(keystring)
 
     @pyqtSlot()
     def on_contents_size_changed(self):
