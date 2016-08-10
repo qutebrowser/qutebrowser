@@ -30,6 +30,8 @@ Added
   (to report bugs which are difficult to reproduce).
 - New `hide-unmatched-rapid-hints` option to not hide hint unmatched hint labels
   in rapid mode.
+- New `{clipboard}` and `{primary}` replacements for the commandline which
+  replace the `:paste` command.
 
 Changed
 ~~~~~~~
@@ -64,6 +66,12 @@ Changed
 - Completions for `:help` and `:bind` now also show hidden commands
 - The `:buffer` completion now also filters using the first column (id).
 - `:undo` has been improved to reopen tabs at the position they were closed.
+
+Deprecated
+~~~~~~~~~~
+
+- The `:paste` command got deprecated as `:open` with `{clipboard}` and
+  `{primary}` can be used instead.
 
 Removed
 ~~~~~~~
