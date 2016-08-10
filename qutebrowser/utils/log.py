@@ -88,13 +88,12 @@ LOG_LEVELS = {
 }
 
 LOGGER_NAMES = [
-    'statusbar', 'completion', 'destroy',
-    'modes', 'webview', 'mouse', 'misc',
-    'url', 'procs', 'commands', 'init',
-    'signals', 'hints', 'keyboard',
-    'downloads', 'js', 'qt', 'rfc6266',
-    'ipc', 'shlexer', 'save', 'message',
-    'config', 'sessions'
+    'statusbar', 'completion', 'init', 'url',
+    'destroy', 'modes', 'webview', 'misc',
+    'mouse', 'procs', 'hints', 'keyboard',
+    'commands', 'signals', 'downloads',
+    'js', 'qt', 'rfc6266', 'ipc', 'shlexer',
+    'save', 'message', 'config', 'sessions'
 ]
 
 

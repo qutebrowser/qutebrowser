@@ -258,10 +258,7 @@ def debug_log_level(level: str):
        level: log level for console log.
     """
     try:
-        if level in [level.lower() for level in log.LOG_LEVELS.keys()]:
-            log.console_handler.setLevel(log.LOG_LEVELS[level.upper()])
-        else:
-            raise ValueError("Invalid argument, {}".format(level))
+        log.console_handler.setLevel(log.LOG_LEVELS[level.upper()])
     except debug_log_level.Error as e:
         raise cmdexc.CommandError(e)
 
@@ -278,5 +275,5 @@ def debug_log_filter(filter_names: str):
         log.console_filter = log.LogFilter(filter_names.split(','))
         log.console_handler.addFilter(log.console_filter)
     else:
-        raise cmdexc.CommandError("Invalid argument, "+filter_names+
-                                " choose from "+str(log.LOGGER_NAMES)+ ".")
+        raise cmdexc.CommandError("Invalid argument, {} choose from {}".
+                                 format(filter_names,str(log.LOGGER_NAMES)))
