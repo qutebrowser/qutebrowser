@@ -77,6 +77,7 @@ def download_open(quteproc):
     cmd = '{} -c pass'.format(shlex.quote(sys.executable))
     quteproc.send_cmd(':download-open {}'.format(cmd))
 
+
 @bdd.when("I directly open the download")
 def download_open_with_prompt(quteproc):
     cmd = '{} -c pass'.format(shlex.quote(sys.executable))

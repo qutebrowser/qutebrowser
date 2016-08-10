@@ -147,8 +147,8 @@ Contributors, sorted by the number of commits in descending order:
 * Bruno Oliveira
 * Alexander Cogneau
 * Marshall Lochbaum
-* Felix Van der Jeugt
 * Jakub Klinkovský
+* Felix Van der Jeugt
 * Martin Tournoij
 * Jan Verbeek
 * Raphael Pierzina
@@ -175,6 +175,7 @@ Contributors, sorted by the number of commits in descending order:
 * Clayton Craft
 * nanjekyejoannah
 * Oliver Caldwell
+* Niklas Haas
 * Jonas Schürmann
 * error800
 * Liam BEGUIN
@@ -212,6 +213,7 @@ Contributors, sorted by the number of commits in descending order:
 * adam
 * Samir Benmendil
 * Regina Hug
+* Michael Hoang
 * Mathias Fussenegger
 * Marcelo Santos
 * Jean-Louis Fuchs
@@ -225,6 +227,7 @@ Contributors, sorted by the number of commits in descending order:
 * haxwithaxe
 * evan
 * dylan araps
+* addictedtoflames
 * Xitian9
 * Tomas Orsava
 * Tom Janson
@@ -233,6 +236,7 @@ Contributors, sorted by the number of commits in descending order:
 * Thiago Barroso Perrotta
 * Sorokin Alexei
 * Noah Huesser
+* Moez Bouhlel
 * Matthias Lisin
 * Marcel Schilling
 * Julie Engel

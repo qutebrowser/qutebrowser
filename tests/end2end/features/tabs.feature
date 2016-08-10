@@ -703,6 +703,53 @@ Feature: Tab management
         Then the error "Nothing to undo!" should be shown
         And the error "Nothing to undo!" should be shown
 
+    Scenario: Undo a tab closed by index
+        When I open data/numbers/1.txt
+        And I open data/numbers/2.txt in a new tab
+        And I open data/numbers/3.txt in a new tab
+        And I run :tab-close with count 1
+        And I run :undo
+        Then the following tabs should be open:
+            - data/numbers/1.txt (active)
+            - data/numbers/2.txt
+            - data/numbers/3.txt
+
+    Scenario: Undo a tab closed after switching tabs
+        When I open data/numbers/1.txt
+        And I open data/numbers/2.txt in a new tab
+        And I open data/numbers/3.txt in a new tab
+        And I run :tab-close with count 1
+        And I run :tab-focus 2
+        And I run :undo
+        Then the following tabs should be open:
+            - data/numbers/1.txt (active)
+            - data/numbers/2.txt
+            - data/numbers/3.txt
+
+    Scenario: Undo a tab closed after rearranging tabs
+        When I open data/numbers/1.txt
+        And I open data/numbers/2.txt in a new tab
+        And I open data/numbers/3.txt in a new tab
+        And I run :tab-close with count 1
+        And I run :tab-focus 2
+        And I run :tab-move with count 1
+        And I run :undo
+        Then the following tabs should be open:
+            - data/numbers/1.txt (active)
+            - data/numbers/3.txt
+            - data/numbers/2.txt
+
+    Scenario: Undo a tab closed after new tab opened
+        When I open data/numbers/1.txt
+        And I open data/numbers/2.txt in a new tab
+        And I run :tab-close with count 1
+        And I open data/numbers/3.txt in a new tab
+        And I run :undo
+        Then the following tabs should be open:
+            - data/numbers/1.txt (active)
+            - data/numbers/2.txt
+            - data/numbers/3.txt
+
     # last-close
 
     Scenario: last-close = blank

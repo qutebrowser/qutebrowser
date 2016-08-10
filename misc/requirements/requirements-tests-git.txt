@@ -2,7 +2,12 @@ bzr+lp:beautifulsoup
 git+https://github.com/cherrypy/cherrypy.git
 hg+https://bitbucket.org/ned/coveragepy
 git+https://github.com/micheles/decorator.git
-git+https://github.com/pallets/flask.git
+
+# We need to use flask < 0.11 because of
+# https://github.com/Runscope/httpbin/issues/290
+# git+https://github.com/pallets/flask.git
+Flask==0.10.1  # rq.filter: < 0.11.0
+
 git+https://github.com/miracle2k/python-glob2.git
 git+https://github.com/Runscope/httpbin.git
 git+https://github.com/HypothesisWorks/hypothesis-python.git

@@ -26,7 +26,7 @@ import os.path
 import collections
 
 import qutebrowser
-from qutebrowser.utils import usertypes
+from qutebrowser.utils import usertypes, log, utils
 
 
 def is_git_repo():
@@ -98,6 +98,15 @@ class DocstringParser:
             self.State.arg_inside: self._parse_arg_inside,
             self.State.misc: self._skip,
         }
+        if doc is None:
+            if sys.flags.optimize < 2:
+                log.commands.warning(
+                    "Function {}() from {} has no docstring".format(
+                        utils.qualname(func),
+                        inspect.getsourcefile(func)))
+            self.long_desc = ""
+            self.short_desc = ""
+            return
         for line in doc.splitlines():
             handler = handlers[self._state]
             stop = handler(line)

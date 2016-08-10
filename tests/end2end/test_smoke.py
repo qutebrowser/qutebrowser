@@ -26,6 +26,7 @@ import signal
 
 import pytest
 
+
 @pytest.mark.parametrize('cmd', [':quit', ':later 500 quit'])
 def test_smoke(cmd, capfd):
     if hasattr(sys, 'frozen'):

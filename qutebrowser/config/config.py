@@ -36,7 +36,8 @@ import collections.abc
 from PyQt5.QtCore import pyqtSignal, QObject, QUrl, QSettings
 
 from qutebrowser.config import configdata, configexc, textwrapper
-from qutebrowser.config.parsers import ini, keyconf
+from qutebrowser.config.parsers import keyconf
+from qutebrowser.config.parsers import ini
 from qutebrowser.commands import cmdexc, cmdutils
 from qutebrowser.utils import (message, objreg, utils, standarddir, log,
                                qtutils, error, usertypes)
@@ -350,6 +351,7 @@ class ConfigManager(QObject):
         ('tabs', 'auto-hide'),
         ('tabs', 'hide-always'),
         ('ui', 'display-statusbar-messages'),
+        ('ui', 'hide-mouse-cursor'),
         ('general', 'wrap-search'),
     ]
     CHANGED_OPTIONS = {

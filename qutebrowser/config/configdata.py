@@ -227,13 +227,23 @@ def data(readonly=False):
              "How to open links in an existing instance if a new one is "
              "launched."),
 
+            ('new-instance-open-target.window',
+             SettingValue(typ.String(
+                 valid_values=typ.ValidValues(
+                     ('last-opened', "Open new tabs in the last opened "
+                                     "window."),
+                     ('last-focused', "Open new tabs in the most recently "
+                                      "focused window.")
+                 )), 'last-focused'),
+             "Which window to choose when opening links as new tabs."),
+
             ('log-javascript-console',
              SettingValue(typ.String(
                  valid_values=typ.ValidValues(
                      ('none', "Don't log messages."),
                      ('debug', "Log messages with debug level."),
                      ('info', "Log messages with info level.")
-                 )), 'debug', backends=[usertypes.Backend.QtWebKit]),
+                 )), 'debug'),
              "How to log javascript console messages."),
 
             ('save-session',
@@ -345,10 +355,6 @@ def data(readonly=False):
              "* `{id}`: The internal window ID of this window.\n"
              "* `{scroll_pos}`: The page scroll position.\n"
              "* `{host}`: The host of the current web page."),
-
-            ('hide-mouse-cursor',
-             SettingValue(typ.Bool(), 'false'),
-             "Whether to hide the mouse cursor."),
 
             ('modal-js-dialog',
              SettingValue(typ.Bool(), 'false'),
@@ -488,13 +494,13 @@ def data(readonly=False):
         ('input', sect.KeyValue(
             ('timeout',
              SettingValue(typ.Int(minval=0, maxval=MAXVALS['int']), '500'),
-             "Timeout for ambiguous key bindings.\n\n"
+             "Timeout (in milliseconds) for ambiguous key bindings.\n\n"
              "If the current input forms both a complete match and a partial "
              "match, the complete match will be executed after this time."),
 
             ('partial-timeout',
              SettingValue(typ.Int(minval=0, maxval=MAXVALS['int']), '5000'),
-             "Timeout for partially typed key bindings.\n\n"
+             "Timeout (in milliseconds) for partially typed key bindings.\n\n"
              "If the current input forms only partial matches, the keystring "
              "will be cleared after this time."),
 
@@ -933,8 +939,8 @@ def data(readonly=False):
 
             ('auto-follow-timeout',
              SettingValue(typ.Int(), '0'),
-             "A timeout to inhibit normal-mode key bindings after a successful"
-             "auto-follow."),
+             "A timeout (in milliseconds) to inhibit normal-mode key bindings "
+             "after a successful auto-follow."),
 
             ('next-regexes',
              SettingValue(typ.List(typ.Regex(flags=re.IGNORECASE)),
@@ -955,6 +961,10 @@ def data(readonly=False):
                      ('python', "Slightly worse but faster"),
                  )), 'python'),
              "Which implementation to use to find elements to hint."),
+
+            ('hide-unmatched-rapid-hints',
+             SettingValue(typ.Bool(), 'true'),
+             "Controls hiding unmatched hints in rapid mode."),
 
             readonly=readonly
         )),
@@ -1266,7 +1276,7 @@ def data(readonly=False):
              "Font used in the completion widget."),
 
             ('completion.category',
-              SettingValue(typ.Font(), 'bold ${completion}'),
+             SettingValue(typ.Font(), 'bold ${completion}'),
              "Font used in the completion categories."),
 
             ('tabbar',
@@ -1415,8 +1425,7 @@ KEY_SECTION_DESC = {
         "Useful hidden commands to map in this section:\n\n"
         " * `command-history-prev`: Switch to previous command in history.\n"
         " * `command-history-next`: Switch to next command in history.\n"
-        " * `completion-item-prev`: Select previous item in completion.\n"
-        " * `completion-item-next`: Select next item in completion.\n"
+        " * `completion-item-focus`: Select another item in completion.\n"
         " * `command-accept`: Execute the command currently in the "
         "commandline."),
     'prompt': (
@@ -1589,8 +1598,8 @@ KEY_DATA = collections.OrderedDict([
     ('command', collections.OrderedDict([
         ('command-history-prev', ['<Ctrl-P>']),
         ('command-history-next', ['<Ctrl-N>']),
-        ('completion-item-prev', ['<Shift-Tab>', '<Up>']),
-        ('completion-item-next', ['<Tab>', '<Down>']),
+        ('completion-item-focus prev', ['<Shift-Tab>', '<Up>']),
+        ('completion-item-focus next', ['<Tab>', '<Down>']),
         ('completion-item-del', ['<Ctrl-D>']),
         ('command-accept', RETURN_KEYS),
     ])),
@@ -1686,4 +1695,7 @@ CHANGED_KEY_COMMANDS = [
     (re.compile(r'^yank -p'), r'yank pretty-url'),
     (re.compile(r'^yank-selected -p'), r'yank selection -s'),
     (re.compile(r'^yank-selected'), r'yank selection'),
+
+    (re.compile(r'^completion-item-next'), r'completion-item-focus next'),
+    (re.compile(r'^completion-item-prev'), r'completion-item-focus prev'),
 ]

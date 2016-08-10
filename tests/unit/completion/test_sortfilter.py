@@ -59,6 +59,7 @@ def _extract_model_data(model):
         data.append(row)
     return data
 
+
 @pytest.mark.parametrize('pattern, data, expected', [
     ('foo', 'barfoobar', True),
     ('foo', 'barFOObar', True),

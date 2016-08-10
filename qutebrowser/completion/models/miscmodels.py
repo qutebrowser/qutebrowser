@@ -30,7 +30,7 @@ from qutebrowser.completion.models import base
 
 class CommandCompletionModel(base.BaseCompletionModel):
 
-    """A CompletionModel filled with all commands and descriptions."""
+    """A CompletionModel filled with non-hidden commands and descriptions."""
 
     # https://github.com/The-Compiler/qutebrowser/issues/545
     # pylint: disable=abstract-method
@@ -39,23 +39,11 @@ class CommandCompletionModel(base.BaseCompletionModel):
 
     def __init__(self, parent=None):
         super().__init__(parent)
-        assert cmdutils.cmd_dict
-        cmdlist = []
-        for obj in set(cmdutils.cmd_dict.values()):
-            if (obj.hide or (obj.debug and not objreg.get('args').debug) or
-                    obj.deprecated):
-                pass
-            else:
-                cmdlist.append((obj.name, obj.desc))
-        for name, cmd in config.section('aliases').items():
-            cmdlist.append((name, "Alias for '{}'".format(cmd)))
+        cmdlist = _get_cmd_completions(include_aliases=True,
+                                       include_hidden=False)
         cat = self.new_category("Commands")
-
-        # map each command to its bound keys and show these in the misc column
-        key_config = objreg.get('key-config')
-        cmd_to_keys = key_config.get_reverse_bindings_for('normal')
-        for (name, desc) in sorted(cmdlist):
-            self.new_item(cat, name, desc, ', '.join(cmd_to_keys[name]))
+        for (name, desc, misc) in cmdlist:
+            self.new_item(cat, name, desc, misc)
 
 
 class HelpCompletionModel(base.BaseCompletionModel):
@@ -72,17 +60,11 @@ class HelpCompletionModel(base.BaseCompletionModel):
 
     def _init_commands(self):
         """Fill completion with :command entries."""
-        assert cmdutils.cmd_dict
-        cmdlist = []
-        for obj in set(cmdutils.cmd_dict.values()):
-            if (obj.hide or (obj.debug and not objreg.get('args').debug) or
-                    obj.deprecated):
-                pass
-            else:
-                cmdlist.append((':' + obj.name, obj.desc))
+        cmdlist = _get_cmd_completions(include_aliases=False,
+                                       include_hidden=True, prefix=':')
         cat = self.new_category("Commands")
-        for (name, desc) in sorted(cmdlist):
-            self.new_item(cat, name, desc)
+        for (name, desc, misc) in cmdlist:
+            self.new_item(cat, name, desc, misc)
 
     def _init_settings(self):
         """Fill completion with section->option entries."""
@@ -166,7 +148,8 @@ class TabCompletionModel(base.BaseCompletionModel):
     def __init__(self, parent=None):
         super().__init__(parent)
 
-        self.columns_to_filter = [self.URL_COLUMN, self.TEXT_COLUMN]
+        self.columns_to_filter = [self.IDX_COLUMN, self.URL_COLUMN,
+                                  self.TEXT_COLUMN]
 
         for win_id in objreg.window_registry:
             tabbed_browser = objreg.get('tabbed-browser', scope='window',
@@ -259,3 +242,49 @@ class TabCompletionModel(base.BaseCompletionModel):
         tabbed_browser = objreg.get('tabbed-browser', scope='window',
                                     window=int(win_id))
         tabbed_browser.on_tab_close_requested(int(tab_index) - 1)
+
+
+class BindCompletionModel(base.BaseCompletionModel):
+
+    """A CompletionModel filled with all bindable commands and descriptions."""
+
+    # https://github.com/The-Compiler/qutebrowser/issues/545
+    # pylint: disable=abstract-method
+
+    COLUMN_WIDTHS = (20, 60, 20)
+
+    def __init__(self, parent=None):
+        super().__init__(parent)
+        cmdlist = _get_cmd_completions(include_hidden=True,
+                                       include_aliases=True)
+        cat = self.new_category("Commands")
+        for (name, desc, misc) in cmdlist:
+            self.new_item(cat, name, desc, misc)
+
+
+def _get_cmd_completions(include_hidden, include_aliases, prefix=''):
+    """Get a list of completions info for commands, sorted by name.
+
+    Args:
+        include_hidden: True to include commands annotated with hide=True.
+        include_aliases: True to include command aliases.
+        prefix: String to append to the command name.
+
+    Return: A list of tuples of form (name, description, bindings).
+    """
+    assert cmdutils.cmd_dict
+    cmdlist = []
+    cmd_to_keys = objreg.get('key-config').get_reverse_bindings_for('normal')
+    for obj in set(cmdutils.cmd_dict.values()):
+        hide_debug = obj.debug and not objreg.get('args').debug
+        hide_hidden = obj.hide and not include_hidden
+        if not (hide_debug or hide_hidden or obj.deprecated):
+            bindings = ', '.join(cmd_to_keys.get(obj.name, []))
+            cmdlist.append((prefix + obj.name, obj.desc, bindings))
+
+    if include_aliases:
+        for name, cmd in config.section('aliases').items():
+            bindings = ', '.join(cmd_to_keys.get(name, []))
+            cmdlist.append((name, "Alias for '{}'".format(cmd), bindings))
+
+    return cmdlist

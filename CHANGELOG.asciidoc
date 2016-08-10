@@ -28,6 +28,8 @@ Added
   completion category headers.
 - New `:debug-log-capacity` command to adjust how many lines are logged into RAM
   (to report bugs which are difficult to reproduce).
+- New `hide-unmatched-rapid-hints` option to not hide hint unmatched hint labels
+  in rapid mode.
 
 Changed
 ~~~~~~~
@@ -51,12 +53,32 @@ Changed
   `:bind`) now don't immediately evaluate variables.
 - Tab titles in the `:buffer` completion now update correctly when a page's
   title is changed via javascript.
+- `:hint` now has a `--mode <mode>` flag to override the hint mode configured
+  using the `hints -> mode` setting.
+- With `new-instance-open-target` set to a tab option, the tab is now opened in
+  the most recently focused (instead of the last opened) window. This can be
+  configured with the new `new-instance-open-target.window` setting.
+- Word hints now are more clever about getting the element text from some elements.
+- Completions for `:help` and `:bind` now also show hidden commands
+- The `:buffer` completion now also filters using the first column (id).
+- `:undo` has been improved to reopen tabs at the position they were closed.
 
 Removed
 ~~~~~~~
 
 - The `:yank-selected` command got merged into `:yank` as `:yank selection`
   and thus removed.
+- The `:completion-item-prev` and `:completion-item-next` commands got merged
+  into a new `:completion-focus {prev,next}` command and thus removed.
+- The `ui -> hide-mouse-cursor` setting since it was completely broken and
+  nobody seemed to care.
+
+Fixed
+~~~~~
+
+- `:bind` can now be used to bind to an alias (binding by editing `keys.conf`
+  already worked before)
+- The command completion now updates correctly when changing aliases
 
 v0.8.3 (unreleased)
 -------------------

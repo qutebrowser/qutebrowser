@@ -35,8 +35,8 @@ exclude pytest.ini
 exclude qutebrowser.rcc
 exclude .coveragerc
 exclude .pylintrc
-exclude .eslintrc
-exclude .eslintignore
+exclude qutebrowser/javascript/.eslintrc.yaml
+exclude qutebrowser/javascript/.eslintignore
 exclude doc/help
 exclude .appveyor.yml
 exclude .travis.yml

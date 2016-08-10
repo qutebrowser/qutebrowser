@@ -20,9 +20,6 @@
 """Utilities related to javascript interaction."""
 
 
-from qutebrowser.utils import utils
-
-
 def string_escape(text):
     """Escape values special to javascript in strings.
 
@@ -62,11 +59,12 @@ def _convert_js_arg(arg):
             arg, type(arg).__name__))
 
 
-def assemble(name, function, *args):
+def assemble(module, function, *args):
     """Assemble a javascript file and a function call."""
-    code = "{code}\n_qutebrowser_{function}({args});".format(
-        code=utils.read_file('javascript/{}.js'.format(name)),
-        function=function,
-        args=', '.join(_convert_js_arg(arg) for arg in args),
-    )
+    js_args = ', '.join(_convert_js_arg(arg) for arg in args)
+    if module == 'window':
+        parts = ['window', function]
+    else:
+        parts = ['window', '_qutebrowser', module, function]
+    code = '"use strict";\n{}({});'.format('.'.join(parts), js_args)
     return code

@@ -29,9 +29,9 @@ from PyQt5.QtWebKitWidgets import QWebView, QWebPage, QWebFrame
 
 from qutebrowser.config import config
 from qutebrowser.keyinput import modeman
-from qutebrowser.utils import message, log, usertypes, utils, qtutils, objreg
+from qutebrowser.utils import log, usertypes, utils, qtutils, objreg
 from qutebrowser.browser import hints
-from qutebrowser.browser.webkit import webpage, webelem
+from qutebrowser.browser.webkit import webpage, webkitelem
 
 
 class WebView(QWebView):
@@ -94,26 +94,11 @@ class WebView(QWebView):
             self.setContextMenuPolicy(Qt.PreventContextMenu)
         objreg.get('config').changed.connect(self.on_config_changed)
 
-    @pyqtSlot()
-    def on_initial_layout_completed(self):
-        """Add url to history now that we have displayed something."""
-        history = objreg.get('web-history')
-        no_formatting = QUrl.UrlFormattingOption(0)
-        orig_url = self.page().mainFrame().requestedUrl()
-        if (orig_url.isValid() and
-                not orig_url.matches(self.url(), no_formatting)):
-            # If the url of the page is different than the url of the link
-            # originally clicked, save them both.
-            history.add_url(orig_url, self.title(), redirect=True)
-        history.add_url(self.url(), self.title())
-
     def _init_page(self):
         """Initialize the QWebPage used by this view."""
         page = webpage.BrowserPage(self.win_id, self._tab_id, self)
         self.setPage(page)
         page.mainFrame().loadFinished.connect(self.on_load_finished)
-        page.mainFrame().initialLayoutCompleted.connect(
-            self.on_initial_layout_completed)
         return page
 
     def __repr__(self):
@@ -153,27 +138,6 @@ class WebView(QWebView):
         elif section == 'colors' and option == 'webpage.bg':
             self._set_bg_color()
 
-    def _mousepress_backforward(self, e):
-        """Handle back/forward mouse button presses.
-
-        Args:
-            e: The QMouseEvent.
-        """
-        if e.button() in [Qt.XButton1, Qt.LeftButton]:
-            # Back button on mice which have it, or rocker gesture
-            if self.page().history().canGoBack():
-                self.back()
-            else:
-                message.error(self.win_id, "At beginning of history.",
-                              immediately=True)
-        elif e.button() in [Qt.XButton2, Qt.RightButton]:
-            # Forward button on mice which have it, or rocker gesture
-            if self.page().history().canGoForward():
-                self.forward()
-            else:
-                message.error(self.win_id, "At end of history.",
-                              immediately=True)
-
     def _mousepress_insertmode(self, e):
         """Switch to insert mode when an editable element was clicked.
 
@@ -196,13 +160,13 @@ class WebView(QWebView):
         if hitresult.isNull():
             # For some reason, the whole hit result can be null sometimes (e.g.
             # on doodle menu links). If this is the case, we schedule a check
-            # later (in mouseReleaseEvent) which uses webelem.focus_elem.
+            # later (in mouseReleaseEvent) which uses webkitelem.focus_elem.
             log.mouse.debug("Hitresult is null!")
             self._check_insertmode = True
             return
         try:
-            elem = webelem.WebElementWrapper(hitresult.element())
-        except webelem.IsNullError:
+            elem = webkitelem.WebKitElement(hitresult.element())
+        except webkitelem.IsNullError:
             # For some reason, the hit result element can be a null element
             # sometimes (e.g. when clicking the timetable fields on
             # http://www.sbb.ch/ ). If this is the case, we schedule a check
@@ -223,12 +187,13 @@ class WebView(QWebView):
 
     def mouserelease_insertmode(self):
         """If we have an insertmode check scheduled, handle it."""
+        # FIXME:qtwebengine Use tab.find_focus_element here
         if not self._check_insertmode:
             return
         self._check_insertmode = False
         try:
-            elem = webelem.focus_elem(self.page().currentFrame())
-        except (webelem.IsNullError, RuntimeError):
+            elem = webkitelem.focus_elem(self.page().currentFrame())
+        except (webkitelem.IsNullError, RuntimeError):
             log.mouse.debug("Element/page vanished!")
             return
         if elem.is_editable():
@@ -325,8 +290,8 @@ class WebView(QWebView):
             return
         frame = self.page().currentFrame()
         try:
-            elem = webelem.WebElementWrapper(frame.findFirstElement(':focus'))
-        except webelem.IsNullError:
+            elem = webkitelem.focus_elem(frame)
+        except webkitelem.IsNullError:
             log.webview.debug("Focused element is null!")
             return
         log.modes.debug("focus element: {}".format(repr(elem)))
@@ -421,13 +386,6 @@ class WebView(QWebView):
         Return:
             The superclass return value.
         """
-        is_rocker_gesture = (config.get('input', 'rocker-gestures') and
-                             e.buttons() == Qt.LeftButton | Qt.RightButton)
-
-        if e.button() in [Qt.XButton1, Qt.XButton2] or is_rocker_gesture:
-            self._mousepress_backforward(e)
-            super().mousePressEvent(e)
-            return
         self._mousepress_insertmode(e)
         self._mousepress_opentarget(e)
         self._ignore_wheel_event = True

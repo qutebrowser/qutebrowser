@@ -22,7 +22,7 @@
 import base64
 import binascii
 
-from PyQt5.QtWebKitWidgets import QWebInspector
+from PyQt5.QtWidgets import QWidget
 
 from qutebrowser.utils import log, objreg
 from qutebrowser.misc import miscwidgets
@@ -52,7 +52,7 @@ class WebInspectorError(Exception):
     pass
 
 
-class AbstractWebInspector(QWebInspector):
+class AbstractWebInspector(QWidget):
 
     """A customized WebInspector which stores its geometry."""
 
