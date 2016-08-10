@@ -1486,6 +1486,7 @@ class CommandDispatcher:
             raise cmdexc.CommandError("Element vanished while editing!")
 
     @cmdutils.register(instance='command-dispatcher',
+                       deprecated="Use :insert-text {primary}",
                        modes=[KeyMode.insert], hide=True, scope='window',
                        needs_js=True, backend=usertypes.Backend.QtWebKit)
     def paste_primary(self):

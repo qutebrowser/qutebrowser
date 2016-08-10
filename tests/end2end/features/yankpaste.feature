@@ -227,25 +227,21 @@ Feature: Yanking and pasting.
         And I run :open -t {clipboard}
         Then no crash should happen
 
-    #### :paste-primary
+    #### :insert-text
 
-    Scenario: Pasting the primary selection into an empty text field
-        When selection is supported
-        And I open data/paste_primary.html
-        And I put "Hello world" into the primary selection
+    Scenario: Inserting text into an empty text field
+        When I open data/paste_primary.html
         # Click the text field
         And I run :hint all
         And I run :follow-hint a
         And I wait for "Clicked editable element!" in the log
-        And I run :paste-primary
+        And I run :insert-text Hello world
         # Compare
         Then the text field should contain "Hello world"
 
-    Scenario: Pasting the primary selection into a text field at specific position
-        When selection is supported
-        And I open data/paste_primary.html
+    Scenario: Inserting text into a text field at specific position
+        When I open data/paste_primary.html
         And I set the text field to "one two three four"
-        And I put " Hello world" into the primary selection
         # Click the text field
         And I run :hint all
         And I run :follow-hint a
@@ -254,55 +250,36 @@ Feature: Yanking and pasting.
         And I press the keys "<Home>"
         And I press the key "<Ctrl+Right>"
         And I press the key "<Ctrl+Right>"
-        And I run :paste-primary
+        And I run :insert-text Hello world
         # Compare
-        Then the text field should contain "one two Hello world three four"
+        Then the text field should contain "one twoHello world three four"
 
-    Scenario: Pasting the primary selection into a text field with undo
-        When selection is supported
-        And I open data/paste_primary.html
+    Scenario: Inserting text into a text field with undo
+        When I open data/paste_primary.html
         # Click the text field
         And I run :hint all
         And I run :follow-hint a
         And I wait for "Clicked editable element!" in the log
         # Paste and undo
-        And I put "This text should be undone" into the primary selection
-        And I run :paste-primary
+        And I run :insert-text This text should be undone
         And I press the key "<Ctrl+z>"
         # Paste final text
-        And I put "This text should stay" into the primary selection
-        And I run :paste-primary
+        And I run :insert-text This text should stay
         # Compare
         Then the text field should contain "This text should stay"
 
-    Scenario: Pasting the primary selection without a focused field
-        When selection is supported
-        And I open data/paste_primary.html
-        And I put "test" into the primary selection
+    Scenario: Inserting text without a focused field
+        When I open data/paste_primary.html
         And I run :enter-mode insert
-        And I run :paste-primary
+        And I run :insert-text test
         Then the error "No element focused!" should be shown
 
-    Scenario: Pasting the primary selection with a read-only field
-        When selection is supported
-        And I open data/paste_primary.html
+    Scenario: Inserting text with a read-only field
+        When I open data/paste_primary.html
         # Click the text field
         And I run :hint all
         And I run :follow-hint s
         And I wait for "Clicked non-editable element!" in the log
-        And I put "test" into the primary selection
         And I run :enter-mode insert
-        And I run :paste-primary
+        And I run :insert-text test
         Then the error "Focused element is not editable!" should be shown
-
-    Scenario: :paste-primary without primary selection supported
-        When selection is not supported
-        And I open data/paste_primary.html
-        And I put "Hello world" into the clipboard
-        # Click the text field
-        And I run :hint all
-        And I run :follow-hint a
-        And I wait for "Clicked editable element!" in the log
-        And I run :paste-primary
-        # Compare
-        Then the text field should contain "Hello world"

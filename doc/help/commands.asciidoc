@@ -32,6 +32,7 @@
 |<<hint,hint>>|Start hinting.
 |<<history-clear,history-clear>>|Clear all browsing history.
 |<<home,home>>|Open main startpage in current tab.
+|<<insert-text,insert-text>>|Insert text at cursor position.
 |<<inspector,inspector>>|Toggle the web inspector.
 |<<jseval,jseval>>|Evaluate a JavaScript string.
 |<<later,later>>|Execute a command after some time.
@@ -401,6 +402,18 @@ Note this only clears the global history (e.g. `~/.local/share/qutebrowser/histo
 [[home]]
 === home
 Open main startpage in current tab.
+
+[[insert-text]]
+=== insert-text
+Syntax: +:insert-text 'text'+
+
+Insert text at cursor position.
+
+==== positional arguments
+* +'text'+: The text to insert.
+
+==== note
+* This command does not split arguments after the last argument and handles quotes literally.
 
 [[inspector]]
 === inspector
@@ -919,7 +932,6 @@ How many steps to zoom out.
 |<<enter-mode,enter-mode>>|Enter a key mode.
 |<<follow-hint,follow-hint>>|Follow a hint.
 |<<follow-selected,follow-selected>>|Follow the selected text.
-|<<insert-text,insert-text>>|Insert text at cursor position.
 |<<jump-mark,jump-mark>>|Jump to the mark named by `key`.
 |<<leave-mode,leave-mode>>|Leave the mode we're currently in.
 |<<message-error,message-error>>|Show an error message in the statusbar.
@@ -1030,18 +1042,6 @@ Follow the selected text.
 
 ==== optional arguments
 * +*-t*+, +*--tab*+: Load the selected link in a new tab.
-
-[[insert-text]]
-=== insert-text
-Syntax: +:insert-text 'text'+
-
-Insert text at cursor position.
-
-==== positional arguments
-* +'text'+: The text to insert.
-
-==== note
-* This command does not split arguments after the last argument and handles quotes literally.
 
 [[jump-mark]]
 === jump-mark
