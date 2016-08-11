@@ -249,7 +249,7 @@ def log_capacity(capacity: int):
         log.ram_handler.change_log_capacity(capacity)
 
 
-@cmdutils.register(debug=True, name='debug-log-level')
+@cmdutils.register(debug=True)
 @cmdutils.argument('level', choices=[level.lower()
                     for level in log.LOG_LEVELS])
 def debug_log_level(level: str):
@@ -258,23 +258,20 @@ def debug_log_level(level: str):
     Args:
        level: log level for console log.
     """
-    try:
-        log.console_handler.setLevel(log.LOG_LEVELS[level.upper()])
-    except debug_log_level.Error as e:
-        raise cmdexc.CommandError(e)
+    log.console_handler.setLevel(log.LOG_LEVELS[level.upper()])
 
 
-@cmdutils.register(debug=True, name='debug-log-filter')
+@cmdutils.register(debug=True)
 def debug_log_filter(filter_names: str):
     """Change the log filter for console logging.
 
     Args:
        filter_names: log filters for console log.
     """
-    if set(filter_names.split(',')).issubset(set(log.LOGGER_NAMES)):
+    if set(filter_names.split(',')).issubset(log.LOGGER_NAMES):
         log.console_handler.removeFilter(log.console_filter)
         log.console_filter = log.LogFilter(filter_names.split(','))
         log.console_handler.addFilter(log.console_filter)
     else:
         raise cmdexc.CommandError("Invalid argument, {} choose from {}".
-                                 format(filter_names, str(log.LOGGER_NAMES)))
+                                 format(filter_names, ','.join(log.LOGGER_NAMES)))
