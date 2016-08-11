@@ -77,6 +77,7 @@ class QuteWM:
         screen_height = self.dpy.screen().height_in_pixels
         self.dimensions = (screen_width, screen_height)
 
+        self._needs_update = False
         self.root = self.dpy.screen().root
         self.support_window = None
         self.windows = []
@@ -163,6 +164,9 @@ class QuteWM:
 
     def _update_clients(self):
         """Update _NET_CLIENT_LIST and _NET_ACTIVE_WINDOW attributes."""
+        if not self._needs_update:
+            return
+
         self.root.change_property(
             self.dpy.get_atom('_NET_CLIENT_LIST'),
             Xatom.WINDOW,
@@ -175,6 +179,7 @@ class QuteWM:
             32,
             [self.window_stack[-1].id] if self.window_stack else [X.NONE],
         )
+        self._needs_update = False
 
     def on_MapNotify(self, ev):
         """Called when a window is shown on screen ("mapped")."""
@@ -183,6 +188,7 @@ class QuteWM:
         log.debug("window created: {}".format(ev.window))
         self.windows.append(ev.window)
         self.window_stack.append(ev.window)
+        self._needs_update = True
         self.activate(ev.window)
 
     def on_UnmapNotify(self, ev):
@@ -193,6 +199,8 @@ class QuteWM:
             self.window_stack.remove(ev.window)
         except ValueError:
             log.debug("window was not in self.windows!")
+        else:
+            self._needs_update = True
         if self.window_stack:
             self.activate(self.window_stack[-1])
 
