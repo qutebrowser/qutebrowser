@@ -230,6 +230,7 @@ def main():
         import threading
         threading.Thread(target=repl).start()
 
+    global wm
     wm = QuteWM()
     wm.loop()
 
