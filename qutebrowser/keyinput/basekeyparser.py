@@ -368,6 +368,7 @@ class BaseKeyParser(QObject):
     def clear_keystring(self):
         """Clear the currently entered key sequence."""
         if self._keystring:
-            self._debug_log("discarding keystring '{}'.".format(self._keystring))
+            self._debug_log("discarding keystring '{}'.".format(
+                self._keystring))
             self._keystring = ''
             self.keystring_updated.emit(self._keystring)
