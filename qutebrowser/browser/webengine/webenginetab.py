@@ -43,7 +43,7 @@ class WebEnginePrinting(browsertab.AbstractPrinting):
     def check_pdf_support(self):
         if not hasattr(self._widget.page(), 'printToPdf'):
             raise browsertab.WebTabError(
-                "Printing to PDF is unsupported with QtWebEngine on Qt > 5.7")
+                "Printing to PDF is unsupported with QtWebEngine on Qt < 5.7")
 
     def check_printer_support(self):
         raise browsertab.WebTabError(
