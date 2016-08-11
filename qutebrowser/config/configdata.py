@@ -1452,7 +1452,7 @@ RETURN_KEYS = ['<Return>', '<Ctrl-M>', '<Ctrl-J>', '<Shift-Return>', '<Enter>',
 
 KEY_DATA = collections.OrderedDict([
     ('!normal', collections.OrderedDict([
-        ('clear-keychain ;; leave-mode', ['<Escape>', '<Ctrl-[>']),
+        ('leave-mode', ['<Escape>', '<Ctrl-[>']),
     ])),
 
     ('normal', collections.OrderedDict([
@@ -1683,7 +1683,7 @@ CHANGED_KEY_COMMANDS = [
     (re.compile(r'^scroll ([-\d]+ [-\d]+)$'), r'scroll-px \1'),
 
     (re.compile(r'^search *;; *clear-keychain$'), r'clear-keychain ;; search'),
-    (re.compile(r'^leave-mode$'), r'clear-keychain ;; leave-mode'),
+    (re.compile(r'^clear-keychain *;; *leave-mode$'), r'leave-mode'),
 
     (re.compile(r'^download-remove --all$'), r'download-clear'),
 

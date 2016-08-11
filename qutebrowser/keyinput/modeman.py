@@ -282,6 +282,9 @@ class ModeManager(QObject):
             raise NotInModeError("Not in mode {}!".format(mode))
         log.modes.debug("Leaving mode {}{}".format(
             mode, '' if reason is None else ' (reason: {})'.format(reason)))
+        # leaving a mode implies clearing keychain, see
+        # https://github.com/The-Compiler/qutebrowser/issues/1805
+        self.clear_keychain()
         self.mode = usertypes.KeyMode.normal
         self.left.emit(mode, self.mode, self._win_id)
 

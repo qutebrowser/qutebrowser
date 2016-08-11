@@ -278,7 +278,7 @@ class TestKeyConfigParser:
             ('search ;; clear-keychain', 'clear-keychain ;; search'),
             ('search;;clear-keychain', 'clear-keychain ;; search'),
             ('search;;foo', None),
-            ('leave-mode', 'clear-keychain ;; leave-mode'),
+            ('clear-keychain ;; leave-mode', 'leave-mode'),
             ('leave-mode ;; foo', None),
 
             ('download-remove --all', 'download-clear'),
