@@ -230,8 +230,10 @@ def data(readonly=False):
             ('new-instance-open-target.window',
              SettingValue(typ.String(
                  valid_values=typ.ValidValues(
-                     ('last-opened', "Open new tabs in the last opened "
-                                     "window."),
+                     ('first-opened', "Open new tabs in the first (oldest) "
+                                      "opened window."),
+                     ('last-opened', "Open new tabs in the last (newest) "
+                                     "opened window."),
                      ('last-focused', "Open new tabs in the most recently "
                                       "focused window."),
                      ('last-visible', "Open new tabs in the most recently "

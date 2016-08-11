@@ -62,7 +62,7 @@ Changed
   the most recently focused (instead of the last opened) window. This can be
   configured with the new `new-instance-open-target.window` setting.
   It can also be set to `last-visible` to show the pages in the most recently
-  visible window.
+  visible window, or `first-opened` to use the first (oldest) available window.
 - Word hints now are more clever about getting the element text from some elements.
 - Completions for `:help` and `:bind` now also show hidden commands
 - The `:buffer` completion now also filters using the first column (id).
