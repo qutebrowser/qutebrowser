@@ -82,7 +82,7 @@ class WebEnginePage(QWebEnginePage):
     def acceptNavigationRequest(self,
                                 url: QUrl,
                                 typ: QWebEnginePage.NavigationType,
-                                _is_main_frame: bool):
+                                is_main_frame: bool):
         """Override acceptNavigationRequest to handle clicked links.
 
         Setting linkDelegationPolicy to DelegateAllLinks and using a slot bound
@@ -95,10 +95,10 @@ class WebEnginePage(QWebEnginePage):
         """
         target = self._tabdata.combined_target()
         log.webview.debug("navigation request: url {}, type {}, "
-                          "target {}".format(
+                          "target {}, is_main_frame {}".format(
                               url.toDisplayString(),
                               debug.qenum_key(QWebEnginePage, typ),
-                              target))
+                              target, is_main_frame))
 
         if typ != QWebEnginePage.NavigationTypeLinkClicked:
             return True
