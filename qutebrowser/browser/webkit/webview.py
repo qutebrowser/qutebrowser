@@ -74,7 +74,7 @@ class WebView(QWebView):
         self._set_bg_color()
         self._tab_id = tab_id
 
-        page = self._init_page()
+        page = self._init_page(tab.data)
         hintmanager = hints.HintManager(win_id, self._tab_id, self)
         hintmanager.mouse_event.connect(self.on_mouse_event)
         hintmanager.start_hinting.connect(page.on_start_hinting)
@@ -89,9 +89,14 @@ class WebView(QWebView):
             self.setContextMenuPolicy(Qt.PreventContextMenu)
         objreg.get('config').changed.connect(self.on_config_changed)
 
-    def _init_page(self):
-        """Initialize the QWebPage used by this view."""
-        page = webpage.BrowserPage(self.win_id, self._tab_id, self)
+    def _init_page(self, tabdata):
+        """Initialize the QWebPage used by this view.
+
+        Args:
+            tabdata: The TabData object for this tab.
+        """
+        page = webpage.BrowserPage(self.win_id, self._tab_id, tabdata,
+                                   parent=self)
         self.setPage(page)
         page.mainFrame().loadFinished.connect(self.on_load_finished)
         return page
@@ -200,26 +205,6 @@ class WebView(QWebView):
             if config.get('input', 'auto-leave-insert-mode'):
                 modeman.maybe_leave(self.win_id, usertypes.KeyMode.insert,
                                     'click-delayed')
-
-    def _mousepress_opentarget(self, e):
-        """Set the open target when something was clicked.
-
-        Args:
-            e: The QMouseEvent.
-        """
-        if e.button() == Qt.MidButton or e.modifiers() & Qt.ControlModifier:
-            background_tabs = config.get('tabs', 'background-tabs')
-            if e.modifiers() & Qt.ShiftModifier:
-                background_tabs = not background_tabs
-            if background_tabs:
-                target = usertypes.ClickTarget.tab_bg
-            else:
-                target = usertypes.ClickTarget.tab
-            self.page().open_target = target
-            log.mouse.debug("Middle click, setting target: {}".format(target))
-        else:
-            self.page().open_target = usertypes.ClickTarget.normal
-            log.mouse.debug("Normal click, setting normal target")
 
     def shutdown(self):
         """Shut down the webview."""
@@ -382,7 +367,6 @@ class WebView(QWebView):
             The superclass return value.
         """
         self._mousepress_insertmode(e)
-        self._mousepress_opentarget(e)
         super().mousePressEvent(e)
 
     def mouseReleaseEvent(self, e):

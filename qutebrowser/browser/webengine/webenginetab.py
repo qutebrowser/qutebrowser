@@ -322,7 +322,7 @@ class WebEngineTab(browsertab.AbstractTab):
 
     def __init__(self, win_id, mode_manager, parent=None):
         super().__init__(win_id)
-        widget = webview.WebEngineView()
+        widget = webview.WebEngineView(tabdata=self.data)
         self.history = WebEngineHistory(self)
         self.scroller = WebEngineScroller(self, parent=self)
         self.caret = WebEngineCaret(win_id=win_id, mode_manager=mode_manager,
@@ -499,6 +499,7 @@ class WebEngineTab(browsertab.AbstractTab):
         view.urlChanged.connect(self._on_url_changed)
         page.loadFinished.connect(self._on_load_finished)
         page.certificate_error.connect(self._on_ssl_errors)
+        page.link_clicked.connect(self._on_link_clicked)
         try:
             view.iconChanged.connect(self.icon_changed)
         except AttributeError:

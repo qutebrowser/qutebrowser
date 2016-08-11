@@ -21,7 +21,7 @@
 
 
 from qutebrowser.config import config
-from qutebrowser.utils import message, log
+from qutebrowser.utils import message, log, usertypes
 
 
 from PyQt5.QtCore import QObject, QEvent, Qt
@@ -85,7 +85,10 @@ class MouseEventFilter(QObject):
         if e.button() in [Qt.XButton1, Qt.XButton2] or is_rocker_gesture:
             self._mousepress_backforward(e)
             return True
+
         self._ignore_wheel_event = True
+        self._mousepress_opentarget(e)
+
         return False
 
     def _handle_wheel(self, _obj, e):
@@ -130,6 +133,27 @@ class MouseEventFilter(QObject):
             else:
                 message.error(self._tab.win_id, "At end of history.",
                               immediately=True)
+
+    def _mousepress_opentarget(self, e):
+        """Set the open target when something was clicked.
+
+        Args:
+            e: The QMouseEvent.
+        """
+        if e.button() == Qt.MidButton or e.modifiers() & Qt.ControlModifier:
+            background_tabs = config.get('tabs', 'background-tabs')
+            if e.modifiers() & Qt.ShiftModifier:
+                background_tabs = not background_tabs
+            if background_tabs:
+                target = usertypes.ClickTarget.tab_bg
+            else:
+                target = usertypes.ClickTarget.tab
+            self._tab.data.open_target = target
+            log.mouse.debug("Ctrl/Middle click, setting target: {}".format(
+                target))
+        else:
+            self._tab.data.open_target = usertypes.ClickTarget.normal
+            log.mouse.debug("Normal click, setting normal target")
 
     def eventFilter(self, obj, event):
         """Filter events going to a QWeb(Engine)View."""

@@ -638,3 +638,4 @@ class WebKitTab(browsertab.AbstractTab):
         page.frameCreated.connect(self._on_frame_created)
         frame.contentsSizeChanged.connect(self._on_contents_size_changed)
         frame.initialLayoutCompleted.connect(self._on_history_trigger)
+        page.link_clicked.connect(self._on_link_clicked)
