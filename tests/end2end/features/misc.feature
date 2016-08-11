@@ -488,7 +488,7 @@ Feature: Various utility commands.
         Then the page should contain the plaintext "Local storage status: not working"
 
     Scenario: :repeat-command
-        Given I open data/scroll.html
+        Given I open data/scroll/simple.html
         And I run :tab-only
         When I run :scroll down
         And I run :repeat-command
@@ -496,7 +496,7 @@ Feature: Various utility commands.
         Then the page should be scrolled vertically
 
     Scenario: :repeat-command with count
-        Given I open data/scroll.html
+        Given I open data/scroll/simple.html
         And I run :tab-only
         When I run :scroll down with count 3
         And I run :scroll up
@@ -504,7 +504,7 @@ Feature: Various utility commands.
         Then the page should not be scrolled
 
     Scenario: :repeat-command with not-normal command inbetween
-        Given I open data/scroll.html
+        Given I open data/scroll/simple.html
         And I run :tab-only
         When I run :scroll down with count 3
         And I run :scroll up
