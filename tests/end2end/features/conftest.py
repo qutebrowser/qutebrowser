@@ -497,7 +497,7 @@ def should_quit(qtbot, quteproc):
 
 def _get_scroll_values(quteproc):
     data = quteproc.get_session()
-    pos = data['windows'][0]['tabs'][0]['history'][0]['scroll-pos']
+    pos = data['windows'][0]['tabs'][0]['history'][-1]['scroll-pos']
     return (pos['x'], pos['y'])
 
 
