@@ -181,11 +181,13 @@ def open_path(quteproc, path):
     "... as a URL", it's opened according to new-instance-open-target.
     """
     new_tab = False
+    new_bg_tab = False
     new_window = False
     as_url = False
     wait = True
 
     new_tab_suffix = ' in a new tab'
+    new_bg_tab_suffix = ' in a new background tab'
     new_window_suffix = ' in a new window'
     do_not_wait_suffix = ' without waiting'
     as_url_suffix = ' as a URL'
@@ -206,8 +208,22 @@ def open_path(quteproc, path):
         else:
             break
 
-    quteproc.open_path(path, new_tab=new_tab, new_window=new_window,
-                       as_url=as_url, wait=wait)
+    if path.endswith(new_tab_suffix):
+        path = path[:-len(new_tab_suffix)]
+        new_tab = True
+    elif path.endswith(new_bg_tab_suffix):
+        path = path[:-len(new_bg_tab_suffix)]
+        new_bg_tab = True
+    elif path.endswith(new_window_suffix):
+        path = path[:-len(new_window_suffix)]
+        new_window = True
+
+    if path.endswith(do_not_wait_suffix):
+        path = path[:-len(do_not_wait_suffix)]
+        wait = False
+
+    quteproc.open_path(path, new_tab=new_tab, new_bg_tab=new_bg_tab,
+                       new_window=new_window, as_url=as_url, wait=wait)
 
 
 @bdd.when(bdd.parsers.parse("I set {sect} -> {opt} to {value}"))
@@ -595,3 +611,9 @@ def check_not_scrolled(request, quteproc):
     x, y = _get_scroll_values(quteproc)
     assert x == 0
     assert y == 0
+
+
+@bdd.then(bdd.parsers.parse("{section} -> {option} should be {value}"))
+def check_option(quteproc, section, option, value):
+    actual_value = quteproc.get_setting(section, option)
+    assert actual_value == value

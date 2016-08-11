@@ -1,6 +1,6 @@
 # vim: ft=python fileencoding=utf-8 sts=4 sw=4 et:
 
-# Copyright 2016 Ryan Roden-Corrent (rcorre) <ryan@rcorre.net>
+# Copyright 2015-2016 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
 #
 # This file is part of qutebrowser.
 #
@@ -17,5 +17,13 @@
 # You should have received a copy of the GNU General Public License
 # along with qutebrowser.  If not, see <http://www.gnu.org/licenses/>.
 
+import re
 import pytest_bdd as bdd
 bdd.scenarios('completion.feature')
+
+
+@bdd.then(bdd.parsers.parse("the completion model should be {model}"))
+def check_model(quteproc, model):
+    """Make sure the completion model was set to something."""
+    pattern = "New completion [^:]*: {}".format(model)
+    quteproc.wait_for(message=re.compile(pattern))
