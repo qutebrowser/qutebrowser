@@ -250,7 +250,8 @@ def log_capacity(capacity: int):
 
 
 @cmdutils.register(debug=True, name='debug-log-level')
-@cmdutils.argument('level', choices=[level.lower() for level in log.LOG_LEVELS])
+@cmdutils.argument('level', choices=[level.lower()
+                    for level in log.LOG_LEVELS])
 def debug_log_level(level: str):
     """Change the log level for console logging.
 
@@ -276,4 +277,4 @@ def debug_log_filter(filter_names: str):
         log.console_handler.addFilter(log.console_filter)
     else:
         raise cmdexc.CommandError("Invalid argument, {} choose from {}".
-                                 format(filter_names,str(log.LOGGER_NAMES)))
+                                 format(filter_names, str(log.LOGGER_NAMES)))
