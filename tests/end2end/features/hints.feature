@@ -352,4 +352,46 @@ Feature: Using hints
         And I press the key "<Enter>"
         Then data/hello.txt should be loaded
 
-    # TODO: tests for word mode - it tries to access /usr/share/dict/words on the system
+    Scenario: Using hints -> auto-follow == 'always' in word mode
+        When I open data/hints/html/simple.html
+        And I set hints -> mode to word
+        And I set hints -> auto-follow to always
+        And I run :hint
+        Then data/hello.txt should be loaded
+
+    Scenario: Using hints -> auto-follow == 'unique-match' in word mode
+        When I open data/hints/html/simple.html
+        And I set hints -> mode to word
+        And I set hints -> auto-follow to unique-match
+        And I run :hint
+        # the link gets "hello" as the hint
+        And I press the key "h"
+        Then data/hello.txt should be loaded
+
+    Scenario: Using hints -> auto-follow == 'full-match' in word mode
+        When I open data/hints/html/simple.html
+        And I set hints -> mode to word
+        And I set hints -> auto-follow to full-match
+        And I run :hint
+        # this actually presses the keys one by one
+        And I press the key "hello"
+        Then data/hello.txt should be loaded
+
+    Scenario: Using hints -> auto-follow == 'never' without Enter in word mode
+        When I open data/hints/html/simple.html
+        And I set hints -> mode to word
+        And I set hints -> auto-follow to never
+        And I run :hint
+        # this actually presses the keys one by one
+        And I press the key "hello"
+        Then "Leaving mode KeyMode.hint (reason: followed)" should not be logged
+
+    Scenario: Using hints -> auto-follow == 'never' in word mode
+        When I open data/hints/html/simple.html
+        And I set hints -> mode to word
+        And I set hints -> auto-follow to never
+        And I run :hint
+        # this actually presses the keys one by one
+        And I press the key "hello"
+        And I press the key "<Enter>"
+        Then data/hello.txt should be loaded
