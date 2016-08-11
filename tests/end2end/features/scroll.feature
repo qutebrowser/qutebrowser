@@ -193,6 +193,12 @@ Feature: Scrolling
     Scenario: :scroll-perc with count and argument
         When I run :scroll-perc 0 with count 50
         Then the page should be scrolled vertically
+        
+    # https://github.com/The-Compiler/qutebrowser/issues/1821
+    Scenario: :scroll-perc without doctype
+        When I open data/scroll/no_doctype.html
+        And I run :scroll-perc 100
+        Then the page should be scrolled vertically
 
     ## :scroll-page
 
