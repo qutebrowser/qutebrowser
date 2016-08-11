@@ -35,6 +35,10 @@ class ChildEventFilter(QObject):
     focusProxy...
 
     FIXME:qtwebengine Add a test for this happening
+
+    Attributes:
+        _filter: The event filter to install.
+        _widget: The widget expected to send out childEvents.
     """
 
     def __init__(self, eventfilter, widget, parent=None):
@@ -56,7 +60,12 @@ class ChildEventFilter(QObject):
 
 class MouseEventFilter(QObject):
 
-    """Handle mouse events on a tab."""
+    """Handle mouse events on a tab.
+
+    Attributes:
+        _tab: The browsertab object this filter is installed on.
+        _handlers: A dict of handler functions for the handled events.
+    """
 
     def __init__(self, tab, parent=None):
         super().__init__(parent)
