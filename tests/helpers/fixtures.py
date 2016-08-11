@@ -126,7 +126,7 @@ def tab_registry(win_registry):
 
 
 @pytest.fixture
-def fake_web_tab(stubs, tab_registry, qapp):
+def fake_web_tab(stubs, tab_registry, mode_manager, qapp):
     """Fixture providing the FakeWebTab *class*."""
     if PYQT_VERSION < 0x050600:
         pytest.skip('Causes segfaults, see #1638')
