@@ -129,19 +129,3 @@ class TestJs:
                                                ('undefined', None)])
     def test_blocking(self, tab, inp, expected):
         assert tab.run_js_blocking(inp) == expected
-
-
-class TestTabData:
-
-    def test_known_attr(self):
-        data = browsertab.TabData()
-        assert not data.keep_icon
-        data.keep_icon = True
-        assert data.keep_icon
-
-    def test_unknown_attr(self):
-        data = browsertab.TabData()
-        with pytest.raises(AttributeError):
-            data.bar = 42  # pylint: disable=assigning-non-slot
-        with pytest.raises(AttributeError):
-            data.bar  # pylint: disable=pointless-statement
