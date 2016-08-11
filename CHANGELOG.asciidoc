@@ -89,6 +89,7 @@ Fixed
 - `:bind` can now be used to bind to an alias (binding by editing `keys.conf`
   already worked before)
 - The command completion now updates correctly when changing aliases
+- `:undo` now doesn't undo tabs "closed" by `:tab-detach` anymore.
 
 v0.8.3 (unreleased)
 -------------------
