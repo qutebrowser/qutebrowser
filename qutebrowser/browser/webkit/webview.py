@@ -73,7 +73,7 @@ class WebView(QWebView):
         self._set_bg_color()
         self._tab_id = tab_id
 
-        page = self._init_page(tab.data)
+        self._init_page(tab.data)
         mode_manager = objreg.get('mode-manager', scope='window',
                                   window=win_id)
         mode_manager.entered.connect(self.on_mode_entered)
@@ -92,7 +92,6 @@ class WebView(QWebView):
                                    parent=self)
         self.setPage(page)
         page.mainFrame().loadFinished.connect(self.on_load_finished)
-        return page
 
     def __repr__(self):
         url = utils.elide(self.url().toDisplayString(QUrl.EncodeUnicode), 100)
