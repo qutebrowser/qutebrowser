@@ -863,13 +863,13 @@ Feature: Tab management
     Scenario: :buffer with a matching title
         When I open data/title.html
         And I open data/search.html in a new tab
-        And I open data/scroll.html in a new tab
+        And I open data/scroll/simple.html in a new tab
         And I run :buffer "Searching text"
         And I wait for "Current tab changed, focusing <qutebrowser.browser.* tab_id=* url='http://localhost:*/data/search.html'>" in the log
         Then the following tabs should be open:
             - data/title.html
             - data/search.html (active)
-            - data/scroll.html
+            - data/scroll/simple.html
 
     Scenario: :buffer with no matching title
         When I run :buffer "invalid title"
@@ -878,11 +878,11 @@ Feature: Tab management
     Scenario: :buffer with matching title and two windows
         When I open data/title.html
         And I open data/search.html in a new tab
-        And I open data/scroll.html in a new tab
+        And I open data/scroll/simple.html in a new tab
         And I open data/caret.html in a new window
         And I open data/paste_primary.html in a new tab
         And I run :buffer "Scrolling"
-        And I wait for "Focus object changed: <qutebrowser.browser.* tab_id=* url='http://localhost:*/data/scroll.html'>" in the log
+        And I wait for "Focus object changed: <qutebrowser.browser.* tab_id=* url='http://localhost:*/data/scroll/simple.html'>" in the log
         Then the session should look like:
             windows:
             - active: true
@@ -894,7 +894,7 @@ Feature: Tab management
                 - url: http://localhost:*/data/search.html
               - active: true
                 history:
-                - url: http://localhost:*/data/scroll.html
+                - url: http://localhost:*/data/scroll/simple.html
             - tabs:
               - history:
                 - url: http://localhost:*/data/caret.html
@@ -916,7 +916,7 @@ Feature: Tab management
         Given I have a fresh instance
         When I open data/title.html
         And I open data/search.html in a new tab
-        And I open data/scroll.html in a new tab
+        And I open data/scroll/simple.html in a new tab
         And I run :open -w http://localhost:(port)/data/caret.html
         And I open data/paste_primary.html in a new tab
         And I wait until data/caret.html is loaded
@@ -933,7 +933,7 @@ Feature: Tab management
                 history:
                 - url: http://localhost:*/data/search.html
               - history:
-                - url: http://localhost:*/data/scroll.html
+                - url: http://localhost:*/data/scroll/simple.html
             - tabs:
               - history:
                 - url: http://localhost:*/data/caret.html

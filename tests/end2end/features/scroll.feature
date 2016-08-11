@@ -2,7 +2,7 @@ Feature: Scrolling
     Tests the various scroll commands.
 
     Background:
-        Given I open data/scroll.html
+        Given I open data/scroll/simple.html
         And I run :tab-only
 
     ## :scroll-px
