@@ -63,6 +63,8 @@ class QuteWM:
 
     WM_NAME = 'qutewm'
 
+    ROOT_EVENT_MASK = X.SubstructureNotifyMask | X.SubstructureRedirectMask
+
     def __init__(self):
         log.info("initializing")
         self._handlers = {
@@ -70,6 +72,9 @@ class QuteWM:
             X.UnmapNotify: self.on_UnmapNotify,
             X.KeyPress: self.on_KeyPress,
             X.ClientMessage: self.on_ClientMessage,
+            X.MapRequest: self.on_MapRequest,
+            X.ConfigureRequest: self.on_ConfigureRequest,
+            X.CirculateRequest: self.on_CirculateRequest,
         }
         self.dpy = Display()
 
@@ -83,7 +88,7 @@ class QuteWM:
         self.windows = []
         self.window_stack = []
 
-        self.root.change_attributes(event_mask=X.SubstructureNotifyMask)
+        self.root.change_attributes(event_mask=self.ROOT_EVENT_MASK)
         self.root.grab_key(
             self.dpy.keysym_to_keycode(XK.string_to_keysym("F1")),
             X.Mod1Mask, 1, X.GrabModeAsync, X.GrabModeAsync)
@@ -190,6 +195,20 @@ class QuteWM:
         self.window_stack.append(ev.window)
         self._needs_update = True
         self.activate(ev.window)
+
+    def on_MapRequest(self, ev):
+        """Called when a MapRequest is intercepted."""
+        ev.window.map()
+
+    def on_ConfigureRequest(self, ev):
+        """Called when a ConfigureRequest is intercepted."""
+        ev.window.configure(x=ev.x, y=ev.y, width=ev.width, height=ev.height,
+                            border_width=ev.border_width, above=ev.above,
+                            detail=ev.detail, value_mask=ev.value_mask)
+
+    def on_CirculateRequest(self, ev):
+        """Called when a CirculateRequest is intercepted."""
+        ev.window.circulate(ev.place)
 
     def on_UnmapNotify(self, ev):
         """Called when a window is unmapped from the screen."""
