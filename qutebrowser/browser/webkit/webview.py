@@ -64,6 +64,8 @@ class WebView(QWebView):
             # WORKAROUND for https://bugreports.qt.io/browse/QTBUG-42948
             # See https://github.com/The-Compiler/qutebrowser/issues/462
             self.setStyle(QStyleFactory.create('Fusion'))
+        # FIXME:qtwebengine this is only used to set the zoom factor from
+        # the QWebPage - we should get rid of it somehow (signals?)
         self.tab = tab
         self.win_id = win_id
         self._check_insertmode = False
