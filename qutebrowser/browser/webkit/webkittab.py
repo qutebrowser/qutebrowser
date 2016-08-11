@@ -315,7 +315,7 @@ class WebKitCaret(browsertab.AbstractCaret):
         if QWebSettings.globalSettings().testAttribute(
                 QWebSettings.JavascriptEnabled):
             if tab:
-                self._widget.page().open_target = usertypes.ClickTarget.tab
+                self._tab.data.open_target = usertypes.ClickTarget.tab
             self._tab.run_js_async(
                 'window.getSelection().anchorNode.parentNode.click()')
         else:
