@@ -78,9 +78,7 @@ class WebView(QWebView):
                                   window=win_id)
         mode_manager.entered.connect(self.on_mode_entered)
         mode_manager.left.connect(self.on_mode_left)
-        if config.get('input', 'rocker-gestures'):
-            self.setContextMenuPolicy(Qt.PreventContextMenu)
-        objreg.get('config').changed.connect(self.on_config_changed)
+        objreg.get('config').changed.connect(self._set_bg_color)
 
     def _init_page(self, tabdata):
         """Initialize the QWebPage used by this view.
@@ -110,6 +108,7 @@ class WebView(QWebView):
             # deleted
             pass
 
+    @config.change_filter('colors', 'webpage.bg')
     def _set_bg_color(self):
         """Set the webpage background color as configured."""
         col = config.get('colors', 'webpage.bg')
@@ -118,17 +117,6 @@ class WebView(QWebView):
             col = self.style().standardPalette().color(QPalette.Base)
         palette.setColor(QPalette.Base, col)
         self.setPalette(palette)
-
-    @pyqtSlot(str, str)
-    def on_config_changed(self, section, option):
-        """Update rocker gestures/background color."""
-        if section == 'input' and option == 'rocker-gestures':
-            if config.get('input', 'rocker-gestures'):
-                self.setContextMenuPolicy(Qt.PreventContextMenu)
-            else:
-                self.setContextMenuPolicy(Qt.DefaultContextMenu)
-        elif section == 'colors' and option == 'webpage.bg':
-            self._set_bg_color()
 
     def _mousepress_insertmode(self, e):
         """Switch to insert mode when an editable element was clicked.

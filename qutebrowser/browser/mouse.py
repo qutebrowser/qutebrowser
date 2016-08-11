@@ -74,6 +74,7 @@ class MouseEventFilter(QObject):
         self._handlers = {
             QEvent.MouseButtonPress: self._handle_mouse_press,
             QEvent.Wheel: self._handle_wheel,
+            QEvent.ContextMenu: self._handle_context_menu,
         }
         self._ignore_wheel_event = False
 
@@ -112,6 +113,10 @@ class MouseEventFilter(QObject):
             self._tab.zoom.set_factor(factor)
 
         return False
+
+    def _handle_context_menu(self, _e):
+        """Suppress context menus if rocker gestures are turned on."""
+        return config.get('input', 'rocker-gestures')
 
     def _mousepress_backforward(self, e):
         """Handle back/forward mouse button presses.
