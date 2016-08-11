@@ -151,7 +151,7 @@ Feature: Using hints
         When I open data/hints/iframe_target.html
         And I run :hint links normal
         And I run :follow-hint a
-        Then "acceptNavigationRequest, url http://localhost:*/data/hello.txt, type NavigationTypeLinkClicked, *" should be logged
+        Then "navigation request: url http://localhost:*/data/hello.txt, type NavigationTypeLinkClicked, *" should be logged
 
     Scenario: Opening a link with specific target frame in a new tab
         When I open data/hints/iframe_target.html
