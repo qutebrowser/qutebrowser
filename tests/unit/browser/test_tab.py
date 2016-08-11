@@ -19,7 +19,7 @@
 
 import pytest
 
-from PyQt5.QtCore import PYQT_VERSION, pyqtSignal
+from PyQt5.QtCore import PYQT_VERSION
 
 from qutebrowser.browser import browsertab
 from qutebrowser.keyinput import modeman

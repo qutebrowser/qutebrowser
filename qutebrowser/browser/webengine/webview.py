@@ -20,13 +20,13 @@
 """The main browser widget for QtWebEngine."""
 
 
-from PyQt5.QtCore import pyqtSignal, Qt, QPoint, QUrl
+from PyQt5.QtCore import pyqtSignal, QUrl
 # pylint: disable=no-name-in-module,import-error,useless-suppression
 from PyQt5.QtWebEngineWidgets import QWebEngineView, QWebEnginePage
 # pylint: enable=no-name-in-module,import-error,useless-suppression
 
 from qutebrowser.config import config
-from qutebrowser.utils import log, debug, qtutils, usertypes
+from qutebrowser.utils import log, debug, usertypes
 
 
 class WebEngineView(QWebEngineView):
