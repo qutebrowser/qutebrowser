@@ -17,5 +17,13 @@
 # You should have received a copy of the GNU General Public License
 # along with qutebrowser.  If not, see <http://www.gnu.org/licenses/>.
 
+import re
 import pytest_bdd as bdd
-bdd.scenarios('set.feature')
+bdd.scenarios('completion.feature')
+
+
+@bdd.then(bdd.parsers.parse("the completion model should be {model}"))
+def check_model(quteproc, model):
+    """Make sure the completion model was set to something."""
+    pattern = "New completion [^:]*: {}".format(model)
+    quteproc.wait_for(message=re.compile(pattern))
