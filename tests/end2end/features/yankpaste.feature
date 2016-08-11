@@ -248,11 +248,11 @@ Feature: Yanking and pasting.
         And I wait for "Clicked editable element!" in the log
         # Move to the beginning and two words to the right
         And I press the keys "<Home>"
-        And I press the key "<Ctrl+Right>"
-        And I press the key "<Ctrl+Right>"
+        And I press the key "<Right>"
+        And I press the key "<Right>"
         And I run :insert-text Hello world
         # Compare
-        Then the text field should contain "one twoHello world three four"
+        Then the text field should contain "onHello worlde two three four"
 
     Scenario: Inserting text into a text field with undo
         When I open data/paste_primary.html
