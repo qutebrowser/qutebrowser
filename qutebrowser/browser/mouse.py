@@ -77,7 +77,7 @@ class MouseEventFilter(QObject):
         }
         self._ignore_wheel_event = False
 
-    def _handle_mouse_press(self, _obj, e):
+    def _handle_mouse_press(self, e):
         """Handle pressing of a mouse button."""
         is_rocker_gesture = (config.get('input', 'rocker-gestures') and
                              e.buttons() == Qt.LeftButton | Qt.RightButton)
@@ -91,7 +91,7 @@ class MouseEventFilter(QObject):
 
         return False
 
-    def _handle_wheel(self, _obj, e):
+    def _handle_wheel(self, e):
         """Zoom on Ctrl-Mousewheel.
 
         Args:
@@ -155,9 +155,9 @@ class MouseEventFilter(QObject):
             self._tab.data.open_target = usertypes.ClickTarget.normal
             log.mouse.debug("Normal click, setting normal target")
 
-    def eventFilter(self, obj, event):
+    def eventFilter(self, _obj, event):
         """Filter events going to a QWeb(Engine)View."""
         evtype = event.type()
         if evtype not in self._handlers:
             return False
-        return self._handlers[evtype](obj, event)
+        return self._handlers[evtype](event)
