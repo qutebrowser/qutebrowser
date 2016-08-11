@@ -306,7 +306,9 @@ class BaseKeyParser(QObject):
         if handled or not self._supports_chains:
             return handled
         match = self._handle_single_key(e)
-        self.keystring_updated.emit(self._keystring)
+        # don't emit twice if the keystring was cleared in self.clear_keystring
+        if self._keystring:
+            self.keystring_updated.emit(self._keystring)
         return match != self.Match.none
 
     def read_config(self, modename=None):
