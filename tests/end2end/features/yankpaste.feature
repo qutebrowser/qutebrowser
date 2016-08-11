@@ -246,7 +246,7 @@ Feature: Yanking and pasting.
         And I run :hint all
         And I run :follow-hint a
         And I wait for "Clicked editable element!" in the log
-        # Move to the beginning and two words to the right
+        # Move to the beginning and two characters to the right
         And I press the keys "<Home>"
         And I press the key "<Right>"
         And I press the key "<Right>"
