@@ -21,10 +21,37 @@
 
 
 from qutebrowser.config import config
-from qutebrowser.utils import message
+from qutebrowser.utils import message, log
 
 
 from PyQt5.QtCore import QObject, QEvent, Qt
+
+
+class ChildEventFilter(QObject):
+
+    """An event filter re-adding MouseEventFilter on ChildEvent.
+
+    This is needed because QtWebEngine likes to randomly change its
+    focusProxy...
+
+    FIXME:qtwebengine Add a test for this happening
+    """
+
+    def __init__(self, eventfilter, widget, parent=None):
+        super().__init__(parent)
+        self._filter = eventfilter
+        assert widget is not None
+        self._widget = widget
+
+    def eventFilter(self, obj, event):
+        """Act on ChildAdded events."""
+        if event.type() == QEvent.ChildAdded:
+            child = event.child()
+            log.mouse.debug("{} got new child {}, installing filter".format(
+                obj, child))
+            assert obj is self._widget
+            child.installEventFilter(self._filter)
+        return False
 
 
 class MouseEventFilter(QObject):
@@ -38,7 +65,7 @@ class MouseEventFilter(QObject):
             QEvent.MouseButtonPress: self._handle_mouse_press,
         }
 
-    def _handle_mouse_press(self, e):
+    def _handle_mouse_press(self, _obj, e):
         """Handle pressing of a mouse button."""
         is_rocker_gesture = (config.get('input', 'rocker-gestures') and
                              e.buttons() == Qt.LeftButton | Qt.RightButton)
@@ -69,9 +96,9 @@ class MouseEventFilter(QObject):
                 message.error(self._tab.win_id, "At end of history.",
                               immediately=True)
 
-    def eventFilter(self, _obj, event):
+    def eventFilter(self, obj, event):
         """Filter events going to a QWeb(Engine)View."""
         evtype = event.type()
         if evtype not in self._handlers:
             return False
-        return self._handlers[evtype](event)
+        return self._handlers[evtype](obj, event)

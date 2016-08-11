@@ -524,3 +524,16 @@ Feature: Various utility commands.
         Then the following tabs should be open:
             - data/hints/link_blank.html
             - data/hello.txt (active)
+
+    ## Variables
+
+    Scenario: {url} as part of an argument
+        When I open data/hello.txt
+        And I run :message-info foo{url}
+        Then the message "foohttp://localhost:*/hello.txt" should be shown
+
+    Scenario: Multiple variables in an argument
+        When I open data/hello.txt
+        And I put "foo" into the clipboard
+        And I run :message-info {clipboard}bar{url}
+        Then the message "foobarhttp://localhost:*/hello.txt" should be shown

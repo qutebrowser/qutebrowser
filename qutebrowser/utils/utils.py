@@ -43,9 +43,19 @@ fake_clipboard = None
 log_clipboard = False
 
 
-class SelectionUnsupportedError(Exception):
+class ClipboardError(Exception):
+
+    """Raised if the clipboard contents are unavailable for some reason."""
+
+
+class SelectionUnsupportedError(ClipboardError):
 
     """Raised if [gs]et_clipboard is used and selection=True is unsupported."""
+
+
+class ClipboardEmptyError(ClipboardError):
+
+    """Raised if get_clipboard is used and the clipboard is empty."""
 
 
 def elide(text, length):
@@ -809,6 +819,11 @@ def get_clipboard(selection=False):
     else:
         mode = QClipboard.Selection if selection else QClipboard.Clipboard
         data = QApplication.clipboard().text(mode=mode)
+
+    target = "Primary selection" if selection else "Clipboard"
+    if not data.strip():
+        raise ClipboardEmptyError("{} is empty.".format(target))
+    log.misc.debug("{} contained: {!r}".format(target, data))
 
     return data
 

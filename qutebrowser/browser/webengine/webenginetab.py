@@ -31,7 +31,7 @@ from PyQt5.QtWidgets import QApplication
 from PyQt5.QtWebEngineWidgets import QWebEnginePage, QWebEngineScript
 # pylint: enable=no-name-in-module,import-error,useless-suppression
 
-from qutebrowser.browser import browsertab
+from qutebrowser.browser import browsertab, mouse
 from qutebrowser.browser.webengine import webview, webengineelem
 from qutebrowser.utils import usertypes, qtutils, log, javascript, utils
 
@@ -335,6 +335,7 @@ class WebEngineTab(browsertab.AbstractTab):
         self.backend = usertypes.Backend.QtWebEngine
         # init js stuff
         self._init_js()
+        self._child_event_filter = None
 
     def _init_js(self):
         js_code = '\n'.join([
@@ -359,8 +360,12 @@ class WebEngineTab(browsertab.AbstractTab):
         # FIXME:qtwebengine  what about runsOnSubFrames?
         page.scripts().insert(script)
 
-    def _event_filter_target(self):
-        return self._widget.focusProxy()
+    def _install_event_filter(self):
+        self._widget.focusProxy().installEventFilter(self._mouse_event_filter)
+        self._child_event_filter = mouse.ChildEventFilter(
+            eventfilter=self._mouse_event_filter, widget=self._widget,
+            parent=self)
+        self._widget.installEventFilter(self._child_event_filter)
 
     def openurl(self, url):
         self._openurl_prepare(url)

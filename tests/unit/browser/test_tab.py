@@ -107,8 +107,8 @@ class Tab(browsertab.AbstractTab):
         self.search = browsertab.AbstractSearch(parent=self)
         self.printing = browsertab.AbstractPrinting()
 
-    def _event_filter_target(self):
-        return self._widget
+    def _install_event_filter(self):
+        pass
 
 
 @pytest.mark.skipif(PYQT_VERSION < 0x050600,
