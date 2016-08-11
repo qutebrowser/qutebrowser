@@ -23,14 +23,13 @@ import sys
 
 from PyQt5.QtCore import pyqtSignal, pyqtSlot, Qt, QTimer, QUrl, QPoint
 from PyQt5.QtGui import QPalette
-from PyQt5.QtWidgets import QApplication, QStyleFactory
+from PyQt5.QtWidgets import QStyleFactory
 from PyQt5.QtWebKit import QWebSettings
 from PyQt5.QtWebKitWidgets import QWebView, QWebPage, QWebFrame
 
 from qutebrowser.config import config
 from qutebrowser.keyinput import modeman
 from qutebrowser.utils import log, usertypes, utils, qtutils, objreg
-from qutebrowser.browser import hints
 from qutebrowser.browser.webkit import webpage, webkitelem
 
 
@@ -75,12 +74,6 @@ class WebView(QWebView):
         self._tab_id = tab_id
 
         page = self._init_page(tab.data)
-        hintmanager = hints.HintManager(win_id, self._tab_id, self)
-        hintmanager.mouse_event.connect(self.on_mouse_event)
-        hintmanager.start_hinting.connect(page.on_start_hinting)
-        hintmanager.stop_hinting.connect(page.on_stop_hinting)
-        objreg.register('hintmanager', hintmanager, scope='tab', window=win_id,
-                        tab=tab_id)
         mode_manager = objreg.get('mode-manager', scope='window',
                                   window=win_id)
         mode_manager.entered.connect(self.on_mode_entered)
@@ -240,13 +233,6 @@ class WebView(QWebView):
         if frame.url().scheme() == 'qute':
             bridge = objreg.get('js-bridge')
             frame.addToJavaScriptWindowObject('qute', bridge)
-
-    @pyqtSlot('QMouseEvent')
-    def on_mouse_event(self, evt):
-        """Post a new mouse event from a hintmanager."""
-        log.modes.debug("Hint triggered, focusing {!r}".format(self))
-        self.setFocus()
-        QApplication.postEvent(self, evt)
 
     @pyqtSlot()
     def on_load_finished(self):

@@ -421,24 +421,6 @@ class BrowserPage(QWebPage):
         if 'scroll-pos' in data and frame.scrollPosition() == QPoint(0, 0):
             frame.setScrollPosition(data['scroll-pos'])
 
-    @pyqtSlot(usertypes.ClickTarget)
-    def on_start_hinting(self, hint_target):
-        """Emitted before a hinting-click takes place.
-
-        Args:
-            hint_target: A ClickTarget member to set self._hint_target to.
-        """
-        # FIXME move this away
-        log.webview.debug("Setting force target to {}".format(hint_target))
-        self._tabdata.hint_target = hint_target
-
-    @pyqtSlot()
-    def on_stop_hinting(self):
-        """Emitted when hinting is finished."""
-        # FIXME move this away
-        log.webview.debug("Finishing hinting.")
-        self._tabdata.hint_target = None
-
     def userAgentForUrl(self, url):
         """Override QWebPage::userAgentForUrl to customize the user agent."""
         ua = config.get('network', 'user-agent')
