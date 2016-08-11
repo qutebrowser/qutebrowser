@@ -31,6 +31,9 @@ Available options:
 
 Available keybindings:
     Alt + F1 - cycle though all windows
+
+Exit codes:
+    42 - another window manager is running
 """
 
 import sys
@@ -82,13 +85,15 @@ class QuteWM:
         screen_height = self.dpy.screen().height_in_pixels
         self.dimensions = (screen_width, screen_height)
 
+        self._retcode = None
         self._needs_update = False
         self.root = self.dpy.screen().root
         self.support_window = None
         self.windows = []
         self.window_stack = []
 
-        self.root.change_attributes(event_mask=self.ROOT_EVENT_MASK)
+        self.root.change_attributes(event_mask=self.ROOT_EVENT_MASK,
+                                    onerror=self._wm_running)
         self.root.grab_key(
             self.dpy.keysym_to_keycode(XK.string_to_keysym("F1")),
             X.Mod1Mask, 1, X.GrabModeAsync, X.GrabModeAsync)
@@ -98,6 +103,12 @@ class QuteWM:
         self._set_supported_attribute()
         self._set_supporting_wm_check()
 
+    def _wm_running(self, error, request):
+        """Called when another WM is already running."""
+        log.error("Another window manager is running, exiting")
+        # This is called async, which means we can't just raise an exception,
+        # we need to signal the main thread to stop.
+        self._retcode = 42
 
     def _set_supported_attribute(self):
         """Set the _NET_SUPPORTED attribute on the root window."""
@@ -134,9 +145,19 @@ class QuteWM:
         )
 
     def loop(self):
-        """Start the X event loop."""
+        """Start the X event loop.
+
+        Return:
+            The manager's exit code.
+        """
+        if self._retcode is not None:
+            # avoid the "event loop started" message if we exit anyway
+            return self._retcode
         log.info("event loop started")
         while 1:
+            if self._retcode is not None:
+                return self._retcode
+
             ev = self.root.display.next_event()
             log.debug("Got event {}".format(ev))
             handler = self._handlers.get(ev.type)
@@ -259,7 +280,7 @@ def main():
 
     global wm
     wm = QuteWM()
-    wm.loop()
+    sys.exit(wm.loop())
 
 
 if __name__ == '__main__':
