@@ -274,4 +274,5 @@ def debug_log_filter(filter_names: str):
         log.console_handler.addFilter(log.console_filter)
     else:
         raise cmdexc.CommandError("Invalid argument, {} choose from {}".
-                                 format(filter_names, ','.join(log.LOGGER_NAMES)))
+                                 format(
+                                 filter_names, ','.join(log.LOGGER_NAMES)))
