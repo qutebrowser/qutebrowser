@@ -217,7 +217,7 @@ class TabbedBrowser(tabwidget.TabWidget):
         for tab in self.widgets():
             self._remove_tab(tab)
 
-    def close_tab(self, tab, add_undo=True):
+    def close_tab(self, tab, *, add_undo=True):
         """Close a tab.
 
         Args:
@@ -244,7 +244,7 @@ class TabbedBrowser(tabwidget.TabWidget):
                 url = config.get('general', 'default-page')
                 self.openurl(url, newtab=True)
 
-    def _remove_tab(self, tab, add_undo=True):
+    def _remove_tab(self, tab, *, add_undo=True):
         """Remove a tab from the tab list and delete it properly.
 
         Args:
