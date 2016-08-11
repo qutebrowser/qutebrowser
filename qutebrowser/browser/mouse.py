@@ -21,24 +21,63 @@
 
 
 from qutebrowser.config import config
-from qutebrowser.utils import message
+from qutebrowser.utils import message, log
 
 
 from PyQt5.QtCore import QObject, QEvent, Qt
 
 
+class ChildEventFilter(QObject):
+
+    """An event filter re-adding MouseEventFilter on ChildEvent.
+
+    This is needed because QtWebEngine likes to randomly change its
+    focusProxy...
+
+    FIXME:qtwebengine Add a test for this happening
+
+    Attributes:
+        _filter: The event filter to install.
+        _widget: The widget expected to send out childEvents.
+    """
+
+    def __init__(self, eventfilter, widget, parent=None):
+        super().__init__(parent)
+        self._filter = eventfilter
+        assert widget is not None
+        self._widget = widget
+
+    def eventFilter(self, obj, event):
+        """Act on ChildAdded events."""
+        if event.type() == QEvent.ChildAdded:
+            child = event.child()
+            log.mouse.debug("{} got new child {}, installing filter".format(
+                obj, child))
+            assert obj is self._widget
+            child.installEventFilter(self._filter)
+        return False
+
+
 class MouseEventFilter(QObject):
 
-    """Handle mouse events on a tab."""
+    """Handle mouse events on a tab.
+
+    Attributes:
+        _tab: The browsertab object this filter is installed on.
+        _handlers: A dict of handler functions for the handled events.
+        _ignore_wheel_event: Whether to ignore the next wheelEvent.
+    """
 
     def __init__(self, tab, parent=None):
         super().__init__(parent)
         self._tab = tab
         self._handlers = {
             QEvent.MouseButtonPress: self._handle_mouse_press,
+            QEvent.Wheel: self._handle_wheel,
         }
+        self._ignore_wheel_event = False
 
-    def _handle_mouse_press(self, e):
+    def _handle_mouse_press(self, _obj, e):
         """Handle pressing of a mouse button."""
         is_rocker_gesture = (config.get('input', 'rocker-gestures') and
                              e.buttons() == Qt.LeftButton | Qt.RightButton)
@@ -46,6 +85,29 @@ class MouseEventFilter(QObject):
         if e.button() in [Qt.XButton1, Qt.XButton2] or is_rocker_gesture:
             self._mousepress_backforward(e)
             return True
+        self._ignore_wheel_event = True
+        return False
+
+    def _handle_wheel(self, _obj, e):
+        """Zoom on Ctrl-Mousewheel.
+
+        Args:
+            e: The QWheelEvent.
+        """
+        if self._ignore_wheel_event:
+            # See https://github.com/The-Compiler/qutebrowser/issues/395
+            self._ignore_wheel_event = False
+            return True
+
+        if e.modifiers() & Qt.ControlModifier:
+            divider = config.get('input', 'mouse-zoom-divider')
+            factor = self._tab.zoom.factor() + (e.angleDelta().y() / divider)
+            if factor < 0:
+                return False
+            perc = int(100 * factor)
+            message.info(self._tab.win_id, "Zoom level: {}%".format(perc))
+            self._tab.zoom.set_factor(factor)
+
         return False
 
     def _mousepress_backforward(self, e):
@@ -69,9 +131,9 @@ class MouseEventFilter(QObject):
                 message.error(self._tab.win_id, "At end of history.",
                               immediately=True)
 
-    def eventFilter(self, _obj, event):
+    def eventFilter(self, obj, event):
         """Filter events going to a QWeb(Engine)View."""
         evtype = event.type()
         if evtype not in self._handlers:
             return False
-        return self._handlers[evtype](event)
+        return self._handlers[evtype](obj, event)

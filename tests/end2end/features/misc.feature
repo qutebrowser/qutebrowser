@@ -488,7 +488,7 @@ Feature: Various utility commands.
         Then the page should contain the plaintext "Local storage status: not working"
 
     Scenario: :repeat-command
-        Given I open data/scroll.html
+        Given I open data/scroll/simple.html
         And I run :tab-only
         When I run :scroll down
         And I run :repeat-command
@@ -496,7 +496,7 @@ Feature: Various utility commands.
         Then the page should be scrolled vertically
 
     Scenario: :repeat-command with count
-        Given I open data/scroll.html
+        Given I open data/scroll/simple.html
         And I run :tab-only
         When I run :scroll down with count 3
         And I run :scroll up
@@ -504,7 +504,7 @@ Feature: Various utility commands.
         Then the page should not be scrolled
 
     Scenario: :repeat-command with not-normal command inbetween
-        Given I open data/scroll.html
+        Given I open data/scroll/simple.html
         And I run :tab-only
         When I run :scroll down with count 3
         And I run :scroll up
@@ -524,3 +524,16 @@ Feature: Various utility commands.
         Then the following tabs should be open:
             - data/hints/link_blank.html
             - data/hello.txt (active)
+
+    ## Variables
+
+    Scenario: {url} as part of an argument
+        When I open data/hello.txt
+        And I run :message-info foo{url}
+        Then the message "foohttp://localhost:*/hello.txt" should be shown
+
+    Scenario: Multiple variables in an argument
+        When I open data/hello.txt
+        And I put "foo" into the clipboard
+        And I run :message-info {clipboard}bar{url}
+        Then the message "foobarhttp://localhost:*/hello.txt" should be shown

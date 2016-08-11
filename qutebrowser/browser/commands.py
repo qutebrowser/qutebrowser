@@ -236,6 +236,8 @@ class CommandDispatcher:
                 bg=False, tab=False, window=False, count=None):
         """Open a URL in the current/[count]th tab.
 
+        If the URL contains newlines, each line gets opened in its own tab.
+
         Args:
             url: The URL to open.
             bg: Open in a new background tab.
@@ -247,35 +249,73 @@ class CommandDispatcher:
         """
         if url is None:
             if tab or bg or window:
-                url = config.get('general', 'default-page')
+                urls = [config.get('general', 'default-page')]
             else:
                 raise cmdexc.CommandError("No URL given, but -t/-b/-w is not "
                                           "set!")
         else:
-            try:
-                url = objreg.get('quickmark-manager').get(url)
-            except urlmarks.Error:
-                try:
-                    url = urlutils.fuzzy_url(url)
-                except urlutils.InvalidUrlError as e:
-                    # We don't use cmdexc.CommandError here as this can be
-                    # called async from edit_url
-                    message.error(self._win_id, str(e))
-                    return
-        if tab or bg or window:
-            self._open(url, tab, bg, window, not implicit)
-        else:
-            curtab = self._cntwidget(count)
-            if curtab is None:
-                if count is None:
-                    # We want to open a URL in the current tab, but none exists
-                    # yet.
-                    self._tabbed_browser.tabopen(url)
-                else:
-                    # Explicit count with a tab that doesn't exist.
-                    return
+            urls = self._parse_url_input(url)
+        for i, cur_url in enumerate(urls):
+            if not window and i > 0:
+                tab = False
+                bg = True
+            if tab or bg or window:
+                self._open(cur_url, tab, bg, window, not implicit)
             else:
-                curtab.openurl(url)
+                curtab = self._cntwidget(count)
+                if curtab is None:
+                    if count is None:
+                        # We want to open a URL in the current tab, but none
+                        # exists yet.
+                        self._tabbed_browser.tabopen(cur_url)
+                    else:
+                        # Explicit count with a tab that doesn't exist.
+                        return
+                else:
+                    curtab.openurl(cur_url)
+
+    def _parse_url(self, url, *, force_search=False):
+        """Parse a URL or quickmark or search query.
+
+        Args:
+            url: The URL to parse.
+            force_search: Whether to force a search even if the content can be
+                          interpreted as a URL or a path.
+
+        Return:
+            A URL that can be opened.
+        """
+        try:
+            return objreg.get('quickmark-manager').get(url)
+        except urlmarks.Error:
+            try:
+                return urlutils.fuzzy_url(url, force_search=force_search)
+            except urlutils.InvalidUrlError as e:
+                # We don't use cmdexc.CommandError here as this can be
+                # called async from edit_url
+                message.error(self._win_id, str(e))
+                return None
+
+    def _parse_url_input(self, url):
+        """Parse a URL or newline-separated list of URLs.
+
+        Args:
+            url: The URL or list to parse.
+
+        Return:
+            A list of URLs that can be opened.
+        """
+        force_search = False
+        urllist = [u for u in url.split('\n') if u.strip()]
+        if (len(urllist) > 1 and not urlutils.is_url(urllist[0]) and
+                urlutils.get_path_if_valid(urllist[0], check_exists=True)
+                is None):
+            urllist = [url]
+            force_search = True
+        for cur_url in urllist:
+            parsed = self._parse_url(cur_url, force_search=force_search)
+            if parsed is not None:
+                yield parsed
 
     @cmdutils.register(instance='command-dispatcher', name='reload',
                        scope='window')
@@ -387,7 +427,7 @@ class CommandDispatcher:
         url = self._current_url()
         self._open(url, window=True)
         cur_widget = self._current_widget()
-        self._tabbed_browser.close_tab(cur_widget)
+        self._tabbed_browser.close_tab(cur_widget, add_undo=False)
 
     def _back_forward(self, tab, bg, window, count, forward):
         """Helper function for :back/:forward."""
@@ -796,7 +836,8 @@ class CommandDispatcher:
         else:
             raise cmdexc.CommandError("Last tab")
 
-    @cmdutils.register(instance='command-dispatcher', scope='window')
+    @cmdutils.register(instance='command-dispatcher', scope='window',
+                       deprecated="Use :open {clipboard}")
     def paste(self, sel=False, tab=False, bg=False, window=False):
         """Open a page from the clipboard.
 
@@ -810,15 +851,12 @@ class CommandDispatcher:
             window: Open in new window.
         """
         force_search = False
-        if sel and utils.supports_selection():
-            target = "Primary selection"
-        else:
+        if not utils.supports_selection():
             sel = False
-            target = "Clipboard"
-        text = utils.get_clipboard(selection=sel)
-        if not text.strip():
-            raise cmdexc.CommandError("{} is empty.".format(target))
-        log.misc.debug("{} contained: {!r}".format(target, text))
+        try:
+            text = utils.get_clipboard(selection=sel)
+        except utils.ClipboardError as e:
+            raise cmdexc.CommandError(e)
         text_urls = [u for u in text.split('\n') if u.strip()]
         if (len(text_urls) > 1 and not urlutils.is_url(text_urls[0]) and
             urlutils.get_path_if_valid(
@@ -1463,9 +1501,12 @@ class CommandDispatcher:
             raise cmdexc.CommandError("Focused element is not editable!")
 
         try:
-            sel = utils.get_clipboard(selection=True)
-        except utils.SelectionUnsupportedError:
-            sel = utils.get_clipboard()
+            try:
+                sel = utils.get_clipboard(selection=True)
+            except utils.SelectionUnsupportedError:
+                sel = utils.get_clipboard()
+        except utils.ClipboardEmptyError:
+            return
 
         log.misc.debug("Pasting primary selection into element {}".format(
             elem.debug_text()))

@@ -28,26 +28,41 @@ window._qutebrowser.scroll = (function() {
         var y_px = window.scrollY;
 
         if (x !== undefined) {
-            x_px = (elem.scrollWidth - elem.clientWidth) / 100 * x;
+            x_px = (elem.scrollWidth - window.innerWidth) / 100 * x;
         }
 
         if (y !== undefined) {
-            y_px = (elem.scrollHeight - elem.clientHeight) / 100 * y;
+            y_px = (elem.scrollHeight - window.innerHeight) / 100 * y;
         }
+
+        /*
+        console.log(JSON.stringify({
+            "x": x,
+            "window.scrollX": window.scrollX,
+            "window.innerWidth": window.innerWidth,
+            "elem.scrollWidth": elem.scrollWidth,
+            "x_px": x_px,
+            "y": y,
+            "window.scrollY": window.scrollY,
+            "window.innerHeight": window.innerHeight,
+            "elem.scrollHeight": elem.scrollHeight,
+            "y_px": y_px,
+        }));
+        */
 
         window.scroll(x_px, y_px);
     };
 
     funcs.delta_page = function(x, y) {
-        var dx = document.documentElement.clientWidth * x;
-        var dy = document.documentElement.clientHeight * y;
+        var dx = window.innerWidth * x;
+        var dy = window.innerHeight * y;
         window.scrollBy(dx, dy);
     };
 
     funcs.pos = function() {
         var elem = document.documentElement;
-        var dx = elem.scrollWidth - elem.clientWidth;
-        var dy = elem.scrollHeight - elem.clientHeight;
+        var dx = elem.scrollWidth - window.innerWidth;
+        var dy = elem.scrollHeight - window.innerHeight;
         var perc_x, perc_y;
 
         if (dx === 0) {

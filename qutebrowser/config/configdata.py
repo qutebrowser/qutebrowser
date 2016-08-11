@@ -233,7 +233,9 @@ def data(readonly=False):
                      ('last-opened', "Open new tabs in the last opened "
                                      "window."),
                      ('last-focused', "Open new tabs in the most recently "
-                                      "focused window.")
+                                      "focused window."),
+                     ('last-visible', "Open new tabs in the most recently "
+                                      "visible window.")
                  )), 'last-focused'),
              "Which window to choose when opening links as new tabs."),
 
@@ -1521,12 +1523,12 @@ KEY_DATA = collections.OrderedDict([
         ('yank domain -s', ['yD']),
         ('yank pretty-url', ['yp']),
         ('yank pretty-url -s', ['yP']),
-        ('paste', ['pp']),
-        ('paste -s', ['pP']),
-        ('paste -t', ['Pp']),
-        ('paste -ts', ['PP']),
-        ('paste -w', ['wp']),
-        ('paste -ws', ['wP']),
+        ('open {clipboard}', ['pp']),
+        ('open {primary}', ['pP']),
+        ('open -t {clipboard}', ['Pp']),
+        ('open -t {primary}', ['PP']),
+        ('open -w {clipboard}', ['wp']),
+        ('open -w {primary}', ['wP']),
         ('quickmark-save', ['m']),
         ('set-cmd-text -s :quickmark-load', ['b']),
         ('set-cmd-text -s :quickmark-load -t', ['B']),
@@ -1695,6 +1697,11 @@ CHANGED_KEY_COMMANDS = [
     (re.compile(r'^yank -p'), r'yank pretty-url'),
     (re.compile(r'^yank-selected -p'), r'yank selection -s'),
     (re.compile(r'^yank-selected'), r'yank selection'),
+
+    (re.compile(r'^paste$'), r'open {clipboard}'),
+    (re.compile(r'^paste -([twb])$'), r'open -\1 {clipboard}'),
+    (re.compile(r'^paste -([twb])s$'), r'open -\1 {primary}'),
+    (re.compile(r'^paste -s([twb])$'), r'open -\1 {primary}'),
 
     (re.compile(r'^completion-item-next'), r'completion-item-focus next'),
     (re.compile(r'^completion-item-prev'), r'completion-item-focus prev'),

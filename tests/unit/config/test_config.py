@@ -298,6 +298,10 @@ class TestKeyConfigParser:
             ('yank -ds', 'yank domain -s'),
             ('yank -p', 'yank pretty-url'),
             ('yank -ps', 'yank pretty-url -s'),
+
+            ('paste', 'open {clipboard}'),
+            ('paste -t', 'open -t {clipboard}'),
+            ('paste -ws', 'open -w {primary}'),
         ]
     )
     def test_migrations(self, old, new_expected):

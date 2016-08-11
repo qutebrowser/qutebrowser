@@ -220,19 +220,6 @@ class AbstractZoom(QObject):
         default_zoom = config.get('ui', 'default-zoom')
         self._set_factor_internal(float(default_zoom) / 100)
 
-    @pyqtSlot(QPoint)
-    def _on_mouse_wheel_zoom(self, delta):
-        """Handle zooming via mousewheel requested by the web view."""
-        divider = config.get('input', 'mouse-zoom-divider')
-        factor = self.factor() + delta.y() / divider
-        if factor < 0:
-            return
-        perc = int(100 * factor)
-        message.info(self._win_id, "Zoom level: {}%".format(perc))
-        self._neighborlist.fuzzyval = perc
-        self._set_factor_internal(factor)
-        self._default_zoom_changed = True
-
 
 class AbstractCaret(QObject):
 
@@ -485,9 +472,6 @@ class AbstractTab(QWidget):
         self._mouse_event_filter = mouse.MouseEventFilter(self, parent=self)
         self.backend = None
 
-    def _event_filter_target(self):
-        raise NotImplementedError
-
     def _set_widget(self, widget):
         # pylint: disable=protected-access
         self._widget = widget
@@ -498,9 +482,10 @@ class AbstractTab(QWidget):
         self.zoom._widget = widget
         self.search._widget = widget
         self.printing._widget = widget
-        widget.mouse_wheel_zoom.connect(self.zoom._on_mouse_wheel_zoom)
-        event_filter_target = self._event_filter_target()
-        event_filter_target.installEventFilter(self._mouse_event_filter)
+        self._install_event_filter()
+
+    def _install_event_filter(self):
+        raise NotImplementedError
 
     def _set_load_status(self, val):
         """Setter for load_status."""

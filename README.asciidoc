@@ -145,12 +145,12 @@ Contributors, sorted by the number of commits in descending order:
 * Antoni Boucher
 * Lamar Pavel
 * Bruno Oliveira
+* Jan Verbeek
 * Alexander Cogneau
 * Marshall Lochbaum
 * Jakub Klinkovský
 * Felix Van der Jeugt
 * Martin Tournoij
-* Jan Verbeek
 * Raphael Pierzina
 * Joel Torstensson
 * Patric Schmitz
@@ -192,6 +192,7 @@ Contributors, sorted by the number of commits in descending order:
 * Nick Ginther
 * Michał Góral
 * Michael Ilsaas
+* Michael Hoang
 * Martin Zimmermann
 * Fritz Reichwald
 * Brian Jackson
@@ -213,7 +214,6 @@ Contributors, sorted by the number of commits in descending order:
 * adam
 * Samir Benmendil
 * Regina Hug
-* Michael Hoang
 * Mathias Fussenegger
 * Marcelo Santos
 * Jean-Louis Fuchs

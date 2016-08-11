@@ -47,22 +47,16 @@ class WebView(QWebView):
         _old_scroll_pos: The old scroll position.
         _check_insertmode: If True, in mouseReleaseEvent we should check if we
                            need to enter/leave insert mode.
-        _ignore_wheel_event: Ignore the next wheel event.
-                             See https://github.com/The-Compiler/qutebrowser/issues/395
 
     Signals:
         scroll_pos_changed: Scroll percentage of current tab changed.
                             arg 1: x-position in %.
                             arg 2: y-position in %.
-        mouse_wheel_zoom: Emitted when the page should be zoomed because the
-                          mousewheel was used with ctrl.
-                          arg 1: The angle delta of the wheel event (QPoint)
         shutting_down: Emitted when the view is shutting down.
     """
 
     scroll_pos_changed = pyqtSignal(int, int)
     shutting_down = pyqtSignal()
-    mouse_wheel_zoom = pyqtSignal(QPoint)
 
     def __init__(self, win_id, tab_id, tab, parent=None):
         super().__init__(parent)
@@ -75,7 +69,6 @@ class WebView(QWebView):
         self._check_insertmode = False
         self.scroll_pos = (-1, -1)
         self._old_scroll_pos = (-1, -1)
-        self._ignore_wheel_event = False
         self._set_bg_color()
         self._tab_id = tab_id
 
@@ -388,7 +381,6 @@ class WebView(QWebView):
         """
         self._mousepress_insertmode(e)
         self._mousepress_opentarget(e)
-        self._ignore_wheel_event = True
         super().mousePressEvent(e)
 
     def mouseReleaseEvent(self, e):
@@ -404,19 +396,3 @@ class WebView(QWebView):
         self.shutting_down.connect(menu.close)
         modeman.instance(self.win_id).entered.connect(menu.close)
         menu.exec_(e.globalPos())
-
-    def wheelEvent(self, e):
-        """Zoom on Ctrl-Mousewheel.
-
-        Args:
-            e: The QWheelEvent.
-        """
-        if self._ignore_wheel_event:
-            self._ignore_wheel_event = False
-            # See https://github.com/The-Compiler/qutebrowser/issues/395
-            return
-        if e.modifiers() & Qt.ControlModifier:
-            e.accept()
-            self.mouse_wheel_zoom.emit(e.angleDelta())
-        else:
-            super().wheelEvent(e)

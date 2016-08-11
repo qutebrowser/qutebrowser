@@ -33,23 +33,9 @@ class WebEngineView(QWebEngineView):
 
     """Custom QWebEngineView subclass with qutebrowser-specific features."""
 
-    mouse_wheel_zoom = pyqtSignal(QPoint)
-
     def __init__(self, parent=None):
         super().__init__(parent)
         self.setPage(WebEnginePage(self))
-
-    def wheelEvent(self, e):
-        """Zoom on Ctrl-Mousewheel.
-
-        Args:
-            e: The QWheelEvent.
-        """
-        if e.modifiers() & Qt.ControlModifier:
-            e.accept()
-            self.mouse_wheel_zoom.emit(e.angleDelta())
-        else:
-            super().wheelEvent(e)
 
 
 class WebEnginePage(QWebEnginePage):
