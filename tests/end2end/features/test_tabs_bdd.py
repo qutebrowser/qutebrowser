@@ -19,10 +19,3 @@
 
 import pytest_bdd as bdd
 bdd.scenarios('tabs.feature')
-
-
-@bdd.given("I clean up open tabs")
-def clean_open_tabs(quteproc):
-    quteproc.set_setting('tabs', 'last-close', 'blank')
-    quteproc.send_cmd(':tab-only')
-    quteproc.send_cmd(':tab-close')
