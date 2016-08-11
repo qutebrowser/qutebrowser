@@ -19,7 +19,7 @@
 
 import pytest
 
-from PyQt5.QtCore import PYQT_VERSION, pyqtSignal, QPoint
+from PyQt5.QtCore import PYQT_VERSION, pyqtSignal
 
 from qutebrowser.browser import browsertab
 from qutebrowser.keyinput import modeman
@@ -29,22 +29,16 @@ pytestmark = pytest.mark.usefixtures('redirect_xdg_data')
 
 try:
     from PyQt5.QtWebKitWidgets import QWebView
-
-    class WebView(QWebView):
-        mouse_wheel_zoom = pyqtSignal(QPoint)
 except ImportError:
-    WebView = None
+    QWebView = None
 
 try:
     from PyQt5.QtWebEngineWidgets import QWebEngineView
-
-    class WebEngineView(QWebEngineView):
-        mouse_wheel_zoom = pyqtSignal(QPoint)
 except ImportError:
-    WebEngineView = None
+    QWebEngineView = None
 
 
-@pytest.fixture(params=[WebView, WebEngineView])
+@pytest.fixture(params=[QWebView, QWebEngineView])
 def view(qtbot, config_stub, request):
     config_stub.data = {
         'input': {

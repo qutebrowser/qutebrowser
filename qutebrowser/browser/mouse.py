@@ -65,6 +65,7 @@ class MouseEventFilter(QObject):
     Attributes:
         _tab: The browsertab object this filter is installed on.
         _handlers: A dict of handler functions for the handled events.
+        _ignore_wheel_event: Whether to ignore the next wheelEvent.
     """
 
     def __init__(self, tab, parent=None):
@@ -72,7 +73,9 @@ class MouseEventFilter(QObject):
         self._tab = tab
         self._handlers = {
             QEvent.MouseButtonPress: self._handle_mouse_press,
+            QEvent.Wheel: self._handle_wheel,
         }
+        self._ignore_wheel_event = False
 
     def _handle_mouse_press(self, _obj, e):
         """Handle pressing of a mouse button."""
@@ -82,6 +85,29 @@ class MouseEventFilter(QObject):
         if e.button() in [Qt.XButton1, Qt.XButton2] or is_rocker_gesture:
             self._mousepress_backforward(e)
             return True
+        self._ignore_wheel_event = True
+        return False
+
+    def _handle_wheel(self, _obj, e):
+        """Zoom on Ctrl-Mousewheel.
+
+        Args:
+            e: The QWheelEvent.
+        """
+        if self._ignore_wheel_event:
+            # See https://github.com/The-Compiler/qutebrowser/issues/395
+            self._ignore_wheel_event = False
+            return True
+
+        if e.modifiers() & Qt.ControlModifier:
+            divider = config.get('input', 'mouse-zoom-divider')
+            factor = self._tab.zoom.factor() + (e.angleDelta().y() / divider)
+            if factor < 0:
+                return False
+            perc = int(100 * factor)
+            message.info(self._tab.win_id, "Zoom level: {}%".format(perc))
+            self._tab.zoom.set_factor(factor)
+
         return False
 
     def _mousepress_backforward(self, e):
