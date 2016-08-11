@@ -136,8 +136,9 @@ class Completer(QObject):
             section = parts[cursor_part - 1]
             model = instances.get(completion).get(section)
         elif completion == usertypes.Completion.value:
-            section = parts[cursor_part - 2]
-            option = parts[cursor_part - 1]
+            # Hard-coded indices because values can appear multiple times
+            section = parts[1]
+            option = parts[2]
             try:
                 model = instances.get(completion)[section][option]
             except KeyError:
