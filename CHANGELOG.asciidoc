@@ -90,6 +90,8 @@ Fixed
   already worked before)
 - The command completion now updates correctly when changing aliases
 - `:undo` now doesn't undo tabs "closed" by `:tab-detach` anymore.
+- Fixed an issue with hint chars not being cleared correctly when leaving hint
+  mode.
 
 v0.8.3 (unreleased)
 -------------------
