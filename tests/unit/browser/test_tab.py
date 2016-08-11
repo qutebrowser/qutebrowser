@@ -89,9 +89,8 @@ class Tab(browsertab.AbstractTab):
 
     # pylint: disable=abstract-method
 
-    def __init__(self, win_id, parent=None):
+    def __init__(self, win_id, mode_manager, parent=None):
         super().__init__(win_id, parent)
-        mode_manager = modeman.ModeManager(0)
         self.history = browsertab.AbstractHistory(self)
         self.scroller = browsertab.AbstractScroller(self, parent=self)
         self.caret = browsertab.AbstractCaret(win_id=self.win_id,
@@ -107,8 +106,8 @@ class Tab(browsertab.AbstractTab):
 
 @pytest.mark.skipif(PYQT_VERSION < 0x050600,
                     reason='Causes segfaults, see #1638')
-def test_tab(qtbot, view, config_stub, tab_registry):
-    tab_w = Tab(win_id=0)
+def test_tab(qtbot, view, config_stub, tab_registry, mode_manager):
+    tab_w = Tab(win_id=0, mode_manager=mode_manager)
     qtbot.add_widget(tab_w)
 
     assert tab_w.win_id == 0
