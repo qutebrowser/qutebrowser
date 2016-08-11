@@ -32,6 +32,7 @@ Added
   in rapid mode.
 - New `{clipboard}` and `{primary}` replacements for the commandline which
   replace the `:paste` command.
+- New `:window-only` command to close all other windows.
 
 Changed
 ~~~~~~~
