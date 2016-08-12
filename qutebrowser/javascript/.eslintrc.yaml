@@ -33,3 +33,4 @@ rules:
      no-undefined: "off"
      wrap-iife: ["error", "inside"]
      func-names: "off"
+     sort-keys: "off"
