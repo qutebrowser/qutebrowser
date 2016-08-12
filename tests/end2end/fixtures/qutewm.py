@@ -226,8 +226,8 @@ class QuteWM:
     def on_ConfigureRequest(self, ev):
         """Called when a ConfigureRequest is intercepted."""
         ev.window.configure(x=ev.x, y=ev.y, width=ev.width, height=ev.height,
-                            border_width=ev.border_width, above=ev.above,
-                            detail=ev.detail, value_mask=ev.value_mask)
+                            border_width=ev.border_width,
+                            value_mask=ev.value_mask)
 
     def on_CirculateRequest(self, ev):
         """Called when a CirculateRequest is intercepted."""
