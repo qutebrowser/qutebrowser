@@ -537,3 +537,30 @@ Feature: Various utility commands.
         And I put "foo" into the clipboard
         And I run :message-info {clipboard}bar{url}
         Then the message "foobarhttp://localhost:*/hello.txt" should be shown
+
+    # :debug-log-filter
+
+    Scenario: Using :debug-log-filter with url argument
+        When I run :debug-log-filter url
+        And I run :open url
+        And I wait until command is loaded
+        Then the page should contain log records with url messages
+
+     # :debug-log-level
+
+    Scenario: Using debug-log-level with info argument
+        When I run debug-log-level info
+        And I run :message-error the-error-message
+        Then the error "the-error-message" should be shown
+        And I run :message-warning the-warning-message
+        Then the warning "the-warning-message" should be shown
+        And I run :message-info the-info-message
+        Then the info "the-info-message" should be shown
+        And the page should contain the plaintext "the-error-message"
+        And the page should contain the plaintext "the-warning-message"
+        And the page should contain the plaintext "the-info-message"
+
+    Scenario: Using debug-log-level with invalid level
+        When I run :debug-log-level hello
+        Then the error "Invalid value hello - expected one of: debug,
+        error, vdebug, info, warning, critical" should be shown
