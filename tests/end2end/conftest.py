@@ -37,6 +37,7 @@ pytest.register_assert_rewrite('end2end.fixtures')
 from end2end.fixtures.webserver import httpbin, httpbin_after_test, ssl_server
 from end2end.fixtures.quteprocess import (quteproc_process, quteproc,
                                           quteproc_new)
+from end2end.fixtures.qutewm import qutewm
 from end2end.fixtures.testprocess import pytest_runtest_makereport
 from qutebrowser.utils import qtutils
 
