@@ -100,6 +100,12 @@ class QuteWM:
             X.Mod1Mask, 1, X.GrabModeAsync, X.GrabModeAsync)
 
         self.ATOM_ACTIVE_WINDOW = self.dpy.get_atom('_NET_ACTIVE_WINDOW')
+        self.ATOM_WM_STATE = self.dpy.get_atom('_NET_WM_STATE')
+        # Used like atoms, but actually defined as constants
+        self.ATOM_STATE_REMOVE = 0
+        self.ATOM_STATE_ADD = 1
+        self.ATOM_STATE_TOGGLE = 2
+        self.ATOM_DEMANDS_ATTENTION = self.dpy.get_atom('_NET_WM_STATE_DEMANDS_ATTENTION')
 
         self._set_supported_attribute()
         self._set_supporting_wm_check()
@@ -117,6 +123,7 @@ class QuteWM:
             '_NET_SUPPORTED',
             '_NET_ACTIVE_WINDOW',
             '_NET_CLIENT_LIST',
+            '_NET_WM_STATE',
         ]
         self.root.change_property(
             self.dpy.get_atom('_NET_SUPPORTED'),
@@ -263,6 +270,45 @@ class QuteWM:
         """Called when a ClientMessage is received."""
         if ev.client_type == self.ATOM_ACTIVE_WINDOW:
             log.info("external request to activate {}".format(ev.window))
+            self.activate(ev.window)
+        elif ev.client_type == self.ATOM_WM_STATE:
+            self._handle_wm_state(ev)
+
+    def _handle_wm_state(self, ev):
+        """Handle the _NET_WM_STATE client message."""
+        client_properties = ev.window.get_property(self.ATOM_WM_STATE,
+                                                   Xatom.ATOM, 0, 32)
+        if client_properties is None:
+            client_properties = set()
+        else:
+            client_properties = set(client_properties.value)
+
+        action = ev.data[1][0]
+        updates = {ev.data[1][1]}
+        if ev.data[1][2] != 0:
+            updates.add(ev.data[1][2])
+
+        if action == self.ATOM_STATE_ADD:
+            client_properties.update(updates)
+        elif action == self.ATOM_STATE_REMOVE:
+            client_properties.difference_update(updates)
+        elif action == self.ATOM_STATE_TOGGLE:
+            for atom in updates:
+                if atom in client_properties:
+                    client_properties.remove(atom)
+                else:
+                    client_properties.add(atom)
+        else:
+            log.error("unknown action: {}".format(action))
+
+        log.debug("client properties for {}: {}".format(ev.window,
+                                                        client_properties))
+        ev.window.change_property(self.ATOM_WM_STATE, Xatom.ATOM, 32,
+                                  client_properties)
+
+        if self.ATOM_DEMANDS_ATTENTION in client_properties:
+            log.info("urgency switch to {} (via _NET_WM_STATE)"
+                     .format(ev.window))
             self.activate(ev.window)
 
 
