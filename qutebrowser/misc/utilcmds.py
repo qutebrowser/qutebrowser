@@ -244,6 +244,25 @@ def debug_set_fake_clipboard(s=None):
         utils.fake_clipboard = s
 
 
+@cmdutils.register(debug=True)
+def debug_focus_window(win_id: int):
+    """Focus and activate the window given by win_id.
+
+    Internally, this works by setting the urgency hint on the window, which
+    means only qutewm will actually focus the window. Other window managers may
+    not change the active window.
+
+    Args:
+        win_id: The window id to focus.
+    """
+    try:
+        window = objreg.get('main-window', scope='window', window=win_id)
+    except objreg.RegistryUnavailableError:
+        message.error('current', "Invalid window: {}".format(win_id))
+        return
+    QApplication.alert(window, 0)
+
+
 @cmdutils.register(hide=True)
 @cmdutils.argument('win_id', win_id=True)
 @cmdutils.argument('count', count=True)
