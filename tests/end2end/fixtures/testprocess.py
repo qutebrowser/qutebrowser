@@ -101,6 +101,7 @@ def pytest_runtest_makereport(item, call):
 
     quteproc_log = getattr(item, '_quteproc_log', None)
     httpbin_log = getattr(item, '_httpbin_log', None)
+    qutewm_log = getattr(item, '_qutewm_log', None)
 
     if not hasattr(report.longrepr, 'addsection'):
         # In some conditions (on OS X and Windows it seems), report.longrepr is
@@ -116,6 +117,9 @@ def pytest_runtest_makereport(item, call):
                                    _render_log(quteproc_log))
     if httpbin_log is not None:
         report.longrepr.addsection("httpbin output", _render_log(httpbin_log))
+
+    if qutewm_log is not None:
+        report.longrepr.addsection("qutewm output", _render_log(qutewm_log))
 
 
 class Process(QObject):

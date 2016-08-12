@@ -76,6 +76,7 @@ def qutewm(request, qapp):
     qutewm.start()
     if qutewm.wm_failed:
         pytest.skip('another wm is running')
+    request.node._qutewm_log = qutewm.captured_log
     yield qutewm
     qutewm.after_test()
     qutewm.terminate()
