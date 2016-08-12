@@ -159,7 +159,7 @@ Feature: Various utility commands.
         When I run :inspector
         Then the error "Debugging is not enabled. See 'qutebrowser --help' for details." should be shown
 
-    @no_xvfb @posix @qtwebengine_skip
+    @qutewm @posix @qtwebengine_skip
     Scenario: Inspector smoke test
         When I set general -> developer-extras to true
         And I run :inspector
@@ -176,7 +176,7 @@ Feature: Various utility commands.
         Then the error "Please enable developer-extras before using the webinspector!" should be shown
 
     # Different code path as an inspector got created now
-    @no_xvfb @posix @qtwebengine_skip
+    @qutewm @posix @qtwebengine_skip
     Scenario: Inspector smoke test 2
         When I set general -> developer-extras to true
         And I run :inspector
