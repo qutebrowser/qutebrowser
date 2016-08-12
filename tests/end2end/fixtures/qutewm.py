@@ -67,6 +67,7 @@ class QuteWM:
     WM_NAME = 'qutewm'
 
     ROOT_EVENT_MASK = X.SubstructureNotifyMask | X.SubstructureRedirectMask
+    CLIENT_EVENT_MASK = X.StructureNotifyMask
 
     def __init__(self):
         log.info("initializing")
@@ -212,6 +213,7 @@ class QuteWM:
         width, height = self.dimensions
         ev.window.configure(x=0, y=0, width=width, height=height)
         log.debug("window created: {}".format(ev.window))
+        ev.window.change_attributes(event_mask=self.CLIENT_EVENT_MASK)
         self.windows.append(ev.window)
         self.window_stack.append(ev.window)
         self._needs_update = True
@@ -234,6 +236,9 @@ class QuteWM:
     def on_UnmapNotify(self, ev):
         """Called when a window is unmapped from the screen."""
         log.debug("window destroyed: {}".format(ev.window))
+        if ev.event == self.root and not ev.from_configure:
+            log.debug("ignoring synthetic event")
+            return
         try:
             self.windows.remove(ev.window)
             self.window_stack.remove(ev.window)
