@@ -64,7 +64,7 @@ class QuteWM:
         support_window: The window for the _NET_SUPPORTING_WM_CHECK.
     """
 
-    WM_NAME = 'qutewm'
+    WM_NAME = b'qutewm'
 
     ROOT_EVENT_MASK = X.SubstructureNotifyMask | X.SubstructureRedirectMask
     CLIENT_EVENT_MASK = X.StructureNotifyMask | X.PropertyChangeMask
