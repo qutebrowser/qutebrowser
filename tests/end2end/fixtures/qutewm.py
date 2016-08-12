@@ -40,7 +40,7 @@ import sys
 import logging
 
 from Xlib.display import Display
-from Xlib import X, XK, protocol, Xatom
+from Xlib import X, XK, protocol, Xatom, Xutil
 
 
 logging.basicConfig(
@@ -67,7 +67,7 @@ class QuteWM:
     WM_NAME = 'qutewm'
 
     ROOT_EVENT_MASK = X.SubstructureNotifyMask | X.SubstructureRedirectMask
-    CLIENT_EVENT_MASK = X.StructureNotifyMask
+    CLIENT_EVENT_MASK = X.StructureNotifyMask | X.PropertyChangeMask
 
     def __init__(self):
         log.info("initializing")
@@ -79,6 +79,7 @@ class QuteWM:
             X.MapRequest: self.on_MapRequest,
             X.ConfigureRequest: self.on_ConfigureRequest,
             X.CirculateRequest: self.on_CirculateRequest,
+            X.PropertyNotify: self.on_PropertyNotify,
         }
         self.dpy = Display()
 
@@ -273,6 +274,15 @@ class QuteWM:
             self.activate(ev.window)
         elif ev.client_type == self.ATOM_WM_STATE:
             self._handle_wm_state(ev)
+
+    def on_PropertyNotify(self, ev):
+        """Called when a PropertyNotify event is received."""
+        if ev.atom == Xatom.WM_HINTS:
+            hints = ev.window.get_wm_hints()
+            if hints.flags & Xutil.UrgencyHint:
+                log.info("urgency switch to {} (via WM_HINTS)"
+                         .format(ev.window))
+                self.activate(ev.window)
 
     def _handle_wm_state(self, ev):
         """Handle the _NET_WM_STATE client message."""
