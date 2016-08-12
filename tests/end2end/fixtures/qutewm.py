@@ -68,6 +68,7 @@ def qutewm(request, qapp):
     This does nothing if the test does not have the "qutewm" marker set.
     """
     if not request.node.get_marker('qutewm'):
+        yield
         return
     if sys.platform != 'linux':
         pytest.skip('qutewm requires linux')
