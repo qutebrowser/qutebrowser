@@ -537,3 +537,11 @@ Feature: Various utility commands.
         And I put "foo" into the clipboard
         And I run :message-info {clipboard}bar{url}
         Then the message "foobarhttp://localhost:*/hello.txt" should be shown
+
+    @xfail_norun
+    Scenario: {url} in clipboard should not be expanded
+        When I open data/hello.txt
+        # FIXME: {url} should be escaped, otherwise it is replaced before it enters clipboard
+        And I put "{url}" into the clipboard
+        And I run :message-info {clipboard}bar{url}
+        Then the message "{url}barhttp://localhost:*/hello.txt" should be shown
