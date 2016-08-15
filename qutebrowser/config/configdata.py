@@ -314,7 +314,8 @@ def data(readonly=False):
 
             ('user-stylesheet',
              SettingValue(typ.UserStyleSheet(none_ok=True),
-                          '::-webkit-scrollbar { width: 0px; height: 0px; }',
+                          'html > ::-webkit-scrollbar { width: 0px; '
+                          'height: 0px; }',
                           backends=[usertypes.Backend.QtWebKit]),
              "User stylesheet to use (absolute filename, filename relative to "
              "the config directory or CSS string). Will expand environment "
