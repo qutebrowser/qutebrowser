@@ -2,11 +2,12 @@
 
 beautifulsoup4==4.5.1
 CherryPy==7.1.0
+click==6.6
 coverage==4.2
 decorator==4.0.10
-Flask==0.10.1  # rq.filter: < 0.11.0
+Flask==0.11.1
 glob2==0.4.1
-httpbin==0.4.1
+httpbin==0.5.0
 hypothesis==3.4.2
 itsdangerous==0.24
 # Jinja2==2.8
