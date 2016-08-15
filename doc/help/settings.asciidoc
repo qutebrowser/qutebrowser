@@ -601,7 +601,7 @@ This setting is only available with the QtWebKit backend.
 === user-stylesheet
 User stylesheet to use (absolute filename, filename relative to the config directory or CSS string). Will expand environment variables.
 
-Default: +pass:[::-webkit-scrollbar { width: 0px; height: 0px; }]+
+Default: +pass:[html &gt; ::-webkit-scrollbar { width: 0px; height: 0px; }]+
 
 This setting is only available with the QtWebKit backend.
 
