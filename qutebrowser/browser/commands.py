@@ -377,6 +377,8 @@ class CommandDispatcher:
     @cmdutils.register(instance='command-dispatcher', scope='window')
     def tab_detach(self):
         """Detach the current tab to its own window."""
+        if self._count() < 2:
+            raise cmdexc.CommandError("Cannot detach one tab.")
         url = self._current_url()
         self._open(url, window=True)
         cur_widget = self._current_widget()
