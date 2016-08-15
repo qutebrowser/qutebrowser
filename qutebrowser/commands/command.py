@@ -205,7 +205,16 @@ class Command:
 
     def get_pos_arg_info(self, pos):
         """Get an ArgInfo tuple for the given positional parameter."""
-        name = self.pos_args[pos][0]
+        try:
+            name = self.pos_args[pos][0]
+        except IndexError:
+            # Extra arguments could belong to a variadic positional
+            signature = inspect.signature(self.handler)
+            name = next((p.name for p in signature.parameters.values()
+                         if p.kind == inspect.Parameter.VAR_POSITIONAL), None)
+            if name is None:
+                raise
+
         return self._qute_args.get(name, ArgInfo())
 
     def _inspect_special_param(self, param):

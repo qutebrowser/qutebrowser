@@ -150,16 +150,21 @@ def open_path(quteproc, path):
     tab. With "... in a new window", it's opened in a new window.
     """
     new_tab = False
+    new_bg_tab = False
     new_window = False
     wait = True
 
     new_tab_suffix = ' in a new tab'
+    new_bg_tab_suffix = ' in a new background tab'
     new_window_suffix = ' in a new window'
     do_not_wait_suffix = ' without waiting'
 
     if path.endswith(new_tab_suffix):
         path = path[:-len(new_tab_suffix)]
         new_tab = True
+    elif path.endswith(new_bg_tab_suffix):
+        path = path[:-len(new_bg_tab_suffix)]
+        new_bg_tab = True
     elif path.endswith(new_window_suffix):
         path = path[:-len(new_window_suffix)]
         new_window = True
@@ -168,7 +173,8 @@ def open_path(quteproc, path):
         path = path[:-len(do_not_wait_suffix)]
         wait = False
 
-    quteproc.open_path(path, new_tab=new_tab, new_window=new_window, wait=wait)
+    quteproc.open_path(path, new_tab=new_tab, new_bg_tab=new_bg_tab,
+                       new_window=new_window, wait=wait)
 
 
 @bdd.when(bdd.parsers.parse("I set {sect} -> {opt} to {value}"))
@@ -518,3 +524,9 @@ def check_not_scrolled(quteproc):
     x, y = _get_scroll_values(quteproc)
     assert x == 0
     assert y == 0
+
+
+@bdd.then(bdd.parsers.parse("{section} -> {option} should be {value}"))
+def check_option(quteproc, section, option, value):
+    actual_value = quteproc.get_setting(section, option)
+    assert actual_value == value

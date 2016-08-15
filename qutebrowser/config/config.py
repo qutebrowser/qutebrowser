@@ -691,13 +691,13 @@ class ConfigManager(QObject):
             raise cmdexc.CommandError("set: {} - {}".format(
                 e.__class__.__name__, e))
 
-    @cmdutils.register(name='set', instance='config')
+    @cmdutils.register(name='set', instance='config', star_args_optional=True)
     @cmdutils.argument('section_', completion=Completion.section)
     @cmdutils.argument('option', completion=Completion.option)
-    @cmdutils.argument('value', completion=Completion.value)
+    @cmdutils.argument('values', completion=Completion.value)
     @cmdutils.argument('win_id', win_id=True)
-    def set_command(self, win_id, section_=None, option=None, value=None,
-                    temp=False, print_=False):
+    def set_command(self, win_id, section_=None, option=None, *values,
+                    temp=False, print_=False, cycle=False):
         """Set an option.
 
         If the option name ends with '?', the value of the option is shown
@@ -712,9 +712,10 @@ class ConfigManager(QObject):
         Args:
             section_: The section where the option is in.
             option: The name of the option.
-            value: The value to set.
+            values: The value to set, or the values to cycle through.
             temp: Set value temporarily.
             print_: Print the value after setting.
+            cycle: Cycle through multiple provided values.
         """
         if section_ is not None and option is None:
             raise cmdexc.CommandError(
@@ -731,27 +732,48 @@ class ConfigManager(QObject):
             print_ = True
         else:
             with self._handle_config_error():
-                if option.endswith('!') and option != '!' and value is None:
+                if option.endswith('!') and option != '!' and not values:
+                    # Handle inversion as special cases of the cycle code path
                     option = option[:-1]
                     val = self.get(section_, option)
-                    layer = 'temp' if temp else 'conf'
                     if isinstance(val, bool):
-                        self.set(layer, section_, option, str(not val).lower())
+                        values = ['false', 'true']
                     else:
                         raise cmdexc.CommandError(
                             "set: Attempted inversion of non-boolean value.")
-                elif value is not None:
-                    layer = 'temp' if temp else 'conf'
-                    self.set(layer, section_, option, value)
-                else:
+                elif not values:
                     raise cmdexc.CommandError("set: The following arguments "
                                               "are required: value")
+                elif not cycle and len(values) > 1:
+                    raise cmdexc.CommandError("set: Too many values provided")
+
+                layer = 'temp' if temp else 'conf'
+                self._set_next(layer, section_, option, values)
 
         if print_:
             with self._handle_config_error():
                 val = self.get(section_, option, transformed=False)
             message.info(win_id, "{} {} = {}".format(
                 section_, option, val), immediately=True)
+
+    def _set_next(self, layer, section_, option, values):
+        """Set the next value out of a list of values."""
+        if len(values) == 1:
+            # If we have only one value, just set it directly (avoid
+            # breaking stuff like aliases or other pseudo-settings)
+            self.set(layer, section_, option, values[0])
+        else:
+            # Otherwise, use the next valid value from values, or the
+            # first if the current value does not appear in the list
+            assert len(values) > 1
+            val = self.get(section_, option, transformed=False)
+            try:
+                idx = values.index(str(val))
+                idx = (idx + 1) % len(values)
+                value = values[idx]
+            except ValueError:
+                value = values[0]
+            self.set(layer, section_, option, value)
 
     def set(self, layer, sectname, optname, value, validate=True):
         """Set an option.

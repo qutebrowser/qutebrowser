@@ -66,6 +66,7 @@ Changed
 - Completions for `:help` and `:bind` now also show hidden commands
 - The `:buffer` completion now also filters using the first column (id).
 - `:undo` has been improved to reopen tabs at the position they were closed.
+- `:set` now has a `--cycle` flag which lets you cycle through multiple options.
 
 Deprecated
 ~~~~~~~~~~
