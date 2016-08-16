@@ -44,8 +44,6 @@ class WebView(QWebView):
         win_id: The window ID of the view.
         _tab_id: The tab ID of the view.
         _old_scroll_pos: The old scroll position.
-        _check_insertmode: If True, in mouseReleaseEvent we should check if we
-                           need to enter/leave insert mode.
 
     Signals:
         scroll_pos_changed: Scroll percentage of current tab changed.
@@ -67,7 +65,6 @@ class WebView(QWebView):
         # the QWebPage - we should get rid of it somehow (signals?)
         self.tab = tab
         self.win_id = win_id
-        self._check_insertmode = False
         self.scroll_pos = (-1, -1)
         self._old_scroll_pos = (-1, -1)
         self._set_bg_color()
