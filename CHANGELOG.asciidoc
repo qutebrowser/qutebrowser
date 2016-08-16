@@ -33,6 +33,9 @@ Added
 - New `{clipboard}` and `{primary}` replacements for the commandline which
   replace the `:paste` command.
 - New `:window-only` command to close all other windows.
+- New `prev-category` and `next-category` arguments to `:completion-item-focus`
+  to focus the previous/next category in the completion (bound to `<Ctrl-Tab>`
+  and `<Ctrl-Shift-Tab>` by default).
 
 Changed
 ~~~~~~~
