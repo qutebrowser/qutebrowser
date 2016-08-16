@@ -365,6 +365,8 @@ class ConfigManager(QObject):
             _get_value_transformer({'false': 'none', 'true': 'debug'}),
         ('ui', 'keyhint-blacklist'):
             _get_value_transformer({'false': '*', 'true': ''}),
+        ('hints', 'auto-follow'):
+            _get_value_transformer({'false': 'never', 'true': 'unique-match'}),
     }
 
     changed = pyqtSignal(str, str)

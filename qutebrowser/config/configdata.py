@@ -936,9 +936,21 @@ def data(readonly=False):
              "The dictionary file to be used by the word hints."),
 
             ('auto-follow',
-             SettingValue(typ.Bool(), 'true'),
-             "Follow a hint immediately when the hint text is completely "
-             "matched."),
+             SettingValue(typ.String(
+                 valid_values=typ.ValidValues(
+                     ('always', "Auto-follow whenever there is only a single "
+                      "hint on a page."),
+                     ('unique-match', "Auto-follow whenever there is a unique "
+                      "non-empty match in either the hint string (word mode) "
+                      "or filter (number mode)."),
+                     ('full-match', "Follow the hint when the user typed the "
+                      "whole hint (letter, word or number mode) or the "
+                      "element's text (only in number mode)."),
+                     ('never', "The user will always need to press Enter to "
+                      "follow a hint."),
+                 )), 'unique-match'),
+             "Controls when a hint can be automatically followed without the "
+             "user pressing Enter."),
 
             ('auto-follow-timeout',
              SettingValue(typ.Int(), '0'),
