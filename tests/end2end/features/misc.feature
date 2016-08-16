@@ -454,7 +454,7 @@ Feature: Various utility commands.
     ## https://github.com/The-Compiler/qutebrowser/issues/1523
 
     Scenario: Completing a single option argument
-        When I run :set-cmd-text -s :-- 
+        When I run :set-cmd-text -s :--
         Then no crash should happen
 
     ## https://github.com/The-Compiler/qutebrowser/issues/1386
@@ -559,3 +559,14 @@ Feature: Various utility commands.
         And I put "{url}" into the clipboard
         And I run :message-info {clipboard}bar{url}
         Then the message "{url}barhttp://localhost:*/hello.txt" should be shown
+
+    ## logfilter
+
+    Scenario: Using :debug-log-filter with commands argument
+        When I run :debug-log-filter commands
+        And I run :message-info "Hello World"
+        Then the message "Hello World" should be shown
+
+    Scenario: Using debug-log-filter with invalid filter
+        When I run :debug-log-filter hello
+        Then the error "Invalid argument, hello choose from statusbar,completion,init,url,destroy,modes,webview,misc,mouse,procs,hints,keyboard,commands,signals,downloads,js,qt,rfc6266,ipc,shlexer,save,message,config,sessions" should be shown
