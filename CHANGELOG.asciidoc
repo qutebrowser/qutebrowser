@@ -32,6 +32,12 @@ Added
   in rapid mode.
 - New `{clipboard}` and `{primary}` replacements for the commandline which
   replace the `:paste` command.
+- New `:insert-text` command to insert a given text into a field on the page,
+  which replaces `:paste-primary` together with the `{primary}` replacement.
+- New `:window-only` command to close all other windows.
+- New `prev-category` and `next-category` arguments to `:completion-item-focus`
+  to focus the previous/next category in the completion (bound to `<Ctrl-Tab>`
+  and `<Ctrl-Shift-Tab>` by default).
 
 Changed
 ~~~~~~~
@@ -66,12 +72,18 @@ Changed
 - Completions for `:help` and `:bind` now also show hidden commands
 - The `:buffer` completion now also filters using the first column (id).
 - `:undo` has been improved to reopen tabs at the position they were closed.
+- `:navigate` now takes a count for `up`/`increment`/`decrement`.
+- The `hints -> auto-follow` setting now can be set to
+  `always`/`full-match`/`unique-match`/`never` to more precisely control when
+  hints should be followed automatically.
 
 Deprecated
 ~~~~~~~~~~
 
 - The `:paste` command got deprecated as `:open` with `{clipboard}` and
   `{primary}` can be used instead.
+- The `:paste-primary` command got deprecated as `:insert-text {primary}` can
+  be used instead.
 
 Removed
 ~~~~~~~
@@ -92,6 +104,7 @@ Fixed
 - `:undo` now doesn't undo tabs "closed" by `:tab-detach` anymore.
 - Fixed an issue with hint chars not being cleared correctly when leaving hint
   mode.
+- `:tab-detach` now fails correctly when there's only one tab open.
 
 v0.8.3 (unreleased)
 -------------------
@@ -102,6 +115,7 @@ Fixed
 - Fixed crash when doing `:<space><enter>`, another corner-case introduced in v0.8.0
 - Fixed `:open-editor` (`<Ctrl-e>`) on Windows
 - Fixed crash when setting `general -> auto-save-interval` to a too big value.
+- Fixed crash when using hints on Void Linux.
 
 v0.8.2
 ------
@@ -111,7 +125,6 @@ Fixed
 
 - Fixed `general -> private-browsing` not being set correctly until a restart
   (which caused e.g. local storage to be enabled).
-- Fixed crash when using hints with JS disabled in some rare circumstances.
 - When hinting input fields (`:t`), also consider input elements without a type.
 - Fixed crash when opening an invalid URL with a percent-encoded and a real @ in it
 - Fixed default `;o` and `;O` bindings

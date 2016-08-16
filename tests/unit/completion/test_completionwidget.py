@@ -97,32 +97,56 @@ def test_maybe_resize_completion(completionview, config_stub, qtbot):
         completionview.maybe_resize_completion()
 
 
-@pytest.mark.parametrize('tree, count, expected', [
-    ([['Aa']], 1, 'Aa'),
-    ([['Aa']], -1, 'Aa'),
-    ([['Aa'], ['Ba']], 1, 'Aa'),
-    ([['Aa'], ['Ba']], -1, 'Ba'),
-    ([['Aa'], ['Ba']], 2, 'Ba'),
-    ([['Aa'], ['Ba']], -2, 'Aa'),
-    ([['Aa', 'Ab', 'Ac'], ['Ba', 'Bb'], ['Ca']], 3, 'Ac'),
-    ([['Aa', 'Ab', 'Ac'], ['Ba', 'Bb'], ['Ca']], 4, 'Ba'),
-    ([['Aa', 'Ab', 'Ac'], ['Ba', 'Bb'], ['Ca']], 6, 'Ca'),
-    ([['Aa', 'Ab', 'Ac'], ['Ba', 'Bb'], ['Ca']], 7, 'Aa'),
-    ([['Aa', 'Ab', 'Ac'], ['Ba', 'Bb'], ['Ca']], -1, 'Ca'),
-    ([['Aa', 'Ab', 'Ac'], ['Ba', 'Bb'], ['Ca']], -2, 'Bb'),
-    ([['Aa', 'Ab', 'Ac'], ['Ba', 'Bb'], ['Ca']], -4, 'Ac'),
-    ([[], ['Ba', 'Bb']], 1, 'Ba'),
-    ([[], ['Ba', 'Bb']], -1, 'Bb'),
-    ([[], [], ['Ca', 'Cb']], 1, 'Ca'),
-    ([[], [], ['Ca', 'Cb']], -1, 'Cb'),
-    ([['Aa'], []], 1, 'Aa'),
-    ([['Aa'], []], -1, 'Aa'),
-    ([['Aa'], [], []], 1, 'Aa'),
-    ([['Aa'], [], []], -1, 'Aa'),
-    ([[]], 1, None),
-    ([[]], -1, None),
+@pytest.mark.parametrize('which, tree, count, expected', [
+    ('next', [['Aa']], 1, 'Aa'),
+    ('prev', [['Aa']], 1, 'Aa'),
+    ('next', [['Aa'], ['Ba']], 1, 'Aa'),
+    ('prev', [['Aa'], ['Ba']], 1, 'Ba'),
+    ('next', [['Aa'], ['Ba']], 2, 'Ba'),
+    ('prev', [['Aa'], ['Ba']], 2, 'Aa'),
+    ('next', [['Aa', 'Ab', 'Ac'], ['Ba', 'Bb'], ['Ca']], 3, 'Ac'),
+    ('next', [['Aa', 'Ab', 'Ac'], ['Ba', 'Bb'], ['Ca']], 4, 'Ba'),
+    ('next', [['Aa', 'Ab', 'Ac'], ['Ba', 'Bb'], ['Ca']], 6, 'Ca'),
+    ('next', [['Aa', 'Ab', 'Ac'], ['Ba', 'Bb'], ['Ca']], 7, 'Aa'),
+    ('prev', [['Aa', 'Ab', 'Ac'], ['Ba', 'Bb'], ['Ca']], 1, 'Ca'),
+    ('prev', [['Aa', 'Ab', 'Ac'], ['Ba', 'Bb'], ['Ca']], 2, 'Bb'),
+    ('prev', [['Aa', 'Ab', 'Ac'], ['Ba', 'Bb'], ['Ca']], 4, 'Ac'),
+    ('next', [[], ['Ba', 'Bb']], 1, 'Ba'),
+    ('prev', [[], ['Ba', 'Bb']], 1, 'Bb'),
+    ('next', [[], [], ['Ca', 'Cb']], 1, 'Ca'),
+    ('prev', [[], [], ['Ca', 'Cb']], 1, 'Cb'),
+    ('next', [['Aa'], []], 1, 'Aa'),
+    ('prev', [['Aa'], []], 1, 'Aa'),
+    ('next', [['Aa'], [], []], 1, 'Aa'),
+    ('prev', [['Aa'], [], []], 1, 'Aa'),
+    ('next', [['Aa'], [], ['Ca', 'Cb']], 2, 'Ca'),
+    ('prev', [['Aa'], [], ['Ca', 'Cb']], 1, 'Cb'),
+    ('next', [[]], 1, None),
+    ('prev', [[]], 1, None),
+    ('next-category', [['Aa']], 1, 'Aa'),
+    ('prev-category', [['Aa']], 1, 'Aa'),
+    ('next-category', [['Aa'], ['Ba']], 1, 'Aa'),
+    ('prev-category', [['Aa'], ['Ba']], 1, 'Ba'),
+    ('next-category', [['Aa'], ['Ba']], 2, 'Ba'),
+    ('prev-category', [['Aa'], ['Ba']], 2, 'Aa'),
+    ('next-category', [['Aa', 'Ab', 'Ac'], ['Ba', 'Bb'], ['Ca']], 2, 'Ba'),
+    ('prev-category', [['Aa', 'Ab', 'Ac'], ['Ba', 'Bb'], ['Ca']], 2, 'Ba'),
+    ('next-category', [['Aa', 'Ab', 'Ac'], ['Ba', 'Bb'], ['Ca']], 3, 'Ca'),
+    ('prev-category', [['Aa', 'Ab', 'Ac'], ['Ba', 'Bb'], ['Ca']], 3, 'Aa'),
+    ('next-category', [[], ['Ba', 'Bb']], 1, 'Ba'),
+    ('prev-category', [[], ['Ba', 'Bb']], 1, 'Ba'),
+    ('next-category', [[], [], ['Ca', 'Cb']], 1, 'Ca'),
+    ('prev-category', [[], [], ['Ca', 'Cb']], 1, 'Ca'),
+    ('next-category', [[], [], ['Ca', 'Cb']], 2, 'Ca'),
+    ('prev-category', [[], [], ['Ca', 'Cb']], 2, 'Ca'),
+    ('next-category', [['Aa'], [], []], 1, 'Aa'),
+    ('prev-category', [['Aa'], [], []], 1, 'Aa'),
+    ('next-category', [['Aa'], [], ['Ca', 'Cb']], 2, 'Ca'),
+    ('prev-category', [['Aa'], [], ['Ca', 'Cb']], 1, 'Ca'),
+    ('next-category', [[]], 1, None),
+    ('prev-category', [[]], 1, None),
 ])
-def test_completion_item_focus(tree, count, expected, completionview):
+def test_completion_item_focus(which, tree, count, expected, completionview):
     """Test that on_next_prev_item moves the selection properly.
 
     Args:
@@ -140,9 +164,8 @@ def test_completion_item_focus(tree, count, expected, completionview):
     filtermodel = sortfilter.CompletionFilterModel(model,
                                                    parent=completionview)
     completionview.set_model(filtermodel)
-    direction = 'prev' if count < 0 else 'next'
-    for _ in range(abs(count)):
-        completionview.completion_item_focus(direction)
+    for _ in range(count):
+        completionview.completion_item_focus(which)
     idx = completionview.selectionModel().currentIndex()
     assert filtermodel.data(idx) == expected
 

@@ -66,6 +66,9 @@ class TabWidget(QTabWidget):
     @config.change_filter('tabs')
     def init_config(self):
         """Initialize attributes based on the config."""
+        if self is None:  # pragma: no cover
+            # WORKAROUND for PyQt 5.2
+            return
         tabbar = self.tabBar()
         self.setMovable(config.get('tabs', 'movable'))
         self.setTabsClosable(False)

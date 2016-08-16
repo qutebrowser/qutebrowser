@@ -263,8 +263,7 @@ Feature: Tab management
         Then the error "There's no tab with index -1!" should be shown
 
     Scenario: :tab-focus last with no last focused tab
-        Given I have a fresh instance
-        And I run :tab-focus last
+        When I run :tab-focus last
         Then the error "No last focused tab!" should be shown
 
     # tab-prev/tab-next
@@ -564,7 +563,6 @@ Feature: Tab management
             - data/hello2.txt
 
     Scenario: Cloning to new window
-        Given I have a fresh instance
         When I open data/title.html
         And I run :tab-clone -w
         Then the session should look like:
@@ -583,7 +581,6 @@ Feature: Tab management
                   title: Test title
 
     Scenario: Cloning with tabs-are-windows = true
-        Given I have a fresh instance
         When I open data/title.html
         And I set tabs -> tabs-are-windows to true
         And I run :tab-clone
@@ -605,7 +602,6 @@ Feature: Tab management
     # :tab-detach
 
     Scenario: Detaching a tab
-        Given I have a fresh instance
         When I open data/numbers/1.txt
         And I open data/numbers/2.txt in a new tab
         And I run :tab-detach
@@ -619,6 +615,11 @@ Feature: Tab management
             - tabs:
               - history:
                 - url: http://localhost:*/data/numbers/2.txt
+
+    Scenario: Detach tab from window with only one tab
+        When I open data/hello.txt
+        And I run :tab-detach
+        Then the error "Cannot detach one tab." should be shown
 
     # :undo
 
@@ -856,7 +857,6 @@ Feature: Tab management
     # :buffer
 
     Scenario: :buffer without args
-        Given I have a fresh instance
         When I run :buffer
         Then the error "buffer: The following arguments are required: index" should be shown
 
@@ -909,8 +909,8 @@ Feature: Tab management
 
     Scenario: :buffer with no matching window index
         When I open data/title.html
-        And I run :buffer "2/1"
-        Then the error "There's no window with id 2!" should be shown
+        And I run :buffer "99/1"
+        Then the error "There's no window with id 99!" should be shown
 
     Scenario: :buffer with matching window index
         Given I have a fresh instance
@@ -942,7 +942,6 @@ Feature: Tab management
                 - url: http://localhost:*/data/paste_primary.html
 
     Scenario: :buffer with wrong argument (-1)
-        Given I have a fresh instance
         When I open data/title.html
         And I run :buffer "-1"
         Then the error "There's no tab with index -1!" should be shown

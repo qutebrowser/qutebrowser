@@ -4,6 +4,18 @@
 
 = Commands
 
+In qutebrowser, all keybindings are mapped to commands.
+
+Some commands are hidden, which means they don't show up in the command
+completion when pressing `:`, as they're typically not useful to run by hand.
+
+In the commandline, there are also some variables you can use:
+
+- `{url}` expands to the URL of the current page
+- `{url:pretty}` expands to the URL in decoded format
+- `{clipboard}` expands to the clipboard contents
+- `{primary}` expands to the primary selection contents
+
 == Normal commands
 .Quick reference
 [options="header",width="75%",cols="25%,75%"]
@@ -32,6 +44,7 @@
 |<<hint,hint>>|Start hinting.
 |<<history-clear,history-clear>>|Clear all browsing history.
 |<<home,home>>|Open main startpage in current tab.
+|<<insert-text,insert-text>>|Insert text at cursor position.
 |<<inspector,inspector>>|Toggle the web inspector.
 |<<jseval,jseval>>|Evaluate a JavaScript string.
 |<<later,later>>|Execute a command after some time.
@@ -68,6 +81,7 @@
 |<<unbind,unbind>>|Unbind a keychain.
 |<<undo,undo>>|Re-open a closed tab (optionally skipping [count] closed tabs).
 |<<view-source,view-source>>|Show the source of the current page.
+|<<window-only,window-only>>|Close all windows except for the current one.
 |<<wq,wq>>|Save open pages and quit.
 |<<yank,yank>>|Yank something to the clipboard or primary selection.
 |<<zoom,zoom>>|Set the zoom level for the current tab.
@@ -402,6 +416,18 @@ Note this only clears the global history (e.g. `~/.local/share/qutebrowser/histo
 === home
 Open main startpage in current tab.
 
+[[insert-text]]
+=== insert-text
+Syntax: +:insert-text 'text'+
+
+Insert text at cursor position.
+
+==== positional arguments
+* +'text'+: The text to insert.
+
+==== note
+* This command does not split arguments after the last argument and handles quotes literally.
+
 [[inspector]]
 === inspector
 Toggle the web inspector.
@@ -479,6 +505,10 @@ This tries to automatically click on typical _Previous Page_ or _Next Page_ link
 * +*-t*+, +*--tab*+: Open in a new tab.
 * +*-b*+, +*--bg*+: Open in a background tab.
 * +*-w*+, +*--window*+: Open in a new window.
+
+==== count
+For `increment` and `decrement`, the number to change the URL by. For `up`, the number of levels to go up in the URL.
+
 
 [[open]]
 === open
@@ -844,6 +874,10 @@ Re-open a closed tab (optionally skipping [count] closed tabs).
 === view-source
 Show the source of the current page.
 
+[[window-only]]
+=== window-only
+Close all windows except for the current one.
+
 [[wq]]
 === wq
 Syntax: +:wq ['name']+
@@ -940,7 +974,6 @@ How many steps to zoom out.
 |<<move-to-start-of-next-block,move-to-start-of-next-block>>|Move the cursor or selection to the start of next block.
 |<<move-to-start-of-prev-block,move-to-start-of-prev-block>>|Move the cursor or selection to the start of previous block.
 |<<open-editor,open-editor>>|Open an external editor with the currently selected form field.
-|<<paste-primary,paste-primary>>|Paste the primary selection at cursor position.
 |<<prompt-accept,prompt-accept>>|Accept the current prompt.
 |<<prompt-no,prompt-no>>|Answer no to a yes/no prompt.
 |<<prompt-open-download,prompt-open-download>>|Immediately open a download.
@@ -997,7 +1030,7 @@ Syntax: +:completion-item-focus 'which'+
 Shift the focus of the completion menu to another item.
 
 ==== positional arguments
-* +'which'+: 'next' or 'prev'
+* +'which'+: 'next', 'prev', 'next-category', or 'prev-category'.
 
 [[drop-selection]]
 === drop-selection
@@ -1168,10 +1201,6 @@ How many blocks to move.
 Open an external editor with the currently selected form field.
 
 The editor which should be launched can be configured via the `general -> editor` config option.
-
-[[paste-primary]]
-=== paste-primary
-Paste the primary selection at cursor position.
 
 [[prompt-accept]]
 === prompt-accept

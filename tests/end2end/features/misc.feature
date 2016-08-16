@@ -525,6 +525,20 @@ Feature: Various utility commands.
             - data/hints/link_blank.html
             - data/hello.txt (active)
 
+    @no_xvfb
+    Scenario: :window-only
+        Given I run :tab-only
+        And I open data/hello.txt
+        When I open data/hello2.txt in a new tab
+        And I open data/hello3.txt in a new window
+        And I run :window-only
+        Then the session should look like:
+            windows:
+            - tabs:
+              - active: true
+                history:
+                - url: http://localhost:*/data/hello3.txt
+
     ## Variables
 
     Scenario: {url} as part of an argument
@@ -537,3 +551,11 @@ Feature: Various utility commands.
         And I put "foo" into the clipboard
         And I run :message-info {clipboard}bar{url}
         Then the message "foobarhttp://localhost:*/hello.txt" should be shown
+
+    @xfail_norun
+    Scenario: {url} in clipboard should not be expanded
+        When I open data/hello.txt
+        # FIXME: {url} should be escaped, otherwise it is replaced before it enters clipboard
+        And I put "{url}" into the clipboard
+        And I run :message-info {clipboard}bar{url}
+        Then the message "{url}barhttp://localhost:*/hello.txt" should be shown
