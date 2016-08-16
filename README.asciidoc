@@ -183,6 +183,7 @@ Contributors, sorted by the number of commits in descending order:
 * skinnay
 * Zach-Button
 * Tomasz Kramkowski
+* Peter Rice
 * Ismail S
 * Halfwit
 * David Vogt

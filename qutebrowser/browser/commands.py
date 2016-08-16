@@ -505,8 +505,8 @@ class CommandDispatcher:
             tab: Open in a new tab.
             bg: Open in a background tab.
             window: Open in a new window.
-            count: How much to increment or decrement the URL by, or number of
-                   levels to go up in the current URL.
+            count: For `increment` and `decrement`, the number to change the URL
+                   by. For `up`, the number of levels to go up in the URL.
         """
         # save the pre-jump position in the special ' mark
         self.set_mark("'")
