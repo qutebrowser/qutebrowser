@@ -525,7 +525,15 @@ class ConfigManager(QObject):
                 k = self.RENAMED_OPTIONS[sectname, k]
             if (sectname, k) in self.CHANGED_OPTIONS:
                 func = self.CHANGED_OPTIONS[(sectname, k)]
-                v = func(v)
+                new_v = func(v)
+                if new_v is None:
+                    exc = configexc.ValidationError(
+                        v, "Could not automatically migrate the given value")
+                    exc.section = sectname
+                    exc.option = k
+                    raise exc
+
+                v = new_v
 
             try:
                 self.set('conf', sectname, k, v, validate=False)
