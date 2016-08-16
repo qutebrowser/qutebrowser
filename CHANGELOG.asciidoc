@@ -21,6 +21,7 @@ Fixed
 ~~~~~
 
 - Fixed crash when doing `:<space><enter>`, another corner-case introduced in v0.8.0
+- Fixed `:restart` deleting the basedir when it was given with `--basedir`.
 
 v0.8.2
 ------

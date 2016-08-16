@@ -551,8 +551,9 @@ class Quitter:
             argdict['session'] = session
             argdict['override_restore'] = False
         # Ensure :restart works with --temp-basedir
-        argdict['temp_basedir'] = False
-        argdict['temp_basedir_restarted'] = True
+        if self._args.temp_basedir:
+            argdict['temp_basedir'] = False
+            argdict['temp_basedir_restarted'] = True
 
         # Dump the data
         data = json.dumps(argdict)
