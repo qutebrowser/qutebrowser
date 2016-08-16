@@ -399,26 +399,28 @@ def rect_on_view(elem, *, elem_geometry=None, adjust_zoom=True, no_js=False):
         text = utils.compact_text(elem.toOuterXml(), 500)
         log.hints.vdebug("Client rectangles of element '{}': {}".format(text,
                                                                         rects))
-        for i in range(int(rects.get("length", 0))):
-            rect = rects[str(i)]
-            width = rect.get("width", 0)
-            height = rect.get("height", 0)
-            if width > 1 and height > 1:
-                # fix coordinates according to zoom level
-                zoom = elem.webFrame().zoomFactor()
-                if not config.get('ui', 'zoom-text-only') and adjust_zoom:
-                    rect["left"] *= zoom
-                    rect["top"] *= zoom
-                    width *= zoom
-                    height *= zoom
-                rect = QRect(rect["left"], rect["top"], width, height)
-                frame = elem.webFrame()
-                while frame is not None:
-                    # Translate to parent frames' position
-                    # (scroll position is taken care of inside getClientRects)
-                    rect.translate(frame.geometry().topLeft())
-                    frame = frame.parentFrame()
-                return rect
+        if rects is not None:
+            for i in range(int(rects.get("length", 0))):
+                rect = rects[str(i)]
+                width = rect.get("width", 0)
+                height = rect.get("height", 0)
+                if width > 1 and height > 1:
+                    # fix coordinates according to zoom level
+                    zoom = elem.webFrame().zoomFactor()
+                    if not config.get('ui', 'zoom-text-only') and adjust_zoom:
+                        rect["left"] *= zoom
+                        rect["top"] *= zoom
+                        width *= zoom
+                        height *= zoom
+                    rect = QRect(rect["left"], rect["top"], width, height)
+                    frame = elem.webFrame()
+                    while frame is not None:
+                        # Translate to parent frames' position
+                        # (scroll position is taken care of inside
+                        # getClientRects)
+                        rect.translate(frame.geometry().topLeft())
+                        frame = frame.parentFrame()
+                    return rect
 
     # No suitable rects found via JS, try via the QWebElement API
     if elem_geometry is None:
