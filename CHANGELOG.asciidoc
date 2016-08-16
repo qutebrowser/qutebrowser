@@ -76,6 +76,9 @@ Changed
 - The `hints -> auto-follow` setting now can be set to
   `always`/`full-match`/`unique-match`/`never` to more precisely control when
   hints should be followed automatically.
+- Counts can now be used with special keybindings (e.g. with modifiers).
+  This was already implemented for v0.7.0 originally, but got reverted because
+  it caused some issues and then never re-applied.
 
 Deprecated
 ~~~~~~~~~~
@@ -244,7 +247,6 @@ Changed
 - `:navigate` now clears the URL fragment
 - `:completion-item-del` (`Ctrl-D`) can now be used in `:buffer` completion to
   close a tab
-- Counts can now be used with special keybindings (e.g. with modifiers)
 - Various SSL ciphers are now disabled by default. With recent Qt/OpenSSL
   versions those already all are disabled, but with older versions they might
   not be.
