@@ -525,6 +525,20 @@ Feature: Various utility commands.
             - data/hints/link_blank.html
             - data/hello.txt (active)
 
+    @no_xvfb
+    Scenario: :window-only
+        Given I run :tab-only
+        And I open data/hello.txt
+        When I open data/hello2.txt in a new tab
+        And I open data/hello3.txt in a new window
+        And I run :window-only
+        Then the session should look like:
+            windows:
+            - tabs:
+              - active: true
+                history:
+                - url: http://localhost:*/data/hello3.txt
+
     ## Variables
 
     Scenario: {url} as part of an argument

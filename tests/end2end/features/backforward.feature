@@ -108,7 +108,7 @@ Feature: Going back and forward.
         And the message "Still alive!" should be shown
 
     Scenario: Going back in a new window
-        Given I have a fresh instance
+        Given I clean up open tabs
         When I open data/backforward/1.txt
         And I open data/backforward/2.txt
         And I run :back -w

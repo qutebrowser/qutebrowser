@@ -3,7 +3,7 @@ Feature: Yanking and pasting.
     from/to the clipboard and primary selection.
 
     Background:
-        Given I run :tab-only
+        Given I clean up open tabs
 
     #### :yank
 
@@ -79,9 +79,7 @@ Feature: Yanking and pasting.
         Then the error "Clipboard is empty." should be shown
 
     Scenario: Pasting in a new tab
-        Given I open about:blank
-        When I run :tab-only
-        And I put "http://localhost:(port)/data/hello.txt" into the clipboard
+        When I put "http://localhost:(port)/data/hello.txt" into the clipboard
         And I run :open -t {clipboard}
         And I wait until data/hello.txt is loaded
         Then the following tabs should be open:
@@ -89,9 +87,7 @@ Feature: Yanking and pasting.
             - data/hello.txt (active)
 
     Scenario: Pasting in a background tab
-        Given I open about:blank
-        When I run :tab-only
-        And I put "http://localhost:(port)/data/hello.txt" into the clipboard
+        When I put "http://localhost:(port)/data/hello.txt" into the clipboard
         And I run :open -b {clipboard}
         And I wait until data/hello.txt is loaded
         Then the following tabs should be open:
@@ -99,7 +95,6 @@ Feature: Yanking and pasting.
             - data/hello.txt
 
     Scenario: Pasting in a new window
-        Given I have a fresh instance
         When I put "http://localhost:(port)/data/hello.txt" into the clipboard
         And I run :open -w {clipboard}
         And I wait until data/hello.txt is loaded
@@ -123,7 +118,6 @@ Feature: Yanking and pasting.
         Then the error "Invalid URL" should be shown
 
     Scenario: Pasting multiple urls in a new tab
-        Given I have a fresh instance
         When I put the following lines into the clipboard:
             http://localhost:(port)/data/hello.txt
             http://localhost:(port)/data/hello2.txt
@@ -139,8 +133,8 @@ Feature: Yanking and pasting.
             - data/hello3.txt
 
     Scenario: Pasting multiline text
-        Given I have a fresh instance
-        When I set searchengines -> DEFAULT to http://localhost:(port)/data/hello.txt?q={}
+        When I set general -> auto-search to true
+        And I set searchengines -> DEFAULT to http://localhost:(port)/data/hello.txt?q={}
         And I put the following lines into the clipboard:
             this url:
             http://qutebrowser.org
@@ -152,9 +146,8 @@ Feature: Yanking and pasting.
             - data/hello.txt?q=this%20url%3A%0Ahttp%3A//qutebrowser.org%0Ashould%20not%20open (active)
 
     Scenario: Pasting multiline whose first line looks like a URI
-        Given I open about:blank
-        When I run :tab-only
-        When I set searchengines -> DEFAULT to http://localhost:(port)/data/hello.txt?q={}
+        When I set general -> auto-search to true
+        And I set searchengines -> DEFAULT to http://localhost:(port)/data/hello.txt?q={}
         And I put the following lines into the clipboard:
             text:
             should open
@@ -166,9 +159,7 @@ Feature: Yanking and pasting.
             - data/hello.txt?q=text%3A%0Ashould%20open%0Aas%20search (active)
 
     Scenario: Pasting multiple urls in a background tab
-        Given I open about:blank
-        When I run :tab-only
-        And I put the following lines into the clipboard:
+        When I put the following lines into the clipboard:
             http://localhost:(port)/data/hello.txt
             http://localhost:(port)/data/hello2.txt
             http://localhost:(port)/data/hello3.txt
@@ -183,7 +174,6 @@ Feature: Yanking and pasting.
             - data/hello3.txt
 
     Scenario: Pasting multiple urls in new windows
-        Given I have a fresh instance
         When I put the following lines into the clipboard:
             http://localhost:(port)/data/hello.txt
             http://localhost:(port)/data/hello2.txt
@@ -216,13 +206,11 @@ Feature: Yanking and pasting.
                   url: http://localhost:*/data/hello3.txt
 
     Scenario: Pasting multiple urls with an empty one
-        When I open about:blank
         And I put "http://localhost:(port)/data/hello.txt\n\nhttp://localhost:(port)/data/hello2.txt" into the clipboard
         And I run :open -t {clipboard}
         Then no crash should happen
 
     Scenario: Pasting multiple urls with an almost empty one
-        When I open about:blank
         And I put "http://localhost:(port)/data/hello.txt\n \nhttp://localhost:(port)/data/hello2.txt" into the clipboard
         And I run :open -t {clipboard}
         Then no crash should happen
