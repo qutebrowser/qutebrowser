@@ -300,16 +300,16 @@ def _transform_hint_color(val):
     if val.startswith('-webkit-gradient'):
         pattern = re.compile(r'-webkit-gradient\(linear, left top, '
                              r'left bottom, '
-                             r'color-stop\(0%, *(#[a-fA-F0-9]{3,6})\), '
-                             r'color-stop\(100%, *(#[a-fA-F0-9]{3,6})\)')
+                             r'color-stop\(0%, *([^)]*)\), '
+                             r'color-stop\(100%, *([^)]*)\)\)')
 
-        match = pattern.match(val)
+        match = pattern.fullmatch(val)
         if match:
             log.config.debug('Color groups: {}'.format(match.groups()))
             start_color = QColor(match.group(1))
             stop_color = QColor(match.group(2))
-            qtutils.ensure_valid(start_color)
-            qtutils.ensure_valid(stop_color)
+            if not start_color.isValid() or not stop_color.isValid():
+                return None
 
             return ('qlineargradient(x1:0, y1:0, x2:1, y2:1, stop:0 {}, '
                     'stop:1 {})'.format(to_rgba(start_color),
