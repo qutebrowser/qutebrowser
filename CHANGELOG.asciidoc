@@ -92,6 +92,7 @@ Fixed
 - `:undo` now doesn't undo tabs "closed" by `:tab-detach` anymore.
 - Fixed an issue with hint chars not being cleared correctly when leaving hint
   mode.
+- `:tab-detach` now fails correctly when there's only one tab open.
 
 v0.8.3 (unreleased)
 -------------------

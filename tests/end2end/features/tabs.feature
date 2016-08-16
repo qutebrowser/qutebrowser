@@ -620,6 +620,11 @@ Feature: Tab management
               - history:
                 - url: http://localhost:*/data/numbers/2.txt
 
+    Scenario: Detach tab from window with only one tab
+        When I open data/hello.txt
+        And I run :tab-detach
+        Then the error "Cannot detach one tab." should be shown
+
     # :undo
 
     Scenario: Undo without any closed tabs
