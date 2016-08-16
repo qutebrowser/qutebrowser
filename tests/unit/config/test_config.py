@@ -299,9 +299,13 @@ class TestKeyConfigParser:
             ('yank -p', 'yank pretty-url'),
             ('yank -ps', 'yank pretty-url -s'),
 
-            ('paste', 'open {clipboard}'),
-            ('paste -t', 'open -t {clipboard}'),
-            ('paste -ws', 'open -w {primary}'),
+            ('paste', 'open -- {clipboard}'),
+            ('paste -t', 'open -t -- {clipboard}'),
+            ('paste -ws', 'open -w -- {primary}'),
+
+            ('open {clipboard}', 'open -- {clipboard}'),
+            ('open -t {clipboard}', 'open -t -- {clipboard}'),
+            ('open -b {primary}', 'open -b -- {primary}'),
         ]
     )
     def test_migrations(self, old, new_expected):
