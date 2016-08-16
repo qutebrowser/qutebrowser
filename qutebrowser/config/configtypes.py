@@ -1488,7 +1488,8 @@ class UserAgent(BaseType):
              "Firefox Generic Linux"),
 
             ('Mozilla/5.0 (Macintosh; Intel Mac OS X 10_11_6) '
-             'AppleWebKit/601.7.7 (KHTML, like Gecko) Version/9.1.2 Safari/601.7.7',
+             'AppleWebKit/601.7.7 (KHTML, like Gecko) Version/9.1.2 '
+             'Safari/601.7.7',
              "Safari Generic MacOSX"),
             ('Mozilla/5.0 (iPad; CPU OS 9_3_2 like Mac OS X) '
              'AppleWebKit/601.1.46 (KHTML, like Gecko) Version/9.0 '
