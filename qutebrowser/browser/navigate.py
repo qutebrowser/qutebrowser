@@ -36,6 +36,7 @@ def incdec(url, count, inc_or_dec):
 
     Args:
         url: The current url.
+        count: How much to increment or decrement by.
         inc_or_dec: Either 'increment' or 'decrement'.
         tab: Whether to open the link in a new tab.
         background: Open the link in a new background tab.
@@ -54,6 +55,7 @@ def path_up(url, count):
 
     Args:
         url: The current url.
+        count: The number of levels to go up in the url.
     """
     path = url.path()
     if not path or path == '/':
