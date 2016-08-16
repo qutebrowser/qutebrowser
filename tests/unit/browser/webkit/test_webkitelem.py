@@ -255,15 +255,9 @@ class TestWebKitElement:
         len,
         lambda e: e.frame(),
         lambda e: e.geometry(),
-        lambda e: e.document_element(),
-        lambda e: e.create_inside('span'),
-        lambda e: e.find_first('span'),
         lambda e: e.style_property('visibility', strategy='computed'),
         lambda e: e.text(),
         lambda e: e.set_text('foo'),
-        lambda e: e.set_inner_xml(''),
-        lambda e: e.remove_from_document(),
-        lambda e: e.set_style_property('visibility', 'hidden'),
         lambda e: e.is_writable(),
         lambda e: e.is_content_editable(),
         lambda e: e.is_editable(),
@@ -276,9 +270,7 @@ class TestWebKitElement:
         lambda e: e.rect_on_view(),
         lambda e: e.is_visible(None),
     ], ids=['str', 'getitem', 'setitem', 'delitem', 'contains', 'iter', 'len',
-            'frame', 'geometry', 'document_element', 'create_inside',
-            'find_first', 'style_property', 'text', 'set_text',
-            'set_inner_xml', 'remove_from_document', 'set_style_property',
+            'frame', 'geometry', 'style_property', 'text', 'set_text',
             'is_writable', 'is_content_editable', 'is_editable',
             'is_text_input', 'remove_blank_target', 'debug_text', 'outer_xml',
             'tag_name', 'run_js_async', 'rect_on_view', 'is_visible'])
@@ -410,51 +402,12 @@ class TestWebKitElement:
         setattr(mock, 'return_value', sentinel)
         assert code(elem) is sentinel
 
-    @pytest.mark.parametrize('code, method, args', [
-        (lambda e: e.set_inner_xml('foo'), 'setInnerXml', ['foo']),
-        (lambda e: e.set_style_property('foo', 'bar'), 'setStyleProperty',
-         ['foo', 'bar']),
-        (lambda e: e.remove_from_document(), 'removeFromDocument', []),
-    ])
-    def test_simple_setters(self, elem, code, method, args):
-        code(elem)
-        mock = getattr(elem._elem, method)
-        mock.assert_called_with(*args)
-
     def test_tag_name(self, elem):
         elem._elem.tagName.return_value = 'SPAN'
         assert elem.tag_name() == 'span'
 
     def test_style_property(self, elem):
         assert elem.style_property('foo', strategy='computed') == 'bar'
-
-    def test_document_element(self, stubs):
-        doc_elem = get_webelem()
-        frame = stubs.FakeWebFrame(document_element=doc_elem._elem)
-        elem = get_webelem(frame=frame)
-
-        doc_elem_ret = elem.document_element()
-        assert isinstance(doc_elem_ret, webkitelem.WebKitElement)
-        assert doc_elem_ret == doc_elem
-
-    def test_find_first(self, elem):
-        result = get_webelem()
-        elem._elem.findFirst.return_value = result._elem
-        find_result = elem.find_first('')
-        assert isinstance(find_result, webkitelem.WebKitElement)
-        assert find_result == result
-
-    def test_create_inside(self, elem):
-        child = get_webelem()
-        elem._elem.lastChild.return_value = child._elem
-        assert elem.create_inside('span')._elem is child._elem
-        elem._elem.appendInside.assert_called_with('<span></span>')
-
-    def test_find_first_null(self, elem):
-        nullelem = get_webelem()
-        nullelem._elem.isNull.return_value = True
-        elem._elem.findFirst.return_value = nullelem._elem
-        assert elem.find_first('foo') is None
 
     @pytest.mark.parametrize('use_js, editable, expected', [
         (True, 'false', 'js'),

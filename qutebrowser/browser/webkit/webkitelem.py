@@ -91,28 +91,6 @@ class WebKitElement(webelem.AbstractWebElement):
         self._check_vanished()
         return self._elem.geometry()
 
-    def document_element(self):
-        self._check_vanished()
-        elem = self._elem.webFrame().documentElement()
-        return WebKitElement(elem)
-
-    def create_inside(self, tagname):
-        # It seems impossible to create an empty QWebElement for which isNull()
-        # is false so we can work with it.
-        # As a workaround, we use appendInside() with markup as argument, and
-        # then use lastChild() to get a reference to it.
-        # See: http://stackoverflow.com/q/7364852/2085149
-        self._check_vanished()
-        self._elem.appendInside('<{}></{}>'.format(tagname, tagname))
-        return WebKitElement(self._elem.lastChild())
-
-    def find_first(self, selector):
-        self._check_vanished()
-        elem = self._elem.findFirst(selector)
-        if elem.isNull():
-            return None
-        return WebKitElement(elem)
-
     def style_property(self, name, *, strategy):
         self._check_vanished()
         strategies = {
@@ -155,18 +133,6 @@ class WebKitElement(webelem.AbstractWebElement):
                 self.debug_text()))
             text = javascript.string_escape(text)
             self._elem.evaluateJavaScript("this.value='{}'".format(text))
-
-    def set_inner_xml(self, xml):
-        self._check_vanished()
-        self._elem.setInnerXml(xml)
-
-    def remove_from_document(self):
-        self._check_vanished()
-        self._elem.removeFromDocument()
-
-    def set_style_property(self, name, value):
-        self._check_vanished()
-        return self._elem.setStyleProperty(name, value)
 
     def run_js_async(self, code, callback=None):
         """Run the given JS snippet async on the element."""

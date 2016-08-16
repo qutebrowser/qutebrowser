@@ -112,21 +112,6 @@ class AbstractWebElement(collections.abc.MutableMapping):
         """Get the geometry for this element."""
         raise NotImplementedError
 
-    def document_element(self):
-        """Get the document element of this element."""
-        # FIXME:qtwebengine get rid of this?
-        raise NotImplementedError
-
-    def create_inside(self, tagname):
-        """Append the given element inside the current one."""
-        # FIXME:qtwebengine get rid of this?
-        raise NotImplementedError
-
-    def find_first(self, selector):
-        """Find the first child based on the given CSS selector."""
-        # FIXME:qtwebengine get rid of this?
-        raise NotImplementedError
-
     def style_property(self, name, *, strategy):
         """Get the element style resolved with the given strategy."""
         raise NotImplementedError
@@ -164,21 +149,6 @@ class AbstractWebElement(collections.abc.MutableMapping):
                     content-editable.
         """
         # FIXME:qtwebengine what to do about use_js with WebEngine?
-        raise NotImplementedError
-
-    def set_inner_xml(self, xml):
-        """Set the given inner XML."""
-        # FIXME:qtwebengine get rid of this?
-        raise NotImplementedError
-
-    def remove_from_document(self):
-        """Remove the node from the document."""
-        # FIXME:qtwebengine get rid of this?
-        raise NotImplementedError
-
-    def set_style_property(self, name, value):
-        """Set the element style."""
-        # FIXME:qtwebengine get rid of this?
         raise NotImplementedError
 
     def run_js_async(self, code, callback=None):

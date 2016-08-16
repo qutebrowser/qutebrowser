@@ -66,18 +66,6 @@ class WebEngineElement(webelem.AbstractWebElement):
         log.stub()
         return QRect()
 
-    def document_element(self):
-        log.stub()
-        return None
-
-    def create_inside(self, tagname):
-        log.stub()
-        return None
-
-    def find_first(self, selector):
-        log.stub()
-        return None
-
     def style_property(self, name, *, strategy):
         log.stub()
         return ''
@@ -120,21 +108,6 @@ class WebEngineElement(webelem.AbstractWebElement):
         # FIXME:qtwebengine what to do about use_js with WebEngine?
         js_code = javascript.assemble('webelem', 'set_text', self._id, text)
         self._run_js(js_code)
-
-    def set_inner_xml(self, xml):
-        """Set the given inner XML."""
-        # FIXME:qtwebengine get rid of this?
-        log.stub()
-
-    def remove_from_document(self):
-        """Remove the node from the document."""
-        # FIXME:qtwebengine get rid of this?
-        log.stub()
-
-    def set_style_property(self, name, value):
-        """Set the element style."""
-        # FIXME:qtwebengine get rid of this?
-        log.stub()
 
     def run_js_async(self, code, callback=None):
         """Run the given JS snippet async on the element."""
