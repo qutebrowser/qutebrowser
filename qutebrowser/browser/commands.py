@@ -665,8 +665,6 @@ class CommandDispatcher:
 
     @cmdutils.register(instance='command-dispatcher', scope='window',
                        maxsplit=0)
-    @cmdutils.argument('what', choices=['selection', 'url', 'pretty-url',
-                                        'title', 'domain'])
     def yank(self, what=None, sel=False, keep=False):
         """Yank something to the clipboard or primary selection.
 
@@ -674,7 +672,7 @@ class CommandDispatcher:
             what: What to yank. Typically one of these variables:
 
                 - `{url}`: The current URL.
-                - `{pretty-url}`: The URL in pretty decoded form.
+                - `{url:pretty}`: The URL in pretty decoded form.
                 - `{title}`: The current page's title.
                 - `{domain}`: The current scheme, domain, and port number.
                 - `{selection}`: The selection under the cursor.
