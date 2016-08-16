@@ -44,7 +44,8 @@ def incdec(url, count, inc_or_dec):
     """
     segments = set(config.get('general', 'url-incdec-segments'))
     try:
-        new_url = urlutils.incdec_number(url, inc_or_dec, count, segments=segments)
+        new_url = urlutils.incdec_number(url, inc_or_dec, count,
+                                         segments=segments)
     except urlutils.IncDecError as error:
         raise Error(error.msg)
     return new_url
@@ -60,7 +61,7 @@ def path_up(url, count):
     path = url.path()
     if not path or path == '/':
         raise Error("Can't go up!")
-    for i in range(0, min(count, path.count('/'))):
+    for _i in range(0, min(count, path.count('/'))):
         path = posixpath.join(path, posixpath.pardir)
     url.setPath(path)
     return url
