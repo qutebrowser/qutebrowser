@@ -29,9 +29,11 @@ from qutebrowser.utils import message
 from qutebrowser.config import config
 from qutebrowser.keyinput import keyparser
 from qutebrowser.utils import usertypes, log, objreg, utils
+from qutebrowser.config.parsers import keyconf
 
 
-STARTCHARS = ":/?"
+conf = keyconf.KeyConfigParser(None, None) 
+STARTCHARS = conf.get_bindings_for('normal').keys()
 LastPress = usertypes.enum('LastPress', ['none', 'filtertext', 'keystring'])
 
 
