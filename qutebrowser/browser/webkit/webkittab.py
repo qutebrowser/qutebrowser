@@ -32,7 +32,7 @@ from PyQt5.QtPrintSupport import QPrinter
 
 from qutebrowser.browser import browsertab
 from qutebrowser.browser.webkit import webview, tabhistory, webkitelem
-from qutebrowser.utils import qtutils, objreg, usertypes, utils
+from qutebrowser.utils import qtutils, objreg, usertypes, utils, log
 
 
 class WebKitPrinting(browsertab.AbstractPrinting):
@@ -592,6 +592,44 @@ class WebKitTab(browsertab.AbstractTab):
             callback(None)
         else:
             callback(webkitelem.WebKitElement(elem))
+
+    def find_element_at_pos(self, pos, callback):
+        assert pos.x() >= 0
+        assert pos.y() >= 0
+        frame = self._widget.page().frameAt(pos)
+        if frame is None:
+            # This happens when we click inside the webview, but not actually
+            # on the QWebPage - for example when clicking the scrollbar
+            # sometimes.
+            log.webview.debug("Hit test at {} but frame is None!".format(pos))
+            callback(None)
+            return
+
+        # You'd think we have to subtract frame.geometry().topLeft() from the
+        # position, but it seems QWebFrame::hitTestContent wants a position
+        # relative to the QWebView, not to the frame. This makes no sense to
+        # me, but it works this way.
+        hitresult = frame.hitTestContent(pos)
+        if hitresult.isNull():
+            # For some reason, the whole hit result can be null sometimes (e.g.
+            # on doodle menu links). If this is the case, we schedule a check
+            # later (in mouseReleaseEvent) which uses webkitelem.focus_elem.
+            log.webview.debug("Hit test result is null!")
+            callback(None)
+            return
+
+        try:
+            elem = webkitelem.WebKitElement(hitresult.element())
+        except webkitelem.IsNullError:
+            # For some reason, the hit result element can be a null element
+            # sometimes (e.g. when clicking the timetable fields on
+            # http://www.sbb.ch/ ). If this is the case, we schedule a check
+            # later (in mouseReleaseEvent) which uses webelem.focus_elem.
+            log.webview.debug("Hit test result element is null!")
+            callback(None)
+            return
+
+        callback(elem)
 
     @pyqtSlot()
     def _on_frame_load_finished(self):

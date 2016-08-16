@@ -76,5 +76,21 @@ window._qutebrowser.webelem = (function() {
         elements[id].value = text;
     };
 
+    funcs.element_at_pos = function(x, y) {
+        // FIXME:qtwebengine
+        // If the element at the specified point belongs to another document
+        // (for example, an iframe's subdocument), the subdocument's parent
+        // element is returned (the iframe itself).
+
+        var elem = document.elementFromPoint(x, y);
+        if (!elem) {
+            return null;
+        }
+
+        var id = elements.length;
+        elements[id] = elem;
+        return serialize_elem(elem, id);
+    };
+
     return funcs;
 })();

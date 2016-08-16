@@ -22,9 +22,10 @@
 
 from qutebrowser.config import config
 from qutebrowser.utils import message, log, usertypes
+from qutebrowser.keyinput import modeman
 
 
-from PyQt5.QtCore import QObject, QEvent, Qt
+from PyQt5.QtCore import QObject, QEvent, Qt, QTimer
 
 
 class ChildEventFilter(QObject):
@@ -66,6 +67,8 @@ class MouseEventFilter(QObject):
         _tab: The browsertab object this filter is installed on.
         _handlers: A dict of handler functions for the handled events.
         _ignore_wheel_event: Whether to ignore the next wheelEvent.
+        _check_insertmode_on_release: Whether an insertmode check should be
+                                      done when the mouse is released.
     """
 
     def __init__(self, tab, parent=None):
@@ -73,10 +76,12 @@ class MouseEventFilter(QObject):
         self._tab = tab
         self._handlers = {
             QEvent.MouseButtonPress: self._handle_mouse_press,
+            QEvent.MouseButtonRelease: self._handle_mouse_release,
             QEvent.Wheel: self._handle_wheel,
             QEvent.ContextMenu: self._handle_context_menu,
         }
         self._ignore_wheel_event = False
+        self._check_insertmode_on_release = False
 
     def _handle_mouse_press(self, e):
         """Handle pressing of a mouse button."""
@@ -89,7 +94,15 @@ class MouseEventFilter(QObject):
 
         self._ignore_wheel_event = True
         self._mousepress_opentarget(e)
+        self._tab.find_element_at_pos(e.pos(), self._mousepress_insertmode_cb)
 
+        return False
+
+    def _handle_mouse_release(self, _e):
+        """Handle releasing of a mouse button."""
+        # We want to make sure we check the focus element after the WebView is
+        # updated completely.
+        QTimer.singleShot(0, self._mouserelease_insertmode)
         return False
 
     def _handle_wheel(self, e):
@@ -117,6 +130,52 @@ class MouseEventFilter(QObject):
     def _handle_context_menu(self, _e):
         """Suppress context menus if rocker gestures are turned on."""
         return config.get('input', 'rocker-gestures')
+
+    def _mousepress_insertmode_cb(self, elem):
+        """Check if the clicked element is editable."""
+        if elem is None:
+            # Something didn't work out, let's find the focus element after
+            # a mouse release.
+            log.mouse.debug("Got None element, scheduling check on "
+                            "mouse release")
+            self._check_insertmode_on_release = True
+            return
+
+        if elem.is_editable():
+            log.mouse.debug("Clicked editable element!")
+            modeman.enter(self._tab.win_id, usertypes.KeyMode.insert,
+                          'click', only_if_normal=True)
+        else:
+            log.mouse.debug("Clicked non-editable element!")
+            if config.get('input', 'auto-leave-insert-mode'):
+                modeman.maybe_leave(self._tab.win_id,
+                                    usertypes.KeyMode.insert,
+                                    'click')
+
+    def _mouserelease_insertmode(self):
+        """If we have an insertmode check scheduled, handle it."""
+        if not self._check_insertmode_on_release:
+            return
+        self._check_insertmode_on_release = False
+
+        def mouserelease_insertmode_cb(elem):
+            """Callback which gets called from JS."""
+            if elem is None:
+                log.mouse.debug("Element vanished!")
+                return
+
+            if elem.is_editable():
+                log.mouse.debug("Clicked editable element (delayed)!")
+                modeman.enter(self._tab.win_id, usertypes.KeyMode.insert,
+                              'click-delayed', only_if_normal=True)
+            else:
+                log.mouse.debug("Clicked non-editable element (delayed)!")
+                if config.get('input', 'auto-leave-insert-mode'):
+                    modeman.maybe_leave(self._tab.win_id,
+                                        usertypes.KeyMode.insert,
+                                        'click-delayed')
+
+        self._tab.find_focus_element(mouserelease_insertmode_cb)
 
     def _mousepress_backforward(self, e):
         """Handle back/forward mouse button presses.

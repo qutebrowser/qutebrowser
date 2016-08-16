@@ -21,7 +21,7 @@
 
 import sys
 
-from PyQt5.QtCore import pyqtSignal, pyqtSlot, Qt, QTimer, QUrl
+from PyQt5.QtCore import pyqtSignal, pyqtSlot, Qt, QUrl
 from PyQt5.QtGui import QPalette
 from PyQt5.QtWidgets import QStyleFactory
 from PyQt5.QtWebKit import QWebSettings
@@ -117,74 +117,6 @@ class WebView(QWebView):
             col = self.style().standardPalette().color(QPalette.Base)
         palette.setColor(QPalette.Base, col)
         self.setPalette(palette)
-
-    def _mousepress_insertmode(self, e):
-        """Switch to insert mode when an editable element was clicked.
-
-        Args:
-            e: The QMouseEvent.
-        """
-        pos = e.pos()
-        frame = self.page().frameAt(pos)
-        if frame is None:
-            # This happens when we click inside the webview, but not actually
-            # on the QWebPage - for example when clicking the scrollbar
-            # sometimes.
-            log.mouse.debug("Clicked at {} but frame is None!".format(pos))
-            return
-        # You'd think we have to subtract frame.geometry().topLeft() from the
-        # position, but it seems QWebFrame::hitTestContent wants a position
-        # relative to the QWebView, not to the frame. This makes no sense to
-        # me, but it works this way.
-        hitresult = frame.hitTestContent(pos)
-        if hitresult.isNull():
-            # For some reason, the whole hit result can be null sometimes (e.g.
-            # on doodle menu links). If this is the case, we schedule a check
-            # later (in mouseReleaseEvent) which uses webkitelem.focus_elem.
-            log.mouse.debug("Hitresult is null!")
-            self._check_insertmode = True
-            return
-        try:
-            elem = webkitelem.WebKitElement(hitresult.element())
-        except webkitelem.IsNullError:
-            # For some reason, the hit result element can be a null element
-            # sometimes (e.g. when clicking the timetable fields on
-            # http://www.sbb.ch/ ). If this is the case, we schedule a check
-            # later (in mouseReleaseEvent) which uses webelem.focus_elem.
-            log.mouse.debug("Hitresult element is null!")
-            self._check_insertmode = True
-            return
-        if ((hitresult.isContentEditable() and elem.is_writable()) or
-                elem.is_editable()):
-            log.mouse.debug("Clicked editable element!")
-            modeman.enter(self.win_id, usertypes.KeyMode.insert, 'click',
-                          only_if_normal=True)
-        else:
-            log.mouse.debug("Clicked non-editable element!")
-            if config.get('input', 'auto-leave-insert-mode'):
-                modeman.maybe_leave(self.win_id, usertypes.KeyMode.insert,
-                                    'click')
-
-    def mouserelease_insertmode(self):
-        """If we have an insertmode check scheduled, handle it."""
-        # FIXME:qtwebengine Use tab.find_focus_element here
-        if not self._check_insertmode:
-            return
-        self._check_insertmode = False
-        try:
-            elem = webkitelem.focus_elem(self.page().currentFrame())
-        except (webkitelem.IsNullError, RuntimeError):
-            log.mouse.debug("Element/page vanished!")
-            return
-        if elem.is_editable():
-            log.mouse.debug("Clicked editable element (delayed)!")
-            modeman.enter(self.win_id, usertypes.KeyMode.insert,
-                          'click-delayed', only_if_normal=True)
-        else:
-            log.mouse.debug("Clicked non-editable element (delayed)!")
-            if config.get('input', 'auto-leave-insert-mode'):
-                modeman.maybe_leave(self.win_id, usertypes.KeyMode.insert,
-                                    'click-delayed')
 
     def shutdown(self):
         """Shut down the webview."""
@@ -323,31 +255,6 @@ class WebView(QWebView):
             self.scroll_pos_changed.emit(*perc)
         # Let superclass handle the event
         super().paintEvent(e)
-
-    def mousePressEvent(self, e):
-        """Extend QWidget::mousePressEvent().
-
-        This does the following things:
-            - Check if a link was clicked with the middle button or Ctrl and
-              set the page's open_target attribute accordingly.
-            - Emit the editable_elem_selected signal if an editable element was
-              clicked.
-
-        Args:
-            e: The arrived event.
-
-        Return:
-            The superclass return value.
-        """
-        self._mousepress_insertmode(e)
-        super().mousePressEvent(e)
-
-    def mouseReleaseEvent(self, e):
-        """Extend mouseReleaseEvent to enter insert mode if needed."""
-        super().mouseReleaseEvent(e)
-        # We want to make sure we check the focus element after the WebView is
-        # updated completely.
-        QTimer.singleShot(0, self.mouserelease_insertmode)
 
     def contextMenuEvent(self, e):
         """Save a reference to the context menu so we can close it."""

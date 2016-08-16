@@ -706,6 +706,18 @@ class AbstractTab(QWidget):
         """
         raise NotImplementedError
 
+    def find_element_at_pos(self, pos, callback):
+        """Find the element at the given position async.
+
+        This is also called "hit test" elsewhere.
+
+        Args:
+            pos: The QPoint to get the element for.
+            callback: The callback to be called when the search finished.
+                      Called with a WebEngineElement or None.
+        """
+        raise NotImplementedError
+
     def __repr__(self):
         try:
             url = utils.elide(self.url().toDisplayString(QUrl.EncodeUnicode),
