@@ -399,7 +399,7 @@ def rect_on_view(elem, *, elem_geometry=None, adjust_zoom=True, no_js=False):
         text = utils.compact_text(elem.toOuterXml(), 500)
         log.hints.vdebug("Client rectangles of element '{}': {}".format(text,
                                                                         rects))
-        if rects is not None:
+        if rects is not None:  # pragma: no branch
             for i in range(int(rects.get("length", 0))):
                 rect = rects[str(i)]
                 width = rect.get("width", 0)
