@@ -24,6 +24,7 @@ are fundamentally different. This is why nothing inherits from configparser,
 but we borrow some methods and classes from there where it makes sense.
 """
 
+import re
 import os
 import sys
 import os.path
@@ -34,6 +35,7 @@ import collections
 import collections.abc
 
 from PyQt5.QtCore import pyqtSignal, QObject, QUrl, QSettings
+from PyQt5.QtGui import QColor
 
 from qutebrowser.config import configdata, configexc, textwrapper
 from qutebrowser.config.parsers import keyconf
@@ -286,6 +288,40 @@ def _transform_position(val):
         return val
 
 
+def _transform_hint_color(val):
+    """Transformer for hint colors."""
+    log.config.debug("Transforming hint value {}".format(val))
+
+    def to_rgba(qcolor):
+        """Convert a QColor to a rgba() value."""
+        return 'rgba({}, {}, {}, 0.8)'.format(qcolor.red(), qcolor.green(),
+                                              qcolor.blue())
+
+    if val.startswith('-webkit-gradient'):
+        pattern = re.compile(r'-webkit-gradient\(linear, left top, '
+                             r'left bottom, '
+                             r'color-stop\(0%, *(#[a-fA-F0-9]{3,6})\), '
+                             r'color-stop\(100%, *(#[a-fA-F0-9]{3,6})\)')
+
+        match = pattern.match(val)
+        if match:
+            log.config.debug('Color groups: {}'.format(match.groups()))
+            start_color = QColor(match.group(1))
+            stop_color = QColor(match.group(2))
+            qtutils.ensure_valid(start_color)
+            qtutils.ensure_valid(stop_color)
+
+            return ('qlineargradient(x1:0, y1:0, x2:1, y2:1, stop:0 {}, '
+                    'stop:1 {})'.format(to_rgba(start_color),
+                                        to_rgba(stop_color)))
+        else:
+            return None
+    elif val.startswith('-'):  # Custom CSS stuff?
+        return None
+    else:  # Already transformed or a named color.
+        return val
+
+
 class ConfigManager(QObject):
 
     """Configuration manager for qutebrowser.
@@ -353,6 +389,7 @@ class ConfigManager(QObject):
         ('ui', 'display-statusbar-messages'),
         ('ui', 'hide-mouse-cursor'),
         ('general', 'wrap-search'),
+        ('hints', 'opacity'),
     ]
     CHANGED_OPTIONS = {
         ('content', 'cookies-accept'):
@@ -367,6 +404,9 @@ class ConfigManager(QObject):
             _get_value_transformer({'false': '*', 'true': ''}),
         ('hints', 'auto-follow'):
             _get_value_transformer({'false': 'never', 'true': 'unique-match'}),
+        ('colors', 'hints.bg'): _transform_hint_color,
+        ('colors', 'hints.fg'): _transform_hint_color,
+        ('colors', 'hints.fg.match'): _transform_hint_color,
     }
 
     changed = pyqtSignal(str, str)

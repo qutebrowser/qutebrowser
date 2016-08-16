@@ -897,10 +897,6 @@ def data(readonly=False):
              SettingValue(typ.String(), '1px solid #E3BE23'),
              "CSS border value for hints."),
 
-            ('opacity',
-             SettingValue(typ.Float(minval=0.0, maxval=1.0), '0.7'),
-             "Opacity for hints."),
-
             ('mode',
              SettingValue(typ.String(
                  valid_values=typ.ValidValues(
@@ -1209,18 +1205,18 @@ def data(readonly=False):
              "Color gradient interpolation system for the tab indicator."),
 
             ('hints.fg',
-             SettingValue(typ.CssColor(), 'black'),
+             SettingValue(typ.QssColor(), 'black'),
              "Font color for hints."),
 
             ('hints.bg',
-             SettingValue(
-                 typ.CssColor(), '-webkit-gradient(linear, left top, '
-                 'left bottom, color-stop(0%,#FFF785), '
-                 'color-stop(100%,#FFC542))'),
-             "Background color for hints."),
+             SettingValue(typ.QssColor(), 'qlineargradient(x1:0, y1:0, x2:1, '
+                          'y2:1, stop:0 rgba(255, 247, 133, 0.8), '
+                          'stop:1 rgba(255, 197, 66, 0.8))'),
+             "Background color for hints. Note that you can use a `rgba(...)` "
+             "value for transparency."),
 
             ('hints.fg.match',
-             SettingValue(typ.CssColor(), 'green'),
+             SettingValue(typ.QssColor(), 'green'),
              "Font color for the matched part of hints."),
 
             ('downloads.bg.bar',

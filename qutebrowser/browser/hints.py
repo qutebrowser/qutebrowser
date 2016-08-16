@@ -32,7 +32,7 @@ from PyQt5.QtGui import QMouseEvent
 from PyQt5.QtWidgets import QLabel
 from PyQt5.QtWebKitWidgets import QWebPage
 
-from qutebrowser.config import config
+from qutebrowser.config import config, style
 from qutebrowser.keyinput import modeman, modeparsers
 from qutebrowser.browser import webelem
 from qutebrowser.commands import userscripts, cmdexc, cmdutils, runners
@@ -65,21 +65,29 @@ class HintLabel(QLabel):
         _context: The current hinting context.
     """
 
+    STYLESHEET = """
+        QLabel {
+            background-color: {{ color['hints.bg'] }};
+            color: {{ color['hints.fg'] }};
+            font: {{ font['hints'] }};
+            border: {{ config.get('hints', 'border') }};
+            padding-left: -3px;
+            padding-right: -3px;
+        }
+    """
+
     def __init__(self, elem, context):
         super().__init__(parent=context.tab)
         self._context = context
         self.elem = elem
+
+        self.setAttribute(Qt.WA_StyledBackground, True)
+        style.set_register_stylesheet(self)
+
         self._context.tab.contents_size_changed.connect(
             self._on_contents_size_changed)
         self._move_to_elem()
         self.show()
-
-        # FIXME styling
-        # ('color', config.get('colors', 'hints.fg') + ' !important'),
-        # ('background', config.get('colors', 'hints.bg') + ' !important'),
-        # ('font', config.get('fonts', 'hints') + ' !important'),
-        # ('border', config.get('hints', 'border') + ' !important'),
-        # ('opacity', str(config.get('hints', 'opacity')) + ' !important'),
 
     def update_text(self, matched, unmatched):
         """Set the text for the hint.
@@ -99,6 +107,7 @@ class HintLabel(QLabel):
         match_color = html.escape(config.get('colors', 'hints.fg.match'))
         self.setText('<font color="{}">{}</font>{}'.format(
             match_color, matched, unmatched))
+        self.adjustSize()
 
     def _move_to_elem(self):
         """Reposition the label to its element."""
