@@ -185,7 +185,7 @@
 |<<hints-scatter,scatter>>|Whether to scatter hint key chains (like Vimium) or not (like dwb). Ignored for number hints.
 |<<hints-uppercase,uppercase>>|Make chars in hint strings uppercase.
 |<<hints-dictionary,dictionary>>|The dictionary file to be used by the word hints.
-|<<hints-auto-follow,auto-follow>>|Follow a hint immediately when the hint text is completely matched.
+|<<hints-auto-follow,auto-follow>>|Controls when a hint can be automatically followed without the user pressing Enter.
 |<<hints-auto-follow-timeout,auto-follow-timeout>>|A timeout (in milliseconds) to inhibit normal-mode key bindings after a successful auto-follow.
 |<<hints-next-regexes,next-regexes>>|A comma-separated list of regexes to use for 'next' links.
 |<<hints-prev-regexes,prev-regexes>>|A comma-separated list of regexes to use for 'prev' links.
@@ -1660,14 +1660,16 @@ Default: +pass:[/usr/share/dict/words]+
 
 [[hints-auto-follow]]
 === auto-follow
-Follow a hint immediately when the hint text is completely matched.
+Controls when a hint can be automatically followed without the user pressing Enter.
 
 Valid values:
 
- * +true+
- * +false+
+ * +always+: Auto-follow whenever there is only a single hint on a page.
+ * +unique-match+: Auto-follow whenever there is a unique non-empty match in either the hint string (word mode) or filter (number mode).
+ * +full-match+: Follow the hint when the user typed the whole hint (letter, word or number mode) or the element's text (only in number mode).
+ * +never+: The user will always need to press Enter to follow a hint.
 
-Default: +pass:[true]+
+Default: +pass:[unique-match]+
 
 [[hints-auto-follow-timeout]]
 === auto-follow-timeout

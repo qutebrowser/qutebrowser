@@ -142,10 +142,10 @@ Contributors, sorted by the number of commits in descending order:
 * Florian Bruhin
 * Daniel Schadt
 * Ryan Roden-Corrent
+* Jakub Klinkovský
 * Antoni Boucher
 * Lamar Pavel
 * Bruno Oliveira
-* Jakub Klinkovský
 * Jan Verbeek
 * Alexander Cogneau
 * Marshall Lochbaum
