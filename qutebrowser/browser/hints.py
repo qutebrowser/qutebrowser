@@ -62,7 +62,6 @@ class HintContext:
     """Context namespace used for hinting.
 
     Attributes:
-        frames: The QWebFrames to use.
         all_elems: A list of all (elem, label) namedtuples ever created.
         elems: A mapping from key strings to (elem, label) namedtuples.
                May contain less elements than `all_elems` due to filtering.
@@ -79,6 +78,7 @@ class HintContext:
         to_follow: The link to follow when enter is pressed.
         args: Custom arguments for userscript/spawn
         rapid: Whether to do rapid hinting.
+        filterstr: Used to save the filter string for restoring in rapid mode.
         tab: The WebTab object we started hinting in.
         group: The group of web elements to hint.
     """
@@ -90,7 +90,7 @@ class HintContext:
         self.baseurl = None
         self.to_follow = None
         self.rapid = False
-        self.frames = []
+        self.filterstr = None
         self.args = []
         self.tab = None
         self.group = None
@@ -309,7 +309,6 @@ class HintManager(QObject):
         _context: The HintContext for the current invocation.
         _win_id: The window ID this HintManager is associated with.
         _tab_id: The tab ID this HintManager is associated with.
-        _filterstr: Used to save the filter string for restoring in rapid mode.
 
     Signals:
         See HintActions
@@ -342,7 +341,6 @@ class HintManager(QObject):
         self._win_id = win_id
         self._tab_id = tab_id
         self._context = None
-        self._filterstr = None
         self._word_hinter = WordHinter()
 
         self._actions = HintActions(win_id)
@@ -381,7 +379,6 @@ class HintManager(QObject):
                                     window=self._win_id)
         message_bridge.maybe_reset_text(text)
         self._context = None
-        self._filterstr = None
 
     def _hint_strings(self, elems):
         """Calculate the hint strings for elems.
@@ -394,6 +391,8 @@ class HintManager(QObject):
         Return:
             A list of hint strings, in the same order as the elements.
         """
+        if not elems:
+            return []
         hint_mode = self._context.hint_mode
         if hint_mode == 'word':
             try:
@@ -630,6 +629,15 @@ class HintManager(QObject):
         # Do multi-word matching
         return all(word in elemstr for word in filterstr.split())
 
+    def _filter_matches_exactly(self, filterstr, elemstr):
+        """Return True if `filterstr` exactly matches `elemstr`."""
+        # Empty string and None never match
+        if not filterstr:
+            return False
+        filterstr = filterstr.casefold()
+        elemstr = elemstr.casefold()
+        return filterstr == elemstr
+
     def _start_cb(self, elems):
         """Initialize the elements and labels based on the context set."""
         filterfunc = webelem.FILTERS.get(self._context.group, lambda e: True)
@@ -655,6 +663,9 @@ class HintManager(QObject):
         message_bridge.set_text(self._get_text())
         modeman.enter(self._win_id, usertypes.KeyMode.hint,
                       'HintManager.start')
+
+        # to make auto-follow == 'always' work
+        self._handle_auto_follow()
 
     @cmdutils.register(instance='hintmanager', scope='tab', name='hint',
                        star_args_optional=True, maxsplit=2,
@@ -753,7 +764,6 @@ class HintManager(QObject):
             self._context.baseurl = tabbed_browser.current_url()
         except qtutils.QtValueError:
             raise cmdexc.CommandError("No URL set for this page yet!")
-        self._context.tab = tab
         self._context.args = args
         self._context.group = group
         selector = webelem.SELECTORS[self._context.group]
@@ -766,6 +776,51 @@ class HintManager(QObject):
             return None
 
         return self._context.hint_mode
+
+    def _get_visible_hints(self):
+        """Get elements which are currently visible."""
+        visible = {}
+        for string, elem in self._context.elems.items():
+            try:
+                if not self._is_hidden(elem.label):
+                    visible[string] = elem
+            except webelem.Error:
+                pass
+        return visible
+
+    def _handle_auto_follow(self, keystr="", filterstr="", visible=None):
+        """Handle the auto-follow option."""
+        if visible is None:
+            visible = self._get_visible_hints()
+
+        if len(visible) != 1:
+            return
+
+        auto_follow = config.get('hints', 'auto-follow')
+
+        if auto_follow == "always":
+            follow = True
+        elif auto_follow == "unique-match":
+            follow = keystr or filterstr
+        elif auto_follow == "full-match":
+            elemstr = str(list(visible.values())[0].elem)
+            filter_match = self._filter_matches_exactly(filterstr, elemstr)
+            follow = (keystr in visible) or filter_match
+        else:
+            follow = False
+            # save the keystr of the only one visible hint to be picked up
+            # later by self.follow_hint
+            self._context.to_follow = list(visible.keys())[0]
+
+        if follow:
+            # apply auto-follow-timeout
+            timeout = config.get('hints', 'auto-follow-timeout')
+            keyparsers = objreg.get('keyparsers', scope='window',
+                                    window=self._win_id)
+            normal_parser = keyparsers[usertypes.KeyMode.normal]
+            normal_parser.set_inhibited_timeout(timeout)
+            # unpacking gets us the first (and only) key in the dict.
+            self._fire(*visible)
 
     def handle_partial_key(self, keystr):
         """Handle a new partial keypress."""
@@ -790,57 +845,7 @@ class HintManager(QObject):
                         self._hide_elem(elem.label)
             except webelem.Error:
                 pass
-
-    def _filter_number_hints(self):
-        """Apply filters for numbered hints and renumber them.
-
-        Return:
-            Elements which are still visible
-        """
-        # renumber filtered hints
-        elems = []
-        for e in self._context.all_elems:
-            try:
-                if not self._is_hidden(e.label):
-                    elems.append(e)
-            except webelem.Error:
-                pass
-        if not elems:
-            # Whoops, filtered all hints
-            modeman.leave(self._win_id, usertypes.KeyMode.hint,
-                          'all filtered')
-            return {}
-
-        strings = self._hint_strings(elems)
-        self._context.elems = {}
-        for elem, string in zip(elems, strings):
-            elem.label.set_inner_xml(string)
-            self._context.elems[string] = elem
-        keyparsers = objreg.get('keyparsers', scope='window',
-                                window=self._win_id)
-        keyparser = keyparsers[usertypes.KeyMode.hint]
-        keyparser.update_bindings(strings, preserve_filter=True)
-
-        return self._context.elems
-
-    def _filter_non_number_hints(self):
-        """Apply filters for letter/word hints.
-
-        Return:
-            Elements which are still visible
-        """
-        visible = {}
-        for string, elem in self._context.elems.items():
-            try:
-                if not self._is_hidden(elem.label):
-                    visible[string] = elem
-            except webelem.Error:
-                pass
-        if not visible:
-            # Whoops, filtered all hints
-            modeman.leave(self._win_id, usertypes.KeyMode.hint,
-                          'all filtered')
-        return visible
+        self._handle_auto_follow(keystr=keystr)
 
     def filter_hints(self, filterstr):
         """Filter displayed hints according to a text.
@@ -852,13 +857,15 @@ class HintManager(QObject):
                        and `self._filterstr` are None, all hints are shown.
         """
         if filterstr is None:
-            filterstr = self._filterstr
+            filterstr = self._context.filterstr
         else:
-            self._filterstr = filterstr
+            self._context.filterstr = filterstr
 
+        visible = []
         for elem in self._context.all_elems:
             try:
                 if self._filter_matches(filterstr, str(elem.elem)):
+                    visible.append(elem)
                     if self._is_hidden(elem.label):
                         # hidden element which matches again -> show it
                         self._show_elem(elem.label)
@@ -868,35 +875,37 @@ class HintManager(QObject):
             except webelem.Error:
                 pass
 
-        if self._context.hint_mode == 'number':
-            visible = self._filter_number_hints()
-        else:
-            visible = self._filter_non_number_hints()
+        if not visible:
+            # Whoops, filtered all hints
+            modeman.leave(self._win_id, usertypes.KeyMode.hint,
+                          'all filtered')
+            return
 
-        if (len(visible) == 1 and
-                config.get('hints', 'auto-follow') and
-                filterstr is not None):
-            # apply auto-follow-timeout
-            timeout = config.get('hints', 'auto-follow-timeout')
+        if self._context.hint_mode == 'number':
+            # renumber filtered hints
+            strings = self._hint_strings(visible)
+            self._context.elems = {}
+            for elem, string in zip(visible, strings):
+                elem.label.set_inner_xml(string)
+                self._context.elems[string] = elem
             keyparsers = objreg.get('keyparsers', scope='window',
                                     window=self._win_id)
-            normal_parser = keyparsers[usertypes.KeyMode.normal]
-            normal_parser.set_inhibited_timeout(timeout)
-            # unpacking gets us the first (and only) key in the dict.
-            self.fire(*visible)
+            keyparser = keyparsers[usertypes.KeyMode.hint]
+            keyparser.update_bindings(strings, preserve_filter=True)
 
-    def fire(self, keystr, force=False):
+            # Note: filter_hints can be called with non-None filterstr only
+            # when number mode is active
+            if filterstr is not None:
+                # pass self._context.elems as the dict of visible hints
+                self._handle_auto_follow(filterstr=filterstr,
+                                         visible=self._context.elems)
+
+    def _fire(self, keystr):
         """Fire a completed hint.
 
         Args:
             keystr: The keychain string to follow.
-            force: When True, follow even when auto-follow is false.
         """
-        if not (force or config.get('hints', 'auto-follow')):
-            self.handle_partial_key(keystr)
-            self._context.to_follow = keystr
-            return
-
         # Handlers which take a QWebElement
         elem_handlers = {
             Target.normal: self._actions.click,
@@ -969,7 +978,7 @@ class HintManager(QObject):
                 keystring = self._context.to_follow
         elif keystring not in self._context.elems:
             raise cmdexc.CommandError("No hint {}!".format(keystring))
-        self.fire(keystring, force=True)
+        self._fire(keystring)
 
     @pyqtSlot()
     def on_contents_size_changed(self):
