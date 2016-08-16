@@ -105,7 +105,7 @@ def main():
     tab = "    "
     print(tab + "def complete(self):")
     print((2 * tab) + "\"\"\"Complete a list of common user agents.\"\"\"")
-    print((2 * tab) + "%sout = [")
+    print((2 * tab) + "out = [")
 
     for browser in ["Firefox", "Safari", "Chrome", "Obscure"]:
         for it in filtered[browser]:
