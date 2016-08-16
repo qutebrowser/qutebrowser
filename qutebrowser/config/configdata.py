@@ -1598,7 +1598,7 @@ KEY_DATA = collections.OrderedDict([
 
     ('insert', collections.OrderedDict([
         ('open-editor', ['<Ctrl-E>']),
-        ('paste-primary', ['<Shift-Ins>']),
+        ('insert-text {primary}', ['<Shift-Ins>']),
     ])),
 
     ('hint', collections.OrderedDict([
@@ -1720,4 +1720,6 @@ CHANGED_KEY_COMMANDS = [
 
     (re.compile(r'^completion-item-next'), r'completion-item-focus next'),
     (re.compile(r'^completion-item-prev'), r'completion-item-focus prev'),
+
+    (re.compile(r'^paste-primary$'), r'insert-text {primary}'),
 ]

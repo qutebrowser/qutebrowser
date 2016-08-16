@@ -46,7 +46,7 @@ def test_insert_mode(file_name, source, input_text, auto_insert, quteproc):
         quteproc.press_keys(input_text)
     elif source == 'clipboard':
         quteproc.send_cmd(':debug-set-fake-clipboard "{}"'.format(input_text))
-        quteproc.send_cmd(':paste-primary')
+        quteproc.send_cmd(':insert-text {clipboard}')
 
     quteproc.send_cmd(':hint all')
     quteproc.send_cmd(':follow-hint a')
