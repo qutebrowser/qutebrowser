@@ -139,6 +139,15 @@ def fresh_instance(quteproc):
     quteproc.start()
 
 
+@bdd.given("I clean up open tabs")
+def clean_open_tabs(quteproc):
+    """Clean up open windows and tabs."""
+    quteproc.set_setting('tabs', 'last-close', 'blank')
+    quteproc.send_cmd(':window-only')
+    quteproc.send_cmd(':tab-only')
+    quteproc.send_cmd(':tab-close')
+
+
 ## When
 
 

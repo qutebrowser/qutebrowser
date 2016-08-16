@@ -68,6 +68,7 @@
 |<<unbind,unbind>>|Unbind a keychain.
 |<<undo,undo>>|Re-open a closed tab (optionally skipping [count] closed tabs).
 |<<view-source,view-source>>|Show the source of the current page.
+|<<window-only,window-only>>|Close all windows except for the current one.
 |<<wq,wq>>|Save open pages and quit.
 |<<yank,yank>>|Yank something to the clipboard or primary selection.
 |<<zoom,zoom>>|Set the zoom level for the current tab.
@@ -843,6 +844,10 @@ Re-open a closed tab (optionally skipping [count] closed tabs).
 [[view-source]]
 === view-source
 Show the source of the current page.
+
+[[window-only]]
+=== window-only
+Close all windows except for the current one.
 
 [[wq]]
 === wq

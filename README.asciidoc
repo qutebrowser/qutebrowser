@@ -169,13 +169,13 @@ Contributors, sorted by the number of commits in descending order:
 * Alexey "Averrin" Nabrodov
 * avk
 * ZDarian
+* Niklas Haas
 * Milan Svoboda
 * John ShaggyTwoDope Jenkins
 * Peter Vilim
 * Clayton Craft
 * nanjekyejoannah
 * Oliver Caldwell
-* Niklas Haas
 * Jonas Schürmann
 * error800
 * Michael Hoang

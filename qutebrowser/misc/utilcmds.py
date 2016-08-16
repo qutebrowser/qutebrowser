@@ -247,3 +247,12 @@ def log_capacity(capacity: int):
         raise cmdexc.CommandError("Can't set a negative log capacity!")
     else:
         log.ram_handler.change_log_capacity(capacity)
+
+
+@cmdutils.register()
+@cmdutils.argument('current_win_id', win_id=True)
+def window_only(current_win_id):
+    """Close all windows except for the current one."""
+    for win_id, window in objreg.window_registry.items():
+        if win_id != current_win_id:
+            window.close()
