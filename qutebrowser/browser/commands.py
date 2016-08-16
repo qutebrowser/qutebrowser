@@ -482,7 +482,8 @@ class CommandDispatcher:
     @cmdutils.register(instance='command-dispatcher', scope='window')
     @cmdutils.argument('where', choices=['prev', 'next', 'up', 'increment',
                                          'decrement'])
-    def navigate(self, where: str, tab=False, bg=False, window=False):
+    @cmdutils.argument('count', count=True)
+    def navigate(self, where: str, tab=False, bg=False, window=False, count=1):
         """Open typical prev/next links or navigate using the URL path.
 
         This tries to automatically click on typical _Previous Page_ or
@@ -526,7 +527,7 @@ class CommandDispatcher:
                 handler(browsertab=widget, win_id=self._win_id, baseurl=url,
                         tab=tab, background=bg, window=window)
             elif where in ['up', 'increment', 'decrement']:
-                new_url = handlers[where](url)
+                new_url = handlers[where](url, count)
                 self._open(new_url, tab, bg, window)
             else:  # pragma: no cover
                 raise ValueError("Got called with invalid value {} for "
