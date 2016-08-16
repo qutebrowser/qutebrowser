@@ -37,7 +37,7 @@ sys.path.insert(0, os.path.join(os.path.dirname(__file__), os.pardir,
 # We import qutebrowser.app so all @cmdutils-register decorators are run.
 import qutebrowser.app
 from scripts import asciidoc2html, utils
-from qutebrowser import qutebrowser
+from qutebrowser import qutebrowser, commands
 from qutebrowser.commands import cmdutils, argparser
 from qutebrowser.config import configdata
 from qutebrowser.utils import docutils, usertypes
@@ -320,7 +320,8 @@ def generate_commands(filename):
     """Generate the complete commands section."""
     with _open_file(filename) as f:
         f.write(FILE_HEADER)
-        f.write("= Commands\n")
+        f.write("= Commands\n\n")
+        f.write(commands.__doc__)
         normal_cmds = []
         hidden_cmds = []
         debug_cmds = []
