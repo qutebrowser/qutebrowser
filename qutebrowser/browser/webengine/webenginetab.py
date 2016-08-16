@@ -502,7 +502,7 @@ class WebEngineTab(browsertab.AbstractTab):
         page.linkHovered.connect(self.link_hovered)
         page.loadProgress.connect(self._on_load_progress)
         page.loadStarted.connect(self._on_load_started)
-        page.loadStarted.connect(self._on_history_trigger)
+        page.loadFinished.connect(self._on_history_trigger)
         view.titleChanged.connect(self.title_changed)
         view.urlChanged.connect(self._on_url_changed)
         page.loadFinished.connect(self._on_load_finished)
