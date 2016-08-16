@@ -772,13 +772,6 @@ class CommandDispatcher:
         message.info(self._win_id, "Zoom level: {}%".format(level))
 
     @cmdutils.register(instance='command-dispatcher', scope='window')
-    def window_only(self):
-        """Close all windows except for the current one."""
-        for win_id, window in objreg.window_registry.items():
-            if win_id != self._win_id:
-                window.close()
-
-    @cmdutils.register(instance='command-dispatcher', scope='window')
     def tab_only(self, left=False, right=False):
         """Close all tabs except for the current one.
 
