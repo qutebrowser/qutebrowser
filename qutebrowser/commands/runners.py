@@ -21,6 +21,7 @@
 
 import collections
 import traceback
+import re
 
 from PyQt5.QtCore import pyqtSlot, QUrl, QObject
 
@@ -50,26 +51,32 @@ def _current_url(tabbed_browser):
 def replace_variables(win_id, arglist):
     """Utility function to replace variables like {url} in a list of args."""
     variables = {
-        '{url}': lambda: _current_url(tabbed_browser).toString(
+        'url': lambda: _current_url(tabbed_browser).toString(
             QUrl.FullyEncoded | QUrl.RemovePassword),
-        '{url:pretty}': lambda: _current_url(tabbed_browser).toString(
+        'url:pretty': lambda: _current_url(tabbed_browser).toString(
             QUrl.RemovePassword),
-        '{clipboard}': utils.get_clipboard,
-        '{primary}': lambda: utils.get_clipboard(selection=True),
+        'clipboard': utils.get_clipboard,
+        'primary': lambda: utils.get_clipboard(selection=True),
     }
     values = {}
     args = []
     tabbed_browser = objreg.get('tabbed-browser', scope='window',
                                 window=win_id)
 
+    def repl_cb(matchobj):
+        """Return replacement for given match."""
+        var = matchobj.group("var")
+        if var not in values:
+            values[var] = variables[var]()
+        return values[var]
+    repl_pattern = re.compile("{(?P<var>" + "|".join(variables.keys()) + ")}")
+
     try:
         for arg in arglist:
-            for var, func in variables.items():
-                if var in arg:
-                    if var not in values:
-                        values[var] = func()
-                    arg = arg.replace(var, values[var])
-            args.append(arg)
+            # using re.sub with callback function replaces all variables in a
+            # single pass and avoids expansion of nested variables (e.g.
+            # "{url}" from clipboard is not expanded)
+            args.append(repl_pattern.sub(repl_cb, arg))
     except utils.ClipboardError as e:
         raise cmdexc.CommandError(e)
     return args
