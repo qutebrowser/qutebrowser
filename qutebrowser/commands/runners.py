@@ -47,6 +47,7 @@ def _current_url(tabbed_browser):
         msg += "!"
         raise cmdexc.CommandError(msg)
 
+
 def _current_domain(tabbed_browser):
     """Convenience method to get the current domain."""
     url = _current_url(tabbed_browser)
@@ -54,12 +55,14 @@ def _current_domain(tabbed_browser):
     return '{}://{}{}'.format(url.scheme(), url.host(),
                               ':' + str(port) if port > -1 else '')
 
+
 def _current_widget(tabbed_browser):
     """Get the currently active widget from a command."""
     widget = tabbed_browser.currentWidget()
     if widget is None:
         raise cmdexc.CommandError("No WebView available yet!")
     return widget
+
 
 def _get_selection(tabbed_browser):
     """Get the currently selected text."""
@@ -70,6 +73,7 @@ def _get_selection(tabbed_browser):
     log.misc.debug("{} {} found in selection".format(
         len(sel), "char" if len(sel) == 1 else "chars"))
     return sel
+
 
 def replace_variables(win_id, arglist):
     """Utility function to replace variables like {url} in a list of args."""

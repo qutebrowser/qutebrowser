@@ -663,7 +663,8 @@ class CommandDispatcher:
                 "Numeric argument is too large for internal int "
                 "representation.")
 
-    @cmdutils.register(instance='command-dispatcher', scope='window')
+    @cmdutils.register(instance='command-dispatcher', scope='window',
+                       maxsplit=0)
     @cmdutils.argument('what', choices=['selection', 'url', 'pretty-url',
                                         'title', 'domain'])
     def yank(self, what=None, sel=False, keep=False):
