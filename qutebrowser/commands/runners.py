@@ -27,7 +27,7 @@ from PyQt5.QtCore import pyqtSlot, QUrl, QObject
 
 from qutebrowser.config import config, configexc
 from qutebrowser.commands import cmdexc, cmdutils
-from qutebrowser.utils import message, objreg, qtutils, utils
+from qutebrowser.utils import message, objreg, qtutils, utils, log
 from qutebrowser.misc import split
 
 
@@ -47,6 +47,29 @@ def _current_url(tabbed_browser):
         msg += "!"
         raise cmdexc.CommandError(msg)
 
+def _current_domain(tabbed_browser):
+    """Convenience method to get the current domain."""
+    url = _current_url(tabbed_browser)
+    port = url.port()
+    return '{}://{}{}'.format(url.scheme(), url.host(),
+                              ':' + str(port) if port > -1 else '')
+
+def _current_widget(tabbed_browser):
+    """Get the currently active widget from a command."""
+    widget = tabbed_browser.currentWidget()
+    if widget is None:
+        raise cmdexc.CommandError("No WebView available yet!")
+    return widget
+
+def _get_selection(tabbed_browser):
+    """Get the currently selected text."""
+    caret = _current_widget(tabbed_browser).caret
+    sel = caret.selection()
+    if not caret.has_selection() or not sel:
+        raise cmdexc.CommandError("Nothing selected")
+    log.misc.debug("{} {} found in selection".format(
+        len(sel), "char" if len(sel) == 1 else "chars"))
+    return sel
 
 def replace_variables(win_id, arglist):
     """Utility function to replace variables like {url} in a list of args."""
@@ -57,6 +80,10 @@ def replace_variables(win_id, arglist):
             QUrl.RemovePassword),
         'clipboard': utils.get_clipboard,
         'primary': lambda: utils.get_clipboard(selection=True),
+        'title': lambda: tabbed_browser.page_title(
+            tabbed_browser.currentIndex()),
+        'domain': lambda: _current_domain(tabbed_browser),
+        'selection': lambda: _get_selection(tabbed_browser),
     }
     values = {}
     args = []
