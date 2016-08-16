@@ -245,16 +245,16 @@ Feature: Caret mode
         When selection is supported
         And I run :toggle-selection
         And I run :move-to-end-of-word
-        And I run :yank {selection} --sel
+        And I run :yank --sel {selection}
         Then "3 chars found in selection" should be logged.
         And the primary selection should contain "one"
 
     Scenario: :yank {selection} with --keep
         When I run :toggle-selection
         And I run :move-to-end-of-word
-        And I run :yank {selection} --keep
+        And I run :yank --keep {selection}
         And I run :move-to-end-of-word
-        And I run :yank {selection} --keep
+        And I run :yank --keep {selection}
         Then "3 chars found in selection" should be logged.
         And "7 chars found in selection" should be logged.
         And the clipboard should contain "one two"
