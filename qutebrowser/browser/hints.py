@@ -23,11 +23,13 @@ import collections
 import functools
 import math
 import re
+import html
 from string import ascii_lowercase
 
 from PyQt5.QtCore import (pyqtSignal, pyqtSlot, QObject, QEvent, Qt, QUrl,
                           QTimer)
 from PyQt5.QtGui import QMouseEvent
+from PyQt5.QtWidgets import QLabel
 from PyQt5.QtWebKitWidgets import QWebPage
 
 from qutebrowser.config import config
@@ -55,6 +57,72 @@ def on_mode_entered(mode, win_id):
     """Stop hinting when insert mode was entered."""
     if mode == usertypes.KeyMode.insert:
         modeman.maybe_leave(win_id, usertypes.KeyMode.hint, 'insert mode')
+
+
+class HintLabel(QLabel):
+
+    """A label for a link.
+
+    Attributes:
+        elem: The element this label belongs to.
+        _context: The current hinting context.
+    """
+
+    def __init__(self, elem, context):
+        super().__init__(parent=context.tab)
+        self._context = context
+        self.elem = elem
+        self._context.tab.contents_size_changed.connect(
+            self._on_contents_size_changed)
+        self._move_to_elem()
+        self.show()
+
+        # FIXME styling
+        # ('color', config.get('colors', 'hints.fg') + ' !important'),
+        # ('background', config.get('colors', 'hints.bg') + ' !important'),
+        # ('font', config.get('fonts', 'hints') + ' !important'),
+        # ('border', config.get('hints', 'border') + ' !important'),
+        # ('opacity', str(config.get('hints', 'opacity')) + ' !important'),
+
+    def update_text(self, matched, unmatched):
+        """Set the text for the hint.
+
+        Args:
+            matched: The part of the text which was typed.
+            unmatched: The part of the text which was not typed yet.
+        """
+        if (config.get('hints', 'uppercase') and
+                self._context.hint_mode == 'letter'):
+            matched = html.escape(matched.upper())
+            unmatched = html.escape(unmatched.upper())
+        else:
+            matched = html.escape(matched)
+            unmatched = html.escape(unmatched)
+
+        match_color = html.escape(config.get('colors', 'hints.fg.match'))
+        self.setText('<font color="{}">{}</font>{}'.format(
+            match_color, matched, unmatched))
+
+    def _move_to_elem(self):
+        """Reposition the label to its element."""
+        no_js = config.get('hints', 'find-implementation') != 'javascript'
+        rect = self.elem.rect_on_view(adjust_zoom=False, no_js=no_js)
+        self.move(rect.x(), rect.y())
+
+    @pyqtSlot()
+    def _on_contents_size_changed(self):
+        """Reposition hints if contents size changed."""
+        log.hints.debug("Contents size changed...!")
+        if self.elem.frame() is None:
+            # This sometimes happens for some reason...
+            self.cleanup()
+        else:
+            self._move_to_elem()
+
+    def cleanup(self):
+        """Clean up this element and hide it."""
+        self.hide()
+        self.deleteLater()
 
 
 class HintContext:
@@ -362,18 +430,9 @@ class HintManager(QObject):
 
     def _cleanup(self):
         """Clean up after hinting."""
-        try:
-            self._context.tab.contents_size_changed.disconnect(
-                self.on_contents_size_changed)
-        except TypeError:
-            # For some reason, this can fail sometimes...
-            pass
-
         for elem in self._context.all_elems:
-            try:
-                elem.label.remove_from_document()
-            except webelem.Error:
-                pass
+            elem.label.cleanup()
+
         text = self._get_text()
         message_bridge = objreg.get('message-bridge', scope='window',
                                     window=self._win_id)
@@ -513,87 +572,6 @@ class HintManager(QObject):
             hintstr.insert(0, chars[0])
         return ''.join(hintstr)
 
-    def _is_hidden(self, elem):
-        """Check if the element is hidden via display=none."""
-        display = elem.style_property('display', strategy='inline')
-        return display == 'none'
-
-    def _show_elem(self, elem):
-        """Show a given element."""
-        elem.set_style_property('display', 'inline !important')
-
-    def _hide_elem(self, elem):
-        """Hide a given element."""
-        elem.set_style_property('display', 'none !important')
-
-    def _set_style_properties(self, elem, label):
-        """Set the hint CSS on the element given.
-
-        Args:
-            elem: The QWebElement to set the style attributes for.
-            label: The label QWebElement.
-        """
-        attrs = [
-            ('display', 'inline !important'),
-            ('z-index', '{} !important'.format(int(2 ** 32 / 2 - 1))),
-            ('pointer-events', 'none !important'),
-            ('position', 'fixed !important'),
-            ('color', config.get('colors', 'hints.fg') + ' !important'),
-            ('background', config.get('colors', 'hints.bg') + ' !important'),
-            ('font', config.get('fonts', 'hints') + ' !important'),
-            ('border', config.get('hints', 'border') + ' !important'),
-            ('opacity', str(config.get('hints', 'opacity')) + ' !important'),
-        ]
-
-        # Make text uppercase if set in config
-        if (config.get('hints', 'uppercase') and
-                self._context.hint_mode == 'letter'):
-            attrs.append(('text-transform', 'uppercase !important'))
-        else:
-            attrs.append(('text-transform', 'none !important'))
-
-        for k, v in attrs:
-            label.set_style_property(k, v)
-        self._set_style_position(elem, label)
-
-    def _set_style_position(self, elem, label):
-        """Set the CSS position of the label element.
-
-        Args:
-            elem: The QWebElement to set the style attributes for.
-            label: The label QWebElement.
-        """
-        no_js = config.get('hints', 'find-implementation') != 'javascript'
-        rect = elem.rect_on_view(adjust_zoom=False, no_js=no_js)
-        left = rect.x()
-        top = rect.y()
-        log.hints.vdebug("Drawing label '{!r}' at {}/{} for element '{!r}' "
-                         "(no_js: {})".format(label, left, top, elem, no_js))
-        label.set_style_property('left', '{}px !important'.format(left))
-        label.set_style_property('top', '{}px !important'.format(top))
-
-    def _draw_label(self, elem, string):
-        """Draw a hint label over an element.
-
-        Args:
-            elem: The QWebElement to use.
-            string: The hint string to print.
-
-        Return:
-            The newly created label element
-        """
-        doc = elem.document_element()
-        body = doc.find_first('body')
-        if body is None:
-            parent = doc
-        else:
-            parent = body
-        label = parent.create_inside('span')
-        label['class'] = 'qutehint'
-        self._set_style_properties(elem, label)
-        label.set_text(string)
-        return label
-
     def _show_url_error(self):
         """Show an error because no link was found."""
         message.error(self._win_id, "No suitable link found for this element.",
@@ -646,18 +624,19 @@ class HintManager(QObject):
             raise cmdexc.CommandError("No elements found.")
         strings = self._hint_strings(elems)
         log.hints.debug("hints: {}".format(', '.join(strings)))
+
         for e, string in zip(elems, strings):
-            label = self._draw_label(e, string)
+            label = HintLabel(e, self._context)
+            label.update_text('', string)
             elem = ElemTuple(e, label)
             self._context.all_elems.append(elem)
             self._context.elems[string] = elem
+
         keyparsers = objreg.get('keyparsers', scope='window',
                                 window=self._win_id)
         keyparser = keyparsers[usertypes.KeyMode.hint]
         keyparser.update_bindings(strings)
 
-        self._context.tab.contents_size_changed.connect(
-            self.on_contents_size_changed)
         message_bridge = objreg.get('message-bridge', scope='window',
                                     window=self._win_id)
         message_bridge.set_text(self._get_text())
@@ -777,21 +756,12 @@ class HintManager(QObject):
 
         return self._context.hint_mode
 
-    def _get_visible_hints(self):
-        """Get elements which are currently visible."""
-        visible = {}
-        for string, elem in self._context.elems.items():
-            try:
-                if not self._is_hidden(elem.label):
-                    visible[string] = elem
-            except webelem.Error:
-                pass
-        return visible
-
     def _handle_auto_follow(self, keystr="", filterstr="", visible=None):
         """Handle the auto-follow option."""
         if visible is None:
-            visible = self._get_visible_hints()
+            visible = {string: elem
+                       for string, elem in self._context.elems.items()
+                       if elem.label.isVisible()}
 
         if len(visible) != 1:
             return
@@ -830,19 +800,15 @@ class HintManager(QObject):
                 if string.startswith(keystr):
                     matched = string[:len(keystr)]
                     rest = string[len(keystr):]
-                    match_color = config.get('colors', 'hints.fg.match')
-                    elem.label.set_inner_xml(
-                        '<font color="{}">{}</font>{}'.format(
-                            match_color, matched, rest))
-                    if self._is_hidden(elem.label):
-                        # hidden element which matches again -> show it
-                        self._show_elem(elem.label)
+                    elem.label.update_text(matched, rest)
+                    # Show label again if it was hidden before
+                    elem.label.show()
                 else:
                     # element doesn't match anymore -> hide it, unless in rapid
                     # mode and hide-unmatched-rapid-hints is false (see #1799)
                     if (not self._context.rapid or
                             config.get('hints', 'hide-unmatched-rapid-hints')):
-                        self._hide_elem(elem.label)
+                        elem.label.hide()
             except webelem.Error:
                 pass
         self._handle_auto_follow(keystr=keystr)
@@ -866,12 +832,11 @@ class HintManager(QObject):
             try:
                 if self._filter_matches(filterstr, str(elem.elem)):
                     visible.append(elem)
-                    if self._is_hidden(elem.label):
-                        # hidden element which matches again -> show it
-                        self._show_elem(elem.label)
+                    # Show label again if it was hidden before
+                    elem.label.show()
                 else:
                     # element doesn't match anymore -> hide it
-                    self._hide_elem(elem.label)
+                    elem.label.hide()
             except webelem.Error:
                 pass
 
@@ -886,7 +851,7 @@ class HintManager(QObject):
             strings = self._hint_strings(visible)
             self._context.elems = {}
             for elem, string in zip(visible, strings):
-                elem.label.set_inner_xml(string)
+                elem.label.update_text('', string)
                 self._context.elems[string] = elem
             keyparsers = objreg.get('keyparsers', scope='window',
                                     window=self._win_id)
@@ -956,7 +921,7 @@ class HintManager(QObject):
             self.filter_hints(None)
             # Undo keystring highlighting
             for string, elem in self._context.elems.items():
-                elem.label.set_inner_xml(string)
+                elem.label.update_text('', string)
 
         try:
             handler()
@@ -979,20 +944,6 @@ class HintManager(QObject):
         elif keystring not in self._context.elems:
             raise cmdexc.CommandError("No hint {}!".format(keystring))
         self._fire(keystring)
-
-    @pyqtSlot()
-    def on_contents_size_changed(self):
-        """Reposition hints if contents size changed."""
-        log.hints.debug("Contents size changed...!")
-        for e in self._context.all_elems:
-            try:
-                if e.elem.frame() is None:
-                    # This sometimes happens for some reason...
-                    e.label.remove_from_document()
-                    continue
-                self._set_style_position(e.elem, e.label)
-            except webelem.Error:
-                pass
 
     @pyqtSlot(usertypes.KeyMode)
     def on_mode_left(self, mode):
