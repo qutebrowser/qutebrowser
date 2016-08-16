@@ -61,6 +61,8 @@ def whitelist_generator():
     yield 'qutebrowser.utils.debug.qflags_key'
     yield 'qutebrowser.utils.qtutils.QtOSError.qt_errno'
     yield 'scripts.utils.bg_colors'
+    yield 'qutebrowser.browser.webelem.AbstractWebElement.style_property'
+    yield 'qutebrowser.config.configtypes.Float'
 
     # Qt attributes
     yield 'PyQt5.QtWebKit.QWebPage.ErrorPageExtensionReturn().baseUrl'
