@@ -31,11 +31,12 @@ class Error(Exception):
     """Raised when the navigation can't be done."""
 
 
-def incdec(url, inc_or_dec):
+def incdec(url, count, inc_or_dec):
     """Helper method for :navigate when `where' is increment/decrement.
 
     Args:
         url: The current url.
+        count: How much to increment or decrement by.
         inc_or_dec: Either 'increment' or 'decrement'.
         tab: Whether to open the link in a new tab.
         background: Open the link in a new background tab.
@@ -43,23 +44,26 @@ def incdec(url, inc_or_dec):
     """
     segments = set(config.get('general', 'url-incdec-segments'))
     try:
-        new_url = urlutils.incdec_number(url, inc_or_dec, segments=segments)
+        new_url = urlutils.incdec_number(url, inc_or_dec, count,
+                                         segments=segments)
     except urlutils.IncDecError as error:
         raise Error(error.msg)
     return new_url
 
 
-def path_up(url):
+def path_up(url, count):
     """Helper method for :navigate when `where' is up.
 
     Args:
         url: The current url.
+        count: The number of levels to go up in the url.
     """
     path = url.path()
     if not path or path == '/':
         raise Error("Can't go up!")
-    new_path = posixpath.join(path, posixpath.pardir)
-    url.setPath(new_path)
+    for _i in range(0, min(count, path.count('/'))):
+        path = posixpath.join(path, posixpath.pardir)
+    url.setPath(path)
     return url
 
 
