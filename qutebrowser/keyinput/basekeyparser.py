@@ -126,12 +126,20 @@ class BaseKeyParser(QObject):
             self._debug_log("Ignoring only-modifier keyeevent.")
             return False
         binding = binding.lower()
+        count = None
+        if self._supports_count and self._keystring:
+            try:
+                count = int(self._keystring)
+            except ValueError:
+                self._debug_log("Ignoring non-integer count {}.".format(
+                    self._keystring))
         try:
             cmdstr = self.special_bindings[binding]
         except KeyError:
             self._debug_log("No special binding found for {}.".format(binding))
             return False
-        self.execute(cmdstr, self.Type.special)
+        self.clear_keystring()
+        self.execute(cmdstr, self.Type.special, count)
         return True
 
     def _split_count(self):

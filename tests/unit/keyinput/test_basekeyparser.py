@@ -183,7 +183,7 @@ class TestSpecialKeys:
         keyparser.handle(fake_keyevent_factory(Qt.Key_A, modifier))
         keyparser.handle(fake_keyevent_factory(Qt.Key_X, modifier))
         keyparser.execute.assert_called_once_with(
-            'ctrla', keyparser.Type.special)
+            'ctrla', keyparser.Type.special, None)
 
     def test_invalid_key(self, fake_keyevent_factory, keyparser):
         keyparser.handle(fake_keyevent_factory(
@@ -217,7 +217,7 @@ class TestKeyChain:
         keyparser.handle(fake_keyevent_factory(Qt.Key_A, modifier))
         keyparser.handle(fake_keyevent_factory(Qt.Key_X, modifier))
         keyparser.execute.assert_called_once_with(
-            'ctrla', keyparser.Type.special)
+            'ctrla', keyparser.Type.special, None)
         assert keyparser._keystring == ''
 
     def test_invalid_special_key(self, fake_keyevent_factory, keyparser):
