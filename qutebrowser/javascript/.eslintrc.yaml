@@ -34,3 +34,4 @@ rules:
      wrap-iife: ["error", "inside"]
      func-names: "off"
      sort-keys: "off"
+     no-warning-comments: "off"
