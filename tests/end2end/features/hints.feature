@@ -188,6 +188,17 @@ Feature: Using hints
         And I press the key ","
         Then the message "Keypress worked!" should be shown
 
+    ### Word hints
+
+    Scenario: Hinting with a too short dictionary
+        When I open data/hints/short_dict.html
+        And I set hints -> mode to word
+        And I run :hint
+        # Test letter fallback
+        And I run :follow-hint d
+        Then the error "Not enough words in the dictionary." should be shown
+        And data/numbers/5.txt should be loaded
+
     ### Number hint mode
 
     # https://github.com/The-Compiler/qutebrowser/issues/308

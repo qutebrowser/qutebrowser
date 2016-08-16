@@ -113,20 +113,3 @@ def test_word_hints_issue1393(quteproc, tmpdir):
         quteproc.wait_for(message='hints: *', category='hints')
         quteproc.send_cmd(':follow-hint {}'.format(hint))
         quteproc.wait_for_load_finished('data/{}'.format(target))
-
-
-def test_short_dict(quteproc, tmpdir):
-    dict_file = tmpdir / 'dict'
-    dict_file.write(textwrap.dedent("""
-        worda
-        wordb
-    """))
-    quteproc.set_setting('hints', 'mode', 'word')
-    quteproc.set_setting('hints', 'dictionary', str(dict_file))
-    quteproc.open_path('data/hints/short_dict.html')
-    quteproc.send_cmd(':hint')
-    line = quteproc.wait_for(message='Not enough words in the dictionary.')
-    line.expected = True
-    quteproc.wait_for(message='hints: *', category='hints')
-    quteproc.send_cmd(':follow-hint d')
-    quteproc.wait_for_load_finished('data/hello3.txt')
