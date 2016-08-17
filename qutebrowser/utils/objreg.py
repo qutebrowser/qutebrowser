@@ -298,13 +298,13 @@ def last_focused_window():
     try:
         return get('last-focused-main-window')
     except KeyError:
-        return last_window()
+        return window_by_index(-1)
 
 
-def last_window():
-    """Get the last opened window object."""
+def window_by_index(idx):
+    """Get the Nth opened window object."""
     if not window_registry:
         raise NoWindow()
     else:
-        key = sorted(window_registry)[-1]
+        key = sorted(window_registry)[idx]
         return window_registry[key]

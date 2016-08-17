@@ -365,6 +365,15 @@ class QuteProc(testprocess.Process):
         finally:
             super().after_test()
 
+    def send_ipc(self, commands, target_arg=''):
+        """Send a raw command to the running IPC socket."""
+        time.sleep(self._delay / 1000)
+
+        assert self._ipc_socket is not None
+        ipc.send_to_running_instance(self._ipc_socket, commands, target_arg)
+        self.wait_for(category='ipc', module='ipc', function='on_ready_read',
+                      message='Read from socket *')
+
     def send_cmd(self, command, count=None, invalid=False, *, escape=True):
         """Send a command to the running qutebrowser instance.
 
@@ -379,18 +388,13 @@ class QuteProc(testprocess.Process):
             summary += ' (count {})'.format(count)
         self.log_summary(summary)
 
-        assert self._ipc_socket is not None
-
-        time.sleep(self._delay / 1000)
-
         if escape:
             command = command.replace('\\', r'\\')
 
         if count is not None:
             command = ':{}:{}'.format(count, command.lstrip(':'))
 
-        ipc.send_to_running_instance(self._ipc_socket, [command],
-                                     target_arg='')
+        self.send_ipc([command])
         if not invalid:
             self.wait_for(category='commands', module='command',
                           function='run', message='command called: *')
@@ -418,18 +422,22 @@ class QuteProc(testprocess.Process):
         yield
         self.set_setting(sect, opt, old_value)
 
-    def open_path(self, path, *, new_tab=False, new_window=False, port=None,
-                  https=False, wait=True):
+    def open_path(self, path, *, new_tab=False, new_window=False, as_url=False,
+                  port=None, https=False, wait=True):
         """Open the given path on the local webserver in qutebrowser."""
         url = self.path_to_url(path, port=port, https=https)
-        self.open_url(url, new_tab=new_tab, new_window=new_window, wait=wait)
+        self.open_url(url, new_tab=new_tab, new_window=new_window,
+                      as_url=as_url, wait=wait)
 
-    def open_url(self, url, *, new_tab=False, new_window=False, wait=True):
+    def open_url(self, url, *, new_tab=False, new_window=False, as_url=False,
+                 wait=True):
         """Open the given url in qutebrowser."""
         if new_tab and new_window:
             raise ValueError("new_tab and new_window given!")
 
-        if new_tab:
+        if as_url:
+            self.send_cmd(url, invalid=True)
+        elif new_tab:
             self.send_cmd(':open -t ' + url)
         elif new_window:
             self.send_cmd(':open -w ' + url)
