@@ -30,7 +30,6 @@ from PyQt5.QtCore import (pyqtSignal, pyqtSlot, QObject, QEvent, Qt, QUrl,
                           QTimer)
 from PyQt5.QtGui import QMouseEvent
 from PyQt5.QtWidgets import QLabel
-from PyQt5.QtWebKitWidgets import QWebPage
 
 from qutebrowser.config import config, style
 from qutebrowser.keyinput import modeman, modeparsers
@@ -265,9 +264,7 @@ class HintActions(QObject):
         for evt in events:
             self.mouse_event.emit(evt)
         if elem.is_text_input() and elem.is_editable():
-            QTimer.singleShot(0, functools.partial(
-                elem.frame().page().triggerAction,
-                QWebPage.MoveToEndOfDocument))
+            QTimer.singleShot(0, context.tab.caret.move_to_end_of_document)
         QTimer.singleShot(0, self.stop_hinting.emit)
 
     def yank(self, url, context):
