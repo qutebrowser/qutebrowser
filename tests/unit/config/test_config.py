@@ -232,7 +232,7 @@ class TestTransformers:
 
     OLD_GRADIENT = ('-webkit-gradient(linear, left top, left bottom, '
                     'color-stop(0%,{}), color-stop(100%,{}))')
-    NEW_GRADIENT = ('qlineargradient(x1:0, y1:0, x2:1, y2:1, stop:0 {}, '
+    NEW_GRADIENT = ('qlineargradient(x1:0, y1:0, x2:0, y2:1, stop:0 {}, '
                     'stop:1 {})')
 
     @pytest.mark.parametrize('val, expected', [

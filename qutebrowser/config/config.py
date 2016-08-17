@@ -311,7 +311,7 @@ def _transform_hint_color(val):
             if not start_color.isValid() or not stop_color.isValid():
                 return None
 
-            return ('qlineargradient(x1:0, y1:0, x2:1, y2:1, stop:0 {}, '
+            return ('qlineargradient(x1:0, y1:0, x2:0, y2:1, stop:0 {}, '
                     'stop:1 {})'.format(to_rgba(start_color),
                                         to_rgba(stop_color)))
         else:

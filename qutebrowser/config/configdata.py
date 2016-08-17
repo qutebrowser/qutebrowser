@@ -1209,7 +1209,7 @@ def data(readonly=False):
              "Font color for hints."),
 
             ('hints.bg',
-             SettingValue(typ.QssColor(), 'qlineargradient(x1:0, y1:0, x2:1, '
+             SettingValue(typ.QssColor(), 'qlineargradient(x1:0, y1:0, x2:0, '
                           'y2:1, stop:0 rgba(255, 247, 133, 0.8), '
                           'stop:1 rgba(255, 197, 66, 0.8))'),
              "Background color for hints. Note that you can use a `rgba(...)` "

@@ -2047,7 +2047,7 @@ Default: +pass:[black]+
 === hints.bg
 Background color for hints. Note that you can use a `rgba(...)` value for transparency.
 
-Default: +pass:[qlineargradient(x1:0, y1:0, x2:1, y2:1, stop:0 rgba(255, 247, 133, 0.8), stop:1 rgba(255, 197, 66, 0.8))]+
+Default: +pass:[qlineargradient(x1:0, y1:0, x2:0, y2:1, stop:0 rgba(255, 247, 133, 0.8), stop:1 rgba(255, 197, 66, 0.8))]+
 
 [[colors-hints.fg.match]]
 === hints.fg.match
