@@ -67,7 +67,8 @@ def get_window(via_ipc, force_window=False, force_tab=False,
     if force_window:
         open_target = 'window'
     if force_tab and open_target == 'window':
-        open_target = 'tab'  # for lack of a better default
+        # Command sent via IPC
+        open_target = 'tab-silent'
 
     window = None
     raise_window = False
