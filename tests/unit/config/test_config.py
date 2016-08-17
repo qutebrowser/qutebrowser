@@ -256,6 +256,15 @@ class TestTransformers:
     def test_hint_color(self, val, expected):
         assert config._transform_hint_color(val) == expected
 
+    @pytest.mark.parametrize('val, expected', [
+        ('bold 12pt Monospace', 'bold 12pt ${_monospace}'),
+        ('23pt Monospace', '23pt ${_monospace}'),
+        ('bold 12pt ${_monospace}', 'bold 12pt ${_monospace}'),
+        ('bold 12pt Comic Sans MS', 'bold 12pt Comic Sans MS'),
+    ])
+    def test_hint_font(self, val, expected):
+        assert config._transform_hint_font(val) == expected
+
 
 class TestKeyConfigParser:
 

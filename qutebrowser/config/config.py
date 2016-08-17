@@ -322,6 +322,16 @@ def _transform_hint_color(val):
         return val
 
 
+def _transform_hint_font(val):
+    """Transformer for fonts -> hints."""
+    match = re.fullmatch(r'(.*\d+p[xt]) Monospace', val)
+    if match:
+        # Close enough to the old default:
+        return match.group(1) + ' ${_monospace}'
+    else:
+        return val
+
+
 class ConfigManager(QObject):
 
     """Configuration manager for qutebrowser.
@@ -407,6 +417,7 @@ class ConfigManager(QObject):
         ('colors', 'hints.bg'): _transform_hint_color,
         ('colors', 'hints.fg'): _transform_hint_color,
         ('colors', 'hints.fg.match'): _transform_hint_color,
+        ('fonts', 'hints'): _transform_hint_font,
     }
 
     changed = pyqtSignal(str, str)

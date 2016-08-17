@@ -1305,7 +1305,7 @@ def data(readonly=False):
              "Font used for the downloadbar."),
 
             ('hints',
-             SettingValue(typ.Font(), 'bold 13px Monospace'),
+             SettingValue(typ.Font(), 'bold 13px ${_monospace}'),
              "Font used for the hints."),
 
             ('debug-console',
