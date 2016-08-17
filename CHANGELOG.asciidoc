@@ -42,6 +42,20 @@ Added
 Changed
 ~~~~~~~
 
+- Hints are now drawn natively in Qt instead of using web elements. This has a
+  few implications for users:
+    * The `hints -> opacity` setting does not exist anymore, but you can use
+      `rgba(r, g, b, alpha)` colors instead for `colors -> hints.bg`.
+    * The `hints -> font` setting is not affected by
+      `fonts -> web-family-fixed` anymore. Thus, a transformer got added to
+      change `Monospace` to `${_monospace}`.
+    * Gradients in hint colors can now be configured by using `qlineargradient`
+      and friends instead of `-webkit-gradient`. The most common cases get
+      migrated automatically, but if you drastically changed the defaults,
+      you'll need to manually adjust your config.
+    * Styling hints by styling `qutehint` elements in `user-stylesheet` was
+      never officially supported and does not work anymore.
+    * Hints are now not affected by the page's stylesheet or zoom anymore.
 - `:bookmark-add` now has a `--toggle` flag which deletes the bookmark if it
   already exists.
 - `:bookmark-load` now has a `--delete` flag which deletes the bookmark after
@@ -99,6 +113,7 @@ Removed
   into a new `:completion-focus {prev,next}` command and thus removed.
 - The `ui -> hide-mouse-cursor` setting since it was completely broken and
   nobody seemed to care.
+- The `hints -> opacity` setting - see the "Changed" section for details.
 
 Fixed
 ~~~~~
