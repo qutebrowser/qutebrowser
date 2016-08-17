@@ -61,22 +61,48 @@ class QuteWMProcess(testprocess.Process):
         return []
 
 
-@pytest.yield_fixture(autouse=True)
+@pytest.yield_fixture(scope='session')
 def qutewm(request, qapp):
-    """Fixture for a qutewm object which ensures clean setup/teardown.
+    """Makes sure a qutewm instance is running for this session.
 
-    This does nothing if the test does not have the "qutewm" marker set.
+    If qutewm can't be started, this returns None.
+    """
+    if sys.platform != 'linux':
+        request.session._qutewm = None
+        yield None
+        return
+
+    if hasattr(request.session, '_qutewm'):
+        yield request.session._qutewm
+        return
+
+    qutewm = QuteWMProcess()
+    qutewm.start()
+
+    if qutewm.wm_failed:
+        yield None
+        return
+
+    request.session._qutewm = qutewm
+    yield qutewm
+    qutewm.terminate()
+
+
+@pytest.yield_fixture(autouse=True)
+def qutewm_manager(request):
+    """Fixture to reset qutewm for each test.
+
+    This does nothing if the test does not have the "qutewm" marker set. If the
+    marker is set and qutewm is not running, this skips the test.
     """
     if not request.node.get_marker('qutewm'):
         yield
         return
-    if sys.platform != 'linux':
-        pytest.skip('qutewm requires linux')
-    qutewm = QuteWMProcess()
-    qutewm.start()
-    if qutewm.wm_failed:
-        pytest.skip('another wm is running')
+    if getattr(request.session, '_qutewm', None) is None:
+        pytest.skip('qutewm required but not started')
+
+    qutewm = request.session._qutewm
+    qutewm.before_test()
     request.node._qutewm_log = qutewm.captured_log
     yield qutewm
     qutewm.after_test()
-    qutewm.terminate()
