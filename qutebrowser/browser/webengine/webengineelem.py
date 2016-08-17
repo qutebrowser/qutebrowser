@@ -123,11 +123,6 @@ class WebEngineElement(webelem.AbstractWebElement):
     def rect_on_view(self, *, elem_geometry=None, no_js=False):
         """Get the geometry of the element relative to the webview.
 
-        Uses the getClientRects() JavaScript method to obtain the collection of
-        rectangles containing the element and returns the first rectangle which
-        is large enough (larger than 1px times 1px). If all rectangles returned
-        by getClientRects() are too small, falls back to elem.rect_on_view().
-
         Skipping of small rectangles is due to <a> elements containing other
         elements with "display:block" style, see
         https://github.com/The-Compiler/qutebrowser/issues/1298
