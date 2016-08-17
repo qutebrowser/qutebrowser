@@ -31,9 +31,8 @@ from qutebrowser.keyinput import keyparser
 from qutebrowser.utils import usertypes, log, objreg, utils
 from qutebrowser.config.parsers import keyconf
 
-
-conf = keyconf.KeyConfigParser(None, None) 
-STARTCHARS = conf.get_bindings_for('normal').keys()
+ 
+STARTCHARS = ":/?"
 LastPress = usertypes.enum('LastPress', ['none', 'filtertext', 'keystring'])
 
 
@@ -72,7 +71,7 @@ class NormalKeyParser(keyparser.CommandKeyParser):
             self._debug_log("Ignoring key '{}', because the normal mode is "
                 "currently inhibited.".format(txt))
             return self.Match.none
-        if not self._keystring and any(txt == c for c in STARTCHARS):
+        if not self._keystring:
             message.set_cmd_text(self._win_id, txt)
             return self.Match.definitive
         match = super()._handle_single_key(e)
