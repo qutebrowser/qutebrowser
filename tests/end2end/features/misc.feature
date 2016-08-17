@@ -570,3 +570,13 @@ Feature: Various utility commands.
     Scenario: Using debug-log-filter with invalid filter
         When I run :debug-log-filter hello
         Then the error "Invalid argument, hello choose from statusbar,completion,init,url,destroy,modes,webview,misc,mouse,procs,hints,keyboard,commands,signals,downloads,js,qt,rfc6266,ipc,shlexer,save,message,config,sessions" should be shown
+
+    ## loglevel
+
+    Scenario: :debug-log-level with warning argument
+        When I run :message-error the-error-message
+        And I run :message-warning the-warning-message
+        And I run :message-info the-info-message
+        And I run :debug-log-level warning
+        Then the error "the-error-message" should be shown
+        And the warning "the-warning-message" should be shown
