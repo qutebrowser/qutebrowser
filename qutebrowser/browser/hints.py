@@ -88,6 +88,13 @@ class HintLabel(QLabel):
         self._move_to_elem()
         self.show()
 
+    def __repr__(self):
+        try:
+            text = self.text()
+        except RuntimeError:
+            text = '<deleted>'
+        return utils.get_repr(self, elem=self.elem, text=text)
+
     def update_text(self, matched, unmatched):
         """Set the text for the hint.
 
