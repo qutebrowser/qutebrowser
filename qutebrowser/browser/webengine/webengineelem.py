@@ -32,10 +32,10 @@ class WebEngineElement(webelem.AbstractWebElement):
 
     """A web element for QtWebEngine, using JS under the hood."""
 
-    def __init__(self, js_dict, run_js_callable):
+    def __init__(self, js_dict, tab):
         self._id = js_dict['id']
         self._js_dict = js_dict
-        self._run_js = run_js_callable
+        self._tab = tab
 
     def __eq__(self, other):
         if not isinstance(other, WebEngineElement):
@@ -106,7 +106,7 @@ class WebEngineElement(webelem.AbstractWebElement):
         """
         # FIXME:qtwebengine what to do about use_js with WebEngine?
         js_code = javascript.assemble('webelem', 'set_text', self._id, text)
-        self._run_js(js_code)
+        self._tab.run_js_async(js_code)
 
     def run_js_async(self, code, callback=None):
         """Run the given JS snippet async on the element."""

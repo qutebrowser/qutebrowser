@@ -455,7 +455,7 @@ class WebEngineTab(browsertab.AbstractTab):
         """
         elems = []
         for js_elem in js_elems:
-            elem = webengineelem.WebEngineElement(js_elem, self.run_js_async)
+            elem = webengineelem.WebEngineElement(js_elem, tab=self)
             elems.append(elem)
         callback(elems)
 
@@ -471,7 +471,7 @@ class WebEngineTab(browsertab.AbstractTab):
         if js_elem is None:
             callback(None)
         else:
-            elem = webengineelem.WebEngineElement(js_elem, self.run_js_async)
+            elem = webengineelem.WebEngineElement(js_elem, tab=self)
             callback(elem)
 
     def find_all_elements(self, selector, callback, *, only_visible=False):
