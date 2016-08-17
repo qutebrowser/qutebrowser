@@ -140,14 +140,14 @@ class WebEngineElement(webelem.AbstractWebElement):
             width = rect['width']
             height = rect['height']
             if width > 1 and height > 1:
-                # fix coordinates according to zoom level
-                # FIXME:qtwebengine
-                # zoom = self._elem.webFrame().zoomFactor()
-                # if not config.get('ui', 'zoom-text-only'):
-                #     rect["left"] *= zoom
-                #     rect["top"] *= zoom
-                #     width *= zoom
-                #     height *= zoom
+                # Fix coordinates according to zoom level
+                # We're not checking for zoom-text-only here as that doesn't
+                # exist for QtWebEngine.
+                zoom = self._tab.zoom.factor()
+                rect["left"] *= zoom
+                rect["top"] *= zoom
+                width *= zoom
+                height *= zoom
                 rect = QRect(rect["left"], rect["top"], width, height)
                 # FIXME:qtwebengine
                 # frame = self._elem.webFrame()
