@@ -84,8 +84,7 @@ class HintLabel(QLabel):
         self.setAttribute(Qt.WA_StyledBackground, True)
         style.set_register_stylesheet(self)
 
-        self._context.tab.contents_size_changed.connect(
-            self._on_contents_size_changed)
+        self._context.tab.contents_size_changed.connect(self._move_to_elem)
         self._move_to_elem()
         self.show()
 
@@ -109,20 +108,17 @@ class HintLabel(QLabel):
             match_color, matched, unmatched))
         self.adjustSize()
 
+    @pyqtSlot()
     def _move_to_elem(self):
         """Reposition the label to its element."""
+        if self.elem.frame() is None:
+            # This sometimes happens for some reason...
+            log.hints.debug("Frame for {!r} vanished!".format(self))
+            self.hide()
+            return
         no_js = config.get('hints', 'find-implementation') != 'javascript'
         rect = self.elem.rect_on_view(no_js=no_js)
         self.move(rect.x(), rect.y())
-
-    @pyqtSlot()
-    def _on_contents_size_changed(self):
-        """Reposition hints if contents size changed."""
-        if self.elem.frame() is None:
-            # This sometimes happens for some reason...
-            self.hide()
-        else:
-            self._move_to_elem()
 
     def cleanup(self):
         """Clean up this element and hide it."""
