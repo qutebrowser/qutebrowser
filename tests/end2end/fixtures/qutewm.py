@@ -63,7 +63,7 @@ class QuteWMProcess(testprocess.Process):
 
 @pytest.yield_fixture(scope='session')
 def qutewm(request, qapp):
-    """Makes sure a qutewm instance is running for this session.
+    """Make sure a qutewm instance is running for this session.
 
     If qutewm can't be started, this returns None.
     """

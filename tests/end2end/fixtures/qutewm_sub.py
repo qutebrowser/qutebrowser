@@ -40,7 +40,7 @@ import sys
 import logging
 
 from Xlib.display import Display
-from Xlib import X, XK, protocol, Xatom, Xutil
+from Xlib import X, XK, Xatom, Xutil
 
 
 logging.basicConfig(
@@ -100,13 +100,14 @@ class QuteWM:
             self.dpy.keysym_to_keycode(XK.string_to_keysym("F1")),
             X.Mod1Mask, 1, X.GrabModeAsync, X.GrabModeAsync)
 
-        self.ATOM_ACTIVE_WINDOW = self.dpy.get_atom('_NET_ACTIVE_WINDOW')
-        self.ATOM_WM_STATE = self.dpy.get_atom('_NET_WM_STATE')
+        self.atom_active_window = self.dpy.get_atom('_NET_ACTIVE_WINDOW')
+        self.atom_wm_state = self.dpy.get_atom('_NET_WM_STATE')
         # Used like atoms, but actually defined as constants
-        self.ATOM_STATE_REMOVE = 0
-        self.ATOM_STATE_ADD = 1
-        self.ATOM_STATE_TOGGLE = 2
-        self.ATOM_DEMANDS_ATTENTION = self.dpy.get_atom('_NET_WM_STATE_DEMANDS_ATTENTION')
+        self.atom_state_remove = 0
+        self.atom_state_add = 1
+        self.atom_state_toggle = 2
+        self.atom_demands_attention = self.dpy.get_atom('_NET_WM_STATE'
+                                                        '_DEMANDS_ATTENTION')
 
         self._set_supported_attribute()
         self._set_supporting_wm_check()
@@ -132,7 +133,6 @@ class QuteWM:
             32,
             [self.dpy.get_atom(x) for x in attributes],
         )
-
 
     def _set_supporting_wm_check(self):
         """Create and set a window for _NET_SUPPORTING_WM_CHECK."""
@@ -269,10 +269,10 @@ class QuteWM:
 
     def on_ClientMessage(self, ev):
         """Called when a ClientMessage is received."""
-        if ev.client_type == self.ATOM_ACTIVE_WINDOW:
+        if ev.client_type == self.atom_active_window:
             log.info("external request to activate {}".format(ev.window))
             self.activate(ev.window)
-        elif ev.client_type == self.ATOM_WM_STATE:
+        elif ev.client_type == self.atom_wm_state:
             self._handle_wm_state(ev)
 
     def on_PropertyNotify(self, ev):
@@ -286,7 +286,7 @@ class QuteWM:
 
     def _handle_wm_state(self, ev):
         """Handle the _NET_WM_STATE client message."""
-        client_properties = ev.window.get_property(self.ATOM_WM_STATE,
+        client_properties = ev.window.get_property(self.atom_wm_state,
                                                    Xatom.ATOM, 0, 32)
         if client_properties is None:
             client_properties = set()
@@ -298,11 +298,11 @@ class QuteWM:
         if ev.data[1][2] != 0:
             updates.add(ev.data[1][2])
 
-        if action == self.ATOM_STATE_ADD:
+        if action == self.atom_state_add:
             client_properties.update(updates)
-        elif action == self.ATOM_STATE_REMOVE:
+        elif action == self.atom_state_remove:
             client_properties.difference_update(updates)
-        elif action == self.ATOM_STATE_TOGGLE:
+        elif action == self.atom_state_toggle:
             for atom in updates:
                 if atom in client_properties:
                     client_properties.remove(atom)
@@ -313,13 +313,15 @@ class QuteWM:
 
         log.debug("client properties for {}: {}".format(ev.window,
                                                         client_properties))
-        ev.window.change_property(self.ATOM_WM_STATE, Xatom.ATOM, 32,
+        ev.window.change_property(self.atom_wm_state, Xatom.ATOM, 32,
                                   client_properties)
 
-        if self.ATOM_DEMANDS_ATTENTION in client_properties:
+        if self.atom_demands_attention in client_properties:
             log.info("urgency switch to {} (via _NET_WM_STATE)"
                      .format(ev.window))
             self.activate(ev.window)
+
+wm = None
 
 
 def repl():
