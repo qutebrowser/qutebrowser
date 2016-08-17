@@ -16,7 +16,7 @@ Mako==1.0.4
 parse==1.6.6
 parse-type==0.3.4
 py==1.4.31
-pytest==2.9.2
+git+https://github.com/nicoddemus/pytest@revert-invocation-fixtures
 pytest-bdd==2.17.0
 pytest-catchlog==1.2.2
 pytest-cov==2.3.1
