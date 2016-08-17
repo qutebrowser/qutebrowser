@@ -269,7 +269,7 @@ class TestWebKitElement:
         lambda e: e.outer_xml(),
         lambda e: e.tag_name(),
         lambda e: e.run_js_async(''),
-        lambda e: e.rect_on_view(callback=None),
+        lambda e: e.rect_on_view(),
         lambda e: e.is_visible(None),
     ], ids=['str', 'getitem', 'setitem', 'delitem', 'contains', 'iter', 'len',
             'frame', 'geometry', 'style_property', 'text', 'set_text',
@@ -708,24 +708,22 @@ class TestRectOnView:
         # unusable geometry via getElementRects
         {'length': '1', '0': {'width': 0, 'height': 0, 'x': 0, 'y': 0}},
     ])
-    def test_simple(self, callback_checker, stubs, js_rect):
+    def test_simple(self, stubs, js_rect):
         geometry = QRect(5, 5, 4, 4)
         frame = stubs.FakeWebFrame(QRect(0, 0, 100, 100))
         elem = get_webelem(geometry, frame, js_rect_return=js_rect)
-        elem.rect_on_view(callback=callback_checker.callback)
-        callback_checker.check(QRect(5, 5, 4, 4))
+        assert elem.rect_on_view() == QRect(5, 5, 4, 4)
 
     @pytest.mark.parametrize('js_rect', [None, {}])
-    def test_scrolled(self, callback_checker, stubs, js_rect):
+    def test_scrolled(self, stubs, js_rect):
         geometry = QRect(20, 20, 4, 4)
         frame = stubs.FakeWebFrame(QRect(0, 0, 100, 100),
                                    scroll=QPoint(10, 10))
         elem = get_webelem(geometry, frame, js_rect_return=js_rect)
-        elem.rect_on_view(callback=callback_checker.callback)
-        callback_checker.check(QRect(20 - 10, 20 - 10, 4, 4))
+        assert elem.rect_on_view() == QRect(20 - 10, 20 - 10, 4, 4)
 
     @pytest.mark.parametrize('js_rect', [None, {}])
-    def test_iframe(self, callback_checker, stubs, js_rect):
+    def test_iframe(self, stubs, js_rect):
         """Test an element in an iframe.
 
              0, 0                         200, 0
@@ -746,32 +744,27 @@ class TestRectOnView:
         assert frame.geometry().contains(iframe.geometry())
         elem = get_webelem(QRect(20, 90, 10, 10), iframe,
                            js_rect_return=js_rect)
-        elem.rect_on_view(callback=callback_checker.callback)
-        callback_checker.check(QRect(20, 10 + 90, 10, 10))
+        assert elem.rect_on_view() == QRect(20, 10 + 90, 10, 10)
 
     @pytest.mark.parametrize('js_rect', [None, {}])
-    def test_passed_geometry(self, callback_checker, stubs, js_rect):
+    def test_passed_geometry(self, stubs, js_rect):
         """Make sure geometry isn't called when a geometry is passed."""
         frame = stubs.FakeWebFrame(QRect(0, 0, 200, 200))
         elem = get_webelem(frame=frame, js_rect_return=js_rect)
         rect = QRect(10, 20, 30, 40)
-        elem.rect_on_view(elem_geometry=rect,
-                          callback=callback_checker.callback)
-        callback_checker.check(rect)
+        assert elem.rect_on_view(elem_geometry=rect) == rect
         assert not elem._elem.geometry.called
 
     @pytest.mark.parametrize('js_rect', [None, {}])
     @pytest.mark.parametrize('zoom_text_only', [True, False])
-    def test_zoomed(self, callback_checker, stubs, config_stub, js_rect,
-                    zoom_text_only):
+    def test_zoomed(self, stubs, config_stub, js_rect, zoom_text_only):
         """Make sure the coordinates are adjusted when zoomed."""
         config_stub.data = {'ui': {'zoom-text-only': zoom_text_only}}
         geometry = QRect(10, 10, 4, 4)
         frame = stubs.FakeWebFrame(QRect(0, 0, 100, 100), zoom=0.5)
         elem = get_webelem(geometry, frame, js_rect_return=js_rect,
                            zoom_text_only=zoom_text_only)
-        elem.rect_on_view(callback=callback_checker.callback)
-        callback_checker.check(QRect(10, 10, 4, 4))
+        assert elem.rect_on_view() == QRect(10, 10, 4, 4)
 
 
 class TestGetChildFrames:

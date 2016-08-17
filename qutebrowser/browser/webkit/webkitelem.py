@@ -199,22 +199,8 @@ class WebKitElement(webelem.AbstractWebElement):
             frame = frame.parentFrame()
         return rect
 
-    def _rect_on_view_sync(self, *, elem_geometry=None, no_js=False):
-        """Synchronous part of rect_on_view."""
-        self._check_vanished()
-
-        # First try getting the element rect via JS, as that's usually more
-        # accurate
-        if elem_geometry is None and not no_js:
-            rect = self._rect_on_view_js()
-            if rect is not None:
-                return rect
-
-        # No suitable rects found via JS, try via the QWebElement API
-        return self._rect_on_view_python(elem_geometry)
-
-    def rect_on_view(self, *, callback, **kwargs):
-        """Get the geometry of the element relative to the webview (async).
+    def rect_on_view(self, *, elem_geometry=None, no_js=False):
+        """Get the geometry of the element relative to the webview.
 
         Uses the getClientRects() JavaScript method to obtain the collection of
         rectangles containing the element and returns the first rectangle which
@@ -230,15 +216,21 @@ class WebKitElement(webelem.AbstractWebElement):
                            Calling QWebElement::geometry is rather expensive so
                            we want to avoid doing it twice.
             no_js: Fall back to the Python implementation
-            callback: Gets called with the found QRect.
         """
         self._check_vanished()
-        callback(self._rect_on_view_sync(**kwargs))
+
+        # First try getting the element rect via JS, as that's usually more
+        # accurate
+        if elem_geometry is None and not no_js:
+            rect = self._rect_on_view_js()
+            if rect is not None:
+                return rect
+
+        # No suitable rects found via JS, try via the QWebElement API
+        return self._rect_on_view_python(elem_geometry)
 
     def is_visible(self, mainframe):
         """Check if the given element is visible in the given frame."""
-        # FIXME:qtwebengine can we get rid of this with
-        # find_all_elements(only_visible=True)?
         self._check_vanished()
         # CSS attributes which hide an element
         hidden_attributes = {
@@ -253,7 +245,7 @@ class WebKitElement(webelem.AbstractWebElement):
             # Most likely an invisible link
             return False
         # First check if the element is visible on screen
-        elem_rect = self._rect_on_view_sync(elem_geometry=elem_geometry)
+        elem_rect = self.rect_on_view(elem_geometry=elem_geometry)
         mainframe_geometry = mainframe.geometry()
         if elem_rect.isValid():
             visible_on_screen = mainframe_geometry.intersects(elem_rect)

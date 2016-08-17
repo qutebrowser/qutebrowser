@@ -124,8 +124,8 @@ class HintLabel(QLabel):
             self.hide()
             return
         no_js = config.get('hints', 'find-implementation') != 'javascript'
-        self.elem.rect_on_view(no_js=no_js,
-                               callback=lambda r: self.move(r.x(), r.y()))
+        rect = self.elem.rect_on_view(no_js=no_js)
+        self.move(rect.x(), rect.y())
 
     def cleanup(self):
         """Clean up this element and hide it."""
@@ -221,59 +221,54 @@ class HintActions(QObject):
         else:
             target_mapping[Target.tab] = usertypes.ClickTarget.tab
 
-        def click_cb(rect):
-            """Actually click the element.
+        # Click the center of the largest square fitting into the top/left
+        # corner of the rectangle, this will help if part of the <a> element
+        # is hidden behind other elements
+        # https://github.com/The-Compiler/qutebrowser/issues/1005
+        rect = elem.rect_on_view()
+        if rect.width() > rect.height():
+            rect.setWidth(rect.height())
+        else:
+            rect.setHeight(rect.width())
+        pos = rect.center()
 
-            Click the center of the largest square fitting into the top/left
-            corner of the rectangle, this will help if part of the <a>
-            element is hidden behind other elements
-            https://github.com/The-Compiler/qutebrowser/issues/1005
-            """
-            if rect.width() > rect.height():
-                rect.setWidth(rect.height())
-            else:
-                rect.setHeight(rect.width())
-            pos = rect.center()
+        action = "Hovering" if context.target == Target.hover else "Clicking"
+        log.hints.debug("{} on '{}' at position {}".format(
+            action, elem.debug_text(), pos))
 
-            action = "Hovering" if context.target == Target.hover else "Clicking"
-            log.hints.debug("{} on '{}' at position {}".format(
-                action, elem.debug_text(), pos))
-
-            self.start_hinting.emit(target_mapping[context.target])
-            if context.target in [Target.tab, Target.tab_fg, Target.tab_bg,
-                                  Target.window]:
-                modifiers = Qt.ControlModifier
-            else:
-                modifiers = Qt.NoModifier
-            events = [
-                QMouseEvent(QEvent.MouseMove, pos, Qt.NoButton, Qt.NoButton,
-                            Qt.NoModifier),
+        self.start_hinting.emit(target_mapping[context.target])
+        if context.target in [Target.tab, Target.tab_fg, Target.tab_bg,
+                              Target.window]:
+            modifiers = Qt.ControlModifier
+        else:
+            modifiers = Qt.NoModifier
+        events = [
+            QMouseEvent(QEvent.MouseMove, pos, Qt.NoButton, Qt.NoButton,
+                        Qt.NoModifier),
+        ]
+        if context.target != Target.hover:
+            events += [
+                QMouseEvent(QEvent.MouseButtonPress, pos, Qt.LeftButton,
+                            Qt.LeftButton, modifiers),
+                QMouseEvent(QEvent.MouseButtonRelease, pos, Qt.LeftButton,
+                            Qt.NoButton, modifiers),
             ]
-            if context.target != Target.hover:
-                events += [
-                    QMouseEvent(QEvent.MouseButtonPress, pos, Qt.LeftButton,
-                                Qt.LeftButton, modifiers),
-                    QMouseEvent(QEvent.MouseButtonRelease, pos, Qt.LeftButton,
-                                Qt.NoButton, modifiers),
-                ]
 
-            if context.target in [Target.normal, Target.current]:
-                # Set the pre-jump mark ', so we can jump back here after following
-                tabbed_browser = objreg.get('tabbed-browser', scope='window',
-                                            window=self._win_id)
-                tabbed_browser.set_mark("'")
+        if context.target in [Target.normal, Target.current]:
+            # Set the pre-jump mark ', so we can jump back here after following
+            tabbed_browser = objreg.get('tabbed-browser', scope='window',
+                                        window=self._win_id)
+            tabbed_browser.set_mark("'")
 
-            if context.target == Target.current:
-                elem.remove_blank_target()
-            for evt in events:
-                self.mouse_event.emit(evt)
-            if elem.is_text_input() and elem.is_editable():
-                QTimer.singleShot(0, functools.partial(
-                    elem.frame().page().triggerAction,
-                    QWebPage.MoveToEndOfDocument))
-            QTimer.singleShot(0, self.stop_hinting.emit)
-
-        elem.rect_on_view(callback=click_cb)
+        if context.target == Target.current:
+            elem.remove_blank_target()
+        for evt in events:
+            self.mouse_event.emit(evt)
+        if elem.is_text_input() and elem.is_editable():
+            QTimer.singleShot(0, functools.partial(
+                elem.frame().page().triggerAction,
+                QWebPage.MoveToEndOfDocument))
+        QTimer.singleShot(0, self.stop_hinting.emit)
 
     def yank(self, url, context):
         """Yank an element to the clipboard or primary selection.
