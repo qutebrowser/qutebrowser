@@ -67,11 +67,13 @@ def get_webelem(geometry=None, frame=None, *, null=False, style=None,
         else:
             scroll_x = frame.scrollPosition().x()
             scroll_y = frame.scrollPosition().y()
+
         if js_rect_return is None:
             if frame is None or zoom_text_only:
                 zoom = 1.0
             else:
                 zoom = frame.zoomFactor()
+
             elem.evaluateJavaScript.return_value = {
                 "length": 1,
                 "0": {
