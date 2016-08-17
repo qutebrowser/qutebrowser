@@ -755,20 +755,14 @@ class TestRectOnView:
 
     @pytest.mark.parametrize('js_rect', [None, {}])
     @pytest.mark.parametrize('zoom_text_only', [True, False])
-    @pytest.mark.parametrize('adjust_zoom', [True, False])
-    def test_zoomed(self, stubs, config_stub, js_rect, zoom_text_only,
-                    adjust_zoom):
+    def test_zoomed(self, stubs, config_stub, js_rect, zoom_text_only):
         """Make sure the coordinates are adjusted when zoomed."""
         config_stub.data = {'ui': {'zoom-text-only': zoom_text_only}}
         geometry = QRect(10, 10, 4, 4)
         frame = stubs.FakeWebFrame(QRect(0, 0, 100, 100), zoom=0.5)
         elem = get_webelem(geometry, frame, js_rect_return=js_rect,
                            zoom_text_only=zoom_text_only)
-        rect = elem.rect_on_view(adjust_zoom=adjust_zoom)
-        if zoom_text_only or (js_rect is None and adjust_zoom):
-            assert rect == QRect(10, 10, 4, 4)
-        else:
-            assert rect == QRect(20, 20, 8, 8)
+        assert elem.rect_on_view() == QRect(10, 10, 4, 4)
 
 
 class TestGetChildFrames:

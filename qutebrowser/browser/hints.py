@@ -112,7 +112,7 @@ class HintLabel(QLabel):
     def _move_to_elem(self):
         """Reposition the label to its element."""
         no_js = config.get('hints', 'find-implementation') != 'javascript'
-        rect = self.elem.rect_on_view(adjust_zoom=False, no_js=no_js)
+        rect = self.elem.rect_on_view(no_js=no_js)
         self.move(rect.x(), rect.y())
 
     @pyqtSlot()

@@ -161,8 +161,7 @@ class AbstractWebElement(collections.abc.MutableMapping):
         # FIXME:qtwebengine get rid of this?
         raise NotImplementedError
 
-    def rect_on_view(self, *, elem_geometry=None, adjust_zoom=True,
-                     no_js=False):
+    def rect_on_view(self, *, elem_geometry=None, no_js=False):
         """Get the geometry of the element relative to the webview.
 
         Uses the getClientRects() JavaScript method to obtain the collection of
@@ -178,8 +177,6 @@ class AbstractWebElement(collections.abc.MutableMapping):
             elem_geometry: The geometry of the element, or None.
                            Calling QWebElement::geometry is rather expensive so
                            we want to avoid doing it twice.
-            adjust_zoom: Whether to adjust the element position based on the
-                         current zoom level.
             no_js: Fall back to the Python implementation
         """
         raise NotImplementedError

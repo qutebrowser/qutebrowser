@@ -148,7 +148,7 @@ class WebKitElement(webelem.AbstractWebElement):
             return None
         return WebKitElement(elem)
 
-    def _rect_on_view_js(self, adjust_zoom):
+    def _rect_on_view_js(self):
         """Javascript implementation for rect_on_view."""
         # FIXME:qtwebengine maybe we can reuse this?
         rects = self._elem.evaluateJavaScript("this.getClientRects()")
@@ -169,7 +169,7 @@ class WebKitElement(webelem.AbstractWebElement):
             if width > 1 and height > 1:
                 # fix coordinates according to zoom level
                 zoom = self._elem.webFrame().zoomFactor()
-                if not config.get('ui', 'zoom-text-only') and adjust_zoom:
+                if not config.get('ui', 'zoom-text-only'):
                     rect["left"] *= zoom
                     rect["top"] *= zoom
                     width *= zoom
@@ -197,18 +197,9 @@ class WebKitElement(webelem.AbstractWebElement):
             rect.translate(frame.geometry().topLeft())
             rect.translate(frame.scrollPosition() * -1)
             frame = frame.parentFrame()
-        # We deliberately always adjust the zoom here, even with
-        # adjust_zoom=False
-        if elem_geometry is None:
-            zoom = self._elem.webFrame().zoomFactor()
-            if not config.get('ui', 'zoom-text-only'):
-                rect.moveTo(rect.left() / zoom, rect.top() / zoom)
-                rect.setWidth(rect.width() / zoom)
-                rect.setHeight(rect.height() / zoom)
         return rect
 
-    def rect_on_view(self, *, elem_geometry=None, adjust_zoom=True,
-                     no_js=False):
+    def rect_on_view(self, *, elem_geometry=None, no_js=False):
         """Get the geometry of the element relative to the webview.
 
         Uses the getClientRects() JavaScript method to obtain the collection of
@@ -224,8 +215,6 @@ class WebKitElement(webelem.AbstractWebElement):
             elem_geometry: The geometry of the element, or None.
                            Calling QWebElement::geometry is rather expensive so
                            we want to avoid doing it twice.
-            adjust_zoom: Whether to adjust the element position based on the
-                         current zoom level.
             no_js: Fall back to the Python implementation
         """
         # FIXME:qtwebengine can we get rid of this with
@@ -235,7 +224,7 @@ class WebKitElement(webelem.AbstractWebElement):
         # First try getting the element rect via JS, as that's usually more
         # accurate
         if elem_geometry is None and not no_js:
-            rect = self._rect_on_view_js(adjust_zoom)
+            rect = self._rect_on_view_js()
             if rect is not None:
                 return rect
 
