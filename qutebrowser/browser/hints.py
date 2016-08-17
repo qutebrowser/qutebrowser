@@ -118,7 +118,6 @@ class HintLabel(QLabel):
     @pyqtSlot()
     def _on_contents_size_changed(self):
         """Reposition hints if contents size changed."""
-        log.hints.debug("Contents size changed...!")
         if self.elem.frame() is None:
             # This sometimes happens for some reason...
             self.hide()
