@@ -719,6 +719,12 @@ class HintManager(QObject):
         tab = tabbed_browser.currentWidget()
         if tab is None:
             raise cmdexc.CommandError("No WebView available yet!")
+        if (tab.backend == usertypes.Backend.QtWebEngine and
+                target == Target.download):
+            message.error(self._win_id, "The download target is not available "
+                          "yet with QtWebEngine.", immediately=True)
+            return
+
         mode_manager = objreg.get('mode-manager', scope='window',
                                   window=self._win_id)
         if mode_manager.mode == usertypes.KeyMode.hint:
