@@ -29,6 +29,7 @@ window._qutebrowser.webelem = (function() {
             "text": elem.text,
             "tag_name": elem.tagName,
             "outer_xml": elem.outerHTML,
+            "rects": [],  // Gets filled up later
         };
 
         var attributes = {};
@@ -37,6 +38,19 @@ window._qutebrowser.webelem = (function() {
             attributes[attr.name] = attr.value;
         }
         out.attributes = attributes;
+
+        var client_rects = elem.getClientRects();
+        for (var k = 0; k < client_rects.length; ++k) {
+            var rect = client_rects[k];
+            out.rects.push({
+                "top": rect.top,
+                "right": rect.right,
+                "bottom": rect.bottom,
+                "left": rect.left,
+                "height": rect.height,
+                "width": rect.width,
+            });
+        }
 
         // console.log(JSON.stringify(out));
 

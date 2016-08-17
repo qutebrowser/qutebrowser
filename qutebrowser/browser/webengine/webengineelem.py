@@ -132,7 +132,33 @@ class WebEngineElement(webelem.AbstractWebElement):
                            we want to avoid doing it twice.
             no_js: Fall back to the Python implementation
         """
-        log.stub()
+        rects = self._js_dict['rects']
+        for rect in rects:
+            # FIXME:qtwebengine
+            # width = rect.get("width", 0)
+            # height = rect.get("height", 0)
+            width = rect['width']
+            height = rect['height']
+            if width > 1 and height > 1:
+                # fix coordinates according to zoom level
+                # FIXME:qtwebengine
+                # zoom = self._elem.webFrame().zoomFactor()
+                # if not config.get('ui', 'zoom-text-only'):
+                #     rect["left"] *= zoom
+                #     rect["top"] *= zoom
+                #     width *= zoom
+                #     height *= zoom
+                rect = QRect(rect["left"], rect["top"], width, height)
+                # FIXME:qtwebengine
+                # frame = self._elem.webFrame()
+                # while frame is not None:
+                #     # Translate to parent frames' position (scroll position
+                #     # is taken care of inside getClientRects)
+                #     rect.translate(frame.geometry().topLeft())
+                #     frame = frame.parentFrame()
+                return rect
+        log.webview.debug("Couldn't find rectangle for {!r} ({})".format(
+            self, rects))
         return QRect()
 
     def is_visible(self, mainframe):
