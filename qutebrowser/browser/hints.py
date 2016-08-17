@@ -117,7 +117,7 @@ class HintLabel(QLabel):
     @pyqtSlot()
     def _move_to_elem(self):
         """Reposition the label to its element."""
-        if self.elem.frame() is None:
+        if not self.elem.has_frame():
             # This sometimes happens for some reason...
             log.hints.debug("Frame for {!r} vanished!".format(self))
             self.hide()
@@ -329,10 +329,14 @@ class HintActions(QObject):
         else:
             prompt = None
 
+        # FIXME:qtwebengine get a proper API for this
+        # pylint: disable=protected-access
+        page = elem._elem.webFrame().page()
+        # pylint: enable=protected-access
+
         download_manager = objreg.get('download-manager', scope='window',
                                       window=self._win_id)
-        download_manager.get(url, page=elem.frame().page(),
-                             prompt_download_directory=prompt)
+        download_manager.get(url, page=page, prompt_download_directory=prompt)
 
     def call_userscript(self, elem, context):
         """Call a userscript from a hint.
@@ -897,7 +901,7 @@ class HintManager(QObject):
         }
         elem = self._context.labels[keystr].elem
 
-        if elem.frame() is None:
+        if not elem.has_frame():
             message.error(self._win_id,
                           "This element has no webframe.",
                           immediately=True)

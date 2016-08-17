@@ -83,9 +83,9 @@ class WebKitElement(webelem.AbstractWebElement):
         if self._elem.isNull():
             raise IsNullError('Element {} vanished!'.format(self._elem))
 
-    def frame(self):
+    def has_frame(self):
         self._check_vanished()
-        return self._elem.webFrame()
+        return self._elem.webFrame() is not None
 
     def geometry(self):
         self._check_vanished()

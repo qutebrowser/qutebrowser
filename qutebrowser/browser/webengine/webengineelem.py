@@ -58,9 +58,8 @@ class WebEngineElement(webelem.AbstractWebElement):
     def __len__(self):
         return len(self._js_dict['attributes'])
 
-    def frame(self):
-        log.stub()
-        return None
+    def has_frame(self):
+        return True
 
     def geometry(self):
         log.stub()
