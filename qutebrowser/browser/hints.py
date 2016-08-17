@@ -654,8 +654,7 @@ class HintManager(QObject):
         self._handle_auto_follow()
 
     @cmdutils.register(instance='hintmanager', scope='tab', name='hint',
-                       star_args_optional=True, maxsplit=2,
-                       backend=usertypes.Backend.QtWebKit)
+                       star_args_optional=True, maxsplit=2)
     @cmdutils.argument('win_id', win_id=True)
     def start(self, rapid=False, group=webelem.Group.all, target=Target.normal,
               *args, win_id, mode=None):
