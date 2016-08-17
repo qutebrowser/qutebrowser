@@ -77,20 +77,24 @@ class CallbackChecker(QObject):
     """Check if a value provided by a callback is the expected one."""
 
     got_result = pyqtSignal(object)
+    UNSET = object()
 
     def __init__(self, qtbot, parent=None):
         super().__init__(parent)
         self._qtbot = qtbot
+        self._result = self.UNSET
 
     def callback(self, result):
         """Callback which can be passed to runJavaScript."""
+        self._result = result
         self.got_result.emit(result)
 
     def check(self, expected):
         """Wait until the JS result arrived and compare it."""
-        with self._qtbot.waitSignal(self.got_result) as blocker:
-            pass
-        assert blocker.args == [expected]
+        if self._result is self.UNSET:
+            with self._qtbot.waitSignal(self.got_result):
+                pass
+        assert self._result == expected
 
 
 @pytest.fixture
