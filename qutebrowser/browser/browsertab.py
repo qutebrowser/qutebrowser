@@ -21,7 +21,7 @@
 
 import itertools
 
-from PyQt5.QtCore import pyqtSignal, pyqtSlot, QUrl, QObject, QSizeF
+from PyQt5.QtCore import pyqtSignal, pyqtSlot, QUrl, QObject, QSizeF, QTimer
 from PyQt5.QtGui import QIcon
 from PyQt5.QtWidgets import QWidget
 
@@ -60,7 +60,7 @@ class WebTabError(Exception):
     """Base class for various errors."""
 
 
-class TabData(QObject):
+class TabData:
 
     """A simple namespace with a fixed set of attributes.
 
@@ -73,8 +73,7 @@ class TabData(QObject):
         hint_target: Override for open_target for hints.
     """
 
-    def __init__(self, parent=None):
-        super().__init__(parent)
+    def __init__(self):
         self.keep_icon = False
         self.viewing_source = False
         self.inspector = None
@@ -86,21 +85,6 @@ class TabData(QObject):
             return self.hint_target
         else:
             return self.open_target
-
-    @pyqtSlot(usertypes.ClickTarget)
-    def _on_start_hinting(self, hint_target):
-        """Emitted before a hinting-click takes place.
-
-        Args:
-            hint_target: A ClickTarget member to set self.hint_target to.
-        """
-        log.webview.debug("Setting force target to {}".format(hint_target))
-        self.hint_target = hint_target
-
-    @pyqtSlot()
-    def _on_stop_hinting(self):
-        log.webview.debug("Finishing hinting.")
-        self.hint_target = None
 
 
 class AbstractPrinting:
@@ -489,7 +473,7 @@ class AbstractTab(QWidget):
         # self.search = AbstractSearch(parent=self)
         # self.printing = AbstractPrinting()
 
-        self.data = TabData(parent=self)
+        self.data = TabData()
         self._layout = miscwidgets.WrapperLayout(self)
         self._widget = None
         self._progress = 0
@@ -501,11 +485,7 @@ class AbstractTab(QWidget):
         # FIXME:qtwebengine  Should this be public api via self.hints?
         #                    Also, should we get it out of objreg?
         hintmanager = hints.HintManager(win_id, self.tab_id, parent=self)
-        hintmanager.mouse_event.connect(self._on_hint_mouse_event)
-        # pylint: disable=protected-access
-        hintmanager.start_hinting.connect(self.data._on_start_hinting)
-        hintmanager.stop_hinting.connect(self.data._on_stop_hinting)
-        # pylint: enable=protected-access
+        hintmanager.hint_events.connect(self._on_hint_events)
         objreg.register('hintmanager', hintmanager, scope='tab',
                         window=self.win_id, tab=self.tab_id)
 
@@ -536,15 +516,20 @@ class AbstractTab(QWidget):
         """Send the given event to the underlying widget."""
         raise NotImplementedError
 
-    @pyqtSlot('QMouseEvent')
-    def _on_hint_mouse_event(self, evt):
+    @pyqtSlot(usertypes.ClickTarget, list)
+    def _on_hint_events(self, target, events):
         """Post a new mouse event from a hintmanager."""
-        # FIXME:qtwebengine Will this implementation work for QtWebEngine?
-        #                   We probably need to send the event to the
-        #                   focusProxy()?
-        log.modes.debug("Hint triggered, focusing {!r}".format(self))
+        log.modes.debug("Sending hint events to {!r} with target {}".format(
+            self, target))
         self._widget.setFocus()
-        self.post_event(evt)
+        self.data.hint_target = target
+
+        for evt in events:
+            self.post_event(evt)
+
+        def reset_target():
+            self.data.hint_target = None
+        QTimer.singleShot(0, reset_target)
 
     @pyqtSlot(QUrl)
     def _on_link_clicked(self, url):

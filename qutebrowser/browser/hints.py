@@ -185,16 +185,10 @@ class HintActions(QObject):
     """Actions which can be done after selecting a hint.
 
     Signals:
-        mouse_event: Mouse event to be posted in the web view.
-                     arg: A QMouseEvent
-        start_hinting: Emitted when hinting starts, before a link is clicked.
-                       arg: The ClickTarget to use.
-        stop_hinting: Emitted after a link was clicked.
+        hint_events: Emitted with a ClickTarget and a list of hint event.s
     """
 
-    mouse_event = pyqtSignal('QMouseEvent')
-    start_hinting = pyqtSignal(usertypes.ClickTarget)
-    stop_hinting = pyqtSignal()
+    hint_events = pyqtSignal(usertypes.ClickTarget, list)  # QMouseEvent list
 
     def __init__(self, win_id, parent=None):
         super().__init__(parent)
@@ -235,7 +229,6 @@ class HintActions(QObject):
         log.hints.debug("{} on '{}' at position {}".format(
             action, elem.debug_text(), pos))
 
-        self.start_hinting.emit(target_mapping[context.target])
         if context.target in [Target.tab, Target.tab_fg, Target.tab_bg,
                               Target.window]:
             modifiers = Qt.ControlModifier
@@ -261,11 +254,10 @@ class HintActions(QObject):
 
         if context.target == Target.current:
             elem.remove_blank_target()
-        for evt in events:
-            self.mouse_event.emit(evt)
+
+        self.hint_events.emit(target_mapping[context.target], events)
         if elem.is_text_input() and elem.is_editable():
             QTimer.singleShot(0, context.tab.caret.move_to_end_of_document)
-        QTimer.singleShot(0, self.stop_hinting.emit)
 
     def yank(self, url, context):
         """Yank an element to the clipboard or primary selection.
@@ -408,9 +400,7 @@ class HintManager(QObject):
         Target.spawn: "Spawn command via hint",
     }
 
-    mouse_event = pyqtSignal('QMouseEvent')
-    start_hinting = pyqtSignal(usertypes.ClickTarget)
-    stop_hinting = pyqtSignal()
+    hint_events = pyqtSignal(usertypes.ClickTarget, list)  # QMouseEvent list
 
     def __init__(self, win_id, tab_id, parent=None):
         """Constructor."""
@@ -421,9 +411,7 @@ class HintManager(QObject):
         self._word_hinter = WordHinter()
 
         self._actions = HintActions(win_id)
-        self._actions.start_hinting.connect(self.start_hinting)
-        self._actions.stop_hinting.connect(self.stop_hinting)
-        self._actions.mouse_event.connect(self.mouse_event)
+        self._actions.hint_events.connect(self.hint_events)
 
         mode_manager = objreg.get('mode-manager', scope='window',
                                   window=win_id)
