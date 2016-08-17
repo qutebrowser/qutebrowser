@@ -300,11 +300,8 @@ class HintActions(QObject):
         args = context.get_args(urlstr)
         text = ' '.join(args)
         if text[0] not in modeparsers.STARTCHARS:
-            message.error(self._win_id,
-                          "Invalid command text '{}'.".format(text),
-                          immediately=True)
-        else:
-            message.set_cmd_text(self._win_id, text)
+            raise HintingError("Invalid command text '{}'.".format(text))
+        message.set_cmd_text(self._win_id, text)
 
     def download(self, elem, context):
         """Download a hint URL.
@@ -315,7 +312,7 @@ class HintActions(QObject):
         """
         url = elem.resolve_url(context.baseurl)
         if url is None:
-            raise HintingError
+            raise HintingError("No suitable link found for this element.")
         if context.rapid:
             prompt = False
         else:
@@ -352,7 +349,7 @@ class HintActions(QObject):
             userscripts.run_async(context.tab, cmd, *args, win_id=self._win_id,
                                   env=env)
         except userscripts.UnsupportedError as e:
-            message.error(self._win_id, str(e), immediately=True)
+            raise HintingError(str(e))
 
     def spawn(self, url, context):
         """Spawn a simple command from a hint.
@@ -568,11 +565,6 @@ class HintManager(QObject):
         for _ in range(0, digits - len(hintstr)):
             hintstr.insert(0, chars[0])
         return ''.join(hintstr)
-
-    def _show_url_error(self):
-        """Show an error because no link was found."""
-        message.error(self._win_id, "No suitable link found for this element.",
-                      immediately=True)
 
     def _check_args(self, target, *args):
         """Check the arguments passed to start() and raise if they're wrong.
@@ -907,7 +899,9 @@ class HintManager(QObject):
         elif self._context.target in url_handlers:
             url = elem.resolve_url(self._context.baseurl)
             if url is None:
-                self._show_url_error()
+                message.error(self._win_id,
+                              "No suitable link found for this element.",
+                              immediately=True)
                 return
             handler = functools.partial(url_handlers[self._context.target],
                                         url, self._context)
@@ -926,8 +920,8 @@ class HintManager(QObject):
 
         try:
             handler()
-        except HintingError:
-            self._show_url_error()
+        except HintingError as e:
+            message.error(self._win_id, str(e), immediately=True)
 
     @cmdutils.register(instance='hintmanager', scope='tab', hide=True,
                        modes=[usertypes.KeyMode.hint])
