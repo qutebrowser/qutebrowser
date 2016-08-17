@@ -121,7 +121,7 @@ class HintLabel(QLabel):
         log.hints.debug("Contents size changed...!")
         if self.elem.frame() is None:
             # This sometimes happens for some reason...
-            self.cleanup()
+            self.hide()
         else:
             self._move_to_elem()
 
