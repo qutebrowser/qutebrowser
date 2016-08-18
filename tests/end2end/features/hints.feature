@@ -118,6 +118,7 @@ Feature: Using hints
 
     ### iframes
 
+    @qtwebengine_todo: Hinting in iframes is not implemented yet
     Scenario: Using :follow-hint inside an iframe
         When I open data/hints/iframe.html
         And I hint with args "links normal" and follow a
@@ -132,11 +133,13 @@ Feature: Using hints
         And I hint wht args "links normal" and follow a
         Then "navigation request: url http://localhost:*/data/hello2.txt, type NavigationTypeLinkClicked, *" should be logged
 
+    @qtwebengine_todo: createWindow is not implemented yet
     Scenario: Opening a link inside a specific iframe
         When I open data/hints/iframe_target.html
         And I hint with args "links normal" and follow a
         Then "navigation request: url http://localhost:*/data/hello.txt, type NavigationTypeLinkClicked, *" should be logged
 
+    @qtwebengine_todo: createWindow is not implemented yet
     Scenario: Opening a link with specific target frame in a new tab
         When I open data/hints/iframe_target.html
         And I hint with args "links tab" and follow a
@@ -193,6 +196,7 @@ Feature: Using hints
         Then data/numbers/7.txt should be loaded
 
     # https://github.com/The-Compiler/qutebrowser/issues/576
+    @qtwebengine_todo: createWindow is not implemented yet
     Scenario: Keeping hint filter in rapid mode
         When I open data/hints/number.html
         And I set hints -> mode to number
