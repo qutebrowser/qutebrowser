@@ -20,22 +20,36 @@
 """Fixtures for the qutewm window manager."""
 
 import os
+import re
 import sys
 
 import pytest
+from PyQt5.QtCore import pyqtSignal, pyqtSlot
 
 from end2end.fixtures import testprocess
 
 
 class QuteWMProcess(testprocess.Process):
 
-    """Abstraction over a running qutewm instance."""
+    """Abstraction over a running qutewm instance.
+
+    Signals:
+        window_opened: Emitted when a window is opened.
+        window_closed: Emitted when a window is closed.
+        window_focused: Emitted when a window is focused.
+    """
 
     SCRIPT = 'qutewm_sub'
+
+    window_opened = pyqtSignal(int)
+    window_closed = pyqtSignal(int)
+    window_focused = pyqtSignal(int)
 
     def __init__(self, parent=None):
         super().__init__(parent)
         self.wm_failed = False
+        self._event_re = re.compile(
+            r'window (created|closed|focused): \[0x([0-9a-f]+)\]')
 
     def _parse_line(self, line):
         self._log(line)
@@ -44,6 +58,16 @@ class QuteWMProcess(testprocess.Process):
         elif 'Another window manager is running, exiting' in line:
             self.wm_failed = True
             self.ready.emit()
+        else:
+            match = self._event_re.search(line)
+            if match:
+                signal= {
+                    'created': self.window_opened,
+                    'closed': self.window_closed,
+                    'focused': self.window_focused,
+                }[match.group(1)]
+                signal.emit(int(match.group(2), 16))
+        return line
 
     def _executable_args(self):
         if hasattr(sys, 'frozen'):
