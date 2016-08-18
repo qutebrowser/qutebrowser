@@ -277,8 +277,7 @@ class QuteWM:
         """Called when a window is shown on screen ("mapped")."""
         width, height = self.dimensions
         ev.window.configure(x=0, y=0, width=width, height=height)
-        log.info("window created: [{:#x}] {}".format(
-            ev.window.id, ev.window.get_wm_name()))
+        log.info("window created: [{:#x}]".format(ev.window.id))
         self._manage_window(ev.window)
 
     def _on_map_request(self, ev):
@@ -301,8 +300,7 @@ class QuteWM:
         if ev.event == self.root and not ev.from_configure:
             log.debug("ignoring synthetic event")
             return
-        log.info("window closed: [{:#x}] {}".format(
-            ev.window.id, ev.window.get_wm_name()))
+        log.info("window closed: [{:#x}]".format(ev.window.id))
         self._unmanage_window(ev.window)
         if self.window_stack:
             self.activate(self.window_stack[-1])
