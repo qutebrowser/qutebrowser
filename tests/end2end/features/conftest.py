@@ -423,12 +423,14 @@ def javascript_message_not_logged(quteproc, message):
 
 
 @bdd.then(bdd.parsers.parse("The session should look like:\n{expected}"))
-def compare_session(quteproc, expected):
+def compare_session(request, quteproc, expected):
     """Compare the current sessions against the given template.
 
     partial_compare is used, which means only the keys/values listed will be
     compared.
     """
+    if request.config.getoption('--qute-bdd-webengine'):
+        pytest.xfail(reason="QtWebEngine TODO: Sessions are not implemented")
     quteproc.compare_session(expected)
 
 
