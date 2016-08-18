@@ -24,7 +24,7 @@
 
 import functools
 
-from PyQt5.QtCore import pyqtSlot, Qt, QEvent, QPoint
+from PyQt5.QtCore import pyqtSlot, Qt, QEvent, QPoint, QUrl
 from PyQt5.QtGui import QKeyEvent, QIcon
 from PyQt5.QtWidgets import QApplication
 # pylint: disable=no-name-in-module,import-error,useless-suppression
@@ -486,6 +486,20 @@ class WebEngineTab(browsertab.AbstractTab):
 
     def clear_ssl_errors(self):
         log.stub()
+
+    @pyqtSlot()
+    def _on_history_trigger(self):
+        url = self.url()
+        requested_url = self.url(requested=True)
+
+        # Don't save the title if it's generated from the URL
+        title = self.title()
+        title_url = QUrl(url)
+        title_url.setScheme('')
+        if title == title_url.toDisplayString(QUrl.RemoveScheme).strip('/'):
+            title = ""
+
+        self.add_history_item.emit(url, requested_url, title)
 
     def _connect_signals(self):
         view = self._widget

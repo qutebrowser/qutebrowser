@@ -640,6 +640,12 @@ class WebKitTab(browsertab.AbstractTab):
         nam = self._widget.page().networkAccessManager()
         nam.clear_all_ssl_errors()
 
+    @pyqtSlot()
+    def _on_history_trigger(self):
+        url = self.url()
+        requested_url = self.url(requested=True)
+        self.add_history_item.emit(url, requested_url, self.title())
+
     def set_html(self, html, base_url):
         self._widget.setHtml(html, base_url)
 

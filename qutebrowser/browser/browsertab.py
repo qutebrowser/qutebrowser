@@ -638,9 +638,7 @@ class AbstractTab(QWidget):
     @pyqtSlot()
     def _on_history_trigger(self):
         """Emit add_history_item when triggered by backend-specific signal."""
-        url = self.url()
-        requested_url = self.url(requested=True)
-        self.add_history_item.emit(url, requested_url, self.title())
+        raise NotImplementedError
 
     @pyqtSlot(int)
     def _on_load_progress(self, perc):
