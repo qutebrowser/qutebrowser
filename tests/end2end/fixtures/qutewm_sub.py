@@ -331,6 +331,8 @@ class QuteWM:
         """Called when a PropertyNotify event is received."""
         if ev.atom == self.atoms.wm_hints:
             hints = ev.window.get_wm_hints()
+            if hints is None:
+                return
             if hints.flags & Xutil.UrgencyHint:
                 log.debug("urgency switch to {} (via WM_HINTS)"
                           .format(ev.window))
