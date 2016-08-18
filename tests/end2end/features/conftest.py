@@ -52,7 +52,8 @@ def pytest_collection_modifyitems(config, items):
                     text = '{}: {}'.format(prefix, marker.args[0])
                 else:
                     text = prefix
-                item.add_marker(pytest_mark(webengine, reason=text))
+                item.add_marker(pytest_mark(webengine, reason=text,
+                                            **marker.kwargs))
 
 
 @pytest.hookimpl(hookwrapper=True)
