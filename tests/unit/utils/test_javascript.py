@@ -142,6 +142,7 @@ def test_convert_js_arg(arg, expected):
 
 @pytest.mark.parametrize('base, expected_base', [
     ('window', 'window'),
+    ('document', 'document'),
     ('foo', 'window._qutebrowser.foo'),
 ])
 def test_assemble(base, expected_base):
