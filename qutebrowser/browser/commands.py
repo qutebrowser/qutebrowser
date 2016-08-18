@@ -1356,7 +1356,11 @@ class CommandDispatcher:
             formatter = pygments.formatters.HtmlFormatter(full=True,
                                                           linenos='table')
             highlighted = pygments.highlight(source, lexer, formatter)
-            current_url = self._current_url()
+            try:
+                current_url = self._current_url()
+            except cmdexc.CommandError as e:
+                message.error(self._win_id, str(e))
+                return
             new_tab = self._tabbed_browser.tabopen(explicit=True)
             new_tab.set_html(highlighted, current_url)
             new_tab.data.viewing_source = True
