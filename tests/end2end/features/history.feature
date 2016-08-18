@@ -34,13 +34,14 @@ Feature: Page history
         Then the history file should contain:
             http://localhost:(port)/data/%C3%A4%C3%B6%C3%BC.html Chäschüechli
             
-    @flaky_once
+    @flaky_once @qtwebengine_todo: Error page message is not implemented
     Scenario: History with an error
         When I run :open file:///does/not/exist
         And I wait for "Error while loading file:///does/not/exist: Error opening /does/not/exist: *" in the log
         Then the history file should contain:
             file:///does/not/exist Error loading page: file:///does/not/exist
 
+    @qtwebengine_todo: Error page message is not implemented
     Scenario: History with a 404
         When I open status/404 without waiting
         And I wait for "Error while loading http://localhost:*/status/404: NOT FOUND" in the log
@@ -54,6 +55,7 @@ Feature: Page history
 
     ## Bugs
 
+    @qtwebengine_skip
     Scenario: Opening a valid URL which turns out invalid
         When I set general -> auto-search to true
         And I run :open http://foo%40bar@baz
