@@ -35,6 +35,17 @@ from qutebrowser.utils import log
 from helpers import utils
 
 
+def pytest_collection_modifyitems(config, items):
+    """Apply @qtwebengine_* markers"""
+    webengine = config.getoption('--qute-bdd-webengine')
+
+    for item in items:
+        marker = item.get_marker('qtwebengine_todo')
+        if marker:
+            text = 'QtWebEngine TODO: {}'.format(marker.args[0])
+            item.add_marker(pytest.mark.skipif(webengine, reason=text))
+
+
 @pytest.hookimpl(hookwrapper=True)
 def pytest_runtest_makereport(item, call):
     """Add a BDD section to the test output."""
