@@ -228,7 +228,7 @@ class HintKeyParser(keyparser.CommandKeyParser):
         if keytype == self.Type.chain:
             hintmanager = objreg.get('hintmanager', scope='tab',
                                      window=self._win_id, tab='current')
-            hintmanager.handle_partial_key(cmdstr)
+            hintmanager.fire(cmdstr)
         else:
             # execute as command
             super().execute(cmdstr, keytype, count)

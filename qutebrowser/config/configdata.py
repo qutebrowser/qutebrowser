@@ -1467,7 +1467,7 @@ KEY_DATA = collections.OrderedDict([
         ('set-cmd-text -s :open -w', ['wo']),
         ('set-cmd-text :open -w {url:pretty}', ['wO']),
         ('set-cmd-text -s :search', ['/']),
-        ('set-cmd-text -s :search --r', ['?']),
+        ('set-cmd-text -s :search -r', ['?']),
         ('set-cmd-text -s : ', [':']),
         ('open -t', ['ga', '<Ctrl-T>']),
         ('open -w', ['<Ctrl-N>']),
