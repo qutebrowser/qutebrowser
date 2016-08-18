@@ -448,23 +448,6 @@ class WebEngineTab(browsertab.AbstractTab):
             else:
                 self._widget.page().runJavaScript(code, callback)
 
-    def run_js_blocking(self, code):
-        unset = object()
-        loop = qtutils.EventLoop()
-        js_ret = unset
-
-        def js_cb(val):
-            """Handle return value from JS and stop blocking."""
-            nonlocal js_ret
-            js_ret = val
-            loop.quit()
-
-        self.run_js_async(code, js_cb)
-        loop.exec_()  # blocks until loop.quit() in js_cb
-        assert js_ret is not unset
-
-        return js_ret
-
     def shutdown(self):
         log.stub()
 
