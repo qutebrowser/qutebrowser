@@ -240,28 +240,44 @@ def test_log_line_no_match():
         quteprocess.LogLine("Hello World!")
 
 
-class TestClickElement:
+class TestClickElementByText:
 
     @pytest.fixture(autouse=True)
     def open_page(self, quteproc):
         quteproc.open_path('data/click_element.html')
 
     def test_click_element(self, quteproc):
-        quteproc.click_element('Test Element')
+        quteproc.click_element_by_text('Test Element')
         quteproc.wait_for_js('click_element clicked')
 
     def test_click_special_chars(self, quteproc):
-        quteproc.click_element('"Don\'t", he shouted')
+        quteproc.click_element_by_text('"Don\'t", he shouted')
         quteproc.wait_for_js('click_element special chars')
 
     def test_duplicate(self, quteproc):
         with pytest.raises(ValueError) as excinfo:
-            quteproc.click_element('Duplicate')
+            quteproc.click_element_by_text('Duplicate')
         assert 'not unique' in str(excinfo.value)
 
     def test_nonexistent(self, quteproc):
         with pytest.raises(ValueError) as excinfo:
-            quteproc.click_element('no element exists with this text')
+            quteproc.click_element_by_text('no element exists with this text')
+        assert 'No element' in str(excinfo.value)
+
+
+class TestClickElementById:
+
+    @pytest.fixture(autouse=True)
+    def open_page(self, quteproc):
+        quteproc.open_path('data/click_element.html')
+
+    def test_click_element(self, quteproc):
+        quteproc.click_element_by_id('test')
+        quteproc.wait_for_js('click_element clicked')
+
+    def test_nonexistent(self, quteproc):
+        with pytest.raises(ValueError) as excinfo:
+            quteproc.click_element_by_id('blah')
         assert 'No element' in str(excinfo.value)
 
 
