@@ -636,6 +636,7 @@ def quteproc_new(qapp, httpbin, request):
     request.node._quteproc_log = proc.captured_log
     # Not calling before_test here as that would start the process
     yield proc
+    call = request.node.rep_call
     did_fail = call.failed or hasattr(call, 'wasxfail')
     proc.after_test(did_fail=did_fail)
     proc.terminate()
