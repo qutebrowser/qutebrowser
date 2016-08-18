@@ -104,7 +104,7 @@ class QuteWM:
     STATE_TOGGLE = 2
 
     def __init__(self):
-        log.info("initializing")
+        log.debug("initializing")
         self._handlers = {
             X.MapNotify: self._on_map_notify,
             X.UnmapNotify: self._on_unmap_notify,
@@ -247,7 +247,8 @@ class QuteWM:
         """Called when a window is shown on screen ("mapped")."""
         width, height = self.dimensions
         ev.window.configure(x=0, y=0, width=width, height=height)
-        log.debug("window created: {}".format(ev.window))
+        log.info("window created: [{:#x}] {}".format(
+            ev.window.id, ev.window.get_wm_name()))
         ev.window.change_attributes(event_mask=self.CLIENT_EVENT_MASK)
         self.windows.append(ev.window)
         self.window_stack.append(ev.window)
@@ -270,10 +271,12 @@ class QuteWM:
 
     def _on_unmap_notify(self, ev):
         """Called when a window is unmapped from the screen."""
-        log.debug("window destroyed: {}".format(ev.window))
+        log.debug("window unmapped: {}".format(ev.window))
         if ev.event == self.root and not ev.from_configure:
             log.debug("ignoring synthetic event")
             return
+        log.info("window closed: [{:#x}] {}".format(
+            ev.window.id, ev.window.get_wm_name()))
         try:
             self.windows.remove(ev.window)
             self.window_stack.remove(ev.window)
@@ -297,7 +300,7 @@ class QuteWM:
     def _on_client_message(self, ev):
         """Called when a ClientMessage is received."""
         if ev.client_type == self.atoms.active_window:
-            log.info("external request to activate {}".format(ev.window))
+            log.debug("external request to activate {}".format(ev.window))
             self.activate(ev.window)
         elif ev.client_type == self.atoms.wm_state:
             self._handle_wm_state(ev)
@@ -307,8 +310,8 @@ class QuteWM:
         if ev.atom == self.atoms.wm_hints:
             hints = ev.window.get_wm_hints()
             if hints.flags & Xutil.UrgencyHint:
-                log.info("urgency switch to {} (via WM_HINTS)"
-                         .format(ev.window))
+                log.debug("urgency switch to {} (via WM_HINTS)"
+                          .format(ev.window))
                 self.activate(ev.window)
 
     def _handle_wm_state(self, ev):
@@ -344,8 +347,8 @@ class QuteWM:
                                   client_properties)
 
         if self.atoms.demands_attention in client_properties:
-            log.info("urgency switch to {} (via _NET_WM_STATE)"
-                     .format(ev.window))
+            log.debug("urgency switch to {} (via _NET_WM_STATE)"
+                      .format(ev.window))
             self.activate(ev.window)
 
 wm = None
