@@ -326,7 +326,7 @@ class WebEngineElements(browsertab.AbstractElements):
         """
         elems = []
         for js_elem in js_elems:
-            elem = webengineelem.WebEngineElement(js_elem, tab=self)
+            elem = webengineelem.WebEngineElement(js_elem, tab=self._tab)
             elems.append(elem)
         callback(elems)
 
@@ -342,7 +342,7 @@ class WebEngineElements(browsertab.AbstractElements):
         if js_elem is None:
             callback(None)
         else:
-            elem = webengineelem.WebEngineElement(js_elem, tab=self)
+            elem = webengineelem.WebEngineElement(js_elem, tab=self._tab)
             callback(elem)
 
     def find_css(self, selector, callback, *, only_visible=False):
