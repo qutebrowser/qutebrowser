@@ -73,9 +73,10 @@ class Request(testprocess.Line):
             '/status/404': [http.client.NOT_FOUND],
             '/cookies/set': [http.client.FOUND],
         }
+        default_statuses = [http.client.OK, http.client.NOT_MODIFIED]
 
         sanitized = QUrl('http://localhost' + self.path).path()  # Remove ?foo
-        expected_statuses = path_to_statuses.get(sanitized, [http.client.OK])
+        expected_statuses = path_to_statuses.get(sanitized, default_statuses)
         assert self.status in expected_statuses
 
     def __eq__(self, other):
