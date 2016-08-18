@@ -497,13 +497,17 @@ def check_contents_json(quteproc, text):
 
 
 @bdd.then(bdd.parsers.parse("the following tabs should be open:\n{tabs}"))
-def check_open_tabs(quteproc, tabs):
+def check_open_tabs(quteproc, request, tabs):
     """Check the list of open tabs in the session.
 
     This is a lightweight alternative for "The session should look like: ...".
 
     It expects a list of URLs, with an optional "(active)" suffix.
     """
+    if request.config.getoption('--qute-bdd-webengine'):
+        # pylint: disable=no-member
+        pytest.xfail(reason="QtWebEngine TODO: Sessions are not implemented")
+        # pylint: enable=no-member
     session = quteproc.get_session()
     active_suffix = ' (active)'
     tabs = tabs.splitlines()
