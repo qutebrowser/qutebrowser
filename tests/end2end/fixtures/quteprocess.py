@@ -620,7 +620,9 @@ def quteproc(quteproc_process, httpbin, request):
     request.node._quteproc_log = quteproc_process.captured_log
     quteproc_process.before_test()
     yield quteproc_process
-    quteproc_process.after_test(did_fail=request.node.rep_call.failed)
+    call = request.node.rep_call
+    did_fail = call.failed or hasattr(call, 'wasxfail')
+    quteproc_process.after_test(did_fail=did_fail)
 
 
 @pytest.yield_fixture
@@ -634,5 +636,6 @@ def quteproc_new(qapp, httpbin, request):
     request.node._quteproc_log = proc.captured_log
     # Not calling before_test here as that would start the process
     yield proc
-    proc.after_test(did_fail=request.node.rep_call.failed)
+    did_fail = call.failed or hasattr(call, 'wasxfail')
+    proc.after_test(did_fail=did_fail)
     proc.terminate()
