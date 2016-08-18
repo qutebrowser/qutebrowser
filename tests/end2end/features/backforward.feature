@@ -103,6 +103,7 @@ Feature: Going back and forward.
         Then the error "At beginning of history." should be shown
         And the message "Still alive!" should be shown
 
+    @qtwebengine_skip: flaky for some reason?
     Scenario: Going back in a new window
         Given I clean up open tabs
         When I open data/backforward/1.txt
