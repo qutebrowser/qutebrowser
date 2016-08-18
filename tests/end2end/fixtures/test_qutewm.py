@@ -19,7 +19,7 @@
 
 """Tests for qutewm and the qutewm fixtures."""
 
-from PyQt5.QtWidgets import QMainWindow, QLineEdit
+from PyQt5.QtWidgets import QMainWindow
 
 import pytest
 

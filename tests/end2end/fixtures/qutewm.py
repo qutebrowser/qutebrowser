@@ -24,7 +24,7 @@ import re
 import sys
 
 import pytest
-from PyQt5.QtCore import pyqtSignal, pyqtSlot
+from PyQt5.QtCore import pyqtSignal
 
 from end2end.fixtures import testprocess
 
@@ -61,7 +61,7 @@ class QuteWMProcess(testprocess.Process):
         else:
             match = self._event_re.search(line)
             if match:
-                signal= {
+                signal = {
                     'created': self.window_opened,
                     'closed': self.window_closed,
                     'focused': self.window_focused,
