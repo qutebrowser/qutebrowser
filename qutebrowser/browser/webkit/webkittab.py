@@ -563,7 +563,6 @@ class WebKitElements(browsertab.AbstractElements):
         callback(elem)
 
 
-
 class WebKitTab(browsertab.AbstractTab):
 
     """A QtWebKit tab in the browser."""
