@@ -234,7 +234,7 @@ class QuteWM:
 
     def activate(self, window):
         """Activate the given window, raise it and focus it."""
-        log.debug("activating window {}".format(window))
+        log.info("window activated: [{:#x}]".format(window.id))
         window.raise_window()
         window.set_input_focus(revert_to=X.RevertToNone, time=X.CurrentTime)
         self.root.change_property(
@@ -243,6 +243,8 @@ class QuteWM:
             32,
             [window.id] if window else [X.NONE],
         )
+        self._needs_update = True
+        self._update_clients()
         # re-order window_stack so that the active window is at
         # window_stack[-1]
         try:
