@@ -944,6 +944,7 @@ How many steps to zoom out.
 |==============
 |Command|Description
 |<<clear-keychain,clear-keychain>>|Clear the currently entered key chain.
+|<<click-element,click-element>>|Click the element matching the given filter.
 |<<command-accept,command-accept>>|Execute the command currently in the commandline.
 |<<command-history-next,command-history-next>>|Go forward in the commandline history.
 |<<command-history-prev,command-history-prev>>|Go back in the commandline history.
@@ -1006,6 +1007,22 @@ How many steps to zoom out.
 [[clear-keychain]]
 === clear-keychain
 Clear the currently entered key chain.
+
+[[click-element]]
+=== click-element
+Syntax: +:click-element [*--target* 'target'] 'filter' 'value'+
+
+Click the element matching the given filter.
+
+The given filter needs to result in exactly one element, otherwise, an error is shown.
+
+==== positional arguments
+* +'filter'+: How to filter the elements. id: Get an element based on its ID.
+
+* +'value'+: The value to filter for.
+
+==== optional arguments
+* +*-t*+, +*--target*+: How to open the clicked element (normal/tab/tab-bg/window).
 
 [[command-accept]]
 === command-accept

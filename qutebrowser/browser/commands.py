@@ -1540,9 +1540,10 @@ class CommandDispatcher:
         error is shown.
 
         Args:
-            filter: How to filter the elements.
-                    id: Get an element based on its ID.
+            filter_: How to filter the elements.
+                     id: Get an element based on its ID.
             value: The value to filter for.
+            target: How to open the clicked element (normal/tab/tab-bg/window).
         """
         tab = self._current_widget()
 
