@@ -36,7 +36,8 @@ def collect_tests():
     return files
 
 
-ParsedFile = collections.namedtuple('ParsedFile', ['target'])
+ParsedFile = collections.namedtuple('ParsedFile', ['target',
+                                                   'qtwebengine_todo'])
 
 
 class InvalidFile(Exception):
@@ -64,7 +65,7 @@ def _parse_file(test_name):
         raise InvalidFile(test_name, "expected yaml dict but got {}".format(
             type(data).__name__))
 
-    allowed_keys = {'target'}
+    allowed_keys = {'target', 'qtwebengine_todo'}
     if not set(data.keys()).issubset(allowed_keys):
         raise InvalidFile(test_name, "expected keys {} but found {}".format(
                           ', '.join(allowed_keys),
@@ -73,7 +74,9 @@ def _parse_file(test_name):
     if not 'target' in data:
         raise InvalidFile(test_name, "'target' key not found")
 
-    return ParsedFile(target=data['target'])
+    qtwebengine_todo = data.get('qtwebengine_todo', None)
+
+    return ParsedFile(target=data['target'], qtwebengine_todo=qtwebengine_todo)
 
 
 @pytest.mark.parametrize('test_name', collect_tests())
@@ -82,18 +85,21 @@ def _parse_file(test_name):
 @pytest.mark.parametrize('find_implementation', ['javascript', 'python'])
 def test_hints(test_name, zoom_text_only, zoom_level, find_implementation,
                quteproc, request):
-    if zoom_text_only and request.config.getoption('--qute-bdd-webengine'):
+    webengine = bool(request.config.getoption('--qute-bdd-webengine'))
+    if zoom_text_only and webengine:
         pytest.skip("QtWebEngine doesn't have zoom-text-only")
-    if (find_implementation == 'python' and
-            request.config.getoption('--qute-bdd-webengine')):
+    if find_implementation == 'python' and webengine:
         pytest.skip("QtWebEngine doesn't have a python find implementation")
 
     parsed = _parse_file(test_name)
+    if parsed.qtwebengine_todo is not None and webengine:
+        pytest.xfail("QtWebEngine TODO: {}".format(parsed.qtwebengine_todo))
+
     url_path = 'data/hints/html/{}'.format(test_name)
     quteproc.open_path(url_path)
 
     # setup
-    if not request.config.getoption('--qute-bdd-webengine'):
+    if not webengine:
         quteproc.set_setting('ui', 'zoom-text-only', str(zoom_text_only))
         quteproc.set_setting('hints', 'find-implementation',
                              find_implementation)
@@ -105,7 +111,7 @@ def test_hints(test_name, zoom_text_only, zoom_level, find_implementation,
     quteproc.wait_for_load_finished('data/' + parsed.target)
     # reset
     quteproc.send_cmd(':zoom 100')
-    if not request.config.getoption('--qute-bdd-webengine'):
+    if not webengine:
         quteproc.set_setting('ui', 'zoom-text-only', 'false')
         quteproc.set_setting('hints', 'find-implementation', 'javascript')
 
