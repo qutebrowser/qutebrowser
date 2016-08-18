@@ -351,6 +351,11 @@ class WebEngineElements(browsertab.AbstractElements):
         js_cb = functools.partial(self._js_cb_multiple, callback)
         self._tab.run_js_async(js_code, js_cb)
 
+    def find_id(self, elem_id, callback):
+        js_code = javascript.assemble('document', 'getElementById', elem_id)
+        js_cb = functools.partial(self._js_cb_single, callback)
+        self._tab.run_js_async(js_code, js_cb)
+
     def find_focused(self, callback):
         js_code = javascript.assemble('webelem', 'focus_element')
         js_cb = functools.partial(self._js_cb_single, callback)

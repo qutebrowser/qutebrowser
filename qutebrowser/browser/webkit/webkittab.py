@@ -512,6 +512,9 @@ class WebKitElements(browsertab.AbstractElements):
 
         callback(elems)
 
+    def find_id(self, elem_id, callback):
+        self.find_css('#' + elem_id, callback)
+
     def find_focused(self, callback):
         frame = self._widget.page().currentFrame()
         if frame is None:

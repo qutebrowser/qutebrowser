@@ -433,6 +433,15 @@ class AbstractElements:
         """
         raise NotImplementedError
 
+    def find_id(self, elem_id, callback):
+        """Find the HTML element with the given ID async.
+
+        Args:
+            callback: The callback to be called when the search finished.
+            elem_id: The ID to search for.
+        """
+        raise NotImplementedError
+
     def find_focused(self, callback):
         """Find the focused element on the page async.
 
