@@ -339,7 +339,7 @@ class WebEngineElements(browsertab.AbstractElements):
             js_elem: The element serialized from javascript.
         """
         log.webview.debug("Got element from JS: {!r}".format(js_elem))
-        if not js_elem:
+        if js_elem is None:
             callback(None)
         else:
             elem = webengineelem.WebEngineElement(js_elem, tab=self)
