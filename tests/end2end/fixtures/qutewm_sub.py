@@ -37,6 +37,7 @@ Exit codes:
 """
 
 import sys
+import signal
 import logging
 
 from Xlib.display import Display
@@ -79,6 +80,11 @@ class AtomBag:
         # there's also WM_NAME, so prefix with net_ to distinguish
         self.net_wm_name = atom('_NET_WM_NAME')
         self.wm_hints = Xatom.WM_HINTS
+
+
+class Quit(Exception):
+
+    """Exception to quit qutewm."""
 
 
 class QuteWM:
@@ -197,14 +203,26 @@ class QuteWM:
         while 1:
             if self._retcode is not None:
                 return self._retcode
-
-            ev = self.root.display.next_event()
+            try:
+                ev = self.root.display.next_event()
+                handler = self._handlers.get(ev.type)
+                if handler:
+                    handler(ev)
+            except Quit:
+                return self._retcode
             #log.debug("Got event {}".format(ev))
-            handler = self._handlers.get(ev.type)
-            if handler:
-                handler(ev)
-
             self._update_clients()
+
+    def quit(self, reason=None):
+        """Quit the window manager."""
+        self._retcode = 0
+        reason_str = ''
+        if reason is not None:
+            reason_str = ' ({})'.format(reason)
+        log.info("quitting qutewm" + reason_str)
+        self.support_window.destroy()
+        # don't wait for another event...
+        raise Quit
 
     def activate(self, window):
         """Activate the given window, raise it and focus it."""
@@ -386,6 +404,8 @@ def main():
 
     global wm
     wm = QuteWM()
+    signal.signal(signal.SIGTERM, lambda signum, frame: wm.quit('SIGTERM'))
+    signal.signal(signal.SIGINT, lambda signum, frame: wm.quit('Ctrl-C'))
     sys.exit(wm.loop())
 
 
