@@ -162,7 +162,6 @@ class QuteWM:
         # we need to signal the main thread to stop.
         if self._retcode is None:
             log.error(error)
-            self._retcode = 1
 
     def _set_supported_attribute(self):
         """Set the _NET_SUPPORTED attribute on the root window."""
@@ -321,7 +320,10 @@ class QuteWM:
         """Called when a ClientMessage is received."""
         if ev.client_type == self.atoms.active_window:
             log.debug("external request to activate {}".format(ev.window))
-            self.activate(ev.window)
+            if ev.window in self.windows:
+                self.activate(ev.window)
+            else:
+                log.debug("window to activate is not managed!")
         elif ev.client_type == self.atoms.wm_state:
             self._handle_wm_state(ev)
 
