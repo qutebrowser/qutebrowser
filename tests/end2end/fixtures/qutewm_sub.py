@@ -88,10 +88,14 @@ class QuteWM:
     Attributes:
         dpy: The Display.
         dimensions: The screen's dimensions (width, height).
+        _retcode: Exit code of the window manager.
+        _needs_update: True if the client list or the active window property
+                       needs to be updated.
         windows: A list of all managed windows in mapping order.
         window_stack: A list of all windows in stack order.
         root: The root window.
         support_window: The window for the _NET_SUPPORTING_WM_CHECK.
+        atoms: AtomBag for the window manager.
     """
 
     WM_NAME = b'qutewm'
