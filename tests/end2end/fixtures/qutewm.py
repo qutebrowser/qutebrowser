@@ -103,6 +103,8 @@ def qutewm_manager(request):
 
     qutewm = request.session._qutewm
     qutewm.before_test()
+    if qutewm.wm_failed:
+        pytest.skip('qutewm required but not started')
     request.node._qutewm_log = qutewm.captured_log
     yield qutewm
     qutewm.after_test()
