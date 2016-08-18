@@ -226,7 +226,8 @@ PromptMode = enum('PromptMode', ['yesno', 'text', 'user_pwd', 'alert',
 
 
 # Where to open a clicked link.
-ClickTarget = enum('ClickTarget', ['normal', 'tab', 'tab_bg', 'window'])
+ClickTarget = enum('ClickTarget', ['normal', 'tab', 'tab_bg', 'window',
+                                   'hover'])
 
 
 # Key input modes

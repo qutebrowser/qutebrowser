@@ -33,9 +33,9 @@ class WebEngineElement(webelem.AbstractWebElement):
     """A web element for QtWebEngine, using JS under the hood."""
 
     def __init__(self, js_dict, tab):
+        super().__init__(tab)
         self._id = js_dict['id']
         self._js_dict = js_dict
-        self._tab = tab
 
     def __eq__(self, other):
         if not isinstance(other, WebEngineElement):

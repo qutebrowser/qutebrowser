@@ -70,7 +70,7 @@ class TabData:
         inspector: The QWebInspector used for this webview.
         viewing_source: Set if we're currently showing a source view.
         open_target: How the next clicked link should be opened.
-        hint_target: Override for open_target for hints.
+        override_target: Override for open_target for fake clicks (like hints).
     """
 
     def __init__(self):
@@ -78,11 +78,11 @@ class TabData:
         self.viewing_source = False
         self.inspector = None
         self.open_target = usertypes.ClickTarget.normal
-        self.hint_target = None
+        self.override_target = None
 
     def combined_target(self):
-        if self.hint_target is not None:
-            return self.hint_target
+        if self.override_target is not None:
+            return self.override_target
         else:
             return self.open_target
 
@@ -535,7 +535,6 @@ class AbstractTab(QWidget):
         # FIXME:qtwebengine  Should this be public api via self.hints?
         #                    Also, should we get it out of objreg?
         hintmanager = hints.HintManager(win_id, self.tab_id, parent=self)
-        hintmanager.hint_events.connect(self._on_hint_events)
         objreg.register('hintmanager', hintmanager, scope='tab',
                         window=self.win_id, tab=self.tab_id)
 
@@ -567,27 +566,12 @@ class AbstractTab(QWidget):
         """Send the given event to the underlying widget."""
         raise NotImplementedError
 
-    @pyqtSlot(usertypes.ClickTarget, list)
-    def _on_hint_events(self, target, events):
-        """Post a new mouse event from a hintmanager."""
-        log.modes.debug("Sending hint events to {!r} with target {}".format(
-            self, target))
-        self._widget.setFocus()
-        self.data.hint_target = target
-
-        for evt in events:
-            self.post_event(evt)
-
-        def reset_target():
-            self.data.hint_target = None
-        QTimer.singleShot(0, reset_target)
-
     @pyqtSlot(QUrl)
     def _on_link_clicked(self, url):
-        log.webview.debug("link clicked: url {}, hint target {}, "
+        log.webview.debug("link clicked: url {}, override target {}, "
                           "open_target {}".format(
                               url.toDisplayString(),
-                              self.data.hint_target, self.data.open_target))
+                              self.data.override_target, self.data.open_target))
 
         if not url.isValid():
             msg = urlutils.get_errstring(url, "Invalid link clicked")

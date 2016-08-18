@@ -505,7 +505,7 @@ class WebKitElements(browsertab.AbstractElements):
         frames = webkitelem.get_child_frames(mainframe)
         for f in frames:
             for elem in f.findAllElements(selector):
-                elems.append(webkitelem.WebKitElement(elem))
+                elems.append(webkitelem.WebKitElement(elem, tab=self._tab))
 
         if only_visible:
             elems = [e for e in elems if e.is_visible(mainframe)]
@@ -525,7 +525,7 @@ class WebKitElements(browsertab.AbstractElements):
         if elem.isNull():
             callback(None)
         else:
-            callback(webkitelem.WebKitElement(elem))
+            callback(webkitelem.WebKitElement(elem, tab=self._tab))
 
     def find_at_pos(self, pos, callback):
         assert pos.x() >= 0
@@ -553,7 +553,7 @@ class WebKitElements(browsertab.AbstractElements):
             return
 
         try:
-            elem = webkitelem.WebKitElement(hitresult.element())
+            elem = webkitelem.WebKitElement(hitresult.element(), tab=self._tab)
         except webkitelem.IsNullError:
             # For some reason, the hit result element can be a null element
             # sometimes (e.g. when clicking the timetable fields on

@@ -29,7 +29,8 @@ Module attributes:
 
 import collections.abc
 
-from PyQt5.QtCore import QUrl
+from PyQt5.QtCore import QUrl, Qt, QEvent, QTimer
+from PyQt5.QtGui import QMouseEvent
 
 from qutebrowser.config import config
 from qutebrowser.utils import log, usertypes, utils, qtutils
@@ -73,7 +74,14 @@ class Error(Exception):
 
 class AbstractWebElement(collections.abc.MutableMapping):
 
-    """A wrapper around QtWebKit/QtWebEngine web element."""
+    """A wrapper around QtWebKit/QtWebEngine web element.
+
+    Attributes:
+        tab: The tab associated with this element.
+    """
+
+    def __init__(self, tab):
+        self._tab = tab
 
     def __eq__(self, other):
         raise NotImplementedError
@@ -333,3 +341,60 @@ class AbstractWebElement(collections.abc.MutableMapping):
             url = baseurl.resolved(url)
         qtutils.ensure_valid(url)
         return url
+
+    def _mouse_pos(self):
+        """Get the position to click/hover."""
+        # Click the center of the largest square fitting into the top/left
+        # corner of the rectangle, this will help if part of the <a> element
+        # is hidden behind other elements
+        # https://github.com/The-Compiler/qutebrowser/issues/1005
+        rect = self.rect_on_view()
+        if rect.width() > rect.height():
+            rect.setWidth(rect.height())
+        else:
+            rect.setHeight(rect.width())
+        return rect.center()
+
+    def click(self, click_target):
+        """Simulate a click on the element."""
+        # FIXME:qtwebengine do we need this?
+        # self._widget.setFocus()
+        self._tab.data.override_target = click_target
+
+        pos = self._mouse_pos()
+
+        log.hints.debug("Sending fake click to '{}' at position {} with "
+                        "target {}".format(self.debug_text(), pos,
+                                           click_target))
+
+        if click_target in [usertypes.ClickTarget.tab,
+                            usertypes.ClickTarget.tab_bg,
+                            usertypes.ClickTarget.window]:
+            modifiers = Qt.ControlModifier
+        else:
+            modifiers = Qt.NoModifier
+
+        events = [
+            QMouseEvent(QEvent.MouseMove, pos, Qt.NoButton, Qt.NoButton,
+                        Qt.NoModifier),
+            QMouseEvent(QEvent.MouseButtonPress, pos, Qt.LeftButton,
+                        Qt.LeftButton, modifiers),
+            QMouseEvent(QEvent.MouseButtonRelease, pos, Qt.LeftButton,
+                        Qt.NoButton, modifiers),
+        ]
+
+        for evt in events:
+            self._tab.post_event(evt)
+
+        def after_click():
+            if self.is_text_input() and self.is_editable():
+                self._tab.caret.move_to_end_of_document()
+            self._tab.data.override_target = None
+        QTimer.singleShot(0, after_click)
+
+    def hover(self):
+        """Simulate a mouse hover over the element."""
+        pos = self._mouse_pos()
+        event = QMouseEvent(QEvent.MouseMove, pos, Qt.NoButton, Qt.NoButton,
+                            Qt.NoModifier)
+        self._tab.post_event(event)

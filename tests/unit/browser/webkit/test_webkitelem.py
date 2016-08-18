@@ -120,7 +120,7 @@ def get_webelem(geometry=None, frame=None, *, null=False, style=None,
         return style_dict[name]
 
     elem.styleProperty.side_effect = _style_property
-    wrapped = webkitelem.WebKitElement(elem)
+    wrapped = webkitelem.WebKitElement(elem, tab=None)
     return wrapped
 
 
@@ -218,7 +218,7 @@ class TestSelectorsAndFilters:
         # Make sure setting HTML succeeded and there's a new element
         assert len(webframe.findAllElements('*')) == 3
         elems = webframe.findAllElements(webelem.SELECTORS[group])
-        elems = [webkitelem.WebKitElement(e) for e in elems]
+        elems = [webkitelem.WebKitElement(e, tab=None) for e in elems]
         filterfunc = webelem.FILTERS.get(group, lambda e: True)
         elems = [e for e in elems if filterfunc(e)]
         assert bool(elems) == matching
@@ -244,7 +244,7 @@ class TestWebKitElement:
     def test_double_wrap(self, elem):
         """Test wrapping a WebKitElement."""
         with pytest.raises(TypeError) as excinfo:
-            webkitelem.WebKitElement(elem)
+            webkitelem.WebKitElement(elem, tab=None)
         assert str(excinfo.value) == "Trying to wrap a wrapper!"
 
     @pytest.mark.parametrize('code', [
@@ -329,7 +329,7 @@ class TestWebKitElement:
 
     def test_eq(self):
         one = get_webelem()
-        two = webkitelem.WebKitElement(one._elem)
+        two = webkitelem.WebKitElement(one._elem, tab=None)
         assert one == two
 
     def test_eq_other_type(self):

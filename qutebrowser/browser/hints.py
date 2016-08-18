@@ -26,9 +26,7 @@ import re
 import html
 from string import ascii_lowercase
 
-from PyQt5.QtCore import (pyqtSignal, pyqtSlot, QObject, QEvent, Qt, QUrl,
-                          QTimer)
-from PyQt5.QtGui import QMouseEvent
+from PyQt5.QtCore import pyqtSignal, pyqtSlot, QObject, Qt, QUrl
 from PyQt5.QtWidgets import QLabel
 
 from qutebrowser.config import config, style
@@ -182,13 +180,7 @@ class HintContext:
 
 class HintActions(QObject):
 
-    """Actions which can be done after selecting a hint.
-
-    Signals:
-        hint_events: Emitted with a ClickTarget and a list of hint event.s
-    """
-
-    hint_events = pyqtSignal(usertypes.ClickTarget, list)  # QMouseEvent list
+    """Actions which can be done after selecting a hint."""
 
     def __init__(self, win_id, parent=None):
         super().__init__(parent)
@@ -214,50 +206,19 @@ class HintActions(QObject):
         else:
             target_mapping[Target.tab] = usertypes.ClickTarget.tab
 
-        # Click the center of the largest square fitting into the top/left
-        # corner of the rectangle, this will help if part of the <a> element
-        # is hidden behind other elements
-        # https://github.com/The-Compiler/qutebrowser/issues/1005
-        rect = elem.rect_on_view()
-        if rect.width() > rect.height():
-            rect.setWidth(rect.height())
-        else:
-            rect.setHeight(rect.width())
-        pos = rect.center()
-
-        action = "Hovering" if context.target == Target.hover else "Clicking"
-        log.hints.debug("{} on '{}' at position {}".format(
-            action, elem.debug_text(), pos))
-
-        if context.target in [Target.tab, Target.tab_fg, Target.tab_bg,
-                              Target.window]:
-            modifiers = Qt.ControlModifier
-        else:
-            modifiers = Qt.NoModifier
-        events = [
-            QMouseEvent(QEvent.MouseMove, pos, Qt.NoButton, Qt.NoButton,
-                        Qt.NoModifier),
-        ]
-        if context.target != Target.hover:
-            events += [
-                QMouseEvent(QEvent.MouseButtonPress, pos, Qt.LeftButton,
-                            Qt.LeftButton, modifiers),
-                QMouseEvent(QEvent.MouseButtonRelease, pos, Qt.LeftButton,
-                            Qt.NoButton, modifiers),
-            ]
-
         if context.target in [Target.normal, Target.current]:
             # Set the pre-jump mark ', so we can jump back here after following
             tabbed_browser = objreg.get('tabbed-browser', scope='window',
                                         window=self._win_id)
             tabbed_browser.set_mark("'")
 
-        if context.target == Target.current:
+        if context.target == Target.hover:
+            elem.hover()
+        elif context.target == Target.current:
             elem.remove_blank_target()
-
-        self.hint_events.emit(target_mapping[context.target], events)
-        if elem.is_text_input() and elem.is_editable():
-            QTimer.singleShot(0, context.tab.caret.move_to_end_of_document)
+            elem.click(target_mapping[context.target])
+        else:
+            elem.click(target_mapping[context.target])
 
     def yank(self, url, context):
         """Yank an element to the clipboard or primary selection.
@@ -397,8 +358,6 @@ class HintManager(QObject):
         Target.spawn: "Spawn command via hint",
     }
 
-    hint_events = pyqtSignal(usertypes.ClickTarget, list)  # QMouseEvent list
-
     def __init__(self, win_id, tab_id, parent=None):
         """Constructor."""
         super().__init__(parent)
@@ -408,7 +367,6 @@ class HintManager(QObject):
         self._word_hinter = WordHinter()
 
         self._actions = HintActions(win_id)
-        self._actions.hint_events.connect(self.hint_events)
 
         mode_manager = objreg.get('mode-manager', scope='window',
                                   window=win_id)
