@@ -61,7 +61,7 @@ class QuteWMProcess(testprocess.Process):
         return []
 
 
-@pytest.yield_fixture(scope='session')
+@pytest.yield_fixture(scope='session', autouse=True)
 def qutewm(qapp):
     """Make sure a qutewm instance is running for this session.
 
@@ -75,6 +75,12 @@ def qutewm(qapp):
     qutewm.start()
 
     if qutewm.wm_failed:
+        # even though the subprocess already exited here, we somehow need that
+        # terminate call. Otherwise Qt will throw some errors and the tests
+        # will fail...:
+        #     SystemError: <class 'PyQt5.QtCore.QtMsgType'> returned a result
+        #     with an error set
+        qutewm.terminate()
         yield None
         return
 
