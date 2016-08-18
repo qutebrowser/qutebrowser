@@ -126,6 +126,7 @@ class QuteWM:
             X.PropertyNotify: self._on_property_notify,
         }
         self.dpy = Display()
+        self.dpy.set_error_handler(self._error_handler)
 
         screen_width = self.dpy.screen().width_in_pixels
         screen_height = self.dpy.screen().height_in_pixels
@@ -155,6 +156,13 @@ class QuteWM:
         # This is called async, which means we can't just raise an exception,
         # we need to signal the main thread to stop.
         self._retcode = 42
+
+    def _error_handler(self, error, request):
+        # This is called async, which means we can't just raise an exception,
+        # we need to signal the main thread to stop.
+        if self._retcode is None:
+            log.error(error)
+            self._retcode = 1
 
     def _set_supported_attribute(self):
         """Set the _NET_SUPPORTED attribute on the root window."""
