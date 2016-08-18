@@ -42,10 +42,11 @@ import logging
 from Xlib.display import Display
 from Xlib import X, XK, Xatom, Xutil
 
-
+LOG_FORMAT = ('{asctime:8} {levelname:8} {name:10}'
+              ' {module}:{funcName}:{lineno} {message}')
 logging.basicConfig(
     style='{',
-    format='{asctime} {name:10} {levelname:10} {module}:{funcName} {message}',
+    format=LOG_FORMAT,
     level=logging.INFO,
 )
 log = logging.getLogger('qutewm')
