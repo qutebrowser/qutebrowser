@@ -558,7 +558,11 @@ def _get_scroll_values(quteproc):
 
 @bdd.then(bdd.parsers.re(r"the page should be scrolled "
                          r"(?P<direction>horizontally|vertically)"))
-def check_scrolled(quteproc, direction):
+def check_scrolled(request, quteproc, direction):
+    if request.config.getoption('--qute-bdd-webengine'):
+        # pylint: disable=no-member
+        pytest.xfail(reason="QtWebEngine TODO: Sessions are not implemented")
+        # pylint: enable=no-member
     x, y = _get_scroll_values(quteproc)
     if direction == 'horizontally':
         assert x != 0
@@ -569,7 +573,11 @@ def check_scrolled(quteproc, direction):
 
 
 @bdd.then("the page should not be scrolled")
-def check_not_scrolled(quteproc):
+def check_not_scrolled(request, quteproc):
+    if request.config.getoption('--qute-bdd-webengine'):
+        # pylint: disable=no-member
+        pytest.xfail(reason="QtWebEngine TODO: Sessions are not implemented")
+        # pylint: enable=no-member
     x, y = _get_scroll_values(quteproc)
     assert x == 0
     assert y == 0
