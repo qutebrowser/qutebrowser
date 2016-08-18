@@ -11,12 +11,7 @@ Feature: Going back and forward.
         And I run :forward
         And I wait until data/backforward/2.txt is loaded
         And I reload
-        Then the requests should be:
-            data/backforward/1.txt
-            data/backforward/2.txt
-            data/backforward/1.txt
-            data/backforward/2.txt
-        And the session should look like:
+        Then the session should look like:
             windows:
             - tabs:
               - history:
