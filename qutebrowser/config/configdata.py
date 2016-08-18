@@ -1458,9 +1458,6 @@ KEY_DATA = collections.OrderedDict([
 
     ('normal', collections.OrderedDict([
         ('clear-keychain ;; search', ['<Escape>']),
-        ('set-cmd-text -s :search ', ['/']),
-        ('set-cmd-text -s :search --r', ['?']),
-        ('set-cmd-text -s : ', [':']),
         ('set-cmd-text -s :open', ['o']),
         ('set-cmd-text :open {url:pretty}', ['go']),
         ('set-cmd-text -s :open -t', ['O']),
@@ -1469,6 +1466,9 @@ KEY_DATA = collections.OrderedDict([
         ('set-cmd-text :open -b -i {url:pretty}', ['xO']),
         ('set-cmd-text -s :open -w', ['wo']),
         ('set-cmd-text :open -w {url:pretty}', ['wO']),
+        ('set-cmd-text -s :search', ['/']),
+        ('set-cmd-text -s :search --r', ['?']),
+        ('set-cmd-text -s : ', [':']),
         ('open -t', ['ga', '<Ctrl-T>']),
         ('open -w', ['<Ctrl-N>']),
         ('tab-close', ['d', '<Ctrl-W>']),

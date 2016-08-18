@@ -29,9 +29,8 @@ from qutebrowser.utils import message
 from qutebrowser.config import config
 from qutebrowser.keyinput import keyparser
 from qutebrowser.utils import usertypes, log, objreg, utils
-from qutebrowser.config.parsers import keyconf
 
- 
+
 STARTCHARS = ":/?"
 LastPress = usertypes.enum('LastPress', ['none', 'filtertext', 'keystring'])
 
@@ -71,10 +70,6 @@ class NormalKeyParser(keyparser.CommandKeyParser):
             self._debug_log("Ignoring key '{}', because the normal mode is "
                 "currently inhibited.".format(txt))
             return self.Match.none
-        if not self._keystring:
-            message.set_cmd_text(self._win_id, txt)
-            return self.Match.definitive
-        match = super()._handle_single_key(e)
         if match == self.Match.partial:
             timeout = config.get('input', 'partial-timeout')
             if timeout != 0:
@@ -232,7 +227,7 @@ class HintKeyParser(keyparser.CommandKeyParser):
         if keytype == self.Type.chain:
             hintmanager = objreg.get('hintmanager', scope='tab',
                                      window=self._win_id, tab='current')
-            hintmanager.fire(cmdstr)
+            hintmanager.handle_partial_key(cmdstr)
         else:
             # execute as command
             super().execute(cmdstr, keytype, count)
