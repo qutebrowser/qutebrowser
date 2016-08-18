@@ -17,5 +17,9 @@
 # You should have received a copy of the GNU General Public License
 # along with qutebrowser.  If not, see <http://www.gnu.org/licenses/>.
 
+import pytest
 import pytest_bdd as bdd
 bdd.scenarios('backforward.feature')
+
+
+pytestmark = pytest.mark.qtwebengine_todo("Tests broken for various reasons")
