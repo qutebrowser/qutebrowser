@@ -23,7 +23,14 @@ window._qutebrowser.webelem = (function() {
     var funcs = {};
     var elements = [];
 
-    function serialize_elem(elem, id) {
+    function serialize_elem(elem) {
+        if (!elem) {
+            return null;
+        }
+
+        var id = elements.length;
+        elements[id] = elem;
+
         var out = {
             "id": id,
             "text": elem.text,
@@ -60,13 +67,9 @@ window._qutebrowser.webelem = (function() {
     funcs.find_all = function(selector) {
         var elems = document.querySelectorAll(selector);
         var out = [];
-        var id = elements.length;
 
         for (var i = 0; i < elems.length; ++i) {
-            var elem = elems[i];
-            out.push(serialize_elem(elem, id));
-            elements[id] = elem;
-            id++;
+            out.push(serialize_elem(elems[i]));
         }
 
         return out;
@@ -81,9 +84,7 @@ window._qutebrowser.webelem = (function() {
             return null;
         }
 
-        var id = elements.length;
-        elements[id] = elem;
-        return serialize_elem(elem, id);
+        return serialize_elem(elem);
     };
 
     funcs.set_text = function(id, text) {
@@ -97,13 +98,7 @@ window._qutebrowser.webelem = (function() {
         // element is returned (the iframe itself).
 
         var elem = document.elementFromPoint(x, y);
-        if (!elem) {
-            return null;
-        }
-
-        var id = elements.length;
-        elements[id] = elem;
-        return serialize_elem(elem, id);
+        return serialize_elem(elem);
     };
 
     return funcs;
