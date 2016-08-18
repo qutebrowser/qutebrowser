@@ -226,11 +226,15 @@ if not getattr(sys, 'frozen', False):
             raise ValueError("Invalid package {!r}".format(package))
 
     def _get_qtwebengine_tag(tag):
-        """Handle a @qtwebengine_todo tag."""
-        if not tag.startswith('qtwebengine_todo:'):
+        """Handle a @qtwebengine_* tag."""
+        pytest_marks = {
+            'qtwebengine_todo': pytest.mark.qtwebengine_todo,
+            'qtwebengine_skip': pytest.mark.qtwebengine_skip,
+        }
+        if not any(tag.startswith(t + ':') for t in pytest_marks):
             return None
-        desc = tag.split(':', maxsplit=1)[1]
-        return pytest.mark.qtwebengine_todo(desc)
+        name, desc = tag.split(':', maxsplit=1)
+        return pytest_marks[name](desc)
 
     def pytest_bdd_apply_tag(tag, function):
         """Handle custom tags for BDD tests.
