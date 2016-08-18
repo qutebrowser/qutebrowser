@@ -265,22 +265,6 @@ class TestClickElementByText:
         assert 'No element' in str(excinfo.value)
 
 
-class TestClickElementById:
-
-    @pytest.fixture(autouse=True)
-    def open_page(self, quteproc):
-        quteproc.open_path('data/click_element.html')
-
-    def test_click_element(self, quteproc):
-        quteproc.click_element_by_id('test')
-        quteproc.wait_for_js('click_element clicked')
-
-    def test_nonexistent(self, quteproc):
-        with pytest.raises(ValueError) as excinfo:
-            quteproc.click_element_by_id('blah')
-        assert 'No element' in str(excinfo.value)
-
-
 @pytest.mark.parametrize('string, expected', [
     ('Test', "'Test'"),
     ("Don't", '"Don\'t"'),

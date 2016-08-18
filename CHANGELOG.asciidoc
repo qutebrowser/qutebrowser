@@ -38,6 +38,7 @@ Added
 - New `prev-category` and `next-category` arguments to `:completion-item-focus`
   to focus the previous/next category in the completion (bound to `<Ctrl-Tab>`
   and `<Ctrl-Shift-Tab>` by default).
+- New `:click-element` command to fake a click on a element.
 
 Changed
 ~~~~~~~

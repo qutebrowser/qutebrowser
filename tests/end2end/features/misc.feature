@@ -559,3 +559,15 @@ Feature: Various utility commands.
         And I put "{url}" into the clipboard
         And I run :message-info {clipboard}bar{url}
         Then the message "{url}barhttp://localhost:*/hello.txt" should be shown
+
+    ## :click-element
+
+    Scenario: Clicking an element with unknown ID
+        When I open data/click_element.html
+        And I run :click-element id blah
+        Then the error "No element found!" should be shown
+
+    Scenario: Clicking an element by ID
+        When I open data/click_element.html
+        And I run :click-element id qute-input
+        Then "Clicked editable element!" should be logged

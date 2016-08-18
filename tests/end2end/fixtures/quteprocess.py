@@ -548,21 +548,6 @@ class QuteProc(testprocess.Process):
             raise ValueError('Invalid response from qutebrowser: {}'
                              .format(message))
 
-    def click_element_by_id(self, elem_id):
-        """Click the element with the given ID."""
-        script = (
-            'var _elem = document.getElementById("{elem_id}"); '
-            'if (_elem === null) {{ console.log("qute:no elem"); }} '
-            'else {{ console.log("qute:okay"); _elem.click(); }}'
-        ).format(elem_id=javascript.string_escape(elem_id))
-        self.send_cmd(':jseval ' + script, escape=False)
-        message = self.wait_for_js('qute:*').message
-        if message.endswith('qute:no elem'):
-            raise ValueError('No element with ID {!r} found'.format(elem_id))
-        elif not message.endswith('qute:okay'):
-            raise ValueError('Invalid response from qutebrowser: {}'
-                             .format(message))
-
     def compare_session(self, expected):
         """Compare the current sessions against the given template.
 
