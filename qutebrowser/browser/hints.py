@@ -178,12 +178,11 @@ class HintContext:
         return args
 
 
-class HintActions(QObject):
+class HintActions:
 
     """Actions which can be done after selecting a hint."""
 
-    def __init__(self, win_id, parent=None):
-        super().__init__(parent)
+    def __init__(self, win_id):
         self._win_id = win_id
 
     def click(self, elem, context):
