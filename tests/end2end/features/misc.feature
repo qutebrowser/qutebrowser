@@ -571,3 +571,12 @@ Feature: Various utility commands.
         When I open data/click_element.html
         And I run :click-element id qute-input
         Then "Clicked editable element!" should be logged
+
+    Scenario: Clicking an element with tab target
+        When I open data/click_element.html
+        And I run :tab-only
+        And I run :click-element id link --target=tab
+        Then data/hello.txt should be loaded
+        And the following tabs should be open:
+            - data/click_element.html
+            - data/hello.txt (active)
