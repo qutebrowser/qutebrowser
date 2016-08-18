@@ -33,12 +33,6 @@ def wait_ssl_page_finished_loading(quteproc, ssl_server):
                                     load_status='warn')
 
 
-@bdd.when("I click the button")
-def click_button(quteproc):
-    quteproc.send_cmd(':hint')
-    quteproc.send_cmd(':follow-hint a')
-
-
 @bdd.when("I wait for a prompt")
 def wait_for_prompt(quteproc):
     quteproc.wait_for(message='Entering mode KeyMode.* (reason: question '

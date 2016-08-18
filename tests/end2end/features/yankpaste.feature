@@ -219,9 +219,7 @@ Feature: Yanking and pasting.
 
     Scenario: Inserting text into an empty text field
         When I open data/paste_primary.html
-        # Click the text field
-        And I run :hint all
-        And I run :follow-hint a
+        And I run :click-element id qute-textarea
         And I wait for "Clicked editable element!" in the log
         And I run :insert-text Hello world
         # Compare
@@ -230,9 +228,7 @@ Feature: Yanking and pasting.
     Scenario: Inserting text into a text field at specific position
         When I open data/paste_primary.html
         And I set the text field to "one two three four"
-        # Click the text field
-        And I run :hint all
-        And I run :follow-hint a
+        And I run :click-element id qute-textarea
         And I wait for "Clicked editable element!" in the log
         # Move to the beginning and two characters to the right
         And I press the keys "<Home>"
@@ -244,9 +240,7 @@ Feature: Yanking and pasting.
 
     Scenario: Inserting text into a text field with undo
         When I open data/paste_primary.html
-        # Click the text field
-        And I run :hint all
-        And I run :follow-hint a
+        And I run :click-element id qute-textarea
         And I wait for "Clicked editable element!" in the log
         # Paste and undo
         And I run :insert-text This text should be undone
@@ -264,9 +258,7 @@ Feature: Yanking and pasting.
 
     Scenario: Inserting text with a read-only field
         When I open data/paste_primary.html
-        # Click the text field
-        And I run :hint all
-        And I run :follow-hint s
+        And I run :click-element id qute-textarea-noedit
         And I wait for "Clicked non-editable element!" in the log
         And I run :enter-mode insert
         And I run :insert-text test

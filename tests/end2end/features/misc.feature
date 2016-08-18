@@ -372,8 +372,7 @@ Feature: Various utility commands.
     @pyqt>=5.3.1
     Scenario: Focusing download widget via Tab (original issue)
         When I open data/prompt/jsprompt.html
-        And I run :hint
-        And I run :follow-hint a
+        And I run :click-element id button
         And I wait for "Entering mode KeyMode.prompt *" in the log
         And I press the key "<Tab>"
         And I press the key "<Ctrl-C>"
@@ -519,8 +518,7 @@ Feature: Various utility commands.
         When I run :hint
         And I run :leave-mode
         And I run :repeat-command
-        And I run :follow-hint a
-        And I wait until data/hello.txt is loaded
+        And I run :click-element id link
         Then the following tabs should be open:
             - data/hints/link_blank.html
             - data/hello.txt (active)
