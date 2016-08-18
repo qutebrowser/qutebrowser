@@ -26,6 +26,7 @@ import yaml
 import pytest
 import bs4
 import textwrap
+import collections
 
 
 def collect_tests():
@@ -33,6 +34,39 @@ def collect_tests():
     datadir = os.path.join(basedir, 'data', 'hints', 'html')
     files = [f for f in os.listdir(datadir) if f != 'README.md']
     return files
+
+
+ParsedFile = collections.namedtuple('ParsedFile', ['target'])
+
+
+def _parse_file(test_name):
+    """Parse the given HTML file."""
+    file_path = os.path.join(os.path.abspath(os.path.dirname(__file__)),
+                             'data', 'hints', 'html', test_name)
+    with open(file_path, 'r', encoding='utf-8') as html:
+        soup = bs4.BeautifulSoup(html, 'html.parser')
+
+    comment = soup.find(text=lambda text: isinstance(text, bs4.Comment))
+
+    if comment is None:
+        pytest.fail("No comment found in {}, please read "
+                    "tests/end2end/data/hints/html/README.md".format(
+                        test_name))
+
+    data = yaml.load(comment)
+    if not isinstance(data, dict):
+        pytest.fail("Invalid comment found in {}, please read "
+                    "tests/end2end/data/hints/html/README.md - "
+                    "expected yaml dict but got {}".format(
+                        test_name, type(data).__name__))
+
+    if set(data.keys()) != {'target'}:
+        pytest.fail("Invalid comment found in {}, please read "
+                    "tests/end2end/data/hints/html/README.md - "
+                    "expected key 'target' but found {}".format(
+                        test_name, ', '.join(set(data.keys()))))
+
+    return ParsedFile(target=data['target'])
 
 
 @pytest.mark.parametrize('test_name', collect_tests())
@@ -47,33 +81,9 @@ def test_hints(test_name, zoom_text_only, zoom_level, find_implementation,
             request.config.getoption('--qute-bdd-webengine')):
         pytest.skip("QtWebEngine doesn't have a python find implementation")
 
-    file_path = os.path.join(os.path.abspath(os.path.dirname(__file__)),
-                             'data', 'hints', 'html', test_name)
+    parsed = _parse_file(test_name)
     url_path = 'data/hints/html/{}'.format(test_name)
     quteproc.open_path(url_path)
-
-    with open(file_path, 'r', encoding='utf-8') as html:
-        soup = bs4.BeautifulSoup(html, 'html.parser')
-
-    comment = soup.find(text=lambda text: isinstance(text, bs4.Comment))
-
-    if comment is None:
-        pytest.fail("No comment found in {}, please read "
-                    "tests/end2end/data/hints/html/README.md".format(
-                        test_name))
-
-    parsed = yaml.load(comment)
-    if not isinstance(parsed, dict):
-        pytest.fail("Invalid comment found in {}, please read "
-                    "tests/end2end/data/hints/html/README.md - "
-                    "expected yaml dict but got {}".format(
-                        test_name, type(parsed).__name__))
-
-    if set(parsed.keys()) != {'target'}:
-        pytest.fail("Invalid comment found in {}, please read "
-                    "tests/end2end/data/hints/html/README.md - "
-                    "expected key 'target' but found {}".format(
-                        test_name, ', '.join(set(parsed.keys()))))
 
     # setup
     if not request.config.getoption('--qute-bdd-webengine'):
@@ -85,7 +95,7 @@ def test_hints(test_name, zoom_text_only, zoom_level, find_implementation,
     quteproc.send_cmd(':hint links normal')
     quteproc.wait_for(message='hints: a', category='hints')
     quteproc.send_cmd(':follow-hint a')
-    quteproc.wait_for_load_finished('data/' + parsed['target'])
+    quteproc.wait_for_load_finished('data/' + parsed.target)
     # reset
     quteproc.send_cmd(':zoom 100')
     if not request.config.getoption('--qute-bdd-webengine'):
