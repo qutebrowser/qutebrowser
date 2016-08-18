@@ -877,7 +877,7 @@ Feature: Tab management
         And I open data/caret.html in a new window
         And I open data/paste_primary.html in a new tab
         And I run :buffer "Scrolling"
-        And I wait for "Focus object changed: <qutebrowser.browser.* tab_id=* url='http://localhost:*/data/scroll/simple.html'>" in the log
+        And I wait for "Focus object changed: *" in the log
         Then the session should look like:
             windows:
             - active: true
@@ -916,7 +916,7 @@ Feature: Tab management
         And I open data/paste_primary.html in a new tab
         And I wait until data/caret.html is loaded
         And I run :buffer "0/2"
-        And I wait for "Focus object changed: <qutebrowser.browser.* tab_id=* url='http://localhost:*/data/search.html'>" in the log
+        And I wait for "Focus object changed: *" in the log
         Then the session should look like:
             windows:
             - active: true
