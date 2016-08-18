@@ -182,6 +182,9 @@ class WebEngineScroller(browsertab.AbstractScroller):
 
     """QtWebEngine implementations related to scrolling."""
 
+    # FIXME:qtwebengine
+    # using stuff here with a big count/argument causes memory leaks and hangs
+
     def __init__(self, tab, parent=None):
         super().__init__(tab, parent)
         self._pos_perc = (0, 0)
