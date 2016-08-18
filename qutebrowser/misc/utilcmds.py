@@ -256,3 +256,32 @@ def window_only(current_win_id):
     for win_id, window in objreg.window_registry.items():
         if win_id != current_win_id:
             window.close()
+
+
+@cmdutils.register(debug=True)
+@cmdutils.argument('level', choices=[level.lower()
+                    for level in log.LOG_LEVELS])
+def debug_log_level(level: str):
+    """Change the log level for console logging.
+
+    Args:
+       level: log level for console log.
+    """
+    log.console_handler.setLevel(log.LOG_LEVELS[level.upper()])
+
+
+@cmdutils.register(debug=True)
+def debug_log_filter(filter_names: str):
+    """Change the log filter for console logging.
+
+    Args:
+       filter_names: log filters for console log.
+    """
+    if set(filter_names.split(',')).issubset(log.LOGGER_NAMES):
+        log.console_handler.removeFilter(log.console_filter)
+        log.console_filter = log.LogFilter(filter_names.split(','))
+        log.console_handler.addFilter(log.console_filter)
+    else:
+        raise cmdexc.CommandError("Invalid argument, {} choose from {}".
+                                 format(filter_names,
+                                 ','.join(log.LOGGER_NAMES)))
