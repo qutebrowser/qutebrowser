@@ -241,11 +241,13 @@ Feature: Scrolling
         And I run :scroll-page -1 0
         Then the page should not be scrolled
 
+    @qtwebengine_todo: at_bottom is not implemented yet
     Scenario: :scroll-page with --bottom-navigate
         When I run :scroll-perc 100
         And I run :scroll-page --bottom-navigate next 0 1
         Then data/hello2.txt should be loaded
 
+    @qtwebengine_todo: at_top is not implemented yet
     Scenario: :scroll-page with --top-navigate
         When I run :scroll-page --top-navigate prev 0 -1
         Then data/hello3.txt should be loaded
