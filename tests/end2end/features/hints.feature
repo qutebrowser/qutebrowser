@@ -196,7 +196,7 @@ Feature: Using hints
         Then data/numbers/7.txt should be loaded
 
     # https://github.com/The-Compiler/qutebrowser/issues/576
-    @qtwebengine_todo: createWindow is not implemented yet
+    @qtwebengine_skip: Flaky for some reason
     Scenario: Keeping hint filter in rapid mode
         When I open data/hints/number.html
         And I set hints -> mode to number
