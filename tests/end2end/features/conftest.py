@@ -431,7 +431,9 @@ def compare_session(request, quteproc, expected):
     compared.
     """
     if request.config.getoption('--qute-bdd-webengine'):
+        # pylint: disable=no-member
         pytest.xfail(reason="QtWebEngine TODO: Sessions are not implemented")
+        # pylint: enable=no-member
     quteproc.compare_session(expected)
 
 
