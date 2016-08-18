@@ -201,8 +201,8 @@ class WebEngineScroller(browsertab.AbstractScroller):
         press_evt = QKeyEvent(QEvent.KeyPress, key, Qt.NoModifier, 0, 0, 0)
         release_evt = QKeyEvent(QEvent.KeyRelease, key, Qt.NoModifier, 0, 0, 0)
         for _ in range(count):
-            self._tab.post_event(press_evt)
-            self._tab.post_event(release_evt)
+            self._tab.send_event(press_evt)
+            self._tab.send_event(release_evt)
 
     @pyqtSlot()
     def _update_pos(self):
@@ -523,8 +523,6 @@ class WebEngineTab(browsertab.AbstractTab):
         except AttributeError:
             log.stub('contentsSizeChanged, on Qt < 5.7')
 
-    def post_event(self, evt):
-        # If we get a segfault here, we might want to try sendEvent
-        # instead.
+    def send_event(self, evt):
         recipient = self._widget.focusProxy()
-        QApplication.postEvent(recipient, evt)
+        QApplication.sendEvent(recipient, evt)

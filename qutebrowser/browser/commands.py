@@ -1953,8 +1953,8 @@ class CommandDispatcher:
                 window = QApplication.focusWindow()
                 if window is None:
                     raise cmdexc.CommandError("No focused window!")
-                QApplication.postEvent(window, press_event)
-                QApplication.postEvent(window, release_event)
+                QApplication.sendEvent(window, press_event)
+                QApplication.sendEvent(window, release_event)
             else:
                 try:
                     tab = objreg.get('tab', scope='tab', tab='current')
@@ -1962,8 +1962,8 @@ class CommandDispatcher:
                     raise cmdexc.CommandError("No focused webview!")
 
                 tab = self._current_widget()
-                tab.post_event(press_event)
-                tab.post_event(release_event)
+                tab.send_event(press_event)
+                tab.send_event(release_event)
 
     @cmdutils.register(instance='command-dispatcher', scope='window',
                        debug=True)

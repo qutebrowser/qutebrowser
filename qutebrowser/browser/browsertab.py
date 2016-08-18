@@ -562,7 +562,7 @@ class AbstractTab(QWidget):
         self._load_status = val
         self.load_status_changed.emit(val.name)
 
-    def post_event(self, evt):
+    def send_event(self, evt):
         """Send the given event to the underlying widget."""
         raise NotImplementedError
 

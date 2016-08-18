@@ -384,7 +384,7 @@ class AbstractWebElement(collections.abc.MutableMapping):
         ]
 
         for evt in events:
-            self._tab.post_event(evt)
+            self._tab.send_event(evt)
 
         def after_click():
             """Move cursor to end and reset override_target after clicking."""
@@ -398,4 +398,4 @@ class AbstractWebElement(collections.abc.MutableMapping):
         pos = self._mouse_pos()
         event = QMouseEvent(QEvent.MouseMove, pos, Qt.NoButton, Qt.NoButton,
                             Qt.NoModifier)
-        self._tab.post_event(event)
+        self._tab.send_event(event)

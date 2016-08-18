@@ -72,6 +72,11 @@ Feature: Scrolling
         And I run :scroll left
         Then the page should not be scrolled
 
+    # causes segfault with postEvent instead of sendEvent
+    Scenario: Scrolling down with count 10
+        When I run :scroll down with count 10
+        Then no crash should happen
+
     Scenario: Scrolling with page down
         When I run :scroll page-down
         Then the page should be scrolled vertically

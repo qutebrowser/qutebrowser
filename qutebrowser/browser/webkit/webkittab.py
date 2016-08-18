@@ -696,7 +696,5 @@ class WebKitTab(browsertab.AbstractTab):
         frame.initialLayoutCompleted.connect(self._on_history_trigger)
         page.link_clicked.connect(self._on_link_clicked)
 
-    def post_event(self, evt):
-        # If we get a segfault here, we might want to try sendEvent
-        # instead.
-        QApplication.postEvent(self._widget, evt)
+    def send_event(self, evt):
+        QApplication.sendEvent(self._widget, evt)
