@@ -55,6 +55,7 @@ Feature: Setting positional marks
         And I run :jump-mark b
         Then the error "Mark b is not set" should be shown
 
+    @qtwebengine_todo: Does not emit loaded signal for fragments?
     Scenario: Jumping to a local mark after changing fragments
         When I open data/marks.html#top
         And I run :scroll 'top'
@@ -64,6 +65,7 @@ Feature: Setting positional marks
         And I run :jump-mark a
         Then the page should be scrolled to 10 10
 
+    @qtwebengine_todo: Does not emit loaded signal for fragments?
     Scenario: Jumping back after following a link
         When I hint with args "links normal" and follow s
         And I wait until data/marks.html#bottom is loaded
