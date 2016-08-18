@@ -51,6 +51,35 @@ logging.basicConfig(
 log = logging.getLogger('qutewm')
 
 
+class AtomBag:
+
+    """A class which has important X atoms as attributes.
+
+    The atoms are fetched and cached in the initializer.
+
+    Attributes:
+        active_window: _NET_ACTIVE_WINDOW
+        wm_state: _NET_WM_STATE
+        demands_attention: _NET_WM_STATE_DEMANDS_ATTENTION
+        supported: _NET_SUPPORTED
+        client_list: _NET_CLIENT_LIST
+        supporting_wm: _NET_SUPPORTING_WM_CHECK
+        wm_hints: WM_HINTS
+    """
+
+    def __init__(self, dpy):
+        atom = dpy.get_atom
+        self.active_window = atom('_NET_ACTIVE_WINDOW')
+        self.wm_state = atom('_NET_WM_STATE')
+        self.demands_attention = atom('_NET_WM_STATE_DEMANDS_ATTENTION')
+        self.supported = atom('_NET_SUPPORTED')
+        self.client_list = atom('_NET_CLIENT_LIST')
+        self.supporting_wm = atom('_NET_SUPPORTING_WM_CHECK')
+        # there's also WM_NAME, so prefix with net_ to distinguish
+        self.net_wm_name = atom('_NET_WM_NAME')
+        self.wm_hints = Xatom.WM_HINTS
+
+
 class QuteWM:
 
     """Main class for the qutewm window manager.
@@ -68,6 +97,10 @@ class QuteWM:
 
     ROOT_EVENT_MASK = X.SubstructureNotifyMask | X.SubstructureRedirectMask
     CLIENT_EVENT_MASK = X.StructureNotifyMask | X.PropertyChangeMask
+
+    STATE_REMOVE = 0
+    STATE_ADD = 1
+    STATE_TOGGLE = 2
 
     def __init__(self):
         log.info("initializing")
@@ -100,14 +133,7 @@ class QuteWM:
             self.dpy.keysym_to_keycode(XK.string_to_keysym("F1")),
             X.Mod1Mask, 1, X.GrabModeAsync, X.GrabModeAsync)
 
-        self.atom_active_window = self.dpy.get_atom('_NET_ACTIVE_WINDOW')
-        self.atom_wm_state = self.dpy.get_atom('_NET_WM_STATE')
-        # Used like atoms, but actually defined as constants
-        self.atom_state_remove = 0
-        self.atom_state_add = 1
-        self.atom_state_toggle = 2
-        self.atom_demands_attention = self.dpy.get_atom('_NET_WM_STATE'
-                                                        '_DEMANDS_ATTENTION')
+        self.atoms = AtomBag(self.dpy)
 
         self._set_supported_attribute()
         self._set_supporting_wm_check()
@@ -122,16 +148,16 @@ class QuteWM:
     def _set_supported_attribute(self):
         """Set the _NET_SUPPORTED attribute on the root window."""
         attributes = [
-            '_NET_SUPPORTED',
-            '_NET_ACTIVE_WINDOW',
-            '_NET_CLIENT_LIST',
-            '_NET_WM_STATE',
+            self.atoms.supported,
+            self.atoms.active_window,
+            self.atoms.client_list,
+            self.atoms.wm_state,
         ]
         self.root.change_property(
-            self.dpy.get_atom('_NET_SUPPORTED'),
+            self.atoms.supported,
             Xatom.ATOM,
             32,
-            [self.dpy.get_atom(x) for x in attributes],
+            attributes,
         )
 
     def _set_supporting_wm_check(self):
@@ -141,13 +167,13 @@ class QuteWM:
 
         for window in [self.root, self.support_window]:
             window.change_property(
-                self.dpy.get_atom('_NET_SUPPORTING_WM_CHECK'),
+                self.atoms.supporting_wm,
                 Xatom.WINDOW,
                 32,
                 [self.support_window.id],
             )
         self.support_window.change_property(
-            self.dpy.get_atom('_NET_WM_NAME'),
+            self.atoms.net_wm_name,
             Xatom.STRING,
             8,
             self.WM_NAME,
@@ -181,7 +207,7 @@ class QuteWM:
         window.raise_window()
         window.set_input_focus(revert_to=X.RevertToNone, time=X.CurrentTime)
         self.root.change_property(
-            self.dpy.get_atom('_NET_ACTIVE_WINDOW'),
+            self.atoms.active_window,
             Xatom.WINDOW,
             32,
             [window.id] if window else [X.NONE],
@@ -203,13 +229,13 @@ class QuteWM:
             return
 
         self.root.change_property(
-            self.dpy.get_atom('_NET_CLIENT_LIST'),
+            self.atoms.client_list,
             Xatom.WINDOW,
             32,
             [window.id for window in self.windows],
         )
         self.root.change_property(
-            self.dpy.get_atom('_NET_ACTIVE_WINDOW'),
+            self.atoms.active_window,
             Xatom.WINDOW,
             32,
             [self.window_stack[-1].id] if self.window_stack else [X.NONE],
@@ -269,15 +295,15 @@ class QuteWM:
 
     def on_ClientMessage(self, ev):
         """Called when a ClientMessage is received."""
-        if ev.client_type == self.atom_active_window:
+        if ev.client_type == self.atoms.active_window:
             log.info("external request to activate {}".format(ev.window))
             self.activate(ev.window)
-        elif ev.client_type == self.atom_wm_state:
+        elif ev.client_type == self.atoms.wm_state:
             self._handle_wm_state(ev)
 
     def on_PropertyNotify(self, ev):
         """Called when a PropertyNotify event is received."""
-        if ev.atom == Xatom.WM_HINTS:
+        if ev.atom == self.atoms.wm_hints:
             hints = ev.window.get_wm_hints()
             if hints.flags & Xutil.UrgencyHint:
                 log.info("urgency switch to {} (via WM_HINTS)"
@@ -286,7 +312,7 @@ class QuteWM:
 
     def _handle_wm_state(self, ev):
         """Handle the _NET_WM_STATE client message."""
-        client_properties = ev.window.get_property(self.atom_wm_state,
+        client_properties = ev.window.get_property(self.atoms.wm_state,
                                                    Xatom.ATOM, 0, 32)
         if client_properties is None:
             client_properties = set()
@@ -298,11 +324,11 @@ class QuteWM:
         if ev.data[1][2] != 0:
             updates.add(ev.data[1][2])
 
-        if action == self.atom_state_add:
+        if action == self.STATE_ADD:
             client_properties.update(updates)
-        elif action == self.atom_state_remove:
+        elif action == self.STATE_REMOVE:
             client_properties.difference_update(updates)
-        elif action == self.atom_state_toggle:
+        elif action == self.STATE_TOGGLE:
             for atom in updates:
                 if atom in client_properties:
                     client_properties.remove(atom)
@@ -313,10 +339,10 @@ class QuteWM:
 
         log.debug("client properties for {}: {}".format(ev.window,
                                                         client_properties))
-        ev.window.change_property(self.atom_wm_state, Xatom.ATOM, 32,
+        ev.window.change_property(self.atoms.wm_state, Xatom.ATOM, 32,
                                   client_properties)
 
-        if self.atom_demands_attention in client_properties:
+        if self.atoms.demands_attention in client_properties:
             log.info("urgency switch to {} (via _NET_WM_STATE)"
                      .format(ev.window))
             self.activate(ev.window)
