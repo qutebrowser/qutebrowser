@@ -148,7 +148,7 @@ class WebKitElement(webelem.AbstractWebElement):
     def parent(self):
         self._check_vanished()
         elem = self._elem.parent()
-        if elem is None:
+        if elem is None or elem.isNull():
             return None
         return WebKitElement(elem, tab=self._tab)
 
