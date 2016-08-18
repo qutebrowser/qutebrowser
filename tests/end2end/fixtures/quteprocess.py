@@ -196,6 +196,9 @@ class QuteProc(testprocess.Process):
         except testprocess.InvalidLine:
             if not line.strip():
                 return None
+            elif 'Running without the SUID sandbox!' in line:
+                # QtWebEngine error
+                return None
             elif is_ignored_qt_message(line):
                 return None
             else:
