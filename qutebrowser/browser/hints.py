@@ -567,7 +567,8 @@ class HintManager(QObject):
         filterfunc = webelem.FILTERS.get(self._context.group, lambda e: True)
         elems = [e for e in elems if filterfunc(e)]
         if not elems:
-            raise cmdexc.CommandError("No elements found.")
+            message.error(self._win_id, "No elements found.", immediately=True)
+            return
         strings = self._hint_strings(elems)
         log.hints.debug("hints: {}".format(', '.join(strings)))
 
