@@ -23,7 +23,7 @@ rules:
      init-declarations: "off"
      no-plusplus: "off"
      no-extra-parens: off
-     id-length: ["error", {"exceptions": ["i", "x", "y"]}]
+     id-length: ["error", {"exceptions": ["i", "k", "x", "y"]}]
      object-shorthand: "off"
      max-statements: ["error", {"max": 30}]
      quotes: ["error", "double", {"avoidEscape": true}]
@@ -35,3 +35,4 @@ rules:
      func-names: "off"
      sort-keys: "off"
      no-warning-comments: "off"
+     max-len: ["error", {"ignoreUrls": true}]

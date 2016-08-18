@@ -200,12 +200,9 @@ class WebEngineScroller(browsertab.AbstractScroller):
         # FIXME:qtwebengine Abort scrolling if the minimum/maximum was reached.
         press_evt = QKeyEvent(QEvent.KeyPress, key, Qt.NoModifier, 0, 0, 0)
         release_evt = QKeyEvent(QEvent.KeyRelease, key, Qt.NoModifier, 0, 0, 0)
-        recipient = self._widget.focusProxy()
         for _ in range(count):
-            # If we get a segfault here, we might want to try sendEvent
-            # instead.
-            QApplication.postEvent(recipient, press_evt)
-            QApplication.postEvent(recipient, release_evt)
+            self._tab.post_event(press_evt)
+            self._tab.post_event(release_evt)
 
     @pyqtSlot()
     def _update_pos(self):
@@ -458,7 +455,7 @@ class WebEngineTab(browsertab.AbstractTab):
         """
         elems = []
         for js_elem in js_elems:
-            elem = webengineelem.WebEngineElement(js_elem, self.run_js_async)
+            elem = webengineelem.WebEngineElement(js_elem, tab=self)
             elems.append(elem)
         callback(elems)
 
@@ -474,11 +471,12 @@ class WebEngineTab(browsertab.AbstractTab):
         if js_elem is None:
             callback(None)
         else:
-            elem = webengineelem.WebEngineElement(js_elem, self.run_js_async)
+            elem = webengineelem.WebEngineElement(js_elem, tab=self)
             callback(elem)
 
     def find_all_elements(self, selector, callback, *, only_visible=False):
-        js_code = javascript.assemble('webelem', 'find_all', selector)
+        js_code = javascript.assemble('webelem', 'find_all', selector,
+                                      only_visible)
         js_cb = functools.partial(self._js_element_cb_multiple, callback)
         self.run_js_async(js_code, js_cb)
 
@@ -516,3 +514,9 @@ class WebEngineTab(browsertab.AbstractTab):
             page.contentsSizeChanged.connect(self.contents_size_changed)
         except AttributeError:
             log.stub('contentsSizeChanged, on Qt < 5.7')
+
+    def post_event(self, evt):
+        # If we get a segfault here, we might want to try sendEvent
+        # instead.
+        recipient = self._widget.focusProxy()
+        QApplication.postEvent(recipient, evt)

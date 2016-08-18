@@ -30,7 +30,6 @@ from PyQt5.QtCore import (pyqtSignal, pyqtSlot, QObject, QEvent, Qt, QUrl,
                           QTimer)
 from PyQt5.QtGui import QMouseEvent
 from PyQt5.QtWidgets import QLabel
-from PyQt5.QtWebKitWidgets import QWebPage
 
 from qutebrowser.config import config, style
 from qutebrowser.keyinput import modeman, modeparsers
@@ -118,7 +117,7 @@ class HintLabel(QLabel):
     @pyqtSlot()
     def _move_to_elem(self):
         """Reposition the label to its element."""
-        if self.elem.frame() is None:
+        if not self.elem.has_frame():
             # This sometimes happens for some reason...
             log.hints.debug("Frame for {!r} vanished!".format(self))
             self.hide()
@@ -186,16 +185,10 @@ class HintActions(QObject):
     """Actions which can be done after selecting a hint.
 
     Signals:
-        mouse_event: Mouse event to be posted in the web view.
-                     arg: A QMouseEvent
-        start_hinting: Emitted when hinting starts, before a link is clicked.
-                       arg: The ClickTarget to use.
-        stop_hinting: Emitted after a link was clicked.
+        hint_events: Emitted with a ClickTarget and a list of hint event.s
     """
 
-    mouse_event = pyqtSignal('QMouseEvent')
-    start_hinting = pyqtSignal(usertypes.ClickTarget)
-    stop_hinting = pyqtSignal()
+    hint_events = pyqtSignal(usertypes.ClickTarget, list)  # QMouseEvent list
 
     def __init__(self, win_id, parent=None):
         super().__init__(parent)
@@ -236,7 +229,6 @@ class HintActions(QObject):
         log.hints.debug("{} on '{}' at position {}".format(
             action, elem.debug_text(), pos))
 
-        self.start_hinting.emit(target_mapping[context.target])
         if context.target in [Target.tab, Target.tab_fg, Target.tab_bg,
                               Target.window]:
             modifiers = Qt.ControlModifier
@@ -262,13 +254,10 @@ class HintActions(QObject):
 
         if context.target == Target.current:
             elem.remove_blank_target()
-        for evt in events:
-            self.mouse_event.emit(evt)
+
+        self.hint_events.emit(target_mapping[context.target], events)
         if elem.is_text_input() and elem.is_editable():
-            QTimer.singleShot(0, functools.partial(
-                elem.frame().page().triggerAction,
-                QWebPage.MoveToEndOfDocument))
-        QTimer.singleShot(0, self.stop_hinting.emit)
+            QTimer.singleShot(0, context.tab.caret.move_to_end_of_document)
 
     def yank(self, url, context):
         """Yank an element to the clipboard or primary selection.
@@ -311,11 +300,8 @@ class HintActions(QObject):
         args = context.get_args(urlstr)
         text = ' '.join(args)
         if text[0] not in modeparsers.STARTCHARS:
-            message.error(self._win_id,
-                          "Invalid command text '{}'.".format(text),
-                          immediately=True)
-        else:
-            message.set_cmd_text(self._win_id, text)
+            raise HintingError("Invalid command text '{}'.".format(text))
+        message.set_cmd_text(self._win_id, text)
 
     def download(self, elem, context):
         """Download a hint URL.
@@ -326,16 +312,20 @@ class HintActions(QObject):
         """
         url = elem.resolve_url(context.baseurl)
         if url is None:
-            raise HintingError
+            raise HintingError("No suitable link found for this element.")
         if context.rapid:
             prompt = False
         else:
             prompt = None
 
+        # FIXME:qtwebengine get a proper API for this
+        # pylint: disable=protected-access
+        page = elem._elem.webFrame().page()
+        # pylint: enable=protected-access
+
         download_manager = objreg.get('download-manager', scope='window',
                                       window=self._win_id)
-        download_manager.get(url, page=elem.frame().page(),
-                             prompt_download_directory=prompt)
+        download_manager.get(url, page=page, prompt_download_directory=prompt)
 
     def call_userscript(self, elem, context):
         """Call a userscript from a hint.
@@ -359,7 +349,7 @@ class HintActions(QObject):
             userscripts.run_async(context.tab, cmd, *args, win_id=self._win_id,
                                   env=env)
         except userscripts.UnsupportedError as e:
-            message.error(self._win_id, str(e), immediately=True)
+            raise HintingError(str(e))
 
     def spawn(self, url, context):
         """Spawn a simple command from a hint.
@@ -407,9 +397,7 @@ class HintManager(QObject):
         Target.spawn: "Spawn command via hint",
     }
 
-    mouse_event = pyqtSignal('QMouseEvent')
-    start_hinting = pyqtSignal(usertypes.ClickTarget)
-    stop_hinting = pyqtSignal()
+    hint_events = pyqtSignal(usertypes.ClickTarget, list)  # QMouseEvent list
 
     def __init__(self, win_id, tab_id, parent=None):
         """Constructor."""
@@ -420,9 +408,7 @@ class HintManager(QObject):
         self._word_hinter = WordHinter()
 
         self._actions = HintActions(win_id)
-        self._actions.start_hinting.connect(self.start_hinting)
-        self._actions.stop_hinting.connect(self.stop_hinting)
-        self._actions.mouse_event.connect(self.mouse_event)
+        self._actions.hint_events.connect(self.hint_events)
 
         mode_manager = objreg.get('mode-manager', scope='window',
                                   window=win_id)
@@ -580,11 +566,6 @@ class HintManager(QObject):
             hintstr.insert(0, chars[0])
         return ''.join(hintstr)
 
-    def _show_url_error(self):
-        """Show an error because no link was found."""
-        message.error(self._win_id, "No suitable link found for this element.",
-                      immediately=True)
-
     def _check_args(self, target, *args):
         """Check the arguments passed to start() and raise if they're wrong.
 
@@ -654,8 +635,7 @@ class HintManager(QObject):
         self._handle_auto_follow()
 
     @cmdutils.register(instance='hintmanager', scope='tab', name='hint',
-                       star_args_optional=True, maxsplit=2,
-                       backend=usertypes.Backend.QtWebKit)
+                       star_args_optional=True, maxsplit=2)
     @cmdutils.argument('win_id', win_id=True)
     def start(self, rapid=False, group=webelem.Group.all, target=Target.normal,
               *args, win_id, mode=None):
@@ -719,6 +699,12 @@ class HintManager(QObject):
         tab = tabbed_browser.currentWidget()
         if tab is None:
             raise cmdexc.CommandError("No WebView available yet!")
+        if (tab.backend == usertypes.Backend.QtWebEngine and
+                target == Target.download):
+            message.error(self._win_id, "The download target is not available "
+                          "yet with QtWebEngine.", immediately=True)
+            return
+
         mode_manager = objreg.get('mode-manager', scope='window',
                                   window=self._win_id)
         if mode_manager.mode == usertypes.KeyMode.hint:
@@ -901,7 +887,7 @@ class HintManager(QObject):
         }
         elem = self._context.labels[keystr].elem
 
-        if elem.frame() is None:
+        if not elem.has_frame():
             message.error(self._win_id,
                           "This element has no webframe.",
                           immediately=True)
@@ -913,7 +899,9 @@ class HintManager(QObject):
         elif self._context.target in url_handlers:
             url = elem.resolve_url(self._context.baseurl)
             if url is None:
-                self._show_url_error()
+                message.error(self._win_id,
+                              "No suitable link found for this element.",
+                              immediately=True)
                 return
             handler = functools.partial(url_handlers[self._context.target],
                                         url, self._context)
@@ -932,8 +920,8 @@ class HintManager(QObject):
 
         try:
             handler()
-        except HintingError:
-            self._show_url_error()
+        except HintingError as e:
+            message.error(self._win_id, str(e), immediately=True)
 
     @cmdutils.register(instance='hintmanager', scope='tab', hide=True,
                        modes=[usertypes.KeyMode.hint])

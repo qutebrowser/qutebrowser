@@ -103,9 +103,8 @@ class AbstractWebElement(collections.abc.MutableMapping):
             html = None
         return utils.get_repr(self, html=html)
 
-    def frame(self):
-        """Get the main frame of this element."""
-        # FIXME:qtwebengine get rid of this?
+    def has_frame(self):
+        """Check if this element has a valid frame attached."""
         raise NotImplementedError
 
     def geometry(self):

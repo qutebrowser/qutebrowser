@@ -23,12 +23,20 @@ window._qutebrowser.webelem = (function() {
     var funcs = {};
     var elements = [];
 
-    function serialize_elem(elem, id) {
+    function serialize_elem(elem) {
+        if (!elem) {
+            return null;
+        }
+
+        var id = elements.length;
+        elements[id] = elem;
+
         var out = {
             "id": id,
             "text": elem.text,
             "tag_name": elem.tagName,
             "outer_xml": elem.outerHTML,
+            "rects": [],  // Gets filled up later
         };
 
         var attributes = {};
@@ -38,21 +46,71 @@ window._qutebrowser.webelem = (function() {
         }
         out.attributes = attributes;
 
+        var client_rects = elem.getClientRects();
+        for (var k = 0; k < client_rects.length; ++k) {
+            var rect = client_rects[k];
+            out.rects.push({
+                "top": rect.top,
+                "right": rect.right,
+                "bottom": rect.bottom,
+                "left": rect.left,
+                "height": rect.height,
+                "width": rect.width,
+            });
+        }
+
         // console.log(JSON.stringify(out));
 
         return out;
     }
 
-    funcs.find_all = function(selector) {
+    function is_visible(elem) {
+        // FIXME:qtwebengine Handle frames and iframes
+
+        // Adopted from vimperator:
+        // https://github.com/vimperator/vimperator-labs/blob/vimperator-3.14.0/common/content/hints.js#L259-L285
+        // FIXME:qtwebengine we might need something more sophisticated like
+        // the cVim implementation here?
+        // https://github.com/1995eaton/chromium-vim/blob/1.2.85/content_scripts/dom.js#L74-L134
+
+        var win = elem.ownerDocument.defaultView;
+        var rect = elem.getBoundingClientRect();
+
+        if (!rect ||
+                rect.top > window.innerHeight ||
+                rect.bottom < 0 ||
+                rect.left > window.innerWidth ||
+                rect.right < 0) {
+            return false;
+        }
+
+        rect = elem.getClientRects()[0];
+        if (!rect) {
+            return false;
+        }
+
+        var style = win.getComputedStyle(elem, null);
+        // FIXME:qtwebengine do we need this <area> handling?
+        // visibility and display style are misleading for area tags and they
+        // get "display: none" by default.
+        // See https://github.com/vimperator/vimperator-labs/issues/236
+        if (elem.nodeName.toLowerCase() !== "area" && (
+                style.getPropertyValue("visibility") !== "visible" ||
+                style.getPropertyValue("display") === "none")) {
+            return false;
+        }
+
+        return true;
+    }
+
+    funcs.find_all = function(selector, only_visible) {
         var elems = document.querySelectorAll(selector);
         var out = [];
-        var id = elements.length;
 
         for (var i = 0; i < elems.length; ++i) {
-            var elem = elems[i];
-            out.push(serialize_elem(elem, id));
-            elements[id] = elem;
-            id++;
+            if (!only_visible || is_visible(elems[i])) {
+                out.push(serialize_elem(elems[i]));
+            }
         }
 
         return out;
@@ -67,9 +125,7 @@ window._qutebrowser.webelem = (function() {
             return null;
         }
 
-        var id = elements.length;
-        elements[id] = elem;
-        return serialize_elem(elem, id);
+        return serialize_elem(elem);
     };
 
     funcs.set_text = function(id, text) {
@@ -83,13 +139,7 @@ window._qutebrowser.webelem = (function() {
         // element is returned (the iframe itself).
 
         var elem = document.elementFromPoint(x, y);
-        if (!elem) {
-            return null;
-        }
-
-        var id = elements.length;
-        elements[id] = elem;
-        return serialize_elem(elem, id);
+        return serialize_elem(elem);
     };
 
     return funcs;

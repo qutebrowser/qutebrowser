@@ -83,9 +83,9 @@ class WebKitElement(webelem.AbstractWebElement):
         if self._elem.isNull():
             raise IsNullError('Element {} vanished!'.format(self._elem))
 
-    def frame(self):
+    def has_frame(self):
         self._check_vanished()
-        return self._elem.webFrame()
+        return self._elem.webFrame() is not None
 
     def geometry(self):
         self._check_vanished()
@@ -217,8 +217,6 @@ class WebKitElement(webelem.AbstractWebElement):
                            we want to avoid doing it twice.
             no_js: Fall back to the Python implementation
         """
-        # FIXME:qtwebengine can we get rid of this with
-        # find_all_elements(only_visible=True)?
         self._check_vanished()
 
         # First try getting the element rect via JS, as that's usually more

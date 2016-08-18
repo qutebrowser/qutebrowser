@@ -255,7 +255,7 @@ class TestWebKitElement:
         lambda e: None in e,
         list,  # __iter__
         len,
-        lambda e: e.frame(),
+        lambda e: e.has_frame(),
         lambda e: e.geometry(),
         lambda e: e.style_property('visibility', strategy='computed'),
         lambda e: e.text(),
@@ -394,7 +394,6 @@ class TestWebKitElement:
         assert elem.debug_text() == expected
 
     @pytest.mark.parametrize('attribute, code', [
-        ('webFrame', lambda e: e.frame()),
         ('geometry', lambda e: e.geometry()),
         ('toOuterXml', lambda e: e.outer_xml()),
     ])
@@ -403,6 +402,12 @@ class TestWebKitElement:
         mock = getattr(elem._elem, attribute)
         setattr(mock, 'return_value', sentinel)
         assert code(elem) is sentinel
+
+    @pytest.mark.parametrize('frame, expected', [
+        (object(), True), (None, False)])
+    def test_has_frame(self, elem, frame, expected):
+        elem._elem.webFrame.return_value = frame
+        assert elem.has_frame() == expected
 
     def test_tag_name(self, elem):
         elem._elem.tagName.return_value = 'SPAN'
