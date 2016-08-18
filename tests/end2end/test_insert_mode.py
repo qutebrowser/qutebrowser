@@ -36,7 +36,7 @@ import pytest
      'true'),
 ])
 def test_insert_mode(file_name, elem_id, source, input_text, auto_insert,
-                     quteproc):
+                     quteproc, request):
     url_path = 'data/insert_mode_settings/html/{}'.format(file_name)
     quteproc.open_path(url_path)
 
@@ -48,6 +48,11 @@ def test_insert_mode(file_name, elem_id, source, input_text, auto_insert,
     if source == 'keypress':
         quteproc.press_keys(input_text)
     elif source == 'clipboard':
+        if request.config.getoption('--qute-bdd-webengine'):
+            # pylint: disable=no-member
+            pytest.xfail(reason="QtWebEngine TODO: :insert-text is not "
+                         "implemented")
+            # pylint: enable=no-member
         quteproc.send_cmd(':debug-set-fake-clipboard "{}"'.format(input_text))
         quteproc.send_cmd(':insert-text {clipboard}')
 
