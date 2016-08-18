@@ -1946,20 +1946,20 @@ class CommandDispatcher:
                                       keyinfo.modifiers, keyinfo.text)
 
             if global_:
-                receiver = QApplication.focusWindow()
-                if receiver is None:
+                window = QApplication.focusWindow()
+                if window is None:
                     raise cmdexc.CommandError("No focused window!")
+                QApplication.postEvent(window, press_event)
+                QApplication.postEvent(window, release_event)
             else:
                 try:
                     tab = objreg.get('tab', scope='tab', tab='current')
                 except objreg.RegistryUnavailableError:
                     raise cmdexc.CommandError("No focused webview!")
-                # pylint: disable=protected-access
-                receiver = tab._widget
-                # pylint: enable=protected-access
 
-            QApplication.postEvent(receiver, press_event)
-            QApplication.postEvent(receiver, release_event)
+                tab = self._current_widget()
+                tab.post_event(press_event)
+                tab.post_event(release_event)
 
     @cmdutils.register(instance='command-dispatcher', scope='window',
                        debug=True)
