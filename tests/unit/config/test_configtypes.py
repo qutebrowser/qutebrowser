@@ -871,7 +871,7 @@ class ColorTests:
         ('hsva(359, 255, 255, 255)', [configtypes.QssColor]),
         ('hsv(10%, 10%, 10%)', [configtypes.QssColor]),
         ('hsv(10%,10%,10%)', [configtypes.QssColor]),
-        ('qlineargradient(x1:0, y1:0, x2:1, y2:1, stop:0 white, '
+        ('qlineargradient(x1:0, y1:0, x2:0, y2:1, stop:0 white, '
          'stop: 0.4 gray, stop:1 green)', [configtypes.QssColor]),
         ('qconicalgradient(cx:0.5, cy:0.5, angle:30, stop:0 white, '
          'stop:1 #00FF00)', [configtypes.QssColor]),

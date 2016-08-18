@@ -112,21 +112,6 @@ class AbstractWebElement(collections.abc.MutableMapping):
         """Get the geometry for this element."""
         raise NotImplementedError
 
-    def document_element(self):
-        """Get the document element of this element."""
-        # FIXME:qtwebengine get rid of this?
-        raise NotImplementedError
-
-    def create_inside(self, tagname):
-        """Append the given element inside the current one."""
-        # FIXME:qtwebengine get rid of this?
-        raise NotImplementedError
-
-    def find_first(self, selector):
-        """Find the first child based on the given CSS selector."""
-        # FIXME:qtwebengine get rid of this?
-        raise NotImplementedError
-
     def style_property(self, name, *, strategy):
         """Get the element style resolved with the given strategy."""
         raise NotImplementedError
@@ -166,21 +151,6 @@ class AbstractWebElement(collections.abc.MutableMapping):
         # FIXME:qtwebengine what to do about use_js with WebEngine?
         raise NotImplementedError
 
-    def set_inner_xml(self, xml):
-        """Set the given inner XML."""
-        # FIXME:qtwebengine get rid of this?
-        raise NotImplementedError
-
-    def remove_from_document(self):
-        """Remove the node from the document."""
-        # FIXME:qtwebengine get rid of this?
-        raise NotImplementedError
-
-    def set_style_property(self, name, value):
-        """Set the element style."""
-        # FIXME:qtwebengine get rid of this?
-        raise NotImplementedError
-
     def run_js_async(self, code, callback=None):
         """Run the given JS snippet async on the element."""
         # FIXME:qtwebengine get rid of this?
@@ -191,8 +161,7 @@ class AbstractWebElement(collections.abc.MutableMapping):
         # FIXME:qtwebengine get rid of this?
         raise NotImplementedError
 
-    def rect_on_view(self, *, elem_geometry=None, adjust_zoom=True,
-                     no_js=False):
+    def rect_on_view(self, *, elem_geometry=None, no_js=False):
         """Get the geometry of the element relative to the webview.
 
         Uses the getClientRects() JavaScript method to obtain the collection of
@@ -208,8 +177,6 @@ class AbstractWebElement(collections.abc.MutableMapping):
             elem_geometry: The geometry of the element, or None.
                            Calling QWebElement::geometry is rather expensive so
                            we want to avoid doing it twice.
-            adjust_zoom: Whether to adjust the element position based on the
-                         current zoom level.
             no_js: Fall back to the Python implementation
         """
         raise NotImplementedError

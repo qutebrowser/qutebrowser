@@ -210,6 +210,62 @@ class TestConfigParser:
         assert objects.cfg.get('general', 'save-session')
 
 
+class TestTransformers:
+
+    """Test value transformers in CHANGED_OPTIONS."""
+
+    @pytest.mark.parametrize('val, expected', [('a', 'b'), ('c', 'c')])
+    def test_get_value_transformer(self, val, expected):
+        func = config._get_value_transformer({'a': 'b'})
+        assert func(val) == expected
+
+    @pytest.mark.parametrize('val, expected', [
+        ('top', 'top'),
+        ('north', 'top'),
+        ('south', 'bottom'),
+        ('west', 'left'),
+        ('east', 'right'),
+    ])
+    def test_position(self, val, expected):
+        func = config._transform_position
+        assert func(val) == expected
+
+    OLD_GRADIENT = ('-webkit-gradient(linear, left top, left bottom, '
+                    'color-stop(0%,{}), color-stop(100%,{}))')
+    NEW_GRADIENT = ('qlineargradient(x1:0, y1:0, x2:0, y2:1, stop:0 {}, '
+                    'stop:1 {})')
+
+    @pytest.mark.parametrize('val, expected', [
+        ('-unknown-stuff', None),
+        ('blue', 'blue'),
+        ('rgba(1, 2, 3, 4)', 'rgba(1, 2, 3, 4)'),
+        ('-webkit-gradient(unknown)', None),
+        (OLD_GRADIENT.format('blah', 'blah'), None),
+        (OLD_GRADIENT.format('red', 'green'),
+         NEW_GRADIENT.format('rgba(255, 0, 0, 0.8)', 'rgba(0, 128, 0, 0.8)')),
+        (OLD_GRADIENT.format(' red', ' green'),
+         NEW_GRADIENT.format('rgba(255, 0, 0, 0.8)', 'rgba(0, 128, 0, 0.8)')),
+        (OLD_GRADIENT.format('#101010', ' #202020'),
+         NEW_GRADIENT.format('rgba(16, 16, 16, 0.8)',
+                             'rgba(32, 32, 32, 0.8)')),
+        (OLD_GRADIENT.format('#666', ' #777'),
+         NEW_GRADIENT.format('rgba(102, 102, 102, 0.8)',
+                             'rgba(119, 119, 119, 0.8)')),
+        (OLD_GRADIENT.format('red', 'green') + 'more stuff', None),
+    ])
+    def test_hint_color(self, val, expected):
+        assert config._transform_hint_color(val) == expected
+
+    @pytest.mark.parametrize('val, expected', [
+        ('bold 12pt Monospace', 'bold 12pt ${_monospace}'),
+        ('23pt Monospace', '23pt ${_monospace}'),
+        ('bold 12pt ${_monospace}', 'bold 12pt ${_monospace}'),
+        ('bold 12pt Comic Sans MS', 'bold 12pt Comic Sans MS'),
+    ])
+    def test_hint_font(self, val, expected):
+        assert config._transform_hint_font(val) == expected
+
+
 class TestKeyConfigParser:
 
     """Test config.parsers.keyconf.KeyConfigParser."""

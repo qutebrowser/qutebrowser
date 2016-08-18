@@ -66,18 +66,6 @@ class WebEngineElement(webelem.AbstractWebElement):
         log.stub()
         return QRect()
 
-    def document_element(self):
-        log.stub()
-        return None
-
-    def create_inside(self, tagname):
-        log.stub()
-        return None
-
-    def find_first(self, selector):
-        log.stub()
-        return None
-
     def style_property(self, name, *, strategy):
         log.stub()
         return ''
@@ -121,21 +109,6 @@ class WebEngineElement(webelem.AbstractWebElement):
         js_code = javascript.assemble('webelem', 'set_text', self._id, text)
         self._run_js(js_code)
 
-    def set_inner_xml(self, xml):
-        """Set the given inner XML."""
-        # FIXME:qtwebengine get rid of this?
-        log.stub()
-
-    def remove_from_document(self):
-        """Remove the node from the document."""
-        # FIXME:qtwebengine get rid of this?
-        log.stub()
-
-    def set_style_property(self, name, value):
-        """Set the element style."""
-        # FIXME:qtwebengine get rid of this?
-        log.stub()
-
     def run_js_async(self, code, callback=None):
         """Run the given JS snippet async on the element."""
         # FIXME:qtwebengine get rid of this?
@@ -147,8 +120,7 @@ class WebEngineElement(webelem.AbstractWebElement):
         log.stub()
         return None
 
-    def rect_on_view(self, *, elem_geometry=None, adjust_zoom=True,
-                     no_js=False):
+    def rect_on_view(self, *, elem_geometry=None, no_js=False):
         """Get the geometry of the element relative to the webview.
 
         Uses the getClientRects() JavaScript method to obtain the collection of
@@ -164,8 +136,6 @@ class WebEngineElement(webelem.AbstractWebElement):
             elem_geometry: The geometry of the element, or None.
                            Calling QWebElement::geometry is rather expensive so
                            we want to avoid doing it twice.
-            adjust_zoom: Whether to adjust the element position based on the
-                         current zoom level.
             no_js: Fall back to the Python implementation
         """
         log.stub()

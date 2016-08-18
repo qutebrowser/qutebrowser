@@ -24,6 +24,7 @@ are fundamentally different. This is why nothing inherits from configparser,
 but we borrow some methods and classes from there where it makes sense.
 """
 
+import re
 import os
 import sys
 import os.path
@@ -34,6 +35,7 @@ import collections
 import collections.abc
 
 from PyQt5.QtCore import pyqtSignal, QObject, QUrl, QSettings
+from PyQt5.QtGui import QColor
 
 from qutebrowser.config import configdata, configexc, textwrapper
 from qutebrowser.config.parsers import keyconf
@@ -286,6 +288,50 @@ def _transform_position(val):
         return val
 
 
+def _transform_hint_color(val):
+    """Transformer for hint colors."""
+    log.config.debug("Transforming hint value {}".format(val))
+
+    def to_rgba(qcolor):
+        """Convert a QColor to a rgba() value."""
+        return 'rgba({}, {}, {}, 0.8)'.format(qcolor.red(), qcolor.green(),
+                                              qcolor.blue())
+
+    if val.startswith('-webkit-gradient'):
+        pattern = re.compile(r'-webkit-gradient\(linear, left top, '
+                             r'left bottom, '
+                             r'color-stop\(0%, *([^)]*)\), '
+                             r'color-stop\(100%, *([^)]*)\)\)')
+
+        match = pattern.fullmatch(val)
+        if match:
+            log.config.debug('Color groups: {}'.format(match.groups()))
+            start_color = QColor(match.group(1))
+            stop_color = QColor(match.group(2))
+            if not start_color.isValid() or not stop_color.isValid():
+                return None
+
+            return ('qlineargradient(x1:0, y1:0, x2:0, y2:1, stop:0 {}, '
+                    'stop:1 {})'.format(to_rgba(start_color),
+                                        to_rgba(stop_color)))
+        else:
+            return None
+    elif val.startswith('-'):  # Custom CSS stuff?
+        return None
+    else:  # Already transformed or a named color.
+        return val
+
+
+def _transform_hint_font(val):
+    """Transformer for fonts -> hints."""
+    match = re.fullmatch(r'(.*\d+p[xt]) Monospace', val)
+    if match:
+        # Close enough to the old default:
+        return match.group(1) + ' ${_monospace}'
+    else:
+        return val
+
+
 class ConfigManager(QObject):
 
     """Configuration manager for qutebrowser.
@@ -353,6 +399,7 @@ class ConfigManager(QObject):
         ('ui', 'display-statusbar-messages'),
         ('ui', 'hide-mouse-cursor'),
         ('general', 'wrap-search'),
+        ('hints', 'opacity'),
     ]
     CHANGED_OPTIONS = {
         ('content', 'cookies-accept'):
@@ -367,6 +414,10 @@ class ConfigManager(QObject):
             _get_value_transformer({'false': '*', 'true': ''}),
         ('hints', 'auto-follow'):
             _get_value_transformer({'false': 'never', 'true': 'unique-match'}),
+        ('colors', 'hints.bg'): _transform_hint_color,
+        ('colors', 'hints.fg'): _transform_hint_color,
+        ('colors', 'hints.fg.match'): _transform_hint_color,
+        ('fonts', 'hints'): _transform_hint_font,
     }
 
     changed = pyqtSignal(str, str)
@@ -525,7 +576,15 @@ class ConfigManager(QObject):
                 k = self.RENAMED_OPTIONS[sectname, k]
             if (sectname, k) in self.CHANGED_OPTIONS:
                 func = self.CHANGED_OPTIONS[(sectname, k)]
-                v = func(v)
+                new_v = func(v)
+                if new_v is None:
+                    exc = configexc.ValidationError(
+                        v, "Could not automatically migrate the given value")
+                    exc.section = sectname
+                    exc.option = k
+                    raise exc
+
+                v = new_v
 
             try:
                 self.set('conf', sectname, k, v, validate=False)

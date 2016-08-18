@@ -80,7 +80,7 @@ class FakeWebFrame:
     """
 
     def __init__(self, geometry=None, *, scroll=None, plaintext=None,
-                 html=None, parent=None, zoom=1.0, document_element=None):
+                 html=None, parent=None, zoom=1.0):
         """Constructor.
 
         Args:
@@ -89,7 +89,6 @@ class FakeWebFrame:
             plaintext: Return value of toPlainText
             html: Return value of tohtml.
             zoom: The zoom factor.
-            document_element: The documentElement() to return
             parent: The parent frame.
         """
         if scroll is None:
@@ -101,7 +100,6 @@ class FakeWebFrame:
         self.toPlainText = mock.Mock(return_value=plaintext)
         self.toHtml = mock.Mock(return_value=html)
         self.zoomFactor = mock.Mock(return_value=zoom)
-        self.documentElement = mock.Mock(return_value=document_element)
 
     def findFirstElement(self, selector):
         if selector == '*:focus':

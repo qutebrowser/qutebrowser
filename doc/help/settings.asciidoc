@@ -178,7 +178,6 @@
 |==============
 |Setting|Description
 |<<hints-border,border>>|CSS border value for hints.
-|<<hints-opacity,opacity>>|Opacity for hints.
 |<<hints-mode,mode>>|Mode to use for hints.
 |<<hints-chars,chars>>|Chars used for hint strings.
 |<<hints-min-chars,min-chars>>|Minimum number of chars used for hint strings.
@@ -248,7 +247,7 @@
 |<<colors-tabs.indicator.error,tabs.indicator.error>>|Color for the tab indicator on errors..
 |<<colors-tabs.indicator.system,tabs.indicator.system>>|Color gradient interpolation system for the tab indicator.
 |<<colors-hints.fg,hints.fg>>|Font color for hints.
-|<<colors-hints.bg,hints.bg>>|Background color for hints.
+|<<colors-hints.bg,hints.bg>>|Background color for hints. Note that you can use a `rgba(...)` value for transparency.
 |<<colors-hints.fg.match,hints.fg.match>>|Font color for the matched part of hints.
 |<<colors-downloads.bg.bar,downloads.bg.bar>>|Background color for the download bar.
 |<<colors-downloads.fg.start,downloads.fg.start>>|Color gradient start for download text.
@@ -1601,12 +1600,6 @@ CSS border value for hints.
 
 Default: +pass:[1px solid #E3BE23]+
 
-[[hints-opacity]]
-=== opacity
-Opacity for hints.
-
-Default: +pass:[0.7]+
-
 [[hints-mode]]
 === mode
 Mode to use for hints.
@@ -2052,9 +2045,9 @@ Default: +pass:[black]+
 
 [[colors-hints.bg]]
 === hints.bg
-Background color for hints.
+Background color for hints. Note that you can use a `rgba(...)` value for transparency.
 
-Default: +pass:[-webkit-gradient(linear, left top, left bottom, color-stop(0%,#FFF785), color-stop(100%,#FFC542))]+
+Default: +pass:[qlineargradient(x1:0, y1:0, x2:0, y2:1, stop:0 rgba(255, 247, 133, 0.8), stop:1 rgba(255, 197, 66, 0.8))]+
 
 [[colors-hints.fg.match]]
 === hints.fg.match
@@ -2201,7 +2194,7 @@ Default: +pass:[8pt ${_monospace}]+
 === hints
 Font used for the hints.
 
-Default: +pass:[bold 13px Monospace]+
+Default: +pass:[bold 13px ${_monospace}]+
 
 [[fonts-debug-console]]
 === debug-console

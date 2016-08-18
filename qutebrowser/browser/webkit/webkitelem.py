@@ -91,28 +91,6 @@ class WebKitElement(webelem.AbstractWebElement):
         self._check_vanished()
         return self._elem.geometry()
 
-    def document_element(self):
-        self._check_vanished()
-        elem = self._elem.webFrame().documentElement()
-        return WebKitElement(elem)
-
-    def create_inside(self, tagname):
-        # It seems impossible to create an empty QWebElement for which isNull()
-        # is false so we can work with it.
-        # As a workaround, we use appendInside() with markup as argument, and
-        # then use lastChild() to get a reference to it.
-        # See: http://stackoverflow.com/q/7364852/2085149
-        self._check_vanished()
-        self._elem.appendInside('<{}></{}>'.format(tagname, tagname))
-        return WebKitElement(self._elem.lastChild())
-
-    def find_first(self, selector):
-        self._check_vanished()
-        elem = self._elem.findFirst(selector)
-        if elem.isNull():
-            return None
-        return WebKitElement(elem)
-
     def style_property(self, name, *, strategy):
         self._check_vanished()
         strategies = {
@@ -156,18 +134,6 @@ class WebKitElement(webelem.AbstractWebElement):
             text = javascript.string_escape(text)
             self._elem.evaluateJavaScript("this.value='{}'".format(text))
 
-    def set_inner_xml(self, xml):
-        self._check_vanished()
-        self._elem.setInnerXml(xml)
-
-    def remove_from_document(self):
-        self._check_vanished()
-        self._elem.removeFromDocument()
-
-    def set_style_property(self, name, value):
-        self._check_vanished()
-        return self._elem.setStyleProperty(name, value)
-
     def run_js_async(self, code, callback=None):
         """Run the given JS snippet async on the element."""
         self._check_vanished()
@@ -182,7 +148,7 @@ class WebKitElement(webelem.AbstractWebElement):
             return None
         return WebKitElement(elem)
 
-    def _rect_on_view_js(self, adjust_zoom):
+    def _rect_on_view_js(self):
         """Javascript implementation for rect_on_view."""
         # FIXME:qtwebengine maybe we can reuse this?
         rects = self._elem.evaluateJavaScript("this.getClientRects()")
@@ -203,7 +169,7 @@ class WebKitElement(webelem.AbstractWebElement):
             if width > 1 and height > 1:
                 # fix coordinates according to zoom level
                 zoom = self._elem.webFrame().zoomFactor()
-                if not config.get('ui', 'zoom-text-only') and adjust_zoom:
+                if not config.get('ui', 'zoom-text-only'):
                     rect["left"] *= zoom
                     rect["top"] *= zoom
                     width *= zoom
@@ -231,18 +197,9 @@ class WebKitElement(webelem.AbstractWebElement):
             rect.translate(frame.geometry().topLeft())
             rect.translate(frame.scrollPosition() * -1)
             frame = frame.parentFrame()
-        # We deliberately always adjust the zoom here, even with
-        # adjust_zoom=False
-        if elem_geometry is None:
-            zoom = self._elem.webFrame().zoomFactor()
-            if not config.get('ui', 'zoom-text-only'):
-                rect.moveTo(rect.left() / zoom, rect.top() / zoom)
-                rect.setWidth(rect.width() / zoom)
-                rect.setHeight(rect.height() / zoom)
         return rect
 
-    def rect_on_view(self, *, elem_geometry=None, adjust_zoom=True,
-                     no_js=False):
+    def rect_on_view(self, *, elem_geometry=None, no_js=False):
         """Get the geometry of the element relative to the webview.
 
         Uses the getClientRects() JavaScript method to obtain the collection of
@@ -258,8 +215,6 @@ class WebKitElement(webelem.AbstractWebElement):
             elem_geometry: The geometry of the element, or None.
                            Calling QWebElement::geometry is rather expensive so
                            we want to avoid doing it twice.
-            adjust_zoom: Whether to adjust the element position based on the
-                         current zoom level.
             no_js: Fall back to the Python implementation
         """
         # FIXME:qtwebengine can we get rid of this with
@@ -269,7 +224,7 @@ class WebKitElement(webelem.AbstractWebElement):
         # First try getting the element rect via JS, as that's usually more
         # accurate
         if elem_geometry is None and not no_js:
-            rect = self._rect_on_view_js(adjust_zoom)
+            rect = self._rect_on_view_js()
             if rect is not None:
                 return rect
 
