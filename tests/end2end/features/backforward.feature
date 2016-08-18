@@ -137,6 +137,7 @@ Feature: Going back and forward.
         When I run :forward
         Then the error "At end of history." should be shown
 
+    @qtwebengine_skip: Causes 'Ignoring invalid URL being added to history' sometimes?
     Scenario: Going forward too much with count.
         Given I open data/backforward/1.txt
         When I open data/backforward/2.txt
