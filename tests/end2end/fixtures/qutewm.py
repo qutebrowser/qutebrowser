@@ -89,7 +89,7 @@ def qutewm(request, qapp):
 
 
 @pytest.yield_fixture(autouse=True)
-def qutewm_manager(request):
+def qutewm_manager(request, qutewm):
     """Fixture to reset qutewm for each test.
 
     This does nothing if the test does not have the "qutewm" marker set. If the
