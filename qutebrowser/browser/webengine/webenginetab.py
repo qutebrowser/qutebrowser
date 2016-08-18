@@ -475,7 +475,8 @@ class WebEngineTab(browsertab.AbstractTab):
             callback(elem)
 
     def find_all_elements(self, selector, callback, *, only_visible=False):
-        js_code = javascript.assemble('webelem', 'find_all', selector)
+        js_code = javascript.assemble('webelem', 'find_all', selector,
+                                      only_visible)
         js_cb = functools.partial(self._js_element_cb_multiple, callback)
         self.run_js_async(js_code, js_cb)
 

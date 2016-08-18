@@ -64,12 +64,53 @@ window._qutebrowser.webelem = (function() {
         return out;
     }
 
-    funcs.find_all = function(selector) {
+    function is_visible(elem) {
+        // FIXME:qtwebengine Handle frames and iframes
+
+        // Adopted from vimperator:
+        // https://github.com/vimperator/vimperator-labs/blob/vimperator-3.14.0/common/content/hints.js#L259-L285
+        // FIXME:qtwebengine we might need something more sophisticated like
+        // the cVim implementation here?
+        // https://github.com/1995eaton/chromium-vim/blob/1.2.85/content_scripts/dom.js#L74-L134
+
+        var win = elem.ownerDocument.defaultView;
+        var rect = elem.getBoundingClientRect();
+
+        if (!rect ||
+                rect.top > window.innerHeight ||
+                rect.bottom < 0 ||
+                rect.left > window.innerWidth ||
+                rect.right < 0) {
+            return false;
+        }
+
+        rect = elem.getClientRects()[0];
+        if (!rect) {
+            return false;
+        }
+
+        var style = win.getComputedStyle(elem, null);
+        // FIXME:qtwebengine do we need this <area> handling?
+        // visibility and display style are misleading for area tags and they
+        // get "display: none" by default.
+        // See https://github.com/vimperator/vimperator-labs/issues/236
+        if (elem.nodeName.toLowerCase() !== "area" && (
+                style.getPropertyValue("visibility") !== "visible" ||
+                style.getPropertyValue("display") === "none")) {
+            return false;
+        }
+
+        return true;
+    }
+
+    funcs.find_all = function(selector, only_visible) {
         var elems = document.querySelectorAll(selector);
         var out = [];
 
         for (var i = 0; i < elems.length; ++i) {
-            out.push(serialize_elem(elems[i]));
+            if (!only_visible || is_visible(elems[i])) {
+                out.push(serialize_elem(elems[i]));
+            }
         }
 
         return out;
