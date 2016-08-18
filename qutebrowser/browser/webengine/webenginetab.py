@@ -352,7 +352,7 @@ class WebEngineElements(browsertab.AbstractElements):
         self._tab.run_js_async(js_code, js_cb)
 
     def find_id(self, elem_id, callback):
-        js_code = javascript.assemble('document', 'getElementById', elem_id)
+        js_code = javascript.assemble('webelem', 'element_by_id', elem_id)
         js_cb = functools.partial(self._js_cb_single, callback)
         self._tab.run_js_async(js_code, js_cb)
 

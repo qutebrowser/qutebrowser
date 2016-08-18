@@ -142,5 +142,10 @@ window._qutebrowser.webelem = (function() {
         return serialize_elem(elem);
     };
 
+    funcs.element_by_id = function(id) {
+        var elem = document.getElementById(id);
+        return serialize_elem(elem);
+    };
+
     return funcs;
 })();
