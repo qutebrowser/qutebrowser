@@ -303,5 +303,6 @@ def focus_elem(frame):
     Args:
         frame: The QWebFrame to search in.
     """
+    # FIXME:qtwebengine get rid of this
     elem = frame.findFirstElement('*:focus')
     return WebKitElement(elem, tab=None)
