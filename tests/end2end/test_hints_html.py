@@ -39,6 +39,14 @@ def collect_tests():
 ParsedFile = collections.namedtuple('ParsedFile', ['target'])
 
 
+class InvalidFile(Exception):
+
+    def __init__(self, test_name, msg):
+        super().__init__("Invalid comment found in {}, please read "
+                         "tests/end2end/data/hints/html/README.md - {}".format(
+                             test_name, msg))
+
+
 def _parse_file(test_name):
     """Parse the given HTML file."""
     file_path = os.path.join(os.path.abspath(os.path.dirname(__file__)),
@@ -49,22 +57,21 @@ def _parse_file(test_name):
     comment = soup.find(text=lambda text: isinstance(text, bs4.Comment))
 
     if comment is None:
-        pytest.fail("No comment found in {}, please read "
-                    "tests/end2end/data/hints/html/README.md".format(
-                        test_name))
+        raise InvalidFile(test_name, "no comment found")
 
     data = yaml.load(comment)
     if not isinstance(data, dict):
-        pytest.fail("Invalid comment found in {}, please read "
-                    "tests/end2end/data/hints/html/README.md - "
-                    "expected yaml dict but got {}".format(
-                        test_name, type(data).__name__))
+        raise InvalidFile(test_name, "expected yaml dict but got {}".format(
+            type(data).__name__))
 
-    if set(data.keys()) != {'target'}:
-        pytest.fail("Invalid comment found in {}, please read "
-                    "tests/end2end/data/hints/html/README.md - "
-                    "expected key 'target' but found {}".format(
-                        test_name, ', '.join(set(data.keys()))))
+    allowed_keys = {'target'}
+    if not set(data.keys()).issubset(allowed_keys):
+        raise InvalidFile(test_name, "expected keys {} but found {}".format(
+                          ', '.join(allowed_keys),
+                          ', '.join(set(data.keys()))))
+
+    if not 'target' in data:
+        raise InvalidFile(test_name, "'target' key not found")
 
     return ParsedFile(target=data['target'])
 
