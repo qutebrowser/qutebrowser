@@ -492,6 +492,78 @@ class WebKitHistory(browsertab.AbstractHistory):
                     self._tab.scroller.to_point, cur_data['scroll-pos']))
 
 
+class WebKitElements(browsertab.AbstractElements):
+
+    """QtWebKit implemementations related to elements on the page."""
+
+    def find_css(self, selector, callback, *, only_visible=False):
+        mainframe = self._widget.page().mainFrame()
+        if mainframe is None:
+            raise browsertab.WebTabError("No frame focused!")
+
+        elems = []
+        frames = webkitelem.get_child_frames(mainframe)
+        for f in frames:
+            for elem in f.findAllElements(selector):
+                elems.append(webkitelem.WebKitElement(elem))
+
+        if only_visible:
+            elems = [e for e in elems if e.is_visible(mainframe)]
+
+        callback(elems)
+
+    def find_focused(self, callback):
+        frame = self._widget.page().currentFrame()
+        if frame is None:
+            callback(None)
+            return
+
+        elem = frame.findFirstElement('*:focus')
+        if elem.isNull():
+            callback(None)
+        else:
+            callback(webkitelem.WebKitElement(elem))
+
+    def find_at_pos(self, pos, callback):
+        assert pos.x() >= 0
+        assert pos.y() >= 0
+        frame = self._widget.page().frameAt(pos)
+        if frame is None:
+            # This happens when we click inside the webview, but not actually
+            # on the QWebPage - for example when clicking the scrollbar
+            # sometimes.
+            log.webview.debug("Hit test at {} but frame is None!".format(pos))
+            callback(None)
+            return
+
+        # You'd think we have to subtract frame.geometry().topLeft() from the
+        # position, but it seems QWebFrame::hitTestContent wants a position
+        # relative to the QWebView, not to the frame. This makes no sense to
+        # me, but it works this way.
+        hitresult = frame.hitTestContent(pos)
+        if hitresult.isNull():
+            # For some reason, the whole hit result can be null sometimes (e.g.
+            # on doodle menu links). If this is the case, we schedule a check
+            # later (in mouseReleaseEvent) which uses webkitelem.focus_elem.
+            log.webview.debug("Hit test result is null!")
+            callback(None)
+            return
+
+        try:
+            elem = webkitelem.WebKitElement(hitresult.element())
+        except webkitelem.IsNullError:
+            # For some reason, the hit result element can be a null element
+            # sometimes (e.g. when clicking the timetable fields on
+            # http://www.sbb.ch/ ). If this is the case, we schedule a check
+            # later (in mouseReleaseEvent) which uses webelem.focus_elem.
+            log.webview.debug("Hit test result element is null!")
+            callback(None)
+            return
+
+        callback(elem)
+
+
+
 class WebKitTab(browsertab.AbstractTab):
 
     """A QtWebKit tab in the browser."""
@@ -506,6 +578,7 @@ class WebKitTab(browsertab.AbstractTab):
         self.zoom = WebKitZoom(win_id=win_id, parent=self)
         self.search = WebKitSearch(parent=self)
         self.printing = WebKitPrinting()
+        self.elements = WebKitElements(self)
         self._set_widget(widget)
         self._connect_signals()
         self.zoom.set_default()
@@ -565,72 +638,6 @@ class WebKitTab(browsertab.AbstractTab):
 
     def set_html(self, html, base_url):
         self._widget.setHtml(html, base_url)
-
-    def find_all_elements(self, selector, callback, *, only_visible=False):
-        mainframe = self._widget.page().mainFrame()
-        if mainframe is None:
-            raise browsertab.WebTabError("No frame focused!")
-
-        elems = []
-        frames = webkitelem.get_child_frames(mainframe)
-        for f in frames:
-            for elem in f.findAllElements(selector):
-                elems.append(webkitelem.WebKitElement(elem))
-
-        if only_visible:
-            elems = [e for e in elems if e.is_visible(mainframe)]
-
-        callback(elems)
-
-    def find_focus_element(self, callback):
-        frame = self._widget.page().currentFrame()
-        if frame is None:
-            callback(None)
-            return
-
-        elem = frame.findFirstElement('*:focus')
-        if elem.isNull():
-            callback(None)
-        else:
-            callback(webkitelem.WebKitElement(elem))
-
-    def find_element_at_pos(self, pos, callback):
-        assert pos.x() >= 0
-        assert pos.y() >= 0
-        frame = self._widget.page().frameAt(pos)
-        if frame is None:
-            # This happens when we click inside the webview, but not actually
-            # on the QWebPage - for example when clicking the scrollbar
-            # sometimes.
-            log.webview.debug("Hit test at {} but frame is None!".format(pos))
-            callback(None)
-            return
-
-        # You'd think we have to subtract frame.geometry().topLeft() from the
-        # position, but it seems QWebFrame::hitTestContent wants a position
-        # relative to the QWebView, not to the frame. This makes no sense to
-        # me, but it works this way.
-        hitresult = frame.hitTestContent(pos)
-        if hitresult.isNull():
-            # For some reason, the whole hit result can be null sometimes (e.g.
-            # on doodle menu links). If this is the case, we schedule a check
-            # later (in mouseReleaseEvent) which uses webkitelem.focus_elem.
-            log.webview.debug("Hit test result is null!")
-            callback(None)
-            return
-
-        try:
-            elem = webkitelem.WebKitElement(hitresult.element())
-        except webkitelem.IsNullError:
-            # For some reason, the hit result element can be a null element
-            # sometimes (e.g. when clicking the timetable fields on
-            # http://www.sbb.ch/ ). If this is the case, we schedule a check
-            # later (in mouseReleaseEvent) which uses webelem.focus_elem.
-            log.webview.debug("Hit test result element is null!")
-            callback(None)
-            return
-
-        callback(elem)
 
     @pyqtSlot()
     def _on_frame_load_finished(self):

@@ -415,6 +415,46 @@ class AbstractHistory:
         raise NotImplementedError
 
 
+class AbstractElements:
+
+    """Finding and handling of elements on the page."""
+
+    def __init__(self, tab):
+        self._widget = None
+        self._tab = tab
+
+    def find_css(self, selector, callback, *, only_visible=False):
+        """Find all HTML elements matching a given selector async.
+
+        Args:
+            callback: The callback to be called when the search finished.
+            selector: The CSS selector to search for.
+            only_visible: Only show elements which are visible on screen.
+        """
+        raise NotImplementedError
+
+    def find_focused(self, callback):
+        """Find the focused element on the page async.
+
+        Args:
+            callback: The callback to be called when the search finished.
+                      Called with a WebEngineElement or None.
+        """
+        raise NotImplementedError
+
+    def find_at_pos(self, pos, callback):
+        """Find the element at the given position async.
+
+        This is also called "hit test" elsewhere.
+
+        Args:
+            pos: The QPoint to get the element for.
+            callback: The callback to be called when the search finished.
+                      Called with a WebEngineElement or None.
+        """
+        raise NotImplementedError
+
+
 class AbstractTab(QWidget):
 
     """A wrapper over the given widget to hide its API and expose another one.
@@ -472,6 +512,7 @@ class AbstractTab(QWidget):
         # self.zoom = AbstractZoom(win_id=win_id)
         # self.search = AbstractSearch(parent=self)
         # self.printing = AbstractPrinting()
+        # self.elements = AbstractElements(self)
 
         self.data = TabData()
         self._layout = miscwidgets.WrapperLayout(self)
@@ -499,6 +540,7 @@ class AbstractTab(QWidget):
         self.zoom._widget = widget
         self.search._widget = widget
         self.printing._widget = widget
+        self.elements._widget = widget
         self._install_event_filter()
 
     def _install_event_filter(self):
@@ -674,37 +716,6 @@ class AbstractTab(QWidget):
         raise NotImplementedError
 
     def set_html(self, html, base_url):
-        raise NotImplementedError
-
-    def find_all_elements(self, selector, callback, *, only_visible=False):
-        """Find all HTML elements matching a given selector async.
-
-        Args:
-            callback: The callback to be called when the search finished.
-            selector: The CSS selector to search for.
-            only_visible: Only show elements which are visible on screen.
-        """
-        raise NotImplementedError
-
-    def find_focus_element(self, callback):
-        """Find the focused element on the page async.
-
-        Args:
-            callback: The callback to be called when the search finished.
-                      Called with a WebEngineElement or None.
-        """
-        raise NotImplementedError
-
-    def find_element_at_pos(self, pos, callback):
-        """Find the element at the given position async.
-
-        This is also called "hit test" elsewhere.
-
-        Args:
-            pos: The QPoint to get the element for.
-            callback: The callback to be called when the search finished.
-                      Called with a WebEngineElement or None.
-        """
         raise NotImplementedError
 
     def __repr__(self):

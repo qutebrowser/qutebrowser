@@ -313,6 +313,58 @@ class WebEngineZoom(browsertab.AbstractZoom):
         return self._widget.zoomFactor()
 
 
+class WebEngineElements(browsertab.AbstractElements):
+
+    """QtWebEngine implemementations related to elements on the page."""
+
+    def _js_cb_multiple(self, callback, js_elems):
+        """Handle found elements coming from JS and call the real callback.
+
+        Args:
+            callback: The callback to call with the found elements.
+            js_elems: The elements serialized from javascript.
+        """
+        elems = []
+        for js_elem in js_elems:
+            elem = webengineelem.WebEngineElement(js_elem, tab=self)
+            elems.append(elem)
+        callback(elems)
+
+    def _js_cb_single(self, callback, js_elem):
+        """Handle a found focus elem coming from JS and call the real callback.
+
+        Args:
+            callback: The callback to call with the found element.
+                      Called with a WebEngineElement or None.
+            js_elem: The element serialized from javascript.
+        """
+        log.webview.debug("Got element from JS: {!r}".format(js_elem))
+        if js_elem is None:
+            callback(None)
+        else:
+            elem = webengineelem.WebEngineElement(js_elem, tab=self)
+            callback(elem)
+
+    def find_css(self, selector, callback, *, only_visible=False):
+        js_code = javascript.assemble('webelem', 'find_all', selector,
+                                      only_visible)
+        js_cb = functools.partial(self._js_cb_multiple, callback)
+        self._tab.run_js_async(js_code, js_cb)
+
+    def find_focused(self, callback):
+        js_code = javascript.assemble('webelem', 'focus_element')
+        js_cb = functools.partial(self._js_cb_single, callback)
+        self._tab.run_js_async(js_code, js_cb)
+
+    def find_at_pos(self, pos, callback):
+        assert pos.x() >= 0
+        assert pos.y() >= 0
+        js_code = javascript.assemble('webelem', 'element_at_pos',
+                                      pos.x(), pos.y())
+        js_cb = functools.partial(self._js_cb_single, callback)
+        self._tab.run_js_async(js_code, js_cb)
+
+
 class WebEngineTab(browsertab.AbstractTab):
 
     """A QtWebEngine tab in the browser."""
@@ -327,6 +379,7 @@ class WebEngineTab(browsertab.AbstractTab):
         self.zoom = WebEngineZoom(win_id=win_id, parent=self)
         self.search = WebEngineSearch(parent=self)
         self.printing = WebEnginePrinting()
+        self.elements = WebEngineElements(self)
         self._set_widget(widget)
         self._connect_signals()
         self.backend = usertypes.Backend.QtWebEngine
@@ -445,53 +498,6 @@ class WebEngineTab(browsertab.AbstractTab):
 
     def clear_ssl_errors(self):
         log.stub()
-
-    def _js_element_cb_multiple(self, callback, js_elems):
-        """Handle found elements coming from JS and call the real callback.
-
-        Args:
-            callback: The callback to call with the found elements.
-            js_elems: The elements serialized from javascript.
-        """
-        elems = []
-        for js_elem in js_elems:
-            elem = webengineelem.WebEngineElement(js_elem, tab=self)
-            elems.append(elem)
-        callback(elems)
-
-    def _js_element_cb_single(self, callback, js_elem):
-        """Handle a found focus elem coming from JS and call the real callback.
-
-        Args:
-            callback: The callback to call with the found element.
-                      Called with a WebEngineElement or None.
-            js_elem: The element serialized from javascript.
-        """
-        log.webview.debug("Got element from JS: {!r}".format(js_elem))
-        if js_elem is None:
-            callback(None)
-        else:
-            elem = webengineelem.WebEngineElement(js_elem, tab=self)
-            callback(elem)
-
-    def find_all_elements(self, selector, callback, *, only_visible=False):
-        js_code = javascript.assemble('webelem', 'find_all', selector,
-                                      only_visible)
-        js_cb = functools.partial(self._js_element_cb_multiple, callback)
-        self.run_js_async(js_code, js_cb)
-
-    def find_focus_element(self, callback):
-        js_code = javascript.assemble('webelem', 'focus_element')
-        js_cb = functools.partial(self._js_element_cb_single, callback)
-        self.run_js_async(js_code, js_cb)
-
-    def find_element_at_pos(self, pos, callback):
-        assert pos.x() >= 0
-        assert pos.y() >= 0
-        js_code = javascript.assemble('webelem', 'element_at_pos',
-                                      pos.x(), pos.y())
-        js_cb = functools.partial(self._js_element_cb_single, callback)
-        self.run_js_async(js_code, js_cb)
 
     def _connect_signals(self):
         view = self._widget

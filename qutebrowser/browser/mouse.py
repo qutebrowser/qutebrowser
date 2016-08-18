@@ -94,7 +94,7 @@ class MouseEventFilter(QObject):
 
         self._ignore_wheel_event = True
         self._mousepress_opentarget(e)
-        self._tab.find_element_at_pos(e.pos(), self._mousepress_insertmode_cb)
+        self._tab.elements.find_at_pos(e.pos(), self._mousepress_insertmode_cb)
 
         return False
 
@@ -175,7 +175,7 @@ class MouseEventFilter(QObject):
                                         usertypes.KeyMode.insert,
                                         'click-delayed')
 
-        self._tab.find_focus_element(mouserelease_insertmode_cb)
+        self._tab.elements.find_focused(mouserelease_insertmode_cb)
 
     def _mousepress_backforward(self, e):
         """Handle back/forward mouse button presses.

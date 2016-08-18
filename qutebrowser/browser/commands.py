@@ -1474,7 +1474,7 @@ class CommandDispatcher:
         `general -> editor` config option.
         """
         tab = self._current_widget()
-        tab.find_focus_element(self._open_editor_cb)
+        tab.elements.find_focused(self._open_editor_cb)
 
     def on_editing_finished(self, elem, text):
         """Write the editor text into the form field and clean up tempfile.

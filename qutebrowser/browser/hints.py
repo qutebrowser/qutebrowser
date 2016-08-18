@@ -739,7 +739,7 @@ class HintManager(QObject):
         self._context.args = args
         self._context.group = group
         selector = webelem.SELECTORS[self._context.group]
-        self._context.tab.find_all_elements(selector, self._start_cb,
+        self._context.tab.elements.find_css(selector, self._start_cb,
                                             only_visible=True)
 
     def current_mode(self):
