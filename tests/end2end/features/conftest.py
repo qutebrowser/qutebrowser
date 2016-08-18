@@ -309,6 +309,20 @@ def fill_clipboard_multiline(quteproc, httpbin, what, content):
     fill_clipboard(quteproc, httpbin, what, textwrap.dedent(content))
 
 
+@bdd.when(bdd.parsers.parse('I hint with args "{args}"'))
+def hint(quteproc, args):
+    quteproc.send_cmd(':hint {}'.format(args))
+    quteproc.wait_for(message='hints: *')
+
+
+@bdd.when(bdd.parsers.parse('I hint with args "{args}" and follow {letter}'))
+def hint_and_follow(quteproc, args, letter):
+    args = args.replace('(testdata)', utils.abs_datapath())
+    quteproc.send_cmd(':hint {}'.format(args))
+    quteproc.wait_for(message='hints: *')
+    quteproc.send_cmd(':follow-hint {}'.format(letter))
+
+
 ## Then
 
 

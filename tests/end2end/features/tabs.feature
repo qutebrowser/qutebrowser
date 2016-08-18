@@ -794,8 +794,7 @@ Feature: Tab management
     Scenario: opening links with tabs->background-tabs true
         When I set tabs -> background-tabs to true
         And I open data/hints/html/simple.html
-        And I run :hint all tab
-        And I run :follow-hint a
+        And I hint with args "all tab" and follow a
         And I wait until data/hello.txt is loaded
         Then the following tabs should be open:
             - data/hints/html/simple.html (active)

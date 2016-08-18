@@ -515,7 +515,7 @@ Feature: Various utility commands.
     Scenario: :repeat-command with mode-switching command
         Given I open data/hints/link_blank.html
         And I run :tab-only
-        When I run :hint
+        When I hint with args "all"
         And I run :leave-mode
         And I run :repeat-command
         And I run :follow-hint a
