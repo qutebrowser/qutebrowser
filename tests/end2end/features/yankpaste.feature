@@ -50,17 +50,13 @@ Feature: Yanking and pasting.
     Scenario: Pasting a URL
         When I put "http://localhost:(port)/data/hello.txt" into the clipboard
         And I run :open {clipboard}
-        And I wait until data/hello.txt is loaded
-        Then the requests should be:
-            data/hello.txt
+        Then data/hello.txt should be loaded
 
     Scenario: Pasting a URL from primary selection
         When selection is supported
         And I put "http://localhost:(port)/data/hello2.txt" into the primary selection
         And I run :open {primary}
-        And I wait until data/hello2.txt is loaded
-        Then the requests should be:
-            data/hello2.txt
+        Then data/hello2.txt should be loaded
 
     Scenario: Pasting with empty clipboard
         When I put "" into the clipboard
