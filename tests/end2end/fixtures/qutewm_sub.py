@@ -105,14 +105,14 @@ class QuteWM:
     def __init__(self):
         log.info("initializing")
         self._handlers = {
-            X.MapNotify: self.on_MapNotify,
-            X.UnmapNotify: self.on_UnmapNotify,
-            X.KeyPress: self.on_KeyPress,
-            X.ClientMessage: self.on_ClientMessage,
-            X.MapRequest: self.on_MapRequest,
-            X.ConfigureRequest: self.on_ConfigureRequest,
-            X.CirculateRequest: self.on_CirculateRequest,
-            X.PropertyNotify: self.on_PropertyNotify,
+            X.MapNotify: self._on_map_notify,
+            X.UnmapNotify: self._on_unmap_notify,
+            X.KeyPress: self._on_key_press,
+            X.ClientMessage: self._on_client_message,
+            X.MapRequest: self._on_map_request,
+            X.ConfigureRequest: self._on_configure_request,
+            X.CirculateRequest: self._on_circulate_request,
+            X.PropertyNotify: self._on_property_notify,
         }
         self.dpy = Display()
 
@@ -242,7 +242,7 @@ class QuteWM:
         )
         self._needs_update = False
 
-    def on_MapNotify(self, ev):
+    def _on_map_notify(self, ev):
         """Called when a window is shown on screen ("mapped")."""
         width, height = self.dimensions
         ev.window.configure(x=0, y=0, width=width, height=height)
@@ -253,21 +253,21 @@ class QuteWM:
         self._needs_update = True
         self.activate(ev.window)
 
-    def on_MapRequest(self, ev):
+    def _on_map_request(self, ev):
         """Called when a MapRequest is intercepted."""
         ev.window.map()
 
-    def on_ConfigureRequest(self, ev):
+    def _on_configure_request(self, ev):
         """Called when a ConfigureRequest is intercepted."""
         ev.window.configure(x=ev.x, y=ev.y, width=ev.width, height=ev.height,
                             border_width=ev.border_width,
                             value_mask=ev.value_mask)
 
-    def on_CirculateRequest(self, ev):
+    def _on_circulate_request(self, ev):
         """Called when a CirculateRequest is intercepted."""
         ev.window.circulate(ev.place)
 
-    def on_UnmapNotify(self, ev):
+    def _on_unmap_notify(self, ev):
         """Called when a window is unmapped from the screen."""
         log.debug("window destroyed: {}".format(ev.window))
         if ev.event == self.root and not ev.from_configure:
@@ -283,7 +283,7 @@ class QuteWM:
         if self.window_stack:
             self.activate(self.window_stack[-1])
 
-    def on_KeyPress(self, ev):
+    def _on_key_press(self, ev):
         """Called when a key that we're listening for is pressed."""
         # We only grabbed one key combination, so we don't need to check which
         # keys were actually pressed.
@@ -293,7 +293,7 @@ class QuteWM:
         if self.window_stack:
             self.activate(self.window_stack[0])
 
-    def on_ClientMessage(self, ev):
+    def _on_client_message(self, ev):
         """Called when a ClientMessage is received."""
         if ev.client_type == self.atoms.active_window:
             log.info("external request to activate {}".format(ev.window))
@@ -301,7 +301,7 @@ class QuteWM:
         elif ev.client_type == self.atoms.wm_state:
             self._handle_wm_state(ev)
 
-    def on_PropertyNotify(self, ev):
+    def _on_property_notify(self, ev):
         """Called when a PropertyNotify event is received."""
         if ev.atom == self.atoms.wm_hints:
             hints = ev.window.get_wm_hints()
