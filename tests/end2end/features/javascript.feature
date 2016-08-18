@@ -9,6 +9,7 @@ Feature: Javascript stuff
 
     # https://github.com/The-Compiler/qutebrowser/issues/906
 
+    @qtwebengine_todo: createWindow is not implemented yet
     Scenario: Closing a JS window twice (issue 906)
         When I open about:blank
         And I open data/javascript/issue906.html in a new tab
