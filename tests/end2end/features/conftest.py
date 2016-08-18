@@ -36,7 +36,7 @@ from helpers import utils
 
 
 def pytest_collection_modifyitems(config, items):
-    """Apply @qtwebengine_* markers"""
+    """Apply @qtwebengine_* markers."""
     webengine = config.getoption('--qute-bdd-webengine')
 
     for item in items:

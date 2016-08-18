@@ -26,7 +26,7 @@ import re
 import html
 from string import ascii_lowercase
 
-from PyQt5.QtCore import pyqtSignal, pyqtSlot, QObject, Qt, QUrl
+from PyQt5.QtCore import pyqtSlot, QObject, Qt, QUrl
 from PyQt5.QtWidgets import QLabel
 
 from qutebrowser.config import config, style

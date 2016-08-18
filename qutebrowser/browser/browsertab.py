@@ -21,7 +21,7 @@
 
 import itertools
 
-from PyQt5.QtCore import pyqtSignal, pyqtSlot, QUrl, QObject, QSizeF, QTimer
+from PyQt5.QtCore import pyqtSignal, pyqtSlot, QUrl, QObject, QSizeF
 from PyQt5.QtGui import QIcon
 from PyQt5.QtWidgets import QWidget
 
@@ -571,7 +571,8 @@ class AbstractTab(QWidget):
         log.webview.debug("link clicked: url {}, override target {}, "
                           "open_target {}".format(
                               url.toDisplayString(),
-                              self.data.override_target, self.data.open_target))
+                              self.data.override_target,
+                              self.data.open_target))
 
         if not url.isValid():
             msg = urlutils.get_errstring(url, "Invalid link clicked")
