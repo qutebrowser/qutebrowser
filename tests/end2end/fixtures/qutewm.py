@@ -62,18 +62,13 @@ class QuteWMProcess(testprocess.Process):
 
 
 @pytest.yield_fixture(scope='session')
-def qutewm(request, qapp):
+def qutewm(qapp):
     """Make sure a qutewm instance is running for this session.
 
     If qutewm can't be started, this returns None.
     """
     if sys.platform != 'linux':
-        request.session._qutewm = None
         yield None
-        return
-
-    if hasattr(request.session, '_qutewm'):
-        yield request.session._qutewm
         return
 
     qutewm = QuteWMProcess()
@@ -83,7 +78,6 @@ def qutewm(request, qapp):
         yield None
         return
 
-    request.session._qutewm = qutewm
     yield qutewm
     qutewm.terminate()
 
@@ -98,10 +92,9 @@ def qutewm_manager(request, qutewm):
     if not request.node.get_marker('qutewm'):
         yield
         return
-    if getattr(request.session, '_qutewm', None) is None:
+    if qutewm is None:
         pytest.skip('qutewm required but not started')
 
-    qutewm = request.session._qutewm
     qutewm.before_test()
     if qutewm.wm_failed:
         pytest.skip('qutewm required but not started')
