@@ -64,8 +64,8 @@ def _convert_js_arg(arg):
 def assemble(module, function, *args):
     """Assemble a javascript file and a function call."""
     js_args = ', '.join(_convert_js_arg(arg) for arg in args)
-    if module in ['window', 'document']:
-        parts = [module, function]
+    if module == 'window':
+        parts = ['window', function]
     else:
         parts = ['window', '_qutebrowser', module, function]
     code = '"use strict";\n{}({});'.format('.'.join(parts), js_args)
