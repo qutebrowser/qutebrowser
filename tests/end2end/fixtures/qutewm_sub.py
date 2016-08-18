@@ -253,11 +253,7 @@ class QuteWM:
         ev.window.configure(x=0, y=0, width=width, height=height)
         log.info("window created: [{:#x}] {}".format(
             ev.window.id, ev.window.get_wm_name()))
-        ev.window.change_attributes(event_mask=self.CLIENT_EVENT_MASK)
-        self.windows.append(ev.window)
-        self.window_stack.append(ev.window)
-        self._needs_update = True
-        self.activate(ev.window)
+        self._manage_window(ev.window)
 
     def _on_map_request(self, ev):
         """Called when a MapRequest is intercepted."""
@@ -281,13 +277,7 @@ class QuteWM:
             return
         log.info("window closed: [{:#x}] {}".format(
             ev.window.id, ev.window.get_wm_name()))
-        try:
-            self.windows.remove(ev.window)
-            self.window_stack.remove(ev.window)
-        except ValueError:
-            log.debug("window was not in self.windows!")
-        else:
-            self._needs_update = True
+        self._unmanage_window(ev.window)
         if self.window_stack:
             self.activate(self.window_stack[-1])
 
@@ -354,6 +344,25 @@ class QuteWM:
             log.debug("urgency switch to {} (via _NET_WM_STATE)"
                       .format(ev.window))
             self.activate(ev.window)
+
+    def _manage_window(self, window):
+        """Add the given window to the list of managed windows."""
+        window.change_attributes(event_mask=self.CLIENT_EVENT_MASK)
+        self.windows.append(window)
+        self.window_stack.append(window)
+        self._needs_update = True
+        self.activate(window)
+
+    def _unmanage_window(self, window):
+        """Remove the given window from the list of managed windows."""
+        try:
+            self.windows.remove(window)
+            self.window_stack.remove(window)
+        except ValueError:
+            log.debug("window was not in self.windows!")
+        else:
+            self._needs_update = True
+
 
 wm = None
 
