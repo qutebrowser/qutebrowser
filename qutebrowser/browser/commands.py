@@ -1532,8 +1532,8 @@ class CommandDispatcher:
                        hide=True)
     @cmdutils.argument('filter_', choices=['id'])
     def click_element(self, filter_: str, value, *,
-                      target: usertypes.ClickTarget =
-                          usertypes.ClickTarget.normal):
+                      target: usertypes.ClickTarget=
+                      usertypes.ClickTarget.normal):
         """Click the element matching the given filter.
 
         The given filter needs to result in exactly one element, otherwise, an
