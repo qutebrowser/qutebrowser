@@ -21,6 +21,7 @@
 
 import re
 import os
+import sys
 import time
 
 import pytest
@@ -301,7 +302,17 @@ class Process(QObject):
 
     def terminate(self):
         """Clean up and shut down the process."""
-        self.proc.terminate()
+        if sys.platform != 'win32':
+            self.proc.terminate()
+        else:
+            # http://doc.qt.io/qt-5/qprocess.html#terminate
+            # On Windows, terminate() posts a WM_CLOSE message to all top-level
+            # windows of the process and then to the main thread of the process
+            # itself. [...]
+            # Console applications on Windows that do not run an event loop, or
+            # whose event loop does not handle the WM_CLOSE message, can only
+            # be terminated by calling kill().
+            self.proc.kill()
         self.proc.waitForFinished()
 
     def is_running(self):
