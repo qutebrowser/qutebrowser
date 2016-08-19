@@ -49,9 +49,10 @@ class FakeConfig:
     def getoption(self, name):
         return self.ARGS[name]
 
+
 class FakeNode:
 
-    """Fake for request.node"""
+    """Fake for request.node."""
 
     def __init__(self, call):
         self.rep_call = call
