@@ -26,6 +26,7 @@ import sys
 import pytest
 from PyQt5.QtCore import pyqtSignal
 
+from qutebrowser.utils import qtutils
 from end2end.fixtures import testprocess
 
 
@@ -122,6 +123,11 @@ def qutewm_manager(request, qutewm):
     if not request.node.get_marker('qutewm'):
         yield
         return
+    # qutewm tests seem to fail on the debian-jessie/ubuntu-cov run. I think
+    # this is because of an old Qt version where QApplication.alert may behave
+    # differently to newer versions.
+    if not qtutils.version_check('5.4.0'):
+        pytest.skip('qutewm tests require Qt >= 5.4')
     if qutewm is None:
         pytest.skip('qutewm required but not started')
 
