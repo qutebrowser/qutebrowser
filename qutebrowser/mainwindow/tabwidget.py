@@ -106,7 +106,8 @@ class TabWidget(QTabWidget):
         fields['index'] = idx + 1
 
         fmt = config.get('tabs', 'title-format')
-        self.tabBar().setTabText(idx, fmt.format(**fields))
+        title = '' if fmt is None else fmt.format(**fields)
+        self.tabBar().setTabText(idx, title)
 
     def get_tab_fields(self, idx):
         """Get the tab field data."""

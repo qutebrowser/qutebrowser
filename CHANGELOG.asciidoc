@@ -96,6 +96,7 @@ Changed
   it caused some issues and then never re-applied.
 - Sending a command to an existing instance (via "qutebrowser :reload") now
   doesn't mark it as urgent anymore.
+- `tabs -> title-format` now treats an empty string as valid.
 
 Deprecated
 ~~~~~~~~~~
