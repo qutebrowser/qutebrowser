@@ -424,7 +424,7 @@ class Process(QObject):
         pass
 
     def wait_for(self, timeout=None, *, override_waited_for=False,
-                 do_skip=False, **kwargs):
+                 do_skip=False, divisor=1, **kwargs):
         """Wait until a given value is found in the data.
 
         Keyword arguments to this function get interpreted as attributes of the
@@ -436,6 +436,7 @@ class Process(QObject):
             override_waited_for: If set, gets triggered by previous messages
                                  again.
             do_skip: If set, call pytest.skip on a timeout.
+            divisor: A factor to decrease the timeout by.
 
         Return:
             The matched line.
@@ -449,6 +450,9 @@ class Process(QObject):
                 timeout = 15000
             else:
                 timeout = 5000
+
+        timeout /= divisor
+
         if not kwargs:
             raise TypeError("No keyword arguments given!")
         for key in kwargs:

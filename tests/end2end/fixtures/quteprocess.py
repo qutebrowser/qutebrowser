@@ -293,6 +293,15 @@ class QuteProc(testprocess.Process):
                              function='javaScriptConsoleMessage',
                              message='[*] {}'.format(message))
 
+    def wait_for(self, timeout=None, **kwargs):
+        """Extend wait_for to add divisor if a test is xfailing."""
+        xfail = self.request.node.get_marker('xfail')
+        if xfail and xfail.args[0]:
+            kwargs['divisor'] = 10
+        else:
+            kwargs['divisor'] = 1
+        return super().wait_for(timeout=timeout, **kwargs)
+
     def _is_error_logline(self, msg):
         """Check if the given LogLine is some kind of error message."""
         is_js_error = (msg.category == 'js' and

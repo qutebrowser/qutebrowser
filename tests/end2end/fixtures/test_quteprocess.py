@@ -22,7 +22,6 @@
 import logging
 import datetime
 import json
-import collections
 
 import pytest
 
@@ -50,6 +49,16 @@ class FakeConfig:
     def getoption(self, name):
         return self.ARGS[name]
 
+class FakeNode:
+
+    """Fake for request.node"""
+
+    def __init__(self, call):
+        self.rep_call = call
+
+    def get_marker(self, _name):
+        return None
+
 
 class FakeRequest:
 
@@ -70,7 +79,7 @@ def request_mock(quteproc, monkeypatch, httpbin):
     """Patch out a pytest request."""
     fake_call = FakeRepCall()
     fake_config = FakeConfig()
-    fake_node = collections.namedtuple('FakeNode', ['rep_call'])(fake_call)
+    fake_node = FakeNode(fake_call)
     fake_request = FakeRequest(fake_node, fake_config, httpbin)
     assert not hasattr(fake_request.node.rep_call, 'wasxfail')
     monkeypatch.setattr(quteproc, 'request', fake_request)
