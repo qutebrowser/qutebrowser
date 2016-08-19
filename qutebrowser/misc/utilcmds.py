@@ -249,15 +249,6 @@ def log_capacity(capacity: int):
         log.ram_handler.change_log_capacity(capacity)
 
 
-@cmdutils.register()
-@cmdutils.argument('current_win_id', win_id=True)
-def window_only(current_win_id):
-    """Close all windows except for the current one."""
-    for win_id, window in objreg.window_registry.items():
-        if win_id != current_win_id:
-            window.close()
-
-
 @cmdutils.register(debug=True)
 @cmdutils.argument('level', choices=sorted(
     (level.lower() for level in log.LOG_LEVELS),
@@ -286,3 +277,12 @@ def debug_log_filter(filters: str):
         raise cmdexc.CommandError("filters: Invalid value {} - expected one "
                                   "of: {}".format(filters,
                                                   ', '.join(log.LOGGER_NAMES)))
+
+
+@cmdutils.register()
+@cmdutils.argument('current_win_id', win_id=True)
+def window_only(current_win_id):
+    """Close all windows except for the current one."""
+    for win_id, window in objreg.window_registry.items():
+        if win_id != current_win_id:
+            window.close()
