@@ -356,6 +356,7 @@ class TestKeyConfigParser:
             ('yank -ps', 'yank pretty-url -s'),
 
             ('paste', 'open -- {clipboard}'),
+            ('paste -s', 'open -- {primary}'),
             ('paste -t', 'open -t -- {clipboard}'),
             ('paste -ws', 'open -w -- {primary}'),
 

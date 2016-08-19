@@ -1713,6 +1713,7 @@ CHANGED_KEY_COMMANDS = [
     (re.compile(r'^yank-selected'), r'yank selection'),
 
     (re.compile(r'^paste$'), r'open -- {clipboard}'),
+    (re.compile(r'^paste -s$'), r'open -- {primary}'),
     (re.compile(r'^paste -([twb])$'), r'open -\1 -- {clipboard}'),
     (re.compile(r'^paste -([twb])s$'), r'open -\1 -- {primary}'),
     (re.compile(r'^paste -s([twb])$'), r'open -\1 -- {primary}'),
