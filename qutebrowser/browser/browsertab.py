@@ -566,11 +566,18 @@ class AbstractTab(QWidget):
         """Return the widget events should be sent to."""
         raise NotImplementedError
 
-    def send_event(self, evt):
-        """Send the given event to the underlying widget."""
-        recipient = self._event_target()
-        QApplication.sendEvent(recipient, evt)
+    def send_event(self, evt, *, postpone=False):
+        """Send the given event to the underlying widget.
 
+        Args:
+            postpone: Postpone the event to be handled later instead of
+                      immediately. Using this might cause crashes in Qt.
+        """
+        recipient = self._event_target()
+        if postpone:
+            QApplication.postEvent(recipient, evt)
+        else:
+            QApplication.sendEvent(recipient, evt)
 
     @pyqtSlot(QUrl)
     def _on_link_clicked(self, url):
