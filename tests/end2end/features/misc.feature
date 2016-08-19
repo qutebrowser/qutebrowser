@@ -203,7 +203,7 @@ Feature: Various utility commands.
                   url: http://localhost:*/data/hello.txt
               - active: true
                 history: []
-        And the page source should look like misc/hello.txt.html
+        And the page should contain the html "/* Literal.Number.Integer */"
 
     @qtwebengine_skip: Flaky due to :view-source being async
     Scenario: :view-source on source page.
