@@ -259,8 +259,9 @@ def window_only(current_win_id):
 
 
 @cmdutils.register(debug=True)
-@cmdutils.argument('level', choices=[level.lower()
-                    for level in log.LOG_LEVELS])
+@cmdutils.argument('level', choices=sorted(
+    (level.lower() for level in log.LOG_LEVELS),
+    key=lambda e: log.LOG_LEVELS[e.upper()]))
 def debug_log_level(level: str):
     """Change the log level for console logging.
 

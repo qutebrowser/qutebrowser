@@ -610,4 +610,4 @@ Feature: Various utility commands.
 
     Scenario: Using debug-log-level with invalid level
         When I run :debug-log-level hello
-        Then the error "Invalid value hello - expected one of: debug, error, vdebug, info, warning, critical" should be shown
+        Then the error "level: Invalid value hello - expected one of: vdebug, debug, info, warning, error, critical" should be shown
