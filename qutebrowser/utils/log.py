@@ -255,11 +255,6 @@ def _init_handlers(level, color, force_color, json_logging, ram_capacity):
     return console_handler, ram_handler
 
 
-def change_loglevel(level):
-    value = LOG_LEVELS[level.upper()]
-    console_handler.setLevel(value)
-
-
 def _init_formatters(level, color, force_color, json_logging):
     """Init log formatters.
 
