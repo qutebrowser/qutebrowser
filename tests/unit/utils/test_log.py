@@ -29,6 +29,7 @@ import pytest
 import pytest_catchlog
 
 from qutebrowser.utils import log
+from qutebrowser.misc import utilcmds
 
 
 @pytest.yield_fixture(autouse=True)
@@ -166,6 +167,19 @@ class TestLogFilter:
         assert logfilter.filter(record)
         record = self._make_record(logger, "bacon", level=logging.INFO)
         assert logfilter.filter(record)
+
+    @pytest.mark.parametrize('category, logged_before, logged_after', [
+        ('init', True, False), ('url', False, True), ('js', False, True)])
+    def test_debug_log_filter_cmd(self, monkeypatch, logger, category,
+                                  logged_before, logged_after):
+        logfilter = log.LogFilter(["init"])
+        monkeypatch.setattr(log, 'console_filter', logfilter)
+
+        record = self._make_record(logger, category)
+
+        assert logfilter.filter(record) == logged_before
+        utilcmds.debug_log_filter('url,js')
+        assert logfilter.filter(record) == logged_after
 
 
 class TestRAMHandler:
