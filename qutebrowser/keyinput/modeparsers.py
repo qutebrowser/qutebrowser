@@ -25,7 +25,6 @@ Module attributes:
 
 from PyQt5.QtCore import pyqtSlot, Qt
 
-from qutebrowser.utils import message
 from qutebrowser.config import config
 from qutebrowser.keyinput import keyparser
 from qutebrowser.utils import usertypes, log, objreg, utils
