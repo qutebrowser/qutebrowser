@@ -604,26 +604,10 @@ Feature: Various utility commands.
             - data/click_element.html
             - data/hello.txt (active)
 
-    ## logfilter
-
-    Scenario: Using :debug-log-filter with commands argument
-        When I run :debug-log-filter commands
-        And I run :message-info "Hello World"
-        Then the message "Hello World" should be shown
-
-    Scenario: Using debug-log-filter with invalid filter
-        When I run :debug-log-filter hello
-        Then the error "Invalid argument, hello choose from statusbar,completion,init,url,destroy,modes,webview,misc,mouse,procs,hints,keyboard,commands,signals,downloads,js,qt,rfc6266,ipc,shlexer,save,message,config,sessions" should be shown
+    # :debug-log-level
+    # Other :debug-log-{level,filter} features are tested in
+    # unit/utils/test_log.py as using them would break end2end tests.
 
     Scenario: Using debug-log-level with invalid level
         When I run :debug-log-level hello
-        Then the error "Invalid value hello - expected one of: debug,
-        error, vdebug, info, warning, critical" should be shown
-
-    Scenario: :debug-log-level with warning argument
-        When I run :message-error the-error-message
-        And I run :message-warning the-warning-message
-        And I run :message-info the-info-message
-        And I run :debug-log-level warning
-        Then the error "the-error-message" should be shown
-        And the warning "the-warning-message" should be shown
+        Then the error "Invalid value hello - expected one of: debug, error, vdebug, info, warning, critical" should be shown
