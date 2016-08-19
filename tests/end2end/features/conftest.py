@@ -23,7 +23,6 @@ import re
 import sys
 import time
 import json
-import os.path
 import logging
 import collections
 import textwrap
