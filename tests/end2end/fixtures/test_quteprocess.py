@@ -22,6 +22,7 @@
 import logging
 import datetime
 import json
+import collections
 
 import pytest
 
@@ -29,27 +30,75 @@ from end2end.fixtures import quteprocess, testprocess
 from qutebrowser.utils import log
 
 
+class FakeRepCall:
+
+    """Fake for request.node.rep_call."""
+
+    def __init__(self):
+        self.failed = False
+
+
+class FakeConfig:
+
+    """Fake for request.config."""
+
+    ARGS = {
+        '--qute-delay': 0,
+        '--color': True,
+    }
+
+    def getoption(self, name):
+        return self.ARGS[name]
+
+
+class FakeRequest:
+
+    """Fake for request."""
+
+    def __init__(self, node, config, httpbin):
+        self.node = node
+        self.config = config
+        self._httpbin = httpbin
+
+    def getfuncargvalue(self, name):
+        assert name == 'httpbin'
+        return self._httpbin
+
+
+@pytest.fixture
+def request_mock(quteproc, monkeypatch, httpbin):
+    """Patch out a pytest request."""
+    fake_call = FakeRepCall()
+    fake_config = FakeConfig()
+    fake_node = collections.namedtuple('FakeNode', ['rep_call'])(fake_call)
+    fake_request = FakeRequest(fake_node, fake_config, httpbin)
+    assert not hasattr(fake_request.node.rep_call, 'wasxfail')
+    monkeypatch.setattr(quteproc, '_request', fake_request)
+    return fake_request
+
+
 @pytest.mark.parametrize('cmd', [
     ':message-error test',
     ':jseval console.log("[FAIL] test");'
 ])
-def test_quteproc_error_message(qtbot, quteproc, cmd):
+def test_quteproc_error_message(qtbot, quteproc, cmd, request_mock):
     """Make sure the test fails with an unexpected error message."""
     with qtbot.waitSignal(quteproc.got_error):
         quteproc.send_cmd(cmd)
     # Usually we wouldn't call this from inside a test, but here we force the
     # error to occur during the test rather than at teardown time.
     with pytest.raises(pytest.fail.Exception):
-        quteproc.after_test(did_fail=False)
+        quteproc.after_test()
 
 
-def test_quteproc_error_message_did_fail(qtbot, quteproc):
+def test_quteproc_error_message_did_fail(qtbot, quteproc, request_mock):
     """Make sure the test does not fail on teardown if the main test failed."""
+    request_mock.node.rep_call.failed = True
     with qtbot.waitSignal(quteproc.got_error):
         quteproc.send_cmd(':message-error test')
     # Usually we wouldn't call this from inside a test, but here we force the
     # error to occur during the test rather than at teardown time.
-    quteproc.after_test(did_fail=True)
+    quteproc.after_test()
 
 
 def test_quteproc_skip_via_js(qtbot, quteproc):
@@ -59,7 +108,7 @@ def test_quteproc_skip_via_js(qtbot, quteproc):
 
         # Usually we wouldn't call this from inside a test, but here we force
         # the error to occur during the test rather than at teardown time.
-        quteproc.after_test(did_fail=False)
+        quteproc.after_test()
 
     assert str(excinfo.value) == 'test'
 
@@ -83,7 +132,7 @@ def test_quteprocess_quitting(qtbot, quteproc_process):
     with qtbot.waitSignal(quteproc_process.proc.finished, timeout=15000):
         quteproc_process.send_cmd(':quit')
     with pytest.raises(testprocess.ProcessExited):
-        quteproc_process.after_test(did_fail=False)
+        quteproc_process.after_test()
 
 
 @pytest.mark.parametrize('data, attrs', [
