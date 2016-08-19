@@ -363,6 +363,10 @@ class TestKeyConfigParser:
             ('open {clipboard}', 'open -- {clipboard}'),
             ('open -t {clipboard}', 'open -t -- {clipboard}'),
             ('open -b {primary}', 'open -b -- {primary}'),
+
+            ('set-cmd-text -s :search', 'set-cmd-text /'),
+            ('set-cmd-text -s :search -r', 'set-cmd-text ?'),
+            ('set-cmd-text -s :', 'set-cmd-text :'),
         ]
     )
     def test_migrations(self, old, new_expected):
