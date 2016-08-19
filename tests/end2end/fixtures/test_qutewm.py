@@ -29,6 +29,14 @@ from end2end.fixtures import qutewm
 @pytest.mark.qutewm
 class TestQuteWM:
 
+    # qtbot.wait is used to wait for WAIT_DELAY ms. This makes sure that Qt
+    # processed all events (like the focus changed event from the X server),
+    # so that QMainWindow.isActiveWindow works as expected and returns the
+    # correct result. Waiting for qutewm.window_focused is not enough, as that
+    # may fire when Qt hasn't yet registered the change, so we need to give it
+    # some time and at least enter the event loop once.
+    WAIT_DELAY = 200
+
     @classmethod
     def get_window(cls):
         """Return a window suitable for testing."""
@@ -40,6 +48,7 @@ class TestQuteWM:
         qtbot.addWidget(window)
         with qtbot.waitSignals([qutewm.window_opened, qutewm.window_focused]):
             window.show()
+        qtbot.wait(self.WAIT_DELAY)
         assert window.isActiveWindow()
         with qtbot.waitSignal(qutewm.window_closed):
             window.close()
@@ -59,14 +68,41 @@ class TestQuteWM:
         # Show the first window, it should then have focus
         with qtbot.waitSignals([qutewm.window_opened, qutewm.window_focused]):
             window_a.show()
+        qtbot.wait(self.WAIT_DELAY)
         assert window_a.isActiveWindow()
 
         # Show the second window, it should then have focus
         with qtbot.waitSignals([qutewm.window_opened, qutewm.window_focused]):
             window_b.show()
+        qtbot.wait(self.WAIT_DELAY)
         assert window_b.isActiveWindow()
 
         # Close the second window, focus should revert to the first one
         with qtbot.waitSignals([qutewm.window_closed, qutewm.window_focused]):
             window_b.close()
+        qtbot.wait(self.WAIT_DELAY)
+        assert window_a.isActiveWindow()
+
+    def test_focus_on_urgency_hint(self, qutewm, qtbot, qapp):
+        window_a = self.get_window()
+        window_b = self.get_window()
+        qtbot.addWidget(window_a)
+        qtbot.addWidget(window_b)
+
+        # Show the first window, it should then have focus
+        with qtbot.waitSignals([qutewm.window_opened, qutewm.window_focused]):
+            window_a.show()
+        qtbot.wait(self.WAIT_DELAY)
+        assert window_a.isActiveWindow()
+
+        # Show the second window, it should then have focus
+        with qtbot.waitSignals([qutewm.window_opened, qutewm.window_focused]):
+            window_b.show()
+        qtbot.wait(self.WAIT_DELAY)
+        assert window_b.isActiveWindow()
+
+        # Urgency hint the first window, it should then have focus
+        with qtbot.waitSignal(qutewm.window_focused):
+            qapp.alert(window_a)
+        qtbot.wait(self.WAIT_DELAY)
         assert window_a.isActiveWindow()

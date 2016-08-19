@@ -49,7 +49,7 @@ class QuteWMProcess(testprocess.Process):
         super().__init__(parent)
         self.wm_failed = False
         self._event_re = re.compile(
-            r'window (created|closed|focused): \[0x([0-9a-f]+)\]')
+            r'window (created|closed|activated): \[0x([0-9a-f]+)\]$')
 
     def _parse_line(self, line):
         self._log(line)
@@ -64,7 +64,7 @@ class QuteWMProcess(testprocess.Process):
                 signal = {
                     'created': self.window_opened,
                     'closed': self.window_closed,
-                    'focused': self.window_focused,
+                    'activated': self.window_focused,
                 }[match.group(1)]
                 signal.emit(int(match.group(2), 16))
         return line

@@ -107,7 +107,8 @@ class QuteWM:
     WM_NAME = b'qutewm'
 
     ROOT_EVENT_MASK = X.SubstructureNotifyMask | X.SubstructureRedirectMask
-    CLIENT_EVENT_MASK = X.StructureNotifyMask | X.PropertyChangeMask
+    CLIENT_EVENT_MASK = (X.StructureNotifyMask | X.PropertyChangeMask |
+                         X.FocusChangeMask)
 
     STATE_REMOVE = 0
     STATE_ADD = 1
@@ -124,6 +125,7 @@ class QuteWM:
             X.ConfigureRequest: self._on_configure_request,
             X.CirculateRequest: self._on_circulate_request,
             X.PropertyNotify: self._on_property_notify,
+            X.FocusIn: self._on_focus_in,
         }
         self.dpy = Display()
         self.dpy.set_error_handler(self._error_handler)
@@ -233,27 +235,8 @@ class QuteWM:
 
     def activate(self, window):
         """Activate the given window, raise it and focus it."""
-        log.info("window activated: [{:#x}]".format(window.id))
         window.raise_window()
         window.set_input_focus(revert_to=X.RevertToNone, time=X.CurrentTime)
-        self.root.change_property(
-            self.atoms.active_window,
-            Xatom.WINDOW,
-            32,
-            [window.id] if window else [X.NONE],
-        )
-        self._needs_update = True
-        self._update_clients()
-        # re-order window_stack so that the active window is at
-        # window_stack[-1]
-        try:
-            index = self.window_stack.index(window)
-        except ValueError:
-            # Okay, fine then
-            pass
-        else:
-            self.window_stack = (self.window_stack[index + 1:] +
-                                 self.window_stack[:index + 1])
 
     def _update_clients(self):
         """Update _NET_CLIENT_LIST and _NET_ACTIVE_WINDOW attributes."""
@@ -337,6 +320,29 @@ class QuteWM:
                 log.debug("urgency switch to {} (via WM_HINTS)"
                           .format(ev.window))
                 self.activate(ev.window)
+
+    def _on_focus_in(self, ev):
+        """Called when a FocusIn event is received."""
+        window = ev.window
+        self.root.change_property(
+            self.atoms.active_window,
+            Xatom.WINDOW,
+            32,
+            [window.id] if window else [X.NONE],
+        )
+        self._needs_update = True
+        self._update_clients()
+        # re-order window_stack so that the active window is at
+        # window_stack[-1]
+        try:
+            index = self.window_stack.index(window)
+        except ValueError:
+            # Okay, fine then
+            pass
+        else:
+            self.window_stack = (self.window_stack[index + 1:] +
+                                 self.window_stack[:index + 1])
+        log.info("window activated: [{:#x}]".format(window.id))
 
     def _handle_wm_state(self, ev):
         """Handle the _NET_WM_STATE client message."""
