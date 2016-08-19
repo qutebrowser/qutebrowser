@@ -22,6 +22,7 @@
 import functools
 import types
 import traceback
+import logging
 
 try:
     import hunter
@@ -257,7 +258,7 @@ def debug_log_level(level: str):
     """Change the log level for console logging.
 
     Args:
-       level: log level for console log.
+        level: The log level to set.
     """
     log.console_handler.setLevel(log.LOG_LEVELS[level.upper()])
 
@@ -267,7 +268,7 @@ def debug_log_filter(filters: str):
     """Change the log filter for console logging.
 
     Args:
-       filters: log filters for console log.
+        filters: A comma separated list of logger names.
     """
     if set(filters.split(',')).issubset(log.LOGGER_NAMES):
         log.console_filter.names = filters.split(',')
