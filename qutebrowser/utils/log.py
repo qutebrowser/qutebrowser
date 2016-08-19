@@ -467,16 +467,16 @@ class LogFilter(logging.Filter):
 
     def __init__(self, names):
         super().__init__()
-        self._names = names
+        self.names = names
 
     def filter(self, record):
         """Determine if the specified record is to be logged."""
-        if self._names is None:
+        if self.names is None:
             return True
         if record.levelno > logging.DEBUG:
             # More important than DEBUG, so we won't filter at all
             return True
-        for name in self._names:
+        for name in self.names:
             if record.name == name:
                 return True
             elif not record.name.startswith(name):

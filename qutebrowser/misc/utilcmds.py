@@ -270,9 +270,7 @@ def debug_log_filter(filters: str):
        filters: log filters for console log.
     """
     if set(filters.split(',')).issubset(log.LOGGER_NAMES):
-        log.console_handler.removeFilter(log.console_filter)
-        log.console_filter = log.LogFilter(filters.split(','))
-        log.console_handler.addFilter(log.console_filter)
+        log.console_filter.names = filters.split(',')
     else:
         raise cmdexc.CommandError("filters: Invalid value {} - expected one "
                                   "of: {}".format(filters,
