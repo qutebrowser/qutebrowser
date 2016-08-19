@@ -471,6 +471,10 @@ Feature: Various utility commands.
         Then the page should contain the plaintext "newstuff"
         And the page should not contain the plaintext "oldstuff"
 
+   Scenario: Using :debug-log-capacity with negative capacity
+       When I run :debug-log-capacity -1
+       Then the error "Can't set a negative log capacity!" should be shown
+
     ## https://github.com/The-Compiler/qutebrowser/issues/1523
 
     Scenario: Completing a single option argument
