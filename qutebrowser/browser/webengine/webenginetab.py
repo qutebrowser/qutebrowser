@@ -26,7 +26,6 @@ import functools
 
 from PyQt5.QtCore import pyqtSlot, Qt, QEvent, QPoint, QUrl
 from PyQt5.QtGui import QKeyEvent, QIcon
-from PyQt5.QtWidgets import QApplication
 # pylint: disable=no-name-in-module,import-error,useless-suppression
 from PyQt5.QtWebEngineWidgets import QWebEnginePage, QWebEngineScript
 # pylint: enable=no-name-in-module,import-error,useless-suppression
@@ -526,6 +525,5 @@ class WebEngineTab(browsertab.AbstractTab):
         except AttributeError:
             log.stub('contentsSizeChanged, on Qt < 5.7')
 
-    def send_event(self, evt):
-        recipient = self._widget.focusProxy()
-        QApplication.sendEvent(recipient, evt)
+    def _event_target(self):
+        return self._widget.focusProxy()

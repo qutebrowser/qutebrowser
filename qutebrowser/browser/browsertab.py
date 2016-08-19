@@ -23,7 +23,7 @@ import itertools
 
 from PyQt5.QtCore import pyqtSignal, pyqtSlot, QUrl, QObject, QSizeF
 from PyQt5.QtGui import QIcon
-from PyQt5.QtWidgets import QWidget
+from PyQt5.QtWidgets import QWidget, QApplication
 
 from qutebrowser.keyinput import modeman
 from qutebrowser.config import config
@@ -562,9 +562,15 @@ class AbstractTab(QWidget):
         self._load_status = val
         self.load_status_changed.emit(val.name)
 
+    def _event_target(self):
+        """Return the widget events should be sent to."""
+        raise NotImplementedError
+
     def send_event(self, evt):
         """Send the given event to the underlying widget."""
-        raise NotImplementedError
+        recipient = self._event_target()
+        QApplication.sendEvent(recipient, evt)
+
 
     @pyqtSlot(QUrl)
     def _on_link_clicked(self, url):

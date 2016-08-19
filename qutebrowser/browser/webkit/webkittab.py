@@ -28,7 +28,6 @@ from PyQt5.QtCore import (pyqtSlot, Qt, QEvent, QUrl, QPoint, QTimer, QSizeF,
 from PyQt5.QtGui import QKeyEvent
 from PyQt5.QtWebKitWidgets import QWebPage, QWebFrame
 from PyQt5.QtWebKit import QWebSettings
-from PyQt5.QtWidgets import QApplication
 from PyQt5.QtPrintSupport import QPrinter
 
 from qutebrowser.browser import browsertab
@@ -696,5 +695,5 @@ class WebKitTab(browsertab.AbstractTab):
         frame.initialLayoutCompleted.connect(self._on_history_trigger)
         page.link_clicked.connect(self._on_link_clicked)
 
-    def send_event(self, evt):
-        QApplication.sendEvent(self._widget, evt)
+    def _event_target(self):
+        return self._widget
