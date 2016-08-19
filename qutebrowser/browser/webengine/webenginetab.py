@@ -27,6 +27,7 @@ import functools
 from PyQt5.QtCore import pyqtSlot, Qt, QEvent, QPoint, QUrl
 from PyQt5.QtGui import QKeyEvent, QIcon
 # pylint: disable=no-name-in-module,import-error,useless-suppression
+from PyQt5.QtWidgets import QOpenGLWidget
 from PyQt5.QtWebEngineWidgets import QWebEnginePage, QWebEngineScript
 # pylint: enable=no-name-in-module,import-error,useless-suppression
 
@@ -375,6 +376,8 @@ class WebEngineElements(browsertab.AbstractElements):
 class WebEngineTab(browsertab.AbstractTab):
 
     """A QtWebEngine tab in the browser."""
+
+    WIDGET_CLASS = QOpenGLWidget
 
     def __init__(self, win_id, mode_manager, parent=None):
         super().__init__(win_id)
