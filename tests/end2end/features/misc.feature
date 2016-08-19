@@ -475,6 +475,18 @@ Feature: Various utility commands.
        When I run :debug-log-capacity -1
        Then the error "Can't set a negative log capacity!" should be shown
 
+    # :debug-log-level / :debug-log-filter
+    # Other :debug-log-{level,filter} features are tested in
+    # unit/utils/test_log.py as using them would break end2end tests.
+
+    Scenario: Using debug-log-level with invalid level
+        When I run :debug-log-level hello
+        Then the error "level: Invalid value hello - expected one of: vdebug, debug, info, warning, error, critical" should be shown
+
+    Scenario: Using debug-log-filter with invalid filter
+        When I run :debug-log-filter blah
+        Then the error "filters: Invalid value blah - expected one of: statusbar, *" should be shown
+
     ## https://github.com/The-Compiler/qutebrowser/issues/1523
 
     Scenario: Completing a single option argument
@@ -607,15 +619,3 @@ Feature: Various utility commands.
         And the following tabs should be open:
             - data/click_element.html
             - data/hello.txt (active)
-
-    # :debug-log-level / :debug-log-filter
-    # Other :debug-log-{level,filter} features are tested in
-    # unit/utils/test_log.py as using them would break end2end tests.
-
-    Scenario: Using debug-log-level with invalid level
-        When I run :debug-log-level hello
-        Then the error "level: Invalid value hello - expected one of: vdebug, debug, info, warning, error, critical" should be shown
-
-    Scenario: Using debug-log-filter with invalid filter
-        When I run :debug-log-filter blah
-        Then the error "filters: Invalid value blah - expected one of: statusbar, *" should be shown
