@@ -381,8 +381,7 @@ Feature: Various utility commands.
         And I press the key "<Ctrl-C>"
         Then no crash should happen
 
-    @pyqt>=5.3.1
-    @qtwebengine_todo: JS prompt is not implemented yet
+    @pyqt>=5.3.1 @qtwebengine_todo: JS prompt is not implemented yet
     Scenario: Focusing download widget via Tab (original issue)
         When I open data/prompt/jsprompt.html
         And I run :click-element id button
