@@ -160,7 +160,6 @@ class CriticalQtWarning(Exception):
 
 def init_log(args):
     """Init loggers based on the argparse namespace passed."""
-    global console
     level = args.loglevel.upper()
     try:
         numeric_level = getattr(logging, level)
@@ -187,10 +186,6 @@ def init_log(args):
     QtCore.qInstallMessageHandler(qt_message_handler)
     global _log_inited
     _log_inited = True
-
-
-def change(filters):
-    console.addFilter(LogFilter(filters.split(',')))
 
 
 def _init_py_warnings():

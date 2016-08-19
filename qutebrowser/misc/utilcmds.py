@@ -22,7 +22,6 @@
 import functools
 import types
 import traceback
-import logging
 
 try:
     import hunter
