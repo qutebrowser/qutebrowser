@@ -73,7 +73,7 @@ def request_mock(quteproc, monkeypatch, httpbin):
     fake_node = collections.namedtuple('FakeNode', ['rep_call'])(fake_call)
     fake_request = FakeRequest(fake_node, fake_config, httpbin)
     assert not hasattr(fake_request.node.rep_call, 'wasxfail')
-    monkeypatch.setattr(quteproc, '_request', fake_request)
+    monkeypatch.setattr(quteproc, 'request', fake_request)
     return fake_request
 
 

@@ -143,7 +143,7 @@ class QuteProc(testprocess.Process):
         _ipc_socket: The IPC socket of the started instance.
         _webengine: Whether to use QtWebEngine
         basedir: The base directory for this instance.
-        _request: The request object for the current test.
+        request: The request object for the current test.
         _focus_ready: Whether the main window got focused.
         _load_ready: Whether the about:blank page got loaded.
         _instance_id: A unique ID for this QuteProc instance
@@ -167,7 +167,7 @@ class QuteProc(testprocess.Process):
         self._load_ready = False
         self._instance_id = next(instance_counter)
         self._run_counter = itertools.count()
-        self._request = request
+        self.request = request
 
     def _is_ready(self, what):
         """Called by _parse_line if loading/focusing is done.
@@ -197,7 +197,7 @@ class QuteProc(testprocess.Process):
             else:
                 raise
 
-        log_line.use_color = self._request.config.getoption('--color') != 'no'
+        log_line.use_color = self.request.config.getoption('--color') != 'no'
         self._log(log_line)
 
         start_okay_message_load = (
@@ -237,7 +237,7 @@ class QuteProc(testprocess.Process):
         return log_line
 
     def _executable_args(self):
-        profile = self._request.config.getoption('--qute-profile-subprocs')
+        profile = self.request.config.getoption('--qute-profile-subprocs')
         if hasattr(sys, 'frozen'):
             if profile:
                 raise Exception("Can't profile with sys.frozen!")
@@ -277,7 +277,7 @@ class QuteProc(testprocess.Process):
         if path.startswith('about:') or path.startswith('qute:'):
             return path
         else:
-            httpbin = self._request.getfuncargvalue('httpbin')
+            httpbin = self.request.getfuncargvalue('httpbin')
             return '{}://localhost:{}/{}'.format(
                 'https' if https else 'http',
                 httpbin.port if port is None else port,
@@ -343,7 +343,7 @@ class QuteProc(testprocess.Process):
                     if self._is_error_logline(msg) and not msg.expected]
 
         try:
-            call = self._request.node.rep_call
+            call = self.request.node.rep_call
         except AttributeError:
             pass
         else:
@@ -365,7 +365,7 @@ class QuteProc(testprocess.Process):
 
     def send_ipc(self, commands, target_arg=''):
         """Send a raw command to the running IPC socket."""
-        delay = self._request.config.getoption('--qute-delay')
+        delay = self.request.config.getoption('--qute-delay')
         time.sleep(delay / 1000)
 
         assert self._ipc_socket is not None
