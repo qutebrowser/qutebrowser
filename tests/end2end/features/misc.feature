@@ -604,10 +604,14 @@ Feature: Various utility commands.
             - data/click_element.html
             - data/hello.txt (active)
 
-    # :debug-log-level
+    # :debug-log-level / :debug-log-filter
     # Other :debug-log-{level,filter} features are tested in
     # unit/utils/test_log.py as using them would break end2end tests.
 
     Scenario: Using debug-log-level with invalid level
         When I run :debug-log-level hello
         Then the error "level: Invalid value hello - expected one of: vdebug, debug, info, warning, error, critical" should be shown
+
+    Scenario: Using debug-log-filter with invalid filter
+        When I run :debug-log-filter blah
+        Then the error "filters: Invalid value blah - expected one of: statusbar, *" should be shown
