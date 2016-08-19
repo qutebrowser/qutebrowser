@@ -88,6 +88,7 @@ Feature: Going back and forward.
                 - url: http://localhost:*/data/backforward/2.txt
                 - url: http://localhost:*/data/backforward/3.txt
 
+    @qtwebengine_skip: Causes 'Ignoring invalid URL being added to history' sometimes?
     Scenario: Going back too much with count.
         Given I open data/backforward/1.txt
         When I open data/backforward/2.txt
