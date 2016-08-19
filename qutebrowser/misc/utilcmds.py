@@ -272,17 +272,17 @@ def debug_log_level(level: str):
 
 
 @cmdutils.register(debug=True)
-def debug_log_filter(filter_names: str):
+def debug_log_filter(filters: str):
     """Change the log filter for console logging.
 
     Args:
-       filter_names: log filters for console log.
+       filters: log filters for console log.
     """
-    if set(filter_names.split(',')).issubset(log.LOGGER_NAMES):
+    if set(filters.split(',')).issubset(log.LOGGER_NAMES):
         log.console_handler.removeFilter(log.console_filter)
-        log.console_filter = log.LogFilter(filter_names.split(','))
+        log.console_filter = log.LogFilter(filters.split(','))
         log.console_handler.addFilter(log.console_filter)
     else:
-        raise cmdexc.CommandError("Invalid argument, {} choose from {}".
-                                 format(
-                                 filter_names, ','.join(log.LOGGER_NAMES)))
+        raise cmdexc.CommandError("filters: Invalid value {} - expected one "
+                                  "of: {}".format(filters,
+                                                  ', '.join(log.LOGGER_NAMES)))
