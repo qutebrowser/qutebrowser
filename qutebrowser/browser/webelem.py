@@ -384,7 +384,9 @@ class AbstractWebElement(collections.abc.MutableMapping):
         ]
 
         for evt in events:
-            self._tab.send_event(evt)
+            # For some reason, postpone=True is needed here to *not* cause
+            # segfaults in misc.feature because of :fake-key later...
+            self._tab.send_event(evt, postpone=True)
 
         def after_click():
             """Move cursor to end and reset override_target after clicking."""
