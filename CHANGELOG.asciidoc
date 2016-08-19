@@ -97,6 +97,8 @@ Changed
 - Sending a command to an existing instance (via "qutebrowser :reload") now
   doesn't mark it as urgent anymore.
 - `tabs -> title-format` now treats an empty string as valid.
+- Bindings for `:`, `/` and `?` are now configured explicitly and not hardcoded
+  anymore.
 
 Deprecated
 ~~~~~~~~~~
