@@ -91,7 +91,7 @@ class TestConfigParser:
          'general', 'ignore-case', 'general', 'private-browsing'),
         # Across sections
         ({'general': {'ignore-case': '${network:do-not-track}'},
-           'network': {'do-not-track': 'false'}},
+          'network': {'do-not-track': 'false'}},
          'general', 'ignore-case', 'network', 'do-not-track'),
     ])
     def test_interpolation(self, objects, config, sect1, opt1, sect2, opt2):
