@@ -31,8 +31,8 @@ except ImportError:
 
 import sip
 from PyQt5.QtCore import QUrl
-# leave this so it's available for :debug-pyeval
-from PyQt5.QtWidgets import QApplication
+# so it's available for :debug-pyeval
+from PyQt5.QtWidgets import QApplication  # pylint: disable=unused-import
 
 from qutebrowser.browser import qutescheme
 from qutebrowser.utils import log, objreg, usertypes, message, debug, utils
@@ -248,9 +248,8 @@ def debug_set_fake_clipboard(s=None):
 def debug_focus_window(win_id: int):
     """Activate and focus the window given by win_id.
 
-    Internally, this works by setting the urgency hint on the window, which
-    means only qutewm will actually focus the window. Other window managers may
-    not change the active window.
+    It is only guaranteed that qutewm will switch the window. No guarantees are
+    made for other window managers!
 
     Args:
         win_id: The window id to focus.
@@ -260,7 +259,7 @@ def debug_focus_window(win_id: int):
     except objreg.RegistryUnavailableError:
         message.error('current', "Invalid window: {}".format(win_id))
         return
-    QApplication.alert(window, 0)
+    window.activateWindow()
 
 
 @cmdutils.register(hide=True)

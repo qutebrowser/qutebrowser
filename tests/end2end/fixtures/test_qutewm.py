@@ -23,6 +23,7 @@ from PyQt5.QtWidgets import QMainWindow
 
 import pytest
 
+from qutebrowser.utils import qtutils
 from end2end.fixtures import qutewm
 
 
@@ -83,6 +84,9 @@ class TestQuteWM:
         qtbot.wait(self.WAIT_DELAY)
         assert window_a.isActiveWindow()
 
+    @pytest.mark.skipif(
+        not qtutils.version_check('5.4.0'),
+        reason='Urgency hints only work correctly with Qt 5.4')
     def test_focus_on_urgency_hint(self, qutewm, qtbot, qapp):
         window_a = self.get_window()
         window_b = self.get_window()
@@ -104,5 +108,29 @@ class TestQuteWM:
         # Urgency hint the first window, it should then have focus
         with qtbot.waitSignal(qutewm.window_focused):
             qapp.alert(window_a)
+        qtbot.wait(self.WAIT_DELAY)
+        assert window_a.isActiveWindow()
+
+    def test_focus_on_request(self, qutewm, qtbot, qapp):
+        window_a = self.get_window()
+        window_b = self.get_window()
+        qtbot.addWidget(window_a)
+        qtbot.addWidget(window_b)
+
+        # Show the first window, it should then have focus
+        with qtbot.waitSignals([qutewm.window_opened, qutewm.window_focused]):
+            window_a.show()
+        qtbot.wait(self.WAIT_DELAY)
+        assert window_a.isActiveWindow()
+
+        # Show the second window, it should then have focus
+        with qtbot.waitSignals([qutewm.window_opened, qutewm.window_focused]):
+            window_b.show()
+        qtbot.wait(self.WAIT_DELAY)
+        assert window_b.isActiveWindow()
+
+        # Activate the first window, it should then have focus
+        with qtbot.waitSignal(qutewm.window_focused):
+            window_a.activateWindow()
         qtbot.wait(self.WAIT_DELAY)
         assert window_a.isActiveWindow()
