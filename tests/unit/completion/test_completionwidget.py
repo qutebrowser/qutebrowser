@@ -172,14 +172,14 @@ def test_completion_item_focus(which, tree, count, expected, completionview):
 @pytest.mark.parametrize('show', ['always', 'auto', 'never'])
 @pytest.mark.parametrize('rows', [['Aa'], ['Aa', 'Bb']])
 @pytest.mark.parametrize('quick_complete', [True, False])
-def test_completion_item_focus(show, rows, quick_complete, config_stub, completionview):
-    """Test that on_next_prev_item moves the selection properly.
+def test_completion_show(show, rows, quick_complete, completionview,
+                         config_stub):
+    """Test that the completion widget is shown at appropriate times.
 
     Args:
-        tree: Each list represents a completion category, with each string
-              being an item under that category.
-        count: Number of times to go forward (or back if negative).
-        expected: item data that should be selected after going back/forward.
+        show: The completion show config setting.
+        rows: Each entry represents a completion category with only one item.
+        quick_complete: The completion quick-complete config setting.
     """
     config_stub.data['completion']['show'] = show
     config_stub.data['completion']['quick-complete'] = quick_complete
