@@ -38,6 +38,7 @@ def completionview(qtbot, status_command_stub, config_stub, win_registry,
             'scrollbar-width': 12,
             'scrollbar-padding': 2,
             'shrink': False,
+            'quick-complete': False,
         },
         'colors': {
             'completion.fg': QColor(),
