@@ -9,5 +9,5 @@ pylint==1.6.4
 ./scripts/dev/pylint_checkers
 requests==2.11.1
 six==1.10.0
-uritemplate.py==1.0.1
+uritemplate.py==2.0.0
 wrapt==1.10.8
