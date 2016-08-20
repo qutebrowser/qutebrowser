@@ -142,15 +142,15 @@ Contributors, sorted by the number of commits in descending order:
 * Florian Bruhin
 * Daniel Schadt
 * Ryan Roden-Corrent
+* Jakub Klinkovský
 * Antoni Boucher
 * Lamar Pavel
+* Jan Verbeek
 * Bruno Oliveira
 * Alexander Cogneau
 * Marshall Lochbaum
 * Felix Van der Jeugt
-* Jakub Klinkovský
 * Martin Tournoij
-* Jan Verbeek
 * Raphael Pierzina
 * Joel Torstensson
 * Patric Schmitz
@@ -166,21 +166,24 @@ Contributors, sorted by the number of commits in descending order:
 * Thorsten Wißmann
 * Austin Anderson
 * Jimmy
+* Niklas Haas
 * Alexey "Averrin" Nabrodov
 * avk
 * ZDarian
 * Milan Svoboda
 * John ShaggyTwoDope Jenkins
+* nanjekyejoannah
 * Peter Vilim
 * Clayton Craft
-* nanjekyejoannah
 * Oliver Caldwell
 * Jonas Schürmann
 * error800
+* Michael Hoang
 * Liam BEGUIN
 * skinnay
 * Zach-Button
 * Tomasz Kramkowski
+* Peter Rice
 * Ismail S
 * Halfwit
 * David Vogt
@@ -196,6 +199,7 @@ Contributors, sorted by the number of commits in descending order:
 * Brian Jackson
 * sbinix
 * neeasade
+* knaggita
 * jnphilipp
 * Tobias Patzl
 * Stefan Tatschner
@@ -204,6 +208,7 @@ Contributors, sorted by the number of commits in descending order:
 * Panashe M. Fundira
 * Link
 * Larry Hynes
+* Julian Weigt
 * Johannes Altmanninger
 * Jeremy Kaplan
 * Ismail
@@ -220,7 +225,6 @@ Contributors, sorted by the number of commits in descending order:
 * zwarag
 * xd1le
 * oniondreams
-* knaggita
 * issue
 * haxwithaxe
 * evan
@@ -234,6 +238,7 @@ Contributors, sorted by the number of commits in descending order:
 * Thiago Barroso Perrotta
 * Sorokin Alexei
 * Noah Huesser
+* Moez Bouhlel
 * Matthias Lisin
 * Marcel Schilling
 * Julie Engel

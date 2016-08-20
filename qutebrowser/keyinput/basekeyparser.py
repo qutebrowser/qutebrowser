@@ -131,7 +131,9 @@ class BaseKeyParser(QObject):
         except KeyError:
             self._debug_log("No special binding found for {}.".format(binding))
             return False
-        self.execute(cmdstr, self.Type.special)
+        count, _command = self._split_count()
+        self.execute(cmdstr, self.Type.special, count)
+        self.clear_keystring()
         return True
 
     def _split_count(self):
@@ -193,7 +195,7 @@ class BaseKeyParser(QObject):
         if match == self.Match.definitive:
             self._debug_log("Definitive match for '{}'.".format(
                 self._keystring))
-            self._keystring = ''
+            self.clear_keystring()
             self.execute(binding, self.Type.chain, count)
         elif match == self.Match.ambiguous:
             self._debug_log("Ambiguous match for '{}'.".format(
@@ -205,7 +207,7 @@ class BaseKeyParser(QObject):
         elif match == self.Match.none:
             self._debug_log("Giving up with '{}', no matches".format(
                 self._keystring))
-            self._keystring = ''
+            self.clear_keystring()
         else:
             raise AssertionError("Invalid match value {!r}".format(match))
         return match
@@ -271,7 +273,7 @@ class BaseKeyParser(QObject):
         time = config.get('input', 'timeout')
         if time == 0:
             # execute immediately
-            self._keystring = ''
+            self.clear_keystring()
             self.execute(binding, self.Type.chain, count)
         else:
             # execute in `time' ms
@@ -289,8 +291,7 @@ class BaseKeyParser(QObject):
             command/count: As if passed to self.execute()
         """
         self._debug_log("Executing delayed command now!")
-        self._keystring = ''
-        self.keystring_updated.emit(self._keystring)
+        self.clear_keystring()
         self.execute(command, self.Type.chain, count)
 
     def handle(self, e):
@@ -307,7 +308,9 @@ class BaseKeyParser(QObject):
         if handled or not self._supports_chains:
             return handled
         match = self._handle_single_key(e)
-        self.keystring_updated.emit(self._keystring)
+        # don't emit twice if the keystring was cleared in self.clear_keystring
+        if self._keystring:
+            self.keystring_updated.emit(self._keystring)
         return match != self.Match.none
 
     def read_config(self, modename=None):
@@ -366,6 +369,8 @@ class BaseKeyParser(QObject):
 
     def clear_keystring(self):
         """Clear the currently entered key sequence."""
-        self._debug_log("discarding keystring '{}'.".format(self._keystring))
-        self._keystring = ''
-        self.keystring_updated.emit(self._keystring)
+        if self._keystring:
+            self._debug_log("discarding keystring '{}'.".format(
+                self._keystring))
+            self._keystring = ''
+            self.keystring_updated.emit(self._keystring)

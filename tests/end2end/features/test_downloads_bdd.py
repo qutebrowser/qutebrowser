@@ -21,8 +21,13 @@ import os
 import sys
 import shlex
 
+import pytest
 import pytest_bdd as bdd
 bdd.scenarios('downloads.feature')
+
+
+pytestmark = pytest.mark.qtwebengine_todo("Downloads not implemented yet",
+                                          run=False)
 
 
 @bdd.given("I set up a temporary download dir")
@@ -76,6 +81,7 @@ def download_prompt(tmpdir, quteproc, path):
 def download_open(quteproc):
     cmd = '{} -c pass'.format(shlex.quote(sys.executable))
     quteproc.send_cmd(':download-open {}'.format(cmd))
+
 
 @bdd.when("I directly open the download")
 def download_open_with_prompt(quteproc):

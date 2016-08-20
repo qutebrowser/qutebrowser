@@ -54,38 +54,62 @@ def get_window(via_ipc, force_window=False, force_tab=False,
     """
     if force_window and force_tab:
         raise ValueError("force_window and force_tab are mutually exclusive!")
+
     if not via_ipc:
         # Initial main window
         return 0
-    window_to_raise = None
+
+    open_target = config.get('general', 'new-instance-open-target')
+
+    # Apply any target overrides, ordered by precedence
     if force_target is not None:
         open_target = force_target
-    else:
-        open_target = config.get('general', 'new-instance-open-target')
-    if (open_target == 'window' or force_window) and not force_tab:
+    if force_window:
+        open_target = 'window'
+    if force_tab and open_target == 'window':
+        # Command sent via IPC
+        open_target = 'tab-silent'
+
+    window = None
+    raise_window = False
+
+    # Try to find the existing tab target if opening in a tab
+    if open_target != 'window':
+        window = get_target_window()
+        raise_window = open_target not in ['tab-silent', 'tab-bg-silent']
+
+    # Otherwise, or if no window was found, create a new one
+    if window is None:
         window = MainWindow()
         window.show()
-        win_id = window.win_id
-        window_to_raise = window
-    else:
-        try:
-            window = objreg.last_window()
-        except objreg.NoWindow:
-            # There is no window left, so we open a new one
-            window = MainWindow()
-            window.show()
-            win_id = window.win_id
-            window_to_raise = window
-        win_id = window.win_id
-        if open_target not in ['tab-silent', 'tab-bg-silent']:
-            window_to_raise = window
-    if window_to_raise is not None:
-        window_to_raise.setWindowState(
-            window.windowState() & ~Qt.WindowMinimized | Qt.WindowActive)
-        window_to_raise.raise_()
-        window_to_raise.activateWindow()
-        QApplication.instance().alert(window_to_raise)
-    return win_id
+        raise_window = True
+
+    if raise_window:
+        window.setWindowState(window.windowState() & ~Qt.WindowMinimized)
+        window.setWindowState(window.windowState() | Qt.WindowActive)
+        window.raise_()
+        window.activateWindow()
+        QApplication.instance().alert(window)
+
+    return window.win_id
+
+
+def get_target_window():
+    """Get the target window for new tabs, or None if none exist."""
+    try:
+        win_mode = config.get('general', 'new-instance-open-target.window')
+        if win_mode == 'last-focused':
+            return objreg.last_focused_window()
+        elif win_mode == 'first-opened':
+            return objreg.window_by_index(0)
+        elif win_mode == 'last-opened':
+            return objreg.window_by_index(-1)
+        elif win_mode == 'last-visible':
+            return objreg.last_visible_window()
+        else:
+            raise ValueError("Invalid win_mode {}".format(win_mode))
+    except objreg.NoWindow:
+        return None
 
 
 class MainWindow(QWidget):
@@ -174,9 +198,6 @@ class MainWindow(QWidget):
         QTimer.singleShot(0, self._connect_resize_completion)
         QTimer.singleShot(0, self._connect_resize_keyhint)
         objreg.get('config').changed.connect(self.on_config_changed)
-
-        if config.get('ui', 'hide-mouse-cursor'):
-            self.setCursor(Qt.BlankCursor)
 
         objreg.get("app").new_window.emit(self)
 
@@ -457,8 +478,23 @@ class MainWindow(QWidget):
         self._downloadview.updateGeometry()
         self.tabbed_browser.tabBar().refresh()
 
+    def showEvent(self, e):
+        """Extend showEvent to register us as the last-visible-main-window.
+
+        Args:
+            e: The QShowEvent
+        """
+        super().showEvent(e)
+        objreg.register('last-visible-main-window', self, update=True)
+
     def _do_close(self):
         """Helper function for closeEvent."""
+        last_visible = objreg.get('last-visible-main-window')
+        if self is last_visible:
+            try:
+                objreg.delete('last-visible-main-window')
+            except KeyError:
+                pass
         objreg.get('session-manager').save_last_window_session()
         self._save_geometry()
         log.destroy.debug("Closing window {}".format(self.win_id))

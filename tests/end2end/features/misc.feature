@@ -64,19 +64,19 @@ Feature: Various utility commands.
     Scenario: :jseval
         When I set general -> log-javascript-console to info
         And I run :jseval console.log("Hello from JS!");
-        And I wait for "[:0] Hello from JS!" in the log
+        And I wait for "[:*] Hello from JS!" in the log
         Then the message "No output or error" should be shown
 
     Scenario: :jseval without logging
         When I set general -> log-javascript-console to none
         And I run :jseval console.log("Hello from JS!");
         Then the message "No output or error" should be shown
-        And "[:0] Hello from JS!" should not be logged
+        And "[:*] Hello from JS!" should not be logged
 
     Scenario: :jseval with --quiet
         When I set general -> log-javascript-console to info
         And I run :jseval --quiet console.log("Hello from JS!");
-        And I wait for "[:0] Hello from JS!" in the log
+        And I wait for "[:*] Hello from JS!" in the log
         Then "No output or error" should not be logged
 
     Scenario: :jseval with a value
@@ -190,6 +190,7 @@ Feature: Various utility commands.
 
     # :view-source
 
+    @qtwebengine_skip: Flaky due to :view-source being async
     Scenario: :view-source
         Given I open data/hello.txt
         When I run :tab-only
@@ -204,6 +205,7 @@ Feature: Various utility commands.
                 history: []
         And the page source should look like misc/hello.txt.html
 
+    @qtwebengine_skip: Flaky due to :view-source being async
     Scenario: :view-source on source page.
         When I open data/hello.txt
         And I run :view-source
@@ -222,6 +224,7 @@ Feature: Various utility commands.
 
     # :help
 
+    @qtwebengine_todo: :help is not implemented yet
     Scenario: :help without topic
         When I run :tab-only
         And I run :help
@@ -233,6 +236,7 @@ Feature: Various utility commands.
         When I run :help foo
         Then the error "Invalid help topic foo!" should be shown
 
+    @qtwebengine_todo: :help is not implemented yet
     Scenario: :help with command
         When the documentation is up to date
         And I run :tab-only
@@ -245,6 +249,7 @@ Feature: Various utility commands.
         When I run :help :foo
         Then the error "Invalid command foo!" should be shown
 
+    @qtwebengine_todo: :help is not implemented yet
     Scenario: :help with setting
         When the documentation is up to date
         And I run :tab-only
@@ -265,6 +270,7 @@ Feature: Various utility commands.
         When I run :help general->bar
         Then the error "Invalid option bar!" should be shown
 
+    @qtwebengine_todo: :help is not implemented yet
     Scenario: :help with -t
         When I open about:blank
         And I run :tab-only
@@ -288,18 +294,21 @@ Feature: Various utility commands.
 
     # pdfjs support
 
+    @qtwebengine_todo: pdfjs is not implemented yet
     Scenario: pdfjs is used for pdf files
         Given pdfjs is available
         When I set content -> enable-pdfjs to true
         And I open data/misc/test.pdf
         Then the javascript message "PDF * [*] (PDF.js: *)" should be logged
 
+    @qtwebengine_todo: pdfjs is not implemented yet
     Scenario: pdfjs is not used when disabled
         When I set content -> enable-pdfjs to false
         And I set storage -> prompt-download-directory to false
         And I open data/misc/test.pdf
         Then "Download finished" should be logged
 
+    @qtwebengine_todo: pdfjs is not implemented yet
     Scenario: Downloading a pdf via pdf.js button (issue 1214)
         Given pdfjs is available
         # WORKAROUND to prevent the "Painter ended with 2 saved states" warning
@@ -339,6 +348,8 @@ Feature: Various utility commands.
         And I run :debug-pyeval QApplication.instance().activeModalWidget().close()
         Then no crash should happen
 
+    # FIXME:qtwebengine use a finer skipping here
+    @qtwebengine_skip: printing to pdf is not implemented with older Qt versions
     Scenario: print --pdf
         When I open data/hello.txt
         And I run :print --pdf (tmpdir)/hello.pdf
@@ -346,12 +357,13 @@ Feature: Various utility commands.
         Then the PDF hello.pdf should exist in the tmpdir
 
     # :pyeval
-
+    @qtwebengine_todo: qute:pyeval is not implemented yet
     Scenario: Running :pyeval
         When I run :debug-pyeval 1+1
         And I wait until qute:pyeval is loaded
         Then the page should contain the plaintext "2"
 
+    @qtwebengine_todo: qute:pyeval is not implemented yet
     Scenario: Causing exception in :pyeval
         When I run :debug-pyeval 1/0
         And I wait until qute:pyeval is loaded
@@ -369,11 +381,10 @@ Feature: Various utility commands.
         And I press the key "<Ctrl-C>"
         Then no crash should happen
 
-    @pyqt>=5.3.1
+    @pyqt>=5.3.1 @qtwebengine_todo: JS prompt is not implemented yet
     Scenario: Focusing download widget via Tab (original issue)
         When I open data/prompt/jsprompt.html
-        And I run :hint
-        And I run :follow-hint a
+        And I run :click-element id button
         And I wait for "Entering mode KeyMode.prompt *" in the log
         And I press the key "<Tab>"
         And I press the key "<Ctrl-C>"
@@ -381,6 +392,7 @@ Feature: Various utility commands.
 
     ## Custom headers
 
+    @qtwebengine_todo: Custom headers are not implemented yet
     Scenario: Setting a custom header
         When I set network -> custom-headers to {"X-Qute-Test": "testvalue"}
         And I open headers
@@ -388,6 +400,7 @@ Feature: Various utility commands.
 
     ## :messages
 
+    @qtwebengine_todo: qute:log is not implemented yet
     Scenario: Showing error messages
         When I run :message-error the-error-message
         And I run :message-warning the-warning-message
@@ -400,6 +413,7 @@ Feature: Various utility commands.
         And the page should not contain the plaintext "the-warning-message"
         And the page should not contain the plaintext "the-info-message"
 
+    @qtwebengine_todo: qute:log is not implemented yet
     Scenario: Showing messages of type 'warning' or greater
         When I run :message-error the-error-message
         And I run :message-warning the-warning-message
@@ -412,6 +426,7 @@ Feature: Various utility commands.
         And the page should contain the plaintext "the-warning-message"
         And the page should not contain the plaintext "the-info-message"
 
+    @qtwebengine_todo: qute:log is not implemented yet
     Scenario: Showing messages of type 'info' or greater
         When I run :message-error the-error-message
         And I run :message-warning the-warning-message
@@ -424,24 +439,29 @@ Feature: Various utility commands.
         And the page should contain the plaintext "the-warning-message"
         And the page should contain the plaintext "the-info-message"
 
+    @qtwebengine_skip: Flaky for some reason?
     Scenario: Showing messages of an invalid level
         When I run :messages cataclysmic
         Then the error "Invalid log level cataclysmic!" should be shown
 
+    @qtwebengine_todo: qute:log is not implemented yet
     Scenario: Using qute:log directly
         When I open qute:log
         Then no crash should happen
 
+    @qtwebengine_todo: qute:log is not implemented yet
     Scenario: Using qute:plainlog directly
         When I open qute:plainlog
         Then no crash should happen
 
+    @qtwebengine_todo: qute:log is not implemented yet
     Scenario: Using :messages without messages
         Given I have a fresh instance
         When I run :messages
         Then qute://log?level=error should be loaded
         And the page should contain the plaintext "No messages to show."
 
+    @qtwebengine_todo: qute:log is not implemented yet
     Scenario: Using :debug-log-capacity
         When I run :debug-log-capacity 100
         And I run :message-info oldstuff
@@ -451,10 +471,26 @@ Feature: Various utility commands.
         Then the page should contain the plaintext "newstuff"
         And the page should not contain the plaintext "oldstuff"
 
+   Scenario: Using :debug-log-capacity with negative capacity
+       When I run :debug-log-capacity -1
+       Then the error "Can't set a negative log capacity!" should be shown
+
+    # :debug-log-level / :debug-log-filter
+    # Other :debug-log-{level,filter} features are tested in
+    # unit/utils/test_log.py as using them would break end2end tests.
+
+    Scenario: Using debug-log-level with invalid level
+        When I run :debug-log-level hello
+        Then the error "level: Invalid value hello - expected one of: vdebug, debug, info, warning, error, critical" should be shown
+
+    Scenario: Using debug-log-filter with invalid filter
+        When I run :debug-log-filter blah
+        Then the error "filters: Invalid value blah - expected one of: statusbar, *" should be shown
+
     ## https://github.com/The-Compiler/qutebrowser/issues/1523
 
     Scenario: Completing a single option argument
-        When I run :set-cmd-text -s :-- 
+        When I run :set-cmd-text -s :--
         Then no crash should happen
 
     ## https://github.com/The-Compiler/qutebrowser/issues/1386
@@ -473,6 +509,7 @@ Feature: Various utility commands.
 
     ## https://github.com/The-Compiler/qutebrowser/issues/1219
 
+    @qtwebengine_todo: private browsing is not implemented yet
     Scenario: Sharing cookies with private browsing
         When I set general -> private-browsing to true
         And I open cookies/set?qute-test=42 without waiting
@@ -482,13 +519,14 @@ Feature: Various utility commands.
 
     ## https://github.com/The-Compiler/qutebrowser/issues/1742
 
+    @qtwebengine_todo: private browsing is not implemented yet
     Scenario: Private browsing is activated in QtWebKit without restart
         When I set general -> private-browsing to true
         And I open data/javascript/localstorage.html
         Then the page should contain the plaintext "Local storage status: not working"
 
     Scenario: :repeat-command
-        Given I open data/scroll.html
+        Given I open data/scroll/simple.html
         And I run :tab-only
         When I run :scroll down
         And I run :repeat-command
@@ -496,7 +534,7 @@ Feature: Various utility commands.
         Then the page should be scrolled vertically
 
     Scenario: :repeat-command with count
-        Given I open data/scroll.html
+        Given I open data/scroll/simple.html
         And I run :tab-only
         When I run :scroll down with count 3
         And I run :scroll up
@@ -504,7 +542,7 @@ Feature: Various utility commands.
         Then the page should not be scrolled
 
     Scenario: :repeat-command with not-normal command inbetween
-        Given I open data/scroll.html
+        Given I open data/scroll/simple.html
         And I run :tab-only
         When I run :scroll down with count 3
         And I run :scroll up
@@ -513,14 +551,71 @@ Feature: Various utility commands.
         Then the page should not be scrolled
         And the error "prompt-accept: This command is only allowed in prompt/yesno mode." should be shown
 
+    @qtwebengine_todo: createWindow is not implemented yet
     Scenario: :repeat-command with mode-switching command
         Given I open data/hints/link_blank.html
         And I run :tab-only
-        When I run :hint
+        When I hint with args "all"
         And I run :leave-mode
         And I run :repeat-command
         And I run :follow-hint a
         And I wait until data/hello.txt is loaded
         Then the following tabs should be open:
             - data/hints/link_blank.html
+            - data/hello.txt (active)
+
+    @no_xvfb
+    Scenario: :window-only
+        Given I run :tab-only
+        And I open data/hello.txt
+        When I open data/hello2.txt in a new tab
+        And I open data/hello3.txt in a new window
+        And I run :window-only
+        Then the session should look like:
+            windows:
+            - tabs:
+              - active: true
+                history:
+                - url: http://localhost:*/data/hello3.txt
+
+    ## Variables
+
+    Scenario: {url} as part of an argument
+        When I open data/hello.txt
+        And I run :message-info foo{url}
+        Then the message "foohttp://localhost:*/hello.txt" should be shown
+
+    Scenario: Multiple variables in an argument
+        When I open data/hello.txt
+        And I put "foo" into the clipboard
+        And I run :message-info {clipboard}bar{url}
+        Then the message "foobarhttp://localhost:*/hello.txt" should be shown
+
+    @xfail_norun
+    Scenario: {url} in clipboard should not be expanded
+        When I open data/hello.txt
+        # FIXME: {url} should be escaped, otherwise it is replaced before it enters clipboard
+        And I put "{url}" into the clipboard
+        And I run :message-info {clipboard}bar{url}
+        Then the message "{url}barhttp://localhost:*/hello.txt" should be shown
+
+    ## :click-element
+
+    Scenario: Clicking an element with unknown ID
+        When I open data/click_element.html
+        And I run :click-element id blah
+        Then the error "No element found!" should be shown
+
+    Scenario: Clicking an element by ID
+        When I open data/click_element.html
+        And I run :click-element id qute-input
+        Then "Clicked editable element!" should be logged
+
+    Scenario: Clicking an element with tab target
+        When I open data/click_element.html
+        And I run :tab-only
+        And I run :click-element id link --target=tab
+        Then data/hello.txt should be loaded
+        And the following tabs should be open:
+            - data/click_element.html
             - data/hello.txt (active)

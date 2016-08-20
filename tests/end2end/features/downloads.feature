@@ -7,8 +7,7 @@ Feature: Downloading things from a website.
     Scenario: Downloading which redirects with closed tab (issue 889)
         When I set tabs -> last-close to blank
         And I open data/downloads/issue889.html
-        And I run :hint links download
-        And I run :follow-hint a
+        And I hint with args "links download" and follow a
         And I run :tab-close
         And I wait for "* Handling redirect" in the log
         Then no crash should happen
@@ -16,8 +15,7 @@ Feature: Downloading things from a website.
     Scenario: Downloading with error in closed tab (issue 889)
         When I set tabs -> last-close to blank
         And I open data/downloads/issue889.html
-        And I run :hint links download
-        And I run :follow-hint s
+        And I hint with args "links download" and follow s
         And I run :tab-close
         And I wait for the error "Download error: * - server replied: NOT FOUND"
         And I run :download-retry
@@ -28,8 +26,7 @@ Feature: Downloading things from a website.
         When I set completion -> download-path-suggestion to filename
         And I set storage -> prompt-download-directory to true
         And I open data/downloads/issue1243.html
-        And I run :hint links download
-        And I run :follow-hint a
+        And I hint with args "links download" and follow a
         And I wait for "Asking question <qutebrowser.utils.usertypes.Question default='qutebrowser-download' mode=<PromptMode.download: 5> text='Save file to:'>, *" in the log
         Then the error "Download error: No handler found for qute://!" should be shown
 
@@ -37,8 +34,7 @@ Feature: Downloading things from a website.
         When I set completion -> download-path-suggestion to filename
         And I set storage -> prompt-download-directory to true
         And I open data/downloads/issue1214.html
-        And I run :hint links download
-        And I run :follow-hint a
+        And I hint with args "links download" and follow a
         And I wait for "Asking question <qutebrowser.utils.usertypes.Question default='binary blob' mode=<PromptMode.download: 5> text='Save file to:'>, *" in the log
         And I run :leave-mode
         Then no crash should happen
@@ -201,8 +197,7 @@ Feature: Downloading things from a website.
     Scenario: Directly open a download with a very long filename
         When I set storage -> prompt-download-directory to true
         And I open data/downloads/issue1725.html
-        And I run :hint
-        And I run :follow-hint a
+        And I run :click-element id long-link
         And I wait for "Asking question <qutebrowser.utils.usertypes.Question default=* mode=<PromptMode.download: 5> text='Save file to:'>, *" in the log
         And I directly open the download
         And I wait until the download is finished

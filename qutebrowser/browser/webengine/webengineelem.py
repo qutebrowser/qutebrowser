@@ -24,7 +24,7 @@
 
 from PyQt5.QtCore import QRect
 
-from qutebrowser.utils import log
+from qutebrowser.utils import log, javascript
 from qutebrowser.browser import webelem
 
 
@@ -32,7 +32,8 @@ class WebEngineElement(webelem.AbstractWebElement):
 
     """A web element for QtWebEngine, using JS under the hood."""
 
-    def __init__(self, js_dict):
+    def __init__(self, js_dict, tab):
+        super().__init__(tab)
         self._id = js_dict['id']
         self._js_dict = js_dict
 
@@ -57,25 +58,12 @@ class WebEngineElement(webelem.AbstractWebElement):
     def __len__(self):
         return len(self._js_dict['attributes'])
 
-    def frame(self):
-        log.stub()
-        return None
+    def has_frame(self):
+        return True
 
     def geometry(self):
         log.stub()
         return QRect()
-
-    def document_element(self):
-        log.stub()
-        return None
-
-    def create_inside(self, tagname):
-        log.stub()
-        return None
-
-    def find_first(self, selector):
-        log.stub()
-        return None
 
     def style_property(self, name, *, strategy):
         log.stub()
@@ -91,7 +79,7 @@ class WebEngineElement(webelem.AbstractWebElement):
 
         The returned name will always be lower-case.
         """
-        return self._js_dict['tag_name']
+        return self._js_dict['tag_name'].lower()
 
     def outer_xml(self):
         """Get the full HTML representation of this element."""
@@ -117,22 +105,8 @@ class WebEngineElement(webelem.AbstractWebElement):
                     content-editable.
         """
         # FIXME:qtwebengine what to do about use_js with WebEngine?
-        log.stub()
-
-    def set_inner_xml(self, xml):
-        """Set the given inner XML."""
-        # FIXME:qtwebengine get rid of this?
-        log.stub()
-
-    def remove_from_document(self):
-        """Remove the node from the document."""
-        # FIXME:qtwebengine get rid of this?
-        log.stub()
-
-    def set_style_property(self, name, value):
-        """Set the element style."""
-        # FIXME:qtwebengine get rid of this?
-        log.stub()
+        js_code = javascript.assemble('webelem', 'set_text', self._id, text)
+        self._tab.run_js_async(js_code)
 
     def run_js_async(self, code, callback=None):
         """Run the given JS snippet async on the element."""
@@ -145,14 +119,8 @@ class WebEngineElement(webelem.AbstractWebElement):
         log.stub()
         return None
 
-    def rect_on_view(self, *, elem_geometry=None, adjust_zoom=True,
-                     no_js=False):
+    def rect_on_view(self, *, elem_geometry=None, no_js=False):
         """Get the geometry of the element relative to the webview.
-
-        Uses the getClientRects() JavaScript method to obtain the collection of
-        rectangles containing the element and returns the first rectangle which
-        is large enough (larger than 1px times 1px). If all rectangles returned
-        by getClientRects() are too small, falls back to elem.rect_on_view().
 
         Skipping of small rectangles is due to <a> elements containing other
         elements with "display:block" style, see
@@ -162,11 +130,35 @@ class WebEngineElement(webelem.AbstractWebElement):
             elem_geometry: The geometry of the element, or None.
                            Calling QWebElement::geometry is rather expensive so
                            we want to avoid doing it twice.
-            adjust_zoom: Whether to adjust the element position based on the
-                         current zoom level.
             no_js: Fall back to the Python implementation
         """
-        log.stub()
+        rects = self._js_dict['rects']
+        for rect in rects:
+            # FIXME:qtwebengine
+            # width = rect.get("width", 0)
+            # height = rect.get("height", 0)
+            width = rect['width']
+            height = rect['height']
+            if width > 1 and height > 1:
+                # Fix coordinates according to zoom level
+                # We're not checking for zoom-text-only here as that doesn't
+                # exist for QtWebEngine.
+                zoom = self._tab.zoom.factor()
+                rect["left"] *= zoom
+                rect["top"] *= zoom
+                width *= zoom
+                height *= zoom
+                rect = QRect(rect["left"], rect["top"], width, height)
+                # FIXME:qtwebengine
+                # frame = self._elem.webFrame()
+                # while frame is not None:
+                #     # Translate to parent frames' position (scroll position
+                #     # is taken care of inside getClientRects)
+                #     rect.translate(frame.geometry().topLeft())
+                #     frame = frame.parentFrame()
+                return rect
+        log.webview.debug("Couldn't find rectangle for {!r} ({})".format(
+            self, rects))
         return QRect()
 
     def is_visible(self, mainframe):

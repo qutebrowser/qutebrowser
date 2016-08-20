@@ -8,7 +8,7 @@ Feature: Prompts
 
     Scenario: Javascript alert
         When I open data/prompt/jsalert.html
-        And I click the button
+        And I run :click-element id button
         And I wait for a prompt
         And I run :prompt-accept
         Then the javascript message "Alert done" should be logged
@@ -16,26 +16,26 @@ Feature: Prompts
     Scenario: Using content -> ignore-javascript-alert
         When I set content -> ignore-javascript-alert to true
         And I open data/prompt/jsalert.html
-        And I click the button
+        And I run :click-element id button
         Then the javascript message "Alert done" should be logged
 
     Scenario: Javascript confirm - yes
         When I open data/prompt/jsconfirm.html
-        And I click the button
+        And I run :click-element id button
         And I wait for a prompt
         And I run :prompt-yes
         Then the javascript message "confirm reply: true" should be logged
 
     Scenario: Javascript confirm - no
         When I open data/prompt/jsconfirm.html
-        And I click the button
+        And I run :click-element id button
         And I wait for a prompt
         And I run :prompt-no
         Then the javascript message "confirm reply: false" should be logged
 
     Scenario: Javascript confirm - aborted
         When I open data/prompt/jsconfirm.html
-        And I click the button
+        And I run :click-element id button
         And I wait for a prompt
         And I run :leave-mode
         Then the javascript message "confirm reply: false" should be logged
@@ -43,7 +43,7 @@ Feature: Prompts
     @pyqt>=5.3.1
     Scenario: Javascript prompt
         When I open data/prompt/jsprompt.html
-        And I click the button
+        And I run :click-element id button
         And I wait for a prompt
         And I press the keys "prompt test"
         And I run :prompt-accept
@@ -52,7 +52,7 @@ Feature: Prompts
     @pyqt>=5.3.1
     Scenario: Rejected javascript prompt
         When I open data/prompt/jsprompt.html
-        And I click the button
+        And I run :click-element id button
         And I wait for a prompt
         And I press the keys "prompt test"
         And I run :leave-mode
@@ -66,7 +66,7 @@ Feature: Prompts
         When selection is supported
         And I put "insert test" into the primary selection
         And I open data/prompt/jsprompt.html
-        And I click the button
+        And I run :click-element id button
         And I wait for a prompt
         And I press the keys "<Shift-Insert>"
         And I run :prompt-accept
@@ -76,7 +76,7 @@ Feature: Prompts
     Scenario: Using content -> ignore-javascript-prompt
         When I set content -> ignore-javascript-prompt to true
         And I open data/prompt/jsprompt.html
-        And I click the button
+        And I run :click-element id button
         Then the javascript message "Prompt reply: null" should be logged
 
     # SSL
@@ -119,21 +119,21 @@ Feature: Prompts
     Scenario: Always rejecting geolocation
         When I set content -> geolocation to false
         And I open data/prompt/geolocation.html in a new tab
-        And I click the button
+        And I run :click-element id button
         Then the javascript message "geolocation permission denied" should be logged
 
     @ci @not_osx
     Scenario: Always accepting geolocation
         When I set content -> geolocation to true
         And I open data/prompt/geolocation.html in a new tab
-        And I click the button
+        And I run :click-element id button
         Then the javascript message "geolocation permission denied" should not be logged
 
     @ci @not_osx
     Scenario: geolocation with ask -> true
         When I set content -> geolocation to ask
         And I open data/prompt/geolocation.html in a new tab
-        And I click the button
+        And I run :click-element id button
         And I wait for a prompt
         And I run :prompt-yes
         Then the javascript message "geolocation permission denied" should not be logged
@@ -141,7 +141,7 @@ Feature: Prompts
     Scenario: geolocation with ask -> false
         When I set content -> geolocation to ask
         And I open data/prompt/geolocation.html in a new tab
-        And I click the button
+        And I run :click-element id button
         And I wait for a prompt
         And I run :prompt-no
         Then the javascript message "geolocation permission denied" should be logged
@@ -149,7 +149,7 @@ Feature: Prompts
     Scenario: geolocation with ask -> abort
         When I set content -> geolocation to ask
         And I open data/prompt/geolocation.html in a new tab
-        And I click the button
+        And I run :click-element id button
         And I wait for a prompt
         And I run :leave-mode
         Then the javascript message "geolocation permission denied" should be logged
@@ -159,19 +159,19 @@ Feature: Prompts
     Scenario: Always rejecting notifications
         When I set content -> notifications to false
         And I open data/prompt/notifications.html in a new tab
-        And I click the button
+        And I run :click-element id button
         Then the javascript message "notification permission denied" should be logged
 
     Scenario: Always accepting notifications
         When I set content -> notifications to true
         And I open data/prompt/notifications.html in a new tab
-        And I click the button
+        And I run :click-element id button
         Then the javascript message "notification permission granted" should be logged
 
     Scenario: notifications with ask -> false
         When I set content -> notifications to ask
         And I open data/prompt/notifications.html in a new tab
-        And I click the button
+        And I run :click-element id button
         And I wait for a prompt
         And I run :prompt-no
         Then the javascript message "notification permission denied" should be logged
@@ -179,7 +179,7 @@ Feature: Prompts
     Scenario: notifications with ask -> true
         When I set content -> notifications to ask
         And I open data/prompt/notifications.html in a new tab
-        And I click the button
+        And I run :click-element id button
         And I wait for a prompt
         And I run :prompt-yes
         Then the javascript message "notification permission granted" should be logged
@@ -189,7 +189,7 @@ Feature: Prompts
     Scenario: notifications with ask -> abort
         When I set content -> notifications to ask
         And I open data/prompt/notifications.html in a new tab
-        And I click the button
+        And I run :click-element id button
         And I wait for a prompt
         And I run :leave-mode
         Then the javascript message "notification permission aborted" should be logged
@@ -197,7 +197,7 @@ Feature: Prompts
     Scenario: answering notification after closing tab
         When I set content -> notifications to ask
         And I open data/prompt/notifications.html in a new tab
-        And I click the button
+        And I run :click-element id button
         And I wait for a prompt
         And I run :tab-close
         And I wait for "Leaving mode KeyMode.yesno (reason: aborted)" in the log

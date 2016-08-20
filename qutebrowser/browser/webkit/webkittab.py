@@ -32,7 +32,7 @@ from PyQt5.QtPrintSupport import QPrinter
 
 from qutebrowser.browser import browsertab
 from qutebrowser.browser.webkit import webview, tabhistory, webkitelem
-from qutebrowser.utils import qtutils, objreg, usertypes, utils
+from qutebrowser.utils import qtutils, objreg, usertypes, utils, log
 
 
 class WebKitPrinting(browsertab.AbstractPrinting):
@@ -315,7 +315,7 @@ class WebKitCaret(browsertab.AbstractCaret):
         if QWebSettings.globalSettings().testAttribute(
                 QWebSettings.JavascriptEnabled):
             if tab:
-                self._widget.page().open_target = usertypes.ClickTarget.tab
+                self._tab.data.open_target = usertypes.ClickTarget.tab
             self._tab.run_js_async(
                 'window.getSelection().anchorNode.parentNode.click()')
         else:
@@ -491,6 +491,85 @@ class WebKitHistory(browsertab.AbstractHistory):
                     self._tab.scroller.to_point, cur_data['scroll-pos']))
 
 
+class WebKitElements(browsertab.AbstractElements):
+
+    """QtWebKit implemementations related to elements on the page."""
+
+    def find_css(self, selector, callback, *, only_visible=False):
+        mainframe = self._widget.page().mainFrame()
+        if mainframe is None:
+            raise browsertab.WebTabError("No frame focused!")
+
+        elems = []
+        frames = webkitelem.get_child_frames(mainframe)
+        for f in frames:
+            for elem in f.findAllElements(selector):
+                elems.append(webkitelem.WebKitElement(elem, tab=self._tab))
+
+        if only_visible:
+            elems = [e for e in elems if e.is_visible(mainframe)]
+
+        callback(elems)
+
+    def find_id(self, elem_id, callback):
+        def find_id_cb(elems):
+            if not elems:
+                callback(None)
+            else:
+                callback(elems[0])
+        self.find_css('#' + elem_id, find_id_cb)
+
+    def find_focused(self, callback):
+        frame = self._widget.page().currentFrame()
+        if frame is None:
+            callback(None)
+            return
+
+        elem = frame.findFirstElement('*:focus')
+        if elem.isNull():
+            callback(None)
+        else:
+            callback(webkitelem.WebKitElement(elem, tab=self._tab))
+
+    def find_at_pos(self, pos, callback):
+        assert pos.x() >= 0
+        assert pos.y() >= 0
+        frame = self._widget.page().frameAt(pos)
+        if frame is None:
+            # This happens when we click inside the webview, but not actually
+            # on the QWebPage - for example when clicking the scrollbar
+            # sometimes.
+            log.webview.debug("Hit test at {} but frame is None!".format(pos))
+            callback(None)
+            return
+
+        # You'd think we have to subtract frame.geometry().topLeft() from the
+        # position, but it seems QWebFrame::hitTestContent wants a position
+        # relative to the QWebView, not to the frame. This makes no sense to
+        # me, but it works this way.
+        hitresult = frame.hitTestContent(pos)
+        if hitresult.isNull():
+            # For some reason, the whole hit result can be null sometimes (e.g.
+            # on doodle menu links). If this is the case, we schedule a check
+            # later (in mouseReleaseEvent) which uses webkitelem.focus_elem.
+            log.webview.debug("Hit test result is null!")
+            callback(None)
+            return
+
+        try:
+            elem = webkitelem.WebKitElement(hitresult.element(), tab=self._tab)
+        except webkitelem.IsNullError:
+            # For some reason, the hit result element can be a null element
+            # sometimes (e.g. when clicking the timetable fields on
+            # http://www.sbb.ch/ ). If this is the case, we schedule a check
+            # later (in mouseReleaseEvent) which uses webelem.focus_elem.
+            log.webview.debug("Hit test result element is null!")
+            callback(None)
+            return
+
+        callback(elem)
+
+
 class WebKitTab(browsertab.AbstractTab):
 
     """A QtWebKit tab in the browser."""
@@ -505,17 +584,25 @@ class WebKitTab(browsertab.AbstractTab):
         self.zoom = WebKitZoom(win_id=win_id, parent=self)
         self.search = WebKitSearch(parent=self)
         self.printing = WebKitPrinting()
+        self.elements = WebKitElements(self)
         self._set_widget(widget)
         self._connect_signals()
         self.zoom.set_default()
         self.backend = usertypes.Backend.QtWebKit
 
+    def _install_event_filter(self):
+        self._widget.installEventFilter(self._mouse_event_filter)
+
     def openurl(self, url):
         self._openurl_prepare(url)
         self._widget.openurl(url)
 
-    def url(self):
-        return self._widget.url()
+    def url(self, requested=False):
+        frame = self._widget.page().mainFrame()
+        if requested:
+            return frame.requestedUrl()
+        else:
+            return frame.url()
 
     def dump_async(self, callback, *, plain=False):
         frame = self._widget.page().mainFrame()
@@ -525,12 +612,9 @@ class WebKitTab(browsertab.AbstractTab):
             callback(frame.toHtml())
 
     def run_js_async(self, code, callback=None):
-        result = self.run_js_blocking(code)
+        result = self._widget.page().mainFrame().evaluateJavaScript(code)
         if callback is not None:
             callback(result)
-
-    def run_js_blocking(self, code):
-        return self._widget.page().mainFrame().evaluateJavaScript(code)
 
     def icon(self):
         return self._widget.icon()
@@ -555,36 +639,14 @@ class WebKitTab(browsertab.AbstractTab):
         nam = self._widget.page().networkAccessManager()
         nam.clear_all_ssl_errors()
 
+    @pyqtSlot()
+    def _on_history_trigger(self):
+        url = self.url()
+        requested_url = self.url(requested=True)
+        self.add_history_item.emit(url, requested_url, self.title())
+
     def set_html(self, html, base_url):
         self._widget.setHtml(html, base_url)
-
-    def find_all_elements(self, selector, callback, *, only_visible=False):
-        mainframe = self._widget.page().mainFrame()
-        if mainframe is None:
-            raise browsertab.WebTabError("No frame focused!")
-
-        elems = []
-        frames = webkitelem.get_child_frames(mainframe)
-        for f in frames:
-            for elem in f.findAllElements(selector):
-                elems.append(webkitelem.WebKitElement(elem))
-
-        if only_visible:
-            elems = [e for e in elems if e.is_visible(mainframe)]
-
-        callback(elems)
-
-    def find_focus_element(self, callback):
-        frame = self._widget.page().currentFrame()
-        if frame is None:
-            callback(None)
-            return
-
-        elem = frame.findFirstElement('*:focus')
-        if elem.isNull():
-            callback(None)
-        else:
-            callback(webkitelem.WebKitElement(elem))
 
     @pyqtSlot()
     def _on_frame_load_finished(self):
@@ -630,3 +692,8 @@ class WebKitTab(browsertab.AbstractTab):
         view.iconChanged.connect(self._on_webkit_icon_changed)
         page.frameCreated.connect(self._on_frame_created)
         frame.contentsSizeChanged.connect(self._on_contents_size_changed)
+        frame.initialLayoutCompleted.connect(self._on_history_trigger)
+        page.link_clicked.connect(self._on_link_clicked)
+
+    def _event_target(self):
+        return self._widget

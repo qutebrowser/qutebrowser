@@ -20,43 +20,39 @@
 """The main browser widget for QtWebEngine."""
 
 
-from PyQt5.QtCore import pyqtSignal, Qt, QPoint
+from PyQt5.QtCore import pyqtSignal, QUrl
 # pylint: disable=no-name-in-module,import-error,useless-suppression
 from PyQt5.QtWebEngineWidgets import QWebEngineView, QWebEnginePage
 # pylint: enable=no-name-in-module,import-error,useless-suppression
 
 from qutebrowser.config import config
-from qutebrowser.utils import log
+from qutebrowser.utils import log, debug, usertypes
 
 
 class WebEngineView(QWebEngineView):
 
     """Custom QWebEngineView subclass with qutebrowser-specific features."""
 
-    mouse_wheel_zoom = pyqtSignal(QPoint)
-
-    def __init__(self, parent=None):
+    def __init__(self, tabdata, parent=None):
         super().__init__(parent)
-        self.setPage(WebEnginePage(self))
-
-    def wheelEvent(self, e):
-        """Zoom on Ctrl-Mousewheel.
-
-        Args:
-            e: The QWheelEvent.
-        """
-        if e.modifiers() & Qt.ControlModifier:
-            e.accept()
-            self.mouse_wheel_zoom.emit(e.angleDelta())
-        else:
-            super().wheelEvent(e)
+        self.setPage(WebEnginePage(tabdata, parent=self))
 
 
 class WebEnginePage(QWebEnginePage):
 
-    """Custom QWebEnginePage subclass with qutebrowser-specific features."""
+    """Custom QWebEnginePage subclass with qutebrowser-specific features.
+
+    Signals:
+        certificate_error: FIXME:qtwebengine
+        link_clicked: Emitted when a link was clicked on a page.
+    """
 
     certificate_error = pyqtSignal()
+    link_clicked = pyqtSignal(QUrl)
+
+    def __init__(self, tabdata, parent=None):
+        super().__init__(parent)
+        self._tabdata = tabdata
 
     def certificateError(self, error):
         self.certificate_error.emit()
@@ -82,3 +78,31 @@ class WebEnginePage(QWebEnginePage):
         """Handle new windows via JS."""
         log.stub()
         return None
+
+    def acceptNavigationRequest(self,
+                                url: QUrl,
+                                typ: QWebEnginePage.NavigationType,
+                                is_main_frame: bool):
+        """Override acceptNavigationRequest to handle clicked links.
+
+        Setting linkDelegationPolicy to DelegateAllLinks and using a slot bound
+        to linkClicked won't work correctly, because when in a frameset, we
+        have no idea in which frame the link should be opened.
+
+        Checks if it should open it in a tab (middle-click or control) or not,
+        and then conditionally opens the URL. Opening it in a new tab/window
+        is handled in the slot connected to link_clicked.
+        """
+        target = self._tabdata.combined_target()
+        log.webview.debug("navigation request: url {}, type {}, "
+                          "target {}, is_main_frame {}".format(
+                              url.toDisplayString(),
+                              debug.qenum_key(QWebEnginePage, typ),
+                              target, is_main_frame))
+
+        if typ != QWebEnginePage.NavigationTypeLinkClicked:
+            return True
+
+        self.link_clicked.emit(url)
+
+        return url.isValid() and target == usertypes.ClickTarget.normal

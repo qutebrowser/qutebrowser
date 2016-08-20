@@ -125,11 +125,11 @@ class BaseType:
         self.valid_values = None
 
     def get_name(self):
-        """Get a name for the type for documentation"""
+        """Get a name for the type for documentation."""
         return self.__class__.__name__
 
     def get_valid_values(self):
-        """Get the type's valid values for documentation"""
+        """Get the type's valid values for documentation."""
         return self.valid_values
 
     def _basic_validation(self, value):
@@ -1477,35 +1477,35 @@ class UserAgent(BaseType):
     def complete(self):
         """Complete a list of common user agents."""
         out = [
-            ('Mozilla/5.0 (Windows NT 6.1; WOW64; rv:41.0) Gecko/20100101 '
-             'Firefox/41.0',
-             "Firefox 41.0  Win7 64-bit"),
-            ('Mozilla/5.0 (Macintosh; Intel Mac OS X 10.10; rv:41.0) '
-             'Gecko/20100101 Firefox/41.0',
-             "Firefox 41.0  MacOSX"),
-            ('Mozilla/5.0 (X11; Linux x86_64; rv:41.0) Gecko/20100101 '
-             'Firefox/41.0',
-             "Firefox 41.0  Linux"),
+            ('Mozilla/5.0 (Windows NT 6.1; WOW64; rv:47.0) Gecko/20100101 '
+             'Firefox/47.0',
+             "Firefox Generic Win7"),
+            ('Mozilla/5.0 (Macintosh; Intel Mac OS X 10.11; rv:47.0) '
+             'Gecko/20100101 Firefox/47.0',
+             "Firefox Generic MacOSX"),
+            ('Mozilla/5.0 (X11; Ubuntu; Linux x86_64; rv:47.0) Gecko/20100101 '
+             'Firefox/47.0',
+             "Firefox Generic Linux"),
 
-            ('Mozilla/5.0 (Macintosh; Intel Mac OS X 10_11_1) '
-             'AppleWebKit/601.2.7 (KHTML, like Gecko) Version/9.0.1 '
-             'Safari/601.2.7',
-             "Safari Generic  MacOSX"),
-            ('Mozilla/5.0 (iPad; CPU OS 9_1 like Mac OS X) '
+            ('Mozilla/5.0 (Macintosh; Intel Mac OS X 10_11_6) '
+             'AppleWebKit/601.7.7 (KHTML, like Gecko) Version/9.1.2 '
+             'Safari/601.7.7',
+             "Safari Generic MacOSX"),
+            ('Mozilla/5.0 (iPad; CPU OS 9_3_2 like Mac OS X) '
              'AppleWebKit/601.1.46 (KHTML, like Gecko) Version/9.0 '
-             'Mobile/13B143 Safari/601.1',
-             "Mobile Safari Generic  iOS"),
+             'Mobile/13F69 Safari/601.1',
+             "Mobile Safari 9.0 iOS"),
 
-            ('Mozilla/5.0 (Windows NT 6.1; WOW64) AppleWebKit/537.36 (KHTML, '
-             'like Gecko) Chrome/46.0.2490.80 Safari/537.36',
-             "Chrome 46.0  Win7 64-bit"),
-            ('Mozilla/5.0 (Macintosh; Intel Mac OS X 10_10_5) '
-             'AppleWebKit/537.36 (KHTML, like Gecko) Chrome/46.0.2490.80 '
+            ('Mozilla/5.0 (Windows NT 10.0; WOW64) AppleWebKit/537.36 '
+             '(KHTML, like Gecko) Chrome/51.0.2704.103 Safari/537.36',
+             "Chrome Generic Win10"),
+            ('Mozilla/5.0 (Macintosh; Intel Mac OS X 10_11_5) '
+             'AppleWebKit/537.36 (KHTML, like Gecko) Chrome/51.0.2704.103 '
              'Safari/537.36',
-             "Chrome 46.0  MacOSX"),
-            ('Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, '
-             'like Gecko) Chrome/46.0.2490.80 Safari/537.36',
-             "Chrome 46.0  Linux"),
+             "Chrome Generic MacOSX"),
+            ('Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 '
+             '(KHTML, like Gecko) Chrome/51.0.2704.106 Safari/537.36',
+             "Chrome Generic Linux"),
 
             ('Mozilla/5.0 (compatible; Googlebot/2.1; '
              '+http://www.google.com/bot.html',
@@ -1517,7 +1517,7 @@ class UserAgent(BaseType):
 
             ('Mozilla/5.0 (Windows NT 6.1; WOW64; Trident/7.0; rv:11.0) like '
              'Gecko',
-             "IE 11.0 for Desktop  Win7 64-bit")
+             "IE 11.0 for Desktop Win7 64-bit")
         ]
         return out
 

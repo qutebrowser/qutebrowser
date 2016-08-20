@@ -39,7 +39,7 @@ class EventObject(QObject):
 
 def test_log_events(qapp, caplog):
     obj = EventObject()
-    qapp.postEvent(obj, QEvent(QEvent.User))
+    qapp.sendEvent(obj, QEvent(QEvent.User))
     qapp.processEvents()
     assert len(caplog.records) == 1
     assert caplog.records[0].msg == 'Event in test_debug.EventObject: User'

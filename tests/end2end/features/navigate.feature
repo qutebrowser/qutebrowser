@@ -11,6 +11,11 @@ Feature: Using :navigate
         And I run :navigate up
         Then data/navigate should be loaded
 
+    Scenario: Navigating up by count
+        When I open data/navigate/sub/index.html
+        And I run :navigate up with count 2
+        Then data/navigate should be loaded
+
     # prev/next
 
     Scenario: Navigating to previous page
@@ -60,12 +65,23 @@ Feature: Using :navigate
         And I run :navigate increment
         Then the error "No number found in URL!" should be shown
 
+    Scenario: Incrementing number in URL by count
+        When I open data/numbers/3.txt
+        And I run :navigate increment with count 3
+        Then data/numbers/6.txt should be loaded
+
+    Scenario: Decrementing number in URL by count
+        When I open data/numbers/8.txt
+        And I run :navigate decrement with count 5
+        Then data/numbers/3.txt should be loaded
+
     Scenario: Setting url-incdec-segments
         When I set general -> url-incdec-segments to anchor
         And I open data/numbers/1.txt
         And I run :navigate increment
         Then the error "No number found in URL!" should be shown
 
+    @qtwebengine_todo: Doesn't find any elements
     Scenario: Navigating multiline links
         When I open data/navigate/multilinelinks.html
         And I run :navigate next

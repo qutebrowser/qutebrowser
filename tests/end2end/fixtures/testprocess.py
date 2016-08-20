@@ -251,17 +251,10 @@ class Process(QObject):
         if args is None:
             args = self._default_args()
 
-        if env is None:
-            procenv = QProcessEnvironment.systemEnvironment()
-        else:
-            procenv = QProcessEnvironment()
+        procenv = QProcessEnvironment.systemEnvironment()
+        if env is not None:
             for k, v in env.items():
                 procenv.insert(k, v)
-
-            passthrough_vars = ['DISPLAY', 'HOME']  # so --no-xvfb works
-            for var in passthrough_vars:
-                if var in os.environ:
-                    procenv.insert(var, os.environ[var])
 
         self.proc.readyRead.connect(self.read_log)
         self.proc.setProcessEnvironment(procenv)
@@ -431,7 +424,7 @@ class Process(QObject):
         pass
 
     def wait_for(self, timeout=None, *, override_waited_for=False,
-                 do_skip=False, **kwargs):
+                 do_skip=False, divisor=1, **kwargs):
         """Wait until a given value is found in the data.
 
         Keyword arguments to this function get interpreted as attributes of the
@@ -443,6 +436,7 @@ class Process(QObject):
             override_waited_for: If set, gets triggered by previous messages
                                  again.
             do_skip: If set, call pytest.skip on a timeout.
+            divisor: A factor to decrease the timeout by.
 
         Return:
             The matched line.
@@ -456,6 +450,9 @@ class Process(QObject):
                 timeout = 15000
             else:
                 timeout = 5000
+
+        timeout /= divisor
+
         if not kwargs:
             raise TypeError("No keyword arguments given!")
         for key in kwargs:

@@ -227,13 +227,27 @@ def data(readonly=False):
              "How to open links in an existing instance if a new one is "
              "launched."),
 
+            ('new-instance-open-target.window',
+             SettingValue(typ.String(
+                 valid_values=typ.ValidValues(
+                     ('first-opened', "Open new tabs in the first (oldest) "
+                                      "opened window."),
+                     ('last-opened', "Open new tabs in the last (newest) "
+                                     "opened window."),
+                     ('last-focused', "Open new tabs in the most recently "
+                                      "focused window."),
+                     ('last-visible', "Open new tabs in the most recently "
+                                      "visible window.")
+                 )), 'last-focused'),
+             "Which window to choose when opening links as new tabs."),
+
             ('log-javascript-console',
              SettingValue(typ.String(
                  valid_values=typ.ValidValues(
                      ('none', "Don't log messages."),
                      ('debug', "Log messages with debug level."),
                      ('info', "Log messages with info level.")
-                 )), 'debug', backends=[usertypes.Backend.QtWebKit]),
+                 )), 'debug'),
              "How to log javascript console messages."),
 
             ('save-session',
@@ -302,7 +316,8 @@ def data(readonly=False):
 
             ('user-stylesheet',
              SettingValue(typ.UserStyleSheet(none_ok=True),
-                          '::-webkit-scrollbar { width: 0px; height: 0px; }',
+                          'html > ::-webkit-scrollbar { width: 0px; '
+                          'height: 0px; }',
                           backends=[usertypes.Backend.QtWebKit]),
              "User stylesheet to use (absolute filename, filename relative to "
              "the config directory or CSS string). Will expand environment "
@@ -345,10 +360,6 @@ def data(readonly=False):
              "* `{id}`: The internal window ID of this window.\n"
              "* `{scroll_pos}`: The page scroll position.\n"
              "* `{host}`: The host of the current web page."),
-
-            ('hide-mouse-cursor',
-             SettingValue(typ.Bool(), 'false'),
-             "Whether to hide the mouse cursor."),
 
             ('modal-js-dialog',
              SettingValue(typ.Bool(), 'false'),
@@ -640,7 +651,8 @@ def data(readonly=False):
             ('title-format',
              SettingValue(typ.FormatString(
                  fields=['perc', 'perc_raw', 'title', 'title_sep', 'index',
-                         'id', 'scroll_pos', 'host']), '{index}: {title}'),
+                         'id', 'scroll_pos', 'host'], none_ok=True),
+                 '{index}: {title}'),
              "The format to use for the tab title. The following placeholders "
              "are defined:\n\n"
              "* `{perc}`: The percentage as a string like `[10%]`.\n"
@@ -887,10 +899,6 @@ def data(readonly=False):
              SettingValue(typ.String(), '1px solid #E3BE23'),
              "CSS border value for hints."),
 
-            ('opacity',
-             SettingValue(typ.Float(minval=0.0, maxval=1.0), '0.7'),
-             "Opacity for hints."),
-
             ('mode',
              SettingValue(typ.String(
                  valid_values=typ.ValidValues(
@@ -928,9 +936,21 @@ def data(readonly=False):
              "The dictionary file to be used by the word hints."),
 
             ('auto-follow',
-             SettingValue(typ.Bool(), 'true'),
-             "Follow a hint immediately when the hint text is completely "
-             "matched."),
+             SettingValue(typ.String(
+                 valid_values=typ.ValidValues(
+                     ('always', "Auto-follow whenever there is only a single "
+                      "hint on a page."),
+                     ('unique-match', "Auto-follow whenever there is a unique "
+                      "non-empty match in either the hint string (word mode) "
+                      "or filter (number mode)."),
+                     ('full-match', "Follow the hint when the user typed the "
+                      "whole hint (letter, word or number mode) or the "
+                      "element's text (only in number mode)."),
+                     ('never', "The user will always need to press Enter to "
+                      "follow a hint."),
+                 )), 'unique-match'),
+             "Controls when a hint can be automatically followed without the "
+             "user pressing Enter."),
 
             ('auto-follow-timeout',
              SettingValue(typ.Int(), '0'),
@@ -956,6 +976,10 @@ def data(readonly=False):
                      ('python', "Slightly worse but faster"),
                  )), 'python'),
              "Which implementation to use to find elements to hint."),
+
+            ('hide-unmatched-rapid-hints',
+             SettingValue(typ.Bool(), 'true'),
+             "Controls hiding unmatched hints in rapid mode."),
 
             readonly=readonly
         )),
@@ -1183,18 +1207,18 @@ def data(readonly=False):
              "Color gradient interpolation system for the tab indicator."),
 
             ('hints.fg',
-             SettingValue(typ.CssColor(), 'black'),
+             SettingValue(typ.QssColor(), 'black'),
              "Font color for hints."),
 
             ('hints.bg',
-             SettingValue(
-                 typ.CssColor(), '-webkit-gradient(linear, left top, '
-                 'left bottom, color-stop(0%,#FFF785), '
-                 'color-stop(100%,#FFC542))'),
-             "Background color for hints."),
+             SettingValue(typ.QssColor(), 'qlineargradient(x1:0, y1:0, x2:0, '
+                          'y2:1, stop:0 rgba(255, 247, 133, 0.8), '
+                          'stop:1 rgba(255, 197, 66, 0.8))'),
+             "Background color for hints. Note that you can use a `rgba(...)` "
+             "value for transparency."),
 
             ('hints.fg.match',
-             SettingValue(typ.CssColor(), 'green'),
+             SettingValue(typ.QssColor(), 'green'),
              "Font color for the matched part of hints."),
 
             ('downloads.bg.bar',
@@ -1267,7 +1291,7 @@ def data(readonly=False):
              "Font used in the completion widget."),
 
             ('completion.category',
-              SettingValue(typ.Font(), 'bold ${completion}'),
+             SettingValue(typ.Font(), 'bold ${completion}'),
              "Font used in the completion categories."),
 
             ('tabbar',
@@ -1283,7 +1307,7 @@ def data(readonly=False):
              "Font used for the downloadbar."),
 
             ('hints',
-             SettingValue(typ.Font(), 'bold 13px Monospace'),
+             SettingValue(typ.Font(), 'bold 13px ${_monospace}'),
              "Font used for the hints."),
 
             ('debug-console',
@@ -1441,7 +1465,7 @@ RETURN_KEYS = ['<Return>', '<Ctrl-M>', '<Ctrl-J>', '<Shift-Return>', '<Enter>',
 
 KEY_DATA = collections.OrderedDict([
     ('!normal', collections.OrderedDict([
-        ('clear-keychain ;; leave-mode', ['<Escape>', '<Ctrl-[>']),
+        ('leave-mode', ['<Escape>', '<Ctrl-[>']),
     ])),
 
     ('normal', collections.OrderedDict([
@@ -1454,6 +1478,9 @@ KEY_DATA = collections.OrderedDict([
         ('set-cmd-text :open -b -i {url:pretty}', ['xO']),
         ('set-cmd-text -s :open -w', ['wo']),
         ('set-cmd-text :open -w {url:pretty}', ['wO']),
+        ('set-cmd-text /', ['/']),
+        ('set-cmd-text ?', ['?']),
+        ('set-cmd-text :', [':']),
         ('open -t', ['ga', '<Ctrl-T>']),
         ('open -w', ['<Ctrl-N>']),
         ('tab-close', ['d', '<Ctrl-W>']),
@@ -1512,12 +1539,12 @@ KEY_DATA = collections.OrderedDict([
         ('yank domain -s', ['yD']),
         ('yank pretty-url', ['yp']),
         ('yank pretty-url -s', ['yP']),
-        ('paste', ['pp']),
-        ('paste -s', ['pP']),
-        ('paste -t', ['Pp']),
-        ('paste -ts', ['PP']),
-        ('paste -w', ['wp']),
-        ('paste -ws', ['wP']),
+        ('open -- {clipboard}', ['pp']),
+        ('open -- {primary}', ['pP']),
+        ('open -t -- {clipboard}', ['Pp']),
+        ('open -t -- {primary}', ['PP']),
+        ('open -w -- {clipboard}', ['wp']),
+        ('open -w -- {primary}', ['wP']),
         ('quickmark-save', ['m']),
         ('set-cmd-text -s :quickmark-load', ['b']),
         ('set-cmd-text -s :quickmark-load -t', ['B']),
@@ -1574,7 +1601,7 @@ KEY_DATA = collections.OrderedDict([
 
     ('insert', collections.OrderedDict([
         ('open-editor', ['<Ctrl-E>']),
-        ('paste-primary', ['<Shift-Ins>']),
+        ('insert-text {primary}', ['<Shift-Ins>']),
     ])),
 
     ('hint', collections.OrderedDict([
@@ -1591,6 +1618,8 @@ KEY_DATA = collections.OrderedDict([
         ('command-history-next', ['<Ctrl-N>']),
         ('completion-item-focus prev', ['<Shift-Tab>', '<Up>']),
         ('completion-item-focus next', ['<Tab>', '<Down>']),
+        ('completion-item-focus next-category', ['<Ctrl-Tab>']),
+        ('completion-item-focus prev-category', ['<Ctrl-Shift-Tab>']),
         ('completion-item-del', ['<Ctrl-D>']),
         ('command-accept', RETURN_KEYS),
     ])),
@@ -1672,7 +1701,7 @@ CHANGED_KEY_COMMANDS = [
     (re.compile(r'^scroll ([-\d]+ [-\d]+)$'), r'scroll-px \1'),
 
     (re.compile(r'^search *;; *clear-keychain$'), r'clear-keychain ;; search'),
-    (re.compile(r'^leave-mode$'), r'clear-keychain ;; leave-mode'),
+    (re.compile(r'^clear-keychain *;; *leave-mode$'), r'leave-mode'),
 
     (re.compile(r'^download-remove --all$'), r'download-clear'),
 
@@ -1687,6 +1716,23 @@ CHANGED_KEY_COMMANDS = [
     (re.compile(r'^yank-selected -p'), r'yank selection -s'),
     (re.compile(r'^yank-selected'), r'yank selection'),
 
+    (re.compile(r'^paste$'), r'open -- {clipboard}'),
+    (re.compile(r'^paste -s$'), r'open -- {primary}'),
+    (re.compile(r'^paste -([twb])$'), r'open -\1 -- {clipboard}'),
+    (re.compile(r'^paste -([twb])s$'), r'open -\1 -- {primary}'),
+    (re.compile(r'^paste -s([twb])$'), r'open -\1 -- {primary}'),
+
     (re.compile(r'^completion-item-next'), r'completion-item-focus next'),
     (re.compile(r'^completion-item-prev'), r'completion-item-focus prev'),
+
+    (re.compile(r'^open {clipboard}$'), r'open -- {clipboard}'),
+    (re.compile(r'^open -([twb]) {clipboard}$'), r'open -\1 -- {clipboard}'),
+    (re.compile(r'^open {primary}$'), r'open -- {primary}'),
+    (re.compile(r'^open -([twb]) {primary}$'), r'open -\1 -- {primary}'),
+
+    (re.compile(r'^paste-primary$'), r'insert-text {primary}'),
+
+    (re.compile(r'^set-cmd-text -s :search$'), r'set-cmd-text /'),
+    (re.compile(r'^set-cmd-text -s :search -r$'), r'set-cmd-text ?'),
+    (re.compile(r'^set-cmd-text -s :$'), r'set-cmd-text :'),
 ]

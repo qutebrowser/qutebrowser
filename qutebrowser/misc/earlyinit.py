@@ -60,11 +60,11 @@ def _missing_str(name, *, windows=None, pip=None, webengine=False):
     blocks.append('<br />'.join(lines))
     if webengine:
         lines = [
-            'Note QtWebEngine is not available for some distributions '
+            ('Note QtWebEngine is not available for some distributions '
                 '(like Debian/Ubuntu), so you need to start without '
-                '--backend webengine there.',
-            'QtWebEngine is currently unsupported with the OS X .app, see '
-                'https://github.com/The-Compiler/qutebrowser/issues/1692',
+                '--backend webengine there.'),
+            ('QtWebEngine is currently unsupported with the OS X .app, see '
+                'https://github.com/The-Compiler/qutebrowser/issues/1692'),
         ]
     else:
         lines = ['<b>If you installed a qutebrowser package for your '
@@ -301,6 +301,13 @@ def init_log(args):
     log.init.debug("Log initialized.")
 
 
+def check_optimize_flag():
+    from qutebrowser.utils import log
+    if sys.flags.optimize >= 2:
+        log.init.warning("Running on optimize level higher than 1, "
+                         "unexpected behavior may occur.")
+
+
 def earlyinit(args):
     """Do all needed early initialization.
 
@@ -327,3 +334,4 @@ def earlyinit(args):
     remove_inputhook()
     check_libraries(args)
     check_ssl_support()
+    check_optimize_flag()

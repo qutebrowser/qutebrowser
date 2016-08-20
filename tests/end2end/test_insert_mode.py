@@ -25,30 +25,39 @@ import json
 import pytest
 
 
-@pytest.mark.parametrize('file_name, source, input_text, auto_insert', [
-    ('textarea.html', 'clipboard', 'qutebrowser', 'false'),
-    ('textarea.html', 'keypress', 'superqutebrowser', 'false'),
-    ('input.html', 'clipboard', 'amazingqutebrowser', 'false'),
-    ('input.html', 'keypress', 'awesomequtebrowser', 'false'),
-    ('autofocus.html', 'keypress', 'cutebrowser', 'true'),
+@pytest.mark.parametrize(['file_name', 'elem_id', 'source', 'input_text',
+                          'auto_insert'], [
+    ('textarea.html', 'qute-textarea', 'clipboard', 'qutebrowser', 'false'),
+    ('textarea.html', 'qute-textarea', 'keypress', 'superqutebrowser',
+     'false'),
+    ('input.html', 'qute-input', 'clipboard', 'amazingqutebrowser', 'false'),
+    ('input.html', 'qute-input', 'keypress', 'awesomequtebrowser', 'false'),
+    ('autofocus.html', 'qute-input-autofocus', 'keypress', 'cutebrowser',
+     'true'),
 ])
-def test_insert_mode(file_name, source, input_text, auto_insert, quteproc):
+def test_insert_mode(file_name, elem_id, source, input_text, auto_insert,
+                     quteproc, request):
     url_path = 'data/insert_mode_settings/html/{}'.format(file_name)
     quteproc.open_path(url_path)
 
     quteproc.set_setting('input', 'auto-insert-mode', auto_insert)
-    quteproc.send_cmd(':hint all')
-    quteproc.send_cmd(':follow-hint a')
+    quteproc.send_cmd(':click-element id {}'.format(elem_id))
     quteproc.wait_for(message='Clicked editable element!')
     quteproc.send_cmd(':debug-set-fake-clipboard')
 
     if source == 'keypress':
         quteproc.press_keys(input_text)
     elif source == 'clipboard':
+        if request.config.getoption('--qute-bdd-webengine'):
+            # pylint: disable=no-member
+            pytest.xfail(reason="QtWebEngine TODO: :insert-text is not "
+                         "implemented")
+            # pylint: enable=no-member
         quteproc.send_cmd(':debug-set-fake-clipboard "{}"'.format(input_text))
-        quteproc.send_cmd(':paste-primary')
+        quteproc.send_cmd(':insert-text {clipboard}')
 
     quteproc.send_cmd(':hint all')
+    quteproc.wait_for(message='hints: *')
     quteproc.send_cmd(':follow-hint a')
     quteproc.wait_for(message='Clicked editable element!')
     quteproc.send_cmd(':enter-mode caret')
@@ -73,6 +82,7 @@ def test_auto_leave_insert_mode(quteproc):
     quteproc.press_keys('abcd')
 
     quteproc.send_cmd(':hint all')
+    quteproc.wait_for(message='hints: *')
 
     # Select the disabled input box to leave insert mode
     quteproc.send_cmd(':follow-hint s')

@@ -220,6 +220,7 @@ Feature: quickmarks and bookmarks
         And I run :quickmark-del
         Then the quickmark file should not contain "nineteen http://localhost:*/data/numbers/19.txt"
 
+    @qtwebengine_todo: qute:bookmarks is not implemented yet
     Scenario: Listing quickmarks
         When I run :quickmark-add http://localhost:(port)/data/numbers/20.txt twenty
         And I run :quickmark-add http://localhost:(port)/data/numbers/21.txt twentyone
@@ -227,6 +228,7 @@ Feature: quickmarks and bookmarks
         Then the page should contain the plaintext "twenty"
         And the page should contain the plaintext "twentyone"
 
+    @qtwebengine_todo: qute:bookmarks is not implemented yet
     Scenario: Listing bookmarks
         When I open data/title.html
         And I run :bookmark-add

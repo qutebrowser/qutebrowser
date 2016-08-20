@@ -1,9 +1,9 @@
 Feature: Yanking and pasting.
-    :yank and :paste can be used to copy/paste the URL or title from/to the
-    clipboard and primary selection.
+    :yank, {clipboard} and {primary} can be used to copy/paste the URL or title
+    from/to the clipboard and primary selection.
 
     Background:
-        Given I run :tab-only
+        Given I clean up open tabs
 
     #### :yank
 
@@ -45,63 +45,54 @@ Feature: Yanking and pasting.
         Then the message "Yanked URL to clipboard: http://localhost:(port)/data/title with spaces.html" should be shown
         And the clipboard should contain "http://localhost:(port)/data/title with spaces.html"
 
-    #### :paste
+    #### {clipboard} and {primary}
 
     Scenario: Pasting a URL
         When I put "http://localhost:(port)/data/hello.txt" into the clipboard
-        And I run :paste
-        And I wait until data/hello.txt is loaded
-        Then the requests should be:
-            data/hello.txt
+        And I run :open {clipboard}
+        Then data/hello.txt should be loaded
 
     Scenario: Pasting a URL from primary selection
         When selection is supported
         And I put "http://localhost:(port)/data/hello2.txt" into the primary selection
-        And I run :paste --sel
-        And I wait until data/hello2.txt is loaded
-        Then the requests should be:
-            data/hello2.txt
+        And I run :open {primary}
+        Then data/hello2.txt should be loaded
 
     Scenario: Pasting with empty clipboard
         When I put "" into the clipboard
-        And I run :paste
+        And I run :open {clipboard} (invalid command)
         Then the error "Clipboard is empty." should be shown
 
     Scenario: Pasting with empty selection
         When selection is supported
         And I put "" into the primary selection
-        And I run :paste --sel
+        And I run :open {primary} (invalid command)
         Then the error "Primary selection is empty." should be shown
 
     Scenario: Pasting with a space in clipboard
         When I put " " into the clipboard
-        And I run :paste
+        And I run :open {clipboard} (invalid command)
         Then the error "Clipboard is empty." should be shown
 
     Scenario: Pasting in a new tab
-        Given I open about:blank
-        When I run :tab-only
-        And I put "http://localhost:(port)/data/hello.txt" into the clipboard
-        And I run :paste -t
+        When I put "http://localhost:(port)/data/hello.txt" into the clipboard
+        And I run :open -t {clipboard}
         And I wait until data/hello.txt is loaded
         Then the following tabs should be open:
             - about:blank
             - data/hello.txt (active)
 
     Scenario: Pasting in a background tab
-        Given I open about:blank
-        When I run :tab-only
-        And I put "http://localhost:(port)/data/hello.txt" into the clipboard
-        And I run :paste -b
+        When I put "http://localhost:(port)/data/hello.txt" into the clipboard
+        And I run :open -b {clipboard}
         And I wait until data/hello.txt is loaded
         Then the following tabs should be open:
             - about:blank (active)
             - data/hello.txt
 
     Scenario: Pasting in a new window
-        Given I have a fresh instance
         When I put "http://localhost:(port)/data/hello.txt" into the clipboard
-        And I run :paste -w
+        And I run :open -w {clipboard}
         And I wait until data/hello.txt is loaded
         Then the session should look like:
             windows:
@@ -119,16 +110,15 @@ Feature: Yanking and pasting.
     Scenario: Pasting an invalid URL
         When I set general -> auto-search to false
         And I put "foo bar" into the clipboard
-        And I run :paste
+        And I run :open {clipboard}
         Then the error "Invalid URL" should be shown
 
     Scenario: Pasting multiple urls in a new tab
-        Given I have a fresh instance
         When I put the following lines into the clipboard:
             http://localhost:(port)/data/hello.txt
             http://localhost:(port)/data/hello2.txt
             http://localhost:(port)/data/hello3.txt
-        And I run :paste -t
+        And I run :open -t {clipboard}
         And I wait until data/hello.txt is loaded
         And I wait until data/hello2.txt is loaded
         And I wait until data/hello3.txt is loaded
@@ -139,40 +129,37 @@ Feature: Yanking and pasting.
             - data/hello3.txt
 
     Scenario: Pasting multiline text
-        Given I have a fresh instance
-        When I set searchengines -> DEFAULT to http://localhost:(port)/data/hello.txt?q={}
+        When I set general -> auto-search to true
+        And I set searchengines -> DEFAULT to http://localhost:(port)/data/hello.txt?q={}
         And I put the following lines into the clipboard:
             this url:
             http://qutebrowser.org
             should not open
-        And I run :paste -t
+        And I run :open -t {clipboard}
         And I wait until data/hello.txt?q=this%20url%3A%0Ahttp%3A//qutebrowser.org%0Ashould%20not%20open is loaded
         Then the following tabs should be open:
             - about:blank
             - data/hello.txt?q=this%20url%3A%0Ahttp%3A//qutebrowser.org%0Ashould%20not%20open (active)
 
     Scenario: Pasting multiline whose first line looks like a URI
-        Given I open about:blank
-        When I run :tab-only
-        When I set searchengines -> DEFAULT to http://localhost:(port)/data/hello.txt?q={}
+        When I set general -> auto-search to true
+        And I set searchengines -> DEFAULT to http://localhost:(port)/data/hello.txt?q={}
         And I put the following lines into the clipboard:
             text:
             should open
             as search
-        And I run :paste -t
+        And I run :open -t {clipboard}
         And I wait until data/hello.txt?q=text%3A%0Ashould%20open%0Aas%20search is loaded
         Then the following tabs should be open:
             - about:blank
             - data/hello.txt?q=text%3A%0Ashould%20open%0Aas%20search (active)
 
     Scenario: Pasting multiple urls in a background tab
-        Given I open about:blank
-        When I run :tab-only
-        And I put the following lines into the clipboard:
+        When I put the following lines into the clipboard:
             http://localhost:(port)/data/hello.txt
             http://localhost:(port)/data/hello2.txt
             http://localhost:(port)/data/hello3.txt
-        And I run :paste -b
+        And I run :open -b {clipboard}
         And I wait until data/hello.txt is loaded
         And I wait until data/hello2.txt is loaded
         And I wait until data/hello3.txt is loaded
@@ -183,12 +170,11 @@ Feature: Yanking and pasting.
             - data/hello3.txt
 
     Scenario: Pasting multiple urls in new windows
-        Given I have a fresh instance
         When I put the following lines into the clipboard:
             http://localhost:(port)/data/hello.txt
             http://localhost:(port)/data/hello2.txt
             http://localhost:(port)/data/hello3.txt
-        And I run :paste -w
+        And I run :open -w {clipboard}
         And I wait until data/hello.txt is loaded
         And I wait until data/hello2.txt is loaded
         And I wait until data/hello3.txt is loaded
@@ -216,93 +202,65 @@ Feature: Yanking and pasting.
                   url: http://localhost:*/data/hello3.txt
 
     Scenario: Pasting multiple urls with an empty one
-        When I open about:blank
         And I put "http://localhost:(port)/data/hello.txt\n\nhttp://localhost:(port)/data/hello2.txt" into the clipboard
-        And I run :paste -t
+        And I run :open -t {clipboard}
         Then no crash should happen
 
     Scenario: Pasting multiple urls with an almost empty one
-        When I open about:blank
         And I put "http://localhost:(port)/data/hello.txt\n \nhttp://localhost:(port)/data/hello2.txt" into the clipboard
-        And I run :paste -t
+        And I run :open -t {clipboard}
         Then no crash should happen
 
-    #### :paste-primary
+    #### :insert-text
 
-    Scenario: Pasting the primary selection into an empty text field
-        When selection is supported
-        And I open data/paste_primary.html
-        And I put "Hello world" into the primary selection
-        # Click the text field
-        And I run :hint all
-        And I run :follow-hint a
+    @qtwebengine_todo: :insert-text is not implemented yet
+    Scenario: Inserting text into an empty text field
+        When I open data/paste_primary.html
+        And I run :click-element id qute-textarea
         And I wait for "Clicked editable element!" in the log
-        And I run :paste-primary
+        And I run :insert-text Hello world
         # Compare
         Then the text field should contain "Hello world"
 
-    Scenario: Pasting the primary selection into a text field at specific position
-        When selection is supported
-        And I open data/paste_primary.html
+    @qtwebengine_todo: :insert-text is not implemented yet
+    Scenario: Inserting text into a text field at specific position
+        When I open data/paste_primary.html
         And I set the text field to "one two three four"
-        And I put " Hello world" into the primary selection
-        # Click the text field
-        And I run :hint all
-        And I run :follow-hint a
+        And I run :click-element id qute-textarea
         And I wait for "Clicked editable element!" in the log
-        # Move to the beginning and two words to the right
+        # Move to the beginning and two characters to the right
         And I press the keys "<Home>"
-        And I press the key "<Ctrl+Right>"
-        And I press the key "<Ctrl+Right>"
-        And I run :paste-primary
+        And I press the key "<Right>"
+        And I press the key "<Right>"
+        And I run :insert-text Hello world
         # Compare
-        Then the text field should contain "one two Hello world three four"
+        Then the text field should contain "onHello worlde two three four"
 
-    Scenario: Pasting the primary selection into a text field with undo
-        When selection is supported
-        And I open data/paste_primary.html
-        # Click the text field
-        And I run :hint all
-        And I run :follow-hint a
+    @qtwebengine_todo: :insert-text is not implemented yet
+    Scenario: Inserting text into a text field with undo
+        When I open data/paste_primary.html
+        And I run :click-element id qute-textarea
         And I wait for "Clicked editable element!" in the log
         # Paste and undo
-        And I put "This text should be undone" into the primary selection
-        And I run :paste-primary
+        And I run :insert-text This text should be undone
         And I press the key "<Ctrl+z>"
         # Paste final text
-        And I put "This text should stay" into the primary selection
-        And I run :paste-primary
+        And I run :insert-text This text should stay
         # Compare
         Then the text field should contain "This text should stay"
 
-    Scenario: Pasting the primary selection without a focused field
-        When selection is supported
-        And I open data/paste_primary.html
-        And I put "test" into the primary selection
+    @qtwebengine_todo: :insert-text is not implemented yet
+    Scenario: Inserting text without a focused field
+        When I open data/paste_primary.html
         And I run :enter-mode insert
-        And I run :paste-primary
+        And I run :insert-text test
         Then the error "No element focused!" should be shown
 
-    Scenario: Pasting the primary selection with a read-only field
-        When selection is supported
-        And I open data/paste_primary.html
-        # Click the text field
-        And I run :hint all
-        And I run :follow-hint s
+    @qtwebengine_todo: :insert-text is not implemented yet
+    Scenario: Inserting text with a read-only field
+        When I open data/paste_primary.html
+        And I run :click-element id qute-textarea-noedit
         And I wait for "Clicked non-editable element!" in the log
-        And I put "test" into the primary selection
         And I run :enter-mode insert
-        And I run :paste-primary
+        And I run :insert-text test
         Then the error "Focused element is not editable!" should be shown
-
-    Scenario: :paste-primary without primary selection supported
-        When selection is not supported
-        And I open data/paste_primary.html
-        And I put "Hello world" into the clipboard
-        # Click the text field
-        And I run :hint all
-        And I run :follow-hint a
-        And I wait for "Clicked editable element!" in the log
-        And I run :paste-primary
-        # Compare
-        Then the text field should contain "Hello world"

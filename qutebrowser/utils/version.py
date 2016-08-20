@@ -29,9 +29,13 @@ import importlib
 import collections
 
 from PyQt5.QtCore import QT_VERSION_STR, PYQT_VERSION_STR, qVersion
-from PyQt5.QtWebKit import qWebKitVersion
 from PyQt5.QtNetwork import QSslSocket
 from PyQt5.QtWidgets import QApplication
+
+try:
+    from PyQt5.QtWebKit import qWebKitVersion
+except ImportError:  # pragma: no cover
+    qWebKitVersion = None
 
 import qutebrowser
 from qutebrowser.utils import log, utils
@@ -225,9 +229,14 @@ def version():
 
     lines += _module_versions()
 
+    lines += ['pdf.js: {}'.format(_pdfjs_version())]
+
+    if qWebKitVersion is None:
+        lines.append('Webkit: no')
+    else:
+        lines.append('Webkit: {}'.format(qWebKitVersion()))
+
     lines += [
-        'pdf.js: {}'.format(_pdfjs_version()),
-        'Webkit: {}'.format(qWebKitVersion()),
         'Harfbuzz: {}'.format(os.environ.get('QT_HARFBUZZ', 'system')),
         'SSL: {}'.format(QSslSocket.sslLibraryVersionString()),
         '',

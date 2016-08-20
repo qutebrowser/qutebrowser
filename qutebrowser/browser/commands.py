@@ -236,6 +236,8 @@ class CommandDispatcher:
                 bg=False, tab=False, window=False, count=None):
         """Open a URL in the current/[count]th tab.
 
+        If the URL contains newlines, each line gets opened in its own tab.
+
         Args:
             url: The URL to open.
             bg: Open in a new background tab.
@@ -247,35 +249,73 @@ class CommandDispatcher:
         """
         if url is None:
             if tab or bg or window:
-                url = config.get('general', 'default-page')
+                urls = [config.get('general', 'default-page')]
             else:
                 raise cmdexc.CommandError("No URL given, but -t/-b/-w is not "
                                           "set!")
         else:
-            try:
-                url = objreg.get('quickmark-manager').get(url)
-            except urlmarks.Error:
-                try:
-                    url = urlutils.fuzzy_url(url)
-                except urlutils.InvalidUrlError as e:
-                    # We don't use cmdexc.CommandError here as this can be
-                    # called async from edit_url
-                    message.error(self._win_id, str(e))
-                    return
-        if tab or bg or window:
-            self._open(url, tab, bg, window, not implicit)
-        else:
-            curtab = self._cntwidget(count)
-            if curtab is None:
-                if count is None:
-                    # We want to open a URL in the current tab, but none exists
-                    # yet.
-                    self._tabbed_browser.tabopen(url)
-                else:
-                    # Explicit count with a tab that doesn't exist.
-                    return
+            urls = self._parse_url_input(url)
+        for i, cur_url in enumerate(urls):
+            if not window and i > 0:
+                tab = False
+                bg = True
+            if tab or bg or window:
+                self._open(cur_url, tab, bg, window, not implicit)
             else:
-                curtab.openurl(url)
+                curtab = self._cntwidget(count)
+                if curtab is None:
+                    if count is None:
+                        # We want to open a URL in the current tab, but none
+                        # exists yet.
+                        self._tabbed_browser.tabopen(cur_url)
+                    else:
+                        # Explicit count with a tab that doesn't exist.
+                        return
+                else:
+                    curtab.openurl(cur_url)
+
+    def _parse_url(self, url, *, force_search=False):
+        """Parse a URL or quickmark or search query.
+
+        Args:
+            url: The URL to parse.
+            force_search: Whether to force a search even if the content can be
+                          interpreted as a URL or a path.
+
+        Return:
+            A URL that can be opened.
+        """
+        try:
+            return objreg.get('quickmark-manager').get(url)
+        except urlmarks.Error:
+            try:
+                return urlutils.fuzzy_url(url, force_search=force_search)
+            except urlutils.InvalidUrlError as e:
+                # We don't use cmdexc.CommandError here as this can be
+                # called async from edit_url
+                message.error(self._win_id, str(e))
+                return None
+
+    def _parse_url_input(self, url):
+        """Parse a URL or newline-separated list of URLs.
+
+        Args:
+            url: The URL or list to parse.
+
+        Return:
+            A list of URLs that can be opened.
+        """
+        force_search = False
+        urllist = [u for u in url.split('\n') if u.strip()]
+        if (len(urllist) > 1 and not urlutils.is_url(urllist[0]) and
+                urlutils.get_path_if_valid(urllist[0], check_exists=True)
+                is None):
+            urllist = [url]
+            force_search = True
+        for cur_url in urllist:
+            parsed = self._parse_url(cur_url, force_search=force_search)
+            if parsed is not None:
+                yield parsed
 
     @cmdutils.register(instance='command-dispatcher', name='reload',
                        scope='window')
@@ -384,10 +424,12 @@ class CommandDispatcher:
     @cmdutils.register(instance='command-dispatcher', scope='window')
     def tab_detach(self):
         """Detach the current tab to its own window."""
+        if self._count() < 2:
+            raise cmdexc.CommandError("Cannot detach one tab.")
         url = self._current_url()
         self._open(url, window=True)
         cur_widget = self._current_widget()
-        self._tabbed_browser.close_tab(cur_widget)
+        self._tabbed_browser.close_tab(cur_widget, add_undo=False)
 
     def _back_forward(self, tab, bg, window, count, forward):
         """Helper function for :back/:forward."""
@@ -442,7 +484,8 @@ class CommandDispatcher:
     @cmdutils.register(instance='command-dispatcher', scope='window')
     @cmdutils.argument('where', choices=['prev', 'next', 'up', 'increment',
                                          'decrement'])
-    def navigate(self, where: str, tab=False, bg=False, window=False):
+    @cmdutils.argument('count', count=True)
+    def navigate(self, where: str, tab=False, bg=False, window=False, count=1):
         """Open typical prev/next links or navigate using the URL path.
 
         This tries to automatically click on typical _Previous Page_ or
@@ -462,6 +505,8 @@ class CommandDispatcher:
             tab: Open in a new tab.
             bg: Open in a background tab.
             window: Open in a new window.
+            count: For `increment` and `decrement`, the number to change the
+                   URL by. For `up`, the number of levels to go up in the URL.
         """
         # save the pre-jump position in the special ' mark
         self.set_mark("'")
@@ -486,7 +531,7 @@ class CommandDispatcher:
                 handler(browsertab=widget, win_id=self._win_id, baseurl=url,
                         tab=tab, background=bg, window=window)
             elif where in ['up', 'increment', 'decrement']:
-                new_url = handlers[where](url)
+                new_url = handlers[where](url, count)
                 self._open(new_url, tab, bg, window)
             else:  # pragma: no cover
                 raise ValueError("Got called with invalid value {} for "
@@ -796,7 +841,8 @@ class CommandDispatcher:
         else:
             raise cmdexc.CommandError("Last tab")
 
-    @cmdutils.register(instance='command-dispatcher', scope='window')
+    @cmdutils.register(instance='command-dispatcher', scope='window',
+                       deprecated="Use :open {clipboard}")
     def paste(self, sel=False, tab=False, bg=False, window=False):
         """Open a page from the clipboard.
 
@@ -810,15 +856,12 @@ class CommandDispatcher:
             window: Open in new window.
         """
         force_search = False
-        if sel and utils.supports_selection():
-            target = "Primary selection"
-        else:
+        if not utils.supports_selection():
             sel = False
-            target = "Clipboard"
-        text = utils.get_clipboard(selection=sel)
-        if not text.strip():
-            raise cmdexc.CommandError("{} is empty.".format(target))
-        log.misc.debug("{} contained: {!r}".format(target, text))
+        try:
+            text = utils.get_clipboard(selection=sel)
+        except utils.ClipboardError as e:
+            raise cmdexc.CommandError(e)
         text_urls = [u for u in text.split('\n') if u.strip()]
         if (len(text_urls) > 1 and not urlutils.is_url(text_urls[0]) and
             urlutils.get_path_if_valid(
@@ -1185,13 +1228,12 @@ class CommandDispatcher:
                  current page's url.
         """
         if url is None:
-            url = self._current_url().toString(QUrl.RemovePassword
-                                             | QUrl.FullyEncoded)
+            url = self._current_url().toString(QUrl.RemovePassword |
+                                               QUrl.FullyEncoded)
         try:
             objreg.get('bookmark-manager').delete(url)
         except KeyError:
             raise cmdexc.CommandError("Bookmark '{}' not found!".format(url))
-
 
     @cmdutils.register(instance='command-dispatcher', hide=True,
                        scope='window')
@@ -1314,7 +1356,11 @@ class CommandDispatcher:
             formatter = pygments.formatters.HtmlFormatter(full=True,
                                                           linenos='table')
             highlighted = pygments.highlight(source, lexer, formatter)
-            current_url = self._current_url()
+            try:
+                current_url = self._current_url()
+            except cmdexc.CommandError as e:
+                message.error(self._win_id, str(e))
+                return
             new_tab = self._tabbed_browser.tabopen(explicit=True)
             new_tab.set_html(highlighted, current_url)
             new_tab.data.viewing_source = True
@@ -1424,8 +1470,7 @@ class CommandDispatcher:
         ed.edit(text)
 
     @cmdutils.register(instance='command-dispatcher',
-                       modes=[KeyMode.insert], hide=True, scope='window',
-                       backend=usertypes.Backend.QtWebKit)
+                       modes=[KeyMode.insert], hide=True, scope='window')
     def open_editor(self):
         """Open an external editor with the currently selected form field.
 
@@ -1433,7 +1478,7 @@ class CommandDispatcher:
         `general -> editor` config option.
         """
         tab = self._current_widget()
-        tab.find_focus_element(self._open_editor_cb)
+        tab.elements.find_focused(self._open_editor_cb)
 
     def on_editing_finished(self, elem, text):
         """Write the editor text into the form field and clean up tempfile.
@@ -1450,10 +1495,25 @@ class CommandDispatcher:
             raise cmdexc.CommandError("Element vanished while editing!")
 
     @cmdutils.register(instance='command-dispatcher',
+                       deprecated="Use :insert-text {primary}",
                        modes=[KeyMode.insert], hide=True, scope='window',
                        needs_js=True, backend=usertypes.Backend.QtWebKit)
     def paste_primary(self):
         """Paste the primary selection at cursor position."""
+        try:
+            self.insert_text(utils.get_clipboard(selection=True))
+        except utils.SelectionUnsupportedError:
+            self.insert_text(utils.get_clipboard())
+
+    @cmdutils.register(instance='command-dispatcher', maxsplit=0,
+                       scope='window', needs_js=True,
+                       backend=usertypes.Backend.QtWebKit)
+    def insert_text(self, text):
+        """Insert text at cursor position.
+
+        Args:
+            text: The text to insert.
+        """
         # FIXME:qtwebengine have a proper API for this
         tab = self._current_widget()
         page = tab._widget.page()  # pylint: disable=protected-access
@@ -1463,20 +1523,57 @@ class CommandDispatcher:
             raise cmdexc.CommandError("No element focused!")
         if not elem.is_editable(strict=True):
             raise cmdexc.CommandError("Focused element is not editable!")
-
-        try:
-            sel = utils.get_clipboard(selection=True)
-        except utils.SelectionUnsupportedError:
-            sel = utils.get_clipboard()
-
-        log.misc.debug("Pasting primary selection into element {}".format(
+        log.misc.debug("Inserting text into element {}".format(
             elem.debug_text()))
         elem.run_js_async("""
-            var sel = '{}';
+            var text = '{}';
             var event = document.createEvent('TextEvent');
-            event.initTextEvent('textInput', true, true, null, sel);
+            event.initTextEvent('textInput', true, true, null, text);
             this.dispatchEvent(event);
-        """.format(javascript.string_escape(sel)))
+        """.format(javascript.string_escape(text)))
+
+    @cmdutils.register(instance='command-dispatcher', scope='window',
+                       hide=True)
+    @cmdutils.argument('filter_', choices=['id'])
+    def click_element(self, filter_: str, value, *,
+                      target: usertypes.ClickTarget=
+                      usertypes.ClickTarget.normal):
+        """Click the element matching the given filter.
+
+        The given filter needs to result in exactly one element, otherwise, an
+        error is shown.
+
+        Args:
+            filter_: How to filter the elements.
+                     id: Get an element based on its ID.
+            value: The value to filter for.
+            target: How to open the clicked element (normal/tab/tab-bg/window).
+        """
+        tab = self._current_widget()
+
+        def single_cb(elem):
+            """Click a single element."""
+            if elem is None:
+                message.error(self._win_id, "No element found!")
+                return
+            elem.click(target)
+
+        # def multiple_cb(elems):
+        #     """Click multiple elements (with only one expected)."""
+        #     if not elems:
+        #         message.error(self._win_id, "No element found!")
+        #         return
+        #     elif len(elems) != 1:
+        #         message.error(self._win_id, "{} elements found!".format(
+        #             len(elems)))
+        #         return
+        #     elems[0].click(target)
+
+        handlers = {
+            'id': (tab.elements.find_id, single_cb),
+        }
+        handler, callback = handlers[filter_]
+        handler(value, callback)
 
     def _search_cb(self, found, *, tab, old_scroll_pos, options, text, prev):
         """Callback called from search/search_next/search_prev.
@@ -1853,20 +1950,20 @@ class CommandDispatcher:
                                       keyinfo.modifiers, keyinfo.text)
 
             if global_:
-                receiver = QApplication.focusWindow()
-                if receiver is None:
+                window = QApplication.focusWindow()
+                if window is None:
                     raise cmdexc.CommandError("No focused window!")
+                QApplication.sendEvent(window, press_event)
+                QApplication.sendEvent(window, release_event)
             else:
                 try:
                     tab = objreg.get('tab', scope='tab', tab='current')
                 except objreg.RegistryUnavailableError:
                     raise cmdexc.CommandError("No focused webview!")
-                # pylint: disable=protected-access
-                receiver = tab._widget
-                # pylint: enable=protected-access
 
-            QApplication.postEvent(receiver, press_event)
-            QApplication.postEvent(receiver, release_event)
+                tab = self._current_widget()
+                tab.send_event(press_event)
+                tab.send_event(release_event)
 
     @cmdutils.register(instance='command-dispatcher', scope='window',
                        debug=True)

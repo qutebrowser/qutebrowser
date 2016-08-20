@@ -56,6 +56,7 @@ Feature: Setting settings.
         When I run :set -t colors statusbar.bg green
         Then colors -> statusbar.bg should be green
 
+    @qtwebengine_todo: qute:settings is not implemented yet
     Scenario: Opening qute:settings
         When I run :set
         And I wait until qute:settings is loaded

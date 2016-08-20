@@ -180,20 +180,58 @@ class CompletionView(QTreeView):
                 # Item is a real item, not a category header -> success
                 return idx
 
+    def _next_category_idx(self, upwards):
+        """Get the index of the previous/next category.
+
+        Args:
+            upwards: Get previous item, not next.
+
+        Return:
+            A QModelIndex.
+        """
+        idx = self.selectionModel().currentIndex()
+        if not idx.isValid():
+            return self._next_idx(upwards).sibling(0, 0)
+        idx = idx.parent()
+        direction = -1 if upwards else 1
+        while True:
+            idx = idx.sibling(idx.row() + direction, 0)
+            if not idx.isValid() and upwards:
+                # wrap around to the first item of the last category
+                return self.model().last_item().sibling(0, 0)
+            elif not idx.isValid() and not upwards:
+                # wrap around to the first item of the first category
+                idx = self.model().first_item()
+                self.scrollTo(idx.parent())
+                return idx
+            elif idx.isValid() and idx.child(0, 0).isValid():
+                # scroll to ensure the category is visible
+                self.scrollTo(idx)
+                return idx.child(0, 0)
+
     @cmdutils.register(instance='completion', hide=True,
                        modes=[usertypes.KeyMode.command], scope='window')
-    @cmdutils.argument('which', choices=['next', 'prev'])
+    @cmdutils.argument('which', choices=['next', 'prev', 'next-category',
+                                         'prev-category'])
     def completion_item_focus(self, which):
         """Shift the focus of the completion menu to another item.
 
         Args:
-            which: 'next' or 'prev'
+            which: 'next', 'prev', 'next-category', or 'prev-category'.
         """
         if not self._active:
             return
         selmodel = self.selectionModel()
 
-        idx = self._next_idx(which == 'prev')
+        if which == 'next':
+            idx = self._next_idx(upwards=False)
+        elif which == 'prev':
+            idx = self._next_idx(upwards=True)
+        elif which == 'next-category':
+            idx = self._next_category_idx(upwards=False)
+        elif which == 'prev-category':
+            idx = self._next_category_idx(upwards=True)
+
         if not idx.isValid():
             return
 

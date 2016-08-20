@@ -17,8 +17,12 @@
 # You should have received a copy of the GNU General Public License
 # along with qutebrowser.  If not, see <http://www.gnu.org/licenses/>.
 
+import pytest
 import pytest_bdd as bdd
 bdd.scenarios('prompts.feature')
+
+
+pytestmark = pytest.mark.qtwebengine_todo("Prompts are not implemented")
 
 
 @bdd.when("I load an SSL page")
@@ -31,12 +35,6 @@ def load_ssl_page(quteproc, ssl_server):
 def wait_ssl_page_finished_loading(quteproc, ssl_server):
     quteproc.wait_for_load_finished('/', port=ssl_server.port, https=True,
                                     load_status='warn')
-
-
-@bdd.when("I click the button")
-def click_button(quteproc):
-    quteproc.send_cmd(':hint')
-    quteproc.send_cmd(':follow-hint a')
 
 
 @bdd.when("I wait for a prompt")

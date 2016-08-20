@@ -26,14 +26,14 @@ from PyQt5.QtGui import QDesktopServices
 from PyQt5.QtNetwork import QNetworkReply, QNetworkRequest
 from PyQt5.QtWidgets import QFileDialog
 from PyQt5.QtPrintSupport import QPrintDialog
-from PyQt5.QtWebKitWidgets import QWebPage
+from PyQt5.QtWebKitWidgets import QWebPage, QWebFrame
 
 from qutebrowser.config import config
 from qutebrowser.browser import pdfjs
 from qutebrowser.browser.webkit import http
 from qutebrowser.browser.webkit.network import networkmanager
 from qutebrowser.utils import (message, usertypes, log, jinja, qtutils, utils,
-                               objreg, debug, urlutils)
+                               objreg, debug)
 
 
 class BrowserPage(QWebPage):
@@ -42,27 +42,28 @@ class BrowserPage(QWebPage):
 
     Attributes:
         error_occurred: Whether an error occurred while loading.
-        open_target: Where to open the next navigation request.
-                     ("normal", "tab", "tab_bg")
-        _hint_target: Override for open_target while hinting, or None.
         _extension_handlers: Mapping of QWebPage extensions to their handlers.
         _networkmanager: The NetworkManager used.
         _win_id: The window ID this BrowserPage is associated with.
         _ignore_load_started: Whether to ignore the next loadStarted signal.
         _is_shutting_down: Whether the page is currently shutting down.
+        _tabdata: The TabData object of the tab this page is in.
 
     Signals:
         shutting_down: Emitted when the page is currently shutting down.
         reloading: Emitted before a web page reloads.
                    arg: The URL which gets reloaded.
+        link_clicked: Emitted when a link was clicked on a page.
     """
 
     shutting_down = pyqtSignal()
     reloading = pyqtSignal(QUrl)
+    link_clicked = pyqtSignal(QUrl)
 
-    def __init__(self, win_id, tab_id, parent=None):
+    def __init__(self, win_id, tab_id, tabdata, parent=None):
         super().__init__(parent)
         self._win_id = win_id
+        self._tabdata = tabdata
         self._is_shutting_down = False
         self._extension_handlers = {
             QWebPage.ErrorPageExtension: self._handle_errorpage,
@@ -70,8 +71,6 @@ class BrowserPage(QWebPage):
         }
         self._ignore_load_started = False
         self.error_occurred = False
-        self.open_target = usertypes.ClickTarget.normal
-        self._hint_target = None
         self._networkmanager = networkmanager.NetworkManager(
             win_id, tab_id, self)
         self.setNetworkAccessManager(self._networkmanager)
@@ -422,22 +421,6 @@ class BrowserPage(QWebPage):
         if 'scroll-pos' in data and frame.scrollPosition() == QPoint(0, 0):
             frame.setScrollPosition(data['scroll-pos'])
 
-    @pyqtSlot(usertypes.ClickTarget)
-    def on_start_hinting(self, hint_target):
-        """Emitted before a hinting-click takes place.
-
-        Args:
-            hint_target: A ClickTarget member to set self._hint_target to.
-        """
-        log.webview.debug("Setting force target to {}".format(hint_target))
-        self._hint_target = hint_target
-
-    @pyqtSlot()
-    def on_stop_hinting(self):
-        """Emitted when hinting is finished."""
-        log.webview.debug("Finishing hinting.")
-        self._hint_target = None
-
     def userAgentForUrl(self, url):
         """Override QWebPage::userAgentForUrl to customize the user agent."""
         ua = config.get('network', 'user-agent')
@@ -531,7 +514,10 @@ class BrowserPage(QWebPage):
             answer = True
         return answer
 
-    def acceptNavigationRequest(self, _frame, request, typ):
+    def acceptNavigationRequest(self,
+                                _frame: QWebFrame,
+                                request: QNetworkRequest,
+                                typ: QWebPage.NavigationType):
         """Override acceptNavigationRequest to handle clicked links.
 
         Setting linkDelegationPolicy to DelegateAllLinks and using a slot bound
@@ -539,48 +525,23 @@ class BrowserPage(QWebPage):
         have no idea in which frame the link should be opened.
 
         Checks if it should open it in a tab (middle-click or control) or not,
-        and then opens the URL.
-
-        Args:
-            _frame: QWebFrame (target frame)
-            request: QNetworkRequest
-            typ: QWebPage::NavigationType
+        and then conditionally opens the URL. Opening it in a new tab/window
+        is handled in the slot connected to link_clicked.
         """
         url = request.url()
-        urlstr = url.toDisplayString()
+        target = self._tabdata.combined_target()
+        log.webview.debug("navigation request: url {}, type {}, "
+                          "target {}".format(
+                              url.toDisplayString(),
+                              debug.qenum_key(QWebPage, typ),
+                              target))
+
         if typ == QWebPage.NavigationTypeReload:
             self.reloading.emit(url)
-        if typ != QWebPage.NavigationTypeLinkClicked:
             return True
-        if not url.isValid():
-            msg = urlutils.get_errstring(url, "Invalid link clicked")
-            message.error(self._win_id, msg)
-            self.open_target = usertypes.ClickTarget.normal
-            return False
-        tabbed_browser = objreg.get('tabbed-browser', scope='window',
-                                    window=self._win_id)
-        log.webview.debug("acceptNavigationRequest, url {}, type {}, hint "
-                          "target {}, open_target {}".format(
-                              urlstr, debug.qenum_key(QWebPage, typ),
-                              self._hint_target, self.open_target))
-        if self._hint_target is not None:
-            target = self._hint_target
-        else:
-            target = self.open_target
-        self.open_target = usertypes.ClickTarget.normal
-        if target == usertypes.ClickTarget.tab:
-            tabbed_browser.tabopen(url, False)
-            return False
-        elif target == usertypes.ClickTarget.tab_bg:
-            tabbed_browser.tabopen(url, True)
-            return False
-        elif target == usertypes.ClickTarget.window:
-            from qutebrowser.mainwindow import mainwindow
-            window = mainwindow.MainWindow()
-            window.show()
-            tabbed_browser = objreg.get('tabbed-browser', scope='window',
-                                        window=window.win_id)
-            tabbed_browser.tabopen(url, False)
-            return False
-        else:
+        elif typ != QWebPage.NavigationTypeLinkClicked:
             return True
+
+        self.link_clicked.emit(url)
+
+        return url.isValid() and target == usertypes.ClickTarget.normal

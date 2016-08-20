@@ -41,7 +41,7 @@ from qutebrowser.browser.webkit import cookies
 from qutebrowser.misc import savemanager
 from qutebrowser.keyinput import modeman
 
-from PyQt5.QtCore import PYQT_VERSION, QEvent, QSize, Qt
+from PyQt5.QtCore import PYQT_VERSION, pyqtSignal, QEvent, QSize, Qt, QObject
 from PyQt5.QtGui import QKeyEvent
 from PyQt5.QtWidgets import QWidget, QHBoxLayout, QVBoxLayout
 from PyQt5.QtNetwork import QNetworkCookieJar
@@ -70,6 +70,36 @@ class WinRegistryHelper:
     def cleanup(self):
         for win_id in self._ids:
             del objreg.window_registry[win_id]
+
+
+class CallbackChecker(QObject):
+
+    """Check if a value provided by a callback is the expected one."""
+
+    got_result = pyqtSignal(object)
+    UNSET = object()
+
+    def __init__(self, qtbot, parent=None):
+        super().__init__(parent)
+        self._qtbot = qtbot
+        self._result = self.UNSET
+
+    def callback(self, result):
+        """Callback which can be passed to runJavaScript."""
+        self._result = result
+        self.got_result.emit(result)
+
+    def check(self, expected):
+        """Wait until the JS result arrived and compare it."""
+        if self._result is self.UNSET:
+            with self._qtbot.waitSignal(self.got_result):
+                pass
+        assert self._result == expected
+
+
+@pytest.fixture
+def callback_checker(qtbot):
+    return CallbackChecker(qtbot)
 
 
 class FakeStatusBar(QWidget):
@@ -126,7 +156,7 @@ def tab_registry(win_registry):
 
 
 @pytest.fixture
-def fake_web_tab(stubs, tab_registry, qapp):
+def fake_web_tab(stubs, tab_registry, mode_manager, qapp):
     """Fixture providing the FakeWebTab *class*."""
     if PYQT_VERSION < 0x050600:
         pytest.skip('Causes segfaults, see #1638')
@@ -403,7 +433,7 @@ def fake_args():
 
 @pytest.yield_fixture
 def mode_manager(win_registry, config_stub, qapp):
-    config_stub.data = {'input': {'forward-unbound-keys': 'auto'}}
+    config_stub.data.update({'input': {'forward-unbound-keys': 'auto'}})
     mm = modeman.ModeManager(0)
     objreg.register('mode-manager', mm, scope='window', window=0)
     yield mm

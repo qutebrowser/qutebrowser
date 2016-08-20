@@ -17,51 +17,74 @@
  * along with qutebrowser.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-function _qutebrowser_scroll_to_perc(x, y) {
-    var elem = document.documentElement;
-    var x_px = window.scrollX;
-    var y_px = window.scrollY;
+"use strict";
 
-    if (x !== undefined) {
-        x_px = (elem.scrollWidth - elem.clientWidth) / 100 * x;
-    }
+window._qutebrowser.scroll = (function() {
+    var funcs = {};
 
-    if (y !== undefined) {
-        y_px  = (elem.scrollHeight - elem.clientHeight) / 100 * y;
-    }
+    funcs.to_perc = function(x, y) {
+        var elem = document.documentElement;
+        var x_px = window.scrollX;
+        var y_px = window.scrollY;
 
-    window.scroll(x_px, y_px);
-}
+        if (x !== undefined) {
+            x_px = (elem.scrollWidth - window.innerWidth) / 100 * x;
+        }
 
-function _qutebrowser_scroll_delta_page(x, y) {
-    var dx = document.documentElement.clientWidth * x;
-    var dy = document.documentElement.clientHeight * y;
-    window.scrollBy(dx, dy);
-}
+        if (y !== undefined) {
+            y_px = (elem.scrollHeight - window.innerHeight) / 100 * y;
+        }
 
-function _qutebrowser_scroll_pos() {
-    var elem = document.documentElement;
-    var dx = (elem.scrollWidth - elem.clientWidth);
-    var dy = (elem.scrollHeight - elem.clientHeight);
+        /*
+        console.log(JSON.stringify({
+            "x": x,
+            "window.scrollX": window.scrollX,
+            "window.innerWidth": window.innerWidth,
+            "elem.scrollWidth": elem.scrollWidth,
+            "x_px": x_px,
+            "y": y,
+            "window.scrollY": window.scrollY,
+            "window.innerHeight": window.innerHeight,
+            "elem.scrollHeight": elem.scrollHeight,
+            "y_px": y_px,
+        }));
+        */
 
-    var perc_x, perc_y;
+        window.scroll(x_px, y_px);
+    };
 
-    if (dx === 0) {
-        perc_x = 0;
-    } else {
-        perc_x = 100 / dx * window.scrollX;
-    }
+    funcs.delta_page = function(x, y) {
+        var dx = window.innerWidth * x;
+        var dy = window.innerHeight * y;
+        window.scrollBy(dx, dy);
+    };
 
-    if (dy === 0) {
-        perc_y = 0;
-    } else {
-        perc_y = 100 / dy * window.scrollY;
-    }
+    funcs.pos = function() {
+        var elem = document.documentElement;
+        var dx = elem.scrollWidth - window.innerWidth;
+        var dy = elem.scrollHeight - window.innerHeight;
+        var perc_x, perc_y;
 
-    var pos_perc = {'x': perc_x, 'y': perc_y};
-    var pos_px = {'x': window.scrollX, 'y': window.scrollY};
-    var pos = {'perc': pos_perc, 'px': pos_px};
+        if (dx === 0) {
+            perc_x = 0;
+        } else {
+            perc_x = 100 / dx * window.scrollX;
+        }
 
-    // console.log(JSON.stringify(pos));
-    return pos;
-}
+        if (dy === 0) {
+            perc_y = 0;
+        } else {
+            perc_y = 100 / dy * window.scrollY;
+        }
+
+        var pos = {
+            "perc": {"x": perc_x, "y": perc_y},
+            "px": {"x": window.scrollX, "y": window.scrollY},
+        };
+
+        // console.log(JSON.stringify(pos));
+        return pos;
+    };
+
+    return funcs;
+})();

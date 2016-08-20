@@ -226,7 +226,8 @@ PromptMode = enum('PromptMode', ['yesno', 'text', 'user_pwd', 'alert',
 
 
 # Where to open a clicked link.
-ClickTarget = enum('ClickTarget', ['normal', 'tab', 'tab_bg', 'window'])
+ClickTarget = enum('ClickTarget', ['normal', 'tab', 'tab_bg', 'window',
+                                   'hover'])
 
 
 # Key input modes
@@ -238,7 +239,8 @@ KeyMode = enum('KeyMode', ['normal', 'hint', 'command', 'yesno', 'prompt',
 # Available command completions
 Completion = enum('Completion', ['command', 'section', 'option', 'value',
                                  'helptopic', 'quickmark_by_name',
-                                 'bookmark_by_url', 'url', 'tab', 'sessions'])
+                                 'bookmark_by_url', 'url', 'tab', 'sessions',
+                                 'bind'])
 
 
 # Exit statuses for errors. Needs to be an int for sys.exit.

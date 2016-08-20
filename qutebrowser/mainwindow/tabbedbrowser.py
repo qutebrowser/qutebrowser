@@ -34,7 +34,7 @@ from qutebrowser.utils import (log, usertypes, utils, qtutils, objreg,
                                urlutils, message)
 
 
-UndoEntry = collections.namedtuple('UndoEntry', ['url', 'history'])
+UndoEntry = collections.namedtuple('UndoEntry', ['url', 'history', 'index'])
 
 
 class TabDeletedError(Exception):
@@ -198,6 +198,7 @@ class TabbedBrowser(tabwidget.TabWidget):
         tab.window_close_requested.connect(
             functools.partial(self.on_window_close_requested, tab))
         tab.new_tab_requested.connect(self.tabopen)
+        tab.add_history_item.connect(objreg.get('web-history').add_from_tab)
 
     def current_url(self):
         """Get the URL of the current tab.
@@ -216,11 +217,12 @@ class TabbedBrowser(tabwidget.TabWidget):
         for tab in self.widgets():
             self._remove_tab(tab)
 
-    def close_tab(self, tab):
+    def close_tab(self, tab, *, add_undo=True):
         """Close a tab.
 
         Args:
             tab: The QWebView to be closed.
+            add_undo: Whether the tab close can be undone.
         """
         last_close = config.get('tabs', 'last-close')
         count = self.count()
@@ -228,7 +230,7 @@ class TabbedBrowser(tabwidget.TabWidget):
         if last_close == 'ignore' and count == 1:
             return
 
-        self._remove_tab(tab)
+        self._remove_tab(tab, add_undo=add_undo)
 
         if count == 1:  # We just closed the last tab above.
             if last_close == 'close':
@@ -242,11 +244,12 @@ class TabbedBrowser(tabwidget.TabWidget):
                 url = config.get('general', 'default-page')
                 self.openurl(url, newtab=True)
 
-    def _remove_tab(self, tab):
+    def _remove_tab(self, tab, *, add_undo=True):
         """Remove a tab from the tab list and delete it properly.
 
         Args:
             tab: The QWebView to be closed.
+            add_undo: Whether the tab close can be undone.
         """
         idx = self.indexOf(tab)
         if idx == -1:
@@ -260,8 +263,9 @@ class TabbedBrowser(tabwidget.TabWidget):
                           window=self._win_id)
         if tab.url().isValid():
             history_data = tab.history.serialize()
-            entry = UndoEntry(tab.url(), history_data)
-            self._undo_stack.append(entry)
+            if add_undo:
+                entry = UndoEntry(tab.url(), history_data, idx)
+                self._undo_stack.append(entry)
         elif tab.url().isEmpty():
             # There are some good reasons why a URL could be empty
             # (target="_blank" with a download, see [1]), so we silently ignore
@@ -297,13 +301,13 @@ class TabbedBrowser(tabwidget.TabWidget):
             use_current_tab = (only_one_tab_open and no_history and
                                last_close_url_used)
 
-        url, history_data = self._undo_stack.pop()
+        url, history_data, idx = self._undo_stack.pop()
 
         if use_current_tab:
             self.openurl(url, newtab=False)
             newtab = self.widget(0)
         else:
-            newtab = self.tabopen(url, background=False)
+            newtab = self.tabopen(url, background=False, idx=idx)
 
         newtab.history.deserialize(history_data)
 
@@ -342,7 +346,7 @@ class TabbedBrowser(tabwidget.TabWidget):
 
     @pyqtSlot('QUrl')
     @pyqtSlot('QUrl', bool)
-    def tabopen(self, url=None, background=None, explicit=False):
+    def tabopen(self, url=None, background=None, explicit=False, idx=None):
         """Open a new tab with a given URL.
 
         Inner logic for open-tab and open-tab-bg.
@@ -358,6 +362,7 @@ class TabbedBrowser(tabwidget.TabWidget):
                           - Tabs from clicked links etc. are to the right of
                             the current.
                           - Explicitly opened tabs are at the very right.
+            idx: The index where the new tab should be opened.
 
         Return:
             The opened WebView instance.
@@ -376,7 +381,8 @@ class TabbedBrowser(tabwidget.TabWidget):
         tab = browsertab.create(win_id=self._win_id, parent=self)
         self._connect_tab_signals(tab)
 
-        idx = self._get_new_tab_idx(explicit)
+        if idx is None:
+            idx = self._get_new_tab_idx(explicit)
         self.insertTab(idx, tab, "")
 
         if url is not None:
