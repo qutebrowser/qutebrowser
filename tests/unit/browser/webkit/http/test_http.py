@@ -29,59 +29,33 @@ from PyQt5.QtCore import QUrl
 from qutebrowser.browser.webkit import http
 
 
-class TestNoContentDisposition:
-
-    """Test parse_content_disposition with no Content-Disposition header."""
-
-    @pytest.mark.parametrize('url', ['http://example.com/path',
-                                     'http://example.com/foo/path'])
-    def test_url(self, stubs, url):
-        """Test with a filename in the URL."""
-        reply = stubs.FakeNetworkReply(url=QUrl(url))
-        inline, filename = http.parse_content_disposition(reply)
-        assert inline
-        assert filename == 'path'
-
-    @pytest.mark.parametrize('url', ['http://example.com',
-                                     'http://example.com/'])
-    def test_none(self, stubs, url):
-        """Test with no filename at all."""
-        reply = stubs.FakeNetworkReply(url=QUrl(url))
-        inline, filename = http.parse_content_disposition(reply)
-        assert inline
-        assert filename == 'qutebrowser-download'
+@pytest.mark.parametrize('url, expected', [
+    # Filename in the URL
+    ('http://example.com/path', 'path'),
+    ('http://example.com/foo/path', 'path'),
+    # No filename at all
+    ('http://example.com', 'qutebrowser-download'),
+    ('http://example.com/', 'qutebrowser-download'),
+])
+def test_no_content_disposition(stubs, url, expected):
+    reply = stubs.FakeNetworkReply(url=QUrl(url))
+    inline, filename = http.parse_content_disposition(reply)
+    assert inline
+    assert filename == expected
 
 
-class TestParseContentType:
-
-    """Test for parse_content_type."""
-
-    def test_not_existing(self, stubs):
-        """Test without any Content-Type header."""
+@pytest.mark.parametrize('content_type, expected_mimetype, expected_rest', [
+    (None, None, None),
+    ('image/example', 'image/example', None),
+    ('', '', None),
+    ('image/example; encoding=UTF-8', 'image/example', ' encoding=UTF-8'),
+])
+def test_parse_content_type(stubs, content_type, expected_mimetype,
+                            expected_rest):
+    if content_type is None:
         reply = stubs.FakeNetworkReply()
-        mimetype, rest = http.parse_content_type(reply)
-        assert mimetype is None
-        assert rest is None
-
-    def test_mimetype(self, stubs):
-        """Test with simple Content-Type header."""
-        reply = stubs.FakeNetworkReply(
-            headers={'Content-Type': 'image/example'})
-        mimetype, rest = http.parse_content_type(reply)
-        assert mimetype == 'image/example'
-        assert rest is None
-
-    def test_empty(self, stubs):
-        """Test with empty Content-Type header."""
-        reply = stubs.FakeNetworkReply(headers={'Content-Type': ''})
-        mimetype, rest = http.parse_content_type(reply)
-        assert mimetype == ''
-        assert rest is None
-
-    def test_additional(self, stubs):
-        """Test with Content-Type header with additional informations."""
-        reply = stubs.FakeNetworkReply(
-            headers={'Content-Type': 'image/example; encoding=UTF-8'})
-        mimetype, rest = http.parse_content_type(reply)
-        assert mimetype == 'image/example'
-        assert rest == ' encoding=UTF-8'
+    else:
+        reply = stubs.FakeNetworkReply(headers={'Content-Type': content_type})
+    mimetype, rest = http.parse_content_type(reply)
+    assert mimetype == expected_mimetype
+    assert rest == expected_rest
