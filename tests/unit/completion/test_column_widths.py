@@ -31,23 +31,20 @@ from qutebrowser.completion.models.miscmodels import (
 from qutebrowser.completion.models.urlmodel import UrlCompletionModel
 
 
-class TestColumnWidths:
+CLASSES = [BaseCompletionModel, SettingOptionCompletionModel,
+           SettingOptionCompletionModel, SettingSectionCompletionModel,
+           SettingValueCompletionModel, CommandCompletionModel,
+           HelpCompletionModel, QuickmarkCompletionModel,
+           BookmarkCompletionModel, SessionCompletionModel, UrlCompletionModel]
 
-    """Tests for the column widths of the completion models."""
 
-    CLASSES = [BaseCompletionModel, SettingOptionCompletionModel,
-               SettingOptionCompletionModel, SettingSectionCompletionModel,
-               SettingValueCompletionModel, CommandCompletionModel,
-               HelpCompletionModel, QuickmarkCompletionModel,
-               BookmarkCompletionModel, SessionCompletionModel,
-               UrlCompletionModel]
+@pytest.mark.parametrize("model", CLASSES)
+def test_list_size(model):
+    """Test if there are 3 items in the COLUMN_WIDTHS property."""
+    assert len(model.COLUMN_WIDTHS) == 3
 
-    @pytest.mark.parametrize("model", CLASSES)
-    def test_list_size(self, model):
-        """Test if there are 3 items in the COLUMN_WIDTHS property."""
-        assert len(model.COLUMN_WIDTHS) == 3
 
-    @pytest.mark.parametrize("model", CLASSES)
-    def test_column_width_sum(self, model):
-        """Test if the sum of the widths asserts to 100."""
-        assert sum(model.COLUMN_WIDTHS) == 100
+@pytest.mark.parametrize("model", CLASSES)
+def test_column_width_sum(model):
+    """Test if the sum of the widths asserts to 100."""
+    assert sum(model.COLUMN_WIDTHS) == 100
