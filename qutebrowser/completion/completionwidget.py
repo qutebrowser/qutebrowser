@@ -238,7 +238,12 @@ class CompletionView(QTreeView):
         selmodel.setCurrentIndex(
             idx, QItemSelectionModel.ClearAndSelect | QItemSelectionModel.Rows)
 
-        if config.get('completion', 'show') == 'auto':
+        count = self.model().count()
+        if count == 0:
+            self.hide()
+        elif count == 1 and config.get('completion', 'quick-complete'):
+            self.hide()
+        elif config.get('completion', 'show') == 'auto':
             self.show()
 
     def set_model(self, model):
