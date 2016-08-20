@@ -167,3 +167,36 @@ def test_completion_item_focus(which, tree, count, expected, completionview):
         completionview.completion_item_focus(which)
     idx = completionview.selectionModel().currentIndex()
     assert filtermodel.data(idx) == expected
+
+
+@pytest.mark.parametrize('show', ['always', 'auto', 'never'])
+@pytest.mark.parametrize('rows', [['Aa'], ['Aa', 'Bb']])
+@pytest.mark.parametrize('quick_complete', [True, False])
+def test_completion_item_focus(show, rows, quick_complete, config_stub, completionview):
+    """Test that on_next_prev_item moves the selection properly.
+
+    Args:
+        tree: Each list represents a completion category, with each string
+              being an item under that category.
+        count: Number of times to go forward (or back if negative).
+        expected: item data that should be selected after going back/forward.
+    """
+    config_stub.data['completion']['show'] = show
+    config_stub.data['completion']['quick-complete'] = quick_complete
+
+    model = base.BaseCompletionModel()
+    for name in rows:
+        cat = QStandardItem()
+        model.appendRow(cat)
+        cat.appendRow(QStandardItem(name))
+    filtermodel = sortfilter.CompletionFilterModel(model,
+                                                   parent=completionview)
+
+    assert not completionview.isVisible()
+    completionview.set_model(filtermodel)
+    assert completionview.isVisible() == (show == 'always')
+    completionview.completion_item_focus('next')
+    expected = show != 'never' and not (quick_complete and len(rows) == 1)
+    assert completionview.isVisible() == expected
+    completionview.set_model(None)
+    assert not completionview.isVisible()
