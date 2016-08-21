@@ -189,7 +189,9 @@ Feature: Using hints
         And I set hints -> dictionary to no_words
         And I set hints -> mode to word
         And I run :hint
+        And I press the key "a"
         Then the error "Word hints requires reading the file at *" should be shown
+        And data/hello.txt should be loaded
 
     ### Number hint mode
 
