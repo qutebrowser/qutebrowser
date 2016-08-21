@@ -70,7 +70,7 @@ class FakeRequest:
         self.config = config
         self._httpbin = httpbin
 
-    def getfixturevalue(self, name):
+    def getfuncargvalue(self, name):
         assert name == 'httpbin'
         return self._httpbin
 

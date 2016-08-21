@@ -277,7 +277,7 @@ class QuteProc(testprocess.Process):
         if path.startswith('about:') or path.startswith('qute:'):
             return path
         else:
-            httpbin = self.request.getfixturevalue('httpbin')
+            httpbin = self.request.getfuncargvalue('httpbin')
             return '{}://localhost:{}/{}'.format(
                 'https' if https else 'http',
                 httpbin.port if port is None else port,
