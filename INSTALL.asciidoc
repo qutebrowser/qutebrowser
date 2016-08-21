@@ -199,6 +199,12 @@ Manual install:
 # make install
 ----
 
+Or alternatively if you're using `-current` (or OpenBSD 6.1 once it's been released):
+
+----
+# pkg_add qutebrowser
+----
+
 On Windows
 ----------
 
