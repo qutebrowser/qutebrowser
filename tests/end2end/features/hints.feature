@@ -184,6 +184,13 @@ Feature: Using hints
         Then the error "Not enough words in the dictionary." should be shown
         And data/numbers/5.txt should be loaded
 
+    Scenario: Dictionary file does not exist
+        When I open data/hints/html/simple.html
+        And I set hints -> dictionary to no_words
+        And I set hints -> mode to word
+        And I run :hint
+        Then the error "Word hints requires reading the file at *" should be shown
+
     ### Number hint mode
 
     # https://github.com/The-Compiler/qutebrowser/issues/308
