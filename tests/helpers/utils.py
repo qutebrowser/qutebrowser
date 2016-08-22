@@ -26,6 +26,8 @@ import re
 import pprint
 import os.path
 
+import pytest
+
 
 class PartialCompareOutcome:
 
@@ -84,7 +86,7 @@ def _partial_compare_list(val1, val2, *, indent):
 
 
 def _partial_compare_float(val1, val2, *, indent):
-    if abs(val1 - val2) < 0.00001:
+    if val1 == pytest.approx(val2):
         return PartialCompareOutcome()
 
     return PartialCompareOutcome("{!r} != {!r} (float comparison)".format(
