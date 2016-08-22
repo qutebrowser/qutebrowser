@@ -200,4 +200,5 @@ def test_completion_show(show, rows, quick_complete, completionview,
                 not (quick_complete and len(rows) == 1))
     assert completionview.isVisible() == expected
     completionview.set_model(None)
+    completionview.completion_item_focus('next')
     assert not completionview.isVisible()
