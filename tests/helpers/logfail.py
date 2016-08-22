@@ -70,7 +70,7 @@ class LogFailHandler(logging.Handler):
                                  record.getMessage()))
 
 
-@pytest.yield_fixture(scope='session', autouse=True)
+@pytest.fixture(scope='session', autouse=True)
 def fail_on_logging():
     handler = LogFailHandler()
     logging.getLogger().addHandler(handler)

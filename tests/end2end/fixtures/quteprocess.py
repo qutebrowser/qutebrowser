@@ -606,7 +606,7 @@ def _xpath_escape(text):
     return 'concat({})'.format(', '.join(parts))
 
 
-@pytest.yield_fixture(scope='module')
+@pytest.fixture(scope='module')
 def quteproc_process(qapp, httpbin, request):
     """Fixture for qutebrowser process which is started once per file."""
     # Passing request so it has an initial config
@@ -616,7 +616,7 @@ def quteproc_process(qapp, httpbin, request):
     proc.terminate()
 
 
-@pytest.yield_fixture
+@pytest.fixture
 def quteproc(quteproc_process, httpbin, request):
     """Per-test qutebrowser fixture which uses the per-file process."""
     request.node._quteproc_log = quteproc_process.captured_log
@@ -626,7 +626,7 @@ def quteproc(quteproc_process, httpbin, request):
     quteproc_process.after_test()
 
 
-@pytest.yield_fixture
+@pytest.fixture
 def quteproc_new(qapp, httpbin, request):
     """Per-test qutebrowser process to test invocations."""
     proc = QuteProc(request)

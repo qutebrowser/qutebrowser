@@ -83,7 +83,7 @@ def objects():
     return Objects(signal_filter=signal_filter, signaller=signaller)
 
 
-@pytest.yield_fixture
+@pytest.fixture
 def tabbed_browser(win_registry):
     tb = FakeTabbedBrowser()
     objreg.register('tabbed-browser', tb, scope='window', window=0)

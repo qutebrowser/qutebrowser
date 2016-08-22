@@ -137,7 +137,7 @@ def fake_statusbar(qtbot):
     return statusbar
 
 
-@pytest.yield_fixture
+@pytest.fixture
 def win_registry():
     """Fixture providing a window registry for win_id 0 and 1."""
     helper = WinRegistryHelper()
@@ -146,7 +146,7 @@ def win_registry():
     helper.cleanup()
 
 
-@pytest.yield_fixture
+@pytest.fixture
 def tab_registry(win_registry):
     """Fixture providing a tab registry for win_id 0."""
     registry = objreg.ObjectRegistry()
@@ -203,7 +203,7 @@ def cmdline_test(request):
     return request.param
 
 
-@pytest.yield_fixture
+@pytest.fixture
 def config_stub(stubs):
     """Fixture which provides a fake config object."""
     stub = stubs.ConfigStub()
@@ -212,7 +212,7 @@ def config_stub(stubs):
     objreg.delete('config')
 
 
-@pytest.yield_fixture
+@pytest.fixture
 def default_config():
     """Fixture that provides and registers an empty default config object."""
     config_obj = config.ConfigManager()
@@ -222,7 +222,7 @@ def default_config():
     objreg.delete('config')
 
 
-@pytest.yield_fixture
+@pytest.fixture
 def key_config_stub(stubs):
     """Fixture which provides a fake key config object."""
     stub = stubs.KeyConfigStub()
@@ -231,7 +231,7 @@ def key_config_stub(stubs):
     objreg.delete('key-config')
 
 
-@pytest.yield_fixture
+@pytest.fixture
 def host_blocker_stub(stubs):
     """Fixture which provides a fake host blocker object."""
     stub = stubs.HostBlockerStub()
@@ -240,7 +240,7 @@ def host_blocker_stub(stubs):
     objreg.delete('host-blocker')
 
 
-@pytest.yield_fixture
+@pytest.fixture
 def quickmark_manager_stub(stubs):
     """Fixture which provides a fake quickmark manager object."""
     stub = stubs.QuickmarkManagerStub()
@@ -249,7 +249,7 @@ def quickmark_manager_stub(stubs):
     objreg.delete('quickmark-manager')
 
 
-@pytest.yield_fixture
+@pytest.fixture
 def bookmark_manager_stub(stubs):
     """Fixture which provides a fake bookmark manager object."""
     stub = stubs.BookmarkManagerStub()
@@ -258,7 +258,7 @@ def bookmark_manager_stub(stubs):
     objreg.delete('bookmark-manager')
 
 
-@pytest.yield_fixture
+@pytest.fixture
 def web_history_stub(stubs):
     """Fixture which provides a fake web-history object."""
     stub = stubs.WebHistoryStub()
@@ -267,7 +267,7 @@ def web_history_stub(stubs):
     objreg.delete('web-history')
 
 
-@pytest.yield_fixture
+@pytest.fixture
 def session_manager_stub(stubs):
     """Fixture which provides a fake web-history object."""
     stub = stubs.SessionManagerStub()
@@ -276,7 +276,7 @@ def session_manager_stub(stubs):
     objreg.delete('session-manager')
 
 
-@pytest.yield_fixture
+@pytest.fixture
 def tabbed_browser_stubs(stubs, win_registry):
     """Fixture providing a fake tabbed-browser object on win_id 0 and 1."""
     win_registry.add_window(1)
@@ -288,7 +288,7 @@ def tabbed_browser_stubs(stubs, win_registry):
     objreg.delete('tabbed-browser', scope='window', window=1)
 
 
-@pytest.yield_fixture
+@pytest.fixture
 def app_stub(stubs):
     """Fixture which provides a fake app object."""
     stub = stubs.ApplicationStub()
@@ -297,7 +297,7 @@ def app_stub(stubs):
     objreg.delete('app')
 
 
-@pytest.yield_fixture
+@pytest.fixture
 def status_command_stub(stubs, qtbot, win_registry):
     """Fixture which provides a fake status-command object."""
     cmd = stubs.StatusBarCommandStub()
@@ -387,7 +387,7 @@ def fake_keyevent_factory():
     return fake_keyevent
 
 
-@pytest.yield_fixture
+@pytest.fixture
 def cookiejar_and_cache(stubs):
     """Fixture providing a fake cookie jar and cache."""
     jar = QNetworkCookieJar()
@@ -414,7 +414,7 @@ def py_proc():
     return func
 
 
-@pytest.yield_fixture
+@pytest.fixture
 def fake_save_manager():
     """Create a mock of save-manager and register it into objreg."""
     fake_save_manager = unittest.mock.Mock(spec=savemanager.SaveManager)
@@ -423,7 +423,7 @@ def fake_save_manager():
     objreg.delete('save-manager')
 
 
-@pytest.yield_fixture
+@pytest.fixture
 def fake_args():
     ns = types.SimpleNamespace()
     objreg.register('args', ns)
@@ -431,7 +431,7 @@ def fake_args():
     objreg.delete('args')
 
 
-@pytest.yield_fixture
+@pytest.fixture
 def mode_manager(win_registry, config_stub, qapp):
     config_stub.data.update({'input': {'forward-unbound-keys': 'auto'}})
     mm = modeman.ModeManager(0)

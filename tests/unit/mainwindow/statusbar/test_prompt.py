@@ -27,7 +27,7 @@ from qutebrowser.mainwindow.statusbar.prompt import Prompt
 from qutebrowser.utils import objreg
 
 
-@pytest.yield_fixture
+@pytest.fixture
 def prompt(qtbot, win_registry):
     prompt = Prompt(0)
     qtbot.addWidget(prompt)

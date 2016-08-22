@@ -102,21 +102,21 @@ class NoReadyPythonProcess(PythonProcess):
         return (sys.executable, ['-c', ';'.join(code)])
 
 
-@pytest.yield_fixture
+@pytest.fixture
 def pyproc():
     proc = PythonProcess()
     yield proc
     proc.terminate()
 
 
-@pytest.yield_fixture
+@pytest.fixture
 def quit_pyproc():
     proc = QuitPythonProcess()
     yield proc
     proc.terminate()
 
 
-@pytest.yield_fixture
+@pytest.fixture
 def noready_pyproc():
     proc = NoReadyPythonProcess()
     yield proc
