@@ -246,13 +246,14 @@ class CompletionView(QTreeView):
         elif config.get('completion', 'show') == 'auto':
             self.show()
 
-    def set_model(self, model):
+    def set_model(self, model, pattern=None):
         """Switch completion to a new model.
 
         Called from on_update_completion().
 
         Args:
             model: The model to use.
+            pattern: The filter pattern to set (what the user entered).
         """
         if model is None:
             self._active = False
@@ -260,17 +261,19 @@ class CompletionView(QTreeView):
             return
 
         old_model = self.model()
-        sel_model = self.selectionModel()
+        if model != old_model:
+            sel_model = self.selectionModel()
 
-        self.setModel(model)
-        self._active = True
+            self.setModel(model)
+            self._active = True
 
-        if sel_model is not None:
-            sel_model.deleteLater()
-        if old_model is not None:
-            old_model.deleteLater()
+            if sel_model is not None:
+                sel_model.deleteLater()
+            if old_model is not None:
+                old_model.deleteLater()
 
-        if config.get('completion', 'show') == 'always':
+        if (config.get('completion', 'show') == 'always'
+                and model.count() > 0):
             self.show()
         else:
             self.hide()
@@ -278,19 +281,11 @@ class CompletionView(QTreeView):
         for i in range(model.rowCount()):
             self.expand(model.index(i, 0))
 
+        if pattern is not None:
+            model.set_pattern(pattern)
+
         self._column_widths = model.srcmodel.COLUMN_WIDTHS
         self._resize_columns()
-        self.maybe_resize_completion()
-
-    def set_pattern(self, pattern):
-        """Set the completion pattern for the current model.
-
-        Called from on_update_completion().
-
-        Args:
-            pattern: The filter pattern to set (what the user entered).
-        """
-        self.model().set_pattern(pattern)
         self.maybe_resize_completion()
 
     @pyqtSlot()

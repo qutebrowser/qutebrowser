@@ -83,8 +83,7 @@ def test_set_model(completionview):
 def test_set_pattern(completionview):
     model = sortfilter.CompletionFilterModel(base.BaseCompletionModel())
     model.set_pattern = unittest.mock.Mock()
-    completionview.set_model(model)
-    completionview.set_pattern('foo')
+    completionview.set_model(model, 'foo')
     model.set_pattern.assert_called_with('foo')
 
 

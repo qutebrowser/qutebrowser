@@ -257,25 +257,19 @@ class Completer(QObject):
 
         model = self._get_new_completion(parts, self._cursor_part)
 
-        if model != self._model():
-            completion.set_model(model)
-
-        if model is None:
-            log.completion.debug("No completion model for {}.".format(parts))
-            return
-
         try:
             pattern = parts[self._cursor_part].strip()
         except IndexError:
             pattern = ''
-        completion.set_pattern(pattern)
 
-        log.completion.debug(
-            "New completion for {}: {}, with pattern '{}'".format(
-                parts, model.srcmodel.__class__.__name__, pattern))
+        if model is None:
+            log.completion.debug("No completion model for {}.".format(parts))
+        else:
+            log.completion.debug(
+                "New completion for {}: {}, with pattern '{}'".format(
+                    parts, model.srcmodel.__class__.__name__, pattern))
 
-        if self._model().count() == 0:
-            completion.hide()
+        completion.set_model(model, pattern)
 
     def _split(self, keep=False):
         """Get the text split up in parts.
