@@ -272,8 +272,8 @@ class CompletionView(QTreeView):
             if old_model is not None:
                 old_model.deleteLater()
 
-        if (config.get('completion', 'show') == 'always'
-                and model.count() > 0):
+        if (config.get('completion', 'show') == 'always' and
+                model.count() > 0):
             self.show()
         else:
             self.hide()
