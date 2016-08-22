@@ -170,7 +170,7 @@ def test_completion_item_focus(which, tree, count, expected, completionview):
 
 
 @pytest.mark.parametrize('show', ['always', 'auto', 'never'])
-@pytest.mark.parametrize('rows', [['Aa'], ['Aa', 'Bb']])
+@pytest.mark.parametrize('rows', [[], ['Aa'], ['Aa', 'Bb']])
 @pytest.mark.parametrize('quick_complete', [True, False])
 def test_completion_show(show, rows, quick_complete, completionview,
                          config_stub):
@@ -194,9 +194,10 @@ def test_completion_show(show, rows, quick_complete, completionview,
 
     assert not completionview.isVisible()
     completionview.set_model(filtermodel)
-    assert completionview.isVisible() == (show == 'always')
+    assert completionview.isVisible() == (show == 'always' and len(rows) > 0)
     completionview.completion_item_focus('next')
-    expected = show != 'never' and not (quick_complete and len(rows) == 1)
+    expected = (show != 'never' and len(rows) > 0 and
+                not (quick_complete and len(rows) == 1))
     assert completionview.isVisible() == expected
     completionview.set_model(None)
     assert not completionview.isVisible()
