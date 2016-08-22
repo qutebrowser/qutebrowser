@@ -261,7 +261,7 @@ class CompletionView(QTreeView):
             return
 
         old_model = self.model()
-        if model != old_model:
+        if model is not old_model:
             sel_model = self.selectionModel()
 
             self.setModel(model)
