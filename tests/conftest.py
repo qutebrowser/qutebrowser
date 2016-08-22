@@ -86,8 +86,8 @@ def pytest_collection_modifyitems(items):
 
     For example:
 
-        py.test -m "not gui"  # run all tests except gui tests
-        py.test -m "gui"  # run only gui tests
+        pytest -m "not gui"  # run all tests except gui tests
+        pytest -m "gui"  # run only gui tests
 
     It also handles the platform specific markers by translating them to skipif
     markers.
