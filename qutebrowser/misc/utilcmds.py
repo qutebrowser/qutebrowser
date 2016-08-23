@@ -257,9 +257,12 @@ def debug_focus_window(win_id: int):
     try:
         window = objreg.get('main-window', scope='window', window=win_id)
     except objreg.RegistryUnavailableError:
-        message.error('current', "Invalid window: {}".format(win_id))
-        return
+        raise cmdexc.CommandError("Invalid window: {}".format(win_id))
     window.activateWindow()
+    if window.isActiveWindow():
+        log.misc.debug("Window id={} is already active".format(win_id))
+    else:
+        log.misc.debug("Activation request sent for win_id={}".format(win_id))
 
 
 @cmdutils.register(hide=True)

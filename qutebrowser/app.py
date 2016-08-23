@@ -348,7 +348,7 @@ def _save_version():
         state_config['general']['version'] = qutebrowser.__version__
 
 
-def on_focus_changed(_old, new):
+def on_focus_changed(old, new):
     """Register currently focused main window in the object registry."""
     if new is None:
         return
@@ -364,6 +364,10 @@ def on_focus_changed(_old, new):
         # A focused window must also be visible, and in this case we should
         # consider it as the most recently looked-at window
         objreg.register('last-visible-main-window', window, update=True)
+
+        if old is None or old.window() != window:
+            log.misc.debug("Window activation changed to {!r} (win_id={})"
+                           .format(window, window.win_id))
 
 
 def open_desktopservices_url(url):

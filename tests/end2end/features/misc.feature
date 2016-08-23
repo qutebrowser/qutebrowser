@@ -707,3 +707,20 @@ Feature: Various utility commands.
         And I wait for "Renderer process was killed" in the log
         And I open data/numbers/3.txt
         Then no crash should happen
+
+    ## :debug-focus-window
+
+    Scenario: Focusing an invalid window
+        When I run :debug-focus-window 1337
+        Then the error "Invalid window: 1337" should be shown
+
+    @qutewm
+    Scenario: Focusing the current window
+        When I focus window 0
+        Then no crash should happen
+
+    @qutewm
+    Scenario: Focusing a new window
+        When I run :open -w about:blank
+        And I focus window 1
+        Then no crash should happen
