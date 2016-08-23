@@ -422,11 +422,9 @@ class Command:
             choices = self.get_arg_info(param).choices
             value = argparser.multitype_conv(param, types, value,
                                              str_choices=choices)
-        elif typ is str:
+        elif typ in [str, None]:
             choices = self.get_arg_info(param).choices
             value = argparser.type_conv(param, typ, value, str_choices=choices)
-        elif typ is None:
-            pass
         elif typ is bool:  # no type conversion for flags
             assert isinstance(value, bool)
         else:
