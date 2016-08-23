@@ -1401,8 +1401,7 @@ KEY_FIRST_COMMENT = """
 #
 # For simple keys (no `<>`-signs), a capital letter means the key is pressed
 # with Shift. For special keys (with `<>`-signs), you need to explicitly add
-# `Shift-` to match a key pressed with shift.  You can bind multiple commands
-# by separating them with `;;`.
+# `Shift-` to match a key pressed with shift.
 #
 # Note that default keybindings are always bound, and need to be explicitly
 # unbound if you wish to remove them:
