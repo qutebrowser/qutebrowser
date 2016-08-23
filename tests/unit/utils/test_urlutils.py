@@ -346,8 +346,9 @@ def test_get_search_url_invalid(urlutils_config_stub, url):
     # autosearch = False
     (False, True, False, 'This is a URL without autosearch'),
 ])
+@pytest.mark.parametrize('auto_search', ['dns', 'naive', False])
 def test_is_url(urlutils_config_stub, fake_dns, is_url, is_url_no_autosearch,
-                uses_dns, url):
+                uses_dns, url, auto_search):
     """Test is_url().
 
     Args:
@@ -357,33 +358,36 @@ def test_is_url(urlutils_config_stub, fake_dns, is_url, is_url_no_autosearch,
         uses_dns: Whether the given string should fire a DNS request for the
                   given URL.
         url: The URL to test, as a string.
+        auto_search: With which auto-search setting to test
     """
-    urlutils_config_stub.data['general']['auto-search'] = 'dns'
-    if uses_dns:
-        fake_dns.answer = True
-        result = urlutils.is_url(url)
-        assert fake_dns.used
-        assert result
-        fake_dns.reset()
+    urlutils_config_stub.data['general']['auto-search'] = auto_search
+    if auto_search == 'dns':
+        if uses_dns:
+            fake_dns.answer = True
+            result = urlutils.is_url(url)
+            assert fake_dns.used
+            assert result
+            fake_dns.reset()
 
-        fake_dns.answer = False
-        result = urlutils.is_url(url)
-        assert fake_dns.used
-        assert not result
-    else:
-        result = urlutils.is_url(url)
+            fake_dns.answer = False
+            result = urlutils.is_url(url)
+            assert fake_dns.used
+            assert not result
+        else:
+            result = urlutils.is_url(url)
+            assert not fake_dns.used
+            assert result == is_url
+    elif auto_search == 'naive':
+        urlutils_config_stub.data['general']['auto-search'] = 'naive'
+        assert urlutils.is_url(url) == is_url
         assert not fake_dns.used
-        assert result == is_url
-
-    fake_dns.reset()
-    urlutils_config_stub.data['general']['auto-search'] = 'naive'
-    assert urlutils.is_url(url) == is_url
-    assert not fake_dns.used
-
-    fake_dns.reset()
-    urlutils_config_stub.data['general']['auto-search'] = False
-    assert urlutils.is_url(url) == is_url_no_autosearch
-    assert not fake_dns.used
+    elif not auto_search:
+        urlutils_config_stub.data['general']['auto-search'] = False
+        assert urlutils.is_url(url) == is_url_no_autosearch
+        assert not fake_dns.used
+    else:
+        raise ValueError("Invalid value {!r} for auto-search!".format(
+            auto_search))
 
 
 @pytest.mark.parametrize('user_input, output', [
