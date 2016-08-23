@@ -279,7 +279,7 @@ class Process(QObject):
         Also checks self._invalid so the test counts as failed if there were
         unexpected output lines earlier.
         """
-        __tracebackhide__ = True
+        __tracebackhide__ = lambda e: e.errisinstance(ProcessExited)
         self.captured_log = []
         if self._invalid:
             # Wait for a bit so the full error has a chance to arrive
@@ -338,7 +338,6 @@ class Process(QObject):
 
         Return: either the found line or None.
         """
-        __tracebackhide__ = True
         for line in self._data:
             matches = []
 
@@ -362,7 +361,7 @@ class Process(QObject):
 
         Called via wait_for.
         """
-        __tracebackhide__ = True
+        __tracebackhide__ = lambda e: e.errisinstance(WaitForTimeout)
         message = kwargs.get('message', None)
         if message is not None:
             elided = quteutils.elide(repr(message), 50)
@@ -441,7 +440,7 @@ class Process(QObject):
         Return:
             The matched line.
         """
-        __tracebackhide__ = True
+        __tracebackhide__ = lambda e: e.errisinstance(WaitForTimeout)
 
         if timeout is None:
             if do_skip:
@@ -471,7 +470,7 @@ class Process(QObject):
         If nothing is found in the log, we wait for delay ms to make sure
         nothing arrives.
         """
-        __tracebackhide__ = True
+        __tracebackhide__ = lambda e: e.errisinstance(BlacklistedMessageError)
         try:
             line = self.wait_for(timeout=delay, override_waited_for=True,
                                  **kwargs)
