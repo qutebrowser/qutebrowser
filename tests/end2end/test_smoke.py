@@ -41,7 +41,6 @@ def test_smoke(cmd, capfd):
         if e.returncode == -signal.SIGSEGV:
             _out, err = capfd.readouterr()
             assert 'Uncaught exception' not in err
-            # pylint: disable=no-member
             # https://github.com/The-Compiler/qutebrowser/issues/1387
             pytest.xfail("Ignoring segfault on exit...")
         else:

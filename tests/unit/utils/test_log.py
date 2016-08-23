@@ -32,7 +32,7 @@ from qutebrowser.utils import log
 from qutebrowser.misc import utilcmds
 
 
-@pytest.yield_fixture(autouse=True)
+@pytest.fixture(autouse=True)
 def restore_loggers():
     """Fixture to save/restore the logging state.
 

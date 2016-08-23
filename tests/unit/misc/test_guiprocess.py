@@ -34,7 +34,7 @@ def guiprocess_message_mock(message_mock):
     return message_mock
 
 
-@pytest.yield_fixture()
+@pytest.fixture()
 def proc(qtbot):
     """A fixture providing a GUIProcess and cleaning it up after the test."""
     p = guiprocess.GUIProcess(0, 'testprocess')

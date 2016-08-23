@@ -74,7 +74,7 @@ class TestGitStr:
 
     """Tests for _git_str()."""
 
-    @pytest.yield_fixture
+    @pytest.fixture
     def commit_file_mock(self, mocker):
         """Fixture providing a mock for utils.read_file for git-commit-id.
 

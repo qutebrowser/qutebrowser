@@ -272,14 +272,14 @@ def main_check_all():
     This makes sure the files have 100% coverage without running unrelated
     tests.
 
-    This runs py.test with the used executable, so check_coverage.py should be
+    This runs pytest with the used executable, so check_coverage.py should be
     called with something like ./.tox/py34/bin/python.
     """
     for test_file, src_file in PERFECT_FILES:
         if test_file is None:
             continue
         subprocess.check_call(
-            [sys.executable, '-m', 'py.test', '--cov', 'qutebrowser',
+            [sys.executable, '-m', 'pytest', '--cov', 'qutebrowser',
              '--cov-report', 'xml', test_file])
         with open('coverage.xml', encoding='utf-8') as f:
             messages = check(f, [(test_file, src_file)])

@@ -86,8 +86,8 @@ def pytest_collection_modifyitems(items):
 
     For example:
 
-        py.test -m "not gui"  # run all tests except gui tests
-        py.test -m "gui"  # run only gui tests
+        pytest -m "not gui"  # run all tests except gui tests
+        pytest -m "gui"  # run only gui tests
 
     It also handles the platform specific markers by translating them to skipif
     markers.
@@ -131,6 +131,12 @@ def qapp(qapp):
     """Change the name of the QApplication instance."""
     qapp.setApplicationName('qute_test')
     return qapp
+
+
+@pytest.fixture(scope='function', autouse=True)
+def bug_workaround():
+    # WORKAROUND for https://github.com/pytest-dev/pytest/issues/1832
+    pass
 
 
 def pytest_addoption(parser):

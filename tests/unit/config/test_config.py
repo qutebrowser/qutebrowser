@@ -411,7 +411,7 @@ class TestConfigInit:
 
     """Test initializing of the config."""
 
-    @pytest.yield_fixture(autouse=True)
+    @pytest.fixture(autouse=True)
     def patch(self, fake_args):
         objreg.register('app', QObject())
         objreg.register('save-manager', mock.MagicMock())

@@ -167,7 +167,7 @@ class WebserverProcess(testprocess.Process):
         self.proc.waitForFinished()
 
 
-@pytest.yield_fixture(scope='session', autouse=True)
+@pytest.fixture(scope='session', autouse=True)
 def httpbin(qapp):
     """Fixture for an httpbin object which ensures clean setup/teardown."""
     httpbin = WebserverProcess('webserver_sub')
@@ -176,7 +176,7 @@ def httpbin(qapp):
     httpbin.cleanup()
 
 
-@pytest.yield_fixture(autouse=True)
+@pytest.fixture(autouse=True)
 def httpbin_after_test(httpbin, request):
     """Fixture to clean httpbin request list after each test."""
     request.node._httpbin_log = httpbin.captured_log
@@ -184,7 +184,7 @@ def httpbin_after_test(httpbin, request):
     httpbin.after_test()
 
 
-@pytest.yield_fixture
+@pytest.fixture
 def ssl_server(request, qapp):
     """Fixture for a webserver with a self-signed SSL certificate.
 

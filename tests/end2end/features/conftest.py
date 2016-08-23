@@ -430,9 +430,7 @@ def compare_session(request, quteproc, expected):
     compared.
     """
     if request.config.getoption('--qute-bdd-webengine'):
-        # pylint: disable=no-member
         pytest.xfail(reason="QtWebEngine TODO: Sessions are not implemented")
-        # pylint: enable=no-member
     quteproc.compare_session(expected)
 
 
@@ -497,9 +495,7 @@ def check_open_tabs(quteproc, request, tabs):
     It expects a list of URLs, with an optional "(active)" suffix.
     """
     if request.config.getoption('--qute-bdd-webengine'):
-        # pylint: disable=no-member
         pytest.xfail(reason="QtWebEngine TODO: Sessions are not implemented")
-        # pylint: enable=no-member
     session = quteproc.get_session()
     active_suffix = ' (active)'
     tabs = tabs.splitlines()
@@ -556,9 +552,7 @@ def _get_scroll_values(quteproc):
                          r"(?P<direction>horizontally|vertically)"))
 def check_scrolled(request, quteproc, direction):
     if request.config.getoption('--qute-bdd-webengine'):
-        # pylint: disable=no-member
         pytest.xfail(reason="QtWebEngine TODO: Sessions are not implemented")
-        # pylint: enable=no-member
     x, y = _get_scroll_values(quteproc)
     if direction == 'horizontally':
         assert x != 0
@@ -571,9 +565,7 @@ def check_scrolled(request, quteproc, direction):
 @bdd.then("the page should not be scrolled")
 def check_not_scrolled(request, quteproc):
     if request.config.getoption('--qute-bdd-webengine'):
-        # pylint: disable=no-member
         pytest.xfail(reason="QtWebEngine TODO: Sessions are not implemented")
-        # pylint: enable=no-member
     x, y = _get_scroll_values(quteproc)
     assert x == 0
     assert y == 0

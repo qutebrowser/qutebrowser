@@ -54,8 +54,6 @@ def turn_off_logging():
 def main():
     ssl_dir = os.path.join(os.path.abspath(os.path.dirname(__file__)),
                            '..', 'data', 'ssl')
-    # WORKAROUND for https://github.com/PyCQA/pylint/issues/399
-    # pylint: disable=no-member, useless-suppression
     context = ssl.SSLContext(ssl.PROTOCOL_TLSv1_2)
     context.load_cert_chain(os.path.join(ssl_dir, 'cert.pem'),
                             os.path.join(ssl_dir, 'key.pem'))

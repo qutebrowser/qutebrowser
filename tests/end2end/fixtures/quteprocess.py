@@ -46,9 +46,6 @@ instance_counter = itertools.count()
 
 def is_ignored_qt_message(message):
     """Check if the message is listed in qt_log_ignore."""
-    # pylint: disable=no-member
-    # WORKAROUND for https://bitbucket.org/logilab/pylint/issues/717/
-    # we should switch to generated-members after that
     regexes = pytest.config.getini('qt_log_ignore')
     for regex in regexes:
         if re.match(regex, message):
@@ -277,7 +274,7 @@ class QuteProc(testprocess.Process):
         if path.startswith('about:') or path.startswith('qute:'):
             return path
         else:
-            httpbin = self.request.getfuncargvalue('httpbin')
+            httpbin = self.request.getfixturevalue('httpbin')
             return '{}://localhost:{}/{}'.format(
                 'https' if https else 'http',
                 httpbin.port if port is None else port,
@@ -295,6 +292,8 @@ class QuteProc(testprocess.Process):
 
     def wait_for(self, timeout=None, **kwargs):
         """Extend wait_for to add divisor if a test is xfailing."""
+        __tracebackhide__ = (lambda e:
+                             e.errisinstance(testprocess.WaitForTimeout))
         xfail = self.request.node.get_marker('xfail')
         if xfail and xfail.args[0]:
             kwargs['divisor'] = 10
@@ -347,7 +346,7 @@ class QuteProc(testprocess.Process):
 
     def after_test(self):
         """Handle unexpected/skip logging and clean up after each test."""
-        __tracebackhide__ = True
+        __tracebackhide__ = lambda e: e.errisinstance(pytest.fail.Exception)
         bad_msgs = [msg for msg in self._data
                     if self._is_error_logline(msg) and not msg.expected]
 
@@ -464,7 +463,8 @@ class QuteProc(testprocess.Process):
     def wait_for_load_finished_url(self, url, *, timeout=None,
                                    load_status='success'):
         """Wait until a URL has finished loading."""
-        __tracebackhide__ = True
+        __tracebackhide__ = (lambda e: e.errisinstance(
+            testprocess.WaitForTimeout))
 
         if timeout is None:
             if 'CI' in os.environ:
@@ -496,7 +496,8 @@ class QuteProc(testprocess.Process):
     def wait_for_load_finished(self, path, *, port=None, https=False,
                                timeout=None, load_status='success'):
         """Wait until a path has finished loading."""
-        __tracebackhide__ = True
+        __tracebackhide__ = (lambda e: e.errisinstance(
+            testprocess.WaitForTimeout))
         url = self.path_to_url(path, port=port, https=https)
         self.wait_for_load_finished_url(url, timeout=timeout,
                                         load_status=load_status)
@@ -562,7 +563,7 @@ class QuteProc(testprocess.Process):
         partial_compare is used, which means only the keys/values listed will
         be compared.
         """
-        __tracebackhide__ = True
+        __tracebackhide__ = lambda e: e.errisinstance(pytest.fail.Exception)
         # Translate ... to ellipsis in YAML.
         loader = yaml.SafeLoader(expected)
         loader.add_constructor('!ellipsis', lambda loader, node: ...)
@@ -606,7 +607,7 @@ def _xpath_escape(text):
     return 'concat({})'.format(', '.join(parts))
 
 
-@pytest.yield_fixture(scope='module')
+@pytest.fixture(scope='module')
 def quteproc_process(qapp, httpbin, request):
     """Fixture for qutebrowser process which is started once per file."""
     # Passing request so it has an initial config
@@ -616,7 +617,7 @@ def quteproc_process(qapp, httpbin, request):
     proc.terminate()
 
 
-@pytest.yield_fixture
+@pytest.fixture
 def quteproc(quteproc_process, httpbin, request):
     """Per-test qutebrowser fixture which uses the per-file process."""
     request.node._quteproc_log = quteproc_process.captured_log
@@ -626,7 +627,7 @@ def quteproc(quteproc_process, httpbin, request):
     quteproc_process.after_test()
 
 
-@pytest.yield_fixture
+@pytest.fixture
 def quteproc_new(qapp, httpbin, request):
     """Per-test qutebrowser process to test invocations."""
     proc = QuteProc(request)

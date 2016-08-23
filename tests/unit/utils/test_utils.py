@@ -589,7 +589,7 @@ class TestFakeIO:
 
     """Test FakeIO."""
 
-    @pytest.yield_fixture(autouse=True)
+    @pytest.fixture(autouse=True)
     def restore_streams(self):
         """Restore sys.stderr/sys.stdout after tests."""
         old_stdout = sys.stdout
@@ -682,7 +682,7 @@ class TestDisabledExcepthook:
     the excepthook (which is hard to test).
     """
 
-    @pytest.yield_fixture(autouse=True)
+    @pytest.fixture(autouse=True)
     def restore_excepthook(self):
         """Restore sys.excepthook and sys.__excepthook__ after tests."""
         old_excepthook = sys.excepthook

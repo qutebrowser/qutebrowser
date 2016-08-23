@@ -32,7 +32,7 @@ import pytest
 from qutebrowser.utils import standarddir
 
 
-@pytest.yield_fixture(autouse=True)
+@pytest.fixture(autouse=True)
 def change_qapp_name(qapp):
     """Change the name of the QApplication instance.
 
@@ -52,7 +52,7 @@ def no_cachedir_tag(monkeypatch):
                         lambda: None)
 
 
-@pytest.yield_fixture
+@pytest.fixture
 def reset_standarddir(no_cachedir_tag):
     """Clean up standarddir arguments before and after each test."""
     standarddir.init(None)

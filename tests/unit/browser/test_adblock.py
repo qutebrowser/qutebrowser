@@ -96,7 +96,7 @@ class FakeDownloadManager:
         return download_item
 
 
-@pytest.yield_fixture
+@pytest.fixture
 def download_stub(win_registry):
     """Register a FakeDownloadManager."""
     stub = FakeDownloadManager()
