@@ -27,10 +27,6 @@ Usage:
 Available options:
     --help: Show this help.
     --debug: Show debugging information.
-    --repl: Also start a repl in a separate thread (useful for debugging).
-
-Available keybindings:
-    Alt + F1 - cycle though all windows
 
 Exit codes:
     42 - another window manager is running
@@ -119,7 +115,6 @@ class QuteWM:
         self._handlers = {
             X.MapNotify: self._on_map_notify,
             X.UnmapNotify: self._on_unmap_notify,
-            X.KeyPress: self._on_key_press,
             X.ClientMessage: self._on_client_message,
             X.MapRequest: self._on_map_request,
             X.ConfigureRequest: self._on_configure_request,
@@ -143,9 +138,6 @@ class QuteWM:
 
         self.root.change_attributes(event_mask=self.ROOT_EVENT_MASK,
                                     onerror=self._wm_running)
-        self.root.grab_key(
-            self.dpy.keysym_to_keycode(XK.string_to_keysym("F1")),
-            X.Mod1Mask, 1, X.GrabModeAsync, X.GrabModeAsync)
 
         self.atoms = AtomBag(self.dpy)
 
@@ -289,16 +281,6 @@ class QuteWM:
         if self.window_stack:
             self.activate(self.window_stack[-1])
 
-    def _on_key_press(self, ev):
-        """Called when a key that we're listening for is pressed."""
-        # We only grabbed one key combination, so we don't need to check which
-        # keys were actually pressed.
-        if ev.child == X.NONE:
-            return
-        log.debug("cycling through available windows")
-        if self.window_stack:
-            self.activate(self.window_stack[0])
-
     def _on_client_message(self, ev):
         """Called when a ClientMessage is received."""
         if ev.client_type == self.atoms.active_window:
@@ -400,14 +382,6 @@ class QuteWM:
             self._needs_update = True
 
 
-wm = None
-
-
-def repl():
-    import code
-    code.interact(local=globals())
-
-
 def main():
     if '--help' in sys.argv:
         print(__doc__)
@@ -416,11 +390,6 @@ def main():
     if '--debug' in sys.argv:
         log.setLevel(logging.DEBUG)
 
-    if '--repl' in sys.argv:
-        import threading
-        threading.Thread(target=repl).start()
-
-    global wm
     wm = QuteWM()
     signal.signal(signal.SIGTERM, lambda signum, frame: wm.quit('SIGTERM'))
     signal.signal(signal.SIGINT, lambda signum, frame: wm.quit('Ctrl-C'))
