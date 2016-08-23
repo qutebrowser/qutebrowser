@@ -85,7 +85,7 @@ class QuteWMProcess(testprocess.Process):
         return []
 
 
-@pytest.yield_fixture(scope='session', autouse=True)
+@pytest.fixture(scope='session', autouse=True)
 def qutewm(qapp):
     """Make sure a qutewm instance is running for this session.
 
@@ -112,7 +112,7 @@ def qutewm(qapp):
     qutewm.terminate()
 
 
-@pytest.yield_fixture(autouse=True)
+@pytest.fixture(autouse=True)
 def qutewm_manager(request, qutewm):
     """Fixture to reset qutewm for each test.
 
