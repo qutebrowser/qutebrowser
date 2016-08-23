@@ -336,6 +336,7 @@ def test_get_search_url_invalid(urlutils_config_stub, url):
     (False, True, False, '23.42'),  # no DNS because bogus-IP
     (False, True, False, '1337'),  # no DNS because bogus-IP
     (False, True, True, 'deadbeef'),
+    (False, True, True, 'hello.'),
     # no DNS because bogus-IP
     pytest.mark.xfail(qtutils.version_check('5.6.1'),
                       reason='Qt behavior changed')(

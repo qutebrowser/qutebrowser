@@ -127,7 +127,8 @@ def _is_url_naive(urlstr):
     if not QHostAddress(urlstr).isNull():
         return False
 
-    return '.' in url.host()
+    host = url.host()
+    return '.' in host and not host.endswith('.')
 
 
 def _is_url_dns(urlstr):
