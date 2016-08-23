@@ -184,6 +184,7 @@ Contributors, sorted by the number of commits in descending order:
 * Zach-Button
 * Tomasz Kramkowski
 * Peter Rice
+* Julian Weigt
 * Ismail S
 * Halfwit
 * David Vogt
@@ -208,7 +209,6 @@ Contributors, sorted by the number of commits in descending order:
 * Panashe M. Fundira
 * Link
 * Larry Hynes
-* Julian Weigt
 * Johannes Altmanninger
 * Jeremy Kaplan
 * Ismail
