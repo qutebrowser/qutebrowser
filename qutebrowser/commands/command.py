@@ -340,12 +340,17 @@ class Command:
         Args:
             param: The inspect.Parameter to look at.
         """
+        arginfo = self.get_arg_info(param)
         if param.annotation is not inspect.Parameter.empty:
             return param.annotation
-        elif param.default is None or param.default is inspect.Parameter.empty:
+        elif param.default not in [None, inspect.Parameter.empty]:
+            return type(param.default)
+        elif arginfo.count or arginfo.win_id or param.kind in [
+                inspect.Parameter.VAR_POSITIONAL,
+                inspect.Parameter.VAR_KEYWORD]:
             return None
         else:
-            return type(param.default)
+            return str
 
     def _get_self_arg(self, win_id, param, args):
         """Get the self argument for a function call.
@@ -425,10 +430,10 @@ class Command:
         elif typ is str:
             choices = self.get_arg_info(param).choices
             value = argparser.type_conv(param, typ, value, str_choices=choices)
-        elif typ is None:
-            pass
         elif typ is bool:  # no type conversion for flags
             assert isinstance(value, bool)
+        elif typ is None:
+            pass
         else:
             value = argparser.type_conv(param, typ, value)
 
