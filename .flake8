@@ -6,6 +6,8 @@ exclude = .*,__pycache__,resources.py
 # E501: Line too long
 # E402: module level import not at top of file
 # E266: too many leading '#' for block comment
+# E731: do not assign a lambda expression, use a def
+#       (for pytest's __tracebackhide__)
 # F401: Unused import
 # N802: function name should be lowercase
 # P101: format string does contain unindexed parameters
@@ -27,7 +29,7 @@ exclude = .*,__pycache__,resources.py
 # H301: one import per line
 # H306: imports not in alphabetical order
 ignore =
-    E128,E226,E265,E501,E402,E266,
+    E128,E226,E265,E501,E402,E266,E731,
     F401,
     N802,
     P101,P102,P103,
