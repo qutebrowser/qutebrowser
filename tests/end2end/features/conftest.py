@@ -386,7 +386,7 @@ def focus_window(quteproc, win_id):
     quteproc.send_cmd(':debug-focus-window {}'.format(win_id))
     pat_active = 'Window id={} is already active'.format(win_id)
     pat_signal = (r'Window activation changed to <qutebrowser\.mainwindow\.'
-                  'mainwindow\.MainWindow> \(win_id={}\)'
+                  r'mainwindow\.MainWindow> \(win_id={}\)'
                   .format(win_id))
     pattern = re.compile('({})|({})'.format(pat_active, pat_signal))
     quteproc.wait_for(message=pattern)

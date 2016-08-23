@@ -37,7 +37,7 @@ import signal
 import logging
 
 from Xlib.display import Display
-from Xlib import X, XK, Xatom, Xutil
+from Xlib import X, Xatom, Xutil
 
 LOG_FORMAT = ('{asctime:8} {levelname:8} {name:10}'
               ' {module}:{funcName}:{lineno} {message}')
