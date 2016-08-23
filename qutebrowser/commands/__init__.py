@@ -22,7 +22,7 @@
 Some commands are hidden, which means they don't show up in the command
 completion when pressing `:`, as they're typically not useful to run by hand.
 
-In the commandline, there are also some variables you can use:
+For command arguments, there are also some variables you can use:
 
 - `{url}` expands to the URL of the current page
 - `{url:pretty}` expands to the URL in decoded format
