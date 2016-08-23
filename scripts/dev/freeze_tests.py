@@ -53,7 +53,7 @@ def temp_git_commit_file():
 def get_build_exe_options():
     """Get build_exe options with additional includes."""
     opts = freeze.get_build_exe_options(skip_html=True)
-    opts['includes'] += pytest.freeze_includes()  # pylint: disable=no-member
+    opts['includes'] += pytest.freeze_includes()
     opts['includes'] += ['unittest.mock', 'PyQt5.QtTest', 'hypothesis', 'bs4',
                          'httpbin', 'jinja2.ext', 'cherrypy.wsgiserver',
                          'pstats']

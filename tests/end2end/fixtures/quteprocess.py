@@ -46,9 +46,6 @@ instance_counter = itertools.count()
 
 def is_ignored_qt_message(message):
     """Check if the message is listed in qt_log_ignore."""
-    # pylint: disable=no-member
-    # WORKAROUND for https://bitbucket.org/logilab/pylint/issues/717/
-    # we should switch to generated-members after that
     regexes = pytest.config.getini('qt_log_ignore')
     for regex in regexes:
         if re.match(regex, message):

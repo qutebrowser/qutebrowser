@@ -77,7 +77,6 @@ class Line:
 
 def _render_log(data, threshold=100):
     """Shorten the given log without -v and convert to a string."""
-    # pylint: disable=no-member
     data = [str(d) for d in data]
     is_exception = any('Traceback (most recent call last):' in line
                        for line in data)
@@ -109,7 +108,6 @@ def pytest_runtest_makereport(item, call):
         # actually a tuple. This is handled similarily in pytest-qt too.
         return
 
-    # pylint: disable=no-member
     if pytest.config.getoption('--capture') == 'no':
         # Already printed live
         return
@@ -153,7 +151,6 @@ class Process(QObject):
 
     def _log(self, line):
         """Add the given line to the captured log output."""
-        # pylint: disable=no-member
         if pytest.config.getoption('--capture') == 'no':
             print(line)
         self.captured_log.append(line)
