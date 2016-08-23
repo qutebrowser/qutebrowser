@@ -295,20 +295,6 @@ class TestRegister:
         else:
             assert cmd._get_call_args(win_id=0) == ([expected], {})
 
-    def test_choices_no_annotation(self):
-        # https://github.com/The-Compiler/qutebrowser/issues/1871
-        @cmdutils.register()
-        @cmdutils.argument('arg', choices=['foo', 'bar'])
-        def fun(arg):
-            """Blah."""
-            pass
-
-        cmd = cmdutils.cmd_dict['fun']
-        cmd.namespace = cmd.parser.parse_args(['fish'])
-
-        with pytest.raises(cmdexc.ArgumentTypeError):
-            cmd._get_call_args(win_id=0)
-
     def test_pos_arg_info(self):
         @cmdutils.register()
         @cmdutils.argument('foo', choices=('a', 'b'))
