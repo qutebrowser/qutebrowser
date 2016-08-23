@@ -76,7 +76,7 @@ Server = http://qutebrowser.org/qt-debug/$arch
 Then install the packages:
 
 ----
-# pacman -Suy pyqt5-common-debug python-pyqt5-debug qt5-base-debug qt5-webkit-debug,qt5-webengine-debug
+# pacman -Suy pyqt5-common-debug python-pyqt5-debug qt5-base-debug qt5-webkit-debug qt5-webengine-debug
 ----
 
 The `-debug` packages conflict with the non-debug variants - it's safe to
