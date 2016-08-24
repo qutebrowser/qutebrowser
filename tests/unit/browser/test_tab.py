@@ -19,7 +19,7 @@
 
 import pytest
 
-from PyQt5.QtCore import PYQT_VERSION, pyqtSignal, QPoint
+from PyQt5.QtCore import PYQT_VERSION
 
 from qutebrowser.browser import browsertab
 from qutebrowser.keyinput import modeman
@@ -29,22 +29,16 @@ pytestmark = pytest.mark.usefixtures('redirect_xdg_data')
 
 try:
     from PyQt5.QtWebKitWidgets import QWebView
-
-    class WebView(QWebView):
-        mouse_wheel_zoom = pyqtSignal(QPoint)
 except ImportError:
-    WebView = None
+    QWebView = None
 
 try:
     from PyQt5.QtWebEngineWidgets import QWebEngineView
-
-    class WebEngineView(QWebEngineView):
-        mouse_wheel_zoom = pyqtSignal(QPoint)
 except ImportError:
-    WebEngineView = None
+    QWebEngineView = None
 
 
-@pytest.fixture(params=[WebView, WebEngineView])
+@pytest.fixture(params=[QWebView, QWebEngineView])
 def view(qtbot, config_stub, request):
     config_stub.data = {
         'input': {
@@ -64,7 +58,7 @@ def view(qtbot, config_stub, request):
     return v
 
 
-@pytest.yield_fixture(params=['webkit', 'webengine'])
+@pytest.fixture(params=['webkit', 'webengine'])
 def tab(request, default_config, qtbot, tab_registry, cookiejar_and_cache):
     if PYQT_VERSION < 0x050600:
         pytest.skip('Causes segfaults, see #1638')
@@ -91,26 +85,34 @@ def tab(request, default_config, qtbot, tab_registry, cookiejar_and_cache):
     objreg.delete('mode-manager', scope='window', window=0)
 
 
+class Tab(browsertab.AbstractTab):
+
+    # pylint: disable=abstract-method
+
+    def __init__(self, win_id, mode_manager, parent=None):
+        super().__init__(win_id, parent)
+        self.history = browsertab.AbstractHistory(self)
+        self.scroller = browsertab.AbstractScroller(self, parent=self)
+        self.caret = browsertab.AbstractCaret(win_id=self.win_id,
+                                              mode_manager=mode_manager,
+                                              tab=self, parent=self)
+        self.zoom = browsertab.AbstractZoom(win_id=self.win_id)
+        self.search = browsertab.AbstractSearch(parent=self)
+        self.printing = browsertab.AbstractPrinting()
+        self.elements = browsertab.AbstractElements(self)
+
+    def _install_event_filter(self):
+        pass
+
+
 @pytest.mark.skipif(PYQT_VERSION < 0x050600,
                     reason='Causes segfaults, see #1638')
-def test_tab(qtbot, view, config_stub, tab_registry):
-    tab_w = browsertab.AbstractTab(win_id=0)
+def test_tab(qtbot, view, config_stub, tab_registry, mode_manager):
+    tab_w = Tab(win_id=0, mode_manager=mode_manager)
     qtbot.add_widget(tab_w)
-    tab_w.show()
 
     assert tab_w.win_id == 0
     assert tab_w._widget is None
-
-    mode_manager = modeman.ModeManager(0)
-
-    tab_w.history = browsertab.AbstractHistory(tab_w)
-    tab_w.scroll = browsertab.AbstractScroller(tab_w, parent=tab_w)
-    tab_w.caret = browsertab.AbstractCaret(win_id=tab_w.win_id,
-                                           mode_manager=mode_manager,
-                                           tab=tab_w, parent=tab_w)
-    tab_w.zoom = browsertab.AbstractZoom(win_id=tab_w.win_id)
-    tab_w.search = browsertab.AbstractSearch(parent=tab_w)
-    tab_w.printing = browsertab.AbstractPrinting()
 
     tab_w._set_widget(view)
     assert tab_w._widget is view
@@ -118,26 +120,5 @@ def test_tab(qtbot, view, config_stub, tab_registry):
     assert tab_w.history._history is view.history()
     assert view.parent() is tab_w
 
-
-class TestJs:
-
-    @pytest.mark.parametrize('inp, expected', [('1+1', 2),
-                                               ('undefined', None)])
-    def test_blocking(self, tab, inp, expected):
-        assert tab.run_js_blocking(inp) == expected
-
-
-class TestTabData:
-
-    def test_known_attr(self):
-        data = browsertab.TabData()
-        assert not data.keep_icon
-        data.keep_icon = True
-        assert data.keep_icon
-
-    def test_unknown_attr(self):
-        data = browsertab.TabData()
-        with pytest.raises(AttributeError):
-            data.bar = 42  # pylint: disable=assigning-non-slot
-        with pytest.raises(AttributeError):
-            data.bar  # pylint: disable=pointless-statement
+    tab_w.show()
+    qtbot.waitForWindowShown(tab_w)

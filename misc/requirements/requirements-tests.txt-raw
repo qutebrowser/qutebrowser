@@ -1,7 +1,7 @@
 beautifulsoup4
 CherryPy
 coverage
-Flask==0.10.1
+Flask
 httpbin
 hypothesis
 pytest
@@ -15,8 +15,8 @@ pytest-qt
 pytest-repeat
 pytest-rerunfailures
 pytest-travis-fold
+pytest-warnings
 pytest-xvfb
 vulture
 
-#@ filter: Flask < 0.11.0
 #@ ignore: Jinja2, MarkupSafe

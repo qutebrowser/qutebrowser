@@ -38,6 +38,8 @@ try:
 except ImportError:
     colorama = None
 
+_log_inited = False
+
 COLORS = ['black', 'red', 'green', 'yellow', 'blue', 'purple', 'cyan', 'white']
 COLOR_ESCAPES = {color: '\033[{}m'.format(i)
                  for i, color in enumerate(COLORS, start=30)}
@@ -85,6 +87,15 @@ LOG_LEVELS = {
     'CRITICAL': logging.CRITICAL,
 }
 
+LOGGER_NAMES = [
+    'statusbar', 'completion', 'init', 'url',
+    'destroy', 'modes', 'webview', 'misc',
+    'mouse', 'procs', 'hints', 'keyboard',
+    'commands', 'signals', 'downloads',
+    'js', 'qt', 'rfc6266', 'ipc', 'shlexer',
+    'save', 'message', 'config', 'sessions'
+]
+
 
 def vdebug(self, msg, *args, **kwargs):
     """Log with a VDEBUG level.
@@ -129,6 +140,8 @@ sessions = logging.getLogger('sessions')
 
 
 ram_handler = None
+console_handler = None
+console_filter = None
 
 
 def stub(suffix=''):
@@ -159,17 +172,26 @@ def init_log(args):
     console, ram = _init_handlers(numeric_level, args.color, args.force_color,
                                   args.json_logging, args.loglines)
     root = logging.getLogger()
+    global console_filter
     if console is not None:
         if args.logfilter is not None:
-            console.addFilter(LogFilter(args.logfilter.split(',')))
+            console_filter = LogFilter(args.logfilter.split(','))
+            console.addFilter(console_filter)
         root.addHandler(console)
     if ram is not None:
         root.addHandler(ram)
     root.setLevel(logging.NOTSET)
     logging.captureWarnings(True)
+    _init_py_warnings()
+    QtCore.qInstallMessageHandler(qt_message_handler)
+    global _log_inited
+    _log_inited = True
+
+
+def _init_py_warnings():
+    """Initialize Python warning handling."""
     warnings.simplefilter('default')
     warnings.filterwarnings('ignore', module='pdb', category=ResourceWarning)
-    QtCore.qInstallMessageHandler(qt_message_handler)
 
 
 @contextlib.contextmanager
@@ -182,6 +204,15 @@ def disable_qt_msghandler():
         QtCore.qInstallMessageHandler(old_handler)
 
 
+@contextlib.contextmanager
+def ignore_py_warnings(**kwargs):
+    """Contextmanager to temporarily disable certain Python warnings."""
+    warnings.filterwarnings('ignore', **kwargs)
+    yield
+    if _log_inited:
+        _init_py_warnings()
+
+
 def _init_handlers(level, color, force_color, json_logging, ram_capacity):
     """Init log handlers.
 
@@ -192,6 +223,7 @@ def _init_handlers(level, color, force_color, json_logging, ram_capacity):
         json_logging: Output log lines in JSON (this disables all colors).
     """
     global ram_handler
+    global console_handler
     console_fmt, ram_fmt, html_fmt, use_colorama = _init_formatters(
         level, color, force_color, json_logging)
 
@@ -330,6 +362,15 @@ def qt_message_handler(msg_type, context, msg):
         "Image of format '' blocked because it is not considered safe. If you "
             "are sure it is safe to do so, you can white-list the format by "
             "setting the environment variable QTWEBKIT_IMAGEFORMAT_WHITELIST=",
+        # Installing Qt from the installer may cause it looking for SSL3 which
+        # may not be available on the system
+        "QSslSocket: cannot resolve SSLv3_client_method",
+        "QSslSocket: cannot resolve SSLv3_server_method",
+        # When enabling debugging with QtWebEngine
+        "Remote debugging server started successfully. Try pointing a "
+            "Chromium-based browser to ",
+        # https://github.com/The-Compiler/qutebrowser/issues/1287
+        "QXcbClipboard: SelectionRequest too old",
     ]
     if sys.platform == 'darwin':
         suppressed_msgs += [
@@ -421,16 +462,16 @@ class LogFilter(logging.Filter):
 
     def __init__(self, names):
         super().__init__()
-        self._names = names
+        self.names = names
 
     def filter(self, record):
         """Determine if the specified record is to be logged."""
-        if self._names is None:
+        if self.names is None:
             return True
         if record.levelno > logging.DEBUG:
             # More important than DEBUG, so we won't filter at all
             return True
-        for name in self._names:
+        for name in self.names:
             if record.name == name:
                 return True
             elif not record.name.startswith(name):
@@ -483,6 +524,9 @@ class RAMHandler(logging.Handler):
             if record.levelno >= minlevel:
                 lines.append(fmt(record))
         return '\n'.join(lines)
+
+    def change_log_capacity(self, capacity):
+        self._data = collections.deque(self._data, maxlen=capacity)
 
 
 class ColoredFormatter(logging.Formatter):

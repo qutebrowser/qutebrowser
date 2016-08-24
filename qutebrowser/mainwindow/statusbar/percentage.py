@@ -54,4 +54,4 @@ class Percentage(textbase.TextBase):
     @pyqtSlot(browsertab.AbstractTab)
     def on_tab_changed(self, tab):
         """Update scroll position when tab changed."""
-        self.set_perc(*tab.scroll.pos_perc())
+        self.set_perc(*tab.scroller.pos_perc())

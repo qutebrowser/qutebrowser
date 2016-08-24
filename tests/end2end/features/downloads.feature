@@ -7,8 +7,7 @@ Feature: Downloading things from a website.
     Scenario: Downloading which redirects with closed tab (issue 889)
         When I set tabs -> last-close to blank
         And I open data/downloads/issue889.html
-        And I run :hint links download
-        And I run :follow-hint a
+        And I hint with args "links download" and follow a
         And I run :tab-close
         And I wait for "* Handling redirect" in the log
         Then no crash should happen
@@ -16,8 +15,7 @@ Feature: Downloading things from a website.
     Scenario: Downloading with error in closed tab (issue 889)
         When I set tabs -> last-close to blank
         And I open data/downloads/issue889.html
-        And I run :hint links download
-        And I run :follow-hint s
+        And I hint with args "links download" and follow s
         And I run :tab-close
         And I wait for the error "Download error: * - server replied: NOT FOUND"
         And I run :download-retry
@@ -28,19 +26,16 @@ Feature: Downloading things from a website.
         When I set completion -> download-path-suggestion to filename
         And I set storage -> prompt-download-directory to true
         And I open data/downloads/issue1243.html
-        And I run :hint links download
-        And I run :follow-hint a
-        And I wait for "Asking question <qutebrowser.utils.usertypes.Question default='qutebrowser-download' mode=<PromptMode.text: 2> text='Save file to:'>, *" in the log
-        And I run :leave-mode
-        Then no crash should happen
+        And I hint with args "links download" and follow a
+        And I wait for "Asking question <qutebrowser.utils.usertypes.Question default='qutebrowser-download' mode=<PromptMode.download: 5> text='Save file to:'>, *" in the log
+        Then the error "Download error: No handler found for qute://!" should be shown
 
     Scenario: Downloading a data: link (issue 1214)
         When I set completion -> download-path-suggestion to filename
         And I set storage -> prompt-download-directory to true
         And I open data/downloads/issue1214.html
-        And I run :hint links download
-        And I run :follow-hint a
-        And I wait for "Asking question <qutebrowser.utils.usertypes.Question default='binary blob' mode=<PromptMode.text: 2> text='Save file to:'>, *" in the log
+        And I hint with args "links download" and follow a
+        And I wait for "Asking question <qutebrowser.utils.usertypes.Question default='binary blob' mode=<PromptMode.download: 5> text='Save file to:'>, *" in the log
         And I run :leave-mode
         Then no crash should happen
 
@@ -159,11 +154,11 @@ Feature: Downloading things from a website.
 
     ## :download-open
 
-    # Scenario: Opening a download
-    #     When I open data/downloads/download.bin
-    #     And I wait until the download is finished
-    #     And I run :download-open
-    #     Then ...
+    Scenario: Opening a download
+        When I open data/downloads/download.bin
+        And I wait until the download is finished
+        And I open the download
+        Then "Opening *download.bin* with [*python*]" should be logged
 
     Scenario: Opening a download which does not exist
         When I run :download-open with count 42
@@ -178,6 +173,35 @@ Feature: Downloading things from a website.
         When I run :download http://localhost:(port)/drip?numbytes=128&duration=5
         And I run :download-open with count 1
         Then the error "Download 1 is not done!" should be shown
+
+    ## opening a file directly (prompt-open-download)
+
+    Scenario: Opening a download directly
+        When I set storage -> prompt-download-directory to true
+        And I open data/downloads/download.bin
+        And I directly open the download
+        And I wait until the download is finished
+        Then "Opening *download.bin* with [*python*]" should be logged
+
+    ## https://github.com/The-Compiler/qutebrowser/issues/1728
+
+    Scenario: Cancelling a download that should be opened
+        When I set storage -> prompt-download-directory to true
+        And I run :download http://localhost:(port)/drip?numbytes=128&duration=5
+        And I directly open the download
+        And I run :download-cancel
+        Then "* finished but not successful, not opening!" should be logged
+
+    ## https://github.com/The-Compiler/qutebrowser/issues/1725
+
+    Scenario: Directly open a download with a very long filename
+        When I set storage -> prompt-download-directory to true
+        And I open data/downloads/issue1725.html
+        And I run :click-element id long-link
+        And I wait for "Asking question <qutebrowser.utils.usertypes.Question default=* mode=<PromptMode.download: 5> text='Save file to:'>, *" in the log
+        And I directly open the download
+        And I wait until the download is finished
+        Then "Opening * with [*python*]" should be logged
 
     ## completion -> download-path-suggestion
 

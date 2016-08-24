@@ -200,7 +200,7 @@ Feature: Tab management
 
     Scenario: :tab-focus with very big index
         When I run :tab-focus 99999999999999
-        Then the error "Numeric argument is too large for internal int representation." should be shown
+        Then the error "There's no tab with index 99999999999999!" should be shown
 
     Scenario: :tab-focus with count
         When I open data/numbers/1.txt
@@ -213,8 +213,14 @@ Feature: Tab management
             - data/numbers/3.txt
 
     Scenario: :tab-focus with count and index
-        When I run :tab-focus 2 with count 2
-        Then the error "Both count and argument given!" should be shown
+        When I open data/numbers/1.txt
+        And I open data/numbers/2.txt in a new tab
+        And I open data/numbers/3.txt in a new tab
+        And I run :tab-focus 4 with count 2
+        Then the following tabs should be open:
+            - data/numbers/1.txt
+            - data/numbers/2.txt (active)
+            - data/numbers/3.txt
 
     Scenario: :tab-focus last
         When I open data/numbers/1.txt
@@ -257,8 +263,7 @@ Feature: Tab management
         Then the error "There's no tab with index -1!" should be shown
 
     Scenario: :tab-focus last with no last focused tab
-        Given I have a fresh instance
-        And I run :tab-focus last
+        When I run :tab-focus last
         Then the error "No last focused tab!" should be shown
 
     # tab-prev/tab-next
@@ -375,6 +380,58 @@ Feature: Tab management
         And I open data/numbers/3.txt in a new tab
         And I run :tab-move with count 23
         Then the error "Can't move tab to position 23!" should be shown.
+        And the following tabs should be open:
+            - data/numbers/1.txt
+            - data/numbers/2.txt
+            - data/numbers/3.txt (active)
+
+    Scenario: :tab-move with index.
+        When I open data/numbers/1.txt
+        And I open data/numbers/2.txt in a new tab
+        And I open data/numbers/3.txt in a new tab
+        And I run :tab-move 2
+        Then the following tabs should be open:
+            - data/numbers/1.txt
+            - data/numbers/3.txt (active)
+            - data/numbers/2.txt
+
+    Scenario: :tab-move with negative index.
+        When I open data/numbers/1.txt
+        And I open data/numbers/2.txt in a new tab
+        And I open data/numbers/3.txt in a new tab
+        And I run :tab-move -3
+        Then the following tabs should be open:
+            - data/numbers/3.txt (active)
+            - data/numbers/1.txt
+            - data/numbers/2.txt
+
+    Scenario: :tab-move with invalid index.
+        When I open data/numbers/1.txt
+        And I open data/numbers/2.txt in a new tab
+        And I open data/numbers/3.txt in a new tab
+        And I run :tab-move -5
+        Then the error "Can't move tab to position -1!" should be shown.
+        And the following tabs should be open:
+            - data/numbers/1.txt
+            - data/numbers/2.txt
+            - data/numbers/3.txt (active)
+
+    Scenario: :tab-move with index and count.
+        When I open data/numbers/1.txt
+        And I open data/numbers/2.txt in a new tab
+        And I open data/numbers/3.txt in a new tab
+        And I run :tab-move 1 with count 2
+        Then the following tabs should be open:
+            - data/numbers/1.txt
+            - data/numbers/3.txt (active)
+            - data/numbers/2.txt
+
+    Scenario: :tab-move with index and invalid count.
+        When I open data/numbers/1.txt
+        And I open data/numbers/2.txt in a new tab
+        And I open data/numbers/3.txt in a new tab
+        And I run :tab-move -2 with count 4
+        Then the error "Can't move tab to position 4!" should be shown.
         And the following tabs should be open:
             - data/numbers/1.txt
             - data/numbers/2.txt
@@ -506,7 +563,6 @@ Feature: Tab management
             - data/hello2.txt
 
     Scenario: Cloning to new window
-        Given I have a fresh instance
         When I open data/title.html
         And I run :tab-clone -w
         Then the session should look like:
@@ -525,7 +581,6 @@ Feature: Tab management
                   title: Test title
 
     Scenario: Cloning with tabs-are-windows = true
-        Given I have a fresh instance
         When I open data/title.html
         And I set tabs -> tabs-are-windows to true
         And I run :tab-clone
@@ -547,7 +602,6 @@ Feature: Tab management
     # :tab-detach
 
     Scenario: Detaching a tab
-        Given I have a fresh instance
         When I open data/numbers/1.txt
         And I open data/numbers/2.txt in a new tab
         And I run :tab-detach
@@ -561,6 +615,11 @@ Feature: Tab management
             - tabs:
               - history:
                 - url: http://localhost:*/data/numbers/2.txt
+
+    Scenario: Detach tab from window with only one tab
+        When I open data/hello.txt
+        And I run :tab-detach
+        Then the error "Cannot detach one tab." should be shown
 
     # :undo
 
@@ -645,6 +704,53 @@ Feature: Tab management
         Then the error "Nothing to undo!" should be shown
         And the error "Nothing to undo!" should be shown
 
+    Scenario: Undo a tab closed by index
+        When I open data/numbers/1.txt
+        And I open data/numbers/2.txt in a new tab
+        And I open data/numbers/3.txt in a new tab
+        And I run :tab-close with count 1
+        And I run :undo
+        Then the following tabs should be open:
+            - data/numbers/1.txt (active)
+            - data/numbers/2.txt
+            - data/numbers/3.txt
+
+    Scenario: Undo a tab closed after switching tabs
+        When I open data/numbers/1.txt
+        And I open data/numbers/2.txt in a new tab
+        And I open data/numbers/3.txt in a new tab
+        And I run :tab-close with count 1
+        And I run :tab-focus 2
+        And I run :undo
+        Then the following tabs should be open:
+            - data/numbers/1.txt (active)
+            - data/numbers/2.txt
+            - data/numbers/3.txt
+
+    Scenario: Undo a tab closed after rearranging tabs
+        When I open data/numbers/1.txt
+        And I open data/numbers/2.txt in a new tab
+        And I open data/numbers/3.txt in a new tab
+        And I run :tab-close with count 1
+        And I run :tab-focus 2
+        And I run :tab-move with count 1
+        And I run :undo
+        Then the following tabs should be open:
+            - data/numbers/1.txt (active)
+            - data/numbers/3.txt
+            - data/numbers/2.txt
+
+    Scenario: Undo a tab closed after new tab opened
+        When I open data/numbers/1.txt
+        And I open data/numbers/2.txt in a new tab
+        And I run :tab-close with count 1
+        And I open data/numbers/3.txt in a new tab
+        And I run :undo
+        Then the following tabs should be open:
+            - data/numbers/1.txt (active)
+            - data/numbers/2.txt
+            - data/numbers/3.txt
+
     # last-close
 
     Scenario: last-close = blank
@@ -688,8 +794,7 @@ Feature: Tab management
     Scenario: opening links with tabs->background-tabs true
         When I set tabs -> background-tabs to true
         And I open data/hints/html/simple.html
-        And I run :hint all tab
-        And I run :follow-hint a
+        And I hint with args "all tab" and follow a
         And I wait until data/hello.txt is loaded
         Then the following tabs should be open:
             - data/hints/html/simple.html (active)
@@ -700,8 +805,7 @@ Feature: Tab management
         And I set tabs -> background-tabs to false
         And I open about:blank
         And I open data/hints/html/simple.html in a new tab
-        And I run :hint all tab
-        And I run :follow-hint a
+        And I run :click-element id link --target=tab
         And I wait until data/hello.txt is loaded
         Then the following tabs should be open:
             - about:blank
@@ -713,8 +817,7 @@ Feature: Tab management
         And I set tabs -> background-tabs to false
         And I open about:blank
         And I open data/hints/html/simple.html in a new tab
-        And I run :hint all tab
-        And I run :follow-hint a
+        And I run :click-element id link --target=tab
         And I wait until data/hello.txt is loaded
         Then the following tabs should be open:
             - about:blank
@@ -726,8 +829,7 @@ Feature: Tab management
         And I set tabs -> background-tabs to false
         And I open about:blank
         And I open data/hints/html/simple.html in a new tab
-        And I run :hint all tab
-        And I run :follow-hint a
+        And I run :click-element id link --target=tab
         And I wait until data/hello.txt is loaded
         Then the following tabs should be open:
             - data/hello.txt (active)
@@ -740,8 +842,7 @@ Feature: Tab management
         And I open data/hints/html/simple.html
         And I open about:blank in a new tab
         And I run :tab-focus last
-        And I run :hint all tab
-        And I run :follow-hint a
+        And I run :click-element id link --target=tab
         And I wait until data/hello.txt is loaded
         Then the following tabs should be open:
             - data/hints/html/simple.html
@@ -751,20 +852,19 @@ Feature: Tab management
     # :buffer
 
     Scenario: :buffer without args
-        Given I have a fresh instance
         When I run :buffer
         Then the error "buffer: The following arguments are required: index" should be shown
 
     Scenario: :buffer with a matching title
         When I open data/title.html
         And I open data/search.html in a new tab
-        And I open data/scroll.html in a new tab
+        And I open data/scroll/simple.html in a new tab
         And I run :buffer "Searching text"
         And I wait for "Current tab changed, focusing <qutebrowser.browser.* tab_id=* url='http://localhost:*/data/search.html'>" in the log
         Then the following tabs should be open:
             - data/title.html
             - data/search.html (active)
-            - data/scroll.html
+            - data/scroll/simple.html
 
     Scenario: :buffer with no matching title
         When I run :buffer "invalid title"
@@ -773,11 +873,11 @@ Feature: Tab management
     Scenario: :buffer with matching title and two windows
         When I open data/title.html
         And I open data/search.html in a new tab
-        And I open data/scroll.html in a new tab
+        And I open data/scroll/simple.html in a new tab
         And I open data/caret.html in a new window
         And I open data/paste_primary.html in a new tab
         And I run :buffer "Scrolling"
-        And I wait for "Focus object changed: <qutebrowser.browser.* tab_id=* url='http://localhost:*/data/scroll.html'>" in the log
+        And I wait for "Focus object changed: *" in the log
         Then the session should look like:
             windows:
             - active: true
@@ -789,7 +889,7 @@ Feature: Tab management
                 - url: http://localhost:*/data/search.html
               - active: true
                 history:
-                - url: http://localhost:*/data/scroll.html
+                - url: http://localhost:*/data/scroll/simple.html
             - tabs:
               - history:
                 - url: http://localhost:*/data/caret.html
@@ -804,19 +904,19 @@ Feature: Tab management
 
     Scenario: :buffer with no matching window index
         When I open data/title.html
-        And I run :buffer "2/1"
-        Then the error "There's no window with id 2!" should be shown
+        And I run :buffer "99/1"
+        Then the error "There's no window with id 99!" should be shown
 
     Scenario: :buffer with matching window index
         Given I have a fresh instance
         When I open data/title.html
         And I open data/search.html in a new tab
-        And I open data/scroll.html in a new tab
+        And I open data/scroll/simple.html in a new tab
         And I run :open -w http://localhost:(port)/data/caret.html
         And I open data/paste_primary.html in a new tab
         And I wait until data/caret.html is loaded
         And I run :buffer "0/2"
-        And I wait for "Focus object changed: <qutebrowser.browser.* tab_id=* url='http://localhost:*/data/search.html'>" in the log
+        And I wait for "Focus object changed: *" in the log
         Then the session should look like:
             windows:
             - active: true
@@ -828,7 +928,7 @@ Feature: Tab management
                 history:
                 - url: http://localhost:*/data/search.html
               - history:
-                - url: http://localhost:*/data/scroll.html
+                - url: http://localhost:*/data/scroll/simple.html
             - tabs:
               - history:
                 - url: http://localhost:*/data/caret.html
@@ -837,7 +937,6 @@ Feature: Tab management
                 - url: http://localhost:*/data/paste_primary.html
 
     Scenario: :buffer with wrong argument (-1)
-        Given I have a fresh instance
         When I open data/title.html
         And I run :buffer "-1"
         Then the error "There's no tab with index -1!" should be shown

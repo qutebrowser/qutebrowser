@@ -59,9 +59,13 @@ def _missing_str(name, *, windows=None, pip=None, webengine=False):
              'distributions packages, or install it via pip.'.format(name)]
     blocks.append('<br />'.join(lines))
     if webengine:
-        lines = ['Note QtWebEngine is not available for some distributions '
-                 '(like Debian/Ubuntu), so you need to start without '
-                 '--backend webengine there.']
+        lines = [
+            ('Note QtWebEngine is not available for some distributions '
+                '(like Debian/Ubuntu), so you need to start without '
+                '--backend webengine there.'),
+            ('QtWebEngine is currently unsupported with the OS X .app, see '
+                'https://github.com/The-Compiler/qutebrowser/issues/1692'),
+        ]
     else:
         lines = ['<b>If you installed a qutebrowser package for your '
                  'distribution, please report this as a bug.</b>']
@@ -166,8 +170,11 @@ def fix_harfbuzz(args):
     from qutebrowser.utils import log
     from PyQt5.QtCore import qVersion
     if 'PyQt5.QtWidgets' in sys.modules:
-        log.init.warning("Harfbuzz fix attempted but QtWidgets is already "
-                         "imported!")
+        msg = "Harfbuzz fix attempted but QtWidgets is already imported!"
+        if getattr(sys, 'frozen', False):
+            log.init.debug(msg)
+        else:
+            log.init.warning(msg)
     if sys.platform.startswith('linux') and args.harfbuzz == 'auto':
         if qVersion() == '5.3.0':
             log.init.debug("Using new harfbuzz engine (auto)")
@@ -294,6 +301,13 @@ def init_log(args):
     log.init.debug("Log initialized.")
 
 
+def check_optimize_flag():
+    from qutebrowser.utils import log
+    if sys.flags.optimize >= 2:
+        log.init.warning("Running on optimize level higher than 1, "
+                         "unexpected behavior may occur.")
+
+
 def earlyinit(args):
     """Do all needed early initialization.
 
@@ -309,13 +323,15 @@ def earlyinit(args):
     # Here we check if QtCore is available, and if not, print a message to the
     # console or via Tk.
     check_pyqt_core()
+    # Init logging as early as possible
+    init_log(args)
     # Now the faulthandler is enabled we fix the Qt harfbuzzing library, before
     # importing QtWidgets.
     fix_harfbuzz(args)
     # Now we can be sure QtCore is available, so we can print dialogs on
     # errors, so people only using the GUI notice them as well.
     check_qt_version()
-    check_ssl_support()
     remove_inputhook()
     check_libraries(args)
-    init_log(args)
+    check_ssl_support()
+    check_optimize_flag()

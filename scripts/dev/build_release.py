@@ -28,6 +28,7 @@ import shutil
 import subprocess
 import argparse
 import tarfile
+import tempfile
 import collections
 
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), os.pardir,
@@ -50,7 +51,7 @@ def call_script(name, *args, python=sys.executable):
     subprocess.check_call([python, path] + list(args))
 
 
-def call_tox(toxenv, *args, python=sys.executable):
+def call_tox(toxenv, *args, python=os.path.dirname(sys.executable)):
     """Call tox.
 
     Args:
@@ -94,7 +95,7 @@ def build_osx():
     utils.print_title("Updating 3rdparty content")
     update_3rdparty.update_pdfjs()
     utils.print_title("Building .app via pyinstaller")
-    call_tox('pyinstaller')
+    call_tox('pyinstaller', '-r')
     utils.print_title("Building .dmg")
     subprocess.check_call(['make', '-f', 'scripts/dev/Makefile-dmg'])
     utils.print_title("Cleaning up...")
@@ -102,6 +103,22 @@ def build_osx():
         os.remove(f)
     for d in ['dist', 'build']:
         shutil.rmtree(d)
+
+    dmg_name = 'qutebrowser-{}.dmg'.format(qutebrowser.__version__)
+    os.rename('qutebrowser.dmg', dmg_name)
+
+    utils.print_title("Running smoke test")
+    with tempfile.TemporaryDirectory() as tmpdir:
+        subprocess.check_call(['hdiutil', 'attach', dmg_name,
+                               '-mountpoint', tmpdir])
+        try:
+            binary = os.path.join(tmpdir, 'qutebrowser.app', 'Contents',
+                                  'MacOS', 'qutebrowser')
+            smoke_test(binary)
+        finally:
+            subprocess.check_call(['hdiutil', 'detach', tmpdir])
+
+    return [(dmg_name, 'application/x-apple-diskimage', 'OS X .dmg')]
 
 
 def build_windows():
@@ -116,6 +133,10 @@ def build_windows():
     python_x86 = r'C:\Python{}_x32'.format(ver)
     python_x64 = r'C:\Python{}'.format(ver)
 
+    artifacts = []
+
+    utils.print_title("Rebuilding tox environment")
+    call_tox('cxfreeze-windows', '-r', '--notest')
     utils.print_title("Running 32bit freeze.py build_exe")
     call_tox('cxfreeze-windows', 'build_exe', python=python_x86)
     utils.print_title("Running 32bit freeze.py bdist_msi")
@@ -125,14 +146,20 @@ def build_windows():
     utils.print_title("Running 64bit freeze.py bdist_msi")
     call_tox('cxfreeze-windows', 'bdist_msi', python=python_x64)
 
+    name_32 = 'qutebrowser-{}-win32.msi'.format(qutebrowser.__version__)
+    name_64 = 'qutebrowser-{}-amd64.msi'.format(qutebrowser.__version__)
+
+    artifacts += [
+        (os.path.join('dist', name_32), 'application/x-msi',
+         'Windows 32bit installer'),
+        (os.path.join('dist', name_64), 'application/x-msi',
+         'Windows 64bit installer'),
+    ]
+
     utils.print_title("Running 32bit smoke test")
     smoke_test('build/exe.win32-{}/qutebrowser.exe'.format(dotver))
     utils.print_title("Running 64bit smoke test")
     smoke_test('build/exe.win-amd64-{}/qutebrowser.exe'.format(dotver))
-
-    destdir = os.path.join('dist', 'zip')
-    _maybe_remove(destdir)
-    os.makedirs(destdir)
 
     basedirname = 'qutebrowser-{}'.format(qutebrowser.__version__)
     builddir = os.path.join('build', basedirname)
@@ -143,26 +170,24 @@ def build_windows():
         qutebrowser.__version__)
     origin = os.path.join('build', 'exe.win32-{}'.format(dotver))
     os.rename(origin, builddir)
-    shutil.make_archive(os.path.join(destdir, name), 'zip', 'build',
-                        basedirname)
+    shutil.make_archive(name, 'zip', 'build', basedirname)
     shutil.rmtree(builddir)
+    artifacts.append(('{}.zip'.format(name),
+                      'application/zip',
+                      'Windows 32bit standalone'))
 
     utils.print_title("Zipping 64bit standalone...")
     name = 'qutebrowser-{}-windows-standalone-amd64'.format(
         qutebrowser.__version__)
     origin = os.path.join('build', 'exe.win-amd64-{}'.format(dotver))
     os.rename(origin, builddir)
-    shutil.make_archive(os.path.join(destdir, name), 'zip', 'build',
-                        basedirname)
+    shutil.make_archive(name, 'zip', 'build', basedirname)
     shutil.rmtree(builddir)
+    artifacts.append(('{}.zip'.format(name),
+                      'application/zip',
+                      'Windows 64bit standalone'))
 
-    utils.print_title("Creating final zip...")
-    shutil.move(os.path.join('dist', 'qutebrowser-{}-amd64.msi'.format(
-        qutebrowser.__version__)), os.path.join('dist', 'zip'))
-    shutil.move(os.path.join('dist', 'qutebrowser-{}-win32.msi'.format(
-        qutebrowser.__version__)), os.path.join('dist', 'zip'))
-    shutil.make_archive('qutebrowser-{}-windows'.format(
-        qutebrowser.__version__), 'zip', destdir)
+    return artifacts
 
 
 def build_sdist():
@@ -196,6 +221,51 @@ def build_sdist():
         utils.print_subtitle(ext)
         print('\n'.join(files))
 
+    filename = 'qutebrowser-{}.tar.gz'.format(qutebrowser.__version__)
+    artifacts = [
+        (os.path.join('dist', filename), 'application/gzip', 'Source release'),
+        (os.path.join('dist', filename + '.asc'), 'application/pgp-signature',
+         'Source release - PGP signature'),
+    ]
+
+    return artifacts
+
+
+def github_upload(artifacts, tag):
+    """Upload the given artifacts to GitHub.
+
+    Args:
+        artifacts: A list of (filename, mimetype, description) tuples
+        tag: The name of the release tag
+    """
+    import github3
+    utils.print_title("Uploading to github...")
+
+    token_file = os.path.join(os.path.expanduser('~'), '.gh_token')
+    with open(token_file, encoding='ascii') as f:
+        token = f.read().strip()
+    gh = github3.login(token=token)
+    repo = gh.repository('The-Compiler', 'qutebrowser')
+
+    release = None  # to satisfy pylint
+    for release in repo.iter_releases():
+        if release.tag_name == tag:
+            break
+    else:
+        raise Exception("No release found for {!r}!".format(tag))
+
+    for filename, mimetype, description in artifacts:
+        with open(filename, 'rb') as f:
+            basename = os.path.basename(filename)
+            asset = release.upload_asset(mimetype, basename, f)
+        asset.edit(filename, description)
+
+
+def pypi_upload(artifacts):
+    """Upload the given artifacts to PyPI using twine."""
+    filenames = [a[0] for a in artifacts]
+    subprocess.check_call(['twine', 'upload'] + filenames)
+
 
 def main():
     parser = argparse.ArgumentParser()
@@ -203,8 +273,12 @@ def main():
                         "asciidoc.py. If not given, it's searched in PATH.",
                         nargs=2, required=False,
                         metavar=('PYTHON', 'ASCIIDOC'))
+    parser.add_argument('--upload', help="Tag to upload the release for",
+                        nargs=1, required=False, metavar='TAG')
     args = parser.parse_args()
     utils.change_cwd()
+
+    upload_to_pypi = False
 
     if os.name == 'nt':
         if sys.maxsize > 2**32:
@@ -216,12 +290,20 @@ def main():
             print("https://github.com/pypa/virtualenv/issues/774")
             sys.exit(1)
         run_asciidoc2html(args)
-        build_windows()
+        artifacts = build_windows()
     elif sys.platform == 'darwin':
         run_asciidoc2html(args)
-        build_osx()
+        artifacts = build_osx()
     else:
-        build_sdist()
+        artifacts = build_sdist()
+        upload_to_pypi = True
+
+    if args.upload is not None:
+        utils.print_title("Press enter to release...")
+        input()
+        github_upload(artifacts, args.upload[0])
+        if upload_to_pypi:
+            pypi_upload(artifacts)
 
 
 if __name__ == '__main__':

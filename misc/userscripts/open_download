@@ -1,4 +1,4 @@
-#!/usr/bin/env bash -e
+#!/usr/bin/env bash
 # Both standalone script and qutebrowser userscript that opens a rofi menu with
 # all files from the download director and opens the selected file. It works
 # both as a userscript and a standalone script that is called from outside of
@@ -17,6 +17,8 @@
 #
 # Thorsten Wißmann, 2015 (thorsten` on freenode)
 # Any feedback is welcome!
+
+set -e
 
 # open a file from the download directory using rofi
 DOWNLOAD_DIR=${DOWNLOAD_DIR:-$QUTE_DOWNLOAD_DIR}

@@ -18,9 +18,16 @@
 # along with qutebrowser.  If not, see <http://www.gnu.org/licenses/>.
 
 import os
+import sys
+import shlex
 
+import pytest
 import pytest_bdd as bdd
 bdd.scenarios('downloads.feature')
+
+
+pytestmark = pytest.mark.qtwebengine_todo("Downloads not implemented yet",
+                                          run=False)
 
 
 @bdd.given("I set up a temporary download dir")
@@ -64,7 +71,19 @@ def download_should_exist(filename, tmpdir):
 def download_prompt(tmpdir, quteproc, path):
     full_path = path.replace('{downloaddir}', str(tmpdir)).replace('/', os.sep)
     msg = ("Asking question <qutebrowser.utils.usertypes.Question "
-           "default={full_path!r} mode=<PromptMode.text: 2> "
+           "default={full_path!r} mode=<PromptMode.download: 5> "
            "text='Save file to:'>, *".format(full_path=full_path))
     quteproc.wait_for(message=msg)
     quteproc.send_cmd(':leave-mode')
+
+
+@bdd.when("I open the download")
+def download_open(quteproc):
+    cmd = '{} -c pass'.format(shlex.quote(sys.executable))
+    quteproc.send_cmd(':download-open {}'.format(cmd))
+
+
+@bdd.when("I directly open the download")
+def download_open_with_prompt(quteproc):
+    cmd = '{} -c pass'.format(shlex.quote(sys.executable))
+    quteproc.send_cmd(':prompt-open-download {}'.format(cmd))

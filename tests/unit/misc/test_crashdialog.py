@@ -52,33 +52,15 @@ Hello world!
 """
 
 
-class TestParseFatalStacktrace:
-
-    """Tests for parse_fatal_stacktrace."""
-
-    def test_valid_text(self):
-        """Test parse_fatal_stacktrace with a valid text."""
-        text = VALID_CRASH_TEXT.strip().replace('_', ' ')
-        typ, func = crashdialog.parse_fatal_stacktrace(text)
-        assert (typ, func) == ("Segmentation fault", 'testfunc')
-
-    def test_valid_text_thread(self):
-        """Test parse_fatal_stacktrace with a valid text #2."""
-        text = VALID_CRASH_TEXT_THREAD.strip().replace('_', ' ')
-        typ, func = crashdialog.parse_fatal_stacktrace(text)
-        assert (typ, func) == ("Segmentation fault", 'testfunc')
-
-    def test_valid_text_empty(self):
-        """Test parse_fatal_stacktrace with a valid text but empty function."""
-        text = VALID_CRASH_TEXT_EMPTY.strip().replace('_', ' ')
-        typ, func = crashdialog.parse_fatal_stacktrace(text)
-        assert (typ, func) == ('Aborted', '')
-
-    def test_invalid_text(self):
-        """Test parse_fatal_stacktrace with an invalid text."""
-        text = INVALID_CRASH_TEXT.strip().replace('_', ' ')
-        typ, func = crashdialog.parse_fatal_stacktrace(text)
-        assert (typ, func) == ('', '')
+@pytest.mark.parametrize('text, typ, func', [
+    (VALID_CRASH_TEXT, 'Segmentation fault', 'testfunc'),
+    (VALID_CRASH_TEXT_THREAD, 'Segmentation fault', 'testfunc'),
+    (VALID_CRASH_TEXT_EMPTY, 'Aborted', ''),
+    (INVALID_CRASH_TEXT, '', ''),
+])
+def test_parse_fatal_stacktrace(text, typ, func):
+    text = text.strip().replace('_', ' ')
+    assert crashdialog.parse_fatal_stacktrace(text) == (typ, func)
 
 
 @pytest.mark.parametrize('env, expected', [

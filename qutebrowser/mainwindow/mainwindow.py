@@ -32,7 +32,7 @@ from qutebrowser.config import config
 from qutebrowser.utils import message, log, usertypes, qtutils, objreg, utils
 from qutebrowser.mainwindow import tabbedbrowser
 from qutebrowser.mainwindow.statusbar import bar
-from qutebrowser.completion import completionwidget
+from qutebrowser.completion import completionwidget, completer
 from qutebrowser.keyinput import modeman
 from qutebrowser.browser import commands, downloadview, hints
 from qutebrowser.browser.webkit import downloads
@@ -54,38 +54,62 @@ def get_window(via_ipc, force_window=False, force_tab=False,
     """
     if force_window and force_tab:
         raise ValueError("force_window and force_tab are mutually exclusive!")
+
     if not via_ipc:
         # Initial main window
         return 0
-    window_to_raise = None
+
+    open_target = config.get('general', 'new-instance-open-target')
+
+    # Apply any target overrides, ordered by precedence
     if force_target is not None:
         open_target = force_target
-    else:
-        open_target = config.get('general', 'new-instance-open-target')
-    if (open_target == 'window' or force_window) and not force_tab:
+    if force_window:
+        open_target = 'window'
+    if force_tab and open_target == 'window':
+        # Command sent via IPC
+        open_target = 'tab-silent'
+
+    window = None
+    raise_window = False
+
+    # Try to find the existing tab target if opening in a tab
+    if open_target != 'window':
+        window = get_target_window()
+        raise_window = open_target not in ['tab-silent', 'tab-bg-silent']
+
+    # Otherwise, or if no window was found, create a new one
+    if window is None:
         window = MainWindow()
         window.show()
-        win_id = window.win_id
-        window_to_raise = window
-    else:
-        try:
-            window = objreg.last_window()
-        except objreg.NoWindow:
-            # There is no window left, so we open a new one
-            window = MainWindow()
-            window.show()
-            win_id = window.win_id
-            window_to_raise = window
-        win_id = window.win_id
-        if open_target not in ['tab-silent', 'tab-bg-silent']:
-            window_to_raise = window
-    if window_to_raise is not None:
-        window_to_raise.setWindowState(
-            window.windowState() & ~Qt.WindowMinimized | Qt.WindowActive)
-        window_to_raise.raise_()
-        window_to_raise.activateWindow()
-        QApplication.instance().alert(window_to_raise)
-    return win_id
+        raise_window = True
+
+    if raise_window:
+        window.setWindowState(window.windowState() & ~Qt.WindowMinimized)
+        window.setWindowState(window.windowState() | Qt.WindowActive)
+        window.raise_()
+        window.activateWindow()
+        QApplication.instance().alert(window)
+
+    return window.win_id
+
+
+def get_target_window():
+    """Get the target window for new tabs, or None if none exist."""
+    try:
+        win_mode = config.get('general', 'new-instance-open-target.window')
+        if win_mode == 'last-focused':
+            return objreg.last_focused_window()
+        elif win_mode == 'first-opened':
+            return objreg.window_by_index(0)
+        elif win_mode == 'last-opened':
+            return objreg.window_by_index(-1)
+        elif win_mode == 'last-visible':
+            return objreg.last_visible_window()
+        else:
+            raise ValueError("Invalid win_mode {}".format(win_mode))
+    except objreg.NoWindow:
+        return None
 
 
 class MainWindow(QWidget):
@@ -131,23 +155,13 @@ class MainWindow(QWidget):
         self._vbox.setContentsMargins(0, 0, 0, 0)
         self._vbox.setSpacing(0)
 
-        log.init.debug("Initializing downloads...")
-        download_manager = downloads.DownloadManager(self.win_id, self)
-        objreg.register('download-manager', download_manager, scope='window',
-                        window=self.win_id)
-
+        self._init_downloadmanager()
         self._downloadview = downloadview.DownloadView(self.win_id)
 
         self.tabbed_browser = tabbedbrowser.TabbedBrowser(self.win_id)
         objreg.register('tabbed-browser', self.tabbed_browser, scope='window',
                         window=self.win_id)
-        dispatcher = commands.CommandDispatcher(self.win_id,
-                                                self.tabbed_browser)
-        objreg.register('command-dispatcher', dispatcher, scope='window',
-                        window=self.win_id)
-        self.tabbed_browser.destroyed.connect(
-            functools.partial(objreg.delete, 'command-dispatcher',
-                              scope='window', window=self.win_id))
+        self._init_command_dispatcher()
 
         # We need to set an explicit parent for StatusBar because it does some
         # show/hide magic immediately which would mean it'd show up as a
@@ -157,7 +171,7 @@ class MainWindow(QWidget):
         self._add_widgets()
         self._downloadview.show()
 
-        self._completion = completionwidget.CompletionView(self.win_id, self)
+        self._init_completion()
 
         self._commandrunner = runners.CommandRunner(self.win_id,
                                                     partial_match=True)
@@ -185,10 +199,31 @@ class MainWindow(QWidget):
         QTimer.singleShot(0, self._connect_resize_keyhint)
         objreg.get('config').changed.connect(self.on_config_changed)
 
-        if config.get('ui', 'hide-mouse-cursor'):
-            self.setCursor(Qt.BlankCursor)
-
         objreg.get("app").new_window.emit(self)
+
+    def _init_downloadmanager(self):
+        log.init.debug("Initializing downloads...")
+        download_manager = downloads.DownloadManager(self.win_id, self)
+        objreg.register('download-manager', download_manager, scope='window',
+                        window=self.win_id)
+
+    def _init_completion(self):
+        self._completion = completionwidget.CompletionView(self.win_id, self)
+        cmd = objreg.get('status-command', scope='window', window=self.win_id)
+        completer_obj = completer.Completer(cmd, self.win_id, self._completion)
+        self._completion.selection_changed.connect(
+            completer_obj.on_selection_changed)
+        objreg.register('completion', self._completion, scope='window',
+                        window=self.win_id)
+
+    def _init_command_dispatcher(self):
+        dispatcher = commands.CommandDispatcher(self.win_id,
+                                                self.tabbed_browser)
+        objreg.register('command-dispatcher', dispatcher, scope='window',
+                        window=self.win_id)
+        self.tabbed_browser.destroyed.connect(
+            functools.partial(objreg.delete, 'command-dispatcher',
+                              scope='window', window=self.win_id))
 
     def __repr__(self):
         return utils.get_repr(self)
@@ -332,9 +367,6 @@ class MainWindow(QWidget):
                                           Qt.DirectConnection)
 
         # statusbar
-        # FIXME some of these probably only should be triggered on mainframe
-        # loadStarted.
-        # https://github.com/The-Compiler/qutebrowser/issues/112
         tabs.current_tab_changed.connect(status.prog.on_tab_changed)
         tabs.cur_progress.connect(status.prog.setValue)
         tabs.cur_load_finished.connect(status.prog.hide)
@@ -446,8 +478,23 @@ class MainWindow(QWidget):
         self._downloadview.updateGeometry()
         self.tabbed_browser.tabBar().refresh()
 
+    def showEvent(self, e):
+        """Extend showEvent to register us as the last-visible-main-window.
+
+        Args:
+            e: The QShowEvent
+        """
+        super().showEvent(e)
+        objreg.register('last-visible-main-window', self, update=True)
+
     def _do_close(self):
         """Helper function for closeEvent."""
+        last_visible = objreg.get('last-visible-main-window')
+        if self is last_visible:
+            try:
+                objreg.delete('last-visible-main-window')
+            except KeyError:
+                pass
         objreg.get('session-manager').save_last_window_session()
         self._save_geometry()
         log.destroy.debug("Closing window {}".format(self.win_id))

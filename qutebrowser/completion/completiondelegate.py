@@ -200,13 +200,16 @@ class CompletionItemDelegate(QStyledItemDelegate):
             columns_to_filter = index.model().srcmodel.columns_to_filter
             if index.column() in columns_to_filter and pattern:
                 repl = r'<span class="highlight">\g<0></span>'
-                text = re.sub(re.escape(pattern).replace(r'\ ', r'.*'),
+                text = re.sub(re.escape(pattern).replace(r'\ ', r'|'),
                               repl, self._opt.text, flags=re.IGNORECASE)
                 self._doc.setHtml(text)
             else:
                 self._doc.setPlainText(self._opt.text)
         else:
-            self._doc.setHtml('<b>{}</b>'.format(html.escape(self._opt.text)))
+            self._doc.setHtml(
+                '<span style="font: {};">{}</span>'.format(
+                    html.escape(config.get('fonts', 'completion.category')),
+                    html.escape(self._opt.text)))
 
     def _draw_focus_rect(self):
         """Draw the focus rectangle of an ItemViewItem."""

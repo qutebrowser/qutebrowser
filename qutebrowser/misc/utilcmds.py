@@ -39,7 +39,7 @@ from PyQt5.QtCore import QUrl
 from PyQt5.QtWidgets import QApplication  # pylint: disable=unused-import
 
 
-@cmdutils.register(maxsplit=1, no_cmd_split=True)
+@cmdutils.register(maxsplit=1, no_cmd_split=True, no_replace_variables=True)
 @cmdutils.argument('win_id', win_id=True)
 def later(ms: int, command, win_id):
     """Execute a command after some time.
@@ -69,7 +69,7 @@ def later(ms: int, command, win_id):
         raise
 
 
-@cmdutils.register(maxsplit=1, no_cmd_split=True)
+@cmdutils.register(maxsplit=1, no_cmd_split=True, no_replace_variables=True)
 @cmdutils.argument('win_id', win_id=True)
 def repeat(times: int, command, win_id):
     """Repeat a given command.
@@ -234,3 +234,53 @@ def repeat_command(win_id, count=None):
     cmd = runners.last_command[mode_manager.mode]
     commandrunner = runners.CommandRunner(win_id)
     commandrunner.run(cmd[0], count if count is not None else cmd[1])
+
+
+@cmdutils.register(debug=True, name='debug-log-capacity')
+def log_capacity(capacity: int):
+    """Change the number of log lines to be stored in RAM.
+
+    Args:
+       capacity: Number of lines for the log.
+    """
+    if capacity < 0:
+        raise cmdexc.CommandError("Can't set a negative log capacity!")
+    else:
+        log.ram_handler.change_log_capacity(capacity)
+
+
+@cmdutils.register(debug=True)
+@cmdutils.argument('level', choices=sorted(
+    (level.lower() for level in log.LOG_LEVELS),
+    key=lambda e: log.LOG_LEVELS[e.upper()]))
+def debug_log_level(level: str):
+    """Change the log level for console logging.
+
+    Args:
+        level: The log level to set.
+    """
+    log.console_handler.setLevel(log.LOG_LEVELS[level.upper()])
+
+
+@cmdutils.register(debug=True)
+def debug_log_filter(filters: str):
+    """Change the log filter for console logging.
+
+    Args:
+        filters: A comma separated list of logger names.
+    """
+    if set(filters.split(',')).issubset(log.LOGGER_NAMES):
+        log.console_filter.names = filters.split(',')
+    else:
+        raise cmdexc.CommandError("filters: Invalid value {} - expected one "
+                                  "of: {}".format(filters,
+                                                  ', '.join(log.LOGGER_NAMES)))
+
+
+@cmdutils.register()
+@cmdutils.argument('current_win_id', win_id=True)
+def window_only(current_win_id):
+    """Close all windows except for the current one."""
+    for win_id, window in objreg.window_registry.items():
+        if win_id != current_win_id:
+            window.close()

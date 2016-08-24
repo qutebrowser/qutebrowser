@@ -339,8 +339,7 @@ class TestSerializeStream:
 
         assert src_obj == dest_obj
 
-    @pytest.mark.qt_log_ignore('^QIODevice::write.*: ReadOnly device',
-                               extend=True)
+    @pytest.mark.qt_log_ignore('^QIODevice::write.*: ReadOnly device')
     def test_serialize_readonly_stream(self):
         """Test serialize_stream with a read-only stream."""
         data = QByteArray()
@@ -350,8 +349,7 @@ class TestSerializeStream:
         assert str(excinfo.value) == ("The data stream cannot write to the "
                                       "underlying device.")
 
-    @pytest.mark.qt_log_ignore('QIODevice::read.*: WriteOnly device',
-                               extend=True)
+    @pytest.mark.qt_log_ignore('QIODevice::read.*: WriteOnly device')
     def test_deserialize_writeonly_stream(self):
         """Test deserialize_stream with a write-only stream."""
         data = QByteArray()
@@ -377,7 +375,7 @@ class TestSavefileOpen:
 
     ## Tests with a mock testing that the needed methods are called.
 
-    @pytest.yield_fixture
+    @pytest.fixture
     def qsavefile_mock(self, mocker):
         """Mock for QSaveFile."""
         m = mocker.patch('qutebrowser.utils.qtutils.QSaveFile')
@@ -481,16 +479,27 @@ class TestSavefileOpen:
         assert str(excinfo.value) in errors
         assert tmpdir.listdir() == [filename]
 
+    def test_failing_flush(self, tmpdir):
+        """Test with the file being closed before flushing."""
+        filename = tmpdir / 'foo'
+        with pytest.raises(ValueError) as excinfo:
+            with qtutils.savefile_open(str(filename), binary=True) as f:
+                f.write(b'Hello')
+                f.dev.commit()  # provoke failing flush
+
+        assert str(excinfo.value) == "IO operation on closed device!"
+        assert tmpdir.listdir() == [filename]
+
     def test_failing_commit(self, tmpdir):
         """Test with the file being closed before committing."""
         filename = tmpdir / 'foo'
         with pytest.raises(OSError) as excinfo:
             with qtutils.savefile_open(str(filename), binary=True) as f:
                 f.write(b'Hello')
-                f.dev.commit()  # provoke failing "real" commit
+                f.dev.cancelWriting()  # provoke failing commit
 
         assert str(excinfo.value) == "Commit failed!"
-        assert tmpdir.listdir() == [filename]
+        assert tmpdir.listdir() == []
 
     def test_line_endings(self, tmpdir):
         """Make sure line endings are translated correctly.
@@ -529,7 +538,7 @@ if test_file is not None and sys.platform != 'darwin':
 
     # Those are not run on OS X because that seems to cause a hang sometimes.
 
-    @pytest.yield_fixture(scope='session', autouse=True)
+    @pytest.fixture(scope='session', autouse=True)
     def clean_up_python_testfile():
         """Clean up the python testfile after tests if tests didn't."""
         yield
@@ -632,7 +641,7 @@ class TestPyQIODevice:
 
     """Tests for PyQIODevice."""
 
-    @pytest.yield_fixture
+    @pytest.fixture
     def pyqiodev(self):
         """Fixture providing a PyQIODevice with a QByteArray to test."""
         data = QByteArray()
@@ -713,7 +722,7 @@ class TestPyQIODevice:
         with pytest.raises(io.UnsupportedOperation):
             pyqiodev.fileno()
 
-    @pytest.mark.qt_log_ignore('^QBuffer::seek: Invalid pos:', extend=True)
+    @pytest.mark.qt_log_ignore('^QBuffer::seek: Invalid pos:')
     @pytest.mark.parametrize('offset, whence, pos, data, raising', [
         (0, io.SEEK_SET, 0, b'1234567890', False),
         (42, io.SEEK_SET, 0, b'1234567890', True),

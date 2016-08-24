@@ -27,6 +27,10 @@ import collections
 import pytest
 
 
+pytestmark = pytest.mark.qtwebengine_todo("mhtml downloads are not "
+                                          "implemented")
+
+
 def collect_tests():
     basedir = os.path.dirname(__file__)
     datadir = os.path.join(basedir, 'data', 'downloads', 'mhtml')

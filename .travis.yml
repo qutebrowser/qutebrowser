@@ -13,9 +13,6 @@ matrix:
       env: DOCKER=archlinux
       services: docker
     - os: linux
-      env: DOCKER=ubuntu-wily
-      services: docker
-    - os: linux
       env: DOCKER=ubuntu-xenial
       services: docker
     - os: osx
@@ -63,8 +60,8 @@ notifications:
     - https://buildtimetrend.herokuapp.com/travis
   irc:
     channels:
-      - "chat.freenode.net#qutebrowser"
-    on_success: change
+      - "chat.freenode.net#qutebrowser-dev"
+    on_success: always
     on_failure: always
     skip_join: true
     template:

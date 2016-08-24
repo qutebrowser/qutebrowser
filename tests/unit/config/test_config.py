@@ -51,72 +51,54 @@ class TestConfigParser:
         cfg.read(None, None)
         return self.Objects(cp=cp, cfg=cfg)
 
-    def test_simple(self, objects):
-        """Test a simple option which is not transformed."""
-        objects.cp.read_dict({'general': {'ignore-case': 'false'}})
+    @pytest.mark.parametrize('config, section, option, value', [
+        # Simple option without transformation
+        ({'general': {'ignore-case': 'false'}},
+         'general', 'ignore-case', False),
+        # Transformed section with old name
+        ({'permissions': {'allow-plugins': 'true'}},
+         'content', 'allow-plugins', True),
+        # Transformed section with new name
+        ({'content': {'allow-plugins': 'true'}},
+         'content', 'allow-plugins', True),
+        # Transformed option with old name
+        ({'colors': {'tab.fg.odd': 'pink'}},
+         'colors', 'tabs.fg.odd', QColor('pink')),
+        # Transformed option with new name
+        ({'colors': {'tabs.fg.odd': 'pink'}},
+         'colors', 'tabs.fg.odd', QColor('pink')),
+    ])
+    def test_get(self, objects, config, section, option, value):
+        objects.cp.read_dict(config)
         objects.cfg._from_cp(objects.cp)
-        assert not objects.cfg.get('general', 'ignore-case')
+        assert objects.cfg.get(section, option) == value
 
-    def test_transformed_section_old(self, objects):
-        """Test a transformed section with the old name."""
-        objects.cp.read_dict({'permissions': {'allow-plugins': 'true'}})
-        objects.cfg._from_cp(objects.cp)
-        assert objects.cfg.get('content', 'allow-plugins')
-
-    def test_transformed_section_new(self, objects):
-        """Test a transformed section with the new name."""
-        objects.cp.read_dict({'content': {'allow-plugins': 'true'}})
-        objects.cfg._from_cp(objects.cp)
-        assert objects.cfg.get('content', 'allow-plugins')
-
-    def test_transformed_option_old(self, objects):
-        """Test a transformed option with the old name."""
-        objects.cp.read_dict({'colors': {'tab.fg.odd': 'pink'}})
-        objects.cfg._from_cp(objects.cp)
-        actual = objects.cfg.get('colors', 'tabs.fg.odd').name()
-        expected = QColor('pink').name()
-        assert actual == expected
-
-    def test_transformed_option_new(self, objects):
-        """Test a transformed section with the new name."""
-        objects.cp.read_dict({'colors': {'tabs.fg.odd': 'pink'}})
-        objects.cfg._from_cp(objects.cp)
-        actual = objects.cfg.get('colors', 'tabs.fg.odd').name()
-        expected = QColor('pink').name()
-        assert actual == expected
-
-    def test_invalid_value(self, objects):
-        """Test setting an invalid value."""
-        objects.cp.read_dict({'general': {'ignore-case': 'invalid'}})
+    @pytest.mark.parametrize('config', [
+        {'general': {'ignore-case': 'invalid'}},
+        {'general': {'ignore-case': 'smart',
+                     'private-browsing': '${ignore-case}'}},
+    ])
+    def test_failing_validation(self, objects, config):
+        objects.cp.read_dict(config)
         objects.cfg._from_cp(objects.cp)
         with pytest.raises(configexc.ValidationError):
             objects.cfg._validate_all()
 
-    def test_invalid_value_interpolated(self, objects):
-        """Test setting an invalid interpolated value."""
-        objects.cp.read_dict({'general': {
-            'ignore-case': 'smart', 'private-browsing': '${ignore-case}'}})
+    @pytest.mark.parametrize('config, sect1, opt1, sect2, opt2', [
+        # Same section
+        ({'general': {'ignore-case': 'false',
+                      'private-browsing': '${ignore-case}'}},
+         'general', 'ignore-case', 'general', 'private-browsing'),
+        # Across sections
+        ({'general': {'ignore-case': '${network:do-not-track}'},
+          'network': {'do-not-track': 'false'}},
+         'general', 'ignore-case', 'network', 'do-not-track'),
+    ])
+    def test_interpolation(self, objects, config, sect1, opt1, sect2, opt2):
+        objects.cp.read_dict(config)
         objects.cfg._from_cp(objects.cp)
-        with pytest.raises(configexc.ValidationError):
-            objects.cfg._validate_all()
-
-    def test_interpolation(self, objects):
-        """Test setting an interpolated value."""
-        objects.cp.read_dict({'general': {
-            'ignore-case': 'false', 'private-browsing': '${ignore-case}'}})
-        objects.cfg._from_cp(objects.cp)
-        assert not objects.cfg.get('general', 'ignore-case')
-        assert not objects.cfg.get('general', 'private-browsing')
-
-    def test_interpolation_cross_section(self, objects):
-        """Test setting an interpolated value from another section."""
-        objects.cp.read_dict({
-            'general': {'ignore-case': '${network:do-not-track}'},
-            'network': {'do-not-track': 'false'},
-        })
-        objects.cfg._from_cp(objects.cp)
-        assert not objects.cfg.get('general', 'ignore-case')
-        assert not objects.cfg.get('network', 'do-not-track')
+        assert not objects.cfg.get(sect1, opt1)
+        assert not objects.cfg.get(sect2, opt2)
 
     def test_invalid_interpolation(self, objects):
         """Test an invalid interpolation."""
@@ -125,37 +107,32 @@ class TestConfigParser:
         with pytest.raises(configparser.InterpolationError):
             objects.cfg._validate_all()
 
-    def test_invalid_interpolation_syntax(self, objects):
-        """Test an invalid interpolation syntax."""
-        objects.cp.read_dict({'general': {'ignore-case': '${'}})
-        with pytest.raises(configexc.InterpolationSyntaxError):
+    @pytest.mark.parametrize('config, exception', [
+        # Invalid interpolation syntax
+        ({'general': {'ignore-case': '${'}},
+         configexc.InterpolationSyntaxError),
+        # Invalid section
+        ({'foo': {'bar': 'baz'}}, configexc.NoSectionError),
+        # Invalid option
+        ({'general': {'bar': 'baz'}}, configexc.NoOptionError),
+    ])
+    def test_invalid_from_cp(self, objects, config, exception):
+        objects.cp.read_dict(config)
+        with pytest.raises(exception):
             objects.cfg._from_cp(objects.cp)
 
-    def test_invalid_section(self, objects):
-        """Test an invalid section."""
-        objects.cp.read_dict({'foo': {'bar': 'baz'}})
-        with pytest.raises(configexc.NoSectionError):
-            objects.cfg._from_cp(objects.cp)
-
-    def test_invalid_option(self, objects):
-        """Test an invalid option."""
-        objects.cp.read_dict({'general': {'bar': 'baz'}})
-        with pytest.raises(configexc.NoOptionError):
-            objects.cfg._from_cp(objects.cp)
-
-    def test_invalid_section_relaxed(self, objects):
-        """Test an invalid section with relaxed=True."""
-        objects.cp.read_dict({'foo': {'bar': 'baz'}})
+    @pytest.mark.parametrize('config, sect, opt, exception', [
+        # Invalid section
+        ({'foo': {'bar': 'baz'}}, 'foo', 'bar', configexc.NoSectionError),
+        # Invalid option
+        ({'general': {'bar': 'baz'}}, 'general', 'baz',
+         configexc.NoOptionError),
+    ])
+    def test_invalid_relaxed(self, objects, config, sect, opt, exception):
+        objects.cp.read_dict(config)
         objects.cfg._from_cp(objects.cp, relaxed=True)
-        with pytest.raises(configexc.NoSectionError):
-            objects.cfg.get('foo', 'bar')
-
-    def test_invalid_option_relaxed(self, objects):
-        """Test an invalid option with relaxed=True."""
-        objects.cp.read_dict({'general': {'bar': 'baz'}})
-        objects.cfg._from_cp(objects.cp, relaxed=True)
-        with pytest.raises(configexc.NoOptionError):
-            objects.cfg.get('general', 'bar')
+        with pytest.raises(exception):
+            objects.cfg.get(sect, opt)
 
     def test_fallback(self, objects):
         """Test getting an option with fallback.
@@ -210,11 +187,67 @@ class TestConfigParser:
         assert objects.cfg.get('general', 'save-session')
 
 
+class TestTransformers:
+
+    """Test value transformers in CHANGED_OPTIONS."""
+
+    @pytest.mark.parametrize('val, expected', [('a', 'b'), ('c', 'c')])
+    def test_get_value_transformer(self, val, expected):
+        func = config._get_value_transformer({'a': 'b'})
+        assert func(val) == expected
+
+    @pytest.mark.parametrize('val, expected', [
+        ('top', 'top'),
+        ('north', 'top'),
+        ('south', 'bottom'),
+        ('west', 'left'),
+        ('east', 'right'),
+    ])
+    def test_position(self, val, expected):
+        func = config._transform_position
+        assert func(val) == expected
+
+    OLD_GRADIENT = ('-webkit-gradient(linear, left top, left bottom, '
+                    'color-stop(0%,{}), color-stop(100%,{}))')
+    NEW_GRADIENT = ('qlineargradient(x1:0, y1:0, x2:0, y2:1, stop:0 {}, '
+                    'stop:1 {})')
+
+    @pytest.mark.parametrize('val, expected', [
+        ('-unknown-stuff', None),
+        ('blue', 'blue'),
+        ('rgba(1, 2, 3, 4)', 'rgba(1, 2, 3, 4)'),
+        ('-webkit-gradient(unknown)', None),
+        (OLD_GRADIENT.format('blah', 'blah'), None),
+        (OLD_GRADIENT.format('red', 'green'),
+         NEW_GRADIENT.format('rgba(255, 0, 0, 0.8)', 'rgba(0, 128, 0, 0.8)')),
+        (OLD_GRADIENT.format(' red', ' green'),
+         NEW_GRADIENT.format('rgba(255, 0, 0, 0.8)', 'rgba(0, 128, 0, 0.8)')),
+        (OLD_GRADIENT.format('#101010', ' #202020'),
+         NEW_GRADIENT.format('rgba(16, 16, 16, 0.8)',
+                             'rgba(32, 32, 32, 0.8)')),
+        (OLD_GRADIENT.format('#666', ' #777'),
+         NEW_GRADIENT.format('rgba(102, 102, 102, 0.8)',
+                             'rgba(119, 119, 119, 0.8)')),
+        (OLD_GRADIENT.format('red', 'green') + 'more stuff', None),
+    ])
+    def test_hint_color(self, val, expected):
+        assert config._transform_hint_color(val) == expected
+
+    @pytest.mark.parametrize('val, expected', [
+        ('bold 12pt Monospace', 'bold 12pt ${_monospace}'),
+        ('23pt Monospace', '23pt ${_monospace}'),
+        ('bold 12pt ${_monospace}', 'bold 12pt ${_monospace}'),
+        ('bold 12pt Comic Sans MS', 'bold 12pt Comic Sans MS'),
+    ])
+    def test_hint_font(self, val, expected):
+        assert config._transform_hint_font(val) == expected
+
+
 class TestKeyConfigParser:
 
     """Test config.parsers.keyconf.KeyConfigParser."""
 
-    def test_cmd_binding(self, cmdline_test):
+    def test_cmd_binding(self, cmdline_test, config_stub):
         """Test various command bindings.
 
         See https://github.com/The-Compiler/qutebrowser/issues/615
@@ -222,6 +255,7 @@ class TestKeyConfigParser:
         Args:
             cmdline_test: A pytest fixture which provides testcases.
         """
+        config_stub.data = {'aliases': []}
         kcp = keyconf.KeyConfigParser(None, None)
         kcp._cur_section = 'normal'
         if cmdline_test.valid:
@@ -277,10 +311,39 @@ class TestKeyConfigParser:
             ('search ;; clear-keychain', 'clear-keychain ;; search'),
             ('search;;clear-keychain', 'clear-keychain ;; search'),
             ('search;;foo', None),
-            ('leave-mode', 'clear-keychain ;; leave-mode'),
+            ('clear-keychain ;; leave-mode', 'leave-mode'),
             ('leave-mode ;; foo', None),
 
             ('download-remove --all', 'download-clear'),
+
+            ('hint links fill ":open {hint-url}"',
+                'hint links fill :open {hint-url}'),
+            ('hint links fill ":open -t {hint-url}"',
+                'hint links fill :open -t {hint-url}'),
+
+            ('yank-selected', 'yank selection'),
+            ('yank-selected --sel', 'yank selection --sel'),
+            ('yank-selected -p', 'yank selection -s'),
+
+            ('yank -t', 'yank title'),
+            ('yank -ts', 'yank title -s'),
+            ('yank -d', 'yank domain'),
+            ('yank -ds', 'yank domain -s'),
+            ('yank -p', 'yank pretty-url'),
+            ('yank -ps', 'yank pretty-url -s'),
+
+            ('paste', 'open -- {clipboard}'),
+            ('paste -s', 'open -- {primary}'),
+            ('paste -t', 'open -t -- {clipboard}'),
+            ('paste -ws', 'open -w -- {primary}'),
+
+            ('open {clipboard}', 'open -- {clipboard}'),
+            ('open -t {clipboard}', 'open -t -- {clipboard}'),
+            ('open -b {primary}', 'open -b -- {primary}'),
+
+            ('set-cmd-text -s :search', 'set-cmd-text /'),
+            ('set-cmd-text -s :search -r', 'set-cmd-text ?'),
+            ('set-cmd-text -s :', 'set-cmd-text :'),
         ]
     )
     def test_migrations(self, old, new_expected):
@@ -329,7 +392,7 @@ class TestDefaultConfig:
         If it did change, place a new qutebrowser-vx.y.z.conf in old_configs
         and then increment the version.
         """
-        assert qutebrowser.__version__ == '0.7.0'
+        assert qutebrowser.__version__ == '0.8.1'
 
     @pytest.mark.parametrize('filename',
         os.listdir(os.path.join(os.path.dirname(__file__), 'old_configs')),
@@ -348,7 +411,7 @@ class TestConfigInit:
 
     """Test initializing of the config."""
 
-    @pytest.yield_fixture(autouse=True)
+    @pytest.fixture(autouse=True)
     def patch(self, fake_args):
         objreg.register('app', QObject())
         objreg.register('save-manager', mock.MagicMock())

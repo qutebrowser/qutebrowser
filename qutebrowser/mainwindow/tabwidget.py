@@ -66,6 +66,9 @@ class TabWidget(QTabWidget):
     @config.change_filter('tabs')
     def init_config(self):
         """Initialize attributes based on the config."""
+        if self is None:  # pragma: no cover
+            # WORKAROUND for PyQt 5.2
+            return
         tabbar = self.tabBar()
         self.setMovable(config.get('tabs', 'movable'))
         self.setTabsClosable(False)
@@ -103,7 +106,8 @@ class TabWidget(QTabWidget):
         fields['index'] = idx + 1
 
         fmt = config.get('tabs', 'title-format')
-        self.tabBar().setTabText(idx, fmt.format(**fields))
+        title = '' if fmt is None else fmt.format(**fields)
+        self.tabBar().setTabText(idx, title)
 
     def get_tab_fields(self, idx):
         """Get the tab field data."""
@@ -126,7 +130,7 @@ class TabWidget(QTabWidget):
         except qtutils.QtValueError:
             fields['host'] = ''
 
-        y = tab.scroll.pos_perc()[1]
+        y = tab.scroller.pos_perc()[1]
         if y is None:
             scroll_pos = '???'
         elif y <= 0:

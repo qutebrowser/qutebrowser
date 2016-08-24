@@ -127,7 +127,8 @@ def _is_url_naive(urlstr):
     if not QHostAddress(urlstr).isNull():
         return False
 
-    return '.' in url.host()
+    host = url.host()
+    return '.' in host and not host.endswith('.')
 
 
 def _is_url_dns(urlstr):
@@ -499,7 +500,7 @@ class IncDecError(Exception):
         return '{}: {}'.format(self.msg, self.url.toString())
 
 
-def _get_incdec_value(match, incdec, url):
+def _get_incdec_value(match, incdec, url, count):
     """Get an incremented/decremented URL based on a URL match."""
     pre, zeroes, number, post = match.groups()
     # This should always succeed because we match \d+
@@ -507,9 +508,9 @@ def _get_incdec_value(match, incdec, url):
     if incdec == 'decrement':
         if val <= 0:
             raise IncDecError("Can't decrement {}!".format(val), url)
-        val -= 1
+        val -= count
     elif incdec == 'increment':
-        val += 1
+        val += count
     else:
         raise ValueError("Invalid value {} for indec!".format(incdec))
     if zeroes:
@@ -521,12 +522,13 @@ def _get_incdec_value(match, incdec, url):
     return ''.join([pre, zeroes, str(val), post])
 
 
-def incdec_number(url, incdec, segments=None):
+def incdec_number(url, incdec, count=1, segments=None):
     """Find a number in the url and increment or decrement it.
 
     Args:
         url: The current url
         incdec: Either 'increment' or 'decrement'
+        count: The number to increment or decrement by
         segments: A set of URL segments to search. Valid segments are:
                   'host', 'path', 'query', 'anchor'.
                   Default: {'path', 'query'}
@@ -566,7 +568,7 @@ def incdec_number(url, incdec, segments=None):
         if not match:
             continue
 
-        setter(_get_incdec_value(match, incdec, url))
+        setter(_get_incdec_value(match, incdec, url, count))
         return url
 
     raise IncDecError("No number found in URL!", url)

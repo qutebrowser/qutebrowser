@@ -136,7 +136,7 @@ def link_pyqt(executable, venv_path):
     """
     sip_file = get_lib_path(executable, 'sip')
     sipconfig_file = get_lib_path(executable, 'sipconfig', required=False)
-    pyqt_dir = os.path.dirname(get_lib_path(executable, 'PyQt5'))
+    pyqt_dir = os.path.dirname(get_lib_path(executable, 'PyQt5.QtCore'))
 
     for path in [sip_file, sipconfig_file, pyqt_dir]:
         if path is None:

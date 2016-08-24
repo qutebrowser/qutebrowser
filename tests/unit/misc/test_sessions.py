@@ -35,8 +35,7 @@ from qutebrowser.browser.webkit.tabhistory import TabHistoryItem as Item
 from qutebrowser.commands import cmdexc
 
 
-pytestmark = pytest.mark.qt_log_ignore('QIODevice::read.*: device not open',
-                                       extend=True)
+pytestmark = pytest.mark.qt_log_ignore('QIODevice::read.*: device not open')
 
 webengine_refactoring_xfail = pytest.mark.xfail(
     True, reason='Broke during QtWebEngine refactoring, will be fixed after '
@@ -51,7 +50,7 @@ def sess_man():
 
 class TestInit:
 
-    @pytest.yield_fixture(autouse=True)
+    @pytest.fixture(autouse=True)
     def cleanup(self):
         yield
         objreg.delete('session-manager')
@@ -314,7 +313,7 @@ class FakeTabbedBrowser:
         return 1
 
 
-@pytest.yield_fixture
+@pytest.fixture
 def fake_windows(win_registry, stubs, monkeypatch, qtbot):
     """Fixture which provides two fake main windows and tabbedbrowsers."""
     win_registry.add_window(1)
@@ -401,14 +400,14 @@ def test_get_session_name(config_stub, sess_man, arg, config, current,
 
 class TestSave:
 
-    @pytest.yield_fixture
+    @pytest.fixture
     def state_config(self):
         state = {'general': {}}
         objreg.register('state-config', state)
         yield state
         objreg.delete('state-config')
 
-    @pytest.yield_fixture
+    @pytest.fixture
     def fake_history(self, win_registry, stubs, monkeypatch, webview):
         """Fixture which provides a window with a fake history."""
         win = FakeMainWindow(b'fake-geometry-0', win_id=0)

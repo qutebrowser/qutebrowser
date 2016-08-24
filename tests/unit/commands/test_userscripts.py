@@ -38,7 +38,7 @@ def guiprocess_message_mock(message_mock):
 @pytest.mark.posix
 class TestQtFIFOReader:
 
-    @pytest.yield_fixture
+    @pytest.fixture
     def reader(self, tmpdir, qapp):
         fifo_path = str(tmpdir / 'fifo')
         os.mkfifo(fifo_path)  # pylint: disable=no-member,useless-suppression

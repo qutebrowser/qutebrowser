@@ -32,7 +32,7 @@ import pytest
 from qutebrowser.utils import standarddir
 
 
-@pytest.yield_fixture(autouse=True)
+@pytest.fixture(autouse=True)
 def change_qapp_name(qapp):
     """Change the name of the QApplication instance.
 
@@ -52,7 +52,7 @@ def no_cachedir_tag(monkeypatch):
                         lambda: None)
 
 
-@pytest.yield_fixture
+@pytest.fixture
 def reset_standarddir(no_cachedir_tag):
     """Clean up standarddir arguments before and after each test."""
     standarddir.init(None)
@@ -225,6 +225,15 @@ class TestArguments:
         func = getattr(standarddir, typ)
         assert func() == expected
 
+    def test_basedir_relative(self, tmpdir):
+        """Test --basedir with a relative path."""
+        basedir = (tmpdir / 'basedir')
+        basedir.ensure(dir=True)
+        with tmpdir.as_cwd():
+            args = types.SimpleNamespace(basedir='basedir')
+            standarddir.init(args)
+            assert standarddir.config() == str(basedir / 'config')
+
 
 class TestInitCacheDirTag:
 
@@ -311,6 +320,7 @@ class TestCreatingDir:
         m.sep = os.sep
         m.path.join = os.path.join
         m.path.exists.return_value = False
+        m.path.abspath = lambda x: x
 
         args = types.SimpleNamespace(basedir=str(tmpdir))
         standarddir.init(args)

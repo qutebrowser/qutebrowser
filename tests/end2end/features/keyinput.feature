@@ -61,6 +61,18 @@ Feature: Keyboard input
         And I run :bind <ctrl-test23>
         Then the message "<ctrl-test23> is bound to 'message-info bar' in normal mode" should be shown
 
+    Scenario: Binding to an alias
+        When I run :set aliases 'mib' 'message-info baz'
+        And I run :bind test25 mib
+        And I press the keys "test25"
+        Then the message "baz" should be shown
+
+    Scenario: Printing a bound alias
+        When I run :set aliases 'mib' 'message-info baz'
+        And I run :bind <test26> mib
+        And I run :bind <test26>
+        Then the message "<test26> is bound to 'mib' in normal mode" should be shown
+
     # :unbind
 
     Scenario: Binding and unbinding a keychain
@@ -80,7 +92,7 @@ Feature: Keyboard input
     Scenario: Unbinding a built-in binding
         When I run :unbind o
         And I press the key "o"
-        Then "No binding found for o." should be logged
+        Then "Giving up with 'o', no matches" should be logged
         # maybe check it's unbound in the config?
 
     Scenario: Binding and unbinding a special keychain with differing case (issue 1544)

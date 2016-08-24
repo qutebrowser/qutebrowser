@@ -23,7 +23,6 @@ import re
 import sys
 import time
 import json
-import os.path
 import logging
 import collections
 import textwrap
@@ -33,6 +32,27 @@ import pytest_bdd as bdd
 
 from qutebrowser.utils import log
 from helpers import utils
+
+
+def pytest_collection_modifyitems(config, items):
+    """Apply @qtwebengine_* markers."""
+    webengine = config.getoption('--qute-bdd-webengine')
+
+    markers = {
+        'qtwebengine_todo': ('QtWebEngine TODO', pytest.mark.xfail),
+        'qtwebengine_skip': ('Skipped with QtWebEngine', pytest.mark.skipif),
+    }
+
+    for item in items:
+        for name, (prefix, pytest_mark) in markers.items():
+            marker = item.get_marker(name)
+            if marker:
+                if marker.args:
+                    text = '{}: {}'.format(prefix, marker.args[0])
+                else:
+                    text = prefix
+                item.add_marker(pytest_mark(webengine, reason=text,
+                                            **marker.kwargs))
 
 
 @pytest.hookimpl(hookwrapper=True)
@@ -139,6 +159,15 @@ def fresh_instance(quteproc):
     quteproc.start()
 
 
+@bdd.given("I clean up open tabs")
+def clean_open_tabs(quteproc):
+    """Clean up open windows and tabs."""
+    quteproc.set_setting('tabs', 'last-close', 'blank')
+    quteproc.send_cmd(':window-only')
+    quteproc.send_cmd(':tab-only')
+    quteproc.send_cmd(':tab-close')
+
+
 ## When
 
 
@@ -147,15 +176,18 @@ def open_path(quteproc, path):
     """Open a URL.
 
     If used like "When I open ... in a new tab", the URL is opened in a new
-    tab. With "... in a new window", it's opened in a new window.
+    tab. With "... in a new window", it's opened in a new window. With
+    "... as a URL", it's opened according to new-instance-open-target.
     """
     new_tab = False
     new_window = False
+    as_url = False
     wait = True
 
     new_tab_suffix = ' in a new tab'
     new_window_suffix = ' in a new window'
     do_not_wait_suffix = ' without waiting'
+    as_url_suffix = ' as a URL'
 
     if path.endswith(new_tab_suffix):
         path = path[:-len(new_tab_suffix)]
@@ -163,12 +195,16 @@ def open_path(quteproc, path):
     elif path.endswith(new_window_suffix):
         path = path[:-len(new_window_suffix)]
         new_window = True
+    elif path.endswith(as_url_suffix):
+        path = path[:-len(as_url_suffix)]
+        as_url = True
 
     if path.endswith(do_not_wait_suffix):
         path = path[:-len(do_not_wait_suffix)]
         wait = False
 
-    quteproc.open_path(path, new_tab=new_tab, new_window=new_window, wait=wait)
+    quteproc.open_path(path, new_tab=new_tab, new_window=new_window,
+                       as_url=as_url, wait=wait)
 
 
 @bdd.when(bdd.parsers.parse("I set {sect} -> {opt} to {value}"))
@@ -282,6 +318,20 @@ def fill_clipboard_multiline(quteproc, httpbin, what, content):
     fill_clipboard(quteproc, httpbin, what, textwrap.dedent(content))
 
 
+@bdd.when(bdd.parsers.parse('I hint with args "{args}"'))
+def hint(quteproc, args):
+    quteproc.send_cmd(':hint {}'.format(args))
+    quteproc.wait_for(message='hints: *')
+
+
+@bdd.when(bdd.parsers.parse('I hint with args "{args}" and follow {letter}'))
+def hint_and_follow(quteproc, args, letter):
+    args = args.replace('(testdata)', utils.abs_datapath())
+    quteproc.send_cmd(':hint {}'.format(args))
+    quteproc.wait_for(message='hints: *')
+    quteproc.send_cmd(':follow-hint {}'.format(letter))
+
+
 ## Then
 
 
@@ -373,12 +423,14 @@ def javascript_message_not_logged(quteproc, message):
 
 
 @bdd.then(bdd.parsers.parse("The session should look like:\n{expected}"))
-def compare_session(quteproc, expected):
+def compare_session(request, quteproc, expected):
     """Compare the current sessions against the given template.
 
     partial_compare is used, which means only the keys/values listed will be
     compared.
     """
+    if request.config.getoption('--qute-bdd-webengine'):
+        pytest.xfail(reason="QtWebEngine TODO: Sessions are not implemented")
     quteproc.compare_session(expected)
 
 
@@ -403,18 +455,11 @@ def check_header(quteproc, header, value):
     assert data['headers'][header] == value
 
 
-@bdd.then(bdd.parsers.parse("the page source should look like {filename}"))
-def check_contents(quteproc, filename):
-    """Check the current page's content.
-
-    The filename is interpreted relative to tests/end2end/data.
-    """
+@bdd.then(bdd.parsers.parse('the page should contain the html "{text}"'))
+def check_contents_html(quteproc, text):
+    """Check the current page's content based on a substring."""
     content = quteproc.get_content(plain=False)
-    path = os.path.join(utils.abs_datapath(),
-                        os.path.join(*filename.split('/')))
-    with open(path, 'r', encoding='utf-8') as f:
-        file_content = f.read()
-        assert content == file_content
+    assert text in content
 
 
 @bdd.then(bdd.parsers.parse('the page should contain the plaintext "{text}"'))
@@ -442,13 +487,15 @@ def check_contents_json(quteproc, text):
 
 
 @bdd.then(bdd.parsers.parse("the following tabs should be open:\n{tabs}"))
-def check_open_tabs(quteproc, tabs):
+def check_open_tabs(quteproc, request, tabs):
     """Check the list of open tabs in the session.
 
     This is a lightweight alternative for "The session should look like: ...".
 
     It expects a list of URLs, with an optional "(active)" suffix.
     """
+    if request.config.getoption('--qute-bdd-webengine'):
+        pytest.xfail(reason="QtWebEngine TODO: Sessions are not implemented")
     session = quteproc.get_session()
     active_suffix = ' (active)'
     tabs = tabs.splitlines()
@@ -497,13 +544,15 @@ def should_quit(qtbot, quteproc):
 
 def _get_scroll_values(quteproc):
     data = quteproc.get_session()
-    pos = data['windows'][0]['tabs'][0]['history'][0]['scroll-pos']
+    pos = data['windows'][0]['tabs'][0]['history'][-1]['scroll-pos']
     return (pos['x'], pos['y'])
 
 
 @bdd.then(bdd.parsers.re(r"the page should be scrolled "
                          r"(?P<direction>horizontally|vertically)"))
-def check_scrolled(quteproc, direction):
+def check_scrolled(request, quteproc, direction):
+    if request.config.getoption('--qute-bdd-webengine'):
+        pytest.xfail(reason="QtWebEngine TODO: Sessions are not implemented")
     x, y = _get_scroll_values(quteproc)
     if direction == 'horizontally':
         assert x != 0
@@ -514,7 +563,9 @@ def check_scrolled(quteproc, direction):
 
 
 @bdd.then("the page should not be scrolled")
-def check_not_scrolled(quteproc):
+def check_not_scrolled(request, quteproc):
+    if request.config.getoption('--qute-bdd-webengine'):
+        pytest.xfail(reason="QtWebEngine TODO: Sessions are not implemented")
     x, y = _get_scroll_values(quteproc)
     assert x == 0
     assert y == 0

@@ -26,7 +26,7 @@ from qutebrowser.browser import pdfjs
 
 
 # Note that we got double protection, once because we use QUrl.FullyEncoded and
-# because we use qutebrowser.browser.webelem.javascript_escape.  Characters
+# because we use qutebrowser.utils.javascript.string_escape.  Characters
 # like " are already replaced by QUrl.
 @pytest.mark.parametrize('url, expected', [
     ('http://foo.bar', "http://foo.bar"),

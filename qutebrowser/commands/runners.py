@@ -21,12 +21,13 @@
 
 import collections
 import traceback
+import re
 
 from PyQt5.QtCore import pyqtSlot, QUrl, QObject
 
 from qutebrowser.config import config, configexc
 from qutebrowser.commands import cmdexc, cmdutils
-from qutebrowser.utils import message, objreg, qtutils
+from qutebrowser.utils import message, objreg, qtutils, utils
 from qutebrowser.misc import split
 
 
@@ -49,21 +50,35 @@ def _current_url(tabbed_browser):
 
 def replace_variables(win_id, arglist):
     """Utility function to replace variables like {url} in a list of args."""
+    variables = {
+        'url': lambda: _current_url(tabbed_browser).toString(
+            QUrl.FullyEncoded | QUrl.RemovePassword),
+        'url:pretty': lambda: _current_url(tabbed_browser).toString(
+            QUrl.RemovePassword),
+        'clipboard': utils.get_clipboard,
+        'primary': lambda: utils.get_clipboard(selection=True),
+    }
+    values = {}
     args = []
     tabbed_browser = objreg.get('tabbed-browser', scope='window',
                                 window=win_id)
-    if '{url}' in arglist:
-        url = _current_url(tabbed_browser).toString(QUrl.FullyEncoded |
-                                                    QUrl.RemovePassword)
-    if '{url:pretty}' in arglist:
-        pretty_url = _current_url(tabbed_browser).toString(QUrl.RemovePassword)
-    for arg in arglist:
-        if arg == '{url}':
-            args.append(url)
-        elif arg == '{url:pretty}':
-            args.append(pretty_url)
-        else:
-            args.append(arg)
+
+    def repl_cb(matchobj):
+        """Return replacement for given match."""
+        var = matchobj.group("var")
+        if var not in values:
+            values[var] = variables[var]()
+        return values[var]
+    repl_pattern = re.compile("{(?P<var>" + "|".join(variables.keys()) + ")}")
+
+    try:
+        for arg in arglist:
+            # using re.sub with callback function replaces all variables in a
+            # single pass and avoids expansion of nested variables (e.g.
+            # "{url}" from clipboard is not expanded)
+            args.append(repl_pattern.sub(repl_cb, arg))
+    except utils.ClipboardError as e:
+        raise cmdexc.CommandError(e)
     return args
 
 
@@ -119,6 +134,9 @@ class CommandRunner(QObject):
         Yields:
             ParseResult tuples.
         """
+        if not text.strip():
+            raise cmdexc.NoSuchCommandError("No command given")
+
         if aliases:
             text = self._get_alias(text, text)
 
@@ -276,7 +294,10 @@ class CommandRunner(QObject):
                                       window=self._win_id)
             cur_mode = mode_manager.mode
 
-            args = replace_variables(self._win_id, result.args)
+            if result.cmd.no_replace_variables:
+                args = result.args
+            else:
+                args = replace_variables(self._win_id, result.args)
             if count is not None:
                 if result.count is not None:
                     raise cmdexc.CommandMetaError("Got count via command and "

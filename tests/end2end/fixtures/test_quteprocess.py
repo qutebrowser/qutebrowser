@@ -29,27 +29,86 @@ from end2end.fixtures import quteprocess, testprocess
 from qutebrowser.utils import log
 
 
+class FakeRepCall:
+
+    """Fake for request.node.rep_call."""
+
+    def __init__(self):
+        self.failed = False
+
+
+class FakeConfig:
+
+    """Fake for request.config."""
+
+    ARGS = {
+        '--qute-delay': 0,
+        '--color': True,
+    }
+
+    def getoption(self, name):
+        return self.ARGS[name]
+
+
+class FakeNode:
+
+    """Fake for request.node."""
+
+    def __init__(self, call):
+        self.rep_call = call
+
+    def get_marker(self, _name):
+        return None
+
+
+class FakeRequest:
+
+    """Fake for request."""
+
+    def __init__(self, node, config, httpbin):
+        self.node = node
+        self.config = config
+        self._httpbin = httpbin
+
+    def getfixturevalue(self, name):
+        assert name == 'httpbin'
+        return self._httpbin
+
+
+@pytest.fixture
+def request_mock(quteproc, monkeypatch, httpbin):
+    """Patch out a pytest request."""
+    fake_call = FakeRepCall()
+    fake_config = FakeConfig()
+    fake_node = FakeNode(fake_call)
+    fake_request = FakeRequest(fake_node, fake_config, httpbin)
+    assert not hasattr(fake_request.node.rep_call, 'wasxfail')
+    monkeypatch.setattr(quteproc, 'request', fake_request)
+    return fake_request
+
+
 @pytest.mark.parametrize('cmd', [
     ':message-error test',
     ':jseval console.log("[FAIL] test");'
 ])
-def test_quteproc_error_message(qtbot, quteproc, cmd):
+def test_quteproc_error_message(qtbot, quteproc, cmd, request_mock):
     """Make sure the test fails with an unexpected error message."""
     with qtbot.waitSignal(quteproc.got_error):
         quteproc.send_cmd(cmd)
     # Usually we wouldn't call this from inside a test, but here we force the
     # error to occur during the test rather than at teardown time.
     with pytest.raises(pytest.fail.Exception):
-        quteproc.after_test(did_fail=False)
+        quteproc.after_test()
 
 
-def test_quteproc_error_message_did_fail(qtbot, quteproc):
+def test_quteproc_error_message_did_fail(qtbot, quteproc, request_mock):
     """Make sure the test does not fail on teardown if the main test failed."""
+    request_mock.node.rep_call.failed = True
     with qtbot.waitSignal(quteproc.got_error):
         quteproc.send_cmd(':message-error test')
     # Usually we wouldn't call this from inside a test, but here we force the
     # error to occur during the test rather than at teardown time.
-    quteproc.after_test(did_fail=True)
+    quteproc.after_test()
 
 
 def test_quteproc_skip_via_js(qtbot, quteproc):
@@ -59,7 +118,7 @@ def test_quteproc_skip_via_js(qtbot, quteproc):
 
         # Usually we wouldn't call this from inside a test, but here we force
         # the error to occur during the test rather than at teardown time.
-        quteproc.after_test(did_fail=False)
+        quteproc.after_test()
 
     assert str(excinfo.value) == 'test'
 
@@ -83,7 +142,7 @@ def test_quteprocess_quitting(qtbot, quteproc_process):
     with qtbot.waitSignal(quteproc_process.proc.finished, timeout=15000):
         quteproc_process.send_cmd(':quit')
     with pytest.raises(testprocess.ProcessExited):
-        quteproc_process.after_test(did_fail=False)
+        quteproc_process.after_test()
 
 
 @pytest.mark.parametrize('data, attrs', [
@@ -240,28 +299,28 @@ def test_log_line_no_match():
         quteprocess.LogLine("Hello World!")
 
 
-class TestClickElement:
+class TestClickElementByText:
 
     @pytest.fixture(autouse=True)
     def open_page(self, quteproc):
         quteproc.open_path('data/click_element.html')
 
     def test_click_element(self, quteproc):
-        quteproc.click_element('Test Element')
+        quteproc.click_element_by_text('Test Element')
         quteproc.wait_for_js('click_element clicked')
 
     def test_click_special_chars(self, quteproc):
-        quteproc.click_element('"Don\'t", he shouted')
+        quteproc.click_element_by_text('"Don\'t", he shouted')
         quteproc.wait_for_js('click_element special chars')
 
     def test_duplicate(self, quteproc):
         with pytest.raises(ValueError) as excinfo:
-            quteproc.click_element('Duplicate')
+            quteproc.click_element_by_text('Duplicate')
         assert 'not unique' in str(excinfo.value)
 
     def test_nonexistent(self, quteproc):
         with pytest.raises(ValueError) as excinfo:
-            quteproc.click_element('no element exists with this text')
+            quteproc.click_element_by_text('no element exists with this text')
         assert 'No element' in str(excinfo.value)
 
 
@@ -281,6 +340,6 @@ def test_xpath_escape(string, expected):
     'foo"bar',  # Make sure a " is preserved
 ])
 def test_set(quteproc, value):
-    quteproc.set_setting('network', 'accept-language', value)
-    read_back = quteproc.get_setting('network', 'accept-language')
+    quteproc.set_setting('general', 'default-encoding', value)
+    read_back = quteproc.get_setting('general', 'default-encoding')
     assert read_back == value

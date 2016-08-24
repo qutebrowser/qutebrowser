@@ -24,6 +24,7 @@ are fundamentally different. This is why nothing inherits from configparser,
 but we borrow some methods and classes from there where it makes sense.
 """
 
+import re
 import os
 import sys
 import os.path
@@ -34,9 +35,11 @@ import collections
 import collections.abc
 
 from PyQt5.QtCore import pyqtSignal, QObject, QUrl, QSettings
+from PyQt5.QtGui import QColor
 
 from qutebrowser.config import configdata, configexc, textwrapper
-from qutebrowser.config.parsers import ini, keyconf
+from qutebrowser.config.parsers import keyconf
+from qutebrowser.config.parsers import ini
 from qutebrowser.commands import cmdexc, cmdutils
 from qutebrowser.utils import (message, objreg, utils, standarddir, log,
                                qtutils, error, usertypes)
@@ -285,6 +288,50 @@ def _transform_position(val):
         return val
 
 
+def _transform_hint_color(val):
+    """Transformer for hint colors."""
+    log.config.debug("Transforming hint value {}".format(val))
+
+    def to_rgba(qcolor):
+        """Convert a QColor to a rgba() value."""
+        return 'rgba({}, {}, {}, 0.8)'.format(qcolor.red(), qcolor.green(),
+                                              qcolor.blue())
+
+    if val.startswith('-webkit-gradient'):
+        pattern = re.compile(r'-webkit-gradient\(linear, left top, '
+                             r'left bottom, '
+                             r'color-stop\(0%, *([^)]*)\), '
+                             r'color-stop\(100%, *([^)]*)\)\)')
+
+        match = pattern.fullmatch(val)
+        if match:
+            log.config.debug('Color groups: {}'.format(match.groups()))
+            start_color = QColor(match.group(1))
+            stop_color = QColor(match.group(2))
+            if not start_color.isValid() or not stop_color.isValid():
+                return None
+
+            return ('qlineargradient(x1:0, y1:0, x2:0, y2:1, stop:0 {}, '
+                    'stop:1 {})'.format(to_rgba(start_color),
+                                        to_rgba(stop_color)))
+        else:
+            return None
+    elif val.startswith('-'):  # Custom CSS stuff?
+        return None
+    else:  # Already transformed or a named color.
+        return val
+
+
+def _transform_hint_font(val):
+    """Transformer for fonts -> hints."""
+    match = re.fullmatch(r'(.*\d+p[xt]) Monospace', val)
+    if match:
+        # Close enough to the old default:
+        return match.group(1) + ' ${_monospace}'
+    else:
+        return val
+
+
 class ConfigManager(QObject):
 
     """Configuration manager for qutebrowser.
@@ -350,7 +397,9 @@ class ConfigManager(QObject):
         ('tabs', 'auto-hide'),
         ('tabs', 'hide-always'),
         ('ui', 'display-statusbar-messages'),
+        ('ui', 'hide-mouse-cursor'),
         ('general', 'wrap-search'),
+        ('hints', 'opacity'),
     ]
     CHANGED_OPTIONS = {
         ('content', 'cookies-accept'):
@@ -363,6 +412,12 @@ class ConfigManager(QObject):
             _get_value_transformer({'false': 'none', 'true': 'debug'}),
         ('ui', 'keyhint-blacklist'):
             _get_value_transformer({'false': '*', 'true': ''}),
+        ('hints', 'auto-follow'):
+            _get_value_transformer({'false': 'never', 'true': 'unique-match'}),
+        ('colors', 'hints.bg'): _transform_hint_color,
+        ('colors', 'hints.fg'): _transform_hint_color,
+        ('colors', 'hints.fg.match'): _transform_hint_color,
+        ('fonts', 'hints'): _transform_hint_font,
     }
 
     changed = pyqtSignal(str, str)
@@ -419,7 +474,7 @@ class ConfigManager(QObject):
         for optname, option in sect.items():
 
             lines.append('#')
-            typestr = ' ({})'.format(option.typ.__class__.__name__)
+            typestr = ' ({})'.format(option.typ.get_name())
             lines.append("# {}{}:".format(optname, typestr))
 
             try:
@@ -430,7 +485,7 @@ class ConfigManager(QObject):
                 continue
             for descline in desc.splitlines():
                 lines += wrapper.wrap(descline)
-            valid_values = option.typ.valid_values
+            valid_values = option.typ.get_valid_values()
             if valid_values is not None:
                 if valid_values.descriptions:
                     for val in valid_values:
@@ -494,7 +549,7 @@ class ConfigManager(QObject):
         for sectname in cp:
             if sectname in self.RENAMED_SECTIONS:
                 sectname = self.RENAMED_SECTIONS[sectname]
-            if sectname is not 'DEFAULT' and sectname not in self.sections:
+            if sectname != 'DEFAULT' and sectname not in self.sections:
                 if not relaxed:
                     raise configexc.NoSectionError(sectname)
         for sectname in self.sections:
@@ -521,7 +576,15 @@ class ConfigManager(QObject):
                 k = self.RENAMED_OPTIONS[sectname, k]
             if (sectname, k) in self.CHANGED_OPTIONS:
                 func = self.CHANGED_OPTIONS[(sectname, k)]
-                v = func(v)
+                new_v = func(v)
+                if new_v is None:
+                    exc = configexc.ValidationError(
+                        v, "Could not automatically migrate the given value")
+                    exc.section = sectname
+                    exc.option = k
+                    raise exc
+
+                v = new_v
 
             try:
                 self.set('conf', sectname, k, v, validate=False)
@@ -771,11 +834,23 @@ class ConfigManager(QObject):
         except KeyError:
             raise configexc.NoSectionError(sectname)
         mapping = {key: val.value() for key, val in sect.values.items()}
+
         if validate:
             interpolated = self._interpolation.before_get(
                 self, sectname, optname, value, mapping)
+            try:
+                allowed_backends = sect.values[optname].backends
+            except KeyError:
+                # Will be handled later in .setv()
+                pass
+            else:
+                backend = usertypes.arg2backend[objreg.get('args').backend]
+                if (allowed_backends is not None and
+                        backend not in allowed_backends):
+                    raise configexc.BackendError(backend)
         else:
             interpolated = None
+
         try:
             sect.setv(layer, optname, value, interpolated)
         except KeyError:

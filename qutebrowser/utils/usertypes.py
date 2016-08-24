@@ -221,11 +221,13 @@ class NeighborList(collections.abc.Sequence):
 
 
 # The mode of a Question.
-PromptMode = enum('PromptMode', ['yesno', 'text', 'user_pwd', 'alert'])
+PromptMode = enum('PromptMode', ['yesno', 'text', 'user_pwd', 'alert',
+                                 'download'])
 
 
 # Where to open a clicked link.
-ClickTarget = enum('ClickTarget', ['normal', 'tab', 'tab_bg', 'window'])
+ClickTarget = enum('ClickTarget', ['normal', 'tab', 'tab_bg', 'window',
+                                   'hover'])
 
 
 # Key input modes
@@ -238,7 +240,7 @@ KeyMode = enum('KeyMode', ['normal', 'hint', 'command', 'yesno', 'prompt',
 Completion = enum('Completion', ['command', 'section', 'option', 'value',
                                  'helptopic', 'quickmark_by_name',
                                  'bookmark_by_url', 'url', 'tab', 'sessions',
-                                 'empty'])
+                                 'bind'])
 
 
 # Exit statuses for errors. Needs to be an int for sys.exit.
@@ -253,6 +255,60 @@ LoadStatus = enum('LoadStatus', ['none', 'success', 'success_https', 'error',
 
 # Backend of a tab
 Backend = enum('Backend', ['QtWebKit', 'QtWebEngine'])
+arg2backend = {
+    'webkit': Backend.QtWebKit,
+    'webengine': Backend.QtWebEngine,
+}
+
+
+# Where a download should be saved
+class DownloadTarget:
+
+    """Abstract base class for different download targets."""
+
+    def __init__(self):
+        raise NotImplementedError
+
+
+class FileDownloadTarget(DownloadTarget):
+
+    """Save the download to the given file.
+
+    Attributes:
+        filename: Filename where the download should be saved.
+    """
+
+    def __init__(self, filename):
+        # pylint: disable=super-init-not-called
+        self.filename = filename
+
+
+class FileObjDownloadTarget(DownloadTarget):
+
+    """Save the download to the given file-like object.
+
+    Attributes:
+        fileobj: File-like object where the download should be written to.
+    """
+
+    def __init__(self, fileobj):
+        # pylint: disable=super-init-not-called
+        self.fileobj = fileobj
+
+
+class OpenFileDownloadTarget(DownloadTarget):
+
+    """Save the download in a temp dir and directly open it.
+
+    Attributes:
+        cmdline: The command to use as string. A `{}` is expanded to the
+                 filename. None means to use the system's default application.
+                 If no `{}` is found, the filename is appended to the cmdline.
+    """
+
+    def __init__(self, cmdline=None):
+        # pylint: disable=super-init-not-called
+        self.cmdline = cmdline
 
 
 class Question(QObject):

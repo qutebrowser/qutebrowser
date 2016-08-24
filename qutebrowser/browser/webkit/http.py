@@ -47,7 +47,8 @@ def parse_content_disposition(reply):
         # os.path.basename later.
         try:
             value = bytes(reply.rawHeader(content_disposition_header))
-            log.rfc6266.debug("Parsing Content-Disposition: {}".format(value))
+            log.rfc6266.debug("Parsing Content-Disposition: {!r}".format(
+                value))
             content_disposition = rfc6266.parse_headers(value)
             filename = content_disposition.filename()
         except (SyntaxError, UnicodeDecodeError, rfc6266.Error):

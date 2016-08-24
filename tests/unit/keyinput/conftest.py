@@ -35,7 +35,7 @@ BINDINGS = {'test': {'<Ctrl-a>': 'ctrla',
             'normal': {'a': 'a', 'ba': 'ba'}}
 
 
-@pytest.yield_fixture
+@pytest.fixture
 def fake_keyconfig():
     """Create a mock of a KeyConfiguration and register it into objreg."""
     bindings = dict(BINDINGS)  # so the bindings can be changed later

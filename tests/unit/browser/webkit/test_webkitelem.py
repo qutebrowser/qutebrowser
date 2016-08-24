@@ -23,22 +23,19 @@ from unittest import mock
 import collections.abc
 import operator
 import itertools
-import binascii
-import os.path
 
-import hypothesis
-import hypothesis.strategies
-from PyQt5.QtCore import PYQT_VERSION, QRect, QPoint
+from PyQt5.QtCore import QRect, QPoint, QUrl
 from PyQt5.QtWebKit import QWebElement
 import pytest
 
-from qutebrowser.browser.webkit import webelem
+from qutebrowser.browser import webelem
+from qutebrowser.browser.webkit import webkitelem
 
 
 def get_webelem(geometry=None, frame=None, *, null=False, style=None,
                 attributes=None, tagname=None, classes=None,
                 parent=None, js_rect_return=None, zoom_text_only=False):
-    """Factory for WebElementWrapper objects based on a mock.
+    """Factory for WebKitElement objects based on a mock.
 
     Args:
         geometry: The geometry of the QWebElement as QRect.
@@ -70,11 +67,13 @@ def get_webelem(geometry=None, frame=None, *, null=False, style=None,
         else:
             scroll_x = frame.scrollPosition().x()
             scroll_y = frame.scrollPosition().y()
+
         if js_rect_return is None:
             if frame is None or zoom_text_only:
                 zoom = 1.0
             else:
                 zoom = frame.zoomFactor()
+
             elem.evaluateJavaScript.return_value = {
                 "length": 1,
                 "0": {
@@ -109,7 +108,7 @@ def get_webelem(geometry=None, frame=None, *, null=False, style=None,
     else:
         elem.classes.return_value = []
 
-    style_dict = {'visibility': '', 'display': ''}
+    style_dict = {'visibility': '', 'display': '', 'foo': 'bar'}
     if style is not None:
         style_dict.update(style)
 
@@ -121,7 +120,7 @@ def get_webelem(geometry=None, frame=None, *, null=False, style=None,
         return style_dict[name]
 
     elem.styleProperty.side_effect = _style_property
-    wrapped = webelem.WebElementWrapper(elem)
+    wrapped = webkitelem.WebKitElement(elem, tab=None)
     return wrapped
 
 
@@ -162,7 +161,7 @@ class SelectionAndFilterTests:
         ('<textarea />', [webelem.Group.all, webelem.Group.inputs]),
         ('<select />', [webelem.Group.all]),
 
-        ('<input />', [webelem.Group.all]),
+        ('<input />', [webelem.Group.all, webelem.Group.inputs]),
         ('<input type="hidden" />', []),
         ('<input type="text" />', [webelem.Group.inputs, webelem.Group.all]),
         ('<input type="email" />', [webelem.Group.inputs, webelem.Group.all]),
@@ -191,7 +190,7 @@ class SelectionAndFilterTests:
                                            webelem.Group.url]),
     ]
 
-    GROUPS = [e for e in webelem.Group if e != webelem.Group.focus]
+    GROUPS = list(webelem.Group)
 
     COMBINATIONS = list(itertools.product(TESTS, GROUPS))
 
@@ -219,15 +218,15 @@ class TestSelectorsAndFilters:
         # Make sure setting HTML succeeded and there's a new element
         assert len(webframe.findAllElements('*')) == 3
         elems = webframe.findAllElements(webelem.SELECTORS[group])
-        elems = [webelem.WebElementWrapper(e) for e in elems]
+        elems = [webkitelem.WebKitElement(e, tab=None) for e in elems]
         filterfunc = webelem.FILTERS.get(group, lambda e: True)
         elems = [e for e in elems if filterfunc(e)]
         assert bool(elems) == matching
 
 
-class TestWebElementWrapper:
+class TestWebKitElement:
 
-    """Generic tests for WebElementWrapper.
+    """Generic tests for WebKitElement.
 
     Note: For some methods, there's a dedicated test class with more involved
     tests.
@@ -239,13 +238,13 @@ class TestWebElementWrapper:
 
     def test_nullelem(self):
         """Test __init__ with a null element."""
-        with pytest.raises(webelem.IsNullError):
+        with pytest.raises(webkitelem.IsNullError):
             get_webelem(null=True)
 
     def test_double_wrap(self, elem):
-        """Test wrapping a WebElementWrapper."""
+        """Test wrapping a WebKitElement."""
         with pytest.raises(TypeError) as excinfo:
-            webelem.WebElementWrapper(elem)
+            webkitelem.WebKitElement(elem, tab=None)
         assert str(excinfo.value) == "Trying to wrap a wrapper!"
 
     @pytest.mark.parametrize('code', [
@@ -254,29 +253,43 @@ class TestWebElementWrapper:
         lambda e: operator.setitem(e, None, None),
         lambda e: operator.delitem(e, None),
         lambda e: None in e,
+        list,  # __iter__
         len,
-        lambda e: e.is_visible(None),
-        lambda e: e.rect_on_view(),
+        lambda e: e.has_frame(),
+        lambda e: e.geometry(),
+        lambda e: e.style_property('visibility', strategy='computed'),
+        lambda e: e.text(),
+        lambda e: e.set_text('foo'),
         lambda e: e.is_writable(),
         lambda e: e.is_content_editable(),
         lambda e: e.is_editable(),
         lambda e: e.is_text_input(),
+        lambda e: e.remove_blank_target(),
         lambda e: e.debug_text(),
-        list,  # __iter__
-    ])
+        lambda e: e.outer_xml(),
+        lambda e: e.tag_name(),
+        lambda e: e.run_js_async(''),
+        lambda e: e.rect_on_view(),
+        lambda e: e.is_visible(None),
+    ], ids=['str', 'getitem', 'setitem', 'delitem', 'contains', 'iter', 'len',
+            'frame', 'geometry', 'style_property', 'text', 'set_text',
+            'is_writable', 'is_content_editable', 'is_editable',
+            'is_text_input', 'remove_blank_target', 'debug_text', 'outer_xml',
+            'tag_name', 'run_js_async', 'rect_on_view', 'is_visible'])
     def test_vanished(self, elem, code):
         """Make sure methods check if the element is vanished."""
         elem._elem.isNull.return_value = True
-        with pytest.raises(webelem.IsNullError):
+        elem._elem.tagName.return_value = 'span'
+        with pytest.raises(webkitelem.IsNullError):
             code(elem)
 
     def test_str(self, elem):
         assert str(elem) == 'text'
 
     @pytest.mark.parametrize('is_null, expected', [
-        (False, "<qutebrowser.browser.webkit.webelem.WebElementWrapper "
+        (False, "<qutebrowser.browser.webkit.webkitelem.WebKitElement "
                 "html='<fakeelem/>'>"),
-        (True, '<qutebrowser.browser.webkit.webelem.WebElementWrapper '
+        (True, '<qutebrowser.browser.webkit.webkitelem.WebKitElement '
                'html=None>'),
     ])
     def test_repr(self, elem, is_null, expected):
@@ -308,6 +321,19 @@ class TestWebElementWrapper:
         elem = get_webelem(attributes={'foo': 'bar'})
         assert 'foo' in elem
         assert 'bar' not in elem
+
+    def test_not_eq(self):
+        one = get_webelem()
+        two = get_webelem()
+        assert one != two
+
+    def test_eq(self):
+        one = get_webelem()
+        two = webkitelem.WebKitElement(one._elem, tab=None)
+        assert one == two
+
+    def test_eq_other_type(self):
+        assert get_webelem() != object()
 
     @pytest.mark.parametrize('attributes, expected', [
         ({'one': '1', 'two': '2'}, {'one', 'two'}),
@@ -367,6 +393,63 @@ class TestWebElementWrapper:
         elem._elem.toOuterXml.return_value = xml
         assert elem.debug_text() == expected
 
+    @pytest.mark.parametrize('attribute, code', [
+        ('geometry', lambda e: e.geometry()),
+        ('toOuterXml', lambda e: e.outer_xml()),
+    ])
+    def test_simple_getters(self, elem, attribute, code):
+        sentinel = object()
+        mock = getattr(elem._elem, attribute)
+        setattr(mock, 'return_value', sentinel)
+        assert code(elem) is sentinel
+
+    @pytest.mark.parametrize('frame, expected', [
+        (object(), True), (None, False)])
+    def test_has_frame(self, elem, frame, expected):
+        elem._elem.webFrame.return_value = frame
+        assert elem.has_frame() == expected
+
+    def test_tag_name(self, elem):
+        elem._elem.tagName.return_value = 'SPAN'
+        assert elem.tag_name() == 'span'
+
+    def test_style_property(self, elem):
+        assert elem.style_property('foo', strategy='computed') == 'bar'
+
+    @pytest.mark.parametrize('use_js, editable, expected', [
+        (True, 'false', 'js'),
+        (True, 'true', 'nojs'),
+        (False, 'false', 'nojs'),
+        (False, 'true', 'nojs'),
+    ])
+    def test_text(self, use_js, editable, expected):
+        elem = get_webelem(attributes={'contenteditable': editable})
+        elem._elem.toPlainText.return_value = 'nojs'
+        elem._elem.evaluateJavaScript.return_value = 'js'
+        assert elem.text(use_js=use_js) == expected
+
+    @pytest.mark.parametrize('use_js, editable, text, uses_js, arg', [
+        (True, 'false', 'foo', True, "this.value='foo'"),
+        (True, 'false', "foo'bar", True, r"this.value='foo\'bar'"),
+        (True, 'true', 'foo', False, 'foo'),
+        (False, 'false', 'foo', False, 'foo'),
+        (False, 'true', 'foo', False, 'foo'),
+    ])
+    def test_set_text(self, use_js, editable, text, uses_js, arg):
+        elem = get_webelem(attributes={'contenteditable': editable})
+        elem.set_text(text, use_js=use_js)
+        attr = 'evaluateJavaScript' if uses_js else 'setPlainText'
+        called_mock = getattr(elem._elem, attr)
+        called_mock.assert_called_with(arg)
+
+    @pytest.mark.parametrize('with_cb', [True, False])
+    def test_run_js_async(self, elem, with_cb):
+        cb = mock.Mock(spec={}) if with_cb else None
+        elem._elem.evaluateJavaScript.return_value = 42
+        elem.run_js_async('the_answer();', cb)
+        if with_cb:
+            cb.assert_called_with(42)
+
 
 class TestRemoveBlankTarget:
 
@@ -402,7 +485,7 @@ class TestRemoveBlankTarget:
         elem = [None] * depth
         elem[0] = get_webelem(tagname='div')
         for i in range(1, depth):
-            elem[i] = get_webelem(tagname='div', parent=elem[i-1])
+            elem[i] = get_webelem(tagname='div', parent=elem[i-1]._elem)
             elem[i]._elem.encloseWith(elem[i-1]._elem)
         elem[-1].remove_blank_target()
         for i in range(depth):
@@ -608,7 +691,7 @@ def test_focus_element(stubs):
     frame = stubs.FakeWebFrame(QRect(0, 0, 100, 100))
     elem = get_webelem()
     frame.focus_elem = elem._elem
-    assert webelem.focus_elem(frame)._elem is elem._elem
+    assert webkitelem.focus_elem(frame)._elem is elem._elem
 
 
 class TestRectOnView:
@@ -620,7 +703,7 @@ class TestRectOnView:
         This is needed for all the tests calling rect_on_view or is_visible.
         """
         config_stub.data = {'ui': {'zoom-text-only': 'true'}}
-        monkeypatch.setattr('qutebrowser.browser.webkit.webelem.config',
+        monkeypatch.setattr('qutebrowser.browser.webkit.webkitelem.config',
                             config_stub)
         return config_stub
 
@@ -672,120 +755,21 @@ class TestRectOnView:
     def test_passed_geometry(self, stubs, js_rect):
         """Make sure geometry isn't called when a geometry is passed."""
         frame = stubs.FakeWebFrame(QRect(0, 0, 200, 200))
-        raw_elem = get_webelem(frame=frame, js_rect_return=js_rect)._elem
+        elem = get_webelem(frame=frame, js_rect_return=js_rect)
         rect = QRect(10, 20, 30, 40)
-        assert webelem.rect_on_view(raw_elem, elem_geometry=rect) == rect
-        assert not raw_elem.geometry.called
+        assert elem.rect_on_view(elem_geometry=rect) == rect
+        assert not elem._elem.geometry.called
 
     @pytest.mark.parametrize('js_rect', [None, {}])
     @pytest.mark.parametrize('zoom_text_only', [True, False])
-    @pytest.mark.parametrize('adjust_zoom', [True, False])
-    def test_zoomed(self, stubs, config_stub, js_rect, zoom_text_only,
-                    adjust_zoom):
+    def test_zoomed(self, stubs, config_stub, js_rect, zoom_text_only):
         """Make sure the coordinates are adjusted when zoomed."""
         config_stub.data = {'ui': {'zoom-text-only': zoom_text_only}}
         geometry = QRect(10, 10, 4, 4)
         frame = stubs.FakeWebFrame(QRect(0, 0, 100, 100), zoom=0.5)
         elem = get_webelem(geometry, frame, js_rect_return=js_rect,
                            zoom_text_only=zoom_text_only)
-        rect = elem.rect_on_view(adjust_zoom=adjust_zoom)
-        if zoom_text_only or (js_rect is None and adjust_zoom):
-            assert rect == QRect(10, 10, 4, 4)
-        else:
-            assert rect == QRect(20, 20, 8, 8)
-
-
-class TestJavascriptEscape:
-
-    TESTS = {
-        'foo\\bar': r'foo\\bar',
-        'foo\nbar': r'foo\nbar',
-        'foo\rbar': r'foo\rbar',
-        "foo'bar": r"foo\'bar",
-        'foo"bar': r'foo\"bar',
-        'one\\two\rthree\nfour\'five"six': r'one\\two\rthree\nfour\'five\"six',
-        '\x00': r'\x00',
-        'hellö': 'hellö',
-        '☃': '☃',
-        '\x80Ā': '\x80Ā',
-        '𐀀\x00𐀀\x00': r'𐀀\x00𐀀\x00',
-        '𐀀\ufeff': r'𐀀\ufeff',
-        '\ufeff': r'\ufeff',
-        # http://stackoverflow.com/questions/2965293/
-        '\u2028': r'\u2028',
-        '\u2029': r'\u2029',
-    }
-
-    # Once there was this warning here:
-    #   load glyph failed err=6 face=0x2680ba0, glyph=1912
-    # http://qutebrowser.org:8010/builders/debian-jessie/builds/765/steps/unittests/
-    # Should that be ignored?
-
-    @pytest.mark.parametrize('before, after', sorted(TESTS.items()), ids=repr)
-    def test_fake_escape(self, before, after):
-        """Test javascript escaping with some expected outcomes."""
-        assert webelem.javascript_escape(before) == after
-
-    def _test_escape(self, text, qtbot, webframe):
-        """Helper function for test_real_escape*."""
-        try:
-            self._test_escape_simple(text, webframe)
-        except AssertionError:
-            # Try another method if the simple method failed.
-            #
-            # See _test_escape_hexlified documentation on why this is
-            # necessary.
-            self._test_escape_hexlified(text, qtbot, webframe)
-
-    def _test_escape_hexlified(self, text, qtbot, webframe):
-        """Test conversion by hexlifying in javascript.
-
-        Since the conversion of QStrings to Python strings is broken in some
-        older PyQt versions in some corner cases, we load an HTML file which
-        generates an MD5 of the escaped text and use that for comparisons.
-        """
-        escaped = webelem.javascript_escape(text)
-        path = os.path.join(os.path.dirname(__file__),
-                            'test_webelem_jsescape.html')
-        with open(path, encoding='utf-8') as f:
-            html_source = f.read().replace('%INPUT%', escaped)
-
-        with qtbot.waitSignal(webframe.loadFinished) as blocker:
-            webframe.setHtml(html_source)
-        assert blocker.args == [True]
-
-        result = webframe.evaluateJavaScript('window.qute_test_result')
-        assert result is not None
-        assert '|' in result
-        result_md5, result_text = result.split('|', maxsplit=1)
-        text_md5 = binascii.hexlify(text.encode('utf-8')).decode('ascii')
-        assert result_md5 == text_md5, result_text
-
-    def _test_escape_simple(self, text, webframe):
-        """Test conversion by using evaluateJavaScript."""
-        escaped = webelem.javascript_escape(text)
-        result = webframe.evaluateJavaScript('"{}";'.format(escaped))
-        assert result == text
-
-    @pytest.mark.parametrize('text', sorted(TESTS), ids=repr)
-    def test_real_escape(self, webframe, qtbot, text):
-        """Test javascript escaping with a real QWebPage."""
-        self._test_escape(text, qtbot, webframe)
-
-    @pytest.mark.qt_log_ignore('^OpenType support missing for script',
-                               extend=True)
-    @hypothesis.given(hypothesis.strategies.text())
-    def test_real_escape_hypothesis(self, webframe, qtbot, text):
-        """Test javascript escaping with a real QWebPage and hypothesis."""
-        # We can't simply use self._test_escape because of this:
-        # https://github.com/pytest-dev/pytest-qt/issues/69
-
-        # self._test_escape(text, qtbot, webframe)
-        try:
-            self._test_escape_simple(text, webframe)
-        except AssertionError:
-            if PYQT_VERSION >= 0x050300:
-                self._test_escape_hexlified(text, qtbot, webframe)
+        assert elem.rect_on_view() == QRect(10, 10, 4, 4)
 
 
 class TestGetChildFrames:
@@ -795,7 +779,7 @@ class TestGetChildFrames:
     def test_single_frame(self, stubs):
         """Test get_child_frames with a single frame without children."""
         frame = stubs.FakeChildrenFrame()
-        children = webelem.get_child_frames(frame)
+        children = webkitelem.get_child_frames(frame)
         assert len(children) == 1
         assert children[0] is frame
         frame.childFrames.assert_called_once_with()
@@ -810,7 +794,7 @@ class TestGetChildFrames:
         child1 = stubs.FakeChildrenFrame()
         child2 = stubs.FakeChildrenFrame()
         parent = stubs.FakeChildrenFrame([child1, child2])
-        children = webelem.get_child_frames(parent)
+        children = webkitelem.get_child_frames(parent)
         assert len(children) == 3
         assert children[0] is parent
         assert children[1] is child1
@@ -832,7 +816,7 @@ class TestGetChildFrames:
         first = [stubs.FakeChildrenFrame(second[0:2]),
                  stubs.FakeChildrenFrame(second[2:4])]
         root = stubs.FakeChildrenFrame(first)
-        children = webelem.get_child_frames(root)
+        children = webkitelem.get_child_frames(root)
         assert len(children) == 7
         assert children[0] is root
         for frame in [root] + first + second:
@@ -847,7 +831,7 @@ class TestIsEditable:
     def stubbed_config(self, config_stub, monkeypatch):
         """Fixture to create a config stub with an input section."""
         config_stub.data = {'input': {}}
-        monkeypatch.setattr('qutebrowser.browser.webkit.webelem.config',
+        monkeypatch.setattr('qutebrowser.browser.webkit.webkitelem.config',
                             config_stub)
         return config_stub
 
@@ -916,3 +900,25 @@ class TestIsEditable:
         stubbed_config.data['input']['insert-mode-on-plugins'] = setting
         elem = get_webelem(tagname=tagname, attributes=attributes)
         assert elem.is_editable() == editable
+
+
+@pytest.mark.parametrize('attributes, expected', [
+    # No attributes
+    ({}, None),
+    ({'href': 'foo'}, QUrl('http://www.example.com/foo')),
+    ({'src': 'foo'}, QUrl('http://www.example.com/foo')),
+    ({'href': 'foo', 'src': 'bar'}, QUrl('http://www.example.com/foo')),
+    ({'href': '::garbage::'}, None),
+    ({'href': 'http://www.example.org/'}, QUrl('http://www.example.org/')),
+    ({'href': '  foo  '}, QUrl('http://www.example.com/foo')),
+])
+def test_resolve_url(attributes, expected):
+    elem = get_webelem(attributes=attributes)
+    baseurl = QUrl('http://www.example.com/')
+    assert elem.resolve_url(baseurl) == expected
+
+
+def test_resolve_url_relative_base():
+    elem = get_webelem(attributes={'href': 'foo'})
+    with pytest.raises(ValueError):
+        elem.resolve_url(QUrl('base'))

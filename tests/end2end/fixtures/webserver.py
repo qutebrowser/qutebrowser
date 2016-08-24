@@ -22,7 +22,6 @@
 import re
 import sys
 import json
-import socket
 import os.path
 import http.client
 
@@ -30,6 +29,8 @@ import pytest
 from PyQt5.QtCore import pyqtSignal, QUrl
 
 from end2end.fixtures import testprocess
+
+from qutebrowser.utils import utils
 
 
 class Request(testprocess.Line):
@@ -72,9 +73,10 @@ class Request(testprocess.Line):
             '/status/404': [http.client.NOT_FOUND],
             '/cookies/set': [http.client.FOUND],
         }
+        default_statuses = [http.client.OK, http.client.NOT_MODIFIED]
 
         sanitized = QUrl('http://localhost' + self.path).path()  # Remove ?foo
-        expected_statuses = path_to_statuses.get(sanitized, [http.client.OK])
+        expected_statuses = path_to_statuses.get(sanitized, default_statuses)
         assert self.status in expected_statuses
 
     def __eq__(self, other):
@@ -127,16 +129,8 @@ class WebserverProcess(testprocess.Process):
     def __init__(self, script, parent=None):
         super().__init__(parent)
         self._script = script
-        self.port = self._get_port()
+        self.port = utils.random_port()
         self.new_data.connect(self.new_request)
-
-    def _get_port(self):
-        """Get a random free port to use for the server."""
-        sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-        sock.bind(('localhost', 0))
-        port = sock.getsockname()[1]
-        sock.close()
-        return port
 
     def get_requests(self):
         """Get the requests to the server during this test."""
@@ -173,7 +167,7 @@ class WebserverProcess(testprocess.Process):
         self.proc.waitForFinished()
 
 
-@pytest.yield_fixture(scope='session', autouse=True)
+@pytest.fixture(scope='session', autouse=True)
 def httpbin(qapp):
     """Fixture for an httpbin object which ensures clean setup/teardown."""
     httpbin = WebserverProcess('webserver_sub')
@@ -182,7 +176,7 @@ def httpbin(qapp):
     httpbin.cleanup()
 
 
-@pytest.yield_fixture(autouse=True)
+@pytest.fixture(autouse=True)
 def httpbin_after_test(httpbin, request):
     """Fixture to clean httpbin request list after each test."""
     request.node._httpbin_log = httpbin.captured_log
@@ -190,7 +184,7 @@ def httpbin_after_test(httpbin, request):
     httpbin.after_test()
 
 
-@pytest.yield_fixture
+@pytest.fixture
 def ssl_server(request, qapp):
     """Fixture for a webserver with a self-signed SSL certificate.
 

@@ -1,0 +1,49 @@
+bzr+lp:beautifulsoup
+git+https://github.com/cherrypy/cherrypy.git
+hg+https://bitbucket.org/ned/coveragepy
+git+https://github.com/micheles/decorator.git
+git+https://github.com/pallets/flask.git
+git+https://github.com/miracle2k/python-glob2.git
+git+https://github.com/Runscope/httpbin.git
+git+https://github.com/HypothesisWorks/hypothesis-python.git
+git+https://github.com/pallets/itsdangerous.git
+git+https://bitbucket.org/zzzeek/mako.git
+git+https://github.com/r1chardj0n3s/parse.git
+git+https://github.com/jenisys/parse_type.git
+hg+https://bitbucket.org/pytest-dev/py
+git+https://github.com/pytest-dev/pytest.git@features
+git+https://github.com/pytest-dev/pytest-bdd.git
+
+# This is broken at the moment because logfail tries to access
+# LogCaptureHandler
+# git+https://github.com/eisensheng/pytest-catchlog.git
+pytest-catchlog==1.2.2
+
+git+https://github.com/pytest-dev/pytest-cov.git
+git+https://github.com/pytest-dev/pytest-faulthandler.git
+git+https://github.com/pytest-dev/pytest-instafail.git
+git+https://github.com/pytest-dev/pytest-mock.git
+git+https://github.com/pytest-dev/pytest-qt.git
+git+https://github.com/pytest-dev/pytest-repeat.git
+git+https://github.com/pytest-dev/pytest-rerunfailures.git
+git+https://github.com/abusalimov/pytest-travis-fold.git
+git+https://github.com/fschulze/pytest-warnings.git
+git+https://github.com/The-Compiler/pytest-xvfb.git
+hg+https://bitbucket.org/gutworth/six
+hg+https://bitbucket.org/jendrikseipp/vulture
+git+https://github.com/pallets/werkzeug.git
+
+
+## qutebrowser dependencies
+
+git+https://github.com/tartley/colorama.git
+hg+https://bitbucket.org/cthedot/cssutils
+git+https://github.com/pallets/jinja.git
+git+https://github.com/pallets/markupsafe.git
+hg+http://bitbucket.org/birkenfeld/pygments-main
+hg+https://bitbucket.org/fdik/pypeg
+
+# Fails to build:
+# gcc: error: ext/_yaml.c: No such file or directory
+# hg+https://bitbucket.org/xi/pyyaml
+PyYAML==3.11

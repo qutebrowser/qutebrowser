@@ -56,21 +56,19 @@ def whitelist_generator():
     yield 'qutebrowser.mainwindow.statusbar.url.UrlText.urltype'
 
     # Not used yet, but soon (or when debugging)
-    yield 'qutebrowser.config.configtypes.Regex'
     yield 'qutebrowser.utils.debug.log_events'
     yield 'qutebrowser.utils.debug.log_signals'
     yield 'qutebrowser.utils.debug.qflags_key'
     yield 'qutebrowser.utils.qtutils.QtOSError.qt_errno'
-    yield 'qutebrowser.utils.usertypes.NeighborList.firstitem'
     yield 'scripts.utils.bg_colors'
-    yield 'scripts.utils.print_subtitle'
+    yield 'qutebrowser.browser.webelem.AbstractWebElement.style_property'
+    yield 'qutebrowser.config.configtypes.Float'
 
     # Qt attributes
     yield 'PyQt5.QtWebKit.QWebPage.ErrorPageExtensionReturn().baseUrl'
     yield 'PyQt5.QtWebKit.QWebPage.ErrorPageExtensionReturn().content'
     yield 'PyQt5.QtWebKit.QWebPage.ErrorPageExtensionReturn().encoding'
     yield 'PyQt5.QtWebKit.QWebPage.ErrorPageExtensionReturn().fileNames'
-    yield 'PyQt5.QtGui.QAbstractTextDocumentLayout.PaintContext().clip'
     yield 'PyQt5.QtWidgets.QStyleOptionViewItem.backgroundColor'
 
     # qute:... handlers
@@ -81,9 +79,7 @@ def whitelist_generator():
     yield ('qutebrowser.completion.models.sortfilter.CompletionFilterModel().'
            'lessThan')
     yield 'qutebrowser.utils.jinja.Loader.get_source'
-    yield 'qutebrowser.utils.log.VDEBUG'
     yield 'qutebrowser.utils.log.QtWarningFilter.filter'
-    yield 'logging.LogRecord.log_color'
     yield 'qutebrowser.browser.pdfjs.is_available'
     # vulture doesn't notice the hasattr() and thus thinks netrc_used is unused
     # in NetworkManager.on_authentication_required

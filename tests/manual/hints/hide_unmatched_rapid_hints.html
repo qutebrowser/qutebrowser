@@ -1,0 +1,25 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <meta charset="utf-8">
+        <title>Hide unmatched rapid hints</title>
+    </head>
+    <body>
+        <p>When <code>hints -> hide-unmatched-rapid-hints</code> is set to true (default), rapid hints behave like normal hints, i.e. unmatched hints will be hidden as you type. Setting the option to false will disable hiding in rapid mode, which is sometimes useful (see <a href="https://github.com/The-Compiler/qutebrowser/issues/1799">#1799</a>).</p>
+        <p>Note that when hinting in number mode, the <code>hints -> hide-unmatched-rapid-hints</code> option affects typing the hint string (number), but not the filter (letters).</p>
+        <p>Here is couple of invalid links to test the behaviour:</p>
+        <p><a href="#foo">one</a></p>
+        <p><a href="#foo">two</a></p>
+        <p><a href="#foo">three</a></p>
+        <p><a href="#foo">four</a></p>
+        <p><a href="#foo">five</a></p>
+        <p><a href="#foo">six</a></p>
+        <p><a href="#foo">seven</a></p>
+        <p><a href="#foo">eight</a></p>
+        <p><a href="#foo">nine</a></p>
+        <p><a href="#foo">ten</a></p>
+        <p><a href="#foo">eleven</a></p>
+        <p><a href="#foo">twelve</a></p>
+        <p><a href="#foo">thirteen</a></p>
+    </body>
+</html>

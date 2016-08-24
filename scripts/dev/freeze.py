@@ -49,6 +49,16 @@ def get_egl_path():
                         r'PyQt5\libEGL.dll')
 
 
+def get_plugin_folders():
+    """Get the plugin folders to copy to the output."""
+    if not sys.platform.startswith('win'):
+        return []
+    plugin_dir = os.path.join(distutils.sysconfig.get_python_lib(),
+                              'PyQt5', 'plugins')
+    folders = ['audio', 'iconengines', 'mediaservice', 'printsupport']
+    return [os.path.join(plugin_dir, folder) for folder in folders]
+
+
 def get_build_exe_options(skip_html=False):
     """Get the options passed as build_exe_options to cx_Freeze.
 
@@ -80,6 +90,8 @@ def get_build_exe_options(skip_html=False):
     egl_path = get_egl_path()
     if egl_path is not None:
         include_files.append((egl_path, 'libEGL.dll'))
+
+    include_files += get_plugin_folders()
 
     return {
         'include_files': include_files,

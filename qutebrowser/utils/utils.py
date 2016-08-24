@@ -24,6 +24,7 @@ import re
 import sys
 import enum
 import json
+import socket
 import os.path
 import functools
 import itertools
@@ -43,9 +44,19 @@ fake_clipboard = None
 log_clipboard = False
 
 
-class SelectionUnsupportedError(Exception):
+class ClipboardError(Exception):
+
+    """Raised if the clipboard contents are unavailable for some reason."""
+
+
+class SelectionUnsupportedError(ClipboardError):
 
     """Raised if [gs]et_clipboard is used and selection=True is unsupported."""
+
+
+class ClipboardEmptyError(ClipboardError):
+
+    """Raised if get_clipboard is used and the clipboard is empty."""
 
 
 def elide(text, length):
@@ -56,6 +67,38 @@ def elide(text, length):
         return text
     else:
         return text[:length - 1] + '\u2026'
+
+
+def elide_filename(filename, length):
+    """Elide a filename to the given length.
+
+    The difference to the elide() is that the text is removed from
+    the middle instead of from the end. This preserves file name extensions.
+    Additionally, standard ASCII dots are used ("...") instead of the unicode
+    "…" (U+2026) so it works regardless of the filesystem encoding.
+
+    This function does not handle path separators.
+
+    Args:
+        filename: The filename to elide.
+        length: The maximum length of the filename, must be at least 3.
+
+    Return:
+        The elided filename.
+    """
+    elidestr = '...'
+    if length < len(elidestr):
+        raise ValueError('length must be greater or equal to 3')
+    if len(filename) <= length:
+        return filename
+    # Account for '...'
+    length -= len(elidestr)
+    left = length // 2
+    right = length - left
+    if right == 0:
+        return filename[:left] + elidestr
+    else:
+        return filename[:left] + elidestr + filename[-right:]
 
 
 def compact_text(text, elidelength=None):
@@ -423,7 +466,7 @@ class KeyInfo:
         if self.modifiers is None:
             modifiers = None
         else:
-            #modifiers = qflags_key(Qt, self.modifiers)
+            # modifiers = qflags_key(Qt, self.modifiers)
             modifiers = hex(int(self.modifiers))
         return get_repr(self, constructor=True, key=qenum_key(Qt, self.key),
                         modifiers=modifiers, text=self.text)
@@ -531,14 +574,6 @@ class FakeIOStream(io.TextIOBase):
     def __init__(self, write_func):
         super().__init__()
         self.write = write_func
-
-    def flush(self):
-        """Override flush() to satisfy pylint."""
-        return super().flush()
-
-    def isatty(self):
-        """Override isatty() to satisfy pylint."""
-        return super().isatty()
 
 
 @contextlib.contextmanager
@@ -786,6 +821,11 @@ def get_clipboard(selection=False):
         mode = QClipboard.Selection if selection else QClipboard.Clipboard
         data = QApplication.clipboard().text(mode=mode)
 
+    target = "Primary selection" if selection else "Clipboard"
+    if not data.strip():
+        raise ClipboardEmptyError("{} is empty.".format(target))
+    log.misc.debug("{} contained: {!r}".format(target, data))
+
     return data
 
 
@@ -794,12 +834,21 @@ def supports_selection():
     return QApplication.clipboard().supportsSelection()
 
 
+def random_port():
+    """Get a random free port."""
+    sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+    sock.bind(('localhost', 0))
+    port = sock.getsockname()[1]
+    sock.close()
+    return port
+
+
 class X11GeometryStringParser(object):
     """Parse a standard X11 geometry string.
 
     Most X programs accept a command line argument of the form −−geometry
     WIDTHxHEIGHT+XOFF+YOFF (where WIDTH, HEIGHT, XOFF, and YOFF are numbers)
-    for specifying a preferred size and location for this application’’s main
+    for specifying a preferred size and location for this application's main
     window
 
     The full specification
@@ -811,16 +860,15 @@ class X11GeometryStringParser(object):
         'Token', ['typ', 'value', 'column']
     )
 
-
     def tokenize(self, string):
         """Tokenize a geometry string."""
         token_specification = [
-            ('MUL', r'x'),     # Integer or decimal number
+            ('MUL', r'x'),      # Integer or decimal number
             ('NUMBER', r'[+-]?\d+(\.\d*)?'),  # Integer or decimal number
-            ('INVOFF', r'-'),  # Indicate a inverse offset
-                               #    left hand -> right hand
-                               #    top -> buttom
-            ('INVALID', r'.'), # Match the rest, which is invalid
+            ('INVOFF', r'-'),   # Indicate a inverse offset
+                                #    left hand -> right hand
+                                #    top -> buttom
+            ('INVALID', r'.'),  # Match the rest, which is invalid
         ]
         tok_regex = '|'.join(
             '(?P<%s>%s)' % pair for pair in token_specification

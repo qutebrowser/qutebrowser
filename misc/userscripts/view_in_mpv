@@ -1,4 +1,4 @@
-#!/usr/bin/env bash -e
+#!/usr/bin/env bash
 #
 # Behavior:
 #   Userscript for qutebrowser which views the current web page in mpv using
@@ -23,6 +23,8 @@
 #
 # Thorsten Wißmann, 2015 (thorsten` on freenode)
 # Any feedback is welcome!
+
+set -e
 
 if [ -z "$QUTE_FIFO" ] ; then
     cat 1>&2 <<EOF

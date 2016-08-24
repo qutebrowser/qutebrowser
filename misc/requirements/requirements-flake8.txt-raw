@@ -1,4 +1,4 @@
-flake8
+flake8<3.0.0
 flake8-copyright
 flake8-debugger
 flake8-deprecated
@@ -15,6 +15,8 @@ pep8-naming
 pydocstyle
 pyflakes
 
+# Pinned to 1.5.7 by hacking otherwise
 pep8==1.7.0
 
-#@ comment: pep257 still needed by flake8-docstrings but ignored
+# Waiting until hacking/flake8-tuple are updated
+#@ filter: flake8 < 3.0.0

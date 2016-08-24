@@ -33,10 +33,20 @@ import sys
 import operator
 import contextlib
 
-import pkg_resources
 from PyQt5.QtCore import (qVersion, QEventLoop, QDataStream, QByteArray,
                           QIODevice, QSaveFile)
 from PyQt5.QtWidgets import QApplication
+
+from qutebrowser.utils import log
+
+with log.ignore_py_warnings(category=PendingDeprecationWarning, module='imp'):
+    with log.ignore_py_warnings(category=ImportWarning):
+        # This imports 'imp' and gives us a PendingDeprecationWarning on
+        # Debian Jessie.
+        #
+        # On Archlinux, we get ImportWarning from
+        # importlib/_bootstrap_external.py for modules with missing __init__.
+        import pkg_resources
 
 
 MAXVALS = {
@@ -199,20 +209,19 @@ def savefile_open(filename, binary=False, encoding='utf-8'):
     f = QSaveFile(filename)
     cancelled = False
     try:
-        ok = f.open(QIODevice.WriteOnly)
-        if not ok:
+        open_ok = f.open(QIODevice.WriteOnly)
+        if not open_ok:
             raise QtOSError(f)
         if binary:
             new_f = PyQIODevice(f)
         else:
             new_f = io.TextIOWrapper(PyQIODevice(f), encoding=encoding)
         yield new_f
+        new_f.flush()
     except:
         f.cancelWriting()
         cancelled = True
         raise
-    else:
-        new_f.flush()
     finally:
         commit_ok = f.commit()
         if not commit_ok and not cancelled:

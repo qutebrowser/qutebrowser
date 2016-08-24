@@ -35,9 +35,6 @@ class UrlCompletionModel(base.BaseCompletionModel):
     Used for the `open` command.
     """
 
-    # https://github.com/The-Compiler/qutebrowser/issues/545
-    # pylint: disable=abstract-method
-
     URL_COLUMN = 0
     TEXT_COLUMN = 1
     TIME_COLUMN = 2
@@ -192,4 +189,4 @@ class UrlCompletionModel(base.BaseCompletionModel):
             sibling = index.sibling(index.row(), self.TEXT_COLUMN)
             qtutils.ensure_valid(sibling)
             name = sibling.data()
-            quickmark_manager.quickmark_del(name)
+            quickmark_manager.delete(name)

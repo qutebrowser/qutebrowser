@@ -21,6 +21,10 @@
 
 """Tests for qutebrowser.commands.cmdutils."""
 
+import sys
+import logging
+import types
+
 import pytest
 
 from qutebrowser.commands import cmdutils, cmdexc, argparser, command
@@ -62,29 +66,6 @@ class TestCheckOverflow:
                         "representation.")
 
         assert str(excinfo.value) == expected_str
-
-
-class TestArgOrCount:
-
-    @pytest.mark.parametrize('arg, count', [(None, None), (1, 1)])
-    def test_exceptions(self, arg, count):
-        with pytest.raises(ValueError):
-            cmdutils.arg_or_count(arg, count)
-
-    @pytest.mark.parametrize('arg, count', [(1, None), (None, 1)])
-    def test_normal(self, arg, count):
-        assert cmdutils.arg_or_count(arg, count) == 1
-
-    @pytest.mark.parametrize('arg, count, countzero, expected', [
-        (0, None, 2, 0),
-        (None, 0, 2, 2),
-    ])
-    def test_countzero(self, arg, count, countzero, expected):
-        ret = cmdutils.arg_or_count(arg, count, countzero=countzero)
-        assert ret == expected
-
-    def test_default(self):
-        assert cmdutils.arg_or_count(None, None, default=2) == 2
 
 
 class TestCheckExclusive:
@@ -314,6 +295,21 @@ class TestRegister:
         else:
             assert cmd._get_call_args(win_id=0) == ([expected], {})
 
+    def test_pos_arg_info(self):
+        @cmdutils.register()
+        @cmdutils.argument('foo', choices=('a', 'b'))
+        @cmdutils.argument('bar', choices=('x', 'y'))
+        @cmdutils.argument('opt')
+        def fun(foo, bar, opt=False):
+            """Blah."""
+            pass
+
+        cmd = cmdutils.cmd_dict['fun']
+        assert cmd.get_pos_arg_info(0) == command.ArgInfo(choices=('a', 'b'))
+        assert cmd.get_pos_arg_info(1) == command.ArgInfo(choices=('x', 'y'))
+        with pytest.raises(IndexError):
+            cmd.get_pos_arg_info(2)
+
 
 class TestArgument:
 
@@ -361,6 +357,25 @@ class TestArgument:
                 pass
 
         assert str(excinfo.value) == "Argument marked as both count/win_id!"
+
+    def test_no_docstring(self, caplog):
+        with caplog.at_level(logging.WARNING):
+            @cmdutils.register()
+            def fun():
+                # no docstring
+                pass
+        assert len(caplog.records) == 1
+        msg = caplog.records[0].message
+        assert msg.endswith('test_cmdutils.py has no docstring')
+
+    def test_no_docstring_with_optimize(self, monkeypatch):
+        """With -OO we'd get a warning on start, but no warning afterwards."""
+        monkeypatch.setattr(sys, 'flags', types.SimpleNamespace(optimize=2))
+
+        @cmdutils.register()
+        def fun():
+            # no docstring
+            pass
 
 
 class TestRun:

@@ -45,13 +45,13 @@ from helpers import stubs
 pytestmark = pytest.mark.usefixtures('qapp')
 
 
-@pytest.yield_fixture()
+@pytest.fixture()
 def short_tmpdir():
     with tempfile.TemporaryDirectory() as tdir:
         yield py.path.local(tdir)  # pylint: disable=no-member
 
 
-@pytest.yield_fixture(autouse=True)
+@pytest.fixture(autouse=True)
 def shutdown_server():
     """If ipc.send_or_listen was called, make sure to shut server down."""
     yield
@@ -63,7 +63,7 @@ def shutdown_server():
         server.shutdown()
 
 
-@pytest.yield_fixture
+@pytest.fixture
 def ipc_server(qapp, qtbot):
     server = ipc.IPCServer('qute-test')
     yield server
@@ -77,7 +77,7 @@ def ipc_server(qapp, qtbot):
         pass
 
 
-@pytest.yield_fixture
+@pytest.fixture
 def qlocalserver(qapp):
     server = QLocalServer()
     yield server
@@ -85,7 +85,7 @@ def qlocalserver(qapp):
     server.deleteLater()
 
 
-@pytest.yield_fixture
+@pytest.fixture
 def qlocalsocket(qapp):
     socket = QLocalSocket()
     yield socket
@@ -447,7 +447,7 @@ class TestHandleConnection:
         assert "We can read a line immediately." in all_msgs
 
 
-@pytest.yield_fixture
+@pytest.fixture
 def connected_socket(qtbot, qlocalsocket, ipc_server):
     if sys.platform == 'darwin':
         pytest.skip("Skipping connected_socket test - "
@@ -494,7 +494,7 @@ def test_invalid_data(qtbot, ipc_server, connected_socket, caplog, data, msg):
     signals = [ipc_server.got_invalid_data, connected_socket.disconnected]
     with caplog.at_level(logging.ERROR):
         with qtbot.assertNotEmitted(ipc_server.got_args):
-            with qtbot.waitSignals(signals):
+            with qtbot.waitSignals(signals, order='strict'):
                 connected_socket.write(data)
 
     messages = [r.message for r in caplog.records]
@@ -512,7 +512,8 @@ def test_multiline(qtbot, ipc_server, connected_socket):
                 version=ipc.PROTOCOL_VERSION))
 
     with qtbot.assertNotEmitted(ipc_server.got_invalid_data):
-        with qtbot.waitSignals([ipc_server.got_args, ipc_server.got_args]):
+        with qtbot.waitSignals([ipc_server.got_args, ipc_server.got_args],
+                               order='strict'):
             connected_socket.write(data.encode('utf-8'))
 
     assert len(spy) == 2
@@ -532,32 +533,33 @@ class TestSendToRunningInstance:
     @pytest.mark.linux(reason="Causes random trouble on Windows and OS X")
     def test_normal(self, qtbot, tmpdir, ipc_server, mocker, has_cwd):
         ipc_server.listen()
-        raw_spy = QSignalSpy(ipc_server.got_raw)
 
         with qtbot.assertNotEmitted(ipc_server.got_invalid_data):
             with qtbot.waitSignal(ipc_server.got_args,
                                   timeout=5000) as blocker:
-                with tmpdir.as_cwd():
-                    if not has_cwd:
-                        m = mocker.patch('qutebrowser.misc.ipc.os')
-                        m.getcwd.side_effect = OSError
-                    sent = ipc.send_to_running_instance('qute-test', ['foo'],
-                                                        None)
+                with qtbot.waitSignal(ipc_server.got_raw,
+                                      timeout=5000) as raw_blocker:
+                    with tmpdir.as_cwd():
+                        if not has_cwd:
+                            m = mocker.patch('qutebrowser.misc.ipc.os')
+                            m.getcwd.side_effect = OSError
+                        sent = ipc.send_to_running_instance(
+                            'qute-test', ['foo'], None)
 
-            assert sent
+        assert sent
 
         expected_cwd = str(tmpdir) if has_cwd else ''
 
         assert blocker.args == [['foo'], '', expected_cwd]
 
-        assert len(raw_spy) == 1
-        assert len(raw_spy[0]) == 1
         raw_expected = {'args': ['foo'], 'target_arg': None,
                         'version': qutebrowser.__version__,
                         'protocol_version': ipc.PROTOCOL_VERSION}
         if has_cwd:
             raw_expected['cwd'] = str(tmpdir)
-        parsed = json.loads(raw_spy[0][0].decode('utf-8'))
+
+        assert len(raw_blocker.args) == 1
+        parsed = json.loads(raw_blocker.args[0].decode('utf-8'))
         assert parsed == raw_expected
 
     def test_socket_error(self):
@@ -652,7 +654,7 @@ class TestSendOrListen:
             setattr(m, attr, getattr(QLocalSocket, attr))
         return m
 
-    @pytest.yield_fixture
+    @pytest.fixture
     def legacy_server(self, args):
         legacy_name = ipc._get_socketname(args.basedir, legacy=True)
         legacy_server = ipc.IPCServer(legacy_name)

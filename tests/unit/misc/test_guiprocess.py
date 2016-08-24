@@ -34,7 +34,7 @@ def guiprocess_message_mock(message_mock):
     return message_mock
 
 
-@pytest.yield_fixture()
+@pytest.fixture()
 def proc(qtbot):
     """A fixture providing a GUIProcess and cleaning it up after the test."""
     p = guiprocess.GUIProcess(0, 'testprocess')
@@ -57,7 +57,8 @@ def fake_proc(monkeypatch, stubs):
 
 def test_start(proc, qtbot, guiprocess_message_mock, py_proc):
     """Test simply starting a process."""
-    with qtbot.waitSignals([proc.started, proc.finished], timeout=10000):
+    with qtbot.waitSignals([proc.started, proc.finished], timeout=10000,
+                           order='strict'):
         argv = py_proc("import sys; print('test'); sys.exit(0)")
         proc.start(*argv)
 
@@ -69,7 +70,8 @@ def test_start_verbose(proc, qtbot, guiprocess_message_mock, py_proc):
     """Test starting a process verbosely."""
     proc.verbose = True
 
-    with qtbot.waitSignals([proc.started, proc.finished], timeout=10000):
+    with qtbot.waitSignals([proc.started, proc.finished], timeout=10000,
+                           order='strict'):
         argv = py_proc("import sys; print('test'); sys.exit(0)")
         proc.start(*argv)
 
@@ -96,7 +98,8 @@ def test_start_env(monkeypatch, qtbot, py_proc):
         sys.exit(0)
     """)
 
-    with qtbot.waitSignals([proc.started, proc.finished], timeout=10000):
+    with qtbot.waitSignals([proc.started, proc.finished], timeout=10000,
+                           order='strict'):
         proc.start(*argv)
 
     data = bytes(proc._proc.readAll()).decode('utf-8')
@@ -105,10 +108,11 @@ def test_start_env(monkeypatch, qtbot, py_proc):
     assert 'QUTEBROWSER_TEST_2' in ret_env
 
 
-@pytest.mark.qt_log_ignore('QIODevice::read.*: WriteOnly device', extend=True)
+@pytest.mark.qt_log_ignore('QIODevice::read.*: WriteOnly device')
 def test_start_mode(proc, qtbot, py_proc):
     """Test simply starting a process with mode parameter."""
-    with qtbot.waitSignals([proc.started, proc.finished], timeout=10000):
+    with qtbot.waitSignals([proc.started, proc.finished], timeout=10000,
+                           order='strict'):
         argv = py_proc("import sys; print('test'); sys.exit(0)")
         proc.start(*argv, mode=QIODevice.NotOpen)
 
@@ -145,10 +149,12 @@ def test_double_start(qtbot, proc, py_proc):
 
 def test_double_start_finished(qtbot, proc, py_proc):
     """Test starting a GUIProcess twice (with the first call finished)."""
-    with qtbot.waitSignals([proc.started, proc.finished], timeout=10000):
+    with qtbot.waitSignals([proc.started, proc.finished], timeout=10000,
+                           order='strict'):
         argv = py_proc("import sys; sys.exit(0)")
         proc.start(*argv)
-    with qtbot.waitSignals([proc.started, proc.finished], timeout=10000):
+    with qtbot.waitSignals([proc.started, proc.finished], timeout=10000,
+                           order='strict'):
         argv = py_proc("import sys; sys.exit(0)")
         proc.start(*argv)
 

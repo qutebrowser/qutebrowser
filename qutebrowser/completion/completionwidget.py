@@ -24,12 +24,13 @@ subclasses to provide completions.
 """
 
 from PyQt5.QtWidgets import QStyle, QTreeView, QSizePolicy
-from PyQt5.QtCore import pyqtSlot, pyqtSignal, Qt, QItemSelectionModel
+from PyQt5.QtCore import (pyqtSlot, pyqtSignal, Qt, QItemSelectionModel,
+                          QItemSelection)
 
 from qutebrowser.config import config, style
-from qutebrowser.completion import completiondelegate, completer
+from qutebrowser.completion import completiondelegate
 from qutebrowser.completion.models import base
-from qutebrowser.utils import qtutils, objreg, utils, usertypes
+from qutebrowser.utils import objreg, utils, usertypes
 from qutebrowser.commands import cmdexc, cmdutils
 
 
@@ -50,6 +51,7 @@ class CompletionView(QTreeView):
 
     Signals:
         resize_completion: Emitted when the completion should be resized.
+        selection_changed: Emitted when the completion item selection changes.
     """
 
     # Drawing the item foreground will be done by CompletionItemDelegate, so we
@@ -102,16 +104,11 @@ class CompletionView(QTreeView):
     """
 
     resize_completion = pyqtSignal()
+    selection_changed = pyqtSignal(QItemSelection)
 
     def __init__(self, win_id, parent=None):
         super().__init__(parent)
         self._win_id = win_id
-        objreg.register('completion', self, scope='window', window=win_id)
-        cmd = objreg.get('status-command', scope='window', window=win_id)
-        completer_obj = completer.Completer(cmd, win_id, self)
-        completer_obj.next_prev_item.connect(self.on_next_prev_item)
-        objreg.register('completer', completer_obj, scope='window',
-                        window=win_id)
         self.enabled = config.get('completion', 'show')
         objreg.get('config').changed.connect(self.set_enabled)
         # FIXME handle new aliases.
@@ -184,24 +181,66 @@ class CompletionView(QTreeView):
                 # Item is a real item, not a category header -> success
                 return idx
 
-    @pyqtSlot(bool)
-    def on_next_prev_item(self, prev):
-        """Handle a tab press for the CompletionView.
-
-        Select the previous/next item and write the new text to the
-        statusbar.
-
-        Called from the Completer's next_prev_item signal.
+    def _next_category_idx(self, upwards):
+        """Get the index of the previous/next category.
 
         Args:
-            prev: True for prev item, False for next one.
+            upwards: Get previous item, not next.
+
+        Return:
+            A QModelIndex.
         """
-        if not self.isVisible():
-            # No completion running at the moment, ignore keypress
+        idx = self.selectionModel().currentIndex()
+        if not idx.isValid():
+            return self._next_idx(upwards).sibling(0, 0)
+        idx = idx.parent()
+        direction = -1 if upwards else 1
+        while True:
+            idx = idx.sibling(idx.row() + direction, 0)
+            if not idx.isValid() and upwards:
+                # wrap around to the first item of the last category
+                return self.model().last_item().sibling(0, 0)
+            elif not idx.isValid() and not upwards:
+                # wrap around to the first item of the first category
+                idx = self.model().first_item()
+                self.scrollTo(idx.parent())
+                return idx
+            elif idx.isValid() and idx.child(0, 0).isValid():
+                # scroll to ensure the category is visible
+                self.scrollTo(idx)
+                return idx.child(0, 0)
+
+    @cmdutils.register(instance='completion', hide=True,
+                       modes=[usertypes.KeyMode.command], scope='window')
+    @cmdutils.argument('which', choices=['next', 'prev', 'next-category',
+                                         'prev-category'])
+    def completion_item_focus(self, which):
+        """Shift the focus of the completion menu to another item.
+
+        Args:
+            which: 'next', 'prev', 'next-category', or 'prev-category'.
+        """
+        # selmodel can be None if 'show' and 'auto-open' are set to False
+        # https://github.com/The-Compiler/qutebrowser/issues/1731
+        selmodel = self.selectionModel()
+        if selmodel is None:
             return
-        idx = self._next_idx(prev)
-        qtutils.ensure_valid(idx)
-        self.selectionModel().setCurrentIndex(
+
+        if which == 'next':
+            idx = self._next_idx(upwards=False)
+        elif which == 'prev':
+            idx = self._next_idx(upwards=True)
+        elif which == 'next-category':
+            idx = self._next_category_idx(upwards=False)
+        elif which == 'prev-category':
+            idx = self._next_category_idx(upwards=True)
+        else:  # pragma: no cover
+            raise ValueError("Invalid 'which' value {!r}".format(which))
+
+        if not idx.isValid():
+            return
+
+        selmodel.setCurrentIndex(
             idx, QItemSelectionModel.ClearAndSelect | QItemSelectionModel.Rows)
 
     def set_model(self, model):
@@ -262,9 +301,7 @@ class CompletionView(QTreeView):
     def selectionChanged(self, selected, deselected):
         """Extend selectionChanged to call completers selection_changed."""
         super().selectionChanged(selected, deselected)
-        completer_obj = objreg.get('completer', scope='window',
-                                   window=self._win_id)
-        completer_obj.selection_changed(selected, deselected)
+        self.selection_changed.emit(selected)
 
     def resizeEvent(self, e):
         """Extend resizeEvent to adjust column size."""

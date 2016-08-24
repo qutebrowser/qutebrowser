@@ -26,7 +26,7 @@ Module attributes:
 from PyQt5.QtCore import Qt
 from PyQt5.QtGui import QStandardItemModel, QStandardItem
 
-from qutebrowser.utils import usertypes, qtutils
+from qutebrowser.utils import usertypes
 
 
 Role = usertypes.enum('Role', ['sort', 'userdata'], start=Qt.UserRole,
@@ -118,7 +118,9 @@ class BaseCompletionModel(QStandardItemModel):
         Return:
             The item flags, or Qt.NoItemFlags on error.
         """
-        qtutils.ensure_valid(index)
+        if not index.isValid():
+            return
+
         if index.parent().isValid():
             # item
             return (Qt.ItemIsEnabled | Qt.ItemIsSelectable |
@@ -126,20 +128,3 @@ class BaseCompletionModel(QStandardItemModel):
         else:
             # category
             return Qt.NoItemFlags
-
-    def sort(self, column, order=Qt.AscendingOrder):
-        """Sort the data in column according to order.
-
-        Override QAbstractItemModel::sort.
-        """
-        raise NotImplementedError
-
-    def custom_filter(self, pattern, row, parent):
-        """Custom filter.
-
-        Args:
-            pattern: The current filter pattern.
-            row: The row to accept or reject in the filter.
-            parent: The parent item QModelIndex.
-        """
-        raise NotImplementedError

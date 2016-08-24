@@ -22,10 +22,12 @@
 import unittest.mock
 
 import pytest
+from PyQt5.QtCore import QObject
 from PyQt5.QtGui import QStandardItemModel
 
 from qutebrowser.completion import completer
 from qutebrowser.utils import usertypes
+from qutebrowser.commands import command, cmdutils
 
 
 class FakeCompletionModel(QStandardItemModel):
@@ -39,19 +41,33 @@ class FakeCompletionModel(QStandardItemModel):
         self.kind = kind
 
 
-@pytest.fixture
-def cmd(stubs, qtbot):
-    """Create the statusbar command prompt the completer uses."""
-    cmd = stubs.FakeStatusbarCommand()
-    qtbot.addWidget(cmd)
-    return cmd
+class CompletionWidgetStub(QObject):
+
+    """Stub for the CompletionView."""
+
+    def __init__(self, parent=None):
+        super().__init__(parent)
+        self.hide = unittest.mock.Mock()
+        self.show = unittest.mock.Mock()
+        self.set_pattern = unittest.mock.Mock()
+        self.model = unittest.mock.Mock()
+        self.set_model = unittest.mock.Mock()
+        self.enabled = unittest.mock.Mock()
 
 
 @pytest.fixture
-def completer_obj(qtbot, cmd, config_stub):
+def completion_widget_stub():
+    return CompletionWidgetStub()
+
+
+@pytest.fixture
+def completer_obj(qtbot, status_command_stub, config_stub, monkeypatch, stubs,
+                  completion_widget_stub):
     """Create the completer used for testing."""
+    monkeypatch.setattr('qutebrowser.completion.completer.QTimer',
+        stubs.InstaTimer)
     config_stub.data = {'completion': {'auto-open': False}}
-    return completer.Completer(cmd, 0)
+    return completer.Completer(status_command_stub, 0, completion_widget_stub)
 
 
 @pytest.fixture(autouse=True)
@@ -76,24 +92,48 @@ def instances(monkeypatch):
 @pytest.fixture(autouse=True)
 def cmdutils_patch(monkeypatch, stubs):
     """Patch the cmdutils module to provide fake commands."""
+    @cmdutils.argument('section_', completion=usertypes.Completion.section)
+    @cmdutils.argument('option', completion=usertypes.Completion.option)
+    @cmdutils.argument('value', completion=usertypes.Completion.value)
+    def set_command(section_=None, option=None, value=None):
+        """docstring."""
+        pass
+
+    @cmdutils.argument('topic', completion=usertypes.Completion.helptopic)
+    def show_help(tab=False, bg=False, window=False, topic=None):
+        """docstring."""
+        pass
+
+    @cmdutils.argument('url', completion=usertypes.Completion.url)
+    @cmdutils.argument('count', count=True)
+    def openurl(url=None, implicit=False, bg=False, tab=False, window=False,
+                count=None):
+        """docstring."""
+        pass
+
+    @cmdutils.argument('win_id', win_id=True)
+    @cmdutils.argument('command', completion=usertypes.Completion.command)
+    def bind(key, win_id, command=None, *, mode='normal', force=False):
+        """docstring."""
+        # pylint: disable=unused-variable
+        pass
+
+    def tab_detach():
+        """docstring."""
+        pass
+
     cmds = {
-        'set': [usertypes.Completion.section, usertypes.Completion.option,
-                usertypes.Completion.value],
-        'help': [usertypes.Completion.helptopic],
-        'quickmark-load': [usertypes.Completion.quickmark_by_name],
-        'bookmark-load': [usertypes.Completion.bookmark_by_url],
-        'open': [usertypes.Completion.url],
-        'buffer': [usertypes.Completion.tab],
-        'session-load': [usertypes.Completion.sessions],
-        'bind': [usertypes.Completion.empty, usertypes.Completion.command],
-        'tab-detach': None,
+        'set': set_command,
+        'help': show_help,
+        'open': openurl,
+        'bind': bind,
+        'tab-detach': tab_detach,
     }
     cmd_utils = stubs.FakeCmdUtils({
-        name: stubs.FakeCommand(completion=compl)
-        for name, compl in cmds.items()
+        name: command.Command(name=name, handler=fn)
+        for name, fn in cmds.items()
     })
-    monkeypatch.setattr('qutebrowser.completion.completer.cmdutils',
-                        cmd_utils)
+    monkeypatch.setattr('qutebrowser.completion.completer.cmdutils', cmd_utils)
 
 
 def _set_cmd_prompt(cmd, txt):
@@ -128,21 +168,17 @@ def _validate_cmd_prompt(cmd, txt):
     (':set general ignore-case |', usertypes.Completion.value),
     (':set general huh |', None),
     (':help |', usertypes.Completion.helptopic),
-    (':quickmark-load |', usertypes.Completion.quickmark_by_name),
-    (':bookmark-load |', usertypes.Completion.bookmark_by_url),
+    (':help     |', usertypes.Completion.helptopic),
     (':open |', usertypes.Completion.url),
-    (':buffer |', usertypes.Completion.tab),
-    (':session-load |', usertypes.Completion.sessions),
-    (':bind |', usertypes.Completion.empty),
+    (':bind |', None),
     (':bind <c-x> |', usertypes.Completion.command),
     (':bind <c-x> foo|', usertypes.Completion.command),
-    (':bind <c-x>| foo', usertypes.Completion.empty),
+    (':bind <c-x>| foo', None),
     (':set| general ', usertypes.Completion.command),
     (':|set general ', usertypes.Completion.command),
     (':set gene|ral ignore-case', usertypes.Completion.section),
     (':|', usertypes.Completion.command),
     (':   |', usertypes.Completion.command),
-    (':bookmark-load      |', usertypes.Completion.bookmark_by_url),
     ('/|', None),
     (':open -t|', None),
     (':open --tab|', None),
@@ -157,12 +193,12 @@ def _validate_cmd_prompt(cmd, txt):
     (':set -t -p |', usertypes.Completion.section),
     (':open -- |', None),
 ])
-def test_update_completion(txt, expected, cmd, completer_obj,
+def test_update_completion(txt, expected, status_command_stub, completer_obj,
                            completion_widget_stub):
     """Test setting the completion widget's model based on command text."""
     # this test uses | as a placeholder for the current cursor position
-    _set_cmd_prompt(cmd, txt)
-    completer_obj.update_completion()
+    _set_cmd_prompt(status_command_stub, txt)
+    completer_obj.schedule_completion_update()
     if expected is None:
         assert not completion_widget_stub.set_model.called
     else:
@@ -170,24 +206,6 @@ def test_update_completion(txt, expected, cmd, completer_obj,
         arg = completion_widget_stub.set_model.call_args[0][0]
         # the outer model is just for sorting; srcmodel is the completion model
         assert arg.srcmodel.kind == expected
-
-
-def test_completion_item_prev(completer_obj, cmd, completion_widget_stub,
-                              config_stub, qtbot):
-    """Test that completion_item_prev emits next_prev_item."""
-    cmd.setText(':')
-    with qtbot.waitSignal(completer_obj.next_prev_item) as blocker:
-        completer_obj.completion_item_prev()
-    assert blocker.args == [True]
-
-
-def test_completion_item_next(completer_obj, cmd, completion_widget_stub,
-                              config_stub, qtbot):
-    """Test that completion_item_next emits next_prev_item."""
-    cmd.setText(':')
-    with qtbot.waitSignal(completer_obj.next_prev_item) as blocker:
-        completer_obj.completion_item_next()
-    assert blocker.args == [False]
 
 
 @pytest.mark.parametrize('before, newtxt, quick_complete, count, after', [
@@ -199,10 +217,10 @@ def test_completion_item_next(completer_obj, cmd, completion_widget_stub,
     (':foo |', '', True, 1, ":foo '' |"),
     (':foo |', None, True, 1, ":foo |"),
 ])
-def test_selection_changed(before, newtxt, count, quick_complete, after,
-                           completer_obj, cmd, completion_widget_stub,
-                           config_stub):
-    """Test that change_completed_part modifies the cmd text properly.
+def test_on_selection_changed(before, newtxt, count, quick_complete, after,
+                           completer_obj, status_command_stub,
+                           completion_widget_stub, config_stub):
+    """Test that on_selection_changed modifies the cmd text properly.
 
     The | represents the current cursor position in the cmd prompt.
     If quick-complete is True and there is only 1 completion (count == 1),
@@ -215,9 +233,10 @@ def test_selection_changed(before, newtxt, count, quick_complete, after,
     indexes = [unittest.mock.Mock()]
     selection = unittest.mock.Mock()
     selection.indexes = unittest.mock.Mock(return_value=indexes)
-    completion_widget_stub.model = unittest.mock.Mock(return_value=model)
-    _set_cmd_prompt(cmd, before)
-    completer_obj.update_cursor_part()
-    completer_obj.selection_changed(selection, None)
+    completion_widget_stub.model.return_value = model
+    _set_cmd_prompt(status_command_stub, before)
+    # schedule_completion_update is needed to pick up the cursor position
+    completer_obj.schedule_completion_update()
+    completer_obj.on_selection_changed(selection)
     model.data.assert_called_with(indexes[0])
-    _validate_cmd_prompt(cmd, after)
+    _validate_cmd_prompt(status_command_stub, after)

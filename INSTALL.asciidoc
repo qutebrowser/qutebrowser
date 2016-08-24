@@ -24,7 +24,9 @@ Install the dependencies via apt-get:
 # apt-get install python3-lxml python-tox python3-pyqt5 python3-pyqt5.qtwebkit python3-sip python3-jinja2 python3-pygments python3-yaml
 ----
 
-Get the packages from the https://github.com/The-Compiler/qutebrowser/releases[release page]
+Get the qutebrowser package from the
+https://github.com/The-Compiler/qutebrowser/releases[release page] and download
+the https://qutebrowser.org/python3-pypeg2_2.15.2-1_all.deb[PyPEG2 package].
 
 Install the packages:
 
@@ -185,6 +187,24 @@ Or add the repo manually:
 # zypper install qutebrowser
 ----
 
+On OpenBSD
+----------
+
+qutebrowser is in http://cvsweb.openbsd.org/cgi-bin/cvsweb/ports/www/qutebrowser/[OpenBSD ports].
+
+Manual install:
+
+----
+# cd /usr/ports/www/qutebrowser
+# make install
+----
+
+Or alternatively if you're using `-current` (or OpenBSD 6.1 once it's been released):
+
+----
+# pkg_add qutebrowser
+----
+
 On Windows
 ----------
 
@@ -229,11 +249,32 @@ Then <<tox,install qutebrowser via tox>>.
 On OS X
 -------
 
-To install qutebrowser on OS X, you'll want a package manager, e.g.
-http://brew.sh/[Homebrew] or https://www.macports.org/[MacPorts].
+Prebuilt binary
+~~~~~~~~~~~~~~~
+
+The easiest way to install qutebrowser on OS X is to use the prebuilt `.app`
+files from the
+https://github.com/The-Compiler/qutebrowser/releases[release page].
+
+This binary is also available through the
+https://caskroom.github.io/[Homebrew Cask] package manager:
+
+----
+$ brew cask install qutebrowser
+----
+
+Manual Install
+~~~~~~~~~~~~~~
+
+Alternatively, you can install the dependencies via a package manager (like
+http://brew.sh/[Homebrew] or https://www.macports.org/[MacPorts]) and run
+qutebrowser from source.
+
+==== Homebrew
 
 For Homebrew, a few extra steps are necessary since Homebrew dropped QtWebKit
-from Qt 5.6.
+from Qt 5.6 - however, some users reported this didn't work for them, so using
+the `.app` is strongly encouraged.
 
 This installs a Qt 5.5 and symlinks it so PyQt5 will work with it instead of Qt
 5.6. This requires that `qt5` is not installed via Homebrew:
@@ -246,6 +287,8 @@ $ ln -s /usr/local/opt/qt55 /usr/local/opt/qt5
 
 $ pip3.5 install qutebrowser
 ----
+
+==== MacPorts
 
 For MacPorts, run:
 
