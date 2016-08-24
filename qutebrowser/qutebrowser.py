@@ -141,7 +141,7 @@ def get_argparser():
 
 
 def logfilter_error(logfilter: str):
-    """Validate logger names passed to --logfilter
+    """Validate logger names passed to --logfilter.
 
     Args:
         logfilter: A comma separated list of logger names.
@@ -149,10 +149,10 @@ def logfilter_error(logfilter: str):
     if set(logfilter.split(',')).issubset(log.LOGGER_NAMES):
         return logfilter
     else:
-        raise argparse.ArgumentTypeError(
-                                        "filters: Invalid value {} - expected one "
-                                        "of: {}".format(logfilter,
-                                        ', '.join(log.LOGGER_NAMES)))
+        raise argparse.ArgumentTypeError("filters: Invalid value {} - "
+                                  "expected one "
+                                  "of: {}".format(filters,
+                                                  ', '.join(log.LOGGER_NAMES)))
 
 
 def main():
