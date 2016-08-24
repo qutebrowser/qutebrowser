@@ -133,12 +133,6 @@ def qapp(qapp):
     return qapp
 
 
-@pytest.fixture(scope='function', autouse=True)
-def bug_workaround():
-    # WORKAROUND for https://github.com/pytest-dev/pytest/issues/1832
-    pass
-
-
 def pytest_addoption(parser):
     parser.addoption('--qute-delay', action='store', default=0, type=int,
                      help="Delay between qutebrowser commands.")
