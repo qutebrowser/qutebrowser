@@ -102,7 +102,7 @@ elif [[ $TRAVIS_OS_NAME == osx ]]; then
     exit 0
 fi
 
-pyqt_pkgs="python3-pyqt5 python3-pyqt5.qtwebkit"
+pyqt_pkgs="python3-pyqt5 python3-pyqt5.qtquick python3-pyqt5.qtwebkit"
 
 pip_install pip
 pip_install -r misc/requirements/requirements-tox.txt
