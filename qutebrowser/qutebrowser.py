@@ -151,7 +151,7 @@ def logfilter_error(logfilter: str):
     else:
         raise argparse.ArgumentTypeError("filters: Invalid value {} - "
                                   "expected one "
-                                  "of: {}".format(filters,
+                                  "of: {}".format(logfilter,
                                                   ', '.join(log.LOGGER_NAMES)))
 
 
