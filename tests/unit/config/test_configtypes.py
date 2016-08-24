@@ -1492,6 +1492,8 @@ class TestProxy:
         'http://user:pass@example.com:2323/',
         'socks://user:pass@example.com:2323/',
         'socks5://user:pass@example.com:2323/',
+        'pac+http://example.com/proxy.pac',
+        'pac+https://example.com/proxy.pac',
     ])
     def test_validate_valid(self, klass, val):
         klass(none_ok=True).validate(val)
