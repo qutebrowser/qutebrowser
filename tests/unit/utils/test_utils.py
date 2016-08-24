@@ -1008,6 +1008,28 @@ def test_random_port():
     sock.close()
 
 
+def tuples_to_tokens(result, tuple_):
+    """Convert tuples to tokens using a aggregator"""
+    # pylint: disable=invalid-name
+    Token = utils.X11GeometryStringParser.Token
+    col, list_ = result
+    kind = tuple_[0]
+    value = tuple_[1]
+    if kind == 'MUL':
+        value = 'x'
+    elif kind == 'INVOFF':
+        value = '-'
+    else:
+        tmpl = "+%s" if value >= 0 else "%s"
+        value = tmpl % value
+    list_.append(Token(
+        kind=kind,
+        value=value,
+        column=col,
+    ))
+    return (col + len(value), list_)
+
+
 def test_tokenize_x11_geometry_string_manual():
     """Test if some strings have the excepted tokens as result"""
     # pylint: disable=invalid-name
@@ -1015,20 +1037,20 @@ def test_tokenize_x11_geometry_string_manual():
     parser = utils.X11GeometryStringParser()
     res = list(parser.tokenize("80x24+30+200"))
     assert res == [
-        Token(typ='NUMBER', value='80', column=0),
-        Token(typ='MUL', value='x', column=2),
-        Token(typ='NUMBER', value='24', column=3),
-        Token(typ='NUMBER', value='+30', column=5),
-        Token(typ='NUMBER', value='+200', column=8)
+        Token(kind='NUMBER', value='80', column=0),
+        Token(kind='MUL', value='x', column=2),
+        Token(kind='NUMBER', value='24', column=3),
+        Token(kind='NUMBER', value='+30', column=5),
+        Token(kind='NUMBER', value='+200', column=8)
     ]
     res = list(parser.tokenize("80x24-30--200"))
     assert res == [
-        Token(typ='NUMBER', value='80', column=0),
-        Token(typ='MUL', value='x', column=2),
-        Token(typ='NUMBER', value='24', column=3),
-        Token(typ='NUMBER', value='-30', column=5),
-        Token(typ='INVOFF', value='-', column=8),
-        Token(typ='NUMBER', value='-200', column=9),
+        Token(kind='NUMBER', value='80', column=0),
+        Token(kind='MUL', value='x', column=2),
+        Token(kind='NUMBER', value='24', column=3),
+        Token(kind='NUMBER', value='-30', column=5),
+        Token(kind='INVOFF', value='-', column=8),
+        Token(kind='NUMBER', value='-200', column=9),
     ]
 
 
@@ -1041,28 +1063,8 @@ def test_tokenize_x11_geometry_string_manual():
     )
 )
 def test_tokenize_x11_geometry_string_generated(tuples):
-    """Test if some strings have the excepted tokens as result"""
-    # pylint: disable=invalid-name
-    Token = utils.X11GeometryStringParser.Token
+    """Test if generated strings have the excepted tokens as result"""
     parser = utils.X11GeometryStringParser()
-
-    def tuples_to_tokens(result, tuple_):
-        col, list_ = result
-        typ = tuple_[0]
-        value = tuple_[1]
-        if typ == 'MUL':
-            value = 'x'
-        elif typ == 'INVOFF':
-            value = '-'
-        else:
-            tmpl = "+%s" if value >= 0 else "%s"
-            value = tmpl % value
-        list_.append(Token(
-            typ=typ,
-            value=value,
-            column=col,
-        ))
-        return (col + len(value), list_)
 
     length, tokens = functools.reduce(
         tuples_to_tokens, tuples, (0, [])
@@ -1080,3 +1082,97 @@ def test_tokenize_x11_geometry_string_fuzzing(string):
         parser.tokenize(string)
     except ValueError as e:
         assert e.args[0].startswith(parser.TOKENIZE_ERROR)
+
+
+@hypothesis.given(
+    st.lists(
+        st.tuples(
+            st.sampled_from(["NUMBER", "MUL", "INVOFF"]),
+            st.integers()
+        )
+    )
+)
+def test_parse_x11_geometry_string_generated(tuples):
+    """Test if no unknown exceptions are thrown when generating random
+    tokens"""
+    parser = utils.X11GeometryStringParser()
+
+    length, tokens = functools.reduce(
+        tuples_to_tokens, tuples, (0, [])
+    )
+    string = "".join([token.value for token in tokens])
+    assert length == len(string)
+    try:
+        parser.parse(string)
+    except ValueError as e:
+        assert e.args[0].startswith("Geometry string ")
+
+
+@hypothesis.given(st.text())
+def test_parse_x11_geometry_string_fuzzing(string):
+    """Test if no unknown exceptions are thrown when fuzzing the parser"""
+    parser = utils.X11GeometryStringParser()
+    try:
+        parser.parse(string)
+    except ValueError as e:
+        assert e.args[0].startswith("Geometry string ")
+
+
+@hypothesis.given(
+    st.tuples(
+        st.integers(),
+        st.integers(),
+        st.booleans(),
+        st.integers(),
+        st.booleans(),
+        st.integers(),
+    )
+)
+def test_parse_x11_geometry_string(geometry):
+    """Test if we can parse a generated geometry"""
+    geometry = utils.X11GeometryStringParser.Geometry(*geometry)
+    parser = utils.X11GeometryStringParser()
+    xinv = "-" if geometry.xinv else ""
+    yinv = "-" if geometry.yinv else ""
+    string_tmpl = "%dx%d%s%+d%s%+d"
+    string = string_tmpl % (
+        geometry.width,
+        geometry.height,
+        xinv,
+        geometry.xoff,
+        yinv,
+        geometry.yoff,
+    )
+    parsed_geometry = parser.parse(string)
+    assert geometry == parsed_geometry
+
+
+def test_parse_x11_geometry_len_error():
+    """Test if we can trigger LEN_ERROR"""
+    with pytest.raises(ValueError) as e:
+        utils.X11GeometryStringParser().parse(
+            "3423x"
+        )
+    assert e.value.args[0] == utils.X11GeometryStringParser.LEN_ERROR
+
+
+def test_parse_x11_geometry_mul_error():
+    """Test if we can trigger MUL_ERROR"""
+    with pytest.raises(ValueError) as e:
+        utils.X11GeometryStringParser().parse(
+            "3423+21+44"
+        )
+    assert e.value.args[0].startswith(
+        "Geometry string must have a 'x' at column 5, found NUMBER: +21"
+    )
+
+
+def test_parse_x11_geometry_num_error():
+    """Test if we can trigger NUM_ERROR"""
+    with pytest.raises(ValueError) as e:
+        utils.X11GeometryStringParser().parse(
+            "3423x44-x+34"
+        )
+    assert e.value.args[0].startswith(
+        "Geometry string must have a number at column 9, found MUL: x"
+    )
