@@ -60,77 +60,28 @@ class TestQuteWM:
         new_process.terminate()
         assert new_process.wm_failed
 
-    def test_focus_on_window_open_and_close(self, qutewm, qtbot):
-        window_a = self.get_window()
-        window_b = self.get_window()
-        qtbot.addWidget(window_a)
-        qtbot.addWidget(window_b)
+    @pytest.mark.parametrize('focus_fn', [
+        (lambda windows, qapp: windows[1].close()),
+        pytest.mark.skipif(
+            not qtutils.version_check('5.4.0'),
+            (lambda windows, qapp: qapp.alert(windows[0])),
+            reason='Urgency hints only work correctly with Qt 5.4',
+        ),
+        (lambda windows, qapp: windows[0].activateWindow()),
+    ], ids=['window close', 'urgency hint', 'activateWindow()'])
+    def test_focus_on_urgency_hint(self, qutewm, qtbot, qapp, focus_fn):
+        windows = [self.get_window() for _ in range(2)]
+        for window in windows:
+            qtbot.addWidget(window)
 
-        # Show the first window, it should then have focus
-        with qtbot.waitSignals([qutewm.window_opened, qutewm.window_focused]):
-            window_a.show()
-        qtbot.wait(self.WAIT_DELAY)
-        assert window_a.isActiveWindow()
+        for window in windows:
+            with qtbot.waitSignals([qutewm.window_opened,
+                                    qutewm.window_focused]):
+                window.show()
+            qtbot.wait(self.WAIT_DELAY)
+            assert window.isActiveWindow()
 
-        # Show the second window, it should then have focus
-        with qtbot.waitSignals([qutewm.window_opened, qutewm.window_focused]):
-            window_b.show()
-        qtbot.wait(self.WAIT_DELAY)
-        assert window_b.isActiveWindow()
-
-        # Close the second window, focus should revert to the first one
-        with qtbot.waitSignals([qutewm.window_closed, qutewm.window_focused]):
-            window_b.close()
-        qtbot.wait(self.WAIT_DELAY)
-        assert window_a.isActiveWindow()
-
-    @pytest.mark.skipif(
-        not qtutils.version_check('5.4.0'),
-        reason='Urgency hints only work correctly with Qt 5.4')
-    def test_focus_on_urgency_hint(self, qutewm, qtbot, qapp):
-        window_a = self.get_window()
-        window_b = self.get_window()
-        qtbot.addWidget(window_a)
-        qtbot.addWidget(window_b)
-
-        # Show the first window, it should then have focus
-        with qtbot.waitSignals([qutewm.window_opened, qutewm.window_focused]):
-            window_a.show()
-        qtbot.wait(self.WAIT_DELAY)
-        assert window_a.isActiveWindow()
-
-        # Show the second window, it should then have focus
-        with qtbot.waitSignals([qutewm.window_opened, qutewm.window_focused]):
-            window_b.show()
-        qtbot.wait(self.WAIT_DELAY)
-        assert window_b.isActiveWindow()
-
-        # Urgency hint the first window, it should then have focus
         with qtbot.waitSignal(qutewm.window_focused):
-            qapp.alert(window_a)
+            focus_fn(windows, qapp)
         qtbot.wait(self.WAIT_DELAY)
-        assert window_a.isActiveWindow()
-
-    def test_focus_on_request(self, qutewm, qtbot, qapp):
-        window_a = self.get_window()
-        window_b = self.get_window()
-        qtbot.addWidget(window_a)
-        qtbot.addWidget(window_b)
-
-        # Show the first window, it should then have focus
-        with qtbot.waitSignals([qutewm.window_opened, qutewm.window_focused]):
-            window_a.show()
-        qtbot.wait(self.WAIT_DELAY)
-        assert window_a.isActiveWindow()
-
-        # Show the second window, it should then have focus
-        with qtbot.waitSignals([qutewm.window_opened, qutewm.window_focused]):
-            window_b.show()
-        qtbot.wait(self.WAIT_DELAY)
-        assert window_b.isActiveWindow()
-
-        # Activate the first window, it should then have focus
-        with qtbot.waitSignal(qutewm.window_focused):
-            window_a.activateWindow()
-        qtbot.wait(self.WAIT_DELAY)
-        assert window_a.isActiveWindow()
+        assert windows[0].isActiveWindow()
