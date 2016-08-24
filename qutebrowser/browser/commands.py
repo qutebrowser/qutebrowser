@@ -25,7 +25,7 @@ import shlex
 import functools
 
 from PyQt5.QtWidgets import QApplication, QTabBar
-from PyQt5.QtCore import Qt, QUrl, QEvent, QUrlQuery 
+from PyQt5.QtCore import Qt, QUrl, QEvent, QUrlQuery
 from PyQt5.QtGui import QKeyEvent
 from PyQt5.QtPrintSupport import QPrintDialog, QPrintPreviewDialog
 from PyQt5.QtWebKitWidgets import QWebPage
@@ -709,11 +709,11 @@ class CommandDispatcher:
             sel = False
             target = "clipboard"
 
-        urlQuery = QUrlQuery(s)
-        for  key  in dict(urlQuery.queryItems()):
-            if key .startswith("utm_"):
-                urlQuery.removeQueryItem(key)
-        urlQuery.setQuery(s)
+        url_query = QUrlQuery(s)
+        for key in dict(url_query.queryItems()):
+            if key.startswith("utm_"):
+                url_query.removeQueryItem(key)
+        url_query.setQuery(s)
 
         utils.set_clipboard(s, selection=sel)
         if what != 'selection':
