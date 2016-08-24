@@ -234,6 +234,8 @@ class CompletionView(QTreeView):
             idx = self._next_category_idx(upwards=False)
         elif which == 'prev-category':
             idx = self._next_category_idx(upwards=True)
+        else:  # pragma: no cover
+            raise ValueError("Invalid 'which' value {!r}".format(which))
 
         if not idx.isValid():
             return

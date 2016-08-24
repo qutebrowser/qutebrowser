@@ -1477,6 +1477,9 @@ KEY_DATA = collections.OrderedDict([
         ('set-cmd-text :open -b -i {url:pretty}', ['xO']),
         ('set-cmd-text -s :open -w', ['wo']),
         ('set-cmd-text :open -w {url:pretty}', ['wO']),
+        ('set-cmd-text /', ['/']),
+        ('set-cmd-text ?', ['?']),
+        ('set-cmd-text :', [':']),
         ('open -t', ['ga', '<Ctrl-T>']),
         ('open -w', ['<Ctrl-N>']),
         ('tab-close', ['d', '<Ctrl-W>']),
@@ -1713,6 +1716,7 @@ CHANGED_KEY_COMMANDS = [
     (re.compile(r'^yank-selected'), r'yank selection'),
 
     (re.compile(r'^paste$'), r'open -- {clipboard}'),
+    (re.compile(r'^paste -s$'), r'open -- {primary}'),
     (re.compile(r'^paste -([twb])$'), r'open -\1 -- {clipboard}'),
     (re.compile(r'^paste -([twb])s$'), r'open -\1 -- {primary}'),
     (re.compile(r'^paste -s([twb])$'), r'open -\1 -- {primary}'),
@@ -1726,4 +1730,8 @@ CHANGED_KEY_COMMANDS = [
     (re.compile(r'^open -([twb]) {primary}$'), r'open -\1 -- {primary}'),
 
     (re.compile(r'^paste-primary$'), r'insert-text {primary}'),
+
+    (re.compile(r'^set-cmd-text -s :search$'), r'set-cmd-text /'),
+    (re.compile(r'^set-cmd-text -s :search -r$'), r'set-cmd-text ?'),
+    (re.compile(r'^set-cmd-text -s :$'), r'set-cmd-text :'),
 ]

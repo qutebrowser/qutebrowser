@@ -203,7 +203,7 @@ Feature: Various utility commands.
                   url: http://localhost:*/data/hello.txt
               - active: true
                 history: []
-        And the page source should look like misc/hello.txt.html
+        And the page should contain the html "/* Literal.Number.Integer */"
 
     @qtwebengine_skip: Flaky due to :view-source being async
     Scenario: :view-source on source page.
@@ -381,8 +381,7 @@ Feature: Various utility commands.
         And I press the key "<Ctrl-C>"
         Then no crash should happen
 
-    @pyqt>=5.3.1
-    @qtwebengine_todo: JS prompt is not implemented yet
+    @pyqt>=5.3.1 @qtwebengine_todo: JS prompt is not implemented yet
     Scenario: Focusing download widget via Tab (original issue)
         When I open data/prompt/jsprompt.html
         And I run :click-element id button
@@ -472,10 +471,26 @@ Feature: Various utility commands.
         Then the page should contain the plaintext "newstuff"
         And the page should not contain the plaintext "oldstuff"
 
+   Scenario: Using :debug-log-capacity with negative capacity
+       When I run :debug-log-capacity -1
+       Then the error "Can't set a negative log capacity!" should be shown
+
+    # :debug-log-level / :debug-log-filter
+    # Other :debug-log-{level,filter} features are tested in
+    # unit/utils/test_log.py as using them would break end2end tests.
+
+    Scenario: Using debug-log-level with invalid level
+        When I run :debug-log-level hello
+        Then the error "level: Invalid value hello - expected one of: vdebug, debug, info, warning, error, critical" should be shown
+
+    Scenario: Using debug-log-filter with invalid filter
+        When I run :debug-log-filter blah
+        Then the error "filters: Invalid value blah - expected one of: statusbar, *" should be shown
+
     ## https://github.com/The-Compiler/qutebrowser/issues/1523
 
     Scenario: Completing a single option argument
-        When I run :set-cmd-text -s :-- 
+        When I run :set-cmd-text -s :--
         Then no crash should happen
 
     ## https://github.com/The-Compiler/qutebrowser/issues/1386

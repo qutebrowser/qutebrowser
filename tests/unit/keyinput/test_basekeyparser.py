@@ -33,7 +33,7 @@ from qutebrowser.utils import utils
 CONFIG = {'input': {'timeout': 100}}
 
 
-@pytest.yield_fixture
+@pytest.fixture
 def keyparser():
     """Fixture providing a BaseKeyParser supporting count/chains."""
     kp = basekeyparser.BaseKeyParser(

@@ -31,7 +31,7 @@ class TestCommandLineEdit:
 
     """Tests for CommandLineEdit widget."""
 
-    @pytest.yield_fixture
+    @pytest.fixture
     def cmd_edit(self, qtbot):
         """Fixture to initialize a CommandLineEdit."""
         cmd_edit = miscwidgets.CommandLineEdit(None)

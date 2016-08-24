@@ -46,7 +46,7 @@ class TestArgumentParser:
     def parser(self):
         return argparser.ArgumentParser('foo')
 
-    @pytest.yield_fixture
+    @pytest.fixture
     def tabbed_browser(self, win_registry):
         tb = FakeTabbedBrowser()
         objreg.register('tabbed-browser', tb, scope='window', window=0)

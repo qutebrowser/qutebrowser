@@ -39,6 +39,8 @@ Added
   to focus the previous/next category in the completion (bound to `<Ctrl-Tab>`
   and `<Ctrl-Shift-Tab>` by default).
 - New `:click-element` command to fake a click on a element.
+- New `:debug-log-filter` command to change console log filtering on-the-fly.
+- New `:debug-log-level` command to change the console loglevel on-the-fly.
 
 Changed
 ~~~~~~~
@@ -97,6 +99,8 @@ Changed
 - Sending a command to an existing instance (via "qutebrowser :reload") now
   doesn't mark it as urgent anymore.
 - `tabs -> title-format` now treats an empty string as valid.
+- Bindings for `:`, `/` and `?` are now configured explicitly and not hardcoded
+  anymore.
 
 Deprecated
 ~~~~~~~~~~

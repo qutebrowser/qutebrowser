@@ -45,6 +45,7 @@ def test_partial_compare_equal(val1, val2):
     ({1: 1}, {1: [1]}, "Different types (int, list) -> False"),
     ({'a': [1, 2, 3]}, {'a': [..., 3]}, "2 != 3"),
     ("foo*baz", "foobarbaz", "'foo*baz' != 'foobarbaz' (pattern matching)"),
+    (23.42, 13.37, "23.42 != 13.37 (float comparison)"),
 ])
 def test_partial_compare_not_equal(val1, val2, error):
     outcome = utils.partial_compare(val1, val2)

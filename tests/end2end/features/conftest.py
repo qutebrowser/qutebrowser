@@ -23,7 +23,6 @@ import re
 import sys
 import time
 import json
-import os.path
 import logging
 import collections
 import textwrap
@@ -431,9 +430,7 @@ def compare_session(request, quteproc, expected):
     compared.
     """
     if request.config.getoption('--qute-bdd-webengine'):
-        # pylint: disable=no-member
         pytest.xfail(reason="QtWebEngine TODO: Sessions are not implemented")
-        # pylint: enable=no-member
     quteproc.compare_session(expected)
 
 
@@ -458,18 +455,11 @@ def check_header(quteproc, header, value):
     assert data['headers'][header] == value
 
 
-@bdd.then(bdd.parsers.parse("the page source should look like {filename}"))
-def check_contents(quteproc, filename):
-    """Check the current page's content.
-
-    The filename is interpreted relative to tests/end2end/data.
-    """
+@bdd.then(bdd.parsers.parse('the page should contain the html "{text}"'))
+def check_contents_html(quteproc, text):
+    """Check the current page's content based on a substring."""
     content = quteproc.get_content(plain=False)
-    path = os.path.join(utils.abs_datapath(),
-                        os.path.join(*filename.split('/')))
-    with open(path, 'r', encoding='utf-8') as f:
-        file_content = f.read()
-        assert content == file_content
+    assert text in content
 
 
 @bdd.then(bdd.parsers.parse('the page should contain the plaintext "{text}"'))
@@ -505,9 +495,7 @@ def check_open_tabs(quteproc, request, tabs):
     It expects a list of URLs, with an optional "(active)" suffix.
     """
     if request.config.getoption('--qute-bdd-webengine'):
-        # pylint: disable=no-member
         pytest.xfail(reason="QtWebEngine TODO: Sessions are not implemented")
-        # pylint: enable=no-member
     session = quteproc.get_session()
     active_suffix = ' (active)'
     tabs = tabs.splitlines()
@@ -564,9 +552,7 @@ def _get_scroll_values(quteproc):
                          r"(?P<direction>horizontally|vertically)"))
 def check_scrolled(request, quteproc, direction):
     if request.config.getoption('--qute-bdd-webengine'):
-        # pylint: disable=no-member
         pytest.xfail(reason="QtWebEngine TODO: Sessions are not implemented")
-        # pylint: enable=no-member
     x, y = _get_scroll_values(quteproc)
     if direction == 'horizontally':
         assert x != 0
@@ -579,9 +565,7 @@ def check_scrolled(request, quteproc, direction):
 @bdd.then("the page should not be scrolled")
 def check_not_scrolled(request, quteproc):
     if request.config.getoption('--qute-bdd-webengine'):
-        # pylint: disable=no-member
         pytest.xfail(reason="QtWebEngine TODO: Sessions are not implemented")
-        # pylint: enable=no-member
     x, y = _get_scroll_values(quteproc)
     assert x == 0
     assert y == 0

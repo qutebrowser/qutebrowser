@@ -77,7 +77,6 @@ class Line:
 
 def _render_log(data, threshold=100):
     """Shorten the given log without -v and convert to a string."""
-    # pylint: disable=no-member
     data = [str(d) for d in data]
     is_exception = any('Traceback (most recent call last):' in line
                        for line in data)
@@ -109,7 +108,6 @@ def pytest_runtest_makereport(item, call):
         # actually a tuple. This is handled similarily in pytest-qt too.
         return
 
-    # pylint: disable=no-member
     if pytest.config.getoption('--capture') == 'no':
         # Already printed live
         return
@@ -153,7 +151,6 @@ class Process(QObject):
 
     def _log(self, line):
         """Add the given line to the captured log output."""
-        # pylint: disable=no-member
         if pytest.config.getoption('--capture') == 'no':
             print(line)
         self.captured_log.append(line)
@@ -279,7 +276,7 @@ class Process(QObject):
         Also checks self._invalid so the test counts as failed if there were
         unexpected output lines earlier.
         """
-        __tracebackhide__ = True
+        __tracebackhide__ = lambda e: e.errisinstance(ProcessExited)
         self.captured_log = []
         if self._invalid:
             # Wait for a bit so the full error has a chance to arrive
@@ -338,7 +335,6 @@ class Process(QObject):
 
         Return: either the found line or None.
         """
-        __tracebackhide__ = True
         for line in self._data:
             matches = []
 
@@ -362,7 +358,7 @@ class Process(QObject):
 
         Called via wait_for.
         """
-        __tracebackhide__ = True
+        __tracebackhide__ = lambda e: e.errisinstance(WaitForTimeout)
         message = kwargs.get('message', None)
         if message is not None:
             elided = quteutils.elide(repr(message), 50)
@@ -424,7 +420,7 @@ class Process(QObject):
         pass
 
     def wait_for(self, timeout=None, *, override_waited_for=False,
-                 do_skip=False, **kwargs):
+                 do_skip=False, divisor=1, **kwargs):
         """Wait until a given value is found in the data.
 
         Keyword arguments to this function get interpreted as attributes of the
@@ -436,11 +432,12 @@ class Process(QObject):
             override_waited_for: If set, gets triggered by previous messages
                                  again.
             do_skip: If set, call pytest.skip on a timeout.
+            divisor: A factor to decrease the timeout by.
 
         Return:
             The matched line.
         """
-        __tracebackhide__ = True
+        __tracebackhide__ = lambda e: e.errisinstance(WaitForTimeout)
 
         if timeout is None:
             if do_skip:
@@ -449,6 +446,9 @@ class Process(QObject):
                 timeout = 15000
             else:
                 timeout = 5000
+
+        timeout /= divisor
+
         if not kwargs:
             raise TypeError("No keyword arguments given!")
         for key in kwargs:
@@ -467,7 +467,7 @@ class Process(QObject):
         If nothing is found in the log, we wait for delay ms to make sure
         nothing arrives.
         """
-        __tracebackhide__ = True
+        __tracebackhide__ = lambda e: e.errisinstance(BlacklistedMessageError)
         try:
             line = self.wait_for(timeout=delay, override_waited_for=True,
                                  **kwargs)

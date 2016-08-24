@@ -41,7 +41,7 @@ def patch_things(config_stub, message_mock, monkeypatch, stubs):
     monkeypatch.setattr('qutebrowser.misc.editor.config', config_stub)
 
 
-@pytest.yield_fixture
+@pytest.fixture
 def editor():
     ed = editormod.ExternalEditor(0)
     ed.editing_finished = mock.Mock()

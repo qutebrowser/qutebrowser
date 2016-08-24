@@ -32,7 +32,7 @@ ObjectsRet = collections.namedtuple('Dispatcher', ['tb', 'cd'])
 pytestmark = pytest.mark.usefixtures('cookiejar_and_cache')
 
 
-@pytest.yield_fixture
+@pytest.fixture
 def objects(qtbot, default_config, key_config_stub, tab_registry,
             host_blocker_stub):
     """Fixture providing a CommandDispatcher and a fake TabbedBrowser."""

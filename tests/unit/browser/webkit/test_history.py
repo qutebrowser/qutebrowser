@@ -366,7 +366,7 @@ def test_entry_str(entry, expected):
     assert str(entry) == expected
 
 
-@pytest.yield_fixture
+@pytest.fixture
 def hist_interface():
     entry = history.Entry(atime=0, url=QUrl('http://www.example.com/'),
                           title='example')

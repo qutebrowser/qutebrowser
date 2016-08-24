@@ -86,8 +86,8 @@ def pytest_collection_modifyitems(items):
 
     For example:
 
-        py.test -m "not gui"  # run all tests except gui tests
-        py.test -m "gui"  # run only gui tests
+        pytest -m "not gui"  # run all tests except gui tests
+        pytest -m "gui"  # run only gui tests
 
     It also handles the platform specific markers by translating them to skipif
     markers.
@@ -121,8 +121,7 @@ def pytest_collection_modifyitems(items):
 
 def pytest_ignore_collect(path):
     """Ignore BDD tests if we're unable to run them."""
-    skip_bdd = (hasattr(sys, 'frozen') or
-                int(pytest.__version__.split('.')[0]) == 3)
+    skip_bdd = hasattr(sys, 'frozen')
     rel_path = path.relto(os.path.dirname(__file__))
     return rel_path == os.path.join('end2end', 'features') and skip_bdd
 

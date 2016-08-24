@@ -470,6 +470,10 @@ class AbstractTab(QWidget):
 
     We use this to unify QWebView and QWebEngineView.
 
+    Class attributes:
+        WIDGET_CLASS: The class of the main widget recieving events.
+                      Needs to be overridden by subclasses.
+
     Attributes:
         history: The AbstractHistory for the current tab.
         registry: The ObjectRegistry associated with this tab.
@@ -503,6 +507,8 @@ class AbstractTab(QWidget):
     contents_size_changed = pyqtSignal(QSizeF)
     add_history_item = pyqtSignal(QUrl, QUrl, str)  # url, requested url, title
 
+    WIDGET_CLASS = None
+
     def __init__(self, win_id, parent=None):
         self.win_id = win_id
         self.tab_id = next(tab_id_gen)
@@ -529,7 +535,8 @@ class AbstractTab(QWidget):
         self._progress = 0
         self._has_ssl_errors = False
         self._load_status = usertypes.LoadStatus.none
-        self._mouse_event_filter = mouse.MouseEventFilter(self, parent=self)
+        self._mouse_event_filter = mouse.MouseEventFilter(
+            self, widget_class=self.WIDGET_CLASS, parent=self)
         self.backend = None
 
         # FIXME:qtwebengine  Should this be public api via self.hints?

@@ -93,9 +93,7 @@ def test_hints(test_name, zoom_text_only, zoom_level, find_implementation,
 
     parsed = _parse_file(test_name)
     if parsed.qtwebengine_todo is not None and webengine:
-        # pylint: disable=no-member
         pytest.xfail("QtWebEngine TODO: {}".format(parsed.qtwebengine_todo))
-        # pylint: enable=no-member
 
     url_path = 'data/hints/html/{}'.format(test_name)
     quteproc.open_path(url_path)

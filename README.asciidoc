@@ -172,9 +172,9 @@ Contributors, sorted by the number of commits in descending order:
 * ZDarian
 * Milan Svoboda
 * John ShaggyTwoDope Jenkins
+* nanjekyejoannah
 * Peter Vilim
 * Clayton Craft
-* nanjekyejoannah
 * Oliver Caldwell
 * Jonas Schürmann
 * error800
@@ -184,6 +184,7 @@ Contributors, sorted by the number of commits in descending order:
 * Zach-Button
 * Tomasz Kramkowski
 * Peter Rice
+* Julian Weigt
 * Ismail S
 * Halfwit
 * David Vogt
@@ -199,6 +200,7 @@ Contributors, sorted by the number of commits in descending order:
 * Brian Jackson
 * sbinix
 * neeasade
+* knaggita
 * jnphilipp
 * Tobias Patzl
 * Stefan Tatschner
@@ -207,7 +209,6 @@ Contributors, sorted by the number of commits in descending order:
 * Panashe M. Fundira
 * Link
 * Larry Hynes
-* Julian Weigt
 * Johannes Altmanninger
 * Jeremy Kaplan
 * Ismail
@@ -224,7 +225,6 @@ Contributors, sorted by the number of commits in descending order:
 * zwarag
 * xd1le
 * oniondreams
-* knaggita
 * issue
 * haxwithaxe
 * evan

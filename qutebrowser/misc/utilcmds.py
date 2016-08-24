@@ -249,6 +249,34 @@ def log_capacity(capacity: int):
         log.ram_handler.change_log_capacity(capacity)
 
 
+@cmdutils.register(debug=True)
+@cmdutils.argument('level', choices=sorted(
+    (level.lower() for level in log.LOG_LEVELS),
+    key=lambda e: log.LOG_LEVELS[e.upper()]))
+def debug_log_level(level: str):
+    """Change the log level for console logging.
+
+    Args:
+        level: The log level to set.
+    """
+    log.console_handler.setLevel(log.LOG_LEVELS[level.upper()])
+
+
+@cmdutils.register(debug=True)
+def debug_log_filter(filters: str):
+    """Change the log filter for console logging.
+
+    Args:
+        filters: A comma separated list of logger names.
+    """
+    if set(filters.split(',')).issubset(log.LOGGER_NAMES):
+        log.console_filter.names = filters.split(',')
+    else:
+        raise cmdexc.CommandError("filters: Invalid value {} - expected one "
+                                  "of: {}".format(filters,
+                                                  ', '.join(log.LOGGER_NAMES)))
+
+
 @cmdutils.register()
 @cmdutils.argument('current_win_id', win_id=True)
 def window_only(current_win_id):

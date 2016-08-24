@@ -25,7 +25,6 @@ Module attributes:
 
 from PyQt5.QtCore import pyqtSlot, Qt
 
-from qutebrowser.utils import message
 from qutebrowser.config import config
 from qutebrowser.keyinput import keyparser
 from qutebrowser.utils import usertypes, log, objreg, utils
@@ -70,9 +69,6 @@ class NormalKeyParser(keyparser.CommandKeyParser):
             self._debug_log("Ignoring key '{}', because the normal mode is "
                 "currently inhibited.".format(txt))
             return self.Match.none
-        if not self._keystring and any(txt == c for c in STARTCHARS):
-            message.set_cmd_text(self._win_id, txt)
-            return self.Match.definitive
         match = super()._handle_single_key(e)
         if match == self.Match.partial:
             timeout = config.get('input', 'partial-timeout')

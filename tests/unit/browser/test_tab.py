@@ -58,7 +58,7 @@ def view(qtbot, config_stub, request):
     return v
 
 
-@pytest.yield_fixture(params=['webkit', 'webengine'])
+@pytest.fixture(params=['webkit', 'webengine'])
 def tab(request, default_config, qtbot, tab_registry, cookiejar_and_cache):
     if PYQT_VERSION < 0x050600:
         pytest.skip('Causes segfaults, see #1638')

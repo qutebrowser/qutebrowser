@@ -574,6 +574,8 @@ class WebKitTab(browsertab.AbstractTab):
 
     """A QtWebKit tab in the browser."""
 
+    WIDGET_CLASS = webview.WebView
+
     def __init__(self, win_id, mode_manager, parent=None):
         super().__init__(win_id)
         widget = webview.WebView(win_id, self.tab_id, tab=self)
