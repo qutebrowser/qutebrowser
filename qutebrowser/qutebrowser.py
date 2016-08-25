@@ -23,6 +23,7 @@ import sys
 import json
 
 import qutebrowser
+from qutebrowser.utils import log
 try:
     from qutebrowser.misc.checkpyver import check_python_version
 except ImportError:
@@ -81,7 +82,7 @@ def get_argparser():
                        help="Set loglevel", default='info',
                        choices=['critical', 'error', 'warning', 'info',
                                 'debug', 'vdebug'])
-    debug.add_argument('--logfilter',
+    debug.add_argument('--logfilter', type=logfilter_error,
                        help="Comma-separated list of things to be logged "
                        "to the debug log on stdout.")
     debug.add_argument('--loglines',
@@ -137,6 +138,20 @@ def get_argparser():
     parser.add_argument('url', nargs='*', help="URLs to open on startup "
                         "(empty as a window separator).")
     return parser
+
+
+def logfilter_error(logfilter: str):
+    """Validate logger names passed to --logfilter.
+
+    Args:
+        logfilter: A comma separated list of logger names.
+    """
+    if set(logfilter.split(',')).issubset(log.LOGGER_NAMES):
+        return logfilter
+    else:
+        raise argparse.ArgumentTypeError(
+            "filters: Invalid value {} - expected a list of: {}".format(
+                logfilter, ', '.join(log.LOGGER_NAMES)))
 
 
 def main():
