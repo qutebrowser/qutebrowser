@@ -251,7 +251,7 @@ def _init_handlers(level, color, force_color, json_logging, ram_capacity):
 
 
 def get_console_format(level):
-    """Get format.
+    """Get the log format the console logger should use.
 
     Args:
         level: The numeric logging level.
