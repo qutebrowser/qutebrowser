@@ -119,7 +119,7 @@ def type_conv(param, typ, value, *, str_choices=None):
     if utils.is_enum(typ):
         _check_choices(param, value, [arg_name(e.name) for e in typ])
         return typ[value.replace('-', '_')]
-    elif typ is str:
+    elif typ in [str, None]:
         if str_choices is not None:
             _check_choices(param, value, str_choices)
         return value
