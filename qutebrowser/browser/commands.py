@@ -711,7 +711,7 @@ class CommandDispatcher:
 
         url_query = QUrlQuery(s)
         for key in dict(url_query.queryItems()):
-            if key.startswith("utm_"):
+            if key in (config.get('general', 'url-parameters')):
                 url_query.removeQueryItem(key)
         url_query.setQuery(s)
 
