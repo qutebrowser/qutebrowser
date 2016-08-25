@@ -183,30 +183,38 @@ class TestRegister:
         @cmdutils.register(star_args_optional=True)
         def fun(*args):
             """Blah."""
-            pass
-        cmdutils.cmd_dict['fun'].parser.parse_args([])
+            assert not args
+        cmd = cmdutils.cmd_dict['fun']
+        cmd.namespace = cmd.parser.parse_args([])
+        args, kwargs = cmd._get_call_args(win_id=0)
+        fun(*args, **kwargs)
 
-    def test_flag(self):
+    @pytest.mark.parametrize('inp, expected', [
+        (['--arg'], True), (['-a'], True), ([], False)])
+    def test_flag(self, inp, expected):
         @cmdutils.register()
         def fun(arg=False):
             """Blah."""
-            pass
-        parser = cmdutils.cmd_dict['fun'].parser
-        assert parser.parse_args(['--arg']).arg
-        assert parser.parse_args(['-a']).arg
-        assert not parser.parse_args([]).arg
+            assert arg == expected
+        cmd = cmdutils.cmd_dict['fun']
+        cmd.namespace = cmd.parser.parse_args(inp)
+        assert cmd.namespace.arg == expected
 
     def test_flag_argument(self):
         @cmdutils.register()
         @cmdutils.argument('arg', flag='b')
         def fun(arg=False):
             """Blah."""
-            pass
-        parser = cmdutils.cmd_dict['fun'].parser
+            assert arg
+        cmd = cmdutils.cmd_dict['fun']
 
-        assert parser.parse_args(['-b']).arg
         with pytest.raises(argparser.ArgumentParserError):
-            parser.parse_args(['-a'])
+            cmd.parser.parse_args(['-a'])
+
+        cmd.namespace = cmd.parser.parse_args(['-b'])
+        assert cmd.namespace.arg
+        args, kwargs = cmd._get_call_args(win_id=0)
+        fun(*args, **kwargs)
 
     def test_partial_arg(self):
         """Test with only some arguments decorated with @cmdutils.argument."""
@@ -284,7 +292,7 @@ class TestRegister:
         @cmdutils.argument('arg', choices=choices)
         def fun(arg: typ):
             """Blah."""
-            pass
+            assert arg == expected
 
         cmd = cmdutils.cmd_dict['fun']
         cmd.namespace = cmd.parser.parse_args([inp])
@@ -293,7 +301,10 @@ class TestRegister:
             with pytest.raises(cmdexc.ArgumentTypeError):
                 cmd._get_call_args(win_id=0)
         else:
-            assert cmd._get_call_args(win_id=0) == ([expected], {})
+            args, kwargs = cmd._get_call_args(win_id=0)
+            assert args == [expected]
+            assert kwargs == {}
+            fun(*args, **kwargs)
 
     def test_choices_no_annotation(self):
         # https://github.com/The-Compiler/qutebrowser/issues/1871
