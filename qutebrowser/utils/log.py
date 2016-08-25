@@ -250,6 +250,18 @@ def _init_handlers(level, color, force_color, json_logging, ram_capacity):
     return console_handler, ram_handler
 
 
+def get_console_format(level):
+    """Get the log format the console logger should use.
+
+    Args:
+        level: The numeric logging level.
+
+    Return:
+        Format of the requested level.
+    """
+    return EXTENDED_FMT if level <= logging.DEBUG else SIMPLE_FMT
+
+
 def _init_formatters(level, color, force_color, json_logging):
     """Init log formatters.
 
@@ -264,7 +276,7 @@ def _init_formatters(level, color, force_color, json_logging):
         console_formatter/ram_formatter: logging.Formatter instances.
         use_colorama: Whether to use colorama.
     """
-    console_fmt = EXTENDED_FMT if level <= logging.DEBUG else SIMPLE_FMT
+    console_fmt = get_console_format(level)
     ram_formatter = ColoredFormatter(EXTENDED_FMT, DATEFMT, '{',
                                      use_colors=False)
     html_formatter = HTMLFormatter(EXTENDED_FMT_HTML, DATEFMT,
@@ -289,6 +301,23 @@ def _init_formatters(level, color, force_color, json_logging):
     console_formatter = ColoredFormatter(console_fmt, DATEFMT, '{',
                                          use_colors=use_colors)
     return console_formatter, ram_formatter, html_formatter, use_colorama
+
+
+def change_console_formatter(level):
+    """Change console formatter based on level.
+
+    Args:
+        level: The numeric logging level
+    """
+    if not isinstance(console_handler.formatter, ColoredFormatter):
+        # JSON Formatter being used for end2end tests
+        pass
+
+    use_colors = console_handler.formatter.use_colors
+    console_fmt = get_console_format(level)
+    console_formatter = ColoredFormatter(console_fmt, DATEFMT, '{',
+                                         use_colors=use_colors)
+    console_handler.setFormatter(console_formatter)
 
 
 def qt_message_handler(msg_type, context, msg):
@@ -539,10 +568,10 @@ class ColoredFormatter(logging.Formatter):
 
     def __init__(self, fmt, datefmt, style, *, use_colors):
         super().__init__(fmt, datefmt, style)
-        self._use_colors = use_colors
+        self.use_colors = use_colors
 
     def format(self, record):
-        if self._use_colors:
+        if self.use_colors:
             color_dict = dict(COLOR_ESCAPES)
             color_dict['reset'] = RESET_ESCAPE
             log_color = LOG_COLORS[record.levelname]
