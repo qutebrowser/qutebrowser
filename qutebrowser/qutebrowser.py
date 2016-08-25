@@ -149,10 +149,9 @@ def logfilter_error(logfilter: str):
     if set(logfilter.split(',')).issubset(log.LOGGER_NAMES):
         return logfilter
     else:
-        raise argparse.ArgumentTypeError("filters: Invalid value {} - "
-                                  "expected one "
-                                  "of: {}".format(logfilter,
-                                                  ', '.join(log.LOGGER_NAMES)))
+        raise argparse.ArgumentTypeError(
+            "filters: Invalid value {} - expected a list of: {}".format(
+                logfilter, ', '.join(log.LOGGER_NAMES)))
 
 
 def main():
