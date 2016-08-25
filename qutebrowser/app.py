@@ -365,10 +365,6 @@ def on_focus_changed(old, new):
         # consider it as the most recently looked-at window
         objreg.register('last-visible-main-window', window, update=True)
 
-        if old is None or old.window() != window:
-            log.misc.debug("Window activation changed to {!r} (win_id={})"
-                           .format(window, window.win_id))
-
 
 def open_desktopservices_url(url):
     """Handler to open a URL via QDesktopServices."""

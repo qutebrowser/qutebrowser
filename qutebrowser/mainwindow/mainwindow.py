@@ -25,7 +25,7 @@ import itertools
 import functools
 
 import jinja2
-from PyQt5.QtCore import pyqtSlot, QRect, QPoint, QTimer, Qt
+from PyQt5.QtCore import pyqtSlot, QRect, QPoint, QTimer, Qt, QEvent
 from PyQt5.QtWidgets import QWidget, QVBoxLayout, QApplication, QSizePolicy
 
 from qutebrowser.commands import runners, cmdutils
@@ -519,6 +519,17 @@ class MainWindow(QWidget):
         """
         super().showEvent(e)
         objreg.register('last-visible-main-window', self, update=True)
+
+    def changeEvent(self, e):
+        """Extend changeEvent to register an activationChange.
+
+        Args:
+            e: The QChangeEvent
+        """
+        super().changeEvent(e)
+        if e.type() == QEvent.ActivationChange and self.isActiveWindow():
+            log.misc.debug("Window activation changed to {!r} (win_id={})"
+                           .format(self, self.win_id))
 
     def _do_close(self):
         """Helper function for closeEvent."""
