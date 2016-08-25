@@ -77,7 +77,11 @@ class Request(testprocess.Line):
 
         sanitized = QUrl('http://localhost' + self.path).path()  # Remove ?foo
         expected_statuses = path_to_statuses.get(sanitized, default_statuses)
-        assert self.status in expected_statuses
+        if self.status not in expected_statuses:
+            raise AssertionError(
+                "{} loaded with status {} but expected {}".format(
+                    sanitized, self.status,
+                    ' / '.join(repr(e) for e in expected_statuses)))
 
     def __eq__(self, other):
         return NotImplemented
