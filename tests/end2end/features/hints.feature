@@ -81,6 +81,15 @@ Feature: Using hints
         And I hint with args "all userscript (testdata)/userscripts/echo_hint_text" and follow a
         Then the message "Follow me!" should be shown
 
+    Scenario: Yanking
+        When selection is supported
+        And I run :debug-set-fake-clipboard
+        And I open data/hints/simple2.html
+        And I hint with args "links yank" and follow a
+        And I hint with args "links yank-primary" and follow s
+        Then the clipboard should contain "http://localhost:(port)/data/hello.txt"
+        And the primary selection should contain "http://localhost:(port)/data/hello2.txt"
+
     Scenario: Yanking to primary selection without it being supported (#1336)
         When selection is not supported
         And I run :debug-set-fake-clipboard
