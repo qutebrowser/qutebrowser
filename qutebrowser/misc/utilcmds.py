@@ -259,6 +259,7 @@ def debug_log_level(level: str):
     Args:
         level: The log level to set.
     """
+    log.change_console_formatter(log.LOG_LEVELS[level.upper()])
     log.console_handler.setLevel(log.LOG_LEVELS[level.upper()])
 
 
