@@ -20,6 +20,7 @@
 """Tests for qutewm and the qutewm fixtures."""
 
 from PyQt5.QtWidgets import QMainWindow
+from PyQt5.QtCore import QEvent, pyqtSignal
 
 import pytest
 
@@ -27,29 +28,35 @@ from qutebrowser.utils import qtutils
 from end2end.fixtures import qutewm
 
 
+class Window(QMainWindow):
+
+    """A window class suitable for tests.
+
+    This window provides a activated signal.
+    """
+
+    activated = pyqtSignal()
+
+    def changeEvent(self, ev):
+        if ev.type() == QEvent.ActivationChange and self.isActiveWindow():
+            self.activated.emit()
+
+
 @pytest.mark.qutewm
 class TestQuteWM:
-
-    # qtbot.wait is used to wait for WAIT_DELAY ms. This makes sure that Qt
-    # processed all events (like the focus changed event from the X server),
-    # so that QMainWindow.isActiveWindow works as expected and returns the
-    # correct result. Waiting for qutewm.window_focused is not enough, as that
-    # may fire when Qt hasn't yet registered the change, so we need to give it
-    # some time and at least enter the event loop once.
-    WAIT_DELAY = 200
 
     @classmethod
     def get_window(cls):
         """Return a window suitable for testing."""
-        window = QMainWindow()
+        window = Window()
         return window
 
     def test_single_window(self, qutewm, qtbot, qapp):
         window = self.get_window()
         qtbot.addWidget(window)
-        with qtbot.waitSignals([qutewm.window_opened, qutewm.window_focused]):
+        with qtbot.waitSignals([qutewm.window_opened, qutewm.window_focused,
+                                window.activated]):
             window.show()
-        qtbot.wait(self.WAIT_DELAY)
         assert window.isActiveWindow()
         with qtbot.waitSignal(qutewm.window_closed):
             window.close()
@@ -76,12 +83,11 @@ class TestQuteWM:
 
         for window in windows:
             with qtbot.waitSignals([qutewm.window_opened,
-                                    qutewm.window_focused]):
+                                    qutewm.window_focused,
+                                    window.activated]):
                 window.show()
-            qtbot.wait(self.WAIT_DELAY)
             assert window.isActiveWindow()
 
-        with qtbot.waitSignal(qutewm.window_focused):
+        with qtbot.waitSignals([qutewm.window_focused, window.activated]):
             focus_fn(windows, qapp)
-        qtbot.wait(self.WAIT_DELAY)
         assert windows[0].isActiveWindow()
