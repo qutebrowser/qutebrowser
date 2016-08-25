@@ -176,6 +176,7 @@ Contributors, sorted by the number of commits in descending order:
 * Peter Vilim
 * Clayton Craft
 * Oliver Caldwell
+* knaggita
 * Jonas Schürmann
 * error800
 * Michael Hoang
@@ -200,7 +201,6 @@ Contributors, sorted by the number of commits in descending order:
 * Brian Jackson
 * sbinix
 * neeasade
-* knaggita
 * jnphilipp
 * Tobias Patzl
 * Stefan Tatschner
