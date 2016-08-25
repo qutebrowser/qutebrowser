@@ -244,6 +244,12 @@ class Command:
 
         if not self.ignore_args:
             for param in signature.parameters.values():
+                # https://docs.python.org/3/library/inspect.html#inspect.Parameter.kind
+                # "Python has no explicit syntax for defining positional-only
+                # parameters, but many built-in and extension module functions
+                # (especially those that accept only one or two parameters)
+                # accept them."
+                assert param.kind != inspect.Parameter.POSITIONAL_ONLY
                 if param.name == 'self':
                     continue
                 if self._inspect_special_param(param):
