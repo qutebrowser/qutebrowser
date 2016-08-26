@@ -140,6 +140,11 @@ class CommandRunner(QObject):
         if aliases:
             text = self._get_alias(text, text)
 
+        # Replace quoted double semi-colon so it isn't split
+        substr = re.findall("\".*;;.*\"", text)
+        for string in substr:
+            text = text.replace(string, string.replace(";;", "~`"))
+
         if ';;' in text:
             # Get the first command and check if it doesn't want to have ;;
             # split.
@@ -148,7 +153,9 @@ class CommandRunner(QObject):
             if result.cmd.no_cmd_split:
                 sub_texts = [text]
             else:
-                sub_texts = [e.strip() for e in text.split(';;')]
+                # Return semi colons in quotes to original state
+                text_list = text.split(';;')
+                sub_texts = [e.strip().replace("~`", ";;") for e in text_list]
         else:
             sub_texts = [text]
         for sub in sub_texts:
