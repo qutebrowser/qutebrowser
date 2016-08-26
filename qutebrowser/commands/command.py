@@ -427,7 +427,7 @@ class Command:
                 self.name))
         elif issubclass(typ, typing.Union):
             # this is... slightly evil, I know
-            types = list(typ.__union_params__)
+            types = list(typ.__union_params__)  # pylint: disable=no-member
             if param.default is not inspect.Parameter.empty:
                 types.append(type(param.default))
             choices = self.get_arg_info(param).choices
