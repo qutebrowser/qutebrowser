@@ -20,18 +20,17 @@ Feature: Yanking and pasting.
         Then the message "Yanked URL to primary selection: http://localhost:(port)/data/title.html" should be shown
         And the primary selection should contain "http://localhost:(port)/data/title.html"
 
-    Scenario: Yanking URLs with ref and UTM data to clipboard
-        When I open http://kikolani.com/blog-post-promotion-ultimate-guide?utm_source=kikolani&utm_medium=320banner&utm_campaign=bpp
+    Scenario: Yanking URLs with ref and UTM data 
+        When I open data/title.html?utm_source=kikolani&utm_medium=320banner&utm_campaign=bpp&ref=facebook
         And I run :yank
-        Then the message "Yanked URL to clipboard: http://kikolani.com/blog-post-promotion-ultimate-guide" should be shown
-        And the clipboard should contain "http://kikolani.com/blog-post-promotion-ultimate-guide"
+        Then the message "Yanked URL to clipboard: http://localhost:(port)/data/title.html" should be shown
+        And the clipboard should contain "http://localhost:(port)/data/title.html"
 
-    Scenario: Yanking URLs to primary selection
-        When selection is supported
-        And I open http://kikolani.com/blog-post-promotion-ultimate-guide?utm_source=kikolani&utm_medium=320banner&utm_campaign=bpp
-        And I run :yank --sel
-        Then the message "Yanked URL to primary selection: http://kikolani.com/blog-post-promotion-ultimate-guide" should be shown
-        And the primary selection should contain "http://kikolani.com/blog-post-promotion-ultimate-guide"
+    Scenario: Yanking URLs with ref and UTM data and some other parameters
+        When I open data/title.html?utm_source=kikolani&utm_medium=320banner&utm_campaign=bpp&stype=models&ref=facebook
+        And I run :yank
+        Then the message "Yanked URL to clipboard: http://localhost:(port)/data/title.html?stype=models" should be shown
+        And the clipboard should contain "http://localhost:(port)/data/title.html"
 
     Scenario: Yanking title to clipboard
         When I open data/title.html

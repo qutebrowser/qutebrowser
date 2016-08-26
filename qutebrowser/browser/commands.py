@@ -711,7 +711,7 @@ class CommandDispatcher:
 
         url_query = QUrlQuery(s)
         for key in dict(url_query.queryItems()):
-            if key in (config.get('general', 'url-parameters')):
+            if key in (config.get('general', 'removed-url-parameter')):
                 url_query.removeQueryItem(key)
         url_query.setQuery(s)
 

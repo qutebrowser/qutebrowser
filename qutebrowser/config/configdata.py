@@ -139,7 +139,7 @@ def data(readonly=False):
              SettingValue(typ.List(typ.String()), 'https://duckduckgo.com'),
              "The default page(s) to open at the start, separated by commas."),
 
-            ('url-parameters',
+            ('removed-url-parameter',
              SettingValue(typ.List(typ.String()), 'ref,utm_source,utm_medium,utm_campaign,utm_term,utm_content'),
              "The default parameters to strip on yanking a url, separated by commas."),
 
