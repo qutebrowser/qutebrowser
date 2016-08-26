@@ -30,6 +30,8 @@ import operator
 import pytest
 import hypothesis
 
+pytest.register_assert_rewrite('helpers')
+
 from helpers import logfail
 from helpers.logfail import fail_on_logging
 from helpers.messagemock import message_mock
