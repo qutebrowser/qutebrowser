@@ -86,7 +86,9 @@ Feature: Setting settings.
         And I press the key "<Ctrl+Backspace>"
         And I press the key "foo"
         And I press the key "<Escape>"
-        Then "invalid value 'foo' *" should be logged
+        # an explicit Tab to unfocus the input field seems to stabilize the tests
+        And I press the key "<Tab>"
+        Then "Invalid value 'foo' *" should be logged
 
     Scenario: Empty option with ? (issue 1109)
         When I run :set general ?
