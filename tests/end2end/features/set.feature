@@ -63,6 +63,31 @@ Feature: Setting settings.
         Then the following tabs should be open:
             - qute:settings (active)
 
+    @qtwebengine_todo: qute:settings is not implemented yet
+    Scenario: Focusing input fields in qute://settings and entering valid value
+        When I open qute://settings
+        # scroll to the right - the table does not fit in the default screen
+        And I run :scroll-perc -x 100
+        And I hint with args "inputs" and follow a
+        And I press the key "<Ctrl+Backspace>"
+        And I press the key "true"
+        And I press the key "<Escape>"
+        # an explicit Tab to unfocus the input field seems to stabilize the tests
+        And I press the key "<Tab>"
+        And I run :set general ignore-case?
+        Then "general ignore-case = true" should be logged
+
+    @qtwebengine_todo: qute:settings is not implemented yet
+    Scenario: Focusing input fields in qute://settings and entering invalid value
+        When I open qute://settings
+        # scroll to the right - the table does not fit in the default screen
+        And I run :scroll-perc -x 100
+        And I hint with args "inputs" and follow a
+        And I press the key "<Ctrl+Backspace>"
+        And I press the key "foo"
+        And I press the key "<Escape>"
+        Then "invalid value 'foo' *" should be logged
+
     Scenario: Empty option with ? (issue 1109)
         When I run :set general ?
         Then the error "set: The following arguments are required: value" should be shown
