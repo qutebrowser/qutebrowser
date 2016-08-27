@@ -218,6 +218,9 @@ class WebView(QWebView):
         Return:
             The new QWebView object.
         """
+        if not config.get('content', 'javascript-can-open-windows'):
+            return
+
         if wintype == QWebPage.WebModalDialog:
             log.webview.warning("WebModalDialog requested, but we don't "
                                 "support that!")
