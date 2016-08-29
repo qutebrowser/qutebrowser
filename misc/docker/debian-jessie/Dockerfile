@@ -7,6 +7,7 @@ RUN apt-get -y update && \
     apt-get -y dist-upgrade && \
     apt-get -y install --no-install-recommends \
             python3-pyqt5 \
+            python3-pyqt5.qtquick \
             python3-pyqt5.qtwebkit \
             python-tox \
             python3-sip \

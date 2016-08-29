@@ -9,6 +9,7 @@ RUN pacman -Suyy --noconfirm \
     git \
     python-tox \
     qt5-base \
+    qt5-declarative \
     qt5-webkit \
     python-pyqt5 \
     xorg-xinit \
