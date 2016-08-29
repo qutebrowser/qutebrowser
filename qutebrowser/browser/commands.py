@@ -702,19 +702,18 @@ class CommandDispatcher:
                 return
         else:  # pragma: no cover
             raise ValueError("Invalid value {!r} for `what'.".format(what))
-
+            
         if sel and utils.supports_selection():
             target = "primary selection"
         else:
             sel = False
             target = "clipboard"
 
-        url_query = QUrlQuery(s)
+        url_query = QUrlQuery(s.replace("?","&"))
         for key in dict(url_query.queryItems()):
-            if key in (config.get('general', 'removed-url-parameter')):
+            if key in config.get('general', 'yank-ignored-url-parameters'):
                 url_query.removeQueryItem(key)
-        url_query.setQuery(s)
-
+        s = url_query.toString().replace("&","?",1)
         utils.set_clipboard(s, selection=sel)
         if what != 'selection':
             message.info(self._win_id, "Yanked {} to {}: {}".format(
