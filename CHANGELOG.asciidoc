@@ -101,6 +101,8 @@ Changed
 - `tabs -> title-format` now treats an empty string as valid.
 - Bindings for `:`, `/` and `?` are now configured explicitly and not hardcoded
   anymore.
+- The `completion -> show` setting can now be set to `always`, `auto` or
+  `never`.
 
 Deprecated
 ~~~~~~~~~~
@@ -120,6 +122,8 @@ Removed
 - The `ui -> hide-mouse-cursor` setting since it was completely broken and
   nobody seemed to care.
 - The `hints -> opacity` setting - see the "Changed" section for details.
+- The `completion -> auto-open` setting got merged into `completion -> show` and
+  thus removed.
 
 Fixed
 ~~~~~

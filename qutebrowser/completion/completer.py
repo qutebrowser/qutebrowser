@@ -23,7 +23,7 @@ from PyQt5.QtCore import pyqtSlot, QObject, QTimer, QItemSelection
 
 from qutebrowser.config import config
 from qutebrowser.commands import cmdutils, runners
-from qutebrowser.utils import usertypes, log, objreg, utils
+from qutebrowser.utils import usertypes, log, utils
 from qutebrowser.completion.models import instances, sortfilter
 
 
@@ -40,15 +40,12 @@ class Completer(QObject):
         _last_cursor_pos: The old cursor position so we avoid double completion
                           updates.
         _last_text: The old command text so we avoid double completion updates.
-        _signals_connected: Whether the signals are connected to update the
-                            completion when the command widget requests that.
     """
 
     def __init__(self, cmd, win_id, parent=None):
         super().__init__(parent)
         self._win_id = win_id
         self._cmd = cmd
-        self._signals_connected = False
         self._ignore_change = False
         self._empty_item_idx = None
         self._timer = QTimer()
@@ -58,63 +55,11 @@ class Completer(QObject):
         self._cursor_part = None
         self._last_cursor_pos = None
         self._last_text = None
-
-        objreg.get('config').changed.connect(self._on_auto_open_changed)
-        self._handle_signal_connections()
-        self._cmd.clear_completion_selection.connect(
-            self._handle_signal_connections)
+        self._cmd.update_completion.connect(self.schedule_completion_update)
+        self._cmd.textChanged.connect(self._on_text_edited)
 
     def __repr__(self):
         return utils.get_repr(self)
-
-    @config.change_filter('completion', 'auto-open')
-    def _on_auto_open_changed(self):
-        self._handle_signal_connections()
-
-    @pyqtSlot()
-    def _handle_signal_connections(self):
-        self._connect_signals(config.get('completion', 'auto-open'))
-
-    def _connect_signals(self, connect=True):
-        """Connect or disconnect the completion signals.
-
-        Args:
-            connect: Whether to connect (True) or disconnect (False) the
-                     signals.
-
-        Return:
-            True if the signals were connected (connect=True and aren't
-            connected yet) - otherwise False.
-        """
-        connections = [
-            (self._cmd.update_completion, self.schedule_completion_update),
-            (self._cmd.textChanged, self._on_text_edited),
-        ]
-
-        if connect and not self._signals_connected:
-            for sender, receiver in connections:
-                sender.connect(receiver)
-            self._signals_connected = True
-            return True
-        elif not connect:
-            for sender, receiver in connections:
-                try:
-                    sender.disconnect(receiver)
-                except TypeError:
-                    # Don't fail if not connected
-                    pass
-            self._signals_connected = False
-        return False
-
-    def _open_completion_if_needed(self):
-        """If auto-open is false, temporarily connect signals.
-
-        Also opens the completion.
-        """
-        if not config.get('completion', 'auto-open'):
-            connected = self._connect_signals(True)
-            if connected:
-                self._update_completion()
 
     def _model(self):
         """Convenience method to get the current completion model."""
@@ -244,7 +189,6 @@ class Completer(QObject):
             selected: New selection.
             _deselected: Previous selection.
         """
-        self._open_completion_if_needed()
         indexes = selected.indexes()
         if not indexes:
             return
@@ -308,37 +252,24 @@ class Completer(QObject):
             # anything (yet)
             # FIXME complete searches
             # https://github.com/The-Compiler/qutebrowser/issues/32
-            completion.hide()
+            completion.set_model(None)
             return
 
         model = self._get_new_completion(parts, self._cursor_part)
-
-        if model != self._model():
-            if model is None:
-                completion.hide()
-            else:
-                completion.set_model(model)
-
-        if model is None:
-            log.completion.debug("No completion model for {}.".format(parts))
-            return
 
         try:
             pattern = parts[self._cursor_part].strip()
         except IndexError:
             pattern = ''
-        completion.set_pattern(pattern)
 
-        log.completion.debug(
-            "New completion for {}: {}, with pattern '{}'".format(
-                parts, model.srcmodel.__class__.__name__, pattern))
+        if model is None:
+            log.completion.debug("No completion model for {}.".format(parts))
+        else:
+            log.completion.debug(
+                "New completion for {}: {}, with pattern '{}'".format(
+                    parts, model.srcmodel.__class__.__name__, pattern))
 
-        if self._model().count() == 0:
-            completion.hide()
-            return
-
-        if completion.enabled:
-            completion.show()
+        completion.set_model(model, pattern)
 
     def _split(self, keep=False):
         """Get the text split up in parts.

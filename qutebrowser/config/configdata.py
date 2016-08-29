@@ -438,9 +438,14 @@ def data(readonly=False):
         )),
 
         ('completion', sect.KeyValue(
-            ('auto-open',
-             SettingValue(typ.Bool(), 'true'),
-             "Automatically open completion when typing."),
+            ('show',
+             SettingValue(typ.String(
+                 valid_values=typ.ValidValues(
+                     ('always', "Whenever a completion is available."),
+                     ('auto', "Whenever a completion is requested."),
+                     ('never', "Never.")
+                 )), 'always'),
+             "When to show the autocompletion window."),
 
             ('download-path-suggestion',
              SettingValue(
@@ -454,10 +459,6 @@ def data(readonly=False):
             ('timestamp-format',
              SettingValue(typ.TimestampTemplate(none_ok=True), '%Y-%m-%d'),
              "How to format timestamps (e.g. for history)"),
-
-            ('show',
-             SettingValue(typ.Bool(), 'true'),
-             "Whether to show the autocompletion window."),
 
             ('height',
              SettingValue(typ.PercOrInt(minperc=0, maxperc=100, minint=1),
