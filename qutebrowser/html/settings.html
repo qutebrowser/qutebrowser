@@ -28,7 +28,7 @@ th pre { color: grey; text-align: left; }
     <tr>
       <td>{{ d }} (Current: {{ confget(section, d)|truncate(100) }})</td>
       <td>
-        <input type="input"
+        <input type="text"
           onblur="cset('{{ section }}', '{{ d }}', this)"
           value="{{ confget(section, d) }}">
         </input>
