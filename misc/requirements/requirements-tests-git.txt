@@ -46,4 +46,4 @@ hg+https://bitbucket.org/fdik/pypeg
 # Fails to build:
 # gcc: error: ext/_yaml.c: No such file or directory
 # hg+https://bitbucket.org/xi/pyyaml
-PyYAML==3.11
+PyYAML==3.12
