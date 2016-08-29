@@ -50,6 +50,7 @@ class TabWidget(QTabWidget):
     def __init__(self, win_id, parent=None):
         super().__init__(parent)
         bar = TabBar(win_id)
+        self.setStyle(TabBarStyle(self.style()))
         self.setTabBar(bar)
         bar.tabCloseRequested.connect(self.tabCloseRequested)
         bar.tabMoved.connect(functools.partial(
@@ -652,6 +653,12 @@ class TabBarStyle(QCommonStyle):
         if sr == QStyle.SE_TabBarTabText:
             layouts = self._tab_layout(opt)
             return layouts.text
+        elif sr == QStyle.SE_TabWidgetTabBar:
+            # Need to use super() because we also use super() to render
+            # element in drawControl(); otherwise, we may get bit by
+            # style differences...
+            rct = super().subElementRect(sr, opt, widget)
+            return rct
         else:
             return self._style.subElementRect(sr, opt, widget)
 
