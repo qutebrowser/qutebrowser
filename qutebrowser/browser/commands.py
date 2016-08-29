@@ -709,11 +709,11 @@ class CommandDispatcher:
             sel = False
             target = "clipboard"
 
-        url_query = QUrlQuery(s.replace("?","&"))
+        url_query = QUrlQuery(s.replace("?", "&"))
         for key in dict(url_query.queryItems()):
-            if key in config.get('general','yank-ignored-url-parameters'):
+            if key in config.get('general', 'yank-ignored-url-parameters'):
                 url_query.removeQueryItem(key)
-        s = url_query.toString().replace("&","?",1)
+        s = url_query.toString().replace("&", "?", 1)
         utils.set_clipboard(s, selection=sel)
         if what != 'selection':
             message.info(self._win_id, "Yanked {} to {}: {}".format(

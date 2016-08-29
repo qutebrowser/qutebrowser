@@ -141,7 +141,7 @@ def data(readonly=False):
 
             ('yank-ignored-url-parameters',
              SettingValue(typ.List(typ.String()), 'ref,utm_source,utm_medium,'
-                'utm_campaign,utm_term,utm_content'),
+            'utm_campaign,utm_term,utm_content'),
              "The default parameters to strip on yanking a url, separated by commas."),
 
             ('default-page',
