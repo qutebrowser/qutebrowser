@@ -66,7 +66,7 @@ def completer_obj(qtbot, status_command_stub, config_stub, monkeypatch, stubs,
     """Create the completer used for testing."""
     monkeypatch.setattr('qutebrowser.completion.completer.QTimer',
         stubs.InstaTimer)
-    config_stub.data = {'completion': {'auto-open': False}}
+    config_stub.data = {'completion': {'show': 'auto'}}
     return completer.Completer(status_command_stub, 0, completion_widget_stub)
 
 
@@ -199,12 +199,12 @@ def test_update_completion(txt, expected, status_command_stub, completer_obj,
     # this test uses | as a placeholder for the current cursor position
     _set_cmd_prompt(status_command_stub, txt)
     completer_obj.schedule_completion_update()
+    assert completion_widget_stub.set_model.call_count == 1
+    arg = completion_widget_stub.set_model.call_args[0][0]
+    # the outer model is just for sorting; srcmodel is the completion model
     if expected is None:
-        assert not completion_widget_stub.set_model.called
+        assert arg == expected
     else:
-        assert completion_widget_stub.set_model.call_count == 1
-        arg = completion_widget_stub.set_model.call_args[0][0]
-        # the outer model is just for sorting; srcmodel is the completion model
         assert arg.srcmodel.kind == expected
 
 

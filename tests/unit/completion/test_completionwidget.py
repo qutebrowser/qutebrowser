@@ -34,11 +34,11 @@ def completionview(qtbot, status_command_stub, config_stub, win_registry,
     """Create the CompletionView used for testing."""
     config_stub.data = {
         'completion': {
-            'show': True,
-            'auto-open': True,
+            'show': 'always',
             'scrollbar-width': 12,
             'scrollbar-padding': 2,
             'shrink': False,
+            'quick-complete': False,
         },
         'colors': {
             'completion.fg': QColor(),
@@ -83,8 +83,7 @@ def test_set_model(completionview):
 def test_set_pattern(completionview):
     model = sortfilter.CompletionFilterModel(base.BaseCompletionModel())
     model.set_pattern = unittest.mock.Mock()
-    completionview.set_model(model)
-    completionview.set_pattern('foo')
+    completionview.set_model(model, 'foo')
     model.set_pattern.assert_called_with('foo')
 
 
@@ -170,11 +169,36 @@ def test_completion_item_focus(which, tree, count, expected, completionview):
     assert filtermodel.data(idx) == expected
 
 
-def test_completion_item_focus_no_model(completionview):
-    """Test that next/prev won't crash with no model set.
+@pytest.mark.parametrize('show', ['always', 'auto', 'never'])
+@pytest.mark.parametrize('rows', [[], ['Aa'], ['Aa', 'Bb']])
+@pytest.mark.parametrize('quick_complete', [True, False])
+def test_completion_show(show, rows, quick_complete, completionview,
+                         config_stub):
+    """Test that the completion widget is shown at appropriate times.
 
-    This can happen if completion.show and completion.auto-open are False.
-    Regression test for issue #1722.
+    Args:
+        show: The completion show config setting.
+        rows: Each entry represents a completion category with only one item.
+        quick_complete: The completion quick-complete config setting.
     """
-    completionview.completion_item_focus('prev')
+    config_stub.data['completion']['show'] = show
+    config_stub.data['completion']['quick-complete'] = quick_complete
+
+    model = base.BaseCompletionModel()
+    for name in rows:
+        cat = QStandardItem()
+        model.appendRow(cat)
+        cat.appendRow(QStandardItem(name))
+    filtermodel = sortfilter.CompletionFilterModel(model,
+                                                   parent=completionview)
+
+    assert not completionview.isVisible()
+    completionview.set_model(filtermodel)
+    assert completionview.isVisible() == (show == 'always' and len(rows) > 0)
     completionview.completion_item_focus('next')
+    expected = (show != 'never' and len(rows) > 0 and
+                not (quick_complete and len(rows) == 1))
+    assert completionview.isVisible() == expected
+    completionview.set_model(None)
+    completionview.completion_item_focus('next')
+    assert not completionview.isVisible()

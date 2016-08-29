@@ -400,6 +400,7 @@ class ConfigManager(QObject):
         ('ui', 'hide-mouse-cursor'),
         ('general', 'wrap-search'),
         ('hints', 'opacity'),
+        ('completion', 'auto-open'),
     ]
     CHANGED_OPTIONS = {
         ('content', 'cookies-accept'):
@@ -418,6 +419,8 @@ class ConfigManager(QObject):
         ('colors', 'hints.fg'): _transform_hint_color,
         ('colors', 'hints.fg.match'): _transform_hint_color,
         ('fonts', 'hints'): _transform_hint_font,
+        ('completion', 'show'):
+            _get_value_transformer({'false': 'never', 'true': 'always'}),
     }
 
     changed = pyqtSignal(str, str)
