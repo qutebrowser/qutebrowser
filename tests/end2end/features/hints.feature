@@ -82,8 +82,7 @@ Feature: Using hints
         Then the message "Follow me!" should be shown
 
     Scenario: Yanking to clipboard
-        When selection is supported
-        And I run :debug-set-fake-clipboard
+        When I run :debug-set-fake-clipboard
         And I open data/hints/html/simple.html
         And I hint with args "links yank" and follow a
         Then the clipboard should contain "http://localhost:(port)/data/hello.txt"
