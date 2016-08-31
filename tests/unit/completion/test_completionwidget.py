@@ -145,7 +145,8 @@ def test_maybe_resize_completion(completionview, config_stub, qtbot):
     ('next-category', [[]], 1, None),
     ('prev-category', [[]], 1, None),
 ])
-def test_completion_item_focus(which, tree, count, expected, completionview):
+def test_completion_item_focus(which, tree, count, expected, completionview,
+                               qtbot):
     """Test that on_next_prev_item moves the selection properly.
 
     Args:
@@ -163,11 +164,33 @@ def test_completion_item_focus(which, tree, count, expected, completionview):
     filtermodel = sortfilter.CompletionFilterModel(model,
                                                    parent=completionview)
     completionview.set_model(filtermodel)
-    for _ in range(count):
-        completionview.completion_item_focus(which)
+    if expected is None:
+        for _ in range(count):
+            completionview.completion_item_focus(which)
+    else:
+        with qtbot.waitSignal(completionview.selection_changed):
+            for _ in range(count):
+                completionview.completion_item_focus(which)
     idx = completionview.selectionModel().currentIndex()
     assert filtermodel.data(idx) == expected
 
+
+@pytest.mark.parametrize('which', ['next', 'prev', 'next-category',
+                                   'prev-category'])
+def test_completion_item_focus_no_model(which, completionview, qtbot):
+    """Test that selectionChanged is not fired when the model is None.
+
+    Validates #1812: help completion repeatedly completes
+    """
+    with qtbot.assertNotEmitted(completionview.selection_changed):
+        completionview.completion_item_focus(which)
+    model = base.BaseCompletionModel()
+    filtermodel = sortfilter.CompletionFilterModel(model,
+                                                   parent=completionview)
+    completionview.set_model(filtermodel)
+    completionview.set_model(None)
+    with qtbot.assertNotEmitted(completionview.selection_changed):
+        completionview.completion_item_focus(which)
 
 @pytest.mark.parametrize('show', ['always', 'auto', 'never'])
 @pytest.mark.parametrize('rows', [[], ['Aa'], ['Aa', 'Bb']])
