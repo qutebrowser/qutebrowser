@@ -70,6 +70,7 @@ class PastebinClient(QObject):
             'text': text,
             'title': title,
             'name': name,
+            'apikey': 'ihatespam',
         }
         if parent is not None:
             data['reply'] = parent
