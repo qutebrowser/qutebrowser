@@ -1504,7 +1504,7 @@ KEY_DATA = collections.OrderedDict([
         ('save', ['sf']),
         ('set-cmd-text -s :set', ['ss']),
         ('set-cmd-text -s :set -t', ['sl']),
-        ('set-cmd-text -s :set keybind', ['sk']),
+        ('set-cmd-text -s :bind', ['sk']),
         ('zoom-out', ['-']),
         ('zoom-in', ['+']),
         ('zoom', ['=']),
