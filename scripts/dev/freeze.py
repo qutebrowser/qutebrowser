@@ -101,7 +101,7 @@ def get_build_exe_options(skip_html=False):
         'packages': ['pygments', 'pkg_resources._vendor.packaging',
                      'pkg_resources._vendor.pyparsing',
                      'pkg_resources._vendor.six',
-                     'pkg_resources.extern.appdirs'],
+                     'pkg_resources._vendor.appdirs'],
     }
 
 
