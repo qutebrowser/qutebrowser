@@ -192,6 +192,7 @@ def test_completion_item_focus_no_model(which, completionview, qtbot):
     with qtbot.assertNotEmitted(completionview.selection_changed):
         completionview.completion_item_focus(which)
 
+
 @pytest.mark.parametrize('show', ['always', 'auto', 'never'])
 @pytest.mark.parametrize('rows', [[], ['Aa'], ['Aa', 'Bb']])
 @pytest.mark.parametrize('quick_complete', [True, False])
