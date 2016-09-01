@@ -1,14 +1,12 @@
-#!/bin/bash
+#!/usr/bin/env bash
 
-if [[ $PWD == */scripts ]]; then
-    cd ..
-fi
+[[ $PWD == */scripts ]] && cd ..
 
 echo > crash.log
 while :; do
     exit=0
-    while (( $exit == 0)); do
-        duration=$(($RANDOM%10000))
+    while (( exit == 0 )); do
+        duration=$(( RANDOM % 10000 ))
         python3 -m qutebrowser --debug ":later $duration quit" http://www.heise.de/
         exit=$?
     done

@@ -76,6 +76,7 @@ crop-first-column() {
 ls-files() {
     # add the slash at the end of the download dir enforces to follow the
     # symlink, if the DOWNLOAD_DIR itself is a symlink
+    # shellcheck disable=SC2010
     ls -Q --quoting-style escape    -h  -o -1 -A -t "${DOWNLOAD_DIR}/" \
         | grep '^[-]' \
         | cut -d' ' -f3- \
@@ -94,7 +95,7 @@ fi
 line=$(printf "%s\n" "${entries[@]}"  \
        | crop-first-column 55 \
        | column -s $'\t' -t \
-       | $ROFI_CMD "${rofi_default_args[@]}" $ROFI_ARGS) || true
+       | $ROFI_CMD "${rofi_default_args[@]}" "$ROFI_ARGS") || true
 if [ -z "$line" ];  then
     exit 0
 fi
