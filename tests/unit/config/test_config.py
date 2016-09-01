@@ -344,6 +344,7 @@ class TestKeyConfigParser:
             ('set-cmd-text -s :search', 'set-cmd-text /'),
             ('set-cmd-text -s :search -r', 'set-cmd-text ?'),
             ('set-cmd-text -s :', 'set-cmd-text :'),
+            ('set-cmd-text -s :set keybind', 'set-cmd-text -s :bind'),
         ]
     )
     def test_migrations(self, old, new_expected):

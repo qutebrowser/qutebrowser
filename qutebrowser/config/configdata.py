@@ -1556,7 +1556,7 @@ KEY_DATA = collections.OrderedDict([
         ('save', ['sf']),
         ('set-cmd-text -s :set', ['ss']),
         ('set-cmd-text -s :set -t', ['sl']),
-        ('set-cmd-text -s :set keybind', ['sk']),
+        ('set-cmd-text -s :bind', ['sk']),
         ('zoom-out', ['-']),
         ('zoom-in', ['+']),
         ('zoom', ['=']),
@@ -1735,4 +1735,5 @@ CHANGED_KEY_COMMANDS = [
     (re.compile(r'^set-cmd-text -s :search$'), r'set-cmd-text /'),
     (re.compile(r'^set-cmd-text -s :search -r$'), r'set-cmd-text ?'),
     (re.compile(r'^set-cmd-text -s :$'), r'set-cmd-text :'),
+    (re.compile(r'^set-cmd-text -s :set keybind$'), r'set-cmd-text -s :bind'),
 ]
