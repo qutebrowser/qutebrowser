@@ -1735,4 +1735,5 @@ CHANGED_KEY_COMMANDS = [
     (re.compile(r'^set-cmd-text -s :search$'), r'set-cmd-text /'),
     (re.compile(r'^set-cmd-text -s :search -r$'), r'set-cmd-text ?'),
     (re.compile(r'^set-cmd-text -s :$'), r'set-cmd-text :'),
+    (re.compile(r'^set-cmd-text -s :set keybind$'), r'set-cmd-text -s :bind'),
 ]
