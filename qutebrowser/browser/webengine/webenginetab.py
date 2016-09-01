@@ -171,7 +171,7 @@ class WebEngineCaret(browsertab.AbstractCaret):
 
     def selection(self, html=False):
         if html:
-            raise NotImplementedError
+            raise browsertab.UnsupportedOperationError
         return self._widget.selectedText()
 
     def follow_selected(self, *, tab=False):

@@ -60,6 +60,11 @@ class WebTabError(Exception):
     """Base class for various errors."""
 
 
+class UnsupportedOperationError(WebTabError):
+
+    """Raised when an operation is not supported with the given backend."""
+
+
 class TabData:
 
     """A simple namespace with a fixed set of attributes.

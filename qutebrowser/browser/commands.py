@@ -1089,7 +1089,10 @@ class CommandDispatcher:
         tab = self._tabbed_browser.currentWidget()
         if tab is not None and tab.caret.has_selection():
             env['QUTE_SELECTED_TEXT'] = tab.caret.selection()
-            env['QUTE_SELECTED_HTML'] = tab.caret.selection(html=True)
+            try:
+                env['QUTE_SELECTED_HTML'] = tab.caret.selection(html=True)
+            except browsertab.UnsupportedOperationError:
+                pass
 
         # FIXME:qtwebengine: If tab is None, run_async will fail!
 
