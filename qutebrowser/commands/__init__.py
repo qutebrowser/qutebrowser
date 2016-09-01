@@ -26,6 +26,9 @@ In the commandline, there are also some variables you can use:
 
 - `{url}` expands to the URL of the current page
 - `{url:pretty}` expands to the URL in decoded format
+- `{title}` expands to the title of the current page
+- `{domain}` expands to the scheme, domain, and port number of the page
 - `{clipboard}` expands to the clipboard contents
 - `{primary}` expands to the primary selection contents
+- `{selection}` expands to the text selected on the page
 """

@@ -13,8 +13,11 @@ In the commandline, there are also some variables you can use:
 
 - `{url}` expands to the URL of the current page
 - `{url:pretty}` expands to the URL in decoded format
+- `{title}` expands to the title of the current page
+- `{domain}` expands to the scheme, domain, and port number of the page
 - `{clipboard}` expands to the clipboard contents
 - `{primary}` expands to the primary selection contents
+- `{selection}` expands to the text selected on the page
 
 == Normal commands
 .Quick reference
@@ -894,13 +897,13 @@ Syntax: +:yank [*--sel*] [*--keep*] ['what']+
 Yank something to the clipboard or primary selection.
 
 ==== positional arguments
-* +'what'+: What to yank. 
+* +'what'+: What to yank. Typically one of these variables: 
 
- - `url`: The current URL.
- - `pretty-url`: The URL in pretty decoded form.
- - `title`: The current page's title.
- - `domain`: The current scheme, domain, and port number.
- - `selection`: The selection under the cursor.
+ - `{url}`: The current URL.
+ - `{pretty-url}`: The URL in pretty decoded form.
+ - `{title}`: The current page's title.
+ - `{domain}`: The current scheme, domain, and port number.
+ - `{selection}`: The selection under the cursor.
  
 
 
