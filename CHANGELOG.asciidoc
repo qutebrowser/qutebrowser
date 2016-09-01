@@ -103,6 +103,9 @@ Changed
   anymore.
 - The `completion -> show` setting can now be set to `always`, `auto` or
   `never`.
+- Lots of improvements to and bugfixes for the QtWebEngine backend, such as
+  working hints. However, using qutebrowser directly from git is still advised
+  when using `--backend webengine`.
 
 Deprecated
 ~~~~~~~~~~
@@ -135,6 +138,7 @@ Fixed
 - Fixed an issue with hint chars not being cleared correctly when leaving hint
   mode.
 - `:tab-detach` now fails correctly when there's only one tab open.
+- Various small issues with the command completion
 
 v0.8.3 (unreleased)
 -------------------
