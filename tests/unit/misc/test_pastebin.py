@@ -62,13 +62,15 @@ def test_constructor(qapp):
         "name": "XYZ",
         "title": "hello world",
         "text": "xyz. 123 \n 172ANB",
-        "reply": "abc"
+        "reply": "abc",
+        "apikey": "ihatespam",
     },
     {
         "name": "the name",
         "title": "the title",
         "text": "some Text",
-        "reply": "some parent"
+        "reply": "some parent",
+        "apikey": "ihatespam",
     }
 ])
 def test_paste_with_parent(data, pbclient):
@@ -82,12 +84,14 @@ def test_paste_with_parent(data, pbclient):
     {
         "name": "XYZ",
         "title": "hello world",
-        "text": "xyz. 123 \n 172ANB"
+        "text": "xyz. 123 \n 172ANB",
+        "apikey": "ihatespam",
     },
     {
         "name": "the name",
         "title": "the title",
-        "text": "some Text"
+        "text": "some Text",
+        "apikey": "ihatespam",
     }
 ])
 def test_paste_without_parent(data, pbclient):
