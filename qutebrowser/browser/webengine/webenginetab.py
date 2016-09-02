@@ -381,7 +381,7 @@ class WebEngineTab(browsertab.AbstractTab):
 
     def __init__(self, win_id, mode_manager, parent=None):
         super().__init__(win_id)
-        widget = webview.WebEngineView(tabdata=self.data)
+        widget = webview.WebEngineView(tabdata=self.data, win_id=win_id)
         self.history = WebEngineHistory(self)
         self.scroller = WebEngineScroller(self, parent=self)
         self.caret = WebEngineCaret(win_id=win_id, mode_manager=mode_manager,

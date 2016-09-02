@@ -19,7 +19,6 @@ Feature: Using hints
 
     ### Opening in current or new tab
 
-    @qtwebengine_todo: createWindow is not implemented yet
     Scenario: Following a hint and force to open in current tab.
         When I open data/hints/link_blank.html
         And I hint with args "links current" and follow a
@@ -27,7 +26,6 @@ Feature: Using hints
         Then the following tabs should be open:
             - data/hello.txt (active)
 
-    @qtwebengine_todo: createWindow is not implemented yet
     Scenario: Following a hint and allow to open in new tab.
         When I open data/hints/link_blank.html
         And I hint with args "links normal" and follow a
@@ -36,7 +34,6 @@ Feature: Using hints
             - data/hints/link_blank.html
             - data/hello.txt (active)
 
-    @qtwebengine_todo: createWindow is not implemented yet
     Scenario: Following a hint to link with sub-element and force to open in current tab.
         When I open data/hints/link_span.html
         And I run :tab-close
@@ -154,13 +151,11 @@ Feature: Using hints
         And I hint wht args "links normal" and follow a
         Then "navigation request: url http://localhost:*/data/hello2.txt, type NavigationTypeLinkClicked, *" should be logged
 
-    @qtwebengine_todo: createWindow is not implemented yet
     Scenario: Opening a link inside a specific iframe
         When I open data/hints/iframe_target.html
         And I hint with args "links normal" and follow a
         Then "navigation request: url http://localhost:*/data/hello.txt, type NavigationTypeLinkClicked, *" should be logged
 
-    @qtwebengine_todo: createWindow is not implemented yet
     Scenario: Opening a link with specific target frame in a new tab
         When I open data/hints/iframe_target.html
         And I hint with args "links tab" and follow a

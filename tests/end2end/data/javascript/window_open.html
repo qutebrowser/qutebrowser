@@ -1,0 +1,22 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+<script type="text/javascript">
+    function open_modal() {
+        if (window.showModalDialog) {
+            window.showModalDialog();
+        } else {
+            window.open('', 'window', 'modal');
+        }
+    }
+</script>
+</head>
+
+<body>
+
+<button onclick="window.open('', 'window')" id="open-normal">normal</button>
+<button onclick="open_modal()" id="open-modal">modal</button>
+
+</body>
+</html>
