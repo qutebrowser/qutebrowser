@@ -44,7 +44,7 @@ debugging symbols compiled/packaged by me (x86_64 only).
 .To compile by yourself
 
 ----
-$ git clone https://github.com/The-Compiler/qt-debug-pkgbuild.git
+$ git clone https://github.com/qutebrowser/qt-debug-pkgbuild.git
 $ cd qt-debug-pkgbuild
 $ git checkout symbols
 $ export DEBUG_CFLAGS='-ggdb3 -fvar-tracking-assignments -Og'
