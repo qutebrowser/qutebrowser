@@ -406,9 +406,9 @@ class WebEngineTab(browsertab.AbstractTab):
         ])
         script = QWebEngineScript()
         script.setInjectionPoint(QWebEngineScript.DocumentCreation)
-        page = self._widget.page()
         script.setSourceCode(js_code)
 
+        page = self._widget.page()
         try:
             page.runJavaScript("", QWebEngineScript.ApplicationWorld)
         except TypeError:
