@@ -63,21 +63,20 @@ class WebEngineView(QWebEngineView):
         Return:
             The new QWebEngineView object.
         """
+        debug_type = debug.qenum_key(QWebEnginePage, wintype)
+        log.webview.debug("createWindow with type {}".format(debug_type))
         background = False
-        if wintype == QWebEnginePage.WebBrowserWindow:
-            log.webview.warning("WebBrowserWindow requested, but we don't "
-                                "support that!")
+        if wintype in [QWebEnginePage.WebBrowserWindow,
+                       QWebEnginePage.WebDialog]:
+            log.webview.warning("{} requested, but we don't support that!".format(
+                debug_type))
         elif wintype == QWebEnginePage.WebBrowserTab:
             pass
-        elif wintype == QWebEnginePage.WebDialog:
-            log.webview.warning("WebDialog requested, but we don't support "
-                                "that!")
         elif (hasattr(QWebEnginePage, 'WebBrowserBackgroundTab') and
               wintype == QWebEnginePage.WebBrowserBackgroundTab):
             background = True
         else:
-            raise ValueError("Invalid wintype {}".format(debug.qenum_key(
-                QWebEnginePage, wintype)))
+            raise ValueError("Invalid wintype {}".format(debug_type))
 
         tabbed_browser = objreg.get('tabbed-browser', scope='window',
                                     window=self._win_id)
