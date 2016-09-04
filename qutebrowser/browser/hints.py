@@ -211,13 +211,16 @@ class HintActions:
                                         window=self._win_id)
             tabbed_browser.set_mark("'")
 
-        if context.target == Target.hover:
-            elem.hover()
-        elif context.target == Target.current:
-            elem.remove_blank_target()
-            elem.click(target_mapping[context.target])
-        else:
-            elem.click(target_mapping[context.target])
+        try:
+            if context.target == Target.hover:
+                elem.hover()
+            elif context.target == Target.current:
+                elem.remove_blank_target()
+                elem.click(target_mapping[context.target])
+            else:
+                elem.click(target_mapping[context.target])
+        except webelem.Error as e:
+            raise HintingError(str(e))
 
     def yank(self, url, context):
         """Yank an element to the clipboard or primary selection.

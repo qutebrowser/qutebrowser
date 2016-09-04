@@ -619,3 +619,9 @@ Feature: Various utility commands.
         And the following tabs should be open:
             - data/click_element.html
             - data/hello.txt (active)
+
+    Scenario: Clicking an element which is out of view
+        When I open data/scroll/simple.html
+        And I run :scroll-page 0 1
+        And I run :click-element id link
+        Then the error "Element position is out of view!" should be shown

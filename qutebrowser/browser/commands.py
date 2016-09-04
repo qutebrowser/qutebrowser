@@ -39,7 +39,8 @@ import pygments.formatters
 
 from qutebrowser.commands import userscripts, cmdexc, cmdutils, runners
 from qutebrowser.config import config, configexc
-from qutebrowser.browser import urlmarks, browsertab, inspector, navigate
+from qutebrowser.browser import (urlmarks, browsertab, inspector, navigate,
+                                 webelem)
 from qutebrowser.browser.webkit import webkitelem, downloads, mhtml
 from qutebrowser.keyinput import modeman
 from qutebrowser.utils import (message, usertypes, log, qtutils, urlutils,
@@ -1559,7 +1560,11 @@ class CommandDispatcher:
             if elem is None:
                 message.error(self._win_id, "No element found!")
                 return
-            elem.click(target)
+            try:
+                elem.click(target)
+            except webelem.Error as e:
+                message.error(self._win_id, str(e))
+                return
 
         # def multiple_cb(elems):
         #     """Click multiple elements (with only one expected)."""

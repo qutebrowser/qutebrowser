@@ -353,7 +353,10 @@ class AbstractWebElement(collections.abc.MutableMapping):
             rect.setWidth(rect.height())
         else:
             rect.setHeight(rect.width())
-        return rect.center()
+        pos = rect.center()
+        if pos.x() < 0 or pos.y() < 0:
+            raise Error("Element position is out of view!")
+        return pos
 
     def click(self, click_target):
         """Simulate a click on the element."""

@@ -9,6 +9,14 @@ Feature: Using hints
         And I hint with args "links normal" and follow xyz
         Then the error "No hint xyz!" should be shown
 
+    Scenario: Following a link after scrolling down
+        When I open data/scroll/simple.html
+        And I run :hint links normal
+        And I wait for "hints: *" in the log
+        And I run :scroll-page 0 1
+        And I run :follow-hint a
+        Then the error "Element position is out of view!" should be shown
+
     ### Opening in current or new tab
 
     @qtwebengine_todo: createWindow is not implemented yet
