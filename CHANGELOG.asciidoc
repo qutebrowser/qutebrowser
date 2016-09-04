@@ -141,6 +141,7 @@ Fixed
 - Various small issues with the command completion
 - The tabbar now displays correctly with the Adwaita Qt theme
 - The default `sk` keybinding now sets the commandline to `:bind` correctly
+- Fixed hang when using multiple spaces in a row with the URL completion
 
 v0.8.3 (unreleased)
 -------------------
