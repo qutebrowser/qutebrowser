@@ -665,7 +665,7 @@ class CommandDispatcher:
 
     @cmdutils.register(instance='command-dispatcher', scope='window')
     @cmdutils.argument('what', choices=['selection', 'url', 'pretty-url',
-                                        'title', 'domain'])
+                                        'http-basic-url', 'title', 'domain'])
     def yank(self, what='url', sel=False, keep=False):
         """Yank something to the clipboard or primary selection.
 
@@ -674,6 +674,8 @@ class CommandDispatcher:
 
                 - `url`: The current URL.
                 - `pretty-url`: The URL in pretty decoded form.
+                - `http-basic-url`:  The current URL, including HTTP Basic
+                                     authentication credentials
                 - `title`: The current page's title.
                 - `domain`: The current scheme, domain, and port number.
                 - `selection`: The selection under the cursor.
@@ -693,6 +695,9 @@ class CommandDispatcher:
             if what != 'pretty-url':
                 flags |= QUrl.FullyEncoded
             s = self._current_url().toString(flags)
+            what = 'URL'  # For printing
+        elif what == 'http-basic-url':
+            s = self._current_url().toString()
             what = 'URL'  # For printing
         elif what == 'selection':
             caret = self._current_widget().caret

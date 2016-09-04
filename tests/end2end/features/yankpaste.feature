@@ -45,6 +45,12 @@ Feature: Yanking and pasting.
         Then the message "Yanked URL to clipboard: http://localhost:(port)/data/title with spaces.html" should be shown
         And the clipboard should contain "http://localhost:(port)/data/title with spaces.html"
 
+    Scenario: Yanking URL with HTTP basic credentials
+        When I open http://user:password@localhost:(port)/basic-auth/:user/:password
+        And I run :yank
+        Then the message "Yanked URL to clipboard: http://user@localhost:(port)/basic-auth/:user/:password" should be shown
+        And the clipboard should contain "http://user@localhost:(port)/basic-auth/:user/:password"
+
     #### {clipboard} and {primary}
 
     Scenario: Pasting a URL
