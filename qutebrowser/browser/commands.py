@@ -1496,7 +1496,7 @@ class CommandDispatcher:
     @cmdutils.register(instance='command-dispatcher',
                        deprecated="Use :insert-text {primary}",
                        modes=[KeyMode.insert], hide=True, scope='window',
-                       needs_js=True, backend=usertypes.Backend.QtWebKit)
+                       backend=usertypes.Backend.QtWebKit)
     def paste_primary(self):
         """Paste the primary selection at cursor position."""
         try:
@@ -1505,8 +1505,7 @@ class CommandDispatcher:
             self.insert_text(utils.get_clipboard())
 
     @cmdutils.register(instance='command-dispatcher', maxsplit=0,
-                       scope='window', needs_js=True,
-                       backend=usertypes.Backend.QtWebKit)
+                       scope='window', backend=usertypes.Backend.QtWebKit)
     def insert_text(self, text):
         """Insert text at cursor position.
 
@@ -1515,6 +1514,8 @@ class CommandDispatcher:
         """
         # FIXME:qtwebengine have a proper API for this
         tab = self._current_widget()
+        if not tab.has_js():
+            raise cmdexc.CommandError("This command needs javascript enabled.")
         page = tab._widget.page()  # pylint: disable=protected-access
         try:
             elem = webkitelem.focus_elem(page.currentFrame())

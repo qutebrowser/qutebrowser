@@ -618,6 +618,10 @@ class WebKitTab(browsertab.AbstractTab):
         if callback is not None:
             callback(result)
 
+    def has_js(self):
+        settings = QWebSettings.globalSettings()
+        return settings.testAttribute(QWebSettings.JavascriptEnabled)
+
     def icon(self):
         return self._widget.icon()
 

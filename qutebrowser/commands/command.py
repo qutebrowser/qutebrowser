@@ -23,8 +23,6 @@ import inspect
 import collections
 import traceback
 
-from PyQt5.QtWebKit import QWebSettings
-
 from qutebrowser.commands import cmdexc, argparser
 from qutebrowser.utils import (log, utils, message, docutils, objreg,
                                usertypes, typing)
@@ -83,7 +81,6 @@ class Command:
                  both)
         no_replace_variables: Don't replace variables like {url}
         _qute_args: The saved data from @cmdutils.argument
-        _needs_js: Whether the command needs javascript enabled
         _modes: The modes the command can be executed in.
         _not_modes: The modes the command can not be executed in.
         _count: The count set for the command.
@@ -92,10 +89,10 @@ class Command:
     """
 
     def __init__(self, *, handler, name, instance=None, maxsplit=None,
-                 hide=False, modes=None, not_modes=None, needs_js=False,
-                 debug=False, ignore_args=False, deprecated=False,
-                 no_cmd_split=False, star_args_optional=False, scope='global',
-                 backend=None, no_replace_variables=False):
+                 hide=False, modes=None, not_modes=None, debug=False,
+                 ignore_args=False, deprecated=False, no_cmd_split=False,
+                 star_args_optional=False, scope='global', backend=None,
+                 no_replace_variables=False):
         # I really don't know how to solve this in a better way, I tried.
         # pylint: disable=too-many-locals
         if modes is not None and not_modes is not None:
@@ -120,7 +117,6 @@ class Command:
         self._modes = modes
         self._not_modes = not_modes
         self._scope = scope
-        self._needs_js = needs_js
         self._star_args_optional = star_args_optional
         self.debug = debug
         self.ignore_args = ignore_args
@@ -171,10 +167,6 @@ class Command:
                 "{}: This command is not allowed in {} mode.".format(
                     self.name, mode_names))
 
-        if self._needs_js and not QWebSettings.globalSettings().testAttribute(
-                QWebSettings.JavascriptEnabled):
-            raise cmdexc.PrerequisitesError(
-                "{}: This command needs javascript enabled.".format(self.name))
         used_backend = usertypes.arg2backend[objreg.get('args').backend]
         if self.backend is not None and used_backend != self.backend:
             raise cmdexc.PrerequisitesError(
