@@ -43,3 +43,16 @@ Feature: Javascript stuff
         And I run :tab-focus 2
         And I run :click-element id close-twice
         Then "Requested to close * which does not exist!" should be logged
+
+    @qtwebengine_createWindow @qtwebkit_skip
+    Scenario: Closing a JS window twice (issue 906) - qtwebengine
+        When I open about:blank
+        And I run :tab-only
+        And I open data/javascript/window_open.html in a new tab
+        And I run :click-element id open-normal
+        And I wait for "WebDialog requested, but we don't support that!" in the log
+        And I wait for "Changing title for idx 2 to 'about:blank'" in the log
+        And I run :tab-focus 2
+        And I run :click-element id close-twice
+        And I wait for "Focus object changed: *" in the log
+        Then no crash should happen
