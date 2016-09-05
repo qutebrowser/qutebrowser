@@ -808,9 +808,10 @@ def data(readonly=False):
              SettingValue(typ.BoolAsk(), 'ask'),
              "Allow websites to show notifications."),
 
-            ('javascript-can-open-windows',
+            ('javascript-can-open-windows-automatically',
              SettingValue(typ.Bool(), 'false'),
-             "Whether JavaScript programs can open new windows."),
+             "Whether JavaScript programs can open new windows without user "
+             "interaction."),
 
             ('javascript-can-close-windows',
              SettingValue(typ.Bool(), 'false',

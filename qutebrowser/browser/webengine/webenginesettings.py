@@ -112,7 +112,7 @@ MAPPINGS = {
             Attribute(QWebEngineSettings.AutoLoadImages),
         'allow-javascript':
             Attribute(QWebEngineSettings.JavascriptEnabled),
-        'javascript-can-open-windows':
+        'javascript-can-open-windows-automatically':
             Attribute(QWebEngineSettings.JavascriptCanOpenWindows),
         'javascript-can-access-clipboard':
             Attribute(QWebEngineSettings.JavascriptCanAccessClipboard),

@@ -157,7 +157,7 @@
 |<<content-hyperlink-auditing,hyperlink-auditing>>|Enable or disable hyperlink auditing (<a ping>).
 |<<content-geolocation,geolocation>>|Allow websites to request geolocations.
 |<<content-notifications,notifications>>|Allow websites to show notifications.
-|<<content-javascript-can-open-windows,javascript-can-open-windows>>|Whether JavaScript programs can open new windows.
+|<<content-javascript-can-open-windows-automatically,javascript-can-open-windows-automatically>>|Whether JavaScript programs can open new windows without user interaction.
 |<<content-javascript-can-close-windows,javascript-can-close-windows>>|Whether JavaScript programs can close windows.
 |<<content-javascript-can-access-clipboard,javascript-can-access-clipboard>>|Whether JavaScript programs can read or write to the clipboard.
 |<<content-ignore-javascript-prompt,ignore-javascript-prompt>>|Whether all javascript prompts should be ignored.
@@ -1427,9 +1427,9 @@ Valid values:
 
 Default: +pass:[ask]+
 
-[[content-javascript-can-open-windows]]
-=== javascript-can-open-windows
-Whether JavaScript programs can open new windows.
+[[content-javascript-can-open-windows-automatically]]
+=== javascript-can-open-windows-automatically
+Whether JavaScript programs can open new windows without user interaction.
 
 Valid values:
 

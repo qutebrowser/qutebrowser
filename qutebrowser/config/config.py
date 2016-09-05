@@ -385,6 +385,8 @@ class ConfigManager(QObject):
         ('completion', 'history-length'): 'cmd-history-max-items',
         ('colors', 'downloads.fg'): 'downloads.fg.start',
         ('ui', 'show-keyhints'): 'keyhint-blacklist',
+        ('content', 'javascript-can-open-windows'):
+            'javascript-can-open-windows-automatically',
     }
     DELETED_OPTIONS = [
         ('colors', 'tab.separator'),
