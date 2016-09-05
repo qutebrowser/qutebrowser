@@ -72,7 +72,7 @@ def _apply_platform_markers(item):
         item.add_marker(skipif_marker)
 
 
-def pytest_collection_modifyitems(items):
+def pytest_collection_modifyitems(config, items):
     """Handle custom markers.
 
     pytest hook called after collection has been performed.
@@ -95,7 +95,12 @@ def pytest_collection_modifyitems(items):
     Reference:
         http://pytest.org/latest/plugins.html
     """
+    remaining_items = []
+    deselected_items = []
+
     for item in items:
+        deselected = False
+
         if 'qapp' in getattr(item, 'fixturenames', ()):
             item.add_marker('gui')
 
@@ -109,12 +114,22 @@ def pytest_collection_modifyitems(items):
                                        'test_conftest.py']
             if module_root_dir == 'end2end':
                 item.add_marker(pytest.mark.end2end)
+            elif os.environ.get('QUTE_BDD_WEBENGINE', ''):
+                deselected = True
 
         _apply_platform_markers(item)
         if item.get_marker('xfail_norun'):
             item.add_marker(pytest.mark.xfail(run=False))
         if item.get_marker('flaky_once'):
             item.add_marker(pytest.mark.flaky(reruns=1))
+
+        if deselected:
+            deselected_items.append(item)
+        else:
+            remaining_items.append(item)
+
+    config.hook.pytest_deselected(items=deselected_items)
+    items[:] = remaining_items
 
 
 def pytest_ignore_collect(path):

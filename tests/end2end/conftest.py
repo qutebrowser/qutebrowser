@@ -129,7 +129,6 @@ if not getattr(sys, 'frozen', False):
         return None
 
 
-@pytest.hookimpl(trylast=True)
 def pytest_collection_modifyitems(config, items):
     """Apply @qtwebengine_* markers; skip unittests with QUTE_BDD_WEBENGINE."""
     vercheck = qtutils.version_check
@@ -160,14 +159,3 @@ def pytest_collection_modifyitems(config, items):
                     text = prefix
                 item.add_marker(pytest_mark(condition, reason=text,
                                             **marker.kwargs))
-
-    if os.environ.get('QUTE_BDD_WEBENGINE', ''):
-        remaining = []
-        deselected = []
-        for item in items:
-            if not item.get_marker('end2end'):
-                deselected.append(item)
-            else:
-                remaining.append(item)
-        config.hook.pytest_deselected(items=deselected)
-        items[:] = remaining
