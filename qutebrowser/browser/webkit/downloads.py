@@ -34,8 +34,6 @@ from PyQt5.QtCore import (pyqtSlot, pyqtSignal, QObject, QTimer,
                           Qt, QVariant, QAbstractListModel, QModelIndex, QUrl)
 from PyQt5.QtGui import QDesktopServices
 from PyQt5.QtNetwork import QNetworkRequest, QNetworkReply
-# We need this import so PyQt can use it inside pyqtSlot
-from PyQt5.QtWebKitWidgets import QWebPage  # pylint: disable=unused-import
 
 from qutebrowser.config import config
 from qutebrowser.commands import cmdexc, cmdutils
@@ -798,7 +796,7 @@ class DownloadManager(QAbstractListModel):
             dl.stats.update_speed()
         self.dataChanged.emit(self.index(0), self.last_index())
 
-    @pyqtSlot('QUrl', 'QWebPage')
+    @pyqtSlot('QUrl')
     def get(self, url, **kwargs):
         """Start a download with a link URL.
 
