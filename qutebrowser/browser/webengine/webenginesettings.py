@@ -80,6 +80,11 @@ def init():
     objreg.get('config').changed.connect(update_settings)
 
 
+def shutdown():
+    # FIXME:qtwebengine do we need to do something for a clean shutdown here?
+    pass
+
+
 # Missing QtWebEngine attributes:
 # - ErrorPageEnabled (should not be exposed, but set)
 # - FullScreenSupportEnabled

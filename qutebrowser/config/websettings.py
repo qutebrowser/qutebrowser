@@ -267,3 +267,13 @@ def init():
     else:
         from qutebrowser.browser.webkit import webkitsettings
         webkitsettings.init()
+
+
+def shutdown():
+    """Shut down QWeb(Engine)Settings."""
+    if objreg.get('args').backend == 'webengine':
+        from qutebrowser.browser.webengine import webenginesettings
+        webenginesettings.shutdown()
+    else:
+        from qutebrowser.browser.webkit import webkitsettings
+        webkitsettings.shutdown()

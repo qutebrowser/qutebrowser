@@ -112,6 +112,13 @@ def init():
     objreg.get('config').changed.connect(update_settings)
 
 
+def shutdown():
+    """Disable storage so removing tmpdir will work."""
+    QWebSettings.setIconDatabasePath('')
+    QWebSettings.setOfflineWebApplicationCachePath('')
+    QWebSettings.globalSettings().setLocalStoragePath('')
+
+
 MAPPINGS = {
     'content': {
         'allow-images':
