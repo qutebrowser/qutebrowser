@@ -1468,8 +1468,8 @@ class CommandDispatcher:
             self.on_editing_finished, elem))
         ed.edit(text)
 
-    @cmdutils.register(instance='command-dispatcher',
-                       modes=[KeyMode.insert], hide=True, scope='window')
+    @cmdutils.register(instance='command-dispatcher', hide=True,
+                       scope='window')
     def open_editor(self):
         """Open an external editor with the currently selected form field.
 
