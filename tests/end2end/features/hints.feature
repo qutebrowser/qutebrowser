@@ -172,7 +172,7 @@ Feature: Using hints
     ### hints -> auto-follow-timeout
 
     Scenario: Ignoring key presses after auto-following hints
-        When I set hints -> auto-follow-timeout to 200
+        When I set hints -> auto-follow-timeout to 500
         And I set hints -> mode to number
         And I run :bind --force , message-error "This should not happen"
         And I open data/hints/html/simple.html
