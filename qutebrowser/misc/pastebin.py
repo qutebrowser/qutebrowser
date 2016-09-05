@@ -84,7 +84,7 @@ class PastebinClient(QObject):
         Args:
             data: A string with the received data.
         """
-        if data.startswith('http://'):
+        if data.startswith('http://') or data.startswith('https://'):
             self.success.emit(data)
         else:
             self.error.emit("Invalid data received in reply!")
