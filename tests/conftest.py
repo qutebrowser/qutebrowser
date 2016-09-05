@@ -21,11 +21,9 @@
 
 """The qutebrowser test suite conftest file."""
 
-import re
 import os
 import sys
 import warnings
-import operator
 
 import pytest
 import hypothesis
@@ -36,10 +34,6 @@ from helpers import logfail
 from helpers.logfail import fail_on_logging
 from helpers.messagemock import message_mock
 from helpers.fixtures import *  # pylint: disable=wildcard-import
-
-from PyQt5.QtCore import PYQT_VERSION
-
-from qutebrowser.utils import qtutils
 
 
 # Set hypothesis settings
@@ -182,72 +176,3 @@ def pytest_sessionfinish(exitstatus):
     status_file = os.path.join(cache_dir, 'pytest_status')
     with open(status_file, 'w', encoding='ascii') as f:
         f.write(str(exitstatus))
-
-
-if not getattr(sys, 'frozen', False):
-    def _get_version_tag(tag):
-        """Handle tags like pyqt>=5.3.1 for BDD tests.
-
-        This transforms e.g. pyqt>=5.3.1 into an appropriate @pytest.mark.skip
-        marker, and falls back to pytest-bdd's implementation for all other
-        casesinto an appropriate @pytest.mark.skip marker, and falls back to
-        """
-        version_re = re.compile(r"""
-            (?P<package>qt|pyqt)
-            (?P<operator>==|>|>=|<|<=|!=)
-            (?P<version>\d+\.\d+\.\d+)
-        """, re.VERBOSE)
-
-        match = version_re.match(tag)
-        if not match:
-            return None
-
-        operators = {
-            '==': operator.eq,
-            '>': operator.gt,
-            '<': operator.lt,
-            '>=': operator.ge,
-            '<=': operator.le,
-            '!=': operator.ne,
-        }
-
-        package = match.group('package')
-        op = operators[match.group('operator')]
-        version = match.group('version')
-
-        if package == 'qt':
-            return pytest.mark.skipif(qtutils.version_check(version, op),
-                                      reason='Needs ' + tag)
-        elif package == 'pyqt':
-            major, minor, patch = [int(e) for e in version.split('.')]
-            hex_version = (major << 16) | (minor << 8) | patch
-            return pytest.mark.skipif(not op(PYQT_VERSION, hex_version),
-                                      reason='Needs ' + tag)
-        else:
-            raise ValueError("Invalid package {!r}".format(package))
-
-    def _get_backend_tag(tag):
-        """Handle a @qtwebengine_*/@qtwebkit_skip tag."""
-        pytest_marks = {
-            'qtwebengine_todo': pytest.mark.qtwebengine_todo,
-            'qtwebengine_skip': pytest.mark.qtwebengine_skip,
-            'qtwebkit_skip': pytest.mark.qtwebkit_skip
-        }
-        if not any(tag.startswith(t + ':') for t in pytest_marks):
-            return None
-        name, desc = tag.split(':', maxsplit=1)
-        return pytest_marks[name](desc)
-
-    def pytest_bdd_apply_tag(tag, function):
-        """Handle custom tags for BDD tests.
-
-        This tries various functions, and if none knows how to handle this tag,
-        it returns None so it falls back to pytest-bdd's implementation.
-        """
-        funcs = [_get_version_tag, _get_backend_tag]
-        for func in funcs:
-            mark = func(tag)
-            if mark is not None:
-                mark(function)
-                return True
-        return None
