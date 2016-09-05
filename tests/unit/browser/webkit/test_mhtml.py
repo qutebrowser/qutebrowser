@@ -23,7 +23,7 @@ import re
 
 import pytest
 
-from qutebrowser.browser.webkit import mhtml
+mhtml = pytest.importorskip('qutebrowser.browser.webkit.mhtml')
 
 
 @pytest.fixture(autouse=True)

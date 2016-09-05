@@ -26,7 +26,7 @@ import logging
 import pytest
 import yaml
 from PyQt5.QtCore import QUrl, QPoint, QByteArray, QObject
-from PyQt5.QtWebKitWidgets import QWebView
+QWebView = pytest.importorskip('PyQt5.QtWebKitWidgets').QWebView
 
 from qutebrowser.misc import sessions
 from qutebrowser.utils import objreg, qtutils

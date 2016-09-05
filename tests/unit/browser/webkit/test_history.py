@@ -26,10 +26,8 @@ import pytest
 import hypothesis
 from hypothesis import strategies
 from PyQt5.QtCore import QUrl
-from PyQt5.QtWebKit import QWebHistoryInterface
 
 from qutebrowser.browser import history
-from qutebrowser.browser.webkit import webkithistory
 from qutebrowser.utils import objreg
 
 
@@ -368,6 +366,11 @@ def test_entry_str(entry, expected):
 
 @pytest.fixture
 def hist_interface():
+    # pylint: disable=invalid-name
+    QtWebKit = pytest.importorskip('PyQt5.QtWebKit')
+    from qutebrowser.browser.webkit import webkithistory
+    QWebHistoryInterface = QtWebKit.QWebHistoryInterface
+    # pylint: enable=invalid-name
     entry = history.Entry(atime=0, url=QUrl('http://www.example.com/'),
                           title='example')
     history_dict = {'http://www.example.com/': entry}
@@ -389,17 +392,33 @@ def test_history_interface(qtbot, webview, hist_interface):
 @pytest.mark.parametrize('backend', ['webengine', 'webkit'])
 def test_init(backend, qapp, tmpdir, monkeypatch, fake_save_manager,
               fake_args):
+    if backend == 'webengine':
+        pytest.importorskip('PyQt5.QtWebEngineWidgets')
+    elif backend == 'webkit':
+        pytest.importorskip('PyQt5.QtWebKitWidgets')
+    else:
+        assert False
+
     fake_args.backend = backend
     monkeypatch.setattr(history.standarddir, 'data', lambda: str(tmpdir))
     history.init(qapp)
     hist = objreg.get('web-history')
     assert hist.parent() is qapp
-    default_interface = QWebHistoryInterface.defaultInterface()
+
+    try:
+        from PyQt5.QtWebKit import QWebHistoryInterface
+    except ImportError:
+        QWebHistoryInterface = None
 
     if backend == 'webkit':
+        default_interface = QWebHistoryInterface.defaultInterface()
         assert default_interface._history is hist
     else:
         assert backend == 'webengine'
+        if QWebHistoryInterface is None:
+            default_interface = None
+        else:
+            default_interface = QWebHistoryInterface.defaultInterface()
         # For this to work, nothing can ever have called setDefaultInterface
         # before (so we need to test webengine before webkit)
         assert default_interface is None

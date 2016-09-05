@@ -25,39 +25,48 @@ import logging
 
 import pytest
 import jinja2
-from PyQt5.QtWebKit import QWebSettings
-from PyQt5.QtWebKitWidgets import QWebPage
+
+try:
+    from PyQt5.QtWebKit import QWebSettings
+    from PyQt5.QtWebKitWidgets import QWebPage
+except ImportError:
+    # FIXME:qtwebengine Make these tests use the tab API
+    QWebSettings = None
+    QWebPage = None
 
 from qutebrowser.utils import utils
 
 
-class TestWebPage(QWebPage):
+if QWebPage is None:
+    TestWebPage = None
+else:
+    class TestWebPage(QWebPage):
 
-    """QWebPage subclass which overrides some test methods.
+        """QWebPage subclass which overrides some test methods.
 
-    Attributes:
-        _logger: The logger used for alerts.
-    """
+        Attributes:
+            _logger: The logger used for alerts.
+        """
 
-    def __init__(self, parent=None):
-        super().__init__(parent)
-        self._logger = logging.getLogger('js-tests')
+        def __init__(self, parent=None):
+            super().__init__(parent)
+            self._logger = logging.getLogger('js-tests')
 
-    def javaScriptAlert(self, _frame, msg):
-        """Log javascript alerts."""
-        self._logger.info("js alert: {}".format(msg))
+        def javaScriptAlert(self, _frame, msg):
+            """Log javascript alerts."""
+            self._logger.info("js alert: {}".format(msg))
 
-    def javaScriptConfirm(self, _frame, msg):
-        """Fail tests on js confirm() as that should never happen."""
-        pytest.fail("js confirm: {}".format(msg))
+        def javaScriptConfirm(self, _frame, msg):
+            """Fail tests on js confirm() as that should never happen."""
+            pytest.fail("js confirm: {}".format(msg))
 
-    def javaScriptPrompt(self, _frame, msg, _default):
-        """Fail tests on js prompt() as that should never happen."""
-        pytest.fail("js prompt: {}".format(msg))
+        def javaScriptPrompt(self, _frame, msg, _default):
+            """Fail tests on js prompt() as that should never happen."""
+            pytest.fail("js prompt: {}".format(msg))
 
-    def javaScriptConsoleMessage(self, msg, line, source):
-        """Fail tests on js console messages as they're used for errors."""
-        pytest.fail("js console ({}:{}): {}".format(source, line, msg))
+        def javaScriptConsoleMessage(self, msg, line, source):
+            """Fail tests on js console messages as they're used for errors."""
+            pytest.fail("js console ({}:{}): {}".format(source, line, msg))
 
 
 class JSTester:

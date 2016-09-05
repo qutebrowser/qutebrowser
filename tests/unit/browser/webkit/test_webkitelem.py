@@ -24,9 +24,9 @@ import collections.abc
 import operator
 import itertools
 
-from PyQt5.QtCore import QRect, QPoint, QUrl
-from PyQt5.QtWebKit import QWebElement
 import pytest
+from PyQt5.QtCore import QRect, QPoint, QUrl
+QWebElement = pytest.importorskip('PyQt5.QtWebKit').QWebElement
 
 from qutebrowser.browser import webelem
 from qutebrowser.browser.webkit import webkitelem

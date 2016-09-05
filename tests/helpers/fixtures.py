@@ -45,10 +45,6 @@ from PyQt5.QtCore import PYQT_VERSION, pyqtSignal, QEvent, QSize, Qt, QObject
 from PyQt5.QtGui import QKeyEvent
 from PyQt5.QtWidgets import QWidget, QHBoxLayout, QVBoxLayout
 from PyQt5.QtNetwork import QNetworkCookieJar
-try:
-    from PyQt5 import QtWebEngineWidgets
-except ImportError as e:
-    QtWebEngineWidgets = None
 
 
 class WinRegistryHelper:
@@ -335,17 +331,15 @@ def qnam(qapp):
 @pytest.fixture
 def webengineview():
     """Get a QWebEngineView if QtWebEngine is available."""
-    if QtWebEngineWidgets is None:
-        pytest.skip("QtWebEngine unavailable")
+    QtWebEngineWidgets = pytest.importorskip('PyQt5.QtWebEngineWidgets')
     return QtWebEngineWidgets.QWebEngineView()
 
 
 @pytest.fixture
 def webpage(qnam):
     """Get a new QWebPage object."""
-    from PyQt5.QtWebKitWidgets import QWebPage
-
-    page = QWebPage()
+    QtWebKitWidgets = pytest.importorskip('PyQt5.QtWebKitWidgets')
+    page = QtWebKitWidgets.QWebPage()
     page.networkAccessManager().deleteLater()
     page.setNetworkAccessManager(qnam)
     return page
@@ -354,9 +348,9 @@ def webpage(qnam):
 @pytest.fixture
 def webview(qtbot, webpage):
     """Get a new QWebView object."""
-    from PyQt5.QtWebKitWidgets import QWebView
+    QtWebKitWidgets = pytest.importorskip('PyQt5.QtWebKitWidgets')
 
-    view = QWebView()
+    view = QtWebKitWidgets.QWebView()
     qtbot.add_widget(view)
 
     view.page().deleteLater()
