@@ -67,3 +67,29 @@ Feature: Opening external editors
         And I wait for "Read back: foobar" in the log
         And I run :click-element id qute-button
         Then the javascript message "text: foobar" should be logged
+
+    Scenario: Spawning an editor in normal mode
+        When I set up a fake editor returning "foobar"
+        And I open data/editor.html
+        And I run :click-element id qute-textarea
+        And I wait for "Clicked editable element!" in the log
+        And I run :leave-mode
+        And I wait for "Leaving mode KeyMode.insert (reason: leave current)" in the log
+        And I run :open-editor
+        And I wait for "Read back: foobar" in the log
+        And I run :click-element id qute-button
+        Then the javascript message "text: foobar" should be logged
+
+    Scenario: Spawning an editor in caret mode
+        When I set up a fake editor returning "foobar"
+        And I open data/editor.html
+        And I run :click-element id qute-textarea
+        And I wait for "Clicked editable element!" in the log
+        And I run :leave-mode
+        And I wait for "Leaving mode KeyMode.insert (reason: leave current)" in the log
+        And I run :enter-mode caret
+        And I wait for "Entering mode KeyMode.caret (reason: command)" in the log
+        And I run :open-editor
+        And I wait for "Read back: foobar" in the log
+        And I run :click-element id qute-button
+        Then the javascript message "text: foobar" should be logged
