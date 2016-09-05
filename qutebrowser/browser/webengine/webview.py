@@ -68,8 +68,8 @@ class WebEngineView(QWebEngineView):
         background = False
         if wintype in [QWebEnginePage.WebBrowserWindow,
                        QWebEnginePage.WebDialog]:
-            log.webview.warning("{} requested, but we don't support that!".format(
-                debug_type))
+            log.webview.warning("{} requested, but we don't support "
+                                "that!".format(debug_type))
         elif wintype == QWebEnginePage.WebBrowserTab:
             pass
         elif (hasattr(QWebEnginePage, 'WebBrowserBackgroundTab') and
