@@ -137,8 +137,6 @@ def pytest_collection_modifyitems(config, items):
                          qtutils.version_check('5.7.1') or
                          os.environ.get('QUTE_QTBUG54419_PATCHED', ''))
 
-    # Note the order here is important! Markers we add later override earlier
-    # markers, so we should apply the most general markers last.
     markers = [
         ('qtwebengine_createWindow', 'Skipped because of QTBUG-54419',
          pytest.mark.skipif, not qtbug_54419_fixed and config.webengine),
@@ -153,7 +151,7 @@ def pytest_collection_modifyitems(config, items):
     for item in items:
         for name, prefix, pytest_mark, condition in markers:
             marker = item.get_marker(name)
-            if marker:
+            if marker and condition:
                 if marker.args:
                     text = '{}: {}'.format(prefix, marker.args[0])
                 else:
