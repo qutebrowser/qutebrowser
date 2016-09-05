@@ -182,8 +182,8 @@ class HostBlocker:
     def adblock_update(self, win_id):
         """Update the adblock block lists.
 
-        This updates ~/.local/share/qutebrowser/blocked-hosts with downloaded
-        host lists and re-reads ~/.config/qutebrowser/blocked-hosts.
+        This updates `~/.local/share/qutebrowser/blocked-hosts` with downloaded
+        host lists and re-reads `~/.config/qutebrowser/blocked-hosts`.
         """
         self._read_hosts_file(self._config_hosts_file,
                               self._config_blocked_hosts)

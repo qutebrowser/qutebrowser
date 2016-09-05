@@ -9,12 +9,14 @@ In qutebrowser, all keybindings are mapped to commands.
 Some commands are hidden, which means they don't show up in the command
 completion when pressing `:`, as they're typically not useful to run by hand.
 
-In the commandline, there are also some variables you can use:
+For command arguments, there are also some variables you can use:
 
 - `{url}` expands to the URL of the current page
 - `{url:pretty}` expands to the URL in decoded format
 - `{clipboard}` expands to the clipboard contents
 - `{primary}` expands to the primary selection contents
+
+It is possible to run or bind multiple commands by separating them with `;;`.
 
 == Normal commands
 .Quick reference
@@ -92,7 +94,7 @@ In the commandline, there are also some variables you can use:
 === adblock-update
 Update the adblock block lists.
 
-This updates ~/.local/share/qutebrowser/blocked-hosts with downloaded host lists and re-reads ~/.config/qutebrowser/blocked-hosts.
+This updates `~/.local/share/qutebrowser/blocked-hosts` with downloaded host lists and re-reads `~/.config/qutebrowser/blocked-hosts`.
 
 [[back]]
 === back
@@ -724,8 +726,6 @@ Syntax: +:set-cmd-text [*--space*] [*--append*] 'text'+
 
 Preset the statusbar to some text.
 
-You can use the `{url}` and `{url:pretty}` variables here which will get replaced by the encoded/decoded URL.
-
 ==== positional arguments
 * +'text'+: The commandline to set.
 
@@ -741,8 +741,6 @@ You can use the `{url}` and `{url:pretty}` variables here which will get replace
 Syntax: +:spawn [*--userscript*] [*--verbose*] [*--detach*] 'cmdline'+
 
 Spawn a command in a shell.
-
-Note the `{url}` and `{url:pretty}` variables might be useful here. `{url}` gets replaced by the URL in fully encoded format and `{url:pretty}` uses a "pretty form" with most percent-encoded characters decoded.
 
 ==== positional arguments
 * +'cmdline'+: The commandline to execute.
