@@ -50,7 +50,6 @@ Feature: Javascript stuff
         And I run :tab-only
         And I open data/javascript/window_open.html in a new tab
         And I run :click-element id open-normal
-        And I wait for "WebDialog requested, but we don't support that!" in the log
         And I wait for "Changing title for idx 2 to 'about:blank'" in the log
         And I run :tab-focus 2
         And I run :click-element id close-twice
