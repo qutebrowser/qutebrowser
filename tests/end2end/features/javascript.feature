@@ -55,3 +55,19 @@ Feature: Javascript stuff
         And I run :click-element id close-twice
         And I wait for "Focus object changed: *" in the log
         Then no crash should happen
+
+    @qtwebengine_createWindow
+    Scenario: Opening window without user interaction with javascript-can-open-windows-automatically set to true
+        When I open data/hello.txt
+        And I set content -> javascript-can-open-windows-automatically to true
+        And I run :tab-only
+        And I run :jseval if (window.open('about:blank')) { console.log('window opened'); } else { console.log('error while opening window'); }
+        Then the javascript message "window opened" should be logged
+
+    @qtwebengine_createWindow
+    Scenario: Opening window without user interaction with javascript-can-open-windows-automatically set to false
+        When I open data/hello.txt
+        And I set content -> javascript-can-open-windows-automatically to false
+        And I run :tab-only
+        And I run :jseval if (window.open('about:blank')) { console.log('window opened'); } else { console.log('error while opening window'); }
+        Then the javascript message "error while opening window" should be logged
