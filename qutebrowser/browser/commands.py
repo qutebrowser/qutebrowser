@@ -692,9 +692,16 @@ class CommandDispatcher:
             flags = QUrl.RemovePassword
             if what != 'pretty-url':
                 flags |= QUrl.FullyEncoded
-            s = self._current_url().toString(flags)
+            url_query = QUrlQuery(self._current_url())
+            for key in dict(url_query.queryItems()):
+                if key in config.get('general', 'yank-ignored-url-parameters'):
+                    url_query.removeQueryItem(key)
+            qurl_url = self._current_url()
+            qurl_url.setQuery(url_query)
+            s = qurl_url.toString(flags)
             what = 'URL'  # For printing
         elif what == 'selection':
+            print('selection')
             caret = self._current_widget().caret
             s = caret.selection()
             if not caret.has_selection() or not s:
@@ -709,11 +716,6 @@ class CommandDispatcher:
             sel = False
             target = "clipboard"
 
-        url_query = QUrlQuery(s.replace("?", "&"))
-        for key in dict(url_query.queryItems()):
-            if key in config.get('general', 'yank-ignored-url-parameters'):
-                url_query.removeQueryItem(key)
-        s = url_query.toString().replace("&", "?", 1)
         utils.set_clipboard(s, selection=sel)
         if what != 'selection':
             message.info(self._win_id, "Yanked {} to {}: {}".format(
