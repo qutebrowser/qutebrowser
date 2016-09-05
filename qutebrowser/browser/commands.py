@@ -28,7 +28,10 @@ from PyQt5.QtWidgets import QApplication, QTabBar
 from PyQt5.QtCore import Qt, QUrl, QEvent
 from PyQt5.QtGui import QKeyEvent
 from PyQt5.QtPrintSupport import QPrintDialog, QPrintPreviewDialog
-from PyQt5.QtWebKitWidgets import QWebPage
+try:
+    from PyQt5.QtWebKitWidgets import QWebPage
+except ImportError:
+    QWebPage = None
 try:
     from PyQt5.QtWebEngineWidgets import QWebEnginePage
 except ImportError:
