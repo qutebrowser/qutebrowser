@@ -5,6 +5,7 @@ if [[ $DOCKER ]]; then
 else
     args=()
     [[ $TESTENV == docs ]] && args=('--no-authors')
+    [[ $TRAVIS_OS_NAME == osx ]] && args=('--qute-bdd-webengine')
 
     tox -e $TESTENV -- "${args[@]}"
 fi
