@@ -145,7 +145,9 @@ def pytest_collection_modifyitems(config, items):
         'qtwebkit_skip': ('Skipped with QtWebKit', pytest.mark.skipif,
                           not config.webengine),
         'qtwebengine_createWindow': ('Skipped because of QTBUG-54419',
-                                     pytest.mark.skipif, not qtbug_54419_fixed)
+                                     pytest.mark.skipif,
+                                     not qtbug_54419_fixed and
+                                     config.webengine)
     }
 
     for item in items:
