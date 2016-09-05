@@ -39,19 +39,22 @@ def pytest_collection_modifyitems(config, items):
     webengine = config.getoption('--qute-bdd-webengine')
 
     markers = {
-        'qtwebengine_todo': ('QtWebEngine TODO', pytest.mark.xfail),
-        'qtwebengine_skip': ('Skipped with QtWebEngine', pytest.mark.skipif),
+        'qtwebengine_todo': ('QtWebEngine TODO', pytest.mark.xfail, webengine),
+        'qtwebengine_skip': ('Skipped with QtWebEngine', pytest.mark.skipif,
+                             webengine),
+        'qtwebkit_skip': ('Skipped with QtWebKit', pytest.mark.skipif,
+                          not webengine),
     }
 
     for item in items:
-        for name, (prefix, pytest_mark) in markers.items():
+        for name, (prefix, pytest_mark, condition) in markers.items():
             marker = item.get_marker(name)
             if marker:
                 if marker.args:
                     text = '{}: {}'.format(prefix, marker.args[0])
                 else:
                     text = prefix
-                item.add_marker(pytest_mark(webengine, reason=text,
+                item.add_marker(pytest_mark(condition, reason=text,
                                             **marker.kwargs))
 
 

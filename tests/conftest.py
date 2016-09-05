@@ -226,11 +226,12 @@ if not getattr(sys, 'frozen', False):
         else:
             raise ValueError("Invalid package {!r}".format(package))
 
-    def _get_qtwebengine_tag(tag):
-        """Handle a @qtwebengine_* tag."""
+    def _get_backend_tag(tag):
+        """Handle a @qtwebengine_*/@qtwebkit_skip tag."""
         pytest_marks = {
             'qtwebengine_todo': pytest.mark.qtwebengine_todo,
             'qtwebengine_skip': pytest.mark.qtwebengine_skip,
+            'qtwebkit_skip': pytest.mark.qtwebkit_skip
         }
         if not any(tag.startswith(t + ':') for t in pytest_marks):
             return None
@@ -243,7 +244,7 @@ if not getattr(sys, 'frozen', False):
         This tries various functions, and if none knows how to handle this tag,
         it returns None so it falls back to pytest-bdd's implementation.
         """
-        funcs = [_get_version_tag, _get_qtwebengine_tag]
+        funcs = [_get_version_tag, _get_backend_tag]
         for func in funcs:
             mark = func(tag)
             if mark is not None:
