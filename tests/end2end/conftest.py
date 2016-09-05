@@ -136,21 +136,23 @@ def pytest_collection_modifyitems(config, items):
                          qtutils.version_check('5.7.1') or
                          os.environ.get('QUTE_QTBUG54419_PATCHED', ''))
 
-    markers = {
-        'qtwebengine_todo': ('QtWebEngine TODO', pytest.mark.xfail,
-                             config.webengine),
-        'qtwebengine_skip': ('Skipped with QtWebEngine', pytest.mark.skipif,
-                             config.webengine),
-        'qtwebkit_skip': ('Skipped with QtWebKit', pytest.mark.skipif,
-                          not config.webengine),
-        'qtwebengine_createWindow': ('Skipped because of QTBUG-54419',
-                                     pytest.mark.skipif,
-                                     not qtbug_54419_fixed and
-                                     config.webengine)
-    }
+    # Note the order here is important! Markers we add later override earlier
+    # markers, so we should apply the most general markers last.
+    markers = [
+        ('qtwebengine_createWindow', 'Skipped because of QTBUG-54419',
+                                      pytest.mark.skipif,
+                                      not qtbug_54419_fixed and
+                                      config.webengine),
+        ('qtwebengine_todo', 'QtWebEngine TODO', pytest.mark.xfail,
+                              config.webengine),
+        ('qtwebengine_skip', 'Skipped with QtWebEngine', pytest.mark.skipif,
+                              config.webengine),
+        ('qtwebkit_skip', 'Skipped with QtWebKit', pytest.mark.skipif,
+                           not config.webengine),
+    ]
 
     for item in items:
-        for name, (prefix, pytest_mark, condition) in markers.items():
+        for name, prefix, pytest_mark, condition in markers:
             marker = item.get_marker(name)
             if marker:
                 if marker.args:
