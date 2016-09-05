@@ -504,6 +504,11 @@ class WebEngineTab(browsertab.AbstractTab):
         if title == title_url.toDisplayString(QUrl.RemoveScheme).strip('/'):
             title = ""
 
+        # Don't add history entry if the URL is invalid anyways
+        if not url.isValid():
+            log.misc.debug("Ignoring invalid URL being added to history")
+            return
+
         self.add_history_item.emit(url, requested_url, title)
 
     def _connect_signals(self):

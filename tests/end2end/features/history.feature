@@ -48,6 +48,11 @@ Feature: Page history
         Then the history file should contain:
             http://localhost:(port)/status/404 Error loading page: http://localhost:(port)/status/404
 
+    Scenario: History with invalid URL
+        When I open data/javascript/window_open.html
+        And I run :click-element id open-invalid
+        Then "Changing title for idx 1 to 'about:blank'" should be logged
+
     Scenario: Clearing history
         When I open data/title.html
         And I run :history-clear
