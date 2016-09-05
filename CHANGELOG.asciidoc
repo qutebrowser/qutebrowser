@@ -103,6 +103,7 @@ Changed
   anymore.
 - The `completion -> show` setting can now be set to `always`, `auto` or
   `never`.
+- `:open-editor` can now be used in any mode.
 - Lots of improvements to and bugfixes for the QtWebEngine backend, such as
   working hints. However, using qutebrowser directly from git is still advised
   when using `--backend webengine`.
