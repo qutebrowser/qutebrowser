@@ -620,6 +620,7 @@ Feature: Various utility commands.
             - data/click_element.html
             - data/hello.txt (active)
 
+    @qtwebengine_skip: Flaky because scrolling happens async
     Scenario: Clicking an element which is out of view
         When I open data/scroll/simple.html
         And I run :scroll-page 0 1
