@@ -408,7 +408,7 @@ def compare_session(request, quteproc, expected):
     partial_compare is used, which means only the keys/values listed will be
     compared.
     """
-    if request.config.getoption('--qute-bdd-webengine'):
+    if request.config.webengine:
         pytest.xfail(reason="QtWebEngine TODO: Sessions are not implemented")
     quteproc.compare_session(expected)
 
@@ -473,7 +473,7 @@ def check_open_tabs(quteproc, request, tabs):
 
     It expects a list of URLs, with an optional "(active)" suffix.
     """
-    if request.config.getoption('--qute-bdd-webengine'):
+    if request.config.webengine:
         pytest.xfail(reason="QtWebEngine TODO: Sessions are not implemented")
     session = quteproc.get_session()
     active_suffix = ' (active)'
@@ -530,7 +530,7 @@ def _get_scroll_values(quteproc):
 @bdd.then(bdd.parsers.re(r"the page should be scrolled "
                          r"(?P<direction>horizontally|vertically)"))
 def check_scrolled(request, quteproc, direction):
-    if request.config.getoption('--qute-bdd-webengine'):
+    if request.config.webengine:
         pytest.xfail(reason="QtWebEngine TODO: Sessions are not implemented")
     x, y = _get_scroll_values(quteproc)
     if direction == 'horizontally':
@@ -543,7 +543,7 @@ def check_scrolled(request, quteproc, direction):
 
 @bdd.then("the page should not be scrolled")
 def check_not_scrolled(request, quteproc):
-    if request.config.getoption('--qute-bdd-webengine'):
+    if request.config.webengine:
         pytest.xfail(reason="QtWebEngine TODO: Sessions are not implemented")
     x, y = _get_scroll_values(quteproc)
     assert x == 0

@@ -138,6 +138,12 @@ def pytest_addoption(parser):
                      help='Use QtWebEngine for BDD tests')
 
 
+def pytest_configure(config):
+    webengine_arg = config.getoption('--qute-bdd-webengine')
+    webengine_env = os.environ.get('QUTE_BDD_WEBENGINE', '')
+    config.webengine = bool(webengine_arg or webengine_env)
+
+
 @pytest.fixture(scope='session', autouse=True)
 def check_display(request):
     if (not request.config.getoption('--no-xvfb') and
