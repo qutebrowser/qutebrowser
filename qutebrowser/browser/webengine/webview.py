@@ -19,6 +19,7 @@
 
 """The main browser widget for QtWebEngine."""
 
+import os
 
 from PyQt5.QtCore import pyqtSignal, QUrl
 # pylint: disable=no-name-in-module,import-error,useless-suppression
@@ -26,7 +27,7 @@ from PyQt5.QtWebEngineWidgets import QWebEngineView, QWebEnginePage
 # pylint: enable=no-name-in-module,import-error,useless-suppression
 
 from qutebrowser.config import config
-from qutebrowser.utils import log, debug, usertypes, objreg
+from qutebrowser.utils import log, debug, usertypes, objreg, qtutils, message
 
 
 class WebEngineView(QWebEngineView):
@@ -63,6 +64,16 @@ class WebEngineView(QWebEngineView):
         Return:
             The new QWebEngineView object.
         """
+        # WORKAROUND for https://bugreports.qt.io/browse/QTBUG-54419
+        vercheck = qtutils.version_check
+        qtbug_54419_fixed = ((vercheck('5.6.2') and not vercheck('5.7.0')) or
+                              qtutils.version_check('5.7.1') or
+                              os.environ.get('QUTE_QTBUG54419_PATCHED', ''))
+        if not qtbug_54419_fixed:
+            message.error(self._win_id, "Qt 5.6.2/5.7.1 or newer is required "
+                          "to open new tabs via JS!")
+            return None
+
         debug_type = debug.qenum_key(QWebEnginePage, wintype)
         log.webview.debug("createWindow with type {}".format(debug_type))
         background = False

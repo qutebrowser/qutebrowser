@@ -20,6 +20,7 @@ Feature: Javascript stuff
         Then "Requested to close * which does not exist!" should be logged
 
     @qtwebkit_skip
+    @qtwebengine_createWindow
     Scenario: Closing a JS window twice (issue 906) - qtwebengine
         When I open about:blank
         And I open data/javascript/issue906.html in a new tab
