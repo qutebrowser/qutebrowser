@@ -692,16 +692,15 @@ class CommandDispatcher:
             flags = QUrl.RemovePassword
             if what != 'pretty-url':
                 flags |= QUrl.FullyEncoded
-            current_url = self._current_url()
-            url_query = QUrlQuery(current_url)
+            url = QUrl(self._current_url())
+            url_query = QUrlQuery(url)
             for key in dict(url_query.queryItems()):
                 if key in config.get('general', 'yank-ignored-url-parameters'):
                     url_query.removeQueryItem(key)
-            current_url.setQuery(url_query)
-            s = current_url.toString(flags)
+            url.setQuery(url_query)
+            s = url.toString(flags)
             what = 'URL'  # For printing
         elif what == 'selection':
-            print('selection')
             caret = self._current_widget().caret
             s = caret.selection()
             if not caret.has_selection() or not s:
