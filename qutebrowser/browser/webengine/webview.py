@@ -67,8 +67,8 @@ class WebEngineView(QWebEngineView):
         # WORKAROUND for https://bugreports.qt.io/browse/QTBUG-54419
         vercheck = qtutils.version_check
         qtbug_54419_fixed = ((vercheck('5.6.2') and not vercheck('5.7.0')) or
-                              qtutils.version_check('5.7.1') or
-                              os.environ.get('QUTE_QTBUG54419_PATCHED', ''))
+                             qtutils.version_check('5.7.1') or
+                             os.environ.get('QUTE_QTBUG54419_PATCHED', ''))
         if not qtbug_54419_fixed:
             message.error(self._win_id, "Qt 5.6.2/5.7.1 or newer is required "
                           "to open new tabs via JS!")

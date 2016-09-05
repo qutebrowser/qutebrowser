@@ -100,6 +100,7 @@ def _get_version_tag(tag):
     else:
         raise ValueError("Invalid package {!r}".format(package))
 
+
 def _get_backend_tag(tag):
     """Handle a @qtwebengine_*/@qtwebkit_skip tag."""
     pytest_marks = {
@@ -140,15 +141,13 @@ def pytest_collection_modifyitems(config, items):
     # markers, so we should apply the most general markers last.
     markers = [
         ('qtwebengine_createWindow', 'Skipped because of QTBUG-54419',
-                                      pytest.mark.skipif,
-                                      not qtbug_54419_fixed and
-                                      config.webengine),
+         pytest.mark.skipif, not qtbug_54419_fixed and config.webengine),
         ('qtwebengine_todo', 'QtWebEngine TODO', pytest.mark.xfail,
-                              config.webengine),
+         config.webengine),
         ('qtwebengine_skip', 'Skipped with QtWebEngine', pytest.mark.skipif,
-                              config.webengine),
+         config.webengine),
         ('qtwebkit_skip', 'Skipped with QtWebKit', pytest.mark.skipif,
-                           not config.webengine),
+         not config.webengine),
     ]
 
     for item in items:
