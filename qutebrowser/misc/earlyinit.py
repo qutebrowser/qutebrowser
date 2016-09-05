@@ -246,7 +246,6 @@ def check_ssl_support():
 def check_libraries(args):
     """Check if all needed Python libraries are installed."""
     modules = {
-        'PyQt5.QtWebKit': _missing_str("PyQt5.QtWebKit"),
         'pkg_resources':
             _missing_str("pkg_resources/setuptools",
                          windows="Run   python -m ensurepip."),
@@ -273,6 +272,9 @@ def check_libraries(args):
     if args.backend == 'webengine':
         modules['PyQt5.QtWebEngineWidgets'] = _missing_str("QtWebEngine",
                                                            webengine=True)
+    else:
+        modules['PyQt5.QtWebKit'] = _missing_str("PyQt5.QtWebKit")
+
     for name, text in modules.items():
         try:
             importlib.import_module(name)
