@@ -9,6 +9,7 @@ Feature: Using hints
         And I hint with args "links normal" and follow xyz
         Then the error "No hint xyz!" should be shown
 
+    @qtwebengine_skip: Flaky because scrolling happens async
     Scenario: Following a link after scrolling down
         When I open data/scroll/simple.html
         And I run :hint links normal
@@ -19,7 +20,7 @@ Feature: Using hints
 
     ### Opening in current or new tab
 
-    @qtwebengine_todo: createWindow is not implemented yet
+    @qtwebengine_createWindow
     Scenario: Following a hint and force to open in current tab.
         When I open data/hints/link_blank.html
         And I hint with args "links current" and follow a
@@ -27,7 +28,7 @@ Feature: Using hints
         Then the following tabs should be open:
             - data/hello.txt (active)
 
-    @qtwebengine_todo: createWindow is not implemented yet
+    @qtwebengine_createWindow
     Scenario: Following a hint and allow to open in new tab.
         When I open data/hints/link_blank.html
         And I hint with args "links normal" and follow a
@@ -36,7 +37,7 @@ Feature: Using hints
             - data/hints/link_blank.html
             - data/hello.txt (active)
 
-    @qtwebengine_todo: createWindow is not implemented yet
+    @qtwebengine_createWindow
     Scenario: Following a hint to link with sub-element and force to open in current tab.
         When I open data/hints/link_span.html
         And I run :tab-close
@@ -154,13 +155,13 @@ Feature: Using hints
         And I hint wht args "links normal" and follow a
         Then "navigation request: url http://localhost:*/data/hello2.txt, type NavigationTypeLinkClicked, *" should be logged
 
-    @qtwebengine_todo: createWindow is not implemented yet
+    @qtwebengine_createWindow
     Scenario: Opening a link inside a specific iframe
         When I open data/hints/iframe_target.html
         And I hint with args "links normal" and follow a
         Then "navigation request: url http://localhost:*/data/hello.txt, type NavigationTypeLinkClicked, *" should be logged
 
-    @qtwebengine_todo: createWindow is not implemented yet
+    @qtwebengine_createWindow
     Scenario: Opening a link with specific target frame in a new tab
         When I open data/hints/iframe_target.html
         And I hint with args "links tab" and follow a
@@ -172,7 +173,7 @@ Feature: Using hints
     ### hints -> auto-follow-timeout
 
     Scenario: Ignoring key presses after auto-following hints
-        When I set hints -> auto-follow-timeout to 200
+        When I set hints -> auto-follow-timeout to 500
         And I set hints -> mode to number
         And I run :bind --force , message-error "This should not happen"
         And I open data/hints/html/simple.html

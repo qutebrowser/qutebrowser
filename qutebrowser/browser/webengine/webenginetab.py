@@ -381,7 +381,7 @@ class WebEngineTab(browsertab.AbstractTab):
 
     def __init__(self, win_id, mode_manager, parent=None):
         super().__init__(win_id)
-        widget = webview.WebEngineView(tabdata=self.data)
+        widget = webview.WebEngineView(tabdata=self.data, win_id=win_id)
         self.history = WebEngineHistory(self)
         self.scroller = WebEngineScroller(self, parent=self)
         self.caret = WebEngineCaret(win_id=win_id, mode_manager=mode_manager,
@@ -406,9 +406,9 @@ class WebEngineTab(browsertab.AbstractTab):
         ])
         script = QWebEngineScript()
         script.setInjectionPoint(QWebEngineScript.DocumentCreation)
-        page = self._widget.page()
         script.setSourceCode(js_code)
 
+        page = self._widget.page()
         try:
             page.runJavaScript("", QWebEngineScript.ApplicationWorld)
         except TypeError:
@@ -503,6 +503,11 @@ class WebEngineTab(browsertab.AbstractTab):
         title_url.setScheme('')
         if title == title_url.toDisplayString(QUrl.RemoveScheme).strip('/'):
             title = ""
+
+        # Don't add history entry if the URL is invalid anyways
+        if not url.isValid():
+            log.misc.debug("Ignoring invalid URL being added to history")
+            return
 
         self.add_history_item.emit(url, requested_url, title)
 

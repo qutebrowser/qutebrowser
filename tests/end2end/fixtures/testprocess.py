@@ -234,7 +234,7 @@ class Process(QObject):
             if not self.is_running():
                 # _start ensures it actually started, but it might quit shortly
                 # afterwards
-                raise ProcessExited()
+                raise ProcessExited('\n' + _render_log(self.captured_log))
 
             if blocker.signal_triggered:
                 self._after_start()

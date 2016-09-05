@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+<script type="text/javascript">
+    var my_window;
+
+    function open_modal() {
+        if (window.showModalDialog) {
+            window.showModalDialog();
+        } else {
+            window.open('about:blank', 'window', 'modal');
+        }
+    }
+
+    function open_normal() {
+        my_window = window.open('about:blank', 'my_window');
+    }
+
+    function open_invalid() {
+        window.open('', 'my_window');
+    }
+
+    function close() {
+        my_window.close();
+    }
+
+    function close_twice() {
+        my_window.close();
+        my_window.close();
+    }
+</script>
+</head>
+
+<body>
+
+<button onclick="open_normal()" id="open-normal">normal</button>
+<button onclick="open_modal()" id="open-modal">modal</button>
+<button onclick="open_invalid()" id="open-invalid">invalid/no URL</button>
+<button onclick="close()" id="close-normal">close</button>
+<button onclick="close_twice()" id="close-twice">close twice (issue 906)</button>
+
+</body>
+</html>

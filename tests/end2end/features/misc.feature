@@ -551,7 +551,7 @@ Feature: Various utility commands.
         Then the page should not be scrolled
         And the error "prompt-accept: This command is only allowed in prompt/yesno mode." should be shown
 
-    @qtwebengine_todo: createWindow is not implemented yet
+    @qtwebengine_createWindow
     Scenario: :repeat-command with mode-switching command
         Given I open data/hints/link_blank.html
         And I run :tab-only
@@ -620,6 +620,7 @@ Feature: Various utility commands.
             - data/click_element.html
             - data/hello.txt (active)
 
+    @qtwebengine_skip: Flaky because scrolling happens async
     Scenario: Clicking an element which is out of view
         When I open data/scroll/simple.html
         And I run :scroll-page 0 1

@@ -118,7 +118,7 @@ MAPPINGS = {
             Attribute(QWebSettings.AutoLoadImages),
         'allow-javascript':
             Attribute(QWebSettings.JavascriptEnabled),
-        'javascript-can-open-windows':
+        'javascript-can-open-windows-automatically':
             Attribute(QWebSettings.JavascriptCanOpenWindows),
         'javascript-can-close-windows':
             Attribute(QWebSettings.JavascriptCanCloseWindows),

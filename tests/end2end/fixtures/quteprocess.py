@@ -157,7 +157,6 @@ class QuteProc(testprocess.Process):
 
     def __init__(self, request, *, parent=None):
         super().__init__(parent)
-        self._webengine = request.config.getoption('--qute-bdd-webengine')
         self._ipc_socket = None
         self.basedir = None
         self._focus_ready = False
@@ -261,7 +260,7 @@ class QuteProc(testprocess.Process):
         return executable, args
 
     def _default_args(self):
-        backend = 'webengine' if self._webengine else 'webkit'
+        backend = 'webengine' if self.request.config.webengine else 'webkit'
         return ['--debug', '--no-err-windows', '--temp-basedir',
                 '--json-logging', '--backend', backend, 'about:blank']
 
@@ -338,7 +337,7 @@ class QuteProc(testprocess.Process):
             ('general', 'auto-save-interval', '0'),
             ('general', 'new-instance-open-target.window', 'last-opened')
         ]
-        if not self._webengine:
+        if not self.request.config.webengine:
             settings.append(('network', 'ssl-strict', 'false'))
 
         for sect, opt, value in settings:

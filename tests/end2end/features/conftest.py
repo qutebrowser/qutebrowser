@@ -34,27 +34,6 @@ from qutebrowser.utils import log
 from helpers import utils
 
 
-def pytest_collection_modifyitems(config, items):
-    """Apply @qtwebengine_* markers."""
-    webengine = config.getoption('--qute-bdd-webengine')
-
-    markers = {
-        'qtwebengine_todo': ('QtWebEngine TODO', pytest.mark.xfail),
-        'qtwebengine_skip': ('Skipped with QtWebEngine', pytest.mark.skipif),
-    }
-
-    for item in items:
-        for name, (prefix, pytest_mark) in markers.items():
-            marker = item.get_marker(name)
-            if marker:
-                if marker.args:
-                    text = '{}: {}'.format(prefix, marker.args[0])
-                else:
-                    text = prefix
-                item.add_marker(pytest_mark(webengine, reason=text,
-                                            **marker.kwargs))
-
-
 @pytest.hookimpl(hookwrapper=True)
 def pytest_runtest_makereport(item, call):
     """Add a BDD section to the test output."""
@@ -429,7 +408,7 @@ def compare_session(request, quteproc, expected):
     partial_compare is used, which means only the keys/values listed will be
     compared.
     """
-    if request.config.getoption('--qute-bdd-webengine'):
+    if request.config.webengine:
         pytest.xfail(reason="QtWebEngine TODO: Sessions are not implemented")
     quteproc.compare_session(expected)
 
@@ -494,7 +473,7 @@ def check_open_tabs(quteproc, request, tabs):
 
     It expects a list of URLs, with an optional "(active)" suffix.
     """
-    if request.config.getoption('--qute-bdd-webengine'):
+    if request.config.webengine:
         pytest.xfail(reason="QtWebEngine TODO: Sessions are not implemented")
     session = quteproc.get_session()
     active_suffix = ' (active)'
@@ -551,7 +530,7 @@ def _get_scroll_values(quteproc):
 @bdd.then(bdd.parsers.re(r"the page should be scrolled "
                          r"(?P<direction>horizontally|vertically)"))
 def check_scrolled(request, quteproc, direction):
-    if request.config.getoption('--qute-bdd-webengine'):
+    if request.config.webengine:
         pytest.xfail(reason="QtWebEngine TODO: Sessions are not implemented")
     x, y = _get_scroll_values(quteproc)
     if direction == 'horizontally':
@@ -564,7 +543,7 @@ def check_scrolled(request, quteproc, direction):
 
 @bdd.then("the page should not be scrolled")
 def check_not_scrolled(request, quteproc):
-    if request.config.getoption('--qute-bdd-webengine'):
+    if request.config.webengine:
         pytest.xfail(reason="QtWebEngine TODO: Sessions are not implemented")
     x, y = _get_scroll_values(quteproc)
     assert x == 0

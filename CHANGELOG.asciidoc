@@ -107,6 +107,8 @@ Changed
 - Lots of improvements to and bugfixes for the QtWebEngine backend, such as
   working hints. However, using qutebrowser directly from git is still advised
   when using `--backend webengine`.
+- `content -> javascript-can-open-windows` got renamed to
+  `javascript-can-open-windows-automatically`.
 
 Deprecated
 ~~~~~~~~~~

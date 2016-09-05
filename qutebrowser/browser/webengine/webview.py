@@ -19,6 +19,7 @@
 
 """The main browser widget for QtWebEngine."""
 
+import os
 
 from PyQt5.QtCore import pyqtSignal, QUrl
 # pylint: disable=no-name-in-module,import-error,useless-suppression
@@ -26,16 +27,72 @@ from PyQt5.QtWebEngineWidgets import QWebEngineView, QWebEnginePage
 # pylint: enable=no-name-in-module,import-error,useless-suppression
 
 from qutebrowser.config import config
-from qutebrowser.utils import log, debug, usertypes
+from qutebrowser.utils import log, debug, usertypes, objreg, qtutils, message
 
 
 class WebEngineView(QWebEngineView):
 
     """Custom QWebEngineView subclass with qutebrowser-specific features."""
 
-    def __init__(self, tabdata, parent=None):
+    def __init__(self, tabdata, win_id, parent=None):
         super().__init__(parent)
+        self._win_id = win_id
         self.setPage(WebEnginePage(tabdata, parent=self))
+
+    def createWindow(self, wintype):
+        """Called by Qt when a page wants to create a new window.
+
+        This function is called from the createWindow() method of the
+        associated QWebEnginePage, each time the page wants to create a new
+        window of the given type. This might be the result, for example, of a
+        JavaScript request to open a document in a new window.
+
+        Args:
+            wintype: This enum describes the types of window that can be
+                     created by the createWindow() function.
+
+                     QWebEnginePage::WebBrowserWindow:
+                         A complete web browser window.
+                     QWebEnginePage::WebBrowserTab:
+                         A web browser tab.
+                     QWebEnginePage::WebDialog:
+                         A window without decoration.
+                     QWebEnginePage::WebBrowserBackgroundTab:
+                         A web browser tab without hiding the current visible
+                         WebEngineView. (Added in Qt 5.7)
+
+        Return:
+            The new QWebEngineView object.
+        """
+        # WORKAROUND for https://bugreports.qt.io/browse/QTBUG-54419
+        vercheck = qtutils.version_check
+        qtbug_54419_fixed = ((vercheck('5.6.2') and not vercheck('5.7.0')) or
+                             qtutils.version_check('5.7.1') or
+                             os.environ.get('QUTE_QTBUG54419_PATCHED', ''))
+        if not qtbug_54419_fixed:
+            message.error(self._win_id, "Qt 5.6.2/5.7.1 or newer is required "
+                          "to open new tabs via JS!")
+            return None
+
+        debug_type = debug.qenum_key(QWebEnginePage, wintype)
+        log.webview.debug("createWindow with type {}".format(debug_type))
+        background = False
+        if wintype in [QWebEnginePage.WebBrowserWindow,
+                       QWebEnginePage.WebDialog]:
+            log.webview.warning("{} requested, but we don't support "
+                                "that!".format(debug_type))
+        elif wintype == QWebEnginePage.WebBrowserTab:
+            pass
+        elif (hasattr(QWebEnginePage, 'WebBrowserBackgroundTab') and
+              wintype == QWebEnginePage.WebBrowserBackgroundTab):
+            background = True
+        else:
+            raise ValueError("Invalid wintype {}".format(debug_type))
+
+        tabbed_browser = objreg.get('tabbed-browser', scope='window',
+                                    window=self._win_id)
+        # pylint: disable=protected-access
+        return tabbed_browser.tabopen(background=background)._widget
 
 
 class WebEnginePage(QWebEnginePage):
@@ -73,11 +130,6 @@ class WebEnginePage(QWebEnginePage):
         logstring = "[{}:{}] {}".format(source, line, msg)
         logger = level_to_logger[level]
         logger(logstring)
-
-    def createWindow(self, _typ):
-        """Handle new windows via JS."""
-        log.stub()
-        return None
 
     def acceptNavigationRequest(self,
                                 url: QUrl,

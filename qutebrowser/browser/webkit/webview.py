@@ -29,7 +29,7 @@ from PyQt5.QtWebKitWidgets import QWebView, QWebPage, QWebFrame
 
 from qutebrowser.config import config
 from qutebrowser.keyinput import modeman
-from qutebrowser.utils import log, usertypes, utils, qtutils, objreg
+from qutebrowser.utils import log, usertypes, utils, qtutils, objreg, debug
 from qutebrowser.browser.webkit import webpage, webkitelem
 
 
@@ -218,6 +218,8 @@ class WebView(QWebView):
         Return:
             The new QWebView object.
         """
+        debug_type = debug.qenum_key(QWebPage, wintype)
+        log.webview.debug("createWindow with type {}".format(debug_type))
         if wintype == QWebPage.WebModalDialog:
             log.webview.warning("WebModalDialog requested, but we don't "
                                 "support that!")
