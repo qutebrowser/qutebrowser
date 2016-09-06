@@ -27,7 +27,7 @@ from PyQt5.QtWebEngineWidgets import QWebEngineView, QWebEnginePage
 # pylint: enable=no-name-in-module,import-error,useless-suppression
 
 from qutebrowser.config import config
-from qutebrowser.utils import log, debug, usertypes, objreg, qtutils, message
+from qutebrowser.utils import log, debug, usertypes, objreg, qtutils
 
 
 class WebEngineView(QWebEngineView):
@@ -73,8 +73,7 @@ class WebEngineView(QWebEngineView):
                              qtutils.version_check('5.7.1') or
                              os.environ.get('QUTE_QTBUG54419_PATCHED', ''))
         if not qtbug_54419_fixed:
-            message.error(self._win_id, "Qt 5.6.2/5.7.1 or newer is required "
-                          "to open new tabs via JS!")
+            log.webview.debug("Ignoring createWindow because of QTBUG-54419")
             return None
 
         background = False
