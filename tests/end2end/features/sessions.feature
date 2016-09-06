@@ -158,11 +158,10 @@ Feature: Saving and loading sessions
     And I open data/title.html
     And I open data/numbers/2.txt in a new tab
     And I open data/numbers/3.txt in a new window
-    # Full output apart from "geometry:"
+    # Full output apart from "geometry:" and the active window (needs qutewm)
     Then the session should look like:
       windows:
-      - active: true
-        tabs:
+      - tabs:
         - history:
           - title: about:blank
             url: about:blank
