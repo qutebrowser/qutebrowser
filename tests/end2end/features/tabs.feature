@@ -750,6 +750,7 @@ Feature: Tab management
         And I run :tab-close with count 1
         And I open data/numbers/3.txt in a new tab
         And I run :undo
+        And I wait until data/numbers/1.txt is loaded
         Then the following tabs should be open:
             - data/numbers/1.txt (active)
             - data/numbers/2.txt
