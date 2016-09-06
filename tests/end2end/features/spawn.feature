@@ -40,3 +40,11 @@ Feature: :spawn
         Then the following tabs should be open:
             - about:blank
             - about:blank (active)
+    @windows
+    Scenario: Running :spawn with userscript on Windows
+        When I open about:blank
+        And I run :spawn -u (testdata)/userscripts/open_current_url.bat
+        And I wait until about:blank is loaded
+        Then the following tabs should be open:
+            - about:blank
+            - about:blank (active)
