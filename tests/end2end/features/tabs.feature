@@ -647,6 +647,8 @@ Feature: Tab management
                 - url: http://localhost:*/data/numbers/2.txt
                 - url: http://localhost:*/data/numbers/3.txt
 
+    # FIXME:qtwebengine
+    @qtwebengine_skip: Broken/flaky for some reason?
     Scenario: Undo with auto-created last tab
         When I open data/hello.txt
         And I run :tab-only
@@ -658,6 +660,8 @@ Feature: Tab management
         Then the following tabs should be open:
             - data/hello.txt (active)
 
+    # FIXME:qtwebengine
+    @qtwebengine_skip: Broken/flaky for some reason?
     Scenario: Undo with auto-created last tab, with history
         When I open data/hello.txt
         And I open data/hello2.txt
