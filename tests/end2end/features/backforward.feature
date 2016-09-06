@@ -19,7 +19,6 @@ Feature: Going back and forward.
                 - active: true
                   url: http://localhost:*/data/backforward/2.txt
 
-    @qtwebengine_todo: FIXME why is this broken?
     Scenario: Going back in a new tab
         Given I open data/backforward/1.txt
         When I open data/backforward/2.txt

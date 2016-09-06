@@ -25,9 +25,6 @@ import pytest_bdd as bdd
 bdd.scenarios('sessions.feature')
 
 
-pytestmark = pytest.mark.qtwebengine_todo("Sessions are not implemented")
-
-
 @bdd.when(bdd.parsers.parse('I have a "{name}" session file:\n{contents}'))
 def create_session_file(quteproc, name, contents):
     filename = os.path.join(quteproc.basedir, 'data', 'sessions',

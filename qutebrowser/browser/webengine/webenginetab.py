@@ -24,7 +24,7 @@
 
 import functools
 
-from PyQt5.QtCore import pyqtSlot, Qt, QEvent, QPoint, QUrl
+from PyQt5.QtCore import pyqtSlot, Qt, QEvent, QPoint, QUrl, QTimer
 from PyQt5.QtGui import QKeyEvent, QIcon
 # pylint: disable=no-name-in-module,import-error,useless-suppression
 from PyQt5.QtWidgets import QOpenGLWidget
@@ -32,7 +32,7 @@ from PyQt5.QtWebEngineWidgets import QWebEnginePage, QWebEngineScript
 # pylint: enable=no-name-in-module,import-error,useless-suppression
 
 from qutebrowser.browser import browsertab, mouse
-from qutebrowser.browser.webengine import webview, webengineelem
+from qutebrowser.browser.webengine import webview, webengineelem, tabhistory
 from qutebrowser.utils import usertypes, qtutils, log, javascript, utils
 
 
@@ -302,7 +302,15 @@ class WebEngineHistory(browsertab.AbstractHistory):
         return qtutils.deserialize(data, self._history)
 
     def load_items(self, items):
-        log.stub()
+        stream, _data, cur_data = tabhistory.serialize(items)
+        qtutils.deserialize_stream(stream, self._history)
+        if cur_data is not None:
+            if 'zoom' in cur_data:
+                self._tab.zoom.set_factor(cur_data['zoom'])
+            if ('scroll-pos' in cur_data and
+                    self._tab.scroller.pos_px() == QPoint(0, 0)):
+                QTimer.singleShot(0, functools.partial(
+                    self._tab.scroller.to_point, cur_data['scroll-pos']))
 
 
 class WebEngineZoom(browsertab.AbstractZoom):
