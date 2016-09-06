@@ -147,7 +147,7 @@ class Process(QObject):
         self._data = []
         self.proc = QProcess()
         self.proc.setReadChannel(QProcess.StandardError)
-        self.exit_expected = False
+        self.exit_expected = True  # Not started at all yet
 
     def _log(self, line):
         """Add the given line to the captured log output."""
@@ -224,6 +224,7 @@ class Process(QObject):
 
     def start(self, args=None, *, env=None):
         """Start the process and wait until it started."""
+        self.exit_expected = False
         self._start(args, env=env)
         timeout = 60 if 'CI' in os.environ else 20
         for _ in range(timeout):
