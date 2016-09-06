@@ -213,6 +213,7 @@ class QuteProc(testprocess.Process):
         elif (log_line.category == 'webview' and
               testutils.pattern_match(pattern=start_okay_message_load,
                                       value=log_line.message)):
+            log_line.waited_for = True
             self._is_ready('load')
         elif (log_line.category == 'misc' and
               testutils.pattern_match(pattern=start_okay_message_focus,
