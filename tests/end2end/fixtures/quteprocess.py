@@ -310,7 +310,9 @@ class QuteProc(testprocess.Process):
             raise ValueError("Either both x/y or neither must be given!")
 
         if self.request.config.webengine:
+            # pylint: disable=no-name-in-module,useless-suppression
             from PyQt5.QtWebEngineWidgets import QWebEnginePage
+            # pylint: enable=no-name-in-module,useless-suppression
             if not hasattr(QWebEnginePage, 'scrollPositionChanged'):
                 # Qt < 5.7
                 pytest.skip("QWebEnginePage.scrollPositionChanged missing")
