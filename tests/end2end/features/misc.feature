@@ -611,6 +611,7 @@ Feature: Various utility commands.
         And I run :click-element id qute-input
         Then "Clicked editable element!" should be logged
 
+    @qtwebengine_createWindow
     Scenario: Clicking an element with tab target
         When I open data/click_element.html
         And I run :tab-only
