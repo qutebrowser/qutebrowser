@@ -348,9 +348,8 @@ class Process(QObject):
                 # same thing the next time we use wait_for and it matches
                 # this line again.
                 line.waited_for = True
-                if 'message' in kwargs:
-                    self._log("\n----> Already found {!r} in the log".format(
-                        kwargs['message']))
+                self._log("\n----> Already found {!r} in the log: {}".format(
+                        kwargs.get('message', 'line'), line))
                 return line
         return None
 
