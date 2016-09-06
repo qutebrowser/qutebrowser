@@ -40,6 +40,7 @@ Feature: :spawn
         Then the following tabs should be open:
             - about:blank
             - about:blank (active)
+
     @windows
     Scenario: Running :spawn with userscript on Windows
         When I open about:blank

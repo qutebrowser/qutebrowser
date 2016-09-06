@@ -282,9 +282,6 @@ class _WindowsUserscriptRunner(_BaseUserscriptRunner):
     (overwrite) to write to the file!
     """
 
-    def __init__(self, win_id, parent=None):
-        super().__init__(win_id, parent)
-
     def _cleanup(self):
         """Clean up temporary files after the userscript finished."""
         if self._cleaned_up:
