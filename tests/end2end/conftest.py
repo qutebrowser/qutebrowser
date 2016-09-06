@@ -146,6 +146,8 @@ def pytest_collection_modifyitems(config, items):
          config.webengine),
         ('qtwebkit_skip', 'Skipped with QtWebKit', pytest.mark.skipif,
          not config.webengine),
+        ('qtwebengine_flaky', 'Flaky with QtWebEngine', pytest.mark.skipif,
+         config.webengine),
     ]
 
     for item in items:

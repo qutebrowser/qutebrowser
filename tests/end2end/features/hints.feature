@@ -9,12 +9,13 @@ Feature: Using hints
         And I hint with args "links normal" and follow xyz
         Then the error "No hint xyz!" should be shown
 
-    @qtwebengine_skip: Flaky because scrolling happens async
+    @qtwebengine_flaky
     Scenario: Following a link after scrolling down
         When I open data/scroll/simple.html
         And I run :hint links normal
         And I wait for "hints: *" in the log
         And I run :scroll-page 0 1
+        And I wait until the scroll position changed
         And I run :follow-hint a
         Then the error "Element position is out of view!" should be shown
 
@@ -227,7 +228,7 @@ Feature: Using hints
         Then data/numbers/7.txt should be loaded
 
     # https://github.com/The-Compiler/qutebrowser/issues/576
-    @qtwebengine_skip: Flaky for some reason
+    @qtwebengine_flaky
     Scenario: Keeping hint filter in rapid mode
         When I open data/hints/number.html
         And I set hints -> mode to number

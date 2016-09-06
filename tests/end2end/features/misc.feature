@@ -190,7 +190,8 @@ Feature: Various utility commands.
 
     # :view-source
 
-    @qtwebengine_skip: Flaky due to :view-source being async
+    # Flaky due to :view-source being async?
+    @qtwebengine_flaky
     Scenario: :view-source
         Given I open data/hello.txt
         When I run :tab-only
@@ -205,7 +206,8 @@ Feature: Various utility commands.
                 history: []
         And the page should contain the html "/* Literal.Number.Integer */"
 
-    @qtwebengine_skip: Flaky due to :view-source being async
+    # Flaky due to :view-source being async?
+    @qtwebengine_flaky
     Scenario: :view-source on source page.
         When I open data/hello.txt
         And I run :view-source
@@ -439,7 +441,7 @@ Feature: Various utility commands.
         And the page should contain the plaintext "the-warning-message"
         And the page should contain the plaintext "the-info-message"
 
-    @qtwebengine_skip: Flaky for some reason?
+    @qtwebengine_flaky
     Scenario: Showing messages of an invalid level
         When I run :messages cataclysmic
         Then the error "Invalid log level cataclysmic!" should be shown
@@ -626,9 +628,10 @@ Feature: Various utility commands.
             - data/click_element.html
             - data/hello.txt (active)
 
-    @qtwebengine_skip: Flaky because scrolling happens async
+    @qtwebengine_flaky
     Scenario: Clicking an element which is out of view
         When I open data/scroll/simple.html
         And I run :scroll-page 0 1
+        And I wait until the scroll position changed
         And I run :click-element id link
         Then the error "Element position is out of view!" should be shown
