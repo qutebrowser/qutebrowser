@@ -140,10 +140,11 @@ def data(readonly=False):
              "The default page(s) to open at the start, separated by commas."),
 
             ('yank-ignored-url-parameters',
-             SettingValue(typ.List(typ.String()), 'ref,utm_source,'
-            'utm_medium,utm_campaign,utm_term,utm_content'),
-            "The default parameters to strip on yank,"
-            " separated by commas."),
+             SettingValue(typ.List(typ.String()),
+                          'ref,utm_source,utm_medium,utm_campaign,utm_term,'
+                          'utm_content'),
+            "The URL parameters to strip with :yank url, separated by "
+            "commas."),
 
             ('default-page',
              SettingValue(typ.FuzzyUrl(), '${startpage}'),

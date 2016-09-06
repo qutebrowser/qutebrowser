@@ -41,6 +41,8 @@ Added
 - New `:click-element` command to fake a click on a element.
 - New `:debug-log-filter` command to change console log filtering on-the-fly.
 - New `:debug-log-level` command to change the console loglevel on-the-fly.
+- New `general -> yank-ignored-url-parameters` option to configure which URL
+  parameters (like `utm_source` etc.) to strip off when yanking an URL.
 
 Changed
 ~~~~~~~
