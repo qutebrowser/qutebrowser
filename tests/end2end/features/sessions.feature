@@ -68,7 +68,7 @@ Feature: Saving and loading sessions
   Scenario: Scrolling (qtwebengine)
     When I open data/scroll/simple.html
     And I run :scroll-px 10 20
-    And I wait for "Scroll position changed to PyQt5.QtCore.QPoint(10, 20)" in the log
+    And I wait until the scroll position changed to 10/20
     Then the session should look like:
       windows:
         - tabs:

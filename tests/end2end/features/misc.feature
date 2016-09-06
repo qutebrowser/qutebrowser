@@ -537,23 +537,23 @@ Feature: Various utility commands.
         Given I open data/scroll/simple.html
         And I run :tab-only
         When I run :scroll down with count 3
-        And I wait for "Scroll position changed to *" in the log
+        And I wait until the scroll position changed
         And I run :scroll up
-        And I wait for "Scroll position changed to *" in the log
+        And I wait until the scroll position changed
         And I run :repeat-command with count 2
-        And I wait for "Scroll position changed to PyQt5.QtCore.QPoint()" in the log
+        And I wait until the scroll position changed to 0/0
         Then the page should not be scrolled
 
     Scenario: :repeat-command with not-normal command inbetween
         Given I open data/scroll/simple.html
         And I run :tab-only
         When I run :scroll down with count 3
-        And I wait for "Scroll position changed to *" in the log
+        And I wait until the scroll position changed
         And I run :scroll up
-        And I wait for "Scroll position changed to *" in the log
+        And I wait until the scroll position changed
         And I run :prompt-accept
         And I run :repeat-command with count 2
-        And I wait for "Scroll position changed to *" in the log
+        And I wait until the scroll position changed
         Then the page should not be scrolled
         And the error "prompt-accept: This command is only allowed in prompt/yesno mode." should be shown
 

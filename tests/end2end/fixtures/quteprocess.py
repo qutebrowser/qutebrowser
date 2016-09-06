@@ -298,6 +298,31 @@ class QuteProc(testprocess.Process):
                              function='javaScriptConsoleMessage',
                              message='[*] {}'.format(message))
 
+    def wait_scroll_pos_changed(self, x=None, y=None):
+        """Wait until a "Scroll position changed" message was found.
+
+        With QtWebEngine, on older Qt versions which lack
+        QWebEnginePage.scrollPositionChanged, this also skips the test.
+        """
+        __tracebackhide__ = (lambda e:
+                             e.errisinstance(testprocess.WaitForTimeout))
+        if (x is None and y is not None) or (y is None and x is not None):
+            raise ValueError("Either both x/y or neither must be given!")
+
+        if self.request.config.webengine:
+            from PyQt5.QtWebEngineWidgets import QWebEnginePage
+            if not hasattr(QWebEnginePage, 'scrollPositionChanged'):
+                # Qt < 5.7
+                pytest.skip("QWebEnginePage.scrollPositionChanged missing")
+        if x is None and y is None:
+            point = '*'
+        elif x == '0' and y == '0':
+            point = 'PyQt5.QtCore.QPoint()'
+        else:
+            point = 'PyQt5.QtCore.QPoint({}, {})'.format(x, y)
+        self.wait_for(category='webview',
+                      message='Scroll position changed to ' + point)
+
     def wait_for(self, timeout=None, **kwargs):
         """Extend wait_for to add divisor if a test is xfailing."""
         __tracebackhide__ = (lambda e:

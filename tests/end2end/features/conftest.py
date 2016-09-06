@@ -311,6 +311,17 @@ def hint_and_follow(quteproc, args, letter):
     quteproc.send_cmd(':follow-hint {}'.format(letter))
 
 
+@bdd.when("I wait until the scroll position changed")
+def wait_scroll_position(quteproc):
+    quteproc.wait_scroll_pos_changed()
+
+
+@bdd.when(bdd.parsers.parse("I wait until the scroll position changed to "
+                            "{x}/{y}"))
+def wait_scroll_position_arg(quteproc, x, y):
+    quteproc.wait_scroll_pos_changed(x, y)
+
+
 ## Then
 
 
@@ -525,8 +536,8 @@ def _get_scroll_values(quteproc):
 
 @bdd.then(bdd.parsers.re(r"the page should be scrolled "
                          r"(?P<direction>horizontally|vertically)"))
-def check_scrolled(request, quteproc, direction):
-    quteproc.wait_for(message='Scroll position changed to *')
+def check_scrolled(quteproc, direction):
+    quteproc.wait_scroll_pos_changed()
     x, y = _get_scroll_values(quteproc)
     if direction == 'horizontally':
         assert x != 0
