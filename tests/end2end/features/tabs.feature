@@ -795,6 +795,7 @@ Feature: Tab management
 
     # tab settings
 
+    @qtwebengine_createWindow
     Scenario: opening links with tabs->background-tabs true
         When I set tabs -> background-tabs to true
         And I open data/hints/html/simple.html
@@ -804,6 +805,7 @@ Feature: Tab management
             - data/hints/html/simple.html (active)
             - data/hello.txt
 
+    @qtwebengine_createWindow
     Scenario: opening tab with tabs->new-tab-position left
         When I set tabs -> new-tab-position to left
         And I set tabs -> background-tabs to false
@@ -816,6 +818,7 @@ Feature: Tab management
             - data/hello.txt (active)
             - data/hints/html/simple.html
 
+    @qtwebengine_createWindow
     Scenario: opening tab with tabs->new-tab-position right
         When I set tabs -> new-tab-position to right
         And I set tabs -> background-tabs to false
@@ -828,6 +831,7 @@ Feature: Tab management
             - data/hints/html/simple.html
             - data/hello.txt (active)
 
+    @qtwebengine_createWindow
     Scenario: opening tab with tabs->new-tab-position first
         When I set tabs -> new-tab-position to first
         And I set tabs -> background-tabs to false
@@ -840,6 +844,7 @@ Feature: Tab management
             - about:blank
             - data/hints/html/simple.html
 
+    @qtwebengine_createWindow
     Scenario: opening tab with tabs->new-tab-position last
         When I set tabs -> new-tab-position to last
         And I set tabs -> background-tabs to false
