@@ -673,6 +673,20 @@ class CommandDispatcher:
                 "Numeric argument is too large for internal int "
                 "representation.")
 
+    def _yank_url(self, what):
+        """Helper method for yank() to get the URL to copy."""
+        assert what in ['url', 'pretty-url'], what
+        flags = QUrl.RemovePassword
+        if what != 'pretty-url':
+            flags |= QUrl.FullyEncoded
+        url = QUrl(self._current_url())
+        url_query = QUrlQuery(url)
+        for key in dict(url_query.queryItems()):
+            if key in config.get('general', 'yank-ignored-url-parameters'):
+                url_query.removeQueryItem(key)
+        url.setQuery(url_query)
+        return url.toString(flags)
+
     @cmdutils.register(instance='command-dispatcher', scope='window')
     @cmdutils.argument('what', choices=['selection', 'url', 'pretty-url',
                                         'title', 'domain'])
@@ -699,16 +713,7 @@ class CommandDispatcher:
                                    self._current_url().host(),
                                    ':' + str(port) if port > -1 else '')
         elif what in ['url', 'pretty-url']:
-            flags = QUrl.RemovePassword
-            if what != 'pretty-url':
-                flags |= QUrl.FullyEncoded
-            url = QUrl(self._current_url())
-            url_query = QUrlQuery(url)
-            for key in dict(url_query.queryItems()):
-                if key in config.get('general', 'yank-ignored-url-parameters'):
-                    url_query.removeQueryItem(key)
-            url.setQuery(url_query)
-            s = url.toString(flags)
+            s = self._yank_url(what)
             what = 'URL'  # For printing
         elif what == 'selection':
             caret = self._current_widget().caret
