@@ -124,57 +124,8 @@ class TestExists:
             assert not sess_man.exists('foo')
 
 
-class HistTester:
-
-    """Helper object for the hist_tester fixture.
-
-    Makes it possible to use TabHistoryItem objects to easily load data into a
-    QWebHistory, does some basic checks, and provides the serialized history.
-
-    Attributes:
-        sess_man: The SessionManager which is used.
-        webview: The WebView where the history is loaded to.
-    """
-
-    def __init__(self, webview):
-        self.sess_man = sessions.SessionManager(base_path=None)
-        self.webview = webview
-
-    def get(self, items):
-        """Get the serialized history for the given items.
-
-        Args:
-            items: A list of TabHistoryItems.
-
-        Return:
-            A list of serialized items, as dicts.
-        """
-        history = self.webview.page().history()
-
-        stream, _data, user_data = tabhistory.serialize(items)
-        qtutils.deserialize_stream(stream, history)
-        for i, data in enumerate(user_data):
-            history.itemAt(i).setUserData(data)
-
-        d = self.sess_man._save_tab(self.webview, active=True)
-        new_history = d['history']
-        assert len(new_history) == len(items)
-        return new_history
-
-    def get_single(self, item):
-        """Convenience method to use get() with a single item."""
-        ret = self.get([item])
-        assert len(ret) == 1
-        return ret[0]
-
-
 @webengine_refactoring_xfail
 class TestSaveTab:
-
-    @pytest.fixture
-    def hist_tester(self, webview):
-        """Helper to test saving of history."""
-        return HistTester(webview)
 
     @pytest.mark.parametrize('is_active', [True, False])
     def test_active(self, sess_man, webview, is_active):
@@ -187,97 +138,6 @@ class TestSaveTab:
     def test_no_history(self, sess_man, webview):
         data = sess_man._save_tab(webview, active=False)
         assert not data['history']
-
-    def test_single_item(self, hist_tester):
-        item = Item(url=QUrl('http://www.qutebrowser.org/'),
-                    title='Test title',
-                    active=True)
-        expected = {
-            'url': 'http://www.qutebrowser.org/',
-            'title': 'Test title',
-            'active': True,
-            'scroll-pos': {'x': 0, 'y': 0},
-            'zoom': 1.0
-        }
-
-        hist = hist_tester.get_single(item)
-        assert hist == expected
-
-    def test_original_url(self, hist_tester):
-        """Test with an original-url which differs from the URL."""
-        item = Item(url=QUrl('http://www.example.com/'),
-                    original_url=QUrl('http://www.example.org/'),
-                    title='Test title',
-                    active=True)
-
-        hist = hist_tester.get_single(item)
-
-        assert hist['url'] == 'http://www.example.com/'
-        assert hist['original-url'] == 'http://www.example.org/'
-
-    def test_multiple_items(self, hist_tester):
-        items = [
-            Item(url=QUrl('http://www.qutebrowser.org/'), title='test 1'),
-            Item(url=QUrl('http://www.example.com/'), title='test 2',
-                 active=True),
-            Item(url=QUrl('http://www.example.org/'), title='test 3'),
-        ]
-
-        expected = [
-            {
-                'url': 'http://www.qutebrowser.org/',
-                'title': 'test 1',
-            },
-            {
-                'url': 'http://www.example.com/',
-                'title': 'test 2',
-                'active': True,
-                'scroll-pos': {'x': 0, 'y': 0},
-                'zoom': 1.0
-            },
-            {
-                'url': 'http://www.example.org/',
-                'title': 'test 3',
-            },
-        ]
-
-        hist = hist_tester.get(items)
-        assert hist == expected
-
-    @pytest.mark.parametrize('factor', [-1.0, 0.0, 1.5])
-    def test_zoom(self, hist_tester, factor):
-        """Test zoom."""
-        items = [
-            Item(url=QUrl('http://www.example.com/'), title='Test title',
-                 active=True),
-            Item(url=QUrl('http://www.example.com/'), title='Test title',
-                 user_data={'zoom': factor}),
-        ]
-        hist_tester.webview.setZoomFactor(factor)
-        hist = hist_tester.get(items)
-        assert hist[0]['zoom'] == factor
-        assert hist[1]['zoom'] == factor
-
-    @pytest.mark.parametrize('pos_x, pos_y', [
-        (0.0, 0.0), (1.0, 1.0), (0.0, 1.0), (1.0, 0.0),
-    ])
-    def test_scroll_current(self, hist_tester, pos_x, pos_y):
-        """Test scroll position on the current URL."""
-        items = [
-            Item(url=QUrl('http://www.example.com/'), title='Test title',
-                 active=True),
-            Item(url=QUrl('http://www.example.com/'), title='Test title',
-                 user_data={'scroll-pos': QPoint(pos_x, pos_y)}),
-        ]
-        frame = hist_tester.webview.page().mainFrame()
-
-        text = '{}\n'.format('x' * 100) * 100
-        frame.setHtml('<html><body>{}</body></html>'.format(text))
-        frame.setScrollPosition(QPoint(pos_x, pos_y))
-
-        hist = hist_tester.get(items)
-        assert hist[0]['scroll-pos'] == {'x': pos_x, 'y': pos_y}
-        assert hist[1]['scroll-pos'] == {'x': pos_x, 'y': pos_y}
 
 
 class FakeMainWindow(QObject):
@@ -313,71 +173,32 @@ class FakeTabbedBrowser:
 
 
 @pytest.fixture
-def fake_windows(win_registry, stubs, monkeypatch, qtbot):
-    """Fixture which provides two fake main windows and tabbedbrowsers."""
-    win_registry.add_window(1)
+def fake_window(win_registry, stubs, monkeypatch, qtbot):
+    """Fixture which provides a fake main windows with a tabbedbrowser."""
     win0 = FakeMainWindow(b'fake-geometry-0', win_id=0)
-    win1 = FakeMainWindow(b'fake-geometry-1', win_id=1)
     objreg.register('main-window', win0, scope='window', window=0)
-    objreg.register('main-window', win1, scope='window', window=1)
 
-    webview0 = QWebView()
-    qtbot.add_widget(webview0)
-    webview1 = QWebView()
-    qtbot.add_widget(webview1)
-    webview2 = QWebView()
-    qtbot.add_widget(webview2)
-    webview3 = QWebView()
-    qtbot.add_widget(webview3)
+    webview = QWebView()
+    qtbot.add_widget(webview)
+    browser = FakeTabbedBrowser([webview])
+    objreg.register('tabbed-browser', browser, scope='window', window=0)
 
-    browser0 = FakeTabbedBrowser([webview0, webview1])
-    browser1 = FakeTabbedBrowser([webview2, webview3])
-    objreg.register('tabbed-browser', browser0, scope='window', window=0)
-    objreg.register('tabbed-browser', browser1, scope='window', window=1)
-
-    qapp = stubs.FakeQApplication(active_window=win0)
-    monkeypatch.setattr('qutebrowser.misc.sessions.QApplication', qapp)
-
-    yield browser0, browser1
+    yield
 
     objreg.delete('main-window', scope='window', window=0)
-    objreg.delete('main-window', scope='window', window=1)
     objreg.delete('tabbed-browser', scope='window', window=0)
-    objreg.delete('tabbed-browser', scope='window', window=1)
 
 
 class TestSaveAll:
 
     def test_no_history(self, sess_man):
+        # FIXME can this ever actually happen?
         assert not objreg.window_registry
         data = sess_man._save_all()
         assert not data['windows']
 
     @webengine_refactoring_xfail
-    def test_normal(self, fake_windows, sess_man):
-        """Test with some windows and tabs set up."""
-        data = sess_man._save_all()
-
-        win1 = {
-            'active': True,
-            'geometry': b'fake-geometry-0',
-            'tabs': [
-                {'history': []},
-                {'active': True, 'history': []},
-            ],
-        }
-        win2 = {
-            'geometry': b'fake-geometry-1',
-            'tabs': [
-                {'history': []},
-                {'active': True, 'history': []},
-            ],
-        }
-        expected = {'windows': [win1, win2]}
-        assert data == expected
-
-    @webengine_refactoring_xfail
-    def test_no_active_window(self, sess_man, fake_windows, stubs,
+    def test_no_active_window(self, sess_man, fake_window, stubs,
                               monkeypatch):
         qapp = stubs.FakeQApplication(active_window=None)
         monkeypatch.setattr('qutebrowser.misc.sessions.QApplication', qapp)
@@ -434,14 +255,6 @@ class TestSave:
             sess_man.save('foo')
         assert str(excinfo.value) == "No data storage configured."
 
-    def test_simple_dump(self, sess_man, tmpdir):
-        session_path = tmpdir / 'foo.yml'
-        name = sess_man.save(str(session_path))
-
-        assert name == str(session_path)
-        data = session_path.read_text('utf-8')
-        assert data == 'windows: []\n'
-
     def test_update_completion_signal(self, sess_man, tmpdir, qtbot):
         session_path = tmpdir / 'foo.yml'
         with qtbot.waitSignal(sess_man.update_completion):
@@ -482,31 +295,10 @@ class TestSave:
         assert str(excinfo.value) == str(exception)
         assert not tmpdir.listdir()
 
-    def test_directory(self, sess_man, tmpdir):
-        """Test with a directory given as session file."""
-        with pytest.raises(sessions.SessionError) as excinfo:
-            sess_man.save(str(tmpdir))
-
-        assert str(excinfo.value) in ["Filename refers to a directory",
-                                      "Commit failed!"]
-        assert not tmpdir.listdir()
-
     def test_load_next_time(self, tmpdir, state_config, sess_man):
         session_path = tmpdir / 'foo.yml'
         sess_man.save(str(session_path), load_next_time=True)
         assert state_config['general']['session'] == str(session_path)
-
-    @webengine_refactoring_xfail
-    def test_utf_8_valid(self, tmpdir, sess_man, fake_history):
-        """Make sure data containing valid UTF8 gets saved correctly."""
-        session_path = tmpdir / 'foo.yml'
-        fake_history([Item(QUrl('http://www.qutebrowser.org/'), 'foo☃bar',
-                           active=True)])
-
-        sess_man.save(str(session_path))
-
-        data = session_path.read_text('utf-8')
-        assert 'title: foo☃bar' in data
 
     @webengine_refactoring_xfail
     def test_utf_8_invalid(self, tmpdir, sess_man, fake_history):
@@ -531,81 +323,6 @@ class TestSave:
         qtutils.deserialize_stream(stream, history)
         for i, data in enumerate(user_data):
             history.itemAt(i).setUserData(data)
-
-    @pytest.mark.skipif(
-        os.name == 'nt', reason="Test segfaults on Windows, see "
-        "https://github.com/The-Compiler/qutebrowser/issues/895")
-    @webengine_refactoring_xfail
-    def test_long_output(self, fake_windows, tmpdir, sess_man):
-        session_path = tmpdir / 'foo.yml'
-
-        items1 = [
-            Item(QUrl('http://www.qutebrowser.org/'), 'test title 1'),
-            Item(QUrl('http://www.example.org/'), 'test title 2',
-                 original_url=QUrl('http://www.example.com/'), active=True),
-        ]
-        items2 = [
-            Item(QUrl('http://www.example.com/?q=foo+bar'), 'test title 3'),
-            Item(QUrl('http://www.example.com/?q=test%20foo'), 'test title 4',
-                 active=True),
-        ]
-        items3 = []
-        items4 = [
-            Item(QUrl('http://www.github.com/The-Compiler/qutebrowser'),
-                 'test title 5', active=True),
-        ]
-
-        self._set_data(fake_windows[0], 0, items1)
-        self._set_data(fake_windows[0], 1, items2)
-        self._set_data(fake_windows[1], 0, items3)
-        self._set_data(fake_windows[1], 1, items4)
-
-        expected = """
-            windows:
-            - active: true
-              geometry: !!binary |
-                ZmFrZS1nZW9tZXRyeS0w
-              tabs:
-              - history:
-                - title: test title 1
-                  url: http://www.qutebrowser.org/
-                - active: true
-                  original-url: http://www.example.com/
-                  scroll-pos:
-                    x: 0
-                    y: 0
-                  title: test title 2
-                  url: http://www.example.org/
-                  zoom: 1.0
-              - active: true
-                history:
-                - title: test title 3
-                  url: http://www.example.com/?q=foo+bar
-                - active: true
-                  scroll-pos:
-                    x: 0
-                    y: 0
-                  title: test title 4
-                  url: http://www.example.com/?q=test%20foo
-                  zoom: 1.0
-            - geometry: !!binary |
-                ZmFrZS1nZW9tZXRyeS0x
-              tabs:
-              - history: []
-              - active: true
-                history:
-                - active: true
-                  scroll-pos:
-                    x: 0
-                    y: 0
-                  title: test title 5
-                  url: http://www.github.com/The-Compiler/qutebrowser
-                  zoom: 1.0
-        """
-
-        sess_man.save(str(session_path))
-        data = session_path.read_text('utf-8')
-        assert data == textwrap.dedent(expected.strip('\n'))
 
 
 class FakeWebView:
@@ -691,26 +408,12 @@ class TestLoadTab:
         assert loaded_item.original_url == expected
 
 
-class TestDelete:
+def test_delete_update_completion_signal(sess_man, qtbot, tmpdir):
+    sess = tmpdir / 'foo.yml'
+    sess.ensure()
 
-    def test_existing(self, sess_man, tmpdir):
-        sess = tmpdir / 'foo.yml'
-        sess.ensure()
+    with qtbot.waitSignal(sess_man.update_completion):
         sess_man.delete(str(sess))
-        assert not tmpdir.listdir()
-
-    def test_update_completion_signal(self, sess_man, qtbot, tmpdir):
-        sess = tmpdir / 'foo.yml'
-        sess.ensure()
-
-        with qtbot.waitSignal(sess_man.update_completion):
-            sess_man.delete(str(sess))
-
-    def test_not_existing(self, sess_man, qtbot, tmpdir):
-        sess = tmpdir / 'foo.yml'
-
-        with pytest.raises(sessions.SessionError):
-            sess_man.delete(str(sess))
 
 
 class TestListSessions:
@@ -733,116 +436,3 @@ class TestListSessions:
         (tmpdir / 'bar.html').ensure()
         sess_man = sessions.SessionManager(str(tmpdir))
         assert sess_man.list_sessions() == ['foo']
-
-
-class TestSessionSave:
-
-    @webengine_refactoring_xfail
-    def test_normal_save(self, sess_man, tmpdir, fake_windows):
-        sess_file = tmpdir / 'foo.yml'
-        sess_man.session_save(0, str(sess_file), quiet=True)
-        assert sess_file.read_text('utf-8').startswith('windows:')
-
-    def test_internal_without_force(self, tmpdir):
-        sess_man = sessions.SessionManager(str(tmpdir))
-        with pytest.raises(cmdexc.CommandError) as excinfo:
-            sess_man.session_save(0, '_foo')
-
-        expected_text = ("_foo is an internal session, use --force to "
-                         "save anyways.")
-        assert str(excinfo.value) == expected_text
-        assert not (tmpdir / '_foo.yml').exists()
-
-    @webengine_refactoring_xfail
-    def test_internal_with_force(self, tmpdir, fake_windows):
-        sess_man = sessions.SessionManager(str(tmpdir))
-        sess_man.session_save(0, '_foo', force=True, quiet=True)
-        assert (tmpdir / '_foo.yml').exists()
-
-    def test_current_unset(self, tmpdir):
-        sess_man = sessions.SessionManager(str(tmpdir))
-
-        with pytest.raises(cmdexc.CommandError) as excinfo:
-            sess_man.session_save(0, current=True)
-
-        assert str(excinfo.value) == "No session loaded currently!"
-
-    @webengine_refactoring_xfail
-    def test_current_set(self, tmpdir, fake_windows):
-        sess_man = sessions.SessionManager(str(tmpdir))
-        sess_man._current = 'foo'
-        sess_man.session_save(0, current=True, quiet=True)
-        assert (tmpdir / 'foo.yml').exists()
-
-    def test_saving_error(self, sess_man, tmpdir):
-        with pytest.raises(cmdexc.CommandError) as excinfo:
-            sess_man.session_save(0, str(tmpdir))
-
-        assert str(excinfo.value).startswith('Error while saving session: ')
-
-    @webengine_refactoring_xfail
-    def test_message(self, sess_man, tmpdir, message_mock, fake_windows):
-        message_mock.patch('qutebrowser.misc.sessions.message')
-        sess_path = str(tmpdir / 'foo.yml')
-        sess_man.session_save(0, sess_path)
-        expected_text = 'Saved session {}.'.format(sess_path)
-        assert message_mock.getmsg(immediate=True).text == expected_text
-
-    @webengine_refactoring_xfail
-    def test_message_quiet(self, sess_man, tmpdir, message_mock, fake_windows):
-        message_mock.patch('qutebrowser.misc.sessions.message')
-        sess_path = str(tmpdir / 'foo.yml')
-        sess_man.session_save(0, sess_path, quiet=True)
-        assert not message_mock.messages
-
-
-class TestSessionDelete:
-
-    def test_internal_without_force(self, tmpdir):
-        sess_man = sessions.SessionManager(str(tmpdir))
-        sess_file = tmpdir / '_foo.yml'
-        sess_file.ensure()
-
-        with pytest.raises(cmdexc.CommandError) as excinfo:
-            sess_man.session_delete('_foo')
-
-        expected_text = ("_foo is an internal session, use --force to "
-                         "delete anyways.")
-        assert str(excinfo.value) == expected_text
-        assert sess_file.exists()
-
-    def test_internal_with_force(self, tmpdir):
-        sess_man = sessions.SessionManager(str(tmpdir))
-        sess_file = tmpdir / '_foo.yml'
-        sess_file.ensure()
-        sess_man.session_delete('_foo', force=True)
-        assert not tmpdir.listdir()
-
-    def test_normal_delete(self, tmpdir):
-        sess_man = sessions.SessionManager(str(tmpdir))
-        sess_file = tmpdir / 'foo.yml'
-        sess_file.ensure()
-        sess_man.session_delete('foo')
-        assert not tmpdir.listdir()
-
-    def test_session_not_found(self, tmpdir):
-        sess_man = sessions.SessionManager(str(tmpdir))
-
-        with pytest.raises(cmdexc.CommandError) as excinfo:
-            sess_man.session_delete('foo')
-
-        assert str(excinfo.value) == "Session foo not found!"
-
-    @pytest.mark.posix
-    def test_deletion_error(self, caplog, tmpdir):
-        sess_man = sessions.SessionManager(str(tmpdir))
-        (tmpdir / 'foo.yml').ensure()
-        tmpdir.chmod(0o555)  # unwritable
-
-        with pytest.raises(cmdexc.CommandError) as excinfo:
-            with caplog.at_level(logging.ERROR):
-                sess_man.session_delete('foo')
-
-        assert str(excinfo.value).startswith('Error while deleting session: ')
-        assert len(caplog.records) == 1
-        assert caplog.records[0].message == 'Error while deleting session!'
