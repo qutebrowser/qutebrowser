@@ -147,17 +147,6 @@ def _set_cmd_prompt(cmd, txt):
     cmd.setCursorPosition(txt.index('|'))
 
 
-def _validate_cmd_prompt(cmd, txt):
-    """Interpret fake command prompt text using | as the cursor placeholder.
-
-    Args:
-        cmd: The command prompt object.
-        txt: The prompt text, using | as a placeholder for the cursor position.
-    """
-    assert cmd.cursorPosition() == txt.index('|')
-    assert cmd.text() == txt.replace('|', '')
-
-
 @pytest.mark.parametrize('txt, expected', [
     (':nope|', usertypes.Completion.command),
     (':nope |', None),
@@ -208,35 +197,72 @@ def test_update_completion(txt, expected, status_command_stub, completer_obj,
         assert arg.srcmodel.kind == expected
 
 
-@pytest.mark.parametrize('before, newtxt, quick_complete, count, after', [
-    (':foo |', 'bar', False, 1, ':foo bar|'),
-    (':foo |', 'bar', True, 2, ':foo bar|'),
-    (':foo |', 'bar', True, 1, ':foo bar |'),
-    (':foo | bar', 'baz', False, 1, ':foo baz| bar'),
-    (':foo |', 'bar baz', True, 1, ":foo 'bar baz' |"),
-    (':foo |', '', True, 1, ":foo '' |"),
-    (':foo |', None, True, 1, ":foo |"),
+@pytest.mark.parametrize('before, newtxt, after', [
+    (':|', 'set', ':set|'),
+    (':| ', 'set', ':set|'),
+    (': |', 'set', ':set|'),
+    (':|set', 'set', ':set|'),
+    (':|set ', 'set', ':set|'),
+    (':|se', 'set', ':set|'),
+    (':s|e', 'set', ':set|'),
+    (':se|', 'set', ':set|'),
+    (':|se fonts', 'set', ':set| fonts'),
+    (':set |', 'fonts', ':set fonts|'),
+    (':set  |', 'fonts', ':set fonts|'),
+    (':set --temp |', 'fonts', ':set --temp fonts|'),
+    (':set |fo', 'fonts', ':set fonts|'),
+    (':set f|o', 'fonts', ':set fonts|'),
+    (':set fo|', 'fonts', ':set fonts|'),
+    (':set fonts |', 'hints', ':set fonts hints|'),
+    (':set fonts |nt', 'hints', ':set fonts hints|'),
+    (':set fonts n|t', 'hints', ':set fonts hints|'),
+    (':set fonts nt|', 'hints', ':set fonts hints|'),
+    (':set | hints', 'fonts', ':set fonts| hints'),
+    (':set  |  hints', 'fonts', ':set fonts| hints'),
+    (':set |fo hints', 'fonts', ':set fonts| hints'),
+    (':set f|o hints', 'fonts', ':set fonts| hints'),
+    (':set fo| hints', 'fonts', ':set fonts| hints'),
+    (':set fonts hints |', 'Comic Sans', ":set fonts hints 'Comic Sans'|"),
+    (":set fonts hints 'Comic Sans'|", '12px Hack',
+     ":set fonts hints '12px Hack'|"),
+    (":set fonts hints 'Comic| Sans'", '12px Hack',
+     ":set fonts hints '12px Hack'|")
 ])
-def test_on_selection_changed(before, newtxt, count, quick_complete, after,
-                           completer_obj, status_command_stub,
-                           completion_widget_stub, config_stub):
+def test_on_selection_changed(before, newtxt, after, completer_obj,
+                              config_stub, status_command_stub,
+                              completion_widget_stub):
     """Test that on_selection_changed modifies the cmd text properly.
 
     The | represents the current cursor position in the cmd prompt.
     If quick-complete is True and there is only 1 completion (count == 1),
     then we expect a space to be appended after the current word.
     """
-    config_stub.data['completion']['quick-complete'] = quick_complete
     model = unittest.mock.Mock()
     model.data = unittest.mock.Mock(return_value=newtxt)
-    model.count = unittest.mock.Mock(return_value=count)
     indexes = [unittest.mock.Mock()]
     selection = unittest.mock.Mock()
     selection.indexes = unittest.mock.Mock(return_value=indexes)
     completion_widget_stub.model.return_value = model
-    _set_cmd_prompt(status_command_stub, before)
-    # schedule_completion_update is needed to pick up the cursor position
-    completer_obj.schedule_completion_update()
-    completer_obj.on_selection_changed(selection)
-    model.data.assert_called_with(indexes[0])
-    _validate_cmd_prompt(status_command_stub, after)
+
+    def check(quick_complete, count, expected_txt, expected_pos):
+        config_stub.data['completion']['quick-complete'] = quick_complete
+        model.count = unittest.mock.Mock(return_value=count)
+        _set_cmd_prompt(status_command_stub, before)
+        # TODO: refactor so cursor_part is a local rather than class variable
+        completer_obj._update_cursor_part()
+        completer_obj.on_selection_changed(selection)
+        model.data.assert_called_with(indexes[0])
+        assert status_command_stub.text() == expected_txt
+        assert status_command_stub.cursorPosition() == expected_pos
+
+    after_pos = after.index('|')
+    after_txt = after.replace('|', '')
+    check(False, 1, after_txt, after_pos)
+    check(True, 2, after_txt, after_pos)
+
+    # quick-completing a single item should move the cursor ahead by 1 and add
+    # a trailing space if at the end of the cmd string
+    after_pos += 1
+    if after_pos > len(after_txt):
+        after_txt += ' '
+    check(True, 1, after_txt, after_pos)
