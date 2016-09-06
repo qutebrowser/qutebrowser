@@ -230,6 +230,10 @@ class QuteProc(testprocess.Process):
             elif 'Running without the SUID sandbox!' in line:
                 # QtWebEngine error
                 return None
+            elif line.startswith('Xlib: sequence lost'):
+                # https://travis-ci.org/The-Compiler/qutebrowser/jobs/157941720
+                # ???
+                return None
             elif is_ignored_qt_message(line):
                 return None
             else:
