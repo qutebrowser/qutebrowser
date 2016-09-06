@@ -125,6 +125,8 @@ Feature: Yanking and pasting.
         And I run :open {clipboard}
         Then the error "Invalid URL" should be shown
 
+    # https://travis-ci.org/The-Compiler/qutebrowser/jobs/157941726
+    @qtwebengine_flaky
     Scenario: Pasting multiple urls in a new tab
         When I put the following lines into the clipboard:
             http://localhost:(port)/data/hello.txt
@@ -166,6 +168,8 @@ Feature: Yanking and pasting.
             - about:blank
             - data/hello.txt?q=text%3A%0Ashould%20open%0Aas%20search (active)
 
+    # https://travis-ci.org/The-Compiler/qutebrowser/jobs/157941726
+    @qtwebengine_flaky
     Scenario: Pasting multiple urls in a background tab
         When I put the following lines into the clipboard:
             http://localhost:(port)/data/hello.txt

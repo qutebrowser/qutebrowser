@@ -207,6 +207,8 @@ Feature: Using hints
         Then the error "Not enough words in the dictionary." should be shown
         And data/numbers/5.txt should be loaded
 
+    # https://travis-ci.org/The-Compiler/qutebrowser/jobs/157941720
+    @qtwebengine_flaky
     Scenario: Dictionary file does not exist
         When I open data/hints/html/simple.html
         And I set hints -> dictionary to no_words

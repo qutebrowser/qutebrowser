@@ -91,6 +91,8 @@ Feature: Setting positional marks
         And I wait until the scroll position changed to 0/0
         Then the page should be scrolled to 0 0
 
+    # https://ci.appveyor.com/project/The-Compiler/qutebrowser/build/master-3935/job/fc0b1gow5co08c2x
+    @qtwebengine_flaky
     Scenario: Jumping back after searching
         When I run :scroll-px 20 15
         And I wait until the scroll position changed to 20/15

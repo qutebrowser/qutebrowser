@@ -19,6 +19,8 @@ Feature: Going back and forward.
                 - active: true
                   url: http://localhost:*/data/backforward/2.txt
 
+    # https://travis-ci.org/The-Compiler/qutebrowser/jobs/157941720
+    @qtwebengine_flaky
     Scenario: Going back in a new tab
         Given I open data/backforward/1.txt
         When I open data/backforward/2.txt
