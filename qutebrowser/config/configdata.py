@@ -139,6 +139,13 @@ def data(readonly=False):
              SettingValue(typ.List(typ.String()), 'https://duckduckgo.com'),
              "The default page(s) to open at the start, separated by commas."),
 
+            ('yank-ignored-url-parameters',
+             SettingValue(typ.List(typ.String()),
+                          'ref,utm_source,utm_medium,utm_campaign,utm_term,'
+                          'utm_content'),
+            "The URL parameters to strip with :yank url, separated by "
+            "commas."),
+
             ('default-page',
              SettingValue(typ.FuzzyUrl(), '${startpage}'),
              "The page to open if :open -t/-b/-w is used without URL. Use "
