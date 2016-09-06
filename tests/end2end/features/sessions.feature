@@ -256,7 +256,8 @@ Feature: Saving and loading sessions
 
   Scenario: Saving internal session with --force
     When I run :session-save --force _internal_force
-    Then the session _internal_force should exist
+    Then the message "Saved session _internal_force." should be shown
+    And the session _internal_force should exist
 
   Scenario: Saving current session without one loaded
     Given I have a fresh instance
