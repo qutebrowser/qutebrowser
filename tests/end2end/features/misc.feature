@@ -553,6 +553,7 @@ Feature: Various utility commands.
         And I wait for "Scroll position changed to *" in the log
         And I run :prompt-accept
         And I run :repeat-command with count 2
+        And I wait for "Scroll position changed to *" in the log
         Then the page should not be scrolled
         And the error "prompt-accept: This command is only allowed in prompt/yesno mode." should be shown
 
