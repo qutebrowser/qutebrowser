@@ -285,7 +285,7 @@ class Process(QObject):
             # Exit the process to make sure we're in a defined state again
             self.terminate()
             self.clear_data()
-            raise InvalidLine
+            raise InvalidLine('\n' + '\n'.join(self._invalid))
 
         self.clear_data()
         if not self.is_running() and not self.exit_expected:
