@@ -93,10 +93,10 @@ Feature: Invoking a new process
 
     Scenario: Opening a new qutebrowser instance with no parameters
         When I set general -> new-instance-open-target to tab
-        And I set general -> startpage to about:blank
+        And I set general -> startpage to http://localhost:(port)/data/hello.txt
         And I open data/title.html
         And I spawn a new window
-        And I wait until about:blank is loaded
+        And I wait until data/hello.txt is loaded
         Then the session should look like:
             windows:
             - tabs:
@@ -105,4 +105,4 @@ Feature: Invoking a new process
                 - url: http://localhost:*/data/title.html
             - tabs:
               - history:
-                - url: about:blank
+                - url: http://localhost:*/data/hello.txt
