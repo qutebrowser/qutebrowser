@@ -64,6 +64,9 @@ class WebEngineView(QWebEngineView):
         Return:
             The new QWebEngineView object.
         """
+        debug_type = debug.qenum_key(QWebEnginePage, wintype)
+        log.webview.debug("createWindow with type {}".format(debug_type))
+
         # WORKAROUND for https://bugreports.qt.io/browse/QTBUG-54419
         vercheck = qtutils.version_check
         qtbug_54419_fixed = ((vercheck('5.6.2') and not vercheck('5.7.0')) or
@@ -74,8 +77,6 @@ class WebEngineView(QWebEngineView):
                           "to open new tabs via JS!")
             return None
 
-        debug_type = debug.qenum_key(QWebEnginePage, wintype)
-        log.webview.debug("createWindow with type {}".format(debug_type))
         background = False
         if wintype in [QWebEnginePage.WebBrowserWindow,
                        QWebEnginePage.WebDialog]:
