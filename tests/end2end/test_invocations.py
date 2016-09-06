@@ -23,7 +23,16 @@ import sys
 
 import pytest
 
-BASE_ARGS = ['--debug', '--json-logging', '--no-err-windows', 'about:blank']
+
+def _base_args(config):
+    """Get the arguments to pass with every invocation."""
+    args = ['--debug', '--json-logging', '--no-err-windows']
+    if config.webengine:
+        args += ['--backend', 'webengine']
+    else:
+        args += ['--backend', 'webkit']
+    args.append('about:blank')
+    return args
 
 
 @pytest.fixture
@@ -54,31 +63,33 @@ def temp_basedir_env(tmpdir):
 
 
 @pytest.mark.linux
-def test_no_config(temp_basedir_env, quteproc_new):
+def test_no_config(request, temp_basedir_env, quteproc_new):
     """Test starting with -c ""."""
-    args = ['-c', ''] + BASE_ARGS
+    args = ['-c', ''] + _base_args(request.config)
     quteproc_new.start(args, env=temp_basedir_env)
     quteproc_new.send_cmd(':quit')
     quteproc_new.wait_for_quit()
 
 
 @pytest.mark.linux
-def test_no_cache(temp_basedir_env, quteproc_new):
+def test_no_cache(request, temp_basedir_env, quteproc_new):
     """Test starting with --cachedir=""."""
-    args = ['--cachedir='] + BASE_ARGS
+    args = ['--cachedir='] + _base_args(request.config)
     quteproc_new.start(args, env=temp_basedir_env)
     quteproc_new.send_cmd(':quit')
     quteproc_new.wait_for_quit()
 
 
 @pytest.mark.linux
-def test_ascii_locale(httpbin, tmpdir, quteproc_new):
+def test_ascii_locale(request, httpbin, tmpdir, quteproc_new):
     """Test downloads with LC_ALL=C set.
 
     https://github.com/The-Compiler/qutebrowser/issues/908
     https://github.com/The-Compiler/qutebrowser/issues/1726
     """
-    args = ['--temp-basedir'] + BASE_ARGS
+    if request.config.webengine:
+        pytest.skip("Downloads are not implemented with QtWebEngine yet")
+    args = ['--temp-basedir'] + _base_args(request.config)
     quteproc_new.start(args, env={'LC_ALL': 'C'})
     quteproc_new.set_setting('storage', 'download-directory', str(tmpdir))
 
@@ -102,17 +113,20 @@ def test_ascii_locale(httpbin, tmpdir, quteproc_new):
     assert (tmpdir / '?-issue908.bin').exists()
 
 
-def test_no_loglines(quteproc_new):
+def test_no_loglines(request, quteproc_new):
     """Test qute:log with --loglines=0."""
-    quteproc_new.start(args=['--temp-basedir', '--loglines=0'] + BASE_ARGS)
+    if request.config.webengine:
+        pytest.skip("qute:log is not implemented with QtWebEngine yet")
+    quteproc_new.start(args=['--temp-basedir', '--loglines=0'] +
+                       _base_args(request.config))
     quteproc_new.open_path('qute:log')
     assert quteproc_new.get_content() == 'Log output was disabled.'
 
 
 @pytest.mark.not_frozen
 @pytest.mark.parametrize('level', ['1', '2'])
-def test_optimize(quteproc_new, capfd, level):
-    quteproc_new.start(args=['--temp-basedir'] + BASE_ARGS,
+def test_optimize(request, quteproc_new, capfd, level):
+    quteproc_new.start(args=['--temp-basedir'] + _base_args(request.config),
                        env={'PYTHONOPTIMIZE': level})
     if level == '2':
         msg = ("Running on optimize level higher than 1, unexpected behavior "
