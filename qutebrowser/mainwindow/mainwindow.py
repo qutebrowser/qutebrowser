@@ -294,7 +294,7 @@ class MainWindow(QWidget):
 
         If loading fails, loads default geometry.
         """
-        log.init.debug("Loading mainwindow from {}".format(geom))
+        log.init.debug("Loading mainwindow from {!r}".format(geom))
         ok = self.restoreGeometry(geom)
         if not ok:
             log.init.warning("Error while loading geometry.")
