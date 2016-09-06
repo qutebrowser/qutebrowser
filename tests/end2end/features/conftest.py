@@ -526,6 +526,7 @@ def _get_scroll_values(quteproc):
 @bdd.then(bdd.parsers.re(r"the page should be scrolled "
                          r"(?P<direction>horizontally|vertically)"))
 def check_scrolled(request, quteproc, direction):
+    quteproc.wait_for(message='Scroll position changed to *')
     x, y = _get_scroll_values(quteproc)
     if direction == 'horizontally':
         assert x != 0

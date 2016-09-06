@@ -262,7 +262,8 @@ class QuteProc(testprocess.Process):
     def _default_args(self):
         backend = 'webengine' if self.request.config.webengine else 'webkit'
         return ['--debug', '--no-err-windows', '--temp-basedir',
-                '--json-logging', '--backend', backend, 'about:blank']
+                '--json-logging', '--loglevel', 'vdebug',
+                '--backend', backend, 'about:blank']
 
     def path_to_url(self, path, *, port=None, https=False):
         """Get a URL based on a filename for the localhost webserver.

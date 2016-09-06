@@ -325,6 +325,12 @@ class AbstractScroller(QObject):
         super().__init__(parent)
         self._tab = tab
         self._widget = None
+        self.perc_changed.connect(self._log_scroll_pos_change)
+
+    @pyqtSlot()
+    def _log_scroll_pos_change(self):
+        log.webview.vdebug("Scroll position changed to {}".format(
+            self.pos_px()))
 
     def _init_widget(self, widget):
         self._widget = widget

@@ -537,15 +537,20 @@ Feature: Various utility commands.
         Given I open data/scroll/simple.html
         And I run :tab-only
         When I run :scroll down with count 3
+        And I wait for "Scroll position changed to *" in the log
         And I run :scroll up
+        And I wait for "Scroll position changed to *" in the log
         And I run :repeat-command with count 2
+        And I wait for "Scroll position changed to PyQt5.QtCore.QPoint()" in the log
         Then the page should not be scrolled
 
     Scenario: :repeat-command with not-normal command inbetween
         Given I open data/scroll/simple.html
         And I run :tab-only
         When I run :scroll down with count 3
+        And I wait for "Scroll position changed to *" in the log
         And I run :scroll up
+        And I wait for "Scroll position changed to *" in the log
         And I run :prompt-accept
         And I run :repeat-command with count 2
         Then the page should not be scrolled

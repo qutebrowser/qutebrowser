@@ -17,24 +17,32 @@ Feature: Scrolling
 
     Scenario: Scrolling down and up
         When I run :scroll-px 10 0
+        And I wait for "Scroll position changed to PyQt5.QtCore.QPoint(10, 0)" in the log
         And I run :scroll-px -10 0
+        And I wait for "Scroll position changed to PyQt5.QtCore.QPoint()" in the log
         Then the page should not be scrolled
 
     Scenario: Scrolling right and left
         When I run :scroll-px 0 10
+        And I wait for "Scroll position changed to PyQt5.QtCore.QPoint(0, 10)" in the log
         And I run :scroll-px 0 -10
+        And I wait for "Scroll position changed to PyQt5.QtCore.QPoint()" in the log
         Then the page should not be scrolled
 
     Scenario: Scrolling down and up with count
         When I run :scroll-px 0 10 with count 2
+        And I wait for "Scroll position changed to PyQt5.QtCore.QPoint(0, 20)" in the log
         When I run :scroll-px 0 -10
         When I run :scroll-px 0 -10
+        And I wait for "Scroll position changed to PyQt5.QtCore.QPoint()" in the log
         Then the page should not be scrolled
 
     Scenario: Scrolling left and right with count
         When I run :scroll-px 10 0 with count 2
+        And I wait for "Scroll position changed to PyQt5.QtCore.QPoint(20, 0)" in the log
         When I run :scroll-px -10 0
         When I run :scroll-px -10 0
+        And I wait for "Scroll position changed to PyQt5.QtCore.QPoint()" in the log
         Then the page should not be scrolled
 
     Scenario: :scroll-px with a very big value
@@ -44,7 +52,7 @@ Feature: Scrolling
     Scenario: :scroll-px on a page without scrolling
         When I open data/hello.txt
         And I run :scroll-px 10 10
-        Then no crash should happen
+        Then the page should not be scrolled
 
     Scenario: :scroll-px with floats
         # This used to be allowed, but doesn't make much sense.
@@ -60,7 +68,9 @@ Feature: Scrolling
 
     Scenario: Scrolling down and up
         When I run :scroll down
+        And I wait for "Scroll position changed to *" in the log
         And I run :scroll up
+        And I wait for "Scroll position changed to PyQt5.QtCore.QPoint()" in the log
         Then the page should not be scrolled
 
     Scenario: Scrolling right
@@ -69,7 +79,9 @@ Feature: Scrolling
 
     Scenario: Scrolling right and left
         When I run :scroll right
+        And I wait for "Scroll position changed to *" in the log
         And I run :scroll left
+        And I wait for "Scroll position changed to PyQt5.QtCore.QPoint()" in the log
         Then the page should not be scrolled
 
     # causes segfault with postEvent instead of sendEvent
@@ -83,7 +95,9 @@ Feature: Scrolling
 
     Scenario: Scrolling with page down and page up
         When I run :scroll page-down
+        And I wait for "Scroll position changed to *" in the log
         And I run :scroll page-up
+        And I wait for "Scroll position changed to PyQt5.QtCore.QPoint()" in the log
         Then the page should not be scrolled
 
     Scenario: Scrolling to bottom
@@ -92,7 +106,9 @@ Feature: Scrolling
 
     Scenario: Scrolling to bottom and to top
         When I run :scroll bottom
+        And I wait for "Scroll position changed to *" in the log
         And I run :scroll top
+        And I wait for "Scroll position changed to PyQt5.QtCore.QPoint()" in the log
         Then the page should not be scrolled
 
     Scenario: :scroll with invalid argument
@@ -102,8 +118,10 @@ Feature: Scrolling
 
     Scenario: Scrolling down and up with count
         When I run :scroll down with count 2
+        And I wait for "Scroll position changed to *" in the log
         And I run :scroll up
         And I run :scroll up
+        And I wait for "Scroll position changed to PyQt5.QtCore.QPoint()" in the log
         Then the page should not be scrolled
 
     Scenario: Scrolling right
@@ -112,13 +130,17 @@ Feature: Scrolling
 
     Scenario: Scrolling right and left
         When I run :scroll right
+        And I wait for "Scroll position changed to *" in the log
         And I run :scroll left
+        And I wait for "Scroll position changed to PyQt5.QtCore.QPoint()" in the log
         Then the page should not be scrolled
 
     Scenario: Scrolling right and left with count
         When I run :scroll right with count 2
+        And I wait for "Scroll position changed to *" in the log
         And I run :scroll left
         And I run :scroll left
+        And I wait for "Scroll position changed to PyQt5.QtCore.QPoint()" in the log
         Then the page should not be scrolled
 
     @qtwebengine_skip: Causes memory leak...
@@ -127,11 +149,12 @@ Feature: Scrolling
         # Make sure it doesn't hang
         And I run :message-info "Still alive!"
         Then the message "Still alive!" should be shown
+        And "Scroll position changed to *" should be logged
 
     Scenario: :scroll on a page without scrolling
         When I open data/hello.txt
         And I run :scroll down
-        Then no crash should happen
+        Then the page should not be scrolled
 
     ## :scroll-perc
 
@@ -141,7 +164,9 @@ Feature: Scrolling
 
     Scenario: Scrolling to bottom and to top with :scroll-perc
         When I run :scroll-perc 100
+        And I wait for "Scroll position changed to *" in the log
         And I run :scroll-perc 0
+        And I wait for "Scroll position changed to PyQt5.QtCore.QPoint()" in the log
         Then the page should not be scrolled
 
     Scenario: Scrolling to middle with :scroll-perc
@@ -154,7 +179,9 @@ Feature: Scrolling
 
     Scenario: Scrolling to middle and to top with :scroll-perc
         When I run :scroll-perc 50
+        And I wait for "Scroll position changed to *" in the log
         And I run :scroll-perc 0
+        And I wait for "Scroll position changed to PyQt5.QtCore.QPoint()" in the log
         Then the page should not be scrolled
 
     Scenario: Scrolling to right with :scroll-perc
@@ -163,7 +190,9 @@ Feature: Scrolling
 
     Scenario: Scrolling to right and to left with :scroll-perc
         When I run :scroll-perc --horizontal 100
+        And I wait for "Scroll position changed to *" in the log
         And I run :scroll-perc --horizontal 0
+        And I wait for "Scroll position changed to PyQt5.QtCore.QPoint()" in the log
         Then the page should not be scrolled
 
     Scenario: Scrolling to middle (horizontally) with :scroll-perc
@@ -172,7 +201,9 @@ Feature: Scrolling
 
     Scenario: Scrolling to middle and to left with :scroll-perc
         When I run :scroll-perc --horizontal 50
+        And I wait for "Scroll position changed to *" in the log
         And I run :scroll-perc --horizontal 0
+        And I wait for "Scroll position changed to PyQt5.QtCore.QPoint()" in the log
         Then the page should not be scrolled
 
     Scenario: :scroll-perc without argument
@@ -195,7 +226,7 @@ Feature: Scrolling
     Scenario: :scroll-perc on a page without scrolling
         When I open data/hello.txt
         And I run :scroll-perc 20
-        Then no crash should happen
+        Then the page should not be scrolled
 
     Scenario: :scroll-perc with count and argument
         When I run :scroll-perc 0 with count 50
@@ -219,7 +250,9 @@ Feature: Scrolling
 
     Scenario: Scrolling down and up with :scroll-page
         When I run :scroll-page 0 1
+        And I wait for "Scroll position changed to *" in the log
         And I run :scroll-page 0 -1
+        And I wait for "Scroll position changed to PyQt5.QtCore.QPoint()" in the log
         Then the page should not be scrolled
 
     Scenario: Scrolling right with :scroll-page
@@ -232,18 +265,24 @@ Feature: Scrolling
 
     Scenario: Scrolling right and left with :scroll-page
         When I run :scroll-page 1 0
+        And I wait for "Scroll position changed to *" in the log
         And I run :scroll-page -1 0
+        And I wait for "Scroll position changed to PyQt5.QtCore.QPoint()" in the log
         Then the page should not be scrolled
 
     Scenario: Scrolling right and left with :scroll-page and count
         When I run :scroll-page 1 0 with count 2
+        And I wait for "Scroll position changed to *" in the log
         And I run :scroll-page -1 0
+        And I wait for "Scroll position changed to *" in the log
         And I run :scroll-page -1 0
+        And I wait for "Scroll position changed to PyQt5.QtCore.QPoint()" in the log
         Then the page should not be scrolled
 
     @qtwebengine_todo: at_bottom is not implemented yet
     Scenario: :scroll-page with --bottom-navigate
         When I run :scroll-perc 100
+        And I wait for "Scroll position changed to *" in the log
         And I run :scroll-page --bottom-navigate next 0 1
         Then data/hello2.txt should be loaded
 
@@ -259,4 +298,4 @@ Feature: Scrolling
     Scenario: :scroll-page on a page without scrolling
         When I open data/hello.txt
         And I run :scroll-page 1 1
-        Then no crash should happen
+        Then the page should not be scrolled
