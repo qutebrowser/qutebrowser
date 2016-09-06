@@ -19,8 +19,6 @@
 
 """Tests for qutebrowser.misc.sessions."""
 
-import os
-import textwrap
 import logging
 
 import pytest
@@ -32,7 +30,6 @@ from qutebrowser.misc import sessions
 from qutebrowser.misc.sessions import TabHistoryItem as Item
 from qutebrowser.utils import objreg, qtutils
 from qutebrowser.browser.webkit import tabhistory
-from qutebrowser.commands import cmdexc
 
 
 pytestmark = pytest.mark.qt_log_ignore('QIODevice::read.*: device not open')

@@ -349,7 +349,7 @@ class Process(QObject):
                 # this line again.
                 line.waited_for = True
                 self._log("\n----> Already found {!r} in the log: {}".format(
-                        kwargs.get('message', 'line'), line))
+                    kwargs.get('message', 'line'), line))
                 return line
         return None
 

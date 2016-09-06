@@ -20,7 +20,6 @@
 import os.path
 import logging
 
-import pytest
 import pytest_bdd as bdd
 bdd.scenarios('sessions.feature')
 

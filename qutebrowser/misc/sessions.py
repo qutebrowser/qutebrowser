@@ -31,7 +31,6 @@ try:
 except ImportError:  # pragma: no cover
     from yaml import SafeLoader as YamlLoader, SafeDumper as YamlDumper
 
-from qutebrowser.browser.webkit import tabhistory
 from qutebrowser.utils import (standarddir, objreg, qtutils, log, usertypes,
                                message, utils)
 from qutebrowser.commands import cmdexc, cmdutils

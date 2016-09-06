@@ -183,23 +183,8 @@ class QuteProc(testprocess.Process):
         if self._load_ready and self._focus_ready:
             self.ready.emit()
 
-    def _parse_line(self, line):
-        try:
-            log_line = LogLine(line)
-        except testprocess.InvalidLine:
-            if not line.strip():
-                return None
-            elif 'Running without the SUID sandbox!' in line:
-                # QtWebEngine error
-                return None
-            elif is_ignored_qt_message(line):
-                return None
-            else:
-                raise
-
-        log_line.use_color = self.request.config.getoption('--color') != 'no'
-        self._log(log_line)
-
+    def _process_line(self, log_line):
+        """Check if the line matches any initial lines we're interested in."""
         start_okay_message_load = (
             "load status for <qutebrowser.browser.* tab_id=0 "
             "url='about:blank'>: LoadStatus.success")
@@ -236,6 +221,23 @@ class QuteProc(testprocess.Process):
         elif self._is_error_logline(log_line):
             self.got_error.emit()
 
+    def _parse_line(self, line):
+        try:
+            log_line = LogLine(line)
+        except testprocess.InvalidLine:
+            if not line.strip():
+                return None
+            elif 'Running without the SUID sandbox!' in line:
+                # QtWebEngine error
+                return None
+            elif is_ignored_qt_message(line):
+                return None
+            else:
+                raise
+
+        log_line.use_color = self.request.config.getoption('--color') != 'no'
+        self._log(log_line)
+        self._process_line(log_line)
         return log_line
 
     def _executable_args(self):
