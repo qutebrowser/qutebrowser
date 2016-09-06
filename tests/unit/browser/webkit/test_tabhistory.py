@@ -25,7 +25,7 @@ from PyQt5.QtCore import QUrl, QPoint
 import pytest
 
 from qutebrowser.browser.webkit import tabhistory
-from qutebrowser.browser.webkit.tabhistory import TabHistoryItem as Item
+from qutebrowser.misc.sessions import TabHistoryItem as Item
 from qutebrowser.utils import qtutils
 
 
