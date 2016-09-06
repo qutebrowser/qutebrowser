@@ -25,7 +25,7 @@ import shlex
 import functools
 
 from PyQt5.QtWidgets import QApplication, QTabBar
-from PyQt5.QtCore import Qt, QUrl, QEvent
+from PyQt5.QtCore import Qt, QUrl, QEvent, QUrlQuery
 from PyQt5.QtGui import QKeyEvent
 from PyQt5.QtPrintSupport import QPrintDialog, QPrintPreviewDialog
 try:
@@ -702,7 +702,13 @@ class CommandDispatcher:
             flags = QUrl.RemovePassword
             if what != 'pretty-url':
                 flags |= QUrl.FullyEncoded
-            s = self._current_url().toString(flags)
+            url = QUrl(self._current_url())
+            url_query = QUrlQuery(url)
+            for key in dict(url_query.queryItems()):
+                if key in config.get('general', 'yank-ignored-url-parameters'):
+                    url_query.removeQueryItem(key)
+            url.setQuery(url_query)
+            s = url.toString(flags)
             what = 'URL'  # For printing
         elif what == 'selection':
             caret = self._current_widget().caret
