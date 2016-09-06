@@ -637,8 +637,8 @@ class JSONFormatter(logging.Formatter):
 
     def format(self, record):
         obj = {}
-        for field in ['created', 'levelname', 'name', 'module', 'funcName',
-                      'lineno', 'levelno']:
+        for field in ['created', 'msecs', 'levelname', 'name', 'module',
+                      'funcName', 'lineno', 'levelno']:
             obj[field] = getattr(record, field)
         obj['message'] = record.getMessage()
         if record.exc_info is not None:

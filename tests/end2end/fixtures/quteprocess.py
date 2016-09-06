@@ -73,6 +73,7 @@ class LogLine(testprocess.Line):
             raise testprocess.InvalidLine(data)
 
         self.timestamp = datetime.datetime.fromtimestamp(line['created'])
+        self.msecs = line['msecs']
         self.loglevel = line['levelno']
         self.levelname = line['levelname']
         self.category = line['name']
@@ -109,10 +110,13 @@ class LogLine(testprocess.Line):
         if self.line is None:
             r.line = 0
         r.created = self.timestamp.timestamp()
+        r.msecs = self.msecs
         r.module = self.module
         r.funcName = self.function
 
         format_str = log.EXTENDED_FMT
+        format_str = format_str.replace('{asctime:8}',
+                                        '{asctime:8}.{msecs:03.0f}')
         # Mark expected errors with (expected) so it's less confusing for tests
         # which expect errors but fail due to other errors.
         if self.expected and self.loglevel > logging.INFO:
