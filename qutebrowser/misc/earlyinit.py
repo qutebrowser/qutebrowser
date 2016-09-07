@@ -229,7 +229,8 @@ def check_qt_version(args):
         text = ("Fatal error: Qt and PyQt >= 5.2.0 are required, but {} is "
                 "installed.".format(qVersion()))
         _die(text)
-    elif args.backend == 'webengine' and qtutils.version_check('5.6.0', operator.lt):
+    elif args.backend == 'webengine' and qtutils.version_check('5.6.0',
+                                                               operator.lt):
         text = ("Fatal error: Qt and PyQt >= 5.6.0 are required for "
                 "QtWebEngine support, but {} is installed.".format(qVersion()))
         _die(text)

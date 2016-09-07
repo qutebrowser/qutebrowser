@@ -29,10 +29,10 @@ def custom_headers():
     headers[b'DNT'] = dnt
     headers[b'X-Do-Not-Track'] = dnt
 
-    custom_headers = config.get('network', 'custom-headers')
-    if custom_headers is not None:
-        for header, value in custom_headers.items():
-            headers[header.encode('ascii')]  = value.encode('ascii')
+    config_headers = config.get('network', 'custom-headers')
+    if config_headers is not None:
+        for header, value in config_headers.items():
+            headers[header.encode('ascii')] = value.encode('ascii')
 
     accept_language = config.get('network', 'accept-language')
     if accept_language is not None:
