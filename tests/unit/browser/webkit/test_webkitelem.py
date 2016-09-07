@@ -266,7 +266,6 @@ class TestWebKitElement:
         lambda e: e.is_editable(),
         lambda e: e.is_text_input(),
         lambda e: e.remove_blank_target(),
-        lambda e: e.debug_text(),
         lambda e: e.outer_xml(),
         lambda e: e.tag_name(),
         lambda e: e.rect_on_view(),
@@ -274,8 +273,8 @@ class TestWebKitElement:
     ], ids=['str', 'getitem', 'setitem', 'delitem', 'contains', 'iter', 'len',
             'frame', 'geometry', 'style_property', 'text', 'set_text',
             'insert_text', 'is_writable', 'is_content_editable', 'is_editable',
-            'is_text_input', 'remove_blank_target', 'debug_text', 'outer_xml',
-            'tag_name', 'rect_on_view', 'is_visible'])
+            'is_text_input', 'remove_blank_target', 'outer_xml', 'tag_name',
+            'rect_on_view', 'is_visible'])
     def test_vanished(self, elem, code):
         """Make sure methods check if the element is vanished."""
         elem._elem.isNull.return_value = True
@@ -286,14 +285,19 @@ class TestWebKitElement:
     def test_str(self, elem):
         assert str(elem) == 'text'
 
-    @pytest.mark.parametrize('is_null, expected', [
-        (False, "<qutebrowser.browser.webkit.webkitelem.WebKitElement "
-                "html='<fakeelem/>'>"),
-        (True, '<qutebrowser.browser.webkit.webkitelem.WebKitElement '
-               'html=None>'),
+    wke_qualname = 'qutebrowser.browser.webkit.webkitelem.WebKitElement'
+
+    @pytest.mark.parametrize('is_null, xml, expected', [
+        (False, '<fakeelem/>', "<{} html='<fakeelem/>'>".format(wke_qualname)),
+        (False, '<foo>\n<bar/>\n</foo>',
+         "<{} html='<foo><bar/></foo>'>".format(wke_qualname)),
+        (False, '<foo>{}</foo>'.format('x' * 500),
+         "<{} html='<foo>{}…'>".format(wke_qualname, 'x' * 494)),
+        (True, None, '<{} html=None>'.format(wke_qualname)),
     ])
-    def test_repr(self, elem, is_null, expected):
+    def test_repr(self, elem, is_null, xml, expected):
         elem._elem.isNull.return_value = is_null
+        elem._elem.toOuterXml.return_value = xml
         assert repr(elem) == expected
 
     def test_getitem(self):
@@ -383,15 +387,6 @@ class TestWebKitElement:
     def test_is_text_input(self, tagname, attributes, expected):
         elem = get_webelem(tagname=tagname, attributes=attributes)
         assert elem.is_text_input() == expected
-
-    @pytest.mark.parametrize('xml, expected', [
-        ('<fakeelem/>', '<fakeelem/>'),
-        ('<foo>\n<bar/>\n</foo>', '<foo><bar/></foo>'),
-        ('<foo>{}</foo>'.format('x' * 500), '<foo>{}…'.format('x' * 494)),
-    ], ids=['fakeelem', 'newlines', 'long'])
-    def test_debug_text(self, elem, xml, expected):
-        elem._elem.toOuterXml.return_value = xml
-        assert elem.debug_text() == expected
 
     @pytest.mark.parametrize('attribute, code', [
         ('geometry', lambda e: e.geometry()),

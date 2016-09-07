@@ -106,7 +106,7 @@ class AbstractWebElement(collections.abc.MutableMapping):
 
     def __repr__(self):
         try:
-            html = self.debug_text()
+            html = utils.compact_text(self.outer_xml(), 500)
         except Error:
             html = None
         return utils.get_repr(self, html=html)
@@ -310,10 +310,6 @@ class AbstractWebElement(collections.abc.MutableMapping):
                 break
             elem = elem.parent()
 
-    def debug_text(self):
-        """Get a text based on an element suitable for debug output."""
-        return utils.compact_text(self.outer_xml(), 500)
-
     def resolve_url(self, baseurl):
         """Resolve the URL in the element's src/href attribute.
 
@@ -365,9 +361,8 @@ class AbstractWebElement(collections.abc.MutableMapping):
 
         pos = self._mouse_pos()
 
-        log.hints.debug("Sending fake click to '{}' at position {} with "
-                        "target {}".format(self.debug_text(), pos,
-                                           click_target))
+        log.hints.debug("Sending fake click to {!r} at position {} with "
+                        "target {}".format(self, pos, click_target))
 
         if click_target in [usertypes.ClickTarget.tab,
                             usertypes.ClickTarget.tab_bg,

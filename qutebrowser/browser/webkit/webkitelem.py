@@ -126,12 +126,10 @@ class WebKitElement(webelem.AbstractWebElement):
     def set_text(self, text, *, use_js=False):
         self._check_vanished()
         if self.is_content_editable() or not use_js:
-            log.misc.debug("Filling element {} via set_text.".format(
-                self.debug_text()))
+            log.misc.debug("Filling {!r} via set_text.".format(self))
             self._elem.setPlainText(text)
         else:
-            log.misc.debug("Filling element {} via javascript.".format(
-                self.debug_text()))
+            log.misc.debug("Filling {!r} via javascript.".format(self))
             text = javascript.string_escape(text)
             self._elem.evaluateJavaScript("this.value='{}'".format(text))
 
