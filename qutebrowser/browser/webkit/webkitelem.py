@@ -233,8 +233,13 @@ class WebKitElement(webelem.AbstractWebElement):
         # No suitable rects found via JS, try via the QWebElement API
         return self._rect_on_view_python(elem_geometry)
 
-    def is_visible(self, mainframe):
-        """Check if the given element is visible in the given frame."""
+    def _is_visible(self, mainframe):
+        """Check if the given element is visible in the given frame.
+
+        This is not public API because it can't be implemented easily here with
+        QtWebEngine, and is only used via find_css(..., only_visible=True) via
+        the tab API.
+        """
         self._check_vanished()
         # CSS attributes which hide an element
         hidden_attributes = {

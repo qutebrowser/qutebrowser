@@ -507,7 +507,9 @@ class WebKitElements(browsertab.AbstractElements):
                 elems.append(webkitelem.WebKitElement(elem, tab=self._tab))
 
         if only_visible:
-            elems = [e for e in elems if e.is_visible(mainframe)]
+            # pylint: disable=protected-access
+            elems = [e for e in elems if e._is_visible(mainframe)]
+            # pylint: enable=protected-access
 
         callback(elems)
 

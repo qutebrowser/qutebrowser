@@ -269,7 +269,7 @@ class TestWebKitElement:
         lambda e: e.outer_xml(),
         lambda e: e.tag_name(),
         lambda e: e.rect_on_view(),
-        lambda e: e.is_visible(None),
+        lambda e: e._is_visible(None),
     ], ids=['str', 'getitem', 'setitem', 'delitem', 'contains', 'iter', 'len',
             'frame', 'geometry', 'style_property', 'text', 'set_text',
             'insert_text', 'is_writable', 'is_content_editable', 'is_editable',
@@ -491,14 +491,14 @@ class TestIsVisible:
         assert not rect.isValid()
         frame = stubs.FakeWebFrame(rect)
         elem = get_webelem(QRect(0, 0, 10, 10), frame)
-        assert not elem.is_visible(frame)
+        assert not elem._is_visible(frame)
 
     def test_invalid_invisible(self, frame):
         """Test elements with an invalid geometry which are invisible."""
         elem = get_webelem(QRect(0, 0, 0, 0), frame)
         assert not elem.geometry().isValid()
         assert elem.geometry().x() == 0
-        assert not elem.is_visible(frame)
+        assert not elem._is_visible(frame)
 
     def test_invalid_visible(self, frame):
         """Test elements with an invalid geometry which are visible.
@@ -508,7 +508,7 @@ class TestIsVisible:
         """
         elem = get_webelem(QRect(10, 10, 0, 0), frame)
         assert not elem.geometry().isValid()
-        assert elem.is_visible(frame)
+        assert elem._is_visible(frame)
 
     @pytest.mark.parametrize('geometry, visible', [
         (QRect(5, 5, 4, 4), False),
@@ -518,7 +518,7 @@ class TestIsVisible:
         scrolled_frame = stubs.FakeWebFrame(QRect(0, 0, 100, 100),
                                             scroll=QPoint(10, 10))
         elem = get_webelem(geometry, scrolled_frame)
-        assert elem.is_visible(scrolled_frame) == visible
+        assert elem._is_visible(scrolled_frame) == visible
 
     @pytest.mark.parametrize('style, visible', [
         ({'visibility': 'visible'}, True),
@@ -530,7 +530,7 @@ class TestIsVisible:
     ])
     def test_css_attributes(self, frame, style, visible):
         elem = get_webelem(QRect(0, 0, 10, 10), frame, style=style)
-        assert elem.is_visible(frame) == visible
+        assert elem._is_visible(frame) == visible
 
 
 class TestIsVisibleIframe:
@@ -580,20 +580,20 @@ class TestIsVisibleIframe:
             get_webelem(QRect(30, 180, 10, 10), frame),
         ]
 
-        assert elems[0].is_visible(frame)
-        assert elems[1].is_visible(frame)
-        assert not elems[2].is_visible(frame)
-        assert elems[3].is_visible(frame)
+        assert elems[0]._is_visible(frame)
+        assert elems[1]._is_visible(frame)
+        assert not elems[2]._is_visible(frame)
+        assert elems[3]._is_visible(frame)
 
         return self.Objects(frame=frame, iframe=iframe, elems=elems)
 
     def test_iframe_scrolled(self, objects):
         """Scroll iframe down so elem3 gets visible and elem1/elem2 not."""
         objects.iframe.scrollPosition.return_value = QPoint(0, 100)
-        assert not objects.elems[0].is_visible(objects.frame)
-        assert not objects.elems[1].is_visible(objects.frame)
-        assert objects.elems[2].is_visible(objects.frame)
-        assert objects.elems[3].is_visible(objects.frame)
+        assert not objects.elems[0]._is_visible(objects.frame)
+        assert not objects.elems[1]._is_visible(objects.frame)
+        assert objects.elems[2]._is_visible(objects.frame)
+        assert objects.elems[3]._is_visible(objects.frame)
 
     def test_mainframe_scrolled_iframe_visible(self, objects):
         """Scroll mainframe down so iframe is partly visible but elem1 not."""
@@ -602,10 +602,10 @@ class TestIsVisibleIframe:
             objects.frame.scrollPosition())
         assert not geom.contains(objects.iframe.geometry())
         assert geom.intersects(objects.iframe.geometry())
-        assert not objects.elems[0].is_visible(objects.frame)
-        assert objects.elems[1].is_visible(objects.frame)
-        assert not objects.elems[2].is_visible(objects.frame)
-        assert objects.elems[3].is_visible(objects.frame)
+        assert not objects.elems[0]._is_visible(objects.frame)
+        assert objects.elems[1]._is_visible(objects.frame)
+        assert not objects.elems[2]._is_visible(objects.frame)
+        assert objects.elems[3]._is_visible(objects.frame)
 
     def test_mainframe_scrolled_iframe_invisible(self, objects):
         """Scroll mainframe down so iframe is invisible."""
@@ -614,10 +614,10 @@ class TestIsVisibleIframe:
             objects.frame.scrollPosition())
         assert not geom.contains(objects.iframe.geometry())
         assert not geom.intersects(objects.iframe.geometry())
-        assert not objects.elems[0].is_visible(objects.frame)
-        assert not objects.elems[1].is_visible(objects.frame)
-        assert not objects.elems[2].is_visible(objects.frame)
-        assert objects.elems[3].is_visible(objects.frame)
+        assert not objects.elems[0]._is_visible(objects.frame)
+        assert not objects.elems[1]._is_visible(objects.frame)
+        assert not objects.elems[2]._is_visible(objects.frame)
+        assert objects.elems[3]._is_visible(objects.frame)
 
     @pytest.fixture
     def invalid_objects(self, stubs):
@@ -661,11 +661,11 @@ class TestIsVisibleIframe:
         which *are* visible, but don't have a valid geometry.
         """
         elem = invalid_objects.elems[0]
-        assert elem.is_visible(invalid_objects.frame)
+        assert elem._is_visible(invalid_objects.frame)
 
     def test_invalid_invisible(self, invalid_objects):
         """Test elements with an invalid geometry which are invisible."""
-        assert not invalid_objects.elems[1].is_visible(invalid_objects.frame)
+        assert not invalid_objects.elems[1]._is_visible(invalid_objects.frame)
 
 
 class TestRectOnView:

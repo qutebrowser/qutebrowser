@@ -162,9 +162,3 @@ class WebEngineElement(webelem.AbstractWebElement):
         log.webelem.debug("Couldn't find rectangle for {!r} ({})".format(
             self, rects))
         return QRect()
-
-    def is_visible(self, mainframe):
-        """Check if the given element is visible in the given frame."""
-        # FIXME:qtwebengine get rid of this?
-        log.stub()
-        return True

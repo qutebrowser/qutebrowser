@@ -187,11 +187,6 @@ class AbstractWebElement(collections.abc.MutableMapping):
         """
         raise NotImplementedError
 
-    def is_visible(self, mainframe):
-        """Check if the given element is visible in the given frame."""
-        # FIXME:qtwebengine get rid of this?
-        raise NotImplementedError
-
     def is_writable(self):
         """Check whether an element is writable."""
         return not ('disabled' in self or 'readonly' in self)
