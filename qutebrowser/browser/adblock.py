@@ -206,7 +206,7 @@ class HostBlocker:
                     continue
                 download = FakeDownload(fileobj)
                 self._in_progress.append(download)
-                self.on_download_finished(download)
+                self.on_download_finished(download, win_id)
             else:
                 fobj = io.BytesIO()
                 fobj.name = 'adblock: ' + url.host()
@@ -215,7 +215,7 @@ class HostBlocker:
                                                 auto_remove=True)
                 self._in_progress.append(download)
                 download.finished.connect(
-                    functools.partial(self.on_download_finished, download))
+                    functools.partial(self.on_download_finished, download, win_id))
 
     def _merge_file(self, byte_io):
         """Read and merge host files.
@@ -264,12 +264,12 @@ class HostBlocker:
             message.error('current', "adblock: {} read errors for {}".format(
                 error_count, byte_io.name))
 
-    def on_lists_downloaded(self):
+    def on_lists_downloaded(self, win_id):
         """Install block lists after files have been downloaded."""
         with open(self._local_hosts_file, 'w', encoding='utf-8') as f:
             for host in sorted(self._blocked_hosts):
                 f.write(host + '\n')
-            message.info('current', "adblock: Read {} hosts from {} sources."
+            message.info(win_id, "adblock: Read {} hosts from {} sources."
                          .format(len(self._blocked_hosts), self._done_count))
 
     @config.change_filter('content', 'host-block-lists')
@@ -284,11 +284,12 @@ class HostBlocker:
             except OSError as e:
                 log.misc.exception("Failed to delete hosts file: {}".format(e))
 
-    def on_download_finished(self, download):
+    def on_download_finished(self, download, win_id):
         """Check if all downloads are finished and if so, trigger reading.
 
         Arguments:
             download: The finished DownloadItem.
+            win_id: The window ID in which :adblock-update was called
         """
         self._in_progress.remove(download)
         if download.successful:
@@ -299,6 +300,6 @@ class HostBlocker:
                 download.fileobj.close()
         if not self._in_progress:
             try:
-                self.on_lists_downloaded()
+                self.on_lists_downloaded(win_id)
             except OSError:
                 log.misc.exception("Failed to write host block list!")
