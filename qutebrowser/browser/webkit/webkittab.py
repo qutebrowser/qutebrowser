@@ -35,6 +35,12 @@ from qutebrowser.browser.webkit import webview, tabhistory, webkitelem
 from qutebrowser.utils import qtutils, objreg, usertypes, utils, log
 
 
+def init():
+    """Initialize QtWebKit-specific modules."""
+    # FIXME:qtwebengine Move things we don't need with QtWebEngine here.
+    pass
+
+
 class WebKitPrinting(browsertab.AbstractPrinting):
 
     """QtWebKit implementations related to printing."""

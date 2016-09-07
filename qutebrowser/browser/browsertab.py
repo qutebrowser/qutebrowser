@@ -55,6 +55,16 @@ def create(win_id, parent=None):
     return tab_class(win_id=win_id, mode_manager=mode_manager, parent=parent)
 
 
+def init(args):
+    """Initialize backend-specific modules."""
+    if objreg.get('args').backend == 'webengine':
+        from qutebrowser.browser.webengine import webenginetab
+        webenginetab.init()
+    else:
+        from qutebrowser.browser.webkit import webkittab
+        webkittab.init()
+
+
 class WebTabError(Exception):
 
     """Base class for various errors."""

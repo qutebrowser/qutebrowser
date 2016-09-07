@@ -45,7 +45,7 @@ import qutebrowser.resources
 from qutebrowser.completion.models import instances as completionmodels
 from qutebrowser.commands import cmdutils, runners, cmdexc
 from qutebrowser.config import style, config, websettings, configexc
-from qutebrowser.browser import urlmarks, adblock, history
+from qutebrowser.browser import urlmarks, adblock, history, browsertab
 from qutebrowser.browser.webkit import cookies, cache, downloads
 from qutebrowser.browser.webkit.network import (qutescheme, proxy,
                                                 networkmanager)
@@ -442,6 +442,8 @@ def _init_modules(args, crash_handler):
         os.environ.pop('QT_WAYLAND_DISABLE_WINDOWDECORATION', None)
     temp_downloads = downloads.TempDownloadManager(qApp)
     objreg.register('temporary-downloads', temp_downloads)
+    # Init backend-specific stuff
+    browsertab.init(args)
 
 
 def _init_late_modules(args):

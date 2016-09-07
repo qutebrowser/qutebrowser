@@ -27,13 +27,25 @@ import functools
 from PyQt5.QtCore import pyqtSlot, Qt, QEvent, QPoint, QUrl, QTimer
 from PyQt5.QtGui import QKeyEvent, QIcon
 # pylint: disable=no-name-in-module,import-error,useless-suppression
-from PyQt5.QtWidgets import QOpenGLWidget
-from PyQt5.QtWebEngineWidgets import QWebEnginePage, QWebEngineScript
+from PyQt5.QtWidgets import QOpenGLWidget, QApplication
+from PyQt5.QtWebEngineWidgets import (QWebEnginePage, QWebEngineScript,
+                                      QWebEngineProfile)
 # pylint: enable=no-name-in-module,import-error,useless-suppression
 
 from qutebrowser.browser import browsertab, mouse
-from qutebrowser.browser.webengine import webview, webengineelem, tabhistory
-from qutebrowser.utils import usertypes, qtutils, log, javascript, utils
+from qutebrowser.browser.webengine import (webview, webengineelem, tabhistory,
+                                           interceptor)
+from qutebrowser.utils import (usertypes, qtutils, log, javascript, utils,
+                               objreg)
+
+
+def init():
+    """Initialize QtWebEngine-specific modules."""
+    log.init.debug("Initializing request interceptor...")
+    host_blocker = objreg.get('host-blocker')
+    req_interceptor = interceptor.RequestInterceptor(
+        host_blocker, parent=QApplication.instance())
+    req_interceptor.install(QWebEngineProfile.defaultProfile())
 
 
 class WebEnginePrinting(browsertab.AbstractPrinting):
