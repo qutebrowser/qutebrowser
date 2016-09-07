@@ -374,50 +374,67 @@ def _init_modules(args, crash_handler):
     save_manager = savemanager.SaveManager(qApp)
     objreg.register('save-manager', save_manager)
     save_manager.add_saveable('version', _save_version)
+
     log.init.debug("Initializing network...")
     networkmanager.init()
+
     log.init.debug("Initializing readline-bridge...")
     readline_bridge = readline.ReadlineBridge()
     objreg.register('readline-bridge', readline_bridge)
+
     log.init.debug("Initializing directories...")
     standarddir.init(args)
+
     log.init.debug("Initializing config...")
     config.init(qApp)
     save_manager.init_autosave()
+
     log.init.debug("Initializing web history...")
     history.init(qApp)
+
     log.init.debug("Initializing crashlog...")
     if not args.no_err_windows:
         crash_handler.handle_segfault()
+
     log.init.debug("Initializing sessions...")
     sessions.init(qApp)
+
     log.init.debug("Initializing js-bridge...")
     js_bridge = qutescheme.JSBridge(qApp)
     objreg.register('js-bridge', js_bridge)
+
     log.init.debug("Initializing websettings...")
     websettings.init()
+
     log.init.debug("Initializing adblock...")
     host_blocker = adblock.HostBlocker()
     host_blocker.read_hosts()
     objreg.register('host-blocker', host_blocker)
+
     log.init.debug("Initializing quickmarks...")
     quickmark_manager = urlmarks.QuickmarkManager(qApp)
     objreg.register('quickmark-manager', quickmark_manager)
+
     log.init.debug("Initializing bookmarks...")
     bookmark_manager = urlmarks.BookmarkManager(qApp)
     objreg.register('bookmark-manager', bookmark_manager)
+
     log.init.debug("Initializing proxy...")
     proxy.init()
+
     log.init.debug("Initializing cookies...")
     cookie_jar = cookies.CookieJar(qApp)
     ram_cookie_jar = cookies.RAMCookieJar(qApp)
     objreg.register('cookie-jar', cookie_jar)
     objreg.register('ram-cookie-jar', ram_cookie_jar)
+
     log.init.debug("Initializing cache...")
     diskcache = cache.DiskCache(standarddir.cache(), parent=qApp)
     objreg.register('cache', diskcache)
+
     log.init.debug("Initializing completions...")
     completionmodels.init()
+
     log.init.debug("Misc initialization...")
     if config.get('ui', 'hide-wayland-decoration'):
         os.environ['QT_WAYLAND_DISABLE_WINDOWDECORATION'] = '1'
