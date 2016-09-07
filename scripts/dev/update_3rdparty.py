@@ -96,6 +96,15 @@ def update_dmg_makefile():
     urllib.request.urlcleanup()
 
 
+def update_ace():
+    print("Updating ACE...")
+    url = 'https://raw.githubusercontent.com/ajaxorg/ace-builds/master/src/ace.js'
+    target_path = os.path.join('tests', 'end2end', 'data', 'hints', 'ace',
+                               'ace.js')
+    urllib.request.urlretrieve(url, target_path)
+    urllib.request.urlcleanup()
+
+
 def main():
     parser = argparse.ArgumentParser()
     parser.add_argument(
@@ -108,6 +117,7 @@ def main():
     args = parser.parse_args()
 
     update_pdfjs(args.pdfjs)
+    update_ace()
     if args.fancy_dmg:
         update_dmg_makefile()
 

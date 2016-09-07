@@ -139,6 +139,15 @@ Feature: Using hints
         # The actual check is already done above
         Then no crash should happen
 
+    @qtwebengine_todo: webelem.classes is not implemented yet
+    Scenario: Hinting with ACE editor
+        When I open data/hints/ace/ace.html
+        And I hint with args "inputs" and follow a
+        And I wait for "Entering mode KeyMode.insert (reason: click)" in the log
+        And I run :leave-mode
+        # The actual check is already done above
+        Then no crash should happen
+
     ### iframes
 
     @qtwebengine_todo: Hinting in iframes is not implemented yet
