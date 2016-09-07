@@ -111,7 +111,7 @@ class WebEngineElement(webelem.AbstractWebElement):
     def insert_text(self, text):
         if not self.is_editable(strict=True):
             raise webelem.Error("Element is not editable!")
-        log.misc.debug("Inserting text into element {!r}".format(self))
+        log.webelem.debug("Inserting text into element {!r}".format(self))
         js_code = javascript.assemble('webelem', 'insert_text', self._id, text)
         self._tab.run_js_async(js_code)
 
@@ -159,7 +159,7 @@ class WebEngineElement(webelem.AbstractWebElement):
                 #     rect.translate(frame.geometry().topLeft())
                 #     frame = frame.parentFrame()
                 return rect
-        log.webview.debug("Couldn't find rectangle for {!r} ({})".format(
+        log.webelem.debug("Couldn't find rectangle for {!r} ({})".format(
             self, rects))
         return QRect()
 

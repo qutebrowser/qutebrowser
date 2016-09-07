@@ -126,10 +126,10 @@ class WebKitElement(webelem.AbstractWebElement):
     def set_text(self, text, *, use_js=False):
         self._check_vanished()
         if self.is_content_editable() or not use_js:
-            log.misc.debug("Filling {!r} via set_text.".format(self))
+            log.webelem.debug("Filling {!r} via set_text.".format(self))
             self._elem.setPlainText(text)
         else:
-            log.misc.debug("Filling {!r} via javascript.".format(self))
+            log.webelem.debug("Filling {!r} via javascript.".format(self))
             text = javascript.string_escape(text)
             self._elem.evaluateJavaScript("this.value='{}'".format(text))
 
@@ -137,7 +137,7 @@ class WebKitElement(webelem.AbstractWebElement):
         self._check_vanished()
         if not self.is_editable(strict=True):
             raise webelem.Error("Element is not editable!")
-        log.misc.debug("Inserting text into element {!r}".format(self))
+        log.webelem.debug("Inserting text into element {!r}".format(self))
         self._elem.evaluateJavaScript("""
             var text = "{}";
             var event = document.createEvent("TextEvent");
@@ -163,7 +163,7 @@ class WebKitElement(webelem.AbstractWebElement):
             return None
 
         text = utils.compact_text(self._elem.toOuterXml(), 500)
-        log.hints.vdebug("Client rectangles of element '{}': {}".format(
+        log.webelem.vdebug("Client rectangles of element '{}': {}".format(
             text, rects))
 
         for i in range(int(rects.get("length", 0))):

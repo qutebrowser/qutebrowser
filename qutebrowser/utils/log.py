@@ -93,7 +93,8 @@ LOGGER_NAMES = [
     'mouse', 'procs', 'hints', 'keyboard',
     'commands', 'signals', 'downloads',
     'js', 'qt', 'rfc6266', 'ipc', 'shlexer',
-    'save', 'message', 'config', 'sessions'
+    'save', 'message', 'config', 'sessions',
+    'webelem'
 ]
 
 
@@ -137,6 +138,7 @@ save = logging.getLogger('save')
 message = logging.getLogger('message')
 config = logging.getLogger('config')
 sessions = logging.getLogger('sessions')
+webelem = logging.getLogger('webelem')
 
 
 ram_handler = None
