@@ -30,7 +30,7 @@ from PyQt5.QtWebKitWidgets import QWebView, QWebPage, QWebFrame
 from qutebrowser.config import config
 from qutebrowser.keyinput import modeman
 from qutebrowser.utils import log, usertypes, utils, qtutils, objreg, debug
-from qutebrowser.browser.webkit import webpage, webkitelem
+from qutebrowser.browser.webkit import webpage
 
 
 class WebView(QWebView):

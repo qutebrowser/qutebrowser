@@ -46,14 +46,14 @@ from qutebrowser.browser import (urlmarks, browsertab, inspector, navigate,
                                  webelem)
 from qutebrowser.browser.webkit import downloads
 try:
-    from qutebrowser.browser.webkit import webkitelem, mhtml
+    from qutebrowser.browser.webkit import mhtml
 except ImportError:
     # Failing imports on QtWebEngine, only used in QtWebKit commands.
     # FIXME:qtwebengine don't import this anymore at all
     pass
 from qutebrowser.keyinput import modeman
 from qutebrowser.utils import (message, usertypes, log, qtutils, urlutils,
-                               objreg, utils, typing, javascript)
+                               objreg, utils, typing)
 from qutebrowser.utils.usertypes import KeyMode
 from qutebrowser.misc import editor, guiprocess
 from qutebrowser.completion.models import instances, sortfilter
