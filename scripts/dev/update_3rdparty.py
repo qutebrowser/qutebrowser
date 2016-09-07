@@ -97,6 +97,10 @@ def update_dmg_makefile():
 
 
 def update_ace():
+    """Update ACE.
+
+    See https://ace.c9.io/ and https://github.com/ajaxorg/ace-builds/
+    """
     print("Updating ACE...")
     url = 'https://raw.githubusercontent.com/ajaxorg/ace-builds/master/src/ace.js'
     target_path = os.path.join('tests', 'end2end', 'data', 'hints', 'ace',
