@@ -1266,7 +1266,8 @@ def data(readonly=False):
              "Background color for downloads with errors."),
 
             ('webpage.bg',
-             SettingValue(typ.QtColor(none_ok=True), 'white'),
+             SettingValue(typ.QtColor(none_ok=True), 'white',
+                          backends=[usertypes.Backend.QtWebKit]),
              "Background color for webpages if unset (or empty to use the "
              "theme's color)"),
 
