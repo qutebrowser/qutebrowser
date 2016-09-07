@@ -306,14 +306,3 @@ def get_child_frames(startframe):
             new_frames += frame.childFrames()
         frames = new_frames
     return results
-
-
-def focus_elem(frame):
-    """Get the focused element in a web frame.
-
-    Args:
-        frame: The QWebFrame to search in.
-    """
-    # FIXME:qtwebengine get rid of this
-    elem = frame.findFirstElement('*:focus')
-    return WebKitElement(elem, tab=None)

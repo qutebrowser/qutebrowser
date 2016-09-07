@@ -73,11 +73,7 @@ class FakeKeyEvent:
 
 class FakeWebFrame:
 
-    """A stub for QWebFrame.
-
-    Attributes:
-        focus_elem: The 'focused' element.
-    """
+    """A stub for QWebFrame."""
 
     def __init__(self, geometry=None, *, scroll=None, plaintext=None,
                  html=None, parent=None, zoom=1.0):
@@ -96,19 +92,9 @@ class FakeWebFrame:
         self.geometry = mock.Mock(return_value=geometry)
         self.scrollPosition = mock.Mock(return_value=scroll)
         self.parentFrame = mock.Mock(return_value=parent)
-        self.focus_elem = None
         self.toPlainText = mock.Mock(return_value=plaintext)
         self.toHtml = mock.Mock(return_value=html)
         self.zoomFactor = mock.Mock(return_value=zoom)
-
-    def findFirstElement(self, selector):
-        if selector == '*:focus':
-            if self.focus_elem is not None:
-                return self.focus_elem
-            else:
-                raise Exception("Trying to get focus element but it's unset!")
-        else:
-            raise Exception("Unknown selector {!r}!".format(selector))
 
 
 class FakeChildrenFrame:

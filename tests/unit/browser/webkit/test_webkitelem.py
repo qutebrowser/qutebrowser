@@ -681,19 +681,6 @@ class TestIsVisibleIframe:
         assert not invalid_objects.elems[1].is_visible(invalid_objects.frame)
 
 
-def test_focus_element(stubs):
-    """Test getting focus element with a fake frame/element.
-
-    Testing this with a real webpage is almost impossible because the window
-    and the element would have focus, which is hard to achieve consistently in
-    a test.
-    """
-    frame = stubs.FakeWebFrame(QRect(0, 0, 100, 100))
-    elem = get_webelem()
-    frame.focus_elem = elem._elem
-    assert webkitelem.focus_elem(frame)._elem is elem._elem
-
-
 class TestRectOnView:
 
     @pytest.fixture(autouse=True)

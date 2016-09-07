@@ -550,8 +550,7 @@ class WebKitElements(browsertab.AbstractElements):
         hitresult = frame.hitTestContent(pos)
         if hitresult.isNull():
             # For some reason, the whole hit result can be null sometimes (e.g.
-            # on doodle menu links). If this is the case, we schedule a check
-            # later (in mouseReleaseEvent) which uses webkitelem.focus_elem.
+            # on doodle menu links).
             log.webview.debug("Hit test result is null!")
             callback(None)
             return
@@ -561,8 +560,7 @@ class WebKitElements(browsertab.AbstractElements):
         except webkitelem.IsNullError:
             # For some reason, the hit result element can be a null element
             # sometimes (e.g. when clicking the timetable fields on
-            # http://www.sbb.ch/ ). If this is the case, we schedule a check
-            # later (in mouseReleaseEvent) which uses webelem.focus_elem.
+            # http://www.sbb.ch/ ).
             log.webview.debug("Hit test result element is null!")
             callback(None)
             return
