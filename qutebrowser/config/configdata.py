@@ -388,13 +388,11 @@ def data(readonly=False):
 
         ('network', sect.KeyValue(
             ('do-not-track',
-             SettingValue(typ.Bool(), 'true',
-                          backends=[usertypes.Backend.QtWebKit]),
+             SettingValue(typ.Bool(), 'true'),
              "Value to send in the `DNT` header."),
 
             ('accept-language',
-             SettingValue(typ.String(none_ok=True), 'en-US,en',
-                          backends=[usertypes.Backend.QtWebKit]),
+             SettingValue(typ.String(none_ok=True), 'en-US,en'),
              "Value to send in the `accept-language` header."),
 
             ('referer-header',
@@ -437,8 +435,7 @@ def data(readonly=False):
              "Whether to try to pre-fetch DNS entries to speed up browsing."),
 
             ('custom-headers',
-             SettingValue(typ.HeaderDict(none_ok=True), '',
-                          backends=[usertypes.Backend.QtWebKit]),
+             SettingValue(typ.HeaderDict(none_ok=True), ''),
              "Set custom headers for qutebrowser HTTP requests."),
 
             readonly=readonly

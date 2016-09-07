@@ -22,6 +22,7 @@
 from PyQt5.QtWidgets import QApplication
 from PyQt5.QtWebEngineCore import QWebEngineUrlRequestInterceptor
 
+from qutebrowser.browser import shared
 from qutebrowser.utils import utils, log
 
 
@@ -59,3 +60,6 @@ class RequestInterceptor(QWebEngineUrlRequestInterceptor):
             log.webview.info("Request to {} blocked by host blocker.".format(
                 info.requestUrl().host()))
             info.block(True)
+
+        for header, value in shared.custom_headers():
+            info.setHttpHeader(header, value)

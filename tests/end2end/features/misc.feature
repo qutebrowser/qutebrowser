@@ -394,11 +394,27 @@ Feature: Various utility commands.
 
     ## Custom headers
 
-    @qtwebengine_todo: Custom headers are not implemented yet
     Scenario: Setting a custom header
         When I set network -> custom-headers to {"X-Qute-Test": "testvalue"}
         And I open headers
         Then the header X-Qute-Test should be set to testvalue
+
+    Scenario: DNT header
+        When I set network -> do-not-track to true
+        And I open headers
+        Then the header Dnt should be set to 1
+        And the header X-Do-Not-Track should be set to 1
+
+    Scenario: DNT header (off)
+        When I set network -> do-not-track to false
+        And I open headers
+        Then the header Dnt should be set to 0
+        And the header X-Do-Not-Track should be set to 0
+
+    Scenario: Accept-Language header
+        When I set network -> accept-language to en,de
+        And I open headers
+        Then the header Accept-Language should be set to en,de
 
     ## :messages
 

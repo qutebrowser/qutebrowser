@@ -18,3 +18,24 @@
 # along with qutebrowser.  If not, see <http://www.gnu.org/licenses/>.
 
 """Various utilities shared between webpage/webview subclasses."""
+
+from qutebrowser.config import config
+
+
+def custom_headers():
+    """Get the combined custom headers."""
+    headers = {}
+    dnt = b'1' if config.get('network', 'do-not-track') else b'0'
+    headers[b'DNT'] = dnt
+    headers[b'X-Do-Not-Track'] = dnt
+
+    custom_headers = config.get('network', 'custom-headers')
+    if custom_headers is not None:
+        for header, value in custom_headers.items():
+            headers[header.encode('ascii')]  = value.encode('ascii')
+
+    accept_language = config.get('network', 'accept-language')
+    if accept_language is not None:
+        headers[b'Accept-Language'] = accept_language.encode('ascii')
+
+    return sorted(headers.items())

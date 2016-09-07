@@ -711,15 +711,11 @@ Valid values:
 
 Default: +pass:[true]+
 
-This setting is only available with the QtWebKit backend.
-
 [[network-accept-language]]
 === accept-language
 Value to send in the `accept-language` header.
 
 Default: +pass:[en-US,en]+
-
-This setting is only available with the QtWebKit backend.
 
 [[network-referer-header]]
 === referer-header
@@ -803,8 +799,6 @@ This setting is only available with the QtWebKit backend.
 Set custom headers for qutebrowser HTTP requests.
 
 Default: empty
-
-This setting is only available with the QtWebKit backend.
 
 == completion
 Options related to completion and command history.
