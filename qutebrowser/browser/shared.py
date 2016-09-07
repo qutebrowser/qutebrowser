@@ -18,24 +18,3 @@
 # along with qutebrowser.  If not, see <http://www.gnu.org/licenses/>.
 
 """Various utilities shared between webpage/webview subclasses."""
-
-
-from PyQt5.QtWidgets import QFileDialog
-
-
-class UseSuper(Exception):
-
-    """Exception raised when the caller should do a super() call."""
-
-
-def choose_file(suggested_name):
-    """Prompt the user for a filename and return it."""
-    filename, _filter = QFileDialog.getOpenFileName(None, None, suggested_name)
-    return filename
-
-
-def choose_files(suggested_name):
-    """Prompt the user for multiple filenames and return them."""
-    filenames, _filter = QFileDialog.getOpenFileNames(None, None,
-                                                      suggested_name)
-    return filenames
