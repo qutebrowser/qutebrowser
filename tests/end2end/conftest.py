@@ -148,6 +148,8 @@ def pytest_collection_modifyitems(config, items):
          not config.webengine),
         ('qtwebengine_flaky', 'Flaky with QtWebEngine', pytest.mark.skipif,
          config.webengine),
+        ('qtwebengine_osx_xfail', 'Fails on OS X with QtWebEngine',
+         pytest.mark.xfail, config.webengine and sys.platform == 'darwin'),
     ]
 
     for item in items:

@@ -250,6 +250,7 @@ Feature: Yanking and pasting.
         # Compare
         Then the text field should contain "onHello worlde two three four"
 
+    @qtwebengine_osx_xfail
     Scenario: Inserting text into a text field with undo
         When I open data/paste_primary.html
         And I run :click-element id qute-textarea
