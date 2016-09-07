@@ -316,6 +316,7 @@ Feature: Saving and loading sessions
     And I run :session-load _internal
     Then the error "_internal is an internal session, use --force to load anyways." should be shown
 
+  @qtwebengine_flaky
   Scenario: Loading internal session with --force
     When I open about:blank
     And I run :session-save --force _internal
@@ -323,6 +324,7 @@ Feature: Saving and loading sessions
     And I run :session-load --force _internal
     Then data/numbers/1.txt should be loaded
 
+  @qtwebengine_flaky
   Scenario: Normally loading a session
     When I open about:blank
     And I run :session-save loaded_session
