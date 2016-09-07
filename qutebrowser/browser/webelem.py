@@ -162,11 +162,6 @@ class AbstractWebElement(collections.abc.MutableMapping):
         """Insert the given text into the element."""
         raise NotImplementedError
 
-    def run_js_async(self, code, callback=None):
-        """Run the given JS snippet async on the element."""
-        # FIXME:qtwebengine get rid of this?
-        raise NotImplementedError
-
     def parent(self):
         """Get the parent element of this element."""
         # FIXME:qtwebengine get rid of this?

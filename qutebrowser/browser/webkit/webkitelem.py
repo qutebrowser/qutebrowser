@@ -139,19 +139,12 @@ class WebKitElement(webelem.AbstractWebElement):
         if not self.is_editable(strict=True):
             raise webelem.Error("Element is not editable!")
         log.misc.debug("Inserting text into element {!r}".format(self))
-        self.run_js_async("""
+        self._elem.evaluateJavaScript("""
             var text = '{}';
             var event = document.createEvent('TextEvent');
             event.initTextEvent('textInput', true, true, null, text);
             this.dispatchEvent(event);
         """.format(javascript.string_escape(text)))
-
-    def run_js_async(self, code, callback=None):
-        """Run the given JS snippet async on the element."""
-        self._check_vanished()
-        result = self._elem.evaluateJavaScript(code)
-        if callback is not None:
-            callback(result)
 
     def parent(self):
         self._check_vanished()

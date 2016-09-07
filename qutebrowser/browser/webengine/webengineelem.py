@@ -115,11 +115,6 @@ class WebEngineElement(webelem.AbstractWebElement):
         js_code = javascript.assemble('webelem', 'insert_text', self._id, text)
         self._tab.run_js_async(js_code)
 
-    def run_js_async(self, code, callback=None):
-        """Run the given JS snippet async on the element."""
-        # FIXME:qtwebengine get rid of this?
-        log.stub()
-
     def parent(self):
         """Get the parent element of this element."""
         # FIXME:qtwebengine get rid of this?

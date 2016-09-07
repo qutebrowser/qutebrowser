@@ -268,14 +268,13 @@ class TestWebKitElement:
         lambda e: e.debug_text(),
         lambda e: e.outer_xml(),
         lambda e: e.tag_name(),
-        lambda e: e.run_js_async(''),
         lambda e: e.rect_on_view(),
         lambda e: e.is_visible(None),
     ], ids=['str', 'getitem', 'setitem', 'delitem', 'contains', 'iter', 'len',
             'frame', 'geometry', 'style_property', 'text', 'set_text',
             'is_writable', 'is_content_editable', 'is_editable',
             'is_text_input', 'remove_blank_target', 'debug_text', 'outer_xml',
-            'tag_name', 'run_js_async', 'rect_on_view', 'is_visible'])
+            'tag_name', 'rect_on_view', 'is_visible'])
     def test_vanished(self, elem, code):
         """Make sure methods check if the element is vanished."""
         elem._elem.isNull.return_value = True
@@ -441,14 +440,6 @@ class TestWebKitElement:
         attr = 'evaluateJavaScript' if uses_js else 'setPlainText'
         called_mock = getattr(elem._elem, attr)
         called_mock.assert_called_with(arg)
-
-    @pytest.mark.parametrize('with_cb', [True, False])
-    def test_run_js_async(self, elem, with_cb):
-        cb = mock.Mock(spec={}) if with_cb else None
-        elem._elem.evaluateJavaScript.return_value = 42
-        elem.run_js_async('the_answer();', cb)
-        if with_cb:
-            cb.assert_called_with(42)
 
 
 class TestRemoveBlankTarget:
