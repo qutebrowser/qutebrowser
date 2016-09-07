@@ -101,7 +101,8 @@ def _die(message, exception=None):
         print(message, file=sys.stderr)
         print("Exiting because of --no-err-windows.", file=sys.stderr)
     else:
-        message += '<br/><br/><br/><b>Error:</b><br/>{}'.format(exception)
+        if exception is not None:
+            message += '<br/><br/><br/><b>Error:</b><br/>{}'.format(exception)
         msgbox = QMessageBox(QMessageBox.Critical, "qutebrowser: Fatal error!",
                              message)
         msgbox.setTextFormat(Qt.RichText)
