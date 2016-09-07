@@ -260,6 +260,7 @@ class TestWebKitElement:
         lambda e: e.style_property('visibility', strategy='computed'),
         lambda e: e.text(),
         lambda e: e.set_text('foo'),
+        lambda e: e.insert_text('foo'),
         lambda e: e.is_writable(),
         lambda e: e.is_content_editable(),
         lambda e: e.is_editable(),
@@ -272,7 +273,7 @@ class TestWebKitElement:
         lambda e: e.is_visible(None),
     ], ids=['str', 'getitem', 'setitem', 'delitem', 'contains', 'iter', 'len',
             'frame', 'geometry', 'style_property', 'text', 'set_text',
-            'is_writable', 'is_content_editable', 'is_editable',
+            'insert_text', 'is_writable', 'is_content_editable', 'is_editable',
             'is_text_input', 'remove_blank_target', 'debug_text', 'outer_xml',
             'tag_name', 'rect_on_view', 'is_visible'])
     def test_vanished(self, elem, code):

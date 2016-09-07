@@ -136,6 +136,7 @@ class WebKitElement(webelem.AbstractWebElement):
             self._elem.evaluateJavaScript("this.value='{}'".format(text))
 
     def insert_text(self, text):
+        self._check_vanished()
         if not self.is_editable(strict=True):
             raise webelem.Error("Element is not editable!")
         log.misc.debug("Inserting text into element {!r}".format(self))
