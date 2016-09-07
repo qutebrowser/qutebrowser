@@ -215,7 +215,8 @@ class HostBlocker:
                                                 auto_remove=True)
                 self._in_progress.append(download)
                 download.finished.connect(
-                    functools.partial(self.on_download_finished, download, win_id))
+                    functools.partial(self.on_download_finished, download,
+                                      win_id))
 
     def _merge_file(self, byte_io):
         """Read and merge host files.

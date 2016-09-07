@@ -19,8 +19,9 @@
 
 """A request interceptor taking care of adblocking and custom headers."""
 
-from PyQt5.QtWidgets import QApplication
+# pylint: disable=no-name-in-module,import-error,useless-suppression
 from PyQt5.QtWebEngineCore import QWebEngineUrlRequestInterceptor
+# pylint: enable=no-name-in-module,import-error,useless-suppression
 
 from qutebrowser.browser import shared
 from qutebrowser.utils import utils, log

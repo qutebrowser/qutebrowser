@@ -57,7 +57,7 @@ def create(win_id, parent=None):
 
 def init(args):
     """Initialize backend-specific modules."""
-    if objreg.get('args').backend == 'webengine':
+    if args.backend == 'webengine':
         from qutebrowser.browser.webengine import webenginetab
         webenginetab.init()
     else:
