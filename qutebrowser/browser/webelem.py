@@ -158,6 +158,10 @@ class AbstractWebElement(collections.abc.MutableMapping):
         # FIXME:qtwebengine what to do about use_js with WebEngine?
         raise NotImplementedError
 
+    def insert_text(self, text):
+        """Insert the given text into the element."""
+        raise NotImplementedError
+
     def run_js_async(self, code, callback=None):
         """Run the given JS snippet async on the element."""
         # FIXME:qtwebengine get rid of this?

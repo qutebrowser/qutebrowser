@@ -132,6 +132,13 @@ window._qutebrowser.webelem = (function() {
         elements[id].value = text;
     };
 
+    funcs.insert_text = function(id, text) {
+        var elem = elements[id];
+        var event = document.createEvent("TextEvent");
+        event.initTextEvent("textInput", true, true, null, text);
+        elem.dispatchEvent(event);
+    };
+
     funcs.element_at_pos = function(x, y) {
         // FIXME:qtwebengine
         // If the element at the specified point belongs to another document

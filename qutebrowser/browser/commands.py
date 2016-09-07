@@ -1525,32 +1525,28 @@ class CommandDispatcher:
             self.insert_text(utils.get_clipboard())
 
     @cmdutils.register(instance='command-dispatcher', maxsplit=0,
-                       scope='window', backend=usertypes.Backend.QtWebKit)
+                       scope='window')
     def insert_text(self, text):
         """Insert text at cursor position.
 
         Args:
             text: The text to insert.
         """
-        # FIXME:qtwebengine have a proper API for this
         tab = self._current_widget()
         if not tab.has_js():
             raise cmdexc.CommandError("This command needs javascript enabled.")
-        page = tab._widget.page()  # pylint: disable=protected-access
-        try:
-            elem = webkitelem.focus_elem(page.currentFrame())
-        except webkitelem.IsNullError:
-            raise cmdexc.CommandError("No element focused!")
-        if not elem.is_editable(strict=True):
-            raise cmdexc.CommandError("Focused element is not editable!")
-        log.misc.debug("Inserting text into element {}".format(
-            elem.debug_text()))
-        elem.run_js_async("""
-            var text = '{}';
-            var event = document.createEvent('TextEvent');
-            event.initTextEvent('textInput', true, true, null, text);
-            this.dispatchEvent(event);
-        """.format(javascript.string_escape(text)))
+
+        def _insert_text_cb(elem):
+            if elem is None:
+                message.error(self._win_id, "No element focused!")
+                return
+            try:
+                elem.insert_text(text)
+            except webelem.Error as e:
+                message.error(self._win_id, str(e))
+                return
+
+        tab.elements.find_focused(_insert_text_cb)
 
     @cmdutils.register(instance='command-dispatcher', scope='window',
                        hide=True)

@@ -108,6 +108,13 @@ class WebEngineElement(webelem.AbstractWebElement):
         js_code = javascript.assemble('webelem', 'set_text', self._id, text)
         self._tab.run_js_async(js_code)
 
+    def insert_text(self, text):
+        if not self.is_editable(strict=True):
+            raise webelem.Error("Element is not editable!")
+        log.misc.debug("Inserting text into element {!r}".format(self))
+        js_code = javascript.assemble('webelem', 'insert_text', self._id, text)
+        self._tab.run_js_async(js_code)
+
     def run_js_async(self, code, callback=None):
         """Run the given JS snippet async on the element."""
         # FIXME:qtwebengine get rid of this?

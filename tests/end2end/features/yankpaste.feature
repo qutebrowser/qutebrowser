@@ -229,7 +229,6 @@ Feature: Yanking and pasting.
 
     #### :insert-text
 
-    @qtwebengine_todo: :insert-text is not implemented yet
     Scenario: Inserting text into an empty text field
         When I open data/paste_primary.html
         And I run :click-element id qute-textarea
@@ -238,7 +237,6 @@ Feature: Yanking and pasting.
         # Compare
         Then the text field should contain "Hello world"
 
-    @qtwebengine_todo: :insert-text is not implemented yet
     Scenario: Inserting text into a text field at specific position
         When I open data/paste_primary.html
         And I set the text field to "one two three four"
@@ -252,7 +250,6 @@ Feature: Yanking and pasting.
         # Compare
         Then the text field should contain "onHello worlde two three four"
 
-    @qtwebengine_todo: :insert-text is not implemented yet
     Scenario: Inserting text into a text field with undo
         When I open data/paste_primary.html
         And I run :click-element id qute-textarea
@@ -265,18 +262,16 @@ Feature: Yanking and pasting.
         # Compare
         Then the text field should contain "This text should stay"
 
-    @qtwebengine_todo: :insert-text is not implemented yet
     Scenario: Inserting text without a focused field
         When I open data/paste_primary.html
         And I run :enter-mode insert
         And I run :insert-text test
         Then the error "No element focused!" should be shown
 
-    @qtwebengine_todo: :insert-text is not implemented yet
     Scenario: Inserting text with a read-only field
         When I open data/paste_primary.html
         And I run :click-element id qute-textarea-noedit
         And I wait for "Clicked non-editable element!" in the log
         And I run :enter-mode insert
         And I run :insert-text test
-        Then the error "Focused element is not editable!" should be shown
+        Then the error "Element is not editable!" should be shown
