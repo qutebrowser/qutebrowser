@@ -107,7 +107,11 @@ class WebView(QWebView):
 
     @config.change_filter('colors', 'webpage.bg')
     def _set_bg_color(self):
-        """Set the webpage background color as configured."""
+        """Set the webpage background color as configured.
+
+        FIXME:qtwebengine
+        For QtWebEngine, doing the same has no effect, so we do it in here.
+        """
         col = config.get('colors', 'webpage.bg')
         palette = self.palette()
         if col is None:
@@ -183,7 +187,11 @@ class WebView(QWebView):
 
     @pyqtSlot(usertypes.KeyMode)
     def on_mode_entered(self, mode):
-        """Ignore attempts to focus the widget if in any status-input mode."""
+        """Ignore attempts to focus the widget if in any status-input mode.
+
+        FIXME:qtwebengine
+        For QtWebEngine, doing the same has no effect, so we do it in here.
+        """
         if mode in [usertypes.KeyMode.command, usertypes.KeyMode.prompt,
                     usertypes.KeyMode.yesno]:
             log.webview.debug("Ignoring focus because mode {} was "
@@ -192,7 +200,11 @@ class WebView(QWebView):
 
     @pyqtSlot(usertypes.KeyMode)
     def on_mode_left(self, mode):
-        """Restore focus policy if status-input modes were left."""
+        """Restore focus policy if status-input modes were left.
+
+        FIXME:qtwebengine
+        For QtWebEngine, doing the same has no effect, so we do it in here.
+        """
         if mode in [usertypes.KeyMode.command, usertypes.KeyMode.prompt,
                     usertypes.KeyMode.yesno]:
             log.webview.debug("Restoring focus policy because mode {} was "
@@ -235,6 +247,9 @@ class WebView(QWebView):
         hope a repaint will always be requested when scrolling, and if the
         scroll position actually changed, we emit a signal.
 
+        QtWebEngine has a scrollPositionChanged signal, so it's not needed
+        there.
+
         Args:
             e: The QPaintEvent.
 
@@ -256,7 +271,10 @@ class WebView(QWebView):
         super().paintEvent(e)
 
     def contextMenuEvent(self, e):
-        """Save a reference to the context menu so we can close it."""
+        """Save a reference to the context menu so we can close it.
+
+        This is not needed for QtWebEngine, so it's in here.
+        """
         menu = self.page().createStandardContextMenu()
         self.shutting_down.connect(menu.close)
         modeman.instance(self.win_id).entered.connect(menu.close)
