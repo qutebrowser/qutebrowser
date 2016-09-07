@@ -80,6 +80,7 @@ window._qutebrowser.scroll = (function() {
         var pos = {
             "perc": {"x": perc_x, "y": perc_y},
             "px": {"x": window.scrollX, "y": window.scrollY},
+            "at_bottom": dy === window.scrollY,
         };
 
         // console.log(JSON.stringify(pos));

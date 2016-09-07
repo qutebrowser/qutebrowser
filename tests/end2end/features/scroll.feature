@@ -279,9 +279,16 @@ Feature: Scrolling
         And I wait until the scroll position changed to 0/0
         Then the page should not be scrolled
 
-    @qtwebengine_todo: at_bottom is not implemented yet
     Scenario: :scroll-page with --bottom-navigate
         When I run :scroll-perc 100
+        And I wait until the scroll position changed
+        And I run :scroll-page --bottom-navigate next 0 1
+        Then data/hello2.txt should be loaded
+
+    Scenario: :scroll-page with --bottom-navigate and zoom
+        When I run :zoom 200
+        And I wait until the scroll position changed
+        And I run :scroll-perc 100
         And I wait until the scroll position changed
         And I run :scroll-page --bottom-navigate next 0 1
         Then data/hello2.txt should be loaded

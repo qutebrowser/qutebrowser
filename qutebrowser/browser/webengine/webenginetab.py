@@ -189,6 +189,7 @@ class WebEngineScroller(browsertab.AbstractScroller):
         super().__init__(tab, parent)
         self._pos_perc = (0, 0)
         self._pos_px = QPoint()
+        self._at_bottom = False
 
     def _init_widget(self, widget):
         super()._init_widget(widget)
@@ -219,6 +220,7 @@ class WebEngineScroller(browsertab.AbstractScroller):
             assert isinstance(jsret, dict), jsret
             self._pos_perc = (jsret['perc']['x'], jsret['perc']['y'])
             self._pos_px = QPoint(jsret['px']['x'], jsret['px']['y'])
+            self._at_bottom = jsret['at_bottom']
             self.perc_changed.emit(*self._pos_perc)
 
         js_code = javascript.assemble('scroll', 'pos')
@@ -273,7 +275,7 @@ class WebEngineScroller(browsertab.AbstractScroller):
         return self.pos_px().y() == 0
 
     def at_bottom(self):
-        log.stub()
+        return self._at_bottom
 
 
 class WebEngineHistory(browsertab.AbstractHistory):
