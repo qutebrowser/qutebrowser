@@ -520,7 +520,7 @@ class AbstractTab(QWidget):
 
     WIDGET_CLASS = None
 
-    def __init__(self, win_id, parent=None):
+    def __init__(self, win_id, mode_manager, parent=None):
         self.win_id = win_id
         self.tab_id = next(tab_id_gen)
         super().__init__(parent)
@@ -533,8 +533,8 @@ class AbstractTab(QWidget):
 
         # self.history = AbstractHistory(self)
         # self.scroller = AbstractScroller(self, parent=self)
-        # self.caret = AbstractCaret(win_id=win_id, tab=self, mode_manager=...,
-        #                            parent=self)
+        # self.caret = AbstractCaret(win_id=win_id, tab=self,
+        #                            mode_manager=mode_manager, parent=self)
         # self.zoom = AbstractZoom(win_id=win_id)
         # self.search = AbstractSearch(parent=self)
         # self.printing = AbstractPrinting()
@@ -545,6 +545,7 @@ class AbstractTab(QWidget):
         self._widget = None
         self._progress = 0
         self._has_ssl_errors = False
+        self._mode_manager = mode_manager
         self._load_status = usertypes.LoadStatus.none
         self._mouse_event_filter = mouse.MouseEventFilter(
             self, widget_class=self.WIDGET_CLASS, parent=self)
@@ -650,6 +651,26 @@ class AbstractTab(QWidget):
         self._set_load_status(usertypes.LoadStatus.loading)
         self.load_started.emit()
 
+    def _handle_auto_insert_mode(self, ok):
+        """Handle auto-insert-mode after loading finished."""
+        if not config.get('input', 'auto-insert-mode') or not ok:
+            return
+
+        cur_mode = self._mode_manager.mode
+        if cur_mode == usertypes.KeyMode.insert:
+            return
+
+        def _auto_insert_mode_cb(elem):
+            """Called from JS after finding the focused element."""
+            if elem is None:
+                log.webview.debug("No focused element!")
+                return
+            if elem.is_editable():
+                modeman.enter(self.win_id, usertypes.KeyMode.insert,
+                              'load finished', only_if_normal=True)
+
+        self.elements.find_focused(_auto_insert_mode_cb)
+
     @pyqtSlot(bool)
     def _on_load_finished(self, ok):
         if ok and not self._has_ssl_errors:
@@ -665,6 +686,7 @@ class AbstractTab(QWidget):
         self.load_finished.emit(ok)
         if not self.title():
             self.title_changed.emit(self.url().toDisplayString())
+        self._handle_auto_insert_mode(ok)
 
     @pyqtSlot()
     def _on_history_trigger(self):

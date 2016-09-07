@@ -70,23 +70,15 @@ class WebView(QWebView):
         self._set_bg_color()
         self._tab_id = tab_id
 
-        self._init_page(tab.data)
+        page = webpage.BrowserPage(self.win_id, self._tab_id, tab.data,
+                                   parent=self)
+        self.setPage(page)
+
         mode_manager = objreg.get('mode-manager', scope='window',
                                   window=win_id)
         mode_manager.entered.connect(self.on_mode_entered)
         mode_manager.left.connect(self.on_mode_left)
         objreg.get('config').changed.connect(self._set_bg_color)
-
-    def _init_page(self, tabdata):
-        """Initialize the QWebPage used by this view.
-
-        Args:
-            tabdata: The TabData object for this tab.
-        """
-        page = webpage.BrowserPage(self.win_id, self._tab_id, tabdata,
-                                   parent=self)
-        self.setPage(page)
-        page.mainFrame().loadFinished.connect(self.on_load_finished)
 
     def __repr__(self):
         url = utils.elide(self.url().toDisplayString(QUrl.EncodeUnicode), 100)
@@ -153,37 +145,6 @@ class WebView(QWebView):
         if frame.url().scheme() == 'qute':
             bridge = objreg.get('js-bridge')
             frame.addToJavaScriptWindowObject('qute', bridge)
-
-    @pyqtSlot()
-    def on_load_finished(self):
-        """Handle a finished page load.
-
-        We don't take loadFinished's ok argument here as it always seems to be
-        true when the QWebPage has an ErrorPageExtension implemented.
-        See https://github.com/The-Compiler/qutebrowser/issues/84
-        """
-        ok = not self.page().error_occurred
-        self._handle_auto_insert_mode(ok)
-
-    def _handle_auto_insert_mode(self, ok):
-        """Handle auto-insert-mode after loading finished."""
-        if not config.get('input', 'auto-insert-mode'):
-            return
-        mode_manager = objreg.get('mode-manager', scope='window',
-                                  window=self.win_id)
-        cur_mode = mode_manager.mode
-        if cur_mode == usertypes.KeyMode.insert or not ok:
-            return
-        frame = self.page().currentFrame()
-        try:
-            elem = webkitelem.focus_elem(frame)
-        except webkitelem.IsNullError:
-            log.webview.debug("Focused element is null!")
-            return
-        log.modes.debug("focus element: {}".format(repr(elem)))
-        if elem.is_editable():
-            modeman.enter(self.win_id, usertypes.KeyMode.insert,
-                          'load finished', only_if_normal=True)
 
     @pyqtSlot(usertypes.KeyMode)
     def on_mode_entered(self, mode):

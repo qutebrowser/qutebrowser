@@ -577,7 +577,8 @@ class WebKitTab(browsertab.AbstractTab):
     WIDGET_CLASS = webview.WebView
 
     def __init__(self, win_id, mode_manager, parent=None):
-        super().__init__(win_id)
+        super().__init__(win_id=win_id, mode_manager=mode_manager,
+                         parent=parent)
         widget = webview.WebView(win_id, self.tab_id, tab=self)
         self.history = WebKitHistory(self)
         self.scroller = WebKitScroller(self, parent=self)

@@ -90,7 +90,8 @@ class Tab(browsertab.AbstractTab):
     # pylint: disable=abstract-method
 
     def __init__(self, win_id, mode_manager, parent=None):
-        super().__init__(win_id, parent)
+        super().__init__(win_id=win_id, mode_manager=mode_manager,
+                         parent=parent)
         self.history = browsertab.AbstractHistory(self)
         self.scroller = browsertab.AbstractScroller(self, parent=self)
         self.caret = browsertab.AbstractCaret(win_id=self.win_id,

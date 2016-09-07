@@ -390,7 +390,8 @@ class WebEngineTab(browsertab.AbstractTab):
     WIDGET_CLASS = QOpenGLWidget
 
     def __init__(self, win_id, mode_manager, parent=None):
-        super().__init__(win_id)
+        super().__init__(win_id=win_id, mode_manager=mode_manager,
+                         parent=parent)
         widget = webview.WebEngineView(tabdata=self.data, win_id=win_id)
         self.history = WebEngineHistory(self)
         self.scroller = WebEngineScroller(self, parent=self)

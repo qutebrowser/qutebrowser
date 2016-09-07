@@ -244,7 +244,7 @@ class FakeWebTab(browsertab.AbstractTab):
                  scroll_pos_perc=(0, 0),
                  load_status=usertypes.LoadStatus.success,
                  progress=0):
-        super().__init__(win_id=0)
+        super().__init__(win_id=0, mode_manager=None)
         self._load_status = load_status
         self._title = title
         self._url = url
