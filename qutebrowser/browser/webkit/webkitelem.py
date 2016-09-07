@@ -139,9 +139,9 @@ class WebKitElement(webelem.AbstractWebElement):
             raise webelem.Error("Element is not editable!")
         log.misc.debug("Inserting text into element {!r}".format(self))
         self._elem.evaluateJavaScript("""
-            var text = '{}';
-            var event = document.createEvent('TextEvent');
-            event.initTextEvent('textInput', true, true, null, text);
+            var text = "{}";
+            var event = document.createEvent("TextEvent");
+            event.initTextEvent("textInput", true, true, null, text);
             this.dispatchEvent(event);
         """.format(javascript.string_escape(text)))
 
