@@ -36,6 +36,7 @@ window._qutebrowser.webelem = (function() {
             "text": elem.text,
             "tag_name": elem.tagName,
             "outer_xml": elem.outerHTML,
+            "class_name": elem.className,
             "rects": [],  // Gets filled up later
         };
 

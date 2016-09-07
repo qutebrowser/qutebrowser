@@ -139,7 +139,6 @@ Feature: Using hints
         # The actual check is already done above
         Then no crash should happen
 
-    @qtwebengine_todo: webelem.classes is not implemented yet
     Scenario: Hinting with ACE editor
         When I open data/hints/ace/ace.html
         And I hint with args "inputs" and follow a

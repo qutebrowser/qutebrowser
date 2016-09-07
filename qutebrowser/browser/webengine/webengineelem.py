@@ -71,8 +71,7 @@ class WebEngineElement(webelem.AbstractWebElement):
 
     def classes(self):
         """Get a list of classes assigned to this element."""
-        log.stub()
-        return []
+        return self._js_dict['class_name'].split()
 
     def tag_name(self):
         """Get the tag name of this element.
