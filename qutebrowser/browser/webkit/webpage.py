@@ -496,16 +496,6 @@ class BrowserPage(QWebPage):
         }
         logmap[log_javascript_console](logstring)
 
-    def chooseFile(self, _frame, suggested_file):
-        """Override QWebPage's chooseFile to be able to chose a file to upload.
-
-        Args:
-            frame: The parent QWebFrame.
-            suggested_file: A suggested filename.
-        """
-        filename, _ = QFileDialog.getOpenFileName(None, None, suggested_file)
-        return filename
-
     def acceptNavigationRequest(self,
                                 _frame: QWebFrame,
                                 request: QNetworkRequest,
