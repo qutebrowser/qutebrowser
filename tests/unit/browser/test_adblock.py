@@ -68,6 +68,13 @@ def basedir(fake_args):
     fake_args.basedir = None
 
 
+@pytest.fixture
+def adblock_message_mock(message_mock):
+    """Customized message_mock for the adblock module."""
+    message_mock.patch('qutebrowser.browser.adblock.message')
+    return message_mock
+
+
 class FakeDownloadItem(QObject):
 
     """Mock browser.downloads.DownloadItem."""
@@ -251,7 +258,7 @@ def test_without_datadir(config_stub, tmpdir, monkeypatch, win_registry):
 
 def test_disabled_blocking_update(basedir, config_stub, download_stub,
                                   data_tmpdir, tmpdir, win_registry,
-                                  message_mock):
+                                  adblock_message_mock):
     """Ensure no URL is blocked when host blocking is disabled."""
     config_stub.data = {
         'content': {
@@ -286,7 +293,8 @@ def test_no_blocklist_update(config_stub, download_stub,
 
 
 def test_successful_update(config_stub, basedir, download_stub,
-                           data_tmpdir, tmpdir, win_registry, message_mock):
+                           data_tmpdir, tmpdir, win_registry,
+                           adblock_message_mock):
     """Ensure hosts from host-block-lists are blocked after an update."""
     config_stub.data = {
         'content': {
@@ -306,7 +314,8 @@ def test_successful_update(config_stub, basedir, download_stub,
 
 
 def test_failed_dl_update(config_stub, basedir, download_stub,
-                          data_tmpdir, tmpdir, win_registry, message_mock):
+                          data_tmpdir, tmpdir, win_registry,
+                          adblock_message_mock):
     """One blocklist fails to download.
 
     Ensure hosts from this list are not blocked.
