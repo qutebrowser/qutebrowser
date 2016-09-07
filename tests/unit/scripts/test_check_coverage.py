@@ -19,6 +19,7 @@
 # along with qutebrowser.  If not, see <http://www.gnu.org/licenses/>.
 
 import sys
+import os.path
 
 import pytest
 
@@ -177,3 +178,19 @@ def test_skipped_args(covtest, args, reason):
 def test_skipped_windows(covtest, monkeypatch):
     monkeypatch.setattr('scripts.dev.check_coverage.sys.platform', 'toaster')
     covtest.check_skipped([], "on non-Linux system.")
+
+
+def _generate_files():
+    """Get filenames from WHITELISTED_/PERFECT_FILES."""
+    yield from iter(check_coverage.WHITELISTED_FILES)
+    for test_file, src_file in check_coverage.PERFECT_FILES:
+        if test_file is not None:
+            yield test_file
+        yield src_file
+
+
+@pytest.mark.parametrize('filename', list(_generate_files()))
+def test_files_exist(filename):
+    basedir = os.path.join(os.path.dirname(check_coverage.__file__),
+                           os.pardir, os.pardir)
+    assert os.path.exists(os.path.join(basedir, filename))
