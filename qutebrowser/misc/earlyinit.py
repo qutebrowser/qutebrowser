@@ -220,13 +220,17 @@ def check_pyqt_core():
         sys.exit(1)
 
 
-def check_qt_version():
+def check_qt_version(args):
     """Check if the Qt version is recent enough."""
     from PyQt5.QtCore import qVersion
     from qutebrowser.utils import qtutils
     if qtutils.version_check('5.2.0', operator.lt):
         text = ("Fatal error: Qt and PyQt >= 5.2.0 are required, but {} is "
                 "installed.".format(qVersion()))
+        _die(text)
+    elif args.backend == 'webengine' and qtutils.version_check('5.6.0', operator.lt):
+        text = ("Fatal error: Qt and PyQt >= 5.6.0 are required for "
+                "QtWebEngine support, but {} is installed.".format(qVersion()))
         _die(text)
 
 
@@ -332,7 +336,7 @@ def earlyinit(args):
     fix_harfbuzz(args)
     # Now we can be sure QtCore is available, so we can print dialogs on
     # errors, so people only using the GUI notice them as well.
-    check_qt_version()
+    check_qt_version(args)
     remove_inputhook()
     check_libraries(args)
     check_ssl_support()
