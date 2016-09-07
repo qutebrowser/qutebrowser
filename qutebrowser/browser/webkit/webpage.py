@@ -506,14 +506,6 @@ class BrowserPage(QWebPage):
         filename, _ = QFileDialog.getOpenFileName(None, None, suggested_file)
         return filename
 
-    def shouldInterruptJavaScript(self):
-        """Override shouldInterruptJavaScript to use the statusbar."""
-        answer = self._ask("Interrupt long-running javascript?",
-                           usertypes.PromptMode.yesno)
-        if answer is None:
-            answer = True
-        return answer
-
     def acceptNavigationRequest(self,
                                 _frame: QWebFrame,
                                 request: QNetworkRequest,
