@@ -19,6 +19,7 @@
 
 """Steps for bdd-like tests."""
 
+import os
 import re
 import sys
 import time
@@ -32,6 +33,18 @@ import pytest_bdd as bdd
 
 from qutebrowser.utils import log
 from helpers import utils
+
+
+def get_echo_exe_path():
+    """Return the path to an echo-like command, depending on the system.
+
+    Return:
+        Path to the "echo"-utility.
+    """
+    if sys.platform == "win32":
+        return os.path.join(utils.abs_datapath(), 'userscripts', 'echo.bat')
+    else:
+        return 'echo'
 
 
 @pytest.hookimpl(hookwrapper=True)
@@ -215,6 +228,7 @@ def run_command(quteproc, httpbin, tmpdir, command):
     command = command.replace('(port)', str(httpbin.port))
     command = command.replace('(testdata)', utils.abs_datapath())
     command = command.replace('(tmpdir)', str(tmpdir))
+    command = command.replace('(echo-exe)', get_echo_exe_path())
 
     quteproc.send_cmd(command, count=count, invalid=invalid)
 
