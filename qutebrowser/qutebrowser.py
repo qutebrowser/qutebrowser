@@ -118,9 +118,9 @@ def get_argparser():
     debug.add_argument('--qt-style', help="Set the Qt GUI style to use.",
                        metavar='STYLE')
     debug.add_argument('--qt-arg', help="Choose a qt argument and its value",
-                        nargs=2)
+                       nargs=2)
     debug.add_argument('--qt-flag', help="Choose a qt flag argument",
-                        nargs=1)
+                       nargs=1)
     parser.add_argument('command', nargs='*', help="Commands to execute on "
                         "startup.", metavar=':command')
     # URLs will actually be in command
