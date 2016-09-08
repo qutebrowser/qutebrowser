@@ -132,14 +132,16 @@ def get_args(namespace):
     for argname, val in vars(namespace).items():
         if not argname.startswith('qt_'):
             continue
-        elif val is None:
+        if val is None:
             # flag/argument not given
             continue
-        elif val is True:
-            argv.append('-' + argname[3:])
         else:
-            argv.append('-' + argname[3:])
-            argv.append(val)
+            if val[0] == 'reverse' or val[0] == 'widgetcount':
+                argv.append('-' + val[0])
+                argv.append(True)
+            else:
+                argv.append('-' + val[0])
+                argv.append(val[1])
     return argv
 
 

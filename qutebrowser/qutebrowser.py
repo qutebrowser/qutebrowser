@@ -115,23 +115,12 @@ def get_argparser():
     # For the Qt args, we use store_const with const=True rather than
     # store_true because we want the default to be None, to make
     # utils.qt:get_args easier.
-    debug.add_argument('--qt-name', help="Set the window name.",
-                       metavar='NAME')
     debug.add_argument('--qt-style', help="Set the Qt GUI style to use.",
                        metavar='STYLE')
-    debug.add_argument('--qt-stylesheet', help="Override the Qt application "
-                       "stylesheet.", metavar='STYLESHEET')
-    debug.add_argument('--qt-widgetcount', help="Print debug message at the "
-                       "end about number of widgets left undestroyed and "
-                       "maximum number of widgets existed at the same time.",
-                       action='store_const', const=True)
-    debug.add_argument('--qt-reverse', help="Set the application's layout "
-                       "direction to right-to-left.", action='store_const',
-                       const=True)
-    debug.add_argument('--qt-qmljsdebugger', help="Activate the QML/JS "
-                       "debugger with a specified port. 'block' is optional "
-                       "and will make the application wait until a debugger "
-                       "connects to it.", metavar='port:PORT[,block]')
+    debug.add_argument('--qt-arg', help="Choose a qt argument and its value",
+                        nargs=2)
+    debug.add_argument('--qt-flag', help="Choose a qt flag argument",
+                        nargs=1)
     parser.add_argument('command', nargs='*', help="Commands to execute on "
                         "startup.", metavar=':command')
     # URLs will actually be in command
