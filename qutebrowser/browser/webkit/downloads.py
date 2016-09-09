@@ -508,6 +508,9 @@ class DownloadItem(QObject):
         try:
             if self._filename is not None and os.path.exists(self._filename):
                 os.remove(self._filename)
+                log.downloads.debug("Deleted {}".format(self._filename))
+            else:
+                log.downloads.debug("Not deleting {}".format(self._filename))
         except OSError:
             log.downloads.exception("Failed to remove partial file")
 
@@ -1210,6 +1213,7 @@ class DownloadManager(QAbstractListModel):
         self.update_indexes()
         if not self.downloads:
             self._update_timer.stop()
+        log.downloads.debug("Removed download {}".format(download))
 
     def remove_item_delayed(self, download, delay):
         """Remove a given download after a short delay."""
@@ -1241,6 +1245,7 @@ class DownloadManager(QAbstractListModel):
                 pass
             else:
                 download.deleteLater()
+                log.downloads.debug("Removed download {}".format(download))
         self.endRemoveRows()
         if not self.downloads:
             self._update_timer.stop()
