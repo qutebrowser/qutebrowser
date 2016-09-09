@@ -1263,7 +1263,7 @@ class DownloadManager(QAbstractListModel):
             qtutils.ensure_valid(model_idx)
             self.dataChanged.emit(model_idx, self.last_index())
 
-    def headerData(self, section, orientation, role):
+    def headerData(self, section, orientation, role=Qt.DisplayRole):
         """Simple constant header."""
         if (section == 0 and orientation == Qt.Horizontal and
                 role == Qt.DisplayRole):
@@ -1273,9 +1273,11 @@ class DownloadManager(QAbstractListModel):
 
     def data(self, index, role):
         """Download data from DownloadManager."""
-        qtutils.ensure_valid(index)
+        if not index.isValid():
+            return None
+
         if index.parent().isValid() or index.column() != 0:
-            return QVariant()
+            return None
 
         item = self.downloads[index.row()]
         if role == Qt.DisplayRole:
@@ -1288,18 +1290,20 @@ class DownloadManager(QAbstractListModel):
             data = item
         elif role == Qt.ToolTipRole:
             if item.error_msg is None:
-                data = QVariant()
+                data = None
             else:
                 return item.error_msg
         else:
-            data = QVariant()
+            data = None
         return data
 
-    def flags(self, _index):
+    def flags(self, index):
         """Override flags so items aren't selectable.
 
         The default would be Qt.ItemIsEnabled | Qt.ItemIsSelectable.
         """
+        if not index.isValid():
+            return 0
         return Qt.ItemIsEnabled | Qt.ItemNeverHasChildren
 
     def rowCount(self, parent=QModelIndex()):
