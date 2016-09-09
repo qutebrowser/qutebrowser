@@ -230,9 +230,16 @@ class WebEngineScroller(browsertab.AbstractScroller):
                 # shutting down a tab
                 return
             assert isinstance(jsret, dict), jsret
-            self._pos_perc = (jsret['perc']['x'], jsret['perc']['y'])
             self._pos_px = QPoint(jsret['px']['x'], jsret['px']['y'])
-            self._at_bottom = jsret['at_bottom']
+
+            dx = jsret['scroll']['width'] - jsret['inner']['width']
+            perc_x = 0 if dx == 0 else 100 / dx * jsret['px']['x']
+            dy = jsret['scroll']['height'] - jsret['inner']['height']
+            perc_y = 0 if dy == 0 else 100 / dy * jsret['px']['y']
+
+            self._at_bottom = dy == jsret['scroll']['height']
+            self._pos_perc = perc_x, perc_y
+
             self.perc_changed.emit(*self._pos_perc)
 
         js_code = javascript.assemble('scroll', 'pos')

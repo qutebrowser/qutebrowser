@@ -61,26 +61,17 @@ window._qutebrowser.scroll = (function() {
 
     funcs.pos = function() {
         var elem = document.documentElement;
-        var dx = elem.scrollWidth - window.innerWidth;
-        var dy = elem.scrollHeight - window.innerHeight;
-        var perc_x, perc_y;
-
-        if (dx === 0) {
-            perc_x = 0;
-        } else {
-            perc_x = 100 / dx * window.scrollX;
-        }
-
-        if (dy === 0) {
-            perc_y = 0;
-        } else {
-            perc_y = 100 / dy * window.scrollY;
-        }
 
         var pos = {
-            "perc": {"x": perc_x, "y": perc_y},
             "px": {"x": window.scrollX, "y": window.scrollY},
-            "at_bottom": dy === window.scrollY,
+            "scroll": {
+                "width": elem.scrollWidth,
+                "height": elem.scrollHeight,
+            },
+            "inner": {
+                "width": window.innerWidth,
+                "height": window.innerHeight,
+            },
         };
 
         // console.log(JSON.stringify(pos));
