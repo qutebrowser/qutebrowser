@@ -135,6 +135,10 @@ Feature: Downloading things from a website.
         When I run :download --mhtml http://foobar/
         Then the error "Can only download the current page as mhtml." should be shown
 
+    Scenario: :download with a directory which doesn't exist
+        When I run :download --dest (tmpdir)/somedir/filename http://localhost:(port)/
+        Then the error "Download error: No such file or directory" should be shown
+
     ## mhtml downloads
 
     Scenario: Downloading as mhtml is available
