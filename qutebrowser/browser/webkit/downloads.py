@@ -384,8 +384,8 @@ class DownloadItem(QObject):
         q.text = msg
         q.mode = usertypes.PromptMode.yesno
         q.answered_yes.connect(self._create_fileobj)
-        q.answered_no.connect(functools.partial(self.cancel, False))
-        q.cancelled.connect(functools.partial(self.cancel, False))
+        q.answered_no.connect(functools.partial(self.cancel, remove_data=False))
+        q.cancelled.connect(functools.partial(self.cancel, remove_data=False))
         self.cancelled.connect(q.abort)
         self.error.connect(q.abort)
         message_bridge = objreg.get('message-bridge', scope='window',
@@ -481,7 +481,7 @@ class DownloadItem(QObject):
                                            self.stats.percentage(), system)
 
     @pyqtSlot()
-    def cancel(self, remove_data=True):
+    def cancel(self, *, remove_data=True):
         """Cancel the download.
 
         Args:
