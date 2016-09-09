@@ -98,14 +98,16 @@ def test_ascii_locale(request, httpbin, tmpdir, quteproc_new):
     url = 'http://localhost:{port}/data/downloads/ä-issue908.bin'.format(
         port=httpbin.port)
     quteproc_new.send_cmd(':download {}'.format(url))
-    quteproc_new.wait_for(category='downloads', message='Download finished')
+    quteproc_new.wait_for(category='downloads',
+                          message='Download ?-issue908.bin finished')
 
     # Test :prompt-open-download
     quteproc_new.set_setting('storage', 'prompt-download-directory', 'true')
     quteproc_new.send_cmd(':download {}'.format(url))
     quteproc_new.send_cmd(':prompt-open-download "{}" -c pass'
                           .format(sys.executable))
-    quteproc_new.wait_for(category='downloads', message='Download finished')
+    quteproc_new.wait_for(category='downloads',
+                          message='Download ä-issue908.bin finished')
     quteproc_new.wait_for(category='downloads',
                           message='Opening * with [*python*]')
 

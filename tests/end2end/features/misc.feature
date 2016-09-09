@@ -308,7 +308,7 @@ Feature: Various utility commands.
         When I set content -> enable-pdfjs to false
         And I set storage -> prompt-download-directory to false
         And I open data/misc/test.pdf
-        Then "Download finished" should be logged
+        Then "Download test.pdf finished" should be logged
 
     @qtwebengine_todo: pdfjs is not implemented yet
     Scenario: Downloading a pdf via pdf.js button (issue 1214)

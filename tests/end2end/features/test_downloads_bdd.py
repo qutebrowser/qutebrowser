@@ -45,7 +45,13 @@ def clean_old_downloads(quteproc):
 
 @bdd.when("I wait until the download is finished")
 def wait_for_download_finished(quteproc):
-    quteproc.wait_for(category='downloads', message='Download finished')
+    quteproc.wait_for(category='downloads', message='Download * finished')
+
+
+@bdd.when(bdd.parsers.parse("I wait until the download {name} is finished"))
+def wait_for_download_finished_name(quteproc, name):
+    quteproc.wait_for(category='downloads',
+                      message='Download {} finished'.format(name))
 
 
 @bdd.when("I download an SSL page")

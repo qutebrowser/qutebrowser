@@ -657,7 +657,7 @@ class DownloadItem(QObject):
         self.reply = None
         self.finished.emit()
         self.done = True
-        log.downloads.debug("Download finished")
+        log.downloads.debug("Download {} finished".format(self.basename))
         self.data_changed.emit()
 
     @pyqtSlot()
