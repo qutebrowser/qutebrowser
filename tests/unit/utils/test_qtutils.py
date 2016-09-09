@@ -120,7 +120,8 @@ class TestGetQtArgs:
 
     def test_qt_both(self, parser):
         """Test commandline with a Qt argument and flag."""
-        args = parser.parse_args(['--qt-stylesheet', 'foobar', '--qt-reverse'])
+        args = parser.parse_args(['--qt-arg', 'stylesheet',
+        'foobar', '--qt-flag', 'reverse'])
         qt_args = qtutils.get_args(args)
         assert qt_args[0] == sys.argv[0]
         assert '-reverse' in qt_args
