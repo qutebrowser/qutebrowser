@@ -4,6 +4,41 @@ Feature: Downloading things from a website.
         Given I set up a temporary download dir
         And I clean old downloads
 
+    ## starting downloads
+
+    Scenario: Clicking an unknown link
+        When I set storage -> prompt-download-directory to false
+        And I open data/downloads/downloads.html
+        And I run :click-element id download
+        And I wait until the download is finished
+        Then the downloaded file download.bin should exist
+
+    Scenario: Using :download
+        When I set storage -> prompt-download-directory to false
+        When I run :download http://localhost:(port)/data/downloads/download.bin
+        And I wait until the download is finished
+        Then the downloaded file download.bin should exist
+
+    Scenario: Using hints
+        When I set storage -> prompt-download-directory to false
+        And I open data/downloads/downloads.html
+        And I hint with args "links download" and follow a
+        And I wait until the download is finished
+        Then the downloaded file download.bin should exist
+
+    Scenario: Using rapid hints
+        # We don't expect any prompts with rapid hinting even if this is true
+        When I set storage -> prompt-download-directory to true
+        And I open data/downloads/downloads.html
+        And I hint with args "--rapid links download" and follow a
+        And I run :follow-hint s
+        And I wait until the download download.bin is finished
+        And I wait until the download download2.bin is finished
+        Then the downloaded file download.bin should exist
+        Then the downloaded file download2.bin should exist
+
+    ## Regression tests
+
     Scenario: Downloading which redirects with closed tab (issue 889)
         When I set tabs -> last-close to blank
         And I open data/downloads/issue889.html
@@ -47,6 +82,25 @@ Feature: Downloading things from a website.
         And I run :prompt-accept
         Then the error "Download error: SSL handshake failed" should be shown
 
+    Scenario: Closing window with remove-finished-downloads timeout (issue 1242)
+        When I set ui -> remove-finished-downloads to 500
+        And I open data/downloads/download.bin in a new window
+        And I wait until the download is finished
+        And I run :close
+        And I wait 0.5s
+        Then no crash should happen
+
+    Scenario: Quitting with finished downloads and confirm-quit=downloads (issue 846)
+        Given I have a fresh instance
+        When I set storage -> prompt-download-directory to false
+        And I set ui -> confirm-quit to downloads
+        And I open data/downloads/download.bin
+        And I wait until the download is finished
+        And I run :close
+        Then qutebrowser should quit
+
+    ## :download-retry
+
     Scenario: Retrying a failed download
         When I run :download http://localhost:(port)/does-not-exist
         And I wait for the error "Download error: * - server replied: NOT FOUND"
@@ -66,6 +120,8 @@ Feature: Downloading things from a website.
         When I run :download-retry
         Then the error "No failed downloads!" should be shown
 
+    ## Wrong invocations
+
     Scenario: :download with deprecated dest-old argument
         When I run :download http://localhost:(port)/ deprecated-argument
         Then the warning ":download [url] [dest] is deprecated - use download --dest [dest] [url]" should be shown
@@ -78,6 +134,8 @@ Feature: Downloading things from a website.
     Scenario: :download --mhtml with a URL given
         When I run :download --mhtml http://foobar/
         Then the error "Can only download the current page as mhtml." should be shown
+
+    ## mhtml downloads
 
     Scenario: Downloading as mhtml is available
         When I open html
@@ -183,7 +241,7 @@ Feature: Downloading things from a website.
         And I wait until the download is finished
         Then "Opening *download.bin* with [*python*]" should be logged
 
-    ## https://github.com/The-Compiler/qutebrowser/issues/1728
+    # https://github.com/The-Compiler/qutebrowser/issues/1728
 
     Scenario: Cancelling a download that should be opened
         When I set storage -> prompt-download-directory to true
@@ -192,7 +250,7 @@ Feature: Downloading things from a website.
         And I run :download-cancel
         Then "* finished but not successful, not opening!" should be logged
 
-    ## https://github.com/The-Compiler/qutebrowser/issues/1725
+    # https://github.com/The-Compiler/qutebrowser/issues/1725
 
     Scenario: Directly open a download with a very long filename
         When I set storage -> prompt-download-directory to true
@@ -223,23 +281,26 @@ Feature: Downloading things from a website.
         And I open data/downloads/download.bin
         Then the download prompt should be shown with "{downloaddir}/download.bin"
 
-    ## https://github.com/The-Compiler/qutebrowser/issues/1242
+    ## storage -> remember-download-directory
 
-    Scenario: Closing window with remove-finished-downloads timeout
-        When I set ui -> remove-finished-downloads to 500
-        And I open data/downloads/download.bin in a new window
-        And I wait until the download is finished
-        And I run :close
-        And I wait 0.5s
-        Then no crash should happen
-
-    ## https://github.com/The-Compiler/qutebrowser/issues/846
-
-    Scenario: Quitting with finished downloads and confirm-quit=downloads
-        Given I have a fresh instance
-        When I set storage -> prompt-download-directory to false
-        And I set ui -> confirm-quit to downloads
+    Scenario: Remembering the last download directory
+        When I set storage -> prompt-download-directory to true
+        And I set completion -> download-path-suggestion to both
+        And I set storage -> remember-download-directory to true
         And I open data/downloads/download.bin
-        And I wait until the download is finished
-        And I run :close
-        Then qutebrowser should quit
+        And I wait for the download prompt for "*/download.bin"
+        # (tmpdir) equals {downloaddir}
+        And I run :prompt-accept (tmpdir)/subdir
+        And I open data/downloads/download2.bin
+        Then the download prompt should be shown with "{downloaddir}/subdir/download2.bin"
+
+    Scenario: Not remembering the last download directory
+        When I set storage -> prompt-download-directory to true
+        And I set completion -> download-path-suggestion to both
+        And I set storage -> remember-download-directory to false
+        And I open data/downloads/download.bin
+        And I wait for the download prompt for "{downloaddir}/download.bin"
+        # (tmpdir) equals {downloaddir}
+        And I run :prompt-accept (tmpdir)/subdir
+        And I open data/downloads/download2.bin
+        Then the download prompt should be shown with "{downloaddir}/download2.bin"

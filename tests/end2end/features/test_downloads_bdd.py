@@ -30,11 +30,17 @@ pytestmark = pytest.mark.qtwebengine_todo("Downloads not implemented yet",
                                           run=False)
 
 
+PROMPT_MSG = ("Asking question <qutebrowser.utils.usertypes.Question "
+              "default={!r} mode=<PromptMode.download: 5> "
+              "text='Save file to:'>, *")
+
+
 @bdd.given("I set up a temporary download dir")
 def temporary_download_dir(quteproc, tmpdir):
     quteproc.set_setting('storage', 'prompt-download-directory', 'false')
     quteproc.set_setting('storage', 'remember-download-directory', 'false')
     quteproc.set_setting('storage', 'download-directory', str(tmpdir))
+    (tmpdir / 'subdir').ensure(dir=True)
 
 
 @bdd.given("I clean old downloads")
@@ -52,6 +58,12 @@ def wait_for_download_finished(quteproc):
 def wait_for_download_finished_name(quteproc, name):
     quteproc.wait_for(category='downloads',
                       message='Download {} finished'.format(name))
+
+
+@bdd.when(bdd.parsers.parse('I wait for the download prompt for "{path}"'))
+def wait_for_download_prompt(tmpdir, quteproc, path):
+    full_path = path.replace('{downloaddir}', str(tmpdir)).replace('/', os.sep)
+    quteproc.wait_for(message=PROMPT_MSG.format(full_path))
 
 
 @bdd.when("I download an SSL page")
@@ -76,10 +88,7 @@ def download_should_exist(filename, tmpdir):
                             '"{path}"'))
 def download_prompt(tmpdir, quteproc, path):
     full_path = path.replace('{downloaddir}', str(tmpdir)).replace('/', os.sep)
-    msg = ("Asking question <qutebrowser.utils.usertypes.Question "
-           "default={full_path!r} mode=<PromptMode.download: 5> "
-           "text='Save file to:'>, *".format(full_path=full_path))
-    quteproc.wait_for(message=msg)
+    quteproc.wait_for(message=PROMPT_MSG.format(full_path))
     quteproc.send_cmd(':leave-mode')
 
 
