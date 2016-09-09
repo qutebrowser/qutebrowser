@@ -222,6 +222,12 @@ Feature: Downloading things from a website.
         And I open the download
         Then "Opening *download.bin* with [*python*]" should be logged
 
+    Scenario: Opening a download with a placeholder
+        When I open data/downloads/download.bin
+        And I wait until the download is finished
+        And I open the download with a placeholder
+        Then "Opening *download.bin* with [*python*]" should be logged
+
     Scenario: Opening a download which does not exist
         When I run :download-open with count 42
         Then the error "There's no download 42!" should be shown

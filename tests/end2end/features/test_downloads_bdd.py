@@ -94,8 +94,14 @@ def download_prompt(tmpdir, quteproc, path):
 
 @bdd.when("I open the download")
 def download_open(quteproc):
-    cmd = '{} -c pass'.format(shlex.quote(sys.executable))
+    cmd = '{} -c "import sys; print(sys.argv[1])"'.format(shlex.quote(sys.executable))
     quteproc.send_cmd(':download-open {}'.format(cmd))
+
+
+@bdd.when("I open the download with a placeholder")
+def download_open(quteproc):
+    cmd = '{} -c "import sys; print(sys.argv[1])"'.format(shlex.quote(sys.executable))
+    quteproc.send_cmd(':download-open {} {{}}'.format(cmd))
 
 
 @bdd.when("I directly open the download")
