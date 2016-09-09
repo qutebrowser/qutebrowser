@@ -739,6 +739,7 @@ class DownloadItem(QObject):
 
         if self._redirects > self.MAX_REDIRECTS:
             self._die("Maximum redirection count reached!")
+            self.delete()
             return True  # so on_reply_finished aborts
 
         log.downloads.debug("{}: Handling redirect".format(self))
