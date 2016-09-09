@@ -179,6 +179,27 @@ class Completer(QObject):
         else:
             return s
 
+    def _partition(self):
+        parts = [x for x in self._split(keep=True) if x]
+        pos = self._cmd.cursorPosition() - len(self._cmd.prefix())
+        log.completion.debug('partitioning {} around position {}'.format(parts,
+                                                                         pos))
+        for i, part in enumerate(parts):
+            pos -= len(part)
+            if pos <= 0:
+                if part[pos-1:pos+1].isspace():
+                    # cursor is in a space between two existing words
+                    parts.insert(i, '')
+                prefix = [x.strip() for x in parts[:i]]
+                center = parts[i].strip()
+                # strip trailing whitepsace included as a separate token
+                postfix = [x.strip() for x in parts[i+1:] if not x.isspace()]
+                log.completion.debug(
+                    'partitioned: {} {} {}'.format(prefix, center, postfix))
+                return prefix, center, postfix
+        log.completion.debug('empty partition result')
+        return [], '', []
+
     @pyqtSlot(QItemSelection)
     def on_selection_changed(self, selected):
         """Change the completed part if a new item was selected.
@@ -355,29 +376,18 @@ class Completer(QObject):
                        including a trailing space and we shouldn't continue
                        completing the current item.
         """
-        parts = self._split()
-        log.completion.debug("changing part {} to '{}'".format(
-            self._cursor_part, newtext))
-        try:
-            parts[self._cursor_part] = newtext
-        except IndexError:
-            parts.append(newtext)
-        # We want to place the cursor directly after the part we just changed.
-        cursor_str = self._cmd.prefix() + ' '.join(
-            parts[:self._cursor_part + 1])
-        if immediate:
-            # If we should complete immediately, we want to move the cursor by
-            # one more char, to get to the next field.
-            cursor_str += ' '
-        text = self._cmd.prefix() + ' '.join(parts)
-        if immediate and self._cursor_part == len(parts) - 1:
-            # If we should complete immediately and we're completing the last
-            # part in the commandline, we automatically add a space.
+        before, center, after = self._partition()
+        log.completion.debug("changing {} to '{}'".format(center, newtext))
+        text = self._cmd.prefix() + ' '.join([*before, newtext])
+        pos = len(text) + (1 if immediate else 0)
+        if after:
+            text += ' ' + ' '.join(after)
+        elif immediate:
+            # pad with a space if quick-completing the last entry
             text += ' '
+        log.completion.debug("setting text = '{}', pos = {}".format(text, pos))
         self._cmd.setText(text)
-        log.completion.debug("Placing cursor after '{}'".format(cursor_str))
-        log.modes.debug("Completion triggered, focusing {!r}".format(self))
-        self._cmd.setCursorPosition(len(cursor_str))
+        self._cmd.setCursorPosition(pos)
         self._cmd.setFocus()
         self._cmd.show_cmd.emit()
 

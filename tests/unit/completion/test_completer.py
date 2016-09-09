@@ -204,6 +204,7 @@ def test_update_completion(txt, expected, status_command_stub, completer_obj,
     (':|set', 'set', ':set|'),
     (':|set ', 'set', ':set|'),
     (':|se', 'set', ':set|'),
+    (':|se ', 'set', ':set|'),
     (':s|e', 'set', ':set|'),
     (':se|', 'set', ':set|'),
     (':|se fonts', 'set', ':set| fonts'),
@@ -248,8 +249,6 @@ def test_on_selection_changed(before, newtxt, after, completer_obj,
         config_stub.data['completion']['quick-complete'] = quick_complete
         model.count = unittest.mock.Mock(return_value=count)
         _set_cmd_prompt(status_command_stub, before)
-        # TODO: refactor so cursor_part is a local rather than class variable
-        completer_obj._update_cursor_part()
         completer_obj.on_selection_changed(selection)
         model.data.assert_called_with(indexes[0])
         assert status_command_stub.text() == expected_txt
