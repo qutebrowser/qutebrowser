@@ -108,9 +108,10 @@ class TestGetQtArgs:
         # No Qt arguments
         (['--debug'], [sys.argv[0]]),
         # Qt flag
-        (['--debug', '--qt-reverse', '--nocolor'], [sys.argv[0], '-reverse']),
+        (['--debug', '--qt-flag', 'reverse'], [sys.argv[0], '-reverse']),
         # Qt argument with value
-        (['--qt-stylesheet', 'foo'], [sys.argv[0], '-stylesheet', 'foo']),
+        (['--qt-arg', 'stylesheet', 'foo'],
+         [sys.argv[0], '-stylesheet', 'foo']),
     ])
     def test_qt_args(self, args, expected, parser):
         """Test commandline with no Qt arguments given."""
@@ -119,7 +120,8 @@ class TestGetQtArgs:
 
     def test_qt_both(self, parser):
         """Test commandline with a Qt argument and flag."""
-        args = parser.parse_args(['--qt-stylesheet', 'foobar', '--qt-reverse'])
+        args = parser.parse_args(['--qt-arg', 'stylesheet', 'foobar',
+                                  '--qt-flag', 'reverse'])
         qt_args = qtutils.get_args(args)
         assert qt_args[0] == sys.argv[0]
         assert '-reverse' in qt_args

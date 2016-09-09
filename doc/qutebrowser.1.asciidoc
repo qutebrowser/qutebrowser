@@ -111,23 +111,11 @@ show it.
 *--no-err-windows*::
     Don't show any error windows (used for tests/smoke.py).
 
-*--qt-name* 'NAME'::
-    Set the window name.
+*--qt-arg* 'QT_ARG'::
+    Pass an argument with a value to Qt.
 
-*--qt-style* 'STYLE'::
-    Set the Qt GUI style to use.
-
-*--qt-stylesheet* 'STYLESHEET'::
-    Override the Qt application stylesheet.
-
-*--qt-widgetcount*::
-    Print debug message at the end about number of widgets left undestroyed and maximum number of widgets existed at the same time.
-
-*--qt-reverse*::
-    Set the application's layout direction to right-to-left.
-
-*--qt-qmljsdebugger* 'port:PORT[,block]'::
-    Activate the QML/JS debugger with a specified port. 'block' is optional and will make the application wait until a debugger connects to it.
+*--qt-flag* 'QT_FLAG'::
+    Pass an argument to Qt as flag.
 // QUTE_OPTIONS_END
 
 == FILES
