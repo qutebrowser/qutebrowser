@@ -26,7 +26,7 @@ from PyQt5.QtCore import pyqtSlot, pyqtSignal, QTimer, QObject
 from PyQt5.QtWidgets import QLineEdit
 
 from qutebrowser.keyinput import modeman
-from qutebrowser.commands import cmdutils
+from qutebrowser.commands import cmdutils, cmdexc
 from qutebrowser.utils import usertypes, log, qtutils, objreg, utils
 
 
@@ -236,49 +236,65 @@ class Prompter(QObject):
     @cmdutils.register(instance='prompter', hide=True, scope='window',
                        modes=[usertypes.KeyMode.prompt,
                               usertypes.KeyMode.yesno])
-    def prompt_accept(self):
+    def prompt_accept(self, value=None):
         """Accept the current prompt.
 
         //
 
         This executes the next action depending on the question mode, e.g. asks
         for the password or leaves the mode.
+
+        Args:
+            value: If given, uses this value instead of the entered one.
+                   For boolean prompts, "yes"/"no" are accepted as value.
         """
         prompt = objreg.get('prompt', scope='window', window=self._win_id)
+        text = value if value is not None else prompt.lineedit.text()
+
         if (self._question.mode == usertypes.PromptMode.user_pwd and
                 self._question.user is None):
             # User just entered a username
-            self._question.user = prompt.lineedit.text()
+            self._question.user = text
             prompt.txt.setText("Password:")
             prompt.lineedit.clear()
             prompt.lineedit.setEchoMode(QLineEdit.Password)
         elif self._question.mode == usertypes.PromptMode.user_pwd:
             # User just entered a password
-            password = prompt.lineedit.text()
-            self._question.answer = AuthTuple(self._question.user, password)
+            self._question.answer = AuthTuple(self._question.user, text)
             modeman.maybe_leave(self._win_id, usertypes.KeyMode.prompt,
                                 'prompt accept')
             self._question.done()
         elif self._question.mode == usertypes.PromptMode.text:
             # User just entered text.
-            self._question.answer = prompt.lineedit.text()
+            self._question.answer = text
             modeman.maybe_leave(self._win_id, usertypes.KeyMode.prompt,
                                 'prompt accept')
             self._question.done()
         elif self._question.mode == usertypes.PromptMode.download:
             # User just entered a path for a download.
-            target = usertypes.FileDownloadTarget(prompt.lineedit.text())
+            target = usertypes.FileDownloadTarget(text)
             self._question.answer = target
             modeman.maybe_leave(self._win_id, usertypes.KeyMode.prompt,
                                 'prompt accept')
             self._question.done()
         elif self._question.mode == usertypes.PromptMode.yesno:
             # User wants to accept the default of a yes/no question.
-            self._question.answer = self._question.default
+            if value is None:
+                self._question.answer = self._question.default
+            elif value == 'yes':
+                self._question.answer = True
+            elif value == 'no':
+                self._question.answer = False
+            else:
+                raise cmdexc.CommandError("Invalid value {} - expected "
+                                          "yes/no!".format(value))
             modeman.maybe_leave(self._win_id, usertypes.KeyMode.yesno,
                                 'yesno accept')
             self._question.done()
         elif self._question.mode == usertypes.PromptMode.alert:
+            if value is not None:
+                raise cmdexc.CommandError("No value is permitted with alert "
+                                          "prompts!")
             # User acknowledged an alert
             self._question.answer = None
             modeman.maybe_leave(self._win_id, usertypes.KeyMode.prompt,

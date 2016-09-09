@@ -218,3 +218,34 @@ Feature: Prompts
               "authenticated": true,
               "user": "user"
             }
+
+    # :prompt-accept with value argument
+
+    Scenario: Javascript alert with value
+        When I set content -> ignore-javascript-alert to false
+        And I open data/prompt/jsalert.html
+        And I run :click-element id button
+        And I wait for a prompt
+        And I run :prompt-accept foobar
+        And I run :prompt-accept
+        Then the javascript message "Alert done" should be logged
+        And the error "No value is permitted with alert prompts!" should be shown
+
+    @pyqt>=5.3.1
+    Scenario: Javascript prompt with value
+        When I set content -> ignore-javascript-prompt to false
+        And I open data/prompt/jsprompt.html
+        And I run :click-element id button
+        And I wait for a prompt
+        And I press the keys "prompt test"
+        And I run :prompt-accept "overridden value"
+        Then the javascript message "Prompt reply: overridden value" should be logged
+
+    Scenario: Javascript confirm with invalid value
+        When I open data/prompt/jsconfirm.html
+        And I run :click-element id button
+        And I wait for a prompt
+        And I run :prompt-accept nope
+        And I run :prompt-accept yes
+        Then the javascript message "confirm reply: true" should be logged
+        And the error "Invalid value nope - expected yes/no!" should be shown

@@ -111,6 +111,8 @@ Changed
   when using `--backend webengine`.
 - `content -> javascript-can-open-windows` got renamed to
   `javascript-can-open-windows-automatically`.
+- `:prompt-accept` now optionally accepts a value which overrides the one
+  entered in the input box.
 
 Deprecated
 ~~~~~~~~~~

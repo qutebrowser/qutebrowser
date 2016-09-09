@@ -1219,7 +1219,13 @@ The editor which should be launched can be configured via the `general -> editor
 
 [[prompt-accept]]
 === prompt-accept
+Syntax: +:prompt-accept ['value']+
+
 Accept the current prompt.
+
+==== positional arguments
+* +'value'+: If given, uses this value instead of the entered one. For boolean prompts, "yes"/"no" are accepted as value.
+
 
 [[prompt-no]]
 === prompt-no
