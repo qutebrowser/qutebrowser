@@ -533,7 +533,7 @@ class DownloadItem(QObject):
         filename = self._filename
         if filename is None:
             filename = getattr(self.fileobj, 'name', None)
-        if filename is None:
+        if filename is None:  # pragma: no cover
             log.downloads.error("No filename to open the download!")
             return
 
