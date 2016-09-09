@@ -352,10 +352,7 @@ class DownloadItem(QObject):
             return ('{index}: {name} [{speed:>10}|{down}]{errmsg}'.format(
                 index=self.index, name=self.basename, speed=speed,
                 down=down, errmsg=errmsg))
-        if perc is None:
-            perc = '??'
-        else:
-            perc = round(perc)
+        perc = round(perc)
         if remaining is None:
             remaining = '?'
         else:
