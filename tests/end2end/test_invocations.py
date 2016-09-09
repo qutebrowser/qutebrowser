@@ -20,6 +20,7 @@
 """Test starting qutebrowser with special arguments/environments."""
 
 import sys
+import logging
 
 import pytest
 
@@ -113,6 +114,42 @@ def test_ascii_locale(request, httpbin, tmpdir, quteproc_new):
 
     assert len(tmpdir.listdir()) == 1
     assert (tmpdir / '?-issue908.bin').exists()
+
+
+@pytest.mark.linux
+def test_misconfigured_user_dirs(request, httpbin, temp_basedir_env,
+                                 tmpdir, quteproc_new):
+    """Test downloads with a misconfigured XDG_DOWNLOAD_DIR
+
+    https://github.com/The-Compiler/qutebrowser/issues/866
+    https://github.com/The-Compiler/qutebrowser/issues/1269
+    """
+    if request.config.webengine:
+        pytest.skip("Downloads are not implemented with QtWebEngine yet")
+
+    home = tmpdir / 'home'
+    home.ensure(dir=True)
+    temp_basedir_env['HOME'] = str(home)
+
+    assert temp_basedir_env['XDG_CONFIG_HOME'] == tmpdir / 'config'
+    (tmpdir / 'config' / 'user-dirs.dirs').write('XDG_DOWNLOAD_DIR="relative"',
+                                                 ensure=True)
+
+    quteproc_new.start(_base_args(request.config), env=temp_basedir_env)
+
+    quteproc_new.set_setting('storage', 'prompt-download-directory', 'false')
+    url = 'http://localhost:{port}/data/downloads/download.bin'.format(
+        port=httpbin.port)
+    quteproc_new.send_cmd(':download {}'.format(url))
+    line = quteproc_new.wait_for(
+        loglevel=logging.ERROR, category='message',
+        message='XDG_DOWNLOAD_DIR points to a relative path - please check '
+                'your ~/.config/user-dirs.dirs. The download is saved in your '
+                'home directory.')
+    line.expected = True
+    quteproc_new.wait_for(category='downloads', message='Download finished')
+
+    assert (home / 'download.bin').exists()
 
 
 def test_no_loglines(request, quteproc_new):
