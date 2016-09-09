@@ -237,7 +237,7 @@ class WebEngineScroller(browsertab.AbstractScroller):
             dy = jsret['scroll']['height'] - jsret['inner']['height']
             perc_y = 0 if dy == 0 else 100 / dy * jsret['px']['y']
 
-            self._at_bottom = dy == jsret['scroll']['height']
+            self._at_bottom = dy == jsret['px']['y']
             self._pos_perc = perc_x, perc_y
 
             self.perc_changed.emit(*self._pos_perc)
