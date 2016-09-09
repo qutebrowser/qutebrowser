@@ -27,7 +27,6 @@ import pytest_bdd as bdd
 
 import qutebrowser
 from qutebrowser.utils import docutils
-from qutebrowser.browser import pdfjs
 
 bdd.scenarios('misc.feature')
 
@@ -54,12 +53,6 @@ def update_documentation():
 
     update_script = os.path.join(script_path, 'asciidoc2html.py')
     subprocess.call([sys.executable, update_script])
-
-
-@bdd.given('pdfjs is available')
-def pdfjs_available():
-    if not pdfjs.is_available():
-        pytest.skip("No pdfjs installation found.")
 
 
 @bdd.then(bdd.parsers.parse('the cookie {name} should be set to {value}'))
