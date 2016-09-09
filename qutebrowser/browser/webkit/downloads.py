@@ -481,12 +481,8 @@ class DownloadItem(QObject):
                                            self.stats.percentage(), system)
 
     @pyqtSlot()
-    def cancel(self, remove_data=True):
-        """Cancel the download.
-
-        Args:
-            remove_data: Whether to remove the downloaded data.
-        """
+    def cancel(self):
+        """Cancel the download."""
         log.downloads.debug("cancelled")
         self._read_timer.stop()
         self.cancelled.emit()
@@ -497,8 +493,7 @@ class DownloadItem(QObject):
             self.reply = None
         if self.fileobj is not None:
             self.fileobj.close()
-        if remove_data:
-            self.delete()
+        self.delete()
         self.done = True
         self.finished.emit()
         self.data_changed.emit()
