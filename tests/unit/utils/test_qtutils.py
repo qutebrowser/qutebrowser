@@ -108,9 +108,9 @@ class TestGetQtArgs:
         # No Qt arguments
         (['--debug'], [sys.argv[0]]),
         # Qt flag
-        (['--debug', '--qt-reverse', '--nocolor'], [sys.argv[0], '-reverse']),
+        (['--debug', '--qt-flag', '--nocolor', 'reverse'], [sys.argv[0], '-reverse']),
         # Qt argument with value
-        (['--qt-stylesheet', 'foo'], [sys.argv[0], '-stylesheet', 'foo']),
+        (['--qt-arg', 'stylesheet', 'foo'], [sys.argv[0], '-stylesheet', 'foo']),
     ])
     def test_qt_args(self, args, expected, parser):
         """Test commandline with no Qt arguments given."""

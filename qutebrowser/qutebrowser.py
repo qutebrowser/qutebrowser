@@ -115,11 +115,9 @@ def get_argparser():
     # For the Qt args, we use store_const with const=True rather than
     # store_true because we want the default to be None, to make
     # utils.qt:get_args easier.
-    debug.add_argument('--qt-style', help="Set the Qt GUI style to use.",
-                       metavar='STYLE')
-    debug.add_argument('--qt-arg', help="Choose a qt argument and its value",
+    debug.add_argument('--qt-arg', help="Pass an argument with a value to Qt.",
                        nargs=2)
-    debug.add_argument('--qt-flag', help="Choose a qt flag argument",
+    debug.add_argument('--qt-flag', help="Pass a argument to Qt as flag.",
                        nargs=1)
     parser.add_argument('command', nargs='*', help="Commands to execute on "
                         "startup.", metavar=':command')
